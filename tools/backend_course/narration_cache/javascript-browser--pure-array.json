@@ -1,0 +1,41 @@
+{
+  "hash": "9d2d857468eb2743c8dc15443388bd3aa827c2396d364a82f96ad7c2bcc53608",
+  "by": "hand-compiled",
+  "actions": [
+    {
+      "action": "say",
+      "target": "problem",
+      "text": "표준 입력의 JSON 배열에서 done=false만 골라요.\ntitle을 trim하고 JSON 배열로 출력하세요.\n입력 예: `[{\"title\":\" A \",\"done\":false}]`"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 실행 성공과 모든 검사 통과는 달라요. 단계마다 결과를 확인해요."
+    },
+    {
+      "action": "set_code",
+      "code": "const fs=require('node:fs');\nconst rows=JSON.parse(fs.readFileSync(0,'utf8'));\nconsole.log(JSON.stringify(rows));\n",
+      "say": "먼저 입력이 배열로 읽히는지 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "변환 전의 배열이 보여요. 이제 필요한 값만 골라요."
+    },
+    {
+      "action": "set_code",
+      "code": "// Node 표준 입력 전체를 JSON으로 읽어요.\nconst fs = require('node:fs');\nconst rows = JSON.parse(fs.readFileSync(0,'utf8'));\n// filter 뒤 map으로 남은 값의 모양을 바꿔요.\nconst titles = rows.filter(row => !row.done).map(row => row.title.trim());\nconsole.log(JSON.stringify(titles));\n"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 읽어보세요. 아직 남은 검사와 통과한 검사를 비교해요."
+    }
+  ]
+}

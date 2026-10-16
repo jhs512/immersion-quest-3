@@ -1,0 +1,41 @@
+{
+  "hash": "cd2d5ae167ad8b5a6bade271db5343094ebc57ae6ab29c8b5f93658f3aa68b10",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "# 표 도구 pandas를 불러와요.\nimport pandas as pd\n# 자료를 나누는 함수예요.\nfrom sklearn.model_selection import train_test_split\n# 이번 문제에 쓸 도구를 불러와요.\nfrom sklearn.linear_model import LinearRegression\n\n# 직접 만든 배달 기록이에요. 실제 주문이 아니에요.\ndf = pd.read_csv('data/delivery.csv')\n# 입력 X는 거리·메뉴 수·혼잡 여부, 정답 y는 배달 시간(분)이에요.\nX = df[['distance', 'items', 'rush']]\ny = df['minutes']\n# 훈련 75%, 테스트 25%로 나눠요. random_state로 늘 같게 나눠요.\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)\n# 선형회귀 모델을 만들어요. 아직 아무것도 안 배웠어요.\nmodel = LinearRegression()\n# fit으로 입력과 정답의 관계를 배워요.\nmodel.fit(X_test, y_test)\n# 배운 대로 테스트 행의 배달 시간을 예측해요.\npred = model.predict(X_test)\n# coef_는 거리, 메뉴 수, 혼잡 여부에 곱할 수예요.\nprint(model.coef_.round(2))\n# intercept_는 곱한 값들에 끝으로 더할 수예요.\nprint(round(model.intercept_, 2))\n# 앞 5개 예측을 소수 첫째 자리까지 봐요.\nprint(pred[:5].round(1))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. .42 / [40.9 27.8 25.7 30.1 49.6]"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. X_train과 y_test처럼 몫을 섞으면 행 수가 달라 오류가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "model.fit(X_test, y_test)",
+      "after": "model.fit(X_train, y_train)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. .89 / [44.3 28.2 23.1 28.  52.3]"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

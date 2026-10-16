@@ -1,0 +1,149 @@
+{
+ "format": 2,
+ "hash": "b109e127e3056f7e",
+ "by": "claude",
+ "blocks": {
+  "title": "fd9d6d7b2d90",
+  "problem": "acf5cad043e8",
+  "starter": "a3d53cf74b0f",
+  "example": "e3b0c44298fc",
+  "solution": "b24b9b232072"
+ },
+ "sources": [
+  {
+   "block": "problem",
+   "hash": "acf5cad043e8"
+  },
+  {
+   "block": "starter",
+   "hash": "a3d53cf74b0f"
+  },
+  {
+   "block": "solution",
+   "hash": "b24b9b232072"
+  },
+  {
+   "block": "solution",
+   "hash": "b24b9b232072"
+  },
+  {
+   "block": "solution",
+   "hash": "b24b9b232072"
+  },
+  {
+   "block": "solution",
+   "hash": "b24b9b232072"
+  },
+  {
+   "block": "solution",
+   "hash": "b24b9b232072"
+  },
+  {
+   "block": "solution",
+   "hash": "b24b9b232072"
+  },
+  {
+   "block": "solution",
+   "hash": "b24b9b232072"
+  },
+  {
+   "block": "solution",
+   "hash": "b24b9b232072"
+  },
+  {
+   "block": "solution",
+   "hash": "b24b9b232072"
+  },
+  {
+   "block": "solution",
+   "hash": "b24b9b232072"
+  },
+  {
+   "block": "solution",
+   "hash": "b24b9b232072"
+  },
+  {
+   "block": "solution",
+   "hash": "b24b9b232072"
+  },
+  {
+   "block": "solution",
+   "hash": "b24b9b232072"
+  },
+  {
+   "block": "solution",
+   "hash": "b24b9b232072"
+  }
+ ],
+ "entry": [
+  [
+   "problem",
+   "자, 이번엔 모델이 속으로 계산하는 확률을 직접 꺼내 볼 거예요. 부도 확률이 기준값 0.5를 넘으면 부도라고 답하거든요."
+  ],
+  [
+   "starter",
+   "준비 코드가 model을 만들어서 훈련까지 해 뒀어요. 여러분은 확률만 꺼내면 돼요."
+  ],
+  [
+   "code",
+   "# predict 대신 predict_proba예요. \"부도/정상\"이 아니라 확률을 돌려줘요.\n# 행마다 [정상 확률, 부도 확률] 두 열이 나와요. 0부터 세니까 [:, 1]이 부도 확률이에요.\nprobabilities = model.predict_proba(X_test)[:, 1]\n",
+   "predict_proba는 행마다 정상 확률과 부도 확률 두 열을 줘요. [:, 1]로 부도 확률만 골라 probabilities에 담아요."
+  ],
+  [
+   "run",
+   "일단 실행해 볼게요."
+  ],
+  [
+   "output",
+   "아무것도 안 나오죠? probabilities에 담기만 했지 print를 안 했거든요."
+  ],
+  [
+   "caution",
+   "[:, 0]을 쓰기 쉬운데, 그건 정상 확률이에요. 0부터 세니까 부도 확률은 1번이에요. 조심하세요."
+  ],
+  [
+   "try",
+   "n_positive_05 = int(probabilities >= 0.5.sum())\n",
+   "이렇게 해 볼까요? 괄호를 하나만 쓰면 편할 것 같죠?"
+  ],
+  [
+   "run",
+   "실행하면요."
+  ],
+  [
+   "output",
+   "AttributeError가 나요. float object has no attribute sum이라고요. 0.5라는 숫자에 .sum()을 붙인 셈이거든요. 비교한 배열에 붙여야 해요."
+  ],
+  [
+   "undo",
+   "그래서 비교식을 괄호로 먼저 감싸요."
+  ],
+  [
+   "code",
+   "# 0.5 이상이면 참, 아니면 거짓인 배열이 생겨요. .sum()은 참(1)의 개수고요.\n# int()로 감싸야 numpy 숫자가 아니라 보통 정수로 담겨요.\nn_positive_05 = int((probabilities >= 0.5).sum())\n",
+   "probabilities >= 0.5는 참·거짓 배열이죠? .sum()이 참의 개수고, int()로 감싸 정수로 담아요."
+  ],
+  [
+   "code",
+   "# 기준만 0.3으로 낮췄어요. 경고하는 고객이 얼마나 늘어나는지 보려고요.\nn_positive_03 = int((probabilities >= 0.3).sum())\n",
+   "같은 방식으로 기준을 0.3으로 낮춰서 세요. 부도라고 경고하는 고객이 늘어나거든요."
+  ],
+  [
+   "code",
+   "# 두 수를 나란히 출력해요. 뒤 숫자가 앞 숫자보다 클 거예요.\nprint(n_positive_05, n_positive_03)\n",
+   "두 수를 나란히 출력해서 비교해요."
+  ],
+  [
+   "run",
+   "다시 실행해 볼게요."
+  ],
+  [
+   "output",
+   "495 1155가 나왔죠? 기준 0.5에서는 495명이 부도 경고를 받아요. 0.3으로 낮추니 1155명으로 두 배 넘게 늘었고요."
+  ],
+  [
+   "submit",
+   "제출할게요."
+  ]
+ ]
+}

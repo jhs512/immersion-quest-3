@@ -1,0 +1,41 @@
+{
+  "hash": "f8931c74d7523824be085bb7bae49d93fd86aa9645ad14a0fa804dc15e477f08",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\nfrom sklearn.preprocessing import OneHotEncoder\n\n# 직접 만든 회원 자료를 훈련용과 테스트용으로 따로 받았어요.\ntrain = pd.read_csv('data/train.csv')\ntest = pd.read_csv('data/test.csv')\n# 처음 보는 범주는 0으로 두는 원핫 인코더예요.\nenc = OneHotEncoder(handle_unknown='ignore', sparse_output=False)\n# 훈련 자료의 region을 배우고 바로 바꿔요.\nX_train = enc.fit_transform(train[['region']])\nprint(enc.get_feature_names_out())\nprint(X_train.shape)\n# 테스트 자료의 region을 바꿔요.\nX_test = enc.fit_transform(test[['region']])\n# 인코더가 마지막으로 배운 열 이름과 테스트 결과예요.\nprint(enc.get_feature_names_out())\nprint(X_test.shape)\nprint(X_test)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.   [0. 1.] /  [1. 0.] /  [0. 1.]]"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 열 수가 같아도 테스트로 다시 fit하면 열의 뜻이 바뀔 수 있어요."
+    },
+    {
+      "action": "patch_code",
+      "before": "X_test = enc.fit_transform(test[['region']])",
+      "after": "X_test = enc.transform(test[['region']])",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 0.] /  [0. 1. 0.] /  [0. 0. 0.]]"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

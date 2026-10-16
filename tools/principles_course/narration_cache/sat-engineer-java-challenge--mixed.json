@@ -1,0 +1,41 @@
+{
+  "hash": "37cff017367c9ad4286c83be22a29bb59df9686d41ae3599650b78e0f00baf6f",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "class Main {\n    static class Ticket {\n        static int next;\n        int number;\n        Ticket() {\n            // 현재 번호를 저장한 다음 공통 번호를 늘려요.\n            number = next;\n            next++;\n        }\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Ticket.next = n;\n        Ticket a = new Ticket();\n        Ticket b = new Ticket();\n        // 각 객체에 저장한 번호의 차이를 구해요.\n        System.out.println(Ticket.next - a.number + n);\n    }\n}\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 5"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. next는 생성할 때 변하지만 저장한 number는 남아요."
+    },
+    {
+      "action": "patch_code",
+      "before": "Ticket.next - a.number + n",
+      "after": "b.number - a.number + n",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 4"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+ "hash": "cbeb309019365482",
+ "by": "claude",
+ "code": "import pandas as pd\ncredit = pd.read_csv('data/credit.csv')\ntarget = '다음달 부도'\n# 9월 상환 상태로 묶어요. 열 이름은 따옴표로 감싸요.\n# 묶은 뒤 타깃 열만 골라 count(인원)와 mean(부도율)을 한 표에 담아요.\npay0_summary = credit.groupby('상환_9월')[target].agg(['count', 'mean'])\n# 표에서 한 칸은 loc[행, 열]로 꺼내요. 행 0은 상태 0(최소 금액 상환)이에요.\n# 상태값은 숫자라서 따옴표 없이 0이라고 써요. '0'이라고 쓰면 못 찾아요.\nrate_0 = pay0_summary.loc[0, 'mean']\n# 상태 2(2개월 연체)의 부도율이에요. 'mean'은 열 이름이라 따옴표가 필요해요.\nrate_2 = pay0_summary.loc[2, 'mean']\n# 전체 표를 먼저 봐요. count가 작은 상태의 mean은 믿기 어려워요.\nprint(pay0_summary)\n# 두 부도율을 나란히 출력해요. 몇 배 차이인지 비교해 보세요.\nprint(rate_0, rate_2)\n"
+}

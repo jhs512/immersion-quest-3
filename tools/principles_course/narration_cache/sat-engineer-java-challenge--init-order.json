@@ -1,0 +1,41 @@
+{
+  "hash": "ac03f854d0c7b9642bf9bf320f948df22a643744ad262e749af4b0f4b894af22",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "class Main {\n    static class Box {\n        static int base;\n        // 객체가 만들어지는 순간의 base를 저장해요.\n        int value = base + 1;\n        Box() { base += 10; }\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Box.base = n;\n        // value 초기화 뒤 생성자가 base를 늘려요.\n        Box item = new Box();\n        System.out.println(Box.base);\n    }\n}\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 13"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 나중에 base를 바꿔도 이미 저장한 value는 그대로예요."
+    },
+    {
+      "action": "patch_code",
+      "before": "System.out.println(Box.base);",
+      "after": "System.out.println(item.value);",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 4"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

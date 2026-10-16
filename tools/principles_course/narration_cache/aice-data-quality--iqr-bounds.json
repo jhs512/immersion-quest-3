@@ -1,0 +1,41 @@
+{
+  "hash": "cff94f2bb7755fb1d0876f2029cd9772dbadfa46db6378b5b1121cfe9507950e",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 배달 자료예요. 실제 주문 자료가 아니에요.\ndf = pd.read_csv('data/deliveries.csv')\n# Q1, Q3, IQR을 구해요.\nq1 = df['price'].quantile(0.25)\nq3 = df['price'].quantile(0.75)\niqr = q3 - q1\n# IQR의 1.5배만큼 바깥에 경계를 둬요.\nlow = q1 - 1.5 * iqr\nhigh = q3 + 1.5 * iqr\nprint(low, high)\n# 처리 전 행 수예요.\nprint(len(df))\n# 경계 안의 행만 남겨요.\nkept = df[df['price'] <= high]\n# 처리 후 남은 표와 행 수를 확인해요.\nprint(kept)\nprint(len(kept))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  A11    NaN     29.0  25000 / 12"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `>`와 `<`를 쓰면 경계와 딱 같은 값까지 지워져요."
+    },
+    {
+      "action": "patch_code",
+      "before": "df['price'] <= high",
+      "after": "(df['price'] >= low) & (df['price'] <= high)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  A11    NaN     29.0  25000 / 11"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "hash": "07684b0fd6a81c6805098abb2cc680adf2c02443030d768a58a5b25373107594",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 배달 자료예요. 실제 주문 자료가 아니에요.\ndf = pd.read_csv('data/deliveries.csv')\n# 모든 열 값이 같은 행이 위에 이미 있으면 True예요.\nprint(df.duplicated())\n# True를 더하면 중복 행의 수예요.\nprint(df.duplicated().sum())\n# 처리 전 행 수예요.\nprint(len(df))\n# 중복 행을 지워요.\ndf.drop_duplicates()\n# 처리 후 행 수를 확인해요.\nprint(len(df))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. alse / dtype: bool / 2 / 13 / 13"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `df[df.duplicated()]`는 지운 표가 아니라 중복 행만 고른 표예요."
+    },
+    {
+      "action": "patch_code",
+      "before": "df.drop_duplicates()",
+      "after": "df = df.drop_duplicates()",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. alse / dtype: bool / 2 / 13 / 11"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "hash": "930cbbce0c1ed1ab8807f200bc92b49c34c58ee2ea3cbeb4e70da1a67bf10c07",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n# scikit-learn에서 나누는 함수만 불러와요.\nfrom sklearn.model_selection import train_test_split\n\n# 직접 만든 구독 고객 자료예요. churn이 1이면 떠난 고객이에요.\ndf = pd.read_csv('data/members.csv')\n# 입력 X와 정답 y를 나눠요.\nX = df.drop(columns=['churn'])\ny = df['churn']\n# 테스트 몫 20%를 먼저 떼요. 남은 몫은 X_rest, y_rest예요.\nX_rest, X_test, y_rest, y_test = train_test_split(X, y, test_size=0.2, random_state=42)\n# 남은 몫에서 검증 몫 25%를 떼요.\nX_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.25, random_state=42)\n# 훈련, 검증, 테스트, 전체의 행 수예요.\nprint(len(X_train), len(X_val), len(X_test), len(X))\n# 검증 몫과 테스트 몫에 함께 있는 행 번호예요.\nprint(set(X_val.index) & set(X_test.index))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. {35, 12, 13, 16, 21, 26, 30, 31}"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `X_rest`에 `y`를 짝지으면 행 수가 달라 ValueError가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "(X, y, test_size=0.25",
+      "after": "(X_rest, y_rest, test_size=0.25",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 21 7 8 36 / set()"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "hash": "e1e31ee40774bf839ba6289c314afdb27c98ebeb2927e6df70fcceb991be0025",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 지점 주문 자료예요. 실제 자료가 아니에요.\ndf = pd.read_csv('data/orders.csv')\n# 전체 주문 수예요. 한 행이 주문 하나예요.\nprint(len(df))\n# 금액이 기록된 주문 수를 구하려고 해요.\nresult = len(df['amount'])\n# 결과를 화면에서 확인해요.\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 10 / 10"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 열에 len을 쓰면 금액이 빈 주문까지 세어요."
+    },
+    {
+      "action": "patch_code",
+      "before": "len(df['amount'])",
+      "after": "df['amount'].count()",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 10 / 8"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

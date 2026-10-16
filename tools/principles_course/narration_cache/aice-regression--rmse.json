@@ -1,0 +1,41 @@
+{
+  "hash": "cf0939d6c18bbe4ee4c5ea1efafdaabbaec5386bb7d10adfd6a9ec1c17e41937",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "# 표 도구 pandas와 숫자 도구 numpy를 불러와요.\nimport pandas as pd\nimport numpy as np\n# 자료를 나누는 함수예요.\nfrom sklearn.model_selection import train_test_split\n# 이번 문제에 쓸 도구를 불러와요.\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn.metrics import mean_absolute_error, mean_squared_error\n\n# 직접 만든 배달 기록이에요. 실제 주문이 아니에요.\ndf = pd.read_csv('data/delivery.csv')\n# 입력 X는 거리·메뉴 수·혼잡 여부, 정답 y는 배달 시간(분)이에요.\nX = df[['distance', 'items', 'rush']]\ny = df['minutes']\n# 훈련 75%, 테스트 25%로 나눠요. random_state로 늘 같게 나눠요.\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)\n# 선형회귀를 훈련 자료로 배우고 테스트 행을 예측해요.\nmodel = LinearRegression()\nmodel.fit(X_train, y_train)\npred = model.predict(X_test)\n# 평균 절대 오차예요.\nmae = mean_absolute_error(y_test, pred)\n# 오차를 제곱해 평균 낸 MSE예요.\nmse = mean_squared_error(y_test, pred)\n# RMSE는 MSE의 제곱근이어야 해요.\nrmse = mse\n# 세 지표를 소수 둘째 자리까지 봐요.\nprint('MAE', round(mae, 2))\nprint('MSE', round(mse, 2))\nprint('RMSE', round(rmse, 2))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. AE 3.64 / MSE 36.97 / RMSE 36.97"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. MSE를 그대로 보고하면 분의 제곱이라 크게 부풀어 보여요."
+    },
+    {
+      "action": "patch_code",
+      "before": "rmse = mse",
+      "after": "rmse = np.sqrt(mse)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. MAE 3.64 / MSE 36.97 / RMSE 6.08"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

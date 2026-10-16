@@ -1,0 +1,41 @@
+{
+  "hash": "c3170c24919ac7b5f59e687703b75b055ffcb27a9b5297d4b8107b008dbecb86",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "class Ticket {\n    // 기본 요금을 그대로 돌려줘요.\n    int fee(int base) {\n        return base;\n    }\n}\n\n// Kid는 Ticket을 물려받는 자식이에요.\nclass Kid extends Ticket {\n    // 부모와 이름·매개변수가 같은 메서드를 다시 만들어요.\n    int fee(int base) {\n        // 어린이는 반값이에요.\n        return base / 2;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // 기본 요금이에요.\n        int base = 12000;\n        // 두 변수 모두 자료형은 Ticket이에요.\n        Ticket adult = new Ticket();\n        Ticket kid = new Ticket();\n        // 같은 fee 호출이 담긴 객체에 따라 달라지는지 봐요.\n        System.out.println(\"어른: \" + adult.fee(base));\n        System.out.println(\"어린이: \" + kid.fee(base));\n    }\n}\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 어른: 12000 / 어린이: 12000"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 변수 자료형만 Kid로 바꾸면 컴파일 오류가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "Ticket kid = new Ticket();",
+      "after": "Ticket kid = new Kid();",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 어른: 12000 / 어린이: 6000"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

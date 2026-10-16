@@ -1,0 +1,41 @@
+{
+  "hash": "87e1c6feeebe89f5f583c1b30198d67b78ab1009f8b9706854cd5f09e089569c",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "class Exercise {\n    // 값이 바뀌는 줄을 실행 결과와 비교해요.\n    static String run(String text) throws Exception {\n        // 파일에 저장한 뒤 메모리의 값을 바꿔요.\n        var path=java.nio.file.Path.of(\"quote.txt\");\n        java.nio.file.Files.writeString(path,text);\n        // 메모리의 새 값과 파일은 독립이에요.\n        text=\"changed\";\n        return text;\n    }\n}\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. changed"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 실행 성공과 모든 검사 통과는 달라요."
+    },
+    {
+      "action": "patch_code",
+      "before": "return text;",
+      "after": "return java.nio.file.Files.readString(path);",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. remember"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

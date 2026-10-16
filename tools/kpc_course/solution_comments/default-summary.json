@@ -1,0 +1,5 @@
+{
+ "hash": "811de7a2739aafd4",
+ "by": "claude",
+ "code": "import pandas as pd\ncredit = pd.read_csv('data/credit.csv')\ntarget = '다음달 부도'\n# 타깃이 0과 1뿐이라 더하면 1의 개수, 즉 부도 인원이에요\n# int()로 감싸서 numpy 숫자가 아닌 보통 정수로 바꿔요\ndefault_count = int(credit[target].sum())\n# 0과 1의 평균은 1의 비율이에요. 그래서 mean()이 곧 부도율이죠\ndefault_rate = credit[target].mean()\n# 고객번호는 그냥 번호라 입력이 못 되고, 타깃은 정답이라 빼야 해요\n# columns=[...] 리스트 안에 열 이름을 따옴표로 적어요. target은 변수라 따옴표 없이요\nX = credit.drop(columns=['고객번호', target])\n# f'{...:.2%}'는 0.2212를 22.12%처럼 보여 줘요. X.shape는 (행 수, 열 수)고요\nprint(default_count, f'{default_rate:.2%}', X.shape)\n"
+}

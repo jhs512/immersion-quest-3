@@ -1,0 +1,156 @@
+{
+ "format": 2,
+ "hash": "38a1c40fa6111df9",
+ "by": "claude",
+ "blocks": {
+  "title": "48f82c7a490b",
+  "problem": "b3fcbed91918",
+  "starter": "cec4edfa17e9",
+  "example": "e3b0c44298fc",
+  "solution": "68747d687816"
+ },
+ "sources": [
+  {
+   "block": "problem",
+   "hash": "b3fcbed91918"
+  },
+  {
+   "block": "starter",
+   "hash": "cec4edfa17e9"
+  },
+  {
+   "block": "solution",
+   "hash": "68747d687816"
+  },
+  {
+   "block": "solution",
+   "hash": "68747d687816"
+  },
+  {
+   "block": "solution",
+   "hash": "68747d687816"
+  },
+  {
+   "block": "solution",
+   "hash": "68747d687816"
+  },
+  {
+   "block": "solution",
+   "hash": "68747d687816"
+  },
+  {
+   "block": "solution",
+   "hash": "68747d687816"
+  },
+  {
+   "block": "solution",
+   "hash": "68747d687816"
+  },
+  {
+   "block": "solution",
+   "hash": "68747d687816"
+  },
+  {
+   "block": "solution",
+   "hash": "68747d687816"
+  },
+  {
+   "block": "solution",
+   "hash": "68747d687816"
+  },
+  {
+   "block": "solution",
+   "hash": "68747d687816"
+  },
+  {
+   "block": "solution",
+   "hash": "68747d687816"
+  },
+  {
+   "block": "solution",
+   "hash": "68747d687816"
+  },
+  {
+   "block": "solution",
+   "hash": "68747d687816"
+  },
+  {
+   "block": "solution",
+   "hash": "68747d687816"
+  }
+ ],
+ "entry": [
+  [
+   "problem",
+   "자, 지금까지 배운 네 단계를 한 번에 이어요. html을 soup로 만들고, li마다 딕셔너리를 모아서, 마지막에 표로 만들어요."
+  ],
+  [
+   "starter",
+   "준비 코드가 pandas와 BeautifulSoup을 가져오고, data/prices.html을 html로 읽어 뒀어요. 그대로 둘게요."
+  ],
+  [
+   "code",
+   "# 읽어 둔 html 글자를 BeautifulSoup가 뒤질 수 있는 soup로 만들어요\nsoup = BeautifulSoup(html, 'html.parser')\n# 종목 하나가 딕셔너리 하나. 빈 리스트에 차곡차곡 모을 거예요\nrows = []\n",
+   "먼저 html로 soup를 만들어요. 그리고 딕셔너리를 모을 빈 리스트 rows를 준비해요."
+  ],
+  [
+   "run",
+   "일단 실행해 볼게요."
+  ],
+  [
+   "output",
+   "아무것도 안 나오죠? soup와 빈 rows를 만들기만 했거든요. 아직 화면에 찍은 게 없어요."
+  ],
+  [
+   "try",
+   "# '#prices li': id가 prices인 상자 안의 li를 하나씩 돌아요\nfor item in soup.select('#prices li'):\n    rows.append({'code': item['data-code'], 'name': item.select_one('.name').get_text(strip=True), 'price': int(item.select_one('b').get_text(strip=True))})\n",
+   "이렇게 해 볼까요? 가격 글자를 바로 int에 넣는 거예요."
+  ],
+  [
+   "run",
+   "실행하면요."
+  ],
+  [
+   "output",
+   "빨간 Traceback이 나죠? 맨 아래를 보세요. ValueError: invalid literal for int()에 '10,000'이 찍혔어요. 쉼표가 든 글자는 int가 숫자로 못 바꾸거든요."
+  ],
+  [
+   "undo",
+   "그래서 쉼표를 먼저 떼야 해요. 되돌릴게요."
+  ],
+  [
+   "code",
+   "# '#prices li': id가 prices인 상자 안의 li를 하나씩 돌아요\nfor item in soup.select('#prices li'):\n    # item['data-code']는 태그의 속성값이에요. 글자 안이 아니라 꺾쇠 안에 있어요\n    # .name은 class가 name인 태그. select_one은 첫 번째 하나만 꺼내요\n    # b 안의 '10,000'은 글자예요. 쉼표를 빼고 int로 바꿔야 숫자가 돼요\n    rows.append({'code': item['data-code'], 'name': item.select_one('.name').get_text(strip=True), 'price': int(item.select_one('b').get_text(strip=True).replace(',', ''))})\n",
+   "#prices li를 하나씩 돌아요. 코드는 data-code 속성에서, 이름은 .name 글자에서 꺼내고요. 가격은 b 글자에서 replace로 쉼표를 떼고 int로 바꿔요. 셋을 딕셔너리로 묶어 rows에 append하면 돼요."
+  ],
+  [
+   "run",
+   "다시 실행해요."
+  ],
+  [
+   "output",
+   "이번엔 아무것도 안 나오죠? 오류가 사라졌다는 뜻이에요. 쉼표를 뗀 '10000'은 int가 받거든요. rows에 li 하나당 딕셔너리 하나가 모였어요."
+  ],
+  [
+   "caution",
+   "속성값은 item['data-code']처럼 꺾쇠 안에서 꺼내요. get_text로 글자 안을 뒤지기 쉬운데, 거기엔 코드가 없으니 조심하세요."
+  ],
+  [
+   "code",
+   "# 딕셔너리 리스트를 표로. 키가 열 이름, 딕셔너리 하나가 한 행이 돼요\ndf = pd.DataFrame(rows)\n# 마지막 줄에 df만 두면 표가 화면에 보여요\ndf\n",
+   "딕셔너리 리스트를 pd.DataFrame에 넣으면 표가 되죠? 앞 단원에서 본 그대로예요. 마지막 줄에 df만 두면 표가 보여요."
+  ],
+  [
+   "run",
+   "실행해 볼게요."
+  ],
+  [
+   "output",
+   "오류 없이 끝났어요. 여기선 마지막 줄의 df가 글로 안 찍혔네요. 표가 보고 싶으면 print(df)를 써 보세요. code, name, price 세 열이 있고 price가 쉼표 없는 정수면 돼요."
+  ],
+  [
+   "submit",
+   "제출할게요."
+  ]
+ ]
+}

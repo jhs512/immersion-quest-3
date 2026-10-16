@@ -1,0 +1,5 @@
+{
+ "hash": "fb281bb370421762",
+ "by": "claude",
+ "code": "import pandas as pd\norders = pd.DataFrame({'product': ['A', 'B', 'A', 'C'], 'price': [10000, 20000, 12000, None], 'quantity': [3, 2, 4, 1]})\n# 원본은 건드리지 않게 복사본을 만들어요. copy()를 빼면 orders까지 바뀔 수 있거든요\nfilled = orders.copy()\n# 가격 빈칸(결측)을 가격의 중앙값으로 채워요. 'price'는 따옴표 붙인 열 이름이에요\nfilled['price'] = filled['price'].fillna(filled['price'].median())\n# 가격 × 수량으로 금액 열 amount를 새로 만들어요. 열끼리 곱하면 행마다 계산돼요\nfilled['amount'] = filled['price'] * filled['quantity']\n# 이번엔 가격이 빈 행을 통째로 빼요. subset=['price']는 가격 열만 보고 판단하라는 뜻이에요\ndropped = orders.dropna(subset=['price']).copy()\n# 뺀 표에도 똑같이 amount 열을 만들어요\ndropped['amount'] = dropped['price'] * dropped['quantity']\n# 채운 표의 금액 합계예요. sum()은 열의 값을 전부 더해요\nfilled_total = filled['amount'].sum()\n# 뺀 표의 금액 합계예요. 빈 행이 빠졌으니 filled_total보다 작게 나와요\ndropped_total = dropped['amount'].sum()\n# 두 합계를 나란히 출력해요. 빈칸 하나를 어떻게 다루느냐에 따라 답이 달라져요\nprint(filled_total, dropped_total)\n# 마지막 줄에 변수 이름만 쓰면 채운 표가 화면에 나와요\nfilled\n"
+}

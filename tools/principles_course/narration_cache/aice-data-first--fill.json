@@ -1,0 +1,41 @@
+{
+  "hash": "ab9b8da773fef0ae57c1e99416d284b22a8e88cf7ffe85b678baaf2a17f2a143",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 방문 자료예요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/visits.csv')\n# 이 줄에서 자료를 골라요. 원본 표와 결과를 비교해요.\nresult = df['minutes']\n# 계산한 값을 눈으로 확인해요.\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  / Name: minutes, dtype: float64"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 연습에서는 전체 중앙값을 써요. 모델링 전에는 훈련 자료로 구해요."
+    },
+    {
+      "action": "patch_code",
+      "before": "result = df['minutes']",
+      "after": "result = df['minutes'].fillna(df['minutes'].median())",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  / Name: minutes, dtype: float64"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

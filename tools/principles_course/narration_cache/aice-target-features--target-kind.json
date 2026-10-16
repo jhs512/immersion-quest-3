@@ -1,0 +1,41 @@
+{
+  "hash": "ccc68602c80c61441eeb362ca81130f839c3a83d8d1c52bc1e73fbc99d7544a6",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 회원 자료예요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/next_month.csv')\n# amount는 다음 달 구매 금액(원)이에요. 안 샀으면 0이에요.\n# bought는 다음 달에 샀으면 1, 안 샀으면 0이에요.\n\n# 질문: 회원이 다음 달에 살까요, 안 살까요?\n# 맞힐 열(타깃)의 이름이에요.\ntarget = 'amount'\n# 타깃에 서로 다른 값이 몇 개인지 세요.\nkinds = df[target].nunique()\nprint(kinds)\n# 값마다 몇 행인지 봐요.\nprint(df[target].value_counts())\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.    1 / Name: count, dtype: int64"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `unique()`는 개수가 아니라 서로 다른 값의 목록을 돌려줘요."
+    },
+    {
+      "action": "patch_code",
+      "before": "target = 'amount'",
+      "after": "target = 'bought'",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.    4 / Name: count, dtype: int64"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

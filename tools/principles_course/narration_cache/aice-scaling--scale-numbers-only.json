@@ -1,0 +1,41 @@
+{
+  "hash": "0fa5c5dd947e2f36566871971037d587382ca2d56653802dfe63be04861f1af9",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.preprocessing import StandardScaler\n\n# 직접 만든 매장 자료예요. 실제 매장 자료가 아니에요.\ndf = pd.read_csv('data/stores.csv')\n# 매장 유형(type)을 원핫 인코딩해요. 0과 1로 된 열이 생겨요.\nX = pd.get_dummies(df, columns=['type'], dtype=int)\n# 훈련 75%, 테스트 25%로 나눠요. X만 넣으면 두 몫이 나와요.\nX_train, X_test = train_test_split(X, test_size=0.25, random_state=42)\n# 크기를 맞출 숫자 열 이름이에요.\nnum_cols = ['seats', 'rent', 'visitors']\n# 표준화 도구를 만들어요.\nscaler = StandardScaler()\n# 지금은 표 전체를 바꿔 새 표로 감싸요. 행 번호가 0부터 새로 붙어요.\nX_train = pd.DataFrame(scaler.fit_transform(X_train), columns=X_train.columns)\nX_test = pd.DataFrame(scaler.fit_transform(X_test), columns=X_test.columns)\n# 두 표의 (행 수, 열 수)예요.\nprint(X_train.shape, X_test.shape)\n# 소수 둘째 자리까지 봐요. 원핫 열의 값도 보세요.\nprint(X_train.round(2))\nprint(X_test.round(2))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. -0.71           0.0         0.71"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `transform`에 X_test 전체를 넣으면 열 이름이 달라 ValueError가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "# 지금은 표 전체를 바꿔 새 표로 감싸요. 행 번호가 0부터 새로 붙어요.\nX_train = pd.DataFrame(scaler.fit_transform(X_train), columns=X_train.columns)\nX_test = pd.DataFrame(scaler.fit_transform(X_test), columns=X_test.columns)",
+      "after": "# 숫자 열만 바꿔 같은 자리에 다시 담아요.\nX_train[num_cols] = scaler.fit_transform(X_train[num_cols])\nX_test[num_cols] = scaler.transform(X_test[num_cols])",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.     0             0            1"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "hash": "dd669528a585a3f124647611e4cd2e09864eae4ea72c4ff655e594fcbfdc6db4",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "class Main {\n    static class Base {\n        static int shared;\n        int read() { return shared; }\n    }\n    static class Child extends Base {\n        // 실제 Child 객체의 메서드가 실행돼요.\n        int read() { return shared + 10; }\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Base.shared = n;\n        Base ref = new Child();\n        // 부모를 새로 만들지 않고 준비된 객체를 호출해요.\n        System.out.println(new Base().read());\n    }\n}\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 3"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 변수 타입이 Base여도 이 호출은 Child의 read예요."
+    },
+    {
+      "action": "patch_code",
+      "before": "new Base().read()",
+      "after": "ref.read()",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 13"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

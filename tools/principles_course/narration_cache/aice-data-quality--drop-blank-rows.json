@@ -1,0 +1,41 @@
+{
+  "hash": "2a68b2cbaed064c3722859b133251f62b08f646f969252b648e89bb4c7dfa9e9",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 배달 자료예요. 실제 주문 자료가 아니에요.\ndf = pd.read_csv('data/deliveries.csv')\n# 처리 전 행 수예요.\nprint(len(df))\n# 빈칸을 보고 행을 지운 새 표를 담아요.\n# 괄호가 비면 모든 열의 빈칸을 따져요.\nresult = df.dropna()\n# 처리 후 남은 표와 행 수를 확인해요.\nprint(result)\nprint(len(result))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.   A09  south     20.0  21000 / 8"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `subset=` 없이 `['minutes']`만 넣으면 TypeError가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "df.dropna()",
+      "after": "df.dropna(subset=['minutes'])",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  A11    NaN     29.0  25000 / 11"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

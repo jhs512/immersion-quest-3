@@ -1,0 +1,41 @@
+{
+  "hash": "87f6cd9a704cb45168d8f97a08b8bf5289fb5b9dabc674bbb7b38e0285a4e5f5",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\nfrom sklearn.preprocessing import LabelEncoder\n\n# 직접 만든 회원 자료예요. 실제 회원 자료가 아니에요.\ndf = pd.read_csv('data/members.csv')\n# 등급은 low < mid < high 순서가 있어요.\nle = LabelEncoder()\n# 라벨 인코더는 abc 순서로 번호를 줘요.\ndf['abc_code'] = le.fit_transform(df['grade'])\nprint(le.classes_)\n# 모델에 넣을 등급 번호예요.\ndf['grade_code'] = df['abc_code']\n# 등급과 두 번호를 나란히 봐요.\nprint(df[['grade', 'abc_code', 'grade_code']])\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  / 7   low         1           1"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 딕셔너리에 없는 값은 대소문자만 달라도 NaN이 돼요."
+    },
+    {
+      "action": "patch_code",
+      "before": "df['grade_code'] = df['abc_code']",
+      "after": "df['grade_code'] = df['grade'].map({'low': 0, 'mid': 1, 'high': 2})",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  / 7   low         1           0"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

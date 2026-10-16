@@ -1,0 +1,41 @@
+{
+  "hash": "9192084cdf65fcf2457d974728d2cbbe37a06ec245a39c2b61bb5e3149a3401d",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\nfrom sklearn.model_selection import train_test_split\n# 각 문제는 자기 자료를 처음부터 읽어요.\ndf = pd.read_csv('data/members.csv')\n# 타깃을 입력에서 빼고 같은 행의 정답을 남겨요.\nX = df[['age', 'fee']]\ny = df['churn']\n# 세 조건을 동시에 만족시켜요.\nX_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=0.5, random_state=3)\nprint(X_valid.index.tolist())\nprint(y_valid.tolist())\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0]"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 정답 숫자를 외워 쓰면 자료가 바뀔 때 틀려요."
+    },
+    {
+      "action": "patch_code",
+      "before": "test_size=0.5, random_state=3",
+      "after": "test_size=0.25, random_state=19, stratify=y",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. , 16] / [0, 0, 1, 0, 0, 0, 0, 1]"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "hash": "1acdcc230d9ec58a4205271d96012fed746ca27fbbe3cf7dd60d500f8874e66c",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 지점 주문 자료예요. 실제 자료가 아니에요.\ndf = pd.read_csv('data/orders.csv')\n# 기준 금액이에요.\nlimit = 12000\n# 금액이 limit 이상인지 행마다 비교해요.\nabove = df['amount'] >= limit\n# True는 1, False는 0으로 계산해요.\nresult = above.sum()\n# 전체 행 수도 함께 봐요.\nprint(len(df))\n# 결과를 화면에서 확인해요.\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 10 / 4"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `count()`로 나누면 금액이 빈 주문이 분모에서 빠져요."
+    },
+    {
+      "action": "patch_code",
+      "before": "above.sum()",
+      "after": "above.mean()",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 10 / 0.4"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

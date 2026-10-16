@@ -1,0 +1,41 @@
+{
+  "hash": "93ab93c82505ce9f5cb910b3fe83c6fc99c54a678757377f5752676e58bfd620",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n# 그래프 도구를 plt라는 별명으로 불러와요.\nimport matplotlib.pyplot as plt\n\n# 직접 만든 배달 기록이에요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/delivery.csv')\n# zone은 구역, distance는 거리(km)예요.\n# minutes는 배달 시간(분), price는 주문 금액(원)이에요.\n\n# 질문: 구역마다 배달 시간은 평균 몇 분일까요?\ntable = df['zone'].value_counts()\nprint(table)\n# table의 숫자가 막대 높이가 돼요.\ntable.plot(kind='bar')\n\n# 축 이름에 단위까지 적었어요.\nplt.xlabel('구역')\nplt.ylabel('평균 시간(분)')\n# 제목을 달고 그림을 보여 줘요.\nplt.title('구역별 평균 배달 시간')\nplt.show()\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.    3 / Name: count, dtype: int64"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. groupby 뒤에 열을 고르지 않으면 숫자 열마다 막대가 생겨요."
+    },
+    {
+      "action": "patch_code",
+      "before": "table = df['zone'].value_counts()",
+      "after": "table = df.groupby('zone')['minutes'].mean()",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  / Name: minutes, dtype: float64"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

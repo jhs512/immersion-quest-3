@@ -1,0 +1,41 @@
+{
+  "hash": "f4a30dc2bbe2a8851005f0173666ec871e42eac104fb78bef1582541370afe77",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 회원 자료를 훈련용과 테스트용으로 따로 받았어요.\ntrain = pd.read_csv('data/train.csv')\ntest = pd.read_csv('data/test.csv')\n# 등급 순서대로 번호를 주는 딕셔너리예요.\norder = {'low': 0, 'mid': 1, 'high': 2}\n# 훈련 등급을 딕셔너리의 번호로 바꿔요.\ntrain['grade'] = train['grade'].map(order)\n# 입력 열만 골라 channel을 원핫해요.\ncols = ['grade', 'visits', 'channel']\nX_train = pd.get_dummies(train[cols], columns=['channel'], dtype=int)\nX_test = pd.get_dummies(test[cols], columns=['channel'], dtype=int)\n# 두 표의 열 이름과 테스트 표를 확인해요.\nprint(X_train.columns)\nprint(X_test.columns)\nprint(X_test)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.    1              0            0"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 테스트 등급을 바꾸지 않으면 X_test의 grade가 글자로 남아요."
+    },
+    {
+      "action": "patch_code",
+      "before": "train['grade'] = train['grade'].map(order)\n# 입력 열만 골라 channel을 원핫해요.\ncols = ['grade', 'visits', 'channel']\nX_train = pd.get_dummies(train[cols], columns=['channel'], dtype=int)\nX_test = pd.get_dummies(test[cols], columns=['channel'], dtype=int)",
+      "after": "train['grade'] = train['grade'].map(order)\n# 테스트 등급도 같은 딕셔너리로 바꿔요.\ntest['grade'] = test['grade'].map(order)\n# 입력 열만 골라 channel을 원핫해요.\ncols = ['grade', 'visits', 'channel']\nX_train = pd.get_dummies(train[cols], columns=['channel'], dtype=int)\nX_test = pd.get_dummies(test[cols], columns=['channel'], dtype=int)\n# 테스트 열을 훈련 열에 맞춰요.\nX_test = X_test.reindex(columns=X_train.columns, fill_value=0)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.    1              0            0"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

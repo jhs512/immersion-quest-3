@@ -1,0 +1,41 @@
+{
+  "hash": "9f8aca4592ced540f3fefc75d4d00e97d8e74201583e3821ccb5be6fb385c341",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\nfrom sklearn.preprocessing import OneHotEncoder\n\n# 직접 만든 회원 자료를 훈련용과 테스트용으로 따로 받았어요.\ntrain = pd.read_csv('data/train.csv')\ntest = pd.read_csv('data/test.csv')\n# 원핫 인코더예요. 기본 결과는 0을 빼고 줄여 담은 희소(sparse) 형태예요.\n# sparse_output=False면 0까지 모두 담은 배열로 줘요.\nenc = OneHotEncoder(sparse_output=False)\n# 훈련 자료의 channel 종류를 배워요. 대괄호 두 겹은 표 모양이에요.\nenc.fit(train[['channel']])\n# 배운 열 이름이에요.\nprint(enc.get_feature_names_out())\n# 테스트 자료의 channel이에요. 행 순서를 봐 둬요.\nprint(test[['channel']])\n# 테스트 자료는 배운 대로 바꾸기만 해요.\nX_test = enc.transform(test[['channel']])\n# 1.과 0.은 소수점이 붙은 1과 0이에요.\nprint(X_test)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "지금 코드는 검사를 통과하지 못해요."
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `test['channel']`처럼 대괄호를 한 겹만 쓰면 ValueError가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "OneHotEncoder(sparse_output=False)",
+      "after": "OneHotEncoder(handle_unknown='ignore', sparse_output=False)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 0.] /  [0. 0. 1.] /  [1. 0. 0.]]"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

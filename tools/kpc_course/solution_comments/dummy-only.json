@@ -1,0 +1,5 @@
+{
+ "hash": "15799a2d7ffb2436",
+ "by": "claude",
+ "code": "import pandas as pd\ntitanic = pd.read_csv('data/titanic.csv')\nfeatures = ['객실등급', '성별', '나이', '형제배우자', '부모자녀', '요금', '탑승항구']\nX = titanic[features].copy()\ny = titanic['생존'].astype(int)\nfrom sklearn.model_selection import train_test_split\n\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)\nfrom sklearn.dummy import DummyClassifier\nfrom sklearn.metrics import accuracy_score\n\n# 기준 모델이에요. 입력은 안 보고 가장 많은 답만 찍어요\n# strategy는 글자라서 따옴표를 꼭 써요\ndummy = DummyClassifier(strategy='most_frequent')\n# 학습은 훈련 자료로만 해요. 여기서 \"제일 많은 답\"이 뭔지 세요\ndummy.fit(X_train, y_train)\n# 테스트 자료를 예측한 뒤 정답 y_test와 비교해요\n# 순서는 (정답, 예측)이에요. 예측값은 전부 0이에요\ndummy_accuracy = accuracy_score(y_test, dummy.predict(X_test))\n# 162/262쯤 나와요. 이게 이 단원의 기준 점수예요\nprint(dummy_accuracy)\n"
+}

@@ -1,0 +1,140 @@
+{
+ "format": 2,
+ "hash": "a8257fbe91db2fa2",
+ "by": "claude",
+ "blocks": {
+  "title": "5bb61ebd2827",
+  "problem": "45d88f37257e",
+  "starter": "300a713e9872",
+  "example": "e3b0c44298fc",
+  "solution": "6335163cf323"
+ },
+ "sources": [
+  {
+   "block": "problem",
+   "hash": "45d88f37257e"
+  },
+  {
+   "block": "starter",
+   "hash": "300a713e9872"
+  },
+  {
+   "block": "solution",
+   "hash": "6335163cf323"
+  },
+  {
+   "block": "solution",
+   "hash": "6335163cf323"
+  },
+  {
+   "block": "solution",
+   "hash": "6335163cf323"
+  },
+  {
+   "block": "solution",
+   "hash": "6335163cf323"
+  },
+  {
+   "block": "solution",
+   "hash": "6335163cf323"
+  },
+  {
+   "block": "solution",
+   "hash": "6335163cf323"
+  },
+  {
+   "block": "solution",
+   "hash": "6335163cf323"
+  },
+  {
+   "block": "solution",
+   "hash": "6335163cf323"
+  },
+  {
+   "block": "solution",
+   "hash": "6335163cf323"
+  },
+  {
+   "block": "solution",
+   "hash": "6335163cf323"
+  },
+  {
+   "block": "solution",
+   "hash": "6335163cf323"
+  },
+  {
+   "block": "solution",
+   "hash": "6335163cf323"
+  },
+  {
+   "block": "solution",
+   "hash": "6335163cf323"
+  }
+ ],
+ "entry": [
+  [
+   "problem",
+   "자, 여섯 달 중 한 번이라도 연체한 적이 있는지를 새 열로 만들어요. 연체는 상환 값이 1 이상이거든요."
+  ],
+  [
+   "starter",
+   "credit 표와 타깃 이름, 여섯 달 상환 열 목록 pay_columns는 준비돼 있어요. 그대로 둘게요."
+  ],
+  [
+   "code",
+   "# 여섯 달 상환 열에 한 번에 >= 1 조건을 걸어요. 열마다 참·거짓이 매겨진 표가 돼요.\n# 연체는 1 이상이라 >= 1이에요. > 1로 쓰면 한 달 연체가 빠지니 조심하세요.\n# .any(axis=1): 행마다 \"하나라도 참인가\"를 봐요. axis=1이 가로(행) 방향이에요.\n# axis=0으로 쓰면 열마다 묻게 되니 결과 모양이 달라져요.\ncredit['has_delay'] = (credit[pay_columns] >= 1).any(axis=1)\n",
+   "여섯 열 전부에 1 이상인지 참·거짓을 매겨요. any(axis=1)로 행마다 하나라도 참이면 참이고요. 그걸 has_delay에 넣어요."
+  ],
+  [
+   "run",
+   "일단 실행해 볼게요."
+  ],
+  [
+   "output",
+   "아무것도 안 나오죠? 새 열을 만들어 넣기만 했거든요. 출력하는 줄이 없으니 화면이 비어 있는 게 맞아요."
+  ],
+  [
+   "caution",
+   "조건을 > 1로 쓰기 쉬운데요. 그러면 한 달 연체한 사람이 빠지니 조심하세요. 연체는 1부터예요."
+  ],
+  [
+   "try",
+   "summary = credit.groupby(has_delay)[target].agg(['count', 'sum', 'mean'])\n",
+   "이제 has_delay로 묶어 볼까요? 이렇게 써 보죠."
+  ],
+  [
+   "run",
+   "실행하면요."
+  ],
+  [
+   "output",
+   "NameError가 나요. name 'has_delay' is not defined라고요. 따옴표가 없으니 파이썬이 열 이름이 아니라 변수를 찾았거든요. 그런 변수는 없죠."
+  ],
+  [
+   "undo",
+   "열 이름은 따옴표 안 문자열이에요. 그래서 이렇게 고쳐요."
+  ],
+  [
+   "code",
+   "# has_delay(True/False)로 묶고, 타깃 열만 골라서 세 가지 통계를 한 번에 구해요.\n# count는 그룹 인원, sum은 부도 난 사람 수, mean은 부도율이에요. 이름은 따옴표 안 문자열이에요.\nsummary = credit.groupby('has_delay')[target].agg(['count', 'sum', 'mean'])\n",
+   "'has_delay'로 묶고 타깃 열만 골라요. count, sum, mean을 한 번에 구해서 summary에 담죠."
+  ],
+  [
+   "code",
+   "# 마지막 줄에 변수만 쓰면 표가 화면에 보여요. 두 그룹의 mean 차이를 보세요.\nsummary\n",
+   "마지막 줄에 summary만 쓰면 표가 보여요."
+  ],
+  [
+   "run",
+   "다시 실행해요."
+  ],
+  [
+   "output",
+   "에러는 사라졌는데 화면은 비어 있죠? 마지막 줄에 변수만 쓰면 노트북에서는 표가 보여요. 여기서는 안 찍혀요. 표를 직접 보고 싶으면 print(summary)로 찍어 보세요. False와 True 행의 mean을 비교하면 돼요."
+  ],
+  [
+   "submit",
+   "제출할게요."
+  ]
+ ]
+}

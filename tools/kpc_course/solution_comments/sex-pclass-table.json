@@ -1,0 +1,5 @@
+{
+ "hash": "c194853eb13adf1d",
+ "by": "claude",
+ "code": "import pandas as pd\ntitanic = pd.read_csv('data/titanic.csv')\n\n# 묶을 열이 둘이면 리스트로 넣어요. 대괄호를 빼면 오류가 나요.\n# ['생존']으로 생존 열만 고른 뒤, agg에 통계 이름을 글자로 적어요.\n# count는 사람 수, mean은 생존율이에요. 성별 2 × 등급 3 = 6행이 나와요.\ngrouped = titanic.groupby(['성별', '객실등급'])['생존'].agg(['count', 'mean'])\n# 'mean' 열만 꺼내서 unstack으로 펼쳐요. 괄호 안의 열 이름이 가로로 열리거든요.\n# 그래서 세로 6칸이 성별 2행 × 등급 3열 표로 바뀌어요.\nwide = grouped['mean'].unstack('객실등급')\n# 마지막 줄에 이름만 적으면 그 표가 화면에 보여요. print 없이도 돼요.\nwide\n"
+}

@@ -1,0 +1,41 @@
+{
+  "hash": "9af0bfee82e6be754b003046a31d87534a8d2087fecbaeaa2be3c5c5f78908a9",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 방문 자료예요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/visits.csv')\n# 기준 이용 시간(분)이에요.\nmins = 20\n# 행 자리에 조건, 열 자리에 열 이름을 넣었어요.\nresult = df.loc[df['bought'] == 1, 'channel']\n# 결과를 화면에서 확인해요.\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  web / Name: channel, dtype: str"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 괄호를 빼면 `&`가 먼저 계산돼 오류가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "df['bought'] == 1, 'channel'",
+      "after": "(df['bought'] == 1) & (df['minutes'] >= mins), 'channel'",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  app / Name: channel, dtype: str"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

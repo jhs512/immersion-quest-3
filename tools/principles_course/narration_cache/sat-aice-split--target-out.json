@@ -1,0 +1,41 @@
+{
+  "hash": "d0e6815d70ebe2e2b05087d5d60b81c9bdbe4692a1ef78eda828af38c12390ae",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n# 각 문제는 자기 자료를 처음부터 읽어요.\ndf = pd.read_csv('data/members.csv')\n# 입력과 정답을 따로 보관해요.\nX = df.copy()\ny = df['churn']\nprint(list(X.columns))\nprint(y.head(3).tolist())\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. n', 'plan', 'churn'] / [1, 0, 0]"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 정답을 입력에 넣으면 정답을 보고 맞히는 누수예요."
+    },
+    {
+      "action": "patch_code",
+      "before": "X = df.copy()",
+      "after": "X = df.drop(columns=['churn'])",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. ', 'region', 'plan'] / [1, 0, 0]"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

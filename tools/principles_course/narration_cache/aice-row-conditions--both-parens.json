@@ -1,0 +1,41 @@
+{
+  "hash": "67b17bc127d235f1b223cbe7dbd3666d90556718b6fb8b3af5dbe701ac43ae2b",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 방문 자료예요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/visits.csv')\n# 기준 이용 시간(분)이에요.\nmins = 18\n# bought가 0이면 구매하지 않은 기록이에요.\n# 두 조건을 &로 이어 함께 따져요.\nresult = df[df['minutes'] >= mins & df['bought'] == 0]\n# 결과의 크기를 먼저 봐요. 앞 숫자가 행 수예요.\nprint(result.shape)\n# 결과를 화면에서 확인해요.\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "지금 코드는 검사를 통과하지 못해요."
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 한쪽만 묶으면 오류 없이 틀린 행이 나올 수 있어요."
+    },
+    {
+      "action": "patch_code",
+      "before": "df['minutes'] >= mins & df['bought'] == 0",
+      "after": "(df['minutes'] >= mins) & (df['bought'] == 0)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.     app       5     18.0       0"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

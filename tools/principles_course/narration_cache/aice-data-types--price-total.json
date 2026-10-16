@@ -1,0 +1,41 @@
+{
+  "hash": "f03cc47b95eeb990fc1fcdba5d463ec9a48f783ea91fdafef96f160ad66576d2",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 앞 문제와 다른 자료예요. 가격에 쉼표, 문의, 빈칸이 섞였어요.\ndf = pd.read_csv('data/prices.csv')\n# 숫자로 못 읽는 값은 NaN으로 바꿔 다시 담아요.\ndf['price'] = pd.to_numeric(df['price'], errors='coerce')\n# 바뀐 가격을 먼저 확인해요.\nprint(df['price'])\n# 합계는 NaN을 빼고 더해요.\nresult = df['price'].sum()\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. e: price, dtype: float64 / 950.0"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. coerce는 쉼표가 있는 숫자도 NaN으로 바꿔요."
+    },
+    {
+      "action": "patch_code",
+      "before": "pd.to_numeric(df['price'], errors='coerce')",
+      "after": "pd.to_numeric(df['price'].str.replace(',', ''), errors='coerce')",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. : price, dtype: float64 / 7650.0"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

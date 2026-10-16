@@ -1,0 +1,41 @@
+{
+  "hash": "81ea5ef90a236efc91acc3d1575fa9d83af974b4182b587dbb4e656030853435",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "# 표 도구 pandas와 자료를 나누는 함수를 불러와요.\nimport pandas as pd\nfrom sklearn.model_selection import train_test_split\n# 이번 문제에 쓸 도구를 불러와요.\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.metrics import confusion_matrix, precision_score, recall_score\n\n# 직접 만든 쇼핑몰 방문 자료예요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/visits.csv')\n# visits는 이번 달 방문 수, minutes는 머문 시간(분)이에요.\n# cart는 장바구니 상품 수, coupon은 쿠폰을 받았으면 1이에요.\n# bought는 다음 주에 샀으면 1, 안 샀으면 0이에요.\ny = df['bought']\nX = df.drop(columns=['bought'])\n# 1의 비율이 두 몫에서 같도록 stratify=y로 나눠요.\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y)\n\n# 로지스틱 회귀로 배우고 테스트를 예측해요.\nmodel = LogisticRegression(max_iter=1000)\nmodel.fit(X_train, y_train)\npred = model.predict(X_test)\n# 행은 실제, 열은 예측인 혼동행렬이에요.\nprint(confusion_matrix(y_test, pred))\n# 정밀도: 1이라고 답한 것 중 진짜 1의 비율이에요.\nprecision = precision_score(y_test, pred)\n# 재현율: 진짜 1 중에서 1이라고 찾아낸 비율이에요.\nrecall = precision_score(y_test, pred)\nprint(precision, recall)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. [[16  2] /  [ 3  3]] / 0.6 0.6"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `recall_score(pred, y_test)`처럼 순서를 바꾸면 정밀도가 나와요."
+    },
+    {
+      "action": "patch_code",
+      "before": "recall = precision_score(y_test, pred)",
+      "after": "recall = recall_score(y_test, pred)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. [[16  2] /  [ 3  3]] / 0.6 0.5"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

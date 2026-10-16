@@ -1,0 +1,5 @@
+{
+ "hash": "cce644dc85d85ddc",
+ "by": "claude",
+ "code": "import pandas as pd\ncredit = pd.read_csv('data/credit.csv')\ntarget = '다음달 부도'\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.linear_model import LogisticRegression\n\nX = credit[['상환_9월', '신용한도', '나이']]\ny = credit[target]\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)\nmodel = Pipeline([('scale', StandardScaler()), ('model', LogisticRegression(max_iter=2000))])\nmodel.fit(X_train, y_train)\n# predict 대신 predict_proba예요. \"부도/정상\"이 아니라 확률을 돌려줘요.\n# 행마다 [정상 확률, 부도 확률] 두 열이 나와요. 0부터 세니까 [:, 1]이 부도 확률이에요.\nprobabilities = model.predict_proba(X_test)[:, 1]\n# 0.5 이상이면 참, 아니면 거짓인 배열이 생겨요. .sum()은 참(1)의 개수고요.\n# int()로 감싸야 numpy 숫자가 아니라 보통 정수로 담겨요.\nn_positive_05 = int((probabilities >= 0.5).sum())\n# 기준만 0.3으로 낮췄어요. 경고하는 고객이 얼마나 늘어나는지 보려고요.\nn_positive_03 = int((probabilities >= 0.3).sum())\n# 두 수를 나란히 출력해요. 뒤 숫자가 앞 숫자보다 클 거예요.\nprint(n_positive_05, n_positive_03)\n"
+}

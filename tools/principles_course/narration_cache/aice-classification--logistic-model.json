@@ -1,0 +1,41 @@
+{
+  "hash": "e8b6845271bce646956e331e81a28967d39db7f27a57161b1ca944f036389002",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "# 표 도구 pandas와 자료를 나누는 함수를 불러와요.\nimport pandas as pd\nfrom sklearn.model_selection import train_test_split\n# 이번 문제에 쓸 도구를 불러와요.\nfrom sklearn.metrics import accuracy_score\n\n# 직접 만든 쇼핑몰 방문 자료예요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/visits.csv')\n# visits는 이번 달 방문 수, minutes는 머문 시간(분)이에요.\n# cart는 장바구니 상품 수, coupon은 쿠폰을 받았으면 1이에요.\n# bought는 다음 주에 샀으면 1, 안 샀으면 0이에요.\ny = df['bought']\nX = df.drop(columns=['bought'])\n# 1의 비율이 두 몫에서 같도록 stratify=y로 나눠요.\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y)\n\n# 모델을 가져와 만들어요.\nfrom sklearn.linear_model import LinearRegression\nmodel = LinearRegression()\n# 훈련 자료로 배우고 테스트 자료를 예측해요.\nmodel.fit(X_train, y_train)\npred = model.predict(X_test)\n# 앞의 다섯 예측을 봐요.\nprint(pred[:5])\n# 맞힌 비율인 정확도예요.\nacc = accuracy_score(y_test, pred)\nprint(acc)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "지금 코드는 검사를 통과하지 못해요."
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 회귀 예측을 `round()`로 반올림하면 오류는 사라져도 분류 모델은 아니에요."
+    },
+    {
+      "action": "patch_code",
+      "before": "from sklearn.linear_model import LinearRegression\nmodel = LinearRegression()",
+      "after": "from sklearn.linear_model import LogisticRegression\nmodel = LogisticRegression(max_iter=1000)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. [0 0 1 1 0] / 0.7916666666666666"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

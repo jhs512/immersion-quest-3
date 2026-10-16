@@ -1,0 +1,135 @@
+{
+  "hash": "c39911ecb4db38bdceb63c4d4ed7a4a64127d045c2b92c3e81bbf9af3499e832",
+  "by": "hand-compiled",
+  "actions": [
+    {
+      "action": "say",
+      "target": "problem",
+      "text": "`record Quote(int id, String content, String author)`를 만드세요.\n`QuoteStore`는 `add`, `list`, `update`, `delete`를 제공해요.\nadd는 1부터 증가하는 ID를 반환해요.\nlist는 등록 순서의 List<Quote>를 반환해요.\nupdate(id, content, author)는 찾으면 수정하고 true예요.\ndelete(id)는 찾으면 삭제하고 true예요.\n없는 ID는 false예요. 삭제한 ID는 재사용하지 마세요.\n외부에서 list 결과를 바꿔도 원본은 유지돼야 해요.\n내부 저장은 List<Quote>로 바꾸세요."
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 실행 성공과 모든 검사 통과는 달라요. 단계마다 결과를 확인해요."
+    },
+    {
+      "action": "set_code",
+      "code": "import java.util.*;\nrecord Quote(int id, String content, String author) {}\nclass QuoteStore {\n    private final List<Quote> data = new ArrayList<>();\n    // 삭제해도 증가하는 ID는 되돌리지 않아요.\n    private int nextId = 1;\n    int add(String content, String author) {/*mq3-step-0*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");}\n    List<Quote> list() {/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");}\n    // 수정은 새 record로 교체해 기존 ID를 보존해요.\n    boolean update(int id, String content, String author) {/*mq3-step-2*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");}\n    boolean delete(int id) {/*mq3-step-3*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");}\n}\n",
+      "say": "선언과 생성자를 먼저 준비했어요. 메서드는 하나씩 채울게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "아직 구현하지 않은 메서드가 있어요. 지금 실패하는 위치를 확인하세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-0*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": "\n        // 반환한 ID와 저장한 객체의 ID를 같게 유지해요.\n        int id = nextId++;\n/*mq3-step-0*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "say": "작은 조각을 채워요. 앞뒤의 변수와 조건을 함께 확인하세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-0*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": "        data.add(new Quote(id, content, author));\n        return id;\n    /*mq3-step-0*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");"
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-0*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": ""
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 읽어보세요. 아직 남은 검사와 통과한 검사를 비교해요."
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": " return List.copyOf(data); /*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "say": "작은 조각을 채워요. 앞뒤의 변수와 조건을 함께 확인하세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": ""
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 읽어보세요. 아직 남은 검사와 통과한 검사를 비교해요."
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-2*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": "\n        for (int i = 0; i < data.size(); i++) {\n            // 위치가 아닌 객체의 ID를 비교해요.\n/*mq3-step-2*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "say": "작은 조각을 채워요. 앞뒤의 변수와 조건을 함께 확인하세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-2*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": "            if (data.get(i).id() == id) {\n                data.set(i, new Quote(id, content, author));\n                return true;\n/*mq3-step-2*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");"
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-2*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": "            }\n        }\n        return false;\n/*mq3-step-2*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");"
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-2*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": "    /*mq3-step-2*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");"
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-2*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": ""
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 읽어보세요. 아직 남은 검사와 통과한 검사를 비교해요."
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-3*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": "\n        // 삭제 여부를 호출한 쪽에 알려줘요.\n        return data.removeIf(q -> q.id() == id);\n/*mq3-step-3*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "say": "작은 조각을 채워요. 앞뒤의 변수와 조건을 함께 확인하세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-3*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": "    /*mq3-step-3*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");"
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-3*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": ""
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 읽어보세요. 아직 남은 검사와 통과한 검사를 비교해요."
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "hash": "ac1a35af7b012c593ee692c89054b5763b3c88d71a50678533a533602b634853",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "# 표 도구 pandas를 불러와요.\nimport pandas as pd\n# 자료를 나누는 함수예요.\nfrom sklearn.model_selection import train_test_split\n# 이번 문제에 쓸 도구를 불러와요.\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn.ensemble import RandomForestRegressor\nfrom sklearn.metrics import mean_absolute_error\n\n# 직접 만든 배달 기록이에요. 실제 주문이 아니에요.\ndf = pd.read_csv('data/delivery.csv')\n# 입력 X는 거리·메뉴 수·혼잡 여부, 정답 y는 배달 시간(분)이에요.\nX = df[['distance', 'items', 'rush']]\ny = df['minutes']\n# 훈련 75%, 테스트 25%로 나눠요. random_state로 늘 같게 나눠요.\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)\n# 선형회귀를 훈련 자료로 배워요.\nlinear = LinearRegression()\nlinear.fit(X_train, y_train)\n# 나무 30그루짜리 랜덤포레스트도 배워요.\nforest = RandomForestRegressor(n_estimators=30)\nforest.fit(X_train, y_train)\n# 두 모델의 MAE를 재요.\nlinear_mae = mean_absolute_error(y_test, linear.predict(X_test))\nforest_mae = mean_absolute_error(y_train, forest.predict(X_train))\n# 이름표를 붙여 Series로 모아요.\nscores = pd.Series({'linear': linear_mae, 'forest': forest_mae})\nprint(scores.round(2))\n# MAE가 가장 작은 모델의 이름이에요.\nbest = scores.idxmin()\nprint(best)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.   1.75 / dtype: float64 / forest"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 훈련 자료로 채점하면 많이 외운 모델이 유리해 보여요."
+    },
+    {
+      "action": "patch_code",
+      "before": "forest = RandomForestRegressor(n_estimators=30)\nforest.fit(X_train, y_train)\n# 두 모델의 MAE를 재요.\nlinear_mae = mean_absolute_error(y_test, linear.predict(X_test))\nforest_mae = mean_absolute_error(y_train, forest.predict(X_train))",
+      "after": "forest = RandomForestRegressor(n_estimators=30, random_state=42)\nforest.fit(X_train, y_train)\n# 두 모델의 MAE를 재요.\nlinear_mae = mean_absolute_error(y_test, linear.predict(X_test))\nforest_mae = mean_absolute_error(y_test, forest.predict(X_test))",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.   3.71 / dtype: float64 / linear"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

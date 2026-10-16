@@ -1,0 +1,165 @@
+{
+ "format": 2,
+ "hash": "91e58542a224d140",
+ "by": "claude",
+ "blocks": {
+  "title": "8f1d0468b945",
+  "problem": "cacebb7df08b",
+  "starter": "54f44cc863bd",
+  "example": "e3b0c44298fc",
+  "solution": "a3cb9fd92514"
+ },
+ "sources": [
+  {
+   "block": "problem",
+   "hash": "cacebb7df08b"
+  },
+  {
+   "block": "starter",
+   "hash": "54f44cc863bd"
+  },
+  {
+   "block": "solution",
+   "hash": "a3cb9fd92514"
+  },
+  {
+   "block": "solution",
+   "hash": "a3cb9fd92514"
+  },
+  {
+   "block": "solution",
+   "hash": "a3cb9fd92514"
+  },
+  {
+   "block": "solution",
+   "hash": "a3cb9fd92514"
+  },
+  {
+   "block": "solution",
+   "hash": "a3cb9fd92514"
+  },
+  {
+   "block": "solution",
+   "hash": "a3cb9fd92514"
+  },
+  {
+   "block": "solution",
+   "hash": "a3cb9fd92514"
+  },
+  {
+   "block": "solution",
+   "hash": "a3cb9fd92514"
+  },
+  {
+   "block": "solution",
+   "hash": "a3cb9fd92514"
+  },
+  {
+   "block": "solution",
+   "hash": "a3cb9fd92514"
+  },
+  {
+   "block": "solution",
+   "hash": "a3cb9fd92514"
+  },
+  {
+   "block": "solution",
+   "hash": "a3cb9fd92514"
+  },
+  {
+   "block": "solution",
+   "hash": "a3cb9fd92514"
+  },
+  {
+   "block": "solution",
+   "hash": "a3cb9fd92514"
+  },
+  {
+   "block": "solution",
+   "hash": "a3cb9fd92514"
+  },
+  {
+   "block": "solution",
+   "hash": "a3cb9fd92514"
+  }
+ ],
+ "entry": [
+  [
+   "problem",
+   "자, 빈칸 채우기와 표준화를 한 줄로 묶어요. Pipeline에 두 도구를 순서대로 넣는 거거든요."
+  ],
+  [
+   "starter",
+   "데이터 나누기와 import, 숫자 열 목록 numeric은 준비돼 있어요."
+  ],
+  [
+   "code",
+   "# 두 도구를 순서대로 묶어요. 먼저 'fill'로 빈칸을 중앙값으로 채우고, 다음 'scale'로 표준화해요.\n# 괄호 안은 리스트, 리스트 안은 (이름, 도구) 쌍이에요. 이름은 따옴표로 감싼 글자예요.\nnumeric_pipeline = Pipeline([('fill', SimpleImputer(strategy='median')), ('scale', StandardScaler())])\n",
+   "리스트 안에 (이름, 도구) 쌍이 두 개죠? 먼저 중앙값으로 채우고, 그다음 표준화하는 순서예요."
+  ],
+  [
+   "run",
+   "일단 실행해 볼게요."
+  ],
+  [
+   "output",
+   "화면에 아무것도 안 나오죠? 파이프라인을 만들어서 이름에 담기만 했거든요. 오류 없이 지나가면 된 거예요."
+  ],
+  [
+   "try",
+   "train_values = numeric_pipeline.fit_transform(X_train)\n",
+   "이렇게 해 볼까요? X_train을 통째로 넣는 거예요."
+  ],
+  [
+   "run",
+   "실행하면요."
+  ],
+  [
+   "output",
+   "빨간 Traceback이 길게 쏟아지죠? 우리 코드의 fit_transform 줄에서 시작해 파이프라인 안의 fit에서 멈췄어요. 성별, 탑승항구 같은 글자 열까지 들어갔거든요. 글자로는 중앙값을 못 구해요."
+  ],
+  [
+   "undo",
+   "그래서 숫자 열 numeric만 골라서 넣어요."
+  ],
+  [
+   "code",
+   "# 훈련 자료는 fit_transform이에요. 중앙값과 평균·표준편차를 여기서 배우고 바로 바꿔요.\ntrain_values = numeric_pipeline.fit_transform(X_train[numeric])  # 숫자 열만 골라서 넣어요\n",
+   "만든 뒤엔 도구 하나처럼 써요. 훈련 자료에는 fit_transform으로 기준을 배우면서 바꿔요."
+  ],
+  [
+   "run",
+   "다시 실행해요."
+  ],
+  [
+   "output",
+   "이번엔 조용히 지나가죠? 아까 그 빨간 줄이 사라졌어요. train_values에 담기만 해서 출력은 없고요. 오류가 안 난 게 중요해요."
+  ],
+  [
+   "caution",
+   "테스트에도 fit_transform을 쓰기 쉬운데, 그러면 테스트 자료로 기준을 다시 배워요. 누수니까 조심하세요."
+  ],
+  [
+   "code",
+   "# 테스트 자료는 transform만 해요. 훈련에서 배운 값으로 바꿔야 누수가 없어요.\ntest_values = numeric_pipeline.transform(X_test[numeric])  # fit을 또 하면 안 돼요\n",
+   "테스트 자료에는 transform만이에요. 훈련에서 배운 기준을 그대로 쓰는 거거든요."
+  ],
+  [
+   "code",
+   "# 결과는 넘파이 배열이라 .shape로 (행, 열)을 확인해요. 열은 numeric의 5개예요.\nprint(train_values.shape, test_values.shape)\n",
+   "두 결과의 shape를 출력해서 크기를 확인해요."
+  ],
+  [
+   "run",
+   "실행해 볼게요."
+  ],
+  [
+   "output",
+   "(1047, 5) (262, 5)가 나왔죠? 훈련 1047행, 테스트 262행이고 둘 다 5열이에요. 숫자 열 다섯 개가 그대로 다섯 열로 나온 거예요."
+  ],
+  [
+   "submit",
+   "제출할게요."
+  ]
+ ]
+}

@@ -1,0 +1,5 @@
+{
+ "hash": "1f2e0378cd1b55b8",
+ "by": "claude",
+ "code": "import pandas as pd\ntitanic = pd.read_csv('data/titanic.csv')\nfeatures = ['객실등급', '성별', '나이', '형제배우자', '부모자녀', '요금', '탑승항구']\nX = titanic[features].copy()\ny = titanic['생존'].astype(int)\n# select_dtypes('number')는 숫자 열만 남긴 표예요. 객실등급도 숫자로 들어 있어서 여기에 와요.\n# .columns는 열 이름 묶음이고, list()로 감싸면 보기 익숙한 리스트가 돼요.\nnumeric_columns = list(X.select_dtypes('number').columns)\n# exclude='number'는 \"숫자 빼고 나머지\"예요. 성별, 탑승항구처럼 글자 열이 남아요.\n# 'number'는 글자니까 따옴표를 꼭 붙여요. 빼면 이름 없는 변수라고 오류가 나요.\ncategory_columns = list(X.select_dtypes(exclude='number').columns)\n# 숫자 다섯, 글자 둘이 나오는지 눈으로 확인해요.\nprint(numeric_columns)\nprint(category_columns)\n"
+}

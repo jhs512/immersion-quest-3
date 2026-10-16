@@ -1,0 +1,173 @@
+{
+ "format": 2,
+ "hash": "6a395df3a12934a7",
+ "by": "claude",
+ "blocks": {
+  "title": "dd38f7cffcd0",
+  "problem": "62645085d446",
+  "starter": "99183826c273",
+  "example": "e3b0c44298fc",
+  "solution": "dd1ddce6ba39"
+ },
+ "sources": [
+  {
+   "block": "problem",
+   "hash": "62645085d446"
+  },
+  {
+   "block": "problem",
+   "hash": "62645085d446"
+  },
+  {
+   "block": "starter",
+   "hash": "99183826c273"
+  },
+  {
+   "block": "solution",
+   "hash": "dd1ddce6ba39"
+  },
+  {
+   "block": "solution",
+   "hash": "dd1ddce6ba39"
+  },
+  {
+   "block": "solution",
+   "hash": "dd1ddce6ba39"
+  },
+  {
+   "block": "solution",
+   "hash": "dd1ddce6ba39"
+  },
+  {
+   "block": "solution",
+   "hash": "dd1ddce6ba39"
+  },
+  {
+   "block": "solution",
+   "hash": "dd1ddce6ba39"
+  },
+  {
+   "block": "solution",
+   "hash": "dd1ddce6ba39"
+  },
+  {
+   "block": "solution",
+   "hash": "dd1ddce6ba39"
+  },
+  {
+   "block": "solution",
+   "hash": "dd1ddce6ba39"
+  },
+  {
+   "block": "solution",
+   "hash": "dd1ddce6ba39"
+  },
+  {
+   "block": "solution",
+   "hash": "dd1ddce6ba39"
+  },
+  {
+   "block": "solution",
+   "hash": "dd1ddce6ba39"
+  },
+  {
+   "block": "solution",
+   "hash": "dd1ddce6ba39"
+  },
+  {
+   "block": "solution",
+   "hash": "dd1ddce6ba39"
+  },
+  {
+   "block": "solution",
+   "hash": "dd1ddce6ba39"
+  },
+  {
+   "block": "solution",
+   "hash": "dd1ddce6ba39"
+  }
+ ],
+ "entry": [
+  [
+   "problem",
+   "자, 이번엔 여섯 열의 상관계수를 한 번에 색으로 봐요. 표의 숫자를 눈으로 훑는 대신 히트맵으로 그리는 거거든요."
+  ],
+  [
+   "hint",
+   "힌트에 있는 sns.heatmap 옵션을 그대로 쓰면 돼요. 양수는 붉게, 음수는 푸르게 칠해져요."
+  ],
+  [
+   "starter",
+   "pandas, matplotlib, seaborn 불러오기와 titanic 읽기는 준비돼 있어요. columns에 숫자 열 여섯 개 이름이 들어 있죠?"
+  ],
+  [
+   "try",
+   "corr = titanic['columns'].corr()\n",
+   "이렇게 해 볼까요? columns에 따옴표를 붙여서요."
+  ],
+  [
+   "run",
+   "실행하면요."
+  ],
+  [
+   "output",
+   "KeyError: 'columns'가 나요. 따옴표를 붙이면 columns라는 이름의 열 하나를 찾거든요. 표에 그런 열은 없죠. 우리가 원하는 건 리스트 변수예요."
+  ],
+  [
+   "undo",
+   "그래서 따옴표 없이 변수 이름 그대로 넘겨요."
+  ],
+  [
+   "code",
+   "# 여섯 열만 골라서 상관계수 표를 만들어요. 열 이름을 리스트로 넘기니 대괄호가 두 겹이에요.\n# 결과는 6×6 표. 자기 자신과의 상관은 늘 1이라 대각선이 전부 1이면 맞게 된 거예요.\ncorr = titanic[columns].corr()\n",
+   "titanic에서 columns 여섯 열만 고르고 corr()을 부르면 6×6 상관계수 표가 돼요. 그걸 corr에 담아요."
+  ],
+  [
+   "run",
+   "일단 실행해 볼게요."
+  ],
+  [
+   "output",
+   "아무것도 안 나오죠? 표를 만들어 corr에 담기만 했거든요. 오류가 없으면 잘 된 거예요."
+  ],
+  [
+   "code",
+   "# 그림을 그릴 종이(fig)와 칸(ax)을 먼저 준비해요.\nfig, ax = plt.subplots()\n",
+   "그림 한 장과 축 하나를 먼저 만들어요. ax에 히트맵을 올릴 거거든요."
+  ],
+  [
+   "code",
+   "# 표를 색으로 칠해요. annot=True는 칸마다 숫자를 적고, vmin/vmax는 색 범위를 -1~1로 고정해요.\n# center=0에 cmap='coolwarm'이면 0이 흰색, 양수는 붉게, 음수는 푸르게 나와요. 색 이름은 따옴표로 감싸요.\nsns.heatmap(corr, annot=True, vmin=-1, vmax=1, center=0, cmap='coolwarm', ax=ax)\n",
+   "corr 표를 heatmap에 넘겨요. annot=True면 칸마다 숫자가 찍히고, vmin=-1·vmax=1·center=0이면 0을 가운데 두고 -1부터 1까지 색을 나눠요."
+  ],
+  [
+   "caution",
+   "cmap=coolwarm처럼 따옴표를 빼기 쉬운데, 그러면 coolwarm이라는 변수를 찾다가 NameError가 나니 조심하세요."
+  ],
+  [
+   "run",
+   "여기까지 실행해 볼게요."
+  ],
+  [
+   "output",
+   "역시 아무것도 안 나와요. 히트맵을 ax에 그리긴 했는데 아직 띄우지 않았거든요."
+  ],
+  [
+   "code",
+   "# 그린 그림을 화면에 띄워요. 이 줄이 없으면 아무것도 안 보여요.\nplt.show()\n",
+   "마지막으로 plt.show()로 그림을 띄워요."
+  ],
+  [
+   "run",
+   "다시 실행해요."
+  ],
+  [
+   "output",
+   "글자 출력은 없고 그림 창이 떠요. 6×6 히트맵이죠? 대각선이 전부 1이면 맞게 만든 거예요. 생존 행을 따라가면서 어느 칸이 가장 진한지 보세요."
+  ],
+  [
+   "submit",
+   "제출할게요."
+  ]
+ ]
+}

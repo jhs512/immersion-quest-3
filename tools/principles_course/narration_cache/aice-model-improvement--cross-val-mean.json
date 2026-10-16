@@ -1,0 +1,41 @@
+{
+  "hash": "8f41e2c6f7285253920d8fc6fdf3d97baba387536194a6f4ca642d31407e278a",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n# 이 문제에 쓰는 도구를 불러와요.\nfrom sklearn.model_selection import train_test_split, cross_val_score\nfrom sklearn.tree import DecisionTreeClassifier\n\n# 직접 만든 빵 공장 기록이에요. 실제 공장 자료가 아니에요.\ndf = pd.read_csv('data/bakery.csv')\n# weight는 반죽 무게, humidity는 습도, temp는 오븐 온도예요.\n# minutes는 굽는 시간이에요. defect가 1이면 불량 빵이에요.\nX = df.drop(columns=['defect'])\ny = df['defect']\n# 테스트 몫 25%는 마지막 확인용으로 남겨 둬요.\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.25, random_state=42, stratify=y)\n\n# 깊이 3인 결정트리예요. 아직 학습하지 않았어요.\nmodel = DecisionTreeClassifier(max_depth=3, random_state=42)\n# 훈련 자료를 3몫으로 나눠 학습과 채점을 세 번 해요.\nscores = cross_val_score(model, X_train, y_train, cv=3)\n# 몫마다 나온 점수 3개예요.\nprint(scores.round(3))\n# 이 모델의 대표 점수예요.\ncv_score = scores[0]\nprint('교차검증 점수:', round(cv_score, 3))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 33 0.867 0.867] / 교차검증 점수: 0.833"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `cross_val_score`에 X, y 전체를 넣으면 테스트 몫이 검증에 섞여요."
+    },
+    {
+      "action": "patch_code",
+      "before": "cv_score = scores[0]",
+      "after": "cv_score = scores.mean()",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 33 0.867 0.867] / 교차검증 점수: 0.856"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "hash": "638b4ffc131158f38461d8f2b81b487c6c4cad2226f7c759e819c694f98257d3",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 방문 자료예요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/visits.csv')\n# 이 줄에서 자료를 골라요. 원본 표와 결과를 비교해요.\nresult = df['minutes'].notna().sum()\n# 계산한 값을 눈으로 확인해요.\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 5"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. notna는 빈칸이 아닌 곳을 세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "result = df['minutes'].notna().sum()",
+      "after": "result = df['minutes'].isna().sum()",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 1"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

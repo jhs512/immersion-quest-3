@@ -1,0 +1,5 @@
+{
+ "hash": "1ab805e1292489aa",
+ "by": "claude",
+ "code": "from pathlib import Path\nfrom bs4 import BeautifulSoup\n\nhtml = Path('data/prices.html').read_text(encoding='utf-8')\nsoup = BeautifulSoup(html, 'html.parser')\n# '#prices'는 id가 prices인 요소예요. 띄어 쓰고 li를 붙이면 그 안의 li를 모두 찾아요.\n# select는 맞는 요소를 리스트로 돌려줘요. 하나만 있어도 리스트예요.\nitems = soup.select('#prices li')\n# 리스트니까 len()으로 몇 개인지 세면 돼요.\nn_items = len(items)\n# 첫 종목은 [0]이에요. 파이썬은 0부터 세거든요.\n# '.name'의 점은 class가 name이라는 뜻이에요. 빼먹으면 태그 이름으로 찾아서 None이 나와요.\n# get_text(strip=True)로 앞뒤 공백을 지우고 글자만 꺼내요.\nfirst_name = items[0].select_one('.name').get_text(strip=True)\n# 개수와 이름을 한 줄에 출력해요. 2 가상A가 나오면 맞아요.\nprint(n_items, first_name)\n"
+}

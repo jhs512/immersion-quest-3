@@ -1,0 +1,183 @@
+{
+ "format": 2,
+ "hash": "30f82f5d4d598baa",
+ "by": "claude",
+ "blocks": {
+  "title": "d431ff14deaa",
+  "problem": "802a071596a9",
+  "starter": "04ec20deeb75",
+  "example": "e3b0c44298fc",
+  "solution": "8b3a15ffbb96"
+ },
+ "sources": [
+  {
+   "block": "problem",
+   "hash": "802a071596a9"
+  },
+  {
+   "block": "starter",
+   "hash": "04ec20deeb75"
+  },
+  {
+   "block": "solution",
+   "hash": "8b3a15ffbb96"
+  },
+  {
+   "block": "solution",
+   "hash": "8b3a15ffbb96"
+  },
+  {
+   "block": "solution",
+   "hash": "8b3a15ffbb96"
+  },
+  {
+   "block": "solution",
+   "hash": "8b3a15ffbb96"
+  },
+  {
+   "block": "solution",
+   "hash": "8b3a15ffbb96"
+  },
+  {
+   "block": "solution",
+   "hash": "8b3a15ffbb96"
+  },
+  {
+   "block": "solution",
+   "hash": "8b3a15ffbb96"
+  },
+  {
+   "block": "solution",
+   "hash": "8b3a15ffbb96"
+  },
+  {
+   "block": "solution",
+   "hash": "8b3a15ffbb96"
+  },
+  {
+   "block": "solution",
+   "hash": "8b3a15ffbb96"
+  },
+  {
+   "block": "solution",
+   "hash": "8b3a15ffbb96"
+  },
+  {
+   "block": "solution",
+   "hash": "8b3a15ffbb96"
+  },
+  {
+   "block": "solution",
+   "hash": "8b3a15ffbb96"
+  },
+  {
+   "block": "solution",
+   "hash": "8b3a15ffbb96"
+  },
+  {
+   "block": "solution",
+   "hash": "8b3a15ffbb96"
+  },
+  {
+   "block": "solution",
+   "hash": "8b3a15ffbb96"
+  },
+  {
+   "block": "solution",
+   "hash": "8b3a15ffbb96"
+  },
+  {
+   "block": "solution",
+   "hash": "8b3a15ffbb96"
+  }
+ ],
+ "entry": [
+  [
+   "problem",
+   "자, 평균 나이를 말하려면 몇 명으로 나눈 평균인지부터 알아야 해요. 전체, 나이를 아는 사람, 모르는 사람 수를 세고 생존율까지 구해요."
+  ],
+  [
+   "starter",
+   "pandas를 불러오고 titanic 표를 읽는 두 줄은 준비돼 있어요."
+  ],
+  [
+   "code",
+   "# 전체 인원이에요. len()은 표의 줄 수를 세요\nn_total = len(titanic)\n",
+   "전체 인원은 len(titanic)이에요. 표의 줄 수가 곧 사람 수거든요."
+  ],
+  [
+   "code",
+   "# notna()는 나이가 비어 있지 않으면 True. sum()으로 True 개수를 세요\n# int()로 감싸야 그냥 정수로 담겨요\nn_known = int(titanic['나이'].notna().sum())\n",
+   "notna()는 나이가 있는 칸을 True로 표시해요. sum()으로 세고 int로 정수를 만들어요."
+  ],
+  [
+   "run",
+   "여기까지 한번 실행해 볼게요."
+  ],
+  [
+   "output",
+   "아무것도 안 나오죠? 담기만 했고 아직 안 찍었거든요. 오류가 없으면 된 거예요."
+  ],
+  [
+   "try",
+   "n_unknown = int(titanic['age'].isna().sum())\n",
+   "이제 나이를 모르는 사람이에요. 이렇게 해 볼까요?"
+  ],
+  [
+   "run",
+   "실행하면요."
+  ],
+  [
+   "output",
+   "길게 나오죠? 맨 아랫줄만 보세요. KeyError: 'age'예요. 이 표에 age라는 열이 없다는 뜻이에요. 열 이름이 한글 나이거든요."
+  ],
+  [
+   "undo",
+   "그래서 열 이름은 표에 있는 글자 그대로 써야 해요."
+  ],
+  [
+   "code",
+   "# isna()는 반대예요. 나이가 빈칸이면 True\nn_unknown = int(titanic['나이'].isna().sum())\n",
+   "isna()는 반대로 비어 있는 칸을 True로 표시해요."
+  ],
+  [
+   "code",
+   "# 생존이 0과 1이라 평균이 곧 생존율이에요\nsurvival_rate = titanic['생존'].mean()\n",
+   "생존 열은 0과 1이라서 mean()이 곧 생존율이에요."
+  ],
+  [
+   "code",
+   "# 세 숫자를 한 줄에 찍어요. n_known + n_unknown이 n_total과 같은지 보세요\nprint(n_total, n_known, n_unknown)\n",
+   "세 숫자를 한 줄에 찍어요. 둘을 더하면 전체가 되는지 보려고요."
+  ],
+  [
+   "run",
+   "실행해 볼게요."
+  ],
+  [
+   "output",
+   "1309 1046 263이 나왔죠? 1046 더하기 263이 딱 1309예요."
+  ],
+  [
+   "caution",
+   "survival_rate를 그냥 print하기 쉬운데, 0.3820…처럼 소수가 길게 나와 읽기 힘드니 조심하세요."
+  ],
+  [
+   "code",
+   "# :.2%는 소수점 둘째 자리까지 퍼센트로 보여 줘요\nprint(f'{survival_rate:.2%}')\n",
+   "생존율은 .2%로 퍼센트 모양으로 보여 줘요."
+  ],
+  [
+   "run",
+   "다시 실행해요."
+  ],
+  [
+   "output",
+   "둘째 줄에 38.20%가 나왔죠? 천삼백구 명 중 38%쯤 살아남았다는 뜻이에요."
+  ],
+  [
+   "submit",
+   "제출할게요."
+  ]
+ ]
+}

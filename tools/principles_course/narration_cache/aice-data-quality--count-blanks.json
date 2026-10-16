@@ -1,0 +1,41 @@
+{
+  "hash": "be86586571b6758371ea3acba6e24ba10afb1150948c23fdd958c794aba5fd9f",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 배달 자료예요. 실제 주문 자료가 아니에요.\ndf = pd.read_csv('data/deliveries.csv')\n# 처리 전 행 수예요.\nprint(len(df))\n# isna()는 칸마다 빈칸이면 True, 값이 있으면 False예요.\n# 뒤에 sum()을 붙이면 열마다 True를 더해 빈칸 수가 돼요.\nresult = df.isna()\n# 결과를 화면에서 확인해요.\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.     False   True    False  False"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `count()`를 쓰면 빈칸이 아니라 값이 있는 칸을 세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "result = df.isna()",
+      "after": "result = df.isna().sum()",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 2 / price       0 / dtype: int64"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

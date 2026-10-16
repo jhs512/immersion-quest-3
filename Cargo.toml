@@ -1,0 +1,41 @@
+[package]
+name = "molip-quest"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+# dx picks the feature named after the platform (--desktop / --android → mobile).
+default = ["desktop"]
+desktop = ["dioxus/desktop"]
+mobile = ["dioxus/mobile"]
+
+[dependencies]
+dioxus = { version = "0.7" }
+directories = "6"
+rusqlite = { version = "0.32", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+tempfile = "3"
+pulldown-cmark = "0.13"
+ammonia = "4"
+# 해설 모드 voice: the Sec-MS-GEC token of the Edge Read Aloud handshake (src/tts.rs).
+sha2 = "0.10"
+base64 = "0.23"
+ring = "0.17"
+
+# The clipboard crate has no Android backend; the Android build is view-only anyway. The
+# WebSocket client for the Edge voice stays off Android too (no TLS backend there, no narration).
+[target.'cfg(not(target_os = "android"))'.dependencies]
+tungstenite = { version = "0.28", features = ["native-tls"] }
+arboard = { version = "3.6.1", default-features = false }
+# Auto-update: the GitHub Releases API and the installer download (src/updater.rs).
+ureq = { version = "3", default-features = false, features = ["native-tls", "json"] }
+
+# build.rs embeds assets/icon/icon.ico into the Windows executable.
+[target.'cfg(windows)'.build-dependencies]
+winresource = "0.1"
+
+[[bin]]
+name = "molip-quest"
+path = "src/main.rs"

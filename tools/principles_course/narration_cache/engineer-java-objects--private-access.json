@@ -1,0 +1,41 @@
+{
+  "hash": "bdd4f0274f06653211b47facd03b1081ba57a4a3f378937d4bbda61d60c63795",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "class Account {\n    // 클래스 밖에서는 못 쓰는 잔액이에요.\n    private int balance;\n\n    // 처음 잔액을 받아 필드에 담아요.\n    Account(int balance) {\n        this.balance = balance;\n    }\n\n    // 잔액을 읽어서 돌려줘요.\n    int getBalance() {\n        return balance;\n    }\n\n    // 돌려주는 값이 없어서 void예요.\n    void withdraw(int money) {\n        // 잔액보다 많이는 못 빼요.\n        if (money <= balance) {\n            balance -= money;\n        }\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // 처음 잔액과 뺄 금액이에요.\n        int start = 10000;\n        int money = 3000;\n        Account acc = new Account(start);\n        // 잔액에서 money만큼 빼려는 줄이에요.\n        acc.balance -= money;\n        // 잔액은 메서드로 읽어요.\n        System.out.println(\"잔액: \" + acc.getBalance());\n    }\n}\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "지금 코드는 검사를 통과하지 못해요."
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. private을 지우면 오류는 사라져도 출금 규칙을 건너뛰어요."
+    },
+    {
+      "action": "patch_code",
+      "before": "acc.balance -= money;",
+      "after": "acc.withdraw(money);",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 잔액: 7000"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

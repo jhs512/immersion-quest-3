@@ -1,0 +1,42 @@
+{
+  "hash": "08a300745e79b54791d5613141d471c1f92bd4e40e6065c0b84510090ae13950",
+  "by": "hand-compiled",
+  "actions": [
+    {
+      "action": "say",
+      "target": "problem",
+      "text": "ThemeContext로 테마와 변경 함수를 전달하세요.\nmain의 data-theme은 light 또는 dark예요.\nbutton#theme은 현재 테마를 표시하고 클릭하면 바꿔요.\nlocalStorage 키는 mq3-theme이에요.\n새로고침 뒤에도 선택한 테마가 유지돼요."
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 실행 성공과 모든 검사 통과는 달라요. 단계마다 결과를 확인해요."
+    },
+    {
+      "action": "set_code",
+      "code": "import {useState,useEffect,createContext,useContext} from 'react';\nimport {createRoot} from 'react-dom/client';\nconst ThemeContext=createContext(null);\nfunction ThemeButton() {\n  // 중간 컴포넌트의 props 전달 없이 공통 값을 읽어요.\n  const {theme,setTheme}=useContext(ThemeContext);\n  return <button id=\"theme\" onClick={()=>setTheme(t=>t==='light'?'dark':'light')}>{theme}</button>;\n}\nfunction App() {\n  const [theme,setTheme]=useState(()=>localStorage.getItem('mq3-theme') || 'light');\n  // 초기 읽기는 한 번, 이후 저장은 테마가 바뀔 때마다 해요.\n  useEffect(()=>{\n    // 외부 저장소와 화면의 상태를 동기화해요.\n    localStorage.setItem('mq3-theme',theme);\n    document.title='테마: '+theme;\n  },[theme]);\n  return <ThemeContext.Provider value={{theme,setTheme}}><main data-theme={theme}><ThemeButton/></main></ThemeContext.Provider>;\n}\n",
+      "say": "컴포넌트 함수를 먼저 준비해요. 아직 화면에 연결하지 않았어요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "화면은 아직 비어 있어요. 이제 루트에 컴포넌트를 연결해요."
+    },
+    {
+      "action": "patch_code",
+      "before": "import {useState,useEffect,createContext,useContext} from 'react';\nimport {createRoot} from 'react-dom/client';\nconst ThemeContext=createContext(null);\nfunction ThemeButton() {\n  // 중간 컴포넌트의 props 전달 없이 공통 값을 읽어요.\n  const {theme,setTheme}=useContext(ThemeContext);\n  return <button id=\"theme\" onClick={()=>setTheme(t=>t==='light'?'dark':'light')}>{theme}</button>;\n}\nfunction App() {\n  const [theme,setTheme]=useState(()=>localStorage.getItem('mq3-theme') || 'light');\n  // 초기 읽기는 한 번, 이후 저장은 테마가 바뀔 때마다 해요.\n  useEffect(()=>{\n    // 외부 저장소와 화면의 상태를 동기화해요.\n    localStorage.setItem('mq3-theme',theme);\n    document.title='테마: '+theme;\n  },[theme]);\n  return <ThemeContext.Provider value={{theme,setTheme}}><main data-theme={theme}><ThemeButton/></main></ThemeContext.Provider>;\n}\n",
+      "after": "import {useState,useEffect,createContext,useContext} from 'react';\nimport {createRoot} from 'react-dom/client';\nconst ThemeContext=createContext(null);\nfunction ThemeButton() {\n  // 중간 컴포넌트의 props 전달 없이 공통 값을 읽어요.\n  const {theme,setTheme}=useContext(ThemeContext);\n  return <button id=\"theme\" onClick={()=>setTheme(t=>t==='light'?'dark':'light')}>{theme}</button>;\n}\nfunction App() {\n  const [theme,setTheme]=useState(()=>localStorage.getItem('mq3-theme') || 'light');\n  // 초기 읽기는 한 번, 이후 저장은 테마가 바뀔 때마다 해요.\n  useEffect(()=>{\n    // 외부 저장소와 화면의 상태를 동기화해요.\n    localStorage.setItem('mq3-theme',theme);\n    document.title='테마: '+theme;\n  },[theme]);\n  return <ThemeContext.Provider value={{theme,setTheme}}><main data-theme={theme}><ThemeButton/></main></ThemeContext.Provider>;\n}\ncreateRoot(document.getElementById('root')).render(<App/>);\n"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "완성한 화면을 확인하세요. 입력과 버튼도 직접 사용해보세요."
+    }
+  ]
+}

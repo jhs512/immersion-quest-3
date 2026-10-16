@@ -1,0 +1,41 @@
+{
+  "hash": "e3d51f5c1696adf91b0d36b97c94ea53c8e97143706834ce6dc9516b5eb5a0d8",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 방문 자료예요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/visits.csv')\n# 기준 방문 횟수예요.\nlimit = 4\n# 조건에 맞는 기록만 골라 picked에 담아요.\npicked = df[df['visits'] >= limit]\n# 고른 표에서 첫 기록을 꺼내요.\nresult = picked.loc[0]\n# 결과를 화면에서 확인해요.\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "지금 코드는 검사를 통과하지 못해요."
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 화면의 인덱스를 `loc`에 직접 적으면 자료가 바뀔 때 틀려요."
+    },
+    {
+      "action": "patch_code",
+      "before": "picked.loc[0]",
+      "after": "picked.iloc[0]",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.       1 / Name: 1, dtype: object"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

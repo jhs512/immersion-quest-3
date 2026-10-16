@@ -1,0 +1,35 @@
+// Real WebView checks for course browsing and the visible fullscreen control.
+const {chromium}=require('../target/ui-tests/node_modules/playwright-core');
+const assert=require('node:assert/strict');const path=require('node:path');
+(async()=>{
+ const browser=await chromium.connectOverCDP('http://127.0.0.1:9229');
+ const page=browser.contexts()[0].pages()[0];page.setDefaultTimeout(60000);
+ const nav=page.getByRole('navigation',{name:'과정 선택'});
+ await nav.getByRole('button').filter({hasText:'작은 실험'}).waitFor();
+ const buttons=await nav.getByRole('button').all();
+ const first=await buttons[0].boundingBox(),second=await buttons[1].boundingBox();
+ assert.ok(second.y>=first.y+first.height,'courses must be stacked vertically');
+ const sidebar=await page.locator('.course-sidebar').boundingBox(),main=await page.locator('.course-main').boundingBox();
+ assert.ok(main.x>=sidebar.x+sidebar.width,'lessons belong to the right of the course list');
+ await page.getByLabel('과정 검색',{exact:true}).fill('작은 실험');
+ assert.equal(await nav.getByRole('button').count(),1);
+ await nav.getByRole('button').click();
+ await page.locator('.course-catalog h2').filter({hasText:'작은 실험'}).waitFor();
+ assert.equal(await page.locator('.course-selected').count(),1);
+ assert.equal(await page.getByRole('button',{name:'복습모드 시작',exact:true}).count(),0);
+ await page.getByLabel('과정 검색',{exact:true}).fill('no-matching-course');
+ await page.getByText('일치하는 과정이 없어요.',{exact:true}).waitFor();
+ await page.getByLabel('과정 검색',{exact:true}).fill('');
+ await page.getByRole('button',{name:'코스 추가·만들기',exact:true}).click();
+ await page.locator('.course-builder').waitFor();
+ assert.equal(await page.locator('.course-catalog').count(),0);
+ await nav.getByRole('button').filter({hasText:'작은 실험'}).click();
+ await page.locator('.course-catalog h2').filter({hasText:'작은 실험'}).waitFor();
+ assert.equal(await page.locator('.course-builder').count(),0);
+ const toggle=page.locator('#app-fullscreen-toggle');const initial=await toggle.getAttribute('data-fullscreen');
+ await toggle.click();await page.waitForFunction(v=>document.querySelector('#app-fullscreen-toggle').dataset.fullscreen!==v,initial);
+ await toggle.click();await page.waitForFunction(v=>document.querySelector('#app-fullscreen-toggle').dataset.fullscreen===v,initial);
+ await page.screenshot({path:path.resolve(__dirname,'../target/principles-ui/course-navigation.png'),fullPage:true});
+ console.log('PASS vertical course sidebar, titles, search + empty state, selection, builder, optional review, visible fullscreen toggle');
+ await browser.close();
+})().catch(error=>{console.error(error);process.exit(1)});

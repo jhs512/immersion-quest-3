@@ -1,0 +1,41 @@
+{
+  "hash": "c67f9775aceb9a57a7ba82fae42c0d703d8026a1b5b5da4b4cab53dc500dd454",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 방문 자료예요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/visits.csv')\n# 비교할 기준 방문 횟수예요.\nlimit = 4\n# visits 값이 limit보다 큰지 행마다 비교해요.\nresult = df['visits'] > limit\n# 결과의 크기를 먼저 봐요. 앞 숫자가 행 수예요.\nprint(result.shape)\n# 결과를 화면에서 확인해요.\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. True / Name: visits, dtype: bool"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `df[df['visits']] > limit`처럼 대괄호를 먼저 닫으면 오류가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "result = df['visits'] > limit",
+      "after": "result = df[df['visits'] > limit]",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.     app       5     18.0       0"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

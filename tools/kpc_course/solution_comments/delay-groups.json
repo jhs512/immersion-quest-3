@@ -1,0 +1,5 @@
+{
+ "hash": "c16c100644199ee0",
+ "by": "claude",
+ "code": "import pandas as pd\ncredit = pd.read_csv('data/credit.csv')\ntarget = '다음달 부도'\npay_columns = ['상환_9월', '상환_8월', '상환_7월', '상환_6월', '상환_5월', '상환_4월']\n# 여섯 달 상환 열에 한 번에 >= 1 조건을 걸어요. 열마다 참·거짓이 매겨진 표가 돼요.\n# 연체는 1 이상이라 >= 1이에요. > 1로 쓰면 한 달 연체가 빠지니 조심하세요.\n# .any(axis=1): 행마다 \"하나라도 참인가\"를 봐요. axis=1이 가로(행) 방향이에요.\n# axis=0으로 쓰면 열마다 묻게 되니 결과 모양이 달라져요.\ncredit['has_delay'] = (credit[pay_columns] >= 1).any(axis=1)\n# has_delay(True/False)로 묶고, 타깃 열만 골라서 세 가지 통계를 한 번에 구해요.\n# count는 그룹 인원, sum은 부도 난 사람 수, mean은 부도율이에요. 이름은 따옴표 안 문자열이에요.\nsummary = credit.groupby('has_delay')[target].agg(['count', 'sum', 'mean'])\n# 마지막 줄에 변수만 쓰면 표가 화면에 보여요. 두 그룹의 mean 차이를 보세요.\nsummary\n"
+}

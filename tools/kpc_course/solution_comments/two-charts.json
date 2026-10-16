@@ -1,0 +1,5 @@
+{
+ "hash": "b99b8e9a928cd873",
+ "by": "claude",
+ "code": "import pandas as pd\ntitanic = pd.read_csv('data/titanic.csv')\nimport matplotlib.pyplot as plt\nimport seaborn as sns\n# 객실등급과 성별로 묶어 생존 평균(=생존율)을 구해요. 두 열이라 대괄호로 묶어요.\n# unstack('성별')로 성별을 열로 펼치고, 100을 곱해 퍼센트로 바꿔요.\nwide = titanic.groupby(['객실등급', '성별'])['생존'].mean().unstack('성별') * 100\n# 나이가 빈칸(결측)이 아닌 승객만 남겨요. notna()가 '기록된 칸'을 골라 줘요.\nknown_age = titanic[titanic['나이'].notna()]\n# 종이(fig) 한 장에 그래프 영역 두 개(1줄 2칸)를 만들어요. 왼쪽이 ax1, 오른쪽이 ax2예요.\n# figsize=(11, 4)는 가로 11, 세로 4 크기예요.\nfig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4))\n# wide를 묶음 막대로 그려요. ax=ax1이 빠지면 엉뚱한 곳에 그려져요.\n# ylim=(0, 100)은 y축을 0~100으로, rot=0은 x축 글자를 눕히지 않는 거예요.\nwide.plot.bar(ax=ax1, ylim=(0, 100), rot=0)\n# 왼쪽 영역의 y축 이름이에요. plt.ylabel이 아니라 ax1에 직접 붙여요.\nax1.set_ylabel('생존율 (%)')\n# 왼쪽 영역의 제목이에요. plt.title이 아니라 set_title이에요.\nax1.set_title('등급과 성별에 따른 생존율')\n# 나이를 20칸으로 나눠 히스토그램을 그려요. ax=ax2라서 오른쪽 영역에 들어가요.\nsns.histplot(data=known_age, x='나이', bins=20, ax=ax2)\n# 오른쪽 영역의 제목이에요.\nax2.set_title('나이 분포')\n# 그림을 화면에 띄워요. 이게 없으면 그래프가 안 보여요.\nplt.show()\n"
+}

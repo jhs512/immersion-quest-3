@@ -1,0 +1,41 @@
+{
+  "hash": "84d59a5ccd4ff0918c8e63c709017a5a2d05268c5645754694c33df9b3855712",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# minutes에는 빈칸과 모름이 섞여 있어요.\ndf = pd.read_csv('data/orders.csv')\n# 바꾸기 전 값을 먼저 봐요. 왼쪽 번호는 0부터 세요.\nprint(df['minutes'])\n# minutes 열을 숫자로 바꿔 다시 담아요.\ndf['minutes'] = pd.to_numeric(df['minutes'])\n# 바꾼 열과 자료형을 확인해요. NaN이 섞인 숫자 열은 float64가 돼요.\nresult = df['minutes']\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "지금 코드는 검사를 통과하지 못해요."
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 모름을 0으로 바꾸면 모르는 시간이 0분이 돼요."
+    },
+    {
+      "action": "patch_code",
+      "before": "pd.to_numeric(df['minutes'])",
+      "after": "pd.to_numeric(df['minutes'], errors='coerce')",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  / Name: minutes, dtype: float64"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

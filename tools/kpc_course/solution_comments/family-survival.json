@@ -1,0 +1,5 @@
+{
+ "hash": "1fe2c1a513f3a4eb",
+ "by": "claude",
+ "code": "import pandas as pd\ntitanic = pd.read_csv('data/titanic.csv')\n# 형제배우자와 부모자녀를 더해요. 1명 이상이면 가족과 함께 탄 거죠\n# 비교 결과는 True/False라서 새 열 가족동반에 그대로 담겨요\n# 덧셈을 괄호로 먼저 묶어야 해요. 안 묶으면 부모자녀 >= 1만 비교돼요\ntitanic['가족동반'] = (titanic['형제배우자'] + titanic['부모자녀']) >= 1\n# 가족동반(True/False)으로 묶고 생존 열만 골라요\n# agg에 여러 집계를 리스트로 넣으면 한 표에 나란히 나와요\n# count는 사람 수(분모), sum은 산 사람 수, mean은 생존율이에요\nfamily_summary = titanic.groupby('가족동반')['생존'].agg(['count', 'sum', 'mean'])\n# 두 열로 묶을 땐 열 이름을 리스트로 묶어서 넣어요\n# mean 결과는 한 줄로 길게 나와요. unstack('가족동반')이 가족동반을 열로 펼쳐 줘요\n# 결과는 객실등급 3행, 가족동반 True/False 2열이에요\nby_class = titanic.groupby(['객실등급', '가족동반'])['생존'].mean().unstack('가족동반')\n# 첫 번째 표는 print로 보여 줘요\nprint(family_summary)\n# 마지막 줄에 변수 이름만 적으면 그 표가 결과로 보여요\nby_class\n"
+}

@@ -1,0 +1,41 @@
+{
+  "hash": "9260b3d89392e2cb30b38ef04f8cb3cafe077b7c19c8ce27a3fcc0e26dff21e2",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 주문 자료예요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/orders.csv')\n# 점검할 내용을 result에 담아요.\nresult = df.head(3)\n# 담은 값을 화면에 보여 줘요.\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.      web  2,500       3개     NaN"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `dtypes` 뒤에 괄호를 붙이면 TypeError가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "result = df.head(3)",
+      "after": "result = df.dtypes",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. inutes       str / dtype: object"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

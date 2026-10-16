@@ -1,0 +1,41 @@
+{
+  "hash": "e56c00d90c17449e72438d6f4eecca97d31ae3392b6adfc9ab8a4a84209eba1e",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n# scikit-learn에서 나누는 함수만 불러와요.\nfrom sklearn.model_selection import train_test_split\n\n# 직접 만든 구독 고객 자료예요. churn이 1이면 떠난 고객이에요.\ndf = pd.read_csv('data/members.csv')\n# 입력 X와 정답 y를 나눠요.\nX = df.drop(columns=['churn'])\ny = df['churn']\n# 훈련 80%, 테스트 20%로 나눠요.\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)\n# 모델이 공부할 문제집이에요.\nstudy = X\n# 문제집과 테스트 몫에 함께 있는 행 번호예요.\ncommon = set(study.index) & set(X_test.index)\nprint(common)\n# 겹친 행의 수예요.\nprint(len(common))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  12, 13, 16, 21, 26, 30, 31} / 8"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 테스트 행이 학습 자료에 섞여도 오류 없이 그냥 실행돼요."
+    },
+    {
+      "action": "patch_code",
+      "before": "study = X",
+      "after": "study = X_train",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. set() / 0"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

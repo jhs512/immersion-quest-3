@@ -1,0 +1,191 @@
+{
+ "format": 2,
+ "hash": "8f7365e997d91f9a",
+ "by": "claude",
+ "blocks": {
+  "title": "473cc869f7c9",
+  "problem": "514d66feac1b",
+  "starter": "a078b39cb7c5",
+  "example": "e3b0c44298fc",
+  "solution": "62907087dd4a"
+ },
+ "sources": [
+  {
+   "block": "problem",
+   "hash": "514d66feac1b"
+  },
+  {
+   "block": "problem",
+   "hash": "514d66feac1b"
+  },
+  {
+   "block": "starter",
+   "hash": "a078b39cb7c5"
+  },
+  {
+   "block": "solution",
+   "hash": "62907087dd4a"
+  },
+  {
+   "block": "solution",
+   "hash": "62907087dd4a"
+  },
+  {
+   "block": "solution",
+   "hash": "62907087dd4a"
+  },
+  {
+   "block": "solution",
+   "hash": "62907087dd4a"
+  },
+  {
+   "block": "solution",
+   "hash": "62907087dd4a"
+  },
+  {
+   "block": "solution",
+   "hash": "62907087dd4a"
+  },
+  {
+   "block": "solution",
+   "hash": "62907087dd4a"
+  },
+  {
+   "block": "solution",
+   "hash": "62907087dd4a"
+  },
+  {
+   "block": "solution",
+   "hash": "62907087dd4a"
+  },
+  {
+   "block": "solution",
+   "hash": "62907087dd4a"
+  },
+  {
+   "block": "solution",
+   "hash": "62907087dd4a"
+  },
+  {
+   "block": "solution",
+   "hash": "62907087dd4a"
+  },
+  {
+   "block": "solution",
+   "hash": "62907087dd4a"
+  },
+  {
+   "block": "solution",
+   "hash": "62907087dd4a"
+  },
+  {
+   "block": "solution",
+   "hash": "62907087dd4a"
+  },
+  {
+   "block": "solution",
+   "hash": "62907087dd4a"
+  },
+  {
+   "block": "solution",
+   "hash": "62907087dd4a"
+  },
+  {
+   "block": "solution",
+   "hash": "62907087dd4a"
+  }
+ ],
+ "entry": [
+  [
+   "problem",
+   "자, 트리 깊이 후보 depths가 준비돼 있어요. 후보마다 교차 검증으로 채점해서 가장 좋은 깊이를 고르고, 그 깊이로 다시 학습해 테스트 정확도까지 내요."
+  ],
+  [
+   "hint",
+   "깊이를 고를 때 테스트 자료는 쓰지 않아요. best_depth를 정한 뒤에 한 번만 써요."
+  ],
+  [
+   "starter",
+   "데이터 나누기, 손질기 make_preprocessor, 깊이 후보 depths, 빈 딕셔너리 cv_scores까지 준비돼 있어요."
+  ],
+  [
+   "code",
+   "# 깊이 후보를 하나씩 꺼내서 같은 방식으로 채점해요\nfor depth in depths:\n    # 손질기와 트리를 한 묶음으로. 트리에는 지금 꺼낸 depth를 넣어요\n    # max_depth=depths가 아니라 max_depth=depth예요(리스트가 아니라 숫자 하나)\n    model = Pipeline([('prepare', make_preprocessor()), ('model', DecisionTreeClassifier(max_depth=depth, random_state=42))])\n",
+   "깊이마다 손질기와 트리를 묶은 모델을 만들어요. max_depth에는 지금 꺼낸 depth 하나를 넣어요."
+  ],
+  [
+   "code",
+   "    # 훈련 자료만 5조각으로 나눠 채점하고 평균을 내요. 테스트 자료는 안 써요\n    # 딕셔너리의 키는 깊이(숫자), 값은 평균 점수. .mean()을 빼면 점수 5개가 그대로 들어가요\n    cv_scores[depth] = cross_val_score(model, X_train, y_train, cv=5).mean()\n",
+   "cross_val_score로 훈련 자료만 다섯 조각으로 채점해요. 평균을 cv_scores에 담고요."
+  ],
+  [
+   "run",
+   "일단 실행해 볼게요."
+  ],
+  [
+   "output",
+   "아무것도 안 나오죠? 점수를 cv_scores에 담기만 하고 print는 안 했거든요."
+  ],
+  [
+   "try",
+   "best_depth = max(cv_scores)\nprint(best_depth)\n",
+   "이렇게 해 볼까요? 가장 큰 걸 고르면 되니까요."
+  ],
+  [
+   "run",
+   "실행하면요."
+  ],
+  [
+   "output",
+   "12가 나와요. 후보 중 제일 깊은 12를 고른 거예요. max가 점수가 아니라 키인 깊이를 비교했거든요."
+  ],
+  [
+   "undo",
+   "그래서 max에 key를 줘야 해요."
+  ],
+  [
+   "code",
+   "# 값(점수)이 가장 큰 키(깊이)를 골라요. max(cv_scores)만 쓰면 점수가 아니라 가장 큰 깊이가 나와요\nbest_depth = max(cv_scores, key=cv_scores.get)\n",
+   "key에 cv_scores.get을 주면 값이 큰 키를 돌려주죠?"
+  ],
+  [
+   "caution",
+   "반복문 안의 model을 그대로 쓰기 쉬운데, 그건 마지막 후보 12로 만든 거라 조심하세요."
+  ],
+  [
+   "code",
+   "# 고른 깊이로 모델을 새로 만들어요. 반복문 안의 model은 마지막 후보(12)라서 그대로 쓰면 안 돼요\nmodel = Pipeline([('prepare', make_preprocessor()), ('model', DecisionTreeClassifier(max_depth=best_depth, random_state=42))])\n# 훈련 자료 전체로 다시 학습해요\nmodel.fit(X_train, y_train)\n",
+   "고른 깊이 best_depth로 모델을 새로 만들어요. 훈련 자료 전체로 다시 학습하고요."
+  ],
+  [
+   "run",
+   "여기서 한 번 돌려 볼게요."
+  ],
+  [
+   "output",
+   "아직 아무것도 안 찍혀요. 오류 없이 학습만 끝난 거예요."
+  ],
+  [
+   "code",
+   "# 테스트 자료는 여기서 딱 한 번. 정답 y_test와 예측을 비교해 정확도를 재요\ntest_accuracy = accuracy_score(y_test, model.predict(X_test))\n",
+   "이제야 테스트 자료를 한 번 써요. 테스트 정확도를 test_accuracy에 담으면 돼요."
+  ],
+  [
+   "code",
+   "# 깊이별 평균 점수를 소수 셋째 자리까지 보기 좋게 출력해요\nprint({depth: round(float(score), 3) for depth, score in cv_scores.items()})\n# :.3f는 소수 셋째 자리까지 보여 달라는 뜻이에요\nprint(f'고른 깊이 {best_depth}, 테스트 정확도 {test_accuracy:.3f}')\n",
+   "깊이별 점수를 소수 셋째 자리로 찍어요. 고른 깊이와 테스트 정확도도 출력하고요."
+  ],
+  [
+   "run",
+   "실행해 볼게요."
+  ],
+  [
+   "output",
+   "깊이 3이 0.806으로 제일 높죠? 2는 0.768, 12는 0.726으로 떨어졌어요. 너무 깊으면 외우기만 하거든요. 고른 깊이 3의 테스트 정확도는 0.836이에요."
+  ],
+  [
+   "submit",
+   "제출할게요."
+  ]
+ ]
+}

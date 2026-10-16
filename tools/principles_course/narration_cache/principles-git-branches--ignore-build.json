@@ -1,0 +1,41 @@
+{
+  "hash": "5470f699e2e004134d4b922a41f4c1dae16913f9322e9c38ca78248ac979bb24",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "set -e\ngit init -q -b main work\ncd work\n# 생성 파일은 다시 만들 수 있어요.\nmkdir build\nprintf 'generated\\n' > build/output.txt\nprintf '' > .gitignore\n# 소스와 제외 규칙만 기록해요.\nprintf 'source\\n' > app.txt\ngit add .\ngit commit -qm save\ngit ls-tree -r --name-only HEAD\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. ore / app.txt / build/output.txt"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 저장한 파일과 커밋에 담긴 파일은 다를 수 있어요."
+    },
+    {
+      "action": "patch_code",
+      "before": "printf '' > .gitignore",
+      "after": "printf 'build/\\n' > .gitignore",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. .gitignore / app.txt"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

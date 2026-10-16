@@ -1,0 +1,41 @@
+{
+  "hash": "6418a6e3efb53ebd812fe3bd323dca10e0cea5849f949843fad28329e371f75e",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.preprocessing import RobustScaler\n\n# 직접 만든 매장 자료예요. 실제 매장 자료가 아니에요.\ndf = pd.read_csv('data/stores.csv')\n# 입력 X는 좌석 수, 월세(천 원), 하루 방문자 수예요.\nX = df[['seats', 'rent', 'visitors']]\n# 훈련 75%, 테스트 25%로 나눠요. X만 넣으면 두 몫이 나와요.\nX_train, X_test = train_test_split(X, test_size=0.25, random_state=42)\n# 이상치에 덜 흔들리는 도구로 훈련 기준을 재요.\nscaler = RobustScaler()\nscaler.fit(X_train)\n# 훈련 자료로 잰 열마다의 중앙값이에요.\nprint(scaler.center_)\n# 새로 열 매장 하나의 값이에요.\nseats = 32\nrent = 2900\nvisitors = 240\n# 새 매장을 한 행짜리 표로 만들어요.\nnew_store = pd.DataFrame({'rent': [rent], 'seats': [seats], 'visitors': [visitors]})\n# 새 매장 값을 바꿔요.\nnew_s = RobustScaler().fit_transform(new_store)\nprint(new_s.round(2))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  34. 3300.  290.] / [[0. 0. 0.]]"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `scaler.fit_transform(new_store)`로 쓰면 훈련 기준이 새 매장 기준으로 바뀌어요."
+    },
+    {
+      "action": "patch_code",
+      "before": "new_store = pd.DataFrame({'rent': [rent], 'seats': [seats], 'visitors': [visitors]})\n# 새 매장 값을 바꿔요.\nnew_s = RobustScaler().fit_transform(new_store)",
+      "after": "new_store = pd.DataFrame({'seats': [seats], 'rent': [rent], 'visitors': [visitors]})\n# 새 매장 값을 바꿔요.\nnew_s = scaler.transform(new_store)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. .  290.] / [[-0.14 -0.33 -0.56]]"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

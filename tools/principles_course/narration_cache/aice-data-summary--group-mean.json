@@ -1,0 +1,41 @@
+{
+  "hash": "ad6f73b806ea34f82f8165f9306fbdaf1d70b670cb11b5a3d8463aeb11299a7c",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 지점 주문 자료예요. 실제 자료가 아니에요.\ndf = pd.read_csv('data/orders.csv')\n# 지점이 같은 행끼리 묶어요.\n# 묶음마다 평균을 내려고 해요.\nresult = df.groupby('branch').mean()\n# 결과를 화면에서 확인해요.\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "지금 코드는 검사를 통과하지 못해요."
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 두 열 이름의 자리를 바꾸면 같은 TypeError가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "df.groupby('branch').mean()",
+      "after": "df.groupby('branch')['amount'].mean()",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 3 / Name: amount, dtype: float64"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

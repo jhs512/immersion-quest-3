@@ -1,0 +1,41 @@
+{
+  "hash": "b1de1bb61d1c12ad7375617c7abab02d4c928f75ac2a100c285cdadb45580f59",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 다른 지점에서 받은 주문 자료예요.\ndf = pd.read_csv('data/branch.csv')\n# 지우기 전의 열 이름 목록을 먼저 확인해요.\nprint(df.columns)\n# 이 아래에서 열 이름의 앞뒤 공백을 지워요.\n# 가격 열만 꺼내 확인해요.\nresult = df['price']\nprint(result)\n# 지운 뒤의 열 이름 목록도 확인해요.\nprint(df.columns)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "지금 코드는 검사를 통과하지 못해요."
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 공백까지 따라 적으면 다른 파일에서 또 KeyError가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "# 이 아래에서 열 이름의 앞뒤 공백을 지워요.",
+      "after": "# 이 아래에서 열 이름의 앞뒤 공백을 지워요.\ndf.columns = df.columns.str.strip()",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. rice', 'quantity'], dtype='str')"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "hash": "76b386c14d33d54771a61073c93e631785b9b6e1e19c152012f91ee70bf9e16a",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 회원 자료예요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/members.csv')\n# visits는 지난달 방문 수, minutes는 지난달 머문 시간(분)이에요.\n# amount는 다음 달 구매 금액(원)이에요.\n\n# 타깃은 amount예요. 정답 y로 꺼내요.\ny = df['amount']\n# 입력 X예요. 지금은 표 전체를 그대로 써요.\nX = df\n# X의 열 이름을 봐요. 정답 열이 남았나요?\n# Index([...])는 pandas가 이름을 담는 목록이에요. 안의 이름만 보면 돼요.\nprint(X.columns)\n# 원래 표와 X의 크기를 비교해요.\nprint(df.shape, X.shape)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. , dtype='str') / (10, 6) (10, 6)"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. drop 결과를 X에 담지 않으면 정답 열이 X에 그대로 남아요."
+    },
+    {
+      "action": "patch_code",
+      "before": "X = df\n",
+      "after": "X = df.drop(columns=['amount'])\n",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. , dtype='str') / (10, 6) (10, 5)"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

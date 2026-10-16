@@ -1,0 +1,41 @@
+{
+  "hash": "02560453226bcf4111bfcc1843cd2ebbc085164615ea654ff098e0586cb7b432",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n# 그래프 도구를 plt라는 별명으로 불러와요.\nimport matplotlib.pyplot as plt\n\n# 직접 만든 배달 기록이에요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/delivery.csv')\n# zone은 구역, distance는 거리(km)예요.\n# minutes는 배달 시간(분), price는 주문 금액(원)이에요.\n\n# 상자그림으로 볼 열 이름이에요.\ncol = 'distance'\n# 그 열의 요약 숫자를 먼저 봐요.\nprint(df[col].describe())\n\n# column에 넣은 열로 상자그림을 그려요.\ndf.boxplot(column=col)\nplt.title('상자그림')\nplt.show()\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. / Name: distance, dtype: float64"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 그리는 줄만 바꾸면 표와 그림이 서로 다른 열을 보여 줘요."
+    },
+    {
+      "action": "patch_code",
+      "before": "col = 'distance'",
+      "after": "col = 'minutes'",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  / Name: minutes, dtype: float64"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

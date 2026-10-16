@@ -1,0 +1,42 @@
+{
+  "hash": "1a9a595690bfa42137a452d3d2aa19de7e7acb6006c423b7271215916f3234c3",
+  "by": "hand-compiled",
+  "actions": [
+    {
+      "action": "say",
+      "target": "problem",
+      "text": "input#title과 `추가` 버튼을 만드세요.\n빈 값은 무시하고 앞뒤 공백을 제거해요.\n각 li에는 제목, checkbox, `삭제 제목` 버튼이 있어요.\np#count에는 `남은 일 N`을 표시해요."
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 실행 성공과 모든 검사 통과는 달라요. 단계마다 결과를 확인해요."
+    },
+    {
+      "action": "set_code",
+      "code": "import {useState} from 'react';\nimport {createRoot} from 'react-dom/client';\nfunction App() {\n  const [value,setValue]=useState('');\n  const [items,setItems]=useState([]);\n  // 화면에서 항목을 찾을 때 사용할 안정된 ID예요.\n  const [nextId,setNextId]=useState(1);\n  function add(event) {\n    // 폼의 기본 페이지 이동을 막고 입력을 검사해요.\n    event.preventDefault();\n    if (!value.trim()) return;\n    // 현재 배열을 수정하지 않고 새 항목을 붙여요.\n    setItems(rows=>[...rows,{id:nextId,title:value.trim(),done:false}]);\n    setNextId(id=>id+1); setValue('');\n  }\n  return <main><form onSubmit={add}>\n    <label htmlFor=\"title\">할 일</label><input id=\"title\" value={value} onChange={e=>setValue(e.target.value)}/>\n    <button>추가</button></form><ul>{items.map(item=><li key={item.id}>\n      {/* 현재 항목의 ID와 같은 객체만 새 값으로 바꿔요. */}\n      <span>{item.title}</span><input aria-label={'완료 '+item.title} type=\"checkbox\" checked={item.done}\n        onChange={()=>setItems(rows=>rows.map(row=>row.id===item.id?{...row,done:!row.done}:row))}/>\n      {/* ID를 비교해 선택한 항목만 삭제해요. */}\n      <button onClick={()=>setItems(rows=>rows.filter(row=>row.id!==item.id))}>삭제 {item.title}</button>\n    </li>)}</ul><p id=\"count\">남은 일 {items.filter(item=>!item.done).length}</p></main>;\n}\n",
+      "say": "컴포넌트 함수를 먼저 준비해요. 아직 화면에 연결하지 않았어요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "화면은 아직 비어 있어요. 이제 루트에 컴포넌트를 연결해요."
+    },
+    {
+      "action": "patch_code",
+      "before": "import {useState} from 'react';\nimport {createRoot} from 'react-dom/client';\nfunction App() {\n  const [value,setValue]=useState('');\n  const [items,setItems]=useState([]);\n  // 화면에서 항목을 찾을 때 사용할 안정된 ID예요.\n  const [nextId,setNextId]=useState(1);\n  function add(event) {\n    // 폼의 기본 페이지 이동을 막고 입력을 검사해요.\n    event.preventDefault();\n    if (!value.trim()) return;\n    // 현재 배열을 수정하지 않고 새 항목을 붙여요.\n    setItems(rows=>[...rows,{id:nextId,title:value.trim(),done:false}]);\n    setNextId(id=>id+1); setValue('');\n  }\n  return <main><form onSubmit={add}>\n    <label htmlFor=\"title\">할 일</label><input id=\"title\" value={value} onChange={e=>setValue(e.target.value)}/>\n    <button>추가</button></form><ul>{items.map(item=><li key={item.id}>\n      {/* 현재 항목의 ID와 같은 객체만 새 값으로 바꿔요. */}\n      <span>{item.title}</span><input aria-label={'완료 '+item.title} type=\"checkbox\" checked={item.done}\n        onChange={()=>setItems(rows=>rows.map(row=>row.id===item.id?{...row,done:!row.done}:row))}/>\n      {/* ID를 비교해 선택한 항목만 삭제해요. */}\n      <button onClick={()=>setItems(rows=>rows.filter(row=>row.id!==item.id))}>삭제 {item.title}</button>\n    </li>)}</ul><p id=\"count\">남은 일 {items.filter(item=>!item.done).length}</p></main>;\n}\n",
+      "after": "import {useState} from 'react';\nimport {createRoot} from 'react-dom/client';\nfunction App() {\n  const [value,setValue]=useState('');\n  const [items,setItems]=useState([]);\n  // 화면에서 항목을 찾을 때 사용할 안정된 ID예요.\n  const [nextId,setNextId]=useState(1);\n  function add(event) {\n    // 폼의 기본 페이지 이동을 막고 입력을 검사해요.\n    event.preventDefault();\n    if (!value.trim()) return;\n    // 현재 배열을 수정하지 않고 새 항목을 붙여요.\n    setItems(rows=>[...rows,{id:nextId,title:value.trim(),done:false}]);\n    setNextId(id=>id+1); setValue('');\n  }\n  return <main><form onSubmit={add}>\n    <label htmlFor=\"title\">할 일</label><input id=\"title\" value={value} onChange={e=>setValue(e.target.value)}/>\n    <button>추가</button></form><ul>{items.map(item=><li key={item.id}>\n      {/* 현재 항목의 ID와 같은 객체만 새 값으로 바꿔요. */}\n      <span>{item.title}</span><input aria-label={'완료 '+item.title} type=\"checkbox\" checked={item.done}\n        onChange={()=>setItems(rows=>rows.map(row=>row.id===item.id?{...row,done:!row.done}:row))}/>\n      {/* ID를 비교해 선택한 항목만 삭제해요. */}\n      <button onClick={()=>setItems(rows=>rows.filter(row=>row.id!==item.id))}>삭제 {item.title}</button>\n    </li>)}</ul><p id=\"count\">남은 일 {items.filter(item=>!item.done).length}</p></main>;\n}\ncreateRoot(document.getElementById('root')).render(<App/>);\n"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "완성한 화면을 확인하세요. 입력과 버튼도 직접 사용해보세요."
+    }
+  ]
+}

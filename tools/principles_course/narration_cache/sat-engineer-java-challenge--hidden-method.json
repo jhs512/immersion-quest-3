@@ -1,0 +1,41 @@
+{
+  "hash": "e7dd401bb567c74804308f0a167c71aa8a8a4fc99810ad16d04646b8744c87ac",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "class Main {\n    static class Base {\n        static int shared;\n        static int read() { return shared; }\n    }\n    static class Child extends Base {\n        // static 메서드 숨김이에요.\n        static int read() { return shared + 10; }\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Base.shared = n;\n        // 실제 객체는 Child지만 참조 타입은 Base예요.\n        Base ref = new Child();\n        System.out.println(Child.read());\n    }\n}\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 13"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. static 메서드 숨김과 인스턴스 오버라이딩은 달라요."
+    },
+    {
+      "action": "patch_code",
+      "before": "System.out.println(Child.read());",
+      "after": "System.out.println(ref.read());",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 3"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

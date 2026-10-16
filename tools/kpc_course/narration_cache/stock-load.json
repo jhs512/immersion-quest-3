@@ -1,0 +1,156 @@
+{
+ "format": 2,
+ "hash": "204621d7d8fac78b",
+ "by": "claude",
+ "blocks": {
+  "title": "67ab95bc16c2",
+  "problem": "a93729e33a0a",
+  "starter": "74d3108ffe3d",
+  "example": "e3b0c44298fc",
+  "solution": "90275d70afd8"
+ },
+ "sources": [
+  {
+   "block": "problem",
+   "hash": "a93729e33a0a"
+  },
+  {
+   "block": "starter",
+   "hash": "74d3108ffe3d"
+  },
+  {
+   "block": "solution",
+   "hash": "90275d70afd8"
+  },
+  {
+   "block": "solution",
+   "hash": "90275d70afd8"
+  },
+  {
+   "block": "solution",
+   "hash": "90275d70afd8"
+  },
+  {
+   "block": "solution",
+   "hash": "90275d70afd8"
+  },
+  {
+   "block": "solution",
+   "hash": "90275d70afd8"
+  },
+  {
+   "block": "solution",
+   "hash": "90275d70afd8"
+  },
+  {
+   "block": "solution",
+   "hash": "90275d70afd8"
+  },
+  {
+   "block": "solution",
+   "hash": "90275d70afd8"
+  },
+  {
+   "block": "solution",
+   "hash": "90275d70afd8"
+  },
+  {
+   "block": "solution",
+   "hash": "90275d70afd8"
+  },
+  {
+   "block": "solution",
+   "hash": "90275d70afd8"
+  },
+  {
+   "block": "solution",
+   "hash": "90275d70afd8"
+  },
+  {
+   "block": "solution",
+   "hash": "90275d70afd8"
+  },
+  {
+   "block": "solution",
+   "hash": "90275d70afd8"
+  },
+  {
+   "block": "solution",
+   "hash": "90275d70afd8"
+  }
+ ],
+ "entry": [
+  [
+   "problem",
+   "자, 주가 파일을 읽어 prices에 담아요. 날짜 열은 날짜로 읽어 인덱스로 올리고 sort_index()로 정렬해요. 행 수와 열 수, 첫 날짜와 마지막 날짜까지 확인하면 돼요."
+  ],
+  [
+   "starter",
+   "import pandas as pd 한 줄은 준비되어 있어요. 그대로 둘게요."
+  ],
+  [
+   "code",
+   "# 주가 파일을 읽어요. parse_dates=['날짜']로 날짜 열을 글자가 아니라 날짜로 읽어요.\n# set_index('날짜')로 날짜를 인덱스로 올리고, sort_index()로 날짜 순서대로 정렬해요.\nprices = pd.read_csv('data/stock.csv', parse_dates=['날짜']).set_index('날짜').sort_index()\n",
+   "개념의 한 줄 그대로예요. parse_dates로 날짜로 읽고, set_index로 인덱스로 올리고, sort_index로 정렬하거든요."
+  ],
+  [
+   "run",
+   "일단 실행해 볼게요."
+  ],
+  [
+   "output",
+   "아무것도 안 나오죠? prices에 담기만 했지 꺼내지 않았거든요."
+  ],
+  [
+   "caution",
+   "parse_dates를 빼고 읽기 쉬운데, 그러면 날짜가 글자로 남아요. 글자끼리 정렬하면 순서가 어긋날 수 있으니 조심하세요."
+  ],
+  [
+   "code",
+   "# shape는 (행 수, 열 수) 두 개를 돌려줘요. 두 변수에 한 번에 나눠 담아요.\nn_rows, n_columns = prices.shape\nprint(n_rows, n_columns)  # 401 6이 나오면 맞게 읽은 거예요.\n",
+   "shape는 (행, 열) 두 개를 주니까 n_rows와 n_columns에 한 번에 나눠 담아요. 그다음 줄에서 출력하죠?"
+  ],
+  [
+   "run",
+   "실행해 볼게요."
+  ],
+  [
+   "output",
+   "401 6이 나왔죠? 401행 6열이에요. 날짜가 인덱스로 올라가서 열에서 빠진 거예요."
+  ],
+  [
+   "try",
+   "print(prices.index.min, prices.index.max)\n",
+   "이제 날짜 범위요. 이렇게 해 볼까요?"
+  ],
+  [
+   "run",
+   "실행하면요."
+  ],
+  [
+   "output",
+   "401 6 아래에 날짜 대신 bound method로 시작하는 긴 글자가 쏟아지죠? 날짜 목록이 두 번 통째로 찍혔어요. 괄호를 빼먹어서 함수 자체를 출력한 거예요."
+  ],
+  [
+   "undo",
+   "그래서 min()과 max()에 괄호를 꼭 붙여요."
+  ],
+  [
+   "code",
+   "# 인덱스가 날짜라서 min()은 첫 날짜, max()는 마지막 날짜예요.\nprint(prices.index.min(), prices.index.max())\nprices.head()  # 앞 5행을 보고 날짜가 오름차순인지 눈으로 확인해요.\n",
+   "인덱스가 날짜니까 min()이 첫 날짜, max()가 마지막 날짜예요. head()로 앞 몇 줄도 볼게요."
+  ],
+  [
+   "run",
+   "다시 실행해요."
+  ],
+  [
+   "output",
+   "이번엔 날짜가 나왔죠? 첫 날짜는 2025년 1월 13일, 마지막 날짜는 2026년 9월 4일이에요. 뒤에 붙은 00:00:00은 시각이 없어서 그래요. head() 표가 보이면 앞 5행 날짜가 오름차순인지 눈으로 확인하세요."
+  ],
+  [
+   "submit",
+   "제출할게요."
+  ]
+ ]
+}

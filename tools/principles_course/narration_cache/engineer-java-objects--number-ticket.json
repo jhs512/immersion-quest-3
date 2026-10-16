@@ -1,0 +1,41 @@
+{
+  "hash": "c70b546ca01a3dafe7a3da2dd8a1ea9c42cb3a4c0ca18efb24944b30c1c9d9da",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "class Guest {\n    // 모든 손님이 같이 쓰는 다음 번호예요.\n    // 선언하면서 1을 담아 두어서 1번부터 줘요.\n    static int next = 1;\n    // 이 손님이 받은 번호예요.\n    int no;\n\n    // 손님 객체를 만들 때마다 실행돼요.\n    Guest() {\n        // 번호를 주고 다음 번호를 1 늘려요.\n        no = next;\n        next++;\n        System.out.println(\"Guest 생성자: \" + no);\n    }\n\n    // 손님 종류와 번호를 돌려줘요.\n    String tag() {\n        return \"일반 \" + no;\n    }\n}\n\n// Vip는 Guest를 물려받아요.\nclass Vip extends Guest {\n    // super(...)가 없으니 부모 생성자가 먼저 실행돼요.\n    Vip() {\n        // VIP도 번호를 받게 하려는 두 줄이에요.\n        no = next;\n        next++;\n        System.out.println(\"Vip 생성자: \" + no);\n    }\n\n    // 부모의 tag를 다시 만들어요.\n    String tag() {\n        return \"VIP \" + no;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // VIP보다 먼저 온 일반 손님 수예요.\n        int normal = 2;\n        for (int i = 0; i < normal; i++) {\n            // 일반 손님을 만들고 바로 이름표를 출력해요.\n            Guest g = new Guest();\n            System.out.println(g.tag());\n        }\n        // VIP 손님이 와요. 변수 자료형은 Guest예요.\n        Guest v = new Vip();\n        System.out.println(v.tag());\n        // VIP 다음에 일반 손님이 한 명 더 와요.\n        Guest last = new Guest();\n        System.out.println(last.tag());\n    }\n}\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  4 / VIP 4 / Guest 생성자: 5 / 일반 5"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 부모 생성자가 준 번호를 자식이 또 주면 번호가 건너뛰어요."
+    },
+    {
+      "action": "patch_code",
+      "before": "// VIP도 번호를 받게 하려는 두 줄이에요.\n        no = next;\n        next++;\n",
+      "after": "// 번호는 부모 생성자에서 이미 받았어요.\n",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  3 / VIP 3 / Guest 생성자: 4 / 일반 4"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

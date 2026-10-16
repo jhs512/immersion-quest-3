@@ -1,0 +1,41 @@
+{
+  "hash": "7ffb28ff6df2d40cbc1c13ef16c547e21087f94ea217ac05cdd9eb2d8e693d9d",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n# 이 문제에 쓰는 도구를 불러와요.\nfrom sklearn.model_selection import train_test_split, GridSearchCV\nfrom sklearn.tree import DecisionTreeClassifier\nfrom sklearn.metrics import accuracy_score\n\n# 직접 만든 빵 공장 기록이에요. 실제 공장 자료가 아니에요.\ndf = pd.read_csv('data/bakery.csv')\n# weight는 반죽 무게, humidity는 습도, temp는 오븐 온도예요.\n# minutes는 굽는 시간이에요. defect가 1이면 불량 빵이에요.\nX = df.drop(columns=['defect'])\ny = df['defect']\n# 테스트 몫 25%는 마지막 확인용으로 남겨 둬요.\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.25, random_state=42, stratify=y)\n\n# 앞 문제에서 넓힌 후보예요.\nparam_grid = {'max_depth': [2, 3, 4, 6], 'min_samples_leaf': [1, 5]}\ngrid = GridSearchCV(DecisionTreeClassifier(random_state=42), param_grid, cv=3)\n# 찾기는 훈련 자료로만 해요.\ngrid.fit(X_train, y_train)\nprint('고른 설정:', grid.best_params_)\nprint('교차검증 점수:', round(grid.best_score_, 3))\n# 고른 모델의 마지막 성적이에요. 테스트 자료로 한 번만 채점해요.\ntest_acc = grid.best_score_\nprint('테스트 정확도:', round(test_acc, 3))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  교차검증 점수: 0.856 / 테스트 정확도: 0.856"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `best_score_`를 테스트 점수로 적으면 검증 점수를 두 번 적는 셈이에요."
+    },
+    {
+      "action": "patch_code",
+      "before": "test_acc = grid.best_score_",
+      "after": "test_acc = accuracy_score(y_test, grid.best_estimator_.predict(X_test))",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  / 교차검증 점수: 0.856 / 테스트 정확도: 0.8"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

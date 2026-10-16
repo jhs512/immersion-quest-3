@@ -1,0 +1,5 @@
+{
+ "hash": "7420218ab293c280",
+ "by": "claude",
+ "code": "import pandas as pd\ncalls = pd.DataFrame({'week': [1] * 7 + [2] * 7, 'weekday': ['월', '화', '수', '목', '금', '토', '일'] * 2, 'calls': [1320, 980, 940, 910, 1010, 420, 380, 1410, 1020, 960, 890, 1050, 450, 360]})\nfrom sklearn.metrics import mean_absolute_error\n\n# week 열이 1인 줄만 골라요. 비교는 ==, 등호 하나(=)는 대입이라 안 돼요\n# 'calls' 열만 꺼내 to_numpy()로 배열로 바꿔요. 월~일 7개가 순서대로 들어가요\nlast_week = calls[calls['week'] == 1]['calls'].to_numpy()\n# 2주차도 같은 모양으로 꺼내요. 이게 우리가 맞히고 싶은 정답이에요\nthis_week = calls[calls['week'] == 2]['calls'].to_numpy()\n# 지표 함수는 (정답, 예측) 순서예요. 정답은 2주차, 예측은 \"지난주와 같다\"인 1주차\nbaseline_mae = mean_absolute_error(this_week, last_week)\n# 월요일은 두 배열의 첫 값. 자리는 0부터 세니까 [0]이에요\n# 빗나간 크기만 보려고 abs()로 부호를 떼요\nmonday_error = abs(this_week[0] - last_week[0])\n# 하루 평균 오차와 월요일 오차를 나란히 확인해요\nprint(baseline_mae, monday_error)\n"
+}

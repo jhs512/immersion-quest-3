@@ -1,0 +1,192 @@
+{
+ "format": 2,
+ "hash": "4c97b471bf2c1026",
+ "by": "claude",
+ "blocks": {
+  "title": "b63584a9dd54",
+  "problem": "232368e51e0a",
+  "starter": "46fecd0647e9",
+  "example": "e3b0c44298fc",
+  "solution": "f6eb534a3f6e"
+ },
+ "sources": [
+  {
+   "block": "problem",
+   "hash": "232368e51e0a"
+  },
+  {
+   "block": "starter",
+   "hash": "46fecd0647e9"
+  },
+  {
+   "block": "solution",
+   "hash": "f6eb534a3f6e"
+  },
+  {
+   "block": "solution",
+   "hash": "f6eb534a3f6e"
+  },
+  {
+   "block": "solution",
+   "hash": "f6eb534a3f6e"
+  },
+  {
+   "block": "solution",
+   "hash": "f6eb534a3f6e"
+  },
+  {
+   "block": "solution",
+   "hash": "f6eb534a3f6e"
+  },
+  {
+   "block": "solution",
+   "hash": "f6eb534a3f6e"
+  },
+  {
+   "block": "solution",
+   "hash": "f6eb534a3f6e"
+  },
+  {
+   "block": "solution",
+   "hash": "f6eb534a3f6e"
+  },
+  {
+   "block": "solution",
+   "hash": "f6eb534a3f6e"
+  },
+  {
+   "block": "solution",
+   "hash": "f6eb534a3f6e"
+  },
+  {
+   "block": "solution",
+   "hash": "f6eb534a3f6e"
+  },
+  {
+   "block": "solution",
+   "hash": "f6eb534a3f6e"
+  },
+  {
+   "block": "solution",
+   "hash": "f6eb534a3f6e"
+  },
+  {
+   "block": "solution",
+   "hash": "f6eb534a3f6e"
+  },
+  {
+   "block": "solution",
+   "hash": "f6eb534a3f6e"
+  },
+  {
+   "block": "solution",
+   "hash": "f6eb534a3f6e"
+  },
+  {
+   "block": "solution",
+   "hash": "f6eb534a3f6e"
+  },
+  {
+   "block": "solution",
+   "hash": "f6eb534a3f6e"
+  },
+  {
+   "block": "solution",
+   "hash": "f6eb534a3f6e"
+  }
+ ],
+ "entry": [
+  [
+   "problem",
+   "자, 이번엔 지표가 아니라 돈으로 결정해요. 부도를 놓치면 100만 원, 멀쩡한 고객에게 경고하면 5만 원이 들거든요. 기준값 0.5와 0.3 중 어느 쪽이 싼지 비용으로 비교해요."
+  ],
+  [
+   "starter",
+   "준비 코드가 자료를 나누고 로지스틱 회귀 모델까지 훈련해 놨어요. 혼동행렬 함수도 이미 불러왔으니 저는 확률부터 구할게요."
+  ],
+  [
+   "code",
+   "# predict가 아니라 predict_proba예요. 0/1이 아니라 확률이 나와요\n# 열이 두 개(0일 확률, 1일 확률) 나오니 [:, 1]로 부도(1) 쪽만 골라요\nprobabilities = model.predict_proba(X_test)[:, 1]\n",
+   "predict_proba는 열이 두 개 나오죠? 뒤 열이 부도 확률이라 [:, 1]로 그 열만 꺼내요."
+  ],
+  [
+   "run",
+   "일단 실행해 볼게요."
+  ],
+  [
+   "output",
+   "아무것도 안 나오죠? 담기만 했거든요. 오류가 없으니 확률은 잘 들어간 거예요."
+  ],
+  [
+   "try",
+   "print(model.predict(X_test)[:, 1])\n",
+   "predict로 하면 어떨까요? 이렇게 쓰기 쉽거든요."
+  ],
+  [
+   "run",
+   "실행하면요."
+  ],
+  [
+   "output",
+   "IndexError가 나죠? too many indices, 1차원인데 2차원으로 골랐다고 해요. predict는 0과 1을 한 줄로만 주거든요. 열이 하나뿐이라 [:, 1]을 못 골라요."
+  ],
+  [
+   "undo",
+   "그래서 확률이 필요할 땐 predict_proba예요. 이 줄은 지울게요."
+  ],
+  [
+   "code",
+   "# 확률 >= 0.5면 True, 아니면 False. astype(int)로 1/0 숫자로 바꿔요\n# labels=[0, 1]을 적어야 행·열 순서가 항상 0, 1로 고정돼요\ncm_05 = confusion_matrix(y_test, (probabilities >= 0.5).astype(int), labels=[0, 1])\n",
+   "확률이 0.5 이상이면 1, 아니면 0으로 예측을 만들어요. 그 예측과 정답 y_test로 혼동행렬을 만드는 거예요."
+  ],
+  [
+   "code",
+   "# 기준값을 0.3으로 내리면 부도라고 경고하는 사람이 늘어나요\ncm_03 = confusion_matrix(y_test, (probabilities >= 0.3).astype(int), labels=[0, 1])\n",
+   "0.3도 똑같이요. 기준이 낮으니 더 많이 경고하겠죠?"
+  ],
+  [
+   "run",
+   "여기서 한 번 실행해요."
+  ],
+  [
+   "output",
+   "역시 조용하죠? 혼동행렬 두 개가 변수에 담겼어요. 오류 없이 넘어가면 된 거예요."
+  ],
+  [
+   "caution",
+   "FN과 FP 칸을 바꿔 적기 쉬운데, 그러면 비용이 뒤집혀서 결론이 달라지니 조심하세요. [1, 0]이 놓친 부도, [0, 1]이 헛경고예요."
+  ],
+  [
+   "code",
+   "# [1, 0]은 실제 부도(1)인데 0으로 예측한 FN, [0, 1]은 멀쩡한데(0) 1로 예측한 FP예요\n# int()로 감싸야 numpy 숫자가 아니라 파이썬 정수가 돼요. 1_000_000은 1000000과 같아요\ncost_05 = int(cm_05[1, 0]) * 1_000_000 + int(cm_05[0, 1]) * 50_000\n",
+   "놓친 부도에 100만 원, 헛경고에 5만 원을 곱해서 더해요. int로 감싸서 보통 정수로 만들고요."
+  ],
+  [
+   "code",
+   "# 0.3도 같은 식이에요. 행렬 이름만 cm_03으로 바뀌어요\ncost_03 = int(cm_03[1, 0]) * 1_000_000 + int(cm_03[0, 1]) * 50_000\n",
+   "0.3은 행렬 이름만 cm_03으로 바꾸면 돼요."
+  ],
+  [
+   "code",
+   "# 비용이 더 작은 쪽의 기준값을 담아요. 문자열 '0.3'이 아니라 숫자 0.3이에요\ncheaper = 0.3 if cost_03 < cost_05 else 0.5\n",
+   "0.3의 비용이 더 작으면 0.3, 아니면 0.5를 cheaper에 담아요. 따옴표 없는 숫자예요."
+  ],
+  [
+   "code",
+   "# 두 비용과 어느 쪽이 싼지 한 줄로 보여 줘요\nprint(cost_05, cost_03, cheaper)\n",
+   "두 비용과 싼 쪽을 한 줄로 출력해요."
+  ],
+  [
+   "run",
+   "실행해 볼게요."
+  ],
+  [
+   "output",
+   "0.5는 9억 9천2백만 원쯤, 0.3은 7억 4천4백만 원쯤 나왔죠? 뒤에 0.3이 찍혔어요. 헛경고는 늘었지만 놓친 부도가 줄어서 0.3이 2억 원 넘게 싸요. 기준값은 지표가 아니라 비용으로 고르는 거예요."
+  ],
+  [
+   "submit",
+   "제출할게요."
+  ]
+ ]
+}

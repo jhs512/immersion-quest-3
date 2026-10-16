@@ -1,0 +1,41 @@
+{
+  "hash": "2aa603bbb80225476ae518b94d6a13d35ba7ce800e1798e407d131b85c6c1a4b",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n# 각 문제는 자기 자료를 처음부터 읽어요.\ndf = pd.read_csv('data/members.csv')\n# 두 종류를 같은 이름으로 바꿔요.\ndf.loc[df['plan'].isin(['Basic']), 'plan'] = 'Standard'\nprint(df['plan'].value_counts().sort_index().to_dict())\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 0, 'Silver': 11, 'Standard': 11}"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 정답 숫자를 외워 쓰면 자료가 바뀔 때 틀려요."
+    },
+    {
+      "action": "patch_code",
+      "before": "isin(['Basic'])",
+      "after": "isin(['Basic', 'Silver'])",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. {'Gold': 10, 'Standard': 22}"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

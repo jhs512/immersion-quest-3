@@ -1,0 +1,41 @@
+{
+  "hash": "9f068fbcd8a7b9195e51454fe451d4227355d00e2be4415c1283456dac388800",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "class Main {\n    static class Box {\n        // 공유할 횟수 칸의 선언을 고쳐요.\n        int visits;\n        Box() {\n            // 생성할 때마다 횟수를 하나 늘려요.\n            visits++;\n        }\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Box.visits = n;\n        // 객체를 두 번 만들고 누적 횟수를 읽어요.\n        new Box();\n        new Box();\n        System.out.println(Box.visits);\n    }\n}\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "지금 코드는 검사를 통과하지 못해요."
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 클래스로 인스턴스 필드를 읽으면 컴파일 오류예요."
+    },
+    {
+      "action": "patch_code",
+      "before": "int visits;",
+      "after": "static int visits;",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 5"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

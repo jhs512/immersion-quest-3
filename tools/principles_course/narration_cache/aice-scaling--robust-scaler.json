@@ -1,0 +1,41 @@
+{
+  "hash": "ae2f11e377b6466dd02ea6c7b6f9228d90a650d1a7eb9eedbba0c2ffdea2e52b",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.preprocessing import RobustScaler, StandardScaler\n\n# 직접 만든 매장 자료예요. 실제 매장 자료가 아니에요.\ndf = pd.read_csv('data/stores.csv')\n# 입력 X는 좌석 수, 월세(천 원), 하루 방문자 수예요.\nX = df[['seats', 'rent', 'visitors']]\n# 훈련 75%, 테스트 25%로 나눠요. X만 넣으면 두 몫이 나와요.\nX_train, X_test = train_test_split(X, test_size=0.25, random_state=42)\n# 방문자 수 열만 표로 골라요. 아주 큰 값이 하나 있어요.\nv_train = X_train[['visitors']]\n# 한 열짜리 표예요. (행 수, 열 수)로 나와요.\nprint(v_train.shape)\n# 50%가 중앙값이에요. 75%에서 25%를 빼면 IQR이에요.\nprint(v_train.describe().round(1))\n# 평균과 표준편차로 바꾼 결과예요.\nstandard = StandardScaler().fit_transform(v_train)\nprint(standard.round(2))\n# 견줄 도구예요. 지금은 위와 같은 StandardScaler예요.\nscaler = StandardScaler()\nother = scaler.fit_transform(v_train)\n# 이 도구가 나눈 값(scale_)과 바꾼 결과예요.\nscale = scaler.scale_\nprint(scale)\nprint(other.round(2))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.   [-0.37] /  [-0.55] /  [-0.57]]"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `RobustScaler` 뒤 괄호를 빼면 도구를 만들지 않은 채라 TypeError가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "# 견줄 도구예요. 지금은 위와 같은 StandardScaler예요.\nscaler = StandardScaler()",
+      "after": "# 견줄 도구예요. 중앙값과 IQR을 기준으로 써요.\nscaler = RobustScaler()",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.   [-0.67] /  [-2.  ] /  [-2.17]]"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

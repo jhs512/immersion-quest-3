@@ -1,0 +1,41 @@
+{
+  "hash": "e7a30f2b313168e8708fe7643f55b43f83cfcfdd07aa7b9d9164042dcf8634d0",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 회원 자료예요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/members.csv')\n# visits는 지난달 방문 수, minutes는 지난달 머문 시간(분)이에요.\n# amount는 다음 달 구매 금액(원)이에요.\n\n# 타깃은 amount예요. 정답 y로 꺼내요.\ny = df['amount']\n# 빼고 싶은 열 이름을 목록에 넣어요.\nX = df.drop(columns=['amount'])\n# X의 열 이름과 앞의 세 행을 확인해요.\nprint(X.columns)\nprint(X.head(3))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 03   45       0      0.0  silver"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 이름 사이 쉼표를 빼면 두 이름이 붙어 KeyError가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "columns=['amount']",
+      "after": "columns=['member_id', 'amount']",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  2   45       0      0.0  silver"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

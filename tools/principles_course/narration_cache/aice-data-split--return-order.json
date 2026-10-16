@@ -1,0 +1,41 @@
+{
+  "hash": "bf6b40f02022af28209b56e81a6952e88603f2d941078247073c78e5fe009a19",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n# scikit-learn에서 나누는 함수만 불러와요.\nfrom sklearn.model_selection import train_test_split\n\n# 직접 만든 구독 고객 자료예요. churn이 1이면 떠난 고객이에요.\ndf = pd.read_csv('data/members.csv')\n# 입력 X와 정답 y를 나눠요.\nX = df.drop(columns=['churn'])\ny = df['churn']\n# 몫 네 개를 받아요. 받는 순서를 잘 보세요.\nX_train, y_train, X_test, y_test = train_test_split(X, y, test_size=0.2)\n# 입력의 크기예요. (행 수, 열 수)로 나와야 해요.\nprint(X_train.shape)\nprint(X_test.shape)\n# 정답의 크기예요. 열이 하나라서 (행 수,)로 나와야 해요.\nprint(y_train.shape)\nprint(y_test.shape)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. (28, 3) / (28,) / (8, 3) / (8,)"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 받는 순서를 바꿔 적어도 오류 없이 엉뚱한 값이 담겨요."
+    },
+    {
+      "action": "patch_code",
+      "before": "X_train, y_train, X_test, y_test =",
+      "after": "X_train, X_test, y_train, y_test =",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. (28, 3) / (8, 3) / (28,) / (8,)"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

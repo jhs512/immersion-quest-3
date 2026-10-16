@@ -1,0 +1,165 @@
+{
+ "format": 2,
+ "hash": "094ca5503fafad51",
+ "by": "claude",
+ "blocks": {
+  "title": "691105b24d31",
+  "problem": "e94df3075c07",
+  "starter": "830e69b6f044",
+  "example": "e3b0c44298fc",
+  "solution": "48843a53ab24"
+ },
+ "sources": [
+  {
+   "block": "problem",
+   "hash": "e94df3075c07"
+  },
+  {
+   "block": "starter",
+   "hash": "830e69b6f044"
+  },
+  {
+   "block": "solution",
+   "hash": "48843a53ab24"
+  },
+  {
+   "block": "solution",
+   "hash": "48843a53ab24"
+  },
+  {
+   "block": "solution",
+   "hash": "48843a53ab24"
+  },
+  {
+   "block": "solution",
+   "hash": "48843a53ab24"
+  },
+  {
+   "block": "solution",
+   "hash": "48843a53ab24"
+  },
+  {
+   "block": "solution",
+   "hash": "48843a53ab24"
+  },
+  {
+   "block": "solution",
+   "hash": "48843a53ab24"
+  },
+  {
+   "block": "solution",
+   "hash": "48843a53ab24"
+  },
+  {
+   "block": "solution",
+   "hash": "48843a53ab24"
+  },
+  {
+   "block": "solution",
+   "hash": "48843a53ab24"
+  },
+  {
+   "block": "solution",
+   "hash": "48843a53ab24"
+  },
+  {
+   "block": "solution",
+   "hash": "48843a53ab24"
+  },
+  {
+   "block": "solution",
+   "hash": "48843a53ab24"
+  },
+  {
+   "block": "solution",
+   "hash": "48843a53ab24"
+  },
+  {
+   "block": "solution",
+   "hash": "48843a53ab24"
+  },
+  {
+   "block": "solution",
+   "hash": "48843a53ab24"
+  }
+ ],
+ "entry": [
+  [
+   "problem",
+   "자, 부도 인원과 부도율을 세고, 입력 표 X를 만들어요. 타깃이 0과 1이라 합과 평균이면 돼요."
+  ],
+  [
+   "starter",
+   "credit을 읽는 줄과 target 이름은 준비돼 있어요. 그 아래에 이어서 쓸게요."
+  ],
+  [
+   "code",
+   "# 타깃이 0과 1뿐이라 더하면 1의 개수, 즉 부도 인원이에요\n# int()로 감싸서 numpy 숫자가 아닌 보통 정수로 바꿔요\ndefault_count = int(credit[target].sum())\n",
+   "타깃 열을 더하면 1의 개수, 즉 부도 인원이에요. int()로 감싸서 보통 정수로 만들고요."
+  ],
+  [
+   "code",
+   "# 0과 1의 평균은 1의 비율이에요. 그래서 mean()이 곧 부도율이죠\ndefault_rate = credit[target].mean()\n",
+   "같은 열의 평균을 내면 1의 비율이에요. 그게 바로 부도율이거든요."
+  ],
+  [
+   "run",
+   "일단 실행해 볼게요."
+  ],
+  [
+   "output",
+   "아무것도 안 나오죠? 두 값을 변수에 담기만 했지 print를 안 했거든요."
+  ],
+  [
+   "try",
+   "X = credit.drop(columns=['고객번호', 'target'])\n",
+   "이제 입력 표요. 이렇게 target에도 따옴표를 붙여 볼까요?"
+  ],
+  [
+   "run",
+   "실행하면요."
+  ],
+  [
+   "output",
+   "KeyError가 나요. 마지막 줄을 보세요. 'target' not found in axis, 그런 이름의 열이 없대요. target은 변수라 따옴표 없이 써야 해요."
+  ],
+  [
+   "undo",
+   "그래서 따옴표를 떼고 다시 쓸게요."
+  ],
+  [
+   "code",
+   "# 고객번호는 그냥 번호라 입력이 못 되고, 타깃은 정답이라 빼야 해요\n# columns=[...] 리스트 안에 열 이름을 따옴표로 적어요. target은 변수라 따옴표 없이요\nX = credit.drop(columns=['고객번호', target])\n",
+   "고객번호는 그냥 번호라 빼고, 타깃은 정답이라 빼요. drop에 두 열 이름을 리스트로 넘기면 돼요."
+  ],
+  [
+   "run",
+   "실행해 볼게요."
+  ],
+  [
+   "output",
+   "이번엔 오류 없이 조용하죠? 두 열을 빼고 X가 잘 만들어진 거예요."
+  ],
+  [
+   "code",
+   "# f'{...:.2%}'는 0.2212를 22.12%처럼 보여 줘요. X.shape는 (행 수, 열 수)고요\nprint(default_count, f'{default_rate:.2%}', X.shape)\n",
+   "세 값을 한 줄로 찍어요. 부도율은 .2%로 백분율로 보여 주고요."
+  ],
+  [
+   "run",
+   "다시 실행해요."
+  ],
+  [
+   "output",
+   "6636, 22.12%, (30000, 23)이 나왔죠? 부도 인원이 6636명이고, 부도율은 22.12%예요. 열이 23개면 고객번호와 타깃이 잘 빠진 거예요."
+  ],
+  [
+   "caution",
+   "타깃 열을 안 빼고 X를 만들기 쉬운데, 그러면 정답을 보고 맞히는 셈이라 조심하세요."
+  ],
+  [
+   "submit",
+   "제출할게요."
+  ]
+ ]
+}

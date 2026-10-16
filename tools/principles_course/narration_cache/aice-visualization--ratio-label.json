@@ -1,0 +1,41 @@
+{
+  "hash": "8a690f03e75322aeaadba9f8c366474c41e4d183baa70d26a76f99031c6c5f72",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n# 그래프 도구를 plt라는 별명으로 불러와요.\nimport matplotlib.pyplot as plt\n\n# 직접 만든 배달 기록이에요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/delivery.csv')\n# zone은 구역, distance는 거리(km)예요.\n# minutes는 배달 시간(분), price는 주문 금액(원)이에요.\n\n# 구역별로 세어 표로 만들어요. normalize=True면 비율이 나와요.\ncounts = df['zone'].value_counts()\n# 표를 보고 막대로 그려요.\nprint(counts)\ncounts.plot(kind='bar')\n\n# 축 이름과 제목은 그래프를 그린 다음에 붙여요.\nplt.xlabel('구역')\nplt.ylabel('건수')\n# 그래프 맨 위에 제목을 달아요.\nplt.title('구역별 배달')\nplt.show()\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.    3 / Name: count, dtype: int64"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `plt.xlabel`을 plot 줄보다 먼저 쓰면 열 이름으로 덮일 수 있어요."
+    },
+    {
+      "action": "patch_code",
+      "before": "value_counts()\n# 표를 보고 막대로 그려요.\nprint(counts)\ncounts.plot(kind='bar')\n\n# 축 이름과 제목은 그래프를 그린 다음에 붙여요.\nplt.xlabel('구역')\nplt.ylabel('건수')",
+      "after": "value_counts(normalize=True)\n# 표를 보고 막대로 그려요.\nprint(counts)\ncounts.plot(kind='bar')\n\n# 축 이름과 제목은 그래프를 그린 다음에 붙여요.\nplt.xlabel('구역')\nplt.ylabel('비율')",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. Name: proportion, dtype: float64"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

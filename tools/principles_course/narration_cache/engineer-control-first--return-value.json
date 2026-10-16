@@ -1,0 +1,41 @@
+{
+  "hash": "ff69f65bf1d0c7f51ad9289f154e18a5d7a8e1b2519f9734c768903b5ef3bafe",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "class Main {\n    // static을 붙여야 main에서 바로 부를 수 있어요.\n    // 이름 앞 int는 돌려줄 값의 자료형, 괄호 안은 받을 값이에요.\n    static int addBonus(int score) {\n        // 더해 줄 보너스 점수예요.\n        int bonus = 10;\n        // 메서드 안의 score만 바뀌어요.\n        score = score + bonus;\n        System.out.println(\"메서드 안: \" + score);\n        // 바뀐 값을 호출한 자리로 돌려줘요.\n        return score;\n    }\n\n    public static void main(String[] args) {\n        // main의 점수예요.\n        int score = 70;\n        // score의 값만 복사해서 메서드에 넘겨요.\n        addBonus(score);\n        // main의 score를 확인해요.\n        System.out.println(\"main: \" + score);\n    }\n}\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 메서드 안: 80 / main: 70"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `addBonus(score);`만 쓰면 돌려준 값이 버려져요."
+    },
+    {
+      "action": "patch_code",
+      "before": "addBonus(score);",
+      "after": "score = addBonus(score);",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 메서드 안: 80 / main: 80"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

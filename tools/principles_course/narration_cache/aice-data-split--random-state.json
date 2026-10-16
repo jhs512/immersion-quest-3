@@ -1,0 +1,41 @@
+{
+  "hash": "eec82a31369cee4a1cdf78364f05b0c76c1e67dbc8910bf279f4b5de051b6342",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n# scikit-learn에서 나누는 함수만 불러와요.\nfrom sklearn.model_selection import train_test_split\n\n# 직접 만든 구독 고객 자료예요. churn이 1이면 떠난 고객이에요.\ndf = pd.read_csv('data/members.csv')\n# 같은 코드로 두 번 나눠요.\nfirst_train, first_test = train_test_split(df, test_size=0.2)\nsecond_train, second_test = train_test_split(df, test_size=0.2)\n# 테스트 몫에 뽑힌 행 번호(인덱스)예요.\nprint(first_test.index)\nprint(second_test.index)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  15, 14, 26, 20], dtype='int64')"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 한 줄에만 넣으면 다른 줄은 여전히 매번 다르게 섞여요."
+    },
+    {
+      "action": "patch_code",
+      "before": "first_train, first_test = train_test_split(df, test_size=0.2)\nsecond_train, second_test = train_test_split(df, test_size=0.2)",
+      "after": "first_train, first_test = train_test_split(df, test_size=0.2, random_state=42)\nsecond_train, second_test = train_test_split(df, test_size=0.2, random_state=42)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  16, 31, 21, 12], dtype='int64')"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

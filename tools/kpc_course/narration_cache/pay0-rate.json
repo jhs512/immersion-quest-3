@@ -1,0 +1,157 @@
+{
+ "format": 2,
+ "hash": "91b877f3b0101ebe",
+ "by": "claude",
+ "blocks": {
+  "title": "d288d791d756",
+  "problem": "02863d9693c4",
+  "starter": "1eeef0273c47",
+  "example": "e3b0c44298fc",
+  "solution": "9e5835270ca9"
+ },
+ "sources": [
+  {
+   "block": "problem",
+   "hash": "02863d9693c4"
+  },
+  {
+   "block": "starter",
+   "hash": "1eeef0273c47"
+  },
+  {
+   "block": "solution",
+   "hash": "9e5835270ca9"
+  },
+  {
+   "block": "solution",
+   "hash": "9e5835270ca9"
+  },
+  {
+   "block": "solution",
+   "hash": "9e5835270ca9"
+  },
+  {
+   "block": "solution",
+   "hash": "9e5835270ca9"
+  },
+  {
+   "block": "solution",
+   "hash": "9e5835270ca9"
+  },
+  {
+   "block": "solution",
+   "hash": "9e5835270ca9"
+  },
+  {
+   "block": "solution",
+   "hash": "9e5835270ca9"
+  },
+  {
+   "block": "solution",
+   "hash": "9e5835270ca9"
+  },
+  {
+   "block": "solution",
+   "hash": "9e5835270ca9"
+  },
+  {
+   "block": "solution",
+   "hash": "9e5835270ca9"
+  },
+  {
+   "block": "solution",
+   "hash": "9e5835270ca9"
+  },
+  {
+   "block": "solution",
+   "hash": "9e5835270ca9"
+  },
+  {
+   "block": "solution",
+   "hash": "9e5835270ca9"
+  },
+  {
+   "block": "solution",
+   "hash": "9e5835270ca9"
+  },
+  {
+   "block": "solution",
+   "hash": "9e5835270ca9"
+  }
+ ],
+ "entry": [
+  [
+   "problem",
+   "자, 가장 최근 달의 상환 상태 상환_9월로 묶어서 부도율을 볼 거예요. 상태 0과 상태 2의 부도율을 따로 꺼내서 비교해 볼게요."
+  ],
+  [
+   "starter",
+   "credit 표를 읽고 타깃 이름을 target에 담아 두는 세 줄은 준비돼 있어요. 그대로 둘게요."
+  ],
+  [
+   "code",
+   "# 9월 상환 상태로 묶어요. 열 이름은 따옴표로 감싸요.\n# 묶은 뒤 타깃 열만 골라 count(인원)와 mean(부도율)을 한 표에 담아요.\npay0_summary = credit.groupby('상환_9월')[target].agg(['count', 'mean'])\n",
+   "상환_9월로 묶고 타깃의 count와 mean을 한 번에 구해요. agg에 이름 목록을 주면 두 열이 나란히 나오거든요."
+  ],
+  [
+   "run",
+   "일단 실행해 볼게요."
+  ],
+  [
+   "output",
+   "아무것도 안 나오죠? 표를 pay0_summary에 담기만 했거든요. 이제 한 칸씩 꺼내 볼게요."
+  ],
+  [
+   "try",
+   "rate_0 = pay0_summary.loc['0', 'mean']\n",
+   "상태 0을 이렇게 '0'이라고 따옴표로 써 볼까요? 열 이름처럼 쓰기 쉽거든요."
+  ],
+  [
+   "run",
+   "실행하면요."
+  ],
+  [
+   "output",
+   "빨간 글씨가 길게 나오죠? 맨 아랫줄만 보세요. KeyError: '0'이에요. 행 이름이 숫자 0이라서 글자 '0'은 못 찾거든요."
+  ],
+  [
+   "undo",
+   "그래서 상태값은 따옴표 없이 숫자로 써요. 열 이름 'mean'만 따옴표예요."
+  ],
+  [
+   "code",
+   "# 표에서 한 칸은 loc[행, 열]로 꺼내요. 행 0은 상태 0(최소 금액 상환)이에요.\n# 상태값은 숫자라서 따옴표 없이 0이라고 써요. '0'이라고 쓰면 못 찾아요.\nrate_0 = pay0_summary.loc[0, 'mean']\n# 상태 2(2개월 연체)의 부도율이에요. 'mean'은 열 이름이라 따옴표가 필요해요.\nrate_2 = pay0_summary.loc[2, 'mean']\n",
+   "loc에 행 이름과 열 이름을 같이 줘서 한 칸을 꺼내요. 상태 0의 mean은 rate_0, 상태 2의 mean은 rate_2예요."
+  ],
+  [
+   "code",
+   "# 전체 표를 먼저 봐요. count가 작은 상태의 mean은 믿기 어려워요.\nprint(pay0_summary)\n",
+   "두 값을 보기 전에 표 전체를 먼저 출력할게요."
+  ],
+  [
+   "run",
+   "실행해 볼게요."
+  ],
+  [
+   "output",
+   "상태 -2부터 8까지 한 줄씩 count와 mean이 나왔죠? 상태 0은 14737명에 0.128, 상태 2는 2667명에 0.691이에요. 상태 5부터는 인원이 스물여섯 명, 열한 명, 아홉 명뿐이라 비율만 믿기엔 아슬아슬해요."
+  ],
+  [
+   "code",
+   "# 두 부도율을 나란히 출력해요. 몇 배 차이인지 비교해 보세요.\nprint(rate_0, rate_2)\n",
+   "꺼낸 두 값도 나란히 출력할게요."
+  ],
+  [
+   "run",
+   "다시 실행해요."
+  ],
+  [
+   "output",
+   "표 아래 맨 마지막 줄을 보세요. 0.128…과 0.691…, 두 숫자가 나란히 나왔죠? 두 달 연체면 부도율이 다섯 배가 넘어요. count와 같이 읽어야 하는 이유거든요."
+  ],
+  [
+   "submit",
+   "제출할게요."
+  ]
+ ]
+}

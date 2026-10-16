@@ -1,0 +1,41 @@
+{
+  "hash": "f6dc8c182d08a1288a58c78d3457b2a539bbfa63091c4c404f4f7e23c0b405da",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 방문 자료예요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/visits.csv')\n# 이 줄에서 자료를 골라요. 원본 표와 결과를 비교해요.\nresult = df[df['visits'] > 4]\n# 계산한 값을 눈으로 확인해요.\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.     app       8     40.0       1"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 이상과 초과는 경계값을 다르게 다뤄요."
+    },
+    {
+      "action": "patch_code",
+      "before": "result = df[df['visits'] > 4]",
+      "after": "result = df[df['visits'] >= 4]",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.     app       4     15.0       0"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

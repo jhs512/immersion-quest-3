@@ -1,0 +1,41 @@
+{
+  "hash": "19d793658124641dd95f9bd5ea3c6f9d5f7f7e199a0f16bac2014e67150b2246",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 회원 자료예요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/members_blank.csv')\n# amount는 다음 달 구매 금액(원)이에요.\n# age와 amount에 빈칸이 섞여 있어요.\n\n# 타깃은 amount예요. 정답 y로 꺼내요.\ny = df['amount']\n# id와 타깃을 빼서 입력 X를 만들어요.\nX = df.drop(columns=['member_id', 'amount'])\n# X에서 빈칸이 있는 행을 지워요.\nX = X.dropna()\n# 두 행 수를 비교해요. 수가 같아도 짝이 맞는지는 번호로 봐요.\nprint(X.shape[0], y.shape[0])\n# X에 남은 행과 왼쪽 번호예요.\nprint(X)\n# y에 남은 정답과 왼쪽 번호예요. X와 번호가 하나하나 같아야 짝이 맞아요.\n# NaN은 빈칸이에요. 빈칸이 섞였던 열은 소수(float64)로 읽혀요.\nprint(y)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 0 / Name: amount, dtype: float64"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. X와 y에서 따로 지우면 행 수가 같아도 짝이 어긋날 수 있어요."
+    },
+    {
+      "action": "patch_code",
+      "before": "# 타깃은 amount예요. 정답 y로 꺼내요.\ny = df['amount']\n# id와 타깃을 빼서 입력 X를 만들어요.\nX = df.drop(columns=['member_id', 'amount'])\n# X에서 빈칸이 있는 행을 지워요.\nX = X.dropna()",
+      "after": "# 빈칸이 있는 행을 df에서 먼저 지워요.\ndf = df.dropna()\n# 타깃은 amount예요. 정답 y로 꺼내요.\ny = df['amount']\n# id와 타깃을 빼서 입력 X를 만들어요.\nX = df.drop(columns=['member_id', 'amount'])",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 0 / Name: amount, dtype: float64"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "hash": "06c41f9ad638ae18ee40e24eeaf34bb365e6f693fe9c76d3fc1a356dcefe70af",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "# 표 도구 pandas와 자료를 나누는 함수를 불러와요.\nimport pandas as pd\nfrom sklearn.model_selection import train_test_split\n# 이번 문제에 쓸 도구를 불러와요.\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.metrics import accuracy_score, recall_score\n\n# 직접 만든 회원 등급 자료예요. 실제 회원 자료가 아니에요.\ndf = pd.read_csv('data/members.csv')\n# months는 가입 개월 수, visits는 이번 달 방문 수예요.\n# spend는 이번 달 쓴 돈(만 원), grade는 다음 달 등급이에요.\ny = df['grade']\nX = df.drop(columns=['grade'])\n# 세 등급의 비율이 두 몫에서 같도록 stratify=y로 나눠요.\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y)\n\n# 로지스틱 회귀로 배우고 테스트를 예측해요.\nmodel = LogisticRegression(max_iter=1000)\nmodel.fit(X_train, y_train)\npred = model.predict(X_test)\n# 예측은 등급 이름으로 나와요. 앞의 다섯 개를 봐요.\nprint(pred[:5])\nprint(accuracy_score(y_test, pred))\n# 모델이 배운 종류의 순서예요.\nprint(model.classes_)\n# 종류마다 재현율을 구해요.\nrecall = recall_score(y_test, pred)\nprint(recall)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "지금 코드는 검사를 통과하지 못해요."
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `average='micro'`를 쓰면 정확도와 같은 값 하나만 나와요."
+    },
+    {
+      "action": "patch_code",
+      "before": "recall_score(y_test, pred)",
+      "after": "recall_score(y_test, pred, average=None)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. .75       0.75       0.42857143]"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

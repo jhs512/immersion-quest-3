@@ -1,0 +1,41 @@
+{
+  "hash": "ad429dd2fae0d27141e0a1f2209af9913e08eb916f30966fab46a2def0081341",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 두 달 주문을 읽어 위아래로 이어요.\nmonth9 = pd.read_csv('data/orders_09.csv')\nmonth10 = pd.read_csv('data/orders_10.csv')\norders = pd.concat([month9, month10], ignore_index=True)\n# 고객 표를 읽어요.\ncustomers = pd.read_json('data/customers.json')\n# 고객 정보를 붙여요.\nmerged = pd.merge(orders, customers, on='customer_id')\n# 붙이기 전과 뒤의 행 수예요. 같아야 해요.\nprint(len(orders), len(merged))\n# 등급이 빈칸인 주문 수예요.\nprint(merged['grade'].isna().sum())\n# 정해진 이름으로 행 번호 없이 저장해요.\nmerged.to_csv('report.csv', index=False)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 7 6 / 0"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. how만 고치면 중복 고객 때문에 행 수가 주문 수보다 많아져요."
+    },
+    {
+      "action": "patch_code",
+      "before": "# 고객 정보를 붙여요.\nmerged = pd.merge(orders, customers, on='customer_id')",
+      "after": "# 같은 고객이 여러 번 있으면 맨 위 행만 남겨요.\ncustomers = customers.drop_duplicates(subset='customer_id')\n# 고객 정보를 붙여요.\nmerged = pd.merge(orders, customers, on='customer_id', how='left')",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 7 7 / 2"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

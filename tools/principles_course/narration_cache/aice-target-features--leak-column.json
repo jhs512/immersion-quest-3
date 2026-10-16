@@ -1,0 +1,41 @@
+{
+  "hash": "a35407b2ba3ca0d160fb5e8a9017acf82837faa5975d8bed1f82b35f2f937a18",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 회원 자료예요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/members_points.csv')\n# amount는 다음 달 구매 금액(원)이에요.\n# points는 다음 달 구매로 쌓인 포인트예요.\n\n# 타깃은 amount예요. 정답 y로 꺼내요.\ny = df['amount']\n# 숫자 열끼리 상관계수 표를 만들어요.\ntable = df[['age', 'visits', 'minutes', 'points', 'amount']].corr()\n# amount 열만 꺼내 소수 둘째 자리까지 봐요.\nprint(table['amount'].round(2))\n# id와 타깃을 빼서 입력 X를 만들어요.\nX = df.drop(columns=['member_id', 'amount'])\nprint(X.columns)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 'grade', 'points'], dtype='str')"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 누수 열을 넣다가 타깃을 목록에서 지우면 정답이 X에 남아요."
+    },
+    {
+      "action": "patch_code",
+      "before": "columns=['member_id', 'amount']",
+      "after": "columns=['member_id', 'amount', 'points']",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. minutes', 'grade'], dtype='str')"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

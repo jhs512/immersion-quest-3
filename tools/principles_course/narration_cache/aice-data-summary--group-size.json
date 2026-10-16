@@ -1,0 +1,41 @@
+{
+  "hash": "c7eff6f1034f53f82fa5fd59829ff11a0ffc8dce0b973d893dfb067aa8c4c7d3",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 지점 주문 자료예요. 실제 자료가 아니에요.\ndf = pd.read_csv('data/orders.csv')\n# 전체 주문 수예요.\nprint(len(df))\n# 지점이 같은 행끼리 묶고 amount 열을 골라요.\n# count는 빈칸을 빼고 세요. size는 빈칸까지 세요.\nresult = df.groupby('branch')['amount'].count()\n# 결과를 화면에서 확인해요.\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.   3 / Name: amount, dtype: int64"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. groupby 결과를 len으로 감싸면 지점 수가 나와요."
+    },
+    {
+      "action": "patch_code",
+      "before": "count()",
+      "after": "size()",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.   4 / Name: amount, dtype: int64"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

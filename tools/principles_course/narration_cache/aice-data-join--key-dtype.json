@@ -1,0 +1,41 @@
+{
+  "hash": "4751aef2225b1914c4f2dbe3288b49bee0aaaafbff8cdc4ce4b62ad38d5712eb",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 매장 주문이에요. 회원이 아니면 비회원으로 적었어요.\norders = pd.read_csv('data/shop_orders.csv')\n# 고객 파일의 customer_id는 따옴표 없는 숫자예요.\ncustomers = pd.read_json('data/shop_customers.json')\n# 이 아래에서 두 키의 자료형을 맞춰요.\n# 열 하나의 자료형은 dtype으로 봐요.\nprint(orders['customer_id'].dtype, customers['customer_id'].dtype)\n# 주문은 모두 남기고 고객 정보를 붙여요.\nmerged = pd.merge(orders, customers, on='customer_id', how='left')\n# 합치기 전과 뒤의 행 수와 합친 표를 봐요.\nprint(len(orders), len(merged))\nprint(merged)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "지금 코드는 검사를 통과하지 못해요."
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 주문 키를 `astype(int)`로 바꾸면 비회원 때문에 ValueError가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "# 이 아래에서 두 키의 자료형을 맞춰요.",
+      "after": "# 이 아래에서 두 키의 자료형을 맞춰요.\ncustomers['customer_id'] = customers['customer_id'].astype(str)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.       103    6000     부산  silver"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

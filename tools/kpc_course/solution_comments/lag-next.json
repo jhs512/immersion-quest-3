@@ -1,0 +1,5 @@
+{
+ "hash": "285c1497804b1c80",
+ "by": "claude",
+ "code": "import pandas as pd\nprices = pd.read_csv('data/stock.csv', parse_dates=['날짜']).set_index('날짜').sort_index()\n# shift(1)은 값을 아래로 한 칸 밀어요. 오늘 행에 어제 종가가 와요.\n# 첫 행은 어제가 없으니 비어 있어요(NaN). 열 이름 '종가'는 따옴표 안에 정확히 써요.\nprices['lag_close_1'] = prices['종가'].shift(1)\n# shift(-1)은 위로 한 칸, 오늘 행에 내일 종가가 와요. 이게 우리가 맞히고 싶은 타깃이에요.\n# 마지막 행은 내일이 없으니 비어 있어요. 1과 -1, 부호 방향을 헷갈리기 쉬워요.\nprices['target_next_close'] = prices['종가'].shift(-1)\n# 앞쪽 다섯 행을 보여 줘요. 둘째 행의 lag_close_1이 첫 행 종가와 같은지 확인하세요.\nprices.head()\n"
+}

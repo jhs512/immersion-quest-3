@@ -1,0 +1,41 @@
+{
+  "hash": "d5171d15da4571567cdc102fb332a544f88ec91ad34ebf7470589d943322bad2",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n# 그래프 도구를 plt라는 별명으로 불러와요.\nimport matplotlib.pyplot as plt\n\n# 직접 만든 배달 기록이에요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/delivery.csv')\n# zone은 구역, distance는 거리(km)예요.\n# minutes는 배달 시간(분), price는 주문 금액(원)이에요.\n\n# 질문: 거리가 멀수록 배달 시간도 길까요?\n# 비교할 두 열을 골라 상관계수를 봐요.\npair = df[['distance', 'price']]\nprint('상관계수 표')\nprint(pair.corr().round(2))\n\n# 같은 두 열을 점으로 찍어요.\nplt.scatter(df['price'], df['distance'])\nplt.xlabel('거리(km)')\nplt.ylabel('시간(분)')\n# 제목을 달고 그림을 보여 줘요.\nplt.title('거리와 배달 시간')\nplt.show()\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 0.05 / price        -0.05   1.00"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 표만 고치고 그림을 그대로 두면 숫자와 그림이 다른 관계를 말해요."
+    },
+    {
+      "action": "patch_code",
+      "before": "pair = df[['distance', 'price']]\nprint('상관계수 표')\nprint(pair.corr().round(2))\n\n# 같은 두 열을 점으로 찍어요.\nplt.scatter(df['price'], df['distance'])",
+      "after": "pair = df[['distance', 'minutes']]\nprint('상관계수 표')\nprint(pair.corr().round(2))\n\n# 같은 두 열을 점으로 찍어요.\nplt.scatter(df['distance'], df['minutes'])",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 67 / minutes       0.67     1.00"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

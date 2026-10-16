@@ -1,0 +1,41 @@
+{
+  "hash": "a6949897803ae15d9414a099d3fbd7869117fe9a05db4f07145fc8a4ca91e67f",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 회원 자료예요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/members.csv')\n# visits는 지난달 방문 수, minutes는 지난달 머문 시간(분)이에요.\n# amount는 다음 달 구매 금액(원)이에요.\n\n# id와 타깃을 빼서 입력 X를 만들어요.\nX = df.drop(columns=['member_id', 'amount'])\n# X의 열마다 자료형을 봐요. 맨 아래 dtype 줄은 이 목록 자체의 자료형이에요.\nprint(X.dtypes)\n# 남은 열 수를 확인해요. shape[1]은 크기의 두 번째 숫자, 열 수예요.\nprint(X.shape[1])\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.          str / dtype: object / 4"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `include='int'`로 쓰면 소수 열인 minutes가 빠져요."
+    },
+    {
+      "action": "patch_code",
+      "before": "X = df.drop(columns=['member_id', 'amount'])",
+      "after": "X = df.drop(columns=['member_id', 'amount']).select_dtypes(include='number')",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. s    float64 / dtype: object / 3"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

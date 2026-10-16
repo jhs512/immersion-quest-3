@@ -1,0 +1,41 @@
+{
+  "hash": "8920f6e50c8a2f7643d60d76db127184b587f5a8ba3ef701e69f8111079e9a6c",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n# 각 문제는 자기 자료를 처음부터 읽어요.\ndf = pd.read_csv('data/members.csv')\n# 요금의 가운데 절반 범위를 구해요.\nq1 = df['fee'].quantile(0.25)\nq3 = df['fee'].quantile(0.75)\n# Q3가 큰 쪽이에요.\niqr = q1 - q3\nbounds = (q1 - 1.5 * iqr, q3 + 1.5 * iqr)\nprint(bounds)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 4(56625.0), np.float64(13125.0))"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 정답 숫자를 외워 쓰면 자료가 바뀔 때 틀려요."
+    },
+    {
+      "action": "patch_code",
+      "before": "iqr = q1 - q3",
+      "after": "iqr = q3 - q1",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 4(-8625.0), np.float64(78375.0))"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

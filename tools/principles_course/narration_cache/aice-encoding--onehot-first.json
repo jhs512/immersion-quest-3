@@ -1,0 +1,41 @@
+{
+  "hash": "600ae21979ae2ba68de2b337508f8405bc84122a29960ecea6b3aca457967495",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 회원 자료예요. 실제 회원 자료가 아니에요.\ndf = pd.read_csv('data/members.csv')\n# 정답 renew를 빼고 입력 표 X를 만들어요.\nX = df.drop(columns=['renew'])\n# 원핫 전의 크기와 열 이름이에요.\nprint(X.shape)\nprint(X.columns)\n# channel 열만 원핫해서 다시 담아요. region과 grade는 다음 문제에서 다뤄요.\n# dtype=int를 주면 값이 0과 1로 나와요.\nX = pd.get_dummies(X, columns=['channel'])\n# 원핫 뒤의 크기와 표예요. 열이 늘었는지 봐요.\nprint(X.shape)\nprint(X)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. alse           True        False"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 표 전체에 `.astype(int)`를 붙이면 글자 열 때문에 ValueError가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "pd.get_dummies(X, columns=['channel'])",
+      "after": "pd.get_dummies(X, columns=['channel'], dtype=int)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.    0              1            0"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

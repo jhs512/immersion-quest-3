@@ -1,0 +1,5 @@
+{
+ "hash": "00e1aa651b475270",
+ "by": "claude",
+ "code": "import pandas as pd\n\nsales = {'월': 412, '화': 388, '수': 455, '목': 430, '금': 520, '토': 610, '일': 580}\nplans = []\ntotal_plan = 0\n# 가장 많이 팔린 요일을 담을 자리예요. 아직 모르니 None으로 시작해요.\nbest_day = None\n# 지금까지 본 판매량 중 최댓값이에요. 0으로 시작해야 첫 요일이 바로 올라와요.\nbest_sold = 0\n# .items()로 키(요일)와 값(판매량)을 한 번에 꺼내요. day는 글자, sold는 숫자예요.\nfor day, sold in sales.items():\n    # 공장 규칙: 판매량의 1.1배를 반올림. round()가 정수로 만들어 줘요.\n    plan = round(sold * 1.1)\n    # 요일 하나당 딕셔너리 하나. 열 이름은 따옴표 안의 글자 그대로 표의 제목이 돼요.\n    plans.append({'요일': day, '판매량': sold, '계획': plan})\n    # sum() 대신 반복마다 조금씩 더해서 누적해요. += 는 \"지금 값에 더하기\"예요.\n    total_plan += plan\n    # 지금 요일이 여태 본 최댓값보다 크면 기록을 갈아 끼워요.\n    if sold > best_sold:\n        best_sold = sold  # 최댓값 갱신\n        best_day = day    # 그 요일도 같이 갱신해야 나중에 어느 요일인지 알아요\n# 딕셔너리가 들어 있는 리스트를 주면 키가 열, 딕셔너리 하나가 행이 돼요.\ndf = pd.DataFrame(plans)\n# 합계와 최고 요일을 먼저 확인해요. best_day가 '토'면 맞게 한 거예요.\nprint(total_plan, best_day)\n# 마지막 줄에 변수 이름만 적으면 표가 떠요. print는 안 써도 돼요.\ndf\n"
+}

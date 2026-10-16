@@ -1,0 +1,183 @@
+{
+ "format": 2,
+ "hash": "6ebf98fe9e17ae38",
+ "by": "claude",
+ "blocks": {
+  "title": "bf4e24def6be",
+  "problem": "0fd36d2a1f13",
+  "starter": "7da7acbf2b02",
+  "example": "e3b0c44298fc",
+  "solution": "4b2ba339d4f0"
+ },
+ "sources": [
+  {
+   "block": "problem",
+   "hash": "0fd36d2a1f13"
+  },
+  {
+   "block": "starter",
+   "hash": "7da7acbf2b02"
+  },
+  {
+   "block": "solution",
+   "hash": "4b2ba339d4f0"
+  },
+  {
+   "block": "solution",
+   "hash": "4b2ba339d4f0"
+  },
+  {
+   "block": "solution",
+   "hash": "4b2ba339d4f0"
+  },
+  {
+   "block": "solution",
+   "hash": "4b2ba339d4f0"
+  },
+  {
+   "block": "solution",
+   "hash": "4b2ba339d4f0"
+  },
+  {
+   "block": "solution",
+   "hash": "4b2ba339d4f0"
+  },
+  {
+   "block": "solution",
+   "hash": "4b2ba339d4f0"
+  },
+  {
+   "block": "solution",
+   "hash": "4b2ba339d4f0"
+  },
+  {
+   "block": "solution",
+   "hash": "4b2ba339d4f0"
+  },
+  {
+   "block": "solution",
+   "hash": "4b2ba339d4f0"
+  },
+  {
+   "block": "solution",
+   "hash": "4b2ba339d4f0"
+  },
+  {
+   "block": "solution",
+   "hash": "4b2ba339d4f0"
+  },
+  {
+   "block": "solution",
+   "hash": "4b2ba339d4f0"
+  },
+  {
+   "block": "solution",
+   "hash": "4b2ba339d4f0"
+  },
+  {
+   "block": "solution",
+   "hash": "4b2ba339d4f0"
+  },
+  {
+   "block": "solution",
+   "hash": "4b2ba339d4f0"
+  },
+  {
+   "block": "solution",
+   "hash": "4b2ba339d4f0"
+  },
+  {
+   "block": "solution",
+   "hash": "4b2ba339d4f0"
+  }
+ ],
+ "entry": [
+  [
+   "problem",
+   "자, 이번엔 진짜 웹이에요. 위키백과 KOSPI 문서의 연도별 종가 표를 긁어 와서 가장 많이 오른 해를 찾아요."
+  ],
+  [
+   "starter",
+   "준비 코드가 페이지를 requests로 받아서 soup까지 만들어 뒀어요. 저는 표를 고르는 데서 시작하면 돼요."
+  ],
+  [
+   "code",
+   "# 위키 표가 여러 개라서, 글자에 'Closing level'이 든 표만 골라요. [0]은 첫 번째 표예요\ntable = [t for t in soup.select('table.wikitable') if 'Closing level' in t.get_text()][0]\n",
+   "wikitable이 여러 개라서, 글자에 Closing level이 든 표만 골라 첫 번째를 table에 둬요."
+  ],
+  [
+   "run",
+   "일단 실행해 볼게요."
+  ],
+  [
+   "output",
+   "아무것도 안 나오죠? 표를 골라 table에 담기만 했거든요. 오류가 없으면 페이지는 잘 받아 온 거예요."
+  ],
+  [
+   "caution",
+   "Closing level 철자나 대소문자를 틀리기 쉬운데, 그러면 리스트가 비어서 [0]에서 IndexError가 나니 조심하세요."
+  ],
+  [
+   "code",
+   "# 행마다 뽑은 값을 담을 빈 리스트예요. 나중에 표로 바꿔요\nrows = []\nfor tr in table.select('tr'):  # tr이 표의 한 줄(행)이에요\n    # 칸(td) 안의 글자만 리스트로. strip=True는 양쪽 공백을 지워요\n    cells = [td.get_text(strip=True) for td in tr.select('td')]\n",
+   "빈 리스트 rows를 만들고, 행마다 td 글자를 리스트로 꺼내요. strip=True가 앞뒤 공백을 지워 주거든요."
+  ],
+  [
+   "code",
+   "    # 칸이 넷 미만이거나(제목 줄 등) 넷째 칸(등락률)이 빈 줄은 건너뛰어요. 0부터 세니 넷째 칸은 cells[3]이에요\n    if len(cells) < 4 or not cells[3]:\n        continue\n",
+   "칸이 네 개 미만이거나 넷째 칸인 등락률이 비어 있으면 건너뛰어요. 제목 행이나 빈 행이 걸러지죠."
+  ],
+  [
+   "try",
+   "    rows.append({'연도': int(cells[0]), '종가': float(cells[1].replace(',', '')), '변화율': float(cells[3])})\n",
+   "이렇게 해 볼까요? 변화율은 쉼표가 없으니 바로 float로 바꿔요."
+  ],
+  [
+   "run",
+   "실행하면요."
+  ],
+  [
+   "output",
+   "ValueError가 나요. −1.76을 float가 못 읽어요. 위키의 음수 기호가 보통 -가 아니라 유니코드 −거든요."
+  ],
+  [
+   "undo",
+   "그래서 −를 -로 바꾼 뒤에 float로 만들어요."
+  ],
+  [
+   "code",
+   "    # 글자를 숫자로 바꿔요. 종가는 '1,234.56'처럼 쉼표가 있어서 지우고 float로\n    # 변화율의 '−'는 위키의 유니코드 기호라서 '-'로 바꿔야 float가 읽어요\n    rows.append({'연도': int(cells[0]), '종가': float(cells[1].replace(',', '')), '변화율': float(cells[3].replace('−', '-'))})\n",
+   "연도는 int, 종가는 쉼표를 지우고 float이에요. 변화율은 −를 -로 바꾼 뒤 float로 만들어 rows에 쌓아요."
+  ],
+  [
+   "run",
+   "다시 실행해요."
+  ],
+  [
+   "output",
+   "이번엔 오류 없이 돌죠? 출력은 없지만 rows에 연도별 행이 쌓였어요."
+  ],
+  [
+   "code",
+   "# 딕셔너리 리스트를 pandas 표로 만들어요. 키가 열 이름이 돼요\nkospi = pd.DataFrame(rows)\n# idxmax()는 변화율이 가장 큰 행의 번호. 그 행의 '연도' 칸을 꺼내요\nbest_year = int(kospi.loc[kospi['변화율'].idxmax(), '연도'])\n# 변화율 > 0 이면 True(=1). sum()으로 오른 해의 수를 세요\nup_years = int((kospi['변화율'] > 0).sum())\n",
+   "딕셔너리 리스트를 DataFrame으로 만들어요. idxmax로 변화율이 가장 큰 행을 찾아 연도를 꺼내고, 0보다 큰 해를 세면 돼요."
+  ],
+  [
+   "code",
+   "print(kospi.tail())  # 표 끝부분 다섯 줄\n# 평균 변화율은 소수 첫째 자리까지만\nprint(best_year, up_years, round(kospi['변화율'].mean(), 1))\n",
+   "표 끝부분과 두 값, 평균 변화율을 출력해요."
+  ],
+  [
+   "run",
+   "실행해 볼게요. 인터넷에서 받아 오니 잠깐 걸려요."
+  ],
+  [
+   "output",
+   "끝부분에 2021년부터 2025년까지 보이죠? 2022년은 -24.89, 2025년은 75.63이에요. 가장 많이 오른 해는 1987년, 오른 해는 29번, 평균 변화율은 13.0이에요."
+  ],
+  [
+   "submit",
+   "제출할게요."
+  ]
+ ]
+}

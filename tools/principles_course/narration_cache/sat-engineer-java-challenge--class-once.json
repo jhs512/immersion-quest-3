@@ -1,0 +1,41 @@
+{
+  "hash": "150bde6be111503bb0699364cb1086e77ce5de6d408d39932cd442fac01aab0c",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "class Main {\n    static int seed;\n    static class Box {\n        // 최초 사용 때 한 번 실행해요.\n        static int total;\n        static { total = Main.seed + 1; }\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Main.seed = n;\n        // 처음 사용될 때 Box의 static 초기화가 실행돼요.\n        Box a = new Box();\n        Box b = new Box();\n        System.out.println(a.total + \" \" + b.total);\n    }\n}\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 4 4"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 새 객체 생성은 클래스 초기화를 다시 실행하지 않아요."
+    },
+    {
+      "action": "patch_code",
+      "before": "total = Main.seed + 1;",
+      "after": "total = Main.seed;",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 3 3"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

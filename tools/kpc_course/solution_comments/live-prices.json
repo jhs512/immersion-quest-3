@@ -1,0 +1,5 @@
+{
+ "hash": "196c8649661e27e8",
+ "by": "claude",
+ "code": "import FinanceDataReader as fdr\n\n# 삼성전자 종목 코드는 '005930'이에요. 숫자가 아니라 따옴표로 감싼 글자로 넣어야 해요.\n# 숫자 005930으로 쓰면 앞의 0이 사라지거나 오류가 나요.\n# 두 번째 값 '2026-01-01'은 시작 날짜예요. 이날부터 오늘까지 받아요.\n# sort_index()로 날짜 인덱스를 오래된 날부터 최근 날 순서로 정렬해요.\n# 이렇게 해 두면 맨 끝 행이 항상 가장 최근 거래일이에요.\nlive = fdr.DataReader('005930', '2026-01-01').sort_index()\n\n# 열 이름 'Close'는 대문자 C예요. 'close'라고 쓰면 KeyError가 나요.\n# iloc[-1]은 위치로 센 맨 마지막 행이에요. 0부터 세니까 -1이 끝이죠.\n# 값이 numpy 숫자로 오니까 int()로 감싸서 보통 정수로 바꿔요.\nlatest_close = int(live['Close'].iloc[-1])\n\n# rolling(5).mean()은 5칸씩 묶어 가며 평균을 내요. 처음 4칸은 NaN이 돼요.\n# 그래서 맨 끝 iloc[-1]을 꺼내야 최근 5거래일 평균이 나와요.\n# 달력 5일이 아니라 거래한 날 5일이에요. 주말·휴일은 표에 없거든요.\nma5 = float(live['Close'].rolling(5).mean().iloc[-1])\n\n# tail()은 표의 마지막 5행을 보여 줘요. 최근 시세를 눈으로 확인해요.\nprint(live.tail())\n# index.max()는 가장 늦은 날짜예요. .date()로 시각 없이 날짜만 남겨요.\n# round(ma5)는 화면에만 반올림해서 보여 줘요. ma5 변수 값은 그대로예요.\nprint(live.index.max().date(), latest_close, round(ma5))\n"
+}

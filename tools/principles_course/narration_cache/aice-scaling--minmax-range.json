@@ -1,0 +1,41 @@
+{
+  "hash": "2e050e507e0320de8f4f8f27a8e79d17be4655cf21f2c26b7032fec9c3c022ef",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.preprocessing import MinMaxScaler\n\n# 직접 만든 매장 자료예요. 실제 매장 자료가 아니에요.\ndf = pd.read_csv('data/stores.csv')\n# 입력 X는 좌석 수, 월세(천 원), 하루 방문자 수예요.\nX = df[['seats', 'rent', 'visitors']]\n# 훈련 75%, 테스트 25%로 나눠요. X만 넣으면 두 몫이 나와요.\nX_train, X_test = train_test_split(X, test_size=0.25, random_state=42)\n# 최솟값을 0, 최댓값을 1로 맞추는 도구예요.\nscaler = MinMaxScaler()\n# 훈련 자료로 기준을 재고 바로 바꿔요.\nX_train_s = scaler.fit_transform(X_train)\n# 훈련 자료에서 잰 최솟값(data_min_)과 최댓값(data_max_)이에요.\nprint(scaler.data_min_)\nprint(scaler.data_max_)\n# 테스트 자료는 훈련 기준으로 바꾸기만 해요.\nX_test_s = scaler.transform(X_test)\nprint(X_test_s.round(2))\n# 열마다 가장 작은 값과 가장 큰 값이에요.\nlow = X_train_s.min(axis=0)\nhigh = X_train_s.max(axis=0)\nprint(low.round(2))\nprint(high.round(2))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 0.01]] / [0. 0. 0.] / [1. 1. 1.]"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 범위를 벗어났다고 테스트로 다시 fit하면 기준이 바뀌어요."
+    },
+    {
+      "action": "patch_code",
+      "before": "low = X_train_s.min(axis=0)\nhigh = X_train_s.max(axis=0)",
+      "after": "low = X_test_s.min(axis=0)\nhigh = X_test_s.max(axis=0)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  -0.03  0.01] / [1.11 1.14 0.09]"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "hash": "6d6770f8a884b1ffcfa6835dac69a36d9def7e4fee78aa3d3ec24e2ed5a6498c",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 배달 자료예요. 실제 주문 자료가 아니에요.\ndf = pd.read_csv('data/deliveries.csv')\n# 처리 전 행 수예요.\nprint(len(df))\n# 같은 주문이 두 번 들어간 행을 지워요.\ndf = df.drop_duplicates()\n# 가격의 Q1, Q3, IQR이에요.\nq1 = df['price'].quantile(0.25)\nq3 = df['price'].quantile(0.75)\niqr = q3 - q1\n# 아래 경계와 위 경계예요.\nlow = q1 - 1.5 * iqr\nhigh = q3 + 1.5 * iqr\n# 배달 시간 빈칸을 남은 값의 중앙값으로 채워요.\ndf['minutes'] = df['minutes'].fillna(df['minutes'].median())\n# 처리 후 행 수와 배달 시간 평균이에요.\ncount = len(df)\nresult = df['minutes'].mean()\nprint(count, result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 13 / 11 36.45454545454545"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 경계로 지우는 줄을 채운 뒤에 넣으면 지울 행까지 중앙값에 섞여요."
+    },
+    {
+      "action": "patch_code",
+      "before": "high = q3 + 1.5 * iqr",
+      "after": "high = q3 + 1.5 * iqr\n# 경계 밖의 행을 지워요.\ndf = df[(df['price'] >= low) & (df['price'] <= high)]",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 13 / 10 38.1"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

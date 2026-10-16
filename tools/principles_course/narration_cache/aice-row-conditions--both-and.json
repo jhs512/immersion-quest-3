@@ -1,0 +1,41 @@
+{
+  "hash": "79561c379fc65d28f403f8eba137769746cfc1be2cfb8093141d8e7eadbbe452",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 방문 자료예요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/visits.csv')\n# 기준 방문 횟수예요.\nlimit = 4\n# bought가 1이면 구매한 기록이에요.\n# 두 조건을 각각 괄호로 묶었어요.\nresult = df[(df['visits'] >= limit) and (df['bought'] == 1)]\n# 결과의 크기를 먼저 봐요. 앞 숫자가 행 수예요.\nprint(result.shape)\n# 결과를 화면에서 확인해요.\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "지금 코드는 검사를 통과하지 못해요."
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 괄호를 빼고 `&`만 쓰면 같은 ValueError가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": " and ",
+      "after": " & ",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.     App       5     30.0       1"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

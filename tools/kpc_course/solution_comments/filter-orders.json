@@ -1,0 +1,5 @@
+{
+ "hash": "c6fabcc7ec68795c",
+ "by": "claude",
+ "code": "import pandas as pd\norders = pd.DataFrame({'product': ['A', 'B', 'A', 'C'], 'price': [10000, 20000, 12000, None], 'quantity': [3, 2, 4, 1]})\n# 조건마다 괄호로 감싸고 &로 이어요. 괄호를 빼면 &가 먼저 계산돼서 엉뚱한 결과가 나와요\n# 숫자는 따옴표 없이 12000. '12000'이라고 쓰면 글자라서 비교가 안 돼요\n# 쉼표 뒤의 리스트는 남길 열 이름이에요. 열 이름 오타(Price, prodcut)는 바로 오류예요\n# .copy()를 붙여야 뒤에서 고쳐도 원본 orders가 안 바뀌어요\n# 가격이 None인 C는 >= 비교에서 False라 자동으로 빠져요\nselected = orders.loc[(orders['price'] >= 12000) & (orders['quantity'] >= 2), ['product', 'price', 'quantity']].copy()\n# 마지막 줄에 변수 이름만 쓰면 그 표가 화면에 나와요\nselected\n"
+}

@@ -1,0 +1,41 @@
+{
+  "hash": "7c327e9686622ec47157142c71871a2c435eb1ba5c08e6d7430d291a7cda5560",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 방문 자료예요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/visits.csv')\n# 기준 방문 횟수예요.\nlimit = 4\n# 쉼표 앞은 행 자리, 뒤는 열 자리예요.\nresult = df.loc[df['visits'] >= limit]\n# 결과를 화면에서 확인해요.\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.     app       5     18.0       0"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 행과 열의 자리를 바꾸면 오류가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "df.loc[df['visits'] >= limit]",
+      "after": "df.loc[df['visits'] >= limit, 'minutes']",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  / Name: minutes, dtype: float64"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

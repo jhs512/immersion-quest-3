@@ -1,0 +1,5 @@
+{
+ "hash": "ee7cb2efb70822b4",
+ "by": "claude",
+ "code": "import pandas as pd\ntitanic = pd.read_csv('data/titanic.csv')\nfeatures = ['객실등급', '성별', '나이', '형제배우자', '부모자녀', '요금', '탑승항구']\nX = titanic[features].copy()\ny = titanic['생존'].astype(int)\nfrom sklearn.model_selection import train_test_split\n\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)\nfrom sklearn.impute import SimpleImputer\n\n# 빈칸을 중앙값으로 채우는 도구예요. strategy는 따옴표 안에 'median'이에요.\nimputer = SimpleImputer(strategy='median')\n# 훈련 표에서 중앙값을 정하고(fit) 바로 채워요(transform).\n# 열 두 개를 고르니까 대괄호가 두 겹이에요. 열 이름은 한글 그대로 써요.\ntrain_values = imputer.fit_transform(X_train[['나이', '요금']])\n# 테스트에는 transform만 불러요. fit을 다시 하면 훈련 기준이 바뀌거든요.\ntest_values = imputer.transform(X_test[['나이', '요금']])\n# 결과는 표가 아니라 숫자 배열이에요. shape로 (행, 열) 크기를 확인해요.\nprint(train_values.shape, test_values.shape)\n"
+}

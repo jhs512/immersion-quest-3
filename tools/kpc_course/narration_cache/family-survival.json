@@ -1,0 +1,165 @@
+{
+ "format": 2,
+ "hash": "dd9aa2acc41c5438",
+ "by": "claude",
+ "blocks": {
+  "title": "2bcd03f1160a",
+  "problem": "f9984eb20608",
+  "starter": "6bf47bc34216",
+  "example": "e3b0c44298fc",
+  "solution": "858129323c14"
+ },
+ "sources": [
+  {
+   "block": "problem",
+   "hash": "f9984eb20608"
+  },
+  {
+   "block": "starter",
+   "hash": "6bf47bc34216"
+  },
+  {
+   "block": "solution",
+   "hash": "858129323c14"
+  },
+  {
+   "block": "solution",
+   "hash": "858129323c14"
+  },
+  {
+   "block": "solution",
+   "hash": "858129323c14"
+  },
+  {
+   "block": "solution",
+   "hash": "858129323c14"
+  },
+  {
+   "block": "solution",
+   "hash": "858129323c14"
+  },
+  {
+   "block": "solution",
+   "hash": "858129323c14"
+  },
+  {
+   "block": "solution",
+   "hash": "858129323c14"
+  },
+  {
+   "block": "solution",
+   "hash": "858129323c14"
+  },
+  {
+   "block": "solution",
+   "hash": "858129323c14"
+  },
+  {
+   "block": "solution",
+   "hash": "858129323c14"
+  },
+  {
+   "block": "solution",
+   "hash": "858129323c14"
+  },
+  {
+   "block": "solution",
+   "hash": "858129323c14"
+  },
+  {
+   "block": "solution",
+   "hash": "858129323c14"
+  },
+  {
+   "block": "solution",
+   "hash": "858129323c14"
+  },
+  {
+   "block": "solution",
+   "hash": "858129323c14"
+  },
+  {
+   "block": "solution",
+   "hash": "858129323c14"
+  }
+ ],
+ "entry": [
+  [
+   "problem",
+   "자, 3장의 마지막 도전이에요. 표에 없는 열을 직접 만들어서 가족과 함께 탔는지로 생존을 비교해 볼 거예요."
+  ],
+  [
+   "starter",
+   "titanic을 읽어 오는 준비 코드는 그대로 둘게요."
+  ],
+  [
+   "code",
+   "# 형제배우자와 부모자녀를 더해요. 1명 이상이면 가족과 함께 탄 거죠\n# 비교 결과는 True/False라서 새 열 가족동반에 그대로 담겨요\n# 덧셈을 괄호로 먼저 묶어야 해요. 안 묶으면 부모자녀 >= 1만 비교돼요\ntitanic['가족동반'] = (titanic['형제배우자'] + titanic['부모자녀']) >= 1\n",
+   "형제배우자와 부모자녀를 더해서 1 이상이면 True예요. 그걸 가족동반이라는 새 열로 titanic에 붙이거든요."
+  ],
+  [
+   "run",
+   "일단 실행해 볼게요."
+  ],
+  [
+   "output",
+   "화면에 아무것도 안 나오죠? 열을 붙이기만 했지 아직 꺼내 보진 않았거든요."
+  ],
+  [
+   "try",
+   "print(titanic['가족 동반'].sum())\n",
+   "새 열이 잘 붙었나 세어 볼까요? 이렇게 해 볼게요."
+  ],
+  [
+   "run",
+   "실행하면요."
+  ],
+  [
+   "output",
+   "빨간 글씨가 길게 나오는데, 맨 아래 KeyError: '가족 동반'만 보면 돼요. 띄어쓴 이름의 열은 없다는 뜻이에요. 아까 가족동반은 붙여 썼죠?"
+  ],
+  [
+   "undo",
+   "그래서 열 이름은 만들 때 쓴 글자 그대로 써야 해요. 이 줄은 지울게요."
+  ],
+  [
+   "code",
+   "# 가족동반(True/False)으로 묶고 생존 열만 골라요\n# agg에 여러 집계를 리스트로 넣으면 한 표에 나란히 나와요\n# count는 사람 수(분모), sum은 산 사람 수, mean은 생존율이에요\nfamily_summary = titanic.groupby('가족동반')['생존'].agg(['count', 'sum', 'mean'])\n",
+   "가족동반으로 생존을 묶어요. agg에 count, sum, mean을 한꺼번에 주면 분모, 생존자 수, 생존율이 한 표에 나와요."
+  ],
+  [
+   "run",
+   "다시 실행해요."
+  ],
+  [
+   "output",
+   "아직 화면엔 아무것도 없어요. family_summary에 담기만 했거든요. 조금 뒤에 print로 꺼낼게요."
+  ],
+  [
+   "caution",
+   "첫 줄에서 괄호를 빼고 형제배우자 + 부모자녀 >= 1이라고 쓰기 쉬운데요. 그러면 부모자녀 >= 1만 먼저 비교돼서 엉뚱한 열이 되니 조심하세요."
+  ],
+  [
+   "code",
+   "# 두 열로 묶을 땐 열 이름을 리스트로 묶어서 넣어요\n# mean 결과는 한 줄로 길게 나와요. unstack('가족동반')이 가족동반을 열로 펼쳐 줘요\n# 결과는 객실등급 3행, 가족동반 True/False 2열이에요\nby_class = titanic.groupby(['객실등급', '가족동반'])['생존'].mean().unstack('가족동반')\n",
+   "이번엔 객실등급과 가족동반 두 열로 묶어요. unstack으로 가족동반을 옆으로 펼치면 3행 2열 교차표가 되죠?"
+  ],
+  [
+   "code",
+   "# 첫 번째 표는 print로 보여 줘요\nprint(family_summary)\n# 마지막 줄에 변수 이름만 적으면 그 표가 결과로 보여요\nby_class\n",
+   "family_summary는 print로 찍고, by_class는 마지막 줄에 적어서 표로 보여 줘요."
+  ],
+  [
+   "run",
+   "실행해 볼게요."
+  ],
+  [
+   "output",
+   "False 행이 790명, True 행이 519명이에요. 더하면 1309죠? 산 사람은 239명과 261명이고요. 생존율은 0.30과 0.50이라 가족과 탄 쪽이 더 높아요. by_class 표가 따로 보이면 등급마다 두 열의 차이를 읽어 보세요."
+  ],
+  [
+   "submit",
+   "제출할게요."
+  ]
+ ]
+}

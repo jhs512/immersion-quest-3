@@ -1,0 +1,174 @@
+{
+ "format": 2,
+ "hash": "c34e66b79d997c80",
+ "by": "claude",
+ "blocks": {
+  "title": "b3dfe1d2c8ff",
+  "problem": "86cb0daf4a1d",
+  "starter": "494a4cbd503e",
+  "example": "e3b0c44298fc",
+  "solution": "ea7108c94d30"
+ },
+ "sources": [
+  {
+   "block": "problem",
+   "hash": "86cb0daf4a1d"
+  },
+  {
+   "block": "starter",
+   "hash": "494a4cbd503e"
+  },
+  {
+   "block": "solution",
+   "hash": "ea7108c94d30"
+  },
+  {
+   "block": "solution",
+   "hash": "ea7108c94d30"
+  },
+  {
+   "block": "solution",
+   "hash": "ea7108c94d30"
+  },
+  {
+   "block": "solution",
+   "hash": "ea7108c94d30"
+  },
+  {
+   "block": "solution",
+   "hash": "ea7108c94d30"
+  },
+  {
+   "block": "solution",
+   "hash": "ea7108c94d30"
+  },
+  {
+   "block": "solution",
+   "hash": "ea7108c94d30"
+  },
+  {
+   "block": "solution",
+   "hash": "ea7108c94d30"
+  },
+  {
+   "block": "solution",
+   "hash": "ea7108c94d30"
+  },
+  {
+   "block": "solution",
+   "hash": "ea7108c94d30"
+  },
+  {
+   "block": "solution",
+   "hash": "ea7108c94d30"
+  },
+  {
+   "block": "solution",
+   "hash": "ea7108c94d30"
+  },
+  {
+   "block": "solution",
+   "hash": "ea7108c94d30"
+  },
+  {
+   "block": "solution",
+   "hash": "ea7108c94d30"
+  },
+  {
+   "block": "solution",
+   "hash": "ea7108c94d30"
+  },
+  {
+   "block": "solution",
+   "hash": "ea7108c94d30"
+  },
+  {
+   "block": "solution",
+   "hash": "ea7108c94d30"
+  }
+ ],
+ "entry": [
+  [
+   "problem",
+   "자, 고객 속성마다 부도율이 얼마나 다른지 볼게요. 성별과 학력은 코드 그대로 묶고, 나이는 pd.cut으로 나이대를 만들어 묶어요."
+  ],
+  [
+   "starter",
+   "credit 자료를 읽고, 타깃 열 이름을 target에 담아 둔 준비 코드는 그대로 둘게요."
+  ],
+  [
+   "try",
+   "rate_by_sex = credit.groupby(성별)[target].mean()\n",
+   "성별로 묶어 볼게요. 이렇게 해 볼까요?"
+  ],
+  [
+   "run",
+   "실행하면요."
+  ],
+  [
+   "output",
+   "NameError가 나죠? name '성별' is not defined이래요. 따옴표가 없으면 열 이름이 아니라 변수를 찾거든요."
+  ],
+  [
+   "undo",
+   "그래서 열 이름엔 따옴표를 꼭 쳐요."
+  ],
+  [
+   "code",
+   "# 성별로 묶어서 타깃의 평균을 구해요. 타깃이 0/1이라 평균이 곧 부도율이에요\nrate_by_sex = credit.groupby('성별')[target].mean()\n",
+   "성별로 묶어 타깃 평균을 내면 그게 부도율이거든요. 타깃이 0과 1이라서요."
+  ],
+  [
+   "run",
+   "일단 실행해 볼게요."
+  ],
+  [
+   "output",
+   "아무것도 안 나오죠? 담기만 했거든요. 오류가 없으니 된 거예요."
+  ],
+  [
+   "code",
+   "# 학력도 똑같이 묶어요. 열 이름만 바뀌었죠?\nrate_by_education = credit.groupby('학력')[target].mean()\n",
+   "학력도 묶는 열만 바꿔서 똑같이 해요."
+  ],
+  [
+   "code",
+   "# 나이는 숫자라서 그대로 묶으면 칸이 너무 많아요. pd.cut으로 구간을 나눠 새 열을 만들어요\n# bins는 경계, right=False면 왼쪽은 포함하고 오른쪽은 빼요(20 이상 30 미만이 20대)\n# labels는 구간 이름이에요. 경계가 6개니 이름은 5개, 하나 적어야 해요\ncredit['나이대'] = pd.cut(credit['나이'], bins=[20, 30, 40, 50, 60, 80], right=False, labels=['20대', '30대', '40대', '50대', '60대 이상'])\n",
+   "나이는 pd.cut으로 다섯 구간에 넣어 나이대 열을 만들어요. right=False라서 20 이상 30 미만이 20대예요."
+  ],
+  [
+   "run",
+   "여기까지 실행해요."
+  ],
+  [
+   "output",
+   "역시 조용하죠? 오류 없이 나이대 열이 생겼어요."
+  ],
+  [
+   "caution",
+   "labels도 여섯 개 적기 쉬운데, 경계가 여섯이면 구간은 다섯이에요. 하나 많으면 ValueError가 나니 조심하세요."
+  ],
+  [
+   "code",
+   "# 새로 만든 나이대로 묶어요. observed=True는 자료가 없는 빈 구간을 빼라는 뜻이에요\nrate_by_age = credit.groupby('나이대', observed=True)[target].mean()\n",
+   "이제 나이대로 묶어요. observed=True는 빈 구간을 빼라는 뜻이에요."
+  ],
+  [
+   "code",
+   "# 셋을 차례로 출력해서 속성 사이 차이를 눈으로 봐요\nprint(rate_by_sex)\nprint(rate_by_education)\nprint(rate_by_age)\n",
+   "셋을 차례로 출력하면 돼요."
+  ],
+  [
+   "run",
+   "실행해 볼게요."
+  ],
+  [
+   "output",
+   "표가 셋 나왔죠? 성별은 1이 0.24, 2가 0.21이에요. 학력은 2와 3이 0.24, 0.25로 높고요. 나이대는 60대 이상이 0.28로 가장 높아요. 이 차이를 기억해 두세요."
+  ],
+  [
+   "submit",
+   "제출할게요."
+  ]
+ ]
+}

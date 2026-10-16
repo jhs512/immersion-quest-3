@@ -1,0 +1,41 @@
+{
+  "hash": "253033c0aa29a5b0d44bc2f125bfa83ee71363554dd94fb903893523ebfb46be",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\nfrom sklearn.preprocessing import LabelEncoder\n\n# 직접 만든 회원 자료예요. 실제 회원 자료가 아니에요.\ndf = pd.read_csv('data/members.csv')\n# 라벨 인코더(LabelEncoder)를 하나 만들어 le에 담아요.\nle = LabelEncoder()\n# renew 열(yes/no)로 정답 y를 만들어요.\ny = df['renew']\nprint(y)\n# y의 평균이에요. 0과 1이면 1의 비율이 돼요.\nprint(y.mean())\n# 인코더가 배운 종류예요. 이 순서대로 0, 1 번호예요.\nprint(le.classes_)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "지금 코드는 검사를 통과하지 못해요."
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `fit`만 쓰면 번호가 아니라 인코더 자체가 y에 담겨요."
+    },
+    {
+      "action": "patch_code",
+      "before": "y = df['renew']",
+      "after": "y = le.fit_transform(df['renew'])",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  1 0 0 0] / 0.375 / ['no' 'yes']"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

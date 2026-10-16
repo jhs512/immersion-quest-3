@@ -1,0 +1,41 @@
+{
+  "hash": "a0e127afb450331866c528856661a3bbe80013dc3083f25ef45a6a1ac5d9c45a",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 회원 자료예요. 실제 회원 자료가 아니에요.\ndf = pd.read_csv('data/members.csv')\n# 정답 renew를 빼고 입력 표 X를 만들어요.\nX = df.drop(columns=['renew'])\n# columns=에 적은 열만 원핫해요. 비우면 글자 열을 모두 해요.\nX = pd.get_dummies(X, dtype=int)\n# 원핫 뒤의 열 이름과 크기예요.\nprint(X.columns)\nprint(X.shape)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. , /       dtype='str') / (8, 11)"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `X[['region', 'channel']]`로 고르면 원핫하지 않을 열이 빠져요."
+    },
+    {
+      "action": "patch_code",
+      "before": "pd.get_dummies(X, dtype=int)",
+      "after": "pd.get_dummies(X, columns=['region', 'channel'], dtype=int)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. ], /       dtype='str') / (8, 9)"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

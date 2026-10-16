@@ -1,0 +1,41 @@
+{
+  "hash": "89143e985004aa024d58600faf87bba658dfe7d2b32645dbbbc57318aa8bd38e",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n# 그래프 도구를 plt라는 별명으로 불러와요.\nimport matplotlib.pyplot as plt\n\n# 직접 만든 배달 기록이에요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/delivery.csv')\n# zone은 구역, distance는 거리(km)예요.\n# minutes는 배달 시간(분), price는 주문 금액(원)이에요.\n\n# 거리가 멀수록 배달 시간도 길까요?\n# 가로축 값, 세로축 값 순서로 넣어요.\nplt.scatter(df['distance'])\n\n# 축 이름이 가로·세로 순서와 맞는지 봐요.\nplt.xlabel('거리(km)')\nplt.ylabel('시간(분)')\n# 제목을 달고 그림을 보여 줘요.\nplt.title('거리와 배달 시간')\nplt.show()\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "지금 코드는 검사를 통과하지 못해요."
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. x와 y를 바꿔 넣으면 오류 없이 축이 뒤바뀐 그림이 나와요."
+    },
+    {
+      "action": "patch_code",
+      "before": "plt.scatter(df['distance'])",
+      "after": "plt.scatter(df['distance'], df['minutes'])",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 출력이 없어요"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

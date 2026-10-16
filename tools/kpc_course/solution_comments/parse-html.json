@@ -1,0 +1,5 @@
+{
+ "hash": "a5be3a66369a2f89",
+ "by": "claude",
+ "code": "import pandas as pd\nfrom pathlib import Path\nfrom bs4 import BeautifulSoup\n\nhtml = Path('data/prices.html').read_text(encoding='utf-8')\n# 읽어 둔 html 글자를 BeautifulSoup가 뒤질 수 있는 soup로 만들어요\nsoup = BeautifulSoup(html, 'html.parser')\n# 종목 하나가 딕셔너리 하나. 빈 리스트에 차곡차곡 모을 거예요\nrows = []\n# '#prices li': id가 prices인 상자 안의 li를 하나씩 돌아요\nfor item in soup.select('#prices li'):\n    # item['data-code']는 태그의 속성값이에요. 글자 안이 아니라 꺾쇠 안에 있어요\n    # .name은 class가 name인 태그. select_one은 첫 번째 하나만 꺼내요\n    # b 안의 '10,000'은 글자예요. 쉼표를 빼고 int로 바꿔야 숫자가 돼요\n    rows.append({'code': item['data-code'], 'name': item.select_one('.name').get_text(strip=True), 'price': int(item.select_one('b').get_text(strip=True).replace(',', ''))})\n# 딕셔너리 리스트를 표로. 키가 열 이름, 딕셔너리 하나가 한 행이 돼요\ndf = pd.DataFrame(rows)\n# 마지막 줄에 df만 두면 표가 화면에 보여요\ndf\n"
+}

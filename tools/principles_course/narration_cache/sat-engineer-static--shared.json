@@ -1,0 +1,41 @@
+{
+  "hash": "f2dc832cf27180d39ecbe4556943657f244ab509d54c65620662b880480a4670",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "class Main {\n    static class Box {\n        // 클래스 전체가 공유하는 칸이에요.\n        static int count;\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        // 첫 객체와 둘째 객체를 따로 만들어요.\n        Box a = new Box();\n        Box b = new Box();\n        Box.count = n;\n        // 같은 클래스 칸을 두 객체가 봐요.\n        a.count = n;\n        System.out.println(b.count);\n    }\n}\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 3"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 객체가 둘이라고 static 칸이 두 개 생기진 않아요."
+    },
+    {
+      "action": "patch_code",
+      "before": "a.count = n;",
+      "after": "a.count = n + 2;",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 5"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "hash": "61eeab48d5c851af90960b78f0dcad5dae6a2c6db4a7ac399c8737d75c724e11",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.preprocessing import StandardScaler\n\n# 직접 만든 매장 자료예요. 실제 매장 자료가 아니에요.\ndf = pd.read_csv('data/stores.csv')\n# 입력 X는 좌석 수, 월세(천 원), 하루 방문자 수예요.\nX = df[['seats', 'rent', 'visitors']]\n# 훈련 75%, 테스트 25%로 나눠요. X만 넣으면 두 몫이 나와요.\nX_train, X_test = train_test_split(X, test_size=0.25, random_state=42)\n# 표준화 도구(StandardScaler)를 만들어요.\nscaler = StandardScaler()\n# 지금은 원래 값을 그대로 담았어요.\nX_train_s = X_train\n# 열마다 평균과 표준편차예요. 소수 둘째 자리까지 봐요.\nprint(X_train_s.mean(axis=0).round(2))\nprint(X_train_s.std(axis=0).round(2))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. tors     723.99 / dtype: float64"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `fit`만 쓰면 바뀐 값이 아니라 도구 자신이 돌아와요."
+    },
+    {
+      "action": "patch_code",
+      "before": "# 지금은 원래 값을 그대로 담았어요.\nX_train_s = X_train\n",
+      "after": "# 훈련 자료로 기준을 재고(fit) 바로 바꿔요(transform).\nX_train_s = scaler.fit_transform(X_train)\n",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. [ 0.  0. -0.] / [1. 1. 1.]"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

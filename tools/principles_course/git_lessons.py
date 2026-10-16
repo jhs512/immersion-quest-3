@@ -1,0 +1,58 @@
+from .common import task,lesson,code
+
+def git(id,title,principle,goal,body,before,after,files,*,commits=1,message='save',branch='main',pushed=False,expected=None,challenge=False,hints=None):
+    return task(id,title,principle,goal,'set -e\ngit init -q -b main work\ncd work\n'+code(body),before,after,
+        language='git',git=dict(minimum_commits=commits,head_message=message,tracked_files=files,branch=branch,pushed=pushed),
+        tests=[('',expected)] if expected is not None else [],challenge=challenge,hints=hints,
+        caution='저장한 파일과 커밋에 담긴 파일은 다를 수 있어요.')
+
+def build():
+    lesson('principles-git-history','Git · 저장과 기록을 직접 비교해요','저장·스테이징·커밋을 작은 실험으로 구분해요. 마지막에는 두 파일을 골라 기록해요.',
+        ['https://slog.gg/p/14148'],[
+        git('first-snapshot','저장만 하면 기록이 남을까요?',
+            '파일을 저장해도 커밋은 생기지 않아요.\n스테이징한 내용을 커밋해야 기록이 남아요.',
+            '`# 기록할 두 줄`을 add와 commit으로 바꾸세요.\n커밋 메시지는 `save`예요.',
+            "# 파일은 준비했어요. 아직 Git 기록은 없어요.\nprintf 'first\\n' > note.txt\n# 기록할 두 줄\n",
+            '# 기록할 두 줄','git add note.txt\ngit commit -qm save',{'note.txt':'first\n'}),
+        git('staging','커밋은 어느 순간의 내용을 담을까요?',
+            'add는 그 순간의 내용을 스테이징해요.\n그 뒤에 저장한 변경은 다시 add해야 해요.',
+            '`# 최신 내용도 담아요`에 add 한 줄을 넣으세요.\n커밋에 second가 담기는지 비교해요.',
+            "# 첫 내용을 스테이징해요.\nprintf 'first\\n' > note.txt\ngit add note.txt\n# 저장한 파일만 바뀌어요.\nprintf 'second\\n' > note.txt\n# 최신 내용도 담아요\ngit commit -qm save",
+            '# 최신 내용도 담아요','git add note.txt',{'note.txt':'second\n'}),
+        git('history','커밋은 최신 저장으로 덮어쓸까요?',
+            '새 커밋을 만들어도 이전 커밋은 남아요.\nlog에서 기록의 순서를 확인할 수 있어요.',
+            '`# 다음 기록`에 새 커밋을 남기세요.\n메시지는 `change`예요. log는 그대로 둬요.',
+            "# 처음 상태를 기록해요.\nprintf 'first\\n' > note.txt\ngit add note.txt\ngit commit -qm save\n# 다음 내용을 저장해요.\nprintf 'second\\n' > note.txt\n# 다음 기록\ngit log --format=%s",
+            '# 다음 기록','git add note.txt\ngit commit -qm change',{'note.txt':'second\n'},commits=2,message='change',expected='change\nsave'),
+        git('select-files','두 파일 중 하나만 기록해요',
+            'add 뒤의 경로가 스테이징 대상을 정해요.\n선택한 변경끼리 커밋을 묶을 수 있어요.',
+            'README는 docs, app.txt는 code로 기록하세요.\n커밋 두 개를 만들고 두 파일을 남기세요.',
+            "# 다른 목적의 파일 두 개예요.\nprintf 'guide\\n' > README.md\nprintf 'run\\n' > app.txt\n# 두 기록으로 나눠요\ngit log --format=%s",
+            '# 두 기록으로 나눠요','git add README.md && git commit -qm docs\ngit add app.txt && git commit -qm code',
+            {'README.md':'guide\n','app.txt':'run\n'},commits=2,message='code',expected='code\ndocs',challenge=True,
+            hints=['한 번에 하나의 경로만 add해 보세요.','add→commit을 파일마다 한 번씩 해요.']),
+        ])
+    lesson('principles-git-branches','Git · 가지와 원격 기록을 연결해요','브랜치·병합·제외 파일·원격을 실제 로컬 저장소에서 확인해요.',
+        ['https://slog.gg/p/14148'],[
+        git('branch-pointer','브랜치를 나눠도 시작 기록은 같아요',
+            '브랜치는 커밋을 가리키는 이름이에요.\n새 브랜치에서도 이전 파일을 볼 수 있어요.',
+            '`git switch main`을 새 feature 브랜치로 바꾸세요.\n`git switch -c feature`를 써 보세요.',
+            "# main에 파일을 먼저 남겨요.\nprintf 'base\\n' > note.txt\ngit add note.txt\ngit commit -qm save\n# 여기서 가지를 나눠요.\ngit switch main",
+            'git switch main','git switch -c feature',{'note.txt':'base\n'},branch='feature'),
+        git('merge-change','다른 가지의 변경을 가져와요',
+            '브랜치를 바꾸면 보이는 기록도 달라져요.\nmerge는 다른 가지의 변경을 통합해요.',
+            '`# 가지의 변경 가져오기`에 `git merge -q feature`를 넣으세요.\nmain에서도 새 파일을 확인해요.',
+            "# 공통 기록이에요.\nprintf 'base\\n' > note.txt\ngit add note.txt\ngit commit -qm save\ngit switch -q -c feature\n# 새 가지에서만 남긴 기록이에요.\nprintf 'added\\n' > extra.txt\ngit add extra.txt\ngit commit -qm feature\ngit switch -q main\n# 가지의 변경 가져오기",
+            '# 가지의 변경 가져오기','git merge -q feature',{'note.txt':'base\n','extra.txt':'added\n'},commits=2,message='feature'),
+        git('ignore-build','빌드 파일을 기록에서 제외해요',
+            '.gitignore는 추적하지 않는 파일을 제외해요.\n개인 환경과 생성 파일을 구분할 때 써요.',
+            '빈 .gitignore에 `build/` 한 줄을 넣으세요.\nadd . 뒤에도 빌드 파일은 기록하지 않아요.',
+            "# 생성 파일은 다시 만들 수 있어요.\nmkdir build\nprintf 'generated\\n' > build/output.txt\nprintf '' > .gitignore\n# 소스와 제외 규칙만 기록해요.\nprintf 'source\\n' > app.txt\ngit add .\ngit commit -qm save\ngit ls-tree -r --name-only HEAD",
+            "printf '' > .gitignore","printf 'build/\\n' > .gitignore",{'.gitignore':'build/\n','app.txt':'source\n'},expected='.gitignore\napp.txt'),
+        git('publish-snapshot','내 기록을 원격과 같게 만들어요',
+            'commit은 로컬 기록이에요.\npush해야 원격도 그 커밋을 가리켜요.',
+            'note.txt를 final로 바꿔 publish로 커밋하세요.\n로컬 main과 원격 main이 같게 만드세요.\n이 원격은 인터넷이 아닌 연습용 폴더예요.',
+            "# 로컬과 연습용 원격을 연결했어요.\nprintf 'base\\n' > note.txt\ngit add note.txt\ngit commit -qm save\ngit remote add origin ../remote.git\n# 완성할 세 줄",
+            '# 완성할 세 줄',"printf 'final\\n' > note.txt\ngit add note.txt && git commit -qm publish\ngit push -q origin main",{'note.txt':'final\n'},commits=2,message='publish',pushed=True,challenge=True,
+            hints=['파일 저장, 로컬 기록, 원격 전달은 서로 다른 단계예요.','커밋 메시지는 publish예요. 마지막에는 main을 push해요.']),
+        ])

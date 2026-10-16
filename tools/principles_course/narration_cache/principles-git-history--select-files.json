@@ -1,0 +1,41 @@
+{
+  "hash": "9e8cdb70272688d6f47999be98563165a057ef692e4310436595ce5cf979c4bd",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "set -e\ngit init -q -b main work\ncd work\n# 다른 목적의 파일 두 개예요.\nprintf 'guide\\n' > README.md\nprintf 'run\\n' > app.txt\n# 두 기록으로 나눠요\ngit log --format=%s\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "지금 코드는 검사를 통과하지 못해요."
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 저장한 파일과 커밋에 담긴 파일은 다를 수 있어요."
+    },
+    {
+      "action": "patch_code",
+      "before": "# 두 기록으로 나눠요",
+      "after": "git add README.md && git commit -qm docs\ngit add app.txt && git commit -qm code",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. code / docs"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

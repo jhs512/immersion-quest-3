@@ -1,0 +1,41 @@
+{
+  "hash": "4124d53c6867d7a458db7e4be31009c9971b71172d0c7601991eaac56a75dfc2",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.preprocessing import StandardScaler\n\n# 직접 만든 매장 자료예요. 실제 매장 자료가 아니에요.\ndf = pd.read_csv('data/stores.csv')\n# 입력 X는 좌석 수, 월세(천 원), 하루 방문자 수예요.\nX = df[['seats', 'rent', 'visitors']]\n# 훈련 75%, 테스트 25%로 나눠요. X만 넣으면 두 몫이 나와요.\nX_train, X_test = train_test_split(X, test_size=0.25, random_state=42)\n# 표준화 도구로 훈련 기준을 재고 바꿔요.\nscaler = StandardScaler()\nX_train_s = scaler.fit_transform(X_train)\n# 테스트 자료는 바꾸기만 해요.\nX_test_s = scaler.transform(X_test)\n# 결과의 자료형이에요. 표(DataFrame)가 아니에요.\nprint(type(X_test_s))\n# 바꾸기 전 테스트 자료예요. 맨 왼쪽이 원래 행 번호예요.\nprint(X_test)\n# 바꾼 테스트 자료를 표로 감싸요.\ntest_df = pd.DataFrame(X_test_s)\nprint(test_df.round(2))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 1.04 -0.46 / 2 -1.76 -1.77 -0.53"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `columns=`를 빼고 열 이름만 넣으면 행 이름(index)으로 들어가요."
+    },
+    {
+      "action": "patch_code",
+      "before": "pd.DataFrame(X_test_s)",
+      "after": "pd.DataFrame(X_test_s, columns=X_test.columns)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. -0.46 / 2  -1.76 -1.77     -0.53"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

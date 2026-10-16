@@ -1,0 +1,156 @@
+{
+ "format": 2,
+ "hash": "dc8f1b70c5cd2178",
+ "by": "claude",
+ "blocks": {
+  "title": "56872a9c80a6",
+  "problem": "1c480b18ba8b",
+  "starter": "5d259093d1a3",
+  "example": "e3b0c44298fc",
+  "solution": "3de2c2094d8a"
+ },
+ "sources": [
+  {
+   "block": "problem",
+   "hash": "1c480b18ba8b"
+  },
+  {
+   "block": "problem",
+   "hash": "1c480b18ba8b"
+  },
+  {
+   "block": "starter",
+   "hash": "5d259093d1a3"
+  },
+  {
+   "block": "solution",
+   "hash": "3de2c2094d8a"
+  },
+  {
+   "block": "solution",
+   "hash": "3de2c2094d8a"
+  },
+  {
+   "block": "solution",
+   "hash": "3de2c2094d8a"
+  },
+  {
+   "block": "solution",
+   "hash": "3de2c2094d8a"
+  },
+  {
+   "block": "solution",
+   "hash": "3de2c2094d8a"
+  },
+  {
+   "block": "solution",
+   "hash": "3de2c2094d8a"
+  },
+  {
+   "block": "solution",
+   "hash": "3de2c2094d8a"
+  },
+  {
+   "block": "solution",
+   "hash": "3de2c2094d8a"
+  },
+  {
+   "block": "solution",
+   "hash": "3de2c2094d8a"
+  },
+  {
+   "block": "solution",
+   "hash": "3de2c2094d8a"
+  },
+  {
+   "block": "solution",
+   "hash": "3de2c2094d8a"
+  },
+  {
+   "block": "solution",
+   "hash": "3de2c2094d8a"
+  },
+  {
+   "block": "solution",
+   "hash": "3de2c2094d8a"
+  },
+  {
+   "block": "solution",
+   "hash": "3de2c2094d8a"
+  }
+ ],
+ "entry": [
+  [
+   "problem",
+   "자, 이번엔 두 조건으로 나눠요. 성별과 객실등급으로 묶어서 생존률을 표로 만들 거예요."
+  ],
+  [
+   "hint",
+   "묶을 열이 둘이면 리스트로 넣으면 돼요. 그다음 unstack으로 등급을 열로 펼쳐요."
+  ],
+  [
+   "starter",
+   "준비 코드엔 pandas 불러오기와 titanic 읽기가 있어요. 그대로 둘게요."
+  ],
+  [
+   "code",
+   "\n# 묶을 열이 둘이면 리스트로 넣어요. 대괄호를 빼면 오류가 나요.\n# ['생존']으로 생존 열만 고른 뒤, agg에 통계 이름을 글자로 적어요.\n# count는 사람 수, mean은 생존율이에요. 성별 2 × 등급 3 = 6행이 나와요.\ngrouped = titanic.groupby(['성별', '객실등급'])['생존'].agg(['count', 'mean'])\n",
+   "groupby에 성별과 객실등급을 리스트로 넣어요. 생존의 count와 mean을 agg로 한 번에 구해서 grouped에 담아요."
+  ],
+  [
+   "run",
+   "일단 실행해 볼게요."
+  ],
+  [
+   "output",
+   "아무것도 안 나오죠? grouped에 담기만 했거든요. 오류가 없으면 묶기는 된 거예요."
+  ],
+  [
+   "try",
+   "wide = grouped['mean'].unstack(객실등급)\n",
+   "이렇게 해 볼까요? 열 이름을 따옴표 없이 적었어요."
+  ],
+  [
+   "run",
+   "실행하면요."
+  ],
+  [
+   "output",
+   "NameError가 나요. name '객실등급' is not defined이라고요. 따옴표가 없으니 파이썬이 객실등급이라는 변수를 찾은 거예요."
+  ],
+  [
+   "undo",
+   "그래서 열 이름은 따옴표로 감싸요. 지우고 다시 쓸게요."
+  ],
+  [
+   "code",
+   "# 'mean' 열만 꺼내서 unstack으로 펼쳐요. 괄호 안의 열 이름이 가로로 열리거든요.\n# 그래서 세로 6칸이 성별 2행 × 등급 3열 표로 바뀌어요.\nwide = grouped['mean'].unstack('객실등급')\n",
+   "grouped의 mean 열만 꺼내서 unstack을 붙여요. 객실등급이 열로 펼쳐져서 wide에 담겨요."
+  ],
+  [
+   "run",
+   "다시 실행해요."
+  ],
+  [
+   "output",
+   "이번엔 조용하죠? 오류 없이 wide에 담긴 거예요."
+  ],
+  [
+   "code",
+   "# 마지막 줄에 이름만 적으면 그 표가 화면에 보여요. print 없이도 돼요.\nwide\n",
+   "마지막 줄에 wide를 적어서 표를 보여 줘요."
+  ],
+  [
+   "run",
+   "실행해 볼게요."
+  ],
+  [
+   "output",
+   "어, 아무것도 안 나오죠? 여기선 파일로 실행해서 마지막 줄 이름만으론 안 보여요. 표를 보려면 print(wide)로 감싸면 돼요. 그래도 wide에는 성별 2행 × 등급 3열 표가 담겨 있어요."
+  ],
+  [
+   "submit",
+   "제출할게요."
+  ]
+ ]
+}

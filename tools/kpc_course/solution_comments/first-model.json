@@ -1,0 +1,5 @@
+{
+ "hash": "3bebaedd7fd371b0",
+ "by": "claude",
+ "code": "import pandas as pd\ntitanic = pd.read_csv('data/titanic.csv')\nfeatures = ['객실등급', '성별', '나이', '형제배우자', '부모자녀', '요금', '탑승항구']\nX = titanic[features].copy()\ny = titanic['생존'].astype(int)\nfrom sklearn.model_selection import train_test_split\n\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.metrics import accuracy_score\n\nsimple = ['객실등급', '형제배우자', '부모자녀']\n# 1단계 만들기: 아직 아무것도 배우지 않은 빈 모델이에요\n# max_iter=1000은 계산을 충분히 반복하라는 뜻이에요. 빼면 경고가 뜰 수 있어요\nmodel = LogisticRegression(max_iter=1000)\n# 2단계 학습: 훈련 자료만 줘요. 테스트 자료를 주면 답을 미리 보는 셈이에요\n# X_train[simple]은 세 열만 고른 거예요. 대괄호 안에 리스트 이름을 넣어요\nmodel.fit(X_train[simple], y_train)\n# 3단계 예측: 학습 때와 같은 세 열이어야 해요. 열이 다르면 오류예요\npred = model.predict(X_test[simple])\n# 테스트 정답(y_test)과 예측(pred)이 맞은 비율. 순서는 정답이 먼저예요\naccuracy = accuracy_score(y_test, pred)\n# 0과 1 사이 숫자가 나와요. 이 값을 기억해 두세요\nprint(accuracy)\n"
+}

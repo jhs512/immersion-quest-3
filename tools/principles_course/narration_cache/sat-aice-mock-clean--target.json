@@ -1,0 +1,41 @@
+{
+  "hash": "476f592e042743b25a8de477e4de2e367982428e4c9c66dc4eebb989a40d7bfc",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n# 각 문제는 자기 자료를 처음부터 읽어요.\ndf = pd.read_csv('data/members.csv')\n# 식별 번호를 예측 입력으로 쓰지 않아요.\nX = df.drop(columns=['member_id'])\ny = df['churn']\nprint(X.columns.tolist())\nprint(y.head(4).tolist())\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  'plan', 'churn'] / [1, 0, 0, 0]"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 정답 숫자를 외워 쓰면 자료가 바뀔 때 틀려요."
+    },
+    {
+      "action": "patch_code",
+      "before": "columns=['member_id']",
+      "after": "columns=['member_id', 'churn']",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 'region', 'plan'] / [1, 0, 0, 0]"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

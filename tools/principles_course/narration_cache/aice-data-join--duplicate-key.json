@@ -1,0 +1,41 @@
+{
+  "hash": "fe78dbf75bed2873ef47404e26b0dbbe942c5b71bfadef7a6db111fcea64be4b",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 주문 표와 고객 표를 읽어요.\norders = pd.read_csv('data/orders.csv')\ncustomers = pd.read_json('data/customers.json')\n# 이 아래에서 같은 customer_id의 중복을 지워요.\n# 주문은 모두 남기고 고객 정보를 붙여요.\nmerged = pd.merge(orders, customers, on='customer_id', how='left')\n# 합치기 전과 뒤의 행 수예요. 같아야 해요.\nprint(len(orders), len(merged))\n# 합친 표를 확인해요.\nprint(merged)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.       C06    7000    NaN     NaN"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. subset 없이 지우면 등급만 다른 중복 행은 남아요."
+    },
+    {
+      "action": "patch_code",
+      "before": "# 이 아래에서 같은 customer_id의 중복을 지워요.",
+      "after": "# 이 아래에서 같은 customer_id의 중복을 지워요.\ncustomers = customers.drop_duplicates(subset='customer_id')",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.       C06    7000    NaN     NaN"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

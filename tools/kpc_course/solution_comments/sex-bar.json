@@ -1,0 +1,5 @@
+{
+ "hash": "8b22b2354e348618",
+ "by": "claude",
+ "code": "import pandas as pd\ntitanic = pd.read_csv('data/titanic.csv')\nimport matplotlib.pyplot as plt\n\n# 성별로 묶어서 생존 열의 평균을 내요. 생존은 0과 1이라 평균이 곧 생존율이에요.\n# 열 이름은 한글 그대로 따옴표 안에 써요. 오타 나면 KeyError가 나요.\nrates = titanic.groupby('성별')['생존'].mean()\n# fig는 그림 전체, ax는 막대를 그릴 칸이에요.\nfig, ax = plt.subplots()\n# rates.index는 성별 이름이고, 막대 아래 글자로 써요.\n# rates는 0~1 사이 비율이라 100을 곱해야 퍼센트가 돼요.\nax.bar(rates.index, rates * 100)\n# 축 이름, 제목, y축 범위를 한 번에 정해요.\n# ylim=(0, 100)으로 고정해야 막대 높이를 퍼센트로 바로 비교할 수 있어요.\nax.set(xlabel='성별', ylabel='생존율 (%)', ylim=(0, 100), title='성별 생존율')\n# 다 그린 그림을 화면에 띄워요.\nplt.show()\n"
+}

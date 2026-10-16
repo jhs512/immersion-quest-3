@@ -1,0 +1,41 @@
+{
+  "hash": "759637225514284ce9387210038d70919a16c024ec14cf0570ea1acab4d2b205",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n# 이 문제에 쓰는 도구를 불러와요.\nfrom sklearn.model_selection import train_test_split, GridSearchCV\nfrom sklearn.tree import DecisionTreeClassifier\nfrom sklearn.metrics import accuracy_score\n\n# 직접 만든 빵 공장 기록이에요. 실제 공장 자료가 아니에요.\ndf = pd.read_csv('data/bakery.csv')\n# weight는 반죽 무게, humidity는 습도, temp는 오븐 온도예요.\n# minutes는 굽는 시간이에요. defect가 1이면 불량 빵이에요.\nX = df.drop(columns=['defect'])\ny = df['defect']\n# 테스트 몫 25%는 마지막 확인용으로 남겨 둬요.\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.25, random_state=42, stratify=y)\n\n# 기본 설정 결정트리를 훈련 자료로 학습해요.\nbase = DecisionTreeClassifier(random_state=42)\nbase.fit(X_train, y_train)\n# 기본 모델의 테스트 정확도예요.\nbase_acc = accuracy_score(y_test, base.predict(X_test))\n\n# 깊이와 잎 크기 후보를 교차검증으로 골라요.\nparam_grid = {'max_depth': [2, 3, 4, 6], 'min_samples_leaf': [1, 5]}\ngrid = GridSearchCV(DecisionTreeClassifier(random_state=42), param_grid, cv=3)\ngrid.fit(X, y)\n# 튜닝 모델의 점수예요.\ntuned_acc = grid.best_score_\n# 두 점수를 나란히 봐요.\nprint('고른 설정:', grid.best_params_)\nprint('기본 모델:', round(base_acc, 3))\nprint('튜닝 모델:', round(tuned_acc, 3))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 1} / 기본 모델: 0.767 / 튜닝 모델: 0.875"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `grid.fit`에 X, y 전체를 넣으면 테스트 행이 튜닝에 섞여요."
+    },
+    {
+      "action": "patch_code",
+      "before": "grid.fit(X, y)\n# 튜닝 모델의 점수예요.\ntuned_acc = grid.best_score_",
+      "after": "grid.fit(X_train, y_train)\n# 튜닝 모델의 점수예요.\ntuned_acc = accuracy_score(y_test, grid.best_estimator_.predict(X_test))",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. : 1} / 기본 모델: 0.767 / 튜닝 모델: 0.8"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

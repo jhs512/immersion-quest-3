@@ -1,0 +1,41 @@
+{
+  "hash": "6035b9cec5a64c0919e322acc01255b35e76841bf80f0cc2c1c4e85102ef29d4",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "set -e\ngit init -q -b main work\ncd work\n# 첫 내용을 스테이징해요.\nprintf 'first\\n' > note.txt\ngit add note.txt\n# 저장한 파일만 바뀌어요.\nprintf 'second\\n' > note.txt\n# 최신 내용도 담아요\ngit commit -qm save\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 출력이 없어요"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 저장한 파일과 커밋에 담긴 파일은 다를 수 있어요."
+    },
+    {
+      "action": "patch_code",
+      "before": "# 최신 내용도 담아요",
+      "after": "git add note.txt",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 출력이 없어요"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

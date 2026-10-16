@@ -1,0 +1,41 @@
+{
+  "hash": "a00db8e9718ef1650666f4747d3acc73e806ab1b48d5af2c4b721a0de95d768e",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 방문 자료예요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/visits.csv')\n# result는 화면에 보여 줄 값의 이름이에요.\nresult = df['visits']\n# 계산한 값을 눈으로 확인해요.\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.   4 / Name: visits, dtype: int64"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 전체 열을 꺼낸 것과 앞의 세 기록만 꺼낸 것을 비교해요."
+    },
+    {
+      "action": "patch_code",
+      "before": "result = df['visits']",
+      "after": "result = df.head(3)['visits']",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.   3 / Name: visits, dtype: int64"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

@@ -1,0 +1,199 @@
+{
+ "format": 2,
+ "hash": "6c327645e1b62566",
+ "by": "claude",
+ "blocks": {
+  "title": "0b6d14473e80",
+  "problem": "6ac8ddd775b5",
+  "starter": "5057c5f6a1e2",
+  "example": "e3b0c44298fc",
+  "solution": "fe60488f212d"
+ },
+ "sources": [
+  {
+   "block": "problem",
+   "hash": "6ac8ddd775b5"
+  },
+  {
+   "block": "starter",
+   "hash": "5057c5f6a1e2"
+  },
+  {
+   "block": "solution",
+   "hash": "fe60488f212d"
+  },
+  {
+   "block": "solution",
+   "hash": "fe60488f212d"
+  },
+  {
+   "block": "solution",
+   "hash": "fe60488f212d"
+  },
+  {
+   "block": "solution",
+   "hash": "fe60488f212d"
+  },
+  {
+   "block": "solution",
+   "hash": "fe60488f212d"
+  },
+  {
+   "block": "solution",
+   "hash": "fe60488f212d"
+  },
+  {
+   "block": "solution",
+   "hash": "fe60488f212d"
+  },
+  {
+   "block": "solution",
+   "hash": "fe60488f212d"
+  },
+  {
+   "block": "solution",
+   "hash": "fe60488f212d"
+  },
+  {
+   "block": "solution",
+   "hash": "fe60488f212d"
+  },
+  {
+   "block": "solution",
+   "hash": "fe60488f212d"
+  },
+  {
+   "block": "solution",
+   "hash": "fe60488f212d"
+  },
+  {
+   "block": "solution",
+   "hash": "fe60488f212d"
+  },
+  {
+   "block": "solution",
+   "hash": "fe60488f212d"
+  },
+  {
+   "block": "solution",
+   "hash": "fe60488f212d"
+  },
+  {
+   "block": "solution",
+   "hash": "fe60488f212d"
+  },
+  {
+   "block": "solution",
+   "hash": "fe60488f212d"
+  },
+  {
+   "block": "solution",
+   "hash": "fe60488f212d"
+  },
+  {
+   "block": "solution",
+   "hash": "fe60488f212d"
+  },
+  {
+   "block": "solution",
+   "hash": "fe60488f212d"
+  }
+ ],
+ "entry": [
+  [
+   "problem",
+   "자, 앞 미션에서 만든 재료를 한 표에 모아요. 빈 표 frame에 여섯 열을 만들고, 빈칸 있는 행은 빼면 돼요."
+  ],
+  [
+   "starter",
+   "준비 코드는 그대로 둘게요. 주가를 읽어 날짜 순으로 정렬했고, frame은 날짜 인덱스만 있는 빈 표예요."
+  ],
+  [
+   "code",
+   "# 오늘 종가를 그대로 가져와요. 열 이름은 한글 '종가', 따옴표 잊지 마세요.\nframe['close'] = prices['종가']\n# 어제 대비 수익률이에요. 첫 행은 비교할 어제가 없어서 빈칸이 돼요.\nframe['return_1'] = prices['종가'].pct_change()\n",
+   "입력 X부터요. 오늘 종가와 수익률을 frame의 열로 넣어요. 왼쪽만 frame으로 바뀌었죠?"
+  ],
+  [
+   "code",
+   "# 최근 5일 평균이에요. 앞 네 행은 5일이 안 차서 빈칸이에요.\nframe['ma5'] = prices['종가'].rolling(5).mean()\n# shift(1)은 한 칸 아래로 밀어요. 그래서 오늘 자리에 어제 종가가 와요.\nframe['lag_close_1'] = prices['종가'].shift(1)\n",
+   "이동평균과 어제 종가도 넣어요. 이러면 입력 네 열이 다 찼어요."
+  ],
+  [
+   "run",
+   "일단 실행해 볼게요."
+  ],
+  [
+   "output",
+   "화면이 비어 있죠? 열만 넣었지 아직 꺼내 보지 않았거든요. 오류가 안 떴으면 된 거예요."
+  ],
+  [
+   "code",
+   "# shift(-1)은 위로 당겨요. 오늘 자리에 내일 종가가 와서 우리가 맞힐 정답이 돼요.\nframe['target_next_close'] = prices['종가'].shift(-1)\n",
+   "정답 y예요. shift(-1)로 내일 종가를 오늘 행에 끌어와요."
+  ],
+  [
+   "caution",
+   "여기서 shift(1)로 쓰기 쉬운데, 그러면 어제 종가가 정답이 되니 조심하세요. 정답은 마이너스 1이에요."
+  ],
+  [
+   "try",
+   "frame['target_date'] = prices.index.shift(-1)\n",
+   "정답의 날짜도 같은 식으로요. 인덱스를 바로 shift(-1)하면 될까요?"
+  ],
+  [
+   "run",
+   "실행해 볼게요."
+  ],
+  [
+   "output",
+   "빨간 오류가 나죠? 맨 아래 줄을 보세요. NullFrequencyError, Cannot shift with no freq예요. 날짜 인덱스는 간격 정보가 없어서 그냥은 못 밀어요."
+  ],
+  [
+   "undo",
+   "그래서 인덱스를 Series로 먼저 바꿔요."
+  ],
+  [
+   "code",
+   "# 날짜 인덱스를 Series로 바꿔야 shift가 돼요. 그걸 -1로 당기면 정답의 날짜예요.\nframe['target_date'] = pd.Series(prices.index, index=prices.index).shift(-1)\n",
+   "pd.Series로 날짜를 열로 만들고, 똑같이 shift(-1)하면 돼요."
+  ],
+  [
+   "run",
+   "다시 실행해요."
+  ],
+  [
+   "output",
+   "이번엔 조용히 지나가죠? 오류 없이 비어 있으면 여섯 열이 다 들어간 거예요."
+  ],
+  [
+   "code",
+   "# 빈칸이 하나라도 있는 행은 빼요. 앞 네 행과 마지막 행이 사라져요.\n# copy()를 붙여야 나중에 열을 더할 때 경고가 안 나요.\nframe = frame.dropna().copy()\n# (행 수, 열 수)예요. (396, 6)이 나와야 해요.\nprint(frame.shape)\n",
+   "앞 네 행과 마지막 행은 빈칸이 있죠? dropna로 빼고 모양을 찍어요."
+  ],
+  [
+   "run",
+   "실행해 볼게요."
+  ],
+  [
+   "output",
+   "(396, 6)이 나왔죠? 빈칸 있던 다섯 행이 빠지고, 열은 여섯 개 그대로예요."
+  ],
+  [
+   "code",
+   "# 앞 다섯 행을 봐요. target_date가 인덱스 날짜보다 뒤인지 확인하세요.\nframe.head()\n",
+   "마지막으로 앞 다섯 행을 눈으로 봐요."
+  ],
+  [
+   "run",
+   "실행할게요."
+  ],
+  [
+   "output",
+   "아까 그 (396, 6)만 다시 보이죠? head()는 print 없이 쓰면 화면에 안 찍혀요. print(frame.head())로 감싸서 보세요. target_date가 인덱스 날짜보다 하루 뒤인지 확인하면 돼요."
+  ],
+  [
+   "submit",
+   "제출할게요."
+  ]
+ ]
+}

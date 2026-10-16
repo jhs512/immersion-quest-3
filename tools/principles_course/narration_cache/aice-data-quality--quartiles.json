@@ -1,0 +1,41 @@
+{
+  "hash": "5260a9d0eeed80ee2c499fb5e41414fc924f0dd855391c4236abe39bb950d8d3",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 배달 자료예요. 실제 주문 자료가 아니에요.\ndf = pd.read_csv('data/deliveries.csv')\n# 가격 분포를 요약해요. 25%와 75% 줄을 봐 두세요.\nprint(df['price'].describe())\n# 작은 값부터 25% 자리의 값(Q1)이에요.\nq1 = df['price'].quantile(0.25)\n# 75% 자리의 값(Q3)이에요.\nq3 = df['price'].quantile(0.25)\n# 가운데 절반이 퍼진 폭(IQR)이에요.\niqr = q3 - q1\nprint(q1, q3, iqr)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. e: float64 / 14000.0 14000.0 0.0"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `quantile(75)`처럼 퍼센트 숫자를 넣으면 ValueError가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "q3 = df['price'].quantile(0.25)",
+      "after": "q3 = df['price'].quantile(0.75)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. float64 / 14000.0 22000.0 8000.0"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

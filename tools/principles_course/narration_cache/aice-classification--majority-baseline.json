@@ -1,0 +1,41 @@
+{
+  "hash": "ab36e3cc7decb27f7e44fa48e60015139f2a4356afdaa88c75c5073f2e354d71",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "# 표 도구 pandas와 자료를 나누는 함수를 불러와요.\nimport pandas as pd\nfrom sklearn.model_selection import train_test_split\n# 이번 문제에 쓸 도구를 불러와요.\nfrom sklearn.dummy import DummyClassifier\nfrom sklearn.metrics import accuracy_score\n\n# 직접 만든 쇼핑몰 방문 자료예요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/visits.csv')\n# visits는 이번 달 방문 수, minutes는 머문 시간(분)이에요.\n# cart는 장바구니 상품 수, coupon은 쿠폰을 받았으면 1이에요.\n# bought는 다음 주에 샀으면 1, 안 샀으면 0이에요.\ny = df['bought']\nX = df.drop(columns=['bought'])\n# 1의 비율이 두 몫에서 같도록 stratify=y로 나눠요.\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y)\n\n# 기준 모델이에요. strategy가 답하는 규칙이에요.\nbase = DummyClassifier(strategy='constant', constant=1)\n# 기준 모델도 훈련 자료로 fit해요. 입력 X는 보지 않아요.\nbase.fit(X_train, y_train)\npred = base.predict(X_test)\nprint(pred)\n# 맞힌 비율인 정확도예요.\nacc = accuracy_score(y_test, pred)\nprint(acc)\n# 테스트 정답에서 종류별 비율이에요.\nprint(y_test.value_counts(normalize=True))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. Name: proportion, dtype: float64"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `constant=0`처럼 직접 적으면 1이 많은 자료에서 틀려요."
+    },
+    {
+      "action": "patch_code",
+      "before": "strategy='constant', constant=1",
+      "after": "strategy='most_frequent'",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. Name: proportion, dtype: float64"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

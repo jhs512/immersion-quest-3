@@ -1,0 +1,41 @@
+{
+  "hash": "d6a910ad2991f3b3e7ddbe401d94cc5d5101fa6a4cb653a7ff8efe7bb8f09a0c",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 지점 주문 자료예요. 실제 자료가 아니에요.\ndf = pd.read_csv('data/orders.csv')\n# 전체 주문 수예요.\nprint(len(df))\n# 지점 열의 값마다 행을 세요. normalize=True면 비율이 나와요.\nresult = df['branch'].value_counts()\n# 결과를 화면에서 확인해요.\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.    3 / Name: count, dtype: int64"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 열을 고르지 않고 `df.value_counts()`를 쓰면 행 전체 조합을 세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "value_counts()",
+      "after": "value_counts(normalize=True)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. Name: proportion, dtype: float64"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

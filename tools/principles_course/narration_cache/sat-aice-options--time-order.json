@@ -1,0 +1,41 @@
+{
+  "hash": "2e6d883c0e11eb0c2634a5bbf4ec267600517bce76bcbb34afd46b33a2eb6bdc",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\nfrom sklearn.model_selection import train_test_split\n# 각 문제는 자기 자료를 처음부터 읽어요.\ndf = pd.read_csv('data/delivery.csv')\n# 주문 번호가 증가하는 시간순 자료예요.\nX = df[['order_id', 'distance']]\ny = df['minutes']\n# 시간순 분리에서는 앞뒤를 섞지 않아요.\nX_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=0.25, shuffle=True, random_state=7)\nprint(X_valid['order_id'].tolist())\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 7, 201, 209, 211, 205, 218, 224]"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 시간순 자료를 섞으면 미래 정보가 훈련에 섞일 수 있어요."
+    },
+    {
+      "action": "patch_code",
+      "before": "shuffle=True",
+      "after": "shuffle=False",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 3, 224, 225, 226, 227, 228, 229]"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

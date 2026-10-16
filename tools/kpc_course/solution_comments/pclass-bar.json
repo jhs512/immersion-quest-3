@@ -1,0 +1,5 @@
+{
+ "hash": "a5eee878ff425f0a",
+ "by": "claude",
+ "code": "import pandas as pd\ntitanic = pd.read_csv('data/titanic.csv')\nimport matplotlib.pyplot as plt\n\n# 객실등급별로 묶고 생존 열의 평균을 내요\n# 생존은 0과 1이라서 평균이 곧 생존 비율이에요\nrates = titanic.groupby('객실등급')['생존'].mean()\n# 그림판(fig)과 그래프 칸(ax)을 하나 만들어요\nfig, ax = plt.subplots()\n# 등급 1·2·3은 숫자라 astype(str)로 글자로 바꿔 넘겨요\n# 그래야 x축에 막대 세 개가 나란히 깔끔하게 놓여요\n# rates는 0~1 비율이라 100을 곱해 퍼센트로 바꿔요\nax.bar(rates.index.astype(str), rates * 100)\n# 축 이름과 y축 범위를 한 번에 정해요\n# ylim은 (0, 100)처럼 괄호로 묶은 두 숫자로 넘겨요\nax.set(xlabel='객실등급', ylabel='생존율 (%)', ylim=(0, 100), title='Survival by class')\n# 다 그렸으면 화면에 띄워요\nplt.show()\n"
+}

@@ -1,0 +1,41 @@
+{
+  "hash": "1c38ee569e30b45eae1e7f63c5bf8eb37073ee403548a454c47b4184137a10d6",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "# 표 도구 pandas와 숫자 도구 numpy를 불러와요.\nimport pandas as pd\nimport numpy as np\n# 자료를 나누는 함수예요.\nfrom sklearn.model_selection import train_test_split\n# 이번 문제에 쓸 도구를 불러와요.\nfrom sklearn.tree import DecisionTreeRegressor\nfrom sklearn.metrics import mean_absolute_error\n\n# 직접 만든 배달 기록이에요. 실제 주문이 아니에요.\ndf = pd.read_csv('data/delivery.csv')\n# 입력 X로 쓸 열을 골라요. 정답 y는 배달 시간이에요.\nX = df[['order_id']]\ny = df['minutes']\n# 훈련 75%, 테스트 25%로 나눠요.\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)\n# 깊이 3인 결정트리로 배우고 테스트 MAE를 재요.\nmodel = DecisionTreeRegressor(max_depth=3, random_state=42)\nmodel.fit(X_train, y_train)\nmae = mean_absolute_error(y_test, model.predict(X_test))\n# 기준 모델의 MAE예요. 훈련 평균으로 모두 맞혀요.\nbase_mae = mean_absolute_error(y_test, np.full(len(y_test), y_train.mean()))\nprint('모델 MAE', round(mae, 2))\nprint('기준 MAE', round(base_mae, 2))\n# 모델이 기준보다 덜 틀렸나요?\nbetter = mae < base_mae\nprint(better)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 델 MAE 9.71 / 기준 MAE 7.47 / False"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 주문 번호를 X에 남기면 의미 없는 번호로도 행을 나눌 수 있어요."
+    },
+    {
+      "action": "patch_code",
+      "before": "X = df[['order_id']]",
+      "after": "X = df[['distance', 'items', 'rush']]",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 모델 MAE 3.51 / 기준 MAE 7.47 / True"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

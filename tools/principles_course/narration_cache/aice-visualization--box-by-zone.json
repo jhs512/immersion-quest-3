@@ -1,0 +1,41 @@
+{
+  "hash": "71389246e8c47acbb404a237ccafef553642443d7896ef40c794c98790bb280c",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n# 그래프 도구를 plt라는 별명으로 불러와요.\nimport matplotlib.pyplot as plt\n\n# 직접 만든 배달 기록이에요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/delivery.csv')\n# zone은 구역, distance는 거리(km)예요.\n# minutes는 배달 시간(분), price는 주문 금액(원)이에요.\n\n# 질문: 구역마다 배달 시간이 얼마나 퍼져 있을까요?\n# 늦은 배달이 어느 구역에 있는지도 보고 싶어요.\ntable = df.groupby('zone')['minutes'].mean()\nprint(table)\n# 질문에 맞는 그래프를 그려요.\ntable.plot(kind='bar')\n\n# 축 이름이 그린 값과 맞는지 봐요.\nplt.ylabel('평균 시간(분)')\nplt.title('구역별 배달 시간')\nplt.show()\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  / Name: minutes, dtype: float64"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. by 없이 그리면 구역을 나누지 않은 상자 하나만 나와요."
+    },
+    {
+      "action": "patch_code",
+      "before": "mean()\nprint(table)\n# 질문에 맞는 그래프를 그려요.\ntable.plot(kind='bar')\n\n# 축 이름이 그린 값과 맞는지 봐요.\nplt.ylabel('평균 시간(분)')",
+      "after": "median()\nprint(table)\n# 질문에 맞는 그래프를 그려요.\ndf.boxplot(column='minutes', by='zone')\n\n# 축 이름이 그린 값과 맞는지 봐요.\nplt.ylabel('시간(분)')",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  / Name: minutes, dtype: float64"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

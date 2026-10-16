@@ -1,0 +1,173 @@
+{
+ "format": 2,
+ "hash": "ecff53725175ca61",
+ "by": "claude",
+ "blocks": {
+  "title": "6af4362c4bdc",
+  "problem": "fe16f7c609cb",
+  "starter": "664bed9b6a62",
+  "example": "e3b0c44298fc",
+  "solution": "5deca5ff9581"
+ },
+ "sources": [
+  {
+   "block": "problem",
+   "hash": "fe16f7c609cb"
+  },
+  {
+   "block": "problem",
+   "hash": "fe16f7c609cb"
+  },
+  {
+   "block": "starter",
+   "hash": "664bed9b6a62"
+  },
+  {
+   "block": "solution",
+   "hash": "5deca5ff9581"
+  },
+  {
+   "block": "solution",
+   "hash": "5deca5ff9581"
+  },
+  {
+   "block": "solution",
+   "hash": "5deca5ff9581"
+  },
+  {
+   "block": "solution",
+   "hash": "5deca5ff9581"
+  },
+  {
+   "block": "solution",
+   "hash": "5deca5ff9581"
+  },
+  {
+   "block": "solution",
+   "hash": "5deca5ff9581"
+  },
+  {
+   "block": "solution",
+   "hash": "5deca5ff9581"
+  },
+  {
+   "block": "solution",
+   "hash": "5deca5ff9581"
+  },
+  {
+   "block": "solution",
+   "hash": "5deca5ff9581"
+  },
+  {
+   "block": "solution",
+   "hash": "5deca5ff9581"
+  },
+  {
+   "block": "solution",
+   "hash": "5deca5ff9581"
+  },
+  {
+   "block": "solution",
+   "hash": "5deca5ff9581"
+  },
+  {
+   "block": "solution",
+   "hash": "5deca5ff9581"
+  },
+  {
+   "block": "solution",
+   "hash": "5deca5ff9581"
+  },
+  {
+   "block": "solution",
+   "hash": "5deca5ff9581"
+  },
+  {
+   "block": "solution",
+   "hash": "5deca5ff9581"
+  }
+ ],
+ "entry": [
+  [
+   "problem",
+   "자, 이번엔 쓸 열을 직접 골라서 입력 X와 정답 y를 만들어요. 열 이름을 리스트에 담고, 그 리스트로 표에서 뽑으면 돼요."
+  ],
+  [
+   "hint",
+   "세 줄이면 돼요. 리스트 하나, X 한 줄, y 한 줄이거든요."
+  ],
+  [
+   "starter",
+   "준비 코드는 그대로 둘게요. titanic 표가 이미 읽혀 있어요."
+  ],
+  [
+   "code",
+   "# 쓸 열 일곱 개의 이름을 리스트에 담아요. 열 이름은 글자라서 따옴표로 감싸요\n# 표에 있는 이름과 한 글자라도 다르면 KeyError가 나요\nfeatures = ['객실등급', '성별', '나이', '형제배우자', '부모자녀', '요금', '탑승항구']\n",
+   "먼저 입력으로 쓸 일곱 열의 이름을 features 리스트에 담아요. 열 이름은 글자니까 하나하나 따옴표로 감싸요."
+  ],
+  [
+   "run",
+   "일단 실행해 볼게요."
+  ],
+  [
+   "output",
+   "아무것도 안 나오죠? 리스트를 만들어 담기만 했거든요. 오류가 없으면 된 거예요."
+  ],
+  [
+   "try",
+   "X = titanic[['객실등급', '성별', '나이', '형제자매', '부모자녀', '요금', '탑승항구']].copy()\n",
+   "이렇게 해 볼까요? 열 이름을 기억나는 대로 적어 봤어요."
+  ],
+  [
+   "run",
+   "실행하면요."
+  ],
+  [
+   "output",
+   "빨간 글이 길게 나오죠? 맨 아래 줄만 보세요. KeyError, 형제자매 not in index예요. 표에 형제자매라는 열이 없다는 뜻이에요. 표의 이름은 형제배우자거든요."
+  ],
+  [
+   "undo",
+   "그래서 열 이름은 표에 있는 글자 그대로 적어야 해요. 되돌릴게요."
+  ],
+  [
+   "code",
+   "# 대괄호 안에 리스트를 넣으면 그 열들만 뽑은 표가 돼요\n# .copy()를 붙여야 뒤에서 X를 고쳐도 원본 titanic이 안 바뀌어요\nX = titanic[features].copy()\n",
+   "titanic[features]로 그 일곱 열만 뽑고 .copy()를 붙여요. 뒤에서 X를 고쳐도 원본 표는 안 바뀌죠?"
+  ],
+  [
+   "code",
+   "# 정답은 생존 열 하나예요. .astype(int)로 정수(0과 1)로 맞춰요\ny = titanic['생존'].astype(int)\n# X는 (1309, 7), y는 (1309,)가 나와야 해요. y는 열이 하나라 숫자가 하나예요\nprint(X.shape, y.shape)\n",
+   "정답 y는 생존 열을 astype(int)로 정수로 담아요. 그리고 shape로 행과 열 개수를 찍어 봐요."
+  ],
+  [
+   "run",
+   "실행해 볼게요."
+  ],
+  [
+   "output",
+   "(1309, 7) (1309,)이 나왔죠? X는 1309행 7열, y는 1309개예요. y는 열이 하나라 숫자가 하나고요."
+  ],
+  [
+   "caution",
+   "y를 만들 때 astype(int)를 빼먹기 쉬운데, 그러면 생존이 True와 False로 남아요. 뒤에서 더하거나 모델에 넣을 때 헷갈리니 조심하세요."
+  ],
+  [
+   "code",
+   "# 앞 다섯 줄을 보며 열이 맞게 들어갔는지 확인해요\nX.head()\n",
+   "마지막으로 X.head()로 앞 다섯 줄을 봐요."
+  ],
+  [
+   "run",
+   "다시 실행해요."
+  ],
+  [
+   "output",
+   "어, 표는 안 보이고 (1309, 7) (1309,)만 다시 나왔죠? 여기선 마지막 줄에 X.head()만 적으면 화면에 안 찍혀요. 표를 보려면 print로 감싸야 해요. 그래도 X는 제대로 만들어진 거예요. 바로 위 줄의 7이 열 일곱 개라는 뜻이거든요."
+  ],
+  [
+   "submit",
+   "제출할게요."
+  ]
+ ]
+}

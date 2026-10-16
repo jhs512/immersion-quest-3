@@ -1,0 +1,41 @@
+{
+  "hash": "363383cd39ad356e053370cbddf65ef1b16a715c7a7011f38d532469f47e5f0b",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n# 그래프 도구를 plt라는 별명으로 불러와요.\nimport matplotlib.pyplot as plt\n\n# 직접 만든 배달 기록이에요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/delivery.csv')\n# zone은 구역, distance는 거리(km)예요.\n# minutes는 배달 시간(분), price는 주문 금액(원)이에요.\n\n# 배달 시간이 어떻게 퍼져 있는지 봐요.\n# 돌려준 세 값을 차례로 이름 셋에 나눠 받아요.\ncounts, edges, bars = plt.hist(df['minutes'], bins=3)\n# 구간마다 몇 건인지 글자로도 봐요.\n# 개수가 실수로 나와서 숫자 끝에 점(.)이 붙어요.\nprint(counts)\n\n# 가로축은 시간, 세로축은 건수예요.\nplt.xlabel('배달 시간(분)')\nplt.ylabel('건수')\n# 제목을 달고 그림을 보여 줘요.\nplt.title('배달 시간 분포')\nplt.show()\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. [7. 4. 1.]"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `bins='8'`처럼 따옴표로 감싸면 ValueError가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "bins=3",
+      "after": "bins=8",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. [3. 3. 2. 2. 1. 0. 0. 1.]"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

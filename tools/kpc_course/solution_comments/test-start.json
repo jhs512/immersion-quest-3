@@ -1,0 +1,5 @@
+{
+ "hash": "d36b166d92d07676",
+ "by": "claude",
+ "code": "import pandas as pd\nprices = pd.read_csv('data/stock.csv', parse_dates=['날짜']).set_index('날짜').sort_index()\nframe = pd.DataFrame(index=prices.index)\nframe['close'] = prices['종가']\nframe['return_1'] = prices['종가'].pct_change()\nframe['ma5'] = prices['종가'].rolling(5).mean()\nframe['lag_close_1'] = prices['종가'].shift(1)\nframe['target_next_close'] = prices['종가'].shift(-1)\nframe['target_date'] = pd.Series(prices.index, index=prices.index).shift(-1)\nframe = frame.dropna().copy()\n# 뒤에서 80번째 날짜예요. 음수 인덱스는 끝에서 세요. -1이 마지막, -80이 뒤에서 80번째죠\n# 날짜순으로 정렬돼 있으니 여기부터 끝까지가 마지막 80행이에요\ntest_start = frame.index[-80]\n# frame.index >= test_start 는 행마다 참·거짓이에요. 참이 True(1)라서 .sum()이 참의 개수고요\n# 결과가 numpy 숫자라 int()로 감싸 보통 정수로 저장해요\nn_test = int((frame.index >= test_start).sum())\n# 시작 날짜와 행 수를 같이 찍어요. 80이 나오면 맞게 정한 거예요\nprint(test_start, n_test)\n"
+}

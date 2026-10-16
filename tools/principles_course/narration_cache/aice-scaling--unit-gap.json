@@ -1,0 +1,41 @@
+{
+  "hash": "91d2902defae5414f7b0a20d77373813aace465c37807e716f2efa30b22da147",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\nfrom sklearn.model_selection import train_test_split\n\n# 직접 만든 매장 자료예요. 실제 매장 자료가 아니에요.\ndf = pd.read_csv('data/stores.csv')\n# 입력 X는 좌석 수, 월세(천 원), 하루 방문자 수예요.\nX = df[['seats', 'rent', 'visitors']]\n# 훈련 75%, 테스트 25%로 나눠요. X만 넣으면 두 몫이 나와요.\nX_train, X_test = train_test_split(X, test_size=0.25, random_state=42)\n# 훈련 자료의 행 수예요.\nprint(len(X_train))\n# 열마다 평균(mean)과 표준편차(std)를 봐요.\nprint(X_train.describe().round(1))\n# 열마다 자기 평균을 빼요. 가운데가 0으로 와요.\n# 퍼진 폭까지 맞추려면 표준편차로도 나눠요.\nresult = X_train - X_train.mean()\n# 바꾼 뒤의 요약을 소수 둘째 자리까지 봐요.\nprint(result.describe().round(2))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  max    21.33  1655.56   1916.11"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 괄호를 빼면 나눗셈을 먼저 해서 엉뚱한 값이 나와요."
+    },
+    {
+      "action": "patch_code",
+      "before": "result = X_train - X_train.mean()",
+      "after": "result = (X_train - X_train.mean()) / X_train.std()",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 3 / max     1.71  1.42      2.65"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

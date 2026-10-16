@@ -1,0 +1,41 @@
+{
+  "hash": "c7ddfae871e61d47e0292f4aa726f53f7da7c29398d5e28e7d44775efd9332f4",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "class Phone {\n    // 값을 안 받는 부모 생성자예요.\n    Phone() {\n        System.out.println(\"Phone 생성자: 가격 없음\");\n    }\n\n    // 가격을 받는 부모 생성자예요. 이름은 같고 매개변수가 달라요.\n    Phone(int price) {\n        System.out.println(\"Phone 생성자: \" + price + \"원\");\n    }\n}\n\n// Smart는 Phone을 물려받는 자식 클래스예요.\nclass Smart extends Phone {\n    // 자식 생성자예요. 부모 생성자가 끝난 뒤 이 안을 마저 실행해요.\n    Smart(int price) {\n        System.out.println(\"Smart 생성자\");\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // 새 휴대폰의 가격이에요.\n        int cost = 900000;\n        // 자식 객체 하나만 만들어요. 생성자가 몇 번 찍히는지 봐요.\n        // 변수에 담지 않아도 new는 객체를 만들고 생성자를 실행해요.\n        new Smart(cost);\n    }\n}\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. Phone 생성자: 가격 없음 / Smart 생성자"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `new Phone(price);`를 쓰면 부모 객체가 따로 하나 더 생겨요."
+    },
+    {
+      "action": "patch_code",
+      "before": "Smart(int price) {\n",
+      "after": "Smart(int price) {\n        // 가격을 받는 부모 생성자를 불러요.\n        super(price);\n",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. Phone 생성자: 900000원 / Smart 생성자"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

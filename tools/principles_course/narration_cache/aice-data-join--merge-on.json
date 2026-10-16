@@ -1,0 +1,41 @@
+{
+  "hash": "1378c9ab3ddd9c28db8bad41a16a33e8f913ff94cf2aadf462a1f0eb594c7285",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 주문 표예요. 누가 샀는지 customer_id로 적혀 있어요.\norders = pd.read_csv('data/orders.csv')\n# 고객 표예요. 같은 이름의 customer_id 열이 있어요.\ncustomers = pd.read_json('data/customers.json')\n# 합친 결과를 merged에 담아요. 지금은 주문 표 그대로예요.\nmerged = orders\n# len(표)는 행 수예요. 합치기 전과 뒤를 비교해요.\nprint(len(orders), len(merged))\n# 합친 표를 확인해요.\nprint(merged)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. / 5     A106         C06    7000"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 두 표의 순서를 바꾸면 고객 표의 열이 앞에 와요."
+    },
+    {
+      "action": "patch_code",
+      "before": "merged = orders",
+      "after": "merged = pd.merge(orders, customers, on='customer_id')",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.       C02    9000     부산  silver"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

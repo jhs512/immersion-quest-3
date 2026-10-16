@@ -1,0 +1,41 @@
+{
+  "hash": "bed09107e03cbe0c31ba3c311c05a35f8ebf74a2f1e8c8d8e61b3a8eeabf592d",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 배달 자료예요. 실제 주문 자료가 아니에요.\ndf = pd.read_csv('data/deliveries.csv')\n# 지역별 주문 비율을 구해요.\nresult = df['area'].value_counts(normalize=True)\n# 맨 아래 Name의 proportion은 비율이라는 뜻이에요.\nprint(result)\n# 비율을 구한 표의 행 수를 확인해요.\nprint(len(df))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  proportion, dtype: float64 / 13"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `fillna('모름')` 결과를 열에 다시 담지 않으면 빈칸이 빠져요."
+    },
+    {
+      "action": "patch_code",
+      "before": "# 지역별 주문 비율을 구해요.",
+      "after": "# 같은 주문이 두 번 들어간 행을 지워요.\ndf = df.drop_duplicates()\n# 모르는 지역은 '모름'으로 채워 다시 담아요.\ndf['area'] = df['area'].fillna('모름')\n# 지역별 주문 비율을 구해요.",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  proportion, dtype: float64 / 11"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

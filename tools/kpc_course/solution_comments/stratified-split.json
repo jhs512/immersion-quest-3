@@ -1,0 +1,5 @@
+{
+ "hash": "157962ba3d3bd9cb",
+ "by": "claude",
+ "code": "import pandas as pd\ntitanic = pd.read_csv('data/titanic.csv')\nfeatures = ['객실등급', '성별', '나이', '형제배우자', '부모자녀', '요금', '탑승항구']\nX = titanic[features].copy()\ny = titanic['생존'].astype(int)\nfrom sklearn.model_selection import train_test_split\n\n# 네 변수를 순서대로 받아요: 훈련 입력, 테스트 입력, 훈련 정답, 테스트 정답. 순서가 바뀌면 안 돼요.\n# test_size=0.2는 전체의 20%를 테스트로 떼어 둔다는 뜻이에요. 0.2는 숫자라서 따옴표를 안 써요.\n# stratify=y는 양쪽 생존 비율을 같게 나눠요. random_state=42면 누가 실행해도 똑같이 나뉘고요.\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)\n# 행 수는 len()으로 재요. 훈련 1047명, 테스트 262명이 나와야 해요.\nprint(len(X_train), len(X_test))\n# 생존은 0과 1이라 평균이 곧 생존 비율이에요. 두 값이 거의 같으면 stratify가 제대로 된 거예요.\nprint(y_train.mean(), y_test.mean())\n"
+}

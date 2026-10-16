@@ -1,0 +1,96 @@
+name: MQ3 Windows release
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: mq3-release-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  MOLIP_BUILD: ${{ github.run_number }}
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Verify MQ3 updater
+        run: cargo test --locked --lib updater::tests
+      - name: Build clean release executable
+        run: cargo build --release --locked --bin molip-quest
+      - name: Prepare Inno Setup
+        shell: pwsh
+        run: |
+          if (!(Test-Path 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe')) {
+            choco install innosetup --yes --no-progress
+            if ($LASTEXITCODE -ne 0) { throw 'Inno Setup installation failed.' }
+          }
+      - name: Build MQ3 installer
+        shell: pwsh
+        run: |
+          $version = (Select-String '^version = "([^"]+)"' Cargo.toml | Select-Object -First 1).Matches.Groups[1].Value
+          & 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' "/DAppVersion=$version" packaging/windows/setup.iss
+          if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed.' }
+      - name: Verify installer and uninstall
+        shell: pwsh
+        run: |
+          python tools/verify-release-assets.py target/installers --windows-only
+          if ($LASTEXITCODE -ne 0) { throw 'Installer validation failed.' }
+          $installPath = Join-Path $env:RUNNER_TEMP 'mq3-install-check'
+          $installer = Start-Process target/installers/molip-quest-3-windows-x64-setup.exe -WindowStyle Hidden -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/DIR=$installPath") -Wait -PassThru
+          if ($installer.ExitCode -ne 0 -or !(Test-Path "$installPath/molip-quest.exe")) { throw 'Installation failed.' }
+          $uninstaller = Start-Process "$installPath/unins000.exe" -WindowStyle Hidden -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') -Wait -PassThru
+          if ($uninstaller.ExitCode -ne 0) { throw 'Uninstallation failed.' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mq3-windows-x64
+          path: target/installers/molip-quest-3-windows-x64-setup.exe
+          if-no-files-found: error
+          retention-days: 7
+  release:
+    if: github.repository == 'jhs512/immersion-quest-3' && github.ref == 'refs/heads/main'
+    needs: windows
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: mq3-windows-x64
+          path: target/release-assets
+      - name: Require completed installer and checksum
+        run: |
+          set -euo pipefail
+          python3 tools/verify-release-assets.py target/release-assets --windows-only
+          (cd target/release-assets && sha256sum molip-quest-3-windows-x64-setup.exe > SHA256SUMS)
+      - name: Publish only after uploading verified assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_NUMBER: ${{ github.run_number }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -n 1)
+          tag="v${version}-build.${RUN_NUMBER}"
+          if gh release view "$tag" --json isDraft > "$RUNNER_TEMP/release.json" 2>/dev/null; then
+            if ! jq -e '.isDraft' "$RUNNER_TEMP/release.json" >/dev/null; then
+              echo 'This build was already published.'
+              exit 0
+            fi
+          else
+            printf 'MQ3 Windows x64 installer. Source commit: %s\n\nRequires gh login and repository access for private-repository updates.\nWindows code signing is not configured.\n' "$COMMIT_SHA" > "$RUNNER_TEMP/notes.md"
+            gh release create "$tag" --draft --target "$COMMIT_SHA" --title "몰입 퀘스트 3 · $tag" --notes-file "$RUNNER_TEMP/notes.md"
+          fi
+          gh release upload "$tag" --clobber target/release-assets/molip-quest-3-windows-x64-setup.exe target/release-assets/SHA256SUMS
+          gh release edit "$tag" --draft=false --latest

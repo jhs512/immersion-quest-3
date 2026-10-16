@@ -1,0 +1,41 @@
+{
+  "hash": "fbc5f8a292e4bf18c4e98e7aecb50461cbedcd5b967872efb888e5cd40770d9f",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n# scikit-learn에서 나누는 함수만 불러와요.\nfrom sklearn.model_selection import train_test_split\n\n# 직접 만든 하루 매출 기록이에요. 날짜순으로 저장돼 있어요.\ndf = pd.read_csv('data/daily.csv')\n# 입력 X와 정답 y(매출)를 나눠요.\nX = df.drop(columns=['sales'])\ny = df['sales']\n# 뒤쪽 20%를 테스트 몫으로 떼려고 해요.\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)\n# 두 몫의 첫 날짜와 마지막 날짜예요.\nprint(X_train['date'].min(), X_train['date'].max())\nprint(X_test['date'].min(), X_test['date'].max())\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 26-04-20 / 2026-04-01 2026-04-18"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. random_state 번호만 바꾸면 날짜는 여전히 섞여요."
+    },
+    {
+      "action": "patch_code",
+      "before": "random_state=42",
+      "after": "shuffle=False",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 26-04-16 / 2026-04-17 2026-04-20"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

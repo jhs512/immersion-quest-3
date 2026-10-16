@@ -1,0 +1,41 @@
+{
+  "hash": "9da263fc7b9f7dc0c7c91ea354939259a1bb43a5b165144a9e4137aa7cfad1f5",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "class Main {\n    static class Box {\n        // 같은 객체를 가리키면 같은 value를 읽어요.\n        int value;\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Box a = new Box();\n        a.value = n;\n        // 새 객체 대신 같은 참조를 전달해요.\n        Box b = new Box();\n        b.value += 2;\n        System.out.println(a.value);\n    }\n}\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 3"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. static이 없어도 같은 객체를 가리키면 값이 공유돼요."
+    },
+    {
+      "action": "patch_code",
+      "before": "Box b = new Box();",
+      "after": "Box b = a;",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 5"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

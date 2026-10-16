@@ -1,0 +1,41 @@
+{
+  "hash": "a11e3c95240d54ac3913e11d0b092bd34a08205afcab2b166bd41771cfac28d0",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 주문 표와 고객 표를 읽어요.\norders = pd.read_csv('data/orders.csv')\ncustomers = pd.read_json('data/customers.json')\n# customer_id가 같은 행끼리 합쳐요.\nmerged = pd.merge(orders, customers, on='customer_id')\n# 합치기 전과 뒤의 행 수예요.\nprint(len(orders), len(merged))\n# grade가 빈칸인 행 수예요.\nprint(merged['grade'].isna().sum())\n# 합친 표를 확인해요.\nprint(merged)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.       C02    9000     부산  silver"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `how='right'`로 쓰면 주문 대신 고객 표의 행이 모두 남아요."
+    },
+    {
+      "action": "patch_code",
+      "before": "on='customer_id')",
+      "after": "on='customer_id', how='left')",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.       C06    7000    NaN     NaN"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

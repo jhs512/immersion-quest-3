@@ -1,0 +1,41 @@
+{
+  "hash": "8da7376e4dfa885edabfc2c3346dc9a4c465242016ff1362841cda3715df95fa",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "# 표 도구 pandas와 자료를 나누는 함수를 불러와요.\nimport pandas as pd\nfrom sklearn.model_selection import train_test_split\n# 이번 문제에 쓸 도구를 불러와요.\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.metrics import precision_score, recall_score\n\n# 직접 만든 쇼핑몰 방문 자료예요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/visits.csv')\n# visits는 이번 달 방문 수, minutes는 머문 시간(분)이에요.\n# cart는 장바구니 상품 수, coupon은 쿠폰을 받았으면 1이에요.\n# bought는 다음 주에 샀으면 1, 안 샀으면 0이에요.\ny = df['bought']\nX = df.drop(columns=['bought'])\n# 1의 비율이 두 몫에서 같도록 stratify=y로 나눠요.\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y)\n\n# 로지스틱 회귀로 배우고 테스트를 예측해요.\nmodel = LogisticRegression(max_iter=1000)\nmodel.fit(X_train, y_train)\n# 행마다 [0일 확률, 1일 확률]이에요. 앞의 세 행을 봐요.\nproba = model.predict_proba(X_test)\nprint(proba[:3].round(2))\n# 모든 행에서 1번 열, 곧 1일 확률만 꺼내요.\np1 = proba[:, 1]\n# 기준값이에요. 1일 확률이 이 값 이상이면 1로 답해요.\nthreshold = 0.5\n# 비교 결과 True/False를 astype(int)로 1과 0으로 바꿔요.\npred = (p1 >= threshold).astype(int)\n# 1이라고 답한 수와 재현율이에요.\nprint(pred.sum())\nprint(recall_score(y_test, pred))\n# 1이라고 답한 행이 없으면 정밀도를 0으로 쳐요.\nprint(precision_score(y_test, pred, zero_division=0))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  /  [0.22 0.78]] / 5 / 0.5 / 0.6"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `proba[:, 0]`을 쓰면 0일 확률로 1을 고르게 돼요."
+    },
+    {
+      "action": "patch_code",
+      "before": "threshold = 0.5",
+      "after": "threshold = 0.3",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. ] / 8 / 0.6666666666666666 / 0.5"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

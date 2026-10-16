@@ -1,0 +1,41 @@
+{
+  "hash": "fe4e7ad3331ec642701567044a64b3bc183e4b5d74b875e2b4a39d576b87ee28",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 지점 주문 자료예요. 실제 자료가 아니에요.\ndf = pd.read_csv('data/orders.csv')\n# 표의 크기예요. 앞 숫자가 전체 행 수예요.\nprint(df.shape)\n# 숫자 열마다 요약 값을 한 표로 만들어요.\n# 행 이름은 count, mean, std, min, 25%, 50%, 75%, max예요.\nresult = df.describe()\n# 결과를 화면에서 확인해요.\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. / max    98000.000000   6.000000"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `df.describe()['50%']`처럼 쓰면 열에서 찾아 KeyError가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "result = df.describe()",
+      "after": "result = df.describe().loc['50%']",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  2.0 / Name: 50%, dtype: float64"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

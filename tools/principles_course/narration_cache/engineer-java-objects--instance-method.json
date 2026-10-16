@@ -1,0 +1,41 @@
+{
+  "hash": "f7b77511b4eac9ca8db0e8aa742402c7c1a0a57a87955ff0ba3b8f927ce83de6",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "class Item {\n    // 상품마다 따로 갖는 가격이에요.\n    int price;\n\n    // 만들 때 받은 가격을 이 객체의 필드에 담아요.\n    Item(int price) {\n        this.price = price;\n    }\n\n    // 개수만큼 산 금액을 돌려줘요.\n    static int total(int count) {\n        // price는 이 메서드를 부른 객체의 가격이어야 해요.\n        return price * count;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // 두 상품의 가격과 살 개수예요.\n        int penPrice = 1200;\n        int notePrice = 3000;\n        int count = 3;\n        // 가격이 다른 상품 객체를 두 개 만들어요.\n        Item pen = new Item(penPrice);\n        Item note = new Item(notePrice);\n        // 같은 메서드를 객체마다 불러요.\n        System.out.println(\"펜: \" + pen.total(count));\n        System.out.println(\"공책: \" + note.total(count));\n    }\n}\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "지금 코드는 검사를 통과하지 못해요."
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. price에 static을 붙여 오류를 없애면 모든 상품이 한 가격을 써요."
+    },
+    {
+      "action": "patch_code",
+      "before": "static int total",
+      "after": "int total",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 펜: 3600 / 공책: 9000"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

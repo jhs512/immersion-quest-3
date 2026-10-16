@@ -1,0 +1,292 @@
+{
+ "format": 2,
+ "hash": "8d4c69a0b404a6fc",
+ "by": "claude",
+ "blocks": {
+  "title": "770823a84a5f",
+  "problem": "471a2f388ad1",
+  "starter": "54f9bb1dac40",
+  "example": "e3b0c44298fc",
+  "solution": "e5b46baaf1a4"
+ },
+ "sources": [
+  {
+   "block": "problem",
+   "hash": "471a2f388ad1"
+  },
+  {
+   "block": "problem",
+   "hash": "471a2f388ad1"
+  },
+  {
+   "block": "starter",
+   "hash": "54f9bb1dac40"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  },
+  {
+   "block": "solution",
+   "hash": "e5b46baaf1a4"
+  }
+ ],
+ "entry": [
+  [
+   "problem",
+   "자, 주가 챕터를 통째로 복습해요. 이동평균 창만 5일에서 10일로 바꾸고, 입력 열부터 보고 딕셔너리까지 전부 직접 써요."
+  ],
+  [
+   "hint",
+   "앞에서 만든 여섯 열에서 rolling(5)만 rolling(10)으로 바꾸면 돼요. 분리 규칙도 앞 단원 그대로예요."
+  ],
+  [
+   "starter",
+   "준비 코드에 prices 읽기와 Pipeline, StandardScaler, Ridge, mean_absolute_error 불러오기가 있어요. 그대로 둘게요."
+  ],
+  [
+   "code",
+   "\n# 날짜 인덱스만 가진 빈 표를 먼저 만들어요. 열은 하나씩 채울 거예요.\nframe = pd.DataFrame(index=prices.index)\n",
+   "먼저 prices와 같은 날짜만 가진 빈 frame을 만들어요. 열은 하나씩 채울 거예요."
+  ],
+  [
+   "run",
+   "일단 실행해 볼게요."
+  ],
+  [
+   "output",
+   "아무것도 안 나오죠? 빈 표만 만들고 print를 안 했거든요. 오류 없이 조용하면 된 거예요."
+  ],
+  [
+   "try",
+   "frame['close'] = prices['close']\n",
+   "종가 열을 이렇게 가져와 볼까요?"
+  ],
+  [
+   "run",
+   "실행하면요."
+  ],
+  [
+   "output",
+   "빨간 글이 길게 나오죠? 맨 아래 줄만 보세요. KeyError: 'close'예요. prices에는 close라는 열이 없어요. 한글 '종가'만 있거든요."
+  ],
+  [
+   "undo",
+   "그래서 열 이름은 자료에 있는 그대로 '종가'로 써요."
+  ],
+  [
+   "code",
+   "frame['close'] = prices['종가']  # 오늘 종가. 열 이름은 한글 '종가' 그대로 써야 해요.\nframe['return_1'] = prices['종가'].pct_change()  # 어제 대비 변화율. 첫 행은 비어요(NaN).\n",
+   "close는 오늘 종가, return_1은 어제 대비 변화율이에요. 첫 행은 비교할 어제가 없어서 비어요."
+  ],
+  [
+   "code",
+   "# 이번엔 창이 10일이에요. 5가 아니라 10이라 처음 아홉 행이 비어요.\nframe['ma10'] = prices['종가'].rolling(10).mean()\nframe['lag_close_1'] = prices['종가'].shift(1)  # shift(1)은 어제 값을 오늘 줄로 끌어와요.\n",
+   "여기가 이번 과제의 핵심이에요. rolling(10)으로 열흘 평균 ma10을 만들고, lag_close_1은 어제 종가예요."
+  ],
+  [
+   "run",
+   "여기까지 실행해요."
+  ],
+  [
+   "output",
+   "이번에도 출력은 없어요. 오류가 없으니 열 넷이 채워진 거예요. ma10은 처음 아홉 행이 비어 있을 거예요."
+  ],
+  [
+   "caution",
+   "앞 단원 코드를 복사하면 rolling(5)가 그대로 남기 쉬워요. 그러면 열 이름만 ma10이고 내용은 닷새 평균이니 조심하세요."
+  ],
+  [
+   "code",
+   "# 정답은 내일 종가. shift(-1)은 다음 행 값을 오늘 줄로 끌어와요(마지막 행은 비어요).\nframe['target_next_close'] = prices['종가'].shift(-1)\n# 정답이 어느 날짜 값인지 기록해요. 인덱스를 Series로 바꿔야 shift가 돼요.\nframe['target_date'] = pd.Series(prices.index, index=prices.index).shift(-1)\n",
+   "정답 y는 내일 종가예요. shift(-1)로 다음 행을 끌어오고, target_date에는 그 날짜를 적어요."
+  ],
+  [
+   "code",
+   "# 빈칸 있는 행을 지우고 .copy()로 독립된 표를 만들어요. 391행이 남아야 해요.\nframe = frame.dropna().copy()\n",
+   "빈칸이 있는 행을 dropna로 지우고 copy로 독립된 표를 만들어요."
+  ],
+  [
+   "run",
+   "실행해 볼게요."
+  ],
+  [
+   "output",
+   "아직 출력은 없어요. 처음 아홉 행과 마지막 한 행이 빠졌을 거예요. 행 수는 맨 끝 report에서 확인해요."
+  ],
+  [
+   "code",
+   "# 입력 X에 쓸 열 네 개. target_next_close와 target_date는 넣지 않아요(누수).\nfeature_columns = ['close', 'return_1', 'ma10', 'lag_close_1']\nX = frame[feature_columns]\ny = frame['target_next_close']  # 우리가 맞히고 싶은 칸, 내일 종가\n",
+   "입력 X는 네 열, 정답 y는 target_next_close예요. 열 이름이 ma10인 걸 확인하세요."
+  ],
+  [
+   "code",
+   "# 뒤에서 80번째 날짜가 테스트 시작일이에요. 시간 순서를 섞지 않아요.\ntest_start = frame.index[-80]\n# 입력 날짜도, 정답 날짜도 둘 다 테스트 전인 행만 훈련에 써요. 경계 하루가 빠져 310행이에요.\ntrain_mask = (frame.index < test_start) & (frame['target_date'] < test_start)\ntest_mask = frame.index >= test_start  # 테스트는 시작일부터 끝까지 80행\n",
+   "마지막 80행이 테스트예요. 훈련은 입력 날짜와 target_date가 모두 test_start 전인 행만 써요."
+  ],
+  [
+   "caution",
+   "train_mask를 frame.index < test_start 하나로만 쓰기 쉬워요. 그러면 경계 하루의 정답이 테스트 첫날 종가라 누수가 생기니 조심하세요."
+  ],
+  [
+   "code",
+   "X_train, X_test = X.loc[train_mask], X.loc[test_mask]\ny_train, y_test = y.loc[train_mask], y.loc[test_mask]\n",
+   "마스크로 훈련 자료와 테스트 자료를 갈라요. 310행과 80행이 나오면 맞은 거예요."
+  ],
+  [
+   "run",
+   "실행해요."
+  ],
+  [
+   "output",
+   "출력은 없어요. 오류 없이 넘어갔으니 훈련 자료와 테스트 자료가 갈라진 거예요."
+  ],
+  [
+   "code",
+   "# 기준 모델: 내일 종가를 오늘 종가 그대로 예측해요. 이걸 못 이기면 모델이 소용없어요.\nbaseline_mae = mean_absolute_error(y_test, X_test['close'].to_numpy())\n",
+   "기준 모델은 오늘 종가를 그대로 내일 값으로 내는 거예요. 그 MAE를 baseline_mae에 담아요."
+  ],
+  [
+   "code",
+   "# 표준화 뒤 릿지. 훈련 자료로만 fit해요. 테스트 자료로 학습하면 누수예요.\nmodel = Pipeline([('scale', StandardScaler()), ('model', Ridge(alpha=1))]).fit(X_train, y_train)\nridge_mae = mean_absolute_error(y_test, model.predict(X_test))  # 테스트 자료로만 채점해요.\n",
+   "StandardScaler와 Ridge(alpha=1) 파이프라인을 훈련 자료로만 맞춰요. 채점은 테스트 자료로 해서 ridge_mae에 담아요."
+  ],
+  [
+   "run",
+   "실행해 볼게요."
+  ],
+  [
+   "output",
+   "아직 아무것도 안 보이죠? 두 MAE를 계산만 했지 print를 안 했거든요. 다음 줄에서 한꺼번에 꺼내요."
+  ],
+  [
+   "code",
+   "# 보고 딕셔너리. improved는 릿지가 기준보다 작은지 비교한 True/False예요. False여도 그대로 둬요.\nreport = {'window': 10, 'rows': len(frame), 'baseline_mae': baseline_mae, 'ridge_mae': ridge_mae, 'improved': ridge_mae < baseline_mae}\nprint(report)\n",
+   "마지막으로 report 딕셔너리에 창, 행 수, 두 MAE, improved를 담아 출력해요."
+  ],
+  [
+   "run",
+   "실행해 볼게요."
+  ],
+  [
+   "output",
+   "딕셔너리 한 줄이 나왔죠? window는 10, rows는 391이에요. baseline_mae는 13637.5, ridge_mae는 약 13859예요. 릿지가 기준 모델을 못 이겨서 improved가 False인데, 그대로 두면 돼요."
+  ],
+  [
+   "submit",
+   "제출할게요."
+  ]
+ ]
+}

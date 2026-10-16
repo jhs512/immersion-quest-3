@@ -1,0 +1,199 @@
+{
+ "format": 2,
+ "hash": "c3a229501e80fe65",
+ "by": "claude",
+ "blocks": {
+  "title": "7c9db5b57bf2",
+  "problem": "3987ca21dc78",
+  "starter": "9e1773dfba4b",
+  "example": "e3b0c44298fc",
+  "solution": "a12b618ab6d2"
+ },
+ "sources": [
+  {
+   "block": "problem",
+   "hash": "3987ca21dc78"
+  },
+  {
+   "block": "starter",
+   "hash": "9e1773dfba4b"
+  },
+  {
+   "block": "solution",
+   "hash": "a12b618ab6d2"
+  },
+  {
+   "block": "solution",
+   "hash": "a12b618ab6d2"
+  },
+  {
+   "block": "solution",
+   "hash": "a12b618ab6d2"
+  },
+  {
+   "block": "solution",
+   "hash": "a12b618ab6d2"
+  },
+  {
+   "block": "solution",
+   "hash": "a12b618ab6d2"
+  },
+  {
+   "block": "solution",
+   "hash": "a12b618ab6d2"
+  },
+  {
+   "block": "solution",
+   "hash": "a12b618ab6d2"
+  },
+  {
+   "block": "solution",
+   "hash": "a12b618ab6d2"
+  },
+  {
+   "block": "solution",
+   "hash": "a12b618ab6d2"
+  },
+  {
+   "block": "solution",
+   "hash": "a12b618ab6d2"
+  },
+  {
+   "block": "solution",
+   "hash": "a12b618ab6d2"
+  },
+  {
+   "block": "solution",
+   "hash": "a12b618ab6d2"
+  },
+  {
+   "block": "solution",
+   "hash": "a12b618ab6d2"
+  },
+  {
+   "block": "solution",
+   "hash": "a12b618ab6d2"
+  },
+  {
+   "block": "solution",
+   "hash": "a12b618ab6d2"
+  },
+  {
+   "block": "solution",
+   "hash": "a12b618ab6d2"
+  },
+  {
+   "block": "solution",
+   "hash": "a12b618ab6d2"
+  },
+  {
+   "block": "solution",
+   "hash": "a12b618ab6d2"
+  },
+  {
+   "block": "solution",
+   "hash": "a12b618ab6d2"
+  },
+  {
+   "block": "solution",
+   "hash": "a12b618ab6d2"
+  }
+ ],
+ "entry": [
+  [
+   "problem",
+   "자, 이번엔 기준 모델과 세 모델을 같은 조건에서 한 표에 놓고 비교해요. 각 모델을 전처리 Pipeline으로 묶어 학습하고, accuracy와 f1을 results 표로 모으는 거예요."
+  ],
+  [
+   "starter",
+   "준비 코드엔 훈련 자료와 테스트 자료 나누기, make_preprocessor, 그리고 네 모델과 평가 함수 import가 들어 있어요. 그대로 둘게요."
+  ],
+  [
+   "code",
+   "\n# 비교할 네 모델을 이름표와 함께 딕셔너리에 담아요. 키는 글자라서 따옴표가 꼭 필요해요.\n# Dummy는 기준 모델이에요. 제일 많은 답(사망)만 찍어요.\n# Forest는 문제가 정한 대로 나무 50그루, 깊이 5, random_state=42예요.\nmodels = {'Dummy': DummyClassifier(strategy='most_frequent'), 'Logistic': LogisticRegression(max_iter=2000), 'Tree': DecisionTreeClassifier(max_depth=4, random_state=42), 'Forest': RandomForestClassifier(n_estimators=50, max_depth=5, random_state=42)}\n",
+   "먼저 models 딕셔너리에 네 모델을 이름표와 함께 넣어요. 키는 글자라서 따옴표가 꼭 있어야 해요. Dummy가 기준 모델이고, Forest는 n_estimators=50, max_depth=5, random_state=42예요."
+  ],
+  [
+   "run",
+   "일단 실행해 볼게요."
+  ],
+  [
+   "output",
+   "아무것도 안 나오죠? 모델을 딕셔너리에 담기만 했거든요. 오류가 없으면 네 모델이 잘 들어간 거예요."
+  ],
+  [
+   "code",
+   "rows = []  # 모델 하나당 결과 한 줄씩 모을 빈 리스트예요. 반복 전에 비워 둬요.\nfitted = {}  # 학습 끝난 모델 자체를 이름으로 보관해요. 나중에 다시 쓰려고요.\n",
+   "표 만들기 패턴이죠? 빈 리스트 rows를 두고, 학습한 모델을 보관할 fitted도 빈 딕셔너리로 둬요."
+  ],
+  [
+   "try",
+   "for name, estimator in models:\n    print(name, estimator)\n",
+   "이제 반복이에요. 이렇게 해 볼까요? models를 바로 돌리는 거예요."
+  ],
+  [
+   "run",
+   "실행하면요."
+  ],
+  [
+   "output",
+   "ValueError가 나요. too many values to unpack, 기대한 건 둘인데 값이 너무 많다는 뜻이에요. 딕셔너리를 바로 돌리면 키 글자만 나오거든요. Dummy라는 글자 다섯 개를 이름과 모델 둘로 나누려다 막힌 거예요."
+  ],
+  [
+   "undo",
+   "그래서 .items()를 붙여야 해요. 그래야 이름과 모델이 같이 나와요."
+  ],
+  [
+   "code",
+   "# .items()를 붙여야 이름과 모델이 같이 나와요. 안 붙이면 이름만 돌아요.\nfor name, estimator in models.items():\n    # 반복마다 Pipeline을 새로 만들어요. 전처리도 모델마다 새로 학습해야 공평해요.\n    model = Pipeline([('prepare', make_preprocessor()), ('model', estimator)])\n",
+   "models.items()로 이름과 모델을 하나씩 꺼내요. 반복마다 Pipeline을 새로 만들어요. 전처리도 모델마다 새로 학습해야 공평하거든요."
+  ],
+  [
+   "code",
+   "    model.fit(X_train, y_train)  # 훈련 자료로만 학습해요. 테스트 자료를 넣으면 누수예요.\n    pred = model.predict(X_test)  # 테스트 자료로 예측해요. 아직 정답 y_test는 안 보여 줘요.\n",
+   "훈련 자료로 fit하고, 테스트 자료로 predict해요. 아직 정답 y_test는 안 보여 줘요."
+  ],
+  [
+   "run",
+   "여기서 한번 실행해 볼게요."
+  ],
+  [
+   "output",
+   "이번엔 오류 없이 조용해요. 화면엔 아무것도 없지만 네 모델이 차례로 학습된 거예요."
+  ],
+  [
+   "caution",
+   "fit에 X_test를 넣기 쉬운데, 그러면 시험지로 공부하는 누수예요. 학습은 꼭 훈련 자료로만 하세요."
+  ],
+  [
+   "code",
+   "    fitted[name] = model  # 학습한 모델을 이름표 붙여 저장해요.\n    # 점수는 정답 y_test와 예측 pred를 비교해서 구해요. 순서는 (정답, 예측)이에요.\n    # zero_division=0은 Dummy처럼 생존을 하나도 안 찍었을 때 오류 대신 0을 돌려줘요.\n    rows.append({'model': name, 'accuracy': accuracy_score(y_test, pred), 'f1': f1_score(y_test, pred, zero_division=0)})\n",
+   "학습한 모델은 fitted에 이름으로 보관해요. rows엔 이름, accuracy, f1을 딕셔너리 한 줄로 덧붙여요. zero_division=0은 F1이 0일 때 경고 없이 0을 주거든요."
+  ],
+  [
+   "run",
+   "다시 실행해요."
+  ],
+  [
+   "output",
+   "아직 화면엔 아무것도 없어요. 경고도 안 떴죠? zero_division=0 덕분이에요. rows엔 네 줄이 조용히 쌓였어요."
+  ],
+  [
+   "code",
+   "# 딕셔너리 리스트를 표로 바꾸고, model 열을 인덱스로 올려요. 그래야 모델 이름이 행 이름이 돼요.\nresults = pd.DataFrame(rows).set_index('model')\nresults  # 마지막 줄에 이름만 쓰면 표가 화면에 보여요.\n",
+   "반복이 끝나면 rows를 DataFrame으로 만들고 model 열을 인덱스로 세워요. 마지막 줄에 results만 쓰면 표가 보여요."
+  ],
+  [
+   "run",
+   "실행해 볼게요."
+  ],
+  [
+   "output",
+   "어, 화면엔 아무것도 안 나오죠? 여기선 마지막 줄에 이름만 쓰면 표가 안 찍혀요. 노트북에서만 보이는 방식이거든요. 그래도 results엔 네 모델의 accuracy와 f1이 들어 있어요. 검사는 그 변수를 봐요. 표를 눈으로 보고 싶으면 print(results)로 찍어 보세요. Dummy 줄의 f1이 0이면 맞게 만들어진 거예요."
+  ],
+  [
+   "submit",
+   "제출할게요."
+  ]
+ ]
+}

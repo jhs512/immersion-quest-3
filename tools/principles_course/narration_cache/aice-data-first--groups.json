@@ -1,0 +1,41 @@
+{
+  "hash": "d8b49939820d775c8f38e29d425879da266e886be5b533f0ab09f30bf65fb902",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 방문 자료예요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/visits.csv')\n# 이 줄에서 자료를 골라요. 원본 표와 결과를 비교해요.\nresult = df.groupby('channel')['visits'].sum()\n# 계산한 값을 눈으로 확인해요.\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.   6 / Name: visits, dtype: int64"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 기록 수가 다르면 합계만으로 비교하기 어려워요."
+    },
+    {
+      "action": "patch_code",
+      "before": "result = df.groupby('channel')['visits'].sum()",
+      "after": "result = df.groupby('channel')['visits'].mean()",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 0 / Name: visits, dtype: float64"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

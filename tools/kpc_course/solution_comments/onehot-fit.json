@@ -1,0 +1,5 @@
+{
+ "hash": "833ccfcdfff7d715",
+ "by": "claude",
+ "code": "import pandas as pd\ntitanic = pd.read_csv('data/titanic.csv')\nfeatures = ['객실등급', '성별', '나이', '형제배우자', '부모자녀', '요금', '탑승항구']\nX = titanic[features].copy()\ny = titanic['생존'].astype(int)\nfrom sklearn.model_selection import train_test_split\n\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)\nfrom sklearn.preprocessing import OneHotEncoder\n\n# One-hot 도구를 만들어요. 아직 아무것도 배우지 않은 빈 상태예요.\n# handle_unknown='ignore': 테스트에 처음 보는 값이 와도 오류 대신 전부 0으로 둬요.\n# sparse_output=False: 결과를 보통 배열로 받아요. 이게 없으면 보기 어려운 희소 행렬이 나와요.\nencoder = OneHotEncoder(handle_unknown='ignore', sparse_output=False)\n# 훈련 자료에는 fit_transform. 어떤 값이 있는지(여성, 남성) 배우고 바로 바꿔요.\n# 대괄호가 두 겹인 건 열 하나짜리 표(DataFrame)로 넘기려는 거예요. 한 겹이면 오류가 나요.\ntrain_encoded = encoder.fit_transform(X_train[['성별']])\n# 테스트 자료에는 transform만. 훈련에서 배운 기준 그대로 바꿔요.\n# 여기서 fit_transform을 쓰면 테스트 자료를 들여다보는 셈이라 누수예요.\ntest_encoded = encoder.transform(X_test[['성별']])\n# shape는 (행 수, 열 수). 둘 다 열이 2개(여성, 남성)면 성공이에요.\nprint(train_encoded.shape, test_encoded.shape)\n"
+}

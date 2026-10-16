@@ -1,0 +1,173 @@
+{
+ "format": 2,
+ "hash": "dd914fb8b9f09173",
+ "by": "claude",
+ "blocks": {
+  "title": "e267233a3fbd",
+  "problem": "7a54128e8f4d",
+  "starter": "15ca009cbd23",
+  "example": "e3b0c44298fc",
+  "solution": "47508c0c4522"
+ },
+ "sources": [
+  {
+   "block": "problem",
+   "hash": "7a54128e8f4d"
+  },
+  {
+   "block": "problem",
+   "hash": "7a54128e8f4d"
+  },
+  {
+   "block": "starter",
+   "hash": "15ca009cbd23"
+  },
+  {
+   "block": "solution",
+   "hash": "47508c0c4522"
+  },
+  {
+   "block": "solution",
+   "hash": "47508c0c4522"
+  },
+  {
+   "block": "solution",
+   "hash": "47508c0c4522"
+  },
+  {
+   "block": "solution",
+   "hash": "47508c0c4522"
+  },
+  {
+   "block": "solution",
+   "hash": "47508c0c4522"
+  },
+  {
+   "block": "solution",
+   "hash": "47508c0c4522"
+  },
+  {
+   "block": "solution",
+   "hash": "47508c0c4522"
+  },
+  {
+   "block": "solution",
+   "hash": "47508c0c4522"
+  },
+  {
+   "block": "solution",
+   "hash": "47508c0c4522"
+  },
+  {
+   "block": "solution",
+   "hash": "47508c0c4522"
+  },
+  {
+   "block": "solution",
+   "hash": "47508c0c4522"
+  },
+  {
+   "block": "solution",
+   "hash": "47508c0c4522"
+  },
+  {
+   "block": "solution",
+   "hash": "47508c0c4522"
+  },
+  {
+   "block": "solution",
+   "hash": "47508c0c4522"
+  },
+  {
+   "block": "solution",
+   "hash": "47508c0c4522"
+  },
+  {
+   "block": "solution",
+   "hash": "47508c0c4522"
+  }
+ ],
+ "entry": [
+  [
+   "problem",
+   "자, 이제 진짜 자료예요. 부도 모델과 기준 모델을 네 지표로 나란히 비교할 거거든요."
+  ],
+  [
+   "hint",
+   "앞 단원의 표 만들기 패턴 그대로예요. 정밀도·재현율·F1에는 zero_division=0을 주면 돼요."
+  ],
+  [
+   "starter",
+   "준비 코드가 상환_9월, 신용한도, 나이 세 열을 입력 X로 삼았어요. 훈련 자료와 테스트 자료도 이미 나눠 뒀고요."
+  ],
+  [
+   "code",
+   "# 비교할 모델을 이름표와 함께 딕셔너리에 담아요. 키는 글자라서 따옴표가 필요해요.\n# Dummy는 제일 많은 답만 찍는 기준 모델, Logistic은 진짜 학습하는 모델이에요.\n# max_iter=2000은 학습이 덜 끝났다는 경고를 막으려고 넉넉히 준 거예요.\nmodels = {'Dummy': DummyClassifier(strategy='most_frequent'), 'Logistic': LogisticRegression(max_iter=2000)}\n# 모델마다 지표 한 줄씩 모을 빈 리스트예요.\nrows = []\n",
+   "models에 기준 모델 Dummy와 Logistic을 넣어요. 결과를 모을 rows는 빈 목록으로 시작하고요."
+  ],
+  [
+   "run",
+   "일단 실행해 볼게요."
+  ],
+  [
+   "output",
+   "아무것도 안 나오죠? 모델을 담기만 했고 아직 학습은 안 했거든요."
+  ],
+  [
+   "code",
+   "# items()로 이름과 모델을 한 쌍씩 꺼내요. name은 글자, estimator는 모델이에요.\nfor name, estimator in models.items():\n    # 표준화와 모델을 한 줄로 묶어요. 앞 단계 이름은 마음대로지만 순서는 scale이 먼저예요.\n    model = Pipeline([('scale', StandardScaler()), ('model', estimator)])\n    # 훈련 자료로만 학습해요. 테스트 자료를 여기 넣으면 누수예요.\n    model.fit(X_train, y_train)\n    # 안 본 테스트 자료로 예측해요. 채점은 이 pred와 y_test로 해요.\n    pred = model.predict(X_test)\n",
+   "모델마다 StandardScaler와 묶은 Pipeline을 만들어요. 훈련 자료로 fit하고 테스트 자료를 predict하면 돼요."
+  ],
+  [
+   "caution",
+   "fit에 X_test를 넣기 쉬운데, 그러면 시험지를 보고 공부한 셈이라 점수가 부풀어요. 누수니까 조심하세요."
+  ],
+  [
+   "code",
+   "    # 네 지표를 딕셔너리 하나로 묶어 리스트에 붙여요. 지표 함수는 (정답, 예측) 순서예요.\n    # zero_division=0은 TP가 0인 기준 모델에서 경고 대신 0을 주게 해요.\n    rows.append({'model': name, 'accuracy': accuracy_score(y_test, pred), 'precision': precision_score(y_test, pred, zero_division=0), 'recall': recall_score(y_test, pred, zero_division=0), 'f1': f1_score(y_test, pred, zero_division=0)})\n",
+   "네 지표를 딕셔너리 하나로 묶어 rows에 넣어요. zero_division=0을 주면 TP가 0이어도 경고 없이 0이 나오거든요."
+  ],
+  [
+   "run",
+   "여기까지 실행해 볼게요."
+  ],
+  [
+   "output",
+   "오류 없이 조용히 끝났죠? 경고도 안 떴어요. zero_division=0 덕분이에요. rows에는 모델 두 줄이 담겼는데, 아직 안 꺼내 봐서 화면엔 없고요."
+  ],
+  [
+   "try",
+   "results = pd.DataFrame(rows).set_index('Model')\nresults\n",
+   "이렇게 해 볼까요? 표로 만들고 Model 열을 인덱스로 세워요."
+  ],
+  [
+   "run",
+   "실행하면요."
+  ],
+  [
+   "output",
+   "KeyError가 나요. 메시지를 보세요. None of Model are in the columns, 그런 열이 없대요. 우리가 딕셔너리에 쓴 이름은 소문자 model이거든요."
+  ],
+  [
+   "undo",
+   "열 이름은 딕셔너리에 쓴 글자 그대로예요. 소문자 model로 고쳐요."
+  ],
+  [
+   "code",
+   "# 딕셔너리 리스트를 표로 만들고, model 열을 행 이름으로 올려요.\nresults = pd.DataFrame(rows).set_index('model')\n# 마지막 줄에 이름만 두면 표가 화면에 나와요.\nresults\n",
+   "rows를 DataFrame으로 만들고 model 열을 인덱스로 세우면 results 표가 돼요."
+  ],
+  [
+   "run",
+   "다시 실행해요."
+  ],
+  [
+   "output",
+   "이번엔 오류가 없죠? 그런데 화면에 표도 안 보여요. 이름만 둔 마지막 줄은 노트북에서만 표를 보여 주거든요. 여기서는 print(results)로 감싸야 나와요. 표 자체는 results에 잘 만들어졌어요. Dummy와 Logistic 두 줄에 네 지표가 들어 있고요."
+  ],
+  [
+   "submit",
+   "제출할게요."
+  ]
+ ]
+}

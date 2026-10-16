@@ -1,0 +1,41 @@
+{
+  "hash": "2d9a4c15ac8c445eb8a39decb0ce06aedf9e58c15891e762f927567d11b2f117",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 배달 자료예요. 실제 주문 자료가 아니에요.\ndf = pd.read_csv('data/deliveries.csv')\n# 배달 시간 빈칸에 넣을 중앙값이에요.\nfill = df['minutes'].median()\n# 빈칸을 그 값으로 채워 다시 담아요.\ndf['minutes'] = df['minutes'].fillna(fill)\n# 같은 주문이 두 번 들어간 행을 지워요.\ndf = df.drop_duplicates()\n# 처리 후 행 수와 표, 빈칸에 넣은 값을 확인해요.\nprint(len(df))\nprint(df)\nprint(fill)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 11    NaN     29.0  25000 / 25.0"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. fill을 구한 줄보다 아래로 옮기면 중복이 섞인 중앙값을 써요."
+    },
+    {
+      "action": "patch_code",
+      "before": "# 배달 시간 빈칸에 넣을 중앙값이에요.\nfill = df['minutes'].median()\n# 빈칸을 그 값으로 채워 다시 담아요.\ndf['minutes'] = df['minutes'].fillna(fill)\n# 같은 주문이 두 번 들어간 행을 지워요.\ndf = df.drop_duplicates()",
+      "after": "# 같은 주문이 두 번 들어간 행을 지워요.\ndf = df.drop_duplicates()\n# 배달 시간 빈칸에 넣을 중앙값이에요.\nfill = df['minutes'].median()\n# 빈칸을 그 값으로 채워 다시 담아요.\ndf['minutes'] = df['minutes'].fillna(fill)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 11    NaN     29.0  25000 / 27.0"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

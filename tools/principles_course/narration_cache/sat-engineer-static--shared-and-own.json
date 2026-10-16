@@ -1,0 +1,41 @@
+{
+  "hash": "a0d84aa2da9b171f80683a1133238c91a25233c40cfdc0fc820dff20d2ec6c89",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "class Main {\n    static class Box {\n        // 공유값과 개인값은 다른 칸이에요.\n        static int shared;\n        int own;\n        Box(int value) { own = value; }\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Box.shared = n;\n        Box a = new Box(n);\n        Box b = new Box(n + 1);\n        // a의 개인 칸만 두 배로 바꿔요.\n        a.shared *= 2;\n        System.out.println(a.own + Box.shared);\n        System.out.println(b.own + Box.shared);\n    }\n}\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 9 / 10"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 객체 이름으로 static을 바꿔도 공유 칸이 바뀌어요."
+    },
+    {
+      "action": "patch_code",
+      "before": "a.shared *= 2;",
+      "after": "a.own *= 2;",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 9 / 7"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

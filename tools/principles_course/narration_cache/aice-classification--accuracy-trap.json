@@ -1,0 +1,41 @@
+{
+  "hash": "3db58cd0e0ba45f35c1f5f3541db099dfb6609ca34f0daa153d2bdb89048da29",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "# 표 도구 pandas와 자료를 나누는 함수를 불러와요.\nimport pandas as pd\nfrom sklearn.model_selection import train_test_split\n# 이번 문제에 쓸 도구를 불러와요.\nfrom sklearn.dummy import DummyClassifier\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.metrics import accuracy_score, recall_score\nfrom sklearn.tree import DecisionTreeClassifier\n\n# 직접 만든 쇼핑몰 방문 자료예요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/visits.csv')\n# visits는 이번 달 방문 수, minutes는 머문 시간(분)이에요.\n# cart는 장바구니 상품 수, coupon은 쿠폰을 받았으면 1이에요.\n# bought는 다음 주에 샀으면 1, 안 샀으면 0이에요.\ny = df['bought']\nX = df.drop(columns=['bought'])\n# 1의 비율이 두 몫에서 같도록 stratify=y로 나눠요.\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y)\n\n# 세 모델을 같은 훈련 자료로 배우고 같은 테스트로 예측해요.\n# fit은 모델 자신을 돌려줘서 predict를 바로 이어 쓸 수 있어요.\nbase_pred = DummyClassifier(strategy='most_frequent').fit(X_train, y_train).predict(X_test)\nlogistic_pred = LogisticRegression(max_iter=1000).fit(X_train, y_train).predict(X_test)\ntree_pred = DecisionTreeClassifier(max_depth=1, random_state=42).fit(X_train, y_train).predict(X_test)\n# 테스트 정답에서 1의 비율이에요. 0과 1의 평균이라 비율이 돼요.\nprint(y_test.mean())\n# 모델마다 정확도를 모아 표로 만들어요. index는 모델 이름이에요.\ntable = pd.DataFrame({\n    'accuracy': [accuracy_score(y_test, base_pred), accuracy_score(y_test, logistic_pred),\n                 accuracy_score(y_test, tree_pred)],\n}, index=['base', 'logistic', 'tree'])\nprint(table)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. c  0.791667 / tree      0.833333"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `ascending=False`를 빼면 재현율이 낮은 모델부터 나와요."
+    },
+    {
+      "action": "patch_code",
+      "before": "                 accuracy_score(y_test, tree_pred)],\n}, index=['base', 'logistic', 'tree'])",
+      "after": "                 accuracy_score(y_test, tree_pred)],\n    # 같은 모델 순서로 재현율도 모아요.\n    'recall': [recall_score(y_test, base_pred), recall_score(y_test, logistic_pred),\n               recall_score(y_test, tree_pred)],\n}, index=['base', 'logistic', 'tree'])\n# 재현율이 높은 모델부터 줄을 세워요.\ntable = table.sort_values('recall', ascending=False)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 3 / base      0.750000  0.000000"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

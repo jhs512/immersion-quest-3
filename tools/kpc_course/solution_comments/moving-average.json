@@ -1,0 +1,5 @@
+{
+ "hash": "e053b3c9c9f8efe0",
+ "by": "claude",
+ "code": "import pandas as pd\nprices = pd.read_csv('data/stock.csv', parse_dates=['날짜']).set_index('날짜').sort_index()\n# rolling(5)는 \"오늘 포함 최근 5행\"짜리 창을 만들어요. 괄호 안 숫자가 창의 크기예요.\n# .mean()이 그 창 안 5개 종가의 평균을 내요. 결과를 ma5라는 새 열에 넣어요.\n# 앞쪽 네 행은 5개가 안 모여서 빈칸(NaN)이에요. 오류가 아니니 놀라지 마세요.\nprices['ma5'] = prices['종가'].rolling(5).mean()\n# head(6)으로 앞 6행만 봐요. 다섯째 행부터 ma5에 값이 보이죠?\nprices.head(6)\n"
+}

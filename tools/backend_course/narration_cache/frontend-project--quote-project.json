@@ -1,0 +1,42 @@
+{
+  "hash": "b3a03e9176ccfad7fbe246ce0a5814885b49550db5f19ed3fed5a47500527aa9",
+  "by": "hand-compiled",
+  "actions": [
+    {
+      "action": "say",
+      "target": "problem",
+      "text": "h1 `명언 게시판`과 input#content, #author를 만드세요.\nbutton#save로 등록·저장해요. 빈 값은 p#error에 안내해요.\n각 li에 내용·작가와 `수정`, `삭제` 버튼을 둬요.\ninput#search는 내용 또는 작가를 검색해요.\nlocalStorage의 mq3-quotes에 저장해요.\n새로고침 후 복원하고 손상된 JSON은 빈 목록으로 처리해요."
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 실행 성공과 모든 검사 통과는 달라요. 단계마다 결과를 확인해요."
+    },
+    {
+      "action": "set_code",
+      "code": "import {useState,useEffect} from 'react';\nimport {createRoot} from 'react-dom/client';\nfunction load() {\n  // 저장된 값도 외부 입력이므로 자료형을 확인해요.\n  try {\n    const rows=JSON.parse(localStorage.getItem('mq3-quotes') || '[]');\n    return Array.isArray(rows)?rows.filter(q=>q && Number.isInteger(q.id) && typeof q.content==='string' && typeof q.author==='string'):[];\n  } catch { return []; }\n}\nfunction App() {\n  // 화면 목록은 저장 자료를 검증한 결과로 초기화해요.\n  const [rows,setRows]=useState(load);\n  // 두 입력은 제어 컴포넌트로 상태와 연결해요.\n  const [content,setContent]=useState(''),[author,setAuthor]=useState('');\n  const [editing,setEditing]=useState(null),[keyword,setKeyword]=useState('');\n  // 오류 안내는 자료 목록과 독립된 화면 상태예요.\n  const [error,setError]=useState('');\n  useEffect(()=>{localStorage.setItem('mq3-quotes',JSON.stringify(rows));},[rows]);\n  function submit(event) {\n    // 빈 값은 저장 전에 거부하고 폼 이동도 막아요.\n    event.preventDefault();\n    if (!content.trim() || !author.trim()) {setError('내용과 작가를 입력하세요');return;}\n    // 수정은 기존 ID를 유지하고 등록은 새 ID를 만들어요.\n    setRows(old=>editing===null?[...old,{id:Math.max(0,...old.map(q=>q.id))+1,content:content.trim(),author:author.trim()}]\n      :old.map(q=>q.id===editing?{...q,content:content.trim(),author:author.trim()}:q));\n    setContent('');setAuthor('');setEditing(null);setError('');\n  }\n  return <main><h1>명언 게시판</h1><form onSubmit={submit}>\n    <label htmlFor=\"content\">명언</label><input id=\"content\" value={content} onChange={e=>setContent(e.target.value)}/>\n    <label htmlFor=\"author\">작가</label><input id=\"author\" value={author} onChange={e=>setAuthor(e.target.value)}/>\n    {/* 수정 중인 ID의 유무로 버튼의 동작 이름을 구분해요. */}\n    <button id=\"save\">{editing===null?'등록':'저장'}</button></form><p role=\"status\" id=\"error\">{error}</p>\n    <label htmlFor=\"search\">검색</label><input id=\"search\" value={keyword} onChange={e=>setKeyword(e.target.value)}/>\n    {/* 검색은 원본을 지우지 않고 화면에 보일 항목만 골라요. */}\n    <ul>{rows.filter(q=>q.content.includes(keyword)||q.author.includes(keyword)).map(q=><li key={q.id}>\n      <span>{q.content} · {q.author}</span><button onClick={()=>{setEditing(q.id);setContent(q.content);setAuthor(q.author);}}>수정</button>\n      {/* 원본 배열을 직접 지우지 않고 새 배열을 만들어요. */}\n      <button onClick={()=>setRows(old=>old.filter(row=>row.id!==q.id))}>삭제</button>\n    </li>)}</ul></main>;\n}\n",
+      "say": "컴포넌트 함수를 먼저 준비해요. 아직 화면에 연결하지 않았어요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "화면은 아직 비어 있어요. 이제 루트에 컴포넌트를 연결해요."
+    },
+    {
+      "action": "patch_code",
+      "before": "import {useState,useEffect} from 'react';\nimport {createRoot} from 'react-dom/client';\nfunction load() {\n  // 저장된 값도 외부 입력이므로 자료형을 확인해요.\n  try {\n    const rows=JSON.parse(localStorage.getItem('mq3-quotes') || '[]');\n    return Array.isArray(rows)?rows.filter(q=>q && Number.isInteger(q.id) && typeof q.content==='string' && typeof q.author==='string'):[];\n  } catch { return []; }\n}\nfunction App() {\n  // 화면 목록은 저장 자료를 검증한 결과로 초기화해요.\n  const [rows,setRows]=useState(load);\n  // 두 입력은 제어 컴포넌트로 상태와 연결해요.\n  const [content,setContent]=useState(''),[author,setAuthor]=useState('');\n  const [editing,setEditing]=useState(null),[keyword,setKeyword]=useState('');\n  // 오류 안내는 자료 목록과 독립된 화면 상태예요.\n  const [error,setError]=useState('');\n  useEffect(()=>{localStorage.setItem('mq3-quotes',JSON.stringify(rows));},[rows]);\n  function submit(event) {\n    // 빈 값은 저장 전에 거부하고 폼 이동도 막아요.\n    event.preventDefault();\n    if (!content.trim() || !author.trim()) {setError('내용과 작가를 입력하세요');return;}\n    // 수정은 기존 ID를 유지하고 등록은 새 ID를 만들어요.\n    setRows(old=>editing===null?[...old,{id:Math.max(0,...old.map(q=>q.id))+1,content:content.trim(),author:author.trim()}]\n      :old.map(q=>q.id===editing?{...q,content:content.trim(),author:author.trim()}:q));\n    setContent('');setAuthor('');setEditing(null);setError('');\n  }\n  return <main><h1>명언 게시판</h1><form onSubmit={submit}>\n    <label htmlFor=\"content\">명언</label><input id=\"content\" value={content} onChange={e=>setContent(e.target.value)}/>\n    <label htmlFor=\"author\">작가</label><input id=\"author\" value={author} onChange={e=>setAuthor(e.target.value)}/>\n    {/* 수정 중인 ID의 유무로 버튼의 동작 이름을 구분해요. */}\n    <button id=\"save\">{editing===null?'등록':'저장'}</button></form><p role=\"status\" id=\"error\">{error}</p>\n    <label htmlFor=\"search\">검색</label><input id=\"search\" value={keyword} onChange={e=>setKeyword(e.target.value)}/>\n    {/* 검색은 원본을 지우지 않고 화면에 보일 항목만 골라요. */}\n    <ul>{rows.filter(q=>q.content.includes(keyword)||q.author.includes(keyword)).map(q=><li key={q.id}>\n      <span>{q.content} · {q.author}</span><button onClick={()=>{setEditing(q.id);setContent(q.content);setAuthor(q.author);}}>수정</button>\n      {/* 원본 배열을 직접 지우지 않고 새 배열을 만들어요. */}\n      <button onClick={()=>setRows(old=>old.filter(row=>row.id!==q.id))}>삭제</button>\n    </li>)}</ul></main>;\n}\n",
+      "after": "import {useState,useEffect} from 'react';\nimport {createRoot} from 'react-dom/client';\nfunction load() {\n  // 저장된 값도 외부 입력이므로 자료형을 확인해요.\n  try {\n    const rows=JSON.parse(localStorage.getItem('mq3-quotes') || '[]');\n    return Array.isArray(rows)?rows.filter(q=>q && Number.isInteger(q.id) && typeof q.content==='string' && typeof q.author==='string'):[];\n  } catch { return []; }\n}\nfunction App() {\n  // 화면 목록은 저장 자료를 검증한 결과로 초기화해요.\n  const [rows,setRows]=useState(load);\n  // 두 입력은 제어 컴포넌트로 상태와 연결해요.\n  const [content,setContent]=useState(''),[author,setAuthor]=useState('');\n  const [editing,setEditing]=useState(null),[keyword,setKeyword]=useState('');\n  // 오류 안내는 자료 목록과 독립된 화면 상태예요.\n  const [error,setError]=useState('');\n  useEffect(()=>{localStorage.setItem('mq3-quotes',JSON.stringify(rows));},[rows]);\n  function submit(event) {\n    // 빈 값은 저장 전에 거부하고 폼 이동도 막아요.\n    event.preventDefault();\n    if (!content.trim() || !author.trim()) {setError('내용과 작가를 입력하세요');return;}\n    // 수정은 기존 ID를 유지하고 등록은 새 ID를 만들어요.\n    setRows(old=>editing===null?[...old,{id:Math.max(0,...old.map(q=>q.id))+1,content:content.trim(),author:author.trim()}]\n      :old.map(q=>q.id===editing?{...q,content:content.trim(),author:author.trim()}:q));\n    setContent('');setAuthor('');setEditing(null);setError('');\n  }\n  return <main><h1>명언 게시판</h1><form onSubmit={submit}>\n    <label htmlFor=\"content\">명언</label><input id=\"content\" value={content} onChange={e=>setContent(e.target.value)}/>\n    <label htmlFor=\"author\">작가</label><input id=\"author\" value={author} onChange={e=>setAuthor(e.target.value)}/>\n    {/* 수정 중인 ID의 유무로 버튼의 동작 이름을 구분해요. */}\n    <button id=\"save\">{editing===null?'등록':'저장'}</button></form><p role=\"status\" id=\"error\">{error}</p>\n    <label htmlFor=\"search\">검색</label><input id=\"search\" value={keyword} onChange={e=>setKeyword(e.target.value)}/>\n    {/* 검색은 원본을 지우지 않고 화면에 보일 항목만 골라요. */}\n    <ul>{rows.filter(q=>q.content.includes(keyword)||q.author.includes(keyword)).map(q=><li key={q.id}>\n      <span>{q.content} · {q.author}</span><button onClick={()=>{setEditing(q.id);setContent(q.content);setAuthor(q.author);}}>수정</button>\n      {/* 원본 배열을 직접 지우지 않고 새 배열을 만들어요. */}\n      <button onClick={()=>setRows(old=>old.filter(row=>row.id!==q.id))}>삭제</button>\n    </li>)}</ul></main>;\n}\ncreateRoot(document.getElementById('root')).render(<App/>);\n"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "완성한 화면을 확인하세요. 입력과 버튼도 직접 사용해보세요."
+    }
+  ]
+}

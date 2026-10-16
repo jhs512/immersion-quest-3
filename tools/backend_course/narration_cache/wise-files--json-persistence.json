@@ -1,0 +1,150 @@
+{
+  "hash": "fae1e0498339855ce55a16e96bb0bc6e7aaa69b92d81394a5c7a46d0ea18c552",
+  "by": "hand-compiled",
+  "actions": [
+    {
+      "action": "say",
+      "target": "problem",
+      "text": "`save(Path,List<String>)`, `load(Path)`를 구현하세요.\nUTF-8 JSON 문자열 배열로 저장해요.\n따옴표·역슬래시·개행·탭의 왕복을 보장하세요.\n없는 파일은 빈 목록이에요.\n`page(List<String>,String,int,int)`는 검색 후 페이지예요."
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 실행 성공과 모든 검사 통과는 달라요. 단계마다 결과를 확인해요."
+    },
+    {
+      "action": "set_code",
+      "code": "import java.util.*;\nimport java.nio.file.*;\nimport java.io.IOException;\nclass Exercise {\n    static void save(Path file, List<String> rows) throws IOException {/*mq3-step-0*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");}\n    static List<String> load(Path file) throws IOException {/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");}\n    static List<String> page(List<String> rows, String keyword, int page, int size) {/*mq3-step-2*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");}\n}\n",
+      "say": "선언과 생성자를 먼저 준비했어요. 메서드는 하나씩 채울게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "아직 구현하지 않은 메서드가 있어요. 지금 실패하는 위치를 확인하세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-0*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": "\n        // JSON 문자열은 역슬래시와 따옴표를 먼저 보호해요.\n        var escaped = rows.stream().map(s -> \"\\\"\" + s.replace(\"\\\\\",\"\\\\\\\\\").replace(\"\\\"\",\"\\\\\\\"\").replace(\"\\n\",\"\\\\n\").replace(\"\\r\",\"\\\\r\").replace(\"\\t\",\"\\\\t\") + \"\\\"\").toList();\n/*mq3-step-0*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "say": "작은 조각을 채워요. 앞뒤의 변수와 조건을 함께 확인하세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-0*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": "        Files.writeString(file, \"[\" + String.join(\",\", escaped) + \"]\", java.nio.charset.StandardCharsets.UTF_8);\n    /*mq3-step-0*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");"
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-0*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": ""
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 읽어보세요. 아직 남은 검사와 통과한 검사를 비교해요."
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": "\n        // 존재하지 않는 파일은 첫 실행으로 취급해요.\n        if (!Files.exists(file)) return List.of();\n/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "say": "작은 조각을 채워요. 앞뒤의 변수와 조건을 함께 확인하세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": "        String text = Files.readString(file).trim();\n        // 문자열의 시작과 끝을 직접 따라가며 배열을 복원해요.\n        var rows = new ArrayList<String>();\n/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");"
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": "        int i = 1;\n        if (!text.startsWith(\"[\") || !text.endsWith(\"]\")) throw new IOException(\"JSON 배열\");\n        while (i < text.length() - 1) {\n/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");"
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": "            // 항목 사이 구분자를 건너뛰고 여는 따옴표를 확인해요.\n            while (Character.isWhitespace(text.charAt(i)) || text.charAt(i) == ',') i++;\n            if (text.charAt(i++) != '\"') throw new IOException(\"JSON 문자열\");\n/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");"
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": "            var value = new StringBuilder(); boolean closed = false;\n            // 닫는 따옴표를 만날 때까지 문자열 하나를 읽어요.\n            while (i < text.length() - 1) {\n/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");"
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": "                char c = text.charAt(i++);\n                if (c == '\"') { closed = true; break; }\n                if (c == '\\\\') {\n/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");"
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": "                    // 이스케이프는 두 문자를 실제 문자 하나로 바꿔요.\n                    if (i >= text.length() - 1) throw new IOException(\"이스케이프\");\n                    char escaped = text.charAt(i++);\n/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");"
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": "                    c = switch (escaped) { case 'n' -> '\\n'; case 'r' -> '\\r'; case 't' -> '\\t'; case '\"' -> '\"'; case '\\\\' -> '\\\\'; default -> throw new IOException(\"이스케이프\"); };\n                }\n                value.append(c);\n/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");"
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": "            }\n            if (!closed) throw new IOException(\"닫는 따옴표\");\n            // 정상적으로 닫힌 문자열만 결과 목록에 넣어요.\n/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");"
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": "            rows.add(value.toString());\n        }\n        return rows;\n/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");"
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": "    /*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");"
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": ""
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 읽어보세요. 아직 남은 검사와 통과한 검사를 비교해요."
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-2*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": "\n        if (page < 1 || size < 1) throw new IllegalArgumentException(\"페이지\");\n        // 검색한 결과를 기준으로 페이지를 잘라요.\n/*mq3-step-2*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "say": "작은 조각을 채워요. 앞뒤의 변수와 조건을 함께 확인하세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-2*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": "        return rows.stream().filter(s -> s.contains(keyword)).skip((long)(page - 1) * size).limit(size).toList();\n    /*mq3-step-2*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");"
+    },
+    {
+      "action": "patch_code",
+      "before": "/*mq3-step-2*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+      "after": ""
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 읽어보세요. 아직 남은 검사와 통과한 검사를 비교해요."
+    }
+  ]
+}

@@ -1,0 +1,148 @@
+{
+ "format": 2,
+ "hash": "16c355ca57af2a54",
+ "by": "claude",
+ "blocks": {
+  "title": "b67060951bb5",
+  "problem": "ac6ed282f318",
+  "starter": "057f1c30b9e4",
+  "example": "e3b0c44298fc",
+  "solution": "35a36a3d8077"
+ },
+ "sources": [
+  {
+   "block": "problem",
+   "hash": "ac6ed282f318"
+  },
+  {
+   "block": "problem",
+   "hash": "ac6ed282f318"
+  },
+  {
+   "block": "starter",
+   "hash": "057f1c30b9e4"
+  },
+  {
+   "block": "solution",
+   "hash": "35a36a3d8077"
+  },
+  {
+   "block": "solution",
+   "hash": "35a36a3d8077"
+  },
+  {
+   "block": "solution",
+   "hash": "35a36a3d8077"
+  },
+  {
+   "block": "solution",
+   "hash": "35a36a3d8077"
+  },
+  {
+   "block": "solution",
+   "hash": "35a36a3d8077"
+  },
+  {
+   "block": "solution",
+   "hash": "35a36a3d8077"
+  },
+  {
+   "block": "solution",
+   "hash": "35a36a3d8077"
+  },
+  {
+   "block": "solution",
+   "hash": "35a36a3d8077"
+  },
+  {
+   "block": "solution",
+   "hash": "35a36a3d8077"
+  },
+  {
+   "block": "solution",
+   "hash": "35a36a3d8077"
+  },
+  {
+   "block": "solution",
+   "hash": "35a36a3d8077"
+  },
+  {
+   "block": "solution",
+   "hash": "35a36a3d8077"
+  },
+  {
+   "block": "solution",
+   "hash": "35a36a3d8077"
+  }
+ ],
+ "entry": [
+  [
+   "problem",
+   "자, 가격이 12000 이상이고 수량도 2 이상인 거래만 골라요. 두 조건을 다 만족해야 하거든요."
+  ],
+  [
+   "hint",
+   "조건마다 괄호로 감싸고 &로 이으면 돼요. loc의 쉼표 뒤엔 남길 열 이름 리스트를 넣고요."
+  ],
+  [
+   "starter",
+   "준비 코드엔 orders 표가 있어요. product, price, quantity 세 열에 네 건이 들어 있죠?"
+  ],
+  [
+   "code",
+   "# 조건마다 괄호로 감싸고 &로 이어요. 괄호를 빼면 &가 먼저 계산돼서 엉뚱한 결과가 나와요\n# 숫자는 따옴표 없이 12000. '12000'이라고 쓰면 글자라서 비교가 안 돼요\n# 쉼표 뒤의 리스트는 남길 열 이름이에요. 열 이름 오타(Price, prodcut)는 바로 오류예요\n",
+   "먼저 주의할 점을 주석으로 적어 둘게요. 괄호, 따옴표, 열 이름 오타예요."
+  ],
+  [
+   "try",
+   "print(orders.loc[orders['price'] >= 12000 & orders['quantity'] >= 2])\n",
+   "괄호 없이 이렇게 해 볼까요? 이렇게 쓰기 쉽거든요."
+  ],
+  [
+   "run",
+   "실행해 볼게요."
+  ],
+  [
+   "output",
+   "ValueError가 나죠? 「Series의 참 거짓이 모호하다」는 메시지예요. &가 비교보다 먼저 계산돼서 12000 & quantity를 먹어 버린 거예요."
+  ],
+  [
+   "undo",
+   "그래서 조건마다 괄호로 꼭 감싸요."
+  ],
+  [
+   "code",
+   "# .copy()를 붙여야 뒤에서 고쳐도 원본 orders가 안 바뀌어요\n# 가격이 None인 C는 >= 비교에서 False라 자동으로 빠져요\nselected = orders.loc[(orders['price'] >= 12000) & (orders['quantity'] >= 2), ['product', 'price', 'quantity']].copy()\n",
+   "가격 조건과 수량 조건을 각각 괄호로 감싸고 &로 이어요. 쉼표 뒤에 열 리스트를 넣고 끝에 .copy()를 붙여요."
+  ],
+  [
+   "run",
+   "일단 실행해 볼게요."
+  ],
+  [
+   "output",
+   "아무것도 안 나오죠? 오류도 없고요. selected에 담기만 했거든요."
+  ],
+  [
+   "caution",
+   "열 이름을 Price처럼 대문자로 쓰기 쉬운데, 그러면 KeyError가 나니 조심하세요."
+  ],
+  [
+   "code",
+   "# 마지막 줄에 변수 이름만 쓰면 그 표가 화면에 나와요\nselected\n",
+   "마지막 줄에 selected만 쓰면 표가 화면에 나와요."
+  ],
+  [
+   "run",
+   "다시 실행해요."
+  ],
+  [
+   "output",
+   "어, 여전히 아무것도 안 나오죠? 이 실행기에선 마지막 줄에 변수 이름만 써도 표가 안 떠요. 눈으로 보고 싶으면 print(selected)로 찍어 보세요."
+  ],
+  [
+   "submit",
+   "제출할게요."
+  ]
+ ]
+}

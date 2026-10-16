@@ -1,0 +1,41 @@
+{
+  "hash": "c04c251d4e51363921d4f820f889fa7386f96acc8ff39a743b1b11a565daa9b9",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 지점 주문 자료예요. 실제 자료가 아니에요.\ndf = pd.read_csv('data/orders.csv')\n# 지점이 같은 행끼리 묶어 amount의 평균을 내요.\n# groupby 결과는 지점 이름 순서로 나와요.\nresult = df.groupby('branch')['amount'].mean()\n# 결과를 화면에서 확인해요.\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 3 / Name: amount, dtype: float64"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. Series에 `sort_values('amount')`처럼 열 이름을 넣으면 오류가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "result = df.groupby('branch')['amount'].mean()",
+      "after": "result = df[df['channel'] == 'app'].groupby('branch')['amount'].mean().sort_values(ascending=False)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 0 / Name: amount, dtype: float64"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

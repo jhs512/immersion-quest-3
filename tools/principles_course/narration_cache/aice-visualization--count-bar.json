@@ -1,0 +1,41 @@
+{
+  "hash": "a3b3e564ede177ad62aa9f918e17d867a42f0ade57dbeacc6ec75fd177a89ef7",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n# 그래프 도구를 plt라는 별명으로 불러와요.\nimport matplotlib.pyplot as plt\n\n# 직접 만든 배달 기록이에요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/delivery.csv')\n# zone은 구역, distance는 거리(km)예요.\n# minutes는 배달 시간(분), price는 주문 금액(원)이에요.\n\n# 구역별 건수를 counts에 담으려고 해요.\ncounts = df['zone']\n# 그릴 표를 먼저 화면에서 봐요.\nprint(counts)\n\n# counts의 숫자를 막대로 그려요.\ncounts.plot(kind='bar')\n# 그린 그림을 화면에 보여 줘요.\nplt.show()\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "지금 코드는 검사를 통과하지 못해요."
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. value_counts 대신 count를 쓰면 숫자 하나만 나와 오류가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "counts = df['zone']",
+      "after": "counts = df['zone'].value_counts()",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.    3 / Name: count, dtype: int64"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

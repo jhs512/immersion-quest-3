@@ -1,0 +1,5 @@
+{
+ "hash": "41833c86b4f2e76e",
+ "by": "claude",
+ "code": "import pandas as pd\ntitanic = pd.read_csv('data/titanic.csv')\nimport matplotlib.pyplot as plt\n\n# 성별과 객실등급, 두 열로 묶어요. 리스트라서 대괄호를 두 겹 써요\n# '생존' 열로 사람 수(count)와 생존율(mean)을 같이 구해요\ngrouped = titanic.groupby(['성별', '객실등급'])['생존'].agg(['count', 'mean'])\n# 'mean' 열만 꺼내 객실등급을 옆으로 펼쳐요. 행은 성별, 열은 등급이 돼요\n# 생존이 0과 1이라 평균이 곧 비율이에요. 100을 곱하면 퍼센트가 되죠\nwide = grouped['mean'].unstack('객실등급') * 100\n# 행(성별)마다 막대가 묶이고, 열(등급)마다 막대 하나씩 서요\n# ylim=(0, 100)으로 y축을 0~100%로 고정해요. 막대 길이를 공정하게 비교하려고요\n# rot=0은 x축 글자를 눕히지 않고 똑바로 세워요\nax = wide.plot.bar(ylim=(0, 100), rot=0)\n# 돌려받은 ax에 y축 이름과 제목을 붙여요. 단위가 %라는 걸 적어 두세요\nax.set(ylabel='생존율 (%)', title='성별·객실등급별 생존율 (%)')\n# 이 줄이 있어야 그래프가 화면에 떠요\nplt.show()\n"
+}

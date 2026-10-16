@@ -1,0 +1,41 @@
+{
+  "hash": "dab42319d8090a4baca49cbb6d4938030cf682850c65c760feed6bea6ed0d2ae",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 고객 자료예요. 실제 고객 자료가 아니에요.\n# 고객 파일은 JSON인데 CSV를 읽는 함수로 읽었어요.\ncustomers = pd.read_csv('data/customers.json')\n# 표의 크기를 확인해요. 앞 숫자가 행 수예요.\nprint(customers.shape)\n# 표 전체를 봐요. 맨 위 줄이 열 이름이에요.\nprint(customers)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.           nan                NaN"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. JSON을 read_csv로 읽어도 오류 없이 엉뚱한 표가 나와요."
+    },
+    {
+      "action": "patch_code",
+      "before": "pd.read_csv('data/customers.json')",
+      "after": "pd.read_json('data/customers.json')",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. r / 3         C05     대구    gold"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "hash": "2ae1ef5a1b1e5c6db4018c56dfa6e8bc27655afe9dc57e0f710c43b53593de46",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 9월과 10월 주문이에요. 열 이름과 순서가 같아요.\nmonth9 = pd.read_csv('data/orders_09.csv')\nmonth10 = pd.read_csv('data/orders_10.csv')\n# 두 표를 리스트에 담아 위아래로 이어요.\nboth = pd.concat([month9, month10])\n# 두 달의 행 수와 이은 표의 행 수예요.\nprint(len(month9), len(month10), len(both))\n# 표 왼쪽의 행 번호를 보세요.\nprint(both)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. / 3     A107         C03    4000"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `axis=1`을 넣으면 위아래가 아니라 옆으로 붙어요."
+    },
+    {
+      "action": "patch_code",
+      "before": "pd.concat([month9, month10])",
+      "after": "pd.concat([month9, month10], ignore_index=True)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. / 6     A107         C03    4000"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

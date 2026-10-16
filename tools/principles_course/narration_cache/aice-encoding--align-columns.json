@@ -1,0 +1,41 @@
+{
+  "hash": "bcd0070ed0cb8f99366ec21ace504743cb5d43fb5b23ee3d8631e7ca328d0664",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 회원 자료를 훈련용과 테스트용으로 따로 받았어요.\ntrain = pd.read_csv('data/train.csv')\ntest = pd.read_csv('data/test.csv')\n# 입력은 visits와 channel이에요. 두 자료를 따로 원핫해요.\nX_train = pd.get_dummies(train[['visits', 'channel']], columns=['channel'], dtype=int)\nX_test = pd.get_dummies(test[['visits', 'channel']], columns=['channel'], dtype=int)\n# 두 표의 열 이름을 견줘 봐요.\nprint(X_train.columns)\nprint(X_test.columns)\n# 이 아래에서 테스트 열을 훈련 열에 맞춰요.\n# 테스트 표와 열 이름을 다시 확인해요.\nprint(X_test)\nprint(X_test.columns)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. k', 'channel_web'], dtype='str')"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `fill_value=0`을 빼면 테스트에 없던 열이 NaN으로 채워져요."
+    },
+    {
+      "action": "patch_code",
+      "before": "# 이 아래에서 테스트 열을 훈련 열에 맞춰요.",
+      "after": "# 이 아래에서 테스트 열을 훈련 열에 맞춰요.\nX_test = X_test.reindex(columns=X_train.columns, fill_value=0)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. e', 'channel_web'], dtype='str')"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

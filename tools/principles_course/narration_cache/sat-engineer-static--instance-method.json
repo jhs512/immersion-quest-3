@@ -1,0 +1,41 @@
+{
+  "hash": "475fdb794c3910f5797c83866ecc19eca3deec402192e09fdbbe8ce59088a0db",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "class Main {\n    static class Box {\n        // 이 값은 객체에 들어 있어요.\n        int value;\n    }\n    static int read(Box item) {\n        // 어느 객체인지 직접 적어야 해요.\n        return value;\n    }\n\n    public static void main(String[] args) {\n        // 이번 실험의 시작값이에요.\n        int n = 3;\n        Box item = new Box();\n        item.value = n;\n        // static 메서드에 읽을 객체를 전달해요.\n        System.out.println(read(item));\n    }\n}\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "지금 코드는 검사를 통과하지 못해요."
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. static 메서드에서 인스턴스 필드를 바로 읽을 수 없어요."
+    },
+    {
+      "action": "patch_code",
+      "before": "return value;",
+      "after": "return item.value;",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 3"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

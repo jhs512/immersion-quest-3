@@ -1,0 +1,41 @@
+{
+  "hash": "12b1100fc63f34c13ab419ba172cdda13c4bcb2e85c3daeb918f8fb3bb5e9e73",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n# scikit-learn에서 나누는 함수만 불러와요.\nfrom sklearn.model_selection import train_test_split\n\n# 직접 만든 구독 고객 자료예요. churn이 1이면 떠난 고객이에요.\ndf = pd.read_csv('data/members.csv')\n# 입력 X와 정답 y를 나눠요.\nX = df.drop(columns=['churn'])\ny = df['churn']\n# 이번에 정한 테스트 몫은 5행이에요.\nX_train, X_test, y_train, y_test = train_test_split(X, y, train_size=5, random_state=42)\n# 두 몫의 행 수를 확인해요.\nprint(len(X_train))\nprint(len(X_test))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 5 / 31"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `test_size=0.5`로 쓰면 5행이 아니라 절반을 떼요."
+    },
+    {
+      "action": "patch_code",
+      "before": "train_size=5",
+      "after": "test_size=5",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 31 / 5"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

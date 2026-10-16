@@ -1,0 +1,41 @@
+{
+  "hash": "220015a5b3ff71dce343f50a79982c777f0962c5971a408411fc887625a20cb1",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n# 각 문제는 자기 자료를 처음부터 읽어요.\ndf = pd.read_csv('data/delivery.csv')\n# 경계의 어느 쪽을 남기는지 확인해요.\nclean = df.loc[df['distance'] >= 30].copy()\nprint(clean['order_id'].tolist())\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. [203]"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 정답 숫자를 외워 쓰면 자료가 바뀔 때 틀려요."
+    },
+    {
+      "action": "patch_code",
+      "before": "df['distance'] >= 30",
+      "after": "df['distance'] < 30",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 3, 224, 225, 226, 227, 228, 229]"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

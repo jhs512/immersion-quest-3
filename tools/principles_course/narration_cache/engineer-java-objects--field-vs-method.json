@@ -1,0 +1,41 @@
+{
+  "hash": "4f0b1e0b1c125f7148590b2c956c5196524273f4c7d4ae7838c155f098ecb568",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "class Point {\n    // 부모 쪽 점수 필드예요.\n    int score;\n\n    // 받은 점수를 부모 쪽 필드에 담아요.\n    Point(int score) {\n        this.score = score;\n    }\n\n    // 이 클래스의 score를 돌려줘요.\n    int getScore() {\n        return score;\n    }\n}\n\n// Bonus는 Point를 물려받고 같은 이름 필드를 또 가져요.\nclass Bonus extends Point {\n    // 자식 쪽 점수 필드예요.\n    int score;\n\n    Bonus(int score) {\n        // 부모 생성자가 부모 쪽 필드를 채워요.\n        super(score);\n        // 보너스로 곱할 배수예요.\n        int times = 2;\n        // 자식 쪽 필드에는 배수를 곱해 담아요.\n        this.score = score * times;\n    }\n\n    // 부모 메서드를 다시 만들어 자식 쪽 score를 돌려줘요.\n    int getScore() {\n        return score;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // 처음 받은 점수예요.\n        int base = 30;\n        // 변수 자료형은 Point, 실제 객체는 Bonus예요.\n        Point p = new Bonus(base);\n        // 점수를 출력해요.\n        System.out.println(\"점수: \" + p.score);\n    }\n}\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 점수: 30"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `new Point(base)`로 바꾸면 Bonus의 배수 규칙이 사라져요."
+    },
+    {
+      "action": "patch_code",
+      "before": "p.score",
+      "after": "p.getScore()",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 점수: 60"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

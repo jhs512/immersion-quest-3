@@ -1,0 +1,41 @@
+{
+  "hash": "b3d87ddc47af143fb9a90c267c922060779911917c9b8f0f47a77a257dfb7bf4",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 회원 자료예요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/members.csv')\n# visits는 지난달 방문 수, minutes는 지난달 머문 시간(분)이에요.\n# amount는 다음 달 구매 금액(원)이에요.\n\n# 맞힐 열(타깃)의 이름이에요.\ntarget = 'amount'\n# 정답 y로 타깃 열을 꺼내요.\ny = df[[target]]\n# y의 크기(shape)예요. (행 수, 열 수) 순서예요.\n# Series면 열 수 없이 (행 수,)처럼 숫자 하나만 나와요.\nprint(y.shape)\n# 앞의 세 행을 봐요.\nprint(y.head(3))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.    58000 / 1   15000 / 2    9000"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `df['target']`처럼 변수 이름에 따옴표를 붙이면 KeyError가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "y = df[[target]]",
+      "after": "y = df[target]",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 000 / Name: amount, dtype: int64"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

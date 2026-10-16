@@ -1,0 +1,41 @@
+{
+  "hash": "06d4b5f79e526c8e36985599194e4b9a62d3a963856772927b6c45bdd06f9efa",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 배달 자료예요. 실제 주문 자료가 아니에요.\ndf = pd.read_csv('data/deliveries.csv')\n# 채우기 전 값을 봐요. NaN이 빈칸이에요.\nprint(df['minutes'])\n# 빈칸을 괄호 안 값으로 채워 열에 다시 담아요.\ndf['minutes'] = df['minutes'].fillna(0)\n# 채운 뒤의 열과 평균을 확인해요.\nresult = df['minutes']\nprint(result)\nprint(result.mean())\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. pe: float64 / 29.615384615384617"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `median` 뒤 괄호를 빼면 숫자 대신 함수가 빈칸에 들어가요."
+    },
+    {
+      "action": "patch_code",
+      "before": "fillna(0)",
+      "after": "fillna(df['minutes'].median())",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. ype: float64 / 33.46153846153846"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

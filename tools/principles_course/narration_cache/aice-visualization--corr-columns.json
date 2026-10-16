@@ -1,0 +1,41 @@
+{
+  "hash": "c6322877c7b3fcd77b0f036f62ff492a4aa7cb46b223a8890da652425f3a0123",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 배달 기록이에요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/delivery.csv')\n# zone은 구역, distance는 거리(km)예요.\n# minutes는 배달 시간(분), price는 주문 금액(원)이에요.\n\n# 숫자 열끼리 상관계수 표를 만들려고 해요.\ntable = df.corr()\n# 표 이름을 먼저 적고, 소수 둘째 자리까지 봐요.\nprint('상관계수 표')\nprint(table.round(2))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": true
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "지금 코드는 검사를 통과하지 못해요."
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `df['distance', 'minutes']`처럼 대괄호를 하나만 쓰면 KeyError가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "table = df.corr()",
+      "after": "table = df[['distance', 'minutes', 'price']].corr()",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. ice        -0.05    -0.10   1.00"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

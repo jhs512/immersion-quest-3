@@ -1,0 +1,41 @@
+{
+  "hash": "d6b02c24e767c9b11eea27ec9c4e91d06e0777119c419ff3359ba3a7c518d789",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "# 표 도구 pandas와 숫자 도구 numpy를 불러와요.\nimport pandas as pd\nimport numpy as np\n# 자료를 나누는 함수예요.\nfrom sklearn.model_selection import train_test_split\n# 이번 문제에 쓸 도구를 불러와요.\nfrom sklearn.metrics import mean_absolute_error\n\n# 직접 만든 배달 기록이에요. 실제 주문이 아니에요.\ndf = pd.read_csv('data/delivery.csv')\n# 입력 X는 거리·메뉴 수·혼잡 여부, 정답 y는 배달 시간(분)이에요.\nX = df[['distance', 'items', 'rush']]\ny = df['minutes']\n# 훈련 75%, 테스트 25%로 나눠요. random_state로 늘 같게 나눠요.\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)\n# 기준값이에요. 모든 테스트 행을 이 값 하나로 맞혀요.\nbase_value = y_test.mean()\nprint(round(base_value, 2))\n# 테스트 행 수만큼 기준값을 채운 예측 배열이에요.\nbase = np.full(len(y_test), base_value)\nprint(base[:3].round(1))\n# 기준 모델도 MAE로 채점해요.\nbase_mae = mean_absolute_error(y_test, base)\nprint(round(base_mae, 2))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 33.87 / [33.9 33.9 33.9] / 7.57"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 테스트 평균을 쓰면 채점할 답을 미리 엿본 셈이에요."
+    },
+    {
+      "action": "patch_code",
+      "before": "base_value = y_test.mean()",
+      "after": "base_value = y_train.mean()",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 33.36 / [33.4 33.4 33.4] / 7.47"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

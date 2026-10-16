@@ -1,0 +1,41 @@
+{
+  "hash": "a8bc0d1b68e2dee6df23c5c3aed0871690fc32d57d8cd6a19bc7ad8f619226d9",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.preprocessing import StandardScaler\n\n# 직접 만든 매장 자료예요. 실제 매장 자료가 아니에요.\ndf = pd.read_csv('data/stores.csv')\n# 입력 X는 좌석 수, 월세(천 원), 하루 방문자 수예요.\nX = df[['seats', 'rent', 'visitors']]\n# 표준화 도구를 만들어요.\nscaler = StandardScaler()\n# 전체 X로 기준을 재요. 아직 나누기 전이에요.\nscaler.fit(X)\n# 훈련 75%, 테스트 25%로 나눠요. X만 넣으면 두 몫이 나와요.\nX_train, X_test = train_test_split(X, test_size=0.25, random_state=42)\n# 두 자료를 같은 기준으로 바꿔요.\nX_train_s = scaler.transform(X_train)\nX_test_s = scaler.transform(X_test)\n# 기준으로 쓴 평균이에요.\nmean = scaler.mean_\nprint(mean)\n# 바꾼 훈련 자료의 열 평균이에요.\nprint(X_train_s.mean(axis=0).round(2))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 412.91666667] / [0.02 0.06 0.12]"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. fit 줄만 옮기고 X를 그대로 두면 여전히 전체 기준이에요."
+    },
+    {
+      "action": "patch_code",
+      "before": "# 전체 X로 기준을 재요. 아직 나누기 전이에요.\nscaler.fit(X)\n# 훈련 75%, 테스트 25%로 나눠요. X만 넣으면 두 몫이 나와요.\nX_train, X_test = train_test_split(X, test_size=0.25, random_state=42)",
+      "after": "# 훈련 75%, 테스트 25%로 나눠요. X만 넣으면 두 몫이 나와요.\nX_train, X_test = train_test_split(X, test_size=0.25, random_state=42)\n# 나눈 뒤 훈련 자료로만 기준을 재요.\nscaler.fit(X_train)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 4  483.88888889] / [ 0.  0. -0.]"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

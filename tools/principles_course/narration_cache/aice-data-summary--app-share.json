@@ -1,0 +1,41 @@
+{
+  "hash": "34ad8c8f9bf8db01b354906858775a076bc1ddb8a8f29bad8ed2f48cdb5e6328",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 지점 주문 자료예요. 실제 자료가 아니에요.\ndf = pd.read_csv('data/orders.csv')\n# 기준 금액이에요.\nlimit = 12000\n# 금액이 limit 이상인지 행마다 비교해요.\nabove = df['amount'] >= limit\n# True의 비율이에요. 분모는 비교한 행 수예요.\nresult = above.mean()\n# 결과를 화면에서 확인해요.\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 0.4"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 두 조건을 &로 묶어 평균을 내면 분모가 전체 주문이 돼요."
+    },
+    {
+      "action": "patch_code",
+      "before": "above = df['amount'] >= limit",
+      "after": "above = df[df['channel'] == 'app']['amount'] >= limit",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 0.6"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

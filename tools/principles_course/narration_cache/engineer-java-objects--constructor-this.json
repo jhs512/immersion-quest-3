@@ -1,0 +1,41 @@
+{
+  "hash": "2975676a5c0c1ca6da25db04c36a895c521825e87ea9a088d9ca28bf7c1a30ea",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "class Item {\n    // 상품마다 따로 갖는 가격이에요.\n    int price;\n\n    // new Item(값)을 하면 이 생성자가 실행돼요.\n    Item(int price) {\n        // 받은 가격을 필드에 담으려는 줄이에요.\n        price = price;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // 상품을 만들 때 넘길 가격이에요.\n        int cost = 4500;\n        // 괄호 안 값이 생성자의 price로 들어가요.\n        Item pen = new Item(cost);\n        // 객체의 price 필드를 출력해요.\n        System.out.println(\"가격: \" + pen.price);\n    }\n}\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 가격: 0"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `price = this.price;`처럼 거꾸로 쓰면 필드는 계속 0이에요."
+    },
+    {
+      "action": "patch_code",
+      "before": "price = price;",
+      "after": "this.price = price;",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 가격: 4500"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

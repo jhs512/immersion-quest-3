@@ -1,0 +1,41 @@
+{
+  "hash": "10362abb249dceb0e33cfd5bdaa723e87e34c559d4fba78a8903081ff49032d6",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.preprocessing import StandardScaler\n\n# 직접 만든 매장 자료예요. 실제 매장 자료가 아니에요.\ndf = pd.read_csv('data/stores.csv')\n# 입력 X는 좌석 수, 월세(천 원), 하루 방문자 수예요.\nX = df[['seats', 'rent', 'visitors']]\n# 훈련 75%, 테스트 25%로 나눠요. X만 넣으면 두 몫이 나와요.\nX_train, X_test = train_test_split(X, test_size=0.25, random_state=42)\n# 표준화 도구를 만들어요.\nscaler = StandardScaler()\n# 훈련 자료로 기준을 재고 바로 바꿔요.\nX_train_s = scaler.fit_transform(X_train)\n# 훈련 자료로 잰 평균이에요. 소수 둘째 자리까지 봐요.\nprint(scaler.mean_.round(2))\n# 테스트 자료를 바꿔요.\nX_test_s = scaler.fit_transform(X_test)\n# 지금 scaler에 남은 기준 평균이에요.\nmean = scaler.mean_\nprint(mean.round(2))\n# 바꾼 테스트 자료예요.\nprint(X_test_s.round(2))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 7 -0.37] /  [-0.99 -0.92 -0.99]]"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 테스트 자료로 다시 fit하면 기준이 테스트 평균으로 바뀌어요."
+    },
+    {
+      "action": "patch_code",
+      "before": "X_test_s = scaler.fit_transform(X_test)",
+      "after": "X_test_s = scaler.transform(X_test)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 4 -0.46] /  [-1.76 -1.77 -0.53]]"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

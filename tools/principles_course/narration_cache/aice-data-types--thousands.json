@@ -1,0 +1,41 @@
+{
+  "hash": "72ffd1aa629d7d406911340504726b092d6a84d68144323f9bcf88870aa6ae27",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 파일에는 \"1,200\"처럼 따옴표로 감싸 한 칸으로 둬요.\n# 읽는 규칙은 경로 뒤에 이름 붙은 인자로 더해요.\ndf = pd.read_csv('data/orders.csv')\n# price 열의 값을 모두 더해요.\nresult = df['price'].sum()\n# 합계를 확인해요. 글자 열이면 값이 이어 붙어요.\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 1,2008002,5001,0509503,000"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 이어 붙인 글자를 `int()`로 감싸면 ValueError가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "pd.read_csv('data/orders.csv')",
+      "after": "pd.read_csv('data/orders.csv', thousands=',')",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 9500"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

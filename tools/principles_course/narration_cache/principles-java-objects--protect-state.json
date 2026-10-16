@@ -1,0 +1,41 @@
+{
+  "hash": "16a0683d4fe2f08c6efa078f467aa218051f09810e7a5d76b411c2d66d013eed",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "class Exercise {\n    // 외부에서 잔액을 직접 바꾸지 못하게 해요.\n    private int balance=100;\n    boolean withdraw(int amount) {\n        // 이 조건이 상태의 규칙을 지켜요.\n        if(amount<0) return false;\n        balance-=amount;\n        return true;\n    }\n    // 검사에서 현재 상태를 확인해요.\n    int balance(){return balance;}\n}\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. true:70"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. 실행 성공과 모든 검사 통과는 달라요."
+    },
+    {
+      "action": "patch_code",
+      "before": "if(amount<0)",
+      "after": "if(amount<0 || amount>balance)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. true:70"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

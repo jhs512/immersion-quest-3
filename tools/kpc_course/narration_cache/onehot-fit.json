@@ -1,0 +1,165 @@
+{
+ "format": 2,
+ "hash": "4dabf8fde1ab61be",
+ "by": "claude",
+ "blocks": {
+  "title": "d5ce81a4651d",
+  "problem": "e3f6b4434f5e",
+  "starter": "f9cf27fa881e",
+  "example": "e3b0c44298fc",
+  "solution": "f9cd186e0273"
+ },
+ "sources": [
+  {
+   "block": "problem",
+   "hash": "e3f6b4434f5e"
+  },
+  {
+   "block": "starter",
+   "hash": "f9cf27fa881e"
+  },
+  {
+   "block": "solution",
+   "hash": "f9cd186e0273"
+  },
+  {
+   "block": "solution",
+   "hash": "f9cd186e0273"
+  },
+  {
+   "block": "solution",
+   "hash": "f9cd186e0273"
+  },
+  {
+   "block": "solution",
+   "hash": "f9cd186e0273"
+  },
+  {
+   "block": "solution",
+   "hash": "f9cd186e0273"
+  },
+  {
+   "block": "solution",
+   "hash": "f9cd186e0273"
+  },
+  {
+   "block": "solution",
+   "hash": "f9cd186e0273"
+  },
+  {
+   "block": "solution",
+   "hash": "f9cd186e0273"
+  },
+  {
+   "block": "solution",
+   "hash": "f9cd186e0273"
+  },
+  {
+   "block": "solution",
+   "hash": "f9cd186e0273"
+  },
+  {
+   "block": "solution",
+   "hash": "f9cd186e0273"
+  },
+  {
+   "block": "solution",
+   "hash": "f9cd186e0273"
+  },
+  {
+   "block": "solution",
+   "hash": "f9cd186e0273"
+  },
+  {
+   "block": "solution",
+   "hash": "f9cd186e0273"
+  },
+  {
+   "block": "solution",
+   "hash": "f9cd186e0273"
+  },
+  {
+   "block": "solution",
+   "hash": "f9cd186e0273"
+  }
+ ],
+ "entry": [
+  [
+   "problem",
+   "자, 앞 단원의 get_dummies를 모델 흐름에 맞는 도구로 바꿔요. 훈련 자료로 fit하고 테스트 자료엔 transform만 하는 거거든요."
+  ],
+  [
+   "starter",
+   "준비 코드엔 타이타닉을 읽고 X, y를 나눈 뒤 OneHotEncoder까지 불러와 있어요. 그대로 둘게요."
+  ],
+  [
+   "code",
+   "\n# One-hot 도구를 만들어요. 아직 아무것도 배우지 않은 빈 상태예요.\n# handle_unknown='ignore': 테스트에 처음 보는 값이 와도 오류 대신 전부 0으로 둬요.\n# sparse_output=False: 결과를 보통 배열로 받아요. 이게 없으면 보기 어려운 희소 행렬이 나와요.\nencoder = OneHotEncoder(handle_unknown='ignore', sparse_output=False)\n",
+   "먼저 encoder를 만들어요. handle_unknown='ignore'는 처음 보는 값이 나와도 0으로 두라는 뜻이에요. sparse_output=False는 보통 배열로 달라는 뜻이고요."
+  ],
+  [
+   "run",
+   "일단 실행해 볼게요."
+  ],
+  [
+   "output",
+   "아무것도 안 나오죠? 도구만 만들었지 아직 아무것도 안 배웠거든요."
+  ],
+  [
+   "try",
+   "train_encoded = encoder.fit_transform(X_train['성별'])\n",
+   "훈련 자료의 성별 열에 fit_transform이에요. 이렇게 대괄호 한 겹으로 해 볼까요?"
+  ],
+  [
+   "run",
+   "실행하면요."
+  ],
+  [
+   "output",
+   "빨간 글이 길게 쏟아지죠? 맨 아래 줄만 보면 돼요. ValueError예요. 열 하나를 한 겹으로 꺼내면 표가 아니라 한 줄짜리 Series거든요. 인코더는 표를 원해요."
+  ],
+  [
+   "undo",
+   "그래서 대괄호를 두 겹으로 써요. 열 하나짜리 표로 넘기는 거예요."
+  ],
+  [
+   "code",
+   "# 훈련 자료에는 fit_transform. 어떤 값이 있는지(여성, 남성) 배우고 바로 바꿔요.\n# 대괄호가 두 겹인 건 열 하나짜리 표(DataFrame)로 넘기려는 거예요. 한 겹이면 오류가 나요.\ntrain_encoded = encoder.fit_transform(X_train[['성별']])\n",
+   "두 겹으로 다시 써요. 어떤 값이 있는지 배우면서 바로 바꾸는 거죠."
+  ],
+  [
+   "run",
+   "다시 실행해요."
+  ],
+  [
+   "output",
+   "이번엔 아무 말 없이 조용히 지나가죠? 오류 없이 배우고 바꿨다는 뜻이에요."
+  ],
+  [
+   "caution",
+   "테스트 자료에도 똑같이 fit_transform을 쓰기 쉬운데, 그러면 테스트 자료를 들여다보는 셈이라 누수예요. 조심하세요."
+  ],
+  [
+   "code",
+   "# 테스트 자료에는 transform만. 훈련에서 배운 기준 그대로 바꿔요.\n# 여기서 fit_transform을 쓰면 테스트 자료를 들여다보는 셈이라 누수예요.\ntest_encoded = encoder.transform(X_test[['성별']])\n",
+   "테스트 자료엔 transform만 해요. 훈련에서 배운 기준을 그대로 쓰는 거거든요."
+  ],
+  [
+   "code",
+   "# shape는 (행 수, 열 수). 둘 다 열이 2개(여성, 남성)면 성공이에요.\nprint(train_encoded.shape, test_encoded.shape)\n",
+   "둘의 shape를 찍어서 열 개수를 확인해요."
+  ],
+  [
+   "run",
+   "실행해 볼게요."
+  ],
+  [
+   "output",
+   "(1047, 2) (262, 2)가 나왔죠? 훈련이 천사십칠 행, 테스트가 이백육십이 행이에요. 둘 다 열은 2개, 여성과 남성이고요."
+  ],
+  [
+   "submit",
+   "제출할게요."
+  ]
+ ]
+}

@@ -1,0 +1,41 @@
+{
+  "hash": "30a335b0a6b1932b09da9d88740f6f74bfcdfb9ce7fa58efdf4bc4bfa8bb1e7b",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n# 이 문제에 쓰는 도구를 불러와요.\nfrom sklearn.model_selection import train_test_split, GridSearchCV\nfrom sklearn.tree import DecisionTreeClassifier\n\n# 직접 만든 빵 공장 기록이에요. 실제 공장 자료가 아니에요.\ndf = pd.read_csv('data/bakery.csv')\n# weight는 반죽 무게, humidity는 습도, temp는 오븐 온도예요.\n# minutes는 굽는 시간이에요. defect가 1이면 불량 빵이에요.\nX = df.drop(columns=['defect'])\ny = df['defect']\n# 테스트 몫 25%는 마지막 확인용으로 남겨 둬요.\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.25, random_state=42, stratify=y)\n\n# 시험할 설정 이름과 값 목록이에요.\nparam_grid = {\n    'max_depth': [2, 3, 4, 6],\n}\n# 후보마다 3몫 교차검증을 하는 도구예요.\ngrid = GridSearchCV(DecisionTreeClassifier(random_state=42), param_grid, cv=3)\n# 찾기도 훈련 자료로만 해요.\ngrid.fit(X_train, y_train)\n# 후보별 교차검증 평균이에요. 이름과 달리 테스트 자료 점수가 아니에요.\nresult = pd.DataFrame(grid.cv_results_)\nprint('후보별 교차검증 평균')\nprint(result[['params', 'mean_test_score']].round(3))\n# 가장 좋은 설정과 그 교차검증 평균이에요.\nbest = grid.best_params_\nprint('고른 설정:', best)\nprint('교차검증 점수:', round(grid.best_score_, 3))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 'max_depth': 3} / 교차검증 점수: 0.856"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `'min_samples_leaf': 5`처럼 목록 없이 쓰면 TypeError가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "    'max_depth': [2, 3, 4, 6],\n",
+      "after": "    'max_depth': [2, 3, 4, 6],\n    'min_samples_leaf': [1, 5],\n",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. mples_leaf': 1} / 교차검증 점수: 0.856"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

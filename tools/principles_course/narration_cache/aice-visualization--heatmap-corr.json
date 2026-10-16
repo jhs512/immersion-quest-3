@@ -1,0 +1,41 @@
+{
+  "hash": "95ca25b1b8cf6b3cec9d796d7392e19e13321cceb117b577a584dae78de8cc86",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\nimport matplotlib.pyplot as plt\n# 통계 그래프 도구를 sns라는 별명으로 불러와요.\nimport seaborn as sns\n\n# 직접 만든 배달 기록이에요. 실제 고객 자료가 아니에요.\ndf = pd.read_csv('data/delivery.csv')\n# zone은 구역, distance는 거리(km)예요.\n# minutes는 배달 시간(분), price는 주문 금액(원)이에요.\n\n# 숫자 열 세 개로 그릴 표를 만들어요.\ntable = df[['distance', 'minutes', 'price']]\n# 표의 크기(행 수, 열 수)부터 봐요.\nprint(table.shape)\nprint(table.round(2))\n\n# table의 숫자를 칸마다 색으로 칠해요.\n# annot=True라서 칸 안에 숫자도 적혀요.\nsns.heatmap(table, annot=True)\nplt.title('상관 히트맵')\nplt.show()\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 0 / 11       1.0       14  11000"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `.corr`처럼 괄호를 빼면 표 대신 함수가 담겨 오류가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "table = df[['distance', 'minutes', 'price']]",
+      "after": "table = df[['distance', 'minutes', 'price']].corr()",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. ice        -0.05    -0.10   1.00"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

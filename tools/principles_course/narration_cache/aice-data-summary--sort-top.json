@@ -1,0 +1,41 @@
+{
+  "hash": "7f52ff9a4daf3b82bdb609a0de3eff934b5c00adbdd846c0007ecdf808849358",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 지점 주문 자료예요. 실제 자료가 아니에요.\ndf = pd.read_csv('data/orders.csv')\n# 남길 주문 수예요.\nn = 3\n# 금액 순서로 정렬한 뒤 앞의 n행을 남겨요.\nresult = df.sort_values('amount').head(n)\n# 남은 표의 크기예요. 앞 숫자가 행 수예요.\nprint(result.shape)\n# 결과를 화면에서 확인해요.\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  4  busan     app  9000.0      1"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. sorted처럼 `reverse=True`를 쓰면 TypeError가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "df.sort_values('amount')",
+      "after": "df.sort_values('amount', ascending=False)",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 6  daegu     web  12000.0      2"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

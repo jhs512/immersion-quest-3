@@ -1,0 +1,41 @@
+{
+  "hash": "bfe96f91965fd0e5ed3439fd44f6c9bfd7b91351086751348806cc7f14051255",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "class Member {\n    // 지금까지 만든 회원 수를 세는 필드예요.\n    int count;\n    // 이 회원이 받은 번호예요.\n    int no;\n\n    // 회원 객체를 만들 때마다 실행돼요.\n    Member() {\n        // 회원 수를 1 늘리고 그 값을 번호로 줘요.\n        count++;\n        no = count;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // 가입시킬 회원 수예요.\n        int people = 3;\n        // 첫 회원은 변수에 담아 끝까지 둬요.\n        Member first = new Member();\n        System.out.println(\"첫 회원 번호: \" + first.no);\n        // 나머지 회원을 하나씩 만들어요.\n        for (int i = 2; i <= people; i++) {\n            Member m = new Member();\n            // 방금 만든 회원의 번호를 출력해요.\n            System.out.println(\"회원 번호: \" + m.no);\n        }\n        // 다 만든 뒤 첫 회원의 번호를 다시 봐요.\n        System.out.println(\"끝난 뒤 첫 회원: \" + first.no);\n    }\n}\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  번호: 1 / 회원 번호: 1 / 끝난 뒤 첫 회원: 1"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. no에 static을 붙이면 모든 회원이 번호 하나를 같이 써요."
+    },
+    {
+      "action": "patch_code",
+      "before": "int count;",
+      "after": "static int count;",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.  번호: 2 / 회원 번호: 3 / 끝난 뒤 첫 회원: 1"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

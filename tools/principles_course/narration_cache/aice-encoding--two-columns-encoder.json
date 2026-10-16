@@ -1,0 +1,41 @@
+{
+  "hash": "3870b39f5ee5c373c23456f2495c85c36de8eba4a2e5632626fae0525cf5284a",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\nfrom sklearn.preprocessing import OneHotEncoder\n\n# 직접 만든 회원 자료를 훈련용과 테스트용으로 따로 받았어요.\ntrain = pd.read_csv('data/train.csv')\ntest = pd.read_csv('data/test.csv')\n# 결과를 0까지 모두 담은 배열로 받는 원핫 인코더예요.\nenc = OneHotEncoder(sparse_output=False)\n# 훈련 자료로 두 열을 한 번에 배우고 바꿔요.\nX_train = enc.fit_transform(train[['region', 'channel']])\n# 테스트 자료의 두 열도 바꿔요.\nX_test = enc.fit_transform(test[['region', 'channel']])\n# 인코더가 마지막으로 배운 열 이름이에요.\nprint(enc.get_feature_names_out())\n# 두 배열의 크기를 견줘요.\nprint(X_train.shape)\nprint(X_test.shape)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 'channel_web'] / (8, 6) / (4, 5)"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. transform만 고치면 처음 보는 범주에서 ValueError가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "enc = OneHotEncoder(sparse_output=False)\n# 훈련 자료로 두 열을 한 번에 배우고 바꿔요.\nX_train = enc.fit_transform(train[['region', 'channel']])\n# 테스트 자료의 두 열도 바꿔요.\nX_test = enc.fit_transform(test[['region', 'channel']])",
+      "after": "enc = OneHotEncoder(handle_unknown='ignore', sparse_output=False)\n# 훈련 자료로 두 열을 한 번에 배우고 바꿔요.\nX_train = enc.fit_transform(train[['region', 'channel']])\n# 테스트 자료의 두 열도 바꿔요.\nX_test = enc.transform(test[['region', 'channel']])",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. 'channel_web'] / (8, 6) / (4, 6)"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "hash": "194f3ae38b7a92a48d2c8439f7476a706e53443bae030d5fc7c9b84a24f1fad6",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "# 표 도구 pandas를 불러와요.\nimport pandas as pd\n# 자료를 나누는 함수예요.\nfrom sklearn.model_selection import train_test_split\n# 이번 문제에 쓸 도구를 불러와요.\nfrom sklearn.linear_model import LinearRegression\n\n# 직접 만든 배달 기록이에요. 실제 주문이 아니에요.\ndf = pd.read_csv('data/delivery.csv')\n# 입력 X는 거리·메뉴 수·혼잡 여부, 정답 y는 배달 시간(분)이에요.\nX = df[['distance', 'items', 'rush']]\ny = df['minutes']\n# 훈련 75%, 테스트 25%로 나눠요. random_state로 늘 같게 나눠요.\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)\n# 선형회귀를 훈련 자료로 배우고 테스트 행을 예측해요.\nmodel = LinearRegression()\nmodel.fit(X_train, y_train)\npred = model.predict(X_test)\n# 테스트 행 수예요. 표도 이만큼이어야 해요.\nprint(len(y_test))\n# 실제 시간과 예측을 나란히 놓은 표예요.\nresult = pd.DataFrame({'actual': y_test, 'pred': pd.Series(pred)})\n# 오차는 실제에서 예측을 뺀 값이에요.\nresult['error'] = result['actual'] - result['pred']\n# 표의 행 수와 표를 봐요. 소수 첫째 자리까지예요.\n# -0.0은 0보다 아주 조금 작은 오차를 반올림한 값이에요.\nprint(len(result))\nprint(result.round(1))\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.    NaN / 57    30.0   NaN    NaN"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. NaN 행을 dropna로 지우면 엉뚱한 짝이 남아요."
+    },
+    {
+      "action": "patch_code",
+      "before": "'pred': pd.Series(pred)",
+      "after": "'pred': pred",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요.   -3.2 / 52      42  40.5    1.5"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

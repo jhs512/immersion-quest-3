@@ -1,0 +1,5 @@
+{
+ "hash": "826af80ce44f3827",
+ "by": "claude",
+ "code": "import pandas as pd\ncredit = pd.read_csv('data/credit.csv')\ntarget = '다음달 부도'\n# 성별로 묶어서 타깃의 평균을 구해요. 타깃이 0/1이라 평균이 곧 부도율이에요\nrate_by_sex = credit.groupby('성별')[target].mean()\n# 학력도 똑같이 묶어요. 열 이름만 바뀌었죠?\nrate_by_education = credit.groupby('학력')[target].mean()\n# 나이는 숫자라서 그대로 묶으면 칸이 너무 많아요. pd.cut으로 구간을 나눠 새 열을 만들어요\n# bins는 경계, right=False면 왼쪽은 포함하고 오른쪽은 빼요(20 이상 30 미만이 20대)\n# labels는 구간 이름이에요. 경계가 6개니 이름은 5개, 하나 적어야 해요\ncredit['나이대'] = pd.cut(credit['나이'], bins=[20, 30, 40, 50, 60, 80], right=False, labels=['20대', '30대', '40대', '50대', '60대 이상'])\n# 새로 만든 나이대로 묶어요. observed=True는 자료가 없는 빈 구간을 빼라는 뜻이에요\nrate_by_age = credit.groupby('나이대', observed=True)[target].mean()\n# 셋을 차례로 출력해서 속성 사이 차이를 눈으로 봐요\nprint(rate_by_sex)\nprint(rate_by_education)\nprint(rate_by_age)\n"
+}

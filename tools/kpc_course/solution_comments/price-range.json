@@ -1,0 +1,5 @@
+{
+ "hash": "6e66179a7c03475b",
+ "by": "claude",
+ "code": "import pandas as pd\nprices = pd.read_csv('data/stock.csv', parse_dates=['날짜']).set_index('날짜').sort_index()\n# 인덱스가 날짜예요. 날짜 중 가장 이른 게 .min(), 가장 늦은 게 .max()\nfirst_date = prices.index.min()\nlast_date = prices.index.max()\n# '종가' 열의 .max()는 값이에요. 열 이름은 따옴표로 감싸야 해요\nmax_close = prices['종가'].max()\n# .idxmax()는 그 최대값이 있는 행 이름, 그러니까 날짜예요. max()와 헷갈리기 쉬워요\nmax_date = prices['종가'].idxmax()\n# 양 끝 날짜를 한 줄에, 최고 종가와 그 날짜를 한 줄에 출력해요\nprint(first_date, last_date)\nprint(max_close, max_date)\n"
+}

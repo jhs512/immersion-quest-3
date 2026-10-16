@@ -1,0 +1,41 @@
+{
+  "hash": "b7bcc51dae46ad7712633e4af8a9cffc5afd3ccf63d4eccb97633643415029f6",
+  "actions": [
+    {
+      "action": "set_code",
+      "code": "import pandas as pd\n\n# 직접 만든 지점 주문 자료예요. 실제 자료가 아니에요.\ndf = pd.read_csv('data/orders.csv')\n# 금액을 모두 봐요. NaN은 빈칸이에요.\nprint(df['amount'])\n# 보통 주문 한 건의 금액을 값 하나로 나타내요.\nresult = df['amount'].mean()\n# 결과를 화면에서 확인해요.\nprint(result)\n",
+      "say": "준비 코드를 먼저 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "expected_failure": false
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. amount, dtype: float64 / 21500.0"
+    },
+    {
+      "action": "say",
+      "target": "editor",
+      "text": "조심하세요. `df.median()`처럼 열을 안 고르면 글자 열 때문에 TypeError가 나요."
+    },
+    {
+      "action": "patch_code",
+      "before": "df['amount'].mean()",
+      "after": "df['amount'].median()",
+      "say": "작은 부분을 바꿔 원리를 확인해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "target": "output",
+      "text": "실행 결과를 비교해요. amount, dtype: float64 / 11500.0"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}
