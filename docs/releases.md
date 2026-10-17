@@ -17,3 +17,5 @@ main에 푸시하면 Windows x64 설치 프로그램과 macOS Apple Silicon·Int
 설정 근거: [GitHub 워크플로 권한·동시 실행 문법](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax).
 
 Mac 설치 이름은 몰입 퀘스트 3.app이에요. Finder에서 열어도 Homebrew와 사용자 도구 경로를 찾고, JDK 25는 macOS java_home으로 찾아요. 자동 업데이트는 실행 중인 Mac 아키텍처의 파일을 선택해요.
+
+Intel Mac의 한 줄 설치는 Python 3.12·TensorFlow 2.16.2를 사용해요. TensorFlow 공식 Intel Mac 지원은 2.16에서 끝나므로 Apple Silicon과 같은 최신 버전을 강제하지 않아요. 근거: https://www.tensorflow.org/install/pip
