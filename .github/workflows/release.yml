@@ -77,6 +77,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           key: macos-${{ matrix.arch }}
+          cache-on-failure: true
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -99,7 +100,7 @@ jobs:
           executable='target/bundle/몰입 퀘스트 3.app/Contents/MacOS/molip-quest'
           expected="$MQ3_MAC_ARCH"
           [ "$expected" != x64 ] || expected=x86_64
-          lipo -verify_arch "$expected" "$executable"
+          lipo "$executable" -verify_arch "$expected"
           "$executable" > target/macos-launch.log 2>&1 &
           app_pid=$!
           trap 'kill "$app_pid" 2>/dev/null || true' EXIT
