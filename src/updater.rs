@@ -195,7 +195,7 @@ pub fn download(release: &Release, mut progress: impl FnMut(u64, u64)) -> Result
         return Err("이 플랫폼의 설치 파일이 아니에요.".into());
     }
     // gh keeps credentials in its own credential store. No token is exposed to a command line.
-    let mut command = std::process::Command::new("gh");
+    let mut command = std::process::Command::new(crate::setup_terminal::gh_executable());
     command.args(["release", "download", "--repo", REPO, "--pattern", &release.asset_name,
         "--output"]).arg(&path).args(["--clobber", "--", &release.tag])
         .env("GH_HOST", "github.com").env("GH_PROMPT_DISABLED", "1");

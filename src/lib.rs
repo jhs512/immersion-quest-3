@@ -18,6 +18,8 @@ pub mod github_player;
 pub mod lesson_runner;
 pub mod tts;
 pub mod updater;
+#[cfg(not(target_os = "android"))]
+pub mod setup_terminal;
 
 #[derive(Clone, Deserialize, Serialize, PartialEq)]
 pub struct Course {

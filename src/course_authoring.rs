@@ -22,7 +22,11 @@ pub fn reference(github:&Github,text:&str)->Result<LessonRef,String> {
     Ok(LessonRef{id:lesson.id,title:lesson.title,repository:repo.into(),revision:revision.into(),sha256:format!("{:x}",Sha256::digest(raw.as_bytes())),prerequisites:vec![],required:true,review_enabled:lesson.review_enabled})
 }
 pub(crate) fn gh(args:&[&str],body:Option<Value>)->Result<Value,String> {
-    let mut command=Command::new("gh");command.args(args).env("GH_HOST","github.com").env("GH_PROMPT_DISABLED","1").stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped());
+    #[cfg(not(target_os="android"))]
+    let executable=crate::setup_terminal::gh_executable();
+    #[cfg(target_os="android")]
+    let executable=std::path::PathBuf::from("gh");
+    let mut command=Command::new(executable);command.args(args).env("GH_HOST","github.com").env("GH_PROMPT_DISABLED","1").stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped());
     #[cfg(windows)] command.creation_flags(0x08000000);
     let mut child=command.spawn().map_err(|_|"GitHub CLI를 찾지 못했어요. gh를 설치하고 gh auth login을 실행하세요.")?;
     if let Some(body)=body {child.stdin.take().ok_or("gh 입력 연결 실패")?.write_all(serde_json::to_string(&body).map_err(|e|e.to_string())?.as_bytes()).map_err(|e|e.to_string())?;}

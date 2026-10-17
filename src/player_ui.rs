@@ -14,6 +14,7 @@ pub fn RepositoryPlayer()->Element {
     let mut open=use_signal(||None::<OpenLesson>);
     let mut message=use_signal(String::new);
     let mut busy=use_signal(||false);
+    let mut checked=use_signal(||false);
     let mut repositories=use_signal(molip_quest::course_authoring::catalog);
     let mut show_builder=use_signal(||false);
     let mut course_search=use_signal(String::new);
@@ -21,6 +22,7 @@ pub fn RepositoryPlayer()->Element {
     let mut progress=use_signal(HashMap::<String,Vec<LearningEvent>>::new);
     let mut refresh=use_signal(||0u64);
     let connect=move ||async move {
+        checked.set(false);
         progress.set(HashMap::new());course.set(None);session.set(None);
         busy.set(true);message.set("gh 계정과 온라인 연결을 확인하고 있어요.".into());
         let github=Github::new();let gh=github.clone();
@@ -29,8 +31,12 @@ pub fn RepositoryPlayer()->Element {
             Err(e)=>{session.set(None);course.set(None);message.set(e);}
         }
         busy.set(false);
+        checked.set(true);
     };
-    use_future(connect);
+    let setup_preview=use_hook(||cfg!(debug_assertions)&&std::env::var_os("MOLIP_GH_SETUP_PREVIEW").is_some());
+    use_future(move ||async move {
+        if setup_preview {checked.set(true);}else{connect().await;}
+    });
     use_effect(move ||{
         let repos=repositories();let Some(s)=session() else{return};
         for repository in repos {
@@ -45,19 +51,12 @@ pub fn RepositoryPlayer()->Element {
         }
     }
     rsx!{
-        div {class:"repository-player",
+        div {class:if session().is_none(){"repository-player needs-gh"}else{"repository-player"},
             header {class:"repository-header",h1 {"몰입 퀘스트 3"}
                 if let Some(s)=session() {div {span {"gh · @{s.user.login}"}button {disabled:busy(),onclick:move |_|connect(),"gh 계정 다시 확인"}}}
             }
             if session().is_none() {
-                section {class:"card login-card",h2 {"gh 계정으로 학습을 시작해요"}
-                    p {"GitHub CLI의 현재 로그인 계정을 사용해요."}
-                    p {"터미널에서 아래 명령으로 로그인하세요."}pre {"gh auth login --hostname github.com"}
-                    p {"계정을 바꾸려면 gh auth switch를 사용하세요."}
-                    p {"학습과 진도 기록에는 인터넷 연결이 필요해요."}
-                    a {href:"https://cli.github.com/",target:"_blank",rel:"noopener noreferrer","GitHub CLI 설치 안내"}
-                    button {class:"primary",disabled:busy(),onclick:move |_|connect(),"gh 연결 다시 확인"}
-                }
+                crate::gh_setup_ui::GhSetup {message:message(),checking:!checked(),onretry:move |_|{spawn(connect());}}
             } else {
                 div {class:"course-shell",
                 aside {class:"course-sidebar",aria_label:"과정 목록",
@@ -127,7 +126,7 @@ pub fn RepositoryPlayer()->Element {
                 }
                 }
             }
-            p {class:"repository-status",role:"status","{message}"}
+            if session().is_some() {p {class:"repository-status",role:"status","{message}"}}
         }
     }
 }

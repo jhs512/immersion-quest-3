@@ -4,6 +4,7 @@ mod instructor_mode;
 mod practice;
 mod ui;
 mod player_ui;
+mod gh_setup_ui;
 use dioxus::prelude::*;
 use molip_quest::Course;
 use ui::Learning;
@@ -104,6 +105,7 @@ fn App() -> Element {
         // First, so every input created later inherits the IME-safe value setter.
         document::eval(include_str!("../assets/layout/ime.js"));
         document::eval(include_str!("../assets/editor/editor.bundle.js"));
+        document::eval(include_str!("../assets/terminal/terminal.bundle.js"));
         // The comic SDK is an ES module, so the loader imports it from a Blob URL built from this string.
         document::eval(&format!(
             "window.__molipComicGenSource={};window.__molipMermaidSource={};{}",
@@ -146,6 +148,7 @@ window.molipVoice && molipVoice.setName({});",
         }
         {fullscreen_toggle}
         style {{include_str!("../assets/repository-player.css")}}
+        style {{include_str!("../assets/terminal/terminal.bundle.css")}}
         if cfg!(debug_assertions) && std::env::var_os("MOLIP_LEGACY").is_some() { Workspace {} } else { player_ui::RepositoryPlayer {} }
     }
 }
