@@ -48,7 +48,7 @@ def safe_lesson_update(repo, current, raw):
     if current is None or current == raw:
         return
     old, new = json.loads(current), json.loads(raw)
-    assert old['revision'] == 'v1.0.0' and new['revision'] == 'v1.0.1', (repo, 'only authored narration revision')
+    assert (old['revision'], new['revision']) in {('v1.0.0', 'v1.0.1'), ('v1.0.1', 'v1.0.2'), ('v1.0.2', 'v1.0.3')}, (repo, 'only authored narration revision')
     assert read(repo, 'lesson.json', old['revision']) == current, (repo, 'previous version must remain immutable')
     for item in (old, new):
         item.pop('revision')

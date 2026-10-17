@@ -22,12 +22,22 @@
   const byText = (selector, text) => [...document.querySelectorAll(selector)].find(b => b.textContent.trim() === text);
   // Wait for a run or a grading to finish: the button comes back, or the reward card is up (a
   // passed quiz keeps its 제출 button disabled, so the card is the signal there).
-  async function waitIdle(button, limit = 180000) {
+  async function waitIdle(button, limit = 180000, previousExecution = null, active = () => !cancelled) {
     const started = Date.now();
-    await sleep(200);
-    while (button.isConnected && button.disabled && !cleared() && Date.now() - started < limit) await sleep(150);
-    await sleep(250);
+    const pane = document.querySelector('.result-pane');
+    if (previousExecution === null) await sleep(40);
+    // Execution and history synchronization are separate operations. A run id also
+    // catches quick programs that finish between two render frames.
+    while (active() && button.isConnected && Date.now() - started < limit) {
+      if (previousExecution !== null && pane?.dataset.executionId !== previousExecution
+          && ['finished','failed'].includes(pane?.dataset.executionState)) return;
+      if (previousExecution === null && (!button.disabled || cleared())) return;
+      await sleep(40);
+    }
+    if (active() && button.isConnected && Date.now() - started >= limit)
+      throw new Error('실행이 끝나지 않았어요. 실행 상태를 확인하세요.');
   }
+
   const text = (selector, max = 3000) => [...document.querySelectorAll(selector)].map(e => e.textContent.trim()).filter(Boolean).join('\n').slice(0, max);
   function workspaceReport() {
     return [text('.result-pane .execution-status'), text('.result-pane .output')].filter(Boolean).join('\n');
@@ -45,6 +55,7 @@
     blanks: ['.code-blanks', 'input.code-blank', '.editor-pane'],
     input: ['.result-pane textarea', '.result-pane details', '.result-pane'],
     output: ['.result-pane .output', '.result-pane'],
+    memory: ['.narration-memory'],
     run: [() => byText('.pane-actions button', '코드 실행'), '.pane-actions'],
     submit: [() => byText('.pane-actions button', '제출'), '.pane-actions'],
     hint: ['.problem-pane details', '.hint', '.problem-pane'],
@@ -212,6 +223,33 @@
     clearMarks();
     globalThis.molipCodeEditors?.highlightLines(null);
     if (spot) { spot.hidden = true; caption.hidden = true; }
+    document.querySelector('.narration-memory')?.remove();
+  }
+
+  function showMemory(diagram) {
+    if (!diagram || !Array.isArray(diagram.rows)) return;
+    const host = document.querySelector('.problem-pane');
+    if (!host) throw new Error('메모리 그림을 표시할 문제 패널이 없어요.');
+    let panel = host.querySelector('.narration-memory');
+    if (!panel) {
+      panel = document.createElement('figure');
+      panel.className = 'narration-memory';
+      panel.setAttribute('aria-label', '해설 메모리 그림');
+      host.prepend(panel);
+    }
+    panel.replaceChildren();
+    const title = document.createElement('figcaption');
+    title.textContent = String(diagram.title || '변수와 연결');
+    panel.append(title);
+    for (const row of diagram.rows) {
+      const line = document.createElement('div');
+      line.className = 'narration-memory-row';
+      for (const [i, cell] of String(row).split('→').entries()) {
+        if (i) { const arrow = document.createElement('span'); arrow.textContent = '→'; arrow.className = 'narration-memory-arrow'; line.append(arrow); }
+        const box = document.createElement('span'); box.className = 'narration-memory-cell'; box.textContent = cell.trim(); line.append(box);
+      }
+      panel.append(line);
+    }
   }
 
   // ---- Voice: one sentence at a time, resolved when it has been read (or would have been). ----
@@ -343,30 +381,24 @@
   async function typeCode(code, replace, active = () => !cancelled) {
     const api = window.molipCodeEditors;
     if (!api || !api.appendValue || !api.getValue) throw new Error('코드 편집기를 찾지 못했습니다');
-    if (replace && !api.setValue('')) throw new Error('이 미션에는 코드 편집기가 없습니다 (코딩 미션에서만 됩니다)');
     const current = api.getValue();
     if (current === null) throw new Error('이 미션에는 코드 편집기가 없습니다 (코딩 미션에서만 됩니다)');
     let body = String(code ?? '');
     if (!body.endsWith('\n')) body += '\n';
-    if (current && !current.endsWith('\n')) body = '\n' + body;
-    for (let i = 0; i < body.length && active(); i += 2) {
-      if (paused) await waitWhilePaused();
-      if (!active()) break;
-      api.appendValue(body.slice(i, i + 2));
-      const line = api.getValue().split('\n').length;
-      api.highlightLines?.(line, line);
-      spotlight('editor', caption?.textContent || '');
-      await sleep(18);
-    }
+    if (!replace && current && !current.endsWith('\n')) body = '\n' + body;
+    await animateEdit(replace ? 0 : current.length, current.length, body, active);
     return body.split('\n').filter(line => line.trim()).length;
   }
 
   const lineAt = (code, offset) => code.slice(0, offset).split('\n').length;
+  const lastCodeLine = source => Math.max(1, source.trimEnd().split('\n').length);
   function focusCode(action, next) {
     const api = globalThis.molipCodeEditors;
     if (!api?.highlightLines) return;
     if (Array.isArray(action.lines)) { api.highlightLines(...action.lines); return; }
     const source = api.getValue() || '';
+    if (action.action === 'run') { const line=lastCodeLine(source); api.highlightLines(line,line,true); return; }
+    if (action.target === 'output') return;
     const edit = action.action === 'patch_code' ? action : next?.action === 'patch_code' ? next : null;
     if (edit && edit.before) {
       const from = source.indexOf(edit.before);
@@ -376,7 +408,7 @@
       const desired = String(action.code ?? '');
       let from = 0;
       while (from < source.length && from < desired.length && source[from] === desired[from]) from++;
-      api.highlightLines(lineAt(source, from));
+      api.highlightLines(source === desired ? lastCodeLine(source) : lineAt(source, from));
     } else if (action.action === 'type_code') api.highlightLines(source.split('\n').length);
     else if (action.target === 'editor') {
       if (!document.querySelector('.cm-narration-line')) api.highlightLines(1);
@@ -386,28 +418,54 @@
   async function animateEdit(from, to, insert, active = () => !cancelled) {
     const api = globalThis.molipCodeEditors;
     const source = api.getValue();
+    const element = document.querySelector('textarea[data-code-editor]');
+    let expected = source;
+    const ensureUnchanged = () => {
+      if (api.getValue() !== expected || (element && !element.isConnected)) {
+        const message = '코드가 바뀌었어요. 해설을 다시 재생해 주세요.';
+        globalThis.molipToast?.(message, 'warn');
+        throw new Error(message);
+      }
+    };
     const startLine = lineAt(source, from);
-    if (!api.replaceRange) { api.setValue(source.slice(0, from) + insert + source.slice(to)); return; }
-    const points = Array.from(insert);
-    if (paused) await waitWhilePaused();
-    if (!active()) return;
+    const replace = (from,to,text) => {
+      ensureUnchanged();
+      expected = expected.slice(0,from) + text + expected.slice(to);
+      return api.replaceRange ? api.replaceRange(from,to,text) : api.setValue(expected);
+    };
+    const characters = text => globalThis.Intl?.Segmenter
+      ? [...new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(text)].map(part=>part.segment)
+      : Array.from(text);
+    const delay = ms => sleep(ms * 1.5 / (globalThis.molipVoice?.rate || 1.5));
+    let offset = to;
     api.highlightLines?.(startLine, lineAt(source, Math.max(from, to - 1)));
-    // The selection disappears as the first typed character replaces it.
-    api.replaceRange(from, to, '');
-    let offset = from;
-    for (let i = 0; i < points.length && active(); i += 2) {
-      await waitWhilePaused();
-      if (!active()) break;
-      const piece = points.slice(i, i + 2).join('');
-      api.replaceRange(offset, offset, piece);
-      offset += piece.length;
-      api.highlightLines?.(startLine, lineAt(api.getValue(), offset));
-      spotlight('editor', caption?.textContent || '');
-      await sleep(24);
+    for (const point of characters(source.slice(from,to)).reverse()) {
+      await waitWhilePaused(); if (!active()) return;
+      replace(offset-point.length,offset,''); offset-=point.length;
+      const end=lineAt(api.getValue(),Math.max(from,offset-1));
+      api.highlightLines?.(startLine,Math.max(startLine,end));
+      spotlight('editor',caption?.textContent || '');
+      await delay(35);
     }
+    for (const point of characters(insert)) {
+      await waitWhilePaused(); if (!active()) return;
+      replace(offset,offset,point); offset+=point.length;
+      api.highlightLines?.(startLine,lineAt(api.getValue(),Math.max(from,offset-1)));
+      spotlight('editor',caption?.textContent || '');
+      await delay(45);
+    }
+    if (active()) ensureUnchanged();
   }
 
   const handlers = {
+    async set_input(a) {
+      const input = document.querySelector('.result-pane textarea[aria-label="실행 입력"]');
+      if (!input) throw new Error('실행 입력 칸을 찾지 못했어요.');
+      input.value = String(a.value ?? '');
+      input.dispatchEvent(new Event('input', {bubbles:true}));
+      await sleep(40);
+      return '해설의 첫 예제 입력을 준비했어요.';
+    },
     async say(a) {
       // The spotlight and speech were started by run(); nothing else to do.
       return '설명: ' + String(a.text || '').slice(0, 80);
@@ -462,18 +520,20 @@
       await sleep(300);
       return `빈칸 ${Math.min(inputs.length, values.length)}개를 채웠습니다.`;
     },
-    async run() {
+    async run(a, active) {
       const button = byText('.pane-actions button', '코드 실행');
       if (!button) throw new Error('코드 실행 버튼이 없습니다 (코딩 미션에서만 됩니다)');
+      const previous=document.querySelector('.result-pane')?.dataset.executionId ?? null;
       button.click();
-      await waitIdle(button);
+      await sleep(40);
+      await waitIdle(button,180000,previous,active);
       return '실행 결과:\n' + (workspaceReport() || '(출력 없음)');
     },
-    async submit() {
+    async submit(a, active) {
       const button = byText('.pane-actions button', '제출');
       if (!button) throw new Error('제출 버튼이 없습니다 (코딩 미션에서만 됩니다)');
       button.click();
-      await waitIdle(button);
+      await waitIdle(button,180000,null,active);
       await sleep(400);
       const passed = cleared();
       return (passed ? '제출 결과: 통과. 미션 클리어로 기록됐습니다 (정답 카드가 떠 있습니다).\n' : '제출 결과:\n') + (workspaceReport() || '(출력 없음)');
@@ -582,6 +642,7 @@
         if (!handler) { lines.push(`${i + 1}. ${name}: 모르는 동작입니다 (가능: ${Object.keys(handlers).join(', ')})`); continue; }
         try {
           const sentence = name === 'say' ? action.text : action.say;
+          showMemory(action.diagram);
           focusCode(action, actions[i + 1]);
           if (name !== 'type_code' && name !== 'answer_quiz') {
             spotlight(action.target || (DEFAULT_TARGET[name] ? DEFAULT_TARGET[name](action) : null), sentence);
