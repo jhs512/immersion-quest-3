@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 # 몰입 퀘스트 macOS 한 줄 설치:
-#   curl -fsSL https://raw.githubusercontent.com/jhs512/molip-quest/main/packaging/macos/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/jhs512/immersion-quest-3/main/packaging/macos/install.sh | bash
 # 최신 DMG를 받아 Applications에 넣고, 학습용 Python 환경(pandas·scikit-learn 등)을 앱 데이터 폴더에
 # 만든 뒤 앱을 엽니다. curl로 받은 파일에는 격리(quarantine) 속성이 붙지 않아 Gatekeeper의
 # "열지 않음" 창 없이 바로 열립니다. 이미 설치돼 있으면 앱과 환경을 최신으로 바꿉니다.
 set -euo pipefail
 
-repo=jhs512/molip-quest
-app="몰입 퀘스트.app"
+repo=jhs512/immersion-quest-3
+app="몰입 퀘스트 3.app"
 # src/lib.rs data_dir(): directories crate가 macOS에서 쓰는 Application Support 경로.
 support="$HOME/Library/Application Support/MolipQuest.MolipQuest"
 env_dir="$support/ml-env"
 
 if [ "$(uname -s)" != Darwin ]; then echo "이 설치 스크립트는 macOS 전용입니다."; exit 1; fi
-if [ "$(uname -m)" != arm64 ]; then echo "Apple Silicon(M1 이상) Mac만 지원합니다. 이 Mac은 $(uname -m)입니다."; exit 1; fi
+case "$(uname -m)" in arm64) arch=arm64 ;; x86_64) arch=x64 ;; *) echo "지원하지 않는 Mac 아키텍처예요."; exit 1 ;; esac
 
 dest=/Applications
 [ -w "$dest" ] || { dest="$HOME/Applications"; mkdir -p "$dest"; }
@@ -24,12 +24,15 @@ trap cleanup EXIT
 
 echo "[1/3] 최신 설치 파일을 내려받습니다."
 curl -fL --progress-bar -o "$tmp/molip-quest.dmg" \
-  "https://github.com/$repo/releases/latest/download/molip-quest-macos-arm64.dmg"
+  "https://github.com/$repo/releases/latest/download/molip-quest-3-macos-${arch}.dmg"
 mount=$(hdiutil attach "$tmp/molip-quest.dmg" -nobrowse -readonly | awk -F'\t' '/\/Volumes\//{print $NF}' | head -n 1)
 [ -d "$mount/$app" ] || { echo "DMG 안에서 앱을 찾지 못했습니다."; exit 1; }
-rm -rf "$dest/$app"
+if [ -e "$dest/$app" ]; then
+  backup="$dest/${app%.app}.previous.app"
+  [ ! -e "$backup" ] || { echo "기존 백업을 먼저 정리해 주세요: $backup"; exit 1; }
+  mv "$dest/$app" "$backup"
+fi
 ditto "$mount/$app" "$dest/$app"
-xattr -dr com.apple.quarantine "$dest/$app" 2>/dev/null || true
 hdiutil detach "$mount" -quiet; mount=""
 echo "      $dest/$app"
 

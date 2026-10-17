@@ -11,6 +11,7 @@ use ui::Learning;
 
 #[cfg(feature = "desktop")]
 fn main() {
+    molip_quest::setup_terminal::prepare_desktop_path();
     // No menu bar on Windows and Linux: the app is driven from its own screens, slides have their
     // own fullscreen button. macOS keeps Dioxus's default menu, which is what makes ⌘C, ⌘V, ⌘X
     // and ⌘A reach the page (without an Edit menu the WebView never sees them); it lives in the

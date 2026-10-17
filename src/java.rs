@@ -21,6 +21,13 @@ pub fn executable() -> String {
             return path.to_string_lossy().into_owned();
         }
     }
+    #[cfg(target_os = "macos")]
+    if let Ok(output) = std::process::Command::new("/usr/libexec/java_home").args(["-v", "25"]).output() {
+        if output.status.success() {
+            let path = PathBuf::from(String::from_utf8_lossy(&output.stdout).trim()).join("bin/java");
+            if path.is_file() { return path.to_string_lossy().into_owned(); }
+        }
+    }
     "java".into()
 }
 

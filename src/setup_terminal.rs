@@ -3,6 +3,20 @@ use portable_pty::{native_pty_system, CommandBuilder, MasterPty, PtySize};
 use std::{io::{Read, Write}, path::PathBuf};
 use tokio::sync::mpsc;
 
+/// Finder starts GUI apps with a minimal PATH. Resolve the same tools as a terminal.
+/// Call once, before the desktop runtime creates threads.
+pub fn prepare_desktop_path() {
+    #[cfg(target_os = "macos")]
+    {
+        let mut paths = gh_directories();
+        if let Some(home) = std::env::var_os("HOME") {
+            paths.push(PathBuf::from(home).join(".local/bin"));
+        }
+        paths.extend(std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default()));
+        if let Ok(path) = std::env::join_paths(paths) { std::env::set_var("PATH", path); }
+    }
+}
+
 pub struct SetupTerminal {
     master: Box<dyn MasterPty + Send>,
     writer: Box<dyn Write + Send>,

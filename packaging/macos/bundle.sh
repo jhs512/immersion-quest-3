@@ -8,8 +8,12 @@ set -euo pipefail
 cd "$(dirname "$0")/../.."
 
 version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -n 1)
-app="target/bundle/몰입 퀘스트.app"
-rm -rf target/bundle target/installers/molip-quest-macos-arm64.dmg
+arch="${MQ3_MAC_ARCH:-$(uname -m)}"
+case "$arch" in arm64|x64) ;; x86_64) arch=x64 ;; *) echo "Unsupported architecture: $arch" >&2; exit 1 ;; esac
+app="target/bundle/몰입 퀘스트 3.app"
+image="target/installers/molip-quest-3-macos-${arch}.dmg"
+rm -rf target/bundle
+rm -f "$image"
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources" target/installers
 
 cp target/release/molip-quest "$app/Contents/MacOS/molip-quest"
@@ -34,5 +38,5 @@ fi
 
 cp "packaging/macos/먼저 읽어 주세요.txt" target/bundle/
 ln -s /Applications target/bundle/Applications
-hdiutil create -volname "몰입 퀘스트" -srcfolder target/bundle -ov -format UDZO \
-  target/installers/molip-quest-macos-arm64.dmg
+hdiutil create -volname "몰입 퀘스트 3" -srcfolder target/bundle -ov -format UDZO \
+  "$image"

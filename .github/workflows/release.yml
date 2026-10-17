@@ -1,4 +1,4 @@
-name: MQ3 Windows release
+name: MQ3 desktop release
 on:
   push:
     branches: [main]
@@ -55,9 +55,65 @@ jobs:
           path: target/installers/molip-quest-3-windows-x64-setup.exe
           if-no-files-found: error
           retention-days: 7
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    env:
+      MACOSX_DEPLOYMENT_TARGET: '12.0'
+      MQ3_MAC_ARCH: ${{ matrix.arch }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: macos-${{ matrix.arch }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Verify updater and interactive terminal
+        run: |
+          cargo test --release --locked --lib updater::tests
+          cargo test --release --locked --lib setup_terminal::tests
+      - name: Verify C, Java and Python execution on this Mac
+        run: cargo test --release --locked --test macos_runtime
+      - name: Build and package macOS app
+        run: |
+          cargo build --release --locked --bin molip-quest
+          bash packaging/macos/bundle.sh
+          codesign --verify --deep --strict 'target/bundle/몰입 퀘스트 3.app'
+          hdiutil verify "target/installers/molip-quest-3-macos-${MQ3_MAC_ARCH}.dmg"
+      - name: Verify native launch and architecture
+        run: |
+          set -euo pipefail
+          executable='target/bundle/몰입 퀘스트 3.app/Contents/MacOS/molip-quest'
+          expected="$MQ3_MAC_ARCH"
+          [ "$expected" != x64 ] || expected=x86_64
+          lipo -verify_arch "$expected" "$executable"
+          "$executable" > target/macos-launch.log 2>&1 &
+          app_pid=$!
+          trap 'kill "$app_pid" 2>/dev/null || true' EXIT
+          sleep 12
+          kill -0 "$app_pid" || { cat target/macos-launch.log; exit 1; }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mq3-macos-${{ matrix.arch }}
+          path: target/installers/molip-quest-3-macos-${{ matrix.arch }}.dmg
+          if-no-files-found: error
+          retention-days: 7
   release:
     if: github.repository == 'jhs512/immersion-quest-3' && github.ref == 'refs/heads/main'
-    needs: windows
+    needs: [windows, macos]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -68,13 +124,14 @@ jobs:
           persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
-          name: mq3-windows-x64
+          pattern: mq3-*
+          merge-multiple: true
           path: target/release-assets
       - name: Require completed installer and checksum
         run: |
           set -euo pipefail
-          python3 tools/verify-release-assets.py target/release-assets --windows-only
-          (cd target/release-assets && sha256sum molip-quest-3-windows-x64-setup.exe > SHA256SUMS)
+          python3 tools/verify-release-assets.py target/release-assets --desktop
+          (cd target/release-assets && sha256sum molip-quest-3-windows-x64-setup.exe molip-quest-3-macos-*.dmg > SHA256SUMS)
       - name: Publish only after uploading verified assets
         env:
           GH_TOKEN: ${{ github.token }}
@@ -91,8 +148,8 @@ jobs:
               exit 0
             fi
           else
-            printf 'MQ3 Windows x64 installer. Source commit: %s\n\nRequires gh login and repository access for private-repository updates.\nWindows code signing is not configured.\n' "$COMMIT_SHA" > "$RUNNER_TEMP/notes.md"
+            printf 'MQ3 Windows x64 and macOS arm64/x64 installers. Source commit: %s\n\nLearning progress uses your existing gh login.\nWindows code signing and Apple notarization are not configured.\n' "$COMMIT_SHA" > "$RUNNER_TEMP/notes.md"
             gh release create "$tag" --draft --target "$COMMIT_SHA" --title "몰입 퀘스트 3 · $tag" --notes-file "$RUNNER_TEMP/notes.md"
           fi
-          gh release upload "$tag" --clobber target/release-assets/molip-quest-3-windows-x64-setup.exe target/release-assets/SHA256SUMS
+          gh release upload "$tag" --clobber target/release-assets/molip-quest-3-windows-x64-setup.exe target/release-assets/molip-quest-3-macos-*.dmg target/release-assets/SHA256SUMS
           gh release edit "$tag" --draft=false --latest
