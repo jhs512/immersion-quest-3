@@ -101,7 +101,8 @@ print(json.dumps({'text': '새로 검토한 핵심 흐름'}))
                 worker = root / 'model.py'
                 worker.write_text(program, encoding='utf-8')
                 model = JsonReviewModel([sys.executable, str(worker)],
-                                        model_revision='invalid-fixture-v1', timeout=0.2)
+                    model_revision='invalid-fixture-v1',
+                    timeout=0.2 if error is subprocess.TimeoutExpired else 10)
                 with ReviewLedger(root / 'review.db') as ledger:
                     with self.assertRaises(error) as failure:
                         ledger.assess(Artifact('g', 'goal', 'before'), Artifact('g', 'goal', 'after'),
