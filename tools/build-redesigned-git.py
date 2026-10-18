@@ -6,9 +6,10 @@ import json
 from pathlib import Path
 
 from lesson_prd import content_hash, validate
+from redesigned_lessons.python_prepared_checks import checker as python_prepared_checker
 
 ROOT = Path(__file__).resolve().parents[1]
-LESSONS = {'git-first': ('git_first', 'git-first-1', 'k'), 'git-branch': ('git_branch', 'git-branch-1', 'l'), 'java-values': ('java_values', 'java-values-1', 'n'), 'aice-python-start': ('aice_python_start', 'aice-python-start-1', 'o')}
+LESSONS = {'git-first': ('git_first', 'git-first-1', 'k'), 'git-branch': ('git_branch', 'git-branch-1', 'l'), 'java-values': ('java_values', 'java-values-1', 'n'), 'aice-python-start': ('aice_python_start', 'aice-python-start-1', 'o'), 'aice-python-conditions': ('aice_python_conditions', 'aice-python-conditions-1', 'p')}
 
 
 def digest(value):
@@ -33,7 +34,13 @@ def build(name, check=False):
     validate(prd, require_approval=True)
     authored = json.loads((SOURCE / 'content.json').read_text(encoding='utf-8'))
     steps = [step for chapter in prd['chapters'] for unit in chapter['units'] for step in unit['steps']]
-    tasks = authored['tasks']
+    tasks = copy.deepcopy(authored['tasks'])
+    for task in tasks:
+        cases = authored.get('prepared_cases', {}).get(task['id'])
+        if cases is not None:
+            if task['language'] != 'python' or task.get('interaction'):
+                raise ValueError('준비 자료 검사는 파이썬 코드 문제에만 넣어요.')
+            task['checker'] = python_prepared_checker(cases)
     if [task['id'] for task in tasks] != [step['id'] for step in steps]:
         raise ValueError('제작한 스텝이 승인된 PRD 구성과 달라요.')
     stale = []

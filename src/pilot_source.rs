@@ -44,7 +44,7 @@ fn store() -> Result<&'static Mutex<Store>,String> {
 fn user() -> Value { json!({"id":987654321,"login":"mq3-validation"}) }
 
 pub fn set_version(version: char) -> Result<(), String> {
-    if !matches!(version,'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h'|'i'|'j'|'k'|'l'|'m'|'n'|'o') { return Err("검증 버전을 확인하세요.".into()); }
+    if !matches!(version,'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h'|'i'|'j'|'k'|'l'|'m'|'n'|'o'|'p') { return Err("검증 버전을 확인하세요.".into()); }
     let mut state=store()?.lock().map_err(|_|"검증 저장소 잠금 오류")?;
     commit(&mut state,|next|{next.version=version;next.corrupted=false;Ok(())})
 }
@@ -54,6 +54,8 @@ pub fn corrupt_update()->Result<(),String> {
 }
 fn snapshot(version: char, file: &str) -> Result<&'static str, String> {
     match (version, file) {
+        ('p', "course.json") => Ok(include_str!("../tests/fixtures/player-pilot/p/course.json")),
+        ('p', "lesson.json") => Ok(include_str!("../courses/redesigned/aice-python-conditions.json")),
         ('o', "course.json") => Ok(include_str!("../tests/fixtures/player-pilot/o/course.json")),
         ('o', "lesson.json") => Ok(include_str!("../courses/redesigned/aice-python-start.json")),
         ('n', "course.json") => Ok(include_str!("../tests/fixtures/player-pilot/n/course.json")),
@@ -108,7 +110,7 @@ pub fn request(args: &[&str], payload: Option<Value>) -> Result<Value, String> {
         let prefix = format!("repos/{repository}/contents/{file}?ref=");
         if method == "GET" { if let Some(revision) = route.strip_prefix(&prefix) {
             let version = if file == "course.json" && revision == "main" { state.version } else {
-                match revision { "pilot-a" => 'a', "pilot-b" => 'b', "pilot-c" => 'c', "pilot-d" => 'd', "pilot-e" => 'e', "pilot-f" => 'f', "pilot-g" => 'g', "pilot-h" => 'h', "pilot-i" => 'i', "pilot-j" => 'j', "git-first-1" => 'k', "git-branch-1" => 'l', "pilot-m" => 'm', "java-values-1" => 'n', "aice-python-start-1" => 'o', _ => return Err("검증 콘텐츠 버전 오류".into()) }
+                match revision { "pilot-a" => 'a', "pilot-b" => 'b', "pilot-c" => 'c', "pilot-d" => 'd', "pilot-e" => 'e', "pilot-f" => 'f', "pilot-g" => 'g', "pilot-h" => 'h', "pilot-i" => 'i', "pilot-j" => 'j', "git-first-1" => 'k', "git-branch-1" => 'l', "pilot-m" => 'm', "java-values-1" => 'n', "aice-python-start-1" => 'o', "aice-python-conditions-1" => 'p', _ => return Err("검증 콘텐츠 버전 오류".into()) }
             };
             let raw = snapshot(version,file)?;
             let damaged=if state.corrupted && file=="lesson.json" {format!("{raw} ")}else{raw.to_owned()};
