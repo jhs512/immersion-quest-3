@@ -12,7 +12,10 @@ def materialize(tree, lesson, course, task_goals, *, revision):
     """
     if tree.has_pending:
         raise ValueError('미완료 검토가 있어 후보를 만들 수 없어요.')
-    if (course.get('repository') != 'mq3-validation/course' or len(course.get('lessons', [])) != 1
+    if (course.get('repository') != 'mq3-validation/course'
+            or course.get('id') != 'crs_3f59e7bd-70c1-4e81-9cb0-000000000001'
+            or lesson.get('id') != 'lsn_3f59e7bd-70c1-4e81-9cb0-000000000002'
+            or len(course.get('lessons', [])) != 1
             or course['lessons'][0].get('repository') != 'mq3-validation/lesson'
             or course['lessons'][0].get('id') != lesson.get('id')):
         raise ValueError('고정된 개발 검증 코스에서만 후보를 만들어요.')

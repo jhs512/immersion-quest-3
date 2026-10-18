@@ -1,5 +1,6 @@
 """A reviewed local result becomes only an isolated validation-course candidate."""
 import hashlib
+import copy
 import json
 from pathlib import Path
 import tempfile
@@ -50,6 +51,10 @@ class CandidateTests(unittest.TestCase):
                 lambda _: '숫자 3을 출력한 뒤 제출하세요.', assessor_key='fixture-v1', generator_key='fixture-v1')
             with self.assertRaisesRegex(ValueError, '스텝'):
                 materialize(tree, lesson, course, {content.key: lesson['tasks'][1]['id']}, revision='pilot-i')
+            other_course = copy.deepcopy(course)
+            other_course['id'] = 'crs_3f59e7bd-70c1-4e81-9cb0-000000000099'
+            with self.assertRaisesRegex(ValueError, '고정된'):
+                materialize(tree, lesson, other_course, mapping, revision='pilot-i')
             candidate, raw = materialize(tree, lesson, course, mapping, revision='pilot-i')
             output = json.loads(raw)
             self.assertEqual(output['tasks'][0]['goal'], '숫자 3을 출력한 뒤 제출하세요.')
