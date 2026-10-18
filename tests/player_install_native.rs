@@ -175,6 +175,12 @@ fn real_macos_image_replaces_disposable_player_and_restores_its_state() {
     let updates = session.directory().join("updates");
     std::fs::create_dir_all(&updates).unwrap();
     let image = updates.join("release.dmg");
+    // Temporary probe for the Intel runner's image-creation ENOSPC failure.
+    eprintln!("[DEBUG-dmgspace] binary bytes: {}", std::fs::metadata(source.join("몰입 퀘스트 3.app/Contents/MacOS/molip-quest")).unwrap().len());
+    for (tool,args) in [("df",vec!["-h"]),("du",vec!["-sk"])] {
+        let result=Command::new(tool).args(args).arg(&source).output().unwrap();
+        eprintln!("[DEBUG-dmgspace] {tool}: {} {}",String::from_utf8_lossy(&result.stdout),String::from_utf8_lossy(&result.stderr));
+    }
     command(
         Path::new("hdiutil"),
         &[
