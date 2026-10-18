@@ -101,7 +101,6 @@ impl GitPractice {
         query("마지막 커밋",vec!["log","-1","--format=%s"],checks.head_message.clone(),false)?;
         query("작업 폴더",vec!["status","--porcelain"],String::new(),false)?;
         if let Some(branch)=&checks.branch {query("현재 브랜치",vec!["branch","--show-current"],branch.clone(),false)?;}
-        for (file,content) in &checks.tracked_files {validate_file(file,content)?;query("추적 파일",vec!["show",&format!("HEAD:{file}")],content.clone(),false)?;}
         if checks.pushed {
             let head=self.execute(&self.work(),&["rev-parse","HEAD"],false)?;
             query("원격 main 커밋",vec!["rev-parse","refs/remotes/origin/main"],String::from_utf8_lossy(&head.stdout).trim().into(),false)?;
@@ -109,6 +108,12 @@ impl GitPractice {
             let remote=self.execute(&self.root().join("remote.git"),&["rev-parse","refs/heads/main"],false)?;
             let remote_ok=head.status.success()&&remote.status.success()&&head.stdout==remote.stdout;
             cases.push(TestCaseResult{input:"로컬 원격의 실제 커밋".into(),expected:String::from_utf8_lossy(&head.stdout).into_owned(),stdout:String::from_utf8_lossy(&remote.stdout).into_owned(),stderr:String::from_utf8_lossy(&remote.stderr).into_owned(),passed:remote_ok,state:"git_artifact".into()});
+        }
+        for (file,content) in &checks.tracked_files {
+            validate_file(file,content)?;
+            let result=self.execute(&self.work(),&["show",&format!("HEAD:{file}")],false)?;
+            let stdout=String::from_utf8_lossy(&result.stdout).into_owned();
+            cases.push(TestCaseResult{input:format!("추적 파일 {file}"),expected:content.clone(),passed:result.status.success()&&stdout==*content,stdout,stderr:String::from_utf8_lossy(&result.stderr).into_owned(),state:"git_artifact".into()});
         }
         if !self.exercise.commands.is_empty() {cases.extend(self.check_commands()?.cases);}
         Ok(TestReport{passed:cases.iter().all(|case|case.passed),cases})

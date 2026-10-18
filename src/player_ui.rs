@@ -262,6 +262,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     let initial=use_hook(||molip_quest::drafts::load(&key).ok().flatten().or_else(||molip_quest::drafts::load(&previous_key).ok().flatten()).map(|d|d.code).unwrap_or_else(||task.starter_code.clone()));
     let mut code=use_signal(||initial.clone());let mut reset=use_signal(||0u64);
     let mut git_practice=use_signal(||None::<crate::git_terminal_ui::Practice>);
+    let mut git_control=use_signal(||None::<crate::git_terminal_ui::TerminalControl>);
     let mut input=use_signal(||task.tests.first().map(|t|t.input.clone()).unwrap_or_default());
     let mut busy=use_signal(||false);let mut message=use_signal(String::new);let mut output=use_signal(String::new);
     let mut preview=use_signal(String::new);
@@ -275,7 +276,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     let mut history_message=use_signal(String::new);
     use_effect(|| { document::eval("const s=document.querySelector('select.repository-narration-rate');if(s&&window.molipVoice)s.value=String(molipVoice.rate);"); });
     let required=selected.lesson.required_tasks();
-    let filename=if task.interaction.is_some(){"답안".to_string()}else if task.entry_file.is_empty(){task.language.filename().to_string()}else{task.entry_file.clone()};
+    let filename=if task.git_terminal.is_some(){"Git 터미널".to_string()}else if task.interaction.is_some(){"답안".to_string()}else if task.entry_file.is_empty(){task.language.filename().to_string()}else{task.entry_file.clone()};
     // Show the data this problem reads before other files bundled with the lesson.
     let mut provided_files=task.files.iter().map(|(name,body)|{
         let used=task.starter_code.contains(name.as_str())||task.solution.contains(name.as_str());
@@ -325,7 +326,18 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
             div {class:"split-handle split-col",role:"separator",tabindex:0,aria_label:"문제와 코드 패널 크기 조절",aria_orientation:"vertical"}
             section {class:"coding-pane",div {class:"pane-heading",strong {"{filename}"}
                 div {class:"pane-actions",
-                    button {disabled:busy()||narrating(),onclick:{let starter=task.starter_code.clone();let key=key.clone();move |_|{if narrating(){return;}git_practice.set(None);code.set(starter.clone());reset+=1;let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}},"초기화"}
+                    button {disabled:busy()||narrating(),onclick:{let starter=task.starter_code.clone();let key=key.clone();move |_|{
+                        if narrating(){return;}
+                        if let Some(control)=git_control() {
+                            busy.set(true);message.set("Git 실습을 초기화하고 있어요.".into());
+                            spawn(async move {
+                                match github_player::background(move||control.shutdown()).await {
+                                    Ok(())=>{git_practice.set(None);git_control.set(None);reset+=1;message.set(String::new());},Err(error)=>message.set(error)
+                                }
+                                busy.set(false);
+                            });
+                        }else{code.set(starter.clone());reset+=1;let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}
+                    }},"초기화"}
                     if task.interaction.is_none()&&task.git_terminal.is_none() {
                     button {disabled:busy(),onclick:{let task=task.clone();let github=session.github.clone();let user=session.user.clone();let selected=selected.clone();move |_|{let task=task.clone();let github=github.clone();let user=user.clone();let selected=selected.clone();async move {
                         busy.set(true);execution_id+=1;execution_state.set("running");execution_seconds.set(0);
@@ -399,9 +411,9 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
             div {class:"editor-pane",
                 if let Some(exercise)=task.git_terminal.clone() {
                     div {style:if narrating(){"display:none"}else{"height:100%"},
-                        {rsx!{crate::git_terminal_ui::GitTerminal {key:"git-{reset}",exercise:exercise.clone(),demo:false,onready:move |practice|git_practice.set(Some(practice))}}}
+                        {rsx!{crate::git_terminal_ui::GitTerminal {key:"git-{reset}",exercise:exercise.clone(),demo:false,onready:move |practice|git_practice.set(Some(practice)),oncontrol:move |control|git_control.set(Some(control))}}}
                     }
-                    if narrating() {crate::git_terminal_ui::GitTerminal {exercise,demo:true,onready:move |_|{}}}
+                    if narrating() {crate::git_terminal_ui::GitTerminal {exercise,demo:true,onready:move |_|{},oncontrol:move |_|{}}}
                 }else if let Some(interaction) = task.interaction.clone() {
                     crate::interaction_ui::InteractionEditor { interaction, value: code(), disabled: busy()||narrating(), onchange: {let key=key.clone();move |value:String|{code.set(value);if !narrating(){let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}}} }
                 } else {

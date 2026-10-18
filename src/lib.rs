@@ -23,6 +23,8 @@ pub mod updater;
 pub mod update_handoff;
 pub mod content_updates;
 pub mod git_practice;
+#[cfg(not(target_os="android"))]
+mod process_scope;
 #[cfg(not(target_os = "android"))]
 pub mod setup_terminal;
 

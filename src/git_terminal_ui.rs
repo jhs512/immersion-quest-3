@@ -9,11 +9,20 @@ impl Drop for TerminalSession {
         if shell.shutdown().is_err(){std::mem::forget(practice);}drop(shell);
     });}}
 }
+#[derive(Clone)]
+pub struct TerminalControl {owned:Arc<Mutex<Option<TerminalSession>>>}
+impl TerminalControl {
+    pub fn shutdown(&self)->Result<(),String> {
+        let mut guard=self.owned.lock().unwrap_or_else(|e|e.into_inner());
+        if let Some(session)=guard.as_mut(){if let Some(shell)=session.shell.as_mut(){shell.shutdown()?;}}
+        guard.take();Ok(())
+    }
+}
 #[derive(serde::Deserialize)]
 struct Input {kind:String,#[serde(default)] data:String,#[serde(default)] rows:u16,#[serde(default)] cols:u16,#[serde(default)] args:Vec<String>,#[serde(default)] token:u64}
 fn shell_quote(value:&str)->String {if cfg!(windows){format!("'{}'",value.replace('\'',"''"))}else{format!("'{}'",value.replace('\'',"'\\''"))}}
 #[component]
-pub fn GitTerminal(exercise:GitExercise,demo:bool,onready:EventHandler<Practice>)->Element {
+pub fn GitTerminal(exercise:GitExercise,demo:bool,onready:EventHandler<Practice>,oncontrol:EventHandler<TerminalControl>)->Element {
     use base64::Engine;
     let owned=use_hook(||Arc::new(Mutex::new(None::<TerminalSession>)));
     let mut error=use_signal(String::new);
@@ -35,6 +44,7 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,onready:EventHandler<Practice>
         let (session,mut output)=match opened {Ok(Ok(pair))=>pair,Ok(Err(e))=>{error.set(e);return;},Err(e)=>{error.set(e.to_string());return;}};
         let practice=session.practice.clone();
         *owned.lock().unwrap_or_else(|e|e.into_inner())=Some(session);
+        oncontrol.call(TerminalControl{owned:owned.clone()});
         let prompt=if cfg!(windows){"PS "}else{"$ "};
         let script=format!("(async()=>{{window.{bridge_name}.mount(event=>dioxus.send(event),()=>{{}},'{owner}');const deadline=Date.now()+15000;while(!window.{bridge_name}.text('{owner}').includes('{prompt}')){{if(Date.now()>deadline)return;await new Promise(resolve=>setTimeout(resolve,30));}}dioxus.send({{kind:'ready'}});{}}})()",if demo {
             "window.molipGitTutor={next:0,pending:new Map(),command(args){return new Promise(resolve=>{const token=++this.next;this.pending.set(token,resolve);dioxus.send({kind:'command',args,token});});},resolve(token,value){this.pending.get(token)?.(value);this.pending.delete(token);},dispose(){for(const resolve of this.pending.values())resolve(false);this.pending.clear();}};"

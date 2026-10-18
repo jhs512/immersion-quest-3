@@ -21,6 +21,7 @@ pub struct SetupTerminal {
     master: Box<dyn MasterPty + Send>,
     writer: Box<dyn Write + Send>,
     child: Option<Box<dyn portable_pty::Child + Send + Sync>>,
+    scope:Option<crate::process_scope::ProcessScope>,
 }
 
 fn gh_directories() -> Vec<PathBuf> {
@@ -49,7 +50,7 @@ impl SetupTerminal {
         #[cfg(windows)]
         let mut command={let mut c=CommandBuilder::new("powershell.exe");c.args(["-NoLogo","-NoProfile"]);c};
         #[cfg(not(windows))]
-        let mut command=if practice.is_some(){let mut c=CommandBuilder::new("/bin/bash");c.args(["--noprofile","--norc"]);c}else{CommandBuilder::new(std::env::var_os("SHELL").unwrap_or_else(||"/bin/sh".into()))};
+        let mut command=if practice.is_some(){let mut c=CommandBuilder::new("/bin/bash");c.args(["--noprofile","--norc","-i","+m"]);c}else{CommandBuilder::new(std::env::var_os("SHELL").unwrap_or_else(||"/bin/sh".into()))};
         let paths=gh_directories().into_iter().chain(std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default()).collect::<Vec<_>>());
         if let Ok(path)=std::env::join_paths(paths) {command.env("PATH",path);}
         command.env("TERM","xterm-256color");
@@ -61,7 +62,10 @@ impl SetupTerminal {
         }
         let mut reader=pair.master.try_clone_reader().map_err(|e|e.to_string())?;
         let writer=pair.master.take_writer().map_err(|e|e.to_string())?;
-        let child=pair.slave.spawn_command(command).map_err(|e|e.to_string())?;
+        let mut child=pair.slave.spawn_command(command).map_err(|e|e.to_string())?;
+        let scope=if practice.is_some(){match crate::process_scope::ProcessScope::attach(child.as_ref()) {
+            Ok(scope)=>Some(scope),Err(error)=>{let _=child.kill();let _=child.wait();return Err(error);}
+        }}else{None};
         drop(pair.slave);
         let (tx,rx)=mpsc::channel(32);
         // Bytes stay in memory; TextDecoder in the terminal handles split UTF-8 sequences.
@@ -72,13 +76,14 @@ impl SetupTerminal {
                 Ok(n)=>if tx.blocking_send(bytes[..n].to_vec()).is_err(){break;},
             }}
         });
-        Ok((Self{master:pair.master,writer,child:Some(child)},rx))
+        Ok((Self{master:pair.master,writer,child:Some(child),scope},rx))
     }
     pub fn input(&mut self,data:&str)->Result<(),String> {
         self.writer.write_all(data.as_bytes()).and_then(|_|self.writer.flush()).map_err(|e|e.to_string())
     }
     /// Call on a worker thread before replacing a practice directory.
     pub fn shutdown(&mut self)->Result<(),String> {
+        if let Some(scope)=&self.scope {scope.terminate()?;}
         if let Some(child)=self.child.as_mut() {
             child.kill().map_err(|e|e.to_string())?;
             for _ in 0..50 {
@@ -95,6 +100,7 @@ impl SetupTerminal {
 }
 impl Drop for SetupTerminal {
     fn drop(&mut self) {
+        if let Some(scope)=&self.scope {let _=scope.terminate();}
         if let Some(mut child)=self.child.take() {
             let _=child.kill();
             std::thread::spawn(move ||{let _=child.wait();});

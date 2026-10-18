@@ -90,3 +90,44 @@ fn published_git_steps_can_choose_command_only_state_only_or_both() {
     let mut raw:serde_json::Value=serde_json::from_str(include_str!("fixtures/player-pilot/h/lesson.json")).unwrap();raw["tasks"][0]["git_terminal"]["commands"]=serde_json::json!([]);
     let state_only:molip_quest::repository_course::Lesson=serde_json::from_value(raw).unwrap();assert!(state_only.validate().is_ok());
 }
+
+#[test]
+fn closing_practice_stops_its_background_child_but_keeps_an_outside_process() {
+    use std::process::{Command,Stdio};
+    #[cfg(windows)] use std::os::windows::process::CommandExt;
+    let outside=tempfile::tempdir().unwrap();let ready=outside.path().join("owned-ready");let leaked=outside.path().join("owned-leaked");let safe=outside.path().join("outside-alive");
+    let extension=if cfg!(windows){"ps1"}else{"sh"};let owned_script=outside.path().join(format!("owned.{extension}"));let safe_script=outside.path().join(format!("outside.{extension}"));
+    let script=|started:Option<&std::path::Path>,output:&std::path::Path|{
+        if cfg!(windows) {format!("{}Start-Sleep -Seconds 3;Set-Content -LiteralPath '{}' alive",started.map(|path|format!("Set-Content -LiteralPath '{}' ready;",path.display())).unwrap_or_default(),output.display())}
+        else {format!("{}sleep 3;printf alive > '{}'",started.map(|path|format!("printf ready > '{}';",path.display())).unwrap_or_default(),output.display())}
+    };
+    std::fs::write(&owned_script,script(Some(&ready),&leaked)).unwrap();std::fs::write(&safe_script,script(None,&safe)).unwrap();
+    let mut external=Command::new(if cfg!(windows){"powershell.exe"}else{"/bin/sh"});
+    if cfg!(windows){external.args(["-NoProfile","-File"]);}
+    external.arg(&safe_script).stdout(Stdio::null()).stderr(Stdio::null());
+    #[cfg(windows)] external.creation_flags(0x08000000);
+    let mut external=external.spawn().unwrap();
+    let practice=GitPractice::new(GitExercise::default()).unwrap();let (mut shell,mut output)=practice.open_terminal().unwrap();
+    let command=if cfg!(windows){format!("Start-Process powershell.exe -WindowStyle Hidden -ArgumentList '-NoProfile','-File','\"{}\"'\r",owned_script.display())}else{format!("nohup /bin/sh '{}' >/dev/null 2>&1 &\r",owned_script.display())};
+    let mut seen=String::new();let mut sent=false;let deadline=std::time::Instant::now()+std::time::Duration::from_secs(15);
+    while std::time::Instant::now()<deadline {
+        while let Ok(bytes)=output.try_recv(){let chunk=String::from_utf8_lossy(&bytes);if chunk.contains("\x1b[6n"){shell.input("\x1b[1;1R").unwrap();}seen.push_str(&chunk);}
+        if !sent&&(!cfg!(windows)||seen.contains("PS ")){shell.input(&command).unwrap();sent=true;}
+        if ready.exists(){break;}std::thread::sleep(std::time::Duration::from_millis(30));
+    }
+    assert!(ready.exists(),"background process must actually start: {seen}");
+    shell.shutdown().unwrap();drop(shell);drop(practice);
+    assert!(external.wait().unwrap().success());
+    std::thread::sleep(std::time::Duration::from_secs(1));
+    assert!(safe.exists(),"unrelated external process must remain alive");
+    assert!(!leaked.exists(),"owned background process survived terminal shutdown");
+}
+
+#[test]
+fn tracked_file_goals_preserve_significant_trailing_bytes() {
+    let practice=GitPractice::new(GitExercise::default()).unwrap();
+    let checks=molip_quest::repository_course::GitChecks{minimum_commits:1,head_message:"Start".into(),tracked_files:std::collections::BTreeMap::from([("tracked.txt".into(),"initial\n".into())]),branch:Some("main".into()),pushed:false};
+    assert!(practice.check(&checks).unwrap().passed);
+    std::fs::write(practice.work().join("tracked.txt"),"initial").unwrap();practice.git(&["commit","-am","Start"]).unwrap();
+    assert!(!practice.check(&checks).unwrap().passed);
+}

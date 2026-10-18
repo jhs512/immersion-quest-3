@@ -63,3 +63,19 @@ test('choice explanation changes the visible answer then restores it without sub
   assert.equal(result.value,'student');assert.equal(result.submissions,0);
  } finally {await browser.close();}
 });
+
+test('Git explanation invokes the real command bridge and waits for its completion',async()=>{
+ const browser=await chromium.launch({channel:'msedge',headless:true});
+ try {
+  const page=await browser.newPage();
+  await page.setContent('<article class="repository-task"><div id="git-demo-terminal"></div></article>');
+  await page.evaluate(()=>{window.calls=[];window.molipGitTutor={command(args){calls.push(args);return new Promise(resolve=>window.finishCommand=resolve);}};});
+  await page.addScriptTag({content:fs.readFileSync('assets/layout/agent.js','utf8')});
+  await page.evaluate(()=>{molipAgent.setVoice(false);window.finished=false;window.demo=molipAgent.runExplanation([{action:'git_command',args:['branch','--show-current']}]).then(()=>finished=true);});
+  await page.waitForFunction(()=>window.calls.length===1,{},{timeout:1500});
+  assert.equal(await page.evaluate(()=>finished),false);
+  assert.deepEqual(await page.evaluate(()=>calls),[['branch','--show-current']]);
+  await page.evaluate(()=>finishCommand(true));await page.evaluate(()=>demo);
+  assert.equal(await page.evaluate(()=>finished),true);
+ }finally{await browser.close();}
+});

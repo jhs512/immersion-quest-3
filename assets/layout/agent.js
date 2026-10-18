@@ -474,7 +474,6 @@
       if (!completed) throw new Error('Git 명령의 완료를 확인하지 못했어요.');
       return '실제 Git 명령이 끝났어요.';
     },
-    git_command: () => '#git-demo-terminal',
     choose_answer: a => demonstrateAnswer(String(a.id ?? '')),
     order_answer: a => demonstrateAnswer(JSON.stringify(a.ids ?? [])),
     fill_answer: a => demonstrateAnswer(String(a.value ?? '')),
@@ -631,6 +630,7 @@
   };
   // Where each action's spotlight goes when it carries "say" (type_code places its own).
   const DEFAULT_TARGET = {
+    git_command: () => '#git-demo-terminal',
     choose_answer: a => `answer:${a.id}`, order_answer: () => '.answer-order', fill_answer: () => '[aria-label="빈칸 답안"]',
     say: a => a.target || null, set_code: () => 'editor', patch_code: () => 'editor', fill_blanks: () => 'blanks', run: () => 'run', submit: () => 'submit',
     answer_quiz: () => 'quiz', next: () => 'nav', prev: () => 'nav', goto: () => 'missions', next_slide: () => 'slides', finish_slides: () => 'slides',

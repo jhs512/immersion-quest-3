@@ -214,6 +214,7 @@
     await wait(() => mq3GitTerminal.text().includes("Switched to a new branch 'student-work'"), 'student branch before demonstration');
     await click('해설 재생 · 정답 실행');
     await wait(() => molipAgent.running, 'Git explanation starts');
+    await wait(() => mq3GitDemoTerminal.text().split('\n').some(line=>line.trim()==='main'), 'teacher real Git output from independent main branch');
     await wait(() => !molipAgent.running && !button('해설 재생 · 정답 실행').disabled, 'real Git demonstration completes');
     await click('제출');
     await wait(() => status('다시 풀어보세요'), 'teacher Git command does not pass student');
