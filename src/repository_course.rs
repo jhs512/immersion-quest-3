@@ -180,7 +180,12 @@ impl Lesson {
         for t in &self.tasks {
             crate::supporting_materials::validate(&t.supporting_materials)?;
             if let Some(exercise)=&t.git_terminal {
-                if t.language!=TaskLanguage::Git||t.interaction.is_some(){return Err("Git 터미널 문제의 종류를 확인하세요.".into())}
+                if t.language!=TaskLanguage::Git {return Err("Git 터미널 문제의 종류를 확인하세요.".into())}
+                if let Some(interaction)=&t.interaction {
+                    if !matches!(interaction,crate::task_interaction::Interaction::Choice{..})||t.git_checks.is_some()||exercise.has_goal() {
+                        return Err("Git 관찰 문제에는 선택 답안만 판정하세요.".into());
+                    }
+                }
                 exercise.validate()?;
             }
             if t.hints.len()>5||t.hints.iter().any(|hint|hint.len()>8000){return Err("힌트 개수와 길이를 확인하세요.".into())}

@@ -333,9 +333,10 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                         if narrating(){return;}
                         if let Some(control)=git_control() {
                             busy.set(true);message.set("Git 실습을 초기화하고 있어요.".into());
+                            let key=key.clone();let starter=starter.clone();
                             spawn(async move {
                                 match github_player::background(move||control.shutdown()).await {
-                                    Ok(())=>{git_practice.set(None);git_control.set(None);reset+=1;message.set(String::new());},Err(error)=>message.set(error)
+                                    Ok(())=>{git_practice.set(None);git_control.set(None);code.set(starter);let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());reset+=1;message.set(String::new());},Err(error)=>message.set(error)
                                 }
                                 busy.set(false);
                             });
@@ -378,7 +379,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                         busy.set(true);message.set("검사하고 있어요.".into());let gh=session.github.clone();let uid=session.user.id;
                         let authenticated=github_player::background(move||gh.ensure_user(uid)).await;
                         match authenticated {
-                            Err(e)=>message.set(e),Ok(())=>match if task.git_terminal.is_some() {
+                            Err(e)=>message.set(e),Ok(())=>match if task.git_terminal.is_some()&&task.interaction.is_none() {
                                 let practice=git_practice();let checks=task.git_checks.clone();
                                 github_player::background(move||{
                                     let practice=practice.ok_or("Git 터미널이 준비되지 않았어요.")?;
@@ -411,12 +412,17 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                     }}},"제출"}
                 }
             }
-            div {class:"editor-pane",
+            div {class:"editor-pane",style:if task.git_terminal.is_some()&&task.interaction.is_some(){"display:flex;flex-direction:column"}else{""},
                 if let Some(exercise)=task.git_terminal.clone() {
-                    div {style:if narrating(){"display:none"}else{"height:100%"},
+                    div {style:if narrating(){"display:none"}else if task.interaction.is_some(){"flex:1;min-height:90px;overflow:hidden"}else{"height:100%"},
                         {rsx!{crate::git_terminal_ui::GitTerminal {key:"git-{reset}",exercise:exercise.clone(),demo:false,scope:Some(key.clone()),fresh:reset()>0,onready:move |practice|git_practice.set(Some(practice)),oncontrol:move |control|git_control.set(Some(control))}}}
                     }
-                    if narrating() {crate::git_terminal_ui::GitTerminal {exercise,demo:true,onready:move |_|{},oncontrol:move |_|{}}}
+                    if narrating() {div {style:if task.interaction.is_some(){"flex:1;min-height:90px;overflow:hidden"}else{"height:100%"},crate::git_terminal_ui::GitTerminal {exercise,demo:true,onready:move |_|{},oncontrol:move |_|{}}}}
+                    if let Some(interaction)=task.interaction.clone() {
+                        div {style:"flex:none;max-height:50%;overflow:auto",
+                            crate::interaction_ui::InteractionEditor {interaction,value:code(),disabled:busy()||narrating(),onchange:{let key=key.clone();move |value:String|{code.set(value);if !narrating(){let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}}}}
+                        }
+                    }
                 }else if let Some(interaction) = task.interaction.clone() {
                     crate::interaction_ui::InteractionEditor { interaction, value: code(), disabled: busy()||narrating(), onchange: {let key=key.clone();move |value:String|{code.set(value);if !narrating(){let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}}} }
                 } else {

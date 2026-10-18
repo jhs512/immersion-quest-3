@@ -397,7 +397,9 @@ def main():
 
 
 if __name__ == "__main__":
-    if sys.argv[1:2] == ["--saturday-specials"]:
+    if sys.argv[1:2] == ["--redesigned-git-first"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git-first.py"), *sys.argv[2:]], check=True)
+    elif sys.argv[1:2] == ["--saturday-specials"]:
         subprocess.run([sys.executable, str(ROOT / "tools/build-saturday-specials.py"), *sys.argv[2:]], check=True)
     elif sys.argv[1:] == ["--certification-foundations"]:
         subprocess.run([sys.executable, str(ROOT / "tools/build-certification-foundations.py")], check=True)

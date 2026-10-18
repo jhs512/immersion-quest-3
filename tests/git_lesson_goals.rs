@@ -83,3 +83,23 @@ fn staging_goal_accepts_equivalent_add_commands_but_rejects_a_commit_or_differen
     std::fs::write(practice.work().join("memo.txt"),"첫 메모\n").unwrap();
     assert!(!practice.check_exercise().unwrap().passed);
 }
+
+#[tokio::test]
+async fn learner_can_inspect_a_real_git_repository_and_submit_a_choice_about_it() {
+    let mut value:serde_json::Value=serde_json::from_str(include_str!("fixtures/player-pilot/h/lesson.json")).unwrap();
+    let task=&mut value["tasks"][0];
+    task.as_object_mut().unwrap().remove("git_checks");
+    task["git_terminal"]=serde_json::json!({"initial_history":"empty","files":{"memo.txt":"first\n"}});
+    task["interaction"]=serde_json::json!({"kind":"choice","options":[{"id":"untracked","text":"Not recorded"},{"id":"recorded","text":"Recorded"}],"answer":"untracked"});
+    let lesson:molip_quest::repository_course::Lesson=serde_json::from_value(value).unwrap();
+    assert!(lesson.validate().is_ok());
+    let task=&lesson.tasks[0];
+    let practice=GitPractice::new(task.git_terminal.clone().unwrap()).unwrap();
+    assert_eq!(practice.git(&["status","--porcelain"]).unwrap().stdout,"?? memo.txt\n");
+    assert!(!molip_quest::lesson_runner::check(task,"recorded").await.unwrap().passed);
+    assert!(molip_quest::lesson_runner::check(task,"untracked").await.unwrap().passed);
+    assert!(!practice.git(&["rev-parse","--verify","HEAD"]).unwrap().success);
+    let mut ambiguous=lesson.clone();
+    ambiguous.tasks[0].git_terminal.as_mut().unwrap().commands=vec![vec!["status".into()]];
+    assert!(ambiguous.validate().is_err(),"A choice must not silently bypass an additional repository goal");
+}

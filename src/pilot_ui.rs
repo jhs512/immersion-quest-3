@@ -18,7 +18,7 @@ pub fn PilotPlayer() -> Element {
             format!("window.mq3RestartPhase={};{}",serde_json::to_string(phase).unwrap(),include_str!("../tools/player-pilot-restart.js"))
         } else {include_str!("../tools/player-pilot-native.js").to_owned()};
         let mut bridge = document::eval(&script);
-        let result = match tokio::time::timeout(std::time::Duration::from_secs(240), bridge.recv::<serde_json::Value>()).await {
+        let result = match tokio::time::timeout(std::time::Duration::from_secs(360), bridge.recv::<serde_json::Value>()).await {
             Ok(Ok(result)) => result,
             _ => serde_json::json!({"passed":false,"error":"Native WebView test timed out or disconnected"}),
         };
@@ -48,7 +48,7 @@ pub fn PilotPlayer() -> Element {
     rsx! {
         aside { class: "pilot-toolbar", aria_label: "개발 검증 도구",
             span { "개발 검증 전용 · 외부 계정 기록 없음" }
-            for version in ['a', 'b', 'c', 'd', 'e', 'f', 'h', 'i', 'j'] {
+            for version in ['a', 'b', 'c', 'd', 'e', 'f', 'h', 'i', 'j', 'k'] {
                 button { onclick: move |_| {
                     match pilot_source::set_version(version) {
                         Ok(()) => {

@@ -404,6 +404,63 @@
     await click('준비 완료 · 연결 확인');
     checked.push('panel handles resize, terminal shortcut/UTF-8 work, and centered existing gh setup runs a real shell');
 
+    await click('버전 k');
+    await wait(() => document.querySelector('.lesson-card')?.textContent.includes('git-first-1'), 'approved first Git lesson');
+    await click('풀모드 시작');
+    let commandSequence=0;
+    const gitReady=async()=>wait(()=>document.querySelector('.repository-task')?.dataset.gitReady==='true' && window.mq3GitTerminal && document.querySelector('[aria-label="Git 실습 터미널 입력"]'),'first Git terminal ready',45000);
+    const runGit=async command=>{
+      const marker=`MQ3_GIT_DONE_${++commandSequence}`;
+      const echo=navigator.platform.toLowerCase().includes('win')?`Write-Output '${marker}'`:`printf '${marker}\\n'`;
+      mq3GitTerminal.command(`${command}; ${echo}`);
+      await wait(()=>mq3GitTerminal.text().split('\n').some(line=>line.trim()===marker),command,30000);
+    };
+    const nextGit=async()=>{
+      const previous=document.querySelector('.repository-task').dataset.taskId;
+      await click('다음 문제 →');
+      await wait(()=>document.querySelector('.repository-task')?.dataset.taskId!==previous,'next first Git step');
+      await gitReady();
+    };
+    await gitReady();
+    await click('제출');await wait(()=>status('다시 풀어보세요'),'first status initially unsolved');
+    await runGit('git status');await click('제출');await wait(()=>status('통과했어요'),'first real status');
+    await nextGit();
+    await click('제출');await wait(()=>status('다시 풀어보세요'),'staging initially unsolved');
+    await runGit('git add memo.txt');await click('제출');await wait(()=>status('통과했어요'),'equivalent add command');
+    await click('초기화');await gitReady();
+    await click('제출');await wait(()=>status('다시 풀어보세요'),'reset removed index');
+    await runGit('git add -- memo.txt');await click('제출');await wait(()=>status('통과했어요'),'staging after reset');
+    await nextGit();
+    await runGit('git commit -m "my first record"');await click('제출');await wait(()=>status('통과했어요'),'first commit');
+    await nextGit();
+    await wait(()=>document.querySelectorAll('input[type=radio]').length===3,'Git and choice shown together');
+    const hybridPane=document.querySelector('.editor-pane').getBoundingClientRect();
+    const choiceBounds=document.querySelector('.answer-interaction').getBoundingClientRect();
+    if(choiceBounds.bottom>hybridPane.bottom+1||choiceBounds.top<hybridPane.top)throw new Error('Git choices escape editor pane');
+    document.querySelector('input[value="record-changed"]').click();
+    await click('제출');await wait(()=>status('다시 풀어보세요'),'wrong Git interpretation');
+    document.querySelector('input[value="working-only"]').click();
+    await click('제출');await wait(()=>status('통과했어요'),'correct Git interpretation');
+    await click('초기화');await gitReady();
+    await wait(()=>!document.querySelector('input[type=radio]:checked'),'Git reset clears saved choice too');
+    await nextGit();
+    document.querySelector('input[value="working-third"]').click();
+    await click('해설 재생 · 정답 실행');
+    await wait(()=>molipAgent.running,'staged snapshot demonstration starts');
+    await wait(()=>!molipAgent.running&&!button('해설 재생 · 정답 실행').disabled,'staged snapshot demonstration completes',60000);
+    if(!document.querySelector('input[value="working-third"]').checked)throw new Error('Git teacher changed student choice');
+    await runGit('git show :memo.txt');
+    if(!mq3GitTerminal.text().split('\n').some(line=>line.trim()==='둘째 메모'))throw new Error('Git teacher changed student index');
+    await click('제출');await wait(()=>status('다시 풀어보세요'),'teacher did not answer for student');
+    document.querySelector('input[value="staged-second"]').click();
+    await click('제출');await wait(()=>status('통과했어요'),'staged snapshot choice');
+    await nextGit();
+    await runGit('git commit -m "too soon"');await click('제출');await wait(()=>status('다시 풀어보세요'),'commit of wrong snapshot rejected');
+    await click('초기화');await gitReady();
+    await runGit('git add -- memo.txt');await runGit('git commit -m "current memo"');
+    await click('제출');await wait(()=>status('수업 완료'),'all six first Git steps solved');
+    checked.push('approved six-step Git lesson: real commands, equivalent add, wrong snapshot rejection, choice reset and isolated teacher playback');
+
     dioxus.send({passed: true, checked, userAgent: navigator.userAgent, viewport: {width: innerWidth, height: innerHeight}});
   } catch (error) {
     dioxus.send({passed: false, checked, error: String(error), editorState: editorState(), screen: document.body.innerText.slice(0, 4000)});
