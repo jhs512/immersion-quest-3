@@ -12,17 +12,22 @@ pub fn data_dir() -> Result<std::path::PathBuf, String> {
         .as_ref().map(|directory|directory.path().to_path_buf()).map_err(Clone::clone)
 }
 
-struct Store { version: char, issue: Option<Value>, comments: Vec<Value> }
+struct Store { corrupted:bool, version: char, issue: Option<Value>, comments: Vec<Value> }
 fn store() -> &'static Mutex<Store> {
     static STORE: OnceLock<Mutex<Store>> = OnceLock::new();
-    STORE.get_or_init(|| Mutex::new(Store { version: 'a', issue: None, comments: vec![] }))
+    STORE.get_or_init(|| Mutex::new(Store { corrupted:false, version: 'a', issue: None, comments: vec![] }))
 }
 fn user() -> Value { json!({"id":987654321,"login":"mq3-validation"}) }
 
 pub fn set_version(version: char) -> Result<(), String> {
-    if !matches!(version,'a'|'b'|'c'|'d'|'e'|'f') { return Err("검증 버전을 확인하세요.".into()); }
-    store().lock().map_err(|_|"검증 저장소 잠금 오류")?.version = version;
+    if !matches!(version,'a'|'b'|'c'|'d'|'e'|'f'|'g') { return Err("검증 버전을 확인하세요.".into()); }
+    let mut state=store().lock().map_err(|_|"검증 저장소 잠금 오류")?;
+    state.version=version;state.corrupted=false;
     Ok(())
+}
+pub fn corrupt_update()->Result<(),String> {
+    let mut state=store().lock().map_err(|_|"검증 저장소 잠금 오류")?;
+    state.version='b';state.corrupted=true;Ok(())
 }
 fn snapshot(version: char, file: &str) -> Result<&'static str, String> {
     match (version, file) {
@@ -32,6 +37,8 @@ fn snapshot(version: char, file: &str) -> Result<&'static str, String> {
         ('b', "lesson.json") => Ok(include_str!("../tests/fixtures/player-pilot/b/lesson.json")),
         ('c', "course.json") => Ok(include_str!("../tests/fixtures/player-pilot/c/course.json")),
         ('c', "lesson.json") => Ok(include_str!("../tests/fixtures/player-pilot/c/lesson.json")),
+        ('g', "course.json") => Ok(include_str!("../tests/fixtures/player-pilot/g/course.json")),
+        ('g', "lesson.json") => Ok(include_str!("../tests/fixtures/player-pilot/g/lesson.json")),
         ('f', "course.json") => Ok(include_str!("../tests/fixtures/player-pilot/f/course.json")),
         ('f', "lesson.json") => Ok(include_str!("../tests/fixtures/player-pilot/f/lesson.json")),
         ('e', "course.json") => Ok(include_str!("../tests/fixtures/player-pilot/e/course.json")),
@@ -62,10 +69,12 @@ pub fn request(args: &[&str], payload: Option<Value>) -> Result<Value, String> {
         let prefix = format!("repos/{repository}/contents/{file}?ref=");
         if method == "GET" { if let Some(revision) = route.strip_prefix(&prefix) {
             let version = if file == "course.json" && revision == "main" { state.version } else {
-                match revision { "pilot-a" => 'a', "pilot-b" => 'b', "pilot-c" => 'c', "pilot-d" => 'd', "pilot-e" => 'e', "pilot-f" => 'f', _ => return Err("검증 콘텐츠 버전 오류".into()) }
+                match revision { "pilot-a" => 'a', "pilot-b" => 'b', "pilot-c" => 'c', "pilot-d" => 'd', "pilot-e" => 'e', "pilot-f" => 'f', "pilot-g" => 'g', _ => return Err("검증 콘텐츠 버전 오류".into()) }
             };
             let raw = snapshot(version,file)?;
-            return Ok(json!({"size":raw.len(),"encoding":"base64","content":base64::engine::general_purpose::STANDARD.encode(raw)}));
+            let damaged=if state.corrupted && file=="lesson.json" {format!("{raw} ")}else{raw.to_owned()};
+            let raw=damaged;
+            return Ok(json!({"size":raw.len(),"encoding":"base64","content":base64::engine::general_purpose::STANDARD.encode(raw.as_bytes())}));
         } }
     }
     let base = format!("repos/{REPOSITORY}/issues");

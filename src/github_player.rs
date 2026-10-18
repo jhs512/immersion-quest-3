@@ -43,6 +43,20 @@ impl Github {
         if course.repository!=repository {return Err("코스의 저장소 식별자가 맞지 않아요.".into())}
         Ok(course)
     }
+    pub fn prepare_course(&self,repository:&str)->Result<crate::content_updates::Snapshot,String> {
+        let raw=self.content(repository,"main","course.json")?;
+        crate::content_updates::installed_store()?.prepare(repository,&raw,|reference|self.content(&reference.repository,&reference.revision,"lesson.json"))
+    }
+    pub fn installed_course(&self,repository:&str)->Result<CourseManifest,String> {
+        let store=crate::content_updates::installed_store()?;
+        if let Some(snapshot)=store.active(repository)? {return Ok(snapshot.course().clone())}
+        let snapshot=self.prepare_course(repository)?;
+        store.apply(&snapshot)?;
+        Ok(snapshot.course().clone())
+    }
+    pub fn installed_lesson(&self,course:&CourseManifest,reference:&LessonRef)->Result<Lesson,String> {
+        crate::content_updates::installed_store()?.active(&course.repository)?.and_then(|snapshot|snapshot.lesson(reference).cloned()).ok_or_else(||"설치된 수업이 없어요. 코스를 다시 여세요.".into())
+    }
     pub fn lesson(&self,reference:&LessonRef)->Result<Lesson,String> {Lesson::parse(&self.content(&reference.repository,&reference.revision,"lesson.json")?,reference)}
     pub fn issues(&self,repo:&str,user:&GithubUser)->Result<Vec<Issue>,String> {
         if !repository_course::valid_repository(repo) || !user.login.bytes().all(|b|b.is_ascii_alphanumeric()||b==b'-') {return Err("코스 저장소나 계정을 확인하세요.".into())}

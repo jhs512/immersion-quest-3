@@ -21,6 +21,7 @@ pub mod task_interaction;
 pub mod tts;
 pub mod updater;
 pub mod update_handoff;
+pub mod content_updates;
 #[cfg(not(target_os = "android"))]
 pub mod setup_terminal;
 

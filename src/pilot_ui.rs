@@ -22,11 +22,16 @@ pub fn PilotPlayer() -> Element {
             for version in ['a', 'b', 'c', 'd', 'e', 'f'] {
                 button { onclick: move |_| {
                     match pilot_source::set_version(version) {
-                        Ok(()) => { generation += 1; notice.set(String::new()); }
+                        Ok(()) => {
+                            if let Err(error)=molip_quest::content_updates::installed_store().and_then(|store|store.remove(pilot_source::REPOSITORY)) { notice.set(error); return; }
+                            generation += 1; notice.set(String::new());
+                        }
                         Err(error) => notice.set(error),
                     }
                 }, "버전 {version}" }
             }
+            button {onclick:move |_|{let _=pilot_source::set_version('g');},"새 업데이트 공개"}
+            button {onclick:move |_|{let _=pilot_source::corrupt_update();},"손상 업데이트 공개"}
             button { onclick: move |_| {
                 let result = CourseManifest::parse(include_str!("../tests/fixtures/player-pilot/a/course.json")).and_then(|course| {
                     let damaged = include_str!("../tests/fixtures/player-pilot/a/lesson.json").replace("값과 출력", "손상 후보");

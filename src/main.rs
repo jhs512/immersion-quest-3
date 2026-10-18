@@ -161,6 +161,7 @@ window.molipVoice && molipVoice.setName({});",
         {fullscreen_toggle}
         UpdateGate {}
         style {{include_str!("../assets/repository-player.css")}}
+        style {{include_str!("../assets/content-updates.css")}}
         style {{include_str!("../assets/terminal/terminal.bundle.css")}}
         if cfg!(debug_assertions) && std::env::var_os("MOLIP_PILOT").is_some() { pilot_ui::PilotPlayer {} }
         else if cfg!(debug_assertions) && std::env::var_os("MOLIP_LEGACY").is_some() { Workspace {} } else { player_ui::RepositoryPlayer {} }

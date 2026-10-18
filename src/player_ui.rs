@@ -27,7 +27,7 @@ pub fn RepositoryPlayer()->Element {
         progress.set(HashMap::new());progress_requirements.set(HashMap::new());course.set(None);session.set(None);
         busy.set(true);message.set("gh 계정과 온라인 연결을 확인하고 있어요.".into());
         let github=Github::new();let gh=github.clone();
-        match github_player::background(move||{let user=gh.user()?;let manifest=gh.course(repository_course::initial_repository());Ok((user,manifest))}).await {
+        match github_player::background(move||{let user=gh.user()?;let manifest=gh.installed_course(repository_course::initial_repository());Ok((user,manifest))}).await {
             Ok((user,manifest))=>{session.set(Some(Session{github,user}));match manifest {Ok(c)=>{course.set(Some(c));message.set(String::new());},Err(e)=>message.set(e)}},
             Err(e)=>{session.set(None);course.set(None);message.set(e);}
         }
@@ -45,13 +45,19 @@ pub fn RepositoryPlayer()->Element {
             spawn(async move {let lookup=repository.clone();if let Ok(manifest)=github_player::background(move||github.course(&lookup)).await {course_titles.write().insert(repository,manifest.title);}});
         }
     });
+    let update_key=format!("{:?}:{}",course(),session().map(|s|s.user.id).unwrap_or(0));
+    let updates=rsx! {ContentUpdates {key:"{update_key}",session:session(),course:course(),onapply:move |manifest:CourseManifest|{
+        document::eval("window.molipAgent?.stop()");
+        open.set(None); course.set(Some(manifest)); refresh+=1;
+    }}};
     if let Some(selected)=open() {
         if let Some(session)=session() {
             let player_key=format!("{}:{}:{}:{}",session.user.id,selected.lesson.id,selected.mode.label(),selected.round);
-            return rsx!{ LessonPlayer {key:"{player_key}",session,selected,onback:move |_|{document::eval("window.molipAgent?.stop()");open.set(None);refresh+=1;}} };
+            return rsx!{ {updates} {rsx!{LessonPlayer {key:"{player_key}",session,selected,onback:move |_|{document::eval("window.molipAgent?.stop()");open.set(None);refresh+=1;}}}} };
         }
     }
     rsx!{
+        {updates}
         div {class:if session().is_none(){"repository-player needs-gh"}else{"repository-player"},
             header {class:"repository-header",h1 {"몰입 퀘스트 3"}
                 if let Some(s)=session() {div {span {"gh · @{s.user.login}"}button {disabled:busy(),onclick:move |_|connect(),"gh 계정 다시 확인"}}}
@@ -65,7 +71,7 @@ pub fn RepositoryPlayer()->Element {
                     label {class:"course-search",span {"과정 검색"}input {r#type:"search",placeholder:"이름으로 찾기",value:course_search(),oninput:move |e|course_search.set(e.value())}}
                     nav {class:"course-switcher",aria_label:"과정 선택",
                     for repository in repositories().into_iter().filter(|repo|{let query=course_search().to_lowercase();repo.to_lowercase().contains(&query)||course_titles().get(repo).is_some_and(|title|title.to_lowercase().contains(&query))}) {
-                        button {class:if !show_builder()&&course().is_some_and(|c|c.repository==repository){"course-selected"}else{""},disabled:busy(),onclick:{let repository=repository.clone();move |_|{let Some(s)=session() else{return};let gh=s.github.clone();let repository=repository.clone();spawn(async move {busy.set(true);match github_player::background(move||gh.course(&repository)).await {Ok(manifest)=>{course.set(Some(manifest));show_builder.set(false);message.set(String::new());},Err(e)=>message.set(e)}busy.set(false);});}},
+                        button {class:if !show_builder()&&course().is_some_and(|c|c.repository==repository){"course-selected"}else{""},disabled:busy(),onclick:{let repository=repository.clone();move |_|{let Some(s)=session() else{return};let gh=s.github.clone();let repository=repository.clone();spawn(async move {busy.set(true);match github_player::background(move||gh.installed_course(&repository)).await {Ok(manifest)=>{course.set(Some(manifest));show_builder.set(false);message.set(String::new());},Err(e)=>message.set(e)}busy.set(false);});}},
                             strong {{course_titles().get(&repository).cloned().unwrap_or_else(||repository.split('/').next_back().unwrap_or(&repository).replace("mq3-course-", "").replace('-', " "))}}
                             small {"{repository}"}
                         }
@@ -95,7 +101,7 @@ pub fn RepositoryPlayer()->Element {
                                         spawn(async move {
                                             busy.set(true);message.set("수업과 진도를 불러오고 있어요.".into());let gh=s.github.clone();let user=s.user.clone();let c=manifest.clone();let r=reference.clone();
                                             let result=github_player::background(move||{
-                                                gh.ensure_user(user.id)?;let lesson=gh.lesson(&r)?;
+                                                gh.ensure_user(user.id)?;let lesson=gh.installed_lesson(&c,&r)?;
                                                 let key=ProgressKey{user_id:user.id,course_id:c.id.clone(),lesson_id:lesson.id.clone()};
                                                 let issue=gh.find_issue(&c.repository,&user,&key)?;
                                                 let events=if let Some(issue)=&issue {gh.events(&c.repository,issue,&key)?}else{vec![]};
@@ -410,4 +416,97 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
             }
         }
     }
+}
+
+
+#[component]
+fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,onapply:EventHandler<CourseManifest>)->Element {
+    use molip_quest::{content_updates,updater};
+    let mut candidate=use_signal(||None::<content_updates::Snapshot>);
+    let mut offered=use_signal(||false);
+    let mut message=use_signal(String::new);
+    let mut manual=use_signal(||0u64);
+    let mut applying=use_signal(||false);
+    let mut noticed=use_signal(std::collections::HashSet::<String>::new);
+    let mut summary=use_signal(String::new);
+    use_future({let session=session.clone();let course=course.clone();move ||{let session=session.clone();let course=course.clone();async move {
+        let (Some(session),Some(course))=(session,course) else{return};
+        let started=std::time::Instant::now();let mut schedule=updater::UpdateSchedule::default();let mut seen=0;
+        loop {
+            let request=*manual.peek(); let requested=request!=seen;
+            if schedule.begin(started.elapsed().as_secs(),requested) {
+                seen=request; let gh=session.github.clone();let repo=course.repository.clone();let user=session.user.id;
+                let result=github_player::background(move||{
+                    gh.ensure_user(user)?;
+                    let next=gh.prepare_course(&repo)?;
+                    let current=content_updates::installed_store()?.active(&repo)?.ok_or("설치된 코스가 없어요.")?;
+                    if next.course().id!=current.course().id {return Err("코스의 고유 코드가 바뀌었어요.".into())}
+                    let changes=next.changes_from(&current);
+                    Ok((next.fingerprint()!=current.fingerprint()).then_some((next,changes)))
+                }).await;
+                schedule.finish();
+                match result {
+                    Ok(Some((next,changes)))=>{
+                        let notices=molip_quest::data_dir().map(|dir|dir.join("content-update-notices.json"));
+                        let first=notices.and_then(|path|{let mut notices=updater::UpdateNotices::open(&path)?;notices.record(u64::from_str_radix(&next.fingerprint()[..16],16).expect("SHA256 prefix"))}).unwrap_or(true);
+                        let first=first&&noticed.write().insert(next.fingerprint());
+                        summary.set(format!("문제 추가 {}개 · 수정 {}개 · 제외 {}개",changes.added.len(),changes.modified.len(),changes.removed.len()));
+                        candidate.set(Some(next)); if first {offered.set(true);} message.set("새 수업 내용이 있어요.".into());
+                    }
+                    Ok(None)=>{candidate.set(None);offered.set(false);if requested {message.set("최신 내용이에요.".into());}}
+                    Err(error)=>{if requested {message.set(error);}}
+                }
+            }
+            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+        }
+    }}});
+    if session.is_none()||course.is_none(){return rsx!{}}
+    let backup_user=session.as_ref().map(|session|session.user.id).unwrap_or(0);
+    let backup_course=course.as_ref().map(|course|course.id.clone()).unwrap_or_default();
+    let apply=move |_|{
+        let Some(next)=candidate() else{return};let Some(session)=session.clone() else{return};
+        if applying(){return;} applying.set(true);
+        spawn(async move {
+            // Restore the student document before saving the update backup.
+            let mut bridge=document::eval("window.molipAgent?.stop();requestAnimationFrame(()=>requestAnimationFrame(()=>dioxus.send(true)))");
+            if !matches!(bridge.recv::<bool>().await,Ok(true)) {message.set("해설을 닫고 다시 업데이트하세요.".into());applying.set(false);return;}
+            let manifest=next.course().clone();
+            let result=github_player::background(move||{
+                session.github.ensure_user(session.user.id)?;
+                molip_quest::drafts::backup_repository(session.user.id,&next.course().id,&next.fingerprint())?;
+                content_updates::installed_store()?.apply(&next)
+            }).await;
+            match result {Ok(())=>{candidate.set(None);offered.set(false);onapply.call(manifest);},Err(error)=>message.set(error)}
+            applying.set(false);
+        });
+    };
+    rsx! {div {class:"content-update-controls",
+        details {summary {"수업 설정"}
+            button {disabled:applying(),onclick:move |_|manual+=1,"수업 업데이트 확인"}
+            p {role:"status","{message}"}
+            if candidate().is_some() {p {"{summary}"}}
+            DraftBackups {user:backup_user,course:backup_course}
+        }
+        if candidate().is_some() {
+            button {aria_label:"수업 업데이트 적용",disabled:applying(),onclick:apply,"↥ 수업 업데이트"}
+            if offered() {aside {role:"status",span {"새 수업 내용이 있어요."}button {onclick:move |_|offered.set(false),"닫기"}}}
+        }
+    }}
+}
+
+
+#[component]
+fn DraftBackups(user:u64,course:String)->Element {
+    let mut backups=use_signal(Vec::<molip_quest::drafts::RepositoryBackup>::new);
+    let mut message=use_signal(String::new);
+    rsx! {details {class:"draft-backups",ontoggle:move |_|{
+        match molip_quest::drafts::repository_backups(user,&course) {Ok(saved)=>backups.set(saved),Err(error)=>message.set(error)}
+    },summary {"업데이트 전 답안"}
+        p {"이전 답안은 여기서 복사할 수 있어요."}
+        for saved in backups() {details {summary {"{saved.step_id}"}
+            pre {"{saved.draft.code}"}
+            button {onclick:{let code=saved.draft.code.clone();move |_|{let result=arboard::Clipboard::new().and_then(|mut clipboard|clipboard.set_text(&code));message.set(if result.is_ok(){"이전 답안을 복사했어요.".into()}else{"복사하지 못했어요. 답안을 선택해 복사하세요.".into()});}},"답안 복사"}
+        }}
+        p {role:"status","{message}"}
+    }}
 }
