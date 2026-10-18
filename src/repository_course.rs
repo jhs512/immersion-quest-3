@@ -34,9 +34,44 @@ pub struct Lesson {
     pub title: String,
     pub description: String,
     pub sources: Vec<String>,
+    #[serde(default)] pub objectives: Vec<String>,
+    #[serde(default)] pub chapters: Vec<LessonChapter>,
     pub sections: Vec<Section>,
     pub tasks: Vec<Task>,
     #[serde(default = "yes")] pub review_enabled: bool,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+pub struct LessonChapter {
+    pub id: String,
+    pub title: String,
+    pub objectives: Vec<String>,
+    pub units: Vec<LessonUnit>,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+pub struct LessonUnit {
+    pub id: String,
+    pub title: String,
+    pub objectives: Vec<String>,
+    pub premise: String,
+    pub steps: Vec<LessonStep>,
+}
+/// The hierarchy owns order and learning goals; task payloads are indexed by this stable ID.
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+pub struct LessonStep {
+    pub id: String,
+    pub objectives: Vec<String>,
+}
+
+pub fn resource_code(id: &str, prefix: &str) -> bool {
+    let Some(uuid) = id.strip_prefix(prefix).and_then(|rest| rest.strip_prefix('_')) else { return false };
+    let b = uuid.as_bytes();
+    b.len() == 36 && b.iter().enumerate().all(|(i, c)| {
+        if [8, 13, 18, 23].contains(&i) { *c == b'-' } else { c.is_ascii_hexdigit() && !c.is_ascii_uppercase() }
+    }) && b[14] == b'4' && matches!(b[19], b'8' | b'9' | b'a' | b'b')
+}
+
+fn goals_valid(goals: &[String]) -> bool {
+    !goals.is_empty() && goals.len() <= 20 && goals.iter().all(|g| !g.trim().is_empty() && g.len() <= 4000)
 }
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 pub struct Section {
@@ -102,7 +137,8 @@ impl CourseManifest {
     pub fn parse(text: &str) -> Result<Self,String> {
         let course:Self=serde_json::from_str(text).map_err(|e|e.to_string())?;
         let mut ids=HashSet::new();
-        if course.schema_version!=1 || course.id.is_empty() || course.title.is_empty() || !valid_repository(&course.repository) || course.lessons.is_empty() || course.lessons.len()>200 { return Err("코스 구성정보를 확인하세요.".into()); }
+        if !matches!(course.schema_version,1|2) || course.id.is_empty() || course.title.is_empty() || !valid_repository(&course.repository) || course.lessons.is_empty() || course.lessons.len()>200 { return Err("코스 구성정보를 확인하세요.".into()); }
+        if course.schema_version==2 && (!resource_code(&course.id,"crs") || course.lessons.iter().any(|l|!resource_code(&l.id,"lsn"))) {return Err("코스와 수업의 고유 코드를 확인하세요.".into())}
         for l in &course.lessons {
             if !ids.insert(l.id.clone()) || l.id.is_empty() || l.title.is_empty() || !valid_repository(&l.repository) || l.revision.is_empty() || l.revision.contains(['/', '\\', '?','#']) || l.sha256.len()!=64 || !l.sha256.bytes().all(|c|c.is_ascii_hexdigit()) { return Err("수업 참조와 버전·해시를 확인하세요.".into()); }
         }
@@ -123,7 +159,8 @@ impl Lesson {
     }
     pub fn validate(&self)->Result<(),String> {
         let mut ids=HashSet::new();
-        if self.schema_version!=1 || self.id.is_empty() || self.title.is_empty() || self.tasks.is_empty() || !self.tasks.iter().any(|t| t.required) || self.tasks.len()>200 { return Err("수업 구성과 필수 문제를 확인하세요.".into()); }
+        if !matches!(self.schema_version,1|2) || self.id.is_empty() || self.title.is_empty() || self.tasks.is_empty() || !self.tasks.iter().any(|t| t.required) || self.tasks.len()>200 { return Err("수업 구성과 필수 문제를 확인하세요.".into()); }
+        if self.schema_version==2 {self.validate_hierarchy()?;}
         for t in &self.tasks {
             if t.hints.len()>5||t.hints.iter().any(|hint|hint.len()>8000){return Err("힌트 개수와 길이를 확인하세요.".into())}
             if !ids.insert(&t.id) || t.id.is_empty() || t.solution.len()>65536 || t.starter_code.len()>65536 || (!t.entry_file.is_empty() && !safe_file(&t.entry_file)) || t.files.iter().any(|(p,v)| !safe_file(p) || v.len()>200_000) || t.files.len()>80 || t.tests.len()>50 || t.mutations.len()>20 || t.mutations.iter().any(|files|files.len()>80||files.iter().any(|(p,v)|!safe_file(p)||v.len()>200_000)) { return Err("문제 ID와 파일 크기·경로를 확인하세요.".into()); }
@@ -133,4 +170,38 @@ impl Lesson {
         Ok(())
     }
     pub fn required_tasks(&self)->Vec<String> { self.tasks.iter().filter(|t|t.required).map(|t|t.id.clone()).collect() }
+
+    fn validate_hierarchy(&self) -> Result<(), String> {
+        if !resource_code(&self.id,"lsn") || !goals_valid(&self.objectives) || self.chapters.is_empty() || self.chapters.len()>100 || !self.sections.is_empty() {
+            return Err("수업 고유 코드와 교육 목표·챕터 구성을 확인하세요.".into());
+        }
+        let mut ids = HashSet::from([self.id.as_str()]);
+        let mut order = Vec::new();
+        for chapter in &self.chapters {
+            if !resource_code(&chapter.id,"chp") || !ids.insert(chapter.id.as_str()) || chapter.title.trim().is_empty() || !goals_valid(&chapter.objectives) || chapter.units.is_empty() || chapter.units.len()>100 {
+                return Err("챕터의 고유 코드·교육 목표·단원을 확인하세요.".into());
+            }
+            for unit in &chapter.units {
+                if !resource_code(&unit.id,"unt") || !ids.insert(unit.id.as_str()) || unit.title.trim().is_empty() || !goals_valid(&unit.objectives) || unit.steps.is_empty() || unit.steps.len()>200 || unit.premise.len()>16000 {
+                    return Err("단원의 고유 코드·교육 목표·스텝을 확인하세요.".into());
+                }
+                for step in &unit.steps {
+                    if !resource_code(&step.id,"stp") || !ids.insert(step.id.as_str()) || !goals_valid(&step.objectives) {
+                        return Err("스텝의 고유 코드와 교육 목표를 확인하세요.".into());
+                    }
+                    order.push(step.id.as_str());
+                }
+            }
+        }
+        if order != self.tasks.iter().map(|task|task.id.as_str()).collect::<Vec<_>>() {
+            return Err("단원의 스텝과 문제의 연결·순서를 확인하세요.".into());
+        }
+        Ok(())
+    }
+
+    pub fn context_for(&self, task_id: &str) -> Option<(&LessonChapter, &LessonUnit, &LessonStep)> {
+        self.chapters.iter().find_map(|chapter| chapter.units.iter().find_map(|unit| {
+            unit.steps.iter().find(|step| step.id == task_id).map(|step| (chapter, unit, step))
+        }))
+    }
 }

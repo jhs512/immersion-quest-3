@@ -1,0 +1,45 @@
+// Drives the dedicated debug pilot; it never logs in or writes a real progress issue.
+const {chromium} = require('../target/ui-tests/node_modules/playwright-core');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+
+(async () => {
+  const browser = await chromium.connectOverCDP(process.env.MQ3_PILOT_CDP || 'http://127.0.0.1:9235');
+  const page = browser.contexts()[0].pages()[0];
+  page.setDefaultTimeout(15000);
+  await page.setViewportSize({width: 1366, height: 900});
+  const output = path.resolve(__dirname, '../target/player-pilot-audit');
+  fs.mkdirSync(output, {recursive: true});
+  await page.getByRole('heading', {name: '플레이어 검증 코스 · 검증용 수업'}).waitFor();
+  await page.getByRole('button', {name: '버전 a', exact: true}).click();
+  for (const label of ['수업 목표', '챕터 · 값과 출력', '단원 · 값을 조금씩 바꿔요', '스텝 목표']) {
+    assert.equal(await page.getByText(label, {exact: true}).count(), 1);
+  }
+  assert.equal(await page.getByRole('navigation', {name: '스텝 선택'}).getByRole('button').count(), 2);
+  await page.getByRole('button', {name: '제출', exact: true}).click();
+  await page.getByRole('status').filter({hasText: '다시 풀어보세요.'}).waitFor();
+  await page.evaluate(() => molipCodeEditors.setValue('// 값을 확인해요.\nconsole.log(3);\n'));
+  await page.getByRole('button', {name: '코드 실행', exact: true}).click();
+  await page.getByRole('status').filter({hasText: '실행을 마쳤어요.'}).waitFor();
+  assert.equal((await page.locator('.output').innerText()).trim(), '3');
+  await page.getByRole('button', {name: '제출', exact: true}).click();
+  await page.getByRole('status').filter({hasText: '통과했어요.'}).waitFor();
+  await page.getByRole('button', {name: '초기화', exact: true}).click();
+  await page.waitForFunction(() => molipCodeEditors.getValue().includes('console.log(0)'));
+  await page.getByRole('button', {name: '값 5 확인', exact: true}).click();
+  await page.getByText('출력 결과를 확인해요: 5', {exact: true}).waitFor();
+  await page.getByRole('button', {name: '버전 b', exact: true}).click();
+  await page.waitForFunction(() => document.querySelector('[data-pilot-revision]')?.dataset.pilotRevision === 'pilot-b');
+  assert.equal(await page.getByRole('navigation', {name: '스텝 선택'}).getByRole('button').count(), 3);
+  await page.getByRole('button', {name: '손상 후보 검사', exact: true}).click();
+  await page.getByRole('status').filter({hasText: '손상 후보를 거절했어요.'}).waitFor();
+  assert.equal(await page.locator('[data-pilot-revision]').getAttribute('data-pilot-revision'), 'pilot-b');
+  await page.getByRole('button', {name: '버전 a', exact: true}).click();
+  await page.waitForFunction(() => molipCodeEditors.getValue().includes('console.log(0)'));
+  assert.equal(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 2), true);
+  await page.screenshot({path: path.join(output, 'pilot-desktop.png'), fullPage: true});
+  fs.writeFileSync(path.join(output, 'result.json'), JSON.stringify({passed: true, checked: ['four-level goals', 'real execution', 'wrong and right grading', 'reset', 'step context', 'A/B snapshots', 'damaged candidate rejected']}, null, 2));
+  await browser.close();
+  console.log('PASS: real desktop pilot goals, execution, grading, reset, step context and A/B snapshots. No GitHub writes.');
+})().catch(error => { console.error(error); process.exit(1); });

@@ -220,6 +220,7 @@ fn LessonPlayer(session:Session,selected:OpenLesson,onback:EventHandler<()>)->El
                 span {"학습 완료 {state.full_completions}회 · 복습 완료 {state.review_completions}회"}
                 if let Some(url)=&selected.issue_url {a {href:url.clone(),target:"_blank",rel:"noopener noreferrer","내 진도 이슈"}}
             }
+            if let Some(task)=&view {crate::lesson_outline::LessonOutline {lesson:selected.lesson.clone(),task_id:task.id.clone()}}
             nav {class:"study-navigation",
                 if selected.mode==StudyMode::Full {
                     for (index,section) in selected.lesson.sections.iter().enumerate() {button {class:if section_index()==index {"selected"}else{""},onclick:{let record_view=record_view.clone();move |_|record_view(index)},"{section.title}"}}

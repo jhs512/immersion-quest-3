@@ -4,6 +4,8 @@ mod instructor_mode;
 mod practice;
 mod ui;
 mod player_ui;
+mod lesson_outline;
+mod pilot_ui;
 mod gh_setup_ui;
 use dioxus::prelude::*;
 use molip_quest::Course;
@@ -150,7 +152,8 @@ window.molipVoice && molipVoice.setName({});",
         {fullscreen_toggle}
         style {{include_str!("../assets/repository-player.css")}}
         style {{include_str!("../assets/terminal/terminal.bundle.css")}}
-        if cfg!(debug_assertions) && std::env::var_os("MOLIP_LEGACY").is_some() { Workspace {} } else { player_ui::RepositoryPlayer {} }
+        if cfg!(debug_assertions) && std::env::var_os("MOLIP_PILOT").is_some() { pilot_ui::PilotPlayer {} }
+        else if cfg!(debug_assertions) && std::env::var_os("MOLIP_LEGACY").is_some() { Workspace {} } else { player_ui::RepositoryPlayer {} }
     }
 }
 /// Some Windows sessions hand a new window the off-screen placeholder position (-32000, -32000)
