@@ -116,7 +116,7 @@ pub struct Task {
     #[serde(default)] pub narration: Vec<serde_json::Value>,
     #[serde(default)] pub hints: Vec<String>,
     #[serde(default)] pub mutations: Vec<BTreeMap<String,String>>,
-    /// C only: rerun with prepared values replaced, so a memorized output does not pass.
+    /// C/Java: rerun after replacing a simple prepared initializer to reject memorized output.
     #[serde(default, skip_serializing_if="Vec::is_empty")] pub variations: Vec<Variation>,
     #[serde(default = "yes")] pub required: bool,
 }

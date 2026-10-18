@@ -159,6 +159,11 @@ async fn check_c(task:&Task,source:&str)->Result<TestReport,String> {
         let passed=result.success && result.stdout.trim_end_matches('\n')==test.expected.trim_end_matches('\n');
         cases.push(TestCaseResult{input:test.input.clone(),expected:test.expected.clone(),stdout:result.stdout,stderr:result.stderr,passed,state:result.state});
     }
+    append_prepared_variations(task,source,&mut cases).await?;
+    Ok(TestReport{passed:cases.iter().all(|c|c.passed),cases})
+}
+
+async fn append_prepared_variations(task:&Task,source:&str,cases:&mut Vec<TestCaseResult>)->Result<(),String> {
     // Changed prepared values only count once the program is right as given.
     if cases.iter().all(|c|c.passed) {
         for variation in &task.variations {
@@ -175,7 +180,7 @@ async fn check_c(task:&Task,source:&str)->Result<TestReport,String> {
             cases.push(TestCaseResult{input:label,expected:variation.expected.clone(),stdout:result.stdout,stderr,passed,state:result.state});
         }
     }
-    Ok(TestReport{passed:cases.iter().all(|c|c.passed),cases})
+    Ok(())
 }
 pub async fn check(task:&Task,source:&str)->Result<TestReport,String> {
     if let Some(interaction) = &task.interaction {return interaction.check(source)}
@@ -187,7 +192,10 @@ pub async fn check(task:&Task,source:&str)->Result<TestReport,String> {
     }
     if task.language==TaskLanguage::Java {
         let unit:crate::Unit=serde_json::from_value(serde_json::json!({"id":task.id,"title":task.title,"language":"java","starter_code":task.starter_code,"solution":task.solution,"tests":task.tests,"checker":task.checker})).map_err(|e|e.to_string())?;
-        return crate::runner::check_unit(&unit,source).await;
+        let mut report=crate::runner::check_unit(&unit,source).await?;
+        append_prepared_variations(task,source,&mut report.cases).await?;
+        report.passed=report.cases.iter().all(|case|case.passed);
+        return Ok(report);
     }
     if task.language==TaskLanguage::Git {return check_git(task,source).await}
     if task.language==TaskLanguage::C {return check_c(task,source).await}

@@ -58,3 +58,5 @@ cargo test --locked --test repository_lessons -- --ignored --nocapture --test-th
 상호작용 문제는 선택 답안과 실행할 예제를 분리할 수 있다. 선택 문제에 `example_code`를 명시하면 `lesson_runner::run_example`으로 준비된 프로그램을 실행하고, 선택 답안은 기존 `check`로 따로 판정한다. 일반 `run`은 여전히 선택 답안을 실행하지 않는다. 빈 코드·64KB 초과·상호작용 없는 예제·Git 터미널과 중복된 예제를 거절한다. 현재 Java·Python·C·JavaScript 예제를 지원하는 런타임 경로이며, 새 화면 연결은 별도로 검증한다.
 
 Prepared code examples now appear in a read-only code pane above the answer. Code execution uses that source, while submission grades the separate interaction answer. Tutor changes and reset restore the prepared source without overwriting the learner’s answer.
+
+Java prepared-value variations rerun successful answers after replacing a named initial declaration. Each changed value has its own expected output. This supports small quantity examples and rejects memorized constant output; it is not a general Java source transformation API.
