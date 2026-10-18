@@ -26,3 +26,20 @@ fn published_interaction_examples_require_nonempty_bounded_source() {
         assert!(lesson.validate().is_err(),"An unusable example must not be published as runnable");
     }
 }
+
+#[tokio::test]
+async fn reordered_statements_produce_real_different_outputs_without_granting_success() {
+    let value=serde_json::json!({"id":"order-example","title":"Order","goal":"Set before print","language":"javascript","starter_code":"[\"print\",\"assign\"]","solution":"[\"assign\",\"print\"]",
+      "example_code":"let quantity=2;\n// @order\n","example_order_marker":"// @order",
+      "interaction":{"kind":"order","options":[{"id":"assign","text":"quantity=3;"},{"id":"print","text":"console.log(quantity);"}],"accepted":[["assign","print"]]}});
+    let task:Task=serde_json::from_value(value).unwrap();
+    let before=task.example_for_answer(&task.starter_code).unwrap();
+    let after=task.example_for_answer(&task.solution).unwrap();
+    assert_ne!(before,after);
+    assert_eq!(lesson_runner::run_example(&task,&before,"").await.unwrap().stdout,"2\n");
+    assert_eq!(lesson_runner::run_example(&task,&after,"").await.unwrap().stdout,"3\n");
+    for answer in [r#"["print","unknown"]"#,r#"["print","print"]"#,"not JSON"] {
+        assert!(task.example_for_answer(answer).is_err());
+    }
+    assert!(!lesson_runner::check(&task,&task.starter_code).await.unwrap().passed);
+}

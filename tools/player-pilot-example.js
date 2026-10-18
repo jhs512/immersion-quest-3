@@ -30,6 +30,14 @@
   await wait(()=>document.querySelector('[data-answer-field="before"]').value==='3'&&document.querySelector('[data-answer-field="after"]').value==='2','state cells restored');
   await fill('before','2');await fill('after','3');await click('제출');await wait(()=>status('통과했어요'),'correct state cells');
   checked.push('two independent state cells are graded by identity and restored after teacher playback');
+  await click('다음 문제 →');await wait(()=>molipCodeEditors.getValue()?.includes('console.log(quantity);\nquantity=3;'),'ordered prepared code');
+  await click('코드 실행');await wait(()=>output()==='2','print before assign');
+  document.querySelector('.answer-order li:last-child button[aria-label="조각 위로"]').click();
+  await wait(()=>molipCodeEditors.getValue()?.includes('quantity=3;\nconsole.log(quantity);'),'moving line updates prepared code');
+  await click('코드 실행');await wait(()=>output()==='3','assign before print');
+  await click('초기화');await wait(()=>molipCodeEditors.getValue()?.includes('console.log(quantity);\nquantity=3;'),'ordered reset');
+  await click('제출');await wait(()=>status('다시 풀어보세요'),'reset order remains wrong');
+  checked.push('reordering authored statements updates the visible program and real output without executing answer IDs');
   dioxus.send({passed:true,checked,userAgent:navigator.userAgent});
  }catch(error){dioxus.send({passed:false,checked,error:String(error),screen:document.body.innerText.slice(0,5000)});}
 })();

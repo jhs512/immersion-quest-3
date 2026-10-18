@@ -91,6 +91,8 @@ pub struct Section {
 pub struct Task {
     #[serde(default,skip_serializing_if="Option::is_none")]
     pub example_code:Option<String>,
+    #[serde(default,skip_serializing_if="Option::is_none")]
+    pub example_order_marker:Option<String>,
     #[serde(default, skip_serializing_if="Vec::is_empty")]
     pub supporting_materials: Vec<crate::supporting_materials::SupportingMaterial>,
     #[serde(default,skip_serializing_if="Option::is_none")]
@@ -122,6 +124,25 @@ impl Task {
             &&matches!(self.language,TaskLanguage::Java|TaskLanguage::Python|TaskLanguage::C|TaskLanguage::Javascript)
             &&self.example_code.as_deref().is_some_and(|source|!source.trim().is_empty()&&source.len()<=65536)
     }
+    /// Expand only authored statement IDs; learner text never becomes executable source.
+    pub fn example_for_answer(&self,answer:&str)->Result<String,String> {
+        let source=self.example_code.as_ref().ok_or("예제 코드가 없어요.")?;
+        let Some(marker)=&self.example_order_marker else{return Ok(source.clone())};
+        let Some(crate::task_interaction::Interaction::Order{options,..})=&self.interaction else{return Err("실행할 코드 조각을 확인하세요.".into())};
+        if marker.trim().is_empty()||marker.len()>128||source.matches(marker.as_str()).count()!=1{return Err("코드 조각의 위치를 확인하세요.".into())}
+        if answer.len()>65536{return Err("답안 길이를 확인하세요.".into())}
+        let order:Vec<String>=serde_json::from_str(answer).map_err(|_|"실행할 조각을 먼저 골라요.")?;
+        let mut seen=HashSet::new();let mut lines=Vec::new();
+        if order.len()>options.len(){return Err("코드 조각을 확인하세요.".into())}
+        for id in order {
+            if !seen.insert(id.clone()){return Err("같은 조각은 한 번만 써요.".into())}
+            lines.push(options.iter().find(|option|option.id==id).ok_or("코드 조각을 확인하세요.")?.text.as_str());
+        }
+        let expanded=source.replace(marker.as_str(),&lines.join("\n"));
+        if expanded.len()>65536{return Err("예제 코드가 너무 길어요.".into())}
+        Ok(expanded)
+    }
+
 }
 /// Replace the first initializer of each named variable (C literal text), then expect this output.
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
@@ -189,6 +210,7 @@ impl Lesson {
         for t in &self.tasks {
             crate::supporting_materials::validate(&t.supporting_materials)?;
             if t.example_code.is_some()&&!t.has_runnable_example(){return Err("예제 코드와 답안 구성을 확인하세요.".into())}
+            if t.example_order_marker.is_some(){if !t.has_runnable_example(){return Err("코드 배열 예제를 확인하세요.".into())}t.example_for_answer(&t.starter_code)?;t.example_for_answer(&t.solution)?;}
             if let Some(exercise)=&t.git_terminal {
                 if t.language!=TaskLanguage::Git {return Err("Git 터미널 문제의 종류를 확인하세요.".into())}
                 if let Some(interaction)=&t.interaction {

@@ -262,12 +262,15 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     let initial=use_hook(||molip_quest::drafts::load(&key).ok().flatten().or_else(||molip_quest::drafts::load(&previous_key).ok().flatten()).map(|d|d.code).unwrap_or_else(||task.starter_code.clone()));
     let mut code=use_signal(||initial.clone());let mut reset=use_signal(||0u64);
     let has_example=task.has_runnable_example();
-    let mut example_source=use_signal(||task.example_code.clone().unwrap_or_default());
+    let mut example_source=use_signal(||task.example_for_answer(&initial).unwrap_or_default());
     let mut git_practice=use_signal(||None::<crate::git_terminal_ui::Practice>);
     let mut git_control=use_signal(||None::<crate::git_terminal_ui::TerminalControl>);
     let mut input=use_signal(||task.tests.first().map(|t|t.input.clone()).unwrap_or_default());
     let mut busy=use_signal(||false);let mut message=use_signal(String::new);let mut output=use_signal(String::new);
     let mut preview=use_signal(String::new);
+    let ordered_task=task.clone();
+    use_effect(move||{if ordered_task.example_order_marker.is_some(){match ordered_task.example_for_answer(&code()){Ok(source)=>{if *example_source.peek()!=source{example_source.set(source);reset.with_mut(|version|*version+=1);}},Err(error)=>message.set(error)}}});
+
     let mut narrating=use_signal(||false);
     let mut show_solution=use_signal(||false);
     use_drop(||{document::eval("window.molipAgent?.stop()");});
@@ -331,7 +334,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
             div {class:"split-handle split-col",role:"separator",tabindex:0,aria_label:"문제와 코드 패널 크기 조절",aria_orientation:"vertical"}
             section {class:"coding-pane",div {class:"pane-heading",strong {"{filename}"}
                 div {class:"pane-actions",
-                    button {disabled:busy()||narrating(),onclick:{let starter=task.starter_code.clone();let example=task.example_code.clone().unwrap_or_default();let key=key.clone();move |_|{
+                    button {disabled:busy()||narrating(),onclick:{let starter=task.starter_code.clone();let example=task.example_for_answer(&task.starter_code).unwrap_or_default();let key=key.clone();move |_|{
                         if narrating(){return;}
                         if let Some(control)=git_control() {
                             busy.set(true);message.set("Git 실습을 초기화하고 있어요.".into());
@@ -421,7 +424,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                     }
                     if narrating() {div {style:if task.interaction.is_some(){"min-height:0;overflow:hidden"}else{"height:100%"},crate::git_terminal_ui::GitTerminal {exercise,demo:true,onready:move |_|{},oncontrol:move |_|{}}}}
                 }else if has_example {
-                    textarea {class:"code-editor","data-code-editor":task.language.editor(),"data-editor-value":example_source(),"data-editor-reset":reset().to_string(),aria_label:"수업 예제 코드",initial_value:task.example_code.clone().unwrap_or_default(),readonly:true,spellcheck:false,oninput:move |e|example_source.set(e.value())}
+                    textarea {class:"code-editor","data-code-editor":task.language.editor(),"data-editor-value":example_source(),"data-editor-reset":reset().to_string(),aria_label:"수업 예제 코드",initial_value:task.example_for_answer(&initial).unwrap_or_default(),readonly:true,spellcheck:false,oninput:move |e|example_source.set(e.value())}
                 }else if task.interaction.is_none() {
                 textarea {class:"code-editor","data-code-editor":if task.entry_file.ends_with(".jsx"){"javascript"}else{task.language.editor()},"data-editor-value":code(),"data-editor-reset":reset().to_string(),aria_label:"수업 코드",initial_value:initial.clone(),spellcheck:false,oninput:{let key=key.clone();move |e|{code.set(e.value());if !narrating(){let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}}}}
                 }
