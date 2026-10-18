@@ -18,6 +18,8 @@ impl GitInitialHistory {fn is_recorded(&self)->bool{*self==Self::Recorded}}
 #[derive(Clone,Debug,Default,Serialize,Deserialize,PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct GitStateGoal {
+    #[serde(default,skip_serializing_if="Option::is_none")] pub current_branch:Option<String>,
+    #[serde(default,skip_serializing_if="Option::is_none")] pub references:Option<BTreeMap<String,String>>,
     #[serde(default,skip_serializing_if="Option::is_none")] pub head_exists:Option<bool>,
     #[serde(default,skip_serializing_if="Option::is_none")] pub commit_count:Option<usize>,
     #[serde(default,skip_serializing_if="Option::is_none")] pub clean:Option<bool>,
@@ -105,7 +107,14 @@ impl GitExercise {
     pub fn validate(&self)->Result<(),String> {
         if self.files.len()>80||self.setup.len()>100||self.commands.len()>20{return Err("Git 실습의 준비 내용을 확인하세요.".into())}
         if let Some(goal)=&self.state_goal {
-            if goal.head_exists.is_none()&&goal.commit_count.is_none()&&goal.clean.is_none()&&goal.index.is_none()&&goal.working_files.is_none()&&goal.head_files.is_none()&&goal.parent_files.is_none(){return Err("Git 목표 상태가 필요해요.".into())}
+            if goal.current_branch.is_none()&&goal.references.is_none()&&goal.head_exists.is_none()&&goal.commit_count.is_none()&&goal.clean.is_none()&&goal.index.is_none()&&goal.working_files.is_none()&&goal.head_files.is_none()&&goal.parent_files.is_none(){return Err("Git 목표 상태가 필요해요.".into())}
+            let branch_name=|name:&str|!name.is_empty()&&name.len()<=200&&!name.starts_with('-')&&!name.starts_with('.')&&!name.ends_with('.')&&!name.ends_with('/')&&!name.ends_with(".lock")&&!name.contains("..")&&!name.contains("//")&&name.bytes().all(|c|c.is_ascii_alphanumeric()||b"/_-.".contains(&c));
+            if goal.current_branch.as_deref().is_some_and(|name|!branch_name(name)){return Err("목표 브랜치 이름을 확인하세요.".into())}
+            if let Some(references)=&goal.references {
+                if references.is_empty()||references.len()>20||references.iter().any(|(name,target)|!name.strip_prefix("refs/heads/").is_some_and(&branch_name)||!["HEAD","HEAD^","HEAD^1","HEAD^2"].contains(&target.as_str())) {
+                    return Err("목표 브랜치 참조를 확인하세요.".into());
+                }
+            }
             for files in [goal.index.as_ref(),goal.working_files.as_ref(),goal.head_files.as_ref(),goal.parent_files.as_ref()].into_iter().flatten() {
                 if files.len()>80{return Err("Git 목표 파일이 너무 많아요.".into())}
                 for (path,content) in files {validate_file(path,content)?;}
@@ -115,7 +124,7 @@ impl GitExercise {
         for action in &self.setup {match action {
             GitSetup::File{path,content}=>validate_file(path,content)?,
             GitSetup::Git{args}=>{
-                if args.len()>50 || !args.first().is_some_and(|arg|["add","commit","branch","checkout","switch","merge","rebase","cherry-pick","tag","reset"].contains(&arg.as_str())) || args.iter().any(|arg|arg.len()>4000||arg=="-C"||arg=="-c"||arg.starts_with("--git-dir")||arg.starts_with("--work-tree")||arg.starts_with("--config-env")) {return Err("Git 시작 명령을 확인하세요.".into())}
+                if args.len()>50 || !args.first().is_some_and(|arg|["add","commit","branch","checkout","switch","merge","rebase","cherry-pick","tag","reset"].contains(&arg.as_str())) || args.iter().any(|arg|arg.len()>4000||arg=="-C"||(arg=="-c"&&args.first().is_none_or(|command|command!="switch"))||arg.starts_with("--git-dir")||arg.starts_with("--work-tree")||arg.starts_with("--config-env")) {return Err("Git 시작 명령을 확인하세요.".into())}
             }
         }}
         if self.commands.iter().any(|args|args.is_empty()||args.len()>50||args.iter().any(|arg|arg.len()>4000)){return Err("검사할 Git 명령을 확인하세요.".into())}
@@ -232,6 +241,18 @@ impl GitPractice {
         }
         let repository=self.execute(&self.work(),&["rev-parse","--is-inside-work-tree"],false)?;
         record("실습 저장소".into(),repository.status.success()&&repository.stdout==b"true\n","true".into(),String::from_utf8_lossy(&repository.stdout).into());
+        if let Some(expected)=&goal.current_branch {
+            let result=self.execute(&self.work(),&["symbolic-ref","--quiet","--short","HEAD"],false)?;
+            let actual=String::from_utf8_lossy(&result.stdout).trim().to_owned();
+            record("현재 브랜치".into(),result.status.success()&&actual==*expected,expected.clone(),actual);
+        }
+        if let Some(references)=&goal.references {
+            for (reference,expected) in references {
+                let head=self.execute(&self.work(),&["rev-parse","--verify",&format!("{expected}^{{commit}}")],false)?;
+                let actual=self.execute(&self.work(),&["rev-parse","--verify",&format!("{reference}^{{commit}}")],false)?;
+                record(reference.clone(),head.status.success()&&actual.status.success()&&head.stdout==actual.stdout,expected.clone(),String::from_utf8_lossy(&actual.stdout).trim().into());
+            }
+        }
         if let Some(expected)=goal.head_exists {
             let actual=self.execute(&self.work(),&["rev-parse","--verify","HEAD^{commit}"],false)?.status.success();
             record("커밋 존재".into(),actual==expected,expected.to_string(),actual.to_string());

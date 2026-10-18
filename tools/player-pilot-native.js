@@ -406,6 +406,9 @@
     checked.push('panel handles resize, terminal shortcut/UTF-8 work, and centered existing gh setup runs a real shell');
 
     }
+    await click('검증 높이 720');
+    await wait(()=>innerHeight>=640&&innerHeight<=760,'first Git normal-height window');
+    await new Promise(resolve=>setTimeout(resolve,500));
     await click('버전 k');
     await wait(() => document.querySelector('.lesson-card')?.textContent.includes('git-first-1'), 'approved first Git lesson');
     await click('풀모드 시작');
@@ -437,6 +440,10 @@
     await runGit('git commit -m "my first record"');await click('제출');await wait(()=>status('통과했어요'),'first commit');
     await nextGit();
     await wait(()=>document.querySelectorAll('input[type=radio]').length===3,'Git and choice shown together');
+    await click('검증 높이 720');
+    await wait(()=>innerHeight>=640&&innerHeight<=760,'hybrid normal-height window');
+    await new Promise(resolve=>setTimeout(resolve,500));
+    window.mq3GitLayoutViewport={width:innerWidth,height:innerHeight};
     const hybridPane=document.querySelector('.editor-pane').getBoundingClientRect();
     const choiceBounds=document.querySelector('.answer-interaction').getBoundingClientRect();
     if(choiceBounds.bottom>hybridPane.bottom+1||choiceBounds.top<hybridPane.top)throw new Error('Git choices escape editor pane');
@@ -463,9 +470,9 @@
     await click('초기화');await gitReady();
     await runGit('git add -- memo.txt');await runGit('git commit -m "current memo"');
     await click('제출');await wait(()=>status('수업 완료'),'all six first Git steps solved');
-    checked.push('approved six-step Git lesson: real commands, equivalent add, wrong snapshot rejection, choice reset and isolated teacher playback');
+    checked.push('approved six-step Git lesson at normal height: real commands, equivalent add, wrong snapshot rejection, choice reset and isolated teacher playback');
 
-    dioxus.send({passed: true, checked, userAgent: navigator.userAgent, viewport: {width: innerWidth, height: innerHeight}});
+    dioxus.send({passed: true, checked, gitLayoutViewport:window.mq3GitLayoutViewport, userAgent: navigator.userAgent, viewport: {width: innerWidth, height: innerHeight}});
   } catch (error) {
     dioxus.send({passed: false, checked, error: String(error), editorState: editorState(), screen: document.body.innerText.slice(0, 4000)});
   }

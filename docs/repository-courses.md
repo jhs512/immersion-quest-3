@@ -45,3 +45,6 @@ cargo test --locked --test repository_lessons -- --ignored --nocapture --test-th
 `git_terminal`과 `interaction.kind=choice`를 함께 쓰면 실제 저장소를 관찰한 뒤 설명을 고르는 문제다. 이때 `git_checks`, `state_goal`, 필수 `commands`를 함께 넣지 않는다. 선택 답안과 Git 완료 조건 중 하나가 조용히 무시되는 구성을 검증에서 거절한다. 초기화는 저장소와 선택 초안을 함께 되돌린다.
 
 승인된 첫 Git 수업의 제작 원본은 `tools/redesigned_lessons/git_first/`다. 승인 PRD, 학습 콘텐츠, 스텝별 해설 캐시는 분리한다. `python tools/narrate.py --redesigned-git-first`로 변경된 캐시만 갱신하고 `--check`로 파생물 신선도를 확인한다. `courses/redesigned/git-first.json`에는 학습자용 자료만 들어가며 핵심 흐름·승인 근거는 배포하지 않는다. 이 로컬 제작물만으로 공개 코스 게시나 릴리스가 완료된 것은 아니다.
+
+
+분기 수업의 `state_goal.current_branch`는 실제 HEAD가 연결된 브랜치 이름이다. `references`는 `refs/heads/feature` 같은 브랜치가 현재 HEAD 커밋을 가리키는 조건이며 현재 지원 값은 `HEAD`, `HEAD^`(첫 부모), `HEAD^1`, `HEAD^2`다. 이름을 만드는 것과 그 브랜치로 전환하는 것을 별도로 판정한다. 빈 참조 맵·지원하지 않는 대상·잘못된 이름은 제작 검증에서 거절한다. 생략한 새 필드는 직렬화하지 않아 기존 저장소 준비 상태의 식별값을 바꾸지 않는다.

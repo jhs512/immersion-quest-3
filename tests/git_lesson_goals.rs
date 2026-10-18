@@ -103,3 +103,38 @@ async fn learner_can_inspect_a_real_git_repository_and_submit_a_choice_about_it(
     ambiguous.tasks[0].git_terminal.as_mut().unwrap().commands=vec![vec!["status".into()]];
     assert!(ambiguous.validate().is_err(),"A choice must not silently bypass an additional repository goal");
 }
+
+#[test]
+fn creating_a_branch_keeps_the_current_branch_and_points_both_names_to_the_same_record() {
+    let exercise:GitExercise=serde_json::from_value(serde_json::json!({
+        "initial_history":"empty","files":{"guide.txt":"original\n"},
+        "setup":[{"kind":"git","args":["add","guide.txt"]},{"kind":"git","args":["commit","-m","start"]}],
+        "state_goal":{"current_branch":"main","references":{"refs/heads/feature":"HEAD"},"commit_count":1,"clean":true}
+    })).unwrap();
+    let mut practice=GitPractice::new(exercise).unwrap();
+    assert!(!practice.check_exercise().unwrap().passed);
+    assert!(practice.git(&["switch","-c","feature"]).unwrap().success);
+    assert!(!practice.check_exercise().unwrap().passed,"Creating and switching is not the requested state");
+    assert!(practice.git(&["switch","main"]).unwrap().success);
+    assert!(practice.check_exercise().unwrap().passed);
+    practice.reset().unwrap();
+    assert!(!practice.check_exercise().unwrap().passed);
+    assert!(practice.git(&["branch","feature"]).unwrap().success);
+    assert!(practice.check_exercise().unwrap().passed);
+}
+
+#[test]
+fn feature_record_preserves_the_main_branch_at_its_parent() {
+    let exercise:GitExercise=serde_json::from_value(serde_json::json!({
+        "initial_history":"empty","files":{"guide.txt":"original\n"},
+        "setup":[{"kind":"git","args":["add","guide.txt"]},{"kind":"git","args":["commit","-m","start"]},{"kind":"git","args":["switch","-c","feature"]},{"kind":"file","path":"guide.txt","content":"updated\n"}],
+        "state_goal":{"current_branch":"feature","references":{"refs/heads/main":"HEAD^"},"commit_count":2,"clean":true,"head_files":{"guide.txt":"updated\n"},"parent_files":{"guide.txt":"original\n"}}
+    })).unwrap();
+    let practice=GitPractice::new(exercise).unwrap();
+    assert!(!practice.check_exercise().unwrap().passed);
+    assert!(practice.git(&["add","guide.txt"]).unwrap().success);
+    assert!(practice.git(&["commit","-m","change feature"]).unwrap().success);
+    assert!(practice.check_exercise().unwrap().passed);
+    assert!(practice.git(&["branch","-f","main","feature"]).unwrap().success);
+    assert!(!practice.check_exercise().unwrap().passed,"Moving main too must not satisfy branch isolation");
+}
