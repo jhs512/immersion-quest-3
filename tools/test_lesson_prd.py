@@ -1,0 +1,59 @@
+import copy
+import json
+from pathlib import Path
+import unittest
+
+import lesson_prd
+
+
+class LessonPrdTest(unittest.TestCase):
+    def setUp(self):
+        self.document = json.loads((Path(__file__).parent.parent / 'tests/fixtures/lesson-prd/git-first.json').read_text(encoding='utf-8'))
+
+    def test_representative_prd_is_readable_but_does_not_authorize_production(self):
+        document = self.document
+        text = lesson_prd.render(document)
+        self.assertIn(document['title'], text)
+        self.assertIn(document['representative']['prompt'], text)
+        with self.assertRaisesRegex(ValueError, '승인'):
+            lesson_prd.validate(document, require_approval=True)
+
+    def test_approval_binds_the_reviewed_content_and_does_not_modify_the_draft(self):
+        approved = lesson_prd.approve(self.document, 'test-reviewer', 'synthetic test approval only')
+        lesson_prd.validate(approved, require_approval=True)
+        self.assertEqual(self.document['approval']['status'], 'draft')
+        approved['objectives'][0] = 'Changed goal after approval'
+        with self.assertRaisesRegex(ValueError, '승인 후'):
+            lesson_prd.validate(approved, require_approval=True)
+
+    def test_missing_goals_or_duplicate_step_identity_is_rejected(self):
+        missing = copy.deepcopy(self.document)
+        missing['chapters'][0]['units'][0]['steps'][0]['objectives'] = []
+        with self.assertRaisesRegex(ValueError, '교육 목표'):
+            lesson_prd.render(missing)
+        repeated = copy.deepcopy(self.document)
+        steps = repeated['chapters'][0]['units'][0]['steps']
+        steps[1]['id'] = steps[0]['id']
+        with self.assertRaisesRegex(ValueError, '중복'):
+            lesson_prd.validate(repeated)
+
+    def test_strategy_is_optional_and_representative_must_reference_a_step(self):
+        document = copy.deepcopy(self.document)
+        document.pop('strategy')
+        self.assertNotIn('## 선택 교육 전략', lesson_prd.render(document))
+        document['representative']['step_id'] = 'missing'
+        with self.assertRaisesRegex(ValueError, '연결'):
+            lesson_prd.validate(document)
+
+    def test_non_document_or_invalid_approval_has_clear_feedback(self):
+        for value in [[], None, 'not a PRD']:
+            with self.assertRaisesRegex(ValueError, '객체'):
+                lesson_prd.validate(value)
+        document = copy.deepcopy(self.document)
+        document['approval'] = None
+        with self.assertRaisesRegex(ValueError, '승인'):
+            lesson_prd.validate(document)
+
+
+if __name__ == '__main__':
+    unittest.main()
