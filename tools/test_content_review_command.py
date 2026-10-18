@@ -66,7 +66,8 @@ print(json.dumps(result))
             config = root / 'model.json'
             settings = {'command': [sys.executable, '-X', 'utf8', str(worker)],
                         'model_revision': 'isolated-fixture-v1', 'prd': 'prd.json',
-                        'target_steps': {'f': document['representative']['step_id']}}
+                        'target_steps': {'f': document['representative']['step_id'],
+                                         'g': document['representative']['step_id']}}
             config.write_text(json.dumps(settings), encoding='utf-8')
             prd = root / 'prd.json'
             prd.write_text(json.dumps(document, ensure_ascii=False), encoding='utf-8')
@@ -88,6 +89,34 @@ print(json.dumps(result))
             self.assertEqual(ContentTree.load(state).artifact('f').text, '검토 후 수정한 흐름')
             history = json.loads(self.run_command('history', '--ledger', database, '--target', 'f').stdout)
             self.assertEqual([item['status'] for item in history['generations']], ['succeeded', 'failed'])
+
+    def test_downstream_generation_cannot_skip_an_unapproved_ancestor_goal(self):
+        document = json.loads((Path(__file__).resolve().parents[1] /
+            'tests/fixtures/lesson-prd/git-first.json').read_text(encoding='utf-8'))
+        approved = approve(document, 'fixture-human', 'Isolated test approval only')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state, database = root / 'tree.json', root / 'ledger.db'
+            ContentTree([Artifact('g', 'goal', '승인되지 않은 다른 목표'),
+                         Artifact('f', 'core_flow', '기존 흐름'), Artifact('c', 'content', '기존 문제')],
+                        {'f': 'g', 'c': 'f'}).save(state)
+            worker = root / 'model.py'
+            worker.write_text('''import json, sys
+request = json.load(sys.stdin)
+print(json.dumps({'change_required': True, 'reason': '흐름이 달라요.'} if
+    request['operation'] == 'assess' else {'text': '생성되면 안 되는 문제'}))
+''', encoding='utf-8')
+            (root / 'prd.json').write_text(json.dumps(approved), encoding='utf-8')
+            config = root / 'model.json'
+            config.write_text(json.dumps({'command': [sys.executable, '-X', 'utf8', str(worker)],
+                'model_revision': 'isolated-fixture-v1', 'prd': 'prd.json',
+                'target_steps': {key: document['representative']['step_id'] for key in ['g', 'f', 'c']}}), encoding='utf-8')
+            replacement = root / 'replacement.json'
+            replacement.write_text(json.dumps({'key': 'f', 'layer': 'core_flow', 'text': '바꾼 흐름'}), encoding='utf-8')
+            result = self.run_command('apply', '--state', state, '--ledger', database,
+                                      '--model-config', config, '--replacement', replacement)
+            self.assertEqual(result.returncode, 1)
+            self.assertEqual(ContentTree.load(state).artifact('c').text, '기존 문제')
 
 
 if __name__ == '__main__':

@@ -17,6 +17,8 @@ class ModelTests(unittest.TestCase):
         document = json.loads((Path(__file__).resolve().parents[1] /
             'tests/fixtures/lesson-prd/git-first.json').read_text(encoding='utf-8'))
         step_id = document['representative']['step_id']
+        step = next(step for chapter in document['chapters'] for unit in chapter['units']
+                    for step in unit['steps'] if step['id'] == step_id)
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             worker = root / 'model.py'
@@ -31,7 +33,8 @@ assert request['content_rules'] == snapshot['docs/content-rules.md']
 print(json.dumps({'text': '새로 검토한 핵심 흐름'}))
 ''', encoding='utf-8')
             command = [sys.executable, '-X', 'utf8', str(worker)]
-            request = {'target': {'key': 'flow', 'layer': 'core_flow'}}
+            request = {'target': {'key': 'flow', 'layer': 'core_flow'},
+                       'source_after': {'key': 'goal', 'layer': 'goal', 'text': '\n'.join(step['objectives'])}}
             unconfigured = JsonReviewModel(command, model_revision='fixture-v1')
             with self.assertRaisesRegex(ValueError, '승인'):
                 unconfigured.generate(request)
@@ -41,12 +44,12 @@ print(json.dumps({'text': '새로 검토한 핵심 흐름'}))
                 draft.generate(request)
             approved = approve(document, 'synthetic-test', 'Synthetic approval for isolated test only')
             configured = JsonReviewModel(command, model_revision='fixture-v1',
-                prd=approved, target_steps={'flow': step_id})
+                prd=approved, target_steps={'flow': step_id, 'goal': step_id})
             self.assertEqual(configured.generate(request), '새로 검토한 핵심 흐름')
             # The external policy files may advance before this lesson's impact review.
             with patch.object(Path, 'read_text', return_value='new unreviewed global policy'):
                 later_policy = JsonReviewModel(command, model_revision='fixture-v1',
-                    prd=approved, target_steps={'flow': step_id})
+                    prd=approved, target_steps={'flow': step_id, 'goal': step_id})
             self.assertEqual(later_policy.generate(request), '새로 검토한 핵심 흐름')
             self.assertNotEqual(configured.identity, draft.identity)
             with self.assertRaisesRegex(ValueError, '스텝'):
@@ -55,6 +58,9 @@ print(json.dumps({'text': '새로 검토한 핵심 흐름'}))
                 configured.generate({'target': {'key': 'flow', 'layer': 'goal'}})
             with self.assertRaisesRegex(ValueError, '교육 목표'):
                 configured.generate(dict(request, source_after={'layer': 'goal', 'text': '승인되지 않은 새 교육 목표'}))
+            with self.assertRaisesRegex(ValueError, '같은 스텝'):
+                configured.generate(dict(request, source_after={'key': 'unrelated-flow',
+                    'layer': 'core_flow', 'text': '다른 수업의 흐름'}))
             approved['objectives'][0] = 'caller changed original after construction'
             self.assertEqual(configured.generate(request), '새로 검토한 핵심 흐름')
 

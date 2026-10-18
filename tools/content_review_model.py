@@ -91,6 +91,27 @@ class JsonReviewModel:
             raise ValueError('모델의 검토 판단과 근거를 확인하세요.')
         return value
 
+    def authorize_lineage(self, lineage):
+        if self.prd is None:
+            raise ValueError('승인된 수업 PRD가 필요해요.')
+        validate(self.prd, require_approval=True)
+        step_id = self.target_steps.get(lineage[0].key)
+        if step_id is None:
+            raise ValueError('제작 대상의 스텝 연결을 확인하세요.')
+        step = next(step for chapter in self.prd['chapters'] for unit in chapter['units']
+                    for step in unit['steps'] if step['id'] == step_id)
+        goals = [item for item in lineage if item.layer == 'goal']
+        if len(goals) != 1 or goals[0].text != '\n'.join(step['objectives']):
+            raise ValueError('원본 계층의 교육 목표를 반영한 PRD를 먼저 승인받으세요.')
+        for item in lineage:
+            if item.layer == 'policy':
+                continue
+            if item.layer == 'prd':
+                if json.loads(item.text) != self.prd:
+                    raise ValueError('원본 계층과 승인된 수업 PRD가 달라요.')
+            elif self.target_steps.get(item.key) != step_id:
+                raise ValueError('모든 원본 레이어는 승인된 같은 스텝에 연결돼야 해요.')
+
     def generate(self, request):
         if self.prd is None:
             raise ValueError('승인된 수업 PRD가 필요해요.')
@@ -107,6 +128,8 @@ class JsonReviewModel:
             # Goal artifact text uses the approved objective items joined with LF.
             if source.get('text') != '\n'.join(step['objectives']):
                 raise ValueError('교육 목표 변경을 반영한 PRD를 먼저 승인받으세요.')
+        if self.target_steps.get(source.get('key')) != self.target_steps[request['target']['key']]:
+            raise ValueError('원본과 제작 대상은 승인된 같은 스텝에 연결돼야 해요.')
         value = self._call('generate', request,
             {'text': '승인된 수업 PRD 범위 안에서 필요한 차이만 반영한 전체 대상 원문'})
         if set(value) != {'text'} or not isinstance(value['text'], str) or not value['text'].strip():

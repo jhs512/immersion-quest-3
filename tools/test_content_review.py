@@ -178,6 +178,12 @@ class AdjacentReviewTest(unittest.TestCase):
             cached = reopened.generate(before, after, flow, decision, no_duplicate, generator_key='generate-v1')
             self.assertEqual(cached, generated)
             self.assertEqual(len(reopened.generation_history('f')), 2)
+            def denied():
+                raise ValueError('Synthetic approval no longer valid')
+            with self.assertRaisesRegex(ValueError, 'approval'):
+                reopened.generate(before, after, flow, decision, no_duplicate,
+                                  generator_key='generate-v1', authorize=denied)
+            self.assertEqual(reopened.generation_history('f')[0]['status'], 'failed')
 
     def test_restart_from_last_checkpoint_reuses_committed_generation_before_resuming(self):
         goal = Artifact('g', 'goal', '출력을 확인해요.')

@@ -50,7 +50,8 @@ def main():
             tree = ContentTree.load(args.state)
             model = load_model(args.model_config)
             with ReviewLedger(args.ledger) as ledger:
-                options = dict(assessor_key=model.identity, generator_key=model.identity)
+                options = dict(assessor_key=model.identity, generator_key=model.identity,
+                               before_generate=model.authorize_lineage)
                 if args.command == 'apply':
                     value = read_json(args.replacement)
                     if not isinstance(value, dict) or set(value) != {'key', 'layer', 'text'}:

@@ -122,7 +122,7 @@ class ReviewLedger:
         return [json.loads(row[0]) for row in self.connection.execute(
             'SELECT payload FROM artifact_generations WHERE target_key=? ORDER BY rowid DESC', (target_key,))]
 
-    def generate(self, before, after, target, decision, generator, *, generator_key):
+    def generate(self, before, after, target, decision, generator, *, generator_key, authorize=None):
         if not isinstance(generator_key, str) or not generator_key.strip():
             raise ValueError('생성 모델과 지침의 버전을 지정하세요.')
         row = self.connection.execute('SELECT payload FROM adjacent_reviews WHERE id=?', (decision.review_id,)).fetchone()
@@ -135,6 +135,15 @@ class ReviewLedger:
                        source_before=before.snapshot(), source_after=after.snapshot(),
                        target=target.snapshot(), reason=review['reason'])
         fingerprint = _hash(_json(request))
+        record = dict(request, id=uuid.uuid4().hex, status='pending',
+                      created_at=datetime.now(timezone.utc).isoformat())
+        try:
+            if authorize is not None:
+                authorize()
+        except Exception as error:
+            record.update(status='failed', error=str(error))
+            self._save_generation(fingerprint, target.key, record)
+            raise
         for (payload,) in self.connection.execute(
                 'SELECT payload FROM artifact_generations WHERE fingerprint=? ORDER BY rowid DESC', (fingerprint,)):
             cached = json.loads(payload)
@@ -144,8 +153,6 @@ class ReviewLedger:
                 if artifact.key != target.key or artifact.layer != target.layer or artifact.revision != output['revision']:
                     raise ValueError('보관된 생성 결과의 해시가 달라요.')
                 return artifact
-        record = dict(request, id=uuid.uuid4().hex, status='pending',
-                      created_at=datetime.now(timezone.utc).isoformat())
         try:
             generated = Artifact(target.key, target.layer, generator(json.loads(_json(request))))
             if generated.revision == target.revision:
@@ -278,13 +285,22 @@ class ContentTree:
     def artifact(self, key):
         return self._artifacts[key]
 
+    def lineage(self, key):
+        """Return the target and its direct ancestors, without exposing mutable state."""
+        values = []
+        while True:
+            values.append(self.artifact(key))
+            if key not in self._parents:
+                return tuple(values)
+            key = self._parents[key]
+
     def generated_from(self, key):
         return self._generated[key]
 
     def reviewed_from(self, key):
         return self._reviewed[key]
 
-    def apply(self, replacement, ledger, assessor, generator, *, assessor_key, generator_key=None):
+    def apply(self, replacement, ledger, assessor, generator, *, assessor_key, generator_key=None, before_generate=None):
         if self._pending:
             raise ValueError('이전 변경의 미완료 검토를 먼저 이어가세요.')
         before = self.artifact(replacement.key)
@@ -298,9 +314,10 @@ class ContentTree:
             self._reviewed[replacement.key] = None
         self._pending.extend((before, replacement, child) for child in self._children[replacement.key])
         self._checkpoint()
-        self.resume(ledger, assessor, generator, assessor_key=assessor_key, generator_key=generator_key)
+        self.resume(ledger, assessor, generator, assessor_key=assessor_key, generator_key=generator_key,
+                    before_generate=before_generate)
 
-    def resume(self, ledger, assessor, generator, *, assessor_key, generator_key=None):
+    def resume(self, ledger, assessor, generator, *, assessor_key, generator_key=None, before_generate=None):
         self._checkpoint()
         while self._pending:
             before, after, key = self._pending[0]
@@ -314,7 +331,10 @@ class ContentTree:
                 self._pending.popleft()
                 self._checkpoint()
                 continue
-            generated = ledger.generate(before, after, target, decision, generator, generator_key=generator_key)
+            # Check authorization even when the ledger can reuse a cached generation.
+            authorization = (lambda: before_generate(self.lineage(key))) if before_generate is not None else None
+            generated = ledger.generate(before, after, target, decision, generator,
+                                        generator_key=generator_key, authorize=authorization)
             self._artifacts[key] = generated
             self._generated[key] = after.revision
             self._reviewed[key] = after.revision
