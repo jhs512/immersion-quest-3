@@ -37,10 +37,22 @@ impl GitPracticeStore {
     }
     pub fn installed()->Result<Self,String> {Self::new(&crate::data_dir()?.join("git-practices"))}
     fn key(scope:&str)->String {use sha2::{Digest,Sha256};format!("{:x}",Sha256::digest(scope.as_bytes()))}
+    fn lock(&self,scope:&str)->Result<std::fs::File,String> {
+        let path=self.root.join(format!("{}.lock",Self::key(scope)));
+        match std::fs::symlink_metadata(&path) {
+            Ok(metadata) if !metadata.is_file()||metadata.file_type().is_symlink()=>return Err("Git 실습 잠금 경로를 확인하세요.".into()),
+            Err(error) if error.kind()!=std::io::ErrorKind::NotFound=>return Err(error.to_string()),
+            _=>{}
+        }
+        let file=std::fs::OpenOptions::new().read(true).write(true).create(true).truncate(false).open(path).map_err(|error|error.to_string())?;
+        file.lock().map_err(|error|error.to_string())?;
+        Ok(file)
+    }
     pub fn open(&self,scope:&str,exercise:GitExercise)->Result<GitPractice,String> {
+        let _lock=self.lock(scope)?;
         exercise.validate()?;
         let key=Self::key(scope);let pointer=self.root.join(format!("{key}.json"));
-        let metadata=match std::fs::symlink_metadata(&pointer){Ok(metadata)=>metadata,Err(error) if error.kind()==std::io::ErrorKind::NotFound=>return self.reset(scope,exercise),Err(error)=>return Err(error.to_string())};
+        let metadata=match std::fs::symlink_metadata(&pointer){Ok(metadata)=>metadata,Err(error) if error.kind()==std::io::ErrorKind::NotFound=>return self.reset_locked(scope,exercise),Err(error)=>return Err(error.to_string())};
         if !metadata.is_file()||metadata.file_type().is_symlink()||metadata.len()>1024{return Err("Git 실습 보관 정보를 확인하세요.".into())}
         let folder:String=serde_json::from_slice(&std::fs::read(pointer).map_err(|error|error.to_string())?).map_err(|error|error.to_string())?;
         if !folder.strip_prefix("practice-").is_some_and(|suffix|!suffix.is_empty()&&suffix.len()<100&&suffix.bytes().all(|c|c.is_ascii_alphanumeric())){return Err("Git 실습 폴더 정보를 확인하세요.".into())}
@@ -51,6 +63,10 @@ impl GitPracticeStore {
         Ok(GitPractice{directory:PracticeDirectory::Saved{path:directory,scope:scope.into()},exercise})
     }
     pub fn reset(&self,scope:&str,exercise:GitExercise)->Result<GitPractice,String> {
+        let _lock=self.lock(scope)?;
+        self.reset_locked(scope,exercise)
+    }
+    fn reset_locked(&self,scope:&str,exercise:GitExercise)->Result<GitPractice,String> {
         use std::io::Write;
         let directory=tempfile::Builder::new().prefix("practice-").tempdir_in(&self.root).map_err(|error|error.to_string())?;
         let mut practice=GitPractice::initialize(exercise,directory)?;

@@ -56,3 +56,43 @@ fn damaged_pointer_is_rejected_without_following_it_or_destroying_a_prior_state(
     assert!(store.reset("one",GitExercise{commands:vec![vec![]],..Default::default()}).is_err());
     assert_eq!(std::fs::read_to_string(marker).unwrap(),"keep");assert!(first.work().join("tracked.txt").exists());
 }
+
+#[test]
+fn overlapping_first_opens_publish_one_repository_for_the_same_scope() {
+    let root=tempfile::tempdir().unwrap();let barrier=std::sync::Arc::new(std::sync::Barrier::new(6));
+    let workers=(0..6).map(|_|{let path=root.path().to_path_buf();let barrier=barrier.clone();std::thread::spawn(move||{
+        let store=GitPracticeStore::new(&path).unwrap();barrier.wait();
+        store.open("same",GitExercise::default()).unwrap().root().to_path_buf()
+    })}).collect::<Vec<_>>();
+    let paths=workers.into_iter().map(|worker|worker.join().unwrap()).collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(paths.len(),1,"Concurrent first opens must share the published student state");
+    let reopened=GitPracticeStore::new(root.path()).unwrap().open("same",GitExercise::default()).unwrap();
+    assert!(paths.contains(reopened.root()));
+}
+
+#[test]
+fn saved_practice_process_worker() {
+    let Some(root)=std::env::var_os("MQ3_GIT_STORE_WORKER") else{return;};
+    let root=std::path::PathBuf::from(root);
+    let deadline=std::time::Instant::now()+std::time::Duration::from_secs(20);
+    while !root.join("go").exists(){assert!(std::time::Instant::now()<deadline);std::thread::sleep(std::time::Duration::from_millis(20));}
+    let practice=GitPracticeStore::new(&root).unwrap().open("shared",GitExercise::default()).unwrap();
+    std::fs::write(std::env::var_os("MQ3_GIT_STORE_RESULT").unwrap(),practice.root().to_string_lossy().as_bytes()).unwrap();
+}
+
+#[test]
+fn separate_processes_agree_on_the_same_first_repository() {
+    let root=tempfile::tempdir().unwrap();let mut children=vec![];
+    for index in 0..3 {
+        let mut command=std::process::Command::new(std::env::current_exe().unwrap());
+        command.args(["--exact","saved_practice_process_worker"])
+            .env("MQ3_GIT_STORE_WORKER",root.path()).env("MQ3_GIT_STORE_RESULT",root.path().join(format!("worker-{index}")))
+            .stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null());
+        #[cfg(windows)] {use std::os::windows::process::CommandExt;command.creation_flags(0x08000000);}
+        children.push(command.spawn().unwrap());
+    }
+    std::fs::write(root.path().join("go"),"").unwrap();
+    for mut child in children {assert!(child.wait().unwrap().success());}
+    let paths=(0..3).map(|index|std::fs::read_to_string(root.path().join(format!("worker-{index}"))).unwrap()).collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(paths.len(),1,"Separate players must not publish competing first repositories");
+}
