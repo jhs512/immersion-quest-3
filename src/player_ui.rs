@@ -284,7 +284,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
         spawn(async move {match github_player::background(move||gh.append(&repo,&user,&title,&event)).await {Ok((_,latest))=>onrecord.call(latest),Err(e)=>history_message.set(format!("해설 이력을 저장하지 못했어요. {e}"))}});
     }};
     rsx!{
-        article {class:"lesson repository-task","data-task-id":task.id.clone(),
+        article {class:"lesson repository-task","data-task-id":task.id.clone(),"data-narrating":narrating().to_string(),
             section {class:"problem-pane",h2 {"{task.title}"}crate::ui::Markdown{text:task.goal.clone()}
                 if !task.required {p {class:"challenge-note","선택 도전이에요. 수업 완료 후에 풀어도 돼요."}}
                 if !task.hints.is_empty() {div {class:"task-hints",for (index,hint) in task.hints.iter().enumerate(){details {summary {"힌트 {index+1}"}crate::ui::Markdown{text:hint.clone()}}}}}
@@ -299,7 +299,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                         record();let student_code=code();let student_output=output();let student_input=input();let student_preview=preview();let student_message=message();let student_state=execution_state();let student_seconds=execution_seconds();
                         narrating.set(true);let actions=actions.clone();
                         spawn(async move {
-                            let script=format!("(async()=>{{try{{await window.molipAgent?.runExplanation({});}}finally{{dioxus.send(true);}}}})();",serde_json::to_string(&actions).unwrap_or_else(|_|"[]".into()));
+                            let script=format!("(async()=>{{try{{const root=document.querySelector('.repository-task');while(root?.isConnected&&root.dataset.narrating!=='true')await new Promise(requestAnimationFrame);if(root?.isConnected)await window.molipAgent?.runExplanation({});}}finally{{dioxus.send(true);}}}})();",serde_json::to_string(&actions).unwrap_or_else(|_|"[]".into()));
                             let mut bridge=document::eval(&script);let _=bridge.recv::<bool>().await;
                             execution_id+=1;execution_state.set(student_state);execution_seconds.set(student_seconds);busy.set(false);code.set(student_code);input.set(student_input);output.set(student_output);preview.set(student_preview);message.set(student_message);reset+=1;narrating.set(false);
                         });
