@@ -261,6 +261,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     let previous_key=format!("repo:{}:{}:{}:{}:{}",session.user.id,selected.course.id,selected.lesson.id,selected.round,task.id);
     let initial=use_hook(||molip_quest::drafts::load(&key).ok().flatten().or_else(||molip_quest::drafts::load(&previous_key).ok().flatten()).map(|d|d.code).unwrap_or_else(||task.starter_code.clone()));
     let mut code=use_signal(||initial.clone());let mut reset=use_signal(||0u64);
+    let mut git_practice=use_signal(||None::<crate::git_terminal_ui::Practice>);
     let mut input=use_signal(||task.tests.first().map(|t|t.input.clone()).unwrap_or_default());
     let mut busy=use_signal(||false);let mut message=use_signal(String::new);let mut output=use_signal(String::new);
     let mut preview=use_signal(String::new);
@@ -290,7 +291,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
         spawn(async move {match github_player::background(move||gh.append(&repo,&user,&title,&event)).await {Ok((_,latest))=>onrecord.call(latest),Err(e)=>history_message.set(format!("해설 이력을 저장하지 못했어요. {e}"))}});
     }};
     rsx!{
-        article {class:"lesson repository-task","data-task-id":task.id.clone(),"data-narrating":narrating().to_string(),
+        article {class:"lesson repository-task","data-task-id":task.id.clone(),"data-narrating":narrating().to_string(),"data-git-ready":git_practice().is_some().to_string(),
             section {class:"problem-pane",h2 {"{task.title}"}crate::ui::Markdown{text:task.goal.clone()}
                 if !task.required {p {class:"challenge-note","선택 도전이에요. 수업 완료 후에 풀어도 돼요."}}
                 if !task.hints.is_empty() {div {class:"task-hints",for (index,hint) in task.hints.iter().enumerate(){details {summary {"힌트 {index+1}"}crate::ui::Markdown{text:hint.clone()}}}}}
@@ -301,13 +302,13 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                     if explanation.after_success {span {title:"성공 후 해설을 다시 봤어요.",aria_label:"성공 후 해설 확인","↺"}}
                 }}
                 if !task.narration.is_empty() {
-                    button {disabled:busy()||narrating(),onclick:{let actions=task.narration.clone();let record=record_explanation.clone();move |_|{
+                    button {disabled:busy()||narrating(),onclick:{let actions=task.narration.clone();let record=record_explanation.clone();let needs_git=task.git_terminal.is_some();move |_|{
                         record();let student_code=code();let student_output=output();let student_input=input();let student_preview=preview();let student_message=message();let student_state=execution_state();let student_seconds=execution_seconds();
                         narrating.set(true);let actions=actions.clone();
                         spawn(async move {
-                            let script=format!("(async()=>{{try{{const root=document.querySelector('.repository-task');while(root?.isConnected&&root.dataset.narrating!=='true')await new Promise(requestAnimationFrame);if(root?.isConnected)await window.molipAgent?.runExplanation({});}}finally{{dioxus.send(true);}}}})();",serde_json::to_string(&actions).unwrap_or_else(|_|"[]".into()));
+                            let script=format!("(async()=>{{try{{const root=document.querySelector('.repository-task');const until=Date.now()+15000;while(root?.isConnected&&(root.dataset.narrating!=='true'||({needs_git}&&!window.molipGitTutor))){{if(Date.now()>until)throw new Error('Git 시연을 준비하지 못했어요.');await new Promise(requestAnimationFrame);}}if(root?.isConnected)await window.molipAgent?.runExplanation({});}}finally{{dioxus.send(true);}}}})();",serde_json::to_string(&actions).unwrap_or_else(|_|"[]".into()));
                             let mut bridge=document::eval(&script);let _=bridge.recv::<bool>().await;
-                            execution_id+=1;execution_state.set(student_state);execution_seconds.set(student_seconds);busy.set(false);code.set(student_code);input.set(student_input);output.set(student_output);preview.set(student_preview);message.set(student_message);reset+=1;narrating.set(false);
+                            execution_id+=1;execution_state.set(student_state);execution_seconds.set(student_seconds);busy.set(false);code.set(student_code);input.set(student_input);output.set(student_output);preview.set(student_preview);message.set(student_message);if !needs_git {reset+=1;}narrating.set(false);
                         });
                     }},"해설 재생 · 정답 실행"}
                     button {"data-explanation-stop":"true",onclick:move |_|{document::eval("window.molipAgent?.stop()");},"해설 멈춤"}
@@ -324,8 +325,8 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
             div {class:"split-handle split-col",role:"separator",tabindex:0,aria_label:"문제와 코드 패널 크기 조절",aria_orientation:"vertical"}
             section {class:"coding-pane",div {class:"pane-heading",strong {"{filename}"}
                 div {class:"pane-actions",
-                    button {disabled:busy()||narrating(),onclick:{let starter=task.starter_code.clone();let key=key.clone();move |_|{if narrating(){return;}code.set(starter.clone());reset+=1;let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}},"초기화"}
-                    if task.interaction.is_none() {
+                    button {disabled:busy()||narrating(),onclick:{let starter=task.starter_code.clone();let key=key.clone();move |_|{if narrating(){return;}git_practice.set(None);code.set(starter.clone());reset+=1;let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}},"초기화"}
+                    if task.interaction.is_none()&&task.git_terminal.is_none() {
                     button {disabled:busy(),onclick:{let task=task.clone();let github=session.github.clone();let user=session.user.clone();let selected=selected.clone();move |_|{let task=task.clone();let github=github.clone();let user=user.clone();let selected=selected.clone();async move {
                         busy.set(true);execution_id+=1;execution_state.set("running");execution_seconds.set(0);
                         message.set("코드를 실행하고 있어요.".into());output.set(String::new());preview.set(String::new());
@@ -358,11 +359,18 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                         });
                     }}},"코드 실행"}
                     }
-                    button {class:"primary",disabled:busy()||narrating(),onclick:{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();move |_|{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();async move {
+                    button {class:"primary",disabled:busy()||narrating()||(task.git_terminal.is_some()&&git_practice().is_none()),onclick:{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();move |_|{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();async move {
                         busy.set(true);message.set("검사하고 있어요.".into());let gh=session.github.clone();let uid=session.user.id;
                         let authenticated=github_player::background(move||gh.ensure_user(uid)).await;
                         match authenticated {
-                            Err(e)=>message.set(e),Ok(())=>match molip_quest::lesson_runner::check(&task,&code()).await {
+                            Err(e)=>message.set(e),Ok(())=>match if task.git_terminal.is_some() {
+                                let practice=git_practice();let checks=task.git_checks.clone();
+                                github_player::background(move||{
+                                    let practice=practice.ok_or("Git 터미널이 준비되지 않았어요.")?;
+                                    let practice=practice.lock().unwrap_or_else(|e|e.into_inner());
+                                    if let Some(checks)=checks {practice.check(&checks)}else{practice.check_commands()}
+                                }).await
+                            }else{molip_quest::lesson_runner::check(&task,&code()).await} {
                                 Err(e)=>message.set(e),Ok(report)=>{
                                     output.set(report.cases.iter().enumerate().map(|(i,c)|format!("검사 {} · {}\n입력: {}\n예상: {}\n결과: {}\n{}",i+1,if c.passed{"통과"}else{"다시 풀기"},c.input,c.expected,c.stdout,c.stderr)).collect::<Vec<_>>().join("\n\n"));
                                     let key=ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()};
@@ -389,7 +397,12 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                 }
             }
             div {class:"editor-pane",
-                if let Some(interaction) = task.interaction.clone() {
+                if let Some(exercise)=task.git_terminal.clone() {
+                    div {style:if narrating(){"display:none"}else{"height:100%"},
+                        {rsx!{crate::git_terminal_ui::GitTerminal {key:"git-{reset}",exercise:exercise.clone(),demo:false,onready:move |practice|git_practice.set(Some(practice))}}}
+                    }
+                    if narrating() {crate::git_terminal_ui::GitTerminal {exercise,demo:true,onready:move |_|{}}}
+                }else if let Some(interaction) = task.interaction.clone() {
                     crate::interaction_ui::InteractionEditor { interaction, value: code(), disabled: busy()||narrating(), onchange: {let key=key.clone();move |value:String|{code.set(value);if !narrating(){let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}}} }
                 } else {
                 textarea {class:"code-editor","data-code-editor":if task.entry_file.ends_with(".jsx"){"javascript"}else{task.language.editor()},"data-editor-value":code(),"data-editor-reset":reset().to_string(),aria_label:"수업 코드",initial_value:initial.clone(),spellcheck:false,oninput:{let key=key.clone();move |e|{code.set(e.value());if !narrating(){let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}}}}
@@ -397,7 +410,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
             }
             div {class:"split-handle split-row",role:"separator",tabindex:0,aria_label:"코드와 실행 결과 패널 크기 조절",aria_orientation:"horizontal"}
             section {class:"result-pane","data-execution-id":execution_id().to_string(),"data-execution-state":execution_state(),aria_busy:busy(),h3 {if task.interaction.is_some(){"채점 결과"}else{"실행 결과"}}
-                if task.interaction.is_none() {
+                if task.interaction.is_none()&&task.git_terminal.is_none() {
                 details {class:"run-input",open:task.tests.iter().any(|case|!case.input.is_empty()),
                     summary {"실행 입력"}
                     label {span {"프로그램에 전달할 입력"} textarea {aria_label:"실행 입력",initial_value:input(),oninput:move |e|input.set(e.value())}}

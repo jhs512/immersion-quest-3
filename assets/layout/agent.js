@@ -467,6 +467,14 @@
     return '답안을 비교해 봐요.';
   }
   const handlers = {
+    async git_command(a, active) {
+      if (!window.molipGitTutor || !Array.isArray(a.args)) throw new Error('Git 해설 터미널이 없어요.');
+      const completed=await Promise.race([window.molipGitTutor.command(a.args),untilCancelled()]);
+      if (!active()) return '해설을 멈췄어요.';
+      if (!completed) throw new Error('Git 명령의 완료를 확인하지 못했어요.');
+      return '실제 Git 명령이 끝났어요.';
+    },
+    git_command: () => '#git-demo-terminal',
     choose_answer: a => demonstrateAnswer(String(a.id ?? '')),
     order_answer: a => demonstrateAnswer(JSON.stringify(a.ids ?? [])),
     fill_answer: a => demonstrateAnswer(String(a.value ?? '')),
@@ -658,7 +666,7 @@
     for (const name of ['click','keydown','beforeinput','paste','drop']) session.root.addEventListener(name, session.blockInput, true);
     explanationSession = session;
     // A demonstration can execute examples, but never submit, advance or grant completion.
-    const allowed = new Set(['say', 'set_code', 'patch_code', 'type_code', 'set_input', 'run', 'choose_answer', 'order_answer', 'fill_answer']);
+    const allowed = new Set(['git_command', 'say', 'set_code', 'patch_code', 'type_code', 'set_input', 'run', 'choose_answer', 'order_answer', 'fill_answer']);
     try { return await run(Array.isArray(actions) ? actions.filter(action => allowed.has(action?.action)) : [], true); }
     finally { if (explanationSession === session) restoreExplanation(); }
   }

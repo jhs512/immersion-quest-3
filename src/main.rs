@@ -8,6 +8,7 @@ mod lesson_outline;
 mod interaction_ui;
 mod pilot_ui;
 mod gh_setup_ui;
+mod git_terminal_ui;
 use dioxus::prelude::*;
 use molip_quest::Course;
 use ui::Learning;

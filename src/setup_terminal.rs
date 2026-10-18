@@ -42,16 +42,23 @@ pub fn gh_executable() -> PathBuf {
 }
 
 impl SetupTerminal {
-    pub fn open() -> Result<(Self, mpsc::Receiver<Vec<u8>>), String> {
+    pub fn open() -> Result<(Self, mpsc::Receiver<Vec<u8>>), String> {Self::open_with(None)}
+    pub fn open_practice(path:&std::path::Path,environment:&[(String,String)])->Result<(Self,mpsc::Receiver<Vec<u8>>),String> {Self::open_with(Some((path,environment)))}
+    fn open_with(practice:Option<(&std::path::Path,&[(String,String)])>) -> Result<(Self, mpsc::Receiver<Vec<u8>>), String> {
         let pair=native_pty_system().openpty(PtySize {rows:20,cols:100,pixel_width:0,pixel_height:0}).map_err(|e|e.to_string())?;
         #[cfg(windows)]
         let mut command={let mut c=CommandBuilder::new("powershell.exe");c.args(["-NoLogo","-NoProfile"]);c};
         #[cfg(not(windows))]
-        let mut command=CommandBuilder::new(std::env::var_os("SHELL").unwrap_or_else(||"/bin/sh".into()));
+        let mut command=if practice.is_some(){let mut c=CommandBuilder::new("/bin/bash");c.args(["--noprofile","--norc"]);c}else{CommandBuilder::new(std::env::var_os("SHELL").unwrap_or_else(||"/bin/sh".into()))};
         let paths=gh_directories().into_iter().chain(std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default()).collect::<Vec<_>>());
         if let Ok(path)=std::env::join_paths(paths) {command.env("PATH",path);}
         command.env("TERM","xterm-256color");
         if let Some(home)=std::env::var_os(if cfg!(windows){"USERPROFILE"}else{"HOME"}) {command.cwd(home);}
+        if let Some((path,environment))=practice {
+            command.cwd(path);
+            for (key,_) in std::env::vars_os(){if key.to_string_lossy().starts_with("GIT_"){command.env_remove(key);}}
+            for (key,value) in environment {command.env(key,value);}
+        }
         let mut reader=pair.master.try_clone_reader().map_err(|e|e.to_string())?;
         let writer=pair.master.take_writer().map_err(|e|e.to_string())?;
         let child=pair.slave.spawn_command(command).map_err(|e|e.to_string())?;
@@ -69,6 +76,18 @@ impl SetupTerminal {
     }
     pub fn input(&mut self,data:&str)->Result<(),String> {
         self.writer.write_all(data.as_bytes()).and_then(|_|self.writer.flush()).map_err(|e|e.to_string())
+    }
+    /// Call on a worker thread before replacing a practice directory.
+    pub fn shutdown(&mut self)->Result<(),String> {
+        if let Some(child)=self.child.as_mut() {
+            child.kill().map_err(|e|e.to_string())?;
+            for _ in 0..50 {
+                if child.try_wait().map_err(|e|e.to_string())?.is_some(){self.child.take();return Ok(())}
+                std::thread::sleep(std::time::Duration::from_millis(100));
+            }
+            return Err("터미널이 아직 종료되지 않았어요.".into());
+        }
+        Ok(())
     }
     pub fn resize(&self,rows:u16,cols:u16)->Result<(),String> {
         self.master.resize(PtySize{rows:rows.clamp(2,150),cols:cols.clamp(10,300),pixel_width:0,pixel_height:0}).map_err(|e|e.to_string())
