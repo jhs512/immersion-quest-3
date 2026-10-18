@@ -23,6 +23,11 @@
     if (document.querySelector('.update-panel')) throw new Error('Startup must not install automatically');
     await click('나중에');
     await wait(() => document.querySelector('[aria-label="앱 업데이트 설치"]'), 'persistent update icon');
+    document.querySelector('.app-update-settings').open = true;
+    await click('업데이트 확인');
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    if (updateBanner()) throw new Error('Manual check repeated the same update notice');
+    document.querySelector('.app-update-settings').open = false;
     checked.push('update offer requires click and leaves icon after dismiss');
     await wait(() => document.querySelector('.lesson-card'), 'production course catalog');
     await click('풀모드 시작');

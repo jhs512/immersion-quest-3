@@ -25,6 +25,29 @@ impl UpdateSchedule {
     pub fn finish(&mut self) {self.checking=false;}
 }
 
+/// Notification history survives process restarts independently of available releases.
+#[derive(Default)]
+pub struct UpdateNotices { builds:std::collections::HashSet<u64>, path:Option<PathBuf> }
+impl UpdateNotices {
+    pub fn open(path:&std::path::Path)->Result<Self,String> {
+        let builds=match std::fs::read(path) {
+            Ok(bytes)=>serde_json::from_slice(&bytes).map_err(|e|format!("업데이트 안내 기록 오류: {e}"))?,
+            Err(e) if e.kind()==std::io::ErrorKind::NotFound=>Default::default(),
+            Err(e)=>return Err(e.to_string()),
+        };
+        Ok(Self{builds,path:Some(path.to_path_buf())})
+    }
+    pub fn record(&mut self,build:u64)->Result<bool,String> {
+        use std::io::Write;
+        if !self.builds.insert(build) {return Ok(false)}
+        let path=self.path.as_ref().ok_or("업데이트 안내 기록을 저장할 수 없어요.")?;
+        let mut pending=tempfile::NamedTempFile::new_in(path.parent().ok_or("안내 기록 경로 오류")?).map_err(|e|e.to_string())?;
+        pending.write_all(&serde_json::to_vec(&self.builds).map_err(|e|e.to_string())?).map_err(|e|e.to_string())?;
+        pending.persist(path).map_err(|e|e.to_string())?;
+        Ok(true)
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Release {
     pub build: u64,

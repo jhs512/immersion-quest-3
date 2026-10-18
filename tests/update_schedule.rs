@@ -16,6 +16,18 @@ fn startup_five_minutes_and_manual_checks_do_not_overlap() {
 }
 
 #[test]
+fn a_notified_build_is_not_announced_again_after_process_state_is_reopened() {
+    use molip_quest::updater::UpdateNotices;
+    let root=tempfile::tempdir().unwrap();let path=root.path().join("notices.json");
+    let mut first=UpdateNotices::open(&path).unwrap();
+    assert!(first.record(42).unwrap());
+    assert!(!first.record(42).unwrap());
+    let mut reopened=UpdateNotices::open(&path).unwrap();
+    assert!(!reopened.record(42).unwrap());
+    assert!(reopened.record(43).unwrap());
+}
+
+#[test]
 fn repository_answer_scope_survives_reopening_and_separates_accounts_courses_modes() {
     use molip_quest::{drafts::repository_scope,issue_progress::{ProgressKey,StudyMode}};
     let key=ProgressKey{user_id:1,course_id:"course".into(),lesson_id:"lesson".into()};

@@ -285,7 +285,7 @@ fn UpdateGate() -> Element {
 
     let mut phase = use_signal(|| UpdatePhase::Hidden);
     // The build the student answered 나중에 to; it is not offered again.
-    let mut notified = use_signal(std::collections::HashSet::<u64>::new);
+    let mut notified = use_signal(||molip_quest::data_dir().and_then(|dir|updater::UpdateNotices::open(&dir.join("update-notices.json"))).unwrap_or_default());
     let install = Callback::new(move |_: ()| {
         let Some(found) = release() else { return };
         if matches!(*phase.peek(),UpdatePhase::Downloading(_,_)|UpdatePhase::Installing) {return;}
@@ -350,7 +350,7 @@ fn UpdateGate() -> Element {
 
                     let idle = matches!(*phase.peek(), UpdatePhase::Hidden | UpdatePhase::Offered);
                     if idle {
-                        let first_notice=notified.write().insert(found.build);
+                        let first_notice=match notified.write().record(found.build) {Ok(first)=>first,Err(error)=>{status.set(format!("새 버전 있음 · 안내 기록 저장 실패: {error}"));true}};
                         release.set(Some(found));
                         if first_notice {phase.set(UpdatePhase::Offered);}
                     }
@@ -361,11 +361,16 @@ fn UpdateGate() -> Element {
             tokio::time::sleep(std::time::Duration::from_secs(1)).await;
         }
     });
+    let settings=rsx! {details {class:"app-update-settings",summary {"설정"}
+        p {"{status}"}
+        button {onclick:move |_|{let mut request=request;request+=1;},"업데이트 확인"}
+        button {disabled:release().is_none(),onclick:move |_|install.call(()),"새 버전 설치"}
+    }};
     let Some(found) = release() else {
-        return rsx! {button {class:"app-update-icon",aria_label:"앱 업데이트 확인",title:status(),onclick:move |_|{let mut request=request;request+=1;},"↻"}};
+        return rsx! {{settings}button {class:"app-update-icon",aria_label:"앱 업데이트 확인",title:status(),onclick:move |_|{let mut request=request;request+=1;},"↻"}};
     };
     let title = found.title.clone();
-    match phase() {
+    let content=match phase() {
         UpdatePhase::Hidden => rsx! {button {class:"app-update-icon has-update",aria_label:"앱 업데이트 설치",title:format!("새 버전 · {title}"),onclick:move |_|install.call(()),"↥"}},
         UpdatePhase::Offered => rsx! {
             div { class:"update-banner", role:"status",
@@ -416,7 +421,8 @@ fn UpdateGate() -> Element {
                 } }
             }
         }
-    }
+    };
+    rsx! {{settings}{content}}
 }
 
 #[component]
