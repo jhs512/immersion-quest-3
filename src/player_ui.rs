@@ -196,7 +196,7 @@ fn LessonPlayer(session:Session,selected:OpenLesson,onback:EventHandler<()>)->El
         }}
     }}});
     let state=issue_progress::status(&events(),&selected.lesson.revision,&selected.lesson.required_tasks());
-    let passed=issue_progress::passed_in_round(&events(),&selected.lesson.revision,selected.mode,&selected.round);
+    let passed=issue_progress::passed_for_study(&events(),&selected.lesson.revision,selected.mode,&selected.round);
     let required=selected.lesson.required_tasks();
     let count=required.iter().filter(|id|passed.contains(*id)).count();
     let view=if selected.mode==StudyMode::Full && section_index()<selected.lesson.sections.len() {None}else{Some(selected.lesson.tasks[task_index().min(selected.lesson.tasks.len()-1)].clone())};
@@ -314,7 +314,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                                     match github_player::background(move||github.append(&repo,&user,&title,&event)).await {
                                         Err(e)=>message.set(format!("검사 결과를 GitHub에 저장하지 못했어요. {e}")),
                                         Ok((_,latest))=>{
-                                            let passed=issue_progress::passed_in_round(&latest,&selected.lesson.revision,selected.mode,&selected.round);
+                                            let passed=issue_progress::passed_for_study(&latest,&selected.lesson.revision,selected.mode,&selected.round);
                                             let complete=required.iter().all(|id|passed.contains(id));
                                             if complete && !latest.iter().any(|e|e.kind==EventKind::Completed&&e.round==selected.round) {
                                                 let mut done=LearningEvent::new(key,&selected.lesson.revision,selected.mode,&selected.round,EventKind::Completed);done.required=required;

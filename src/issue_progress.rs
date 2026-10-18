@@ -40,14 +40,28 @@ pub fn merge(events:impl IntoIterator<Item=LearningEvent>, key:&ProgressKey)->Ve
 pub fn passed_in_round(events:&[LearningEvent], revision:&str, mode:StudyMode, round:&str)->HashSet<String> {
     events.iter().filter(|e| e.revision==revision && e.mode==mode && e.round==round && e.kind==EventKind::Attempt && e.passed).filter_map(|e|e.task_id.clone()).collect()
 }
+
+/// New stable-code problems retain achievement across wording/reordering revisions.
+/// A review round still starts fresh; legacy IDs retain their original revision semantics.
+pub fn passed_for_study(events:&[LearningEvent], revision:&str, mode:StudyMode, round:&str)->HashSet<String> {
+    let mut passed=passed_in_round(events,revision,mode,round);
+    if mode==StudyMode::Full {
+        passed.extend(events.iter().filter(|e|e.kind==EventKind::Attempt && e.passed)
+            .filter_map(|e|e.task_id.as_ref()).filter(|id|crate::repository_course::resource_code(id,"stp")).cloned());
+    }
+    passed
+}
 #[derive(Clone,Debug,Default,PartialEq)]
 pub struct LessonStatus { pub completed:bool,pub current:bool,pub full_completions:usize,pub review_completions:usize }
 pub fn status(events:&[LearningEvent], revision:&str, required:&[String])->LessonStatus {
     let mut rounds:BTreeMap<(String,String,u8),(&LearningEvent,bool)>=BTreeMap::new();
     for e in events.iter().filter(|e|e.kind==EventKind::Completed) {
-        let passed=passed_in_round(events,&e.revision,e.mode,&e.round);
+        let same_key:Vec<_>=events.iter().filter(|other|other.key==e.key).cloned().collect();
+        let passed=passed_for_study(&same_key,&e.revision,e.mode,&e.round);
         if e.required.is_empty() || !e.required.iter().all(|id|passed.contains(id)) {continue}
-        let current=e.revision==revision && required.iter().all(|id|passed.contains(id));
+        let stable=!required.is_empty() && required.iter().all(|id|crate::repository_course::resource_code(id,"stp"));
+        let known=passed_for_study(&same_key,revision,StudyMode::Full,"");
+        let current=if stable {required.iter().all(|id|known.contains(id))} else {e.revision==revision && required.iter().all(|id|passed.contains(id))};
         rounds.entry((e.round.clone(),e.revision.clone(),if e.mode==StudyMode::Full{0}else{1})).or_insert((e,current));
     }
     LessonStatus {completed:!rounds.is_empty(),current:rounds.values().any(|(_,c)|*c),full_completions:rounds.values().filter(|(e,_)|e.mode==StudyMode::Full).count(),review_completions:rounds.values().filter(|(e,_)|e.mode==StudyMode::Review).count()}
