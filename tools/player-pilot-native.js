@@ -239,7 +239,7 @@
     await wait(() => molipCodeEditors.getValue() === 'console.log(99);', 'draft survives reviewed authoring change');
     if (document.querySelector('.study-progress')?.textContent !== beforeReviewedProgress) throw new Error('Reviewed instruction changed student progress');
     if (document.body.textContent.includes('core_flow') || document.body.textContent.includes('synthetic-fixture-only')) throw new Error('Private authoring data leaked into lesson');
-    await click('문제 2 · 값 5 확인');
+    await click('다음 문제 →');
     await wait(() => document.querySelector('.problem-pane')?.textContent.includes('다음 값을 출력해 보세요: 5'), 'unrelated step unchanged after review');
     checked.push('CLI-reviewed candidate renders changed instruction while preserving draft, progress and unrelated step');
     await click('버전 a');
