@@ -4,6 +4,7 @@ from pathlib import Path
 import unittest
 
 import lesson_prd
+import importlib.util
 
 
 class LessonPrdTest(unittest.TestCase):
@@ -53,6 +54,24 @@ class LessonPrdTest(unittest.TestCase):
         document['approval'] = None
         with self.assertRaisesRegex(ValueError, '승인'):
             lesson_prd.validate(document)
+
+    def test_policy_snapshot_is_reproducible_and_detects_tampering(self):
+        lesson_prd.validate(self.document)
+        self.document['policy_snapshot']['artifacts'][0]['text'] += 'changed'
+        with self.assertRaisesRegex(ValueError, '정책'):
+            lesson_prd.validate(self.document)
+
+    def test_git_verification_uses_prd_inputs_and_binds_its_report(self):
+        path = Path(__file__).parent / 'verify-prd-git-example.py'
+        spec = importlib.util.spec_from_file_location('verify_git_prd', path)
+        verifier = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(verifier)
+        self.document['representative']['execution_spec']['files'] = {'memo.txt': 'a different memo\n'}
+        result = verifier.verify(self.document)
+        self.assertEqual(result['prd_sha256'], lesson_prd.content_hash(self.document))
+        self.document['representative']['execution_spec']['expected_index_files'] = ['wrong.txt']
+        with self.assertRaises(AssertionError):
+            verifier.verify(self.document)
 
 
 if __name__ == '__main__':

@@ -12,6 +12,13 @@ def content_hash(document):
     return hashlib.sha256(json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
 
 
+def policy_revision(artifacts):
+    """Hash an ordered JSON snapshot after normalizing all line endings to LF."""
+    normalized = [dict(path=item['path'], text=item['text'].replace('\r\n', '\n').replace('\r', '\n')) for item in artifacts]
+    payload = json.dumps(normalized, ensure_ascii=False, sort_keys=True, separators=(',', ':'))
+    return 'sha256:' + hashlib.sha256(payload.encode('utf-8')).hexdigest()
+
+
 def _text(value, label):
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f'{label} 내용을 확인하세요.')
@@ -57,6 +64,16 @@ def validate(document, require_approval=False):
     if not isinstance(policy, dict):
         raise ValueError('적용 정책을 확인하세요.')
     _text(policy.get('revision'), '적용 정책 버전')
+    artifacts = _records(policy.get('artifacts'), '정책 원본 스냅샷')
+    paths = set()
+    for artifact in artifacts:
+        _text(artifact.get('path'), '정책 원본 경로')
+        _text(artifact.get('text'), '정책 원본 내용')
+        if artifact['path'] in paths:
+            raise ValueError('정책 원본 경로가 중복돼요.')
+        paths.add(artifact['path'])
+    if policy['revision'] != policy_revision(artifacts):
+        raise ValueError('정책 스냅샷과 적용 버전이 달라요.')
     _items(policy.get('rules'), '적용 정책')
     for source in _records(document.get('sources'), '조사 근거'):
         for key in ['url', 'checked_at', 'finding', 'certainty']:
@@ -136,7 +153,9 @@ def render(document):
     section('초기화', document['reset'])
     section('해설', document['narration'])
     section('검증과 완료', document['verification'])
-    section('대표 문제 초안', [f"{key}: {value}" for key, value in document['representative'].items()])
+    section('대표 문제 초안', [f"{key}: {value}" for key, value in document['representative'].items() if key != 'execution_spec'])
+    if 'execution_spec' in document['representative']:
+        lines.extend(['### 대표 문제 검증 입력', '', '```json', json.dumps(document['representative']['execution_spec'], ensure_ascii=False, indent=2), '```', ''])
     section('제작 승인', ['PRD와 대표 문제의 승인을 함께 확인해요.', '승인된 범위 안의 수정은 가능해요. 목표나 교육 기법 변경은 다시 승인받아요.', f"내용 식별 해시: {content_hash(document)}"])
     return '\n'.join(lines)
 
