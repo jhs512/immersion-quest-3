@@ -2,11 +2,12 @@
  const checked=[],pilot=window.mq3LessonPilot;
  const wait=async(predicate,label)=>{const until=Date.now()+60000;while(Date.now()<until){if(predicate())return;await new Promise(r=>setTimeout(r,40));}throw Error(`Timed out: ${label}`);};
  const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===text);
- const click=async text=>{await wait(()=>button(text)&&!button(text).disabled,text);button(text).click();};
+ const click=async text=>{await wait(()=>button(text)&&!button(text).disabled,text);button(text).click();await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));};
  const bridge=()=>document.querySelector('.answer-state-bridge');
  const status=text=>document.querySelector('.execution-status')?.textContent.includes(text);
  const prepared=(task,answer)=>{const source=task.example_code??answer;if(!task.example_order_marker)return source;const order=JSON.parse(answer);return source.replace(task.example_order_marker,order.map(id=>task.interaction.options.find(option=>option.id===id).text).join('\n'));};
  const answer=async task=>{
+  if(task.interaction?.kind==='choice')await wait(()=>[...document.querySelectorAll('input[type=radio]')].every(radio=>!radio.matches(':disabled')&&radio.checked===(radio.value===bridge()?.value)),'controlled choices ready');
   if(task.interaction?.kind==='choice')document.querySelector(`input[type=radio][value="${task.solution}"]`).click();
   else if(task.interaction?.kind==='fill'){const field=document.querySelector('[aria-label="빈칸 답안"]');field.value=task.solution;field.dispatchEvent(new Event('input',{bubbles:true}));}
   else if(task.interaction?.kind==='order')document.querySelector('.answer-order li:last-child button[aria-label="조각 위로"]').click();
@@ -17,6 +18,8 @@
   if(task.example_order_marker)await wait(()=>molipCodeEditors.getValue()===prepared(task,task.solution),'reordered program echo');
  };
  try{
+  // Let the initial installation finish before the debug control replaces its store.
+  await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('pilot-a'),'initial fixture installed');
   await click('검증 높이 720');await click(`버전 ${pilot.version}`);await wait(()=>document.querySelector('.lesson-card')?.textContent.includes(pilot.revision),'approved code lesson');
   await click('풀모드 시작');molipAgent.setVoice(false);
   let teacherResult='';const originalExplanation=molipAgent.runExplanation.bind(molipAgent);

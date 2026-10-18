@@ -1,13 +1,22 @@
 // Exercise prepared code and a separate answer through the actual native player.
 (async()=>{
- const checked=[];
+ const checked=[],inputTrace=[];
  const wait=async(predicate,label)=>{const until=Date.now()+45000;while(Date.now()<until){if(predicate())return;await new Promise(r=>setTimeout(r,40));}throw Error(`Timed out: ${label}`);};
  const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===text);
- const click=async text=>{await wait(()=>button(text)&&!button(text).disabled,text);button(text).click();};
+ const click=async text=>{await wait(()=>button(text)&&!button(text).disabled,text);button(text).click();await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));};
  const output=()=>document.querySelector('.output')?.textContent.trim();
  const status=text=>document.querySelector('.execution-status')?.textContent.includes(text);
- const choose=async id=>{document.querySelector(`input[type=radio][value="${id}"]`).click();await wait(()=>document.querySelector('.answer-state-bridge')?.value===id,'answer acknowledged');};
+ const choiceState=()=>({answer:document.querySelector('.answer-state-bridge')?.value,narrating:document.querySelector('.repository-task')?.dataset.narrating,options:[...document.querySelectorAll('input[type=radio]')].map(radio=>({id:radio.value,checked:radio.checked,disabled:radio.matches(':disabled')}))});
+ const choose=async id=>{
+  await wait(()=>{const state=choiceState();return state.narrating==='false'&&state.options.length>0&&state.options.every(option=>!option.disabled&&option.checked===(option.id===state.answer));},'controlled choices ready');
+  inputTrace.push({before:choiceState(),click:id});
+  document.querySelector(`input[type=radio][value="${id}"]`).click();
+  await wait(()=>document.querySelector('.answer-state-bridge')?.value===id,'answer acknowledged');
+  inputTrace.push({after:choiceState()});
+ };
  try{
+  // Let the initial installation finish before the debug control replaces its store.
+  await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('pilot-a'),'initial fixture installed');
   await click('버전 m');await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('pilot-m'),'example fixture');
   await click('풀모드 시작');await wait(()=>window.molipCodeEditors?.getValue()==='console.log(3);','prepared editor');
   if(document.querySelector('.cm-content').getAttribute('contenteditable')!=='false')throw Error('Prepared example is learner editable');
@@ -44,5 +53,5 @@
   await click('제출');await wait(()=>status('다시 풀어보세요'),'reset order remains wrong');
   checked.push('reordering authored statements updates the visible program and real output without executing answer IDs');
   dioxus.send({passed:true,checked,userAgent:navigator.userAgent});
- }catch(error){dioxus.send({passed:false,checked,error:String(error),screen:document.body.innerText.slice(0,5000)});}
+ }catch(error){dioxus.send({passed:false,checked,error:String(error),inputTrace,choiceState:choiceState(),screen:document.body.innerText.slice(0,5000)});}
 })();
