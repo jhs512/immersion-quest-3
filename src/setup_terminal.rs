@@ -152,6 +152,11 @@ impl SetupTerminal {
                 if child.try_wait().map_err(|e|e.to_string())?.is_some(){self.child.take();return Ok(())}
                 std::thread::sleep(std::time::Duration::from_millis(100));
             }
+            #[cfg(unix)]
+            if let Some(pid) = child.process_id() {
+                let state = std::process::Command::new("/bin/ps").args(["-p", &pid.to_string(), "-o", "pid=,ppid=,stat=,command="]).output().map(|output|String::from_utf8_lossy(&output.stdout).into_owned()).unwrap_or_default();
+                return Err(format!("터미널이 아직 종료되지 않았어요. PID {pid}: {state}"));
+            }
             return Err("터미널이 아직 종료되지 않았어요.".into());
         }
         Ok(())

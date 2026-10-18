@@ -71,7 +71,7 @@ fn update_shutdown_stops_all_practice_shells_without_resetting_their_work() {
         shell.shutdown().unwrap();
     }
     drop(exit_guard); // A failed installer handoff can resume normal practice creation.
-    let (mut reopened, _) = first.open_terminal().unwrap();
+    let (mut reopened, _reopened_output) = first.open_terminal().unwrap();
     reopened.shutdown().unwrap();
     for practice in [&first, &second] {
         assert_eq!(
