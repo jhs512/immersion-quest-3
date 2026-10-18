@@ -40,3 +40,8 @@ cargo test --locked --test repository_lessons -- --ignored --nocapture --test-th
 `git_terminal.state_goal`은 실제 상태 판정이다. `head_exists`, 정확한 `commit_count`, `clean`, 그리고 전체 경로·내용을 지정하는 `index`, `working_files`, `head_files`, `parent_files`를 선택한다. 파일 맵은 전체 경로 집합과 UTF-8 바이트를 비교하며 끝의 공백·개행도 의미가 있다. 부모 파일은 `HEAD^`의 트리다. 입력한 커밋 메시지나 add 명령 표기를 정답으로 고정하지 않는다. 명령 수행 자체가 목표이면 기존 `commands`와 함께 요구할 수 있다.
 
 빈 목표·알 수 없는 목표 필드·준비 파일의 잘못된 경로를 거절한다. 작업 파일은 심볼릭 링크나 특수 파일을 읽지 않고, 예상 길이보다 큰 읽기를 제한한다. Git 명령을 사용자가 직접 실행하는 로컬 실습이며 OS 샌드박스라고 주장하지 않는다.
+
+
+`git_terminal`과 `interaction.kind=choice`를 함께 쓰면 실제 저장소를 관찰한 뒤 설명을 고르는 문제다. 이때 `git_checks`, `state_goal`, 필수 `commands`를 함께 넣지 않는다. 선택 답안과 Git 완료 조건 중 하나가 조용히 무시되는 구성을 검증에서 거절한다. 초기화는 저장소와 선택 초안을 함께 되돌린다.
+
+승인된 첫 Git 수업의 제작 원본은 `tools/redesigned_lessons/git_first/`다. 승인 PRD, 학습 콘텐츠, 스텝별 해설 캐시는 분리한다. `python tools/narrate.py --redesigned-git-first`로 변경된 캐시만 갱신하고 `--check`로 파생물 신선도를 확인한다. `courses/redesigned/git-first.json`에는 학습자용 자료만 들어가며 핵심 흐름·승인 근거는 배포하지 않는다. 이 로컬 제작물만으로 공개 코스 게시나 릴리스가 완료된 것은 아니다.
