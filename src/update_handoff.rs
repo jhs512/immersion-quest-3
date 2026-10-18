@@ -1,5 +1,24 @@
 //! Installer handoff scripts keep the old bundle until the replacement is verified.
 use std::path::Path;
+pub const MAC_PENDING_FILE:&str="macos-handoff.pending";
+
+/// The launched app acknowledges only a request for its own bundle in this update folder.
+pub fn acknowledge_startup(pending:&Path,bundle:&Path)->Result<bool,String> {
+    let text=match std::fs::read_to_string(pending) {Ok(text)=>text,Err(e) if e.kind()==std::io::ErrorKind::NotFound=>return Ok(false),Err(e)=>return Err(e.to_string())};
+    let fields:Vec<_>=text.lines().collect();
+    if text.len()>4096 || fields.len()!=3 {return Err("업데이트 시작 확인 형식 오류".into())}
+    let nonce=fields[1];
+    if nonce.len()!=32 || !nonce.bytes().all(|c|c.is_ascii_hexdigit()) {return Err("업데이트 시작 확인 코드 오류".into())}
+    if Path::new(fields[2])!=bundle {return Ok(false)}
+    let directory=pending.parent().ok_or("업데이트 확인 경로 오류")?;
+    let expected=directory.join(format!("macos-startup-{nonce}.ack"));
+    if Path::new(fields[0])!=expected {return Err("업데이트 시작 확인 경로 오류".into())}
+    use std::io::Write;
+    let mut temporary=tempfile::NamedTempFile::new_in(directory).map_err(|e|e.to_string())?;
+    temporary.write_all(nonce.as_bytes()).map_err(|e|e.to_string())?;
+    temporary.persist(expected).map_err(|e|e.to_string())?;
+    Ok(true)
+}
 
 fn quote(path:&Path)->Result<String,String> {
     path.to_str().filter(|value|!value.contains(['\n','\r','\0'])).map(|value|format!("'{}'",value.replace('\'',"'\\''"))).ok_or("설치 경로를 확인하세요.".into())
@@ -10,17 +29,20 @@ pub fn macos_script(installer:&Path,bundle:&Path,pid:u32)->Result<String,String>
         return Err("설치 이미지와 앱 번들 경로를 확인하세요.".into());
     }
     let parent=bundle.parent().ok_or("앱 번들의 상위 폴더를 확인하세요.")?;
+    let updates=installer.parent().ok_or("설치 이미지 폴더 오류")?;
+    let nonce=crate::issue_progress::new_id();
+    let ack=updates.join(format!("macos-startup-{nonce}.ack"));
+    let pending=updates.join(MAC_PENDING_FILE);
     Ok(format!(r#"set -eu
 installer={installer}
 bundle={bundle}
 parent={parent}
-log="$installer.handoff.log"
-exec >>"$log" 2>&1
-while kill -0 {pid} 2>/dev/null; do sleep 0.5; done
-mount=$(mktemp -d "${{TMPDIR:-/tmp}}/mq3-mount.XXXXXX")
-work=$(mktemp -d "$parent/.mq3-update.XXXXXX")
-backup="$work/previous.app"
-stage="$work/new.app"
+ack={ack}
+pending={pending}
+nonce={nonce}
+mount=''
+work=''
+backup=''
 committed=0
 cleanup() {{
   keep=0
@@ -34,8 +56,17 @@ cleanup() {{
   if [ "$keep" -eq 0 ]; then
     case "$work" in "$parent"/.mq3-update.*) rm -rf -- "$work" ;; esac
   fi
+  rm -f -- "$ack"
+  if [ -f "$pending" ] && [ "$(sed -n '2p' "$pending")" = "$nonce" ]; then rm -f -- "$pending"; fi
 }}
 trap cleanup EXIT
+log="$installer.handoff.log"
+exec >>"$log" 2>&1
+while kill -0 {pid} 2>/dev/null; do sleep 0.5; done
+mount=$(mktemp -d "${{TMPDIR:-/tmp}}/mq3-mount.XXXXXX")
+work=$(mktemp -d "$parent/.mq3-update.XXXXXX")
+backup="$work/previous.app"
+stage="$work/new.app"
 hdiutil attach "$installer" -mountpoint "$mount" -nobrowse -readonly >/dev/null
 source="$mount/몰입 퀘스트 3.app"
 test -x "$source/Contents/MacOS/molip-quest"
@@ -46,7 +77,15 @@ codesign --verify --deep --strict "$stage"
 xattr -dr com.apple.quarantine "$stage" 2>/dev/null || true
 mv "$bundle" "$backup"
 mv "$stage" "$bundle"
+printf '%s\n%s\n%s\n' "$ack" "$nonce" "$bundle" >"$pending"
 open -n "$bundle"
+attempt=0
+while [ "$attempt" -lt 60 ]; do
+  if [ -f "$ack" ] && [ "$(cat "$ack")" = "$nonce" ]; then committed=1; break; fi
+  attempt=$((attempt + 1))
+  sleep 0.5
+done
+test "$committed" -eq 1
 committed=1
-"#,installer=quote(installer)?,bundle=quote(bundle)?,parent=quote(parent)?))
+"#,installer=quote(installer)?,bundle=quote(bundle)?,parent=quote(parent)?,ack=quote(&ack)?,pending=quote(&pending)?,nonce=nonce))
 }

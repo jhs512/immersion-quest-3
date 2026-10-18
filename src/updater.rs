@@ -360,6 +360,13 @@ pub fn install_and_restart(installer: &PathBuf) -> Result<(), String> {
     }
 }
 
+#[cfg(target_os="macos")]
+pub fn acknowledge_startup()->Result<bool,String> {
+    let exe=std::env::current_exe().map_err(|e|e.to_string())?;
+    let Some(bundle)=exe.ancestors().nth(3).filter(|path|path.extension().is_some_and(|ext|ext=="app")) else{return Ok(false)};
+    crate::update_handoff::acknowledge_startup(&crate::data_dir()?.join("updates").join(crate::update_handoff::MAC_PENDING_FILE),bundle)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

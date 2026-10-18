@@ -67,6 +67,12 @@ fn UpdateGate() -> Element {
 fn App() -> Element {
     use_context_provider(|| Signal::new(0u32));
     use_context_provider(|| Signal::new(String::new()));
+    #[cfg(target_os="macos")]
+    use_future(||async move {
+        // Acknowledge only after the native WebView has presented the new app.
+        let mut bridge=document::eval("requestAnimationFrame(()=>requestAnimationFrame(()=>dioxus.send(true)));");
+        if matches!(bridge.recv::<bool>().await,Ok(true)) {let _=molip_quest::updater::acknowledge_startup();}
+    });
     // The app runs fullscreen. F11 (macOS: control+command+F) toggles it through a hidden
     // button that assets/layout/shortcuts.js clicks; slides read its state to go fullscreen.
     #[cfg(feature = "desktop")]
