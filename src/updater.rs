@@ -340,15 +340,7 @@ pub fn install_and_restart(installer: &PathBuf) -> Result<(), String> {
             .filter(|p| p.extension().is_some_and(|e| e == "app"))
             .ok_or("앱 번들 밖에서 실행 중이라 자동 업데이트를 할 수 없습니다.")?
             .to_path_buf();
-        let script = format!(
-            "while kill -0 {pid} 2>/dev/null; do sleep 0.5; done; \
-             mount=$(hdiutil attach '{dmg}' -nobrowse -readonly | awk -F'\\t' '/\\/Volumes\\//{{print $NF}}' | head -n 1); \
-             app=$(ls -d \"$mount\"/*.app | head -n 1); \
-             rm -rf '{bundle}'; ditto \"$app\" '{bundle}'; xattr -dr com.apple.quarantine '{bundle}' 2>/dev/null; \
-             hdiutil detach \"$mount\" -quiet; open -n '{bundle}'",
-            dmg = installer.display().to_string().replace('\'', "'\\''"),
-            bundle = bundle.display().to_string().replace('\'', "'\\''"),
-        );
+        let script = crate::update_handoff::macos_script(installer,&bundle,pid)?;
         std::process::Command::new("sh")
             .args(["-c", &script])
             .stdin(std::process::Stdio::null())
