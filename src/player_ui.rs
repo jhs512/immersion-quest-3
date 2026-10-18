@@ -348,7 +348,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                         }else{code.set(starter.clone());example_source.set(example.clone());reset+=1;let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}
                     }},"초기화"}
                     if task.git_terminal.is_none()&&(task.interaction.is_none()||has_example) {
-                    button {disabled:busy()||(task.predict_before_run&&code().is_empty()),onclick:{let task=task.clone();let github=session.github.clone();let user=session.user.clone();let selected=selected.clone();move |_|{let task=task.clone();let github=github.clone();let user=user.clone();let selected=selected.clone();async move {
+                    button {disabled:busy()||(task.predict_before_run&&!narrating()&&code().is_empty()),onclick:{let task=task.clone();let github=session.github.clone();let user=session.user.clone();let selected=selected.clone();move |_|{let task=task.clone();let github=github.clone();let user=user.clone();let selected=selected.clone();async move {
                         busy.set(true);execution_id+=1;execution_state.set("running");execution_seconds.set(0);
                         message.set("코드를 실행하고 있어요.".into());output.set(String::new());preview.set(String::new());
                         let source=if has_example{example_source()}else{code()};let prediction=task.predict_before_run.then(||code());let demonstration=narrating();let input=input();let started=std::time::Instant::now();let run_id=execution_id();

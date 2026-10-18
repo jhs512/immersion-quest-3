@@ -12,6 +12,10 @@
   await click('풀모드 시작');await wait(()=>window.molipCodeEditors?.getValue()==='console.log(3);','prepared editor');
   if(document.querySelector('.cm-content').getAttribute('contenteditable')!=='false')throw Error('Prepared example is learner editable');
   if(!button('코드 실행').disabled)throw Error('Prediction must precede execution');
+  molipAgent.setVoice(false);await click('해설 재생 · 정답 실행');await wait(()=>molipAgent.running,'teacher before prediction starts');
+  await wait(()=>!molipAgent.running&&!button('해설 재생 · 정답 실행').disabled,'teacher before prediction ends');
+  await wait(()=>document.querySelector('.answer-state-bridge')?.value===''&&molipCodeEditors.getValue()==='console.log(3);','unanswered prediction restored');
+  if(!button('코드 실행').disabled)throw Error('Teacher must not satisfy learner prediction gate');
   await choose('five');await click('코드 실행');await wait(()=>output()==='3','execute prepared code');
   if(!document.querySelector('input[type=radio][value="five"]').checked)throw Error('Running replaced the answer');
   await click('제출');await wait(()=>status('다시 풀어보세요'),'wrong answer remains wrong');
