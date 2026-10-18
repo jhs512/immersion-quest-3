@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import subprocess
 
-from lesson_prd import validate
+from lesson_prd import policy_revision, validate
 
 
 def unique_fields(pairs):
@@ -92,6 +92,9 @@ class JsonReviewModel:
         return value
 
     def authorize_lineage(self, lineage):
+        if len(lineage) == 2 and lineage[0].layer == 'prd' and lineage[1].layer == 'policy':
+            validate(json.loads(lineage[0].text))
+            return  # A policy impact review may propose a draft; it cannot approve production.
         if self.prd is None:
             raise ValueError('승인된 수업 PRD가 필요해요.')
         validate(self.prd, require_approval=True)
@@ -112,7 +115,33 @@ class JsonReviewModel:
             elif self.target_steps.get(item.key) != step_id:
                 raise ValueError('모든 원본 레이어는 승인된 같은 스텝에 연결돼야 해요.')
 
+    def _draft_prd(self, request):
+        if request.get('source_after', {}).get('layer') != 'policy':
+            raise ValueError('PRD 초안은 인접한 교육 정책 변경에서만 만들어요.')
+        previous = validate(json.loads(request['target']['text']))
+        result = self._call('draft_prd', request,
+            {'prd': '정책 변경을 반영한 수업 PRD 전체 JSON. 승인 사실을 만들지 마세요.'})
+        if set(result) != {'prd'} or not isinstance(result['prd'], dict):
+            raise ValueError('검토할 PRD 초안 전체가 필요해요.')
+        document = result['prd']
+        if document.get('id') != previous['id']:
+            raise ValueError('PRD를 다른 수업으로 교체할 수 없어요.')
+        document['approval'] = {'status': 'draft'}
+        policy = document.setdefault('policy_snapshot', {})
+        if not isinstance(policy, dict):
+            raise ValueError('PRD의 적용 정책을 확인하세요.')
+        artifacts = [copy.deepcopy(item) for item in previous['policy_snapshot']['artifacts']
+                     if item['path'] not in {'docs/content-rules.md', 'docs/voice.md'}]
+        artifacts.extend([{'path': 'docs/content-rules.md', 'text': self.rules},
+                          {'path': 'docs/voice.md', 'text': self.voice}])
+        policy['artifacts'] = artifacts
+        policy['revision'] = policy_revision(artifacts)
+        validate(document)
+        return json.dumps(document, ensure_ascii=False, sort_keys=True, indent=2)
+
     def generate(self, request):
+        if request.get('target', {}).get('layer') == 'prd':
+            return self._draft_prd(request)
         if self.prd is None:
             raise ValueError('승인된 수업 PRD가 필요해요.')
         validate(self.prd, require_approval=True)

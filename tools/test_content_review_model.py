@@ -9,10 +9,33 @@ from unittest.mock import patch
 
 from content_review import Artifact, ReviewLedger
 from content_review_model import JsonReviewModel
-from lesson_prd import approve
+from lesson_prd import approve, validate
 
 
 class ModelTests(unittest.TestCase):
+    def test_policy_change_can_produce_only_an_unapproved_prd_draft(self):
+        document = json.loads((Path(__file__).resolve().parents[1] /
+            'tests/fixtures/lesson-prd/git-first.json').read_text(encoding='utf-8'))
+        approved = approve(document, 'fixture-human', 'Isolated test approval only')
+        with tempfile.TemporaryDirectory() as directory:
+            worker = Path(directory) / 'model.py'
+            worker.write_text('''import json, sys
+request = json.load(sys.stdin)
+assert request['operation'] == 'draft_prd'
+document = json.loads(request['input']['target']['text'])
+document['title'] = document['title'] + ' 수정 초안'
+print(json.dumps({'prd': document}))
+''', encoding='utf-8')
+            model = JsonReviewModel([sys.executable, '-X', 'utf8', str(worker)], model_revision='fixture-v1')
+            value = json.loads(model.generate({'target': {'key': 'prd', 'layer': 'prd',
+                'text': json.dumps(approved)}, 'source_after': {'key': 'policy', 'layer': 'policy',
+                'text': model.rules}}))
+            validate(value)
+            self.assertEqual(value['approval'], {'status': 'draft'})
+            self.assertEqual(value['id'], document['id'])
+            with self.assertRaisesRegex(ValueError, '승인'):
+                validate(value, require_approval=True)
+
     def test_generation_requires_approved_prd_and_target_step_binding(self):
         document = json.loads((Path(__file__).resolve().parents[1] /
             'tests/fixtures/lesson-prd/git-first.json').read_text(encoding='utf-8'))
