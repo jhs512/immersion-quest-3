@@ -37,8 +37,8 @@ mod native {
         std::fs::write(app.join("Contents/Info.plist"),include_str!("../packaging/macos/Info.plist").replace("APP_VERSION","0.1.0")).unwrap();
         let code=root.join("fixture.c");
         let ready=if version=="new" {format!(r#"FILE*p=fopen({},"r");char ack[4096],nonce[128];if(!p||!fgets(ack,sizeof ack,p)||!fgets(nonce,sizeof nonce,p))return 2;fclose(p);ack[strcspn(ack,"\n")]=0;nonce[strcspn(nonce,"\n")]=0;FILE*a=fopen(ack,"w");if(!a)return 3;fputs(nonce,a);fclose(a);"#,serde_json::to_string(marker.parent().unwrap().join("macos-handoff.pending").to_str().unwrap()).unwrap())}else{String::new()};
-        let early=if version=="crash" {"return 42;"}else{""};
-        std::fs::write(&code,format!("#include <stdio.h>\n#include <string.h>\nint main(void){{{early}FILE*f=fopen({},\"w\");if(!f)return 1;fputs(\"{version}\",f);fclose(f);{ready}return 0;}}",serde_json::to_string(marker.to_str().unwrap()).unwrap())).unwrap();
+        let early=if version=="crash" {"return 42;"}else if version=="hang" {"signal(SIGTERM,SIG_IGN);for(;;)sleep(1);"}else{""};
+        std::fs::write(&code,format!("#include <stdio.h>\n#include <string.h>\n#include <signal.h>\n#include <unistd.h>\nint main(void){{{early}FILE*f=fopen({},\"w\");if(!f)return 1;fputs(\"{version}\",f);fclose(f);{ready}return 0;}}",serde_json::to_string(marker.to_str().unwrap()).unwrap())).unwrap();
         command("cc",&[code.as_os_str(),std::ffi::OsStr::new("-o"),bin.as_os_str()]);
         command("codesign",&[std::ffi::OsStr::new("--force"),std::ffi::OsStr::new("--deep"),std::ffi::OsStr::new("--sign"),std::ffi::OsStr::new("-"),app.as_os_str()]);
         app
@@ -90,12 +90,23 @@ mod native {
 
     #[test]
     fn launch_acceptance_without_startup_acknowledgement_rolls_back() {
+        assert_unacknowledged_start_rolls_back("crash");
+    }
+
+    #[test]
+    fn candidate_ignoring_term_cannot_block_rollback_forever() {
+        assert_unacknowledged_start_rolls_back("hang");
+    }
+
+    fn assert_unacknowledged_start_rolls_back(version:&str) {
         let root=tempfile::tempdir().unwrap();let marker=root.path().join("started.txt");
         let target=bundle(&root.path().join("installed"),"old",&marker);
         let before=std::fs::read(target.join("Contents/MacOS/molip-quest")).unwrap();
-        let source=root.path().join("image");bundle(&source,"crash",&marker);let dmg=root.path().join("crashing.dmg");
+        let source=root.path().join("image");bundle(&source,version,&marker);let dmg=root.path().join("crashing.dmg");
         command("hdiutil",&[std::ffi::OsStr::new("create"),std::ffi::OsStr::new("-srcfolder"),source.as_os_str(),std::ffi::OsStr::new("-format"),std::ffi::OsStr::new("UDZO"),dmg.as_os_str()]);
+        let started=std::time::Instant::now();
         assert!(!Command::new("sh").args(["-c",&macos_script(&dmg,&target,99999999).unwrap()]).status().unwrap().success());
+        assert!(started.elapsed().as_secs()<45,"Rollback exceeded its startup timeout and termination grace");
         assert_eq!(std::fs::read(target.join("Contents/MacOS/molip-quest")).unwrap(),before);
         wait_marker(&marker,"old");
     }

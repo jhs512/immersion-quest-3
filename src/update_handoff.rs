@@ -47,7 +47,13 @@ candidate_pid=''
 committed=0
 cleanup() {{
   keep=0
-  if [ "$committed" -eq 0 ] && [ -n "$candidate_pid" ]; then kill -TERM "$candidate_pid" 2>/dev/null || true; wait "$candidate_pid" 2>/dev/null || true; fi
+  if [ "$committed" -eq 0 ] && [ -n "$candidate_pid" ]; then
+    kill -TERM "$candidate_pid" 2>/dev/null || true
+    grace=0
+    while kill -0 "$candidate_pid" 2>/dev/null && [ "$grace" -lt 10 ]; do sleep 0.1; grace=$((grace + 1)); done
+    kill -KILL "$candidate_pid" 2>/dev/null || true
+    wait "$candidate_pid" 2>/dev/null || true
+  fi
   if [ "$committed" -eq 0 ] && [ -d "$backup" ]; then
     if [ -e "$bundle" ]; then mv "$bundle" "$work/failed.app" || keep=1; fi
     if [ "$keep" -eq 0 ]; then mv "$backup" "$bundle" || keep=1; fi
