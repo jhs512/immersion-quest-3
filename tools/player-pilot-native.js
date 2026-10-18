@@ -40,7 +40,7 @@
     await new Promise(resolve => setTimeout(resolve, 300));
     const workspace = document.querySelector('.repository-study');
     const workspaceBounds=workspace.getBoundingClientRect();
-    if(workspaceBounds.left < -1 || workspaceBounds.right > innerWidth+1 || workspaceBounds.width < innerWidth-10)throw new Error(`Practice width escapes viewport: ${JSON.stringify({left:workspaceBounds.left,right:workspaceBounds.right,width:workspaceBounds.width,viewport:innerWidth})}`);
+    if(workspaceBounds.left < -1 || workspaceBounds.right > document.documentElement.clientWidth+1 || workspaceBounds.width < document.documentElement.clientWidth-2)throw new Error(`Practice width escapes viewport: ${JSON.stringify({left:workspaceBounds.left,right:workspaceBounds.right,width:workspaceBounds.width,viewport:innerWidth})}`);
     const paging = document.querySelector('.task-paging').getBoundingClientRect();
     if (paging.bottom > innerHeight + 1) throw new Error(`Practice controls overflow: ${paging.bottom} > ${innerHeight}`);
     if (document.querySelector('.repository-task').getBoundingClientRect().height < 180) throw new Error('Workspace squeezed out by headers');
