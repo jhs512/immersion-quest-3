@@ -19,9 +19,9 @@ def digest(value):
 
 def write_changed(path, value):
     text = json.dumps(value, ensure_ascii=False, indent=2) + '\n'
-    if not path.exists() or path.read_text(encoding='utf-8') != text:
+    if not path.exists() or path.read_bytes() != text.encode('utf-8'):
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding='utf-8')
+        path.write_text(text, encoding='utf-8', newline='\n')
         return True
     return False
 

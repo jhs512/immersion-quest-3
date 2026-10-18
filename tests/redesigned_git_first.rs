@@ -3,7 +3,9 @@ use molip_quest::{git_practice::GitPractice, repository_course::Lesson};
 #[tokio::test]
 async fn six_first_git_steps_grade_real_work_and_replay_teacher_commands_without_changing_student_state() {
     let path=std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("courses/redesigned/git-first.json");
-    let lesson:Lesson=serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
+    let raw=std::fs::read_to_string(path).unwrap();
+    let course=molip_quest::repository_course::CourseManifest::parse(include_str!("fixtures/player-pilot/k/course.json")).unwrap();
+    let lesson=Lesson::parse(&raw,&course.lessons[0]).unwrap();
     lesson.validate().unwrap();
     assert_eq!(lesson.tasks.len(),6);
     let solutions:Vec<Vec<Vec<&str>>>=vec![
