@@ -40,6 +40,7 @@ fn write_file(root:&Path,name:&str,content:&str)->Result<(),String> {
 pub fn node()->String {std::env::var("MOLIP_NODE").unwrap_or_else(|_|"node".into())}
 
 pub async fn run(task:&Task,source:&str,input:&str)->Result<Execution,String> {
+    if task.interaction.is_some() {return Err("답안을 고른 뒤 제출해 보세요.".into())}
     if task.language==TaskLanguage::Java {return crate::java::run(source,input).await}
     if task.language==TaskLanguage::Python {return crate::runner::execute_python_files(source,input,None,&task.files).await}
     let dir=prepare(task,source)?;
@@ -175,6 +176,7 @@ pub async fn check(task:&Task,source:&str)->Result<TestReport,String> {
             let result=crate::runner::execute_python_files(source,"",Some(checker),&task.files).await?;
             return Ok(report_execution(result,"다른 데이터로 원리 검사"));
         }
+    if let Some(interaction) = &task.interaction {return interaction.check(source)}
     }
     if task.language==TaskLanguage::Java {
         let unit:crate::Unit=serde_json::from_value(serde_json::json!({"id":task.id,"title":task.title,"language":"java","starter_code":task.starter_code,"solution":task.solution,"tests":task.tests,"checker":task.checker})).map_err(|e|e.to_string())?;

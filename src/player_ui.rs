@@ -258,7 +258,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     let mut preview=use_signal(String::new);
     use_effect(|| { document::eval("const s=document.querySelector('select.repository-narration-rate');if(s&&window.molipVoice)s.value=String(molipVoice.rate);"); });
     let required=selected.lesson.required_tasks();
-    let filename=if task.entry_file.is_empty(){task.language.filename().to_string()}else{task.entry_file.clone()};
+    let filename=if task.interaction.is_some(){"답안".to_string()}else if task.entry_file.is_empty(){task.language.filename().to_string()}else{task.entry_file.clone()};
     // Show the data this problem reads before other files bundled with the lesson.
     let mut provided_files=task.files.iter().map(|(name,body)|{
         let used=task.starter_code.contains(name.as_str())||task.solution.contains(name.as_str());
@@ -287,7 +287,8 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
             div {class:"split-handle split-col",role:"separator",tabindex:0,aria_label:"문제와 코드 패널 크기 조절",aria_orientation:"vertical"}
             section {class:"coding-pane",div {class:"pane-heading",strong {"{filename}"}
                 div {class:"pane-actions",
-                    button {disabled:busy(),onclick:{let starter=task.starter_code.clone();move |_|{code.set(starter.clone());reset+=1;}},"초기화"}
+                    button {disabled:busy(),onclick:{let starter=task.starter_code.clone();let key=key.clone();move |_|{code.set(starter.clone());reset+=1;let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}},"초기화"}
+                    if task.interaction.is_none() {
                     button {disabled:busy(),onclick:{let task=task.clone();let github=session.github.clone();let user=session.user.clone();let selected=selected.clone();move |_|{let task=task.clone();let github=github.clone();let user=user.clone();let selected=selected.clone();async move {
                         busy.set(true);message.set(String::new());let source=code();let input=input();
                         let gh=github.clone();let uid=user.id;
@@ -299,6 +300,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                         match github_player::background(move||github.append(&repo,&user,&title,&event)).await {Ok((_,latest))=>onrecord.call(latest),Err(e)=>message.set(format!("실행 이력을 저장하지 못했어요. {e}"))}
                         busy.set(false);
                     }}},"코드 실행"}
+                    }
                     button {class:"primary",disabled:busy(),onclick:{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();move |_|{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();async move {
                         busy.set(true);message.set("검사하고 있어요.".into());let gh=session.github.clone();let uid=session.user.id;
                         let authenticated=github_player::background(move||gh.ensure_user(uid)).await;
@@ -330,13 +332,19 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                 }
             }
             div {class:"editor-pane",
+                if let Some(interaction) = task.interaction.clone() {
+                    crate::interaction_ui::InteractionEditor { interaction, value: code(), disabled: busy(), onchange: {let key=key.clone();move |value:String|{code.set(value);let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}} }
+                } else {
                 textarea {class:"code-editor","data-code-editor":if task.entry_file.ends_with(".jsx"){"javascript"}else{task.language.editor()},"data-editor-value":code(),"data-editor-reset":reset().to_string(),aria_label:"수업 코드",initial_value:initial.clone(),spellcheck:false,oninput:{let key=key.clone();move |e|{code.set(e.value());let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}}}
+                }
             }
             div {class:"split-handle split-row",role:"separator",tabindex:0,aria_label:"코드와 실행 결과 패널 크기 조절",aria_orientation:"horizontal"}
-            section {class:"result-pane",h3 {"실행 결과"}
+            section {class:"result-pane",h3 {if task.interaction.is_some(){"채점 결과"}else{"실행 결과"}}
+                if task.interaction.is_none() {
                 details {class:"run-input",open:task.tests.iter().any(|case|!case.input.is_empty()),
                     summary {"실행 입력"}
                     label {span {"프로그램에 전달할 입력"} textarea {aria_label:"실행 입력",initial_value:input(),oninput:move |e|input.set(e.value())}}
+                }
                 }
                 p {class:"execution-status",role:"status","{message}"}pre {class:"output","{output}"}
                 if !preview().is_empty() && task.language==repository_course::TaskLanguage::Web {

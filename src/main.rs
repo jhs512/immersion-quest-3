@@ -5,6 +5,7 @@ mod practice;
 mod ui;
 mod player_ui;
 mod lesson_outline;
+mod interaction_ui;
 mod pilot_ui;
 mod gh_setup_ui;
 use dioxus::prelude::*;

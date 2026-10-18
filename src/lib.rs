@@ -17,6 +17,7 @@ pub mod issue_progress;
 pub mod github_player;
 pub mod pilot_source;
 pub mod lesson_runner;
+pub mod task_interaction;
 pub mod tts;
 pub mod updater;
 #[cfg(not(target_os = "android"))]
