@@ -45,7 +45,7 @@ pub fn RepositoryPlayer()->Element {
             spawn(async move {let lookup=repository.clone();if let Ok(manifest)=github_player::background(move||github.course(&lookup)).await {course_titles.write().insert(repository,manifest.title);}});
         }
     });
-    let update_key=format!("{:?}:{}",course(),session().map(|s|s.user.id).unwrap_or(0));
+    let update_key=format!("{}:{}",course().map(|course|course.repository).unwrap_or_default(),session().map(|s|s.user.id).unwrap_or(0));
     let updates=rsx! {ContentUpdates {key:"{update_key}",session:session(),course:course(),onapply:move |manifest:CourseManifest|{
         document::eval("window.molipAgent?.stop()");
         open.set(None); course.set(Some(manifest)); refresh+=1;
@@ -488,6 +488,7 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,onapply:
     if session.is_none()||course.is_none(){return rsx!{}}
     let backup_user=session.as_ref().map(|session|session.user.id).unwrap_or(0);
     let backup_course=course.as_ref().map(|course|course.id.clone()).unwrap_or_default();
+    let history_repository=course.as_ref().map(|course|course.repository.clone()).unwrap_or_default();
     let apply=move |_|{
         let Some(next)=candidate() else{return};let Some(session)=session.clone() else{return};
         if applying(){return;} applying.set(true);
@@ -510,6 +511,7 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,onapply:
             button {disabled:applying(),onclick:move |_|manual+=1,"수업 업데이트 확인"}
             p {role:"status","{message}"}
             if candidate().is_some() {p {"{summary}"}}
+            crate::change_history_ui::ChangeHistory {repository:history_repository}
             DraftBackups {user:backup_user,course:backup_course}
         }
         if candidate().is_some() {

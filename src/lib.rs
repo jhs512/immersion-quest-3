@@ -22,6 +22,7 @@ pub mod tts;
 pub mod updater;
 pub mod update_handoff;
 pub mod content_updates;
+pub mod change_history;
 pub mod git_practice;
 #[cfg(not(target_os="android"))]
 mod process_scope;

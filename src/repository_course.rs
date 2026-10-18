@@ -10,6 +10,8 @@ pub fn initial_repository() -> &'static str {
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 pub struct CourseManifest {
+    #[serde(default,skip_serializing_if="Vec::is_empty")]
+    pub change_history:Vec<crate::change_history::ChangeEntry>,
     pub schema_version: u32,
     pub id: String,
     pub title: String,
@@ -32,6 +34,8 @@ fn yes() -> bool { true }
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 pub struct Lesson {
+    #[serde(default,skip_serializing_if="Vec::is_empty")]
+    pub change_history:Vec<crate::change_history::ChangeEntry>,
     pub schema_version: u32,
     pub id: String,
     pub revision: String,
@@ -144,6 +148,7 @@ pub fn safe_file(path: &str) -> bool {
 impl CourseManifest {
     pub fn parse(text: &str) -> Result<Self,String> {
         let course:Self=serde_json::from_str(text).map_err(|e|e.to_string())?;
+        crate::change_history::validate(&course.change_history)?;
         let mut ids=HashSet::new();
         if !matches!(course.schema_version,1|2) || course.id.is_empty() || course.title.is_empty() || !valid_repository(&course.repository) || course.lessons.is_empty() || course.lessons.len()>200 { return Err("코스 구성정보를 확인하세요.".into()); }
         if course.schema_version==2 && (!resource_code(&course.id,"crs") || course.lessons.iter().any(|l|!resource_code(&l.id,"lsn"))) {return Err("코스와 수업의 고유 코드를 확인하세요.".into())}
@@ -166,6 +171,7 @@ impl Lesson {
         Ok(lesson)
     }
     pub fn validate(&self)->Result<(),String> {
+        crate::change_history::validate(&self.change_history)?;
         let mut ids=HashSet::new();
         if !matches!(self.schema_version,1|2) || self.id.is_empty() || self.title.is_empty() || self.tasks.is_empty() || !self.tasks.iter().any(|t| t.required) || self.tasks.len()>200 { return Err("수업 구성과 필수 문제를 확인하세요.".into()); }
         if self.schema_version==2 {self.validate_hierarchy()?;}

@@ -185,6 +185,18 @@
     document.querySelector('[aria-label="수업 업데이트 적용"]').click();
     await wait(() => document.querySelector('.lesson-card')?.textContent.includes('pilot-g'), 'atomic G installation');
     document.querySelector('.content-update-controls>details').open=true;
+    await click('변경 이력');
+    await wait(() => document.querySelectorAll('.change-entry').length===2, 'creator change history inside player');
+    const changeRows=[...document.querySelectorAll('.change-entry')];
+    if(changeRows[0].querySelector('time').dateTime !== '2026-10-19T02:00:00Z')throw new Error('History is not newest first');
+    if(!changeRows[0].textContent.includes('출력 안내를 읽기 쉽게'))throw new Error('Creator change reason missing');
+    if(changeRows[0].querySelector('details').open)throw new Error('Change details are not collapsed');
+    changeRows[0].querySelector('summary').click();
+    if(!changeRows[0].querySelector('details').open)throw new Error('Change details do not expand');
+    document.querySelector('[aria-label="변경 이력 닫기"]').click();
+    await wait(() => !document.querySelector('.change-history-panel'), 'history closed inside player');
+    checked.push('creator history includes typo reason and time, newest first, with expandable details; update click adds no entry');
+    document.querySelector('.content-update-controls>details').open=true;
     document.querySelector('.draft-backups').open=true;
     await wait(() => document.querySelector('.draft-backups')?.textContent.includes('console.log(99)'), 'previous answer recoverable');
     await click('풀모드 시작');

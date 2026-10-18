@@ -17,6 +17,13 @@ impl Snapshot {
         self.course.lessons.iter().find(|installed|*installed==reference)?;
         self.lessons.get(&reference.id)
     }
+    pub fn history(&self)->Vec<crate::change_history::HistoryRow> {
+        use crate::change_history::HistoryRow;
+        let mut rows=self.course.change_history.iter().map(|entry|HistoryRow{origin:self.course.title.clone(),entry:entry.clone()}).collect::<Vec<_>>();
+        for lesson in self.lessons.values() {rows.extend(lesson.change_history.iter().map(|entry|HistoryRow{origin:lesson.title.clone(),entry:entry.clone()}));}
+        rows.sort_by(|a,b|b.entry.at.cmp(&a.entry.at).then_with(||a.origin.cmp(&b.origin)).then_with(||a.entry.summary.cmp(&b.entry.summary)));
+        rows
+    }
     pub fn changes_from(&self,previous:&Snapshot)->ContentChanges {
         let tasks=|snapshot:&Snapshot| snapshot.lessons.values().flat_map(|lesson|lesson.tasks.iter().map(move|task|((lesson.id.clone(),task.id.clone()),task.clone()))).collect::<BTreeMap<_,_>>();
         let before=tasks(previous); let after=tasks(self);
