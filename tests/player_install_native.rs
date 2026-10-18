@@ -48,16 +48,20 @@ fn complete(session: &PilotSession, marker: &Path) {
 #[ignore = "Requires Inno Setup and an interactive desktop"]
 fn real_windows_installer_replaces_disposable_player_and_restores_its_state() {
     let session = PilotSession::new().unwrap();
-    let installed = session.directory().join("installed");
+    // Inno Setup rejects Win32 verbatim prefixes in script filenames and directives.
+    // Keep the session's canonical environment, but pass ordinary paths to the compiler.
+    let path=session.directory().to_str().unwrap();
+    let root=PathBuf::from(path.strip_prefix(r"\\?\").unwrap_or(path));
+    let installed = root.join("installed");
     std::fs::create_dir(&installed).unwrap();
     let executable = installed.join("molip-quest.exe");
     std::fs::copy(env!("CARGO_BIN_EXE_molip-quest"), &executable).unwrap();
     let marker = installed.join("generation.txt");
     std::fs::write(&marker, "old").unwrap();
     native_player::run(&executable, &session, "seed");
-    let generation = session.directory().join("generation.txt");
+    let generation = root.join("generation.txt");
     std::fs::write(&generation, "new").unwrap();
-    let setup = session.directory().join("fixture.iss");
+    let setup = root.join("fixture.iss");
     let source = format!(
         r#"[Setup]
 AppId=MQ3Pilot{}
@@ -77,7 +81,7 @@ Source: "{}"; DestDir: "{{app}}"; Flags: ignoreversion
 "#,
         molip_quest::issue_progress::new_id(),
         installed.display(),
-        session.directory().display(),
+        root.display(),
         env!("CARGO_BIN_EXE_molip-quest"),
         generation.display()
     );
@@ -86,7 +90,7 @@ Source: "{}"; DestDir: "{{app}}"; Flags: ignoreversion
         .map(PathBuf::from)
         .unwrap_or_else(|| PathBuf::from(r"C:\Program Files (x86)\Inno Setup 6\ISCC.exe"));
     command(&compiler, &[setup.as_os_str()]);
-    let installer = session.directory().join("fixture.exe");
+    let installer = root.join("fixture.exe");
     let script =
         molip_quest::update_handoff::windows_script(&installer, &executable, 99999999).unwrap();
     let mut handoff = Command::new("powershell.exe");
@@ -99,7 +103,7 @@ Source: "{}"; DestDir: "{{app}}"; Flags: ignoreversion
     );
     assert!(status.success());
     let deadline = std::time::Instant::now() + std::time::Duration::from_secs(40);
-    while !session.directory().join("restart-reopen.json").exists() {
+    while !root.join("restart-reopen.json").exists() {
         assert!(
             std::time::Instant::now() < deadline,
             "Updated player did not report state"
