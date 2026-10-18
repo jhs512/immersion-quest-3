@@ -7,27 +7,50 @@ pub const REPOSITORY: &str = "mq3-validation/course";
 pub fn enabled() -> bool { cfg!(debug_assertions) && std::env::var_os("MOLIP_PILOT").is_some() }
 
 pub fn data_dir() -> Result<std::path::PathBuf, String> {
+    if let Some(directory)=crate::pilot_session::shared_directory()? {return Ok(directory)}
     static DIRECTORY: OnceLock<Result<tempfile::TempDir, String>> = OnceLock::new();
     DIRECTORY.get_or_init(|| tempfile::Builder::new().prefix("mq3-player-pilot-").tempdir().map_err(|error|error.to_string()))
         .as_ref().map(|directory|directory.path().to_path_buf()).map_err(Clone::clone)
 }
 
+#[derive(Clone,serde::Serialize,serde::Deserialize)]
 struct Store { corrupted:bool, version: char, issue: Option<Value>, comments: Vec<Value> }
-fn store() -> &'static Mutex<Store> {
-    static STORE: OnceLock<Mutex<Store>> = OnceLock::new();
-    STORE.get_or_init(|| Mutex::new(Store { corrupted:false, version: 'a', issue: None, comments: vec![] }))
+impl Store {
+    fn load()->Result<Self,String> {
+        match std::fs::read(data_dir()?.join("pilot-remote.json")) {
+            Ok(raw) if raw.len()<=8_000_000=>serde_json::from_slice(&raw).map_err(|e|e.to_string()),
+            Ok(_)=>Err("검증 데이터가 너무 커요.".into()),
+            Err(error) if error.kind()==std::io::ErrorKind::NotFound=>Ok(Self{corrupted:false,version:'a',issue:None,comments:vec![]}),
+            Err(error)=>Err(error.to_string()),
+        }
+    }
+    fn save(&self)->Result<(),String> {
+        use std::io::Write;
+        let directory=data_dir()?;
+        let mut pending=tempfile::NamedTempFile::new_in(&directory).map_err(|e|e.to_string())?;
+        pending.write_all(&serde_json::to_vec(self).map_err(|e|e.to_string())?).map_err(|e|e.to_string())?;
+        pending.as_file().sync_all().map_err(|e|e.to_string())?;
+        pending.persist(directory.join("pilot-remote.json")).map_err(|e|e.to_string())?;
+        Ok(())
+    }
+}
+fn commit<T>(state:&mut Store,update:impl FnOnce(&mut Store)->Result<T,String>)->Result<T,String> {
+    let mut next=state.clone();let result=update(&mut next)?;next.save()?;*state=next;Ok(result)
+}
+fn store() -> Result<&'static Mutex<Store>,String> {
+    static STORE: OnceLock<Result<Mutex<Store>,String>> = OnceLock::new();
+    STORE.get_or_init(||Store::load().map(Mutex::new)).as_ref().map_err(Clone::clone)
 }
 fn user() -> Value { json!({"id":987654321,"login":"mq3-validation"}) }
 
 pub fn set_version(version: char) -> Result<(), String> {
     if !matches!(version,'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h') { return Err("검증 버전을 확인하세요.".into()); }
-    let mut state=store().lock().map_err(|_|"검증 저장소 잠금 오류")?;
-    state.version=version;state.corrupted=false;
-    Ok(())
+    let mut state=store()?.lock().map_err(|_|"검증 저장소 잠금 오류")?;
+    commit(&mut state,|next|{next.version=version;next.corrupted=false;Ok(())})
 }
 pub fn corrupt_update()->Result<(),String> {
-    let mut state=store().lock().map_err(|_|"검증 저장소 잠금 오류")?;
-    state.version='b';state.corrupted=true;Ok(())
+    let mut state=store()?.lock().map_err(|_|"검증 저장소 잠금 오류")?;
+    commit(&mut state,|next|{next.version='b';next.corrupted=true;Ok(())})
 }
 fn snapshot(version: char, file: &str) -> Result<&'static str, String> {
     match (version, file) {
@@ -66,7 +89,7 @@ pub fn request(args: &[&str], payload: Option<Value>) -> Result<Value, String> {
     }
     let route = route.ok_or("검증 요청 경로가 없어요.")?.trim_start_matches('/');
     if method == "GET" && route == "user" { return Ok(user()); }
-    let mut state = store().lock().map_err(|_|"검증 저장소 잠금 오류")?;
+    let mut state = store()?.lock().map_err(|_|"검증 저장소 잠금 오류")?;
     for (repository, file) in [(REPOSITORY,"course.json"),("mq3-validation/lesson","lesson.json")] {
         let prefix = format!("repos/{repository}/contents/{file}?ref=");
         if method == "GET" { if let Some(revision) = route.strip_prefix(&prefix) {
@@ -89,18 +112,18 @@ pub fn request(args: &[&str], payload: Option<Value>) -> Result<Value, String> {
     let payload = payload.unwrap_or(Value::Null);
     if method == "POST" && route == base {
         let issue = json!({"number":1,"html_url":"https://github.com/mq3-validation/course/issues/1","user":user(),"title":payload["title"],"body":payload["body"]});
-        state.issue = Some(issue.clone());
-        return Ok(issue);
+        return commit(&mut state,|next|{next.issue=Some(issue.clone());Ok(issue)});
     }
     if method == "POST" && route == format!("{base}/1/comments") {
         let comment = json!({"body":payload["body"],"user":user()});
-        state.comments.push(comment.clone());
-        return Ok(comment);
+        return commit(&mut state,|next|{next.comments.push(comment.clone());Ok(comment)});
     }
     if method == "PATCH" && route == format!("{base}/1") {
-        let issue = state.issue.as_mut().ok_or("검증 진도 이슈가 없어요.")?;
-        if let Some(body) = payload.get("body") { issue["body"] = body.clone(); }
-        return Ok(issue.clone());
+        return commit(&mut state,|next|{
+            let issue=next.issue.as_mut().ok_or("검증 진도 이슈가 없어요.")?;
+            if let Some(body)=payload.get("body"){issue["body"]=body.clone();}
+            Ok(issue.clone())
+        });
     }
     Err("검증용 코스 이외의 요청은 차단했어요.".into())
 }

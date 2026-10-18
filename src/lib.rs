@@ -325,3 +325,5 @@ mod tests {
         assert_eq!(course().total_units(), 4);
     }
 }
+
+pub mod pilot_session;
