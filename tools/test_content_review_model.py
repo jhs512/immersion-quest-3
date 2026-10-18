@@ -5,6 +5,7 @@ import sys
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from content_review import Artifact, ReviewLedger
 from content_review_model import JsonReviewModel
@@ -24,6 +25,9 @@ request = json.load(sys.stdin)
 assert request['operation'] == 'generate'
 assert request['lesson_prd']['approval']['status'] == 'approved'
 assert request['step_id'] == request['lesson_prd']['representative']['step_id']
+snapshot = {item['path']: item['text'] for item in request['lesson_prd']['policy_snapshot']['artifacts']}
+assert request['voice'] == snapshot['docs/voice.md']
+assert request['content_rules'] == snapshot['docs/content-rules.md']
 print(json.dumps({'text': '새로 검토한 핵심 흐름'}))
 ''', encoding='utf-8')
             command = [sys.executable, '-X', 'utf8', str(worker)]
@@ -39,6 +43,11 @@ print(json.dumps({'text': '새로 검토한 핵심 흐름'}))
             configured = JsonReviewModel(command, model_revision='fixture-v1',
                 prd=approved, target_steps={'flow': step_id})
             self.assertEqual(configured.generate(request), '새로 검토한 핵심 흐름')
+            # The external policy files may advance before this lesson's impact review.
+            with patch.object(Path, 'read_text', return_value='new unreviewed global policy'):
+                later_policy = JsonReviewModel(command, model_revision='fixture-v1',
+                    prd=approved, target_steps={'flow': step_id})
+            self.assertEqual(later_policy.generate(request), '새로 검토한 핵심 흐름')
             self.assertNotEqual(configured.identity, draft.identity)
             with self.assertRaisesRegex(ValueError, '스텝'):
                 configured.generate({'target': {'key': 'other-lesson-flow', 'layer': 'core_flow'}})

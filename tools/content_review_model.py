@@ -60,6 +60,13 @@ class JsonReviewModel:
         if self.prd is not None:
             prompt['lesson_prd'] = self.prd
             prompt['step_id'] = self.target_steps.get(request.get('target', {}).get('key'))
+        if operation == 'generate':
+            # A global policy edit is not permission to silently alter an approved lesson.
+            snapshot = {item['path']: item['text'] for item in self.prd['policy_snapshot']['artifacts']}
+            if not {'docs/voice.md', 'docs/content-rules.md'} <= set(snapshot):
+                raise ValueError('승인된 PRD의 목소리·콘텐츠 정책 원본이 필요해요.')
+            prompt['voice'] = snapshot['docs/voice.md']
+            prompt['content_rules'] = snapshot['docs/content-rules.md']
         completed = subprocess.run(self.command, input=json.dumps(prompt, ensure_ascii=False),
             text=True, encoding='utf-8', capture_output=True, timeout=self.timeout,
             creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0)
