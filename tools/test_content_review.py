@@ -1,3 +1,4 @@
+from contextlib import ExitStack
 import json
 import tempfile
 import unittest
@@ -11,8 +12,8 @@ class AdjacentReviewTest(unittest.TestCase):
         before = Artifact('step-a/goal', 'goal', '출력 결과를 확인해요.')
         after = Artifact('step-a/goal', 'goal', '출력한 결과를 확인해요.')
         flow = Artifact('step-a/core', 'core_flow', '값을 바꿔 실행하고 출력과 비교한다.')
-        with tempfile.TemporaryDirectory() as directory:
-            ledger = ReviewLedger(Path(directory) / 'reviews.sqlite3')
+        with tempfile.TemporaryDirectory() as directory, ExitStack() as resources:
+            ledger = resources.enter_context(ReviewLedger(Path(directory) / 'reviews.sqlite3'))
             def assess(request):
                 self.assertEqual(request['source_before']['text'], before.text)
                 self.assertEqual(request['source_after']['text'], after.text)
@@ -27,7 +28,7 @@ class AdjacentReviewTest(unittest.TestCase):
             self.assertEqual(row['status'], 'reviewed')
             self.assertEqual(flow.text, '값을 바꿔 실행하고 출력과 비교한다.')
             ledger.close()
-            reopened = ReviewLedger(Path(directory) / 'reviews.sqlite3')
+            reopened = resources.enter_context(ReviewLedger(Path(directory) / 'reviews.sqlite3'))
             def must_not_run(_):
                 raise AssertionError('The same reviewed inputs must reuse the decision')
             cached = reopened.assess(before, after, flow, must_not_run, assessor_key='synthetic-review-v1')
@@ -40,8 +41,8 @@ class AdjacentReviewTest(unittest.TestCase):
         flow = Artifact('flow-a', 'core_flow', '값을 바꾸고 실행해 출력과 비교한다.')
         content = Artifact('content-a', 'content', 'console.log(3);')
         tree = ContentTree([goal, flow, content], {'flow-a': 'goal-a', 'content-a': 'flow-a'})
-        with tempfile.TemporaryDirectory() as directory:
-            ledger = ReviewLedger(Path(directory) / 'reviews.sqlite3')
+        with tempfile.TemporaryDirectory() as directory, ExitStack() as resources:
+            ledger = resources.enter_context(ReviewLedger(Path(directory) / 'reviews.sqlite3'))
             def assess(request):
                 self.assertEqual(request['target']['key'], 'flow-a')
                 return {'change_required': False, 'reason': '학습 행동은 그대로예요.'}
@@ -62,8 +63,8 @@ class AdjacentReviewTest(unittest.TestCase):
         content = Artifact('c', 'content', 'console.log(3);')
         picture = Artifact('s', 'support_spec', '숫자 3이 나오는 그림')
         tree = ContentTree([goal, flow, content, picture], {'f': 'g', 'c': 'f', 's': 'c'})
-        with tempfile.TemporaryDirectory() as directory:
-            ledger = ReviewLedger(Path(directory) / 'reviews.sqlite3')
+        with tempfile.TemporaryDirectory() as directory, ExitStack() as resources:
+            ledger = resources.enter_context(ReviewLedger(Path(directory) / 'reviews.sqlite3'))
             def assess(request):
                 if request['target']['key'] == 'f':
                     return {'change_required': True, 'reason': '값을 비교하는 행동을 넣어요.'}
@@ -87,8 +88,8 @@ class AdjacentReviewTest(unittest.TestCase):
         flow = Artifact('f', 'core_flow', '값을 바꾸고 실행한다.')
         tree = ContentTree([goal, flow], {'f': 'g'})
         after = Artifact('g', 'goal', '출력한 값을 확인해요.')
-        with tempfile.TemporaryDirectory() as directory:
-            ledger = ReviewLedger(Path(directory) / 'reviews.sqlite3')
+        with tempfile.TemporaryDirectory() as directory, ExitStack() as resources:
+            ledger = resources.enter_context(ReviewLedger(Path(directory) / 'reviews.sqlite3'))
             def failed(_):
                 raise RuntimeError('Synthetic model unavailable')
             def no_generation(_):
@@ -117,8 +118,8 @@ class AdjacentReviewTest(unittest.TestCase):
         content = Artifact(step['id'] + '/content', 'content', task['solution'])
         other = Artifact(lesson['tasks'][1]['id'] + '/content', 'content', lesson['tasks'][1]['solution'])
         tree = ContentTree([goal, flow, content, other], {flow.key: goal.key, content.key: flow.key})
-        with tempfile.TemporaryDirectory() as directory:
-            ledger = ReviewLedger(Path(directory) / 'reviews.sqlite3')
+        with tempfile.TemporaryDirectory() as directory, ExitStack() as resources:
+            ledger = resources.enter_context(ReviewLedger(Path(directory) / 'reviews.sqlite3'))
             def generate(_):
                 raise AssertionError('No artifact should regenerate for this wording-only edit')
             tree.apply(Artifact(goal.key, 'goal', '출력된 값을 확인해요: 3'), ledger,
@@ -128,6 +129,23 @@ class AdjacentReviewTest(unittest.TestCase):
             self.assertEqual(tree.artifact(other.key), other)
             self.assertEqual(ledger.history(other.key), [])
             self.assertEqual(ledger.history(flow.key)[0]['target']['revision'], flow.revision)
+            ledger.close()
+
+    def test_direct_edit_cannot_inherit_provenance_of_the_previous_generated_text(self):
+        goal = Artifact('g', 'goal', '출력을 확인해요.')
+        flow = Artifact('f', 'core_flow', '숫자 하나를 출력한다.')
+        tree = ContentTree([goal, flow], {'f': 'g'})
+        with tempfile.TemporaryDirectory() as directory, ExitStack() as resources:
+            ledger = resources.enter_context(ReviewLedger(Path(directory) / 'reviews.sqlite3'))
+            changed_goal = Artifact('g', 'goal', '출력 차이를 비교해요.')
+            reviewer = lambda _: {'change_required': True, 'reason': '비교 행동을 넣어요.'}
+            tree.apply(changed_goal, ledger, reviewer, lambda _: '두 번 실행해 비교한다.', assessor_key='synthetic-v1')
+            self.assertEqual(tree.generated_from('f'), changed_goal.revision)
+            tree.apply(Artifact('f', 'core_flow', '직접 편집한 다른 흐름'), ledger,
+                       reviewer, lambda _: self.fail('No descendants exist'), assessor_key='synthetic-v1')
+            self.assertIsNone(tree.generated_from('f'))
+            self.assertIsNone(tree.reviewed_from('f'))
+            self.assertEqual(len(ledger.history('f')), 1)
             ledger.close()
 
 

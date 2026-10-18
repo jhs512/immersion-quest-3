@@ -67,6 +67,12 @@ class ReviewLedger:
         self.connection.execute('CREATE INDEX IF NOT EXISTS review_inputs ON adjacent_reviews(fingerprint)')
         self.connection.commit()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        self.close()
+
     def close(self):
         self.connection.close()
 
@@ -158,6 +164,9 @@ class ContentTree:
         if before.revision == replacement.revision:
             return
         self._artifacts[replacement.key] = replacement
+        if replacement.key in self._parents:
+            self._generated[replacement.key] = None
+            self._reviewed[replacement.key] = None
         self._pending.extend((before, replacement, child) for child in self._children[replacement.key])
         self.resume(ledger, assessor, generator, assessor_key=assessor_key)
 
