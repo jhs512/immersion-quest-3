@@ -44,7 +44,7 @@ class JsonReviewModel:
                 raise ValueError('제작 자료와 PRD 스텝 연결을 확인하세요.')
         elif self.target_steps:
             raise ValueError('스텝을 연결할 수업 PRD가 필요해요.')
-        configuration = dict(contract='json-adjacent-model-v1', command=self.command,
+        configuration = dict(contract='json-adjacent-model-v2', command=self.command,
                              model_revision=model_revision, voice=self.voice, content_rules=self.rules,
                              lesson_prd=self.prd, target_steps=self.target_steps)
         self.identity = hashlib.sha256(json.dumps(configuration, sort_keys=True,
@@ -101,6 +101,8 @@ class JsonReviewModel:
     def authorize_lineage(self, lineage):
         if len(lineage) == 2 and lineage[0].layer == 'prd' and lineage[1].layer == 'policy':
             validate(json.loads(lineage[0].text))
+            if lineage[1].text != self.policy_source:
+                raise ValueError('검토한 정책 원본과 현재 모델의 전체 정책 묶음이 달라요.')
             return  # A policy impact review may propose a draft; it cannot approve production.
         if self.prd is None:
             raise ValueError('승인된 수업 PRD가 필요해요.')

@@ -28,6 +28,26 @@ print(json.dumps({'prd': document}))
 ''', encoding='utf-8')
             model = JsonReviewModel([sys.executable, '-X', 'utf8', str(worker)], model_revision='fixture-v1')
             with self.assertRaisesRegex(ValueError, '정책 원본'):
+                model.authorize_lineage([Artifact('prd', 'prd', json.dumps(approved)),
+                    Artifact('policy', 'policy', 'different policy revision')])
+            before = Artifact('policy', 'policy', 'older policy revision')
+            after = Artifact('policy', 'policy', 'different policy revision')
+            target = Artifact('prd', 'prd', json.dumps(approved))
+            database = Path(directory) / 'old-results.db'
+            with ReviewLedger(database) as ledger:
+                decision = ledger.assess(before, after, target,
+                    lambda _: {'change_required': True, 'reason': 'Synthetic pre-fix review'}, assessor_key=model.identity)
+                ledger.generate(before, after, target, decision,
+                    lambda _: json.dumps(dict(approved, title='Cached pre-fix draft')),
+                    generator_key=model.identity)
+            with ReviewLedger(database) as reopened:
+                with self.assertRaisesRegex(ValueError, '정책 원본'):
+                    reopened.generate(before, after, target, decision,
+                        lambda _: self.fail('Cached result must not trigger generation'),
+                        generator_key=model.identity,
+                        authorize=lambda: model.authorize_lineage([target, after]))
+                self.assertEqual(reopened.generation_history('prd')[0]['status'], 'failed')
+            with self.assertRaisesRegex(ValueError, '정책 원본'):
                 model.generate({'target': {'key': 'prd', 'layer': 'prd', 'text': json.dumps(approved)},
                     'source_after': {'key': 'policy', 'layer': 'policy', 'text': 'different policy revision'}})
             value = json.loads(model.generate({'target': {'key': 'prd', 'layer': 'prd',
