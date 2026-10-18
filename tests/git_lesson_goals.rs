@@ -1,6 +1,18 @@
 use molip_quest::git_practice::{GitExercise, GitPractice};
 
 #[test]
+fn working_file_goal_observes_deletions_even_when_the_index_still_tracks_the_path() {
+    let exercise:GitExercise=serde_json::from_value(serde_json::json!({"state_goal":{"working_files":{}}})).unwrap();
+    let practice=GitPractice::new(exercise).unwrap();
+    assert!(!practice.check_exercise().unwrap().passed);
+    std::fs::remove_file(practice.work().join("tracked.txt")).unwrap();
+    assert!(practice.check_exercise().unwrap().passed);
+    assert_eq!(practice.git(&["ls-files"]).unwrap().stdout,"tracked.txt\n");
+    std::fs::write(practice.work().join("another.txt"),"new").unwrap();
+    assert!(!practice.check_exercise().unwrap().passed);
+}
+
+#[test]
 fn published_git_task_can_require_a_repository_state_without_a_fixed_command_spelling() {
     let mut value:serde_json::Value=serde_json::from_str(include_str!("fixtures/player-pilot/h/lesson.json")).unwrap();
     value["tasks"][0].as_object_mut().unwrap().remove("git_checks");

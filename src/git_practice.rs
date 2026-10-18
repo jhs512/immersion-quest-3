@@ -250,7 +250,9 @@ impl GitPractice {
             let Some(files)=files else{continue};
             let args=match reference {Some(":")=>vec!["ls-files","-z"],Some("HEAD:")=>vec!["ls-tree","-r","--name-only","-z","HEAD"],Some("HEAD^:")=>vec!["ls-tree","-r","--name-only","-z","HEAD^"],_=>vec!["ls-files","--cached","--others","-z"]};
             let listed=self.execute(&self.work(),&args,false)?;
-            let actual=String::from_utf8_lossy(&listed.stdout).split('\0').filter(|s|!s.is_empty()).map(str::to_owned).collect::<BTreeSet<_>>();
+            let actual=String::from_utf8_lossy(&listed.stdout).split('\0').filter(|s|!s.is_empty())
+                .filter(|path|reference.is_some()||std::fs::symlink_metadata(self.work().join(path)).is_ok())
+                .map(str::to_owned).collect::<BTreeSet<_>>();
             let expected=files.keys().cloned().collect::<BTreeSet<_>>();
             record(format!("{label} 목록"),listed.status.success()&&actual==expected,expected.into_iter().collect::<Vec<_>>().join(", "),actual.into_iter().collect::<Vec<_>>().join(", "));
             for (path,expected) in files {
