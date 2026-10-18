@@ -33,6 +33,10 @@ async fn eight_condition_steps_match_boundary_values_and_teacher_outputs() {
     for (index,wrong) in [(2,"minutes = 24\nprint(False)\n"),(5,"minutes = [12, 30, 42]\nprint('30\\n42')\n"),(7,"minutes = [12, 30, 42]\nprint(1)\n")] {
         assert!(!lesson_runner::check(&lesson.tasks[index],wrong).await.unwrap().passed,"Step {} must reject memorized output",index+1);
     }
+    let fixed_threshold=lesson.tasks[2].starter_code.replace("minutes >= limit","minutes >= 30");
+    assert!(!lesson_runner::check(&lesson.tasks[2],&fixed_threshold).await.unwrap().passed,"The condition must use the changed threshold variable");
+    let fixed_filter=lesson.tasks[7].starter_code.replace("minute >= limit","minute >= 40");
+    assert!(!lesson_runner::check(&lesson.tasks[7],&fixed_filter).await.unwrap().passed,"The filter must use limit across other criteria");
     let early_exit="minutes = 24\nraise SystemExit(0)\n";
     assert!(!lesson_runner::check(&lesson.tasks[2],early_exit).await.unwrap().passed,"Successful early exit is not a completed checker");
 }
