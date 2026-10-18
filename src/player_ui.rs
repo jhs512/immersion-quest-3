@@ -258,6 +258,14 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     let mut input=use_signal(||task.tests.first().map(|t|t.input.clone()).unwrap_or_default());
     let mut busy=use_signal(||false);let mut message=use_signal(String::new);let mut output=use_signal(String::new);
     let mut preview=use_signal(String::new);
+    let mut narrating=use_signal(||false);
+    let mut show_solution=use_signal(||false);
+    use_drop(||{document::eval("window.molipAgent?.stop()");});
+    let mut execution_id=use_signal(||0u64);
+    let mut execution_state=use_signal(||"idle");
+    let mut execution_seconds=use_signal(||0u64);
+    let mut history_saves=use_signal(||0usize);
+    let mut history_message=use_signal(String::new);
     use_effect(|| { document::eval("const s=document.querySelector('select.repository-narration-rate');if(s&&window.molipVoice)s.value=String(molipVoice.rate);"); });
     let required=selected.lesson.required_tasks();
     let filename=if task.interaction.is_some(){"답안".to_string()}else if task.entry_file.is_empty(){task.language.filename().to_string()}else{task.entry_file.clone()};
@@ -267,14 +275,35 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
         (name.clone(),body.clone(),used)
     }).collect::<Vec<_>>();
     provided_files.sort_by(|a,b|b.2.cmp(&a.2).then_with(||a.0.cmp(&b.0)));
+    let explanation=issue_progress::explanation_info(&events(),&task.id);
+    let record_explanation={let session=session.clone();let selected=selected.clone();let task_id=task.id.clone();move ||{
+        let mut event=LearningEvent::new(ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},&selected.lesson.revision,selected.mode,&selected.round,EventKind::ExplanationViewed);
+        event.task_id=Some(task_id.clone());
+        event.success_before_view=events().iter().any(|e|e.kind==EventKind::Attempt&&e.passed&&e.task_id.as_deref()==Some(&task_id));
+        let gh=session.github.clone();let user=session.user.clone();let repo=selected.course.repository.clone();let title=selected.lesson.title.clone();
+        spawn(async move {match github_player::background(move||gh.append(&repo,&user,&title,&event)).await {Ok((_,latest))=>onrecord.call(latest),Err(e)=>history_message.set(format!("해설 이력을 저장하지 못했어요. {e}"))}});
+    }};
     rsx!{
-        article {class:"lesson repository-task",
+        article {class:"lesson repository-task","data-task-id":task.id.clone(),
             section {class:"problem-pane",h2 {"{task.title}"}crate::ui::Markdown{text:task.goal.clone()}
                 if !task.required {p {class:"challenge-note","선택 도전이에요. 수업 완료 후에 풀어도 돼요."}}
                 if !task.hints.is_empty() {div {class:"task-hints",for (index,hint) in task.hints.iter().enumerate(){details {summary {"힌트 {index+1}"}crate::ui::Markdown{text:hint.clone()}}}}}
-                details {summary {"정답과 풀이 보기"}crate::ui::Markdown{text:format!("```{}\n{}\n```",task.language.editor(),task.solution)}}
+                button {onclick:{let record=record_explanation.clone();move |_|{if !show_solution(){record();}show_solution.set(!show_solution());}},"정답과 풀이 보기"}
+                if show_solution() {crate::ui::Markdown{text:format!("```{}\n{}\n```",task.language.editor(),task.solution)}}
+                if explanation.before_success||explanation.after_success {details {class:"explanation-info",summary {"학습 정보"}
+                    if explanation.before_success {span {title:"풀이 전에 해설을 함께 봤어요.",aria_label:"풀이 전 해설 확인","💡"}}
+                    if explanation.after_success {span {title:"성공 후 해설을 다시 봤어요.",aria_label:"성공 후 해설 확인","↺"}}
+                }}
                 if !task.narration.is_empty() {
-                    button {disabled:busy(),onclick:{let actions=task.narration.iter().filter(|a|a["action"]!="submit").cloned().collect::<Vec<_>>();move |_|{let script=format!("window.molipAgent?.run({})",serde_json::to_string(&actions).unwrap_or_else(|_|"[]".into()));document::eval(&script);}},"해설 재생 · 정답 실행"}
+                    button {disabled:busy()||narrating(),onclick:{let actions=task.narration.clone();let record=record_explanation.clone();move |_|{
+                        record();let student_code=code();let student_output=output();let student_input=input();let student_preview=preview();let student_message=message();
+                        narrating.set(true);let actions=actions.clone();
+                        spawn(async move {
+                            let script=format!("(async()=>{{try{{await window.molipAgent?.runExplanation({});}}finally{{dioxus.send(true);}}}})();",serde_json::to_string(&actions).unwrap_or_else(|_|"[]".into()));
+                            let mut bridge=document::eval(&script);let _=bridge.recv::<bool>().await;
+                            execution_id+=1;busy.set(false);code.set(student_code);input.set(student_input);output.set(student_output);preview.set(student_preview);message.set(student_message);reset+=1;narrating.set(false);
+                        });
+                    }},"해설 재생 · 정답 실행"}
                     button {onclick:move |_|{document::eval("window.molipAgent?.stop()");},"해설 멈춤"}
                     label {class:"narration-speed","말 속도 "
                         select {class:"assistant-rate repository-narration-rate",aria_label:"해설 말 속도",onchange:move |e|{document::eval(&format!("window.molipVoice?.setRate({});",e.value()));},
@@ -292,18 +321,38 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                     button {disabled:busy(),onclick:{let starter=task.starter_code.clone();let key=key.clone();move |_|{code.set(starter.clone());reset+=1;let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}},"초기화"}
                     if task.interaction.is_none() {
                     button {disabled:busy(),onclick:{let task=task.clone();let github=session.github.clone();let user=session.user.clone();let selected=selected.clone();move |_|{let task=task.clone();let github=github.clone();let user=user.clone();let selected=selected.clone();async move {
-                        busy.set(true);message.set(String::new());let source=code();let input=input();
-                        let gh=github.clone();let uid=user.id;
-                        match github_player::background(move||gh.ensure_user(uid)).await {
-                            Ok(())=>match molip_quest::lesson_runner::run(&task,&source,&input).await {Ok(result)=>{output.set(format!("{}\n{}",result.stdout,result.stderr));message.set(if result.success{"실행 완료. 제출해서 모든 검사를 확인하세요."}else{"실행에 실패했어요. 결과를 확인하세요."}.into());preview.set(result.artifacts.into_iter().find_map(|a|match a {molip_quest::runner::Artifact::Html{srcdoc,..}=>Some(srcdoc),_=>None}).unwrap_or_default());},Err(e)=>message.set(e)},Err(e)=>message.set(e),
+                        busy.set(true);execution_id+=1;execution_state.set("running");execution_seconds.set(0);
+                        message.set("코드를 실행하고 있어요.".into());output.set(String::new());preview.set(String::new());
+                        let source=code();let input=input();let started=std::time::Instant::now();let run_id=execution_id();
+                        let timer=spawn(async move {loop {tokio::time::sleep(std::time::Duration::from_secs(1)).await;execution_seconds+=1;}});
+                        // Local execution never waits for GitHub. append() still authenticates
+                        // the expected account before recording the separate history operation.
+                        let result=molip_quest::lesson_runner::run(&task,&source,&input).await;
+                        timer.cancel();
+                        if execution_id()!=run_id {return;}
+                        match result {
+                            Ok(result)=>{
+                                output.set(format!("{}\n{}",result.stdout,result.stderr));
+                                execution_state.set(if result.success{"finished"}else{"failed"});
+                                message.set(if result.success {format!("실행을 마쳤어요. {:.2}초 걸렸어요. 제출해서 모든 검사를 확인하세요.",started.elapsed().as_secs_f64())}else{"실행에 실패했어요. 결과를 확인하세요.".into()});
+                                preview.set(result.artifacts.into_iter().find_map(|a|match a {molip_quest::runner::Artifact::Html{srcdoc,..}=>Some(srcdoc),_=>None}).unwrap_or_default());
+                            },
+                            Err(error)=>{execution_state.set("failed");message.set(error);}
                         }
+                        busy.set(false);
                         let mut event=LearningEvent::new(ProgressKey{user_id:user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},&selected.lesson.revision,selected.mode,&selected.round,EventKind::ExampleRun);event.task_id=Some(task.id.clone());
                         let repo=selected.course.repository.clone();let title=selected.lesson.title.clone();
-                        match github_player::background(move||github.append(&repo,&user,&title,&event)).await {Ok((_,latest))=>onrecord.call(latest),Err(e)=>message.set(format!("실행 이력을 저장하지 못했어요. {e}"))}
-                        busy.set(false);
+                        history_saves+=1;
+                        spawn(async move {
+                            match github_player::background(move||github.append(&repo,&user,&title,&event)).await {
+                                Ok((_,latest))=>onrecord.call(latest),
+                                Err(error)=>history_message.set(format!("실행 이력을 저장하지 못했어요. {error}"))
+                            }
+                            history_saves-=1;
+                        });
                     }}},"코드 실행"}
                     }
-                    button {class:"primary",disabled:busy(),onclick:{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();move |_|{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();async move {
+                    button {class:"primary",disabled:busy()||narrating(),onclick:{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();move |_|{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();async move {
                         busy.set(true);message.set("검사하고 있어요.".into());let gh=session.github.clone();let uid=session.user.id;
                         let authenticated=github_player::background(move||gh.ensure_user(uid)).await;
                         match authenticated {
@@ -335,20 +384,25 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
             }
             div {class:"editor-pane",
                 if let Some(interaction) = task.interaction.clone() {
-                    crate::interaction_ui::InteractionEditor { interaction, value: code(), disabled: busy(), onchange: {let key=key.clone();move |value:String|{code.set(value);let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}} }
+                    crate::interaction_ui::InteractionEditor { interaction, value: code(), disabled: busy()||narrating(), onchange: {let key=key.clone();move |value:String|{code.set(value);if !narrating(){let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}}} }
                 } else {
-                textarea {class:"code-editor","data-code-editor":if task.entry_file.ends_with(".jsx"){"javascript"}else{task.language.editor()},"data-editor-value":code(),"data-editor-reset":reset().to_string(),aria_label:"수업 코드",initial_value:initial.clone(),spellcheck:false,oninput:{let key=key.clone();move |e|{code.set(e.value());let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}}}
+                textarea {class:"code-editor","data-code-editor":if task.entry_file.ends_with(".jsx"){"javascript"}else{task.language.editor()},"data-editor-value":code(),"data-editor-reset":reset().to_string(),aria_label:"수업 코드",initial_value:initial.clone(),spellcheck:false,oninput:{let key=key.clone();move |e|{code.set(e.value());if !narrating(){let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}}}}
                 }
             }
             div {class:"split-handle split-row",role:"separator",tabindex:0,aria_label:"코드와 실행 결과 패널 크기 조절",aria_orientation:"horizontal"}
-            section {class:"result-pane",h3 {if task.interaction.is_some(){"채점 결과"}else{"실행 결과"}}
+            section {class:"result-pane","data-execution-id":execution_id().to_string(),"data-execution-state":execution_state(),aria_busy:busy(),h3 {if task.interaction.is_some(){"채점 결과"}else{"실행 결과"}}
                 if task.interaction.is_none() {
                 details {class:"run-input",open:task.tests.iter().any(|case|!case.input.is_empty()),
                     summary {"실행 입력"}
                     label {span {"프로그램에 전달할 입력"} textarea {aria_label:"실행 입력",initial_value:input(),oninput:move |e|input.set(e.value())}}
                 }
                 }
-                p {class:"execution-status",role:"status","{message}"}pre {class:"output","{output}"}
+                p {class:"execution-status",role:"status",
+                    if execution_state()=="running" {span {class:"execution-spinner",aria_hidden:"true"} {format!("코드를 실행하고 있어요. {}초 지났어요.",execution_seconds())}}else {"{message}"}
+                }
+                pre {class:"output","{output}"}
+                if history_saves()>0 {p {class:"history-sync",role:"status","실행 이력을 저장하고 있어요. 다음 코드를 실행해도 돼요."}}
+                if !history_message().is_empty() {p {class:"history-sync warning",role:"status","{history_message}"}}
                 if !preview().is_empty() && task.language==repository_course::TaskLanguage::Web {
                     iframe {title:"수업 웹 미리보기","sandbox":"allow-scripts allow-forms",srcdoc:preview(),style:"width:100%;height:400px;border:1px solid #456;"}
                 }

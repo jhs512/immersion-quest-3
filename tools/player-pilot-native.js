@@ -121,6 +121,27 @@
     await click('이대로 계속');
     if (!document.querySelector('input[value=five]:checked')) throw new Error('Update failure lost answer');
     checked.push('answer survives reopening and rejected installation; real installation not exercised');
+    await click('버전 f');
+    await wait(() => document.querySelector('.lesson-card')?.textContent.includes('pilot-f'), 'explanation snapshot');
+    await click('풀모드 시작');
+    await click('문제 4 · 해설 답안 보존');
+    await wait(() => molipCodeEditors.getValue()?.includes('console.log(0)'), 'explanation editor');
+    molipAgent.setVoice(false);
+    molipCodeEditors.setValue('console.log(99);');
+    await click('해설 재생 · 정답 실행');
+    await wait(() => molipAgent.running, 'explanation started');
+    await wait(() => !molipAgent.running && !button('해설 재생 · 정답 실행').disabled, 'explanation restored');
+    if (molipCodeEditors.getValue() !== 'console.log(99);') throw new Error('Explanation replaced student answer');
+    if (!document.querySelector('.study-progress').textContent.includes('3 / 4')) throw new Error('Explanation granted success');
+    await wait(() => document.querySelector('[aria-label="풀이 전 해설 확인"]'), 'before-success explanation history');
+    molipCodeEditors.setValue('console.log(7);');
+    await click('제출');
+    await wait(() => status('수업 완료'), 'normal success after explanation');
+    await click('해설 재생 · 정답 실행');
+    await wait(() => molipAgent.running, 'post-success explanation');
+    await wait(() => !molipAgent.running && !button('해설 재생 · 정답 실행').disabled, 'post-success restore');
+    await wait(() => document.querySelector('[aria-label="성공 후 해설 확인"]'), 'after-success explanation history');
+    checked.push('explanation restores answer, cannot submit, and records before/after successful solving');
     dioxus.send({passed: true, checked, userAgent: navigator.userAgent, viewport: {width: innerWidth, height: innerHeight}});
   } catch (error) {
     dioxus.send({passed: false, checked, error: String(error), screen: document.body.innerText.slice(0, 4000)});

@@ -3,12 +3,13 @@ use molip_quest::task_interaction::Interaction;
 
 #[component]
 pub fn InteractionEditor(interaction: Interaction, value: String, disabled: bool, onchange: EventHandler<String>) -> Element {
-    match interaction {
+    let bridge_value=value.clone();
+    let content=match interaction {
         Interaction::Choice { options, .. } => rsx! {
             fieldset { class: "answer-interaction", disabled,
                 legend { "답을 골라요" }
                 for option in options {
-                    label { class: "answer-option", key: "{option.id}",
+                    label { class: "answer-option", key: "{option.id}", "data-option-id":option.id.clone(),
                         input { r#type: "radio", name: "step-choice", value: option.id.clone(), checked: value == option.id,
                             onchange: move |_| onchange.call(option.id.clone()) }
                         span { "{option.text}" }
@@ -33,7 +34,7 @@ pub fn InteractionEditor(interaction: Interaction, value: String, disabled: bool
                     }
                     ol { class: "answer-order",
                         for (index, id) in selected.iter().enumerate() {
-                            li { key: "{id}",
+                            li { key: "{id}", "data-option-id":id.clone(),
                                 span { {options.iter().find(|o| o.id == *id).map(|o| o.text.as_str()).unwrap_or("알 수 없는 조각")} }
                                 button { r#type: "button", disabled: index == 0, aria_label: "조각 위로", onclick: {let mut next = selected.clone(); if index > 0 {next.swap(index, index - 1);} move |_| onchange.call(serde_json::to_string(&next).unwrap())}, "↑" }
                                 button { r#type: "button", disabled: index + 1 == selected.len(), aria_label: "조각 아래로", onclick: {let mut next = selected.clone(); if index + 1 < next.len() {next.swap(index, index + 1);} move |_| onchange.call(serde_json::to_string(&next).unwrap())}, "↓" }
@@ -44,5 +45,6 @@ pub fn InteractionEditor(interaction: Interaction, value: String, disabled: bool
                 }
             }
         }
-    }
+    };
+    rsx! {input {r#type:"hidden",class:"answer-state-bridge",value:bridge_value,oninput:move |event|onchange.call(event.value())}{content}}
 }

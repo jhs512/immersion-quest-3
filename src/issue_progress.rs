@@ -15,15 +15,26 @@ pub struct LearningEvent {
     #[serde(default)] pub task_id:Option<String>,
     #[serde(default)] pub passed:bool,
     #[serde(default)] pub required:Vec<String>,
+    #[serde(default)] pub success_before_view:bool,
 }
 #[derive(Clone,Copy,Debug,Deserialize,Serialize,PartialEq)]
 #[serde(rename_all="snake_case")]
-pub enum EventKind { Started, Attempt, Viewed, ExampleRun, Completed }
+pub enum EventKind { Started, Attempt, Viewed, ExampleRun, Completed, ExplanationViewed }
 impl LearningEvent {
     pub fn new(key:ProgressKey, revision:&str, mode:StudyMode, round:&str, kind:EventKind)->Self {
-        Self {id:new_id(),key,revision:revision.into(),mode,round:round.into(),at:now(),kind,task_id:None,passed:false,required:vec![]}
+        Self {id:new_id(),key,revision:revision.into(),mode,round:round.into(),at:now(),kind,task_id:None,passed:false,required:vec![],success_before_view:false}
     }
-    pub fn comment(&self)->String { format!("{} · {} · {}\n\n<!-- mq3-event:{} -->",self.mode.label(),self.revision,match self.kind {EventKind::Started=>"학습 시작",EventKind::Attempt=>if self.passed {"문제 통과"}else{"문제 다시 풀기"},EventKind::Viewed=>"개념 확인",EventKind::ExampleRun=>"예제 실행",EventKind::Completed=>"수업 완료"},serde_json::to_string(self).expect("event")) }
+    pub fn comment(&self)->String { format!("{} · {} · {}\n\n<!-- mq3-event:{} -->",self.mode.label(),self.revision,match self.kind {EventKind::Started=>"학습 시작",EventKind::Attempt=>if self.passed {"문제 통과"}else{"문제 다시 풀기"},EventKind::Viewed=>"개념 확인",EventKind::ExampleRun=>"예제 실행",EventKind::Completed=>"수업 완료",EventKind::ExplanationViewed=>"해설 확인"},serde_json::to_string(self).expect("event")) }
+}
+
+#[derive(Default,PartialEq,Debug)]
+pub struct ExplanationInfo {pub before_success:bool,pub after_success:bool}
+pub fn explanation_info(events:&[LearningEvent],task_id:&str)->ExplanationInfo {
+    let mut info=ExplanationInfo::default();
+    for event in events.iter().filter(|e|e.kind==EventKind::ExplanationViewed && e.task_id.as_deref()==Some(task_id)) {
+        if event.success_before_view {info.after_success=true;} else {info.before_success=true;}
+    }
+    info
 }
 pub fn now()->u64 {std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs()}
 pub fn new_id()->String {

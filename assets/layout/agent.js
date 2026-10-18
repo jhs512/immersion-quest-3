@@ -94,6 +94,7 @@
   function resolveTarget(target) {
     if (!target) return null;
     const key = String(target).trim();
+    if (key.startsWith('answer:')) return document.querySelector(`[data-option-id="${CSS.escape(key.slice(7))}"]`);
     const lines = key.match(/^(?:lines|editor):(\d+)(?::(\d+))?$/);
     if (lines) globalThis.molipCodeEditors?.highlightLines(Number(lines[1]), Number(lines[2] || lines[1]));
     if (key === 'editor' || lines) {
@@ -457,7 +458,18 @@
     if (active()) ensureUnchanged();
   }
 
+  async function demonstrateAnswer(value) {
+    const bridge = document.querySelector('.answer-state-bridge');
+    if (!bridge) throw new Error('이 문제의 답안 입력을 찾지 못했어요.');
+    bridge.value = value;
+    bridge.dispatchEvent(new Event('input', {bubbles:true}));
+    await sleep(60);
+    return '답안을 비교해 봐요.';
+  }
   const handlers = {
+    choose_answer: a => demonstrateAnswer(String(a.id ?? '')),
+    order_answer: a => demonstrateAnswer(JSON.stringify(a.ids ?? [])),
+    fill_answer: a => demonstrateAnswer(String(a.value ?? '')),
     async set_input(a) {
       const input = document.querySelector('.result-pane textarea[aria-label="실행 입력"]');
       if (!input) throw new Error('실행 입력 칸을 찾지 못했어요.');
@@ -611,11 +623,39 @@
   };
   // Where each action's spotlight goes when it carries "say" (type_code places its own).
   const DEFAULT_TARGET = {
+    choose_answer: a => `answer:${a.id}`, order_answer: () => '.answer-order', fill_answer: () => '[aria-label="빈칸 답안"]',
     say: a => a.target || null, set_code: () => 'editor', patch_code: () => 'editor', fill_blanks: () => 'blanks', run: () => 'run', submit: () => 'submit',
     answer_quiz: () => 'quiz', next: () => 'nav', prev: () => 'nav', goto: () => 'missions', next_slide: () => 'slides', finish_slides: () => 'slides',
   };
   let narrationRun = 0;
-  async function run(actions) {
+  let explanationSession = null;
+  function restoreExplanation() {
+    const session = explanationSession;
+    explanationSession = null;
+    if (!session || !session.root?.isConnected) return;
+    if (session.code !== null) globalThis.molipCodeEditors?.setValue(session.code);
+    for (const [field, value, checked] of session.fields) {
+      if (!field.isConnected) continue;
+      field.value = value;
+      if (checked !== undefined) field.checked = checked;
+      if (field.matches('.answer-state-bridge')) field.dispatchEvent(new Event('input', {bubbles:true}));
+    }
+  }
+  async function runExplanation(actions) {
+    stop();
+    const session = {
+      root: document.querySelector('.repository-task') || document.body,
+      code: globalThis.molipCodeEditors?.getValue() ?? null,
+      fields: [...document.querySelectorAll('.answer-interaction input, .answer-state-bridge')].map(field => [field, field.value, field.checked]),
+    };
+    explanationSession = session;
+    // A demonstration can execute examples, but never submit, advance or grant completion.
+    const allowed = new Set(['say', 'set_code', 'patch_code', 'type_code', 'set_input', 'run', 'choose_answer', 'order_answer', 'fill_answer']);
+    try { return await run(Array.isArray(actions) ? actions.filter(action => allowed.has(action?.action)) : [], true); }
+    finally { if (explanationSession === session) restoreExplanation(); }
+  }
+  async function run(actions, explanation = false) {
+    if (!explanation && explanationSession) stop();
     if (!Array.isArray(actions)) return '동작 목록이 배열이 아닙니다.';
     const runId = ++narrationRun;
     const active = () => !cancelled && runId === narrationRun;
@@ -703,8 +743,8 @@
   }
   // Stop reading a reply without touching a narration that may be running.
   function stopReply() { replyRun++; if (!running) stopSpeech(); }
-  function stop() { cancelled = true; paused = false; replyRun++; cancelAnimationFrame(glideFrame); stopSpeech(); releaseCancelWaiters(); clearSpot(); }
+  function stop() { cancelled = true; paused = false; replyRun++; cancelAnimationFrame(glideFrame); stopSpeech(); releaseCancelWaiters(); clearSpot(); restoreExplanation(); }
   function setVoice(on) { voice = !!on; if (!voice) stopSpeech(); return voice; }
   function setVoiceName(name) { return globalThis.molipVoice ? globalThis.molipVoice.setName(name) : String(name || 'system'); }
-  globalThis.molipAgent = { run, stop, pause, resume, speakReply, stopReply, get paused() { return paused; }, get running() { return running; }, setVoice, setVoiceName, resolveTarget, glideTo, get voice() { return voice; }, get voiceName() { return globalThis.molipVoice ? globalThis.molipVoice.name : 'system'; }, get lastSpeech() { return lastSpeech; }, get playbackRate() { return currentAudio ? currentAudio.playbackRate : null; }, actions: Object.keys(handlers) };
+  globalThis.molipAgent = { run, runExplanation, stop, pause, resume, speakReply, stopReply, get paused() { return paused; }, get running() { return running; }, setVoice, setVoiceName, resolveTarget, glideTo, get voice() { return voice; }, get voiceName() { return globalThis.molipVoice ? globalThis.molipVoice.name : 'system'; }, get lastSpeech() { return lastSpeech; }, get playbackRate() { return currentAudio ? currentAudio.playbackRate : null; }, actions: Object.keys(handlers) };
 })();
