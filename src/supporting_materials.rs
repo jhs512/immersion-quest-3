@@ -55,6 +55,28 @@ impl RasterImage {
         {
             return Err("그림의 가로·세로 크기를 확인하세요.".into());
         }
+        let decoder = png::Decoder::new_with_limits(
+            std::io::Cursor::new(&bytes),
+            png::Limits {
+                bytes: 64 * 1024 * 1024,
+            },
+        );
+        let mut reader = decoder
+            .read_info()
+            .map_err(|_| "PNG 그림을 읽지 못했어요.")?;
+        if reader.info().animation_control.is_some() {
+            return Err("움직이는 PNG 대신 정지 그림을 넣어 주세요.".into());
+        }
+        let size = reader
+            .output_buffer_size()
+            .filter(|size| *size <= 64 * 1024 * 1024)
+            .ok_or("PNG 그림이 너무 커요.")?;
+        reader
+            .next_frame(&mut vec![0; size])
+            .map_err(|_| "PNG 그림 내용이 손상됐어요.")?;
+        reader
+            .finish()
+            .map_err(|_| "PNG 그림이 끝까지 저장되지 않았어요.")?;
         Ok(())
     }
 }

@@ -13,7 +13,7 @@ def build():
     course = json.loads((folder.parent / 'a/course.json').read_text(encoding='utf-8'))
     lesson = json.loads((folder.parent / 'a/lesson.json').read_text(encoding='utf-8'))
     lesson['revision'] = 'pilot-j'
-    png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aR1cAAAAASUVORK5CYII='
+    png = base64.b64encode((folder.parent / 'support-pixel.png').read_bytes()).decode()
     image = {'alt': '검증용 한 픽셀 그림이에요.', 'png_base64': png,
              'sha256': hashlib.sha256(base64.b64decode(png)).hexdigest()}
     lesson['tasks'][0]['supporting_materials'] = [

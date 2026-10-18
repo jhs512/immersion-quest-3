@@ -84,10 +84,9 @@ fn published_image_is_pinned_local_png_and_cannot_reference_a_remote_resource() 
     let mut source: serde_json::Value =
         serde_json::from_str(include_str!("fixtures/player-pilot/a/lesson.json")).unwrap();
     use base64::Engine;
-    let data = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aR1cAAAAASUVORK5CYII=";
-    let bytes = base64::engine::general_purpose::STANDARD
-        .decode(data)
-        .unwrap();
+    let bytes = include_bytes!("fixtures/player-pilot/support-pixel.png");
+    let data = base64::engine::general_purpose::STANDARD.encode(bytes);
+
     source["tasks"][0]["supporting_materials"] = json!([{
         "id":"comic", "title":"값 그림", "kind":"comic",
         "image":{"alt":"숫자를 출력하는 장면이에요.","png_base64":data,"sha256":format!("{:x}", Sha256::digest(&bytes))}
@@ -112,7 +111,7 @@ fn repeated_aid_keys_and_private_generation_prompts_are_rejected() {
         CourseManifest::parse(include_str!("fixtures/player-pilot/j/course.json")).unwrap();
     let source: serde_json::Value =
         serde_json::from_str(include_str!("fixtures/player-pilot/j/lesson.json")).unwrap();
-    for mutation in ["duplicate", "prompt", "hash", "oversized"] {
+    for mutation in ["duplicate", "prompt", "hash", "oversized", "truncated"] {
         let mut candidate = source.clone();
         match mutation {
             "duplicate" => candidate["tasks"][0]["supporting_materials"][1]["id"] = json!("flow"),
@@ -122,6 +121,16 @@ fn repeated_aid_keys_and_private_generation_prompts_are_rejected() {
             "hash" => {
                 candidate["tasks"][0]["supporting_materials"][2]["image"]["sha256"] =
                     json!("0".repeat(64))
+            }
+            "truncated" => {
+                use base64::Engine;
+                let image = &mut candidate["tasks"][0]["supporting_materials"][2]["image"];
+                let bytes = base64::engine::general_purpose::STANDARD
+                    .decode(image["png_base64"].as_str().unwrap())
+                    .unwrap();
+                image["png_base64"] =
+                    json!(base64::engine::general_purpose::STANDARD.encode(&bytes[..33]));
+                image["sha256"] = json!(format!("{:x}", Sha256::digest(&bytes[..33])));
             }
             _ => {
                 candidate["tasks"][0]["supporting_materials"][0]["source"] =
@@ -133,6 +142,44 @@ fn repeated_aid_keys_and_private_generation_prompts_are_rejected() {
         assert!(
             Lesson::parse(&raw, &course.lessons[0]).is_err(),
             "accepted {mutation}"
+        );
+    }
+}
+
+#[test]
+fn truncated_image_cannot_replace_a_valid_installed_snapshot() {
+    use base64::Engine;
+    use molip_quest::content_updates::SnapshotStore;
+    let root = tempfile::tempdir().unwrap();
+    let store = SnapshotStore::new(root.path());
+    let repo = "mq3-validation/course";
+    let baseline = store
+        .prepare(
+            repo,
+            include_str!("fixtures/player-pilot/a/course.json"),
+            |_| Ok(include_str!("fixtures/player-pilot/a/lesson.json").into()),
+        )
+        .unwrap();
+    store.apply(&baseline).unwrap();
+    let mut course: serde_json::Value =
+        serde_json::from_str(include_str!("fixtures/player-pilot/j/course.json")).unwrap();
+    let original: serde_json::Value =
+        serde_json::from_str(include_str!("fixtures/player-pilot/j/lesson.json")).unwrap();
+    let png = include_bytes!("fixtures/player-pilot/support-pixel.png");
+    for bytes in [&png[..33], &png[..png.len() - 12]] {
+        let mut candidate = original.clone();
+        candidate["tasks"][0]["supporting_materials"][2]["image"]["png_base64"] =
+            json!(base64::engine::general_purpose::STANDARD.encode(bytes));
+        candidate["tasks"][0]["supporting_materials"][2]["image"]["sha256"] =
+            json!(format!("{:x}", Sha256::digest(bytes)));
+        let raw = candidate.to_string();
+        course["lessons"][0]["sha256"] = json!(format!("{:x}", Sha256::digest(raw.as_bytes())));
+        assert!(store
+            .prepare(repo, &course.to_string(), |_| Ok(raw.clone()))
+            .is_err());
+        assert_eq!(
+            store.active(repo).unwrap().unwrap().course().lessons[0].revision,
+            "pilot-a"
         );
     }
 }
