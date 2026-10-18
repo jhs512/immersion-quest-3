@@ -20,10 +20,11 @@ pub fn RepositoryPlayer()->Element {
     let mut course_search=use_signal(String::new);
     let mut course_titles=use_signal(HashMap::<String,String>::new);
     let mut progress=use_signal(HashMap::<String,Vec<LearningEvent>>::new);
+    let mut progress_requirements=use_signal(HashMap::<String,Vec<String>>::new);
     let mut refresh=use_signal(||0u64);
     let connect=move ||async move {
         checked.set(false);
-        progress.set(HashMap::new());course.set(None);session.set(None);
+        progress.set(HashMap::new());progress_requirements.set(HashMap::new());course.set(None);session.set(None);
         busy.set(true);message.set("gh 계정과 온라인 연결을 확인하고 있어요.".into());
         let github=Github::new();let gh=github.clone();
         match github_player::background(move||{let user=gh.user()?;let manifest=gh.course(repository_course::initial_repository());Ok((user,manifest))}).await {
@@ -76,9 +77,9 @@ pub fn RepositoryPlayer()->Element {
                 main {class:"course-main",
                 if show_builder() {if let Some(s)=session() {CourseBuilder {session:s,onselect:move |manifest:CourseManifest|{course.set(Some(manifest));repositories.set(molip_quest::course_authoring::catalog());show_builder.set(false);}}}}
                 if !show_builder() {if let Some(manifest)=course() {
-                if let Some(s)=session() {CourseProgressLoader {key:"{s.user.id}:{manifest.repository}:{refresh}",session:s,course:manifest.clone(),onloaded:move |records|progress.set(records)}}
+                if let Some(s)=session() {CourseProgressLoader {key:"{s.user.id}:{manifest.repository}:{manifest.lessons:?}:{refresh}",session:s,course:manifest.clone(),onloaded:move |records:github_player::CourseProgress|{progress.set(records.events);progress_requirements.set(records.required);}}}
                 section {class:"course-catalog",h2 {"{manifest.title}"}p {"{manifest.description}"}
-                    {let records=progress();let total=manifest.lessons.iter().filter(|l|l.required).count();let complete=manifest.lessons.iter().filter(|l|l.required&&records.get(&l.id).is_some_and(|e|issue_progress::status(e,&l.revision,&[]).current)).count();rsx!{p {class:"study-progress","최신 버전 완료: 필수 수업 {complete} / {total}"}}}
+                    {let records=progress();let total=manifest.lessons.iter().filter(|l|l.required).count();let complete=manifest.lessons.iter().filter(|l|l.required&&records.get(&l.id).is_some_and(|e|issue_progress::status(e,&l.revision,progress_requirements().get(&l.id).map(Vec::as_slice).unwrap_or(&[])).current)).count();rsx!{p {class:"study-progress","최신 버전 완료: 필수 수업 {complete} / {total}"}}}
                     p {"추천 순서와 상관없이 어떤 수업이든 선택할 수 있어요."}
                     a {href:format!("https://github.com/{}/issues",manifest.repository),target:"_blank",rel:"noopener noreferrer","코스의 공개 학습 기록"}
                     div {class:"repository-lessons",
@@ -86,7 +87,7 @@ pub fn RepositoryPlayer()->Element {
                             article {class:"card lesson-card",key:"{reference.id}",
                                 span {class:"badge","수업 {index+1}"}h3 {"{reference.title}"}
                                 p {"버전 {reference.revision}"}
-                                {let records=progress().get(&reference.id).cloned().unwrap_or_default();let state=issue_progress::status(&records,&reference.revision,&[]);rsx!{p {class:"lesson-status",if state.current {"✓ 최신 버전 완료"} else if state.completed {"✓ 완료 보존 · 추가 학습 있음"} else if !records.is_empty() {"학습 중"} else {"아직 시작하지 않았어요"}}p {"풀모드 {state.full_completions}회 · 복습 {state.review_completions}회"}}}
+                                {let records=progress().get(&reference.id).cloned().unwrap_or_default();let state=issue_progress::status(&records,&reference.revision,progress_requirements().get(&reference.id).map(Vec::as_slice).unwrap_or(&[]));rsx!{p {class:"lesson-status",if state.current {"✓ 최신 버전 완료"} else if state.completed {"✓ 완료 보존 · 추가 학습 있음"} else if !records.is_empty() {"학습 중"} else {"아직 시작하지 않았어요"}}p {"풀모드 {state.full_completions}회 · 복습 {state.review_completions}회"}}}
                                 if !reference.prerequisites.is_empty() {p {class:"prerequisite",{format!("선수 학습: {}",reference.prerequisites.iter().filter_map(|id|manifest.lessons.iter().find(|l|l.id==*id)).map(|l|l.title.clone()).collect::<Vec<_>>().join(", "))}}}
                                 for mode in [StudyMode::Full,StudyMode::Review].into_iter().filter(|mode|*mode!=StudyMode::Review||reference.review_enabled) {
                                     button {class:if mode==StudyMode::Full {"primary"}else{""},disabled:busy(),onclick:{let manifest=manifest.clone();let reference=reference.clone();move |_|{
@@ -132,10 +133,10 @@ pub fn RepositoryPlayer()->Element {
 }
 
 #[component]
-fn CourseProgressLoader(session:Session,course:CourseManifest,onloaded:EventHandler<HashMap<String,Vec<LearningEvent>>>)->Element {
+fn CourseProgressLoader(session:Session,course:CourseManifest,onloaded:EventHandler<github_player::CourseProgress>)->Element {
     let mut message=use_signal(||"진도를 불러오고 있어요.".to_string());
     use_future(move ||{let session=session.clone();let course=course.clone();async move {
-        match github_player::background(move||session.github.course_events(&course.repository,&session.user,&course.id)).await {
+        match github_player::background(move||session.github.course_progress(&course,&session.user)).await {
             Ok(records)=>{onloaded.call(records);message.set(String::new());},Err(e)=>message.set(e)
         }
     }});

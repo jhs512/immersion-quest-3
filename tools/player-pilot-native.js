@@ -41,6 +41,11 @@
     await click('제출');
     await wait(() => status('수업 완료'), 'original completion');
     checked.push('reset and step context');
+    await click('버전 e');
+    await wait(() => document.querySelector('.lesson-card')?.textContent.includes('pilot-e'), 'wording-only snapshot');
+    await wait(() => document.querySelector('.lesson-status')?.textContent.includes('최신 버전 완료'), 'catalog stable completion');
+    if (!document.querySelector('.study-progress')?.textContent.includes('1 / 1')) throw new Error('Catalog lost current completion');
+    checked.push('catalog retains completion after wording-only revision');
     await click('버전 b');
     await wait(() => document.querySelector('.lesson-card')?.textContent.includes('pilot-b'), 'snapshot B');
     await click('풀모드 시작');

@@ -24,4 +24,18 @@ fn production_github_loading_and_progress_use_only_the_isolated_pilot_store() {
     let replacement = github.lesson(&changed.lessons[0]).unwrap();
     assert_ne!(replacement.tasks[1].id, lesson.tasks[1].id);
     assert!(github.events(&course.repository, &issue, &key).unwrap().iter().any(|old| old.revision == "pilot-a"));
+    for id in lesson.required_tasks() {
+        let mut passed=LearningEvent::new(key.clone(),&lesson.revision,StudyMode::Full,"completion",EventKind::Attempt);
+        passed.task_id=Some(id);passed.passed=true;
+        github.append(&course.repository,&user,&lesson.title,&passed).unwrap();
+    }
+    let mut done=LearningEvent::new(key.clone(),&lesson.revision,StudyMode::Full,"completion",EventKind::Completed);
+    done.required=lesson.required_tasks();github.append(&course.repository,&user,&lesson.title,&done).unwrap();
+    let catalog=github.course_progress(&changed,&user).unwrap();
+    assert_eq!(catalog.required[&lesson.id],replacement.required_tasks());
+    assert!(!molip_quest::issue_progress::status(&catalog.events[&lesson.id],&replacement.revision,&catalog.required[&lesson.id]).current);
+    pilot_source::set_version('e').unwrap();
+    let wording=github.course(pilot_source::REPOSITORY).unwrap();
+    let catalog=github.course_progress(&wording,&user).unwrap();
+    assert!(molip_quest::issue_progress::status(&catalog.events[&lesson.id],&wording.lessons[0].revision,&catalog.required[&lesson.id]).current);
 }
