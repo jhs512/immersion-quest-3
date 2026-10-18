@@ -18,6 +18,23 @@
       await wait(()=>document.querySelector('.study-progress')?.textContent.includes('1 / 2'),'Restart lost prior success');
       if(document.querySelector('.study-progress').textContent.includes('최신 버전 완료'))throw new Error('Restart passed the unfinished problem');
     }
-    dioxus.send({passed:true,phase,draft:molipCodeEditors.getValue(),progress:document.querySelector('.study-progress').textContent});
+    const draft=molipCodeEditors.getValue(),progress=document.querySelector('.study-progress').textContent;
+    button('버전 h').click();
+    await wait(()=>button('풀모드 시작'),'Git catalog did not open');button('풀모드 시작').click();
+    await wait(()=>document.querySelector('.repository-task')?.dataset.gitReady==='true','Git practice did not mount');
+    if(phase==='seed') {
+      mq3GitTerminal.command(navigator.platform.toLowerCase().includes('win')
+        ? "git switch -c restart-check; Set-Content -NoNewline -LiteralPath tracked.txt -Value 'staged'; git add tracked.txt; Set-Content -NoNewline -LiteralPath tracked.txt -Value 'working'; git status --short"
+        : "git switch -c restart-check; printf staged > tracked.txt; git add tracked.txt; printf working > tracked.txt; git status --short");
+      await wait(()=>mq3GitTerminal.text().includes('MM tracked.txt'),'Git staged and working changes were not prepared');
+    } else {
+      mq3GitTerminal.command('git branch --show-current; git show :tracked.txt; git diff --numstat; git status --short');
+      await wait(()=>mq3GitTerminal.text().split('\n').some(line=>line.trim()==='restart-check')&&mq3GitTerminal.text().includes('MM tracked.txt'),'Restart lost the Git branch or index/worktree changes');
+      if(!mq3GitTerminal.text().includes('staged'))throw new Error('Restart lost staged file contents');
+    }
+    button('버전 a').click();
+    await wait(()=>button('풀모드 시작'),'Restored code catalog did not open');button('풀모드 시작').click();
+    await wait(()=>window.molipCodeEditors?.getValue()==='console.log(99);','Code draft changed after Git practice');
+    dioxus.send({passed:true,phase,draft,progress,git:{branch:'restart-check',index:'staged',worktree:'modified'}});
   } catch(error) {dioxus.send({passed:false,phase,error:String(error),screen:document.body.innerText.slice(0,2500)});}
 })();

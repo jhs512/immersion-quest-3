@@ -12,7 +12,61 @@ pub struct GitExercise {
 #[derive(Clone,Debug,Serialize,Deserialize,PartialEq)]
 #[serde(tag="kind",rename_all="snake_case")]
 pub enum GitSetup { File{path:String,content:String}, Git{args:Vec<String>} }
-pub struct GitPractice { directory:tempfile::TempDir, exercise:GitExercise }
+enum PracticeDirectory { Temporary(tempfile::TempDir), Saved{path:PathBuf,scope:String} }
+impl PracticeDirectory {fn path(&self)->&Path {match self {Self::Temporary(directory)=>directory.path(),Self::Saved{path,..}=>path}}}
+pub struct GitPractice { directory:PracticeDirectory, exercise:GitExercise }
+
+/// Student repositories stay at their original paths across player restarts.
+/// Each reset publishes a new owned directory; the previous state remains a recovery copy.
+pub struct GitPracticeStore { root:PathBuf }
+fn canonical_directory(path:&Path)->Result<PathBuf,String> {
+    let canonical=path.canonicalize().map_err(|error|error.to_string())?;
+    // Git for Windows cannot read GIT_CONFIG_GLOBAL using the Win32 verbatim prefix.
+    #[cfg(windows)] if let Some(text)=canonical.to_str() {
+        if let Some(unc)=text.strip_prefix(r"\\?\UNC\"){return Ok(PathBuf::from(format!(r"\\{unc}")))}
+        if let Some(disk)=text.strip_prefix(r"\\?\"){return Ok(PathBuf::from(disk))}
+    }
+    Ok(canonical)
+}
+
+impl GitPracticeStore {
+    pub fn new(root:&Path)->Result<Self,String> {
+        std::fs::create_dir_all(root).map_err(|error|error.to_string())?;
+        if std::fs::symlink_metadata(root).map_err(|error|error.to_string())?.file_type().is_symlink(){return Err("Git 실습 보관 경로를 확인하세요.".into())}
+        Ok(Self{root:canonical_directory(root)?})
+    }
+    pub fn installed()->Result<Self,String> {Self::new(&crate::data_dir()?.join("git-practices"))}
+    fn key(scope:&str)->String {use sha2::{Digest,Sha256};format!("{:x}",Sha256::digest(scope.as_bytes()))}
+    pub fn open(&self,scope:&str,exercise:GitExercise)->Result<GitPractice,String> {
+        exercise.validate()?;
+        let key=Self::key(scope);let pointer=self.root.join(format!("{key}.json"));
+        let metadata=match std::fs::symlink_metadata(&pointer){Ok(metadata)=>metadata,Err(error) if error.kind()==std::io::ErrorKind::NotFound=>return self.reset(scope,exercise),Err(error)=>return Err(error.to_string())};
+        if !metadata.is_file()||metadata.file_type().is_symlink()||metadata.len()>1024{return Err("Git 실습 보관 정보를 확인하세요.".into())}
+        let folder:String=serde_json::from_slice(&std::fs::read(pointer).map_err(|error|error.to_string())?).map_err(|error|error.to_string())?;
+        if !folder.strip_prefix("practice-").is_some_and(|suffix|!suffix.is_empty()&&suffix.len()<100&&suffix.bytes().all(|c|c.is_ascii_alphanumeric())){return Err("Git 실습 폴더 정보를 확인하세요.".into())}
+        let directory=self.root.join(folder);
+        if std::fs::symlink_metadata(&directory).map_err(|error|error.to_string())?.file_type().is_symlink()||canonical_directory(&directory)?.parent()!=Some(self.root.as_path()){return Err("Git 실습 폴더의 경계를 확인하세요.".into())}
+        let owner=directory.join(".mq3-owner");let metadata=std::fs::symlink_metadata(&owner).map_err(|error|error.to_string())?;
+        if !metadata.is_file()||metadata.file_type().is_symlink()||metadata.len()!=64||std::fs::read_to_string(owner).map_err(|error|error.to_string())?!=key{return Err("Git 실습의 소유 정보를 확인하세요.".into())}
+        Ok(GitPractice{directory:PracticeDirectory::Saved{path:directory,scope:scope.into()},exercise})
+    }
+    pub fn reset(&self,scope:&str,exercise:GitExercise)->Result<GitPractice,String> {
+        use std::io::Write;
+        let directory=tempfile::Builder::new().prefix("practice-").tempdir_in(&self.root).map_err(|error|error.to_string())?;
+        let mut practice=GitPractice::initialize(exercise,directory)?;
+        let key=Self::key(scope);
+        std::fs::write(practice.root().join(".mq3-owner"),&key).map_err(|error|error.to_string())?;
+        let folder=practice.root().file_name().and_then(|name|name.to_str()).ok_or("Git 실습 폴더 이름 오류")?;
+        let mut pointer=tempfile::NamedTempFile::new_in(&self.root).map_err(|error|error.to_string())?;
+        pointer.write_all(serde_json::to_string(folder).unwrap().as_bytes()).map_err(|error|error.to_string())?;
+        pointer.as_file().sync_all().map_err(|error|error.to_string())?;
+        pointer.persist(self.root.join(format!("{key}.json"))).map_err(|error|error.to_string())?;
+        // Keep the exact absolute path: Git's local origin and private HOME refer to it.
+        let PracticeDirectory::Temporary(directory)=practice.directory else {unreachable!()};
+        practice.directory=PracticeDirectory::Saved{path:directory.keep(),scope:scope.into()};
+        Ok(practice)
+    }
+}
 impl GitExercise {
     pub fn validate(&self)->Result<(),String> {
         if self.files.len()>80||self.setup.len()>100||self.commands.len()>20{return Err("Git 실습의 준비 내용을 확인하세요.".into())}
@@ -32,9 +86,12 @@ fn validate_file(path:&str,content:&str)->Result<(),String> {
 }
 impl GitPractice {
     pub fn new(exercise:GitExercise)->Result<Self,String> {
-        exercise.validate()?;
         let directory=tempfile::Builder::new().prefix("mq3-git-practice-").tempdir().map_err(|e|e.to_string())?;
-        let practice=Self{directory,exercise};
+        Self::initialize(exercise,directory)
+    }
+    fn initialize(exercise:GitExercise,directory:tempfile::TempDir)->Result<Self,String> {
+        exercise.validate()?;
+        let practice=Self{directory:PracticeDirectory::Temporary(directory),exercise};
         for folder in ["work","home"] {std::fs::create_dir(practice.root().join(folder)).map_err(|e|e.to_string())?;}
         std::fs::write(practice.root().join("global.config"),"").map_err(|e|e.to_string())?;
         practice.checked_at(practice.root(),&["init","--bare","--initial-branch=main","remote.git"])?;
@@ -146,8 +203,11 @@ impl GitPractice {
     pub fn reset(&mut self)->Result<(),String> {
         // Build the complete next state first. TempDir only removes its owned root,
         // including local remote/index/in-progress operations, without following links.
-        let replacement=Self::new(self.exercise.clone())?;
+        let replacement=match &self.directory {
+            PracticeDirectory::Temporary(_)=>Self::new(self.exercise.clone())?,
+            PracticeDirectory::Saved{path,scope}=>GitPracticeStore::new(path.parent().ok_or("Git 실습 보관 경로 오류")?)?.reset(scope,self.exercise.clone())?,
+        };
         let previous=std::mem::replace(self,replacement);
-        previous.directory.close().map_err(|e|e.to_string())
+        match previous.directory {PracticeDirectory::Temporary(directory)=>directory.close().map_err(|e|e.to_string()),PracticeDirectory::Saved{..}=>Ok(())}
     }
 }

@@ -131,7 +131,7 @@ fn failed_windows_installation_still_reopens_when_its_log_cannot_be_written() {
     let root=tempfile::Builder::new().prefix("mq3-handoff's ").tempdir().unwrap();
     let installer=root.path().join("installer.exe");let player=root.path().join("player.exe");
     let source=root.path().join("fixture.rs");
-    std::fs::write(&source,r#"fn main(){if std::env::args().any(|arg|arg=="/VERYSILENT"){std::process::exit(42);}std::fs::write(std::env::var_os("MQ3_HANDOFF_RELAUNCH_MARKER").unwrap(),std::process::id().to_string()).unwrap();}"#).unwrap();
+    std::fs::write(&source,r#"fn main(){if std::env::args().any(|arg|arg=="/VERYSILENT"){std::process::exit(42);}let marker=std::path::PathBuf::from(std::env::var_os("MQ3_HANDOFF_RELAUNCH_MARKER").unwrap());let temporary=marker.with_extension("pending");std::fs::write(&temporary,std::process::id().to_string()).unwrap();std::fs::rename(temporary,marker).unwrap();}"#).unwrap();
     let build=Command::new(std::env::var_os("RUSTC").unwrap_or_else(||"rustc".into())).arg(&source).arg("-o").arg(&installer).creation_flags(0x08000000).output().unwrap();
     assert!(build.status.success(),"{}",String::from_utf8_lossy(&build.stderr));
     std::fs::copy(&installer,&player).unwrap();

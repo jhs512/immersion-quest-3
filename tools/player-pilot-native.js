@@ -44,7 +44,9 @@
         await new Promise(resolve => setTimeout(resolve, 1000));
         const measured = innerHeight;
         await new Promise(resolve => setTimeout(resolve, 500));
-        if (Math.abs(measured-height) <= 40 && innerHeight === measured) return;
+        // The OS may reserve menu/title-bar space or clamp the requested frame.
+        // Still require the CSS normal-height range, or the separate short-height range.
+        if (measured >= (height >= 640 ? 640 : 360) && measured <= height+40 && innerHeight === measured) return;
       }
       throw new Error(`Native window did not settle at ${height}: ${innerWidth}x${innerHeight}`);
     };
@@ -287,8 +289,7 @@
     await wait(() => mq3GitDemoTerminal.text().split('\n').some(line=>line.trim()==='main'), 'teacher real Git output from independent main branch',45000);
     await wait(() => !molipAgent.running && !button('해설 재생 · 정답 실행').disabled, 'real Git demonstration completes');
     await click('제출');
-    await wait(() => status('다시 풀어보세요'), 'teacher Git command does not pass student');
-    if(!document.querySelector('.output').textContent.includes('student-work'))throw new Error('Teacher demonstration replaced student branch');
+    await wait(() => status('다시 풀어보세요') && !button('제출').disabled && document.querySelector('.output')?.textContent.includes('student-work'), 'teacher command leaves student branch intact and does not pass student');
     mq3GitTerminal.command('git switch main');
     await wait(() => mq3GitTerminal.text().includes("Switched to branch 'main'"), 'student returns to main');
     mq3GitTerminal.command('git status --porcelain');

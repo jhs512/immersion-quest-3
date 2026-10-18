@@ -22,7 +22,7 @@ impl TerminalControl {
 struct Input {kind:String,#[serde(default)] data:String,#[serde(default)] rows:u16,#[serde(default)] cols:u16,#[serde(default)] args:Vec<String>,#[serde(default)] token:u64}
 fn shell_quote(value:&str)->String {if cfg!(windows){format!("'{}'",value.replace('\'',"''"))}else{format!("'{}'",value.replace('\'',"'\\''"))}}
 #[component]
-pub fn GitTerminal(exercise:GitExercise,demo:bool,onready:EventHandler<Practice>,oncontrol:EventHandler<TerminalControl>)->Element {
+pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option<String>,#[props(default)] fresh:bool,onready:EventHandler<Practice>,oncontrol:EventHandler<TerminalControl>)->Element {
     use base64::Engine;
     let owned=use_hook(||Arc::new(Mutex::new(None::<TerminalSession>)));
     let mut error=use_signal(String::new);
@@ -35,9 +35,15 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,onready:EventHandler<Practice>
         cleanup.lock().unwrap_or_else(|e|e.into_inner()).take();
         document::eval(&format!("window.{bridge_name}?.dispose('{cleanup_owner}');if(window.molipGitTutor?.owner==='{cleanup_owner}')window.molipGitTutor.dispose();"));
     });
-    use_future(move||{let exercise=exercise.clone();let owned=owned.clone();let owner=owner.clone();async move {
+    use_future(move||{let exercise=exercise.clone();let scope=scope.clone();let owned=owned.clone();let owner=owner.clone();async move {
         let opened=tokio::task::spawn_blocking(move||{
-            let practice=Arc::new(Mutex::new(GitPractice::new(exercise)?));
+            let practice=if !demo {
+                if let Some(scope)=scope {
+                    let store=molip_quest::git_practice::GitPracticeStore::installed()?;
+                    if fresh {store.reset(&scope,exercise)?}else{store.open(&scope,exercise)?}
+                }else{GitPractice::new(exercise)?}
+            }else{GitPractice::new(exercise)?};
+            let practice=Arc::new(Mutex::new(practice));
             let (shell,output)=practice.lock().unwrap_or_else(|e|e.into_inner()).open_terminal()?;
             Ok::<_,String>((TerminalSession{shell:Some(shell),practice},output))
         }).await;

@@ -14,3 +14,10 @@
 `tests/player_restart_native.rs`는 데스크톱 debug 플레이어 바이너리를 두 번 실행한다. 첫 WebView에서 한 문제를 통과한 뒤 작성하던 답안을 바꾸고, 다음 프로세스의 실제 편집기와 진도 표시를 확인한다. `target/pilot-restart-seed.json`, `target/pilot-restart-reopen.json`에 화면 검증 결과를 남긴다. CI에서는 바이너리 빌드 후 ignored 검사를 명시적으로 실행한다. 설치 프로그램을 통한 교체와 재시작은 여전히 별도다.
 
 `tests/player_install_native.rs`는 소유 임시 폴더 안의 실제 플레이어를 교체한다. Windows는 시스템 등록과 제거 항목을 만들지 않는 별도 Inno fixture, macOS는 임시 앱 번들과 실제 DMG를 사용한다. 교체 전후 세대 파일과 다시 열린 WebView의 답안·진도를 함께 확인한다. macOS의 rollback 재실행도 격리 환경을 유지하도록 fixture Info.plist에 [LSEnvironment](https://developer.apple.com/documentation/bundleresources/information-property-list/lsenvironment)를 넣는다. 정식 배포 설치 파일이나 일반 사용자 설치 경로를 교체하지 않는다.
+
+
+학생 Git 실습은 `GitPracticeStore`가 계정·코스·수업·모드·스텝별 답안 범위로 분리한다. 개인 데이터 폴더의 소유 실습 루트와 그 루트를 가리키는 원자 포인터를 사용한다. 루트의 절대 경로를 유지하므로 로컬 원격과 private HOME을 다시 쓰거나 Git 상태를 재구성할 필요가 없다. 앱 종료·재시작과 업데이트에서 작업 파일·인덱스·브랜치·진행 중 작업을 그대로 이어간다. 교사 시연은 여전히 별도 TempDir다.
+
+초기화는 완성된 새 시작 저장소를 먼저 만들고 포인터를 교체한다. 이전 실습 폴더는 복구용으로 보존하며 자동 삭제하지 않는다. 초기화 실패는 기존 포인터를 바꾸지 않는다. 보관 정책과 복구 선택 UI는 아직 추가하지 않았으며 현재 데이터 경로 아래에 이전 실습들이 남는다. 이것은 OS 수준 샌드박스가 아니다.
+
+재시작 WebView 검사도 실제 터미널에서 브랜치를 만들고 작업 파일과 인덱스를 다르게 한 뒤, 다음 프로세스에서 세 상태를 확인한다. 파일 시스템 단위 검사에는 다른 계정 범위 분리, 초기화 뒤 재열기, 잘못된 보관 포인터 거절과 외부 파일 보존이 포함된다.
