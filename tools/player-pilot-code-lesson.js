@@ -7,7 +7,7 @@
  const status=text=>document.querySelector('.execution-status')?.textContent.includes(text);
  const prepared=(task,answer)=>{const source=task.example_code??answer;if(!task.example_order_marker)return source;const order=JSON.parse(answer);return source.replace(task.example_order_marker,order.map(id=>task.interaction.options.find(option=>option.id===id).text).join('\n'));};
  const answer=async task=>{
-  if(task.interaction?.kind==='choice')await wait(()=>[...document.querySelectorAll('input[type=radio]')].every(radio=>!radio.matches(':disabled')&&radio.checked===(radio.value===bridge()?.value)),'controlled choices ready');
+  if(task.interaction?.kind==='choice')await wait(()=>{const radios=[...document.querySelectorAll('input[type=radio]')];return radios.length===task.interaction.options.length&&radios.every(radio=>!radio.matches(':disabled')&&radio.checked===(radio.value===bridge()?.value));},'controlled choices ready');
   if(task.interaction?.kind==='choice')document.querySelector(`input[type=radio][value="${task.solution}"]`).click();
   else if(task.interaction?.kind==='fill'){const field=document.querySelector('[aria-label="빈칸 답안"]');field.value=task.solution;field.dispatchEvent(new Event('input',{bubbles:true}));}
   else if(task.interaction?.kind==='order')document.querySelector('.answer-order li:last-child button[aria-label="조각 위로"]').click();
@@ -27,6 +27,20 @@
   const verifyTeacher=task=>{if(teacherResult.includes('오류 -')||teacherResult.split('run:').length-1!==task.narration.filter(action=>action.action==='run').length)throw Error(`Teacher did not finish all authored runs: ${teacherResult}`);};
   for(const [index,task] of pilot.tasks.entries()){
    await wait(()=>document.querySelector('.repository-task')?.dataset.taskId===task.id&&window.molipCodeEditors?.getValue()===prepared(task,task.starter_code)&&(!task.interaction||bridge()?.value===task.starter_code),`step ${index+1}`);
+   const files=Object.entries(task.files??{});
+   if(files.length){
+    await wait(()=>document.querySelectorAll('.provided-file').length===files.length,'provided file list');
+    const container=document.querySelector('.provided-files');container.querySelector(':scope > summary').click();
+    for(const [name,body] of files){
+     const item=[...container.querySelectorAll('.provided-file')].find(item=>item.querySelector('summary').textContent.startsWith(name));
+     if(!item)throw Error(`Provided file missing: ${name}`);
+     item.querySelector('summary').click();
+     if(!item.open||!item.textContent.includes(body.trim()))throw Error(`Provided file preview differs: ${name}`);
+     if((task.example_code??task.starter_code).includes(name)&&!item.querySelector('summary').textContent.includes('이 문제에서 사용'))throw Error(`Used file is not marked: ${name}`);
+     item.querySelector('summary').click();
+    }
+    container.querySelector(':scope > summary').click();
+   }
    const initialCode=molipCodeEditors.getValue(),initialAnswer=bridge()?.value;
    await click('해설 재생 · 정답 실행');await wait(()=>molipAgent.running,'teacher starts');
    await wait(()=>!molipAgent.running&&document.querySelector('.repository-task').dataset.narrating==='false','teacher ends');

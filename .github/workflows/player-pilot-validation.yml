@@ -33,6 +33,12 @@ jobs:
           python-version: '3.11'
       - name: Install the approved table lesson's pandas version
         run: python -m pip install "numpy<2" "pandas==1.5.3" "matplotlib==3.11.2" "seaborn==0.13.2"
+      - name: Use the same Python interpreter inside the player
+        shell: python
+        run: |
+          import os, sys
+          with open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8') as output:
+              output.write(f'MOLIP_PYTHON={sys.executable}\n')
       - uses: Swatinem/rust-cache@v2
         with:
           key: pilot-${{ matrix.os }}
