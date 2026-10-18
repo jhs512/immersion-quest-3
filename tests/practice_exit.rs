@@ -71,7 +71,7 @@ fn update_shutdown_stops_all_practice_shells_without_resetting_their_work() {
         shell.shutdown().unwrap();
     }
     drop(exit_guard); // A failed installer handoff can resume normal practice creation.
-    let (mut reopened, _reopened_output) = first.open_terminal().unwrap();
+    let (mut reopened, _) = first.open_terminal().unwrap();
     reopened.shutdown().unwrap();
     for practice in [&first, &second] {
         assert_eq!(
@@ -87,4 +87,51 @@ fn update_shutdown_stops_all_practice_shells_without_resetting_their_work() {
             "main"
         );
     }
+}
+
+#[test]
+fn terminal_shutdown_drains_disconnected_and_full_output_channels() {
+    let practice = GitPractice::new(GitExercise::default()).unwrap();
+    for _ in 0..3 {
+        let (mut shell, output) = practice.open_terminal().unwrap();
+        drop(output);
+        shell.shutdown().unwrap();
+    }
+    let (mut shell, mut output) = practice.open_terminal().unwrap();
+    let mut seen = String::new();
+    let mut reports = 0;
+    let mut sent = false;
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(30);
+    while std::time::Instant::now() < deadline {
+        while let Ok(bytes) = output.try_recv() {
+            seen.push_str(&String::from_utf8_lossy(&bytes));
+            let count = seen.matches("\x1b[6n").count();
+            while reports < count {
+                shell.input("\x1b[1;1R").unwrap();
+                reports += 1;
+            }
+        }
+        if !sent && (!cfg!(windows) || seen.contains("PS ")) {
+            shell
+                .input(if cfg!(windows) {
+                    "Set-Content flood-ready.txt ready;[Console]::Write(('x' * 1000000))\r"
+                } else {
+                    "printf ready > flood-ready.txt;head -c 1000000 /dev/zero\r"
+                })
+                .unwrap();
+            sent = true;
+        }
+        if practice.work().join("flood-ready.txt").exists() {
+            break;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(20));
+    }
+    assert!(
+        practice.work().join("flood-ready.txt").exists(),
+        "flood command did not start: {seen}"
+    );
+    // Keep the receiver alive but stop consuming, filling the bounded queue.
+    std::thread::sleep(std::time::Duration::from_millis(300));
+    shell.shutdown().unwrap();
+    drop(output);
 }

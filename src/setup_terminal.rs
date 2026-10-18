@@ -22,11 +22,16 @@ pub struct SetupTerminal {
     writer: Box<dyn Write + Send>,
     child: Option<Box<dyn portable_pty::Child + Send + Sync>>,
     scope:Option<PracticeScope>,
+    draining:std::sync::Arc<std::sync::atomic::AtomicBool>,
 }
 
 // Weak entries do not keep a shell or a practice folder alive.
-type SharedScope = std::sync::Arc<std::sync::Mutex<Option<crate::process_scope::ProcessScope>>>;
-type WeakScope = std::sync::Weak<std::sync::Mutex<Option<crate::process_scope::ProcessScope>>>;
+struct PracticeProcess {
+    process: Option<crate::process_scope::ProcessScope>,
+    draining: std::sync::Arc<std::sync::atomic::AtomicBool>,
+}
+type SharedScope = std::sync::Arc<std::sync::Mutex<PracticeProcess>>;
+type WeakScope = std::sync::Weak<std::sync::Mutex<PracticeProcess>>;
 #[derive(Default)]
 struct PracticeRegistry { scopes: Vec<WeakScope>, exiting: bool }
 fn practice_scopes() -> &'static std::sync::Mutex<PracticeRegistry> {
@@ -35,7 +40,7 @@ fn practice_scopes() -> &'static std::sync::Mutex<PracticeRegistry> {
 }
 struct PracticeScope(SharedScope);
 impl PracticeScope {
-    fn spawn(start: impl FnOnce() -> Result<Box<dyn portable_pty::Child + Send + Sync>, String>)
+    fn spawn(start: impl FnOnce() -> Result<Box<dyn portable_pty::Child + Send + Sync>, String>, draining:std::sync::Arc<std::sync::atomic::AtomicBool>)
         -> Result<(Box<dyn portable_pty::Child + Send + Sync>, Self), String> {
         // The admission lock covers spawn itself, not just registration. Exit
         // cannot pass a worker that has created a child but not registered it.
@@ -46,7 +51,7 @@ impl PracticeScope {
             Ok(process) => process,
             Err(error) => { let _ = child.kill(); let _ = child.wait(); return Err(error); }
         };
-        let scope = std::sync::Arc::new(std::sync::Mutex::new(Some(process)));
+        let scope = std::sync::Arc::new(std::sync::Mutex::new(PracticeProcess {process:Some(process),draining}));
         registry.scopes.retain(|entry| entry.strong_count() > 0);
         registry.scopes.push(std::sync::Arc::downgrade(&scope));
         Ok((child, Self(scope)))
@@ -55,9 +60,10 @@ impl PracticeScope {
 }
 fn terminate_scope(scope: &SharedScope) -> Result<(), String> {
     let mut scope = scope.lock().unwrap_or_else(|e| e.into_inner());
-    if let Some(process) = scope.as_ref() { process.terminate()?; }
+    scope.draining.store(true,std::sync::atomic::Ordering::Relaxed);
+    if let Some(process) = scope.process.as_ref() { process.terminate()?; }
     // A completed session ID must never be signalled again after PID reuse.
-    scope.take();
+    scope.process.take();
     Ok(())
 }
 /// While held, in-flight initialization cannot admit a shell after exit cleanup.
@@ -123,28 +129,44 @@ impl SetupTerminal {
         }
         let mut reader=pair.master.try_clone_reader().map_err(|e|e.to_string())?;
         let writer=pair.master.take_writer().map_err(|e|e.to_string())?;
+        let draining=std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
         let start = || pair.slave.spawn_command(command).map_err(|error| error.to_string());
         let (child, scope) = if practice.is_some() {
-            let (child, scope) = PracticeScope::spawn(start)?;
+            let (child, scope) = PracticeScope::spawn(start,draining.clone())?;
             (child, Some(scope))
         } else { (start()?, None) };
         drop(pair.slave);
         let (tx,rx)=mpsc::channel(32);
-        // Bytes stay in memory; TextDecoder in the terminal handles split UTF-8 sequences.
+        // Keep draining the PTY after a UI receiver disconnects. A macOS child
+        // can otherwise block during startup/exit with unread master output.
+        let reader_draining=draining.clone();
         std::thread::spawn(move || {
+            use std::sync::atomic::Ordering::Relaxed;
             let mut bytes=[0u8;8192];
             loop {match reader.read(&mut bytes) {
                 Ok(0)|Err(_)=>break,
-                Ok(n)=>if tx.blocking_send(bytes[..n].to_vec()).is_err(){break;},
+                Ok(n)=>{
+                    let mut chunk=bytes[..n].to_vec();
+                    while !reader_draining.load(Relaxed) {
+                        match tx.try_send(chunk) {
+                            Ok(())=>break,
+                            Err(mpsc::error::TrySendError::Full(returned))=>{
+                                chunk=returned;std::thread::sleep(std::time::Duration::from_millis(10));
+                            },
+                            Err(mpsc::error::TrySendError::Closed(_))=>{reader_draining.store(true,Relaxed);break;}
+                        }
+                    }
+                }
             }}
         });
-        Ok((Self{master:pair.master,writer,child:Some(child),scope},rx))
+        Ok((Self{master:pair.master,writer,child:Some(child),scope,draining},rx))
     }
     pub fn input(&mut self,data:&str)->Result<(),String> {
         self.writer.write_all(data.as_bytes()).and_then(|_|self.writer.flush()).map_err(|e|e.to_string())
     }
     /// Call on a worker thread before replacing a practice directory.
     pub fn shutdown(&mut self)->Result<(),String> {
+        self.draining.store(true,std::sync::atomic::Ordering::Relaxed);
         if let Some(scope)=&self.scope {scope.terminate()?;}
         if let Some(child)=self.child.as_mut() {
             child.kill().map_err(|e|e.to_string())?;
@@ -167,6 +189,7 @@ impl SetupTerminal {
 }
 impl Drop for SetupTerminal {
     fn drop(&mut self) {
+        self.draining.store(true,std::sync::atomic::Ordering::Relaxed);
         if let Some(scope)=&self.scope {let _=scope.terminate();}
         if let Some(mut child)=self.child.take() {
             let _=child.kill();
