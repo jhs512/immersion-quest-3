@@ -1,0 +1,101 @@
+"""Exercise the model process boundary without network calls or real lesson changes."""
+import json
+from pathlib import Path
+import sys
+import subprocess
+import tempfile
+import unittest
+
+from content_review import Artifact, ReviewLedger
+from content_review_model import JsonReviewModel
+from lesson_prd import approve
+
+
+class ModelTests(unittest.TestCase):
+    def test_generation_requires_approved_prd_and_target_step_binding(self):
+        document = json.loads((Path(__file__).resolve().parents[1] /
+            'tests/fixtures/lesson-prd/git-first.json').read_text(encoding='utf-8'))
+        step_id = document['representative']['step_id']
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            worker = root / 'model.py'
+            worker.write_text('''import json, sys
+request = json.load(sys.stdin)
+assert request['operation'] == 'generate'
+assert request['lesson_prd']['approval']['status'] == 'approved'
+assert request['step_id'] == request['lesson_prd']['representative']['step_id']
+print(json.dumps({'text': '새로 검토한 핵심 흐름'}))
+''', encoding='utf-8')
+            command = [sys.executable, '-X', 'utf8', str(worker)]
+            request = {'target': {'key': 'flow', 'layer': 'core_flow'}}
+            unconfigured = JsonReviewModel(command, model_revision='fixture-v1')
+            with self.assertRaisesRegex(ValueError, '승인'):
+                unconfigured.generate(request)
+            draft = JsonReviewModel(command, model_revision='fixture-v1',
+                prd=document, target_steps={'flow': step_id})
+            with self.assertRaisesRegex(ValueError, '승인'):
+                draft.generate(request)
+            approved = approve(document, 'synthetic-test', 'Synthetic approval for isolated test only')
+            configured = JsonReviewModel(command, model_revision='fixture-v1',
+                prd=approved, target_steps={'flow': step_id})
+            self.assertEqual(configured.generate(request), '새로 검토한 핵심 흐름')
+            self.assertNotEqual(configured.identity, draft.identity)
+            with self.assertRaisesRegex(ValueError, '스텝'):
+                configured.generate({'target': {'key': 'other-lesson-flow', 'layer': 'core_flow'}})
+            with self.assertRaisesRegex(ValueError, '레이어'):
+                configured.generate({'target': {'key': 'flow', 'layer': 'goal'}})
+            with self.assertRaisesRegex(ValueError, '교육 목표'):
+                configured.generate(dict(request, source_after={'layer': 'goal', 'text': '승인되지 않은 새 교육 목표'}))
+            approved['objectives'][0] = 'caller changed original after construction'
+            self.assertEqual(configured.generate(request), '새로 검토한 핵심 흐름')
+
+    def test_invalid_or_failed_process_is_recorded_as_failed_review(self):
+        cases = [
+            ("print('```json\\n{}\\n```')", ValueError),
+            ("print('{\"change_required\": true, \"change_required\": false, \"reason\": \"ambiguous\"}')", ValueError),
+            ("print('{\"change_required\": \"false\", \"reason\": \"unknown\"}')", ValueError),
+            ("import sys; print('private token', file=sys.stderr); sys.exit(7)", RuntimeError),
+            ("import time; time.sleep(2)", subprocess.TimeoutExpired),
+        ]
+        for program, error in cases:
+            with self.subTest(program=program), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                worker = root / 'model.py'
+                worker.write_text(program, encoding='utf-8')
+                model = JsonReviewModel([sys.executable, str(worker)],
+                                        model_revision='invalid-fixture-v1', timeout=0.2)
+                with ReviewLedger(root / 'review.db') as ledger:
+                    with self.assertRaises(error) as failure:
+                        ledger.assess(Artifact('g', 'goal', 'before'), Artifact('g', 'goal', 'after'),
+                            Artifact('f', 'core_flow', 'existing'), model.assess, assessor_key=model.identity)
+                    record = ledger.history('f')[0]
+                    self.assertEqual(record['status'], 'failed')
+                    self.assertNotIn('change_required', record)
+                    self.assertNotIn('private token', str(failure.exception))
+
+    def test_process_receives_full_policy_and_strict_review_contract(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            worker = root / 'model.py'
+            worker.write_text('''import json, sys
+request = json.load(sys.stdin)
+assert request['operation'] == 'assess'
+assert '한 문장 45자 이내' in request['voice']
+assert '인접한 레이어' in request['content_rules']
+assert request['input']['source_before']['text'] == '출력을 확인해요.'
+assert request['input']['source_after']['text'] == '출력 차이를 비교해요.'
+print(json.dumps({'change_required': False, 'reason': '기존 흐름으로 비교할 수 있어요.'}))
+''', encoding='utf-8')
+            model = JsonReviewModel([sys.executable, '-X', 'utf8', str(worker)],
+                                    model_revision='synthetic-model-v1')
+            with ReviewLedger(root / 'review.db') as ledger:
+                decision = ledger.assess(Artifact('g', 'goal', '출력을 확인해요.'),
+                    Artifact('g', 'goal', '출력 차이를 비교해요.'),
+                    Artifact('f', 'core_flow', '두 번 실행해 비교한다.'),
+                    model.assess, assessor_key=model.identity)
+                self.assertFalse(decision.change_required)
+                self.assertEqual(ledger.history('f')[0]['status'], 'reviewed')
+
+
+if __name__ == '__main__':
+    unittest.main()
