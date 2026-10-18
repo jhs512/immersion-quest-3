@@ -27,9 +27,12 @@ document['title'] = document['title'] + ' 수정 초안'
 print(json.dumps({'prd': document}))
 ''', encoding='utf-8')
             model = JsonReviewModel([sys.executable, '-X', 'utf8', str(worker)], model_revision='fixture-v1')
+            with self.assertRaisesRegex(ValueError, '정책 원본'):
+                model.generate({'target': {'key': 'prd', 'layer': 'prd', 'text': json.dumps(approved)},
+                    'source_after': {'key': 'policy', 'layer': 'policy', 'text': 'different policy revision'}})
             value = json.loads(model.generate({'target': {'key': 'prd', 'layer': 'prd',
                 'text': json.dumps(approved)}, 'source_after': {'key': 'policy', 'layer': 'policy',
-                'text': model.rules}}))
+                'text': model.policy_source}}))
             validate(value)
             self.assertEqual(value['approval'], {'status': 'draft'})
             self.assertEqual(value['id'], document['id'])
