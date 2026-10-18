@@ -62,3 +62,14 @@ fn a_completed_merge_preserves_exactly_two_parents_and_both_branch_histories() {
     assert!(practice.git(&["reset","--hard",extra.stdout.trim()]).unwrap().success);
     assert!(!practice.check_exercise().unwrap().passed,"A redundant third parent must not satisfy a two-parent merge");
 }
+
+#[test]
+fn a_merge_head_tag_does_not_count_as_a_merge_in_progress() {
+    for expected in [false,true] {
+        let exercise:GitExercise=serde_json::from_value(serde_json::json!({"state_goal":{"merge_in_progress":expected}})).unwrap();
+        let practice=GitPractice::new(exercise).unwrap();
+        assert_eq!(practice.check_exercise().unwrap().passed,!expected);
+        assert!(practice.git(&["tag","MERGE_HEAD"]).unwrap().success);
+        assert_eq!(practice.check_exercise().unwrap().passed,!expected,"A tag is not an actual merge-state file");
+    }
+}

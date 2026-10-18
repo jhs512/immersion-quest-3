@@ -169,13 +169,32 @@ impl GitPractice {
             GitSetup::File{path,content}=>practice.write(path,content)?,
             GitSetup::MergeConflict{branch}=>{
                 let merge=practice.execute(&practice.work(),&["merge","--no-edit","--",branch],false)?;
-                let head=practice.execute(&practice.work(),&["rev-parse","--verify","MERGE_HEAD^{commit}"],false)?;
+                let head=practice.merge_in_progress()?;
                 let index=practice.execute(&practice.work(),&["ls-files","--unmerged","-z"],false)?;
-                if merge.status.code()!=Some(1)||!head.status.success()||!index.status.success()||index.stdout.is_empty(){return Err("시작 상태에서 예상한 병합 충돌이 나지 않았어요.".into())}
+                if merge.status.code()!=Some(1)||!head||!index.status.success()||index.stdout.is_empty(){return Err("시작 상태에서 예상한 병합 충돌이 나지 않았어요.".into())}
             }
             GitSetup::Git{args}=>{practice.checked_at(practice.work().as_path(),&args.iter().map(String::as_str).collect::<Vec<_>>())?;}
         }}
         Ok(practice)
+    }
+    fn merge_in_progress(&self)->Result<bool,String> {
+        use std::io::Read;
+        let path=self.work().join(".git/MERGE_HEAD");
+        let metadata=match std::fs::symlink_metadata(&path) {
+            Ok(metadata)=>metadata,
+            Err(error) if error.kind()==std::io::ErrorKind::NotFound=>return Ok(false),
+            Err(error)=>return Err(error.to_string()),
+        };
+        if !metadata.is_file()||metadata.file_type().is_symlink()||metadata.len()>4096{return Err("병합 상태 파일을 확인하세요. 초기화해 다시 열 수 있어요.".into())}
+        let mut raw=String::new();
+        std::fs::File::open(path).map_err(|error|error.to_string())?.take(4097).read_to_string(&mut raw).map_err(|error|error.to_string())?;
+        if raw.is_empty()||raw.len()>4096{return Err("병합 상태 파일의 내용을 확인하세요.".into())}
+        for hash in raw.lines() {
+            if !matches!(hash.len(),40|64)||!hash.bytes().all(|byte|byte.is_ascii_hexdigit()){return Err("병합 대상 기록을 확인하세요.".into())}
+            let kind=self.execute(&self.work(),&["cat-file","-t",hash],false)?;
+            if !kind.status.success()||kind.stdout!=b"commit\n"{return Err("병합 대상 커밋을 확인하세요.".into())}
+        }
+        Ok(true)
     }
     pub fn root(&self)->&Path {self.directory.path()}
     pub fn work(&self)->PathBuf {self.root().join("work")}
@@ -263,7 +282,7 @@ impl GitPractice {
             record("현재 기록의 부모 수".into(),result.status.success()&&actual==Some(expected),expected.to_string(),actual.map(|count|count.to_string()).unwrap_or_default());
         }
         if let Some(expected)=goal.merge_in_progress {
-            let actual=self.execute(&self.work(),&["rev-parse","--verify","MERGE_HEAD^{commit}"],false)?.status.success();
+            let actual=self.merge_in_progress()?;
             record("병합 진행 상태".into(),actual==expected,expected.to_string(),actual.to_string());
         }
         if let Some(paths)=&goal.unmerged_paths {
