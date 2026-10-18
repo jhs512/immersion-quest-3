@@ -383,7 +383,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                                 github_player::background(move||{
                                     let practice=practice.ok_or("Git 터미널이 준비되지 않았어요.")?;
                                     let practice=practice.lock().unwrap_or_else(|e|e.into_inner());
-                                    if let Some(checks)=checks {practice.check(&checks)}else{practice.check_commands()}
+                                    if let Some(checks)=checks {practice.check(&checks)}else{practice.check_exercise()}
                                 }).await
                             }else{molip_quest::lesson_runner::check(&task,&code()).await} {
                                 Err(e)=>message.set(e),Ok(report)=>{

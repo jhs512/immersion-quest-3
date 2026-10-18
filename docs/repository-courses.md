@@ -32,3 +32,11 @@ cargo test --locked --test repository_lessons -- --ignored --nocapture --test-th
 `tools/backend_course/`가 자바 백엔드 24개 수업의 원본이다. 기존 자바 기초 콘텐츠는 재사용한다. 해설 캐시는 문제·정답·지원 파일·검사 전체 해시에 묶인다. 바뀐 문제만 다시 생성한다. 자바 프로젝트의 해설은 컴파일러 구문 트리로 메서드를 찾아 세 줄 이하의 편집 조각으로 채운다. 처음의 미구현 예외와 중간 테스트 실패는 의도한 단계로 명시한다. 실행 검사가 각 단계와 최종 코드 일치를 확인한다. KPC 자료와 그 캐시는 별도로 보존한다.
 
 생성 결과는 `target/backend-course/`에 있고, 승인된 최초 게시에는 `python tools/publish-backend-course.py --publish`를 사용한다. 이 도구는 기존 태그를 이동하지 않으며 모든 수업의 게시된 해시를 확인한 뒤 코스 구성을 게시한다.
+
+## 첫 기록 수업의 실제 Git 목표
+
+`git_terminal.initial_history`는 생략하면 기존의 `recorded` 시작 상태를 유지한다. `empty`는 main 저장소와 전용 로컬 원격만 초기화하고 기본 파일·커밋·push를 만들지 않는다. `files`는 작업 파일로 남고 `setup`은 그 뒤에 적용한다. 초기화·저장소 재개는 동일한 규칙을 사용한다.
+
+`git_terminal.state_goal`은 실제 상태 판정이다. `head_exists`, 정확한 `commit_count`, `clean`, 그리고 전체 경로·내용을 지정하는 `index`, `working_files`, `head_files`, `parent_files`를 선택한다. 파일 맵은 전체 경로 집합과 UTF-8 바이트를 비교하며 끝의 공백·개행도 의미가 있다. 부모 파일은 `HEAD^`의 트리다. 입력한 커밋 메시지나 add 명령 표기를 정답으로 고정하지 않는다. 명령 수행 자체가 목표이면 기존 `commands`와 함께 요구할 수 있다.
+
+빈 목표·알 수 없는 목표 필드·준비 파일의 잘못된 경로를 거절한다. 작업 파일은 심볼릭 링크나 특수 파일을 읽지 않고, 예상 길이보다 큰 읽기를 제한한다. Git 명령을 사용자가 직접 실행하는 로컬 실습이며 OS 샌드박스라고 주장하지 않는다.

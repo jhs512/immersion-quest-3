@@ -5,9 +5,26 @@ use std::os::windows::process::CommandExt;
 use std::{collections::BTreeMap,path::{Path,PathBuf},process::{Command,Output}};
 #[derive(Clone,Debug,Default,Serialize,Deserialize,PartialEq)]
 pub struct GitExercise {
+    #[serde(default,skip_serializing_if="GitInitialHistory::is_recorded")] pub initial_history:GitInitialHistory,
+    #[serde(default,skip_serializing_if="Option::is_none")] pub state_goal:Option<GitStateGoal>,
     #[serde(default)] pub files:BTreeMap<String,String>,
     #[serde(default)] pub setup:Vec<GitSetup>,
     #[serde(default)] pub commands:Vec<Vec<String>>,
+}
+#[derive(Clone,Copy,Debug,Default,Serialize,Deserialize,PartialEq)]
+#[serde(rename_all="snake_case")]
+pub enum GitInitialHistory { #[default] Recorded, Empty }
+impl GitInitialHistory {fn is_recorded(&self)->bool{*self==Self::Recorded}}
+#[derive(Clone,Debug,Default,Serialize,Deserialize,PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct GitStateGoal {
+    #[serde(default,skip_serializing_if="Option::is_none")] pub head_exists:Option<bool>,
+    #[serde(default,skip_serializing_if="Option::is_none")] pub commit_count:Option<usize>,
+    #[serde(default,skip_serializing_if="Option::is_none")] pub clean:Option<bool>,
+    #[serde(default,skip_serializing_if="Option::is_none")] pub index:Option<BTreeMap<String,String>>,
+    #[serde(default,skip_serializing_if="Option::is_none")] pub working_files:Option<BTreeMap<String,String>>,
+    #[serde(default,skip_serializing_if="Option::is_none")] pub head_files:Option<BTreeMap<String,String>>,
+    #[serde(default,skip_serializing_if="Option::is_none")] pub parent_files:Option<BTreeMap<String,String>>,
 }
 #[derive(Clone,Debug,Serialize,Deserialize,PartialEq)]
 #[serde(tag="kind",rename_all="snake_case")]
@@ -84,8 +101,16 @@ impl GitPracticeStore {
     }
 }
 impl GitExercise {
+    pub fn has_goal(&self)->bool {self.state_goal.is_some()||!self.commands.is_empty()}
     pub fn validate(&self)->Result<(),String> {
         if self.files.len()>80||self.setup.len()>100||self.commands.len()>20{return Err("Git 실습의 준비 내용을 확인하세요.".into())}
+        if let Some(goal)=&self.state_goal {
+            if goal.head_exists.is_none()&&goal.commit_count.is_none()&&goal.clean.is_none()&&goal.index.is_none()&&goal.working_files.is_none()&&goal.head_files.is_none()&&goal.parent_files.is_none(){return Err("Git 목표 상태가 필요해요.".into())}
+            for files in [goal.index.as_ref(),goal.working_files.as_ref(),goal.head_files.as_ref(),goal.parent_files.as_ref()].into_iter().flatten() {
+                if files.len()>80{return Err("Git 목표 파일이 너무 많아요.".into())}
+                for (path,content) in files {validate_file(path,content)?;}
+            }
+        }
         for (path,content) in &self.files {validate_file(path,content)?;}
         for action in &self.setup {match action {
             GitSetup::File{path,content}=>validate_file(path,content)?,
@@ -114,11 +139,13 @@ impl GitPractice {
         practice.checked_at(practice.work().as_path(),&["init","--initial-branch=main"])?;
         let remote=practice.root().join("remote.git");
         practice.checked_at(practice.work().as_path(),&["remote","add","origin",remote.to_str().ok_or("Git 경로 오류")?])?;
-        practice.write("tracked.txt","initial\n")?;
+        if practice.exercise.initial_history==GitInitialHistory::Recorded {practice.write("tracked.txt","initial\n")?;}
         for (path,content) in &practice.exercise.files {practice.write(path,content)?;}
-        practice.checked_at(practice.work().as_path(),&["add","."])?;
-        practice.checked_at(practice.work().as_path(),&["commit","-m","Start"])?;
-        practice.checked_at(practice.work().as_path(),&["push","-u","origin","main"])?;
+        if practice.exercise.initial_history==GitInitialHistory::Recorded {
+            practice.checked_at(practice.work().as_path(),&["add","."])?;
+            practice.checked_at(practice.work().as_path(),&["commit","-m","Start"])?;
+            practice.checked_at(practice.work().as_path(),&["push","-u","origin","main"])?;
+        }
         for action in &practice.exercise.setup {match action {
             GitSetup::File{path,content}=>practice.write(path,content)?,
             GitSetup::Git{args}=>{practice.checked_at(practice.work().as_path(),&args.iter().map(String::as_str).collect::<Vec<_>>())?;}
@@ -188,7 +215,63 @@ impl GitPractice {
             let stdout=String::from_utf8_lossy(&result.stdout).into_owned();
             cases.push(TestCaseResult{input:format!("추적 파일 {file}"),expected:content.clone(),passed:result.status.success()&&stdout==*content,stdout,stderr:String::from_utf8_lossy(&result.stderr).into_owned(),state:"git_artifact".into()});
         }
-        if !self.exercise.commands.is_empty() {cases.extend(self.check_commands()?.cases);}
+        if !self.exercise.commands.is_empty()||self.exercise.state_goal.is_some() {cases.extend(self.check_exercise()?.cases);}
+        Ok(TestReport{passed:cases.iter().all(|case|case.passed),cases})
+    }
+    /// Grade the actual repository state, successful command goals, or both.
+    pub fn check_exercise(&self)->Result<crate::runner::TestReport,String> {
+        use crate::runner::{TestReport,TestCaseResult};
+        use std::collections::BTreeSet;
+        let Some(goal)=&self.exercise.state_goal else{return self.check_commands()};
+        let mut cases=vec![];
+        let mut record=|name:String,passed:bool,expected:String,stdout:String|cases.push(TestCaseResult{input:name,expected,stdout,stderr:String::new(),passed,state:"git_artifact".into()});
+        // A damaged or redirected repository must not count as an unborn HEAD.
+        for directory in [self.work(),self.work().join(".git")] {
+            let valid=std::fs::symlink_metadata(&directory).is_ok_and(|m|m.is_dir()&&!m.file_type().is_symlink());
+            if !valid {return Err("실습 저장소의 경로를 확인하세요. 초기화해 다시 열 수 있어요.".into())}
+        }
+        let repository=self.execute(&self.work(),&["rev-parse","--is-inside-work-tree"],false)?;
+        record("실습 저장소".into(),repository.status.success()&&repository.stdout==b"true\n","true".into(),String::from_utf8_lossy(&repository.stdout).into());
+        if let Some(expected)=goal.head_exists {
+            let actual=self.execute(&self.work(),&["rev-parse","--verify","HEAD^{commit}"],false)?.status.success();
+            record("커밋 존재".into(),actual==expected,expected.to_string(),actual.to_string());
+        }
+        if let Some(expected)=goal.commit_count {
+            let result=self.execute(&self.work(),&["rev-list","--count","HEAD"],false)?;
+            let actual=if result.status.success(){String::from_utf8_lossy(&result.stdout).trim().parse::<usize>().ok()}else if !self.execute(&self.work(),&["rev-parse","--verify","HEAD^{commit}"],false)?.status.success(){Some(0)}else{None};
+            record("기록 개수".into(),actual==Some(expected),expected.to_string(),actual.map(|n|n.to_string()).unwrap_or_default());
+        }
+        if let Some(expected)=goal.clean {
+            let result=self.execute(&self.work(),&["status","--porcelain"],false)?;
+            let actual=result.stdout.is_empty();
+            record("작업 상태".into(),result.status.success()&&actual==expected,if expected{"변경 없음"}else{"변경 있음"}.into(),String::from_utf8_lossy(&result.stdout).into());
+        }
+        for (reference,label,files) in [(Some(":"),"준비 영역",goal.index.as_ref()),(None,"작업 파일",goal.working_files.as_ref()),(Some("HEAD:"),"현재 기록",goal.head_files.as_ref()),(Some("HEAD^:"),"직전 기록",goal.parent_files.as_ref())] {
+            let Some(files)=files else{continue};
+            let args=match reference {Some(":")=>vec!["ls-files","-z"],Some("HEAD:")=>vec!["ls-tree","-r","--name-only","-z","HEAD"],Some("HEAD^:")=>vec!["ls-tree","-r","--name-only","-z","HEAD^"],_=>vec!["ls-files","--cached","--others","-z"]};
+            let listed=self.execute(&self.work(),&args,false)?;
+            let actual=String::from_utf8_lossy(&listed.stdout).split('\0').filter(|s|!s.is_empty()).map(str::to_owned).collect::<BTreeSet<_>>();
+            let expected=files.keys().cloned().collect::<BTreeSet<_>>();
+            record(format!("{label} 목록"),listed.status.success()&&actual==expected,expected.into_iter().collect::<Vec<_>>().join(", "),actual.into_iter().collect::<Vec<_>>().join(", "));
+            for (path,expected) in files {
+                let actual=if let Some(reference)=reference {
+                    let object=format!("{reference}{path}");
+                    let size=self.execute(&self.work(),&["cat-file","-s",&object],false)?;
+                    if size.status.success()&&String::from_utf8_lossy(&size.stdout).trim().parse::<usize>()==Ok(expected.len()) {
+                        let result=self.execute(&self.work(),&["show",&object],false)?;
+                        result.status.success().then_some(result.stdout)
+                    }else{None}
+                }else{
+                    use std::io::Read;
+                    let mut file=self.work();let mut safe=true;
+                    for part in path.split('/') {file.push(part);if !std::fs::symlink_metadata(&file).is_ok_and(|m|!m.file_type().is_symlink()){safe=false;break;}}
+                    if safe&&std::fs::symlink_metadata(&file).is_ok_and(|m|m.is_file()) {std::fs::File::open(&file).ok().and_then(|file|{let mut bytes=vec![];file.take(expected.len() as u64+1).read_to_end(&mut bytes).ok()?;Some(bytes)})}else{None}
+                };
+                let passed=actual.as_deref()==Some(expected.as_bytes());
+                record(format!("{label} {path}"),passed,expected.clone(),actual.map(|bytes|String::from_utf8_lossy(&bytes).into_owned()).unwrap_or_else(||"파일 내용이 없거나 크기가 달라요.".into()));
+            }
+        }
+        if !self.exercise.commands.is_empty(){cases.extend(self.check_commands()?.cases);}
         Ok(TestReport{passed:cases.iter().all(|case|case.passed),cases})
     }
     pub fn check_commands(&self)->Result<crate::runner::TestReport,String> {
