@@ -49,7 +49,7 @@ class AdjacentReviewTest(unittest.TestCase):
             def generate(_):
                 raise AssertionError('Unchanged flow must not regenerate any descendants')
             tree.apply(Artifact('goal-a', 'goal', '출력한 값을 확인해요.'), ledger, assess,
-                       generate, assessor_key='synthetic-v1')
+                       generate, assessor_key='synthetic-v1', generator_key='synthetic-generator-v1')
             self.assertEqual(tree.artifact('flow-a'), flow)
             self.assertEqual(tree.artifact('content-a'), content)
             self.assertIsNone(tree.generated_from('flow-a'))
@@ -76,8 +76,9 @@ class AdjacentReviewTest(unittest.TestCase):
                 self.assertEqual(request['target']['key'], 'f')
                 return '숫자를 바꿔 출력 차이를 비교한다.'
             tree.apply(Artifact('g', 'goal', '두 값을 바꿔 출력 차이를 비교해요.'),
-                       ledger, assess, generate, assessor_key='synthetic-v1')
+                       ledger, assess, generate, assessor_key='synthetic-v1', generator_key='synthetic-generator-v1')
             self.assertEqual(tree.artifact('f').text, '숫자를 바꿔 출력 차이를 비교한다.')
+            self.assertEqual(ledger.generation_history('f')[0]['output']['revision'], tree.artifact('f').revision)
             self.assertEqual(tree.artifact('c'), content)
             self.assertEqual(tree.artifact('s'), picture)
             self.assertEqual(ledger.history('s'), [])
@@ -95,15 +96,15 @@ class AdjacentReviewTest(unittest.TestCase):
             def no_generation(_):
                 raise AssertionError('An unreviewed artifact cannot regenerate')
             with self.assertRaisesRegex(RuntimeError, 'unavailable'):
-                tree.apply(after, ledger, failed, no_generation, assessor_key='synthetic-v1')
+                tree.apply(after, ledger, failed, no_generation, assessor_key='synthetic-v1', generator_key='synthetic-generator-v1')
             self.assertIsNone(tree.reviewed_from('f'))
             self.assertEqual(ledger.history('f')[0]['status'], 'failed')
             with self.assertRaisesRegex(ValueError, '변경 여부'):
                 tree.resume(ledger, lambda _: {'change_required': 'false', 'reason': 'ambiguous'},
-                            no_generation, assessor_key='synthetic-v1')
+                            no_generation, assessor_key='synthetic-v1', generator_key='synthetic-generator-v1')
             self.assertEqual(tree.artifact('f'), flow)
             tree.resume(ledger, lambda _: {'change_required': False, 'reason': '영향이 없어요.'},
-                        no_generation, assessor_key='synthetic-v1')
+                        no_generation, assessor_key='synthetic-v1', generator_key='synthetic-generator-v1')
             self.assertEqual(tree.reviewed_from('f'), after.revision)
             self.assertEqual([row['status'] for row in ledger.history('f')], ['reviewed', 'failed', 'failed'])
             ledger.close()
@@ -139,14 +140,42 @@ class AdjacentReviewTest(unittest.TestCase):
             ledger = resources.enter_context(ReviewLedger(Path(directory) / 'reviews.sqlite3'))
             changed_goal = Artifact('g', 'goal', '출력 차이를 비교해요.')
             reviewer = lambda _: {'change_required': True, 'reason': '비교 행동을 넣어요.'}
-            tree.apply(changed_goal, ledger, reviewer, lambda _: '두 번 실행해 비교한다.', assessor_key='synthetic-v1')
+            tree.apply(changed_goal, ledger, reviewer, lambda _: '두 번 실행해 비교한다.', assessor_key='synthetic-v1', generator_key='synthetic-generator-v1')
             self.assertEqual(tree.generated_from('f'), changed_goal.revision)
             tree.apply(Artifact('f', 'core_flow', '직접 편집한 다른 흐름'), ledger,
-                       reviewer, lambda _: self.fail('No descendants exist'), assessor_key='synthetic-v1')
+                       reviewer, lambda _: self.fail('No descendants exist'), assessor_key='synthetic-v1', generator_key='synthetic-generator-v1')
             self.assertIsNone(tree.generated_from('f'))
             self.assertIsNone(tree.reviewed_from('f'))
             self.assertEqual(len(ledger.history('f')), 1)
             ledger.close()
+
+    def test_generation_history_binds_output_and_reuses_only_successful_results(self):
+        before = Artifact('g', 'goal', '출력을 확인해요.')
+        after = Artifact('g', 'goal', '출력 차이를 비교해요.')
+        flow = Artifact('f', 'core_flow', '한 번 실행한다.')
+        with tempfile.TemporaryDirectory() as directory, ExitStack() as resources:
+            path = Path(directory) / 'reviews.sqlite3'
+            ledger = resources.enter_context(ReviewLedger(path))
+            decision = ledger.assess(before, after, flow,
+                lambda _: {'change_required': True, 'reason': '두 번 비교해야 해요.'}, assessor_key='review-v1')
+            def failed(_):
+                raise RuntimeError('Synthetic generation unavailable')
+            with self.assertRaisesRegex(RuntimeError, 'unavailable'):
+                ledger.generate(before, after, flow, decision, failed, generator_key='generate-v1')
+            generated = ledger.generate(before, after, flow, decision,
+                                        lambda _: '두 번 실행해 차이를 비교한다.', generator_key='generate-v1')
+            history = ledger.generation_history('f')
+            self.assertEqual([row['status'] for row in history], ['succeeded', 'failed'])
+            self.assertEqual(history[0]['output'], generated.snapshot())
+            self.assertEqual(history[0]['target'], flow.snapshot())
+            self.assertEqual(history[0]['review_id'], decision.review_id)
+            ledger.close()
+            reopened = resources.enter_context(ReviewLedger(path))
+            def no_duplicate(_):
+                raise AssertionError('An unchanged successful generation must be reused')
+            cached = reopened.generate(before, after, flow, decision, no_duplicate, generator_key='generate-v1')
+            self.assertEqual(cached, generated)
+            self.assertEqual(len(reopened.generation_history('f')), 2)
 
 
 if __name__ == '__main__':

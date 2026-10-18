@@ -65,6 +65,11 @@ class ReviewLedger:
             created_at TEXT NOT NULL, payload TEXT NOT NULL
         )""")
         self.connection.execute('CREATE INDEX IF NOT EXISTS review_inputs ON adjacent_reviews(fingerprint)')
+        self.connection.execute("""CREATE TABLE IF NOT EXISTS artifact_generations (
+            id TEXT PRIMARY KEY, fingerprint TEXT NOT NULL, target_key TEXT NOT NULL,
+            created_at TEXT NOT NULL, payload TEXT NOT NULL
+        )""")
+        self.connection.execute('CREATE INDEX IF NOT EXISTS generation_inputs ON artifact_generations(fingerprint)')
         self.connection.commit()
 
     def __enter__(self):
@@ -111,6 +116,51 @@ class ReviewLedger:
         self._save(fingerprint, target.key, record)
         return Decision(record['id'], record['change_required'], record['reason'])
 
+    def generation_history(self, target_key):
+        return [json.loads(row[0]) for row in self.connection.execute(
+            'SELECT payload FROM artifact_generations WHERE target_key=? ORDER BY rowid DESC', (target_key,))]
+
+    def generate(self, before, after, target, decision, generator, *, generator_key):
+        if not isinstance(generator_key, str) or not generator_key.strip():
+            raise ValueError('생성 모델과 지침의 버전을 지정하세요.')
+        row = self.connection.execute('SELECT payload FROM adjacent_reviews WHERE id=?', (decision.review_id,)).fetchone()
+        review = json.loads(row[0]) if row else None
+        if (not review or review['status'] != 'reviewed' or not review['change_required']
+                or review['source_before'] != before.snapshot() or review['source_after'] != after.snapshot()
+                or review['target'] != target.snapshot()):
+            raise ValueError('이 변경을 승인한 인접 검토 근거가 없어요.')
+        request = dict(contract=CONTRACT_VERSION, generator_key=generator_key, review_id=decision.review_id,
+                       source_before=before.snapshot(), source_after=after.snapshot(),
+                       target=target.snapshot(), reason=review['reason'])
+        fingerprint = _hash(_json(request))
+        for (payload,) in self.connection.execute(
+                'SELECT payload FROM artifact_generations WHERE fingerprint=? ORDER BY rowid DESC', (fingerprint,)):
+            cached = json.loads(payload)
+            if cached['status'] == 'succeeded':
+                output = cached['output']
+                artifact = Artifact(output['key'], output['layer'], output['text'])
+                if artifact.key != target.key or artifact.layer != target.layer or artifact.revision != output['revision']:
+                    raise ValueError('보관된 생성 결과의 해시가 달라요.')
+                return artifact
+        record = dict(request, id=uuid.uuid4().hex, status='pending',
+                      created_at=datetime.now(timezone.utc).isoformat())
+        try:
+            generated = Artifact(target.key, target.layer, generator(json.loads(_json(request))))
+            if generated.revision == target.revision:
+                raise ValueError('변경이 필요하지만 생성된 내용이 같아요. 다시 검토하세요.')
+            record.update(status='succeeded', output=generated.snapshot())
+        except Exception as error:
+            record.update(status='failed', error=str(error))
+            self._save_generation(fingerprint, target.key, record)
+            raise
+        self._save_generation(fingerprint, target.key, record)
+        return generated
+
+    def _save_generation(self, fingerprint, target_key, record):
+        with self.connection:
+            self.connection.execute('INSERT INTO artifact_generations VALUES (?,?,?,?,?)',
+                                    (record['id'], fingerprint, target_key, record['created_at'], _json(record)))
+
     def _save(self, fingerprint, target_key, record):
         with self.connection:
             self.connection.execute('INSERT INTO adjacent_reviews VALUES (?,?,?,?,?)',
@@ -155,7 +205,7 @@ class ContentTree:
     def reviewed_from(self, key):
         return self._reviewed[key]
 
-    def apply(self, replacement, ledger, assessor, generator, *, assessor_key):
+    def apply(self, replacement, ledger, assessor, generator, *, assessor_key, generator_key=None):
         if self._pending:
             raise ValueError('이전 변경의 미완료 검토를 먼저 이어가세요.')
         before = self.artifact(replacement.key)
@@ -168,9 +218,9 @@ class ContentTree:
             self._generated[replacement.key] = None
             self._reviewed[replacement.key] = None
         self._pending.extend((before, replacement, child) for child in self._children[replacement.key])
-        self.resume(ledger, assessor, generator, assessor_key=assessor_key)
+        self.resume(ledger, assessor, generator, assessor_key=assessor_key, generator_key=generator_key)
 
-    def resume(self, ledger, assessor, generator, *, assessor_key):
+    def resume(self, ledger, assessor, generator, *, assessor_key, generator_key=None):
         while self._pending:
             before, after, key = self._pending[0]
             target = self.artifact(key)
@@ -182,11 +232,7 @@ class ContentTree:
                 self._reviewed[key] = after.revision
                 self._pending.popleft()
                 continue
-            text = generator(dict(source_before=before.snapshot(), source_after=after.snapshot(),
-                                  target=target.snapshot(), reason=decision.reason, review_id=decision.review_id))
-            generated = Artifact(target.key, target.layer, text)
-            if generated.revision == target.revision:
-                raise ValueError('변경이 필요하지만 생성된 내용이 같아요. 다시 검토하세요.')
+            generated = ledger.generate(before, after, target, decision, generator, generator_key=generator_key)
             self._artifacts[key] = generated
             self._generated[key] = after.revision
             self._reviewed[key] = after.revision
