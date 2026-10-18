@@ -261,6 +261,8 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     let previous_key=format!("repo:{}:{}:{}:{}:{}",session.user.id,selected.course.id,selected.lesson.id,selected.round,task.id);
     let initial=use_hook(||molip_quest::drafts::load(&key).ok().flatten().or_else(||molip_quest::drafts::load(&previous_key).ok().flatten()).map(|d|d.code).unwrap_or_else(||task.starter_code.clone()));
     let mut code=use_signal(||initial.clone());let mut reset=use_signal(||0u64);
+    let has_example=task.has_runnable_example();
+    let mut example_source=use_signal(||task.example_code.clone().unwrap_or_default());
     let mut git_practice=use_signal(||None::<crate::git_terminal_ui::Practice>);
     let mut git_control=use_signal(||None::<crate::git_terminal_ui::TerminalControl>);
     let mut input=use_signal(||task.tests.first().map(|t|t.input.clone()).unwrap_or_default());
@@ -276,7 +278,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     let mut history_message=use_signal(String::new);
     use_effect(|| { document::eval("const s=document.querySelector('select.repository-narration-rate');if(s&&window.molipVoice)s.value=String(molipVoice.rate);"); });
     let required=selected.lesson.required_tasks();
-    let filename=if task.git_terminal.is_some(){"Git 터미널".to_string()}else if task.interaction.is_some(){"답안".to_string()}else if task.entry_file.is_empty(){task.language.filename().to_string()}else{task.entry_file.clone()};
+    let filename=if task.git_terminal.is_some(){"Git 터미널".to_string()}else if task.interaction.is_some()&&!has_example{"답안".to_string()}else if task.entry_file.is_empty(){task.language.filename().to_string()}else{task.entry_file.clone()};
     // Show the data this problem reads before other files bundled with the lesson.
     let mut provided_files=task.files.iter().map(|(name,body)|{
         let used=task.starter_code.contains(name.as_str())||task.solution.contains(name.as_str());
@@ -307,12 +309,12 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                 }}
                 if !task.narration.is_empty() {
                     button {disabled:busy()||narrating(),onclick:{let actions=task.narration.clone();let record=record_explanation.clone();let needs_git=task.git_terminal.is_some();move |_|{
-                        record();let student_code=code();let student_output=output();let student_input=input();let student_preview=preview();let student_message=message();let student_state=execution_state();let student_seconds=execution_seconds();
+                        record();let student_code=code();let student_example=example_source();let student_output=output();let student_input=input();let student_preview=preview();let student_message=message();let student_state=execution_state();let student_seconds=execution_seconds();
                         narrating.set(true);let actions=actions.clone();
                         spawn(async move {
                             let script=format!("(async()=>{{try{{const root=document.querySelector('.repository-task');const until=Date.now()+45000;while(root?.isConnected&&(root.dataset.narrating!=='true'||({needs_git}&&!window.molipGitTutor))){{if(Date.now()>until)throw new Error('Git 시연을 준비하지 못했어요.');await new Promise(requestAnimationFrame);}}if(root?.isConnected)await window.molipAgent?.runExplanation({});}}finally{{dioxus.send(true);}}}})();",serde_json::to_string(&actions).unwrap_or_else(|_|"[]".into()));
                             let mut bridge=document::eval(&script);let _=bridge.recv::<bool>().await;
-                            execution_id+=1;execution_state.set(student_state);execution_seconds.set(student_seconds);busy.set(false);code.set(student_code);input.set(student_input);output.set(student_output);preview.set(student_preview);message.set(student_message);if !needs_git {reset+=1;}narrating.set(false);
+                            execution_id+=1;execution_state.set(student_state);execution_seconds.set(student_seconds);busy.set(false);code.set(student_code);example_source.set(student_example);input.set(student_input);output.set(student_output);preview.set(student_preview);message.set(student_message);if !needs_git {reset+=1;}narrating.set(false);
                         });
                     }},"해설 재생 · 정답 실행"}
                     button {"data-explanation-stop":"true",onclick:move |_|{document::eval("window.molipAgent?.stop()");},"해설 멈춤"}
@@ -329,7 +331,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
             div {class:"split-handle split-col",role:"separator",tabindex:0,aria_label:"문제와 코드 패널 크기 조절",aria_orientation:"vertical"}
             section {class:"coding-pane",div {class:"pane-heading",strong {"{filename}"}
                 div {class:"pane-actions",
-                    button {disabled:busy()||narrating(),onclick:{let starter=task.starter_code.clone();let key=key.clone();move |_|{
+                    button {disabled:busy()||narrating(),onclick:{let starter=task.starter_code.clone();let example=task.example_code.clone().unwrap_or_default();let key=key.clone();move |_|{
                         if narrating(){return;}
                         if let Some(control)=git_control() {
                             busy.set(true);message.set("Git 실습을 초기화하고 있어요.".into());
@@ -340,17 +342,17 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                                 }
                                 busy.set(false);
                             });
-                        }else{code.set(starter.clone());reset+=1;let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}
+                        }else{code.set(starter.clone());example_source.set(example.clone());reset+=1;let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}
                     }},"초기화"}
-                    if task.interaction.is_none()&&task.git_terminal.is_none() {
+                    if task.git_terminal.is_none()&&(task.interaction.is_none()||has_example) {
                     button {disabled:busy(),onclick:{let task=task.clone();let github=session.github.clone();let user=session.user.clone();let selected=selected.clone();move |_|{let task=task.clone();let github=github.clone();let user=user.clone();let selected=selected.clone();async move {
                         busy.set(true);execution_id+=1;execution_state.set("running");execution_seconds.set(0);
                         message.set("코드를 실행하고 있어요.".into());output.set(String::new());preview.set(String::new());
-                        let source=code();let input=input();let started=std::time::Instant::now();let run_id=execution_id();
+                        let source=if has_example{example_source()}else{code()};let input=input();let started=std::time::Instant::now();let run_id=execution_id();
                         let timer=spawn(async move {loop {tokio::time::sleep(std::time::Duration::from_secs(1)).await;if execution_id()!=run_id{break;}execution_seconds+=1;}});
                         // Local execution never waits for GitHub. append() still authenticates
                         // the expected account before recording the separate history operation.
-                        let result=molip_quest::lesson_runner::run(&task,&source,&input).await;
+                        let result=if has_example{molip_quest::lesson_runner::run_example(&task,&source,&input).await}else{molip_quest::lesson_runner::run(&task,&source,&input).await};
                         timer.cancel();
                         if execution_id()!=run_id {return;}
                         match result {
@@ -412,26 +414,26 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                     }}},"제출"}
                 }
             }
-            div {class:if task.git_terminal.is_some()&&task.interaction.is_some(){"editor-pane git-choice-editor"}else{"editor-pane"},style:if task.git_terminal.is_some()&&task.interaction.is_some(){"display:grid;grid-template-rows:minmax(0,2fr) minmax(0,3fr);gap:6px"}else{""},
+            div {class:if (task.git_terminal.is_some()||has_example)&&task.interaction.is_some(){"editor-pane interaction-example-editor"}else{"editor-pane"},style:if (task.git_terminal.is_some()||has_example)&&task.interaction.is_some(){"display:grid;grid-template-rows:minmax(0,2fr) minmax(0,3fr);gap:6px"}else{""},
                 if let Some(exercise)=task.git_terminal.clone() {
                     div {style:if narrating(){"display:none"}else if task.interaction.is_some(){"min-height:0;overflow:hidden"}else{"height:100%"},
                         {rsx!{crate::git_terminal_ui::GitTerminal {key:"git-{reset}",exercise:exercise.clone(),demo:false,scope:Some(key.clone()),fresh:reset()>0,onready:move |practice|git_practice.set(Some(practice)),oncontrol:move |control|git_control.set(Some(control))}}}
                     }
                     if narrating() {div {style:if task.interaction.is_some(){"min-height:0;overflow:hidden"}else{"height:100%"},crate::git_terminal_ui::GitTerminal {exercise,demo:true,onready:move |_|{},oncontrol:move |_|{}}}}
-                    if let Some(interaction)=task.interaction.clone() {
-                        div {class:"git-choice-answer",style:"min-height:0;overflow:hidden",
-                            crate::interaction_ui::InteractionEditor {interaction,value:code(),disabled:busy()||narrating(),onchange:{let key=key.clone();move |value:String|{code.set(value);if !narrating(){let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}}}}
-                        }
-                    }
-                }else if let Some(interaction) = task.interaction.clone() {
-                    crate::interaction_ui::InteractionEditor { interaction, value: code(), disabled: busy()||narrating(), onchange: {let key=key.clone();move |value:String|{code.set(value);if !narrating(){let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}}} }
-                } else {
+                }else if has_example {
+                    textarea {class:"code-editor","data-code-editor":task.language.editor(),"data-editor-value":example_source(),"data-editor-reset":reset().to_string(),aria_label:"수업 예제 코드",initial_value:task.example_code.clone().unwrap_or_default(),readonly:true,spellcheck:false,oninput:move |e|example_source.set(e.value())}
+                }else if task.interaction.is_none() {
                 textarea {class:"code-editor","data-code-editor":if task.entry_file.ends_with(".jsx"){"javascript"}else{task.language.editor()},"data-editor-value":code(),"data-editor-reset":reset().to_string(),aria_label:"수업 코드",initial_value:initial.clone(),spellcheck:false,oninput:{let key=key.clone();move |e|{code.set(e.value());if !narrating(){let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}}}}
+                }
+                if let Some(interaction)=task.interaction.clone() {
+                    div {class:if task.git_terminal.is_some()||has_example{"interaction-example-answer"}else{""},style:if task.git_terminal.is_some()||has_example{"min-height:0;overflow:hidden"}else{"height:100%;min-height:0"},
+                        crate::interaction_ui::InteractionEditor {interaction,value:code(),disabled:busy()||narrating(),onchange:{let key=key.clone();move |value:String|{code.set(value);if !narrating(){let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}}}}
+                    }
                 }
             }
             div {class:"split-handle split-row",role:"separator",tabindex:0,aria_label:"코드와 실행 결과 패널 크기 조절",aria_orientation:"horizontal"}
-            section {class:"result-pane","data-execution-id":execution_id().to_string(),"data-execution-state":execution_state(),aria_busy:busy(),h3 {if task.interaction.is_some(){"채점 결과"}else{"실행 결과"}}
-                if task.interaction.is_none()&&task.git_terminal.is_none() {
+            section {class:"result-pane","data-execution-id":execution_id().to_string(),"data-execution-state":execution_state(),aria_busy:busy(),h3 {if has_example{"실행·채점 결과"}else if task.interaction.is_some(){"채점 결과"}else{"실행 결과"}}
+                if task.git_terminal.is_none()&&(task.interaction.is_none()||has_example) {
                 details {class:"run-input",open:task.tests.iter().any(|case|!case.input.is_empty()),
                     summary {"실행 입력"}
                     label {span {"프로그램에 전달할 입력"} textarea {aria_label:"실행 입력",initial_value:input(),oninput:move |e|input.set(e.value())}}
