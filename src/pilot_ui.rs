@@ -16,7 +16,7 @@ pub fn PilotPlayer() -> Element {
         let restart_phase=std::env::var("MOLIP_PILOT_SELF_TEST").ok().and_then(|mode|mode.strip_prefix("restart-").map(str::to_owned)).filter(|phase|matches!(phase.as_str(),"seed"|"reopen"));
         let script=if let Some(phase)=&restart_phase {
             format!("window.mq3RestartPhase={};{}",serde_json::to_string(phase).unwrap(),include_str!("../tools/player-pilot-restart.js"))
-        } else {include_str!("../tools/player-pilot-native.js").to_owned()};
+        } else {format!("window.mq3FirstGitOnly={};{}",std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("git-first"),include_str!("../tools/player-pilot-native.js"))};
         let mut bridge = document::eval(&script);
         let result = match tokio::time::timeout(std::time::Duration::from_secs(360), bridge.recv::<serde_json::Value>()).await {
             Ok(Ok(result)) => result,

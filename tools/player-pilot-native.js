@@ -40,6 +40,7 @@
     }, `${title}: student input reached task state`);
   };
   try {
+    if (!window.mq3FirstGitOnly) {
     const updateBanner = () => document.querySelector('.update-banner');
     await wait(() => updateBanner(), 'startup update offer');
     if (document.querySelector('.update-panel')) throw new Error('Startup must not install automatically');
@@ -404,6 +405,7 @@
     await click('준비 완료 · 연결 확인');
     checked.push('panel handles resize, terminal shortcut/UTF-8 work, and centered existing gh setup runs a real shell');
 
+    }
     await click('버전 k');
     await wait(() => document.querySelector('.lesson-card')?.textContent.includes('git-first-1'), 'approved first Git lesson');
     await click('풀모드 시작');
@@ -422,6 +424,7 @@
       await gitReady();
     };
     await gitReady();
+    molipAgent.setVoice(false);
     await click('제출');await wait(()=>status('다시 풀어보세요'),'first status initially unsolved');
     await runGit('git status');await click('제출');await wait(()=>status('통과했어요'),'first real status');
     await nextGit();
@@ -445,10 +448,11 @@
     await wait(()=>!document.querySelector('input[type=radio]:checked'),'Git reset clears saved choice too');
     await nextGit();
     document.querySelector('input[value="working-third"]').click();
+    await wait(()=>document.querySelector('.answer-state-bridge')?.value==='working-third','student choice reached task state');
     await click('해설 재생 · 정답 실행');
     await wait(()=>molipAgent.running,'staged snapshot demonstration starts');
     await wait(()=>!molipAgent.running&&!button('해설 재생 · 정답 실행').disabled,'staged snapshot demonstration completes',60000);
-    if(!document.querySelector('input[value="working-third"]').checked)throw new Error('Git teacher changed student choice');
+    await wait(()=>document.querySelector('input[value="working-third"]')?.checked,'student Git choice restored');
     await runGit('git show :memo.txt');
     if(!mq3GitTerminal.text().split('\n').some(line=>line.trim()==='둘째 메모'))throw new Error('Git teacher changed student index');
     await click('제출');await wait(()=>status('다시 풀어보세요'),'teacher did not answer for student');
