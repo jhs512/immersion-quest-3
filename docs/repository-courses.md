@@ -48,3 +48,8 @@ cargo test --locked --test repository_lessons -- --ignored --nocapture --test-th
 
 
 분기 수업의 `state_goal.current_branch`는 실제 HEAD가 연결된 브랜치 이름이다. `references`는 `refs/heads/feature` 같은 브랜치가 현재 HEAD 커밋을 가리키는 조건이며 현재 지원 값은 `HEAD`, `HEAD^`(첫 부모), `HEAD^1`, `HEAD^2`다. 이름을 만드는 것과 그 브랜치로 전환하는 것을 별도로 판정한다. 빈 참조 맵·지원하지 않는 대상·잘못된 이름은 제작 검증에서 거절한다. 생략한 새 필드는 직렬화하지 않아 기존 저장소 준비 상태의 식별값을 바꾸지 않는다.
+
+
+`setup.kind=merge_conflict`는 지정한 브랜치를 실제로 병합해 충돌을 준비한다. 종료 코드1과 유효한 MERGE_HEAD, 실제 미병합 인덱스를 모두 확인한다. 단순 명령 오류나 충돌 없는 성공을 준비된 충돌로 취급하지 않는다. 초기화도 같은 과정을 다시 실행한다.
+
+`state_goal.merge_in_progress`는 MERGE_HEAD의 존재를, `unmerged_paths`는 실제 미병합 경로 집합을 검사한다. 충돌 표시를 지우는 것과 add로 인덱스를 해결하는 것을 구분한다. `parent_count`는 현재 커밋의 정확한 부모 수이며, 두 부모 병합을 요구할 때 불필요한 추가 부모도 거절한다.

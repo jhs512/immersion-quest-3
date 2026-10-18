@@ -18,6 +18,9 @@ impl GitInitialHistory {fn is_recorded(&self)->bool{*self==Self::Recorded}}
 #[derive(Clone,Debug,Default,Serialize,Deserialize,PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct GitStateGoal {
+    #[serde(default,skip_serializing_if="Option::is_none")] pub parent_count:Option<usize>,
+    #[serde(default,skip_serializing_if="Option::is_none")] pub merge_in_progress:Option<bool>,
+    #[serde(default,skip_serializing_if="Option::is_none")] pub unmerged_paths:Option<Vec<String>>,
     #[serde(default,skip_serializing_if="Option::is_none")] pub current_branch:Option<String>,
     #[serde(default,skip_serializing_if="Option::is_none")] pub references:Option<BTreeMap<String,String>>,
     #[serde(default,skip_serializing_if="Option::is_none")] pub head_exists:Option<bool>,
@@ -30,7 +33,7 @@ pub struct GitStateGoal {
 }
 #[derive(Clone,Debug,Serialize,Deserialize,PartialEq)]
 #[serde(tag="kind",rename_all="snake_case")]
-pub enum GitSetup { File{path:String,content:String}, Git{args:Vec<String>} }
+pub enum GitSetup { File{path:String,content:String}, Git{args:Vec<String>}, MergeConflict{branch:String} }
 enum PracticeDirectory { Temporary(tempfile::TempDir), Saved{path:PathBuf,scope:String} }
 impl PracticeDirectory {fn path(&self)->&Path {match self {Self::Temporary(directory)=>directory.path(),Self::Saved{path,..}=>path}}}
 pub struct GitPractice { directory:PracticeDirectory, exercise:GitExercise }
@@ -107,11 +110,14 @@ impl GitExercise {
     pub fn validate(&self)->Result<(),String> {
         if self.files.len()>80||self.setup.len()>100||self.commands.len()>20{return Err("Git 실습의 준비 내용을 확인하세요.".into())}
         if let Some(goal)=&self.state_goal {
-            if goal.current_branch.is_none()&&goal.references.is_none()&&goal.head_exists.is_none()&&goal.commit_count.is_none()&&goal.clean.is_none()&&goal.index.is_none()&&goal.working_files.is_none()&&goal.head_files.is_none()&&goal.parent_files.is_none(){return Err("Git 목표 상태가 필요해요.".into())}
-            let branch_name=|name:&str|!name.is_empty()&&name.len()<=200&&!name.starts_with('-')&&!name.starts_with('.')&&!name.ends_with('.')&&!name.ends_with('/')&&!name.ends_with(".lock")&&!name.contains("..")&&!name.contains("//")&&name.bytes().all(|c|c.is_ascii_alphanumeric()||b"/_-.".contains(&c));
-            if goal.current_branch.as_deref().is_some_and(|name|!branch_name(name)){return Err("목표 브랜치 이름을 확인하세요.".into())}
+            if goal.parent_count.is_none()&&goal.merge_in_progress.is_none()&&goal.unmerged_paths.is_none()&&goal.current_branch.is_none()&&goal.references.is_none()&&goal.head_exists.is_none()&&goal.commit_count.is_none()&&goal.clean.is_none()&&goal.index.is_none()&&goal.working_files.is_none()&&goal.head_files.is_none()&&goal.parent_files.is_none(){return Err("Git 목표 상태가 필요해요.".into())}
+            if let Some(paths)=&goal.unmerged_paths {
+                if paths.len()>80||paths.iter().collect::<std::collections::BTreeSet<_>>().len()!=paths.len(){return Err("미병합 경로 목록을 확인하세요.".into())}
+                for path in paths {validate_file(path,"")?;}
+            }
+            if goal.current_branch.as_deref().is_some_and(|name|!valid_branch_name(name)){return Err("목표 브랜치 이름을 확인하세요.".into())}
             if let Some(references)=&goal.references {
-                if references.is_empty()||references.len()>20||references.iter().any(|(name,target)|!name.strip_prefix("refs/heads/").is_some_and(&branch_name)||!["HEAD","HEAD^","HEAD^1","HEAD^2"].contains(&target.as_str())) {
+                if references.is_empty()||references.len()>20||references.iter().any(|(name,target)|!name.strip_prefix("refs/heads/").is_some_and(valid_branch_name)||!["HEAD","HEAD^","HEAD^1","HEAD^2"].contains(&target.as_str())) {
                     return Err("목표 브랜치 참조를 확인하세요.".into());
                 }
             }
@@ -123,6 +129,7 @@ impl GitExercise {
         for (path,content) in &self.files {validate_file(path,content)?;}
         for action in &self.setup {match action {
             GitSetup::File{path,content}=>validate_file(path,content)?,
+            GitSetup::MergeConflict{branch}=>{if !valid_branch_name(branch){return Err("충돌을 준비할 브랜치를 확인하세요.".into())}}
             GitSetup::Git{args}=>{
                 if args.len()>50 || !args.first().is_some_and(|arg|["add","commit","branch","checkout","switch","merge","rebase","cherry-pick","tag","reset"].contains(&arg.as_str())) || args.iter().any(|arg|arg.len()>4000||arg=="-C"||(arg=="-c"&&args.first().is_none_or(|command|command!="switch"))||arg.starts_with("--git-dir")||arg.starts_with("--work-tree")||arg.starts_with("--config-env")) {return Err("Git 시작 명령을 확인하세요.".into())}
             }
@@ -130,6 +137,9 @@ impl GitExercise {
         if self.commands.iter().any(|args|args.is_empty()||args.len()>50||args.iter().any(|arg|arg.len()>4000)){return Err("검사할 Git 명령을 확인하세요.".into())}
         Ok(())
     }
+}
+fn valid_branch_name(name:&str)->bool {
+    !name.is_empty()&&name.len()<=200&&!name.starts_with('-')&&!name.starts_with('.')&&!name.ends_with('.')&&!name.ends_with('/')&&!name.ends_with(".lock")&&!name.contains("..")&&!name.contains("//")&&name.bytes().all(|c|c.is_ascii_alphanumeric()||b"/_-.".contains(&c))
 }
 fn validate_file(path:&str,content:&str)->Result<(),String> {
     if !crate::repository_course::safe_file(path)||path.split('/').any(|part|part.eq_ignore_ascii_case(".git"))||content.len()>200_000 {return Err("Git 준비 파일 경로를 확인하세요.".into())}Ok(())
@@ -157,6 +167,12 @@ impl GitPractice {
         }
         for action in &practice.exercise.setup {match action {
             GitSetup::File{path,content}=>practice.write(path,content)?,
+            GitSetup::MergeConflict{branch}=>{
+                let merge=practice.execute(&practice.work(),&["merge","--no-edit","--",branch],false)?;
+                let head=practice.execute(&practice.work(),&["rev-parse","--verify","MERGE_HEAD^{commit}"],false)?;
+                let index=practice.execute(&practice.work(),&["ls-files","--unmerged","-z"],false)?;
+                if merge.status.code()!=Some(1)||!head.status.success()||!index.status.success()||index.stdout.is_empty(){return Err("시작 상태에서 예상한 병합 충돌이 나지 않았어요.".into())}
+            }
             GitSetup::Git{args}=>{practice.checked_at(practice.work().as_path(),&args.iter().map(String::as_str).collect::<Vec<_>>())?;}
         }}
         Ok(practice)
@@ -241,6 +257,22 @@ impl GitPractice {
         }
         let repository=self.execute(&self.work(),&["rev-parse","--is-inside-work-tree"],false)?;
         record("실습 저장소".into(),repository.status.success()&&repository.stdout==b"true\n","true".into(),String::from_utf8_lossy(&repository.stdout).into());
+        if let Some(expected)=goal.parent_count {
+            let result=self.execute(&self.work(),&["rev-list","--parents","-n","1","HEAD"],false)?;
+            let actual=String::from_utf8_lossy(&result.stdout).split_whitespace().count().checked_sub(1);
+            record("현재 기록의 부모 수".into(),result.status.success()&&actual==Some(expected),expected.to_string(),actual.map(|count|count.to_string()).unwrap_or_default());
+        }
+        if let Some(expected)=goal.merge_in_progress {
+            let actual=self.execute(&self.work(),&["rev-parse","--verify","MERGE_HEAD^{commit}"],false)?.status.success();
+            record("병합 진행 상태".into(),actual==expected,expected.to_string(),actual.to_string());
+        }
+        if let Some(paths)=&goal.unmerged_paths {
+            let result=self.execute(&self.work(),&["diff","--name-only","--diff-filter=U","-z"],false)?;
+            let output=String::from_utf8_lossy(&result.stdout);
+            let actual=output.split('\0').filter(|path|!path.is_empty()).collect::<BTreeSet<_>>();
+            let expected=paths.iter().map(String::as_str).collect::<BTreeSet<_>>();
+            record("미병합 경로".into(),result.status.success()&&actual==expected,expected.into_iter().collect::<Vec<_>>().join(", "),actual.into_iter().collect::<Vec<_>>().join(", "));
+        }
         if let Some(expected)=&goal.current_branch {
             let result=self.execute(&self.work(),&["symbolic-ref","--quiet","HEAD"],false)?;
             let actual=String::from_utf8_lossy(&result.stdout).trim().to_owned();
