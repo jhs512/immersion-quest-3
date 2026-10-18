@@ -9,7 +9,7 @@ pub fn PilotPlayer() -> Element {
     use_future(|| async move {
         if !pilot_source::enabled() || std::env::var_os("MOLIP_PILOT_SELF_TEST").is_none() { return; }
         let mut bridge = document::eval(include_str!("../tools/player-pilot-native.js"));
-        let result = match tokio::time::timeout(std::time::Duration::from_secs(150), bridge.recv::<serde_json::Value>()).await {
+        let result = match tokio::time::timeout(std::time::Duration::from_secs(240), bridge.recv::<serde_json::Value>()).await {
             Ok(Ok(result)) => result,
             _ => serde_json::json!({"passed":false,"error":"Native WebView test timed out or disconnected"}),
         };

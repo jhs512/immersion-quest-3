@@ -37,13 +37,33 @@ pub struct ProcessScope(libc::pid_t);
 impl ProcessScope {
     pub fn attach(child:&dyn portable_pty::Child)->Result<Self,String> {
         let pid=child.process_id().ok_or("터미널 프로세스 ID가 없어요.")? as libc::pid_t;
-        // portable-pty calls setsid before exec. The practice bash disables monitor
-        // mode, so normal foreground/background commands inherit this owned group.
-        if unsafe{libc::getpgid(pid)}!=pid{return Err("실습 프로세스 그룹을 확인하지 못했어요.".into())}
+        // portable-pty calls setsid before exec. Keep the session ID even when
+        // an interactive shell creates separate foreground/background groups.
+        if unsafe{libc::getsid(pid)}!=pid{return Err("실습 프로세스 그룹을 확인하지 못했어요.".into())}
         Ok(Self(pid))
     }
     pub fn terminate(&self)->Result<(),String> {
-        if unsafe{libc::kill(-self.0,libc::SIGKILL)}==0{return Ok(())}
-        let error=std::io::Error::last_os_error();if error.raw_os_error()==Some(libc::ESRCH){Ok(())}else{Err(error.to_string())}
+        // Interactive shells can put background jobs in another process group.
+        // Session membership still identifies those inherited children. Recheck it
+        // before each signal; unrelated processes are never selected by name.
+        for _ in 0..50 {
+            let output=std::process::Command::new("/bin/ps").args(["-axo","pid=,stat="]).output().map_err(|e|e.to_string())?;
+            if !output.status.success(){return Err("실습 프로세스 목록을 확인하지 못했어요.".into())}
+            let mut running=false;
+            for line in String::from_utf8_lossy(&output.stdout).lines() {
+                let mut fields=line.split_whitespace();
+                let Some(pid)=fields.next().and_then(|pid|pid.parse::<libc::pid_t>().ok()) else{continue};
+                if fields.next().is_some_and(|state|state.starts_with('Z')){continue;}
+                if pid>1&&unsafe{libc::getsid(pid)}==self.0 {
+                    running=true;
+                    if unsafe{libc::kill(pid,libc::SIGKILL)}!=0 {
+                        let error=std::io::Error::last_os_error();if error.raw_os_error()!=Some(libc::ESRCH){return Err(error.to_string())}
+                    }
+                }
+            }
+            if !running{return Ok(())}
+            std::thread::sleep(std::time::Duration::from_millis(100));
+        }
+        Err("실습 프로세스가 아직 종료되지 않았어요.".into())
     }
 }

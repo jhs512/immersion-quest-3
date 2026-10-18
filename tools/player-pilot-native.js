@@ -1,8 +1,8 @@
 // Executed inside the actual platform WebView; no browser automation protocol required.
 (async () => {
   const checked = [];
-  const wait = async (predicate, label) => {
-    const deadline = Date.now() + 20000;
+  const wait = async (predicate, label, timeout=20000) => {
+    const deadline = Date.now() + timeout;
     while (Date.now() < deadline) {
       if (predicate()) return;
       await new Promise(resolve => setTimeout(resolve, 40));
@@ -206,7 +206,7 @@
     await click('버전 h');
     await wait(() => document.querySelector('.lesson-card')?.textContent.includes('pilot-h'), 'real Git lesson');
     await click('풀모드 시작');
-    await wait(() => document.querySelector('[aria-label="Git 실습 터미널 입력"]') && document.querySelector('.repository-task')?.dataset.gitReady === 'true', 'real platform terminal');
+    await wait(() => document.querySelector('[aria-label="Git 실습 터미널 입력"]') && document.querySelector('.repository-task')?.dataset.gitReady === 'true', 'real platform terminal',45000);
     if (document.querySelector('.code-editor')) throw new Error('Git exercise still uses code editor');
     await click('제출');
     await wait(() => status('다시 풀어보세요'), 'unexecuted Git command rejected');
@@ -214,7 +214,7 @@
     await wait(() => mq3GitTerminal.text().includes("Switched to a new branch 'student-work'"), 'student branch before demonstration');
     await click('해설 재생 · 정답 실행');
     await wait(() => molipAgent.running, 'Git explanation starts');
-    await wait(() => mq3GitDemoTerminal.text().split('\n').some(line=>line.trim()==='main'), 'teacher real Git output from independent main branch');
+    await wait(() => mq3GitDemoTerminal.text().split('\n').some(line=>line.trim()==='main'), 'teacher real Git output from independent main branch',45000);
     await wait(() => !molipAgent.running && !button('해설 재생 · 정답 실행').disabled, 'real Git demonstration completes');
     await click('제출');
     await wait(() => status('다시 풀어보세요'), 'teacher Git command does not pass student');

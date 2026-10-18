@@ -58,10 +58,10 @@ fn real_platform_shell_runs_git_and_grading_does_not_satisfy_command_goals() {
     let checks=GitChecks{minimum_commits:1,head_message:"Start".into(),tracked_files:Default::default(),branch:Some("main".into()),pushed:true};
     assert!(!practice.check(&checks).unwrap().passed);
     let (mut shell,mut output)=practice.open_terminal().unwrap();
-    let mut seen=String::new();let mut sent=false;
-    let deadline=std::time::Instant::now()+std::time::Duration::from_secs(15);
+    let mut seen=String::new();let mut cursor_reports=0usize;let mut sent=false;
+    let deadline=std::time::Instant::now()+std::time::Duration::from_secs(30);
     while std::time::Instant::now()<deadline {
-        while let Ok(bytes)=output.try_recv(){let chunk=String::from_utf8_lossy(&bytes);if chunk.contains("\x1b[6n"){shell.input("\x1b[1;1R").unwrap();}seen.push_str(&chunk);}
+        while let Ok(bytes)=output.try_recv(){seen.push_str(&String::from_utf8_lossy(&bytes));let reports=seen.matches("\x1b[6n").count();while cursor_reports<reports{shell.input("\x1b[1;1R").unwrap();cursor_reports+=1;}}
         if !sent&&(!cfg!(windows)||seen.contains("PS ")){shell.input("git status --porcelain\r").unwrap();sent=true;}
         if sent&&practice.commands_satisfied().unwrap(){break;}
         std::thread::sleep(std::time::Duration::from_millis(30));
@@ -109,9 +109,9 @@ fn closing_practice_stops_its_background_child_but_keeps_an_outside_process() {
     let mut external=external.spawn().unwrap();
     let practice=GitPractice::new(GitExercise::default()).unwrap();let (mut shell,mut output)=practice.open_terminal().unwrap();
     let command=if cfg!(windows){format!("Start-Process powershell.exe -WindowStyle Hidden -ArgumentList '-NoProfile','-File','\"{}\"'\r",owned_script.display())}else{format!("nohup /bin/sh '{}' >/dev/null 2>&1 &\r",owned_script.display())};
-    let mut seen=String::new();let mut sent=false;let deadline=std::time::Instant::now()+std::time::Duration::from_secs(15);
+    let mut seen=String::new();let mut cursor_reports=0usize;let mut sent=false;let deadline=std::time::Instant::now()+std::time::Duration::from_secs(30);
     while std::time::Instant::now()<deadline {
-        while let Ok(bytes)=output.try_recv(){let chunk=String::from_utf8_lossy(&bytes);if chunk.contains("\x1b[6n"){shell.input("\x1b[1;1R").unwrap();}seen.push_str(&chunk);}
+        while let Ok(bytes)=output.try_recv(){seen.push_str(&String::from_utf8_lossy(&bytes));let reports=seen.matches("\x1b[6n").count();while cursor_reports<reports{shell.input("\x1b[1;1R").unwrap();cursor_reports+=1;}}
         if !sent&&(!cfg!(windows)||seen.contains("PS ")){shell.input(&command).unwrap();sent=true;}
         if ready.exists(){break;}std::thread::sleep(std::time::Duration::from_millis(30));
     }

@@ -46,13 +46,14 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,onready:EventHandler<Practice>
         *owned.lock().unwrap_or_else(|e|e.into_inner())=Some(session);
         oncontrol.call(TerminalControl{owned:owned.clone()});
         let prompt=if cfg!(windows){"PS "}else{"$ "};
-        let script=format!("(async()=>{{window.{bridge_name}.mount(event=>dioxus.send(event),()=>{{}},'{owner}');const deadline=Date.now()+15000;while(!window.{bridge_name}.text('{owner}').includes('{prompt}')){{if(Date.now()>deadline)return;await new Promise(resolve=>setTimeout(resolve,30));}}dioxus.send({{kind:'ready'}});{}}})()",if demo {
+        let script=format!("(async()=>{{window.{bridge_name}.mount(event=>dioxus.send(event),()=>{{}},'{owner}');const deadline=Date.now()+45000;while(!window.{bridge_name}.text('{owner}').includes('{prompt}')){{if(Date.now()>deadline){{dioxus.send({{kind:'startup_error'}});return;}}await new Promise(resolve=>setTimeout(resolve,30));}}dioxus.send({{kind:'ready'}});{}}})()",if demo {
             "window.molipGitTutor={next:0,pending:new Map(),command(args){return new Promise(resolve=>{const token=++this.next;this.pending.set(token,resolve);dioxus.send({kind:'command',args,token});});},resolve(token,value){this.pending.get(token)?.(value);this.pending.delete(token);},dispose(){for(const resolve of this.pending.values())resolve(false);this.pending.clear();}};"
         }else{""});
         let script=script.replace("window.molipGitTutor={next:",&format!("window.molipGitTutor={{owner:'{owner}',next:"));
         let command_owner=owner.clone();
         let mut bridge=document::eval(&script);let input_owned=owned.clone();let command_practice=practice.clone();
         spawn(async move {while let Ok(event)=bridge.recv::<Input>().await {
+            if event.kind=="startup_error" {error.set("터미널을 준비하지 못했어요. 초기화해 다시 여세요.".into());continue;}
             if event.kind=="ready" {onready.call(command_practice.clone());continue;}
             if event.kind=="command"&&demo {
                 if event.args.is_empty()||event.args.len()>50||event.args.iter().any(|arg|arg.len()>4000){continue;}
@@ -75,6 +76,7 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,onready:EventHandler<Practice>
             }
         }});
         while let Some(bytes)=output.recv().await {let encoded=base64::engine::general_purpose::STANDARD.encode(bytes);document::eval(&format!("window.{bridge_name}?.write('{encoded}','{owner}')"));}
+        error.set("터미널이 종료됐어요. 초기화해 다시 여세요.".into());
     }});
     rsx!{div {class:"git-terminal",id:host,aria_label:if demo{"해설용 별도 Git 저장소"}else{"실제 Git 실습 저장소"}}p {role:"status","{error}"}}
 }
