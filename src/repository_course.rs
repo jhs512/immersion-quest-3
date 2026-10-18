@@ -89,6 +89,8 @@ pub struct Section {
 }
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 pub struct Task {
+    #[serde(default,skip_serializing_if="Option::is_none")]
+    pub example_code:Option<String>,
     #[serde(default, skip_serializing_if="Vec::is_empty")]
     pub supporting_materials: Vec<crate::supporting_materials::SupportingMaterial>,
     #[serde(default,skip_serializing_if="Option::is_none")]
@@ -113,6 +115,13 @@ pub struct Task {
     /// C only: rerun with prepared values replaced, so a memorized output does not pass.
     #[serde(default, skip_serializing_if="Vec::is_empty")] pub variations: Vec<Variation>,
     #[serde(default = "yes")] pub required: bool,
+}
+impl Task {
+    pub fn has_runnable_example(&self)->bool {
+        self.interaction.is_some()&&self.git_terminal.is_none()
+            &&matches!(self.language,TaskLanguage::Java|TaskLanguage::Python|TaskLanguage::C|TaskLanguage::Javascript)
+            &&self.example_code.as_deref().is_some_and(|source|!source.trim().is_empty()&&source.len()<=65536)
+    }
 }
 /// Replace the first initializer of each named variable (C literal text), then expect this output.
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
@@ -179,6 +188,7 @@ impl Lesson {
         if self.schema_version==2 {self.validate_hierarchy()?;}
         for t in &self.tasks {
             crate::supporting_materials::validate(&t.supporting_materials)?;
+            if t.example_code.is_some()&&!t.has_runnable_example(){return Err("예제 코드와 답안 구성을 확인하세요.".into())}
             if let Some(exercise)=&t.git_terminal {
                 if t.language!=TaskLanguage::Git {return Err("Git 터미널 문제의 종류를 확인하세요.".into())}
                 if let Some(interaction)=&t.interaction {

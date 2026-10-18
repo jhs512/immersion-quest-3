@@ -17,3 +17,7 @@ cargo build --bin molip-quest
 
 The committed bundle is embedded in the desktop binary. License notices are
 included in `THIRD-PARTY-LICENSES.txt`.
+
+A textarea marked `readonly` creates a read-only CodeMirror view. Learner typing
+is disabled; explicit tutor transactions through `molipCodeEditors` remain
+available for demonstrations. Ordinary textareas retain editing behavior.

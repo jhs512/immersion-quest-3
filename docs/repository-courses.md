@@ -53,3 +53,6 @@ cargo test --locked --test repository_lessons -- --ignored --nocapture --test-th
 `setup.kind=merge_conflict`는 지정한 브랜치를 실제로 병합해 충돌을 준비한다. 종료 코드1과 유효한 MERGE_HEAD, 실제 미병합 인덱스를 모두 확인한다. 단순 명령 오류나 충돌 없는 성공을 준비된 충돌로 취급하지 않는다. 초기화도 같은 과정을 다시 실행한다.
 
 `state_goal.merge_in_progress`는 MERGE_HEAD의 존재를, `unmerged_paths`는 실제 미병합 경로 집합을 검사한다. 충돌 표시를 지우는 것과 add로 인덱스를 해결하는 것을 구분한다. `parent_count`는 현재 커밋의 정확한 부모 수이며, 두 부모 병합을 요구할 때 불필요한 추가 부모도 거절한다.
+
+
+상호작용 문제는 선택 답안과 실행할 예제를 분리할 수 있다. 선택 문제에 `example_code`를 명시하면 `lesson_runner::run_example`으로 준비된 프로그램을 실행하고, 선택 답안은 기존 `check`로 따로 판정한다. 일반 `run`은 여전히 선택 답안을 실행하지 않는다. 빈 코드·64KB 초과·상호작용 없는 예제·Git 터미널과 중복된 예제를 거절한다. 현재 Java·Python·C·JavaScript 예제를 지원하는 런타임 경로이며, 새 화면 연결은 별도로 검증한다.

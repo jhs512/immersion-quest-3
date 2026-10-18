@@ -39,6 +39,13 @@ fn write_file(root:&Path,name:&str,content:&str)->Result<(),String> {
 }
 pub fn node()->String {std::env::var("MOLIP_NODE").unwrap_or_else(|_|"node".into())}
 
+/// Execute the separately prepared example; answer IDs never become its source.
+pub async fn run_example(task:&Task,source:&str,input:&str)->Result<Execution,String> {
+    if !task.has_runnable_example(){return Err("실행할 예제 코드 구성을 확인하세요.".into())}
+    let mut example=task.clone();example.interaction=None;
+    run(&example,source,input).await
+}
+
 pub async fn run(task:&Task,source:&str,input:&str)->Result<Execution,String> {
     if task.interaction.is_some() {return Err("답안을 고른 뒤 제출해 보세요.".into())}
     if task.language==TaskLanguage::Java {return crate::java::run(source,input).await}

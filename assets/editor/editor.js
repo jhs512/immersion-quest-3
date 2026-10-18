@@ -92,6 +92,8 @@ if (!window.molipCodeEditors) {
           doc: source,
           parent: host,
           extensions: [setup, narrationLines, element.dataset.codeEditor === 'java' ? java() : element.dataset.codeEditor === 'javascript' ? javascript({jsx:true}) : element.dataset.codeEditor === 'html' ? html() : python(), indentUnit.of('    '), keymap.of([indentWithTab]), theme, colors,
+            EditorState.readOnly.of(element.readOnly),
+            EditorView.editable.of(!element.readOnly),
             EditorView.contentAttributes.of({ 'aria-label': ({java:'Java',javascript:'JavaScript',html:'HTML',shell:'Shell',python:'Python'}[element.dataset.codeEditor] || '코드') + ' 코드 편집기' }),
             EditorView.updateListener.of(update => {
               if (!update.docChanged || element.value === update.state.doc.toString()) return;
