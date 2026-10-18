@@ -1,6 +1,8 @@
 from contextlib import ExitStack
 import json
 import tempfile
+import subprocess
+import sys
 import unittest
 from pathlib import Path
 
@@ -176,6 +178,65 @@ class AdjacentReviewTest(unittest.TestCase):
             cached = reopened.generate(before, after, flow, decision, no_duplicate, generator_key='generate-v1')
             self.assertEqual(cached, generated)
             self.assertEqual(len(reopened.generation_history('f')), 2)
+
+    def test_restart_from_last_checkpoint_reuses_committed_generation_before_resuming(self):
+        goal = Artifact('g', 'goal', '출력을 확인해요.')
+        flow = Artifact('f', 'core_flow', '한 번 실행한다.')
+        content = Artifact('c', 'content', 'console.log(3);')
+        tree = ContentTree([goal, flow, content], {'f': 'g', 'c': 'f'})
+        with tempfile.TemporaryDirectory() as directory, ExitStack() as resources:
+            state = Path(directory) / 'tree.json'
+            database = Path(directory) / 'reviews.sqlite3'
+            tree.save(state)
+            ledger = resources.enter_context(ReviewLedger(database))
+            last_checkpoint = []
+            def first_review(request):
+                if request['target']['key'] == 'f':
+                    last_checkpoint.append(state.read_bytes())
+                    return {'change_required': True, 'reason': '비교 행동을 넣어요.'}
+                raise RuntimeError('Synthetic interruption before content review')
+            with self.assertRaisesRegex(RuntimeError, 'interruption'):
+                tree.apply(Artifact('g', 'goal', '출력 차이를 비교해요.'), ledger, first_review,
+                           lambda _: '두 번 실행해 차이를 비교한다.', assessor_key='review-v1', generator_key='generate-v1')
+            ledger.close()
+            # Simulate a process losing the file checkpoint after generation was committed.
+            state.write_bytes(last_checkpoint[0])
+            worker = """
+import sys
+from content_review import ContentTree, ReviewLedger
+state, database = sys.argv[1:]
+def review(request):
+    assert request['target']['key'] == 'c'
+    return {'change_required': False, 'reason': 'No content change'}
+def no_duplicate(_):
+    raise AssertionError('Committed generation ran again')
+with ReviewLedger(database) as ledger:
+    ContentTree.load(state).resume(ledger, review, no_duplicate,
+                                  assessor_key='review-v1', generator_key='generate-v1')
+"""
+            result = subprocess.run([sys.executable, '-X', 'utf8', '-c', worker, str(state), str(database)],
+                                    cwd=Path(__file__).parent, capture_output=True, text=True, encoding='utf-8', timeout=20)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            reopened = resources.enter_context(ReviewLedger(database))
+            final = ContentTree.load(state)
+            self.assertEqual(final.artifact('f').text, '두 번 실행해 차이를 비교한다.')
+            self.assertEqual(final.artifact('c'), content)
+            self.assertEqual(final.reviewed_from('c'), final.artifact('f').revision)
+            self.assertEqual(len(reopened.generation_history('f')), 1)
+
+    def test_damaged_state_is_rejected_without_resetting_the_file(self):
+        goal = Artifact('g', 'goal', '출력을 확인해요.')
+        flow = Artifact('f', 'core_flow', '한 번 실행한다.')
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'tree.json'
+            ContentTree([goal, flow], {'f': 'g'}).save(path)
+            payload = json.loads(path.read_text(encoding='utf-8'))
+            payload['artifacts'][0]['text'] = 'changed without updating evidence'
+            damaged = json.dumps(payload, ensure_ascii=False).encode('utf-8')
+            path.write_bytes(damaged)
+            with self.assertRaisesRegex(ValueError, '해시'):
+                ContentTree.load(path)
+            self.assertEqual(path.read_bytes(), damaged)
 
 
 if __name__ == '__main__':

@@ -3,6 +3,8 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 import hashlib
 import json
+import os
+import tempfile
 from pathlib import Path
 import sqlite3
 import uuid
@@ -36,7 +38,7 @@ class Artifact:
     text: str
 
     def __post_init__(self):
-        if not isinstance(self.key, str) or not self.key.strip() or self.layer not in ADJACENT:
+        if not isinstance(self.key, str) or not self.key.strip() or not isinstance(self.layer, str) or self.layer not in ADJACENT:
             raise ValueError('자료의 고유 코드와 레이어를 확인하세요.')
         if not isinstance(self.text, str) or not self.text.strip() or len(self.text) > 1_000_000:
             raise ValueError('검토할 원문을 확인하세요.')
@@ -170,7 +172,7 @@ class ReviewLedger:
 class ContentTree:
     """Review immediate dependents; propagate only an actual artifact change.
 
-    This in-memory tree does not publish lessons or grant PRD approvals.
+    This tree does not publish lessons or grant PRD approvals.
     Failed review/generation leaves its edge pending for explicit resume.
     """
     def __init__(self, artifacts, parents):
@@ -185,6 +187,7 @@ class ContentTree:
         self._generated = {}
         self._reviewed = {}
         self._pending = deque()
+        self._state_path = None
         for child, parent in self._parents.items():
             if child not in self._artifacts or parent not in self._artifacts:
                 raise ValueError('연결된 자료가 없어요.')
@@ -195,6 +198,82 @@ class ContentTree:
             # Importing existing text does not prove which source produced it.
             self._generated[child] = None
             self._reviewed[child] = None
+
+    def save(self, path):
+        path = Path(path).resolve()
+        payload = dict(schema_version=1, artifacts=[artifact.snapshot() for artifact in self._artifacts.values()],
+                       parents=self._parents, generated=self._generated, reviewed=self._reviewed,
+                       pending=[dict(before=before.snapshot(), after=after.snapshot(), target_key=key)
+                                for before, after, key in self._pending])
+        serialized = _json(dict(payload, state_hash=_hash(_json(payload)))).encode('utf-8')
+        if len(serialized) > 32_000_000:
+            raise ValueError('검토 상태 파일이 너무 커요.')
+        temporary = None
+        try:
+            with tempfile.NamedTemporaryFile(dir=path.parent, delete=False) as stream:
+                temporary = stream.name
+                stream.write(serialized)
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.replace(temporary, path)
+            self._state_path = path
+        finally:
+            if temporary and os.path.exists(temporary):
+                os.unlink(temporary)
+
+    @classmethod
+    def load(cls, path):
+        path = Path(path).resolve()
+        if path.stat().st_size > 32_000_000:
+            raise ValueError('검토 상태 파일이 너무 커요.')
+        payload = json.loads(path.read_text(encoding='utf-8'))
+        expected = {'schema_version', 'artifacts', 'parents', 'generated', 'reviewed', 'pending', 'state_hash'}
+        if not isinstance(payload, dict) or set(payload) != expected or type(payload['schema_version']) is not int or payload['schema_version'] != 1:
+            raise ValueError('검토 상태 형식을 확인하세요.')
+        digest = payload.pop('state_hash')
+        if _hash(_json(payload)) != digest:
+            raise ValueError('검토 상태의 내용 해시가 달라요.')
+        def artifact(snapshot):
+            if not isinstance(snapshot, dict) or set(snapshot) != {'key', 'layer', 'text', 'revision'}:
+                raise ValueError('자료 스냅샷 형식을 확인하세요.')
+            value = Artifact(snapshot['key'], snapshot['layer'], snapshot['text'])
+            if value.revision != snapshot['revision']:
+                raise ValueError('자료 원문의 해시가 달라요.')
+            return value
+        parents = payload['parents']
+        if not isinstance(parents, dict) or any(not isinstance(value, str) for value in parents.values()):
+            raise ValueError('자료의 부모 연결을 확인하세요.')
+        if not isinstance(payload['artifacts'], list):
+            raise ValueError('자료 목록 형식을 확인하세요.')
+        tree = cls([artifact(item) for item in payload['artifacts']], parents)
+        for name, destination in [('generated', tree._generated), ('reviewed', tree._reviewed)]:
+            values = payload[name]
+            if not isinstance(values, dict) or set(values) != set(parents):
+                raise ValueError('자료 근거의 연결을 확인하세요.')
+            for key, value in values.items():
+                if value is not None and (not isinstance(value, str) or len(value) != 64
+                                          or any(c not in '0123456789abcdef' for c in value)):
+                    raise ValueError('자료 근거의 해시를 확인하세요.')
+                destination[key] = value
+        if not isinstance(payload['pending'], list):
+            raise ValueError('미완료 검토 목록 형식을 확인하세요.')
+        seen = set()
+        for item in payload['pending']:
+            if not isinstance(item, dict) or set(item) != {'before', 'after', 'target_key'}:
+                raise ValueError('미완료 검토 형식을 확인하세요.')
+            before, after, key = artifact(item['before']), artifact(item['after']), item['target_key']
+            if (not isinstance(key, str) or key in seen or parents.get(key) != after.key
+                    or before.key != after.key or before.layer != after.layer or before.revision == after.revision
+                    or tree.artifact(after.key) != after):
+                raise ValueError('미완료 검토와 현재 자료가 맞지 않아요.')
+            tree._pending.append((before, after, key))
+            seen.add(key)
+        tree._state_path = path
+        return tree
+
+    def _checkpoint(self):
+        if self._state_path is not None:
+            self.save(self._state_path)
 
     def artifact(self, key):
         return self._artifacts[key]
@@ -218,9 +297,11 @@ class ContentTree:
             self._generated[replacement.key] = None
             self._reviewed[replacement.key] = None
         self._pending.extend((before, replacement, child) for child in self._children[replacement.key])
+        self._checkpoint()
         self.resume(ledger, assessor, generator, assessor_key=assessor_key, generator_key=generator_key)
 
     def resume(self, ledger, assessor, generator, *, assessor_key, generator_key=None):
+        self._checkpoint()
         while self._pending:
             before, after, key = self._pending[0]
             target = self.artifact(key)
@@ -231,6 +312,7 @@ class ContentTree:
                 # Evidence of reviewing new input is not the provenance of old output.
                 self._reviewed[key] = after.revision
                 self._pending.popleft()
+                self._checkpoint()
                 continue
             generated = ledger.generate(before, after, target, decision, generator, generator_key=generator_key)
             self._artifacts[key] = generated
@@ -238,3 +320,4 @@ class ContentTree:
             self._reviewed[key] = after.revision
             self._pending.popleft()
             self._pending.extend((target, generated, child) for child in self._children[key])
+            self._checkpoint()
