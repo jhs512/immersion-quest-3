@@ -28,6 +28,7 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
     let mut error=use_signal(String::new);
     let owner=use_hook(molip_quest::issue_progress::new_id);
     let cleanup_owner=owner.clone();
+    let rendered_owner=owner.clone();
     let host=if demo{"git-demo-terminal"}else{"git-student-terminal"};
     let bridge_name=if demo{"mq3GitDemoTerminal"}else{"mq3GitTerminal"};
     let cleanup=owned.clone();
@@ -84,5 +85,5 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
         while let Some(bytes)=output.recv().await {let encoded=base64::engine::general_purpose::STANDARD.encode(bytes);document::eval(&format!("window.{bridge_name}?.write('{encoded}','{owner}')"));}
         error.set("터미널이 종료됐어요. 초기화해 다시 여세요.".into());
     }});
-    rsx!{div {class:"git-terminal-shell",div {class:"git-terminal",id:host,"data-terminal-session":owner.clone(),aria_label:if demo{"해설용 별도 Git 저장소"}else{"실제 Git 실습 저장소"}}if !error().is_empty(){p {role:"status","{error}"}}}}
+    rsx!{div {class:"git-terminal-shell",div {class:"git-terminal",id:host,"data-terminal-session":rendered_owner,aria_label:if demo{"해설용 별도 Git 저장소"}else{"실제 Git 실습 저장소"}}if !error().is_empty(){p {role:"status","{error}"}}}}
 }
