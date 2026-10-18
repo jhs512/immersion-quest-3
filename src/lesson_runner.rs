@@ -171,12 +171,12 @@ async fn check_c(task:&Task,source:&str)->Result<TestReport,String> {
     Ok(TestReport{passed:cases.iter().all(|c|c.passed),cases})
 }
 pub async fn check(task:&Task,source:&str)->Result<TestReport,String> {
+    if let Some(interaction) = &task.interaction {return interaction.check(source)}
     if task.language==TaskLanguage::Python {
         if let Some(checker)=task.checker.as_deref().filter(|c|!c.trim().is_empty()) {
             let result=crate::runner::execute_python_files(source,"",Some(checker),&task.files).await?;
             return Ok(report_execution(result,"다른 데이터로 원리 검사"));
         }
-    if let Some(interaction) = &task.interaction {return interaction.check(source)}
     }
     if task.language==TaskLanguage::Java {
         let unit:crate::Unit=serde_json::from_value(serde_json::json!({"id":task.id,"title":task.title,"language":"java","starter_code":task.starter_code,"solution":task.solution,"tests":task.tests,"checker":task.checker})).map_err(|e|e.to_string())?;
