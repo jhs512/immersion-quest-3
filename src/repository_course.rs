@@ -85,6 +85,8 @@ pub struct Section {
 }
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 pub struct Task {
+    #[serde(default,skip_serializing_if="Option::is_none")]
+    pub git_terminal:Option<crate::git_practice::GitExercise>,
     #[serde(default, skip_serializing_if="Option::is_none")]
     pub interaction: Option<crate::task_interaction::Interaction>,
     pub id: String,
@@ -168,10 +170,14 @@ impl Lesson {
         if !matches!(self.schema_version,1|2) || self.id.is_empty() || self.title.is_empty() || self.tasks.is_empty() || !self.tasks.iter().any(|t| t.required) || self.tasks.len()>200 { return Err("수업 구성과 필수 문제를 확인하세요.".into()); }
         if self.schema_version==2 {self.validate_hierarchy()?;}
         for t in &self.tasks {
+            if let Some(exercise)=&t.git_terminal {
+                if t.language!=TaskLanguage::Git||t.interaction.is_some(){return Err("Git 터미널 문제의 종류를 확인하세요.".into())}
+                exercise.validate()?;
+            }
             if t.hints.len()>5||t.hints.iter().any(|hint|hint.len()>8000){return Err("힌트 개수와 길이를 확인하세요.".into())}
             if !ids.insert(&t.id) || t.id.is_empty() || t.solution.len()>65536 || t.starter_code.len()>65536 || (!t.entry_file.is_empty() && !safe_file(&t.entry_file)) || t.files.iter().any(|(p,v)| !safe_file(p) || v.len()>200_000) || t.files.len()>80 || t.tests.len()>50 || t.mutations.len()>20 || t.mutations.iter().any(|files|files.len()>80||files.iter().any(|(p,v)|!safe_file(p)||v.len()>200_000)) { return Err("문제 ID와 파일 크기·경로를 확인하세요.".into()); }
             if let Some(interaction) = &t.interaction {interaction.validate()?;}
-            else if matches!(t.language,TaskLanguage::Web)&&t.web_checks.is_empty() || matches!(t.language,TaskLanguage::Git)&&t.git_checks.is_none() || matches!(t.language,TaskLanguage::JavaProject|TaskLanguage::Javascript|TaskLanguage::C)&&t.tests.is_empty() {return Err("필수 문제의 실행 검사 기준을 확인하세요.".into())}
+            else if matches!(t.language,TaskLanguage::Web)&&t.web_checks.is_empty() || matches!(t.language,TaskLanguage::Git)&&t.git_checks.is_none()&&!t.git_terminal.as_ref().is_some_and(|exercise|!exercise.commands.is_empty()) || matches!(t.language,TaskLanguage::JavaProject|TaskLanguage::Javascript|TaskLanguage::C)&&t.tests.is_empty() {return Err("필수 문제의 실행 검사 기준을 확인하세요.".into())}
             if t.variations.len()>20 || t.variations.iter().any(|v|v.values.is_empty()||v.values.len()>20||v.expected.len()>65536||v.values.keys().any(|name|name.is_empty()||!name.bytes().all(|c|c.is_ascii_alphanumeric()||c==b'_'))) {return Err("값 바꾸기 검사를 확인하세요.".into())}
         }
         Ok(())
