@@ -16,6 +16,8 @@
     button(text).click();
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   };
+  // WebKit can report root clientWidth before subtracting the body's classic scrollbar.
+  const viewportWidth = () => Math.min(document.documentElement.clientWidth, document.body.clientWidth);
   const status = text => document.querySelector('.execution-status')?.textContent.includes(text);
   try {
     const updateBanner = () => document.querySelector('.update-banner');
@@ -53,7 +55,7 @@
     await resizeWindow(720);
     const workspace = document.querySelector('.repository-study');
     const workspaceBounds=workspace.getBoundingClientRect();
-    if(workspaceBounds.left < -1 || workspaceBounds.right > document.documentElement.clientWidth+1 || workspaceBounds.width < document.documentElement.clientWidth-2)throw new Error(`Practice width escapes viewport: ${JSON.stringify({left:workspaceBounds.left,right:workspaceBounds.right,width:workspaceBounds.width,viewport:innerWidth})}`);
+    if(workspaceBounds.left < -1 || workspaceBounds.right > viewportWidth()+1 || workspaceBounds.width < viewportWidth()-2)throw new Error(`Practice width escapes viewport: ${JSON.stringify({left:workspaceBounds.left,right:workspaceBounds.right,width:workspaceBounds.width,viewport:innerWidth,root:document.documentElement.clientWidth,body:document.body.clientWidth})}`);
     const paging = document.querySelector('.task-paging').getBoundingClientRect();
     if (paging.bottom > innerHeight + 1) throw new Error(`Practice controls overflow: ${paging.bottom} > ${innerHeight}`);
     if (document.querySelector('.repository-task').getBoundingClientRect().height < 180) throw new Error('Workspace squeezed out by headers');
@@ -318,7 +320,7 @@
     await wait(() => document.querySelector('[aria-label="설정 터미널 입력"]')&&!button('로그인 상태 확인').disabled,'existing gh setup terminal');
     await wait(() => /PS |[$%#] /m.test(mq3SetupTerminal.text()),'setup shell prompt',45000);
     const card=document.querySelector('.gh-setup-card').getBoundingClientRect();
-    if(Math.abs(card.left+card.width/2-document.documentElement.clientWidth/2)>4)throw new Error('gh setup is not horizontally centered');
+    if(Math.abs(card.left+card.width/2-viewportWidth()/2)>4)throw new Error('gh setup is not horizontally centered');
     mq3SetupTerminal.command(navigator.platform.toLowerCase().includes('win')?"Write-Output '설정 터미널 확인'":"printf '설정 터미널 확인\\n'");
     await wait(() => mq3SetupTerminal.text().split('\n').some(line=>line.trim()==='설정 터미널 확인'),'gh real terminal output');
     await click('준비 완료 · 연결 확인');
