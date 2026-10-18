@@ -413,7 +413,13 @@
     await wait(() => document.querySelector('.lesson-card')?.textContent.includes('git-first-1'), 'approved first Git lesson');
     await click('풀모드 시작');
     let commandSequence=0;
-    const gitReady=async()=>wait(()=>document.querySelector('.repository-task')?.dataset.gitReady==='true' && window.mq3GitTerminal && document.querySelector('[aria-label="Git 실습 터미널 입력"]'),'first Git terminal ready',45000);
+    const gitReady=async()=>wait(()=>document.querySelector('.repository-task')?.dataset.gitReady==='true' && !button('초기화')?.disabled && !button('제출')?.disabled && window.mq3GitTerminal && document.querySelector('[aria-label="Git 실습 터미널 입력"]'),'first Git terminal ready',45000);
+    const resetGit=async()=>{
+      const previous=document.querySelector('#git-student-terminal')?.dataset.terminalSession;
+      await click('초기화');
+      await wait(()=>{const current=document.querySelector('#git-student-terminal')?.dataset.terminalSession;return current&&current!==previous;},'new terminal instance after reset',45000);
+      await gitReady();
+    };
     const runGit=async command=>{
       const marker=`MQ3_GIT_DONE_${++commandSequence}`;
       const echo=navigator.platform.toLowerCase().includes('win')?`Write-Output '${marker}'`:`printf '${marker}\\n'`;
@@ -433,7 +439,7 @@
     await nextGit();
     await click('제출');await wait(()=>status('다시 풀어보세요'),'staging initially unsolved');
     await runGit('git add memo.txt');await click('제출');await wait(()=>status('통과했어요'),'equivalent add command');
-    await click('초기화');await gitReady();
+    await resetGit();
     await click('제출');await wait(()=>status('다시 풀어보세요'),'reset removed index');
     await runGit('git add -- memo.txt');await click('제출');await wait(()=>status('통과했어요'),'staging after reset');
     await nextGit();
@@ -451,7 +457,7 @@
     await click('제출');await wait(()=>status('다시 풀어보세요'),'wrong Git interpretation');
     document.querySelector('input[type=radio][value="working-only"]').click();
     await click('제출');await wait(()=>status('통과했어요'),'correct Git interpretation');
-    await click('초기화');await gitReady();
+    await resetGit();
     await wait(()=>!document.querySelector('input[type=radio]:checked'),'Git reset clears saved choice too');
     await nextGit();
     document.querySelector('input[type=radio][value="working-third"]').click();
@@ -467,7 +473,7 @@
     await click('제출');await wait(()=>status('통과했어요'),'staged snapshot choice');
     await nextGit();
     await runGit('git commit -m "too soon"');await click('제출');await wait(()=>status('다시 풀어보세요'),'commit of wrong snapshot rejected');
-    await click('초기화');await gitReady();
+    await resetGit();
     await runGit('git add -- memo.txt');await runGit('git commit -m "current memo"');
     await click('제출');await wait(()=>status('수업 완료'),'all six first Git steps solved');
     checked.push('approved six-step Git lesson at normal height: real commands, equivalent add, wrong snapshot rejection, choice reset and isolated teacher playback');
@@ -496,7 +502,7 @@
       await nextGit();await runGit('git restore --source=feature --worktree -- guide.txt');
       await click('제출');await wait(()=>status('다시 풀어보세요'),'file-only resolution rejected');
       await runGit('git add -- guide.txt');await click('제출');await wait(()=>status('통과했어요'),'index resolution accepted');
-      await click('초기화');await gitReady();await click('제출');await wait(()=>status('다시 풀어보세요'),'reset recreated conflict');
+      await resetGit();await click('제출');await wait(()=>status('다시 풀어보세요'),'reset recreated conflict');
       await runGit('git restore --source=feature --worktree -- guide.txt');await runGit('git add -- guide.txt');await click('제출');await wait(()=>status('통과했어요'),'resolve again after reset');
       await nextGit();await click('제출');await wait(()=>status('다시 풀어보세요'),'prepared resolution is not a merge commit');
       await runGit('git commit --no-edit');await click('제출');await wait(()=>status('수업 완료'),'all nine branch and merge steps');

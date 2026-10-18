@@ -84,5 +84,5 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
         while let Some(bytes)=output.recv().await {let encoded=base64::engine::general_purpose::STANDARD.encode(bytes);document::eval(&format!("window.{bridge_name}?.write('{encoded}','{owner}')"));}
         error.set("터미널이 종료됐어요. 초기화해 다시 여세요.".into());
     }});
-    rsx!{div {class:"git-terminal-shell",div {class:"git-terminal",id:host,aria_label:if demo{"해설용 별도 Git 저장소"}else{"실제 Git 실습 저장소"}}if !error().is_empty(){p {role:"status","{error}"}}}}
+    rsx!{div {class:"git-terminal-shell",div {class:"git-terminal",id:host,"data-terminal-session":owner.clone(),aria_label:if demo{"해설용 별도 Git 저장소"}else{"실제 Git 실습 저장소"}}if !error().is_empty(){p {role:"status","{error}"}}}}
 }
