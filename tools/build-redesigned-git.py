@@ -1,4 +1,4 @@
-"""Compile approved Git lessons; retain unchanged narration caches."""
+"""Compile approved Git and Java lessons; retain unchanged narration caches."""
 import argparse
 import copy
 import hashlib
@@ -8,7 +8,7 @@ from pathlib import Path
 from lesson_prd import content_hash, validate
 
 ROOT = Path(__file__).resolve().parents[1]
-LESSONS = {'git-first': ('git_first', 'git-first-1', 'k'), 'git-branch': ('git_branch', 'git-branch-1', 'l')}
+LESSONS = {'git-first': ('git_first', 'git-first-1', 'k'), 'git-branch': ('git_branch', 'git-branch-1', 'l'), 'java-values': ('java_values', 'java-values-1', 'n')}
 
 
 def digest(value):
@@ -42,7 +42,7 @@ def build(name, check=False):
         if not actions or not any('조심하세요' in action.get('text', '') for action in actions):
             raise ValueError(f"{step['id']}: 주의할 지점이 없는 해설이에요.")
         for index, action in enumerate(actions):
-            if action['action'] == 'git_command':
+            if action['action'] in ('git_command', 'run'):
                 if index + 1 == len(actions):
                     raise ValueError('명령 실행 뒤 결과 설명이 필요해요.')
                 following = actions[index + 1]
