@@ -34,6 +34,54 @@
     await wait(() => document.querySelector('.lesson-outline'), 'four-level objectives');
     if (document.querySelectorAll('.learning-objective').length !== 4) throw new Error('Missing goals');
     checked.push('production course opening and four-level goals');
+    document.querySelector('#app-fullscreen-toggle').click();
+    await click('검증 높이 720');
+    await wait(() => innerHeight >= 680 && innerHeight <= 740, 'normal practice viewport');
+    await new Promise(resolve => setTimeout(resolve, 300));
+    const workspace = document.querySelector('.repository-study');
+    const workspaceBounds=workspace.getBoundingClientRect();
+    if(workspaceBounds.left < -1 || workspaceBounds.right > innerWidth+1 || workspaceBounds.width < innerWidth-10)throw new Error(`Practice width escapes viewport: ${JSON.stringify({left:workspaceBounds.left,right:workspaceBounds.right,width:workspaceBounds.width,viewport:innerWidth})}`);
+    const paging = document.querySelector('.task-paging').getBoundingClientRect();
+    if (paging.bottom > innerHeight + 1) throw new Error(`Practice controls overflow: ${paging.bottom} > ${innerHeight}`);
+    if (document.querySelector('.repository-task').getBoundingClientRect().height < 180) throw new Error('Workspace squeezed out by headers');
+
+    for(const pane of document.querySelectorAll('.problem-pane,.result-pane')) {
+      const scrollbar=getComputedStyle(pane,'::-webkit-scrollbar');
+      if(scrollbar.width!==scrollbar.height)throw new Error('Scrollbar axes have different thickness');
+    }
+    checked.push('normal window keeps task and previous/next controls inside viewport');
+    const previousSplit = localStorage.getItem('molip:split');
+    try {
+      for (const [selector,key,pane,dimension] of [['.split-col','ArrowRight','.problem-pane','width'],['.split-row','ArrowUp','.editor-pane','height']]) {
+        const handle=document.querySelector(selector);
+        handle.dispatchEvent(new MouseEvent('dblclick',{bubbles:true}));
+        await new Promise(requestAnimationFrame);
+        const before=document.querySelector(pane).getBoundingClientRect()[dimension];
+        handle.focus();handle.dispatchEvent(new KeyboardEvent('keydown',{key,bubbles:true,cancelable:true}));
+        await new Promise(requestAnimationFrame);
+        const after=document.querySelector(pane).getBoundingClientRect()[dimension];
+        if(Math.abs(after-before)<5)throw new Error(`Panel handle did not resize: ${selector}: ${before} -> ${after}`);
+        handle.dispatchEvent(new MouseEvent('dblclick',{bubbles:true}));
+      }
+    } finally {if(previousSplit===null)localStorage.removeItem('molip:split');else localStorage.setItem('molip:split',previousSplit);}
+    const codeFocus = document.querySelector('.cm-content') || document.querySelector('[data-code-editor]');
+    const fullscreenKey = () => new KeyboardEvent('keydown', navigator.platform.toLowerCase().includes('mac')
+      ? {key:'f',ctrlKey:true,metaKey:true,bubbles:true,cancelable:true}
+      : {key:'F11',bubbles:true,cancelable:true});
+    codeFocus.focus();codeFocus.dispatchEvent(fullscreenKey());
+    await wait(() => document.querySelector('#app-fullscreen-toggle').dataset.fullscreen === 'true','editor fullscreen shortcut');
+    codeFocus.dispatchEvent(fullscreenKey());
+    await wait(() => document.querySelector('#app-fullscreen-toggle').dataset.fullscreen === 'false','editor fullscreen return');
+    await click('검증 높이 480');
+    await wait(() => innerHeight <= 520, 'short window');
+    const shortPaging = document.querySelector('.task-paging');
+    shortPaging.scrollIntoView({block:'end'});
+    if (shortPaging.getBoundingClientRect().bottom > innerHeight + 1) throw new Error('Small window cannot scroll to previous/next');
+    window.scrollTo(0,0);
+    checked.push('native editor shortcut toggles window and short window controls remain scrollable');
+
+    document.querySelector('#app-fullscreen-toggle').click();
+
     await wait(() => window.molipCodeEditors?.getValue() != null, 'editor mounted');
     await click('초기화');
     await click('제출');
@@ -248,6 +296,23 @@
     await click('제출');
     await wait(() => status('통과했어요'), 'reset recreated clean baseline and local remote');
     checked.push('real platform Git terminal, separate teacher repo, command evidence, and clean reset');
+    const terminalInput=document.querySelector('[aria-label="Git 실습 터미널 입력"]');
+    terminalInput.focus();terminalInput.dispatchEvent(fullscreenKey());
+    await wait(() => document.querySelector('#app-fullscreen-toggle').dataset.fullscreen==='false','terminal fullscreen return');
+    terminalInput.dispatchEvent(fullscreenKey());
+    await wait(() => document.querySelector('#app-fullscreen-toggle').dataset.fullscreen==='true','terminal fullscreen toggle');
+    mq3GitTerminal.command(navigator.platform.toLowerCase().includes('win')?"Write-Output '한글 연결 확인'":"printf '한글 연결 확인\\n'");
+    await wait(() => mq3GitTerminal.text().split('\n').some(line=>line.trim()==='한글 연결 확인'),'terminal UTF-8 round trip');
+    await click('gh 준비 검증');
+    await wait(() => document.querySelector('[aria-label="설정 터미널 입력"]')&&!button('로그인 상태 확인').disabled,'existing gh setup terminal');
+    await wait(() => /PS |[$%#] /m.test(mq3SetupTerminal.text()),'setup shell prompt',45000);
+    const card=document.querySelector('.gh-setup-card').getBoundingClientRect();
+    if(Math.abs(card.left+card.width/2-innerWidth/2)>4)throw new Error('gh setup is not horizontally centered');
+    mq3SetupTerminal.command(navigator.platform.toLowerCase().includes('win')?"Write-Output '설정 터미널 확인'":"printf '설정 터미널 확인\\n'");
+    await wait(() => mq3SetupTerminal.text().split('\n').some(line=>line.trim()==='설정 터미널 확인'),'gh real terminal output');
+    await click('준비 완료 · 연결 확인');
+    checked.push('panel handles resize, terminal shortcut/UTF-8 work, and centered existing gh setup runs a real shell');
+
     dioxus.send({passed: true, checked, userAgent: navigator.userAgent, viewport: {width: innerWidth, height: innerHeight}});
   } catch (error) {
     dioxus.send({passed: false, checked, error: String(error), screen: document.body.innerText.slice(0, 4000)});

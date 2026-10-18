@@ -53,7 +53,7 @@ pub fn RepositoryPlayer()->Element {
     if let Some(selected)=open() {
         if let Some(session)=session() {
             let player_key=format!("{}:{}:{}:{}",session.user.id,selected.lesson.id,selected.mode.label(),selected.round);
-            return rsx!{ {updates} {rsx!{LessonPlayer {key:"{player_key}",session,selected,onback:move |_|{document::eval("window.molipAgent?.stop()");open.set(None);refresh+=1;}}}} };
+            return rsx!{div {class:"repository-session", {updates} {rsx!{LessonPlayer {key:"{player_key}",session,selected,onback:move |_|{document::eval("window.molipAgent?.stop()");open.set(None);refresh+=1;}}}} }};
         }
     }
     rsx!{
