@@ -43,9 +43,11 @@ nonce={nonce}
 mount=''
 work=''
 backup=''
+candidate_pid=''
 committed=0
 cleanup() {{
   keep=0
+  if [ "$committed" -eq 0 ] && [ -n "$candidate_pid" ]; then kill -TERM "$candidate_pid" 2>/dev/null || true; wait "$candidate_pid" 2>/dev/null || true; fi
   if [ "$committed" -eq 0 ] && [ -d "$backup" ]; then
     if [ -e "$bundle" ]; then mv "$bundle" "$work/failed.app" || keep=1; fi
     if [ "$keep" -eq 0 ]; then mv "$backup" "$bundle" || keep=1; fi
@@ -78,7 +80,8 @@ xattr -dr com.apple.quarantine "$stage" 2>/dev/null || true
 mv "$bundle" "$backup"
 mv "$stage" "$bundle"
 printf '%s\n%s\n%s\n' "$ack" "$nonce" "$bundle" >"$pending"
-open -n "$bundle"
+"$bundle/Contents/MacOS/molip-quest" >/dev/null 2>&1 &
+candidate_pid=$!
 attempt=0
 while [ "$attempt" -lt 60 ]; do
   if [ -f "$ack" ] && [ "$(cat "$ack")" = "$nonce" ]; then committed=1; break; fi
