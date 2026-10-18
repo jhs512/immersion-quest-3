@@ -1,10 +1,13 @@
 //! Small answer interactions. Stable option IDs, rather than display positions, are graded.
 use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
+use std::collections::{BTreeMap,HashSet};
 use crate::runner::{TestCaseResult, TestReport};
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 pub struct OptionItem { pub id: String, pub text: String }
+
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+pub struct AnswerField { pub id:String, pub label:String, pub accepted:Vec<String> }
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 #[serde(tag = "kind", rename_all = "snake_case")]
@@ -12,6 +15,7 @@ pub enum Interaction {
     Choice { options: Vec<OptionItem>, answer: String },
     Order { options: Vec<OptionItem>, accepted: Vec<Vec<String>> },
     Fill { accepted: Vec<String> },
+    FillFields { fields:Vec<AnswerField> },
 }
 
 impl Interaction {
@@ -31,6 +35,12 @@ impl Interaction {
                 !order.is_empty() && order.len() <= options.len() && order.iter().all(|id| ids.insert(id) && options.iter().any(|o| o.id == *id))
             }),
             Self::Fill { accepted } => !accepted.is_empty() && accepted.len() <= 50 && accepted.iter().all(|s| valid_text(s)),
+            Self::FillFields {fields}=>{
+                let mut ids=HashSet::new();
+                (2..=12).contains(&fields.len())&&fields.iter().all(|field|
+                    valid_text(&field.id)&&ids.insert(&field.id)&&valid_text(&field.label)
+                    &&!field.accepted.is_empty()&&field.accepted.len()<=50&&field.accepted.iter().all(|s|valid_text(s)))
+            },
         };
         if valid { Ok(()) } else { Err("답안 판정 기준을 확인하세요.".into()) }
     }
@@ -42,6 +52,9 @@ impl Interaction {
             Self::Choice { answer, .. } => source == answer,
             Self::Order { accepted, .. } => serde_json::from_str::<Vec<String>>(source).ok().is_some_and(|order| accepted.contains(&order)),
             Self::Fill { accepted } => accepted.iter().any(|answer| answer.trim() == source.trim()),
+            Self::FillFields {fields}=>serde_json::from_str::<BTreeMap<String,String>>(source).ok().is_some_and(|answers|
+                answers.len()==fields.len()&&fields.iter().all(|field|answers.get(&field.id).is_some_and(|value|
+                    field.accepted.iter().any(|answer|answer.trim()==value.trim())))),
         };
         Ok(TestReport { passed, cases: vec![TestCaseResult {
             input: String::new(), expected: "문제의 조건을 만족하는 답안".into(),

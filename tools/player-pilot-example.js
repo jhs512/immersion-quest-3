@@ -23,6 +23,13 @@
   await click('초기화');await wait(()=>document.querySelector('.answer-state-bridge')?.value===''&&molipCodeEditors.getValue()==='console.log(3);','reset example and answer');
   await choose('three');await click('제출');await wait(()=>status('통과했어요'),'correct answer');
   checked.push('reset restores both inputs and only a correct submission grants success');
+  await click('다음 문제 →');await wait(()=>document.querySelectorAll('[data-answer-field]').length===2,'separate state cells');
+  const fill=async(id,value)=>{const field=document.querySelector(`[data-answer-field="${id}"]`);field.value=value;field.dispatchEvent(new Event('input',{bubbles:true}));await wait(()=>JSON.parse(document.querySelector('.answer-state-bridge').value||'{}')[id]===value,'state cell acknowledged');};
+  await fill('before','3');await fill('after','2');await click('제출');await wait(()=>status('다시 풀어보세요'),'reversed states rejected');
+  await click('해설 재생 · 정답 실행');await wait(()=>molipAgent.running,'state cell teacher');await wait(()=>!molipAgent.running&&!button('해설 재생 · 정답 실행').disabled,'state cell teacher ends');
+  await wait(()=>document.querySelector('[data-answer-field="before"]').value==='3'&&document.querySelector('[data-answer-field="after"]').value==='2','state cells restored');
+  await fill('before','2');await fill('after','3');await click('제출');await wait(()=>status('통과했어요'),'correct state cells');
+  checked.push('two independent state cells are graded by identity and restored after teacher playback');
   dioxus.send({passed:true,checked,userAgent:navigator.userAgent});
  }catch(error){dioxus.send({passed:false,checked,error:String(error),screen:document.body.innerText.slice(0,5000)});}
 })();

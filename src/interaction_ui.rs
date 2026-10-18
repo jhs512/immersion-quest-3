@@ -22,6 +22,19 @@ pub fn InteractionEditor(interaction: Interaction, value: String, disabled: bool
                 input { r#type: "text", aria_label: "빈칸 답안", value, disabled, oninput: move |event| onchange.call(event.value()) }
             }
         },
+        Interaction::FillFields {fields}=>{
+            let values=serde_json::from_str::<std::collections::BTreeMap<String,String>>(&value).unwrap_or_default();
+            rsx! {fieldset {class:"answer-interaction",disabled,
+                legend {"각 상태를 적어요"}
+                for field in fields {
+                    label {key:"{field.id}",span {"{field.label}"}
+                        input {r#type:"text",aria_label:field.label.clone(),"data-answer-field":field.id.clone(),value:values.get(&field.id).cloned().unwrap_or_default(),disabled,
+                            oninput:{let mut next=values.clone();move |event|{next.insert(field.id.clone(),event.value());onchange.call(serde_json::to_string(&next).unwrap());}}
+                        }
+                    }
+                }
+            }}
+        },
         Interaction::Order { options, .. } => {
             let selected = serde_json::from_str::<Vec<String>>(&value).unwrap_or_default();
             rsx! {
