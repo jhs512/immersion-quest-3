@@ -313,7 +313,7 @@ fn windows_update_command(script: &str) -> std::process::Command {
 #[cfg(not(target_os = "android"))]
 pub fn install_and_restart(installer: &PathBuf) -> Result<(), String> {
     if crate::pilot_source::enabled() {return Err("검증 모드에서는 실제 앱을 교체하지 않아요.".into());}
-    crate::setup_terminal::shutdown_practices()?;
+    let _practice_exit = crate::setup_terminal::prepare_practice_exit()?;
     let exe = std::env::current_exe().map_err(|e| e.to_string())?;
     let pid = std::process::id();
     #[cfg(target_os = "windows")]

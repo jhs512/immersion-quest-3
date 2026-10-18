@@ -27,8 +27,10 @@ pub struct SetupTerminal {
 // Weak entries do not keep a shell or a practice folder alive.
 type SharedScope = std::sync::Arc<std::sync::Mutex<Option<crate::process_scope::ProcessScope>>>;
 type WeakScope = std::sync::Weak<std::sync::Mutex<Option<crate::process_scope::ProcessScope>>>;
-fn practice_scopes() -> &'static std::sync::Mutex<Vec<WeakScope>> {
-    static SCOPES: std::sync::OnceLock<std::sync::Mutex<Vec<WeakScope>>> = std::sync::OnceLock::new();
+#[derive(Default)]
+struct PracticeRegistry { scopes: Vec<WeakScope>, exiting: bool }
+fn practice_scopes() -> &'static std::sync::Mutex<PracticeRegistry> {
+    static SCOPES: std::sync::OnceLock<std::sync::Mutex<PracticeRegistry>> = std::sync::OnceLock::new();
     SCOPES.get_or_init(Default::default)
 }
 struct PracticeScope(SharedScope);
@@ -36,8 +38,13 @@ impl PracticeScope {
     fn attach(child: &dyn portable_pty::Child) -> Result<Self, String> {
         let scope = std::sync::Arc::new(std::sync::Mutex::new(Some(crate::process_scope::ProcessScope::attach(child)?)));
         let mut registry = practice_scopes().lock().unwrap_or_else(|e| e.into_inner());
-        registry.retain(|entry| entry.strong_count() > 0);
-        registry.push(std::sync::Arc::downgrade(&scope));
+        if registry.exiting {
+            drop(registry);
+            terminate_scope(&scope)?;
+            return Err("업데이트를 준비하고 있어요. 잠시 뒤 다시 여세요.".into());
+        }
+        registry.scopes.retain(|entry| entry.strong_count() > 0);
+        registry.scopes.push(std::sync::Arc::downgrade(&scope));
         Ok(Self(scope))
     }
     fn terminate(&self) -> Result<(), String> { terminate_scope(&self.0) }
@@ -49,10 +56,26 @@ fn terminate_scope(scope: &SharedScope) -> Result<(), String> {
     scope.take();
     Ok(())
 }
+/// While held, in-flight initialization cannot admit a shell after exit cleanup.
+/// Dropping the guard on a handoff error permits students to reopen their terminal.
+pub struct PracticeExit { _private: () }
+impl Drop for PracticeExit {
+    fn drop(&mut self) { practice_scopes().lock().unwrap_or_else(|e| e.into_inner()).exiting = false; }
+}
+pub fn prepare_practice_exit() -> Result<PracticeExit, String> {
+    {
+        let mut registry = practice_scopes().lock().unwrap_or_else(|e| e.into_inner());
+        if registry.exiting { return Err("실습을 종료하고 있어요.".into()); }
+        registry.exiting = true;
+    }
+    let guard = PracticeExit { _private: () };
+    shutdown_practices()?;
+    Ok(guard)
+}
 /// Stop real practice shells before an updater calls process::exit (which skips Drop).
 /// Repository files stay intact; this is not a reset or a state backup.
 pub fn shutdown_practices() -> Result<(), String> {
-    let scopes = practice_scopes().lock().unwrap_or_else(|e| e.into_inner()).iter().filter_map(std::sync::Weak::upgrade).collect::<Vec<_>>();
+    let scopes = practice_scopes().lock().unwrap_or_else(|e| e.into_inner()).scopes.iter().filter_map(std::sync::Weak::upgrade).collect::<Vec<_>>();
     let mut failures = Vec::new();
     for scope in scopes { if let Err(error) = terminate_scope(&scope) { failures.push(error); } }
     if failures.is_empty() { Ok(()) } else { Err(failures.join("\n")) }
