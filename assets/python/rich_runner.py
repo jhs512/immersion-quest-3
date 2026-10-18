@@ -14,6 +14,7 @@ os.environ['MPLBACKEND'] = 'Agg'
 artifacts = []
 seen_images = set()
 seen_tables = set()
+table_references = []
 
 def capture_table(value, name='표'):
     pd = sys.modules.get('pandas')
@@ -22,6 +23,9 @@ def capture_table(value, name='표'):
     if id(value) in seen_tables or sum(a['kind'] == 'table' for a in artifacts) >= 6:
         return
     seen_tables.add(id(value))
+    # Temporary selections such as head() must stay alive while identity is used
+    # for deduplication. At most six table references are retained.
+    table_references.append(value)
     frame = value.to_frame() if isinstance(value, pd.Series) else value
     preview = frame.iloc[:100, :30]
     def cell(value):
@@ -59,6 +63,13 @@ def display(*values):
             print(value)
     capture_plots()
 
+def capture_print(*values, **kwargs):
+    # Preserve stdout while making the rich preview match the printed selection.
+    if kwargs.get('file') is None or kwargs.get('file') is sys.stdout:
+        for value in values:
+            capture_table(value)
+    builtins.print(*values, **kwargs)
+
 builtins.display = display
 scope = {}
 try:
@@ -93,7 +104,7 @@ try:
             func=ast.Name(id='display', ctx=ast.Load()),
             args=[tree.body[-1].value], keywords=[])), tree.body[-1])
         ast.fix_missing_locations(tree)
-    scope = {'__name__': '__main__', '__file__': os.path.abspath('main.py')}
+    scope = {'__name__': '__main__', '__file__': os.path.abspath('main.py'), 'print': capture_print}
     exec(compile(tree, 'main.py', 'exec'), scope)
 except SystemExit:
     raise
@@ -102,9 +113,12 @@ except BaseException:
     sys.exit(1)
 finally:
     try:
-        for name, value in list(scope.items()):
-            if not name.startswith('_'):
-                capture_table(value, name)
+        # If the learner printed/displayed a selection, do not add an unrelated
+        # original DataFrame merely because it remains in the namespace.
+        if not seen_tables:
+            for name, value in list(scope.items()):
+                if not name.startswith('_'):
+                    capture_table(value, name)
         capture_plots()
         with open('rich_results.json', 'w', encoding='utf-8') as output:
             json.dump(artifacts, output, ensure_ascii=False)

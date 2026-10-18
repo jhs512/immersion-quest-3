@@ -7,9 +7,10 @@ from pathlib import Path
 
 from lesson_prd import content_hash, validate
 from redesigned_lessons.python_prepared_checks import checker as python_prepared_checker
+from redesigned_lessons.pandas_head_checks import checker as pandas_head_checker
 
 ROOT = Path(__file__).resolve().parents[1]
-LESSONS = {'git-first': ('git_first', 'git-first-1', 'k'), 'git-branch': ('git_branch', 'git-branch-1', 'l'), 'java-values': ('java_values', 'java-values-1', 'n'), 'aice-python-start': ('aice_python_start', 'aice-python-start-1', 'o'), 'aice-python-conditions': ('aice_python_conditions', 'aice-python-conditions-1', 'p')}
+LESSONS = {'git-first': ('git_first', 'git-first-1', 'k'), 'git-branch': ('git_branch', 'git-branch-1', 'l'), 'java-values': ('java_values', 'java-values-1', 'n'), 'aice-python-start': ('aice_python_start', 'aice-python-start-1', 'o'), 'aice-python-conditions': ('aice_python_conditions', 'aice-python-conditions-1', 'p'), 'aice-table-csv': ('aice_table_csv', 'aice-table-csv-1', 'q'), 'engineer-c-start': ('engineer_c_start', 'engineer-c-start-1', 'r')}
 
 
 def digest(value):
@@ -36,6 +37,8 @@ def build(name, check=False):
     steps = [step for chapter in prd['chapters'] for unit in chapter['units'] for step in unit['steps']]
     tasks = copy.deepcopy(authored['tasks'])
     for task in tasks:
+        if task['id'] == authored.get('head_three_step'):
+            task['checker'] = pandas_head_checker()
         cases = authored.get('prepared_cases', {}).get(task['id'])
         if cases is not None:
             if task['language'] != 'python' or task.get('interaction'):
