@@ -285,6 +285,10 @@ class ContentTree:
     def artifact(self, key):
         return self._artifacts[key]
 
+    @property
+    def has_pending(self):
+        return bool(self._pending)
+
     def lineage(self, key):
         """Return the target and its direct ancestors, without exposing mutable state."""
         values = []
