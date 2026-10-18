@@ -191,6 +191,18 @@
     await wait(() => molipCodeEditors.getValue() === 'console.log(99);', 'draft survives content update');
     if (!document.querySelector('.study-progress').textContent.includes('3 / 4')) throw new Error('Content update lost old achievement or passed new step');
     checked.push('atomic content update, rejected hash, explicit apply, additional learning and recoverable student backup');
+    await click('← 코스 수업 목록');
+    await click('검증 캐시 지우기');
+    await click('코스 추가·만들기');
+    await wait(() => document.querySelector('.course-builder input'), 'course import form');
+    const repositoryInput=document.querySelector('.course-builder input');
+    set.call(repositoryInput,'mq3-validation/course');
+    repositoryInput.dispatchEvent(new Event('input',{bubbles:true}));
+    await click('코스 불러오기');
+    await wait(() => document.querySelector('.lesson-card')?.textContent.includes('pilot-g'), 'uncached course imported');
+    await click('풀모드 시작');
+    await wait(() => document.querySelector('.study-progress')?.textContent.includes('3 / 4'), 'imported course has installed lessons');
+    checked.push('uncached course imported through CourseBuilder and its lesson opens');
     dioxus.send({passed: true, checked, userAgent: navigator.userAgent, viewport: {width: innerWidth, height: innerHeight}});
   } catch (error) {
     dioxus.send({passed: false, checked, error: String(error), screen: document.body.innerText.slice(0, 4000)});

@@ -90,10 +90,14 @@ impl Github {
     /// Only previously completed lessons need this extra read.
     pub fn course_progress(&self,course:&CourseManifest,user:&GithubUser)->Result<CourseProgress,String> {
         let events=self.course_events(&course.repository,user,&course.id)?;
+        let installed=crate::content_updates::installed_store()?.active(&course.repository)?;
         let mut required=std::collections::HashMap::new();
         for reference in &course.lessons {
             if events.get(&reference.id).is_some_and(|items|items.iter().any(|e|e.kind==issue_progress::EventKind::Completed)) {
-                required.insert(reference.id.clone(),self.lesson(reference)?.required_tasks());
+                let lesson=match installed.as_ref().and_then(|snapshot|snapshot.lesson(reference)) {
+                    Some(lesson)=>lesson.clone(),None=>self.lesson(reference)?,
+                };
+                required.insert(reference.id.clone(),lesson.required_tasks());
             }
         }
         Ok(CourseProgress{events,required})

@@ -49,6 +49,11 @@ fn update_backup_keeps_retired_answers_and_isolates_accounts_and_courses() {
     assert_eq!(backup.len(),1);assert_eq!(backup[0].draft.code,"student original");
     assert_eq!(backup[0].step_id,"old-step");
     assert_eq!(drafts::load(&scope).unwrap().unwrap().code,"new work");
+    // A failed application can be retried after editing the live draft.
+    drafts::backup_repository(10,"course-one","snapshot-a").unwrap();
+    let retried=drafts::repository_backups(10,"course-one").unwrap();
+    assert_eq!(retried[0].draft.code,"new work");
+    assert_eq!(retried.len(),2);
     assert!(drafts::repository_backups(11,"course-one").unwrap().is_empty());
     assert!(drafts::repository_backups(10,"course-two").unwrap().is_empty());
 }
@@ -66,4 +71,41 @@ fn bad_later_reference_or_changed_course_identity_cannot_replace_a_valid_course(
     let foreign=store.prepare(repo,&course.to_string(),|_|Ok(fixture("b","lesson.json"))).unwrap();
     assert!(store.apply(&foreign).is_err());assert_eq!(store.active(repo).unwrap().unwrap().fingerprint(),a.fingerprint());
     assert!(store.prepare("different/course",&fixture("a","course.json"),|_|Ok(fixture("a","lesson.json"))).is_err());
+}
+
+#[test]
+fn installed_catalog_requirements_survive_a_corrupt_remote_candidate() {
+    std::env::set_var("MOLIP_PILOT","1");
+    use molip_quest::{github_player::Github,pilot_source,issue_progress::{ProgressKey,StudyMode,LearningEvent,EventKind}};
+    pilot_source::set_version('a').unwrap();
+    let gh=Github::new();let user=gh.user().unwrap();
+    let course=gh.installed_course(pilot_source::REPOSITORY).unwrap();
+    let key=ProgressKey{user_id:user.id,course_id:course.id.clone(),lesson_id:course.lessons[0].id.clone()};
+    let completed=LearningEvent::new(key,"pilot-a",StudyMode::Full,"catalog-test",EventKind::Completed);
+    gh.append(&course.repository,&user,"test",&completed).unwrap();
+    pilot_source::corrupt_update().unwrap();
+    assert!(gh.prepare_course(&course.repository).is_err());
+    let progress=gh.course_progress(&course,&user).unwrap();
+    assert_eq!(progress.required[&course.lessons[0].id].len(),2);
+}
+
+#[test]
+fn legacy_resource_ids_with_colons_keep_distinct_lesson_and_step_identity() {
+    use sha2::{Digest,Sha256};
+    let root=tempfile::tempdir().unwrap();let store=SnapshotStore::new(root.path());let repo="mq3-validation/course";
+    let mut course:serde_json::Value=serde_json::from_str(&fixture("a","course.json")).unwrap();
+    course["schema_version"]=1.into();let template=course["lessons"][0].clone();course["lessons"]=serde_json::json!([]);
+    let mut documents=std::collections::BTreeMap::new();
+    for (lesson_id,step_id) in [("a:b","c"),("a","b:c")] {
+        let mut lesson:serde_json::Value=serde_json::from_str(&fixture("a","lesson.json")).unwrap();
+        lesson["schema_version"]=1.into();lesson["id"]=lesson_id.into();lesson["revision"]="v1".into();
+        lesson["tasks"].as_array_mut().unwrap().truncate(1);lesson["tasks"][0]["id"]=step_id.into();
+        let raw=lesson.to_string();let mut reference=template.clone();reference["id"]=lesson_id.into();reference["revision"]="v1".into();reference["sha256"]=format!("{:x}",Sha256::digest(raw.as_bytes())).into();
+        course["lessons"].as_array_mut().unwrap().push(reference);documents.insert(lesson_id.to_string(),raw);
+    }
+    let before=store.prepare(repo,&course.to_string(),|reference|Ok(documents[&reference.id].clone())).unwrap();
+    course["lessons"].as_array_mut().unwrap().remove(0);
+    let after=store.prepare(repo,&course.to_string(),|reference|Ok(documents[&reference.id].clone())).unwrap();
+    let changes=after.changes_from(&before);
+    assert_eq!(changes.removed,vec!["c"]);assert!(changes.modified.is_empty());assert!(changes.added.is_empty());
 }

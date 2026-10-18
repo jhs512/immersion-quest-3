@@ -18,9 +18,9 @@ impl Snapshot {
         self.lessons.get(&reference.id)
     }
     pub fn changes_from(&self,previous:&Snapshot)->ContentChanges {
-        let tasks=|snapshot:&Snapshot| snapshot.lessons.values().flat_map(|lesson|lesson.tasks.iter().map(move|task|(format!("{}:{}",lesson.id,task.id),task.clone()))).collect::<BTreeMap<_,_>>();
+        let tasks=|snapshot:&Snapshot| snapshot.lessons.values().flat_map(|lesson|lesson.tasks.iter().map(move|task|((lesson.id.clone(),task.id.clone()),task.clone()))).collect::<BTreeMap<_,_>>();
         let before=tasks(previous); let after=tasks(self);
-        let id=|key:&String|key.split_once(':').expect("lesson/step key").1.to_owned();
+        let id=|key:&(String,String)|key.1.clone();
         ContentChanges {
             added:after.keys().filter(|key|!before.contains_key(*key)).map(id).collect(),
             removed:before.keys().filter(|key|!after.contains_key(*key)).map(id).collect(),

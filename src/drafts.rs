@@ -60,6 +60,7 @@ fn repository_parts(scope:&str)->Option<(u64,String,String,crate::issue_progress
 }
 /// Backup before switching content; never erase or overwrite the student's live answer.
 pub fn backup_repository(user:u64,course:&str,snapshot:&str)->Result<(),String> {
+    let snapshot=format!("{snapshot}:{}",crate::issue_progress::new_id());
     let mut connection=connection()?;
     let transaction=connection.transaction().map_err(|e|e.to_string())?;
     {

@@ -161,7 +161,7 @@ fn CourseBuilder(session:Session,onselect:EventHandler<CourseManifest>)->Element
     rsx!{section {class:"card course-builder",h2 {"코스 추가·만들기"}
         h3 {"공개 코스 불러오기"}
         label {"코스 저장소 · owner/repository" input {value:repository(),oninput:move |e|repository.set(e.value())}}
-        button {disabled:busy(),onclick:{let gh=session.github.clone();move |_|{let gh=gh.clone();async move {busy.set(true);let repo=repository();match github_player::background(move||{let c=gh.course(&repo)?;course_authoring::remember(&repo)?;Ok(c)}).await {Ok(c)=>onselect.call(c),Err(e)=>message.set(e)}busy.set(false);}}},"코스 불러오기"}
+        button {disabled:busy(),onclick:{let gh=session.github.clone();move |_|{let gh=gh.clone();async move {busy.set(true);let repo=repository();match github_player::background(move||{let c=gh.installed_course(&repo)?;course_authoring::remember(&repo)?;Ok(c)}).await {Ok(c)=>onselect.call(c),Err(e)=>message.set(e)}busy.set(false);}}},"코스 불러오기"}
         h3 {"새 공개 코스 만들기"}
         p {"수업을 추가하고 순서를 정하세요. 게시 전에 계정과 구성을 확인할 수 있어요."}
         label {"새 저장소 이름" input {value:name(),oninput:move |e|{name.set(e.value());prepared.set(None);}}}

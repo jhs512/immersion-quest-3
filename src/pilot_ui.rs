@@ -32,6 +32,7 @@ pub fn PilotPlayer() -> Element {
             }
             button {onclick:move |_|{let _=pilot_source::set_version('g');},"새 업데이트 공개"}
             button {onclick:move |_|{let _=pilot_source::corrupt_update();},"손상 업데이트 공개"}
+            button {onclick:move |_|{let _=molip_quest::content_updates::installed_store().and_then(|store|store.remove(pilot_source::REPOSITORY));},"검증 캐시 지우기"}
             button { onclick: move |_| {
                 let result = CourseManifest::parse(include_str!("../tests/fixtures/player-pilot/a/course.json")).and_then(|course| {
                     let damaged = include_str!("../tests/fixtures/player-pilot/a/lesson.json").replace("값과 출력", "손상 후보");
