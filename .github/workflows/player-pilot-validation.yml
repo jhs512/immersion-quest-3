@@ -71,12 +71,7 @@ jobs:
       - name: Drive prepared examples with separate answers
         run: cargo test --locked --test player_example_native -- --ignored --test-threads=1
       - name: Drive all nine approved Java steps in the native player
-        env:
-          MOLIP_PILOT: '1'
-          MOLIP_PILOT_SELF_TEST: java-values
-        run: |
-          cargo run --locked --bin molip-quest
-          cp target/pilot-native-result.json target/pilot-java-result.json
+        run: cargo test --locked --test player_java_native -- --ignored --test-threads=1
       - name: Reopen actual player with saved answer and progress
         if: ${{ !cancelled() && steps.build_player.outcome == 'success' }}
         run: cargo test --locked --test player_restart_native -- --ignored --test-threads=1

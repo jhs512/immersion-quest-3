@@ -311,11 +311,15 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                     if explanation.after_success {span {title:"성공 후 해설을 다시 봤어요.",aria_label:"성공 후 해설 확인","↺"}}
                 }}
                 if !task.narration.is_empty() {
-                    button {disabled:busy()||narrating(),onclick:{let actions=task.narration.clone();let record=record_explanation.clone();let needs_git=task.git_terminal.is_some();move |_|{
+                    button {disabled:busy()||narrating(),onclick:{let actions=task.narration.clone();let record=record_explanation.clone();let needs_git=task.git_terminal.is_some();let demo_code=task.starter_code.clone();let demo_example=task.example_for_answer(&demo_code).unwrap_or_default();let has_interaction=task.interaction.is_some();let demo_input=task.tests.first().map(|case|case.input.clone()).unwrap_or_default();move |_|{
                         record();let student_code=code();let student_example=example_source();let student_output=output();let student_input=input();let student_preview=preview();let student_message=message();let student_state=execution_state();let student_seconds=execution_seconds();
+                        // The tutor starts from the authored baseline, independent of learner edits.
+                        code.set(demo_code.clone());
+                        if !needs_git {example_source.set(demo_example.clone());input.set(demo_input.clone());reset+=1;}
+                        let expected=serde_json::json!({"source":if has_example{Some(demo_example.clone())}else if !needs_git&&!has_interaction{Some(demo_code.clone())}else{None},"answer":if has_interaction{Some(demo_code.clone())}else{None}});
                         narrating.set(true);let actions=actions.clone();
                         spawn(async move {
-                            let script=format!("(async()=>{{try{{const root=document.querySelector('.repository-task');const until=Date.now()+45000;while(root?.isConnected&&(root.dataset.narrating!=='true'||({needs_git}&&!window.molipGitTutor))){{if(Date.now()>until)throw new Error('Git 시연을 준비하지 못했어요.');await new Promise(requestAnimationFrame);}}if(root?.isConnected)await window.molipAgent?.runExplanation({});}}finally{{dioxus.send(true);}}}})();",serde_json::to_string(&actions).unwrap_or_else(|_|"[]".into()));
+                            let script=format!("(async()=>{{try{{const root=document.querySelector('.repository-task'),expected={expected};const until=Date.now()+45000;const ready=()=>root.dataset.narrating==='true'&&(!{needs_git}||window.molipGitTutor)&&(expected.source===null||window.molipCodeEditors?.getValue()===expected.source)&&(expected.answer===null||root.querySelector('.answer-state-bridge')?.value===expected.answer);while(root?.isConnected&&!ready()){{if(Date.now()>until)throw new Error('해설 시연을 준비하지 못했어요.');await new Promise(requestAnimationFrame);}}if(root?.isConnected)await window.molipAgent?.runExplanation({});}}finally{{dioxus.send(true);}}}})();",serde_json::to_string(&actions).unwrap_or_else(|_|"[]".into()));
                             let mut bridge=document::eval(&script);let _=bridge.recv::<bool>().await;
                             execution_id+=1;execution_state.set(student_state);execution_seconds.set(student_seconds);busy.set(false);code.set(student_code);example_source.set(student_example);input.set(student_input);output.set(student_output);preview.set(student_preview);message.set(student_message);if !needs_git {reset+=1;}narrating.set(false);
                         });
@@ -440,7 +444,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                 if task.git_terminal.is_none()&&(task.interaction.is_none()||has_example) {
                 details {class:"run-input",open:task.tests.iter().any(|case|!case.input.is_empty()),
                     summary {"실행 입력"}
-                    label {span {"프로그램에 전달할 입력"} textarea {aria_label:"실행 입력",initial_value:input(),oninput:move |e|input.set(e.value())}}
+                    label {span {"프로그램에 전달할 입력"} textarea {aria_label:"실행 입력",value:input(),oninput:move |e|input.set(e.value())}}
                 }
                 }
                 p {class:"execution-status",role:"status",
