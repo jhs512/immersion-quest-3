@@ -632,13 +632,14 @@
   function restoreExplanation() {
     const session = explanationSession;
     explanationSession = null;
+    if (session) for (const name of ['click','keydown','beforeinput','paste','drop']) session.root?.removeEventListener(name, session.blockInput, true);
     if (!session || !session.root?.isConnected) return;
     if (session.code !== null) globalThis.molipCodeEditors?.setValue(session.code);
     for (const [field, value, checked] of session.fields) {
       if (!field.isConnected) continue;
       field.value = value;
       if (checked !== undefined) field.checked = checked;
-      if (field.matches('.answer-state-bridge')) field.dispatchEvent(new Event('input', {bubbles:true}));
+      if (field.matches('.answer-state-bridge, .run-input textarea')) field.dispatchEvent(new Event('input', {bubbles:true}));
     }
   }
   async function runExplanation(actions) {
@@ -646,8 +647,14 @@
     const session = {
       root: document.querySelector('.repository-task') || document.body,
       code: globalThis.molipCodeEditors?.getValue() ?? null,
-      fields: [...document.querySelectorAll('.answer-interaction input, .answer-state-bridge')].map(field => [field, field.value, field.checked]),
+      fields: [...document.querySelectorAll('.answer-interaction input, .answer-state-bridge, .run-input textarea')].map(field => [field, field.value, field.checked]),
     };
+    session.blockInput = event => {
+      if (!event.isTrusted || event.target.closest?.('[data-explanation-stop], .narration-speed')) return;
+      if (event.type === 'keydown' && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'c') return;
+      event.preventDefault();event.stopImmediatePropagation();
+    };
+    for (const name of ['click','keydown','beforeinput','paste','drop']) session.root.addEventListener(name, session.blockInput, true);
     explanationSession = session;
     // A demonstration can execute examples, but never submit, advance or grant completion.
     const allowed = new Set(['say', 'set_code', 'patch_code', 'type_code', 'set_input', 'run', 'choose_answer', 'order_answer', 'fill_answer']);

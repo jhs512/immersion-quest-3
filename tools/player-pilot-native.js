@@ -128,6 +128,27 @@
     await wait(() => molipCodeEditors.getValue()?.includes('console.log(0)'), 'explanation editor');
     molipAgent.setVoice(false);
     molipCodeEditors.setValue('console.log(99);');
+    const runInput = document.querySelector('.run-input textarea');
+    runInput.value = 'student input';
+    runInput.dispatchEvent(new Event('input', {bubbles:true}));
+    await click('해설 재생 · 정답 실행');
+    await wait(() => molipAgent.running, 'cancellable explanation');
+    if (!button('초기화').disabled) throw new Error('Reset can overwrite the student draft during explanation');
+    button('초기화').click();
+    await wait(() => document.querySelector('.result-pane')?.dataset.executionState === 'running', 'delayed real example');
+    await click('해설 멈춤');
+    await wait(() => !molipAgent.running && !button('해설 재생 · 정답 실행').disabled, 'cancelled example restored');
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    if (document.querySelector('.result-pane').dataset.executionState === 'running') throw new Error('Cancelled example left a spinner');
+    if (runInput.value !== 'student input') throw new Error('Execution input display was not restored');
+    molipCodeEditors.setValue("process.stdin.on('data', data => process.stdout.write(data));");
+    await click('코드 실행');
+    await wait(() => document.querySelector('.output')?.textContent.trim() === 'student input', 'actual input after cancellation');
+    molipCodeEditors.setValue('console.log(99);');
+    await click('← 코스 수업 목록');
+    await click('풀모드 시작');
+    await click('문제 4 · 해설 답안 보존');
+    await wait(() => molipCodeEditors.getValue() === 'console.log(99);', 'saved draft after attempted reset');
     await click('해설 재생 · 정답 실행');
     await wait(() => molipAgent.running, 'explanation started');
     await wait(() => !molipAgent.running && !button('해설 재생 · 정답 실행').disabled, 'explanation restored');
@@ -142,6 +163,7 @@
     await wait(() => !molipAgent.running && !button('해설 재생 · 정답 실행').disabled, 'post-success restore');
     await wait(() => document.querySelector('[aria-label="성공 후 해설 확인"]'), 'after-success explanation history');
     checked.push('explanation restores answer, cannot submit, and records before/after successful solving');
+    checked.push('reset is blocked during explanation, cancellation restores input/state, and late execution cannot overwrite it');
     dioxus.send({passed: true, checked, userAgent: navigator.userAgent, viewport: {width: innerWidth, height: innerHeight}});
   } catch (error) {
     dioxus.send({passed: false, checked, error: String(error), screen: document.body.innerText.slice(0, 4000)});

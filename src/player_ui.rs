@@ -296,15 +296,15 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                 }}
                 if !task.narration.is_empty() {
                     button {disabled:busy()||narrating(),onclick:{let actions=task.narration.clone();let record=record_explanation.clone();move |_|{
-                        record();let student_code=code();let student_output=output();let student_input=input();let student_preview=preview();let student_message=message();
+                        record();let student_code=code();let student_output=output();let student_input=input();let student_preview=preview();let student_message=message();let student_state=execution_state();let student_seconds=execution_seconds();
                         narrating.set(true);let actions=actions.clone();
                         spawn(async move {
                             let script=format!("(async()=>{{try{{await window.molipAgent?.runExplanation({});}}finally{{dioxus.send(true);}}}})();",serde_json::to_string(&actions).unwrap_or_else(|_|"[]".into()));
                             let mut bridge=document::eval(&script);let _=bridge.recv::<bool>().await;
-                            execution_id+=1;busy.set(false);code.set(student_code);input.set(student_input);output.set(student_output);preview.set(student_preview);message.set(student_message);reset+=1;narrating.set(false);
+                            execution_id+=1;execution_state.set(student_state);execution_seconds.set(student_seconds);busy.set(false);code.set(student_code);input.set(student_input);output.set(student_output);preview.set(student_preview);message.set(student_message);reset+=1;narrating.set(false);
                         });
                     }},"해설 재생 · 정답 실행"}
-                    button {onclick:move |_|{document::eval("window.molipAgent?.stop()");},"해설 멈춤"}
+                    button {"data-explanation-stop":"true",onclick:move |_|{document::eval("window.molipAgent?.stop()");},"해설 멈춤"}
                     label {class:"narration-speed","말 속도 "
                         select {class:"assistant-rate repository-narration-rate",aria_label:"해설 말 속도",onchange:move |e|{document::eval(&format!("window.molipVoice?.setRate({});",e.value()));},
                             for rate in ["0.75","1","1.25","1.5","1.75","2"] {option {value:rate,selected:rate=="1.5","{rate}배"}}
@@ -318,13 +318,13 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
             div {class:"split-handle split-col",role:"separator",tabindex:0,aria_label:"문제와 코드 패널 크기 조절",aria_orientation:"vertical"}
             section {class:"coding-pane",div {class:"pane-heading",strong {"{filename}"}
                 div {class:"pane-actions",
-                    button {disabled:busy(),onclick:{let starter=task.starter_code.clone();let key=key.clone();move |_|{code.set(starter.clone());reset+=1;let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}},"초기화"}
+                    button {disabled:busy()||narrating(),onclick:{let starter=task.starter_code.clone();let key=key.clone();move |_|{if narrating(){return;}code.set(starter.clone());reset+=1;let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}},"초기화"}
                     if task.interaction.is_none() {
                     button {disabled:busy(),onclick:{let task=task.clone();let github=session.github.clone();let user=session.user.clone();let selected=selected.clone();move |_|{let task=task.clone();let github=github.clone();let user=user.clone();let selected=selected.clone();async move {
                         busy.set(true);execution_id+=1;execution_state.set("running");execution_seconds.set(0);
                         message.set("코드를 실행하고 있어요.".into());output.set(String::new());preview.set(String::new());
                         let source=code();let input=input();let started=std::time::Instant::now();let run_id=execution_id();
-                        let timer=spawn(async move {loop {tokio::time::sleep(std::time::Duration::from_secs(1)).await;execution_seconds+=1;}});
+                        let timer=spawn(async move {loop {tokio::time::sleep(std::time::Duration::from_secs(1)).await;if execution_id()!=run_id{break;}execution_seconds+=1;}});
                         // Local execution never waits for GitHub. append() still authenticates
                         // the expected account before recording the separate history operation.
                         let result=molip_quest::lesson_runner::run(&task,&source,&input).await;

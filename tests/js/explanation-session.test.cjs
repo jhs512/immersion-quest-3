@@ -7,7 +7,7 @@ test('explanation demonstrates code without submitting and restores the student 
  const browser=await chromium.launch({channel:'msedge',headless:true});
  try {
   const page=await browser.newPage();
-  await page.setContent('<article class="repository-task"><textarea data-code-editor="javascript">console.log(99);</textarea><div class="pane-actions"><button>코드 실행</button><button>제출</button></div><section class="result-pane"><pre class="output">학생 실행 결과</pre></section></article>');
+  await page.setContent('<article class="repository-task"><textarea data-code-editor="javascript">console.log(99);</textarea><div class="pane-actions"><button>코드 실행</button><button>제출</button></div><section class="result-pane"><details class="run-input"><textarea aria-label="실행 입력">student input</textarea></details><pre class="output">학생 실행 결과</pre></section></article>');
   await page.addScriptTag({content:fs.readFileSync('assets/editor/editor.bundle.js','utf8')});
   await page.evaluate(()=>{
    window.runs=[];window.submissions=0;
@@ -17,12 +17,13 @@ test('explanation demonstrates code without submitting and restores the student 
   await page.addScriptTag({content:fs.readFileSync('assets/layout/agent.js','utf8')});
   const result=await page.evaluate(async()=>{
    molipAgent.setVoice(false);
-   await molipAgent.runExplanation([{action:'set_code',code:'console.log(3);'},{action:'run'},{action:'submit'}]);
-   return {code:molipCodeEditors.getValue(),runs,submissions};
+   await molipAgent.runExplanation([{action:'set_input',value:'demo input'},{action:'set_code',code:'console.log(3);'},{action:'run'},{action:'submit'}]);
+   return {code:molipCodeEditors.getValue(),runs,submissions,input:document.querySelector('.run-input textarea').value};
   });
   assert.equal(result.code,'console.log(99);');
   assert.deepEqual(result.runs,['console.log(3);']);
   assert.equal(result.submissions,0);
+  assert.equal(result.input,'student input');
  } finally {await browser.close();}
 });
 
