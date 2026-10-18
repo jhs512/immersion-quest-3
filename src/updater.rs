@@ -319,13 +319,7 @@ pub fn install_and_restart(installer: &PathBuf) -> Result<(), String> {
     #[cfg(target_os = "windows")]
     {
         // Silent per-user reinstall into the same folder (Inno remembers it), then relaunch.
-        let script = format!(
-            "Wait-Process -Id {pid} -ErrorAction SilentlyContinue; \
-             $p = Start-Process -FilePath '{installer}' -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/CLOSEAPPLICATIONS' -Wait -PassThru; \
-             Start-Process -FilePath '{exe}'",
-            installer = installer.display().to_string().replace('\'', "''"),
-            exe = exe.display().to_string().replace('\'', "''"),
-        );
+        let script = crate::update_handoff::windows_script(installer,&exe,pid)?;
         windows_update_command(&script)
             .stdout(std::process::Stdio::null())
             .stderr(std::process::Stdio::null())

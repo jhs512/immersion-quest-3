@@ -35,9 +35,20 @@
     if (document.querySelectorAll('.learning-objective').length !== 4) throw new Error('Missing goals');
     checked.push('production course opening and four-level goals');
     document.querySelector('#app-fullscreen-toggle').click();
-    await click('검증 높이 720');
-    await wait(() => innerHeight >= 680 && innerHeight <= 740, 'normal practice viewport');
-    await new Promise(resolve => setTimeout(resolve, 300));
+    // Native fullscreen transitions can finish after the first resize event (notably on macOS).
+    // Re-request the window size, then require a settled viewport before measuring layout.
+    const resizeWindow = async height => {
+      const deadline = Date.now() + 20000;
+      while (Date.now() < deadline) {
+        await click(`검증 높이 ${height}`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const measured = innerHeight;
+        await new Promise(resolve => setTimeout(resolve, 500));
+        if (Math.abs(measured-height) <= 40 && innerHeight === measured) return;
+      }
+      throw new Error(`Native window did not settle at ${height}: ${innerWidth}x${innerHeight}`);
+    };
+    await resizeWindow(720);
     const workspace = document.querySelector('.repository-study');
     const workspaceBounds=workspace.getBoundingClientRect();
     if(workspaceBounds.left < -1 || workspaceBounds.right > document.documentElement.clientWidth+1 || workspaceBounds.width < document.documentElement.clientWidth-2)throw new Error(`Practice width escapes viewport: ${JSON.stringify({left:workspaceBounds.left,right:workspaceBounds.right,width:workspaceBounds.width,viewport:innerWidth})}`);
@@ -72,8 +83,7 @@
     await wait(() => document.querySelector('#app-fullscreen-toggle').dataset.fullscreen === 'true','editor fullscreen shortcut');
     codeFocus.dispatchEvent(fullscreenKey());
     await wait(() => document.querySelector('#app-fullscreen-toggle').dataset.fullscreen === 'false','editor fullscreen return');
-    await click('검증 높이 480');
-    await wait(() => innerHeight <= 520, 'short window');
+    await resizeWindow(480);
     const shortPaging = document.querySelector('.task-paging');
     shortPaging.scrollIntoView({block:'end'});
     if (shortPaging.getBoundingClientRect().bottom > innerHeight + 1) throw new Error('Small window cannot scroll to previous/next');
@@ -307,7 +317,7 @@
     await wait(() => document.querySelector('[aria-label="설정 터미널 입력"]')&&!button('로그인 상태 확인').disabled,'existing gh setup terminal');
     await wait(() => /PS |[$%#] /m.test(mq3SetupTerminal.text()),'setup shell prompt',45000);
     const card=document.querySelector('.gh-setup-card').getBoundingClientRect();
-    if(Math.abs(card.left+card.width/2-innerWidth/2)>4)throw new Error('gh setup is not horizontally centered');
+    if(Math.abs(card.left+card.width/2-document.documentElement.clientWidth/2)>4)throw new Error('gh setup is not horizontally centered');
     mq3SetupTerminal.command(navigator.platform.toLowerCase().includes('win')?"Write-Output '설정 터미널 확인'":"printf '설정 터미널 확인\\n'");
     await wait(() => mq3SetupTerminal.text().split('\n').some(line=>line.trim()==='설정 터미널 확인'),'gh real terminal output');
     await click('준비 완료 · 연결 확인');

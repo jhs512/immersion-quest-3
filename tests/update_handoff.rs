@@ -111,3 +111,15 @@ mod native {
         wait_marker(&marker,"old");
     }
 }
+
+#[test]
+fn windows_handoff_requires_absolute_executable_paths_and_a_real_process_id() {
+    use molip_quest::update_handoff::windows_script;
+    let root=tempfile::tempdir().unwrap();let installer=root.path().join("release.exe");let app=root.path().join("player.exe");
+    assert!(windows_script(&installer,&app,123).is_ok());
+    assert!(windows_script(std::path::Path::new("relative.exe"),&app,123).is_err());
+    assert!(windows_script(&root.path().join("release.zip"),&app,123).is_err());
+    assert!(windows_script(&installer,&root.path().join("player.app"),123).is_err());
+    assert!(windows_script(&installer,&app,0).is_err());
+    assert!(windows_script(&root.path().join("bad\npath.exe"),&app,123).is_err());
+}

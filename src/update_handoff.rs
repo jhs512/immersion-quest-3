@@ -2,6 +2,31 @@
 use std::path::Path;
 pub const MAC_PENDING_FILE:&str="macos-handoff.pending";
 
+/// A silent installer handoff relaunches the current path on success or failure.
+/// A nonzero installer result remains a failure even if the old player can reopen.
+pub fn windows_script(installer:&Path,executable:&Path,pid:u32)->Result<String,String> {
+    let exe=|path:&Path|path.extension().and_then(|extension|extension.to_str()).is_some_and(|extension|extension.eq_ignore_ascii_case("exe"));
+    if !installer.is_absolute()||!executable.is_absolute()||!exe(installer)||!exe(executable)||pid==0 {return Err("설치 파일과 앱 경로를 확인하세요.".into())}
+    let quote=|path:&Path|path.to_str().filter(|value|!value.contains(['\n','\r','\0'])).map(|value|format!("'{}'",value.replace('\'',"''"))).ok_or_else(||"설치 경로를 확인하세요.".to_owned());
+    Ok(format!(r#"$ErrorActionPreference='Stop'
+$installer={installer}
+$executable={executable}
+$log="$installer.handoff.log"
+Wait-Process -Id {pid} -ErrorAction SilentlyContinue
+$code=1
+try {{
+  $installed=Start-Process -FilePath $installer -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/CLOSEAPPLICATIONS' -Wait -PassThru
+  $code=$installed.ExitCode
+  if ($code -ne 0) {{Add-Content -LiteralPath $log -Value "Installer exit: $code"}}
+}} catch {{Add-Content -LiteralPath $log -Value ($_.ToString())}}
+if (Test-Path -LiteralPath $executable) {{
+  try {{Start-Process -FilePath $executable}} catch {{$code=1;Add-Content -LiteralPath $log -Value ($_.ToString())}}
+}} else {{$code=1;Add-Content -LiteralPath $log -Value 'Player executable missing'}}
+exit $code
+"#,installer=quote(installer)?,executable=quote(executable)?))
+}
+
+
 /// The launched app acknowledges only a request for its own bundle in this update folder.
 pub fn acknowledge_startup(pending:&Path,bundle:&Path)->Result<bool,String> {
     let text=match std::fs::read_to_string(pending) {Ok(text)=>text,Err(e) if e.kind()==std::io::ErrorKind::NotFound=>return Ok(false),Err(e)=>return Err(e.to_string())};

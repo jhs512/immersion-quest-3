@@ -26,6 +26,8 @@ pub fn PilotPlayer() -> Element {
         let result = if matches!(&exit_preparation, Ok(Ok(_))) { result } else {
             serde_json::json!({"passed":false,"error":"Practice shutdown before exit failed"})
         };
+        let mut result=result;
+        if let Some(object)=result.as_object_mut(){object.insert("process_id".into(),serde_json::json!(std::process::id()));}
         let destination=if let Some(phase)=restart_phase {
             pilot_source::data_dir().map(|directory|directory.join(format!("restart-{phase}.json")))
         } else {Ok(std::path::PathBuf::from("target/pilot-native-result.json"))};
