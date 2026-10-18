@@ -7,6 +7,10 @@ pub struct Draft {
     pub code: String,
     pub answers: HashMap<String, String>,
 }
+/// A stable answer belongs to the account/course/lesson/mode/step, not a launch's round.
+pub fn repository_scope(key:&crate::issue_progress::ProgressKey,mode:crate::issue_progress::StudyMode,task_id:&str)->String {
+    format!("repo-v2:{}",serde_json::to_string(&(key.user_id,&key.course_id,&key.lesson_id,mode,task_id)).expect("draft scope"))
+}
 fn connection() -> Result<Connection, String> {
     let connection =
         Connection::open(crate::data_dir()?.join("drafts.sqlite3")).map_err(|e| e.to_string())?;

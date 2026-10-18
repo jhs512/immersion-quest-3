@@ -251,8 +251,9 @@ fn LessonPlayer(session:Session,selected:OpenLesson,onback:EventHandler<()>)->El
 
 #[component]
 fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Vec<LearningEvent>>,onrecord:EventHandler<Vec<LearningEvent>>)->Element {
-    let key=format!("repo:{}:{}:{}:{}:{}",session.user.id,selected.course.id,selected.lesson.id,selected.round,task.id);
-    let initial=use_hook(||molip_quest::drafts::load(&key).ok().flatten().map(|d|d.code).unwrap_or_else(||task.starter_code.clone()));
+    let key=molip_quest::drafts::repository_scope(&ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},selected.mode,&task.id);
+    let previous_key=format!("repo:{}:{}:{}:{}:{}",session.user.id,selected.course.id,selected.lesson.id,selected.round,task.id);
+    let initial=use_hook(||molip_quest::drafts::load(&key).ok().flatten().or_else(||molip_quest::drafts::load(&previous_key).ok().flatten()).map(|d|d.code).unwrap_or_else(||task.starter_code.clone()));
     let mut code=use_signal(||initial.clone());let mut reset=use_signal(||0u64);
     let mut input=use_signal(||task.tests.first().map(|t|t.input.clone()).unwrap_or_default());
     let mut busy=use_signal(||false);let mut message=use_signal(String::new);let mut output=use_signal(String::new);

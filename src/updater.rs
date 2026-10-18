@@ -14,6 +14,17 @@ pub const REPO: &str = "jhs512/immersion-quest-3";
 const API_LATEST: &str = "https://api.github.com/repos/jhs512/immersion-quest-3/releases/latest";
 const WEB_LATEST: &str = "https://github.com/jhs512/immersion-quest-3/releases/latest";
 
+/// Monotonic elapsed seconds; one startup check and no overlapping requests.
+#[derive(Default)]
+pub struct UpdateSchedule { last: Option<u64>, checking: bool }
+impl UpdateSchedule {
+    pub fn begin(&mut self, now:u64, manual:bool)->bool {
+        if self.checking || (!manual && self.last.is_some_and(|last|now.saturating_sub(last)<300)) {return false}
+        self.last=Some(now);self.checking=true;true
+    }
+    pub fn finish(&mut self) {self.checking=false;}
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Release {
     pub build: u64,
@@ -33,6 +44,7 @@ pub fn current_build() -> u64 {
 
 /// Whether this build should look for updates at all.
 pub fn enabled() -> bool {
+    if crate::pilot_source::enabled() {return true;}
     if cfg!(target_os = "android") {
         return false;
     }
@@ -98,6 +110,9 @@ fn agent() -> ureq::Agent {
 /// Ask GitHub for the latest release. Blocking; call from a worker thread.
 #[cfg(not(target_os = "android"))]
 pub fn check() -> Result<Option<Release>, String> {
+    if crate::pilot_source::enabled() {
+        return Ok(asset_for_platform().map(|name|Release{build:current_build()+1,tag:"pilot-update".into(),title:"검증용 새 버전".into(),asset_name:name.into(),asset_url:"https://example.invalid/never-download".into(),size:1}));
+    }
     if !enabled() {
         return Ok(None);
     }
@@ -189,6 +204,7 @@ fn release_from_redirect(location: &str, current: u64) -> Result<Option<Release>
 /// Blocking; call from a worker thread.
 #[cfg(not(target_os = "android"))]
 pub fn download(release: &Release, mut progress: impl FnMut(u64, u64)) -> Result<PathBuf, String> {
+    if crate::pilot_source::enabled() {return Err("검증 모드에서는 실제 설치 파일을 받지 않아요.".into());}
     use std::io::{Read, Write};
     let dir = crate::data_dir()?.join("updates");
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
@@ -273,6 +289,7 @@ fn windows_update_command(script: &str) -> std::process::Command {
 /// installs the new build over the current one and starts it. Returns only on failure.
 #[cfg(not(target_os = "android"))]
 pub fn install_and_restart(installer: &PathBuf) -> Result<(), String> {
+    if crate::pilot_source::enabled() {return Err("검증 모드에서는 실제 앱을 교체하지 않아요.".into());}
     let exe = std::env::current_exe().map_err(|e| e.to_string())?;
     let pid = std::process::id();
     #[cfg(target_os = "windows")]

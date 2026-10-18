@@ -18,6 +18,12 @@
   };
   const status = text => document.querySelector('.execution-status')?.textContent.includes(text);
   try {
+    const updateBanner = () => document.querySelector('.update-banner');
+    await wait(() => updateBanner(), 'startup update offer');
+    if (document.querySelector('.update-panel')) throw new Error('Startup must not install automatically');
+    await click('나중에');
+    await wait(() => document.querySelector('[aria-label="앱 업데이트 설치"]'), 'persistent update icon');
+    checked.push('update offer requires click and leaves icon after dismiss');
     await wait(() => document.querySelector('.lesson-card'), 'production course catalog');
     await click('풀모드 시작');
     await wait(() => document.querySelector('.lesson-outline'), 'four-level objectives');
@@ -98,6 +104,18 @@
     await click('제출');
     await wait(() => status('수업 완료'), 'fill answer and whole lesson completion');
     checked.push('choice wrong/retry/reset, order move/grade, fill grade, shared progress');
+    await click('← 코스 수업 목록');
+    await click('풀모드 시작');
+    await wait(() => document.querySelector('input[value=five]'), 'reopened lesson');
+    document.querySelector('input[value=five]').click();
+    await click('← 코스 수업 목록');
+    await click('풀모드 시작');
+    await wait(() => document.querySelector('input[value=five]:checked'), 'answer retained across new round');
+    document.querySelector('[aria-label="앱 업데이트 설치"]').click();
+    await wait(() => document.querySelector('.update-panel')?.textContent.includes('검증 모드'), 'safe installer boundary failure');
+    await click('이대로 계속');
+    if (!document.querySelector('input[value=five]:checked')) throw new Error('Update failure lost answer');
+    checked.push('answer survives reopening and rejected installation; real installation not exercised');
     dioxus.send({passed: true, checked, userAgent: navigator.userAgent, viewport: {width: innerWidth, height: innerHeight}});
   } catch (error) {
     dioxus.send({passed: false, checked, error: String(error), screen: document.body.innerText.slice(0, 4000)});

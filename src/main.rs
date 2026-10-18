@@ -65,6 +65,8 @@ fn UpdateGate() -> Element {
 
 #[component]
 fn App() -> Element {
+    use_context_provider(|| Signal::new(0u32));
+    use_context_provider(|| Signal::new(String::new()));
     // The app runs fullscreen. F11 (macOS: control+command+F) toggles it through a hidden
     // button that assets/layout/shortcuts.js clicks; slides read its state to go fullscreen.
     #[cfg(feature = "desktop")]
@@ -151,6 +153,7 @@ window.molipVoice && molipVoice.setName({});",
             style {{include_str!("../assets/app.css")}}
         }
         {fullscreen_toggle}
+        UpdateGate {}
         style {{include_str!("../assets/repository-player.css")}}
         style {{include_str!("../assets/terminal/terminal.bundle.css")}}
         if cfg!(debug_assertions) && std::env::var_os("MOLIP_PILOT").is_some() { pilot_ui::PilotPlayer {} }
@@ -251,10 +254,7 @@ enum View {
     Avatars,
 }
 
-/// Auto-update (src/updater.rs). On start a newer release is installed without asking: the
-/// panel shows the download, then the app closes and the new build opens. Later, a release that
-/// appears while the app runs is offered in a banner (지금 업데이트 / 나중에). Development
-/// builds never see this.
+/// Updates are offered once per build. Installation always starts with an explicit click.
 /// "HH:MM" of the local time, for the update status line.
 fn chrono_like_now() -> String {
     let secs = std::time::SystemTime::now()
@@ -282,12 +282,13 @@ enum UpdatePhase {
 fn UpdateGate() -> Element {
     use molip_quest::updater::{self, Release};
     let mut release = use_signal(|| None::<Release>);
-    let mut forced = use_signal(|| false);
+
     let mut phase = use_signal(|| UpdatePhase::Hidden);
     // The build the student answered 나중에 to; it is not offered again.
-    let mut dismissed = use_signal(|| 0u64);
+    let mut notified = use_signal(std::collections::HashSet::<u64>::new);
     let install = Callback::new(move |_: ()| {
         let Some(found) = release() else { return };
+        if matches!(*phase.peek(),UpdatePhase::Downloading(_,_)|UpdatePhase::Installing) {return;}
         phase.set(UpdatePhase::Downloading(0, found.size));
         spawn(async move {
             let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<(u64, u64)>();
@@ -318,19 +319,22 @@ fn UpdateGate() -> Element {
             }
         });
     });
-    // Check on start, then every three minutes while the app runs, or at once when the
-    // sidebar's 업데이트 확인 bumps the request counter. The outcome goes to the status line.
+    // Startup, then every five minutes, or a manual request. One worker owns checks.
     let request = use_context::<Signal<u32>>();
     let mut status = use_context::<Signal<String>>();
     use_future(move || async move {
-        let mut first = true;
+        let mut schedule=updater::UpdateSchedule::default();
+        let started=std::time::Instant::now();
         let mut seen = *request.peek();
         loop {
-            if updater::enabled() {
+            let manual=*request.peek()!=seen;
+            if manual {seen=*request.peek();}
+            if updater::enabled() && schedule.begin(started.elapsed().as_secs(),manual) {
                 status.set("업데이트 확인 중…".into());
                 let result = tokio::task::spawn_blocking(updater::check)
                     .await
                     .unwrap_or_else(|e| Err(e.to_string()));
+                schedule.finish();
                 let stamp = chrono_like_now();
                 match &result {
                     Ok(Some(found)) => {
@@ -343,43 +347,32 @@ fn UpdateGate() -> Element {
                     Err(e) => status.set(format!("확인 실패 · {e} ({stamp})")),
                 }
                 if let Ok(Some(found)) = result {
-                    let known = release.peek().as_ref().map(|r| r.build);
+
                     let idle = matches!(*phase.peek(), UpdatePhase::Hidden | UpdatePhase::Offered);
-                    if idle && known != Some(found.build) && *dismissed.peek() != found.build {
+                    if idle {
+                        let first_notice=notified.write().insert(found.build);
                         release.set(Some(found));
-                        phase.set(UpdatePhase::Offered);
-                        if first {
-                            forced.set(true);
-                            install.call(());
-                        }
+                        if first_notice {phase.set(UpdatePhase::Offered);}
                     }
                 }
-            } else {
-                status.set("개발 빌드는 업데이트를 확인하지 않습니다".into());
+            } else if !updater::enabled() {
+                status.set("개발 빌드는 업데이트를 확인하지 않아요.".into());
             }
-            first = false;
-            // Three minutes, cut short by a 업데이트 확인 press.
-            for _ in 0..180 {
-                tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-                if *request.peek() != seen {
-                    seen = *request.peek();
-                    break;
-                }
-            }
+            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
         }
     });
     let Some(found) = release() else {
-        return rsx! {};
+        return rsx! {button {class:"app-update-icon",aria_label:"앱 업데이트 확인",title:status(),onclick:move |_|{let mut request=request;request+=1;},"↻"}};
     };
     let title = found.title.clone();
     match phase() {
-        UpdatePhase::Hidden => rsx! {},
-        UpdatePhase::Offered if !forced() => rsx! {
+        UpdatePhase::Hidden => rsx! {button {class:"app-update-icon has-update",aria_label:"앱 업데이트 설치",title:format!("새 버전 · {title}"),onclick:move |_|install.call(()),"↥"}},
+        UpdatePhase::Offered => rsx! {
             div { class:"update-banner", role:"status",
                 span { class:"update-dot" }
                 span { {format!("새 버전이 나왔습니다 · {title}")} }
                 button { class:"primary", onclick: move |_| install.call(()), "지금 업데이트" }
-                button { onclick: move |_| { dismissed.set(found.build); phase.set(UpdatePhase::Hidden); }, "나중에" }
+                button { onclick: move |_| { phase.set(UpdatePhase::Hidden); }, "나중에" }
             }
         },
         state => {
@@ -411,13 +404,13 @@ fn UpdateGate() -> Element {
                 div { class:"doctor-backdrop update-backdrop", section { class:"doctor-panel update-panel", role:"dialog", aria_modal:"true", aria_label:"업데이트",
                     h2 { "새 버전 업데이트" }
                     p { class:"update-title", "{title}" }
-                    p { {if forced() {"시작할 때 새 버전이 있으면 먼저 설치합니다. 작성 중인 코드와 진도는 저장되어 있습니다."} else {"업데이트하면 앱을 닫고 새 버전으로 다시 엽니다. 작성 중인 코드와 진도는 저장되어 있습니다."}} }
+                    p { "업데이트하면 앱을 닫고 새 버전으로 다시 열어요." }
                     div { class:"update-track", div { class:"update-fill", style: format!("width:{percent}%") } }
                     p { class: if failed.is_some() {"error"} else {"update-line"}, "{line}" }
                     if failed.is_some() {
                         div { class:"actions",
                             button { class:"primary", onclick: move |_| install.call(()), "다시 시도" }
-                            button { onclick: move |_| { phase.set(UpdatePhase::Hidden); forced.set(false); }, "이대로 계속" }
+                            button { onclick: move |_| { phase.set(UpdatePhase::Hidden); }, "이대로 계속" }
                         }
                     }
                 } }
@@ -439,8 +432,8 @@ fn Workspace() -> Element {
     // Reward effects: animation and sound switches shown on the home card.
     let mut prefs = use_signal(molip_quest::prefs::Prefs::load);
     // Update check on demand (sidebar button) and its last outcome, shared with UpdateGate.
-    let mut update_request = use_context_provider(|| Signal::new(0u32));
-    let update_status = use_context_provider(|| Signal::new(String::new()));
+    let mut update_request = use_context::<Signal<u32>>();
+    let update_status = use_context::<Signal<String>>();
     let mut active_course = use_signal(|| {
         let source = if let Ok(path) = std::env::var("MOLIP_COURSE_PATH") {
             std::fs::read_to_string(path).map_err(|e| e.to_string())?
@@ -455,11 +448,10 @@ fn Workspace() -> Element {
         }
         Ok(course) => {
             rsx! { div { class: match view() { View::Home => "shell", View::Learning | View::Practice => "shell practice-shell", View::Gallery(_) | View::Avatars => "shell practice-shell gallery-shell" },
-                UpdateGate {}
                 aside { class:"sidebar", div {class:"brand", "몰입 퀘스트 3"} h3 {"{course.title}"} p {{format!("{}챕터 · {}단원", course.chapters.len(), course.total_units())}}
                     button { onclick:move |_| { document::eval("window.molipAgent?.stop()"); active_course.set(Course::parse(molip_quest::DEFAULT_COURSE)); view.set(View::Home); }, "자바 기초 · JDK 25" }
                     button { onclick:move |_| { document::eval("window.molipAgent?.stop()"); active_course.set(Course::parse(include_str!("../courses/kpc-finance.json"))); view.set(View::Home); }, "기존 샘플 · 금융 데이터 분석" }
-                    p {class:"build-number", {let build = molip_quest::updater::current_build(); if build > 0 {format!("빌드 {build} · 새 버전은 자동으로 설치됩니다")} else {"개발 빌드".to_string()}}}
+                    p {class:"build-number", {let build = molip_quest::updater::current_build(); if build > 0 {format!("빌드 {build} · 새 버전은 선택해서 설치해요")} else {"개발 빌드".to_string()}}}
                     div {class:"update-check",
                         button {onclick:move |_| update_request += 1, "업데이트 확인"}
                         span {class:"update-status", "{update_status}"}
