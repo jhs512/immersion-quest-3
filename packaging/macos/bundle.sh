@@ -38,5 +38,5 @@ fi
 
 cp "packaging/macos/먼저 읽어 주세요.txt" target/bundle/
 ln -s /Applications target/bundle/Applications
-hdiutil create -volname "몰입 퀘스트 3" -srcfolder target/bundle -ov -format UDZO \
-  "$image"
+python3 packaging/macos/create_dmg.py --volume "몰입 퀘스트 3" \
+  --source target/bundle --destination "$image"

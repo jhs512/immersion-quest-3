@@ -175,21 +175,17 @@ fn real_macos_image_replaces_disposable_player_and_restores_its_state() {
     let updates = session.directory().join("updates");
     std::fs::create_dir_all(&updates).unwrap();
     let image = updates.join("release.dmg");
-    // Temporary probe for the Intel runner's image-creation ENOSPC failure.
-    eprintln!("[DEBUG-dmgspace] binary bytes: {}", std::fs::metadata(source.join("몰입 퀘스트 3.app/Contents/MacOS/molip-quest")).unwrap().len());
-    for (tool,args) in [("df",vec!["-h"]),("du",vec!["-sk"])] {
-        let result=Command::new(tool).args(args).arg(&source).output().unwrap();
-        eprintln!("[DEBUG-dmgspace] {tool}: {} {}",String::from_utf8_lossy(&result.stdout),String::from_utf8_lossy(&result.stderr));
-    }
+    let creator = Path::new(env!("CARGO_MANIFEST_DIR")).join("packaging/macos/create_dmg.py");
     command(
-        Path::new("hdiutil"),
+        Path::new("python3"),
         &[
-            std::ffi::OsStr::new("create"),
-            std::ffi::OsStr::new("-srcfolder"),
+            creator.as_os_str(),
+            std::ffi::OsStr::new("--source"),
             source.as_os_str(),
-            std::ffi::OsStr::new("-format"),
-            std::ffi::OsStr::new("UDZO"),
+            std::ffi::OsStr::new("--destination"),
             image.as_os_str(),
+            std::ffi::OsStr::new("--volume"),
+            std::ffi::OsStr::new("image"),
         ],
     );
     let script = molip_quest::update_handoff::macos_script(&image, &target, 99999999).unwrap();
