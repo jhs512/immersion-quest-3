@@ -93,6 +93,8 @@ pub struct Task {
     pub example_code:Option<String>,
     #[serde(default,skip_serializing_if="Option::is_none")]
     pub example_order_marker:Option<String>,
+    #[serde(default,skip_serializing_if="std::ops::Not::not")]
+    pub predict_before_run:bool,
     #[serde(default, skip_serializing_if="Vec::is_empty")]
     pub supporting_materials: Vec<crate::supporting_materials::SupportingMaterial>,
     #[serde(default,skip_serializing_if="Option::is_none")]
@@ -210,6 +212,7 @@ impl Lesson {
         for t in &self.tasks {
             crate::supporting_materials::validate(&t.supporting_materials)?;
             if t.example_code.is_some()&&!t.has_runnable_example(){return Err("예제 코드와 답안 구성을 확인하세요.".into())}
+            if t.predict_before_run&&(!t.has_runnable_example()||!matches!(t.interaction,Some(crate::task_interaction::Interaction::Choice{..}))){return Err("실행 전 예상 문제의 구성을 확인하세요.".into())}
             if t.example_order_marker.is_some(){if !t.has_runnable_example(){return Err("코드 배열 예제를 확인하세요.".into())}t.example_for_answer(&t.starter_code)?;t.example_for_answer(&t.solution)?;}
             if let Some(exercise)=&t.git_terminal {
                 if t.language!=TaskLanguage::Git {return Err("Git 터미널 문제의 종류를 확인하세요.".into())}

@@ -348,10 +348,10 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                         }else{code.set(starter.clone());example_source.set(example.clone());reset+=1;let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}
                     }},"초기화"}
                     if task.git_terminal.is_none()&&(task.interaction.is_none()||has_example) {
-                    button {disabled:busy(),onclick:{let task=task.clone();let github=session.github.clone();let user=session.user.clone();let selected=selected.clone();move |_|{let task=task.clone();let github=github.clone();let user=user.clone();let selected=selected.clone();async move {
+                    button {disabled:busy()||(task.predict_before_run&&code().is_empty()),onclick:{let task=task.clone();let github=session.github.clone();let user=session.user.clone();let selected=selected.clone();move |_|{let task=task.clone();let github=github.clone();let user=user.clone();let selected=selected.clone();async move {
                         busy.set(true);execution_id+=1;execution_state.set("running");execution_seconds.set(0);
                         message.set("코드를 실행하고 있어요.".into());output.set(String::new());preview.set(String::new());
-                        let source=if has_example{example_source()}else{code()};let input=input();let started=std::time::Instant::now();let run_id=execution_id();
+                        let source=if has_example{example_source()}else{code()};let prediction=task.predict_before_run.then(||code());let demonstration=narrating();let input=input();let started=std::time::Instant::now();let run_id=execution_id();
                         let timer=spawn(async move {loop {tokio::time::sleep(std::time::Duration::from_secs(1)).await;if execution_id()!=run_id{break;}execution_seconds+=1;}});
                         // Local execution never waits for GitHub. append() still authenticates
                         // the expected account before recording the separate history operation.
@@ -368,7 +368,8 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                             Err(error)=>{execution_state.set("failed");message.set(error);}
                         }
                         busy.set(false);
-                        let mut event=LearningEvent::new(ProgressKey{user_id:user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},&selected.lesson.revision,selected.mode,&selected.round,EventKind::ExampleRun);event.task_id=Some(task.id.clone());
+                        if demonstration{return;}
+                        let mut event=LearningEvent::new(ProgressKey{user_id:user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},&selected.lesson.revision,selected.mode,&selected.round,EventKind::ExampleRun);event.task_id=Some(task.id.clone());event.prediction=prediction;
                         let repo=selected.course.repository.clone();let title=selected.lesson.title.clone();
                         history_saves+=1;
                         spawn(async move {

@@ -16,13 +16,14 @@ pub struct LearningEvent {
     #[serde(default)] pub passed:bool,
     #[serde(default)] pub required:Vec<String>,
     #[serde(default)] pub success_before_view:bool,
+    #[serde(default,skip_serializing_if="Option::is_none")] pub prediction:Option<String>,
 }
 #[derive(Clone,Copy,Debug,Deserialize,Serialize,PartialEq)]
 #[serde(rename_all="snake_case")]
 pub enum EventKind { Started, Attempt, Viewed, ExampleRun, Completed, ExplanationViewed }
 impl LearningEvent {
     pub fn new(key:ProgressKey, revision:&str, mode:StudyMode, round:&str, kind:EventKind)->Self {
-        Self {id:new_id(),key,revision:revision.into(),mode,round:round.into(),at:now(),kind,task_id:None,passed:false,required:vec![],success_before_view:false}
+        Self {id:new_id(),key,revision:revision.into(),mode,round:round.into(),at:now(),kind,task_id:None,passed:false,required:vec![],success_before_view:false,prediction:None}
     }
     pub fn comment(&self)->String { format!("{} · {} · {}\n\n<!-- mq3-event:{} -->",self.mode.label(),self.revision,match self.kind {EventKind::Started=>"학습 시작",EventKind::Attempt=>if self.passed {"문제 통과"}else{"문제 다시 풀기"},EventKind::Viewed=>"개념 확인",EventKind::ExampleRun=>"예제 실행",EventKind::Completed=>"수업 완료",EventKind::ExplanationViewed=>"해설 확인"},serde_json::to_string(self).expect("event")) }
 }
