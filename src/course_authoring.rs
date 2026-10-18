@@ -65,7 +65,11 @@ pub fn publish(draft:&CourseDraft,expected_user:u64)->Result<String,String> {
     Ok(format!("https://github.com/{repo}"))
 }
 pub fn catalog()->Vec<String> {
-    let mut repositories=vec![repository_course::COURSE_REPOSITORY.to_string()];
+    let mut repositories=vec![
+        repository_course::COURSE_REPOSITORY.to_string(),
+        "jhs512/mq3-course-engineer-practical".to_string(),
+        "jhs512/mq3-course-aice-associate".to_string(),
+    ];
     if let Ok(root)=crate::data_dir() {if let Ok(text)=std::fs::read_to_string(root.join("repository-courses.json")) {if let Ok(saved)=serde_json::from_str::<Vec<String>>(&text) {for repo in saved {if repository_course::valid_repository(&repo)&&!repositories.contains(&repo) {repositories.push(repo)}}}}}
     repositories
 }
