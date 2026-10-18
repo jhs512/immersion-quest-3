@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import subprocess
 
-from lesson_prd import policy_revision, validate
+from lesson_prd import content_hash, policy_revision, validate
 
 
 def unique_fields(pairs):
@@ -44,7 +44,7 @@ class JsonReviewModel:
                 raise ValueError('제작 자료와 PRD 스텝 연결을 확인하세요.')
         elif self.target_steps:
             raise ValueError('스텝을 연결할 수업 PRD가 필요해요.')
-        configuration = dict(contract='json-adjacent-model-v2', command=self.command,
+        configuration = dict(contract='json-adjacent-model-v3', command=self.command,
                              model_revision=model_revision, voice=self.voice, content_rules=self.rules,
                              lesson_prd=self.prd, target_steps=self.target_steps)
         self.identity = hashlib.sha256(json.dumps(configuration, sort_keys=True,
@@ -112,6 +112,10 @@ class JsonReviewModel:
             raise ValueError('제작 대상의 스텝 연결을 확인하세요.')
         step = next(step for chapter in self.prd['chapters'] for unit in chapter['units']
                     for step in unit['steps'] if step['id'] == step_id)
+        if lineage[0].layer == 'goal':
+            if len(lineage) < 2 or lineage[1].layer != 'prd' or not self._same_prd_body(lineage[1].text):
+                raise ValueError('교육 목표 레이어는 승인된 같은 PRD에서 가져와야 해요.')
+            return
         goals = [item for item in lineage if item.layer == 'goal']
         if len(goals) != 1 or goals[0].text != '\n'.join(step['objectives']):
             raise ValueError('원본 계층의 교육 목표를 반영한 PRD를 먼저 승인받으세요.')
@@ -119,10 +123,14 @@ class JsonReviewModel:
             if item.layer == 'policy':
                 continue
             if item.layer == 'prd':
-                if json.loads(item.text) != self.prd:
+                if not self._same_prd_body(item.text):
                     raise ValueError('원본 계층과 승인된 수업 PRD가 달라요.')
             elif self.target_steps.get(item.key) != step_id:
                 raise ValueError('모든 원본 레이어는 승인된 같은 스텝에 연결돼야 해요.')
+
+    def _same_prd_body(self, text):
+        # Approval evidence is external; drafting never changes itself into approval.
+        return content_hash(validate(json.loads(text))) == content_hash(self.prd)
 
     def _draft_prd(self, request):
         if request.get('source_after', {}).get('layer') != 'policy':
@@ -158,6 +166,14 @@ class JsonReviewModel:
         validate(self.prd, require_approval=True)
         if request.get('target', {}).get('key') not in self.target_steps:
             raise ValueError('승인된 수업의 스텝에 연결된 자료만 제작하세요.')
+        if request['target'].get('layer') == 'goal':
+            source = request.get('source_after', {})
+            if source.get('layer') != 'prd' or not self._same_prd_body(source.get('text', '')):
+                raise ValueError('교육 목표 레이어는 승인된 같은 PRD에서 가져와야 해요.')
+            step_id = self.target_steps[request['target']['key']]
+            step = next(step for chapter in self.prd['chapters'] for unit in chapter['units']
+                        for step in unit['steps'] if step['id'] == step_id)
+            return '\n'.join(step['objectives'])
         if request.get('target', {}).get('layer') not in {'core_flow', 'content', 'support_spec', 'narration'}:
             raise ValueError('이 제작기는 텍스트 레이어만 지원해요. 목표·PRD·파일 제작은 별도로 검토하세요.')
         source = request.get('source_after', {})

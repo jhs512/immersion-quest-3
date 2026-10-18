@@ -1,5 +1,6 @@
 """Exercise the authoring command through real files and subprocesses."""
 import json
+import copy
 from pathlib import Path
 import subprocess
 import sys
@@ -117,6 +118,44 @@ print(json.dumps({'change_required': True, 'reason': '흐름이 달라요.'} if
                                       '--model-config', config, '--replacement', replacement)
             self.assertEqual(result.returncode, 1)
             self.assertEqual(ContentTree.load(state).artifact('c').text, '기존 문제')
+
+    def test_approved_prd_body_resumes_goal_projection_without_fabricating_approval_in_tree(self):
+        original = json.loads((Path(__file__).resolve().parents[1] /
+            'tests/fixtures/lesson-prd/git-first.json').read_text(encoding='utf-8'))
+        original = approve(original, 'fixture-human', 'Isolated old approval')
+        changed = copy.deepcopy(original)
+        step = changed['chapters'][0]['units'][0]['steps'][0]
+        step['objectives'][0] += ' 직접 확인해요.'
+        changed['approval'] = {'status': 'draft'}
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state, database = root / 'tree.json', root / 'ledger.db'
+            old_step = original['chapters'][0]['units'][0]['steps'][0]
+            ContentTree([Artifact('prd', 'prd', json.dumps(original)),
+                         Artifact('goal', 'goal', '\n'.join(old_step['objectives']))], {'goal': 'prd'}).save(state)
+            worker = root / 'model.py'
+            worker.write_text('''import json, sys
+request = json.load(sys.stdin)
+assert request['operation'] == 'assess', 'Approved objectives must be projected without model rewriting'
+print(json.dumps({'change_required': True, 'reason': 'Approved objective changed'}))
+''', encoding='utf-8')
+            config = root / 'model.json'
+            config.write_text(json.dumps({'command': [sys.executable, '-X', 'utf8', str(worker)],
+                'model_revision': 'isolated-fixture-v1', 'prd': 'prd.json',
+                'target_steps': {'goal': step['id']}}), encoding='utf-8')
+            prd = root / 'prd.json'
+            prd.write_text(json.dumps(original), encoding='utf-8')
+            replacement = root / 'replacement.json'
+            replacement.write_text(json.dumps({'key': 'prd', 'layer': 'prd', 'text': json.dumps(changed)}), encoding='utf-8')
+            blocked = self.run_command('apply', '--state', state, '--ledger', database,
+                '--model-config', config, '--replacement', replacement)
+            self.assertEqual(blocked.returncode, 1)
+            prd.write_text(json.dumps(approve(changed, 'fixture-human', 'Isolated new approval')), encoding='utf-8')
+            resumed = self.run_command('resume', '--state', state, '--ledger', database, '--model-config', config)
+            self.assertEqual(resumed.returncode, 0, resumed.stderr)
+            final = ContentTree.load(state)
+            self.assertEqual(final.artifact('goal').text, '\n'.join(step['objectives']))
+            self.assertEqual(json.loads(final.artifact('prd').text)['approval'], {'status': 'draft'})
 
 
 if __name__ == '__main__':
