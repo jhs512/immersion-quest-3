@@ -27,6 +27,8 @@ def materialize(tree, lesson, course, task_goals, *, revision):
         if artifact.layer != 'content' or task_id not in tasks or len(artifact.text) > 4000:
             raise ValueError('검토된 문제 안내 원문을 확인하세요.')
         lineage = tree.lineage(key)
+        if key != task_id + '/content' or len(lineage) < 2 or lineage[1].key != task_id + '/core_flow':
+            raise ValueError('검토 원본과 내보낼 대상은 같은 스텝이어야 해요.')
         if len(lineage) < 2 or lineage[1].layer != 'core_flow' or tree.reviewed_from(key) != lineage[1].revision:
             raise ValueError('현재 핵심 흐름에 대한 검토 근거가 필요해요.')
         tasks[task_id]['goal'] = artifact.text

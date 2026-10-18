@@ -48,6 +48,8 @@ class CandidateTests(unittest.TestCase):
             tree.apply(Artifact(flow.key, flow.layer, '출력 뒤 제출 순서를 명확히 한다.'), ledger,
                 lambda _: {'change_required': True, 'reason': '제출 안내를 명확히 해요.'},
                 lambda _: '숫자 3을 출력한 뒤 제출하세요.', assessor_key='fixture-v1', generator_key='fixture-v1')
+            with self.assertRaisesRegex(ValueError, '스텝'):
+                materialize(tree, lesson, course, {content.key: lesson['tasks'][1]['id']}, revision='pilot-i')
             candidate, raw = materialize(tree, lesson, course, mapping, revision='pilot-i')
             output = json.loads(raw)
             self.assertEqual(output['tasks'][0]['goal'], '숫자 3을 출력한 뒤 제출하세요.')
