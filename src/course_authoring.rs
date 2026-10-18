@@ -22,6 +22,7 @@ pub fn reference(github:&Github,text:&str)->Result<LessonRef,String> {
     Ok(LessonRef{id:lesson.id,title:lesson.title,repository:repo.into(),revision:revision.into(),sha256:format!("{:x}",Sha256::digest(raw.as_bytes())),prerequisites:vec![],required:true,review_enabled:lesson.review_enabled})
 }
 pub(crate) fn gh(args:&[&str],body:Option<Value>)->Result<Value,String> {
+    if crate::pilot_source::enabled() { return crate::pilot_source::request(args,body); }
     #[cfg(not(target_os="android"))]
     let executable=crate::setup_terminal::gh_executable();
     #[cfg(target_os="android")]
@@ -65,6 +66,7 @@ pub fn publish(draft:&CourseDraft,expected_user:u64)->Result<String,String> {
     Ok(format!("https://github.com/{repo}"))
 }
 pub fn catalog()->Vec<String> {
+    if crate::pilot_source::enabled() { return vec![crate::pilot_source::REPOSITORY.into()]; }
     let mut repositories=vec![
         repository_course::COURSE_REPOSITORY.to_string(),
         "jhs512/mq3-course-engineer-practical".to_string(),

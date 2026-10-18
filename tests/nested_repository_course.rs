@@ -62,4 +62,10 @@ fn pilot_versions_keep_identity_and_a_corrupted_candidate_cannot_replace_the_pin
     let damaged = include_str!("fixtures/player-pilot/a/lesson.json").replace("값과 출력", "손상 후보");
     assert!(Lesson::parse(&damaged, &a.lessons[0]).is_err());
     assert!(Lesson::parse(include_str!("fixtures/player-pilot/a/lesson.json"), &a.lessons[0]).is_ok());
+    let c = CourseManifest::parse(include_str!("fixtures/player-pilot/c/course.json")).unwrap();
+    let replacement = Lesson::parse(include_str!("fixtures/player-pilot/c/lesson.json"), &c.lessons[0]).unwrap();
+    let retired: Value = serde_json::from_str(include_str!("fixtures/player-pilot/c/replacement.json")).unwrap();
+    assert!(!replacement.required_tasks().iter().any(|id| id == retired["retired_step"].as_str().unwrap()));
+    assert!(replacement.required_tasks().iter().any(|id| id == retired["new_step"].as_str().unwrap()));
+    assert_eq!(replacement.tasks[0].id, first.tasks[0].id);
 }

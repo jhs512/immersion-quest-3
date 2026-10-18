@@ -15,6 +15,7 @@ pub mod repository_course;
 pub mod course_authoring;
 pub mod issue_progress;
 pub mod github_player;
+pub mod pilot_source;
 pub mod lesson_runner;
 pub mod tts;
 pub mod updater;
@@ -106,6 +107,11 @@ pub fn reset_progress(course: &str) -> Result<(), String> {
 /// Local folder for progress and drafts. Android has no XDG/HOME, so fall back to the
 /// app's own files directory (the package id from Dioxus.toml).
 pub fn data_dir() -> Result<std::path::PathBuf, String> {
+    if crate::pilot_source::enabled() {
+        let dir = std::env::temp_dir().join("mq3-player-pilot").join(std::process::id().to_string());
+        std::fs::create_dir_all(&dir).map_err(|error|error.to_string())?;
+        return Ok(dir);
+    }
     if let Some(path) = std::env::var_os("MOLIP_DATA_DIR") {
         let dir = std::path::PathBuf::from(path);
         std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;

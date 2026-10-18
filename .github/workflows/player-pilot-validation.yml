@@ -1,0 +1,45 @@
+name: Player pilot validation
+on:
+  push:
+    branches: [codex/player-content-pilot]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: player-pilot-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  native-pilot:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-15, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: pilot-${{ matrix.os }}
+          cache-on-failure: true
+      - name: Check hierarchy, legacy compatibility and isolated transport
+        run: cargo test --locked --test nested_repository_course --test repository_review_modes --test pilot_transport
+      - name: Build native debug player
+        run: cargo build --locked --bin molip-quest
+      - name: Drive the native WebView through the production player
+        env:
+          MOLIP_PILOT: '1'
+          MOLIP_PILOT_SELF_TEST: '1'
+        run: cargo run --locked --bin molip-quest
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-pilot-${{ matrix.os }}
+          path: target/pilot-native-result.json
+          if-no-files-found: warn

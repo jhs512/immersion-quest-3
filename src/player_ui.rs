@@ -26,7 +26,7 @@ pub fn RepositoryPlayer()->Element {
         progress.set(HashMap::new());course.set(None);session.set(None);
         busy.set(true);message.set("gh 계정과 온라인 연결을 확인하고 있어요.".into());
         let github=Github::new();let gh=github.clone();
-        match github_player::background(move||{let user=gh.user()?;let manifest=gh.course(repository_course::COURSE_REPOSITORY);Ok((user,manifest))}).await {
+        match github_player::background(move||{let user=gh.user()?;let manifest=gh.course(repository_course::initial_repository());Ok((user,manifest))}).await {
             Ok((user,manifest))=>{session.set(Some(Session{github,user}));match manifest {Ok(c)=>{course.set(Some(c));message.set(String::new());},Err(e)=>message.set(e)}},
             Err(e)=>{session.set(None);course.set(None);message.set(e);}
         }
