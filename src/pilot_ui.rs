@@ -31,7 +31,15 @@ pub fn PilotPlayer() -> Element {
         let destination=if let Some(phase)=restart_phase {
             pilot_source::data_dir().map(|directory|directory.join(format!("restart-{phase}.json")))
         } else {Ok(std::path::PathBuf::from("target/pilot-native-result.json"))};
-        let written=destination.and_then(|path|std::fs::write(path,result.to_string()).map_err(|error|error.to_string()));
+        let written=destination.and_then(|path|{
+            use std::io::Write;
+            let parent=path.parent().ok_or("검증 결과 폴더 오류")?;
+            let mut temporary=tempfile::NamedTempFile::new_in(parent).map_err(|error|error.to_string())?;
+            temporary.write_all(result.to_string().as_bytes()).map_err(|error|error.to_string())?;
+            temporary.as_file().sync_all().map_err(|error|error.to_string())?;
+            temporary.persist(path).map_err(|error|error.to_string())?;
+            Ok::<_,String>(())
+        });
         std::process::exit(if written.is_ok() && result["passed"] == true { 0 } else { 1 });
     });
     if setup_preview() { return rsx! {div {class:"repository-player needs-gh",

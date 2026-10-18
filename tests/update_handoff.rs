@@ -123,3 +123,33 @@ fn windows_handoff_requires_absolute_executable_paths_and_a_real_process_id() {
     assert!(windows_script(&installer,&app,0).is_err());
     assert!(windows_script(&root.path().join("bad\npath.exe"),&app,123).is_err());
 }
+
+#[cfg(windows)]
+#[test]
+fn failed_windows_installation_still_reopens_when_its_log_cannot_be_written() {
+    use std::{process::Command,os::windows::process::CommandExt};
+    let root=tempfile::Builder::new().prefix("mq3-handoff's ").tempdir().unwrap();
+    let installer=root.path().join("installer.exe");let player=root.path().join("player.exe");
+    let source=root.path().join("fixture.rs");
+    std::fs::write(&source,r#"fn main(){if std::env::args().any(|arg|arg=="/VERYSILENT"){std::process::exit(42);}std::fs::write(std::env::var_os("MQ3_HANDOFF_RELAUNCH_MARKER").unwrap(),std::process::id().to_string()).unwrap();}"#).unwrap();
+    let build=Command::new(std::env::var_os("RUSTC").unwrap_or_else(||"rustc".into())).arg(&source).arg("-o").arg(&installer).creation_flags(0x08000000).output().unwrap();
+    assert!(build.status.success(),"{}",String::from_utf8_lossy(&build.stderr));
+    std::fs::copy(&installer,&player).unwrap();
+    // A directory at the log path makes Add-Content fail without changing system ACLs.
+    std::fs::create_dir(root.path().join("installer.exe.handoff.log")).unwrap();
+    let marker=root.path().join("reopened.txt");
+    let script=molip_quest::update_handoff::windows_script(&installer,&player,99999999).unwrap();
+    let output=Command::new("powershell.exe").args(["-NoProfile","-NonInteractive","-Command",&script])
+        .env("MQ3_HANDOFF_RELAUNCH_MARKER",&marker).creation_flags(0x08000000).output().unwrap();
+    assert!(!output.status.success(),"A failed installer must remain a failure");
+    let deadline=std::time::Instant::now()+std::time::Duration::from_secs(8);
+    while !marker.exists(){
+        assert!(std::time::Instant::now()<deadline,"Player was not reopened: {}",String::from_utf8_lossy(&output.stderr));
+        std::thread::sleep(std::time::Duration::from_millis(50));
+    }
+    // The marker is produced by the relaunched test executable; wait for its exit.
+    let pid=std::fs::read_to_string(marker).unwrap().parse::<u32>().unwrap();
+    use windows_sys::Win32::{Foundation::CloseHandle,System::Threading::{OpenProcess,WaitForSingleObject}};
+    let process=unsafe{OpenProcess(0x0010_0000,0,pid)};
+    if !process.is_null(){let outcome=unsafe{WaitForSingleObject(process,8000)};unsafe{CloseHandle(process)};assert_eq!(outcome,0);}
+}

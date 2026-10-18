@@ -12,16 +12,19 @@ pub fn windows_script(installer:&Path,executable:&Path,pid:u32)->Result<String,S
 $installer={installer}
 $executable={executable}
 $log="$installer.handoff.log"
+function Write-HandoffLog($message) {{
+  try {{Add-Content -LiteralPath $log -Value $message -ErrorAction Stop}} catch {{}}
+}}
 Wait-Process -Id {pid} -ErrorAction SilentlyContinue
 $code=1
 try {{
   $installed=Start-Process -FilePath $installer -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/CLOSEAPPLICATIONS' -Wait -PassThru
   $code=$installed.ExitCode
-  if ($code -ne 0) {{Add-Content -LiteralPath $log -Value "Installer exit: $code"}}
-}} catch {{Add-Content -LiteralPath $log -Value ($_.ToString())}}
+  if ($code -ne 0) {{Write-HandoffLog "Installer exit: $code"}}
+}} catch {{Write-HandoffLog ($_.ToString())}}
 if (Test-Path -LiteralPath $executable) {{
-  try {{Start-Process -FilePath $executable}} catch {{$code=1;Add-Content -LiteralPath $log -Value ($_.ToString())}}
-}} else {{$code=1;Add-Content -LiteralPath $log -Value 'Player executable missing'}}
+  try {{Start-Process -FilePath $executable}} catch {{$code=1;Write-HandoffLog ($_.ToString())}}
+}} else {{$code=1;Write-HandoffLog 'Player executable missing'}}
 exit $code
 "#,installer=quote(installer)?,executable=quote(executable)?))
 }
