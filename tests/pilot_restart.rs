@@ -1,3 +1,4 @@
+#![cfg(debug_assertions)]
 use molip_quest::{
     github_player::Github,
     issue_progress::{EventKind, LearningEvent, ProgressKey, StudyMode},

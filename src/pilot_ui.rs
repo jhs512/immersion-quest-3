@@ -13,7 +13,11 @@ pub fn PilotPlayer() -> Element {
     let window = ();
     use_future(|| async move {
         if !pilot_source::enabled() || std::env::var_os("MOLIP_PILOT_SELF_TEST").is_none() { return; }
-        let mut bridge = document::eval(include_str!("../tools/player-pilot-native.js"));
+        let restart_phase=std::env::var("MOLIP_PILOT_SELF_TEST").ok().and_then(|mode|mode.strip_prefix("restart-").map(str::to_owned)).filter(|phase|matches!(phase.as_str(),"seed"|"reopen"));
+        let script=if let Some(phase)=&restart_phase {
+            format!("window.mq3RestartPhase={};{}",serde_json::to_string(phase).unwrap(),include_str!("../tools/player-pilot-restart.js"))
+        } else {include_str!("../tools/player-pilot-native.js").to_owned()};
+        let mut bridge = document::eval(&script);
         let result = match tokio::time::timeout(std::time::Duration::from_secs(240), bridge.recv::<serde_json::Value>()).await {
             Ok(Ok(result)) => result,
             _ => serde_json::json!({"passed":false,"error":"Native WebView test timed out or disconnected"}),
@@ -22,7 +26,10 @@ pub fn PilotPlayer() -> Element {
         let result = if matches!(&exit_preparation, Ok(Ok(_))) { result } else {
             serde_json::json!({"passed":false,"error":"Practice shutdown before exit failed"})
         };
-        let written = std::fs::write("target/pilot-native-result.json", result.to_string());
+        let destination=if let Some(phase)=restart_phase {
+            pilot_source::data_dir().map(|directory|directory.join(format!("restart-{phase}.json")))
+        } else {Ok(std::path::PathBuf::from("target/pilot-native-result.json"))};
+        let written=destination.and_then(|path|std::fs::write(path,result.to_string()).map_err(|error|error.to_string()));
         std::process::exit(if written.is_ok() && result["passed"] == true { 0 } else { 1 });
     });
     if setup_preview() { return rsx! {div {class:"repository-player needs-gh",
