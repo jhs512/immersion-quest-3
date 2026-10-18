@@ -96,3 +96,26 @@ fn separate_processes_agree_on_the_same_first_repository() {
     let paths=(0..3).map(|index|std::fs::read_to_string(root.path().join(format!("worker-{index}"))).unwrap()).collect::<std::collections::BTreeSet<_>>();
     assert_eq!(paths.len(),1,"Separate players must not publish competing first repositories");
 }
+
+#[test]
+fn interrupted_merge_is_preserved_until_the_student_explicitly_resets() {
+    let root=tempfile::tempdir().unwrap();let store=GitPracticeStore::new(root.path()).unwrap();
+    {
+        let practice=store.open("merge",GitExercise::default()).unwrap();
+        assert!(practice.git(&["switch","-c","side"]).unwrap().success);
+        std::fs::write(practice.work().join("tracked.txt"),"side\n").unwrap();
+        assert!(practice.git(&["commit","-am","Side"]).unwrap().success);
+        assert!(practice.git(&["switch","main"]).unwrap().success);
+        std::fs::write(practice.work().join("tracked.txt"),"main\n").unwrap();
+        assert!(practice.git(&["commit","-am","Main"]).unwrap().success);
+        assert!(!practice.git(&["merge","side"]).unwrap().success);
+        assert!(practice.work().join(".git/MERGE_HEAD").is_file());
+    }
+    let mut reopened=store.open("merge",GitExercise::default()).unwrap();
+    assert!(reopened.work().join(".git/MERGE_HEAD").is_file());
+    assert!(reopened.git(&["status","--porcelain"]).unwrap().stdout.contains("UU tracked.txt"));
+    reopened.reset().unwrap();
+    assert!(!reopened.work().join(".git/MERGE_HEAD").exists());
+    assert_eq!(reopened.git(&["status","--porcelain"]).unwrap().stdout,"");
+    assert_eq!(reopened.git(&["rev-list","--count","HEAD"]).unwrap().stdout.trim(),"1");
+}
