@@ -6,6 +6,12 @@ use std::sync::{Mutex, OnceLock};
 pub const REPOSITORY: &str = "mq3-validation/course";
 pub fn enabled() -> bool { cfg!(debug_assertions) && std::env::var_os("MOLIP_PILOT").is_some() }
 
+pub fn data_dir() -> Result<std::path::PathBuf, String> {
+    static DIRECTORY: OnceLock<Result<tempfile::TempDir, String>> = OnceLock::new();
+    DIRECTORY.get_or_init(|| tempfile::Builder::new().prefix("mq3-player-pilot-").tempdir().map_err(|error|error.to_string()))
+        .as_ref().map(|directory|directory.path().to_path_buf()).map_err(Clone::clone)
+}
+
 struct Store { version: char, issue: Option<Value>, comments: Vec<Value> }
 fn store() -> &'static Mutex<Store> {
     static STORE: OnceLock<Mutex<Store>> = OnceLock::new();

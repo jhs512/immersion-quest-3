@@ -108,9 +108,7 @@ pub fn reset_progress(course: &str) -> Result<(), String> {
 /// app's own files directory (the package id from Dioxus.toml).
 pub fn data_dir() -> Result<std::path::PathBuf, String> {
     if crate::pilot_source::enabled() {
-        let dir = std::env::temp_dir().join("mq3-player-pilot").join(std::process::id().to_string());
-        std::fs::create_dir_all(&dir).map_err(|error|error.to_string())?;
-        return Ok(dir);
+        return crate::pilot_source::data_dir();
     }
     if let Some(path) = std::env::var_os("MOLIP_DATA_DIR") {
         let dir = std::path::PathBuf::from(path);
