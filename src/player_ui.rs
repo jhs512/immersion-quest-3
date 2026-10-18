@@ -412,14 +412,14 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                     }}},"제출"}
                 }
             }
-            div {class:"editor-pane",style:if task.git_terminal.is_some()&&task.interaction.is_some(){"display:flex;flex-direction:column"}else{""},
+            div {class:if task.git_terminal.is_some()&&task.interaction.is_some(){"editor-pane git-choice-editor"}else{"editor-pane"},style:if task.git_terminal.is_some()&&task.interaction.is_some(){"display:grid;grid-template-rows:minmax(0,2fr) minmax(0,3fr);gap:6px"}else{""},
                 if let Some(exercise)=task.git_terminal.clone() {
-                    div {style:if narrating(){"display:none"}else if task.interaction.is_some(){"flex:1;min-height:90px;overflow:hidden"}else{"height:100%"},
+                    div {style:if narrating(){"display:none"}else if task.interaction.is_some(){"min-height:0;overflow:hidden"}else{"height:100%"},
                         {rsx!{crate::git_terminal_ui::GitTerminal {key:"git-{reset}",exercise:exercise.clone(),demo:false,scope:Some(key.clone()),fresh:reset()>0,onready:move |practice|git_practice.set(Some(practice)),oncontrol:move |control|git_control.set(Some(control))}}}
                     }
-                    if narrating() {div {style:if task.interaction.is_some(){"flex:1;min-height:90px;overflow:hidden"}else{"height:100%"},crate::git_terminal_ui::GitTerminal {exercise,demo:true,onready:move |_|{},oncontrol:move |_|{}}}}
+                    if narrating() {div {style:if task.interaction.is_some(){"min-height:0;overflow:hidden"}else{"height:100%"},crate::git_terminal_ui::GitTerminal {exercise,demo:true,onready:move |_|{},oncontrol:move |_|{}}}}
                     if let Some(interaction)=task.interaction.clone() {
-                        div {style:"flex:none;max-height:50%;overflow:auto",
+                        div {class:"git-choice-answer",style:"min-height:0;overflow:hidden",
                             crate::interaction_ui::InteractionEditor {interaction,value:code(),disabled:busy()||narrating(),onchange:{let key=key.clone();move |value:String|{code.set(value);if !narrating(){let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}}}}
                         }
                     }

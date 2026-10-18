@@ -446,7 +446,7 @@
     window.mq3GitLayoutViewport={width:innerWidth,height:innerHeight};
     const hybridPane=document.querySelector('.editor-pane').getBoundingClientRect();
     const choiceBounds=document.querySelector('.answer-interaction').getBoundingClientRect();
-    if(choiceBounds.bottom>hybridPane.bottom+1||choiceBounds.top<hybridPane.top)throw new Error('Git choices escape editor pane');
+    if(choiceBounds.bottom>hybridPane.bottom+1||choiceBounds.top<hybridPane.top)throw new Error(`Git choices escape editor pane: ${JSON.stringify({pane:hybridPane.toJSON(),choices:choiceBounds.toJSON(),viewport:{width:innerWidth,height:innerHeight}})}`);
     document.querySelector('input[type=radio][value="record-changed"]').click();
     await click('제출');await wait(()=>status('다시 풀어보세요'),'wrong Git interpretation');
     document.querySelector('input[type=radio][value="working-only"]').click();
@@ -471,6 +471,37 @@
     await runGit('git add -- memo.txt');await runGit('git commit -m "current memo"');
     await click('제출');await wait(()=>status('수업 완료'),'all six first Git steps solved');
     checked.push('approved six-step Git lesson at normal height: real commands, equivalent add, wrong snapshot rejection, choice reset and isolated teacher playback');
+
+    if (window.mq3IncludeGitBranch) {
+      await click('버전 l');
+      await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('git-branch-1'),'approved branch lesson');
+      await click('풀모드 시작');await gitReady();molipAgent.setVoice(false);
+      await click('제출');await wait(()=>status('다시 풀어보세요'),'branch initially absent');
+      await runGit('git branch feature');await click('제출');await wait(()=>status('통과했어요'),'branch creation without switching');
+      await nextGit();await runGit('git switch feature');await click('제출');await wait(()=>status('통과했어요'),'branch switch');
+      await nextGit();await runGit('git add -- guide.txt');await runGit('git commit -m "feature record"');await click('제출');await wait(()=>status('통과했어요'),'feature record preserves main');
+      await nextGit();await runGit('git merge feature');await click('제출');await wait(()=>status('통과했어요'),'fast forward merge');
+      await nextGit();await runGit('git merge --no-edit feature');await click('제출');await wait(()=>status('통과했어요'),'two parent merge');
+      await nextGit();
+      document.querySelector('input[type=radio][value="always-conflict"]').click();
+      await wait(()=>document.querySelector('.answer-state-bridge')?.value==='always-conflict','same-file choice acknowledged');
+      await click('해설 재생 · 정답 실행');await wait(()=>molipAgent.running,'same-file merge teacher');
+      await wait(()=>!molipAgent.running&&!button('해설 재생 · 정답 실행').disabled,'same-file merge teacher ends',60000);
+      await wait(()=>document.querySelector('input[type=radio][value="always-conflict"]')?.checked,'branch choice restored');
+      await runGit('git rev-list --count HEAD');
+      if(!mq3GitTerminal.text().split('\n').some(line=>line.trim()==='2'))throw new Error('Teacher merged student history');
+      await click('제출');await wait(()=>status('다시 풀어보세요'),'teacher choice does not pass student');
+      document.querySelector('input[type=radio][value="auto-merge"]').click();await click('제출');await wait(()=>status('통과했어요'),'same-file changes can merge');
+      await nextGit();document.querySelector('input[type=radio][value="choose-content"]').click();await click('제출');await wait(()=>status('통과했어요'),'real conflict needs content decision');
+      await nextGit();await runGit('git restore --source=feature --worktree -- guide.txt');
+      await click('제출');await wait(()=>status('다시 풀어보세요'),'file-only resolution rejected');
+      await runGit('git add -- guide.txt');await click('제출');await wait(()=>status('통과했어요'),'index resolution accepted');
+      await click('초기화');await gitReady();await click('제출');await wait(()=>status('다시 풀어보세요'),'reset recreated conflict');
+      await runGit('git restore --source=feature --worktree -- guide.txt');await runGit('git add -- guide.txt');await click('제출');await wait(()=>status('통과했어요'),'resolve again after reset');
+      await nextGit();await click('제출');await wait(()=>status('다시 풀어보세요'),'prepared resolution is not a merge commit');
+      await runGit('git commit --no-edit');await click('제출');await wait(()=>status('수업 완료'),'all nine branch and merge steps');
+      checked.push('approved nine-step branch lesson: branch pointers, fast forward and two-parent merge, independent demonstration, conflict decision, staged resolution, reset and final merge');
+    }
 
     dioxus.send({passed: true, checked, gitLayoutViewport:window.mq3GitLayoutViewport, userAgent: navigator.userAgent, viewport: {width: innerWidth, height: innerHeight}});
   } catch (error) {
