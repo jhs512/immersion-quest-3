@@ -320,9 +320,9 @@ fn UpdateGate() -> Element {
                 Ok(path) => {
                     phase.set(UpdatePhase::Installing);
                     // Returns only when the hand-over failed; otherwise the process exits here.
-                    if let Err(e) = updater::install_and_restart(&path) {
-                        phase.set(UpdatePhase::Failed(e));
-                    }
+                    let result = tokio::task::spawn_blocking(move || updater::install_and_restart(&path))
+                        .await.unwrap_or_else(|error| Err(error.to_string()));
+                    if let Err(error) = result { phase.set(UpdatePhase::Failed(error)); }
                 }
                 Err(e) => phase.set(UpdatePhase::Failed(e)),
             }

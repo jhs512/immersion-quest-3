@@ -2,6 +2,7 @@
 #[cfg(windows)]
 pub struct ProcessScope(windows_sys::Win32::Foundation::HANDLE);
 #[cfg(windows)]
+// Job Object operations are thread-safe; access is serialized by PracticeScope.
 unsafe impl Send for ProcessScope {}
 #[cfg(windows)]
 impl ProcessScope {

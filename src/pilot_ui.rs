@@ -13,6 +13,10 @@ pub fn PilotPlayer() -> Element {
             Ok(Ok(result)) => result,
             _ => serde_json::json!({"passed":false,"error":"Native WebView test timed out or disconnected"}),
         };
+        let result = match tokio::task::spawn_blocking(molip_quest::setup_terminal::shutdown_practices).await {
+            Ok(Ok(())) => result,
+            failure => serde_json::json!({"passed":false,"error":format!("Practice shutdown before exit failed: {failure:?}")}),
+        };
         let written = std::fs::write("target/pilot-native-result.json", result.to_string());
         std::process::exit(if written.is_ok() && result["passed"] == true { 0 } else { 1 });
     });
