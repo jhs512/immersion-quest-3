@@ -138,3 +138,12 @@ fn feature_record_preserves_the_main_branch_at_its_parent() {
     assert!(practice.git(&["branch","-f","main","feature"]).unwrap().success);
     assert!(!practice.check_exercise().unwrap().passed,"Moving main too must not satisfy branch isolation");
 }
+
+#[test]
+fn a_same_named_tag_does_not_change_the_current_branch_goal() {
+    let exercise:GitExercise=serde_json::from_value(serde_json::json!({"state_goal":{"current_branch":"main"}})).unwrap();
+    let practice=GitPractice::new(exercise).unwrap();
+    assert!(practice.check_exercise().unwrap().passed);
+    assert!(practice.git(&["tag","main"]).unwrap().success);
+    assert!(practice.check_exercise().unwrap().passed,"A tag must not make a main branch appear to be heads/main");
+}

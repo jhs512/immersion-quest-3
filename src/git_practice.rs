@@ -242,9 +242,10 @@ impl GitPractice {
         let repository=self.execute(&self.work(),&["rev-parse","--is-inside-work-tree"],false)?;
         record("실습 저장소".into(),repository.status.success()&&repository.stdout==b"true\n","true".into(),String::from_utf8_lossy(&repository.stdout).into());
         if let Some(expected)=&goal.current_branch {
-            let result=self.execute(&self.work(),&["symbolic-ref","--quiet","--short","HEAD"],false)?;
+            let result=self.execute(&self.work(),&["symbolic-ref","--quiet","HEAD"],false)?;
             let actual=String::from_utf8_lossy(&result.stdout).trim().to_owned();
-            record("현재 브랜치".into(),result.status.success()&&actual==*expected,expected.clone(),actual);
+            let expected=format!("refs/heads/{expected}");
+            record("현재 브랜치".into(),result.status.success()&&actual==expected,expected,actual);
         }
         if let Some(references)=&goal.references {
             for (reference,expected) in references {
