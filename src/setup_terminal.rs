@@ -35,17 +35,21 @@ fn practice_scopes() -> &'static std::sync::Mutex<PracticeRegistry> {
 }
 struct PracticeScope(SharedScope);
 impl PracticeScope {
-    fn attach(child: &dyn portable_pty::Child) -> Result<Self, String> {
-        let scope = std::sync::Arc::new(std::sync::Mutex::new(Some(crate::process_scope::ProcessScope::attach(child)?)));
+    fn spawn(start: impl FnOnce() -> Result<Box<dyn portable_pty::Child + Send + Sync>, String>)
+        -> Result<(Box<dyn portable_pty::Child + Send + Sync>, Self), String> {
+        // The admission lock covers spawn itself, not just registration. Exit
+        // cannot pass a worker that has created a child but not registered it.
         let mut registry = practice_scopes().lock().unwrap_or_else(|e| e.into_inner());
-        if registry.exiting {
-            drop(registry);
-            terminate_scope(&scope)?;
-            return Err("업데이트를 준비하고 있어요. 잠시 뒤 다시 여세요.".into());
-        }
+        if registry.exiting { return Err("업데이트를 준비하고 있어요. 잠시 뒤 다시 여세요.".into()); }
+        let mut child = start()?;
+        let process = match crate::process_scope::ProcessScope::attach(child.as_ref()) {
+            Ok(process) => process,
+            Err(error) => { let _ = child.kill(); let _ = child.wait(); return Err(error); }
+        };
+        let scope = std::sync::Arc::new(std::sync::Mutex::new(Some(process)));
         registry.scopes.retain(|entry| entry.strong_count() > 0);
         registry.scopes.push(std::sync::Arc::downgrade(&scope));
-        Ok(Self(scope))
+        Ok((child, Self(scope)))
     }
     fn terminate(&self) -> Result<(), String> { terminate_scope(&self.0) }
 }
@@ -119,10 +123,11 @@ impl SetupTerminal {
         }
         let mut reader=pair.master.try_clone_reader().map_err(|e|e.to_string())?;
         let writer=pair.master.take_writer().map_err(|e|e.to_string())?;
-        let mut child=pair.slave.spawn_command(command).map_err(|e|e.to_string())?;
-        let scope=if practice.is_some(){match PracticeScope::attach(child.as_ref()) {
-            Ok(scope)=>Some(scope),Err(error)=>{let _=child.kill();let _=child.wait();return Err(error);}
-        }}else{None};
+        let start = || pair.slave.spawn_command(command).map_err(|error| error.to_string());
+        let (child, scope) = if practice.is_some() {
+            let (child, scope) = PracticeScope::spawn(start)?;
+            (child, Some(scope))
+        } else { (start()?, None) };
         drop(pair.slave);
         let (tx,rx)=mpsc::channel(32);
         // Bytes stay in memory; TextDecoder in the terminal handles split UTF-8 sequences.
