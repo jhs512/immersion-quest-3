@@ -19,6 +19,26 @@
   // WebKit can report root clientWidth before subtracting the body's classic scrollbar.
   const viewportWidth = () => Math.min(document.documentElement.clientWidth, document.body.clientWidth);
   const status = text => document.querySelector('.execution-status')?.textContent.includes(text);
+  const editorState = () => ({
+    task: document.querySelector('.repository-task')?.dataset.taskId,
+    title: document.querySelector('.repository-task .problem-pane h2')?.textContent,
+    editor: window.molipCodeEditors?.getValue(),
+    model: document.querySelector('.repository-task [data-code-editor]')?.dataset.editorValue,
+    execution: document.querySelector('.result-pane')?.dataset.executionState,
+    status: document.querySelector('.execution-status')?.textContent,
+  });
+  const writeCode = async (source, title) => {
+    // Different tasks can have identical starter text. Do not use that text as
+    // evidence that the newly selected task and its editor have both mounted.
+    await wait(() => editorState().title === title && editorState().editor != null, `${title}: editor mounted`);
+    if (!molipCodeEditors.setValue(source)) throw new Error(`${title}: editor rejected input`);
+    // setValue dispatches input through the native bridge. Submit only after the
+    // task's Rust state has echoed it, rather than after an arbitrary frame delay.
+    await wait(() => {
+      const state = editorState();
+      return state.title === title && state.editor === source && state.model === source;
+    }, `${title}: student input reached task state`);
+  };
   try {
     const updateBanner = () => document.querySelector('.update-banner');
     await wait(() => updateBanner(), 'startup update offer');
@@ -97,10 +117,17 @@
     document.querySelector('#app-fullscreen-toggle').click();
 
     await wait(() => window.molipCodeEditors?.getValue() != null, 'editor mounted');
+    for (let round=0; round<3; round++) {
+      await click('문제 2 · 값 5 확인');
+      await writeCode(`console.log(${51+round});`, '값 5 확인');
+      await click('문제 1 · 값 3 확인');
+      await writeCode(`console.log(${31+round});`, '값 3 확인');
+    }
+    checked.push('repeated task transitions keep editor input bound to the selected task');
     await click('초기화');
     await click('제출');
     await wait(() => status('다시 풀어보세요'), 'wrong answer rejected');
-    molipCodeEditors.setValue('// 결과를 확인해요.\nconsole.log(3);\n');
+    await writeCode('// 결과를 확인해요.\nconsole.log(3);\n', '값 3 확인');
     await click('코드 실행');
     await wait(() => document.querySelector('.output')?.textContent.trim() === '3', 'real Node execution');
     await click('제출');
@@ -110,7 +137,7 @@
     await wait(() => molipCodeEditors.getValue()?.includes('console.log(0)'), 'reset');
     await click('문제 2 · 값 5 확인');
     await wait(() => document.querySelector('.lesson-outline')?.textContent.includes('출력 결과를 확인해요: 5'), 'step goals');
-    molipCodeEditors.setValue('console.log(5);\n');
+    await writeCode('console.log(5);\n', '값 5 확인');
     await click('제출');
     await wait(() => status('수업 완료'), 'original completion');
     checked.push('reset and step context');
@@ -126,8 +153,7 @@
     await wait(() => document.querySelector('.study-progress')?.textContent.includes('추가 학습 있음'), 'old completion retained');
     if (!document.querySelector('.study-progress')?.textContent.includes('2 / 3')) throw new Error('Stable achievements lost');
     await click('문제 3 · 값 8 확인');
-    await wait(() => molipCodeEditors.getValue()?.includes('console.log(0)'), 'added task editor');
-    molipCodeEditors.setValue('console.log(8);\n');
+    await writeCode('console.log(8);\n', '값 8 확인');
     await click('제출');
     await wait(() => status('수업 완료'), 'additional learning completion');
     await click('손상 후보 검사');
@@ -380,6 +406,6 @@
 
     dioxus.send({passed: true, checked, userAgent: navigator.userAgent, viewport: {width: innerWidth, height: innerHeight}});
   } catch (error) {
-    dioxus.send({passed: false, checked, error: String(error), screen: document.body.innerText.slice(0, 4000)});
+    dioxus.send({passed: false, checked, error: String(error), editorState: editorState(), screen: document.body.innerText.slice(0, 4000)});
   }
 })();
