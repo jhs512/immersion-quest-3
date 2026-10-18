@@ -20,6 +20,8 @@ async fn nine_java_steps_and_every_teacher_run_agree_with_actual_jdk_output() {
                 },
                 "order_answer"=>source=task.example_for_answer(&action["ids"].to_string()).unwrap(),
                 "run"=>{
+                    let line=action["lines"][0].as_u64().unwrap() as usize;
+                    assert!(source.lines().nth(line-1).unwrap().contains("print"),"Highlight must name an actual output statement");
                     let result=if task.has_runnable_example(){lesson_runner::run_example(task,&source,"").await}else{lesson_runner::run(task,&source,"").await}.unwrap();
                     assert!(result.success,"Step {} teacher: {}",index+1,result.stderr);
                     outputs.push(result.stdout.trim_end().to_owned());

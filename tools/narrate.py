@@ -397,7 +397,9 @@ def main():
 
 
 if __name__ == "__main__":
-    if sys.argv[1:2] == ["--redesigned-java"]:
+    if sys.argv[1:2] == ["--redesigned-aice-first"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "aice-python-start", *sys.argv[2:]], check=True)
+    elif sys.argv[1:2] == ["--redesigned-java"]:
         subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "java-values", *sys.argv[2:]], check=True)
     elif sys.argv[1:2] == ["--redesigned-git"]:
         subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), *sys.argv[2:]], check=True)

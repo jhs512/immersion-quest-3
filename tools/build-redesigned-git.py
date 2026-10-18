@@ -1,4 +1,4 @@
-"""Compile approved Git and Java lessons; retain unchanged narration caches."""
+"""Compile approved practice lessons; retain unchanged narration caches."""
 import argparse
 import copy
 import hashlib
@@ -8,7 +8,7 @@ from pathlib import Path
 from lesson_prd import content_hash, validate
 
 ROOT = Path(__file__).resolve().parents[1]
-LESSONS = {'git-first': ('git_first', 'git-first-1', 'k'), 'git-branch': ('git_branch', 'git-branch-1', 'l'), 'java-values': ('java_values', 'java-values-1', 'n')}
+LESSONS = {'git-first': ('git_first', 'git-first-1', 'k'), 'git-branch': ('git_branch', 'git-branch-1', 'l'), 'java-values': ('java_values', 'java-values-1', 'n'), 'aice-python-start': ('aice_python_start', 'aice-python-start-1', 'o')}
 
 
 def digest(value):
