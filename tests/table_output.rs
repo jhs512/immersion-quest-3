@@ -10,3 +10,11 @@ async fn previews_follow_printed_selections_instead_of_unprinted_whole_table() {
     }).collect();
     assert_eq!(tables,vec![(vec!["인덱스".to_owned(),"id".into(),"minutes".into()],2),(vec!["인덱스".to_owned(),"minutes".into()],4)]);
 }
+
+#[tokio::test]
+async fn redirected_stdout_does_not_publish_a_hidden_table_as_a_visible_result() {
+    let result=run_python("import pandas as pd\nfrom contextlib import redirect_stdout\ndf=pd.DataFrame({'value':[1,2]})\nwith open('hidden.txt','w') as output, redirect_stdout(output):\n    print(df.head(1))\n","").await.unwrap();
+    assert!(result.success,"{}",result.stderr);
+    assert!(result.stdout.is_empty());
+    assert!(result.artifacts.is_empty(),"A redirected print is not visible table output");
+}

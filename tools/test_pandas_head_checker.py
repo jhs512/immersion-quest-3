@@ -23,6 +23,8 @@ class HeadCheckerTests(unittest.TestCase):
         self.assertFalse(self.accepts(prefix + 'df = df.head(3)\nprint(df)\n'))
         self.assertFalse(self.accepts(prefix + 'print("a memorized table")\n'))
         self.assertFalse(self.accepts(prefix + 'raise SystemExit(0)\n'))
+        self.assertFalse(self.accepts(prefix + "with open('hidden.txt','w') as output:\n    print(df.head(3),file=output)\n"))
+        self.assertFalse(self.accepts(prefix + "from contextlib import redirect_stdout\nwith open('hidden.txt','w') as output, redirect_stdout(output):\n    print(df.head(3))\n"))
 
 
 if __name__ == '__main__':

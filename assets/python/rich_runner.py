@@ -15,6 +15,8 @@ artifacts = []
 seen_images = set()
 seen_tables = set()
 table_references = []
+visible_stdout = sys.stdout
+printed_table = False
 
 def capture_table(value, name='표'):
     pd = sys.modules.get('pandas')
@@ -65,7 +67,14 @@ def display(*values):
 
 def capture_print(*values, **kwargs):
     # Preserve stdout while making the rich preview match the printed selection.
-    if kwargs.get('file') is None or kwargs.get('file') is sys.stdout:
+    global printed_table
+    pd = sys.modules.get('pandas')
+    if pd is not None and any(isinstance(value, (pd.DataFrame, pd.Series)) for value in values):
+        printed_table = True
+    destination = kwargs.get('file')
+    if destination is None:
+        destination = sys.stdout
+    if destination is visible_stdout:
         for value in values:
             capture_table(value)
     builtins.print(*values, **kwargs)
@@ -115,7 +124,7 @@ finally:
     try:
         # If the learner printed/displayed a selection, do not add an unrelated
         # original DataFrame merely because it remains in the namespace.
-        if not seen_tables:
+        if not seen_tables and not printed_table:
             for name, value in list(scope.items()):
                 if not name.startswith('_'):
                     capture_table(value, name)

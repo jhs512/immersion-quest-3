@@ -20,8 +20,16 @@ if not found:
     raise AssertionError('준비 자료의 이름을 그대로 두세요.')
 ast.fix_missing_locations(tree)
 shown = []
+visible_output = sys.stdout
+original_print = print
 def capture(*args, **kwargs):
-    shown.append([value.copy(deep=True) if isinstance(value, pd.DataFrame) else value for value in args])
+    destination = kwargs.get('file')
+    if destination is None:
+        destination = sys.stdout
+    if destination is visible_output:
+        shown.append([value.copy(deep=True) if isinstance(value, pd.DataFrame) else value for value in args])
+    else:
+        original_print(*args, **kwargs)
 namespace = {'__name__': '__main__', 'print': capture}
 exec(compile(tree, 'main.py', 'exec'), namespace)
 original = pd.DataFrame(payload['delivery'])
