@@ -651,7 +651,8 @@
     };
     session.blockInput = event => {
       if (!event.isTrusted || event.target.closest?.('[data-explanation-stop], .narration-speed')) return;
-      if (event.type === 'keydown' && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'c') return;
+      if (event.type === 'keydown' && (['Tab','Escape','Home','End','PageUp','PageDown'].includes(event.key) || event.key.startsWith('Arrow'))) return;
+      if (event.type === 'keydown' && (event.ctrlKey || event.metaKey) && ['a','c'].includes(event.key.toLowerCase())) return;
       event.preventDefault();event.stopImmediatePropagation();
     };
     for (const name of ['click','keydown','beforeinput','paste','drop']) session.root.addEventListener(name, session.blockInput, true);
