@@ -294,6 +294,9 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     rsx!{
         article {class:"lesson repository-task","data-task-id":task.id.clone(),"data-narrating":narrating().to_string(),"data-git-ready":git_practice().is_some().to_string(),
             section {class:"problem-pane",h2 {"{task.title}"}crate::ui::Markdown{text:task.goal.clone()}
+                for material in &task.supporting_materials {
+                    SupportingMaterialPanel {key:"{task.id}/{material.id}", material:material.clone()}
+                }
                 if !task.required {p {class:"challenge-note","선택 도전이에요. 수업 완료 후에 풀어도 돼요."}}
                 if !task.hints.is_empty() {div {class:"task-hints",for (index,hint) in task.hints.iter().enumerate(){details {summary {"힌트 {index+1}"}crate::ui::Markdown{text:hint.clone()}}}}}
                 button {onclick:{let record=record_explanation.clone();move |_|{if !show_solution(){record();}show_solution.set(!show_solution());}},"정답과 풀이 보기"}
@@ -439,6 +442,65 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                 }
             }
             }
+        }
+    }
+}
+
+#[component]
+fn SupportingMaterialPanel(material: molip_quest::supporting_materials::SupportingMaterial) -> Element {
+    let mut expanded = use_signal(|| false);
+    rsx! {
+        div {class:"supporting-material",
+            button {r#type:"button",aria_expanded:expanded().to_string(),
+                onclick:move |_| expanded.set(!expanded()),
+                "{material.title} · "
+                if expanded() {"접기"} else {"펼쳐 보기"}
+            }
+            if expanded() {
+                match &material.content {
+                    molip_quest::supporting_materials::MaterialContent::Interactive { variants } => rsx! {
+                        InteractiveVisualization {variants:variants.clone()}
+                    },
+                    molip_quest::supporting_materials::MaterialContent::Image { image }
+                    | molip_quest::supporting_materials::MaterialContent::Comic { image } => rsx! {
+                        figure {img {src:format!("data:image/png;base64,{}",image.png_base64),alt:image.alt.clone(),style:"max-width:100%;height:auto;"}
+                            figcaption {"{image.alt}"}
+                        }
+                    },
+                    molip_quest::supporting_materials::MaterialContent::Mermaid { source } => rsx! {iframe {title:material.title.clone(),"sandbox":"allow-scripts",
+                        srcdoc:molip_quest::supporting_materials::diagram_document(source),style:"width:100%;height:320px;border:0;border-radius:8px;"}},
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn InteractiveVisualization(variants: Vec<molip_quest::supporting_materials::VisualVariant>) -> Element {
+    let mut selected = use_signal(|| 0usize);
+    let mut position = use_signal(|| 0usize);
+    let Some(variant) = variants.get(selected()) else { return rsx!{}; };
+    let Some(frame) = variant.frames.get(position()) else { return rsx!{}; };
+    let last = variant.frames.len() - 1;
+    let count = variants.len();
+    rsx! {
+        section {class:"interactive-visualization",
+            label {"조건 "
+                select {aria_label:"시각화 조건",value:selected().to_string(),onchange:move |event| {
+                    if let Ok(index) = event.value().parse::<usize>() {
+                        if index < count {selected.set(index);position.set(0);}
+                    }
+                },
+                    for (index,variant) in variants.iter().enumerate() {option {value:index.to_string(),"{variant.label}"}}
+                }
+            }
+            div {aria_live:"polite",
+                p {"{frame.caption}"}
+                table {aria_label:"현재 상태",tbody {for (name,value) in &frame.facts {tr {th {scope:"row","{name}"}td {"{value}"}}}}}
+                p {"{position()+1} / {last+1}"}
+            }
+            button {disabled:position()==0,onclick:move |_| {if position()>0 {position-=1;}},"이전 상태"}
+            button {disabled:position()==last,onclick:move |_| {if position()<last {position+=1;}},"다음 상태"}
         }
     }
 }

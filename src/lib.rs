@@ -18,6 +18,7 @@ pub mod github_player;
 pub mod pilot_source;
 pub mod lesson_runner;
 pub mod task_interaction;
+pub mod supporting_materials;
 pub mod tts;
 pub mod updater;
 pub mod update_handoff;

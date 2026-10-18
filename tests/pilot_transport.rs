@@ -38,4 +38,9 @@ fn production_github_loading_and_progress_use_only_the_isolated_pilot_store() {
     let wording=github.course(pilot_source::REPOSITORY).unwrap();
     let catalog=github.course_progress(&wording,&user).unwrap();
     assert!(molip_quest::issue_progress::status(&catalog.events[&lesson.id],&wording.lessons[0].revision,&catalog.required[&lesson.id]).current);
+    pilot_source::set_version('j').unwrap();
+    let visual_course = github.course(pilot_source::REPOSITORY).unwrap();
+    let visual_lesson = github.lesson(&visual_course.lessons[0]).unwrap();
+    assert_eq!(visual_lesson.tasks[0].supporting_materials.len(), 4);
+    assert_eq!(visual_lesson.required_tasks(), lesson.required_tasks());
 }

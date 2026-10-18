@@ -89,6 +89,8 @@ pub struct Section {
 }
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 pub struct Task {
+    #[serde(default, skip_serializing_if="Vec::is_empty")]
+    pub supporting_materials: Vec<crate::supporting_materials::SupportingMaterial>,
     #[serde(default,skip_serializing_if="Option::is_none")]
     pub git_terminal:Option<crate::git_practice::GitExercise>,
     #[serde(default, skip_serializing_if="Option::is_none")]
@@ -176,6 +178,7 @@ impl Lesson {
         if !matches!(self.schema_version,1|2) || self.id.is_empty() || self.title.is_empty() || self.tasks.is_empty() || !self.tasks.iter().any(|t| t.required) || self.tasks.len()>200 { return Err("수업 구성과 필수 문제를 확인하세요.".into()); }
         if self.schema_version==2 {self.validate_hierarchy()?;}
         for t in &self.tasks {
+            crate::supporting_materials::validate(&t.supporting_materials)?;
             if let Some(exercise)=&t.git_terminal {
                 if t.language!=TaskLanguage::Git||t.interaction.is_some(){return Err("Git 터미널 문제의 종류를 확인하세요.".into())}
                 exercise.validate()?;
