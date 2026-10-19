@@ -280,7 +280,10 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     let mut git_practice=use_signal(||None::<crate::git_terminal_ui::Practice>);
     let mut git_control=use_signal(||None::<crate::git_terminal_ui::TerminalControl>);
     let ordered_task=task.clone();
-    use_effect(move||{if ordered_task.example_order_marker.is_some(){match ordered_task.example_for_answer(&code()){Ok(source)=>{if *example_source.peek()!=source{example_source.set(source);reset.with_mut(|version|*version+=1);}},Err(error)=>message.set(error)}}});
+    // A workspace field write also notifies mapped fields. Only a changed answer
+    // should expand ordered code; writing its diagnostic must not retrigger it.
+    let ordered_answer=use_memo(move||code());
+    use_effect(move||{if ordered_task.example_order_marker.is_some(){match ordered_task.example_for_answer(&ordered_answer()){Ok(source)=>{if *example_source.peek()!=source{example_source.set(source);reset.with_mut(|version|*version+=1);}},Err(error)=>{if *message.peek()!=error{message.set(error);}}}}});
 
     let mut show_solution=use_signal(||false);
     use_drop(||{document::eval("window.molipAgent?.stop()");});

@@ -18,7 +18,7 @@
   await wait(()=>document.querySelector('.lesson-card')?.textContent.includes(pilot.revision),'remote lesson installed');
   await click('풀모드 시작');await ready();molipAgent.setVoice(false);
   const original=molipAgent.runExplanation.bind(molipAgent);
-  molipAgent.runExplanation=async actions=>{teacherResult='';return teacherResult=await original(actions);};
+  molipAgent.runExplanation=async (actions,options)=>{teacherResult='';return teacherResult=await original(actions,options);};
   for(const [index,task] of pilot.tasks.entries()){
    await wait(()=>document.querySelector('.repository-task')?.dataset.taskId===task.id,'remote step');await ready();
    const marker=[0,2,7].includes(index)?`student-marker-${index}`:null;

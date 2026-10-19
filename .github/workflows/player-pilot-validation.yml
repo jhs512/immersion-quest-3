@@ -170,7 +170,7 @@ jobs:
           subprocess.run(['cargo', 'test', '--locked', '--test', 'lesson_registry', '--test', 'content_updates', '--test', 'git_practice', '--', '--test-threads=1'], check=True)
           subprocess.run(['cargo', 'run', '--locked', '--bin', 'molip-quest'], env=dict(os.environ, MOLIP_PILOT='1', MOLIP_PILOT_SELF_TEST='1'), check=True)
           pathlib.Path('target/pilot-core-result.json').write_bytes(pathlib.Path('target/pilot-native-result.json').read_bytes())
-          for target, name in [('player_python_native', ''), ('player_table_native', ''),
+          for target, name in [('player_python_native', ''), ('player_table_native', ''), ('player_java_native', ''), ('player_invalid_order_native', ''),
               ('player_data_lessons_native', 'java_static_restore'),
               ('player_data_lessons_native', 'engineer_c_double_pointers'),
               ('player_data_lessons_native', 'aice_tensorflow'),
@@ -365,6 +365,7 @@ jobs:
         with:
           name: native-pilot-${{ matrix.os }}-${{ matrix.group }}
           path: |
+            target/pilot-invalid-order-result.json
             target/production-runtime-versions.json
             target/public-production-*.json
             target/pilot-engineer-*-result.json

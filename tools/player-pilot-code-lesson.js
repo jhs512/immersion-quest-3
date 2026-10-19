@@ -28,13 +28,13 @@
   let teacherResult='',requestedRanges=[],shownDiagrams=[],shownPlots=[],shownWeb=false;const originalExplanation=molipAgent.runExplanation.bind(molipAgent);
   const originalHighlight=molipCodeEditors.highlightLines.bind(molipCodeEditors);
   molipCodeEditors.highlightLines=(from,to,...rest)=>{if(Number.isInteger(from))requestedRanges.push([from,to??from]);return originalHighlight(from,to,...rest);};
-  molipAgent.runExplanation=async actions=>{
+  molipAgent.runExplanation=async (actions,options)=>{
    teacherResult='';requestedRanges=[];shownDiagrams=[];shownPlots=[];shownWeb=false;
    const observer=new MutationObserver(()=>{const panel=document.querySelector('.narration-memory');if(panel)shownDiagrams.push({title:panel.querySelector('figcaption')?.textContent,rows:[...panel.querySelectorAll('.narration-memory-row')].map(row=>row.textContent.replace(/\s/g,''))});for(const image of document.querySelectorAll('.plot-result img'))if(image.src.startsWith('data:image/png;base64,'))shownPlots.push(image.src);});
    const webObserver=new MutationObserver(()=>{if(document.querySelector('iframe[title="해설 웹 미리보기"]')?.getAttribute('srcdoc'))shownWeb=true;});
    webObserver.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['srcdoc']});
    observer.observe(document.body,{subtree:true,childList:true,characterData:true});
-   try{const result=await originalExplanation(actions);teacherResult=result;return result;}finally{observer.disconnect();webObserver.disconnect();}
+   try{const result=await originalExplanation(actions,options);teacherResult=result;return result;}finally{observer.disconnect();webObserver.disconnect();}
   };
   const verifyTeacher=task=>{
    if(pilot.requirePlot&&!shownPlots.length)throw Error('Teacher plot was not rendered in the output panel');
