@@ -124,82 +124,82 @@ pub fn PilotPlayer() -> Element {
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("aice-scale") {
             let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/aice-scale.json")).expect("compiled lesson");
             let tasks=&lesson["tasks"];
-            let config=serde_json::json!({"label":"AICEScale","version":"\uac00","revision":"aice-scale-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
+            let config=serde_json::json!({"label":"AICEScale","version":"가","revision":"aice-scale-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
             format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("aice-regression") {
             let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/aice-regression.json")).expect("compiled lesson");
             let tasks=&lesson["tasks"];
-            let config=serde_json::json!({"label":"AICERegression","version":"\ub098","revision":"aice-regression-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
+            let config=serde_json::json!({"label":"AICERegression","version":"나","revision":"aice-regression-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
             format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("aice-regression-metrics") {
             let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/aice-regression-metrics.json")).expect("compiled lesson");
             let tasks=&lesson["tasks"];
-            let config=serde_json::json!({"label":"AICERegressionMetrics","version":"\ub2e4","revision":"aice-regression-metrics-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
+            let config=serde_json::json!({"label":"AICERegressionMetrics","version":"다","revision":"aice-regression-metrics-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
             format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("aice-classification") {
             let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/aice-classification.json")).expect("compiled lesson");
             let tasks=&lesson["tasks"];
-            let config=serde_json::json!({"label":"\ubc30\uc1a1 \ubd84\ub958","version":"\ub77c","revision":"aice-classification-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
+            let config=serde_json::json!({"label":"배송 분류","version":"라","revision":"aice-classification-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
             format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("aice-classification-metrics") {
             let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/aice-classification-metrics.json")).expect("compiled lesson");
             let tasks=&lesson["tasks"];
-            let config=serde_json::json!({"label":"\uacbd\ubcf4 \ud3c9\uac00","version":"\ub9c8","revision":"aice-classification-metrics-1","modifications":{"1":{"correct":true},"5":{"correct":true},"9":{"correct":true}},"tasks":tasks});
+            let config=serde_json::json!({"label":"경보 평가","version":"마","revision":"aice-classification-metrics-1","modifications":{"1":{"correct":true},"5":{"correct":true},"9":{"correct":true}},"tasks":tasks});
             format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("aice-models") {
             let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/aice-models.json")).expect("compiled lesson");
             let tasks=&lesson["tasks"];
-            let config=serde_json::json!({"label":"\ubaa8\ub378 \ube44\uad50","version":"\ubc14","revision":"aice-models-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
+            let config=serde_json::json!({"label":"모델 비교","version":"바","revision":"aice-models-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
             format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("aice-tuning") {
             let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/aice-tuning.json")).expect("compiled lesson");
             let tasks=&lesson["tasks"];
-            let config=serde_json::json!({"label":"\uc124\uc815 \uac80\uc99d","version":"\uc0ac","revision":"aice-tuning-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
+            let config=serde_json::json!({"label":"설정 검증","version":"사","revision":"aice-tuning-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
             format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("aice-tensorflow") {
             let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/aice-tensorflow.json")).expect("compiled lesson");
             let tasks=&lesson["tasks"];
-            let config=serde_json::json!({"label":"TensorFlow \ud750\ub984","version":"\uc544","revision":"aice-tensorflow-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
+            let config=serde_json::json!({"label":"TensorFlow 흐름","version":"아","revision":"aice-tensorflow-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
             format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("aice-neural-regression") {
             let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/aice-neural-regression.json")).expect("compiled lesson");
             let tasks=&lesson["tasks"];
-            let config=serde_json::json!({"label":"\uc2e0\uacbd\ub9dd \ud68c\uadc0","version":"\uc790","revision":"aice-neural-regression-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
+            let config=serde_json::json!({"label":"신경망 회귀","version":"자","revision":"aice-neural-regression-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
             format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("aice-neural-classification") {
             let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/aice-neural-classification.json")).expect("compiled lesson");
             let tasks=&lesson["tasks"];
-            let config=serde_json::json!({"label":"\uc2e0\uacbd\ub9dd \ubd84\ub958","version":"\ucc28","revision":"aice-neural-classification-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
+            let config=serde_json::json!({"label":"신경망 분류","version":"차","revision":"aice-neural-classification-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
             format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("aice-training") {
             let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/aice-training.json")).expect("compiled lesson");
             let tasks=&lesson["tasks"];
-            let config=serde_json::json!({"label":"\ud559\uc2b5 \uac1c\uc120","version":"\uce74","revision":"aice-training-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
+            let config=serde_json::json!({"label":"학습 개선","version":"카","revision":"aice-training-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
             format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("aice-join") {
             let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/aice-join.json")).expect("compiled lesson");
             let tasks=&lesson["tasks"];
-            let config=serde_json::json!({"label":"\uc790\ub8cc \uc5f0\uacb0","version":"\ud0c0","revision":"aice-join-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
+            let config=serde_json::json!({"label":"자료 연결","version":"타","revision":"aice-join-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
             format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("aice-boosting") {
             let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/aice-boosting.json")).expect("compiled lesson");
             let tasks=&lesson["tasks"];
-            let config=serde_json::json!({"label":"\ubd80\uc2a4\ud305 \ube44\uad50","version":"\ud30c","revision":"aice-boosting-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
+            let config=serde_json::json!({"label":"부스팅 비교","version":"파","revision":"aice-boosting-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
             format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("aice-integration") {
             let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/aice-integration.json")).expect("compiled lesson");
             let tasks=&lesson["tasks"];
-            let config=serde_json::json!({"label":"\uc804\uccb4 \ubd84\uc11d \uc5f0\uacb0","version":"\ud558","revision":"aice-integration-1","modifications":{"1":{"correct":true},"5":{"correct":true},"9":{"correct":true}},"tasks":tasks});
+            let config=serde_json::json!({"label":"전체 분석 연결","version":"하","revision":"aice-integration-1","modifications":{"1":{"correct":true},"5":{"correct":true},"9":{"correct":true}},"tasks":tasks});
             format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("java-roles") {
             let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/java-roles.json")).expect("compiled lesson");
             let tasks=&lesson["tasks"];
-            let config=serde_json::json!({"label":"\uac1d\uccb4 \uc5ed\ud560","version":"\uac70","revision":"java-roles-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
+            let config=serde_json::json!({"label":"객체 역할","version":"거","revision":"java-roles-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
             format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("java-collections") {
             let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/java-collections.json")).expect("compiled lesson");
             let tasks=&lesson["tasks"];
-            let config=serde_json::json!({"label":"\uc790\ub8cc \ubb36\uc74c","version":"\ub108","revision":"java-collections-1","modifications":{"1":{"correct":true},"5":{"correct":true},"9":{"correct":true}},"tasks":tasks});
+            let config=serde_json::json!({"label":"자료 묶음","version":"너","revision":"java-collections-1","modifications":{"1":{"correct":true},"5":{"correct":true},"9":{"correct":true}},"tasks":tasks});
             format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("java-methods") {
             let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/java-methods.json")).expect("compiled lesson");
