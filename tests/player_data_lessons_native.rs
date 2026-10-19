@@ -137,3 +137,11 @@ fn aice_boosting_restore_student_state() {verify("aice-boosting",8)}
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
 fn aice_integration_restore_student_state() {verify("aice-integration",10)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn java_roles_restore_student_state() {verify("java-roles",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn java_collections_restore_student_state() {verify("java-collections",10)}

@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-15, macos-15-intel]
-        group: [core, java, python, data, c, model, classify, neural]
+        group: [core, java, java-object, python, data, c, model, classify, neural]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     steps:
@@ -163,7 +163,7 @@ jobs:
         if: matrix.group == 'c'
         run: cargo test --locked --test player_data_lessons_native engineer_c_pointers -- --ignored --test-threads=1
       - name: Drive Java objects and reference copies
-        if: matrix.group == 'java'
+        if: matrix.group == 'java-object'
         run: cargo test --locked --test player_data_lessons_native java_references -- --ignored --test-threads=1
       - name: Drive C double-indirect targets
         if: matrix.group == 'c'
@@ -172,8 +172,14 @@ jobs:
         if: matrix.group == 'c'
         run: cargo test --locked --test player_data_lessons_native engineer_c_structures -- --ignored --test-threads=1
       - name: Drive Java instance and static state
-        if: matrix.group == 'java'
+        if: matrix.group == 'java-object'
         run: cargo test --locked --test player_data_lessons_native java_static -- --ignored --test-threads=1
+      - name: Drive protected state and role composition
+        if: matrix.group == 'java-object'
+        run: cargo test --locked --test player_data_lessons_native java_roles -- --ignored --test-threads=1
+      - name: Drive collection contracts and product aggregation
+        if: matrix.group == 'java-object'
+        run: cargo test --locked --test player_data_lessons_native java_collections -- --ignored --test-threads=1
       - name: Drive input feature meaning and transformations
         if: matrix.group == 'data'
         run: cargo test --locked --test player_data_lessons_native aice_features -- --ignored --test-threads=1
@@ -265,6 +271,8 @@ jobs:
             target/pilot-aice-boosting-result.json
             target/pilot-aice-integration-result.json
             target/pilot-java-static-result.json
+            target/pilot-java-roles-result.json
+            target/pilot-java-collections-result.json
             target/pilot-aice-features-result.json
             target/pilot-aice-split-result.json
             target/pilot-aice-leakage-result.json

@@ -397,6 +397,12 @@ def main():
 
 
 if __name__ == "__main__":
+    if sys.argv[1:2] == ["--redesigned-java-collections"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "java-collections", *sys.argv[2:]], check=True)
+        sys.exit(0)
+    if sys.argv[1:2] == ["--redesigned-java-roles"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "java-roles", *sys.argv[2:]], check=True)
+        sys.exit(0)
     if sys.argv[1:2] == ["--redesigned-aice-integration"]:
         subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "aice-integration", *sys.argv[2:]], check=True)
         sys.exit(0)
