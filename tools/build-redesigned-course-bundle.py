@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 
 from lesson_prd import content_hash, validate
+from lesson_registry import load_registry
 
 ROOT = Path(__file__).resolve().parents[1]
 NAMES = {'java': 'java-backend', 'aice': 'aice-associate', 'engineer': 'engineer-practical'}
@@ -35,6 +36,7 @@ def write(path, raw, check):
 
 def build(check=False):
     catalog = json.loads((ROOT / 'tools/redesigned_courses/catalog.json').read_text(encoding='utf-8'))
+    load_registry(catalog)
     release = json.loads((ROOT / 'tools/redesigned_courses/release.json').read_text(encoding='utf-8'))
     all_lessons = set()
     for course in catalog['courses']:
@@ -48,6 +50,8 @@ def build(check=False):
             validate(prd, require_approval=True)
             raw = (ROOT / 'courses/redesigned' / f'{lesson_key}.json').read_bytes()
             lesson = json.loads(raw)
+            if lesson['revision'] != item['revision']:
+                raise ValueError(f'Lesson revision differs from registration: {lesson_key}')
             if lesson['id'] != item['id'] or lesson['id'] != prd['id']:
                 raise ValueError(f'Lesson identity differs: {lesson_key}')
             if lesson['id'] in all_lessons:

@@ -16,6 +16,7 @@ pub mod course_authoring;
 pub mod issue_progress;
 pub mod github_player;
 pub mod pilot_source;
+pub mod lesson_registry;
 pub mod lesson_runner;
 pub mod task_interaction;
 pub mod supporting_materials;

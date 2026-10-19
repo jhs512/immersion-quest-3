@@ -88,6 +88,8 @@ jobs:
         if: matrix.group == 'core'
         run: |
           python tools/build-redesigned-course-bundle.py --check
+          python tools/test_lesson_registry.py
+          cargo test --locked --test lesson_registry -- --test-threads=1
           cargo test --locked --lib course_authoring_tests -- --test-threads=1
       - name: Check approved Git lesson derivations
         if: matrix.group == 'core'
