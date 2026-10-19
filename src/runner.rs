@@ -395,6 +395,10 @@ pub async fn check_unit(unit: &Unit, code: &str) -> Result<TestReport, String> {
 
 /// Grade a repository Java task with the same fresh authored files as execution.
 pub async fn check_unit_files(unit: &Unit, code: &str, files: &std::collections::BTreeMap<String,String>) -> Result<TestReport, String> {
+    check_unit_prepared(unit,code,files,&std::collections::BTreeMap::new()).await
+}
+
+pub async fn check_unit_prepared(unit: &Unit, code: &str, files: &std::collections::BTreeMap<String,String>, expected_files: &std::collections::BTreeMap<String,String>) -> Result<TestReport, String> {
     let mut cases = Vec::new();
     // Java contracts return a compiler-tree mutation of the submitted source.
     // The changed method must affect a real execution, as well as pass direct API tests.
@@ -458,7 +462,7 @@ pub async fn check_unit_files(unit: &Unit, code: &str, files: &std::collections:
         }
         for test in &unit.tests {
             let result = if unit.language == crate::Language::Java {
-                crate::java::run_files(code, &test.input, files).await?
+                crate::java::run_files_checked(code, &test.input, files, expected_files).await?
             } else { run_code(unit.language, code, &test.input).await? };
             let passed = result.success && normalized(&result.stdout) == normalized(&test.expected);
             cases.push(TestCaseResult {

@@ -174,8 +174,8 @@ async fn append_prepared_variations(task:&Task,source:&str,cases:&mut Vec<TestCa
                 cases.push(TestCaseResult{input:label,expected:variation.expected.clone(),stdout:String::new(),stderr:format!("준비 코드의 {name} 선언과 처음 값은 그대로 두세요."),passed:false,state:"concept_error".into()});
                 continue;
             }
-            let mut prepared=task.clone();prepared.files.extend(variation.files.clone());
-            let result=run(&prepared,&changed,"").await?;
+            let mut prepared=task.clone();prepared.files.extend(variation.files.clone());prepared.expected_files.extend(variation.expected_files.clone());
+            let result=if prepared.language==TaskLanguage::Java {crate::java::run_files_checked(&changed,"",&prepared.files,&prepared.expected_files).await?}else{run(&prepared,&changed,"").await?};
             let passed=result.success && result.stdout.trim_end_matches('\n')==variation.expected.trim_end_matches('\n');
             let stderr=if passed||!result.success{result.stderr}else{"값이 바뀌어도 맞는 식인지 확인하세요.".into()};
             cases.push(TestCaseResult{input:label,expected:variation.expected.clone(),stdout:result.stdout,stderr,passed,state:result.state});
@@ -193,7 +193,7 @@ pub async fn check(task:&Task,source:&str)->Result<TestReport,String> {
     }
     if task.language==TaskLanguage::Java {
         let unit:crate::Unit=serde_json::from_value(serde_json::json!({"id":task.id,"title":task.title,"language":"java","starter_code":task.starter_code,"solution":task.solution,"tests":task.tests,"checker":task.checker})).map_err(|e|e.to_string())?;
-        let mut report=crate::runner::check_unit_files(&unit,source,&task.files).await?;
+        let mut report=crate::runner::check_unit_prepared(&unit,source,&task.files,&task.expected_files).await?;
         append_prepared_variations(task,source,&mut report.cases).await?;
         report.passed=report.cases.iter().all(|case|case.passed);
         return Ok(report);

@@ -48,6 +48,20 @@
         ]
       ],
       "reason": "Fixed output cannot handle a different new message"
+    },
+    {
+      "step": 10,
+      "replacements": [
+        [
+          "Files.writeString(path, message + \"\\n\", StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);",
+          "String previous = Files.readString(path);"
+        ],
+        [
+          "System.out.println(Files.readString(path).strip());",
+          "System.out.println((previous + message + \"\\n\").strip());"
+        ]
+      ],
+      "reason": "Only combines in memory without writing file"
     }
   ]
 }

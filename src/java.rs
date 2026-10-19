@@ -90,6 +90,29 @@ pub async fn run_files(code: &str, input: &str, files: &std::collections::BTreeM
     execute(code, input, None, files).await
 }
 
+/// A grading wrapper checks disk state after main returns, before the fresh directory disappears.
+pub async fn run_files_checked(code: &str, input: &str, files: &std::collections::BTreeMap<String,String>, expected: &std::collections::BTreeMap<String,String>) -> Result<Execution, String> {
+    if expected.is_empty() { return run_files(code,input,files).await; }
+    let witness=format!("MQ3_FILE_CHECK_{}",crate::issue_progress::new_id());
+    let mut checks=String::from("class QuestContract { public static void main(String[] args) throws Exception { Main.main(args);\n");
+    for (name,content) in expected {
+        if !crate::repository_course::safe_file(name) {return Err("검사할 파일 경로를 확인하세요.".into());}
+        let name=serde_json::to_string(name).map_err(|e|e.to_string())?;
+        let text=serde_json::to_string(content).map_err(|e|e.to_string())?;
+        checks.push_str(&format!("if (!java.nio.file.Files.readString(java.nio.file.Path.of({name})).equals({text})) throw new AssertionError(\"저장한 파일 내용을 확인하세요.\");\n"));
+    }
+    checks.push_str(&format!("System.err.println({}); }} }}",serde_json::to_string(&witness).map_err(|e|e.to_string())?));
+    let mut result=execute(code,input,Some(&checks),files).await?;
+    if let Some(prefix)=result.stderr.strip_suffix(&format!("{witness}\n")) {
+        result.stderr=prefix.to_string();
+    } else if result.success {
+        result.success=false;
+        result.state="concept_error".into();
+        result.stderr="저장한 파일 검사까지 실행을 마쳐야 해요.".into();
+    }
+    Ok(result)
+}
+
 /// Execute an authored contract against the student's separately compiled source.
 pub async fn contract(code: &str, checker: &str) -> Result<Execution, String> {
     contract_files(code, checker, &std::collections::BTreeMap::new()).await
@@ -222,8 +245,9 @@ mod prepared_file_tests {
             "id":"file-probe","title":"저장","goal":"이전 글을 남겨요.","language":"java",
             "starter_code":"", "solution":"", "files":{"quotes.txt":"시작\n"},
             "tests":[{"input":"","expected":"시작\n다음"}],
-            "variations":[{"files":{"quotes.txt":""},"expected":"다음"},
-                {"files":{"quotes.txt":"이전\n"},"expected":"이전\n다음"}]
+            "expected_files":{"quotes.txt":"시작\n다음\n"},
+            "variations":[{"files":{"quotes.txt":""},"expected":"다음","expected_files":{"quotes.txt":"다음\n"}},
+                {"files":{"quotes.txt":"이전\n"},"expected":"이전\n다음","expected_files":{"quotes.txt":"이전\n다음\n"}}]
         })).unwrap();
         let source=r#"import java.nio.file.*;
 class Main { public static void main(String[] args) throws Exception {
@@ -236,6 +260,11 @@ class Main { public static void main(String[] args) throws Exception {
         assert_eq!(result.cases.len(),3);
         let wrong=source.replace(",StandardOpenOption.CREATE,StandardOpenOption.APPEND","");
         assert!(!crate::lesson_runner::check(&task,&wrong).await.unwrap().passed);
+        let memory_only=source.replace("Files.writeString(file,\"다음\\n\",StandardOpenOption.CREATE,StandardOpenOption.APPEND);","String previous=Files.readString(file);")
+            .replace("System.out.print(Files.readString(file));","System.out.print(previous+\"다음\\n\");");
+        assert!(!crate::lesson_runner::check(&task,&memory_only).await.unwrap().passed);
+        let exit_early=source.replace("System.out.print(Files.readString(file));","System.out.print(Files.readString(file)); System.exit(0);");
+        assert!(!crate::lesson_runner::check(&task,&exit_early).await.unwrap().passed);
     }
 
     #[tokio::test]
