@@ -1,0 +1,701 @@
+{
+  "schema_version": 2,
+  "id": "lsn_9395c95d-624c-4314-9c25-5c0c883f6c91",
+  "revision": "java-crud-1",
+  "title": "같은 글 앱에서 추가·조회·수정·삭제를 연결해요",
+  "description": "같은 두 글의 생성부터 저장 역할과 요청 수정까지 연결해요.",
+  "objectives": [
+    "글의 고유 번호로 CRUD의 정상·실패 조건을 판단해요.",
+    "검증·처리·저장의 책임과 메모리·파일 수명을 구별해요.",
+    "요청한 글만 수정하는 작은 변경을 다른 자료로 검증해요."
+  ],
+  "sources": [
+    "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html",
+    "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Files.html"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_662b2d46-2abf-4437-9f6d-72a98ad776f6",
+      "title": "같은 글의 추가·조회·수정·삭제",
+      "objectives": [
+        "고유 번호·존재·검증을 이해해요."
+      ],
+      "units": [
+        {
+          "id": "unt_f128d0b1-aee0-422e-844c-d058a9835ec2",
+          "title": "두 글의 수명",
+          "objectives": [
+            "정상·누락·잘못된 입력의 상태를 구별해요."
+          ],
+          "premise": "같은 글 두 개를 추가하고 번호로 조회·수정·삭제해요. 입력이 잘못되면 기존 글이 남아야 해요.",
+          "steps": [
+            {
+              "id": "stp_80c93945-4e70-455e-9de8-d1eef4276326",
+              "objectives": [
+                "생성된 번호와 목록 위치를 구별해요."
+              ]
+            },
+            {
+              "id": "stp_58c39bdf-9b6f-47c1-801e-803cc37bc337",
+              "objectives": [
+                "조회 실패와 빈 글을 구별해요."
+              ]
+            },
+            {
+              "id": "stp_e5bc603c-9552-48e8-bec7-275e6e9b12ca",
+              "objectives": [
+                "Map.put과 기존 글만 수정하는 계약을 구별해요."
+              ]
+            },
+            {
+              "id": "stp_8bc82b29-6162-4d91-9f28-508719acdce8",
+              "objectives": [
+                "삭제 결과와 남은 식별자를 확인해요."
+              ]
+            },
+            {
+              "id": "stp_ca6ccd0b-7844-4aac-97ab-a69ab2579fad",
+              "objectives": [
+                "검증 실패 때 저장 상태가 보존됨을 이해해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_de732e9c-969c-4206-acdd-8ca4b51e44b7",
+      "title": "같은 글의 상태와 저장 역할",
+      "objectives": [
+        "복사·복원·역할·번호·대상을 검증해요."
+      ],
+      "units": [
+        {
+          "id": "unt_c6f1269a-596a-4f7f-8871-d41578ae66d5",
+          "title": "글 앱의 작은 요구 변경",
+          "objectives": [
+            "저장 방식과 수정 대상을 구별해요."
+          ],
+          "premise": "같은 글을 복사해 보여 주고 파일에서 되읽어요. 저장 구현을 바꾸고 마지막에는 요청한 번호의 글만 수정해요.",
+          "steps": [
+            {
+              "id": "stp_4655b4c8-9ffc-4083-b429-f7e2175ac94d",
+              "objectives": [
+                "수정 가능한 사본과 내부 상태의 직접 노출을 구별해요."
+              ]
+            },
+            {
+              "id": "stp_ed8a3fc3-9700-49c2-838d-84d4f3d1a923",
+              "objectives": [
+                "새 저장소의 상태와 저장 파일의 수명을 구별해요."
+              ]
+            },
+            {
+              "id": "stp_a5a08fa1-d3bb-4335-aeff-98d8ee08d1ea",
+              "objectives": [
+                "인터페이스 뒤 저장 구현과 서비스의 역할을 구별해요."
+              ]
+            },
+            {
+              "id": "stp_cca0c15c-09cc-4b81-a6f5-cdfa98260796",
+              "objectives": [
+                "삭제된 번호의 재사용과 충돌을 구별해요."
+              ]
+            },
+            {
+              "id": "stp_c94832b4-d903-434e-bfcd-7ee97b0b1922",
+              "objectives": [
+                "고정 번호 대신 요청 ID와 존재 조건을 검증해요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_80c93945-4e70-455e-9de8-d1eef4276326",
+      "title": "추가할 때 고유 번호를 붙여요",
+      "goal": "두 글을 추가했어요.\n어떤 고유 번호가 붙었을까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "ids",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.util.*;\nimport java.nio.file.*;\n\n\npublic class Main {\n    public static void main(String[] args) throws Exception {\n        // 번호는 위치와 따로 관리해요.\n        Map<Integer, String> quotes = new LinkedHashMap<>();\n        int nextId = 1;\n        quotes.put(nextId++, \"시작\");\n        quotes.put(nextId++, \"다음\");\n        System.out.println(quotes.keySet());\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "ids",
+            "text": "1과2예요"
+          },
+          {
+            "id": "same",
+            "text": "둘 다1이라 같은 글이에요"
+          }
+        ],
+        "answer": "ids"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "각 글에 서로 다른 번호가 붙었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 목록 위치와 글의 고유 번호를 같은 값이라고 가정하지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "ids"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_58c39bdf-9b6f-47c1-801e-803cc37bc337",
+      "title": "없는 글의 조회를 구별해요",
+      "goal": "글1을 읽고 글9가 있는지 확인해요.\n어떤 상태일까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "missing",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.util.*;\nimport java.nio.file.*;\n\n\npublic class Main {\n    public static void main(String[] args) throws Exception {\n        Map<Integer, String> quotes = new LinkedHashMap<>();\n        quotes.put(1, \"시작\");\n        quotes.put(2, \"다음\");\n        System.out.println(quotes.get(1));\n        System.out.println(quotes.containsKey(9));\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "missing",
+            "text": "시작을 읽고9는 없어요"
+          },
+          {
+            "id": "blank",
+            "text": "없는9는 정상적인 빈 글이에요"
+          }
+        ],
+        "answer": "missing"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "첫 글은 시작이고 아홉은 존재하지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 조회 실패와 내용이 빈 정상 글은 구별해야 해요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "missing"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_e5bc603c-9552-48e8-bec7-275e6e9b12ca",
+      "title": "수정은 있는 글에만 해요",
+      "goal": "없는 글9를 수정하려 해요.\n새 글을 만들면 안 된다면 어떻게 할까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "existing",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.util.*;\nimport java.nio.file.*;\n\n\npublic class Main {\n    public static void main(String[] args) throws Exception {\n        Map<Integer, String> quotes = new LinkedHashMap<>();\n        quotes.put(1, \"시작\");\n        // 기존 글만 바꾸는 요구인지 확인해요.\n        quotes.put(9, \"수정\");\n        System.out.println(quotes.keySet());\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "existing",
+            "text": "존재하는 키만 바꾸는 replace를 써요"
+          },
+          {
+            "id": "put",
+            "text": "put은 언제나 기존 키만 수정해요"
+          }
+        ],
+        "answer": "existing"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "put은 없던 아홉도 새로 만들었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "quotes.put(9, \"수정\");",
+          "after": "quotes.replace(9, \"수정\");",
+          "say": "존재하는 글만 바꾸도록 해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "없는 아홉은 추가되지 않고 일만 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 추가와 수정을 같은 호출로 처리해도 되는지는 요구에 달렸어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "quotes.replace(9, \"수정\");",
+          "after": "quotes.put(9, \"수정\");",
+          "say": "원래 put의 동작으로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "처음 put은 아홉을 추가해요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "existing"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_8bc82b29-6162-4d91-9f28-508719acdce8",
+      "title": "번호를 지정해 삭제해요",
+      "goal": "글1을 지웠어요.\n남은 글2의 번호도1로 바뀔까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "keep",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.util.*;\nimport java.nio.file.*;\n\n\npublic class Main {\n    public static void main(String[] args) throws Exception {\n        Map<Integer, String> quotes = new LinkedHashMap<>();\n        quotes.put(1, \"시작\");\n        quotes.put(2, \"다음\");\n        // 지운 글의 값과 남은 번호를 확인해요.\n        System.out.println(quotes.remove(1));\n        System.out.println(quotes.keySet());\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "keep",
+            "text": "아니요.글2는 그대로2예요"
+          },
+          {
+            "id": "renumber",
+            "text": "남은 글은 자동으로1로 바뀌어요"
+          }
+        ],
+        "answer": "keep"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "시작을 삭제하고 번호 이는 그대로 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 화면의 첫 위치에 있다고 고유 번호 일인 것은 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "keep"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_ca6ccd0b-7844-4aac-97ab-a69ab2579fad",
+      "title": "잘못된 입력은 변경 전에 막아요",
+      "goal": "공백 글은 거절해야 해요.\n검증 실패 뒤 기존 글은 어떨까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "unchanged",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.util.*;\nimport java.nio.file.*;\n\n\npublic class Main {\n    public static void main(String[] args) throws Exception {\n        Map<Integer, String> quotes = new LinkedHashMap<>();\n        quotes.put(1, \"시작\");\n        quotes.put(2, \"다음\");\n        String message = \"   \";\n        try {\n            // 상태를 바꾸기 전에 먼저 입력을 검사해요.\n            if (message.isBlank()) throw new IllegalArgumentException(\"blank\");\n            quotes.put(1, message);\n        } catch (IllegalArgumentException error) {\n            System.out.println(\"invalid\");\n        }\n        System.out.println(quotes.get(1));\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "unchanged",
+            "text": "시작이 남아 있어요"
+          },
+          {
+            "id": "destroy",
+            "text": "오류라면 기존 글도 지워야 해요"
+          }
+        ],
+        "answer": "unchanged"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            18,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "잘못된 입력은 거절하고 기존 시작은 보존했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 먼저 저장하고 나중에 검사하면 실패해도 상태가 바뀌어 버릴 수 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "unchanged"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_4655b4c8-9ffc-4083-b429-f7e2175ac94d",
+      "title": "조회 결과의 복사를 구별해요",
+      "goal": "받은 사본 목록만 비웠어요.\n저장된 원본 글도 지워질까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "separate",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.util.*;\nimport java.nio.file.*;\n\n\npublic class Main {\n    public static void main(String[] args) throws Exception {\n        Map<Integer, String> quotes = new LinkedHashMap<>();\n        quotes.put(1, \"시작\");\n        quotes.put(2, \"다음\");\n        // 문자열 값의 별도 목록을 반환한 상황이에요.\n        List<String> copy = new ArrayList<>(quotes.values());\n        copy.clear();\n        System.out.println(quotes.size());\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "separate",
+            "text": "아니요.원본 글은 두 개예요"
+          },
+          {
+            "id": "same",
+            "text": "사본의clear는 항상 원본도 지워요"
+          }
+        ],
+        "answer": "separate"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "별도 목록을 비워도 원본 글 둘은 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 이번 원소는 문자열이에요. 가변 객체 안쪽까지 깊게 복사됐다는 뜻은 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "separate"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_ed8a3fc3-9700-49c2-838d-84d4f3d1a923",
+      "title": "메모리 저장과 파일 복원을 비교해요",
+      "goal": "새 저장소는 처음에 비어 있어요.\n파일을 다시 읽으면 무엇이 복원될까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "restore",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.util.*;\nimport java.nio.file.*;\n\n\npublic class Main {\n    public static void main(String[] args) throws Exception {\n        Path path = Path.of(\"quotes.txt\");\n        // 이번 파일 형식은 번호:한 줄 글이에요.\n        Files.writeString(path, \"1:시작\\n2:다음\\n\");\n        Map<Integer, String> loaded = new LinkedHashMap<>();\n        System.out.println(loaded.size());\n        for (String line : Files.readAllLines(path)) {\n            String[] parts = line.split(\":\", 2);\n            loaded.put(Integer.parseInt(parts[0]), parts[1]);\n        }\n        System.out.println(loaded.get(1));\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "restore",
+            "text": "저장했던 번호와 글을 복원해요"
+          },
+          {
+            "id": "automatic",
+            "text": "새Map만 만들면 파일도 자동으로 읽어요"
+          }
+        ],
+        "answer": "restore"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "처음 영 개에서 파일을 읽은 뒤 시작을 찾았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 이 형식은 주어진 한 줄 글용이에요. 손상 파일이나 동시 쓰기까지 해결한 저장소는 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "restore"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_a5a08fa1-d3bb-4335-aeff-98d8ee08d1ea",
+      "title": "저장 역할을 바꿔도 처리는 유지해요",
+      "goal": "같은 서비스에 저장 구현만 다르게 넣어요.\n서비스가 파일 경로를 직접 알아야 할까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "role",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.util.*;\nimport java.nio.file.*;\ninterface QuoteStore { String load() throws Exception; }\nclass MemoryStore implements QuoteStore {\n    public String load() { return \"시작\"; }\n}\nclass FileStore implements QuoteStore {\n    public String load() throws Exception { return Files.readString(Path.of(\"quotes.txt\")); }\n}\nclass QuoteService {\n    // 서비스는 실제 저장 위치 대신 저장 역할을 받아요.\n    private final QuoteStore store;\n    QuoteService(QuoteStore store) { this.store = store; }\n    String show() throws Exception { return store.load(); }\n}\n\npublic class Main {\n    public static void main(String[] args) throws Exception {\n        Files.writeString(Path.of(\"quotes.txt\"), \"시작\");\n        System.out.println(new QuoteService(new MemoryStore()).show());\n        System.out.println(new QuoteService(new FileStore()).show());\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "role",
+            "text": "아니요.저장 역할의load를 호출해요"
+          },
+          {
+            "id": "path",
+            "text": "인터페이스가 있으면 파일 실패도 사라져요"
+          }
+        ],
+        "answer": "role"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            21,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "메모리와 파일 구현에서 같은 글을 읽었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 역할 분리는 실패를 없애지 않아요. 각 구현의 저장 계약도 검증해야 해요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "role"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_cca0c15c-09cc-4b81-a6f5-cdfa98260796",
+      "title": "목록 크기보다 다음 번호를 보존해요",
+      "goal": "글1을 지운 뒤 새 번호를 size+1로 정해요.\n글2를 보존하려면 이번에는 어떻게 할까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "avoid",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.util.*;\nimport java.nio.file.*;\n\n\npublic class Main {\n    public static void main(String[] args) throws Exception {\n        Map<Integer, String> quotes = new LinkedHashMap<>();\n        quotes.put(1, \"시작\");\n        quotes.put(2, \"다음\");\n        quotes.remove(1);\n        // 삭제 뒤의 크기는 빈 고유 번호를 뜻하지 않아요.\n        int nextId = quotes.size() + 1;\n        quotes.put(nextId, \"새 글\");\n        System.out.println(quotes);\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "avoid",
+            "text": "현재 최대 번호 다음을 써서 충돌을 피워요"
+          },
+          {
+            "id": "size",
+            "text": "size+1은 어떤 삭제 뒤에도 안전해요"
+          }
+        ],
+        "answer": "avoid"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "크기 다음은 이미 있는 이라서 다음 글을 덮었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "quotes.size() + 1",
+          "after": "Collections.max(quotes.keySet()) + 1",
+          "say": "이번에는 현재 최대 번호 다음을 써요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "원래 이와 새로운 삼이 함께 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 이 예의 충돌만 피했어요. 최대 번호를 삭제한 뒤의 재사용이나 재시작까지 막는 영구 발급기는 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "avoid"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_c94832b4-d903-434e-bfcd-7ee97b0b1922",
+      "title": "요청한 글만 수정해요",
+      "goal": "요청 targetId의 글만 바꾸세요.\n없는 번호라면 새 글을 만들지 마세요.",
+      "language": "java",
+      "starter_code": "import java.util.*;\nimport java.nio.file.*;\n\n\npublic class Main {\n    public static void main(String[] args) throws Exception {\n        Map<Integer, String> quotes = new LinkedHashMap<>();\n        quotes.put(1, \"시작\");\n        quotes.put(2, \"다음\");\n        int targetId = 2;\n        String message = \"수정\";\n        // 존재하는 요청 대상만 바꿔야 해요.\n        if (quotes.containsKey(1)) quotes.put(1, message);\n        System.out.println(quotes);\n    }\n}\n",
+      "solution": "import java.util.*;\nimport java.nio.file.*;\n\n\npublic class Main {\n    public static void main(String[] args) throws Exception {\n        Map<Integer, String> quotes = new LinkedHashMap<>();\n        quotes.put(1, \"시작\");\n        quotes.put(2, \"다음\");\n        int targetId = 2;\n        String message = \"수정\";\n        // 존재하는 요청 대상만 바꿔야 해요.\n        if (quotes.containsKey(targetId)) quotes.put(targetId, message);\n        System.out.println(quotes);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "{1=시작, 2=수정}"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "요청은 이인데 첫 글이 바뀌었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "quotes.containsKey(1)) quotes.put(1, message)",
+          "after": "quotes.containsKey(targetId)) quotes.put(targetId, message)",
+          "say": "존재 검사와 수정 모두 요청 번호를 써요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "첫 글은 남기고 요청한 두 번째 글만 바뀌었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 없는 번호와 다른 글 내용에서도 같은 계약을 지켜야 해요.",
+          "target": "output"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "targetId": "1"
+          },
+          "expected": "{1=수정, 2=다음}"
+        },
+        {
+          "values": {
+            "targetId": "9"
+          },
+          "expected": "{1=시작, 2=다음}"
+        },
+        {
+          "values": {
+            "message": "\"새 문구\""
+          },
+          "expected": "{1=시작, 2=새 문구}"
+        }
+      ]
+    }
+  ]
+}
