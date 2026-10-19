@@ -284,7 +284,8 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     let filename=if task.git_terminal.is_some(){"Git 터미널".to_string()}else if task.interaction.is_some()&&!has_example{"답안".to_string()}else if task.entry_file.is_empty(){task.language.filename().to_string()}else{task.entry_file.clone()};
     // Show the data this problem reads before other files bundled with the lesson.
     let mut provided_files=task.files.iter().map(|(name,body)|{
-        let used=task.starter_code.contains(name.as_str())||task.solution.contains(name.as_str());
+        let used=task.starter_code.contains(name.as_str())||task.solution.contains(name.as_str())
+            ||task.example_code.as_deref().is_some_and(|source|source.contains(name.as_str()));
         (name.clone(),body.clone(),used)
     }).collect::<Vec<_>>();
     provided_files.sort_by(|a,b|b.2.cmp(&a.2).then_with(||a.0.cmp(&b.0)));
