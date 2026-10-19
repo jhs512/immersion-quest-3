@@ -4,7 +4,7 @@
 //   mod+K              curriculum menu                mod+I           AI panel open / fold
 //   mod+/              this cheat sheet               F11 (⌃⌘F)       fullscreen
 //   mod+Enter          run code; twice = submit       mod+Shift+Enter submit at once
-//   Enter              grade a short answer; take a modal card's primary button
+//   Enter              submit a quiz; continue to the next step / confirm a success card
 //   Space              pause / resume a running 해설 (in a deck: next slide)
 //   Esc                stop autopilot or reading, close sheets and menus, leave presentation
 //   ← → N              inside a deck: slides and the presenter script (assets/slides/slides.js)
@@ -45,7 +45,7 @@
   // ---- Cheat sheet (mod+/): every shortcut, with this platform's keys. ----
   const SHEET = [
     ['이동', [[`${MOD}+←  ${MOD}+→`, '이전 · 다음 단계'], [`${MOD}+↑  ${MOD}+↓`, '이전 · 다음 단원'], [`${MOD}+K`, '수업 목차 열기 · 닫기'], [`${MOD}+I`, 'AI에게 물어보기 열기 · 접기']]],
-    ['코딩 미션', [[`${MOD}+Enter`, '코드 실행'], [`${MOD}+Enter 두 번`, '실행하고 바로 제출'], [`${MOD}+Shift+Enter`, '바로 제출'], ['Enter', '주관식 답 칸에서 채점 · 정답 카드에서 다음 미션']]],
+    ['코딩 미션', [[`${MOD}+Enter`, '코드 실행'], [`${MOD}+Enter 두 번`, '실행하고 바로 제출'], [`${MOD}+Shift+Enter`, '바로 제출'], ['Enter', '문제 제출 · 다음 단계 (코드·터미널 입력 중 제외)']]],
     ['슬라이드', [['←  →  Space', '이전 · 다음 장 (마지막 장에서 →는 다음 단계, 첫 장에서 ←는 이전 단계)'], ['N', '강사 스크립트'], ['전체 화면 버튼', '발표 모드 · Esc로 해제']]],
     ['소리', [[`${MOD}+더블 클릭`, '그 문단부터 읽어 주기 · Esc로 정지'], ['Space', '해설 일시정지 · 재개'], ['Esc', '자동 진행 해제']]],
     ['화면', [[mac ? '⌃⌘F' : 'F11', '전체 화면'], [`${MOD}+/`, '이 안내 열기 · 닫기']]],
@@ -81,6 +81,13 @@
     return true;
   }
   document.addEventListener('keydown', event => {
+    // Committing an IME syllable is text input, never a submit/navigation action.
+    if (event.key === 'Enter' && (event.isComposing || event.keyCode === 229
+        || globalThis.molipIme?.isComposing(event.target))) return;
+    if (event.key === 'Enter' && event.repeat) {
+      if (!inEditable(event.target)) event.preventDefault();
+      return;
+    }
     // Navigation and panels: mod + key, outside text fields and the code editor so editing
     // keys (word jumps, line start/end) keep their meaning there.
     const mod = mac ? event.metaKey : event.ctrlKey;
@@ -100,7 +107,7 @@
     if (event.key === 'Escape' && sheet && !sheet.hidden) { event.preventDefault(); toggleSheet(false); return; }
     // A modal card on screen (정답 카드, 확인 대화상자): Enter takes its primary button. Only
     // primary buttons, so a destructive confirmation never fires from a stray Enter.
-    const card = document.querySelector('.doctor-panel');
+    const card = document.querySelector('.task-passed-dialog, .doctor-panel');
     if (card && event.key === 'Enter' && !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey) {
       const primary = card.querySelector('button.primary');
       if (primary && !primary.disabled) {
@@ -149,11 +156,27 @@
       globalThis.molipToast?.('실행 중 · Ctrl+Enter를 한 번 더 누르면 제출합니다', 'info');
       return;
     }
-    // Enter in a short-answer box grades the question.
-    if (!event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey && event.target instanceof HTMLInputElement
-        && event.target.closest('.quiz-question')) {
+    // Plain Enter submits a quiz or continues learning. Text editing, terminal input,
+    // slides and focused controls keep their own keyboard behavior.
+    if (!event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey) {
+      if ([...document.querySelectorAll('.doctor-panel, [role="dialog"], dialog[open]')]
+          .some(panel => !panel.hidden && panel.getClientRects().length > 0)) return;
+      const target = event.target;
+      const inQuestion = target instanceof HTMLInputElement && target.closest('.quiz-question, .answer-interaction');
+      if (!inQuestion && (inEditable(target) || (target instanceof Element
+          && target.closest('button, a, select, summary, .slides-mission, .xterm')))) return;
+      const submit = document.querySelector('[data-enter-submit]');
+      if (submit) {
+        if (!submit.disabled) { event.preventDefault(); event.stopPropagation(); submit.click(); }
+        return;
+      }
       const grade = document.querySelector('.quiz-actions button.primary');
       if (grade && !grade.disabled) { event.preventDefault(); event.stopPropagation(); grade.click(); }
+      else {
+        const next = document.querySelector('[data-enter-next]');
+        if (next && !next.disabled) { event.preventDefault(); event.stopPropagation(); next.click(); }
+        else if (clickId('shortcut-next-mission')) { event.preventDefault(); event.stopPropagation(); }
+      }
       return;
     }
     armedUntil = 0;
