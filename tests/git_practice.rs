@@ -107,11 +107,17 @@ fn closing_practice_stops_its_background_child_but_keeps_an_outside_process() {
     external.arg(&safe_script).stdout(Stdio::null()).stderr(Stdio::null());
     #[cfg(windows)] external.creation_flags(0x08000000);
     let mut external=external.spawn().unwrap();
-    let practice=GitPractice::new(GitExercise::default()).unwrap();let (mut shell,mut output)=practice.open_terminal().unwrap();
-    // The minimal VT responder does not model wrapped cursor positions.
-    // Keep the full prompt and absolute script command inside one PTY line.
-    shell.resize(20, 512).unwrap();
-    let command=if cfg!(windows){format!("Start-Process powershell.exe -WindowStyle Hidden -ArgumentList '-NoProfile','-File','\"{}\"'\r",owned_script.display())}else{format!("nohup /bin/sh '{}' >/dev/null 2>&1 &\r",owned_script.display())};
+    let practice=GitPractice::new(GitExercise::default()).unwrap();
+    let mut environment=practice.environment();
+    let command=if cfg!(windows){
+        // Do not resize ConPTY during its initial cursor handshake. A short
+        // command also avoids relying on this headless responder's wrapping.
+        let launcher=outside.path().join("launch.ps1");
+        std::fs::write(&launcher,format!("Start-Process powershell.exe -WindowStyle Hidden -ArgumentList '-NoProfile','-File','\"{}\"'",owned_script.display())).unwrap();
+        environment.push(("MQ3_CHILD_LAUNCH".into(),launcher.display().to_string()));
+        "& $env:MQ3_CHILD_LAUNCH\r".to_string()
+    }else{format!("nohup /bin/sh '{}' >/dev/null 2>&1 &\r",owned_script.display())};
+    let (mut shell,mut output)=molip_quest::setup_terminal::SetupTerminal::open_practice(&practice.work(),&environment).unwrap();
     let mut seen=String::new();let mut cursor_reports=0usize;let mut sent=false;let deadline=std::time::Instant::now()+std::time::Duration::from_secs(30);
     while std::time::Instant::now()<deadline {
         while let Ok(bytes)=output.try_recv(){seen.push_str(&String::from_utf8_lossy(&bytes));let reports=seen.matches("\x1b[6n").count();while cursor_reports<reports{shell.input("\x1b[1;1R").unwrap();cursor_reports+=1;}}
