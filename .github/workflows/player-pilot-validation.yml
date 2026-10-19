@@ -66,6 +66,11 @@ jobs:
         env:
           PYTHONUTF8: '1'
         run: python tools/test_lesson_prd.py
+      - name: Check all three default course snapshots and retained user courses
+        if: matrix.group == 'core'
+        run: |
+          python tools/build-redesigned-course-bundle.py --check
+          cargo test --locked --lib course_authoring_tests -- --test-threads=1
       - name: Check approved Git lesson derivations
         if: matrix.group == 'core'
         env:

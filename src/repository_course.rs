@@ -2,7 +2,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashSet};
 
-pub const COURSE_REPOSITORY: &str = "jhs512/mq3-course-java-backend";
+pub const COURSE_REPOSITORY: &str = "jhs512/mq3-course-redesigned-java-backend";
 
 pub fn initial_repository() -> &'static str {
     if crate::pilot_source::enabled() { crate::pilot_source::REPOSITORY } else { COURSE_REPOSITORY }

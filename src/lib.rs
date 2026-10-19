@@ -102,6 +102,9 @@ impl Language {
 
 pub const DEFAULT_COURSE: &str = include_str!("../courses/java-basics.json");
 
+#[cfg(test)]
+mod course_authoring_tests;
+
 fn initial_revision() -> i64 {
     1
 }
