@@ -104,6 +104,7 @@ work=$(mktemp -d "$parent/.mq3-update.XXXXXX")
 backup="$work/previous.app"
 stage="$work/new.app"
 hdiutil attach "$installer" -mountpoint "$mount" -nobrowse -readonly >/dev/null
+printf '%s\n' 'Update image mounted; verifying the app bundle.'
 source="$mount/몰입 퀘스트 3.app"
 test -x "$source/Contents/MacOS/molip-quest"
 test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$source/Contents/Info.plist")" = dev.molipquest.mq3
@@ -114,7 +115,8 @@ xattr -dr com.apple.quarantine "$stage" 2>/dev/null || true
 mv "$bundle" "$backup"
 mv "$stage" "$bundle"
 printf '%s\n%s\n%s\n' "$ack" "$nonce" "$bundle" >"$pending"
-"$bundle/Contents/MacOS/molip-quest" >/dev/null 2>&1 &
+printf '%s\n' 'Starting replacement app; waiting for WebView acknowledgement.'
+"$bundle/Contents/MacOS/molip-quest" >>"$installer.startup.log" 2>&1 &
 candidate_pid=$!
 attempt=0
 while [ "$attempt" -lt 60 ]; do
@@ -122,7 +124,16 @@ while [ "$attempt" -lt 60 ]; do
   attempt=$((attempt + 1))
   sleep 0.5
 done
-test "$committed" -eq 1
+if [ "$committed" -ne 1 ]; then
+  if kill -0 "$candidate_pid" 2>/dev/null; then
+    printf '%s\n' 'Replacement app is running but did not acknowledge startup within 30 seconds.'
+  else
+    candidate_status=0
+    wait "$candidate_pid" || candidate_status=$?
+    printf 'Replacement app exited before acknowledgement: %s\n' "$candidate_status"
+  fi
+  exit 1
+fi
 committed=1
 "#,installer=quote(installer)?,bundle=quote(bundle)?,parent=quote(parent)?,ack=quote(&ack)?,pending=quote(&pending)?,nonce=nonce))
 }

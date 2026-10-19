@@ -193,10 +193,21 @@ fn real_macos_image_replaces_disposable_player_and_restores_its_state() {
     handoff.args(["-c", &script]);
     native_player::configure(&session, &mut handoff, "reopen");
     let status = native_player::wait(&mut handoff.spawn().unwrap(), 90, "macOS installer handoff");
+    let mut diagnostics=String::new();
+    for (source,destination) in [
+        (PathBuf::from(format!("{}.handoff.log",image.display())),"target/pilot-install-handoff.log"),
+        (PathBuf::from(format!("{}.startup.log",image.display())),"target/pilot-install-startup.log"),
+        (session.directory().join("reopen.log"),"target/pilot-install-launch.log"),
+    ] {
+        if let Ok(raw)=std::fs::read(&source) {
+            std::fs::create_dir_all("target").unwrap();
+            std::fs::write(destination,&raw).unwrap();
+            diagnostics.push_str(&format!("{destination}:\n{}\n",String::from_utf8_lossy(&raw)));
+        }
+    }
     assert!(
         status.success(),
-        "{}",
-        std::fs::read_to_string(format!("{}.handoff.log", image.display())).unwrap_or_default()
+        "Installer handoff exited {status}:\n{diagnostics}"
     );
     let deadline = std::time::Instant::now() + std::time::Duration::from_secs(40);
     while !session.directory().join("restart-reopen.json").exists() {

@@ -73,7 +73,11 @@ fn App() -> Element {
     use_future(||async move {
         // Acknowledge only after the native WebView has presented the new app.
         let mut bridge=document::eval("requestAnimationFrame(()=>requestAnimationFrame(()=>dioxus.send(true)));");
-        if matches!(bridge.recv::<bool>().await,Ok(true)) {let _=molip_quest::updater::acknowledge_startup();}
+        if matches!(bridge.recv::<bool>().await,Ok(true)) {
+            if let Err(error)=molip_quest::updater::acknowledge_startup() {
+                eprintln!("업데이트 시작 확인을 기록하지 못했어요: {error}");
+            }
+        }
     });
     // The app runs fullscreen. F11 (macOS: control+command+F) toggles it through a hidden
     // button that assets/layout/shortcuts.js clicks; slides read its state to go fullscreen.
