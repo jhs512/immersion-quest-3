@@ -1,0 +1,727 @@
+{
+  "description": "같은 지연 경보에서 무엇을 맞히고 놓쳤는지 작은 수로 판단해요.",
+  "tasks": [
+    {
+      "id": "stp_32e5ad72-73aa-4cb3-8e04-7950edb27f38",
+      "title": "정확도가 높아도 놓친 지연이 있어요",
+      "goal": "정확도는90%지만 실제 지연을 하나도 못 찾았어요.\n지연 탐지 목적도 달성했을까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "miss",
+      "tests": [],
+      "required": true,
+      "example_code": "from sklearn.metrics import accuracy_score, recall_score\n\n# 정상 아홉 건과 지연 한 건을 모두 정상으로 예측했어요.\ny_true = [0] * 9 + [1]\ny_pred = [0] * 10\nprint(float(accuracy_score(y_true, y_pred)))\nprint(float(recall_score(y_true, y_pred, pos_label=1)))\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "miss",
+            "text": "아니요.지연 재현율은0이에요"
+          },
+          {
+            "id": "done",
+            "text": "네.정확도90%면 지연도90% 찾아요"
+          }
+        ],
+        "answer": "miss"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "전체 맞힘은 영 점 구지만 지연을 찾은 비율은 영이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 많은 정상 배송만 맞혀도 정확도는 높을 수 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "miss"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_e89aec00-5536-4f2b-b5c6-52c6f961ec4f",
+      "title": "실제 행과 예측 열을 읽어요",
+      "goal": "실제 정상0인데 지연1로 경보한 건은 몇 개일까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "one",
+      "tests": [],
+      "required": true,
+      "example_code": "from sklearn.metrics import confusion_matrix\n\n# 같은 순서의 실제 종류와 예측 경보예요. 정상0·지연1이에요.\ny_true = [0, 0, 0, 1]\ny_pred = [0, 1, 0, 1]\n# 실제 행, 예측 열을 같은 범주 순서로 배치해요.\nprint(confusion_matrix(y_true, y_pred, labels=[0, 1]).tolist())\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "one",
+            "text": "행0·열1의 한 건이에요"
+          },
+          {
+            "id": "zero",
+            "text": "행1·열0의 영 건이에요"
+          }
+        ],
+        "answer": "one"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "첫 행 두 칸은 정상 예측 두 건과 잘못 울린 경보 한 건이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "labels=[0, 1]",
+          "after": "labels=[1, 0]",
+          "say": "범주 순서를 뒤집어 위치가 바뀌는지 봐요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "범주 순서가 바뀌면 같은 사건의 칸 위치도 바뀌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 행과 열의 이름을 확인하고 개수를 읽어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "labels=[1, 0]",
+          "after": "labels=[0, 1]",
+          "say": "처음 정상·지연 순서로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "원래 순서에서 잘못 울린 경보는 한 건이에요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "one"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_922fb8db-9496-46fe-8061-8d571ebb7f07",
+      "title": "지연 경보 중 맞은 비율을 봐요",
+      "goal": "지연 경보 두 건 중 실제 지연은 한 건이에요.\n정밀도를 고르세요.",
+      "language": "python",
+      "starter_code": "",
+      "solution": "half",
+      "tests": [],
+      "required": true,
+      "example_code": "from sklearn.metrics import precision_score\n\n# 같은 순서의 실제 종류와 예측 경보예요. 정상0·지연1이에요.\ny_true = [0, 0, 0, 1]\ny_pred = [0, 1, 0, 1]\n# 업무상 관심 범주인 지연1을 평가해요.\nprint(round(float(precision_score(y_true, y_pred, pos_label=1, zero_division=0)), 6))\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "half",
+            "text": "1/2인0.5예요"
+          },
+          {
+            "id": "quarter",
+            "text": "전체 네 건으로 나눈0.25예요"
+          }
+        ],
+        "answer": "half"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "경보한 두 건을 분모로 나눠 영 점 오예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 정밀도의 분모는 실제 지연 수가 아니라 지연이라고 경보한 수예요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "half"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_4848ba0b-2efb-4226-a61c-21ae32231f99",
+      "title": "실제 지연을 얼마나 찾았을까요",
+      "goal": "실제 지연 한 건을 찾았어요.\n지연 재현율을 고르세요.",
+      "language": "python",
+      "starter_code": "",
+      "solution": "all",
+      "tests": [],
+      "required": true,
+      "example_code": "from sklearn.metrics import recall_score\n\n# 같은 순서의 실제 종류와 예측 경보예요. 정상0·지연1이에요.\ny_true = [0, 0, 0, 1]\ny_pred = [0, 1, 0, 1]\n# 업무상 관심 범주인 지연1을 평가해요.\nprint(round(float(recall_score(y_true, y_pred, pos_label=1, zero_division=0)), 6))\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "all",
+            "text": "1/1인1이에요"
+          },
+          {
+            "id": "half",
+            "text": "경보 두 건으로 나눈0.5예요"
+          }
+        ],
+        "answer": "all"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "실제 지연 한 건 중 한 건을 찾았으므로 일이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 정밀도와 재현율은 다른 분모라 서로 달라도 모순이 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "all"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_6b339386-deb4-4076-a0fd-bd1fa4d4c96e",
+      "title": "두 지표를 함께 읽어요",
+      "goal": "정밀도0.5·재현율1이에요.\nF1을 단순 평균0.75로 보고할까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "harmonic",
+      "tests": [],
+      "required": true,
+      "example_code": "from sklearn.metrics import f1_score\n\n# 같은 순서의 실제 종류와 예측 경보예요. 정상0·지연1이에요.\ny_true = [0, 0, 0, 1]\ny_pred = [0, 1, 0, 1]\n# 업무상 관심 범주인 지연1을 평가해요.\nprint(round(float(f1_score(y_true, y_pred, pos_label=1, zero_division=0)), 6))\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "harmonic",
+            "text": "아니요.조화평균 약0.666667이에요"
+          },
+          {
+            "id": "mean",
+            "text": "네.두 수의 산술평균0.75예요"
+          }
+        ],
+        "answer": "harmonic"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "F1은 약 영 점 육육육육육칠이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. F1은 두 지표의 조화평균이며 업무 목적에 항상 최선인 지표는 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "harmonic"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_388c1239-87b9-4423-a434-61ad24e377c7",
+      "title": "분모가 없는 점수를 구별해요",
+      "goal": "zero_division=1로 정밀도1이 반환됐어요.\n실제 지연을 잘 찾았다는 뜻일까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "policy",
+      "tests": [],
+      "required": true,
+      "example_code": "from sklearn.metrics import precision_score, recall_score\n\n# 지연 경보가 아예 없어 정밀도의 분모가 영이에요.\ny_true = [0, 1]\ny_pred = [0, 0]\nprint(float(precision_score(y_true, y_pred, zero_division=0)))\nprint(float(precision_score(y_true, y_pred, zero_division=1)))\nprint(float(recall_score(y_true, y_pred)))\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "policy",
+            "text": "아니요.분모0의 반환 정책이고 재현율은0이에요"
+          },
+          {
+            "id": "perfect",
+            "text": "네.설정만 바꾸면 지연 탐지도 완벽해져요"
+          }
+        ],
+        "answer": "policy"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "정책에 따라 영 또는 일이지만 실제 지연은 못 찾았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 나눌 대상이 없는 점수의 보정을 실제 성능으로 읽지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "policy"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_42d6681d-b5bb-4ef3-bd4f-14ac71094689",
+      "title": "범주별 평균의 무게를 확인해요",
+      "goal": "범주별 재현율은1·0·0이에요.\nmacro와 weighted가 다른 이유를 고르세요.",
+      "language": "python",
+      "starter_code": "",
+      "solution": "weights",
+      "tests": [],
+      "required": true,
+      "example_code": "from sklearn.metrics import recall_score, classification_report\n\n# 세 범주의 크기가 세 건·한 건·한 건으로 달라요.\ny_true = [0, 0, 0, 1, 2]\ny_pred = [0, 0, 0, 0, 0]\nreport = classification_report(y_true, y_pred, output_dict=True, zero_division=0)\nprint([int(report[str(label)][\"support\"]) for label in [0, 1, 2]])\nprint(round(float(recall_score(y_true, y_pred, average=\"macro\")), 6))\nprint(round(float(recall_score(y_true, y_pred, average=\"weighted\")), 6))\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "weights",
+            "text": "weighted는 실제 범주 수3·1·1로 가중해요"
+          },
+          {
+            "id": "wrong",
+            "text": "같은 지표이므로 한쪽 계산 오류예요"
+          }
+        ],
+        "answer": "weights"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "각 범주를 똑같이 세면 약 영 점 삼삼, 실제 수로 가중하면 영 점 육이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 가중평균이 커도 작은 두 범주를 찾은 것은 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "weights"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_433c9dc6-3b49-4b6b-8982-4ae6c839fd73",
+      "title": "경보 기준을 바꿔 봐요",
+      "goal": "기준0.5에서0.3으로 낮추면 이 표의 경보는 어떻게 될까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "more",
+      "tests": [],
+      "required": true,
+      "example_code": "from sklearn.metrics import precision_score, recall_score\n\n# 같은 지연 확률을 어떤 기준에서 경보로 바꿀지 정해요.\ny_true = [0, 0, 1, 1]\nprobabilities = [0.1, 0.6, 0.4, 0.8]\nthreshold = 0.5\npredictions = [int(p >= threshold) for p in probabilities]\nprint(predictions)\nprint(round(float(precision_score(y_true, predictions)), 6))\nprint(round(float(recall_score(y_true, predictions)), 6))\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "more",
+            "text": "경보가 하나 늘고 놓친 지연도 찾아요"
+          },
+          {
+            "id": "same",
+            "text": "확률이 같으니 경보도 항상 같아요"
+          }
+        ],
+        "answer": "more"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "영 점 오에서는 경보 두 건이고 정밀도·재현율 모두 영 점 오예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "threshold = 0.5",
+          "after": "threshold = 0.3",
+          "say": "같은 확률에서 경보 기준만 낮춰요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "경보 세 건, 정밀도 약 영 점 육육, 재현율 일이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 이 표의 정밀도 증가를 모든 자료의 법칙으로 외우지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "threshold = 0.3",
+          "after": "threshold = 0.5",
+          "say": "처음 기준으로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "원래 기준과 다른 경보 결과를 구별해요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "more"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_b36bfae9-1b3e-4c1b-9fbd-66eaadac180b",
+      "title": "확률의 순위도 평가해요",
+      "goal": "지연1의 확률로 AUC0.75가 나왔어요.\n이 점수의 뜻과 조건을 고르세요.",
+      "language": "python",
+      "starter_code": "",
+      "solution": "rank",
+      "tests": [],
+      "required": true,
+      "example_code": "from sklearn.metrics import roc_auc_score\n\n# 큰 범주1인 지연에 해당하는 확률을 사용해요.\ny_true = [0, 0, 1, 1]\nscores = [0.1, 0.6, 0.4, 0.8]\nprint(float(roc_auc_score(y_true, scores)))\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "rank",
+            "text": "확률의 순위 평가이며 정답률75%라는 뜻은 아니에요"
+          },
+          {
+            "id": "accuracy",
+            "text": "범주 예측을75% 맞혔다는 뜻이에요"
+          }
+        ],
+        "answer": "rank"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "지연 확률의 순위 점수는 영 점 칠오예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "scores = [0.1, 0.6, 0.4, 0.8]",
+          "after": "scores = [0.9, 0.4, 0.6, 0.2]",
+          "say": "반대 종류의 확률을 넣어 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "방향이 반대라 영 점 이오로 바뀌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "scores = [0.9, 0.4, 0.6, 0.2]",
+          "after": "scores = [0.1, 0.6, 0.4, 0.8]",
+          "say": "지연 확률로 돌려요."
+        },
+        {
+          "action": "patch_code",
+          "before": "y_true = [0, 0, 1, 1]",
+          "after": "y_true = [0, 0, 0, 0]",
+          "say": "정답에 정상만 남은 평가도 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            6,
+            6
+          ],
+          "expect_error": "ValueError"
+        },
+        {
+          "action": "say",
+          "text": "이 버전은 두 범주가 없어 AUC 계산 오류를 알려요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 관심 범주의 점수 방향과 평가 범주를 확인해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "y_true = [0, 0, 0, 0]",
+          "after": "y_true = [0, 0, 1, 1]",
+          "say": "처음 두 범주 평가로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "다시 원래 지연 확률의 AUC 영 점 칠오예요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "rank"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_992c4142-a502-4477-bf22-ab70b8e559a4",
+      "title": "관심 범주의 이름을 맞춰요",
+      "goal": "지연 late를 얼마나 찾았는지 보고해야 해요.\npos_label 한 곳만 고치세요.",
+      "language": "python",
+      "starter_code": "from sklearn.metrics import recall_score\n\n# 종류 이름을 문자로 표현했어요. 관심 대상은 지연 late예요.\ny_true = [\"ok\", \"late\", \"late\", \"ok\"]\ny_pred = [\"ok\", \"late\", \"ok\", \"ok\"]\n# 이번 보고서가 요구하는 종류의 실제 누락을 확인하세요.\nscore = recall_score(y_true, y_pred, pos_label=\"ok\", zero_division=0)\nprint(round(float(score), 6))\n",
+      "solution": "from sklearn.metrics import recall_score\n\n# 종류 이름을 문자로 표현했어요. 관심 대상은 지연 late예요.\ny_true = [\"ok\", \"late\", \"late\", \"ok\"]\ny_pred = [\"ok\", \"late\", \"ok\", \"ok\"]\n# 이번 보고서가 요구하는 종류의 실제 누락을 확인하세요.\nscore = recall_score(y_true, y_pred, pos_label=\"late\", zero_division=0)\nprint(round(float(score), 6))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "0.5"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "지금은 정상을 찾은 비율 일만 보고 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "pos_label=\"ok\"",
+          "after": "pos_label=\"late\"",
+          "say": "보고서가 요구하는 지연으로 맞춰요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "지연 두 건 중 한 건을 찾아 재현율 영 점 오예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 관심 범주의 이름과 지표가 보는 대상을 맞춰요.",
+          "target": "output"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "정확도·혼동행렬·정밀도·재현율·F1을 업무 목적과 연결해요.",
+      "범주 평균·분모0의 정책·관심 범주의 이름을 구별해요.",
+      "임계값과 ROC AUC의 역할·평가 제한을 검증해요."
+    ],
+    "chapters": {
+      "chp_396fa11d-90fd-4c01-a91a-87e3c1dd3a79": [
+        "지표마다 다른 분모와 축을 읽어요."
+      ],
+      "chp_b9b605eb-887e-4338-82ac-3b7c976fc19a": [
+        "보정·평균·확률·관심 범주를 검증해요."
+      ]
+    },
+    "units": {
+      "unt_ee6c172c-6e98-4e47-9df2-19dcda8f8a63": {
+        "objectives": [
+          "정밀도·재현율·F1을 작은 수로 이해해요."
+        ],
+        "premise": "지연을 찾아 안내하려고 해요. 같은 실제 배송과 경보를 보며 맞힘·오탐·누락을 나누어 읽어요."
+      },
+      "unt_7ce0d449-b821-4859-a0b4-dfc01c15db0b": {
+        "objectives": [
+          "그럴듯한 점수를 실제 요구와 맞춰요."
+        ],
+        "premise": "같은 보고서에 범주 불균형과 경보 기준이 추가돼요. 마지막에는 실제 관심 범주를 코드에 맞춰요."
+      }
+    }
+  },
+  "prepared_cases": {
+    "stp_992c4142-a502-4477-bf22-ab70b8e559a4": [
+      {
+        "values": {
+          "y_true": [
+            "late",
+            "late",
+            "late",
+            "ok"
+          ],
+          "y_pred": [
+            "late",
+            "ok",
+            "ok",
+            "ok"
+          ]
+        },
+        "expected": "0.333333"
+      },
+      {
+        "values": {
+          "y_true": [
+            "late",
+            "ok"
+          ],
+          "y_pred": [
+            "late",
+            "ok"
+          ]
+        },
+        "expected": "1.0"
+      },
+      {
+        "values": {
+          "y_true": [
+            "late",
+            "late",
+            "ok"
+          ],
+          "y_pred": [
+            "ok",
+            "ok",
+            "ok"
+          ]
+        },
+        "expected": "0.0"
+      }
+    ]
+  }
+}

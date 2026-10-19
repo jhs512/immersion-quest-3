@@ -179,6 +179,9 @@ jobs:
       - name: Drive baseline and regression predictions
         if: matrix.group == 'model'
         run: cargo test --locked --test player_data_lessons_native aice_regression -- --ignored --test-threads=1
+      - name: Drive classification and metric interpretation
+        if: matrix.group == 'model'
+        run: cargo test --locked --test player_data_lessons_native aice_classification -- --ignored --test-threads=1
       - name: Reopen actual player with saved answer and progress
         if: ${{ matrix.group == 'core' && (!cancelled() && steps.build_player.outcome == 'success') }}
         run: cargo test --locked --test player_restart_native -- --ignored --test-threads=1
@@ -216,6 +219,8 @@ jobs:
             target/pilot-aice-scale-result.json
             target/pilot-aice-regression-result.json
             target/pilot-aice-regression-metrics-result.json
+            target/pilot-aice-classification-result.json
+            target/pilot-aice-classification-metrics-result.json
             target/pilot-java-static-result.json
             target/pilot-aice-features-result.json
             target/pilot-aice-split-result.json

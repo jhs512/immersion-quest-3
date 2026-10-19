@@ -97,3 +97,7 @@ fn aice_regression_metrics_restore_student_state() {verify("aice-regression-metr
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
 fn aice_classification_restore_student_state() {verify("aice-classification",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn aice_classification_metrics_restore_student_state() {verify("aice-classification-metrics",10)}
