@@ -161,3 +161,7 @@ fn java_crud_restore_student_state() {verify("java-crud",10)}
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
 fn java_testing_restore_student_state() {verify("java-testing",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn java_parser_restore_student_state() {verify("java-parser",8)}
