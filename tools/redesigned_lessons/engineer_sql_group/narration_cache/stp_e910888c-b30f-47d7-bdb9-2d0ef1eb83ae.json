@@ -1,0 +1,66 @@
+{
+  "by": "hand",
+  "source_sha256": "ce528cbbf26010da1038f9c7ebaa27e0be42347e70c270241eaadd29c2a1c4be",
+  "entry": [
+    {
+      "action": "run",
+      "say": "실제 준비된 표에서 실행해요.",
+      "lines": [
+        1,
+        1
+      ]
+    },
+    {
+      "action": "say",
+      "text": "에이 안에서 일·이, 비 안에서도 일·이예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "SELECT id, ROW_NUMBER() OVER(PARTITION BY category ORDER BY id) AS r FROM stocks ORDER BY id;",
+      "after": "SELECT id, ROW_NUMBER() OVER(ORDER BY id) AS r FROM stocks ORDER BY id;",
+      "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+    },
+    {
+      "action": "run",
+      "say": "실제 준비된 표에서 실행해요.",
+      "lines": [
+        1,
+        1
+      ]
+    },
+    {
+      "action": "say",
+      "text": "분할을 빼면 네 행에 이어서 번호를 붙여요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 윈도우 함수는 GROUP BY처럼 행을 그룹당 한 행으로 줄이는 것이 아니에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "SELECT id, ROW_NUMBER() OVER(ORDER BY id) AS r FROM stocks ORDER BY id;",
+      "after": "SELECT id, ROW_NUMBER() OVER(PARTITION BY category ORDER BY id) AS r FROM stocks ORDER BY id;",
+      "say": "문제의 처음 SQL로 돌아와요."
+    },
+    {
+      "action": "run",
+      "say": "실제 준비된 표에서 실행해요.",
+      "lines": [
+        1,
+        1
+      ]
+    },
+    {
+      "action": "say",
+      "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+      "target": "output"
+    },
+    {
+      "action": "choose_answer",
+      "id": "parts"
+    }
+  ]
+}

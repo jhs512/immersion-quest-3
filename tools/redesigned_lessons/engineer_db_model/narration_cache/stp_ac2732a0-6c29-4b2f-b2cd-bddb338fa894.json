@@ -1,0 +1,68 @@
+{
+  "by": "hand",
+  "source_sha256": "a922a3c0fadd125c0fe6ead646e27513441c24f8dcb8a7d9715797c8d8e11fa7",
+  "entry": [
+    {
+      "action": "run",
+      "say": "실제 준비된 표에서 실행해요.",
+      "lines": [
+        1,
+        2
+      ],
+      "expect_error": "NOT NULL constraint failed"
+    },
+    {
+      "action": "say",
+      "text": "이름이 빠져 실제 NOT NULL 제약에서 거절했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "VALUES(4,NULL,1)",
+      "after": "VALUES(4,'bag',1)",
+      "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+    },
+    {
+      "action": "run",
+      "say": "실제 준비된 표에서 실행해요.",
+      "lines": [
+        1,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "이름 bag을 주면 네 번째 물건이 들어가요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 빈 글자와 NULL은 달라요. 이름에 빈 글자도 금지할지는 추가 업무 규칙이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "VALUES(4,'bag',1)",
+      "after": "VALUES(4,NULL,1)",
+      "say": "문제의 처음 SQL로 돌아와요."
+    },
+    {
+      "action": "run",
+      "say": "실제 준비된 표에서 실행해요.",
+      "lines": [
+        1,
+        2
+      ],
+      "expect_error": "NOT NULL constraint failed"
+    },
+    {
+      "action": "say",
+      "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+      "target": "output"
+    },
+    {
+      "action": "choose_answer",
+      "id": "missing"
+    }
+  ]
+}

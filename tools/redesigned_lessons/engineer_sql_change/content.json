@@ -1,0 +1,813 @@
+{
+  "description": "실제 표를 바꾸고 취소해요. 권한은 제품 문법 자료로 별도 판단해요.",
+  "tasks": [
+    {
+      "id": "stp_dc797113-a7ed-444d-ab5c-86dedec06100",
+      "title": "새 행과 기존 행 수정을 나눠요",
+      "goal": "INSERT와 UPDATE의 대상을 구별해요.",
+      "language": "sql",
+      "starter_code": "",
+      "solution": "new",
+      "tests": [],
+      "required": true,
+      "example_code": "INSERT INTO stocks VALUES(5,7);\nSELECT COUNT(*) AS n FROM stocks;",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "new",
+            "text": "새 행을 하나 추가해5행이에요"
+          },
+          {
+            "id": "old",
+            "text": "기존ID1의 재고만 바꿔요"
+          }
+        ],
+        "answer": "new"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "새 ID 오를 넣어 행이 다섯 개예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "INSERT INTO stocks VALUES(5,7);",
+          "after": "UPDATE stocks SET qty=7 WHERE id=1;",
+          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "기존 행만 고치면 행 수는 네 개예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 추가와 수정은 다른 동작이에요. ID의 유일성도 확인해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "UPDATE stocks SET qty=7 WHERE id=1;",
+          "after": "INSERT INTO stocks VALUES(5,7);",
+          "say": "문제의 처음 SQL로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "new"
+        }
+      ],
+      "predict_before_run": true,
+      "files": {
+        "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, qty INTEGER);\nINSERT INTO stocks VALUES(1,2),(2,4),(3,NULL),(4,0);\n"
+      }
+    },
+    {
+      "id": "stp_bf300281-03df-4ff3-9f09-99bb813cca0a",
+      "title": "고칠 행의 조건을 확인해요",
+      "goal": "UPDATE의 WHERE 누락 효과를 이해해요.",
+      "language": "sql",
+      "starter_code": "",
+      "solution": "one",
+      "tests": [],
+      "required": true,
+      "example_code": "UPDATE stocks SET qty=qty+1 WHERE id=1;\nSELECT id, qty FROM stocks ORDER BY id;",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "one",
+            "text": "ID1 재고만 하나 늘어요"
+          },
+          {
+            "id": "all",
+            "text": "ID와 상관없이 모든 행이 늘어요"
+          }
+        ],
+        "answer": "one"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "ID일만 조건에 맞아 삼으로 바뀌었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "UPDATE stocks SET qty=qty+1 WHERE id=1;\nSELECT id, qty FROM stocks ORDER BY id;",
+          "after": "UPDATE stocks SET qty=qty+1;\nSELECT id, qty FROM stocks ORDER BY id;",
+          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "조건을 없애면 다른 알려진 재고도 늘어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. NULL에 일을 더해도 알려진 숫자로 바뀌지는 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "UPDATE stocks SET qty=qty+1;\nSELECT id, qty FROM stocks ORDER BY id;",
+          "after": "UPDATE stocks SET qty=qty+1 WHERE id=1;\nSELECT id, qty FROM stocks ORDER BY id;",
+          "say": "문제의 처음 SQL로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "one"
+        }
+      ],
+      "predict_before_run": true,
+      "files": {
+        "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, qty INTEGER);\nINSERT INTO stocks VALUES(1,2),(2,4),(3,NULL),(4,0);\n"
+      }
+    },
+    {
+      "id": "stp_73f9f2cc-669d-475b-9164-631cdd0287ea",
+      "title": "지울 행과 모르는 값을 구별해요",
+      "goal": "DELETE 조건과 NULL 판정을 구별해요.",
+      "language": "sql",
+      "starter_code": "",
+      "solution": "zero",
+      "tests": [],
+      "required": true,
+      "example_code": "DELETE FROM stocks WHERE qty=0;\nSELECT id FROM stocks ORDER BY id;",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "zero",
+            "text": "재고0인ID4만 지워요"
+          },
+          {
+            "id": "missing",
+            "text": "모르는 재고인ID3만 지워요"
+          }
+        ],
+        "answer": "zero"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "영인 물건만 지워서 일·이·삼이 남아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "qty=0",
+          "after": "qty IS NULL",
+          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "IS NULL로 바꾸면 모르는 재고의 ID삼을 지워요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 영과 NULL은 서로 다른 조건이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "qty IS NULL",
+          "after": "qty=0",
+          "say": "문제의 처음 SQL로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "zero"
+        }
+      ],
+      "predict_before_run": true,
+      "files": {
+        "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, qty INTEGER);\nINSERT INTO stocks VALUES(1,2),(2,4),(3,NULL),(4,0);\n"
+      }
+    },
+    {
+      "id": "stp_f58afedd-a77e-4969-980d-1c9a508b9596",
+      "title": "변경 묶음을 되돌려요",
+      "goal": "ROLLBACK과 COMMIT의 효과를 구별해요.",
+      "language": "sql",
+      "starter_code": "",
+      "solution": "undo",
+      "tests": [],
+      "required": true,
+      "example_code": "BEGIN;\nUPDATE stocks SET qty=9 WHERE id=1;\nROLLBACK;\nSELECT qty FROM stocks WHERE id=1;",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "undo",
+            "text": "ROLLBACK으로 원래2가 남아요"
+          },
+          {
+            "id": "keep",
+            "text": "한 번UPDATE하면 언제나9로 남아요"
+          }
+        ],
+        "answer": "undo"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "트랜잭션의 변경을 되돌려 재고 이는 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "ROLLBACK;",
+          "after": "COMMIT;",
+          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "COMMIT이면 구를 확정해요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 이 실습은 실행마다 새 DB예요. COMMIT해도 다음 문제의 DB로 이어지지는 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "COMMIT;",
+          "after": "ROLLBACK;",
+          "say": "문제의 처음 SQL로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "undo"
+        }
+      ],
+      "predict_before_run": true,
+      "files": {
+        "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, qty INTEGER);\nINSERT INTO stocks VALUES(1,2),(2,4),(3,NULL),(4,0);\n"
+      }
+    },
+    {
+      "id": "stp_37ce9c6a-74d8-4023-91a5-81c650f7571d",
+      "title": "중간 저장 지점까지만 되돌려요",
+      "goal": "SAVEPOINT와 ROLLBACK TO의 범위를 읽어요.",
+      "language": "sql",
+      "starter_code": "",
+      "solution": "part",
+      "tests": [],
+      "required": true,
+      "example_code": "BEGIN;\nUPDATE stocks SET qty=3 WHERE id=1;\nSAVEPOINT middle;\nUPDATE stocks SET qty=9 WHERE id=1;\nROLLBACK TO middle;\nRELEASE middle;\nCOMMIT;\nSELECT qty FROM stocks WHERE id=1;",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "part",
+            "text": "저장 지점 뒤의9만 취소해3이에요"
+          },
+          {
+            "id": "all",
+            "text": "처음BEGIN까지 모두 취소해2예요"
+          }
+        ],
+        "answer": "part"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "중간 지점 앞의 삼은 남고 뒤의 구만 취소했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "ROLLBACK TO middle;",
+          "after": "-- 비교: 저장 지점으로 되돌리지 않아요.",
+          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "되돌리는 줄을 없애면 구가 확정돼요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. ROLLBACK TO와 전체 ROLLBACK의 범위를 구별해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "-- 비교: 저장 지점으로 되돌리지 않아요.",
+          "after": "ROLLBACK TO middle;",
+          "say": "문제의 처음 SQL로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "part"
+        }
+      ],
+      "predict_before_run": true,
+      "files": {
+        "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, qty INTEGER);\nINSERT INTO stocks VALUES(1,2),(2,4),(3,NULL),(4,0);\n"
+      }
+    },
+    {
+      "id": "stp_21e2172c-4f17-468a-b8cd-d1301b1925b3",
+      "title": "조회 결과를 새 행으로 넣어요",
+      "goal": "INSERT SELECT의 행 선택을 이해해요.",
+      "language": "sql",
+      "starter_code": "",
+      "solution": "positive",
+      "tests": [],
+      "required": true,
+      "example_code": "INSERT INTO stocks(id,qty) SELECT id+10,qty FROM stocks WHERE qty>0;\nSELECT id FROM stocks WHERE id>10 ORDER BY id;",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "positive",
+            "text": "양수 재고 두 행을 골라 복사해요"
+          },
+          {
+            "id": "all",
+            "text": "NULL을 포함해 언제나 네 행을 복사해요"
+          }
+        ],
+        "answer": "positive"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "양수 두 행을 새 ID로 복사했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "qty>0;",
+          "after": "qty>=0;",
+          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "영도 포함하면 ID십사 행도 생겨요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 새 ID가 기존 키와 충돌하지 않도록 준비한 비교예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "qty>=0;",
+          "after": "qty>0;",
+          "say": "문제의 처음 SQL로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "positive"
+        }
+      ],
+      "predict_before_run": true,
+      "files": {
+        "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, qty INTEGER);\nINSERT INTO stocks VALUES(1,2),(2,4),(3,NULL),(4,0);\n"
+      }
+    },
+    {
+      "id": "stp_e3fd1efb-15d8-4df0-ae64-f69fc17184ce",
+      "title": "하나만 늘리는 수정을 고쳐요",
+      "goal": "ID1 재고만 하나 늘리세요. WHERE 조건만 더하면 돼요.",
+      "language": "sql",
+      "starter_code": "UPDATE stocks SET qty=qty+1;",
+      "solution": "UPDATE stocks SET qty=qty+1 WHERE id=1;",
+      "tests": [
+        {
+          "input": "",
+          "expected": "id | qty\n1 | 3\n2 | 4\n3 | NULL\n4 | 0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "조건이 없어 모든 알려진 재고를 바꿨어요. ID일 조건을 더해야 해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "UPDATE stocks SET qty=qty+1;",
+          "after": "UPDATE stocks SET qty=qty+1 WHERE id=1;",
+          "say": "변경할 행의 조건을 한 곳만 고쳐요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "ID일만 삼으로 바뀌고 나머지는 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 출력만 꾸미지 않고 실제 표의 변경을 검사해요.",
+          "target": "output"
+        }
+      ],
+      "files": {
+        "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, qty INTEGER);\nINSERT INTO stocks VALUES(1,2),(2,4),(3,NULL),(4,0);\n",
+        "after.sql": "SELECT id, qty FROM stocks ORDER BY id;"
+      },
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, qty INTEGER);\nINSERT INTO stocks VALUES(1,9),(2,4),(3,NULL),(4,0);\n"
+          },
+          "expected": "id | qty\n1 | 10\n2 | 4\n3 | NULL\n4 | 0"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, qty INTEGER);\nINSERT INTO stocks VALUES(1,2),(2,8),(3,NULL),(4,0);\n"
+          },
+          "expected": "id | qty\n1 | 3\n2 | 8\n3 | NULL\n4 | 0"
+        }
+      ]
+    },
+    {
+      "id": "stp_fe3cfed6-4d41-40ad-a8ad-086523eda50f",
+      "title": "재고0만 지우도록 고쳐요",
+      "goal": "재고0인 행만 지우세요. 비교 조건 한 곳만 고치세요.",
+      "language": "sql",
+      "starter_code": "DELETE FROM stocks WHERE qty>=0;",
+      "solution": "DELETE FROM stocks WHERE qty=0;",
+      "tests": [
+        {
+          "input": "",
+          "expected": "id\n1\n2\n3"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "영 이상으로 지우면 양수 물건도 사라져요. 영만 지우도록 좁혀요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "DELETE FROM stocks WHERE qty>=0;",
+          "after": "DELETE FROM stocks WHERE qty=0;",
+          "say": "변경할 행의 조건을 한 곳만 고쳐요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "ID사만 지워져 일·이·삼이 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 다른 ID가 영인 자료에서도 같은 의미로 지워야 해요.",
+          "target": "output"
+        }
+      ],
+      "files": {
+        "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, qty INTEGER);\nINSERT INTO stocks VALUES(1,2),(2,4),(3,NULL),(4,0);\n",
+        "after.sql": "SELECT id FROM stocks ORDER BY id;"
+      },
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, qty INTEGER);\nINSERT INTO stocks VALUES(1,0),(2,4),(3,NULL),(4,7);\n"
+          },
+          "expected": "id\n2\n3\n4"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, qty INTEGER);\nINSERT INTO stocks VALUES(1,2),(2,0),(3,NULL),(4,0);\n"
+          },
+          "expected": "id\n1\n3"
+        }
+      ]
+    },
+    {
+      "id": "stp_dd9803dc-ff9d-4018-af2c-33e734ccb6bb",
+      "title": "조회에 필요한 권한만 골라요",
+      "goal": "reporter는 조회만 해야 해요.\nPostgreSQL18에서 줄 권한을 고르세요.",
+      "language": "sql",
+      "starter_code": "",
+      "solution": "read",
+      "tests": [],
+      "required": true,
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "read",
+            "text": "GRANT SELECT ON stocks TO reporter;"
+          },
+          {
+            "id": "all",
+            "text": "GRANT ALL PRIVILEGES ON stocks TO reporter;"
+          }
+        ],
+        "answer": "read"
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "조회만 필요하므로 SELECT 권한을 골라요. 재부여가 필요 없다면 WITH GRANT OPTION도 붙이지 않아요.",
+          "target": "problem"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 이 문항은 제품 문법 자료를 읽어요. SQLite에서 권한을 실행한 결과가 아니에요.",
+          "target": "problem"
+        },
+        {
+          "action": "choose_answer",
+          "id": "read"
+        }
+      ]
+    },
+    {
+      "id": "stp_32951eb6-54ba-4646-840e-e0ac17330e59",
+      "title": "권한 회수와 데이터 삭제를 나눠요",
+      "goal": "reporter에게 직접 준 조회 권한을 회수해요.\n어떤 PostgreSQL18 명령을 읽어야 할까요?",
+      "language": "sql",
+      "starter_code": "",
+      "solution": "revoke",
+      "tests": [],
+      "required": true,
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "revoke",
+            "text": "REVOKE SELECT ON stocks FROM reporter;"
+          },
+          {
+            "id": "delete",
+            "text": "DELETE FROM stocks;"
+          }
+        ],
+        "answer": "revoke"
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "REVOKE는 사용 권한을 회수해요. DELETE는 표의 자료를 지우므로 목적이 달라요.",
+          "target": "problem"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 다른 역할이나 PUBLIC을 통해 받은 권한은 별도로 남을 수 있어요.",
+          "target": "problem"
+        },
+        {
+          "action": "choose_answer",
+          "id": "revoke"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "추가·수정·삭제의 대상을 읽고 실제 표로 확인해요.",
+      "트랜잭션과 중간 저장 지점의 취소 범위를 구별해요.",
+      "제품 문법의 권한 부여·회수를 자료 변경과 구별해요."
+    ],
+    "chapters": {
+      "chp_964d054a-13fd-4d5c-ae8c-4ca6df53bf0d": [
+        "추가·수정·삭제를 구별해요."
+      ],
+      "chp_2e62caf3-c5e2-4c77-8bea-3b8905230b58": [
+        "취소 범위와 수정 조건을 확인해요."
+      ],
+      "chp_13660d29-711a-4869-a5fa-dd101b86cfa1": [
+        "자료 변경과 사용 권한을 구별해요."
+      ]
+    },
+    "units": {
+      "unt_cac9b8d4-9f29-4d23-bcbb-406978a6e4b2": {
+        "objectives": [
+          "바뀌는 행을 정확히 읽어요."
+        ],
+        "premise": "stocks에는 ID1/재고2, ID2/4, ID3/미정, ID4/0이 있어요."
+      },
+      "unt_1fbde5f2-0500-410e-853a-37d6596fbe56": {
+        "objectives": [
+          "실제 표의 상태와 다른 자료를 확인해요."
+        ],
+        "premise": "같은 자료에서 한 조건씩 바꿔요. 매번 새 DB에서 시작해요."
+      },
+      "unt_40bd8cc4-bc5a-4d57-9095-2b7c75a1d9a9": {
+        "objectives": [
+          "GRANT·REVOKE·재부여 권한을 읽어요."
+        ],
+        "premise": "reporter는 보고서 조회만 해요. 여기서는 PostgreSQL18 명령 자료를 읽으며 SQLite에서 실행하지 않아요."
+      }
+    }
+  }
+}

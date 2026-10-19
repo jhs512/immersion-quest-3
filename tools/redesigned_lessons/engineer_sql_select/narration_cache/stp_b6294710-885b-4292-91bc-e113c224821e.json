@@ -1,0 +1,66 @@
+{
+  "by": "hand",
+  "source_sha256": "7844c887e2ca2f59d38dbb8b08ec1d72687c2ce3b9e67a22b7c6e5db1f924dd9",
+  "entry": [
+    {
+      "action": "run",
+      "say": "실제 준비된 표에서 실행해요.",
+      "lines": [
+        1,
+        1
+      ]
+    },
+    {
+      "action": "say",
+      "text": "공급처가 없는 가방은 내부 조인 결과에서 빠져요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "items i JOIN suppliers",
+      "after": "items i LEFT JOIN suppliers",
+      "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+    },
+    {
+      "action": "run",
+      "say": "실제 준비된 표에서 실행해요.",
+      "lines": [
+        1,
+        1
+      ]
+    },
+    {
+      "action": "say",
+      "text": "LEFT JOIN이면 왼쪽 물건을 남기고 없는 공급처는 NULL로 보여요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 바깥 조인 뒤 WHERE에서 오른쪽 열을 제한하면 보존하려던 행을 다시 잃을 수 있어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "items i LEFT JOIN suppliers",
+      "after": "items i JOIN suppliers",
+      "say": "문제의 처음 SQL로 돌아와요."
+    },
+    {
+      "action": "run",
+      "say": "실제 준비된 표에서 실행해요.",
+      "lines": [
+        1,
+        1
+      ]
+    },
+    {
+      "action": "say",
+      "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+      "target": "output"
+    },
+    {
+      "action": "choose_answer",
+      "id": "matched"
+    }
+  ]
+}

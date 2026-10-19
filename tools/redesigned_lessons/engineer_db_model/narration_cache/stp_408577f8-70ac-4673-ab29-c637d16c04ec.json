@@ -1,0 +1,68 @@
+{
+  "by": "hand",
+  "source_sha256": "cda4629df24e9ba271f89fdb05bdd8319b64d07069e66dadbe3748f95846234f",
+  "entry": [
+    {
+      "action": "run",
+      "say": "실제 준비된 표에서 실행해요.",
+      "lines": [
+        1,
+        2
+      ],
+      "expect_error": "UNIQUE constraint failed"
+    },
+    {
+      "action": "say",
+      "text": "실제 기본 키 제약이 중복 ID를 거절했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "VALUES(1,",
+      "after": "VALUES(4,",
+      "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+    },
+    {
+      "action": "run",
+      "say": "실제 준비된 표에서 실행해요.",
+      "lines": [
+        1,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "새 ID 사를 주면 네 번째 행이 들어가요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. INSERT와 기존 행을 수정하는 UPDATE를 구별해요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "VALUES(4,",
+      "after": "VALUES(1,",
+      "say": "문제의 처음 SQL로 돌아와요."
+    },
+    {
+      "action": "run",
+      "say": "실제 준비된 표에서 실행해요.",
+      "lines": [
+        1,
+        2
+      ],
+      "expect_error": "UNIQUE constraint failed"
+    },
+    {
+      "action": "say",
+      "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+      "target": "output"
+    },
+    {
+      "action": "choose_answer",
+      "id": "reject"
+    }
+  ]
+}

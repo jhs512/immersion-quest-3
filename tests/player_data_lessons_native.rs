@@ -201,3 +201,23 @@ fn engineer_python_values_restore_student_state() {verify("engineer-python-value
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
 fn engineer_python_calls_restore_student_state() {verify("engineer-python-calls",10)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_db_model_restore_student_state() {verify("engineer-db-model",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_sql_select_restore_student_state() {verify("engineer-sql-select",10)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_sql_group_restore_student_state() {verify("engineer-sql-group",10)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_sql_change_restore_student_state() {verify("engineer-sql-change",10)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_db_storage_restore_student_state() {verify("engineer-db-storage",16)}

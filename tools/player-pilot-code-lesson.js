@@ -8,7 +8,7 @@
  const click=async text=>{await wait(()=>button(text)&&!button(text).disabled,text);button(text).click();await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));};
  const bridge=()=>document.querySelector('.answer-state-bridge');
  const status=text=>document.querySelector('.execution-status')?.textContent.includes(text);
- const prepared=(task,answer)=>{const source=task.example_code??answer;if(!task.example_order_marker)return source;const order=JSON.parse(answer);return source.replace(task.example_order_marker,order.map(id=>task.interaction.options.find(option=>option.id===id).text).join('\n'));};
+ const prepared=(task,answer)=>{if(task.interaction&&!task.example_code)return null;const source=task.example_code??answer;if(!task.example_order_marker)return source;const order=JSON.parse(answer);return source.replace(task.example_order_marker,order.map(id=>task.interaction.options.find(option=>option.id===id).text).join('\n'));};
  const answer=async task=>{
   if(task.interaction?.kind==='choice')await wait(()=>{const radios=[...document.querySelectorAll('input[type=radio]')];return radios.length===task.interaction.options.length&&radios.every(radio=>!radio.matches(':disabled')&&radio.checked===(radio.value===bridge()?.value));},'controlled choices ready');
   if(task.interaction?.kind==='choice')document.querySelector(`input[type=radio][value="${task.solution}"]`).click();

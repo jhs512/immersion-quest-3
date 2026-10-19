@@ -1,0 +1,68 @@
+{
+  "course": "tests/fixtures/player-pilot/보/course.json",
+  "lesson": "courses/redesigned/engineer-sql-change.json",
+  "expected_outputs": [
+    [
+      "n\n5",
+      "n\n4",
+      "n\n5"
+    ],
+    [
+      "id | qty\n1 | 3\n2 | 4\n3 | NULL\n4 | 0",
+      "id | qty\n1 | 3\n2 | 5\n3 | NULL\n4 | 1",
+      "id | qty\n1 | 3\n2 | 4\n3 | NULL\n4 | 0"
+    ],
+    [
+      "id\n1\n2\n3",
+      "id\n1\n2\n4",
+      "id\n1\n2\n3"
+    ],
+    [
+      "qty\n2",
+      "qty\n9",
+      "qty\n2"
+    ],
+    [
+      "qty\n3",
+      "qty\n9",
+      "qty\n3"
+    ],
+    [
+      "id\n11\n12",
+      "id\n11\n12\n14",
+      "id\n11\n12"
+    ],
+    [
+      "id | qty\n1 | 3\n2 | 5\n3 | NULL\n4 | 1",
+      "id | qty\n1 | 3\n2 | 4\n3 | NULL\n4 | 0"
+    ],
+    [
+      "id\n3",
+      "id\n1\n2\n3"
+    ],
+    [],
+    []
+  ],
+  "reject": [
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "UPDATE stocks SET qty=qty+1 WHERE id=1;",
+          "SELECT 3;"
+        ]
+      ],
+      "reason": "실제 재고를 바꾸지 않고 결과만 내면 after.sql에서 거절해요."
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "qty=0",
+          "id=4"
+        ]
+      ],
+      "reason": "다른 ID의0 재고도 같은 조건으로 지워야 해요."
+    }
+  ]
+}

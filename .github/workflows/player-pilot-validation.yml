@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-15, macos-15-intel]
-        group: [core, git, java, java-object, java-app, web, python, data, c, model, classify, neural]
+        group: [core, git, java, java-object, java-app, web, sql, python, data, c, model, classify, neural]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     steps:
@@ -185,6 +185,11 @@ jobs:
       - name: Drive C pointer targets and copies
         if: matrix.group == 'c'
         run: cargo test --locked --test player_data_lessons_native engineer_c_pointers -- --ignored --test-threads=1
+      - name: Drive the independent SQL and data model lessons
+        if: matrix.group == 'sql'
+        run: |
+          cargo test --locked --test player_data_lessons_native engineer_db -- --ignored --test-threads=1
+          cargo test --locked --test player_data_lessons_native engineer_sql -- --ignored --test-threads=1
       - name: Drive the independent engineer Java lessons
         if: matrix.group == 'java-object'
         run: cargo test --locked --test player_data_lessons_native engineer_java -- --ignored --test-threads=1

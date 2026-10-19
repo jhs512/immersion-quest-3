@@ -1,0 +1,66 @@
+{
+  "by": "hand",
+  "source_sha256": "5418059a81a02910ec3c1ab03f61497c8e93f2b8390b5a7bacb41b377b8cb0fd",
+  "entry": [
+    {
+      "action": "run",
+      "say": "실제 준비된 표에서 실행해요.",
+      "lines": [
+        1,
+        1
+      ]
+    },
+    {
+      "action": "say",
+      "text": "안쪽 목록에 NULL이 있어 없는 값과 비교해도 참이 되지 않아요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "s.id NOT IN (SELECT supplier FROM items)",
+      "after": "NOT EXISTS (SELECT 1 FROM items i WHERE i.supplier=s.id)",
+      "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+    },
+    {
+      "action": "run",
+      "say": "실제 준비된 표에서 실행해요.",
+      "lines": [
+        1,
+        1
+      ]
+    },
+    {
+      "action": "say",
+      "text": "같은 ID의 행이 없는지를 NOT EXISTS로 묻으면 삼십을 찾아요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. NULL이 가능한 하위 질의에 NOT IN을 쓸 때는 제외 조건의 의미를 확인해요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "NOT EXISTS (SELECT 1 FROM items i WHERE i.supplier=s.id)",
+      "after": "s.id NOT IN (SELECT supplier FROM items)",
+      "say": "문제의 처음 SQL로 돌아와요."
+    },
+    {
+      "action": "run",
+      "say": "실제 준비된 표에서 실행해요.",
+      "lines": [
+        1,
+        1
+      ]
+    },
+    {
+      "action": "say",
+      "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+      "target": "output"
+    },
+    {
+      "action": "choose_answer",
+      "id": "unknown"
+    }
+  ]
+}

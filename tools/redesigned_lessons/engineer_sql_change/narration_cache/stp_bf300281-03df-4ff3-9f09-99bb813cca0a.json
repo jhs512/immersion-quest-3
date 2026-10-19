@@ -1,0 +1,66 @@
+{
+  "by": "hand",
+  "source_sha256": "17f244e18f7930f29ccbfbcd8a281d066ee4d6afbe644b80d4e9e27eaf64263e",
+  "entry": [
+    {
+      "action": "run",
+      "say": "실제 준비된 표에서 실행해요.",
+      "lines": [
+        1,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "ID일만 조건에 맞아 삼으로 바뀌었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "UPDATE stocks SET qty=qty+1 WHERE id=1;\nSELECT id, qty FROM stocks ORDER BY id;",
+      "after": "UPDATE stocks SET qty=qty+1;\nSELECT id, qty FROM stocks ORDER BY id;",
+      "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+    },
+    {
+      "action": "run",
+      "say": "실제 준비된 표에서 실행해요.",
+      "lines": [
+        1,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "조건을 없애면 다른 알려진 재고도 늘어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. NULL에 일을 더해도 알려진 숫자로 바뀌지는 않아요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "UPDATE stocks SET qty=qty+1;\nSELECT id, qty FROM stocks ORDER BY id;",
+      "after": "UPDATE stocks SET qty=qty+1 WHERE id=1;\nSELECT id, qty FROM stocks ORDER BY id;",
+      "say": "문제의 처음 SQL로 돌아와요."
+    },
+    {
+      "action": "run",
+      "say": "실제 준비된 표에서 실행해요.",
+      "lines": [
+        1,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+      "target": "output"
+    },
+    {
+      "action": "choose_answer",
+      "id": "one"
+    }
+  ]
+}

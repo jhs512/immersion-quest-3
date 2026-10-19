@@ -1,0 +1,926 @@
+{
+  "description": "같은 재고에서 그룹의 기준과 순위·창의 범위를 비교해요.",
+  "tasks": [
+    {
+      "id": "stp_5bd0f589-2a7b-474b-b2bf-736f896921ff",
+      "title": "전체 행과 알려진 값을 세어요",
+      "goal": "COUNT의 대상에 따른 NULL 제외를 구별해요.",
+      "language": "sql",
+      "starter_code": "",
+      "solution": "rows",
+      "tests": [],
+      "required": true,
+      "example_code": "SELECT COUNT(*) AS n FROM stocks;",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "rows",
+            "text": "전체 행4개를 세어요"
+          },
+          {
+            "id": "values",
+            "text": "qty가 있는3개만 세어요"
+          }
+        ],
+        "answer": "rows"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "별표는 재고가 NULL인 행도 세어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "COUNT(*)",
+          "after": "COUNT(qty)",
+          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "열을 지정하면 그 열의 NULL은 빼요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. COUNT(*)와 COUNT(열)의 대상이 다를 수 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "COUNT(qty)",
+          "after": "COUNT(*)",
+          "say": "문제의 처음 SQL로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "rows"
+        }
+      ],
+      "predict_before_run": true,
+      "files": {
+        "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, category TEXT, qty INTEGER, price INTEGER);\nINSERT INTO stocks VALUES(1,'A',2,10),(2,'A',4,10),(3,'B',NULL,5),(4,'B',0,2);\n"
+      }
+    },
+    {
+      "id": "stp_7bf866e4-1440-4cec-b230-17d32c9b6b4f",
+      "title": "합계와 평균의 분모를 읽어요",
+      "goal": "SUM과 AVG의 NULL 제외를 이해해요.",
+      "language": "sql",
+      "starter_code": "",
+      "solution": "sum",
+      "tests": [],
+      "required": true,
+      "example_code": "SELECT SUM(qty) AS amount FROM stocks;",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "sum",
+            "text": "알려진2·4·0을 더해6이에요"
+          },
+          {
+            "id": "average",
+            "text": "네 행으로 나눈1.5예요"
+          }
+        ],
+        "answer": "sum"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "알려진 값의 합은 육이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "SUM(qty)",
+          "after": "AVG(qty)",
+          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "평균은 NULL을 뺀 세 값으로 나누어 이예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. NULL을 자동으로 영으로 세면 평균의 분모가 달라져요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "AVG(qty)",
+          "after": "SUM(qty)",
+          "say": "문제의 처음 SQL로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "sum"
+        }
+      ],
+      "predict_before_run": true,
+      "files": {
+        "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, category TEXT, qty INTEGER, price INTEGER);\nINSERT INTO stocks VALUES(1,'A',2,10),(2,'A',4,10),(3,'B',NULL,5),(4,'B',0,2);\n"
+      }
+    },
+    {
+      "id": "stp_84cef749-ba19-4d41-9d67-b81cc742a8ce",
+      "title": "같은 분류끼리 모아요",
+      "goal": "GROUP BY의 그룹별 집계를 이해해요.",
+      "language": "sql",
+      "starter_code": "",
+      "solution": "group",
+      "tests": [],
+      "required": true,
+      "example_code": "SELECT category, SUM(qty) AS n FROM stocks GROUP BY category ORDER BY category;",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "group",
+            "text": "A와B를 각각 묶어 합계를 내요"
+          },
+          {
+            "id": "one",
+            "text": "전체 네 행을 항상 결과 한 행으로 만들어요"
+          }
+        ],
+        "answer": "group"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "분류별 합계는 에이 육, 비 영이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "SUM(qty)",
+          "after": "COUNT(*)",
+          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "그룹별 전체 행 수를 세면 둘씩이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 그룹을 만든 뒤 어떤 집계 함수를 쓰는지도 따로 봐요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "COUNT(*)",
+          "after": "SUM(qty)",
+          "say": "문제의 처음 SQL로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "group"
+        }
+      ],
+      "predict_before_run": true,
+      "files": {
+        "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, category TEXT, qty INTEGER, price INTEGER);\nINSERT INTO stocks VALUES(1,'A',2,10),(2,'A',4,10),(3,'B',NULL,5),(4,'B',0,2);\n"
+      }
+    },
+    {
+      "id": "stp_2d84191f-6af1-4b64-a8af-fe7c9f28607f",
+      "title": "그룹의 조건으로 고르세요",
+      "goal": "HAVING의 집계 뒤 조건을 구별해요.",
+      "language": "sql",
+      "starter_code": "",
+      "solution": "aggregate",
+      "tests": [],
+      "required": true,
+      "example_code": "SELECT category, SUM(qty) AS n FROM stocks GROUP BY category HAVING SUM(qty)>=5 ORDER BY category;",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "aggregate",
+            "text": "분류 합계가5 이상인A만 남아요"
+          },
+          {
+            "id": "rows",
+            "text": "재고가5 이상인 원래 행만 더해요"
+          }
+        ],
+        "answer": "aggregate"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "그룹 합계를 본 뒤 에이만 남겼어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "HAVING SUM(qty)>=5",
+          "after": "HAVING COUNT(*)>=2",
+          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "행 개수가 둘 이상인 그룹은 에이와 비 모두예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 행 조건은 WHERE, 그룹을 만든 뒤 집계 조건은 HAVING으로 나눠요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "HAVING COUNT(*)>=2",
+          "after": "HAVING SUM(qty)>=5",
+          "say": "문제의 처음 SQL로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "aggregate"
+        }
+      ],
+      "predict_before_run": true,
+      "files": {
+        "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, category TEXT, qty INTEGER, price INTEGER);\nINSERT INTO stocks VALUES(1,'A',2,10),(2,'A',4,10),(3,'B',NULL,5),(4,'B',0,2);\n"
+      }
+    },
+    {
+      "id": "stp_7155b2a4-71c0-4f85-baf8-3c33bb06ac6d",
+      "title": "행을 거른 뒤 모으세요",
+      "goal": "WHERE가 집계 입력을 바꿈을 이해해요.",
+      "language": "sql",
+      "starter_code": "",
+      "solution": "before",
+      "tests": [],
+      "required": true,
+      "example_code": "SELECT category, SUM(qty) AS n FROM stocks WHERE qty>=3 GROUP BY category ORDER BY category;",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "before",
+            "text": "먼저 남은 재고4만A 합계에 들어가요"
+          },
+          {
+            "id": "after",
+            "text": "전체를 더한6에서 마지막에3을 빼요"
+          }
+        ],
+        "answer": "before"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "집계 전에 사가 있는 행만 남아 합계도 사예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "WHERE qty>=3",
+          "after": "WHERE 1=1",
+          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "행 조건을 없애면 전체 자료로 그룹을 만들어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 조건을 처리하는 단계가 다르면 같은 숫자를 써도 결과가 달라져요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "WHERE 1=1",
+          "after": "WHERE qty>=3",
+          "say": "문제의 처음 SQL로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "before"
+        }
+      ],
+      "predict_before_run": true,
+      "files": {
+        "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, category TEXT, qty INTEGER, price INTEGER);\nINSERT INTO stocks VALUES(1,'A',2,10),(2,'A',4,10),(3,'B',NULL,5),(4,'B',0,2);\n"
+      }
+    },
+    {
+      "id": "stp_48327545-cfb5-4bc0-ac9e-fba78f15aefe",
+      "title": "집계 안의 중복을 구별해요",
+      "goal": "COUNT DISTINCT와 전체 값 개수를 구별해요.",
+      "language": "sql",
+      "starter_code": "",
+      "solution": "kinds",
+      "tests": [],
+      "required": true,
+      "example_code": "SELECT COUNT(DISTINCT category) AS n FROM stocks;",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "kinds",
+            "text": "중복 없는 분류 수2예요"
+          },
+          {
+            "id": "all",
+            "text": "물건 행 수4예요"
+          }
+        ],
+        "answer": "kinds"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "중복을 없애면 에이와 비 두 종류예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "COUNT(DISTINCT category)",
+          "after": "COUNT(category)",
+          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "중복을 유지하면 분류 값이 있는 네 행이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. DISTINCT가 결과 전체에 붙었는지 집계 인수 안에 붙었는지 확인해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "COUNT(category)",
+          "after": "COUNT(DISTINCT category)",
+          "say": "문제의 처음 SQL로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "kinds"
+        }
+      ],
+      "predict_before_run": true,
+      "files": {
+        "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, category TEXT, qty INTEGER, price INTEGER);\nINSERT INTO stocks VALUES(1,'A',2,10),(2,'A',4,10),(3,'B',NULL,5),(4,'B',0,2);\n"
+      }
+    },
+    {
+      "id": "stp_f84c654f-64d7-420e-8b96-83f3f8eec1d0",
+      "title": "같은 순위 뒤의 빈 번호를 읽어요",
+      "goal": "RANK와 DENSE_RANK의 동점을 구별해요.",
+      "language": "sql",
+      "starter_code": "",
+      "solution": "gap",
+      "tests": [],
+      "required": true,
+      "example_code": "SELECT id, RANK() OVER(ORDER BY price DESC) AS r FROM stocks ORDER BY id;",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "gap",
+            "text": "같은1등 두 명 다음은3등이에요"
+          },
+          {
+            "id": "dense",
+            "text": "RANK도 언제나 다음을2등으로 붙여요"
+          }
+        ],
+        "answer": "gap"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "동점 두 행이 일등이라 다음 순위가 삼이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "RANK()",
+          "after": "DENSE_RANK()",
+          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "밀집 순위는 동점 뒤의 번호를 비우지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 순위 기준인 price와 결과 표시 순서인 ID 정렬은 별개예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "DENSE_RANK()",
+          "after": "RANK()",
+          "say": "문제의 처음 SQL로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "gap"
+        }
+      ],
+      "predict_before_run": true,
+      "files": {
+        "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, category TEXT, qty INTEGER, price INTEGER);\nINSERT INTO stocks VALUES(1,'A',2,10),(2,'A',4,10),(3,'B',NULL,5),(4,'B',0,2);\n"
+      }
+    },
+    {
+      "id": "stp_e910888c-b30f-47d7-bdb9-2d0ef1eb83ae",
+      "title": "분류마다 번호를 다시 매겨요",
+      "goal": "PARTITION BY의 창 분할을 이해해요.",
+      "language": "sql",
+      "starter_code": "",
+      "solution": "parts",
+      "tests": [],
+      "required": true,
+      "example_code": "SELECT id, ROW_NUMBER() OVER(PARTITION BY category ORDER BY id) AS r FROM stocks ORDER BY id;",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "parts",
+            "text": "분류가 바뀌면 번호가1부터 시작해요"
+          },
+          {
+            "id": "reduce",
+            "text": "분류마다 한 행만 남기고 삭제해요"
+          }
+        ],
+        "answer": "parts"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "에이 안에서 일·이, 비 안에서도 일·이예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "SELECT id, ROW_NUMBER() OVER(PARTITION BY category ORDER BY id) AS r FROM stocks ORDER BY id;",
+          "after": "SELECT id, ROW_NUMBER() OVER(ORDER BY id) AS r FROM stocks ORDER BY id;",
+          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "분할을 빼면 네 행에 이어서 번호를 붙여요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 윈도우 함수는 GROUP BY처럼 행을 그룹당 한 행으로 줄이는 것이 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "SELECT id, ROW_NUMBER() OVER(ORDER BY id) AS r FROM stocks ORDER BY id;",
+          "after": "SELECT id, ROW_NUMBER() OVER(PARTITION BY category ORDER BY id) AS r FROM stocks ORDER BY id;",
+          "say": "문제의 처음 SQL로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "parts"
+        }
+      ],
+      "predict_before_run": true,
+      "files": {
+        "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, category TEXT, qty INTEGER, price INTEGER);\nINSERT INTO stocks VALUES(1,'A',2,10),(2,'A',4,10),(3,'B',NULL,5),(4,'B',0,2);\n"
+      }
+    },
+    {
+      "id": "stp_9ff15bee-38b5-458e-9b34-dec3d1467076",
+      "title": "지금 행까지의 합계를 읽어요",
+      "goal": "누적 창과 전체 창의 범위를 구별해요.",
+      "language": "sql",
+      "starter_code": "",
+      "solution": "running",
+      "tests": [],
+      "required": true,
+      "example_code": "SELECT id, SUM(qty) OVER(ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS n FROM stocks ORDER BY id;",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "running",
+            "text": "ID순으로 지금까지의 재고를 더해요"
+          },
+          {
+            "id": "total",
+            "text": "첫 행부터 무조건 전체 합6이에요"
+          }
+        ],
+        "answer": "running"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "첫 이 다음 육이고 NULL과 영 뒤에도 육이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "AND CURRENT ROW",
+          "after": "AND UNBOUNDED FOLLOWING",
+          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "창의 끝을 마지막 행까지 늘리면 모든 행에 전체 합 육이 보여요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. ROWS의 범위와 동점 묶음을 다루는 다른 프레임 규칙을 섞지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "AND UNBOUNDED FOLLOWING",
+          "after": "AND CURRENT ROW",
+          "say": "문제의 처음 SQL로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "running"
+        }
+      ],
+      "predict_before_run": true,
+      "files": {
+        "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, category TEXT, qty INTEGER, price INTEGER);\nINSERT INTO stocks VALUES(1,'A',2,10),(2,'A',4,10),(3,'B',NULL,5),(4,'B',0,2);\n"
+      }
+    },
+    {
+      "id": "stp_8bda2903-1957-447c-9b4e-a4b6f37ab592",
+      "title": "분류 합계의 기준을 고쳐요",
+      "goal": "분류별 재고 합계가5 이상인 것만 남기세요.\nHAVING의 숫자 한 곳을 고치세요.",
+      "language": "sql",
+      "starter_code": "SELECT category, SUM(qty) AS n FROM stocks GROUP BY category HAVING SUM(qty)>=0 ORDER BY category;",
+      "solution": "SELECT category, SUM(qty) AS n FROM stocks GROUP BY category HAVING SUM(qty)>=5 ORDER BY category;",
+      "tests": [
+        {
+          "input": "",
+          "expected": "category | n\nA | 6"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "지금 영 이상으로 골라 비도 나왔어요. 기준을 오 이상으로 고쳐요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "SUM(qty)>=0",
+          "after": "SUM(qty)>=5",
+          "say": "기준을 합계 오 이상으로 고쳐요."
+        },
+        {
+          "action": "run",
+          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "합계가 오 이상인 에이 육만 남아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 다른 분류가 기준을 넘는 자료도 같은 집계 조건으로 골라야 해요.",
+          "target": "output"
+        }
+      ],
+      "files": {
+        "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, category TEXT, qty INTEGER, price INTEGER);\nINSERT INTO stocks VALUES(1,'A',2,10),(2,'A',4,10),(3,'B',NULL,5),(4,'B',0,2);\n"
+      },
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, category TEXT, qty INTEGER, price INTEGER);\nINSERT INTO stocks VALUES(1,'A',2,10),(2,'A',1,10),(3,'B',NULL,5),(4,'B',8,2);\n"
+          },
+          "expected": "category | n\nB | 8"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, category TEXT, qty INTEGER, price INTEGER);\nINSERT INTO stocks VALUES(1,'A',1,10),(2,'A',3,10),(3,'B',NULL,5),(4,'B',0,2);\n"
+          },
+          "expected": "category | n\n(행 없음)"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "집계의 NULL·중복·그룹 기준을 읽어요.",
+      "행 조건과 그룹 조건을 구별해요.",
+      "동점·분할·누적 창과 실제 집계 조건을 판단해요."
+    ],
+    "chapters": {
+      "chp_512e4b14-5a45-4b03-8878-d776bcfa29c5": [
+        "집계의 NULL·중복·그룹 기준을 읽어요."
+      ],
+      "chp_904528f3-e6d4-457f-b26e-dce218beb9a9": [
+        "행 조건과 그룹 조건을 구별해요.",
+        "동점·분할·누적 창과 실제 집계 조건을 판단해요."
+      ]
+    },
+    "units": {
+      "unt_8bd26a51-4518-4eb8-8111-46f8270f06cb": {
+        "objectives": [
+          "집계의 NULL·중복·그룹 기준을 읽어요."
+        ],
+        "premise": "stocks에는 ID1/A/재고2/가격10, ID2/A/4/10, ID3/B/미정/5, ID4/B/0/2가 있어요. 같은 자료를 분류하거나 순서대로 읽어요."
+      },
+      "unt_0ff344d5-bc18-4912-8a80-1b0b678f4a6e": {
+        "objectives": [
+          "행 조건과 그룹 조건을 구별해요.",
+          "동점·분할·누적 창과 실제 집계 조건을 판단해요."
+        ],
+        "premise": "stocks에는 ID1/A/재고2/가격10, ID2/A/4/10, ID3/B/미정/5, ID4/B/0/2가 있어요. 같은 자료를 분류하거나 순서대로 읽어요."
+      }
+    }
+  }
+}
