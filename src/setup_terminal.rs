@@ -128,6 +128,15 @@ impl SetupTerminal {
             for (key,_) in std::env::vars_os(){if key.to_string_lossy().starts_with("GIT_"){command.env_remove(key);}}
             for (key,value) in environment {command.env(key,value);}
         }
+        #[cfg(target_os="macos")]
+        {
+            // Finder need not provide a login-shell locale. In the C locale,
+            // macOS Bash 3.2 Readline treats UTF-8 input bytes as Meta commands.
+            // Keep LANG (and translated messages), but guarantee UTF-8 characters
+            // even when the parent supplied LC_ALL=C. Only this PTY is changed.
+            command.env_remove("LC_ALL");
+            command.env("LC_CTYPE","en_US.UTF-8");
+        }
         let mut reader=pair.master.try_clone_reader().map_err(|e|e.to_string())?;
         let writer=pair.master.take_writer().map_err(|e|e.to_string())?;
         let draining=std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
