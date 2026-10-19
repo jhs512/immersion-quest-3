@@ -33,6 +33,23 @@ print(tree_count)
         self.assertNotEqual(skipped.returncode, 0)
         self.assertIn('실제 실행 상태', skipped.stderr)
 
+    def test_explicit_budget_allows_slow_cases_but_still_stops_them(self):
+        cases = [{'values': {'tree_count': 1}, 'expected': '1'}]
+        with tempfile.TemporaryDirectory() as folder:
+            Path(folder, 'main.py').write_text(
+                'import time\ntime.sleep(1.5)\ntree_count = 1\nprint(tree_count)\n', encoding='utf-8')
+            results = []
+            for seconds in [1, 3]:
+                results.append(subprocess.run(
+                    [sys.executable, '-I', '-X', 'utf8', '-c', checker(cases, timeout_seconds=seconds)],
+                    cwd=folder, capture_output=True, text=True, encoding='utf-8', timeout=10))
+        self.assertNotEqual(results[0].returncode, 0)
+        self.assertIn('TimeoutExpired', results[0].stderr)
+        self.assertEqual(results[1].returncode, 0, results[1].stderr)
+        for invalid in [0, 46, True, '45']:
+            with self.assertRaises(ValueError):
+                checker(cases, timeout_seconds=invalid)
+
     def test_existing_output_only_cases_remain_compatible(self):
         result = self.check_source('tree_count = 3\nprint(tree_count)\n', probe=False)
         self.assertEqual(result.returncode, 0, result.stderr)

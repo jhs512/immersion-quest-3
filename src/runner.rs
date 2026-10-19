@@ -341,7 +341,10 @@ pub(crate) async fn execute_python_files(
         )?;
         Ok::<_, std::io::Error>((stdout, stderr, status))
     };
-    match tokio::time::timeout(Duration::from_secs(60), collected).await {
+    // A checker reruns the reference and the learner on several data sets; TensorFlow imports and
+    // trains in that one process, so grading gets more time than a plain run.
+    let limit = if checker.is_some() { 180 } else { 60 };
+    match tokio::time::timeout(Duration::from_secs(limit), collected).await {
         Ok(Ok((stdout, stderr, status))) => {
             let limited = stdout.len() as u64 > OUTPUT_LIMIT || stderr.len() as u64 > OUTPUT_LIMIT;
             Ok(Execution {
@@ -374,7 +377,7 @@ pub(crate) async fn execute_python_files(
             Ok(Execution {
                 artifacts: vec![],
                 stdout: String::new(),
-                stderr: "실행 시간 제한 60초를 초과했습니다.".into(),
+                stderr: format!("실행 시간 제한 {limit}초를 초과했습니다."),
                 success: false,
                 state: "timeout".into(),
             })

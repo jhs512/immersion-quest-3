@@ -1,6 +1,10 @@
 use molip_quest::{lesson_runner,repository_course::{CourseManifest,Lesson}};
 
-fn tokens(text: &str) -> String { text.split_whitespace().collect::<Vec<_>>().join(" ") }
+fn tokens(text: &str) -> String {
+    // pandas 3 infers string storage; this lesson checks values and selection,
+    // rather than whether the string column is backed by object or str.
+    text.split_whitespace().collect::<Vec<_>>().join(" ").replace("dtype: str", "dtype: object")
+}
 
 #[tokio::test]
 async fn table_lesson_reads_its_own_files_and_teaches_partial_versus_whole() {

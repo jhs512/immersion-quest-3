@@ -2,7 +2,9 @@
 import json
 
 
-def _output_checker(cases):
+def _output_checker(cases, timeout_seconds=10):
+    if type(timeout_seconds) is not int or not 1 <= timeout_seconds <= 45:
+        raise ValueError("독립 검사 시간은 1~45초로 정하세요.")
     if not isinstance(cases,list) or not 1 <= len(cases) <= 50:
         raise ValueError('준비 값 검사 사례를 확인하세요.')
     for case in cases:
@@ -37,15 +39,15 @@ for case in cases:
     ast.fix_missing_locations(tree)
     result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],
                             stdin=subprocess.DEVNULL, capture_output=True, text=True,
-                            encoding='utf-8', timeout=10)
+                            encoding='utf-8', timeout=CASE_TIMEOUT)
     if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():
         raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')
 print('준비 값을 바꾼 검사도 통과했어요.')
-""".replace('PAYLOAD', repr(payload))
+""".replace('PAYLOAD', repr(payload)).replace('CASE_TIMEOUT', str(timeout_seconds))
 
 
-def checker(cases, probe=None):
-    script = _output_checker(cases)
+def checker(cases, probe=None, *, timeout_seconds=10):
+    script = _output_checker(cases, timeout_seconds)
     if probe is None:
         return script
     if not isinstance(probe, str) or not probe.strip():
