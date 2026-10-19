@@ -347,14 +347,10 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                 }
                 if !task.required {p {class:"challenge-note","선택 도전이에요. 수업 완료 후에 풀어도 돼요."}}
                 if !task.hints.is_empty() {div {class:"task-hints",for (index,hint) in task.hints.iter().enumerate(){details {summary {"힌트 {index+1}"}crate::ui::Markdown{text:hint.clone()}}}}}
-                button {onclick:{let record=record_explanation.clone();move |_|{if !show_solution(){record();}show_solution.set(!show_solution());}},"정답과 풀이 보기"}
-                if show_solution() {crate::ui::Markdown{text:format!("```{}\n{}\n```",task.language.editor(),task.solution)}}
-                if explanation.before_success||explanation.after_success {details {class:"explanation-info",summary {"학습 정보"}
-                    if explanation.before_success {span {title:"풀이 전에 해설을 함께 봤어요.",aria_label:"풀이 전 해설 확인","💡"}}
-                    if explanation.after_success {span {title:"성공 후 해설을 다시 봤어요.",aria_label:"성공 후 해설 확인","↺"}}
-                }}
+                div {class:"explanation-controls",role:"group",aria_label:"풀이와 해설",
+                button {class:"solution-toggle",onclick:{let record=record_explanation.clone();move |_|{if !show_solution(){record();}show_solution.set(!show_solution());}},"정답과 풀이 보기"}
                 if !task.narration.is_empty() {
-                    button {disabled:busy()||narrating(),onclick:{let actions=task.narration.clone();let record=record_explanation.clone();let needs_git=task.git_terminal.is_some();let demo_code=task.starter_code.clone();let demo_example=task.example_for_answer(&demo_code).unwrap_or_default();let has_interaction=task.interaction.is_some();let demo_input=task.tests.first().map(|case|case.input.clone()).unwrap_or_default();move |_|{
+                    button {class:"narration-play",disabled:busy()||narrating(),onclick:{let actions=task.narration.clone();let record=record_explanation.clone();let needs_git=task.git_terminal.is_some();let demo_code=task.starter_code.clone();let demo_example=task.example_for_answer(&demo_code).unwrap_or_default();let has_interaction=task.interaction.is_some();let demo_input=task.tests.first().map(|case|case.input.clone()).unwrap_or_default();move |_|{
                         record();
                         let Some(owner)=explanation_session.begin(demo_code.clone(),demo_example.clone(),demo_input.clone(),needs_git) else{return;};
                         let expected=serde_json::json!({"source":if has_example{Some(demo_example.clone())}else if !needs_git&&!has_interaction{Some(demo_code.clone())}else{None},"answer":if has_interaction{Some(demo_code.clone())}else{None}});
@@ -364,14 +360,20 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                             let mut bridge=document::eval(&script);let _=bridge.recv::<bool>().await;
                             explanation_session.finish(&owner);
                         });
-                    }},"해설 재생 · 정답 실행"}
-                    button {"data-explanation-stop":"true",onclick:move |_|{document::eval("window.molipAgent?.stop()");},"해설 멈춤"}
-                    label {class:"narration-speed","말 속도 "
+                    }},"해설 재생"}
+                    button {class:"narration-stop","data-explanation-stop":"true",disabled:!narrating(),onclick:move |_|{document::eval("window.molipAgent?.stop()");},"멈춤"}
+                    label {class:"narration-speed",span {"속도"}
                         select {class:"assistant-rate repository-narration-rate",aria_label:"해설 말 속도",onchange:move |e|{document::eval(&format!("window.molipVoice?.setRate({});",e.value()));},
                             for rate in ["0.75","1","1.25","1.5","1.75","2"] {option {value:rate,selected:rate=="1.5","{rate}배"}}
                         }
                     }
                 }
+                }
+                if explanation.before_success||explanation.after_success {details {class:"explanation-info",summary {"학습 정보"}
+                    if explanation.before_success {p {title:"풀이 전에 해설을 함께 봤어요.",aria_label:"풀이 전 해설 확인","💡 풀이 전에 해설을 확인했어요."}}
+                    if explanation.after_success {p {title:"성공 후 해설을 다시 봤어요.",aria_label:"성공 후 해설 확인","↺ 성공 후 해설을 다시 확인했어요."}}
+                }}
+                if show_solution() {crate::ui::Markdown{text:format!("```{}\n{}\n```",task.language.editor(),task.solution)}}
                 if !provided_files.is_empty() {details {class:"provided-files",summary {"함께 제공한 파일"}
                     for (name,body,used) in &provided_files {details {class:"provided-file",key:"{name}",summary {{format!("{name}{}",if *used {" · 이 문제에서 사용"}else{""})}}crate::ui::Markdown{text:format!("```\n{body}\n```")}}}
                 }}

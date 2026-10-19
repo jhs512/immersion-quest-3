@@ -204,6 +204,38 @@
     glideFrame = requestAnimationFrame(step);
     return duration;
   }
+  // Authored speech uses pronunciations such as 십이. Captions use the numerical
+  // values in this task and demonstration, without changing what the voice reads.
+  let captionSource = '';
+  function captionText(sentence) {
+    const source = (document.querySelector('.repository-task')?.textContent || '') + '\n' + captionSource;
+    const digits = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+    const group = value => {
+      let result = '';
+      for (const [unit, word] of [[1000,'천'],[100,'백'],[10,'십'],[1,'']]) {
+        const digit = Math.floor(value / unit); value %= unit;
+        if (digit) result += (digit === 1 && unit > 1 ? '' : digits[digit]) + word;
+      }
+      return result;
+    };
+    const numbers = new Map();
+    for (const match of source.matchAll(/\b\d{2,8}\b/g)) {
+      const value = Number(match[0]);
+      if (value < 10) continue;
+      const high = Math.floor(value / 10000), low = value % 10000;
+      const word = (high ? (high === 1 ? '' : group(high)) + '만' : '') + group(low);
+      numbers.set(word, String(value));
+    }
+    if (!numbers.size) return String(sentence || '');
+    const words = [...numbers.keys()].sort((a,b)=>b.length-a.length).join('|');
+    // A suffix check keeps ordinary words such as 백업 and 만약 intact.
+    const pattern = new RegExp('(^|[^가-힣])(' + words + ')(?=$|[\\s,.!?…]|은|는|이|가|을|를|의|에|예|와|과|로|도|만|번|개|명|건|점|초|분|시|줄|배|원|퍼센트|%)', 'g');
+    return String(sentence || '').replace(pattern, (whole, prefix, word, index, text) => {
+      const base = word.slice(0,-1);
+      if (word.endsWith('이') && text.slice(index + whole.length).startsWith('에요') && numbers.has(base)) return prefix + numbers.get(base) + '이';
+      return prefix + numbers.get(word);
+    });
+  }
   function spotlight(target, sentence) {
     ensureSpot();
     const element = resolveTarget(target);
@@ -213,7 +245,7 @@
       mark(element);
       try { glideTo(element); } catch {}
     }
-    caption.textContent = sentence || '';
+    caption.textContent = captionText(sentence);
     caption.hidden = !sentence;
     cancelAnimationFrame(raf);
     place();
@@ -701,6 +733,7 @@
   async function run(actions, explanation = false) {
     if (!explanation && explanationSession) stop();
     if (!Array.isArray(actions)) return '동작 목록이 배열이 아닙니다.';
+    captionSource = actions.flatMap(action => ['code','before','after','input','value'].map(key=>action?.[key] ?? '')).join('\n');
     const runId = ++narrationRun;
     const session = explanation ? explanationSession : null;
     const active = () => !cancelled && runId === narrationRun && (!session || session.current());

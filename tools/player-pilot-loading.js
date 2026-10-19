@@ -30,6 +30,12 @@
   document.querySelector('.lesson-info-dialog>header>button').click();
   await wait(()=>!document.getElementById('lesson-info-dialog').open,'close button');
   checked.push('single toolbar and learning information popup with Escape and close button');
+  await click('정답과 풀이 보기');
+  await wait(()=>document.querySelector('.explanation-info summary'),'explanation record');
+  document.querySelector('.explanation-info summary').click();
+  if(!document.querySelector('.explanation-info').textContent.includes('풀이 전에 해설을 확인했어요.'))throw Error('Explanation information contains only an icon');
+  for(const control of document.querySelectorAll('.explanation-controls>button,.explanation-controls select'))if(control.getBoundingClientRect().height>34)throw Error('Explanation controls are too tall');
+  checked.push('explanation information displays readable record text');
   for(const nav of [...document.querySelectorAll('.study-navigation button')]){
    nav.click();await new Promise(r=>setTimeout(r,120));
    if(!document.querySelector('.problem-pane h2')?.textContent.trim())throw Error('Empty task');

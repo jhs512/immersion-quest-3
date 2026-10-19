@@ -25,8 +25,8 @@
    if(marker)await runGit(`git branch ${marker}`);
    // A retired bridge can remain while the next real Git terminal starts.
    if(index===3)window.molipGitTutor={owner:'retired-verification-session',command(){staleTutorUsed=true;return Promise.resolve(false);},dispose(){}};
-   await click('해설 재생 · 정답 실행');await wait(()=>molipAgent.running,'teacher starts');
-   await wait(()=>!molipAgent.running&&!button('해설 재생 · 정답 실행')?.disabled,'teacher finishes');
+   await click('해설 재생');await wait(()=>molipAgent.running,'teacher starts');
+   await wait(()=>!molipAgent.running&&!button('해설 재생')?.disabled,'teacher finishes');
    if(staleTutorUsed)throw Error('Narration used a retired Git tutor session');
    if(teacherResult.includes('오류 -')||teacherResult.split('git_command:').length-1!==task.narration.filter(a=>a.action==='git_command').length)throw Error(`Remote teacher did not finish: ${teacherResult}`);
    if(marker){
