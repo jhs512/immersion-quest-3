@@ -156,3 +156,5 @@ python tools/build-kpc-course.py
 Windows와 macOS ARM/Intel의 CI는 실제 앱에서 풀이·해설·초기화·답안 복원을 검사한다. 음성 다운로드 검사와 실제 음성 청취는 별도 증거다. DOM 단축키나 UTF-8 검사를 물리 IME 조합 검사로 표현하지 않는다.
 
 작업별 자세한 증거와 미확인 범위는 로컬 `.scratch/player-content-redesign/implementation-log.md`와 `target/player-pilot-audit/`에 보관한다.
+
+공개 실행·실제 앱·플랫폼별 결과와 수동 검증 한계는 [개편 검증 기록](redesign-verification.md)을 참고한다.
