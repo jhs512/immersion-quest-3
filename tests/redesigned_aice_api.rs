@@ -7,7 +7,7 @@ async fn dictionary_calls_and_aliases_match_real_outputs_including_explained_err
     assert_eq!(lesson.tasks.len(),8);
     let expected:Vec<Vec<&str>>=vec![vec!["18","서쪽","18"],
         vec!["[12, 18, 24]","['서쪽', '동쪽', '서쪽']","[12, 18, 24]"],
-        vec!["2\n3","2\n4","2\n3"],vec!["","[12, 18, 24]"],
+        vec!["2\n3","2\n4","2\n3"],vec!["","","[12, 18, 24]"],
         vec!["[12, 18, 24]\n[24, 12, 18]"],
         vec!["[12, 18, 24]\n[24, 12, 18]","[24, 18, 12]\n[24, 12, 18]"],
         vec!["18","8","18"],vec!["","18","18","18"]];
@@ -41,6 +41,8 @@ async fn dictionary_calls_and_aliases_match_real_outputs_including_explained_err
     let alias=&lesson.tasks[7];
     let other_alias=alias.solution.replace(" as stats"," as st").replace("stats.mean","st.mean");
     assert!(lesson_runner::check(alias,&other_alias).await.unwrap().passed,"An alias is not a memorized reserved name");
+    let truncated=alias.solution.replace("stats.mean(minutes)","sum(minutes) // len(minutes)");
+    assert!(!lesson_runner::check(alias,&truncated).await.unwrap().passed,"A fractional mean must not be truncated");
     let constant="minutes=[12,18,24]\nprint(18)\n";
     assert!(!lesson_runner::check(alias,constant).await.unwrap().passed,"A memorized mean is not a general call");
     let mutating="minutes=[24,12,18]\nminutes.sort(reverse=True)\nprint(minutes)\nprint(minutes)\n";
