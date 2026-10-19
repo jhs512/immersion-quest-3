@@ -8,6 +8,10 @@ on:
         description: 'JSON list of validation groups; leave the default for every group'
         required: true
         default: '["core","git","java","java-object","java-app","web","sql","engineer-java","theory","systems","release-runtime","python","data","c","model","classify","neural"]'
+      platforms:
+        description: 'JSON list of runner platforms; default validates all supported desktop platforms'
+        required: true
+        default: '["windows-latest","macos-15","macos-15-intel"]'
 permissions:
   contents: read
 concurrency:
@@ -18,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-15, macos-15-intel]
+        os: ${{ fromJSON(inputs.platforms || '["windows-latest","macos-15","macos-15-intel"]') }}
         group: ${{ fromJSON(inputs.groups || '["core","git","java","java-object","java-app","web","sql","engineer-java","theory","systems","release-runtime","python","data","c","model","classify","neural"]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
