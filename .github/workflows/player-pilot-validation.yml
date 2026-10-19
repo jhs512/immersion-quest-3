@@ -164,10 +164,12 @@ jobs:
         if: matrix.group == 'architecture'
         shell: python
         run: |
-          import subprocess
+          import os, pathlib, subprocess
           subprocess.run(['python', 'tools/test_lesson_registry.py'], check=True)
           subprocess.run(['python', 'tools/build-redesigned-course-bundle.py', '--check'], check=True)
           subprocess.run(['cargo', 'test', '--locked', '--test', 'lesson_registry', '--test', 'content_updates', '--test', 'git_practice', '--', '--test-threads=1'], check=True)
+          subprocess.run(['cargo', 'run', '--locked', '--bin', 'molip-quest'], env=dict(os.environ, MOLIP_PILOT='1', MOLIP_PILOT_SELF_TEST='1'), check=True)
+          pathlib.Path('target/pilot-core-result.json').write_bytes(pathlib.Path('target/pilot-native-result.json').read_bytes())
           for target, name in [('player_python_native', ''), ('player_table_native', ''),
               ('player_data_lessons_native', 'java_static_restore'),
               ('player_data_lessons_native', 'engineer_c_double_pointers'),
