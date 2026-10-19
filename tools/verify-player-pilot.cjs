@@ -30,6 +30,7 @@ const path = require('node:path');
   assert.equal((await page.locator('.output').innerText()).trim(), '3');
   await page.getByRole('button', {name: '제출', exact: true}).click();
   await page.getByRole('status').filter({hasText: '통과했어요.'}).waitFor();
+  await page.getByRole('button', {name: '여기 머물기', exact: true}).click();
   await page.getByRole('button', {name: '초기화', exact: true}).click();
   await page.waitForFunction(() => molipCodeEditors.getValue()?.includes('console.log(0)'));
   await page.getByRole('button', {name: /문제 2 · 값 5 확인/}).click();

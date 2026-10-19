@@ -208,6 +208,7 @@ fn LessonPlayer(session:Session,selected:OpenLesson,onback:EventHandler<()>)->El
     let count=required.iter().filter(|id|passed.contains(*id)).count();
     let view=if selected.mode==StudyMode::Full && section_index()<selected.lesson.sections.len() {None}else{Some(selected.lesson.tasks[task_index().min(selected.lesson.tasks.len()-1)].clone())};
     let is_task=view.is_some();
+    let task_count=selected.lesson.tasks.len();
     let record_view={let session=session.clone();let selected=selected.clone();move |index:usize|{
         let session=session.clone();let selected=selected.clone();
         spawn(async move {
@@ -236,6 +237,8 @@ fn LessonPlayer(session:Session,selected:OpenLesson,onback:EventHandler<()>)->El
             }
             if let Some(task)=view {
                 RepositoryTask {key:"{selected.round}:{task.id}",session:session.clone(),selected:selected.clone(),task,events,
+                    has_next:task_index()+1<task_count,
+                    onnext:move |_|{if task_index()+1<task_count{task_index+=1;}else{onback.call(());}},
                     onrecord:move |new_events:Vec<LearningEvent>|{if let Some(first)=new_events.first(){let key=first.key.clone();events.set(issue_progress::merge(events().into_iter().chain(new_events),&key));}}}
                 div {class:"task-paging",
                     button {disabled:task_index()==0,onclick:move |_|{task_index-=1;},"← 이전 문제"}
@@ -256,7 +259,7 @@ fn LessonPlayer(session:Session,selected:OpenLesson,onback:EventHandler<()>)->El
 }
 
 #[component]
-fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Vec<LearningEvent>>,onrecord:EventHandler<Vec<LearningEvent>>)->Element {
+fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Vec<LearningEvent>>,onrecord:EventHandler<Vec<LearningEvent>>,has_next:bool,onnext:EventHandler<()>)->Element {
     let key=molip_quest::drafts::repository_scope(&ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},selected.mode,&task.id);
     let previous_key=format!("repo:{}:{}:{}:{}:{}",session.user.id,selected.course.id,selected.lesson.id,selected.round,task.id);
     let initial=use_hook(||molip_quest::drafts::load(&key).ok().flatten().or_else(||molip_quest::drafts::load(&previous_key).ok().flatten()).map(|d|d.code).unwrap_or_else(||task.starter_code.clone()));
@@ -286,6 +289,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     use_effect(move||{if ordered_task.example_order_marker.is_some(){match ordered_task.example_for_answer(&ordered_answer()){Ok(source)=>{if *example_source.peek()!=source{example_source.set(source);reset.with_mut(|version|*version+=1);}},Err(error)=>{if *message.peek()!=error{message.set(error);}}}}});
 
     let mut show_solution=use_signal(||false);
+    let mut passed_dialog=use_signal(||false);
     use_drop(||{document::eval("window.molipAgent?.stop()");});
     let mut history_saves=use_signal(||0usize);
     let mut history_message=use_signal(String::new);
@@ -426,6 +430,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                                                     Ok((_,latest))=>{onrecord.call(latest);message.set("수업 완료! 학습·복습 기록을 GitHub에 저장했어요.".into());},Err(e)=>{onrecord.call(latest);message.set(format!("문제는 기록했지만 수업 완료 저장은 다시 시도해야 해요. {e}"));}
                                                 }
                                             }else{onrecord.call(latest);message.set(if report.passed{"통과했어요. GitHub에 진도를 저장했어요."}else{"다시 풀어보세요. 시도 기록을 GitHub에 저장했어요."}.into());}
+                                            passed_dialog.set(report.passed);
                                         }
                                     }
                                 }
@@ -473,6 +478,41 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                     iframe {key:"{task.id}/teacher-web-preview",title:"해설 웹 미리보기","sandbox":"allow-scripts allow-forms",srcdoc:teacher_preview(),style:"width:100%;height:400px;border:1px solid #456;"}
                 }
             }
+            }
+        }
+        if passed_dialog() {
+            TaskPassedDialog {has_next,
+                onnext:move |_|{passed_dialog.set(false);onnext.call(());},
+                onstay:move |_|{passed_dialog.set(false);document::eval("document.querySelector('.repository-task .primary')?.focus()");}}
+        }
+    }
+}
+
+#[component]
+fn TaskPassedDialog(has_next:bool,onnext:EventHandler<()>,onstay:EventHandler<()>)->Element {
+    let mut advancing=use_signal(||false);
+    rsx! {
+        div {class:"task-passed-backdrop",
+            section {class:"task-passed-dialog",role:"dialog",aria_modal:"true",aria_label:"문제 통과",
+                onkeydown:move |event|{
+                    match event.key() {
+                        Key::Escape=>{event.prevent_default();event.stop_propagation();onstay.call(());},
+                        Key::Enter=>{event.stop_propagation();if event.is_auto_repeating(){event.prevent_default();}},
+                        Key::Tab=>{event.prevent_default();event.stop_propagation();document::eval("const buttons=[...document.querySelectorAll('.task-passed-dialog button')];buttons[(buttons.indexOf(document.activeElement)+1)%buttons.length]?.focus()");},
+                        _=>{}
+                    }
+                },
+                div {class:"task-passed-icon",aria_hidden:"true","✓"}
+                h2 {"통과했어요!"}
+                p {if has_next{"다음 문제로 이어서 풀어보세요."}else{"마지막 문제까지 풀었어요. 수업 목록에서 다음 학습을 선택하세요."}}
+                div {class:"task-passed-actions",
+                    button {class:"primary",disabled:advancing(),
+                        onmounted:move |event|async move{let _=event.data().set_focus(true).await;},
+                        onclick:move |_|{if !advancing(){advancing.set(true);onnext.call(());}},
+                        if has_next{"다음으로 이동"}else{"수업 목록으로"}}
+                    button {onclick:move |_|onstay.call(()),"여기 머물기"}
+                }
+                small {"Enter로 이동 · Esc로 닫기"}
             }
         }
     }
