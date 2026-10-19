@@ -1,0 +1,30 @@
+name: Native OS input audit
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: macos-arm64
+      - run: cargo build --locked --bin molip-quest
+      - name: Native keyboard and clipboard in isolated app
+        env:
+          AUDIT_SOURCE: ${{ github.sha }}
+        run: |
+          mkdir -p target/os-input-audit
+          swiftc tools/macos-native-input.swift -o target/os-input-audit/native-input
+          target/os-input-audit/native-input "$PWD/target/debug/molip-quest" | tee target/os-input-audit/macos-native-input.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: macos-native-os-input
+          path: target/os-input-audit/macos-native-input.json
