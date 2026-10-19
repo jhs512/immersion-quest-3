@@ -44,6 +44,10 @@ do {
  try wait("Native control-command-F toggle"){let label=fullscreenLabel();return !label.isEmpty && label != beforeFullscreen}
  Thread.sleep(forTimeInterval:2)
  report["fullscreenLabelAfter"]=fullscreenLabel()
+ guard let restoredEditor=nodes(app).first(where:{(attr($0,kAXRoleAttribute) as? String)==kAXTextAreaRole && text($0).contains("코드 편집기")}) else{throw NSError(domain:"Editor after window transition unavailable",code:12)}
+ report["focusRestoreResult"]=AXUIElementSetAttributeValue(restoredEditor,kAXFocusedAttribute as CFString,kCFBooleanTrue).rawValue
+ Thread.sleep(forTimeInterval:0.6)
+ report["editorFocusedBeforeRestore"]=attr(restoredEditor,kAXFocusedAttribute) as? Bool ?? false
  try key(CGKeyCode(kVK_ANSI_F),true,true)
  try wait("Native control-command-F restore"){fullscreenLabel()==beforeFullscreen}
  report["nativeFullscreenShortcutVerified"]=true
@@ -68,6 +72,8 @@ do {
   guard composed=="한글" else{throw NSError(domain:"Native Korean IME mismatch",code:10)}
  }else{report["imeVerified"]=false;report["imeLimitation"]="Korean input source not enabled; no system settings changed"}
  report["actualOsInputVerified"]=true;report["status"]="passed"
-}catch{report["status"]="failed_or_blocked";report["error"]=String(describing:error)}
+}catch{report["status"]="failed_or_blocked";report["error"]=String(describing:error)
+ if task.isRunning {let app=AXUIElementCreateApplication(task.processIdentifier);report["failureButtons"]=nodes(app).filter{(attr($0,kAXRoleAttribute) as? String)==kAXButtonRole}.map{text($0)};report["failureFrontmostPID"]=NSWorkspace.shared.frontmostApplication?.processIdentifier ?? -1}
+}
 if let data=try? JSONSerialization.data(withJSONObject:report,options:[.prettyPrinted,.sortedKeys]),let value=String(data:data,encoding:.utf8){print(value)}
 exit(report["actualOsInputVerified"] as? Bool == true ? 0:1)
