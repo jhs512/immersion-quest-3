@@ -1,0 +1,683 @@
+{
+  "schema_version": 2,
+  "id": "lsn_31f4e5ad-a83b-4709-a955-7a6c324963db",
+  "revision": "engineer-network-1",
+  "title": "네트워크 · 같은 창고의 주소와 전송을 읽어요",
+  "description": "같은 업무 상황의 조건과 대안을 비교해 원리를 판단해요.",
+  "objectives": [
+    "프리픽스·마스크·블록·호스트 수를 계산해요.",
+    "일반 서브넷과 점대점 예외를 구별해요.",
+    "이름 조회·전송·경로·업무 성공을 구별해요."
+  ],
+  "sources": [
+    "https://www.rfc-editor.org/rfc/rfc4632.html",
+    "https://www.rfc-editor.org/rfc/rfc3021.html",
+    "https://www.rfc-editor.org/rfc/rfc9293.html",
+    "https://www.rfc-editor.org/rfc/rfc768.html",
+    "https://www.rfc-editor.org/rfc/rfc1034.html",
+    "https://www.rfc-editor.org/rfc/rfc8200.html"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_b71696b2-0cc2-4f50-9aee-809e57b4e6d7",
+      "title": "같은 창고의 IPv4 주소를 나눠요",
+      "objectives": [
+        "프리픽스와 남은 비트를 나눠요",
+        "전체 주소 수를 구해요",
+        "블록의 마지막 주소를 구해요",
+        "일반 호스트 수를 구해요",
+        "마스크를 주소와 연결해요",
+        "주소 하나의 소속을 확인해요",
+        "더 작은 블록으로 나눠요",
+        "점대점 주소의 예외를 읽어요"
+      ],
+      "units": [
+        {
+          "id": "unt_83009799-669d-438d-9299-a4c75fa5d85f",
+          "title": "같은 창고의 IPv4 주소를 나눠요의 같은 상황",
+          "objectives": [
+            "프리픽스와 남은 비트를 나눠요",
+            "전체 주소 수를 구해요",
+            "블록의 마지막 주소를 구해요",
+            "일반 호스트 수를 구해요",
+            "마스크를 주소와 연결해요",
+            "주소 하나의 소속을 확인해요",
+            "더 작은 블록으로 나눠요",
+            "점대점 주소의 예외를 읽어요"
+          ],
+          "premise": "창고는 192.0.2.8/29를 써요. 일반 브로드캐스트 서브넷 모형이에요. 주소는 학습용이고 외부 연결은 하지 않아요.",
+          "steps": [
+            {
+              "id": "stp_9b59c634-66fc-42bc-ab07-5050688fbbc4",
+              "objectives": [
+                "프리픽스와 남은 비트를 나눠요"
+              ]
+            },
+            {
+              "id": "stp_413d2f18-36ab-4389-bb8c-810eb06cc0ab",
+              "objectives": [
+                "전체 주소 수를 구해요"
+              ]
+            },
+            {
+              "id": "stp_2c262894-cd3e-4d0b-a0cc-9d77c82c9118",
+              "objectives": [
+                "블록의 마지막 주소를 구해요"
+              ]
+            },
+            {
+              "id": "stp_f8ad1911-b12a-4b73-86a8-79b08e67e043",
+              "objectives": [
+                "일반 호스트 수를 구해요"
+              ]
+            },
+            {
+              "id": "stp_e67a4333-60a6-44a2-8ee0-f04252ab07bc",
+              "objectives": [
+                "마스크를 주소와 연결해요"
+              ]
+            },
+            {
+              "id": "stp_38937edc-0f27-443b-b2f8-2054ac64fd47",
+              "objectives": [
+                "주소 하나의 소속을 확인해요"
+              ]
+            },
+            {
+              "id": "stp_a44a9f9d-170d-4448-b746-82b5ecba8ac4",
+              "objectives": [
+                "더 작은 블록으로 나눠요"
+              ]
+            },
+            {
+              "id": "stp_e53ea931-49f1-4fb7-ab94-ca2e81f6c456",
+              "objectives": [
+                "점대점 주소의 예외를 읽어요"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_7c8c02d8-fb65-4ea0-8f3d-55e950a181bd",
+      "title": "같은 창고의 통신 역할을 나눠요",
+      "objectives": [
+        "이름 조회와 데이터 전송을 나눠요",
+        "스트림과 메시지 경계를 구별해요",
+        "데이터그램의 보장 범위를 읽어요",
+        "연결 준비와 업무 성공을 나눠요",
+        "다음 홉과 최종 목적지를 구별해요",
+        "IPv6의 주소 길이를 읽어요"
+      ],
+      "units": [
+        {
+          "id": "unt_23bcfab6-4c8a-4e0d-812c-413d80ac50a3",
+          "title": "같은 창고의 통신 역할을 나눠요의 같은 상황",
+          "objectives": [
+            "이름 조회와 데이터 전송을 나눠요",
+            "스트림과 메시지 경계를 구별해요",
+            "데이터그램의 보장 범위를 읽어요",
+            "연결 준비와 업무 성공을 나눠요",
+            "다음 홉과 최종 목적지를 구별해요",
+            "IPv6의 주소 길이를 읽어요"
+          ],
+          "premise": "창고 앱이 이름으로 서버를 찾고 데이터를 주고받아요. 이름·주소·전송·업무 처리의 역할을 구별해요.",
+          "steps": [
+            {
+              "id": "stp_a0bc2f19-5500-4c8b-966e-32fe22999d67",
+              "objectives": [
+                "이름 조회와 데이터 전송을 나눠요"
+              ]
+            },
+            {
+              "id": "stp_79e49c4d-e364-4845-9a05-605588347284",
+              "objectives": [
+                "스트림과 메시지 경계를 구별해요"
+              ]
+            },
+            {
+              "id": "stp_31f327e9-5acd-47ae-a8d4-3498a5050f28",
+              "objectives": [
+                "데이터그램의 보장 범위를 읽어요"
+              ]
+            },
+            {
+              "id": "stp_8fa5f270-321a-4d6b-8984-e914cd00f5d2",
+              "objectives": [
+                "연결 준비와 업무 성공을 나눠요"
+              ]
+            },
+            {
+              "id": "stp_4eb2f230-1c66-4d86-a289-70a28dd22da0",
+              "objectives": [
+                "다음 홉과 최종 목적지를 구별해요"
+              ]
+            },
+            {
+              "id": "stp_2defea88-5a7f-44c4-81b6-9ea77bc384e8",
+              "objectives": [
+                "IPv6의 주소 길이를 읽어요"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_9b59c634-66fc-42bc-ab07-5050688fbbc4",
+      "title": "프리픽스와 남은 비트를 나눠요",
+      "goal": "IPv4 주소는 32비트예요.\n/29의 호스트 비트 수만 적으세요.",
+      "language": "python",
+      "starter_code": "",
+      "solution": "3",
+      "tests": [],
+      "required": true,
+      "interaction": {
+        "kind": "fill",
+        "accepted": [
+          "3"
+        ]
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "삼십이 비트에서 이십구 비트를 빼요. 호스트 부분은 삼 비트예요.",
+          "target": "problem"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 슬래시 뒤 숫자는 호스트 비트 수가 아니에요.",
+          "target": "problem"
+        },
+        {
+          "action": "fill_answer",
+          "value": "3",
+          "say": "판단한 답을 짧게 적어요."
+        }
+      ]
+    },
+    {
+      "id": "stp_413d2f18-36ab-4389-bb8c-810eb06cc0ab",
+      "title": "전체 주소 수를 구해요",
+      "goal": "호스트 부분은 3비트예요.\n이 블록의 전체 주소 수를 적으세요.",
+      "language": "python",
+      "starter_code": "",
+      "solution": "8",
+      "tests": [],
+      "required": true,
+      "interaction": {
+        "kind": "fill",
+        "accepted": [
+          "8"
+        ]
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "이의 삼 제곱은 팔이에요. 예약 주소를 빼기 전의 전체 개수예요.",
+          "target": "problem"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 전체 주소와 일반 호스트에 배정할 수를 구별해요.",
+          "target": "problem"
+        },
+        {
+          "action": "fill_answer",
+          "value": "8",
+          "say": "판단한 답을 짧게 적어요."
+        }
+      ]
+    },
+    {
+      "id": "stp_2c262894-cd3e-4d0b-a0cc-9d77c82c9118",
+      "title": "블록의 마지막 주소를 구해요",
+      "goal": "시작 주소는 192.0.2.8이에요.\n브로드캐스트 주소의 마지막 숫자를 적으세요.",
+      "language": "python",
+      "starter_code": "",
+      "solution": "15",
+      "tests": [],
+      "required": true,
+      "interaction": {
+        "kind": "fill",
+        "accepted": [
+          "15"
+        ]
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "팔부터 여덟 개는 십오까지예요. 다음 블록의 시작은 십육이에요.",
+          "target": "problem"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 끝 주소를 구할 때 시작 주소까지 포함해서 세어요.",
+          "target": "problem"
+        },
+        {
+          "action": "fill_answer",
+          "value": "15",
+          "say": "판단한 답을 짧게 적어요."
+        }
+      ]
+    },
+    {
+      "id": "stp_f8ad1911-b12a-4b73-86a8-79b08e67e043",
+      "title": "일반 호스트 수를 구해요",
+      "goal": "일반 서브넷의 네트워크·브로드캐스트를 제외해요.\n호스트 수를 적으세요.",
+      "language": "python",
+      "starter_code": "",
+      "solution": "6",
+      "tests": [],
+      "required": true,
+      "interaction": {
+        "kind": "fill",
+        "accepted": [
+          "6"
+        ]
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "전체 팔에서 양끝 두 주소를 빼요. 구부터 십사까지 여섯 개예요.",
+          "target": "problem"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 모든 프리픽스에 무조건 이를 빼는 규칙은 아니에요.",
+          "target": "problem"
+        },
+        {
+          "action": "fill_answer",
+          "value": "6",
+          "say": "판단한 답을 짧게 적어요."
+        }
+      ]
+    },
+    {
+      "id": "stp_e67a4333-60a6-44a2-8ee0-f04252ab07bc",
+      "title": "마스크를 주소와 연결해요",
+      "goal": "같은 /29 마스크의 마지막 옥텟을 적으세요.",
+      "language": "python",
+      "starter_code": "",
+      "solution": "248",
+      "tests": [],
+      "required": true,
+      "interaction": {
+        "kind": "fill",
+        "accepted": [
+          "248"
+        ]
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "마지막 옥텟의 앞 다섯 비트가 일이에요. 백이십팔·육십사·삼십이·십육·팔을 더해요.",
+          "target": "problem"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 블록 크기 팔과 마스크 값 이백사십팔은 달라요.",
+          "target": "problem"
+        },
+        {
+          "action": "fill_answer",
+          "value": "248",
+          "say": "판단한 답을 짧게 적어요."
+        }
+      ]
+    },
+    {
+      "id": "stp_38937edc-0f27-443b-b2f8-2054ac64fd47",
+      "title": "주소 하나의 소속을 확인해요",
+      "goal": "192.0.2.14/29의 네트워크 주소는 무엇일까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "eight",
+      "tests": [],
+      "required": true,
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "eight",
+            "text": "192.0.2.8"
+          },
+          {
+            "id": "fourteen",
+            "text": "192.0.2.14"
+          }
+        ],
+        "answer": "eight"
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "마스크로 호스트 부분을 영으로 만들어요. 십사는 팔부터 십오 사이에 있어요.",
+          "target": "problem"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 호스트 자신의 주소를 네트워크 주소로 적지 않아요.",
+          "target": "problem"
+        },
+        {
+          "action": "choose_answer",
+          "id": "eight"
+        }
+      ]
+    },
+    {
+      "id": "stp_a44a9f9d-170d-4448-b746-82b5ecba8ac4",
+      "title": "더 작은 블록으로 나눠요",
+      "goal": "/29 하나를 같은 크기의 /30으로 나눠요.\n생기는 블록 개수를 적으세요.",
+      "language": "python",
+      "starter_code": "",
+      "solution": "2",
+      "tests": [],
+      "required": true,
+      "interaction": {
+        "kind": "fill",
+        "accepted": [
+          "2"
+        ]
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "프리픽스 비트가 하나 늘어요. 원래 블록을 절반씩 두 개로 나눠요.",
+          "target": "problem"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 각 블록의 전체 주소 수는 사예요.",
+          "target": "problem"
+        },
+        {
+          "action": "fill_answer",
+          "value": "2",
+          "say": "판단한 답을 짧게 적어요."
+        }
+      ]
+    },
+    {
+      "id": "stp_e53ea931-49f1-4fb7-ab94-ca2e81f6c456",
+      "title": "점대점 주소의 예외를 읽어요",
+      "goal": "이번 연결은 RFC3021의 /31 점대점 링크예요.\n양끝 장비에 주소를 배정할 수 있을까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "both",
+      "tests": [],
+      "required": true,
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "none",
+            "text": "항상 양끝을 빼므로 주소가 하나도 없어요"
+          },
+          {
+            "id": "both",
+            "text": "두 주소를 링크 양끝에 사용할 수 있어요"
+          }
+        ],
+        "answer": "both"
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "점대점 링크에는 별도의 예외 규칙이 있어요. 일반 브로드캐스트 서브넷과 구별해요.",
+          "target": "problem"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 이 예외를 임의의 모든 네트워크에 적용하지 않아요.",
+          "target": "problem"
+        },
+        {
+          "action": "choose_answer",
+          "id": "both"
+        }
+      ]
+    },
+    {
+      "id": "stp_a0bc2f19-5500-4c8b-966e-32fe22999d67",
+      "title": "이름 조회와 데이터 전송을 나눠요",
+      "goal": "서버 이름에 대응하는 주소가 필요해요.\n먼저 확인할 체계는 무엇일까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "dns",
+      "tests": [],
+      "required": true,
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "tcp",
+            "text": "TCP가 모든 도메인 이름을 직접 저장해요"
+          },
+          {
+            "id": "dns",
+            "text": "도메인 이름 시스템(DNS)이에요"
+          }
+        ],
+        "answer": "dns"
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "DNS는 이름과 관련된 자료를 조회하는 체계예요. 연결을 통해 업무 자료를 보내는 역할과 달라요.",
+          "target": "problem"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 이름마다 주소가 하나뿐이거나 영원히 같지는 않아요.",
+          "target": "problem"
+        },
+        {
+          "action": "choose_answer",
+          "id": "dns"
+        }
+      ]
+    },
+    {
+      "id": "stp_79e49c4d-e364-4845-9a05-605588347284",
+      "title": "스트림과 메시지 경계를 구별해요",
+      "goal": "TCP로 두 번 나눠 보냈어요.\n받는 쪽도 반드시 두 번 읽게 될까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "stream",
+      "tests": [],
+      "required": true,
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "stream",
+            "text": "아니요. TCP는 순서 있는 바이트 스트림이에요"
+          },
+          {
+            "id": "message",
+            "text": "보낸 호출마다 고정된 메시지 경계가 생겨요"
+          }
+        ],
+        "answer": "stream"
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "보낸 호출 단위가 그대로 읽기 단위가 되지는 않아요. 앱이 메시지 경계를 정해야 해요.",
+          "target": "problem"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. TCP의 전송 신뢰성을 업무 처리 성공과 같게 보지 않아요.",
+          "target": "problem"
+        },
+        {
+          "action": "choose_answer",
+          "id": "stream"
+        }
+      ]
+    },
+    {
+      "id": "stp_31f327e9-5acd-47ae-a8d4-3498a5050f28",
+      "title": "데이터그램의 보장 범위를 읽어요",
+      "goal": "UDP로 수량 알림을 보내요.\n기본 프로토콜이 보장하는 것은 무엇일까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "datagram",
+      "tests": [],
+      "required": true,
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "guarantee",
+            "text": "모든 알림이 순서대로 한 번씩 도착해요"
+          },
+          {
+            "id": "datagram",
+            "text": "데이터그램 단위예요. 도착·순서는 보장하지 않아요"
+          }
+        ],
+        "answer": "datagram"
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "UDP는 메시지 단위로 전달해요. 필요한 재전송과 중복 처리는 앱의 조건도 봐야 해요.",
+          "target": "problem"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 어떤 앱에서든 UDP가 항상 더 빠르다고 단정하지 않아요.",
+          "target": "problem"
+        },
+        {
+          "action": "choose_answer",
+          "id": "datagram"
+        }
+      ]
+    },
+    {
+      "id": "stp_8fa5f270-321a-4d6b-8984-e914cd00f5d2",
+      "title": "연결 준비와 업무 성공을 나눠요",
+      "goal": "TCP 연결이 성립했어요.\n재고 저장도 성공했다고 볼까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "app",
+      "tests": [],
+      "required": true,
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "app",
+            "text": "아니요. 앱의 응답과 저장 결과를 확인해요"
+          },
+          {
+            "id": "done",
+            "text": "연결 성공이면 모든 업무가 완료됐어요"
+          }
+        ],
+        "answer": "app"
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "연결은 통신의 준비예요. 재고를 저장했는지는 업무 응답으로 따로 확인해요.",
+          "target": "problem"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 재시도 때 같은 변경이 중복 반영되는지도 검토해요.",
+          "target": "problem"
+        },
+        {
+          "action": "choose_answer",
+          "id": "app"
+        }
+      ]
+    },
+    {
+      "id": "stp_4eb2f230-1c66-4d86-a289-70a28dd22da0",
+      "title": "다음 홉과 최종 목적지를 구별해요",
+      "goal": "다른 네트워크로 가는 패킷을 보내요.\n라우터가 결정하는 핵심은 무엇일까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "hop",
+      "tests": [],
+      "required": true,
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "name",
+            "text": "모든 애플리케이션의 변수 이름이에요"
+          },
+          {
+            "id": "hop",
+            "text": "목적지 프리픽스에 맞는 전달 경로예요"
+          }
+        ],
+        "answer": "hop"
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "라우팅은 패킷을 어디로 넘길지 정해요. 같은 목적지라도 중간 홉은 여러 개일 수 있어요.",
+          "target": "problem"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 여기서 경로 판단은 라우팅 표와 주소 조건의 모형이에요.",
+          "target": "problem"
+        },
+        {
+          "action": "choose_answer",
+          "id": "hop"
+        }
+      ]
+    },
+    {
+      "id": "stp_2defea88-5a7f-44c4-81b6-9ea77bc384e8",
+      "title": "IPv6의 주소 길이를 읽어요",
+      "goal": "서버를 IPv6 주소로도 표시해요.\n주소의 비트 수만 적으세요.",
+      "language": "python",
+      "starter_code": "",
+      "solution": "128",
+      "tests": [],
+      "required": true,
+      "interaction": {
+        "kind": "fill",
+        "accepted": [
+          "128"
+        ]
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "아이피 버전 육의 주소는 백이십팔 비트예요. 버전 사의 삼십이 비트와 구별해요.",
+          "target": "problem"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 주소 길이가 서비스의 처리 속도를 보장하지는 않아요.",
+          "target": "problem"
+        },
+        {
+          "action": "fill_answer",
+          "value": "128",
+          "say": "판단한 답을 짧게 적어요."
+        }
+      ]
+    }
+  ]
+}

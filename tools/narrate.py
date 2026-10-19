@@ -397,6 +397,42 @@ def main():
 
 
 if __name__ == "__main__":
+    if sys.argv[1:2] == ["--redesigned-engineer-mixed"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "engineer-mixed", *sys.argv[2:]], check=True)
+        sys.exit(0)
+    if sys.argv[1:2] == ["--redesigned-engineer-build"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "engineer-build", *sys.argv[2:]], check=True)
+        sys.exit(0)
+    if sys.argv[1:2] == ["--redesigned-engineer-network"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "engineer-network", *sys.argv[2:]], check=True)
+        sys.exit(0)
+    if sys.argv[1:2] == ["--redesigned-engineer-os"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "engineer-os", *sys.argv[2:]], check=True)
+        sys.exit(0)
+    if sys.argv[1:2] == ["--redesigned-engineer-security"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "engineer-security", *sys.argv[2:]], check=True)
+        sys.exit(0)
+    if sys.argv[1:2] == ["--redesigned-engineer-design"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "engineer-design", *sys.argv[2:]], check=True)
+        sys.exit(0)
+    if sys.argv[1:2] == ["--redesigned-engineer-test-integration"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "engineer-test-integration", *sys.argv[2:]], check=True)
+        sys.exit(0)
+    if sys.argv[1:2] == ["--redesigned-engineer-test-cases"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "engineer-test-cases", *sys.argv[2:]], check=True)
+        sys.exit(0)
+    if sys.argv[1:2] == ["--redesigned-engineer-ui"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "engineer-ui", *sys.argv[2:]], check=True)
+        sys.exit(0)
+    if sys.argv[1:2] == ["--redesigned-engineer-interfaces"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "engineer-interfaces", *sys.argv[2:]], check=True)
+        sys.exit(0)
+    if sys.argv[1:2] == ["--redesigned-engineer-server"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "engineer-server", *sys.argv[2:]], check=True)
+        sys.exit(0)
+    if sys.argv[1:2] == ["--redesigned-engineer-requirements"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "engineer-requirements", *sys.argv[2:]], check=True)
+        sys.exit(0)
     if sys.argv[1:2] == ["--redesigned-engineer-db-storage"]:
         subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "engineer-db-storage", *sys.argv[2:]], check=True)
         sys.exit(0)

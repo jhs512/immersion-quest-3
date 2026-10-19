@@ -64,7 +64,7 @@ fn engineer_c_double_pointers_restore_student_state() {verify("engineer-c-double
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn engineer_c_structures_restore_student_state() {verify("engineer-c-structures",8)}
+fn engineer_c_structures_restore_student_state() {verify("engineer-c-structures",18)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
@@ -220,4 +220,52 @@ fn engineer_sql_change_restore_student_state() {verify("engineer-sql-change",10)
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn engineer_db_storage_restore_student_state() {verify("engineer-db-storage",16)}
+fn engineer_db_storage_restore_student_state() {verify("engineer-db-storage",18)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_requirements_restore_student_state() {verify("engineer-requirements",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_server_restore_student_state() {verify("engineer-server",22)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_interfaces_restore_student_state() {verify("engineer-interfaces",10)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_ui_restore_student_state() {verify("engineer-ui",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_test_cases_restore_student_state() {verify("engineer-test-cases",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_test_integration_restore_student_state() {verify("engineer-test-integration",10)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_design_restore_student_state() {verify("engineer-design",27)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_security_restore_student_state() {verify("engineer-security",14)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_os_restore_student_state() {verify("engineer-os",14)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_network_restore_student_state() {verify("engineer-network",14)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_build_restore_student_state() {verify("engineer-build",10)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_mixed_restore_student_state() {verify("engineer-mixed",14)}
