@@ -33,3 +33,11 @@ fn java_array_loops_restore_student_state() {verify("java-arrays",8)}
 #[test]
 #[ignore="Requires an interactive desktop, a C compiler and the built player"]
 fn c_array_loops_and_strings_restore_student_state() {verify("engineer-c-arrays",10)}
+
+#[test]
+#[ignore="Requires an interactive desktop, pandas and the built player"]
+fn pandas_quality_cases_restore_student_state() {verify("aice-quality",10)}
+
+#[test]
+#[ignore="Requires an interactive desktop, a C compiler and the built player"]
+fn c_functions_and_recursion_restore_student_state() {verify("engineer-c-functions",10)}

@@ -81,6 +81,15 @@ jobs:
       - name: Check isolated explanation sessions on Windows
         if: ${{ matrix.group == 'core' && (runner.os == 'Windows') }}
         run: node --test tests/js/explanation-session.test.cjs tests/js/git-terminal-session.test.cjs tests/js/interaction-example-editor.test.cjs
+      - name: Check authored file-backed lesson cases
+        if: matrix.group == 'core'
+        shell: python
+        run: |
+          import os, pathlib, subprocess
+          subprocess.run(['cargo', 'build', '--locked', '--example', 'validate_redesigned_lesson'], check=True)
+          executable = pathlib.Path('target/debug/examples/validate_redesigned_lesson' + ('.exe' if os.name == 'nt' else ''))
+          for spec in sorted(pathlib.Path('tests/lesson-cases').glob('*.json')):
+              subprocess.run([str(executable), str(spec), f'target/public-lesson-{spec.stem}.json'], check=True)
       - name: Build native debug player
         id: build_player
         run: cargo build --locked --bin molip-quest
@@ -128,6 +137,12 @@ jobs:
       - name: Drive C arrays and strings
         if: matrix.group == 'c'
         run: cargo test --locked --test player_data_lessons_native c_array -- --ignored --test-threads=1
+      - name: Drive missing, duplicate and unusual data cases
+        if: matrix.group == 'python'
+        run: cargo test --locked --test player_data_lessons_native pandas_quality -- --ignored --test-threads=1
+      - name: Drive C function and recursion cases
+        if: matrix.group == 'c'
+        run: cargo test --locked --test player_data_lessons_native c_functions -- --ignored --test-threads=1
       - name: Reopen actual player with saved answer and progress
         if: ${{ matrix.group == 'core' && (!cancelled() && steps.build_player.outcome == 'success') }}
         run: cargo test --locked --test player_restart_native -- --ignored --test-threads=1
@@ -160,6 +175,9 @@ jobs:
             target/pilot-aice-selection-result.json
             target/pilot-java-arrays-result.json
             target/pilot-engineer-c-arrays-result.json
+            target/pilot-aice-quality-result.json
+            target/pilot-engineer-c-functions-result.json
+            target/public-lesson-*.json
             target/pilot-engineer-c-conditions-result.json
             target/pilot-example-result.json
             target/pilot-restart-*.json
