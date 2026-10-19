@@ -1,0 +1,658 @@
+{
+  "description": "같은 장바구니에서 규칙·선택·변환·집계를 연결하고 경계를 확인해요.",
+  "tasks": [
+    {
+      "id": "stp_8e10671b-a1cd-4050-a970-ac379503c707",
+      "title": "조건 동작을 값처럼 전달해요",
+      "goal": "같은 조건 규칙에1000과2000을 넣어요.\n결과를 고르세요.",
+      "language": "java",
+      "starter_code": "",
+      "solution": "results",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.util.*;\nimport java.util.function.*;\nimport java.util.stream.*;\n\n\npublic class Main {\n    public static void main(String[] args) {\n        // 정수 하나를 받아 조건의 참·거짓을 돌려주는 규칙이에요.\n        Predicate<Integer> enough = price -> price >= 2000;\n        System.out.println(enough.test(1000));\n        System.out.println(enough.test(2000));\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "results",
+            "text": "false와 true예요"
+          },
+          {
+            "id": "same",
+            "text": "람다는 언제나 같은 true만 돌려줘요"
+          }
+        ],
+        "answer": "results"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "전달한 값에 조건을 적용해 거짓과 참을 얻었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 람다는 호출 때 적용할 동작을 표현하며 입력에 따라 결과가 달라져요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "results"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_388164c1-2056-4ae6-a2e9-bd228374ee7c",
+      "title": "조건에 맞는 가격만 남겨요",
+      "goal": "filter한 뒤 원래 가격 목록도 줄었을까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "separate",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.util.*;\nimport java.util.function.*;\nimport java.util.stream.*;\n\n\npublic class Main {\n    public static void main(String[] args) {\n        List<Integer> prices = List.of(1000, 2000, 3000);\n        // 조건이 참인 원소만 새 결과에 남겨요.\n        List<Integer> selected = prices.stream().filter(price -> price >= 2000).toList();\n        System.out.println(selected);\n        System.out.println(prices);\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "separate",
+            "text": "아니요.새 결과만2000·3000이고 원본은 그대로예요"
+          },
+          {
+            "id": "mutate",
+            "text": "네.원본에서1000을 직접 삭제해요"
+          }
+        ],
+        "answer": "separate"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "선택한 결과와 세 가격이 그대로인 원본을 따로 확인했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 이 파이프라인은 원본 목록을 제자리에서 지우는 동작이 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "separate"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_b7edc884-f748-4989-93c8-d0104efc9a68",
+      "title": "각 가격을 새 값으로 바꿔요",
+      "goal": "각 가격에서500을 빼는 동작은 무엇일까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "map",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.util.*;\nimport java.util.function.*;\nimport java.util.stream.*;\n\n\npublic class Main {\n    public static void main(String[] args) {\n        List<Integer> prices = List.of(1000, 2000, 3000);\n        // 원소마다 값을 바꿔 새 결과를 만들어요.\n        System.out.println(prices.stream().map(price -> price - 500).toList());\n        System.out.println(prices);\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "map",
+            "text": "map으로 각 원소를 새 값으로 바꿔요"
+          },
+          {
+            "id": "filter",
+            "text": "filter로 원소 값을500씩 직접 고쳐요"
+          }
+        ],
+        "answer": "map"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "새 결과는 오백·천오백·이천오백이고 원래 가격은 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 남길지 판단하는 filter와 값을 바꾸는 map은 역할이 달라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "map"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_ae5001c3-3858-41f0-a8fc-adcaa09b8963",
+      "title": "실제로 소비할 때 계산해요",
+      "goal": "파이프라인을 만든 뒤 ready를 출력하고 결과를 요청해요.\n이번 코드에서 무엇이 먼저 나올까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "ready",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.util.*;\nimport java.util.function.*;\nimport java.util.stream.*;\n\n\npublic class Main {\n    public static void main(String[] args) {\n        List<Integer> prices = List.of(1000, 2000, 3000);\n        // 아래 출력은 실행 시점만 관찰하기 위한 임시 도구예요.\n        Stream<Integer> selected = prices.stream().filter(price -> {\n            System.out.println(\"check\");\n            return price >= 2000;\n        });\n        System.out.println(\"ready\");\n        System.out.println(selected.toList());\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "ready",
+            "text": "ready 다음 실제 선택 과정의 check예요"
+          },
+          {
+            "id": "check",
+            "text": "선언 즉시 check가 전부 먼저 나와요"
+          }
+        ],
+        "answer": "ready"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "먼저 ready, 결과를 구할 때 check 세 번과 선택 목록이 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 실무 동작을 이런 부수효과 출력에 의존시키지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "count 같은 다른 연산은 최적화로 중간 호출이 생략될 수도 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "ready"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_f1dfa47b-4e11-45af-baf9-8795268daea9",
+      "title": "같은 스트림을 두 번 쓰지 않아요",
+      "goal": "목록 결과를 구한 뒤 개수도 다시 필요해요.\n어떻게 할까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "new",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.util.*;\nimport java.util.function.*;\nimport java.util.stream.*;\n\n\npublic class Main {\n    public static void main(String[] args) {\n        List<Integer> prices = List.of(1000, 2000, 3000);\n        Stream<Integer> selected = prices.stream().filter(price -> price >= 2000);\n        System.out.println(selected.toList());\n        // 앞에서 소비한 같은 스트림을 다시 쓰려 해요.\n        System.out.println(selected.count());\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "new",
+            "text": "원본에서 새 스트림을 만들어 다시 처리해요"
+          },
+          {
+            "id": "reuse",
+            "text": "소비한 selected를 계속 재사용해요"
+          }
+        ],
+        "answer": "new"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            12,
+            12
+          ],
+          "expect_error": "IllegalStateException"
+        },
+        {
+          "action": "say",
+          "text": "첫 결과는 나오지만 같은 스트림의 재사용은 예외가 나요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "System.out.println(selected.count());",
+          "after": "System.out.println(prices.stream().filter(price -> price >= 2000).count());",
+          "say": "원본 목록에서 새 처리 흐름을 시작해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "새 스트림에서는 두 원소의 개수를 셀 수 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 원본 자료를 다시 쓰는 것과 소비한 스트림을 다시 쓰는 것은 달라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "new"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_f295cbe3-d108-431e-83bb-dcb9129f657b",
+      "title": "숫자 합과 빈 결과를 읽어요",
+      "goal": "같은 합계 계산에 빈 가격 목록을 주면 어떨까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "zero",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.util.*;\nimport java.util.function.*;\nimport java.util.stream.*;\n\n\npublic class Main {\n    public static void main(String[] args) {\n        List<Integer> prices = List.of(1000, 2000, 3000);\n        // Integer 값을 int 숫자 흐름으로 바꾸어 더해요.\n        System.out.println(prices.stream().mapToInt(Integer::intValue).sum());\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "zero",
+            "text": "sum은0을 돌려줘요"
+          },
+          {
+            "id": "error",
+            "text": "빈 스트림의 sum은 무조건 예외예요"
+          }
+        ],
+        "answer": "zero"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "세 가격의 합은 육천이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "List.of(1000, 2000, 3000)",
+          "after": "List.of()",
+          "say": "빈 장바구니에서도 계산해 봐요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "빈 숫자 합의 시작값은 영이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 합계 영만으로 원소가 없었는지 실제 영이 있었는지 구별할 수는 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "List.of()",
+          "after": "List.of(1000, 2000, 3000)",
+          "say": "처음 가격으로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "원래 세 가격의 합을 확인했어요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "zero"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_e3676b27-71ab-4fdc-92f4-e4a39c8917d0",
+      "title": "찾은 값이 없을 수도 있어요",
+      "goal": "조건에 맞는 가격은 없고 기본값0이 출력됐어요.\n실제 가격0을 찾았다는 뜻일까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "absent",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.util.*;\nimport java.util.function.*;\nimport java.util.stream.*;\n\n\npublic class Main {\n    public static void main(String[] args) {\n        List<Integer> prices = List.of(1000, 2000, 3000);\n        // 결과가 없을 수 있어 Optional로 받아요.\n        Optional<Integer> first = prices.stream().filter(price -> price >= 5000).findFirst();\n        System.out.println(first.isPresent());\n        System.out.println(first.orElse(0));\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "absent",
+            "text": "아니요.없음을 확인하고 대신 쓴 기본값이에요"
+          },
+          {
+            "id": "found",
+            "text": "네.반드시 실제 원소0이 있었다는 뜻이에요"
+          }
+        ],
+        "answer": "absent"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "결과 존재는 거짓이고 대신 정한 값 영을 읽었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. Optional의 없음과 실제로 찾은 숫자는 구별해요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "absent"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_a1ae809a-aed0-4cbb-9f38-9c36e5a0dd2e",
+      "title": "중복 제거와 정렬을 연결해요",
+      "goal": "distinct와 sorted로 새 결과를 만들었어요.\n원래 순서와 중복도 바뀌었을까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "original",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.util.*;\nimport java.util.function.*;\nimport java.util.stream.*;\n\n\npublic class Main {\n    public static void main(String[] args) {\n        List<Integer> prices = List.of(3000, 1000, 3000);\n        // 중복을 없앤 새 결과만 정렬해요.\n        System.out.println(prices.stream().distinct().sorted().toList());\n        System.out.println(prices);\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "original",
+            "text": "아니요.원본3000·1000·3000은 그대로예요"
+          },
+          {
+            "id": "sortinplace",
+            "text": "네.원본도1000·3000으로 수정돼요"
+          }
+        ],
+        "answer": "original"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "새 결과 천·삼천과 원래 세 원소 목록은 따로예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 결과 정렬과 원본 목록의 제자리 변경은 같은 작업이 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "original"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_a0033dbf-3bf7-4ec6-82ff-aa51c083f9f7",
+      "title": "같은 키의 결과를 합쳐요",
+      "goal": "같은 상품의 개수를 합치며 Map으로 모으려 해요.\n중복 키를 만나면 어떤 규칙이 필요할까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "merge",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.util.*;\nimport java.util.function.*;\nimport java.util.stream.*;\n\n\npublic class Main {\n    public static void main(String[] args) {\n        List<String> items = List.of(\"book\", \"pen\", \"book\");\n        // 같은 키를 만났을 때의 규칙을 아직 지정하지 않았어요.\n        Map<String, Integer> counts = items.stream().collect(Collectors.toMap(item -> item, item -> 1));\n        System.out.println(new TreeMap<>(counts));\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "merge",
+            "text": "이전 수와 새 수를 더하는 병합 규칙이에요"
+          },
+          {
+            "id": "overwrite",
+            "text": "기본 toMap이 항상 알아서 개수를 더해요"
+          }
+        ],
+        "answer": "merge"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ],
+          "expect_error": "IllegalStateException"
+        },
+        {
+          "action": "say",
+          "text": "중복된 book 키의 정책이 없어 예외가 나요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "Collectors.toMap(item -> item, item -> 1)",
+          "after": "Collectors.toMap(item -> item, item -> 1, Integer::sum)",
+          "say": "두 개수를 더하는 동작을 병합 규칙으로 넘겨요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "명시한 병합으로 book 둘과 pen 하나를 얻었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 같은 키의 값을 어떻게 합칠지 업무 규칙을 분명히 정해요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "merge"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_3a625899-9e8d-4800-999e-1379730f6824",
+      "title": "기준 가격부터 합산해요",
+      "goal": "minimum 가격부터 포함해 합산해야 해요.\nfilter의 비교 한 곳만 고치세요.",
+      "language": "java",
+      "starter_code": "import java.util.*;\nimport java.util.function.*;\nimport java.util.stream.*;\n\n\npublic class Main {\n    public static void main(String[] args) {\n        // 작은 정수 가격과 기준을 같은 처리 흐름으로 검사하세요.\n        int[] prices = {1000, 2000, 3000};\n        int minimum = 2000;\n        int total = Arrays.stream(prices).filter(price -> price > minimum).sum();\n        System.out.println(total);\n    }\n}\n",
+      "solution": "import java.util.*;\nimport java.util.function.*;\nimport java.util.stream.*;\n\n\npublic class Main {\n    public static void main(String[] args) {\n        // 작은 정수 가격과 기준을 같은 처리 흐름으로 검사하세요.\n        int[] prices = {1000, 2000, 3000};\n        int minimum = 2000;\n        int total = Arrays.stream(prices).filter(price -> price >= minimum).sum();\n        System.out.println(total);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "5000"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "기준과 같은 이천을 빼서 삼천만 합산했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "price > minimum",
+          "after": "price >= minimum",
+          "say": "경계 가격도 포함해 더해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이천과 삼천을 더한 오천이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 빈 자료와 다른 기준에서도 실제로 조건에 맞는 가격을 더해야 해요.",
+          "target": "output"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "prices": "{}",
+            "minimum": "2000"
+          },
+          "expected": "0"
+        },
+        {
+          "values": {
+            "prices": "{2000}",
+            "minimum": "2000"
+          },
+          "expected": "2000"
+        },
+        {
+          "values": {
+            "prices": "{1000, 1999}",
+            "minimum": "2000"
+          },
+          "expected": "0"
+        },
+        {
+          "values": {
+            "prices": "{1000, 2000, 3000}",
+            "minimum": "1000"
+          },
+          "expected": "6000"
+        },
+        {
+          "values": {
+            "prices": "{0, 1, 2}",
+            "minimum": "1"
+          },
+          "expected": "3"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "람다·filter·map·집계의 자료 흐름을 읽어요.",
+      "계산 시점·소비된 스트림·빈 결과의 계약을 구별해요.",
+      "중복 키 병합과 경계를 실제 자료에서 검증해요."
+    ],
+    "chapters": {
+      "chp_fe7659c6-2900-4e49-9f24-24f78f6c5b2e": [
+        "조건·변환·계산시점·소비를 구별해요."
+      ],
+      "chp_3056782c-a672-45a5-9aea-0fbf1430844e": [
+        "합계·없음·정렬·중복병합·경계를 이해해요."
+      ]
+    },
+    "units": {
+      "unt_bac58d8c-8bb7-4293-8cc8-78eb8d2e8455": {
+        "objectives": [
+          "한 원소가 어디에서 남고 바뀌는지 이해해요."
+        ],
+        "premise": "같은 장바구니의 가격에 조건과 변환을 차례로 붙여요. 규칙을 전달한 것과 실제 결과를 구한 것을 나눠 봐요."
+      },
+      "unt_a3309e2f-386c-4c1e-a7ae-28d68c9bcf27": {
+        "objectives": [
+          "짧은 파이프라인도 경계를 실제 자료로 확인해요."
+        ],
+        "premise": "같은 가격에서 합계와 첫 결과를 구하고 상품별 개수를 모아요. 마지막에는 포함할 가격의 경계를 고쳐요."
+      }
+    }
+  }
+}
