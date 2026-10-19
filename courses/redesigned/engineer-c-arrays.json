@@ -1,0 +1,1027 @@
+{
+  "schema_version": 2,
+  "id": "lsn_69e3bf2f-5ddb-4dce-8def-4b022fc4b7b7",
+  "revision": "engineer-c-arrays-1",
+  "title": "C 반복과 배열을 읽어요",
+  "description": "창고의 같은 칸별 재고를 반복해 읽고 문자 표시도 바꿔 봐요.",
+  "objectives": [
+    "배열 위치·원소·사용 개수를 구별해요.",
+    "반복의 시작·조건·갱신과 누적 결과를 연결해요.",
+    "문자 배열의 글자와 종료 표시를 구별해요."
+  ],
+  "sources": [
+    "https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf",
+    "https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf",
+    "https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf",
+    "https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_a683d7fe-df2d-436e-b572-5e4657b90da0",
+      "title": "칸별 재고를 반복해서 읽어요",
+      "objectives": [
+        "위치·사용 개수·누적값의 변화를 읽어요."
+      ],
+      "units": [
+        {
+          "id": "unt_99e06939-13bd-4b2b-a046-cecece2f3e7a",
+          "title": "칸별 재고를 반복해서 읽어요",
+          "objectives": [
+            "위치·사용 개수·누적값의 변화를 읽어요."
+          ],
+          "premise": "같은 창고의 칸별 재고는 2·4·6개예요. 사용할 칸 수는 저장공간을 넘지 않아요. 창고 표시도 함께 확인해요.",
+          "steps": [
+            {
+              "id": "stp_0be9cf14-1870-4dff-a6cd-84a56c0fb7c8",
+              "objectives": [
+                "배열 원소를 영부터 세는 위치로 읽어요."
+              ]
+            },
+            {
+              "id": "stp_e9419774-38c0-4772-98ec-19754f86cca9",
+              "objectives": [
+                "배열 개수와 마지막 위치를 구별해요."
+              ]
+            },
+            {
+              "id": "stp_b40eaef2-b5f2-4e31-9726-aaf699bc83d7",
+              "objectives": [
+                "위치 변수의 변화와 원소 값 변경을 구별해요."
+              ]
+            },
+            {
+              "id": "stp_f611f7a1-b7c2-4ffd-a94b-c1a1c9dae69b",
+              "objectives": [
+                "for의 조건·위치 갱신·누적을 연결해요."
+              ]
+            },
+            {
+              "id": "stp_208736a9-7954-44d0-80cc-9a9e90fc56ee",
+              "objectives": [
+                "반복 형태와 실제로 읽는 위치를 구별해요."
+              ]
+            },
+            {
+              "id": "stp_c2dc6627-81bf-4d6e-a893-a81f166d0e8f",
+              "objectives": [
+                "누적 변수의 초기화 시점을 판단해요."
+              ]
+            },
+            {
+              "id": "stp_af6c17c8-0654-4afc-bea9-5468c8a718f3",
+              "objectives": [
+                "유효한 빈 자료를 반복 없이 처리해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_efd465ee-7257-43e9-b66f-4f4249b81357",
+      "title": "창고 표시와 합계를 확인해요",
+      "objectives": [
+        "문자 배열과 반복 경계를 구별해요."
+      ],
+      "units": [
+        {
+          "id": "unt_f0f0d950-89c0-429e-a7dc-f6598d280068",
+          "title": "창고 표시와 합계를 확인해요",
+          "objectives": [
+            "문자 배열과 반복 경계를 구별해요."
+          ],
+          "premise": "같은 창고의 칸별 재고는 2·4·6개예요. 사용할 칸 수는 저장공간을 넘지 않아요. 창고 표시도 함께 확인해요.",
+          "steps": [
+            {
+              "id": "stp_d4d10fdc-175c-443d-8bca-cd99110f47e9",
+              "objectives": [
+                "문자열의 글자 수와 종료 문자를 포함한 배열 크기를 구별해요."
+              ]
+            },
+            {
+              "id": "stp_7a1ad1f7-95f7-4cb4-804c-ed451ccbf103",
+              "objectives": [
+                "문자 배열의 원소 한 곳을 수정해요."
+              ]
+            },
+            {
+              "id": "stp_a00e5ef6-0936-4a41-8630-d131aeec87bf",
+              "objectives": [
+                "칸 수 경계와 논리적 빈 자료에서도 맞게 누적해요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_0be9cf14-1870-4dff-a6cd-84a56c0fb7c8",
+      "title": "칸의 위치로 재고를 읽어요",
+      "goal": "칸별 재고를 한 배열에 담았어요.\n첫 칸의 재고를 고르세요.",
+      "language": "c",
+      "starter_code": "",
+      "solution": "two",
+      "tests": [],
+      "required": true,
+      "example_code": "#include <stdio.h>\n\nint main(void) {\n    // 같은 창고의 칸별 재고예요.\n    int bins[] = {2, 4, 6};\n    // 배열 위치는 0부터 세어요.\n    printf(\"%d\", bins[0]);\n    return 0;\n}\n",
+      "predict_before_run": true,
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "two",
+            "text": "2"
+          },
+          {
+            "id": "four",
+            "text": "4"
+          },
+          {
+            "id": "zero",
+            "text": "0"
+          }
+        ],
+        "answer": "two"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "위치 영의 첫 재고 이가 화면에 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "bins[0]",
+          "after": "bins[1]",
+          "say": "다음 위치의 재고를 읽어 볼게요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "위치 일의 재고 사가 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 위치와 그 칸에 든 재고는 다른 값이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "bins[1]",
+          "after": "bins[0]",
+          "say": "첫 위치로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "영부터 세는 첫 칸의 재고는 이예요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "two"
+        }
+      ]
+    },
+    {
+      "id": "stp_e9419774-38c0-4772-98ec-19754f86cca9",
+      "title": "칸의 개수를 확인해요",
+      "goal": "칸의 개수와 마지막 위치를 표시해요.\n칸이 세 개일 때 마지막 위치는 무엇일까요?",
+      "language": "c",
+      "starter_code": "",
+      "solution": "last",
+      "tests": [],
+      "required": true,
+      "example_code": "#include <stdio.h>\n\nint main(void) {\n    // 같은 창고의 칸별 재고예요.\n    int bins[] = {2, 4, 6};\n    // 전체 저장 크기를 한 원소 크기로 나눠 개수를 구해요.\n    int count = sizeof bins / sizeof bins[0];\n    // 마지막 위치는 개수보다 하나 작아요.\n    printf(\"%d\\n%d\", count, count - 1);\n    return 0;\n}\n",
+      "predict_before_run": true,
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "last",
+            "text": "2"
+          },
+          {
+            "id": "count",
+            "text": "3"
+          }
+        ],
+        "answer": "last"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "개수는 삼, 마지막 위치는 이예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "sizeof 식은 전체 크기를 한 칸 크기로 나눠요.",
+          "target": "lines:7"
+        },
+        {
+          "action": "patch_code",
+          "before": "{2, 4, 6}",
+          "after": "{2, 4}",
+          "say": "칸 하나를 줄여 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "개수는 이, 마지막 위치는 일이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 이 식은 여기 선언한 배열의 개수를 구해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "{2, 4}",
+          "after": "{2, 4, 6}",
+          "say": "원래 칸 세 개를 복원해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "개수와 마지막 위치는 하나 차이가 나요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "last"
+        }
+      ]
+    },
+    {
+      "id": "stp_b40eaef2-b5f2-4e31-9726-aaf699bc83d7",
+      "title": "다음 칸으로 이동해요",
+      "goal": "index를 하나 올린 뒤 다시 읽었어요.\n출력이 바뀐 이유를 고르세요.",
+      "language": "c",
+      "starter_code": "",
+      "solution": "position",
+      "tests": [],
+      "required": true,
+      "example_code": "#include <stdio.h>\n\nint main(void) {\n    // 같은 창고의 칸별 재고예요.\n    int bins[] = {2, 4, 6};\n    // index에는 읽을 위치를 저장해요.\n    int index = 0;\n    printf(\"%d\\n\", bins[index]);\n    // 재고가 아닌 위치만 하나 올려요.\n    index = index + 1;\n    printf(\"%d\", bins[index]);\n    return 0;\n}\n",
+      "predict_before_run": true,
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "position",
+            "text": "다음 칸의 재고를 읽었어요"
+          },
+          {
+            "id": "stock",
+            "text": "첫 칸의 재고가 하나 늘었어요"
+          }
+        ],
+        "answer": "position"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "첫 칸의 이 다음에 다음 칸의 사가 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 바꾼 변수는 bins가 아니라 index예요.",
+          "target": "lines:10"
+        },
+        {
+          "action": "say",
+          "text": "칸별 재고는 그대로 두고 읽을 위치만 옮겼어요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "position"
+        }
+      ]
+    },
+    {
+      "id": "stp_f611f7a1-b7c2-4ffd-a94b-c1a1c9dae69b",
+      "title": "칸을 반복해서 더해요",
+      "goal": "사용할 세 칸의 재고를 차례로 더해요.\n반복 뒤의 합계를 고르세요.",
+      "language": "c",
+      "starter_code": "",
+      "solution": "all",
+      "tests": [],
+      "required": true,
+      "example_code": "#include <stdio.h>\n\nint main(void) {\n    // 같은 창고의 칸별 재고예요.\n    int bins[] = {2, 4, 6};\n    // 사용할 칸 수는 실제 저장공간을 넘지 않아요.\n    int count = 3;\n    int total = 0;\n    // 현재 재고를 더한 뒤 다음 위치로 이동해요.\n    for (int index = 0; index < count; index = index + 1) {\n        total = total + bins[index];\n    }\n    printf(\"%d\", total);\n    return 0;\n}\n",
+      "predict_before_run": true,
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "all",
+            "text": "12"
+          },
+          {
+            "id": "first",
+            "text": "2"
+          },
+          {
+            "id": "last",
+            "text": "6"
+          }
+        ],
+        "answer": "all"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이와 사와 육을 더해 십이가 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "{2, 4, 6}",
+          "after": "{2, 4, 8}",
+          "say": "마지막 칸의 재고만 팔로 바꿔요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "마지막 재고도 읽어 합계가 십사가 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 조건이 허용한 위치만 읽어야 해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "{2, 4, 8}",
+          "after": "{2, 4, 6}",
+          "say": "주어진 재고로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "위치 영부터 이까지 세 번 더했어요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "all"
+        }
+      ]
+    },
+    {
+      "id": "stp_208736a9-7954-44d0-80cc-9a9e90fc56ee",
+      "title": "같은 반복을 while로 읽어요",
+      "goal": "같은 작업을 while로 표현했어요.\nindex가 0에서 시작하면 앞의 합계와 같을까요?",
+      "language": "c",
+      "starter_code": "",
+      "solution": "same",
+      "tests": [],
+      "required": true,
+      "example_code": "#include <stdio.h>\n\nint main(void) {\n    // 같은 창고의 칸별 재고예요.\n    int bins[] = {2, 4, 6};\n    // 같은 사용 개수와 합계를 준비해요.\n    int count = 3;\n    int total = 0;\n    int index = 0;\n    // 조건이 맞을 때 현재 칸을 읽고 위치를 옮겨요.\n    while (index < count) {\n        total = total + bins[index];\n        index = index + 1;\n    }\n    printf(\"%d\", total);\n    return 0;\n}\n",
+      "predict_before_run": true,
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "same",
+            "text": "같은 세 칸을 읽어 12예요"
+          },
+          {
+            "id": "last",
+            "text": "마지막 칸만 읽어 6이에요"
+          }
+        ],
+        "answer": "same"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "for와 같은 세 칸을 읽어 십이예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "index = 0;",
+          "after": "index = 2;",
+          "say": "시작 위치만 마지막 칸으로 옮겨 봐요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이번에는 마지막 칸만 읽어 육이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 위치를 갱신하지 않으면 끝나지 않을 수 있어요.",
+          "target": "lines:13"
+        },
+        {
+          "action": "patch_code",
+          "before": "index = 2;",
+          "after": "index = 0;",
+          "say": "첫 위치에서 시작하도록 복원해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "시작 위치와 조건이 읽을 범위를 정해요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "same"
+        }
+      ]
+    },
+    {
+      "id": "stp_c2dc6627-81bf-4d6e-a893-a81f166d0e8f",
+      "title": "합계가 자꾸 사라져요",
+      "goal": "반복 안에서 합계를 자꾸 0으로 바꿨어요.\n모든 칸의 합계를 남기려면 무엇을 뺄까요?",
+      "language": "c",
+      "starter_code": "",
+      "solution": "inner",
+      "tests": [],
+      "required": true,
+      "example_code": "#include <stdio.h>\n\nint main(void) {\n    // 같은 창고의 칸별 재고예요.\n    int bins[] = {2, 4, 6};\n    // 사용할 칸 수는 실제 저장공간을 넘지 않아요.\n    int count = 3;\n    int total = 0;\n    // 현재 재고를 더한 뒤 다음 위치로 이동해요.\n    for (int index = 0; index < count; index = index + 1) {\n        total = 0;\n        total = total + bins[index];\n    }\n    printf(\"%d\", total);\n    return 0;\n}\n",
+      "predict_before_run": true,
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "inner",
+            "text": "반복 안의 total = 0;"
+          },
+          {
+            "id": "outer",
+            "text": "처음 준비한 int total = 0;"
+          }
+        ],
+        "answer": "inner"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "매번 앞의 합계를 지워 마지막 육만 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        total = 0;\n",
+          "after": "",
+          "say": "반복 안에서 지우던 한 줄만 빼요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "앞의 합계가 이어져 십이가 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 처음의 합계 초기화까지 빼면 안 돼요.",
+          "target": "lines:8"
+        },
+        {
+          "action": "say",
+          "text": "처음에는 영으로 준비하고 반복에서는 더해 나가요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "inner"
+        }
+      ]
+    },
+    {
+      "id": "stp_af6c17c8-0654-4afc-bea9-5468c8a718f3",
+      "title": "사용할 칸이 없어요",
+      "goal": "저장공간은 있지만 지금 사용할 칸은 없어요.\ncount가 0이면 합계는 무엇일까요?",
+      "language": "c",
+      "starter_code": "",
+      "solution": "none",
+      "tests": [],
+      "required": true,
+      "example_code": "#include <stdio.h>\n\nint main(void) {\n    // 같은 창고의 칸별 재고예요.\n    int bins[] = {2, 4, 6};\n    // 사용할 칸 수는 실제 저장공간을 넘지 않아요.\n    int count = 0;\n    int total = 0;\n    // 현재 재고를 더한 뒤 다음 위치로 이동해요.\n    for (int index = 0; index < count; index = index + 1) {\n        total = total + bins[index];\n    }\n    printf(\"%d\", total);\n    return 0;\n}\n",
+      "predict_before_run": true,
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "none",
+            "text": "0"
+          },
+          {
+            "id": "first",
+            "text": "2"
+          },
+          {
+            "id": "all",
+            "text": "12"
+          }
+        ],
+        "answer": "none"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "시작부터 조건이 거짓이라 영으로 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "count = 0;",
+          "after": "count = 3;",
+          "say": "세 칸을 사용하면 어떻게 될까요?"
+        },
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "세 칸을 읽은 합계 십이가 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 저장공간과 지금 쓸 개수는 구별해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "count = 3;",
+          "after": "count = 0;",
+          "say": "사용할 칸이 없는 상태로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "본문을 한 번도 실행하지 않아 합계는 영이에요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "none"
+        }
+      ]
+    },
+    {
+      "id": "stp_d4d10fdc-175c-443d-8bca-cd99110f47e9",
+      "title": "글자와 끝 표시를 구별해요",
+      "goal": "창고 표시 BOX의 저장 크기와 글자 수를 봐요.\n두 결과를 순서대로 고르세요.",
+      "language": "c",
+      "starter_code": "",
+      "solution": "end",
+      "tests": [],
+      "required": true,
+      "example_code": "#include <stdio.h>\n#include <string.h>\n\nint main(void) {\n    // 마지막에는 문자열 끝을 알리는 널 문자가 붙어요.\n    char label[] = \"BOX\";\n    // 저장 칸 수와 끝 표시를 제외한 글자 수를 구별해요.\n    int cells = sizeof label / sizeof label[0];\n    int letters = strlen(label);\n    printf(\"%d\\n%d\", cells, letters);\n    return 0;\n}\n",
+      "predict_before_run": true,
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "end",
+            "text": "4 다음 3"
+          },
+          {
+            "id": "same",
+            "text": "3 다음 3"
+          },
+          {
+            "id": "reversed",
+            "text": "3 다음 4"
+          }
+        ],
+        "answer": "end"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "글자는 셋, 끝 표시까지 저장할 칸은 넷이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "\"BOX\"",
+          "after": "\"BOXES\"",
+          "say": "표시를 다섯 글자로 늘려 봐요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "글자는 다섯, 끝 표시까지 칸은 여섯이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. strlen은 끝의 널 문자를 세지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "\"BOXES\"",
+          "after": "\"BOX\"",
+          "say": "처음의 창고 표시로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "글자와 문자열의 끝 표시를 구별해요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "end"
+        }
+      ]
+    },
+    {
+      "id": "stp_7a1ad1f7-95f7-4cb4-804c-ed451ccbf103",
+      "title": "표시의 첫 글자를 바꿔요",
+      "goal": "창고 표시의 첫 글자를 F로 바꿔요.\n문자 하나를 바꿔 FOX가 나오게 하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint main(void) {\n    // 적어도 한 글자이며 끝 표시가 있는 라벨이에요.\n    char label[] = \"BOX\";\n    // 첫 위치에 문자 하나를 저장해요.\n    label[0] = 'B';\n    printf(\"%s\", label);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint main(void) {\n    // 적어도 한 글자이며 끝 표시가 있는 라벨이에요.\n    char label[] = \"BOX\";\n    // 첫 위치에 문자 하나를 저장해요.\n    label[0] = 'F';\n    printf(\"%s\", label);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "FOX"
+        }
+      ],
+      "required": true,
+      "variations": [
+        {
+          "values": {
+            "label": "\"BAG\""
+          },
+          "expected": "FAG"
+        },
+        {
+          "values": {
+            "label": "\"B\""
+          },
+          "expected": "F"
+        },
+        {
+          "values": {
+            "label": "\"ZIP\""
+          },
+          "expected": "FIP"
+        }
+      ],
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "처음은 같은 문자 비를 넣어서 BOX가 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "label[0] = 'B';",
+          "after": "label[0] = 'F';",
+          "say": "첫 위치에 넣을 문자만 에프로 바꿔요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "뒤의 OX는 두고 첫 글자만 바뀌어 FOX예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 문자 한 개는 작은따옴표로 써요.",
+          "target": "lines:7"
+        },
+        {
+          "action": "patch_code",
+          "before": "\"BOX\"",
+          "after": "\"BAG\"",
+          "say": "다른 라벨도 같은 위치만 바뀌는지 봐요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이번에도 첫 글자만 바뀌어 FAG가 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "\"BAG\"",
+          "after": "\"BOX\"",
+          "say": "문제의 원래 라벨로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "출력을 고정하지 않고 배열 원소를 바꿨어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_a00e5ef6-0936-4a41-8630-d131aeec87bf",
+      "title": "마지막 칸이 빠졌어요",
+      "goal": "마지막 칸이 재고 합계에서 빠졌어요.\n자료는 두고 반복 조건 한 곳만 고치세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint main(void) {\n    // 같은 창고의 칸별 재고예요.\n    int bins[] = {2, 4, 6};\n    // 사용할 칸 수는 실제 저장공간을 넘지 않아요.\n    int count = 3;\n    int total = 0;\n    // 현재 재고를 더한 뒤 다음 위치로 이동해요.\n    for (int index = 0; index < count - 1; index = index + 1) {\n        total = total + bins[index];\n    }\n    printf(\"%d\", total);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint main(void) {\n    // 같은 창고의 칸별 재고예요.\n    int bins[] = {2, 4, 6};\n    // 사용할 칸 수는 실제 저장공간을 넘지 않아요.\n    int count = 3;\n    int total = 0;\n    // 현재 재고를 더한 뒤 다음 위치로 이동해요.\n    for (int index = 0; index < count; index = index + 1) {\n        total = total + bins[index];\n    }\n    printf(\"%d\", total);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "12"
+        }
+      ],
+      "required": true,
+      "variations": [
+        {
+          "values": {
+            "bins": "{99}",
+            "count": "0"
+          },
+          "expected": "0"
+        },
+        {
+          "values": {
+            "bins": "{7}",
+            "count": "1"
+          },
+          "expected": "7"
+        },
+        {
+          "values": {
+            "bins": "{1, 2, 3, 4}",
+            "count": "4"
+          },
+          "expected": "10"
+        }
+      ],
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "마지막 육이 빠져 이와 사의 합 육만 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "index < count - 1;",
+          "after": "index < count;",
+          "say": "마지막 유효 위치까지 포함하게 고쳐요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "모든 칸의 재고를 더해 십이가 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 반복은 개수보다 작은 위치까지만 읽어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "count = 3;",
+          "after": "count = 0;",
+          "say": "저장공간은 두고 사용할 개수만 영으로 해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "사용할 칸이 없으면 합계 영을 유지해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "count = 0;",
+          "after": "count = 3;",
+          "say": "처음의 사용 개수로 복원해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 현재 값과 결과를 함께 확인해요.",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "칸 수가 달라도 같은 반복 원리로 계산해요.",
+          "target": "output"
+        }
+      ]
+    }
+  ]
+}

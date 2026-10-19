@@ -29,3 +29,7 @@ fn pandas_selection_and_summaries_restore_student_state() {verify("aice-selectio
 #[test]
 #[ignore="Requires an interactive desktop, JDK25 and the built player"]
 fn java_array_loops_restore_student_state() {verify("java-arrays",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop, a C compiler and the built player"]
+fn c_array_loops_and_strings_restore_student_state() {verify("engineer-c-arrays",10)}
