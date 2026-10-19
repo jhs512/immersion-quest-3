@@ -6,6 +6,7 @@ import vm from 'node:vm';
 
 const context = { Intl, console };
 context.globalThis = context;
+vm.runInNewContext(readFileSync(new URL('./pronunciation.js', import.meta.url), 'utf8'), context);
 vm.runInNewContext(readFileSync(new URL('./speech.js', import.meta.url), 'utf8'), context);
 const speech = context.molipSpeech;
 
@@ -45,7 +46,7 @@ test('the neural voice is sent the pronounced text, not the written one', async 
   const voiceContext = {
     console, URL, JSON, Map, Promise, String, Number, Object, CustomEvent: class {},
     document: {}, window: { addEventListener() {}, dispatchEvent() {} }, location: { protocol: 'http:' },
-    molipSpeech: speech,
+    molipSpeech: speech, molipPronunciation: context.molipPronunciation, setTimeout, clearTimeout,
     fetch: (_url, init) => { bodies.push(JSON.parse(init.body)); return Promise.resolve({ ok: false, status: 503, text: async () => 'off' }); },
   };
   voiceContext.globalThis = voiceContext;
@@ -110,3 +111,41 @@ test('without a Korean voice the controller reports an error instead of speaking
   assert.equal(controller.state, 'error');
   assert.match(message, /한국어 음성/);
 });
+
+test('Git has one pronunciation in prose and command examples without changing identifiers', () => {
+  assert.equal(speech.pronunciationText('Git과 git, GIT, gIt 그리고 GitHub'), '깃과 깃, 깃, 깃 그리고 깃허브');
+  assert.equal(speech.pronunciationText('`git commit -m "첫 기록"`을 실행해요'), '깃 commit -m 첫 기록을 실행해요');
+  assert.equal(speech.pronunciationText('`Git`과 `GitHub`'), '깃과 깃허브');
+  const identifiers = 'git_status digital github.com /git/memo.txt .git git.txt';
+  assert.equal(speech.pronunciationText(identifiers), 'git_status digital github.com /git/memo 점 텍스트 깃 git 점 텍스트');
+  assert.equal(speech.pronunciationText('`print(git)`와 `git_status`'), 'print(git)와 git_status');
+});
+
+test('the device reader uses the shared Git pronunciation policy', () => {
+  const spoken = [];
+  const synth = {getVoices: () => [{lang:'ko-KR'}], cancel() {}, resume() {}, speak(u) {spoken.push(u.text)}};
+  const controller = new speech.StorySpeech(synth, class {constructor(text) {this.text=text}}, () => {}, {setTimeout:()=>0,clearTimeout(){}});
+  controller.chunks = ['Git에서 `git status`를 실행해요.'];
+  controller.start();
+  assert.deepEqual(spoken, ['깃에서 깃 status를 실행해요.']);
+});
+
+test('neural speech uses the shared policy without changing the source sentence', async () => {
+  const bodies = [];
+  const source = 'Git에서 `git commit -m "첫 기록"`을 실행해요.';
+  const voiceContext = {console, URL, JSON, Map, Promise, String, Number, Object, setTimeout, clearTimeout,
+    CustomEvent: class {}, document: {}, window: {addEventListener(){},dispatchEvent(){}},location:{protocol:'http:'},
+    molipPronunciation: context.molipPronunciation,
+    fetch: (_url,init) => {bodies.push(JSON.parse(init.body));return Promise.resolve({ok:true,headers:{get:()=>''},blob:async()=>new Blob(['mp3'])})}};
+  vm.runInNewContext(readFileSync(new URL('../layout/voice.js', import.meta.url),'utf8'),voiceContext);
+  const url = await voiceContext.molipVoice.synthesize(source);
+  assert.equal(bodies[0].text,'깃에서 깃 commit -m 첫 기록을 실행해요.');
+  assert.equal(source,'Git에서 `git commit -m "첫 기록"`을 실행해요.');
+  URL.revokeObjectURL(url);
+});
+
+ test('.git directory is pronounced git in Korean in prose and code spans', () => {
+  assert.equal(speech.pronunciationText('.git 폴더와 `.git` 폴더'), '깃 폴더와 깃 폴더');
+  assert.equal(speech.pronunciationText('`.GIT` 폴더'), '깃 폴더');
+  assert.equal(speech.pronunciationText('/work/.git/config github.com/a.git'), '/work/.git/config github.com/a.git');
+ });

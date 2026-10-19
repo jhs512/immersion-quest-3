@@ -74,5 +74,34 @@ class LessonPrdTest(unittest.TestCase):
             verifier.verify(self.document)
 
 
+class UnderstandingFirstPrdTest(unittest.TestCase):
+    def setUp(self):
+        self.document = json.loads((Path(__file__).parent / 'redesigned_lessons/java_launch/draft-prd.json').read_text(encoding='utf-8'))
+
+    def test_first_draft_keeps_the_small_steps(self):
+        lesson_prd.validate(self.document)
+
+    def test_cannot_sneak_docker_and_compile_into_one_step(self):
+        self.document['chapters'][0]['units'][0]['steps'][0]['complexity']['new_concepts'].append('Docker')
+        with self.assertRaisesRegex(ValueError, '새 개념'):
+            lesson_prd.validate(self.document)
+
+    def test_cannot_drop_the_ledger_or_require_many_edited_lines(self):
+        missing = copy.deepcopy(self.document)
+        del missing['chapters'][0]['units'][0]['steps'][0]['complexity']
+        with self.assertRaisesRegex(ValueError, '난도'):
+            lesson_prd.validate(missing)
+        self.document['chapters'][0]['units'][0]['steps'][0]['complexity']['learner_edited_lines'] = 4
+        with self.assertRaisesRegex(ValueError, '0~3줄'):
+            lesson_prd.validate(self.document)
+
+    def test_cannot_introduce_multiple_services_in_one_unit(self):
+        steps = self.document['chapters'][0]['units'][0]['steps']
+        steps[0]['complexity']['new_external_services'] = 1
+        steps[1]['complexity']['new_external_services'] = 1
+        with self.assertRaisesRegex(ValueError, '한 단원'):
+            lesson_prd.validate(self.document)
+
+
 if __name__ == '__main__':
     unittest.main()

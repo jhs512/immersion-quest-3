@@ -18,6 +18,12 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
             format!("window.mq3RestartPhase={};{}",serde_json::to_string(phase).unwrap(),include_str!("../tools/player-pilot-restart.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("invalid-order") {
             include_str!("../tools/player-pilot-invalid-order.js").to_owned()
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("vim-ready") {
+            include_str!("../tools/player-pilot-vim-ready.js").to_owned()
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("shortcuts-feedback") {
+            include_str!("../tools/player-pilot-shortcuts.js").to_owned()
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("bash-basics") {
+            include_str!("../tools/player-pilot-bash.js").to_owned()
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("terminal-restore") {
             include_str!("../tools/player-pilot-terminal-restore.js").to_owned()
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("lesson-loading") {

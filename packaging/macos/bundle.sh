@@ -10,7 +10,7 @@ cd "$(dirname "$0")/../.."
 version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -n 1)
 arch="${MQ3_MAC_ARCH:-$(uname -m)}"
 case "$arch" in arm64) ;; *) echo "Only Apple Silicon (arm64) is supported: $arch" >&2; exit 1 ;; esac
-app="target/bundle/몰입 퀘스트 3.app"
+app="target/bundle/MQ.app"
 image="target/installers/molip-quest-3-macos-${arch}.dmg"
 rm -rf target/bundle
 rm -f "$image"
@@ -38,5 +38,5 @@ fi
 
 cp "packaging/macos/먼저 읽어 주세요.txt" target/bundle/
 ln -s /Applications target/bundle/Applications
-python3 packaging/macos/create_dmg.py --volume "몰입 퀘스트 3" \
+python3 packaging/macos/create_dmg.py --volume "MQ" \
   --source target/bundle --destination "$image"

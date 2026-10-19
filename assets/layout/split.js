@@ -23,7 +23,19 @@
     ? { key: 'exampleAnswer', prop: '--example-answer-height', container: handle.closest('.interaction-example-editor'), pane: '.interaction-example-answer', horizontal: false, min: 64, reserve: 58, invert: true }
     : { key: 'editor', prop: '--editor-height', container: handle.closest('.coding-pane'), pane: '.editor-pane', horizontal: false, min: 120, reserve: 54 + 8 + 140 };
 
-  function set(a, size) {
+  function set(a, size, gesture) {
+    // The answer pane yields first. Continue the same drag into the result pane
+    // once answers reach their minimum, without accumulating repeated pointer deltas.
+    if (a.key === 'exampleAnswer') {
+      const coding = a.container.closest('.coding-pane');
+      const lower = coding?.querySelector(':scope > .split-row');
+      if (lower && (size < a.min || gesture?.cascaded)) {
+        const outer = axis(lower);
+        const baseline = gesture?.outerSize ?? a.container.getBoundingClientRect().height;
+        if (gesture) gesture.cascaded = true;
+        set(outer, baseline + Math.max(0, a.min - size));
+      }
+    }
     const bounds = a.container.getBoundingClientRect();
     let min=a.min, reserve=a.reserve;
     if(a.key==='editor' && a.container.closest('.repository-task')) {
@@ -58,9 +70,10 @@
     const start = a.horizontal ? event.clientX : event.clientY;
     const rect = pane.getBoundingClientRect();
     const startSize = a.horizontal ? rect.width : rect.height;
+    const gesture = {outerSize:a.container.getBoundingClientRect().height, cascaded:false};
     try { handle.setPointerCapture(event.pointerId); } catch {}
     handle.classList.add('dragging'); document.body.classList.add('splitting');
-    const move = ev => set(a, startSize + (a.invert ? -1 : 1) * ((a.horizontal ? ev.clientX : ev.clientY) - start));
+    const move = ev => set(a, startSize + (a.invert ? -1 : 1) * ((a.horizontal ? ev.clientX : ev.clientY) - start), gesture);
     const stop = () => {
       handle.removeEventListener('pointermove', move); handle.removeEventListener('pointerup', stop); handle.removeEventListener('pointercancel', stop);
       handle.classList.remove('dragging'); document.body.classList.remove('splitting');

@@ -105,12 +105,12 @@ jobs:
         run: |
           cargo build --release --locked --bin molip-quest
           bash packaging/macos/bundle.sh
-          codesign --verify --deep --strict 'target/bundle/몰입 퀘스트 3.app'
+          codesign --verify --deep --strict 'target/bundle/MQ.app'
           hdiutil verify "target/installers/molip-quest-3-macos-${MQ3_MAC_ARCH}.dmg"
       - name: Verify native launch and architecture
         run: |
           set -euo pipefail
-          executable='target/bundle/몰입 퀘스트 3.app/Contents/MacOS/molip-quest'
+          executable='target/bundle/MQ.app/Contents/MacOS/molip-quest'
           expected="$MQ3_MAC_ARCH"
           lipo "$executable" -verify_arch "$expected"
           "$executable" > target/macos-launch.log 2>&1 &
@@ -162,7 +162,7 @@ jobs:
             fi
           else
             printf 'MQ3 Windows x64 and macOS Apple Silicon installers. Source commit: %s\n\nLearning progress uses your existing gh login.\nWindows code signing and Apple notarization are not configured.\n' "$COMMIT_SHA" > "$RUNNER_TEMP/notes.md"
-            gh release create "$tag" --draft --target "$COMMIT_SHA" --title "몰입 퀘스트 3 · $tag" --notes-file "$RUNNER_TEMP/notes.md"
+            gh release create "$tag" --draft --target "$COMMIT_SHA" --title "MQ · $tag" --notes-file "$RUNNER_TEMP/notes.md"
           fi
           gh release upload "$tag" --clobber target/release-assets/molip-quest-3-windows-x64-setup.exe target/release-assets/molip-quest-3-macos-*.dmg target/release-assets/SHA256SUMS
           gh release edit "$tag" --draft=false --latest

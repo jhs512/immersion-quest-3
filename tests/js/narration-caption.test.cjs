@@ -24,6 +24,7 @@ test('price captions keep thousands separators while speech keeps Korean pronunc
  try{
   const page=await browser.newPage();
   await page.setContent('<article class="repository-task"><p>주문 금액은 19,999원이에요.</p></article>');
+  await page.addScriptTag({content:fs.readFileSync('assets/speech/pronunciation.js','utf8')});
   await page.addScriptTag({content:fs.readFileSync('assets/speech/speech.js','utf8')});
   await page.evaluate(()=>{window.spoken=[];window.clips=[];window.molipVoice={name:'ko-KR-SunHiNeural',enabled:()=>true,rate:1.5,synthesize:async text=>{spoken.push(molipSpeech.pronunciationText(text));return 'clip'}};window.Audio=class{constructor(){clips.push(this)}play(){return Promise.resolve()}pause(){}}});
   await page.addScriptTag({content:fs.readFileSync('assets/layout/agent.js','utf8')});

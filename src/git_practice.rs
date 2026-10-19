@@ -1,10 +1,19 @@
 //! Real Git in a disposable owned directory. Directory isolation is not an OS sandbox.
 use serde::{Deserialize,Serialize};
+#[path="shell_practice.rs"] mod shell_practice;
+pub use shell_practice::{ShellExercise,ShellSnapshot,ShellCompletion};
+#[path="vim_practice.rs"] mod vim_practice;
+pub use vim_practice::{VimExercise,VimCheck,VimPredicate,VimSnapshot,VimState,VimProgress};
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
 use std::{collections::BTreeMap,path::{Path,PathBuf},process::{Command,Output}};
 #[derive(Clone,Debug,Default,Serialize,Deserialize,PartialEq)]
 pub struct GitExercise {
+    #[serde(default,skip_serializing_if="Option::is_none")] pub vim:Option<VimExercise>,
+    #[serde(default,skip_serializing_if="Option::is_none")] pub shell:Option<ShellExercise>,
+    #[serde(default,skip_serializing_if="Option::is_none")] pub demo_setup:Option<Vec<GitSetup>>,
+    #[serde(default,skip_serializing_if="String::is_empty")] pub workspace_group:String,
+    #[serde(default,skip_serializing_if="String::is_empty")] pub workspace_revision:String,
     #[serde(default,skip_serializing_if="GitInitialHistory::is_recorded")] pub initial_history:GitInitialHistory,
     #[serde(default,skip_serializing_if="Option::is_none")] pub state_goal:Option<GitStateGoal>,
     #[serde(default)] pub files:BTreeMap<String,String>,
@@ -13,7 +22,7 @@ pub struct GitExercise {
 }
 #[derive(Clone,Copy,Debug,Default,Serialize,Deserialize,PartialEq)]
 #[serde(rename_all="snake_case")]
-pub enum GitInitialHistory { #[default] Recorded, Empty }
+pub enum GitInitialHistory { #[default] Recorded, Empty, Uninitialized }
 impl GitInitialHistory {fn is_recorded(&self)->bool{*self==Self::Recorded}}
 #[derive(Clone,Debug,Default,Serialize,Deserialize,PartialEq)]
 #[serde(deny_unknown_fields)]
@@ -107,8 +116,31 @@ impl GitPracticeStore {
     }
 }
 impl GitExercise {
-    pub fn has_goal(&self)->bool {self.state_goal.is_some()||!self.commands.is_empty()}
+    /// Recreate only the previous step's starting state in an isolated teacher directory.
+    pub fn demonstration(&self)->Self {
+        let mut exercise=self.clone();
+        if let Some(vim)=exercise.vim.as_mut(){vim.start=Some(vim.demo.clone());}
+        if let Some(shell)=exercise.shell.as_mut(){shell.start=Some(shell.demo.clone());}
+        if let Some(setup)=exercise.demo_setup.take() {
+            exercise.initial_history=GitInitialHistory::Empty;
+            exercise.files.clear();
+            exercise.setup=setup;
+        }
+        exercise
+    }
+
+    pub fn workspace_scope(&self,base:&str)->String {
+        if self.workspace_revision.is_empty(){base.into()}else{format!("{base}:workspace:{}",self.workspace_revision)}
+    }
+
+    pub fn has_goal(&self)->bool {self.vim.is_some()||self.shell.is_some()||self.state_goal.is_some()||!self.commands.is_empty()}
     pub fn validate(&self)->Result<(),String> {
+        if self.workspace_group.len()>64||!self.workspace_group.bytes().all(|c|c.is_ascii_alphanumeric()||b"_-".contains(&c)){return Err("실습 연결 이름을 확인하세요.".into())}
+        if self.workspace_revision.len()>64||!self.workspace_revision.bytes().all(|c|c.is_ascii_alphanumeric()||b"_-".contains(&c)){return Err("실습 시작 상태 버전을 확인하세요.".into())}
+
+        if let Some(vim)=&self.vim{vim.validate()?;if self.initial_history!=GitInitialHistory::Uninitialized||self.shell.is_some()||self.state_goal.is_some()||self.demo_setup.is_some(){return Err("Vim 시작 구성을 확인하세요.".into())}}
+        if let Some(shell)=&self.shell {shell.validate()?;if self.initial_history!=GitInitialHistory::Uninitialized||self.state_goal.is_some()||self.demo_setup.is_some(){return Err("Bash 실습의 시작 상태를 확인하세요.".into())}}
+        if self.demo_setup.is_some(){self.demonstration().validate()?;}
         if self.files.len()>80||self.setup.len()>100||self.commands.len()>20{return Err("Git 실습의 준비 내용을 확인하세요.".into())}
         if let Some(goal)=&self.state_goal {
             if goal.remote_tracking_current.is_none()&&goal.parent_count.is_none()&&goal.merge_in_progress.is_none()&&goal.unmerged_paths.is_none()&&goal.current_branch.is_none()&&goal.references.is_none()&&goal.head_exists.is_none()&&goal.commit_count.is_none()&&goal.clean.is_none()&&goal.index.is_none()&&goal.working_files.is_none()&&goal.head_files.is_none()&&goal.parent_files.is_none(){return Err("Git 목표 상태가 필요해요.".into())}
@@ -127,6 +159,7 @@ impl GitExercise {
                 for (path,content) in files {validate_file(path,content)?;}
             }
         }
+        if self.initial_history==GitInitialHistory::Uninitialized && (!self.files.is_empty()||!self.setup.is_empty()) {return Err("직접 시작하는 실습에는 파일이나 Git 이력을 미리 만들 수 없어요.".into())}
         for (path,content) in &self.files {validate_file(path,content)?;}
         for action in &self.setup {match action {
             GitSetup::RemoteCommit{files,message}=>{
@@ -159,6 +192,13 @@ impl GitPractice {
         let practice=Self{directory:PracticeDirectory::Temporary(directory),exercise};
         for folder in ["work","home"] {std::fs::create_dir(practice.root().join(folder)).map_err(|e|e.to_string())?;}
         std::fs::write(practice.root().join("global.config"),"").map_err(|e|e.to_string())?;
+        if practice.exercise.initial_history==GitInitialHistory::Uninitialized {
+            // Only a private init default is configured. The learner creates .git with git init.
+            std::fs::write(practice.root().join("global.config"),"[init]\n\tdefaultBranch = main\n").map_err(|e|e.to_string())?;
+            practice.prepare_shell_start()?;
+            practice.prepare_vim_start()?;
+            return Ok(practice);
+        }
         practice.checked_at(practice.root(),&["init","--bare","--initial-branch=main","remote.git"])?;
         practice.checked_at(practice.work().as_path(),&["init","--initial-branch=main"])?;
         let remote=practice.root().join("remote.git");
@@ -247,8 +287,14 @@ impl GitPractice {
     }
     #[cfg(not(target_os="android"))]
     pub fn open_terminal(&self)->Result<(crate::setup_terminal::SetupTerminal,tokio::sync::mpsc::Receiver<Vec<u8>>),String> {
+        if self.exercise.vim.is_some(){return self.open_vim_terminal();}
         let mut environment=self.environment();
         environment.push(("GIT_TRACE2_EVENT".into(),self.root().join("commands.jsonl").to_string_lossy().into_owned()));
+        if self.exercise.shell.is_some() {
+            self.prepare_shell_checkpoint()?;
+            environment.extend(self.shell_environment());
+            return crate::setup_terminal::SetupTerminal::open_practice(&self.shell_directory()?,&environment);
+        }
         crate::setup_terminal::SetupTerminal::open_practice(&self.work(),&environment)
     }
     pub fn check(&self,checks:&crate::repository_course::GitChecks)->Result<crate::runner::TestReport,String> {
@@ -285,7 +331,12 @@ impl GitPractice {
     pub fn check_exercise(&self)->Result<crate::runner::TestReport,String> {
         use crate::runner::{TestReport,TestCaseResult};
         use std::collections::BTreeSet;
+        if self.exercise.vim.is_some(){return self.check_vim();}
+        if self.exercise.shell.is_some(){return self.check_shell();}
         let Some(goal)=&self.exercise.state_goal else{return self.check_commands()};
+        if self.exercise.initial_history==GitInitialHistory::Uninitialized && !self.work().join(".git").exists() {
+            return Ok(TestReport{passed:false,cases:vec![TestCaseResult{input:"Git 저장소".into(),expected:"git init으로 저장소를 만드세요.".into(),stdout:String::new(),stderr:String::new(),passed:false,state:"git_repository".into()}]});
+        }
         let mut cases=vec![];
         let mut record=|name:String,passed:bool,expected:String,stdout:String|cases.push(TestCaseResult{input:name,expected,stdout,stderr:String::new(),passed,state:"git_artifact".into()});
         // A damaged or redirected repository must not count as an unborn HEAD.

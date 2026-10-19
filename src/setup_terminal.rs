@@ -109,16 +109,39 @@ pub fn gh_executable() -> PathBuf {
     PathBuf::from(file)
 }
 
+/// Git practice uses the same Bash syntax on every desktop platform.
+#[cfg(windows)]
+pub fn git_bash_executable()->Result<PathBuf,String> {
+    let mut roots=Vec::new();
+    for key in ["ProgramFiles","ProgramFiles(x86)"] {if let Some(root)=std::env::var_os(key){roots.push(PathBuf::from(root).join("Git"));}}
+    if let Some(root)=std::env::var_os("LOCALAPPDATA"){roots.push(PathBuf::from(root).join("Programs/Git"));}
+    for path in std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default()) {
+        roots.extend(path.ancestors().take(3).map(std::path::Path::to_path_buf));
+    }
+    for root in roots {
+        if !root.join("cmd/git.exe").is_file() && !root.join("bin/git.exe").is_file(){continue;}
+        for relative in ["usr/bin/bash.exe","bin/bash.exe"] {let file=root.join(relative);if file.is_file(){return Ok(file)}}
+    }
+    Err("Git Bash를 찾지 못했어요. Git for Windows를 설치한 뒤 다시 열어 주세요.".into())
+}
+
 impl SetupTerminal {
-    pub fn open() -> Result<(Self, mpsc::Receiver<Vec<u8>>), String> {Self::open_with(None)}
-    pub fn open_practice(path:&std::path::Path,environment:&[(String,String)])->Result<(Self,mpsc::Receiver<Vec<u8>>),String> {Self::open_with(Some((path,environment)))}
-    fn open_with(practice:Option<(&std::path::Path,&[(String,String)])>) -> Result<(Self, mpsc::Receiver<Vec<u8>>), String> {
+    pub fn open() -> Result<(Self, mpsc::Receiver<Vec<u8>>), String> {Self::open_with(None,None)}
+    pub fn open_practice(path:&std::path::Path,environment:&[(String,String)])->Result<(Self,mpsc::Receiver<Vec<u8>>),String> {Self::open_with(Some((path,environment)),None)}
+    pub fn open_vim(path:&std::path::Path,environment:&[(String,String)],script:&std::path::Path,file:&str)->Result<(Self,mpsc::Receiver<Vec<u8>>),String>{Self::open_with(Some((path,environment)),Some((script,file)))}
+    fn open_with(practice:Option<(&std::path::Path,&[(String,String)])>,editor:Option<(&std::path::Path,&str)>) -> Result<(Self, mpsc::Receiver<Vec<u8>>), String> {
         let pair=native_pty_system().openpty(PtySize {rows:20,cols:100,pixel_width:0,pixel_height:0}).map_err(|e|e.to_string())?;
+        let vim_command=||->Result<CommandBuilder,String>{
+            #[cfg(not(windows))] let executable=std::path::PathBuf::from("/usr/bin/vim");
+            #[cfg(windows)] let executable={let bash=git_bash_executable()?;bash.ancestors().take(4).map(|p|p.join("usr/bin/vim.exe")).chain(bash.parent().map(|p|p.join("vim.exe"))).find(|p|p.is_file()).ok_or("Git for Windows의 Vim을 찾지 못했어요.")?};
+            let (script,file)=editor.ok_or("Vim 실행 설정 오류")?;
+            let mut c=CommandBuilder::new(executable);c.arg("-N");c.arg("-u");c.arg(script);c.args(["-i","NONE","-n","--",file]);Ok(c)
+        };
         #[cfg(windows)]
-        let mut command={let mut c=CommandBuilder::new("powershell.exe");c.args(["-NoLogo","-NoProfile","-NoExit","-Command",
+        let mut command=if editor.is_some(){vim_command()?}else if practice.is_some(){let mut c=CommandBuilder::new(git_bash_executable()?);c.args(["--noprofile","--norc","-i","+m"]);c}else{let mut c=CommandBuilder::new("powershell.exe");c.args(["-NoLogo","-NoProfile","-NoExit","-Command",
             "$utf8=[System.Text.UTF8Encoding]::new($false);[Console]::InputEncoding=$utf8;[Console]::OutputEncoding=$utf8;$OutputEncoding=$utf8"]);c};
         #[cfg(not(windows))]
-        let mut command=if practice.is_some(){let mut c=CommandBuilder::new("/bin/bash");c.args(["--noprofile","--norc","-i","+m"]);c}else{CommandBuilder::new(std::env::var_os("SHELL").unwrap_or_else(||"/bin/sh".into()))};
+        let mut command=if editor.is_some(){vim_command()?}else if practice.is_some(){let mut c=CommandBuilder::new("/bin/bash");c.args(["--noprofile","--norc","-i","+m"]);c}else{CommandBuilder::new(std::env::var_os("SHELL").unwrap_or_else(||"/bin/sh".into()))};
         let paths=gh_directories().into_iter().chain(std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default()).collect::<Vec<_>>());
         if let Ok(path)=std::env::join_paths(paths) {command.env("PATH",path);}
         command.env("TERM","xterm-256color");

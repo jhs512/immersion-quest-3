@@ -164,3 +164,69 @@
 .lesson-card .lesson-progress progress::-webkit-progress-bar {background:var(--ui-border)}
 .lesson-card .lesson-progress progress::-webkit-progress-value {background:var(--ui-accent)}
 .lesson-card .lesson-progress progress::-moz-progress-bar {background:var(--ui-accent)}
+
+/* Actual preparation stages; no estimated download percentage. */
+.lesson-launch-status{position:sticky;top:12px;z-index:4;margin:0 0 20px;padding:20px 24px;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:var(--ui-radius);max-width:100%;overflow:hidden}
+.lesson-launch-status>strong{display:block;font-size:18px;line-height:1.5;overflow-wrap:anywhere}
+.lesson-launch-status>p{margin:6px 0 16px;color:var(--ui-muted);font-size:14px}
+.lesson-launch-track{display:flex;gap:5px;height:5px;margin-bottom:12px}
+.lesson-launch-track>span{flex:1;position:relative;overflow:hidden;border-radius:3px;background:var(--ui-border)}
+.lesson-launch-track>.done{background:var(--ui-accent)}
+.lesson-launch-track>.active:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,var(--ui-accent),transparent);animation:lesson-stage-sweep 1.5s ease-in-out infinite}
+.lesson-launch-steps{display:flex;gap:16px;flex-wrap:wrap;margin:0;padding:0;list-style:none;color:var(--ui-muted);font-size:12px}
+.lesson-launch-steps>.active,.lesson-launch-steps>.done{color:var(--ui-text)}
+.lesson-launch-steps>.active{font-weight:650}
+@keyframes lesson-stage-sweep{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+@media(prefers-reduced-motion:reduce){.lesson-launch-track>.active:after{animation:none;background:var(--ui-accent);opacity:.65}}
+@media(max-width:600px){.lesson-launch-status{padding:16px;top:8px}.lesson-launch-steps{gap:8px 12px}}
+
+.lesson-overview {margin-top:18px;padding-top:16px;border-top:1px solid var(--ui-border)}
+.lesson-overview h3 {font-size:15px;margin:0 0 8px;color:var(--ui-text)}
+.lesson-overview p {line-height:1.65;margin:0 0 12px;max-width:70ch}
+.lesson-overview-controls {display:flex;gap:8px;flex-wrap:wrap}
+.lesson-overview-controls button {min-height:40px}
+.lesson-overview-status {margin-top:10px!important;font-size:14px;color:var(--ui-muted);min-height:1.65em}
+.lesson-info-dialog .overview-speaking {background:var(--ui-inset);outline:2px solid var(--ui-accent);outline-offset:3px;border-radius:4px}
+
+.vim-live-panel {flex:none;padding:12px 14px;border-top:1px solid var(--ui-border);background:var(--ui-inset);max-height:34%;overflow:auto;font-size:13px}
+.vim-current-state {margin:0 0 8px;color:var(--ui-muted);font-variant-numeric:tabular-nums}
+.vim-live-panel ol {margin:0;padding-left:22px}
+.vim-live-panel li {padding:3px 0}
+.vim-live-panel .confirmed {color:var(--ui-accent)}
+.vim-goal-status {margin:8px 0 0;color:var(--ui-accent);min-height:1.5em}
+
+/* Learning outcomes are independent of progress-sync messages. */
+.repository-study .result-pane {--feedback-color:var(--ui-muted)}
+.repository-study .result-pane[data-feedback="incorrect"],
+.repository-study .result-pane[data-feedback="error"],
+.repository-study .result-pane[data-feedback="run-error"] {--feedback-color:#ffb6ba}
+.repository-study .result-pane[data-feedback="passed"] {--feedback-color:var(--ui-accent)}
+.repository-study .result-pane .execution-status {color:var(--feedback-color)}
+.submission-feedback {display:flex;align-items:flex-start;gap:12px;padding:12px 14px;margin:8px 0 12px;border:1px solid currentColor;border-radius:8px;color:var(--feedback-color);background:#30242f;overflow-wrap:anywhere}
+.submission-feedback>svg {flex:none;margin-top:2px}
+.submission-feedback strong {display:block;font-size:15px;line-height:1.5}
+.submission-feedback p {margin:4px 0 0;font-size:14px;line-height:1.6}
+[data-feedback="passed"] .submission-feedback {background:#16392f}
+.submission-indicator {color:#ffb6ba;background:#392733;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:600;white-space:nowrap}
+button[data-shortcut-label]::after {content:attr(data-shortcut-label);font-size:11px;line-height:1.4;margin-inline-start:8px;opacity:.85;white-space:nowrap}
+.repository-study .pane-heading {flex-wrap:wrap;gap:8px}
+.repository-study .pane-actions {flex-wrap:wrap;justify-content:flex-end}
+.repository-study .task-paging {gap:12px}
+.shortcut-sheet {inset:0;width:min(800px,calc(100% - 32px));height:fit-content;max-height:calc(100dvh - 32px);padding:0;margin:auto;background:#1b2d40;color:#e3edf6;border:1px solid #385269;border-radius:12px;overflow:auto}
+.shortcut-sheet:not([open]) {display:none}
+.shortcut-sheet[open] {display:block}
+.shortcut-sheet::backdrop {background:#08121dcc}
+.shortcut-sheet .shortcut-panel {width:100%;max-height:none;box-sizing:border-box;border:0;box-shadow:none;background:transparent;padding:20px 24px 24px}
+.shortcut-sheet .shortcut-note {font-size:14px;line-height:1.7;color:#b1c5d9;max-width:68ch;margin:12px 0 20px}
+.shortcut-sheet .shortcut-panel h3 {font-size:15px;letter-spacing:normal;text-transform:none;color:#dce7f1;margin:24px 0 8px}
+.shortcut-sheet button:focus-visible {outline:2px solid #80c5ff;outline-offset:2px}
+@media(max-width:720px) {
+ button[data-shortcut-label]::after {display:none}
+ .shortcut-sheet .shortcut-panel {padding:16px}
+ .shortcut-sheet .shortcut-keys {white-space:normal;min-width:100px}
+ .shortcut-sheet .shortcut-panel kbd {font-size:12px;margin-bottom:4px;white-space:nowrap}
+ .submission-feedback {padding:10px;gap:8px}
+}
+@media(forced-colors:active) {
+ .submission-feedback,.submission-indicator {border:1px solid CanvasText;background:Canvas;color:CanvasText}
+}

@@ -12,6 +12,7 @@ test('an Edge failure keeps the selected voice and a new playback retries it',as
    speechSynthesis.speak=()=>systemCalls++;
    window.Audio=class{constructor(){clips.push(this)}play(){setTimeout(()=>this.onended(),10);return Promise.resolve()}pause(){}};
   });
+  await page.addScriptTag({content:fs.readFileSync('assets/speech/pronunciation.js','utf8')});
   for(const file of ['voice.js','agent.js'])await page.addScriptTag({content:fs.readFileSync(`assets/layout/${file}`,'utf8')});
   await page.evaluate(()=>molipAgent.run([{action:'say',text:'음성을 확인해요.'}]));
   assert.equal(await page.evaluate(()=>systemCalls),0,'do not change the chosen voice to the system voice');

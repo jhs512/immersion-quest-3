@@ -78,12 +78,22 @@ def build(name, check=False):
         raise ValueError('제작한 스텝이 승인된 PRD 구성과 달라요.')
     stale = []
     for step, task in zip(steps, tasks):
+        if name.startswith('java-') or name in ('git-first', 'git-branch', 'git-remote', 'bash-basics', 'vim-basics'):
+            goal = task['goal']
+            if goal.count('**할 일**') != 1:
+                raise ValueError(f"{step['id']}: 할 일을 한곳에 표시하세요.")
+            todo = goal.split('**할 일**', 1)[1].strip()
+            items = re.findall(r'^(\d+)\. (.+)$', todo, re.MULTILINE)
+            if not items or [int(number) for number, _ in items] != list(range(1, len(items) + 1)):
+                raise ValueError(f"{step['id']}: 할 일을 순서 있는 번호 목록으로 쓰세요.")
+            if len(items) != len([line for line in todo.splitlines() if line.strip()]) or '제출' not in items[-1][1]:
+                raise ValueError(f"{step['id']}: 할 일 목록은 제출까지 빠짐없이 이어 쓰세요.")
         validate_highlights(task)
         actions = task['narration']
         if not actions or not any('조심하세요' in action.get('text', '') for action in actions):
             raise ValueError(f"{step['id']}: 주의할 지점이 없는 해설이에요.")
         for index, action in enumerate(actions):
-            if action['action'] in ('git_command', 'run'):
+            if action['action'] in ('git_command', 'bash_command', 'vim_open', 'vim_keys', 'vim_wait', 'write_memo', 'inspect_folder', 'read_memo', 'run'):
                 if index + 1 == len(actions):
                     raise ValueError('명령 실행 뒤 결과 설명이 필요해요.')
                 following = actions[index + 1]
@@ -111,6 +121,8 @@ def build(name, check=False):
               'title': prd['title'], 'description': authored['description'],
               'objectives': presentation['objectives'], 'sources': [source['url'] for source in prd['sources']],
               'review_enabled': False, 'sections': [], 'chapters': chapters, 'tasks': tasks}
+    if presentation.get('learning_strategy'):
+        lesson['learning_strategy'] = presentation['learning_strategy']
     if check:
         if stale or not OUTPUT.exists() or json.loads(OUTPUT.read_text(encoding='utf-8')) != lesson:
             raise ValueError('해설 또는 수업 파생물이 낡았어요. --redesigned-git로 다시 만드세요.')

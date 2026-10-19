@@ -1,194 +1,160 @@
-// Keyboard shortcuts for the whole app. The scheme (Ctrl on Windows, ⌘ on macOS = "mod"):
-//
-//   mod+← / mod+→      previous / next mission        mod+↑ / mod+↓   previous / next unit
-//   mod+K              curriculum menu                mod+I           AI panel open / fold
-//   mod+/              this cheat sheet               F11 (⌃⌘F)       fullscreen
-//   mod+Enter          run code; twice = submit       mod+Shift+Enter submit at once
-//   Enter              submit a quiz; continue to the next step / confirm a success card
-//   Space              pause / resume a running 해설 (in a deck: next slide)
-//   Esc                stop autopilot or reading, close sheets and menus, leave presentation
-//   ← → N              inside a deck: slides and the presenter script (assets/slides/slides.js)
-//   mod+double-click   read aloud from that paragraph (assets/speech/speech.js)
-//
-// mod+letter/arrow shortcuts stay out of text fields and the code editor, where those keys
-// keep their editing meaning. The learning view renders hidden #shortcut-* buttons that the
-// moves click, so the Rust side keeps the navigation rules.
-//
-// F11 (macOS: control+command+F) toggles the OS window fullscreen by clicking the hidden
-// button the Rust side renders (#app-fullscreen-toggle), whose data-fullscreen attribute
-// mirrors the window state. Slides use the same button when they enter presentation mode.
-//
-// Coding missions: Ctrl+Enter (macOS: ⌘Enter) runs the code. Enter pressed right after that
-// chord (within RESUBMIT_WINDOW_MS, before any other key) submits, so "run, looks right,
-// Enter" is one motion. Ctrl+Shift+Enter (⌘⇧Enter) submits straight away. The listener runs in
-// the capture phase so CodeMirror's own Mod-Enter binding never sees the chord.
+// Shared shortcut policy. Mod = Command on macOS, Control on Windows/Linux.
+// One chord has one action: running never arms a later submission.
 (function () {
   'use strict';
   if (globalThis.molipShortcuts || typeof document === 'undefined') return;
-  const mac = navigator.platform.toLowerCase().includes('mac');
-  const toggleButton = () => document.getElementById('app-fullscreen-toggle');
-  const toggleFullscreen = () => { const b = toggleButton(); if (b) b.click(); return !!b; };
-  const isFullscreen = () => toggleButton()?.dataset.fullscreen === 'true';
-  const paneButton = text => [...document.querySelectorAll('.pane-actions button')].find(b => b.textContent.trim() === text && !b.disabled) || null;
-  const RESUBMIT_WINDOW_MS = 2000;
-  let armedUntil = 0;
+  const mac = /mac/i.test(navigator.platform);
   const MOD = mac ? '⌘' : 'Ctrl';
+  const bindings = {
+    run: {label: `${MOD}+Enter`, aria: `${mac ? 'Meta' : 'Control'}+Enter`, title: '코드 실행'},
+    submit: {label: `${MOD}+Shift+Enter`, aria: `${mac ? 'Meta' : 'Control'}+Shift+Enter`, title: '답안 제출'},
+    previous: {label: `${MOD}+←`, aria: `${mac ? 'Meta' : 'Control'}+ArrowLeft`, title: '이전 스텝'},
+    next: {label: `${MOD}+→`, aria: `${mac ? 'Meta' : 'Control'}+ArrowRight`, title: '다음 스텝'},
+    help: {label: `${MOD}+/`, aria: `${mac ? 'Meta' : 'Control'}+/`, title: '단축키 안내'},
+  };
   const inEditable = target => target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement
-    || (target instanceof Element && (target.isContentEditable || !!target.closest('.cm-editor')));
+    || (target instanceof Element && (target.isContentEditable || !!target.closest('.cm-editor, .xterm')));
+  const paneButton = text => [...document.querySelectorAll('.pane-actions button')].find(b => b.textContent.trim() === text && !b.disabled) || null;
   const clickId = id => { const b = document.getElementById(id); if (!b || b.disabled) return false; b.click(); return true; };
+  const toggleButton = () => document.getElementById('app-fullscreen-toggle');
+  const toggleFullscreen = () => { const b = toggleButton(); if (!b) return false; b.click(); return true; };
+  const isFullscreen = () => toggleButton()?.dataset.fullscreen === 'true';
+  const taskBusy = () => {
+    const task = document.querySelector('.repository-task');
+    return task?.dataset.busy === 'true' || task?.dataset.narrating === 'true';
+  };
+  function move(direction) {
+    if (taskBusy()) return false;
+    const b = document.querySelector(`[data-shortcut-action="${direction}"]`);
+    if (b) { if (b.disabled) return false; b.click(); return true; }
+    return clickId(direction === 'next' ? 'shortcut-next-mission' : 'shortcut-prev-mission');
+  }
   function toggleCurriculum() {
     const dialog = document.querySelector('.curriculum-menu');
     if (!dialog) return false;
     if (dialog.open) dialog.close(); else document.querySelector('.curriculum-toggle')?.click();
     return true;
   }
-  // ---- Cheat sheet (mod+/): every shortcut, with this platform's keys. ----
   const SHEET = [
-    ['이동', [[`${MOD}+←  ${MOD}+→`, '이전 · 다음 단계'], [`${MOD}+↑  ${MOD}+↓`, '이전 · 다음 단원'], [`${MOD}+K`, '수업 목차 열기 · 닫기'], [`${MOD}+I`, 'AI에게 물어보기 열기 · 접기']]],
-    ['코딩 미션', [[`${MOD}+Enter`, '코드 실행'], [`${MOD}+Enter 두 번`, '실행하고 바로 제출'], [`${MOD}+Shift+Enter`, '바로 제출'], ['Enter', '문제 제출 · 다음 단계 (코드·터미널 입력 중 제외)']]],
-    ['슬라이드', [['←  →  Space', '이전 · 다음 장 (마지막 장에서 →는 다음 단계, 첫 장에서 ←는 이전 단계)'], ['N', '강사 스크립트'], ['전체 화면 버튼', '발표 모드 · Esc로 해제']]],
-    ['소리', [[`${MOD}+더블 클릭`, '그 문단부터 읽어 주기 · Esc로 정지'], ['Space', '해설 일시정지 · 재개'], ['Esc', '자동 진행 해제']]],
-    ['화면', [[mac ? '⌃⌘F' : 'F11', '전체 화면'], [`${MOD}+/`, '이 안내 열기 · 닫기']]],
+    ['실행과 제출', [[bindings.run.label, '코드를 실행해 결과 확인'], [bindings.submit.label, '현재 답안 제출'], ['Enter', '문제 영역에서 제출 · 통과 창에서 다음으로 이동'], ['터미널의 Enter', '현재 명령 실행 · Vim 명령 입력']]],
+    ['스텝 이동', [[`${bindings.previous.label}  ${bindings.next.label}`, '이전 · 다음 스텝'], [`${MOD}+↑  ${MOD}+↓`, '이전 · 다음 단원 (단원 이동 화면)'], [`${MOD}+K`, '수업 목차 (목차가 있는 화면)'], [`${MOD}+I`, 'AI 패널 (조교가 있는 화면)']]],
+    ['해설과 화면', [['Space', '해설 일시정지 · 재개'], ['Esc', '해설 정지 · 열린 안내 닫기'], [mac ? '⌃⌘F' : 'F11', '전체 화면'], [bindings.help.label, '이 안내 열기 · 닫기']]],
+    ['슬라이드와 읽기', [['←  →  Space', '슬라이드 이전 · 다음 장'], ['N', '슬라이드 강사 스크립트'], [`${MOD}+더블 클릭`, '선택한 문단부터 읽기']]],
   ];
-  let sheet = null;
+  let sheet = null, previousFocus = null;
+  const restoreFocus = () => { if (previousFocus?.isConnected) previousFocus.focus(); previousFocus = null; };
   function toggleSheet(on) {
     if (!sheet) {
-      sheet = document.createElement('div'); sheet.className = 'shortcut-sheet'; sheet.setAttribute('role', 'dialog'); sheet.setAttribute('aria-label', '단축키');
+      sheet = document.createElement('dialog'); sheet.className = 'shortcut-sheet'; sheet.setAttribute('aria-labelledby', 'shortcut-title');
       const panel = document.createElement('div'); panel.className = 'shortcut-panel';
       const head = document.createElement('div'); head.className = 'shortcut-head';
-      const title = document.createElement('h2'); title.textContent = '단축키';
-      const close = document.createElement('button'); close.type = 'button'; close.textContent = '닫기 ×'; close.onclick = () => toggleSheet(false);
+      const title = document.createElement('h2'); title.id = 'shortcut-title'; title.textContent = '단축키';
+      const close = document.createElement('button'); close.type = 'button'; close.textContent = '닫기'; close.autofocus = true; close.onclick = () => toggleSheet(false);
       head.append(title, close); panel.append(head);
+      const note = document.createElement('p'); note.className = 'shortcut-note';
+      note.textContent = `${mac ? 'Mac은 Command(⌘)' : 'Windows는 Ctrl'}를 사용해요. 스텝 이동·목차·안내 키는 코드나 터미널 입력 중에는 편집 기능을 유지해요. 실행·제출 키는 입력 중에도 사용할 수 있어요. 한글 조합 중에는 동작하지 않아요.`;
+      panel.append(note);
       for (const [group, rows] of SHEET) {
         const section = document.createElement('section');
         const h = document.createElement('h3'); h.textContent = group; section.append(h);
-        const table = document.createElement('table');
+        const table = document.createElement('table'); table.setAttribute('aria-label', group);
         for (const [keys, what] of rows) {
-          const tr = document.createElement('tr');
-          const k = document.createElement('td'); k.className = 'shortcut-keys';
+          const tr = document.createElement('tr'); const k = document.createElement('td'); k.className = 'shortcut-keys';
           for (const [i, key] of keys.split('  ').entries()) { if (i) k.append(' '); const kbd = document.createElement('kbd'); kbd.textContent = key; k.append(kbd); }
-          const w = document.createElement('td'); w.textContent = what;
-          tr.append(k, w); table.append(tr);
+          const w = document.createElement('td'); w.textContent = what; tr.append(k, w); table.append(tr);
         }
         section.append(table); panel.append(section);
       }
-      sheet.append(panel);
-      sheet.addEventListener('click', event => { if (event.target === sheet) toggleSheet(false); });
+      sheet.append(panel); sheet.addEventListener('click', event => { if (event.target === sheet) toggleSheet(false); });
+      sheet.addEventListener('close', restoreFocus);
       document.body.append(sheet);
     }
-    const show = on === undefined ? sheet.hidden !== false || !sheet.isConnected : !!on;
-    sheet.hidden = !show;
+    const show = on === undefined ? !sheet.open : !!on;
+    if (show && !sheet.open) { previousFocus = document.activeElement === document.body ? document.querySelector('[data-shortcut-action="help"]') : document.activeElement; sheet.showModal(); }
+    else if (!show && sheet.open) { sheet.close(); restoreFocus(); }
     return true;
   }
+  function decorate() {
+    for (const button of document.querySelectorAll('[data-shortcut-action]')) {
+      const binding = bindings[button.dataset.shortcutAction]; if (!binding) continue;
+      if (button.dataset.shortcutLabel !== binding.label) {
+        button.dataset.shortcutLabel = binding.label;
+        button.setAttribute('aria-keyshortcuts', binding.aria);
+        if (!button.hasAttribute('aria-label')) button.setAttribute('aria-label', button.textContent.trim());
+        button.title = `${binding.title} · ${binding.label}${['previous','next','help'].includes(button.dataset.shortcutAction) ? ' (코드·터미널 입력 중 제외)' : ''}`;
+      }
+    }
+  }
+  // Hints use CSS-generated text so accessible button names and automation stay stable.
+  if (typeof MutationObserver !== 'undefined') {
+    const observer = new MutationObserver(decorate);
+    observer.observe(document.documentElement, {subtree: true, childList: true}); decorate();
+  }
   document.addEventListener('keydown', event => {
-    // Committing an IME syllable is text input, never a submit/navigation action.
-    if (event.key === 'Enter' && (event.isComposing || event.keyCode === 229
-        || globalThis.molipIme?.isComposing(event.target))) return;
-    if (event.key === 'Enter' && event.repeat) {
-      if (!inEditable(event.target)) event.preventDefault();
+    if (event.isComposing || event.keyCode === 229 || globalThis.molipIme?.isComposing(event.target)) return;
+    if (event.repeat) { if (event.key === 'F11' || ((event.ctrlKey || event.metaKey) && ['Enter','ArrowLeft','ArrowRight'].includes(event.key)) || (event.key === 'Enter' && !inEditable(event.target))) event.preventDefault(); return; }
+    if (sheet?.open) {
+      if (event.key === 'Escape' || ((mac ? event.metaKey : event.ctrlKey) && event.key === '/')) {
+        event.preventDefault(); event.stopPropagation(); toggleSheet(false);
+      }
       return;
     }
-    // Navigation and panels: mod + key, outside text fields and the code editor so editing
-    // keys (word jumps, line start/end) keep their meaning there.
+    const card = document.querySelector('.task-passed-dialog, .doctor-panel');
+    if (card && event.key === 'Enter' && !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey) {
+      const primary = card.querySelector('button.primary');
+      if (primary && !primary.disabled) { event.preventDefault(); event.stopPropagation(); primary.click(); }
+      return;
+    }
+    // Keep all background learning shortcuts out of an open modal.
+    const modal = [...(document.querySelectorAll?.('[role="dialog"], dialog[open]') || [])].some(p => !p.hidden && p.getClientRects().length > 0);
+    if (modal) return;
+    if (event.key === 'F11' || (mac && event.metaKey && event.ctrlKey && event.key.toLowerCase() === 'f')) {
+      event.preventDefault(); toggleFullscreen(); return;
+    }
     const mod = mac ? event.metaKey : event.ctrlKey;
+    if (event.key === 'Enter' && mod && !event.altKey) {
+      // No retries, waiting queue or run-then-submit shortcut: disabled means no action.
+      const label = event.shiftKey ? '제출' : '코드 실행';
+      const button = paneButton(label);
+      const control = button || [...document.querySelectorAll('.pane-actions button')].find(b => b.textContent.trim() === label);
+      if (control) { event.preventDefault(); event.stopPropagation(); if (button) button.click(); }
+      return;
+    }
     if (mod && !event.altKey && !event.shiftKey && !inEditable(event.target)) {
       let handled = false;
       switch (event.key) {
-        case 'ArrowLeft': handled = clickId('shortcut-prev-mission'); break;
-        case 'ArrowRight': handled = clickId('shortcut-next-mission'); break;
-        case 'ArrowUp': handled = clickId('shortcut-prev-unit'); break;
-        case 'ArrowDown': handled = clickId('shortcut-next-unit'); break;
+        case 'ArrowLeft': handled = move('previous'); break;
+        case 'ArrowRight': handled = move('next'); break;
+        case 'ArrowUp': handled = !taskBusy() && clickId('shortcut-prev-unit'); break;
+        case 'ArrowDown': handled = !taskBusy() && clickId('shortcut-next-unit'); break;
         case 'k': case 'K': handled = toggleCurriculum(); break;
         case 'i': case 'I': handled = clickId('shortcut-assistant'); break;
         case '/': handled = toggleSheet(); break;
       }
       if (handled) { event.preventDefault(); event.stopPropagation(); return; }
     }
-    if (event.key === 'Escape' && sheet && !sheet.hidden) { event.preventDefault(); toggleSheet(false); return; }
-    // A modal card on screen (정답 카드, 확인 대화상자): Enter takes its primary button. Only
-    // primary buttons, so a destructive confirmation never fires from a stray Enter.
-    const card = document.querySelector('.task-passed-dialog, .doctor-panel');
-    if (card && event.key === 'Enter' && !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey) {
-      const primary = card.querySelector('button.primary');
-      if (primary && !primary.disabled) {
-        event.preventDefault(); event.stopPropagation();
-        armedUntil = 0;
-        primary.click();
-        return;
-      }
-    }
-    // Space pauses or resumes a running 해설 (the panel's button keeps the Rust side in step).
     const agent = globalThis.molipAgent;
-    if (event.key === ' ' && agent && agent.running && !event.ctrlKey && !event.metaKey && !event.altKey
-        && !(event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || event.target.isContentEditable)) {
+    if (event.key === ' ' && agent?.running && !event.ctrlKey && !event.metaKey && !event.altKey && !inEditable(event.target)) {
       event.preventDefault(); event.stopPropagation();
-      const button = document.getElementById('narration-pause');
-      if (button) button.click(); else if (agent.paused) agent.resume(); else agent.pause();
-      return;
+      const b = document.getElementById('narration-pause'); if (b) b.click(); else if (agent.paused) agent.resume(); else agent.pause(); return;
     }
     if (event.key === 'Escape') {
-      // /auto-all: the learning view renders a hidden stop button while it runs.
-      const stop = document.getElementById('autopilot-stop');
-      if (stop) { stop.click(); globalThis.molipToast?.('자동 진행을 해제했습니다', 'info'); }
-      return;
+      if (agent?.running) agent.stop();
+      const stop = document.getElementById('autopilot-stop'); if (stop) stop.click(); return;
     }
-    if (event.key === 'F11' || (mac && event.metaKey && event.ctrlKey && event.key.toLowerCase() === 'f')) {
-      event.preventDefault();
-      if (event.repeat) return;
-      toggleFullscreen();
-      return;
+    if (event.key !== 'Enter' || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
+    const target = event.target;
+    const inQuestion = target instanceof HTMLInputElement && target.closest('.quiz-question, .answer-interaction');
+    if (!inQuestion && (inEditable(target) || (target instanceof Element && target.closest('button, a, select, summary, .slides-mission, .xterm')))) return;
+    const submit = document.querySelector('[data-enter-submit]');
+    if (submit) { if (!submit.disabled) { event.preventDefault(); event.stopPropagation(); submit.click(); } return; }
+    const grade = document.querySelector('.quiz-actions button.primary');
+    if (grade && !grade.disabled) { event.preventDefault(); event.stopPropagation(); grade.click(); }
+    else {
+      const next = document.querySelector('[data-enter-next]');
+      if (next && !next.disabled) { event.preventDefault(); event.stopPropagation(); next.click(); }
+      else if (move('next')) { event.preventDefault(); event.stopPropagation(); }
     }
-    if (event.key !== 'Enter') { armedUntil = 0; return; }
-    const chord = mac ? event.metaKey : event.ctrlKey;
-    if (chord && !event.altKey) {
-      // Ctrl+Enter runs. Ctrl+Enter again right away (Ctrl held, Enter twice) submits; the
-      // submit waits for the run to finish if it is still going. Ctrl+Shift+Enter submits at once.
-      event.preventDefault(); event.stopPropagation();
-      if (event.shiftKey || performance.now() < armedUntil) {
-        armedUntil = 0;
-        submitWhenIdle();
-        return;
-      }
-      const button = paneButton('코드 실행');
-      if (!button) return;
-      button.click();
-      armedUntil = performance.now() + RESUBMIT_WINDOW_MS;
-      globalThis.molipToast?.('실행 중 · Ctrl+Enter를 한 번 더 누르면 제출합니다', 'info');
-      return;
-    }
-    // Plain Enter submits a quiz or continues learning. Text editing, terminal input,
-    // slides and focused controls keep their own keyboard behavior.
-    if (!event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey) {
-      if ([...document.querySelectorAll('.doctor-panel, [role="dialog"], dialog[open]')]
-          .some(panel => !panel.hidden && panel.getClientRects().length > 0)) return;
-      const target = event.target;
-      const inQuestion = target instanceof HTMLInputElement && target.closest('.quiz-question, .answer-interaction');
-      if (!inQuestion && (inEditable(target) || (target instanceof Element
-          && target.closest('button, a, select, summary, .slides-mission, .xterm')))) return;
-      const submit = document.querySelector('[data-enter-submit]');
-      if (submit) {
-        if (!submit.disabled) { event.preventDefault(); event.stopPropagation(); submit.click(); }
-        return;
-      }
-      const grade = document.querySelector('.quiz-actions button.primary');
-      if (grade && !grade.disabled) { event.preventDefault(); event.stopPropagation(); grade.click(); }
-      else {
-        const next = document.querySelector('[data-enter-next]');
-        if (next && !next.disabled) { event.preventDefault(); event.stopPropagation(); next.click(); }
-        else if (clickId('shortcut-next-mission')) { event.preventDefault(); event.stopPropagation(); }
-      }
-      return;
-    }
-    armedUntil = 0;
-  }, { capture: true });
-  async function submitWhenIdle() {
-    const started = performance.now();
-    while (performance.now() - started < 8000) {
-      const button = paneButton('제출');
-      if (button) { button.click(); globalThis.molipToast?.('제출했습니다', 'info'); return; }
-      if (![...document.querySelectorAll('.pane-actions button')].some(b => b.textContent.trim() === '제출')) return;
-      await new Promise(resolve => setTimeout(resolve, 120));
-    }
-  }
-  globalThis.molipShortcuts = { toggleFullscreen, isFullscreen, toggleSheet, toggleCurriculum, runKey: mac ? '⌘Enter' : 'Ctrl+Enter', submitKey: mac ? '⌘⇧Enter' : 'Ctrl+Shift+Enter', mod: MOD };
+  }, {capture: true});
+  globalThis.molipShortcuts = {bindings, toggleFullscreen, isFullscreen, toggleSheet, toggleCurriculum, runKey: bindings.run.label, submitKey: bindings.submit.label, mod: MOD};
 })();

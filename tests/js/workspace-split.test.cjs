@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const {chromium,webkit}=require('../../target/ui-tests/node_modules/playwright-core');
 for(const engine of ['chromium','webkit'])test(`${engine}: both workspace dividers resize independently and stay within the pane`,async()=>{
- const browser=await ({chromium,webkit}[engine]).launch(engine==='chromium'?{channel:'msedge',headless:true}:{headless:true,...(process.env.MQ3_WEBKIT_EXECUTABLE?{executablePath:process.env.MQ3_WEBKIT_EXECUTABLE}:{})});
+ const browser=await ({chromium,webkit}[engine]).launch(engine==='chromium'?{...(process.platform==='win32'?{channel:'msedge'}:{}),headless:true}:{headless:true,...(process.env.MQ3_WEBKIT_EXECUTABLE?{executablePath:process.env.MQ3_WEBKIT_EXECUTABLE}:{})});
  try{
   const page=await browser.newPage({viewport:{width:1280,height:850}});
   await page.route('http://split.test/',r=>r.fulfill({body:'<html></html>',contentType:'text/html'}));await page.goto('http://split.test/');
@@ -17,8 +17,24 @@ for(const engine of ['chromium','webkit'])test(`${engine}: both workspace divide
   await page.locator('.split-example').focus();await page.keyboard.press('Shift+ArrowUp');
   assert.ok(await height('.python-editor-host')<before-25,'upper handle must resize code, not the entire editor');
   assert.ok(Math.abs(await height('.editor-pane')-outer)<2,'upper handle must preserve result height');
+  await page.locator('.split-example').dblclick();
+  // The upper divider hands excess movement to results only after answers reach 64px.
+  await page.evaluate(()=>{document.querySelector('.coding-pane').style.setProperty('--editor-height','360px');document.querySelector('.editor-pane').style.setProperty('--example-answer-height','100px')});
+  const answerStart=await height('.interaction-example-answer'),resultStart=await height('.result-pane');
+  const upper=await page.locator('.split-example').boundingBox();
+  const x=upper.x+upper.width/2,y=upper.y+upper.height/2;
+  await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x,y+90,{steps:5});
+  assert.ok(await height('.interaction-example-answer')<=65,'answers reach their minimum');
+  assert.ok(await height('.result-pane')<resultStart-30,'remaining movement shrinks results');
+  const cascaded=await height('.result-pane');
+  await page.mouse.move(x,y+90);
+  assert.ok(Math.abs(await height('.result-pane')-cascaded)<2,'same pointer delta does not accumulate');
+  await page.mouse.move(x,y+10,{steps:3});await page.mouse.up();
+  assert.ok(Math.abs(await height('.result-pane')-resultStart)<2,'reversing the drag restores the result allocation');
+  assert.ok(Math.abs(await height('.interaction-example-answer')-(answerStart-10))<2,'answers expand again on reverse');
+  const resizedOuter=await height('.editor-pane');
   await page.locator('.split-result').focus();await page.keyboard.press('Shift+ArrowDown');
-  assert.ok(await height('.editor-pane')>outer+25,'lower handle resizes code + choices');
+  assert.ok(await height('.editor-pane')>resizedOuter+25,'lower handle resizes code + choices');
   for(const selector of ['.split-result','.split-example']){
    const r=await page.locator(selector).boundingBox();await page.mouse.move(r.x+r.width/2,r.y+r.height/2);await page.mouse.down();await page.mouse.move(r.x+r.width/2,r.y+1500,{steps:5});await page.mouse.up();
   }

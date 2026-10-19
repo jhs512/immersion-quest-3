@@ -12,6 +12,7 @@ test('narration speaks faster and follows the run button and its output',async()
   await page.goto('http://narration.test/');
   await page.evaluate(()=>localStorage.clear());
   await page.setContent('<div class="pane-actions"><button>코드 실행</button></div><section class="result-pane"><pre class="output">결과</pre></section>');
+  await page.addScriptTag({content:fs.readFileSync(path.join(__dirname,'../../assets/speech/pronunciation.js'),'utf8')});
   await page.evaluate(()=>{
    // Keep a clip open so assertions observe the actual speaking/highlighting phase.
    window.clips=[];window.clicked=0;
@@ -51,6 +52,7 @@ test('narration types only changed lines, highlights them, then runs each comple
  try {
   const page=await browser.newPage();
   await page.setContent('<div class="pane-actions"><button>코드 실행</button></div><textarea data-code-editor="python"># 준비 코드\nx = 1\ny = 2\nprint(x + y)</textarea><section class="result-pane"><pre class="output"></pre></section>');
+  await page.addScriptTag({content:fs.readFileSync(path.join(__dirname,'../../assets/speech/pronunciation.js'),'utf8')});
   await page.addScriptTag({content:fs.readFileSync(path.join(__dirname,'../../assets/editor/editor.bundle.js'),'utf8')});
   await page.evaluate(()=>{
    window.edits=[];window.runs=[];window.spoken=[];
@@ -83,6 +85,7 @@ test('all narration clips finish caching before playback; stop cancels preparati
   await page.route('http://narration.test/',route=>route.fulfill({body:'<!doctype html><html></html>',contentType:'text/html'}));
   await page.goto('http://narration.test/');
   await page.setContent('<section class="problem-pane">문제</section><section class="result-pane"><pre class="output">결과</pre></section>');
+  await page.addScriptTag({content:fs.readFileSync(path.join(__dirname,'../../assets/speech/pronunciation.js'),'utf8')});
   await page.evaluate(()=>{
    window.downloads=[];window.clips=[];
    window.fetch=()=>new Promise(resolve=>downloads.push(()=>resolve(new Response(new Blob(['audio'])))));
@@ -118,6 +121,7 @@ test('run narration points at code rather than its trailing blank line',async()=
  try{
   const page=await browser.newPage();
   await page.setContent('<div class="pane-actions"><button>코드 실행</button></div><textarea data-code-editor="python"># 설명\nprint("분석 시작")\n</textarea><section class="result-pane"><pre class="output"></pre></section>');
+  await page.addScriptTag({content:fs.readFileSync(path.join(__dirname,'../../assets/speech/pronunciation.js'),'utf8')});
   await page.addScriptTag({content:fs.readFileSync(path.join(__dirname,'../../assets/editor/editor.bundle.js'),'utf8')});
   await page.evaluate(()=>{molipCodeEditors.setValue('# 설명\nprint("분석 시작")\n');window.clips=[];window.molipVoice={enabled:()=>true,rate:1.5,synthesize:async()=> 'clip'};window.Audio=class{constructor(){clips.push(this)}play(){return Promise.resolve()}pause(){}};document.querySelector('button').onclick=()=>{document.querySelector('.output').textContent='분석 시작'};});
   await page.addScriptTag({content:fs.readFileSync(path.join(__dirname,'../../assets/layout/agent.js'),'utf8')});
@@ -133,6 +137,7 @@ test('replacement visibly backspaces and types one Unicode character per edit',a
  const browser=await chromium.launch({channel:'msedge',headless:true});
  try{
   const page=await browser.newPage();await page.setContent('<textarea data-code-editor="python"># 유지\nprint("자료 준비")\n</textarea>');
+  await page.addScriptTag({content:fs.readFileSync(path.join(__dirname,'../../assets/speech/pronunciation.js'),'utf8')});
   await page.addScriptTag({content:fs.readFileSync(path.join(__dirname,'../../assets/editor/editor.bundle.js'),'utf8')});
   await page.evaluate(()=>{window.edits=[molipCodeEditors.getValue()];document.querySelector('textarea').addEventListener('input',e=>edits.push(e.target.value));});
   await page.addScriptTag({content:fs.readFileSync(path.join(__dirname,'../../assets/layout/agent.js'),'utf8')});
@@ -148,6 +153,7 @@ test('narration follows execution completion without waiting for history storage
  const browser=await chromium.launch({channel:'msedge',headless:true});
  try{
   const page=await browser.newPage();await page.setContent('<div class="pane-actions"><button>코드 실행</button></div><section class="result-pane" data-execution-id="0" data-execution-state="idle"><pre class="output"></pre></section>');
+  await page.addScriptTag({content:fs.readFileSync(path.join(__dirname,'../../assets/speech/pronunciation.js'),'utf8')});
   await page.evaluate(()=>{document.querySelector('button').onclick=()=>{const button=document.querySelector('button'),pane=document.querySelector('.result-pane');button.disabled=true;pane.dataset.executionId='1';pane.dataset.executionState='running';setTimeout(()=>{pane.dataset.executionState='finished';pane.querySelector('.output').textContent='분석 시작'},40);setTimeout(()=>{button.disabled=false},2000)}});
   await page.addScriptTag({content:fs.readFileSync(path.join(__dirname,'../../assets/layout/agent.js'),'utf8')});
   const result=await page.evaluate(async()=>Promise.race([molipAgent.run([{action:'run'}]),new Promise(resolve=>setTimeout(()=>resolve('WAITED_FOR_STORAGE'),900))]));

@@ -11,6 +11,7 @@ pub struct TaskWorkspace {
     pub preview:String,
     pub artifacts:Vec<molip_quest::runner::Artifact>,
     pub message:String,
+    pub feedback:&'static str,
     pub execution_state:&'static str,
     pub execution_seconds:u64,
     pub execution_id:u64,
@@ -21,7 +22,7 @@ pub struct TaskWorkspace {
 }
 impl TaskWorkspace {
     pub fn new(code:String,example_source:String,input:String)->Self {
-        Self{code,example_source,input,output:String::new(),preview:String::new(),artifacts:vec![],message:String::new(),execution_state:"idle",execution_seconds:0,execution_id:0,reset:0,busy:false,narrating:false,teacher_preview:String::new()}
+        Self{code,example_source,input,output:String::new(),preview:String::new(),artifacts:vec![],message:String::new(),feedback:"idle",execution_state:"idle",execution_seconds:0,execution_id:0,reset:0,busy:false,narrating:false,teacher_preview:String::new()}
     }
 }
 #[derive(Clone)]
@@ -38,7 +39,7 @@ impl ExplanationSession {
         self.workspace.with_mut(|state|{
             state.code=code;
             if !git {state.example_source=example;state.input=input;state.reset+=1;}
-            state.teacher_preview.clear();state.narrating=true;
+            state.teacher_preview.clear();state.feedback="idle";state.narrating=true;
         });
         Some(owner)
     }

@@ -119,3 +119,22 @@ fn interrupted_merge_is_preserved_until_the_student_explicitly_resets() {
     assert_eq!(reopened.git(&["status","--porcelain"]).unwrap().stdout,"");
     assert_eq!(reopened.git(&["rev-list","--count","HEAD"]).unwrap().stdout.trim(),"1");
 }
+
+#[test]
+fn manual_workspace_revision_preserves_old_work_and_starts_without_git_or_files() {
+    use molip_quest::git_practice::GitInitialHistory;
+    let root=tempfile::tempdir().unwrap();let store=GitPracticeStore::new(root.path()).unwrap();
+    let old=store.open("learner-step",GitExercise::default()).unwrap();
+    std::fs::write(old.work().join("keep.txt"),"my work").unwrap();
+    let exercise=GitExercise{initial_history:GitInitialHistory::Uninitialized,workspace_revision:"manual-1".into(),..Default::default()};
+    let scope=exercise.workspace_scope("learner-step");
+    let new=store.open(&scope,exercise.clone()).unwrap();
+    assert_ne!(new.root(),old.root());
+    assert!(!new.work().join(".git").exists());
+    assert_eq!(std::fs::read_dir(new.work()).unwrap().count(),0);
+    assert!(new.git(&["init"]).unwrap().success);
+    let reopened=store.open(&scope,exercise).unwrap();
+    assert_eq!(reopened.root(),new.root());
+    assert!(reopened.work().join(".git").is_dir());
+    assert_eq!(std::fs::read_to_string(old.work().join("keep.txt")).unwrap(),"my work");
+}

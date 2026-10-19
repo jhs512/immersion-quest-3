@@ -4,7 +4,7 @@ const fs=require('node:fs');
 const {chromium}=require('../../target/ui-tests/node_modules/playwright-core');
 
 test('Enter submits answers and advances once while preserving editing and composition',async()=>{
- const browser=await chromium.launch({channel:'msedge',headless:true});
+ const browser=await chromium.launch({...(process.platform==='win32'?{channel:'msedge'}:{}),headless:true});
  try{
   const page=await browser.newPage();
   await page.setContent(`<main><section class="quiz-question"><input type="radio" name="answer"><input id="answer"></section>

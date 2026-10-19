@@ -7,7 +7,7 @@
 set -euo pipefail
 
 repo=jhs512/immersion-quest-3
-app="몰입 퀘스트 3.app"
+app="MQ.app"
 # src/lib.rs data_dir(): directories crate가 macOS에서 쓰는 Application Support 경로.
 support="$HOME/Library/Application Support/MolipQuest.MolipQuest"
 env_dir="$support/ml-env"
@@ -26,13 +26,15 @@ echo "[1/3] 최신 설치 파일을 내려받습니다."
 curl -fL --progress-bar -o "$tmp/molip-quest.dmg" \
   "https://github.com/$repo/releases/latest/download/molip-quest-3-macos-${arch}.dmg"
 mount=$(hdiutil attach "$tmp/molip-quest.dmg" -nobrowse -readonly | awk -F'\t' '/\/Volumes\//{print $NF}' | head -n 1)
-[ -d "$mount/$app" ] || { echo "DMG 안에서 앱을 찾지 못했습니다."; exit 1; }
+source="$mount/$app"
+[ -d "$source" ] || source="$mount/몰입 퀘스트 3.app"
+[ -d "$source" ] || { echo "DMG 안에서 앱을 찾지 못했습니다."; exit 1; }
 if [ -e "$dest/$app" ]; then
   backup="$dest/${app%.app}.previous.app"
   [ ! -e "$backup" ] || { echo "기존 백업을 먼저 정리해 주세요: $backup"; exit 1; }
   mv "$dest/$app" "$backup"
 fi
-ditto "$mount/$app" "$dest/$app"
+ditto "$source" "$dest/$app"
 hdiutil detach "$mount" -quiet; mount=""
 echo "      $dest/$app"
 

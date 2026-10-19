@@ -14,7 +14,7 @@ return {
       scrollback: 1500, convertEol: false, allowProposedApi: false,
       theme: {background: '#0c1722', foreground: '#dce9f5', cursor: '#9be0c8', selectionBackground: '#3a536d'}});
     const fit = new FitAddon(); term.loadAddon(fit); term.open(host);
-    term.textarea?.setAttribute('aria-label', inputLabel);
+    term.textarea?.setAttribute('aria-label', host.dataset.vim === 'true' ? 'Vim 편집기 입력' : host.dataset.shell === 'true' ? 'Bash 실습 터미널 입력' : inputLabel);
     let nativeKorean = false, composing = false, replacement;
     const events = new AbortController();
     const listen = (type, callback) => host.addEventListener(type, callback, {capture: true, signal: events.signal});
@@ -63,7 +63,14 @@ return {
     if (!session) return;
     session.term.input(command + '\r'); session.term.focus();
   },
+  updateVimState(progress,owner) {if(session && (owner===undefined||session.owner===owner))session.vimProgress=progress;},
+  vimState(owner) {return session && (owner===undefined||session.owner===owner) ? session.vimProgress : null;},
   text(owner) {if(!session || (owner!==undefined && session.owner!==owner))return '';const buffer=session.term.buffer.active;return Array.from({length:buffer.length},(_,index)=>buffer.getLine(index)?.translateToString(true)||'').join('\n');},
+  async typeKeys(keys, owner) {
+    const current=session;if(!current || (owner!==undefined && current.owner!==owner))return false;
+    for(const character of keys.normalize('NFC')){if(session!==current)return false;current.term.input(character);await new Promise(resolve=>setTimeout(resolve,40));}
+    return session===current;
+  },
   async typeCommand(command, owner) {
     const current=session;if(!current || (owner!==undefined && current.owner!==owner))return false;
     for(const character of command.normalize('NFC')){if(session!==current)return false;current.term.input(character);await new Promise(resolve=>setTimeout(resolve,25));}

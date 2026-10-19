@@ -3,11 +3,11 @@
   "id": "lsn_dcf21651-492f-4fb7-a2d0-8f66a069285b",
   "revision": "git-first-1",
   "title": "Git · 내 파일이 기록이 되는 과정",
-  "description": "실제 Git으로 준비와 기록의 차이를 확인해요.",
+  "description": "저장소와 메모 파일을 직접 만들고 준비 영역과 커밋의 차이를 확인해요.",
   "objectives": [
-    "작업 파일·준비 영역·커밋의 관계를 설명해요.",
-    "파일을 준비하고 커밋한 결과를 실제 Git으로 확인해요.",
-    "이전 작업이 남지 않게 초기화하고 다시 실험해요."
+    "git init으로 저장소를 만들고 echo로 메모 파일을 작성해요.",
+    "파일·준비 영역·커밋의 내용이 어떻게 다른지 확인해요.",
+    "git add로 담은 내용을 git commit으로 기록해요."
   ],
   "sources": [
     "https://git-scm.com/docs/git-status",
@@ -28,9 +28,10 @@
           "id": "unt_03230b00-47a1-4455-96fd-57ef99b6183e",
           "title": "첫 메모를 기록해요",
           "objectives": [
-            "미추적 파일을 준비하고 첫 커밋을 만들어요."
+            "저장소와 메모 파일을 직접 만들어요.",
+            "파일의 현재 내용을 준비 영역에 담고 첫 커밋을 만들어요."
           ],
-          "premise": "실습 폴더에 memo.txt 한 개가 준비돼 있어요.\n저장소는 만들어졌고 아직 커밋은 없어요.",
+          "premise": "하나의 저장소에서 1단계부터 차례로 이어서 실습해요. git init은 첫 단계에서만 실행해요. 파일은 직접 만들고 수정하며, 다음 단계에도 그대로 남아요.",
           "steps": [
             {
               "id": "stp_55f27d17-28e1-4e76-8d22-32fe48dfb575",
@@ -58,7 +59,7 @@
           "objectives": [
             "작업 파일과 준비한 내용이 다를 수 있음을 이해해요."
           ],
-          "premise": "첫 메모는 이미 커밋했어요.\n각 문제는 정해진 상태에서 새로 시작해요.",
+          "premise": "하나의 저장소에서 1단계부터 차례로 이어서 실습해요. git init은 첫 단계에서만 실행해요. 파일은 직접 만들고 수정하며, 다음 단계에도 그대로 남아요.",
           "steps": [
             {
               "id": "stp_403a517a-d8e8-4b74-acc5-feaaadfc8e3a",
@@ -86,29 +87,103 @@
   "tasks": [
     {
       "id": "stp_55f27d17-28e1-4e76-8d22-32fe48dfb575",
-      "title": "지금 파일은 어디에 있을까요?",
-      "goal": "터미널에 `git status`를 입력하고 Enter를 누르세요.\n메모 파일의 상태를 확인한 뒤 제출하세요.",
+      "title": "메모 파일의 상태를 확인해 보세요",
+      "goal": "이 수업은 하나의 저장소에서 1단계부터 차례로 이어서 해요. 저장소와 파일은 이 단계에서 한 번만 만들어요.\n\n파일이 없는 새 폴더예요. Git 저장소도 아직 없어요.\n\n> **저장소란?**\n> 파일의 변경 이력을 관리하는 작업 공간이에요.\n> `git init`은 현재 폴더에 `.git` 폴더를 만들어요. 아직 커밋은 없어요.\n\n> **파일에 글을 쓰려면**\n> `echo \"첫 메모\" > memo.txt`는 파일에 글을 써요.\n> 파일이 없으면 만들고, 있으면 기존 내용을 덮어써요.\n\n**할 일**\n\n1. `pwd`: 지금 있는 폴더를 확인하세요.\n2. `ls`: 현재 폴더의 파일 목록을 확인하세요.\n3. `git init`: 이 폴더에 Git 저장소를 만드세요.\n4. `echo \"첫 메모\" > memo.txt`: 파일에 `첫 메모`를 쓰세요.\n5. `cat memo.txt`: 현재 파일의 내용을 읽으세요.\n6. `git status`: 메모 파일의 상태를 확인하세요.\n7. 확인한 뒤 제출 버튼을 누르세요.",
       "language": "git",
       "starter_code": "",
-      "solution": "# 파일이 아직 기록되지 않았는지 확인해요.\ngit status",
+      "solution": "# 직접 Git 저장소와 메모 파일을 만들어요.\ngit init\necho \"첫 메모\" > memo.txt\n# memo.txt가 Untracked files 아래에 있는지 확인해요.\ngit status",
       "tests": [],
       "required": true,
       "git_terminal": {
-        "initial_history": "empty",
-        "files": {
-          "memo.txt": "첫 메모\n"
-        },
+        "initial_history": "uninitialized",
+        "files": {},
         "setup": [],
         "commands": [
           [
             "status"
           ]
-        ]
+        ],
+        "workspace_revision": "continuous-memo-init-1",
+        "state_goal": {
+          "head_exists": false,
+          "index": {},
+          "working_files": {
+            "memo.txt": "첫 메모\n"
+          }
+        },
+        "workspace_group": "first-git-repository"
       },
       "narration": [
         {
           "action": "say",
-          "text": "터미널에 상태 확인 명령을 입력해 볼게요.",
+          "text": "이 문제는 파일과 저장소가 없는 폴더에서 시작해요. 직접 저장소와 메모 파일을 만들 거예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "inspect_folder",
+          "command": "pwd",
+          "say": "pwd로 지금 있는 폴더를 확인할게요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "경로가 나왔어요. 이 폴더에서 실습할 거예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "inspect_folder",
+          "command": "ls",
+          "say": "ls로 폴더 안의 파일 목록을 확인해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "목록을 확인했어요. 이 폴더에서 저장소와 메모 파일을 만들 거예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "저장소는 파일의 변경 이력을 관리하는 작업 공간이에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "init"
+          ],
+          "say": "git init으로 이 폴더에 Git 저장소를 만들어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "이 폴더에 .git 폴더가 생겼어요. Git이 변경 이력을 관리할 준비가 됐어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 꺾쇠 기호 하나는 기존 파일의 내용을 덮어써요. 지금은 새 메모 파일을 만들 거예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "write_memo",
+          "content": "첫 메모",
+          "say": "echo로 첫 메모를 memo.txt에 써 볼게요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "명령이 끝났어요. 파일의 내용을 직접 확인할게요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "read_memo",
+          "expected": "첫 메모",
+          "say": "cat memo.txt로 방금 쓴 내용을 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "첫 메모가 나와요. 직접 입력한 내용이 파일에 들어갔어요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -116,35 +191,28 @@
           "args": [
             "status"
           ],
-          "say": "현재 파일과 기록의 상태를 함께 살펴봐요.",
+          "say": "git status로 새 파일의 상태를 확인해요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "메모 파일이 아직 추적되지 않았다고 나와요.",
-          "target": "#git-demo-terminal"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 파일이 있어도 기록된 건 아니에요.",
+          "text": "Untracked files 아래에 memo.txt가 있어요. 파일은 만들었지만 아직 준비 영역에 담지 않았어요.",
           "target": "#git-demo-terminal"
         }
       ]
     },
     {
       "id": "stp_0f116bc4-8522-42c2-8acf-6b40c2f71f59",
-      "title": "다음 기록에 포함할 준비",
-      "goal": "다음 기록에 메모를 포함하도록 준비하세요.\n명령 형식: `git add -- memo.txt`",
+      "title": "메모 파일을 커밋할 준비를 하세요",
+      "goal": "앞 단계에서 만든 메모 파일(memo.txt)을 그대로 사용해요.\n\n> **준비 영역이란?**\n> 다음 커밋에 담을 내용을 놓는 곳이에요.\n> `git add memo.txt`는 파일의 현재 내용을 담아요. 파일을 옮기는 것은 아니에요.\n\n**할 일**\n\n1. `cat memo.txt`: 현재 파일의 내용을 읽으세요.\n2. `git status`: 준비 영역에 담기 전 상태를 확인하세요.\n3. `git add memo.txt`: 메모의 현재 내용을 준비 영역에 담으세요.\n4. `git status`: 준비 영역에 담은 뒤 상태를 확인하세요.\n5. 확인한 뒤 제출 버튼을 누르세요.",
       "language": "git",
       "starter_code": "",
-      "solution": "# 메모의 현재 내용을 다음 기록에 준비해요.\ngit add -- memo.txt",
+      "solution": "# 파일 내용을 확인해요.\ncat memo.txt\n# 준비 영역에 담기 전 상태를 확인해요.\ngit status\n# 현재 내용을 준비 영역에 담아요.\ngit add memo.txt\n# 준비 영역에 담은 뒤 상태를 비교해요.\ngit status",
       "tests": [],
       "required": true,
       "git_terminal": {
-        "initial_history": "empty",
-        "files": {
-          "memo.txt": "첫 메모\n"
-        },
+        "initial_history": "uninitialized",
+        "files": {},
         "setup": [],
         "state_goal": {
           "head_exists": false,
@@ -154,22 +222,37 @@
           "working_files": {
             "memo.txt": "첫 메모\n"
           }
-        }
+        },
+        "workspace_revision": "continuous-memo-init-1",
+        "workspace_group": "first-git-repository",
+        "demo_setup": [
+          {
+            "kind": "file",
+            "path": "memo.txt",
+            "content": "첫 메모\n"
+          }
+        ]
       },
       "narration": [
         {
           "action": "say",
-          "text": "이번에는 메모 파일을 기록 대상으로 준비해요.",
+          "text": "앞 단계에서 만든 첫 메모가 그대로 있어요. 아직 준비 영역에는 담지 않았어요. 해설은 앞 단계까지 준비된 별도 저장소에서 보여 드려요. 직접 작업한 실습은 그대로예요.",
           "target": "#git-demo-terminal"
         },
         {
-          "action": "git_command",
-          "args": [
-            "add",
-            "--",
-            "memo.txt"
-          ],
-          "say": "메모 파일의 현재 내용을 준비 영역에 넣어요.",
+          "action": "read_memo",
+          "expected": "첫 메모",
+          "say": "cat memo.txt로 앞 단계에서 만든 파일을 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "첫 메모가 나와요. 직접 입력한 내용이 파일에 들어갔어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "준비 영역은 다음 커밋에 담을 내용을 놓는 곳이에요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -177,45 +260,61 @@
           "args": [
             "status"
           ],
-          "say": "준비한 뒤 상태가 어떻게 달라졌는지 볼게요.",
+          "say": "담기 전 상태부터 git status로 확인할게요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "새 파일이 다음 커밋 대상으로 준비돼 있죠.",
+          "text": "Untracked files 아래에 memo.txt가 있어요. 파일은 있지만 아직 준비 영역에 담지 않았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "add",
+            "memo.txt"
+          ],
+          "say": "git add로 지금 파일의 내용을 준비 영역에 담아요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "조심하세요. 준비만 했고 아직 커밋은 없어요.",
+          "text": "파일은 그대로 있어요. 다음 커밋에 담을 내용을 선택한 거예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "status"
+          ],
+          "say": "git status로 준비한 파일을 확인해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "아까는 Untracked files 아래에 있던 memo.txt가 이제 Changes to be committed 아래에 있어요. 현재 내용을 준비 영역에 담아서 다음 커밋에 포함할 준비가 됐어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 준비 영역에 담았지만 아직 커밋한 것은 아니에요.",
           "target": "#git-demo-terminal"
         }
       ]
     },
     {
       "id": "stp_692b13d8-f325-46ef-8f4b-938ac1e88c3b",
-      "title": "준비한 내용을 기록",
-      "goal": "메모는 이미 준비 영역에 있어요.\n`git commit -m \"첫 기록\"`으로 기록하세요.",
+      "title": "준비한 메모를 첫 커밋으로 남기세요",
+      "goal": "앞 단계에서 `첫 메모`를 준비 영역에 담았어요. 같은 저장소에서 이어서 해요.\n\n> **커밋이란?**\n> 준비 영역에 담은 내용을 하나의 기록으로 남기는 일이에요.\n> 파일을 나중에 수정해도 이미 만든 커밋은 그대로예요.\n\n`첫 기록`은 이번 커밋에 붙일 설명이에요.\n\n**할 일**\n\n1. `git commit -m \"첫 기록\"`: 준비 영역의 내용을 새 커밋으로 남기세요.\n2. `git show HEAD:memo.txt`: 현재 커밋에 기록된 메모를 읽으세요.\n3. 확인한 뒤 제출 버튼을 누르세요.",
       "language": "git",
       "starter_code": "",
-      "solution": "# 준비한 내용을 새 커밋으로 기록해요.\ngit commit -m \"첫 기록\"",
+      "solution": "git commit -m \"첫 기록\"",
       "tests": [],
       "required": true,
       "git_terminal": {
-        "initial_history": "empty",
-        "files": {
-          "memo.txt": "첫 메모\n"
-        },
-        "setup": [
-          {
-            "kind": "git",
-            "args": [
-              "add",
-              "--",
-              "memo.txt"
-            ]
-          }
-        ],
+        "initial_history": "uninitialized",
+        "files": {},
+        "setup": [],
         "state_goal": {
           "head_exists": true,
           "commit_count": 1,
@@ -229,12 +328,33 @@
           "working_files": {
             "memo.txt": "첫 메모\n"
           }
-        }
+        },
+        "workspace_revision": "continuous-memo-init-1",
+        "workspace_group": "first-git-repository",
+        "demo_setup": [
+          {
+            "kind": "file",
+            "path": "memo.txt",
+            "content": "첫 메모\n"
+          },
+          {
+            "kind": "git",
+            "args": [
+              "add",
+              "memo.txt"
+            ]
+          }
+        ]
       },
       "narration": [
         {
           "action": "say",
-          "text": "메모는 이미 준비돼 있어요. 이제 기록해요.",
+          "text": "앞 단계에서 첫 메모를 준비 영역에 담았어요. 이제 첫 커밋을 남겨 볼게요. 해설은 앞 단계까지 준비된 별도 저장소에서 보여 드려요. 직접 작업한 실습은 그대로예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "커밋은 준비 영역의 내용을 하나의 기록으로 남기는 일이에요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -244,7 +364,12 @@
             "-m",
             "첫 기록"
           ],
-          "say": "준비한 내용을 첫 커밋으로 남겨 볼게요.",
+          "say": "준비 영역의 내용을 커밋으로 기록해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "새 커밋을 만들었어요. 이 시점의 내용을 기록으로 남겼어요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -253,41 +378,46 @@
             "show",
             "HEAD:memo.txt"
           ],
-          "say": "지금 만든 기록에서 메모 내용을 꺼내 봐요.",
+          "say": "git show로 방금 커밋한 파일을 읽어요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "첫 메모가 나왔죠. 준비한 내용을 기록했어요.",
+          "text": "첫 메모가 나와요. 직접 준비한 내용이 커밋에 담겼어요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "조심하세요. 커밋은 이 저장소에 남기는 기록이에요.",
+          "text": "조심하세요. 이 커밋은 내 저장소에 남아요. 원격으로 보내는 일과는 달라요.",
           "target": "#git-demo-terminal"
         }
       ]
     },
     {
       "id": "stp_403a517a-d8e8-4b74-acc5-feaaadfc8e3a",
-      "title": "파일을 바꿨는데 기록은 그대로",
-      "goal": "메모 파일만 둘째 메모로 바꿨어요.\n`git diff`와 `git show HEAD:memo.txt`를 실행해 보세요.\n현재 상태를 골라 제출하세요.",
+      "title": "수정한 파일과 커밋의 내용을 비교해 보세요",
+      "goal": "앞 단계에서 `첫 메모`를 커밋했어요. 이제 파일의 내용만 직접 바꿀 거예요. 아직 `git add`하지 마세요.\n\n**할 일**\n\n1. `echo \"둘째 메모\" > memo.txt`: 파일에 `둘째 메모`를 쓰세요.\n2. `cat memo.txt`: 현재 파일의 내용을 읽으세요.\n3. `git diff`: 작업 파일과 준비 영역의 차이를 확인하세요.\n4. `git show HEAD:memo.txt`: 현재 커밋에 기록된 메모를 읽으세요.\n5. 확인한 내용을 바탕으로 현재 상태에 맞는 보기를 고르세요.\n6. 선택한 보기를 제출하세요.",
       "language": "git",
       "starter_code": "",
       "solution": "working-only",
       "tests": [],
       "required": true,
       "git_terminal": {
-        "initial_history": "empty",
-        "files": {
-          "memo.txt": "첫 메모\n"
-        },
-        "setup": [
+        "initial_history": "uninitialized",
+        "files": {},
+        "setup": [],
+        "workspace_revision": "continuous-memo-init-1",
+        "workspace_group": "first-git-repository",
+        "demo_setup": [
+          {
+            "kind": "file",
+            "path": "memo.txt",
+            "content": "첫 메모\n"
+          },
           {
             "kind": "git",
             "args": [
               "add",
-              "--",
               "memo.txt"
             ]
           },
@@ -298,18 +428,35 @@
               "-m",
               "첫 기록"
             ]
-          },
-          {
-            "kind": "file",
-            "path": "memo.txt",
-            "content": "둘째 메모\n"
           }
         ]
       },
       "narration": [
         {
           "action": "say",
-          "text": "지금 메모 파일과 기존 기록을 비교해 볼게요.",
+          "text": "앞 단계에서 첫 메모를 커밋했어요. 이제 파일의 내용만 직접 바꿔 볼게요. 해설은 앞 단계까지 준비된 별도 저장소에서 보여 드려요. 직접 작업한 실습은 그대로예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "write_memo",
+          "content": "둘째 메모",
+          "say": "echo로 둘째 메모를 memo.txt에 써 볼게요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "명령이 끝났어요. 파일의 내용을 직접 확인할게요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "read_memo",
+          "expected": "둘째 메모",
+          "say": "cat memo.txt로 방금 쓴 내용을 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "둘째 메모가 나와요. 직접 입력한 내용이 파일에 들어갔어요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -317,12 +464,12 @@
           "args": [
             "diff"
           ],
-          "say": "작업 파일과 준비 영역 사이의 차이를 봐요.",
+          "say": "git diff로 파일에서 바뀐 부분을 확인해요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "첫 메모 대신 둘째 메모가 추가된 모습이죠.",
+          "text": "첫 메모가 빠지고 둘째 메모가 들어간 차이가 나와요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -331,17 +478,17 @@
             "show",
             "HEAD:memo.txt"
           ],
-          "say": "기존 커밋에 담긴 메모도 직접 꺼내 봐요.",
+          "say": "현재 커밋의 메모도 읽어 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "여기는 첫 메모예요. 기존 기록은 그대로죠.",
+          "text": "커밋에는 첫 메모가 남아 있어요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "조심하세요. 파일 수정이 기존 커밋을 바꾸진 않아요.",
+          "text": "조심하세요. 파일을 수정해도 기존 커밋의 내용은 바뀌지 않아요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -350,8 +497,8 @@
         },
         {
           "action": "say",
-          "text": "작업 파일만 바뀌었다는 설명을 선택해요.",
-          "target": "answer:working-only"
+          "text": "파일은 둘째 메모, 커밋은 첫 메모라는 보기를 골라요.",
+          "target": "#git-demo-terminal"
         }
       ],
       "interaction": {
@@ -359,15 +506,15 @@
         "options": [
           {
             "id": "record-changed",
-            "text": "기존 기록도 둘째 메모로 바뀌었어요."
+            "text": "현재 커밋의 메모도 둘째 메모로 바뀌었어요."
           },
           {
             "id": "working-only",
-            "text": "작업 파일만 둘째 메모예요. 기록은 첫 메모예요."
+            "text": "파일은 둘째 메모, 현재 커밋의 메모는 첫 메모예요."
           },
           {
             "id": "already-staged",
-            "text": "둘째 메모가 이미 다음 기록에 준비돼 있어요."
+            "text": "둘째 메모가 이미 준비 영역에 들어 있어요."
           }
         ],
         "answer": "working-only"
@@ -375,24 +522,29 @@
     },
     {
       "id": "stp_1bab006a-c33c-4b24-b604-fbb9c74efecf",
-      "title": "준비한 뒤 또 바꾸면",
-      "goal": "둘째 메모를 준비한 뒤 셋째 메모로 바꿨어요.\n지금 `git commit -m \"메모\"`를 실행하면 무엇이 기록될까요?\n`git diff --cached`로 준비한 내용을 확인해도 돼요.",
+      "title": "지금 커밋하면 어떤 메모가 담길까요?",
+      "goal": "앞 단계에서 파일을 `둘째 메모`로 바꿨어요. 커밋에는 아직 `첫 메모`가 있어요. 이번에는 아직 커밋하지 마세요.\n\n**할 일**\n\n1. `cat memo.txt`: 현재 파일의 내용을 읽으세요.\n2. `git add memo.txt`: 메모의 현재 내용을 준비 영역에 담으세요.\n3. `echo \"셋째 메모\" > memo.txt`: 파일에 `셋째 메모`를 쓰세요.\n4. `cat memo.txt`: 현재 파일의 내용을 읽으세요.\n5. `git diff --cached`: 준비 영역과 현재 커밋의 차이를 확인하세요.\n6. `git diff`: 작업 파일과 준비 영역의 차이를 확인하세요.\n7. 확인한 내용을 바탕으로 현재 상태에 맞는 보기를 고르세요.\n8. 선택한 보기를 제출하세요.",
       "language": "git",
       "starter_code": "",
       "solution": "staged-second",
       "tests": [],
       "required": true,
       "git_terminal": {
-        "initial_history": "empty",
-        "files": {
-          "memo.txt": "첫 메모\n"
-        },
-        "setup": [
+        "initial_history": "uninitialized",
+        "files": {},
+        "setup": [],
+        "workspace_revision": "continuous-memo-init-1",
+        "workspace_group": "first-git-repository",
+        "demo_setup": [
+          {
+            "kind": "file",
+            "path": "memo.txt",
+            "content": "첫 메모\n"
+          },
           {
             "kind": "git",
             "args": [
               "add",
-              "--",
               "memo.txt"
             ]
           },
@@ -408,26 +560,60 @@
             "kind": "file",
             "path": "memo.txt",
             "content": "둘째 메모\n"
-          },
-          {
-            "kind": "git",
-            "args": [
-              "add",
-              "--",
-              "memo.txt"
-            ]
-          },
-          {
-            "kind": "file",
-            "path": "memo.txt",
-            "content": "셋째 메모\n"
           }
         ]
       },
       "narration": [
         {
           "action": "say",
-          "text": "준비한 메모와 작업 파일이 서로 다른 상태예요.",
+          "text": "앞 단계에서 파일을 둘째 메모로 바꿨어요. 커밋에는 첫 메모가 남아 있어요. 해설은 앞 단계까지 준비된 별도 저장소에서 보여 드려요. 직접 작업한 실습은 그대로예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "read_memo",
+          "expected": "둘째 메모",
+          "say": "cat memo.txt로 방금 쓴 내용을 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "둘째 메모가 나와요. 직접 입력한 내용이 파일에 들어갔어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "add",
+            "memo.txt"
+          ],
+          "say": "git add로 지금 파일의 내용을 준비 영역에 담아요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "파일은 그대로 있어요. 다음 커밋에 담을 내용을 선택한 거예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "write_memo",
+          "content": "셋째 메모",
+          "say": "echo로 셋째 메모를 memo.txt에 써 볼게요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "명령이 끝났어요. 파일의 내용을 직접 확인할게요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "read_memo",
+          "expected": "셋째 메모",
+          "say": "cat memo.txt로 방금 쓴 내용을 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "셋째 메모가 나와요. 직접 입력한 내용이 파일에 들어갔어요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -436,12 +622,12 @@
             "diff",
             "--cached"
           ],
-          "say": "기록과 준비 영역 사이에 무엇이 달라졌는지 봐요.",
+          "say": "현재 커밋과 준비 영역의 차이를 확인해요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "여기에는 둘째 메모가 준비돼 있어요.",
+          "text": "준비 영역에는 둘째 메모가 들어 있어요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -449,41 +635,17 @@
           "args": [
             "diff"
           ],
-          "say": "준비한 뒤 작업 파일을 바꾼 차이도 확인해요.",
+          "say": "준비 영역과 현재 파일의 차이도 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "작업 파일은 셋째 메모로 바뀌어 있죠.",
-          "target": "#git-demo-terminal"
-        },
-        {
-          "action": "git_command",
-          "args": [
-            "commit",
-            "-m",
-            "메모"
-          ],
-          "say": "지금 상태에서 준비한 내용만 기록해 볼게요.",
-          "target": "#git-demo-terminal"
-        },
-        {
-          "action": "git_command",
-          "args": [
-            "show",
-            "HEAD:memo.txt"
-          ],
-          "say": "새 커밋에 무엇이 들어갔는지 직접 확인해요.",
+          "text": "파일에는 셋째 메모가 있어요. 준비 영역과 다르죠.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "둘째 메모가 나왔죠. 준비했던 내용이에요.",
-          "target": "#git-demo-terminal"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 나중에 고친 내용은 자동으로 준비되지 않아요.",
+          "text": "조심하세요. 파일을 다시 수정해도 준비 영역은 자동으로 바뀌지 않아요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -492,8 +654,8 @@
         },
         {
           "action": "say",
-          "text": "둘째 메모를 기록한다는 설명을 선택해요.",
-          "target": "answer:staged-second"
+          "text": "준비 영역의 둘째 메모가 커밋된다는 보기를 골라요.",
+          "target": "#git-demo-terminal"
         }
       ],
       "interaction": {
@@ -501,15 +663,15 @@
         "options": [
           {
             "id": "staged-second",
-            "text": "준비한 둘째 메모가 기록돼요."
+            "text": "준비 영역의 둘째 메모가 커밋돼요."
           },
           {
             "id": "old-first",
-            "text": "기존 첫 메모가 다시 기록돼요."
+            "text": "이전 커밋의 첫 메모가 다시 커밋돼요."
           },
           {
             "id": "working-third",
-            "text": "작업 파일의 셋째 메모가 기록돼요."
+            "text": "파일의 셋째 메모가 커밋돼요."
           }
         ],
         "answer": "staged-second"
@@ -517,54 +679,17 @@
     },
     {
       "id": "stp_88fdbbc3-8a26-4c47-96ea-1a14aa59f41e",
-      "title": "어느 변경을 기록할까요?",
-      "goal": "같은 상태에서 이번에는 셋째 메모를 기록하세요.\n`git add -- memo.txt` 다음에 커밋하세요.\n첫 메모 기록도 남아 있어야 해요.",
+      "title": "셋째 메모를 새 커밋으로 남기세요",
+      "goal": "앞 단계에서 파일은 `셋째 메모`로 바꿨지만 준비 영역에는 `둘째 메모`를 담아 두었어요.\n\n**할 일**\n\n1. `cat memo.txt`: 현재 파일의 내용을 읽으세요.\n2. `git add memo.txt`: 메모의 현재 내용을 준비 영역에 담으세요.\n3. `git diff --cached`: 준비 영역과 현재 커밋의 차이를 확인하세요.\n4. `git commit -m \"메모 갱신\"`: 준비 영역의 내용을 새 커밋으로 남기세요.\n5. `git show HEAD:memo.txt`: 현재 커밋에 기록된 메모를 읽으세요.\n6. `git show HEAD^:memo.txt`: 바로 이전 커밋에 기록된 메모를 읽으세요.\n7. `git status --porcelain`: 출력이 비어 있는지 확인하세요. 비어 있으면 커밋하지 않은 변경이 없어요.\n8. 확인한 뒤 제출 버튼을 누르세요.",
       "language": "git",
       "starter_code": "",
-      "solution": "# 셋째 메모를 다시 준비해요.\ngit add -- memo.txt\n# 준비한 내용을 기록해요.\ngit commit -m \"메모 갱신\"",
+      "solution": "cat memo.txt\ngit add memo.txt\ngit commit -m \"메모 갱신\"",
       "tests": [],
       "required": true,
       "git_terminal": {
-        "initial_history": "empty",
-        "files": {
-          "memo.txt": "첫 메모\n"
-        },
-        "setup": [
-          {
-            "kind": "git",
-            "args": [
-              "add",
-              "--",
-              "memo.txt"
-            ]
-          },
-          {
-            "kind": "git",
-            "args": [
-              "commit",
-              "-m",
-              "첫 기록"
-            ]
-          },
-          {
-            "kind": "file",
-            "path": "memo.txt",
-            "content": "둘째 메모\n"
-          },
-          {
-            "kind": "git",
-            "args": [
-              "add",
-              "--",
-              "memo.txt"
-            ]
-          },
-          {
-            "kind": "file",
-            "path": "memo.txt",
-            "content": "셋째 메모\n"
-          }
-        ],
+        "initial_history": "uninitialized",
+        "files": {},
+        "setup": [],
         "state_goal": {
           "head_exists": true,
           "commit_count": 2,
@@ -581,22 +706,83 @@
           "working_files": {
             "memo.txt": "셋째 메모\n"
           }
-        }
+        },
+        "workspace_revision": "continuous-memo-init-1",
+        "workspace_group": "first-git-repository",
+        "demo_setup": [
+          {
+            "kind": "file",
+            "path": "memo.txt",
+            "content": "첫 메모\n"
+          },
+          {
+            "kind": "git",
+            "args": [
+              "add",
+              "memo.txt"
+            ]
+          },
+          {
+            "kind": "git",
+            "args": [
+              "commit",
+              "-m",
+              "첫 기록"
+            ]
+          },
+          {
+            "kind": "file",
+            "path": "memo.txt",
+            "content": "둘째 메모\n"
+          },
+          {
+            "kind": "git",
+            "args": [
+              "add",
+              "memo.txt"
+            ]
+          },
+          {
+            "kind": "file",
+            "path": "memo.txt",
+            "content": "셋째 메모\n"
+          }
+        ]
       },
       "narration": [
         {
           "action": "say",
-          "text": "이번에는 셋째 메모를 새 기록에 담아 볼게요.",
+          "text": "앞 단계에서 파일은 셋째 메모로 바꿨어요. 준비 영역에는 둘째 메모, 커밋에는 첫 메모가 있어요. 해설은 앞 단계까지 준비된 별도 저장소에서 보여 드려요. 직접 작업한 실습은 그대로예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "read_memo",
+          "expected": "셋째 메모",
+          "say": "cat memo.txt로 방금 쓴 내용을 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "셋째 메모가 나와요. 직접 입력한 내용이 파일에 들어갔어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 지금 커밋하면 둘째 메모가 담겨요. 셋째 메모를 다시 준비해야 해요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "git_command",
           "args": [
             "add",
-            "--",
             "memo.txt"
           ],
-          "say": "작업 파일의 현재 내용을 다시 준비해요.",
+          "say": "git add로 지금 파일의 내용을 준비 영역에 담아요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "파일은 그대로 있어요. 다음 커밋에 담을 내용을 선택한 거예요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -605,12 +791,12 @@
             "diff",
             "--cached"
           ],
-          "say": "기록할 차이에 셋째 메모가 있는지 확인해요.",
+          "say": "이번에 커밋할 내용을 확인해요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "기존 첫 메모에서 셋째 메모로 바뀌는 차이죠.",
+          "text": "셋째 메모가 준비돼 있어요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -620,7 +806,12 @@
             "-m",
             "메모 갱신"
           ],
-          "say": "다시 준비한 내용을 새 커밋으로 기록해요.",
+          "say": "준비 영역의 내용을 커밋으로 기록해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "새 커밋을 만들었어요. 이 시점의 내용을 기록으로 남겼어요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -629,12 +820,12 @@
             "show",
             "HEAD:memo.txt"
           ],
-          "say": "새 기록의 메모 내용을 직접 꺼내 봐요.",
+          "say": "새 커밋의 메모를 읽어요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "셋째 메모가 나와요. 원했던 내용이 기록됐죠.",
+          "text": "셋째 메모가 나와요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -643,12 +834,12 @@
             "show",
             "HEAD^:memo.txt"
           ],
-          "say": "바로 전 기록도 함께 확인해 볼게요.",
+          "say": "바로 전 커밋의 메모도 확인해요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "첫 메모가 남아 있어요. 이전 기록도 보존돼요.",
+          "text": "첫 메모가 남아 있어요. 기존 커밋은 바뀌지 않았어요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -657,20 +848,16 @@
             "status",
             "--porcelain"
           ],
-          "say": "마지막으로 기록하지 않은 차이가 있는지 봐요.",
+          "say": "마지막으로 남은 변경을 확인해요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "아무 줄도 없죠. 남은 차이가 없는 상태예요.",
-          "target": "#git-demo-terminal"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 커밋 전에 원하는 내용을 다시 준비해요.",
+          "text": "출력이 없어요. 파일의 현재 내용까지 모두 커밋했어요.",
           "target": "#git-demo-terminal"
         }
       ]
     }
-  ]
+  ],
+  "learning_strategy": "메모 파일 하나를 만들고 준비 영역에 담아 커밋해요. 파일·준비 영역·커밋을 직접 비교하며 차이를 확인해요."
 }

@@ -96,6 +96,33 @@ def validate(document, require_approval=False):
                 _items(step.get('objectives'), '스텝 교육 목표')
                 _text(step.get('core_flow'), '핵심 흐름')
                 steps.append(step['id'])
+    # New understanding-first drafts carry an explicit per-step complexity ledger.
+    # Legacy PRDs remain valid; once a ledger is used it cannot silently disappear
+    # from later steps or grow several concepts/services at once.
+    units = [unit for chapter in document['chapters'] for unit in chapter['units']]
+    if any('complexity' in step for unit in units for step in unit['steps']):
+        for unit in units:
+            services = 0
+            for step in unit['steps']:
+                ledger = step.get('complexity')
+                if not isinstance(ledger, dict):
+                    raise ValueError('모든 스텝에 난도 상승 근거를 기록하세요.')
+                concepts = ledger.get('new_concepts')
+                if not isinstance(concepts, list) or len(concepts) > 1:
+                    raise ValueError('한 스텝의 새 개념은 하나 이하로 나누세요.')
+                for concept in concepts:
+                    _text(concept, '새 개념')
+                for field in ['prerequisite_experience', 'changed_condition', 'observable_evidence']:
+                    _text(ledger.get(field), '난도 상승 근거 ' + field)
+                lines = ledger.get('learner_edited_lines')
+                external = ledger.get('new_external_services')
+                if type(lines) is not int or not 0 <= lines <= 3:
+                    raise ValueError('한 스텝의 학생 수정은 0~3줄로 나누세요.')
+                if type(external) is not int or not 0 <= external <= 1:
+                    raise ValueError('새 외부 서비스는 하나씩 도입하세요.')
+                services += external
+            if services > 1:
+                raise ValueError('한 단원의 새 외부 서비스는 하나 이하로 나누세요.')
     representative = document.get('representative', {})
     if not isinstance(representative, dict):
         raise ValueError('대표 문제를 확인하세요.')

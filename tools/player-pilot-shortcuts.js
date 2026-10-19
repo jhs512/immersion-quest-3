@@ -1,0 +1,34 @@
+(async()=>{
+ const checked=[];
+ const wait=async(test,label)=>{const until=Date.now()+45000;while(!test()){if(Date.now()>until)throw Error(label);await new Promise(r=>setTimeout(r,40));}};
+ const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===text&&b.getClientRects().length>0);
+ const click=async text=>{await wait(()=>button(text)&&!button(text).disabled,text);button(text).click();};
+ const chord=(key,shift=false)=>document.querySelector('.problem-pane h2').dispatchEvent(new KeyboardEvent('keydown',{key,shiftKey:shift,...(/mac/i.test(navigator.platform)?{metaKey:true}:{ctrlKey:true}),bubbles:true,cancelable:true}));
+ try{
+  await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('pilot-a'),'initial fixture');
+  await click('버전 n');await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('java-values-1'),'Java fixture');
+  await click('학습 시작');await wait(()=>document.querySelector('.repository-task'),'task mounted');
+  await wait(()=>document.querySelector('[data-shortcut-action="submit"]')?.dataset.shortcutLabel,'visible platform hints');
+  const first=document.querySelector('.repository-task').dataset.taskId;
+  chord('Enter',true);
+  await wait(()=>document.querySelector('.result-pane')?.dataset.feedback==='incorrect','incorrect outcome');
+  await wait(()=>!button('제출').disabled,'submission stored');
+  const banner=document.querySelector('.submission-feedback');
+  if(!banner?.textContent.includes('제출 실패')||banner.getAttribute('role')!=='alert')throw Error('Missing explicit failure alert');
+  const color=getComputedStyle(banner).color.match(/\d+/g).map(Number);
+  if(color[0]<=color[1]+30||banner.getBoundingClientRect().height<50)throw Error('Failure is not visibly red');
+  if(!document.querySelector('.submission-indicator')?.textContent.includes('제출 실패'))throw Error('Failure not visible near submit');
+  checked.push('Native submit shortcut grades an incorrect answer and displays a red alert plus toolbar failure label');
+  molipAgent.setVoice(false);await click('해설 재생');await wait(()=>document.querySelector('.repository-task').dataset.narrating==='true','explanation starts');
+  await wait(()=>document.querySelector('.repository-task .narration-stop')&&!document.querySelector('.repository-task .narration-stop').disabled,'stop enabled');document.querySelector('.repository-task .narration-stop').click();await wait(()=>document.querySelector('.repository-task').dataset.narrating==='false'&&document.querySelector('.result-pane').dataset.feedback==='incorrect','failure survives explanation');
+  checked.push('Explanation cancellation restores learner outcome');
+  chord('ArrowRight');await wait(()=>document.querySelector('.repository-task')?.dataset.taskId!==first,'next shortcut');
+  chord('ArrowLeft');await wait(()=>document.querySelector('.repository-task')?.dataset.taskId===first,'previous shortcut');
+  checked.push('Step shortcuts use the real navigation rules');
+  await click('단축키');await wait(()=>document.querySelector('.shortcut-sheet')?.open,'shortcut help');
+  if(!document.querySelector('.shortcut-sheet').textContent.includes('Shift+Enter'))throw Error('Submit shortcut missing from guide');
+  document.querySelector('.shortcut-sheet button').click();await wait(()=>!document.querySelector('.shortcut-sheet').open,'help closes');
+  checked.push('Platform guide is discoverable and closes correctly');
+  dioxus.send({passed:true,checked});
+ }catch(error){dioxus.send({passed:false,checked,error:String(error),screen:document.body.innerText.slice(-6500)});}
+})();

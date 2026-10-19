@@ -43,6 +43,7 @@ pub struct Lesson {
     pub description: String,
     pub sources: Vec<String>,
     #[serde(default)] pub objectives: Vec<String>,
+    #[serde(default,skip_serializing_if="String::is_empty")] pub learning_strategy:String,
     #[serde(default)] pub chapters: Vec<LessonChapter>,
     pub sections: Vec<Section>,
     pub tasks: Vec<Task>,

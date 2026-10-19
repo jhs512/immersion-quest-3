@@ -27,19 +27,20 @@
     window.dispatchEvent(new CustomEvent('molip:voice-fallback', { detail: reason }));
   }
   // Resolves to an object URL for the clip, or null when the voice is off or unreachable.
-  // The sentence is sent as it should be pronounced (assets/speech/speech.js: course terms in
+  // The sentence is sent as it should be pronounced (assets/speech/pronunciation.js: course terms in
   // Korean, "main.py" as 메인 점 파이, operators as words); the caption keeps the written form.
-  const spoken = text => (globalThis.molipSpeech && globalThis.molipSpeech.pronunciationText) ? globalThis.molipSpeech.pronunciationText(text) : text;
+  const spoken = text => globalThis.molipPronunciation.pronunciationText(text);
   function synthesize(sentence) {
     const text = String(sentence || '').trim();
     if (!enabled() || !text) return Promise.resolve(null);
-    const key = name + '\n' + text;
+    const pronounced = spoken(text);
+    const key = name + '\n' + pronounced;
     let pending = clips.get(key);
     if (pending) { stats.cached += 1; return pending; }
     // End a stalled request after the native process deadline; the narration shows an error.
     const abort = typeof AbortController === 'function' ? new AbortController() : null;
     const timer = abort ? setTimeout(() => abort.abort(), 25000) : 0;
-    pending = fetch(url(), { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ text: spoken(text), voice: name }), signal: abort ? abort.signal : undefined })
+    pending = fetch(url(), { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ text: pronounced, voice: name }), signal: abort ? abort.signal : undefined })
       .finally(() => clearTimeout(timer))
       .then(async response => {
         if (!response.ok) { stats.failed += 1; const why = await response.text().catch(() => ''); console.warn('tts', response.status, why); clips.delete(key); giveUp(why || String(response.status)); return null; }

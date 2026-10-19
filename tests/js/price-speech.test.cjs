@@ -3,6 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
 const context=vm.createContext({});
+vm.runInContext(fs.readFileSync('assets/speech/pronunciation.js','utf8'),context);
 vm.runInContext(fs.readFileSync('assets/speech/speech.js','utf8'),context);
 const {pronunciationText,formatPrices}=context.molipSpeech;
 test('won prices use grouping in text and Korean place values in speech',()=>{

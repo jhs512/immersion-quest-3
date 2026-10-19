@@ -246,6 +246,13 @@
       mark(element);
       try { glideTo(element); } catch {}
     }
+    document.querySelectorAll('.overview-speaking').forEach(node=>node.classList.remove('overview-speaking'));
+    if(spotTarget?.closest?.('#lesson-info-dialog')) {
+      spotTarget.classList.add('overview-speaking');
+      spot.hidden=true;caption.hidden=true;cancelAnimationFrame(raf);raf=0;
+      const status=document.querySelector('#lesson-overview-status');if(status)status.textContent=sentence||'';
+      return;
+    }
     caption.textContent = captionText(sentence);
     caption.hidden = !sentence;
     cancelAnimationFrame(raf);
@@ -253,6 +260,7 @@
   }
   function clearSpot() {
     cancelAnimationFrame(raf); raf = 0;
+    document.querySelectorAll('.overview-speaking').forEach(node=>node.classList.remove('overview-speaking'));
     spotTarget = null; spotKey = null;
     clearMarks();
     globalThis.molipCodeEditors?.highlightLines(null);
@@ -288,6 +296,8 @@
 
   // ---- Voice: one sentence at a time, resolved when it has been read (or would have been). ----
   let voice = true, cancelled = false;
+  let forcedVoiceRun = 0;
+  const voiceOn = () => voice || (forcedVoiceRun !== 0 && forcedVoiceRun === narrationRun);
   // Pause (the panel's ⏸, the Space key): the clip or utterance playing is held, typing stops,
   // and the next action waits; resume picks up exactly there. The spotlight stays where it is.
   let paused = false, running = false;
@@ -342,7 +352,7 @@
   }
   window.addEventListener('molip:tts-rate', event => { if (currentAudio) currentAudio.playbackRate = event.detail; });
   async function prefetch(actions, active) {
-    if (!voice || !neural()) return;
+    if (!voiceOn() || !neural()) return;
     const sentences = [...new Set(actions.map(a => a && (a.action === 'say' ? a.text : a.say)).filter(Boolean).map(String))];
     if (!sentences.length) return;
     let next = 0, ready = 0;
@@ -362,7 +372,7 @@
   let current = null;
   async function speak(sentence) {
     if (!sentence) return;
-    if (voice && globalThis.molipVoice && molipVoice.name !== 'system' && !cancelled) {
+    if (voiceOn() && globalThis.molipVoice && molipVoice.name !== 'system' && !cancelled) {
       const url = await synthesize(String(sentence));
       if (cancelled) return;
       if (url && await playClip(url)) { lastSpeech = 'neural'; return; }
@@ -383,7 +393,7 @@
   });
   function speakWithSystemVoice(sentence) {
     const length = String(sentence).length;
-    if (!voice || !('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) {
+    if (!voiceOn() || !('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) {
       return sleep(Math.min(5000, 700 + length * 55)); // reading time, so the caption can be read
     }
     return new Promise(resolve => {
@@ -393,7 +403,7 @@
       const finish = () => { if (done) return; done = true; clearTimeout(timer); current = null; resolve(); };
       const start = () => {
         if (cancelled || !voice) { finish(); return; }
-        const utterance = new SpeechSynthesisUtterance(helpers && helpers.pronunciationText ? helpers.pronunciationText(sentence) : sentence);
+        const utterance = new SpeechSynthesisUtterance(globalThis.molipPronunciation.pronunciationText(sentence));
         utterance.lang = 'ko-KR';
         const korean = helpers && helpers.koreanVoice ? helpers.koreanVoice(synth.getVoices()) : null;
         if (korean) utterance.voice = korean;
@@ -501,7 +511,79 @@
     await sleep(60);
     return '답안을 비교해 봐요.';
   }
+  async function readTerminal(command, active, expected) {
+    const tutor = explanationSession ? explanationSession.gitTutor() : window.molipGitTutor;
+    const terminal = window.mq3GitDemoTerminal;
+    if (!tutor || !terminal) throw new Error('Git 해설 터미널이 없어요.');
+    const owner = tutor.owner;
+    const before = terminal.text(owner).trimEnd();
+    const count = () => terminal.text(owner).split('\n').filter(line => line.trim() === expected).length;
+    const previous = count();
+    if (!await terminal.typeCommand(command, owner)) return '해설을 멈췄어요.';
+    const deadline = Date.now() + 15000;
+    while (active()) {
+      const output = terminal.text(owner).trimEnd();
+      if (output !== before && /(?:\$|>)\s*$/.test(output) && (expected == null || count() > previous)) return '출력을 확인했어요.';
+      if (Date.now() > deadline) throw new Error('명령의 출력을 확인하지 못했어요.');
+      await sleep(30);
+    }
+    return '해설을 멈췄어요.';
+  }
   const handlers = {
+    async bash_command(a, active) {
+      if(typeof a.command!=='string'||!a.command||a.command.length>4000||/[\r\n\0]/.test(a.command))throw new Error('Bash 명령을 확인하세요.');
+      return readTerminal(a.command,active,a.expected);
+    },
+    async vim_wait(a,active) {
+      const terminal=window.mq3GitDemoTerminal;const tutor=explanationSession ? explanationSession.gitTutor() : window.molipGitTutor;
+      const deadline=Date.now()+15000;
+      while(active()){
+        const progress=terminal?.vimState(tutor?.owner);
+        if(progress && (a.passed ? progress.passed : progress.state))return 'Vim의 실제 상태를 확인했어요.';
+        if(Date.now()>deadline)throw new Error('Vim 상태를 확인하지 못했어요.');
+        await sleep(30);
+      }
+    },
+    async vim_open(a, active) {
+      const tutor=explanationSession ? explanationSession.gitTutor() : window.molipGitTutor;
+      const terminal=window.mq3GitDemoTerminal;
+      if(!tutor||!terminal)throw new Error('해설 터미널이 없어요.');
+      if(!await terminal.typeCommand('vim memo.txt',tutor.owner))return '해설을 멈췄어요.';
+      const deadline=Date.now()+15000;
+      while(active()){
+        const text=terminal.text(tutor.owner);
+        if(/"memo.txt"/.test(text)&&/\d+L/.test(text))return 'Vim에서 메모를 열었어요.';
+        if(Date.now()>deadline)throw new Error('Vim 화면을 확인하지 못했어요.');
+        await sleep(30);
+      }
+    },
+    async vim_keys(a, active) {
+      const tutor=explanationSession ? explanationSession.gitTutor() : window.molipGitTutor;
+      const terminal=window.mq3GitDemoTerminal;
+      if(!tutor||!terminal||typeof a.keys!=='string'||a.keys.length>1000)throw new Error('Vim 키 입력을 확인하세요.');
+      if(!await terminal.typeKeys(a.keys,tutor.owner))return '해설을 멈췄어요.';
+      if(a.wait_prompt){
+        const direct=document.querySelector('#git-demo-terminal')?.dataset.vim==='true';
+        const deadline=Date.now()+15000;
+        while(active()){
+          if((direct && terminal.vimState(tutor.owner)?.state?.exited)||(!direct && /\$\s*$/.test(terminal.text(tutor.owner).trimEnd())))return '편집을 마치고 터미널로 돌아왔어요.';
+          if(Date.now()>deadline)throw new Error('Vim 종료를 확인하지 못했어요.');
+          await sleep(30);
+        }
+      }else{await sleep(100);return 'Vim 키를 입력했어요.';}
+    },
+    async inspect_folder(a, active) {
+      // Fixed read-only commands only; each action runs exactly one command.
+      if (!['pwd', 'ls'].includes(a.command)) throw new Error('폴더 확인 명령을 확인하세요.');
+      return readTerminal(a.command, active);
+    },
+    async write_memo(a, active) {
+      if (!['첫 메모', '둘째 메모', '셋째 메모'].includes(a.content)) throw new Error('메모 내용을 확인하세요.');
+      return readTerminal('echo "' + a.content + '" > memo.txt', active);
+    },
+    async read_memo(a, active) {
+      return readTerminal('cat memo.txt', active, String(a.expected || '').trim());
+    },
     async git_command(a, active) {
       const tutor=explanationSession ? explanationSession.gitTutor() : window.molipGitTutor;
       if (!tutor || !Array.isArray(a.args)) throw new Error('Git 해설 터미널이 없어요.');
@@ -727,15 +809,16 @@
     const session=new ExplanationSession(root,options.owner);
     explanationSession=session;
     // A demonstration can execute examples, but never submit, advance or grant completion.
-    const allowed = new Set(['git_command', 'say', 'set_code', 'patch_code', 'type_code', 'set_input', 'run', 'choose_answer', 'order_answer', 'fill_answer']);
+    const allowed = new Set(['vim_wait', 'bash_command', 'vim_open', 'vim_keys', 'write_memo', 'inspect_folder', 'read_memo', 'git_command', 'say', 'set_code', 'patch_code', 'type_code', 'set_input', 'run', 'choose_answer', 'order_answer', 'fill_answer']);
     try { return await run(Array.isArray(actions) ? actions.filter(action => allowed.has(action?.action)) : [], true); }
     finally { if (explanationSession === session) restoreExplanation(); }
   }
-  async function run(actions, explanation = false) {
+  async function run(actions, explanation = false, options = {}) {
     if (!explanation && explanationSession) stop();
     if (!Array.isArray(actions)) return '동작 목록이 배열이 아닙니다.';
     captionSource = actions.flatMap(action => ['code','before','after','input','value'].map(key=>action?.[key] ?? '')).join('\n');
     const runId = ++narrationRun;
+    if (options.forceVoice) forcedVoiceRun = runId;
     const session = explanation ? explanationSession : null;
     const active = () => !cancelled && runId === narrationRun && (!session || session.current());
     replyRun++; stopSpeech(); releaseCancelWaiters(); clearSpot();
@@ -786,6 +869,7 @@
     } finally {
       if (runId === narrationRun) {
       running = false; paused = false;
+      if(forcedVoiceRun===runId)forcedVoiceRun=0;
       stopSpeech();
       clearSpot();
       releaseCancelWaiters();
@@ -826,5 +910,14 @@
   function stop() { cancelled = true; paused = false; replyRun++; cancelAnimationFrame(glideFrame); stopSpeech(); releaseCancelWaiters(); clearSpot(); restoreExplanation(); }
   function setVoice(on) { voice = !!on; if (!voice) stopSpeech(); return voice; }
   function setVoiceName(name) { return globalThis.molipVoice ? globalThis.molipVoice.setName(name) : String(name || 'system'); }
-  globalThis.molipAgent = { retireGitTutor: ExplanationSession.retireGitTutor, run, runExplanation, stop, pause, resume, speakReply, stopReply, get paused() { return paused; }, get running() { return running; }, setVoice, setVoiceName, resolveTarget, glideTo, get voice() { return voice; }, get voiceName() { return globalThis.molipVoice ? globalThis.molipVoice.name : 'system'; }, get lastSpeech() { return lastSpeech; }, get playbackRate() { return currentAudio ? currentAudio.playbackRate : null; }, actions: Object.keys(handlers) };
+  async function runOverview(actions, dialog) {
+    if(!dialog?.open)return '학습 정보 창을 먼저 여세요.';
+    stop();
+    const abort=()=>stop();
+    dialog.addEventListener('close',abort);
+    dialog.dataset.overviewRunning='true';
+    try{return await run(actions.filter(a=>a.action==='say'),false,{forceVoice:true});}
+    finally{dialog.removeEventListener('close',abort);dialog.dataset.overviewRunning='false';}
+  }
+  globalThis.molipAgent = { runOverview, retireGitTutor: ExplanationSession.retireGitTutor, run, runExplanation, stop, pause, resume, speakReply, stopReply, get paused() { return paused; }, get running() { return running; }, setVoice, setVoiceName, resolveTarget, glideTo, get voice() { return voice; }, get voiceName() { return globalThis.molipVoice ? globalThis.molipVoice.name : 'system'; }, get lastSpeech() { return lastSpeech; }, get playbackRate() { return currentAudio ? currentAudio.playbackRate : null; }, actions: Object.keys(handlers) };
 })();

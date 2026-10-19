@@ -1,0 +1,347 @@
+{
+  "schema_version": 1,
+  "title": "자바 백엔드 확장 · 작은 메모 앱으로 이해하기",
+  "status": "draft_for_review",
+  "requested_at": "2026-10-20",
+  "baseline": {
+    "lessons": 20,
+    "steps": 187,
+    "preserve_existing_ids_and_progress": true
+  },
+  "priority": "가장 단순한 상태에서 시작하고, 한 번에 새 개념 하나만 더한다.",
+  "runtime_registration": "초안은 실행 과정에 등록하지 않는다. 새 PRD·대표 문제 검토 뒤 검증된 수업만 단계적으로 추가한다.",
+  "insertion": {
+    "first_new_lesson_after": "java-crud",
+    "first_new_lesson_before": "java-testing",
+    "frontend": "java-react·java-tailwind는 기존 식별자와 진도를 유지하고, 확장 후 화면 이해 보조 수업으로 추천 위치를 검토한다.",
+    "choice_policy": "추천 순서이며 수업 선택을 잠그지 않는다."
+  },
+  "complexity_budget": {
+    "new_concepts_per_step": 1,
+    "usual_learner_edited_lines_max": 3,
+    "first_lesson_source_files": 1,
+    "first_lesson_external_services": 0,
+    "new_external_services_per_unit_max": 1,
+    "policy_path": "docs/content-rules.md#이해를-위한-난도-상승은-필수"
+  },
+  "phases": [
+    {
+      "key": "run-build",
+      "title": "실행·설정·빌드",
+      "depends_on": [],
+      "candidate_lessons": [
+        "java-launch",
+        "java-config-inputs",
+        "bash-processes",
+        "gradle-basics",
+        "jvm-launch-options"
+      ],
+      "starts_with": "Main.java 하나의 문구를 출력해요.",
+      "progression": "소스·클래스 → 실행 인수 → 셸 변수·환경변수 → 앞/뒤 실행 → Gradle → JVM 옵션",
+      "evidence_of_understanding": "파일 하나의 문구 수정이 실제 실행 결과에 언제 반영되는지 설명해요.",
+      "status": "prototype_in_progress"
+    },
+    {
+      "key": "http-network",
+      "title": "요청 하나와 네트워크",
+      "depends_on": [
+        "run-build"
+      ],
+      "candidate_lessons": [
+        "http-first-request",
+        "network-addresses",
+        "rest-json-contract"
+      ],
+      "starts_with": "로컬 프로그램 하나에 GET 요청 하나를 보내요.",
+      "progression": "응답 본문 → 상태 코드 → IP·포트 → 이름 해석·DNS → 메서드·JSON → 타임아웃",
+      "evidence_of_understanding": "주소·연결·HTTP 실패를 구분하고 메모 하나를 요청해요.",
+      "status": "planned"
+    },
+    {
+      "key": "spring-core",
+      "title": "수동 연결에서 작은 Spring 앱으로",
+      "depends_on": [
+        "http-network"
+      ],
+      "candidate_lessons": [
+        "constructor-di",
+        "spring-boot-first",
+        "spring-rest-validation",
+        "http-filter-flow"
+      ],
+      "starts_with": "메모 서비스에 저장소 객체 하나를 생성자로 건네요.",
+      "progression": "직접 조립 → 컨테이너 조립 → Boot 실행 → 컨트롤러 → 입력 검증·일관된 오류",
+      "evidence_of_understanding": "객체를 누가 만들고 어디로 전달하는지 설명해요.",
+      "status": "planned"
+    },
+    {
+      "key": "sql-storage",
+      "title": "표 하나에서 실제 DB로",
+      "depends_on": [
+        "run-build",
+        "spring-core"
+      ],
+      "candidate_lessons": [
+        "sql-one-table",
+        "sql-persistence",
+        "docker-one-container",
+        "jdbc-postgresql",
+        "mysql-differences"
+      ],
+      "starts_with": "메모 두 행이 든 표 하나를 조회해요.",
+      "progression": "인메모리 SQL → 파일 저장 → 이미지·컨테이너 → PostgreSQL 연결 → 파라미터 쿼리·풀 → MySQL 차이",
+      "evidence_of_understanding": "재시작·다른 연결 뒤 무엇이 남는지 확인해요.",
+      "status": "planned"
+    },
+    {
+      "key": "transactions-jpa",
+      "title": "두 변경과 트랜잭션·JPA",
+      "depends_on": [
+        "sql-storage"
+      ],
+      "candidate_lessons": [
+        "sql-transaction-rollback",
+        "jpa-entity-lifecycle",
+        "jpa-query-cost",
+        "schema-migration"
+      ],
+      "starts_with": "메모 저장과 기록 저장 두 동작을 묶어요.",
+      "progression": "SQL COMMIT/ROLLBACK → JDBC 경계 → JPA 매핑 → 변경 감지·flush → @Transactional 경계 → 조회 수·N+1 → 마이그레이션",
+      "evidence_of_understanding": "중간 실패 뒤 데이터가 남는지 직접 확인하고 실행 SQL을 읽어요.",
+      "status": "planned"
+    },
+    {
+      "key": "security",
+      "title": "해시·암호·인증과 접근 제어",
+      "depends_on": [
+        "spring-core",
+        "sql-storage"
+      ],
+      "candidate_lessons": [
+        "hash-and-equality",
+        "password-hashing",
+        "encryption-and-signatures",
+        "spring-security-filters"
+      ],
+      "starts_with": "짧은 글 하나의 해시를 비교해요.",
+      "progression": "hashCode·충돌과 암호학적 해시 구분 → 비밀번호 검증 → HMAC → 인증 암호화 → 공개키·서명·TLS → 세션·인증/인가·필터 → CSRF/CORS",
+      "evidence_of_understanding": "복호화·비밀번호 대조·서명 검증을 구별하고 내 메모 접근을 제한해요.",
+      "status": "planned"
+    },
+    {
+      "key": "concurrency-redis",
+      "title": "요청 둘과 동시성·Redis",
+      "depends_on": [
+        "transactions-jpa"
+      ],
+      "candidate_lessons": [
+        "thread-and-process",
+        "controlled-race",
+        "local-concurrency-tools",
+        "database-concurrency",
+        "redis-cache-atomicity",
+        "distributed-lock-limits"
+      ],
+      "starts_with": "조회수 하나를 요청 둘이 올려요.",
+      "progression": "스레드·공유 상태 → 제어된 경합 → 단일 소유·synchronized·Lock·CAS → 실행기·가상 스레드 → DB 원자 갱신·낙관/비관 락·유일 제약 → 캐시·Redis 원자 연산 → 분산 락 한계",
+      "evidence_of_understanding": "각 해결책이 지키는 범위와 여전히 실패하는 조건을 비교해요.",
+      "status": "planned"
+    },
+    {
+      "key": "events-kafka",
+      "title": "한 번의 변경에서 이벤트 처리로",
+      "depends_on": [
+        "transactions-jpa",
+        "concurrency-redis"
+      ],
+      "candidate_lessons": [
+        "spring-events",
+        "outbox-and-idempotency",
+        "kafka-messages",
+        "kafka-streams"
+      ],
+      "starts_with": "메모 저장 뒤 같은 프로세스에서 알림 하나를 호출해요.",
+      "progression": "동기 이벤트 → AFTER_COMMIT → 비동기 실패 → outbox → 토픽·파티션·오프셋 → 중복 처리·재시도 → Streams 집계·시간창",
+      "evidence_of_understanding": "저장 성공과 알림 전달 성공을 분리하고 중복을 다뤄요.",
+      "status": "planned"
+    },
+    {
+      "key": "realtime",
+      "title": "서버 알림에서 양방향 메시지로",
+      "depends_on": [
+        "spring-core",
+        "events-kafka"
+      ],
+      "candidate_lessons": [
+        "sse-notification",
+        "websocket-echo",
+        "stomp-routing"
+      ],
+      "starts_with": "서버가 알림 한 줄을 브라우저에 보내요.",
+      "progression": "SSE → 재연결·마지막 이벤트 → WebSocket 한 연결·에코 → STOMP 목적지·구독 → 메시지 권한",
+      "evidence_of_understanding": "단방향 전송과 양방향 연결·메시지 규약을 구분해요.",
+      "status": "planned"
+    },
+    {
+      "key": "local-ai",
+      "title": "가짜 응답에서 로컬 AI로",
+      "depends_on": [
+        "spring-core",
+        "realtime",
+        "security"
+      ],
+      "candidate_lessons": [
+        "ai-client-contract",
+        "ollama-local",
+        "spring-ai-integration",
+        "ai-evaluation-retrieval"
+      ],
+      "starts_with": "항상 같은 문장을 반환하는 가짜 요약기를 호출해요.",
+      "progression": "인터페이스·제한시간 → Ollama 한 모델·한 요청 → Spring AI → 구조화 결과 → 스트리밍 → 소규모 평가·검색 보조 → vLLM 선택 실습",
+      "evidence_of_understanding": "모델 응답의 변동·실패를 처리하고 요약 기능을 작은 기준으로 평가해요.",
+      "status": "planned"
+    },
+    {
+      "key": "operate",
+      "title": "작은 앱을 다시 실행하고 진단하기",
+      "depends_on": [
+        "events-kafka",
+        "security"
+      ],
+      "candidate_lessons": [
+        "compose-and-config",
+        "logs-metrics-recovery"
+      ],
+      "starts_with": "앱과 DB 두 프로세스의 상태를 확인해요.",
+      "progression": "포트·볼륨·설정 분리 → Compose → 상태 확인 → 요청 ID·로그·메트릭 → 재시작·백업/복원 → 반복 가능한 빌드",
+      "evidence_of_understanding": "실패 지점을 찾고 자신의 실습 자원만 안전하게 정리해요.",
+      "status": "planned"
+    }
+  ],
+  "not_all_mandatory_at_once": [
+    "MySQL은 PostgreSQL 기초를 반복하지 않고 차이를 비교한다.",
+    "vLLM은 하드웨어 확인 뒤 선택 실습이다.",
+    "Kafka Streams·분산 락·고급 JVM 튜닝은 기초의 선수 경험을 확인한 뒤 연다.",
+    "초기부터 Kubernetes·마이크로서비스·복잡한 프런트·다중 모델을 추가하지 않는다."
+  ],
+  "first_delivery": {
+    "lesson": "java-launch",
+    "prd": "tools/redesigned_lessons/java_launch/draft-prd.json",
+    "prototype": "tools/redesigned_lessons/java_launch/prototype.json",
+    "verification": "python3 tools/verify-java-launch-prototype.py",
+    "formal_content_status": "not_produced_or_published"
+  },
+  "delivery_gate": [
+    "PRD와 대표 문제를 구체적으로 검토한다.",
+    "새 개념·선수 경험·상태 변화·관찰 근거를 스텝별로 검사한다.",
+    "정답·오답·반례와 실제 해설 실행을 확인한다.",
+    "앱에서 상태 보존·초기화·진도를 확인한 뒤 기존 과정에 한 수업씩 반영한다."
+  ],
+  "sources": [
+    {
+      "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html",
+      "checked_at": "2026-10-20",
+      "use": "실행 모드, 인수와 JVM 옵션의 경계"
+    },
+    {
+      "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/javac.html",
+      "checked_at": "2026-10-20",
+      "use": "컴파일과 class 산출물"
+    },
+    {
+      "url": "https://docs.gradle.org/current/userguide/gradle_wrapper.html",
+      "checked_at": "2026-10-20",
+      "use": "Wrapper로 실행 환경을 고정"
+    },
+    {
+      "url": "https://docs.gradle.org/current/userguide/application_plugin.html",
+      "checked_at": "2026-10-20",
+      "use": "run·build·배포 작업의 구분"
+    },
+    {
+      "url": "https://docs.spring.io/spring-framework/reference/core/beans/dependencies/factory-collaborators.html",
+      "checked_at": "2026-10-20",
+      "use": "생성자 의존성 주입"
+    },
+    {
+      "url": "https://www.sqlite.org/inmemorydb.html",
+      "checked_at": "2026-10-20",
+      "use": "메모리 DB의 생명주기"
+    },
+    {
+      "url": "https://pglite.dev/docs/",
+      "checked_at": "2026-10-20",
+      "use": "PostgreSQL 인메모리 학습 후보와 단일 연결의 한계"
+    },
+    {
+      "url": "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+      "checked_at": "2026-10-20",
+      "use": "SQL 트랜잭션과 롤백"
+    },
+    {
+      "url": "https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/",
+      "checked_at": "2026-10-20",
+      "use": "이미지·컨테이너·실행 프로세스"
+    },
+    {
+      "url": "https://docs.spring.io/spring-data/jpa/reference/jpa/transactions.html",
+      "checked_at": "2026-10-20",
+      "use": "저장소·서비스 트랜잭션 경계"
+    },
+    {
+      "url": "https://docs.spring.io/spring-security/reference/features/authentication/password-storage.html",
+      "checked_at": "2026-10-20",
+      "use": "적응형 단방향 비밀번호 검증"
+    },
+    {
+      "url": "https://docs.oracle.com/en/java/javase/25/core/virtual-threads.html",
+      "checked_at": "2026-10-20",
+      "use": "가상 스레드와 동시성의 구분"
+    },
+    {
+      "url": "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "checked_at": "2026-10-20",
+      "use": "소유자·기한·장애·펜싱의 한계"
+    },
+    {
+      "url": "https://docs.spring.io/spring-framework/reference/data-access/transaction/event.html",
+      "checked_at": "2026-10-20",
+      "use": "트랜잭션에 연결한 이벤트"
+    },
+    {
+      "url": "https://kafka.apache.org/documentation/streams/",
+      "checked_at": "2026-10-20",
+      "use": "Kafka Streams 진입 자료; 실제 제작 때 릴리스별 문서 고정"
+    },
+    {
+      "url": "https://docs.spring.io/spring-framework/reference/web/websocket/stomp.html",
+      "checked_at": "2026-10-20",
+      "use": "WebSocket 위의 STOMP 규약"
+    },
+    {
+      "url": "https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-ann-async.html",
+      "checked_at": "2026-10-20",
+      "use": "SSE·비동기 응답"
+    },
+    {
+      "url": "https://docs.spring.io/spring-ai/reference/api/chatclient.html",
+      "checked_at": "2026-10-20",
+      "use": "AI 클라이언트 추상화"
+    },
+    {
+      "url": "https://docs.spring.io/spring-ai/reference/api/chat/ollama-chat.html",
+      "checked_at": "2026-10-20",
+      "use": "Ollama 연동"
+    },
+    {
+      "url": "https://docs.ollama.com/faq",
+      "checked_at": "2026-10-20",
+      "use": "운영체제별 설정과 GPU 배치 확인"
+    },
+    {
+      "url": "https://docs.vllm.ai/en/latest/getting_started/installation/",
+      "checked_at": "2026-10-20",
+      "use": "하드웨어와 외부 플러그인 경로를 제작 시 확인"
+    }
+  ]
+}

@@ -34,7 +34,7 @@ fn main() {
                 })
                 .with_window(
                     dioxus::desktop::WindowBuilder::new()
-                        .with_title("몰입 퀘스트 3")
+                        .with_title("MQ")
                         .with_window_icon(window_icon()),
                 ),
         )
@@ -134,6 +134,7 @@ fn App() -> Element {
                 .expect("mermaid"),
             include_str!("../assets/comics/comics.js")
         ));
+        document::eval(include_str!("../assets/speech/pronunciation.js"));
         // The neural voice first, then the readers that use it; the chosen voice comes from the
         // assistant settings so 읽어주기 speaks with it before the AI panel is ever opened.
         document::eval(&format!(
@@ -380,12 +381,12 @@ fn UpdateGate() -> Element {
     let settings=rsx! {details {class:"app-update-settings",summary {"설정"}
         div {class:"app-update-menu",
             p {"{status}"}
-            button {onclick:move |_|{let mut request=request;request+=1;},"업데이트 확인"}
+            button {disabled:!updater::enabled(),title:if updater::enabled(){"앱 새 버전 확인"}else{"개발 빌드에서는 자동 업데이트를 지원하지 않아요."},onclick:move |_|{let mut request=request;request+=1;},"업데이트 확인"}
             button {disabled:release().is_none(),onclick:move |_|install.call(()),"새 버전 설치"}
         }
     }};
     let Some(found) = release() else {
-        return rsx! {{settings}button {class:"app-update-icon",aria_label:"앱 업데이트 확인",title:status(),onclick:move |_|{let mut request=request;request+=1;},"↻"}};
+        return rsx! {{settings}button {class:"app-update-icon",disabled:!updater::enabled(),aria_label:if updater::enabled(){"앱 업데이트 확인"}else{"앱 업데이트 확인 · 개발 빌드에서는 사용할 수 없어요"},title:status(),onclick:move |_|{let mut request=request;request+=1;},"↻"}};
     };
     let title = found.title.clone();
     let content=match phase() {
@@ -472,7 +473,7 @@ fn Workspace() -> Element {
         }
         Ok(course) => {
             rsx! { div { class: match view() { View::Home => "shell", View::Learning | View::Practice => "shell practice-shell", View::Gallery(_) | View::Avatars => "shell practice-shell gallery-shell" },
-                aside { class:"sidebar", div {class:"brand", "몰입 퀘스트 3"} h3 {"{course.title}"} p {{format!("{}챕터 · {}단원", course.chapters.len(), course.total_units())}}
+                aside { class:"sidebar", div {class:"brand", "MQ"} h3 {"{course.title}"} p {{format!("{}챕터 · {}단원", course.chapters.len(), course.total_units())}}
                     button { onclick:move |_| { document::eval("window.molipAgent?.stop()"); active_course.set(Course::parse(molip_quest::DEFAULT_COURSE)); view.set(View::Home); }, "자바 기초 · JDK 25" }
                     button { onclick:move |_| { document::eval("window.molipAgent?.stop()"); active_course.set(Course::parse(include_str!("../courses/kpc-finance.json"))); view.set(View::Home); }, "기존 샘플 · 금융 데이터 분석" }
                     p {class:"build-number", {let build = molip_quest::updater::current_build(); if build > 0 {format!("빌드 {build} · 새 버전은 선택해서 설치해요")} else {"개발 빌드".to_string()}}}

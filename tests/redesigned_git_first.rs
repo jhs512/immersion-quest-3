@@ -8,35 +8,69 @@ async fn six_first_git_steps_grade_real_work_and_replay_teacher_commands_without
     let lesson=Lesson::parse(&raw,&course.lessons[0]).unwrap();
     lesson.validate().unwrap();
     assert_eq!(lesson.tasks.len(),6);
-    let solutions:Vec<Vec<Vec<&str>>>=vec![
-        vec![vec!["status"]],vec![vec!["add","--","memo.txt"]],vec![vec!["commit","-m","my first record"]],
-        vec![],vec![],vec![vec!["add","memo.txt"],vec!["commit","-m","my updated record"]],
+    let root=tempfile::tempdir().unwrap();
+    let store=molip_quest::git_practice::GitPracticeStore::new(root.path()).unwrap();
+    let solutions=vec![
+        vec![vec!["init"],vec!["echo","첫 메모"],vec!["status"]],
+        vec![vec!["add","memo.txt"]],
+        vec![vec!["commit","-m","첫 기록"]],
+        vec![vec!["echo","둘째 메모"]],
+        vec![vec!["add","memo.txt"],vec!["echo","셋째 메모"]],
+        vec![vec!["add","memo.txt"],vec!["commit","-m","메모 갱신"]],
     ];
+    let mut previous_root=None;
+    let mut previous_file=None;
     for (index,task) in lesson.tasks.iter().enumerate() {
         let exercise=task.git_terminal.clone().unwrap();
-        let mut student=GitPractice::new(exercise.clone()).unwrap();
-        for _ in 0..2 {
-            let before=student.git(&["status","--porcelain"]).unwrap().stdout;
-            if task.interaction.is_none() {assert!(!student.check_exercise().unwrap().passed,"step {} starts unsolved",index+1);}
-            let teacher=GitPractice::new(exercise.clone()).unwrap();
-            for action in &task.narration {
-                if action["action"]=="git_command" {
-                    let args:Vec<&str>=action["args"].as_array().unwrap().iter().map(|s|s.as_str().unwrap()).collect();
-                    let result=teacher.git(&args).unwrap();assert!(result.success,"step {}: {:?}: {}",index+1,args,result.stderr);
-                }
-            }
-            if let Some(interaction)=&task.interaction {
-                assert!(!interaction.check("").unwrap().passed);
-                assert!(molip_quest::lesson_runner::check(task,&task.solution).await.unwrap().passed);
-                if index==3 {assert_eq!(teacher.git(&["show","HEAD:memo.txt"]).unwrap().stdout,"첫 메모\n");}
-                if index==4 {assert_eq!(teacher.git(&["show","HEAD:memo.txt"]).unwrap().stdout,"둘째 메모\n");}
-            } else {assert!(teacher.check_exercise().unwrap().passed,"teacher did not demonstrate step {}",index+1);}
-            assert_eq!(student.git(&["status","--porcelain"]).unwrap().stdout,before,"teacher changed student state");
-            for args in &solutions[index] {assert!(student.git(args).unwrap().success);}
-            if task.interaction.is_none() {assert!(student.check_exercise().unwrap().passed,"student step {}",index+1);}
-            std::fs::write(student.work().join("leftover.txt"),"remove on reset").unwrap();
-            student.reset().unwrap();
-            assert!(!student.work().join("leftover.txt").exists());
+        assert_eq!(exercise.workspace_group,"first-git-repository");
+        let scope=exercise.workspace_scope(&exercise.workspace_group);
+        let student=store.open(&scope,exercise.clone()).unwrap();
+        if let Some(path)=&previous_root {assert_eq!(student.root(),path);}
+        assert_eq!(std::fs::read_to_string(student.work().join("memo.txt")).ok(),previous_file,"navigation must not change files");
+        if index==0 {assert!(!student.work().join(".git").exists());}
+        else {assert!(student.work().join(".git").exists());}
+        let before=student.git(&["status","--porcelain"]).unwrap().stdout;
+        if index>0 {
+            assert!(!task.goal.contains("`git init`\n"));
+            assert!(!task.narration.iter().any(|a|a["action"]=="git_command"&&a["args"][0]=="init"),"only step one demonstrates init");
         }
+        if index==1 {
+            let commands:Vec<&serde_json::Value>=task.narration.iter().filter(|a|a["action"]=="git_command").map(|a|&a["args"]).collect();
+            assert_eq!(commands,vec![&serde_json::json!(["status"]),&serde_json::json!(["add","memo.txt"]),&serde_json::json!(["status"])]);
+        }
+        let teacher=GitPractice::new(exercise.demonstration()).unwrap();
+        assert_eq!(std::fs::read_to_string(teacher.work().join("memo.txt")).ok(),previous_file,"demo must start where the previous student step ended");
+        for args in [vec!["show",":memo.txt"],vec!["show","HEAD:memo.txt"],vec!["rev-list","--count","HEAD"]] {
+            let actual=teacher.git(&args).unwrap();let expected=student.git(&args).unwrap();
+            assert_eq!((actual.success,actual.stdout),(expected.success,expected.stdout),"demo starting state: {args:?}");
+        }
+        for action in &task.narration {
+            if action["action"]=="write_memo" {run(&teacher,&["echo",action["content"].as_str().unwrap()]);}
+            else if action["action"]=="git_command" {
+                let args:Vec<&str>=action["args"].as_array().unwrap().iter().map(|s|s.as_str().unwrap()).collect();
+                if index==1 && args==["status"] {
+                    let output=teacher.git(&args).unwrap();
+                    let staged=teacher.git(&["show",":memo.txt"]).unwrap().success;
+                    assert!(output.stdout.contains(if staged{"Changes to be committed"}else{"Untracked files"}));
+                }else{run(&teacher,&args);}
+            }
+        }
+        if task.interaction.is_none() {assert!(teacher.check_exercise().unwrap().passed,"teacher step {}",index+1);}
+        assert_eq!(student.git(&["status","--porcelain"]).unwrap().stdout,before,"teacher changed student state");
+        for args in &solutions[index] {run(&student,args);}
+        if task.interaction.is_none() {assert!(student.check_exercise().unwrap().passed,"student step {}",index+1);}
+        else {assert!(molip_quest::lesson_runner::check(task,&task.solution).await.unwrap().passed);}
+        previous_root=Some(student.root().to_path_buf());
+        previous_file=std::fs::read_to_string(student.work().join("memo.txt")).ok();
+        if index==5 {assert_eq!(student.git(&["rev-list","--count","HEAD"]).unwrap().stdout.trim(),"2");}
     }
+}
+
+fn run(practice:&GitPractice,args:&[&str]) {
+    if args[0]=="echo" {
+        #[cfg(windows)] let bash=molip_quest::setup_terminal::git_bash_executable().unwrap();
+        #[cfg(not(windows))] let bash=std::path::PathBuf::from("/bin/bash");
+        let output=std::process::Command::new(bash).args(["--noprofile","--norc","-c",&format!("echo \"{}\" > memo.txt",args[1])]).current_dir(practice.work()).envs(practice.environment()).output().unwrap();
+        assert!(output.status.success(),"{}",String::from_utf8_lossy(&output.stderr));
+    }else{assert!(practice.git(args).unwrap().success,"{args:?}");}
 }

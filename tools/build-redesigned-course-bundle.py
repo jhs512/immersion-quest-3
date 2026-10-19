@@ -14,7 +14,7 @@ from lesson_registry import load_registry
 ROOT = Path(__file__).resolve().parents[1]
 NAMES = {'java': 'java-backend', 'aice': 'aice-associate', 'engineer': 'engineer-practical'}
 DESCRIPTIONS = {
-    'java': 'Git과 자바의 원리를 작은 문제로 익혀요. 앱 구조와 테스트를 배우고 React·Tailwind를 가볍게 다뤄요.',
+    'java': 'Bash로 파일을 다루고 Git과 자바의 원리를 작은 문제로 익혀요. 앱 구조와 테스트를 배우고 React·Tailwind를 가볍게 다뤄요.',
     'aice': 'Python·표 분석에서 모델 평가까지 실제로 풀어요. scikit-learn·TensorFlow로 에이스 실기를 준비해요.',
     'engineer': '코드·SQL·설계·보안을 짧은 문제로 익혀요. 공식 실기 12개 영역을 원리와 필답 연습으로 연결해요.',
 }

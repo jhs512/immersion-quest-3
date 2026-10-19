@@ -4,11 +4,11 @@
 
 [Setup]
 AppId={{D15DD94A-92BF-425A-B598-3DF23A159B03}
-AppName=몰입 퀘스트 3
+AppName=MQ
 AppVersion={#AppVersion}
-AppPublisher=몰입 퀘스트 3
+AppPublisher=MQ
 DefaultDirName={localappdata}\Programs\MolipQuest3
-DefaultGroupName=몰입 퀘스트 3
+DefaultGroupName=MQ
 PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
@@ -27,8 +27,8 @@ Source: "..\..\README.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\requirements-learning.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\몰입 퀘스트 3"; Filename: "{app}\molip-quest.exe"
-Name: "{group}\몰입 퀘스트 3 제거"; Filename: "{uninstallexe}"
+Name: "{group}\MQ"; Filename: "{app}\molip-quest.exe"
+Name: "{group}\MQ 제거"; Filename: "{uninstallexe}"
 
 [Run]
-Filename: "{app}\molip-quest.exe"; Description: "몰입 퀘스트 3 실행"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\molip-quest.exe"; Description: "MQ 실행"; Flags: nowait postinstall skipifsilent

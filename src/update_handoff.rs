@@ -105,7 +105,8 @@ backup="$work/previous.app"
 stage="$work/new.app"
 hdiutil attach "$installer" -mountpoint "$mount" -nobrowse -readonly >/dev/null
 printf '%s\n' 'Update image mounted; verifying the app bundle.'
-source="$mount/몰입 퀘스트 3.app"
+source="$mount/MQ.app"
+if [ ! -d "$source" ]; then source="$mount/몰입 퀘스트 3.app"; fi
 test -x "$source/Contents/MacOS/molip-quest"
 test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$source/Contents/Info.plist")" = dev.molipquest.mq3
 codesign --verify --deep --strict "$source"
