@@ -3,7 +3,7 @@ use dioxus::prelude::*;
 use molip_quest::{pilot_source, repository_course::{CourseManifest, Lesson}};
 
 #[component]
-pub fn PilotPlayer() -> Element {
+pub fn PilotPlayer(window_controls: Element) -> Element {
     let mut generation = use_signal(|| 0u64);
     let mut notice = use_signal(String::new);
     let mut setup_preview = use_signal(|| false);
@@ -87,6 +87,6 @@ pub fn PilotPlayer() -> Element {
             button {onclick:move |_|setup_preview.set(true),"gh 준비 검증"}
             p { role: "status", "{notice}" }
         }
-        {rsx! { crate::player_ui::RepositoryPlayer { key: "pilot-{generation}" } }}
+        {rsx! { crate::player_ui::RepositoryPlayer { key: "pilot-{generation}",window_controls:window_controls.clone() } }}
     }
 }

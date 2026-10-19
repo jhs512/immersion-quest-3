@@ -8,7 +8,7 @@ struct Session { github:Github,user:GithubUser }
 struct OpenLesson { course:CourseManifest,lesson:Lesson,events:Vec<LearningEvent>,mode:StudyMode,round:String,issue_url:Option<String> }
 
 #[component]
-pub fn RepositoryPlayer()->Element {
+pub fn RepositoryPlayer(window_controls:Element)->Element {
     let mut session=use_signal(||None::<Session>);
     let mut course=use_signal(||None::<CourseManifest>);
     let mut open=use_signal(||None::<OpenLesson>);
@@ -53,14 +53,16 @@ pub fn RepositoryPlayer()->Element {
     if let Some(selected)=open() {
         if let Some(session)=session() {
             let player_key=format!("{}:{}:{}:{}",session.user.id,selected.lesson.id,selected.mode.label(),selected.round);
-            return rsx!{div {class:"repository-session", {updates} {rsx!{LessonPlayer {key:"{player_key}",session,selected,onback:move |_|{document::eval("window.molipAgent?.stop()");open.set(None);refresh+=1;}}}} }};
+            return rsx!{div {class:"repository-session", {rsx!{LessonPlayer {key:"{player_key}",session,selected,window_controls,updates,onback:move |_|{document::eval("window.molipAgent?.stop()");open.set(None);refresh+=1;}}}} }};
         }
     }
     rsx!{
-        {updates}
         div {class:if session().is_none(){"repository-player needs-gh"}else{"repository-player"},
             header {class:"repository-header",h1 {"몰입 퀘스트 3"}
-                if let Some(s)=session() {div {class:"repository-account",span {"gh · @{s.user.login}"}button {disabled:busy(),onclick:move |_|connect(),"gh 계정 다시 확인"}}}
+                div {class:"repository-tools",
+                    if let Some(s)=session() {div {class:"repository-account",span {"gh · @{s.user.login}"}button {disabled:busy(),onclick:move |_|connect(),"gh 계정 다시 확인"}}}
+                    {updates}{window_controls}
+                }
             }
             if session().is_none() {
                 crate::gh_setup_ui::GhSetup {message:message(),checking:!checked(),onretry:move |_|{spawn(connect());}}
@@ -201,9 +203,13 @@ fn CourseBuilder(session:Session,onselect:EventHandler<CourseManifest>)->Element
 }
 
 #[component]
-fn LessonPlayer(session:Session,selected:OpenLesson,onback:EventHandler<()>)->Element {
+fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,updates:Element,onback:EventHandler<()>)->Element {
     let mut events=use_signal(||selected.events.clone());
     let mut activity_message=use_signal(String::new);
+    let mut show_info=use_signal(||false);
+    use_effect(move ||{
+        document::eval(if show_info(){"document.getElementById('lesson-info-dialog')?.showModal()"}else{"document.getElementById('lesson-info-dialog')?.close()"});
+    });
     let already_passed=issue_progress::learned_tasks(&selected.events,&selected.lesson.revision);
     let first_unfinished=selected.lesson.tasks.iter().position(|task|!already_passed.contains(&task.id)).unwrap_or(0);
     let mut task_index=use_signal(||first_unfinished);
@@ -234,7 +240,14 @@ fn LessonPlayer(session:Session,selected:OpenLesson,onback:EventHandler<()>)->El
     }};
     rsx!{
         div {class:if is_task{"repository-study is-task"}else{"repository-study"},
-            header {class:"repository-header",button {onclick:move |_|onback.call(()),"← 코스 수업 목록"}h1 {"{selected.lesson.title}"}span {"@{session.user.login}"}}
+            header {class:"repository-header",button {class:"course-back",onclick:move |_|onback.call(()),"← 코스 수업 목록"}h1 {title:selected.lesson.title.clone(),"{selected.lesson.title}"}
+                button {class:"lesson-info-trigger",aria_label:"학습 정보",title:"진도와 학습 목표 보기",onclick:move |_|show_info.set(true),
+                    {format!("{}% · {count}/{} ⓘ",if required.is_empty(){0}else{count*100/required.len()},required.len())}
+                }
+                div {class:"repository-tools",span {class:"lesson-account","@{session.user.login}"}{updates}{window_controls}}
+            }
+            dialog {id:"lesson-info-dialog",class:"lesson-info-dialog",aria_labelledby:"lesson-info-title",onkeydown:move |event|{if event.key()==Key::Escape {show_info.set(false);}},
+                header {h2 {id:"lesson-info-title","학습 정보"}button {autofocus:true,onclick:move |_|show_info.set(false),"닫기"}}
             section {class:"study-progress",span {"필수 문제 {count} / {required.len()}"}
                 strong {{format!("{}% 완료",if required.is_empty(){0}else{count*100/required.len()})}}
                 if state.current {strong {"✓ 최신 버전 완료"}} else if state.completed {strong {"✓ 이전 완료 보존 · 추가 학습 있음"}}
@@ -242,6 +255,7 @@ fn LessonPlayer(session:Session,selected:OpenLesson,onback:EventHandler<()>)->El
                 if let Some(url)=&selected.issue_url {a {href:url.clone(),target:"_blank",rel:"noopener noreferrer","내 진도 이슈"}}
             }
             if let Some(task)=&view {crate::lesson_outline::LessonOutline {lesson:selected.lesson.clone(),task_id:task.id.clone()}}
+            }
             nav {class:"study-navigation",
                 if selected.mode==StudyMode::Full {
                     for (index,section) in selected.lesson.sections.iter().enumerate() {button {class:if section_index()==index {"selected"}else{""},onclick:{let record_view=record_view.clone();move |_|record_view(index)},"{section.title}"}}
@@ -659,15 +673,17 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,onapply:
     };
     rsx! {div {class:"content-update-controls",
         details {summary {"수업 설정"}
+            div {class:"content-update-menu",
             button {disabled:applying(),onclick:move |_|manual+=1,"수업 업데이트 확인"}
             p {role:"status","{message}"}
             if candidate().is_some() {p {"{summary}"}}
             crate::change_history_ui::ChangeHistory {repository:history_repository}
             DraftBackups {user:backup_user,course:backup_course}
-        }
         if candidate().is_some() {
             button {aria_label:"수업 업데이트 적용",disabled:applying(),onclick:apply,"↥ 수업 업데이트"}
             if offered() {aside {role:"status",span {"새 수업 내용이 있어요."}button {onclick:move |_|offered.set(false),"닫기"}}}
+        }
+            }
         }
     }}
 }

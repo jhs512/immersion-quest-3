@@ -13,5 +13,5 @@ fn plots_lesson_opens_and_edge_voice_downloads() {
     let raw=std::fs::read_to_string("target/pilot-native-result.json").unwrap();
     let result:serde_json::Value=serde_json::from_str(&raw).unwrap();
     assert!(status.success()&&result["passed"]==true,"{result}");
-    assert_eq!(result["checked"].as_array().unwrap().len(),5);
+    assert_eq!(result["checked"].as_array().unwrap().len(),6);
 }

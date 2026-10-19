@@ -18,6 +18,18 @@
    if(r.width<=0||r.height<=0||r.right>innerWidth+1||r.left<0)throw Error(`${selector}: ${JSON.stringify(r.toJSON())}`);
   }
   checked.push('aice-plots-1 renders header, code and choices within viewport');
+  if(!document.querySelector('.repository-header .app-window-controls')||!document.querySelector('.repository-header .content-update-controls'))throw Error('Settings are outside the shared row');
+  await wait(()=>document.getElementById('lesson-info-dialog'),'information dialog mounted');
+  document.querySelector('.lesson-info-trigger').click();
+  await wait(()=>document.getElementById('lesson-info-dialog').open,'learning information opens');
+  if(!document.querySelector('.lesson-info-dialog .lesson-outline')?.textContent.includes('수업 목표'))throw Error('Learning goals missing');
+  document.getElementById('lesson-info-dialog').dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+  await wait(()=>!document.getElementById('lesson-info-dialog').open,'Escape closes information');
+  document.querySelector('.lesson-info-trigger').click();
+  await wait(()=>document.getElementById('lesson-info-dialog').open,'information reopens');
+  document.querySelector('.lesson-info-dialog>header>button').click();
+  await wait(()=>!document.getElementById('lesson-info-dialog').open,'close button');
+  checked.push('single toolbar and learning information popup with Escape and close button');
   for(const nav of [...document.querySelectorAll('.study-navigation button')]){
    nav.click();await new Promise(r=>setTimeout(r,120));
    if(!document.querySelector('.problem-pane h2')?.textContent.trim())throw Error('Empty task');

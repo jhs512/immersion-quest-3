@@ -165,17 +165,14 @@ window.molipVoice && molipVoice.setName({});",
             style {{include_str!("../assets/fonts/fonts.css")}}
             style {{include_str!("../assets/app.css")}}
         }
-        div {class:"app-window-controls",
-            {fullscreen_toggle}
-            UpdateGate {}
-        }
         style {{include_str!("../assets/repository-player.css")}}
         style {{include_str!("../assets/content-updates.css")}}
         style {{include_str!("../assets/player-workspace.css")}}
         style {{include_str!("../assets/window-controls.css")}}
+        style {{include_str!("../assets/compact-toolbar.css")}}
         style {{include_str!("../assets/terminal/terminal.bundle.css")}}
-        if cfg!(debug_assertions) && std::env::var_os("MOLIP_PILOT").is_some() { pilot_ui::PilotPlayer {} }
-        else if cfg!(debug_assertions) && std::env::var_os("MOLIP_LEGACY").is_some() { Workspace {} } else { player_ui::RepositoryPlayer {} }
+        if cfg!(debug_assertions) && std::env::var_os("MOLIP_PILOT").is_some() { pilot_ui::PilotPlayer {window_controls:rsx!{div {class:"app-window-controls",{fullscreen_toggle}UpdateGate {}}}} }
+        else if cfg!(debug_assertions) && std::env::var_os("MOLIP_LEGACY").is_some() { div {class:"app-window-controls",{fullscreen_toggle}UpdateGate {}} Workspace {} } else { player_ui::RepositoryPlayer {window_controls:rsx!{div {class:"app-window-controls",{fullscreen_toggle}UpdateGate {}}}} }
     }
 }
 /// Some Windows sessions hand a new window the off-screen placeholder position (-32000, -32000)
