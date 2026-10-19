@@ -249,17 +249,17 @@
       "solution": "api",
       "tests": [],
       "required": true,
-      "example_code": "from sklearn.svm import SVC\n\n# 같은 배송 거리와 정상0·지연1을 준비해요.\nX_train = [[1], [2], [8], [9]]\ny_train = [0, 0, 1, 1]\nX_test = [[1], [9]]\n# 기본 SVC의 확률 옵션은 꺼져 있어요.\nmodel = SVC(kernel=\"linear\")\nmodel.fit(X_train, y_train)\nprint(model.predict(X_test).tolist())\nprint(model.get_params()[\"probability\"])\nprint(list(model.decision_function(X_test).shape))\n",
+      "example_code": "from sklearn.svm import SVC\n\n# 같은 배송 거리와 정상0·지연1을 준비해요.\nX_train = [[1], [2], [8], [9]]\ny_train = [0, 0, 1, 1]\nX_test = [[1], [9]]\n# 이 설정에서는 확률 API를 바로 제공하지 않아요.\nmodel = SVC(kernel=\"linear\")\nmodel.fit(X_train, y_train)\nprint(model.predict(X_test).tolist())\nprint(hasattr(model, \"predict_proba\"))\nprint(list(model.decision_function(X_test).shape))\n",
       "interaction": {
         "kind": "choice",
         "options": [
           {
             "id": "proba",
-            "text": "네.모든 분류 점수는0~1확률이에요"
+            "text": "네. 모든 분류 점수는 0~1 확률이에요"
           },
           {
             "id": "api",
-            "text": "아니요.결정 점수와 확률 지원을 구별해요"
+            "text": "아니요. 결정 점수와 확률 지원을 구별해요"
           }
         ],
         "answer": "api"
@@ -275,7 +275,7 @@
         },
         {
           "action": "say",
-          "text": "범주는 영과 일, 확률 옵션은 거짓이고 결정 점수 두 개를 줘요.",
+          "text": "범주는 영과 일이고 결정 점수 두 개를 줘요. 이 설정에는 바로 쓸 확률 API가 없어요.",
           "target": "output"
         },
         {
