@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-15, macos-15-intel]
-        group: [core, java, python, data, c, model]
+        group: [core, java, python, data, c, model, classify]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     steps:
@@ -180,8 +180,14 @@ jobs:
         if: matrix.group == 'model'
         run: cargo test --locked --test player_data_lessons_native aice_regression -- --ignored --test-threads=1
       - name: Drive classification and metric interpretation
-        if: matrix.group == 'model'
+        if: matrix.group == 'classify'
         run: cargo test --locked --test player_data_lessons_native aice_classification -- --ignored --test-threads=1
+      - name: Drive model comparison
+        if: matrix.group == 'classify'
+        run: cargo test --locked --test player_data_lessons_native aice_models -- --ignored --test-threads=1
+      - name: Drive protected cross-validation and tuning
+        if: matrix.group == 'classify'
+        run: cargo test --locked --test player_data_lessons_native aice_tuning -- --ignored --test-threads=1
       - name: Reopen actual player with saved answer and progress
         if: ${{ matrix.group == 'core' && (!cancelled() && steps.build_player.outcome == 'success') }}
         run: cargo test --locked --test player_restart_native -- --ignored --test-threads=1
@@ -221,6 +227,8 @@ jobs:
             target/pilot-aice-regression-metrics-result.json
             target/pilot-aice-classification-result.json
             target/pilot-aice-classification-metrics-result.json
+            target/pilot-aice-models-result.json
+            target/pilot-aice-tuning-result.json
             target/pilot-java-static-result.json
             target/pilot-aice-features-result.json
             target/pilot-aice-split-result.json

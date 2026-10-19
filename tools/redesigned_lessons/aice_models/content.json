@@ -1,0 +1,523 @@
+{
+  "description": "같은 배송 표에서 모델의 설정·목표·입력·평가를 비교해요.",
+  "tasks": [
+    {
+      "id": "stp_506b5b9b-6de5-4103-9815-4340d4798cc5",
+      "title": "설정한 깊이와 학습 결과를 나눠요",
+      "goal": "max_depth=1은 무엇을 뜻할까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "limit",
+      "tests": [],
+      "required": true,
+      "example_code": "from sklearn.tree import DecisionTreeClassifier\n\n# 같은 배송 거리와 정상0·지연1을 준비해요.\nX_train = [[1], [2], [8], [9]]\ny_train = [0, 0, 1, 1]\nX_test = [[1], [9]]\n# 설정은 학습 전에 고르는 분기 깊이의 상한이에요.\nmodel = DecisionTreeClassifier(max_depth=1, random_state=0)\nmodel.fit(X_train, y_train)\nprint(model.get_params()[\"max_depth\"])\nprint(model.get_depth())\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "limit",
+            "text": "학습된 나무 깊이의 상한이에요"
+          },
+          {
+            "id": "always",
+            "text": "모든 자료에서 정확히 한 번 분기한다는 약속이에요"
+          }
+        ],
+        "answer": "limit"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이번 표에서는 설정 상한도 일, 실제 깊이도 일이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 항상 그 깊이를 채우는 것이 아니라 넘지 않도록 제한해요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "limit"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_44197264-1b07-443a-b046-dd07509369ac",
+      "title": "여러 나무의 판단을 모아요",
+      "goal": "n_estimators=3으로 학습했어요.\n실제 나무는 몇 개일까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "three",
+      "tests": [],
+      "required": true,
+      "example_code": "from sklearn.ensemble import RandomForestClassifier\n\n# 같은 배송 거리와 정상0·지연1을 준비해요.\nX_train = [[1], [2], [8], [9]]\ny_train = [0, 0, 1, 1]\nX_test = [[1], [9]]\n# 작은 비교를 위해 나무 수·깊이·난수·실행 수를 명시해요.\nmodel = RandomForestClassifier(n_estimators=3, max_depth=1, random_state=0, n_jobs=1)\nmodel.fit(X_train, y_train)\nprint(len(model.estimators_))\nprint(model.predict(X_test).tolist())\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "three",
+            "text": "세 개예요"
+          },
+          {
+            "id": "depth",
+            "text": "깊이1이므로 한 개예요"
+          }
+        ],
+        "answer": "three"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "나무는 세 개이고 새 예측은 영과 일이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 나무를 늘린다고 모든 새 자료의 정확도가 반드시 오르지는 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "three"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_6a8cf0fb-ad90-4692-aa43-1c7b308dd3ce",
+      "title": "같은 계열도 목표가 달라요",
+      "goal": "목표가0.5분·1.5분인 연속 시간이에요.\n어떤 포레스트가 맞을까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "reg",
+      "tests": [],
+      "required": true,
+      "example_code": "from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier\n\n# 이번 목표는 종류가 아니라 연속적인 배송 시간이에요.\nX_train = [[0], [1]]\ny_train = [0.5, 1.5]\nmodel = RandomForestRegressor(n_estimators=3, bootstrap=False, random_state=0, n_jobs=1)\nmodel.fit(X_train, y_train)\nprint(model.predict(X_train).tolist())\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "reg",
+            "text": "Regressor예요"
+          },
+          {
+            "id": "cls",
+            "text": "숫자가 있으니 Classifier예요"
+          }
+        ],
+        "answer": "reg"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "회귀 모델은 연속 시간 영 점 오와 일 점 오를 예측해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "model = RandomForestRegressor(",
+          "after": "model = RandomForestClassifier(",
+          "say": "같은 연속 정답을 분류기에 넣어 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            8,
+            8
+          ],
+          "expect_error": "ValueError"
+        },
+        {
+          "action": "say",
+          "text": "연속 정답이라 이 분류기는 학습 오류가 나요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 숫자 표기인지보다 목표가 종류인지 연속 값인지 보세요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "model = RandomForestClassifier(",
+          "after": "model = RandomForestRegressor(",
+          "say": "원래 시간 회귀 모델로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "연속 시간을 예측하는 회귀 모델이에요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "reg"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_754801ed-fb91-4f97-afc2-fcc5dd7a2805",
+      "title": "거리 모델은 단위에도 영향을 받아요",
+      "goal": "같은 이웃1 모델에 훈련 기준 스케일을 더했어요.\n가까운 이웃의 판단도 달라질 수 있을까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "units",
+      "tests": [],
+      "required": true,
+      "example_code": "from sklearn.neighbors import KNeighborsClassifier\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.pipeline import make_pipeline\n\n# 두 특성의 숫자 단위가 크게 다른 작은 예예요.\nX_train = [[0, 0], [1, 1000]]\ny_train = [0, 1]\nX_test = [[0.9, 400]]\nraw = KNeighborsClassifier(n_neighbors=1)\nraw.fit(X_train, y_train)\nscaled = make_pipeline(StandardScaler(), KNeighborsClassifier(n_neighbors=1))\nscaled.fit(X_train, y_train)\nprint(raw.predict(X_test).tolist())\nprint(scaled.predict(X_test).tolist())\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "units",
+            "text": "네.특성 단위가 거리 계산에 영향을 줘요"
+          },
+          {
+            "id": "none",
+            "text": "아니요.거리 모델은 단위와 무관해요"
+          }
+        ],
+        "answer": "units"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "원래 단위에서는 영, 스케일을 맞춘 뒤에는 일이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 판단이 달라진다는 뜻이지 스케일이 항상 성능을 높인다는 보장은 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "units"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_b3c38cb6-a565-4543-8567-d21d420235c3",
+      "title": "모든 분류기가 확률을 바로 주진 않아요",
+      "goal": "기본 SVC의 decision_function이 점수를 줘요.\n그 점수를 곧바로 확률로 볼까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "api",
+      "tests": [],
+      "required": true,
+      "example_code": "from sklearn.svm import SVC\n\n# 같은 배송 거리와 정상0·지연1을 준비해요.\nX_train = [[1], [2], [8], [9]]\ny_train = [0, 0, 1, 1]\nX_test = [[1], [9]]\n# 기본 SVC의 확률 옵션은 꺼져 있어요.\nmodel = SVC(kernel=\"linear\")\nmodel.fit(X_train, y_train)\nprint(model.predict(X_test).tolist())\nprint(model.get_params()[\"probability\"])\nprint(list(model.decision_function(X_test).shape))\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "api",
+            "text": "아니요.결정 점수와 확률 지원을 구별해요"
+          },
+          {
+            "id": "proba",
+            "text": "네.모든 분류 점수는0~1확률이에요"
+          }
+        ],
+        "answer": "api"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "범주는 영과 일, 확률 옵션은 거짓이고 결정 점수 두 개를 줘요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 모든 분류기가 같은 확률 API를 기본 제공하진 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "api"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_c781837e-9f25-4818-a8b6-be70e93f7cc6",
+      "title": "훈련을 외운 모델도 확인해요",
+      "goal": "훈련 정확도1, 같은 모델의 새 자료 정확도0.5예요.\n훈련 점수만으로 최고 모델이라 할까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "valid",
+      "tests": [],
+      "required": true,
+      "example_code": "from sklearn.tree import DecisionTreeClassifier\n\n# 학습 표에 번갈아 나온 작은 변동까지 분기할 수 있어요.\nX_train = [[0], [1], [2], [3]]\ny_train = [0, 1, 0, 1]\nX_valid = [[0.2], [0.8], [2.2], [2.8]]\ny_valid = [0, 0, 0, 0]\nmodel = DecisionTreeClassifier(random_state=0)\nmodel.fit(X_train, y_train)\nprint(float(model.score(X_train, y_train)))\nprint(float(model.score(X_valid, y_valid)))\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "valid",
+            "text": "아니요.같은 평가 자료에서 후보를 비교해야 해요"
+          },
+          {
+            "id": "train",
+            "text": "네.훈련1이면 실제 성능도 완벽해요"
+          }
+        ],
+        "answer": "valid"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "훈련은 전부 맞아도 새 평가에서는 절반만 맞았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 외운 표의 점수와 새 자료의 점수는 달라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "valid"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_ba77c57b-72f9-45b2-a941-33a009a25bd7",
+      "title": "중요도는 원인 증명이 아니에요",
+      "goal": "학습한 특성 중요도가 두 열에 나뉘었어요.\n큰 중요도만으로 현실의 원인이라고 할까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "notcause",
+      "tests": [],
+      "required": true,
+      "example_code": "from sklearn.ensemble import RandomForestClassifier\n\n# 같은 배송 거리와 정상0·지연1을 준비해요.\nX_train = [[1, 1], [2, 2], [8, 8], [9, 9]]\ny_train = [0, 0, 1, 1]\nX_test = [[1, 1], [9, 9]]\n# 작은 비교를 위해 나무 수·깊이·난수·실행 수를 명시해요.\nmodel = RandomForestClassifier(n_estimators=3, max_depth=1, random_state=0, n_jobs=1)\nmodel.fit(X_train, y_train)\n# 두 열이 같은 정보를 복제한 상황이에요.\nprint(len(model.feature_importances_))\nprint(round(float(model.feature_importances_.sum()), 6))\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "notcause",
+            "text": "아니요.학습 내부 중요도와 인과 증명은 달라요"
+          },
+          {
+            "id": "cause",
+            "text": "네.중요도가 크면 반드시 현실의 원인이에요"
+          }
+        ],
+        "answer": "notcause"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "두 열에 대한 중요도이며 합은 일이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 복제·상관된 정보가 나뉠 수 있고 중요도 자체는 원인 증명이 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "notcause"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_0964bcb0-dfcd-4882-835c-f6500bdc1b37",
+      "title": "요청한 나무 수를 설정해요",
+      "goal": "tree_count만큼 나무를 학습해야 해요.\nn_estimators 인수 한 곳을 고치세요.",
+      "language": "python",
+      "starter_code": "from sklearn.ensemble import RandomForestClassifier\n\n# 같은 배송 거리와 정상0·지연1을 준비해요.\nX_train = [[1], [2], [8], [9]]\ny_train = [0, 0, 1, 1]\nX_test = [[1], [9]]\n# 작은 비교를 위해 나무 수·깊이·난수·실행 수를 명시해요.\ntree_count = 3\nmodel = RandomForestClassifier(n_estimators=1, max_depth=1, random_state=0, n_jobs=1)\nmodel.fit(X_train, y_train)\n# 실제 학습된 나무 수와 새 예측을 함께 확인하세요.\nprint(len(model.estimators_))\nprint(model.predict(X_test).tolist())\n",
+      "solution": "from sklearn.ensemble import RandomForestClassifier\n\n# 같은 배송 거리와 정상0·지연1을 준비해요.\nX_train = [[1], [2], [8], [9]]\ny_train = [0, 0, 1, 1]\nX_test = [[1], [9]]\n# 작은 비교를 위해 나무 수·깊이·난수·실행 수를 명시해요.\ntree_count = 3\nmodel = RandomForestClassifier(n_estimators=tree_count, max_depth=1, random_state=0, n_jobs=1)\nmodel.fit(X_train, y_train)\n# 실제 학습된 나무 수와 새 예측을 함께 확인하세요.\nprint(len(model.estimators_))\nprint(model.predict(X_test).tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "3\n[0, 1]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "요청은 세 개지만 실제 나무는 한 개예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "n_estimators=1,",
+          "after": "n_estimators=tree_count,",
+          "say": "요청한 나무 수를 인수에 연결해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "실제 나무 세 개와 새 배송 예측을 확인했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 출력 숫자만 바꾸지 말고 실제 모델 설정을 맞춰요.",
+          "target": "output"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "설정과 학습 결과를 구별하고 트리·포레스트를 읽어요.",
+      "목표 종류·입력 단위·모델 API에 맞는 후보를 판단해요.",
+      "훈련 점수와 중요도를 성능·인과의 보장으로 오해하지 않아요."
+    ],
+    "chapters": {
+      "chp_a8a3afba-dd35-487a-9aa2-66392d432046": [
+        "설정·목표·단위의 차이를 구별해요."
+      ],
+      "chp_91614135-68c9-48ab-a67d-599b6696885c": [
+        "API·평가·중요도의 의미를 판단해요."
+      ]
+    },
+    "units": {
+      "unt_188f801d-d95f-4d47-9a18-e5045bfb5730": {
+        "objectives": [
+          "코드가 선택한 모델과 목표를 맞춰요."
+        ],
+        "premise": "같은 배송 표에 여러 후보 모델을 써요. 먼저 설정과 학습 결과를 나누고 목표·단위가 맞는지 확인해요."
+      },
+      "unt_db6e94e0-781f-4b15-b73b-4f362fdf9ae6": {
+        "objectives": [
+          "그럴듯한 이름·점수보다 실제 동작을 확인해요."
+        ],
+        "premise": "같은 배송 모델의 확률 지원과 새 자료 성능을 확인해요. 마지막에는 요청받은 나무 수를 설정해요."
+      }
+    }
+  },
+  "prepared_cases": {
+    "stp_0964bcb0-dfcd-4882-835c-f6500bdc1b37": [
+      {
+        "values": {
+          "tree_count": 1,
+          "X_test": [
+            [
+              9
+            ],
+            [
+              1
+            ]
+          ]
+        },
+        "expected": "1\n[1, 0]"
+      },
+      {
+        "values": {
+          "tree_count": 5,
+          "X_test": [
+            [
+              1
+            ],
+            [
+              9
+            ],
+            [
+              8
+            ]
+          ]
+        },
+        "expected": "5\n[0, 1, 1]"
+      },
+      {
+        "values": {
+          "tree_count": 7,
+          "X_test": [
+            [
+              9
+            ]
+          ]
+        },
+        "expected": "7\n[1]"
+      }
+    ]
+  }
+}

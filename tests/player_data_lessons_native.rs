@@ -101,3 +101,11 @@ fn aice_classification_restore_student_state() {verify("aice-classification",8)}
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
 fn aice_classification_metrics_restore_student_state() {verify("aice-classification-metrics",10)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn aice_models_restore_student_state() {verify("aice-models",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn aice_tuning_restore_student_state() {verify("aice-tuning",8)}
