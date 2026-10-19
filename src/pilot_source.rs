@@ -44,7 +44,7 @@ fn store() -> Result<&'static Mutex<Store>,String> {
 fn user() -> Value { json!({"id":987654321,"login":"mq3-validation"}) }
 
 pub fn set_version(version: char) -> Result<(), String> {
-    if !matches!(version,'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h'|'i'|'j'|'k'|'l'|'m'|'n'|'o'|'p'|'q'|'r'|'s'|'t'|'u'|'v'|'w'|'x'|'y'|'z'|'1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'가'|'나'|'0') { return Err("검증 버전을 확인하세요.".into()); }
+    if !matches!(version,'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h'|'i'|'j'|'k'|'l'|'m'|'n'|'o'|'p'|'q'|'r'|'s'|'t'|'u'|'v'|'w'|'x'|'y'|'z'|'1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'가'|'나'|'다'|'0') { return Err("검증 버전을 확인하세요.".into()); }
     let mut state=store()?.lock().map_err(|_|"검증 저장소 잠금 오류")?;
     commit(&mut state,|next|{next.version=version;next.corrupted=false;Ok(())})
 }
@@ -54,6 +54,8 @@ pub fn corrupt_update()->Result<(),String> {
 }
 fn snapshot(version: char, file: &str) -> Result<&'static str, String> {
     match (version, file) {
+        ('다', "course.json") => Ok(include_str!("../tests/fixtures/player-pilot/다/course.json")),
+        ('다', "lesson.json") => Ok(include_str!("../courses/redesigned/aice-regression-metrics.json")),
         ('나', "course.json") => Ok(include_str!("../tests/fixtures/player-pilot/나/course.json")),
         ('나', "lesson.json") => Ok(include_str!("../courses/redesigned/aice-regression.json")),
         ('가', "course.json") => Ok(include_str!("../tests/fixtures/player-pilot/가/course.json")),
@@ -154,7 +156,7 @@ pub fn request(args: &[&str], payload: Option<Value>) -> Result<Value, String> {
         let prefix = format!("repos/{repository}/contents/{file}?ref=");
         if method == "GET" { if let Some(revision) = route.strip_prefix(&prefix) {
             let version = if file == "course.json" && revision == "main" { state.version } else {
-                match revision { "pilot-a" => 'a', "pilot-b" => 'b', "pilot-c" => 'c', "pilot-d" => 'd', "pilot-e" => 'e', "pilot-f" => 'f', "pilot-g" => 'g', "pilot-h" => 'h', "pilot-i" => 'i', "pilot-j" => 'j', "git-first-1" => 'k', "git-branch-1" => 'l', "pilot-m" => 'm', "java-values-1" => 'n', "aice-python-start-1" => 'o', "aice-python-conditions-1" => 'p', "aice-table-csv-1" => 'q', "engineer-c-start-1" => 'r', "aice-python-api-1" => 's', "java-conditions-1" => 't', "engineer-c-conditions-1" => 'u', "aice-selection-1" => 'v', "java-arrays-1" => 'w', "engineer-c-arrays-1" => 'x', "aice-quality-1" => 'y', "engineer-c-functions-1" => 'z', "engineer-c-pointers-1" => '1', "aice-plots-1" => '2', "java-references-1" => '3', "engineer-c-double-pointers-1" => '4', "engineer-c-structures-1" => '5', "java-static-1" => '6', "aice-features-1" => '7', "aice-split-1" => '8', "aice-leakage-1" => '9', "aice-scale-1" => '가', "aice-regression-1" => '나', "java-methods-1" => '0', _ => return Err("검증 콘텐츠 버전 오류".into()) }
+                match revision { "pilot-a" => 'a', "pilot-b" => 'b', "pilot-c" => 'c', "pilot-d" => 'd', "pilot-e" => 'e', "pilot-f" => 'f', "pilot-g" => 'g', "pilot-h" => 'h', "pilot-i" => 'i', "pilot-j" => 'j', "git-first-1" => 'k', "git-branch-1" => 'l', "pilot-m" => 'm', "java-values-1" => 'n', "aice-python-start-1" => 'o', "aice-python-conditions-1" => 'p', "aice-table-csv-1" => 'q', "engineer-c-start-1" => 'r', "aice-python-api-1" => 's', "java-conditions-1" => 't', "engineer-c-conditions-1" => 'u', "aice-selection-1" => 'v', "java-arrays-1" => 'w', "engineer-c-arrays-1" => 'x', "aice-quality-1" => 'y', "engineer-c-functions-1" => 'z', "engineer-c-pointers-1" => '1', "aice-plots-1" => '2', "java-references-1" => '3', "engineer-c-double-pointers-1" => '4', "engineer-c-structures-1" => '5', "java-static-1" => '6', "aice-features-1" => '7', "aice-split-1" => '8', "aice-leakage-1" => '9', "aice-scale-1" => '가', "aice-regression-1" => '나', "aice-regression-metrics-1" => '다', "java-methods-1" => '0', _ => return Err("검증 콘텐츠 버전 오류".into()) }
             };
             let raw = snapshot(version,file)?;
             let damaged=if state.corrupted && file=="lesson.json" {format!("{raw} ")}else{raw.to_owned()};

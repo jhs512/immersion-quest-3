@@ -131,6 +131,11 @@ pub fn PilotPlayer() -> Element {
             let tasks=&lesson["tasks"];
             let config=serde_json::json!({"label":"AICERegression","version":"\ub098","revision":"aice-regression-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
             format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("aice-regression-metrics") {
+            let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/aice-regression-metrics.json")).expect("compiled lesson");
+            let tasks=&lesson["tasks"];
+            let config=serde_json::json!({"label":"AICERegressionMetrics","version":"\ub2e4","revision":"aice-regression-metrics-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
+            format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("java-methods") {
             let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/java-methods.json")).expect("compiled lesson");
             let tasks=&lesson["tasks"];
@@ -173,7 +178,7 @@ pub fn PilotPlayer() -> Element {
     rsx! {
         aside { class: "pilot-toolbar", aria_label: "개발 검증 도구",
             span { "개발 검증 전용 · 외부 계정 기록 없음" }
-            for version in ['a', 'b', 'c', 'd', 'e', 'f', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '가', '나', '0'] {
+            for version in ['a', 'b', 'c', 'd', 'e', 'f', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '가', '나', '다', '0'] {
                 button { onclick: move |_| {
                     match pilot_source::set_version(version) {
                         Ok(()) => {
