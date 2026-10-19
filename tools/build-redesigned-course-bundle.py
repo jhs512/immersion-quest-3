@@ -12,6 +12,11 @@ from lesson_prd import content_hash, validate
 
 ROOT = Path(__file__).resolve().parents[1]
 NAMES = {'java': 'java-backend', 'aice': 'aice-associate', 'engineer': 'engineer-practical'}
+DESCRIPTIONS = {
+    'java': 'Git과 자바의 원리를 작은 문제로 익혀요. 앱 구조와 테스트를 배우고 React·Tailwind를 가볍게 다뤄요.',
+    'aice': 'Python·표 분석에서 모델 평가까지 실제로 풀어요. scikit-learn·TensorFlow로 에이스 실기를 준비해요.',
+    'engineer': '코드·SQL·설계·보안을 짧은 문제로 익혀요. 공식 실기 12개 영역을 원리와 필답 연습으로 연결해요.',
+}
 
 
 def encoded(value):
@@ -30,6 +35,7 @@ def write(path, raw, check):
 
 def build(check=False):
     catalog = json.loads((ROOT / 'tools/redesigned_courses/catalog.json').read_text(encoding='utf-8'))
+    release = json.loads((ROOT / 'tools/redesigned_courses/release.json').read_text(encoding='utf-8'))
     all_lessons = set()
     for course in catalog['courses']:
         key = course['key']
@@ -57,9 +63,9 @@ def build(check=False):
                 lesson_sha256=digest, chapters=len(lesson['chapters']),
                 units=sum(len(c['units']) for c in lesson['chapters']), steps=len(lesson['tasks'])))
         manifest = dict(schema_version=2, id=course['id'], title=course['title'],
-            description=' '.join(course['objectives']),
+            description=DESCRIPTIONS[key],
             repository=f'jhs512/mq3-course-redesigned-{slug}', lessons=references,
-            change_history=[dict(at='2026-10-19T00:00:00Z',
+            change_history=[dict(at=release['prepared_at'],
                 summary='새 지침에 맞춘 독립 과정을 구성했어요.',
                 reason='작은 문제를 풀며 원리를 이해하도록 다시 구성했어요.',
                 details=[f'{len(references)}수업을 챕터·단원·스텝으로 구성했어요.',
