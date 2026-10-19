@@ -6,6 +6,7 @@ fn main()->Result<(),Box<dyn std::error::Error>> {
     let root=std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     let raw=std::fs::read(root.join("courses/redesigned/git-remote.json"))?;
     let course=CourseManifest::parse(&std::fs::read_to_string(root.join("tests/fixtures/player-pilot/어/course.json"))?)?;
+    if format!("{:x}",Sha256::digest(&raw))!=course.lessons[0].sha256 {return Err("Course reference does not match lesson bytes".into());}
     let lesson=Lesson::parse(std::str::from_utf8(&raw)?,&course.lessons[0])?;
     let commands:serde_json::Value=serde_json::from_str(&std::fs::read_to_string(root.join("tests/fixtures/player-pilot/어/student-commands.json"))?)?;
     let commands=commands["student_commands"].as_array().ok_or("Missing student commands")?;
