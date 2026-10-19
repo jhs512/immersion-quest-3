@@ -309,6 +309,11 @@ async fn run_web(task:&Task,source:&str,grade:bool)->Result<Execution,String> {
         if !package.is_dir()||!root.join("node_modules/react").is_dir(){let mut cmd=if cfg!(windows){let mut c=command("cmd.exe");c.args(["/d","/c","npm.cmd"]);c}else{command("npm")};cmd.args(["install","--prefix"]).arg(&root).args(["playwright-core@1.64.0","esbuild@0.28.2","react@19.3.1","react-dom@19.3.1","@tailwindcss/browser@4.3.3","--no-audit","--no-fund"]);let result=process(cmd,&root,"",180).await?;if !result.success{return Ok(result)}}
         package
     };
+    write_file(dir.path(),"web-browser.cjs",include_str!("../assets/web-browser.cjs"))?;
+    let mut prepare_browser=command(node());prepare_browser.arg("web-browser.cjs").env("MQ3_PLAYWRIGHT",&runtime);
+    let prepared=process(prepare_browser,dir.path(),"",240).await?;
+    if !prepared.success {return Ok(prepared)}
+    write_file(dir.path(),".mq3-browser.json",&prepared.stdout)?;
     let mut cmd=command(node());cmd.arg("web-runner.cjs").env("MQ3_PLAYWRIGHT",runtime);
     let mut result=process(cmd,dir.path(),"",35).await?;
     if let Ok(html)=std::fs::read_to_string(dir.path().join("preview.html")) {if html.len()<2_000_000 {
@@ -344,5 +349,23 @@ mod java_array_prepared_tests {
         assert!(changed.contains("int[] prices = {};"));
         assert!(changed.contains("// int[] prices = {9};"));
         assert!(changed.contains("prices = new int[]{8};"));
+    }
+}
+
+#[cfg(test)]
+mod managed_web_tests {
+    #[tokio::test]
+    async fn authored_web_checks_run_real_interactions_and_keep_a_preview() {
+        let task:crate::repository_course::Task=serde_json::from_value(serde_json::json!({
+            "id":"browser-probe","title":"버튼","goal":"클릭 결과를 확인해요.","language":"web",
+            "starter_code":"<button>0</button>","solution":"", "entry_file":"index.html",
+            "web_checks":[{"kind":"click","selector":"button"},{"kind":"text","selector":"button","pattern":"^1$"}]
+        })).unwrap();
+        assert!(!super::check(&task,&task.starter_code).await.unwrap().passed);
+        let source=r#"<button onclick="this.textContent=Number(this.textContent)+1">0</button>"#;
+        assert!(super::check(&task,source).await.unwrap().passed);
+        let preview=super::run(&task,source,"").await.unwrap();
+        assert!(preview.success,"{}",preview.stderr);
+        assert!(preview.artifacts.iter().any(|item|matches!(item,crate::runner::Artifact::Html{srcdoc,..} if srcdoc.contains("<button"))));
     }
 }

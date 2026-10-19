@@ -2,7 +2,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const assert = require('node:assert/strict');
-const { chromium } = require(process.env.MQ3_PLAYWRIGHT);
+const { prepareBrowser, launchBrowser } = require('./web-browser.cjs');
 const request = JSON.parse(fs.readFileSync('request.json', 'utf8'));
 (async () => {
   const modules=path.dirname(process.env.MQ3_PLAYWRIGHT);
@@ -19,7 +19,8 @@ const request = JSON.parse(fs.readFileSync('request.json', 'utf8'));
     html=html.replace('<!-- tailwind -->',()=>`<script>${tailwind.replaceAll('</script','<\\/script')}</script>`);
   }
   fs.writeFileSync('preview.html',html);
-  const browser = await chromium.launch({channel:'msedge',headless:true});
+  const options=fs.existsSync('.mq3-browser.json')?JSON.parse(fs.readFileSync('.mq3-browser.json','utf8')):await prepareBrowser();
+  const browser = await launchBrowser(options);
   try {
     const page = await browser.newPage();
     page.setDefaultTimeout(5000);

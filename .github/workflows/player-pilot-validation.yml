@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-15, macos-15-intel]
-        group: [core, git, java, java-object, java-app, python, data, c, model, classify, neural]
+        group: [core, git, java, java-object, java-app, web, python, data, c, model, classify, neural]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     steps:
@@ -88,6 +88,15 @@ jobs:
       - name: Prepare browser test dependency on Windows
         if: ${{ matrix.group == 'core' && (runner.os == 'Windows') }}
         run: npm install --prefix target/ui-tests --no-save playwright-core
+      - name: Prepare the pinned lightweight frontend runtime
+        if: matrix.group == 'web'
+        run: npm install --prefix target/ui-tests --no-audit --no-fund playwright-core@1.64.0 esbuild@0.28.2 react@19.3.1 react-dom@19.3.1 @tailwindcss/browser@4.3.3
+      - name: Check a fresh managed browser without requiring Edge
+        if: matrix.group == 'web'
+        run: node --test tests/js/web-browser-runtime.test.cjs
+      - name: Check actual learner browser interactions and previews
+        if: matrix.group == 'web'
+        run: cargo test --locked --lib managed_web_tests -- --test-threads=1
       - name: Check isolated explanation sessions on Windows
         if: ${{ matrix.group == 'core' && (runner.os == 'Windows') }}
         run: node --test tests/js/explanation-session.test.cjs tests/js/git-terminal-session.test.cjs tests/js/interaction-example-editor.test.cjs

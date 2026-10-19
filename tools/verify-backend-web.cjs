@@ -9,6 +9,7 @@ for(const reference of course.lessons) {
   for(const [name,body] of Object.entries(task.files))fs.writeFileSync(path.join(folder,name),body);
   fs.writeFileSync(path.join(folder,task.entry_file),task.solution);
   fs.writeFileSync(path.join(folder,'web-runner.cjs'),fs.readFileSync(path.join(root,'assets/web-runner.cjs')));
+  fs.writeFileSync(path.join(folder,'web-browser.cjs'),fs.readFileSync(path.join(root,'assets/web-browser.cjs')));
   fs.writeFileSync(path.join(folder,'request.json'),JSON.stringify({entry:task.entry_file,checks:task.web_checks}));
   const result=spawnSync(process.execPath,['web-runner.cjs'],{cwd:folder,env:{...process.env,MQ3_PLAYWRIGHT:path.join(root,'target/ui-tests/node_modules/playwright-core')},encoding:'utf8',timeout:40000,windowsHide:true});
   assert.equal(result.status,0,`${lesson.id}/${task.id}: ${result.stderr}`);
