@@ -3,6 +3,11 @@ on:
   push:
     branches: [codex/player-content-pilot]
   workflow_dispatch:
+    inputs:
+      groups:
+        description: 'JSON list of validation groups; leave the default for every group'
+        required: true
+        default: '["core","git","java","java-object","java-app","web","sql","engineer-java","theory","systems","release-runtime","python","data","c","model","classify","neural"]'
 permissions:
   contents: read
 concurrency:
@@ -14,7 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-15, macos-15-intel]
-        group: [core, git, java, java-object, java-app, web, sql, engineer-java, theory, systems, release-runtime, python, data, c, model, classify, neural]
+        group: ${{ fromJSON(inputs.groups || '["core","git","java","java-object","java-app","web","sql","engineer-java","theory","systems","release-runtime","python","data","c","model","classify","neural"]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     steps:
