@@ -59,8 +59,28 @@
   // in class; the voice would otherwise count it 세번. Numbers 1–99.
   const tens = ['', '십', '이십', '삼십', '사십', '오십', '육십', '칠십', '팔십', '구십'];
   const sinoKorean = n => (n < 10 ? digits[n] : tens[Math.floor(n / 10)] + (n % 10 ? digits[n % 10] : ''));
+  function koreanInteger(value) {
+    const number = value.replaceAll(',', '').replace(/^0+(?=\d)/, '');
+    if (number === '0') return '영';
+    if (number.length > 20) return value;
+    const groups = [], large = ['', '만', '억', '조', '경'], small = ['', '십', '백', '천'];
+    for (let end = number.length, group = 0; end > 0; end -= 4, group++) {
+      const chunk = number.slice(Math.max(0, end - 4), end);
+      let spoken = '';
+      for (let index = 0; index < chunk.length; index++) {
+        const digit = Number(chunk[index]), place = chunk.length - index - 1;
+        if (digit) spoken += (digit === 1 && place ? '' : digits[digit]) + small[place];
+      }
+      if (spoken) groups.unshift((group === 1 && spoken === '일' ? '' : spoken) + large[group]);
+    }
+    return groups.join(' ');
+  }
+  const formatPrices = text => String(text).replace(/(?<![A-Za-z0-9_.,])(\d{1,3}(?:,\d{3})+|\d+)(?=\s*원)/g,
+    value => value.replaceAll(',', '').replace(/\B(?=(\d{3})+(?!\d))/g, ','));
   function mathSpeechText(input) {
     return input
+      .replace(/(?<![A-Za-z0-9_.,])(\d{1,3}(?:,\d{3})+|\d+)\s*원/g, (_, n) => koreanInteger(n) + ' 원')
+      .replace(/(?<![\w.,])(\d{1,3}(?:,\d{3})+)(?![\w.,])/g, (_, n) => koreanInteger(n))
       .replace(/(?<![\d.,])(\d{1,2})번/g, (_, n) => sinoKorean(Number(n)) + '번')
       .replace(/(?<![A-Za-z0-9_])R²/g, '알 제곱')
       .replace(/([A-Za-z0-9])²/g, '$1 제곱').replace(/([A-Za-z0-9])³/g, '$1 세제곱')
@@ -307,7 +327,7 @@
   }
   function scopeOf(block) { return block.closest('.reading-mission,.lesson,main') || document.body; }
 
-  globalThis.molipSpeech = { pronunciations, pronunciationText, fileSpeechText, mathSpeechText, speechSentences, splitSpeechRanges, koreanVoice, StorySpeech, speechRates };
+  globalThis.molipSpeech = { pronunciations, pronunciationText, formatPrices, fileSpeechText, mathSpeechText, speechSentences, splitSpeechRanges, koreanVoice, StorySpeech, speechRates };
   if (typeof document === 'undefined') return;
 
   // ---- Mount: a floating panel, and the double-click that starts reading. ----

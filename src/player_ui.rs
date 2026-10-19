@@ -73,12 +73,12 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                     label {class:"course-search",span {"과정 검색"}input {r#type:"search",placeholder:"이름으로 찾기",value:course_search(),oninput:move |e|course_search.set(e.value())}}
                     nav {class:"course-switcher",aria_label:"과정 선택",
                     for repository in repositories().into_iter().filter(|repo|{let query=course_search().to_lowercase();repo.to_lowercase().contains(&query)||course_titles().get(repo).is_some_and(|title|title.to_lowercase().contains(&query))}) {
-                        button {class:if !show_builder()&&course().is_some_and(|c|c.repository==repository){"course-selected"}else{""},disabled:busy(),onclick:{let repository=repository.clone();move |_|{let Some(s)=session() else{return};let gh=s.github.clone();let repository=repository.clone();spawn(async move {busy.set(true);match github_player::background(move||gh.installed_course(&repository)).await {Ok(manifest)=>{course.set(Some(manifest));show_builder.set(false);message.set(String::new());},Err(e)=>message.set(e)}busy.set(false);});}},
+                        button {class:if !show_builder()&&course().is_some_and(|c|c.repository==repository){"course-selected"}else{""},aria_current:if !show_builder()&&course().is_some_and(|c|c.repository==repository){"page"}else{"false"},disabled:busy(),onclick:{let repository=repository.clone();move |_|{let Some(s)=session() else{return};let gh=s.github.clone();let repository=repository.clone();spawn(async move {busy.set(true);match github_player::background(move||gh.installed_course(&repository)).await {Ok(manifest)=>{course.set(Some(manifest));show_builder.set(false);message.set(String::new());},Err(e)=>message.set(e)}busy.set(false);});}},
                             strong {{course_titles().get(&repository).cloned().unwrap_or_else(||repository.split('/').next_back().unwrap_or(&repository).replace("mq3-course-", "").replace('-', " "))}}
                             small {"{repository}"}
                         }
                     }
-                    if !repositories().iter().any(|repo|{let query=course_search().to_lowercase();repo.to_lowercase().contains(&query)||course_titles().get(repo).is_some_and(|title|title.to_lowercase().contains(&query))}) {p {class:"course-search-empty","일치하는 과정이 없어요."}}
+                    if !repositories().iter().any(|repo|{let query=course_search().to_lowercase();repo.to_lowercase().contains(&query)||course_titles().get(repo).is_some_and(|title|title.to_lowercase().contains(&query))}) {div {class:"course-search-empty",role:"status",p {"일치하는 과정이 없어요."}if !course_search().is_empty(){button {onclick:move |_|course_search.set(String::new()),"검색 지우기"}}}}
                     }
                     button {class:"course-create",onclick:move |_|show_builder.set(!show_builder()),"코스 추가·만들기"}
                 }
@@ -93,8 +93,8 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                     div {class:"repository-lessons",
                         for (index,reference) in manifest.lessons.iter().enumerate() {
                             article {class:"card lesson-card",key:"{reference.id}",
-                                span {class:"badge","수업 {index+1}"}h3 {"{reference.title}"}
-                                p {"버전 {reference.revision}"}
+                                div {class:"lesson-card-heading",span {class:"lesson-number","수업 {index+1}"}h3 {"{reference.title}"}}
+                                p {class:"lesson-revision","버전 {reference.revision}"}
                                 {let records=progress().get(&reference.id).cloned().unwrap_or_default();let requirements=progress_requirements().get(&reference.id).cloned();rsx!{
                                     if let Some(required)=requirements {
                                         {let summary=issue_progress::learning_progress(&records,&reference.revision,&required);rsx!{
@@ -214,6 +214,11 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
     let first_unfinished=selected.lesson.tasks.iter().position(|task|!already_passed.contains(&task.id)).unwrap_or(0);
     let mut task_index=use_signal(||first_unfinished);
     let mut section_index=use_signal(||0usize);
+    use_effect(move || {
+        let _ = task_index();
+        let _ = section_index();
+        document::eval("requestAnimationFrame(()=>document.querySelector('.study-navigation [aria-current=\"step\"]')?.scrollIntoView({block:'nearest',inline:'nearest'}));");
+    });
     use_future({let session=session.clone();let selected=selected.clone();move ||{let session=session.clone();let selected=selected.clone();async move {
         if selected.mode==StudyMode::Full {if let Some(first)=selected.lesson.sections.first() {
             let mut event=LearningEvent::new(ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},&selected.lesson.revision,selected.mode,&selected.round,EventKind::Viewed);event.task_id=Some(first.id.clone());
@@ -256,11 +261,11 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
             }
             if let Some(task)=&view {crate::lesson_outline::LessonOutline {lesson:selected.lesson.clone(),task_id:task.id.clone()}}
             }
-            nav {class:"study-navigation",
+            nav {class:"study-navigation",aria_label:"수업 학습 항목",
                 if selected.mode==StudyMode::Full {
-                    for (index,section) in selected.lesson.sections.iter().enumerate() {button {class:if section_index()==index {"selected"}else{""},onclick:{let record_view=record_view.clone();move |_|record_view(index)},"{section.title}"}}
+                    for (index,section) in selected.lesson.sections.iter().enumerate() {button {class:if section_index()==index {"selected"}else{""},aria_current:if section_index()==index {"step"}else{"false"},onclick:{let record_view=record_view.clone();move |_|record_view(index)},"{section.title}"}}
                 }
-                for (index,task) in selected.lesson.tasks.iter().enumerate() {button {class:if view.as_ref().is_some_and(|t|t.id==task.id){"selected"}else{""},onclick:move |_|{task_index.set(index);section_index.set(usize::MAX);},if passed.contains(&task.id){"✓ "}if !task.required{"도전 · "}"문제 {index+1} · {task.title}"}}
+                for (index,task) in selected.lesson.tasks.iter().enumerate() {button {class:if view.as_ref().is_some_and(|t|t.id==task.id){"selected"}else{""},aria_current:if view.as_ref().is_some_and(|t|t.id==task.id){"step"}else{"false"},onclick:move |_|{task_index.set(index);section_index.set(usize::MAX);},if passed.contains(&task.id){"✓ "}if !task.required{"도전 · "}"문제 {index+1} · {task.title}"}}
             }
             if let Some(task)=view {
                 RepositoryTask {key:"{selected.round}:{task.id}",session:session.clone(),selected:selected.clone(),task,events,
@@ -356,12 +361,13 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                         let expected=serde_json::json!({"source":if has_example{Some(demo_example.clone())}else if !needs_git&&!has_interaction{Some(demo_code.clone())}else{None},"answer":if has_interaction{Some(demo_code.clone())}else{None}});
                         let actions=actions.clone();
                         spawn(async move {
-                            let script=format!("(async()=>{{try{{const root=document.querySelector('.repository-task'),expected={expected},owner={};const until=Date.now()+45000;const ready=()=>root.dataset.explanationSession===owner&&root.dataset.narrating==='true'&&(!{needs_git}||(window.molipGitTutor?.owner&&window.molipGitTutor.owner===root.querySelector('#git-demo-terminal')?.dataset.terminalSession))&&(expected.source===null||window.molipCodeEditors?.getValue()===expected.source)&&(expected.answer===null||root.querySelector('.answer-state-bridge')?.value===expected.answer);while(root?.isConnected&&!ready()){{if(Date.now()>until)throw new Error('해설 시연을 준비하지 못했어요.');await new Promise(requestAnimationFrame);}}if(root?.isConnected)await window.molipAgent?.runExplanation({},{{owner,root}});}}finally{{dioxus.send(true);}}}})();",serde_json::to_string(&owner).unwrap(),serde_json::to_string(&actions).unwrap_or_else(|_|"[]".into()));
+                            let script=format!("(async()=>{{try{{const root=document.querySelector('.repository-task'),expected={expected},owner={};const until=Date.now()+45000;const ready=()=>root.dataset.explanationSession===owner&&root.dataset.narrating==='true'&&(!{needs_git}||(window.molipGitTutor?.owner&&window.molipGitTutor.owner===root.querySelector('#git-demo-terminal')?.dataset.terminalSession))&&(expected.source===null||window.molipCodeEditors?.getValue()===expected.source)&&(expected.answer===null||root.querySelector('.answer-state-bridge')?.value===expected.answer);while(root?.isConnected&&!ready()){{if(window.mq3CancelledExplanations?.has(owner))return;if(Date.now()>until)throw new Error('해설 시연을 준비하지 못했어요.');await new Promise(requestAnimationFrame);}}if(root?.isConnected&&!window.mq3CancelledExplanations?.has(owner))await window.molipAgent?.runExplanation({},{{owner,root}});}}finally{{dioxus.send(true);}}}})();",serde_json::to_string(&owner).unwrap(),serde_json::to_string(&actions).unwrap_or_else(|_|"[]".into()));
                             let mut bridge=document::eval(&script);let _=bridge.recv::<bool>().await;
+                            document::eval(&format!("window.mq3CancelledExplanations?.delete({});",serde_json::to_string(&owner).unwrap()));
                             explanation_session.finish(&owner);
                         });
                     }},"해설 재생"}
-                    button {class:"narration-stop","data-explanation-stop":"true",disabled:!narrating(),onclick:move |_|{document::eval("window.molipAgent?.stop()");},"멈춤"}
+                    button {class:"narration-stop","data-explanation-stop":"true",disabled:!narrating(),onclick:move |_|{let owner=explanation_session.owner();document::eval(&format!("(window.mq3CancelledExplanations??=new Set()).add({});window.molipAgent?.stop();",serde_json::to_string(&owner).unwrap()));explanation_session.finish(&owner);},"멈춤"}
                     label {class:"narration-speed",span {"속도"}
                         select {class:"assistant-rate repository-narration-rate",aria_label:"해설 말 속도",onchange:move |e|{document::eval(&format!("window.molipVoice?.setRate({});",e.value()));},
                             for rate in ["0.75","1","1.25","1.5","1.75","2"] {option {value:rate,selected:rate=="1.5","{rate}배"}}
@@ -471,7 +477,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
             }
             div {class:if (task.git_terminal.is_some()||has_example)&&task.interaction.is_some(){"editor-pane interaction-example-editor"}else{"editor-pane"},style:if (task.git_terminal.is_some()||has_example)&&task.interaction.is_some(){"display:grid;grid-template-rows:minmax(48px,1fr) 10px var(--example-answer-height,fit-content(60%));gap:0"}else{""},
                 if let Some(exercise)=task.git_terminal.clone() {
-                    div {class:"example-code-pane",style:if narrating(){"display:none"}else if task.interaction.is_some(){"min-height:0;overflow:hidden"}else{"height:100%"},
+                    div {class:"example-code-pane",style:if narrating(){"display:none"}else if task.interaction.is_some(){"display:block;min-height:0;overflow:hidden"}else{"display:block;height:100%"},
                         {rsx!{crate::git_terminal_ui::GitTerminal {key:"git-{reset}",exercise:exercise.clone(),demo:false,scope:Some(key.clone()),fresh:reset()>0,onready:move |practice|git_practice.set(Some(practice)),oncontrol:move |control|git_control.set(Some(control))}}}
                     }
                     if narrating() {div {class:"example-code-pane",style:if task.interaction.is_some(){"min-height:0;overflow:hidden"}else{"height:100%"},crate::git_terminal_ui::GitTerminal {exercise,demo:true,onready:move |_|{},oncontrol:move |_|{}}}}

@@ -20,7 +20,17 @@ impl TerminalControl {
 }
 #[derive(serde::Deserialize)]
 struct Input {kind:String,#[serde(default)] data:String,#[serde(default)] rows:u16,#[serde(default)] cols:u16,#[serde(default)] args:Vec<String>,#[serde(default)] token:u64}
-fn shell_quote(value:&str)->String {if cfg!(windows){format!("'{}'",value.replace('\'',"''"))}else{format!("'{}'",value.replace('\'',"'\\''"))}}
+fn shell_argument(value:&str)->String {
+    if !value.is_empty() && value.bytes().all(|c|c.is_ascii_alphanumeric()||b"_./:=+@%-".contains(&c)) {
+        return value.to_owned();
+    }
+    let escaped=if cfg!(windows) {
+        value.replace('`',"``").replace('$',"`$").replace('"',"`\"")
+    }else{
+        value.replace('\\',"\\\\").replace('$',"\\$").replace('`',"\\`").replace('"',"\\\"")
+    };
+    format!("\"{escaped}\"")
+}
 #[component]
 pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option<String>,#[props(default)] fresh:bool,onready:EventHandler<Practice>,oncontrol:EventHandler<TerminalControl>)->Element {
     use base64::Engine;
@@ -66,7 +76,7 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
                 if event.args.is_empty()||event.args.len()>50||event.args.iter().any(|arg|arg.len()>4000){continue;}
                 let practice=command_practice.clone();let command_owner=command_owner.clone();
                 let before=practice.lock().unwrap_or_else(|e|e.into_inner()).completed_commands().map(|items|items.len()).unwrap_or(usize::MAX);
-                let command=format!("git {}",event.args.iter().map(|arg|shell_quote(arg)).collect::<Vec<_>>().join(" "));
+                let command=format!("git {}",event.args.iter().map(|arg|shell_argument(arg)).collect::<Vec<_>>().join(" "));
                 document::eval(&format!("window.mq3GitDemoTerminal?.typeCommand({},'{command_owner}');",serde_json::to_string(&command).unwrap()));
                 spawn(async move {
                     let deadline=std::time::Instant::now()+std::time::Duration::from_secs(15);
@@ -86,4 +96,23 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
         error.set("터미널이 종료됐어요. 초기화해 다시 여세요.".into());
     }});
     rsx!{div {class:"git-terminal-shell",div {class:"git-terminal",id:host,"data-terminal-session":rendered_owner,aria_label:if demo{"해설용 별도 Git 저장소"}else{"실제 Git 실습 저장소"}}if !error().is_empty(){p {role:"status","{error}"}}}}
+}
+
+#[cfg(test)]
+mod tests {
+    use super::shell_argument;
+    #[test]
+    fn demonstration_uses_familiar_git_command_syntax() {
+        let args=["commit","-m","첫 기록"].map(shell_argument).join(" ");
+        assert_eq!(format!("git {args}"),"git commit -m \"첫 기록\"");
+        assert_eq!(shell_argument(""),"\"\"");
+    }
+    #[cfg(unix)]
+    #[test]
+    fn quoted_messages_reach_bash_literally() {
+        let message="첫 기록 \"안녕\" $HOME `echo nope` $(echo nope) \\ '";
+        let output=std::process::Command::new("/bin/bash").args(["-c",&format!("printf '%s' {}",shell_argument(message))]).output().unwrap();
+        assert!(output.status.success());
+        assert_eq!(String::from_utf8(output.stdout).unwrap(),message);
+    }
 }

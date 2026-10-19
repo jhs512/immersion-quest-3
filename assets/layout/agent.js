@@ -208,6 +208,7 @@
   // values in this task and demonstration, without changing what the voice reads.
   let captionSource = '';
   function captionText(sentence) {
+    const display = value => globalThis.molipSpeech?.formatPrices(value) ?? String(value);
     const source = (document.querySelector('.repository-task')?.textContent || '') + '\n' + captionSource;
     const digits = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
     const group = value => {
@@ -219,22 +220,22 @@
       return result;
     };
     const numbers = new Map();
-    for (const match of source.matchAll(/\b\d{2,8}\b/g)) {
-      const value = Number(match[0]);
+    for (const match of source.matchAll(/\b\d{1,3}(?:,\d{3})+\b|\b\d{2,8}\b/g)) {
+      const value = Number(match[0].replaceAll(',', ''));
       if (value < 10) continue;
       const high = Math.floor(value / 10000), low = value % 10000;
       const word = (high ? (high === 1 ? '' : group(high)) + '만' : '') + group(low);
       numbers.set(word, String(value));
     }
-    if (!numbers.size) return String(sentence || '');
+    if (!numbers.size) return display(sentence || '');
     const words = [...numbers.keys()].sort((a,b)=>b.length-a.length).join('|');
     // A suffix check keeps ordinary words such as 백업 and 만약 intact.
     const pattern = new RegExp('(^|[^가-힣])(' + words + ')(?=$|[\\s,.!?…]|은|는|이|가|을|를|의|에|예|와|과|로|도|만|번|개|명|건|점|초|분|시|줄|배|원|퍼센트|%)', 'g');
-    return String(sentence || '').replace(pattern, (whole, prefix, word, index, text) => {
+    return display(String(sentence || '').replace(pattern, (whole, prefix, word, index, text) => {
       const base = word.slice(0,-1);
       if (word.endsWith('이') && text.slice(index + whole.length).startsWith('에요') && numbers.has(base)) return prefix + numbers.get(base) + '이';
       return prefix + numbers.get(word);
-    });
+    }));
   }
   function spotlight(target, sentence) {
     ensureSpot();

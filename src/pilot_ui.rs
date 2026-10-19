@@ -18,6 +18,8 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
             format!("window.mq3RestartPhase={};{}",serde_json::to_string(phase).unwrap(),include_str!("../tools/player-pilot-restart.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("invalid-order") {
             include_str!("../tools/player-pilot-invalid-order.js").to_owned()
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("terminal-restore") {
+            include_str!("../tools/player-pilot-terminal-restore.js").to_owned()
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("lesson-loading") {
             include_str!("../tools/player-pilot-loading.js").to_owned()
         } else if let Some(script)=std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref().and_then(molip_quest::lesson_registry::self_test_script) {
@@ -53,6 +55,8 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
     }}; }
     rsx! {
         aside { class: "pilot-toolbar", aria_label: "개발 검증 도구",
+          details {class:"pilot-toolbox",summary {"개발 검증 도구"}
+           div {class:"pilot-tool-grid",
             span { "개발 검증 전용 · 외부 계정 기록 없음" }
             for version in pilot_source::versions().into_iter().filter(|version|*version!='g') {
                 button { onclick: move |_| {
@@ -86,6 +90,8 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
             }
             button {onclick:move |_|setup_preview.set(true),"gh 준비 검증"}
             p { role: "status", "{notice}" }
+           }
+          }
         }
         {rsx! { crate::player_ui::RepositoryPlayer { key: "pilot-{generation}",window_controls:window_controls.clone() } }}
     }
