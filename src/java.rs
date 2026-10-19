@@ -92,14 +92,16 @@ pub async fn run_files(code: &str, input: &str, files: &std::collections::BTreeM
 
 /// A grading wrapper checks disk state after main returns, before the fresh directory disappears.
 pub async fn run_files_checked(code: &str, input: &str, files: &std::collections::BTreeMap<String,String>, expected: &std::collections::BTreeMap<String,String>) -> Result<Execution, String> {
+    use sha2::{Digest,Sha256};
     if expected.is_empty() { return run_files(code,input,files).await; }
     let witness=format!("MQ3_FILE_CHECK_{}",crate::issue_progress::new_id());
     let mut checks=String::from("class QuestContract { public static void main(String[] args) throws Exception { Main.main(args);\n");
     for (name,content) in expected {
         if !crate::repository_course::safe_file(name) {return Err("검사할 파일 경로를 확인하세요.".into());}
         let name=serde_json::to_string(name).map_err(|e|e.to_string())?;
-        let text=serde_json::to_string(content).map_err(|e|e.to_string())?;
-        checks.push_str(&format!("if (!java.nio.file.Files.readString(java.nio.file.Path.of({name})).equals({text})) throw new AssertionError(\"저장한 파일 내용을 확인하세요.\");\n"));
+        // A fixed-size digest avoids Java's 65,535-byte string constant limit.
+        let digest=format!("{:x}",Sha256::digest(content.as_bytes()));
+        checks.push_str(&format!("if (!java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance(\"SHA-256\").digest(java.nio.file.Files.readAllBytes(java.nio.file.Path.of({name})))).equals(\"{digest}\")) throw new AssertionError(\"저장한 파일 내용을 확인하세요.\");\n"));
     }
     checks.push_str(&format!("System.err.println({}); }} }}",serde_json::to_string(&witness).map_err(|e|e.to_string())?));
     let mut result=execute(code,input,Some(&checks),files).await?;
@@ -239,6 +241,15 @@ mod tests {
 
 #[cfg(test)]
 mod prepared_file_tests {
+    #[tokio::test]
+    async fn disk_checks_support_the_allowed_file_size_without_java_constants() {
+        let expected=std::collections::BTreeMap::from([("result.txt".to_string(),"a".repeat(200_000))]);
+        let files=std::collections::BTreeMap::from([("seed.txt".to_string(),"a".repeat(200_000))]);
+        let source="import java.nio.file.*; class Main { public static void main(String[] args) throws Exception { Files.copy(Path.of(\"seed.txt\"),Path.of(\"result.txt\")); } }";
+        let result=super::run_files_checked(source,"",&files,&expected).await.unwrap();
+        assert!(result.success,"{}",result.stderr);
+    }
+
     #[tokio::test]
     async fn grading_uses_changed_files_and_rejects_overwriting_old_text() {
         let task:crate::repository_course::Task=serde_json::from_value(serde_json::json!({
