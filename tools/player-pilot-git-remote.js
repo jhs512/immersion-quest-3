@@ -5,7 +5,7 @@
  const click=async text=>{await wait(()=>button(text)&&!button(text).disabled,text);button(text).click();await new Promise(requestAnimationFrame);};
  const status=text=>document.querySelector('.execution-status')?.textContent.includes(text);
  const ready=async()=>wait(()=>document.querySelector('.repository-task')?.dataset.gitReady==='true'&&window.mq3GitTerminal&&!button('제출')?.disabled,'real student Git terminal');
- let sequence=0,teacherResult='';
+ let sequence=0,teacherResult='',staleTutorUsed=false;
  const runGit=async command=>{
   const marker=`MQ3_REMOTE_DONE_${++sequence}`;
   const echo=navigator.platform.toLowerCase().includes('win')?`Write-Output '${marker}'`:`printf '${marker}\\n'`;
@@ -23,8 +23,11 @@
    await wait(()=>document.querySelector('.repository-task')?.dataset.taskId===task.id,'remote step');await ready();
    const marker=[0,2,7].includes(index)?`student-marker-${index}`:null;
    if(marker)await runGit(`git branch ${marker}`);
+   // A retired bridge can remain while the next real Git terminal starts.
+   if(index===3)window.molipGitTutor={owner:'retired-verification-session',command(){staleTutorUsed=true;return Promise.resolve(false);},dispose(){}};
    await click('해설 재생 · 정답 실행');await wait(()=>molipAgent.running,'teacher starts');
    await wait(()=>!molipAgent.running&&!button('해설 재생 · 정답 실행')?.disabled,'teacher finishes');
+   if(staleTutorUsed)throw Error('Narration used a retired Git tutor session');
    if(teacherResult.includes('오류 -')||teacherResult.split('git_command:').length-1!==task.narration.filter(a=>a.action==='git_command').length)throw Error(`Remote teacher did not finish: ${teacherResult}`);
    if(marker){
     await runGit(`git branch --list ${marker}`);

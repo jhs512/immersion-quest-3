@@ -257,7 +257,18 @@ pub fn request(args: &[&str], payload: Option<Value>) -> Result<Value, String> {
         return Ok(Value::Array(state.issue.iter().cloned().collect()));
     }
     if method == "GET" && route.starts_with(&format!("{base}/1/comments?")) {
-        return Ok(Value::Array(state.comments.clone()));
+        let query = route.split_once('?').map(|(_, query)| query).unwrap_or("");
+        let number = |name: &str, default: usize| -> Result<usize, String> {
+            match query.split('&').filter_map(|part| part.split_once('=')).find(|(key, _)| *key == name) {
+                None => Ok(default),
+                Some((_, value)) => value.parse::<usize>().ok().filter(|value| *value > 0)
+                    .ok_or_else(|| "검증 댓글 페이지를 확인하세요.".into()),
+            }
+        };
+        let page = number("page", 1)?;
+        let per_page = number("per_page", 30)?.min(100);
+        let offset = page.saturating_sub(1).saturating_mul(per_page);
+        return Ok(Value::Array(state.comments.iter().skip(offset).take(per_page).cloned().collect()));
     }
     let payload = payload.unwrap_or(Value::Null);
     if method == "POST" && route == base {

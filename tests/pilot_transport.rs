@@ -43,4 +43,14 @@ fn production_github_loading_and_progress_use_only_the_isolated_pilot_store() {
     let visual_lesson = github.lesson(&visual_course.lessons[0]).unwrap();
     assert_eq!(visual_lesson.tasks[0].supporting_materials.len(), 4);
     assert_eq!(visual_lesson.required_tasks(), lesson.required_tasks());
+    // Long lessons must cross a real 100-comment page without duplicating page one.
+    let before = github.events(&course.repository, &issue, &key).unwrap().len();
+    for _ in 0..105 {
+        let event = LearningEvent::new(key.clone(), &lesson.revision, StudyMode::Full,
+                                      "long-lesson", EventKind::Viewed);
+        github.append(&course.repository, &user, &lesson.title, &event).unwrap();
+    }
+    let after = github.events(&course.repository, &issue, &key).unwrap();
+    assert_eq!(after.len(), before + 105);
+
 }
