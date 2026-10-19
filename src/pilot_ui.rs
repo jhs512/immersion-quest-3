@@ -181,6 +181,16 @@ pub fn PilotPlayer() -> Element {
             let tasks=&lesson["tasks"];
             let config=serde_json::json!({"label":"\uc790\ub8cc \uc5f0\uacb0","version":"\ud0c0","revision":"aice-join-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
             format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("aice-boosting") {
+            let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/aice-boosting.json")).expect("compiled lesson");
+            let tasks=&lesson["tasks"];
+            let config=serde_json::json!({"label":"\ubd80\uc2a4\ud305 \ube44\uad50","version":"\ud30c","revision":"aice-boosting-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
+            format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("aice-integration") {
+            let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/aice-integration.json")).expect("compiled lesson");
+            let tasks=&lesson["tasks"];
+            let config=serde_json::json!({"label":"\uc804\uccb4 \ubd84\uc11d \uc5f0\uacb0","version":"\ud558","revision":"aice-integration-1","modifications":{"1":{"correct":true},"5":{"correct":true},"9":{"correct":true}},"tasks":tasks});
+            format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("java-methods") {
             let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/java-methods.json")).expect("compiled lesson");
             let tasks=&lesson["tasks"];
@@ -223,7 +233,7 @@ pub fn PilotPlayer() -> Element {
     rsx! {
         aside { class: "pilot-toolbar", aria_label: "개발 검증 도구",
             span { "개발 검증 전용 · 외부 계정 기록 없음" }
-            for version in ['a', 'b', 'c', 'd', 'e', 'f', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '가', '나', '다', '라', '마', '바', '사', '아', '자', '차', '카', '타', '0'] {
+            for version in ['a', 'b', 'c', 'd', 'e', 'f', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '가', '나', '다', '라', '마', '바', '사', '아', '자', '차', '카', '타', '파', '하', '0'] {
                 button { onclick: move |_| {
                     match pilot_source::set_version(version) {
                         Ok(()) => {

@@ -129,3 +129,11 @@ fn aice_training_restore_student_state() {verify("aice-training",8)}
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
 fn aice_join_restore_student_state() {verify("aice-join",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn aice_boosting_restore_student_state() {verify("aice-boosting",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn aice_integration_restore_student_state() {verify("aice-integration",10)}

@@ -397,6 +397,12 @@ def main():
 
 
 if __name__ == "__main__":
+    if sys.argv[1:2] == ["--redesigned-aice-integration"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "aice-integration", *sys.argv[2:]], check=True)
+        sys.exit(0)
+    if sys.argv[1:2] == ["--redesigned-aice-boosting"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "aice-boosting", *sys.argv[2:]], check=True)
+        sys.exit(0)
     if sys.argv[1:2] == ["--redesigned-aice-join"]:
         subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "aice-join", *sys.argv[2:]], check=True)
         sys.exit(0)

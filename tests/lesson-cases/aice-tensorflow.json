@@ -40,6 +40,20 @@
         ]
       ],
       "reason": "Fixed predictions ignore different feature and observation counts"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "shape=(features,)",
+          "shape=(2,)"
+        ],
+        [
+          "predictions = model.predict(np.array(rows, dtype=\"float32\"), verbose=0)",
+          "predictions = np.sum(np.array(rows, dtype=\"float32\"), axis=1, keepdims=True)"
+        ]
+      ],
+      "reason": "A manual row sum must not replace correcting the actual model input shape"
     }
   ]
 }

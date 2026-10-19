@@ -37,6 +37,12 @@ jobs:
       - name: Install the separately documented Keras 2 learning environment
         if: matrix.group == 'core' || matrix.group == 'neural'
         run: python -m pip install "tensorflow==2.15.1"
+      - name: Provide the macOS boosting library dependency
+        if: runner.os == 'macOS' && (matrix.group == 'core' || matrix.group == 'classify')
+        run: brew install libomp
+      - name: Install the separately documented boosting learning version
+        if: matrix.group == 'core' || matrix.group == 'classify'
+        run: python -m pip install "xgboost==2.1.4"
       - name: Use the same Python interpreter inside the player
         shell: python
         run: |
@@ -192,6 +198,12 @@ jobs:
       - name: Drive protected cross-validation and tuning
         if: matrix.group == 'classify'
         run: cargo test --locked --test player_data_lessons_native aice_tuning -- --ignored --test-threads=1
+      - name: Drive join keys and row preservation
+        if: matrix.group == 'data'
+        run: cargo test --locked --test player_data_lessons_native aice_join -- --ignored --test-threads=1
+      - name: Drive boosting rounds and target formats
+        if: matrix.group == 'classify'
+        run: cargo test --locked --test player_data_lessons_native aice_boosting -- --ignored --test-threads=1
       - name: Drive TensorFlow construction and learning
         if: matrix.group == 'neural'
         run: cargo test --locked --test player_data_lessons_native aice_tensorflow -- --ignored --test-threads=1
@@ -201,6 +213,9 @@ jobs:
       - name: Drive monitored training and best-state preservation
         if: matrix.group == 'neural'
         run: cargo test --locked --test player_data_lessons_native aice_training -- --ignored --test-threads=1
+      - name: Drive file-to-prediction integration
+        if: matrix.group == 'neural'
+        run: cargo test --locked --test player_data_lessons_native aice_integration -- --ignored --test-threads=1
       - name: Reopen actual player with saved answer and progress
         if: ${{ matrix.group == 'core' && (!cancelled() && steps.build_player.outcome == 'success') }}
         run: cargo test --locked --test player_restart_native -- --ignored --test-threads=1
@@ -246,6 +261,9 @@ jobs:
             target/pilot-aice-neural-regression-result.json
             target/pilot-aice-neural-classification-result.json
             target/pilot-aice-training-result.json
+            target/pilot-aice-join-result.json
+            target/pilot-aice-boosting-result.json
+            target/pilot-aice-integration-result.json
             target/pilot-java-static-result.json
             target/pilot-aice-features-result.json
             target/pilot-aice-split-result.json
