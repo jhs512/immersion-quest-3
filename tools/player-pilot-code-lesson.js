@@ -22,16 +22,17 @@
   await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('pilot-a'),'initial fixture installed');
   await click('검증 높이 720');await click(`버전 ${pilot.version}`);await wait(()=>document.querySelector('.lesson-card')?.textContent.includes(pilot.revision),'approved code lesson');
   await click('풀모드 시작');molipAgent.setVoice(false);
-  let teacherResult='',requestedRanges=[],shownDiagrams=[];const originalExplanation=molipAgent.runExplanation.bind(molipAgent);
+  let teacherResult='',requestedRanges=[],shownDiagrams=[],shownPlots=[];const originalExplanation=molipAgent.runExplanation.bind(molipAgent);
   const originalHighlight=molipCodeEditors.highlightLines.bind(molipCodeEditors);
   molipCodeEditors.highlightLines=(from,to,...rest)=>{if(Number.isInteger(from))requestedRanges.push([from,to??from]);return originalHighlight(from,to,...rest);};
   molipAgent.runExplanation=async actions=>{
-   teacherResult='';requestedRanges=[];shownDiagrams=[];
-   const observer=new MutationObserver(()=>{const panel=document.querySelector('.narration-memory');if(panel)shownDiagrams.push({title:panel.querySelector('figcaption')?.textContent,rows:[...panel.querySelectorAll('.narration-memory-row')].map(row=>row.textContent.replace(/\s/g,''))});});
+   teacherResult='';requestedRanges=[];shownDiagrams=[];shownPlots=[];
+   const observer=new MutationObserver(()=>{const panel=document.querySelector('.narration-memory');if(panel)shownDiagrams.push({title:panel.querySelector('figcaption')?.textContent,rows:[...panel.querySelectorAll('.narration-memory-row')].map(row=>row.textContent.replace(/\s/g,''))});for(const image of document.querySelectorAll('.plot-result img'))if(image.src.startsWith('data:image/png;base64,'))shownPlots.push(image.src);});
    observer.observe(document.body,{subtree:true,childList:true,characterData:true});
    try{const result=await originalExplanation(actions);teacherResult=result;return result;}finally{observer.disconnect();}
   };
   const verifyTeacher=task=>{
+   if(pilot.requirePlot&&!shownPlots.length)throw Error('Teacher plot was not rendered in the output panel');
    if(teacherResult.includes('오류 -')||teacherResult.split('run:').length-1!==task.narration.filter(action=>action.action==='run').length)throw Error(`Teacher did not finish all authored runs: ${teacherResult}`);
    for(const action of task.narration){
     const range=String(action.target??'').match(/^(?:lines|editor):(\d+)(?::(\d+))?$/);

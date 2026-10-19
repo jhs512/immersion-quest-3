@@ -397,7 +397,17 @@ def main():
 
 
 if __name__ == "__main__":
-    if sys.argv[1:2] == ["--redesigned-engineer-c-functions"]:
+    if sys.argv[1:2] == ["--redesigned-java-references"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "java-references", *sys.argv[2:]], check=True)
+        sys.exit(0)
+    if sys.argv[1:2] == ["--redesigned-aice-plots"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "aice-plots", *sys.argv[2:]], check=True)
+        sys.exit(0)
+    if sys.argv[1:2] == ["--redesigned-engineer-c-pointers"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "engineer-c-pointers", *sys.argv[2:]], check=True)
+    elif sys.argv[1:2] == ["--redesigned-java-methods"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "java-methods", *sys.argv[2:]], check=True)
+    elif sys.argv[1:2] == ["--redesigned-engineer-c-functions"]:
         subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "engineer-c-functions", *sys.argv[2:]], check=True)
     elif sys.argv[1:2] == ["--redesigned-aice-quality"]:
         subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "aice-quality", *sys.argv[2:]], check=True)

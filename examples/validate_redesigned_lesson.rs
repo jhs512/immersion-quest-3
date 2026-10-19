@@ -11,6 +11,8 @@ struct Validation {
     lesson: PathBuf,
     expected_outputs: Vec<Vec<String>>,
     #[serde(default)]
+    expected_images: Option<Vec<Vec<usize>>>,
+    #[serde(default)]
     reject: Vec<RejectedAnswer>,
 }
 
@@ -29,6 +31,7 @@ async fn validate(spec: Validation) -> Result<Value, String> {
     if source_hash!=reference.sha256 {return Err("Lesson bytes do not match the fixed course reference".into())}
     let lesson = Lesson::parse(std::str::from_utf8(&raw).map_err(|e|e.to_string())?,reference)?;
     if lesson.tasks.len() != spec.expected_outputs.len() {return Err("Expected outputs do not cover every step".into())}
+    if spec.expected_images.as_ref().is_some_and(|images| images.len()!=lesson.tasks.len()) {return Err("Expected images do not cover every step".into())}
     let started = Instant::now();
     let mut steps = Vec::new();
     for (index, task) in lesson.tasks.iter().enumerate() {
@@ -38,6 +41,7 @@ async fn validate(spec: Validation) -> Result<Value, String> {
         if !report.passed {return Err(format!("{label}: solution failed: {}",serde_json::to_string(&report).unwrap()))}
         let mut source=task.example_code.clone().unwrap_or_else(||task.starter_code.clone());
         let mut outputs=Vec::new();
+        let mut images=Vec::new();
         for action in &task.narration {
             match action["action"].as_str().ok_or("Narration action is missing")? {
                 "patch_code"=>{
@@ -53,13 +57,17 @@ async fn validate(spec: Validation) -> Result<Value, String> {
                         if result.success || !result.stderr.contains(error) {return Err(format!("{label}: expected {error}, got {}",result.stderr))}
                     } else if !result.success {return Err(format!("{label}: teacher failed: {}",result.stderr))}
                     outputs.push(result.stdout.trim_end().to_owned());
+                    images.push(result.artifacts.iter().filter(|artifact|matches!(artifact,molip_quest::runner::Artifact::Image{..})).count());
                 },
                 "say"|"choose_answer"|"fill_answer"|"fill_fields"|"order_answer"=>{},
                 action=>return Err(format!("{label}: this validator cannot replay {action}")),
             }
         }
         if outputs!=spec.expected_outputs[index] {return Err(format!("{label}: expected {:?}, got {outputs:?}",spec.expected_outputs[index]))}
-        steps.push(json!({"id":task.id,"teacher_outputs":outputs,"grading_cases":report.cases.len()}));
+        if let Some(expected)=&spec.expected_images {
+            if images!=expected[index] {return Err(format!("{label}: expected image counts {:?}, got {images:?}",expected[index]))}
+        }
+        steps.push(json!({"id":task.id,"teacher_outputs":outputs,"teacher_images":images,"grading_cases":report.cases.len()}));
     }
     for rejected in &spec.reject {
         let task=lesson.tasks.get(rejected.step.checked_sub(1).ok_or("Rejected step numbers start at one")?).ok_or("Rejected step is outside the lesson")?;

@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-15, macos-15-intel]
-        group: [core, java, python, c]
+        group: [core, java, python, data, c]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     steps:
@@ -33,7 +33,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install the approved table lesson's pandas version
-        run: python -m pip install "numpy<2" "pandas==1.5.3" "matplotlib==3.11.2" "seaborn==0.13.2"
+        run: python -m pip install "numpy<2" "pandas==1.5.3" "matplotlib==3.7.1" "seaborn==0.12.1"
       - name: Use the same Python interpreter inside the player
         shell: python
         run: |
@@ -114,7 +114,7 @@ jobs:
         if: matrix.group == 'python'
         run: cargo test --locked --test player_python_conditions_native -- --ignored --test-threads=1
       - name: Drive all eight approved table and CSV steps
-        if: matrix.group == 'python'
+        if: matrix.group == 'data'
         run: cargo test --locked --test player_table_native -- --ignored --test-threads=1
       - name: Drive all six approved C reading steps
         if: matrix.group == 'c'
@@ -131,18 +131,30 @@ jobs:
       - name: Drive Java array loops
         if: matrix.group == 'java'
         run: cargo test --locked --test player_data_lessons_native java_array -- --ignored --test-threads=1
+      - name: Drive Java method calls and returns
+        if: matrix.group == 'java'
+        run: cargo test --locked --test player_data_lessons_native java_method -- --ignored --test-threads=1
       - name: Drive data selection and summaries
-        if: matrix.group == 'python'
+        if: matrix.group == 'data'
         run: cargo test --locked --test player_data_lessons_native pandas_selection -- --ignored --test-threads=1
       - name: Drive C arrays and strings
         if: matrix.group == 'c'
         run: cargo test --locked --test player_data_lessons_native c_array -- --ignored --test-threads=1
       - name: Drive missing, duplicate and unusual data cases
-        if: matrix.group == 'python'
+        if: matrix.group == 'data'
         run: cargo test --locked --test player_data_lessons_native pandas_quality -- --ignored --test-threads=1
       - name: Drive C function and recursion cases
         if: matrix.group == 'c'
         run: cargo test --locked --test player_data_lessons_native c_functions -- --ignored --test-threads=1
+      - name: Drive actual plot interpretation and mean bars
+        if: matrix.group == 'data'
+        run: cargo test --locked --test player_data_lessons_native aice_plots -- --ignored --test-threads=1
+      - name: Drive C pointer targets and copies
+        if: matrix.group == 'c'
+        run: cargo test --locked --test player_data_lessons_native engineer_c_pointers -- --ignored --test-threads=1
+      - name: Drive Java objects and reference copies
+        if: matrix.group == 'java'
+        run: cargo test --locked --test player_data_lessons_native java_references -- --ignored --test-threads=1
       - name: Reopen actual player with saved answer and progress
         if: ${{ matrix.group == 'core' && (!cancelled() && steps.build_player.outcome == 'success') }}
         run: cargo test --locked --test player_restart_native -- --ignored --test-threads=1
@@ -175,6 +187,10 @@ jobs:
             target/pilot-aice-selection-result.json
             target/pilot-java-arrays-result.json
             target/pilot-engineer-c-arrays-result.json
+            target/pilot-java-references-result.json
+            target/pilot-engineer-c-pointers-result.json
+            target/pilot-aice-plots-result.json
+            target/pilot-java-methods-result.json
             target/pilot-aice-quality-result.json
             target/pilot-engineer-c-functions-result.json
             target/public-lesson-*.json

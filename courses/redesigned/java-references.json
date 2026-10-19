@@ -1,0 +1,972 @@
+{
+  "schema_version": 2,
+  "id": "lsn_adb48fbe-fca5-40fc-a019-3e8a194630cb",
+  "revision": "java-references-1",
+  "title": "자바 · 객체와 참조를 나눠 봐요",
+  "description": "같은 재고 상자의 생성·별칭·전달·비교를 짧은 코드로 살펴봐요.",
+  "objectives": [
+    "객체와 참조·별칭·새 객체의 관계를 판단해요.",
+    "참조 값 전달·필드 변경·재대입의 차이를 이해해요.",
+    "동일성·equals 계약·final 참조와 생성자 저장을 구별해요."
+  ],
+  "sources": [
+    "https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.3.1",
+    "https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.1",
+    "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#equals(java.lang.Object)",
+    "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html#equals(java.lang.Object)",
+    "https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.12.4"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_c3462a4c-3b43-4f80-909b-8d2fb5cac17a",
+      "title": "상자를 만들고 가리켜요",
+      "objectives": [
+        "객체 생성과 참조 복사를 구별해요."
+      ],
+      "units": [
+        {
+          "id": "unt_d2df839d-1040-473e-8692-df7854bd338e",
+          "title": "같은 재고 상자의 이름",
+          "objectives": [
+            "어느 상자가 바뀌는지 판단해요."
+          ],
+          "premise": "Box는 재고 count를 담는 상자예요. new로 상자를 만들고 참조 변수로 그 상자를 가리켜요.",
+          "steps": [
+            {
+              "id": "stp_11d8ce2b-4515-41dc-acaf-0306eab44a3a",
+              "objectives": [
+                "클래스·객체·참조 변수의 역할을 구별해요."
+              ]
+            },
+            {
+              "id": "stp_f4411ab4-bf6e-43fd-a18a-db1690724cf9",
+              "objectives": [
+                "서로 다른 객체의 필드는 따로 바뀜을 이해해요."
+              ]
+            },
+            {
+              "id": "stp_5d272906-660d-4da9-9a7f-9e9beb361192",
+              "objectives": [
+                "참조 복사와 객체 복제를 구별해요."
+              ]
+            },
+            {
+              "id": "stp_7c2e5b57-b493-498b-a3a8-8b0c3f266c55",
+              "objectives": [
+                "참조 재대입과 객체 필드 변경을 구별해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_85ebe17e-8617-4ffc-8d64-8b0da41554cd",
+      "title": "참조를 메서드에 넘겨요",
+      "objectives": [
+        "참조 복사와 공유 상태 변경을 구별해요."
+      ],
+      "units": [
+        {
+          "id": "unt_096fda34-aceb-415c-a36e-883eb62ea016",
+          "title": "같은 상자를 함수에서 다뤄요",
+          "objectives": [
+            "필드 변경과 참조 재대입을 비교해요."
+          ],
+          "premise": "앞의 상자 참조를 작은 메서드로 넘겨요. 메서드 안에서 대상을 바꾼 것과 가리킬 곳을 바꾼 것을 비교해요.",
+          "steps": [
+            {
+              "id": "stp_4b5556c8-5013-4aa7-9bed-5770bbfd75cf",
+              "objectives": [
+                "참조 값의 복사로 공유 객체를 바꾸는 동작을 이해해요."
+              ]
+            },
+            {
+              "id": "stp_e1f608ae-68a8-4198-b7dd-211f78f49648",
+              "objectives": [
+                "매개변수 재대입은 호출자의 참조를 바꾸지 않음을 이해해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_900bb4eb-1396-428a-80b2-b527abd3189d",
+      "title": "내용·고정·저장을 구별해요",
+      "objectives": [
+        "객체 비교와 필드 저장의 계약을 이해해요."
+      ],
+      "units": [
+        {
+          "id": "unt_1fa4c0fc-212c-407a-ae83-7255892ab545",
+          "title": "같은 상자의 비교와 생성",
+          "objectives": [
+            "겉모양이 비슷한 코드의 의미를 검토해요."
+          ],
+          "premise": "같은 재고 상자와 상태 문자열을 비교해요. 고정할 대상과 생성자에서 저장할 필드를 구별해요.",
+          "steps": [
+            {
+              "id": "stp_efb6c090-0d5f-4330-955a-21401b7299c5",
+              "objectives": [
+                "기본 equals와 내용 비교 계약의 차이를 이해해요."
+              ]
+            },
+            {
+              "id": "stp_2cf0430f-de4a-4e82-964d-8071e83d9c72",
+              "objectives": [
+                "문자열 내용 비교에 equals를 고르는 이유를 이해해요."
+              ]
+            },
+            {
+              "id": "stp_320f2f1e-fc99-42d1-8549-b19fc9ed46b7",
+              "objectives": [
+                "final 참조와 객체 불변을 구별해요."
+              ]
+            },
+            {
+              "id": "stp_2bfb0e34-3506-4da5-8bb9-84f1bd8015f8",
+              "objectives": [
+                "같은 이름의 매개변수와 this의 필드를 구별해요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_11d8ce2b-4515-41dc-acaf-0306eab44a3a",
+      "title": "객체의 값을 읽어요",
+      "goal": "new로 재고 상자를 만들었어요.\na.count의 값을 고르세요.",
+      "language": "java",
+      "starter_code": "",
+      "solution": "two",
+      "tests": [],
+      "required": true,
+      "example_code": "// Box 하나마다 별도의 재고 필드가 있어요.\nclass Box {\n    int count;\n    Box(int initial) {\n        count = initial;\n    }\n}\n\nclass Main {\n\n    public static void main(String[] args) {\n        // 새 상자를 만들고 그 필드를 읽어요.\n        Box a = new Box(2);\n        System.out.println(a.count);\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "two",
+            "text": "2"
+          },
+          {
+            "id": "zero",
+            "text": "0"
+          }
+        ],
+        "answer": "two"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "생성자에 넘긴 이를 재고에 담았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "new Box(2)",
+          "after": "new Box(5)",
+          "say": "처음 재고를 오로 바꿔요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이번에는 새 상자에 오가 담겼어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 클래스의 형태와 실제 만든 객체는 달라요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "new Box(5)",
+          "after": "new Box(2)",
+          "say": "처음 재고로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "a를 통해 객체의 count를 읽어요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "two"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_f4411ab4-bf6e-43fd-a18a-db1690724cf9",
+      "title": "상자를 따로 만들어요",
+      "goal": "같은 클래스로 상자를 두 개 만들었어요.\nb를 고친 뒤 결과를 고르세요.",
+      "language": "java",
+      "starter_code": "",
+      "solution": "separate",
+      "tests": [],
+      "required": true,
+      "example_code": "// Box 하나마다 별도의 재고 필드가 있어요.\nclass Box {\n    int count;\n    Box(int initial) {\n        count = initial;\n    }\n}\n\nclass Main {\n\n    public static void main(String[] args) {\n        // new를 두 번 써서 상자를 따로 만들어요.\n        Box a = new Box(2);\n        Box b = new Box(7);\n        // b의 상자만 수정해요.\n        b.count = 8;\n        System.out.println(a.count);\n        System.out.println(b.count);\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "separate",
+            "text": "2 다음8"
+          },
+          {
+            "id": "shared",
+            "text": "8 다음8"
+          }
+        ],
+        "answer": "separate"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            18,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "a의 이는 남고 b만 팔이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "b.count = 8;",
+          "after": "b.count = 9;",
+          "say": "같은 b의 상자만 구로 바꿔요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            18,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "a는 여전히 이, b만 구예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 같은 클래스여도 인스턴스 필드는 따로 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "b.count = 9;",
+          "after": "b.count = 8;",
+          "say": "처음 수정값으로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            18,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "두 객체의 상태가 분리돼 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "separate"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_5d272906-660d-4da9-9a7f-9e9beb361192",
+      "title": "참조를 복사해요",
+      "goal": "b에 a를 대입한 뒤 b.count를 고쳤어요.\na.count도 바뀌었을까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "alias",
+      "tests": [],
+      "required": true,
+      "example_code": "// Box 하나마다 별도의 재고 필드가 있어요.\nclass Box {\n    int count;\n    Box(int initial) {\n        count = initial;\n    }\n}\n\nclass Main {\n\n    public static void main(String[] args) {\n        // 참조를 복사해 같은 상자를 가리켜요.\n        Box a = new Box(2);\n        Box b = a;\n        // b로 고친 뒤 a와 b로 읽어요.\n        b.count = 7;\n        System.out.println(a.count);\n        System.out.println(b.count);\n        System.out.println(a == b);\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "alias",
+            "text": "네.같은 객체의7을 읽어요"
+          },
+          {
+            "id": "copy",
+            "text": "아니요.복제본만7이에요"
+          }
+        ],
+        "answer": "alias"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "같은 상자의 칠을 두 번 읽고 동일성도 참이에요.",
+          "target": "output",
+          "diagram": {
+            "title": "같은 객체의 두 참조",
+            "rows": [
+              "a → Box ← b",
+              "Box.count: 7"
+            ]
+          }
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 참조 대입은 상자 내용을 복제하지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "alias"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_7c2e5b57-b493-498b-a3a8-8b0c3f266c55",
+      "title": "참조가 다른 곳을 가리켜요",
+      "goal": "b가 새 상자를 가리키게 됐어요.\na가 가리킨 재고는 무엇일까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "original",
+      "tests": [],
+      "required": true,
+      "example_code": "// Box 하나마다 별도의 재고 필드가 있어요.\nclass Box {\n    int count;\n    Box(int initial) {\n        count = initial;\n    }\n}\n\nclass Main {\n\n    public static void main(String[] args) {\n        // 처음에는 같은 상자를 가리켜요.\n        Box a = new Box(2);\n        Box b = a;\n        // b만 다른 상자를 가리키게 해요.\n        b = new Box(7);\n        System.out.println(a.count);\n        System.out.println(b.count);\n        System.out.println(a == b);\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "original",
+            "text": "처음 상자의2예요"
+          },
+          {
+            "id": "new",
+            "text": "새 상자의7이에요"
+          }
+        ],
+        "answer": "original"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "a는 이, b는 칠이고 서로 다른 객체예요.",
+          "target": "output",
+          "diagram": {
+            "title": "참조가 다른 객체로 이동",
+            "rows": [
+              "a → Box.count: 2",
+              "b → 다른 Box.count: 7"
+            ]
+          }
+        },
+        {
+          "action": "patch_code",
+          "before": "b = new Box(7);",
+          "after": "b = a;",
+          "say": "b가 다시 a와 같은 상자를 가리키게 해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "둘 다 이를 읽고 같은 객체라는 비교도 참이에요.",
+          "target": "output",
+          "diagram": {
+            "title": "같은 객체로 복귀",
+            "rows": [
+              "a → Box ← b",
+              "Box.count: 2"
+            ]
+          }
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 참조 재대입과 필드 변경을 구별해요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "original"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_4b5556c8-5013-4aa7-9bed-5770bbfd75cf",
+      "title": "함수에 참조 값을 넘겨요",
+      "goal": "메서드가 item.count를 올렸어요.\n돌아온 뒤 a.count의 값을 고르세요.",
+      "language": "java",
+      "starter_code": "",
+      "solution": "changed",
+      "tests": [],
+      "required": true,
+      "example_code": "// Box 하나마다 별도의 재고 필드가 있어요.\nclass Box {\n    int count;\n    Box(int initial) {\n        count = initial;\n    }\n}\n\nclass Main {\n    // 전달받은 참조로 같은 객체의 필드를 바꿔요.\n    static void add(Box item) {\n        item.count = item.count + 1;\n    }\n\n    public static void main(String[] args) {\n        // 참조 값이 매개변수로 복사돼요.\n        Box a = new Box(2);\n        add(a);\n        System.out.println(a.count);\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "changed",
+            "text": "3"
+          },
+          {
+            "id": "unchanged",
+            "text": "2"
+          }
+        ],
+        "answer": "changed"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "같은 객체의 필드를 바꿔 삼이 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "new Box(2)",
+          "after": "new Box(5)",
+          "say": "처음 상자의 재고만 오로 바꿔요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "같은 객체 변경으로 육이 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 참조도 값 전달이에요. 대상이 같아 변화가 보여요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "new Box(5)",
+          "after": "new Box(2)",
+          "say": "처음 재고로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "매개변수와 호출자가 같은 상자를 가리켜요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "changed"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_e1f608ae-68a8-4198-b7dd-211f78f49648",
+      "title": "함수 안의 참조만 바꿔요",
+      "goal": "메서드가 item에 새 객체를 대입했어요.\nmain의 a.count도99가 될까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "original",
+      "tests": [],
+      "required": true,
+      "example_code": "// Box 하나마다 별도의 재고 필드가 있어요.\nclass Box {\n    int count;\n    Box(int initial) {\n        count = initial;\n    }\n}\n\nclass Main {\n    // item이라는 지역 참조만 다른 객체를 가리키게 해요.\n    static void replace(Box item) {\n        item = new Box(99);\n    }\n\n    public static void main(String[] args) {\n        // main의 a는 처음 객체를 계속 가리켜요.\n        Box a = new Box(2);\n        replace(a);\n        System.out.println(a.count);\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "original",
+            "text": "아니요.2로 남아요"
+          },
+          {
+            "id": "new",
+            "text": "네.99가 돼요"
+          }
+        ],
+        "answer": "original"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "지역 참조만 바뀌어 main은 이를 읽어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "item = new Box(99);",
+          "after": "item.count = 99;",
+          "say": "대신 같은 객체의 필드에 값을 써요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이번에는 main에서도 구십구를 읽어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 참조를 바꾸는 것과 대상을 고치는 것은 달라요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "item.count = 99;",
+          "after": "item = new Box(99);",
+          "say": "처음처럼 지역 참조만 바꿔요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "호출자의 a는 처음 객체를 계속 가리켜요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "original"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_efb6c090-0d5f-4330-955a-21401b7299c5",
+      "title": "같은 내용과 같은 객체를 나눠요",
+      "goal": "두 상자의 숫자는 같아요.\n기본 equals도 내용을 비교할까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "identity",
+      "tests": [],
+      "required": true,
+      "example_code": "// Box 하나마다 별도의 재고 필드가 있어요.\nclass Box {\n    int count;\n    Box(int initial) {\n        count = initial;\n    }\n}\n\nclass Main {\n\n    public static void main(String[] args) {\n        // 이 Box는 equals를 새로 정의하지 않았어요.\n        Box a = new Box(2);\n        Box b = new Box(2);\n        System.out.println(a == b);\n        System.out.println(a.equals(b));\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "identity",
+            "text": "아니요.이 Box의 기본 비교는 동일 객체인지 봐요"
+          },
+          {
+            "id": "fields",
+            "text": "네.모든 필드를 자동 비교해요"
+          }
+        ],
+        "answer": "identity"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "다른 객체라 두 비교 모두 거짓이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "Box b = new Box(2);",
+          "after": "Box b = a;",
+          "say": "이번에는 같은 객체를 가리켜요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "같은 객체라 두 비교 모두 참이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. equals의 내용 비교 기준은 클래스의 계약이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "Box b = a;",
+          "after": "Box b = new Box(2);",
+          "say": "내용만 같은 별도 객체로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이 Box의 기본 동작과 내용 비교를 구별해요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "identity"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_2cf0430f-de4a-4e82-964d-8071e83d9c72",
+      "title": "문자열의 내용 비교를 읽어요",
+      "goal": "문자열은 내용이 같은지 비교하려 해요.\n어느 비교가 목적에 맞을까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "content",
+      "tests": [],
+      "required": true,
+      "example_code": "\nclass Main {\n\n    public static void main(String[] args) {\n        // 같은 내용의 문자열 객체를 따로 만들어요.\n        String a = new String(\"ready\");\n        String b = new String(\"ready\");\n        System.out.println(a == b);\n        System.out.println(a.equals(b));\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "content",
+            "text": "a.equals(b)예요"
+          },
+          {
+            "id": "identity",
+            "text": "a == b예요"
+          }
+        ],
+        "answer": "content"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "동일 객체는 아니지만 문자열 내용은 같아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "String b = new String(\"ready\");",
+          "after": "String b = new String(\"done\");",
+          "say": "b의 문자 내용만 바꿔요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이번에는 객체도 내용도 달라 두 비교가 거짓이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 문자열의 equals 계약을 다른 클래스에 그대로 가정하지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "String b = new String(\"done\");",
+          "after": "String b = new String(\"ready\");",
+          "say": "같은 문자 내용으로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "내용 비교와 객체 동일성은 다른 질문이에요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "content"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_320f2f1e-fc99-42d1-8549-b19fc9ed46b7",
+      "title": "고정한 것은 참조예요",
+      "goal": "참조 a를 final로 선언했어요.\n현재 객체의 count를 바꿀 수 있을까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "field",
+      "tests": [],
+      "required": true,
+      "example_code": "// Box 하나마다 별도의 재고 필드가 있어요.\nclass Box {\n    int count;\n    Box(int initial) {\n        count = initial;\n    }\n}\n\nclass Main {\n\n    public static void main(String[] args) {\n        // final은 a에 다른 참조를 다시 넣지 못하게 해요.\n        final Box a = new Box(2);\n        // 현재 객체의 허용된 필드 변경은 가능해요.\n        a.count = 3;\n        System.out.println(a.count);\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "field",
+            "text": "네.이 필드 변경은 가능해요"
+          },
+          {
+            "id": "frozen",
+            "text": "아니요.모든 객체 상태가 고정돼요"
+          }
+        ],
+        "answer": "field"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "현재 상자의 재고가 삼으로 바뀌었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 고정한 참조와 불변 객체는 다른 말이에요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "field"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_2bfb0e34-3506-4da5-8bb9-84f1bd8015f8",
+      "title": "생성자에서 필드에 담아요",
+      "goal": "생성자에2를 줬지만 필드에는0이 남아요.\n왼쪽 대상을 this.count로 고치세요.",
+      "language": "java",
+      "starter_code": "// 필드와 매개변수가 같은 이름인 생성자예요.\nclass Box {\n    int count;\n    Box(int count) {\n        // 지금은 매개변수에 같은 값을 다시 넣고 있어요.\n        count = count;\n    }\n}\n\nclass Main {\n\n    public static void main(String[] args) {\n        // 전달한 숫자가 필드에 들어가도록 고치세요.\n        int initial = 2;\n        Box a = new Box(initial);\n        System.out.println(a.count);\n    }\n}\n",
+      "solution": "// 필드와 매개변수가 같은 이름인 생성자예요.\nclass Box {\n    int count;\n    Box(int count) {\n        // 지금은 매개변수에 같은 값을 다시 넣고 있어요.\n        this.count = count;\n    }\n}\n\nclass Main {\n\n    public static void main(String[] args) {\n        // 전달한 숫자가 필드에 들어가도록 고치세요.\n        int initial = 2;\n        Box a = new Box(initial);\n        System.out.println(a.count);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "2"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "필드에 쓰지 않아 기본값 영이 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        count = count;",
+          "after": "        this.count = count;",
+          "say": "현재 객체의 필드에 매개변수 값을 넣어요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이제 객체의 재고에 이가 저장됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 같은 이름이면 어느 변수에 쓰는지 구별해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "initial = 2;",
+          "after": "initial = 5;",
+          "say": "다른 초기값 오도 확인해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이번에는 필드에 오가 저장됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "initial = 5;",
+          "after": "initial = 2;",
+          "say": "처음 값으로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "this로 필드와 매개변수를 나눠 해결했어요.",
+          "target": "output"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "initial": "0"
+          },
+          "expected": "0"
+        },
+        {
+          "values": {
+            "initial": "5"
+          },
+          "expected": "5"
+        },
+        {
+          "values": {
+            "initial": "9"
+          },
+          "expected": "9"
+        }
+      ]
+    }
+  ]
+}

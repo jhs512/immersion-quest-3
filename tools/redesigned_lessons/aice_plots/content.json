@@ -1,0 +1,743 @@
+{
+  "description": "같은 배송표의 그림을 바꾸며 통계·분모·표시의 의미를 확인해요.",
+  "tasks": [
+    {
+      "id": "stp_7b5e40c5-b3eb-4c86-a29e-afceacc720d4",
+      "title": "막대가 세는 것을 읽어요",
+      "goal": "같은 표에서 지역별 막대를 그렸어요.\n지금 높이는 무엇을 나타낼까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "count",
+      "tests": [],
+      "required": true,
+      "example_code": "import pandas as pd\nimport seaborn as sns\nimport matplotlib.pyplot as plt\n\n# 같은 배송표에서 개수와 측정값을 나눠 봐요.\ndata = {\"region\": [\"north\", \"north\", \"south\", \"south\"], \"minutes\": [10, 20, 30, 50], \"distance\": [1, 2, 3, 4]}\ndf = pd.DataFrame(data)\n# 순서를 고정하고 실제 막대 높이도 읽어요.\nax = sns.countplot(data=df, x=\"region\", order=[\"north\", \"south\"])\nprint([round(float(p.get_height()), 5) for p in ax.patches])\nplt.show()\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "count",
+            "text": "지역별 배송 개수예요"
+          },
+          {
+            "id": "mean",
+            "text": "지역별 평균 시간이에요"
+          }
+        ],
+        "answer": "count"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "두 지역의 배송은 각각 두 개예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 시간 열이 있어도 이 그림은 개수를 세요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "count"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_e057e76a-a2ed-4edd-ae7c-6450c000b849",
+      "title": "같은 표에서 평균을 봐요",
+      "goal": "시간 열을 y에 연결했어요.\n이번 막대가 나타내는 값을 고르세요.",
+      "language": "python",
+      "starter_code": "",
+      "solution": "mean",
+      "tests": [],
+      "required": true,
+      "example_code": "import pandas as pd\nimport seaborn as sns\nimport matplotlib.pyplot as plt\n\n# 같은 배송표에서 개수와 측정값을 나눠 봐요.\ndata = {\"region\": [\"north\", \"north\", \"south\", \"south\"], \"minutes\": [10, 20, 30, 50], \"distance\": [1, 2, 3, 4]}\ndf = pd.DataFrame(data)\n# 순서를 고정하고 실제 막대 높이도 읽어요.\nax = sns.barplot(data=df, x=\"region\", y=\"minutes\", order=[\"north\", \"south\"], errorbar=None)\nprint([round(float(p.get_height()), 5) for p in ax.patches])\nplt.show()\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "mean",
+            "text": "평균 시간15와40이에요"
+          },
+          {
+            "id": "count",
+            "text": "배송 개수2와2예요"
+          }
+        ],
+        "answer": "mean"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이번 높이는 십오와 사십으로 평균 시간이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. barplot의 기본 통계는 합계가 아닌 평균이에요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "mean"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_47832dfe-6f32-417e-8567-89ecaa5c5c80",
+      "title": "구간에 나눠 세어요",
+      "goal": "시간을 두 구간으로 나눴어요.\n20은 어느 쪽 구간에 들어갈까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "right",
+      "tests": [],
+      "required": true,
+      "example_code": "import pandas as pd\nimport seaborn as sns\nimport matplotlib.pyplot as plt\n\n# 같은 배송표에서 개수와 측정값을 나눠 봐요.\ndata = {\"region\": [\"north\", \"north\", \"south\", \"south\"], \"minutes\": [10, 20, 30, 50], \"distance\": [1, 2, 3, 4]}\ndf = pd.DataFrame(data)\n# 첫 구간은 0이상20미만, 다음은 20이상60이하예요.\ncounts, edges, bars = plt.hist(df[\"minutes\"], bins=[0, 20, 60])\nprint(counts.tolist())\nplt.show()\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "right",
+            "text": "20이상60이하 구간이에요"
+          },
+          {
+            "id": "both",
+            "text": "두 구간에 모두 들어가요"
+          }
+        ],
+        "answer": "right"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "첫 구간 하나, 다음 구간 세 개예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "[10, 20, 30, 50]",
+          "after": "[10, 19, 30, 50]",
+          "say": "경계의 이십만 십구로 바꿔요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이번에는 두 구간에 각각 두 개예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 마지막 구간만 오른쪽 끝도 포함해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "[10, 19, 30, 50]",
+          "after": "[10, 20, 30, 50]",
+          "say": "처음 경계 값으로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "같은 관측을 두 구간에 중복해서 세지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "right"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_f3cd7df9-114e-4929-b956-7be6fa044909",
+      "title": "높이와 면적을 구별해요",
+      "goal": "이번에는 개수 대신 밀도를 그렸어요.\n전체에서1이 되는 것은 무엇일까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "area",
+      "tests": [],
+      "required": true,
+      "example_code": "import pandas as pd\nimport seaborn as sns\nimport matplotlib.pyplot as plt\n\n# 같은 배송표에서 개수와 측정값을 나눠 봐요.\ndata = {\"region\": [\"north\", \"north\", \"south\", \"south\"], \"minutes\": [10, 20, 30, 50], \"distance\": [1, 2, 3, 4]}\ndf = pd.DataFrame(data)\n# 폭이 다른 두 구간에서 밀도와 면적을 나눠 봐요.\nheights, edges, bars = plt.hist(df[\"minutes\"], bins=[0, 20, 60], density=True)\nprint(heights.tolist())\nprint(round(sum(float(h) * float(b-a) for h, a, b in zip(heights, edges[:-1], edges[1:])), 5))\nplt.show()\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "area",
+            "text": "막대의 너비와 높이를 곱한 면적 합이에요"
+          },
+          {
+            "id": "height",
+            "text": "막대 높이의 합이에요"
+          }
+        ],
+        "answer": "area"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "높이는 다르지만 너비를 곱한 면적 합은 일이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "density=True",
+          "after": "density=False",
+          "say": "개수 그림과도 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "높이는 일과 삼이고 너비를 곱한 합은 백사십이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 밀도 높이만으로 확률이나 개수를 읽지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "density=False",
+          "after": "density=True",
+          "say": "밀도 그림으로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "너비를 함께 읽어야 면적 합 일이 보여요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "area"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_dec3abb2-9301-43c9-be23-39c999ce7beb",
+      "title": "비율의 분모를 확인해요",
+      "goal": "전체 관측을 분모로 지역을 나눴어요.\n각 그룹을 따로 정규화하면 어떨까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "group",
+      "tests": [],
+      "required": true,
+      "example_code": "import pandas as pd\nimport seaborn as sns\nimport matplotlib.pyplot as plt\n\n# 같은 배송표에서 개수와 측정값을 나눠 봐요.\ndata = {\"region\": [\"north\", \"north\", \"south\", \"south\"], \"minutes\": [10, 20, 30, 50], \"distance\": [1, 2, 3, 4]}\ndf = pd.DataFrame(data)\n# 한 구간에 지역별 관측 비율을 나눠 그려요.\nax = sns.histplot(data=df, x=\"minutes\", hue=\"region\", bins=[0, 60], stat=\"probability\", multiple=\"dodge\", common_norm=True)\nprint(sorted(round(float(p.get_height()), 5) for p in ax.patches))\nplt.show()\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "group",
+            "text": "각 그룹 안에서1씩이 돼요"
+          },
+          {
+            "id": "same",
+            "text": "항상0.5씩이에요"
+          }
+        ],
+        "answer": "group"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "전체 네 개 중 각각 둘이라 영 점 오씩이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "common_norm=True",
+          "after": "common_norm=False",
+          "say": "그룹마다 자기 관측을 분모로 삼아요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "각 지역의 관측이 모두 한 구간에 있어 일씩이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 비율은 무엇을 분모로 했는지 확인해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "common_norm=False",
+          "after": "common_norm=True",
+          "say": "공통 분모로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "같은 표라도 비율의 질문이 달라져요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "group"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_9c37861b-82de-44dd-99a7-ebd4e716e5ff",
+      "title": "겹친 점도 자료예요",
+      "goal": "첫 두 배송의 거리와 시간이 같아요.\n점 위치3개만 보이면 배송도3개일까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "overlap",
+      "tests": [],
+      "required": true,
+      "example_code": "import pandas as pd\nimport seaborn as sns\nimport matplotlib.pyplot as plt\n\n# 같은 배송표에서 개수와 측정값을 나눠 봐요.\ndata = {\"region\": [\"north\", \"north\", \"south\", \"south\"], \"minutes\": [10, 10, 20, 30], \"distance\": [1, 1, 2, 3]}\ndf = pd.DataFrame(data)\n# 첫 두 배송은 같은 좌표에 겹쳐요.\nax = sns.scatterplot(data=df, x=\"distance\", y=\"minutes\", alpha=0.5)\nprint(len(ax.collections[0].get_offsets()))\nprint(len(df.drop_duplicates(subset=[\"distance\", \"minutes\"])))\nplt.show()\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "overlap",
+            "text": "아니요.4개 관측이3곳에 겹쳐요"
+          },
+          {
+            "id": "three",
+            "text": "네.자료도3개예요"
+          }
+        ],
+        "answer": "overlap"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "관측은 네 개이고 서로 다른 좌표는 세 개예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 점은 겹칠 수 있어요. 행수도 확인해요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "함께 늘어나는 모양만으로 원인이라고 확정하진 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "overlap"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_2d3886de-c0ca-44f4-b427-480c7675db90",
+      "title": "표시를 숨겨도 행은 남아요",
+      "goal": "후보 점을 그림에서 숨겼어요.\n원래 시간100도 삭제됐을까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "kept",
+      "tests": [],
+      "required": true,
+      "example_code": "import pandas as pd\nimport seaborn as sns\nimport matplotlib.pyplot as plt\n\n# 같은 배송표에서 개수와 측정값을 나눠 봐요.\ndata = {\"region\": [\"north\", \"north\", \"south\", \"south\"], \"minutes\": [10, 20, 30, 50], \"distance\": [1, 2, 3, 4]}\ndf = pd.DataFrame(data)\n# 이 배송 시간 다섯 개는 정상 관측으로 확인했어요.\nminutes = [10, 11, 12, 13, 100]\nplt.boxplot(minutes, showfliers=False)\nprint(len(minutes), max(minutes))\nplt.show()\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "kept",
+            "text": "아니요.5개 자료와100이 남아요"
+          },
+          {
+            "id": "removed",
+            "text": "네.100이 삭제됐어요"
+          }
+        ],
+        "answer": "kept"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "자료는 다섯 개이고 최댓값 백도 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "showfliers=False",
+          "after": "showfliers=True",
+          "say": "숨겼던 후보 점을 표시해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "표시만 바뀌고 다섯 개와 백은 같아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 표시를 숨기는 것과 행 삭제는 달라요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "showfliers=True",
+          "after": "showfliers=False",
+          "say": "처음 표시 설정으로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "그림 설정은 원자료를 지우지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "kept"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_772a6640-96bb-4784-a2d5-c0372575a277",
+      "title": "색칠 전에 무엇을 계산했나요",
+      "goal": "표를 heatmap에 넘겼어요.\n자동으로 상관계수가 계산됐을까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "raw",
+      "tests": [],
+      "required": true,
+      "example_code": "import pandas as pd\nimport seaborn as sns\nimport matplotlib.pyplot as plt\n\n# 같은 배송표에서 개수와 측정값을 나눠 봐요.\ndata = {\"region\": [\"north\", \"north\", \"south\", \"south\"], \"minutes\": [10, 20, 30, 50], \"distance\": [1, 2, 3, 4]}\ndf = pd.DataFrame(data)\n# 원시값 표를 그대로 색칠한 상태예요.\nmatrix = df[[\"distance\", \"minutes\"]]\nsns.heatmap(matrix, annot=True)\nprint(matrix.shape)\nplt.show()\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "raw",
+            "text": "아니요.넘긴 원시값 표를 색칠해요"
+          },
+          {
+            "id": "corr",
+            "text": "네.항상 상관계수를 계산해요"
+          }
+        ],
+        "answer": "raw"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "네 행 두 열의 원시값 표예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "matrix = df[[\"distance\", \"minutes\"]]",
+          "after": "matrix = df[[\"distance\", \"minutes\"]].corr()",
+          "say": "먼저 상관계수를 계산한 표를 넘겨요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이번에는 두 변수 사이의 두 행 두 열 표예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 그림 함수와 입력 표의 계산은 별개예요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "raw"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_23611ddd-8d1c-4cbc-ae80-a65feaaa3961",
+      "title": "축 이름으로 내용을 검토해요",
+      "goal": "평균 시간 막대인데 세로축 이름은 Orders예요.\n무엇을 고쳐야 할까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "label",
+      "tests": [],
+      "required": true,
+      "example_code": "import pandas as pd\nimport seaborn as sns\nimport matplotlib.pyplot as plt\n\n# 같은 배송표에서 개수와 측정값을 나눠 봐요.\ndata = {\"region\": [\"north\", \"north\", \"south\", \"south\"], \"minutes\": [10, 20, 30, 50], \"distance\": [1, 2, 3, 4]}\ndf = pd.DataFrame(data)\n# 순서를 고정하고 실제 막대 높이도 읽어요.\nax = sns.barplot(data=df, x=\"region\", y=\"minutes\", order=[\"north\", \"south\"], errorbar=None)\nax.set_ylabel(\"Orders\")\nprint(ax.get_ylabel())\nprint([round(float(p.get_height()), 5) for p in ax.patches])\nplt.show()\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "label",
+            "text": "실제 통계에 맞게 축 이름을 고쳐요"
+          },
+          {
+            "id": "count",
+            "text": "이름이Orders라 개수 그림이 맞아요"
+          }
+        ],
+        "answer": "label"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "축 이름은 Orders지만 높이는 평균 시간이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "set_ylabel(\"Orders\")",
+          "after": "set_ylabel(\"Minutes\")",
+          "say": "평균 시간에 맞는 축 이름으로 고쳐요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이름만 Minutes로 바뀌고 평균 높이는 같아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 축 이름만 바꿔도 통계가 바뀌진 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "label"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_b93b2586-1bfa-4518-affd-b07dac59dadc",
+      "title": "주문 수가 아닌 평균을 그려요",
+      "goal": "지역별 평균 배송 시간을 비교하려 해요.\n개수를 그리는 호출 한 곳을 고치세요.",
+      "language": "python",
+      "starter_code": "import pandas as pd\nimport seaborn as sns\nimport matplotlib.pyplot as plt\n\n# 같은 배송표에서 개수와 측정값을 나눠 봐요.\ndata = {\"region\": [\"north\", \"north\", \"south\", \"south\"], \"minutes\": [10, 20, 30, 50], \"distance\": [1, 2, 3, 4]}\ndf = pd.DataFrame(data)\n# 순서를 고정하고 실제 막대 높이도 읽어요.\nax = sns.countplot(data=df, x=\"region\", order=[\"north\", \"south\"])\nprint([round(float(p.get_height()), 5) for p in ax.patches])\nplt.show()\n",
+      "solution": "import pandas as pd\nimport seaborn as sns\nimport matplotlib.pyplot as plt\n\n# 같은 배송표에서 개수와 측정값을 나눠 봐요.\ndata = {\"region\": [\"north\", \"north\", \"south\", \"south\"], \"minutes\": [10, 20, 30, 50], \"distance\": [1, 2, 3, 4]}\ndf = pd.DataFrame(data)\n# 순서를 고정하고 실제 막대 높이도 읽어요.\nax = sns.barplot(data=df, x=\"region\", y=\"minutes\", order=[\"north\", \"south\"], errorbar=None)\nprint([round(float(p.get_height()), 5) for p in ax.patches])\nplt.show()\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[15.0, 40.0]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "지금은 지역별 배송 개수 둘씩이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "sns.countplot(data=df, x=\"region\", order=[\"north\", \"south\"])",
+          "after": "sns.barplot(data=df, x=\"region\", y=\"minutes\", order=[\"north\", \"south\"], errorbar=None)",
+          "say": "시간 열의 평균을 그리는 호출로 바꿔요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이번에는 평균 십오와 사십이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 숫자만 출력하지 말고 실제 막대도 바꿔야 해요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\noriginal = ast.parse(Path('main.py').read_text(encoding='utf-8'))\ncases = json.loads('[{\"data\": {\"region\": [\"north\", \"north\", \"south\"], \"minutes\": [10, 20, 90], \"distance\": [1, 2, 3]}, \"heights\": [15, 90], \"labels\": [\"north\", \"south\"]}, {\"data\": {\"region\": [\"north\", \"south\", \"south\"], \"minutes\": [8, 12, 20], \"distance\": [1, 2, 3]}, \"heights\": [8, 16], \"labels\": [\"north\", \"south\"]}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    assignments = [node for node in tree.body if isinstance(node, ast.Assign)\n                   and any(isinstance(t, ast.Name) and t.id == 'data' for t in node.targets)]\n    if len(assignments) != 1:\n        raise AssertionError('준비된 data 이름은 그대로 두세요.')\n    assignments[0].value = ast.parse(repr(case['data']), mode='eval').body\n    ast.fix_missing_locations(tree)\n    setup = \"import matplotlib; matplotlib.use('Agg')\\nimport matplotlib.pyplot as plt\\nplt.show = lambda *args, **kwargs: None\\n\"\n    probe = \"\\nassert len(plt.get_fignums()) == 1, '그림 하나를 그리세요.'\\nax = plt.gcf().axes[0]\\nactual = [float(p.get_height()) for p in ax.patches]\\nexpected = \" + repr(case['heights']) + \"\\nassert len(actual) == len(expected) and all(abs(a-b) < 1e-8 for a,b in zip(actual,expected)), '막대가 나타내는 값을 확인하세요.'\\nassert [t.get_text() for t in ax.get_xticklabels()] == \" + repr(case['labels']) + \"\\n\"\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', setup + ast.unparse(tree) + probe],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=20)\n    if result.returncode:\n        raise AssertionError('다른 준비 자료의 실제 막대 높이도 확인하세요.\\n' + result.stderr[-1500:])\nprint('실제 막대와 다른 준비 자료도 확인했어요.')\n"
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "개수·평균·밀도·그룹 비율을 구별해요.",
+      "그림 표시와 원자료 처리의 차이를 판단해요.",
+      "질문에 맞는 축·통계를 골라 실제 그림으로 검증해요."
+    ],
+    "chapters": {
+      "chp_9fce2048-296a-4ca4-a8d2-f877fe032ff0": [
+        "개수·평균·구간을 구별해요."
+      ],
+      "chp_b26c689a-06ce-449a-8040-aaa1737be644": [
+        "밀도·분모·겹침을 구별해요."
+      ],
+      "chp_f2b73aaf-6c2b-4b81-bddf-86334c23a2ac": [
+        "표시·입력·축과 실제 통계를 검증해요."
+      ]
+    },
+    "units": {
+      "unt_b1de17aa-b8fe-4350-bd8a-ef7249df7be0": {
+        "objectives": [
+          "막대가 무엇을 나타내는지 읽어요."
+        ],
+        "premise": "같은 네 배송의 지역은 north,north,south,south예요. 시간은10,20,30,50이고 거리는1,2,3,4예요."
+      },
+      "unt_b1e17380-d9a2-4ea2-9f7f-ec5655978638": {
+        "objectives": [
+          "높이와 행수가 다른 이유를 판단해요."
+        ],
+        "premise": "앞의 배송표를 이어서 봐요. 각 스텝에서 정규화 기준이나 겹친 관측만 바꿔요."
+      },
+      "unt_f70c5133-5966-4336-ab84-791a33754ae4": {
+        "objectives": [
+          "그림을 보고 그럴듯한 설명을 검토해요."
+        ],
+        "premise": "배송표를 보고서에 담아요. 정상 극단값을 포함한 사례와 축 이름을 검토한 뒤 평균 보고서를 고쳐요."
+      }
+    }
+  }
+}

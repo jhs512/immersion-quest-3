@@ -76,6 +76,26 @@ pub fn PilotPlayer() -> Element {
             let tasks=&lesson["tasks"];
             let config=serde_json::json!({"label":"Data quality","version":"y","revision":"aice-quality-1","tasks":tasks,"modifications":{"3":{"source":tasks[3]["starter_code"].as_str().unwrap().replace("fillna(0)","fillna(99)")},"6":{"correct":true},"9":{"correct":true}}});
             format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("engineer-c-pointers") {
+            let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/engineer-c-pointers.json")).expect("compiled lesson");
+            let tasks=&lesson["tasks"];
+            let config=serde_json::json!({"label":"CPointers","version":"1","revision":"engineer-c-pointers-1","modifications":{"1":{"correct":true},"5":{"correct":true},"9":{"correct":true}},"tasks":tasks});
+            format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("aice-plots") {
+            let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/aice-plots.json")).expect("compiled lesson");
+            let tasks=&lesson["tasks"];
+            let config=serde_json::json!({"label":"AICEPlots","requirePlot":true,"version":"2","revision":"aice-plots-1","modifications":{"1":{"correct":true},"5":{"correct":true},"9":{"correct":true}},"tasks":tasks});
+            format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("java-references") {
+            let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/java-references.json")).expect("compiled lesson");
+            let tasks=&lesson["tasks"];
+            let config=serde_json::json!({"label":"JavaReferences","version":"3","revision":"java-references-1","modifications":{"1":{"correct":true},"5":{"correct":true},"9":{"correct":true}},"tasks":tasks});
+            format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("java-methods") {
+            let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/java-methods.json")).expect("compiled lesson");
+            let tasks=&lesson["tasks"];
+            let config=serde_json::json!({"label":"Java methods","version":"0","revision":"java-methods-1","tasks":tasks,"modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}}});
+            format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("engineer-c-functions") {
             let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/engineer-c-functions.json")).expect("compiled lesson");
             let tasks=&lesson["tasks"];
@@ -113,7 +133,7 @@ pub fn PilotPlayer() -> Element {
     rsx! {
         aside { class: "pilot-toolbar", aria_label: "개발 검증 도구",
             span { "개발 검증 전용 · 외부 계정 기록 없음" }
-            for version in ['a', 'b', 'c', 'd', 'e', 'f', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'] {
+            for version in ['a', 'b', 'c', 'd', 'e', 'f', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '0'] {
                 button { onclick: move |_| {
                     match pilot_source::set_version(version) {
                         Ok(()) => {

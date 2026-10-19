@@ -41,3 +41,19 @@ fn pandas_quality_cases_restore_student_state() {verify("aice-quality",10)}
 #[test]
 #[ignore="Requires an interactive desktop, a C compiler and the built player"]
 fn c_functions_and_recursion_restore_student_state() {verify("engineer-c-functions",10)}
+
+#[test]
+#[ignore="Requires an interactive desktop, JDK25 and the built player"]
+fn java_method_calls_and_returns_restore_student_state() {verify("java-methods",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_c_pointers_restore_student_state() {verify("engineer-c-pointers",10)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn aice_plots_restore_student_state() {verify("aice-plots",10)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn java_references_restore_student_state() {verify("java-references",10)}
