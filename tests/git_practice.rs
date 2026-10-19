@@ -62,7 +62,7 @@ fn real_platform_shell_runs_git_and_grading_does_not_satisfy_command_goals() {
     let deadline=std::time::Instant::now()+std::time::Duration::from_secs(30);
     while std::time::Instant::now()<deadline {
         while let Ok(bytes)=output.try_recv(){seen.push_str(&String::from_utf8_lossy(&bytes));let reports=seen.matches("\x1b[6n").count();while cursor_reports<reports{shell.input("\x1b[1;1R").unwrap();cursor_reports+=1;}}
-        if !sent&&(!cfg!(windows)||seen.contains("PS ")){shell.input("git status --porcelain\r").unwrap();sent=true;}
+        if !sent&&(!cfg!(windows)||seen.contains("> ")){shell.input("git status --porcelain\r").unwrap();sent=true;}
         if sent&&practice.commands_satisfied().unwrap(){break;}
         std::thread::sleep(std::time::Duration::from_millis(30));
     }
@@ -108,11 +108,14 @@ fn closing_practice_stops_its_background_child_but_keeps_an_outside_process() {
     #[cfg(windows)] external.creation_flags(0x08000000);
     let mut external=external.spawn().unwrap();
     let practice=GitPractice::new(GitExercise::default()).unwrap();let (mut shell,mut output)=practice.open_terminal().unwrap();
-    let command=if cfg!(windows){format!("Start-Process powershell.exe -WindowStyle Hidden -ArgumentList '-NoProfile','-File','\"{}\"'\r",owned_script.display())}else{format!("nohup /bin/sh '{}' >/dev/null 2>&1 &\r",owned_script.display())};
+    // This test has a minimal VT responder, rather than a screen renderer.
+    // Keep its command on one terminal line; native UI tests cover wrapping.
+    #[cfg(windows)] std::fs::copy(&owned_script,practice.work().join("owned.ps1")).unwrap();
+    let command=if cfg!(windows){"Start-Process powershell.exe -WindowStyle Hidden '-NoProfile -File owned.ps1'\r".to_owned()}else{format!("nohup /bin/sh '{}' >/dev/null 2>&1 &\r",owned_script.display())};
     let mut seen=String::new();let mut cursor_reports=0usize;let mut sent=false;let deadline=std::time::Instant::now()+std::time::Duration::from_secs(30);
     while std::time::Instant::now()<deadline {
         while let Ok(bytes)=output.try_recv(){seen.push_str(&String::from_utf8_lossy(&bytes));let reports=seen.matches("\x1b[6n").count();while cursor_reports<reports{shell.input("\x1b[1;1R").unwrap();cursor_reports+=1;}}
-        if !sent&&(!cfg!(windows)||seen.contains("PS ")){shell.input(&command).unwrap();sent=true;}
+        if !sent&&(!cfg!(windows)||seen.contains("> ")){shell.input(&command).unwrap();sent=true;}
         if ready.exists(){break;}std::thread::sleep(std::time::Duration::from_millis(30));
     }
     assert!(ready.exists(),"background process must actually start: {seen}");
