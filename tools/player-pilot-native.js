@@ -393,14 +393,14 @@
     await wait(() => document.querySelector('#app-fullscreen-toggle').dataset.fullscreen==='false','terminal fullscreen return');
     terminalInput.dispatchEvent(fullscreenKey());
     await wait(() => document.querySelector('#app-fullscreen-toggle').dataset.fullscreen==='true','terminal fullscreen toggle');
-    mq3GitTerminal.command(navigator.platform.toLowerCase().includes('win')?"Write-Output '한글 연결 확인'":"printf '한글 연결 확인\\n'");
+    mq3GitTerminal.command(navigator.platform.toLowerCase().includes('win')?"[Console]::WriteLine('한글 연결 확인')":"printf '한글 연결 확인\\n'");
     await wait(() => mq3GitTerminal.text().split('\n').some(line=>line.trim()==='한글 연결 확인'),'terminal UTF-8 round trip');
     await click('gh 준비 검증');
     await wait(() => document.querySelector('[aria-label="설정 터미널 입력"]')&&!button('로그인 상태 확인').disabled,'existing gh setup terminal');
     await wait(() => /PS |[$%#] /m.test(mq3SetupTerminal.text()),'setup shell prompt',45000);
     const card=document.querySelector('.gh-setup-card').getBoundingClientRect();
     if(Math.abs(card.left+card.width/2-viewportWidth()/2)>4)throw new Error('gh setup is not horizontally centered');
-    mq3SetupTerminal.command(navigator.platform.toLowerCase().includes('win')?"Write-Output '설정 터미널 확인'":"printf '설정 터미널 확인\\n'");
+    mq3SetupTerminal.command(navigator.platform.toLowerCase().includes('win')?"[Console]::WriteLine('설정 터미널 확인')":"printf '설정 터미널 확인\\n'");
     await wait(() => mq3SetupTerminal.text().split('\n').some(line=>line.trim()==='설정 터미널 확인'),'gh real terminal output');
     await click('준비 완료 · 연결 확인');
     checked.push('panel handles resize, terminal shortcut/UTF-8 work, and centered existing gh setup runs a real shell');
@@ -511,6 +511,6 @@
 
     dioxus.send({passed: true, checked, gitLayoutViewport:window.mq3GitLayoutViewport, userAgent: navigator.userAgent, viewport: {width: innerWidth, height: innerHeight}});
   } catch (error) {
-    dioxus.send({passed: false, checked, error: String(error), editorState: editorState(), screen: document.body.innerText.slice(0, 4000)});
+    dioxus.send({passed: false, checked, error: String(error), editorState: editorState(), terminalState:{git:window.mq3GitTerminal?.text(),setup:window.mq3SetupTerminal?.text()}, screen: document.body.innerText.slice(0, 4000)});
   }
 })();
