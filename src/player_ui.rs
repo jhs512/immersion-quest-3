@@ -60,7 +60,7 @@ pub fn RepositoryPlayer()->Element {
         {updates}
         div {class:if session().is_none(){"repository-player needs-gh"}else{"repository-player"},
             header {class:"repository-header",h1 {"몰입 퀘스트 3"}
-                if let Some(s)=session() {div {span {"gh · @{s.user.login}"}button {disabled:busy(),onclick:move |_|connect(),"gh 계정 다시 확인"}}}
+                if let Some(s)=session() {div {class:"repository-account",span {"gh · @{s.user.login}"}button {disabled:busy(),onclick:move |_|connect(),"gh 계정 다시 확인"}}}
             }
             if session().is_none() {
                 crate::gh_setup_ui::GhSetup {message:message(),checking:!checked(),onretry:move |_|{spawn(connect());}}
