@@ -98,7 +98,7 @@ fn closing_practice_stops_its_background_child_but_keeps_an_outside_process() {
     let outside=tempfile::tempdir().unwrap();let ready=outside.path().join("owned-ready");let leaked=outside.path().join("owned-leaked");let safe=outside.path().join("outside-alive");
     let extension=if cfg!(windows){"ps1"}else{"sh"};let owned_script=outside.path().join(format!("owned.{extension}"));let safe_script=outside.path().join(format!("outside.{extension}"));
     let script=|started:Option<&std::path::Path>,output:&std::path::Path|{
-        if cfg!(windows) {format!("{}Start-Sleep -Seconds 3;Set-Content -LiteralPath '{}' alive",started.map(|path|format!("Set-Content -LiteralPath '{}' ready;",path.display())).unwrap_or_default(),output.display())}
+        if cfg!(windows) {format!("{}[System.Threading.Thread]::Sleep(3000);[System.IO.File]::WriteAllText('{}','alive')",started.map(|path|format!("[System.IO.File]::WriteAllText('{}','ready');",path.display())).unwrap_or_default(),output.display())}
         else {format!("{}sleep 3;printf alive > '{}'",started.map(|path|format!("printf ready > '{}';",path.display())).unwrap_or_default(),output.display())}
     };
     std::fs::write(&owned_script,script(Some(&ready),&leaked)).unwrap();std::fs::write(&safe_script,script(None,&safe)).unwrap();
@@ -120,9 +120,12 @@ fn closing_practice_stops_its_background_child_but_keeps_an_outside_process() {
         // A direct CreateProcess descendant is the lifetime contract under
         // test. ShellExecute (Start-Process's default) may use a broker and a
         // separate console on a hosted runner, outside that contract.
-        let launcher=format!("$psi=New-Object System.Diagnostics.ProcessStartInfo;$psi.FileName=(Join-Path $PSHOME 'powershell.exe');$psi.Arguments='-NoProfile -EncodedCommand {}';$psi.UseShellExecute=$false;$psi.CreateNoWindow=$true;$owned=[System.Diagnostics.Process]::Start($psi);Write-Output ('MQ3 child '+$owned.Id)",encoded(script(Some(&ready),&leaked)));
+        // No module autoload is needed in either shell. The intentionally empty
+        // practice profile must not turn a process-lifetime test into a test of
+        // the hosted machine's first PowerShell module-cache initialization.
+        let launcher=format!("$psi=[System.Diagnostics.ProcessStartInfo]::new();$psi.FileName=$PSHOME+'\\powershell.exe';$psi.Arguments='-NoProfile -EncodedCommand {}';$psi.UseShellExecute=$false;$psi.CreateNoWindow=$true;$owned=[System.Diagnostics.Process]::Start($psi)",encoded(script(Some(&ready),&leaked)));
         environment.push(("MQ3_BG".into(),launcher));
-        "iex $env:MQ3_BG".to_string()
+        "&([scriptblock]::Create($env:MQ3_BG))".to_string()
     }else{format!("nohup /bin/sh '{}' >/dev/null 2>&1 &\r",owned_script.display())};
     let (mut shell,mut output)=molip_quest::setup_terminal::SetupTerminal::open_practice(&practice.work(),&environment).unwrap();
     let mut seen=String::new();let mut cursor_reports=0usize;let mut sent=false;let mut submitted=false;let deadline=std::time::Instant::now()+std::time::Duration::from_secs(30);
