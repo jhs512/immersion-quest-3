@@ -27,7 +27,7 @@ do {
  try task.run();let pid=task.processIdentifier;report["pid"]=pid
  let app=AXUIElementCreateApplication(pid)
  func owned()throws {guard NSWorkspace.shared.frontmostApplication?.processIdentifier==pid else{throw NSError(domain:"Owned test app lost foreground; event cancelled",code:3)}}
- func key(_ code:CGKeyCode,_ command:Bool=false)throws {try owned();for down in [true,false] {guard let event=CGEvent(keyboardEventSource:nil,virtualKey:code,keyDown:down) else{throw NSError(domain:"CGEvent creation",code:4)};event.flags=command ? .maskCommand:[];event.post(tap:.cghidEventTap)};Thread.sleep(forTimeInterval:0.2)}
+ func key(_ code:CGKeyCode,_ command:Bool=false,_ control:Bool=false)throws {try owned();for down in [true,false] {guard let event=CGEvent(keyboardEventSource:nil,virtualKey:code,keyDown:down) else{throw NSError(domain:"CGEvent creation",code:4)};event.flags=command ? .maskCommand:[];if control {event.flags.insert(.maskControl)};event.post(tap:.cghidEventTap)};Thread.sleep(forTimeInterval:0.2)}
  try wait("catalog"){NSRunningApplication(processIdentifier:pid)?.activate(options:[.activateIgnoringOtherApps]);return nodes(app).contains{text($0).contains("학습 시작")}}
  guard let start=nodes(app).first(where:{text($0).contains("학습 시작") && (attr($0,kAXRoleAttribute) as? String)==kAXButtonRole}) else{throw NSError(domain:"Catalog button unavailable",code:5)}
  guard AXUIElementPerformAction(start,kAXPressAction as CFString) == .success else{throw NSError(domain:"Catalog press failed",code:6)}
@@ -35,6 +35,16 @@ do {
  try wait("editor"){editor=nodes(app).first{(attr($0,kAXRoleAttribute) as? String)==kAXTextAreaRole && text($0).contains("코드 편집기")};return editor != nil}
  guard let editor=editor else{throw NSError(domain:"Editor unavailable",code:7)}
  report["editorLabel"]=text(editor)
+ AXUIElementSetAttributeValue(editor,kAXFocusedAttribute as CFString,kCFBooleanTrue)
+ Thread.sleep(forTimeInterval:0.5)
+ func fullscreenLabel()->String {nodes(app).filter{(attr($0,kAXRoleAttribute) as? String)==kAXButtonRole}.map{text($0)}.first{$0.contains("F11")} ?? ""}
+ let beforeFullscreen=fullscreenLabel();report["fullscreenLabelBefore"]=beforeFullscreen
+ guard !beforeFullscreen.isEmpty else{throw NSError(domain:"Fullscreen button unavailable",code:11)}
+ try key(CGKeyCode(kVK_ANSI_F),true,true)
+ try wait("Native control-command-F toggle"){fullscreenLabel() != beforeFullscreen}
+ report["fullscreenLabelAfter"]=fullscreenLabel();report["nativeFullscreenShortcutVerified"]=true
+ try key(CGKeyCode(kVK_ANSI_F),true,true)
+ try wait("Native control-command-F restore"){fullscreenLabel()==beforeFullscreen}
  AXUIElementSetAttributeValue(editor,kAXFocusedAttribute as CFString,kCFBooleanTrue)
  Thread.sleep(forTimeInterval:0.5)
  let pasteboard=NSPasteboard.general
