@@ -155,6 +155,19 @@ async fn inspect_python(python: &str, package_timeout: std::time::Duration) -> V
 /// The learning packages, pinned (the same file the setup scripts read).
 const REQUIREMENTS: &str = include_str!("../requirements-learning.txt");
 
+// Match the macOS installer: TensorFlow has no current Intel Mac wheel.
+// Keep reinstalling from inside the app on the same supported environment.
+fn learning_python_version() -> &'static str {
+    if cfg!(all(target_os = "macos", target_arch = "x86_64")) { "3.12" } else { "3.13" }
+}
+
+fn learning_requirements() -> String {
+    if cfg!(all(target_os = "macos", target_arch = "x86_64")) {
+        REQUIREMENTS.lines().filter(|line| !line.starts_with("tensorflow=="))
+            .collect::<Vec<_>>().join("\n") + "\ntensorflow==2.16.2\n"
+    } else { REQUIREMENTS.to_owned() }
+}
+
 /// Where `uv` usually lands after its installer, besides PATH.
 fn uv_candidates() -> Vec<std::path::PathBuf> {
     let mut out = vec![std::path::PathBuf::from("uv")];
@@ -287,7 +300,7 @@ async fn create_learning_environment(
     run_logged(
         report,
         uv,
-        &["venv", &env_str, "--python", "3.13", "--managed-python"],
+        &["venv", &env_str, "--python", learning_python_version(), "--managed-python"],
         Some(store),
     )
     .await
@@ -353,7 +366,7 @@ async fn run_logged(
 }
 
 /// Install (or reinstall) the learning Python environment in the app data folder: get `uv`
-/// if it is missing, create a fresh Python 3.13 venv, install the pinned packages. Progress
+/// if it is missing, create the platform's supported Python environment and install its pins. Progress
 /// lines go to `report`; the result names the interpreter.
 pub async fn install(report: tokio::sync::mpsc::UnboundedSender<String>) -> Result<String, String> {
     let data_dir = crate::data_dir()?;
@@ -401,7 +414,8 @@ pub async fn install(report: tokio::sync::mpsc::UnboundedSender<String>) -> Resu
         python_store.display()
     ));
     say(&format!(
-        "[2/3] Python 3.13 환경을 새로 만듭니다: {}",
+        "[2/3] Python {} 환경을 새로 만들어요: {}",
+        learning_python_version(),
         env_dir.display()
     ));
     if env_dir.exists() {
@@ -417,7 +431,7 @@ pub async fn install(report: tokio::sync::mpsc::UnboundedSender<String>) -> Resu
     say("[3/3] 수업 패키지를 설치합니다 (pandas, scikit-learn, TensorFlow, XGBoost, matplotlib, seaborn, openpyxl, BeautifulSoup, requests, FinanceDataReader, yfinance). 몇 분 걸립니다.");
     let requirements =
         std::env::temp_dir().join(format!("molip-requirements-{}.txt", std::process::id()));
-    std::fs::write(&requirements, REQUIREMENTS).map_err(|e| e.to_string())?;
+    std::fs::write(&requirements, learning_requirements()).map_err(|e| e.to_string())?;
     let python_str = python.to_string_lossy().into_owned();
     let req_str = requirements.to_string_lossy().into_owned();
     let mut package_args = vec!["pip", "install", "--python", &python_str, "-r", &req_str];
@@ -540,10 +554,13 @@ mod install_tests {
     }
 
     /// Needs the network and a few minutes: `cargo test -- --ignored environment_installs`.
-    /// Creates the managed environment in the real app data folder.
+    /// Uses a disposable app data folder, never the learner's environment.
     #[tokio::test]
     #[ignore]
     async fn environment_installs_and_passes_the_checks() {
+        let directory = tempfile::tempdir().unwrap();
+        let previous = std::env::var_os("MOLIP_DATA_DIR");
+        std::env::set_var("MOLIP_DATA_DIR", directory.path());
         let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<String>();
         let worker = tokio::spawn(super::install(tx));
         while let Some(line) = rx.recv().await {
@@ -574,6 +591,8 @@ mod install_tests {
             String::from_utf8_lossy(&output.stderr)
         );
         assert_eq!(String::from_utf8_lossy(&output.stdout).trim(), "ok");
+        if let Some(value) = previous { std::env::set_var("MOLIP_DATA_DIR", value); }
+        else { std::env::remove_var("MOLIP_DATA_DIR"); }
     }
 
     pub(super) async fn verify_diagnostic(python: &str) {
@@ -586,7 +605,8 @@ mod install_tests {
             && check.detail.contains("검사 시간 초과")
             && !check.detail.contains("패키지를 설치하세요")));
         let checks = super::inspect_python(python, std::time::Duration::from_secs(120)).await;
-        assert_eq!(checks.len(), 10);
+        assert!(checks.iter().any(|check| check.name == "TensorFlow · 딥러닝"));
+        assert!(checks.iter().any(|check| check.name == "XGBoost · 부스팅 모델"));
         for check in checks {
             assert!(check.ready, "{}: {}", check.name, check.detail);
         }

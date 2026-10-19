@@ -325,7 +325,7 @@
       "solution": "indicator",
       "tests": [],
       "required": true,
-      "example_code": "import pandas as pd\n\n# 같은 배송의 원래 거리와 지역을 보관해요.\ndata = {\"id\": [101, 102, 103, 104], \"distance\": [1, 2, 3, 4], \"region\": [\"north\", \"south\", \"north\", \"south\"], \"minutes\": [10, 20, 30, 40]}\ndf = pd.DataFrame(data)\n# 지역마다 해당 여부를 나타내는 열을 만들어요.\nencoded = pd.get_dummies(df[\"region\"])\nprint(encoded.columns.tolist())\nprint(encoded.values.tolist())\n",
+      "example_code": "import pandas as pd\n\n# 같은 배송의 원래 거리와 지역을 보관해요.\ndata = {\"id\": [101, 102, 103, 104], \"distance\": [1, 2, 3, 4], \"region\": [\"north\", \"south\", \"north\", \"south\"], \"minutes\": [10, 20, 30, 40]}\ndf = pd.DataFrame(data)\n# 지역마다 해당 여부를 1/0으로 표시해요.\nencoded = pd.get_dummies(df[\"region\"], dtype=int)\nprint(encoded.columns.tolist())\nprint(encoded.values.tolist())\n",
       "interaction": {
         "kind": "choice",
         "options": [
@@ -375,7 +375,7 @@
       "solution": "ambiguous",
       "tests": [],
       "required": true,
-      "example_code": "import pandas as pd\n\n# 같은 배송의 원래 거리와 지역을 보관해요.\ndata = {\"id\": [101, 102, 103, 104], \"distance\": [1, 2, 3, 4], \"region\": [\"north\", \"south\", \"north\", \"south\"], \"minutes\": [10, 20, 30, 40]}\ndf = pd.DataFrame(data)\n# 결측과 기준 범주가 같은 표시가 되는지 확인해요.\ndf[\"region\"] = [\"north\", \"south\", None, \"north\"]\nencoded = pd.get_dummies(df[\"region\"], drop_first=True, dummy_na=False)\nprint(encoded.values.tolist())\n",
+      "example_code": "import pandas as pd\n\n# 같은 배송의 원래 거리와 지역을 보관해요.\ndata = {\"id\": [101, 102, 103, 104], \"distance\": [1, 2, 3, 4], \"region\": [\"north\", \"south\", \"north\", \"south\"], \"minutes\": [10, 20, 30, 40]}\ndf = pd.DataFrame(data)\n# 결측과 기준 범주가 같은 표시가 되는지 확인해요.\ndf[\"region\"] = [\"north\", \"south\", None, \"north\"]\nencoded = pd.get_dummies(df[\"region\"], drop_first=True, dummy_na=False, dtype=int)\nprint(encoded.values.tolist())\n",
       "interaction": {
         "kind": "choice",
         "options": [
@@ -514,8 +514,8 @@
       "title": "예측할 때 아는 열만 골라요",
       "goal": "접수 시점에 알 수 있는 건 거리와 지역이에요.\n입력X의 두 열을 고치세요.",
       "language": "python",
-      "starter_code": "import pandas as pd\n\n# 같은 배송의 원래 거리와 지역을 보관해요.\ndata = {\"id\": [101, 102, 103, 104], \"distance\": [1, 2, 3, 4], \"region\": [\"north\", \"south\", \"north\", \"south\"], \"minutes\": [10, 20, 30, 40]}\ndf = pd.DataFrame(data)\n# 접수할 때 아는 정보만 입력X에 넣으세요.\nX = df[[\"id\", \"minutes\"]]\n# 문자 범주는 해당 열로 표시해요.\nX = pd.get_dummies(X)\nprint(X.columns.tolist())\nprint(X.values.tolist())\n",
-      "solution": "import pandas as pd\n\n# 같은 배송의 원래 거리와 지역을 보관해요.\ndata = {\"id\": [101, 102, 103, 104], \"distance\": [1, 2, 3, 4], \"region\": [\"north\", \"south\", \"north\", \"south\"], \"minutes\": [10, 20, 30, 40]}\ndf = pd.DataFrame(data)\n# 접수할 때 아는 정보만 입력X에 넣으세요.\nX = df[[\"distance\", \"region\"]]\n# 문자 범주는 해당 열로 표시해요.\nX = pd.get_dummies(X)\nprint(X.columns.tolist())\nprint(X.values.tolist())\n",
+      "starter_code": "import pandas as pd\n\n# 같은 배송의 원래 거리와 지역을 보관해요.\ndata = {\"id\": [101, 102, 103, 104], \"distance\": [1, 2, 3, 4], \"region\": [\"north\", \"south\", \"north\", \"south\"], \"minutes\": [10, 20, 30, 40]}\ndf = pd.DataFrame(data)\n# 접수할 때 아는 정보만 입력X에 넣으세요.\nX = df[[\"id\", \"minutes\"]]\n# 문자 범주는 해당 열로 표시해요.\nX = pd.get_dummies(X, dtype=int)\nprint(X.columns.tolist())\nprint(X.values.tolist())\n",
+      "solution": "import pandas as pd\n\n# 같은 배송의 원래 거리와 지역을 보관해요.\ndata = {\"id\": [101, 102, 103, 104], \"distance\": [1, 2, 3, 4], \"region\": [\"north\", \"south\", \"north\", \"south\"], \"minutes\": [10, 20, 30, 40]}\ndf = pd.DataFrame(data)\n# 접수할 때 아는 정보만 입력X에 넣으세요.\nX = df[[\"distance\", \"region\"]]\n# 문자 범주는 해당 열로 표시해요.\nX = pd.get_dummies(X, dtype=int)\nprint(X.columns.tolist())\nprint(X.values.tolist())\n",
       "tests": [
         {
           "input": "",
