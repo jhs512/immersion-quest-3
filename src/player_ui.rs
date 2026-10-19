@@ -275,13 +275,13 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
                 div {class:"task-paging",
                     button {disabled:task_index()==0,onclick:move |_|{task_index-=1;},"← 이전 문제"}
                     span {"문제 {task_index()+1} / {selected.lesson.tasks.len()}"}
-                    button {disabled:task_index()+1>=selected.lesson.tasks.len(),onclick:move |_|{task_index+=1;},"다음 문제 →"}
+                    button {"data-enter-next":"true",disabled:task_index()+1>=selected.lesson.tasks.len(),onclick:move |_|{task_index+=1;},"다음 문제 →"}
                 }
             } else {
                 article {class:"card repository-reading",
                     h2 {"{selected.lesson.sections[section_index()].title}"}
                     crate::ui::Markdown {text:selected.lesson.sections[section_index()].body.clone()}
-                    button {class:"primary",onclick:{let record_view=record_view.clone();let len=selected.lesson.sections.len();move |_|{let next=section_index()+1;if next<len{record_view(next)}else{section_index.set(next);}}},"다음 학습으로"}
+                    button {class:"primary","data-enter-next":"true",onclick:{let record_view=record_view.clone();let len=selected.lesson.sections.len();move |_|{let next=section_index()+1;if next<len{record_view(next)}else{section_index.set(next);}}},"다음 학습으로"}
                     p {"개념 읽기는 완료 조건이 아니에요. 문제로 바로 이동해도 돼요."}
                 }
             }
@@ -437,7 +437,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                         });
                     }}},"코드 실행"}
                     }
-                    button {class:"primary",disabled:busy()||narrating()||(task.git_terminal.is_some()&&git_practice().is_none()),onclick:{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();move |_|{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();async move {
+                    button {class:"primary","data-enter-submit":"true",disabled:busy()||narrating()||(task.git_terminal.is_some()&&git_practice().is_none()),onclick:{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();move |_|{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();async move {
                         busy.set(true);message.set("검사하고 있어요.".into());let gh=session.github.clone();let uid=session.user.id;
                         let authenticated=github_player::background(move||gh.ensure_user(uid)).await;
                         match authenticated {

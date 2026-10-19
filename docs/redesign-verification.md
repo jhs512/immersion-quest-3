@@ -33,7 +33,21 @@
 ## 남은 수동 확인 범위
 
 - 실제 음성 청취는 다운로드·캐시·재생 동기화 자동 검사와 다르다. 모든 해설을 사람이 들었다고 보고하지 않는다.
-- 실제 Windows F11과 Unicode 입력·복사는 확인했으나, 물리 IME 자모 조합 및 Mac의 실제 OS 키보드·clipboard 전체 검증 증거는 없다. Computer Use 재시도는 창 좌표13×13 오류로 중단했다. DOM 키 이벤트를 물리 입력 통과로 계산하지 않는다.
+- 최초 검증에서는 실제 Windows F11과 Unicode 입력·복사만 확인했고, IME 자모 조합 및 Mac OS 키보드·clipboard는 미확인이었다. 아래 2026-10-20 추가 검증에서 이 범위를 보완했다. DOM 키 이벤트를 실제 OS 입력 통과로 계산하지 않는다.
 - Windows 코드 서명과 Apple notarization은 구성되어 있지 않다. Mac의 ad-hoc codesign 검사 통과를 Developer ID 서명으로 표현하지 않는다.
 
 원본 결과는 로컬 target/player-pilot-audit/, 진행 이력과 티켓은 .scratch/player-content-redesign/에 보관한다. 실패·취소된 실행도 삭제하지 않는다.
+
+## 2026-10-20: Enter 연결·실제 OS 입력·설치 갱신
+
+- 제품 소스 `6f7baa388e9b8bca44edcbc6cba1ec6c8ced1282`를 [빌드 28](https://github.com/jhs512/immersion-quest-3/releases/tag/v0.1.0-build.28)로 게시했다. [배포 실행 39272765207](https://github.com/jhs512/immersion-quest-3/actions/runs/39272765207)의 Windows·Mac ARM·release가 성공했다. 현재 배포 대상은 Windows x64와 Mac ARM이다.
+- 기존 문제 화면뿐 아니라 RepositoryPlayer의 제출·읽기·다음 이동에 Enter를 연결했다. IME 확정, 길게 누른 Enter, 코드·터미널 줄바꿈, 열린 대화상자, 검사 중 중복 이동을 구분한다. Edge 브라우저 회귀 5개와 로컬 debug 앱 빌드가 통과했다.
+- 별도 임시 데이터의 실제 Windows 앱에서 OS Enter 두 번으로 `값 3 확인` 제출 → 통과 창 → `값 5 확인` 이동을 확인했다. 실제 키 이벤트의 `isTrusted`도 기록했다. 테스트 답안 준비는 자동 설정이며 실제 키 입력과 구분한다.
+- Windows Microsoft IME에서 `sky.press_key`의 `g k s r m f`로 `한글`을 조합했다. 실제 trusted compositionupdate와 최종 편집기 값을 확인하고, OS Ctrl+A/C → End → Ctrl+V 결과 `한글한글`도 확인했다. Git 터미널에서도 같은 조합·붙여넣기와 포커스 중 F11을 확인했다. 터미널 입력은 실행하지 않았다.
+- 이전 13×13 좌표 실패를 반복하지 않았다. Windows MCP로 정상 화면 좌표·포커스를 확인한 뒤 sky의 키 입력 경로를 사용했다. Windows MCP의 영문 Shortcut 시도는 `gksrmf`가 입력돼 IME 통과로 계산하지 않았다. 이 차이를 제품 IME 오류로 보고하지 않는다.
+- [Mac OS 입력 실행 39273541360](https://github.com/jhs512/immersion-quest-3/actions/runs/39273541360)에서 실제 AppKit/AX 앱의 OS Cmd+V/C 왕복 결과가 `한글 입력 검증 123`으로 일치했다. CGEvent 키 입력과 실제 시스템 클립보드를 사용했으며 DOM 입력 이벤트를 주입하지 않았다. 기존 접근성·이벤트 권한만 확인하고 새 권한을 요청하거나 보안 설정을 바꾸지 않았다.
+- [최종 Mac 실행 39275300851](https://github.com/jhs512/immersion-quest-3/actions/runs/39275300851)은 같은 클립보드 검사와 편집기 포커스에서 Ctrl+Cmd+F 전체화면 왕복도 통과했다. 창 전환 후 편집기를 다시 찾아 포커스를 확인한 뒤 다음 키를 보냈다. 이전의 포커스 미복원 실패를 제품 단축키 실패로 단정하거나 성공으로 덮지 않았다. 최종 JSON은 `status=passed`, `actualOsInputVerified=true`, `nativeFullscreenShortcutVerified=true`다.
+- Mac CI의 활성 입력기는 US·CharacterPalette뿐이었다. 한국어 입력기를 활성화하지 않았으며 **Mac 자모 조합은 미확인**이다. Windows IME 성공을 Mac IME 성공으로 바꿔 적지 않는다. Mac 검증용 소스는 제품 6f7baa3에 별도 테스트 파일만 더한 `codex/native-os-input-20261019`에 보관한다.
+- Windows 설치 파일 SHA256 `d718b80d9f3995430b5f73975ebb6e5b098727b07abc9b72555d647abca70105`가 공개 SHA256SUMS와 일치했다. 실제 기존 설치 경로에 업데이트 exit 0, 설치 전후 답안·진도 DB 해시 동일. 설치된 정식 앱에서 새 기본 세 과정과 이전 추가 과정 목록을 확인했다. 사용자 진도는 변경하지 않고 앱을 열어두었다.
+- 요약 증거는 [desktop-input-20261020.json](verification/desktop-input-20261020.json), 상세 로컬 이벤트와 설치 결과는 `target/os-input-audit/`에 보관한다. Mac 보조 검사 최초 Swift 컴파일 오류와 이후 AX 전환 검사 실패도 성공으로 계산하지 않는다.
+- 종속 조건을 대조해 12·32를 완료 처리했다. 최종 티켓 상태는 **34 resolved / 0 claimed**다. 위의 미확인 범위(모든 해설의 사람 청취, Mac 자모 조합, 배포 인증 서명)는 별도로 유지한다.
