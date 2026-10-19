@@ -118,22 +118,27 @@ fn closing_practice_stops_its_background_child_but_keeps_an_outside_process() {
         // Execute this trusted test command directly; do not change the host's
         // script policy or require .ps1 execution to be enabled.
         let launcher=format!("Start-Process powershell.exe -WindowStyle Hidden -ArgumentList '-NoProfile','-EncodedCommand','{}'",encoded(script(Some(&ready),&leaked)));
-        environment.push(("MQ3_CHILD_LAUNCH".into(),launcher));
-        "iex $env:MQ3_CHILD_LAUNCH".to_string()
+        environment.push(("MQ3_BG".into(),launcher));
+        "iex $env:MQ3_BG".to_string()
     }else{format!("nohup /bin/sh '{}' >/dev/null 2>&1 &\r",owned_script.display())};
     let (mut shell,mut output)=molip_quest::setup_terminal::SetupTerminal::open_practice(&practice.work(),&environment).unwrap();
     let mut seen=String::new();let mut cursor_reports=0usize;let mut sent=false;let mut submitted=false;let deadline=std::time::Instant::now()+std::time::Duration::from_secs(30);
     while std::time::Instant::now()<deadline {
         while let Ok(bytes)=output.try_recv(){seen.push_str(&String::from_utf8_lossy(&bytes));let reports=seen.matches("\x1b[6n").count();while cursor_reports<reports{shell.input("\x1b[1;1R").unwrap();cursor_reports+=1;}}
-        if !sent&&(!cfg!(windows)||seen.contains("> ")){shell.input(&command).unwrap();sent=true;}
+        if !sent&&(!cfg!(windows)||seen.contains("> ")){
+            // Resize only after ConPTY's startup cursor exchange is complete.
+            // The CI home path makes its prompt much wider than a local one.
+            shell.resize(20,512).unwrap();
+            shell.input(&command).unwrap();sent=true;
+        }
         // PowerShell may print its first prompt before PSReadLine has finished
         // loading. Wait for the command to be echoed before pressing Enter,
         // just as a user types a line and then submits it. Sending both during
         // startup can leave the line visible but never submitted on CI.
-        if cfg!(windows)&&sent&&!submitted&&seen.contains("MQ3_CHILD_LAUNCH"){shell.input("\r").unwrap();submitted=true;}
+        if cfg!(windows)&&sent&&!submitted&&seen.contains("MQ3_BG"){shell.input("\r").unwrap();submitted=true;}
         if ready.exists(){break;}std::thread::sleep(std::time::Duration::from_millis(30));
     }
-    assert!(ready.exists(),"background process must actually start: {seen}");
+    assert!(ready.exists(),"background process must actually start (sent={sent}, submitted={submitted}): {seen:?}");
     shell.shutdown().unwrap();drop(shell);drop(practice);
     assert!(external.wait().unwrap().success());
     std::thread::sleep(std::time::Duration::from_secs(1));
