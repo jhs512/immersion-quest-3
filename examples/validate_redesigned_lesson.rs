@@ -20,13 +20,25 @@ struct Validation {
 #[serde(untagged)]
 enum ExpectedOutput {
     Literal(String),
-    Contains { contains: Vec<String> },
+    Junit { junit_summary: JunitSummary },
 }
+#[derive(Deserialize,Debug)]
+struct JunitSummary { found:usize, successful:usize, failed:usize }
 impl ExpectedOutput {
     fn matches(&self,actual:&str)->bool {
         match self {
             Self::Literal(expected)=>actual==expected,
-            Self::Contains{contains}=>!contains.is_empty()&&contains.iter().all(|part|!part.is_empty()&&actual.contains(part)),
+            Self::Junit{junit_summary:expected}=>expected.found>0
+                &&expected.successful.checked_add(expected.failed)==Some(expected.found)
+                &&[("tests found",expected.found),("tests successful",expected.successful),("tests failed",expected.failed)].iter().all(|(label,count)| {
+                    let matches:Vec<_>=actual.lines().filter_map(|line| {
+                        let body=line.trim().strip_prefix('[')?.strip_suffix(']')?.trim();
+                        let (number,name)=body.split_once(char::is_whitespace)?;
+                        if name.trim()!=*label {return None;}
+                        Some(number.parse::<usize>().ok())
+                    }).collect();
+                    matches==vec![Some(*count)]
+                }),
         }
     }
 }
@@ -102,11 +114,13 @@ mod output_assertion_tests {
     use super::ExpectedOutput;
     #[test]
     fn junit_counts_are_required_but_elapsed_time_is_not_fixed() {
-        let expected=ExpectedOutput::Contains{contains:vec!["1 tests successful".into(),"0 tests failed".into()]};
-        assert!(expected.matches("after 172 ms [1 tests successful] [0 tests failed]"));
-        assert!(!expected.matches("after 172 ms [0 tests successful] [1 tests failed]"));
-        assert!(!ExpectedOutput::Contains{contains:vec![]}.matches("anything"));
-        assert!(!ExpectedOutput::Contains{contains:vec![String::new()]}.matches("anything"));
+        let expected=ExpectedOutput::Junit{junit_summary:super::JunitSummary{found:1,successful:1,failed:0}};
+        assert!(expected.matches("after 172 ms\n[   1 tests found   ]\n[1 tests successful]\n[0 tests failed]"));
+        assert!(!expected.matches("[1 tests found]\n[0 tests successful]\n[1 tests failed]"));
+        assert!(!expected.matches("[11 tests found]\n[11 tests successful]\n[10 tests failed]"));
+        assert!(!expected.matches("[1 tests found]\n[1 tests successful]\n[10 tests failed]"));
+        assert!(!expected.matches("[0 tests found]\n[1 tests successful]\n[0 tests failed]"));
+        assert!(!expected.matches("[1 tests found]\n[1 tests successful]\n[0 tests failed]\n[0 tests failed]"));
         assert!(!ExpectedOutput::Literal("exact".into()).matches("exact plus"));
     }
 }
