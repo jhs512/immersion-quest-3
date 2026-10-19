@@ -30,7 +30,7 @@ do {
  func key(_ code:CGKeyCode,_ command:Bool=false)throws {try owned();for down in [true,false] {guard let event=CGEvent(keyboardEventSource:nil,virtualKey:code,keyDown:down) else{throw NSError(domain:"CGEvent creation",code:4)};event.flags=command ? .maskCommand:[];event.post(tap:.cghidEventTap)};Thread.sleep(forTimeInterval:0.2)}
  try wait("catalog"){NSRunningApplication(processIdentifier:pid)?.activate(options:[.activateIgnoringOtherApps]);return nodes(app).contains{text($0).contains("학습 시작")}}
  guard let start=nodes(app).first(where:{text($0).contains("학습 시작") && (attr($0,kAXRoleAttribute) as? String)==kAXButtonRole}) else{throw NSError(domain:"Catalog button unavailable",code:5)}
- guard AXUIElementPerformAction(start,kAXPressAction as CFString)==.success else{throw NSError(domain:"Catalog press failed",code:6)}
+ guard AXUIElementPerformAction(start,kAXPressAction as CFString) == .success else{throw NSError(domain:"Catalog press failed",code:6)}
  var editor:AXUIElement?
  try wait("editor"){editor=nodes(app).first{(attr($0,kAXRoleAttribute) as? String)==kAXTextAreaRole && text($0).contains("코드 편집기")};return editor != nil}
  guard let editor=editor else{throw NSError(domain:"Editor unavailable",code:7)}
