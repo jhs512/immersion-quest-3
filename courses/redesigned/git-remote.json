@@ -1,0 +1,788 @@
+{
+  "schema_version": 2,
+  "id": "lsn_533917ea-656d-4fd5-b188-948363ec9b37",
+  "revision": "git-remote-1",
+  "title": "공유 기록을 받고 비교하고 되돌려요",
+  "description": "같은 안내를 로컬 원격과 주고받고 기록을 보존하며 복구해요.",
+  "objectives": [
+    "로컬 기록·실제 원격·원격추적 참조를 구별해요.",
+    "fetch와 병합의 상태 변화를 실제로 확인해요.",
+    "미기록 수정 복원과 새 기록으로 되돌리기를 구별해요."
+  ],
+  "sources": [
+    "https://git-scm.com/docs/git-fetch",
+    "https://git-scm.com/docs/git-merge",
+    "https://git-scm.com/docs/git-restore",
+    "https://git-scm.com/docs/git-revert"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_2b1f4073-c44e-4a45-919a-ad9fe1667a5e",
+      "title": "안내 기록을 보내고 받아요",
+      "objectives": [
+        "실제 원격과 추적 참조·현재 작업을 구별해요."
+      ],
+      "units": [
+        {
+          "id": "unt_2add42f1-d5b6-470f-967d-35b31fb31e6f",
+          "title": "같은 안내를 공유하는 두 작업자",
+          "objectives": [
+            "받은 기록과 현재 파일의 차이를 이해해요."
+          ],
+          "premise": "같은 안내 파일을 로컬 원격으로 보내요. 다른 작업자가 추가한 안내를 받아도 내 작업 파일은 바로 바뀌지 않아요.",
+          "steps": [
+            {
+              "id": "stp_cc64a026-509c-4d7c-a53f-b036ed6ae523",
+              "objectives": [
+                "커밋과 실제 원격 반영을 구별해요."
+              ]
+            },
+            {
+              "id": "stp_ff21db31-358b-4f79-b1ac-d75ed9c8ddbe",
+              "objectives": [
+                "원격 이름과 현재 브랜치를 구별해요."
+              ]
+            },
+            {
+              "id": "stp_bb240382-615b-4679-ae14-79ee9f38940a",
+              "objectives": [
+                "fetch의 원격추적 갱신과 현재HEAD를 구별해요."
+              ]
+            },
+            {
+              "id": "stp_7b85c356-5da5-4906-89ef-d8d87ba2f2ad",
+              "objectives": [
+                "origin/main과 현재main의 다른 파일 내용을 이해해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_dd4d9daa-a3ba-454a-87ae-f162428f0238",
+      "title": "받은 안내를 합치고 실수를 복원해요",
+      "objectives": [
+        "병합·작업차이·복원·보상기록을 구별해요."
+      ],
+      "units": [
+        {
+          "id": "unt_b845a2fa-1370-4b34-9f90-4dd279bc9c71",
+          "title": "같은 안내의 공유와 복구",
+          "objectives": [
+            "복구할 상태에 맞는 명령을 선택해요."
+          ],
+          "premise": "받은 안내를 내 작업에 합쳐요. 이후 기록 전 수정과 이미 만든 잘못된 기록을 서로 다른 방법으로 되돌려요.",
+          "steps": [
+            {
+              "id": "stp_76c8d243-1eed-4c81-bad2-408f09a180eb",
+              "objectives": [
+                "fetch와 fast-forward merge의 책임을 연결해요."
+              ]
+            },
+            {
+              "id": "stp_1bf14bec-abb0-4656-b320-7fe6c7f96022",
+              "objectives": [
+                "git diff의 작업파일과 인덱스 비교를 이해해요."
+              ]
+            },
+            {
+              "id": "stp_a648f761-237e-49ab-9ac5-e62e280be396",
+              "objectives": [
+                "restore worktree가 버리는 미기록 변경을 구별해요."
+              ]
+            },
+            {
+              "id": "stp_cb42db3c-6669-4a1e-b201-c471091dabdc",
+              "objectives": [
+                "revert의 새 보상 커밋과 기록 삭제를 구별해요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_cc64a026-509c-4d7c-a53f-b036ed6ae523",
+      "title": "내 기록을 원격에 보내요",
+      "goal": "로컬에 만든 안내 기록을 origin의 main으로 보내세요.\n명령 형식: `git push origin main`",
+      "language": "git",
+      "starter_code": "",
+      "solution": "# 로컬 원격으로 실제 기록을 보내요.\ngit push origin main",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "files": {
+          "guide.txt": "base\n"
+        },
+        "setup": [
+          {
+            "kind": "file",
+            "path": "guide.txt",
+            "content": "local\n"
+          },
+          {
+            "kind": "git",
+            "args": [
+              "add",
+              "--",
+              "guide.txt"
+            ]
+          },
+          {
+            "kind": "git",
+            "args": [
+              "commit",
+              "-m",
+              "Local guide"
+            ]
+          }
+        ]
+      },
+      "narration": [
+        {
+          "action": "git_command",
+          "args": [
+            "push",
+            "origin",
+            "main"
+          ],
+          "say": "로컬 원격으로 안내 기록을 보내요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "push가 성공해 실제 원격 main도 같은 기록을 가리켜요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "log",
+            "-1",
+            "--format=%s"
+          ],
+          "say": "보낸 마지막 기록의 제목을 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "Local guide 기록이에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 커밋은 로컬 기록이에요. 실제 원격으로 보내는 동작은 따로 필요해요.",
+          "target": "#git-demo-terminal"
+        }
+      ],
+      "git_checks": {
+        "minimum_commits": 2,
+        "head_message": "Local guide",
+        "tracked_files": {
+          "tracked.txt": "initial\n",
+          "guide.txt": "local\n"
+        },
+        "branch": "main",
+        "pushed": true
+      }
+    },
+    {
+      "id": "stp_ff21db31-358b-4f79-b1ac-d75ed9c8ddbe",
+      "title": "origin은 저장소의 별명이에요",
+      "goal": "origin과main은 같은 종류의 이름일까요?",
+      "language": "git",
+      "starter_code": "",
+      "solution": "different",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "files": {
+          "guide.txt": "base\n"
+        },
+        "setup": []
+      },
+      "narration": [
+        {
+          "action": "git_command",
+          "args": [
+            "remote",
+            "-v"
+          ],
+          "say": "원격 이름과 주소를 확인해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "origin 주소는 이 실습 안의 로컬 저장소예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "branch",
+            "--show-current"
+          ],
+          "say": "현재 브랜치 이름도 확인해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "지금 브랜치는 main이에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 여기서는 실제 GitHub 계정이나 개인 저장소에 전송하지 않아요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "choose_answer",
+          "id": "different"
+        }
+      ],
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "different",
+            "text": "origin은 원격 별명, main은 브랜치예요"
+          },
+          {
+            "id": "same",
+            "text": "둘 다 현재 브랜치의 다른 이름이에요"
+          }
+        ],
+        "answer": "different"
+      }
+    },
+    {
+      "id": "stp_bb240382-615b-4679-ae14-79ee9f38940a",
+      "title": "다른 작업자의 기록을 받아요",
+      "goal": "원격의 새 기록만 받으세요.\n현재 기록과 안내 파일은 유지하세요.\n명령 형식: `git fetch origin`",
+      "language": "git",
+      "starter_code": "",
+      "solution": "# 작업 파일을 바꾸지 않고 기록만 받아요.\ngit fetch origin",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "files": {
+          "guide.txt": "base\n"
+        },
+        "setup": [
+          {
+            "kind": "remote_commit",
+            "files": {
+              "guide.txt": "shared\n"
+            },
+            "message": "Shared guide"
+          }
+        ],
+        "state_goal": {
+          "remote_tracking_current": true,
+          "commit_count": 1,
+          "clean": true,
+          "head_files": {
+            "tracked.txt": "initial\n",
+            "guide.txt": "base\n"
+          },
+          "working_files": {
+            "tracked.txt": "initial\n",
+            "guide.txt": "base\n"
+          }
+        }
+      },
+      "narration": [
+        {
+          "action": "git_command",
+          "args": [
+            "fetch",
+            "origin"
+          ],
+          "say": "다른 작업자의 기록을 받아요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "원격 추적 기록이 새 안내를 가리켜요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "show",
+            "HEAD:guide.txt"
+          ],
+          "say": "내 현재 기록의 안내를 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "현재 안내는 아직 base예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "show",
+            "origin/main:guide.txt"
+          ],
+          "say": "받아 둔 원격 기록도 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "받은 기록에는 shared가 있어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. fetch만으로 현재 브랜치나 작업 파일을 합치지는 않아요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    },
+    {
+      "id": "stp_7b85c356-5da5-4906-89ef-d8d87ba2f2ad",
+      "title": "받은 기록과 작업 파일을 비교해요",
+      "goal": "fetch한 뒤 내 안내는base, 받은 안내는shared예요.\n왜 다를까요?",
+      "language": "git",
+      "starter_code": "",
+      "solution": "notmerged",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "files": {
+          "guide.txt": "base\n"
+        },
+        "setup": [
+          {
+            "kind": "remote_commit",
+            "files": {
+              "guide.txt": "shared\n"
+            },
+            "message": "Shared guide"
+          }
+        ]
+      },
+      "narration": [
+        {
+          "action": "git_command",
+          "args": [
+            "fetch",
+            "origin"
+          ],
+          "say": "같은 원격 기록을 받아요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "원격 추적 참조만 최신으로 맞춰요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "show",
+            "HEAD:guide.txt"
+          ],
+          "say": "현재 기록을 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "base가 남아 있어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "show",
+            "origin/main:guide.txt"
+          ],
+          "say": "받은 기록을 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "shared가 들어 있어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 현재 파일과 받아 둔 기록이 다르다고 바로 오류인 것은 아니에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "choose_answer",
+          "id": "notmerged"
+        }
+      ],
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "notmerged",
+            "text": "기록만 받았고 내 작업에는 아직 합치지 않았어요"
+          },
+          {
+            "id": "broken",
+            "text": "두 내용이 다르면 fetch가 반드시 실패했어요"
+          }
+        ],
+        "answer": "notmerged"
+      }
+    },
+    {
+      "id": "stp_76c8d243-1eed-4c81-bad2-408f09a180eb",
+      "title": "받은 기록을 내 작업에 합쳐요",
+      "goal": "원격의 새 기록을 받은 뒤 내main에 합치세요.\n명령: `git fetch origin` 다음\n`git merge --ff-only origin/main`",
+      "language": "git",
+      "starter_code": "",
+      "solution": "# 받아 둔 기록으로 현재 브랜치를 전진시켜요.\ngit fetch origin\ngit merge --ff-only origin/main",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "files": {
+          "guide.txt": "base\n"
+        },
+        "setup": [
+          {
+            "kind": "remote_commit",
+            "files": {
+              "guide.txt": "shared\n"
+            },
+            "message": "Shared guide"
+          }
+        ],
+        "state_goal": {
+          "remote_tracking_current": true,
+          "commit_count": 2,
+          "clean": true,
+          "current_branch": "main",
+          "head_files": {
+            "tracked.txt": "initial\n",
+            "guide.txt": "shared\n"
+          },
+          "working_files": {
+            "tracked.txt": "initial\n",
+            "guide.txt": "shared\n"
+          }
+        }
+      },
+      "narration": [
+        {
+          "action": "git_command",
+          "args": [
+            "fetch",
+            "origin"
+          ],
+          "say": "먼저 새 기록을 받아요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "아직 내 작업은 이전 안내예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "merge",
+            "--ff-only",
+            "origin/main"
+          ],
+          "say": "이번에는 받은 기록으로 전진해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "갈라진 로컬 변경이 없어 바로 전진했어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "show",
+            "HEAD:guide.txt"
+          ],
+          "say": "합친 현재 안내를 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "이제 현재 기록에도 shared가 있어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. ff-only는 갈라진 이력의 충돌을 알아서 해결하는 옵션이 아니에요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    },
+    {
+      "id": "stp_1bf14bec-abb0-4656-b320-7fe6c7f96022",
+      "title": "아직 기록하지 않은 차이를 읽어요",
+      "goal": "안내만 고치고 아직add하지 않았어요.\ngit diff는 무엇을 비교할까요?",
+      "language": "git",
+      "starter_code": "",
+      "solution": "working-index",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "files": {
+          "guide.txt": "base\n"
+        },
+        "setup": [
+          {
+            "kind": "file",
+            "path": "guide.txt",
+            "content": "draft\n"
+          }
+        ]
+      },
+      "narration": [
+        {
+          "action": "git_command",
+          "args": [
+            "diff",
+            "--",
+            "guide.txt"
+          ],
+          "say": "아직 기록하지 않은 차이를 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "base 대신 draft가 있는 작업 변경이에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 이 diff는 원격 비교가 아니에요. 스테이징한 변경을 보는 diff --cached와도 달라요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "choose_answer",
+          "id": "working-index"
+        }
+      ],
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "working-index",
+            "text": "작업 파일과 인덱스의 차이예요"
+          },
+          {
+            "id": "remote",
+            "text": "언제나 GitHub의 최신 파일과 비교해요"
+          }
+        ],
+        "answer": "working-index"
+      }
+    },
+    {
+      "id": "stp_a648f761-237e-49ab-9ac5-e62e280be396",
+      "title": "기록 전 실수는 작업 파일만 복원해요",
+      "goal": "실습 안내에 잘못 적은 미기록 수정을 버리세요.\n인덱스의 안내로 작업 파일만 복원하세요.\n명령: `git restore --worktree -- guide.txt`",
+      "language": "git",
+      "starter_code": "",
+      "solution": "# 미기록 수정이 사라지는 실습이에요.\ngit restore --worktree -- guide.txt",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "files": {
+          "guide.txt": "base\n"
+        },
+        "setup": [
+          {
+            "kind": "file",
+            "path": "guide.txt",
+            "content": "mistake\n"
+          }
+        ],
+        "state_goal": {
+          "commit_count": 1,
+          "clean": true,
+          "head_files": {
+            "tracked.txt": "initial\n",
+            "guide.txt": "base\n"
+          },
+          "working_files": {
+            "tracked.txt": "initial\n",
+            "guide.txt": "base\n"
+          },
+          "index": {
+            "tracked.txt": "initial\n",
+            "guide.txt": "base\n"
+          }
+        }
+      },
+      "narration": [
+        {
+          "action": "git_command",
+          "args": [
+            "diff",
+            "--",
+            "guide.txt"
+          ],
+          "say": "버리기 전에 작업 변경을 확인해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "안내가 mistake로 바뀌어 있어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 복원하면 이 미기록 수정은 사라져요. 지금은 독립 실습 파일만 다뤄요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "restore",
+            "--worktree",
+            "--",
+            "guide.txt"
+          ],
+          "say": "인덱스의 안내로 작업 파일을 복원해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "복원 명령이 끝났어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "diff",
+            "--",
+            "guide.txt"
+          ],
+          "say": "남은 작업 변경도 확인해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "차이 출력이 없어요. 기록 자체는 그대로예요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    },
+    {
+      "id": "stp_cb42db3c-6669-4a1e-b201-c471091dabdc",
+      "title": "기존 기록을 남기며 되돌려요",
+      "goal": "잘못된마지막안내를되돌리는새기록을남기세요.\n기존두기록은유지해야해요.\n명령: `git revert --no-edit HEAD`",
+      "language": "git",
+      "starter_code": "",
+      "solution": "# 기존 기록을 지우지 않고 반대 변경을 기록해요.\ngit revert --no-edit HEAD",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "files": {
+          "guide.txt": "base\n"
+        },
+        "setup": [
+          {
+            "kind": "file",
+            "path": "guide.txt",
+            "content": "wrong\n"
+          },
+          {
+            "kind": "git",
+            "args": [
+              "add",
+              "--",
+              "guide.txt"
+            ]
+          },
+          {
+            "kind": "git",
+            "args": [
+              "commit",
+              "-m",
+              "Wrong guide"
+            ]
+          }
+        ],
+        "state_goal": {
+          "commit_count": 3,
+          "parent_count": 1,
+          "clean": true,
+          "head_files": {
+            "tracked.txt": "initial\n",
+            "guide.txt": "base\n"
+          },
+          "parent_files": {
+            "tracked.txt": "initial\n",
+            "guide.txt": "wrong\n"
+          },
+          "working_files": {
+            "tracked.txt": "initial\n",
+            "guide.txt": "base\n"
+          }
+        }
+      },
+      "narration": [
+        {
+          "action": "git_command",
+          "args": [
+            "revert",
+            "--no-edit",
+            "HEAD"
+          ],
+          "say": "마지막 변경을 되돌리는 새 기록을 남겨요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "잘못된 변경의 반대 내용이 새로 기록됐어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "show",
+            "HEAD:guide.txt"
+          ],
+          "say": "현재 안내를 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "현재 안내는 다시 base예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "rev-list",
+            "--count",
+            "HEAD"
+          ],
+          "say": "이전 기록도 남았는지 세어 봐요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "처음 두 개에 새 기록까지 세 개예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 과거 기록을 지우는 reset과 달라요. 충돌이 생기는 다른 상황에는 별도 해결이 필요할 수 있어요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    }
+  ]
+}

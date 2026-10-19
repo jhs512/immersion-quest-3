@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-15, macos-15-intel]
-        group: [core, java, java-object, java-app, python, data, c, model, classify, neural]
+        group: [core, git, java, java-object, java-app, python, data, c, model, classify, neural]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     steps:
@@ -100,6 +100,9 @@ jobs:
           executable = pathlib.Path('target/debug/examples/validate_redesigned_lesson' + ('.exe' if os.name == 'nt' else ''))
           for spec in sorted(pathlib.Path('tests/lesson-cases').glob('*.json')):
               subprocess.run([str(executable), str(spec), f'target/public-lesson-{spec.stem}.json'], check=True)
+      - name: Check real isolated remote Git lesson cases
+        if: matrix.group == 'git'
+        run: cargo run --locked --example validate_redesigned_git
       - name: Build native debug player
         id: build_player
         run: cargo build --locked --bin molip-quest
@@ -114,6 +117,9 @@ jobs:
       - name: Drive prepared examples with separate answers
         if: matrix.group == 'core'
         run: cargo test --locked --test player_example_native -- --ignored --test-threads=1
+      - name: Drive remote Git records and independent recovery
+        if: matrix.group == 'git'
+        run: cargo test --locked --test player_data_lessons_native git_remote -- --ignored --test-threads=1
       - name: Drive all nine approved Java steps in the native player
         if: matrix.group == 'java'
         run: cargo test --locked --test player_java_native -- --ignored --test-threads=1
@@ -293,6 +299,8 @@ jobs:
             target/pilot-java-crud-result.json
             target/pilot-java-testing-result.json
             target/pilot-java-parser-result.json
+            target/pilot-git-remote-result.json
+            target/player-pilot-audit/git-remote/public-cases.json
             target/pilot-aice-features-result.json
             target/pilot-aice-split-result.json
             target/pilot-aice-leakage-result.json
