@@ -1,0 +1,48 @@
+{
+  "by": "hand",
+  "source_sha256": "83fe96dcc8dc0648fb5e312e0cbf05a09edf85e06552c85c6d54fbc89c737db2",
+  "entry": [
+    {
+      "action": "run",
+      "say": "실행해서 실제 결과를 함께 확인해요.",
+      "lines": [
+        11,
+        11
+      ],
+      "expect_error": "NoSuchFileException"
+    },
+    {
+      "action": "say",
+      "text": "없는 부모 폴더 때문에 파일을 만들지 못했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "Files.writeString(path, \"다음\");",
+      "after": "Files.createDirectories(path.getParent());\n        Files.writeString(path, \"다음\");",
+      "say": "먼저 필요한 폴더를 만들어요."
+    },
+    {
+      "action": "run",
+      "say": "실행해서 실제 결과를 함께 확인해요.",
+      "lines": [
+        12,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "부모 폴더 안에 저장한 글을 다시 읽었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 폴더 생성은 권한 부족이나 저장 공간 부족까지 해결해 주지는 않아요.",
+      "target": "output"
+    },
+    {
+      "action": "choose_answer",
+      "id": "parent"
+    }
+  ]
+}

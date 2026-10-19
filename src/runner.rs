@@ -390,6 +390,11 @@ fn normalized(value: &str) -> String {
 }
 
 pub async fn check_unit(unit: &Unit, code: &str) -> Result<TestReport, String> {
+    check_unit_files(unit, code, &std::collections::BTreeMap::new()).await
+}
+
+/// Grade a repository Java task with the same fresh authored files as execution.
+pub async fn check_unit_files(unit: &Unit, code: &str, files: &std::collections::BTreeMap<String,String>) -> Result<TestReport, String> {
     let mut cases = Vec::new();
     // Java contracts return a compiler-tree mutation of the submitted source.
     // The changed method must affect a real execution, as well as pass direct API tests.
@@ -404,11 +409,11 @@ pub async fn check_unit(unit: &Unit, code: &str) -> Result<TestReport, String> {
                 return Err("개념 검사 수를 확인하세요.".into());
             }
             for checker in contracts {
-                let contract = crate::java::contract(code, &checker).await?;
+                let contract = crate::java::contract_files(code, &checker, files).await?;
                 let mut used = false;
                 if contract.success {
                     for test in unit.tests.iter().take(3) {
-                        let mutation = crate::java::run(&contract.stdout, &test.input).await?;
+                        let mutation = crate::java::run_files(&contract.stdout, &test.input, files).await?;
                         if mutation.success
                             && normalized(&mutation.stdout) != normalized(&test.expected)
                         {
@@ -452,7 +457,9 @@ pub async fn check_unit(unit: &Unit, code: &str) -> Result<TestReport, String> {
             return Err("입출력 테스트는 1개 이상 30개 이하로 등록해야 합니다.".into());
         }
         for test in &unit.tests {
-            let result = run_code(unit.language, code, &test.input).await?;
+            let result = if unit.language == crate::Language::Java {
+                crate::java::run_files(code, &test.input, files).await?
+            } else { run_code(unit.language, code, &test.input).await? };
             let passed = result.success && normalized(&result.stdout) == normalized(&test.expected);
             cases.push(TestCaseResult {
                 input: test.input.clone(),

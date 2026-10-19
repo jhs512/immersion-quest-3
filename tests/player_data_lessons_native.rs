@@ -149,3 +149,7 @@ fn java_collections_restore_student_state() {verify("java-collections",10)}
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
 fn java_streams_restore_student_state() {verify("java-streams",10)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn java_files_restore_student_state() {verify("java-files",10)}

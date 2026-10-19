@@ -1,0 +1,657 @@
+{
+  "description": "같은 짧은 글에서 저장·실패·정리를 하나씩 확인해요.",
+  "tasks": [
+    {
+      "id": "stp_4bae34e8-cfc8-40d5-abb9-ca583bbb72cf",
+      "title": "메모리 변경과 파일을 나눠 봐요",
+      "goal": "메모리의 문구만 바꿨어요.\n다시 읽은 파일도 바뀌었을까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "separate",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.nio.file.*;\nimport java.nio.charset.StandardCharsets;\nimport java.io.*;\n\n\npublic class Main {\n    public static void main(String[] args) throws Exception {\n        // 변수만 바꾸고 파일에는 아직 쓰지 않았어요.\n        String message = \"다음\";\n        System.out.println(message);\n        System.out.print(Files.readString(Path.of(\"quotes.txt\"), StandardCharsets.UTF_8));\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "separate",
+            "text": "아니요.파일에는 시작이 남아요"
+          },
+          {
+            "id": "same",
+            "text": "변수 대입만으로 파일도 바뀌어요"
+          }
+        ],
+        "answer": "separate"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "변수의 다음과 파일에서 읽은 시작은 서로 달라요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 변수 값을 바꾸는 것만으로 파일에 저장되지는 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "separate"
+        }
+      ],
+      "predict_before_run": true,
+      "files": {
+        "quotes.txt": "시작\n"
+      }
+    },
+    {
+      "id": "stp_03a79498-e97e-41dc-860f-e550b14abf3f",
+      "title": "저장한 글을 다시 읽어요",
+      "goal": "파일에 쓴 뒤 새 변수로 다시 읽어요.\n어떤 값을 얻을까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "saved",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.nio.file.*;\nimport java.nio.charset.StandardCharsets;\nimport java.io.*;\n\n\npublic class Main {\n    public static void main(String[] args) throws Exception {\n        Path path = Path.of(\"quotes.txt\");\n        // 저장할 때와 읽을 때 문자 인코딩을 맞춰요.\n        Files.writeString(path, \"다음\\n\", StandardCharsets.UTF_8);\n        String loaded = Files.readString(path, StandardCharsets.UTF_8);\n        System.out.println(loaded.strip());\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "saved",
+            "text": "저장한 다음을 읽어요"
+          },
+          {
+            "id": "old",
+            "text": "파일을 읽어도 항상 이전 시작만 나와요"
+          }
+        ],
+        "answer": "saved"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "파일에서 다시 읽은 글도 다음이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 여기서는 실제 파일을 다시 읽었어요. 다른 프로세스 재시작을 시연한 것은 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "saved"
+        }
+      ],
+      "predict_before_run": true,
+      "files": {
+        "quotes.txt": "시작\n"
+      }
+    },
+    {
+      "id": "stp_a9f5905f-6436-40db-8762-80dca96b3b8d",
+      "title": "없는 파일의 실패를 처리해요",
+      "goal": "없는 파일을 읽다가 이 catch로 들어가요.\n이번 결과는 무엇일까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "handled",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.nio.file.*;\nimport java.nio.charset.StandardCharsets;\nimport java.io.*;\n\n\npublic class Main {\n    public static void main(String[] args) throws Exception {\n        // 없는 파일은 정상적인 빈 글과 달라요.\n        try {\n            System.out.println(Files.readString(Path.of(\"missing.txt\")));\n        } catch (NoSuchFileException error) {\n            System.out.println(\"missing\");\n        }\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "handled",
+            "text": "missing을 출력해요"
+          },
+          {
+            "id": "blank",
+            "text": "항상 빈 문자열을 정상적으로 읽어요"
+          }
+        ],
+        "answer": "handled"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "파일이 없다는 실패를 구별해 missing을 출력했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 없는 파일과 내용이 빈 파일은 서로 다른 상태예요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "handled"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_bbb89437-ea61-4bdd-a530-2c45c1537748",
+      "title": "컴파일 때도 실패 경로를 살펴요",
+      "goal": "read 메서드에서 컴파일이 막혔어요.\n실패를 호출자에게 알리려면 어떻게 할까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "declare",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.nio.file.*;\nimport java.nio.charset.StandardCharsets;\nimport java.io.*;\nclass QuoteFile {\n    // 파일 읽기의 검사 예외를 아직 처리하지 않았어요.\n    static String read() {\n        return Files.readString(Path.of(\"quotes.txt\"));\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) throws Exception {\n        System.out.println(QuoteFile.read().strip());\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "declare",
+            "text": "throws IOException을 선언해요"
+          },
+          {
+            "id": "ignore",
+            "text": "아무 선언 없이 컴파일러가 알아서 무시해요"
+          }
+        ],
+        "answer": "declare"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            13,
+            13
+          ],
+          "expect_error": "unreported exception"
+        },
+        {
+          "action": "say",
+          "text": "읽기 실패의 검사 예외를 처리하거나 선언해야 해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "static String read() {",
+          "after": "static String read() throws IOException {",
+          "say": "read 메서드에서 읽기 실패를 전달한다고 선언해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "호출자 main의 예외 선언으로 전달하고 파일의 시작을 읽었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. throws는 실패를 없애지 않아요. 실제 호출자는 처리하거나 다시 전달해야 해요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "declare"
+        }
+      ],
+      "predict_before_run": true,
+      "files": {
+        "quotes.txt": "시작\n"
+      }
+    },
+    {
+      "id": "stp_fae1089f-5f23-4dea-ad26-fbf017928846",
+      "title": "덮어쓰기와 추가를 비교해요",
+      "goal": "기존 시작도 남기고 싶어요.\n어떤 쓰기 옵션이 필요할까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "append",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.nio.file.*;\nimport java.nio.charset.StandardCharsets;\nimport java.io.*;\n\n\npublic class Main {\n    public static void main(String[] args) throws Exception {\n        Path path = Path.of(\"quotes.txt\");\n        // 기본 쓰기는 기존 내용을 교체해요.\n        Files.writeString(path, \"다음\\n\", StandardCharsets.UTF_8);\n        System.out.println(Files.readString(path).strip());\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "append",
+            "text": "APPEND로 끝에 추가해요"
+          },
+          {
+            "id": "default",
+            "text": "기본 쓰기가 항상 기존 글을 남겨요"
+          }
+        ],
+        "answer": "append"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "기본 쓰기는 이전 글을 지워 다음만 남겼어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "StandardCharsets.UTF_8);",
+          "after": "StandardCharsets.UTF_8, StandardOpenOption.APPEND);",
+          "say": "끝에 더하는 옵션으로 바꿔요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "독립 실행의 원래 파일에 시작과 다음이 모두 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 각 실행은 원래 제공 파일로 시작해요. 직전 실행에서 지운 파일을 재사용하지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "StandardCharsets.UTF_8, StandardOpenOption.APPEND);",
+          "after": "StandardCharsets.UTF_8);",
+          "say": "처음 교체 코드로 돌아가 차이를 다시 확인해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "교체 방식은 다음만 남아요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "append"
+        }
+      ],
+      "predict_before_run": true,
+      "files": {
+        "quotes.txt": "시작\n"
+      }
+    },
+    {
+      "id": "stp_985c63bc-1d15-4874-8270-d6d85f05660b",
+      "title": "부모 폴더도 준비해요",
+      "goal": "data 폴더가 없어 저장에 실패했어요.\n무엇을 먼저 준비할까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "parent",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.nio.file.*;\nimport java.nio.charset.StandardCharsets;\nimport java.io.*;\n\n\npublic class Main {\n    public static void main(String[] args) throws Exception {\n        Path path = Path.of(\"data\", \"quotes.txt\");\n        // 파일을 만들기 전에 부모 폴더가 필요해요.\n        Files.writeString(path, \"다음\");\n        System.out.println(Files.readString(path));\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "parent",
+            "text": "부모 폴더를 만들어요"
+          },
+          {
+            "id": "print",
+            "text": "화면에 출력하면 폴더가 자동 생성돼요"
+          }
+        ],
+        "answer": "parent"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ],
+          "expect_error": "NoSuchFileException"
+        },
+        {
+          "action": "say",
+          "text": "없는 부모 폴더 때문에 파일을 만들지 못했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "Files.writeString(path, \"다음\");",
+          "after": "Files.createDirectories(path.getParent());\n        Files.writeString(path, \"다음\");",
+          "say": "먼저 필요한 폴더를 만들어요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "부모 폴더 안에 저장한 글을 다시 읽었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 폴더 생성은 권한 부족이나 저장 공간 부족까지 해결해 주지는 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "parent"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_80a20228-c44b-460d-9ea7-bc675aaead79",
+      "title": "열었던 자원은 닫아요",
+      "goal": "try 블록의 본문이 끝나면 언제 닫을까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "end",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.nio.file.*;\nimport java.nio.charset.StandardCharsets;\nimport java.io.*;\nclass Resource implements AutoCloseable {\n    // 닫히는 시점만 출력하는 작은 관찰용 자원이에요.\n    public void close() { System.out.println(\"close\"); }\n}\n\npublic class Main {\n    public static void main(String[] args) throws Exception {\n        try (Resource resource = new Resource()) {\n            System.out.println(\"body\");\n        }\n        // 실제 파일 읽기도 이 구조로 자원을 닫아요.\n        try (BufferedReader reader = Files.newBufferedReader(Path.of(\"quotes.txt\"))) {\n            System.out.println(reader.readLine());\n        }\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "end",
+            "text": "body 다음 close가 나오고 파일을 읽어요"
+          },
+          {
+            "id": "never",
+            "text": "close를 직접 부르지 않아 영원히 안 닫혀요"
+          }
+        ],
+        "answer": "end"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "본문 뒤 자원이 닫힌 다음 파일의 첫 줄을 읽었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. try 밖에 만든 자원을 모두 자동으로 닫는다는 뜻은 아니에요. 여기서는 헤더에 선언했어요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "end"
+        }
+      ],
+      "predict_before_run": true,
+      "files": {
+        "quotes.txt": "시작\n"
+      }
+    },
+    {
+      "id": "stp_40e0b284-7985-45aa-8af2-5c85a1f85341",
+      "title": "숫자 변환 실패도 나눠요",
+      "goal": "파일은 읽었지만 숫자 해석이 실패했어요.\n어떤 실패를 구별해야 할까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "format",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.nio.file.*;\nimport java.nio.charset.StandardCharsets;\nimport java.io.*;\n\n\npublic class Main {\n    public static void main(String[] args) throws Exception {\n        try {\n            String text = Files.readString(Path.of(\"count.txt\")).strip();\n            System.out.println(Integer.parseInt(text));\n        } catch (NumberFormatException error) {\n            System.out.println(\"invalid\");\n        }\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "format",
+            "text": "문자열을 숫자로 바꾸는 NumberFormatException이에요"
+          },
+          {
+            "id": "missing",
+            "text": "모든 해석 실패는 파일 없음이에요"
+          }
+        ],
+        "answer": "format"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "읽은 oops는 정수가 아니라 invalid 경로로 갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. IOException만 처리해도 잘못된 숫자까지 모두 처리되는 것은 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "format"
+        }
+      ],
+      "predict_before_run": true,
+      "files": {
+        "count.txt": "oops"
+      }
+    },
+    {
+      "id": "stp_19989d77-5c23-4f30-80fd-2ab87eb0117b",
+      "title": "실패해도 마무리 경로를 봐요",
+      "goal": "이번에는 실패 뒤 정리와 다음 실행도 있어요.\n출력 순서를 고르세요.",
+      "language": "java",
+      "starter_code": "",
+      "solution": "order",
+      "tests": [],
+      "required": true,
+      "example_code": "import java.nio.file.*;\nimport java.nio.charset.StandardCharsets;\nimport java.io.*;\n\n\npublic class Main {\n    public static void main(String[] args) throws Exception {\n        try {\n            System.out.println(Integer.parseInt(\"oops\"));\n        } catch (NumberFormatException error) {\n            System.out.println(\"invalid\");\n        } finally {\n            System.out.println(\"cleanup\");\n        }\n        System.out.println(\"after\");\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "order",
+            "text": "invalid → cleanup → after예요"
+          },
+          {
+            "id": "stop",
+            "text": "잡힌 예외여도 모든 코드가 즉시 끝나요"
+          }
+        ],
+        "answer": "order"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "실패 처리 뒤 정리하고 다음 줄로 이어졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 프로세스 강제 종료까지 finally가 언제나 실행된다고 보장하지는 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "order"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_1673f0d6-395a-46a3-9d92-0fe10f7d0950",
+      "title": "기존 글을 보존하며 저장해요",
+      "goal": "기존 파일의 글을 보존하며 message를 추가하세요.\n쓰기 옵션만 고치세요.",
+      "language": "java",
+      "starter_code": "import java.nio.file.*;\nimport java.nio.charset.StandardCharsets;\nimport java.io.*;\n\n\npublic class Main {\n    public static void main(String[] args) throws Exception {\n        Path path = Path.of(\"quotes.txt\");\n        String message = \"다음\";\n        // 기존 글을 남기는 저장 옵션이 필요해요.\n        Files.writeString(path, message + \"\\n\", StandardCharsets.UTF_8);\n        System.out.println(Files.readString(path).strip());\n    }\n}\n",
+      "solution": "import java.nio.file.*;\nimport java.nio.charset.StandardCharsets;\nimport java.io.*;\n\n\npublic class Main {\n    public static void main(String[] args) throws Exception {\n        Path path = Path.of(\"quotes.txt\");\n        String message = \"다음\";\n        // 기존 글을 남기는 저장 옵션이 필요해요.\n        Files.writeString(path, message + \"\\n\", StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);\n        System.out.println(Files.readString(path).strip());\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "시작\n다음"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "교체 방식이라 시작이 사라졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "StandardCharsets.UTF_8);",
+          "after": "StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);",
+          "say": "파일을 만들 수 있게 하고 기존 끝에 추가해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "파일에서 시작과 다음을 모두 읽었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 화면에 정답만 출력하지 말고 기존 파일의 내용을 실제로 보존해야 해요.",
+          "target": "output"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "message": "\"끝\""
+          },
+          "expected": "시작\n끝"
+        },
+        {
+          "files": {
+            "quotes.txt": ""
+          },
+          "expected": "다음"
+        },
+        {
+          "files": {
+            "quotes.txt": "이전\n그다음\n"
+          },
+          "expected": "이전\n그다음\n다음"
+        }
+      ],
+      "files": {
+        "quotes.txt": "시작\n"
+      }
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "메모리와 파일의 수명을 구별해요.",
+      "읽기·쓰기·내용 해석의 실패 경로를 이해해요.",
+      "기존 내용을 보존하며 저장하고 자원을 닫아요."
+    ],
+    "chapters": {
+      "chp_a957507a-d0c0-4e25-af0e-7d2064a13dd9": [
+        "메모리·저장·누락·예외·추가를 구별해요."
+      ],
+      "chp_1e241290-a1ea-470a-9e93-a480b63d66b2": [
+        "경로·닫기·해석·마무리·보존을 이해해요."
+      ]
+    },
+    "units": {
+      "unt_e6ddb645-3111-4d6d-b5ad-c78eddb647cf": {
+        "objectives": [
+          "파일 내용을 실제로 읽어 저장 방식을 검증해요."
+        ],
+        "premise": "짧은 글을 메모리에서 바꾼 뒤 파일에도 남겨요. 같은 파일에서 읽기 실패와 저장 옵션을 하나씩 확인해요."
+      },
+      "unt_ac793e6e-d8f7-4bd6-835b-55b2fed66a30": {
+        "objectives": [
+          "실패 종류를 구별하고 기존 글을 보존해요."
+        ],
+        "premise": "같은 글의 저장 위치와 숫자 파일을 다뤄요. 자원 정리와 오류 경로를 본 뒤 기존 글에 새 글을 추가해요."
+      }
+    }
+  }
+}

@@ -82,20 +82,37 @@ async fn read<R: AsyncRead + Unpin>(pipe: R) -> std::io::Result<Vec<u8>> {
 }
 
 pub async fn run(code: &str, input: &str) -> Result<Execution, String> {
-    execute(code, input, None).await
+    run_files(code, input, &std::collections::BTreeMap::new()).await
+}
+
+/// Restore authored files into a fresh directory for every execution.
+pub async fn run_files(code: &str, input: &str, files: &std::collections::BTreeMap<String,String>) -> Result<Execution, String> {
+    execute(code, input, None, files).await
 }
 
 /// Execute an authored contract against the student's separately compiled source.
 pub async fn contract(code: &str, checker: &str) -> Result<Execution, String> {
-    execute(code, "", Some(checker)).await
+    contract_files(code, checker, &std::collections::BTreeMap::new()).await
 }
 
-async fn execute(code: &str, input: &str, checker: Option<&str>) -> Result<Execution, String> {
+pub async fn contract_files(code: &str, checker: &str, files: &std::collections::BTreeMap<String,String>) -> Result<Execution, String> {
+    execute(code, "", Some(checker), files).await
+}
+
+async fn execute(code: &str, input: &str, checker: Option<&str>, files: &std::collections::BTreeMap<String,String>) -> Result<Execution, String> {
     if code.len() > LIMIT || input.len() > LIMIT {
         return Err("코드와 입력은 각각 64KB 이하여야 해요.".into());
     }
     version().await?;
     let directory = tempfile::tempdir().map_err(|e| e.to_string())?;
+    for (name, content) in files {
+        if !crate::repository_course::safe_file(name) {
+            return Err("실습 파일 경로를 확인하세요.".into());
+        }
+        let path=directory.path().join(name);
+        std::fs::create_dir_all(path.parent().ok_or("파일 경로 오류")?).map_err(|e|e.to_string())?;
+        std::fs::write(path,content).map_err(|e|e.to_string())?;
+    }
     std::fs::write(directory.path().join("Main.java"), code).map_err(|e| e.to_string())?;
     let entry = if let Some(checker) = checker {
         std::fs::write(directory.path().join("QuestContract.java"), checker)
@@ -194,5 +211,48 @@ mod tests {
         ] {
             assert!(!super::is_jdk25(text));
         }
+    }
+}
+
+#[cfg(test)]
+mod prepared_file_tests {
+    #[tokio::test]
+    async fn grading_uses_changed_files_and_rejects_overwriting_old_text() {
+        let task:crate::repository_course::Task=serde_json::from_value(serde_json::json!({
+            "id":"file-probe","title":"저장","goal":"이전 글을 남겨요.","language":"java",
+            "starter_code":"", "solution":"", "files":{"quotes.txt":"시작\n"},
+            "tests":[{"input":"","expected":"시작\n다음"}],
+            "variations":[{"files":{"quotes.txt":""},"expected":"다음"},
+                {"files":{"quotes.txt":"이전\n"},"expected":"이전\n다음"}]
+        })).unwrap();
+        let source=r#"import java.nio.file.*;
+class Main { public static void main(String[] args) throws Exception {
+    Path file=Path.of("quotes.txt");
+    Files.writeString(file,"다음\n",StandardOpenOption.CREATE,StandardOpenOption.APPEND);
+    System.out.print(Files.readString(file));
+} }"#;
+        let result=crate::lesson_runner::check(&task,source).await.unwrap();
+        assert!(result.passed);
+        assert_eq!(result.cases.len(),3);
+        let wrong=source.replace(",StandardOpenOption.CREATE,StandardOpenOption.APPEND","");
+        assert!(!crate::lesson_runner::check(&task,&wrong).await.unwrap().passed);
+    }
+
+    #[tokio::test]
+    async fn each_java_run_restores_utf8_files_and_nested_paths() {
+        let files=std::collections::BTreeMap::from([("data/quotes.txt".to_string(), "시작".to_string())]);
+        let source=r#"import java.nio.file.*;
+class Main { public static void main(String[] args) throws Exception {
+    Path file=Path.of("data", "quotes.txt");
+    System.out.println(Files.readString(file));
+    Files.writeString(file,"수정");
+} }"#;
+        for _ in 0..2 {
+            let result=super::run_files(source,"",&files).await.unwrap();
+            assert!(result.success,"{}",result.stderr);
+            assert_eq!(result.stdout,"시작\n");
+        }
+        let unsafe_files=std::collections::BTreeMap::from([("../escape.txt".to_string(), "x".to_string())]);
+        assert!(super::run_files(source,"",&unsafe_files).await.is_err());
     }
 }
