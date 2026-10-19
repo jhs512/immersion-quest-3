@@ -85,8 +85,7 @@ pub fn asset_for_platform() -> Option<&'static str> {
         Some("molip-quest-3-windows-x64-setup.exe")
     } else if cfg!(all(target_os = "macos", target_arch = "aarch64")) {
         Some("molip-quest-3-macos-arm64.dmg")
-    } else if cfg!(all(target_os = "macos", target_arch = "x86_64")) {
-        Some("molip-quest-3-macos-x64.dmg")
+
     } else {
         None
     }
@@ -459,7 +458,6 @@ mod tests {
             "assets": [
                 {"name": "molip-quest-3-windows-x64-setup.exe", "browser_download_url": "https://example.com/w.exe", "size": 10},
                 {"name": "molip-quest-3-macos-arm64.dmg", "browser_download_url": "https://example.com/m.dmg", "size": 20},
-                {"name": "molip-quest-3-macos-x64.dmg", "browser_download_url": "https://example.com/intel.dmg", "size": 20},
                 {"name": "molip-quest-android.apk", "browser_download_url": "https://example.com/a.apk", "size": 30}
             ]
         })

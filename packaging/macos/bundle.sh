@@ -9,7 +9,7 @@ cd "$(dirname "$0")/../.."
 
 version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -n 1)
 arch="${MQ3_MAC_ARCH:-$(uname -m)}"
-case "$arch" in arm64|x64) ;; x86_64) arch=x64 ;; *) echo "Unsupported architecture: $arch" >&2; exit 1 ;; esac
+case "$arch" in arm64) ;; *) echo "Only Apple Silicon (arm64) is supported: $arch" >&2; exit 1 ;; esac
 app="target/bundle/몰입 퀘스트 3.app"
 image="target/installers/molip-quest-3-macos-${arch}.dmg"
 rm -rf target/bundle

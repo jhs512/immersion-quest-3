@@ -13,7 +13,7 @@ support="$HOME/Library/Application Support/MolipQuest.MolipQuest"
 env_dir="$support/ml-env"
 
 if [ "$(uname -s)" != Darwin ]; then echo "이 설치 스크립트는 macOS 전용입니다."; exit 1; fi
-case "$(uname -m)" in arm64) arch=arm64 ;; x86_64) arch=x64 ;; *) echo "지원하지 않는 Mac 아키텍처예요."; exit 1 ;; esac
+case "$(uname -m)" in arm64) arch=arm64 ;; *) echo "Apple Silicon(M1 이후) Mac만 지원해요. 터미널을 Rosetta 없이 실행해 주세요."; exit 1 ;; esac
 
 dest=/Applications
 [ -w "$dest" ] || { dest="$HOME/Applications"; mkdir -p "$dest"; }
@@ -44,13 +44,7 @@ fi
 mkdir -p "$support"
 python_version=3.13
 requirements="$dest/$app/Contents/Resources/requirements-learning.txt"
-if [ "$arch" = x64 ]; then
-  # TensorFlow 2.16 is the last official Intel Mac build (Python <= 3.12).
-  python_version=3.12
-  sed '/^tensorflow==/d' "$requirements" > "$tmp/requirements-intel.txt"
-  printf '\ntensorflow==2.16.2\n' >> "$tmp/requirements-intel.txt"
-  requirements="$tmp/requirements-intel.txt"
-fi
+
 uv venv "$env_dir" --python "$python_version" --quiet
 uv pip install --python "$env_dir/bin/python" --quiet -r "$requirements"
 "$env_dir/bin/python" -c "import pandas, sklearn, matplotlib; print('      pandas', pandas.__version__, '· scikit-learn', sklearn.__version__)"

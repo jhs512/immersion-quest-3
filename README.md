@@ -12,11 +12,11 @@
 - **Java**: [JDK 25](https://adoptium.net/temurin/releases/?version=25)를 설치한 뒤 앱을 다시 여세요.
 - **Python**: 앱의 **환경 설치**로 준비하고 **환경 진단**에서 확인하세요.
 
-## macOS · Apple Silicon / Intel
+## macOS · Apple Silicon
 
 ### 터미널로 설치
 
-터미널을 열고 아래 명령을 붙여 넣으세요. Mac에 맞는 앱과 Python 실행 환경을 설치한 뒤 앱을 열어요.
+터미널을 열고 아래 명령을 붙여 넣으세요. Apple Silicon용 앱과 Python 실행 환경을 설치한 뒤 앱을 열어요.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/jhs512/immersion-quest-3/main/packaging/macos/install.sh | bash
@@ -32,7 +32,7 @@ curl -fsSL https://raw.githubusercontent.com/jhs512/immersion-quest-3/main/packa
 
 ### 설치 파일로 설치
 
-1. **Apple Silicon(M1·M2·M3·M4 등)**은 [arm64 DMG](https://github.com/jhs512/immersion-quest-3/releases/latest/download/molip-quest-3-macos-arm64.dmg), **Intel Mac**은 [x64 DMG](https://github.com/jhs512/immersion-quest-3/releases/latest/download/molip-quest-3-macos-x64.dmg)를 받으세요.
+1. [Apple Silicon(M1 이후)용 DMG](https://github.com/jhs512/immersion-quest-3/releases/latest/download/molip-quest-3-macos-arm64.dmg)를 받으세요.
 2. DMG를 열고 **몰입 퀘스트 3.app**을 **응용 프로그램(Applications)**으로 옮기세요.
 3. 앱을 열고 위의 GitHub 연결과 실행 환경 준비를 진행하세요. Python 환경은 앱의 **환경 설치**로 준비할 수 있어요.
 

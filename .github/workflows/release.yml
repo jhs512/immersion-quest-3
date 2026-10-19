@@ -62,8 +62,6 @@ jobs:
         include:
           - runner: macos-15
             arch: arm64
-          - runner: macos-15-intel
-            arch: x64
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
     env:
@@ -114,7 +112,6 @@ jobs:
           set -euo pipefail
           executable='target/bundle/몰입 퀘스트 3.app/Contents/MacOS/molip-quest'
           expected="$MQ3_MAC_ARCH"
-          [ "$expected" != x64 ] || expected=x86_64
           lipo "$executable" -verify_arch "$expected"
           "$executable" > target/macos-launch.log 2>&1 &
           app_pid=$!
@@ -164,7 +161,7 @@ jobs:
               exit 0
             fi
           else
-            printf 'MQ3 Windows x64 and macOS arm64/x64 installers. Source commit: %s\n\nLearning progress uses your existing gh login.\nWindows code signing and Apple notarization are not configured.\n' "$COMMIT_SHA" > "$RUNNER_TEMP/notes.md"
+            printf 'MQ3 Windows x64 and macOS Apple Silicon installers. Source commit: %s\n\nLearning progress uses your existing gh login.\nWindows code signing and Apple notarization are not configured.\n' "$COMMIT_SHA" > "$RUNNER_TEMP/notes.md"
             gh release create "$tag" --draft --target "$COMMIT_SHA" --title "몰입 퀘스트 3 · $tag" --notes-file "$RUNNER_TEMP/notes.md"
           fi
           gh release upload "$tag" --clobber target/release-assets/molip-quest-3-windows-x64-setup.exe target/release-assets/molip-quest-3-macos-*.dmg target/release-assets/SHA256SUMS
