@@ -115,7 +115,8 @@ impl SetupTerminal {
     fn open_with(practice:Option<(&std::path::Path,&[(String,String)])>) -> Result<(Self, mpsc::Receiver<Vec<u8>>), String> {
         let pair=native_pty_system().openpty(PtySize {rows:20,cols:100,pixel_width:0,pixel_height:0}).map_err(|e|e.to_string())?;
         #[cfg(windows)]
-        let mut command={let mut c=CommandBuilder::new("powershell.exe");c.args(["-NoLogo","-NoProfile"]);c};
+        let mut command={let mut c=CommandBuilder::new("powershell.exe");c.args(["-NoLogo","-NoProfile","-NoExit","-Command",
+            "$utf8=[System.Text.UTF8Encoding]::new($false);[Console]::InputEncoding=$utf8;[Console]::OutputEncoding=$utf8;$OutputEncoding=$utf8"]);c};
         #[cfg(not(windows))]
         let mut command=if practice.is_some(){let mut c=CommandBuilder::new("/bin/bash");c.args(["--noprofile","--norc","-i","+m"]);c}else{CommandBuilder::new(std::env::var_os("SHELL").unwrap_or_else(||"/bin/sh".into()))};
         let paths=gh_directories().into_iter().chain(std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default()).collect::<Vec<_>>());
@@ -206,7 +207,8 @@ mod tests {
         let (mut shell,mut rx)=SetupTerminal::open().unwrap();
         shell.resize(24,90).unwrap();
         // Build the sentinel inside the shell, so terminal echo cannot satisfy the test.
-        let command=if cfg!(windows){"Write-Output ('MQ3_' + 'PTY_READY')\r"}else{"printf 'MQ3_%s\\n' PTY_READY\n"};
+        let expected=if cfg!(windows){"MQ3_PTY_READY 한글 65001"}else{"MQ3_PTY_READY 한글"};
+        let command=if cfg!(windows){"[Console]::WriteLine('MQ3_' + 'PTY_READY 한글 ' + [Console]::OutputEncoding.CodePage)\r"}else{"printf 'MQ3_%s\\n' 'PTY_READY 한글'\n"};
         let mut seen=String::new();
         let mut sent=false;
         let deadline=std::time::Instant::now()+std::time::Duration::from_secs(12);
@@ -218,10 +220,10 @@ mod tests {
                 seen.push_str(&chunk);
             }
             if !sent && (seen.contains("PS ")||!cfg!(windows)) {shell.input(command).unwrap();sent=true;}
-            if seen.contains("MQ3_PTY_READY"){break;}
+            if seen.contains(expected){break;}
             std::thread::sleep(std::time::Duration::from_millis(20));
         }
         drop(shell);
-        assert!(seen.contains("MQ3_PTY_READY"),"interactive shell did not execute the input: {seen:?}");
+        assert!(seen.contains(expected),"interactive shell did not preserve UTF-8: {seen:?}");
     }
 }
