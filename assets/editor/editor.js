@@ -141,11 +141,11 @@ if (!window.molipCodeEditors) {
     }
     return false;
   }
-  function highlightLines(start, end = start) {
+  function highlightLines(start, end = start, moveCursor = false) {
     for (const [element, view] of editors) if (element.isConnected) {
       const first = Math.max(1, Math.min(view.state.doc.lines, Number(start) || 1));
       const last = Math.max(first, Math.min(view.state.doc.lines, Number(end) || first));
-      view.dispatch({effects: [narrationFocus.of(start == null ? null : [first, last]),
+      view.dispatch({...(moveCursor && start != null ? {selection:{anchor:view.state.doc.line(last).to}} : {}),effects: [narrationFocus.of(start == null ? null : [first, last]),
         ...(start == null ? [] : [EditorView.scrollIntoView(view.state.doc.line(last).from, {y: 'nearest'})])]});
       return true;
     }
