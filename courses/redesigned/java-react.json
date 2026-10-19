@@ -1,0 +1,532 @@
+{
+  "schema_version": 2,
+  "id": "lsn_89492476-c7f2-45f2-a90d-feb8467e8f30",
+  "revision": "java-react-1",
+  "title": "AI가 만든 작은 React 화면을 읽고 고쳐요",
+  "description": "같은 작은 글 화면에서 구조·전달·목록·상태·입력을 한 곳씩 고쳐요.",
+  "objectives": [
+    "JSX·컴포넌트·props·목록과 실제 화면을 연결해요.",
+    "이벤트·상태·제어 입력의 작은 변경을 이해해요.",
+    "AI가 만든 화면을 실제 클릭·입력으로 검증해요."
+  ],
+  "sources": [
+    "https://react.dev/learn/responding-to-events",
+    "https://react.dev/learn/passing-props-to-a-component",
+    "https://react.dev/learn/state-a-components-memory",
+    "https://react.dev/learn/rendering-lists"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_d38878af-f025-40b3-9889-c55e2245e8a4",
+      "title": "같은 글 화면의 구조를 읽어요",
+      "objectives": [
+        "요소·props·목록을 연결해요."
+      ],
+      "units": [
+        {
+          "id": "unt_2b389829-a89b-406f-b524-bb335af0a22b",
+          "title": "글 목록의 첫 화면",
+          "objectives": [
+            "작은 문구와 배열 변경을 실제 화면에서 확인해요."
+          ],
+          "premise": "준비된 글 목록에서 제목과 전달 값을 고쳐요. 같은 화면에 두 글을 모두 보여 줘요.",
+          "steps": [
+            {
+              "id": "stp_17a0ba55-3910-4508-8a80-048c3f8e95fe",
+              "objectives": [
+                "JSX 요소의 글과 실제 화면을 연결해요."
+              ]
+            },
+            {
+              "id": "stp_5e87d754-3e35-4479-b639-bb94d6e91c68",
+              "objectives": [
+                "props로 전달한 값이 화면에 쓰이는 흐름을 이해해요."
+              ]
+            },
+            {
+              "id": "stp_868cc9c5-e3e7-4ca3-8149-2ec1b250507e",
+              "objectives": [
+                "배열·map·고유 key의 관계를 이해해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_7f72e3a0-5ca6-4af1-ba68-139ade03460c",
+      "title": "같은 화면에 입력과 동작을 붙여요",
+      "objectives": [
+        "상태·이벤트·입력·저장을 구별해요."
+      ],
+      "units": [
+        {
+          "id": "unt_fb45dc66-a77e-4396-b7d5-2cbe6e0a4163",
+          "title": "글 화면의 작은 상호작용",
+          "objectives": [
+            "실제 클릭·입력·다시 열기로 결과를 검증해요."
+          ],
+          "premise": "같은 글 화면에 좋아요와 입력을 더해요. 마지막에는 폼 저장 규칙을 한 곳 고쳐요.",
+          "steps": [
+            {
+              "id": "stp_980ef244-3c61-4c23-817e-532e8dfadc4a",
+              "objectives": [
+                "이벤트 처리와 상태 변경 뒤 화면 갱신을 이해해요."
+              ]
+            },
+            {
+              "id": "stp_52cb7f2c-1827-4123-b56d-961323e0b909",
+              "objectives": [
+                "제어 입력의 값과 변경 처리 흐름을 이해해요."
+              ]
+            },
+            {
+              "id": "stp_f06c2907-983c-4f11-a8b2-6069a2961ea4",
+              "objectives": [
+                "이벤트 기본 동작·문자열 정리·메모리 저장을 구별해요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_17a0ba55-3910-4508-8a80-048c3f8e95fe",
+      "title": "같은 화면의 제목을 고쳐요",
+      "goal": "화면 제목을 글 목록으로 고치세요.\nh1 안의 글만 바꾸면 돼요.",
+      "language": "web",
+      "starter_code": "import { createRoot } from \"react-dom/client\";\n// index.html의 root에 준비된 화면을 그려요.\nfunction App() {\n  // 제목 요소 안의 글이 화면에 보여요.\n  return <main><h1>임시 제목</h1><button>글 보기</button></main>;\n}\ncreateRoot(document.getElementById(\"root\")).render(<App />);\n",
+      "solution": "import { createRoot } from \"react-dom/client\";\n// index.html의 root에 준비된 화면을 그려요.\nfunction App() {\n  // 제목 요소 안의 글이 화면에 보여요.\n  return <main><h1>글 목록</h1><button>글 보기</button></main>;\n}\ncreateRoot(document.getElementById(\"root\")).render(<App />);\n",
+      "tests": [],
+      "required": true,
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해 현재 화면을 확인해요.",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "화면 제목에 임시 제목이 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "임시 제목",
+          "after": "글 목록",
+          "say": "문제에서 확인한 부분만 고쳐요."
+        },
+        {
+          "action": "run",
+          "say": "다시 실행해 처음 화면을 확인해요.",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이제 같은 제목 요소에 글 목록이 보여요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. h1은 화면 요소예요. 전체 프로젝트를 다시 쓸 필요는 없어요.",
+          "target": "output"
+        }
+      ],
+      "entry_file": "app.jsx",
+      "files": {
+        "index.html": "<!doctype html><html lang=\"ko\"><meta charset=\"utf-8\"><title>글 화면</title><body><div id=\"root\"></div><script src=\"app.js\"></script></body></html>"
+      },
+      "web_checks": [
+        {
+          "kind": "text",
+          "selector": "h1",
+          "pattern": "^글 목록$"
+        }
+      ]
+    },
+    {
+      "id": "stp_5e87d754-3e35-4479-b639-bb94d6e91c68",
+      "title": "컴포넌트에 값을 전달해요",
+      "goal": "Header에 전달할 제목을 내 글 목록으로 고치세요.",
+      "language": "web",
+      "starter_code": "import { createRoot } from \"react-dom/client\";\n// index.html의 root에 준비된 화면을 그려요.\nfunction Header({ title }) {\n  // 부모에서 받은 값을 제목에 사용해요.\n  return <h1>{title}</h1>;\n}\nfunction App() {\n  return <main><Header title=\"임시 목록\" /></main>;\n}\ncreateRoot(document.getElementById(\"root\")).render(<App />);\n",
+      "solution": "import { createRoot } from \"react-dom/client\";\n// index.html의 root에 준비된 화면을 그려요.\nfunction Header({ title }) {\n  // 부모에서 받은 값을 제목에 사용해요.\n  return <h1>{title}</h1>;\n}\nfunction App() {\n  return <main><Header title=\"내 글 목록\" /></main>;\n}\ncreateRoot(document.getElementById(\"root\")).render(<App />);\n",
+      "tests": [],
+      "required": true,
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해 현재 화면을 확인해요.",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "Header가 전달받은 임시 목록을 보여 줘요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "title=\"임시 목록\"",
+          "after": "title=\"내 글 목록\"",
+          "say": "문제에서 확인한 부분만 고쳐요."
+        },
+        {
+          "action": "run",
+          "say": "다시 실행해 처음 화면을 확인해요.",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "부모에서 바꾼 값이 자식 제목에 보여요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 자식 안의 글을 고정하면 다른 제목을 전달해도 쓸 수 없어요.",
+          "target": "output"
+        }
+      ],
+      "entry_file": "app.jsx",
+      "files": {
+        "index.html": "<!doctype html><html lang=\"ko\"><meta charset=\"utf-8\"><title>글 화면</title><body><div id=\"root\"></div><script src=\"app.js\"></script></body></html>"
+      },
+      "web_checks": [
+        {
+          "kind": "text",
+          "selector": "h1",
+          "pattern": "^내 글 목록$"
+        }
+      ]
+    },
+    {
+      "id": "stp_868cc9c5-e3e7-4ca3-8149-2ec1b250507e",
+      "title": "자료 수만큼 글을 보여 줘요",
+      "goal": "준비된 두 글을 모두 보여 주세요.\n첫 글로 제한한 부분만 빼세요.",
+      "language": "web",
+      "starter_code": "import { createRoot } from \"react-dom/client\";\n// index.html의 root에 준비된 화면을 그려요.\nfunction App() {\n  const quotes = [{ id: 1, text: \"시작\" }, { id: 2, text: \"다음\" }];\n  // 같은 배열의 글을 목록 요소로 바꿔요.\n  return <main><h1>글 목록</h1><ul>{quotes.slice(0, 1).map(quote => <li key={quote.id}>{quote.text}</li>)}</ul></main>;\n}\ncreateRoot(document.getElementById(\"root\")).render(<App />);\n",
+      "solution": "import { createRoot } from \"react-dom/client\";\n// index.html의 root에 준비된 화면을 그려요.\nfunction App() {\n  const quotes = [{ id: 1, text: \"시작\" }, { id: 2, text: \"다음\" }];\n  // 같은 배열의 글을 목록 요소로 바꿔요.\n  return <main><h1>글 목록</h1><ul>{quotes.map(quote => <li key={quote.id}>{quote.text}</li>)}</ul></main>;\n}\ncreateRoot(document.getElementById(\"root\")).render(<App />);\n",
+      "tests": [],
+      "required": true,
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해 현재 화면을 확인해요.",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "첫 글만 남기는 제한 때문에 시작만 보여요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "quotes.slice(0, 1).map",
+          "after": "quotes.map",
+          "say": "문제에서 확인한 부분만 고쳐요."
+        },
+        {
+          "action": "run",
+          "say": "다시 실행해 처음 화면을 확인해요.",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "배열의 시작과 다음이 모두 목록에 보여요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. key는 글의 안정적인 식별자예요. 화면 글로 자동 표시되는 값은 아니에요.",
+          "target": "output"
+        }
+      ],
+      "entry_file": "app.jsx",
+      "files": {
+        "index.html": "<!doctype html><html lang=\"ko\"><meta charset=\"utf-8\"><title>글 화면</title><body><div id=\"root\"></div><script src=\"app.js\"></script></body></html>"
+      },
+      "web_checks": [
+        {
+          "kind": "count",
+          "selector": "li",
+          "value": 2
+        },
+        {
+          "kind": "text",
+          "selector": "li:nth-child(1)",
+          "pattern": "^시작$"
+        },
+        {
+          "kind": "text",
+          "selector": "li:nth-child(2)",
+          "pattern": "^다음$"
+        }
+      ]
+    },
+    {
+      "id": "stp_980ef244-3c61-4c23-817e-532e8dfadc4a",
+      "title": "누를 때 상태를 바꿔요",
+      "goal": "누를 때마다 좋아요가1씩 늘게 고치세요.\n클릭 처리의 계산 한 곳만 바꾸세요.",
+      "language": "web",
+      "starter_code": "import { createRoot } from \"react-dom/client\";\nimport { useState } from \"react\";\n// index.html의 root에 준비된 화면을 그려요.\nfunction App() {\n  const [count, setCount] = useState(0);\n  // 함수는 지금 호출하지 않고 클릭할 때 실행되게 넘겨요.\n  return <main><h1>글 목록</h1><button onClick={() => setCount(count)}>좋아요 {count}</button></main>;\n}\ncreateRoot(document.getElementById(\"root\")).render(<App />);\n",
+      "solution": "import { createRoot } from \"react-dom/client\";\nimport { useState } from \"react\";\n// index.html의 root에 준비된 화면을 그려요.\nfunction App() {\n  const [count, setCount] = useState(0);\n  // 함수는 지금 호출하지 않고 클릭할 때 실행되게 넘겨요.\n  return <main><h1>글 목록</h1><button onClick={() => setCount(count + 1)}>좋아요 {count}</button></main>;\n}\ncreateRoot(document.getElementById(\"root\")).render(<App />);\n",
+      "tests": [],
+      "required": true,
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해 현재 화면을 확인해요.",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "처음 좋아요는 영이에요. 같은 값을 다시 넣으면 늘지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "setCount(count)",
+          "after": "setCount(count + 1)",
+          "say": "문제에서 확인한 부분만 고쳐요."
+        },
+        {
+          "action": "run",
+          "say": "다시 실행해 처음 화면을 확인해요.",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "새로 실행한 초기값은 다시 영이에요. 버튼을 눌러 증가를 확인하세요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 실행과 클릭은 달라요. 제출 검사는 실제로 버튼을 두 번 눌러 확인해요.",
+          "target": "output"
+        }
+      ],
+      "entry_file": "app.jsx",
+      "files": {
+        "index.html": "<!doctype html><html lang=\"ko\"><meta charset=\"utf-8\"><title>글 화면</title><body><div id=\"root\"></div><script src=\"app.js\"></script></body></html>"
+      },
+      "web_checks": [
+        {
+          "kind": "text",
+          "selector": "button",
+          "pattern": "^좋아요 0$"
+        },
+        {
+          "kind": "click",
+          "selector": "button"
+        },
+        {
+          "kind": "text",
+          "selector": "button",
+          "pattern": "^좋아요 1$"
+        },
+        {
+          "kind": "click",
+          "selector": "button"
+        },
+        {
+          "kind": "text",
+          "selector": "button",
+          "pattern": "^좋아요 2$"
+        }
+      ]
+    },
+    {
+      "id": "stp_52cb7f2c-1827-4123-b56d-961323e0b909",
+      "title": "입력과 화면의 상태를 연결해요",
+      "goal": "입력한 값이 아래에도 반영되게 고치세요.\nonChange에서 상태를 바꾸세요.",
+      "language": "web",
+      "starter_code": "import { createRoot } from \"react-dom/client\";\nimport { useState } from \"react\";\n// index.html의 root에 준비된 화면을 그려요.\nfunction App() {\n  const [draft, setDraft] = useState(\"시작\");\n  // 입력과 아래 출력이 같은 상태 값을 사용해요.\n  return <main><h1>글 목록</h1><input aria-label=\"새 글\" value={draft} onChange={() => {}} /><output>{draft}</output></main>;\n}\ncreateRoot(document.getElementById(\"root\")).render(<App />);\n",
+      "solution": "import { createRoot } from \"react-dom/client\";\nimport { useState } from \"react\";\n// index.html의 root에 준비된 화면을 그려요.\nfunction App() {\n  const [draft, setDraft] = useState(\"시작\");\n  // 입력과 아래 출력이 같은 상태 값을 사용해요.\n  return <main><h1>글 목록</h1><input aria-label=\"새 글\" value={draft} onChange={event => setDraft(event.target.value)} /><output>{draft}</output></main>;\n}\ncreateRoot(document.getElementById(\"root\")).render(<App />);\n",
+      "tests": [],
+      "required": true,
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해 현재 화면을 확인해요.",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "입력과 아래 출력의 처음 값은 시작이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "onChange={() => {}}",
+          "after": "onChange={event => setDraft(event.target.value)}",
+          "say": "문제에서 확인한 부분만 고쳐요."
+        },
+        {
+          "action": "run",
+          "say": "다시 실행해 처음 화면을 확인해요.",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "입력 변경을 상태에 전달하도록 연결했어요. 서로 다른 글을 넣어 보세요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. value만 주고 변경을 반영하지 않으면 입력 상태가 계속 원래 값으로 남아요.",
+          "target": "output"
+        }
+      ],
+      "entry_file": "app.jsx",
+      "files": {
+        "index.html": "<!doctype html><html lang=\"ko\"><meta charset=\"utf-8\"><title>글 화면</title><body><div id=\"root\"></div><script src=\"app.js\"></script></body></html>"
+      },
+      "web_checks": [
+        {
+          "kind": "fill",
+          "selector": "input",
+          "value": "다음"
+        },
+        {
+          "kind": "text",
+          "selector": "output",
+          "pattern": "^다음$"
+        },
+        {
+          "kind": "fill",
+          "selector": "input",
+          "value": "다른 글"
+        },
+        {
+          "kind": "text",
+          "selector": "output",
+          "pattern": "^다른 글$"
+        }
+      ]
+    },
+    {
+      "id": "stp_f06c2907-983c-4f11-a8b2-6069a2961ea4",
+      "title": "폼 저장의 작은 규칙을 고쳐요",
+      "goal": "저장할 때 글 앞뒤 공백을 빼세요.\n저장하는 값 한 곳만 고치세요.",
+      "language": "web",
+      "starter_code": "import { createRoot } from \"react-dom/client\";\nimport { useState } from \"react\";\n// index.html의 root에 준비된 화면을 그려요.\nfunction App() {\n  const [draft, setDraft] = useState(\"\");\n  const [saved, setSaved] = useState(\"\");\n  // 제출 기본 이동을 막고 이번 화면의 상태에만 보관해요.\n  function save(event) { event.preventDefault(); setSaved(draft); }\n  return <main><h1>글 목록</h1><form onSubmit={save}><input aria-label=\"새 글\" value={draft} onChange={event => setDraft(event.target.value)} /><button>저장</button></form><output>{JSON.stringify(saved)}</output></main>;\n}\ncreateRoot(document.getElementById(\"root\")).render(<App />);\n",
+      "solution": "import { createRoot } from \"react-dom/client\";\nimport { useState } from \"react\";\n// index.html의 root에 준비된 화면을 그려요.\nfunction App() {\n  const [draft, setDraft] = useState(\"\");\n  const [saved, setSaved] = useState(\"\");\n  // 제출 기본 이동을 막고 이번 화면의 상태에만 보관해요.\n  function save(event) { event.preventDefault(); setSaved(draft.trim()); }\n  return <main><h1>글 목록</h1><form onSubmit={save}><input aria-label=\"새 글\" value={draft} onChange={event => setDraft(event.target.value)} /><button>저장</button></form><output>{JSON.stringify(saved)}</output></main>;\n}\ncreateRoot(document.getElementById(\"root\")).render(<App />);\n",
+      "tests": [],
+      "required": true,
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해 현재 화면을 확인해요.",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "처음 저장된 값은 빈 문자열이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "setSaved(draft)",
+          "after": "setSaved(draft.trim())",
+          "say": "문제에서 확인한 부분만 고쳐요."
+        },
+        {
+          "action": "run",
+          "say": "다시 실행해 처음 화면을 확인해요.",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "공백을 정리한 값을 저장하도록 바꿨어요. 공백 있는 글을 넣어 저장해 보세요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 여기 저장은 화면의 메모리 상태예요. 새로 열면 비워지며 서버 저장은 아니에요.",
+          "target": "output"
+        }
+      ],
+      "entry_file": "app.jsx",
+      "files": {
+        "index.html": "<!doctype html><html lang=\"ko\"><meta charset=\"utf-8\"><title>글 화면</title><body><div id=\"root\"></div><script src=\"app.js\"></script></body></html>"
+      },
+      "web_checks": [
+        {
+          "kind": "fill",
+          "selector": "input",
+          "value": "  새 글  "
+        },
+        {
+          "kind": "click",
+          "selector": "button"
+        },
+        {
+          "kind": "text",
+          "selector": "output",
+          "pattern": "^\"새 글\"$"
+        },
+        {
+          "kind": "fill",
+          "selector": "input",
+          "value": "  또 글 "
+        },
+        {
+          "kind": "click",
+          "selector": "button"
+        },
+        {
+          "kind": "text",
+          "selector": "output",
+          "pattern": "^\"또 글\"$"
+        },
+        {
+          "kind": "reload"
+        },
+        {
+          "kind": "text",
+          "selector": "output",
+          "pattern": "^\"\"$"
+        }
+      ]
+    }
+  ]
+}

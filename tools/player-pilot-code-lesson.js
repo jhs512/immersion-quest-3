@@ -1,5 +1,8 @@
 (async()=>{
  const checked=[],pilot=window.mq3LessonPilot;
+ const frameLoads=new WeakMap(),observedFrames=new WeakSet();
+ const watchFrames=()=>{for(const frame of document.querySelectorAll('iframe'))if(!observedFrames.has(frame)){observedFrames.add(frame);frameLoads.set(frame,0);frame.addEventListener('load',()=>frameLoads.set(frame,(frameLoads.get(frame)||0)+1));}};
+ const frameObserver=new MutationObserver(watchFrames);frameObserver.observe(document.body,{childList:true,subtree:true});watchFrames();
  const wait=async(predicate,label)=>{const until=Date.now()+60000;while(Date.now()<until){if(predicate())return;await new Promise(r=>setTimeout(r,40));}throw Error(`Timed out: ${label}`);};
  const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===text);
  const click=async text=>{await wait(()=>button(text)&&!button(text).disabled,text);button(text).click();await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));};
@@ -22,17 +25,20 @@
   await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('pilot-a'),'initial fixture installed');
   await click('검증 높이 720');await click(`버전 ${pilot.version}`);await wait(()=>document.querySelector('.lesson-card')?.textContent.includes(pilot.revision),'approved code lesson');
   await click('풀모드 시작');molipAgent.setVoice(false);
-  let teacherResult='',requestedRanges=[],shownDiagrams=[],shownPlots=[];const originalExplanation=molipAgent.runExplanation.bind(molipAgent);
+  let teacherResult='',requestedRanges=[],shownDiagrams=[],shownPlots=[],shownWeb=false;const originalExplanation=molipAgent.runExplanation.bind(molipAgent);
   const originalHighlight=molipCodeEditors.highlightLines.bind(molipCodeEditors);
   molipCodeEditors.highlightLines=(from,to,...rest)=>{if(Number.isInteger(from))requestedRanges.push([from,to??from]);return originalHighlight(from,to,...rest);};
   molipAgent.runExplanation=async actions=>{
-   teacherResult='';requestedRanges=[];shownDiagrams=[];shownPlots=[];
+   teacherResult='';requestedRanges=[];shownDiagrams=[];shownPlots=[];shownWeb=false;
    const observer=new MutationObserver(()=>{const panel=document.querySelector('.narration-memory');if(panel)shownDiagrams.push({title:panel.querySelector('figcaption')?.textContent,rows:[...panel.querySelectorAll('.narration-memory-row')].map(row=>row.textContent.replace(/\s/g,''))});for(const image of document.querySelectorAll('.plot-result img'))if(image.src.startsWith('data:image/png;base64,'))shownPlots.push(image.src);});
+   const webObserver=new MutationObserver(()=>{if(document.querySelector('iframe[title="해설 웹 미리보기"]')?.getAttribute('srcdoc'))shownWeb=true;});
+   webObserver.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['srcdoc']});
    observer.observe(document.body,{subtree:true,childList:true,characterData:true});
-   try{const result=await originalExplanation(actions);teacherResult=result;return result;}finally{observer.disconnect();}
+   try{const result=await originalExplanation(actions);teacherResult=result;return result;}finally{observer.disconnect();webObserver.disconnect();}
   };
   const verifyTeacher=task=>{
    if(pilot.requirePlot&&!shownPlots.length)throw Error('Teacher plot was not rendered in the output panel');
+   if(pilot.requireHtml&&!shownWeb)throw Error('Teacher webpage was not rendered in the output panel');
    if(teacherResult.includes('오류 -')||teacherResult.split('run:').length-1!==task.narration.filter(action=>action.action==='run').length)throw Error(`Teacher did not finish all authored runs: ${teacherResult}`);
    for(const action of task.narration){
     const range=String(action.target??'').match(/^(?:lines|editor):(\d+)(?::(\d+))?$/);
@@ -81,9 +87,22 @@
     await wait(()=>!molipAgent.running&&document.querySelector('.repository-task').dataset.narrating==='false','teacher with student plot ends');
     await wait(()=>document.querySelector('.plot-result img')?.src===studentPlot,'student plot restored after teacher');verifyTeacher(task);
    }
+   if(pilot.requireHtml&&index===0){
+    await click('코드 실행');
+    await wait(()=>status('실행을 마쳤어요')&&document.querySelector('iframe[title="수업 웹 미리보기"]')?.getAttribute('srcdoc'),'student webpage is visible');
+    const studentFrame=document.querySelector('iframe[title="수업 웹 미리보기"]');
+    await wait(()=>frameLoads.get(studentFrame)>0,'student page load');
+    const studentPreview=studentFrame.getAttribute('srcdoc'),studentWindow=studentFrame.contentWindow,studentLoads=frameLoads.get(studentFrame);
+    await click('해설 재생 · 정답 실행');await wait(()=>molipAgent.running,'teacher with student webpage starts');
+    await wait(()=>!molipAgent.running&&document.querySelector('.repository-task').dataset.narrating==='false','teacher with student webpage ends');
+    await wait(()=>document.querySelector('iframe[title="수업 웹 미리보기"]')?.getAttribute('srcdoc')===studentPreview,'student webpage restored');
+    if(document.querySelector('iframe[title="수업 웹 미리보기"]')!==studentFrame||studentFrame.contentWindow!==studentWindow||frameLoads.get(studentFrame)!==studentLoads)throw Error('Teacher replaced or reloaded the live student webpage');
+    verifyTeacher(task);
+   }
    await click('제출');await wait(()=>status(index===pilot.tasks.length-1?'수업 완료':'통과했어요'),'authored solution accepted');
    await click('초기화');await wait(()=>molipCodeEditors.getValue()===initialCode&&bridge()?.value===initialAnswer,'independent reset');
    if(pilot.requirePlot&&document.querySelector('.plot-result img'))throw Error('Reset retained the previous plot');
+   if(pilot.requireHtml)await wait(()=>!document.querySelector('iframe[title="수업 웹 미리보기"]'),'reset clears student webpage');
    await click('제출');await wait(()=>status('다시 풀어보세요'),'reset task is unsolved');
    checked.push(`${pilot.label} step ${index+1}: teacher restoration, wrong answer, correct submission, independent reset`);
    if(index<pilot.tasks.length-1)await click('다음 문제 →');

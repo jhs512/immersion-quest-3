@@ -232,6 +232,46 @@ pub fn PilotPlayer() -> Element {
             let commands:serde_json::Value=serde_json::from_str(include_str!("../tests/fixtures/player-pilot/어/student-commands.json")).expect("remote student commands");
             let config=serde_json::json!({"label":"git-remote","version":"어","revision":"git-remote-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks,"studentCommands":commands["student_commands"]});
             format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-git-remote.js"))
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("java-react") {
+            let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/java-react.json")).expect("compiled lesson");
+            let tasks=&lesson["tasks"];
+            let config=serde_json::json!({"label":"java-react","version":"저","revision":"java-react-1","modifications":{"1":{"correct":true},"3":{"correct":true},"5":{"correct":true}},"tasks":tasks,"requireHtml":true});
+            format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("java-tailwind") {
+            let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/java-tailwind.json")).expect("compiled lesson");
+            let tasks=&lesson["tasks"];
+            let config=serde_json::json!({"label":"java-tailwind","version":"처","revision":"java-tailwind-1","modifications":{"1":{"correct":true},"3":{"correct":true},"5":{"correct":true}},"tasks":tasks,"requireHtml":true});
+            format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("engineer-java-flow") {
+            let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/engineer-java-flow.json")).expect("compiled lesson");
+            let tasks=&lesson["tasks"];
+            let config=serde_json::json!({"label":"engineer-java-flow","version":"커","revision":"engineer-java-flow-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
+            format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("engineer-java-references") {
+            let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/engineer-java-references.json")).expect("compiled lesson");
+            let tasks=&lesson["tasks"];
+            let config=serde_json::json!({"label":"engineer-java-references","version":"터","revision":"engineer-java-references-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
+            format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("engineer-java-static") {
+            let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/engineer-java-static.json")).expect("compiled lesson");
+            let tasks=&lesson["tasks"];
+            let config=serde_json::json!({"label":"engineer-java-static","version":"퍼","revision":"engineer-java-static-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
+            format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("engineer-java-polymorphism") {
+            let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/engineer-java-polymorphism.json")).expect("compiled lesson");
+            let tasks=&lesson["tasks"];
+            let config=serde_json::json!({"label":"engineer-java-polymorphism","version":"허","revision":"engineer-java-polymorphism-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
+            format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("engineer-python-values") {
+            let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/engineer-python-values.json")).expect("compiled lesson");
+            let tasks=&lesson["tasks"];
+            let config=serde_json::json!({"label":"engineer-python-values","version":"고","revision":"engineer-python-values-1","modifications":{"1":{"correct":true},"4":{"correct":true},"7":{"correct":true}},"tasks":tasks});
+            format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("engineer-python-calls") {
+            let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/engineer-python-calls.json")).expect("compiled lesson");
+            let tasks=&lesson["tasks"];
+            let config=serde_json::json!({"label":"engineer-python-calls","version":"노","revision":"engineer-python-calls-1","modifications":{"1":{"correct":true},"5":{"correct":true},"9":{"correct":true}},"tasks":tasks});
+            format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("java-methods") {
             let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/java-methods.json")).expect("compiled lesson");
             let tasks=&lesson["tasks"];
@@ -274,7 +314,7 @@ pub fn PilotPlayer() -> Element {
     rsx! {
         aside { class: "pilot-toolbar", aria_label: "개발 검증 도구",
             span { "개발 검증 전용 · 외부 계정 기록 없음" }
-            for version in ['a', 'b', 'c', 'd', 'e', 'f', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '가', '나', '다', '라', '마', '바', '사', '아', '자', '차', '카', '타', '파', '하', '거', '너', '더', '러', '머', '버', '서', '어', '0'] {
+            for version in ['a', 'b', 'c', 'd', 'e', 'f', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '가', '나', '다', '라', '마', '바', '사', '아', '자', '차', '카', '타', '파', '하', '거', '너', '더', '러', '머', '버', '서', '어', '저', '처', '커', '터', '퍼', '허', '고', '노', '0'] {
                 button { onclick: move |_| {
                     match pilot_source::set_version(version) {
                         Ok(()) => {

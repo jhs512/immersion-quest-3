@@ -19,7 +19,7 @@ fn verify(mode:&str,count:usize) {
     let passed:std::collections::HashSet<_>=events.iter().filter(|event|event.kind==EventKind::Attempt&&event.passed).filter_map(|event|event.task_id.as_ref()).collect();
     assert_eq!(passed.len(),count);
     assert_eq!(events.iter().filter(|event|event.kind==EventKind::Completed).count(),1);
-    assert_eq!(events.iter().filter(|event|event.kind==EventKind::ExampleRun).count(),if mode=="aice-plots" {1}else{0});
+    assert_eq!(events.iter().filter(|event|event.kind==EventKind::ExampleRun).count(),if matches!(mode,"aice-plots"|"java-react"|"java-tailwind") {1}else{0});
 }
 
 #[test]
@@ -169,3 +169,35 @@ fn java_parser_restore_student_state() {verify("java-parser",8)}
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
 fn git_remote_restore_student_state() {verify("git-remote",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn java_react_restore_student_state() {verify("java-react",6)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn java_tailwind_restore_student_state() {verify("java-tailwind",6)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_java_flow_restore_student_state() {verify("engineer-java-flow",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_java_references_restore_student_state() {verify("engineer-java-references",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_java_static_restore_student_state() {verify("engineer-java-static",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_java_polymorphism_restore_student_state() {verify("engineer-java-polymorphism",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_python_values_restore_student_state() {verify("engineer-python-values",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_python_calls_restore_student_state() {verify("engineer-python-calls",10)}

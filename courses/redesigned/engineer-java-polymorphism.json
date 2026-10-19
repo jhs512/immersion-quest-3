@@ -1,0 +1,775 @@
+{
+  "schema_version": 2,
+  "id": "lsn_afd14971-0537-4632-b4d1-8a5bbf216afe",
+  "revision": "engineer-java-polymorphism-1",
+  "title": "Java · 호출 규칙과 예외 뒤 순서를 읽어요",
+  "description": "같은 발급 규칙에서 타입·호출·초기화·실패가 결과를 어떻게 바꾸는지 읽어요.",
+  "objectives": [
+    "필드·static·오버로드와 오버라이딩의 선택 기준을 구별해요.",
+    "생성 도중 메서드 호출과 필드 초기화를 나눠 읽어요.",
+    "예외·finally·반환 뒤 출력 결과를 직접 답해요."
+  ],
+  "sources": [
+    "https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html",
+    "https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html",
+    "https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_f1b39777-30b0-475e-9229-670d24f224ff",
+      "title": "발급 규칙의 소속을 구별해요",
+      "objectives": [
+        "선언형과 실제형에 따른 선택을 구별해요."
+      ],
+      "units": [
+        {
+          "id": "unt_d5e92bf0-373f-4d92-bbe4-43b354f4a8d3",
+          "title": "기본 규칙과 추가 규칙",
+          "objectives": [
+            "필드·정적 호출·오버로드·오버라이딩을 나눠요."
+          ],
+          "premise": "같은 발급 규칙에 추가 규칙이 생겨요. 변수의 선언형과 실제 객체를 한 관계씩 바꿔요.",
+          "steps": [
+            {
+              "id": "stp_af249ad3-6a04-4487-a2c5-10d94ef1dbdc",
+              "objectives": [
+                "참조형과 실제 객체형에 따른 오버라이딩 호출을 읽어요."
+              ]
+            },
+            {
+              "id": "stp_32d717ac-d05b-4e45-b6af-6de8a5d5e73c",
+              "objectives": [
+                "숨겨진 필드와 오버라이딩 메서드의 선택을 구별해요."
+              ]
+            },
+            {
+              "id": "stp_dcf0ddf2-a6e2-4377-92b5-c5ada59baf21",
+              "objectives": [
+                "정적 숨김과 인스턴스 오버라이딩을 구별해요."
+              ]
+            },
+            {
+              "id": "stp_054d2905-9281-4fef-87eb-fdeb9f3fa412",
+              "objectives": [
+                "오버로드 선택과 실행 시 오버라이딩을 구별해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_54179655-ea64-483d-9e73-457dcb4f773f",
+      "title": "실행 도중 생긴 일을 읽어요",
+      "objectives": [
+        "초기화·예외·반환의 선후를 구별해요."
+      ],
+      "units": [
+        {
+          "id": "unt_3a5e8995-db16-4608-9f66-b19d8b843eeb",
+          "title": "같은 규칙의 실행 기록",
+          "objectives": [
+            "실행하지 않은 줄과 마지막 결과를 판단해요."
+          ],
+          "premise": "같은 발급 규칙이 준비 도중 호출되거나 실패해요. 출력 기록으로 순서를 확인하고 합계를 직접 답해요.",
+          "steps": [
+            {
+              "id": "stp_932d8712-b8d0-4ceb-9b2d-a060b36aebe4",
+              "objectives": [
+                "생성 도중의 오버라이딩과 기본값을 연결해요."
+              ]
+            },
+            {
+              "id": "stp_96c42520-57e4-4d77-a0d1-2ba45975c03d",
+              "objectives": [
+                "예외 뒤 건너뛴 줄과 catch 뒤 흐름을 구별해요."
+              ]
+            },
+            {
+              "id": "stp_25d18823-5a88-4ce2-8eb8-4008c5c5fef5",
+              "objectives": [
+                "반환식 값 결정과 finally 부작용의 순서를 구별해요."
+              ]
+            },
+            {
+              "id": "stp_2b7fe0cf-5e2f-4581-8af6-52b7db75b50a",
+              "objectives": [
+                "오버라이딩·super호출·다형성 합계를 읽어요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_af249ad3-6a04-4487-a2c5-10d94ef1dbdc",
+      "title": "실제 객체의 메서드를 불러요",
+      "goal": "변수는 Rule, 실제 객체는 Bonus예요.\nvalue는 무엇을 반환할까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "actual",
+      "tests": [],
+      "required": true,
+      "example_code": "class Rule {\n    int value() { return 2; }\n}\nclass Bonus extends Rule {\n    @Override int value() { return 7; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Rule rule = new Bonus();\n        System.out.println(rule.value());\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "actual",
+            "text": "7이에요"
+          },
+          {
+            "id": "declared",
+            "text": "2예요"
+          }
+        ],
+        "answer": "actual"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "실제 Bonus의 오버라이딩 메서드가 칠을 반환해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "new Bonus()",
+          "after": "new Rule()",
+          "say": "한 곳만 바꿔 실행 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "실제 객체를 Rule로 바꾸면 이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 참조형과 실제 객체형에 따른 오버라이딩 호출을 읽어요..",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "new Rule()",
+          "after": "new Bonus()",
+          "say": "문제의 처음 코드로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "답안은 처음 코드의 결과를 기준으로 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "actual"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_32d717ac-d05b-4e45-b6af-6de8a5d5e73c",
+      "title": "필드와 메서드 선택을 나눠요",
+      "goal": "같은 객체에서 필드와 메서드를 읽어요.\n선택 기준도 같을까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "split",
+      "tests": [],
+      "required": true,
+      "example_code": "class Rule {\n    int count = 2;\n    int value() { return count; }\n}\nclass Bonus extends Rule {\n    int count = 7;\n    @Override int value() { return count; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Rule rule = new Bonus();\n        System.out.println(rule.count + \":\" + rule.value());\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "split",
+            "text": "아니요.2:7이에요"
+          },
+          {
+            "id": "same",
+            "text": "네.7:7이에요"
+          }
+        ],
+        "answer": "split"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "필드는 선언형 Rule의 이, 메서드는 실제 Bonus의 칠이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "Rule rule = new Bonus();",
+          "after": "Bonus rule = new Bonus();",
+          "say": "한 곳만 바꿔 실행 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "선언형도 Bonus면 필드도 칠을 읽어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 숨겨진 필드와 오버라이딩 메서드의 선택을 구별해요..",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "Bonus rule = new Bonus();",
+          "after": "Rule rule = new Bonus();",
+          "say": "문제의 처음 코드로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "답안은 처음 코드의 결과를 기준으로 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "split"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_dcf0ddf2-a6e2-4377-92b5-c5ada59baf21",
+      "title": "static 메서드의 소속을 읽어요",
+      "goal": "name은 static이에요.\n처음 호출은 어느 클래스의 name일까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "parent",
+      "tests": [],
+      "required": true,
+      "example_code": "class Rule {\n    static String name() { return \"P\"; }\n}\nclass Bonus extends Rule {\n    static String name() { return \"C\"; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Rule rule = new Bonus();\n        // 정적 메서드는 선언형으로 선택해요.\n        System.out.println(rule.name());\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "parent",
+            "text": "Rule의 P예요"
+          },
+          {
+            "id": "child",
+            "text": "Bonus의 C예요"
+          }
+        ],
+        "answer": "parent"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "실제 객체가 Bonus여도 정적 호출은 Rule의 피예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "Rule rule = new Bonus();",
+          "after": "Bonus rule = new Bonus();",
+          "say": "한 곳만 바꿔 실행 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "선언형을 Bonus로 바꾸면 씨예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 정적 숨김과 인스턴스 오버라이딩을 구별해요..",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "Bonus rule = new Bonus();",
+          "after": "Rule rule = new Bonus();",
+          "say": "문제의 처음 코드로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "답안은 처음 코드의 결과를 기준으로 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "parent"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_054d2905-9281-4fef-87eb-fdeb9f3fa412",
+      "title": "인수의 선언형으로 오버로드를 골라요",
+      "goal": "이름의 선언형이 Object예요.\n어느 오버로드를 고를까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "object",
+      "tests": [],
+      "required": true,
+      "example_code": "class View {\n    static String show(Object value) { return \"O\"; }\n    static String show(String value) { return \"S\"; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Object text = \"ticket\";\n        System.out.println(View.show(text));\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "object",
+            "text": "Object를 받는 O예요"
+          },
+          {
+            "id": "string",
+            "text": "실제 문자열이니 항상 S예요"
+          }
+        ],
+        "answer": "object"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "호출 시 보이는 타입은 Object여서 오예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "View.show(text)",
+          "after": "View.show((String) text)",
+          "say": "한 곳만 바꿔 실행 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "문자열로 타입을 명시하면 String을 받는 에스예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 오버로드 선택과 실행 시 오버라이딩을 구별해요..",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "View.show((String) text)",
+          "after": "View.show(text)",
+          "say": "문제의 처음 코드로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "답안은 처음 코드의 결과를 기준으로 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "object"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_932d8712-b8d0-4ceb-9b2d-a060b36aebe4",
+      "title": "상위 생성자에서 호출된 메서드를 읽어요",
+      "goal": "상위 생성자가 show를 불러요.\n하위의 value 초기화는 아직이에요. 무엇이 나올까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "zero",
+      "tests": [],
+      "required": true,
+      "example_code": "class Rule {\n    Rule() { show(); }\n    void show() { System.out.print(\"base\"); }\n}\nclass Bonus extends Rule {\n    int value = 7;\n    @Override void show() { System.out.print(value); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Bonus rule = new Bonus();\n        System.out.println();\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "zero",
+            "text": "0이에요"
+          },
+          {
+            "id": "seven",
+            "text": "7이에요"
+          }
+        ],
+        "answer": "zero"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "실제 하위 메서드를 부르지만 필드는 아직 기본값 영이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "Bonus rule = new Bonus();",
+          "after": "Bonus rule = new Bonus();\n        System.out.print(\":\");\n        rule.show();",
+          "say": "한 곳만 바꿔 실행 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "생성이 끝난 다음 다시 부르면 칠이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 생성 도중의 오버라이딩과 기본값을 연결해요..",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "Bonus rule = new Bonus();\n        System.out.print(\":\");\n        rule.show();",
+          "after": "Bonus rule = new Bonus();",
+          "say": "문제의 처음 코드로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "답안은 처음 코드의 결과를 기준으로 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "zero"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_96c42520-57e4-4d77-a0d1-2ba45975c03d",
+      "title": "가장 가까운 예외 처리를 찾아요",
+      "goal": "A 뒤에서 예외가 발생해요.\n건너뛴 줄과 마지막 출력은 무엇일까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "caught",
+      "tests": [],
+      "required": true,
+      "example_code": "\n\npublic class Main {\n    public static void main(String[] args) {\n        try {\n            System.out.print(\"A\");\n            if (true) throw new IllegalArgumentException(\"bad\");\n            System.out.print(\"B\");\n        } catch (IllegalArgumentException error) {\n            System.out.print(\"C\");\n        } finally {\n            System.out.print(\"F\");\n        }\n        System.out.println(\"D\");\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "caught",
+            "text": "B를 건너뛰어 ACFD예요"
+          },
+          {
+            "id": "all",
+            "text": "모든 줄이 실행돼 ABCFD예요"
+          }
+        ],
+        "answer": "caught"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "비를 건너뛰고 처리 씨, 마무리 에프, 뒤 디예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "if (true) throw new IllegalArgumentException(\"bad\");",
+          "after": "if (false) throw new IllegalArgumentException(\"bad\");",
+          "say": "한 곳만 바꿔 실행 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "예외가 없으면 처리 씨는 건너뛰고 에이 비 에프 디예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 예외 뒤 건너뛴 줄과 catch 뒤 흐름을 구별해요..",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "if (false) throw new IllegalArgumentException(\"bad\");",
+          "after": "if (true) throw new IllegalArgumentException(\"bad\");",
+          "say": "문제의 처음 코드로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "답안은 처음 코드의 결과를 기준으로 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "caught"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_25d18823-5a88-4ce2-8eb8-4008c5c5fef5",
+      "title": "return 전에 finally를 실행해요",
+      "goal": "반환식을 계산한 뒤 finally에서 지역 값을9로 바꿔요.\n출력은 무엇일까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "saved",
+      "tests": [],
+      "required": true,
+      "example_code": "class Rule {\n    static int choose() {\n        int value = 2;\n        try { return value; }\n        finally {\n            // 이미 구한 반환값을 자동으로 바꾸지는 않아요.\n            value = 9;\n            System.out.print(\"F\");\n        }\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println(Rule.choose());\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "saved",
+            "text": "F2예요"
+          },
+          {
+            "id": "late",
+            "text": "F9예요"
+          }
+        ],
+        "answer": "saved"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "먼저 반환할 이가 정해지고 finally의 에프 다음 이를 출력해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "return value;",
+          "after": "return value + 1;",
+          "say": "한 곳만 바꿔 실행 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "반환식만 바꾸면 반환할 삼이 먼저 정해져 에프 삼이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 반환식 값 결정과 finally 부작용의 순서를 구별해요..",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "return value + 1;",
+          "after": "return value;",
+          "say": "문제의 처음 코드로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "답안은 처음 코드의 결과를 기준으로 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "saved"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_2b7fe0cf-5e2f-4581-8af6-52b7db75b50a",
+      "title": "마지막 호출 결과를 적어요",
+      "goal": "같은 이름의 value를 두 객체에서 불러요.\n마지막 합계 숫자만 적으세요.",
+      "language": "java",
+      "starter_code": "",
+      "solution": "7",
+      "tests": [],
+      "required": true,
+      "example_code": "class Rule {\n    int value() { return 2; }\n}\nclass Bonus extends Rule {\n    // 상위 규칙 결과에 추가분을 더해요.\n    @Override int value() { return super.value() + 3; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Rule[] rules = {new Rule(), new Bonus()};\n        int total = 0;\n        for (Rule rule : rules) total += rule.value();\n        System.out.println(total);\n    }\n}\n",
+      "interaction": {
+        "kind": "fill",
+        "accepted": [
+          "7"
+        ]
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "기본 이는 이, 추가 규칙은 이에 삼을 더한 오여서 합계 칠이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 배열 원소의 선언형은 같아도 각 실제 객체의 메서드를 불러요.",
+          "target": "output",
+          "diagram": {
+            "title": "같은 호출의 두 결과",
+            "rows": [
+              "Rule 객체 → value() = 2",
+              "Bonus 객체 → super.value() 2 + 3 = 5",
+              "total = 2 + 5 = 7"
+            ]
+          }
+        },
+        {
+          "action": "fill_answer",
+          "value": "7",
+          "say": "합계 숫자만 답안으로 적어요."
+        }
+      ]
+    }
+  ]
+}

@@ -31,7 +31,19 @@ const request = JSON.parse(fs.readFileSync('request.json', 'utf8'));
     for (const [index, check] of request.checks.entries()) {
       const target=page.locator(check.selector || 'body');
       switch (check.kind) {
-        case 'text': await target.filter({hasText:new RegExp(check.pattern,'s')}).first().waitFor(); assert.match(await target.innerText(), new RegExp(check.pattern,'s')); break;
+        case 'text': {
+          // Keep patterns in Node; serializing quoted regexes into locator selectors is fragile.
+          await target.waitFor();
+          const matcher=new RegExp(check.pattern,'s'),deadline=Date.now()+5000;
+          let actual;
+          do {
+            actual=await target.innerText();
+            if(matcher.test(actual))break;
+            await new Promise(resolve=>setTimeout(resolve,25));
+          } while(Date.now()<deadline);
+          assert.match(actual,matcher);
+          break;
+        }
         case 'count': assert.equal(await target.count(), check.value); break;
         case 'fill': await target.fill(check.value); break;
         case 'click': await target.click(); break;

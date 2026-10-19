@@ -152,14 +152,14 @@ impl Task {
 pub struct Variation { #[serde(default)] pub values: BTreeMap<String,String>, #[serde(default,skip_serializing_if="BTreeMap::is_empty")] pub files: BTreeMap<String,String>, #[serde(default,skip_serializing_if="BTreeMap::is_empty")] pub expected_files: BTreeMap<String,String>, pub expected: String }
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all="snake_case")]
-pub enum TaskLanguage { Java, JavaProject, Junit, Git, Javascript, Web, Python, C }
+pub enum TaskLanguage { Java, JavaProject, Junit, Git, Javascript, Web, Python, C, Sql }
 impl TaskLanguage {
     // The editor bundle has no C grammar; Java's is the closest C-family highlighting.
     pub fn editor(self) -> &'static str { match self {
-        Self::Java|Self::JavaProject|Self::Junit|Self::C => "java", Self::Javascript => "javascript", Self::Web => "html", Self::Git => "shell", Self::Python=>"python",
+        Self::Java|Self::JavaProject|Self::Junit|Self::C => "java", Self::Javascript => "javascript", Self::Web => "html", Self::Git => "shell", Self::Python=>"python", Self::Sql=>"sql",
     }}
     pub fn filename(self) -> &'static str { match self {
-        Self::Java|Self::JavaProject|Self::Junit => "Main.java", Self::Javascript=>"main.js", Self::Web=>"index.html", Self::Git=>"practice.sh", Self::Python=>"main.py", Self::C=>"main.c",
+        Self::Java|Self::JavaProject|Self::Junit => "Main.java", Self::Javascript=>"main.js", Self::Web=>"index.html", Self::Git=>"practice.sh", Self::Python=>"main.py", Self::C=>"main.c", Self::Sql=>"main.sql",
     }}
 }
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
@@ -227,7 +227,7 @@ impl Lesson {
             if t.hints.len()>5||t.hints.iter().any(|hint|hint.len()>8000){return Err("힌트 개수와 길이를 확인하세요.".into())}
             if !ids.insert(&t.id) || t.id.is_empty() || t.solution.len()>65536 || t.starter_code.len()>65536 || (!t.entry_file.is_empty() && !safe_file(&t.entry_file)) || t.files.iter().any(|(p,v)| !safe_file(p) || v.len()>200_000) || t.files.len()>80 || t.expected_files.len()>80 || t.expected_files.iter().any(|(p,v)|!safe_file(p)||v.len()>200_000) || t.tests.len()>50 || t.mutations.len()>20 || t.mutations.iter().any(|files|files.len()>80||files.iter().any(|(p,v)|!safe_file(p)||v.len()>200_000)) { return Err("문제 ID와 파일 크기·경로를 확인하세요.".into()); }
             if let Some(interaction) = &t.interaction {interaction.validate()?;}
-            else if matches!(t.language,TaskLanguage::Web)&&t.web_checks.is_empty() || matches!(t.language,TaskLanguage::Git)&&t.git_checks.is_none()&&!t.git_terminal.as_ref().is_some_and(|exercise|exercise.has_goal()) || matches!(t.language,TaskLanguage::JavaProject|TaskLanguage::Javascript|TaskLanguage::C)&&t.tests.is_empty() {return Err("필수 문제의 실행 검사 기준을 확인하세요.".into())}
+            else if matches!(t.language,TaskLanguage::Web)&&t.web_checks.is_empty() || matches!(t.language,TaskLanguage::Git)&&t.git_checks.is_none()&&!t.git_terminal.as_ref().is_some_and(|exercise|exercise.has_goal()) || matches!(t.language,TaskLanguage::JavaProject|TaskLanguage::Javascript|TaskLanguage::C|TaskLanguage::Sql)&&t.tests.is_empty() {return Err("필수 문제의 실행 검사 기준을 확인하세요.".into())}
             if t.variations.len()>20 || t.variations.iter().any(|v|(v.values.is_empty()&&v.files.is_empty())||v.expected_files.len()>80||v.expected_files.iter().any(|(p,text)|!safe_file(p)||text.len()>200_000)||v.files.len()>80||v.files.iter().any(|(p,text)|!safe_file(p)||text.len()>200_000)||v.values.len()>20||v.expected.len()>65536||v.values.keys().any(|name|name.is_empty()||!name.bytes().all(|c|c.is_ascii_alphanumeric()||c==b'_'))) {return Err("값 바꾸기 검사를 확인하세요.".into())}
         }
         Ok(())

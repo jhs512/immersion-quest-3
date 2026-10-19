@@ -50,9 +50,10 @@ pub async fn run(task:&Task,source:&str,input:&str)->Result<Execution,String> {
     if task.interaction.is_some() {return Err("답안을 고른 뒤 제출해 보세요.".into())}
     if task.language==TaskLanguage::Java {return crate::java::run_files(source,input,&task.files).await}
     if task.language==TaskLanguage::Python {return crate::runner::execute_python_files(source,input,None,&task.files).await}
+    if task.language==TaskLanguage::Sql {return crate::sql_practice::execute(&task.files,source).await}
     let dir=prepare(task,source)?;
     match task.language {
-        TaskLanguage::Java=>unreachable!(),
+        TaskLanguage::Java|TaskLanguage::Sql=>unreachable!(),
         TaskLanguage::JavaProject=>{
             crate::java::version().await?;
             let mut cmd=command(crate::java::executable());
@@ -184,6 +185,7 @@ async fn append_prepared_variations(task:&Task,source:&str,cases:&mut Vec<TestCa
     Ok(())
 }
 pub async fn check(task:&Task,source:&str)->Result<TestReport,String> {
+    if task.language==TaskLanguage::Sql {return check_sql(task,source).await}
     if let Some(interaction) = &task.interaction {return interaction.check(source)}
     if task.language==TaskLanguage::Python {
         if let Some(checker)=task.checker.as_deref().filter(|c|!c.trim().is_empty()) {
@@ -368,4 +370,37 @@ mod managed_web_tests {
         assert!(preview.success,"{}",preview.stderr);
         assert!(preview.artifacts.iter().any(|item|matches!(item,crate::runner::Artifact::Html{srcdoc,..} if srcdoc.contains("<button"))));
     }
+}
+
+#[cfg(test)]
+mod quoted_web_output_tests {
+    #[tokio::test]
+    async fn quoted_empty_text_is_checked_after_a_reload() {
+        let task:crate::repository_course::Task=serde_json::from_value(serde_json::json!({
+            "id":"quote-probe","title":"빈 글","goal":"표시된 글을 확인해요.","language":"web",
+            "starter_code":"", "solution":"", "entry_file":"index.html",
+            "web_checks":[{"kind":"reload"},{"kind":"text","selector":"output","pattern":"^\"\"$"}]
+        })).unwrap();
+        let result=super::check(&task,"<output>\"\"</output>").await.unwrap();
+        assert!(result.passed,"{}",serde_json::to_string(&result).unwrap());
+    }
+}
+
+async fn check_sql(task:&Task,source:&str)->Result<TestReport,String> {
+    let mut cases=vec![];
+    for test in &task.tests {
+        let result=crate::sql_practice::execute(&task.files,source).await?;
+        let passed=result.success&&result.stdout.trim_end_matches('\n')==test.expected.trim_end_matches('\n');
+        cases.push(TestCaseResult{input:"준비된 표".into(),expected:test.expected.clone(),stdout:result.stdout,stderr:result.stderr,passed,state:result.state});
+    }
+    if cases.iter().all(|case|case.passed) {
+        for (index,variation) in task.variations.iter().enumerate() {
+            let mut files=task.files.clone();files.extend(variation.files.clone());
+            for (key,value) in &variation.values {files.insert(format!("{key}.sql"),value.clone());}
+            let result=crate::sql_practice::execute(&files,source).await?;
+            let passed=result.success&&result.stdout.trim_end_matches('\n')==variation.expected.trim_end_matches('\n');
+            cases.push(TestCaseResult{input:format!("바꾼 표 {}",index+1),expected:variation.expected.clone(),stdout:result.stdout,stderr:result.stderr,passed,state:result.state});
+        }
+    }
+    Ok(TestReport{passed:!cases.is_empty()&&cases.iter().all(|case|case.passed),cases})
 }

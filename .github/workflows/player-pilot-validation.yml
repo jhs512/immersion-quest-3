@@ -96,7 +96,9 @@ jobs:
         run: node --test tests/js/web-browser-runtime.test.cjs
       - name: Check actual learner browser interactions and previews
         if: matrix.group == 'web'
-        run: cargo test --locked --lib managed_web_tests -- --test-threads=1
+        run: |
+          cargo test --locked --lib managed_web_tests -- --test-threads=1
+          cargo test --locked --lib quoted_web_output_tests -- --test-threads=1
       - name: Check isolated explanation sessions on Windows
         if: ${{ matrix.group == 'core' && (runner.os == 'Windows') }}
         run: node --test tests/js/explanation-session.test.cjs tests/js/git-terminal-session.test.cjs tests/js/interaction-example-editor.test.cjs
@@ -129,6 +131,12 @@ jobs:
       - name: Drive remote Git records and independent recovery
         if: matrix.group == 'git'
         run: cargo test --locked --test player_data_lessons_native git_remote -- --ignored --test-threads=1
+      - name: Preserve the live React webpage while the tutor demonstrates
+        if: matrix.group == 'web'
+        run: cargo test --locked --test player_data_lessons_native java_react -- --ignored --test-threads=1
+      - name: Drive lightweight Tailwind layout and independent previews
+        if: matrix.group == 'web'
+        run: cargo test --locked --test player_data_lessons_native java_tailwind -- --ignored --test-threads=1
       - name: Drive all nine approved Java steps in the native player
         if: matrix.group == 'java'
         run: cargo test --locked --test player_java_native -- --ignored --test-threads=1
@@ -177,6 +185,9 @@ jobs:
       - name: Drive C pointer targets and copies
         if: matrix.group == 'c'
         run: cargo test --locked --test player_data_lessons_native engineer_c_pointers -- --ignored --test-threads=1
+      - name: Drive the independent engineer Java lessons
+        if: matrix.group == 'java-object'
+        run: cargo test --locked --test player_data_lessons_native engineer_java -- --ignored --test-threads=1
       - name: Drive Java objects and reference copies
         if: matrix.group == 'java-object'
         run: cargo test --locked --test player_data_lessons_native java_references -- --ignored --test-threads=1

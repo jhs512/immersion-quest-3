@@ -397,6 +397,30 @@ def main():
 
 
 if __name__ == "__main__":
+    if sys.argv[1:2] == ["--redesigned-engineer-python-calls"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "engineer-python-calls", *sys.argv[2:]], check=True)
+        sys.exit(0)
+    if sys.argv[1:2] == ["--redesigned-engineer-python-values"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "engineer-python-values", *sys.argv[2:]], check=True)
+        sys.exit(0)
+    if sys.argv[1:2] == ["--redesigned-engineer-java-polymorphism"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "engineer-java-polymorphism", *sys.argv[2:]], check=True)
+        sys.exit(0)
+    if sys.argv[1:2] == ["--redesigned-engineer-java-static"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "engineer-java-static", *sys.argv[2:]], check=True)
+        sys.exit(0)
+    if sys.argv[1:2] == ["--redesigned-engineer-java-references"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "engineer-java-references", *sys.argv[2:]], check=True)
+        sys.exit(0)
+    if sys.argv[1:2] == ["--redesigned-engineer-java-flow"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "engineer-java-flow", *sys.argv[2:]], check=True)
+        sys.exit(0)
+    if sys.argv[1:2] == ["--redesigned-java-tailwind"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "java-tailwind", *sys.argv[2:]], check=True)
+        sys.exit(0)
+    if sys.argv[1:2] == ["--redesigned-java-react"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "java-react", *sys.argv[2:]], check=True)
+        sys.exit(0)
     if sys.argv[1:2] == ["--redesigned-git-remote"]:
         subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "git-remote", *sys.argv[2:]], check=True)
         sys.exit(0)

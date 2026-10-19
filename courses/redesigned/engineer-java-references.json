@@ -1,0 +1,817 @@
+{
+  "schema_version": 2,
+  "id": "lsn_fc70c0c4-6f29-4f25-aed8-9af6dc4a68ea",
+  "revision": "engineer-java-references-1",
+  "title": "Java · 같은 객체와 다른 이름을 구별해요",
+  "description": "하나의 재고를 함께 보는 이름과 새 대상에 연결한 이름을 구별해요.",
+  "objectives": [
+    "참조값의 복사와 대상의 복사를 구별해요.",
+    "인수의 필드 수정과 매개변수 재대입을 나눠 읽어요.",
+    "문자열·동일성·null과 마지막 출력값을 판단해요."
+  ],
+  "sources": [
+    "https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html",
+    "https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html",
+    "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_ef72a5c1-2edf-45d2-b000-d16741d16022",
+      "title": "같은 창고 자료를 함께 봐요",
+      "objectives": [
+        "공유와 복사·인수 전달을 이해해요."
+      ],
+      "units": [
+        {
+          "id": "unt_d8062e77-3e04-434e-a6ad-72d1aa4333c0",
+          "title": "배열과 재고 객체",
+          "objectives": [
+            "바뀌는 대상과 바뀌는 이름을 구별해요."
+          ],
+          "premise": "재고를 두 이름으로 읽어요. 배열과 객체에서 같은 대상인지 한 조건씩 비교해요.",
+          "steps": [
+            {
+              "id": "stp_68769bbd-f702-41a1-a19b-5880bd011556",
+              "objectives": [
+                "참조값 복사와 배열 복사를 구별해요."
+              ]
+            },
+            {
+              "id": "stp_21399b21-7735-4294-bb08-9699cf3dc676",
+              "objectives": [
+                "바깥 배열 복사 뒤 안쪽 공유를 이해해요."
+              ]
+            },
+            {
+              "id": "stp_3629b57c-f0d1-4afa-86b0-3a15a59ab359",
+              "objectives": [
+                "복사된 참조값으로 같은 객체를 수정하는 일을 이해해요."
+              ]
+            },
+            {
+              "id": "stp_d3cb6832-b8de-40be-8a87-cebc11821878",
+              "objectives": [
+                "매개변수 재대입과 호출자 참조 변경을 구별해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_1cbd7a1c-28f6-4ffb-ad32-519dfe69b79b",
+      "title": "글자와 비어 있는 참조를 읽어요",
+      "objectives": [
+        "문자열과 null의 호출 조건을 이해해요."
+      ],
+      "units": [
+        {
+          "id": "unt_2c1093eb-847c-45c3-a9b4-0bbd43c5588e",
+          "title": "같은 재고의 이름표",
+          "objectives": [
+            "내용 비교와 참조 비교 뒤 결과를 답해요."
+          ],
+          "premise": "재고 이름표를 글자로 표시해요. 같은 글과 같은 대상을 구별하고 마지막 재고 값을 확인해요.",
+          "steps": [
+            {
+              "id": "stp_aeb1564a-08f6-4c14-82d8-2da837bde352",
+              "objectives": [
+                "String의 불변성과 변수 재대입을 구별해요."
+              ]
+            },
+            {
+              "id": "stp_9c4b39dc-6f37-429b-b730-cb387879d7da",
+              "objectives": [
+                "equals와 참조 동일성 비교를 구별해요."
+              ]
+            },
+            {
+              "id": "stp_b2531f88-d023-46a0-9b49-d606db2ad97b",
+              "objectives": [
+                "null 참조와 메서드 호출 조건을 구별해요."
+              ]
+            },
+            {
+              "id": "stp_1615d484-b23a-4557-ada9-fcf5da81a21c",
+              "objectives": [
+                "객체 공유와 변수 재대입을 결합한 출력값을 읽어요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_68769bbd-f702-41a1-a19b-5880bd011556",
+      "title": "같은 배열을 가리켜요",
+      "goal": "b의 첫 값을7로 바꿨어요.\na의 첫 값은 무엇일까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "shared",
+      "tests": [],
+      "required": true,
+      "example_code": "\n\npublic class Main {\n    public static void main(String[] args) {\n        int[] a = {2, 3};\n        // 배열 자체가 아니라 참조값을 복사해요.\n        int[] b = a;\n        b[0] = 7;\n        System.out.println(a[0]);\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "shared",
+            "text": "7이에요"
+          },
+          {
+            "id": "copied",
+            "text": "2예요"
+          }
+        ],
+        "answer": "shared"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "둘이 같은 배열을 보므로 a에서도 칠이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "int[] b = a;",
+          "after": "int[] b = a.clone();",
+          "say": "연결 또는 비교 한 곳만 바꿔 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "새 배열을 복사하면 b만 바뀌고 a는 이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 참조값 복사와 배열 복사를 구별해요..",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "어떤 이름이 어느 대상을 보는지 그림으로 나눠 봐요.",
+          "target": "output",
+          "diagram": {
+            "title": "같은 배열을 보는 두 이름",
+            "rows": [
+              "a → 배열1 [7, 3]",
+              "b → 배열1 [7, 3]"
+            ]
+          }
+        },
+        {
+          "action": "patch_code",
+          "before": "int[] b = a.clone();",
+          "after": "int[] b = a;",
+          "say": "문제의 처음 코드로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "답안은 처음 코드의 결과를 기준으로 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "shared"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_21399b21-7735-4294-bb08-9699cf3dc676",
+      "title": "중첩 배열의 안쪽을 확인해요",
+      "goal": "바깥 배열을 복사했어요.\n안쪽 첫 배열을 바꾸면 원본에서도 보일까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "inner",
+      "tests": [],
+      "required": true,
+      "example_code": "\n\npublic class Main {\n    public static void main(String[] args) {\n        int[][] a = {{2}, {3}};\n        // 바깥 배열만 새로 만들어요.\n        int[][] b = a.clone();\n        b[0][0] = 7;\n        System.out.println(a[0][0]);\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "inner",
+            "text": "네.7이에요"
+          },
+          {
+            "id": "deep",
+            "text": "아니요.언제나2예요"
+          }
+        ],
+        "answer": "inner"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "안쪽 첫 배열은 공유해서 원본에서도 칠이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "b[0][0] = 7;",
+          "after": "b[0] = a[0].clone();\n        b[0][0] = 7;",
+          "say": "연결 또는 비교 한 곳만 바꿔 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "안쪽 배열도 따로 복사하면 원본 이는 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 바깥 배열 복사 뒤 안쪽 공유를 이해해요..",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "b[0] = a[0].clone();\n        b[0][0] = 7;",
+          "after": "b[0][0] = 7;",
+          "say": "문제의 처음 코드로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "답안은 처음 코드의 결과를 기준으로 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "inner"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_3629b57c-f0d1-4afa-86b0-3a15a59ab359",
+      "title": "인수로 받은 대상의 필드를 바꿔요",
+      "goal": "메서드가 전달받은 대상의 count를 바꿔요.\na.count는 무엇일까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "field",
+      "tests": [],
+      "required": true,
+      "example_code": "class Stock {\n    int count;\n    // 각 객체의 재고 값을 따로 준비해요.\n    Stock(int count) { this.count = count; }\n}\nclass Changes {\n    static void change(Stock value) {\n        // 복사된 참조값으로 같은 객체의 필드를 바꿔요.\n        value.count = 7;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Stock a = new Stock(2);\n        Changes.change(a);\n        System.out.println(a.count);\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "field",
+            "text": "7이에요"
+          },
+          {
+            "id": "none",
+            "text": "2예요"
+          }
+        ],
+        "answer": "field"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            17,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "같은 객체의 필드를 바꾸어 칠이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "value.count = 7;",
+          "after": "value = new Stock(7);",
+          "say": "연결 또는 비교 한 곳만 바꿔 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            17,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "매개변수 이름만 새 객체로 연결하면 호출자는 이를 유지해요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 복사된 참조값으로 같은 객체를 수정하는 일을 이해해요..",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "value = new Stock(7);",
+          "after": "value.count = 7;",
+          "say": "문제의 처음 코드로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            17,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "답안은 처음 코드의 결과를 기준으로 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "field"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_d3cb6832-b8de-40be-8a87-cebc11821878",
+      "title": "인수 이름만 다시 연결해요",
+      "goal": "새 객체를 반환했지만 받지 않았어요.\na.count는 무엇일까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "old",
+      "tests": [],
+      "required": true,
+      "example_code": "class Stock {\n    int count;\n    // 각 객체의 재고 값을 따로 준비해요.\n    Stock(int count) { this.count = count; }\n}\nclass Changes {\n    static Stock replace(Stock value) {\n        // 인수 이름만 새 객체로 연결하고 그 참조값을 반환해요.\n        value = new Stock(9);\n        return value;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Stock a = new Stock(2);\n        Changes.replace(a);\n        System.out.println(a.count);\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "old",
+            "text": "2예요"
+          },
+          {
+            "id": "new",
+            "text": "9예요"
+          }
+        ],
+        "answer": "old"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            18,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "호출자의 이름은 아직 처음 객체를 보므로 이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "Changes.replace(a);",
+          "after": "a = Changes.replace(a);",
+          "say": "연결 또는 비교 한 곳만 바꿔 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            18,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "반환된 참조값을 a에 대입해야 구를 읽어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 매개변수 재대입과 호출자 참조 변경을 구별해요..",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "a = Changes.replace(a);",
+          "after": "Changes.replace(a);",
+          "say": "문제의 처음 코드로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            18,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "답안은 처음 코드의 결과를 기준으로 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "old"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_aeb1564a-08f6-4c14-82d8-2da837bde352",
+      "title": "문자열은 새 값을 만들어요",
+      "goal": "b에 느낌표를 붙였어요.\na도 바뀔까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "immutable",
+      "tests": [],
+      "required": true,
+      "example_code": "\n\npublic class Main {\n    public static void main(String[] args) {\n        String a = \"go\";\n        String b = a;\n        // 새 글을 b에만 연결해요.\n        b = b + \"!\";\n        System.out.println(a + \":\" + b);\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "immutable",
+            "text": "아니요.go:go!예요"
+          },
+          {
+            "id": "mutate",
+            "text": "네.go!:go!예요"
+          }
+        ],
+        "answer": "immutable"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "a는 원래 글, b는 느낌표가 붙은 새 글을 봐요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "b = b + \"!\";",
+          "after": "b = b + \"!\";\n        a = b;",
+          "say": "연결 또는 비교 한 곳만 바꿔 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "a에도 b의 참조값을 담으면 둘이 새 글을 봐요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. String의 불변성과 변수 재대입을 구별해요..",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "b = b + \"!\";\n        a = b;",
+          "after": "b = b + \"!\";",
+          "say": "문제의 처음 코드로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "답안은 처음 코드의 결과를 기준으로 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "immutable"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_9c4b39dc-6f37-429b-b730-cb387879d7da",
+      "title": "내용과 같은 대상을 구별해요",
+      "goal": "같은 글로 서로 다른 객체를 만들었어요.\n두 비교의 결과는 무엇일까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "different",
+      "tests": [],
+      "required": true,
+      "example_code": "\n\npublic class Main {\n    public static void main(String[] args) {\n        String a = new String(\"go\");\n        String b = new String(\"go\");\n        // 동일한 대상인지와 내용이 같은지 따로 봐요.\n        System.out.println((a == b) + \":\" + a.equals(b));\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "different",
+            "text": "false:true예요"
+          },
+          {
+            "id": "equal",
+            "text": "true:true예요"
+          }
+        ],
+        "answer": "different"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "다른 객체라 동일성은 거짓이지만 내용은 같아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "String b = new String(\"go\");",
+          "after": "String b = a;",
+          "say": "연결 또는 비교 한 곳만 바꿔 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "같은 객체를 가리키게 하면 두 비교 모두 참이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. equals와 참조 동일성 비교를 구별해요..",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "String b = a;",
+          "after": "String b = new String(\"go\");",
+          "say": "문제의 처음 코드로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "답안은 처음 코드의 결과를 기준으로 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "different"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_b2531f88-d023-46a0-9b49-d606db2ad97b",
+      "title": "없는 대상을 먼저 확인해요",
+      "goal": "이름표가 아직 없어요.\n처음 코드에서 길이를 물을까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "skip",
+      "tests": [],
+      "required": true,
+      "example_code": "\n\npublic class Main {\n    public static void main(String[] args) {\n        String text = null;\n        try {\n            // 값이 없으면 길이를 묻지 않아요.\n            System.out.println(text != null && text.length() > 0);\n        } catch (NullPointerException error) {\n            System.out.println(\"missing\");\n        }\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "skip",
+            "text": "건너뛰어 false예요"
+          },
+          {
+            "id": "call",
+            "text": "길이를 물어 missing이에요"
+          }
+        ],
+        "answer": "skip"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "왼쪽이 거짓이라 길이를 묻지 않고 false예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "text != null && text.length() > 0",
+          "after": "text != null & text.length() > 0",
+          "say": "연결 또는 비교 한 곳만 바꿔 결과를 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "한 개의 앰퍼샌드는 오른쪽도 계산해서 없는 대상 호출을 잡았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. null 참조와 메서드 호출 조건을 구별해요..",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "text != null & text.length() > 0",
+          "after": "text != null && text.length() > 0",
+          "say": "문제의 처음 코드로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "답안은 처음 코드의 결과를 기준으로 골라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "skip"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_1615d484-b23a-4557-ada9-fcf5da81a21c",
+      "title": "마지막 두 참조의 결과를 적어요",
+      "goal": "공유 재고를 바꾼 뒤 b만 새 대상으로 옮겼어요.\na.count:b.count 형식으로 결과를 적으세요.",
+      "language": "java",
+      "starter_code": "",
+      "solution": "5:9",
+      "tests": [],
+      "required": true,
+      "example_code": "class Stock {\n    int count;\n    // 각 객체의 재고 값을 따로 준비해요.\n    Stock(int count) { this.count = count; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Stock a = new Stock(2);\n        Stock b = a;\n        b.count += 3;\n        // b만 새 대상으로 옮겨요.\n        b = new Stock(9);\n        System.out.println(a.count + \":\" + b.count);\n    }\n}\n",
+      "interaction": {
+        "kind": "fill",
+        "accepted": [
+          "5:9"
+        ]
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "공유하던 재고는 오이고 b만 새 재고 구를 봐요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "System.out.println(a.count",
+          "after": "a.count += 1;\n        System.out.println(a.count",
+          "say": "이번에는 a의 필드만 하나 늘려요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "서로 다른 객체라 a만 육이고 b는 구예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 같은 객체였던 시간과 재대입한 뒤를 나눠 읽어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "a.count += 1;\n        System.out.println(a.count",
+          "after": "System.out.println(a.count",
+          "say": "처음 코드로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "답안에는 처음 코드의 오 대 구를 적어요.",
+          "target": "output"
+        },
+        {
+          "action": "fill_answer",
+          "value": "5:9",
+          "say": "콜론을 포함해 마지막 두 값을 적어요."
+        }
+      ]
+    }
+  ]
+}

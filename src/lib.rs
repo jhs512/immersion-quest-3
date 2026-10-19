@@ -328,3 +328,8 @@ mod tests {
 }
 
 pub mod pilot_session;
+
+#[cfg(test)]
+mod sql_practice_tests;
+
+mod sql_practice;

@@ -219,6 +219,7 @@ impl GitPractice {
     pub fn environment(&self)->Vec<(String,String)> {
         let home=self.root().join("home").to_string_lossy().into_owned();
         vec![("HOME".into(),home.clone()),("USERPROFILE".into(),home.clone()),("APPDATA".into(),home.clone()),("LOCALAPPDATA".into(),home.clone()),("XDG_CONFIG_HOME".into(),home),
+            ("PSModuleAnalysisCachePath".into(),self.root().join("home/ModuleAnalysisCache").to_string_lossy().into_owned()),
             ("GIT_CONFIG_GLOBAL".into(),self.root().join("global.config").to_string_lossy().into_owned()),("GIT_CONFIG_NOSYSTEM".into(),"1".into()),
             ("GIT_AUTHOR_NAME".into(),"Learner".into()),("GIT_AUTHOR_EMAIL".into(),"learner@example.invalid".into()),("GIT_COMMITTER_NAME".into(),"Learner".into()),("GIT_COMMITTER_EMAIL".into(),"learner@example.invalid".into()),
             ("GIT_AUTHOR_DATE".into(),"2026-01-01T00:00:00+0000".into()),("GIT_COMMITTER_DATE".into(),"2026-01-01T00:00:00+0000".into()),("GIT_ALLOW_PROTOCOL".into(),"file".into()),("GIT_TERMINAL_PROMPT".into(),"0".into()),("GIT_PAGER".into(),"cat".into()),("GIT_EDITOR".into(),"true".into()),("GIT_SEQUENCE_EDITOR".into(),"true".into())]
