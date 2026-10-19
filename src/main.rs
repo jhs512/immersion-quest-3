@@ -165,11 +165,14 @@ window.molipVoice && molipVoice.setName({});",
             style {{include_str!("../assets/fonts/fonts.css")}}
             style {{include_str!("../assets/app.css")}}
         }
-        {fullscreen_toggle}
-        UpdateGate {}
+        div {class:"app-window-controls",
+            {fullscreen_toggle}
+            UpdateGate {}
+        }
         style {{include_str!("../assets/repository-player.css")}}
         style {{include_str!("../assets/content-updates.css")}}
         style {{include_str!("../assets/player-workspace.css")}}
+        style {{include_str!("../assets/window-controls.css")}}
         style {{include_str!("../assets/terminal/terminal.bundle.css")}}
         if cfg!(debug_assertions) && std::env::var_os("MOLIP_PILOT").is_some() { pilot_ui::PilotPlayer {} }
         else if cfg!(debug_assertions) && std::env::var_os("MOLIP_LEGACY").is_some() { Workspace {} } else { player_ui::RepositoryPlayer {} }
@@ -377,9 +380,11 @@ fn UpdateGate() -> Element {
         }
     });
     let settings=rsx! {details {class:"app-update-settings",summary {"설정"}
-        p {"{status}"}
-        button {onclick:move |_|{let mut request=request;request+=1;},"업데이트 확인"}
-        button {disabled:release().is_none(),onclick:move |_|install.call(()),"새 버전 설치"}
+        div {class:"app-update-menu",
+            p {"{status}"}
+            button {onclick:move |_|{let mut request=request;request+=1;},"업데이트 확인"}
+            button {disabled:release().is_none(),onclick:move |_|install.call(()),"새 버전 설치"}
+        }
     }};
     let Some(found) = release() else {
         return rsx! {{settings}button {class:"app-update-icon",aria_label:"앱 업데이트 확인",title:status(),onclick:move |_|{let mut request=request;request+=1;},"↻"}};
