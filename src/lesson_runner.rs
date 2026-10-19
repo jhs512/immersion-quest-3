@@ -299,6 +299,8 @@ async fn run_junit(task:&Task,dir:&Path)->Result<Execution,String> {
     process(cmd,dir,"",30).await
 }
 
+fn node_module_path(path:&Path)->&Path {dunce::simplified(path)}
+
 async fn install_web_runtime(root:&Path)->Result<Execution,String> {
     std::fs::create_dir_all(root).map_err(|e|e.to_string())?;
     let mut cmd=if cfg!(windows){let mut c=command("cmd.exe");c.args(["/d","/c","npm.cmd"]);c}else{command("npm")};
@@ -322,7 +324,8 @@ async fn run_web(task:&Task,source:&str,grade:bool)->Result<Execution,String> {
         package
     };
     write_file(dir.path(),"web-browser.cjs",include_str!("../assets/web-browser.cjs"))?;
-    let mut prepare_browser=command(node());prepare_browser.arg("web-browser.cjs").env("MQ3_PLAYWRIGHT",&runtime);
+    let runtime=node_module_path(&runtime);
+    let mut prepare_browser=command(node());prepare_browser.arg("web-browser.cjs").env("MQ3_PLAYWRIGHT",runtime);
     let prepared=process(prepare_browser,dir.path(),"",240).await?;
     if !prepared.success {return Ok(prepared)}
     write_file(dir.path(),".mq3-browser.json",&prepared.stdout)?;
@@ -377,6 +380,11 @@ mod managed_web_tests {
         for package in ["playwright-core","esbuild","react","react-dom","@tailwindcss/browser"] {
             assert!(canonical.join("node_modules").join(package).join("package.json").is_file(),"missing {package}");
         }
+        let package=canonical.join("node_modules/playwright-core");
+        let mut node=super::command(super::node());
+        node.args(["-e","if(!require(process.argv[1]).chromium)process.exit(1)"]).arg(super::node_module_path(&package));
+        let loaded=super::process(node,&canonical,"",10).await.unwrap();
+        assert!(loaded.success,"{}\n{}",loaded.stdout,loaded.stderr);
     }
 
     #[tokio::test]
