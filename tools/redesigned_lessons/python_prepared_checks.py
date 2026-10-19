@@ -2,7 +2,7 @@
 import json
 
 
-def checker(cases):
+def _output_checker(cases):
     if not isinstance(cases,list) or not 1 <= len(cases) <= 50:
         raise ValueError('준비 값 검사 사례를 확인하세요.')
     for case in cases:
@@ -42,3 +42,25 @@ for case in cases:
         raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')
 print('준비 값을 바꾼 검사도 통과했어요.')
 """.replace('PAYLOAD', repr(payload))
+
+
+def checker(cases, probe=None):
+    script = _output_checker(cases)
+    if probe is None:
+        return script
+    if not isinstance(probe, str) or not probe.strip():
+        raise ValueError('실제 상태를 확인할 검사문을 확인하세요.')
+    script = script.replace('import sys\n', 'import sys\nimport uuid\n', 1)
+    script = script.replace('for case in cases:\n', 'probe = ' + repr(probe) + '\nfor case in cases:\n', 1)
+    script = script.replace('    ast.fix_missing_locations(tree)\n',
+                            "    witness = uuid.uuid4().hex\n"
+                            "    tree.body.extend(ast.parse(probe).body)\n"
+                            "    tree.body.extend(ast.parse('print(' + repr(witness) + ')').body)\n"
+                            "    ast.fix_missing_locations(tree)\n", 1)
+    script = script.replace("    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n",
+                            "    lines = result.stdout.strip().splitlines()\n"
+                            "    if not lines or lines[-1] != witness:\n"
+                            "        raise AssertionError('실제 실행 상태의 검사까지 끝나야 해요.')\n"
+                            "    output = '\\n'.join(lines[:-1]).strip()\n"
+                            "    if result.returncode != 0 or output != case['expected'].strip():\n", 1)
+    return script

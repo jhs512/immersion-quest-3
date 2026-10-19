@@ -109,3 +109,23 @@ fn aice_models_restore_student_state() {verify("aice-models",8)}
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
 fn aice_tuning_restore_student_state() {verify("aice-tuning",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn aice_tensorflow_restore_student_state() {verify("aice-tensorflow",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn aice_neural_regression_restore_student_state() {verify("aice-neural-regression",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn aice_neural_classification_restore_student_state() {verify("aice-neural-classification",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn aice_training_restore_student_state() {verify("aice-training",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn aice_join_restore_student_state() {verify("aice-join",8)}

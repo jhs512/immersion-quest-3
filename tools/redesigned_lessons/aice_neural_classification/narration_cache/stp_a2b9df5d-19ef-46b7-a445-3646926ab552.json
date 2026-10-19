@@ -1,0 +1,48 @@
+{
+  "by": "hand",
+  "source_sha256": "6058954fa1f4fa70f01cba7d30ce116e5364f2d86a3913fced3cd5dff2928b84",
+  "entry": [
+    {
+      "action": "run",
+      "say": "실행해서 실제 결과를 함께 확인해요.",
+      "lines": [
+        16,
+        16
+      ],
+      "expect_error": "ValueError"
+    },
+    {
+      "action": "say",
+      "text": "원핫이 아닌 정수 정답이라 형식 오류가 났어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "keras.losses.CategoricalCrossentropy()",
+      "after": "keras.losses.SparseCategoricalCrossentropy()",
+      "say": "정수 인덱스를 받는 손실로 맞춰요."
+    },
+    {
+      "action": "run",
+      "say": "실행해서 실제 결과를 함께 확인해요.",
+      "lines": [
+        16,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "이 균등 확률의 손실이 log 삼과 같음을 확인했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 원핫과 정수 정답은 표현이 달라 손실도 맞춰야 해요.",
+      "target": "output"
+    },
+    {
+      "action": "choose_answer",
+      "id": "sparse"
+    }
+  ]
+}
