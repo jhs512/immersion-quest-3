@@ -1,0 +1,578 @@
+{
+  "description": "같은 배송 평가의 입력·통계·고객·날짜 경계를 확인해요.",
+  "tasks": [
+    {
+      "id": "stp_db7b18b4-f9b6-43ab-8866-6020301a260e",
+      "title": "맞힐 답을 입력에 섞지 않아요",
+      "goal": "접수 때 minutes는 아직 모르는 정답이에요.\n지금 입력X의 문제를 고르세요.",
+      "language": "python",
+      "starter_code": "",
+      "solution": "target",
+      "tests": [],
+      "required": true,
+      "example_code": "import pandas as pd\n\n# 같은 배송을 접수 시점에서 예측하려 해요.\ndf = pd.DataFrame({\"distance\": [1, 2, 3], \"region\": [\"north\", \"south\", \"north\"], \"minutes\": [10, 20, 100]})\n# 지금은 예측할 정답 열까지 입력에 들어 있어요.\nX = df[[\"distance\", \"minutes\"]]\nprint(X.columns.tolist())\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "target",
+            "text": "맞힐 정답이 입력에 섞였어요"
+          },
+          {
+            "id": "fine",
+            "text": "숫자 열이라 언제나 써도 돼요"
+          }
+        ],
+        "answer": "target"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "맞힐 실제 시간 minutes가 입력에 들어 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "df[[\"distance\", \"minutes\"]]",
+          "after": "df[[\"distance\", \"region\"]]",
+          "say": "접수 때 아는 거리와 지역으로 바꿔요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "실제 정답 열이 입력에서 빠졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 답을 보고 맞힌 결과는 새 예측 실력이 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "target"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_09e61173-47f5-4a23-963b-fc1cd186e2df",
+      "title": "예측 시점에 모르는 값도 빼요",
+      "goal": "minutes는 뺐지만 완료 시각을 넣었어요.\n접수 시점의 예측 입력으로 맞을까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "future",
+      "tests": [],
+      "required": true,
+      "example_code": "import pandas as pd\n\n# 같은 배송을 접수 시점에서 예측하려 해요.\ndf = pd.DataFrame({\"distance\": [1, 2, 3], \"region\": [\"north\", \"south\", \"north\"], \"minutes\": [10, 20, 100]})\n# 완료 시각은 배송이 끝난 뒤에만 알 수 있어요.\ndf[\"delivered_at\"] = [\"10:10\", \"10:20\", \"11:40\"]\nX = df[[\"distance\", \"delivered_at\"]]\nprint(X.columns.tolist())\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "future",
+            "text": "아니요.아직 모르는 미래 정보예요"
+          },
+          {
+            "id": "different",
+            "text": "네.정답과열이름이다르면괜찮아요"
+          }
+        ],
+        "answer": "future"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "완료 후에 알 수 있는 시각이 입력에 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 정답 열만 빼도 미래 정보가 남을 수 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "future"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_83c77f58-dc74-4c7f-9c57-784b41ce0cd9",
+      "title": "남겨둔 자료가 기준을 바꿔요",
+      "goal": "남겨둔 테스트 값만1000으로 바꿔요.\n훈련만의 평균도 달라질까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "stable",
+      "tests": [],
+      "required": true,
+      "example_code": "import pandas as pd\n\n# 앞의 두 관측은 훈련, 마지막 값은 평가용이에요.\ntrain_values = [10, 20]\ntest_values = [100]\ntrain = pd.Series(train_values)\ntest = pd.Series(test_values)\n# 전체에서 만든 기준과 훈련만의 기준을 나눠 읽어요.\nprint(round(pd.concat([train, test]).mean(), 3))\nprint(float(train.mean()))\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "stable",
+            "text": "아니요.훈련 평균15는 같아요"
+          },
+          {
+            "id": "changes",
+            "text": "네.훈련 평균도함께커져요"
+          }
+        ],
+        "answer": "stable"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "전체 평균과 훈련 평균 십오가 다르게 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "test_values = [100]",
+          "after": "test_values = [1000]",
+          "say": "남겨둔 평가 관측만 크게 바꿔요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "전체 기준만 바뀌고 훈련 평균 십오는 같아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 평가 값이 기준을 바꾸면 이미 정보가 섞인 거예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "test_values = [1000]",
+          "after": "test_values = [100]",
+          "say": "처음 평가 관측으로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "평가를 남겨둔다는 뜻을 기준 계산에도 적용해요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "stable"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_e6057b0b-85f5-4ad8-b36e-cf4c957e51ff",
+      "title": "빈값을 채우는 기준도 학습해요",
+      "goal": "평가 자료의 빈값을 채우려 해요.\n같은 기준을 적용하는 방법을 고르세요.",
+      "language": "python",
+      "starter_code": "",
+      "solution": "train",
+      "tests": [],
+      "required": true,
+      "example_code": "import pandas as pd\n\n# 앞의 두 관측은 훈련, 마지막 값은 평가용이에요.\ntrain_values = [10, 20]\ntest_values = [None, 100]\ntrain = pd.Series(train_values)\ntest = pd.Series(test_values)\n# 훈련에서 정한 기준을 평가의 빈값에 적용해요.\nreference = train.median()\nprint(test.fillna(reference).tolist())\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "train",
+            "text": "훈련에서정한15로채워요"
+          },
+          {
+            "id": "test",
+            "text": "평가에서기준100을다시학습해요"
+          }
+        ],
+        "answer": "train"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "훈련의 십오로 빈값만 채우고 백은 남겼어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "reference = train.median()",
+          "after": "reference = test.median()",
+          "say": "평가 자료에서 기준을 다시 구한 경우와 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이번에는 빈값까지 백이 되어 기준이 달라졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 변환 기준도 어디서 정했는지 확인해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "reference = test.median()",
+          "after": "reference = train.median()",
+          "say": "훈련에서 정한 기준으로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "같은 훈련 기준을 남겨둔 자료에 적용해요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "train"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_f9bcb716-4fa1-4b04-b068-1857c58aa38a",
+      "title": "같은 사람의 자료가 양쪽에 있나요",
+      "goal": "행은 겹치지 않지만 고객A와B가 양쪽에 있어요.\n새 고객 평가라는 목표에 맞을까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "group",
+      "tests": [],
+      "required": true,
+      "example_code": "import pandas as pd\n\n# 새 고객의 배송을 평가하는 게 목표예요.\ndf = pd.DataFrame({\"customer\": [\"A\", \"A\", \"B\", \"B\"], \"minutes\": [10, 12, 20, 22]})\ntrain = df.iloc[[0, 2]]\ntest = df.iloc[[1, 3]]\n# 행과 고객이 겹치는지는 서로 다른 조건이에요.\nprint(bool(set(train.index) & set(test.index)))\nprint(bool(set(train[\"customer\"]) & set(test[\"customer\"])))\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "group",
+            "text": "아니요.같은고객정보가양쪽에걸쳐요"
+          },
+          {
+            "id": "rows",
+            "text": "네.행만다르면모든평가가맞아요"
+          }
+        ],
+        "answer": "group"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "행 교집합은 없지만 고객 교집합은 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 평가하려는 새 대상이 무엇인지 먼저 정해요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "group"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_c3deb2cf-dc1b-4dcd-81cf-641100d3fa05",
+      "title": "새 고객 평가는 그룹을 나눠요",
+      "goal": "test_size=1로 그룹을 나눴어요.\n이번1은 무엇을 뜻할까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "groups",
+      "tests": [],
+      "required": true,
+      "example_code": "from sklearn.model_selection import GroupShuffleSplit\n\n# 고객마다 두 관측씩 있고 고객 하나를 평가에 남겨요.\nrows = list(range(6))\ngroups = [\"A\", \"A\", \"B\", \"B\", \"C\", \"C\"]\ntrain, test = next(GroupShuffleSplit(n_splits=1, test_size=1, random_state=42).split(rows, groups=groups))\nprint(len(train), len(test))\nprint(bool({groups[i] for i in train} & {groups[i] for i in test}))\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "groups",
+            "text": "테스트 고객 그룹1개예요"
+          },
+          {
+            "id": "rows",
+            "text": "항상 테스트 행1개예요"
+          }
+        ],
+        "answer": "groups"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "한 고객의 두 행이 남고 고객 교집합은 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 그룹 개수와 행 개수는 같지 않을 수 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "groups"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_1bac5ff3-c7cc-4257-8ded-2d005be9e5ac",
+      "title": "미래 자료로 과거 기준을 만들지 않아요",
+      "goal": "날짜3은 미래 평가 관측이에요.\n과거 기준으로 쓸 평균을 고르세요.",
+      "language": "python",
+      "starter_code": "",
+      "solution": "past",
+      "tests": [],
+      "required": true,
+      "example_code": "import pandas as pd\n\n# 같은 배송을 접수 시점에서 예측하려 해요.\ndf = pd.DataFrame({\"distance\": [1, 2, 3], \"region\": [\"north\", \"south\", \"north\"], \"minutes\": [10, 20, 100]})\n# 날짜2까지 알 수 있는 자료로 기준을 정해요.\ndf[\"day\"] = [1, 2, 3]\ntrain = df[df[\"day\"] <= 2]\nprint(float(train[\"minutes\"].mean()))\nprint(round(df[\"minutes\"].mean(), 3))\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "past",
+            "text": "날짜2까지의훈련평균15예요"
+          },
+          {
+            "id": "all",
+            "text": "정렬했으니전체평균도괜찮아요"
+          }
+        ],
+        "answer": "past"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "과거만의 십오와 미래까지 섞은 평균은 달라요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 날짜 정렬만으로 전체 통계의 미래 누수가 사라지진 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "past"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_0fa722a5-ecf3-4387-83b2-886df3e96fa7",
+      "title": "훈련 기준 하나로 채워요",
+      "goal": "평가를 남겨뒀는데 채움 기준에 다시 섞었어요.\n훈련 자료에서만 기준을 구하도록 고치세요.",
+      "language": "python",
+      "starter_code": "import pandas as pd\n\n# 앞의 두 관측은 훈련, 마지막 값은 평가용이에요.\ntrain_values = [10, 20]\ntest_values = [None, 100]\ntrain = pd.Series(train_values)\ntest = pd.Series(test_values)\n# 빈값을 채울 기준의 추정 범위를 고치세요.\nreference = pd.concat([train, test]).median()\nprint(test.fillna(reference).tolist())\n",
+      "solution": "import pandas as pd\n\n# 앞의 두 관측은 훈련, 마지막 값은 평가용이에요.\ntrain_values = [10, 20]\ntest_values = [None, 100]\ntrain = pd.Series(train_values)\ntest = pd.Series(test_values)\n# 빈값을 채울 기준의 추정 범위를 고치세요.\nreference = train.median()\nprint(test.fillna(reference).tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[15.0, 100.0]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "전체 중앙값 이십이 평가의 빈값에 들어갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "pd.concat([train, test]).median()",
+          "after": "train.median()",
+          "say": "훈련 자료만 보고 중앙값을 정해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "훈련 기준 십오로 채우고 원래 백은 보존했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 전처리도 평가 자료를 미리 보면 안 돼요.",
+          "target": "output"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "정답·미래 정보·평가 통계가 입력과 기준에 섞임을 구별해요.",
+      "행 분리와 그룹·시간 목표의 차이를 이해해요.",
+      "훈련에서 정한 기준을 평가 자료에 적용해요."
+    ],
+    "chapters": {
+      "chp_22d64013-12f6-4c68-999b-2c83f2d5c4b7": [
+        "예측시점과 추정범위의 누수를 구별해요."
+      ],
+      "chp_15e96e10-ee7b-4497-9947-46018df5fcf3": [
+        "그룹·시간 경계와 기준 적용을 이해해요."
+      ]
+    },
+    "units": {
+      "unt_729e5e3e-497b-46fe-9275-3f2aaf91fffc": {
+        "objectives": [
+          "아직 알 수 없는 정보와 남겨둔 자료를 구별해요."
+        ],
+        "premise": "접수할 때 배송 시간을 예측해요. 완료 시간과 실제 걸린 시간은 나중에만 알며 테스트 자료는 평가용으로 남겨요."
+      },
+      "unt_d6e52eb1-3dd5-44bc-adc1-2b32e0a4bd58": {
+        "objectives": [
+          "같은 행이 아니어도 평가가 섞이는지 확인해요."
+        ],
+        "premise": "같은 배송에 고객과 날짜가 있어요. 새 고객·미래 배송을 평가하려는 목적에 맞게 나누고 훈련 기준으로 채워요."
+      }
+    }
+  },
+  "prepared_cases": {
+    "stp_0fa722a5-ecf3-4387-83b2-886df3e96fa7": [
+      {
+        "values": {
+          "train_values": [
+            2,
+            4
+          ],
+          "test_values": [
+            null,
+            1000
+          ]
+        },
+        "expected": "[3.0, 1000.0]"
+      },
+      {
+        "values": {
+          "train_values": [
+            1,
+            2
+          ],
+          "test_values": [
+            null,
+            null,
+            9
+          ]
+        },
+        "expected": "[1.5, 1.5, 9.0]"
+      },
+      {
+        "values": {
+          "train_values": [
+            0,
+            0,
+            6
+          ],
+          "test_values": [
+            null,
+            90
+          ]
+        },
+        "expected": "[0.0, 90.0]"
+      }
+    ]
+  }
+}

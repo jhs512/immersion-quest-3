@@ -65,3 +65,19 @@ fn engineer_c_double_pointers_restore_student_state() {verify("engineer-c-double
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
 fn engineer_c_structures_restore_student_state() {verify("engineer-c-structures",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn java_static_restore_student_state() {verify("java-static",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn aice_features_restore_student_state() {verify("aice-features",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn aice_split_restore_student_state() {verify("aice-split",10)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn aice_leakage_restore_student_state() {verify("aice-leakage",8)}

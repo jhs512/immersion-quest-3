@@ -33,7 +33,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install the approved table lesson's pandas version
-        run: python -m pip install "numpy<2" "pandas==1.5.3" "matplotlib==3.7.1" "seaborn==0.12.1"
+        run: python -m pip install "numpy<2" "pandas==1.5.3" "matplotlib==3.7.1" "seaborn==0.12.1" "scipy==1.11.4" "scikit-learn==1.3.2"
       - name: Use the same Python interpreter inside the player
         shell: python
         run: |
@@ -161,6 +161,18 @@ jobs:
       - name: Drive C structures and function pointers
         if: matrix.group == 'c'
         run: cargo test --locked --test player_data_lessons_native engineer_c_structures -- --ignored --test-threads=1
+      - name: Drive Java instance and static state
+        if: matrix.group == 'java'
+        run: cargo test --locked --test player_data_lessons_native java_static -- --ignored --test-threads=1
+      - name: Drive input feature meaning and transformations
+        if: matrix.group == 'data'
+        run: cargo test --locked --test player_data_lessons_native aice_features -- --ignored --test-threads=1
+      - name: Drive paired data splitting and constraints
+        if: matrix.group == 'data'
+        run: cargo test --locked --test player_data_lessons_native aice_split -- --ignored --test-threads=1
+      - name: Drive held-out information boundaries
+        if: matrix.group == 'data'
+        run: cargo test --locked --test player_data_lessons_native aice_leakage -- --ignored --test-threads=1
       - name: Reopen actual player with saved answer and progress
         if: ${{ matrix.group == 'core' && (!cancelled() && steps.build_player.outcome == 'success') }}
         run: cargo test --locked --test player_restart_native -- --ignored --test-threads=1
@@ -195,6 +207,10 @@ jobs:
             target/pilot-engineer-c-arrays-result.json
             target/pilot-engineer-c-double-pointers-result.json
             target/pilot-engineer-c-structures-result.json
+            target/pilot-java-static-result.json
+            target/pilot-aice-features-result.json
+            target/pilot-aice-split-result.json
+            target/pilot-aice-leakage-result.json
             target/pilot-java-references-result.json
             target/pilot-engineer-c-pointers-result.json
             target/pilot-aice-plots-result.json
@@ -206,4 +222,5 @@ jobs:
             target/pilot-example-result.json
             target/pilot-restart-*.json
             target/pilot-install-result.json
+            target/pilot-install-*.log
           if-no-files-found: warn

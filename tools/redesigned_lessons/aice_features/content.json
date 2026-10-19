@@ -1,0 +1,654 @@
+{
+  "description": "같은 배송표의 단위·범주·날짜와 입력 열의 의미를 확인해요.",
+  "tasks": [
+    {
+      "id": "stp_c8bc3b3d-5a2d-4a9c-b351-f020717e5b98",
+      "title": "단위를 맞춘 열을 만들어요",
+      "goal": "거리km를 새 열에서m로 바꿨어요.\n원래 distance 열도 바뀌었을까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "kept",
+      "tests": [],
+      "required": true,
+      "example_code": "import pandas as pd\n\n# 같은 배송의 원래 거리와 지역을 보관해요.\ndata = {\"id\": [101, 102, 103, 104], \"distance\": [1, 2, 3, 4], \"region\": [\"north\", \"south\", \"north\", \"south\"], \"minutes\": [10, 20, 30, 40]}\ndf = pd.DataFrame(data)\n# km를 m로 바꾼 새 열을 만들어요.\ndf[\"distance_m\"] = df[\"distance\"] * 1000\nprint(df[\"distance_m\"].tolist())\nprint(df[\"distance\"].tolist())\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "kept",
+            "text": "아니요.원래km와 새m열이 따로 있어요"
+          },
+          {
+            "id": "changed",
+            "text": "네.원래열도1000배가 돼요"
+          }
+        ],
+        "answer": "kept"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "새 열은 천 단위지만 원래 일부터 사는 남아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "* 1000",
+          "after": "* 100",
+          "say": "곱하는 기준을 백으로 바꿔 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이번 새 값은 백 단위라 미터 변환과 달라요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 숫자를 바꾸기 전에 단위를 정해야 해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "* 100",
+          "after": "* 1000",
+          "say": "미터로 맞는 기준으로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "같은 원자료에서 정한 단위로 변환했어요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "kept"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_0fe50a13-3ac6-4ab5-b596-cb7046491e5b",
+      "title": "숫자 모양의 글자를 바꿔요",
+      "goal": "문자 시간을 숫자로 바꿔1을 더했어요.\n새 계산 결과를 고르세요.",
+      "language": "python",
+      "starter_code": "",
+      "solution": "number",
+      "tests": [],
+      "required": true,
+      "example_code": "import pandas as pd\n\n# 같은 배송의 원래 거리와 지역을 보관해요.\ndata = {\"id\": [101, 102, 103, 104], \"distance\": [1, 2, 3, 4], \"region\": [\"north\", \"south\", \"north\", \"south\"], \"minutes\": [10, 20, 30, 40]}\ndf = pd.DataFrame(data)\n# 숫자 모양의 글자를 수치 계산에 쓰려 해요.\ndf[\"minute_text\"] = [\"10\", \"20\", \"30\", \"40\"]\nconverted = df[\"minute_text\"].astype(\"int64\")\nprint((converted + 1).tolist())\nprint(df[\"minute_text\"].tolist())\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "number",
+            "text": "11·21·31·41이에요"
+          },
+          {
+            "id": "text",
+            "text": "101·201·301·401이에요"
+          }
+        ],
+        "answer": "number"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "숫자로 바꿔 각각 하나 큰 값을 계산했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 코드001 같은 식별자는 숫자로 바꾸면 뜻을 잃을 수 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "number"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_46543cf8-acbc-4a44-b27e-970372b682e3",
+      "title": "오류를 숨기면 변환됐을까요",
+      "goal": "변환 오류를 ignore로 숨겼어요.\n모든 값이 숫자로 바뀐 걸까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "unchanged",
+      "tests": [],
+      "required": true,
+      "example_code": "import pandas as pd\n\n# 같은 배송의 원래 거리와 지역을 보관해요.\ndata = {\"id\": [101, 102, 103, 104], \"distance\": [1, 2, 3, 4], \"region\": [\"north\", \"south\", \"north\", \"south\"], \"minutes\": [10, 20, 30, 40]}\ndf = pd.DataFrame(data)\n# 한 문자가 수치로 바뀌지 않는 상황이에요.\ndf[\"minute_text\"] = [\"10\", \"20\", \"bad\", \"40\"]\nconverted = df[\"minute_text\"].astype(\"int64\", errors=\"ignore\")\nprint(type(converted.iloc[0]).__name__)\nprint(converted.tolist())\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "unchanged",
+            "text": "아니요.문자 원본이 남을 수 있어요"
+          },
+          {
+            "id": "fixed",
+            "text": "네.bad도 자동으로 고쳐져요"
+          }
+        ],
+        "answer": "unchanged"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "첫 값도 str이고 bad가 있는 문자열 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "errors=\"ignore\"",
+          "after": "errors=\"raise\"",
+          "say": "실패를 숨기지 않고 확인해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ],
+          "expect_error": "ValueError"
+        },
+        {
+          "action": "say",
+          "text": "bad를 정수로 바꿀 수 없어 오류가 났어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 오류가 안 보인다고 변환 성공은 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "errors=\"raise\"",
+          "after": "errors=\"ignore\"",
+          "say": "원래 오류 억제 비교로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "여전히 원래 문자가 남아 있음을 확인해요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "unchanged"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_497bb535-83c6-447f-a6e6-56041c85e5ba",
+      "title": "사전에 없는 이름을 찾아요",
+      "goal": "사전에는 north와 south만 있어요.\nwest는 어떻게 바뀔까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "missing",
+      "tests": [],
+      "required": true,
+      "example_code": "import pandas as pd\n\n# 같은 배송의 원래 거리와 지역을 보관해요.\ndata = {\"id\": [101, 102, 103, 104], \"distance\": [1, 2, 3, 4], \"region\": [\"north\", \"south\", \"north\", \"south\"], \"minutes\": [10, 20, 30, 40]}\ndf = pd.DataFrame(data)\n# 사전에 없는 지역 이름 하나가 들어왔어요.\ndf[\"region\"] = [\"north\", \"south\", \"west\", \"north\"]\nmapping = {\"north\": 0, \"south\": 1}\nencoded = df[\"region\"].map(mapping)\nprint(encoded.isna().tolist())\nprint(len(encoded))\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "missing",
+            "text": "결측으로 남고 행은 유지돼요"
+          },
+          {
+            "id": "zero",
+            "text": "자동으로north의0이 돼요"
+          }
+        ],
+        "answer": "missing"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "west 자리에만 결측이 생기고 네 행은 남아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "{\"north\": 0, \"south\": 1}",
+          "after": "{\"north\": 0, \"south\": 1, \"west\": 2}",
+          "say": "west의 뜻도 사전에 명시해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이번에는 알려진 이름이라 결측이 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 모르는 지역을 멋대로 north와 합치지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "{\"north\": 0, \"south\": 1, \"west\": 2}",
+          "after": "{\"north\": 0, \"south\": 1}",
+          "say": "처음 사전으로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "미지 범주는 확인할 정보로 남겨요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "missing"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_a09b00ec-aef9-4858-8da0-d5452ecd52e4",
+      "title": "범주마다 표시 열을 만들어요",
+      "goal": "지역별로 해당하면1인 열을 만들었어요.\n이 숫자는 무엇을 뜻할까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "indicator",
+      "tests": [],
+      "required": true,
+      "example_code": "import pandas as pd\n\n# 같은 배송의 원래 거리와 지역을 보관해요.\ndata = {\"id\": [101, 102, 103, 104], \"distance\": [1, 2, 3, 4], \"region\": [\"north\", \"south\", \"north\", \"south\"], \"minutes\": [10, 20, 30, 40]}\ndf = pd.DataFrame(data)\n# 지역마다 해당 여부를 나타내는 열을 만들어요.\nencoded = pd.get_dummies(df[\"region\"])\nprint(encoded.columns.tolist())\nprint(encoded.values.tolist())\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "indicator",
+            "text": "그 지역에 해당하는지 표시해요"
+          },
+          {
+            "id": "distance",
+            "text": "north와south의 실제 거리나 우열이에요"
+          }
+        ],
+        "answer": "indicator"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "두 지역 열에 해당하는 곳만 일이 들어가요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 범주에 붙인 숫자가 원래 거리나 우열은 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "indicator"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_6083b3b4-81ce-4a82-a9de-9bf182d3e6a3",
+      "title": "기준 범주와 결측을 나눠요",
+      "goal": "첫 범주 열을 줄였고 결측 표시는 껐어요.\n남은 값0은 north만 뜻할까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "ambiguous",
+      "tests": [],
+      "required": true,
+      "example_code": "import pandas as pd\n\n# 같은 배송의 원래 거리와 지역을 보관해요.\ndata = {\"id\": [101, 102, 103, 104], \"distance\": [1, 2, 3, 4], \"region\": [\"north\", \"south\", \"north\", \"south\"], \"minutes\": [10, 20, 30, 40]}\ndf = pd.DataFrame(data)\n# 결측과 기준 범주가 같은 표시가 되는지 확인해요.\ndf[\"region\"] = [\"north\", \"south\", None, \"north\"]\nencoded = pd.get_dummies(df[\"region\"], drop_first=True, dummy_na=False)\nprint(encoded.values.tolist())\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "ambiguous",
+            "text": "아니요.결측도 같은0으로 보일 수 있어요"
+          },
+          {
+            "id": "north",
+            "text": "네.항상north만 뜻해요"
+          }
+        ],
+        "answer": "ambiguous"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "north와 결측이 둘 다 영으로 보여요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "dummy_na=False",
+          "after": "dummy_na=True",
+          "say": "결측임을 별도 열로 표시해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "결측 행에만 새 표시가 생겨 구별돼요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 열을 줄일 때 서로 다른 뜻이 겹칠 수 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "dummy_na=True",
+          "after": "dummy_na=False",
+          "say": "처음 축소한 표현으로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "같은 영이라고 같은 상황은 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "ambiguous"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_f9dcd6ab-8631-4bdf-980b-8e7af27b666d",
+      "title": "날짜를 바꾸고 실패를 남겨요",
+      "goal": "날짜로 바꿀 수 없는 bad가 있어요.\ncoerce로 바꾸면 어떤 상태일까요?",
+      "language": "python",
+      "starter_code": "",
+      "solution": "missing",
+      "tests": [],
+      "required": true,
+      "example_code": "import pandas as pd\n\n# 같은 배송의 원래 거리와 지역을 보관해요.\ndata = {\"id\": [101, 102, 103, 104], \"distance\": [1, 2, 3, 4], \"region\": [\"north\", \"south\", \"north\", \"south\"], \"minutes\": [10, 20, 30, 40]}\ndf = pd.DataFrame(data)\n# 요일은 월요일0부터 일요일6까지예요.\ndf[\"planned\"] = [\"2024-01-01\", \"2024-01-02\", \"bad\", \"2024-01-07\"]\nparsed = pd.to_datetime(df[\"planned\"], format=\"%Y-%m-%d\", errors=\"coerce\")\n# -1은 화면에서 결측을 구별할 표시용 값이에요.\nprint(parsed.dt.dayofweek.fillna(-1).astype(\"int64\").tolist())\nprint(len(parsed))\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "missing",
+            "text": "날짜 결측으로 남고4행은 유지돼요"
+          },
+          {
+            "id": "deleted",
+            "text": "그 행을 자동 삭제해3행이 돼요"
+          }
+        ],
+        "answer": "missing"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "월요일 영, 화요일 일, 결측 표시, 일요일 육이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 마이너스 일은 요일이 아닌 결측 표시예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "날짜 변환 실패와 행 삭제는 서로 달라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "missing"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_cc51dad9-21f5-4266-9f06-bc9efc70ac60",
+      "title": "예측할 때 아는 열만 골라요",
+      "goal": "접수 시점에 알 수 있는 건 거리와 지역이에요.\n입력X의 두 열을 고치세요.",
+      "language": "python",
+      "starter_code": "import pandas as pd\n\n# 같은 배송의 원래 거리와 지역을 보관해요.\ndata = {\"id\": [101, 102, 103, 104], \"distance\": [1, 2, 3, 4], \"region\": [\"north\", \"south\", \"north\", \"south\"], \"minutes\": [10, 20, 30, 40]}\ndf = pd.DataFrame(data)\n# 접수할 때 아는 정보만 입력X에 넣으세요.\nX = df[[\"id\", \"minutes\"]]\n# 문자 범주는 해당 열로 표시해요.\nX = pd.get_dummies(X)\nprint(X.columns.tolist())\nprint(X.values.tolist())\n",
+      "solution": "import pandas as pd\n\n# 같은 배송의 원래 거리와 지역을 보관해요.\ndata = {\"id\": [101, 102, 103, 104], \"distance\": [1, 2, 3, 4], \"region\": [\"north\", \"south\", \"north\", \"south\"], \"minutes\": [10, 20, 30, 40]}\ndf = pd.DataFrame(data)\n# 접수할 때 아는 정보만 입력X에 넣으세요.\nX = df[[\"distance\", \"region\"]]\n# 문자 범주는 해당 열로 표시해요.\nX = pd.get_dummies(X)\nprint(X.columns.tolist())\nprint(X.values.tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "['distance', 'region_north', 'region_south']\n[[1, 1, 0], [2, 0, 1], [3, 1, 0], [4, 0, 1]]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "지금은 번호와 예측할 실제 시간이 들어 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "df[[\"id\", \"minutes\"]]",
+          "after": "df[[\"distance\", \"region\"]]",
+          "say": "접수 때 아는 거리와 지역을 골라요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "거리와 지역 표시만 입력 열에 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 맞힐 실제 시간은 입력에 섞지 않아요.",
+          "target": "output"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "단위·자료형·범주·날짜 변환의 의미를 구별해요.",
+      "변환 실패와 미지 범주가 남기는 값을 판단해요.",
+      "예측 시점에 아는 입력 열과 정답·식별자를 구별해요."
+    ],
+    "chapters": {
+      "chp_ea0d46f5-aaa6-4685-8bdd-c0cc3512a0ff": [
+        "단위·자료형·사전 변환을 구별해요."
+      ],
+      "chp_4cb504a8-d103-40f5-a0e5-073076f9e71f": [
+        "범주·날짜·입력 열의 의미를 판단해요."
+      ]
+    },
+    "units": {
+      "unt_a1bcba33-2338-4f34-85dc-8e1d36ababa2": {
+        "objectives": [
+          "실패를 숨기지 않고 변환 결과를 확인해요."
+        ],
+        "premise": "같은 네 배송의 거리km는1,2,3,4예요. 문자로 들어온 시간과 지역 이름도 함께 확인해요."
+      },
+      "unt_474bcb85-a3fc-452b-a285-237ea98403b2": {
+        "objectives": [
+          "새 주문에서 알 수 있는 자료를 고르게 해요."
+        ],
+        "premise": "새 주문을 접수할 때 배송 시간을 예측하려 해요. 거리·지역·발송예정일은 알지만 실제 걸린 시간은 아직 몰라요."
+      }
+    }
+  },
+  "prepared_cases": {
+    "stp_cc51dad9-21f5-4266-9f06-bc9efc70ac60": [
+      {
+        "values": {
+          "data": {
+            "id": [
+              7,
+              8,
+              9
+            ],
+            "distance": [
+              8,
+              2,
+              6
+            ],
+            "region": [
+              "south",
+              "north",
+              "south"
+            ],
+            "minutes": [
+              90,
+              12,
+              80
+            ]
+          }
+        },
+        "expected": "['distance', 'region_north', 'region_south']\n[[8, 0, 1], [2, 1, 0], [6, 0, 1]]"
+      },
+      {
+        "values": {
+          "data": {
+            "id": [
+              1,
+              2,
+              3
+            ],
+            "distance": [
+              5,
+              1,
+              9
+            ],
+            "region": [
+              "west",
+              "south",
+              "north"
+            ],
+            "minutes": [
+              30,
+              20,
+              10
+            ]
+          }
+        },
+        "expected": "['distance', 'region_north', 'region_south', 'region_west']\n[[5, 0, 0, 1], [1, 0, 1, 0], [9, 1, 0, 0]]"
+      }
+    ]
+  }
+}

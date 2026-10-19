@@ -1,0 +1,755 @@
+{
+  "schema_version": 2,
+  "id": "lsn_f7020701-289b-408c-832a-baf0da83f17d",
+  "revision": "java-static-1",
+  "title": "자바 · 객체의 값과 static을 나눠요",
+  "description": "같은 주문의 개별 상태와 클래스 공유 상태·초기화를 비교해요.",
+  "objectives": [
+    "객체별 상태와 클래스 공유 상태를 구별해요.",
+    "클래스 메서드 호출과 초기화의 범위를 판단해요.",
+    "공유하면 안 되는 상태와 누적 규칙을 짧게 고쳐요."
+  ],
+  "sources": [
+    "https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.3.1.1",
+    "https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.3.2",
+    "https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.4.1",
+    "https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.5"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_e6bc4ded-0ddb-4938-a64a-4526398a1dae",
+      "title": "같은 주문의 개별 값과 전체 수를 나눠요",
+      "objectives": [
+        "인스턴스와 클래스 상태의 범위를 이해해요."
+      ],
+      "units": [
+        {
+          "id": "unt_ca5f20ad-e370-4d65-b09f-862c744f82d6",
+          "title": "주문 금액과 전체 생성 수",
+          "objectives": [
+            "객체별 금액과 공유 카운터를 구별해요."
+          ],
+          "premise": "Ticket은 주문 금액을 담아요. 각각의 금액과 별도로 이번 실행에서 만든 전체 주문 수를 세요.",
+          "steps": [
+            {
+              "id": "stp_2b6d5458-f099-4395-8729-a52d255890b3",
+              "objectives": [
+                "인스턴스 필드가 객체별로 존재함을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_390cd9c2-01b8-4f75-9e13-b94464fd03ed",
+              "objectives": [
+                "static 필드와 객체별 필드의 소속을 구별해요."
+              ]
+            },
+            {
+              "id": "stp_2e70e3a4-37fc-447d-a02e-661e3edf0ce4",
+              "objectives": [
+                "static 메서드의 클래스명 호출과 인스턴스 필드 읽기를 구별해요."
+              ]
+            },
+            {
+              "id": "stp_9783cbb6-6589-439a-9cdb-0a8849ff230b",
+              "objectives": [
+                "프로그램 안의 공유 상태와 영구 저장을 구별해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_615c39ea-9ab6-48ac-a3fb-5b7accbffd4e",
+      "title": "초기화와 공유 설계를 검토해요",
+      "objectives": [
+        "상태의 수명과 공유 여부를 판단해요."
+      ],
+      "units": [
+        {
+          "id": "unt_7880e05f-c434-4ff0-9084-f6d05c9332bc",
+          "title": "같은 주문의 생성과 기준",
+          "objectives": [
+            "필요한 범위에 맞춰 상태를 고쳐요."
+          ],
+          "premise": "같은 주문을 계속 살펴봐요. 초기화 순서와 공통 기준을 확인한 뒤 잘못 공유한 금액·누적을 고쳐요.",
+          "steps": [
+            {
+              "id": "stp_742c5aa8-0623-4b6c-9483-0c65ca0b5ab6",
+              "objectives": [
+                "클래스 초기화와 객체마다의 초기화 순서를 구별해요."
+              ]
+            },
+            {
+              "id": "stp_ed0c0cd0-07e3-45c8-b484-288dc1afd994",
+              "objectives": [
+                "공유 기준 상수와 객체마다 다른 금액을 구별해요."
+              ]
+            },
+            {
+              "id": "stp_e315c984-b930-4db0-846a-229487f1733b",
+              "objectives": [
+                "객체별로 달라야 할 상태에서 static을 제거해요."
+              ]
+            },
+            {
+              "id": "stp_91de61a6-4837-46c2-be53-128eefa78b82",
+              "objectives": [
+                "공유 필드의 누적과 매번 덮어쓰기를 구별해요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_2b6d5458-f099-4395-8729-a52d255890b3",
+      "title": "주문마다 다른 값을 담아요",
+      "goal": "두 주문의 금액이 달라요.\n객체별 필드를 읽은 결과를 고르세요.",
+      "language": "java",
+      "starter_code": "",
+      "solution": "own",
+      "tests": [],
+      "required": true,
+      "example_code": "// 금액은 객체마다, 생성 수는 클래스에서 함께 관리해요.\nclass Ticket {\n    int amount;\n    static int created = 0;\n    Ticket(int initial) {\n        amount = initial;\n        created = created + 1;\n    }\n    // 특정 주문 없이 전체 생성 수를 돌려줘요.\n    static int countCreated() {\n        return created;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // 두 객체는 서로 다른 주문 금액을 담아요.\n        Ticket a = new Ticket(1000);\n        Ticket b = new Ticket(2000);\n        System.out.println(a.amount);\n        System.out.println(b.amount);\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "own",
+            "text": "1000 다음2000"
+          },
+          {
+            "id": "last",
+            "text": "2000 다음2000"
+          }
+        ],
+        "answer": "own"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            21,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "첫 주문은 천, 다음 주문은 이천이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "Ticket(1000)",
+          "after": "Ticket(3000)",
+          "say": "첫 주문 금액만 삼천으로 바꿔요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            21,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "첫 금액만 삼천이고 다음은 이천이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 인스턴스 필드는 객체마다 따로 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "Ticket(3000)",
+          "after": "Ticket(1000)",
+          "say": "처음 주문 금액으로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            21,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "서로 다른 주문의 상태를 나눠 읽어요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "own"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_390cd9c2-01b8-4f75-9e13-b94464fd03ed",
+      "title": "전체 생성 수를 함께 세어요",
+      "goal": "created에는 static이 붙어 있어요.\n지금 클래스가 함께 세는 수를 고르세요.",
+      "language": "java",
+      "starter_code": "",
+      "solution": "shared",
+      "tests": [],
+      "required": true,
+      "example_code": "// 금액은 객체마다, 생성 수는 클래스에서 함께 관리해요.\nclass Ticket {\n    int amount;\n    static int created = 0;\n    Ticket(int initial) {\n        amount = initial;\n        created = created + 1;\n    }\n    // 특정 주문 없이 전체 생성 수를 돌려줘요.\n    static int countCreated() {\n        return created;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // 두 객체는 서로 다른 주문 금액을 담아요.\n        Ticket a = new Ticket(1000);\n        Ticket b = new Ticket(2000);\n        // 추가 생성 비교를 할 자리예요.\n        System.out.println(Ticket.created);\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "shared",
+            "text": "2"
+          },
+          {
+            "id": "each",
+            "text": "객체마다1이에요"
+          }
+        ],
+        "answer": "shared"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            21,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "두 주문이 같은 생성 수를 올려 이예요.",
+          "target": "output",
+          "diagram": {
+            "title": "개별 금액과 클래스 공유 상태",
+            "rows": [
+              "a.amount: 1000",
+              "b.amount: 2000",
+              "Ticket.created: 2"
+            ]
+          }
+        },
+        {
+          "action": "patch_code",
+          "before": "// 추가 생성 비교를 할 자리예요.",
+          "after": "Ticket third = new Ticket(3000);",
+          "say": "같은 클래스의 주문을 하나 더 만들어요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            21,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "같은 공유 카운터가 삼이 됐어요.",
+          "target": "output",
+          "diagram": {
+            "title": "개별 금액과 클래스 공유 상태",
+            "rows": [
+              "a.amount: 1000",
+              "b.amount: 2000",
+              "third.amount: 3000",
+              "Ticket.created: 3"
+            ]
+          }
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 생성 수는 객체마다 별도 카운터가 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "Ticket third = new Ticket(3000);",
+          "after": "// 추가 생성 비교를 할 자리예요.",
+          "say": "처음 두 주문으로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            21,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "다시 두 객체를 만든 실행이라 이예요.",
+          "target": "output",
+          "diagram": {
+            "title": "개별 금액과 클래스 공유 상태",
+            "rows": [
+              "a.amount: 1000",
+              "b.amount: 2000",
+              "Ticket.created: 2"
+            ]
+          }
+        },
+        {
+          "action": "choose_answer",
+          "id": "shared"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_2e70e3a4-37fc-447d-a02e-661e3edf0ce4",
+      "title": "클래스에서 계산을 불러요",
+      "goal": "클래스명으로 메서드를 불렀어요.\n이 메서드가 돌려주는 것은 무엇일까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "count",
+      "tests": [],
+      "required": true,
+      "example_code": "// 금액은 객체마다, 생성 수는 클래스에서 함께 관리해요.\nclass Ticket {\n    int amount;\n    static int created = 0;\n    Ticket(int initial) {\n        amount = initial;\n        created = created + 1;\n    }\n    // 특정 주문 없이 전체 생성 수를 돌려줘요.\n    static int countCreated() {\n        return created;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // 두 객체는 서로 다른 주문 금액을 담아요.\n        Ticket a = new Ticket(1000);\n        Ticket b = new Ticket(2000);\n        // 클래스 이름으로 공유 상태를 묻는 메서드를 불러요.\n        System.out.println(Ticket.countCreated());\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "count",
+            "text": "이번 실행에서 만든 전체 주문 수2예요"
+          },
+          {
+            "id": "amount",
+            "text": "마지막 주문 금액2000이에요"
+          }
+        ],
+        "answer": "count"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            21,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "공유 created를 돌려줘 결과는 이예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. static 메서드도 호출해야 실행돼요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "count"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_9783cbb6-6589-439a-9cdb-0a8849ff230b",
+      "title": "새 실행은 처음부터예요",
+      "goal": "같은 프로그램을 새로 실행하면 어떨까요?\n처음과 생성 뒤의 카운터를 고르세요.",
+      "language": "java",
+      "starter_code": "",
+      "solution": "fresh",
+      "tests": [],
+      "required": true,
+      "example_code": "// 금액은 객체마다, 생성 수는 클래스에서 함께 관리해요.\nclass Ticket {\n    int amount;\n    static int created = 0;\n    Ticket(int initial) {\n        amount = initial;\n        created = created + 1;\n    }\n    // 특정 주문 없이 전체 생성 수를 돌려줘요.\n    static int countCreated() {\n        return created;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // 이번 실행의 처음 상태를 확인해요.\n        System.out.println(Ticket.created);\n        Ticket a = new Ticket(1000);\n        System.out.println(Ticket.created);\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "fresh",
+            "text": "0 다음1이에요"
+          },
+          {
+            "id": "persist",
+            "text": "지난 실행에 이어 계속 올라가요"
+          }
+        ],
+        "answer": "fresh"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            20,
+            20
+          ]
+        },
+        {
+          "action": "say",
+          "text": "새 실행의 처음은 영, 생성 뒤에는 일이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. static은 영구 저장 장치가 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            20,
+            20
+          ]
+        },
+        {
+          "action": "say",
+          "text": "새 프로세스로 다시 실행해도 영과 일이에요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "fresh"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_742c5aa8-0623-4b6c-9483-0c65ca0b5ab6",
+      "title": "초기화가 일어나는 순서를 봐요",
+      "goal": "같은 클래스로 객체를 두 번 만들어요.\n이번 실행에서 한 번만 나오는 것을 고르세요.",
+      "language": "java",
+      "starter_code": "",
+      "solution": "class",
+      "tests": [],
+      "required": true,
+      "example_code": "// 클래스 초기화와 객체 초기화를 출력으로 나눠 봐요.\nclass TraceTicket {\n    static {\n        System.out.println(\"class\");\n    }\n    {\n        System.out.println(\"object\");\n    }\n    TraceTicket() {\n        System.out.println(\"constructor\");\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // 첫 능동 사용 전에는 before가 먼저 나와요.\n        System.out.println(\"before\");\n        TraceTicket a = new TraceTicket();\n        TraceTicket b = new TraceTicket();\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "class",
+            "text": "class예요"
+          },
+          {
+            "id": "object",
+            "text": "object예요"
+          },
+          {
+            "id": "constructor",
+            "text": "constructor예요"
+          }
+        ],
+        "answer": "class"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            17,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "before 다음 class 한 번, 객체와 생성자는 두 번씩이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 모든 클래스가 프로그램 시작 때 초기화되는 건 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "class"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_ed0c0cd0-07e3-45c8-b484-288dc1afd994",
+      "title": "함께 쓰는 기준값을 읽어요",
+      "goal": "공유하는 무료 배송 기준은 바꾸지 않아요.\n주문 금액을9999로 낮추면 어떨까요?",
+      "language": "java",
+      "starter_code": "",
+      "solution": "below",
+      "tests": [],
+      "required": true,
+      "example_code": "// 기준은 공유하고 주문 금액은 객체마다 보관해요.\nclass Ticket {\n    static final int FREE_FROM = 10000;\n    int amount;\n    Ticket(int initial) {\n        amount = initial;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // 같은 공유 기준에 현재 주문을 비교해요.\n        int initial = 10000;\n        Ticket a = new Ticket(initial);\n        System.out.println(a.amount >= Ticket.FREE_FROM);\n    }\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "below",
+            "text": "기준 미만이라 false예요"
+          },
+          {
+            "id": "same",
+            "text": "기준도 함께 낮아져 true예요"
+          }
+        ],
+        "answer": "below"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "지금은 기준에 닿아 참이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "initial = 10000;",
+          "after": "initial = 9999;",
+          "say": "객체의 금액만 기준 아래로 낮춰요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "공유 기준은 그대로라 거짓이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. final 참조의 대상까지 모두 불변인 건 아니었죠.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "initial = 9999;",
+          "after": "initial = 10000;",
+          "say": "처음 기준 금액으로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "여기서는 final 기본형 기준값을 함께 써요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "below"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_e315c984-b930-4db0-846a-229487f1733b",
+      "title": "주문 금액까지 공유하면 어떨까요",
+      "goal": "두 주문이 마지막 금액으로 같아졌어요.\n객체별로 달라야 할 필드의 static을 지우세요.",
+      "language": "java",
+      "starter_code": "// 주문 금액을 어느 범위에 둘지 비교해요.\nclass Ticket {\n    static int amount;\n    Ticket(int initial) {\n        amount = initial;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // 서로 다른 금액을 두 주문에 저장해요.\n        int first = 1000;\n        int second = 2000;\n        Ticket a = new Ticket(first);\n        Ticket b = new Ticket(second);\n        // 각 주문의 금액이 따로 남아야 해요.\n        System.out.println(a.amount);\n        System.out.println(b.amount);\n    }\n}\n",
+      "solution": "// 주문 금액을 어느 범위에 둘지 비교해요.\nclass Ticket {\n    int amount;\n    Ticket(int initial) {\n        amount = initial;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // 서로 다른 금액을 두 주문에 저장해요.\n        int first = 1000;\n        int second = 2000;\n        Ticket a = new Ticket(first);\n        Ticket b = new Ticket(second);\n        // 각 주문의 금액이 따로 남아야 해요.\n        System.out.println(a.amount);\n        System.out.println(b.amount);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "1000\n2000"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            18,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "두 주문이 같은 필드를 읽어 둘 다 이천이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "static int amount;",
+          "after": "int amount;",
+          "say": "금액을 각 객체의 필드로 바꿔요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            18,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이제 첫 주문 천과 다음 주문 이천이 따로예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 객체마다 다른 상태를 무조건 공유하면 안 돼요.",
+          "target": "output"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "first": "0",
+            "second": "9"
+          },
+          "expected": "0\n9"
+        },
+        {
+          "values": {
+            "first": "7",
+            "second": "3"
+          },
+          "expected": "7\n3"
+        },
+        {
+          "values": {
+            "first": "50",
+            "second": "50"
+          },
+          "expected": "50\n50"
+        }
+      ]
+    },
+    {
+      "id": "stp_91de61a6-4837-46c2-be53-128eefa78b82",
+      "title": "생성할 때 누적해서 세어요",
+      "goal": "두 번 만들어도 생성 수가1이에요.\n기존 공유 값에 누적하도록 한 줄을 고치세요.",
+      "language": "java",
+      "starter_code": "// 이번 실행에서 만든 전체 객체 수를 세요.\nclass Ticket {\n    static int created = 0;\n    Ticket() {\n        // 공유 카운터의 갱신 방법을 비교해요.\n        created = 1;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // 준비된 개수만큼 객체를 만들어요.\n        int count = 2;\n        for (int i = 0; i < count; i = i + 1) {\n            Ticket next = new Ticket();\n        }\n        System.out.println(Ticket.created);\n    }\n}\n",
+      "solution": "// 이번 실행에서 만든 전체 객체 수를 세요.\nclass Ticket {\n    static int created = 0;\n    Ticket() {\n        // 공유 카운터의 갱신 방법을 비교해요.\n        created = created + 1;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // 준비된 개수만큼 객체를 만들어요.\n        int count = 2;\n        for (int i = 0; i < count; i = i + 1) {\n            Ticket next = new Ticket();\n        }\n        System.out.println(Ticket.created);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "2"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            17,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "매번 일로 덮어써서 결과는 일이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "created = 1;",
+          "after": "created = created + 1;",
+          "say": "기존 생성 수에 하나씩 더해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            17,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "두 객체를 만들어 공유 생성 수가 이예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 둘을 고정 출력하면 빈 실행과 다른 개수를 놓쳐요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "count = 2;",
+          "after": "count = 0;",
+          "say": "하나도 만들지 않는 경우도 확인해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            17,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "생성하지 않아 처음 값 영이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "count = 0;",
+          "after": "count = 2;",
+          "say": "처음 생성 개수로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            17,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "공유 범위와 누적 규칙을 함께 확인했어요.",
+          "target": "output"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "count": "0"
+          },
+          "expected": "0"
+        },
+        {
+          "values": {
+            "count": "1"
+          },
+          "expected": "1"
+        },
+        {
+          "values": {
+            "count": "4"
+          },
+          "expected": "4"
+        }
+      ]
+    }
+  ]
+}

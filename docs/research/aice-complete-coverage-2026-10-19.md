@@ -179,3 +179,56 @@ IQR계수1.5는보편적정답·센서오류확정·삭제의무가아니다. �
 - IQR은기준자료와판정자료를분리하고경계포함조건을검사한다. “삭제후몇행”만정답으로두면정상극단값문제를숨길수있다.
 - 그래프는파일존재만검사하지않고필요축·통계·분모·구간·범주이름을확인한다. 랜덤부트스트랩오차막대를픽셀전체일치로채점하지않는다.
 - 긴그림해설읽기대신같은자료에서개수/평균,빈도/비율,표시숨김/자료삭제를한곳수정하며비교하는후보가사용자의원리·작은작성량원칙에맞는다.
+
+## 8. 특성·자료 분리·누수·스케일 수업 보강
+
+추가 확인일: **2026-10-19**. pandas **1.5.3**, scikit-learn **1.3.2**의 버전 고정 공식 문서를 직접 열었다. 정확한 층화 분할의 실패 조건과 반올림은 scikit-learn **1.3.2 태그 소스**로 추가 확인했다. 아래 자체 입력·출력은 **문서와 소스에서 계산한 미실행 예상**이다. 실제 시험 커널·로컬 패키지 실행·공식 채점 일치를 확인한 것이 아니다. 제작 코드·PRD는 수정하지 않았다.
+
+### 8.1 pandas: 자료형 변경과 새 특성이 숨기는 조건
+
+| API | 버전 고정 문서에서 확인한 의미 | 자체 작은 비교·예상(미실행) | 출처·확인일 |
+| --- | --- | --- | --- |
+| to_datetime | 기본errors='raise'. coerce는파싱실패를NaT, ignore는변환실패시입력반환. format으로형식지정. dayfirst=True는엄격검사가아님. 숫자는unit과origin의의미를명시. utc=True는naive입력을UTC로간주하고aware입력을UTC로변환. | `['2026-10-01','bad','2026-10-03']`에format='%Y-%m-%d',coerce면3행을유지하며NaT1개. 그다음날짜열dropna를해야2행. 변환만으로잘못된행이삭제된다고쓰지않음. | [to_datetime1.5.3](https://pandas.pydata.org/pandas-docs/version/1.5/reference/api/pandas.to_datetime.html),2026-10-19 |
+| Series.map | 일반dict에없는키는NaN. 반환Series의인덱스는호출Series와같음. na_action='ignore'는기존NaN에함수를적용하지않는것이며미지키를자동복구하지않음. __missing__을정의한dict서브클래스는예외. | `['low','high','other',None]`과{'low':0,'high':1}은4행,새결측2개예상. low/high순서에근거가있을때만0/1의순서를의도한다. 'other'를무작정0으로채우면진짜low와합쳐짐. | [Series.map1.5.3](https://pandas.pydata.org/pandas-docs/version/1.5/reference/api/pandas.Series.map.html),2026-10-19 |
+| get_dummies | columns미지정시object/string/category열변환. 기본dummy_na=False,drop_first=False,dtype=np.uint8. dummy_na=True는결측표시열추가. 숫자형범주열은columns등으로의도를명시. | Series `['A','B',NaN]`은기본3×2(A/B),NaN행은[0,0]. dummy_na=True는3×3이며NaN행[0,0,1]. drop_first=True와기본dummy_na=False를함께쓰면기준범주와결측이같은0벡터가될수있으므로구별조건필요. | [get_dummies1.5.3](https://pandas.pydata.org/pandas-docs/version/1.5/reference/api/pandas.get_dummies.html),2026-10-19 |
+| astype | dtype또는열별dict를받고기본copy=True,errors='raise'. errors='ignore'는오류를억제하고원래객체를반환할수있음. 의미정규화·오타정정·미지범주정책을대신하지않음. | 코드열`['001','002']`을int로바꾸면[1,2],문자열이갖던앞자리0은보존되지않음. `['12','bad']`를int변환하고ignore면변환성공을가정하지말고dtype/값을확인. | [astype1.5.3](https://pandas.pydata.org/pandas-docs/version/1.5/reference/api/pandas.DataFrame.astype.html),2026-10-19 |
+
+같은조건을적용하는고정변환과자료에서기준을**학습**하는변환을구별한다. 예컨대명시된날짜형식이나사전에정한등급사전은자료의평균을추정하는것과다르다. 그러나데이터전체에서등급순서·희귀도·대체통계를추정하면훈련밖의정보가들어갈수있다. 날짜특성도예측시점에알수있는발송예정일과결과가나온뒤의실제도착일은다르다. 이는API만으로보장되지않는자체설계판단이다. 근거: [sklearn1.3 데이터누수](https://scikit-learn.org/1.3/common_pitfalls.html),확인2026-10-19.
+
+학습/검증을각각get_dummies하면학습A/B열과검증B/C열처럼열구성이달라질수있다. 훈련열로검증을reindex하고빈열을0으로맞추는것은호환정책의한후보지만미지C의정보를잃는다는점을기록해야한다. 전체자료를합쳐더미열을발견하는방식을무조건누수없다고부르지않는다. 고정스키마를외부에서받았는지,검증자료로스키마를학습했는지구별한다. 이단락은[get_dummies](https://pandas.pydata.org/pandas-docs/version/1.5/reference/api/pandas.get_dummies.html)와[누수원칙](https://scikit-learn.org/1.3/common_pitfalls.html)에서의도출이며미실행추론이다(2026-10-19).
+
+### 8.2 train_test_split: 층화·경계·시간순서
+
+| 확인 사실 | 자체 입력·예상 또는 제작 경계 | 공식 근거·확인일 |
+| --- | --- | --- |
+| 입력들은동일한행수여야하며함께분리. float test_size는비율,int는개수. 기본shuffle=True,random_state정수로같은호출조건의분할재현. 반환은입력마다train/test쌍. | X6행/y6행을같이넣어test_size=2면train4/test2. X/y를따로shuffle하거나마스크를따로만들면표와정답대응이깨질수있음. | [train_test_split1.3.2](https://scikit-learn.org/1.3/modules/generated/sklearn.model_selection.train_test_split.html),2026-10-19 |
+| float test_size에대해n_test=ceil(test_size*n_samples),float train_size에는floor. | 7행,test_size=0.25면test2/train5. 1.75행이없으므로“25%니까1행”은틀림. 둘을동시에작게지정하면모든행이양쪽중하나에들어간다는조건이항상성립하지않음. | [1.3.2 splitter소스](https://raw.githubusercontent.com/scikit-learn/scikit-learn/1.3.2/sklearn/model_selection/_split.py),2026-10-19 |
+| stratify는지정한클래스라벨기준층화. shuffle=False와병행불가. 최소클래스2개이상,train/test개수가각각클래스수이상이어야함. | y=[0,0,0,0,1]은소수클래스1개라stratify=y오류예상. 클래스당2개씩인3클래스6행에서test_size=2도test개수<클래스수라오류. | [API](https://scikit-learn.org/1.3/modules/generated/sklearn.model_selection.train_test_split.html), [StratifiedShuffleSplit1.3.2소스](https://raw.githubusercontent.com/scikit-learn/scikit-learn/1.3.2/sklearn/model_selection/_split.py),2026-10-19 |
+| 계층화는반올림과표본제약안에서클래스비율을가깝게유지. 연속회귀목표의각실숫값을그대로클래스로보는정책은아님. | 8개0/2개1,test_size=0.5에서는각측5행에0네개/1한개예상. 매우희소클래스/작은test에서각측모든클래스가항상존재한다고약속하지않음. | [분할API·층화소스](https://raw.githubusercontent.com/scikit-learn/scikit-learn/1.3.2/sklearn/model_selection/_split.py),2026-10-19 |
+| shuffle=False는입력행순서를보존할뿐날짜를자동정렬하지않음. TimeSeriesSplit은연속누적훈련구간과뒤의평가구간으로시계열분할을제공하며gap을둘수있음. | 날짜가1/3,1/1,1/4,1/2순서인데shuffle=False여도시간분리보장없음. 먼저예측시각기준정렬. 같은날짜묶음이경계양쪽에있는경우시각·엔터티단위정책을추가. | [split API](https://scikit-learn.org/1.3/modules/generated/sklearn.model_selection.train_test_split.html), [TimeSeriesSplit1.3.2](https://scikit-learn.org/1.3/modules/generated/sklearn.model_selection.TimeSeriesSplit.html),2026-10-19 |
+
+시계열에서단순random split과“seed고정이니누수없음”을동일시하지않는다. 재현성과정보이용가능성은다른조건이다. TimeSeriesSplit도입력시점·그룹경계·불규칙기간을자동해결한다고일반화하지않는다. 자기데이터의예측목표와평가기간정책은별도설계이며공식시험의지정조건이있으면그조건을따르는연습과구별한다.
+
+### 8.3 Pipeline·ColumnTransformer·OneHotEncoder
+
+| API | 공식 의미와 함정 | 자체 작은 비교·예상(미실행) | 출처·확인일 |
+| --- | --- | --- | --- |
+| Pipeline | 중간단계는fit/transform,마지막은estimator. 학습단계들을순서대로적용하고`단계이름__파라미터`로설정. CV에전처리와모델을함께넣으면각훈련fold안에서fit가능. | scaler를전체X에먼저fit한뒤모델만Pipeline에넣어도이미생긴누수는사라지지않음. pipeline을test까지포함해fit해도누수. | [Pipeline1.3.2](https://scikit-learn.org/1.3/modules/generated/sklearn.pipeline.Pipeline.html), [pitfalls](https://scikit-learn.org/1.3/common_pitfalls.html),2026-10-19 |
+| ColumnTransformer | (name,transformer,columns)목록을열별적용후결합. 기본remainder='drop'. scalar열선택은1D,목록은2D. passthrough는fit당시남은열을그대로넘김. | 수치1열+범주1열+id1열에서수치/범주만명시하면id제외. remainder='passthrough'로바꾸면id가추가됨. y나미래정보가X에남아있다면이정책이누수를만들수있음. | [ColumnTransformer1.3.2](https://scikit-learn.org/1.3/modules/generated/sklearn.compose.ColumnTransformer.html),2026-10-19 |
+| 출력자료형 | OneHotEncoder1.3은sparse_output=True가기본. ColumnTransformer는희소출력포함시전체밀도와기본sparse_threshold=0.3에따라결합자료형선택. | OneHotEncoder가sparse라고전체결합이항상sparse인것은아님. 표표시/TF입력연결에서shape와sparse/dense를확인. 수업에서작은dense결과를의도한다면해당설정을명시. | [OHE1.3.2](https://scikit-learn.org/1.3/modules/generated/sklearn.preprocessing.OneHotEncoder.html), [ColumnTransformer](https://scikit-learn.org/1.3/modules/generated/sklearn.compose.ColumnTransformer.html),2026-10-19 |
+| 알수없는범주 | handle_unknown기본error. ignore는해당특성블록을모두0,역변환은None. infrequent_if_exist는희귀그룹이있을때그그룹에합치고없으면ignore처럼동작. | 훈련A/B,검증C에서error는실패,ignore는학습2열유지후C=[0,0]. 자동으로C새열을만들지않음. drop='first'와ignore를같이쓰면기준범주와미지범주의표현이겹칠수있음. | [OHE1.3.2](https://scikit-learn.org/1.3/modules/generated/sklearn.preprocessing.OneHotEncoder.html),2026-10-19 |
+
+인코더의categories_/feature_names와변환열순서를보존해야다른범주를같은수치열로착각하지않는다. 미지범주를허용했다는것은그범주예측이검증되었다는뜻이아니다. 자체검증은미지범주1개만추가하는작은입력으로열수보존·오류정책·사용자에게설명할정보손실을따로관찰하는방식이좋다. 이는공식API의미에기초한연구제안이다.
+
+### 8.4 StandardScaler의 기준·NaN·상수열
+
+scikit-learn1.3.2 `StandardScaler`는훈련의각특성평균과분산을저장하며표준편차는ddof=0이다. 기본with_mean/with_std=True. 분산0의scale_는1,fit에서NaN은제외하고transform에서는NaN을남긴다. sparse행렬은with_mean=True일때오류가발생하므로희소원핫전체를중심화하는구성에주의한다. 이상치제거·결측대체·최소최대[0,1]정규화와다르다. 확인2026-10-19. [StandardScaler1.3.2](https://scikit-learn.org/1.3/modules/generated/sklearn.preprocessing.StandardScaler.html)
+
+다음은미실행수학적예상이다.
+
+- 훈련한열`[0,2]`는평균1/표준편차1 → 변환`[-1,1]`. 검증`[10]`은같은기준으로`[9]`이며[0,1]밖이어도오류가아니다.
+- 검증`[10]`에다시fit_transform하면평균10/scale1로`[0]`. 실행은되어도훈련과기준이다르므로올바른검증이아니다.
+- 훈련상수열`[5,5]`는평균5/scale1 → `[0,0]`. 검증`[7]`은`[2]`. “훈련에서상수였으니미래값도무조건0”이아니다.
+- NaN이있는변환결과는NaN을유지하므로“스케일러적용했으니모든모델에바로입력가능”이라고하지않는다. 결측대체를결합할때도대체통계는훈련범위에서학습한다.
+
+이절의예상은다음제작단계에서격리환경으로확인해야한다. 단순출력동일성뿐아니라train/test행겹침,기준통계변경,목표열/미래열포함,인코더열순서,unknown정책,시간경계의미를검증대상으로남긴다. 승인이나제작범위를이문서에서새로제한하지않는다.
