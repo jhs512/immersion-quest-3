@@ -41,10 +41,12 @@ do {
  let beforeFullscreen=fullscreenLabel();report["fullscreenLabelBefore"]=beforeFullscreen
  guard !beforeFullscreen.isEmpty else{throw NSError(domain:"Fullscreen button unavailable",code:11)}
  try key(CGKeyCode(kVK_ANSI_F),true,true)
- try wait("Native control-command-F toggle"){fullscreenLabel() != beforeFullscreen}
- report["fullscreenLabelAfter"]=fullscreenLabel();report["nativeFullscreenShortcutVerified"]=true
+ try wait("Native control-command-F toggle"){let label=fullscreenLabel();return !label.isEmpty && label != beforeFullscreen}
+ Thread.sleep(forTimeInterval:2)
+ report["fullscreenLabelAfter"]=fullscreenLabel()
  try key(CGKeyCode(kVK_ANSI_F),true,true)
  try wait("Native control-command-F restore"){fullscreenLabel()==beforeFullscreen}
+ report["nativeFullscreenShortcutVerified"]=true
  AXUIElementSetAttributeValue(editor,kAXFocusedAttribute as CFString,kCFBooleanTrue)
  Thread.sleep(forTimeInterval:0.5)
  let pasteboard=NSPasteboard.general

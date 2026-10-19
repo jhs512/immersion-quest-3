@@ -22,6 +22,7 @@ jobs:
         env:
           AUDIT_SOURCE: ${{ github.sha }}
         run: |
+          set -o pipefail
           mkdir -p target/os-input-audit
           swiftc tools/macos-native-input.swift -o target/os-input-audit/native-input
           target/os-input-audit/native-input "$PWD/target/debug/molip-quest" | tee target/os-input-audit/macos-native-input.json
