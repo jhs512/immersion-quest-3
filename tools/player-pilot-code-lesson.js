@@ -22,16 +22,22 @@
   await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('pilot-a'),'initial fixture installed');
   await click('검증 높이 720');await click(`버전 ${pilot.version}`);await wait(()=>document.querySelector('.lesson-card')?.textContent.includes(pilot.revision),'approved code lesson');
   await click('풀모드 시작');molipAgent.setVoice(false);
-  let teacherResult='',requestedRanges=[];const originalExplanation=molipAgent.runExplanation.bind(molipAgent);
+  let teacherResult='',requestedRanges=[],shownDiagrams=[];const originalExplanation=molipAgent.runExplanation.bind(molipAgent);
   const originalHighlight=molipCodeEditors.highlightLines.bind(molipCodeEditors);
   molipCodeEditors.highlightLines=(from,to,...rest)=>{if(Number.isInteger(from))requestedRanges.push([from,to??from]);return originalHighlight(from,to,...rest);};
-  molipAgent.runExplanation=async actions=>{teacherResult='';requestedRanges=[];const result=await originalExplanation(actions);teacherResult=result;return result;};
+  molipAgent.runExplanation=async actions=>{
+   teacherResult='';requestedRanges=[];shownDiagrams=[];
+   const observer=new MutationObserver(()=>{const panel=document.querySelector('.narration-memory');if(panel)shownDiagrams.push({title:panel.querySelector('figcaption')?.textContent,rows:[...panel.querySelectorAll('.narration-memory-row')].map(row=>row.textContent.replace(/\s/g,''))});});
+   observer.observe(document.body,{subtree:true,childList:true,characterData:true});
+   try{const result=await originalExplanation(actions);teacherResult=result;return result;}finally{observer.disconnect();}
+  };
   const verifyTeacher=task=>{
    if(teacherResult.includes('오류 -')||teacherResult.split('run:').length-1!==task.narration.filter(action=>action.action==='run').length)throw Error(`Teacher did not finish all authored runs: ${teacherResult}`);
    for(const action of task.narration){
     const range=String(action.target??'').match(/^(?:lines|editor):(\d+)(?::(\d+))?$/);
     const wanted=range?[Number(range[1]),Number(range[2]??range[1])]:action.lines;
     if(wanted&&!requestedRanges.some(actual=>actual[0]===wanted[0]&&actual[1]===wanted[1]))throw Error(`Teacher line highlight was not applied: ${wanted}`);
+    if(action.diagram&&!shownDiagrams.some(actual=>actual.title===action.diagram.title&&action.diagram.rows.every((row,index)=>actual.rows[index]===row.replace(/\s/g,''))))throw Error(`Teacher memory diagram was not shown: ${action.diagram.title}`);
    }
   };
   for(const [index,task] of pilot.tasks.entries()){

@@ -112,3 +112,70 @@ XGBoost는공식환경명세에있어완전히삭제할근거는부족하다. �
 5. **도전은짧되판단은학생에게:** 준비코드는주고어디를고칠지는숨긴다.2~3개의원리를조합하되새API를설명없이동시에요구하지않는다.이는사용자교육원칙의적용제안이다.
 
 실행확인시버전·shape·누수없는분리·선정지표·저장복원·그래프산출을확인한다.신경망의정확한한숫자/동일로그를강제하기보다요구구조와절차및허용오차를검증하는방식은자체채점제안이다.공식부분점수/채점알고리즘과혼동하지않는다.사용자가이번에위임한전체제작권한의범위는부모작업에서기록하며이조사문서로개별수업재승인절차를새로만들지않는다.
+
+## 6. 수업6 보강: 결측·중복·이상치
+
+추가 확인일: **2026-10-19**. 아래 API는 pandas1.5.3 공식 문서에서 직접 확인했다. **표의 자체 입력과 예상 결과는 문서 의미에서 계산한 추론이며 이번에 Python으로 실행하지 않았다.** 공식 시험에서 해당 API가 항상 나온다는 근거로 사용하지 않는다. 생산 콘텐츠나 PRD는 변경하지 않았다.
+
+### 6.1 결측 발견과 처리의 의미
+
+| API·구별 | 공식 확인 내용 | 작은 자체 비교와 예상 결과(미실행 추론) | 근거 |
+| --- | --- | --- | --- |
+| isna와0 | pandas는None/NaN 등을 결측으로 다룬다. 숫자0과 빈 문자열을 무조건 결측으로 묶지 않는다. 문자열 등의 결측 인식은 읽기 설정도 확인한다. | float열 `[0,NaN,10]`은3행, 결측1개. `==0`으로 삭제하면 정상0행을 없애며 NaN은 남는다. | [missing data](https://pandas.pydata.org/pandas-docs/version/1.5/user_guide/missing_data.html) |
+| dropna 기본과subset | 기본행제거는선택범위에하나라도결측이면제거(`how='any'`). `subset`은결측검사할열을한정. `how='all'`과`thresh`는다른정책이다. | 3행 `(weight,note)=(10,NaN),(NaN,'ok'),(30,'ok')`. 기본dropna→1행. subset=['weight']→2행. how='all'→3행. | [DataFrame.dropna](https://pandas.pydata.org/pandas-docs/version/1.5/reference/api/pandas.DataFrame.dropna.html) |
+| fillna0와median | fillna(value)는기존결측위치에지정값을넣는다. median은기본skipna=True. 이API만으로그값이업무상옳다는결론은나지않는다. | `[10,NaN,30]`에서0채움→`[10,0,30]`,중앙값채움→`[10,20,30]`. 둘다3행/결측0이지만의미와평균이다르다. 숫자0이실제미사용량인지,미측정값인지조건을먼저준다. | [fillna](https://pandas.pydata.org/pandas-docs/version/1.5/reference/api/pandas.DataFrame.fillna.html), [Series.median](https://pandas.pydata.org/pandas-docs/version/1.5/reference/api/pandas.Series.median.html) |
+| 전부NaN인열 | skipna가관측값을새로만들지는않는다. pandas1.5.3의nanmedian은유효값을고른뒤NumPy nanmedian을쓰며빈집합은NaN을반환한다. | float열 `[NaN,NaN]`은중앙값NaN. `fillna(그중앙값)`후에도2행/결측2개가남을것으로예상한다. 별도업무기준의대체값·열제외·오류보고중하나를정해야한다. | [median](https://pandas.pydata.org/pandas-docs/version/1.5/reference/api/pandas.Series.median.html), [pandas v1.5.3 nanmedian 원문](https://github.com/pandas-dev/pandas/blob/v1.5.3/pandas/core/nanops.py), [missing data의빈합계·중앙값 설명](https://pandas.pydata.org/pandas-docs/version/1.5/user_guide/missing_data.html) |
+| 그룹size와count | GroupBy.size는그룹행수,GroupBy.count는결측을제외한항목수를센다. 그룹키자체결측을어떻게다룰지는groupby의dropna와별개다. | `(group,value)=(A,10),(A,NaN),(B,20)`에서size는A2/B1, value.count는A1/B1. 전체3행인데count합2만보고1행이사라졌다고해석하지않는다. | [GroupBy.size](https://pandas.pydata.org/pandas-docs/version/1.5/reference/api/pandas.core.groupby.GroupBy.size.html), [GroupBy.count](https://pandas.pydata.org/pandas-docs/version/1.5/reference/api/pandas.core.groupby.GroupBy.count.html), [groupby dropna](https://pandas.pydata.org/pandas-docs/version/1.5/reference/api/pandas.DataFrame.groupby.html) |
+
+제작상 구별: 학습자가알아야할것은“결측을0개로만들었다”와“타당하게처리했다”가다르다는점이다. median추정이모델전처리라면훈련자료에서만계산하고검증/테스트에는그값을적용한다. API의미와별도로개입의근거를보여주는설계제안이다. [공식 데이터누수 설명](https://scikit-learn.org/1.3/common_pitfalls.html), 확인2026-10-19.
+
+### 6.2 중복은 어떤 열을 같다고 보는가
+
+`duplicated(subset=None,keep='first')`는불리언마스크를돌려준다. 기본은전체열,first는첫행을False로남기고뒤중복만True. last는마지막을남기며False는중복묶음의모든행을True로표시한다. `drop_duplicates`는해당정책으로행을제거한다. 인덱스는중복판정에포함하지않으며`ignore_index=True`는결과라벨을0부터다시붙인다. 확인2026-10-19. [duplicated](https://pandas.pydata.org/pandas-docs/version/1.5/reference/api/pandas.DataFrame.duplicated.html), [drop_duplicates](https://pandas.pydata.org/pandas-docs/version/1.5/reference/api/pandas.DataFrame.drop_duplicates.html)
+
+자체입력은순서대로5행 `(id,amount)=(A,10),(A,10),(A,12),(B,20),(C,30)`이다. 다음예상은미실행추론이다.
+
+| 판정 | 예상 마스크·남은 행 | 드러내는 원리 |
+| --- | --- | --- |
+| 전체열,keep='first' | 중복마스크 F,T,F,F,F; 제거후4행 | 같은id라도amount가다르면전체행중복은아님 |
+| subset=['id'],keep='first' | 마스크 F,T,T,F,F; 제거후3행,A10보존 | 업무키중복과전체행중복구별 |
+| subset=['id'],keep='last' | 마스크 T,T,F,F,F; 제거후3행,A12보존 | last는현재순서의마지막이며시간상최신보장은아님 |
+| subset=['id'],keep=False | 마스크 T,T,T,F,F; 제거후2행,B/C만남음 | False는한개남기기가아니라중복묶음전부제거 |
+
+같은고객의서로다른정상주문을고객id만으로중복삭제하면정보가사라질수있다. 이것은위API의업무적용상추론이다. “중복은항상삭제”대신수집단위·키·순서기준을조건으로제시해야한다.
+
+### 6.3 IQR은 오류 확정 규칙이 아니다
+
+pandas `Series.quantile`의기본은linear보간이며q는0~1. matplotlib3.7.1의boxplot기본whis=1.5는Q1−1.5IQR과Q3+1.5IQR안의실제데이터까지수염을그린다. 한계선수치자체와실제수염끝은다를수있다. 확인2026-10-19. [quantile](https://pandas.pydata.org/pandas-docs/version/1.5/reference/api/pandas.Series.quantile.html), [matplotlib boxplot3.7.1](https://matplotlib.org/3.7.1/api/_as_gen/matplotlib.pyplot.boxplot.html)
+
+다음은“후보검토범위밖이면표시”라는**자체정책**의미실행계산이다.
+
+- 기준표`[0,2,4,6,8]`은Q1=2,Q3=6,IQR=4,하한−4/상한12. 이기준을고정한별도관측`[-5,-4,12,13]`에서`x<−4 or x>12`후보는−5와13,2개다. 경계−4와12는유지한다. `<=`/`>=`로바꾸면4개가후보가되므로경계정책을명시한다. 검토관측까지합쳐quantile을다시계산하면동일문제가아니다.
+- 정상검증된주문금액`[10,11,12,13,100]`은Q1=11,Q3=13,IQR=2,상한16이므로100이후보다. 그러나정상고액주문이라는조건에서100을자동삭제하면진짜거래를잃는다. 후보1개,검토전보존5행이라는결과가합리적인비교다.
+- `[5,5,5,5,20]`은Q1=Q3=5,IQR=0이될수있다. 넓이가0인기준을업무판단없이통상범위라고부르면안된다. boxplot의autorange옵션과우리가정한필터정책도분리한다.
+
+IQR계수1.5는보편적정답·센서오류확정·삭제의무가아니다. 그림의후보표시와실제처리결정은별개이며분포·업무조건·훈련자료기준을함께검토한다. 이교육적결론은공식API로부터의자체설계추론이다.
+
+## 7. 수업7 보강: 그림이 무엇을 세고 무엇을 숨기는가
+
+추가확인일: **2026-10-19**. matplotlib은3.7.1문서를직접읽었다. seaborn의공식`archive/0.12`문서는페이지표제가**0.12.2**다. 그러므로0.12.1과정확히일치한다고쓰지않고,중요기본값·시그니처는공식저장소**v0.12.1태그소스**도직접확인했다. 아래자체수치·렌더예상은직접실행하지않은추론이다.
+
+| 비교 | 버전별 공식 사실 | 작은 자체 입력·예상과 선택 조건 | 근거 |
+| --- | --- | --- | --- |
+| countplot와barplot | 0.12.1 countplot은개수,size기준. barplot기본estimator='mean',errorbar=('ci',95). 0.13의countplot(stat='percent')을0.12.1에옮기면안됨. | A가격10,20,30/B가격100이면개수막대는A3/B1,평균막대는A20/B100. “주문많은곳”과“평균금액높은곳”은답이다름. | [countplot0.12문서](https://seaborn.pydata.org/archive/0.12/generated/seaborn.countplot.html), [barplot0.12문서](https://seaborn.pydata.org/archive/0.12/generated/seaborn.barplot.html), [v0.12.1 categorical소스](https://github.com/mwaskom/seaborn/blob/v0.12.1/seaborn/categorical.py) |
+| hist구간경계 | matplotlib의마지막제외각bin은왼쪽포함/오른쪽제외,마지막bin만양끝포함. 범위밖자료는지정범위집계에서제외될수있다. | 값0,1,2,3,4에bins=[0,2,4]이면개수2/3. 2는두번째,4도두번째. 범위를[0,2]로축소해전체5개분포처럼설명하지않음. | [hist3.7.1](https://matplotlib.org/3.7.1/api/_as_gen/matplotlib.pyplot.hist.html) |
+| density와확률 | density는총막대면적1이며높이합1이아니다. seaborn probability는높이합1. | 값0.5,2,3/bins=[0,1,5]이면개수1/2,probability1/3와2/3,밀도1/3와1/6. 폭이다르므로높이만으로관측수가많다고해석하면안됨. | [matplotlib hist](https://matplotlib.org/3.7.1/api/_as_gen/matplotlib.pyplot.hist.html), [histplot0.12문서](https://seaborn.pydata.org/archive/0.12/generated/seaborn.histplot.html) |
+| hue정규화의분모 | histplot은기본common_norm=True. False이면각조건그룹을독립정규화. common_bins로구간도같이맞출수있다. 0.12.1시그니처확인. | A세개/B한개가모두같은한bin에있을때probability+공통분모는A0.75/B0.25. common_norm=False면A1/B1. “전체구성비”와“각그룹안분포”를구별. | [histplot0.12문서](https://seaborn.pydata.org/archive/0.12/generated/seaborn.histplot.html), [v0.12.1 distributions소스](https://github.com/mwaskom/seaborn/blob/v0.12.1/seaborn/distributions.py) |
+| scatter겹침 | scatterplot은x/y위치와hue/size/style의의미를연결한다. 하나의색이나모양만으로모든변수를표현하지않는다. | 점(1,10)이두개,(2,20),(3,30)이각하나면4행이3위치에겹친다. 보이는점3개를관측3개라고세지않도록행수/중복좌표를확인. alpha를줄여겹침관찰은돕되정확한빈도계산은별도로. | [scatterplot0.12](https://seaborn.pydata.org/archive/0.12/generated/seaborn.scatterplot.html) |
+| heatmap의입력 | heatmap은주어진2차원자료를색으로표현하며자체로상관계수를계산하는함수가아님. vmin/vmax/center/annot/색막대가해석기준. | 원시매출표heatmap과상관행렬heatmap을같은뜻으로읽지않음. 상관비교라면범위−1~1,중심0등을고정하고행/열이름확인. 대각선자기상관의큰색을새로운발견이라고하지않음. | [heatmap0.12](https://seaborn.pydata.org/archive/0.12/generated/seaborn.heatmap.html) |
+| boxplot의후보 | 중앙값/Q1/Q3/수염과fliers를구별. showfliers=False는점표시를숨기며원데이터정제와다름. | 수업6의정상고액100을숨겨그려도원래5행은그대로다. 그림표시변경과행삭제를각각확인. | [boxplot3.7.1](https://matplotlib.org/3.7.1/api/_as_gen/matplotlib.pyplot.boxplot.html) |
+
+### 제작 시 실행 증거로 바꾸어야 할 항목
+
+수업을만들때에는부모작업의격리환경에서예상행수/마스크/통계/그래프산출을실행확인해야한다. 다음은구현제안이며이번조사완료주장이아니다.
+
+- 중복판정은남은행수뿐아니라어떤A행이남았는지검사한다. 입력순서를바꿔first/last암기풀이를구별한다.
+- 결측판정은전체NaN열,0관측값,검사대상밖메모열을포함해기계적dropna/0채움의부작용을드러낸다.
+- IQR은기준자료와판정자료를분리하고경계포함조건을검사한다. “삭제후몇행”만정답으로두면정상극단값문제를숨길수있다.
+- 그래프는파일존재만검사하지않고필요축·통계·분모·구간·범주이름을확인한다. 랜덤부트스트랩오차막대를픽셀전체일치로채점하지않는다.
+- 긴그림해설읽기대신같은자료에서개수/평균,빈도/비율,표시숨김/자료삭제를한곳수정하며비교하는후보가사용자의원리·작은작성량원칙에맞는다.
