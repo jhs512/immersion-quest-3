@@ -71,6 +71,12 @@
       "checked_at": "2026-10-19",
       "finding": "R제곱은음수가능하고비상수정답의평균예측은0이다.상수정답은기본force_finite보정1/0이며관측2개미만은NaN이다.",
       "certainty": "공식 sklearn1.3.2 API를 직접 확인했어요. 자체 수치는 실제1.3.2로 검증해요."
+    },
+    {
+      "url": "https://scikit-learn.org/stable/modules/generated/sklearn.metrics.mean_squared_error.html",
+      "checked_at": "2026-10-19",
+      "finding": "배포 환경 1.9.1의 mean_squared_error에는 squared 인자가 없다. 단일 출력 MSE의 제곱근으로 RMSE를 구해 기준 1.3.2와 배포 환경에서 같은 원리를 확인한다.",
+      "certainty": "공식 API 문서와 두 환경의 실제 실행으로 확인"
     }
   ],
   "chapters": [
@@ -196,11 +202,11 @@
     "앱에서 풀이·해설·수정 답안 복원·초기화·진도를 별도로 검증해요."
   ],
   "representative": {
-    "prompt": "보고서는분단위RMSE가필요해요.인자한곳을고치세요.",
-    "starter_state": "mean_squared_error에squared=True로MSE를구해요.",
-    "expected_action": "squared=False로고쳐요.",
+    "prompt": "보고서는 분 단위 RMSE가 필요해요. 계산식에 제곱근을 적용하세요.",
+    "starter_state": "mean_squared_error로 MSE를 구해요.",
+    "expected_action": "MSE 계산식 뒤에 ** 0.5를 붙여요.",
     "acceptance": "원래RMSE2,오차1/3은2.236068,완벽예측0을내요.",
-    "reset": "원래실제값·예측·squared=True를복원해요.",
+    "reset": "원래 실제값·예측과 제곱근 없는 MSE 계산식을 복원해요.",
     "narration": "분제곱MSE4와분단위RMSE2를실행해구별해요.",
     "step_id": "stp_08c238c2-b05f-4141-b396-b50dbb66d9c9"
   },
@@ -208,7 +214,7 @@
     "status": "approved",
     "by": "사용자의 전체 과정 설계·구현 위임",
     "evidence": "2026-10-19: “끝까지 다해, 정처기 코스, 에이스 어쏘씨에이트 코스, 자바 백엔드 코스의 모든 부분 재설계(새로운 지침 기반으로)해서 해”. .scratch/player-content-redesign/authorization-2026-10-19.md. 개별 PRD 직접 검토를 주장하지 않는 범위 위임이다.",
-    "content_sha256": "1fb64247e53ff67c419d013b77f8dd0f709c36448bced809037adb86111d1b95",
+    "content_sha256": "9deb69d9d89c35dd27b73e5c55048079cc370d506895b2ad5ca5b2aac6c0d40a",
     "mode": "delegated_scope"
   }
 }
