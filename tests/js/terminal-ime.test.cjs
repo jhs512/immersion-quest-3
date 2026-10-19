@@ -2,10 +2,17 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const {chromium,webkit}=require('../../target/ui-tests/node_modules/playwright-core');
-for(const engine of ['chromium','webkit'])test(`${engine}: Korean composition reaches the terminal input bridge once`,async()=>{
+for(const engine of ['chromium','webkit'])for(const form of ['NFC','NFD'])test(`${engine}/${form}: Korean composition reaches the terminal input bridge once`,async()=>{
  const browser=await({chromium,webkit}[engine]).launch(engine==='chromium'?{channel:'msedge',headless:true}:{headless:true,...(process.env.MQ3_WEBKIT_EXECUTABLE?{executablePath:process.env.MQ3_WEBKIT_EXECUTABLE}:{})});
  try{
   const page=await browser.newPage();await page.setContent('<div id="git-student-terminal" style="width:800px;height:400px"></div>');
+  await page.addScriptTag({content:fs.readFileSync('assets/layout/ime.js','utf8')});
+  assert.equal(await page.evaluate(()=>{
+   const field=document.createElement('textarea');document.body.append(field);field.value='initial';
+   field.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));field.value='stale render';
+   const protectedValue=field.value;field.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true}));
+   field.value='committed';const restored=field.value;field.remove();return protectedValue==='initial'&&restored==='committed';
+  }),true,'ordinary controlled inputs retain their composition protection');
   await page.addStyleTag({content:fs.readFileSync('assets/terminal/terminal.bundle.css','utf8')});
   await page.addScriptTag({content:fs.readFileSync('assets/terminal/terminal.bundle.js','utf8')});
   await page.evaluate(()=>{window.inputs=[];mq3GitTerminal.mount(e=>{if(e.kind==='input')inputs.push(e.data)},()=>{},'ime')});
@@ -20,7 +27,7 @@ for(const engine of ['chromium','webkit'])test(`${engine}: Korean composition re
     await new Promise(r=>setTimeout(r,10));
     input.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true,data:word}));
     await new Promise(r=>setTimeout(r,10));
-   },word);
+   },word.normalize(form));
    if(word==='첫')await page.keyboard.press('Space');
   }
   await page.keyboard.type('"');await page.keyboard.press('Enter');

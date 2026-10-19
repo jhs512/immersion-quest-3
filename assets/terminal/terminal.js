@@ -15,7 +15,8 @@ return {
       theme: {background: '#0c1722', foreground: '#dce9f5', cursor: '#9be0c8', selectionBackground: '#3a536d'}});
     const fit = new FitAddon(); term.loadAddon(fit); term.open(host);
     term.textarea?.setAttribute('aria-label', inputLabel);
-    const data = term.onData(value => send({kind: 'input', data: value}));
+    // macOS IMEs may commit conjoining Hangul jamo; send complete syllables to Readline.
+    const data = term.onData(value => send({kind: 'input', data: value.normalize('NFC')}));
     const resize = term.onResize(size => send({kind: 'resize', rows: size.rows, cols: size.cols}));
     const observer = new ResizeObserver(() => fit.fit()); observer.observe(host);
     session = {owner, term, fit, data, resize, observer, done, decoder: new TextDecoder()};
@@ -34,7 +35,7 @@ return {
   text(owner) {if(!session || (owner!==undefined && session.owner!==owner))return '';const buffer=session.term.buffer.active;return Array.from({length:buffer.length},(_,index)=>buffer.getLine(index)?.translateToString(true)||'').join('\n');},
   async typeCommand(command, owner) {
     const current=session;if(!current || (owner!==undefined && current.owner!==owner))return false;
-    for(const character of command){if(session!==current)return false;current.term.input(character);await new Promise(resolve=>setTimeout(resolve,25));}
+    for(const character of command.normalize('NFC')){if(session!==current)return false;current.term.input(character);await new Promise(resolve=>setTimeout(resolve,25));}
     if(session===current){current.term.input('\r');return true;}return false;
   },
   dispose(owner) {

@@ -136,6 +136,7 @@ impl SetupTerminal {
             // even when the parent supplied LC_ALL=C. Only this PTY is changed.
             command.env_remove("LC_ALL");
             command.env("LC_CTYPE","en_US.UTF-8");
+            command.env("BASH_SILENCE_DEPRECATION_WARNING","1");
         }
         let mut reader=pair.master.try_clone_reader().map_err(|e|e.to_string())?;
         let writer=pair.master.take_writer().map_err(|e|e.to_string())?;

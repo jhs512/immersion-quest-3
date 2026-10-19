@@ -63,6 +63,34 @@
   const voice={clip:!!clip,stats:{...molipVoice.stats},elapsed:Date.now()-started};
   if(!clip)throw Error(`Edge voice failed: ${JSON.stringify(voice)}`);
   checked.push('native WebView downloads Edge audio');
+  await click('버전 k');
+  await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('git-first-1'),'Git lesson installed');
+  await click('학습 시작');
+  await wait(()=>document.querySelectorAll('.study-navigation button').length===6,'Git navigation');
+  document.querySelectorAll('.study-navigation button')[2].click();
+  await wait(()=>document.querySelector('.study-navigation .selected')?.textContent.includes('문제 3')&&document.querySelector('.repository-task')?.dataset.gitReady==='true'&&document.querySelector('[aria-label="Git 실습 터미널 입력"]'),'Git commit exercise ready');
+  await new Promise(r=>setTimeout(r,500));
+  // Feed the same DOM composition path used by the OS IME, including NFD syllables.
+  const input=document.querySelector('[aria-label="Git 실습 터미널 입력"]');
+  const insert=text=>{input.value+=text;input.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText',data:text}));};
+  insert('git commit -m "');
+  await new Promise(r=>setTimeout(r,150));
+  for(const syllable of ['첫','기','록']){
+   input.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true,data:''}));
+   const text=syllable.normalize('NFD');input.value+=text;
+   input.dispatchEvent(new CompositionEvent('compositionupdate',{bubbles:true,data:text}));
+   input.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertCompositionText',data:text,isComposing:true}));
+   await new Promise(r=>setTimeout(r,20));
+   input.dispatchEvent(new CompositionEvent('compositionend',{bubbles:true,data:text}));
+   await new Promise(r=>setTimeout(r,150));
+   if(syllable==='첫')insert(' ');
+  }
+  insert('"');mq3GitTerminal.command('');
+  await wait(()=>mq3GitTerminal.text().includes('첫 기록'),'Korean commit echoed');
+  mq3GitTerminal.command('git log -1 --format=%s');
+  await wait(()=>mq3GitTerminal.text().split('\n').some(line=>line.trim()==='첫 기록'),'Git persists composed Korean subject');
+  if(mq3GitTerminal.text().includes('The default interactive shell is now zsh'))throw Error('Obsolete shell banner remains');
+  checked.push('native WebView NFD composition reaches real Git as NFC Korean');
   dioxus.send({passed:true,checked,voice,userAgent:navigator.userAgent});
- }catch(error){dioxus.send({passed:false,checked,error:String(error),screen:document.body.innerText.slice(0,3000),voice:window.molipVoice?.stats,userAgent:navigator.userAgent})}
+ }catch(error){dioxus.send({passed:false,checked,error:String(error),screen:document.body.innerText.slice(0,3000),terminal:window.mq3GitTerminal?.text(),voice:window.molipVoice?.stats,userAgent:navigator.userAgent})}
 })();

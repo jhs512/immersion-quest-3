@@ -10,7 +10,9 @@
   'use strict';
   if (globalThis.molipIme || typeof document === 'undefined') return;
   const composing = new WeakSet();
-  document.addEventListener('compositionstart', event => { if (event.target) composing.add(event.target); }, true);
+  // xterm owns its hidden textarea and composition lifecycle; Dioxus never controls its value.
+  const terminalInput = element => element instanceof Element && !!element.closest('.xterm');
+  document.addEventListener('compositionstart', event => { if (event.target && !terminalInput(event.target)) composing.add(event.target); }, true);
   document.addEventListener('compositionend', event => { if (event.target) composing.delete(event.target); }, true);
   let patched = 0;
   for (const proto of [HTMLInputElement.prototype, HTMLTextAreaElement.prototype]) {
