@@ -123,6 +123,9 @@ jobs:
       - name: Check a fresh managed browser without requiring Edge
         if: matrix.group == 'web'
         run: node --test tests/js/web-browser-runtime.test.cjs
+      - name: Check a fresh canonical frontend runtime directory
+        if: matrix.group == 'web' || matrix.group == 'architecture'
+        run: cargo test --locked --lib fresh_runtime_accepts_a_canonical_data_directory -- --ignored
       - name: Check actual learner browser interactions and previews
         if: matrix.group == 'web'
         run: |

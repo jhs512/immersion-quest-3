@@ -299,6 +299,16 @@ async fn run_junit(task:&Task,dir:&Path)->Result<Execution,String> {
     process(cmd,dir,"",30).await
 }
 
+async fn install_web_runtime(root:&Path)->Result<Execution,String> {
+    std::fs::create_dir_all(root).map_err(|e|e.to_string())?;
+    let mut cmd=if cfg!(windows){let mut c=command("cmd.exe");c.args(["/d","/c","npm.cmd"]);c}else{command("npm")};
+    // npm's Windows realpath cache recurses on canonical \\?\ prefixes.
+    // The child already runs in this directory; a relative prefix keeps both
+    // ordinary and canonical data paths valid without changing their identity.
+    cmd.args(["install","--prefix",".","playwright-core@1.64.0","esbuild@0.28.2","react@19.3.1","react-dom@19.3.1","@tailwindcss/browser@4.3.3","--no-audit","--no-fund"]);
+    process(cmd,root,"",180).await
+}
+
 async fn run_web(task:&Task,source:&str,grade:bool)->Result<Execution,String> {
     let dir=prepare(task,source)?;
     let request=serde_json::json!({"entry":if task.entry_file.is_empty(){"index.html"}else{&task.entry_file},"checks":if grade{task.web_checks.clone()}else{vec![]}});
@@ -308,7 +318,7 @@ async fn run_web(task:&Task,source:&str,grade:bool)->Result<Execution,String> {
     let runtime=if cfg!(debug_assertions)&&local.is_dir()&&local.parent().unwrap().join("react").is_dir(){local}else{
         let root=crate::data_dir()?.join("web-runtime");std::fs::create_dir_all(&root).map_err(|e|e.to_string())?;
         let package=root.join("node_modules/playwright-core");
-        if !package.is_dir()||!root.join("node_modules/react").is_dir(){let mut cmd=if cfg!(windows){let mut c=command("cmd.exe");c.args(["/d","/c","npm.cmd"]);c}else{command("npm")};cmd.args(["install","--prefix"]).arg(&root).args(["playwright-core@1.64.0","esbuild@0.28.2","react@19.3.1","react-dom@19.3.1","@tailwindcss/browser@4.3.3","--no-audit","--no-fund"]);let result=process(cmd,&root,"",180).await?;if !result.success{return Ok(result)}}
+        if !package.is_dir()||!root.join("node_modules/react").is_dir(){let result=install_web_runtime(&root).await?;if !result.success{return Ok(result)}}
         package
     };
     write_file(dir.path(),"web-browser.cjs",include_str!("../assets/web-browser.cjs"))?;
@@ -356,6 +366,19 @@ mod java_array_prepared_tests {
 
 #[cfg(test)]
 mod managed_web_tests {
+    #[tokio::test]
+    #[ignore="Requires npm and network access for a genuinely empty runtime"]
+    async fn fresh_runtime_accepts_a_canonical_data_directory() {
+        let temporary=tempfile::Builder::new().prefix("mq3-web-runtime-").tempdir().unwrap();
+        let path=temporary.path().join("runtime with spaces");std::fs::create_dir(&path).unwrap();
+        let canonical=path.canonicalize().unwrap();
+        let result=super::install_web_runtime(&canonical).await.unwrap();
+        assert!(result.success,"{}\n{}",result.stdout,result.stderr);
+        for package in ["playwright-core","esbuild","react","react-dom","@tailwindcss/browser"] {
+            assert!(canonical.join("node_modules").join(package).join("package.json").is_file(),"missing {package}");
+        }
+    }
+
     #[tokio::test]
     async fn authored_web_checks_run_real_interactions_and_keep_a_preview() {
         let task:crate::repository_course::Task=serde_json::from_value(serde_json::json!({
