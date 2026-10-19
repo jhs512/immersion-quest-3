@@ -18,7 +18,7 @@ const assert=require('node:assert/strict');
   assert.equal(await page.locator('.lesson-card').count(),count);
   assert.match(await page.locator('.lesson-card').first().innerText(),new RegExp(title));
  }
- await page.getByRole('button',{name:'풀모드 시작',exact:true}).first().click();
+ await page.getByRole('button',{name:'학습 시작',exact:true}).first().click();
  await page.locator('.repository-task .cm-editor').waitFor();
  assert.equal(await page.locator('.study-navigation button').count(),9);
  assert.match(await page.locator('.problem-pane').innerText(),/코드를 그대로 실행해 봐요/);

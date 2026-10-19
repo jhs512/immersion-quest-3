@@ -7,7 +7,7 @@ const assert=require('node:assert/strict');const path=require('node:path');
  if(!await page.locator('.repository-task').count()){
   await page.locator('.course-switcher button').filter({hasText:'작은 실험'}).click();
   await page.locator('.lesson-card').filter({hasText:'직접 바꾸며 이해하는 출력과 계산'}).waitFor();
-  await page.getByRole('button',{name:'풀모드 시작',exact:true}).click();
+  await page.getByRole('button',{name:'학습 시작',exact:true}).click();
  }
  await page.locator('.repository-task .cm-editor').waitFor();
  const cdp=await page.context().newCDPSession(page);

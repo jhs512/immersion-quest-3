@@ -16,7 +16,7 @@
   await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('pilot-a'),'initial fixture');
   await click('검증 높이 720');await click(`버전 ${pilot.version}`);
   await wait(()=>document.querySelector('.lesson-card')?.textContent.includes(pilot.revision),'remote lesson installed');
-  await click('풀모드 시작');await ready();molipAgent.setVoice(false);
+  await click('학습 시작');await ready();molipAgent.setVoice(false);
   const original=molipAgent.runExplanation.bind(molipAgent);
   molipAgent.runExplanation=async (actions,options)=>{teacherResult='';return teacherResult=await original(actions,options);};
   for(const [index,task] of pilot.tasks.entries()){

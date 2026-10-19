@@ -17,14 +17,13 @@
     return location.protocol === 'http:' || location.protocol === 'https:'
       ? `${location.protocol}//molip.localhost/tts` : 'molip://localhost/tts';
   }
-  // One failed or timed-out clip switches the session to the device voice: a machine without
-  // the Edge voice (offline, a blocking firewall, no edge-tts) must not wait 10 s per sentence.
+  // Stop repeated requests during a failed playback; retry when playback starts again.
   let unreachable = false;
   const enabled = () => name !== 'system' && typeof fetch === 'function' && !unreachable;
   function giveUp(reason) {
     if (unreachable) return;
     unreachable = true;
-    stats.lastEngine = 'system';
+    stats.lastEngine = 'unavailable';
     window.dispatchEvent(new CustomEvent('molip:voice-fallback', { detail: reason }));
   }
   // Resolves to an object URL for the clip, or null when the voice is off or unreachable.
@@ -37,10 +36,9 @@
     const key = name + '\n' + text;
     let pending = clips.get(key);
     if (pending) { stats.cached += 1; return pending; }
-    // A clip that takes longer than this is given up (the caller falls back to the system
-    // voice); without a limit a stalled synthesis would hold the narration forever.
+    // End a stalled request after the native process deadline; the narration shows an error.
     const abort = typeof AbortController === 'function' ? new AbortController() : null;
-    const timer = abort ? setTimeout(() => abort.abort(), 10000) : 0;
+    const timer = abort ? setTimeout(() => abort.abort(), 25000) : 0;
     pending = fetch(url(), { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ text: spoken(text), voice: name }), signal: abort ? abort.signal : undefined })
       .finally(() => clearTimeout(timer))
       .then(async response => {
@@ -48,10 +46,11 @@
         stats.fetched += 1; stats.lastEngine = response.headers.get('X-Molip-Engine') || '';
         return URL.createObjectURL(await response.blob());
       })
-      .catch(error => { stats.failed += 1; clips.delete(key); console.warn('tts', error); giveUp(error && error.name === 'AbortError' ? '응답이 10초 안에 오지 않았습니다' : String(error)); return null; });
+      .catch(error => { stats.failed += 1; clips.delete(key); console.warn('tts', error); giveUp(error && error.name === 'AbortError' ? '응답이 25초 안에 오지 않았어요' : String(error)); return null; });
     clips.set(key, pending);
     return pending;
   }
+  function resetFailure() { unreachable = false; }
   function setName(value) { name = String(value || 'system'); unreachable = false; return name; }
   // Reading speed, shared with the 읽어주기 panel (same localStorage key) and announced to every
   // player so a clip already playing changes pace too.
@@ -71,5 +70,5 @@
   window.addEventListener('molip:tts-rate', event => {
     for (const select of document.querySelectorAll('select.assistant-rate')) select.value = String(event.detail);
   });
-  globalThis.molipVoice = { synthesize, setName, enabled, get name() { return name; }, stats, get rate() { return getRate(); }, setRate, RATES };
+  globalThis.molipVoice = { synthesize, setName, resetFailure, enabled, get name() { return name; }, stats, get rate() { return getRate(); }, setRate, RATES };
 })();

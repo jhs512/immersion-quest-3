@@ -25,7 +25,7 @@ impl LearningEvent {
     pub fn new(key:ProgressKey, revision:&str, mode:StudyMode, round:&str, kind:EventKind)->Self {
         Self {id:new_id(),key,revision:revision.into(),mode,round:round.into(),at:now(),kind,task_id:None,passed:false,required:vec![],success_before_view:false,prediction:None}
     }
-    pub fn comment(&self)->String { format!("{} · {} · {}\n\n<!-- mq3-event:{} -->",self.mode.label(),self.revision,match self.kind {EventKind::Started=>"학습 시작",EventKind::Attempt=>if self.passed {"문제 통과"}else{"문제 다시 풀기"},EventKind::Viewed=>"개념 확인",EventKind::ExampleRun=>"예제 실행",EventKind::Completed=>"수업 완료",EventKind::ExplanationViewed=>"해설 확인"},serde_json::to_string(self).expect("event")) }
+    pub fn comment(&self)->String { format!("{} · {} · {}\n\n<!-- mq3-event:{} -->","학습",self.revision,match self.kind {EventKind::Started=>"학습 시작",EventKind::Attempt=>if self.passed {"문제 통과"}else{"문제 다시 풀기"},EventKind::Viewed=>"개념 확인",EventKind::ExampleRun=>"예제 실행",EventKind::Completed=>"수업 완료",EventKind::ExplanationViewed=>"해설 확인"},serde_json::to_string(self).expect("event")) }
 }
 
 #[derive(Default,PartialEq,Debug)]
@@ -51,6 +51,21 @@ pub fn merge(events:impl IntoIterator<Item=LearningEvent>, key:&ProgressKey)->Ve
 }
 pub fn passed_in_round(events:&[LearningEvent], revision:&str, mode:StudyMode, round:&str)->HashSet<String> {
     events.iter().filter(|e| e.revision==revision && e.mode==mode && e.round==round && e.kind==EventKind::Attempt && e.passed).filter_map(|e|e.task_id.clone()).collect()
+}
+
+/// One learning view combines successful answers from historical modes/rounds.
+/// Stable problem identities survive wording revisions; legacy IDs need the same revision.
+pub fn learned_tasks(events:&[LearningEvent], revision:&str)->HashSet<String> {
+    events.iter().filter(|event|event.kind==EventKind::Attempt&&event.passed)
+        .filter_map(|event|event.task_id.as_ref().filter(|id|event.revision==revision||crate::repository_course::resource_code(id,"stp")))
+        .cloned().collect()
+}
+#[derive(Debug,Default,PartialEq)]
+pub struct LearningProgress {pub solved:usize,pub total:usize,pub percent:usize}
+pub fn learning_progress(events:&[LearningEvent],revision:&str,required:&[String])->LearningProgress {
+    let passed=learned_tasks(events,revision);
+    let total=required.len();let solved=required.iter().filter(|id|passed.contains(*id)).count();
+    LearningProgress{solved,total,percent:if total==0{0}else{solved*100/total}}
 }
 
 /// New stable-code problems retain achievement across wording/reordering revisions.
@@ -85,5 +100,5 @@ pub fn summary(key:&ProgressKey,title:&str,events:&[LearningEvent])->String {
     let mut attempts:BTreeMap<&str,usize>=BTreeMap::new();
     for e in events.iter().filter(|e|e.kind==EventKind::Attempt) {if let Some(id)=e.task_id.as_deref(){*attempts.entry(id).or_default()+=1}}
     let tasks=attempts.into_iter().map(|(id,count)|format!("- `{id}`: {} · 시도 {count}회",if events.iter().any(|e|e.kind==EventKind::Attempt&&e.passed&&e.task_id.as_deref()==Some(id)){"통과"}else{"학습 중"})).collect::<Vec<_>>().join("\n");
-    format!("# {title}\n\n학습자 ID: {}\n코스: {}\n수업: {}\n\n풀모드 완료: {}회\n복습모드 완료: {}회\n최근 버전: {revision}\n\n{tasks}\n\n학습·복습의 원본 기록은 아래 댓글에 있어요.\n\n{}",key.user_id,key.course_id,key.lesson_id,state.full_completions,state.review_completions,marker(key))
+    format!("# {title}\n\n학습자 ID: {}\n코스: {}\n수업: {}\n\n수업 완료: {}회\n최근 버전: {revision}\n\n{tasks}\n\n학습의 원본 기록은 아래 댓글에 있어요.\n\n{}",key.user_id,key.course_id,key.lesson_id,state.full_completions+state.review_completions,marker(key))
 }

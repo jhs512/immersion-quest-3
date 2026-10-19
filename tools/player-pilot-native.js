@@ -53,7 +53,7 @@
     document.querySelector('.app-update-settings').open = false;
     checked.push('update offer requires click and leaves icon after dismiss');
     await wait(() => document.querySelector('.lesson-card'), 'production course catalog');
-    await click('풀모드 시작');
+    await click('학습 시작');
     await wait(() => document.querySelector('.lesson-outline'), 'four-level objectives');
     if (document.querySelectorAll('.learning-objective').length !== 4) throw new Error('Missing goals');
     checked.push('production course opening and four-level goals');
@@ -149,7 +149,7 @@
     checked.push('catalog retains completion after wording-only revision');
     await click('버전 b');
     await wait(() => document.querySelector('.lesson-card')?.textContent.includes('pilot-b'), 'snapshot B');
-    await click('풀모드 시작');
+    await click('학습 시작');
     await wait(() => document.querySelectorAll('.study-navigation button').length === 3, 'added step');
     await wait(() => document.querySelector('.study-progress')?.textContent.includes('추가 학습 있음'), 'old completion retained');
     if (!document.querySelector('.study-progress')?.textContent.includes('2 / 3')) throw new Error('Stable achievements lost');
@@ -161,7 +161,7 @@
     await wait(() => document.querySelector('.pilot-toolbar')?.textContent.includes('손상 후보를 거절'), 'invalid candidate');
     await click('버전 c');
     await wait(() => document.querySelector('.lesson-card')?.textContent.includes('pilot-c'), 'snapshot C');
-    await click('풀모드 시작');
+    await click('학습 시작');
     await wait(() => buttons().some(item => item.textContent.includes('두 값을 합쳐요')), 'replacement step');
     if (buttons().some(item => item.textContent.includes('값 5 확인'))) throw new Error('Retired step is active');
     if (!document.querySelector('.study-progress')?.textContent.includes('1 / 2')) throw new Error('Replacement inherited success');
@@ -169,7 +169,7 @@
     checked.push('stable achievements, past completion and new required learning');
     await click('버전 d');
     await wait(() => document.querySelector('.lesson-card')?.textContent.includes('pilot-d'), 'interaction snapshot D');
-    await click('풀모드 시작');
+    await click('학습 시작');
     await wait(() => document.querySelector('input[type=radio]'), 'choice editor');
     if (button('코드 실행')) throw new Error('Interaction should not offer code execution');
     document.querySelector('input[type=radio][value=five]').click();
@@ -199,11 +199,11 @@
     await wait(() => status('수업 완료'), 'fill answer and whole lesson completion');
     checked.push('choice wrong/retry/reset, order move/grade, fill grade, shared progress');
     await click('← 코스 수업 목록');
-    await click('풀모드 시작');
+    await click('학습 시작');
     await wait(() => document.querySelector('input[type=radio][value=five]'), 'reopened lesson');
     document.querySelector('input[type=radio][value=five]').click();
     await click('← 코스 수업 목록');
-    await click('풀모드 시작');
+    await click('학습 시작');
     await wait(() => document.querySelector('input[type=radio][value=five]:checked'), 'answer retained across new round');
     document.querySelector('[aria-label="앱 업데이트 설치"]').click();
     await wait(() => document.querySelector('.update-panel')?.textContent.includes('검증 모드'), 'safe installer boundary failure');
@@ -212,7 +212,7 @@
     checked.push('answer survives reopening and rejected installation; real installation not exercised');
     await click('버전 f');
     await wait(() => document.querySelector('.lesson-card')?.textContent.includes('pilot-f'), 'explanation snapshot');
-    await click('풀모드 시작');
+    await click('학습 시작');
     await click('문제 4 · 해설 답안 보존');
     await wait(() => molipCodeEditors.getValue()?.includes('console.log(0)'), 'explanation editor');
     molipAgent.setVoice(false);
@@ -235,7 +235,7 @@
     await wait(() => document.querySelector('.output')?.textContent.trim() === 'student input', 'actual input after cancellation');
     molipCodeEditors.setValue('console.log(99);');
     await click('← 코스 수업 목록');
-    await click('풀모드 시작');
+    await click('학습 시작');
     await click('문제 4 · 해설 답안 보존');
     await wait(() => molipCodeEditors.getValue() === 'console.log(99);', 'saved draft after attempted reset');
     await click('해설 재생 · 정답 실행');
@@ -255,13 +255,13 @@
     checked.push('reset is blocked during explanation, cancellation restores input/state, and late execution cannot overwrite it');
     await click('버전 a');
     await wait(() => document.querySelector('.lesson-card')?.textContent.includes('pilot-a'), 'installed A');
-    await click('풀모드 시작');
+    await click('학습 시작');
     await wait(() => molipCodeEditors.getValue()?.includes('console.log'), 'update student editor');
     molipCodeEditors.setValue('console.log(99);');
     const beforeReviewedProgress = document.querySelector('.study-progress')?.textContent;
     await click('버전 j');
     await wait(() => document.querySelector('.lesson-card')?.textContent.includes('pilot-j'), 'optional support candidate');
-    await click('풀모드 시작');
+    await click('학습 시작');
     await wait(() => document.querySelectorAll('.supporting-material').length === 4, 'four optional aids');
     if (document.querySelector('.supporting-material iframe,.supporting-material img,.interactive-visualization')) throw new Error('Optional aids opened automatically');
     let diagramResult;
@@ -298,7 +298,7 @@
     checked.push('optional aids start collapsed, Mermaid renders isolated, state navigation and conditions work, local image/comic load without changing answer or progress');
     await click('버전 i');
     await wait(() => document.querySelector('.lesson-card')?.textContent.includes('pilot-i'), 'reviewed authoring candidate');
-    await click('풀모드 시작');
+    await click('학습 시작');
     await wait(() => document.querySelector('.problem-pane')?.textContent.includes('숫자 3을 출력한 뒤 제출하세요.'), 'reviewed task instruction visible');
     await wait(() => molipCodeEditors.getValue() === 'console.log(99);', 'draft survives reviewed authoring change');
     if (document.querySelector('.study-progress')?.textContent !== beforeReviewedProgress) throw new Error('Reviewed instruction changed student progress');
@@ -308,7 +308,7 @@
     checked.push('CLI-reviewed candidate renders changed instruction while preserving draft, progress and unrelated step');
     await click('버전 a');
     await wait(() => document.querySelector('.lesson-card')?.textContent.includes('pilot-a'), 'baseline restored after review candidate');
-    await click('풀모드 시작');
+    await click('학습 시작');
     await wait(() => molipCodeEditors.getValue() === 'console.log(99);', 'review candidate returns to baseline draft');
     await click('손상 업데이트 공개');
     const contentSettings=document.querySelector('.content-update-controls>details');
@@ -340,7 +340,7 @@
     document.querySelector('.content-update-controls>details').open=true;
     document.querySelector('.draft-backups').open=true;
     await wait(() => document.querySelector('.draft-backups')?.textContent.includes('console.log(99)'), 'previous answer recoverable');
-    await click('풀모드 시작');
+    await click('학습 시작');
     await wait(() => molipCodeEditors.getValue() === 'console.log(99);', 'draft survives content update');
     if (!document.querySelector('.study-progress').textContent.includes('3 / 4')) throw new Error('Content update lost old achievement or passed new step');
     checked.push('atomic content update, rejected hash, explicit apply, additional learning and recoverable student backup');
@@ -353,12 +353,12 @@
     repositoryInput.dispatchEvent(new Event('input',{bubbles:true}));
     await click('코스 불러오기');
     await wait(() => document.querySelector('.lesson-card')?.textContent.includes('pilot-g'), 'uncached course imported');
-    await click('풀모드 시작');
+    await click('학습 시작');
     await wait(() => document.querySelector('.study-progress')?.textContent.includes('3 / 4'), 'imported course has installed lessons');
     checked.push('uncached course imported through CourseBuilder and its lesson opens');
     await click('버전 h');
     await wait(() => document.querySelector('.lesson-card')?.textContent.includes('pilot-h'), 'real Git lesson');
-    await click('풀모드 시작');
+    await click('학습 시작');
     await wait(() => document.querySelector('[aria-label="Git 실습 터미널 입력"]') && document.querySelector('.repository-task')?.dataset.gitReady === 'true', 'real platform terminal',45000);
     if (document.querySelector('.code-editor')) throw new Error('Git exercise still uses code editor');
     await click('제출');
@@ -411,7 +411,7 @@
     await new Promise(resolve=>setTimeout(resolve,500));
     await click('버전 k');
     await wait(() => document.querySelector('.lesson-card')?.textContent.includes('git-first-1'), 'approved first Git lesson');
-    await click('풀모드 시작');
+    await click('학습 시작');
     let commandSequence=0;
     const gitReady=async()=>wait(()=>document.querySelector('.repository-task')?.dataset.gitReady==='true' && !button('초기화')?.disabled && !button('제출')?.disabled && window.mq3GitTerminal && document.querySelector('[aria-label="Git 실습 터미널 입력"]'),'first Git terminal ready',45000);
     const resetGit=async()=>{
@@ -481,7 +481,7 @@
     if (window.mq3IncludeGitBranch) {
       await click('버전 l');
       await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('git-branch-1'),'approved branch lesson');
-      await click('풀모드 시작');await gitReady();molipAgent.setVoice(false);
+      await click('학습 시작');await gitReady();molipAgent.setVoice(false);
       await click('제출');await wait(()=>status('다시 풀어보세요'),'branch initially absent');
       await runGit('git branch feature');await click('제출');await wait(()=>status('통과했어요'),'branch creation without switching');
       await nextGit();await runGit('git switch feature');await click('제출');await wait(()=>status('통과했어요'),'branch switch');

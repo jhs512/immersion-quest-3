@@ -18,7 +18,7 @@ const fs=require('node:fs');
   await page.getByRole('heading',{name:manifest.title,exact:true}).waitFor();
   assert.equal(await page.locator('.lesson-card').count(),manifest.lessons.length);
   await page.screenshot({path:images+'/'+id+'-catalog.png',fullPage:true});
-  await page.locator('.lesson-card').first().getByRole('button',{name:'풀모드 시작',exact:true}).click();
+  await page.locator('.lesson-card').first().getByRole('button',{name:'학습 시작',exact:true}).click();
   await page.locator('.study-navigation').getByRole('button',{name:/^문제 1 ·/}).click();
   await page.locator('.repository-task .cm-editor').waitFor();
   await page.getByRole('button',{name:'코드 실행',exact:true}).click();
@@ -29,7 +29,7 @@ const fs=require('node:fs');
   if(id==='engineer-saturday-final' && manifest.lessons.some(l=>l.id==='sat-engineer-c-memory-strings')){
    await page.getByRole('button',{name:'← 코스 수업 목록',exact:true}).click();
    const extra=manifest.lessons.find(l=>l.id==='sat-engineer-c-memory-strings');
-   await page.locator('.lesson-card').filter({has:page.getByRole('heading',{name:extra.title,exact:true})}).getByRole('button',{name:'풀모드 시작',exact:true}).click();
+   await page.locator('.lesson-card').filter({has:page.getByRole('heading',{name:extra.title,exact:true})}).getByRole('button',{name:'학습 시작',exact:true}).click();
    await page.locator('.study-navigation').getByRole('button',{name:/^문제 1 ·/}).click();
    await page.getByRole('button',{name:'코드 실행',exact:true}).click();
    await page.waitForFunction(()=>document.querySelector('.execution-status')?.textContent.includes('실행 완료'));

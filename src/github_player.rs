@@ -86,19 +86,17 @@ impl Github {
         for (lesson,events) in &mut by_lesson { *events=issue_progress::merge(std::mem::take(events),&ProgressKey{user_id:user.id,course_id:course_id.into(),lesson_id:lesson.clone()}); }
         Ok(by_lesson)
     }
-    /// Catalog completion needs actual pinned requirements, not just a revision label.
-    /// Only previously completed lessons need this extra read.
+    /// Every catalog card needs pinned requirements, including partially solved lessons.
+    /// Installed snapshots already hold these lessons, so this adds no network reads.
     pub fn course_progress(&self,course:&CourseManifest,user:&GithubUser)->Result<CourseProgress,String> {
         let events=self.course_events(&course.repository,user,&course.id)?;
         let installed=crate::content_updates::installed_store()?.active(&course.repository)?;
         let mut required=std::collections::HashMap::new();
         for reference in &course.lessons {
-            if events.get(&reference.id).is_some_and(|items|items.iter().any(|e|e.kind==issue_progress::EventKind::Completed)) {
                 let lesson=match installed.as_ref().and_then(|snapshot|snapshot.lesson(reference)) {
                     Some(lesson)=>lesson.clone(),None=>self.lesson(reference)?,
                 };
                 required.insert(reference.id.clone(),lesson.required_tasks());
-            }
         }
         Ok(CourseProgress{events,required})
     }

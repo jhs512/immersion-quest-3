@@ -26,3 +26,15 @@ fn merging_is_idempotent_and_account_scoped() {
     let parsed=parse_event(&a.comment()).unwrap();assert_eq!(parsed,a);
     assert_eq!(merge([a.clone(),a.clone(),other],&key()),vec![a]);
 }
+
+#[test]
+fn learning_progress_combines_old_modes_and_rounds_without_double_counting() {
+    let first="stp_3f59e7bd-70c1-4e81-9cb0-000000000005".to_string();
+    let second="stp_3f59e7bd-70c1-4e81-9cb0-000000000006".to_string();
+    let mut a=event(StudyMode::Full,"v1",EventKind::Attempt);a.task_id=Some(first.clone());a.passed=true;
+    let mut b=event(StudyMode::Review,"v1",EventKind::Attempt);b.task_id=Some(second.clone());b.passed=true;b.round="other-round".into();
+    let required=vec![first,second,"stp_3f59e7bd-70c1-4e81-9cb0-000000000007".into()];
+    let progress=learning_progress(&[a.clone(),a,b],"v2",&required);
+    assert_eq!((progress.solved,progress.total,progress.percent),(2,3,66));
+    assert_eq!(learning_progress(&[],"v2",&[]).percent,0);
+}

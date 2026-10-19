@@ -15,7 +15,7 @@ const fs=require('node:fs');const assert=require('node:assert/strict');
   for(const ref of course.lessons){
    const lesson=JSON.parse(fs.readFileSync(`target/saturday-specials/${ref.id}/lesson.json`,'utf8'));
    if(lesson.tasks.every(task=>reports.some(r=>r.lesson===ref.id && r.task===task.id))) continue;
-   await page.locator('.lesson-card').filter({has:page.getByRole('heading',{name:ref.title,exact:true})}).getByRole('button',{name:'풀모드 시작',exact:true}).click();
+   await page.locator('.lesson-card').filter({has:page.getByRole('heading',{name:ref.title,exact:true})}).getByRole('button',{name:'학습 시작',exact:true}).click();
    for(const [index,task] of lesson.tasks.entries()){
     if(reports.some(r=>r.lesson===ref.id && r.task===task.id)) continue;
     await page.locator('.study-navigation').getByRole('button',{name:new RegExp(`문제 ${index+1} ·`)}).click();

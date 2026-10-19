@@ -8,7 +8,7 @@
  try {
   await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('pilot-a'),'initial course');
   await click('버전 n');await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('java-values-1'),'Java course');
-  await click('풀모드 시작');
+  await click('학습 시작');
   const step=()=>[...document.querySelectorAll('.study-navigation button')].find(item=>item.textContent.startsWith('문제 5 ·'));
   await wait(step,'ordered step');step().click();await wait(()=>document.querySelector('.answer-order'),'ordered answer');
   const bridge=document.querySelector('.answer-state-bridge');bridge.value='not-json';bridge.dispatchEvent(new Event('input',{bubbles:true}));

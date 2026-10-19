@@ -15,7 +15,7 @@ const fs=require('node:fs');
    await page.getByRole('button',{name:'코스 불러오기',exact:true}).click();
    await page.locator('.lesson-card').waitFor();
  }
- await page.getByRole('button',{name:'풀모드 시작',exact:true}).click();
+ await page.getByRole('button',{name:'학습 시작',exact:true}).click();
  await page.locator('.repository-task .cm-editor').waitFor();
  await page.getByRole('button',{name:'코드 실행',exact:true}).click();
  await page.waitForFunction(()=>document.querySelector('.execution-status')?.textContent.includes('실행 완료'));

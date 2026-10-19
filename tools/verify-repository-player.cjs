@@ -26,7 +26,7 @@ const source=id=>JSON.parse(fs.readFileSync(path.join(root,'target/backend-cours
  await page.screenshot({path:path.join(out,'review-submitted.png'),fullPage:true});console.log('PASS failed answer, passed answer and GitHub progress');
  await page.evaluate(code=>window.molipCodeEditors.setValue(code+'\n// draft survives restart\n'),answer);
  await page.getByRole('button',{name:'← 코스 수업 목록',exact:true}).click();
- await page.locator('.lesson-card').nth(1).getByRole('button',{name:'풀모드 시작',exact:true}).click();
+ await page.locator('.lesson-card').nth(1).getByRole('button',{name:'학습 시작',exact:true}).click();
  await page.locator('.repository-reading').waitFor();
  await page.getByRole('button',{name:/^문제 1 ·/}).click();await page.locator('.cm-editor').waitFor();
  assert.equal(await page.evaluate(()=>window.molipCodeEditors.getValue()),source('java-values').tasks[0].starter_code);

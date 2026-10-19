@@ -4,8 +4,8 @@
   const wait=async(predicate,label)=>{const deadline=Date.now()+18000;while(Date.now()<deadline){if(predicate())return;await new Promise(resolve=>setTimeout(resolve,40));}throw new Error(label);};
   const button=text=>[...document.querySelectorAll('button')].find(item=>item.textContent.trim()===text&&!item.disabled);
   try {
-    await wait(()=>button('풀모드 시작'),'Course catalog did not open');
-    button('풀모드 시작').click();
+    await wait(()=>button('학습 시작'),'Course catalog did not open');
+    button('학습 시작').click();
     await wait(()=>window.molipCodeEditors?.getValue()!=null,'Editor did not mount');
     if(phase==='seed') {
       molipCodeEditors.setValue('console.log(3);');
@@ -20,7 +20,7 @@
     }
     const draft=molipCodeEditors.getValue(),progress=document.querySelector('.study-progress').textContent;
     button('버전 h').click();
-    await wait(()=>button('풀모드 시작'),'Git catalog did not open');button('풀모드 시작').click();
+    await wait(()=>button('학습 시작'),'Git catalog did not open');button('학습 시작').click();
     await wait(()=>document.querySelector('.repository-task')?.dataset.gitReady==='true','Git practice did not mount');
     if(phase==='seed') {
       mq3GitTerminal.command(navigator.platform.toLowerCase().includes('win')
@@ -33,7 +33,7 @@
       if(!mq3GitTerminal.text().includes('staged'))throw new Error('Restart lost staged file contents');
     }
     button('버전 a').click();
-    await wait(()=>button('풀모드 시작'),'Restored code catalog did not open');button('풀모드 시작').click();
+    await wait(()=>button('학습 시작'),'Restored code catalog did not open');button('학습 시작').click();
     await wait(()=>window.molipCodeEditors?.getValue()==='console.log(99);','Code draft changed after Git practice');
     dioxus.send({passed:true,phase,draft,progress,git:{branch:'restart-check',index:'staged',worktree:'modified'}});
   } catch(error) {dioxus.send({passed:false,phase,error:String(error),screen:document.body.innerText.slice(0,2500)});}

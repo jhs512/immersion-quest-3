@@ -11,7 +11,7 @@ const fs=require('node:fs');const path=require('node:path');const assert=require
  await p.getByRole('button',{name:'코스 불러오기',exact:true}).click();
  await p.locator('.lesson-card').filter({hasText:'직접 바꾸며 이해하는 출력과 계산'}).waitFor();
  assert.equal(await p.getByRole('button',{name:'복습모드 시작',exact:true}).count(),0);
- await p.getByRole('button',{name:'풀모드 시작',exact:true}).click();
+ await p.getByRole('button',{name:'학습 시작',exact:true}).click();
  await p.locator('.repository-task .cm-editor').waitFor();
  assert.equal(await p.locator('.study-navigation button').count(),10);
  assert.equal(await p.locator('.repository-reading').count(),0);

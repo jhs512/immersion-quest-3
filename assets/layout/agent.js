@@ -13,7 +13,7 @@
 // "text:<구절>" is the block of the mission text that contains that phrase (a paragraph, a
 // code block, a comic): the page glides there slowly before the sentence is read, so an
 // explanation of something below the fold is seen, not just heard. The voice comes from
-// assets/layout/voice.js (neural clips) with Web Speech as the fallback. molipAgent.stop() ends a
+// assets/layout/voice.js (neural clips), or Web Speech when explicitly selected. molipAgent.stop() ends a
 // narration (the sidebar's 멈춤 button), molipAgent.setVoice(false) keeps the captions but mutes.
 (function () {
   'use strict';
@@ -329,10 +329,12 @@
   let current = null;
   async function speak(sentence) {
     if (!sentence) return;
-    if (voice && neural() && !cancelled) {
+    if (voice && globalThis.molipVoice && molipVoice.name !== 'system' && !cancelled) {
       const url = await synthesize(String(sentence));
       if (cancelled) return;
       if (url && await playClip(url)) { lastSpeech = 'neural'; return; }
+      lastSpeech = 'unavailable';
+      throw new Error('Edge 음성을 재생하지 못했어요. 연결을 확인한 뒤 다시 재생해 주세요.');
     }
     lastSpeech = 'system';
     return speakWithSystemVoice(sentence);
@@ -344,7 +346,7 @@
     if (toldFallback) return;
     toldFallback = true;
     const reason = String(event.detail || '').slice(0, 80);
-    if (globalThis.molipToast) molipToast('인터넷 음성에 연결하지 못해 이 컴퓨터의 음성으로 읽어요. (' + reason + ')', 'warn');
+    if (globalThis.molipToast) molipToast('Edge 음성을 준비하지 못했어요. 연결을 확인한 뒤 다시 재생해 주세요. (' + reason + ')', 'warn');
   });
   function speakWithSystemVoice(sentence) {
     const length = String(sentence).length;
@@ -704,6 +706,7 @@
     const active = () => !cancelled && runId === narrationRun && (!session || session.current());
     replyRun++; stopSpeech(); releaseCancelWaiters(); clearSpot();
     cancelled = false; paused = false; running = true;
+    globalThis.molipVoice?.resetFailure?.();
     const lines = [];
     try {
     await Promise.race([prefetch(actions, active), untilCancelled()]);

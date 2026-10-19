@@ -88,6 +88,21 @@ jobs:
           cargo test --release --locked --lib setup_terminal::tests
       - name: Verify C, Java and Python execution on this Mac
         run: cargo test --release --locked --test macos_runtime
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify lesson loading and Edge audio in native WKWebView
+        run: |
+          python -m pip install edge-tts==7.3.1
+          export MOLIP_PYTHON="$(which python)"
+          cargo test --locked --test player_loading_native -- --ignored --nocapture
+      - name: Upload native WebView diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-webview-${{ matrix.arch }}
+          path: target/pilot-native-result.json
+          if-no-files-found: ignore
       - name: Build and package macOS app
         run: |
           cargo build --release --locked --bin molip-quest

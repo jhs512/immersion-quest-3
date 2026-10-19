@@ -24,7 +24,7 @@
   // Let the initial installation finish before the debug control replaces its store.
   await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('pilot-a'),'initial fixture installed');
   await click('검증 높이 720');await click(`버전 ${pilot.version}`);await wait(()=>document.querySelector('.lesson-card')?.textContent.includes(pilot.revision),'approved code lesson');
-  await click('풀모드 시작');molipAgent.setVoice(false);
+  await click('학습 시작');molipAgent.setVoice(false);
   let teacherResult='',teacherStatus='',requestedRanges=[],shownDiagrams=[],shownPlots=[],shownWeb=false;const originalExplanation=molipAgent.runExplanation.bind(molipAgent);
   const originalHighlight=molipCodeEditors.highlightLines.bind(molipCodeEditors);
   molipCodeEditors.highlightLines=(from,to,...rest)=>{if(Number.isInteger(from))requestedRanges.push([from,to??from]);return originalHighlight(from,to,...rest);};
