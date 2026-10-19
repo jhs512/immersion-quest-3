@@ -50,6 +50,14 @@ print(tree_count)
             with self.assertRaises(ValueError):
                 checker(cases, timeout_seconds=invalid)
 
+    def test_timeout_template_does_not_rewrite_literal_prepared_values(self):
+        with tempfile.TemporaryDirectory() as folder:
+            Path(folder, 'main.py').write_text('tree_count = 1\nprint(tree_count)\n', encoding='utf-8')
+            script = checker([{'values': {'tree_count': 'CASE_TIMEOUT'}, 'expected': 'CASE_TIMEOUT'}])
+            result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', script],
+                                    cwd=folder, capture_output=True, text=True, encoding='utf-8')
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_existing_output_only_cases_remain_compatible(self):
         result = self.check_source('tree_count = 3\nprint(tree_count)\n', probe=False)
         self.assertEqual(result.returncode, 0, result.stderr)

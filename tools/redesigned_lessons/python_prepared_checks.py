@@ -43,7 +43,7 @@ for case in cases:
     if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():
         raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')
 print('준비 값을 바꾼 검사도 통과했어요.')
-""".replace('PAYLOAD', repr(payload)).replace('CASE_TIMEOUT', str(timeout_seconds))
+""".replace('CASE_TIMEOUT', str(timeout_seconds)).replace('PAYLOAD', repr(payload))
 
 
 def checker(cases, probe=None, *, timeout_seconds=10):
