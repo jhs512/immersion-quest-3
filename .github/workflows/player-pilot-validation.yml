@@ -155,6 +155,12 @@ jobs:
       - name: Drive Java objects and reference copies
         if: matrix.group == 'java'
         run: cargo test --locked --test player_data_lessons_native java_references -- --ignored --test-threads=1
+      - name: Drive C double-indirect targets
+        if: matrix.group == 'c'
+        run: cargo test --locked --test player_data_lessons_native engineer_c_double_pointers -- --ignored --test-threads=1
+      - name: Drive C structures and function pointers
+        if: matrix.group == 'c'
+        run: cargo test --locked --test player_data_lessons_native engineer_c_structures -- --ignored --test-threads=1
       - name: Reopen actual player with saved answer and progress
         if: ${{ matrix.group == 'core' && (!cancelled() && steps.build_player.outcome == 'success') }}
         run: cargo test --locked --test player_restart_native -- --ignored --test-threads=1
@@ -187,6 +193,8 @@ jobs:
             target/pilot-aice-selection-result.json
             target/pilot-java-arrays-result.json
             target/pilot-engineer-c-arrays-result.json
+            target/pilot-engineer-c-double-pointers-result.json
+            target/pilot-engineer-c-structures-result.json
             target/pilot-java-references-result.json
             target/pilot-engineer-c-pointers-result.json
             target/pilot-aice-plots-result.json

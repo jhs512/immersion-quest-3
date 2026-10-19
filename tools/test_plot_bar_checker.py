@@ -31,6 +31,10 @@ plt.show()
                                     capture_output=True, text=True, encoding='utf-8')
             self.assertNotEqual(result.returncode, 0, result.stdout)
             self.assertIn('실제 막대 높이', result.stderr)
+            path.write_text(source + '\nraise SystemExit(0)\n', encoding='utf-8')
+            result = subprocess.run([python, '-I', '-X', 'utf8', '-c', script], cwd=directory,
+                                    capture_output=True, text=True, encoding='utf-8')
+            self.assertNotEqual(result.returncode, 0, 'Early exit skipped every graph assertion')
             path.write_text(source.replace("sns.countplot(data=df, x='region', order=['n','s'])",
                                            "sns.barplot(data=df, x='region', y='minutes', order=['n','s'], errorbar=None)"), encoding='utf-8')
             result = subprocess.run([python, '-I', '-X', 'utf8', '-c', script], cwd=directory,

@@ -1408,14 +1408,14 @@ fn ReadOnlyMission(course_id: String, unit: Unit, oncompleted: EventHandler<bool
 }
 
 #[component]
-fn RichResults(artifacts: Vec<Artifact>) -> Element {
+pub(crate) fn RichResults(artifacts: Vec<Artifact>) -> Element {
     rsx! { div { class: "rich-results",
         for artifact in artifacts { match artifact {
             Artifact::Html { title, srcdoc } => rsx! { iframe { title, srcdoc, "sandbox":"allow-scripts allow-forms" } },
             Artifact::Image { title, data_url } => rsx! { figure { class:"plot-result", figcaption { "{title}" } img { src: data_url, alt: title } } },
             Artifact::Table { title, columns, rows, total_rows, total_columns } => rsx! { section { class:"table-result",
                 h4 { "{title} · {total_rows}행 × {total_columns}열" }
-                if total_rows > 100 || total_columns > 30 { p { class:"muted", "앞 100행·30열까지만 미리보기로 표시합니다." } }
+                if total_rows > 100 || total_columns > 30 { p { class:"muted", "앞 100행·30열까지만 미리 보여줘요." } }
                 div { class:"data-grid", table { thead { tr { for column in columns { th { "{column}" } } } }
                     tbody { for row in rows { tr { for cell in row { td { "{cell}" } } } } }
                 } }

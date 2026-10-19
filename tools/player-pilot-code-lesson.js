@@ -72,8 +72,18 @@
     await wait(()=>molipCodeEditors.getValue()===editedCode&&bridge()?.value===editedAnswer,'modified learner state restored');verifyTeacher(task);
     checked.push(`${pilot.label} step ${index+1}: canonical teacher baseline restores an edited or reordered learner answer`);
    }
-   if(!modification?.correct)await answer(task);await click('제출');await wait(()=>status(index===pilot.tasks.length-1?'수업 완료':'통과했어요'),'authored solution accepted');
+   if(!modification?.correct)await answer(task);
+   if(pilot.requirePlot&&index===0){
+    await click('코드 실행');
+    await wait(()=>status('실행을 마쳤어요')&&[...document.querySelectorAll('.plot-result img')].some(image=>image.complete&&image.naturalWidth>0),'student plot is visible');
+    const studentPlot=document.querySelector('.plot-result img').src;
+    await click('해설 재생 · 정답 실행');await wait(()=>molipAgent.running,'teacher with student plot starts');
+    await wait(()=>!molipAgent.running&&document.querySelector('.repository-task').dataset.narrating==='false','teacher with student plot ends');
+    await wait(()=>document.querySelector('.plot-result img')?.src===studentPlot,'student plot restored after teacher');verifyTeacher(task);
+   }
+   await click('제출');await wait(()=>status(index===pilot.tasks.length-1?'수업 완료':'통과했어요'),'authored solution accepted');
    await click('초기화');await wait(()=>molipCodeEditors.getValue()===initialCode&&bridge()?.value===initialAnswer,'independent reset');
+   if(pilot.requirePlot&&document.querySelector('.plot-result img'))throw Error('Reset retained the previous plot');
    await click('제출');await wait(()=>status('다시 풀어보세요'),'reset task is unsolved');
    checked.push(`${pilot.label} step ${index+1}: teacher restoration, wrong answer, correct submission, independent reset`);
    if(index<pilot.tasks.length-1)await click('다음 문제 →');

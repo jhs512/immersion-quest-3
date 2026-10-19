@@ -1,0 +1,739 @@
+{
+  "description": "재고를 구조체로 묶고 함수 포인터로 계산 규칙을 골라요.",
+  "tasks": [
+    {
+      "id": "stp_be3ac498-bec9-4719-9bd5-acf535d126aa",
+      "title": "관련 값을 한 묶음으로 담아요",
+      "goal": "같은 재고의 count와 code를 묶었어요.\n두 필드를 읽은 결과를 고르세요.",
+      "language": "c",
+      "starter_code": "",
+      "solution": "fields",
+      "tests": [],
+      "required": true,
+      "example_code": "#include <stdio.h>\n\n// 관련된 두 숫자를 한 값으로 묶어요.\ntypedef struct {\n    int count;\n    int code;\n} Stock;\n\nint main(void) {\n    // 이름으로 필요한 필드를 골라 읽어요.\n    Stock item = {2, 7};\n    printf(\"%d\\n\", item.count);\n    printf(\"%d\", item.code);\n    return 0;\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "fields",
+            "text": "2 다음7"
+          },
+          {
+            "id": "same",
+            "text": "2 다음2"
+          }
+        ],
+        "answer": "fields"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "count는 이, code는 칠이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "{2, 7}",
+          "after": "{5, 7}",
+          "say": "count의 처음 값만 오로 바꿔요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "count만 오이고 code는 칠로 남아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 필드 이름과 그 필드에 담긴 값은 달라요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "{5, 7}",
+          "after": "{2, 7}",
+          "say": "처음 묶음으로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "같은 묶음 안에서도 필드를 나눠 읽어요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "fields"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_ace371fc-9879-433a-889f-3b93a055efc1",
+      "title": "묶음을 대입해 복사해요",
+      "goal": "b에 a의 구조체 값을 대입했어요.\nb.count를 고치면 a도 바뀔까요?",
+      "language": "c",
+      "starter_code": "",
+      "solution": "copy",
+      "tests": [],
+      "required": true,
+      "example_code": "#include <stdio.h>\n\n// 관련된 두 숫자를 한 값으로 묶어요.\ntypedef struct {\n    int count;\n    int code;\n} Stock;\n\nint main(void) {\n    // 구조체 값 자체를 다른 변수로 복사해요.\n    Stock a = {2, 7};\n    Stock b = a;\n    // 복사한 b의 필드만 바꿔요.\n    b.count = 5;\n    printf(\"%d\\n\", a.count);\n    printf(\"%d\", b.count);\n    return 0;\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "copy",
+            "text": "아니요.a는2,b는5예요"
+          },
+          {
+            "id": "alias",
+            "text": "네.둘 다5예요"
+          }
+        ],
+        "answer": "copy"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "별도 값으로 복사해서 a는 이, b는 오예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "b.count = 5;",
+          "after": "b.count = 9;",
+          "say": "복사본의 재고만 구로 바꿔요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "a는 여전히 이이고 b만 구예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 같은 대상을 가리키는 포인터 대입과 달라요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "b.count = 9;",
+          "after": "b.count = 5;",
+          "say": "처음 수정값으로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "값 복사와 대상 공유를 나눠 읽어요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "copy"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_31650ad6-c09d-4e52-94b2-c0f37d2d3b87",
+      "title": "포인터로 필드를 읽어요",
+      "goal": "p로 같은 구조체의 필드를 고쳤어요.\np->count와 같은 뜻을 고르세요.",
+      "language": "c",
+      "starter_code": "",
+      "solution": "indirect",
+      "tests": [],
+      "required": true,
+      "example_code": "#include <stdio.h>\n\n// 관련된 두 숫자를 한 값으로 묶어요.\ntypedef struct {\n    int count;\n    int code;\n} Stock;\n\nint main(void) {\n    // 구조체가 있는 곳을 p가 가리켜요.\n    Stock item = {2, 7};\n    Stock *p = &item;\n    // 가리킨 구조체의 count를 바꿔요.\n    p->count = 5;\n    printf(\"%d\", item.count);\n    return 0;\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "indirect",
+            "text": "(*p).count예요"
+          },
+          {
+            "id": "copy",
+            "text": "새 구조체의 count예요"
+          }
+        ],
+        "answer": "indirect"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "같은 구조체의 count가 오예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "p->count = 5;",
+          "after": "(*p).count = 5;",
+          "say": "간접 참조 뒤 필드를 읽는 표기로 비교해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "같은 대상이라 결과도 오예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 괄호로 먼저 가리킨 구조체를 읽어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "(*p).count = 5;",
+          "after": "p->count = 5;",
+          "say": "간단한 화살표 표기로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "포인터를 통해 원래 필드를 바꿨어요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "indirect"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_7fcc7e79-fc73-4882-97aa-48fd684246dc",
+      "title": "묶음 배열의 원소를 골라요",
+      "goal": "배열에서 원소를 고른 뒤 필드를 읽어요.\nitems[1].count를 고르세요.",
+      "language": "c",
+      "starter_code": "",
+      "solution": "second",
+      "tests": [],
+      "required": true,
+      "example_code": "#include <stdio.h>\n\n// 관련된 두 숫자를 한 값으로 묶어요.\ntypedef struct {\n    int count;\n    int code;\n} Stock;\n\nint main(void) {\n    // 배열의 각 원소가 구조체 한 개예요.\n    Stock items[] = {{2, 7}, {5, 9}};\n    printf(\"%d\", items[1].count);\n    return 0;\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "second",
+            "text": "5"
+          },
+          {
+            "id": "code",
+            "text": "9"
+          },
+          {
+            "id": "first",
+            "text": "2"
+          }
+        ],
+        "answer": "second"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "두 번째 묶음의 재고 오를 읽었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "items[1].count",
+          "after": "items[0].count",
+          "say": "첫 묶음의 같은 필드도 확인해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "첫 묶음의 재고는 이예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 배열 위치와 구조체 필드 선택은 두 단계예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "items[0].count",
+          "after": "items[1].count",
+          "say": "처음 위치로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "원소와 필드가 고르는 것을 구별해요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "second"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_87c24da0-82fa-4aab-a0f1-140d46467d6d",
+      "title": "묶음 안의 문자 배열도 복사돼요",
+      "goal": "묶음 안의 문자 배열도 복사했어요.\nb의 첫 글자를 바꾼 결과를 고르세요.",
+      "language": "c",
+      "starter_code": "",
+      "solution": "copy",
+      "tests": [],
+      "required": true,
+      "example_code": "#include <stdio.h>\n\n// 문자열 리터럴 포인터 대신 수정 가능한 배열을 담아요.\ntypedef struct {\n    char text[8];\n} Label;\n\nint main(void) {\n    // 구조체 대입은 안에 든 문자 배열 값도 복사해요.\n    Label a = {\"ready\"};\n    Label b = a;\n    b.text[0] = 'R';\n    printf(\"%s\\n\", a.text);\n    printf(\"%s\", b.text);\n    return 0;\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "copy",
+            "text": "a는ready,b는Ready예요"
+          },
+          {
+            "id": "alias",
+            "text": "둘 다Ready예요"
+          }
+        ],
+        "answer": "copy"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "원래 ready는 남고 복사본만 Ready예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 여기서는 수정 가능한 문자 배열을 썼어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "문자열 리터럴을 가리키는 포인터에 쓰는 예와는 달라요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "copy"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_5bd91b09-1389-4813-9e40-867f670ccaac",
+      "title": "함수도 선택해서 불러요",
+      "goal": "rule은 하나 더하는 함수를 가리켜요.\nrule(value)의 결과를 고르세요.",
+      "language": "c",
+      "starter_code": "",
+      "solution": "one",
+      "tests": [],
+      "required": true,
+      "example_code": "#include <stdio.h>\n\n// 같은 함수 타입의 두 계산 규칙이에요.\nint add_one(int value) {\n    return value + 1;\n}\nint twice(int value) {\n    return value * 2;\n}\n\nint main(void) {\n    // 함수 자체를 선택한 뒤 값을 넘겨 호출해요.\n    int value = 2;\n    int (*rule)(int) = add_one;\n    printf(\"%d\", rule(value));\n    return 0;\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "one",
+            "text": "3"
+          },
+          {
+            "id": "twice",
+            "text": "4"
+          }
+        ],
+        "answer": "one"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "선택한 함수에 이를 넘겨 삼을 얻었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "= add_one;",
+          "after": "= twice;",
+          "say": "선택한 규칙만 두 배 함수로 바꿔요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "같은 입력에 두 배를 적용해 사예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 함수 선택과 호출 결과 저장은 다른 일이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "= twice;",
+          "after": "= add_one;",
+          "say": "처음 계산 규칙으로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "같은 호출에서 선택한 함수가 달라질 수 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "one"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_2afdfe4e-ffc3-4472-b4d2-df8d95fe93ab",
+      "title": "계산 규칙을 인수로 넘겨요",
+      "goal": "apply에 add_one을 넘겼어요.\n함수 안에서 하는 일을 고르세요.",
+      "language": "c",
+      "starter_code": "",
+      "solution": "call",
+      "tests": [],
+      "required": true,
+      "example_code": "#include <stdio.h>\n\n// 같은 함수 타입의 두 계산 규칙이에요.\nint add_one(int value) {\n    return value + 1;\n}\nint twice(int value) {\n    return value * 2;\n}\n// 받은 규칙을 현재 값에 적용해요.\nint apply(int value, int (*rule)(int)) {\n    return rule(value);\n}\n\nint main(void) {\n    // 계산 규칙도 인수로 전달할 수 있어요.\n    int value = 2;\n    printf(\"%d\", apply(value, add_one));\n    return 0;\n}\n",
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "call",
+            "text": "넘겨받은 규칙을 value에 적용해요"
+          },
+          {
+            "id": "fixed",
+            "text": "항상 두 배만 계산해요"
+          }
+        ],
+        "answer": "call"
+      },
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            18,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "넘겨받은 하나 더하기를 적용해 삼이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "apply(value, add_one)",
+          "after": "apply(value, twice)",
+          "say": "같은 호출에 다른 규칙을 넘겨요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            18,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이번에는 두 배 규칙이라 사예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 호출할 함수의 매개변수와 반환 타입이 맞아야 해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "apply(value, twice)",
+          "after": "apply(value, add_one)",
+          "say": "처음 규칙으로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            18,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "호출부와 함수 안의 규칙 적용을 연결해요.",
+          "target": "output"
+        },
+        {
+          "action": "choose_answer",
+          "id": "call"
+        }
+      ],
+      "predict_before_run": true
+    },
+    {
+      "id": "stp_987d7e4b-7b45-4ac5-a9a2-4454111b7c0c",
+      "title": "요구한 계산 규칙을 골라요",
+      "goal": "재고를 두 배가 아니라 하나 늘리려 해요.\n선택한 함수 이름 한 곳만 고치세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\n// 같은 함수 타입의 두 계산 규칙이에요.\nint add_one(int value) {\n    return value + 1;\n}\nint twice(int value) {\n    return value * 2;\n}\n\nint main(void) {\n    // 같은 입력에 요구한 규칙을 골라 적용하세요.\n    int value = 2;\n    int (*rule)(int) = twice;\n    printf(\"%d\", rule(value));\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\n// 같은 함수 타입의 두 계산 규칙이에요.\nint add_one(int value) {\n    return value + 1;\n}\nint twice(int value) {\n    return value * 2;\n}\n\nint main(void) {\n    // 같은 입력에 요구한 규칙을 골라 적용하세요.\n    int value = 2;\n    int (*rule)(int) = add_one;\n    printf(\"%d\", rule(value));\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "3"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "지금은 두 배를 계산해 사예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "= twice;",
+          "after": "= add_one;",
+          "say": "하나 더하는 함수로 선택을 바꿔요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "같은 입력에 하나를 더해 삼이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 결과 삼을 고정하면 다른 입력을 놓쳐요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "value = 2;",
+          "after": "value = 5;",
+          "say": "입력이 오여도 규칙을 적용해요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "하나 더해 육을 얻었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "value = 5;",
+          "after": "value = 2;",
+          "say": "처음 입력으로 돌아와요."
+        },
+        {
+          "action": "run",
+          "say": "실행해서 실제 결과를 함께 확인해요.",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "선택한 함수와 실제 결과를 확인했어요.",
+          "target": "output"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "value": "0"
+          },
+          "expected": "1"
+        },
+        {
+          "values": {
+            "value": "1"
+          },
+          "expected": "2"
+        },
+        {
+          "values": {
+            "value": "5"
+          },
+          "expected": "6"
+        },
+        {
+          "values": {
+            "value": "9"
+          },
+          "expected": "10"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "구조체 값 복사와 포인터로 같은 대상을 다루는 일을 구별해요.",
+      "배열·필드·문자 배열의 선택 결과를 읽어요.",
+      "함수 포인터로 계산 규칙을 고르고 호출 결과를 검증해요."
+    ],
+    "chapters": {
+      "chp_1f6f5e13-7b67-40fd-af4d-d1eae5d95337": [
+        "구조체 접근과 값 복사를 구별해요."
+      ],
+      "chp_4cd04b64-c535-4c30-abd5-d4669565fe51": [
+        "함수 포인터로 선택한 규칙을 호출해요."
+      ]
+    },
+    "units": {
+      "unt_632d57f1-8281-43a0-9435-4f8e9ec29737": {
+        "objectives": [
+          "원소와 필드를 골라 변경 대상을 판단해요."
+        ],
+        "premise": "같은 창고의 재고와 코드를 Stock으로 묶어요. 구조체 복사와 같은 객체를 가리키는 포인터를 비교해요."
+      },
+      "unt_6d0ff541-9322-4df6-9a48-7245c74a8734": {
+        "objectives": [
+          "인수·규칙·반환 결과를 연결해요."
+        ],
+        "premise": "같은 재고에 하나 더하는 규칙과 두 배 규칙이 있어요. 함수 전체를 바꾸지 않고 적용할 규칙을 고르세요."
+      }
+    }
+  }
+}

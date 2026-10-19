@@ -19,7 +19,7 @@ fn verify(mode:&str,count:usize) {
     let passed:std::collections::HashSet<_>=events.iter().filter(|event|event.kind==EventKind::Attempt&&event.passed).filter_map(|event|event.task_id.as_ref()).collect();
     assert_eq!(passed.len(),count);
     assert_eq!(events.iter().filter(|event|event.kind==EventKind::Completed).count(),1);
-    assert!(!events.iter().any(|event|event.kind==EventKind::ExampleRun));
+    assert_eq!(events.iter().filter(|event|event.kind==EventKind::ExampleRun).count(),if mode=="aice-plots" {1}else{0});
 }
 
 #[test]
@@ -57,3 +57,11 @@ fn aice_plots_restore_student_state() {verify("aice-plots",10)}
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
 fn java_references_restore_student_state() {verify("java-references",10)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_c_double_pointers_restore_student_state() {verify("engineer-c-double-pointers",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn engineer_c_structures_restore_student_state() {verify("engineer-c-structures",8)}

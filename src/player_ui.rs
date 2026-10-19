@@ -268,6 +268,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     let mut input=use_signal(||task.tests.first().map(|t|t.input.clone()).unwrap_or_default());
     let mut busy=use_signal(||false);let mut message=use_signal(String::new);let mut output=use_signal(String::new);
     let mut preview=use_signal(String::new);
+    let mut artifacts=use_signal(Vec::<molip_quest::runner::Artifact>::new);
     let ordered_task=task.clone();
     use_effect(move||{if ordered_task.example_order_marker.is_some(){match ordered_task.example_for_answer(&code()){Ok(source)=>{if *example_source.peek()!=source{example_source.set(source);reset.with_mut(|version|*version+=1);}},Err(error)=>message.set(error)}}});
 
@@ -313,7 +314,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                 }}
                 if !task.narration.is_empty() {
                     button {disabled:busy()||narrating(),onclick:{let actions=task.narration.clone();let record=record_explanation.clone();let needs_git=task.git_terminal.is_some();let demo_code=task.starter_code.clone();let demo_example=task.example_for_answer(&demo_code).unwrap_or_default();let has_interaction=task.interaction.is_some();let demo_input=task.tests.first().map(|case|case.input.clone()).unwrap_or_default();move |_|{
-                        record();let student_code=code();let student_example=example_source();let student_output=output();let student_input=input();let student_preview=preview();let student_message=message();let student_state=execution_state();let student_seconds=execution_seconds();
+                        record();let student_code=code();let student_example=example_source();let student_output=output();let student_input=input();let student_preview=preview();let student_artifacts=artifacts();let student_message=message();let student_state=execution_state();let student_seconds=execution_seconds();
                         // The tutor starts from the authored baseline, independent of learner edits.
                         code.set(demo_code.clone());
                         if !needs_git {example_source.set(demo_example.clone());input.set(demo_input.clone());reset+=1;}
@@ -322,7 +323,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                         spawn(async move {
                             let script=format!("(async()=>{{try{{const root=document.querySelector('.repository-task'),expected={expected};const until=Date.now()+45000;const ready=()=>root.dataset.narrating==='true'&&(!{needs_git}||window.molipGitTutor)&&(expected.source===null||window.molipCodeEditors?.getValue()===expected.source)&&(expected.answer===null||root.querySelector('.answer-state-bridge')?.value===expected.answer);while(root?.isConnected&&!ready()){{if(Date.now()>until)throw new Error('해설 시연을 준비하지 못했어요.');await new Promise(requestAnimationFrame);}}if(root?.isConnected)await window.molipAgent?.runExplanation({});}}finally{{dioxus.send(true);}}}})();",serde_json::to_string(&actions).unwrap_or_else(|_|"[]".into()));
                             let mut bridge=document::eval(&script);let _=bridge.recv::<bool>().await;
-                            execution_id+=1;execution_state.set(student_state);execution_seconds.set(student_seconds);busy.set(false);code.set(student_code);example_source.set(student_example);input.set(student_input);output.set(student_output);preview.set(student_preview);message.set(student_message);if !needs_git {reset+=1;}narrating.set(false);
+                            execution_id+=1;execution_state.set(student_state);execution_seconds.set(student_seconds);busy.set(false);code.set(student_code);example_source.set(student_example);input.set(student_input);output.set(student_output);preview.set(student_preview);artifacts.set(student_artifacts);message.set(student_message);if !needs_git {reset+=1;}narrating.set(false);
                         });
                     }},"해설 재생 · 정답 실행"}
                     button {"data-explanation-stop":"true",onclick:move |_|{document::eval("window.molipAgent?.stop()");},"해설 멈춤"}
@@ -350,12 +351,12 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                                 }
                                 busy.set(false);
                             });
-                        }else{code.set(starter.clone());example_source.set(example.clone());reset+=1;let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}
+                        }else{code.set(starter.clone());example_source.set(example.clone());artifacts.set(vec![]);preview.set(String::new());output.set(String::new());reset+=1;let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}
                     }},"초기화"}
                     if task.git_terminal.is_none()&&(task.interaction.is_none()||has_example) {
                     button {disabled:busy()||(task.predict_before_run&&!narrating()&&code().is_empty()),onclick:{let task=task.clone();let github=session.github.clone();let user=session.user.clone();let selected=selected.clone();move |_|{let task=task.clone();let github=github.clone();let user=user.clone();let selected=selected.clone();async move {
                         busy.set(true);execution_id+=1;execution_state.set("running");execution_seconds.set(0);
-                        message.set("코드를 실행하고 있어요.".into());output.set(String::new());preview.set(String::new());
+                        message.set("코드를 실행하고 있어요.".into());output.set(String::new());preview.set(String::new());artifacts.set(vec![]);
                         let source=if has_example{example_source()}else{code()};let prediction=task.predict_before_run.then(||code());let demonstration=narrating();let input=input();let started=std::time::Instant::now();let run_id=execution_id();
                         let timer=spawn(async move {loop {tokio::time::sleep(std::time::Duration::from_secs(1)).await;if execution_id()!=run_id{break;}execution_seconds+=1;}});
                         // Local execution never waits for GitHub. append() still authenticates
@@ -368,7 +369,8 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                                 output.set(format!("{}\n{}",result.stdout,result.stderr));
                                 execution_state.set(if result.success{"finished"}else{"failed"});
                                 message.set(if result.success {format!("실행을 마쳤어요. {:.2}초 걸렸어요. 제출해서 모든 검사를 확인하세요.",started.elapsed().as_secs_f64())}else{"실행에 실패했어요. 결과를 확인하세요.".into()});
-                                preview.set(result.artifacts.into_iter().find_map(|a|match a {molip_quest::runner::Artifact::Html{srcdoc,..}=>Some(srcdoc),_=>None}).unwrap_or_default());
+                                preview.set(result.artifacts.iter().find_map(|a|match a {molip_quest::runner::Artifact::Html{srcdoc,..}=>Some(srcdoc.clone()),_=>None}).unwrap_or_default());
+                                artifacts.set(result.artifacts.into_iter().filter(|a|!matches!(a,molip_quest::runner::Artifact::Html{..})).collect());
                             },
                             Err(error)=>{execution_state.set("failed");message.set(error);}
                         }
@@ -454,6 +456,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                 pre {class:"output","{output}"}
                 if history_saves()>0 {p {class:"history-sync",role:"status","실행 이력을 저장하고 있어요. 다음 코드를 실행해도 돼요."}}
                 if !history_message().is_empty() {p {class:"history-sync warning",role:"status","{history_message}"}}
+                crate::ui::RichResults {artifacts:artifacts()}
                 if !preview().is_empty() && task.language==repository_course::TaskLanguage::Web {
                     iframe {title:"수업 웹 미리보기","sandbox":"allow-scripts allow-forms",srcdoc:preview(),style:"width:100%;height:400px;border:1px solid #456;"}
                 }
