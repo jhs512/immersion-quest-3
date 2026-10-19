@@ -121,7 +121,7 @@ pub fn mutate_c(source:&str,name:&str,value:&str)->Option<String> {
         if c==b'"'||c==b'\'' {i+=1;while i<bytes.len()&&bytes[i]!=c{if bytes[i]==b'\\'{i+=1}i+=1}i+=1;previous=c;continue}
         if ident(c) {
             let start=i;while i<bytes.len()&&ident(bytes[i]){i+=1}
-            let declared=ident(previous)||previous==b'*'||previous==b',';
+            let declared=ident(previous)||previous==b'*'||previous==b','||previous==b']';
             if &source[start..i]==name&&declared&&(start==0||!ident(bytes[start-1])) {
                 let mut j=i;
                 loop {
@@ -331,5 +331,17 @@ mod c_tests {
         assert!(mutate_c(source,"s","\"xy\"").unwrap().contains("char s[] = \"xy\";"));
         assert!(mutate_c(source,"missing","1").is_none());
         assert!(mutate_c("int f(int k) { return k; }","k","1").is_none());
+    }
+}
+
+#[cfg(test)]
+mod java_array_prepared_tests {
+    #[test]
+    fn java_array_initializers_can_be_replaced_without_touching_comments_or_later_assignments() {
+        let source="void main() {\n // int[] prices = {9};\n int[] prices = {2, 4};\n prices = new int[]{8};\n}\n";
+        let changed=super::mutate_c(source,"prices","{}").expect("prepared Java array declaration");
+        assert!(changed.contains("int[] prices = {};"));
+        assert!(changed.contains("// int[] prices = {9};"));
+        assert!(changed.contains("prices = new int[]{8};"));
     }
 }
