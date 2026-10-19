@@ -185,8 +185,8 @@ async fn append_prepared_variations(task:&Task,source:&str,cases:&mut Vec<TestCa
     Ok(())
 }
 pub async fn check(task:&Task,source:&str)->Result<TestReport,String> {
-    if task.language==TaskLanguage::Sql {return check_sql(task,source).await}
     if let Some(interaction) = &task.interaction {return interaction.check(source)}
+    if task.language==TaskLanguage::Sql {return check_sql(task,source).await}
     if task.language==TaskLanguage::Python {
         if let Some(checker)=task.checker.as_deref().filter(|c|!c.trim().is_empty()) {
             let result=crate::runner::execute_python_files(source,"",Some(checker),&task.files).await?;

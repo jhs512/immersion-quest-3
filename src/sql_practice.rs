@@ -16,7 +16,7 @@ fn session(files:&BTreeMap<String,String>,source:&str)->Execution {
     let result=(||{
         let conn=Connection::open_in_memory().map_err(|e|e.to_string())?;
         // Set resource and integrity policy before learner statements are authorized.
-        conn.execute_batch("PRAGMA foreign_keys=ON; PRAGMA temp_store=MEMORY; PRAGMA max_page_count=4096;").map_err(|e|e.to_string())?;
+        conn.execute_batch("PRAGMA foreign_keys=ON; PRAGMA temp_store=MEMORY; PRAGMA main.max_page_count=4096; PRAGMA temp.max_page_count=4096;").map_err(|e|e.to_string())?;
         for (limit,value) in [(Limit::SQLITE_LIMIT_LENGTH,1_000_000),(Limit::SQLITE_LIMIT_SQL_LENGTH,200_000),(Limit::SQLITE_LIMIT_COLUMN,100),(Limit::SQLITE_LIMIT_ATTACHED,0),(Limit::SQLITE_LIMIT_EXPR_DEPTH,100)] {conn.set_limit(limit,value);}
         conn.authorizer(Some(|context:AuthContext<'_>|match context.action {
             AuthAction::Attach{..}|AuthAction::Detach{..}|AuthAction::Pragma{..}|AuthAction::Unknown{..}|AuthAction::CreateVtable{..}|AuthAction::DropVtable{..}=>Authorization::Deny,

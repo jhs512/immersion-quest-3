@@ -124,7 +124,7 @@ pub struct Task {
 impl Task {
     pub fn has_runnable_example(&self)->bool {
         self.interaction.is_some()&&self.git_terminal.is_none()
-            &&matches!(self.language,TaskLanguage::Java|TaskLanguage::Python|TaskLanguage::C|TaskLanguage::Javascript)
+            &&matches!(self.language,TaskLanguage::Java|TaskLanguage::Python|TaskLanguage::C|TaskLanguage::Javascript|TaskLanguage::Sql)
             &&self.example_code.as_deref().is_some_and(|source|!source.trim().is_empty()&&source.len()<=65536)
     }
     /// Expand only authored statement IDs; learner text never becomes executable source.

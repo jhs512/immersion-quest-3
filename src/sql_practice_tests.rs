@@ -39,3 +39,21 @@ async fn actual_queries_handle_literals_transactions_and_new_data() {
     assert!(lesson_runner::check(&task,"SELECT SUM(value) AS n FROM stock;").await.unwrap().passed);
     assert!(!lesson_runner::check(&task,"SELECT 5 AS n;").await.unwrap().passed);
 }
+
+#[tokio::test]
+async fn sql_prediction_answers_are_separate_from_the_runnable_query() {
+    let mut task=task("CREATE TABLE stock(value INTEGER); INSERT INTO stock VALUES(2),(3);");
+    task.example_code=Some("SELECT count(*) AS n FROM stock;".into());task.starter_code=String::new();task.solution="two".into();task.tests.clear();
+    task.interaction=Some(serde_json::from_value(serde_json::json!({"kind":"choice","answer":"two","options":[{"id":"two","text":"2행"},{"id":"one","text":"1행"}]})).unwrap());
+    assert!(task.has_runnable_example(),"SQL has an example query independent of its choice answer");
+    assert!(lesson_runner::run_example(&task,task.example_code.as_deref().unwrap(),"").await.unwrap().success);
+    assert!(!lesson_runner::check(&task,"").await.unwrap().passed);
+    assert!(lesson_runner::check(&task,"two").await.unwrap().passed);
+}
+
+#[tokio::test]
+async fn temporary_tables_share_the_practice_storage_bound() {
+    let sql="CREATE TEMP TABLE big(value); WITH RECURSIVE nums(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM nums WHERE n<20) INSERT INTO big SELECT zeroblob(900000) FROM nums;";
+    let result=lesson_runner::run(&task(""),sql,"").await.unwrap();
+    assert!(!result.success,"TEMP must not bypass the practice database storage limit");
+}
