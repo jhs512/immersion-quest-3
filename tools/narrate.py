@@ -397,7 +397,11 @@ def main():
 
 
 if __name__ == "__main__":
-    if sys.argv[1:2] == ["--redesigned-engineer-c-conditions"]:
+    if sys.argv[1:2] == ["--redesigned-java-arrays"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "java-arrays", *sys.argv[2:]], check=True)
+    elif sys.argv[1:2] == ["--redesigned-aice-selection"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "aice-selection", *sys.argv[2:]], check=True)
+    elif sys.argv[1:2] == ["--redesigned-engineer-c-conditions"]:
         subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "engineer-c-conditions", *sys.argv[2:]], check=True)
     elif sys.argv[1:2] == ["--redesigned-java-conditions"]:
         subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "java-conditions", *sys.argv[2:]], check=True)

@@ -14,6 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-15, macos-15-intel]
+        group: [core, java, python, c]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     steps:
@@ -44,22 +45,27 @@ jobs:
           key: pilot-${{ matrix.os }}
           cache-on-failure: true
       - name: Check hierarchy, legacy compatibility and isolated transport
-        run: cargo test --locked --test nested_repository_course --test reviewed_pilot --test supporting_materials --test repository_review_modes --test pilot_transport --test task_interactions --test interaction_examples --test interaction_fields --test example_predictions --test java_prepared_values --test redesigned_java_values --test redesigned_aice_python --test redesigned_aice_conditions --test redesigned_aice_table --test redesigned_engineer_c --test redesigned_aice_api --test redesigned_java_conditions --test redesigned_engineer_c_conditions --test table_output --test rich_output --test stable_progress --test issue_progress --test update_schedule --test explanation_progress --test update_handoff --test content_updates --test git_practice --test git_practice_resume --test git_lesson_goals --test git_merge_goals --test redesigned_git_first --test redesigned_git_branch --test change_history --test practice_exit --test pilot_restart -- --test-threads=1
+        if: matrix.group == 'core'
+        run: cargo test --locked --test nested_repository_course --test reviewed_pilot --test supporting_materials --test repository_review_modes --test pilot_transport --test task_interactions --test interaction_examples --test interaction_fields --test example_predictions --test java_prepared_values --test redesigned_java_values --test redesigned_aice_python --test redesigned_aice_conditions --test redesigned_aice_table --test redesigned_engineer_c --test redesigned_aice_api --test redesigned_java_conditions --test redesigned_engineer_c_conditions --test redesigned_aice_selection --test redesigned_java_arrays --test table_output --test rich_output --test stable_progress --test issue_progress --test update_schedule --test explanation_progress --test update_handoff --test content_updates --test git_practice --test git_practice_resume --test git_lesson_goals --test git_merge_goals --test redesigned_git_first --test redesigned_git_branch --test change_history --test practice_exit --test pilot_restart -- --test-threads=1
       - name: Check table grading without pandas representation matching
+        if: matrix.group == 'core'
         env:
           PYTHONUTF8: '1'
         run: python tools/test_pandas_head_checker.py
       - name: Check PRD evidence and approval boundaries
+        if: matrix.group == 'core'
         env:
           PYTHONUTF8: '1'
         run: python tools/test_lesson_prd.py
       - name: Check approved Git lesson derivations
+        if: matrix.group == 'core'
         env:
           PYTHONUTF8: '1'
         run: |
           python tools/narrate.py --redesigned-git --check
           python tools/test_redesigned_highlights.py
       - name: Check adjacent review evidence and propagation
+        if: matrix.group == 'core'
         env:
           PYTHONUTF8: '1'
         run: |
@@ -70,15 +76,16 @@ jobs:
           python tools/test_supporting_assets.py
           python tools/test_create_dmg.py
       - name: Prepare browser test dependency on Windows
-        if: runner.os == 'Windows'
+        if: ${{ matrix.group == 'core' && (runner.os == 'Windows') }}
         run: npm install --prefix target/ui-tests --no-save playwright-core
       - name: Check isolated explanation sessions on Windows
-        if: runner.os == 'Windows'
+        if: ${{ matrix.group == 'core' && (runner.os == 'Windows') }}
         run: node --test tests/js/explanation-session.test.cjs tests/js/git-terminal-session.test.cjs tests/js/interaction-example-editor.test.cjs
       - name: Build native debug player
         id: build_player
         run: cargo build --locked --bin molip-quest
       - name: Drive the native WebView through the production player
+        if: matrix.group == 'core'
         env:
           MOLIP_PILOT: '1'
           MOLIP_PILOT_SELF_TEST: '1'
@@ -86,27 +93,44 @@ jobs:
           cargo run --locked --bin molip-quest
           cp target/pilot-native-result.json target/pilot-core-result.json
       - name: Drive prepared examples with separate answers
+        if: matrix.group == 'core'
         run: cargo test --locked --test player_example_native -- --ignored --test-threads=1
       - name: Drive all nine approved Java steps in the native player
+        if: matrix.group == 'java'
         run: cargo test --locked --test player_java_native -- --ignored --test-threads=1
       - name: Drive all seven approved Python introduction steps
+        if: matrix.group == 'python'
         run: cargo test --locked --test player_python_native -- --ignored --test-threads=1
       - name: Drive all eight approved Python condition steps
+        if: matrix.group == 'python'
         run: cargo test --locked --test player_python_conditions_native -- --ignored --test-threads=1
       - name: Drive all eight approved table and CSV steps
+        if: matrix.group == 'python'
         run: cargo test --locked --test player_table_native -- --ignored --test-threads=1
       - name: Drive all six approved C reading steps
+        if: matrix.group == 'c'
         run: cargo test --locked --test player_c_native -- --ignored --test-threads=1
       - name: Drive all eight Python API steps
+        if: matrix.group == 'python'
         run: cargo test --locked --test player_python_api_native -- --ignored --test-threads=1
-      - name: Drive Java and C conditions with edited learner answers
-        run: cargo test --locked --test player_conditions_native -- --ignored --test-threads=1
+      - name: Drive Java condition boundaries
+        if: matrix.group == 'java'
+        run: cargo test --locked --test player_conditions_native java_boundaries -- --ignored --test-threads=1
+      - name: Drive C condition boundaries
+        if: matrix.group == 'c'
+        run: cargo test --locked --test player_conditions_native c_boundaries -- --ignored --test-threads=1
+      - name: Drive Java array loops
+        if: matrix.group == 'java'
+        run: cargo test --locked --test player_data_lessons_native java_array -- --ignored --test-threads=1
+      - name: Drive data selection and summaries
+        if: matrix.group == 'python'
+        run: cargo test --locked --test player_data_lessons_native pandas_selection -- --ignored --test-threads=1
       - name: Reopen actual player with saved answer and progress
-        if: ${{ !cancelled() && steps.build_player.outcome == 'success' }}
+        if: ${{ matrix.group == 'core' && (!cancelled() && steps.build_player.outcome == 'success') }}
         run: cargo test --locked --test player_restart_native -- --ignored --test-threads=1
       - name: Prepare isolated Windows installer compiler
         id: install_compiler
-        if: ${{ !cancelled() && runner.os == 'Windows' && steps.build_player.outcome == 'success' }}
+        if: ${{ matrix.group == 'core' && (!cancelled() && runner.os == 'Windows' && steps.build_player.outcome == 'success') }}
         shell: pwsh
         run: |
           if (!(Test-Path 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe')) {
@@ -114,12 +138,12 @@ jobs:
             if ($LASTEXITCODE -ne 0) { throw 'Installer compiler setup failed.' }
           }
       - name: Replace disposable player through the real platform installer handoff
-        if: ${{ !cancelled() && steps.build_player.outcome == 'success' && (runner.os != 'Windows' || steps.install_compiler.outcome == 'success') }}
+        if: ${{ matrix.group == 'core' && (!cancelled() && steps.build_player.outcome == 'success' && (runner.os != 'Windows' || steps.install_compiler.outcome == 'success')) }}
         run: cargo test --locked --test player_install_native -- --ignored --test-threads=1
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: native-pilot-${{ matrix.os }}
+          name: native-pilot-${{ matrix.os }}-${{ matrix.group }}
           path: |
             target/pilot-native-result.json
             target/pilot-core-result.json
@@ -130,6 +154,8 @@ jobs:
             target/pilot-c-result.json
             target/pilot-python-api-result.json
             target/pilot-java-conditions-result.json
+            target/pilot-aice-selection-result.json
+            target/pilot-java-arrays-result.json
             target/pilot-engineer-c-conditions-result.json
             target/pilot-example-result.json
             target/pilot-restart-*.json

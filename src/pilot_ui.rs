@@ -56,6 +56,16 @@ pub fn PilotPlayer() -> Element {
             let tasks=&lesson["tasks"];
             let config=serde_json::json!({"label":"C conditions","version":"u","revision":"engineer-c-conditions-1","tasks":tasks,"modifications":{"1":{"correct":true},"5":{"correct":true},"7":{"correct":true}}});
             format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("aice-selection") {
+            let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/aice-selection.json")).expect("compiled data lesson");
+            let tasks=&lesson["tasks"];
+            let config=serde_json::json!({"label":"Data selection","version":"v","revision":"aice-selection-1","tasks":tasks,"modifications":{"1":{"correct":true},"5":{"correct":true},"7":{"correct":true}}});
+            format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("java-arrays") {
+            let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/java-arrays.json")).expect("compiled data lesson");
+            let tasks=&lesson["tasks"];
+            let config=serde_json::json!({"label":"Java arrays","version":"w","revision":"java-arrays-1","tasks":tasks,"modifications":{"1":{"correct":true},"5":{"correct":true},"7":{"correct":true}}});
+            format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("interaction-example") {include_str!("../tools/player-pilot-example.js").to_owned()} else {format!("window.mq3FirstGitOnly={};window.mq3IncludeGitBranch={};{}",matches!(std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref(),Some("git-first"|"git-lessons")),std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()!=Some("git-first"),include_str!("../tools/player-pilot-native.js"))};
         let mut bridge = document::eval(&script);
         let result = match tokio::time::timeout(std::time::Duration::from_secs(480), bridge.recv::<serde_json::Value>()).await {
@@ -88,7 +98,7 @@ pub fn PilotPlayer() -> Element {
     rsx! {
         aside { class: "pilot-toolbar", aria_label: "개발 검증 도구",
             span { "개발 검증 전용 · 외부 계정 기록 없음" }
-            for version in ['a', 'b', 'c', 'd', 'e', 'f', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u'] {
+            for version in ['a', 'b', 'c', 'd', 'e', 'f', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w'] {
                 button { onclick: move |_| {
                     match pilot_source::set_version(version) {
                         Ok(()) => {
