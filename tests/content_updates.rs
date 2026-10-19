@@ -2,6 +2,32 @@ use molip_quest::content_updates::SnapshotStore;
 use std::path::Path;
 fn fixture(version:&str,file:&str)->String { std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/player-pilot").join(version).join(file)).unwrap() }
 #[test]
+fn duplicate_child_codes_across_lessons_cannot_replace_installed_content() {
+    use sha2::{Digest,Sha256};
+    let root=tempfile::tempdir().unwrap(); let store=SnapshotStore::new(root.path());
+    let repo="mq3-validation/course";
+    let original=store.prepare(repo,&fixture("a","course.json"),|_|Ok(fixture("a","lesson.json"))).unwrap();
+    store.apply(&original).unwrap();
+    // Each lesson is valid on its own. Only the complete candidate reveals the collision.
+    for duplicate_kind in ["chapter","unit","step"] {
+        let mut course:serde_json::Value=serde_json::from_str(&fixture("a","course.json")).unwrap();
+        let mut copy:serde_json::Value=serde_json::from_str(&fixture("a","lesson.json")).unwrap();
+        let new_id="lsn_3f59e7bd-70c1-4e81-9cb0-000000000099";
+        copy["id"]=new_id.into();
+        if duplicate_kind!="chapter" { copy["chapters"][0]["id"]="chp_3f59e7bd-70c1-4e81-9cb0-000000000097".into(); }
+        if duplicate_kind=="step" { copy["chapters"][0]["units"][0]["id"]="unt_3f59e7bd-70c1-4e81-9cb0-000000000096".into(); }
+        let document=copy.to_string();
+        let mut reference=course["lessons"][0].clone(); reference["id"]=new_id.into();
+        reference["sha256"]=format!("{:x}",Sha256::digest(document.as_bytes())).into();
+        let parsed_reference=serde_json::from_value(reference.clone()).unwrap();
+        molip_quest::repository_course::Lesson::parse(&document,&parsed_reference).unwrap();
+        course["lessons"].as_array_mut().unwrap().push(reference);
+        let result=store.prepare(repo,&course.to_string(),|r|Ok(if r.id==new_id {document.clone()} else {fixture("a","lesson.json")}));
+        assert!(result.is_err(),"duplicate {duplicate_kind} accepted across lessons");
+        assert_eq!(store.active(repo).unwrap().unwrap().fingerprint(),original.fingerprint());
+    }
+}
+#[test]
 fn candidate_is_validated_in_full_before_replacing_active_content() {
     let root=tempfile::tempdir().unwrap();
     let store=SnapshotStore::new(root.path());

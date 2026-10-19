@@ -2,7 +2,7 @@
 //! Preparing a candidate never changes the installed snapshot or learning records.
 use crate::repository_course::{CourseManifest,Lesson,LessonRef};
 use serde::{Deserialize,Serialize};
-use std::{collections::BTreeMap,path::{Path,PathBuf},io::Write};
+use std::{collections::{BTreeMap,HashSet},path::{Path,PathBuf},io::Write};
 use sha2::{Digest,Sha256};
 
 #[derive(Clone,Debug,PartialEq)]
@@ -50,9 +50,21 @@ impl SnapshotStore {
         if course.repository!=repository {return Err("코스의 저장소 식별자가 맞지 않아요.".into())}
         let mut lessons=BTreeMap::new();
         let mut documents=BTreeMap::new();
+        let mut resource_codes=HashSet::new();
         for reference in &course.lessons {
             let document=fetch(reference)?;
-            lessons.insert(reference.id.clone(),Lesson::parse(&document,reference)?);
+            let lesson=Lesson::parse(&document,reference)?;
+            // Schema 1 used lesson-local task names; stable schema 2 codes are global.
+            if lesson.schema_version>=2 {
+                for chapter in &lesson.chapters {
+                    let codes=std::iter::once(&chapter.id).chain(chapter.units.iter().flat_map(|unit|
+                        std::iter::once(&unit.id).chain(unit.steps.iter().map(|step|&step.id))));
+                    for code in codes {
+                        if !resource_codes.insert(code.clone()) {return Err("수업 사이에 중복된 리소스 코드가 있어요.".into())}
+                    }
+                }
+            }
+            lessons.insert(reference.id.clone(),lesson);
             documents.insert(reference.id.clone(),document);
         }
         Ok(Snapshot{course,lessons,document:StoredSnapshot{repository:repository.into(),course:raw.into(),lessons:documents}})
