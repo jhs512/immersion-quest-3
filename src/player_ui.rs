@@ -260,24 +260,30 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     let key=molip_quest::drafts::repository_scope(&ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},selected.mode,&task.id);
     let previous_key=format!("repo:{}:{}:{}:{}:{}",session.user.id,selected.course.id,selected.lesson.id,selected.round,task.id);
     let initial=use_hook(||molip_quest::drafts::load(&key).ok().flatten().or_else(||molip_quest::drafts::load(&previous_key).ok().flatten()).map(|d|d.code).unwrap_or_else(||task.starter_code.clone()));
-    let mut code=use_signal(||initial.clone());let mut reset=use_signal(||0u64);
     let has_example=task.has_runnable_example();
-    let mut example_source=use_signal(||task.example_for_answer(&initial).unwrap_or_default());
+    let initial_workspace=crate::explanation_session::TaskWorkspace::new(initial.clone(),task.example_for_answer(&initial).unwrap_or_default(),task.tests.first().map(|case|case.input.clone()).unwrap_or_default());
+    let (workspace,mut explanation_session)=crate::explanation_session::use_workspace(initial_workspace);
+    let mut code=workspace.map_mut(|state|&state.code,|state|&mut state.code);
+    let mut reset=workspace.map_mut(|state|&state.reset,|state|&mut state.reset);
+    let mut example_source=workspace.map_mut(|state|&state.example_source,|state|&mut state.example_source);
+    let mut input=workspace.map_mut(|state|&state.input,|state|&mut state.input);
+    let mut busy=workspace.map_mut(|state|&state.busy,|state|&mut state.busy);
+    let mut message=workspace.map_mut(|state|&state.message,|state|&mut state.message);
+    let mut output=workspace.map_mut(|state|&state.output,|state|&mut state.output);
+    let mut preview=workspace.map_mut(|state|&state.preview,|state|&mut state.preview);
+    let mut teacher_preview=workspace.map_mut(|state|&state.teacher_preview,|state|&mut state.teacher_preview);
+    let mut artifacts=workspace.map_mut(|state|&state.artifacts,|state|&mut state.artifacts);
+    let narrating=workspace.map_mut(|state|&state.narrating,|state|&mut state.narrating);
+    let mut execution_id=workspace.map_mut(|state|&state.execution_id,|state|&mut state.execution_id);
+    let mut execution_state=workspace.map_mut(|state|&state.execution_state,|state|&mut state.execution_state);
+    let mut execution_seconds=workspace.map_mut(|state|&state.execution_seconds,|state|&mut state.execution_seconds);
     let mut git_practice=use_signal(||None::<crate::git_terminal_ui::Practice>);
     let mut git_control=use_signal(||None::<crate::git_terminal_ui::TerminalControl>);
-    let mut input=use_signal(||task.tests.first().map(|t|t.input.clone()).unwrap_or_default());
-    let mut busy=use_signal(||false);let mut message=use_signal(String::new);let mut output=use_signal(String::new);
-    let mut preview=use_signal(String::new);let mut teacher_preview=use_signal(String::new);
-    let mut artifacts=use_signal(Vec::<molip_quest::runner::Artifact>::new);
     let ordered_task=task.clone();
     use_effect(move||{if ordered_task.example_order_marker.is_some(){match ordered_task.example_for_answer(&code()){Ok(source)=>{if *example_source.peek()!=source{example_source.set(source);reset.with_mut(|version|*version+=1);}},Err(error)=>message.set(error)}}});
 
-    let mut narrating=use_signal(||false);
     let mut show_solution=use_signal(||false);
     use_drop(||{document::eval("window.molipAgent?.stop()");});
-    let mut execution_id=use_signal(||0u64);
-    let mut execution_state=use_signal(||"idle");
-    let mut execution_seconds=use_signal(||0u64);
     let mut history_saves=use_signal(||0usize);
     let mut history_message=use_signal(String::new);
     use_effect(|| { document::eval("const s=document.querySelector('select.repository-narration-rate');if(s&&window.molipVoice)s.value=String(molipVoice.rate);"); });
@@ -299,7 +305,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
         spawn(async move {match github_player::background(move||gh.append(&repo,&user,&title,&event)).await {Ok((_,latest))=>onrecord.call(latest),Err(e)=>history_message.set(format!("해설 이력을 저장하지 못했어요. {e}"))}});
     }};
     rsx!{
-        article {class:"lesson repository-task","data-task-id":task.id.clone(),"data-narrating":narrating().to_string(),"data-git-ready":git_practice().is_some().to_string(),
+        article {class:"lesson repository-task","data-task-id":task.id.clone(),"data-narrating":narrating().to_string(),"data-explanation-session":explanation_session.owner(),"data-git-ready":git_practice().is_some().to_string(),
             section {class:"problem-pane",h2 {"{task.title}"}crate::ui::Markdown{text:task.goal.clone()}
                 for material in &task.supporting_materials {
                     SupportingMaterialPanel {key:"{task.id}/{material.id}", material:material.clone()}
@@ -314,16 +320,14 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                 }}
                 if !task.narration.is_empty() {
                     button {disabled:busy()||narrating(),onclick:{let actions=task.narration.clone();let record=record_explanation.clone();let needs_git=task.git_terminal.is_some();let demo_code=task.starter_code.clone();let demo_example=task.example_for_answer(&demo_code).unwrap_or_default();let has_interaction=task.interaction.is_some();let demo_input=task.tests.first().map(|case|case.input.clone()).unwrap_or_default();move |_|{
-                        record();let student_code=code();let student_example=example_source();let student_output=output();let student_input=input();let student_preview=preview();let student_artifacts=artifacts();let student_message=message();let student_state=execution_state();let student_seconds=execution_seconds();
-                        // The tutor starts from the authored baseline, independent of learner edits.
-                        code.set(demo_code.clone());
-                        if !needs_git {example_source.set(demo_example.clone());input.set(demo_input.clone());reset+=1;}
+                        record();
+                        let Some(owner)=explanation_session.begin(demo_code.clone(),demo_example.clone(),demo_input.clone(),needs_git) else{return;};
                         let expected=serde_json::json!({"source":if has_example{Some(demo_example.clone())}else if !needs_git&&!has_interaction{Some(demo_code.clone())}else{None},"answer":if has_interaction{Some(demo_code.clone())}else{None}});
-                        teacher_preview.set(String::new());narrating.set(true);let actions=actions.clone();
+                        let actions=actions.clone();
                         spawn(async move {
-                            let script=format!("(async()=>{{try{{const root=document.querySelector('.repository-task'),expected={expected};const until=Date.now()+45000;const ready=()=>root.dataset.narrating==='true'&&(!{needs_git}||(window.molipGitTutor?.owner&&window.molipGitTutor.owner===root.querySelector('#git-demo-terminal')?.dataset.terminalSession))&&(expected.source===null||window.molipCodeEditors?.getValue()===expected.source)&&(expected.answer===null||root.querySelector('.answer-state-bridge')?.value===expected.answer);while(root?.isConnected&&!ready()){{if(Date.now()>until)throw new Error('해설 시연을 준비하지 못했어요.');await new Promise(requestAnimationFrame);}}if(root?.isConnected)await window.molipAgent?.runExplanation({});}}finally{{dioxus.send(true);}}}})();",serde_json::to_string(&actions).unwrap_or_else(|_|"[]".into()));
+                            let script=format!("(async()=>{{try{{const root=document.querySelector('.repository-task'),expected={expected},owner={};const until=Date.now()+45000;const ready=()=>root.dataset.explanationSession===owner&&root.dataset.narrating==='true'&&(!{needs_git}||(window.molipGitTutor?.owner&&window.molipGitTutor.owner===root.querySelector('#git-demo-terminal')?.dataset.terminalSession))&&(expected.source===null||window.molipCodeEditors?.getValue()===expected.source)&&(expected.answer===null||root.querySelector('.answer-state-bridge')?.value===expected.answer);while(root?.isConnected&&!ready()){{if(Date.now()>until)throw new Error('해설 시연을 준비하지 못했어요.');await new Promise(requestAnimationFrame);}}if(root?.isConnected)await window.molipAgent?.runExplanation({},{{owner,root}});}}finally{{dioxus.send(true);}}}})();",serde_json::to_string(&owner).unwrap(),serde_json::to_string(&actions).unwrap_or_else(|_|"[]".into()));
                             let mut bridge=document::eval(&script);let _=bridge.recv::<bool>().await;
-                            execution_id+=1;execution_state.set(student_state);execution_seconds.set(student_seconds);busy.set(false);code.set(student_code);example_source.set(student_example);input.set(student_input);output.set(student_output);preview.set(student_preview);artifacts.set(student_artifacts);message.set(student_message);if !needs_git {reset+=1;}teacher_preview.set(String::new());narrating.set(false);
+                            explanation_session.finish(&owner);
                         });
                     }},"해설 재생 · 정답 실행"}
                     button {"data-explanation-stop":"true",onclick:move |_|{document::eval("window.molipAgent?.stop()");},"해설 멈춤"}

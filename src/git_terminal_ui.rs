@@ -34,7 +34,7 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
     let cleanup=owned.clone();
     use_drop(move||{
         cleanup.lock().unwrap_or_else(|e|e.into_inner()).take();
-        document::eval(&format!("window.{bridge_name}?.dispose('{cleanup_owner}');if(window.molipGitTutor?.owner==='{cleanup_owner}'){{window.molipGitTutor.dispose();delete window.molipGitTutor;}}"));
+        document::eval(&format!("window.{bridge_name}?.dispose('{cleanup_owner}');window.molipAgent?.retireGitTutor('{cleanup_owner}');"));
     });
     use_future(move||{let exercise=exercise.clone();let scope=scope.clone();let owned=owned.clone();let owner=owner.clone();async move {
         let opened=tokio::task::spawn_blocking(move||{

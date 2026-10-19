@@ -468,8 +468,9 @@
   }
   const handlers = {
     async git_command(a, active) {
-      if (!window.molipGitTutor || !Array.isArray(a.args)) throw new Error('Git 해설 터미널이 없어요.');
-      const completed=await Promise.race([window.molipGitTutor.command(a.args),untilCancelled()]);
+      const tutor=explanationSession ? explanationSession.gitTutor() : window.molipGitTutor;
+      if (!tutor || !Array.isArray(a.args)) throw new Error('Git 해설 터미널이 없어요.');
+      const completed=await Promise.race([tutor.command(a.args),untilCancelled()]);
       if (!active()) return '해설을 멈췄어요.';
       if (!completed) throw new Error('Git 명령의 완료를 확인하지 못했어요.');
       return '실제 Git 명령이 끝났어요.';
@@ -636,35 +637,60 @@
     answer_quiz: () => 'quiz', next: () => 'nav', prev: () => 'nav', goto: () => 'missions', next_slide: () => 'slides', finish_slides: () => 'slides',
   };
   let narrationRun = 0;
-  let explanationSession = null;
-  function restoreExplanation() {
-    const session = explanationSession;
-    explanationSession = null;
-    if (session) for (const name of ['click','keydown','beforeinput','paste','drop']) session.root?.removeEventListener(name, session.blockInput, true);
-    if (!session || !session.root?.isConnected) return;
-    if (session.code !== null) globalThis.molipCodeEditors?.setValue(session.code);
-    for (const [field, value, checked] of session.fields) {
-      if (!field.isConnected) continue;
-      field.value = value;
-      if (checked !== undefined) field.checked = checked;
-      if (field.matches('.answer-state-bridge, .run-input textarea')) field.dispatchEvent(new Event('input', {bubbles:true}));
+  // A session owns both its restoration snapshot and its DOM/Git targets.
+  class ExplanationSession {
+    constructor(root, owner) {
+      this.root = root;
+      this.owner = owner ?? root.dataset.explanationSession ?? null;
+      this.code = globalThis.molipCodeEditors?.getValue() ?? null;
+      this.fields = [...root.querySelectorAll('.answer-interaction input, .answer-state-bridge, .run-input textarea')].map(field => [field, field.value, field.checked]);
+      this.tutor = globalThis.molipGitTutor;
+      this.terminal = root.querySelector('#git-demo-terminal');
+      this.blockInput = event => {
+        if (!event.isTrusted || event.target.closest?.('[data-explanation-stop], .narration-speed')) return;
+        if (event.type === 'keydown' && (['Tab','Escape','Home','End','PageUp','PageDown'].includes(event.key) || event.key.startsWith('Arrow'))) return;
+        if (event.type === 'keydown' && (event.ctrlKey || event.metaKey) && ['a','c'].includes(event.key.toLowerCase())) return;
+        event.preventDefault();event.stopImmediatePropagation();
+      };
+      for (const name of ['click','keydown','beforeinput','paste','drop']) root.addEventListener(name, this.blockInput, true);
+    }
+    current() { return this.root.isConnected && (this.owner === null || this.root.dataset.explanationSession === this.owner); }
+    gitTutor() {
+      if (!this.current() || this.tutor !== globalThis.molipGitTutor) return null;
+      const terminalOwner = this.terminal?.dataset.terminalSession;
+      return !terminalOwner || this.tutor?.owner === terminalOwner ? this.tutor : null;
+    }
+    restore() {
+      for (const name of ['click','keydown','beforeinput','paste','drop']) this.root.removeEventListener(name, this.blockInput, true);
+      if (!this.current()) return;
+      if (this.code !== null) globalThis.molipCodeEditors?.setValue(this.code);
+      for (const [field, value, checked] of this.fields) {
+        if (!field.isConnected) continue;
+        field.value = value;
+        if (checked !== undefined) field.checked = checked;
+        if (field.matches('.answer-state-bridge, .run-input textarea')) field.dispatchEvent(new Event('input', {bubbles:true}));
+      }
+    }
+    static retireGitTutor(owner) {
+      const tutor=globalThis.molipGitTutor;
+      if (tutor?.owner !== owner) return false;
+      tutor.dispose();
+      delete globalThis.molipGitTutor;
+      return true;
     }
   }
-  async function runExplanation(actions) {
+  let explanationSession = null;
+  function restoreExplanation() {
+    const session=explanationSession;
+    explanationSession=null;
+    session?.restore();
+  }
+  async function runExplanation(actions, options = {}) {
     stop();
-    const session = {
-      root: document.querySelector('.repository-task') || document.body,
-      code: globalThis.molipCodeEditors?.getValue() ?? null,
-      fields: [...document.querySelectorAll('.answer-interaction input, .answer-state-bridge, .run-input textarea')].map(field => [field, field.value, field.checked]),
-    };
-    session.blockInput = event => {
-      if (!event.isTrusted || event.target.closest?.('[data-explanation-stop], .narration-speed')) return;
-      if (event.type === 'keydown' && (['Tab','Escape','Home','End','PageUp','PageDown'].includes(event.key) || event.key.startsWith('Arrow'))) return;
-      if (event.type === 'keydown' && (event.ctrlKey || event.metaKey) && ['a','c'].includes(event.key.toLowerCase())) return;
-      event.preventDefault();event.stopImmediatePropagation();
-    };
-    for (const name of ['click','keydown','beforeinput','paste','drop']) session.root.addEventListener(name, session.blockInput, true);
-    explanationSession = session;
+    const root=options.root || document.querySelector('.repository-task') || document.body;
+    if (!root.isConnected || (options.owner != null && root.dataset.explanationSession !== options.owner)) return '해설이 이미 끝났어요.';
+    const session=new ExplanationSession(root,options.owner);
+    explanationSession=session;
     // A demonstration can execute examples, but never submit, advance or grant completion.
     const allowed = new Set(['git_command', 'say', 'set_code', 'patch_code', 'type_code', 'set_input', 'run', 'choose_answer', 'order_answer', 'fill_answer']);
     try { return await run(Array.isArray(actions) ? actions.filter(action => allowed.has(action?.action)) : [], true); }
@@ -674,7 +700,8 @@
     if (!explanation && explanationSession) stop();
     if (!Array.isArray(actions)) return '동작 목록이 배열이 아닙니다.';
     const runId = ++narrationRun;
-    const active = () => !cancelled && runId === narrationRun;
+    const session = explanation ? explanationSession : null;
+    const active = () => !cancelled && runId === narrationRun && (!session || session.current());
     replyRun++; stopSpeech(); releaseCancelWaiters(); clearSpot();
     cancelled = false; paused = false; running = true;
     const lines = [];
@@ -762,5 +789,5 @@
   function stop() { cancelled = true; paused = false; replyRun++; cancelAnimationFrame(glideFrame); stopSpeech(); releaseCancelWaiters(); clearSpot(); restoreExplanation(); }
   function setVoice(on) { voice = !!on; if (!voice) stopSpeech(); return voice; }
   function setVoiceName(name) { return globalThis.molipVoice ? globalThis.molipVoice.setName(name) : String(name || 'system'); }
-  globalThis.molipAgent = { run, runExplanation, stop, pause, resume, speakReply, stopReply, get paused() { return paused; }, get running() { return running; }, setVoice, setVoiceName, resolveTarget, glideTo, get voice() { return voice; }, get voiceName() { return globalThis.molipVoice ? globalThis.molipVoice.name : 'system'; }, get lastSpeech() { return lastSpeech; }, get playbackRate() { return currentAudio ? currentAudio.playbackRate : null; }, actions: Object.keys(handlers) };
+  globalThis.molipAgent = { retireGitTutor: ExplanationSession.retireGitTutor, run, runExplanation, stop, pause, resume, speakReply, stopReply, get paused() { return paused; }, get running() { return running; }, setVoice, setVoiceName, resolveTarget, glideTo, get voice() { return voice; }, get voiceName() { return globalThis.molipVoice ? globalThis.molipVoice.name : 'system'; }, get lastSpeech() { return lastSpeech; }, get playbackRate() { return currentAudio ? currentAudio.playbackRate : null; }, actions: Object.keys(handlers) };
 })();

@@ -4,6 +4,7 @@ mod instructor_mode;
 mod practice;
 mod ui;
 mod player_ui;
+mod explanation_session;
 mod lesson_outline;
 mod interaction_ui;
 mod pilot_ui;
