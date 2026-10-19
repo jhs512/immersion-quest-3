@@ -44,7 +44,7 @@ jobs:
           key: pilot-${{ matrix.os }}
           cache-on-failure: true
       - name: Check hierarchy, legacy compatibility and isolated transport
-        run: cargo test --locked --test nested_repository_course --test reviewed_pilot --test supporting_materials --test repository_review_modes --test pilot_transport --test task_interactions --test interaction_examples --test interaction_fields --test example_predictions --test java_prepared_values --test redesigned_java_values --test redesigned_aice_python --test redesigned_aice_conditions --test redesigned_aice_table --test redesigned_engineer_c --test table_output --test rich_output --test stable_progress --test issue_progress --test update_schedule --test explanation_progress --test update_handoff --test content_updates --test git_practice --test git_practice_resume --test git_lesson_goals --test git_merge_goals --test redesigned_git_first --test redesigned_git_branch --test change_history --test practice_exit --test pilot_restart -- --test-threads=1
+        run: cargo test --locked --test nested_repository_course --test reviewed_pilot --test supporting_materials --test repository_review_modes --test pilot_transport --test task_interactions --test interaction_examples --test interaction_fields --test example_predictions --test java_prepared_values --test redesigned_java_values --test redesigned_aice_python --test redesigned_aice_conditions --test redesigned_aice_table --test redesigned_engineer_c --test redesigned_aice_api --test redesigned_java_conditions --test redesigned_engineer_c_conditions --test table_output --test rich_output --test stable_progress --test issue_progress --test update_schedule --test explanation_progress --test update_handoff --test content_updates --test git_practice --test git_practice_resume --test git_lesson_goals --test git_merge_goals --test redesigned_git_first --test redesigned_git_branch --test change_history --test practice_exit --test pilot_restart -- --test-threads=1
       - name: Check table grading without pandas representation matching
         env:
           PYTHONUTF8: '1'
@@ -56,7 +56,9 @@ jobs:
       - name: Check approved Git lesson derivations
         env:
           PYTHONUTF8: '1'
-        run: python tools/narrate.py --redesigned-git --check
+        run: |
+          python tools/narrate.py --redesigned-git --check
+          python tools/test_redesigned_highlights.py
       - name: Check adjacent review evidence and propagation
         env:
           PYTHONUTF8: '1'
@@ -95,6 +97,10 @@ jobs:
         run: cargo test --locked --test player_table_native -- --ignored --test-threads=1
       - name: Drive all six approved C reading steps
         run: cargo test --locked --test player_c_native -- --ignored --test-threads=1
+      - name: Drive all eight Python API steps
+        run: cargo test --locked --test player_python_api_native -- --ignored --test-threads=1
+      - name: Drive Java and C conditions with edited learner answers
+        run: cargo test --locked --test player_conditions_native -- --ignored --test-threads=1
       - name: Reopen actual player with saved answer and progress
         if: ${{ !cancelled() && steps.build_player.outcome == 'success' }}
         run: cargo test --locked --test player_restart_native -- --ignored --test-threads=1
@@ -122,6 +128,9 @@ jobs:
             target/pilot-python-conditions-result.json
             target/pilot-table-result.json
             target/pilot-c-result.json
+            target/pilot-python-api-result.json
+            target/pilot-java-conditions-result.json
+            target/pilot-engineer-c-conditions-result.json
             target/pilot-example-result.json
             target/pilot-restart-*.json
             target/pilot-install-result.json

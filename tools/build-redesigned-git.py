@@ -3,6 +3,7 @@ import argparse
 import copy
 import hashlib
 import json
+import re
 from pathlib import Path
 
 from lesson_prd import content_hash, validate
@@ -10,7 +11,7 @@ from redesigned_lessons.python_prepared_checks import checker as python_prepared
 from redesigned_lessons.pandas_head_checks import checker as pandas_head_checker
 
 ROOT = Path(__file__).resolve().parents[1]
-LESSONS = {'git-first': ('git_first', 'git-first-1', 'k'), 'git-branch': ('git_branch', 'git-branch-1', 'l'), 'java-values': ('java_values', 'java-values-1', 'n'), 'aice-python-start': ('aice_python_start', 'aice-python-start-1', 'o'), 'aice-python-conditions': ('aice_python_conditions', 'aice-python-conditions-1', 'p'), 'aice-table-csv': ('aice_table_csv', 'aice-table-csv-1', 'q'), 'engineer-c-start': ('engineer_c_start', 'engineer-c-start-1', 'r')}
+LESSONS = {'git-first': ('git_first', 'git-first-1', 'k'), 'git-branch': ('git_branch', 'git-branch-1', 'l'), 'java-values': ('java_values', 'java-values-1', 'n'), 'aice-python-start': ('aice_python_start', 'aice-python-start-1', 'o'), 'aice-python-conditions': ('aice_python_conditions', 'aice-python-conditions-1', 'p'), 'aice-table-csv': ('aice_table_csv', 'aice-table-csv-1', 'q'), 'engineer-c-start': ('engineer_c_start', 'engineer-c-start-1', 'r'), 'aice-python-api': ('aice_python_api', 'aice-python-api-1', 's'), 'java-conditions': ('java_conditions', 'java-conditions-1', 't'), 'engineer-c-conditions': ('engineer_c_conditions', 'engineer-c-conditions-1', 'u')}
 
 
 def digest(value):
@@ -25,6 +26,33 @@ def write_changed(path, value):
         path.write_text(text, encoding='utf-8', newline='\n')
         return True
     return False
+
+
+def validate_highlights(task):
+    source = task.get('example_code') or task.get('starter_code', '')
+    for action in task['narration']:
+        target = action.get('target', '')
+        lines = action.get('lines')
+        if target.startswith(('lines:', 'editor:')):
+            match = re.fullmatch(r'(?:lines|editor):(\d+)(?::(\d+))?', target)
+            if not match:
+                raise ValueError(f'코드 강조 형식을 확인하세요: {target}')
+            lines = [int(match[1]), int(match[2] or match[1])]
+        if lines is not None:
+            if (not isinstance(lines, list) or len(lines) != 2
+                    or any(type(line) is not int for line in lines)
+                    or not 1 <= lines[0] <= lines[1] <= len(source.splitlines())):
+                raise ValueError(f'현재 코드에 없는 줄을 강조해요: {lines}')
+        if action['action'] == 'patch_code':
+            before = action['before']
+            if source.count(before) != 1:
+                raise ValueError('해설이 수정할 코드 영역은 정확히 하나여야 해요.')
+            source = source.replace(before, action['after'], 1)
+        elif action['action'] == 'set_code':
+            source = action['code']
+        elif action['action'] == 'order_answer' and task.get('example_order_marker'):
+            options = {option['id']: option['text'] for option in task['interaction']['options']}
+            source = task['example_code'].replace(task['example_order_marker'], '\n'.join(options[key] for key in action['ids']))
 
 
 def build(name, check=False):
@@ -48,6 +76,7 @@ def build(name, check=False):
         raise ValueError('제작한 스텝이 승인된 PRD 구성과 달라요.')
     stale = []
     for step, task in zip(steps, tasks):
+        validate_highlights(task)
         actions = task['narration']
         if not actions or not any('조심하세요' in action.get('text', '') for action in actions):
             raise ValueError(f"{step['id']}: 주의할 지점이 없는 해설이에요.")

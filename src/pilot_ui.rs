@@ -41,6 +41,21 @@ pub fn PilotPlayer() -> Element {
             let tasks=&lesson["tasks"];
             let config=serde_json::json!({"label":"C integer reading","version":"r","revision":"engineer-c-start-1","tasks":tasks,"modifications":{"1":{"correct":true},"4":{"correct":true}}});
             format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("aice-python-api") {
+            let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/aice-python-api.json")).expect("compiled Python API lesson");
+            let tasks=&lesson["tasks"];
+            let config=serde_json::json!({"label":"Python API","version":"s","revision":"aice-python-api-1","tasks":tasks,"modifications":{"2":{"correct":true},"3":{"source":tasks[3]["starter_code"].as_str().unwrap().replace("minute\"","region\"")},"7":{"correct":true}}});
+            format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("java-conditions") {
+            let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/java-conditions.json")).expect("compiled conditions lesson");
+            let tasks=&lesson["tasks"];
+            let config=serde_json::json!({"label":"Java conditions","version":"t","revision":"java-conditions-1","tasks":tasks,"modifications":{"1":{"correct":true},"5":{"correct":true},"7":{"correct":true}}});
+            format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("engineer-c-conditions") {
+            let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/engineer-c-conditions.json")).expect("compiled conditions lesson");
+            let tasks=&lesson["tasks"];
+            let config=serde_json::json!({"label":"C conditions","version":"u","revision":"engineer-c-conditions-1","tasks":tasks,"modifications":{"1":{"correct":true},"5":{"correct":true},"7":{"correct":true}}});
+            format!("window.mq3LessonPilot={config};{}",include_str!("../tools/player-pilot-code-lesson.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("interaction-example") {include_str!("../tools/player-pilot-example.js").to_owned()} else {format!("window.mq3FirstGitOnly={};window.mq3IncludeGitBranch={};{}",matches!(std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref(),Some("git-first"|"git-lessons")),std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()!=Some("git-first"),include_str!("../tools/player-pilot-native.js"))};
         let mut bridge = document::eval(&script);
         let result = match tokio::time::timeout(std::time::Duration::from_secs(480), bridge.recv::<serde_json::Value>()).await {
@@ -73,7 +88,7 @@ pub fn PilotPlayer() -> Element {
     rsx! {
         aside { class: "pilot-toolbar", aria_label: "개발 검증 도구",
             span { "개발 검증 전용 · 외부 계정 기록 없음" }
-            for version in ['a', 'b', 'c', 'd', 'e', 'f', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r'] {
+            for version in ['a', 'b', 'c', 'd', 'e', 'f', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u'] {
                 button { onclick: move |_| {
                     match pilot_source::set_version(version) {
                         Ok(()) => {

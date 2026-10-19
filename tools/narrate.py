@@ -397,7 +397,13 @@ def main():
 
 
 if __name__ == "__main__":
-    if sys.argv[1:2] == ["--redesigned-engineer-c"]:
+    if sys.argv[1:2] == ["--redesigned-engineer-c-conditions"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "engineer-c-conditions", *sys.argv[2:]], check=True)
+    elif sys.argv[1:2] == ["--redesigned-java-conditions"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "java-conditions", *sys.argv[2:]], check=True)
+    elif sys.argv[1:2] == ["--redesigned-aice-api"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "aice-python-api", *sys.argv[2:]], check=True)
+    elif sys.argv[1:2] == ["--redesigned-engineer-c"]:
         subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "engineer-c-start", *sys.argv[2:]], check=True)
     elif sys.argv[1:2] == ["--redesigned-aice-table"]:
         subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "aice-table-csv", *sys.argv[2:]], check=True)

@@ -22,9 +22,18 @@
   await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('pilot-a'),'initial fixture installed');
   await click('검증 높이 720');await click(`버전 ${pilot.version}`);await wait(()=>document.querySelector('.lesson-card')?.textContent.includes(pilot.revision),'approved code lesson');
   await click('풀모드 시작');molipAgent.setVoice(false);
-  let teacherResult='';const originalExplanation=molipAgent.runExplanation.bind(molipAgent);
-  molipAgent.runExplanation=async actions=>{teacherResult='';const result=await originalExplanation(actions);teacherResult=result;return result;};
-  const verifyTeacher=task=>{if(teacherResult.includes('오류 -')||teacherResult.split('run:').length-1!==task.narration.filter(action=>action.action==='run').length)throw Error(`Teacher did not finish all authored runs: ${teacherResult}`);};
+  let teacherResult='',requestedRanges=[];const originalExplanation=molipAgent.runExplanation.bind(molipAgent);
+  const originalHighlight=molipCodeEditors.highlightLines.bind(molipCodeEditors);
+  molipCodeEditors.highlightLines=(from,to,...rest)=>{if(Number.isInteger(from))requestedRanges.push([from,to??from]);return originalHighlight(from,to,...rest);};
+  molipAgent.runExplanation=async actions=>{teacherResult='';requestedRanges=[];const result=await originalExplanation(actions);teacherResult=result;return result;};
+  const verifyTeacher=task=>{
+   if(teacherResult.includes('오류 -')||teacherResult.split('run:').length-1!==task.narration.filter(action=>action.action==='run').length)throw Error(`Teacher did not finish all authored runs: ${teacherResult}`);
+   for(const action of task.narration){
+    const range=String(action.target??'').match(/^(?:lines|editor):(\d+)(?::(\d+))?$/);
+    const wanted=range?[Number(range[1]),Number(range[2]??range[1])]:action.lines;
+    if(wanted&&!requestedRanges.some(actual=>actual[0]===wanted[0]&&actual[1]===wanted[1]))throw Error(`Teacher line highlight was not applied: ${wanted}`);
+   }
+  };
   for(const [index,task] of pilot.tasks.entries()){
    await wait(()=>document.querySelector('.repository-task')?.dataset.taskId===task.id&&window.molipCodeEditors?.getValue()===prepared(task,task.starter_code)&&(!task.interaction||bridge()?.value===task.starter_code),`step ${index+1}`);
    const files=Object.entries(task.files??{});
