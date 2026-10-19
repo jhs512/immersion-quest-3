@@ -232,3 +232,15 @@ scikit-learn1.3.2 `StandardScaler`는훈련의각특성평균과분산을저장�
 - NaN이있는변환결과는NaN을유지하므로“스케일러적용했으니모든모델에바로입력가능”이라고하지않는다. 결측대체를결합할때도대체통계는훈련범위에서학습한다.
 
 이절의예상은다음제작단계에서격리환경으로확인해야한다. 단순출력동일성뿐아니라train/test행겹침,기준통계변경,목표열/미래열포함,인코더열순서,unknown정책,시간경계의미를검증대상으로남긴다. 승인이나제작범위를이문서에서새로제한하지않는다.
+
+
+## 9. 전처리·회귀 입문 제작에서 추가 확인한 경계
+
+확인2026-10-19. 아래 API 의미는 공식 sklearn1.3.2 문서를 직접 확인했고, 자체 사례는 별도 Python3.11/sklearn1.3.2 학습 환경에서 실제 실행했다. 공식 응시 커널이나 시험 문제 실행이라는 뜻은 아니다.
+
+- [MinMaxScaler](https://scikit-learn.org/1.3/modules/generated/sklearn.preprocessing.MinMaxScaler.html)는 기본 clip=False다. 훈련0/2에서 평가10은5, clip=True면1로 변환됐다. 지정 범위는 훈련 기준이며 미래 관측을 항상 범위 안에 넣는다고 말하지 않는다.
+- [RobustScaler](https://scikit-learn.org/1.3/modules/generated/sklearn.preprocessing.RobustScaler.html)는 중앙값과 기본25~75분위수 범위를 저장한다. 훈련0/1/2/3/100의 center2/scale2와 새 값4/100의1/49를 실제 확인했다. 이 작은 표의 마지막100을1000으로 바꿔도 해당 두 통계는 같았지만, 모든 자료의 변경에 불변이라는 일반화는 하지 않는다. 극단값 삭제·클리핑과 다르다.
+- [LinearRegression](https://scikit-learn.org/1.3/modules/generated/sklearn.linear_model.LinearRegression.html)은 최소제곱 계수·절편을 학습하고 행×특성 모양의 새 입력을 예측한다. 거리1/2/3,시간10/20/30을 학습한 새 거리4는40이었다. 미학습 호출과1차원 입력은 각각NotFittedError와ValueError로 확인했다.
+- [DummyRegressor](https://scikit-learn.org/1.3/modules/generated/sklearn.dummy.DummyRegressor.html)의 mean 기준은 훈련 정답 평균을 예측한다. 같은 세 정답의 평균20을 두 새 입력에 똑같이 예측했다. 이는 실제 배송 성능 보장이나 공식 시험의 특정 정답이 아니다.
+
+실행 증거: target/player-pilot-audit/aice-scale/public-final-cases.json, aice-regression/public-cases.json. 증거는 정확한 수업 해시·독립 예상 출력·오답 거절을 포함하며 native_ui_verified/voice_listened는 별도로False다. 앱·세 OS 검증은 해당 head의 CI와 native 결과로 따로 확인해야 한다.

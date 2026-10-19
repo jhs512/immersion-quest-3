@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-15, macos-15-intel]
-        group: [core, java, python, data, c]
+        group: [core, java, python, data, c, model]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     steps:
@@ -173,6 +173,12 @@ jobs:
       - name: Drive held-out information boundaries
         if: matrix.group == 'data'
         run: cargo test --locked --test player_data_lessons_native aice_leakage -- --ignored --test-threads=1
+      - name: Drive trained preprocessing references
+        if: matrix.group == 'model'
+        run: cargo test --locked --test player_data_lessons_native aice_scale -- --ignored --test-threads=1
+      - name: Drive baseline and regression predictions
+        if: matrix.group == 'model'
+        run: cargo test --locked --test player_data_lessons_native aice_regression -- --ignored --test-threads=1
       - name: Reopen actual player with saved answer and progress
         if: ${{ matrix.group == 'core' && (!cancelled() && steps.build_player.outcome == 'success') }}
         run: cargo test --locked --test player_restart_native -- --ignored --test-threads=1
@@ -207,6 +213,8 @@ jobs:
             target/pilot-engineer-c-arrays-result.json
             target/pilot-engineer-c-double-pointers-result.json
             target/pilot-engineer-c-structures-result.json
+            target/pilot-aice-scale-result.json
+            target/pilot-aice-regression-result.json
             target/pilot-java-static-result.json
             target/pilot-aice-features-result.json
             target/pilot-aice-split-result.json

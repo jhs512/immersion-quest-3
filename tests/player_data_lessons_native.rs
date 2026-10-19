@@ -81,3 +81,11 @@ fn aice_split_restore_student_state() {verify("aice-split",10)}
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
 fn aice_leakage_restore_student_state() {verify("aice-leakage",8)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn aice_scale_restore_student_state() {verify("aice-scale",9)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn aice_regression_restore_student_state() {verify("aice-regression",8)}

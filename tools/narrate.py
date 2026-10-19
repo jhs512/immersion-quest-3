@@ -397,6 +397,12 @@ def main():
 
 
 if __name__ == "__main__":
+    if sys.argv[1:2] == ["--redesigned-aice-regression"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "aice-regression", *sys.argv[2:]], check=True)
+        sys.exit(0)
+    if sys.argv[1:2] == ["--redesigned-aice-scale"]:
+        subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "aice-scale", *sys.argv[2:]], check=True)
+        sys.exit(0)
     if sys.argv[1:2] == ["--redesigned-aice-leakage"]:
         subprocess.run([sys.executable, str(ROOT / "tools/build-redesigned-git.py"), "--lesson", "aice-leakage", *sys.argv[2:]], check=True)
         sys.exit(0)
