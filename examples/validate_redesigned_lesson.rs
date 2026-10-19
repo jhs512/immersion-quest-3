@@ -9,11 +9,26 @@ use std::{path::PathBuf, time::Instant};
 struct Validation {
     course: PathBuf,
     lesson: PathBuf,
-    expected_outputs: Vec<Vec<String>>,
+    expected_outputs: Vec<Vec<ExpectedOutput>>,
     #[serde(default)]
     expected_images: Option<Vec<Vec<usize>>>,
     #[serde(default)]
     reject: Vec<RejectedAnswer>,
+}
+
+#[derive(Deserialize,Debug)]
+#[serde(untagged)]
+enum ExpectedOutput {
+    Literal(String),
+    Contains { contains: Vec<String> },
+}
+impl ExpectedOutput {
+    fn matches(&self,actual:&str)->bool {
+        match self {
+            Self::Literal(expected)=>actual==expected,
+            Self::Contains{contains}=>!contains.is_empty()&&contains.iter().all(|part|!part.is_empty()&&actual.contains(part)),
+        }
+    }
 }
 
 #[derive(Deserialize)]
@@ -54,7 +69,7 @@ async fn validate(spec: Validation) -> Result<Value, String> {
                 "run"=>{
                     let result=if task.has_runnable_example(){lesson_runner::run_example(task,&source,"").await}else{lesson_runner::run(task,&source,"").await}?;
                     if let Some(error)=action["expect_error"].as_str() {
-                        if result.success || !result.stderr.contains(error) {return Err(format!("{label}: expected {error}, got {}",result.stderr))}
+                        if result.success || !(result.stderr.contains(error)||result.stdout.contains(error)) {return Err(format!("{label}: expected {error}, got {}{}",result.stderr,result.stdout))}
                     } else if !result.success {return Err(format!("{label}: teacher failed: {}",result.stderr))}
                     outputs.push(result.stdout.trim_end().to_owned());
                     images.push(result.artifacts.iter().filter(|artifact|matches!(artifact,molip_quest::runner::Artifact::Image{..})).count());
@@ -63,7 +78,8 @@ async fn validate(spec: Validation) -> Result<Value, String> {
                 action=>return Err(format!("{label}: this validator cannot replay {action}")),
             }
         }
-        if outputs!=spec.expected_outputs[index] {return Err(format!("{label}: expected {:?}, got {outputs:?}",spec.expected_outputs[index]))}
+        let expected=&spec.expected_outputs[index];
+        if outputs.len()!=expected.len()||!expected.iter().zip(&outputs).all(|(expected,actual)|expected.matches(actual)) {return Err(format!("{label}: expected {:?}, got {outputs:?}",expected))}
         if let Some(expected)=&spec.expected_images {
             if images!=expected[index] {return Err(format!("{label}: expected image counts {:?}, got {images:?}",expected[index]))}
         }
@@ -79,6 +95,20 @@ async fn validate(spec: Validation) -> Result<Value, String> {
         if lesson_runner::check(task,&source).await?.passed {return Err(format!("Invalid answer accepted: {}",rejected.reason))}
     }
     Ok(json!({"passed":true,"lesson":lesson.id,"revision":lesson.revision,"lesson_sha256":source_hash,"steps":steps,"rejected_answers":spec.reject.len(),"seconds":started.elapsed().as_secs_f64(),"native_ui_verified":false,"voice_listened":false}))
+}
+
+#[cfg(test)]
+mod output_assertion_tests {
+    use super::ExpectedOutput;
+    #[test]
+    fn junit_counts_are_required_but_elapsed_time_is_not_fixed() {
+        let expected=ExpectedOutput::Contains{contains:vec!["1 tests successful".into(),"0 tests failed".into()]};
+        assert!(expected.matches("after 172 ms [1 tests successful] [0 tests failed]"));
+        assert!(!expected.matches("after 172 ms [0 tests successful] [1 tests failed]"));
+        assert!(!ExpectedOutput::Contains{contains:vec![]}.matches("anything"));
+        assert!(!ExpectedOutput::Contains{contains:vec![String::new()]}.matches("anything"));
+        assert!(!ExpectedOutput::Literal("exact".into()).matches("exact plus"));
+    }
 }
 
 #[tokio::main]

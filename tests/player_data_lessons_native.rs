@@ -157,3 +157,7 @@ fn java_files_restore_student_state() {verify("java-files",10)}
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
 fn java_crud_restore_student_state() {verify("java-crud",10)}
+
+#[test]
+#[ignore="Requires an interactive desktop and the built player"]
+fn java_testing_restore_student_state() {verify("java-testing",8)}

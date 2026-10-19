@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-15, macos-15-intel]
-        group: [core, java, java-object, python, data, c, model, classify, neural]
+        group: [core, java, java-object, java-app, python, data, c, model, classify, neural]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     steps:
@@ -184,11 +184,14 @@ jobs:
         if: matrix.group == 'java-object'
         run: cargo test --locked --test player_data_lessons_native java_streams -- --ignored --test-threads=1
       - name: Drive file persistence and error paths
-        if: matrix.group == 'java-object'
+        if: matrix.group == 'java-app'
         run: cargo test --locked --test player_data_lessons_native java_files -- --ignored --test-threads=1
       - name: Drive CRUD identity and storage roles
-        if: matrix.group == 'java-object'
+        if: matrix.group == 'java-app'
         run: cargo test --locked --test player_data_lessons_native java_crud -- --ignored --test-threads=1
+      - name: Drive independent expectations and real JUnit mutation tests
+        if: matrix.group == 'java-app'
+        run: cargo test --locked --test player_data_lessons_native java_testing -- --ignored --test-threads=1
       - name: Drive input feature meaning and transformations
         if: matrix.group == 'data'
         run: cargo test --locked --test player_data_lessons_native aice_features -- --ignored --test-threads=1
@@ -285,6 +288,7 @@ jobs:
             target/pilot-java-streams-result.json
             target/pilot-java-files-result.json
             target/pilot-java-crud-result.json
+            target/pilot-java-testing-result.json
             target/pilot-aice-features-result.json
             target/pilot-aice-split-result.json
             target/pilot-aice-leakage-result.json
