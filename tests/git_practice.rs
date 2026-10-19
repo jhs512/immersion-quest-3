@@ -102,20 +102,24 @@ fn closing_practice_stops_its_background_child_but_keeps_an_outside_process() {
         else {format!("{}sleep 3;printf alive > '{}'",started.map(|path|format!("printf ready > '{}';",path.display())).unwrap_or_default(),output.display())}
     };
     std::fs::write(&owned_script,script(Some(&ready),&leaked)).unwrap();std::fs::write(&safe_script,script(None,&safe)).unwrap();
+    let encoded=|source:String|{use base64::Engine;base64::engine::general_purpose::STANDARD.encode(source.encode_utf16().flat_map(u16::to_le_bytes).collect::<Vec<_>>())};
     let mut external=Command::new(if cfg!(windows){"powershell.exe"}else{"/bin/sh"});
-    if cfg!(windows){external.args(["-NoProfile","-File"]);}
-    external.arg(&safe_script).stdout(Stdio::null()).stderr(Stdio::null());
+    if cfg!(windows){external.args(["-NoProfile","-EncodedCommand",&encoded(script(None,&safe))]);}else{external.arg(&safe_script);}
+    external.stdout(Stdio::null()).stderr(Stdio::null());
     #[cfg(windows)] external.creation_flags(0x08000000);
     let mut external=external.spawn().unwrap();
     let practice=GitPractice::new(GitExercise::default()).unwrap();
     let mut environment=practice.environment();
+    // This test must not depend on a developer machine allowing .ps1 files.
+    #[cfg(windows)] environment.push(("PSExecutionPolicyPreference".into(),"Restricted".into()));
     let command=if cfg!(windows){
         // Do not resize ConPTY during its initial cursor handshake. A short
         // command also avoids relying on this headless responder's wrapping.
-        let launcher=outside.path().join("launch.ps1");
-        std::fs::write(&launcher,format!("Start-Process powershell.exe -WindowStyle Hidden -ArgumentList '-NoProfile','-File','\"{}\"'",owned_script.display())).unwrap();
-        environment.push(("MQ3_CHILD_LAUNCH".into(),launcher.display().to_string()));
-        "& $env:MQ3_CHILD_LAUNCH\r".to_string()
+        // Execute this trusted test command directly; do not change the host's
+        // script policy or require .ps1 execution to be enabled.
+        let launcher=format!("Start-Process powershell.exe -WindowStyle Hidden -ArgumentList '-NoProfile','-EncodedCommand','{}'",encoded(script(Some(&ready),&leaked)));
+        environment.push(("MQ3_CHILD_LAUNCH".into(),launcher));
+        "iex $env:MQ3_CHILD_LAUNCH\r".to_string()
     }else{format!("nohup /bin/sh '{}' >/dev/null 2>&1 &\r",owned_script.display())};
     let (mut shell,mut output)=molip_quest::setup_terminal::SetupTerminal::open_practice(&practice.work(),&environment).unwrap();
     let mut seen=String::new();let mut cursor_reports=0usize;let mut sent=false;let deadline=std::time::Instant::now()+std::time::Duration::from_secs(30);
