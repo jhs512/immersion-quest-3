@@ -19,32 +19,42 @@
     ? { key: 'assistant', prop: '--assistant-width', container: handle.parentElement, pane: '.assistant-dock', horizontal: true, min: 280, reserve: 420, invert: true }
     : handle.classList.contains('split-col')
     ? { key: 'problem', prop: '--problem-width', container: handle.closest('.lesson'), pane: '.problem-pane', horizontal: true, min: 260, reserve: 360 }
+    : handle.classList.contains('split-example')
+    ? { key: 'exampleAnswer', prop: '--example-answer-height', container: handle.closest('.interaction-example-editor'), pane: '.interaction-example-answer', horizontal: false, min: 64, reserve: 58, invert: true }
     : { key: 'editor', prop: '--editor-height', container: handle.closest('.coding-pane'), pane: '.editor-pane', horizontal: false, min: 120, reserve: 54 + 8 + 140 };
 
   function set(a, size) {
     const bounds = a.container.getBoundingClientRect();
-    const max = (a.horizontal ? bounds.width : bounds.height) - a.reserve;
-    size = Math.round(Math.max(a.min, Math.min(max, size)));
+    let min=a.min, reserve=a.reserve;
+    if(a.key==='editor' && a.container.closest('.repository-task')) {
+      min=a.container.querySelector('.interaction-example-editor')?142:96;
+      reserve=(a.container.querySelector('.pane-heading')?.getBoundingClientRect().height||0)+
+        (a.container.querySelector(':scope > .split-row')?.getBoundingClientRect().height||10)+74;
+    }
+    if(a.key==='exampleAnswer') {
+      const style=getComputedStyle(a.container);
+      reserve+=parseFloat(style.paddingTop)+parseFloat(style.paddingBottom);
+    }
+    const max=Math.max(min,(a.horizontal ? bounds.width : bounds.height)-reserve);
+    size = Math.round(Math.max(min, Math.min(max, size)));
     a.container.style.setProperty(a.prop, size + 'px');
     saved[a.key] = size;
   }
   function applyAll() {
-    for (const lesson of document.querySelectorAll('.lesson')) {
-      if (saved.problem) lesson.style.setProperty('--problem-width', saved.problem + 'px');
-      const pane = lesson.querySelector('.coding-pane');
-      if (pane && saved.editor) pane.style.setProperty('--editor-height', saved.editor + 'px');
-    }
-    for (const dock of document.querySelectorAll('.assistant-dock')) {
-      if (saved.assistant && dock.parentElement) dock.parentElement.style.setProperty('--assistant-width', saved.assistant + 'px');
+    for(const handle of document.querySelectorAll('.split-handle')) {
+      const a=axis(handle);
+      if(a.container && saved[a.key]) set(a,saved[a.key]);
     }
   }
+  const paneFor=a=>[...a.container.querySelectorAll(a.pane)].find(p=>p.getBoundingClientRect().height>0);
 
   document.addEventListener('pointerdown', event => {
     const handle = event.target.closest('.split-handle');
     if (!handle || event.button !== 0) return;
     const a = axis(handle);
     if (!a.container) return;
-    const pane = a.container.querySelector(a.pane);
+    const pane = paneFor(a);
+    if(!pane)return;
     const start = a.horizontal ? event.clientX : event.clientY;
     const rect = pane.getBoundingClientRect();
     const startSize = a.horizontal ? rect.width : rect.height;
@@ -54,6 +64,7 @@
     const stop = () => {
       handle.removeEventListener('pointermove', move); handle.removeEventListener('pointerup', stop); handle.removeEventListener('pointercancel', stop);
       handle.classList.remove('dragging'); document.body.classList.remove('splitting');
+      try { handle.releasePointerCapture(event.pointerId); } catch {}
       persist();
     };
     handle.addEventListener('pointermove', move); handle.addEventListener('pointerup', stop); handle.addEventListener('pointercancel', stop);
@@ -68,7 +79,8 @@
     const matches = a.horizontal ? /^Arrow(Left|Right)$/ : /^Arrow(Up|Down)$/;
     if (!matches.test(event.key) || !a.container) return;
     event.preventDefault();
-    const rect = a.container.querySelector(a.pane).getBoundingClientRect();
+    const pane=paneFor(a);if(!pane)return;
+    const rect = pane.getBoundingClientRect();
     set(a, (a.horizontal ? rect.width : rect.height) + (a.invert ? -delta : delta)); persist();
   });
   document.addEventListener('dblclick', event => {
@@ -81,6 +93,14 @@
   new MutationObserver(records => {
     if (records.some(r => [...r.addedNodes].some(n => n instanceof Element && (n.matches('.lesson, .assistant-dock') || n.querySelector('.lesson, .assistant-dock'))))) applyAll();
   }).observe(document.body, { childList: true, subtree: true });
+  window.addEventListener('resize',()=>requestAnimationFrame(applyAll));
+  const sizes=new ResizeObserver(()=>applyAll());
+  const observed=new Set();
+  const watch=()=>{
+    for(const pane of observed)if(!pane.isConnected){sizes.unobserve(pane);observed.delete(pane)}
+    for(const pane of document.querySelectorAll('.coding-pane,.interaction-example-editor'))if(!observed.has(pane)){observed.add(pane);sizes.observe(pane)}
+  };
+  new MutationObserver(watch).observe(document.body,{childList:true,subtree:true});watch();
   applyAll();
   globalThis.molipSplit = { applyAll };
 })();
