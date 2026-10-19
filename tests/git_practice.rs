@@ -117,7 +117,10 @@ fn closing_practice_stops_its_background_child_but_keeps_an_outside_process() {
         // command also avoids relying on this headless responder's wrapping.
         // Execute this trusted test command directly; do not change the host's
         // script policy or require .ps1 execution to be enabled.
-        let launcher=format!("Start-Process powershell.exe -WindowStyle Hidden -ArgumentList '-NoProfile','-EncodedCommand','{}'",encoded(script(Some(&ready),&leaked)));
+        // A direct CreateProcess descendant is the lifetime contract under
+        // test. ShellExecute (Start-Process's default) may use a broker and a
+        // separate console on a hosted runner, outside that contract.
+        let launcher=format!("$psi=New-Object System.Diagnostics.ProcessStartInfo;$psi.FileName=(Join-Path $PSHOME 'powershell.exe');$psi.Arguments='-NoProfile -EncodedCommand {}';$psi.UseShellExecute=$false;$psi.CreateNoWindow=$true;$owned=[System.Diagnostics.Process]::Start($psi);Write-Output ('MQ3 child '+$owned.Id)",encoded(script(Some(&ready),&leaked)));
         environment.push(("MQ3_BG".into(),launcher));
         "iex $env:MQ3_BG".to_string()
     }else{format!("nohup /bin/sh '{}' >/dev/null 2>&1 &\r",owned_script.display())};
