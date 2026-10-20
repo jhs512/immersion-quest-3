@@ -2,6 +2,14 @@
 
 기록일: 2026-10-20. 이 파일은 컴퓨터와 대화가 바뀌어도 이어가기 위한 작업 기준이다.
 
+## 배포 재검증: Intel XGBoost와 OpenMP (2026-10-20)
+
+빌드 46은 Windows 설치·제거와 Apple Silicon DMG 검증을 통과했고 두 Mac의 실제 앱 화면 검사도 각 36개 모두 통과했다. Intel의 마지막 Python 새 환경 검사에서 XGBoost 3.4.1이 `___kmpc_dispatch_deinit`을 찾지 못해 릴리스가 차단됐다. 앱 전용 OpenMP 14에 이 함수가 없었다.
+
+두 CPU의 conda-forge OpenMP 21.1.8을 SHA-256으로 고정하고 구버전 14 마커를 새 설치로 간주하지 않도록 변경했다. Intel 배포본에서 해당 함수의 공개 심볼을 확인했다. 새 `.conda`의 두 zstd 아카이브(실제 라이브러리와 라이선스)는 앱 안의 Rust 디코더로 해제한다. macOS 기본 tar가 외부 zstd를 요구하는 점을 확인했으므로 Homebrew 도구에 의존하지 않는다. 기존 시스템 라이브러리와 PATH는 바꾸지 않는다.
+
+Mac arm64의 임시 새 환경에서 OpenMP 21 설치·라이선스 추출과 전체 패키지 진단, TensorFlow·XGBoost 동시 import 검사가 69초에 통과했다. 구버전 14를 재사용하지 않고 기존 설치를 보존하는 교체 검사도 통과했다. Intel 실제 전체 검증은 다음 배포 CI에서 확인한다.
+
 ## 배포 재검증: Windows PTY 시작 응답 (2026-10-20)
 
 빌드 45의 Windows 검사에서 응답을 완전히 제거하면 PTY가 `ESC[6n` 이후 Vim을 시작하지 못하는 차이를 확인했다. Windows에서는 Vim 상태가 아직 없는 시작 구간에만 커서 응답을 보내고, Mac에서는 보내지 않는다. 재접속 후 X 입력 확인도 고정 130ms 뒤 상태를 읽는 대신 실제 기대 버퍼가 게시될 때까지 기다린다. 수정 후 Mac 릴리스 Vim 6개 검사는 다시 통과했다. 빌드 45 Apple Silicon CI의 실제 WKWebView 검사 결과를 내려받아 Git 4개·Java 실행 12개·Java 인자 12개·로딩/음성 8개 모두 통과한 것을 확인했다. 로컬 Java 인자 시연 시간 초과는 이 CI에서 재현되지 않았다. Windows와 두 Mac 배포 게이트는 후속 커밋에서 다시 실행한다.

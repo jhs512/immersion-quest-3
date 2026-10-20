@@ -139,6 +139,22 @@ mod tests {
         assert!(super::managed_at(root.path()).is_none());
     }
 
+    #[cfg(target_os="macos")]
+    #[test]
+    fn incompatible_openmp_is_replaced_without_removing_the_old_installation(){
+        let root=tempfile::tempdir().unwrap();
+        for name in ["libomp14-old","libomp21-new"] {
+            let folder=root.path().join(name).join("lib");std::fs::create_dir_all(&folder).unwrap();
+            std::fs::write(folder.join("libomp.dylib"),b"fixture").unwrap();
+        }
+        let marker=root.path().join("libomp-current.json");
+        std::fs::write(&marker,"\"libomp14-old\"").unwrap();
+        assert!(super::openmp_at(root.path()).is_none());
+        std::fs::write(&marker,"\"libomp21-new\"").unwrap();
+        assert_eq!(super::openmp_at(root.path()),Some(root.path().join("libomp21-new/lib")));
+        assert!(root.path().join("libomp14-old/lib/libomp.dylib").exists());
+    }
+
     #[tokio::test]
     #[ignore="May download the app-owned C compiler; requires platform developer tools on macOS"]
     async fn c_preparation_compiles_and_runs_on_this_platform(){
@@ -176,10 +192,12 @@ pub fn should_bootstrap()->bool {
 }
 
 #[cfg(target_os="macos")]
-fn openmp_directory()->Option<PathBuf> {
-    let root=crate::data_dir().ok()?.join("runtime-libs");
+fn openmp_directory()->Option<PathBuf> {openmp_at(&crate::data_dir().ok()?.join("runtime-libs"))}
+
+#[cfg(target_os="macos")]
+fn openmp_at(root:&Path)->Option<PathBuf> {
     let name:String=serde_json::from_slice(&std::fs::read(root.join("libomp-current.json")).ok()?).ok()?;
-    if !name.starts_with("libomp14-")||name.len()>100||!name.bytes().all(|c|c.is_ascii_alphanumeric()||c==b'-'){return None;}
+    if !name.starts_with("libomp21-")||name.len()>100||!name.bytes().all(|c|c.is_ascii_alphanumeric()||c==b'-'){return None;}
     let folder=root.join(name).join("lib");folder.join("libomp.dylib").is_file().then_some(folder)
 }
 
@@ -200,15 +218,31 @@ pub async fn prepare_openmp(report:&UnboundedSender<String>)->Result<(),String> 
     // Conda-forge's standalone LLVM runtime works without Homebrew or admin writes.
     // Pin the redistributable with its license; keep Apple Silicon and Intel distinct.
     let (name,checksum)=if cfg!(target_arch="aarch64") {
-        ("osx-arm64/llvm-openmp-14.0.4-hd125106_0.tar.bz2","00d0eedaa20ad8d83fbebe121a67eaa293dcc6699d06857af675c3f7d9716317")
+        ("osx-arm64/llvm-openmp-21.1.8-hc225544_2.conda","74093c0f1169da8d16f1cf722062f388ad9bc9a5b0c3f43cdaf54763a2fa6a70")
     }else{
-        ("osx-64/llvm-openmp-14.0.4-ha654fa7_0.tar.bz2","dfe2fa815471c2638a009eb47969605730d92c3af3f183295587e34f996d2f30")
+        ("osx-64/llvm-openmp-21.1.8-h8e721bf_2.conda","2533db6470221b80403a7a54d1cf1069128cc8efd61b66226b10ea8e4bce92d8")
     };
     let _=report.send("Python · 병렬 실행 라이브러리를 앱 전용 폴더에 준비해요.".into());
-    let archive=crate::lesson_runner::dependency(&format!("libomp-14.0.4-{}.tar.bz2",std::env::consts::ARCH),&format!("https://conda.anaconda.org/conda-forge/{name}"),checksum).await?;
+    let archive=crate::lesson_runner::dependency(&format!("libomp-21.1.8-{}.conda",std::env::consts::ARCH),&format!("https://conda.anaconda.org/conda-forge/{name}"),checksum).await?;
     let root=crate::data_dir()?.join("runtime-libs");std::fs::create_dir_all(&root).map_err(|e|e.to_string())?;
-    let pending=tempfile::Builder::new().prefix("libomp14-").tempdir_in(&root).map_err(|e|e.to_string())?;
-    crate::doctor::run_logged(report,"/usr/bin/tar",&["-xf",&archive.to_string_lossy(),"-C",&pending.path().to_string_lossy()],None).await?;
+    let pending=tempfile::Builder::new().prefix("libomp21-").tempdir_in(&root).map_err(|e|e.to_string())?;
+    let compressed=tempfile::tempdir_in(&root).map_err(|e|e.to_string())?;
+    crate::doctor::run_logged(report,"/usr/bin/tar",&["-xf",&archive.to_string_lossy(),"-C",&compressed.path().to_string_lossy()],None).await?;
+    let stem=name.rsplit('/').next().and_then(|s|s.strip_suffix(".conda")).ok_or("라이브러리 압축 이름 오류")?;
+    // .conda contains separate package and license archives. macOS tar cannot
+    // decode zstd without an external executable, so decode inside the app.
+    for kind in ["pkg","info"] {
+        let source=compressed.path().join(format!("{kind}-{stem}.tar.zst"));
+        let decoded=tokio::task::spawn_blocking(move||->Result<tempfile::NamedTempFile,String>{
+            let file=std::fs::File::open(source).map_err(|e|e.to_string())?;
+            let mut decoder=ruzstd::decoding::StreamingDecoder::new(file).map_err(|e|e.to_string())?;
+            let mut output=tempfile::NamedTempFile::new().map_err(|e|e.to_string())?;
+            std::io::copy(&mut decoder,&mut output).map_err(|e|e.to_string())?;
+            output.flush().map_err(|e|e.to_string())?;
+            Ok(output)
+        }).await.map_err(|e|e.to_string())??;
+        crate::doctor::run_logged(report,"/usr/bin/tar",&["-xf",&decoded.path().to_string_lossy(),"-C",&pending.path().to_string_lossy()],None).await?;
+    }
     if !pending.path().join("lib/libomp.dylib").is_file()||!pending.path().join("info/licenses/openmp/LICENSE.TXT").is_file(){return Err("병렬 실행 라이브러리를 확인하지 못했어요.".into());}
     let name=pending.path().file_name().ok_or("라이브러리 설치 경로 오류")?.to_string_lossy().into_owned();
     let _=pending.keep();
