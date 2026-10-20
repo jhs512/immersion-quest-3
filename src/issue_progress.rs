@@ -1,4 +1,4 @@
-//! Append-only events: comments remain authoritative; the issue body is a readable summary.
+//! Append-only events: local pending events overlay synced comments; the issue body is a readable summary.
 use serde::{Deserialize,Serialize};
 use std::collections::{BTreeMap,HashSet};
 

@@ -16,6 +16,8 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
         let restart_phase=std::env::var("MOLIP_PILOT_SELF_TEST").ok().and_then(|mode|mode.strip_prefix("restart-").map(str::to_owned)).filter(|phase|matches!(phase.as_str(),"seed"|"reopen"));
         let script=if let Some(phase)=&restart_phase {
             format!("window.mq3RestartPhase={};{}",serde_json::to_string(phase).unwrap(),include_str!("../tools/player-pilot-restart.js"))
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("async-progress") {
+            include_str!("../tools/player-pilot-async-progress.js").to_owned()
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("content-submit") {
             include_str!("../tools/player-pilot-content-submit.js").to_owned()
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("invalid-order") {
@@ -40,10 +42,27 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
             script
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("interaction-example") {include_str!("../tools/player-pilot-example.js").to_owned()} else {format!("window.mq3FirstGitOnly={};window.mq3IncludeGitBranch={};{}",matches!(std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref(),Some("git-first"|"git-lessons")),std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()!=Some("git-first"),include_str!("../tools/player-pilot-native.js"))};
         let mut bridge = document::eval(&script);
-        let result = match tokio::time::timeout(std::time::Duration::from_secs(480), bridge.recv::<serde_json::Value>()).await {
+        let result = match tokio::time::timeout(std::time::Duration::from_secs(480), async {
+            loop {
+                let message=bridge.recv::<serde_json::Value>().await?;
+                if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("async-progress")&&message["control"].is_string(){
+                    let root=pilot_source::data_dir().unwrap();
+                    if message["control"]=="resume"{std::fs::remove_file(root.join("pilot-progress-blocked")).unwrap();}
+                    let pending=molip_quest::progress_sync::ProgressStore::installed().unwrap().pending_count(987654321).unwrap();
+                    let attempts=std::fs::read_to_string(root.join("pilot-progress-attempts")).unwrap_or_default().lines().count();
+                    document::eval(&format!("window.mq3ProgressStats={};",serde_json::json!({"token":message["token"],"pending":pending,"attempts":attempts,"running":molip_quest::progress_sync::is_syncing(987654321).unwrap()})));
+                    continue;
+                }
+                return Ok::<_,dioxus::document::EvalError>(message);
+            }
+        }).await {
             Ok(Ok(result)) => result,
             _ => serde_json::json!({"passed":false,"error":"Native WebView test timed out or disconnected"}),
         };
+        if let Ok(store)=molip_quest::progress_sync::ProgressStore::installed(){
+            let deadline=tokio::time::Instant::now()+std::time::Duration::from_secs(15);
+            while store.pending_count(987654321).unwrap_or(0)>0&&tokio::time::Instant::now()<deadline{tokio::time::sleep(std::time::Duration::from_millis(100)).await;}
+        }
         let exit_preparation = tokio::task::spawn_blocking(molip_quest::setup_terminal::prepare_practice_exit).await;
         let result = if matches!(&exit_preparation, Ok(Ok(_))) { result } else {
             serde_json::json!({"passed":false,"error":"Practice shutdown before exit failed"})

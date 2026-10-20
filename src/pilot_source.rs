@@ -101,6 +101,14 @@ pub fn request(args: &[&str], payload: Option<Value>) -> Result<Value, String> {
     }
     let route = route.ok_or("검증 요청 경로가 없어요.")?.trim_start_matches('/');
     if method == "GET" && route == "user" { return Ok(user()); }
+    // Fault injection exists only in this isolated debug transport.
+    if method=="POST"&&route.ends_with("/comments")&&data_dir()?.join("pilot-progress-blocked").exists(){
+        use std::io::Write;
+        let mut log=std::fs::OpenOptions::new().create(true).append(true).open(data_dir()?.join("pilot-progress-attempts")).map_err(|e|e.to_string())?;
+        writeln!(log,"blocked").map_err(|e|e.to_string())?;
+        return Err("Injected progress upload outage".into());
+    }
+
     let mut state = store()?.lock().map_err(|_|"검증 저장소 잠금 오류")?;
     for (repository, file) in [(REPOSITORY,"course.json"),("mq3-validation/lesson","lesson.json")] {
         let prefix = format!("repos/{repository}/contents/{file}?ref=");

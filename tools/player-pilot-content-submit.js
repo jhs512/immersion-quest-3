@@ -32,7 +32,7 @@
     await wait(() => document.querySelector('[data-code-editor]')?.dataset.editorValue==='console.log(3);', 'answer reached Rust');
     await click('제출');
     await wait(() => document.querySelector('.task-passed-dialog'), 'saved success');
-    if (!frames.length || !frames.every(f=>f.centered) || !frames.some(f=>f.text.includes('진도를 저장'))) throw Error('Missing centered progress');
+    if (!frames.length || !frames.every(f=>f.centered) || !frames.some(f=>f.text.includes('답안을 검사'))) throw Error('Missing centered progress');
     await wait(() => document.querySelector('.study-navigation button.selected.completed .step-completed-badge')?.textContent==='완료', 'selected completed badge');
     checked.push('centered submission progress closes on incorrect and success; shortcuts cannot navigate behind modal');
     await click('여기 머물기');

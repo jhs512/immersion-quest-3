@@ -91,7 +91,7 @@ impl Github {
         let marker=issue_progress::marker(key);
         Ok(self.issues(repo,user)?.into_iter().filter(|i|i.body.as_deref().is_some_and(|b|b.contains(&marker))).min_by_key(|i|i.number))
     }
-    pub fn course_events(&self,repo:&str,user:&GithubUser,course_id:&str)->Result<std::collections::HashMap<String,Vec<LearningEvent>>,String> {
+    fn course_events_remote(&self,repo:&str,user:&GithubUser,course_id:&str)->Result<std::collections::HashMap<String,Vec<LearningEvent>>,String> {
         self.ensure_user(user.id)?;
         let mut by_lesson:std::collections::HashMap<String,Vec<LearningEvent>>=Default::default();
         for issue in self.issues(repo,user)? {
@@ -118,7 +118,7 @@ impl Github {
         }
         Ok(CourseProgress{events,required})
     }
-    pub fn events(&self,repo:&str,issue:&Issue,key:&ProgressKey)->Result<Vec<LearningEvent>,String> {
+    fn events_remote(&self,repo:&str,issue:&Issue,key:&ProgressKey)->Result<Vec<LearningEvent>,String> {
         let marker=issue_progress::marker(key);
         let user=self.user()?;
         if user.id!=key.user_id {return Err("gh 계정이 바뀌었어요. 코스 목록에서 계정을 다시 확인하세요.".into())}
@@ -138,19 +138,38 @@ impl Github {
         }
         Err("학습 기록이 너무 많아요. 관리자에게 문의하세요.".into())
     }
+    pub fn record(&self,repo:&str,user:&GithubUser,title:&str,event:&LearningEvent,required:&[String])->Result<Vec<LearningEvent>,String>{
+        let latest=crate::progress_sync::ProgressStore::installed()?.record(repo,user,title,event,required)?;
+        if let Err(error)=crate::progress_sync::synchronize(self.clone(),user.clone()){eprintln!("Progress upload deferred: {error}");}
+        Ok(latest)
+    }
+    pub fn events(&self,repo:&str,issue:&Issue,key:&ProgressKey)->Result<Vec<LearningEvent>,String>{
+        let store=crate::progress_sync::ProgressStore::installed()?;
+        match self.events_remote(repo,issue,key){
+            Ok(remote)=>{store.cache(repo,&remote)?;store.events(repo,key)},
+            Err(error)=>{let local=store.events(repo,key)?;if local.is_empty(){Err(error)}else{Ok(local)}},
+        }
+    }
+    pub fn course_events(&self,repo:&str,user:&GithubUser,course_id:&str)->Result<std::collections::HashMap<String,Vec<LearningEvent>>,String>{
+        let store=crate::progress_sync::ProgressStore::installed()?;
+        match self.course_events_remote(repo,user,course_id){
+            Ok(remote)=>{for events in remote.values(){store.cache(repo,events)?;}store.course_events(repo,user.id,course_id)},
+            Err(error)=>{let local=store.course_events(repo,user.id,course_id)?;if local.is_empty(){Err(error)}else{Ok(local)}},
+        }
+    }
     pub fn append(&self,repo:&str,user:&GithubUser,title:&str,event:&LearningEvent)->Result<(Issue,Vec<LearningEvent>),String> {
         self.ensure_user(user.id)?;
         if event.key.user_id!=user.id {return Err("다른 계정의 진도를 기록할 수 없어요.".into())}
         let issue=if let Some(i)=self.find_issue(repo,user,&event.key)? {i} else {
             self.post(&format!("/repos/{repo}/issues"),json!({"title":format!("[진도] {title} · @{}",user.login),"body":issue_progress::summary(&event.key,title,&[])}))?
         };
-        let mut events=self.events(repo,&issue,&event.key)?;
+        let mut events=self.events_remote(repo,&issue,&event.key)?;
         if !events.iter().any(|e|e.id==event.id) {
             let _:Value=self.post(&format!("/repos/{repo}/issues/{}/comments",issue.number),json!({"body":event.comment()}))?;
             events.push(event.clone());
         }
         // Re-read includes concurrently appended comments; a summary never erases events.
-        let latest=self.events(repo,&issue,&event.key)?;
+        let latest=self.events_remote(repo,&issue,&event.key)?;
         let issue=self.find_issue(repo,user,&event.key)?.unwrap_or(issue);
         let body=issue_progress::summary(&event.key,title,&latest);
         let _=crate::course_authoring::gh(&["api","--hostname","github.com","--method","PATCH",&format!("repos/{repo}/issues/{}",issue.number),"--input","-"],Some(json!({"body":body})));

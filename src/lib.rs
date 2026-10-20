@@ -15,6 +15,7 @@ pub mod runner;
 pub mod repository_course;
 pub mod course_authoring;
 pub mod issue_progress;
+pub mod progress_sync;
 pub mod github_player;
 pub mod bundled_courses;
 pub mod course_visibility;

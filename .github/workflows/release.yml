@@ -24,6 +24,7 @@ jobs:
         run: |
           cargo test --release --locked --lib updater::tests
           cargo test --release --locked --lib course_visibility::tests
+          cargo test --release --locked --lib progress_sync::tests
       - name: Verify interactive setup terminal
         run: cargo test --release --locked --lib setup_terminal::tests
       - uses: actions/setup-java@v4
@@ -98,6 +99,7 @@ jobs:
           cargo test --release --locked --lib updater::tests
           cargo test --release --locked --lib setup_terminal::tests
           cargo test --release --locked --lib course_visibility::tests
+          cargo test --release --locked --lib progress_sync::tests
       - name: Verify C, Java and Python execution on this Mac
         run: cargo test --release --locked --test macos_runtime --test java_launch --test java_arguments --test bundled_courses --test github_pr --test redesigned_git_branch --test bash_basics --test vim_practice --test step_reset
       - name: Verify app-managed Java and C setup
@@ -112,7 +114,7 @@ jobs:
         run: |
           python -m pip install edge-tts==7.3.1
           export MOLIP_PYTHON="$(which python)"
-          cargo test --locked --test player_loading_native --test player_java_launch_native --test player_java_arguments_native --test player_git_course_native --test player_bash_native -- --ignored --nocapture --test-threads=1
+          cargo test --locked --test player_loading_native --test player_java_launch_native --test player_java_arguments_native --test player_git_course_native --test player_bash_native --test player_async_progress_native --test player_content_submit_native -- --ignored --nocapture --test-threads=1
       - name: Upload native WebView diagnostics
         if: always()
         uses: actions/upload-artifact@v4
@@ -124,6 +126,8 @@ jobs:
             target/pilot-java-arguments-native-result.json
             target/pilot-git-course-native-result.json
             target/pilot-bash-native-result.json
+            target/pilot-async-progress-result.json
+            target/mq-content-submit-native-result.json
           if-no-files-found: ignore
       - name: Build and package macOS app
         run: |

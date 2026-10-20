@@ -2,6 +2,10 @@ use dioxus::prelude::*;
 use molip_quest::{github_player::{self,Github,GithubUser},issue_progress::{self,LearningEvent,ProgressKey,StudyMode,EventKind},repository_course::{self,CourseManifest,Lesson,Task}};
 use std::collections::HashMap;
 
+fn merge_local_events(mut target:Signal<Vec<LearningEvent>>,latest:Vec<LearningEvent>){
+    if let Some(event)=latest.first(){let key=event.key.clone();target.with_mut(|current|*current=issue_progress::merge(std::mem::take(current).into_iter().chain(latest),&key));}
+}
+
 #[derive(Clone,PartialEq)]
 struct Session { github:Github,user:GithubUser }
 #[derive(Clone,PartialEq)]
@@ -28,7 +32,7 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
         busy.set(true);message.set("gh 계정과 온라인 연결을 확인하고 있어요.".into());
         let github=Github::new();let gh=github.clone();
         match github_player::background(move||{let user=gh.user()?;let manifest=gh.installed_course(repository_course::initial_repository());Ok((user,manifest))}).await {
-            Ok((user,manifest))=>{session.set(Some(Session{github,user}));match manifest {Ok(c)=>{course.set(Some(c));message.set(String::new());},Err(e)=>message.set(e)}},
+            Ok((user,manifest))=>{let _=molip_quest::progress_sync::synchronize(github.clone(),user.clone());session.set(Some(Session{github,user}));match manifest {Ok(c)=>{course.set(Some(c));message.set(String::new());},Err(e)=>message.set(e)}},
             Err(e)=>{session.set(None);course.set(None);message.set(e);}
         }
         busy.set(false);
@@ -132,8 +136,8 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                                                     if !events.iter().any(|e|e.round==round) {
                                                         let event=LearningEvent::new(ProgressKey{user_id:s.user.id,course_id:manifest.id.clone(),lesson_id:lesson.id.clone()},&lesson.revision,mode,&round,EventKind::Started);
                                                         let gh=s.github.clone();let user=s.user.clone();let repo=manifest.repository.clone();let title=lesson.title.clone();
-                                                        match github_player::background(move||gh.append(&repo,&user,&title,&event)).await {
-                                                            Ok((issue,latest))=>{events=latest;open.set(Some(OpenLesson{course:manifest,lesson,events,mode,round,issue_url:Some(issue.html_url)}));message.set(String::new());},Err(e)=>message.set(e),
+                                                        match github_player::background(move||gh.record(&repo,&user,&title,&event,&[])).await {
+                                                            Ok(latest)=>{events=latest;open.set(Some(OpenLesson{course:manifest,lesson,events,mode,round,issue_url:url}));message.set(String::new());},Err(e)=>message.set(e),
                                                         }
                                                     } else {open.set(Some(OpenLesson{course:manifest,lesson,events,mode,round,issue_url:url}));message.set(String::new());}
                                                 },Err(e)=>message.set(e),
@@ -202,7 +206,7 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
     use_future({let session=session.clone();let selected=selected.clone();move ||{let session=session.clone();let selected=selected.clone();async move {
         if selected.mode==StudyMode::Full {if let Some(first)=selected.lesson.sections.first() {
             let mut event=LearningEvent::new(ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},&selected.lesson.revision,selected.mode,&selected.round,EventKind::Viewed);event.task_id=Some(first.id.clone());
-            match github_player::background(move||session.github.append(&selected.course.repository,&session.user,&selected.lesson.title,&event)).await {Ok((_,latest))=>events.set(latest),Err(e)=>activity_message.set(e)}
+            match github_player::background(move||session.github.record(&selected.course.repository,&session.user,&selected.lesson.title,&event,&[])).await {Ok(latest)=>merge_local_events(events,latest),Err(e)=>activity_message.set(e)}
         }}
     }}});
     let state=issue_progress::status(&events(),&selected.lesson.revision,&selected.lesson.required_tasks());
@@ -218,8 +222,8 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
             let mut event=LearningEvent::new(ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},&selected.lesson.revision,selected.mode,&selected.round,EventKind::Viewed);
             event.task_id=Some(selected.lesson.sections[index].id.clone());
             let title=selected.lesson.title.clone();let repo=selected.course.repository.clone();
-            match github_player::background(move||session.github.append(&repo,&session.user,&title,&event)).await {
-                Ok((_,latest))=>{events.set(latest);section_index.set(index);activity_message.set(String::new());},Err(e)=>activity_message.set(e)
+            match github_player::background(move||session.github.record(&repo,&session.user,&title,&event,&[])).await {
+                Ok(latest)=>{merge_local_events(events,latest);section_index.set(index);activity_message.set(String::new());},Err(e)=>activity_message.set(e)
             }
         });
     }};
@@ -327,7 +331,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
         event.task_id=Some(task_id.clone());
         event.success_before_view=events().iter().any(|e|e.kind==EventKind::Attempt&&e.passed&&e.task_id.as_deref()==Some(&task_id));
         let gh=session.github.clone();let user=session.user.clone();let repo=selected.course.repository.clone();let title=selected.lesson.title.clone();
-        spawn(async move {match github_player::background(move||gh.append(&repo,&user,&title,&event)).await {Ok((_,latest))=>onrecord.call(latest),Err(e)=>history_message.set(format!("해설 이력을 저장하지 못했어요. {e}"))}});
+        spawn(async move {match github_player::background(move||gh.record(&repo,&user,&title,&event,&[])).await {Ok(latest)=>onrecord.call(latest),Err(e)=>history_message.set(format!("해설 이력을 저장하지 못했어요. {e}"))}});
     }};
     let solution_text=if let Some(exercise)=task.git_terminal.as_ref().filter(|e|e.java_build.is_some()) {
         let shell=exercise.shell.as_ref().unwrap();format!("### Main.java\n```java\n{}\n```\n### 터미널에서 실행할 명령\n```bash\n{}\n```\n{}",shell.goal.files["Main.java"],shell.commands.join("\n"),task.solution)
@@ -397,7 +401,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                         message.set("코드를 실행하고 있어요.".into());output.set(String::new());if demonstration{teacher_preview.set(String::new());}else{preview.set(String::new());}artifacts.set(vec![]);
                         let source=if has_example{example_source()}else{code()};let prediction=task.predict_before_run.then(||code());let input=input();let started=std::time::Instant::now();let run_id=execution_id();
                         let timer=spawn(async move {loop {tokio::time::sleep(std::time::Duration::from_secs(1)).await;if execution_id()!=run_id{break;}execution_seconds+=1;}});
-                        // Local execution never waits for GitHub. append() still authenticates
+                        // Local execution never waits for GitHub. The upload worker authenticates
                         // the expected account before recording the separate history operation.
                         let result=if has_example{molip_quest::lesson_runner::run_example(&task,&source,&input).await}else{molip_quest::lesson_runner::run(&task,&source,&input).await};
                         timer.cancel();
@@ -420,8 +424,8 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                         let repo=selected.course.repository.clone();let title=selected.lesson.title.clone();
                         history_saves+=1;
                         spawn(async move {
-                            match github_player::background(move||github.append(&repo,&user,&title,&event)).await {
-                                Ok((_,latest))=>onrecord.call(latest),
+                            match github_player::background(move||github.record(&repo,&user,&title,&event,&[])).await {
+                                Ok(latest)=>onrecord.call(latest),
                                 Err(error)=>history_message.set(format!("실행 이력을 저장하지 못했어요. {error}"))
                             }
                             history_saves-=1;
@@ -429,10 +433,8 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                     }}},"코드 실행"}
                     }
                     button {class:"primary","data-shortcut-action":"submit","data-enter-submit":"true",disabled:busy()||narrating()||(task.git_terminal.is_some()&&git_practice().is_none()),onclick:{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();move |_|{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();async move {
-                        submitting.set(true);submit_stage.set(0);busy.set(true);feedback.set("checking");execution_state.set("idle");output.set(String::new());message.set("검사하고 있어요.".into());let gh=session.github.clone();let uid=session.user.id;
-                        let authenticated=github_player::background(move||gh.ensure_user(uid)).await;
-                        match authenticated {
-                            Err(e)=>{feedback.set("error");message.set(e);},Ok(())=>{submit_stage.set(1);match if task.git_terminal.as_ref().is_some_and(|e|e.java_build.is_some()) {
+                        submitting.set(true);submit_stage.set(0);busy.set(true);feedback.set("checking");execution_state.set("idle");output.set(String::new());message.set("검사하고 있어요.".into());
+                        match if task.git_terminal.as_ref().is_some_and(|e|e.java_build.is_some()) {
                                 let practice=git_practice();let answer=code();let interaction=task.interaction.clone();
                                 github_player::background(move||{
                                     let practice=practice.ok_or("실습 터미널이 준비되지 않았어요.")?;
@@ -452,29 +454,22 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                                     feedback.set(if report.passed{"passed"}else{"incorrect"});
                                     message.set(if report.passed{"통과했어요. 진도를 저장하고 있어요."}else{"다시 풀어보세요. 아래 검사에서 예상과 실제 결과를 비교하세요."}.into());
                                     output.set(report.cases.iter().enumerate().map(|(i,c)|format!("검사 {} · {}\n입력: {}\n예상: {}\n결과: {}\n{}",i+1,if c.passed{"통과"}else{"다시 풀기"},c.input,c.expected,c.stdout,c.stderr)).collect::<Vec<_>>().join("\n\n"));
-                                    submit_stage.set(2);
+                                    submit_stage.set(1);
                                     let key=ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()};
-                                    let mut event=LearningEvent::new(key.clone(),&selected.lesson.revision,selected.mode,&selected.round,EventKind::Attempt);event.task_id=Some(task.id.clone());event.passed=report.passed;
+                                    let mut event=LearningEvent::new(key,&selected.lesson.revision,selected.mode,&selected.round,EventKind::Attempt);event.task_id=Some(task.id.clone());event.passed=report.passed;
                                     let github=session.github.clone();let user=session.user.clone();let repo=selected.course.repository.clone();let title=selected.lesson.title.clone();
-                                    match github_player::background(move||github.append(&repo,&user,&title,&event)).await {
-                                        Err(e)=>message.set(format!("검사 결과를 GitHub에 저장하지 못했어요. {e}")),
-                                        Ok((_,latest))=>{
-                                            let passed=issue_progress::learned_tasks(&latest,&selected.lesson.revision);
-                                            let complete=required.iter().all(|id|passed.contains(id));
-                                            if report.passed && complete && !latest.iter().any(|e|e.kind==EventKind::Completed&&e.round==selected.round) {
-                                                submit_stage.set(3);
-                                                let mut done=LearningEvent::new(key,&selected.lesson.revision,selected.mode,&selected.round,EventKind::Completed);done.required=required;
-                                                let gh=session.github.clone();let user=session.user.clone();let repo=selected.course.repository.clone();let title=selected.lesson.title.clone();
-                                                match github_player::background(move||gh.append(&repo,&user,&title,&done)).await {
-                                                    Ok((_,latest))=>{onrecord.call(latest);message.set("수업 완료! 진도를 GitHub에 저장했어요.".into());},Err(e)=>{onrecord.call(latest);message.set(format!("문제는 기록했지만 수업 완료 저장은 다시 시도해야 해요. {e}"));}
-                                                }
-                                            }else{onrecord.call(latest);message.set(if report.passed{"통과했어요. GitHub에 진도를 저장했어요."}else{"다시 풀어보세요. 시도 기록을 GitHub에 저장했어요."}.into());}
+                                    match github_player::background(move||github.record(&repo,&user,&title,&event,&required)).await {
+                                        Err(error)=>{feedback.set("error");message.set(format!("기기에 진도를 보관하지 못했어요. {error}"));},
+                                        Ok(latest)=>{
+                                            let complete=latest.iter().any(|e|e.kind==EventKind::Completed&&e.round==selected.round);
+                                            onrecord.call(latest);
+                                            message.set(if report.passed&&complete{"수업 완료! 기기에 진도를 보관했어요."}else if report.passed{"통과했어요. 기기에 진도를 보관했어요."}else{"다시 풀어보세요. 아래 검사에서 예상과 실제 결과를 비교하세요."}.into());
                                             passed_dialog.set(report.passed);
                                         }
                                     }
                                 }
                             }
-                        }}busy.set(false);submitting.set(false);
+                        busy.set(false);submitting.set(false);
                     }}},"제출"}
                 }
             }
@@ -544,7 +539,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
 
 #[component]
 fn SubmissionProgress(stage:usize)->Element {
-    let labels=["계정을 확인하고 있어요.","답안을 검사하고 있어요.","진도를 저장하고 있어요.","수업 완료를 기록하고 있어요."];
+    let labels=["답안을 검사하고 있어요.","기기에 진도를 저장하고 있어요."];
     rsx! {
         div {class:"submission-progress-backdrop",
             section {class:"submission-progress-dialog",role:"dialog",aria_modal:"true",aria_label:"답안 제출 중",aria_busy:"true",tabindex:-1,
@@ -552,9 +547,9 @@ fn SubmissionProgress(stage:usize)->Element {
                 onkeydown:move |event|{event.prevent_default();event.stop_propagation();},
                 span {class:"execution-spinner",aria_hidden:"true"}
                 h2 {"답안을 제출하고 있어요"}
-                p {role:"status",aria_live:"polite","{labels[stage.min(3)]}"}
+                p {role:"status",aria_live:"polite","{labels[stage.min(1)]}"}
                 ol {
-                    for (index,label) in ["계정 확인","답안 검사","진도 저장"].iter().enumerate() {
+                    for (index,label) in ["답안 검사","기기에 보관"].iter().enumerate() {
                         li {class:if index<stage {"done"}else if index==stage{"current"}else{""},
                             span {aria_hidden:"true",if index<stage {"✓"}else{"{index+1}"}}
                             "{label}"
