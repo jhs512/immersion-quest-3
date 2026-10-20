@@ -8,10 +8,12 @@ use sha2::{Digest,Sha256};
 #[derive(Clone,Debug,PartialEq)]
 pub struct Snapshot { course:CourseManifest, lessons:BTreeMap<String,Lesson>, document:StoredSnapshot }
 #[derive(Clone,Debug,Deserialize,Serialize,PartialEq)]
-struct StoredSnapshot { repository:String, course:String, lessons:BTreeMap<String,String> }
+struct StoredSnapshot { repository:String, course:String, lessons:BTreeMap<String,String>, #[serde(default)] remote:bool }
 #[derive(Clone,Debug,Default,PartialEq)]
 pub struct ContentChanges { pub added:Vec<String>, pub removed:Vec<String>, pub modified:Vec<String> }
 impl Snapshot {
+    pub fn is_remote(&self)->bool {self.document.remote}
+    pub(crate) fn packaged(mut self)->Self {self.document.remote=false;self}
     pub fn course(&self)->&CourseManifest { &self.course }
     pub fn lesson(&self,reference:&LessonRef)->Option<&Lesson> {
         self.course.lessons.iter().find(|installed|*installed==reference)?;
@@ -67,13 +69,13 @@ impl SnapshotStore {
             lessons.insert(reference.id.clone(),lesson);
             documents.insert(reference.id.clone(),document);
         }
-        Ok(Snapshot{course,lessons,document:StoredSnapshot{repository:repository.into(),course:raw.into(),lessons:documents}})
+        Ok(Snapshot{course,lessons,document:StoredSnapshot{repository:repository.into(),course:raw.into(),lessons:documents,remote:true}})
     }
     pub fn active(&self,repository:&str)->Result<Option<Snapshot>,String> {
         let raw=match std::fs::read(self.path(repository)?) {Ok(raw)=>raw,Err(e) if e.kind()==std::io::ErrorKind::NotFound=>return Ok(None),Err(e)=>return Err(e.to_string())};
         let stored:StoredSnapshot=serde_json::from_slice(&raw).map_err(|e|e.to_string())?;
         if stored.repository!=repository {return Err("저장된 코스 식별자가 맞지 않아요.".into())}
-        self.prepare(repository,&stored.course,|reference|stored.lessons.get(&reference.id).cloned().ok_or_else(||"저장된 수업이 없어요.".into())).map(Some)
+        self.prepare(repository,&stored.course,|reference|stored.lessons.get(&reference.id).cloned().ok_or_else(||"저장된 수업이 없어요.".into())).map(|mut snapshot|{snapshot.document.remote=stored.remote;Some(snapshot)})
     }
     pub fn remove(&self,repository:&str)->Result<(),String> {
         match std::fs::remove_file(self.path(repository)?) { Ok(())=>Ok(()),Err(e) if e.kind()==std::io::ErrorKind::NotFound=>Ok(()),Err(e)=>Err(e.to_string()) }

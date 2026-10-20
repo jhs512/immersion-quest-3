@@ -187,6 +187,9 @@ jobs:
               ('player_data_lessons_native', 'java_react'),
               ('player_data_lessons_native', 'git_remote')]:
               subprocess.run(['cargo', 'test', '--locked', '--test', target, name, '--', '--ignored', '--test-threads=1'], check=True)
+      - name: Verify centered submission and automatic content updates
+        if: matrix.group == 'core' || matrix.group == 'workspace'
+        run: cargo test --locked --test player_content_submit_native -- --ignored --test-threads=1
       - name: Drive the native WebView through the production player
         if: matrix.group == 'core' || matrix.group == 'workspace'
         env:

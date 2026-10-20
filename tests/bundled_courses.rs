@@ -20,7 +20,14 @@ fn installation_and_upgrade_use_current_three_courses_without_content_downloads_
         for reference in &course.lessons {
             assert_eq!(github.installed_lesson(&course,reference).unwrap(),github.lesson(reference).unwrap());
         }
-        assert_eq!(github.prepare_course(repository).unwrap().course(),&course,"update check must not offer an older network course");
+        assert!(github.prepare_course(repository).is_err(),"update checks must try the remote even for bundled courses; this mock denies default-course downloads");
+        let name=repository.strip_prefix("jhs512/mq3-course-redesigned-").unwrap();
+        let legacy=std::fs::read_to_string(format!("tests/fixtures/published-course-baselines/{name}.json")).unwrap();
+        let store=molip_quest::content_updates::installed_store().unwrap();
+        for raw in [legacy.clone(),serde_json::to_string_pretty(&serde_json::from_str::<serde_json::Value>(&legacy).unwrap()).unwrap()] {
+            let candidate=molip_quest::bundled_courses::prepare_update(&store,repository,&raw,|_|panic!("known old manifest must not download old lessons")).unwrap();
+            assert_eq!(candidate.course(),&course,"known stale server snapshot cannot roll back bundled content");
+        }
     }
     // Reproduce an already installed 18-lesson Java snapshot with changed content.
     let current=github.course("jhs512/mq3-course-redesigned-java-backend").unwrap();
@@ -40,6 +47,11 @@ fn installation_and_upgrade_use_current_three_courses_without_content_downloads_
         Ok(molip_quest::lesson_registry::by_revision(&r.revision).unwrap().lesson.to_owned())
     }).unwrap();
     store.apply(&stale).unwrap();
+    // Old app caches have no source marker. They must still migrate to the current bundle.
+    let cache=molip_quest::data_dir().unwrap().join("content-snapshots").join(format!("{:x}.json",Sha256::digest(current.repository.as_bytes())));
+    let mut legacy_cache:serde_json::Value=serde_json::from_slice(&std::fs::read(&cache).unwrap()).unwrap();
+    legacy_cache.as_object_mut().unwrap().remove("remote");
+    std::fs::write(&cache,serde_json::to_vec(&legacy_cache).unwrap()).unwrap();
     let key=molip_quest::issue_progress::ProgressKey{user_id:987654321,course_id:current.id.clone(),lesson_id:existing.id.clone()};
     let task_id=stale.lesson(&old_course.lessons.iter().find(|r|r.id==existing.id).unwrap()).unwrap().tasks[0].id.clone();
     let scope=molip_quest::drafts::repository_scope(&key,molip_quest::issue_progress::StudyMode::Full,&task_id);
@@ -52,6 +64,18 @@ fn installation_and_upgrade_use_current_three_courses_without_content_downloads_
     assert_eq!(active.lesson(existing).unwrap().tasks[0].id,task_id,"progress resource codes must remain stable");
     assert_eq!(molip_quest::drafts::load(&scope).unwrap().unwrap().code,"learner's own code");
     assert_eq!(github.installed_course(&current.repository).unwrap(),repaired,"reopening must remain current");
+    // A newly published remote manifest is authoritative and survives reopening/app upgrade.
+    let mut updated:serde_json::Value=serde_json::from_str(molip_quest::bundled_courses::course_source(&current.repository).unwrap()).unwrap();
+    updated["title"]="Remote updated course".into();
+    let next=molip_quest::bundled_courses::prepare_update(&store,&current.repository,&updated.to_string(),|r|Ok(molip_quest::bundled_courses::lesson_source(r).unwrap().into())).unwrap();
+    assert!(next.is_remote());store.apply(&next).unwrap();
+    assert_eq!(github.installed_course(&current.repository).unwrap().title,"Remote updated course");
+    assert_eq!(github.course(&current.repository).unwrap(),*next.course());
+    let legacy=include_str!("fixtures/published-course-baselines/java-backend.json");
+    assert_eq!(molip_quest::bundled_courses::prepare_update(&store,&current.repository,legacy,|_|panic!("old download")).unwrap().fingerprint(),next.fingerprint());
+    updated["lessons"][0]["sha256"]="0".repeat(64).into();
+    assert!(molip_quest::bundled_courses::prepare_update(&store,&current.repository,&updated.to_string(),|r|Ok(molip_quest::lesson_registry::by_revision(&r.revision).unwrap().lesson.into())).is_err());
+    assert_eq!(store.active(&current.repository).unwrap().unwrap().fingerprint(),next.fingerprint());
     // The existing snapshot API and non-default courses remain separate.
     let other=SnapshotStore::new(directory.path().join("other"));
     assert!(other.active("teacher/extra-course").unwrap().is_none());

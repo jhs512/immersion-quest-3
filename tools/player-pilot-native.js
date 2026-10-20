@@ -127,6 +127,14 @@
     }
     checked.push('repeated task transitions keep editor input bound to the selected task');
     await click('초기화');
+    const submissionFrames = [];
+    const submissionObserver = new MutationObserver(() => {
+      const dialog = document.querySelector('.submission-progress-dialog');
+      if (!dialog) return;
+      const rect = dialog.getBoundingClientRect();
+      submissionFrames.push({text:dialog.textContent,centered:Math.abs(rect.x+rect.width/2-innerWidth/2)<3 && Math.abs(rect.y+rect.height/2-innerHeight/2)<3});
+    });
+    submissionObserver.observe(document.body,{subtree:true,childList:true,characterData:true});
     await click('제출');
     await wait(() => status('다시 풀어보세요'), 'wrong answer rejected');
     await writeCode('// 결과를 확인해요.\nconsole.log(3);\n', '값 3 확인');
@@ -134,6 +142,10 @@
     await wait(() => document.querySelector('.output')?.textContent.trim() === '3', 'real Node execution');
     await click('제출');
     await wait(() => status('통과했어요'), 'correct answer accepted');
+    await wait(() => !document.querySelector('.submission-progress-dialog'), 'submission overlay closes');
+    if (!submissionFrames.some(frame=>frame.text.includes('답안 검사')) || !submissionFrames.every(frame=>frame.centered)) throw new Error('Submission progress was missing or not centered');
+    submissionObserver.disconnect();
+    await wait(()=>document.querySelector('.study-navigation button.selected.completed .step-completed-badge')?.textContent==='완료','selected completed badge');
     checked.push('real execution, grading and isolated progress');
     await click('초기화');
     await wait(() => molipCodeEditors.getValue()?.includes('console.log(0)'), 'reset');
@@ -145,7 +157,7 @@
     checked.push('reset and step context');
     await click('버전 e');
     await wait(() => document.querySelector('.lesson-card')?.textContent.includes('pilot-e'), 'wording-only snapshot');
-    await wait(() => document.querySelector('.lesson-status')?.textContent.includes('최신 버전 완료'), 'catalog stable completion');
+    await wait(() => document.querySelector('.lesson-card')?.textContent.includes('100% 완료'), 'catalog stable completion');
     if (!document.querySelector('.study-progress')?.textContent.includes('1 / 1')) throw new Error('Catalog lost current completion');
     checked.push('catalog retains completion after wording-only revision');
     await click('버전 b');
@@ -325,7 +337,8 @@
     if (buttons().some(item => item.textContent.includes('값 8 확인'))) throw new Error('Candidate applied without consent');
     document.querySelector('.content-update-controls aside button').click();
     await wait(() => !document.querySelector('.content-update-controls aside'), 'content notice dismissed');
-    document.querySelector('[aria-label="수업 업데이트 적용"]').click();
+    if(molipCodeEditors.getValue()!=='console.log(99);')throw new Error('Pending auto update changed the active answer');
+    await click('← 코스 수업 목록');
     await wait(() => document.querySelector('.lesson-card')?.textContent.includes('pilot-g'), 'atomic G installation');
     document.querySelector('.content-update-controls>details').open=true;
     await click('변경 이력');
@@ -345,7 +358,7 @@
     await click('학습 시작');
     await wait(() => molipCodeEditors.getValue() === 'console.log(99);', 'draft survives content update');
     if (!document.querySelector('.study-progress').textContent.includes('3 / 4')) throw new Error('Content update lost old achievement or passed new step');
-    checked.push('atomic content update, rejected hash, explicit apply, additional learning and recoverable student backup');
+    checked.push('automatic content update on return to catalog, active answer held, rejected hash, additional learning and recoverable student backup');
     await click('← 코스 수업 목록');
     await click('검증 캐시 지우기');
     await click('코스 추가·만들기');

@@ -39,25 +39,32 @@ impl Github {
         String::from_utf8(bytes).map_err(|_|"수업 파일은 UTF-8이어야 해요.".into())
     }
     pub fn course(&self,repository:&str)->Result<CourseManifest,String> {
-        if let Some(raw)=crate::bundled_courses::course_source(repository){return CourseManifest::parse(raw)}
+        if let Some(raw)=crate::bundled_courses::course_source(repository){
+            if let Some(active)=crate::content_updates::installed_store()?.active(repository)? {return Ok(active.course().clone())}
+            return CourseManifest::parse(raw)
+        }
         let course=CourseManifest::parse(&self.content(repository,"main","course.json")?)?;
         if course.repository!=repository {return Err("코스의 저장소 식별자가 맞지 않아요.".into())}
         Ok(course)
     }
     pub fn prepare_course(&self,repository:&str)->Result<crate::content_updates::Snapshot,String> {
-        if let Some(snapshot)=crate::bundled_courses::prepare(&crate::content_updates::installed_store()?,repository)?{return Ok(snapshot)}
         let raw=self.content(repository,"main","course.json")?;
-        crate::content_updates::installed_store()?.prepare(repository,&raw,|reference|self.content(&reference.repository,&reference.revision,"lesson.json"))
+        crate::bundled_courses::prepare_update(&crate::content_updates::installed_store()?,repository,&raw,|reference|{
+            if let Some(raw)=crate::bundled_courses::lesson_source(reference){return Ok(raw.to_owned())}
+            self.content(&reference.repository,&reference.revision,"lesson.json")
+        })
     }
     pub fn installed_course(&self,repository:&str)->Result<CourseManifest,String> {
         let store=crate::content_updates::installed_store()?;
+        let active=store.active(repository)?;
+        if let Some(current)=active.as_ref().filter(|snapshot|snapshot.is_remote()){return Ok(current.course().clone())}
         if let Some(snapshot)=crate::bundled_courses::prepare(&store,repository)? {
-            if !store.active(repository)?.is_some_and(|current|current.fingerprint()==snapshot.fingerprint()){
+            if !active.as_ref().is_some_and(|current|current.fingerprint()==snapshot.fingerprint()){
                 store.apply(&snapshot)?;
             }
             return Ok(snapshot.course().clone())
         }
-        if let Some(snapshot)=store.active(repository)? {return Ok(snapshot.course().clone())}
+        if let Some(snapshot)=active {return Ok(snapshot.course().clone())}
         let snapshot=self.prepare_course(repository)?;
         store.apply(&snapshot)?;
         Ok(snapshot.course().clone())

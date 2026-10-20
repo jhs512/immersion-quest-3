@@ -46,9 +46,9 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
         }
     });
     let update_key=format!("{}:{}",course().map(|course|course.repository).unwrap_or_default(),session().map(|s|s.user.id).unwrap_or(0));
-    let updates=rsx! {ContentUpdates {key:"{update_key}",session:session(),course:course(),onapply:move |manifest:CourseManifest|{
-        document::eval("window.molipAgent?.stop()");
-        open.set(None); course.set(Some(manifest)); refresh+=1;
+    let updates=rsx! {ContentUpdates {key:"{update_key}",session:session(),course:course(),active_lesson:open,onapply:move |(manifest,automatic):(CourseManifest,bool)|{
+        if !automatic {document::eval("window.molipAgent?.stop()");open.set(None);}
+        course.set(Some(manifest)); refresh+=1;
     }}};
     let visible_course=course().map(|manifest|molip_quest::course_visibility::for_account(
         manifest,&session().map(|s|s.user.login).unwrap_or_default()));
@@ -246,7 +246,7 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
                 if selected.mode==StudyMode::Full {
                     for (index,section) in selected.lesson.sections.iter().enumerate() {button {class:if section_index()==index {"selected"}else{""},aria_current:if section_index()==index {"step"}else{"false"},onclick:{let record_view=record_view.clone();move |_|record_view(index)},"{section.title}"}}
                 }
-                for (index,task) in selected.lesson.tasks.iter().enumerate() {button {class:if view.as_ref().is_some_and(|t|t.id==task.id){"selected"}else{""},aria_current:if view.as_ref().is_some_and(|t|t.id==task.id){"step"}else{"false"},onclick:move |_|{task_index.set(index);section_index.set(usize::MAX);},if passed.contains(&task.id){"✓ "}if !task.required{"도전 · "}"문제 {index+1} · {task.title}"}}
+                for (index,task) in selected.lesson.tasks.iter().enumerate() {button {class:match (view.as_ref().is_some_and(|t|t.id==task.id),passed.contains(&task.id)){(true,true)=>"selected completed",(true,false)=>"selected",(false,true)=>"completed",_=>""},"data-completed":passed.contains(&task.id).to_string(),aria_current:if view.as_ref().is_some_and(|t|t.id==task.id){"step"}else{"false"},onclick:move |_|{task_index.set(index);section_index.set(usize::MAX);},if passed.contains(&task.id){"✓ "}if !task.required{"도전 · "}"문제 {index+1} · {task.title}" if passed.contains(&task.id){span {class:"step-completed-badge","완료"}}}}
             }
             if let Some(task)=view {
                 RepositoryTask {key:"{selected.round}:{task.id}",session:session.clone(),selected:selected.clone(),task,events,
@@ -306,6 +306,8 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
 
     let mut show_solution=use_signal(||false);
     let mut passed_dialog=use_signal(||false);
+    let mut submitting=use_signal(||false);
+    let mut submit_stage=use_signal(||0usize);
     use_drop(||{document::eval("window.molipAgent?.stop()");});
     let mut history_saves=use_signal(||0usize);
     let mut history_message=use_signal(String::new);
@@ -427,10 +429,10 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                     }}},"코드 실행"}
                     }
                     button {class:"primary","data-shortcut-action":"submit","data-enter-submit":"true",disabled:busy()||narrating()||(task.git_terminal.is_some()&&git_practice().is_none()),onclick:{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();move |_|{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();async move {
-                        busy.set(true);feedback.set("checking");execution_state.set("idle");output.set(String::new());message.set("검사하고 있어요.".into());let gh=session.github.clone();let uid=session.user.id;
+                        submitting.set(true);submit_stage.set(0);busy.set(true);feedback.set("checking");execution_state.set("idle");output.set(String::new());message.set("검사하고 있어요.".into());let gh=session.github.clone();let uid=session.user.id;
                         let authenticated=github_player::background(move||gh.ensure_user(uid)).await;
                         match authenticated {
-                            Err(e)=>{feedback.set("error");message.set(e);},Ok(())=>match if task.git_terminal.as_ref().is_some_and(|e|e.java_build.is_some()) {
+                            Err(e)=>{feedback.set("error");message.set(e);},Ok(())=>{submit_stage.set(1);match if task.git_terminal.as_ref().is_some_and(|e|e.java_build.is_some()) {
                                 let practice=git_practice();let answer=code();let interaction=task.interaction.clone();
                                 github_player::background(move||{
                                     let practice=practice.ok_or("실습 터미널이 준비되지 않았어요.")?;
@@ -450,6 +452,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                                     feedback.set(if report.passed{"passed"}else{"incorrect"});
                                     message.set(if report.passed{"통과했어요. 진도를 저장하고 있어요."}else{"다시 풀어보세요. 아래 검사에서 예상과 실제 결과를 비교하세요."}.into());
                                     output.set(report.cases.iter().enumerate().map(|(i,c)|format!("검사 {} · {}\n입력: {}\n예상: {}\n결과: {}\n{}",i+1,if c.passed{"통과"}else{"다시 풀기"},c.input,c.expected,c.stdout,c.stderr)).collect::<Vec<_>>().join("\n\n"));
+                                    submit_stage.set(2);
                                     let key=ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()};
                                     let mut event=LearningEvent::new(key.clone(),&selected.lesson.revision,selected.mode,&selected.round,EventKind::Attempt);event.task_id=Some(task.id.clone());event.passed=report.passed;
                                     let github=session.github.clone();let user=session.user.clone();let repo=selected.course.repository.clone();let title=selected.lesson.title.clone();
@@ -459,6 +462,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                                             let passed=issue_progress::learned_tasks(&latest,&selected.lesson.revision);
                                             let complete=required.iter().all(|id|passed.contains(id));
                                             if report.passed && complete && !latest.iter().any(|e|e.kind==EventKind::Completed&&e.round==selected.round) {
+                                                submit_stage.set(3);
                                                 let mut done=LearningEvent::new(key,&selected.lesson.revision,selected.mode,&selected.round,EventKind::Completed);done.required=required;
                                                 let gh=session.github.clone();let user=session.user.clone();let repo=selected.course.repository.clone();let title=selected.lesson.title.clone();
                                                 match github_player::background(move||gh.append(&repo,&user,&title,&done)).await {
@@ -470,7 +474,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                                     }
                                 }
                             }
-                        }busy.set(false);
+                        }}busy.set(false);submitting.set(false);
                     }}},"제출"}
                 }
             }
@@ -529,10 +533,35 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
             }
             }
         }
-        if passed_dialog() {
+        if submitting() {SubmissionProgress {stage:submit_stage()}}
+        if passed_dialog() && !submitting() {
             TaskPassedDialog {has_next,
                 onnext:move |_|{passed_dialog.set(false);onnext.call(());},
                 onstay:move |_|{passed_dialog.set(false);document::eval("document.querySelector('.repository-task .primary')?.focus()");}}
+        }
+    }
+}
+
+#[component]
+fn SubmissionProgress(stage:usize)->Element {
+    let labels=["계정을 확인하고 있어요.","답안을 검사하고 있어요.","진도를 저장하고 있어요.","수업 완료를 기록하고 있어요."];
+    rsx! {
+        div {class:"submission-progress-backdrop",
+            section {class:"submission-progress-dialog",role:"dialog",aria_modal:"true",aria_label:"답안 제출 중",aria_busy:"true",tabindex:-1,
+                onmounted:move |event|async move{let _=event.data().set_focus(true).await;},
+                onkeydown:move |event|{event.prevent_default();event.stop_propagation();},
+                span {class:"execution-spinner",aria_hidden:"true"}
+                h2 {"답안을 제출하고 있어요"}
+                p {role:"status",aria_live:"polite","{labels[stage.min(3)]}"}
+                ol {
+                    for (index,label) in ["계정 확인","답안 검사","진도 저장"].iter().enumerate() {
+                        li {class:if index<stage {"done"}else if index==stage{"current"}else{""},
+                            span {aria_hidden:"true",if index<stage {"✓"}else{"{index+1}"}}
+                            "{label}"
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -628,7 +657,7 @@ fn InteractiveVisualization(variants: Vec<molip_quest::supporting_materials::Vis
 
 
 #[component]
-fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,onapply:EventHandler<CourseManifest>)->Element {
+fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,active_lesson:Signal<Option<OpenLesson>>,onapply:EventHandler<(CourseManifest,bool)>)->Element {
     use molip_quest::{content_updates,updater};
     let mut candidate=use_signal(||None::<content_updates::Snapshot>);
     let mut offered=use_signal(||false);
@@ -637,6 +666,32 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,onapply:
     let mut applying=use_signal(||false);
     let mut noticed=use_signal(std::collections::HashSet::<String>::new);
     let mut summary=use_signal(String::new);
+    let mut auto_attempted=use_signal(||None::<String>);
+    let apply=use_callback({let session=session.clone();move |(next,automatic):(content_updates::Snapshot,bool)|{
+        let Some(session)=session.clone() else{return};
+        if applying(){return;} applying.set(true);
+        spawn(async move {
+            if !automatic {
+                let mut bridge=document::eval("window.molipAgent?.stop();requestAnimationFrame(()=>requestAnimationFrame(()=>dioxus.send(true)))");
+                if !matches!(bridge.recv::<bool>().await,Ok(true)) {message.set("해설을 닫고 다시 업데이트하세요.".into());applying.set(false);return;}
+            }
+            let manifest=next.course().clone();
+            let result=github_player::background(move||{
+                session.github.ensure_user(session.user.id)?;
+                molip_quest::drafts::backup_repository(session.user.id,&next.course().id,&next.fingerprint())?;
+                content_updates::installed_store()?.apply(&next)
+            }).await;
+            match result {Ok(())=>{candidate.set(None);offered.set(false);message.set("수업 내용을 업데이트했어요.".into());onapply.call((manifest,automatic));},Err(error)=>message.set(error)}
+            applying.set(false);
+        });
+    }});
+    use_effect(move||{
+        let next=candidate();let studying=active_lesson().is_some();let running=applying();
+        if !studying&&!running {if let Some(next)=next {
+            let fingerprint=next.fingerprint();
+            if auto_attempted.peek().as_ref()!=Some(&fingerprint) {auto_attempted.set(Some(fingerprint));apply.call((next,true));}
+        }}
+    });
     use_future({let session=session.clone();let course=course.clone();move ||{let session=session.clone();let course=course.clone();async move {
         let (Some(session),Some(course))=(session,course) else{return};
         let started=std::time::Instant::now();let mut schedule=updater::UpdateSchedule::default();let mut seen=0;
@@ -655,6 +710,7 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,onapply:
                 schedule.finish();
                 match result {
                     Ok(Some((next,changes)))=>{
+                        auto_attempted.set(None);
                         let notices=molip_quest::data_dir().map(|dir|dir.join("content-update-notices.json"));
                         let first=notices.and_then(|path|{let mut notices=updater::UpdateNotices::open(&path)?;notices.record(u64::from_str_radix(&next.fingerprint()[..16],16).expect("SHA256 prefix"))}).unwrap_or(true);
                         let first=first&&noticed.write().insert(next.fingerprint());
@@ -672,23 +728,6 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,onapply:
     let backup_user=session.as_ref().map(|session|session.user.id).unwrap_or(0);
     let backup_course=course.as_ref().map(|course|course.id.clone()).unwrap_or_default();
     let history_repository=course.as_ref().map(|course|course.repository.clone()).unwrap_or_default();
-    let apply=move |_|{
-        let Some(next)=candidate() else{return};let Some(session)=session.clone() else{return};
-        if applying(){return;} applying.set(true);
-        spawn(async move {
-            // Restore the student document before saving the update backup.
-            let mut bridge=document::eval("window.molipAgent?.stop();requestAnimationFrame(()=>requestAnimationFrame(()=>dioxus.send(true)))");
-            if !matches!(bridge.recv::<bool>().await,Ok(true)) {message.set("해설을 닫고 다시 업데이트하세요.".into());applying.set(false);return;}
-            let manifest=next.course().clone();
-            let result=github_player::background(move||{
-                session.github.ensure_user(session.user.id)?;
-                molip_quest::drafts::backup_repository(session.user.id,&next.course().id,&next.fingerprint())?;
-                content_updates::installed_store()?.apply(&next)
-            }).await;
-            match result {Ok(())=>{candidate.set(None);offered.set(false);onapply.call(manifest);},Err(error)=>message.set(error)}
-            applying.set(false);
-        });
-    };
     rsx! {div {class:"content-update-controls",
         details {summary {"수업 설정"}
             div {class:"content-update-menu",
@@ -698,7 +737,7 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,onapply:
             crate::change_history_ui::ChangeHistory {repository:history_repository}
             DraftBackups {user:backup_user,course:backup_course}
         if candidate().is_some() {
-            button {aria_label:"수업 업데이트 적용",disabled:applying(),onclick:apply,"↥ 수업 업데이트"}
+            button {aria_label:"수업 업데이트 적용",disabled:applying(),onclick:move |_|{if let Some(next)=candidate(){apply.call((next,false));}},"↥ 수업 업데이트"}
             if offered() {aside {role:"status",span {"새 수업 내용이 있어요."}button {onclick:move |_|offered.set(false),"닫기"}}}
         }
             }

@@ -16,6 +16,8 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
         let restart_phase=std::env::var("MOLIP_PILOT_SELF_TEST").ok().and_then(|mode|mode.strip_prefix("restart-").map(str::to_owned)).filter(|phase|matches!(phase.as_str(),"seed"|"reopen"));
         let script=if let Some(phase)=&restart_phase {
             format!("window.mq3RestartPhase={};{}",serde_json::to_string(phase).unwrap(),include_str!("../tools/player-pilot-restart.js"))
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("content-submit") {
+            include_str!("../tools/player-pilot-content-submit.js").to_owned()
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("invalid-order") {
             include_str!("../tools/player-pilot-invalid-order.js").to_owned()
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("vim-ready") {
