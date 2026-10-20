@@ -99,7 +99,22 @@ impl GitPractice {
         let Ok(token)=self.vim_token() else{return Ok(VimProgress{checks:config.checks.iter().map(|c|(c.label.clone(),false)).collect(),..Default::default()})};
         let raw=match std::fs::read_to_string(self.vim_path(&token,"jsonl")){Ok(s) if s.len()<=4_000_000=>s,Ok(_)=>return Err("Vim 상태 기록이 너무 많아요. 실습을 다시 여세요.".into()),Err(e) if e.kind()==std::io::ErrorKind::NotFound=>String::new(),Err(e)=>return Err(e.to_string())};
         let mut cursor=0;let mut latest=None;
-        for line in raw.lines(){let Ok(state)=serde_json::from_str::<VimState>(line) else{continue};if state.session!=token{continue;}if state.interactive&&config.checks.get(cursor).is_some_and(|c|c.state.matches(&state)){cursor+=1;}latest=Some(state);}
+        for line in raw.lines(){
+            let Ok(state)=serde_json::from_str::<VimState>(line) else{continue};
+            if state.session!=token{continue;}
+            if state.interactive {
+                // A write can prove both the resulting buffer and its saved state.
+                // Do not require a preceding change/timer event for stable facts.
+                // An action event itself still counts only once (e.g. two writes).
+                let mut event_used=false;
+                while let Some(check)=config.checks.get(cursor) {
+                    if (event_used&&check.state.event.is_some())||!check.state.matches(&state){break;}
+                    event_used|=check.state.event.is_some();
+                    cursor+=1;
+                }
+            }
+            latest=Some(state);
+        }
         let file_ok=if let Some(lines)=&config.final_file{std::fs::read_to_string(self.work().join("memo.txt")).is_ok_and(|s|s==lines.join("\n")+"\n")}else{true};
         Ok(VimProgress{state:latest,checks:config.checks.iter().enumerate().map(|(i,c)|(c.label.clone(),i<cursor)).collect(),passed:cursor==config.checks.len()&&file_ok})
     }

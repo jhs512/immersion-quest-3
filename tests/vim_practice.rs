@@ -78,3 +78,54 @@ fn unsaved_text_input_mode_and_cursor_survive_reopening() {
     send(&reopened,&mut editor,&mut output,"X");assert_eq!(reopened.vim_progress().unwrap().state.unwrap().lines,["임X시메모"]);
     reopened.prepare_terminal_shutdown().unwrap();editor.shutdown().unwrap();
 }
+
+#[test]
+fn step_six_accepts_typing_and_saving_without_waiting_between_actions() {
+    let lesson:Lesson=serde_json::from_str(include_str!("../courses/redesigned/vim-basics.json")).unwrap();
+    let practice=GitPractice::new(lesson.tasks[5].git_terminal.as_ref().unwrap().demonstration()).unwrap();
+    let (mut editor,mut output)=practice.open_terminal().unwrap();
+    wait(&practice,&mut editor,&mut output,|p|p.state.is_some());
+    send(&practice,&mut editor,&mut output,"I새 \x1b:w\r");
+    let state=wait(&practice,&mut editor,&mut output,|p|p.state.as_ref().is_some_and(|s|s.save_count>0));
+    assert!(state.passed,"rapid save must count all state goals: {state:?}");
+    assert_eq!(std::fs::read_to_string(practice.work().join("memo.txt")).unwrap(),"첫 메모\n새 둘째 메모\n");
+    practice.prepare_terminal_shutdown().unwrap();editor.shutdown().unwrap();
+}
+
+#[test]
+fn step_six_saved_content_does_not_require_a_separate_change_notification() {
+    let lesson:Lesson=serde_json::from_str(include_str!("../courses/redesigned/vim-basics.json")).unwrap();
+    let practice=GitPractice::new(lesson.tasks[5].git_terminal.as_ref().unwrap().demonstration()).unwrap();
+    let (mut editor,mut output)=practice.open_terminal().unwrap();
+    wait(&practice,&mut editor,&mut output,|p|p.state.is_some());
+    send(&practice,&mut editor,&mut output,"I새 \x1b:w\r");
+    wait(&practice,&mut editor,&mut output,|p|p.state.as_ref().is_some_and(|s|s.save_count>0));
+    practice.prepare_terminal_shutdown().unwrap();editor.shutdown().unwrap();
+    let token=std::fs::read_to_string(practice.root().join("vim-active-session")).unwrap();
+    let events=practice.root().join(format!("vim-{token}.jsonl"));
+    let log=std::fs::read_to_string(&events).unwrap();
+    // A completed write proves both the resulting text and that it was saved.
+    // No intermediate editor repaint or timer notification should be required.
+    let saves=log.lines().filter(|line|serde_json::from_str::<serde_json::Value>(line).unwrap()["event"]=="write").collect::<Vec<_>>();
+    assert_eq!(saves.len(),1);
+    std::fs::write(&events,saves.join("\n")+"\n").unwrap();
+    let report=practice.check_exercise().unwrap();
+    assert!(report.passed,"a correct saved file must satisfy both checks: {}",serde_json::to_string(&report).unwrap());
+}
+
+#[test]
+fn one_save_cannot_satisfy_two_required_write_actions() {
+    let lesson:Lesson=serde_json::from_str(include_str!("../courses/redesigned/vim-basics.json")).unwrap();
+    let mut exercise=lesson.tasks[5].git_terminal.as_ref().unwrap().demonstration();
+    let vim=exercise.vim.as_mut().unwrap();
+    let save=vim.checks[1].clone();vim.checks=vec![save.clone(),save];
+    let practice=GitPractice::new(exercise).unwrap();
+    let (mut editor,mut output)=practice.open_terminal().unwrap();
+    wait(&practice,&mut editor,&mut output,|p|p.state.is_some());
+    send(&practice,&mut editor,&mut output,"I새 \x1b:w\r");
+    let state=wait(&practice,&mut editor,&mut output,|p|p.state.as_ref().is_some_and(|s|s.save_count==1));
+    assert!(!state.passed,"one write is not two actions");
+    send(&practice,&mut editor,&mut output,":w\r");
+    wait(&practice,&mut editor,&mut output,|p|p.passed);
+    practice.prepare_terminal_shutdown().unwrap();editor.shutdown().unwrap();
+}
