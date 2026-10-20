@@ -15,7 +15,7 @@ fn actual_player_keeps_predictions_separate_from_attempts_and_teacher_runs() {
     let result:serde_json::Value=serde_json::from_str(&raw).unwrap();
     assert!(status.success()&&result["passed"]==true,"{result}");
     let store:serde_json::Value=serde_json::from_slice(&std::fs::read(session.directory().join("pilot-remote.json")).unwrap()).unwrap();
-    let events:Vec<_>=store["comments"].as_array().unwrap().iter().filter_map(|comment|molip_quest::issue_progress::parse_event(comment["body"].as_str().unwrap())).collect();
+    let events:Vec<_>=store["comments"].as_array().unwrap().iter().flat_map(|comment|molip_quest::issue_progress::parse_events(comment["body"].as_str().unwrap())).collect();
     let predicted:Vec<_>=events.iter().filter(|event|event.prediction.is_some()).collect();
     assert_eq!(predicted.len(),1,"Teacher runs must not write learner predictions");
     assert_eq!(predicted[0].prediction.as_deref(),Some("five"));

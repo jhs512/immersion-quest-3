@@ -44,6 +44,14 @@ pub fn new_id()->String {
     bytes.iter().map(|b|format!("{b:02x}")).collect()
 }
 pub fn marker(key:&ProgressKey)->String {format!("<!-- mq3-progress:{} -->",serde_json::to_string(key).expect("key"))}
+/// A comment can contain a whole hourly batch; legacy single-event comments remain readable.
+pub fn parse_events(body:&str)->Vec<LearningEvent> {
+    body.split("<!-- mq3-event:").skip(1).filter_map(|part|
+        serde_json::from_str(part.split(" -->").next()?).ok()).collect()
+}
+pub fn batch_comment(events:&[LearningEvent])->String {
+    format!("학습 기록 {}개를 모았어요.\n\n{}",events.len(),events.iter().map(LearningEvent::comment).collect::<Vec<_>>().join("\n\n"))
+}
 pub fn parse_event(body:&str)->Option<LearningEvent> { let text=body.split("<!-- mq3-event:").nth(1)?.split(" -->").next()?;serde_json::from_str(text).ok() }
 pub fn merge(events:impl IntoIterator<Item=LearningEvent>, key:&ProgressKey)->Vec<LearningEvent> {
     let mut seen=HashSet::new(); let mut result:Vec<_>=events.into_iter().filter(|e|e.key==*key && seen.insert(e.id.clone())).collect();

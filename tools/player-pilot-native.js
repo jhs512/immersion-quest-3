@@ -78,15 +78,14 @@
     const workspace = document.querySelector('.repository-study');
     const workspaceBounds=workspace.getBoundingClientRect();
     if(workspaceBounds.left < -1 || workspaceBounds.right > viewportWidth()+1 || workspaceBounds.width < viewportWidth()-2)throw new Error(`Practice width escapes viewport: ${JSON.stringify({left:workspaceBounds.left,right:workspaceBounds.right,width:workspaceBounds.width,viewport:innerWidth,root:document.documentElement.clientWidth,body:document.body.clientWidth})}`);
-    const paging = document.querySelector('.task-paging').getBoundingClientRect();
-    if (paging.bottom > innerHeight + 1) throw new Error(`Practice controls overflow: ${paging.bottom} > ${innerHeight}`);
+    if (document.querySelector('.task-paging')) throw new Error('Bottom paging bar wastes workspace');
     if (document.querySelector('.repository-task').getBoundingClientRect().height < 180) throw new Error('Workspace squeezed out by headers');
 
     for(const pane of document.querySelectorAll('.problem-pane,.result-pane')) {
       const scrollbar=getComputedStyle(pane,'::-webkit-scrollbar');
       if(scrollbar.width!==scrollbar.height)throw new Error('Scrollbar axes have different thickness');
     }
-    checked.push('normal window keeps task and previous/next controls inside viewport');
+    checked.push('normal window uses problem navigation without a bottom paging bar');
     const previousSplit = localStorage.getItem('molip:split');
     try {
       for (const [selector,key,pane,dimension] of [['.split-col','ArrowRight','.problem-pane','width'],['.split-row','ArrowUp','.editor-pane','height']]) {
@@ -110,9 +109,9 @@
     codeFocus.dispatchEvent(fullscreenKey());
     await wait(() => document.querySelector('#app-fullscreen-toggle').dataset.fullscreen === 'false','editor fullscreen return');
     await resizeWindow(480);
-    const shortPaging = document.querySelector('.task-paging');
-    shortPaging.scrollIntoView({block:'end'});
-    if (shortPaging.getBoundingClientRect().bottom > innerHeight + 1) throw new Error('Small window cannot scroll to previous/next');
+    const shortNavigation = document.querySelector('.study-navigation');
+    shortNavigation.scrollIntoView({block:'nearest'});
+    if (shortNavigation.getBoundingClientRect().bottom > innerHeight + 1) throw new Error('Small window cannot reach problem navigation');
     window.scrollTo(0,0);
     checked.push('native editor shortcut toggles window and short window controls remain scrollable');
 
@@ -317,7 +316,7 @@
     await wait(() => molipCodeEditors.getValue() === 'console.log(99);', 'draft survives reviewed authoring change');
     if (document.querySelector('.study-progress')?.textContent !== beforeReviewedProgress) throw new Error('Reviewed instruction changed student progress');
     if (document.body.textContent.includes('core_flow') || document.body.textContent.includes('synthetic-fixture-only')) throw new Error('Private authoring data leaked into lesson');
-    await click('다음 문제 →');
+    molipShortcuts.move('next');
     await wait(() => document.querySelector('.problem-pane')?.textContent.includes('다음 값을 출력해 보세요: 5'), 'unrelated step unchanged after review');
     checked.push('CLI-reviewed candidate renders changed instruction while preserving draft, progress and unrelated step');
     await click('버전 a');
@@ -443,7 +442,7 @@
     };
     const nextGit=async()=>{
       const previous=document.querySelector('.repository-task').dataset.taskId;
-      await click('다음 문제 →');
+      molipShortcuts.move('next');
       await wait(()=>document.querySelector('.repository-task')?.dataset.taskId!==previous,'next first Git step');
       await gitReady();
     };

@@ -16,7 +16,7 @@ fn approved_python_lesson_replays_from_canonical_state_and_preserves_edits() {
     assert!(status.success()&&result["passed"]==true,"{result}");
     assert_eq!(result["checked"].as_array().unwrap().len(),9,"Seven steps and two modified-answer replays");
     let store:serde_json::Value=serde_json::from_slice(&std::fs::read(session.directory().join("pilot-remote.json")).unwrap()).unwrap();
-    let events:Vec<_>=store["comments"].as_array().unwrap().iter().filter_map(|comment|molip_quest::issue_progress::parse_event(comment["body"].as_str().unwrap())).collect();
+    let events:Vec<_>=store["comments"].as_array().unwrap().iter().flat_map(|comment|molip_quest::issue_progress::parse_events(comment["body"].as_str().unwrap())).collect();
     use molip_quest::issue_progress::EventKind;
     let passed:std::collections::HashSet<_>=events.iter().filter(|event|event.kind==EventKind::Attempt&&event.passed).filter_map(|event|event.task_id.as_ref()).collect();
     assert_eq!(passed.len(),7);

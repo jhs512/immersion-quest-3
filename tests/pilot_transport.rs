@@ -53,4 +53,14 @@ fn production_github_loading_and_progress_use_only_the_isolated_pilot_store() {
     let after = github.events(&course.repository, &issue, &key).unwrap();
     assert_eq!(after.len(), before + 105);
 
+    let batch=(0..3).map(|_|LearningEvent::new(key.clone(),&lesson.revision,StudyMode::Full,"hourly",EventKind::Viewed)).collect::<Vec<_>>();
+    let raw=std::fs::read(pilot_source::data_dir().unwrap().join("pilot-remote.json")).unwrap();
+    let before_comments=serde_json::from_slice::<serde_json::Value>(&raw).unwrap()["comments"].as_array().unwrap().len();
+    let (_,remote)=github.append_batch(&course.repository,&user,&lesson.title,&batch).unwrap();
+    assert!(batch.iter().all(|event|remote.contains(event)));
+    github.append_batch(&course.repository,&user,&lesson.title,&batch).unwrap();
+    let raw=std::fs::read(pilot_source::data_dir().unwrap().join("pilot-remote.json")).unwrap();
+    let comments=serde_json::from_slice::<serde_json::Value>(&raw).unwrap();
+    assert_eq!(comments["comments"].as_array().unwrap().len(),before_comments+1,"whole batch posts once; lost-response retry must not duplicate it");
+
 }

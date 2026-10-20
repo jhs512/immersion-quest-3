@@ -48,7 +48,7 @@
     await click('제출');await wait(()=>status(index===pilot.tasks.length-1?'수업 완료':'통과했어요'),'goal after full reset');
    }
    checked.push(`remote step ${index+1}: actual Git state, independent explanation and progress`);
-   if(index<pilot.tasks.length-1)await click('다음 문제 →');
+   if(index<pilot.tasks.length-1)molipShortcuts.move('next');
   }
   dioxus.send({passed:true,checked,userAgent:navigator.userAgent,voiceListened:false});
  }catch(error){dioxus.send({passed:false,checked,error:String(error),terminalFailure:window.mq3GitDemoFailure,body:document.body.innerText.slice(-4000)});}

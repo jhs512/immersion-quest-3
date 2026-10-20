@@ -105,7 +105,7 @@
    if(pilot.requireHtml)await wait(()=>!document.querySelector('iframe[title="수업 웹 미리보기"]'),'reset clears student webpage');
    await click('제출');await wait(()=>status('다시 풀어보세요'),'reset task is unsolved');
    checked.push(`${pilot.label} step ${index+1}: teacher restoration, wrong answer, correct submission, independent reset`);
-   if(index<pilot.tasks.length-1)await click('다음 문제 →');
+   if(index<pilot.tasks.length-1)molipShortcuts.move('next');
   }
   dioxus.send({passed:true,checked,userAgent:navigator.userAgent,viewport:{width:innerWidth,height:innerHeight}});
  }catch(error){dioxus.send({passed:false,checked,error:String(error),screen:document.body.innerText.slice(0,6000)});}

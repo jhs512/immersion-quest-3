@@ -136,7 +136,7 @@ impl Github {
         for page in 1..=100 {
             let comments:Vec<Comment>=self.get(&format!("/repos/{repo}/issues/{}/comments?per_page=100&page={page}",issue.number))?;
             let end=comments.len()<100;
-            all.extend(comments.into_iter().filter(|c|c.user.id==key.user_id).filter_map(|c|issue_progress::parse_event(&c.body)));
+            all.extend(comments.into_iter().filter(|c|c.user.id==key.user_id).flat_map(|c|issue_progress::parse_events(&c.body)));
             if end {return Ok(issue_progress::merge(all,key))}
         }
         Err("학습 기록이 너무 많아요. 관리자에게 문의하세요.".into())
@@ -167,15 +167,20 @@ impl Github {
         crate::telemetry::observe_sync("progress.upload",vec![opentelemetry::KeyValue::new("course.id",event.key.course_id.clone()),opentelemetry::KeyValue::new("lesson.id",event.key.lesson_id.clone())],||self.append_inner(repo,user,title,event))
     }
     fn append_inner(&self,repo:&str,user:&GithubUser,title:&str,event:&LearningEvent)->Result<(Issue,Vec<LearningEvent>),String> {
+        self.append_batch(repo,user,title,std::slice::from_ref(event))
+    }
+    pub fn append_batch(&self,repo:&str,user:&GithubUser,title:&str,batch:&[LearningEvent])->Result<(Issue,Vec<LearningEvent>),String> {
+        let event=batch.first().ok_or("보낼 학습 기록이 없어요.")?;
         self.ensure_user(user.id)?;
-        if event.key.user_id!=user.id {return Err("다른 계정의 진도를 기록할 수 없어요.".into())}
+        if batch.iter().any(|e|e.key!=event.key)||event.key.user_id!=user.id {return Err("다른 계정의 진도를 기록할 수 없어요.".into())}
         let issue=if let Some(i)=self.find_issue(repo,user,&event.key)? {i} else {
             self.post(&format!("/repos/{repo}/issues"),json!({"title":format!("[진도] {title} · @{}",user.login),"body":issue_progress::summary(&event.key,title,&[])}))?
         };
         let mut events=self.events_remote(repo,&issue,&event.key)?;
-        if !events.iter().any(|e|e.id==event.id) {
-            let _:Value=self.post(&format!("/repos/{repo}/issues/{}/comments",issue.number),json!({"body":event.comment()}))?;
-            events.push(event.clone());
+        let missing=batch.iter().filter(|event|!events.iter().any(|e|e.id==event.id)).cloned().collect::<Vec<_>>();
+        if !missing.is_empty() {
+            let _:Value=self.post(&format!("/repos/{repo}/issues/{}/comments",issue.number),json!({"body":issue_progress::batch_comment(&missing)}))?;
+            events.extend(missing);
         }
         // Re-read includes concurrently appended comments; a summary never erases events.
         let latest=self.events_remote(repo,&issue,&event.key)?;

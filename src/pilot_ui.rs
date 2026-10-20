@@ -55,6 +55,10 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
                     }
                     if message["control"]=="resume-record"{if let Some(db)=progress_lock.take(){db.execute_batch("ROLLBACK").unwrap();}}
                     if message["control"]=="resume"{std::fs::remove_file(root.join("pilot-progress-blocked")).unwrap();}
+                    if message["control"]=="advance-hour" {
+                        let result=tokio::task::spawn_blocking(||molip_quest::progress_sync::ProgressStore::installed()?.flush_pilot_hour()).await;
+                        if !matches!(result,Ok(Ok(()))) {document::eval("window.mq3ExpectedUploadFailure=true");}
+                    }
                     let pending=if progress_lock.is_some(){0}else{molip_quest::progress_sync::ProgressStore::installed().unwrap().pending_count(987654321).unwrap()};
                     let attempts=std::fs::read_to_string(root.join("pilot-progress-attempts")).unwrap_or_default().lines().count();
                     document::eval(&format!("window.mq3ProgressStats={};",serde_json::json!({"token":message["token"],"pending":pending,"attempts":attempts,"running":molip_quest::progress_sync::is_syncing(987654321).unwrap()})));
@@ -67,8 +71,10 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
             _ => serde_json::json!({"passed":false,"error":"Native WebView test timed out or disconnected"}),
         };
         if let Ok(store)=molip_quest::progress_sync::ProgressStore::installed(){
-            let deadline=tokio::time::Instant::now()+std::time::Duration::from_secs(15);
-            while store.pending_count(987654321).unwrap_or(0)>0&&tokio::time::Instant::now()<deadline{tokio::time::sleep(std::time::Duration::from_millis(100)).await;}
+            // Existing native cases assert the final remote history. Advance their
+            // isolated collection window explicitly after the learner scenario.
+            tokio::time::sleep(std::time::Duration::from_millis(250)).await;
+            let _=tokio::task::spawn_blocking(move||store.flush_pilot_hour()).await;
         }
         let exit_preparation = tokio::task::spawn_blocking(molip_quest::setup_terminal::prepare_practice_exit).await;
         let result = if matches!(&exit_preparation, Ok(Ok(_))) { result } else {

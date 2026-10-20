@@ -14,7 +14,7 @@
   const bridge=document.querySelector('.answer-state-bridge');bridge.value='not-json';bridge.dispatchEvent(new Event('input',{bubbles:true}));
   await wait(()=>bad()&&document.querySelector('.execution-status')?.textContent.includes('실행할 조각을 먼저 골라요.'),'invalid answer diagnosis');
   await responsive();checked.push('invalid answer leaves the app responsive');
-  await click('← 이전 문제');await click('다음 문제 →');
+  molipShortcuts.move('previous');molipShortcuts.move('next');
   await wait(bad,'persisted invalid answer');await responsive();checked.push('reopened invalid saved answer remains responsive');
   await click('초기화');await wait(()=>!bad()&&document.querySelector('.answer-order'),'reset recovered');
   await responsive();checked.push('reset returns to the authored order');

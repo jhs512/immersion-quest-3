@@ -4,8 +4,10 @@ use crate::{
     issue_progress::{self, EventKind, LearningEvent, ProgressKey},
 };
 use rusqlite::{params, Connection, TransactionBehavior};
+#[cfg(test)]
+use std::collections::HashSet;
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashMap,
     path::{Path, PathBuf},
     sync::{Mutex, OnceLock},
     time::Duration,
@@ -63,6 +65,7 @@ struct Pending {
     title: String,
     event: LearningEvent,
 }
+const UPLOAD_INTERVAL: u64 = 3600;
 impl ProgressStore {
     pub fn new(path: &Path) -> Self {
         Self { path: path.into() }
@@ -82,7 +85,8 @@ impl ProgressStore {
           lesson_id TEXT NOT NULL, title TEXT NOT NULL, document TEXT NOT NULL,
           pending INTEGER NOT NULL, UNIQUE(repository,user_id,event_id));
           CREATE INDEX IF NOT EXISTS progress_pending ON progress_events(user_id,pending,sequence);
-          CREATE INDEX IF NOT EXISTS progress_scope ON progress_events(repository,user_id,course_id,lesson_id,sequence);").map_err(|e|e.to_string())?;
+          CREATE INDEX IF NOT EXISTS progress_scope ON progress_events(repository,user_id,course_id,lesson_id,sequence);
+          CREATE TABLE IF NOT EXISTS progress_upload_windows (repository TEXT NOT NULL,user_id TEXT NOT NULL,course_id TEXT NOT NULL,lesson_id TEXT NOT NULL,due_at INTEGER NOT NULL,PRIMARY KEY(repository,user_id,course_id,lesson_id));").map_err(|e|e.to_string())?;
         Ok(db)
     }
     fn insert(
@@ -179,6 +183,17 @@ impl ProgressStore {
             Self::insert(&tx, repo, title, item, true)?;
         }
         latest = updated;
+        tx.execute(
+            "INSERT OR IGNORE INTO progress_upload_windows VALUES(?1,?2,?3,?4,?5)",
+            params![
+                repo,
+                user.id.to_string(),
+                event.key.course_id,
+                event.key.lesson_id,
+                issue_progress::now().saturating_add(UPLOAD_INTERVAL)
+            ],
+        )
+        .map_err(|e| e.to_string())?;
         tx.commit().map_err(|e| e.to_string())?;
         Ok(issue_progress::merge(latest, &event.key))
     }
@@ -186,6 +201,7 @@ impl ProgressStore {
     fn next(&self, user_id: u64) -> Result<Option<Pending>, String> {
         self.next_except(user_id, &HashSet::new())
     }
+    #[cfg(test)]
     fn next_except(
         &self,
         user_id: u64,
@@ -234,16 +250,135 @@ impl ProgressStore {
             .open(self.path.with_extension(format!("sync-{}.lock", user.id)))
             .map_err(|e| e.to_string())?;
         lock.lock().map_err(|e| e.to_string())?;
-        self.flush(
-            user.id,
-            |item| {
-                github
-                    .append(&item.repository, user, &item.title, &item.event)
-                    .map(|(_, events)| events)
-            },
-            std::thread::sleep,
-        )
+        self.flush_batches(issue_progress::now(), user.id, |items| {
+            github
+                .append_batch(
+                    &items[0].repository,
+                    user,
+                    &items[0].title,
+                    &items.iter().map(|p| p.event.clone()).collect::<Vec<_>>(),
+                )
+                .map(|(_, events)| events)
+        })
     }
+    /// Native test harness only: advance the collection windows, never the app clock.
+    #[cfg(debug_assertions)]
+    pub fn flush_pilot_hour(&self) -> Result<(), String> {
+        if !crate::pilot_source::enabled()
+            || self.path != crate::data_dir()?.join("progress-events.sqlite3")
+        {
+            return Err("Only the isolated pilot outbox can advance its clock".into());
+        }
+        self.connection()?
+            .execute("UPDATE progress_upload_windows SET due_at=0", [])
+            .map_err(|e| e.to_string())?;
+        let github = Github::new();
+        let user = github.user()?;
+        self.send_pending(&github, &user)
+    }
+    fn flush_batches(
+        &self,
+        now: u64,
+        user_id: u64,
+        mut send: impl FnMut(&[Pending]) -> Result<Vec<LearningEvent>, String>,
+    ) -> Result<(), String> {
+        let mut db = self.connection()?;
+        // Old unsent outboxes also receive a persistent collection window.
+        db.execute("INSERT OR IGNORE INTO progress_upload_windows SELECT DISTINCT repository,user_id,course_id,lesson_id,?1 FROM progress_events WHERE user_id=?2 AND pending=1",params![now.saturating_add(UPLOAD_INTERVAL),user_id.to_string()]).map_err(|e|e.to_string())?;
+        let mut batches: Vec<Vec<Pending>> = vec![];
+        {
+            let tx = db
+                .transaction_with_behavior(TransactionBehavior::Immediate)
+                .map_err(|e| e.to_string())?;
+            let mut query=tx.prepare("SELECT e.repository,e.title,e.document FROM progress_events e JOIN progress_upload_windows w USING(repository,user_id,course_id,lesson_id) WHERE e.user_id=?1 AND e.pending=1 AND w.due_at<=?2 ORDER BY e.sequence").map_err(|e|e.to_string())?;
+            let rows = query
+                .query_map(params![user_id.to_string(), now], |r| {
+                    Ok((
+                        r.get::<_, String>(0)?,
+                        r.get::<_, String>(1)?,
+                        r.get::<_, String>(2)?,
+                    ))
+                })
+                .map_err(|e| e.to_string())?;
+            for row in rows {
+                let (repository, title, raw) = row.map_err(|e| e.to_string())?;
+                let event: LearningEvent = serde_json::from_str(&raw).map_err(|e| e.to_string())?;
+                if let Some(group) = batches
+                    .iter_mut()
+                    .find(|g| g[0].repository == repository && g[0].event.key == event.key)
+                {
+                    group.push(Pending {
+                        repository,
+                        title,
+                        event,
+                    });
+                } else {
+                    batches.push(vec![Pending {
+                        repository,
+                        title,
+                        event,
+                    }]);
+                }
+            }
+            drop(query);
+            for group in &mut batches {
+                // GitHub caps comment size. The unsent tail stays queued for the next hour.
+                let mut size = 64;
+                let mut count = 0;
+                for item in group.iter() {
+                    let next = item.event.comment().len() + 2;
+                    if size + next > 60_000 {
+                        break;
+                    }
+                    size += next;
+                    count += 1;
+                }
+                group.truncate(count.max(1));
+                let first = &group[0];
+                tx.execute("UPDATE progress_upload_windows SET due_at=?5 WHERE repository=?1 AND user_id=?2 AND course_id=?3 AND lesson_id=?4",params![first.repository,user_id.to_string(),first.event.key.course_id,first.event.key.lesson_id,now.saturating_add(UPLOAD_INTERVAL)]).map_err(|e|e.to_string())?;
+            }
+            tx.commit().map_err(|e| e.to_string())?;
+        }
+        let mut failure = None;
+        let sending_started = std::time::Instant::now();
+        for group in batches {
+            // Reserve the hour before any network operation. A lost response or restart
+            // cannot cause a new batch to be published within the same hour.
+            match send(&group) {
+                Ok(remote) => {
+                    if let Err(e) = self.acknowledge_batch(&group, &remote) {
+                        failure = Some(e);
+                    }
+                }
+                Err(e) => failure = Some(e),
+            }
+            let first = &group[0];
+            // A slow request must not shorten the interval after its actual write.
+            db.execute("UPDATE progress_upload_windows SET due_at=MAX(due_at,?5) WHERE repository=?1 AND user_id=?2 AND course_id=?3 AND lesson_id=?4",params![first.repository,user_id.to_string(),first.event.key.course_id,first.event.key.lesson_id,now.saturating_add(sending_started.elapsed().as_secs()).saturating_add(UPLOAD_INTERVAL)]).map_err(|e|e.to_string())?;
+        }
+        failure.map_or(Ok(()), Err)
+    }
+
+    fn acknowledge_batch(&self, items: &[Pending], remote: &[LearningEvent]) -> Result<(), String> {
+        if !items
+            .iter()
+            .all(|item| remote.iter().any(|e| e == &item.event))
+        {
+            return Err("저장한 학습 기록을 확인하지 못했어요.".into());
+        }
+        let first = &items[0];
+        let mut db = self.connection()?;
+        let tx = db.transaction().map_err(|e| e.to_string())?;
+        for event in remote.iter().filter(|e| e.key == first.event.key) {
+            Self::insert(&tx, &first.repository, "", event, false)?;
+        }
+        for item in items {
+            tx.execute("UPDATE progress_events SET pending=0 WHERE repository=?1 AND user_id=?2 AND event_id=?3",params![item.repository,item.event.key.user_id.to_string(),item.event.id]).map_err(|e|e.to_string())?;
+        }
+        tx.commit().map_err(|e| e.to_string())
+    }
+
+    #[cfg(test)]
     fn acknowledge(&self, item: &Pending, remote: &[LearningEvent]) -> Result<(), String> {
         // A response lost after POST is retried using the same immutable event id.
         if !remote.iter().any(|event| event == &item.event) {
@@ -257,6 +392,7 @@ impl ProgressStore {
         tx.execute("UPDATE progress_events SET pending=0 WHERE repository=?1 AND user_id=?2 AND event_id=?3",params![item.repository,item.event.key.user_id.to_string(),item.event.id]).map_err(|e|e.to_string())?;
         tx.commit().map_err(|e| e.to_string())
     }
+    #[cfg(test)]
     fn flush(
         &self,
         user_id: u64,
@@ -292,6 +428,7 @@ impl ProgressStore {
 #[derive(Default)]
 struct SyncState {
     running: bool,
+    waiting: bool,
     requested: u64,
 }
 fn workers() -> &'static Mutex<HashMap<(PathBuf, u64), SyncState>> {
@@ -304,7 +441,7 @@ pub fn is_syncing(user_id: u64) -> Result<bool, String> {
         .lock()
         .unwrap_or_else(|e| e.into_inner())
         .get(&(store.path, user_id))
-        .is_some_and(|state| state.running))
+        .is_some_and(|state| state.running && !state.waiting))
 }
 /// Process-owned, so leaving a problem/lesson cannot cancel an upload.
 pub fn synchronize(github: Github, user: GithubUser) -> Result<(), String> {
@@ -327,11 +464,24 @@ pub fn synchronize(github: Github, user: GithubUser) -> Result<(), String> {
             if let Err(error) = store.send_pending(&github, &user) {
                 eprintln!("Progress upload deferred: {error}");
             }
-            let mut workers = workers().lock().unwrap_or_else(|e| e.into_inner());
-            let state = workers.get_mut(&key).unwrap();
-            if state.requested == generation {
-                state.running = false;
-                break;
+            let pending = store.pending_count(user.id).unwrap_or(1) > 0;
+            {
+                let mut workers = workers().lock().unwrap_or_else(|e| e.into_inner());
+                let state = workers.get_mut(&key).unwrap();
+                if !pending && state.requested == generation {
+                    state.running = false;
+                    state.waiting = false;
+                    break;
+                }
+                state.waiting = true;
+            }
+            std::thread::sleep(Duration::from_secs(30));
+            if let Some(state) = workers()
+                .lock()
+                .unwrap_or_else(|e| e.into_inner())
+                .get_mut(&key)
+            {
+                state.waiting = false;
             }
         })
     {
@@ -349,6 +499,154 @@ pub fn synchronize(github: Github, user: GithubUser) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    fn due(store: &ProgressStore, at: u64) {
+        store
+            .connection()
+            .unwrap()
+            .execute("UPDATE progress_upload_windows SET due_at=?1", [at])
+            .unwrap();
+    }
+    #[test]
+    fn hourly_batches_wait_collect_and_survive_reopening() {
+        let (root, store, user) = setup();
+        for task in ["a", "b"] {
+            store
+                .record("owner/course", &user, "Lesson", &attempt(7, task), &[])
+                .unwrap();
+        }
+        due(&store, 3600);
+        store
+            .flush_batches(3599, 7, |_| panic!("too early"))
+            .unwrap();
+        assert_eq!(store.pending_count(7).unwrap(), 2);
+        let mut calls = 0;
+        store
+            .flush_batches(3600, 7, |batch| {
+                calls += 1;
+                assert_eq!(batch.len(), 2);
+                Ok(batch.iter().map(|i| i.event.clone()).collect())
+            })
+            .unwrap();
+        assert_eq!(calls, 1);
+        let event = attempt(7, "c");
+        store
+            .record("owner/course", &user, "Lesson", &event, &[])
+            .unwrap();
+        let reopened = ProgressStore::new(&root.path().join("progress.sqlite3"));
+        reopened
+            .flush_batches(7199, 7, |_| panic!("restart must not bypass the hour"))
+            .unwrap();
+        reopened
+            .flush_batches(7200, 7, |batch| {
+                assert_eq!(batch.len(), 1);
+                assert_eq!(batch[0].event, event);
+                Ok(vec![event.clone()])
+            })
+            .unwrap();
+        assert_eq!(reopened.pending_count(7).unwrap(), 0);
+    }
+    #[test]
+    fn failed_or_lost_response_preserves_queue_and_does_not_burst_retry() {
+        let (_root, store, user) = setup();
+        let event = attempt(7, "a");
+        store
+            .record("owner/course", &user, "Lesson", &event, &[])
+            .unwrap();
+        due(&store, 100);
+        assert!(store
+            .flush_batches(100, 7, |_| Err("response lost".into()))
+            .is_err());
+        assert_eq!(store.pending_count(7).unwrap(), 1);
+        store
+            .flush_batches(3699, 7, |_| panic!("no immediate retry"))
+            .unwrap();
+        store
+            .flush_batches(3700, 7, |batch| {
+                assert_eq!(batch[0].event, event);
+                Ok(vec![event.clone()])
+            })
+            .unwrap();
+        assert_eq!(store.pending_count(7).unwrap(), 0);
+    }
+    #[test]
+    fn records_added_during_upload_remain_queued_until_next_hour() {
+        let (_root, store, user) = setup();
+        let first = attempt(7, "a");
+        store
+            .record("owner/course", &user, "Lesson", &first, &[])
+            .unwrap();
+        due(&store, 100);
+        store
+            .flush_batches(100, 7, |batch| {
+                let second = attempt(7, "b");
+                store
+                    .record("owner/course", &user, "Lesson", &second, &[])
+                    .unwrap();
+                Ok(batch.iter().map(|p| p.event.clone()).collect())
+            })
+            .unwrap();
+        assert_eq!(store.pending_count(7).unwrap(), 1);
+        store
+            .flush_batches(101, 7, |_| {
+                panic!("new event must not create another update")
+            })
+            .unwrap();
+        assert_eq!(store.events("owner/course", &first.key).unwrap().len(), 2);
+    }
+    #[test]
+    fn hourly_batch_comments_keep_all_events_and_legacy_comments_readable() {
+        let events = vec![attempt(7, "a"), attempt(7, "b")];
+        assert_eq!(
+            issue_progress::parse_events(&issue_progress::batch_comment(&events)),
+            events
+        );
+        assert_eq!(
+            issue_progress::parse_events(&events[0].comment()),
+            vec![events[0].clone()]
+        );
+        assert!(issue_progress::parse_events("<!-- mq3-event:bad -->").is_empty());
+    }
+    #[test]
+    fn a_shared_lesson_in_two_courses_has_independent_history_and_batches() {
+        let (_root, store, user) = setup();
+        let first = attempt(7, "shared-step");
+        let mut second = attempt(7, "shared-step");
+        second.key.course_id = "second-course".into();
+        second.passed = false;
+        store
+            .record("owner/course", &user, "Shared lesson", &first, &[])
+            .unwrap();
+        store
+            .record("owner/course", &user, "Shared lesson", &second, &[])
+            .unwrap();
+        assert_eq!(
+            issue_progress::learned_tasks(
+                &store.events("owner/course", &first.key).unwrap(),
+                "revision"
+            )
+            .len(),
+            1
+        );
+        assert_eq!(
+            issue_progress::learned_tasks(
+                &store.events("owner/course", &second.key).unwrap(),
+                "revision"
+            )
+            .len(),
+            0
+        );
+        due(&store, 100);
+        let mut courses = vec![];
+        store
+            .flush_batches(100, 7, |batch| {
+                assert_eq!(batch.len(), 1);
+                courses.push(batch[0].event.key.course_id.clone());
+                Ok(batch.iter().map(|i| i.event.clone()).collect())
+            })
+            .unwrap();
+        courses.sort();
+        assert_eq!(courses, ["course", "second-course"]);
+    }
     fn setup() -> (tempfile::TempDir, ProgressStore, GithubUser) {
         let root = tempfile::tempdir().unwrap();
         let store = ProgressStore::new(&root.path().join("progress.sqlite3"));

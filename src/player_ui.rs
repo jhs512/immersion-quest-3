@@ -251,18 +251,14 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
                 if selected.mode==StudyMode::Full {
                     for (index,section) in selected.lesson.sections.iter().enumerate() {button {class:if section_index()==index {"selected"}else{""},aria_current:if section_index()==index {"step"}else{"false"},onclick:{let record_view=record_view.clone();move |_|record_view(index)},"{section.title}"}}
                 }
-                for (index,task) in selected.lesson.tasks.iter().enumerate() {button {class:match (view.as_ref().is_some_and(|t|t.id==task.id),passed.contains(&task.id)){(true,true)=>"selected completed",(true,false)=>"selected",(false,true)=>"completed",_=>""},"data-completed":passed.contains(&task.id).to_string(),aria_current:if view.as_ref().is_some_and(|t|t.id==task.id){"step"}else{"false"},onclick:move |_|{task_index.set(index);section_index.set(usize::MAX);},if passed.contains(&task.id){"✓ "}if !task.required{"도전 · "}"문제 {index+1} · {task.title}" if passed.contains(&task.id){span {class:"step-completed-badge","완료"}}}}
+                for (index,task) in selected.lesson.tasks.iter().enumerate() {button {class:match (view.as_ref().is_some_and(|t|t.id==task.id),passed.contains(&task.id)){(true,true)=>"selected completed",(true,false)=>"selected",(false,true)=>"completed",_=>""},"data-completed":passed.contains(&task.id).to_string(),"data-step-id":task.id.clone(),aria_current:if view.as_ref().is_some_and(|t|t.id==task.id){"step"}else{"false"},onclick:move |_|{task_index.set(index);section_index.set(usize::MAX);},if passed.contains(&task.id){"✓ "}if !task.required{"도전 · "}"문제 {index+1} · {task.title}" if passed.contains(&task.id){span {class:"step-completed-badge","완료"}}}}
             }
             if let Some(task)=view {
                 RepositoryTask {key:"{selected.round}:{task.id}",session:session.clone(),selected:selected.clone(),task,events,
                     has_next:task_index()+1<task_count,
                     onnext:move |_|{if task_index()+1<task_count{task_index+=1;}else{onback.call(());}},
                     onrecord:move |new_events:Vec<LearningEvent>|{if let Some(first)=new_events.first(){let key=first.key.clone();events.set(issue_progress::merge(events().into_iter().chain(new_events),&key));}}}
-                div {class:"task-paging",
-                    button {"data-shortcut-action":"previous",disabled:task_index()==0,onclick:move |_|{task_index-=1;},"← 이전 문제"}
-                    span {"문제 {task_index()+1} / {selected.lesson.tasks.len()}"}
-                    button {"data-shortcut-action":"next","data-enter-next":"true",disabled:task_index()+1>=selected.lesson.tasks.len(),onclick:move |_|{task_index+=1;},"다음 문제 →"}
-                }
+
             } else {
                 article {class:"card repository-reading",
                     h2 {"{selected.lesson.sections[section_index()].title}"}

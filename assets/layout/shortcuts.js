@@ -27,6 +27,14 @@
     if (taskBusy()) return false;
     const b = document.querySelector(`[data-shortcut-action="${direction}"]`);
     if (b) { if (b.disabled) return false; b.click(); return true; }
+    const steps = [...document.querySelectorAll('.study-navigation [data-step-id]')];
+    const task = document.querySelector('.repository-task');
+    const current = steps.findIndex(step => step.dataset.stepId === task?.dataset.taskId);
+    if (task && current >= 0) {
+      const target = steps[current + (direction === 'next' ? 1 : -1)];
+      if (!target || target.disabled) return false;
+      target.click(); return true;
+    }
     return clickId(direction === 'next' ? 'shortcut-next-mission' : 'shortcut-prev-mission');
   }
   function toggleCurriculum() {
@@ -157,5 +165,5 @@
       else if (move('next')) { event.preventDefault(); event.stopPropagation(); }
     }
   }, {capture: true});
-  globalThis.molipShortcuts = {bindings, toggleFullscreen, isFullscreen, toggleSheet, toggleCurriculum, runKey: bindings.run.label, submitKey: bindings.submit.label, mod: MOD};
+  globalThis.molipShortcuts = {move, bindings, toggleFullscreen, isFullscreen, toggleSheet, toggleCurriculum, runKey: bindings.run.label, submitKey: bindings.submit.label, mod: MOD};
 })();
