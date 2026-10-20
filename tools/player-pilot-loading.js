@@ -67,6 +67,17 @@
   await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('git-first-1'),'Git lesson installed');
   await click('학습 시작');
   await wait(()=>document.querySelectorAll('.study-navigation button').length===6,'Git navigation');
+  // This lesson shares one real workspace: complete initialization and staging
+  // through the same PTY before navigating to the commit step.
+  await wait(()=>document.querySelector('.repository-task')?.dataset.gitReady==='true'&&window.mq3GitTerminal,'Git initialization ready');
+  const gitRun=async command=>{
+   const before=mq3GitTerminal.text();mq3GitTerminal.command(command);
+   await wait(()=>mq3GitTerminal.text()!==before&&/\$\s*$/.test(mq3GitTerminal.text()),command);
+  };
+  await gitRun('git init');await gitRun('echo "첫 메모" > memo.txt');
+  document.querySelectorAll('.study-navigation button')[1].click();
+  await wait(()=>document.querySelector('.study-navigation .selected')?.textContent.includes('문제 2')&&document.querySelector('.repository-task')?.dataset.gitReady==='true','Git staging ready');
+  await gitRun('git add memo.txt');
   document.querySelectorAll('.study-navigation button')[2].click();
   await wait(()=>document.querySelector('.study-navigation .selected')?.textContent.includes('문제 3')&&document.querySelector('.repository-task')?.dataset.gitReady==='true'&&document.querySelector('[aria-label="Git 실습 터미널 입력"]'),'Git commit exercise ready');
   await new Promise(r=>setTimeout(r,500));
