@@ -1,6 +1,7 @@
 #![cfg_attr(all(windows, not(debug_assertions)), windows_subsystem = "windows")]
 
 mod instructor_mode;
+mod emergency_report;
 mod practice;
 mod ui;
 mod player_ui;
@@ -18,7 +19,13 @@ use ui::Learning;
 #[cfg(feature = "desktop")]
 fn main() {
     let args:Vec<String>=std::env::args().collect();
+    if emergency_report::cli(&args){return;}
     if args.get(1).map(String::as_str)==Some("--mq-java-practice"){std::process::exit(molip_quest::git_practice::java_build_practice::command_cli(&args[2..]));}
+    if args.get(1).map(String::as_str)==Some("--export-telemetry") {
+        match molip_quest::telemetry::export_recent() {Ok(json)=>println!("{json}"),Err(error)=>{eprintln!("{error}");std::process::exit(1);}}
+        return;
+    }
+    let _telemetry=molip_quest::telemetry::initialize().map_err(|_|eprintln!("Local diagnostic recording is unavailable.")).ok();
     molip_quest::setup_terminal::prepare_desktop_path();
     if args.get(1).map(String::as_str)==Some("--prepare-environment") {
         let _=molip_quest::runtime_setup::mark_bootstrap();
@@ -29,12 +36,15 @@ fn main() {
             while let Some(line)=rx.recv().await{println!("{line}");}
             worker.await.unwrap_or_else(|error|Err(error.to_string()))
         });
+        drop(_telemetry);
         match result {Ok(line)=>{println!("{line}");std::process::exit(0)},Err(error)=>{eprintln!("{error}");std::process::exit(1)}}
     }
     // No menu bar on Windows and Linux: the app is driven from its own screens, slides have their
     // own fullscreen button. macOS keeps Dioxus's default menu, which is what makes ⌘C, ⌘V, ⌘X
     // and ⌘A reach the page (without an Edit menu the WebView never sees them); it lives in the
     // system menu bar, so the window itself looks the same.
+    molip_quest::bug_report::forget();
+    let _report_agent=emergency_report::start();
     let config = dioxus::desktop::Config::new();
     #[cfg(not(target_os = "macos"))]
     let config = config.with_menu(None);
@@ -81,6 +91,12 @@ fn UpdateGate() -> Element {
 
 #[component]
 fn App() -> Element {
+    use_future(||async move {
+        let mut bridge=document::eval(include_str!("../assets/layout/telemetry.js"));
+        while let Ok(error)=bridge.recv::<molip_quest::telemetry::WebError>().await {
+            molip_quest::telemetry::record_web_error(error);
+        }
+    });
     use_context_provider(|| Signal::new(0u32));
     use_context_provider(|| Signal::new(String::new()));
     #[cfg(target_os="macos")]
@@ -183,11 +199,12 @@ window.molipVoice && molipVoice.setName({});",
         style {{include_str!("../assets/content-updates.css")}}
         style {{include_str!("../assets/player-workspace.css")}}
         style {{include_str!("../assets/window-controls.css")}}
+        style {{include_str!("../assets/diagnostics.css")}}
         style {{include_str!("../assets/compact-toolbar.css")}}
         style {{include_str!("../assets/product-ui.css")}}
         style {{include_str!("../assets/terminal/terminal.bundle.css")}}
-        if cfg!(debug_assertions) && std::env::var_os("MOLIP_PILOT").is_some() { pilot_ui::PilotPlayer {window_controls:rsx!{div {class:"app-window-controls",{fullscreen_toggle}UpdateGate {}}}} }
-        else if cfg!(debug_assertions) && std::env::var_os("MOLIP_LEGACY").is_some() { div {class:"app-window-controls",{fullscreen_toggle}UpdateGate {}} Workspace {} } else { player_ui::RepositoryPlayer {window_controls:rsx!{div {class:"app-window-controls",{fullscreen_toggle}UpdateGate {}}}} }
+        if cfg!(debug_assertions) && std::env::var_os("MOLIP_PILOT").is_some() { pilot_ui::PilotPlayer {window_controls:rsx!{div {class:"app-window-controls",button {title:"앱 오류 신고 · Ctrl+Alt+Shift+B",onclick:move |_|{let _=emergency_report::request("bug");},"오류 신고"}{fullscreen_toggle}UpdateGate {}}}} }
+        else if cfg!(debug_assertions) && std::env::var_os("MOLIP_LEGACY").is_some() { div {class:"app-window-controls",button {title:"앱 오류 신고 · Ctrl+Alt+Shift+B",onclick:move |_|{let _=emergency_report::request("bug");},"오류 신고"}{fullscreen_toggle}UpdateGate {}} Workspace {} } else { player_ui::RepositoryPlayer {window_controls:rsx!{div {class:"app-window-controls",button {title:"앱 오류 신고 · Ctrl+Alt+Shift+B",onclick:move |_|{let _=emergency_report::request("bug");},"오류 신고"}{fullscreen_toggle}UpdateGate {}}}} }
     }
 }
 /// Some Windows sessions hand a new window the off-screen placeholder position (-32000, -32000)

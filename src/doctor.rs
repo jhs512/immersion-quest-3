@@ -21,6 +21,9 @@ pub(crate) async fn probe_with_timeout(
     args: &[&str],
     timeout: std::time::Duration,
 ) -> Result<Vec<u8>, String> {
+    crate::telemetry::observe("environment.probe",vec![],probe_inner(executable,args,timeout)).await
+}
+async fn probe_inner(executable: &str, args: &[&str], timeout: std::time::Duration) -> Result<Vec<u8>,String> {
     let mut command = Command::new(executable);
     command
         .args(args)
@@ -119,14 +122,18 @@ async fn inspect_python_with_prefix(python: &str, package_timeout: std::time::Du
             let python = python.to_owned();
             let prefix = prefix.to_owned();
             let limit = limit.clone();
-            workers.spawn(async move {
+            let context=opentelemetry::Context::current();
+            workers.spawn({use opentelemetry::trace::FutureExt; async move {
                 let _permit = limit.acquire_owned().await.unwrap();
                 let script = format!("{prefix}import json,importlib,sys\nname=sys.argv[1]\ntry:\n module=importlib.import_module(name); result={{'version':str(getattr(module,'__version__','설치됨'))}}\nexcept ModuleNotFoundError as e:\n result={{'error':str(e),'missing':e.name==name}}\nexcept Exception as e:\n result={{'error':str(e),'missing':False}}\nprint(json.dumps(result))");
+                let mut span=crate::telemetry::operation("python.import",vec![opentelemetry::KeyValue::new("package.name",key)]);
+                use opentelemetry::trace::FutureExt;
                 let result = probe_with_timeout(&python, &["-I", "-X", "utf8", "-c", &script, key], package_timeout)
-                    .await.and_then(|out| serde_json::from_slice::<serde_json::Value>(&out)
+                    .with_context(span.context()).await.and_then(|out| serde_json::from_slice::<serde_json::Value>(&out)
                         .map_err(|e| format!("검사 결과를 읽지 못했습니다: {e}")));
+                span.finish(if result.as_ref().is_ok_and(|v|v["version"].is_string()) {"ok"} else {"error"});
                 (key, result)
-            });
+            }.with_context(context)});
         }
         while let Some(worker) = workers.join_next().await {
             if let Ok((key, result)) = worker { results.insert(key, result); }
@@ -323,6 +330,9 @@ pub(crate) async fn run_logged(
     args: &[&str],
     python_store: Option<&std::path::Path>,
 ) -> Result<(), String> {
+    crate::telemetry::observe("environment.command",vec![],run_logged_inner(report,program,args,python_store)).await
+}
+async fn run_logged_inner(report: &tokio::sync::mpsc::UnboundedSender<String>, program:&str, args:&[&str], python_store:Option<&std::path::Path>) -> Result<(),String> {
     use tokio::io::{AsyncBufReadExt, BufReader};
     let mut command = Command::new(program);
     if let Some(store) = python_store {
@@ -416,6 +426,9 @@ async fn prepare_python_environment(
 /// if it is missing, create the platform's supported Python environment and install its pins. Progress
 /// lines go to `report`; the result names the interpreter.
 pub async fn install(report: tokio::sync::mpsc::UnboundedSender<String>) -> Result<String, String> {
+    crate::telemetry::observe("environment.python.install",vec![],install_inner(report)).await
+}
+async fn install_inner(report: tokio::sync::mpsc::UnboundedSender<String>) -> Result<String,String> {
     let data_dir = crate::data_dir()?;
     let env_dir = data_dir.join("ml-env");
     let python_store = data_dir.join("python");
@@ -703,6 +716,9 @@ mod diagnostic_tests {
 
 /// Repair only missing/broken tools. A successful installation is verified by real execution.
 pub async fn prepare(report:tokio::sync::mpsc::UnboundedSender<String>)->Result<String,String> {
+    crate::telemetry::observe("environment.prepare",vec![],prepare_inner(report)).await
+}
+async fn prepare_inner(report:tokio::sync::mpsc::UnboundedSender<String>)->Result<String,String> {
     static PREPARING:tokio::sync::Mutex<()>=tokio::sync::Mutex::const_new(());
     let _guard=PREPARING.try_lock().map_err(|_|"다른 환경 설치가 진행 중이에요.".to_string())?;
     let mut problems=vec![];

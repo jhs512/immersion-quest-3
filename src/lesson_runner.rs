@@ -47,6 +47,12 @@ pub async fn run_example(task:&Task,source:&str,input:&str)->Result<Execution,St
 }
 
 pub async fn run(task:&Task,source:&str,input:&str)->Result<Execution,String> {
+    use opentelemetry::trace::FutureExt;
+    let mut span=crate::telemetry::operation("code.execute",vec![opentelemetry::KeyValue::new("task.id",task.id.clone()),opentelemetry::KeyValue::new("task.language",format!("{:?}",task.language))]);
+    let result=run_inner(task,source,input).with_context(span.context()).await;
+    span.finish(match &result {Ok(result) if result.success=>"finished",Ok(result) if result.state=="timeout"=>"timeout",Ok(_)=>"not_passed",Err(_)=>"error"});result
+}
+async fn run_inner(task:&Task,source:&str,input:&str)->Result<Execution,String> {
     if task.interaction.is_some() {return Err("답안을 고른 뒤 제출해 보세요.".into())}
     if task.language==TaskLanguage::Java {return crate::java::run_files(source,input,&task.files).await}
     if task.language==TaskLanguage::Python {return crate::runner::execute_python_files(source,input,None,&task.files).await}
@@ -199,6 +205,12 @@ async fn append_prepared_variations(task:&Task,source:&str,cases:&mut Vec<TestCa
     Ok(())
 }
 pub async fn check(task:&Task,source:&str)->Result<TestReport,String> {
+    use opentelemetry::trace::FutureExt;
+    let mut span=crate::telemetry::operation("submission.check",vec![opentelemetry::KeyValue::new("task.id",task.id.clone())]);
+    let result=check_inner(task,source).with_context(span.context()).await;
+    span.finish(match &result {Ok(report) if report.passed=>"passed",Ok(_)=>"not_passed",Err(_)=>"error"});result
+}
+async fn check_inner(task:&Task,source:&str)->Result<TestReport,String> {
     if let Some(interaction) = &task.interaction {return interaction.check(source)}
     if task.language==TaskLanguage::Sql {return check_sql(task,source).await}
     if task.language==TaskLanguage::Python {

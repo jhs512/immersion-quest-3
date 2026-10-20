@@ -51,7 +51,7 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
     });
     let update_key=format!("{}:{}",course().map(|course|course.repository).unwrap_or_default(),session().map(|s|s.user.id).unwrap_or(0));
     let updates=rsx! {ContentUpdates {key:"{update_key}",session:session(),course:course(),active_lesson:open,onapply:move |(manifest,automatic):(CourseManifest,bool)|{
-        if !automatic {document::eval("window.molipAgent?.stop()");open.set(None);}
+        if !automatic {document::eval("window.molipAgent?.stop()");molip_quest::bug_report::forget();open.set(None);}
         course.set(Some(manifest)); refresh+=1;
     }}};
     let visible_course=course().map(|manifest|molip_quest::course_visibility::for_account(
@@ -59,7 +59,7 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
     if let Some(selected)=open() {
         if let Some(session)=session() {
             let player_key=format!("{}:{}:{}:{}",session.user.id,selected.lesson.id,selected.mode.label(),selected.round);
-            return rsx!{div {class:"repository-session", {rsx!{LessonPlayer {key:"{player_key}",session,selected,window_controls,updates,onback:move |_|{document::eval("window.molipAgent?.stop()");open.set(None);refresh+=1;}}}} }};
+            return rsx!{div {class:"repository-session", {rsx!{LessonPlayer {key:"{player_key}",session,selected,window_controls,updates,onback:move |_|{document::eval("window.molipAgent?.stop()");molip_quest::bug_report::forget();open.set(None);refresh+=1;}}}} }};
         }
     }
     rsx!{
@@ -79,7 +79,7 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                     label {class:"course-search",span {"과정 검색"}input {r#type:"search",placeholder:"이름으로 찾기",value:course_search(),oninput:move |e|course_search.set(e.value())}}
                     nav {class:"course-switcher",aria_label:"과정 선택",
                     for repository in repositories().into_iter().filter(|repo|{let query=course_search().to_lowercase();repo.to_lowercase().contains(&query)||course_titles().get(repo).is_some_and(|title|title.to_lowercase().contains(&query))}) {
-                        button {class:if course().is_some_and(|c|c.repository==repository){"course-selected"}else{""},aria_current:if course().is_some_and(|c|c.repository==repository){"page"}else{"false"},disabled:busy(),onclick:{let repository=repository.clone();move |_|{let Some(s)=session() else{return};let gh=s.github.clone();let repository=repository.clone();spawn(async move {busy.set(true);match github_player::background(move||gh.installed_course(&repository)).await {Ok(manifest)=>{course.set(Some(manifest));message.set(String::new());},Err(e)=>message.set(e)}busy.set(false);});}},
+                        button {class:if course().is_some_and(|c|c.repository==repository){"course-selected"}else{""},aria_current:if course().is_some_and(|c|c.repository==repository){"page"}else{"false"},disabled:busy(),onclick:{let repository=repository.clone();move |_|{let Some(s)=session() else{return};let gh=s.github.clone();let repository=repository.clone();spawn(async move {busy.set(true);match github_player::background(move||gh.installed_course(&repository)).await {Ok(manifest)=>{let mut span=molip_quest::telemetry::operation("course.open",vec![opentelemetry::KeyValue::new("course.id",manifest.id.clone())]);span.finish("ok");course.set(Some(manifest));message.set(String::new());},Err(e)=>message.set(e)}busy.set(false);});}},
                             strong {{course_titles().get(&repository).cloned().unwrap_or_else(||repository.split('/').next_back().unwrap_or(&repository).replace("mq3-course-", "").replace('-', " "))}}
                             small {"{repository}"}
                         }
@@ -188,6 +188,7 @@ fn CourseProgressLoader(session:Session,course:CourseManifest,onloaded:EventHand
 
 #[component]
 fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,updates:Element,onback:EventHandler<()>)->Element {
+    use_hook({let course=selected.course.id.clone();let lesson=selected.lesson.id.clone();move||{let mut span=molip_quest::telemetry::operation("lesson.open",vec![opentelemetry::KeyValue::new("course.id",course),opentelemetry::KeyValue::new("lesson.id",lesson)]);span.finish("ok");}});
     let mut events=use_signal(||selected.events.clone());
     let mut activity_message=use_signal(String::new);
     let mut show_info=use_signal(||false);
@@ -277,6 +278,10 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
 
 #[component]
 fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Vec<LearningEvent>>,onrecord:EventHandler<Vec<LearningEvent>>,has_next:bool,onnext:EventHandler<()>)->Element {
+    use_hook({let course=selected.course.id.clone();let lesson=selected.lesson.id.clone();let task=task.id.clone();move||{
+        let mut span=molip_quest::telemetry::operation("task.open",vec![opentelemetry::KeyValue::new("course.id",course),opentelemetry::KeyValue::new("lesson.id",lesson),opentelemetry::KeyValue::new("task.id",task)]);span.finish("ok");
+    }});
+    use_hook({let location=molip_quest::bug_report::Location{course_id:selected.course.id.clone(),course_title:selected.course.title.clone(),lesson_id:selected.lesson.id.clone(),lesson_title:selected.lesson.title.clone(),lesson_repository:selected.course.lessons.iter().find(|l|l.id==selected.lesson.id).map(|l|l.repository.clone()).unwrap_or_default(),revision:selected.lesson.revision.clone(),task_id:task.id.clone(),task_title:task.title.clone()};move||molip_quest::bug_report::remember(&location)});
     let key=molip_quest::drafts::repository_scope(&ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},selected.mode,&task.id);
     let git_scope=task.git_terminal.as_ref().map(|exercise|molip_quest::drafts::repository_scope(&ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},selected.mode,if exercise.workspace_group.is_empty(){&task.id}else{&exercise.workspace_group}));
     let previous_key=format!("repo:{}:{}:{}:{}:{}",session.user.id,selected.course.id,selected.lesson.id,selected.round,task.id);
@@ -336,8 +341,9 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
         let shell=exercise.shell.as_ref().unwrap();format!("### Main.java\n```java\n{}\n```\n### 터미널에서 실행할 명령\n```bash\n{}\n```\n{}",shell.goal.files["Main.java"],shell.commands.join("\n"),task.solution)
     }else{format!("```{}\n{}\n```",task.language.editor(),task.solution)};
     rsx!{
-        article {class:"lesson repository-task","data-task-id":task.id.clone(),"data-predict-before-run":task.predict_before_run.to_string(),"data-busy":busy().to_string(),"data-narrating":narrating().to_string(),"data-explanation-session":explanation_session.owner(),"data-git-ready":git_practice().is_some().to_string(),
-            section {class:"problem-pane",h2 {"{task.title}"}crate::ui::Markdown{text:task.goal.clone()}
+        article {class:"lesson repository-task","data-course-id":selected.course.id.clone(),"data-lesson-id":selected.lesson.id.clone(),"data-task-id":task.id.clone(),"data-predict-before-run":task.predict_before_run.to_string(),"data-busy":busy().to_string(),"data-narrating":narrating().to_string(),"data-explanation-session":explanation_session.owner(),"data-git-ready":git_practice().is_some().to_string(),
+            section {class:"problem-pane",div {class:"problem-heading",h2 {"{task.title}"}
+                button {class:"problem-report",title:"문제 신고 · Ctrl+Alt+Shift+P",onclick:move |_|{if let Err(error)=crate::emergency_report::request("content"){history_message.set(error);}},"문제 신고"}}crate::ui::Markdown{text:task.goal.clone()}
                 for material in &task.supporting_materials {
                     SupportingMaterialPanel {key:"{task.id}/{material.id}", material:material.clone()}
                 }
@@ -402,7 +408,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                         let timer=spawn(async move {loop {tokio::time::sleep(std::time::Duration::from_secs(1)).await;if execution_id()!=run_id{break;}execution_seconds+=1;}});
                         // Local execution never waits for GitHub. The upload worker authenticates
                         // the expected account before recording the separate history operation.
-                        let result=if has_example{molip_quest::lesson_runner::run_example(&task,&source,&input).await}else{molip_quest::lesson_runner::run(&task,&source,&input).await};
+                        let result=molip_quest::telemetry::observe("task.run",vec![opentelemetry::KeyValue::new("course.id",selected.course.id.clone()),opentelemetry::KeyValue::new("lesson.id",selected.lesson.id.clone()),opentelemetry::KeyValue::new("task.id",task.id.clone())],async {if has_example{molip_quest::lesson_runner::run_example(&task,&source,&input).await}else{molip_quest::lesson_runner::run(&task,&source,&input).await}}).await;
                         timer.cancel();
                         if execution_id()!=run_id {return;}
                         match result {
@@ -433,7 +439,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                     }
                     button {class:"primary","data-shortcut-action":"submit","data-enter-submit":"true",disabled:busy()||narrating()||(task.git_terminal.is_some()&&git_practice().is_none()),onclick:{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();move |_|{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();async move {
                         submitting.set(true);busy.set(true);feedback.set("checking");execution_state.set("idle");output.set(String::new());message.set("검사하고 있어요.".into());
-                        match if task.git_terminal.as_ref().is_some_and(|e|e.java_build.is_some()) {
+                        match molip_quest::telemetry::observe("task.submit",vec![opentelemetry::KeyValue::new("course.id",selected.course.id.clone()),opentelemetry::KeyValue::new("lesson.id",selected.lesson.id.clone()),opentelemetry::KeyValue::new("task.id",task.id.clone())],async {if task.git_terminal.as_ref().is_some_and(|e|e.java_build.is_some()) {
                                 let practice=git_practice();let answer=code();let interaction=task.interaction.clone();
                                 github_player::background(move||{
                                     let practice=practice.ok_or("실습 터미널이 준비되지 않았어요.")?;
@@ -448,7 +454,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                                     let practice=practice.lock().unwrap_or_else(|e|e.into_inner());
                                     if let Some(checks)=checks {practice.check(&checks)}else{practice.check_exercise()}
                                 }).await
-                            }else{molip_quest::lesson_runner::check(&task,&code()).await} {
+                            }else{molip_quest::lesson_runner::check(&task,&code()).await}}).await {
                                 Err(e)=>{feedback.set("error");message.set(e);},Ok(report)=>{
                                     feedback.set(if report.passed{"passed"}else{"incorrect"});
                                     message.set(if report.passed{"통과했어요."}else{"다시 풀어보세요. 아래 검사에서 예상과 실제 결과를 비교하세요."}.into());

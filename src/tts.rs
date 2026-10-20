@@ -73,6 +73,9 @@ fn cache_path(voice: &str, text: &str) -> Result<PathBuf, String> {
 
 /// MP3 bytes for the sentence and their source ("cache" or "edge-tts").
 pub fn synthesize(voice: &str, text: &str) -> Result<(Vec<u8>, &'static str), String> {
+    crate::telemetry::observe_sync("narration.synthesize",vec![],||synthesize_inner(voice,text))
+}
+fn synthesize_inner(voice: &str, text: &str) -> Result<(Vec<u8>, &'static str),String> {
     let text = text.trim();
     if text.is_empty() || text.len() > 2000 {
         return Err("문장이 비었거나 너무 깁니다.".into());

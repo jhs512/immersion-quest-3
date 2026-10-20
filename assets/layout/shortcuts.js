@@ -39,6 +39,7 @@
     ['실행과 제출', [[bindings.run.label, '코드를 실행해 결과 확인'], [bindings.submit.label, '현재 답안 제출'], ['Enter', '문제 영역에서 제출 · 통과 창에서 다음으로 이동'], ['터미널의 Enter', '현재 명령 실행 · Vim 명령 입력']]],
     ['스텝 이동', [[`${bindings.previous.label}  ${bindings.next.label}`, '이전 · 다음 스텝'], [`${MOD}+↑  ${MOD}+↓`, '이전 · 다음 단원 (단원 이동 화면)'], [`${MOD}+K`, '수업 목차 (목차가 있는 화면)'], [`${MOD}+I`, 'AI 패널 (조교가 있는 화면)']]],
     ['해설과 화면', [['Space', '해설 일시정지 · 재개'], ['Esc', '해설 정지 · 열린 안내 닫기'], [mac ? '⌃⌘F' : 'F11', '전체 화면'], [bindings.help.label, '이 안내 열기 · 닫기']]],
+    ['신고', [['Ctrl+Alt+Shift+B', '앱 오류 신고 · 별도 네이티브 창'], ['Ctrl+Alt+Shift+P', '현재 수업의 문제 신고 (Mac: Alt는 Option)']]],
     ['슬라이드와 읽기', [['←  →  Space', '슬라이드 이전 · 다음 장'], ['N', '슬라이드 강사 스크립트'], [`${MOD}+더블 클릭`, '선택한 문단부터 읽기']]],
   ];
   let sheet = null, previousFocus = null;

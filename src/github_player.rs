@@ -70,6 +70,9 @@ impl Github {
         Ok(snapshot.course().clone())
     }
     pub fn installed_lesson(&self,course:&CourseManifest,reference:&LessonRef)->Result<Lesson,String> {
+        crate::telemetry::observe_sync("lesson.load",vec![opentelemetry::KeyValue::new("course.id",course.id.clone()),opentelemetry::KeyValue::new("lesson.id",reference.id.clone())],||self.installed_lesson_inner(course,reference))
+    }
+    fn installed_lesson_inner(&self,course:&CourseManifest,reference:&LessonRef)->Result<Lesson,String> {
         crate::content_updates::installed_store()?.active(&course.repository)?.and_then(|snapshot|snapshot.lesson(reference).cloned()).ok_or_else(||"설치된 수업이 없어요. 코스를 다시 여세요.".into())
     }
     pub fn lesson(&self,reference:&LessonRef)->Result<Lesson,String> {
@@ -139,6 +142,9 @@ impl Github {
         Err("학습 기록이 너무 많아요. 관리자에게 문의하세요.".into())
     }
     pub fn record(&self,repo:&str,user:&GithubUser,title:&str,event:&LearningEvent,required:&[String])->Result<Vec<LearningEvent>,String>{
+        crate::telemetry::observe_sync("progress.save.local",vec![opentelemetry::KeyValue::new("course.id",event.key.course_id.clone()),opentelemetry::KeyValue::new("lesson.id",event.key.lesson_id.clone())],||self.record_inner(repo,user,title,event,required))
+    }
+    fn record_inner(&self,repo:&str,user:&GithubUser,title:&str,event:&LearningEvent,required:&[String])->Result<Vec<LearningEvent>,String>{
         let latest=crate::progress_sync::ProgressStore::installed()?.record(repo,user,title,event,required)?;
         if let Err(error)=crate::progress_sync::synchronize(self.clone(),user.clone()){eprintln!("Progress upload deferred: {error}");}
         Ok(latest)
@@ -158,6 +164,9 @@ impl Github {
         }
     }
     pub fn append(&self,repo:&str,user:&GithubUser,title:&str,event:&LearningEvent)->Result<(Issue,Vec<LearningEvent>),String> {
+        crate::telemetry::observe_sync("progress.upload",vec![opentelemetry::KeyValue::new("course.id",event.key.course_id.clone()),opentelemetry::KeyValue::new("lesson.id",event.key.lesson_id.clone())],||self.append_inner(repo,user,title,event))
+    }
+    fn append_inner(&self,repo:&str,user:&GithubUser,title:&str,event:&LearningEvent)->Result<(Issue,Vec<LearningEvent>),String> {
         self.ensure_user(user.id)?;
         if event.key.user_id!=user.id {return Err("다른 계정의 진도를 기록할 수 없어요.".into())}
         let issue=if let Some(i)=self.find_issue(repo,user,&event.key)? {i} else {
@@ -184,5 +193,6 @@ impl Github {
 }
 
 pub async fn background<T:Send+'static>(work:impl FnOnce()->Result<T,String>+Send+'static)->Result<T,String> {
-    tokio::task::spawn_blocking(work).await.map_err(|e|e.to_string())?
+    let context=opentelemetry::Context::current();
+    tokio::task::spawn_blocking(move||{let _guard=context.attach();work()}).await.map_err(|e|e.to_string())?
 }
