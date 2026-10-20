@@ -59,6 +59,30 @@ fn command_matches(expected:&str,actual:&str)->bool {
         while let Some(rest)=target.strip_prefix("./"){target=rest;}
         Some(if target.is_empty(){"."}else{target})
     }
+    // Recursive deletion may include force and combined flags. Final files and
+    // directories are still checked independently below.
+    fn recursive_target(command:&str)->Option<String> {
+        if command.contains(['\n','\r','\0']){return None;}
+        let (program,mut rest)=command.trim().split_once(char::is_whitespace)?;
+        if program!="rm"{return None;}
+        let mut recursive=false;
+        loop {
+            rest=rest.trim_start();
+            if !rest.starts_with('-'){break;}
+            let (flag,tail)=rest.split_once(char::is_whitespace)?;
+            rest=tail;
+            if flag=="--"{break;}
+            match flag {
+                "--recursive"=>recursive=true,
+                "--force"=>{},
+                _ if flag.starts_with('-')&&flag.len()>1&&flag[1..].chars().all(|c|matches!(c,'r'|'R'|'f'))=>{recursive|=flag.contains(['r','R']);},
+                _=>return None,
+            }
+        }
+        if !recursive{return None;}
+        literal_target(&format!("ls {}",rest.trim()),"ls").map(str::to_owned)
+    }
+    if let (Some(a),Some(b))=(recursive_target(expected),recursive_target(actual)){return a==b;}
     ["cd","ls"].iter().any(|program|matches!((literal_target(expected,program),literal_target(actual,program)),(Some(a),Some(b)) if a==b))
 }
 
@@ -73,6 +97,16 @@ mod command_matching_tests {
         }
         assert!(command_matches("cd notes","cd ./notes/"));
         assert!(command_matches("cat notes/memo.txt","cat notes/memo.txt "));
+    }
+
+    #[test]
+    fn recursive_deletion_accepts_equivalent_paths_and_force_flags() {
+        for actual in ["rm -r storage/archive/", "rm -rf storage/archive/", "rm -fr ./storage/archive/", "rm -r -f 'storage/archive/'", "rm --recursive --force storage/archive/", "rm -R -- storage/archive/"] {
+            assert!(command_matches("rm -r storage/archive",actual),"{actual}");
+        }
+        for actual in ["rm -f storage/archive/", "rm -rf storage/other/", "rm -rf storage/archive/ extra", "rm -rf storage/archive/; pwd", "rm -rf $(echo storage/archive)", "rm -rf storage/*", "rm -ri storage/archive/", "rm -rf storage/archive/\npwd"] {
+            assert!(!command_matches("rm -r storage/archive",actual),"{actual}");
+        }
     }
 
     #[test]

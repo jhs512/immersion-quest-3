@@ -127,3 +127,20 @@ fn step_fifteen_accepts_directory_slash_and_later_inspection_retries() {
     terminal.shutdown().unwrap();
     assert!(report.passed,"{}",serde_json::to_string(&report).unwrap());
 }
+
+#[test]
+fn step_twenty_three_accepts_recursive_force_and_trailing_directory_slashes() {
+    let manifest=CourseManifest::parse(include_str!("fixtures/player-pilot/부/course.json")).unwrap();
+    let lesson=Lesson::parse(include_str!("../courses/redesigned/bash-basics.json"),&manifest.lessons[0]).unwrap();
+    let practice=GitPractice::new(lesson.tasks[22].git_terminal.clone().unwrap().demonstration()).unwrap();
+    let (mut terminal,mut output)=practice.open_terminal().unwrap();
+    until(&practice,&mut terminal,&mut output,|text|text.contains("$ "));
+    let actions:Vec<_>=["ls storage/archive/","rm -rf storage/archive/","ls storage/"].iter().map(|command|serde_json::json!({"action":"bash_command","command":command})).collect();
+    play(&practice,&mut terminal,&mut output,&actions);
+    let report=practice.check_exercise().unwrap();
+    assert!(report.passed,"{}",serde_json::to_string(&report).unwrap());
+    // Matching command history cannot hide damage to the preserved original.
+    std::fs::write(practice.work().join("notes/memo.txt"),"changed original\n").unwrap();
+    assert!(!practice.check_exercise().unwrap().passed);
+    terminal.shutdown().unwrap();
+}
