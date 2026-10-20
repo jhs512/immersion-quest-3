@@ -3,7 +3,8 @@ use crate::repository_course::{CourseManifest, COURSE_REPOSITORY};
 
 pub fn for_account(mut course: CourseManifest, login: &str) -> CourseManifest {
     if course.repository == COURSE_REPOSITORY && !login.eq_ignore_ascii_case("jhs512") {
-        course.lessons.truncate(3);
+        let end=course.lessons.iter().position(|lesson|lesson.revision=="git-remote-1").map(|index|index+1).unwrap_or(3);
+        course.lessons.truncate(end);
     }
     course
 }
@@ -17,16 +18,16 @@ mod tests {
     }
 
     #[test]
-    fn ordinary_accounts_see_only_the_first_three_java_lessons() {
+    fn ordinary_accounts_see_java_lessons_through_remote() {
         let original = course(COURSE_REPOSITORY);
         for login in ["learner", "jhs512gh", "jhs512-other", ""] {
             let visible = for_account(original.clone(), login);
-            assert_eq!(visible.lessons, original.lessons[..3]);
+            assert_eq!(visible.lessons, original.lessons[..5]);
             assert_eq!(visible.id, original.id);
             assert_eq!(visible.lessons.iter().map(|l| l.revision.as_str()).collect::<Vec<_>>(),
-                ["bash-basics-1", "vim-basics-1", "git-first-1"]);
+                ["bash-basics-1", "vim-basics-1", "git-first-1", "git-branch-1", "git-remote-1"]);
         }
-        assert_eq!(original.lessons.len(), 22, "the installed course must remain complete");
+        assert_eq!(original.lessons.len(), 24, "the installed course must remain complete");
     }
 
     #[test]

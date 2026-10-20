@@ -43,8 +43,8 @@ fn compile_lesson_registry(out: &std::path::Path) {
             let pilot=validation.remove("pilot").unwrap().as_str().unwrap().to_owned();
             assert_eq!(pilot.chars().count(),1,"one validation character");
             let pilot=pilot.chars().next().unwrap();
-            assert!(!"abcdefghijm".contains(pilot),"reserved legacy validation character");
-            assert!(keys.insert(key.to_owned())&&versions.insert(pilot)&&revisions.insert(revision.to_owned()),"duplicate lesson registration");
+            assert!(!"abcdefghijm".contains(pilot.to_ascii_lowercase()),"reserved legacy validation character");
+            assert!(keys.insert(key.to_owned())&&versions.insert(pilot.to_lowercase().collect::<String>())&&revisions.insert(revision.to_owned()),"duplicate lesson registration");
             let driver=validation.remove("driver").unwrap().as_str().unwrap().to_owned();
             assert!(matches!(driver.as_str(),"native"|"code"|"git-remote"),"unknown validation driver");
             let include=|relative:&str| {println!("cargo:rerun-if-changed={relative}");format!("include_str!({:?})",root.join(relative).to_string_lossy())};

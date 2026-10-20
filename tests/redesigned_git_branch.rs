@@ -6,17 +6,18 @@ fn snapshot(practice:&GitPractice)->Vec<String> {
 
 #[tokio::test]
 async fn nine_branch_steps_preserve_history_resolve_real_conflicts_and_reset_independently() {
-    let path=std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("courses/redesigned/git-branch.json");
-    let raw=std::fs::read_to_string(path).unwrap();
-    let course=CourseManifest::parse(include_str!("fixtures/player-pilot/l/course.json")).unwrap();
-    let lesson=Lesson::parse(&raw,&course.lessons[0]).unwrap();
-    assert_eq!(lesson.tasks.len(),9);
+    let original=CourseManifest::parse(include_str!("fixtures/player-pilot/l/course.json")).unwrap();
+    let basic=Lesson::parse(include_str!("../courses/redesigned/git-branch.json"),&original.lessons[0]).unwrap();
+    let advanced_course=CourseManifest::parse(include_str!("fixtures/player-pilot/굳/course.json")).unwrap();
+    let advanced=Lesson::parse(include_str!("../courses/redesigned/git-branch-advanced.json"),&advanced_course.lessons[0]).unwrap();
+    assert_eq!(basic.tasks.len(),4);assert_eq!(advanced.tasks.len(),5);
+    let tasks=basic.tasks.iter().chain(advanced.tasks.iter()).collect::<Vec<_>>();
     let solutions:Vec<Vec<Vec<&str>>>=vec![
         vec![vec!["branch","feature"]],vec![vec!["switch","feature"]],vec![vec!["add","guide.txt"],vec!["commit","-m","feature record"]],
         vec![vec!["merge","feature"]],vec![vec!["merge","--no-edit","feature"]],vec![],vec![],
         vec![vec!["restore","--source=feature","--worktree","--","guide.txt"],vec!["add","guide.txt"]],vec![vec!["commit","--no-edit"]],
     ];
-    for (index,task) in lesson.tasks.iter().enumerate() {
+    for (index,task) in tasks.into_iter().enumerate() {
         let exercise=task.git_terminal.clone().unwrap();
         let mut student=GitPractice::new(exercise.clone()).unwrap();
         for _ in 0..2 {

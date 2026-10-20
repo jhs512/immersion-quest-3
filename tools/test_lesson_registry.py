@@ -7,8 +7,8 @@ class RegistryTests(unittest.TestCase):
     def test_all_published_lessons_resolve_from_the_same_registry(self):
         catalog=json.loads((ROOT/'tools/redesigned_courses/catalog.json').read_text(encoding='utf-8'))
         rows=load_registry(catalog)
-        self.assertEqual(len(rows),76)
-        self.assertEqual(len({row['pilot'] for row in rows}),76)
+        self.assertEqual(len(rows),78)
+        self.assertEqual(len({row['pilot'] for row in rows}),78)
         for row in rows:
             published=json.loads((ROOT/'courses/redesigned'/f"{row['key']}.json").read_text(encoding='utf-8'))
             self.assertEqual(published['revision'],row['revision'])
@@ -17,6 +17,11 @@ class RegistryTests(unittest.TestCase):
         catalog=json.loads((ROOT/'tools/redesigned_courses/catalog.json').read_text(encoding='utf-8'))
         catalog['courses'][0]['lessons'][1]['validation']['pilot']=catalog['courses'][0]['lessons'][0]['validation']['pilot']
         with self.assertRaisesRegex(ValueError,'duplicate'):
+            load_registry(catalog)
+    def test_windows_case_insensitive_fixture_alias_cannot_replace_legacy_a(self):
+        catalog=json.loads((ROOT/'tools/redesigned_courses/catalog.json').read_text(encoding='utf-8'))
+        catalog['courses'][0]['lessons'][0]['validation']['pilot']='A'
+        with self.assertRaisesRegex(ValueError,'Invalid'):
             load_registry(catalog)
     def test_existing_special_exercises_keep_their_distinct_drivers(self):
         rows={row['key']:row for row in load_registry()}

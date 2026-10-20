@@ -159,7 +159,7 @@ impl SetupTerminal {
             // --noprofile/--norc does not add Git Bash's coreutils to a GUI app's PATH.
             let bash=git_bash_executable()?;
             let inherited=environment.iter().find(|(key,_)|key=="PATH").map(|(_,value)|std::ffi::OsString::from(value)).unwrap_or_else(||std::env::var_os("PATH").unwrap_or_default());
-            let paths=bash.parent().map(std::path::Path::to_path_buf).into_iter().chain(std::env::split_paths(&inherited));
+            let paths=bash.parent().map(std::path::Path::to_path_buf).into_iter().chain(gh_directories()).chain(std::env::split_paths(&inherited));
             command.env("PATH",std::env::join_paths(paths).map_err(|e|e.to_string())?);
         }
         #[cfg(target_os="macos")]

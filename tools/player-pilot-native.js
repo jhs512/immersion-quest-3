@@ -486,8 +486,11 @@
       await runGit('git branch feature');await click('제출');await wait(()=>status('통과했어요'),'branch creation without switching');
       await nextGit();await runGit('git switch feature');await click('제출');await wait(()=>status('통과했어요'),'branch switch');
       await nextGit();await runGit('git add -- guide.txt');await runGit('git commit -m "feature record"');await click('제출');await wait(()=>status('통과했어요'),'feature record preserves main');
-      await nextGit();await runGit('git merge feature');await click('제출');await wait(()=>status('통과했어요'),'fast forward merge');
-      await nextGit();await runGit('git merge --no-edit feature');await click('제출');await wait(()=>status('통과했어요'),'two parent merge');
+      await nextGit();await runGit('git merge feature');await click('제출');await wait(()=>status('수업 완료'),'basic fast forward merge');
+      await click('← 코스 수업 목록');await click('버전 굳');
+      await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('git-branch-advanced-1'),'advanced branch lesson after remote');
+      await click('학습 시작');await gitReady();
+      await runGit('git merge --no-edit feature');await click('제출');await wait(()=>status('통과했어요'),'two parent merge');
       await nextGit();
       document.querySelector('input[type=radio][value="always-conflict"]').click();
       await wait(()=>document.querySelector('.answer-state-bridge')?.value==='always-conflict','same-file choice acknowledged');

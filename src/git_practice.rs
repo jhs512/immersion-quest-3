@@ -4,6 +4,8 @@ use serde::{Deserialize,Serialize};
 pub use shell_practice::{ShellExercise,ShellSnapshot,ShellCompletion};
 #[path="java_build_practice.rs"] pub mod java_build_practice;
 pub use java_build_practice::JavaBuildGoal;
+#[path="github_pr_practice.rs"] mod github_pr_practice;
+pub use github_pr_practice::GithubPrStage;
 #[path="vim_practice.rs"] mod vim_practice;
 pub use vim_practice::{VimExercise,VimCheck,VimPredicate,VimSnapshot,VimState,VimProgress};
 #[cfg(windows)]
@@ -12,6 +14,8 @@ use std::{collections::BTreeMap,path::{Path,PathBuf},process::{Command,Output}};
 #[derive(Clone,Debug,Default,Serialize,Deserialize,PartialEq)]
 pub struct GitExercise {
     #[serde(skip)] pub java_demonstration:bool,
+    #[serde(skip)] pub github_demonstration:bool,
+    #[serde(default,skip_serializing_if="Option::is_none")] pub github_pr:Option<GithubPrStage>,
     #[serde(default,skip_serializing_if="Option::is_none")] pub java_build:Option<JavaBuildGoal>,
     #[serde(default,skip_serializing_if="Option::is_none")] pub vim:Option<VimExercise>,
     #[serde(default,skip_serializing_if="Option::is_none")] pub shell:Option<ShellExercise>,
@@ -124,6 +128,7 @@ impl GitExercise {
     pub fn demonstration(&self)->Self {
         let mut exercise=self.clone();
         exercise.java_demonstration=exercise.java_build.is_some();
+        exercise.github_demonstration=exercise.github_pr.is_some();
         if let Some(vim)=exercise.vim.as_mut(){vim.start=Some(vim.demo.clone());}
         if let Some(shell)=exercise.shell.as_mut(){shell.start=Some(shell.demo.clone());}
         if let Some(setup)=exercise.demo_setup.take() {
@@ -138,11 +143,12 @@ impl GitExercise {
         if self.workspace_revision.is_empty(){base.into()}else{format!("{base}:workspace:{}",self.workspace_revision)}
     }
 
-    pub fn has_goal(&self)->bool {self.vim.is_some()||self.shell.is_some()||self.state_goal.is_some()||!self.commands.is_empty()}
+    pub fn has_goal(&self)->bool {self.github_pr.is_some()||self.vim.is_some()||self.shell.is_some()||self.state_goal.is_some()||!self.commands.is_empty()}
     pub fn validate(&self)->Result<(),String> {
         if self.workspace_group.len()>64||!self.workspace_group.bytes().all(|c|c.is_ascii_alphanumeric()||b"_-".contains(&c)){return Err("실습 연결 이름을 확인하세요.".into())}
         if self.workspace_revision.len()>64||!self.workspace_revision.bytes().all(|c|c.is_ascii_alphanumeric()||b"_-".contains(&c)){return Err("실습 시작 상태 버전을 확인하세요.".into())}
 
+        if self.github_pr.is_some()&&(self.shell.is_some()||self.vim.is_some()||self.java_build.is_some()||self.state_goal.is_some()||!self.setup.is_empty()||self.initial_history!=GitInitialHistory::Recorded){return Err("GitHub PR 실습의 시작 구성을 확인하세요.".into())}
         if let Some(java)=&self.java_build {
             if self.shell.is_none()||self.vim.is_some()||!["","same","changed"].contains(&java.class_relation.as_str()) {return Err("자바 실습 구성을 확인하세요.".into())}
             if !java.command.is_empty()&&!java_build_practice::valid_command(&java.command){return Err("자바 실습 명령을 확인하세요.".into())}
@@ -209,16 +215,16 @@ impl GitPractice {
             practice.prepare_vim_start()?;
             return Ok(practice);
         }
-        practice.checked_at(practice.root(),&["init","--bare","--initial-branch=main","remote.git"])?;
+        if practice.exercise.github_pr.is_none(){practice.checked_at(practice.root(),&["init","--bare","--initial-branch=main","remote.git"])?;}
         practice.checked_at(practice.work().as_path(),&["init","--initial-branch=main"])?;
         let remote=practice.root().join("remote.git");
-        practice.checked_at(practice.work().as_path(),&["remote","add","origin",remote.to_str().ok_or("Git 경로 오류")?])?;
-        if practice.exercise.initial_history==GitInitialHistory::Recorded {practice.write("tracked.txt","initial\n")?;}
+        if practice.exercise.github_pr.is_none(){practice.checked_at(practice.work().as_path(),&["remote","add","origin",remote.to_str().ok_or("Git 경로 오류")?])?;}
+        if practice.exercise.initial_history==GitInitialHistory::Recorded && practice.exercise.github_pr.is_none(){practice.write("tracked.txt","initial\n")?;}
         for (path,content) in &practice.exercise.files {practice.write(path,content)?;}
         if practice.exercise.initial_history==GitInitialHistory::Recorded {
             practice.checked_at(practice.work().as_path(),&["add","."])?;
             practice.checked_at(practice.work().as_path(),&["commit","-m","Start"])?;
-            practice.checked_at(practice.work().as_path(),&["push","-u","origin","main"])?;
+            if practice.exercise.github_pr.is_none(){practice.checked_at(practice.work().as_path(),&["push","-u","origin","main"])?;}
         }
         for action in &practice.exercise.setup {match action {
             GitSetup::RemoteCommit{files,message}=>{
@@ -268,11 +274,13 @@ impl GitPractice {
     pub fn work(&self)->PathBuf {self.root().join("work")}
     pub fn environment(&self)->Vec<(String,String)> {
         let home=self.root().join("home").to_string_lossy().into_owned();
-        vec![("HOME".into(),home.clone()),("USERPROFILE".into(),home.clone()),("APPDATA".into(),home.clone()),("LOCALAPPDATA".into(),home.clone()),("XDG_CONFIG_HOME".into(),home),
+        let mut environment=vec![("HOME".into(),home.clone()),("USERPROFILE".into(),home.clone()),("APPDATA".into(),home.clone()),("LOCALAPPDATA".into(),home.clone()),("XDG_CONFIG_HOME".into(),home),
             ("PSModuleAnalysisCachePath".into(),self.root().join("home/ModuleAnalysisCache").to_string_lossy().into_owned()),
             ("GIT_CONFIG_GLOBAL".into(),self.root().join("global.config").to_string_lossy().into_owned()),("GIT_CONFIG_NOSYSTEM".into(),"1".into()),
             ("GIT_AUTHOR_NAME".into(),"Learner".into()),("GIT_AUTHOR_EMAIL".into(),"learner@example.invalid".into()),("GIT_COMMITTER_NAME".into(),"Learner".into()),("GIT_COMMITTER_EMAIL".into(),"learner@example.invalid".into()),
-            ("GIT_AUTHOR_DATE".into(),"2026-01-01T00:00:00+0000".into()),("GIT_COMMITTER_DATE".into(),"2026-01-01T00:00:00+0000".into()),("GIT_ALLOW_PROTOCOL".into(),"file".into()),("GIT_TERMINAL_PROMPT".into(),"0".into()),("GIT_PAGER".into(),"cat".into()),("GIT_EDITOR".into(),"true".into()),("GIT_SEQUENCE_EDITOR".into(),"true".into())]
+            ("GIT_AUTHOR_DATE".into(),"2026-01-01T00:00:00+0000".into()),("GIT_COMMITTER_DATE".into(),"2026-01-01T00:00:00+0000".into()),("GIT_ALLOW_PROTOCOL".into(),"file".into()),("GIT_TERMINAL_PROMPT".into(),"0".into()),("GIT_PAGER".into(),"cat".into()),("GIT_EDITOR".into(),"true".into()),("GIT_SEQUENCE_EDITOR".into(),"true".into())];
+        if self.exercise.github_pr.is_some()&&!self.exercise.github_demonstration {environment.extend(self.github_environment());}
+        environment
     }
     fn execute(&self,dir:&Path,args:&[&str],trace:bool)->Result<Output,String> {
         let mut command=Command::new("git");command.args(args).current_dir(dir);
@@ -303,6 +311,7 @@ impl GitPractice {
     pub fn open_terminal_with_player(&self,player:&Path)->Result<(crate::setup_terminal::SetupTerminal,tokio::sync::mpsc::Receiver<Vec<u8>>),String> {
         if self.exercise.vim.is_some(){return self.open_vim_terminal();}
         let mut environment=self.environment();
+        if self.exercise.github_pr.is_some(){environment.extend(self.shell_environment());}
         environment.push(("GIT_TRACE2_EVENT".into(),self.root().join("commands.jsonl").to_string_lossy().into_owned()));
         if self.exercise.shell.is_some() {
             self.prepare_shell_checkpoint()?;
@@ -346,6 +355,7 @@ impl GitPractice {
     pub fn check_exercise(&self)->Result<crate::runner::TestReport,String> {
         use crate::runner::{TestReport,TestCaseResult};
         use std::collections::BTreeSet;
+        if self.exercise.github_pr.is_some(){return self.check_github_pr();}
         if self.exercise.vim.is_some(){return self.check_vim();}
         if self.exercise.java_build.is_some(){return self.check_java_build();}
         if self.exercise.shell.is_some(){return self.check_shell();}
