@@ -1,15 +1,13 @@
 (async()=>{
  const checked=[];const wait=async(test,label)=>{const end=Date.now()+60000;while(!test()){if(Date.now()>end)throw new Error(label);await new Promise(r=>setTimeout(r,30));}};
  const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===text);
- const click=async text=>{await wait(()=>button(text)&&!button(text).disabled,text);button(text).click();};
+ const click=async text=>wait(()=>{const control=button(text);if(!control||control.disabled)return false;control.click();return true;},text);
  try{
-  await wait(()=>button('학습 시작')&&!button('학습 시작').disabled,'initial course ready');
-  let lastSwitch=0;
-  await wait(()=>{
-   if(document.querySelector('.lesson-card')?.textContent.includes('bash-basics-1'))return true;
-   if(Date.now()-lastSwitch>1000){button('버전 부')?.click();lastSwitch=Date.now();}
-   return false;
-  },'Bash lesson card');await click('학습 시작');
+  // The native harness selects Bash before launching the app. Do not remount
+  // the player through the version toolbar while lesson opening is in flight.
+  await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('bash-basics-1'),'Bash lesson card');
+  await click('학습 시작');
+  await wait(()=>document.querySelectorAll('.study-navigation button').length===23,'Bash lesson opened');
   await click('문제 2 · 파일 목록을 확인하세요');await wait(()=>document.querySelector('.problem-pane h2')?.textContent==='파일 목록을 확인하세요','ls task mounted');await wait(()=>document.querySelector('.repository-task')?.dataset.gitReady==='true','Bash terminal ready');
   if(!document.body.textContent.includes('Bash 터미널')||!document.querySelector('.problem-pane ol'))throw new Error('Bash label or ordered tasks missing');
   molipAgent.setVoice(false);await click('해설 재생');
