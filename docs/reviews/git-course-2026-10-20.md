@@ -28,4 +28,6 @@
 - [검증용 PR](https://github.com/jhs512/mq3-pr-193eaceab78d/pull/1)은 병합을 마쳤으며 저장소와 함께 수동 정리용으로 보존했다. 이 테스트는 외부 쓰기를 하므로 일반 CI에서는 ignored이며 명시적으로 실행해야 한다.
 - 전체 78수업/750단계의 등록과 파생물 신선도를 검사한다. Windows에서 대소문자가 같은 검증 디렉터리 이름을 재사용하지 못하도록 예약 키와 중복을 대소문자 구분 없이 검사한다.
 
-실제 Windows 앱 화면에서 기본 4·심화 5·PR 8개 문제의 제목·터미널 배치를 검사했고, PR 해설 완료/중단 후 학습자의 실제 파일이 유지되는 것을 확인했다. `target/pilot-git-course-native-result.json`의 4개 검사가 모두 통과했다. 릴리스 CI 결과는 완료 후 덧붙인다.
+실제 Windows 앱 화면에서 기본 4·심화 5·PR 8개 문제의 제목·터미널 배치를 검사했고, PR 해설 완료/중단 후 학습자의 실제 파일이 유지되는 것을 확인했다. `target/pilot-git-course-native-result.json`의 4개 검사가 모두 통과했다. [빌드 39 CI](https://github.com/jhs512/immersion-quest-3/actions/runs/39377604733)가 Windows / macOS arm64 / macOS x86_64 / release 모두 성공했다. 코드 커밋은 `c96b68c`이고 [빌드 39](https://github.com/jhs512/immersion-quest-3/releases/tag/v0.1.0-build.39)에 세 설치 파일과 SHA256SUMS를 게시했다.
+
+두 Mac의 네이티브 아티팩트에서 Git 수업/작업 보존 4개, Java 실행 12개, 인자 12개, 기존 로딩/음성/한글 입력 8개 검사가 각각 전부 통과함을 확인했다. Intel 학습 환경 실제 설치 검사도 통과했다. 실제 GitHub에 쓰는 8단계 검증은 Windows에서 수행했으며 Mac CI는 GitHub 쓰기 없이 화면·터미널·격리 동작을 검사했다.
