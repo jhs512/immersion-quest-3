@@ -2,6 +2,20 @@
 
 기록일: 2026-10-20. 이 파일은 컴퓨터와 대화가 바뀌어도 이어가기 위한 작업 기준이다.
 
+## Mac 인계 오류 수정 (2026-10-20)
+
+Mac arm64에서 아래 Vim 실패 두 건을 동일하게 재현했다. 원인은 `tests/vim_practice.rs`의 화면 없는 테스트 도우미가 실제 커서 위치를 계산하지 않고 `ESC[1;1R`을 입력으로 보내는 것이었다. 이 바이트열이 입력 모드에서 F3 키로 해석되어 `<F3>`가 버퍼에 삽입됐다. 가짜 응답을 제거하고 Vim의 기본 처리를 사용한다. 앱 터미널의 실제 화면 응답과 수업 콘텐츠는 변경하지 않았다. 여섯 검사와 모든 판정 조건을 유지했다.
+
+- 수정 전: 6개 중 2개 실패, `<F3>첫 메모`와 `임<F3>X시메모` 재현.
+- 수정 후: 실제 Vim 14스텝, 미저장 버퍼·입력 모드·커서 복구를 포함한 6개 검사 통과. `--release --locked --test vim_practice`에서도 6개 모두 통과.
+- Mac arm64에서 임시 폴더에 공식 JDK 25를 다운로드·검증·소스 실행했고 PATH 보존 검사를 통과했다. C 준비 후 실제 컴파일·실행과 CPU 선택 검사도 통과했다.
+- `macos_runtime`, `java_launch`, `java_arguments`, `bundled_courses`, `github_pr`, `redesigned_git_branch`, `bash_basics`, `vim_practice`: 24개 통과. 실제 GitHub 저장소를 만드는 PR 검사는 기존대로 제외했다.
+- Mac 설치 스크립트/릴리스 자산 검사 4개와 수업·과정 번들 `--check` 통과.
+
+네이티브 WKWebView Git 수업 검사와 수업 로딩·환경 메뉴·Edge 음성 8개 검사는 통과했다. 추가 실행한 `player_java_arguments_native`는 6번 문제의 전체 해설이 60초 내 복귀하지 않아 실패했고, 릴리스 컴파일 종료 후 단독 재실행에서도 재현됐다. 실패 시 편집기에는 시연 코드가 일부만 입력된 상태였다. 원인은 아직 확정하지 않았다. `target/mac-handoff-native.log`, `target/mac-handoff-native-retry.log`에 로컬 결과가 있다. 이 실패를 Vim 수정으로 해결됐다고 처리하지 않는다.
+
+Intel/Windows 실행과 세 설치 파일의 새 게시 여부는 이번 푸시의 릴리스 CI 결과로 확인한다. 아래 OpenMP/Python 전체 새 설치, C 도구가 없는 Mac의 설치 창, 첫 실행 bootstrap 및 설치기의 전체 교체 검증은 이 Vim 수정만으로 완료 처리하지 않는다.
+
 ## 최우선: Windows 검증 후 Mac에서 이어가기 (2026-10-20)
 
 사용자의 최신 지시: “윈도우만 보고 맥에서 이어갈게”, “다 했으면 커밋/푸시”. 이 절이 아래의 이전 계획보다 우선한다. `main`을 pull해서 이어간다. 실제 저장소는 `jhs512/immersion-quest-3`이고 Windows 작업 경로는 `C:/Users/jangk/Documents/Codex/2026-10-12/immersion-quest-3`다.
