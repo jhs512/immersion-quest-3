@@ -50,6 +50,8 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
         document::eval("window.molipAgent?.stop()");
         open.set(None); course.set(Some(manifest)); refresh+=1;
     }}};
+    let visible_course=course().map(|manifest|molip_quest::course_visibility::for_account(
+        manifest,&session().map(|s|s.user.login).unwrap_or_default()));
     if let Some(selected)=open() {
         if let Some(session)=session() {
             let player_key=format!("{}:{}:{}:{}",session.user.id,selected.lesson.id,selected.mode.label(),selected.round);
@@ -84,7 +86,7 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                 main {class:"course-main",
                 if let Some((title,stage))=launching() {LessonLaunchStatus {title,stage}}
 
-                if let Some(manifest)=course() {
+                if let Some(manifest)=visible_course {
                 if let Some(s)=session() {CourseProgressLoader {key:"{s.user.id}:{manifest.repository}:{manifest.lessons:?}:{refresh}",session:s,course:manifest.clone(),onloaded:move |records:github_player::CourseProgress|{progress.set(records.events);progress_requirements.set(records.required);}}}
                 section {class:"course-catalog",h2 {"{manifest.title}"}p {"{manifest.description}"}
                     {let records=progress();let total=manifest.lessons.iter().filter(|l|l.required).count();let complete=manifest.lessons.iter().filter(|l|l.required&&records.get(&l.id).is_some_and(|e|issue_progress::status(e,&l.revision,progress_requirements().get(&l.id).map(Vec::as_slice).unwrap_or(&[])).current)).count();rsx!{p {class:"study-progress","최신 버전 완료: 필수 수업 {complete} / {total}"}}}
