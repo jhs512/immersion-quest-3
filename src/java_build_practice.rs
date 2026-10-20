@@ -39,10 +39,19 @@ pub fn jdk_tools()->Result<(PathBuf,PathBuf),String> {
     if !version.status.success()||!crate::java::is_jdk25(&String::from_utf8_lossy(&version.stdout)){return Err("이 수업은 JDK 25가 필요해요.".into())}
     Ok((java,javac))
 }
+pub(super) fn valid_command(args:&[String])->bool {
+    // Program arguments follow a fixed entry point; launcher/JVM options and
+    // alternative files remain outside this exercise contract.
+    let launch=args.first().is_some_and(|tool|tool=="java")
+        &&args.get(1).is_some_and(|entry|entry=="Main"||entry=="Main.java")
+        &&args.len()<=18&&args.iter().skip(2).all(|value|value.len()<=4096&&!value.contains('\0'));
+    let compile=args.iter().map(String::as_str).eq(["javac","Main.java"]);
+    launch||compile
+}
 /// Own the command and descendants, including on timeout/output overflow.
 #[cfg(not(target_os="android"))]
 fn execute(root:&Path,args:&[String])->Result<Invocation,String> {
-    if !matches!(args.iter().map(String::as_str).collect::<Vec<_>>().as_slice(),["java","Main"]|["java","Main.java"]|["javac","Main.java"]){return Err("java Main.java, javac Main.java 또는 java Main을 사용하세요.".into())}
+    if !valid_command(args){return Err("java Main.java [실행 인자], javac Main.java 또는 java Main [실행 인자]를 사용하세요.".into())}
     let (java,javac):(PathBuf,PathBuf)=serde_json::from_slice(&std::fs::read(root.join("java-tools.json")).map_err(|e|e.to_string())?).map_err(|e|e.to_string())?;
     let work=root.join("work");let source=fingerprint(&work.join("Main.java"))?.ok_or("Main.java를 확인하세요.")?;
     let before=fingerprint(&work.join("Main.class"))?;
@@ -139,7 +148,10 @@ impl GitPractice {
             std::fs::create_dir(probe.path().join("work")).map_err(|e|e.to_string())?;
             for name in ["Main.java","Main.class"]{std::fs::copy(self.work().join(name),probe.path().join("work").join(name)).map_err(|e|e.to_string())?;}
             std::fs::copy(self.root().join("java-tools.json"),probe.path().join("java-tools.json")).map_err(|e|e.to_string())?;
-            let r=execute(probe.path(),&["java".into(),"Main".into()])?;
+            let probe_command=if goal.command.first().is_some_and(|s|s=="java")&&goal.command.get(1).is_some_and(|s|s=="Main") {
+                goal.command.clone()
+            }else{vec!["java".into(),"Main".into()]};
+            let r=execute(probe.path(),&probe_command)?;
             if r.success&&r.before==class&&r.after==class{Some(r.stdout)}else{Some(format!("클래스 확인 실패: {}",r.stderr))}
         }else{None};
         add(&mut report,"클래스 산출물",actual==goal.class_output,goal.class_output.clone().unwrap_or_else(||"Main.class가 없어요.".into()),actual.unwrap_or_else(||"Main.class가 없어요.".into()));

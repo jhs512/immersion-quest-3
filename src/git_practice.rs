@@ -145,7 +145,7 @@ impl GitExercise {
 
         if let Some(java)=&self.java_build {
             if self.shell.is_none()||self.vim.is_some()||!["","same","changed"].contains(&java.class_relation.as_str()) {return Err("자바 실습 구성을 확인하세요.".into())}
-            if !java.command.is_empty()&&!matches!(java.command.iter().map(String::as_str).collect::<Vec<_>>().as_slice(),["java","Main"]|["java","Main.java"]|["javac","Main.java"]){return Err("자바 실습 명령을 확인하세요.".into())}
+            if !java.command.is_empty()&&!java_build_practice::valid_command(&java.command){return Err("자바 실습 명령을 확인하세요.".into())}
         }
         if let Some(vim)=&self.vim{vim.validate()?;if self.initial_history!=GitInitialHistory::Uninitialized||self.shell.is_some()||self.state_goal.is_some()||self.demo_setup.is_some(){return Err("Vim 시작 구성을 확인하세요.".into())}}
         if let Some(shell)=&self.shell {shell.validate()?;if self.initial_history!=GitInitialHistory::Uninitialized||self.state_goal.is_some()||self.demo_setup.is_some(){return Err("Bash 실습의 시작 상태를 확인하세요.".into())}}

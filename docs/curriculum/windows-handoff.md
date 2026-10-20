@@ -2,6 +2,10 @@
 
 기록일: 2026-10-20. 이 파일은 컴퓨터와 대화가 바뀌어도 이어가기 위한 작업 기준이다.
 
+## 최신 재개 기준 (2026-10-20)
+
+사용자가 “개별 지식의 기초/원리를 예제를 통해서 이해한다는 원칙이 더 상위원칙”이라고 명시하고 “그래 쭉 진행해봐”라고 재개했다. 메모 앱은 보조 맥락이며 원리 도입에 방해되면 독립 예제를 우선한다. 이전 중단 문구는 역사 기록이다. 다음 수업은 실행 인자를 독립시킨 java-arguments다. 기존 수업별 상태를 확인하고 순차 제작·검증한다. 실행 인자 8스텝을 추가해 현재 로컬 자바 과정은 22수업 203스텝, 전체는 76수업 742스텝이다. 실제 Windows 풀이·해설·진도 검사를 통과했고 새 수업의 Mac 검증은 후속 CI에서 확인한다.
+
 ## Windows 재개 기록 (2026-10-20)
 
 사용자가 “풀 하고 작업 이어가자, 맥에서 하던 작업이 있어 나한테 물어보지말고 쭉 진행”이라고 명시적으로 재개했다. 승인된 java-launch 8스텝을 제작·등록했다. 현재 자바 백엔드는 21수업 195스텝, 전체 레지스트리는 75수업 734스텝이다. 기존 수업과 문제 식별자는 유지한다.
@@ -20,7 +24,7 @@
 
 1. `AGENTS.md`, `CONTEXT.md`, `docs/content-rules.md`, `docs/voice.md`, `docs/agents/narration.md`를 따른다.
 2. 전체 계획: `docs/curriculum/java-backend-expansion.md`.
-3. 후보 44개·추천 의존 관계: `tools/redesigned_courses/java/backend-extension-plan.json`.
+3. 후보 목록·추천 의존 관계(입력 수업 분리 후 46개): `tools/redesigned_courses/java/backend-extension-plan.json`.
 4. 승인된 첫 수업: `tools/redesigned_lessons/java_launch/approved-prd.json` 및 `approved-prd.md`. `draft-prd.*`는 검토 당시 초안으로 보존한다.
 5. 8스텝의 명령·기대 결과·선택지·문구 변경: `tools/redesigned_lessons/java_launch/prototype.json`.
 6. 실제 JDK 검증 재현: `tools/verify-java-launch-prototype.py`.
