@@ -8,7 +8,7 @@
  const submit=async passed=>{await click('제출');await wait(()=>document.querySelector('.repository-task')?.dataset.busy==='false'&&document.querySelector('.result-pane')?.dataset.feedback===(passed?'passed':'incorrect'),'submission result');};
  try{
   await wait(()=>button('학습 시작')&&!button('학습 시작').disabled,'initial catalog');await click('버전 뉴');
-  await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('java-launch-1'),'Java launch catalog');await click('학습 시작');molipAgent.setVoice(false);
+  await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('java-launch-1'),'Java launch catalog');await click('학습 시작');await ready();await wait(()=>typeof window.molipAgent?.setVoice==='function','narration module ready');molipAgent.setVoice(false);
   for(let i=0;i<mq3JavaLaunch.tasks.length;i++){
    const task=mq3JavaLaunch.tasks[i];await wait(()=>document.querySelector('.repository-task')?.dataset.taskId===task.id,'task mounted');await ready();
    const choose=id=>document.querySelector(`input[type=radio][value="${id}"]`).click();
