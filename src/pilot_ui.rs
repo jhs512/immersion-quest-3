@@ -42,13 +42,20 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
             script
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("interaction-example") {include_str!("../tools/player-pilot-example.js").to_owned()} else {format!("window.mq3FirstGitOnly={};window.mq3IncludeGitBranch={};{}",matches!(std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref(),Some("git-first"|"git-lessons")),std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()!=Some("git-first"),include_str!("../tools/player-pilot-native.js"))};
         let mut bridge = document::eval(&script);
+        let mut progress_lock:Option<rusqlite::Connection>=None;
         let result = match tokio::time::timeout(std::time::Duration::from_secs(480), async {
             loop {
                 let message=bridge.recv::<serde_json::Value>().await?;
                 if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("async-progress")&&message["control"].is_string(){
                     let root=pilot_source::data_dir().unwrap();
+                    if message["control"]=="pause-record"{
+                        let db=rusqlite::Connection::open(root.join("progress-events.sqlite3")).unwrap();
+                        db.busy_timeout(std::time::Duration::from_secs(5)).unwrap();
+                        db.execute_batch("BEGIN EXCLUSIVE").unwrap();progress_lock=Some(db);
+                    }
+                    if message["control"]=="resume-record"{if let Some(db)=progress_lock.take(){db.execute_batch("ROLLBACK").unwrap();}}
                     if message["control"]=="resume"{std::fs::remove_file(root.join("pilot-progress-blocked")).unwrap();}
-                    let pending=molip_quest::progress_sync::ProgressStore::installed().unwrap().pending_count(987654321).unwrap();
+                    let pending=if progress_lock.is_some(){0}else{molip_quest::progress_sync::ProgressStore::installed().unwrap().pending_count(987654321).unwrap()};
                     let attempts=std::fs::read_to_string(root.join("pilot-progress-attempts")).unwrap_or_default().lines().count();
                     document::eval(&format!("window.mq3ProgressStats={};",serde_json::json!({"token":message["token"],"pending":pending,"attempts":attempts,"running":molip_quest::progress_sync::is_syncing(987654321).unwrap()})));
                     continue;

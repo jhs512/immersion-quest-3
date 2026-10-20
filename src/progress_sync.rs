@@ -11,6 +11,48 @@ use std::{
     time::Duration,
 };
 
+/// Apply a grading result in memory without consulting persistence.
+pub fn apply_result(
+    mut latest: Vec<LearningEvent>,
+    event: &LearningEvent,
+    required: &[String],
+) -> Vec<LearningEvent> {
+    latest.push(event.clone());
+    if event.kind == EventKind::Attempt
+        && event.passed
+        && !required.is_empty()
+        && required
+            .iter()
+            .all(|id| issue_progress::learned_tasks(&latest, &event.revision).contains(id))
+        && !latest.iter().any(|e| {
+            e.kind == EventKind::Completed
+                && e.round == event.round
+                && e.revision == event.revision
+                && e.mode == event.mode
+        })
+    {
+        let mut done = LearningEvent::new(
+            event.key.clone(),
+            &event.revision,
+            event.mode,
+            &event.round,
+            EventKind::Completed,
+        );
+        done.required = required.into();
+        done.id = format!(
+            "completed:{}:{}:{}:{}:{:?}:{}",
+            event.key.user_id,
+            event.key.course_id,
+            event.key.lesson_id,
+            event.revision,
+            event.mode,
+            event.round
+        );
+        latest.push(done);
+    }
+    issue_progress::merge(latest, &event.key)
+}
+
 #[derive(Clone)]
 pub struct ProgressStore {
     path: PathBuf,
@@ -114,7 +156,7 @@ impl ProgressStore {
         }
         tx.commit().map_err(|e| e.to_string())
     }
-    /// The attempt and any lesson completion are committed together before navigation.
+    /// The background recorder commits the attempt and lesson completion together.
     pub fn record(
         &self,
         repo: &str,
@@ -132,30 +174,11 @@ impl ProgressStore {
             .map_err(|e| e.to_string())?;
         Self::insert(&tx, repo, title, event, true)?;
         let mut latest = Self::read(&tx, repo, &event.key)?;
-        if event.kind == EventKind::Attempt
-            && event.passed
-            && !required.is_empty()
-            && required
-                .iter()
-                .all(|id| issue_progress::learned_tasks(&latest, &event.revision).contains(id))
-            && !latest.iter().any(|e| {
-                e.kind == EventKind::Completed
-                    && e.round == event.round
-                    && e.revision == event.revision
-                    && e.mode == event.mode
-            })
-        {
-            let mut done = LearningEvent::new(
-                event.key.clone(),
-                &event.revision,
-                event.mode,
-                &event.round,
-                EventKind::Completed,
-            );
-            done.required = required.into();
-            Self::insert(&tx, repo, title, &done, true)?;
-            latest.push(done);
+        let updated = apply_result(std::mem::take(&mut latest), event, required);
+        for item in &updated {
+            Self::insert(&tx, repo, title, item, true)?;
         }
+        latest = updated;
         tx.commit().map_err(|e| e.to_string())?;
         Ok(issue_progress::merge(latest, &event.key))
     }
@@ -353,6 +376,26 @@ mod tests {
         event.task_id = Some(task.into());
         event.passed = true;
         event
+    }
+    #[test]
+    fn grading_result_is_available_before_storage_and_uses_the_same_completion_id() {
+        let (_root, store, user) = setup();
+        let event = attempt(user.id, "a");
+        let required = vec!["a".into()];
+        let immediate = apply_result(vec![], &event, &required);
+        assert!(issue_progress::status(&immediate, "revision", &required).current);
+        assert_eq!(store.pending_count(user.id).unwrap(), 0);
+        let stored = store
+            .record("owner/course", &user, "Lesson", &event, &required)
+            .unwrap();
+        let merged = issue_progress::merge(immediate.into_iter().chain(stored), &event.key);
+        assert_eq!(
+            merged
+                .iter()
+                .filter(|e| e.kind == EventKind::Completed)
+                .count(),
+            1
+        );
     }
     #[test]
     fn exhausted_retries_survive_restart_and_are_sent_with_the_next_clear() {

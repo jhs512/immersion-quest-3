@@ -311,7 +311,6 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     let mut show_solution=use_signal(||false);
     let mut passed_dialog=use_signal(||false);
     let mut submitting=use_signal(||false);
-    let mut submit_stage=use_signal(||0usize);
     use_drop(||{document::eval("window.molipAgent?.stop()");});
     let mut history_saves=use_signal(||0usize);
     let mut history_message=use_signal(String::new);
@@ -433,7 +432,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                     }}},"코드 실행"}
                     }
                     button {class:"primary","data-shortcut-action":"submit","data-enter-submit":"true",disabled:busy()||narrating()||(task.git_terminal.is_some()&&git_practice().is_none()),onclick:{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();move |_|{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();async move {
-                        submitting.set(true);submit_stage.set(0);busy.set(true);feedback.set("checking");execution_state.set("idle");output.set(String::new());message.set("검사하고 있어요.".into());
+                        submitting.set(true);busy.set(true);feedback.set("checking");execution_state.set("idle");output.set(String::new());message.set("검사하고 있어요.".into());
                         match if task.git_terminal.as_ref().is_some_and(|e|e.java_build.is_some()) {
                                 let practice=git_practice();let answer=code();let interaction=task.interaction.clone();
                                 github_player::background(move||{
@@ -452,21 +451,18 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                             }else{molip_quest::lesson_runner::check(&task,&code()).await} {
                                 Err(e)=>{feedback.set("error");message.set(e);},Ok(report)=>{
                                     feedback.set(if report.passed{"passed"}else{"incorrect"});
-                                    message.set(if report.passed{"통과했어요. 진도를 저장하고 있어요."}else{"다시 풀어보세요. 아래 검사에서 예상과 실제 결과를 비교하세요."}.into());
+                                    message.set(if report.passed{"통과했어요."}else{"다시 풀어보세요. 아래 검사에서 예상과 실제 결과를 비교하세요."}.into());
                                     output.set(report.cases.iter().enumerate().map(|(i,c)|format!("검사 {} · {}\n입력: {}\n예상: {}\n결과: {}\n{}",i+1,if c.passed{"통과"}else{"다시 풀기"},c.input,c.expected,c.stdout,c.stderr)).collect::<Vec<_>>().join("\n\n"));
-                                    submit_stage.set(1);
                                     let key=ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()};
                                     let mut event=LearningEvent::new(key,&selected.lesson.revision,selected.mode,&selected.round,EventKind::Attempt);event.task_id=Some(task.id.clone());event.passed=report.passed;
                                     let github=session.github.clone();let user=session.user.clone();let repo=selected.course.repository.clone();let title=selected.lesson.title.clone();
-                                    match github_player::background(move||github.record(&repo,&user,&title,&event,&required)).await {
-                                        Err(error)=>{feedback.set("error");message.set(format!("기기에 진도를 보관하지 못했어요. {error}"));},
-                                        Ok(latest)=>{
-                                            let complete=latest.iter().any(|e|e.kind==EventKind::Completed&&e.round==selected.round);
-                                            onrecord.call(latest);
-                                            message.set(if report.passed&&complete{"수업 완료! 기기에 진도를 보관했어요."}else if report.passed{"통과했어요. 기기에 진도를 보관했어요."}else{"다시 풀어보세요. 아래 검사에서 예상과 실제 결과를 비교하세요."}.into());
-                                            passed_dialog.set(report.passed);
-                                        }
-                                    }
+                                    let latest=molip_quest::progress_sync::apply_result(events(),&event,&required);
+                                    onrecord.call(latest);
+                                    passed_dialog.set(report.passed);
+                                    // Persistence belongs to the process, so navigation cannot cancel it.
+                                    if let Err(error)=std::thread::Builder::new().name("progress-record".into()).spawn(move||{
+                                        if let Err(error)=github.record(&repo,&user,&title,&event,&required){eprintln!("Progress recording failed: {error}");}
+                                    }){eprintln!("Progress recording could not start: {error}");}
                                 }
                             }
                         busy.set(false);submitting.set(false);
@@ -528,7 +524,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
             }
             }
         }
-        if submitting() {SubmissionProgress {stage:submit_stage()}}
+        if submitting() {SubmissionProgress {}}
         if passed_dialog() && !submitting() {
             TaskPassedDialog {has_next,
                 onnext:move |_|{passed_dialog.set(false);onnext.call(());},
@@ -538,24 +534,14 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
 }
 
 #[component]
-fn SubmissionProgress(stage:usize)->Element {
-    let labels=["답안을 검사하고 있어요.","기기에 진도를 저장하고 있어요."];
+fn SubmissionProgress()->Element {
     rsx! {
         div {class:"submission-progress-backdrop",
             section {class:"submission-progress-dialog",role:"dialog",aria_modal:"true",aria_label:"답안 제출 중",aria_busy:"true",tabindex:-1,
                 onmounted:move |event|async move{let _=event.data().set_focus(true).await;},
                 onkeydown:move |event|{event.prevent_default();event.stop_propagation();},
                 span {class:"execution-spinner",aria_hidden:"true"}
-                h2 {"답안을 제출하고 있어요"}
-                p {role:"status",aria_live:"polite","{labels[stage.min(1)]}"}
-                ol {
-                    for (index,label) in ["답안 검사","기기에 보관"].iter().enumerate() {
-                        li {class:if index<stage {"done"}else if index==stage{"current"}else{""},
-                            span {aria_hidden:"true",if index<stage {"✓"}else{"{index+1}"}}
-                            "{label}"
-                        }
-                    }
-                }
+                h2 {"답안을 검사하고 있어요"}
             }
         }
     }

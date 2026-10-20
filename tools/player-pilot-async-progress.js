@@ -8,11 +8,16 @@
  try{
   await click('학습 시작');await wait(()=>window.molipCodeEditors?.getValue()!=null,'editor');
   molipCodeEditors.setValue('console.log(3);');await wait(()=>document.querySelector('[data-code-editor]')?.dataset.editorValue==='console.log(3);','first source saved');
-  await click('제출');await wait(()=>document.querySelector('.task-passed-dialog'),'clear does not wait for GitHub');
-  let state=await stats();if(state.pending<1)throw Error('offline event not retained');
+  await stats('pause-record');
+  await click('제출');await wait(()=>document.querySelector('.task-passed-dialog'),'clear does not wait for local or remote storage');
+  if(document.querySelector('.submission-progress-dialog')||document.querySelector('.execution-status')?.textContent.includes('저장'))throw Error('UI still checks saving');
+  let state;
   if(!document.querySelector('.study-navigation button.completed'))throw Error('local completion missing');
   await click('다음으로 이동');await wait(()=>document.querySelector('.problem-pane h2')?.textContent==='값 5 확인','can navigate while offline');
-  checked.push('clear and next problem are available while GitHub writes fail');
+  await stats('resume-record');
+  const recordUntil=Date.now()+20000;
+  while((state=await stats()).pending<1){if(Date.now()>recordUntil)throw Error('offline event not retained');await new Promise(r=>setTimeout(r,30));}
+  checked.push('clear and next problem are available while local storage is locked and GitHub writes fail');
   const retriesUntil=Date.now()+20000;
   while((state=await stats()).attempts<3||state.running){if(Date.now()>retriesUntil)throw Error("retry deadline");await new Promise(r=>setTimeout(r,100));}
   const attempts=state.attempts;await new Promise(r=>setTimeout(r,500));state=await stats();
