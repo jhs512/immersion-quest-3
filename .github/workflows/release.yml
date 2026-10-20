@@ -75,8 +75,6 @@ jobs:
         include:
           - runner: macos-15
             arch: arm64
-          - runner: macos-15-intel
-            arch: x86_64
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
     env:
@@ -126,10 +124,6 @@ jobs:
             target/pilot-java-arguments-native-result.json
             target/pilot-git-course-native-result.json
           if-no-files-found: ignore
-      - name: Verify Intel learning environment
-        if: matrix.arch == 'x86_64'
-        run: |
-          cargo test --release --locked --lib doctor::install_tests::environment_installs_and_passes_the_checks -- --ignored --nocapture --test-threads=1
       - name: Build and package macOS app
         run: |
           cargo build --release --locked --bin molip-quest
@@ -175,7 +169,7 @@ jobs:
           python3 tools/test_macos_installer.py
           python3 tools/test_release_assets.py
           python3 tools/verify-release-assets.py target/release-assets --desktop
-          (cd target/release-assets && sha256sum molip-quest-3-windows-x64-setup.exe molip-quest-3-macos-*.dmg > SHA256SUMS)
+          (cd target/release-assets && sha256sum molip-quest-3-windows-x64-setup.exe molip-quest-3-macos-arm64.dmg > SHA256SUMS)
       - name: Publish only after uploading verified assets
         env:
           GH_TOKEN: ${{ github.token }}
@@ -192,8 +186,8 @@ jobs:
               exit 0
             fi
           else
-            printf 'MQ3 Windows x64, macOS Apple Silicon and Intel installers. Source commit: %s\n\nLearning progress uses your existing gh login.\nWindows code signing and Apple notarization are not configured.\n' "$COMMIT_SHA" > "$RUNNER_TEMP/notes.md"
+            printf 'MQ3 Windows x64, macOS Apple Silicon installers. Source commit: %s\n\nLearning progress uses your existing gh login.\nWindows code signing and Apple notarization are not configured.\n' "$COMMIT_SHA" > "$RUNNER_TEMP/notes.md"
             gh release create "$tag" --draft --target "$COMMIT_SHA" --title "MQ · $tag" --notes-file "$RUNNER_TEMP/notes.md"
           fi
-          gh release upload "$tag" --clobber target/release-assets/molip-quest-3-windows-x64-setup.exe target/release-assets/molip-quest-3-macos-*.dmg target/release-assets/SHA256SUMS
+          gh release upload "$tag" --clobber target/release-assets/molip-quest-3-windows-x64-setup.exe target/release-assets/molip-quest-3-macos-arm64.dmg target/release-assets/SHA256SUMS
           gh release edit "$tag" --draft=false --latest

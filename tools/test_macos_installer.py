@@ -21,11 +21,15 @@ sysctl() {{ echo {translated}; }}
 '''
         return subprocess.run([BASH, "-c", mocks + source + '\nprintf "%s|%s" "$arch" "$python_version"'], text=True, capture_output=True, encoding="utf-8")
 
-    def test_native_cpus_select_matching_app_and_python(self):
-        for cpu, python in (("arm64", "3.13"), ("x86_64", "3.12")):
-            result = self.select(cpu)
-            self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertEqual(result.stdout, f"{cpu}|{python}")
+    def test_apple_silicon_selects_matching_app_and_python(self):
+        result = self.select("arm64")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, "arm64|3.13")
+
+    def test_intel_is_rejected_before_downloading_or_mutating_files(self):
+        result = self.select("x86_64")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Apple Silicon", result.stdout)
 
     def test_rosetta_cannot_install_the_intel_stack_on_apple_silicon(self):
         result = self.select("x86_64", "1")

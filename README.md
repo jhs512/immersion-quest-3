@@ -9,11 +9,11 @@
 
 첫 실행 시 앱이 Java·C·Python을 진단하고 필요한 도구를 자동으로 준비해요. 정상인 기존 환경은 유지해요. 설치 결과는 **앱 설정 → 환경 진단**에서 확인하고, 실패한 경우 **환경 설치**로 다시 시도하세요.
 
-## macOS · Apple Silicon / Intel · 12 이상
+## macOS · Apple Silicon · 12 이상
 
 ### 터미널로 설치
 
-터미널에서 아래 명령을 실행하면 CPU에 맞는 앱을 설치하고 Java·C·Python 환경을 준비한 뒤 **MQ**를 열어요.
+터미널에서 아래 명령을 실행하면 Apple Silicon용 앱을 설치하고 Java·C·Python 환경을 준비한 뒤 **MQ**를 열어요.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/jhs512/immersion-quest-3/main/packaging/macos/install.sh | bash
@@ -25,7 +25,7 @@ Java는 CPU를 자동으로 구분해 앱 전용 JDK 25를 준비해요. macOS�
 
 ### 설치 파일로 설치
 
-1. CPU에 맞는 파일을 받으세요: [Apple Silicon(M1 이후)](https://github.com/jhs512/immersion-quest-3/releases/latest/download/molip-quest-3-macos-arm64.dmg) / [Intel Mac](https://github.com/jhs512/immersion-quest-3/releases/latest/download/molip-quest-3-macos-x86_64.dmg).
+1. [Apple Silicon(M1 이후) 설치 파일](https://github.com/jhs512/immersion-quest-3/releases/latest/download/molip-quest-3-macos-arm64.dmg)을 받으세요.
 2. 실행 중인 MQ를 종료하세요. DMG 안의 **MQ.app**을 **응용 프로그램(Applications)**으로 옮기고 기존 앱을 교체하세요.
 3. 응용 프로그램의 **MQ**를 열고 위의 GitHub 연결과 실행 환경 준비를 진행하세요. 첫 실행 시 필요한 환경을 자동으로 준비해요. 설치 결과는 **앱 설정 → 환경 진단**에서 확인하세요.
 

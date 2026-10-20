@@ -17,7 +17,7 @@ case "$(uname -m)" in
     if [ "$(sysctl -in sysctl.proc_translated 2>/dev/null || true)" = 1 ]; then
       echo "Apple Silicon Mac에서는 터미널의 Rosetta 실행을 해제한 뒤 다시 설치해 주세요."; exit 1
     fi
-    arch=x86_64; python_version=3.12 ;;
+    echo "최신 설치 파일은 Apple Silicon Mac만 지원해요."; exit 1 ;;
   *) echo "지원하지 않는 Mac CPU입니다: $(uname -m)"; exit 1 ;;
 esac
 
