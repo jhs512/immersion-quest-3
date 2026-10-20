@@ -71,7 +71,7 @@ async fn download_java(root:&Path,report:&UnboundedSender<String>)->Result<PathB
     let raw=crate::doctor::probe_with_timeout(curl,&["-fsSL","--connect-timeout","20","--max-time","60",&api],Duration::from_secs(70)).await?;
     let metadata:serde_json::Value=serde_json::from_slice(&raw).map_err(|e|e.to_string())?;
     let (url,checksum,size)=package(&metadata)?;
-    std::fs::create_dir_all(root).map_err(|e|e.to_string())?;
+    std::fs::create_dir_all(root).map_err(|e|format!("JDK 설치 폴더 생성 · {}: {e}",root.display()))?;
     let pending=tempfile::Builder::new().prefix("jdk25-").tempdir_in(root).map_err(|e|e.to_string())?;
     let archive=pending.path().join(if cfg!(windows){"jdk.zip"}else{"jdk.tar.gz"});
     let _=report.send(format!("Java · 약 {} MB를 받아요.",size/1_048_576));
@@ -93,10 +93,10 @@ async fn download_java(root:&Path,report:&UnboundedSender<String>)->Result<PathB
     let name=format!("jdk25-{}",crate::issue_progress::new_id());
     let canonical_root=root.canonicalize().map_err(|e|e.to_string())?;
     if !folder.canonicalize().map_err(|e|e.to_string())?.starts_with(&canonical_root)||root.join(&name).exists(){return Err("앱 전용 설치 경로를 확인하세요.".into());}
-    std::fs::rename(&folder,root.join(&name)).map_err(|e|e.to_string())?;
+    std::fs::rename(&folder,root.join(&name)).map_err(|e|format!("JDK 설치 확정 · {} → {}: {e}",folder.display(),root.join(&name).display()))?;
     let mut marker=tempfile::NamedTempFile::new_in(root).map_err(|e|e.to_string())?;
     marker.write_all(&serde_json::to_vec(&name).unwrap()).map_err(|e|e.to_string())?;
-    marker.persist(root.join("jdk25-current.json")).map_err(|e|e.to_string())?;
+    marker.persist(root.join("jdk25-current.json")).map_err(|e|format!("JDK 선택 정보 저장 · {}: {e}",root.join("jdk25-current.json").display()))?;
     Ok(java_in(&root.join(name)))
 }
 

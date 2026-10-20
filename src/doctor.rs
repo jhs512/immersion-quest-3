@@ -82,6 +82,10 @@ async fn inspect_voice() -> Check {
 }
 
 async fn inspect_python(python: &str, package_timeout: std::time::Duration) -> Vec<Check> {
+    inspect_python_with_prefix(python, package_timeout, "").await
+}
+
+async fn inspect_python_with_prefix(python: &str, package_timeout: std::time::Duration, prefix: &str) -> Vec<Check> {
     let mut checks = Vec::new();
     let version = probe_with_timeout(
         python,
@@ -105,19 +109,29 @@ async fn inspect_python(python: &str, package_timeout: std::time::Duration) -> V
                 format!("Python 실행을 확인하지 못했습니다. {error} (시도한 경로: {python})")
             }),
     });
-    // A first import can build caches and be much slower than Python startup.
-    // Never infer that Python or every package is absent from an import timeout.
-    let script = "import json,importlib\nresult={}\nfor name in ['pandas','matplotlib','seaborn','sklearn','tensorflow','xgboost','openpyxl','bs4','requests','FinanceDataReader','yfinance']:\n try:\n  module=importlib.import_module(name); result[name]={'version':str(getattr(module,'__version__','설치됨'))}\n except ModuleNotFoundError as e:\n  result[name]={'error':str(e),'missing':e.name==name}\n except Exception as e:\n  result[name]={'error':str(e),'missing':False}\nprint(json.dumps(result))";
-    let result = if version.is_ok() {
-        probe_with_timeout(python, &["-I", "-X", "utf8", "-c", script], package_timeout)
-            .await
-            .and_then(|out| {
-                serde_json::from_slice::<serde_json::Value>(&out)
-                    .map_err(|e| format!("검사 결과를 읽지 못했습니다: {e}"))
-            })
-    } else {
-        Err("Python 실행을 확인한 뒤 패키지를 다시 검사하세요.".into())
-    };
+    // Import packages in separate children: a slow or crashed native extension must
+    // not erase completed checks or prevent later packages from being checked.
+    let mut results = std::collections::HashMap::new();
+    if version.is_ok() {
+        let limit = std::sync::Arc::new(tokio::sync::Semaphore::new(3));
+        let mut workers = tokio::task::JoinSet::new();
+        for key in ["pandas", "matplotlib", "seaborn", "sklearn", "tensorflow", "xgboost", "openpyxl", "bs4", "requests", "FinanceDataReader", "yfinance"] {
+            let python = python.to_owned();
+            let prefix = prefix.to_owned();
+            let limit = limit.clone();
+            workers.spawn(async move {
+                let _permit = limit.acquire_owned().await.unwrap();
+                let script = format!("{prefix}import json,importlib,sys\nname=sys.argv[1]\ntry:\n module=importlib.import_module(name); result={{'version':str(getattr(module,'__version__','설치됨'))}}\nexcept ModuleNotFoundError as e:\n result={{'error':str(e),'missing':e.name==name}}\nexcept Exception as e:\n result={{'error':str(e),'missing':False}}\nprint(json.dumps(result))");
+                let result = probe_with_timeout(&python, &["-I", "-X", "utf8", "-c", &script, key], package_timeout)
+                    .await.and_then(|out| serde_json::from_slice::<serde_json::Value>(&out)
+                        .map_err(|e| format!("검사 결과를 읽지 못했습니다: {e}")));
+                (key, result)
+            });
+        }
+        while let Some(worker) = workers.join_next().await {
+            if let Ok((key, result)) = worker { results.insert(key, result); }
+        }
+    }
     for (key, name) in [
         ("pandas", "pandas · 표 분석"),
         ("matplotlib", "matplotlib · 그래프"),
@@ -131,24 +145,20 @@ async fn inspect_python(python: &str, package_timeout: std::time::Duration) -> V
         ("FinanceDataReader", "FinanceDataReader · 주가 받기"),
         ("yfinance", "yfinance · 주가 받기 (야후)"),
     ] {
-        let version = result
-            .as_ref()
-            .ok()
-            .and_then(|v| v[key]["version"].as_str());
+        let result = results.remove(key).unwrap_or_else(|| Err(
+            if version.is_ok() { "패키지 검사를 완료하지 못했어요.".into() }
+            else { "Python 실행을 확인한 뒤 패키지를 다시 검사하세요.".into() }
+        ));
+        let package_version = result.as_ref().ok().and_then(|v| v["version"].as_str());
         checks.push(Check {
             name: name.into(),
-            ready: version.is_some(),
-            detail: version
-                .map(|v| format!("버전 {v}"))
+            ready: package_version.is_some(),
+            detail: package_version.map(|v| format!("버전 {v}"))
                 .unwrap_or_else(|| match &result {
                     Err(error) => error.clone(),
-                    Ok(value) if value[key]["missing"] == true => {
-                        "선택한 Python 환경에 패키지를 설치하세요.".into()
-                    }
-                    Ok(value) => format!(
-                        "패키지를 불러오지 못했습니다: {}",
-                        value[key]["error"].as_str().unwrap_or("검사 결과 없음")
-                    ),
+                    Ok(value) if value["missing"] == true => "선택한 Python 환경에 패키지를 설치하세요.".into(),
+                    Ok(value) => format!("패키지를 불러오지 못했습니다: {}",
+                        value["error"].as_str().unwrap_or("검사 결과 없음")),
                 }),
         });
     }
@@ -366,6 +376,42 @@ pub(crate) async fn run_logged(
     }
 }
 
+async fn prepare_python_environment(
+    report: &tokio::sync::mpsc::UnboundedSender<String>, uv: &str,
+    env_dir: &std::path::Path, python_store: &std::path::Path,
+) -> Result<std::path::PathBuf, String> {
+    let python = env_dir.join(if cfg!(windows) { "python.exe" } else { "bin/python" });
+    let existing_python = if python.is_file() { Some(python.clone()) }
+        else if cfg!(windows) && env_dir.join("Scripts/python.exe").is_file() { Some(env_dir.join("Scripts/python.exe")) }
+        else { None };
+    let usable = if let Some(path) = &existing_python {
+        probe_with_timeout(&path.to_string_lossy(), &["-I", "-c", "import sys; print(sys.version_info[:2])"], std::time::Duration::from_secs(20)).await.is_ok_and(|out| String::from_utf8_lossy(&out).trim() == if learning_python_version() == "3.12" { "(3, 12)" } else { "(3, 13)" })
+    } else { false };
+    let python = if usable {
+        let _ = report.send("기존 Python을 유지하고 필요한 패키지를 준비해요.".into());
+        existing_python.unwrap()
+    } else {
+        let backup = if env_dir.exists() {
+            let backup = env_dir.parent().ok_or("Python 설치 경로 오류")?.join(format!("ml-env-backup-{}", crate::issue_progress::new_id()));
+            std::fs::rename(&env_dir, &backup).map_err(|e| format!("Python 환경 보관 실패 · {} → {}: {e}", env_dir.display(), backup.display()))?;
+            Some(backup)
+        } else { None };
+        if let Err(error) = create_learning_environment(report, uv, env_dir, python_store).await {
+            // Keep any partial installation for diagnosis and restore the previous one.
+            if let Some(backup) = backup {
+                if env_dir.exists() {
+                    let partial = env_dir.parent().ok_or("Python 설치 경로 오류")?.join(format!("ml-env-incomplete-{}", crate::issue_progress::new_id()));
+                    std::fs::rename(&env_dir, &partial).map_err(|e| format!("{error} / 불완전한 Python 환경 보관 실패: {e}"))?;
+                }
+                std::fs::rename(&backup, &env_dir).map_err(|e| format!("{error} / 기존 Python 환경 복구 실패: {e}"))?;
+            }
+            return Err(format!("Python 환경 생성 · {}: {error}", env_dir.display()));
+        }
+        python
+    };
+    Ok(python)
+}
+
 /// Install (or reinstall) the learning Python environment in the app data folder: get `uv`
 /// if it is missing, create the platform's supported Python environment and install its pins. Progress
 /// lines go to `report`; the result names the interpreter.
@@ -415,20 +461,11 @@ pub async fn install(report: tokio::sync::mpsc::UnboundedSender<String>) -> Resu
         python_store.display()
     ));
     say(&format!(
-        "[2/3] Python {} 환경을 새로 만들어요: {}",
+        "[2/3] Python {} 실행 환경을 확인해요: {}",
         learning_python_version(),
         env_dir.display()
     ));
-    if env_dir.exists() {
-        std::fs::remove_dir_all(&env_dir)
-            .map_err(|e| format!("예전 환경을 지우지 못했습니다: {e}"))?;
-    }
-    create_learning_environment(&report, &uv, &env_dir, &python_store).await?;
-    let python = env_dir.join(if cfg!(windows) {
-        "python.exe"
-    } else {
-        "bin/python"
-    });
+    let python = prepare_python_environment(&report, &uv, &env_dir, &python_store).await?;
     say("[3/3] 수업 패키지를 설치합니다 (pandas, scikit-learn, TensorFlow, XGBoost, matplotlib, seaborn, openpyxl, BeautifulSoup, requests, FinanceDataReader, yfinance). 몇 분 걸립니다.");
     let requirements =
         std::env::temp_dir().join(format!("molip-requirements-{}.txt", std::process::id()));
@@ -619,6 +656,37 @@ mod install_tests {
 
 #[cfg(test)]
 mod diagnostic_tests {
+    #[tokio::test]
+    #[ignore = "requires uv and an existing Python 3.13/3.12 installation"]
+    async fn package_repair_preserves_working_environment() {
+        let uv = super::find_uv().await.expect("uv");
+        let root = tempfile::tempdir().unwrap();
+        let env = root.path().join("ml-env");
+        let (tx, _rx) = tokio::sync::mpsc::unbounded_channel();
+        super::run_logged(&tx, &uv, &["venv", &env.to_string_lossy(), "--python", &super::python_executable(), "--no-python-downloads", "--no-config"], None).await.unwrap();
+        let sentinel = env.join("existing-package-marker.txt");
+        std::fs::write(&sentinel, "keep existing packages").unwrap();
+        // No installer is available: a working environment must bypass creation.
+        let python = super::prepare_python_environment(&tx, "missing-uv", &env, &root.path().join("python")).await.unwrap();
+        assert!(python.is_file());
+        assert_eq!(std::fs::read_to_string(&sentinel).unwrap(), "keep existing packages");
+        assert!(!root.path().read_dir().unwrap().any(|entry| entry.unwrap().file_name().to_string_lossy().contains("backup")));
+    }
+
+    #[tokio::test]
+    async fn slow_package_does_not_erase_other_package_results() {
+        let python = super::python_executable();
+        // Simulate a slow first TensorFlow import through the real child-process path.
+        let prefix = "import importlib,time,types\ndef fixture_import(name):\n if name == 'tensorflow': time.sleep(2)\n return types.SimpleNamespace(__version__='fixture')\nimportlib.import_module=fixture_import\n";
+        let checks = super::inspect_python_with_prefix(&python, std::time::Duration::from_millis(500), prefix).await;
+        for name in ["pandas · 표 분석", "yfinance · 주가 받기 (야후)"] {
+            let check = checks.iter().find(|c| c.name == name).unwrap();
+            assert!(check.ready, "{}: {}", check.name, check.detail);
+        }
+        let slow = checks.iter().find(|c| c.name == "TensorFlow · 딥러닝").unwrap();
+        assert!(!slow.ready && slow.detail.contains("검사 시간 초과"));
+    }
+
     /// Recheck the existing app-owned environment without reinstalling it.
     #[tokio::test]
     #[ignore]
@@ -639,7 +707,7 @@ pub async fn prepare(report:tokio::sync::mpsc::UnboundedSender<String>)->Result<
     let _guard=PREPARING.try_lock().map_err(|_|"다른 환경 설치가 진행 중이에요.".to_string())?;
     let mut problems=vec![];
     for (name,result) in [("Java",crate::runtime_setup::prepare_java(&report).await),("C",crate::runtime_setup::prepare_c(&report).await)] {
-        match result {Ok(line)=>{let _=report.send(line);},Err(error)=>{let _=report.send(format!("{name} · {error}"));problems.push(error);}}
+        match result {Ok(line)=>{let _=report.send(line);},Err(error)=>{let _=report.send(format!("{name} · {error}"));problems.push(format!("{name} · {error}"));}}
     }
     #[cfg(target_os="macos")]
     if let Err(error)=crate::runtime_setup::prepare_openmp(&report).await{problems.push(error);}
@@ -647,8 +715,11 @@ pub async fn prepare(report:tokio::sync::mpsc::UnboundedSender<String>)->Result<
     if checks.iter().all(|check|check.ready) {
         let _=report.send("Python · 실행과 수업 패키지가 준비되어 있어요. 기존 환경을 유지해요.".into());
     }else{
-        if let Err(error)=install(report.clone()).await{problems.push(error);}
-        let checks=inspect_python(&python_executable(),std::time::Duration::from_secs(120)).await;
+        let needs_install = checks.iter().any(|check| !check.ready && !check.detail.contains("검사 시간 초과"));
+        let checks = if needs_install {
+        if let Err(error)=install(report.clone()).await{problems.push(format!("Python 패키지 설치 · {error}"));}
+        inspect_python(&python_executable(),std::time::Duration::from_secs(120)).await
+        } else { checks };
         for check in checks.into_iter().filter(|check|!check.ready){problems.push(format!("{} · {}",check.name,check.detail));}
     }
     if problems.is_empty(){Ok("Java·C·Python 실행 환경을 확인했어요. 앱을 다시 열 필요 없이 바로 사용할 수 있어요.".into())}
