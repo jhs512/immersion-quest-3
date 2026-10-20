@@ -105,13 +105,21 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
                 let practice=command_practice.clone();let command_owner=command_owner.clone();
                 let before=practice.lock().unwrap_or_else(|e|e.into_inner()).completed_commands().map(|items|items.len()).unwrap_or(usize::MAX);
                 let command=format!("git {}",event.args.iter().map(|arg|shell_argument(arg)).collect::<Vec<_>>().join(" "));
-                document::eval(&format!("window.mq3GitDemoTerminal?.typeCommand({},'{command_owner}');",serde_json::to_string(&command).unwrap()));
+                let mut typing=document::eval(&format!("(async()=>{{const typed=await window.mq3GitDemoTerminal?.typeCommand({},'{command_owner}');dioxus.send(typed===true);}})()",serde_json::to_string(&command).unwrap()));
                 spawn(async move {
+                    // Typing can be throttled while the Mac window is in the
+                    // background. Start the execution deadline after Enter.
+                    let typed=matches!(tokio::time::timeout(std::time::Duration::from_secs(120),typing.recv::<bool>()).await,Ok(Ok(true)));
                     let deadline=std::time::Instant::now()+std::time::Duration::from_secs(15);
                     let mut completed=false;
-                    while std::time::Instant::now()<deadline {
+                    while typed&&std::time::Instant::now()<deadline {
                         completed=practice.lock().unwrap_or_else(|e|e.into_inner()).completed_commands().is_ok_and(|items|items.iter().skip(before).any(|args|*args==event.args));
                         if completed {break;}tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+                    }
+                    #[cfg(debug_assertions)]
+                    if !completed {
+                        let history=practice.lock().unwrap_or_else(|e|e.into_inner()).completed_commands().unwrap_or_default();
+                        document::eval(&format!("window.mq3GitDemoFailure={{args:{},history:{},text:window.mq3GitDemoTerminal?.text('{command_owner}')}};",serde_json::to_string(&event.args).unwrap(),serde_json::to_string(&history).unwrap()));
                     }
                     document::eval(&format!("if(window.molipGitTutor?.owner==='{command_owner}')window.molipGitTutor.resolve({},{});",event.token,completed));
                 });

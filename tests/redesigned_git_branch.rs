@@ -47,3 +47,26 @@ async fn nine_branch_steps_preserve_history_resolve_real_conflicts_and_reset_ind
         }
     }
 }
+
+#[test]
+fn published_branch_goals_accept_checkout_commit_all_and_equivalent_conflict_resolution() {
+    let basic_course=CourseManifest::parse(include_str!("fixtures/player-pilot/l/course.json")).unwrap();
+    let basic=Lesson::parse(include_str!("../courses/redesigned/git-branch.json"),&basic_course.lessons[0]).unwrap();
+    for (index,commands) in [
+        (1,vec![vec!["checkout","feature"]]),
+        (2,vec![vec!["commit","-am","my feature message"]]),
+        (3,vec![vec!["merge","--ff-only","feature"]]),
+    ] {
+        let practice=GitPractice::new(basic.tasks[index].git_terminal.clone().unwrap().demonstration()).unwrap();
+        assert!(!practice.check_exercise().unwrap().passed);
+        for args in commands{assert!(practice.git(&args).unwrap().success,"{args:?}");}
+        assert!(practice.check_exercise().unwrap().passed,"step {}",index+1);
+    }
+    let advanced_course=CourseManifest::parse(include_str!("fixtures/player-pilot/굳/course.json")).unwrap();
+    let advanced=Lesson::parse(include_str!("../courses/redesigned/git-branch-advanced.json"),&advanced_course.lessons[0]).unwrap();
+    let practice=GitPractice::new(advanced.tasks[3].git_terminal.clone().unwrap()).unwrap();
+    assert!(practice.git(&["checkout","--theirs","--","guide.txt"]).unwrap().success);
+    assert!(!practice.check_exercise().unwrap().passed,"choosing a file does not stage conflict resolution");
+    assert!(practice.git(&["add","-A"]).unwrap().success);
+    assert!(practice.check_exercise().unwrap().passed);
+}

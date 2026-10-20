@@ -147,3 +147,26 @@ fn a_same_named_tag_does_not_change_the_current_branch_goal() {
     assert!(practice.git(&["tag","main"]).unwrap().success);
     assert!(practice.check_exercise().unwrap().passed,"A tag must not make a main branch appear to be heads/main");
 }
+
+#[test]
+fn first_git_step_accepts_status_display_variants_without_relaxing_the_repository_goal() {
+    let course=molip_quest::repository_course::CourseManifest::parse(include_str!("fixtures/player-pilot/k/course.json")).unwrap();
+    let lesson=molip_quest::repository_course::Lesson::parse(include_str!("../courses/redesigned/git-first.json"),&course.lessons[0]).unwrap();
+    for args in [vec!["status","-s"],vec!["status","--short"],vec!["status","-sb"],vec!["status","--porcelain"],vec!["status","--porcelain=v2"]] {
+        let practice=GitPractice::new(lesson.tasks[0].git_terminal.clone().unwrap()).unwrap();
+        assert!(practice.git(&["init"]).unwrap().success);
+        std::fs::write(practice.work().join("memo.txt"),"첫 메모\n").unwrap();
+        assert!(!practice.check_exercise().unwrap().passed,"grading must not satisfy observation");
+        assert!(practice.git(&args).unwrap().success);
+        assert!(practice.check_exercise().unwrap().passed,"{args:?}");
+        assert!(practice.git(&["add","."]).unwrap().success);
+        assert!(!practice.check_exercise().unwrap().passed,"early staging is still incorrect");
+    }
+    for args in [vec!["status","--","other.txt"],vec!["status","--untracked-files=no"],vec!["status","--not-a-real-option"]] {
+        let practice=GitPractice::new(lesson.tasks[0].git_terminal.clone().unwrap()).unwrap();
+        practice.git(&["init"]).unwrap();
+        std::fs::write(practice.work().join("memo.txt"),"첫 메모\n").unwrap();
+        practice.git(&args).unwrap();
+        assert!(!practice.check_exercise().unwrap().passed,"{args:?}");
+    }
+}

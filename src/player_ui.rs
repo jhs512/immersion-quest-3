@@ -457,7 +457,9 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                                     let mut event=LearningEvent::new(key,&selected.lesson.revision,selected.mode,&selected.round,EventKind::Attempt);event.task_id=Some(task.id.clone());event.passed=report.passed;
                                     let github=session.github.clone();let user=session.user.clone();let repo=selected.course.repository.clone();let title=selected.lesson.title.clone();
                                     let latest=molip_quest::progress_sync::apply_result(events(),&event,&required);
+                                    let complete=issue_progress::status(&latest,&selected.lesson.revision,&required).current;
                                     onrecord.call(latest);
+                                    if report.passed&&complete{message.set("수업 완료!".into());}
                                     passed_dialog.set(report.passed);
                                     // Persistence belongs to the process, so navigation cannot cancel it.
                                     if let Err(error)=std::thread::Builder::new().name("progress-record".into()).spawn(move||{

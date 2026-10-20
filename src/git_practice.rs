@@ -524,7 +524,14 @@ impl GitPractice {
     }
     pub fn commands_satisfied(&self)->Result<bool,String> {
         let completed=self.completed_commands()?;
-        Ok(self.exercise.commands.iter().all(|expected|completed.contains(expected)))
+        Ok(self.exercise.commands.iter().all(|expected|completed.iter().any(|actual|{
+            if actual==expected{return true;}
+            // The introductory goal is to inspect repository status, regardless
+            // of its long, short or porcelain display. Do not accept path filters
+            // or flags that hide untracked files from that observation.
+            expected.as_slice()==["status"]&&actual.first().is_some_and(|name|name=="status")
+                &&actual.iter().skip(1).all(|arg|matches!(arg.as_str(),"-s"|"--short"|"-b"|"--branch"|"-sb"|"-bs"|"--long"|"--porcelain"|"--porcelain=v1"|"--porcelain=v2"|"-u"|"--untracked-files"|"--untracked-files=all"|"--untracked-files=normal"))
+        })))
     }
     pub fn reset(&mut self)->Result<(),String> {
         // Build the complete next state first. TempDir only removes its owned root,

@@ -51,5 +51,5 @@
    if(index<pilot.tasks.length-1)await click('다음 문제 →');
   }
   dioxus.send({passed:true,checked,userAgent:navigator.userAgent,voiceListened:false});
- }catch(error){dioxus.send({passed:false,checked,error:String(error),body:document.body.innerText.slice(-4000)});}
+ }catch(error){dioxus.send({passed:false,checked,error:String(error),terminalFailure:window.mq3GitDemoFailure,body:document.body.innerText.slice(-4000)});}
 })();
