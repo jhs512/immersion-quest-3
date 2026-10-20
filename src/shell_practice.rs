@@ -44,21 +44,45 @@ fn native_path(value:&str)->PathBuf {PathBuf::from(value)}
 // Keep operators, substitutions and additional arguments out of normalization.
 fn command_matches(expected:&str,actual:&str)->bool {
     if expected.trim()==actual.trim(){return true;}
-    fn cd_target(command:&str)->Option<&str> {
+    fn literal_target<'a>(command:&'a str,program:&str)->Option<&'a str> {
+        if command.contains(['\n','\r','\0']){return None;}
         let command=command.trim();
         let (name,target)=command.split_once(char::is_whitespace)?;
-        if name!="cd"{return None;}
+        if name!=program{return None;}
         let target=target.trim();
         let quoted=(target.starts_with('\"')&&target.ends_with('\"'))||(target.starts_with('\'')&&target.ends_with('\''));
         let target=if quoted&&target.len()>=2{&target[1..target.len()-1]}else{target};
-        if target.is_empty()||target.chars().any(|c|!c.is_alphanumeric()&&!"./_-".contains(c)&&!(quoted&&c==' ')){return None;}
+        if target.is_empty()||target.starts_with('-')||target.chars().any(|c|!c.is_alphanumeric()&&!"./_-".contains(c)&&!(quoted&&c==' ')){return None;}
         let target=target.trim_end_matches('/');
         if target.is_empty(){return Some("/");}
         let mut target=target;
         while let Some(rest)=target.strip_prefix("./"){target=rest;}
         Some(if target.is_empty(){"."}else{target})
     }
-    matches!((cd_target(expected),cd_target(actual)),(Some(a),Some(b)) if a==b)
+    ["cd","ls"].iter().any(|program|matches!((literal_target(expected,program),literal_target(actual,program)),(Some(a),Some(b)) if a==b))
+}
+
+#[cfg(test)]
+mod command_matching_tests {
+    use super::command_matches;
+
+    #[test]
+    fn literal_directory_listing_accepts_equivalent_spelling() {
+        for actual in ["ls notes/","ls ./notes/","ls   notes", "ls \"notes/\"", "ls 'notes/' "] {
+            assert!(command_matches("ls notes",actual),"{actual}");
+        }
+        assert!(command_matches("cd notes","cd ./notes/"));
+        assert!(command_matches("cat notes/memo.txt","cat notes/memo.txt "));
+    }
+
+    #[test]
+    fn normalization_preserves_commands_flags_and_shell_syntax() {
+        for actual in ["cat notes/","ls other/","ls notes/ extra","ls notes/; pwd","ls $(echo notes)","ls notes/*","ls\nnotes/","ls -l/","ls -- notes/"] {
+            assert!(!command_matches("ls notes",actual),"{actual}");
+        }
+        assert!(!command_matches("ls -l","ls -l/"));
+        assert!(!command_matches("cp memo.txt notes","cp memo.txt notes/"));
+    }
 }
 impl GitPractice {
     pub(super) fn prepare_shell_start(&self)->Result<(),String> {

@@ -112,3 +112,18 @@ fn step_nine_accepts_trailing_spaces_in_successful_commands() {
     terminal.shutdown().unwrap();
     assert!(report.passed,"{}",serde_json::to_string(&report).unwrap());
 }
+
+#[test]
+fn step_fifteen_accepts_directory_slash_and_later_inspection_retries() {
+    let manifest=CourseManifest::parse(include_str!("fixtures/player-pilot/부/course.json")).unwrap();
+    let lesson=Lesson::parse(include_str!("../courses/redesigned/bash-basics.json"),&manifest.lessons[0]).unwrap();
+    let practice=GitPractice::new(lesson.tasks[14].git_terminal.clone().unwrap().demonstration()).unwrap();
+    let (mut terminal,mut output)=practice.open_terminal().unwrap();
+    until(&practice,&mut terminal,&mut output,|text|text.contains("$ "));
+    let commands=["cp memo.txt notes/","ls notes/","cat notes/memo.txt ","ls notes/","ls notes"];
+    let actions:Vec<_>=commands.iter().map(|command|serde_json::json!({"action":"bash_command","command":command})).collect();
+    play(&practice,&mut terminal,&mut output,&actions);
+    let report=practice.check_exercise().unwrap();
+    terminal.shutdown().unwrap();
+    assert!(report.passed,"{}",serde_json::to_string(&report).unwrap());
+}
