@@ -29,6 +29,11 @@
   await wait(()=>document.getElementById('lesson-info-dialog').open,'information reopens');
   document.querySelector('.lesson-info-dialog>header>button').click();
   await wait(()=>!document.getElementById('lesson-info-dialog').open,'close button');
+  const settings=document.querySelector('.app-update-settings');settings.open=true;
+  for(const label of ['환경 진단','환경 설치']){
+   const control=button(label);if(!control||control.getBoundingClientRect().height<=0)throw Error(`Environment control missing in app settings: ${label}`);
+  }
+  settings.open=false;
   checked.push('single toolbar and learning information popup with Escape and close button');
   await click('정답과 풀이 보기');
   await wait(()=>document.querySelector('.explanation-info summary'),'explanation record');

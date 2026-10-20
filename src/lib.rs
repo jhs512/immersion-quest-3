@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashSet, path::Path};
 pub mod curriculum;
 pub mod doctor;
+pub mod runtime_setup;
 pub mod drafts;
 pub mod java;
 pub mod learning_store;

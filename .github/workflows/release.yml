@@ -32,6 +32,11 @@ jobs:
           java-version: '25'
       - name: Verify persistent Java build workspace
         run: cargo test --release --locked --test java_launch --test java_arguments --test bundled_courses --test github_pr --test redesigned_git_branch --test bash_basics --test vim_practice
+      - name: Verify app-managed Java and C setup
+        run: |
+          cargo test --release --locked --lib runtime_setup::tests::selects_the_native_cpu_and_rejects_foreign_packages
+          cargo test --release --locked --lib runtime_setup::tests::clean_java_install_runs_without_a_system_jdk_or_path_changes -- --ignored --nocapture --test-threads=1
+          cargo test --release --locked --lib runtime_setup::tests::c_preparation_compiles_and_runs_on_this_platform -- --ignored --nocapture --test-threads=1
       - name: Build clean release executable
         run: cargo build --release --locked --bin molip-quest
       - name: Prepare Inno Setup
@@ -97,6 +102,11 @@ jobs:
           cargo test --release --locked --lib course_visibility::tests
       - name: Verify C, Java and Python execution on this Mac
         run: cargo test --release --locked --test macos_runtime --test java_launch --test java_arguments --test bundled_courses --test github_pr --test redesigned_git_branch --test bash_basics --test vim_practice
+      - name: Verify app-managed Java and C setup
+        run: |
+          cargo test --release --locked --lib runtime_setup::tests::selects_the_native_cpu_and_rejects_foreign_packages
+          cargo test --release --locked --lib runtime_setup::tests::clean_java_install_runs_without_a_system_jdk_or_path_changes -- --ignored --nocapture --test-threads=1
+          cargo test --release --locked --lib runtime_setup::tests::c_preparation_compiles_and_runs_on_this_platform -- --ignored --nocapture --test-threads=1
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -119,7 +129,6 @@ jobs:
       - name: Verify Intel learning environment
         if: matrix.arch == 'x86_64'
         run: |
-          brew list --versions libomp >/dev/null || brew install libomp
           cargo test --release --locked --lib doctor::install_tests::environment_installs_and_passes_the_checks -- --ignored --nocapture --test-threads=1
       - name: Build and package macOS app
         run: |

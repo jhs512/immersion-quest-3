@@ -15,18 +15,23 @@ return {
       theme: {background: '#0c1722', foreground: '#dce9f5', cursor: '#9be0c8', selectionBackground: '#3a536d'}});
     const fit = new FitAddon(); term.loadAddon(fit); term.open(host);
     term.textarea?.setAttribute('aria-label', host.dataset.vim === 'true' ? 'Vim 편집기 입력' : host.dataset.shell === 'true' ? 'Bash 실습 터미널 입력' : inputLabel);
-    let nativeKorean = false, nativeEditable = 0, composing = false, replacement;
+    let nativeKorean = false, nativeEditable = 0, composing = false, replacement, nativeSpace = false;
     const events = new AbortController();
     const listen = (type, callback) => host.addEventListener(type, callback, {capture: true, signal: events.signal});
     listen('compositionstart', () => { composing = true; nativeKorean = false; nativeEditable = 0; });
     listen('compositionend', () => { composing = false; });
     const hangul = /[\u1100-\u11ff\u3130-\u318f\uac00-\ud7af]/u;
+    // Native keyboard spaces must separate shell tokens. Preserve pasted data.
+    for (const type of ['keydown','keypress']) listen(type,event=>{nativeSpace=event.key==='\u00a0';});
+    listen('paste',()=>{nativeSpace=false;});
+
     // Native macOS Korean can use insertText/insertReplacementText without any
     // composition events. Mirror its tail edits with Readline's Unicode erase,
     // rather than leaving only the initial jamo in the PTY.
     listen('beforeinput', event => {
       replacement = undefined;
       if (event.target !== term.textarea || composing) return;
+      nativeSpace = event.inputType === 'insertText' && event.data?.includes('\u00a0');
       if ((event.inputType === 'insertText' && hangul.test(event.data || '')) ||
           (event.inputType === 'insertReplacementText' && nativeKorean)) {
         // The helper textarea can still contain an ASCII key already sent to
@@ -57,7 +62,11 @@ return {
     // replacement path, avoid xterm's delayed textarea-diff fallback sending twice.
     term.attachCustomKeyEventHandler(event => !event.isComposing && !(nativeKorean && event.keyCode === 229));
     // macOS IMEs may commit conjoining Hangul jamo; send complete syllables to Readline.
-    const data = term.onData(value => send({kind: 'input', data: value.normalize('NFC')}));
+    const data = term.onData(value => {
+      const input = nativeSpace ? value.replaceAll('\u00a0',' ') : value;
+      nativeSpace = false;
+      send({kind: 'input', data: input.normalize('NFC')});
+    });
     const resize = term.onResize(size => send({kind: 'resize', rows: size.rows, cols: size.cols}));
     const observer = new ResizeObserver(() => fit.fit()); observer.observe(host);
     session = {owner, term, fit, data, resize, observer, done, decoder: new TextDecoder(), events};

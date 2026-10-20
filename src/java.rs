@@ -12,6 +12,7 @@ pub fn executable() -> String {
     if let Ok(path) = std::env::var("MOLIP_JAVA") {
         return path;
     }
+    if let Some(path) = crate::runtime_setup::managed_java() {return path.to_string_lossy().into_owned();}
     if let Some(home) = std::env::var_os("JAVA_HOME") {
         let path =
             PathBuf::from(home)
@@ -58,7 +59,7 @@ pub async fn version() -> Result<String, String> {
         .stderr(Stdio::piped());
     let output = tokio::time::timeout(Duration::from_secs(10), cmd.output()).await
         .map_err(|_| "JDK 버전 확인 시간이 초과됐어요.".to_string())?
-        .map_err(|e| format!("JDK 25를 찾지 못했어요. 설치 후 앱을 다시 여세요. JAVA_HOME 또는 MOLIP_JAVA 경로를 확인하세요: {e}"))?;
+        .map_err(|e| format!("JDK 25를 찾지 못했어요. 앱 설정의 환경 설치로 준비하세요: {e}"))?;
     let text = String::from_utf8_lossy(&output.stdout).trim().to_string();
     if !output.status.success() || !is_jdk25(&text) {
         return Err(format!(

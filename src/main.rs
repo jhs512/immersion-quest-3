@@ -20,6 +20,17 @@ fn main() {
     let args:Vec<String>=std::env::args().collect();
     if args.get(1).map(String::as_str)==Some("--mq-java-practice"){std::process::exit(molip_quest::git_practice::java_build_practice::command_cli(&args[2..]));}
     molip_quest::setup_terminal::prepare_desktop_path();
+    if args.get(1).map(String::as_str)==Some("--prepare-environment") {
+        let _=molip_quest::runtime_setup::mark_bootstrap();
+        let runtime=tokio::runtime::Runtime::new().expect("environment runtime");
+        let result=runtime.block_on(async {
+            let (tx,mut rx)=tokio::sync::mpsc::unbounded_channel();
+            let worker=tokio::spawn(molip_quest::doctor::prepare(tx));
+            while let Some(line)=rx.recv().await{println!("{line}");}
+            worker.await.unwrap_or_else(|error|Err(error.to_string()))
+        });
+        match result {Ok(line)=>{println!("{line}");std::process::exit(0)},Err(error)=>{eprintln!("{error}");std::process::exit(1)}}
+    }
     // No menu bar on Windows and Linux: the app is driven from its own screens, slides have their
     // own fullscreen button. macOS keeps Dioxus's default menu, which is what makes ⌘C, ⌘V, ⌘X
     // and ⌘A reach the page (without an Edit menu the WebView never sees them); it lives in the
@@ -386,6 +397,7 @@ fn UpdateGate() -> Element {
     let installing = matches!(phase(), UpdatePhase::Downloading(_, _) | UpdatePhase::Installing);
     let settings=rsx! {details {class:"app-update-settings",summary {if release().is_some() {"앱 설정 · 새 버전"} else {"앱 설정"}}
         div {class:"app-update-menu",
+            crate::ui::DoctorPanel {}
             p {role:"status", aria_live:"polite", "{status}"}
             button {disabled:!updater::enabled()||checking()||installing,title:if updater::enabled(){"앱 새 버전 확인"}else{"개발 빌드에서는 자동 업데이트를 지원하지 않아요."},onclick:move |_|{checking.set(true);status.set("업데이트 확인 중…".into());let mut request=request;request+=1;},if checking(){"확인 중…"}else{"업데이트 확인"}}
             button {disabled:release().is_none()||checking()||installing,onclick:move |_|install.call(()),"새 버전 설치"}

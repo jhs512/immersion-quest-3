@@ -79,6 +79,20 @@ pub async fn run(task:&Task,source:&str,input:&str)->Result<Execution,String> {
 /// TinyCC 0.9.27 for Windows from the GNU Savannah release, pinned by hash. Other systems use cc.
 const TCC_URL:&str="https://download.savannah.gnu.org/releases/tinycc/tcc-0.9.27-win64-bin.zip";
 const TCC_SHA256:&str="34a721949a2583fdff725312da092fa0f5f1f284b702e6f811c6954714faabb2";
+fn installed_c_compiler()->Option<PathBuf> {
+    if !cfg!(windows){return Some(PathBuf::from(std::env::var("MOLIP_CC").unwrap_or_else(|_|"cc".into())));}
+    if let Ok(path)=std::env::var("MOLIP_TCC"){return Some(path.into());}
+    let path=crate::data_dir().ok()?.join("course-tools/tcc-0.9.27/tcc/tcc.exe");
+    path.is_file().then_some(path)
+}
+pub(crate) async fn inspect_c()->Result<String,String> {
+    if installed_c_compiler().is_none(){return Err("C 실행 도구가 없어요. 환경 설치로 준비하세요.".into());}
+    let temporary=tempfile::tempdir().map_err(|e|e.to_string())?;
+    std::fs::write(temporary.path().join("main.c"),"#include <stdio.h>\nint main(void){printf(\"MQ3_C_READY\");return 0;}").map_err(|e|e.to_string())?;
+    let result=run_c(temporary.path(),"").await?;
+    if result.success&&result.stdout=="MQ3_C_READY"{Ok("C · 컴파일과 실행을 확인했어요.".into())}else{Err(format!("C 실행을 확인하지 못했어요. {}",result.stderr))}
+}
+pub(crate) async fn prepare_c()->Result<String,String> {c_compiler().await?;inspect_c().await}
 async fn c_compiler()->Result<PathBuf,String> {
     if !cfg!(windows) {return Ok(PathBuf::from(std::env::var("MOLIP_CC").unwrap_or_else(|_|"cc".into())))}
     if let Ok(path)=std::env::var("MOLIP_TCC") {return Ok(PathBuf::from(path))}
@@ -270,7 +284,7 @@ async fn check_git(task:&Task,source:&str)->Result<TestReport,String> {
     Ok(TestReport{passed:cases.iter().all(|c|c.passed),cases})
 }
 
-async fn dependency(name:&str,url:&str,expected:&str)->Result<PathBuf,String> {
+pub(crate) async fn dependency(name:&str,url:&str,expected:&str)->Result<PathBuf,String> {
     use sha2::{Digest,Sha256};
     let root=crate::data_dir()?.join("course-tools");std::fs::create_dir_all(&root).map_err(|e|e.to_string())?;
     let target=root.join(name);

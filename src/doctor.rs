@@ -16,7 +16,7 @@ async fn probe(executable: &str, args: &[&str]) -> Option<Vec<u8>> {
         .ok()
 }
 
-async fn probe_with_timeout(
+pub(crate) async fn probe_with_timeout(
     executable: &str,
     args: &[&str],
     timeout: std::time::Duration,
@@ -24,12 +24,14 @@ async fn probe_with_timeout(
     let mut command = Command::new(executable);
     command
         .args(args)
+        .env_remove("JDK_JAVA_OPTIONS").env_remove("JAVA_TOOL_OPTIONS").env_remove("_JAVA_OPTIONS")
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .kill_on_drop(true);
     #[cfg(windows)]
     command.creation_flags(0x08000000);
+    if let Some(path)=crate::runtime_setup::library_path(){command.env("DYLD_LIBRARY_PATH",path);}
     let child = command.spawn().map_err(|e| e.to_string())?;
     let output = tokio::time::timeout(timeout, child.wait_with_output())
         .await
@@ -55,6 +57,9 @@ async fn probe_with_timeout(
 pub async fn inspect() -> Vec<Check> {
     let python = python_executable();
     let mut checks = inspect_python(&python, std::time::Duration::from_secs(120)).await;
+    for (name,result) in [("Java · JDK 25",crate::runtime_setup::inspect_java().await),("C · 컴파일·실행",crate::runtime_setup::inspect_c().await)] {
+        checks.push(Check{name:name.into(),ready:result.is_ok(),detail:result.unwrap_or_else(|error|error)});
+    }
     checks.push(inspect_voice().await);
     checks
 }
@@ -302,7 +307,7 @@ async fn create_learning_environment(
 }
 
 /// Run a command, streaming every output line to `report`; Err on a non-zero exit.
-async fn run_logged(
+pub(crate) async fn run_logged(
     report: &tokio::sync::mpsc::UnboundedSender<String>,
     program: &str,
     args: &[&str],
@@ -323,6 +328,7 @@ async fn run_logged(
         .kill_on_drop(true);
     #[cfg(windows)]
     command.creation_flags(0x08000000);
+    command.env("UV_NO_MODIFY_PATH","1");
     let mut child = command
         .spawn()
         .map_err(|e| format!("{program} 실행 실패: {e}"))?;
@@ -557,6 +563,8 @@ mod install_tests {
         let previous = std::env::var_os("MOLIP_DATA_DIR");
         std::env::set_var("MOLIP_DATA_DIR", directory.path());
         let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<String>();
+        #[cfg(target_os="macos")]
+        crate::runtime_setup::prepare_openmp(&tx).await.unwrap();
         let worker = tokio::spawn(super::install(tx));
         while let Some(line) = rx.recv().await {
             eprintln!("{line}");
@@ -569,6 +577,7 @@ mod install_tests {
         // A cold package import can take longer than the interactive diagnostic
         // probe's 20 seconds (antivirus scanning and first-use caches on Windows).
         let mut command = tokio::process::Command::new(&python);
+        if let Some(path)=crate::runtime_setup::library_path(){command.env("DYLD_LIBRARY_PATH",path);}
         command.args([
                 "-I",
                 "-c",
@@ -622,4 +631,26 @@ mod diagnostic_tests {
         });
         super::install_tests::verify_diagnostic(&python.to_string_lossy()).await;
     }
+}
+
+/// Repair only missing/broken tools. A successful installation is verified by real execution.
+pub async fn prepare(report:tokio::sync::mpsc::UnboundedSender<String>)->Result<String,String> {
+    static PREPARING:tokio::sync::Mutex<()>=tokio::sync::Mutex::const_new(());
+    let _guard=PREPARING.try_lock().map_err(|_|"다른 환경 설치가 진행 중이에요.".to_string())?;
+    let mut problems=vec![];
+    for (name,result) in [("Java",crate::runtime_setup::prepare_java(&report).await),("C",crate::runtime_setup::prepare_c(&report).await)] {
+        match result {Ok(line)=>{let _=report.send(line);},Err(error)=>{let _=report.send(format!("{name} · {error}"));problems.push(error);}}
+    }
+    #[cfg(target_os="macos")]
+    if let Err(error)=crate::runtime_setup::prepare_openmp(&report).await{problems.push(error);}
+    let checks=inspect_python(&python_executable(),std::time::Duration::from_secs(120)).await;
+    if checks.iter().all(|check|check.ready) {
+        let _=report.send("Python · 실행과 수업 패키지가 준비되어 있어요. 기존 환경을 유지해요.".into());
+    }else{
+        if let Err(error)=install(report.clone()).await{problems.push(error);}
+        let checks=inspect_python(&python_executable(),std::time::Duration::from_secs(120)).await;
+        for check in checks.into_iter().filter(|check|!check.ready){problems.push(format!("{} · {}",check.name,check.detail));}
+    }
+    if problems.is_empty(){Ok("Java·C·Python 실행 환경을 확인했어요. 앱을 다시 열 필요 없이 바로 사용할 수 있어요.".into())}
+    else{Err(format!("준비된 도구는 바로 사용할 수 있어요. 추가 확인: {}",problems.join(" / ")))}
 }

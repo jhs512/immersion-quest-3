@@ -113,3 +113,29 @@ for(const engine of ['chromium','webkit'])test(`${engine}: starting native Korea
   assert.equal(line.join(''),'echo "첫 메모"\r');
  }finally{await browser.close()}
 });
+
+for(const engine of ['chromium','webkit'])test(`${engine}: keyboard nonbreaking spaces cannot become hidden filename prefixes`,async()=>{
+ const browser=await({chromium,webkit}[engine]).launch(engine==='chromium'?{...(process.platform==='win32'?{channel:'msedge'}:{}),headless:true}:{headless:true,...(process.env.MQ3_WEBKIT_EXECUTABLE?{executablePath:process.env.MQ3_WEBKIT_EXECUTABLE}:{})});
+ try{
+  const page=await browser.newPage();await page.setContent('<div id="git-student-terminal" style="width:800px;height:400px"></div>');
+  await page.addScriptTag({content:fs.readFileSync('assets/terminal/terminal.bundle.js','utf8')});
+  await page.evaluate(()=>{window.inputs=[];mq3GitTerminal.mount(e=>{if(e.kind==='input')inputs.push(e.data)},()=>{},'space-ime')});
+  await page.keyboard.type('echo "memo" >');
+  await page.evaluate(()=>{
+   const input=document.querySelector('.xterm-helper-textarea');
+   input.dispatchEvent(new InputEvent('beforeinput',{bubbles:true,inputType:'insertText',data:'\u00a0'}));
+   input.value+='\u00a0';
+   input.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText',data:'\u00a0'}));
+  });
+  await page.keyboard.type('memo.txt');await page.keyboard.press('Enter');
+  assert.equal(await page.evaluate(()=>inputs.join('')),'echo "memo" > memo.txt\r');
+  const paste=await page.evaluate(()=>{
+   inputs=[];
+   const input=document.querySelector('.xterm-helper-textarea');
+   const clipboardData=new DataTransfer();clipboardData.setData('text/plain','echo "a\u00a0b"');
+   input.dispatchEvent(new ClipboardEvent('paste',{bubbles:true,clipboardData}));
+   return inputs.join('');
+  });
+  assert.ok(paste.includes('a\u00a0b'),'pasted text must preserve intentional nonbreaking spaces');
+ }finally{await browser.close()}
+});

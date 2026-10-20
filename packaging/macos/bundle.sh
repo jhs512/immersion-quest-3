@@ -19,6 +19,7 @@ mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources" target/installers
 cp target/release/molip-quest "$app/Contents/MacOS/molip-quest"
 sed -e "s/APP_VERSION/$version/g" -e "s/APP_BUILD/${MOLIP_BUILD:-0}/g" packaging/macos/Info.plist > "$app/Contents/Info.plist"
 cp README.md requirements-learning.txt "$app/Contents/Resources/"
+echo 1 > "$app/Contents/Resources/environment-setup-v1"
 
 # App icon: build an .icns from the 1024px master with the system tools.
 iconset=target/bundle/AppIcon.iconset

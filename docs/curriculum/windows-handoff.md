@@ -2,6 +2,36 @@
 
 기록일: 2026-10-20. 이 파일은 컴퓨터와 대화가 바뀌어도 이어가기 위한 작업 기준이다.
 
+## 최우선: Windows 검증 후 Mac에서 이어가기 (2026-10-20)
+
+사용자의 최신 지시: “윈도우만 보고 맥에서 이어갈게”, “다 했으면 커밋/푸시”. 이 절이 아래의 이전 계획보다 우선한다. `main`을 pull해서 이어간다. 실제 저장소는 `jhs512/immersion-quest-3`이고 Windows 작업 경로는 `C:/Users/jangk/Documents/Codex/2026-10-12/immersion-quest-3`다.
+
+이번 변경:
+
+- 첫 실행의 Java·C·Python 자동 준비와 앱 설정의 환경 진단/설치를 연결했다. bootstrap 기록은 준비 완료를 뜻하지 않는 attempted 상태다. 실패하면 앱 설정에서 재시도한다. 개발/검증 앱에서는 자동 bootstrap을 건너뛴다.
+- `src/runtime_setup.rs`가 CPU별 Temurin JDK 25를 공식 API로 내려받아 SHA-256, javac, 실제 소스 실행을 검사한 뒤 앱 전용 위치를 게시한다. 기존 시스템 Java/PATH는 바꾸지 않는다. Mac Java shim을 검사하다 불필요한 OS 설치 창을 띄우지 않도록 한다.
+- Windows C는 기존 자동 TinyCC 준비를 진단에도 연결했다. Mac C는 xcode-select 설치 창을 앱에서 요청하지만 설치/약관 확인은 사용자가 한다.
+- Python은 정상인 환경을 유지한다. 필요한 경우 기존 자동 설치를 호출하고 실제 패키지 import를 검사한다. Mac은 Homebrew 의존을 줄이려고 앱 전용 LLVM OpenMP 배포본과 라이선스, 자식 Python의 DYLD_LIBRARY_PATH 연결을 구현했으나 이 변경은 Mac 실기 미검증이다.
+- Mac 설치 스크립트가 새 CLI를 호출한다. 구버전 앱에 새 CLI 옵션을 넘겨 GUI 프로세스가 실행되는 것을 막으려고 번들 `environment-setup-v1` 리소스를 검사한다. 구버전 분기는 기존 Python 준비 방식이다. Mac 스크립트/번들/자동 bootstrap은 Mac에서 확인해야 한다.
+- Mac 키보드가 보내는 NBSP는 일반 공백으로 전달한다. 붙여넣기는 원문을 유지한다. 기존에 생긴 NBSP 파일명은 자동 변경하지 않았다. 사용자 사례 `"\302\240memo.txt"`는 실제 파일명 앞의 U+00A0다.
+- 입력하라고 지시하는 문자열은 따옴표로 범위를 표시하고, 필요한 공백 위치/개수를 명시한다. 78수업 원본에서 번호 안내를 검색했고 누락된 Vim 지시를 전부 정리했다. 문자열/명령/키 자체와 채점값은 바꾸지 않았다. Vim 해설 9개와 번들을 재생성했다. 앞서 적용한 인라인 문자열 전체 선택으로 `첫 메모`와 `새 ` 모두 정확히 선택됨을 확인했다.
+
+Windows에서 완료한 검증:
+
+- 공식 JDK를 빈 임시 폴더에 실제 다운로드/추출해 Java 소스를 실행했다. 설치 전후 PATH가 같다.
+- 빈 앱 데이터 폴더에서 C 자동 준비 후 실제 C 코드를 컴파일·실행했다.
+- 별도 새 Python 3.13.13 환경에 79개 패키지를 설치하고 TensorFlow·XGBoost·표/그래프 라이브러리 전부 import하는 검사를 통과했다(169초). 학습자 환경을 지우지 않는 임시 검증이다.
+- 실제 Bash 23단계를 포함한 bash_basics 4개, 실제 Vim 14단계를 포함한 vim_practice 6개, 내장 코스 설치/업데이트 1개가 통과했다.
+- Windows Chromium/WebKit의 한글 조합·따옴표 보존·NBSP·붙여넣기 보존·세션 소유권·문자열 선택 검사 19개가 통과했다.
+- Windows 네이티브 앱 player_loading_native의 8개 검사(코스 로딩, 메뉴의 환경 버튼, 기존 UI/음성/입력 흐름)가 통과했다. 결과는 `target/pilot-native-result.json`이다.
+
+Mac에서 이어서 할 일 / 배포 상태:
+
+1. 이전 커밋 `99e2d97`의 [빌드 43 CI](https://github.com/jhs512/immersion-quest-3/actions/runs/39387454490)는 Windows 성공, 두 Mac 실패, release skipped다. 최신 게시 설치 파일은 여전히 빌드 39였다. 이번 커밋을 배포 완료라고 안내하지 않는다.
+2. Mac 실패는 vim_practice의 두 기존 검사다. `real_vim_checks_modes_buffers_cursor_undo_search_saving_and_exit_live`에서 버퍼가 `<F3>첫 메모`, `unsaved_text_input_mode_and_cursor_survive_reopening`에서 `임<F3>X시메모`가 된다. 테스트의 DSR 응답과 입력 모드 전환 경로를 조사하되 실제 원인은 아직 확정하지 않았다. 여섯 검사 중 저장 관련 네 검사는 Mac CI에서도 통과했다. 검사 삭제로 숨기지 않는다.
+3. 위 실패를 해결한 뒤 새 자동 JDK 설치를 양쪽 CPU, macOS C 설치 요청/완료, 앱 전용 OpenMP와 Python 패키지 import, 첫 실행 bootstrap, 구버전 설치 스크립트 호환을 확인한다. 양쪽 Mac의 기존 네이티브 검사와 릴리스 3종 게이트를 통과시킨다.
+4. 사용자 지시대로 Windows 검증까지만 마치고 Mac 실기 작업은 남겼다. 아래의 과거 배포 완료 이력을 이번 미배포 변경에 적용하지 않는다.
+
 ## Git 수업 개편·배포 완료 (2026-10-20, 빌드 39)
 
 사용자의 최신 지시에 따라 Git 기본 → 브랜치 기본(4스텝) → 리모트(8스텝) → 브랜치 심화(5스텝) → 실제 GitHub PR(8스텝) 순서로 개편했다. 브랜치 문제의 기존 스텝 UUID를 유지하며 심화 부분을 별도 수업으로 옮겼다. PR은 본인 비공개 GitHub 저장소와 실제 PR을 사용하며, 저장소 삭제는 자동으로 하지 않는다. Windows의 실제 Bash PTY와 GitHub에서 8단계를 검증했고, 두 Mac의 실제 화면 검사도 통과했다.

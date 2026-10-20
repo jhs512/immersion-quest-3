@@ -1756,12 +1756,12 @@ pub fn DoctorPanel() -> Element {
         open.set(true);
         installing.set(true);
         install_log.set(vec![
-            "학습용 Python 환경을 이 컴퓨터에 새로 설치합니다. 인터넷이 필요하고 몇 분 걸립니다."
+            "OS와 CPU에 맞춰 Java·C·Python을 확인하고 필요한 도구를 준비해요. 인터넷이 필요해요."
                 .into(),
         ]);
         spawn(async move {
             let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<String>();
-            let worker = tokio::spawn(molip_quest::doctor::install(tx));
+            let worker = tokio::spawn(molip_quest::doctor::prepare(tx));
             while let Some(line) = rx.recv().await {
                 let mut log = install_log.write();
                 log.push(line);
@@ -1777,12 +1777,20 @@ pub fn DoctorPanel() -> Element {
             inspect.call(());
         });
     });
+    use_future(move ||async move {
+        if molip_quest::runtime_setup::should_bootstrap() {
+            if let Err(error)=molip_quest::runtime_setup::mark_bootstrap(){install_log.set(vec![error]);return;}
+            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+            document::eval("const menu=document.querySelector('.app-update-settings');if(menu)menu.open=true;");
+            install.call(());
+        }
+    });
     rsx! {
         button { disabled: installing() || busy(), onclick: move |_| { open.set(true); inspect.call(()); }, "환경 진단" }
-        button { disabled: installing() || busy(), title:"uv로 Python 3.13 환경을 새로 만들고 수업 패키지를 설치합니다", onclick: move |_| install.call(()), "환경 설치" }
+        button { disabled: installing() || busy(), title:"Java·C·Python을 검사하고 필요한 도구를 준비해요.", onclick: move |_| install.call(()), "환경 설치" }
         if open() { div { class:"doctor-backdrop", section { class:"doctor-panel", role:"dialog", aria_label:"학습 환경 진단",
             h2 { "학습 환경" }
-            p { "Python과 실습 패키지 설치 상태를 확인합니다. 「환경 설치」는 이 컴퓨터에 맞는 환경을 처음부터 다시 만듭니다." }
+            p { "Java·C·Python과 수업 패키지를 실제로 실행해 확인해요. 환경 설치는 필요한 도구를 준비하고, 정상인 환경은 유지해요." }
             if busy() { p { role:"status", "검사 중입니다… 설치 직후 첫 검사는 최대 2분 정도 걸릴 수 있습니다." } }
             for check in checks() { div { class:if check.ready {"doctor-check ready"} else {"doctor-check missing"},
                 strong { if check.ready {"✓ "} else {"! "} "{check.name}" } p { "{check.detail}" }

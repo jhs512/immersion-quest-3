@@ -284,6 +284,7 @@ pub(crate) async fn execute_python_files(
     std::fs::write(directory.path().join("main.py"), code).map_err(|e| e.to_string())?;
     let executable = python_executable();
     let mut command = Command::new(executable);
+    if let Some(path)=crate::runtime_setup::library_path(){command.env("DYLD_LIBRARY_PATH",path);}
     command
         .arg("-I")
         // Pipes must use the same encoding as the UTF-8 input/output below.
