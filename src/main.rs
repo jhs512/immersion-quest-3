@@ -303,6 +303,7 @@ fn UpdateGate() -> Element {
     let mut release = use_signal(|| None::<Release>);
 
     let mut phase = use_signal(|| UpdatePhase::Hidden);
+    let mut checking = use_signal(|| false);
     // The build the student answered 나중에 to; it is not offered again.
     let mut notified = use_signal(||molip_quest::data_dir().and_then(|dir|updater::UpdateNotices::open(&dir.join("update-notices.json"))).unwrap_or_default());
     let install = Callback::new(move |_: ()| {
@@ -349,11 +350,13 @@ fn UpdateGate() -> Element {
             let manual=*request.peek()!=seen;
             if manual {seen=*request.peek();}
             if updater::enabled() && schedule.begin(started.elapsed().as_secs(),manual) {
+                checking.set(true);
                 status.set("업데이트 확인 중…".into());
                 let result = tokio::task::spawn_blocking(updater::check)
                     .await
                     .unwrap_or_else(|e| Err(e.to_string()));
                 schedule.finish();
+                checking.set(false);
                 let stamp = chrono_like_now();
                 match &result {
                     Ok(Some(found)) => {
@@ -380,19 +383,20 @@ fn UpdateGate() -> Element {
             tokio::time::sleep(std::time::Duration::from_secs(1)).await;
         }
     });
-    let settings=rsx! {details {class:"app-update-settings",summary {"설정"}
+    let installing = matches!(phase(), UpdatePhase::Downloading(_, _) | UpdatePhase::Installing);
+    let settings=rsx! {details {class:"app-update-settings",summary {if release().is_some() {"앱 설정 · 새 버전"} else {"앱 설정"}}
         div {class:"app-update-menu",
-            p {"{status}"}
-            button {disabled:!updater::enabled(),title:if updater::enabled(){"앱 새 버전 확인"}else{"개발 빌드에서는 자동 업데이트를 지원하지 않아요."},onclick:move |_|{let mut request=request;request+=1;},"업데이트 확인"}
-            button {disabled:release().is_none(),onclick:move |_|install.call(()),"새 버전 설치"}
+            p {role:"status", aria_live:"polite", "{status}"}
+            button {disabled:!updater::enabled()||checking()||installing,title:if updater::enabled(){"앱 새 버전 확인"}else{"개발 빌드에서는 자동 업데이트를 지원하지 않아요."},onclick:move |_|{checking.set(true);status.set("업데이트 확인 중…".into());let mut request=request;request+=1;},if checking(){"확인 중…"}else{"업데이트 확인"}}
+            button {disabled:release().is_none()||checking()||installing,onclick:move |_|install.call(()),"새 버전 설치"}
         }
     }};
     let Some(found) = release() else {
-        return rsx! {{settings}button {class:"app-update-icon",disabled:!updater::enabled(),aria_label:if updater::enabled(){"앱 업데이트 확인"}else{"앱 업데이트 확인 · 개발 빌드에서는 사용할 수 없어요"},title:status(),onclick:move |_|{let mut request=request;request+=1;},"↻"}};
+        return settings;
     };
     let title = found.title.clone();
     let content=match phase() {
-        UpdatePhase::Hidden => rsx! {button {class:"app-update-icon has-update",aria_label:"앱 업데이트 설치",title:format!("새 버전 · {title}"),onclick:move |_|install.call(()),"↥"}},
+        UpdatePhase::Hidden => rsx! {},
         UpdatePhase::Offered => rsx! {
             div { class:"update-banner", role:"status",
                 span { class:"update-dot" }

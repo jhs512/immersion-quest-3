@@ -74,3 +74,25 @@ fn shell_validation_rejects_escaping_paths_and_invalid_commands() {
         let exercise:GitExercise=serde_json::from_value(value).unwrap();assert!(exercise.validate().is_err());
     }
 }
+
+#[test]
+fn step_eight_accepts_directory_slash_and_screen_clearing() {
+    let manifest=CourseManifest::parse(include_str!("fixtures/player-pilot/부/course.json")).unwrap();
+    let lesson=Lesson::parse(include_str!("../courses/redesigned/bash-basics.json"),&manifest.lessons[0]).unwrap();
+    for cd in ["cd notes", "cd notes/", "cd   ./notes/", "cd \"notes/\""] {
+        let practice=GitPractice::new(lesson.tasks[7].git_terminal.clone().unwrap().demonstration()).unwrap();
+        let (mut terminal,mut output)=practice.open_terminal().unwrap();
+        until(&practice,&mut terminal,&mut output,|text|text.contains("$ "));
+        terminal.input("cd missing-folder\r").unwrap();
+        until(&practice,&mut terminal,&mut output,|_|practice.shell_completions().unwrap().iter().any(|r|r.command=="cd missing-folder"&&!r.success));
+        let actions:Vec<_>=[cd,"pwd","ls","clear","pwd","ls"].iter().map(|command|serde_json::json!({"action":"bash_command","command":command})).collect();
+        play(&practice,&mut terminal,&mut output,&actions);
+        let report=practice.check_exercise().unwrap();
+        assert!(report.passed,"{cd}: {}",serde_json::to_string(&report).unwrap());
+        play(&practice,&mut terminal,&mut output,&[serde_json::json!({"action":"bash_command","command":"cd .."})]);
+        assert!(!practice.check_exercise().unwrap().passed,"past correct commands cannot hide an incorrect final folder");
+        play(&practice,&mut terminal,&mut output,&[serde_json::json!({"action":"bash_command","command":"cd notes/"}),serde_json::json!({"action":"bash_command","command":"pwd"}),serde_json::json!({"action":"bash_command","command":"ls"})]);
+        assert!(practice.check_exercise().unwrap().passed,"correcting the final folder must allow a retry");
+        terminal.shutdown().unwrap();
+    }
+}

@@ -40,6 +40,26 @@ fn native_path(value:&str)->PathBuf {
 }
 #[cfg(not(windows))]
 fn native_path(value:&str)->PathBuf {PathBuf::from(value)}
+// Accept literal directory spelling differences without evaluating shell text.
+// Keep operators, substitutions and additional arguments out of normalization.
+fn command_matches(expected:&str,actual:&str)->bool {
+    if expected.trim()==actual.trim(){return true;}
+    fn cd_target(command:&str)->Option<&str> {
+        let command=command.trim();
+        let (name,target)=command.split_once(char::is_whitespace)?;
+        if name!="cd"{return None;}
+        let target=target.trim();
+        let quoted=(target.starts_with('\"')&&target.ends_with('\"'))||(target.starts_with('\'')&&target.ends_with('\''));
+        let target=if quoted&&target.len()>=2{&target[1..target.len()-1]}else{target};
+        if target.is_empty()||target.chars().any(|c|!c.is_alphanumeric()&&!"./_-".contains(c)&&!(quoted&&c==' ')){return None;}
+        let target=target.trim_end_matches('/');
+        if target.is_empty(){return Some("/");}
+        let mut target=target;
+        while let Some(rest)=target.strip_prefix("./"){target=rest;}
+        Some(if target.is_empty(){"."}else{target})
+    }
+    matches!((cd_target(expected),cd_target(actual)),(Some(a),Some(b)) if a==b)
+}
 impl GitPractice {
     pub(super) fn prepare_shell_start(&self)->Result<(),String> {
         if let Some(start)=self.exercise.shell.as_ref().and_then(|s|s.start.as_ref()) {
@@ -84,7 +104,7 @@ impl GitPractice {
         let records=self.shell_completions()?;
         let offset=std::fs::read_to_string(self.root().join("shell-checkpoints").join(&shell.step_id)).ok().and_then(|s|s.parse::<usize>().ok()).unwrap_or(records.len());
         let mut cursor=0;
-        for item in records.iter().skip(offset) {if item.success&&shell.commands.get(cursor)==Some(&item.command){cursor+=1;}}
+        for item in records.iter().skip(offset) {if item.success&&shell.commands.get(cursor).is_some_and(|expected|command_matches(expected,&item.command)){cursor+=1;}}
         let mut cases=vec![];
         let mut record=|name:&str,expected:String,actual:String,passed:bool|cases.push(TestCaseResult{input:name.into(),expected,stdout:actual,stderr:String::new(),passed,state:"shell_artifact".into()});
         record("명령 실행",shell.commands.join("\n"),records.iter().skip(offset).map(|r|r.command.as_str()).collect::<Vec<_>>().join("\n"),cursor==shell.commands.len());

@@ -45,13 +45,14 @@
     await wait(() => updateBanner(), 'startup update offer');
     if (document.querySelector('.update-panel')) throw new Error('Startup must not install automatically');
     await click('나중에');
-    await wait(() => document.querySelector('[aria-label="앱 업데이트 설치"]'), 'persistent update icon');
+    await wait(() => document.querySelector('.app-update-settings>summary')?.textContent.includes('새 버전'), 'update available in app settings');
+    if(document.querySelector('.app-update-icon')) throw new Error('Redundant update icon remains');
     document.querySelector('.app-update-settings').open = true;
     await click('업데이트 확인');
     await new Promise(resolve => setTimeout(resolve, 1200));
     if (updateBanner()) throw new Error('Manual check repeated the same update notice');
     document.querySelector('.app-update-settings').open = false;
-    checked.push('update offer requires click and leaves icon after dismiss');
+    checked.push('update offer requires click and stays available in app settings after dismiss');
     await wait(() => document.querySelector('.lesson-card'), 'production course catalog');
     await click('학습 시작');
     await wait(() => document.querySelector('.lesson-outline'), 'four-level objectives');
@@ -205,7 +206,8 @@
     await click('← 코스 수업 목록');
     await click('학습 시작');
     await wait(() => document.querySelector('input[type=radio][value=five]:checked'), 'answer retained across new round');
-    document.querySelector('[aria-label="앱 업데이트 설치"]').click();
+    document.querySelector('.app-update-settings').open = true;
+    await click('새 버전 설치');
     await wait(() => document.querySelector('.update-panel')?.textContent.includes('검증 모드'), 'safe installer boundary failure');
     await click('이대로 계속');
     if (!document.querySelector('input[type=radio][value=five]:checked')) throw new Error('Update failure lost answer');
