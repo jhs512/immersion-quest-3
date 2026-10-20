@@ -106,10 +106,28 @@ impl GitPracticeStore {
         let _lock=self.lock(scope)?;
         self.reset_locked(scope,exercise)
     }
+    pub fn reset_step(&self,scope:&str,exercise:GitExercise,step_id:&str)->Result<GitPractice,String> {
+        let previous=if exercise.github_pr.is_some(){Some(self.open(scope,exercise.clone())?)}else{None};
+        let _lock=self.lock(scope)?;
+        let mut practice=self.reset_from_locked(scope,exercise.restart_step(),previous.as_ref().map(|p|(p,step_id)))?;
+        practice.exercise=exercise;
+        Ok(practice)
+    }
     fn reset_locked(&self,scope:&str,exercise:GitExercise)->Result<GitPractice,String> {
+        self.reset_from_locked(scope,exercise,None)
+    }
+    fn reset_from_locked(&self,scope:&str,exercise:GitExercise,previous:Option<(&GitPractice,&str)>)->Result<GitPractice,String> {
         use std::io::Write;
         let directory=tempfile::Builder::new().prefix("practice-").tempdir_in(&self.root).map_err(|error|error.to_string())?;
         let mut practice=GitPractice::initialize(exercise,directory)?;
+        if let Some((previous,step_id))=previous {
+            let checkpoint=previous.step_checkpoint(step_id);
+            if !checkpoint.is_dir(){return Err("이 문제의 시작 상태가 없어요. 문제를 다시 연 뒤 초기화하세요.".into())}
+            std::fs::remove_dir_all(practice.work()).map_err(|e|e.to_string())?;
+            copy_step_work(&checkpoint,&practice.work())?;
+            copy_step_work(&previous.root().join("step-starts"),&practice.root().join("step-starts"))?;
+            std::fs::write(practice.root().join("github-repository-name"),previous.github_repository_name()).map_err(|e|e.to_string())?;
+        }
         let key=Self::key(scope);
         std::fs::write(practice.root().join(".mq3-owner"),&key).map_err(|error|error.to_string())?;
         let folder=practice.root().file_name().and_then(|name|name.to_str()).ok_or("Git 실습 폴더 이름 오류")?;
@@ -136,6 +154,13 @@ impl GitExercise {
             exercise.files.clear();
             exercise.setup=setup;
         }
+        exercise
+    }
+
+    /// Restore the selected step's prepared prerequisites, retaining learner mode.
+    pub fn restart_step(&self)->Self {
+        let mut exercise=self.demonstration();
+        exercise.github_demonstration=false;
         exercise
     }
 
@@ -197,7 +222,30 @@ fn valid_branch_name(name:&str)->bool {
 fn validate_file(path:&str,content:&str)->Result<(),String> {
     if !crate::repository_course::safe_file(path)||path.split('/').any(|part|part.eq_ignore_ascii_case(".git"))||content.len()>200_000 {return Err("Git 준비 파일 경로를 확인하세요.".into())}Ok(())
 }
+// A hosted PR reset restores local files and Git state without changing GitHub.
+fn copy_step_work(source:&Path,target:&Path)->Result<(),String> {
+    let metadata=std::fs::symlink_metadata(source).map_err(|e|e.to_string())?;
+    if metadata.file_type().is_symlink(){return Err("실습 시작 상태의 바로가기를 확인하세요.".into())}
+    if metadata.is_dir(){
+        std::fs::create_dir(target).map_err(|e|e.to_string())?;
+        for entry in std::fs::read_dir(source).map_err(|e|e.to_string())? {
+            let entry=entry.map_err(|e|e.to_string())?;copy_step_work(&entry.path(),&target.join(entry.file_name()))?;
+        }
+    }else if metadata.is_file(){std::fs::copy(source,target).map_err(|e|e.to_string())?;}
+    else{return Err("실습 시작 상태의 파일 종류를 확인하세요.".into())}
+    Ok(())
+}
 impl GitPractice {
+    fn step_checkpoint(&self,step_id:&str)->PathBuf {self.root().join("step-starts").join(GitPracticeStore::key(step_id))}
+    pub fn remember_step_start(&self,step_id:&str)->Result<(),String> {
+        if self.exercise.github_pr.is_none(){return Ok(())}
+        let destination=self.step_checkpoint(step_id);
+        if destination.exists(){return Ok(())}
+        let directory=destination.parent().unwrap();std::fs::create_dir_all(directory).map_err(|e|e.to_string())?;
+        let pending=tempfile::tempdir_in(directory).map_err(|e|e.to_string())?;
+        let work=pending.path().join("work");copy_step_work(&self.work(),&work)?;
+        match std::fs::rename(work,&destination){Ok(())=>Ok(()),Err(_) if destination.is_dir()=>Ok(()),Err(e)=>Err(e.to_string())}
+    }
     pub fn new(exercise:GitExercise)->Result<Self,String> {
         let directory=tempfile::Builder::new().prefix("mq3-git-practice-").tempdir().map_err(|e|e.to_string())?;
         Self::initialize(exercise,directory)

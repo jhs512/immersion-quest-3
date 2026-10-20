@@ -132,10 +132,12 @@ for(const engine of ['chromium','webkit'])test(`${engine}: keyboard nonbreaking 
   const paste=await page.evaluate(()=>{
    inputs=[];
    const input=document.querySelector('.xterm-helper-textarea');
-   const clipboardData=new DataTransfer();clipboardData.setData('text/plain','echo "a\u00a0b"');
+   const clipboardData=new DataTransfer();clipboardData.setData('text/plain','echo "a\u00a0b" >\u00a0memo.txt');
    input.dispatchEvent(new ClipboardEvent('paste',{bubbles:true,clipboardData}));
    return inputs.join('');
   });
-  assert.ok(paste.includes('a\u00a0b'),'pasted text must preserve intentional nonbreaking spaces');
+  assert.ok(paste.includes('a b'),'pasted nonbreaking spaces become ordinary spaces');
+  assert.ok(paste.includes('> memo.txt'),'pasted filename separators cannot become filename prefixes');
+  assert.ok(!paste.includes('\u00a0'));
  }finally{await browser.close()}
 });

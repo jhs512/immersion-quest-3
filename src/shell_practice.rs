@@ -65,6 +65,7 @@ impl GitPractice {
         if let Some(start)=self.exercise.shell.as_ref().and_then(|s|s.start.as_ref()) {
             for directory in &start.directories {std::fs::create_dir_all(self.work().join(directory)).map_err(|e|e.to_string())?;}
             for (path,body) in &start.files {self.write(path,body)?;}
+            std::fs::write(self.root().join("shell-start-cwd.json"),serde_json::to_vec(&start.cwd).unwrap()).map_err(|e|e.to_string())?;
         }
         Ok(())
     }
@@ -81,7 +82,10 @@ impl GitPractice {
     }
     pub fn shell_directory(&self)->Result<PathBuf,String> {
         let shell=self.exercise.shell.as_ref().ok_or("Bash 실습이 아니에요.")?;
-        let directory=self.shell_completions()?.last().map(|item|item.cwd.clone()).unwrap_or_else(||self.work().join(shell.start.as_ref().map(|s|s.cwd.as_str()).unwrap_or("")));
+        let initial=std::fs::read(self.root().join("shell-start-cwd.json")).ok().and_then(|bytes|serde_json::from_slice::<String>(&bytes).ok())
+            .unwrap_or_else(||shell.start.as_ref().map(|s|s.cwd.clone()).unwrap_or_default());
+        if !initial.is_empty(){validate_file(&initial,"")?;}
+        let directory=self.shell_completions()?.last().map(|item|item.cwd.clone()).unwrap_or_else(||self.work().join(initial));
         if directory.is_dir(){Ok(directory)}else{Ok(self.work())}
     }
     pub(super) fn shell_environment(&self)->Vec<(String,String)> {

@@ -14,6 +14,11 @@
    const firstId=document.querySelector('.repository-task').dataset.taskId;
    for(let i=0;i<count;i++){
     const nav=document.querySelectorAll('.study-navigation button')[i];nav.click();await wait(()=>document.querySelectorAll('.study-navigation button')[i]?.classList.contains('selected'),'selected task');await ready();
+    if(version==='l'&&i===1){
+     const owner=document.querySelector('#git-student-terminal').dataset.terminalSession;
+     await click('초기화');await wait(()=>document.querySelector('#git-student-terminal')?.dataset.terminalSession!==owner,'middle Git step reset');await ready();
+     checked.push('shared Git step resets without returning to the first step');
+    }
     await new Promise(r=>setTimeout(r,120));
     if(!document.querySelector('.problem-pane h2')?.textContent.trim())throw Error(`${revision} empty task ${i}`);
     const pane=document.querySelector('.git-terminal').getBoundingClientRect();

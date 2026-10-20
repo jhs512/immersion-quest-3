@@ -10,6 +10,7 @@ fn native_bash_narration_runs_ls_and_overview() {
     let status=native_player::wait(&mut command.spawn().unwrap(),200,"bash-basics");
     let _=std::fs::copy(session.directory().join("bash-basics.log"),"target/mq3-bash-native-process.log");
     let result:serde_json::Value=serde_json::from_str(&std::fs::read_to_string("target/pilot-native-result.json").unwrap()).unwrap();
+    std::fs::copy("target/pilot-native-result.json","target/pilot-bash-native-result.json").unwrap();
     assert!(status.success()&&result["passed"]==true,"{result}");
-    assert_eq!(result["checked"].as_array().unwrap().len(),2);
+    assert_eq!(result["checked"].as_array().unwrap().len(),3);
 }

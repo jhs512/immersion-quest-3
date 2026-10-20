@@ -13,6 +13,9 @@ fn real_gh_config()->Option<PathBuf>{
 }
 impl GitPractice {
     pub fn github_repository_name(&self)->String{
+        if let Ok(name)=std::fs::read_to_string(self.root().join("github-repository-name")) {
+            if name.starts_with("mq3-pr-")&&name.len()==19&&name.bytes().all(|b|b.is_ascii_alphanumeric()||b==b'-'){return name;}
+        }
         use sha2::{Digest,Sha256};
         format!("mq3-pr-{}",&format!("{:x}",Sha256::digest(self.root().to_string_lossy().as_bytes()))[..12])
     }

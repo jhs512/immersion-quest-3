@@ -275,8 +275,6 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
 fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Vec<LearningEvent>>,onrecord:EventHandler<Vec<LearningEvent>>,has_next:bool,onnext:EventHandler<()>)->Element {
     let key=molip_quest::drafts::repository_scope(&ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},selected.mode,&task.id);
     let git_scope=task.git_terminal.as_ref().map(|exercise|molip_quest::drafts::repository_scope(&ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},selected.mode,if exercise.workspace_group.is_empty(){&task.id}else{&exercise.workspace_group}));
-    let shared_git=task.git_terminal.as_ref().is_some_and(|exercise|!exercise.workspace_group.is_empty());
-    let first_git_step=selected.lesson.tasks.first().is_some_and(|first|first.id==task.id);
     let previous_key=format!("repo:{}:{}:{}:{}:{}",session.user.id,selected.course.id,selected.lesson.id,selected.round,task.id);
     let review_key=molip_quest::drafts::repository_scope(&ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},StudyMode::Review,&task.id);
     let initial=use_hook(||molip_quest::drafts::load(&key).ok().flatten().or_else(||molip_quest::drafts::load(&review_key).ok().flatten()).or_else(||molip_quest::drafts::load(&previous_key).ok().flatten()).map(|d|d.code).unwrap_or_else(||task.starter_code.clone()));
@@ -376,9 +374,9 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
             section {class:"coding-pane",div {class:"pane-heading",strong {"{filename}"}
                 if feedback()=="incorrect"||feedback()=="error"||feedback()=="run-error" {span {class:"submission-indicator",if feedback()=="incorrect"{"제출 실패"}else{"오류 발생"}}}
                 div {class:"pane-actions",
-                    button {disabled:busy()||narrating()||(shared_git&&!first_git_step),title:if shared_git{"처음부터 다시 하려면 첫 단계에서 초기화하세요. 실습 폴더 전체가 초기화돼요."}else{"현재 문제 초기화"},onclick:{let starter=task.starter_code.clone();let example=task.example_for_answer(&task.starter_code).unwrap_or_default();let key=key.clone();move |_|{
+                    button {disabled:busy()||narrating(),title:"현재 문제의 시작 상태로 돌아가요. 완료 기록은 유지해요.",onclick:{let starter=task.starter_code.clone();let example=task.example_for_answer(&task.starter_code).unwrap_or_default();let key=key.clone();move |_|{
                         if narrating(){return;}
-                        feedback.set("idle");message.set(String::new());execution_state.set("idle");
+                        feedback.set("idle");message.set(String::new());execution_state.set("idle");output.set(String::new());preview.set(String::new());teacher_preview.set(String::new());artifacts.set(vec![]);
                         if let Some(control)=git_control() {
                             busy.set(true);message.set("실습을 초기화하고 있어요.".into());
                             let key=key.clone();let starter=starter.clone();
@@ -479,7 +477,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
             div {class:if (task.git_terminal.is_some()||has_example)&&task.interaction.is_some(){"editor-pane interaction-example-editor"}else{"editor-pane"},style:if (task.git_terminal.is_some()||has_example)&&task.interaction.is_some(){"display:grid;grid-template-rows:minmax(48px,1fr) 10px var(--example-answer-height,fit-content(60%));gap:0"}else{""},
                 if let Some(exercise)=task.git_terminal.clone() {
                     div {class:"example-code-pane",style:if narrating(){"display:none"}else if task.interaction.is_some(){"display:block;min-height:0;overflow:hidden"}else{"display:block;height:100%"},
-                        {rsx!{crate::git_terminal_ui::GitTerminal {key:"git-{reset}",exercise:exercise.clone(),demo:false,scope:git_scope.clone(),fresh:reset()>0,onready:move |practice|git_practice.set(Some(practice)),oncontrol:move |control|git_control.set(Some(control))}}}
+                        {rsx!{crate::git_terminal_ui::GitTerminal {key:"git-{reset}",exercise:exercise.clone(),demo:false,scope:git_scope.clone(),fresh:reset()>0,step_id:task.id.clone(),onready:move |practice|git_practice.set(Some(practice)),oncontrol:move |control|git_control.set(Some(control))}}}
                     }
                     if narrating() {div {class:"example-code-pane",style:if task.interaction.is_some(){"min-height:0;overflow:hidden"}else{"height:100%"},crate::git_terminal_ui::GitTerminal {exercise,demo:true,onready:move |_|{},oncontrol:move |_|{}}}}
                 }else if has_example {

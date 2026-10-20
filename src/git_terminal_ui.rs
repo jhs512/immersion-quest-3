@@ -28,7 +28,7 @@ fn shell_argument(value:&str)->String {
     format!("\"{escaped}\"")
 }
 #[component]
-pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option<String>,#[props(default)] fresh:bool,onready:EventHandler<Practice>,oncontrol:EventHandler<TerminalControl>)->Element {
+pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option<String>,#[props(default)] fresh:bool,#[props(default)] step_id:String,onready:EventHandler<Practice>,oncontrol:EventHandler<TerminalControl>)->Element {
     use base64::Engine;
     let owned=use_hook(||Arc::new(Mutex::new(None::<TerminalSession>)));
     let mut error=use_signal(String::new);
@@ -49,15 +49,16 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
         cleanup.lock().unwrap_or_else(|e|e.into_inner()).take();
         document::eval(&format!("window.{bridge_name}?.dispose('{cleanup_owner}');window.molipAgent?.retireGitTutor('{cleanup_owner}');"));
     });
-    use_future(move||{let exercise=exercise.clone();let scope=scope.clone();let owned=owned.clone();let owner=owner.clone();async move {
+    use_future(move||{let exercise=exercise.clone();let scope=scope.clone();let step_id=step_id.clone();let owned=owned.clone();let owner=owner.clone();async move {
         let opened=tokio::task::spawn_blocking(move||{
             let practice=if !demo {
                 if let Some(scope)=scope {
                     let scope=exercise.workspace_scope(&scope);
                     let store=molip_quest::git_practice::GitPracticeStore::installed()?;
-                    if fresh {store.reset(&scope,exercise)?}else{store.open(&scope,exercise)?}
+                    if fresh {store.reset_step(&scope,exercise,&step_id)?}else{store.open(&scope,exercise)?}
                 }else{GitPractice::new(exercise)?}
             }else{GitPractice::new(exercise.demonstration())?};
+            if !demo {practice.remember_step_start(&step_id)?;}
             let practice=Arc::new(Mutex::new(practice));
             let (shell,output)=practice.lock().unwrap_or_else(|e|e.into_inner()).open_terminal()?;
             let closing_marker=practice.lock().unwrap_or_else(|e|e.into_inner()).vim_closing_marker();

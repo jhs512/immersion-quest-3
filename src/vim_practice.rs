@@ -69,6 +69,7 @@ impl GitPractice {
     pub(super) fn prepare_vim_start(&self)->Result<(),String> {
         if let Some(start)=self.exercise.vim.as_ref().and_then(|v|v.start.as_ref()) {
             if let Some(lines)=&start.file_lines{self.write("memo.txt",&(lines.join("\n")+"\n"))?;}
+            std::fs::write(self.root().join("vim-initial.json"),serde_json::to_vec(start).unwrap()).map_err(|e|e.to_string())?;
         }Ok(())
     }
     pub fn open_vim_terminal(&self)->Result<(crate::setup_terminal::SetupTerminal,tokio::sync::mpsc::Receiver<Vec<u8>>),String> {
@@ -77,7 +78,7 @@ impl GitPractice {
         let resume=if let Some(start)=&config.start {start.clone()} else if let Ok(raw)=std::fs::read_to_string(self.root().join("vim-resume.json")) {
             let state:VimState=serde_json::from_str(&raw).map_err(|e|e.to_string())?;
             if state.exited {self.vim_file_snapshot()?}else{VimSnapshot{file_lines:None,lines:state.lines,mode:if state.mode=="i"{"i".into()}else{"n".into()},line:state.line,column:state.column,modified:state.modified,search:state.search}}
-        }else{self.vim_file_snapshot()?};
+        }else if let Ok(raw)=std::fs::read(self.root().join("vim-initial.json")){serde_json::from_slice(&raw).map_err(|e|e.to_string())?}else{self.vim_file_snapshot()?};
         let mut environment=self.environment();
         for (name,path) in [("MQ3_VIM_ACTIVE",self.root().join("vim-active-session")),("MQ3_VIM_RESUME",self.root().join("vim-resume.json")),("MQ3_VIM_STATE",self.vim_path(&token,"json")),("MQ3_VIM_EVENTS",self.vim_path(&token,"jsonl")),("MQ3_VIM_CLOSING",self.vim_path(&token,"closing")),("MQ3_VIM_INPUT",self.vim_path(&token,"input")),("MQ3_VIM_START",self.vim_path(&token,"start"))] {environment.push((name.into(),path.to_string_lossy().replace('\\',"/")));}
         environment.push(("MQ3_VIM_SESSION".into(),token.clone()));
