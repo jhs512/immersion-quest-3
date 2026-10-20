@@ -1,0 +1,36 @@
+(async()=>{
+ const checked=[];
+ const wait=async(test,label)=>{const end=Date.now()+60000;while(!test()){if(Date.now()>end)throw Error(label);await new Promise(r=>setTimeout(r,40));}};
+ const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===text);
+ const click=async text=>{await wait(()=>button(text)&&!button(text).disabled,text);button(text).click();};
+ const ready=async()=>{await wait(()=>document.querySelector('.repository-task')?.dataset.gitReady==='true'&&document.querySelector('.java-build-source .cm-editor'),'source and PTY ready');await new Promise(r=>setTimeout(r,300));};
+ const run=async command=>{const before=mq3GitTerminal.text();mq3GitTerminal.command(command);await wait(()=>mq3GitTerminal.text()!==before&&/\$\s*$/.test(mq3GitTerminal.text()),command);};
+ const submit=async passed=>{await click('제출');await wait(()=>document.querySelector('.repository-task')?.dataset.busy==='false'&&document.querySelector('.result-pane')?.dataset.feedback===(passed?'passed':'incorrect'),'submission result');};
+ try{
+  await wait(()=>button('학습 시작')&&!button('학습 시작').disabled,'initial catalog');await click('버전 뉴');
+  await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('java-launch-1'),'Java launch catalog');await click('학습 시작');molipAgent.setVoice(false);
+  for(let i=0;i<mq3JavaLaunch.tasks.length;i++){
+   const task=mq3JavaLaunch.tasks[i];await wait(()=>document.querySelector('.repository-task')?.dataset.taskId===task.id,'task mounted');await ready();
+   const choose=id=>document.querySelector(`input[type=radio][value="${id}"]`).click();
+   if(i===0){const pane=document.querySelector('.editor-pane').getBoundingClientRect();for(const selector of ['.java-build-source','#git-student-terminal']){const box=document.querySelector(selector).getBoundingClientRect();if(box.height<48||box.bottom>pane.bottom+1||box.right>pane.right+1)throw Error('Source/terminal layout: '+selector);}
+    choose(task.interaction.answer);await submit(false);checked.push('choice alone cannot pass without real work');}
+   const source=task.git_terminal.shell.goal.files['Main.java'];
+   if(molipCodeEditors.getValue()!==source)molipCodeEditors.setValue(source);
+   if(i===2||i===5){
+    const student=molipCodeEditors.getValue();let demoText='';const sample=setInterval(()=>{const text=mq3GitDemoTerminal.text();if(text)demoText=text;},60);await click('해설 재생');
+    await wait(()=>document.querySelector('.repository-task')?.dataset.narrating==='true','demonstration started');
+    if(i===2){molipAgent.pause();button('멈춤').click();}
+    await wait(()=>document.querySelector('.repository-task')?.dataset.narrating==='false','demonstration returned');
+    clearInterval(sample);if(i===5&&(!demoText.includes('java Main')||!demoText.includes('둘째 메모')))throw Error('Stale-class narration did not show real JDK output');
+    await ready();if(molipCodeEditors.getValue()!==student)throw Error('Demo overwrote learner source');checked.push(i===2?'stopping demonstration preserves editor and terminal':'full stale-class demonstration preserves editor and terminal');
+   }
+   if(i===5){mq3GitTerminal.command('java Main');await wait(()=>document.querySelector('.git-terminal-shell')?.textContent.includes('먼저 예상'),'prediction required');choose(task.interaction.answer);await run('');}
+   else {choose(task.interaction.answer);for(const command of task.git_terminal.shell.commands)await run(command);}
+   if(i===4){choose('source');await submit(false);choose(task.interaction.answer);checked.push('valid JDK output with wrong observation is rejected');}
+   await submit(true);checked.push(`step ${i+1} passes with source, artifact, execution and choice`);
+   if(i<7)await click('다음으로 이동');else await click('수업 목록으로');
+  }
+  await wait(()=>document.querySelector('.lesson-progress')?.textContent.includes('100% 완료'),'catalog completed');
+  dioxus.send({passed:true,checked});
+ }catch(error){dioxus.send({passed:false,checked,error:String(error),screen:document.body.innerText.slice(-7000),student:window.mq3GitTerminal?.text(),demo:window.mq3GitDemoTerminal?.text()});}
+})();

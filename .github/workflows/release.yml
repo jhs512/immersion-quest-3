@@ -24,6 +24,12 @@ jobs:
         run: cargo test --release --locked --lib updater::tests
       - name: Verify interactive setup terminal
         run: cargo test --release --locked --lib setup_terminal::tests
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Verify persistent Java build workspace
+        run: cargo test --release --locked --test java_launch
       - name: Build clean release executable
         run: cargo build --release --locked --bin molip-quest
       - name: Prepare Inno Setup
@@ -85,7 +91,7 @@ jobs:
           cargo test --release --locked --lib updater::tests
           cargo test --release --locked --lib setup_terminal::tests
       - name: Verify C, Java and Python execution on this Mac
-        run: cargo test --release --locked --test macos_runtime
+        run: cargo test --release --locked --test macos_runtime --test java_launch
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -93,13 +99,15 @@ jobs:
         run: |
           python -m pip install edge-tts==7.3.1
           export MOLIP_PYTHON="$(which python)"
-          cargo test --locked --test player_loading_native -- --ignored --nocapture
+          cargo test --locked --test player_loading_native --test player_java_launch_native -- --ignored --nocapture --test-threads=1
       - name: Upload native WebView diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: macos-webview-${{ matrix.arch }}
-          path: target/pilot-native-result.json
+          path: |
+            target/pilot-native-result.json
+            target/pilot-java-launch-native-result.json
           if-no-files-found: ignore
       - name: Build and package macOS app
         run: |

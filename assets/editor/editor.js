@@ -120,7 +120,7 @@ if (!window.molipCodeEditors) {
   function setValue(source) {
     let done = false;
     for (const [element, view] of editors) {
-      if (!element.isConnected) continue;
+      if (!element.isConnected || !view.dom.getClientRects().length) continue;
       view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: source } });
       done = true;
     }
@@ -128,13 +128,13 @@ if (!window.molipCodeEditors) {
   }
   // The editor's text, or null when no editor is on screen (narration mode reads it first).
   function getValue() {
-    for (const [element, view] of editors) if (element.isConnected) return view.state.doc.toString();
+    for (const [element, view] of editors) if (element.isConnected && view.dom.getClientRects().length) return view.state.doc.toString();
     return null;
   }
   // Insert at the end without touching what is there: narration types code a few characters at a time.
   function appendValue(piece) {
     for (const [element, view] of editors) {
-      if (!element.isConnected) continue;
+      if (!element.isConnected || !view.dom.getClientRects().length) continue;
       const end = view.state.doc.length;
       view.dispatch({ changes: { from: end, to: end, insert: piece }, selection: { anchor: end + piece.length }, scrollIntoView: true });
       return true;
@@ -142,7 +142,7 @@ if (!window.molipCodeEditors) {
     return false;
   }
   function highlightLines(start, end = start, moveCursor = false) {
-    for (const [element, view] of editors) if (element.isConnected) {
+    for (const [element, view] of editors) if (element.isConnected && view.dom.getClientRects().length) {
       const first = Math.max(1, Math.min(view.state.doc.lines, Number(start) || 1));
       const last = Math.max(first, Math.min(view.state.doc.lines, Number(end) || first));
       view.dispatch({...(moveCursor && start != null ? {selection:{anchor:view.state.doc.line(last).to}} : {}),effects: [narrationFocus.of(start == null ? null : [first, last]),
@@ -152,7 +152,7 @@ if (!window.molipCodeEditors) {
     return false;
   }
   function replaceRange(from, to, insert) {
-    for (const [element, view] of editors) if (element.isConnected) {
+    for (const [element, view] of editors) if (element.isConnected && view.dom.getClientRects().length) {
       view.dispatch({changes: {from, to, insert}, selection: {anchor: from + insert.length}, scrollIntoView: true});
       return true;
     }

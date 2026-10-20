@@ -125,6 +125,10 @@ pub fn git_bash_executable()->Result<PathBuf,String> {
     Err("Git Bash를 찾지 못했어요. Git for Windows를 설치한 뒤 다시 열어 주세요.".into())
 }
 
+pub fn vim_executable()->Result<PathBuf,String>{
+    #[cfg(not(windows))] {Ok(PathBuf::from("/usr/bin/vim"))}
+    #[cfg(windows)] {let bash=git_bash_executable()?;bash.ancestors().take(4).map(|p|p.join("usr/bin/vim.exe")).chain(bash.parent().map(|p|p.join("vim.exe"))).find(|p|p.is_file()).ok_or("Git for Windows의 Vim을 찾지 못했어요.".into())}
+}
 impl SetupTerminal {
     pub fn open() -> Result<(Self, mpsc::Receiver<Vec<u8>>), String> {Self::open_with(None,None)}
     pub fn open_practice(path:&std::path::Path,environment:&[(String,String)])->Result<(Self,mpsc::Receiver<Vec<u8>>),String> {Self::open_with(Some((path,environment)),None)}
@@ -132,8 +136,7 @@ impl SetupTerminal {
     fn open_with(practice:Option<(&std::path::Path,&[(String,String)])>,editor:Option<(&std::path::Path,&str)>) -> Result<(Self, mpsc::Receiver<Vec<u8>>), String> {
         let pair=native_pty_system().openpty(PtySize {rows:20,cols:100,pixel_width:0,pixel_height:0}).map_err(|e|e.to_string())?;
         let vim_command=||->Result<CommandBuilder,String>{
-            #[cfg(not(windows))] let executable=std::path::PathBuf::from("/usr/bin/vim");
-            #[cfg(windows)] let executable={let bash=git_bash_executable()?;bash.ancestors().take(4).map(|p|p.join("usr/bin/vim.exe")).chain(bash.parent().map(|p|p.join("vim.exe"))).find(|p|p.is_file()).ok_or("Git for Windows의 Vim을 찾지 못했어요.")?};
+            let executable=vim_executable()?;
             let (script,file)=editor.ok_or("Vim 실행 설정 오류")?;
             let mut c=CommandBuilder::new(executable);c.arg("-N");c.arg("-u");c.arg(script);c.args(["-i","NONE","-n","--",file]);Ok(c)
         };
@@ -150,6 +153,14 @@ impl SetupTerminal {
             command.cwd(path);
             for (key,_) in std::env::vars_os(){if key.to_string_lossy().starts_with("GIT_"){command.env_remove(key);}}
             for (key,value) in environment {command.env(key,value);}
+        }
+        #[cfg(windows)]
+        if let Some((_,environment))=practice {
+            // --noprofile/--norc does not add Git Bash's coreutils to a GUI app's PATH.
+            let bash=git_bash_executable()?;
+            let inherited=environment.iter().find(|(key,_)|key=="PATH").map(|(_,value)|std::ffi::OsString::from(value)).unwrap_or_else(||std::env::var_os("PATH").unwrap_or_default());
+            let paths=bash.parent().map(std::path::Path::to_path_buf).into_iter().chain(std::env::split_paths(&inherited));
+            command.env("PATH",std::env::join_paths(paths).map_err(|e|e.to_string())?);
         }
         #[cfg(target_os="macos")]
         {

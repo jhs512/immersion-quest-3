@@ -1,10 +1,11 @@
 #![cfg(not(target_os="android"))]
 use molip_quest::{git_practice::{GitExercise,GitPractice,GitPracticeStore},repository_course::{CourseManifest,Lesson},setup_terminal::SetupTerminal};
 use std::time::{Duration,Instant};
-fn until(shell:&GitPractice,output:&mut tokio::sync::mpsc::Receiver<Vec<u8>>,predicate:impl Fn(&str)->bool)->String {
-    let deadline=Instant::now()+Duration::from_secs(12);let mut text=String::new();
+fn until(shell:&GitPractice,terminal:&mut SetupTerminal,output:&mut tokio::sync::mpsc::Receiver<Vec<u8>>,predicate:impl Fn(&str)->bool)->String {
+    let deadline=Instant::now()+Duration::from_secs(12);let mut text=String::new();let mut dsr=0;
     while Instant::now()<deadline {
         while let Ok(bytes)=output.try_recv(){text.push_str(&String::from_utf8_lossy(&bytes));}
+        let count=text.matches("\x1b[6n").count();if count>dsr{terminal.input("\x1b[1;1R").unwrap();dsr=count;}
         if predicate(&text){return text;}
         std::thread::sleep(Duration::from_millis(20));
     }
@@ -16,15 +17,15 @@ fn play(practice:&GitPractice,shell:&mut SetupTerminal,output:&mut tokio::sync::
             "bash_command"=>{
                 let command=action["command"].as_str().unwrap();let before=practice.shell_completions().unwrap().len();
                 shell.input(&format!("{command}\r")).unwrap();
-                until(practice,output,|_|practice.shell_completions().unwrap().iter().skip(before).any(|r|r.success&&r.command==command));
+                until(practice,shell,output,|_|practice.shell_completions().unwrap().iter().skip(before).any(|r|r.success&&r.command==command));
             },
             "vim_open"=>{
                 shell.input("vim memo.txt\r").unwrap();
-                until(practice,output,|text|text.contains("\"memo.txt\"")&&text.contains("L"));
+                until(practice,shell,output,|text|text.contains("\"memo.txt\"")&&text.contains("L"));
             },
             "vim_keys"=>{
                 let before=practice.shell_completions().unwrap().len();shell.input(action["keys"].as_str().unwrap()).unwrap();
-                if action["wait_prompt"]==true {until(practice,output,|_|practice.shell_completions().unwrap().iter().skip(before).any(|r|r.success&&r.command=="vim memo.txt"));}
+                if action["wait_prompt"]==true {until(practice,shell,output,|_|practice.shell_completions().unwrap().iter().skip(before).any(|r|r.success&&r.command=="vim memo.txt"));}
                 else {std::thread::sleep(Duration::from_millis(70));while output.try_recv().is_ok(){}}
             },
             _=>{}
@@ -47,14 +48,14 @@ fn all_twenty_three_steps_run_in_real_bash_and_vim_without_hidden_student_change
         assert!(!practice.check_exercise().unwrap().passed,"unexecuted commands must not pass step {}",index+1);
         let teacher=GitPractice::new(exercise.demonstration()).unwrap();
         let (mut teacher_shell,mut teacher_output)=teacher.open_terminal().unwrap();
-        until(&teacher,&mut teacher_output,|text|text.ends_with("$ "));
+        until(&teacher,&mut teacher_shell,&mut teacher_output,|text|text.contains("$ "));
         assert!(!teacher.check_exercise().unwrap().passed,"preparing demo state cannot satisfy command goals");
         if index==1 {
             play(&teacher,&mut teacher_shell,&mut teacher_output,&task.narration);
             let report=teacher.check_exercise().unwrap();assert!(report.passed,"teacher step {}: {:?}",index+1,serde_json::to_string(&report).unwrap());
         }
         teacher_shell.shutdown().unwrap();drop(teacher_output);
-        let (mut shell,mut output)=practice.open_terminal().unwrap();until(&practice,&mut output,|text|text.ends_with("$ "));
+        let (mut shell,mut output)=practice.open_terminal().unwrap();until(&practice,&mut shell,&mut output,|text|text.contains("$ "));
         let actual_cwd=practice.shell_directory().unwrap().canonicalize().unwrap();
         assert_eq!(actual_cwd,practice.work().join(&config.demo.cwd).canonicalize().unwrap(),"restore current folder");
         play(&practice,&mut shell,&mut output,&task.narration);

@@ -22,6 +22,8 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
             include_str!("../tools/player-pilot-vim-ready.js").to_owned()
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("shortcuts-feedback") {
             include_str!("../tools/player-pilot-shortcuts.js").to_owned()
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("java-launch") {
+            format!("window.mq3JavaLaunch={};{}",include_str!("../courses/redesigned/java-launch.json"),include_str!("../tools/player-pilot-java-launch.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("bash-basics") {
             include_str!("../tools/player-pilot-bash.js").to_owned()
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("terminal-restore") {

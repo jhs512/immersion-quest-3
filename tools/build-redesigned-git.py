@@ -31,6 +31,8 @@ def write_changed(path, value):
 
 def validate_highlights(task):
     source = task.get('example_code') or task.get('starter_code', '')
+    if task.get('git_terminal', {}).get('java_build') is not None:
+        source = task['git_terminal']['shell']['demo']['files']['Main.java']
     for action in task['narration']:
         target = action.get('target', '')
         lines = action.get('lines')

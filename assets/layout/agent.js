@@ -759,7 +759,9 @@
     constructor(root, owner) {
       this.root = root;
       this.owner = owner ?? root.dataset.explanationSession ?? null;
-      this.code = globalThis.molipCodeEditors?.getValue() ?? null;
+      // A separate Java demo owns its own editor and disk state. A late JS restore
+      // must not apply that teacher source to the student editor after Rust switches back.
+      this.code = root.querySelector('.java-build-workspace') ? null : globalThis.molipCodeEditors?.getValue() ?? null;
       this.fields = [...root.querySelectorAll('.answer-interaction input, .answer-state-bridge, .run-input textarea')].map(field => [field, field.value, field.checked]);
       this.tutor = globalThis.molipGitTutor;
       this.terminal = root.querySelector('#git-demo-terminal');

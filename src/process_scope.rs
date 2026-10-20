@@ -1,4 +1,30 @@
 //! Lifetime ownership for a practice shell and its inherited descendants.
+/// A bounded JDK command has its own group, inside the parent PTY session.
+/// Closing the terminal still owns it; ending the command also removes descendants.
+pub struct CommandScope {
+    active:std::sync::atomic::AtomicBool,
+    #[cfg(windows)] job: ProcessScope,
+    #[cfg(unix)] group: libc::pid_t,
+}
+impl CommandScope {
+    pub fn attach(child:&std::process::Child)->Result<Self,String>{
+        #[cfg(windows)] {
+            use std::os::windows::io::AsRawHandle;
+            Ok(Self{active:std::sync::atomic::AtomicBool::new(true),job:ProcessScope::attach_handle(child.as_raw_handle())?})
+        }
+        #[cfg(unix)] {Ok(Self{active:std::sync::atomic::AtomicBool::new(true),group:child.id() as libc::pid_t})}
+    }
+    pub fn terminate(&self)->Result<(),String>{
+        if !self.active.swap(false,std::sync::atomic::Ordering::SeqCst){return Ok(())}
+        #[cfg(windows)] {self.job.terminate()}
+        #[cfg(unix)] {
+            if unsafe{libc::kill(-self.group,libc::SIGKILL)}!=0 {
+                let error=std::io::Error::last_os_error();if error.raw_os_error()!=Some(libc::ESRCH){return Err(error.to_string())}
+            }Ok(())
+        }
+    }
+}
+impl Drop for CommandScope {fn drop(&mut self){let _=self.terminate();}}
 #[cfg(windows)]
 pub struct ProcessScope(windows_sys::Win32::Foundation::HANDLE);
 #[cfg(windows)]
@@ -7,8 +33,11 @@ unsafe impl Send for ProcessScope {}
 #[cfg(windows)]
 impl ProcessScope {
     pub fn attach(child:&dyn portable_pty::Child)->Result<Self,String> {
-        use windows_sys::Win32::System::JobObjects::*;
         let process=child.as_raw_handle().ok_or("터미널 프로세스 핸들이 없어요.")?;
+        Self::attach_handle(process)
+    }
+    fn attach_handle(process:std::os::windows::io::RawHandle)->Result<Self,String>{
+        use windows_sys::Win32::System::JobObjects::*;
         // A private unnamed job cannot accidentally select an unrelated process tree.
         let handle=unsafe{CreateJobObjectW(std::ptr::null(),std::ptr::null())};
         if handle.is_null(){return Err(std::io::Error::last_os_error().to_string())}

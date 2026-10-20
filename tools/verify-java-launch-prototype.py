@@ -16,15 +16,18 @@ SOURCE=ROOT/'tools/redesigned_lessons/java_launch'
 def digest(path):return hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else None
 
 def verify():
-    prd=validate(json.loads((SOURCE/'draft-prd.json').read_text()))
-    draft=json.loads((SOURCE/'prototype.json').read_text())
+    prd=validate(json.loads((SOURCE/'draft-prd.json').read_text(encoding='utf-8')))
+    draft=json.loads((SOURCE/'prototype.json').read_text(encoding='utf-8'))
     assert prd['approval']['status']=='draft' and draft['status']=='draft_not_runtime_content'
     steps=[s for c in prd['chapters'] for u in c['units'] for s in u['steps']]
     assert [s['id'] for s in steps]==[s['id'] for s in draft['steps']]
     java=shutil.which('java');assert java,'JDK java is required'
     javac=Path(java).resolve().with_name('javac.exe' if os.name=='nt' else 'javac')
     assert javac.exists(),'Use javac from the same JDK'
-    cat=shutil.which('cat');ls=shutil.which('ls');assert cat and ls,'Bash tools cat/ls are required'
+    search=os.environ.get('PATH','')
+    if os.name=='nt':
+        search=os.pathsep.join([str(Path(os.environ.get('ProgramFiles','C:/Program Files'))/'Git/usr/bin'),search])
+    cat=shutil.which('cat',path=search);ls=shutil.which('ls',path=search);assert cat and ls,'Bash tools cat/ls are required'
     environment=os.environ.copy()
     for name in ['JDK_JAVA_OPTIONS','JDK_JAVAC_OPTIONS','JAVA_TOOL_OPTIONS','_JAVA_OPTIONS','CLASSPATH']:
         environment.pop(name,None)
@@ -51,14 +54,15 @@ def verify():
                 for action in task['actions']:
                     path=work/'Main.java'
                     if action['kind']=='learner_edit':
-                        before=variant(action['before']);after=variant(action['after']);source=path.read_text()
+                        before=variant(action['before']);after=variant(action['after']);source=path.read_text(encoding='utf-8')
                         assert source.count(before)==1
                         path.write_text(source.replace(before,after,1),encoding='utf-8')
                         checks.append({'action':'learner_edit','changed_lines':1});continue
                     assert action['kind']=='command'
                     argv=list(action['argv']);executable={'java':java,'javac':str(javac),'cat':cat,'ls':ls}[argv[0]]
                     before=digest(work/'Main.class')
-                    run=subprocess.run([executable,*argv[1:]],cwd=work,env=environment,text=True,encoding='utf-8',capture_output=True,timeout=20)
+                    options=['-Dfile.encoding=UTF-8','-Dstdout.encoding=UTF-8','-Dstderr.encoding=UTF-8'] if argv[0]=='java' else ['-encoding','UTF-8'] if argv[0]=='javac' else []
+                    run=subprocess.run([executable,*options,*argv[1:]],cwd=work,env=environment,text=True,encoding='utf-8',capture_output=True,timeout=20)
                     assert run.returncode==0,(task['title'],run.stderr)
                     output=run.stdout.replace('\r\n','\n')
                     if 'stdout' in action:assert output==variant(action['stdout']),(task['title'],output)
@@ -83,7 +87,7 @@ def main():
     try:result=verify()
     except Exception as error:
         result={'passed':False,'error':str(error)}
-    args.output.parent.mkdir(parents=True,exist_ok=True);args.output.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
+    args.output.parent.mkdir(parents=True,exist_ok=True);args.output.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     if not result['passed']:print(result['error'],file=sys.stderr);return 1
     print(f"Draft verified: {result['steps']} steps × {len(result['scenarios'])} scenarios; zero external services. Not published.")
     return 0

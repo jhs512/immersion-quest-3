@@ -2,6 +2,8 @@
 use serde::{Deserialize,Serialize};
 #[path="shell_practice.rs"] mod shell_practice;
 pub use shell_practice::{ShellExercise,ShellSnapshot,ShellCompletion};
+#[path="java_build_practice.rs"] pub mod java_build_practice;
+pub use java_build_practice::JavaBuildGoal;
 #[path="vim_practice.rs"] mod vim_practice;
 pub use vim_practice::{VimExercise,VimCheck,VimPredicate,VimSnapshot,VimState,VimProgress};
 #[cfg(windows)]
@@ -9,6 +11,8 @@ use std::os::windows::process::CommandExt;
 use std::{collections::BTreeMap,path::{Path,PathBuf},process::{Command,Output}};
 #[derive(Clone,Debug,Default,Serialize,Deserialize,PartialEq)]
 pub struct GitExercise {
+    #[serde(skip)] pub java_demonstration:bool,
+    #[serde(default,skip_serializing_if="Option::is_none")] pub java_build:Option<JavaBuildGoal>,
     #[serde(default,skip_serializing_if="Option::is_none")] pub vim:Option<VimExercise>,
     #[serde(default,skip_serializing_if="Option::is_none")] pub shell:Option<ShellExercise>,
     #[serde(default,skip_serializing_if="Option::is_none")] pub demo_setup:Option<Vec<GitSetup>>,
@@ -119,6 +123,7 @@ impl GitExercise {
     /// Recreate only the previous step's starting state in an isolated teacher directory.
     pub fn demonstration(&self)->Self {
         let mut exercise=self.clone();
+        exercise.java_demonstration=exercise.java_build.is_some();
         if let Some(vim)=exercise.vim.as_mut(){vim.start=Some(vim.demo.clone());}
         if let Some(shell)=exercise.shell.as_mut(){shell.start=Some(shell.demo.clone());}
         if let Some(setup)=exercise.demo_setup.take() {
@@ -138,6 +143,10 @@ impl GitExercise {
         if self.workspace_group.len()>64||!self.workspace_group.bytes().all(|c|c.is_ascii_alphanumeric()||b"_-".contains(&c)){return Err("실습 연결 이름을 확인하세요.".into())}
         if self.workspace_revision.len()>64||!self.workspace_revision.bytes().all(|c|c.is_ascii_alphanumeric()||b"_-".contains(&c)){return Err("실습 시작 상태 버전을 확인하세요.".into())}
 
+        if let Some(java)=&self.java_build {
+            if self.shell.is_none()||self.vim.is_some()||!["","same","changed"].contains(&java.class_relation.as_str()) {return Err("자바 실습 구성을 확인하세요.".into())}
+            if !java.command.is_empty()&&!matches!(java.command.iter().map(String::as_str).collect::<Vec<_>>().as_slice(),["java","Main"]|["java","Main.java"]|["javac","Main.java"]){return Err("자바 실습 명령을 확인하세요.".into())}
+        }
         if let Some(vim)=&self.vim{vim.validate()?;if self.initial_history!=GitInitialHistory::Uninitialized||self.shell.is_some()||self.state_goal.is_some()||self.demo_setup.is_some(){return Err("Vim 시작 구성을 확인하세요.".into())}}
         if let Some(shell)=&self.shell {shell.validate()?;if self.initial_history!=GitInitialHistory::Uninitialized||self.state_goal.is_some()||self.demo_setup.is_some(){return Err("Bash 실습의 시작 상태를 확인하세요.".into())}}
         if self.demo_setup.is_some(){self.demonstration().validate()?;}
@@ -196,6 +205,7 @@ impl GitPractice {
             // Only a private init default is configured. The learner creates .git with git init.
             std::fs::write(practice.root().join("global.config"),"[init]\n\tdefaultBranch = main\n").map_err(|e|e.to_string())?;
             practice.prepare_shell_start()?;
+            if practice.exercise.java_demonstration{practice.prepare_java_demo()?;}
             practice.prepare_vim_start()?;
             return Ok(practice);
         }
@@ -287,12 +297,17 @@ impl GitPractice {
     }
     #[cfg(not(target_os="android"))]
     pub fn open_terminal(&self)->Result<(crate::setup_terminal::SetupTerminal,tokio::sync::mpsc::Receiver<Vec<u8>>),String> {
+        self.open_terminal_with_player(&std::env::current_exe().map_err(|e|e.to_string())?)
+    }
+    #[cfg(not(target_os="android"))]
+    pub fn open_terminal_with_player(&self,player:&Path)->Result<(crate::setup_terminal::SetupTerminal,tokio::sync::mpsc::Receiver<Vec<u8>>),String> {
         if self.exercise.vim.is_some(){return self.open_vim_terminal();}
         let mut environment=self.environment();
         environment.push(("GIT_TRACE2_EVENT".into(),self.root().join("commands.jsonl").to_string_lossy().into_owned()));
         if self.exercise.shell.is_some() {
             self.prepare_shell_checkpoint()?;
             environment.extend(self.shell_environment());
+            if self.exercise.java_build.is_some(){environment.extend(self.prepare_java_launcher(player)?);}
             return crate::setup_terminal::SetupTerminal::open_practice(&self.shell_directory()?,&environment);
         }
         crate::setup_terminal::SetupTerminal::open_practice(&self.work(),&environment)
@@ -332,6 +347,7 @@ impl GitPractice {
         use crate::runner::{TestReport,TestCaseResult};
         use std::collections::BTreeSet;
         if self.exercise.vim.is_some(){return self.check_vim();}
+        if self.exercise.java_build.is_some(){return self.check_java_build();}
         if self.exercise.shell.is_some(){return self.check_shell();}
         let Some(goal)=&self.exercise.state_goal else{return self.check_commands()};
         if self.exercise.initial_history==GitInitialHistory::Uninitialized && !self.work().join(".git").exists() {

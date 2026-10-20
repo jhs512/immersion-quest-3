@@ -67,12 +67,12 @@ impl GitPractice {
     pub(super) fn shell_environment(&self)->Vec<(String,String)> {
         // Commands are observed only when the interactive shell returns to a prompt.
         // History keeps the actual command line; no student command is eval'd here.
-        let prompt=r#"__mq3_status=$?; __mq3_line="$(HISTTIMEFORMAT= builtin history 1)"; if [[ "$__mq3_line" =~ ^[[:space:]]*([0-9]+)[[:space:]]+(.*)$ ]]; then __mq3_number="${BASH_REMATCH[1]}"; __mq3_command="${BASH_REMATCH[2]}"; if [[ "$__mq3_number" != "${__mq3_last:-}" ]]; then printf '%s\0%s\0%s\0' "$__mq3_command" "$PWD" "$__mq3_status" >> "$MQ3_SHELL_LOG"; __mq3_last="$__mq3_number"; fi; fi"#;
+        let prompt=r#"__mq3_status=$?; __mq3_line="$(HISTTIMEFORMAT= builtin history 1)"; if [[ "$__mq3_line" =~ ^[[:space:]]*([0-9]+)[[:space:]]+(.*)$ ]]; then __mq3_number="${BASH_REMATCH[1]}"; __mq3_command="${BASH_REMATCH[2]}"; if [[ "$__mq3_number" != "${__mq3_last:-}" ]]; then printf '%s\0%s\0%s\0' "$__mq3_command" "$([[ $OSTYPE == msys* || $OSTYPE == cygwin* ]] && builtin pwd -W || printf '%s' "$PWD")" "$__mq3_status" >> "$MQ3_SHELL_LOG"; __mq3_last="$__mq3_number"; fi; fi"#;
         vec![("MQ3_SHELL_LOG".into(),self.root().join("shell-commands.log").to_string_lossy().replace('\\',"/")),("PROMPT_COMMAND".into(),prompt.into()),("PS1".into(),"$ ".into()),("PS2".into(),"> ".into()),("HISTFILE".into(),"/dev/null".into()),("HISTCONTROL".into(),String::new()),("HISTIGNORE".into(),String::new()),("HISTSIZE".into(),"10000".into()),("VIMINIT".into(),"set nocompatible noswapfile showmode encoding=utf-8 fileencoding=utf-8 noautoindent nobackup nowritebackup viminfo=".into())]
     }
     pub(super) fn prepare_shell_checkpoint(&self)->Result<(),String> {
         let shell=self.exercise.shell.as_ref().ok_or("Bash 실습이 아니에요.")?;
-        if shell.requires_vim&&!Command::new("vim").arg("--version").output().is_ok_and(|result|result.status.success()) {return Err("Vim이 설치되어 있지 않아요. macOS에서는 Vim 설치를, Windows에서는 Git for Windows의 Vim 포함 여부를 확인한 뒤 다시 여세요.".into())}
+        if shell.requires_vim&&!crate::setup_terminal::vim_executable().is_ok_and(|path|Command::new(path).arg("--version").output().is_ok_and(|result|result.status.success())) {return Err("Vim이 설치되어 있지 않아요. macOS에서는 Vim 설치를, Windows에서는 Git for Windows의 Vim 포함 여부를 확인한 뒤 다시 여세요.".into())}
         let directory=self.root().join("shell-checkpoints");std::fs::create_dir_all(&directory).map_err(|e|e.to_string())?;
         let path=directory.join(&shell.step_id);
         if !path.exists(){std::fs::write(path,self.shell_completions()?.len().to_string()).map_err(|e|e.to_string())?;}
@@ -92,17 +92,18 @@ impl GitPractice {
         let expected=self.work().join(&shell.goal.cwd);
         record("현재 폴더",shell.goal.cwd.clone(),actual.to_string_lossy().into_owned(),actual.canonicalize().ok()==expected.canonicalize().ok());
         let mut files=BTreeMap::new();let mut directories=vec![];
-        fn walk(root:&Path,path:&Path,files:&mut BTreeMap<String,String>,directories:&mut Vec<String>)->Result<(),String> {
+        fn walk(root:&Path,path:&Path,files:&mut BTreeMap<String,String>,directories:&mut Vec<String>,java:bool)->Result<(),String> {
             for entry in std::fs::read_dir(path).map_err(|e|e.to_string())? {
                 let entry=entry.map_err(|e|e.to_string())?;let p=entry.path();let kind=entry.file_type().map_err(|e|e.to_string())?;
                 if kind.is_symlink(){return Err("실습 폴더에 바로가기 대신 실제 파일을 사용하세요.".into())}
                 let name=p.strip_prefix(root).map_err(|e|e.to_string())?.to_string_lossy().replace('\\',"/");
-                if kind.is_dir(){directories.push(name);if directories.len()>80{return Err("실습 폴더가 너무 많아요.".into())}walk(root,&p,files,directories)?;}
+                if java&&name=="Main.class"&&kind.is_file(){continue;}
+                if kind.is_dir(){directories.push(name);if directories.len()>80{return Err("실습 폴더가 너무 많아요.".into())}walk(root,&p,files,directories,java)?;}
                 else if kind.is_file(){if entry.metadata().map_err(|e|e.to_string())?.len()>200_000{return Err("실습 파일이 너무 커요.".into())}files.insert(name,std::fs::read_to_string(&p).map_err(|e|e.to_string())?);if files.len()>80{return Err("실습 파일이 너무 많아요.".into())}}
             }
             Ok(())
         }
-        walk(&self.work(),&self.work(),&mut files,&mut directories)?;
+        walk(&self.work(),&self.work(),&mut files,&mut directories,self.exercise.java_build.is_some())?;
         directories.sort();let mut expected_directories=shell.goal.directories.clone();expected_directories.sort();
         record("파일 내용",serde_json::to_string(&shell.goal.files).unwrap(),serde_json::to_string(&files).unwrap(),files==shell.goal.files);
         record("폴더 목록",expected_directories.join("\n"),directories.join("\n"),directories==expected_directories);

@@ -311,7 +311,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     let mut history_message=use_signal(String::new);
     use_effect(|| { document::eval("const s=document.querySelector('select.repository-narration-rate');if(s&&window.molipVoice)s.value=String(molipVoice.rate);"); });
     let required=selected.lesson.required_tasks();
-    let filename=if task.git_terminal.as_ref().is_some_and(|e|e.vim.is_some()){"Vim 편집기".to_string()}else if task.git_terminal.as_ref().is_some_and(|e|e.shell.is_some()){"Bash 터미널".to_string()}else if task.git_terminal.is_some(){"Git 터미널".to_string()}else if task.interaction.is_some()&&!has_example{"답안".to_string()}else if task.entry_file.is_empty(){task.language.filename().to_string()}else{task.entry_file.clone()};
+    let filename=if task.git_terminal.as_ref().is_some_and(|e|e.java_build.is_some()){"Main.java · Bash 터미널".to_string()}else if task.git_terminal.as_ref().is_some_and(|e|e.vim.is_some()){"Vim 편집기".to_string()}else if task.git_terminal.as_ref().is_some_and(|e|e.shell.is_some()){"Bash 터미널".to_string()}else if task.git_terminal.is_some(){"Git 터미널".to_string()}else if task.interaction.is_some()&&!has_example{"답안".to_string()}else if task.entry_file.is_empty(){task.language.filename().to_string()}else{task.entry_file.clone()};
     // Show the data this problem reads before other files bundled with the lesson.
     let mut provided_files=task.files.iter().map(|(name,body)|{
         let used=task.starter_code.contains(name.as_str())||task.solution.contains(name.as_str())
@@ -327,8 +327,11 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
         let gh=session.github.clone();let user=session.user.clone();let repo=selected.course.repository.clone();let title=selected.lesson.title.clone();
         spawn(async move {match github_player::background(move||gh.append(&repo,&user,&title,&event)).await {Ok((_,latest))=>onrecord.call(latest),Err(e)=>history_message.set(format!("해설 이력을 저장하지 못했어요. {e}"))}});
     }};
+    let solution_text=if let Some(exercise)=task.git_terminal.as_ref().filter(|e|e.java_build.is_some()) {
+        let shell=exercise.shell.as_ref().unwrap();format!("### Main.java\n```java\n{}\n```\n### 터미널에서 실행할 명령\n```bash\n{}\n```\n{}",shell.goal.files["Main.java"],shell.commands.join("\n"),task.solution)
+    }else{format!("```{}\n{}\n```",task.language.editor(),task.solution)};
     rsx!{
-        article {class:"lesson repository-task","data-task-id":task.id.clone(),"data-busy":busy().to_string(),"data-narrating":narrating().to_string(),"data-explanation-session":explanation_session.owner(),"data-git-ready":git_practice().is_some().to_string(),
+        article {class:"lesson repository-task","data-task-id":task.id.clone(),"data-predict-before-run":task.predict_before_run.to_string(),"data-busy":busy().to_string(),"data-narrating":narrating().to_string(),"data-explanation-session":explanation_session.owner(),"data-git-ready":git_practice().is_some().to_string(),
             section {class:"problem-pane",h2 {"{task.title}"}crate::ui::Markdown{text:task.goal.clone()}
                 for material in &task.supporting_materials {
                     SupportingMaterialPanel {key:"{task.id}/{material.id}", material:material.clone()}
@@ -362,7 +365,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                     if explanation.before_success {p {title:"풀이 전에 해설을 함께 봤어요.",aria_label:"풀이 전 해설 확인","💡 풀이 전에 해설을 확인했어요."}}
                     if explanation.after_success {p {title:"성공 후 해설을 다시 봤어요.",aria_label:"성공 후 해설 확인","↺ 성공 후 해설을 다시 확인했어요."}}
                 }}
-                if show_solution() {crate::ui::Markdown{text:format!("```{}\n{}\n```",task.language.editor(),task.solution)}}
+                if show_solution() {crate::ui::Markdown{text:solution_text.clone()}}
                 if !provided_files.is_empty() {details {class:"provided-files",summary {"함께 제공한 파일"}
                     for (name,body,used) in &provided_files {details {class:"provided-file",key:"{name}",summary {{format!("{name}{}",if *used {" · 이 문제에서 사용"}else{""})}}crate::ui::Markdown{text:format!("```\n{body}\n```")}}}
                 }}
@@ -427,7 +430,15 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                         busy.set(true);feedback.set("checking");execution_state.set("idle");output.set(String::new());message.set("검사하고 있어요.".into());let gh=session.github.clone();let uid=session.user.id;
                         let authenticated=github_player::background(move||gh.ensure_user(uid)).await;
                         match authenticated {
-                            Err(e)=>{feedback.set("error");message.set(e);},Ok(())=>match if task.git_terminal.is_some()&&task.interaction.is_none() {
+                            Err(e)=>{feedback.set("error");message.set(e);},Ok(())=>match if task.git_terminal.as_ref().is_some_and(|e|e.java_build.is_some()) {
+                                let practice=git_practice();let answer=code();let interaction=task.interaction.clone();
+                                github_player::background(move||{
+                                    let practice=practice.ok_or("실습 터미널이 준비되지 않았어요.")?;
+                                    let mut report=practice.lock().unwrap_or_else(|e|e.into_inner()).check_exercise()?;
+                                    if let Some(interaction)=interaction {let choice=interaction.check(&answer)?;report.passed&=choice.passed;report.cases.extend(choice.cases);}
+                                    Ok(report)
+                                }).await
+                            }else if task.git_terminal.is_some()&&task.interaction.is_none() {
                                 let practice=git_practice();let checks=task.git_checks.clone();
                                 github_player::background(move||{
                                     let practice=practice.ok_or("실습 터미널이 준비되지 않았어요.")?;
