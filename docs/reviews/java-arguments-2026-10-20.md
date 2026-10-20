@@ -22,8 +22,18 @@
 - 실제 Windows WebView: 8스텝 → 100%, 선택지만 제출 및 잘못된 관찰 거부, 실행 전 예측, 해설 중단·전체 재생 뒤 파일과 터미널 보존 등 12개 검사 통과. 근거는 `target/pilot-java-arguments-native-result.json`이다.
 - 기존 java-launch 실제 Windows 화면 12개 검사와 실행·컴파일·시간/출력 제한 검사를 다시 통과했다.
 - PRD 11개·등록 검사 3개, 모든 76수업 파생물과 과정 번들 검사 통과. 새 수업은 `courses/redesigned/java-arguments.json`이다.
-- 새 수업의 동일한 JDK·실제 WebView 검사를 Mac 릴리스 CI에 추가했다. Mac에서 통과했다고 미리 기록하지 않는다. 결과는 해당 커밋의 CI 및 `pilot-java-arguments-native-result.json`에서 확인한다.
+- 39352896517에서 Mac 실제 JDK 검사와 새 수업의 실제 WebView 12개 검사를 통과했다. 근거는 macos-webview-arm64의 pilot-java-arguments-native-result.json이다. 이 실행은 Windows 영문 환경의 아래 문자 인코딩 회귀 검사에서 게시가 차단됐다.
 
 ## 게시와 다음 범위
 
 로컬 번들·실행기 변경이다. 기존 원격 과정의 고정 태그나 진도 이슈를 덮어쓰지 않는다. 설치 파일 게시 여부는 릴리스 CI로 구분한다. 다음 수업은 셸 변수와 환경변수이며, 각 스텝의 셸 수명과 자식 프로세스 상속을 먼저 설계·검증한다. 변수 상태가 파일처럼 단계 이동·앱 재실행에도 보존된다고 가르치지 않는다.
+
+## Windows 영문 환경에서 발견한 인자 손실
+
+빌드 34의 Windows CI에서 실제 argv 기록은 한글인데 JDK 출력은 `? ?`였다. 한국어 Windows에서는 같은 한글 검사를 통과했다. 별도 최소 프로그램에서도 기본 코드 페이지로 표현할 수 없는 문자가 java.exe의 인자 변환에서 손실됐으며, `file.encoding`·`stdout.encoding`이나 `sun.jnu.encoding` 지정으로 고쳐지지 않았다. UTF-8 인자 파일 역시 이 문제의 해결책이 아니었다. [OpenJDK Windows 인자 변환 설명](https://www.oracle.com/java/technologies/javase/17-0-17-relnotes.html)
+
+Windows에서 비ASCII 프로그램 인자를 전달할 때는 ASCII Base64 전송을 사용하고 같은 소유 JVM 안의 작은 부트스트랩에서 원래 String 배열을 복원한다. 소스·클래스·기록의 경로나 내용은 바꾸지 않는다. 임시 부트스트랩은 학습자 폴더 밖에서만 생성·삭제한다. 클래스 실행은 기존 Main을 불러오며 소스 실행은 JDK 25 자체의 메모리 소스 실행기를 사용한다.
+
+이 소스 실행 진입점은 [JDK 내부 API](https://github.com/openjdk/jdk25u/blob/master/src/jdk.compiler/share/classes/com/sun/tools/javac/launcher/SourceLauncher.java)다. 지원 JDK가 25로 고정된 현재 실습 계약 안에서 사용하며, JDK 범위를 넓힐 때는 이 진입점과 소스/클래스 동작을 다시 검증해야 한다. 사용자 JDK 파일·시스템 언어·코드 페이지를 변경하지 않는다.
+
+한국어·기본 코드 페이지 밖의 BMP 문자로 실제 Bash 경로를 검사했고, 별도 CLI 경계 검사에서는 보조 평면 문자·빈 값·따옴표·역슬래시·줄바꿈·@·옵션 모양 값을 함께 전달해 원래 argv와 출력·원본 파일 보존을 확인했다. MSYS/ConPTY의 보조 평면 문자 처리는 별도 경계이므로 이 CLI 검사를 실제 IME 전체 검증이라고 부르지 않는다. 로컬 debug/release 검사 통과 뒤 Windows 영문 CI를 다시 확인한다.

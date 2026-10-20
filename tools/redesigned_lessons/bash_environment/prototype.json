@@ -1,0 +1,19 @@
+{
+  "status": "prototype_only_not_registered",
+  "principle": "셸 변수와 환경 상속을 독립 예제로 이해한다. 앱·서버·DB 설정을 먼저 요구하지 않는다.",
+  "session_contract": "8단계는 한 Bash 프로세스 안에서 이어진다. 단계마다 셸을 새로 만들거나 export를 몰래 재실행하지 않는다. 앱 재실행은 새 셸이며 값 복구를 보장하지 않는다.",
+  "source_files": {
+    "show-env.sh": "printf '<%s>\\n' \"${MQ_LABEL-unset}\"\n",
+    "change-child.sh": "MQ_LABEL=Green\nbash show-env.sh\n"
+  },
+  "steps": [
+    {"title": "현재 셸에 값을 붙여요", "new_concept": "셸 변수", "commands": [{"command": "MQ_LABEL=Blue", "stdout": ""}, {"command": "printf '<%s>\\n' \"$MQ_LABEL\"", "stdout": "<Blue>\n"}]},
+    {"title": "자식 셸에서 같은 이름을 읽어요", "new_concept": "내보내지 않은 변수의 범위", "commands": [{"command": "bash show-env.sh", "stdout": "<unset>\n"}]},
+    {"title": "자식에게 값을 전달해요", "new_concept": "export와 환경 상속", "commands": [{"command": "export MQ_LABEL", "stdout": ""}, {"command": "bash show-env.sh", "stdout": "<Blue>\n"}]},
+    {"title": "명령 한 번에만 다른 값을 줘요", "new_concept": "명령 한 번의 환경값", "commands": [{"command": "MQ_LABEL=Green bash show-env.sh", "stdout": "<Green>\n"}]},
+    {"title": "다음 명령의 값을 비교해요", "new_concept": "일회 할당과 현재 셸의 값 분리", "commands": [{"command": "bash show-env.sh", "stdout": "<Blue>\n"}]},
+    {"title": "자식 안에서 값을 바꿔요", "new_concept": "자식 프로세스의 환경 복사", "commands": [{"command": "bash change-child.sh", "stdout": "<Green>\n"}]},
+    {"title": "부모의 값을 다시 읽어요", "new_concept": "자식 변경은 부모에 역전파되지 않음", "commands": [{"command": "printf '<%s>\\n' \"$MQ_LABEL\"", "stdout": "<Blue>\n"}]},
+    {"title": "변수와 내보내기를 지워요", "new_concept": "unset", "commands": [{"command": "unset MQ_LABEL", "stdout": ""}, {"command": "bash show-env.sh", "stdout": "<unset>\n"}]}
+  ]
+}

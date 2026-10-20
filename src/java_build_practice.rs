@@ -44,7 +44,7 @@ pub(super) fn valid_command(args:&[String])->bool {
     // alternative files remain outside this exercise contract.
     let launch=args.first().is_some_and(|tool|tool=="java")
         &&args.get(1).is_some_and(|entry|entry=="Main"||entry=="Main.java")
-        &&args.len()<=18&&args.iter().skip(2).all(|value|value.len()<=4096&&!value.contains('\0'));
+        &&args.len()<=18&&args.iter().skip(2).map(String::len).sum::<usize>()<=16000&&args.iter().skip(2).all(|value|value.len()<=4096&&!value.contains('\0'));
     let compile=args.iter().map(String::as_str).eq(["javac","Main.java"]);
     launch||compile
 }
@@ -57,7 +57,20 @@ fn execute(root:&Path,args:&[String])->Result<Invocation,String> {
     let before=fingerprint(&work.join("Main.class"))?;
     let mut command=Command::new(if args[0]=="java"{java}else{javac});
     if args[0]=="java"{command.args(["-Xmx128m","-Dfile.encoding=UTF-8","-Dstdout.encoding=UTF-8","-Dstderr.encoding=UTF-8"]);}else{command.args(["-J-Xmx128m","-encoding","UTF-8"]);}
-    command.args(&args[1..]).current_dir(&work).env_remove("CLASSPATH").env_remove("JDK_JAVAC_OPTIONS").env_remove("JDK_JAVA_OPTIONS").env_remove("JAVA_TOOL_OPTIONS").env_remove("_JAVA_OPTIONS")
+    // Windows java.exe converts program argv using the machine ANSI code page.
+    // stdout/file UTF-8 flags cannot repair data lost before main is entered.
+    // Keep an ASCII-only transport and decode inside the same owned JDK process.
+    // The helper never edits or compiles a learner class onto disk.
+    let _utf8_transport=if cfg!(windows)&&args[0]=="java"&&args.iter().skip(2).any(|s|!s.is_ascii()) {
+        use base64::Engine;
+        let directory=tempfile::Builder::new().prefix("mq-java-utf8-").tempdir().map_err(|e|e.to_string())?;
+        let source=directory.path().join("MqUtf8Arguments.java");
+        std::fs::write(&source,include_str!("../assets/java/MqUtf8Arguments.java")).map_err(|e|e.to_string())?;
+        command.arg("--add-exports=jdk.compiler/com.sun.tools.javac.launcher=ALL-UNNAMED").arg(source).arg(&args[1]);
+        for value in &args[2..]{command.arg(base64::engine::general_purpose::URL_SAFE.encode(value.as_bytes()));}
+        Some(directory)
+    }else{command.args(&args[1..]);None};
+    command.current_dir(&work).env_remove("CLASSPATH").env_remove("JDK_JAVAC_OPTIONS").env_remove("JDK_JAVA_OPTIONS").env_remove("JAVA_TOOL_OPTIONS").env_remove("_JAVA_OPTIONS")
         .stdin(std::process::Stdio::null()).stdout(std::process::Stdio::piped()).stderr(std::process::Stdio::piped());
     #[cfg(unix)] {use std::os::unix::process::CommandExt;command.process_group(0);}
     #[cfg(windows)] command.creation_flags(0x08000000);

@@ -57,13 +57,13 @@ fn missing_empty_unicode_and_option_shaped_program_arguments_keep_real_java_sema
     let source=exercise.shell.as_ref().unwrap().goal.files["Main.java"].clone();
     exercise.shell.as_mut().unwrap().start=Some(molip_quest::git_practice::ShellSnapshot{files:std::collections::BTreeMap::from([("Main.java".into(),source)]),..Default::default()});
     let p=GitPractice::new(exercise).unwrap();let(mut terminal,mut out)=open(&p);wait(&p,&mut terminal,&mut out,|s|s.contains("$ "));
-    for command in ["java Main.java","java Main.java ''","java Main.java '첫 값'","java Main.java -Xmx1m","java -Xmx1m Main.java"]{run(&p,&mut terminal,&mut out,command);}
+    for command in ["java Main.java","java Main.java ''","java Main.java '첫 값ह'","java Main.java -Xmx1m","java -Xmx1m Main.java"]{run(&p,&mut terminal,&mut out,command);}
     let log=std::fs::read_to_string(p.root().join("java-invocations.jsonl")).unwrap();
     let records:Vec<serde_json::Value>=log.lines().map(|s|serde_json::from_str(s).unwrap()).collect();
     assert_eq!(records.len(),4,"launcher options before the entry point are rejected");
     assert_eq!(records[0]["success"],false);assert!(records[0]["stderr"].as_str().unwrap().contains("ArrayIndexOutOfBoundsException"));
     assert_eq!(records[1]["args"][2],"");assert_eq!(records[1]["stdout"],"\n");
-    assert_eq!(records[2]["args"][2],"첫 값");assert_eq!(records[2]["stdout"],"첫 값\n");
+    assert_eq!(records[2]["args"][2],"첫 값ह");assert_eq!(records[2]["stdout"],"첫 값ह\n");
     assert_eq!(records[3]["stdout"],"-Xmx1m\n");assert_eq!(records[3]["success"],true);
     assert!(!p.check_exercise().unwrap().passed,"other arguments must not pass this step");
     terminal.shutdown().unwrap();
@@ -73,14 +73,31 @@ fn compiled_entry_and_the_grading_copy_receive_the_same_program_argument(){
     let mut exercise=lesson().tasks[3].git_terminal.clone().unwrap();
     let shell=exercise.shell.as_mut().unwrap();
     shell.start=Some(shell.goal.clone());
-    shell.commands=vec!["javac Main.java".into(),"java Main '첫 값'".into()];
+    shell.commands=vec!["javac Main.java".into(),"java Main '첫 값ह'".into()];
     let goal=exercise.java_build.as_mut().unwrap();
-    goal.command=vec!["java".into(),"Main".into(),"첫 값".into()];
-    goal.stdout="첫 값\n".into();goal.class_output=Some("첫 값\n".into());
+    goal.command=vec!["java".into(),"Main".into(),"첫 값ह".into()];
+    goal.stdout="첫 값ह\n".into();goal.class_output=Some("첫 값ह\n".into());
     let commands=exercise.shell.as_ref().unwrap().commands.clone();
     let p=GitPractice::new(exercise).unwrap();let(mut terminal,mut out)=open(&p);wait(&p,&mut terminal,&mut out,|s|s.contains("$ "));
     for command in &commands{run(&p,&mut terminal,&mut out,command);}
     let class=std::fs::read(p.work().join("Main.class")).unwrap();
     let report=p.check_exercise().unwrap();assert!(report.passed,"{}",serde_json::to_string(&report).unwrap());
     assert_eq!(std::fs::read(p.work().join("Main.class")).unwrap(),class);terminal.shutdown().unwrap();
+}
+#[test]
+fn unicode_transport_preserves_all_program_arguments_without_rewriting_the_source(){
+    let p=GitPractice::new(lesson().tasks[0].git_terminal.clone().unwrap()).unwrap();
+    let player=Path::new(env!("CARGO_BIN_EXE_molip-quest"));p.prepare_java_launcher(player).unwrap();
+    let source="class Main { public static void main(String[] args) { System.out.println(args.length); for (String value : args) System.out.println(\"[\" + value + \"]\"); } }";
+    p.save_java_source(source).unwrap();
+    // Invoke the same private CLI directly so the test isolates the JDK boundary
+    // from MSYS/ConPTY's separate handling of supplementary UTF-16 characters.
+    let values=["첫 값🍀","","quote\" slash\\ newline\n","@not-an-argument-file","-Xmx1m"];
+    let output=std::process::Command::new(player).arg("--mq-java-practice").arg(p.root()).args(["java","Main.java"]).args(values).output().unwrap();
+    assert!(output.status.success(),"{}",String::from_utf8_lossy(&output.stderr));
+    let expected=format!("{}\n{}",values.len(),values.iter().map(|s|format!("[{s}]\n")).collect::<String>());
+    assert_eq!(String::from_utf8(output.stdout).unwrap().replace("\r\n","\n"),expected);
+    assert_eq!(p.java_source().unwrap(),source);assert!(!p.work().join("Main.class").exists());
+    let record:serde_json::Value=serde_json::from_str(std::fs::read_to_string(p.root().join("java-invocations.jsonl")).unwrap().lines().last().unwrap()).unwrap();
+    assert_eq!(record["args"],serde_json::json!(["java","Main.java",values[0],values[1],values[2],values[3],values[4]]));
 }
