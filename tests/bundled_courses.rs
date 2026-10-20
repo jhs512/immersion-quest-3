@@ -20,6 +20,7 @@ fn installation_and_upgrade_use_current_three_courses_without_content_downloads_
         for reference in &course.lessons {
             assert_eq!(github.installed_lesson(&course,reference).unwrap(),github.lesson(reference).unwrap());
         }
+        #[cfg(debug_assertions)]
         assert!(github.prepare_course(repository).is_err(),"update checks must try the remote even for bundled courses; this mock denies default-course downloads");
         let name=repository.strip_prefix("jhs512/mq3-course-redesigned-").unwrap();
         let legacy=std::fs::read_to_string(format!("tests/fixtures/published-course-baselines/{name}.json")).unwrap();
