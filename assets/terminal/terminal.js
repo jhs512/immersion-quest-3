@@ -15,10 +15,10 @@ return {
       theme: {background: '#0c1722', foreground: '#dce9f5', cursor: '#9be0c8', selectionBackground: '#3a536d'}});
     const fit = new FitAddon(); term.loadAddon(fit); term.open(host);
     term.textarea?.setAttribute('aria-label', host.dataset.vim === 'true' ? 'Vim 편집기 입력' : host.dataset.shell === 'true' ? 'Bash 실습 터미널 입력' : inputLabel);
-    let nativeKorean = false, composing = false, replacement;
+    let nativeKorean = false, nativeEditable = 0, composing = false, replacement;
     const events = new AbortController();
     const listen = (type, callback) => host.addEventListener(type, callback, {capture: true, signal: events.signal});
-    listen('compositionstart', () => { composing = true; nativeKorean = false; });
+    listen('compositionstart', () => { composing = true; nativeKorean = false; nativeEditable = 0; });
     listen('compositionend', () => { composing = false; });
     const hangul = /[\u1100-\u11ff\u3130-\u318f\uac00-\ud7af]/u;
     // Native macOS Korean can use insertText/insertReplacementText without any
@@ -29,18 +29,28 @@ return {
       if (event.target !== term.textarea || composing) return;
       if ((event.inputType === 'insertText' && hangul.test(event.data || '')) ||
           (event.inputType === 'insertReplacementText' && nativeKorean)) {
+        // The helper textarea can still contain an ASCII key already sent to
+        // the PTY. An initial insertText may replace that helper value; it must
+        // not backspace the user's committed quote (or any preceding command).
+        replacement = {value: term.textarea.value.normalize('NFC'),
+          erasable: event.inputType === 'insertReplacementText' ? nativeEditable : 0};
         nativeKorean = true;
-        replacement = term.textarea.value.normalize('NFC');
-      } else if (event.inputType !== 'insertReplacementText') nativeKorean = false;
+      } else if (event.inputType !== 'insertReplacementText') {
+        nativeKorean = false; nativeEditable = 0;
+      }
     });
     listen('input', event => {
       if (event.target !== term.textarea || replacement === undefined) return;
-      const before = Array.from(replacement), after = Array.from(term.textarea.value.normalize('NFC'));
+      const before = Array.from(replacement.value), after = Array.from(term.textarea.value.normalize('NFC'));
+      const erasable = replacement.erasable;
       replacement = undefined;
       let common = 0;
       while (common < before.length && common < after.length && before[common] === after[common]) common++;
       event.stopImmediatePropagation();
-      const edit = '\x7f'.repeat(before.length - common) + after.slice(common).join('');
+      const removed = Math.min(before.length - common, erasable);
+      const inserted = after.slice(common);
+      nativeEditable = Math.max(0, nativeEditable - removed) + inserted.length;
+      const edit = '\x7f'.repeat(removed) + inserted.join('');
       if (edit) term.input(edit, true);
     });
     // Preserve standard composition even when keyCode is not 229. For the native

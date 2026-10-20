@@ -75,3 +75,41 @@ for(const engine of ['chromium','webkit'])for(const form of ['NFC','NFD'])test(`
   assert.equal(line.join(''),'git commit -m "한글 ok"\r');
  }finally{await browser.close()}
 });
+
+for(const engine of ['chromium','webkit'])test(`${engine}: starting native Korean cannot erase the opening quote`,async()=>{
+ const browser=await({chromium,webkit}[engine]).launch(engine==='chromium'?{...(process.platform==='win32'?{channel:'msedge'}:{}),headless:true}:{headless:true,...(process.env.MQ3_WEBKIT_EXECUTABLE?{executablePath:process.env.MQ3_WEBKIT_EXECUTABLE}:{})});
+ try{
+  const page=await browser.newPage();
+  await page.setContent('<div id="git-student-terminal" style="width:800px;height:400px"></div>');
+  for(const file of ['assets/layout/ime.js','assets/terminal/terminal.bundle.js'])await page.addScriptTag({content:fs.readFileSync(file,'utf8')});
+  await page.evaluate(()=>{window.inputs=[];mq3GitTerminal.mount(e=>{if(e.kind==='input')inputs.push(e.data)},()=>{},'quote-ime')});
+  await page.keyboard.type('echo "');
+  await page.evaluate(async()=>{
+   const input=document.querySelector('.xterm-helper-textarea');
+   // xterm keeps the last ASCII key in its helper textarea. A native IME can
+   // replace that helper value at the start of an unmarked Korean composition.
+   for(const [type,text] of [['insertText','ㅊ'],['insertReplacementText','처'],['insertReplacementText','첫']]){
+    input.dispatchEvent(new InputEvent('beforeinput',{bubbles:true,composed:true,inputType:type,data:text}));
+    input.value=text;
+    input.dispatchEvent(new InputEvent('input',{bubbles:true,composed:true,inputType:type,data:text}));
+    input.dispatchEvent(new KeyboardEvent('keydown',{bubbles:true,key:text,keyCode:229}));
+    await new Promise(r=>setTimeout(r,10));
+   }
+  });
+  await page.keyboard.press('Space');
+  await page.evaluate(async()=>{
+   const input=document.querySelector('.xterm-helper-textarea');
+   for(const [type,text,data] of [['insertText','ㅁ','ㅁ'],['insertReplacementText','메','메'],['insertText','메ㅁ','ㅁ'],['insertReplacementText','메모','메모']]){
+    input.dispatchEvent(new InputEvent('beforeinput',{bubbles:true,composed:true,inputType:type,data}));
+    input.value=text;
+    input.dispatchEvent(new InputEvent('input',{bubbles:true,composed:true,inputType:type,data}));
+    input.dispatchEvent(new KeyboardEvent('keydown',{bubbles:true,key:data,keyCode:229}));
+    await new Promise(r=>setTimeout(r,10));
+   }
+  });
+  await page.keyboard.type('"');await page.keyboard.press('Enter');
+  const stream=await page.evaluate(()=>inputs.join(''));
+  const line=[];for(const character of stream){if(character==='\x7f')line.pop();else line.push(character);}
+  assert.equal(line.join(''),'echo "첫 메모"\r');
+ }finally{await browser.close()}
+});
