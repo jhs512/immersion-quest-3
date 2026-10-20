@@ -10,6 +10,8 @@
 
 수정 후 로컬 실제 Mac 앱의 새 세션 두 개에서 Bash 3개 검사가 각각 통과했다(각 17초). Git 과정 5개 검사도 통과했다. 다음 커밋의 Windows/Apple Silicon CI와 릴리스 게시 결과를 별도로 확인한다.
 
+최종 결과: [빌드 49 CI](https://github.com/jhs512/immersion-quest-3/actions/runs/39406343382)는 Windows·Apple Silicon·release 모두 success다. 실제 맥 화면 검사는 Bash 3개, Git 5개, Java 실행 12개, Java 인자 12개, 로딩·음성 8개로 총 40개가 통과했다. [빌드 49](https://github.com/jhs512/immersion-quest-3/releases/tag/v0.1.0-build.49)가 최신 정식 릴리스로 게시됐고 Windows 설치 파일·arm64 DMG·SHA256SUMS 세 자산을 확인했다. 게시 체크섬은 GitHub 자산의 SHA-256 digest와 일치한다. 앱 소스는 `a4bb5c7`이며 공통 부분 초기화와 NBSP 자동 보정을 포함한다. 아래 빌드 47 최신 문구는 이전 배포 이력이다.
+
 ## 공통 부분 초기화와 NBSP 자동 보정 (2026-10-20)
 
 사용자가 Git을 포함한 모든 문제의 부분 초기화와 NBSP 자동 보정을 요청했다. 공유 실습을 첫 문제에서만 초기화하던 UI 제한을 제거했다. 현재 문제의 준비 상태(파일·폴더·Git 커밋/인덱스·현재 폴더·Vim 버퍼/모드·Java 클래스)를 새 소유 폴더에 구성한다. 완료 이벤트와 다른 문제의 답안은 지우지 않으며, 이전 공유 실습 폴더는 복구용으로 남긴다. 현재 공유 폴더는 선택한 문제의 시작 시점으로 돌아가므로 이후 단계의 파일을 동시에 유지하는 의미는 아니다.
