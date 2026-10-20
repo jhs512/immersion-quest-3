@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "title": "자바 백엔드 확장 · 작은 메모 앱으로 이해하기",
+  "title": "자바 백엔드 확장 · 개념의 기초와 원리부터 이해하기",
   "status": "draft_for_review",
   "requested_at": "2026-10-20",
   "baseline": {
@@ -41,7 +41,17 @@
       "starts_with": "Main.java 하나의 문구를 출력해요.",
       "progression": "소스·클래스 → 독립 실행 인자 → 셸 변수·환경변수 → JVM 시스템 속성 → 앞/뒤 실행 → Gradle → JVM 옵션",
       "evidence_of_understanding": "파일 하나의 문구 수정이 실제 실행 결과에 언제 반영되는지 설명해요.",
-      "status": "incremental_implementation"
+      "status": "incremental_implementation",
+      "application_integration_dependencies": [],
+      "entry_experiment": {
+        "minimal_state": "파일 하나와 출력 한 줄",
+        "single_change": "소스·실행 인자·프로세스 조건 중 하나만 변경",
+        "observation": "실제 출력과 파일 상태 비교",
+        "application_after_understanding": [
+          "출력 프로그램을 메모 앱 실행으로 연결"
+        ],
+        "does_not_require_existing_memo_app": true
+      }
     },
     {
       "key": "http-network",
@@ -57,13 +67,25 @@
       "starts_with": "로컬 프로그램 하나에 GET 요청 하나를 보내요.",
       "progression": "응답 본문 → 상태 코드 → IP·포트 → 이름 해석·DNS → 메서드·JSON → 타임아웃",
       "evidence_of_understanding": "주소·연결·HTTP 실패를 구분하고 메모 하나를 요청해요.",
-      "status": "planned"
+      "status": "planned",
+      "application_integration_dependencies": [
+        "run-build"
+      ],
+      "entry_experiment": {
+        "minimal_state": "준비된 로컬 응답 한 줄",
+        "single_change": "경로 또는 상태 하나 변경",
+        "observation": "요청·응답 본문·상태 코드 비교",
+        "application_after_understanding": [
+          "메모 한 건 조회로 연결"
+        ],
+        "does_not_require_existing_memo_app": true
+      }
     },
     {
       "key": "spring-core",
       "title": "수동 연결에서 작은 Spring 앱으로",
       "depends_on": [
-        "http-network"
+        "run-build"
       ],
       "candidate_lessons": [
         "constructor-di",
@@ -74,15 +96,24 @@
       "starts_with": "메모 서비스에 저장소 객체 하나를 생성자로 건네요.",
       "progression": "직접 조립 → 컨테이너 조립 → Boot 실행 → 컨트롤러 → 입력 검증·일관된 오류",
       "evidence_of_understanding": "객체를 누가 만들고 어디로 전달하는지 설명해요.",
-      "status": "planned"
+      "status": "planned",
+      "application_integration_dependencies": [
+        "http-network"
+      ],
+      "entry_experiment": {
+        "minimal_state": "일반 Java 객체 둘과 생성자 한 곳",
+        "single_change": "수동 조립을 컨테이너 조립으로 변경",
+        "observation": "같은 메서드 호출 결과와 생성 위치 비교",
+        "application_after_understanding": [
+          "메모 서비스·저장소 역할로 연결"
+        ],
+        "does_not_require_existing_memo_app": true
+      }
     },
     {
       "key": "sql-storage",
       "title": "표 하나에서 실제 DB로",
-      "depends_on": [
-        "run-build",
-        "spring-core"
-      ],
+      "depends_on": [],
       "candidate_lessons": [
         "sql-one-table",
         "sql-persistence",
@@ -93,7 +124,20 @@
       "starts_with": "메모 두 행이 든 표 하나를 조회해요.",
       "progression": "인메모리 SQL → 파일 저장 → 이미지·컨테이너 → PostgreSQL 연결 → 파라미터 쿼리·풀 → MySQL 차이",
       "evidence_of_understanding": "재시작·다른 연결 뒤 무엇이 남는지 확인해요.",
-      "status": "planned"
+      "status": "planned",
+      "application_integration_dependencies": [
+        "run-build",
+        "spring-core"
+      ],
+      "entry_experiment": {
+        "minimal_state": "독립 표 하나와 데이터 두 행",
+        "single_change": "조건 또는 행 하나 변경",
+        "observation": "조회 결과와 저장 전후 행 비교",
+        "application_after_understanding": [
+          "메모 저장에 연결"
+        ],
+        "does_not_require_existing_memo_app": true
+      }
     },
     {
       "key": "transactions-jpa",
@@ -107,17 +151,28 @@
         "jpa-query-cost",
         "schema-migration"
       ],
-      "starts_with": "메모 저장과 기록 저장 두 동작을 묶어요.",
+      "starts_with": "독립 표 하나에 쓰기 두 번을 수행해요. 앱의 저장 계층을 먼저 요구하지 않아요.",
       "progression": "SQL COMMIT/ROLLBACK → JDBC 경계 → JPA 매핑 → 변경 감지·flush → @Transactional 경계 → 조회 수·N+1 → 마이그레이션",
       "evidence_of_understanding": "중간 실패 뒤 데이터가 남는지 직접 확인하고 실행 SQL을 읽어요.",
-      "status": "planned"
+      "status": "planned",
+      "application_integration_dependencies": [
+        "sql-storage"
+      ],
+      "entry_experiment": {
+        "minimal_state": "독립 표 하나에서 두 쓰기",
+        "single_change": "두 번째 쓰기의 실패 조건 하나 추가",
+        "observation": "트랜잭션 유무에 따른 남은 행 비교",
+        "application_after_understanding": [
+          "메모와 기록의 동시 저장에 연결"
+        ],
+        "does_not_require_existing_memo_app": true
+      }
     },
     {
       "key": "security",
       "title": "해시·암호·인증과 접근 제어",
       "depends_on": [
-        "spring-core",
-        "sql-storage"
+        "run-build"
       ],
       "candidate_lessons": [
         "hash-and-equality",
@@ -128,13 +183,26 @@
       "starts_with": "짧은 글 하나의 해시를 비교해요.",
       "progression": "hashCode·충돌과 암호학적 해시 구분 → 비밀번호 검증 → HMAC → 인증 암호화 → 공개키·서명·TLS → 세션·인증/인가·필터 → CSRF/CORS",
       "evidence_of_understanding": "복호화·비밀번호 대조·서명 검증을 구별하고 내 메모 접근을 제한해요.",
-      "status": "planned"
+      "status": "planned",
+      "application_integration_dependencies": [
+        "spring-core",
+        "sql-storage"
+      ],
+      "entry_experiment": {
+        "minimal_state": "문자열 두 개 또는 비밀번호 한 개",
+        "single_change": "입력 한 문자 또는 대조 값 변경",
+        "observation": "동일성·해시·대조 결과를 개별 관찰",
+        "application_after_understanding": [
+          "사용자별 메모 접근으로 연결"
+        ],
+        "does_not_require_existing_memo_app": true
+      }
     },
     {
       "key": "concurrency-redis",
       "title": "요청 둘과 동시성·Redis",
       "depends_on": [
-        "transactions-jpa"
+        "run-build"
       ],
       "candidate_lessons": [
         "thread-and-process",
@@ -147,32 +215,56 @@
       "starts_with": "조회수 하나를 요청 둘이 올려요.",
       "progression": "스레드·공유 상태 → 제어된 경합 → 단일 소유·synchronized·Lock·CAS → 실행기·가상 스레드 → DB 원자 갱신·낙관/비관 락·유일 제약 → 캐시·Redis 원자 연산 → 분산 락 한계",
       "evidence_of_understanding": "각 해결책이 지키는 범위와 여전히 실패하는 조건을 비교해요.",
-      "status": "planned"
+      "status": "planned",
+      "application_integration_dependencies": [
+        "transactions-jpa"
+      ],
+      "entry_experiment": {
+        "minimal_state": "공유 숫자 하나와 제어 가능한 두 작업",
+        "single_change": "두 읽기·쓰기의 순서만 변경",
+        "observation": "잃어버린 갱신과 보호 범위를 관찰",
+        "application_after_understanding": [
+          "메모 조회수·중복 요청으로 연결"
+        ],
+        "does_not_require_existing_memo_app": true
+      }
     },
     {
       "key": "events-kafka",
       "title": "한 번의 변경에서 이벤트 처리로",
       "depends_on": [
-        "transactions-jpa",
-        "concurrency-redis"
+        "run-build",
+        "sql-storage"
       ],
       "candidate_lessons": [
         "spring-events",
-        "outbox-and-idempotency",
         "kafka-messages",
+        "outbox-and-idempotency",
         "kafka-streams"
       ],
       "starts_with": "독립된 메시지 하나를 보내고 받아요. 앱의 저장 흐름은 선수 맥락으로 요구하지 않아요.",
-      "progression": "동기 이벤트 → AFTER_COMMIT → 비동기 실패 → outbox → 토픽·파티션·오프셋 → 중복 처리·재시도 → Streams 집계·시간창",
+      "progression": "독립 이벤트 → 독립 Kafka 메시지 하나 → 토픽·키·파티션·오프셋 → 재읽기·중복·재시도 → DB 연계·AFTER_COMMIT·Outbox → Streams 집계·시간창",
       "evidence_of_understanding": "저장 성공과 알림 전달 성공을 분리하고 중복을 다뤄요.",
-      "status": "planned"
+      "status": "planned",
+      "application_integration_dependencies": [
+        "transactions-jpa",
+        "concurrency-redis"
+      ],
+      "entry_experiment": {
+        "minimal_state": "메시지 한 개와 독립 송신·수신",
+        "single_change": "수신 위치 또는 재읽기 조건 하나 변경",
+        "observation": "메시지·오프셋·중복 관찰",
+        "application_after_understanding": [
+          "DB 저장·알림·Outbox에 연결"
+        ],
+        "does_not_require_existing_memo_app": true
+      }
     },
     {
       "key": "realtime",
       "title": "서버 알림에서 양방향 메시지로",
       "depends_on": [
-        "spring-core",
-        "events-kafka"
+        "http-network"
       ],
       "candidate_lessons": [
         "sse-notification",
@@ -182,15 +274,26 @@
       "starts_with": "서버가 알림 한 줄을 브라우저에 보내요.",
       "progression": "SSE → 재연결·마지막 이벤트 → WebSocket 한 연결·에코 → STOMP 목적지·구독 → 메시지 권한",
       "evidence_of_understanding": "단방향 전송과 양방향 연결·메시지 규약을 구분해요.",
-      "status": "planned"
+      "status": "planned",
+      "application_integration_dependencies": [
+        "spring-core",
+        "events-kafka"
+      ],
+      "entry_experiment": {
+        "minimal_state": "서버가 보낸 문자열 한 줄",
+        "single_change": "연결 또는 재연결 조건 변경",
+        "observation": "실제 수신과 재연결 동작 관찰",
+        "application_after_understanding": [
+          "메모 생성 알림으로 연결"
+        ],
+        "does_not_require_existing_memo_app": true
+      }
     },
     {
       "key": "local-ai",
       "title": "가짜 응답에서 로컬 AI로",
       "depends_on": [
-        "spring-core",
-        "realtime",
-        "security"
+        "run-build"
       ],
       "candidate_lessons": [
         "ai-client-contract",
@@ -201,14 +304,27 @@
       "starts_with": "항상 같은 문장을 반환하는 가짜 요약기를 호출해요.",
       "progression": "인터페이스·제한시간 → Ollama 한 모델·한 요청 → Spring AI → 구조화 결과 → 스트리밍 → 소규모 평가·검색 보조 → vLLM 선택 실습",
       "evidence_of_understanding": "모델 응답의 변동·실패를 처리하고 요약 기능을 작은 기준으로 평가해요.",
-      "status": "planned"
+      "status": "planned",
+      "application_integration_dependencies": [
+        "spring-core",
+        "realtime",
+        "security"
+      ],
+      "entry_experiment": {
+        "minimal_state": "항상 같은 결과를 주는 작은 가짜 클라이언트",
+        "single_change": "입력 또는 실패 조건 한 개 변경",
+        "observation": "요청·응답·예외 계약 비교",
+        "application_after_understanding": [
+          "메모 요약에 연결"
+        ],
+        "does_not_require_existing_memo_app": true
+      }
     },
     {
       "key": "operate",
       "title": "작은 앱을 다시 실행하고 진단하기",
       "depends_on": [
-        "events-kafka",
-        "security"
+        "run-build"
       ],
       "candidate_lessons": [
         "compose-and-config",
@@ -217,7 +333,20 @@
       "starts_with": "앱과 DB 두 프로세스의 상태를 확인해요.",
       "progression": "포트·볼륨·설정 분리 → Compose → 상태 확인 → 요청 ID·로그·메트릭 → 재시작·백업/복원 → 반복 가능한 빌드",
       "evidence_of_understanding": "실패 지점을 찾고 자신의 실습 자원만 안전하게 정리해요.",
-      "status": "planned"
+      "status": "planned",
+      "application_integration_dependencies": [
+        "events-kafka",
+        "security"
+      ],
+      "entry_experiment": {
+        "minimal_state": "자기 실습 프로세스 하나와 로그 한 줄",
+        "single_change": "시작·종료·실패 조건 하나 변경",
+        "observation": "상태·로그·종료·복구 근거 확인",
+        "application_after_understanding": [
+          "앱·DB·브로커 구성과 운영으로 연결"
+        ],
+        "does_not_require_existing_memo_app": true
+      }
     }
   ],
   "not_all_mandatory_at_once": [
@@ -361,17 +490,66 @@
     "앱 맥락이 이해를 방해하면 독립 예제를 사용한다.",
     "프로젝트 적용은 이해 이후 도움이 될 때만 추가한다."
   ],
-  "next_delivery": {
-    "lesson": "java-arguments",
-    "prd": "tools/redesigned_lessons/java_arguments/approved-prd.json",
-    "scope": "이전 앱과 독립된 Main.java·출력문 하나로 실행 인자만 확인하는 8스텝",
-    "status": "windows_macos_native_verified_windows_ansi_transport_fix_pending_ci"
-  },
   "following_prototype": {
     "lesson": "bash-environment",
     "prototype": "tools/redesigned_lessons/bash_environment/prototype.json",
     "verification": "python tools/verify-bash-environment-prototype.py",
     "status": "8_steps_two_scenarios_verified_not_registered",
     "runtime_contract": "문제 이동 시 실제 Bash 세션 유지; 앱 재시작은 새 세션임을 명시"
+  },
+  "dependency_interpretation": "depends_on은 도입 예제의 추천 선수 경험이다. application_integration_dependencies는 나중에 앱을 연결할 때 참고한다. 기술의 기초 수업에 앱 전체나 관련 없는 기술을 선수 조건으로 요구하지 않는다.",
+  "lesson_entry_prerequisites": {
+    "sql-one-table": [],
+    "sql-transaction-rollback": [
+      "sql-one-table"
+    ],
+    "hash-and-equality": [
+      "java-values",
+      "java-methods"
+    ],
+    "controlled-race": [
+      "thread-and-process"
+    ],
+    "kafka-messages": [
+      "bash-processes",
+      "docker-one-container"
+    ],
+    "outbox-and-idempotency": [
+      "sql-transaction-rollback",
+      "kafka-messages"
+    ],
+    "kafka-streams": [
+      "kafka-messages",
+      "gradle-basics"
+    ],
+    "sse-notification": [
+      "http-first-request"
+    ],
+    "ai-client-contract": [
+      "java-roles"
+    ],
+    "compose-and-config": [
+      "docker-one-container",
+      "bash-environment"
+    ],
+    "logs-metrics-recovery": [
+      "bash-processes"
+    ]
+  },
+  "latest_delivery": {
+    "lesson": "java-arguments",
+    "prd": "tools/redesigned_lessons/java_arguments/approved-prd.json",
+    "scope": "이전 앱과 독립된 Main.java·출력문 하나로 실행 인자만 확인하는 8스텝",
+    "status": "windows_macos_verified_app_build_35_published_local_course_bundle_only",
+    "verification_run": 39353639519,
+    "app_release": "v0.1.0-build.35"
+  },
+  "next_delivery": {
+    "lesson": "bash-environment",
+    "prototype": "tools/redesigned_lessons/bash_environment/prototype.json",
+    "verification": "python tools/verify-bash-environment-prototype.py",
+    "status": "prototype_verified_continuous_shell_runtime_pending",
+    "runtime_contract": "문제 이동 시 실제 Bash 세션 유지; 앱 재시작은 새 세션임을 명시",
+    "design": "docs/curriculum/bash-environment-foundations.md"
   }
 }
