@@ -24,4 +24,15 @@ macOS 배포에서 Intel 작업과 업데이트 자산 선택을 제거했고, �
 - `python tools/test_release_assets.py`: Intel DMG 누락 시 게시 차단을 수정 전 실패/수정 후 성공으로 확인했다.
 - Intel macOS용 Python 3.12 바이너리 의존성 해석 성공. 실제 패키지 설치, WKWebView 수업 실행, C/Java/Python 실행, 네이티브 앱 실행과 DMG 검증은 릴리스 CI에서 두 Mac CPU별로 수행한다.
 
-CI 완료 결과와 배포 빌드는 확인 후 덧붙인다.
+## 배포 결과
+
+[빌드 37 CI](https://github.com/jhs512/immersion-quest-3/actions/runs/39367824140)가 Windows / macOS arm64 / macOS x86_64 / release 모두 성공했다. [빌드 37](https://github.com/jhs512/immersion-quest-3/releases/tag/v0.1.0-build.37)의 코드 커밋은 `238759d`다.
+
+- 두 Mac에서 C/Java/Python 실행, 기본 세 과정 설치·갱신 검사를 통과했다.
+- 두 Mac의 실제 WKWebView에서 수업 로딩·진도·한글 Git 입력·Edge 음성 8개 검사, Java 실행 수업 12개 검사, Java 인자 수업 12개 검사를 각각 통과했다. 결과 파일은 CI의 macos-webview-arm64 / macos-webview-x86_64 아티팩트에 있다.
+- Intel에서 앱 소유 Python 환경을 새로 설치하고 TensorFlow 2.16.2를 포함한 모든 요구 패키지의 import·환경 진단을 통과했다.
+- 두 DMG의 서명, 이미지 검증, lipo CPU 검사, 패키징한 앱 프로세스 실행을 통과했다. Windows 설치·제거도 통과했다.
+- Windows 설치 파일, arm64 DMG, x86_64 DMG와 SHA256SUMS가 실제 최신 릴리스에 모두 존재함을 확인했다.
+- 게시된 Intel DMG를 다시 받아 SHA256SUMS와 대조했다. SHA-256: `69f2750194ff535e9ea2cafb9603bbe839e3775ce912d77e35f8b97364fdc5da`.
+
+Mac CI의 실제 실행 OS는 macOS 15다. 번들의 최소 OS 설정 12와 구분한다. 한 줄 설치기의 전체 교체 동작을 실제 사용자의 Mac에서 실행한 것은 아니다. CPU 선택과 Bash 구문 검사 및 각 CPU에서 앱/학습 환경 실행을 검증했다.
