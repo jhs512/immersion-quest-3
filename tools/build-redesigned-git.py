@@ -132,6 +132,7 @@ def build(name, check=False):
         write_changed(OUTPUT, lesson)
     course_path = ROOT / 'tests/fixtures/player-pilot' / pilot / 'course.json'
     course = json.loads(course_path.read_text(encoding='utf-8'))
+    course['lessons'][0]['revision'] = revision
     course['lessons'][0]['sha256'] = hashlib.sha256(OUTPUT.read_bytes()).hexdigest()
     if check:
         if json.loads(course_path.read_text(encoding='utf-8')) != course:

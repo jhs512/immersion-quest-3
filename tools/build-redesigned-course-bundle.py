@@ -69,7 +69,7 @@ def build(check=False):
         manifest = dict(schema_version=2, id=course['id'], title=course['title'],
             description=DESCRIPTIONS[key],
             repository=f'jhs512/mq3-course-redesigned-{slug}', lessons=references,
-            change_history=[dict(at=release['prepared_at'],
+            change_history=release.get('course_changes', {}).get(key, []) + [dict(at=release['prepared_at'],
                 summary='새 지침에 맞춘 독립 과정을 구성했어요.',
                 reason='작은 문제를 풀며 원리를 이해하도록 다시 구성했어요.',
                 details=[f'{len(references)}수업을 챕터·단원·스텝으로 구성했어요.',
