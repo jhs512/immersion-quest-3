@@ -96,3 +96,19 @@ fn step_eight_accepts_directory_slash_and_screen_clearing() {
         terminal.shutdown().unwrap();
     }
 }
+
+#[test]
+fn step_nine_accepts_trailing_spaces_in_successful_commands() {
+    let manifest=CourseManifest::parse(include_str!("fixtures/player-pilot/부/course.json")).unwrap();
+    let lesson=Lesson::parse(include_str!("../courses/redesigned/bash-basics.json"),&manifest.lessons[0]).unwrap();
+    let practice=GitPractice::new(lesson.tasks[8].git_terminal.clone().unwrap().demonstration()).unwrap();
+    let (mut terminal,mut output)=practice.open_terminal().unwrap();
+    until(&practice,&mut terminal,&mut output,|text|text.contains("$ "));
+    play(&practice,&mut terminal,&mut output,&[
+        serde_json::json!({"action":"bash_command","command":"echo \"폴더 안 메모\" > memo.txt"}),
+        serde_json::json!({"action":"bash_command","command":"cat memo.txt "}),
+    ]);
+    let report=practice.check_exercise().unwrap();
+    terminal.shutdown().unwrap();
+    assert!(report.passed,"{}",serde_json::to_string(&report).unwrap());
+}
