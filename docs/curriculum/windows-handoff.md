@@ -8,6 +8,8 @@
 
 앱 바이너리가 바뀌지 않는 배포 설정·안내 변경이므로 빌드 47의 검증된 Windows/arm64 설치 파일을 사용한다. 소스 커밋은 `95be83c`이며 각 플랫폼의 기능·실제 앱·설치/패키징 게이트를 통과한 파일만 게시한다. Intel을 제외한 자산 검증과 SHA256SUMS를 다시 생성한다.
 
+게시 완료: [빌드 47](https://github.com/jhs512/immersion-quest-3/releases/tag/v0.1.0-build.47)이 최신 정식 릴리스다. Windows 설치 파일, arm64 DMG, SHA256SUMS 세 자산의 업로드와 공개 상태를 API로 확인했다. 게시된 체크섬 파일도 로컬 생성본과 일치한다. 빌드 47의 Windows/arm64 작업은 모두 success이며 남은 Intel 작업은 사용자 지시로 중단했다. 전체 run의 canceled 상태를 두 지원 플랫폼의 실패로 해석하지 않는다. 배포 정책·안내만 바뀐 커밋은 중복 빌드를 피하도록 CI를 생략했으며 앱 소스·설치 파일은 검증된 `95be83c` 그대로다.
+
 ## 배포 재검증: Intel XGBoost와 OpenMP (2026-10-20)
 
 빌드 46은 Windows 설치·제거와 Apple Silicon DMG 검증을 통과했고 두 Mac의 실제 앱 화면 검사도 각 36개 모두 통과했다. Intel의 마지막 Python 새 환경 검사에서 XGBoost 3.4.1이 `___kmpc_dispatch_deinit`을 찾지 못해 릴리스가 차단됐다. 앱 전용 OpenMP 14에 이 함수가 없었다.
