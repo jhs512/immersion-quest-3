@@ -29,7 +29,7 @@ jobs:
           distribution: temurin
           java-version: '25'
       - name: Verify persistent Java build workspace
-        run: cargo test --release --locked --test java_launch --test java_arguments
+        run: cargo test --release --locked --test java_launch --test java_arguments --test bundled_courses
       - name: Build clean release executable
         run: cargo build --release --locked --bin molip-quest
       - name: Prepare Inno Setup
@@ -68,6 +68,8 @@ jobs:
         include:
           - runner: macos-15
             arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
     env:
@@ -91,7 +93,7 @@ jobs:
           cargo test --release --locked --lib updater::tests
           cargo test --release --locked --lib setup_terminal::tests
       - name: Verify C, Java and Python execution on this Mac
-        run: cargo test --release --locked --test macos_runtime --test java_launch --test java_arguments
+        run: cargo test --release --locked --test macos_runtime --test java_launch --test java_arguments --test bundled_courses
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -110,6 +112,11 @@ jobs:
             target/pilot-java-launch-native-result.json
             target/pilot-java-arguments-native-result.json
           if-no-files-found: ignore
+      - name: Verify Intel learning environment
+        if: matrix.arch == 'x86_64'
+        run: |
+          brew list --versions libomp >/dev/null || brew install libomp
+          cargo test --release --locked --lib doctor::install_tests::environment_installs_and_passes_the_checks -- --ignored --nocapture --test-threads=1
       - name: Build and package macOS app
         run: |
           cargo build --release --locked --bin molip-quest
@@ -152,6 +159,8 @@ jobs:
       - name: Require completed installer and checksum
         run: |
           set -euo pipefail
+          python3 tools/test_macos_installer.py
+          python3 tools/test_release_assets.py
           python3 tools/verify-release-assets.py target/release-assets --desktop
           (cd target/release-assets && sha256sum molip-quest-3-windows-x64-setup.exe molip-quest-3-macos-*.dmg > SHA256SUMS)
       - name: Publish only after uploading verified assets
@@ -170,7 +179,7 @@ jobs:
               exit 0
             fi
           else
-            printf 'MQ3 Windows x64 and macOS Apple Silicon installers. Source commit: %s\n\nLearning progress uses your existing gh login.\nWindows code signing and Apple notarization are not configured.\n' "$COMMIT_SHA" > "$RUNNER_TEMP/notes.md"
+            printf 'MQ3 Windows x64, macOS Apple Silicon and Intel installers. Source commit: %s\n\nLearning progress uses your existing gh login.\nWindows code signing and Apple notarization are not configured.\n' "$COMMIT_SHA" > "$RUNNER_TEMP/notes.md"
             gh release create "$tag" --draft --target "$COMMIT_SHA" --title "MQ · $tag" --notes-file "$RUNNER_TEMP/notes.md"
           fi
           gh release upload "$tag" --clobber target/release-assets/molip-quest-3-windows-x64-setup.exe target/release-assets/molip-quest-3-macos-*.dmg target/release-assets/SHA256SUMS

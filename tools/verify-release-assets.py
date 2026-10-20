@@ -8,7 +8,7 @@ def verify(root, windows_only=False, desktop=False):
     windows = root / ('molip-quest-3-windows-x64-setup.exe' if windows_only or desktop else 'molip-quest-windows-x64-setup.exe')
     macos = root / 'molip-quest-macos-arm64.dmg'
     android = root / 'molip-quest-android.apk'
-    macs = tuple(root / f'molip-quest-3-macos-{arch}.dmg' for arch in ('arm64',)) if desktop else (macos,)
+    macs = tuple(root / f'molip-quest-3-macos-{arch}.dmg' for arch in ('arm64','x86_64')) if desktop else (macos,)
     for path in ((windows,) if windows_only else (windows, *macs) if desktop else (windows, macos, android)):
         if not path.is_file() or path.stat().st_size == 0:
             raise ValueError(f'Missing installer: {path.name}')

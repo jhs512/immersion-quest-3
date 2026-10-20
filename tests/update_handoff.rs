@@ -34,7 +34,7 @@ mod native {
     fn bundle(root:&Path,version:&str,marker:&Path) -> std::path::PathBuf {
         let app=root.join("몰입 퀘스트 3.app");let bin=app.join("Contents/MacOS/molip-quest");
         std::fs::create_dir_all(bin.parent().unwrap()).unwrap();
-        std::fs::write(app.join("Contents/Info.plist"),include_str!("../packaging/macos/Info.plist").replace("APP_VERSION","0.1.0")).unwrap();
+        std::fs::write(app.join("Contents/Info.plist"),include_str!("../packaging/macos/Info.plist").replace("APP_VERSION","0.1.0").replace("APP_BUILD","1")).unwrap();
         let code=root.join("fixture.c");
         let ready=if version=="new" {format!(r#"FILE*p=fopen({},"r");char ack[4096],nonce[128];if(!p||!fgets(ack,sizeof ack,p)||!fgets(nonce,sizeof nonce,p))return 2;fclose(p);ack[strcspn(ack,"\n")]=0;nonce[strcspn(nonce,"\n")]=0;FILE*a=fopen(ack,"w");if(!a)return 3;fputs(nonce,a);fclose(a);"#,serde_json::to_string(marker.parent().unwrap().join("macos-handoff.pending").to_str().unwrap()).unwrap())}else{String::new()};
         let early=if version=="crash" {"return 42;"}else if version=="hang" {"signal(SIGTERM,SIG_IGN);for(;;)sleep(1);"}else{""};

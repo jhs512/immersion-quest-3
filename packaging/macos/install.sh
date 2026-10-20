@@ -13,7 +13,15 @@ support="$HOME/Library/Application Support/MolipQuest.MolipQuest"
 env_dir="$support/ml-env"
 
 if [ "$(uname -s)" != Darwin ]; then echo "이 설치 스크립트는 macOS 전용입니다."; exit 1; fi
-case "$(uname -m)" in arm64) arch=arm64 ;; *) echo "Apple Silicon(M1 이후) Mac만 지원해요. 터미널을 Rosetta 없이 실행해 주세요."; exit 1 ;; esac
+case "$(uname -m)" in
+  arm64) arch=arm64; python_version=3.13 ;;
+  x86_64)
+    if [ "$(sysctl -in sysctl.proc_translated 2>/dev/null || true)" = 1 ]; then
+      echo "Apple Silicon Mac에서는 터미널의 Rosetta 실행을 해제한 뒤 다시 설치해 주세요."; exit 1
+    fi
+    arch=x86_64; python_version=3.12 ;;
+  *) echo "지원하지 않는 Mac CPU입니다: $(uname -m)"; exit 1 ;;
+esac
 
 dest=/Applications
 [ -w "$dest" ] || { dest="$HOME/Applications"; mkdir -p "$dest"; }
@@ -29,11 +37,29 @@ mount=$(hdiutil attach "$tmp/molip-quest.dmg" -nobrowse -readonly | awk -F'\t' '
 source="$mount/$app"
 [ -d "$source" ] || source="$mount/몰입 퀘스트 3.app"
 [ -d "$source" ] || { echo "DMG 안에서 앱을 찾지 못했습니다."; exit 1; }
-if [ -e "$dest/$app" ]; then
-  backup="$dest/${app%.app}.previous.app"
-  [ ! -e "$backup" ] || { echo "기존 백업을 먼저 정리해 주세요: $backup"; exit 1; }
-  mv "$dest/$app" "$backup"
+# Replacing files does not restart an already running app. Quit before swapping;
+# otherwise Launch Services can bring the old process back to the foreground.
+osascript <<'APPLESCRIPT' >/dev/null 2>&1 || true
+if application id "dev.molipquest.mq3" is running then
+  tell application id "dev.molipquest.mq3" to quit
+end if
+APPLESCRIPT
+for attempt in $(seq 1 30); do
+  pgrep -x molip-quest >/dev/null || break
+  sleep 1
+done
+if pgrep -x molip-quest >/dev/null; then
+  echo "실행 중인 MQ를 종료한 뒤 설치 명령을 다시 실행해 주세요."; exit 1
 fi
+# Preserve prior copies in hidden folders so Spotlight/Dock do not pick an old
+# copy named MQ. A previous backup must not make a third installation fail.
+for old_name in "$app" "몰입 퀘스트 3.app"; do
+  [ -e "$dest/$old_name" ] || continue
+  identifier=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$dest/$old_name/Contents/Info.plist" 2>/dev/null || true)
+  [ "$identifier" = dev.molipquest.mq3 ] || { echo "같은 위치의 다른 앱은 바꾸지 않습니다: $dest/$old_name"; exit 1; }
+  backup=$(mktemp -d "$dest/.mq3-previous.XXXXXX")
+  mv "$dest/$old_name" "$backup/$old_name"
+done
 ditto "$source" "$dest/$app"
 hdiutil detach "$mount" -quiet; mount=""
 echo "      $dest/$app"
@@ -44,12 +70,14 @@ if ! command -v uv >/dev/null 2>&1; then
   curl -LsSf https://astral.sh/uv/install.sh | sh -s -- --quiet --no-modify-path
 fi
 mkdir -p "$support"
-python_version=3.13
 requirements="$dest/$app/Contents/Resources/requirements-learning.txt"
 
-uv venv "$env_dir" --python "$python_version" --quiet
+if command -v brew >/dev/null 2>&1; then
+  brew list --versions libomp >/dev/null 2>&1 || brew install libomp
+fi
+uv venv "$env_dir" --python "$python_version" --clear --quiet
 uv pip install --python "$env_dir/bin/python" --quiet -r "$requirements"
-"$env_dir/bin/python" -c "import pandas, sklearn, matplotlib; print('      pandas', pandas.__version__, '· scikit-learn', sklearn.__version__)"
+"$env_dir/bin/python" -c "import pandas, sklearn, matplotlib, tensorflow, xgboost; print('      pandas', pandas.__version__, '· scikit-learn', sklearn.__version__)"
 
 echo "[3/3] 앱을 엽니다. 앱 안의 「환경 진단」에서 모두 준비됨인지 확인하세요."
 open "$dest/$app"

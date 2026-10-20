@@ -161,12 +161,7 @@ fn learning_python_version() -> &'static str {
     if cfg!(all(target_os = "macos", target_arch = "x86_64")) { "3.12" } else { "3.13" }
 }
 
-fn learning_requirements() -> String {
-    if cfg!(all(target_os = "macos", target_arch = "x86_64")) {
-        REQUIREMENTS.lines().filter(|line| !line.starts_with("tensorflow=="))
-            .collect::<Vec<_>>().join("\n") + "\ntensorflow==2.16.2\n"
-    } else { REQUIREMENTS.to_owned() }
-}
+fn learning_requirements() -> String { REQUIREMENTS.to_owned() }
 
 /// Where `uv` usually lands after its installer, besides PATH.
 fn uv_candidates() -> Vec<std::path::PathBuf> {

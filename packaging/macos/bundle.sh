@@ -9,7 +9,7 @@ cd "$(dirname "$0")/../.."
 
 version=$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -n 1)
 arch="${MQ3_MAC_ARCH:-$(uname -m)}"
-case "$arch" in arm64) ;; *) echo "Only Apple Silicon (arm64) is supported: $arch" >&2; exit 1 ;; esac
+case "$arch" in arm64|x86_64) ;; *) echo "Unsupported Mac architecture: $arch" >&2; exit 1 ;; esac
 app="target/bundle/MQ.app"
 image="target/installers/molip-quest-3-macos-${arch}.dmg"
 rm -rf target/bundle
@@ -17,7 +17,7 @@ rm -f "$image"
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources" target/installers
 
 cp target/release/molip-quest "$app/Contents/MacOS/molip-quest"
-sed "s/APP_VERSION/$version/g" packaging/macos/Info.plist > "$app/Contents/Info.plist"
+sed -e "s/APP_VERSION/$version/g" -e "s/APP_BUILD/${MOLIP_BUILD:-0}/g" packaging/macos/Info.plist > "$app/Contents/Info.plist"
 cp README.md requirements-learning.txt "$app/Contents/Resources/"
 
 # App icon: build an .icns from the 1024px master with the system tools.

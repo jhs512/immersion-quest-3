@@ -85,7 +85,8 @@ pub fn asset_for_platform() -> Option<&'static str> {
         Some("molip-quest-3-windows-x64-setup.exe")
     } else if cfg!(all(target_os = "macos", target_arch = "aarch64")) {
         Some("molip-quest-3-macos-arm64.dmg")
-
+    } else if cfg!(all(target_os = "macos", target_arch = "x86_64")) {
+        Some("molip-quest-3-macos-x86_64.dmg")
     } else {
         None
     }
@@ -458,9 +459,22 @@ mod tests {
             "assets": [
                 {"name": "molip-quest-3-windows-x64-setup.exe", "browser_download_url": "https://example.com/w.exe", "size": 10},
                 {"name": "molip-quest-3-macos-arm64.dmg", "browser_download_url": "https://example.com/m.dmg", "size": 20},
+                {"name": "molip-quest-3-macos-x86_64.dmg", "browser_download_url": "https://example.com/i.dmg", "size": 20},
                 {"name": "molip-quest-android.apk", "browser_download_url": "https://example.com/a.apk", "size": 30}
             ]
         })
+    }
+
+    #[test]
+    #[cfg(target_os = "macos")]
+    fn both_supported_mac_cpus_have_a_native_update_asset() {
+        let expected = if cfg!(target_arch = "x86_64") {
+            "molip-quest-3-macos-x86_64.dmg"
+        } else {
+            "molip-quest-3-macos-arm64.dmg"
+        };
+        assert_eq!(asset_for_platform(), Some(expected));
+        assert_eq!(newer_in(&latest("v0.1.0-build.42"), 41).unwrap().asset_name, expected);
     }
 
     #[test]

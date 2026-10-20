@@ -121,7 +121,7 @@ fn bundle(root: &Path, generation: &str, session: &PilotSession) -> PathBuf {
     std::fs::create_dir_all(app.join("Contents/Resources")).unwrap();
     std::fs::copy(env!("CARGO_BIN_EXE_molip-quest"), &executable).unwrap();
     std::fs::write(app.join("Contents/Resources/generation.txt"), generation).unwrap();
-    let mut plist = include_str!("../packaging/macos/Info.plist").replace("APP_VERSION", "0.1.0");
+    let mut plist = include_str!("../packaging/macos/Info.plist").replace("APP_VERSION", "0.1.0").replace("APP_BUILD", "1");
     // open -n fallback must retain the isolated fixture even through Launch Services.
     // https://developer.apple.com/documentation/bundleresources/information-property-list/lsenvironment
     let mut environment = Command::new("unused");
