@@ -5,7 +5,7 @@
  const click=async text=>{await wait(()=>button(text)&&!button(text).disabled,text);button(text).click()};
  const ready=async()=>wait(()=>{const root=document.querySelector('.repository-task'),host=document.getElementById('git-student-terminal');return root?.dataset.gitReady==='true'&&host&&window.mq3GitTerminal?.text(host.dataset.terminalSession).split('\n').some(line=>line.trimEnd().endsWith('$'));},'current student terminal owner and prompt');
  try{
-  await wait(()=>document.querySelector('.lesson-card'),'catalog');
+  await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('pilot-a'),'catalog');
   for(const [version,revision,count] of [['l','git-branch-',4],['굳','git-branch-advanced-',5],['풀','github-pr-',8]]){
    await click(`버전 ${version}`);
    await wait(()=>document.querySelector('.lesson-card')?.textContent.includes(revision),revision);
@@ -15,7 +15,15 @@
     const snapshot=()=>window.mq3GitGraphs?.snapshot(owner());
     await wait(()=>snapshot()?.commits.length===1,'actual initial commit graph');
     const graph=document.querySelector(`[data-git-graph-owner="${owner()}"]`);
-    if(graph.dataset.graphCount!=='1'||graph.querySelector('.git-graph-canvas').getBoundingClientRect().height<40)throw Error('graph is not visible');
+    const canvas=()=>graph.querySelector('.git-graph-canvas');
+    if(graph.dataset.graphCount!=='1'||canvas().getBoundingClientRect().height<80)throw Error('graph is not visible');
+    const cy=canvas()._cyreg.cy;
+    if(cy.nodes()[0].numericStyle('font-size')*cy.zoom()<11)throw Error('graph labels are too small');
+    const small=canvas().getBoundingClientRect();
+    graph.querySelector('[data-graph-action="expand"]').click();
+    await wait(()=>canvas().getBoundingClientRect().width>small.width*1.5&&canvas().getBoundingClientRect().height>innerHeight*.5,'large readable graph');
+    window.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));
+    await wait(()=>!graph.classList.contains('is-expanded'),'graph returns to the terminal');
     mq3GitTerminal.command('git branch feature');
     await wait(()=>snapshot()?.references.some(ref=>ref.name==='feature'),'created branch appears on graph');
     mq3GitTerminal.command('git switch feature');
@@ -28,7 +36,17 @@
     await wait(()=>snapshot()?.head===featureHead&&snapshot()?.references.filter(ref=>['main','feature'].includes(ref.name)).every(ref=>ref.id===featureHead),'graph follows fast-forward');
     const oldOwner=owner();await click('초기화');await wait(()=>owner()!==oldOwner,'graph owner reset');await ready();
     await wait(()=>snapshot()?.commits.length===1&&!snapshot()?.references.some(ref=>ref.name==='feature'),'reset restores initial graph');
+    const resetGraph=document.querySelector(`[data-git-graph-owner="${owner()}"]`);
+    const resetCy=resetGraph.querySelector('.git-graph-canvas')._cyreg.cy;
+    if(resetCy.nodes().length!==1||resetGraph.innerText.includes('feature'))throw Error('the visible canvas retained the old graph');
     if(window.mq3GitGraphs.snapshot(oldOwner)!==undefined)throw Error('retired graph survived reset');
+    // Reset again after panning and enlarging, including the visual renderer.
+    resetGraph.querySelector('[data-graph-action="expand"]').click();
+    resetCy.pan({x:-900,y:-900});
+    const secondOwner=owner();await click('초기화');await wait(()=>owner()!==secondOwner,'second graph reset');await ready();
+    await wait(()=>snapshot()?.commits.length===1,'second reset snapshot');
+    const freshGraph=document.querySelector(`[data-git-graph-owner="${owner()}"]`);
+    if(freshGraph.classList.contains('is-expanded')||freshGraph.querySelector('.git-graph-canvas')._cyreg.cy.pan().x < -100)throw Error('graph viewport survived reset');
     checked.push('Cytoscape graph follows actual branch, commit, fast-forward and reset');
    }
    if(document.querySelectorAll('.study-navigation button').length!==count)throw Error(`${revision} task count`);

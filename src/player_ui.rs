@@ -489,10 +489,11 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                         feedback.set("idle");message.set(String::new());execution_state.set("idle");output.set(String::new());preview.set(String::new());teacher_preview.set(String::new());artifacts.set(vec![]);
                         if let Some(control)=git_control() {
                             busy.set(true);message.set("실습을 초기화하고 있어요.".into());
+                            let graph_control=control.clone();
                             let key=key.clone();let starter=starter.clone();
                             spawn(async move {
                                 match github_player::background(move||control.shutdown()).await {
-                                    Ok(())=>{git_practice.set(None);git_control.set(None);code.set(starter);let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());reset+=1;message.set(String::new());},Err(error)=>message.set(error)
+                                    Ok(())=>{graph_control.clear_graph();git_practice.set(None);git_control.set(None);code.set(starter);let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());reset+=1;message.set(String::new());},Err(error)=>message.set(error)
                                 }
                                 busy.set(false);
                             });

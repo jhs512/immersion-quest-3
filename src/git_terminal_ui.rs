@@ -10,8 +10,9 @@ impl Drop for TerminalSession {
     });}}
 }
 #[derive(Clone)]
-pub struct TerminalControl {owned:Arc<Mutex<Option<TerminalSession>>>}
+pub struct TerminalControl {owned:Arc<Mutex<Option<TerminalSession>>>,owner:String}
 impl TerminalControl {
+    pub fn clear_graph(&self) {document::eval(&format!("window.mq3GitGraphs?.reset('{}');",self.owner));}
     pub fn shutdown(&self)->Result<(),String> {
         let mut guard=self.owned.lock().unwrap_or_else(|e|e.into_inner());
         if let Some(session)=guard.as_mut(){if let Some(path)=&session.closing_marker{let _=std::fs::write(path,"");}if let Some(shell)=session.shell.as_mut(){shell.shutdown()?;}}
@@ -71,7 +72,7 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
         let practice=session.practice.clone();
         if is_java {let source=practice.lock().unwrap_or_else(|e|e.into_inner()).java_source();match source{Ok(source)=>java_source.set(Some(source)),Err(e)=>error.set(e)}}
         *owned.lock().unwrap_or_else(|e|e.into_inner())=Some(session);
-        oncontrol.call(TerminalControl{owned:owned.clone()});
+        oncontrol.call(TerminalControl{owned:owned.clone(),owner:owner.clone()});
         if graph_enabled {
             let graph_practice=practice.clone();let graph_owned=owned.clone();let graph_owner=owner.clone();let graph_requested=graph_requested.clone();
             spawn(async move {
@@ -181,6 +182,10 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
         if graph_enabled {details {class:"git-graph-panel",open:true,"data-git-graph-owner":rendered_owner.clone(),
             summary {"커밋 그래프"}
             div {class:"git-graph-body",
+                div {class:"git-graph-tools",
+                    button {r#type:"button","data-graph-action":"expand",aria_pressed:"false","크게 보기"}
+                    button {r#type:"button","data-graph-action":"focus","현재 위치"}
+                }
                 p {class:"git-graph-status",role:"status","저장소를 확인하고 있어요…"}
                 div {class:"git-graph-canvas",role:"img",aria_label:"실제 저장소의 커밋과 브랜치 연결"}
                 p {class:"git-graph-detail","점을 누르면 커밋 설명을 볼 수 있어요."}
