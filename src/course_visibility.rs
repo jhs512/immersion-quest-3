@@ -3,7 +3,7 @@ use crate::repository_course::{CourseManifest, COURSE_REPOSITORY};
 
 pub fn for_account(mut course: CourseManifest, login: &str) -> CourseManifest {
     if course.repository == COURSE_REPOSITORY && !login.eq_ignore_ascii_case("jhs512") {
-        let end=course.lessons.iter().position(|lesson|lesson.revision=="git-remote-1").map(|index|index+1).unwrap_or(3);
+        let end=course.lessons.iter().position(|lesson|lesson.repository=="jhs512/mq3-lesson-redesigned-git-remote").map(|index|index+1).unwrap_or(3);
         course.lessons.truncate(end);
     }
     course
@@ -24,8 +24,8 @@ mod tests {
             let visible = for_account(original.clone(), login);
             assert_eq!(visible.lessons, original.lessons[..5]);
             assert_eq!(visible.id, original.id);
-            assert_eq!(visible.lessons.iter().map(|l| l.revision.as_str()).collect::<Vec<_>>(),
-                ["bash-basics-1", "vim-basics-1", "git-first-1", "git-branch-1", "git-remote-1"]);
+            assert_eq!(visible.lessons.iter().map(|l| l.repository.strip_prefix("jhs512/mq3-lesson-redesigned-").unwrap()).collect::<Vec<_>>(),
+                ["bash-basics", "vim-basics", "git-first", "git-branch", "git-remote"]);
         }
         assert_eq!(original.lessons.len(), 24, "the installed course must remain complete");
     }
@@ -36,6 +36,13 @@ mod tests {
         for login in ["jhs512", "JHS512"] {
             assert_eq!(for_account(original.clone(), login), original);
         }
+    }
+
+    #[test]
+    fn content_revisions_do_not_change_the_visible_lesson_boundary() {
+        let mut revised=course(COURSE_REPOSITORY);
+        for lesson in &mut revised.lessons {lesson.revision.push_str("-revised");}
+        assert_eq!(for_account(revised.clone(),"learner").lessons,revised.lessons[..5]);
     }
 
     #[test]

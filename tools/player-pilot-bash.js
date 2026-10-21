@@ -5,7 +5,7 @@
  try{
   // The native harness selects Bash before launching the app. Do not remount
   // the player through the version toolbar while lesson opening is in flight.
-  await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('bash-basics-1'),'Bash lesson card');
+  await wait(()=>document.querySelector('.lesson-card .lesson-revision')?.textContent.includes('bash-basics-'),'Bash lesson card');
   await click('학습 시작');
   await wait(()=>document.querySelectorAll('.study-navigation button').length===23,'Bash lesson opened');
   await click('문제 2 · 파일 목록을 확인하세요');await wait(()=>document.querySelector('.problem-pane h2')?.textContent==='파일 목록을 확인하세요','ls task mounted');await wait(()=>document.querySelector('.repository-task')?.dataset.gitReady==='true','Bash terminal ready');
