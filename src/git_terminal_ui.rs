@@ -191,7 +191,9 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
                 p {class:"git-graph-detail","점을 누르면 커밋 설명을 볼 수 있어요."}
                 button {r#type:"button",onclick:move |_|graph_request.store(true,std::sync::atomic::Ordering::Relaxed),"그래프 새로고침"}
             }
-        }}
+        }
+        div {class:"split-handle split-col split-git",role:"separator",tabindex:0,aria_label:"터미널과 그래프 너비 조절",aria_orientation:"vertical"}
+        }
         }if is_vim {
         section {class:"vim-live-panel",aria_label:"Vim 실시간 확인","data-vim-passed":vim_live().passed.to_string(),
             if let Some(state)=vim_live().state {

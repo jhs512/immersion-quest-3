@@ -17,6 +17,8 @@
   // dragging it left makes the dock wider, so its delta is inverted.
   const axis = handle => handle.classList.contains('assistant-handle')
     ? { key: 'assistant', prop: '--assistant-width', container: handle.parentElement, pane: '.assistant-dock', horizontal: true, min: 280, reserve: 420, invert: true }
+    : handle.classList.contains('split-git')
+    ? { key: 'gitGraph', prop: '--git-graph-width', container: handle.closest('.git-terminal-row'), pane: '.git-graph-panel', horizontal: true, min: 160, reserve: 190, invert: true }
     : handle.classList.contains('split-col')
     ? { key: 'problem', prop: '--problem-width', container: handle.closest('.lesson'), pane: '.problem-pane', horizontal: true, min: 260, reserve: 360 }
     : handle.classList.contains('split-example')
@@ -104,14 +106,14 @@
     a.container.style.removeProperty(a.prop); delete saved[a.key]; persist();
   });
   new MutationObserver(records => {
-    if (records.some(r => [...r.addedNodes].some(n => n instanceof Element && (n.matches('.lesson, .assistant-dock') || n.querySelector('.lesson, .assistant-dock'))))) applyAll();
+    if (records.some(r => [...r.addedNodes].some(n => n instanceof Element && (n.matches('.lesson, .assistant-dock, .git-terminal-row') || n.querySelector('.lesson, .assistant-dock, .git-terminal-row'))))) applyAll();
   }).observe(document.body, { childList: true, subtree: true });
   window.addEventListener('resize',()=>requestAnimationFrame(applyAll));
   const sizes=new ResizeObserver(()=>applyAll());
   const observed=new Set();
   const watch=()=>{
     for(const pane of observed)if(!pane.isConnected){sizes.unobserve(pane);observed.delete(pane)}
-    for(const pane of document.querySelectorAll('.coding-pane,.interaction-example-editor'))if(!observed.has(pane)){observed.add(pane);sizes.observe(pane)}
+    for(const pane of document.querySelectorAll('.coding-pane,.interaction-example-editor,.git-terminal-row'))if(!observed.has(pane)){observed.add(pane);sizes.observe(pane)}
   };
   new MutationObserver(watch).observe(document.body,{childList:true,subtree:true});watch();
   applyAll();

@@ -15,6 +15,10 @@
     const snapshot=()=>window.mq3GitGraphs?.snapshot(owner());
     await wait(()=>snapshot()?.commits.length===1,'actual initial commit graph');
     const graph=document.querySelector(`[data-git-graph-owner="${owner()}"]`);
+    const terminalBox=document.getElementById('git-student-terminal').getBoundingClientRect(),graphBox=graph.getBoundingClientRect();
+    if(Math.abs(terminalBox.top-graphBox.top)>1||Math.abs(terminalBox.bottom-graphBox.bottom)>1)throw Error('terminal and graph heights differ');
+    const divider=graph.parentElement.querySelector('.split-git');
+    if(!divider||divider.getBoundingClientRect().width<8||divider.getBoundingClientRect().height<terminalBox.height-1)throw Error('terminal/graph divider is missing');
     const canvas=()=>graph.querySelector('.git-graph-canvas');
     if(graph.dataset.graphCount!=='1'||canvas().getBoundingClientRect().height<80)throw Error('graph is not visible');
     const cy=canvas()._cyreg.cy;
