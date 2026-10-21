@@ -1,5 +1,16 @@
 use molip_quest::{lesson_runner,repository_course::Task};
 
+#[test]
+fn ordered_code_keeps_the_marker_indentation_on_every_inserted_line() {
+    let task:Task=serde_json::from_value(serde_json::json!({
+        "id":"indent","title":"Order","goal":"Set before print","language":"java","starter_code":"[\"print\",\"assign\"]","solution":"[\"assign\",\"print\"]",
+        "example_code":"void main() {\n    int quantity = 2;\n    // @order\n}\n","example_order_marker":"// @order",
+        "interaction":{"kind":"order","options":[{"id":"assign","text":"quantity = 3;"},{"id":"print","text":"System.out.println(quantity);"}],"accepted":[["assign","print"]]}
+    })).unwrap();
+    assert_eq!(task.example_for_answer(&task.starter_code).unwrap(),"void main() {\n    int quantity = 2;\n    System.out.println(quantity);\n    quantity = 3;\n}\n");
+    assert_eq!(task.example_for_answer(&task.solution).unwrap(),"void main() {\n    int quantity = 2;\n    quantity = 3;\n    System.out.println(quantity);\n}\n");
+}
+
 #[tokio::test]
 async fn running_prepared_code_does_not_compile_or_grade_the_selected_answer() {
     let task:Task=serde_json::from_value(serde_json::json!({

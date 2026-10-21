@@ -8,6 +8,8 @@ pub use java_build_practice::JavaBuildGoal;
 pub use github_pr_practice::GithubPrStage;
 #[path="vim_practice.rs"] mod vim_practice;
 pub use vim_practice::{VimExercise,VimCheck,VimPredicate,VimSnapshot,VimState,VimProgress};
+mod graph;
+pub use graph::{GitGraphSnapshot,GitGraphCommit,GitGraphRef};
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
 use std::{collections::BTreeMap,path::{Path,PathBuf},process::{Command,Output}};

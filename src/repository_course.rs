@@ -142,7 +142,17 @@ impl Task {
             if !seen.insert(id.clone()){return Err("같은 조각은 한 번만 써요.".into())}
             lines.push(options.iter().find(|option|option.id==id).ok_or("코드 조각을 확인하세요.")?.text.as_str());
         }
-        let expanded=source.replace(marker.as_str(),&lines.join("\n"));
+        let offset=source.find(marker.as_str()).unwrap();
+        let line_start=source[..offset].rfind('\n').map_or(0,|index|index+1);
+        let indent=&source[line_start..offset];
+        let line_end=source[offset+marker.len()..].split('\n').next().unwrap_or("");
+        let mut replacement=lines.join("\n");
+        // A whole-line placeholder supplies the base indentation for every
+        // inserted statement, including nested lines within a code fragment.
+        if indent.chars().all(|c|c==' '||c=='\t')&&line_end.trim().is_empty(){
+            replacement=replacement.split('\n').enumerate().map(|(i,line)|if i==0{line.to_owned()}else{format!("{indent}{line}")}).collect::<Vec<_>>().join("\n");
+        }
+        let expanded=source.replace(marker.as_str(),&replacement);
         if expanded.len()>65536{return Err("예제 코드가 너무 길어요.".into())}
         Ok(expanded)
     }

@@ -55,7 +55,14 @@ def validate_highlights(task):
             source = action['code']
         elif action['action'] == 'order_answer' and task.get('example_order_marker'):
             options = {option['id']: option['text'] for option in task['interaction']['options']}
-            source = task['example_code'].replace(task['example_order_marker'], '\n'.join(options[key] for key in action['ids']))
+            source = task['example_code']
+            marker = task['example_order_marker']
+            offset = source.index(marker)
+            indent = source[source.rfind('\n', 0, offset) + 1:offset]
+            replacement = '\n'.join(options[key] for key in action['ids'])
+            if not indent.strip(' \t') and not source[offset + len(marker):].split('\n', 1)[0].strip():
+                replacement = replacement.replace('\n', '\n' + indent)
+            source = source.replace(marker, replacement)
 
 
 def build(name, check=False):

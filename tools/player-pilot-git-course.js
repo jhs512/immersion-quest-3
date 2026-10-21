@@ -6,10 +6,31 @@
  const ready=async()=>wait(()=>{const root=document.querySelector('.repository-task'),host=document.getElementById('git-student-terminal');return root?.dataset.gitReady==='true'&&host&&window.mq3GitTerminal?.text(host.dataset.terminalSession).split('\n').some(line=>line.trimEnd().endsWith('$'));},'current student terminal owner and prompt');
  try{
   await wait(()=>document.querySelector('.lesson-card'),'catalog');
-  for(const [version,revision,count] of [['l','git-branch-1',4],['굳','git-branch-advanced-1',5],['풀','github-pr-1',8]]){
+  for(const [version,revision,count] of [['l','git-branch-',4],['굳','git-branch-advanced-',5],['풀','github-pr-1',8]]){
    await click(`버전 ${version}`);
    await wait(()=>document.querySelector('.lesson-card')?.textContent.includes(revision),revision);
    await click('학습 시작');await ready();
+   if(version==='l'){
+    const owner=()=>document.getElementById('git-student-terminal').dataset.terminalSession;
+    const snapshot=()=>window.mq3GitGraphs?.snapshot(owner());
+    await wait(()=>snapshot()?.commits.length===1,'actual initial commit graph');
+    const graph=document.querySelector(`[data-git-graph-owner="${owner()}"]`);
+    if(graph.dataset.graphCount!=='1'||graph.querySelector('.git-graph-canvas').getBoundingClientRect().height<40)throw Error('graph is not visible');
+    mq3GitTerminal.command('git branch feature');
+    await wait(()=>snapshot()?.references.some(ref=>ref.name==='feature'),'created branch appears on graph');
+    mq3GitTerminal.command('git switch feature');
+    await wait(()=>snapshot()?.branch==='feature','graph follows branch switch');
+    mq3GitTerminal.command('echo graph > graph.txt && git add graph.txt && git commit -m graph');
+    await wait(()=>snapshot()?.commits.length===2,'real commit appears on graph');
+    const featureHead=snapshot().head;
+    mq3GitTerminal.command('git switch main');await wait(()=>snapshot()?.branch==='main','back to main');
+    mq3GitTerminal.command('git merge --ff-only feature');
+    await wait(()=>snapshot()?.head===featureHead&&snapshot()?.references.filter(ref=>['main','feature'].includes(ref.name)).every(ref=>ref.id===featureHead),'graph follows fast-forward');
+    const oldOwner=owner();await click('초기화');await wait(()=>owner()!==oldOwner,'graph owner reset');await ready();
+    await wait(()=>snapshot()?.commits.length===1&&!snapshot()?.references.some(ref=>ref.name==='feature'),'reset restores initial graph');
+    if(window.mq3GitGraphs.snapshot(oldOwner)!==undefined)throw Error('retired graph survived reset');
+    checked.push('Cytoscape graph follows actual branch, commit, fast-forward and reset');
+   }
    if(document.querySelectorAll('.study-navigation button').length!==count)throw Error(`${revision} task count`);
    const firstId=document.querySelector('.repository-task').dataset.taskId;
    for(let i=0;i<count;i++){

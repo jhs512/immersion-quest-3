@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_533917ea-656d-4fd5-b188-948363ec9b37",
-  "revision": "git-remote-1",
+  "revision": "git-remote-2",
   "title": "공유 기록을 받고 비교하고 되돌려요",
   "description": "커밋을 원격 저장소와 주고받고, 파일 수정과 잘못된 커밋을 되돌려요.",
   "objectives": [
@@ -13,7 +13,8 @@
     "https://git-scm.com/docs/git-fetch",
     "https://git-scm.com/docs/git-merge",
     "https://git-scm.com/docs/git-restore",
-    "https://git-scm.com/docs/git-revert"
+    "https://git-scm.com/docs/git-revert",
+    "https://git-scm.com/docs/git-log"
   ],
   "review_enabled": false,
   "sections": [],
@@ -273,7 +274,7 @@
     {
       "id": "stp_bb240382-615b-4679-ae14-79ee9f38940a",
       "title": "원격의 새 커밋을 받아 보세요",
-      "goal": "다른 작업자가 원격의 `guide.txt`를 `shared`로 바꾸고 커밋했어요. 내 파일과 현재 커밋에는 아직 `base`가 있어요. 이번에는 내 `main`에 병합하지 마세요.\n\n**할 일**\n\n1. `git fetch origin`: 원격의 새 커밋을 받으세요.\n2. `git show HEAD:guide.txt`: 현재 커밋에 기록된 안내를 읽으세요.\n3. `git show origin/main:guide.txt`: 받은 원격 커밋의 안내를 읽고 내 커밋과 비교하세요.\n4. 확인한 뒤 제출 버튼을 누르세요.",
+      "goal": "다른 작업자가 원격의 `guide.txt`를 `shared`로 바꾸고 커밋했어요. 내 파일과 현재 커밋에는 아직 `base`가 있어요. 이번에는 내 `main`에 병합하지 마세요.\n\n**할 일**\n\n1. `git fetch origin`: 원격의 새 커밋을 받으세요.\n2. `git log --oneline --all --graph --decorate`: main과 origin/main의 커밋 위치를 비교하세요.\n3. `git show HEAD:guide.txt`: 현재 커밋에 기록된 안내를 읽으세요.\n4. `git show origin/main:guide.txt`: 받은 원격 커밋의 안내를 읽고 내 커밋과 비교하세요.\n5. 확인한 뒤 제출 버튼을 누르세요.",
       "language": "git",
       "starter_code": "",
       "solution": "# 작업 파일을 바꾸지 않고 기록만 받아요.\ngit fetch origin",
@@ -319,6 +320,23 @@
         {
           "action": "say",
           "text": "origin/main이 방금 받은 원격 main의 커밋을 가리켜요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "log",
+            "--oneline",
+            "--all",
+            "--graph",
+            "--decorate"
+          ],
+          "say": "커밋 그래프로 현재 연결과 브랜치 위치를 봐요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "origin/main이 새 커밋을 가리켜요. main은 이전 커밋에 남아 있어요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -455,7 +473,7 @@
     {
       "id": "stp_76c8d243-1eed-4c81-bad2-408f09a180eb",
       "title": "받은 커밋을 내 main에 반영하세요",
-      "goal": "현재 브랜치는 `main`이에요. 내 작업 파일(`guide.txt`)과 현재 커밋에는 아직 `base`가 있어요. 원격에서는 파일을 `shared`로 바꿔 커밋했어요.\n\n**할 일**\n\n1. `git fetch origin`: 원격의 새 커밋을 받으세요.\n2. `git merge --ff-only origin/main`: 받은 커밋을 내 main에 반영하세요.\n3. `git show HEAD:guide.txt`: 현재 커밋에 기록된 안내를 읽으세요.\n4. 확인한 뒤 제출 버튼을 누르세요.",
+      "goal": "현재 브랜치는 `main`이에요. 내 작업 파일(`guide.txt`)과 현재 커밋에는 아직 `base`가 있어요. 원격에서는 파일을 `shared`로 바꿔 커밋했어요.\n\n**할 일**\n\n1. `git fetch origin`: 원격의 새 커밋을 받으세요.\n2. `git log --oneline --all --graph --decorate`: 반영 전 main과 origin/main의 위치를 비교하세요.\n3. `git merge --ff-only origin/main`: 받은 커밋을 내 main에 반영하세요.\n4. `git log --oneline --all --graph --decorate`: 반영 후 두 이름이 같은 커밋을 가리키는지 확인하세요.\n5. `git show HEAD:guide.txt`: 현재 커밋에 기록된 안내를 읽으세요.\n6. 확인한 뒤 제출 버튼을 누르세요.",
       "language": "git",
       "starter_code": "",
       "solution": "# 받아 둔 기록으로 현재 브랜치를 전진시켜요.\ngit fetch origin\ngit merge --ff-only origin/main",
@@ -512,6 +530,23 @@
         {
           "action": "git_command",
           "args": [
+            "log",
+            "--oneline",
+            "--all",
+            "--graph",
+            "--decorate"
+          ],
+          "say": "커밋 그래프로 현재 연결과 브랜치 위치를 봐요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "origin/main이 main보다 앞에 있어요. 내 main에는 따로 갈라진 새 커밋이 없어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
             "merge",
             "--ff-only",
             "origin/main"
@@ -522,6 +557,23 @@
         {
           "action": "say",
           "text": "내 main에는 따로 추가한 커밋이 없어요. 받은 커밋으로 바로 이동해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "log",
+            "--oneline",
+            "--all",
+            "--graph",
+            "--decorate"
+          ],
+          "say": "커밋 그래프로 현재 연결과 브랜치 위치를 봐요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "main과 origin/main이 같은 커밋을 가리켜요. 새 병합 커밋 없이 main이 앞으로 이동했어요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -711,7 +763,7 @@
     {
       "id": "stp_cb42db3c-6669-4a1e-b201-c471091dabdc",
       "title": "잘못된 커밋을 새 커밋으로 되돌리세요",
-      "goal": "안내 파일(`guide.txt`)을 `base`에서 `wrong`으로 바꾸고 커밋했어요. 이번에는 마지막 변경을 취소하는 새 커밋을 만들어요. 기존 두 커밋은 남겨 두세요.\n\n**할 일**\n\n1. `git revert --no-edit HEAD`: 마지막 변경을 취소하는 새 커밋을 만드세요.\n2. `git show HEAD:guide.txt`: 현재 커밋에 기록된 안내를 읽으세요.\n3. `git rev-list --count HEAD`: 기존 커밋이 남고 새 커밋이 추가됐는지 커밋 수를 확인하세요.\n4. 확인한 뒤 제출 버튼을 누르세요.",
+      "goal": "안내 파일(`guide.txt`)을 `base`에서 `wrong`으로 바꾸고 커밋했어요. 이번에는 마지막 변경을 취소하는 새 커밋을 만들어요. 기존 두 커밋은 남겨 두세요.\n\n**할 일**\n\n1. `git log --oneline --all --graph --decorate`: 되돌리기 전 커밋의 연결을 확인하세요.\n2. `git revert --no-edit HEAD`: 마지막 변경을 취소하는 새 커밋을 만드세요.\n3. `git log --oneline --all --graph --decorate`: 기존 커밋 위에 되돌린 커밋이 추가됐는지 확인하세요.\n4. `git show HEAD:guide.txt`: 현재 커밋에 기록된 안내를 읽으세요.\n5. `git rev-list --count HEAD`: 기존 커밋이 남고 새 커밋이 추가됐는지 커밋 수를 확인하세요.\n6. 확인한 뒤 제출 버튼을 누르세요.",
       "language": "git",
       "starter_code": "",
       "solution": "# 기존 기록을 지우지 않고 반대 변경을 기록해요.\ngit revert --no-edit HEAD",
@@ -766,6 +818,23 @@
         {
           "action": "git_command",
           "args": [
+            "log",
+            "--oneline",
+            "--all",
+            "--graph",
+            "--decorate"
+          ],
+          "say": "커밋 그래프로 현재 연결과 브랜치 위치를 봐요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "main이 마지막 변경 커밋을 가리켜요. 그 아래에 기존 커밋도 남아 있어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
             "revert",
             "--no-edit",
             "HEAD"
@@ -776,6 +845,23 @@
         {
           "action": "say",
           "text": "기존 커밋을 지우지 않고 변경을 취소하는 새 커밋이 생겼어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "log",
+            "--oneline",
+            "--all",
+            "--graph",
+            "--decorate"
+          ],
+          "say": "커밋 그래프로 현재 연결과 브랜치 위치를 봐요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "되돌리는 새 커밋이 맨 위에 생겼어요. 잘못된 변경 커밋도 그 아래 그대로 남아 있어요.",
           "target": "#git-demo-terminal"
         },
         {

@@ -1,6 +1,8 @@
 import {Terminal} from '@xterm/xterm';
 import {FitAddon} from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
+import {gitGraphs} from './git-graph';
+window.mq3GitGraphs = gitGraphs;
 
 // The bridge exists only while the local gh setup component is mounted.
 function terminalBridge(hostId,inputLabel) {

@@ -198,6 +198,7 @@ window.molipVoice && molipVoice.setName({});",
         style {{include_str!("../assets/repository-player.css")}}
         style {{include_str!("../assets/content-updates.css")}}
         style {{include_str!("../assets/player-workspace.css")}}
+        style {{include_str!("../assets/git-graph.css")}}
         style {{include_str!("../assets/window-controls.css")}}
         style {{include_str!("../assets/diagnostics.css")}}
         style {{include_str!("../assets/compact-toolbar.css")}}

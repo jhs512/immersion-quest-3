@@ -39,6 +39,9 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
     let is_java=exercise.java_build.is_some();
     let mut java_source=use_signal(||None::<String>);
     let is_vim=exercise.vim.is_some();
+    let graph_enabled=!is_shell&&!is_java&&!is_vim;
+    let graph_requested=use_hook(||Arc::new(std::sync::atomic::AtomicBool::new(true)));
+    let graph_request=graph_requested.clone();
     let initial_checks=exercise.vim.as_ref().map(|v|v.checks.iter().map(|c|(c.label.clone(),false)).collect()).unwrap_or_default();
     let mut vim_live=use_signal(move||molip_quest::git_practice::VimProgress{checks:initial_checks,..Default::default()});
     let host=if demo{"git-demo-terminal"}else{"git-student-terminal"};
@@ -47,9 +50,9 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
     let edit_owned=owned.clone();
     use_drop(move||{
         cleanup.lock().unwrap_or_else(|e|e.into_inner()).take();
-        document::eval(&format!("window.{bridge_name}?.dispose('{cleanup_owner}');window.molipAgent?.retireGitTutor('{cleanup_owner}');"));
+        document::eval(&format!("window.{bridge_name}?.dispose('{cleanup_owner}');window.mq3GitGraphs?.dispose('{cleanup_owner}');window.molipAgent?.retireGitTutor('{cleanup_owner}');"));
     });
-    use_future(move||{let exercise=exercise.clone();let scope=scope.clone();let step_id=step_id.clone();let owned=owned.clone();let owner=owner.clone();async move {
+    use_future(move||{let exercise=exercise.clone();let scope=scope.clone();let step_id=step_id.clone();let owned=owned.clone();let owner=owner.clone();let graph_requested=graph_requested.clone();async move {
         let opened=tokio::task::spawn_blocking(move||{
             let practice=if !demo {
                 if let Some(scope)=scope {
@@ -69,6 +72,33 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
         if is_java {let source=practice.lock().unwrap_or_else(|e|e.into_inner()).java_source();match source{Ok(source)=>java_source.set(Some(source)),Err(e)=>error.set(e)}}
         *owned.lock().unwrap_or_else(|e|e.into_inner())=Some(session);
         oncontrol.call(TerminalControl{owned:owned.clone()});
+        if graph_enabled {
+            let graph_practice=practice.clone();let graph_owned=owned.clone();let graph_owner=owner.clone();let graph_requested=graph_requested.clone();
+            spawn(async move {
+                let mut previous_trace=None;let mut last=String::new();
+                while graph_owned.lock().unwrap_or_else(|e|e.into_inner()).is_some() {
+                    let source=graph_practice.clone();
+                    let requested=graph_requested.swap(false,std::sync::atomic::Ordering::Relaxed);
+                    let prior=previous_trace;
+                    let result=tokio::task::spawn_blocking(move||{
+                        let practice=source.lock().unwrap_or_else(|e|e.into_inner());
+                        let trace=std::fs::metadata(practice.root().join("commands.jsonl")).ok().map(|m|(m.len(),m.modified().ok()));
+                        let snapshot=if requested||trace!=prior {Some(practice.graph_snapshot())}else{None};
+                        (trace,snapshot)
+                    }).await;
+                    if let Ok((trace,Some(result)))=result {
+                        previous_trace=trace;
+                        let (snapshot,message)=match result {Ok(state)=>(state,String::new()),Err(message)=>(Default::default(),message)};
+                        let raw=serde_json::to_string(&(snapshot,message)).unwrap();
+                        if requested||raw!=last {
+                            last=raw.clone();
+                            document::eval(&format!("{{const [snapshot,error]={raw};window.mq3GitGraphs?.update('{graph_owner}',snapshot,error);}}"));
+                        }
+                    }
+                    tokio::time::sleep(std::time::Duration::from_millis(350)).await;
+                }
+            });
+        }
         if is_vim {
             let live_practice=practice.clone();let live_owned=owned.clone();let live_owner=owner.clone();
             spawn(async move {
@@ -98,7 +128,7 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
             if event.kind=="startup_error" {error.set("터미널을 준비하지 못했어요. 초기화해 다시 여세요.".into());continue;}
             // Replay state that may have arrived before xterm mounted. This is a
             // one-time handshake, not a continuous stream of unchanged UI state.
-            if event.kind=="mounted" {if is_vim {document::eval(&format!("window.{bridge_name}?.updateVimState({},'{command_owner}')",serde_json::to_string(&*vim_live.peek()).unwrap()));}continue;}
+            if event.kind=="mounted" {if graph_enabled{graph_requested.store(true,std::sync::atomic::Ordering::Relaxed);}if is_vim {document::eval(&format!("window.{bridge_name}?.updateVimState({},'{command_owner}')",serde_json::to_string(&*vim_live.peek()).unwrap()));}continue;}
             if event.kind=="ready" {onready.call(command_practice.clone());if is_vim {document::eval(&format!("window.{bridge_name}?.updateVimState({},'{command_owner}')",serde_json::to_string(&*vim_live.peek()).unwrap()));}continue;}
             if event.kind=="command"&&demo {
                 if event.args.is_empty()||event.args.len()>50||event.args.iter().any(|arg|arg.len()>4000){continue;}
@@ -138,7 +168,18 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
                     oninput:move |event|{if let Some(session)=edit_owned.lock().unwrap_or_else(|e|e.into_inner()).as_ref(){if let Err(e)=session.practice.lock().unwrap_or_else(|e|e.into_inner()).save_java_source(&event.value()){error.set(e);}}}}
             }
         }
-        div {class:"git-terminal",id:host,"data-shell":is_shell.to_string(),"data-vim":is_vim.to_string(),"data-terminal-session":rendered_owner,aria_label:if is_vim{if demo{"해설용 별도 Vim 편집기"}else{"실제 Vim 편집기"}}else if is_shell{if demo{"해설용 별도 Bash 실습 폴더"}else{"실제 Bash 실습 폴더"}}else if demo{"해설용 별도 Git 저장소"}else{"실제 Git 실습 저장소"}}if is_vim {
+        div {class:"git-terminal-row",
+        div {class:"git-terminal",id:host,"data-shell":is_shell.to_string(),"data-vim":is_vim.to_string(),"data-terminal-session":rendered_owner.clone(),aria_label:if is_vim{if demo{"해설용 별도 Vim 편집기"}else{"실제 Vim 편집기"}}else if is_shell{if demo{"해설용 별도 Bash 실습 폴더"}else{"실제 Bash 실습 폴더"}}else if demo{"해설용 별도 Git 저장소"}else{"실제 Git 실습 저장소"}}
+        if graph_enabled {details {class:"git-graph-panel",open:true,"data-git-graph-owner":rendered_owner.clone(),
+            summary {"커밋 그래프"}
+            div {class:"git-graph-body",
+                p {class:"git-graph-status",role:"status","저장소를 확인하고 있어요…"}
+                div {class:"git-graph-canvas",role:"img",aria_label:"실제 저장소의 커밋과 브랜치 연결"}
+                p {class:"git-graph-detail","점을 누르면 커밋 설명을 볼 수 있어요."}
+                button {r#type:"button",onclick:move |_|graph_request.store(true,std::sync::atomic::Ordering::Relaxed),"그래프 새로고침"}
+            }
+        }}
+        }if is_vim {
         section {class:"vim-live-panel",aria_label:"Vim 실시간 확인","data-vim-passed":vim_live().passed.to_string(),
             if let Some(state)=vim_live().state {
                 p {class:"vim-current-state",if state.exited{"Vim을 종료했어요."}else{{format!("{} · {}행 {}열 · {}",if state.mode=="i"{"입력 모드"}else if state.mode=="c"{"명령 입력 중"}else{"일반 모드"},state.line,state.column,if state.modified{"저장하지 않은 변경이 있어요"}else{"파일과 같은 상태예요"})}}}
