@@ -20,6 +20,8 @@ jobs:
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
       - name: Verify MQ3 updater
         run: |
           cargo test --release --locked --lib updater::tests
@@ -32,6 +34,16 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify the JavaScript runtime path
+        shell: pwsh
+        run: |
+          $nodePath = (Get-Command node).Source
+          "MOLIP_NODE=$nodePath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          & $nodePath --version
+          & $nodePath -e "console.log('MQ Node runtime OK')"
       - name: Verify persistent Java build workspace
         run: cargo test --release --locked --test java_launch --test java_arguments --test bundled_courses --test github_pr --test git_lesson_goals --test git_merge_goals --test redesigned_git_first --test redesigned_git_remote --test redesigned_git_branch --test git_graph --test lesson_link --test interaction_examples --test bash_basics --test vim_practice --test step_reset
       - name: Verify detached progress exit helper
@@ -107,6 +119,14 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify the JavaScript runtime path
+        run: |
+          echo "MOLIP_NODE=$(command -v node)" >> "$GITHUB_ENV"
+          node --version
+          node -e "console.log('MQ Node runtime OK')"
       - name: Verify updater and interactive terminal
         run: |
           cargo test --release --locked --lib updater::tests

@@ -19,7 +19,7 @@ async fn running_prepared_code_does_not_compile_or_grade_the_selected_answer() {
         "interaction":{"kind":"choice","options":[{"id":"two","text":"2"},{"id":"three","text":"3"}],"answer":"two"}
     })).unwrap();
     let executed=lesson_runner::run_example(&task,task.example_code.as_deref().unwrap(),"").await.unwrap();
-    assert!(executed.success);assert_eq!(executed.stdout,"2\n");
+    assert!(executed.success,"{}",serde_json::to_string(&executed).unwrap());assert_eq!(executed.stdout,"2\n");
     assert!(!lesson_runner::check(&task,"three").await.unwrap().passed);
     assert!(lesson_runner::check(&task,"two").await.unwrap().passed);
     assert!(lesson_runner::run(&task,"three","").await.is_err(),"Answer submission is still not a program execution path");
@@ -47,8 +47,10 @@ async fn reordered_statements_produce_real_different_outputs_without_granting_su
     let before=task.example_for_answer(&task.starter_code).unwrap();
     let after=task.example_for_answer(&task.solution).unwrap();
     assert_ne!(before,after);
-    assert_eq!(lesson_runner::run_example(&task,&before,"").await.unwrap().stdout,"2\n");
-    assert_eq!(lesson_runner::run_example(&task,&after,"").await.unwrap().stdout,"3\n");
+    let initial=lesson_runner::run_example(&task,&before,"").await.unwrap();
+    assert!(initial.success,"{}",serde_json::to_string(&initial).unwrap());assert_eq!(initial.stdout,"2\n");
+    let changed=lesson_runner::run_example(&task,&after,"").await.unwrap();
+    assert!(changed.success,"{}",serde_json::to_string(&changed).unwrap());assert_eq!(changed.stdout,"3\n");
     for answer in [r#"["print","unknown"]"#,r#"["print","print"]"#,"not JSON"] {
         assert!(task.example_for_answer(answer).is_err());
     }
