@@ -64,6 +64,8 @@
     }
     await new Promise(r=>setTimeout(r,120));
     if(!document.querySelector('.problem-pane h2')?.textContent.trim())throw Error(`${revision} empty task ${i}`);
+    const choices=document.querySelector('.answer-interaction input[type="radio"]');
+    if(choices&&document.querySelector('.answer-interaction legend')?.textContent.trim()!==document.querySelector('.problem-pane h2').textContent.trim())throw Error('the question is missing above the answer choices');
     const pane=document.querySelector('.git-terminal').getBoundingClientRect();
     if(pane.width<=0||pane.height<=0||pane.left<0||pane.right>innerWidth+1)throw Error(`${revision} terminal layout ${JSON.stringify(pane.toJSON())}`);
    }

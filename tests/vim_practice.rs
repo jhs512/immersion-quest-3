@@ -11,7 +11,7 @@ fn wait(practice:&GitPractice,_terminal:&mut SetupTerminal,output:&mut tokio::sy
         let state=practice.vim_progress().unwrap();
         #[cfg(windows)] {
             let count=text.matches("\x1b[6n").count();
-            if state.state.is_none()&&count>dsr {
+            if count>dsr {
                 for _ in dsr..count {_terminal.input("\x1b[1;1R").unwrap();}
             }
             dsr=count;
@@ -22,7 +22,11 @@ fn wait(practice:&GitPractice,_terminal:&mut SetupTerminal,output:&mut tokio::sy
     panic!("Vim state timeout: {:?}; output {text:?}",practice.vim_progress().unwrap());
 }
 fn send(practice:&GitPractice,shell:&mut SetupTerminal,output:&mut tokio::sync::mpsc::Receiver<Vec<u8>>,keys:&str) {
-    practice.note_vim_input().unwrap();shell.input(keys).unwrap();std::thread::sleep(Duration::from_millis(130));while output.try_recv().is_ok(){}
+    // Service ConPTY cursor-position requests before and after typing, even
+    // after Vim has published ready. Discarding output can deadlock the editor.
+    wait(practice,shell,output,|p|p.state.is_some());
+    practice.note_vim_input().unwrap();shell.input(keys).unwrap();std::thread::sleep(Duration::from_millis(130));
+    wait(practice,shell,output,|p|p.state.is_some());
 }
 fn play(practice:&GitPractice,shell:&mut SetupTerminal,output:&mut tokio::sync::mpsc::Receiver<Vec<u8>>,task:&molip_quest::repository_course::Task,arrows:bool) {
     for action in &task.narration {

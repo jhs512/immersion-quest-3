@@ -2,12 +2,12 @@ use dioxus::prelude::*;
 use molip_quest::task_interaction::Interaction;
 
 #[component]
-pub fn InteractionEditor(interaction: Interaction, value: String, disabled: bool, onchange: EventHandler<String>) -> Element {
+pub fn InteractionEditor(interaction: Interaction, question: String, value: String, disabled: bool, onchange: EventHandler<String>) -> Element {
     let bridge_value=value.clone();
     let content=match interaction {
         Interaction::Choice { options, .. } => rsx! {
             fieldset { class: "answer-interaction", disabled,
-                legend { "답을 골라요" }
+                legend { "{question}" }
                 for option in options {
                     label { class: "answer-option", key: "{option.id}", "data-option-id":option.id.clone(),
                         input { r#type: "radio", name: "step-choice", value: option.id.clone(), checked: value == option.id,
