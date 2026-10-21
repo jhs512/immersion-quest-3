@@ -82,6 +82,41 @@
       }
     },
     {
+      "key": "web-serving-routing",
+      "title": "파일 하나에서 이름별 앱 분배로",
+      "depends_on": [
+        "http-network"
+      ],
+      "candidate_lessons": [
+        "web-static-first",
+        "web-path-status",
+        "web-port-virtual-hosts",
+        "web-reverse-proxy-first",
+        "web-port-proxy-routing",
+        "dns-nipio-local",
+        "web-name-virtual-hosts",
+        "web-name-proxy-routing",
+        "web-routing-diagnosis",
+        "docker-published-ports"
+      ],
+      "starts_with": "정적 HTML 파일 하나와 로컬 요청 하나",
+      "progression": "파일 응답 → 경로·상태 → 포트별 사이트 → 프록시 → 이름 해석 → 이름별 사이트·앱 → 진단; Docker 포트 공개는 컨테이너 기초 뒤 별도 관찰",
+      "evidence_of_understanding": "같은 IP·포트에서 이름만 바꿔 서로 다른 앱 응답을 받고 DNS·연결·HTTP 실패를 구분한다.",
+      "status": "planned",
+      "application_integration_dependencies": [
+        "spring-core"
+      ],
+      "entry_experiment": {
+        "minimal_state": "정적 HTML 파일 하나와 로컬 요청 하나",
+        "single_change": "조건·값·연결 대상 하나만 변경",
+        "observation": "같은 IP·포트에서 이름만 바꿔 서로 다른 앱 응답을 받고 DNS·연결·HTTP 실패를 구분한다.",
+        "application_after_understanding": [
+          "spring-core"
+        ],
+        "does_not_require_existing_memo_app": true
+      }
+    },
+    {
       "key": "spring-core",
       "title": "수동 연결에서 작은 Spring 앱으로",
       "depends_on": [
@@ -135,6 +170,42 @@
         "observation": "조회 결과와 저장 전후 행 비교",
         "application_after_understanding": [
           "메모 저장에 연결"
+        ],
+        "does_not_require_existing_memo_app": true
+      }
+    },
+    {
+      "key": "redis-foundations",
+      "title": "키 하나에서 Redis 자료구조로",
+      "depends_on": [
+        "run-build"
+      ],
+      "candidate_lessons": [
+        "redis-first-key",
+        "redis-key-lifecycle",
+        "redis-counters",
+        "redis-hashes",
+        "redis-lists",
+        "redis-sets",
+        "redis-sorted-sets",
+        "redis-specialized-types",
+        "redis-java-client"
+      ],
+      "starts_with": "독립 Redis 서버 하나와 CLI의 SET·GET",
+      "progression": "키·값 → 만료 → 숫자 → Hash·List·Set·Sorted set → 목적별 자료구조 → Java 클라이언트",
+      "evidence_of_understanding": "실제 키·타입·만료·자료구조의 변화를 두 클라이언트에서 비교한다.",
+      "status": "planned",
+      "application_integration_dependencies": [
+        "spring-core",
+        "sql-storage"
+      ],
+      "entry_experiment": {
+        "minimal_state": "독립 Redis 서버 하나와 CLI의 SET·GET",
+        "single_change": "조건·값·연결 대상 하나만 변경",
+        "observation": "실제 키·타입·만료·자료구조의 변화를 두 클라이언트에서 비교한다.",
+        "application_after_understanding": [
+          "spring-core",
+          "sql-storage"
         ],
         "does_not_require_existing_memo_app": true
       }
@@ -199,6 +270,40 @@
       }
     },
     {
+      "key": "redis-applications",
+      "title": "배운 Redis를 캐시·세션·요청 제한에 연결",
+      "depends_on": [
+        "redis-foundations"
+      ],
+      "candidate_lessons": [
+        "redis-cache-atomicity",
+        "redis-session-state",
+        "redis-rate-limit",
+        "redis-transactions-scripts",
+        "redis-pipelining"
+      ],
+      "starts_with": "가짜 원본 조회 하나와 캐시 키 하나",
+      "progression": "누락·적중·무효화 → 세션 상태 공유 → 요청 제한 → WATCH·MULTI/EXEC·Lua → 파이프라인",
+      "evidence_of_understanding": "오래된 캐시·기간 만료·여러 명령 사이의 실패를 재현하고 보장 범위를 설명한다.",
+      "status": "planned",
+      "application_integration_dependencies": [
+        "spring-core",
+        "sql-storage",
+        "security"
+      ],
+      "entry_experiment": {
+        "minimal_state": "가짜 원본 조회 하나와 캐시 키 하나",
+        "single_change": "조건·값·연결 대상 하나만 변경",
+        "observation": "오래된 캐시·기간 만료·여러 명령 사이의 실패를 재현하고 보장 범위를 설명한다.",
+        "application_after_understanding": [
+          "spring-core",
+          "sql-storage",
+          "security"
+        ],
+        "does_not_require_existing_memo_app": true
+      }
+    },
+    {
       "key": "concurrency-redis",
       "title": "요청 둘과 동시성·Redis",
       "depends_on": [
@@ -209,7 +314,6 @@
         "controlled-race",
         "local-concurrency-tools",
         "database-concurrency",
-        "redis-cache-atomicity",
         "distributed-lock-limits"
       ],
       "starts_with": "조회수 하나를 요청 둘이 올려요.",
@@ -217,7 +321,8 @@
       "evidence_of_understanding": "각 해결책이 지키는 범위와 여전히 실패하는 조건을 비교해요.",
       "status": "planned",
       "application_integration_dependencies": [
-        "transactions-jpa"
+        "transactions-jpa",
+        "redis-applications"
       ],
       "entry_experiment": {
         "minimal_state": "공유 숫자 하나와 제어 가능한 두 작업",
@@ -225,6 +330,38 @@
         "observation": "잃어버린 갱신과 보호 범위를 관찰",
         "application_after_understanding": [
           "메모 조회수·중복 요청으로 연결"
+        ],
+        "does_not_require_existing_memo_app": true
+      }
+    },
+    {
+      "key": "redis-delivery-recovery",
+      "title": "Redis 메시지 전달과 저장·복구",
+      "depends_on": [
+        "redis-foundations"
+      ],
+      "candidate_lessons": [
+        "redis-pubsub",
+        "redis-streams",
+        "redis-persistence",
+        "redis-memory-eviction",
+        "redis-replication-basics"
+      ],
+      "starts_with": "메시지 한 개 또는 복구할 키 하나",
+      "progression": "Pub/Sub 유실 → Streams 읽기·확인·회수 → RDB/AOF → 퇴거 → 복제·장애 전환의 구분",
+      "evidence_of_understanding": "전달·확인·저장·복제의 서로 다른 상태와 실패를 실제 인스턴스에서 확인한다.",
+      "status": "planned",
+      "application_integration_dependencies": [
+        "events-kafka",
+        "operate"
+      ],
+      "entry_experiment": {
+        "minimal_state": "메시지 한 개 또는 복구할 키 하나",
+        "single_change": "조건·값·연결 대상 하나만 변경",
+        "observation": "전달·확인·저장·복제의 서로 다른 상태와 실패를 실제 인스턴스에서 확인한다.",
+        "application_after_understanding": [
+          "events-kafka",
+          "operate"
         ],
         "does_not_require_existing_memo_app": true
       }
@@ -473,16 +610,46 @@
       "url": "https://docs.vllm.ai/en/latest/getting_started/installation/",
       "checked_at": "2026-10-20",
       "use": "하드웨어와 외부 플러그인 경로를 제작 시 확인"
+    },
+    {
+      "url": "https://nginx.org/en/docs/beginners_guide.html",
+      "checked_at": "2026-10-22",
+      "use": "정적 파일 제공·설정 반영·프록시"
+    },
+    {
+      "url": "https://nginx.org/en/docs/http/request_processing.html",
+      "checked_at": "2026-10-22",
+      "use": "수신 IP·포트 및 Host의 선택 순서"
+    },
+    {
+      "url": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass",
+      "checked_at": "2026-10-22",
+      "use": "별도 앱으로 HTTP 요청 전달"
+    },
+    {
+      "url": "https://nip.io/",
+      "checked_at": "2026-10-22",
+      "use": "이름 안의 IP를 반환하는 DNS"
+    },
+    {
+      "url": "https://docs.docker.com/engine/network/port-publishing/",
+      "checked_at": "2026-10-22",
+      "use": "호스트·컨테이너 포트 대응"
+    },
+    {
+      "url": "https://redis.io/docs/latest/develop/data-types/",
+      "checked_at": "2026-10-22",
+      "use": "Redis 자료형과 지원 기능 범위"
     }
   ],
   "current_local_bundle": {
-    "lessons": 22,
-    "steps": 203,
+    "lessons": 24,
+    "steps": 233,
     "implemented": [
       "java-launch",
       "java-arguments"
     ],
-    "remote_course_publication": "기존 원격 과정의 고정 버전은 덮어쓰지 않음"
+    "remote_course_publication": "현재 게시된 과정은 24수업·233스텝; 2026-10-22 확장 후보는 미등록"
   },
   "concept_first_contract": [
     "이전 앱 구현 없이 최소 준비 코드만으로 시작한다.",
@@ -534,6 +701,115 @@
     ],
     "logs-metrics-recovery": [
       "bash-processes"
+    ],
+    "web-static-first": [
+      "http-first-request"
+    ],
+    "web-path-status": [
+      "web-static-first"
+    ],
+    "web-port-virtual-hosts": [
+      "web-static-first",
+      "network-addresses"
+    ],
+    "web-reverse-proxy-first": [
+      "web-path-status",
+      "bash-processes"
+    ],
+    "web-port-proxy-routing": [
+      "web-reverse-proxy-first",
+      "web-port-virtual-hosts"
+    ],
+    "dns-nipio-local": [
+      "network-addresses",
+      "web-static-first"
+    ],
+    "web-name-virtual-hosts": [
+      "dns-nipio-local",
+      "web-port-virtual-hosts"
+    ],
+    "web-name-proxy-routing": [
+      "web-name-virtual-hosts",
+      "web-reverse-proxy-first"
+    ],
+    "web-routing-diagnosis": [
+      "web-name-proxy-routing"
+    ],
+    "docker-published-ports": [
+      "docker-one-container",
+      "web-static-first"
+    ],
+    "redis-first-key": [
+      "bash-basics"
+    ],
+    "redis-key-lifecycle": [
+      "redis-first-key"
+    ],
+    "redis-counters": [
+      "redis-first-key"
+    ],
+    "redis-hashes": [
+      "redis-first-key"
+    ],
+    "redis-lists": [
+      "redis-first-key"
+    ],
+    "redis-sets": [
+      "redis-first-key"
+    ],
+    "redis-sorted-sets": [
+      "redis-sets",
+      "redis-counters"
+    ],
+    "redis-specialized-types": [
+      "redis-sets",
+      "redis-counters"
+    ],
+    "redis-java-client": [
+      "redis-first-key",
+      "gradle-basics"
+    ],
+    "redis-cache-atomicity": [
+      "redis-first-key",
+      "redis-key-lifecycle"
+    ],
+    "redis-session-state": [
+      "redis-hashes",
+      "redis-key-lifecycle"
+    ],
+    "redis-rate-limit": [
+      "redis-counters",
+      "redis-key-lifecycle"
+    ],
+    "redis-transactions-scripts": [
+      "redis-counters",
+      "redis-key-lifecycle",
+      "controlled-race"
+    ],
+    "redis-pipelining": [
+      "redis-first-key"
+    ],
+    "redis-pubsub": [
+      "redis-first-key"
+    ],
+    "redis-streams": [
+      "redis-first-key",
+      "redis-lists"
+    ],
+    "redis-persistence": [
+      "redis-first-key",
+      "bash-processes"
+    ],
+    "redis-memory-eviction": [
+      "redis-key-lifecycle"
+    ],
+    "redis-replication-basics": [
+      "redis-persistence"
+    ],
+    "distributed-lock-limits": [
+      "controlled-race",
+      "redis-key-lifecycle",
+      "redis-transactions-scripts"
     ]
   },
   "latest_delivery": {
@@ -551,5 +827,50 @@
     "status": "prototype_verified_continuous_shell_runtime_pending",
     "runtime_contract": "문제 이동 시 실제 Bash 세션 유지; 앱 재시작은 새 세션임을 명시",
     "design": "docs/curriculum/bash-environment-foundations.md"
+  },
+  "amended_at": "2026-10-22",
+  "web_redis_amendment": {
+    "status": "plan_only",
+    "source": "docs/curriculum/web-server-and-redis-foundations.md",
+    "research": "docs/curriculum/redis-foundations-research-2026-10-22.md",
+    "request": "일반 웹서버·가상 호스팅·포트와 이름별 전달·Redis의 기초 및 다양한 기능",
+    "preserve_jpa_kafka_scope": true,
+    "no_new_runtime_registration": true
+  },
+  "lesson_application_integration_prerequisites": {
+    "redis-session-state": [
+      "spring-security-filters"
+    ],
+    "redis-cache-atomicity": [
+      "spring-core",
+      "sql-storage"
+    ],
+    "web-name-proxy-routing": [
+      "spring-boot-first"
+    ]
+  },
+  "player_management_requests": {
+    "status": "planned_not_implemented",
+    "design": "docs/curriculum/player-course-management-plan.md",
+    "features": [
+      {
+        "key": "lesson-progress-reset",
+        "scope": "github_user_id + course_id + lesson_id",
+        "requirements": [
+          "다른 코스의 같은 수업 진도 보존",
+          "로컬·원격 재동기화 뒤에도 초기화 유지",
+          "실제 GitHub 저장소·PR·파일은 삭제하지 않음"
+        ]
+      },
+      {
+        "key": "course-story-document",
+        "scope": "current visible installed course snapshot",
+        "requirements": [
+          "수업별 목표·상황·이야기를 하나의 문서로 표시",
+          "내부 PRD·핵심 흐름·정답은 노출하지 않음",
+          "코스 순서·버전·공개 범위와 일치"
+        ]
+      }
+    ]
   }
 }
