@@ -11,7 +11,7 @@ function elements(snapshot) {
     commit.parents.forEach((parent, index) => {
       if (!lanes.has(parent)) lanes.set(parent, index === 0 ? lane : nextLane++);
     });
-    const refs = snapshot.references.filter(ref => ref.id === commit.id).map(ref => ref.name);
+    const refs = snapshot.references.filter(ref => ref.id === commit.id).map(ref => ref.remote ? `원격 기록: ${ref.name}` : ref.name);
     const current = snapshot.head === commit.id;
     const names = [current ? 'HEAD' : '', ...refs].filter(Boolean).join(' · ');
     return {data: {id: commit.id, label: `${names ? names + '\n' : ''}${commit.id.slice(0,7)} ${commit.subject.slice(0,60)}`,
@@ -54,7 +54,7 @@ export const gitGraphs = {
     const detail = root.querySelector('.git-graph-detail');
     status.textContent = error || (!snapshot.initialized ? 'git init으로 저장소를 만들면 보여요.' :
       !snapshot.head ? '아직 첫 커밋이 없어요.' : `${snapshot.branch || '브랜치 밖의 HEAD'} · ${snapshot.merging ? '병합 진행 중' : snapshot.changes.length ? '커밋하지 않은 변경이 있어요' : '작업 폴더가 깨끗해요'}${snapshot.truncated ? ' · 최근 200개 표시' : ''}`);
-    detail.textContent = '점을 누르면 커밋 설명을 볼 수 있어요.';
+    detail.textContent = snapshot.references.some(ref => ref.remote) ? '원격 기록은 마지막 fetch·push 때 확인한 상태예요. PR 상태를 직접 조회한 것은 아니에요.' : '점을 누르면 커밋 설명을 볼 수 있어요.';
     view.cy.batch(() => { view.cy.elements().remove(); if (!error) view.cy.add(elements(snapshot)); });
     view.cy.resize(); if (view.cy.nodes().length) view.cy.fit(undefined, 18);
     root.dataset.graphReady = 'true';

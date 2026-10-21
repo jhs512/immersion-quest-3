@@ -2,7 +2,7 @@ name: Learning dashboard
 on:
   push:
     branches: [main]
-    paths: ['site/dashboard/**', 'tools/test-dashboard.mjs', '.github/workflows/pages.yml']
+    paths: ['site/dashboard/**', 'site/open/**', 'tools/test-lesson-link-page.mjs', 'tools/test-dashboard.mjs', '.github/workflows/pages.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -22,11 +22,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test tools/test-dashboard.mjs
+      - run: node --test tools/test-dashboard.mjs tools/test-lesson-link-page.mjs
       - name: Prepare public dashboard
         run: |
-          mkdir -p public/dashboard
+          mkdir -p public/dashboard public/open
           cp site/dashboard/* public/dashboard/
+          cp site/open/* public/open/
           printf '%s' '<!doctype html><html lang="ko"><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=dashboard/"><title>MQ 학습 현황</title><a href="dashboard/">학습 현황 열기</a></html>' > public/index.html
           touch public/.nojekyll
       - uses: actions/configure-pages@v5

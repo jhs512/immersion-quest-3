@@ -24,7 +24,8 @@ jobs:
         run: |
           cargo test --release --locked --lib updater::tests
           cargo test --release --locked --lib course_visibility::tests
-          cargo test --release --locked --lib progress_sync::tests
+          cargo test --release --locked --lib progress_sync
+          cargo test --release --locked --lib course_identity::tests
       - name: Verify interactive setup terminal
         run: cargo test --release --locked --lib setup_terminal::tests
       - uses: actions/setup-java@v4
@@ -32,7 +33,9 @@ jobs:
           distribution: temurin
           java-version: '25'
       - name: Verify persistent Java build workspace
-        run: cargo test --release --locked --test java_launch --test java_arguments --test bundled_courses --test github_pr --test git_lesson_goals --test git_merge_goals --test redesigned_git_first --test redesigned_git_remote --test redesigned_git_branch --test git_graph --test interaction_examples --test bash_basics --test vim_practice --test step_reset
+        run: cargo test --release --locked --test java_launch --test java_arguments --test bundled_courses --test github_pr --test git_lesson_goals --test git_merge_goals --test redesigned_git_first --test redesigned_git_remote --test redesigned_git_branch --test git_graph --test lesson_link --test interaction_examples --test bash_basics --test vim_practice --test step_reset
+      - name: Verify detached progress exit helper
+        run: cargo test --locked --test progress_exit_process -- --nocapture
       - name: Verify local diagnostics and report retries
         run: |
           cargo test --release --locked --lib telemetry::tests
@@ -66,8 +69,11 @@ jobs:
           $installPath = Join-Path $env:RUNNER_TEMP 'mq3-install-check'
           $installer = Start-Process target/installers/molip-quest-3-windows-x64-setup.exe -WindowStyle Hidden -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/DIR=$installPath") -Wait -PassThru
           if ($installer.ExitCode -ne 0 -or !(Test-Path "$installPath/molip-quest.exe")) { throw 'Installation failed.' }
+          $registered = (Get-Item 'HKCU:\Software\Classes\molipquest\shell\open\command').GetValue('')
+          if ($registered -ne "`"$installPath\molip-quest.exe`" --open `"%1`"") { throw 'MQ lesson protocol was not registered.' }
           $uninstaller = Start-Process "$installPath/unins000.exe" -WindowStyle Hidden -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') -Wait -PassThru
           if ($uninstaller.ExitCode -ne 0) { throw 'Uninstallation failed.' }
+          if (Test-Path 'HKCU:\Software\Classes\molipquest') { throw 'MQ lesson protocol was not removed.' }
       - uses: actions/upload-artifact@v4
         with:
           name: mq3-windows-x64
@@ -104,9 +110,12 @@ jobs:
           cargo test --release --locked --lib updater::tests
           cargo test --release --locked --lib setup_terminal::tests
           cargo test --release --locked --lib course_visibility::tests
-          cargo test --release --locked --lib progress_sync::tests
+          cargo test --release --locked --lib progress_sync
+          cargo test --release --locked --lib course_identity::tests
       - name: Verify C, Java and Python execution on this Mac
-        run: cargo test --release --locked --test macos_runtime --test java_launch --test java_arguments --test bundled_courses --test github_pr --test git_lesson_goals --test git_merge_goals --test redesigned_git_first --test redesigned_git_remote --test redesigned_git_branch --test git_graph --test interaction_examples --test bash_basics --test vim_practice --test step_reset
+        run: cargo test --release --locked --test macos_runtime --test java_launch --test java_arguments --test bundled_courses --test github_pr --test git_lesson_goals --test git_merge_goals --test redesigned_git_first --test redesigned_git_remote --test redesigned_git_branch --test git_graph --test lesson_link --test interaction_examples --test bash_basics --test vim_practice --test step_reset
+      - name: Verify detached progress exit helper
+        run: cargo test --locked --test progress_exit_process -- --nocapture
       - name: Verify local diagnostics and report retries
         run: |
           cargo test --release --locked --lib telemetry::tests
@@ -124,13 +133,15 @@ jobs:
         run: |
           python -m pip install edge-tts==7.3.1
           export MOLIP_PYTHON="$(which python)"
-          cargo test --locked --test player_loading_native --test player_java_launch_native --test player_java_arguments_native --test player_git_course_native --test player_bash_native --test player_async_progress_native --test player_content_submit_native -- --ignored --nocapture --test-threads=1
+          cargo test --locked --test player_course_identity_native --test player_lesson_link_native --test progress_exit_process --test player_loading_native --test player_java_launch_native --test player_java_arguments_native --test player_git_course_native --test player_bash_native --test player_async_progress_native --test player_content_submit_native -- --ignored --nocapture --test-threads=1
       - name: Upload native WebView diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: macos-webview-${{ matrix.arch }}
           path: |
+            target/pilot-course-identity-native-result.json
+            target/pilot-lesson-link-native-result.json
             target/pilot-native-result.json
             target/pilot-java-launch-native-result.json
             target/pilot-java-arguments-native-result.json
@@ -144,6 +155,7 @@ jobs:
           cargo build --release --locked --bin molip-quest
           bash packaging/macos/bundle.sh
           codesign --verify --deep --strict 'target/bundle/MQ.app'
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleURLTypes:0:CFBundleURLSchemes:0' 'target/bundle/MQ.app/Contents/Info.plist' | grep -qx molipquest
           hdiutil verify "target/installers/molip-quest-3-macos-${MQ3_MAC_ARCH}.dmg"
       - name: Verify native launch and architecture
         run: |

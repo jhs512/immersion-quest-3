@@ -32,6 +32,8 @@ pub mod update_handoff;
 pub mod content_updates;
 pub mod change_history;
 pub mod git_practice;
+pub mod lesson_link;
+pub mod course_identity;
 #[cfg(not(target_os="android"))]
 mod process_scope;
 #[cfg(not(target_os = "android"))]

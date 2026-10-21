@@ -118,7 +118,7 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
         let ready=if is_vim {format!("window.{bridge_name}.vimState('{owner}')?.state")}else{format!("window.{bridge_name}.text('{owner}').split('\\n').some(line=>line.trimEnd().endsWith('$'))")};
         let gate=if is_java&&!demo{"document.querySelector('.repository-task')?.dataset.predictBeforeRun==='true'"}else{"false"};
         let script=format!("(async()=>{{window.{bridge_name}.mount(event=>{{if(event.kind==='input'&&event.data.includes('\\r')){{event.source=document.querySelector('[data-java-editor=\"{owner}\"]')?.value;if({gate}&&!document.querySelector('.repository-task input[type=radio]:checked')){{const pending=event.data.replaceAll('\\r','');if(pending)dioxus.send({{...event,data:pending}});dioxus.send({{kind:'prediction_required'}});return;}}}}dioxus.send(event)}},()=>{{}},'{owner}');dioxus.send({{kind:'mounted'}});const deadline=Date.now()+45000;while(!({ready})){{if(Date.now()>deadline){{dioxus.send({{kind:'startup_error'}});return;}}await new Promise(resolve=>setTimeout(resolve,30));}}dioxus.send({{kind:'ready'}});{}}})()",if demo {
-            "window.molipGitTutor={next:0,pending:new Map(),command(args){return new Promise(resolve=>{const token=++this.next;this.pending.set(token,resolve);dioxus.send({kind:'command',args,token});});},resolve(token,value){this.pending.get(token)?.(value);this.pending.delete(token);},dispose(){for(const resolve of this.pending.values())resolve(false);this.pending.clear();}};"
+            "window.molipGitTutor={next:0,pending:new Map(),command(args){return new Promise(resolve=>{const token=++this.next;this.pending.set(token,resolve);dioxus.send({kind:'command',args,token});});},graph(){return new Promise(resolve=>{const token=++this.next;this.pending.set(token,resolve);dioxus.send({kind:'graph',token});});},resolve(token,value){this.pending.get(token)?.(value);this.pending.delete(token);},dispose(){for(const resolve of this.pending.values())resolve(false);this.pending.clear();}};"
         }else{""});
         let script=script.replace("window.molipGitTutor={next:",&format!("window.molipGitTutor={{owner:'{owner}',next:"));
         let command_owner=owner.clone();
@@ -130,6 +130,14 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
             // one-time handshake, not a continuous stream of unchanged UI state.
             if event.kind=="mounted" {if graph_enabled{graph_requested.store(true,std::sync::atomic::Ordering::Relaxed);}if is_vim {document::eval(&format!("window.{bridge_name}?.updateVimState({},'{command_owner}')",serde_json::to_string(&*vim_live.peek()).unwrap()));}continue;}
             if event.kind=="ready" {onready.call(command_practice.clone());if is_vim {document::eval(&format!("window.{bridge_name}?.updateVimState({},'{command_owner}')",serde_json::to_string(&*vim_live.peek()).unwrap()));}continue;}
+            if event.kind=="graph"&&demo {
+                let source=command_practice.clone();let graph_owner=command_owner.clone();
+                spawn(async move {
+                    let result=tokio::task::spawn_blocking(move||source.lock().unwrap_or_else(|e|e.into_inner()).graph_snapshot()).await;
+                    let (snapshot,ready)=match result {Ok(Ok(snapshot))=>(serde_json::to_string(&snapshot).unwrap(),true),_=>{("null".into(),false)}};
+                    document::eval(&format!("if(window.molipGitTutor?.owner==='{graph_owner}'){{if({ready})window.mq3GitGraphs?.update('{graph_owner}',{snapshot});window.molipGitTutor.resolve({},{ready});}}",event.token));
+                });continue;
+            }
             if event.kind=="command"&&demo {
                 if event.args.is_empty()||event.args.len()>50||event.args.iter().any(|arg|arg.len()>4000){continue;}
                 let practice=command_practice.clone();let command_owner=command_owner.clone();

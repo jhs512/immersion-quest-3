@@ -22,6 +22,10 @@ impl PilotSession {
         let path = directory.path().canonicalize().map_err(|e| e.to_string())?;
         let owner = crate::issue_progress::new_id();
         std::fs::write(path.join(OWNER_FILE), &owner).map_err(|e| e.to_string())?;
+        // Existing native scenarios start as an already registered student.
+        // The enrollment scenario removes this fixture before launching.
+        crate::course_identity::Store::new(&path.join("course-names.sqlite3")).accept(
+            "mq3-validation/course",&crate::course_identity::Enrollment{user_id:987654321,course_id:"crs_3f59e7bd-70c1-4e81-9cb0-000000000001".into(),name:"검증학생".into(),revision:"pilot-name-1".into(),updated_at:1},true)?;
         Ok(Self {
             _directory: directory,
             path,

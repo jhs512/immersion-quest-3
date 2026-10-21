@@ -21,6 +21,12 @@ fn main() {
     let args:Vec<String>=std::env::args().collect();
     if emergency_report::cli(&args){return;}
     if args.get(1).map(String::as_str)==Some("--mq-java-practice"){std::process::exit(molip_quest::git_practice::java_build_practice::command_cli(&args[2..]));}
+    if args.get(1).map(String::as_str)==Some("--flush-progress-on-exit") {
+        molip_quest::setup_terminal::prepare_desktop_path();
+        let result=molip_quest::progress_sync::flush_before_exit();
+        if let Err(error)=result {eprintln!("Progress is saved locally for retry: {error}");std::process::exit(1);}
+        return;
+    }
     if args.get(1).map(String::as_str)==Some("--export-telemetry") {
         match molip_quest::telemetry::export_recent() {Ok(json)=>println!("{json}"),Err(error)=>{eprintln!("{error}");std::process::exit(1);}}
         return;
@@ -39,13 +45,25 @@ fn main() {
         drop(_telemetry);
         match result {Ok(line)=>{println!("{line}");std::process::exit(0)},Err(error)=>{eprintln!("{error}");std::process::exit(1)}}
     }
+    let raw_link=if args.get(1).map(String::as_str)==Some("--open"){args.get(2).map(String::as_str)}else{args.get(1).map(String::as_str).filter(|arg|arg.starts_with("molipquest:")||arg.starts_with("https://jhs512.github.io/immersion-quest-3/open/"))};
+    let _instance=match molip_quest::data_dir().and_then(|directory|molip_quest::lesson_link::Instance::claim(&directory,raw_link)){
+        Ok(Some(instance))=>instance,Ok(None)=>return,Err(error)=>{eprintln!("{error}");return;}
+    };
     // No menu bar on Windows and Linux: the app is driven from its own screens, slides have their
     // own fullscreen button. macOS keeps Dioxus's default menu, which is what makes ⌘C, ⌘V, ⌘X
     // and ⌘A reach the page (without an Edit menu the WebView never sees them); it lives in the
     // system menu bar, so the window itself looks the same.
     molip_quest::bug_report::forget();
     let _report_agent=emergency_report::start();
-    let config = dioxus::desktop::Config::new();
+    let config = dioxus::desktop::Config::new().with_custom_event_handler(|event,_|{
+        if matches!(event,dioxus::desktop::tao::event::Event::LoopDestroyed|dioxus::desktop::tao::event::Event::WindowEvent{event:dioxus::desktop::tao::event::WindowEvent::CloseRequested,..}) {
+            molip_quest::progress_sync::schedule_exit_flush();
+        }
+        #[cfg(target_os="macos")]
+        if let dioxus::desktop::tao::event::Event::Opened{urls}=event {for url in urls {molip_quest::lesson_link::receive(url.as_str());}}
+        #[cfg(not(target_os="macos"))]
+        let _=event;
+    });
     #[cfg(not(target_os = "macos"))]
     let config = config.with_menu(None);
     dioxus::LaunchBuilder::new()
@@ -91,6 +109,10 @@ fn UpdateGate() -> Element {
 
 #[component]
 fn App() -> Element {
+    #[cfg(feature="desktop")]
+    let quit_control={let window=dioxus::desktop::use_window();rsx!{button {id:"app-quit",hidden:true,onclick:move |_|{molip_quest::progress_sync::schedule_exit_flush();window.close();},"종료"}}};
+    #[cfg(not(feature="desktop"))]
+    let quit_control=rsx!{};
     use_future(||async move {
         let mut bridge=document::eval(include_str!("../assets/layout/telemetry.js"));
         while let Ok(error)=bridge.recv::<molip_quest::telemetry::WebError>().await {
@@ -188,6 +210,7 @@ window.molipVoice && molipVoice.setName({});",
         document::eval(include_str!("../assets/slides/slides.bundle.js"));
     });
     rsx! {
+        {quit_control}
         if cfg!(debug_assertions) && std::env::var_os("MOLIP_DEV_LIVE").is_some() {
             style {{include_str!("../assets/fonts/fonts.css")}}
             document::Stylesheet { href: asset!("/assets/app.css") }

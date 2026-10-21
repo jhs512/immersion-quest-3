@@ -16,11 +16,11 @@ async function content(repo, ref, path){return json(`https://raw.githubuserconte
 async function pool(items, work){let i=0;const results=await Promise.allSettled(Array.from({length:Math.min(3,items.length)},async()=>{while(i<items.length)await work(items[i++]);}));const failed=results.find(r=>r.status==='rejected');if(failed)throw failed.reason;}
 function render(){
   const query=$('search').value.trim().toLowerCase();$('students').replaceChildren();
-  const shown=students.filter(s=>s.login.toLowerCase().includes(query));
+  const shown=students.filter(s=>s.login.toLowerCase().includes(query)||s.name.toLowerCase().includes(query));
   if(!shown.length)$('students').append(node('p',students.length?'검색 결과가 없어요.':'아직 전송된 학습 기록이 없어요.','empty'));
   for(const s of shown){
     const detail=node('details',null,'student'), summary=node('summary');
-    summary.append(node('span',`@${s.login}`,'identity'));
+    const identity=node('span',s.name,'identity');identity.append(node('small',`@${s.login}`));summary.append(identity);
     const prog=node('span',null,'progress');
     if(s.percent!==null){const bar=node('progress');bar.max=100;bar.value=s.percent;bar.setAttribute('aria-label',`진도 ${s.percent}%`);prog.append(bar,node('span',`${s.percent}%`));}else prog.append(node('span','진도 확인 필요'));
     summary.append(prog,node('span',s.last,'last'),node('span',s.latest?new Date(s.latest*1000).toLocaleString('ko-KR'):'기록 대기','time'));detail.append(summary);
@@ -38,7 +38,7 @@ async function load(){
     const relevant=issues.filter(i=>progressKey(i,course));let done=0;
     await pool(course.lessons,async ref=>{try{const lesson=await content(ref.repository,ref.revision,'lesson.json');if(lesson.id===ref.id && lesson.revision===ref.revision && Array.isArray(lesson.tasks))lessons.set(ref.id,lesson);}catch{/* A missing lesson must not become 0% or 100%. */}});
     await pool(relevant,async issue=>{const key=progressKey(issue,course);const comments=issue.comments===0?[]:await pages(`/repos/${repo}/issues/${issue.number}/comments`);records.push({issue,events:verifiedEvents(comments,key)});$('status').textContent=`진도 이슈 ${++done} / ${relevant.length}개를 확인했어요.`;});
-    students=summarize(course,lessons,records);$('title').textContent=course.title;$('stats').replaceChildren(node('span',`학생 ${students.length}명`),node('span',`수업 ${course.lessons.length}개`));
+    students=summarize(course,lessons,records,issues);$('title').textContent=course.title;$('stats').replaceChildren(node('span',`학생 ${students.length}명`),node('span',`수업 ${course.lessons.length}개`));
     const missing=course.lessons.length-lessons.size;$('status').textContent=`조회 완료 · ${new Date().toLocaleTimeString('ko-KR')}${missing?` · 수업 자료 ${missing}개를 확인하지 못했어요. 전체 완료율은 표시하지 않아요.`:''}`;
     $('results').hidden=false;const u=new URL(location.href);u.searchParams.set('repo',repo);history.replaceState(null,'',u);render();
   }catch(error){$('status').textContent=error.message;}finally{busy=false;$('load').disabled=false;for(const b of $('presets').querySelectorAll('button'))b.disabled=false;}

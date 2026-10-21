@@ -35,3 +35,12 @@ test('missing pinned lessons stay unknown; duplicate issues cannot double-count 
   const lesson=new Map([['lesson-a',{tasks:[{id:stable,required:true}]}]]);
   const rows=summarize(course,lesson,records);assert.equal(rows.length,1);assert.equal(rows[0].solved,1);
 });
+
+test('editable names stay course-scoped; registration alone also appears in the dashboard',()=>{
+  const reg=(id,course_id,name,number=10)=>({number,user:{id,login:'student'},html_url:'https://github.com/o/r/issues/'+number,body:'<!-- mq3-enrollment:'+JSON.stringify({user_id:id,course_id,name,revision:'v1',updated_at:1})+' -->'});
+  let rows=summarize(course,new Map(),[],[reg(7,course.id,'[BE16]홍길동'),reg(8,'other-course','다른코스')]);
+  assert.equal(rows.length,1);assert.equal(rows[0].name,'[BE16]홍길동');assert.equal(rows[0].latest,undefined);
+  rows=summarize(course,new Map(),[{issue,events:[event('a')]}],[reg(7,course.id,'바꾼이름')]);assert.equal(rows.length,1);assert.equal(rows[0].name,'바꾼이름');
+  const spoof=reg(8,course.id,'사칭');spoof.user.id=7;
+  assert.equal(summarize(course,new Map(),[],[spoof]).length,0);
+});

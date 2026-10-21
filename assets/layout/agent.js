@@ -592,6 +592,13 @@
       if (!completed) throw new Error('Git 명령의 완료를 확인하지 못했어요.');
       return '실제 Git 명령이 끝났어요.';
     },
+    async git_graph(a, active) {
+      const tutor=explanationSession ? explanationSession.gitTutor() : window.molipGitTutor;
+      if (!tutor?.graph) throw new Error('커밋 그래프를 찾지 못했어요.');
+      const ready=await Promise.race([tutor.graph(),untilCancelled()]);
+      if(active()&&!ready)throw new Error('커밋 그래프를 확인하지 못했어요.');
+      return '실제 저장소의 그래프를 확인했어요.';
+    },
     choose_answer: a => demonstrateAnswer(String(a.id ?? '')),
     order_answer: a => demonstrateAnswer(JSON.stringify(a.ids ?? [])),
     fill_answer: a => demonstrateAnswer(String(a.value ?? '')),
@@ -749,6 +756,7 @@
   // Where each action's spotlight goes when it carries "say" (type_code places its own).
   const DEFAULT_TARGET = {
     git_command: () => '#git-demo-terminal',
+    git_graph: () => '#git-demo-terminal + .git-graph-panel',
     choose_answer: a => `answer:${a.id}`, order_answer: () => '.answer-order', fill_answer: () => '[aria-label="빈칸 답안"]',
     say: a => a.target || null, set_code: () => 'editor', patch_code: () => 'editor', fill_blanks: () => 'blanks', run: () => 'run', submit: () => 'submit',
     answer_quiz: () => 'quiz', next: () => 'nav', prev: () => 'nav', goto: () => 'missions', next_slide: () => 'slides', finish_slides: () => 'slides',
@@ -811,7 +819,7 @@
     const session=new ExplanationSession(root,options.owner);
     explanationSession=session;
     // A demonstration can execute examples, but never submit, advance or grant completion.
-    const allowed = new Set(['vim_wait', 'bash_command', 'vim_open', 'vim_keys', 'write_memo', 'inspect_folder', 'read_memo', 'git_command', 'say', 'set_code', 'patch_code', 'type_code', 'set_input', 'run', 'choose_answer', 'order_answer', 'fill_answer']);
+    const allowed = new Set(['vim_wait', 'bash_command', 'vim_open', 'vim_keys', 'write_memo', 'inspect_folder', 'read_memo', 'git_command', 'git_graph', 'say', 'set_code', 'patch_code', 'type_code', 'set_input', 'run', 'choose_answer', 'order_answer', 'fill_answer']);
     try { return await run(Array.isArray(actions) ? actions.filter(action => allowed.has(action?.action)) : [], true); }
     finally { if (explanationSession === session) restoreExplanation(); }
   }

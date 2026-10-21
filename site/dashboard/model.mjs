@@ -20,12 +20,23 @@ export function verifiedEvents(comments, key) {
     seen.add(e.id); return true;
   }).sort((a,b) => a.at - b.at || a.id.localeCompare(b.id));
 }
-export function summarize(course, lessons, records) {
+export function enrollments(issues,course){
+  const names=new Map();
+  for(const issue of [...issues].sort((a,b)=>a.number-b.number)){
+    if(issue.pull_request)continue;
+    const p=markers(issue.body,'enrollment').find(p=>p.user_id===issue.user?.id&&p.course_id===course.id&&typeof p.name==='string'&&p.name.length>0&&p.name.length<=160&&!/[\s<>\x00-\x1f]/u.test(p.name));
+    if(p&&!names.has(p.user_id))names.set(p.user_id,{name:p.name,login:issue.user.login,url:issue.html_url});
+  }
+  return names;
+}
+export function summarize(course, lessons, records, registrations=[]) {
   const students = new Map();
+  const names=enrollments(registrations,course);
+  for(const [id,p] of names)students.set(id,{id,login:p.login,name:p.name,events:new Map(),issues:[p.url]});
   for (const {issue, events} of records) {
     const key = progressKey(issue, course);
     if (!key) continue;
-    if (!students.has(key.user_id)) students.set(key.user_id, {id:key.user_id, login:issue.user.login, events:new Map(), issues:[]});
+    if (!students.has(key.user_id)) students.set(key.user_id, {id:key.user_id, login:issue.user.login, name:issue.user.login, events:new Map(), issues:[]});
     const student = students.get(key.user_id);
     for (const e of events) if (e.key?.user_id === key.user_id && e.key?.course_id === course.id && e.key?.lesson_id === key.lesson_id) student.events.set(e.id, e);
     student.issues.push(issue.html_url);

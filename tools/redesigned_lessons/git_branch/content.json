@@ -4,7 +4,7 @@
     {
       "id": "stp_633fd498-6bad-4c04-9dc8-3912c7d45bc9",
       "title": "feature 브랜치를 만드세요",
-      "goal": "안내 파일(`guide.txt`)에는 `안내: 기본 안내`를 커밋해 뒀어요. 현재 브랜치는 `main`이에요.\n\n커밋 그래프에서 `*`는 커밋이고 선은 이력이에요.\n괄호 안에는 브랜치 이름이 보여요.\n`HEAD -> main`은 현재 main에서 작업한다는 뜻이에요.\n\n**할 일**\n\n1. `git branch feature`: feature 브랜치를 만드세요. 현재 브랜치는 main으로 유지하세요.\n2. `git log --oneline --all --graph --decorate`: main과 feature가 어느 커밋에 있는지 확인하세요.\n3. `git branch --show-current`: 현재 브랜치 이름을 확인하세요.\n4. 확인한 뒤 제출 버튼을 누르세요.",
+      "goal": "안내 파일(`guide.txt`)에는 `안내: 기본 안내`를 커밋해 뒀어요. 현재 브랜치는 `main`이에요.\n\n`git branch`는 브랜치 목록을 보여줘요.\n이름 앞의 `*`가 현재 브랜치예요.\n옆 그래프의 점은 커밋이고 선은 이력이에요.\nHEAD는 지금 작업하는 위치예요.\n\n**할 일**\n\n1. `git branch feature`: feature 브랜치를 만드세요. 현재 브랜치는 main으로 유지하세요.\n2. 옆의 커밋 그래프에서 main과 feature가 어느 커밋에 있는지 확인하세요.\n3. `git branch`: *가 붙은 현재 브랜치를 확인하세요.\n4. 확인한 뒤 제출 버튼을 누르세요.",
       "language": "git",
       "starter_code": "",
       "solution": "# 이름만 만들고 현재 브랜치는 유지해요.\ngit branch feature",
@@ -48,7 +48,7 @@
       "narration": [
         {
           "action": "say",
-          "text": "별표는 커밋이고 선은 이력이에요. 괄호 안의 이름이 가리키는 위치를 보세요.",
+          "text": "옆 그래프의 점은 커밋이고 선은 이력이에요. HEAD는 지금 작업하는 위치예요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -66,34 +66,26 @@
           "target": "#git-demo-terminal"
         },
         {
-          "action": "git_command",
-          "args": [
-            "log",
-            "--oneline",
-            "--all",
-            "--graph",
-            "--decorate"
-          ],
-          "say": "커밋 그래프로 현재 연결과 브랜치 위치를 봐요.",
-          "target": "#git-demo-terminal"
+          "action": "git_graph",
+          "say": "옆의 커밋 그래프를 확인해요.",
+          "target": "#git-demo-terminal + .git-graph-panel"
         },
         {
           "action": "say",
-          "text": "main과 feature가 같은 별표 옆에 있어요. 새 이름이 같은 커밋을 가리켜요.",
+          "text": "main과 feature가 같은 점 옆에 있어요. 새 이름이 같은 커밋을 가리켜요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "git_command",
           "args": [
-            "branch",
-            "--show-current"
+            "branch"
           ],
-          "say": "git branch --show-current로 현재 브랜치를 확인해요.",
+          "say": "git branch로 목록을 봐요. 별표가 현재 위치예요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "main이 나와요. feature를 만들어도 현재 브랜치는 그대로예요.",
+          "text": "main 앞에 별표가 있어요. feature를 만들어도 현재 브랜치는 그대로예요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -101,12 +93,15 @@
           "text": "조심하세요. 브랜치를 만드는 명령과 바꾸는 명령은 달라요.",
           "target": "#git-demo-terminal"
         }
+      ],
+      "hints": [
+        "터미널에서도 그래프를 볼 수 있어요. git log --oneline --all --graph --decorate를 실행하세요. 옵션을 외울 필요는 없어요."
       ]
     },
     {
       "id": "stp_bc99cd31-74db-49f6-ba0f-c7a1911d7f6b",
       "title": "작업할 브랜치를 feature로 바꾸세요",
-      "goal": "현재 브랜치는 `main`이고, `feature`도 만들어져 있어요.\n\n**할 일**\n\n1. `git switch feature`: 작업할 브랜치를 feature로 바꾸세요.\n2. `git branch --show-current`: 현재 브랜치 이름을 확인하세요.\n3. 확인한 뒤 제출 버튼을 누르세요.",
+      "goal": "현재 브랜치는 `main`이고, `feature`도 만들어져 있어요.\n\n**할 일**\n\n1. `git switch feature`: 작업할 브랜치를 feature로 바꾸세요.\n2. `git branch`: *가 붙은 현재 브랜치를 확인하세요.\n3. 확인한 뒤 제출 버튼을 누르세요.",
       "language": "git",
       "starter_code": "",
       "solution": "# 작업할 브랜치로 이동해요.\ngit switch feature",
@@ -168,15 +163,14 @@
         {
           "action": "git_command",
           "args": [
-            "branch",
-            "--show-current"
+            "branch"
           ],
-          "say": "git branch --show-current로 결과를 확인해요.",
+          "say": "git branch로 목록을 봐요. 별표가 현재 위치예요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "feature가 나와요. 이제 feature에서 작업하고 있어요.",
+          "text": "feature 앞에 별표가 있어요. 이제 feature에서 작업하고 있어요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -189,10 +183,10 @@
     {
       "id": "stp_25a5c8c6-88c3-4980-8098-d7822fb7d462",
       "title": "수정한 안내를 feature에 커밋하세요",
-      "goal": "현재 브랜치는 `feature`예요. 안내 파일(`guide.txt`)의 첫 줄을 `안내: 메모를 남겨요`로 바꿔 뒀어요. `main`의 기존 커밋은 그대로 남겨 두세요.\n\n**할 일**\n\n1. `git add -- guide.txt`: 안내 파일의 현재 내용을 준비 영역에 담으세요.\n2. `git commit -m \"새 안내\"`: 준비 영역의 내용을 새 커밋으로 남기세요.\n3. `git log --oneline --all --graph --decorate`: main과 feature의 커밋 위치를 비교하세요.\n4. `git show HEAD:guide.txt`: 현재 커밋에 기록된 안내를 읽으세요.\n5. `git show main:guide.txt`: main에 기록된 안내와 비교하세요.\n6. 확인한 뒤 제출 버튼을 누르세요.",
+      "goal": "현재 브랜치는 `feature`예요. 안내 파일(`guide.txt`)의 첫 줄을 `안내: 메모를 남겨요`로 바꿔 뒀어요. `main`의 기존 커밋은 그대로 남겨 두세요.\n\n**할 일**\n\n1. `git add guide.txt`: 안내 파일의 현재 내용을 준비 영역에 담으세요.\n2. `git commit -m \"새 안내\"`: 준비 영역의 내용을 새 커밋으로 남기세요.\n3. 옆의 커밋 그래프에서 main과 feature의 커밋 위치를 비교하세요.\n4. `git show HEAD:guide.txt`: 현재 커밋에 기록된 안내를 읽으세요.\n5. `git show main:guide.txt`: main에 기록된 안내와 비교하세요.\n6. 확인한 뒤 제출 버튼을 누르세요.",
       "language": "git",
       "starter_code": "",
-      "solution": "# 현재 안내를 준비해요.\ngit add -- guide.txt\n# feature에 새 기록을 남겨요.\ngit commit -m \"새 안내\"",
+      "solution": "# 현재 안내를 준비해요.\ngit add guide.txt\n# feature에 새 기록을 남겨요.\ngit commit -m \"새 안내\"",
       "tests": [],
       "required": true,
       "git_terminal": {
@@ -252,7 +246,6 @@
           "action": "git_command",
           "args": [
             "add",
-            "--",
             "guide.txt"
           ],
           "say": "git add로 수정한 guide.txt를 준비 영역에 넣어요.",
@@ -269,16 +262,9 @@
           "target": "#git-demo-terminal"
         },
         {
-          "action": "git_command",
-          "args": [
-            "log",
-            "--oneline",
-            "--all",
-            "--graph",
-            "--decorate"
-          ],
-          "say": "커밋 그래프로 현재 연결과 브랜치 위치를 봐요.",
-          "target": "#git-demo-terminal"
+          "action": "git_graph",
+          "say": "옆의 커밋 그래프를 확인해요.",
+          "target": "#git-demo-terminal + .git-graph-panel"
         },
         {
           "action": "say",
@@ -323,7 +309,7 @@
     {
       "id": "stp_f86f03b5-9932-4650-ae6c-164a71663da3",
       "title": "feature의 커밋을 main에 반영하세요",
-      "goal": "현재 브랜치는 `main`이에요. `feature`에는 `안내: 메모를 남겨요`를 커밋해 뒀어요. `main`에는 `안내: 기본 안내`가 남아 있어요.\n\n**할 일**\n\n1. `git log --oneline --all --graph --decorate`: 병합 전 main과 feature의 커밋 위치를 비교하세요.\n2. `git merge feature`: feature의 커밋을 현재 main에 반영하세요.\n3. `git log --oneline --all --graph --decorate`: 병합 후 main과 feature의 커밋 위치를 비교하세요.\n4. `git branch -v`: main과 feature가 가리키는 커밋을 확인하세요.\n5. 확인한 뒤 제출 버튼을 누르세요.",
+      "goal": "현재 브랜치는 `main`이에요. `feature`에는 `안내: 메모를 남겨요`를 커밋해 뒀어요. `main`에는 `안내: 기본 안내`가 남아 있어요.\n\n**할 일**\n\n1. 옆의 커밋 그래프에서 병합 전 main과 feature의 커밋 위치를 비교하세요.\n2. `git merge feature`: feature의 커밋을 현재 main에 반영하세요.\n3. 옆의 커밋 그래프에서 병합 후 main과 feature의 커밋 위치를 비교하세요.\n4. `git branch`: 브랜치 목록과 현재 위치를 확인하세요.\n5. 확인한 뒤 제출 버튼을 누르세요.",
       "language": "git",
       "starter_code": "",
       "solution": "# 현재 main에 feature를 반영해요.\ngit merge feature",
@@ -411,16 +397,9 @@
           "target": "#git-demo-terminal"
         },
         {
-          "action": "git_command",
-          "args": [
-            "log",
-            "--oneline",
-            "--all",
-            "--graph",
-            "--decorate"
-          ],
-          "say": "커밋 그래프로 현재 연결과 브랜치 위치를 봐요.",
-          "target": "#git-demo-terminal"
+          "action": "git_graph",
+          "say": "옆의 커밋 그래프를 확인해요.",
+          "target": "#git-demo-terminal + .git-graph-panel"
         },
         {
           "action": "say",
@@ -437,16 +416,9 @@
           "target": "#git-demo-terminal"
         },
         {
-          "action": "git_command",
-          "args": [
-            "log",
-            "--oneline",
-            "--all",
-            "--graph",
-            "--decorate"
-          ],
-          "say": "커밋 그래프로 현재 연결과 브랜치 위치를 봐요.",
-          "target": "#git-demo-terminal"
+          "action": "git_graph",
+          "say": "옆의 커밋 그래프를 확인해요.",
+          "target": "#git-demo-terminal + .git-graph-panel"
         },
         {
           "action": "say",
@@ -456,15 +428,14 @@
         {
           "action": "git_command",
           "args": [
-            "branch",
-            "-v"
+            "branch"
           ],
-          "say": "git branch -v로 각 브랜치가 가리키는 커밋을 봐요.",
+          "say": "git branch로 목록을 봐요. 별표가 현재 위치예요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "main과 feature 옆의 커밋 번호가 같아요.",
+          "text": "main 앞에 별표가 있어요. 그래프에서는 두 이름이 같은 커밋을 가리켜요.",
           "target": "#git-demo-terminal"
         },
         {

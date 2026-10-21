@@ -14,7 +14,11 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
     use_future(|| async move {
         if !pilot_source::enabled() || std::env::var_os("MOLIP_PILOT_SELF_TEST").is_none() { return; }
         let restart_phase=std::env::var("MOLIP_PILOT_SELF_TEST").ok().and_then(|mode|mode.strip_prefix("restart-").map(str::to_owned)).filter(|phase|matches!(phase.as_str(),"seed"|"reopen"));
-        let script=if let Some(phase)=&restart_phase {
+        let script=if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("course-identity") {
+            include_str!("../tools/player-pilot-course-identity.js").to_owned()
+        }else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("lesson-link") {
+            format!("window.mq3LinkTargets={};{}",std::env::var("MOLIP_LINK_TARGETS").unwrap(),include_str!("../tools/player-pilot-lesson-link.js"))
+        }else if let Some(phase)=&restart_phase {
             format!("window.mq3RestartPhase={};{}",serde_json::to_string(phase).unwrap(),include_str!("../tools/player-pilot-restart.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("async-progress") {
             include_str!("../tools/player-pilot-async-progress.js").to_owned()
@@ -46,6 +50,12 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
         let result = match tokio::time::timeout(std::time::Duration::from_secs(480), async {
             loop {
                 let message=bridge.recv::<serde_json::Value>().await?;
+                if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("lesson-link")&&message["control"]=="lesson-link-stage" {
+                    if let Some(stage)=message["stage"].as_str().filter(|stage|matches!(*stage,"first"|"second")){
+                        let _=std::fs::write(pilot_source::data_dir().unwrap().join(format!("lesson-link-{stage}")),"");
+                    }
+                    continue;
+                }
                 if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("async-progress")&&message["control"].is_string(){
                     let root=pilot_source::data_dir().unwrap();
                     if message["control"]=="pause-record"{

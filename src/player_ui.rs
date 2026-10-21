@@ -11,6 +11,24 @@ struct Session { github:Github,user:GithubUser }
 #[derive(Clone,PartialEq)]
 struct OpenLesson { course:CourseManifest,lesson:Lesson,events:Vec<LearningEvent>,mode:StudyMode,round:String,issue_url:Option<String> }
 
+fn prepare_open_lesson(session:Session,manifest:CourseManifest,reference:repository_course::LessonRef,mode:StudyMode,stage:Option<tokio::sync::mpsc::UnboundedSender<u8>>)->Result<OpenLesson,String>{
+    let gh=&session.github;let user=&session.user;
+    gh.ensure_user(user.id)?;
+    let lesson=gh.installed_lesson(&manifest,&reference)?;
+    if let Some(tx)=&stage{let _=tx.send(1);}
+    let key=ProgressKey{user_id:user.id,course_id:manifest.id.clone(),lesson_id:lesson.id.clone()};
+    let issue=gh.find_issue(&manifest.repository,user,&key)?;
+    let mut events=if let Some(issue)=&issue{gh.events(&manifest.repository,issue,&key)?}else{vec![]};
+    let unfinished=events.iter().rev().find(|e|e.kind==EventKind::Started&&e.mode==mode&&e.revision==lesson.revision&&!events.iter().any(|done|done.kind==EventKind::Completed&&done.round==e.round)).map(|e|e.round.clone());
+    let round=unfinished.unwrap_or_else(issue_progress::new_id);
+    if let Some(tx)=&stage{let _=tx.send(2);}
+    if !events.iter().any(|event|event.round==round){
+        let event=LearningEvent::new(key,&lesson.revision,mode,&round,EventKind::Started);
+        events=gh.record(&manifest.repository,user,&lesson.title,&event,&[])?;
+    }
+    Ok(OpenLesson{course:manifest,lesson,events,mode,round,issue_url:issue.map(|issue|issue.html_url)})
+}
+
 #[component]
 pub fn RepositoryPlayer(window_controls:Element)->Element {
     let mut session=use_signal(||None::<Session>);
@@ -19,6 +37,8 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
     let mut message=use_signal(String::new);
     let mut busy=use_signal(||false);
     let mut launching=use_signal(||None::<(String,u8)>);
+    let mut identity_scope=use_signal(String::new);
+    let mut waiting_name_link=use_signal(||None::<molip_quest::lesson_link::LessonLink>);
     let mut checked=use_signal(||false);
     let repositories=use_signal(molip_quest::course_authoring::catalog);
     let mut course_search=use_signal(String::new);
@@ -32,7 +52,7 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
         busy.set(true);message.set("gh 계정과 온라인 연결을 확인하고 있어요.".into());
         let github=Github::new();let gh=github.clone();
         match github_player::background(move||{let user=gh.user()?;let manifest=gh.installed_course(repository_course::initial_repository());Ok((user,manifest))}).await {
-            Ok((user,manifest))=>{let _=molip_quest::progress_sync::synchronize(github.clone(),user.clone());session.set(Some(Session{github,user}));match manifest {Ok(c)=>{course.set(Some(c));message.set(String::new());},Err(e)=>message.set(e)}},
+            Ok((user,manifest))=>{let _=molip_quest::course_identity::synchronize(github.clone(),user.clone());let _=molip_quest::progress_sync::synchronize(github.clone(),user.clone());session.set(Some(Session{github,user}));match manifest {Ok(c)=>{course.set(Some(c));message.set(String::new());},Err(e)=>message.set(e)}},
             Err(e)=>{session.set(None);course.set(None);message.set(e);}
         }
         busy.set(false);
@@ -42,6 +62,53 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
     use_future(move ||async move {
         if setup_preview {checked.set(true);}else{connect().await;}
     });
+    #[cfg(feature="desktop")]
+    let link_window=dioxus::desktop::use_window();
+    use_future(move||{
+        #[cfg(feature="desktop")]
+        let link_window=link_window.clone();
+        async move {
+        let mut focused=false;
+        loop {
+            if molip_quest::lesson_link::pending()&&!focused {
+                #[cfg(feature="desktop")]
+                {link_window.window.set_visible(true);link_window.window.set_minimized(false);link_window.window.set_focus();}
+                focused=true;
+            }
+            if !*busy.peek() {
+                let connected={session.peek().clone()};
+                if let Some(s)=connected {
+                    if let Some(request)=molip_quest::lesson_link::take(){
+                        focused=false;
+                        match request {
+                            molip_quest::lesson_link::Request::Focus=>{},
+                            molip_quest::lesson_link::Request::Invalid(error)=>{message.set(error.clone());document::eval(&format!("window.molipToast?.({})",serde_json::to_string(&error).unwrap()));},
+                            molip_quest::lesson_link::Request::Open(link)=>{
+                                busy.set(true);launching.set(Some(("연결된 수업".into(),0)));
+                                let requested=link.clone();
+                                let result=github_player::background(move||{
+                                    let manifest=s.github.installed_course(&link.course)?;
+                                    let visible=molip_quest::course_visibility::for_account(manifest,&s.user.login);
+                                    let reference=link.reference(&visible)?.clone();
+                                    let name=molip_quest::course_identity::Store::installed()?.load(&s.github,&visible.repository,&s.user,&visible.id,false)?;
+                                    if name.is_none(){return Ok((visible,None));}
+                                    let selected=prepare_open_lesson(s,visible.clone(),reference,StudyMode::Full,None)?;
+                                    molip_quest::course_authoring::remember(&link.course)?;
+                                    Ok((visible,Some(selected)))
+                                }).await;
+                                match result {Ok((manifest,selected))=>{
+                                    document::eval("window.molipAgent?.stop()");molip_quest::bug_report::forget();
+                                    course.set(Some(manifest));if let Some(selected)=selected{open.set(Some(selected));message.set(String::new());}else{open.set(None);waiting_name_link.set(Some(requested));message.set("이 코스에서 쓸 이름을 먼저 입력하세요.".into());}
+                                },Err(error)=>{message.set(error.clone());document::eval(&format!("window.molipToast?.({})",serde_json::to_string(&error).unwrap()));}}
+                                launching.set(None);busy.set(false);
+                            }
+                        }
+                    }
+                }
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(250)).await;
+        }
+    }});
     use_effect(move ||{
         let repos=repositories();let Some(s)=session() else{return};
         for repository in repos {
@@ -58,7 +125,7 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
         manifest,&session().map(|s|s.user.login).unwrap_or_default()));
     if let Some(selected)=open() {
         if let Some(session)=session() {
-            let player_key=format!("{}:{}:{}:{}",session.user.id,selected.lesson.id,selected.mode.label(),selected.round);
+            let player_key=format!("{}:{}:{}:{}:{}",session.user.id,selected.course.id,selected.lesson.id,selected.mode.label(),selected.round);
             return rsx!{div {class:"repository-session", {rsx!{LessonPlayer {key:"{player_key}",session,selected,window_controls,updates,onback:move |_|{document::eval("window.molipAgent?.stop()");molip_quest::bug_report::forget();open.set(None);refresh+=1;}}}} }};
         }
     }
@@ -93,6 +160,12 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                 if let Some(manifest)=visible_course {
                 if let Some(s)=session() {CourseProgressLoader {key:"{s.user.id}:{manifest.repository}:{manifest.lessons:?}:{refresh}",session:s,course:manifest.clone(),onloaded:move |records:github_player::CourseProgress|{progress.set(records.events);progress_requirements.set(records.required);}}}
                 section {class:"course-catalog",h2 {"{manifest.title}"}p {"{manifest.description}"}
+                    if let Some(s)=session() {
+                        CourseIdentity {key:"{s.user.id}:{manifest.id}",session:s.clone(),course:manifest.clone(),onready:{let scope=format!("{}:{}",s.user.id,manifest.id);move |ready:bool|{
+                            let current=format!("{}:{}",session.peek().as_ref().map(|s|s.user.id).unwrap_or(0),course.peek().as_ref().map(|c|c.id.as_str()).unwrap_or(""));
+                            if current==scope {if ready {identity_scope.set(scope.clone());if let Some(link)=waiting_name_link(){if link.course==course.peek().as_ref().map(|c|c.repository.as_str()).unwrap_or(""){waiting_name_link.set(None);molip_quest::lesson_link::receive(&link.app_url());}}}else{identity_scope.set(String::new());}}
+                        }}}
+                    }
                     {let records=progress();let total=manifest.lessons.iter().filter(|l|l.required).count();let complete=manifest.lessons.iter().filter(|l|l.required&&records.get(&l.id).is_some_and(|e|issue_progress::status(e,&l.revision,progress_requirements().get(&l.id).map(Vec::as_slice).unwrap_or(&[])).current)).count();rsx!{p {class:"study-progress","최신 버전 완료: 필수 수업 {complete} / {total}"}}}
                     p {"추천 순서와 상관없이 어떤 수업이든 선택할 수 있어요."}
                     a {href:format!("https://github.com/{}/issues",manifest.repository),target:"_blank",rel:"noopener noreferrer","코스의 공개 학습 기록"}
@@ -101,6 +174,7 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                             article {class:"card lesson-card",key:"{reference.id}",
                                 div {class:"lesson-card-heading",span {class:"lesson-number","수업 {index+1}"}h3 {"{reference.title}"}}
                                 p {class:"lesson-revision","버전 {reference.revision}"}
+                                LessonShare {repository:manifest.repository.clone(),lesson_id:reference.id.clone()}
                                 {let records=progress().get(&reference.id).cloned().unwrap_or_default();let requirements=progress_requirements().get(&reference.id).cloned();rsx!{
                                     if let Some(required)=requirements {
                                         {let summary=issue_progress::learning_progress(&records,&reference.revision,&required);rsx!{
@@ -114,34 +188,14 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                                 }}
                                 if !reference.prerequisites.is_empty() {p {class:"prerequisite",{format!("선수 학습: {}",reference.prerequisites.iter().filter_map(|id|manifest.lessons.iter().find(|l|l.id==*id)).map(|l|l.title.clone()).collect::<Vec<_>>().join(", "))}}}
                                 for mode in [StudyMode::Full] {
-                                    button {class:if mode==StudyMode::Full {"primary"}else{""},disabled:busy(),onclick:{let manifest=manifest.clone();let reference=reference.clone();move |_|{
+                                    button {class:if mode==StudyMode::Full {"primary"}else{""},disabled:busy()||identity_scope()!=format!("{}:{}",session().map(|s|s.user.id).unwrap_or(0),manifest.id),onclick:{let manifest=manifest.clone();let reference=reference.clone();move |_|{
                                         let manifest=manifest.clone();let reference=reference.clone();let Some(s)=session() else{return};
                                         spawn(async move {
                                             busy.set(true);message.set(String::new());launching.set(Some((reference.title.clone(),0)));
                                             let (stage_tx,mut stage_rx)=tokio::sync::mpsc::unbounded_channel::<u8>();
                                             spawn(async move {while let Some(stage)=stage_rx.recv().await {if let Some((title,current))=launching(){launching.set(Some((title,current.max(stage))));}}});
-                                            let gh=s.github.clone();let user=s.user.clone();let c=manifest.clone();let r=reference.clone();
-                                            let result=github_player::background(move||{
-                                                gh.ensure_user(user.id)?;let lesson=gh.installed_lesson(&c,&r)?;let _=stage_tx.send(1);
-                                                let key=ProgressKey{user_id:user.id,course_id:c.id.clone(),lesson_id:lesson.id.clone()};
-                                                let issue=gh.find_issue(&c.repository,&user,&key)?;
-                                                let events=if let Some(issue)=&issue {gh.events(&c.repository,issue,&key)?}else{vec![]};
-                                                Ok((lesson,events,issue.map(|i|i.html_url)))
-                                            }).await;
-                                            match result {
-                                                Ok((lesson,mut events,url))=>{
-                                                    launching.set(Some((reference.title.clone(),2)));
-                                                    let unfinished=events.iter().rev().find(|e|e.kind==EventKind::Started&&e.mode==mode&&e.revision==lesson.revision&&!events.iter().any(|done|done.kind==EventKind::Completed&&done.round==e.round)).map(|e|e.round.clone());
-                                                    let round=unfinished.unwrap_or_else(issue_progress::new_id);
-                                                    if !events.iter().any(|e|e.round==round) {
-                                                        let event=LearningEvent::new(ProgressKey{user_id:s.user.id,course_id:manifest.id.clone(),lesson_id:lesson.id.clone()},&lesson.revision,mode,&round,EventKind::Started);
-                                                        let gh=s.github.clone();let user=s.user.clone();let repo=manifest.repository.clone();let title=lesson.title.clone();
-                                                        match github_player::background(move||gh.record(&repo,&user,&title,&event,&[])).await {
-                                                            Ok(latest)=>{events=latest;open.set(Some(OpenLesson{course:manifest,lesson,events,mode,round,issue_url:url}));message.set(String::new());},Err(e)=>message.set(e),
-                                                        }
-                                                    } else {open.set(Some(OpenLesson{course:manifest,lesson,events,mode,round,issue_url:url}));message.set(String::new());}
-                                                },Err(e)=>message.set(e),
-                                            }
+                                            let result=github_player::background(move||prepare_open_lesson(s,manifest,reference,mode,Some(stage_tx))).await;
+                                            match result {Ok(selected)=>{open.set(Some(selected));message.set(String::new());},Err(e)=>message.set(e)}
                                             launching.set(None);busy.set(false);
                                         });
                                     }},"학습 시작"}
@@ -157,6 +211,54 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
             if session().is_some() {p {class:"repository-status",role:"status","{message}"}}
         }
     }
+}
+
+#[component]
+fn CourseIdentity(session:Session,course:CourseManifest,onready:EventHandler<bool>)->Element {
+    let mut name=use_signal(String::new);let mut saved=use_signal(String::new);let mut notice=use_signal(String::new);let mut loading=use_signal(||true);let mut pending=use_signal(||false);let mut version=use_signal(||0u64);
+    let initial_session=session.clone();let initial_course=course.clone();
+    use_future(move||{let s=initial_session.clone();let c=initial_course.clone();async move{
+        let result=github_player::background(move||molip_quest::course_identity::Store::installed()?.load(&s.github,&c.repository,&s.user,&c.id,false)).await;
+        match result {Ok(Some(state))=>{name.set(state.name.clone());saved.set(state.name);pending.set(state.pending);notice.set(state.problem);onready.call(true);},Ok(None)=>onready.call(false),Err(e)=>notice.set(e)}loading.set(false);
+    }});
+    let poll_session=session.clone();let poll_course=course.clone();
+    use_future(move||{let s=poll_session.clone();let c=poll_course.clone();async move{loop{
+        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+        if !*pending.peek(){continue;}
+        let repo=c.repository.clone();let id=c.id.clone();let user=s.user.id;
+        if let Ok(Some(state))=github_player::background(move||molip_quest::course_identity::Store::installed()?.state(&repo,user,&id)).await {pending.set(state.pending);if !state.problem.is_empty(){notice.set(state.problem);}else if !state.pending{notice.set("이름을 저장했어요.".into());}}
+    }}});
+    rsx!{section {class:"course-identity",aria_label:"코스별 이름",
+        form {onsubmit:{let c=course.clone();let s=session.clone();move |event:FormEvent|{
+            event.prevent_default();let c=c.clone();let s=s.clone();let value=name();version+=1;let request=version();
+            spawn(async move{loading.set(true);let result=github_player::background(move||{let state=molip_quest::course_identity::Store::installed()?.queue(&c.repository,&s.user,&c.id,&value)?;let _=molip_quest::course_identity::synchronize(s.github,s.user);Ok(state)}).await;
+                if request!=version(){return;}
+                match result{Ok(state)=>{name.set(state.name.clone());saved.set(state.name);pending.set(true);notice.set("이름 전송 중이에요. 실패하면 다시 시도해요.".into());onready.call(true);},Err(error)=>notice.set(error)}loading.set(false);
+            });
+        }},
+            label {r#for:"course-display-name","이 코스에서 쓸 이름"}
+            div {class:"course-name-controls",input {id:"course-display-name",name:"display-name",maxlength:120,value:name(),disabled:loading(),placeholder:"예: [BE16]홍길동",oninput:move |e|name.set(e.value())}
+                button {r#type:"submit",disabled:loading(),if saved().is_empty(){"이름 저장 후 시작"}else{"이름 변경"}}
+                if !saved().is_empty(){button {r#type:"button",disabled:loading(),onclick:{let s=session.clone();let c=course.clone();move |_|{let s=s.clone();let c=c.clone();spawn(async move{loading.set(true);match github_player::background(move||molip_quest::course_identity::Store::installed()?.load(&s.github,&c.repository,&s.user,&c.id,true)).await{Ok(Some(state))=>{name.set(state.name.clone());saved.set(state.name);pending.set(state.pending);notice.set(state.problem);onready.call(true);},Ok(None)=>{},Err(error)=>notice.set(error)}loading.set(false);});}},"최신 이름 불러오기"}}
+            }
+            p {"이름의 공백은 없애요. 다른 코스의 이름은 바뀌지 않아요."}
+            p {"이 이름은 코스의 공개 학습 기록에 보여요."}
+            if !notice().is_empty(){p {role:"status","{notice}"}}
+        }
+    }}
+}
+
+#[component]
+fn LessonShare(repository:String,lesson_id:String)->Element {
+    let url=molip_quest::lesson_link::LessonLink::new(&repository,&lesson_id).map(|link|link.web_url()).unwrap_or_default();
+    rsx!{button {class:"lesson-share",r#type:"button",title:"이 코스의 수업을 여는 웹 링크 복사","data-lesson-link":url.clone(),onclick:move |_|{
+        #[cfg(not(target_os="android"))]
+        let result=arboard::Clipboard::new().map_err(|e|e.to_string()).and_then(|mut clipboard|clipboard.set_text(url.clone()).map_err(|e|e.to_string()));
+        #[cfg(target_os="android")]
+        let result:Result<(),String>=Err("링크 복사는 데스크톱에서 사용할 수 있어요.".into());
+        let notice=match result {Ok(())=>"수업 링크를 복사했어요.".to_owned(),Err(_)=>"링크를 복사하지 못했어요. 다시 눌러 주세요.".into()};
+        document::eval(&format!("window.molipToast?.({})",serde_json::to_string(&notice).unwrap()));
+    },"수업 링크 복사"}}
 }
 
 #[component]
@@ -231,6 +333,7 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
     rsx!{
         div {class:if is_task{"repository-study is-task"}else{"repository-study"},
             header {class:"repository-header",button {class:"course-back",onclick:move |_|onback.call(()),"← 코스 수업 목록"}h1 {title:selected.lesson.title.clone(),"{selected.lesson.title}"}
+                LessonShare {repository:selected.course.repository.clone(),lesson_id:selected.lesson.id.clone()}
                 button {class:"lesson-info-trigger",aria_label:"학습 정보",title:"진도와 학습 목표 보기",onclick:move |_|show_info.set(true),
                     {format!("{}% · {count}/{} ⓘ",if required.is_empty(){0}else{count*100/required.len()},required.len())}
                 }
@@ -464,7 +567,9 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                                     if report.passed&&complete{message.set("수업 완료!".into());}
                                     passed_dialog.set(report.passed);
                                     // Persistence belongs to the process, so navigation cannot cancel it.
+                                    let recording=molip_quest::progress_sync::record_guard();
                                     if let Err(error)=std::thread::Builder::new().name("progress-record".into()).spawn(move||{
+                                        let _recording=recording;
                                         if let Err(error)=github.record(&repo,&user,&title,&event,&required){eprintln!("Progress recording failed: {error}");}
                                     }){eprintln!("Progress recording could not start: {error}");}
                                 }

@@ -101,6 +101,7 @@
   }
   document.addEventListener('keydown', event => {
     if (event.isComposing || event.keyCode === 229 || globalThis.molipIme?.isComposing(event.target)) return;
+    if (!event.repeat && (event.ctrlKey || (mac && event.metaKey)) && !event.altKey && !event.shiftKey && event.key.toLowerCase() === 'q' && clickId('app-quit')) {event.preventDefault();event.stopPropagation();return;}
     if (event.repeat) { if (event.key === 'F11' || ((event.ctrlKey || event.metaKey) && ['Enter','ArrowLeft','ArrowRight'].includes(event.key)) || (event.key === 'Enter' && !inEditable(event.target))) event.preventDefault(); return; }
     if (sheet?.open) {
       if (event.key === 'Escape' || ((mac ? event.metaKey : event.ctrlKey) && event.key === '/')) {

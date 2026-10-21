@@ -65,7 +65,9 @@ struct Pending {
     title: String,
     event: LearningEvent,
 }
-const UPLOAD_INTERVAL: u64 = 3600;
+const UPLOAD_INTERVAL: u64 = 300;
+mod exit;
+pub use exit::{record_guard,schedule_exit_flush,flush_before_exit};
 impl ProgressStore {
     pub fn new(path: &Path) -> Self {
         Self { path: path.into() }
@@ -87,6 +89,15 @@ impl ProgressStore {
           CREATE INDEX IF NOT EXISTS progress_pending ON progress_events(user_id,pending,sequence);
           CREATE INDEX IF NOT EXISTS progress_scope ON progress_events(repository,user_id,course_id,lesson_id,sequence);
           CREATE TABLE IF NOT EXISTS progress_upload_windows (repository TEXT NOT NULL,user_id TEXT NOT NULL,course_id TEXT NOT NULL,lesson_id TEXT NOT NULL,due_at INTEGER NOT NULL,PRIMARY KEY(repository,user_id,course_id,lesson_id));").map_err(|e|e.to_string())?;
+        db.execute_batch("CREATE TABLE IF NOT EXISTS progress_exit_attempts (user_id TEXT NOT NULL,at INTEGER NOT NULL);
+          CREATE INDEX IF NOT EXISTS exit_attempt_user ON progress_exit_attempts(user_id,at);
+          CREATE TABLE IF NOT EXISTS progress_exit_blocks (user_id TEXT PRIMARY KEY,until_at INTEGER NOT NULL);
+          CREATE TABLE IF NOT EXISTS progress_settings (key TEXT PRIMARY KEY,value TEXT NOT NULL);").map_err(|e|e.to_string())?;
+        let migrated:bool=db.query_row("SELECT EXISTS(SELECT 1 FROM progress_settings WHERE key='five-minute-window')",[],|r|r.get(0)).map_err(|e|e.to_string())?;
+        if !migrated {
+            db.execute("UPDATE progress_upload_windows SET due_at=MIN(due_at,?1)",[issue_progress::now().saturating_add(UPLOAD_INTERVAL)]).map_err(|e|e.to_string())?;
+            db.execute("INSERT OR IGNORE INTO progress_settings VALUES('five-minute-window','1')",[]).map_err(|e|e.to_string())?;
+        }
         Ok(db)
     }
     fn insert(
@@ -240,6 +251,9 @@ impl ProgressStore {
             .map_err(|e| e.to_string())
     }
     fn send_pending(&self, github: &Github, user: &GithubUser) -> Result<(), String> {
+        self.send_pending_mode(github,user,false)
+    }
+    fn send_pending_mode(&self, github: &Github, user: &GithubUser, force:bool) -> Result<(), String> {
         // Separate app processes share the queue but never upload it concurrently.
         // Recording new clears uses only SQLite and never waits for this lock.
         let lock = std::fs::OpenOptions::new()
@@ -250,7 +264,7 @@ impl ProgressStore {
             .open(self.path.with_extension(format!("sync-{}.lock", user.id)))
             .map_err(|e| e.to_string())?;
         lock.lock().map_err(|e| e.to_string())?;
-        self.flush_batches(issue_progress::now(), user.id, |items| {
+        self.flush_batches_mode(issue_progress::now(), user.id, force, |items| {
             github
                 .append_batch(
                     &items[0].repository,
@@ -276,12 +290,16 @@ impl ProgressStore {
         let user = github.user()?;
         self.send_pending(&github, &user)
     }
+    #[cfg(test)]
     fn flush_batches(
         &self,
         now: u64,
         user_id: u64,
-        mut send: impl FnMut(&[Pending]) -> Result<Vec<LearningEvent>, String>,
+        send: impl FnMut(&[Pending]) -> Result<Vec<LearningEvent>, String>,
     ) -> Result<(), String> {
+        self.flush_batches_mode(now,user_id,false,send)
+    }
+    fn flush_batches_mode(&self,now:u64,user_id:u64,force:bool,mut send:impl FnMut(&[Pending])->Result<Vec<LearningEvent>,String>)->Result<(),String>{
         let mut db = self.connection()?;
         // Old unsent outboxes also receive a persistent collection window.
         db.execute("INSERT OR IGNORE INTO progress_upload_windows SELECT DISTINCT repository,user_id,course_id,lesson_id,?1 FROM progress_events WHERE user_id=?2 AND pending=1",params![now.saturating_add(UPLOAD_INTERVAL),user_id.to_string()]).map_err(|e|e.to_string())?;
@@ -290,9 +308,9 @@ impl ProgressStore {
             let tx = db
                 .transaction_with_behavior(TransactionBehavior::Immediate)
                 .map_err(|e| e.to_string())?;
-            let mut query=tx.prepare("SELECT e.repository,e.title,e.document FROM progress_events e JOIN progress_upload_windows w USING(repository,user_id,course_id,lesson_id) WHERE e.user_id=?1 AND e.pending=1 AND w.due_at<=?2 ORDER BY e.sequence").map_err(|e|e.to_string())?;
+            let mut query=tx.prepare("SELECT e.repository,e.title,e.document FROM progress_events e JOIN progress_upload_windows w USING(repository,user_id,course_id,lesson_id) WHERE e.user_id=?1 AND e.pending=1 AND (?3 OR w.due_at<=?2) ORDER BY e.sequence").map_err(|e|e.to_string())?;
             let rows = query
-                .query_map(params![user_id.to_string(), now], |r| {
+                .query_map(params![user_id.to_string(), now,force], |r| {
                     Ok((
                         r.get::<_, String>(0)?,
                         r.get::<_, String>(1)?,
@@ -321,8 +339,17 @@ impl ProgressStore {
                 }
             }
             drop(query);
+            if force && !batches.is_empty() {
+                let blocked:u64=tx.query_row("SELECT COALESCE((SELECT until_at FROM progress_exit_blocks WHERE user_id=?1),0)",[user_id.to_string()],|r|r.get(0)).map_err(|e|e.to_string())?;
+                if blocked>now {batches.clear();} else {
+                    tx.execute("DELETE FROM progress_exit_attempts WHERE user_id=?1 AND at<=?2",params![user_id.to_string(),now.saturating_sub(86400)]).map_err(|e|e.to_string())?;
+                    let used:usize=tx.query_row("SELECT COUNT(*) FROM progress_exit_attempts WHERE user_id=?1",[user_id.to_string()],|r|r.get(0)).map_err(|e|e.to_string())?;
+                    if used>=10 {batches.clear();} else {tx.execute("INSERT INTO progress_exit_attempts VALUES(?1,?2)",params![user_id.to_string(),now]).map_err(|e|e.to_string())?;}
+                    if used+usize::from(!batches.is_empty())>=10 {tx.execute("INSERT INTO progress_exit_blocks VALUES(?1,?2) ON CONFLICT(user_id) DO UPDATE SET until_at=excluded.until_at",params![user_id.to_string(),now.saturating_add(86400)]).map_err(|e|e.to_string())?;}
+                }
+            }
             for group in &mut batches {
-                // GitHub caps comment size. The unsent tail stays queued for the next hour.
+                // GitHub caps comment size. The unsent tail stays queued for the next interval.
                 let mut size = 64;
                 let mut count = 0;
                 for item in group.iter() {
@@ -342,8 +369,8 @@ impl ProgressStore {
         let mut failure = None;
         let sending_started = std::time::Instant::now();
         for group in batches {
-            // Reserve the hour before any network operation. A lost response or restart
-            // cannot cause a new batch to be published within the same hour.
+            // Reserve the interval before any network operation. A lost response or restart
+            // cannot cause a new batch to be published within the same interval.
             match send(&group) {
                 Ok(remote) => {
                     if let Err(e) = self.acknowledge_batch(&group, &remote) {
@@ -507,21 +534,21 @@ mod tests {
             .unwrap();
     }
     #[test]
-    fn hourly_batches_wait_collect_and_survive_reopening() {
+    fn five_minute_batches_wait_collect_and_survive_reopening() {
         let (root, store, user) = setup();
         for task in ["a", "b"] {
             store
                 .record("owner/course", &user, "Lesson", &attempt(7, task), &[])
                 .unwrap();
         }
-        due(&store, 3600);
+        due(&store, 300);
         store
-            .flush_batches(3599, 7, |_| panic!("too early"))
+            .flush_batches(299, 7, |_| panic!("too early"))
             .unwrap();
         assert_eq!(store.pending_count(7).unwrap(), 2);
         let mut calls = 0;
         store
-            .flush_batches(3600, 7, |batch| {
+            .flush_batches(300, 7, |batch| {
                 calls += 1;
                 assert_eq!(batch.len(), 2);
                 Ok(batch.iter().map(|i| i.event.clone()).collect())
@@ -534,10 +561,10 @@ mod tests {
             .unwrap();
         let reopened = ProgressStore::new(&root.path().join("progress.sqlite3"));
         reopened
-            .flush_batches(7199, 7, |_| panic!("restart must not bypass the hour"))
+            .flush_batches(599, 7, |_| panic!("restart must not bypass the interval"))
             .unwrap();
         reopened
-            .flush_batches(7200, 7, |batch| {
+            .flush_batches(600, 7, |batch| {
                 assert_eq!(batch.len(), 1);
                 assert_eq!(batch[0].event, event);
                 Ok(vec![event.clone()])
@@ -558,10 +585,10 @@ mod tests {
             .is_err());
         assert_eq!(store.pending_count(7).unwrap(), 1);
         store
-            .flush_batches(3699, 7, |_| panic!("no immediate retry"))
+            .flush_batches(399, 7, |_| panic!("no immediate retry"))
             .unwrap();
         store
-            .flush_batches(3700, 7, |batch| {
+            .flush_batches(400, 7, |batch| {
                 assert_eq!(batch[0].event, event);
                 Ok(vec![event.clone()])
             })
@@ -569,7 +596,7 @@ mod tests {
         assert_eq!(store.pending_count(7).unwrap(), 0);
     }
     #[test]
-    fn records_added_during_upload_remain_queued_until_next_hour() {
+    fn records_added_during_upload_remain_queued_until_next_window() {
         let (_root, store, user) = setup();
         let first = attempt(7, "a");
         store
@@ -594,7 +621,7 @@ mod tests {
         assert_eq!(store.events("owner/course", &first.key).unwrap().len(), 2);
     }
     #[test]
-    fn hourly_batch_comments_keep_all_events_and_legacy_comments_readable() {
+    fn batch_comments_keep_all_events_and_legacy_comments_readable() {
         let events = vec![attempt(7, "a"), attempt(7, "b")];
         assert_eq!(
             issue_progress::parse_events(&issue_progress::batch_comment(&events)),
@@ -647,7 +674,7 @@ mod tests {
         courses.sort();
         assert_eq!(courses, ["course", "second-course"]);
     }
-    fn setup() -> (tempfile::TempDir, ProgressStore, GithubUser) {
+    pub(super) fn setup() -> (tempfile::TempDir, ProgressStore, GithubUser) {
         let root = tempfile::tempdir().unwrap();
         let store = ProgressStore::new(&root.path().join("progress.sqlite3"));
         (
@@ -659,7 +686,7 @@ mod tests {
             },
         )
     }
-    fn attempt(user_id: u64, task: &str) -> LearningEvent {
+    pub(super) fn attempt(user_id: u64, task: &str) -> LearningEvent {
         let mut event = LearningEvent::new(
             ProgressKey {
                 user_id,

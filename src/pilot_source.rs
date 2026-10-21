@@ -14,13 +14,13 @@ pub fn data_dir() -> Result<std::path::PathBuf, String> {
 }
 
 #[derive(Clone,serde::Serialize,serde::Deserialize)]
-struct Store { corrupted:bool, version: char, issue: Option<Value>, comments: Vec<Value> }
+struct Store { corrupted:bool, version: char, issue: Option<Value>, comments: Vec<Value>, #[serde(default)] enrollments:Vec<Value> }
 impl Store {
     fn load()->Result<Self,String> {
         match std::fs::read(data_dir()?.join("pilot-remote.json")) {
             Ok(raw) if raw.len()<=8_000_000=>serde_json::from_slice(&raw).map_err(|e|e.to_string()),
             Ok(_)=>Err("검증 데이터가 너무 커요.".into()),
-            Err(error) if error.kind()==std::io::ErrorKind::NotFound=>Ok(Self{corrupted:false,version:'a',issue:None,comments:vec![]}),
+            Err(error) if error.kind()==std::io::ErrorKind::NotFound=>Ok(Self{corrupted:false,version:'a',issue:None,comments:vec![],enrollments:vec![]}),
             Err(error)=>Err(error.to_string()),
         }
     }
@@ -128,7 +128,7 @@ pub fn request(args: &[&str], payload: Option<Value>) -> Result<Value, String> {
     }
     let base = format!("repos/{REPOSITORY}/issues");
     if method == "GET" && route.starts_with(&format!("{base}?")) {
-        return Ok(Value::Array(state.issue.iter().cloned().collect()));
+        return Ok(Value::Array(state.issue.iter().cloned().chain(state.enrollments.clone()).collect()));
     }
     if method == "GET" && route.starts_with(&format!("{base}/1/comments?")) {
         let query = route.split_once('?').map(|(_, query)| query).unwrap_or("");
@@ -145,6 +145,14 @@ pub fn request(args: &[&str], payload: Option<Value>) -> Result<Value, String> {
         return Ok(Value::Array(state.comments.iter().skip(offset).take(per_page).cloned().collect()));
     }
     let payload = payload.unwrap_or(Value::Null);
+    if method == "POST" && route == base && payload["body"].as_str().is_some_and(|b|b.contains("<!-- mq3-enrollment:")) {
+        let number=1000+state.enrollments.len();
+        let issue=json!({"number":number,"html_url":format!("https://github.com/mq3-validation/course/issues/{number}"),"user":user(),"title":payload["title"],"body":payload["body"]});
+        return commit(&mut state,|next|{next.enrollments.push(issue.clone());Ok(issue)});
+    }
+    if method == "PATCH" {if let Some(number)=route.strip_prefix(&format!("{base}/")).and_then(|n|n.parse::<u64>().ok()).filter(|n|*n>=1000) {
+        return commit(&mut state,|next|{let issue=next.enrollments.iter_mut().find(|i|i["number"].as_u64()==Some(number)).ok_or("검증 등록 이슈 없음")?;issue["body"]=payload["body"].clone();issue["title"]=payload["title"].clone();Ok(issue.clone())});
+    }}
     if method == "POST" && route == base {
         let issue = json!({"number":1,"html_url":"https://github.com/mq3-validation/course/issues/1","user":user(),"title":payload["title"],"body":payload["body"]});
         return commit(&mut state,|next|{next.issue=Some(issue.clone());Ok(issue)});

@@ -30,5 +30,11 @@ Source: "..\..\requirements-learning.txt"; DestDir: "{app}"; Flags: ignoreversio
 Name: "{group}\MQ"; Filename: "{app}\molip-quest.exe"
 Name: "{group}\MQ 제거"; Filename: "{uninstallexe}"
 
+[Registry]
+Root: HKCU; Subkey: "Software\Classes\molipquest"; ValueType: string; ValueData: "URL:MQ lesson"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\molipquest"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""
+Root: HKCU; Subkey: "Software\Classes\molipquest\DefaultIcon"; ValueType: string; ValueData: "{app}\molip-quest.exe,0"
+Root: HKCU; Subkey: "Software\Classes\molipquest\shell\open\command"; ValueType: string; ValueData: """{app}\molip-quest.exe"" --open ""%1"""
+
 [Run]
 Filename: "{app}\molip-quest.exe"; Description: "MQ 실행"; Flags: nowait postinstall skipifsilent

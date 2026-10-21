@@ -6,7 +6,7 @@
  const ready=async()=>wait(()=>{const root=document.querySelector('.repository-task'),host=document.getElementById('git-student-terminal');return root?.dataset.gitReady==='true'&&host&&window.mq3GitTerminal?.text(host.dataset.terminalSession).split('\n').some(line=>line.trimEnd().endsWith('$'));},'current student terminal owner and prompt');
  try{
   await wait(()=>document.querySelector('.lesson-card'),'catalog');
-  for(const [version,revision,count] of [['l','git-branch-',4],['굳','git-branch-advanced-',5],['풀','github-pr-1',8]]){
+  for(const [version,revision,count] of [['l','git-branch-',4],['굳','git-branch-advanced-',5],['풀','github-pr-',8]]){
    await click(`버전 ${version}`);
    await wait(()=>document.querySelector('.lesson-card')?.textContent.includes(revision),revision);
    await click('학습 시작');await ready();
