@@ -41,7 +41,9 @@ fn graph_reads_conflict_and_remote_tracking_state_from_real_repositories() {
     assert!(conflicted.merging);assert!(conflicted.changes.iter().any(|line|line.starts_with("UU ")));
     assert!(conflicted.commits.iter().all(|commit|commit.parents.len()<2),"resolving a file does not invent a merge commit");
     let remote:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/git-remote.json")).unwrap();
-    let practice=GitPractice::new(serde_json::from_value(remote["tasks"][4]["git_terminal"].clone()).unwrap()).unwrap();
+    let task = remote["tasks"].as_array().unwrap().iter().find(|task| task["id"].as_str() == Some("stp_bb240382-615b-4679-ae14-79ee9f38940a")).expect("remote lesson includes a fetch step");
+    let exercise: GitExercise = serde_json::from_value(task["git_terminal"].clone()).unwrap();
+    let practice=GitPractice::new(exercise.demonstration()).unwrap();
     git(&practice,&["fetch","origin"]);
     let fetched=practice.graph_snapshot().unwrap();
     let tracking=fetched.references.iter().find(|r|r.name=="origin/main").unwrap();

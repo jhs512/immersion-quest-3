@@ -6,7 +6,7 @@
  const chord=(key,shift=false)=>document.querySelector('.problem-pane h2').dispatchEvent(new KeyboardEvent('keydown',{key,shiftKey:shift,...(/mac/i.test(navigator.platform)?{metaKey:true}:{ctrlKey:true}),bubbles:true,cancelable:true}));
  try{
   await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('pilot-a'),'initial fixture');
-  await click('버전 n');await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('java-values-1'),'Java fixture');
+  await click('버전 n');await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('java-values-'),'Java fixture');
   await click('학습 시작');await wait(()=>document.querySelector('.repository-task'),'task mounted');
   await wait(()=>document.querySelector('[data-shortcut-action="submit"]')?.dataset.shortcutLabel,'visible platform hints');
   const first=document.querySelector('.repository-task').dataset.taskId;

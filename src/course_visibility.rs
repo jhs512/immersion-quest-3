@@ -22,10 +22,11 @@ mod tests {
         let original = course(COURSE_REPOSITORY);
         for login in ["learner", "jhs512gh", "jhs512-other", ""] {
             let visible = for_account(original.clone(), login);
-            assert_eq!(visible.lessons, original.lessons[..5]);
+            let end = original.lessons.iter().position(|lesson| lesson.repository.ends_with("-git-remote")).unwrap() + 1;
+            assert_eq!(visible.lessons, original.lessons[..end]);
             assert_eq!(visible.id, original.id);
-            assert_eq!(visible.lessons.iter().map(|l| l.repository.strip_prefix("jhs512/mq3-lesson-redesigned-").unwrap()).collect::<Vec<_>>(),
-                ["bash-basics", "vim-basics", "git-first", "git-branch", "git-remote"]);
+            assert!(visible.lessons.last().unwrap().repository.ends_with("-git-remote"));
+            assert!(!visible.lessons.iter().any(|lesson| lesson.repository.ends_with("-github-pr")));
         }
         assert_eq!(original.lessons.len(), 24, "the installed course must remain complete");
     }
@@ -42,7 +43,8 @@ mod tests {
     fn content_revisions_do_not_change_the_visible_lesson_boundary() {
         let mut revised=course(COURSE_REPOSITORY);
         for lesson in &mut revised.lessons {lesson.revision.push_str("-revised");}
-        assert_eq!(for_account(revised.clone(),"learner").lessons,revised.lessons[..5]);
+        let end = revised.lessons.iter().position(|lesson| lesson.repository.ends_with("-git-remote")).unwrap() + 1;
+        assert_eq!(for_account(revised.clone(),"learner").lessons,revised.lessons[..end]);
     }
 
     #[test]

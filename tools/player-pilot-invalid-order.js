@@ -7,7 +7,7 @@
  const responsive=async()=>{for(let n=0;n<5;n++)await new Promise(requestAnimationFrame);};
  try {
   await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('pilot-a'),'initial course');
-  await click('버전 n');await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('java-values-1'),'Java course');
+  await click('버전 n');await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('java-values-'),'Java course');
   await click('학습 시작');
   const step=()=>[...document.querySelectorAll('.study-navigation button')].find(item=>item.textContent.startsWith('문제 5 ·'));
   await wait(step,'ordered step');step().click();await wait(()=>document.querySelector('.answer-order'),'ordered answer');

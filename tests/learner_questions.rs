@@ -9,6 +9,7 @@ fn java_choices_ask_explicit_questions_and_keep_existing_answers(){
         for task in &lesson.tasks {
             if let Some(Interaction::Choice{options,answer})=&task.interaction {
                 assert!(task.question.ends_with('?'),"{} has no explicit question",task.title);
+                assert!(task.title.ends_with('?'),"{} labels an activity instead of asking a question",task.title);
                 assert!(options.iter().any(|o|o.id==*answer));
                 if reference.repository.ends_with("java-conditions") {
                     assert!(!task.question.contains("어떨까요"));

@@ -100,6 +100,8 @@ def build(name, check=False):
         if name.startswith("java-") and task.get("interaction",{}).get("kind")=="choice":
             if not task.get("question","").strip().endswith("?"):
                 raise ValueError(f"{step['id']}: 활동 이름과 별도로 정확한 질문을 쓰세요.")
+            if not task.get("title", "").strip().endswith("?"):
+                raise ValueError(f"{step['id']}: 선택형 제목에서도 무엇을 답할지 질문하세요.")
         validate_highlights(task)
         actions = task['narration']
         if not actions or not any('조심하세요' in action.get('text', '') for action in actions):
