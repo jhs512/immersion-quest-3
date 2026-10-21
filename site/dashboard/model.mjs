@@ -9,6 +9,18 @@ export function repository(value) {
   if (!/^[\w.-]+\/[\w.-]+$/.test(repo) || repo.split('/').some(p => p === '.' || p === '..')) throw new Error('코스 저장소를 owner/repo 형태로 입력하세요.');
   return repo;
 }
+export function repositoryFromUrl(value) {
+  const url = new URL(value);
+  const match = url.pathname.match(/\/dashboard\/(.+?)\/?$/);
+  if (match) return repository(decodeURIComponent(match[1]));
+  const legacy = url.searchParams.get('repo');
+  return legacy ? repository(legacy) : null;
+}
+export function dashboardPath(repo, pathname) {
+  const start = pathname.indexOf('/dashboard');
+  const prefix = start < 0 ? '' : pathname.slice(0, start);
+  return `${prefix}/dashboard/${repository(repo)}/`;
+}
 export function progressKey(issue, course) {
   if (issue.pull_request) return null;
   return markers(issue.body, 'progress').find(key => key.user_id === issue.user?.id && key.course_id === course.id && course.lessons.some(l => l.id === key.lesson_id)) ?? null;
@@ -52,7 +64,16 @@ export function summarize(course, lessons, records, registrations=[]) {
       const passed = new Set(events.filter(e => e.kind === 'attempt' && e.passed === true && (e.revision === ref.revision || /^stp_[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/.test(e.task_id))).map(e => e.task_id));
       const count = required.filter(t => passed.has(t.id)).length;
       total += required.length; solved += count;
-      return {title:ref.title, solved:count, total:required.length, complete:required.length>0 && count===required.length};
+      const tasks = (lesson.tasks ?? []).map(task => {
+        const history = events.filter(e => e.task_id === task.id
+          && (e.revision === ref.revision || /^stp_[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/.test(task.id)));
+        const started = history.find(e => e.kind === 'started')?.at;
+        const finished = history.find(e => e.kind === 'attempt' && e.passed === true)?.at;
+        const attempts = history.filter(e => e.kind === 'attempt').length;
+        return {id:task.id, title:task.title, required:task.required, started, finished, attempts,
+          status:finished !== undefined ? '완료' : history.length ? '학습 중' : '시작 전'};
+      });
+      return {title:ref.title, tasks, solved:count, total:required.length, complete:required.length>0 && count===required.length};
     });
     const last = [...all].reverse().find(e => e.kind==='attempt' && e.passed === true && course.lessons.some(l => l.id===e.key.lesson_id));
     const ref = course.lessons.find(l => l.id === last?.key.lesson_id);

@@ -9,7 +9,7 @@ fn merge_local_events(mut target:Signal<Vec<LearningEvent>>,latest:Vec<LearningE
 #[derive(Clone,PartialEq)]
 struct Session { github:Github,user:GithubUser }
 #[derive(Clone,PartialEq)]
-struct OpenLesson { course:CourseManifest,lesson:Lesson,events:Vec<LearningEvent>,mode:StudyMode,round:String,issue_url:Option<String> }
+struct OpenLesson { course:CourseManifest,lesson:Lesson,events:Vec<LearningEvent>,mode:StudyMode,round:String }
 
 fn prepare_open_lesson(session:Session,manifest:CourseManifest,reference:repository_course::LessonRef,mode:StudyMode,stage:Option<tokio::sync::mpsc::UnboundedSender<u8>>)->Result<OpenLesson,String>{
     let gh=&session.github;let user=&session.user;
@@ -26,7 +26,7 @@ fn prepare_open_lesson(session:Session,manifest:CourseManifest,reference:reposit
         let event=LearningEvent::new(key,&lesson.revision,mode,&round,EventKind::Started);
         events=gh.record(&manifest.repository,user,&lesson.title,&event,&[])?;
     }
-    Ok(OpenLesson{course:manifest,lesson,events,mode,round,issue_url:issue.map(|issue|issue.html_url)})
+    Ok(OpenLesson{course:manifest,lesson,events,mode,round})
 }
 
 #[component]
@@ -168,7 +168,7 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                     }
                     {let records=progress();let total=manifest.lessons.iter().filter(|l|l.required).count();let complete=manifest.lessons.iter().filter(|l|l.required&&records.get(&l.id).is_some_and(|e|issue_progress::status(e,&l.revision,progress_requirements().get(&l.id).map(Vec::as_slice).unwrap_or(&[])).current)).count();rsx!{p {class:"study-progress","최신 버전 완료: 필수 수업 {complete} / {total}"}}}
                     p {"추천 순서와 상관없이 어떤 수업이든 선택할 수 있어요."}
-                    a {href:format!("https://github.com/{}/issues",manifest.repository),target:"_blank",rel:"noopener noreferrer","코스의 공개 학습 기록"}
+                    a {href:format!("https://jhs512.github.io/immersion-quest-3/dashboard/{}/",manifest.repository),target:"_blank",rel:"noopener noreferrer","대시보드 보기"}
                     div {class:"repository-lessons",
                         for (index,reference) in manifest.lessons.iter().enumerate() {
                             article {class:"card lesson-card",key:"{reference.id}",
@@ -345,7 +345,7 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
                 strong {{format!("{}% 완료",if required.is_empty(){0}else{count*100/required.len()})}}
                 if state.current {strong {"✓ 최신 버전 완료"}} else if state.completed {strong {"✓ 이전 완료 보존 · 추가 학습 있음"}}
                 span {"수업 완료 {state.full_completions+state.review_completions}회"}
-                if let Some(url)=&selected.issue_url {a {href:url.clone(),target:"_blank",rel:"noopener noreferrer","내 진도 이슈"}}
+                a {href:format!("https://jhs512.github.io/immersion-quest-3/dashboard/{}/",selected.course.repository),target:"_blank",rel:"noopener noreferrer","대시보드 보기"}
             }
             if let Some(task)=&view {crate::lesson_outline::LessonOutline {lesson:selected.lesson.clone(),task_id:task.id.clone()}}
             crate::lesson_outline::LessonOverview {key:"{selected.lesson.id}",lesson:selected.lesson.clone()}
@@ -377,6 +377,16 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
 
 #[component]
 fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Vec<LearningEvent>>,onrecord:EventHandler<Vec<LearningEvent>>,has_next:bool,onnext:EventHandler<()>)->Element {
+    use_future({let session=session.clone();let selected=selected.clone();let task_id=task.id.clone();move ||{
+        let session=session.clone();let selected=selected.clone();let task_id=task_id.clone();async move {
+            if events.peek().iter().any(|e|e.kind==EventKind::Started&&e.task_id.as_deref()==Some(task_id.as_str())&&e.round==selected.round){return;}
+            let mut event=LearningEvent::new(ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},&selected.lesson.revision,selected.mode,&selected.round,EventKind::Started);
+            event.task_id=Some(task_id);
+            match github_player::background(move||session.github.record(&selected.course.repository,&session.user,&selected.lesson.title,&event,&[])).await {
+                Ok(latest)=>merge_local_events(events,latest),Err(error)=>eprintln!("Problem start recording failed: {error}"),
+            }
+        }
+    }});
     use_hook({let course=selected.course.id.clone();let lesson=selected.lesson.id.clone();let task=task.id.clone();move||{
         let mut span=molip_quest::telemetry::operation("task.open",vec![opentelemetry::KeyValue::new("course.id",course),opentelemetry::KeyValue::new("lesson.id",lesson),opentelemetry::KeyValue::new("task.id",task)]);span.finish("ok");
     }});

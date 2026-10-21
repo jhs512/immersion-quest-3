@@ -15,4 +15,7 @@ fn clearing_does_not_wait_for_github_and_next_clear_retries_retained_history(){
     let events=remote["comments"].as_array().unwrap().iter().flat_map(|c|molip_quest::issue_progress::parse_events(c["body"].as_str().unwrap())).collect::<Vec<_>>();
     assert_eq!(events.iter().filter(|e|e.kind==molip_quest::issue_progress::EventKind::Attempt&&e.passed).count(),2);
     assert_eq!(events.iter().filter(|e|e.kind==molip_quest::issue_progress::EventKind::Completed).count(),1);
+    for passed in events.iter().filter(|e|e.kind==molip_quest::issue_progress::EventKind::Attempt&&e.passed) {
+        assert!(events.iter().any(|start|start.kind==molip_quest::issue_progress::EventKind::Started&&start.task_id==passed.task_id&&start.key==passed.key&&start.at<=passed.at),"problem start must reach the durable outbox before its success");
+    }
 }

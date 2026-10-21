@@ -1,8 +1,9 @@
-import {repository,progressKey,verifiedEvents,summarize} from './model.mjs';
+import {repository,repositoryFromUrl,dashboardPath,progressKey,verifiedEvents,summarize} from './model.mjs';
 const $ = id => document.getElementById(id);
 let students=[], busy=false;
 const cache = new Map();
 function node(tag, text, cls) {const n=document.createElement(tag); if(text!=null)n.textContent=text;if(cls)n.className=cls;return n;}
+const date = value => value === undefined ? '기록 없음' : new Date(value*1000).toLocaleString('ko-KR');
 async function json(url) {
   const headers = {Accept:'application/vnd.github+json'};
   if(cache.get(url)?.etag) headers['If-None-Match']=cache.get(url).etag;
@@ -23,9 +24,23 @@ function render(){
     const identity=node('span',s.name,'identity');identity.append(node('small',`@${s.login}`));summary.append(identity);
     const prog=node('span',null,'progress');
     if(s.percent!==null){const bar=node('progress');bar.max=100;bar.value=s.percent;bar.setAttribute('aria-label',`진도 ${s.percent}%`);prog.append(bar,node('span',`${s.percent}%`));}else prog.append(node('span','진도 확인 필요'));
-    summary.append(prog,node('span',s.last,'last'),node('span',s.latest?new Date(s.latest*1000).toLocaleString('ko-KR'):'기록 대기','time'));detail.append(summary);
+    summary.append(prog,node('span',s.last,'last'),node('span',s.latest?new Date(s.latest*1000).toLocaleString('ko-KR'):'기록 대기','time'),node('span','자세히 보기','detail-hint'));detail.append(summary);
     const table=node('table');const head=node('tr');head.append(node('th','수업'),node('th','필수 문제'));table.append(head);
-    for(const l of s.details){const row=node('tr');row.append(node('td',l.title),node('td',l.unavailable?'수업 자료 확인 필요':`${l.complete?'✓ 완료 · ':''}${l.solved} / ${l.total}`));table.append(row);}detail.append(table);
+    for(const l of s.details){
+      const row=node('tr'), cell=node('td');
+      if(l.unavailable)cell.textContent=l.title;
+      else {
+        const lesson=node('details',null,'lesson-detail');lesson.append(node('summary',`${l.title} · 문제별 자세히 보기`));
+        const taskTable=node('table',null,'task-times'), headings=node('tr');
+        for(const title of ['문제','상태','시작','완료','제출'])headings.append(node('th',title));taskTable.append(headings);
+        for(const task of l.tasks){const tr=node('tr');
+          for(const text of [task.title,task.status,date(task.started),date(task.finished),`${task.attempts}회`])tr.append(node('td',text));
+          taskTable.append(tr);
+        }
+        const scroll=node('div',null,'table-scroll');scroll.append(taskTable);lesson.append(scroll);cell.append(lesson);
+      }
+      row.append(cell,node('td',l.unavailable?'수업 자료 확인 필요':`${l.complete?'✓ 완료 · ':''}${l.solved} / ${l.total}`));table.append(row);
+    }detail.append(table);
     const link=node('a','GitHub 원본 기록 보기 ↗');link.href=s.issues[0];link.target='_blank';link.rel='noopener noreferrer';detail.append(link);$('students').append(detail);
   }
 }
@@ -40,10 +55,11 @@ async function load(){
     await pool(relevant,async issue=>{const key=progressKey(issue,course);const comments=issue.comments===0?[]:await pages(`/repos/${repo}/issues/${issue.number}/comments`);records.push({issue,events:verifiedEvents(comments,key)});$('status').textContent=`진도 이슈 ${++done} / ${relevant.length}개를 확인했어요.`;});
     students=summarize(course,lessons,records,issues);$('title').textContent=course.title;$('stats').replaceChildren(node('span',`학생 ${students.length}명`),node('span',`수업 ${course.lessons.length}개`));
     const missing=course.lessons.length-lessons.size;$('status').textContent=`조회 완료 · ${new Date().toLocaleTimeString('ko-KR')}${missing?` · 수업 자료 ${missing}개를 확인하지 못했어요. 전체 완료율은 표시하지 않아요.`:''}`;
-    $('results').hidden=false;const u=new URL(location.href);u.searchParams.set('repo',repo);history.replaceState(null,'',u);render();
+    $('results').hidden=false;history.replaceState(null,'',dashboardPath(repo,location.pathname));render();
   }catch(error){$('status').textContent=error.message;}finally{busy=false;$('load').disabled=false;for(const b of $('presets').querySelectorAll('button'))b.disabled=false;}
 }
 $('lookup').addEventListener('submit',e=>{e.preventDefault();load();});
 $('presets').addEventListener('click',e=>{if(e.target.dataset.repo){$('repo').value=e.target.dataset.repo;load();}});
 $('search').addEventListener('input',render);
-const initial=new URL(location.href).searchParams.get('repo');if(initial){$('repo').value=initial;load();}
+try {const initial=repositoryFromUrl(location.href);if(initial){$('repo').value=initial;load();}}
+catch(error){$('status').textContent=error.message;}
