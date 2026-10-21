@@ -19,6 +19,8 @@
   const toggleButton = () => document.getElementById('app-fullscreen-toggle');
   const toggleFullscreen = () => { const b = toggleButton(); if (!b) return false; b.click(); return true; };
   const isFullscreen = () => toggleButton()?.dataset.fullscreen === 'true';
+  const isFullscreenKey = event => event.key === 'F11'
+    || (mac && event.metaKey && event.ctrlKey && !event.altKey && !event.shiftKey && event.key.toLowerCase() === 'f');
   const taskBusy = () => {
     const task = document.querySelector('.repository-task');
     return task?.dataset.busy === 'true' || task?.dataset.narrating === 'true';
@@ -102,7 +104,7 @@
   document.addEventListener('keydown', event => {
     if (event.isComposing || event.keyCode === 229 || globalThis.molipIme?.isComposing(event.target)) return;
     if (!event.repeat && (event.ctrlKey || (mac && event.metaKey)) && !event.altKey && !event.shiftKey && event.key.toLowerCase() === 'q' && clickId('app-quit')) {event.preventDefault();event.stopPropagation();return;}
-    if (event.repeat) { if (event.key === 'F11' || ((event.ctrlKey || event.metaKey) && ['Enter','ArrowLeft','ArrowRight'].includes(event.key)) || (event.key === 'Enter' && !inEditable(event.target))) event.preventDefault(); return; }
+    if (event.repeat) { if (isFullscreenKey(event) || ((event.ctrlKey || event.metaKey) && ['Enter','ArrowLeft','ArrowRight'].includes(event.key)) || (event.key === 'Enter' && !inEditable(event.target))) event.preventDefault(); return; }
     if (sheet?.open) {
       if (event.key === 'Escape' || ((mac ? event.metaKey : event.ctrlKey) && event.key === '/')) {
         event.preventDefault(); event.stopPropagation(); toggleSheet(false);
@@ -122,8 +124,8 @@
     // Keep all background learning shortcuts out of an open modal.
     const modal = [...(document.querySelectorAll?.('[role="dialog"], dialog[open]') || [])].some(p => !p.hidden && p.getClientRects().length > 0);
     if (modal) return;
-    if (event.key === 'F11' || (mac && event.metaKey && event.ctrlKey && event.key.toLowerCase() === 'f')) {
-      event.preventDefault(); toggleFullscreen(); return;
+    if (isFullscreenKey(event)) {
+      event.preventDefault(); event.stopPropagation(); toggleFullscreen(); return;
     }
     const mod = mac ? event.metaKey : event.ctrlKey;
     if (event.key === 'Enter' && mod && !event.altKey) {

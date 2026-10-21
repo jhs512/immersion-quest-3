@@ -138,6 +138,7 @@ fn App() -> Element {
         use dioxus::desktop::tao::window::Fullscreen;
         let window = dioxus::desktop::use_window();
         let mut fullscreen = use_signal(|| true);
+        let fullscreen_shortcut = if cfg!(target_os = "macos") { "⌃⌘F" } else { "F11" };
         use_effect({
             let window = window.clone();
             move || {
@@ -151,8 +152,9 @@ fn App() -> Element {
             button {
                 id: "app-fullscreen-toggle",
                 class: "window-fullscreen-control",
-                title: "F11 · 전체화면 전환",
-                "aria-label": if fullscreen() { "전체화면 해제 (F11)" } else { "전체화면 켜기 (F11)" },
+                title: "{fullscreen_shortcut} · 전체화면 전환",
+                "aria-label": if fullscreen() { format!("전체화면 해제 ({fullscreen_shortcut})") } else { format!("전체화면 켜기 ({fullscreen_shortcut})") },
+                "aria-keyshortcuts": if cfg!(target_os = "macos") { "Control+Meta+f" } else { "F11" },
                 "data-fullscreen": fullscreen().to_string(),
                 onclick: move |_| {
                     let w = &window.window;
@@ -165,7 +167,7 @@ fn App() -> Element {
                         fullscreen.set(true);
                     }
                 },
-                if fullscreen() { "창 모드 · F11" } else { "전체화면 · F11" }
+                if fullscreen() { "창 모드 · {fullscreen_shortcut}" } else { "전체화면 · {fullscreen_shortcut}" }
             }
         }
     };
