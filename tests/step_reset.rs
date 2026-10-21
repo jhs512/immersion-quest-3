@@ -82,25 +82,17 @@ fn vim_middle_step_restores_unsaved_insert_mode_after_reopening(){
 }
 
 #[test]
-fn hosted_git_reset_restores_local_checkpoint_and_keeps_the_same_remote_identity(){
-    let lesson=lesson(include_str!("../courses/redesigned/github-pr.json"));let task=&lesson.tasks[3];
-    let exercise=task.git_terminal.clone().unwrap();let root=tempfile::tempdir().unwrap();let store=GitPracticeStore::new(root.path()).unwrap();
-    let old=store.open("pr",exercise.clone()).unwrap();
-    assert!(old.git(&["switch","-c","feature"]).unwrap().success);
-    let repository=old.github_repository_name();
-    assert!(old.git(&["remote","add","origin",&format!("https://github.com/example/{repository}")]).unwrap().success);
-    old.remember_step_start(&task.id).unwrap();
-    std::fs::write(old.work().join("memo.txt"),"changed").unwrap();
-    let reset=store.reset_step("pr",exercise,&task.id).unwrap();
-    assert_eq!(reset.github_repository_name(),repository);
-    assert_eq!(reset.git(&["branch","--show-current"]).unwrap().stdout.trim(),"feature");
-    assert_eq!(std::fs::read_to_string(reset.work().join("memo.txt")).unwrap(),"기본 메모\n");
-    assert_eq!(std::fs::read_to_string(old.work().join("memo.txt")).unwrap(),"changed");
-    assert!(reset.environment().iter().any(|(key,value)|key=="MQ3_REPO"&&value==&repository));
-    // Repeated resets must keep the original entry checkpoint and remote identity.
-    std::fs::write(reset.work().join("memo.txt"),"second attempt").unwrap();
-    let again=store.reset_step("pr",task.git_terminal.clone().unwrap(),&task.id).unwrap();
-    assert_eq!(again.github_repository_name(),repository);
-    assert_eq!(std::fs::read_to_string(again.work().join("memo.txt")).unwrap(),"기본 메모\n");
-    assert_eq!(std::fs::read_to_string(reset.work().join("memo.txt")).unwrap(),"second attempt");
+fn hosted_git_reset_is_only_allowed_at_first_stage_and_creates_a_new_identity(){
+    let lesson=lesson(include_str!("../courses/redesigned/github-pr.json"));
+    let root=tempfile::tempdir().unwrap();let store=GitPracticeStore::new(root.path()).unwrap();
+    let first=&lesson.tasks[0];let old=store.open("pr",first.git_terminal.clone().unwrap()).unwrap();
+    let repository=old.github_repository_name();let previous=old.root().to_path_buf();
+    std::fs::write(old.work().join("personal.txt"),"keep").unwrap();
+    for task in &lesson.tasks[1..]{assert!(store.reset_step("pr",task.git_terminal.clone().unwrap(),&task.id).err().unwrap().contains("첫 단계"));}
+    assert_eq!(store.open("pr",first.git_terminal.clone().unwrap()).unwrap().root(),previous);
+    let fresh=store.reset_step("pr",first.git_terminal.clone().unwrap(),&first.id).unwrap();
+    assert_ne!(fresh.github_repository_name(),repository);assert_ne!(fresh.root(),previous);
+    assert_eq!(std::fs::read_to_string(old.work().join("personal.txt")).unwrap(),"keep");
+    assert!(!fresh.git(&["remote","get-url","origin"]).unwrap().success);
+    assert_eq!(fresh.git(&["show","HEAD:memo.txt"]).unwrap().stdout,"기본 메모\n");
 }

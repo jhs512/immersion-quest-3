@@ -97,6 +97,9 @@ def build(name, check=False):
                 raise ValueError(f"{step['id']}: 할 일을 순서 있는 번호 목록으로 쓰세요.")
             if len(items) != len([line for line in todo.splitlines() if line.strip()]) or '제출' not in items[-1][1]:
                 raise ValueError(f"{step['id']}: 할 일 목록은 제출까지 빠짐없이 이어 쓰세요.")
+        if name.startswith("java-") and task.get("interaction",{}).get("kind")=="choice":
+            if not task.get("question","").strip().endswith("?"):
+                raise ValueError(f"{step['id']}: 활동 이름과 별도로 정확한 질문을 쓰세요.")
         validate_highlights(task)
         actions = task['narration']
         if not actions or not any('조심하세요' in action.get('text', '') for action in actions):

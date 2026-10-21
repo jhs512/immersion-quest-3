@@ -442,7 +442,9 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     rsx!{
         article {class:"lesson repository-task","data-course-id":selected.course.id.clone(),"data-lesson-id":selected.lesson.id.clone(),"data-task-id":task.id.clone(),"data-predict-before-run":task.predict_before_run.to_string(),"data-busy":busy().to_string(),"data-narrating":narrating().to_string(),"data-explanation-session":explanation_session.owner(),"data-git-ready":git_practice().is_some().to_string(),
             section {class:"problem-pane",div {class:"problem-heading",h2 {"{task.title}"}
-                button {class:"problem-report",title:"문제 신고 · Ctrl+Alt+Shift+P",onclick:move |_|{if let Err(error)=crate::emergency_report::request("content"){history_message.set(error);}},"문제 신고"}}crate::ui::Markdown{text:task.goal.clone()}
+                button {class:"problem-report",title:"문제 신고 · Ctrl+Alt+Shift+P",onclick:move |_|{if let Err(error)=crate::emergency_report::request("content"){history_message.set(error);}},"문제 신고"}}
+                if !task.question.is_empty(){p {class:"task-question",strong {"{task.question}"}}}
+                crate::ui::Markdown{text:task.goal.clone()}
                 for material in &task.supporting_materials {
                     SupportingMaterialPanel {key:"{task.id}/{material.id}", material:material.clone()}
                 }
@@ -481,24 +483,31 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                 }}
             }
             div {class:"split-handle split-col",role:"separator",tabindex:0,aria_label:"문제와 코드 패널 크기 조절",aria_orientation:"vertical"}
-            section {class:"coding-pane",div {class:"pane-heading",strong {"{filename}"}
+            section {class:"coding-pane",
+                if task.git_terminal.as_ref().is_some_and(|e|e.github_pr.is_some()) {p {class:"github-pr-notice",role:"note","실제 GitHub를 사용해요. 중간 초기화는 지원하지 않아요. 첫 단계에서 새 회차를 시작하면 새 저장소 이름이 준비돼요. 기존 저장소와 PR은 남아요."}}
+                div {class:"pane-heading",strong {"{filename}"}
                 if feedback()=="incorrect"||feedback()=="error"||feedback()=="run-error" {span {class:"submission-indicator",if feedback()=="incorrect"{"제출 실패"}else{"오류 발생"}}}
                 div {class:"pane-actions",
-                    button {disabled:busy()||narrating(),title:"현재 문제의 시작 상태로 돌아가요. 완료 기록은 유지해요.",onclick:{let starter=task.starter_code.clone();let example=task.example_for_answer(&task.starter_code).unwrap_or_default();let key=key.clone();move |_|{
+                    button {disabled:busy()||narrating()||task.git_terminal.as_ref().and_then(|e|e.github_pr).is_some_and(|stage|stage!=molip_quest::git_practice::GithubPrStage::Repository),title:if task.git_terminal.as_ref().is_some_and(|e|e.github_pr.is_some()){"실제 GitHub 실습은 첫 단계에서만 새 회차를 시작할 수 있어요."}else{"현재 문제의 시작 상태로 돌아가요. 완료 기록은 유지해요."},onclick:{let starter=task.starter_code.clone();let example=task.example_for_answer(&task.starter_code).unwrap_or_default();let hosted=task.git_terminal.as_ref().is_some_and(|e|e.github_pr.is_some());let key=key.clone();move |_|{
                         if narrating(){return;}
-                        feedback.set("idle");message.set(String::new());execution_state.set("idle");output.set(String::new());preview.set(String::new());teacher_preview.set(String::new());artifacts.set(vec![]);
-                        if let Some(control)=git_control() {
-                            busy.set(true);message.set("실습을 초기화하고 있어요.".into());
-                            let graph_control=control.clone();
-                            let key=key.clone();let starter=starter.clone();
-                            spawn(async move {
+                        let starter=starter.clone();let example=example.clone();let key=key.clone();
+                        spawn(async move {
+                            if hosted {
+                                let mut confirmation=document::eval("dioxus.send(window.confirm('새 회차를 시작할까요? 새 저장소 이름으로 처음부터 준비해요. 다음 생성 명령을 실행하면 GitHub에 실제 새 비공개 저장소가 생겨요. 기존 저장소와 PR은 그대로 남아요.'));");
+                                if !matches!(confirmation.recv::<bool>().await,Ok(true)){return;}
+                            }
+                            feedback.set("idle");message.set(String::new());execution_state.set("idle");output.set(String::new());preview.set(String::new());teacher_preview.set(String::new());artifacts.set(vec![]);
+                            if let Some(control)=git_control() {
+                                busy.set(true);message.set("실습을 초기화하고 있어요.".into());
+                                let graph_control=control.clone();
                                 match github_player::background(move||control.shutdown()).await {
                                     Ok(())=>{graph_control.clear_graph();git_practice.set(None);git_control.set(None);code.set(starter);let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());reset+=1;message.set(String::new());},Err(error)=>message.set(error)
                                 }
                                 busy.set(false);
-                            });
-                        }else{code.set(starter.clone());example_source.set(example.clone());artifacts.set(vec![]);preview.set(String::new());teacher_preview.set(String::new());output.set(String::new());reset+=1;let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}
-                    }},"초기화"}
+                            }else{code.set(starter);example_source.set(example);reset+=1;let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}
+                        });
+                    }},if task.git_terminal.as_ref().is_some_and(|e|e.github_pr.is_some()){"새 회차 시작"}else{"초기화"}}
+
                     if task.git_terminal.is_none()&&(task.interaction.is_none()||has_example) {
                     button {"data-shortcut-action":"run",disabled:busy()||(task.predict_before_run&&!narrating()&&code().is_empty()),onclick:{let task=task.clone();let github=session.github.clone();let user=session.user.clone();let selected=selected.clone();move |_|{let task=task.clone();let github=github.clone();let user=user.clone();let selected=selected.clone();async move {
                         busy.set(true);feedback.set("idle");execution_id+=1;execution_state.set("running");execution_seconds.set(0);
@@ -579,6 +588,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                     }}},"제출"}
                 }
             }
+            if task.predict_before_run&&!narrating()&&code().is_empty(){p {class:"prediction-run-note",role:"status","예상 보기를 먼저 하나 고르면 실행할 수 있어요. 정답 여부와 관계없이 실행돼요."}}
             div {class:if (task.git_terminal.is_some()||has_example)&&task.interaction.is_some(){"editor-pane interaction-example-editor"}else{"editor-pane"},style:if (task.git_terminal.is_some()||has_example)&&task.interaction.is_some(){"display:grid;grid-template-rows:minmax(48px,1fr) 10px var(--example-answer-height,fit-content(60%));gap:0"}else{""},
                 if let Some(exercise)=task.git_terminal.clone() {
                     div {class:"example-code-pane",style:if narrating(){"display:none"}else if task.interaction.is_some(){"display:block;min-height:0;overflow:hidden"}else{"display:block;height:100%"},
@@ -595,7 +605,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                 }
                 if let Some(interaction)=task.interaction.clone() {
                     div {class:if task.git_terminal.is_some()||has_example{"interaction-example-answer"}else{""},style:if task.git_terminal.is_some()||has_example{"min-height:0;overflow:hidden"}else{"height:100%;min-height:0"},
-                        crate::interaction_ui::InteractionEditor {interaction,question:task.title.clone(),value:code(),disabled:busy()||narrating(),onchange:{let key=key.clone();move |value:String|{code.set(value);if !narrating(){let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}}}}
+                        crate::interaction_ui::InteractionEditor {interaction,question:if task.question.is_empty(){task.title.clone()}else{task.question.clone()},value:code(),disabled:busy()||narrating(),onchange:{let key=key.clone();move |value:String|{code.set(value);if !narrating(){let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}}}}
                     }
                 }
             }

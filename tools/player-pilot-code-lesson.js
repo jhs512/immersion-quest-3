@@ -57,6 +57,13 @@
   };
   for(const [index,task] of pilot.tasks.entries()){
    await wait(()=>document.querySelector('.repository-task')?.dataset.taskId===task.id&&window.molipCodeEditors?.getValue()===prepared(task,task.starter_code)&&(!task.interaction||bridge()?.value===task.starter_code),`step ${index+1}`);
+   if(task.question){
+    if(document.querySelector('.task-question')?.textContent.trim()!==task.question)throw Error('The explicit learner question is missing');
+    if(document.querySelector('.answer-interaction legend')?.textContent.trim()!==task.question)throw Error('The answer choices do not show the actual question');
+   }
+   if(task.predict_before_run&&!bridge()?.value){
+    if(!document.querySelector('.prediction-run-note')?.textContent.includes('예상 보기를 먼저'))throw Error('The locked run button has no explanation');
+   }
    const files=Object.entries(task.files??{});
    if(files.length){
     await wait(()=>document.querySelectorAll('.provided-file').length===files.length,'provided file list');

@@ -37,6 +37,7 @@ impl GitInitialHistory {fn is_recorded(&self)->bool{*self==Self::Recorded}}
 #[derive(Clone,Debug,Default,Serialize,Deserialize,PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct GitStateGoal {
+    #[serde(default,skip_serializing_if="Option::is_none")] pub origin_url:Option<String>,
     #[serde(default,skip_serializing_if="Option::is_none")] pub remote_tracking_current:Option<bool>,
     #[serde(default,skip_serializing_if="Option::is_none")] pub parent_count:Option<usize>,
     #[serde(default,skip_serializing_if="Option::is_none")] pub merge_in_progress:Option<bool>,
@@ -108,10 +109,15 @@ impl GitPracticeStore {
         let _lock=self.lock(scope)?;
         self.reset_locked(scope,exercise)
     }
-    pub fn reset_step(&self,scope:&str,exercise:GitExercise,step_id:&str)->Result<GitPractice,String> {
-        let previous=if exercise.github_pr.is_some(){Some(self.open(scope,exercise.clone())?)}else{None};
+    pub fn reset_step(&self,scope:&str,exercise:GitExercise,_step_id:&str)->Result<GitPractice,String> {
+        if let Some(stage)=exercise.github_pr {
+            if stage!=GithubPrStage::Repository{return Err("실제 GitHub 실습은 중간에 초기화할 수 없어요. 첫 단계에서 새 회차를 시작하세요.".into())}
+            // A new round gets a new local directory and therefore a new hosted
+            // repository name. Existing hosted repositories and PRs are untouched.
+            return self.reset(scope,exercise);
+        }
         let _lock=self.lock(scope)?;
-        let mut practice=self.reset_from_locked(scope,exercise.restart_step(),previous.as_ref().map(|p|(p,step_id)))?;
+        let mut practice=self.reset_from_locked(scope,exercise.restart_step(),None)?;
         practice.exercise=exercise;
         Ok(practice)
     }
@@ -185,7 +191,8 @@ impl GitExercise {
         if self.demo_setup.is_some(){self.demonstration().validate()?;}
         if self.files.len()>80||self.setup.len()>100||self.commands.len()>20{return Err("Git 실습의 준비 내용을 확인하세요.".into())}
         if let Some(goal)=&self.state_goal {
-            if goal.remote_tracking_current.is_none()&&goal.parent_count.is_none()&&goal.merge_in_progress.is_none()&&goal.unmerged_paths.is_none()&&goal.current_branch.is_none()&&goal.references.is_none()&&goal.head_exists.is_none()&&goal.commit_count.is_none()&&goal.clean.is_none()&&goal.index.is_none()&&goal.working_files.is_none()&&goal.head_files.is_none()&&goal.parent_files.is_none(){return Err("Git 목표 상태가 필요해요.".into())}
+            if goal.origin_url.is_none()&&goal.remote_tracking_current.is_none()&&goal.parent_count.is_none()&&goal.merge_in_progress.is_none()&&goal.unmerged_paths.is_none()&&goal.current_branch.is_none()&&goal.references.is_none()&&goal.head_exists.is_none()&&goal.commit_count.is_none()&&goal.clean.is_none()&&goal.index.is_none()&&goal.working_files.is_none()&&goal.head_files.is_none()&&goal.parent_files.is_none(){return Err("Git 목표 상태가 필요해요.".into())}
+            if goal.origin_url.as_ref().is_some_and(|url|url.trim().is_empty()||url.len()>2048||url.chars().any(char::is_control)){return Err("목표 원격 주소를 확인하세요.".into())}
             if let Some(paths)=&goal.unmerged_paths {
                 if paths.len()>80||paths.iter().collect::<std::collections::BTreeSet<_>>().len()!=paths.len(){return Err("미병합 경로 목록을 확인하세요.".into())}
                 for path in paths {validate_file(path,"")?;}
@@ -211,7 +218,7 @@ impl GitExercise {
             GitSetup::File{path,content}=>validate_file(path,content)?,
             GitSetup::MergeConflict{branch}=>{if !valid_branch_name(branch){return Err("충돌을 준비할 브랜치를 확인하세요.".into())}}
             GitSetup::Git{args}=>{
-                if args.len()>50 || !args.first().is_some_and(|arg|["add","commit","branch","checkout","switch","merge","rebase","cherry-pick","tag","reset"].contains(&arg.as_str())) || args.iter().any(|arg|arg.len()>4000||arg=="-C"||(arg=="-c"&&args.first().is_none_or(|command|command!="switch"))||arg.starts_with("--git-dir")||arg.starts_with("--work-tree")||arg.starts_with("--config-env")) {return Err("Git 시작 명령을 확인하세요.".into())}
+                if args.len()>50 || (!(args.as_slice()==["push","origin","main"]||args.as_slice()==["fetch","origin"]) && !args.first().is_some_and(|arg|["add","commit","branch","checkout","switch","merge","rebase","cherry-pick","tag","reset"].contains(&arg.as_str()))) || args.iter().any(|arg|arg.len()>4000||arg=="-C"||(arg=="-c"&&args.first().is_none_or(|command|command!="switch"))||arg.starts_with("--git-dir")||arg.starts_with("--work-tree")||arg.starts_with("--config-env")) {return Err("Git 시작 명령을 확인하세요.".into())}
             }
         }}
         if self.commands.iter().any(|args|args.is_empty()||args.len()>50||args.iter().any(|arg|arg.len()>4000)){return Err("검사할 Git 명령을 확인하세요.".into())}
@@ -422,6 +429,14 @@ impl GitPractice {
         }
         let repository=self.execute(&self.work(),&["rev-parse","--is-inside-work-tree"],false)?;
         record("실습 저장소".into(),repository.status.success()&&repository.stdout==b"true\n","true".into(),String::from_utf8_lossy(&repository.stdout).into());
+        if let Some(expected)=&goal.origin_url {
+            let origin=self.git(&["remote","get-url","origin"])?;
+            let actual=origin.stdout.trim();
+            let same_path=match (self.work().join(actual).canonicalize(),self.work().join(expected).canonicalize()) {
+                (Ok(actual),Ok(expected))=>actual==expected,_=>false
+            };
+            record("origin 연결 주소".into(),origin.success&&(same_path||(actual==expected&&(expected.contains("://")||expected.starts_with("git@")))),expected.clone(),actual.into());
+        }
         if let Some(expected)=goal.remote_tracking_current {
             let remote=self.root().join("remote.git");
             if !std::fs::symlink_metadata(&remote).is_ok_and(|m|m.is_dir()&&!m.file_type().is_symlink()) {return Err("실습 원격 저장소의 경로를 확인하세요.".into())}

@@ -8,7 +8,7 @@
  let sequence=0,teacherResult='',staleTutorUsed=false;
  const runGit=async command=>{
   const marker=`MQ3_REMOTE_DONE_${++sequence}`;
-  const echo=navigator.platform.toLowerCase().includes('win')?`Write-Output '${marker}'`:`printf '${marker}\\n'`;
+  const echo=`printf '${marker}\\n'`;
   mq3GitTerminal.command(`${command}; ${echo}`);
   await wait(()=>mq3GitTerminal.text().split('\n').some(line=>line.trim()===marker),command);
  };
@@ -18,10 +18,17 @@
   await wait(()=>document.querySelector('.lesson-card')?.textContent.includes(pilot.revision),'remote lesson installed');
   await click('학습 시작');await ready();molipAgent.setVoice(false);
   const original=molipAgent.runExplanation.bind(molipAgent);
-  molipAgent.runExplanation=async (actions,options)=>{teacherResult='';return teacherResult=await original(actions,options);};
+  // Execute every authored action, target and real command. Speech and human
+  // caption-reading delays are excluded from this state/isolation check; the
+  // complete narration text is checked by the content build separately.
+  molipAgent.runExplanation=async (actions,options)=>{
+   teacherResult='';
+   const silent=actions.map(action=>({...action,say:'',...(action.action==='say'?{text:''}:{})}));
+   return teacherResult=await original(silent,options);
+  };
   for(const [index,task] of pilot.tasks.entries()){
    await wait(()=>document.querySelector('.repository-task')?.dataset.taskId===task.id,'remote step');await ready();
-   const marker=[0,2,7].includes(index)?`student-marker-${index}`:null;
+   const marker=[3,6,13].includes(index)?`student-marker-${index}`:null;
    if(marker)await runGit(`git branch ${marker}`);
    // A retired bridge can remain while the next real Git terminal starts.
    if(index===3)window.molipGitTutor={owner:'retired-verification-session',command(){staleTutorUsed=true;return Promise.resolve(false);},dispose(){}};
@@ -35,21 +42,23 @@
     checked.push(`remote step ${index+1}: teacher preserves student branch and repository`);
    }
    await click('제출');await wait(()=>status('다시 풀어보세요'),'teacher does not pass learner');
+   for(const command of pilot.studentShellCommands?.[index]||[])await runGit(command);
    if(task.interaction){
     document.querySelector(`input[type=radio][value="${task.solution}"]`).click();
     await wait(()=>document.querySelector('.answer-state-bridge')?.value===task.solution,'choice echo');
-   }else for(const args of pilot.studentCommands[index])await runGit(`git ${args.join(' ')}`);
+   }else if(!pilot.studentShellCommands)for(const args of pilot.studentCommands[index])await runGit(`git ${args.join(' ')}`);
    await click('제출');await wait(()=>status(index===pilot.tasks.length-1?'수업 완료':'통과했어요'),'real remote goal');
-   if([2,6].includes(index)){
+   if([6,17].includes(index)){
     const previous=document.querySelector('#git-student-terminal')?.dataset.terminalSession;
     await click('초기화');await wait(()=>document.querySelector('#git-student-terminal')?.dataset.terminalSession!==previous,'fresh repository');await ready();
     await click('제출');await wait(()=>status('다시 풀어보세요'),'reset removes prior result');
-    for(const args of pilot.studentCommands[index])await runGit(`git ${args.join(' ')}`);
+    if(pilot.studentShellCommands)for(const command of pilot.studentShellCommands[index])await runGit(command);
+    else for(const args of pilot.studentCommands[index])await runGit(`git ${args.join(' ')}`);
     await click('제출');await wait(()=>status(index===pilot.tasks.length-1?'수업 완료':'통과했어요'),'goal after full reset');
    }
    checked.push(`remote step ${index+1}: actual Git state, independent explanation and progress`);
    if(index<pilot.tasks.length-1)molipShortcuts.move('next');
   }
-  dioxus.send({passed:true,checked,userAgent:navigator.userAgent,voiceListened:false});
+  dioxus.send({passed:true,checked,userAgent:navigator.userAgent,voiceListened:false,captionReadingDelaysSkipped:true});
  }catch(error){dioxus.send({passed:false,checked,error:String(error),terminalFailure:window.mq3GitDemoFailure,body:document.body.innerText.slice(-4000)});}
 })();

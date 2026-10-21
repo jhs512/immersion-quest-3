@@ -496,11 +496,12 @@
       await click('버전 l');
       await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('git-branch-'),'approved branch lesson');
       await click('학습 시작');await gitReady();molipAgent.setVoice(false);
-      await click('제출');await wait(()=>status('다시 풀어보세요'),'branch initially absent');
-      await runGit('git branch feature');await click('제출');await wait(()=>status('통과했어요'),'branch creation without switching');
-      await nextGit();await runGit('git switch feature');await click('제출');await wait(()=>status('통과했어요'),'branch switch');
-      await nextGit();await runGit('git add -- guide.txt');await runGit('git commit -m "feature record"');await click('제출');await wait(()=>status('통과했어요'),'feature record preserves main');
-      await nextGit();await runGit('git merge feature');await click('제출');await wait(()=>status('수업 완료'),'basic fast forward merge');
+      const branchStory=[["git init", "mkdir ../inbox", "echo \"안내: 기본 안내\" > ../inbox/guide.txt", "cat ../inbox/guide.txt", "mv ../inbox/guide.txt .", "ls ../inbox", "cat guide.txt", "git status"], ["cat guide.txt", "git add guide.txt", "git commit -m \"기본 안내\"", "git branch"], ["git branch", "git branch feature", "git branch"], ["cat guide.txt", "git switch feature", "git branch", "cat guide.txt"], ["cat guide.txt", "echo \"안내: 메모 기능\" > guide.txt", "cat guide.txt", "git diff"], ["cat guide.txt", "git add guide.txt", "git commit -m \"메모 기능\"", "git show main:guide.txt"], ["cat guide.txt", "git switch main", "cat guide.txt", "git show feature:guide.txt"], ["git branch", "cat guide.txt", "git merge feature", "cat guide.txt"], ["git branch", "git branch feature2", "git switch feature2", "cat guide.txt"], ["cat guide.txt", "echo \"문의: 상담 창구\" >> guide.txt", "cat guide.txt", "git diff"], ["git add guide.txt", "git commit -m \"문의 안내\"", "git show main:guide.txt"], ["git switch main", "git branch", "cat guide.txt", "git show feature2:guide.txt"], ["git merge feature2", "cat guide.txt", "git branch", "git status"]];
+      for(const [index,commands] of branchStory.entries()){
+        for(const command of commands)await runGit(command);
+        await click('제출');await wait(()=>status(index===branchStory.length-1?'수업 완료':'통과했어요'),'branch team story');
+        if(index<branchStory.length-1)await nextGit();
+      }
       await click('← 코스 수업 목록');await click('버전 굳');
       await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('git-branch-advanced-'),'advanced branch lesson after remote');
       await click('학습 시작');await gitReady();
@@ -522,8 +523,8 @@
       await resetGit();await click('제출');await wait(()=>status('다시 풀어보세요'),'reset recreated conflict');
       await runGit('git restore --source=feature --worktree -- guide.txt');await runGit('git add -- guide.txt');await click('제출');await wait(()=>status('통과했어요'),'resolve again after reset');
       await nextGit();await click('제출');await wait(()=>status('다시 풀어보세요'),'prepared resolution is not a merge commit');
-      await runGit('git commit --no-edit');await click('제출');await wait(()=>status('수업 완료'),'all nine branch and merge steps');
-      checked.push('approved nine-step branch lesson: branch pointers, fast forward and two-parent merge, independent demonstration, conflict decision, staged resolution, reset and final merge');
+      await runGit('git commit --no-edit');await click('제출');await wait(()=>status('수업 완료'),'all eighteen branch and merge steps');
+      checked.push('approved eighteen-step branch lessons: branch pointers, fast forward and two-parent merge, independent demonstration, conflict decision, staged resolution, reset and final merge');
     }
 
     dioxus.send({passed: true, checked, gitLayoutViewport:window.mq3GitLayoutViewport, userAgent: navigator.userAgent, viewport: {width: innerWidth, height: innerHeight}});

@@ -6,11 +6,16 @@
  const ready=async()=>wait(()=>{const root=document.querySelector('.repository-task'),host=document.getElementById('git-student-terminal');return root?.dataset.gitReady==='true'&&host&&window.mq3GitTerminal?.text(host.dataset.terminalSession).split('\n').some(line=>line.trimEnd().endsWith('$'));},'current student terminal owner and prompt');
  try{
   await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('pilot-a'),'catalog');
-  for(const [version,revision,count] of [['l','git-branch-',4],['굳','git-branch-advanced-',5],['풀','github-pr-',8]]){
+  for(const [version,revision,count] of [['l','git-branch-',13],['굳','git-branch-advanced-',5],['풀','github-pr-',8]]){
    await click(`버전 ${version}`);
    await wait(()=>document.querySelector('.lesson-card')?.textContent.includes(revision),revision);
    await click('학습 시작');await ready();
    if(version==='l'){
+    const startOwner=document.getElementById('git-student-terminal').dataset.terminalSession;
+    document.querySelectorAll('.study-navigation button')[2].click();
+    await wait(()=>document.getElementById('git-student-terminal')?.dataset.terminalSession!==startOwner,'branch creation step');await ready();
+    const beforeReset=document.getElementById('git-student-terminal').dataset.terminalSession;
+    await click('초기화');await wait(()=>document.getElementById('git-student-terminal')?.dataset.terminalSession!==beforeReset,'prepare branch baseline');await ready();
     const owner=()=>document.getElementById('git-student-terminal').dataset.terminalSession;
     const snapshot=()=>window.mq3GitGraphs?.snapshot(owner());
     await wait(()=>snapshot()?.commits.length===1,'actual initial commit graph');
@@ -73,6 +78,7 @@
     }
     await new Promise(r=>setTimeout(r,120));
     if(!document.querySelector('.problem-pane h2')?.textContent.trim())throw Error(`${revision} empty task ${i}`);
+    if(version==='풀'&&button('새 회차 시작')?.disabled!==(i!==0))throw Error('Hosted reset is not limited to the first stage');
     const choices=document.querySelector('.answer-interaction input[type="radio"]');
     if(choices&&document.querySelector('.answer-interaction legend')?.textContent.trim()!==document.querySelector('.problem-pane h2').textContent.trim())throw Error('the question is missing above the answer choices');
     const pane=document.querySelector('.git-terminal').getBoundingClientRect();
@@ -90,7 +96,13 @@
     mq3GitTerminal.command("cat keep.txt; printf 'PR_KEEP_AFTER\\n'");
     await wait(()=>mq3GitTerminal.text().split('\n').some(line=>line.trim()==='PR_KEEP_AFTER'),'student survives explanation');
     if(!mq3GitTerminal.text().split('\n').some(line=>line.trim()==='keep'))throw Error('student file lost');
-    checked.push('PR explanation uses an independent local terminal and preserves learner work');
+    const originalConfirm=window.confirm,oldOwner=document.querySelector('#git-student-terminal').dataset.terminalSession;
+    let warning='';window.confirm=message=>{warning=message;return false;};
+    await click('새 회차 시작');await new Promise(r=>setTimeout(r,150));
+    if(!warning.includes('실제 새 비공개 저장소')||document.querySelector('#git-student-terminal').dataset.terminalSession!==oldOwner)throw Error('Cancelled hosted reset changed the learner workspace or omitted its warning');
+    window.confirm=()=>true;await click('새 회차 시작');
+    await wait(()=>document.querySelector('#git-student-terminal')?.dataset.terminalSession!==oldOwner,'new hosted practice round');await ready();window.confirm=originalConfirm;
+    checked.push('PR explanation preserves learner work; hosted restart requires consent and is limited to the first stage');
    }
    await click('← 코스 수업 목록');
   }

@@ -37,6 +37,7 @@ pub fn self_test_script(key:&str)->Option<String> {
     let script=if let Some(commands)=row.commands {
         let commands:serde_json::Value=serde_json::from_str(commands).expect("registered student commands");
         config["studentCommands"]=commands["student_commands"].clone();
+        config["studentShellCommands"]=commands["student_shell_commands"].clone();
         include_str!("../tools/player-pilot-git-remote.js")
     }else{include_str!("../tools/player-pilot-code-lesson.js")};
     Some(format!("window.mq3LessonPilot={config};{script}"))

@@ -5,16 +5,13 @@ fn snapshot(practice:&GitPractice)->Vec<String> {
 }
 
 #[tokio::test]
-async fn nine_branch_steps_preserve_history_resolve_real_conflicts_and_reset_independently() {
-    let original=CourseManifest::parse(include_str!("fixtures/player-pilot/l/course.json")).unwrap();
-    let basic=Lesson::parse(include_str!("../courses/redesigned/git-branch.json"),&original.lessons[0]).unwrap();
+async fn advanced_branch_steps_preserve_history_resolve_real_conflicts_and_reset_independently() {
     let advanced_course=CourseManifest::parse(include_str!("fixtures/player-pilot/굳/course.json")).unwrap();
     let advanced=Lesson::parse(include_str!("../courses/redesigned/git-branch-advanced.json"),&advanced_course.lessons[0]).unwrap();
-    assert_eq!(basic.tasks.len(),4);assert_eq!(advanced.tasks.len(),5);
-    let tasks=basic.tasks.iter().chain(advanced.tasks.iter()).collect::<Vec<_>>();
+    assert_eq!(advanced.tasks.len(),5);
+    let tasks=advanced.tasks.iter().collect::<Vec<_>>();
     let solutions:Vec<Vec<Vec<&str>>>=vec![
-        vec![vec!["branch","feature"]],vec![vec!["switch","feature"]],vec![vec!["add","guide.txt"],vec!["commit","-m","feature record"]],
-        vec![vec!["merge","feature"]],vec![vec!["merge","--no-edit","feature"]],vec![],vec![],
+        vec![vec!["merge","--no-edit","feature"]],vec![],vec![],
         vec![vec!["restore","--source=feature","--worktree","--","guide.txt"],vec!["add","guide.txt"]],vec![vec!["commit","--no-edit"]],
     ];
     for (index,task) in tasks.into_iter().enumerate() {
@@ -33,11 +30,11 @@ async fn nine_branch_steps_preserve_history_resolve_real_conflicts_and_reset_ind
             if let Some(interaction)=&task.interaction {
                 assert!(!interaction.check("").unwrap().passed);
                 assert!(molip_quest::lesson_runner::check(task,&task.solution).await.unwrap().passed);
-                if index==5 {
+                if index==1 {
                     let merged=teacher.git(&["show","HEAD:guide.txt"]).unwrap().stdout;
                     assert!(merged.starts_with("안내: 메모를 남겨요\n"));assert!(merged.ends_with("문의: 상담 창구\n"));
                 }
-                if index==6 {assert_eq!(teacher.git(&["diff","--name-only","--diff-filter=U"]).unwrap().stdout,"guide.txt\n");}
+                if index==2 {assert_eq!(teacher.git(&["diff","--name-only","--diff-filter=U"]).unwrap().stdout,"guide.txt\n");}
             }else{assert!(teacher.check_exercise().unwrap().passed,"teacher step {}",index+1);}
             assert_eq!(snapshot(&student),before,"teacher changed student repository");
             for args in &solutions[index]{assert!(student.git(args).unwrap().success,"student step {}",index+1);}
@@ -53,9 +50,9 @@ fn published_branch_goals_accept_checkout_commit_all_and_equivalent_conflict_res
     let basic_course=CourseManifest::parse(include_str!("fixtures/player-pilot/l/course.json")).unwrap();
     let basic=Lesson::parse(include_str!("../courses/redesigned/git-branch.json"),&basic_course.lessons[0]).unwrap();
     for (index,commands) in [
-        (1,vec![vec!["checkout","feature"]]),
-        (2,vec![vec!["commit","-am","my feature message"]]),
-        (3,vec![vec!["merge","--ff-only","feature"]]),
+        (3,vec![vec!["checkout","feature"]]),
+        (5,vec![vec!["commit","-am","my feature message"]]),
+        (7,vec![vec!["merge","--ff-only","feature"]]),
     ] {
         let practice=GitPractice::new(basic.tasks[index].git_terminal.clone().unwrap().demonstration()).unwrap();
         assert!(!practice.check_exercise().unwrap().passed);

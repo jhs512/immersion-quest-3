@@ -35,7 +35,7 @@ fn installation_and_upgrade_use_current_three_courses_without_content_downloads_
     let mut old:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned-courses/java-backend.json")).unwrap();
     let removed=["bash-basics","vim-basics","java-launch","java-arguments","git-branch-advanced","github-pr"];
     old["lessons"].as_array_mut().unwrap().retain(|r|!removed.iter().any(|key|r["repository"].as_str().unwrap().ends_with(&format!("-{key}"))));
-    let existing=current.lessons.iter().find(|r|r.revision=="java-values-1").unwrap();
+    let existing=current.lessons.iter().find(|r|r.repository.ends_with("-java-values")).unwrap();
     let mut outdated:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/java-values.json")).unwrap();
     outdated["tasks"][0]["starter_code"]="// old installed source".into();
     let outdated_raw=outdated.to_string();

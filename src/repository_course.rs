@@ -105,6 +105,9 @@ pub struct Task {
     pub id: String,
     pub title: String,
     pub goal: String,
+    /// The actual question, separate from the short navigation/activity title.
+    #[serde(default,skip_serializing_if="String::is_empty")]
+    pub question: String,
     pub language: TaskLanguage,
     pub starter_code: String,
     pub solution: String,
