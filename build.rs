@@ -6,7 +6,7 @@ fn main() {
     compile_lesson_registry(&out);
     for (source, name) in [("courses/kpc-solutions.json", "private-solutions.json"),
         ("site/data/instructor.json", "private-instructor.json")] {
-        println!("cargo:rerun-if-changed={source}");
+        watch_optional_input(std::path::Path::new(source));
         let content = std::fs::read_to_string(source).unwrap_or_else(|_| "{}".into());
         std::fs::write(out.join(name), content).expect("prepare optional local instructor data");
     }
@@ -24,6 +24,19 @@ fn main() {
         resource.set_icon("assets/icon/icon.ico");
         resource.compile().expect("embed Windows icon");
     }
+}
+
+fn watch_optional_input(source: &std::path::Path) {
+    // Cargo treats a missing watched file as dirty on EVERY invocation. Watch its
+    // closest existing directory until it appears, then watch the file itself.
+    // This preserves creation, modification and deletion detection on clean CI
+    // checkouts without copying instructor-only data into the repository.
+    let mut watched = source;
+    while !watched.exists() {
+        watched = watched.parent().filter(|parent| !parent.as_os_str().is_empty())
+            .unwrap_or_else(|| std::path::Path::new("."));
+    }
+    println!("cargo:rerun-if-changed={}", watched.display());
 }
 
 fn compile_lesson_registry(out: &std::path::Path) {
