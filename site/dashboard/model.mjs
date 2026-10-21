@@ -1,0 +1,51 @@
+// Read the same append-only records as the player. Never trust identity in a body alone.
+export function markers(body, name) {
+  return [...String(body ?? '').matchAll(new RegExp(`<!-- mq3-${name}:([\\s\\S]*?) -->`, 'g'))].flatMap(match => {
+    try { const value=JSON.parse(match[1]); return value && typeof value==='object' && !Array.isArray(value) ? [value] : []; } catch { return []; }
+  });
+}
+export function repository(value) {
+  const repo = String(value).trim().replace(/^https:\/\/github\.com\//, '').replace(/\/$/, '');
+  if (!/^[\w.-]+\/[\w.-]+$/.test(repo) || repo.split('/').some(p => p === '.' || p === '..')) throw new Error('코스 저장소를 owner/repo 형태로 입력하세요.');
+  return repo;
+}
+export function progressKey(issue, course) {
+  if (issue.pull_request) return null;
+  return markers(issue.body, 'progress').find(key => key.user_id === issue.user?.id && key.course_id === course.id && course.lessons.some(l => l.id === key.lesson_id)) ?? null;
+}
+export function verifiedEvents(comments, key) {
+  const seen = new Set();
+  return comments.filter(c => c.user?.id === key.user_id).flatMap(c => markers(c.body, 'event')).filter(e => {
+    if (e.key?.user_id !== key.user_id || e.key?.course_id !== key.course_id || e.key?.lesson_id !== key.lesson_id || typeof e.id !== 'string' || !Number.isFinite(e.at) || seen.has(e.id)) return false;
+    seen.add(e.id); return true;
+  }).sort((a,b) => a.at - b.at || a.id.localeCompare(b.id));
+}
+export function summarize(course, lessons, records) {
+  const students = new Map();
+  for (const {issue, events} of records) {
+    const key = progressKey(issue, course);
+    if (!key) continue;
+    if (!students.has(key.user_id)) students.set(key.user_id, {id:key.user_id, login:issue.user.login, events:new Map(), issues:[]});
+    const student = students.get(key.user_id);
+    for (const e of events) if (e.key?.user_id === key.user_id && e.key?.course_id === course.id && e.key?.lesson_id === key.lesson_id) student.events.set(e.id, e);
+    student.issues.push(issue.html_url);
+  }
+  return [...students.values()].map(student => {
+    const all = [...student.events.values()].sort((a,b) => a.at-b.at || a.id.localeCompare(b.id));
+    let total=0, solved=0, unavailable=0;
+    const details = course.lessons.map(ref => {
+      const lesson = lessons.get(ref.id);
+      if (!lesson) { unavailable++; return {title:ref.title, unavailable:true}; }
+      const required = (lesson.tasks ?? []).filter(t => t.required);
+      const events = all.filter(e => e.key.lesson_id === ref.id);
+      const passed = new Set(events.filter(e => e.kind === 'attempt' && e.passed === true && (e.revision === ref.revision || /^stp_[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/.test(e.task_id))).map(e => e.task_id));
+      const count = required.filter(t => passed.has(t.id)).length;
+      total += required.length; solved += count;
+      return {title:ref.title, solved:count, total:required.length, complete:required.length>0 && count===required.length};
+    });
+    const last = [...all].reverse().find(e => e.kind==='attempt' && e.passed === true && course.lessons.some(l => l.id===e.key.lesson_id));
+    const ref = course.lessons.find(l => l.id === last?.key.lesson_id);
+    const task = lessons.get(ref?.id)?.tasks?.find(t => t.id===last.task_id);
+    return {...student, details, total, solved, unavailable, percent:unavailable || !total ? null : Math.floor(100*solved/total), latest:all.at(-1)?.at, last: last ? `${ref.title} · ${task?.title ?? last.task_id}` : '아직 통과 기록이 없어요'};
+  }).sort((a,b) => (b.latest ?? 0)-(a.latest ?? 0));
+}

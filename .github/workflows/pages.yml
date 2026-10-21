@@ -1,0 +1,38 @@
+name: Learning dashboard
+on:
+  push:
+    branches: [main]
+    paths: ['site/dashboard/**', 'tools/test-dashboard.mjs', '.github/workflows/pages.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tools/test-dashboard.mjs
+      - name: Prepare public dashboard
+        run: |
+          mkdir -p public/dashboard
+          cp site/dashboard/* public/dashboard/
+          printf '%s' '<!doctype html><html lang="ko"><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=dashboard/"><title>MQ 학습 현황</title><a href="dashboard/">학습 현황 열기</a></html>' > public/index.html
+          touch public/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - name: Deploy dashboard
+        id: deployment
+        uses: actions/deploy-pages@v4
