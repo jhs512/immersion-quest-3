@@ -38,16 +38,19 @@ winresource = "0.1"
         measurements = []
 
         def build(label, changed):
+            def outputs():
+                return {str(path): path.stat().st_mtime_ns for path in
+                        (root / 'target/debug/build').glob('mq-build-input-check-*/out/private-solutions.json')}
+            before = outputs()
             start = time.perf_counter()
             result = subprocess.run(['cargo', 'check', '--offline', '-vv'], cwd=root,
                                     env=env, capture_output=True, text=True, encoding='utf-8', errors='replace')
             elapsed = round(time.perf_counter() - start, 3)
             if result.returncode:
                 raise AssertionError(result.stderr[-4000:])
-            # Cargo may say Checking rather than Compiling for the root target on
-            # macOS. Observe execution of the build script, not that status label.
-            rebuilt = any('Running ' in line and 'build-script-build' in line
-                          for line in result.stderr.splitlines())
+            # Observe the real generated file: colored/platform-specific Cargo
+            # status lines are not a reliable indication of script execution.
+            rebuilt = outputs() != before
             measurements.append({'case': label, 'seconds': elapsed, 'rebuilt': rebuilt})
             print(json.dumps(measurements[-1]), flush=True)
             assert rebuilt == changed, '\n'.join(line for line in result.stderr.splitlines()
