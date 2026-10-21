@@ -4,6 +4,26 @@ let students=[], busy=false;
 const cache = new Map();
 function node(tag, text, cls) {const n=document.createElement(tag); if(text!=null)n.textContent=text;if(cls)n.className=cls;return n;}
 const date = value => value === undefined ? '기록 없음' : new Date(value*1000).toLocaleString('ko-KR');
+const savedKey = repo => `mq-dashboard:v1:${repo}`;
+const validSnapshot = (data,repo) => data?.version===1 && data.repository===repo && typeof data.title==='string' && Array.isArray(data.students) && Number.isFinite(data.generatedAt) && Number.isFinite(data.lessonCount);
+function showSnapshot(data,stored=false){
+  students=data.students;$('title').textContent=data.title;
+  $('stats').replaceChildren(node('span',`학생 ${students.length}명`),node('span',`수업 ${data.lessonCount}개`));
+  $('status').textContent=`${stored?'새 자료를 받지 못해 이전 저장 자료를 보여요. ':'공용 현황 · '}집계 시각: ${new Date(data.generatedAt).toLocaleString('ko-KR')}`;
+  $('results').hidden=false;history.replaceState(null,'',dashboardPath(data.repository,location.pathname));render();
+}
+async function sharedSnapshot(repo){
+  let saved;try{saved=JSON.parse(localStorage.getItem(savedKey(repo)));}catch{}
+  try{
+    const response=await fetch(new URL(`data/${repo}.json`,document.baseURI),{cache:'no-store'});
+    if(response.status===404){if(validSnapshot(saved,repo)){showSnapshot(saved,true);return true;}return false;}
+    if(!response.ok)throw Error('공용 현황을 불러오지 못했어요. 잠시 뒤 조회하세요.');
+    let data;try{data=await response.json();}catch{return false;}
+    if(!validSnapshot(data,repo))throw Error('공용 현황 형식을 확인하지 못했어요.');
+    try{localStorage.setItem(savedKey(repo),JSON.stringify(data));}catch{/* Storage may be disabled or full. */}
+    showSnapshot(data);return true;
+  }catch(error){if(validSnapshot(saved,repo)){showSnapshot(saved,true);return true;}throw error;}
+}
 async function json(url) {
   const headers = {Accept:'application/vnd.github+json'};
   if(cache.get(url)?.etag) headers['If-None-Match']=cache.get(url).etag;
@@ -47,13 +67,16 @@ function render(){
 async function load(){
   if(busy)return;busy=true;$('load').disabled=true;for(const b of $('presets').querySelectorAll('button'))b.disabled=true;$('results').hidden=true;$('status').textContent='코스와 학습 기록을 불러오고 있어요…';
   try{
-    const repo=repository($('repo').value);const course=await content(repo,'main','course.json');
+    const repo=repository($('repo').value);
+    if(await sharedSnapshot(repo))return;
+    const course=await content(repo,'main','course.json');
     if(!course.id || !Array.isArray(course.lessons))throw new Error('MQ 코스 형식이 아니에요.');
     const lessons=new Map(),issues=await pages(`/repos/${repo}/issues?state=all`),records=[];
     const relevant=issues.filter(i=>progressKey(i,course));let done=0;
     await pool(course.lessons,async ref=>{try{const lesson=await content(ref.repository,ref.revision,'lesson.json');if(lesson.id===ref.id && lesson.revision===ref.revision && Array.isArray(lesson.tasks))lessons.set(ref.id,lesson);}catch{/* A missing lesson must not become 0% or 100%. */}});
     await pool(relevant,async issue=>{const key=progressKey(issue,course);const comments=issue.comments===0?[]:await pages(`/repos/${repo}/issues/${issue.number}/comments`);records.push({issue,events:verifiedEvents(comments,key)});$('status').textContent=`진도 이슈 ${++done} / ${relevant.length}개를 확인했어요.`;});
     students=summarize(course,lessons,records,issues);$('title').textContent=course.title;$('stats').replaceChildren(node('span',`학생 ${students.length}명`),node('span',`수업 ${course.lessons.length}개`));
+    if(lessons.size===course.lessons.length)try{localStorage.setItem(savedKey(repo),JSON.stringify({version:1,repository:repo,generatedAt:Date.now(),title:course.title,lessonCount:course.lessons.length,students}));}catch{}
     const missing=course.lessons.length-lessons.size;$('status').textContent=`조회 완료 · ${new Date().toLocaleTimeString('ko-KR')}${missing?` · 수업 자료 ${missing}개를 확인하지 못했어요. 전체 완료율은 표시하지 않아요.`:''}`;
     $('results').hidden=false;history.replaceState(null,'',dashboardPath(repo,location.pathname));render();
   }catch(error){$('status').textContent=error.message;}finally{busy=false;$('load').disabled=false;for(const b of $('presets').querySelectorAll('button'))b.disabled=false;}

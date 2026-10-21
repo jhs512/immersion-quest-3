@@ -2,7 +2,9 @@ name: Learning dashboard
 on:
   push:
     branches: [main]
-    paths: ['site/dashboard/**', 'site/open/**', 'tools/test-lesson-link-page.mjs', 'tools/test-dashboard.mjs', 'tools/build-dashboard.py', '.github/workflows/pages.yml']
+    paths: ['site/dashboard/**', 'site/open/**', 'tools/test-lesson-link-page.mjs', 'tools/test-dashboard.mjs', 'tools/build-dashboard.py', 'tools/snapshot-dashboard.mjs', '.github/workflows/pages.yml']
+  schedule:
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 permissions:
   contents: read
@@ -26,6 +28,10 @@ jobs:
       - name: Prepare public dashboard
         run: |
           python3 tools/build-dashboard.py
+      - name: Collect shared public course progress
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tools/snapshot-dashboard.mjs
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

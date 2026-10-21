@@ -31,3 +31,22 @@ for(const [name,engine] of Object.entries({chromium,webkit}))test(`${name}: dire
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'narrow dashboard overflows');
  }finally{await browser.close();}
 });
+
+test('shared dashboard loads without GitHub API quota and survives a failed refresh',async()=>{
+ const browser=await chromium.launch(process.platform==='win32'?{channel:'msedge',headless:true}:{headless:true});
+ try{
+  const page=await browser.newPage();let apiCalls=0,unavailable=false;
+  await page.route('https://api.github.com/**',route=>{apiCalls++;return route.fulfill({status:403,json:{message:'API rate limit exceeded'}})});
+  await page.route('https://mq.test/**',route=>{
+   const url=new URL(route.request().url());
+   if(url.pathname.includes('/data/'))return route.fulfill(unavailable?{status:503,body:'Unavailable'}:{json:{version:1,repository:'owner/course',generatedAt:Date.now(),title:'공용 캐시 코스',lessonCount:1,students:[]}});
+   const last=url.pathname.split('/').pop(),file=['app.mjs','model.mjs','style.css'].includes(last)?last:'index.html';
+   return route.fulfill({body:fs.readFileSync('site/dashboard/'+file),contentType:file.endsWith('.mjs')?'text/javascript':file.endsWith('.css')?'text/css':'text/html'});
+  });
+  await page.goto('https://mq.test/immersion-quest-3/dashboard/owner/course/');
+  await page.locator('#results:not([hidden])').waitFor({timeout:5000});
+  assert.equal(await page.locator('#title').textContent(),'공용 캐시 코스');assert.equal(apiCalls,0);
+  unavailable=true;await page.reload();await page.locator('#results:not([hidden])').waitFor({timeout:5000});
+  assert.match(await page.locator('#status').textContent(),/저장|이전/);assert.equal(apiCalls,0);
+ }finally{await browser.close();}
+});

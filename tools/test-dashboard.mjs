@@ -70,3 +70,13 @@ test('editable names stay course-scoped; registration alone also appears in the 
   const separate=summarize({...course,id:'course-b'},lessons,[{issue,events}]);
   assert.equal(separate.length,0);
  });
+
+test('shared snapshot groups comments in one request and rejects private repositories',async()=>{
+ const {snapshot}=await import('./snapshot-dashboard.mjs');
+ const calls=[];
+ const i={...issue,number:1,comments:1};
+ const data=await snapshot('owner/course',async path=>{calls.push(path);if(path==='/repos/owner/course')return {private:false};if(path.includes('/issues/comments'))return [{...comment([event('ok')]),issue_url:'https://api.github.com/repos/owner/course/issues/1'}];return [i];},async(repo,ref,path)=>path==='course.json'?{...course,title:'Test',lessons:[{...course.lessons[0],repository:'owner/lesson'}]}:{id:'lesson-a',revision:'v2',tasks:[{id:stable,title:'Task',required:true}]});
+ assert.equal(data.students[0].solved,1);assert.equal(data.students[0].events,undefined);
+ assert.equal(calls.length,3);assert.equal(data.repository,'owner/course');
+ await assert.rejects(()=>snapshot('owner/private',async()=>({private:true}),async()=>{}),/public/);
+});
