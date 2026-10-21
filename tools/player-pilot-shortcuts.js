@@ -19,7 +19,10 @@
   if(color[0]<=color[1]+30||banner.getBoundingClientRect().height<50)throw Error('Failure is not visibly red');
   if(!document.querySelector('.submission-indicator')?.textContent.includes('제출 실패'))throw Error('Failure not visible near submit');
   checked.push('Native submit shortcut grades an incorrect answer and displays a red alert plus toolbar failure label');
-  molipAgent.setVoice(false);await click('해설 재생');await wait(()=>document.querySelector('.repository-task').dataset.narrating==='true','explanation starts');
+  molipAgent.setVoice(false);button('해설 재생').focus();await click('해설 재생');await wait(()=>document.querySelector('.repository-task').dataset.narrating==='true'&&molipAgent.running,'explanation starts');
+  const space=()=>document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:' ',bubbles:true,cancelable:true}));
+  space();await wait(()=>molipAgent.paused,'Space pauses after the focused replay button becomes disabled');
+  space();await wait(()=>!molipAgent.paused,'Space resumes narration');
   await wait(()=>document.querySelector('.repository-task .narration-stop')&&!document.querySelector('.repository-task .narration-stop').disabled,'stop enabled');document.querySelector('.repository-task .narration-stop').click();await wait(()=>document.querySelector('.repository-task').dataset.narrating==='false'&&document.querySelector('.result-pane').dataset.feedback==='incorrect','failure survives explanation');
   checked.push('Explanation cancellation restores learner outcome');
   chord('ArrowRight');await wait(()=>document.querySelector('.repository-task')?.dataset.taskId!==first,'next shortcut');

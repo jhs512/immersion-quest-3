@@ -149,7 +149,7 @@
     }
     const agent = globalThis.molipAgent;
     if (event.key === ' ' && agent?.running && !event.ctrlKey && !event.metaKey && !event.altKey && !inEditable(event.target)
-      && !(event.target instanceof Element && event.target.closest('button,a,select,summary'))) {
+      && !(event.target instanceof Element && event.target.closest('button:not(:disabled),a,select:not(:disabled),summary'))) {
       event.preventDefault(); event.stopPropagation();
       const b = document.getElementById('narration-pause'); if (b) b.click(); else if (agent.paused) agent.resume(); else agent.pause(); return;
     }

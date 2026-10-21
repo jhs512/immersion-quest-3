@@ -13,6 +13,9 @@ for(const [name,engine] of Object.entries({chromium,webkit}))test(`${name}: Spac
   assert.deepEqual(await page.evaluate(()=>[stopped,paused]),[1,0],'Space must activate the focused control');
   await page.locator('p').focus();await page.keyboard.press('Space');
   assert.deepEqual(await page.evaluate(()=>[stopped,paused]),[1,1],'Space outside controls still pauses narration');
+  await page.locator('#stop').focus();await page.locator('#stop').evaluate(e=>e.disabled=true);
+  await page.keyboard.press('Space');
+  assert.deepEqual(await page.evaluate(()=>[stopped,paused]),[1,2],'a disabled replay button must not swallow the narration pause shortcut');
  }finally{await browser.close();}
 });
 for(const [name,engine] of Object.entries({chromium,webkit}))test(`${name}: Enter respects the focused success-dialog action`,async()=>{
