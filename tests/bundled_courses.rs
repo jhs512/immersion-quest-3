@@ -33,8 +33,8 @@ fn installation_and_upgrade_use_current_three_courses_without_content_downloads_
     // Reproduce an already installed 18-lesson Java snapshot with changed content.
     let current=github.course("jhs512/mq3-course-redesigned-java-backend").unwrap();
     let mut old:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned-courses/java-backend.json")).unwrap();
-    let removed=["bash-basics-1","vim-basics-1","java-launch-1","java-arguments-1","git-branch-advanced-1","github-pr-1"];
-    old["lessons"].as_array_mut().unwrap().retain(|r|!removed.contains(&r["revision"].as_str().unwrap()));
+    let removed=["bash-basics","vim-basics","java-launch","java-arguments","git-branch-advanced","github-pr"];
+    old["lessons"].as_array_mut().unwrap().retain(|r|!removed.iter().any(|key|r["repository"].as_str().unwrap().ends_with(&format!("-{key}"))));
     let existing=current.lessons.iter().find(|r|r.revision=="java-values-1").unwrap();
     let mut outdated:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/java-values.json")).unwrap();
     outdated["tasks"][0]["starter_code"]="// old installed source".into();

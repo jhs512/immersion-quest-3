@@ -13,5 +13,5 @@ fn submit_progress_completion_badges_and_automatic_content_updates() {
     std::fs::write("target/mq-content-submit-native-result.json",&raw).unwrap();
     let result:serde_json::Value=serde_json::from_str(&raw).unwrap();
     assert!(status.success()&&result["passed"]==true,"{result}");
-    assert_eq!(result["checked"].as_array().unwrap().len(),4);
+    assert_eq!(result["checked"].as_array().unwrap().len(),5);
 }

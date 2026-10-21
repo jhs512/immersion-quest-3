@@ -648,6 +648,8 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,active_l
     let mut offered=use_signal(||false);
     let mut message=use_signal(String::new);
     let mut manual=use_signal(||0u64);
+    let mut refresh_and_apply=use_signal(||false);
+    let mut checking=use_signal(||false);
     let mut applying=use_signal(||false);
     let mut noticed=use_signal(std::collections::HashSet::<String>::new);
     let mut summary=use_signal(String::new);
@@ -683,6 +685,9 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,active_l
         loop {
             let request=*manual.peek(); let requested=request!=seen;
             if schedule.begin(started.elapsed().as_secs(),requested) {
+                let apply_after_check=requested&&*refresh_and_apply.peek();
+                refresh_and_apply.set(false);
+                checking.set(true);
                 seen=request; let gh=session.github.clone();let repo=course.repository.clone();let user=session.user.id;
                 let result=github_player::background(move||{
                     gh.ensure_user(user)?;
@@ -693,6 +698,7 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,active_l
                     Ok((next.fingerprint()!=current.fingerprint()).then_some((next,changes)))
                 }).await;
                 schedule.finish();
+                checking.set(false);
                 match result {
                     Ok(Some((next,changes)))=>{
                         auto_attempted.set(None);
@@ -700,7 +706,8 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,active_l
                         let first=notices.and_then(|path|{let mut notices=updater::UpdateNotices::open(&path)?;notices.record(u64::from_str_radix(&next.fingerprint()[..16],16).expect("SHA256 prefix"))}).unwrap_or(true);
                         let first=first&&noticed.write().insert(next.fingerprint());
                         summary.set(format!("문제 추가 {}개 · 수정 {}개 · 제외 {}개",changes.added.len(),changes.modified.len(),changes.removed.len()));
-                        candidate.set(Some(next)); if first {offered.set(true);} message.set("새 수업 내용이 있어요.".into());
+                        if apply_after_check {apply.call((next,false));}
+                        else {candidate.set(Some(next)); if first {offered.set(true);} message.set("새 수업 내용이 있어요.".into());}
                     }
                     Ok(None)=>{candidate.set(None);offered.set(false);if requested {message.set("최신 내용이에요.".into());}}
                     Err(error)=>{if requested {message.set(error);}}
@@ -714,9 +721,20 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,active_l
     let backup_course=course.as_ref().map(|course|course.id.clone()).unwrap_or_default();
     let history_repository=course.as_ref().map(|course|course.repository.clone()).unwrap_or_default();
     rsx! {div {class:"content-update-controls",
+        button {class:"course-refresh-icon",aria_label:"수업 업데이트",
+            title:if applying(){"수업 적용 중이에요.".to_string()}else if checking(){"수업 업데이트를 확인하고 있어요.".to_string()}else if message().is_empty(){"수업 업데이트".to_string()}else{format!("수업 업데이트 · {}",message())},
+            disabled:applying()||checking(),
+            onclick:move |_|{refresh_and_apply.set(true);message.set("수업 업데이트를 확인하고 있어요.".into());manual+=1;},
+            svg {width:"18",height:"18",view_box:"0 0 24 24",fill:"none",stroke:"currentColor",stroke_width:"2",stroke_linecap:"round",stroke_linejoin:"round","aria-hidden":"true",
+                path {d:"M20 7v5h-5"}
+                path {d:"M4 17v-5h5"}
+                path {d:"M6.1 7a7 7 0 0 1 11.55-1.1L20 9M4 15l2.35 3.1A7 7 0 0 0 17.9 17"}
+            }
+        }
+        span {class:"course-refresh-status",role:"status",aria_live:"polite","{message}"}
         details {summary {"수업 설정"}
             div {class:"content-update-menu",
-            button {disabled:applying(),onclick:move |_|manual+=1,"수업 업데이트 확인"}
+            button {disabled:applying()||checking(),onclick:move |_|{refresh_and_apply.set(false);manual+=1;},"수업 업데이트 확인"}
             p {role:"status","{message}"}
             if candidate().is_some() {p {"{summary}"}}
             crate::change_history_ui::ChangeHistory {repository:history_repository}

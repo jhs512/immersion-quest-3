@@ -55,6 +55,7 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
                     }
                     if message["control"]=="resume-record"{if let Some(db)=progress_lock.take(){db.execute_batch("ROLLBACK").unwrap();}}
                     if message["control"]=="resume"{std::fs::remove_file(root.join("pilot-progress-blocked")).unwrap();}
+                    #[cfg(debug_assertions)]
                     if message["control"]=="advance-hour" {
                         let result=tokio::task::spawn_blocking(||molip_quest::progress_sync::ProgressStore::installed()?.flush_pilot_hour()).await;
                         if !matches!(result,Ok(Ok(()))) {document::eval("window.mq3ExpectedUploadFailure=true");}
@@ -70,6 +71,7 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
             Ok(Ok(result)) => result,
             _ => serde_json::json!({"passed":false,"error":"Native WebView test timed out or disconnected"}),
         };
+        #[cfg(debug_assertions)]
         if let Ok(store)=molip_quest::progress_sync::ProgressStore::installed(){
             // Existing native cases assert the final remote history. Advance their
             // isolated collection window explicitly after the learner scenario.

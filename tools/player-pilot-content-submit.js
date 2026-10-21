@@ -59,6 +59,21 @@
     await click('문제 2 · 값 5 확인');
     await wait(() => molipCodeEditors.getValue()==='console.log(99);', 'draft survives content update');
     checked.push('content update preserves draft and completion by stable resource code');
+    await click('버전 a');
+    await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('pilot-a'),'fresh A for refresh button');
+    await click('학습 시작');
+    await wait(()=>document.querySelector('[data-code-editor]')?.dataset.editorValue===molipCodeEditors.getValue(),'refresh editor mounted');
+    molipCodeEditors.setValue('console.log(333);');
+    await wait(()=>document.querySelector('[data-code-editor]')?.dataset.editorValue==='console.log(333);','refresh draft');
+    const refresh=async()=>{await wait(()=>document.querySelector('.course-refresh-icon')&&!document.querySelector('.course-refresh-icon').disabled,'refresh enabled');document.querySelector('.course-refresh-icon').click();};
+    await click('손상 업데이트 공개');await refresh();
+    await wait(()=>document.querySelector('.course-refresh-status')?.textContent.includes('고정한 버전과 달라'),'refresh rejects bad hash');
+    if(molipCodeEditors.getValue()!=='console.log(333);')throw Error('Invalid refresh lost draft');
+    await click('새 업데이트 공개');await refresh();
+    await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('pilot-g'),'one click checks and applies content');
+    await click('학습 시작');
+    await wait(()=>molipCodeEditors.getValue()==='console.log(333);','manual refresh preserves answer');
+    checked.push('visible refresh button checks and applies in one click; failed hash retains current answer');
     observer.disconnect();
     dioxus.send({passed:true,checked});
   } catch (error) {
