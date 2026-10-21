@@ -133,7 +133,7 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
         div {class:if session().is_none(){"repository-player needs-gh"}else{"repository-player"},
             header {class:"repository-header",h1 {"MQ"}
                 div {class:"repository-tools",
-                    if let Some(s)=session() {div {class:"repository-account",span {"gh · @{s.user.login}"}button {disabled:busy(),onclick:move |_|connect(),"gh 계정 다시 확인"}}}
+                    if let Some(s)=session() {div {class:"repository-account",span {"gh · @{s.user.login}"}button {class:"account-recheck",title:"GitHub 계정 다시 확인",aria_label:"GitHub 계정 다시 확인",disabled:busy(),onclick:move |_|connect(),"계정 확인"}}}
                     button {class:"shortcut-sheet-open","data-shortcut-action":"help",onclick:move |_|{document::eval("window.molipShortcuts?.toggleSheet()");},"단축키"}{updates}{window_controls}
                 }
             }

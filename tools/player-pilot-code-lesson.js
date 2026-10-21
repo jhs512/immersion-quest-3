@@ -8,7 +8,15 @@
  const click=async text=>{await wait(()=>button(text)&&!button(text).disabled,text);button(text).click();await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));};
  const bridge=()=>document.querySelector('.answer-state-bridge');
  const status=text=>document.querySelector('.execution-status')?.textContent.includes(text);
- const prepared=(task,answer)=>{if(task.interaction&&!task.example_code)return null;const source=task.example_code??answer;if(!task.example_order_marker)return source;const order=JSON.parse(answer);return source.replace(task.example_order_marker,order.map(id=>task.interaction.options.find(option=>option.id===id).text).join('\n'));};
+ const prepared=(task,answer)=>{
+  if(task.interaction&&!task.example_code)return null;
+  const source=task.example_code??answer,marker=task.example_order_marker;if(!marker)return source;
+  const offset=source.indexOf(marker),prefix=source.slice(0,offset).split('\n').at(-1);
+  const wholeLine=/^[\t ]*$/.test(prefix)&&!source.slice(offset+marker.length).split('\n')[0].trim();
+  // Match the authored placeholder indentation; each inserted statement stays in its block.
+  const lines=JSON.parse(answer).map(id=>task.interaction.options.find(option=>option.id===id).text).join('\n');
+  return source.replace(marker,()=>wholeLine?lines.replaceAll('\n','\n'+prefix):lines);
+ };
  const answer=async task=>{
   if(task.interaction?.kind==='choice')await wait(()=>{const radios=[...document.querySelectorAll('input[type=radio]')];return radios.length===task.interaction.options.length&&radios.every(radio=>!radio.matches(':disabled')&&radio.checked===(radio.value===bridge()?.value));},'controlled choices ready');
   if(task.interaction?.kind==='choice')document.querySelector(`input[type=radio][value="${task.solution}"]`).click();

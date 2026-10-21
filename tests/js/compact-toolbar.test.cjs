@@ -2,7 +2,7 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const {chromium,webkit}=require('../../target/ui-tests/node_modules/playwright-core');
-for(const engine of ['chromium','webkit'])test(`${engine}: lesson controls share one row with bounded menus`,async()=>{
+for(const engine of ['chromium','webkit'])test(`${engine}: complete toolbar keeps compact rows and bounded menus`,async()=>{
  const browser=await ({chromium,webkit}[engine]).launch(engine==='chromium'?{channel:'msedge',headless:true}:{headless:true,...(process.env.MQ3_WEBKIT_EXECUTABLE?{executablePath:process.env.MQ3_WEBKIT_EXECUTABLE}:{})});
  try{
   const page=await browser.newPage();
@@ -10,8 +10,9 @@ for(const engine of ['chromium','webkit'])test(`${engine}: lesson controls share
   for(const width of [1470,980,735,640,400]){
    await page.setViewportSize({width,height:720});
    await page.setContent(`<style>${styles}</style><div class="repository-session"><div class="repository-study is-task"><header class="repository-header"><button class="course-back">← 코스 수업 목록</button><h1>학습 기록을 보고 개선 방법을 판단해요</h1><button class="lesson-info-trigger">0% · 0/8 ⓘ</button><div class="repository-tools"><span class="lesson-account">@jhs512</span><div class="content-update-controls"><details><summary>수업 설정</summary><div class="content-update-menu"><button>수업 업데이트 확인</button><p>이전 답안과 변경 이력을 확인해요.</p></div></details></div><div class="app-window-controls"><button class="window-fullscreen-control">창 모드 · F11</button><details class="app-update-settings"><summary>앱 설정</summary><div class="app-update-menu"><p>최신 버전입니다</p><button>업데이트 확인</button></div></details></div></div></header></div></div>`);
-   const boxes=await page.evaluate(()=>{const r=e=>{const b=e.getBoundingClientRect();return{left:b.left,right:b.right,top:b.top,bottom:b.bottom,height:b.height}};return{header:r(document.querySelector('.repository-header')),controls:[...document.querySelectorAll('.course-back,.lesson-info-trigger,.content-update-controls>details>summary,.app-window-controls>button,.app-update-settings>summary')].map(r)}});
-   assert.ok(boxes.header.height<=42,`${width}: header must remain one row`);
+   await page.evaluate(()=>{document.querySelector('.lesson-info-trigger').insertAdjacentHTML('beforebegin','<button class="lesson-share">링크 복사</button>');document.querySelector('.repository-tools').insertAdjacentHTML('afterbegin','<button class="shortcut-sheet-open" data-shortcut-action="help">단축키</button>');document.querySelector('.app-window-controls').insertAdjacentHTML('afterbegin','<button class="app-report-button" aria-label="앱 오류 신고">!</button>');});
+   const boxes=await page.evaluate(()=>{const r=e=>{const b=e.getBoundingClientRect();return{left:b.left,right:b.right,top:b.top,bottom:b.bottom,height:b.height}};return{header:r(document.querySelector('.repository-header')),controls:[...document.querySelectorAll('.course-back,.lesson-share,.shortcut-sheet-open,.app-report-button,.lesson-info-trigger,.content-update-controls>details>summary,.app-window-controls>button,.app-update-settings>summary')].map(r)}});
+   assert.ok(boxes.header.height<=(width<700?86:42),`${width}: toolbar uses at most two compact rows on narrow windows`);
    for(const b of boxes.controls)assert.ok(b.left>=0&&b.right<=width&&b.top>=boxes.header.top&&b.bottom<=boxes.header.bottom,`${width}: ${JSON.stringify(boxes)}`);
    for(const selector of ['.content-update-controls>details>summary','.app-update-settings>summary']){
     await page.locator(selector).click();

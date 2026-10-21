@@ -11,10 +11,12 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
     let window = dioxus::desktop::use_window();
     #[cfg(not(feature="desktop"))]
     let window = ();
-    use_future(|| async move {
+    use_future({let window=window.clone();move || {let window=window.clone();async move {
         if !pilot_source::enabled() || std::env::var_os("MOLIP_PILOT_SELF_TEST").is_none() { return; }
         let restart_phase=std::env::var("MOLIP_PILOT_SELF_TEST").ok().and_then(|mode|mode.strip_prefix("restart-").map(str::to_owned)).filter(|phase|matches!(phase.as_str(),"seed"|"reopen"));
-        let script=if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("course-identity") {
+        let script=if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("toolbar-audit") {
+            include_str!("../tools/player-pilot-toolbar.js").to_owned()
+        }else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("course-identity") {
             include_str!("../tools/player-pilot-course-identity.js").to_owned()
         }else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("lesson-link") {
             format!("window.mq3LinkTargets={};{}",std::env::var("MOLIP_LINK_TARGETS").unwrap(),include_str!("../tools/player-pilot-lesson-link.js"))
@@ -50,6 +52,13 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
         let result = match tokio::time::timeout(std::time::Duration::from_secs(480), async {
             loop {
                 let message=bridge.recv::<serde_json::Value>().await?;
+                if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("toolbar-audit") && message["control"]=="resize" {
+                    #[cfg(feature="desktop")] {
+                        window.window.set_fullscreen(None);
+                        window.window.set_inner_size(dioxus::desktop::tao::dpi::LogicalSize::new(message["width"].as_u64().unwrap_or(1280) as f64,message["height"].as_u64().unwrap_or(720) as f64));
+                    }
+                    continue;
+                }
                 if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("lesson-link")&&message["control"]=="lesson-link-stage" {
                     if let Some(stage)=message["stage"].as_str().filter(|stage|matches!(*stage,"first"|"second")){
                         let _=std::fs::write(pilot_source::data_dir().unwrap().join(format!("lesson-link-{stage}")),"");
@@ -107,7 +116,7 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
             Ok::<_,String>(())
         });
         std::process::exit(if written.is_ok() && result["passed"] == true { 0 } else { 1 });
-    });
+    }}});
     if setup_preview() { return rsx! {div {class:"repository-player needs-gh",
         crate::gh_setup_ui::GhSetup {message:String::new(),checking:false,onretry:move |_|setup_preview.set(false)}
     }}; }

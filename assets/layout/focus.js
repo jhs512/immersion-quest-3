@@ -15,5 +15,24 @@
     for (const record of records) for (const node of record.addedNodes) focusWithin(node);
   });
   observer.observe(document.body, { childList: true, subtree: true });
+  // Toolbar popovers behave alike: one open at a time, outside click and Escape close.
+  // Restrict this to toolbar details so lesson hints and provided files stay open.
+  const menuSelector='.app-update-settings, .repository-tools .content-update-controls>details';
+  const menus=()=>[...document.querySelectorAll(menuSelector)].filter(menu=>menu.open);
+  document.addEventListener('toggle',event=>{
+    if(!(event.target instanceof Element)||!event.target.matches(menuSelector)||!event.target.open)return;
+    for(const menu of menus())if(menu!==event.target)menu.open=false;
+  },true);
+  document.addEventListener('click',event=>{
+    for(const menu of menus())if(!menu.contains(event.target))menu.open=false;
+  });
+  window.addEventListener('keydown',event=>{
+    if(event.key!=='Escape'||event.isComposing)return;
+    if([...document.querySelectorAll('dialog[open],[role="dialog"]')].some(dialog=>dialog.getClientRects().length>0))return;
+    const open=menus();if(!open.length)return;
+    event.preventDefault();event.stopImmediatePropagation();
+    for(const menu of open)menu.open=false;
+    open[open.length-1].querySelector('summary')?.focus();
+  },true);
   globalThis.molipAutofocus = { focusWithin };
 })();

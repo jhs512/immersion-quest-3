@@ -111,6 +111,10 @@
     }
     const card = document.querySelector('.task-passed-dialog, .doctor-panel');
     if (card && event.key === 'Enter' && !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey) {
+      // A focused action keeps native keyboard activation (for example, "여기 머물기").
+      // Only use the default action when Enter came from non-interactive content.
+      if (event.target instanceof Element && card.contains(event.target)
+        && (inEditable(event.target) || event.target.closest('button,a,select,summary'))) return;
       const primary = card.querySelector('button.primary');
       if (primary && !primary.disabled) { event.preventDefault(); event.stopPropagation(); primary.click(); }
       return;
@@ -144,7 +148,8 @@
       if (handled) { event.preventDefault(); event.stopPropagation(); return; }
     }
     const agent = globalThis.molipAgent;
-    if (event.key === ' ' && agent?.running && !event.ctrlKey && !event.metaKey && !event.altKey && !inEditable(event.target)) {
+    if (event.key === ' ' && agent?.running && !event.ctrlKey && !event.metaKey && !event.altKey && !inEditable(event.target)
+      && !(event.target instanceof Element && event.target.closest('button,a,select,summary'))) {
       event.preventDefault(); event.stopPropagation();
       const b = document.getElementById('narration-pause'); if (b) b.click(); else if (agent.paused) agent.resume(); else agent.pause(); return;
     }

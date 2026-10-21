@@ -131,9 +131,12 @@ jobs:
         run: |
           cargo test --locked --lib managed_web_tests -- --test-threads=1
           cargo test --locked --lib quoted_web_output_tests -- --test-threads=1
-      - name: Check isolated explanation sessions on Windows
+      - name: Install keyboard and toolbar test browsers on Windows
         if: ${{ (matrix.group == 'core' || matrix.group == 'architecture') && (runner.os == 'Windows') }}
-        run: node --test tests/js/explanation-session.test.cjs tests/js/git-terminal-session.test.cjs tests/js/interaction-example-editor.test.cjs
+        run: node target/ui-tests/node_modules/playwright-core/cli.js install chromium webkit
+      - name: Check keyboard, toolbar and isolated explanation sessions on Windows
+        if: ${{ (matrix.group == 'core' || matrix.group == 'architecture') && (runner.os == 'Windows') }}
+        run: node --test tests/js/explanation-session.test.cjs tests/js/git-terminal-session.test.cjs tests/js/interaction-example-editor.test.cjs tests/js/learning-shortcuts.test.cjs tests/js/compact-toolbar.test.cjs tests/js/toolbar-menus.test.cjs
       - name: Check authored file-backed lesson cases
         if: matrix.group == 'core'
         shell: python

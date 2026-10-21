@@ -23,9 +23,15 @@
   mq3GitTerminal.command('git switch -c student-restore');await wait(()=>text().includes('student-restore'),'student branch');
   molipAgent.setVoice(false);
   for(const cancel of [false,true]){
-   await click('해설 재생');await wait(()=>document.querySelector('#git-demo-terminal .xterm'),'demo mounted');
-   if(cancel)await click('멈춤');
+   await click('해설 재생');
+   if(cancel){
+    // A hidden terminal from the preceding replay can still be mounted. Cancel
+    // the new explanation as soon as its real stop action is enabled.
+    await wait(()=>document.querySelector('.repository-task')?.dataset.narrating==='true'&&document.querySelector('.repository-task .narration-stop:not(:disabled)'),'new explanation can stop');
+    document.querySelector('.repository-task .narration-stop').click();
+   }
    else {
+    await wait(()=>document.querySelector('#git-demo-terminal .xterm'),'demo mounted');
     await wait(()=>window.mq3GitDemoTerminal?.text().split('\n').some(line=>line.trim()==='첫 메모'),'cat shows actual memo contents');
     if(window.mq3GitDemoTerminal.text().includes('$ git init'))throw new Error('later explanation must not repeat git init');
     if(window.mq3GitDemoTerminal.text().includes('$ echo'))throw new Error('later explanation must not recreate earlier files');

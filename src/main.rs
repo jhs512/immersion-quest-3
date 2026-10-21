@@ -227,10 +227,22 @@ window.molipVoice && molipVoice.setName({});",
         style {{include_str!("../assets/compact-toolbar.css")}}
         style {{include_str!("../assets/product-ui.css")}}
         style {{include_str!("../assets/terminal/terminal.bundle.css")}}
-        if cfg!(debug_assertions) && std::env::var_os("MOLIP_PILOT").is_some() { pilot_ui::PilotPlayer {window_controls:rsx!{div {class:"app-window-controls",button {title:"앱 오류 신고 · Ctrl+Alt+Shift+B",onclick:move |_|{let _=emergency_report::request("bug");},"오류 신고"}{fullscreen_toggle}UpdateGate {}}}} }
-        else if cfg!(debug_assertions) && std::env::var_os("MOLIP_LEGACY").is_some() { div {class:"app-window-controls",button {title:"앱 오류 신고 · Ctrl+Alt+Shift+B",onclick:move |_|{let _=emergency_report::request("bug");},"오류 신고"}{fullscreen_toggle}UpdateGate {}} Workspace {} } else { player_ui::RepositoryPlayer {window_controls:rsx!{div {class:"app-window-controls",button {title:"앱 오류 신고 · Ctrl+Alt+Shift+B",onclick:move |_|{let _=emergency_report::request("bug");},"오류 신고"}{fullscreen_toggle}UpdateGate {}}}} }
+        if cfg!(debug_assertions) && std::env::var_os("MOLIP_PILOT").is_some() { pilot_ui::PilotPlayer {window_controls:rsx!{div {class:"app-window-controls",AppReportButton {}{fullscreen_toggle}UpdateGate {}}}} }
+        else if cfg!(debug_assertions) && std::env::var_os("MOLIP_LEGACY").is_some() { div {class:"app-window-controls",AppReportButton {}{fullscreen_toggle}UpdateGate {}} Workspace {} } else { player_ui::RepositoryPlayer {window_controls:rsx!{div {class:"app-window-controls",AppReportButton {}{fullscreen_toggle}UpdateGate {}}}} }
     }
 }
+#[component]
+fn AppReportButton() -> Element {
+    rsx! {button {
+        class:"app-report-button", aria_label:"앱 오류 신고", title:"앱 오류 신고 · Ctrl+Alt+Shift+B",
+        onclick:move |_|{let _=emergency_report::request("bug");},
+        svg {width:"18",height:"18",view_box:"0 0 24 24",fill:"none",stroke:"currentColor",stroke_width:"1.7","aria-hidden":"true",
+            circle {cx:"12",cy:"12",r:"9"}
+            path {d:"M12 7v6m0 3v1"}
+        }
+    }}
+}
+
 /// Some Windows sessions hand a new window the off-screen placeholder position (-32000, -32000)
 /// with a tiny size, so the app seems to start minimized and only appears after maximizing.
 /// When that happens, size the window to most of the primary screen and center it.
@@ -436,7 +448,7 @@ fn UpdateGate() -> Element {
         }
     });
     let installing = matches!(phase(), UpdatePhase::Downloading(_, _) | UpdatePhase::Installing);
-    let settings=rsx! {details {class:"app-update-settings",summary {if release().is_some() {"앱 설정 · 새 버전"} else {"앱 설정"}}
+    let settings=rsx! {details {class:if release().is_some(){"app-update-settings has-update"}else{"app-update-settings"},summary {title:if release().is_some(){"앱 설정 · 새 버전이 있어요."}else{"앱 설정"},if release().is_some() {"앱 설정 · 새 버전"} else {"앱 설정"}}
         div {class:"app-update-menu",
             crate::ui::DoctorPanel {}
             p {role:"status", aria_live:"polite", "{status}"}

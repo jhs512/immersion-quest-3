@@ -8,9 +8,12 @@
     button('학습 시작').click();
     await wait(()=>window.molipCodeEditors?.getValue()!=null,'Editor did not mount');
     if(phase==='seed') {
+      const firstTask=document.querySelector('.repository-task').dataset.taskId;
       molipCodeEditors.setValue('console.log(3);');
       button('제출').click();
       await wait(()=>document.querySelector('.execution-status')?.textContent.includes('통과했어요'),'Initial problem did not pass');
+      await wait(()=>button('다음으로 이동'),'Success dialog did not open');button('다음으로 이동').click();
+      await wait(()=>document.querySelector('.repository-task')?.dataset.taskId!==firstTask&&molipCodeEditors.getValue()?.includes('console.log(0)'),'Unfinished problem did not mount');
       molipCodeEditors.setValue('console.log(99);');
       await wait(()=>document.querySelector('[data-code-editor]')?.dataset.editorValue==='console.log(99);','Draft did not reach player state');
     } else {
@@ -23,9 +26,8 @@
     await wait(()=>button('학습 시작'),'Git catalog did not open');button('학습 시작').click();
     await wait(()=>document.querySelector('.repository-task')?.dataset.gitReady==='true','Git practice did not mount');
     if(phase==='seed') {
-      mq3GitTerminal.command(navigator.platform.toLowerCase().includes('win')
-        ? "git switch -c restart-check; Set-Content -NoNewline -LiteralPath tracked.txt -Value 'staged'; git add tracked.txt; Set-Content -NoNewline -LiteralPath tracked.txt -Value 'working'; git status --short"
-        : "git switch -c restart-check; printf staged > tracked.txt; git add tracked.txt; printf working > tracked.txt; git status --short");
+      // The practice terminal runs Bash on Windows as well as macOS.
+      mq3GitTerminal.command("git switch -c restart-check; printf staged > tracked.txt; git add tracked.txt; printf working > tracked.txt; git status --short");
       await wait(()=>mq3GitTerminal.text().includes('MM tracked.txt'),'Git staged and working changes were not prepared');
     } else {
       mq3GitTerminal.command('git branch --show-current; git show :tracked.txt; git diff --numstat; git status --short');
