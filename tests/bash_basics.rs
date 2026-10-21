@@ -75,6 +75,44 @@ fn shell_validation_rejects_escaping_paths_and_invalid_commands() {
     }
 }
 
+#[cfg(windows)]
+#[test]
+fn korean_windows_memo_encoding_does_not_abort_a_correct_submission() {
+    let lesson:Lesson=serde_json::from_str(include_str!("../courses/redesigned/bash-basics.json")).unwrap();
+    let task=lesson.tasks.iter().find(|t|t.git_terminal.as_ref().and_then(|g|g.shell.as_ref()).is_some_and(|s|s.goal.files.get("memo.txt").is_some_and(|text|text=="첫 메모\n")&&s.commands.iter().any(|c|c.contains("> memo.txt")))).unwrap();let practice=GitPractice::new(task.git_terminal.clone().unwrap().demonstration()).unwrap();
+    let (mut terminal,mut output)=practice.open_terminal().unwrap();until(&practice,&mut terminal,&mut output,|text|text.contains("$ "));
+    play(&practice,&mut terminal,&mut output,&task.narration);
+    assert!(practice.check_exercise().unwrap().passed);
+    // Existing Korean Windows workspaces can contain a CP949 echo redirection.
+    let korean_cp949=[0xc3,0xb9,0x20,0xb8,0xde,0xb8,0xf0,0x0a];
+    let utf16=std::iter::once(vec![0xff,0xfe]).chain("첫 메모\r\n".encode_utf16().map(|u|u.to_le_bytes().to_vec())).flatten().collect::<Vec<_>>();
+    for bytes in [korean_cp949.to_vec(),utf16,[vec![0xef,0xbb,0xbf],"첫 메모\r\n".as_bytes().to_vec()].concat()] {
+        std::fs::write(practice.work().join("memo.txt"),&bytes).unwrap();
+        let result=practice.check_exercise();
+        assert!(result.is_ok(),"valid Korean text must not abort grading: {:?}",result.as_ref().err());
+        let report=result.unwrap();assert!(report.passed,"the same Korean memo must pass: {}",serde_json::to_string(&report).unwrap());
+        assert_eq!(std::fs::read(practice.work().join("memo.txt")).unwrap(),bytes);
+    }
+    std::fs::write(practice.work().join("memo.txt"),[0x81]).unwrap();
+    let report=practice.check_exercise().expect("invalid text should give feedback instead of aborting grading");
+    assert!(!report.passed);assert!(report.cases.iter().any(|c|!c.passed&&c.input=="파일 인코딩"));
+    terminal.shutdown().unwrap();
+}
+
+#[cfg(windows)]
+#[test]
+fn practice_shell_uses_utf8_even_when_started_with_a_legacy_korean_locale(){
+    let lesson:Lesson=serde_json::from_str(include_str!("../courses/redesigned/bash-basics.json")).unwrap();
+    let practice=GitPractice::new(lesson.tasks[0].git_terminal.clone().unwrap().demonstration()).unwrap();
+    let mut env=practice.environment();env.extend([("LC_ALL".into(),"ko_KR.CP949".into()),("LC_CTYPE".into(),"ko_KR.CP949".into()),("PS1".into(),"$ ".into())]);
+    let (mut terminal,mut output)=SetupTerminal::open_practice(&practice.work(),&env).unwrap();
+    until(&practice,&mut terminal,&mut output,|text|text.contains("$ "));
+    terminal.input("locale charmap\r").unwrap();until(&practice,&mut terminal,&mut output,|text|text.contains("UTF-8"));
+    terminal.input("echo \"첫 메모\" > memo.txt\r").unwrap();
+    until(&practice,&mut terminal,&mut output,|_|std::fs::read(practice.work().join("memo.txt")).is_ok_and(|b|b=="첫 메모\n".as_bytes()));
+    terminal.shutdown().unwrap();
+}
+
 #[test]
 fn step_eight_accepts_directory_slash_and_screen_clearing() {
     let manifest=CourseManifest::parse(include_str!("fixtures/player-pilot/부/course.json")).unwrap();

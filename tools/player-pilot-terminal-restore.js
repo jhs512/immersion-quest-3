@@ -6,7 +6,7 @@
  const text=()=>window.mq3GitTerminal?.text()||'';
  const visible=()=>{const host=document.querySelector('#git-student-terminal .xterm');return host?.isConnected&&host.getBoundingClientRect().height>0&&!!host.querySelector('canvas,.xterm-rows');};
  try{
-  await click('버전 k');await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('git-first-1'),'Git lesson');await click('학습 시작');
+  await click('버전 k');await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('git-first-'),'Git lesson');await click('학습 시작');
   await click('문제 1 · 메모 파일의 상태를 확인해 보세요');
   await wait(()=>document.querySelector('.repository-task')?.dataset.gitReady==='true','first terminal ready');
   molipAgent.setVoice(false);

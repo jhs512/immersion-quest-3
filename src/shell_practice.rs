@@ -1,5 +1,31 @@
 //! Real Bash practice state and completed commands, kept outside the learner's files.
 use super::*;
+
+// Read text without rewriting learner files. Older Windows terminals and
+// PowerShell can leave CP949 or BOM-marked UTF-16 files in a resumed workspace.
+fn shell_text(bytes:&[u8])->Option<String>{
+    let text=if let Some(raw)=bytes.strip_prefix(&[0xef,0xbb,0xbf]){std::str::from_utf8(raw).ok()?.to_owned()}
+    else if bytes.starts_with(&[0xff,0xfe])||bytes.starts_with(&[0xfe,0xff]){
+        let little=bytes[0]==0xff;let raw=&bytes[2..];if raw.len()%2!=0{return None;}
+        let units:Vec<u16>=raw.chunks_exact(2).map(|b|if little{u16::from_le_bytes([b[0],b[1]])}else{u16::from_be_bytes([b[0],b[1]])}).collect();
+        String::from_utf16(&units).ok()?
+    }else if let Ok(text)=std::str::from_utf8(bytes){text.to_owned()}
+    else {
+        #[cfg(windows)] {
+            use windows_sys::Win32::Globalization::{MultiByteToWideChar,MB_ERR_INVALID_CHARS};
+            let len=i32::try_from(bytes.len()).ok()?;
+            // Strict conversion: malformed data must not become replacement text
+            // that accidentally satisfies a content check.
+            let size=unsafe{MultiByteToWideChar(949,MB_ERR_INVALID_CHARS,bytes.as_ptr(),len,std::ptr::null_mut(),0)};
+            if size<=0{return None;}
+            let mut wide=vec![0u16;size as usize];
+            let written=unsafe{MultiByteToWideChar(949,MB_ERR_INVALID_CHARS,bytes.as_ptr(),len,wide.as_mut_ptr(),size)};
+            if written!=size{return None;}String::from_utf16(&wide).ok()?
+        }
+        #[cfg(not(windows))] {return None;}
+    };
+    Some(text.replace("\r\n","\n"))
+}
 #[derive(Clone,Debug,Default,Serialize,Deserialize,PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct ShellSnapshot {
@@ -173,19 +199,20 @@ impl GitPractice {
         let actual=self.shell_directory()?;
         let expected=self.work().join(&shell.goal.cwd);
         record("현재 폴더",shell.goal.cwd.clone(),actual.to_string_lossy().into_owned(),actual.canonicalize().ok()==expected.canonicalize().ok());
-        let mut files=BTreeMap::new();let mut directories=vec![];
-        fn walk(root:&Path,path:&Path,files:&mut BTreeMap<String,String>,directories:&mut Vec<String>,java:bool)->Result<(),String> {
+        let mut files=BTreeMap::new();let mut directories=vec![];let mut unreadable=vec![];
+        fn walk(root:&Path,path:&Path,files:&mut BTreeMap<String,String>,directories:&mut Vec<String>,unreadable:&mut Vec<String>,java:bool)->Result<(),String> {
             for entry in std::fs::read_dir(path).map_err(|e|e.to_string())? {
                 let entry=entry.map_err(|e|e.to_string())?;let p=entry.path();let kind=entry.file_type().map_err(|e|e.to_string())?;
                 if kind.is_symlink(){return Err("실습 폴더에 바로가기 대신 실제 파일을 사용하세요.".into())}
                 let name=p.strip_prefix(root).map_err(|e|e.to_string())?.to_string_lossy().replace('\\',"/");
                 if java&&name=="Main.class"&&kind.is_file(){continue;}
-                if kind.is_dir(){directories.push(name);if directories.len()>80{return Err("실습 폴더가 너무 많아요.".into())}walk(root,&p,files,directories,java)?;}
-                else if kind.is_file(){if entry.metadata().map_err(|e|e.to_string())?.len()>200_000{return Err("실습 파일이 너무 커요.".into())}files.insert(name,std::fs::read_to_string(&p).map_err(|e|e.to_string())?);if files.len()>80{return Err("실습 파일이 너무 많아요.".into())}}
+                if kind.is_dir(){directories.push(name);if directories.len()>80{return Err("실습 폴더가 너무 많아요.".into())}walk(root,&p,files,directories,unreadable,java)?;}
+                else if kind.is_file(){if entry.metadata().map_err(|e|e.to_string())?.len()>200_000{return Err("실습 파일이 너무 커요.".into())}let bytes=std::fs::read(&p).map_err(|e|e.to_string())?;if let Some(text)=shell_text(&bytes){files.insert(name,text);}else{unreadable.push(name);}if files.len()+unreadable.len()>80{return Err("실습 파일이 너무 많아요.".into())}}
             }
             Ok(())
         }
-        walk(&self.work(),&self.work(),&mut files,&mut directories,self.exercise.java_build.is_some())?;
+        walk(&self.work(),&self.work(),&mut files,&mut directories,&mut unreadable,self.exercise.java_build.is_some())?;
+        for path in unreadable {record("파일 인코딩", "읽을 수 있는 텍스트 파일".into(),format!("{path}: 텍스트로 읽지 못했어요. 파일을 UTF-8로 저장한 뒤 다시 제출하세요."),false);}
         directories.sort();let mut expected_directories=shell.goal.directories.clone();expected_directories.sort();
         record("파일 내용",serde_json::to_string(&shell.goal.files).unwrap(),serde_json::to_string(&files).unwrap(),files==shell.goal.files);
         record("폴더 목록",expected_directories.join("\n"),directories.join("\n"),directories==expected_directories);

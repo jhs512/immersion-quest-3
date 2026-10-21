@@ -69,7 +69,7 @@
   if(!clip)throw Error(`Edge voice failed: ${JSON.stringify(voice)}`);
   checked.push('native WebView downloads Edge audio');
   await click('버전 k');
-  await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('git-first-1'),'Git lesson installed');
+  await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('git-first-'),'Git lesson installed');
   await click('학습 시작');
   await wait(()=>document.querySelectorAll('.study-navigation button').length===6,'Git navigation');
   // This lesson shares one real workspace: complete initialization and staging

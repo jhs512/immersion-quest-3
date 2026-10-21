@@ -162,6 +162,13 @@ impl SetupTerminal {
             let paths=bash.parent().map(std::path::Path::to_path_buf).into_iter().chain(gh_directories()).chain(std::env::split_paths(&inherited));
             command.env("PATH",std::env::join_paths(paths).map_err(|e|e.to_string())?);
         }
+        #[cfg(windows)]
+        if practice.is_some() {
+            // Git Bash launched from a Korean Windows GUI must not inherit a
+            // legacy ANSI locale. This changes only the practice child process.
+            command.env_remove("LC_ALL");
+            command.env("LC_CTYPE","C.UTF-8");
+        }
         #[cfg(target_os="macos")]
         {
             // Finder need not provide a login-shell locale. In the C locale,

@@ -424,7 +424,7 @@
     await wait(()=>innerHeight>=640&&innerHeight<=760,'first Git normal-height window');
     await new Promise(resolve=>setTimeout(resolve,500));
     await click('버전 k');
-    await wait(() => document.querySelector('.lesson-card')?.textContent.includes('git-first-1'), 'approved first Git lesson');
+    await wait(() => document.querySelector('.lesson-card')?.textContent.includes('git-first-'), 'approved first Git lesson');
     await click('학습 시작');
     let commandSequence=0;
     const gitReady=async()=>wait(()=>document.querySelector('.repository-task')?.dataset.gitReady==='true' && !button('초기화')?.disabled && !button('제출')?.disabled && window.mq3GitTerminal && document.querySelector('[aria-label="Git 실습 터미널 입력"]'),'first Git terminal ready',45000);
