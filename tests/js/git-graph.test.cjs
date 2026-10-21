@@ -3,6 +3,31 @@ const assert=require('node:assert/strict');
 const path=require('node:path');
 const {chromium,webkit}=require(path.resolve('target/ui-tests/node_modules/playwright-core'));
 for(const [name,engine] of Object.entries({chromium,webkit})){
+ test(`${name}: switching branches on the same commit changes the HEAD label and focus returns to HEAD`,async()=>{
+  const browser=await engine.launch({headless:true});
+  try{
+   const page=await browser.newPage();
+   await page.setContent('<details open data-git-graph-owner="switch" class="git-graph-panel" style="width:400px;height:400px"><summary>커밋 그래프</summary><div class="git-graph-body"><button data-graph-action="focus">HEAD로 이동</button><p class="git-graph-status"></p><div class="git-graph-canvas"></div><p class="git-graph-detail"></p></div></details>');
+   await page.addStyleTag({path:path.resolve('assets/git-graph.css')});
+   await page.addScriptTag({path:path.resolve('assets/terminal/terminal.bundle.js')});
+   const result=await page.evaluate(()=>{
+    const state={initialized:true,head:'abc1234',branch:'main',commits:[{id:'abc1234',parents:[],subject:'기본 안내'}],references:[{id:'abc1234',name:'feature',remote:false},{id:'abc1234',name:'main',remote:false}],changes:[]};
+    const root=document.querySelector('details'),canvas=root.querySelector('.git-graph-canvas');
+    mq3GitGraphs.update('switch',state);const cy=canvas._cyreg.cy;
+    const main=cy.nodes()[0].data('label');
+    mq3GitGraphs.update('switch',{...state,branch:'feature'});
+    const feature=cy.nodes()[0].data('label');
+    cy.pan({x:-900,y:-900});cy.zoom(2);
+    root.querySelector('button').click();
+    const position=cy.nodes()[0].renderedPosition();
+    return {main,feature,position,height:canvas.clientHeight,width:canvas.clientWidth,zoom:cy.zoom(),detail:root.querySelector('.git-graph-detail').textContent};
+   });
+   assert.notEqual(result.main,result.feature,'switching branches left identical graph labels');
+   assert.ok(result.main.includes('HEAD → main'));assert.ok(result.feature.includes('HEAD → feature'));
+   assert.equal(result.zoom,1);assert.ok(result.position.x>0&&result.position.x<result.width&&result.position.y>0&&result.position.y<result.height);
+   assert.ok(result.detail.includes('feature'),'focus provided no visible confirmation');
+  }finally{await browser.close();}
+ });
  test(`${name}: Git graph stays readable and retires a reused reset canvas`,async()=>{
   const browser=await engine.launch({headless:true});
   try{

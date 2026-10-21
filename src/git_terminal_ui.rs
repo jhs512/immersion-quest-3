@@ -184,7 +184,7 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
             div {class:"git-graph-body",
                 div {class:"git-graph-tools",
                     button {r#type:"button","data-graph-action":"expand",aria_pressed:"false","크게 보기"}
-                    button {r#type:"button","data-graph-action":"focus","현재 위치"}
+                    button {r#type:"button","data-graph-action":"focus",title:"배율을 되돌려요. HEAD 커밋을 가운데로 옮겨요.","HEAD로 이동"}
                 }
                 p {class:"git-graph-status",role:"status","저장소를 확인하고 있어요…"}
                 div {class:"git-graph-canvas",role:"img",aria_label:"실제 저장소의 커밋과 브랜치 연결"}

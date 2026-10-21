@@ -11,12 +11,12 @@ function elements(snapshot) {
     commit.parents.forEach((parent, index) => {
       if (!lanes.has(parent)) lanes.set(parent, index === 0 ? lane : nextLane++);
     });
-    const refs = snapshot.references.filter(ref => ref.id === commit.id).map(ref => ref.remote ? `원격 기록: ${ref.name}` : ref.name);
     const current = snapshot.head === commit.id;
-    const names = [current ? 'HEAD' : '', ...refs].filter(Boolean).join(' · ');
+    const refs = snapshot.references.filter(ref => ref.id === commit.id && !(current && !ref.remote && ref.name === snapshot.branch)).map(ref => ref.remote ? `원격 기록: ${ref.name}` : ref.name);
+    const names = [current ? (snapshot.branch ? `HEAD → ${snapshot.branch}` : 'HEAD · 브랜치 밖') : '', refs.length ? `브랜치: ${refs.join(' · ')}` : ''].filter(Boolean).join('\n');
     return {data: {id: commit.id, label: `${names ? names + '\n' : ''}${commit.id.slice(0,7)} ${commit.subject.slice(0,60)}`,
       detail: `${commit.id.slice(0,7)} · ${commit.subject}${names ? ' · ' + names : ''}`},
-      position: {x: 24 + lane * 70, y: 24 + row * 64}, classes: current ? 'current' : ''};
+      position: {x: 24 + lane * 100, y: 24 + row * 96}, classes: current ? 'current' : ''};
   });
   const edges = snapshot.commits.flatMap(commit => commit.parents.filter(parent => ids.has(parent)).map(parent => ({
     data: {id: `${commit.id}:${parent}`, source: commit.id, target: parent}
@@ -48,11 +48,15 @@ export const gitGraphs = {
         ]});
       view = {root, cy, snapshot: null}; views.set(owner, view);
       cy.on('tap', 'node', event => { root.querySelector('.git-graph-detail').textContent = event.target.data('detail'); });
-      view.focus = () => {
+      view.focus = (announce = false) => {
         cy.resize(); cy.zoom(1);
         const node = cy.getElementById(view.snapshot?.head || '');
         const position = node.length ? node.position() : {x:24,y:24};
-        cy.pan({x:30-position.x,y:40-position.y});
+        cy.pan({x:Math.max(30,canvas.clientWidth/2-80)-position.x,y:canvas.clientHeight/2-position.y});
+        if (announce && node.length) {
+          cy.nodes().unselect();node.select();
+          root.querySelector('.git-graph-detail').textContent = `현재 위치: ${view.snapshot.branch ? `HEAD → ${view.snapshot.branch}` : '브랜치 밖의 HEAD'} · ${node.id().slice(0,7)}`;
+        }
       };
       view.observer = new ResizeObserver(() => cy.resize()); view.observer.observe(canvas);
       view.toggle = () => {if (!root.open) expand(false);requestAnimationFrame(() => cy.resize());}; root.addEventListener('toggle', view.toggle, true);
@@ -65,17 +69,19 @@ export const gitGraphs = {
       view.click = event => {
         const action = event.target.closest('[data-graph-action]')?.dataset.graphAction;
         if (action === 'expand') expand(!root.classList.contains('is-expanded'));
-        if (action === 'focus') view.focus();
+        if (action === 'focus') view.focus(true);
       };
       view.key = event => {if(event.key === 'Escape' && root.classList.contains('is-expanded')) {event.preventDefault();event.stopImmediatePropagation();expand(false);root.querySelector('[data-graph-action="expand"]')?.focus();}};
       root.addEventListener('click',view.click);window.addEventListener('keydown',view.key,true);
     }
-    const moved = !view.snapshot || view.snapshot.head !== snapshot.head;
+    const moved = !view.snapshot || view.snapshot.head !== snapshot.head || view.snapshot.branch !== snapshot.branch;
     view.snapshot = snapshot;
     const status = root.querySelector('.git-graph-status');
     const detail = root.querySelector('.git-graph-detail');
     status.textContent = error || (!snapshot.initialized ? 'git init으로 저장소를 만들면 보여요.' :
-      !snapshot.head ? '아직 첫 커밋이 없어요.' : `${snapshot.branch || '브랜치 밖의 HEAD'} · ${snapshot.merging ? '병합 진행 중' : snapshot.changes.length ? '커밋하지 않은 변경이 있어요' : '작업 폴더가 깨끗해요'}${snapshot.truncated ? ' · 최근 200개 표시' : ''}`);
+      !snapshot.head ? '아직 첫 커밋이 없어요.' : `${snapshot.branch ? `현재 브랜치: ${snapshot.branch}` : '현재 위치: 브랜치 밖의 HEAD'} · ${snapshot.merging ? '병합 진행 중' : snapshot.changes.length ? '커밋하지 않은 변경이 있어요' : '작업 폴더가 깨끗해요'}${snapshot.truncated ? ' · 최근 200개 표시' : ''}`);
+    const focusButton = root.querySelector('[data-graph-action="focus"]');
+    if (focusButton) focusButton.disabled = !snapshot.head || !!error;
     detail.textContent = snapshot.references.some(ref => ref.remote) ? '원격 기록은 마지막 fetch·push 때 확인한 상태예요. PR 상태를 직접 조회한 것은 아니에요.' : '점을 누르면 커밋 설명을 볼 수 있어요.';
     view.cy.batch(() => { view.cy.elements().remove(); if (!error) view.cy.add(elements(snapshot)); });
     view.cy.resize(); if (moved) view.focus();

@@ -32,6 +32,15 @@
     await wait(()=>snapshot()?.references.some(ref=>ref.name==='feature'),'created branch appears on graph');
     mq3GitTerminal.command('git switch feature');
     await wait(()=>snapshot()?.branch==='feature','graph follows branch switch');
+    await wait(()=>cy.nodes()[0]?.data('label').includes('HEAD → feature'),'visible HEAD points to feature at the shared commit');
+    mq3GitTerminal.command('git switch main');
+    await wait(()=>snapshot()?.branch==='main'&&cy.nodes()[0]?.data('label').includes('HEAD → main'),'visible HEAD switches back to main at the same commit');
+    mq3GitTerminal.command('git switch feature');
+    await wait(()=>snapshot()?.branch==='feature'&&cy.nodes()[0]?.data('label').includes('HEAD → feature'),'visible HEAD switches again');
+    cy.pan({x:-900,y:-900});cy.zoom(2);
+    graph.querySelector('[data-graph-action="focus"]').click();
+    const located=cy.nodes()[0].renderedPosition();
+    if(cy.zoom()!==1||Math.abs(located.y-canvas().clientHeight/2)>2||!graph.querySelector('.git-graph-detail').textContent.includes('HEAD → feature'))throw Error('HEAD navigation did not recenter and identify the current branch');
     mq3GitTerminal.command('echo graph > graph.txt && git add graph.txt && git commit -m graph');
     await wait(()=>snapshot()?.commits.length===2,'real commit appears on graph');
     const featureHead=snapshot().head;
