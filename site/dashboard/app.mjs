@@ -13,7 +13,7 @@ async function json(url) {
 }
 async function pages(path) {const all=[];for(let p=1;p<=100;p++){const page=await json(`https://api.github.com${path}${path.includes('?')?'&':'?'}per_page=100&page=${p}`);if(!Array.isArray(page))throw new Error('GitHub 응답을 확인하지 못했어요.');all.push(...page);if(page.length<100)return all;}throw new Error('기록이 너무 많아 전체 조회를 마치지 못했어요.');}
 async function content(repo, ref, path){return json(`https://raw.githubusercontent.com/${repository(repo)}/${encodeURIComponent(ref)}/${path}`);}
-async function pool(items, work){let i=0;await Promise.all(Array.from({length:Math.min(3,items.length)},async()=>{while(i<items.length)await work(items[i++]);}));}
+async function pool(items, work){let i=0;const results=await Promise.allSettled(Array.from({length:Math.min(3,items.length)},async()=>{while(i<items.length)await work(items[i++]);}));const failed=results.find(r=>r.status==='rejected');if(failed)throw failed.reason;}
 function render(){
   const query=$('search').value.trim().toLowerCase();$('students').replaceChildren();
   const shown=students.filter(s=>s.login.toLowerCase().includes(query));
