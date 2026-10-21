@@ -67,8 +67,10 @@ export function summarize(course, lessons, records, registrations=[]) {
       const tasks = (lesson.tasks ?? []).map(task => {
         const history = events.filter(e => e.task_id === task.id
           && (e.revision === ref.revision || /^stp_[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/.test(task.id)));
-        const started = history.find(e => e.kind === 'started')?.at;
         const finished = history.find(e => e.kind === 'attempt' && e.passed === true)?.at;
+        // Reopening a legacy completed problem must not invent a start after its
+        // first completion. Its original, uncollected start remains unknown.
+        const started = history.find(e => e.kind === 'started' && (finished === undefined || e.at <= finished))?.at;
         const attempts = history.filter(e => e.kind === 'attempt').length;
         return {id:task.id, title:task.title, required:task.required, started, finished, attempts,
           status:finished !== undefined ? '완료' : history.length ? '학습 중' : '시작 전'};

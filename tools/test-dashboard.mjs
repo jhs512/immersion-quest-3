@@ -64,6 +64,9 @@ test('editable names stay course-scoped; registration alone also appears in the 
   assert.equal(rows[0].details[0].tasks[1].started,undefined);
   assert.equal(rows[0].details[0].tasks[1].finished,120);
   assert.equal(rows[0].details[0].tasks[1].status,'완료');
+  const reopened=summarize(course,lessons,[{issue,events:[event('old-success'),event('reopened',{kind:'started',at:200,passed:false})]}])[0].details[0].tasks[0];
+  assert.equal(reopened.started,undefined,'reopening cannot fabricate the unknown original start');
+  assert.equal(reopened.finished,100);
   const separate=summarize({...course,id:'course-b'},lessons,[{issue,events}]);
   assert.equal(separate.length,0);
  });
