@@ -145,6 +145,40 @@ mod command_matching_tests {
     }
 }
 impl GitPractice {
+    fn prepare_shell_text_encoding(&self)->Result<(),String>{
+        use std::io::Write;
+        use sha2::{Digest,Sha256};
+        let Some(shell)=self.exercise.shell.as_ref() else{return Ok(())};
+        let lock=std::fs::OpenOptions::new().read(true).write(true).create(true).truncate(false).open(self.root().join("text-encoding.lock")).map_err(|e|e.to_string())?;
+        lock.lock().map_err(|e|e.to_string())?;
+        // Only the lesson's declared text files may be migrated. Keep originals
+        // outside the learner directory, so ls/cp goals do not gain extra files.
+        let names:std::collections::BTreeSet<_>=shell.goal.files.keys().chain(shell.demo.files.keys()).chain(shell.start.iter().flat_map(|s|s.files.keys())).collect();
+        let root=self.work().canonicalize().map_err(|e|e.to_string())?;
+        for name in names {
+            let path=self.work().join(name);
+            let metadata=match std::fs::symlink_metadata(&path){Ok(value)=>value,Err(e) if e.kind()==std::io::ErrorKind::NotFound=>continue,Err(e)=>return Err(e.to_string())};
+            if !metadata.is_file()||metadata.file_type().is_symlink()||!path.canonicalize().map_err(|e|e.to_string())?.starts_with(&root){return Err("실습 폴더의 실제 텍스트 파일을 사용하세요.".into())}
+            if metadata.len()>200_000||metadata.permissions().readonly(){continue;}
+            let bytes=std::fs::read(&path).map_err(|e|e.to_string())?;
+            if std::str::from_utf8(&bytes).is_ok(){continue;}
+            let Some(text)=shell_text(&bytes) else{continue};
+            let backups=self.root().join("text-encoding-backups");std::fs::create_dir_all(&backups).map_err(|e|e.to_string())?;
+            let mut hash=Sha256::new();hash.update(name.as_bytes());hash.update([0]);hash.update(&bytes);let digest=format!("{:x}",hash.finalize());
+            let backup=backups.join(format!("{digest}.bin"));
+            match std::fs::OpenOptions::new().write(true).create_new(true).open(&backup){
+                Ok(mut file)=>{file.write_all(&bytes).and_then(|_|file.sync_all()).map_err(|e|e.to_string())?;},
+                Err(e) if e.kind()==std::io::ErrorKind::AlreadyExists=>if std::fs::read(&backup).map_err(|e|e.to_string())?!=bytes{return Err("기존 파일 백업을 확인하지 못했어요.".into())},
+                Err(e)=>return Err(e.to_string()),
+            }
+            std::fs::write(backups.join(format!("{digest}.json")),serde_json::to_vec(&serde_json::json!({"path":name,"original":format!("{digest}.bin"),"converted_to":"UTF-8"})).map_err(|e|e.to_string())?).map_err(|e|e.to_string())?;
+            let mut temp=tempfile::NamedTempFile::new_in(path.parent().ok_or("실습 파일 경로를 확인하세요.")?).map_err(|e|e.to_string())?;
+            temp.write_all(text.as_bytes()).and_then(|_|temp.as_file().sync_all()).map_err(|e|e.to_string())?;
+            temp.as_file().set_permissions(metadata.permissions()).map_err(|e|e.to_string())?;
+            temp.persist(&path).map_err(|e|e.to_string())?;
+        }
+        Ok(())
+    }
     pub(super) fn prepare_shell_start(&self)->Result<(),String> {
         if let Some(start)=self.exercise.shell.as_ref().and_then(|s|s.start.as_ref()) {
             for directory in &start.directories {std::fs::create_dir_all(self.work().join(directory)).map_err(|e|e.to_string())?;}
@@ -158,8 +192,8 @@ impl GitPractice {
         if raw.len()>4_000_000{return Err("실습 명령 기록이 너무 커요. 실습을 다시 시작하세요.".into())}
         let parts:Vec<_>=raw.split(|b|*b==0).collect();
         Ok(parts.chunks_exact(3).filter_map(|chunk|{
-            let command=std::str::from_utf8(chunk[0]).ok()?.to_owned();
-            let cwd=native_path(std::str::from_utf8(chunk[1]).ok()?);
+            let command=shell_text(chunk[0])?;
+            let cwd=native_path(&shell_text(chunk[1])?);
             let success=chunk[2]==b"0";
             Some(ShellCompletion{command,cwd,success})
         }).collect())
@@ -179,6 +213,7 @@ impl GitPractice {
         vec![("MQ3_SHELL_LOG".into(),self.root().join("shell-commands.log").to_string_lossy().replace('\\',"/")),("PROMPT_COMMAND".into(),prompt.into()),("PS1".into(),"$ ".into()),("PS2".into(),"> ".into()),("HISTFILE".into(),"/dev/null".into()),("HISTCONTROL".into(),String::new()),("HISTIGNORE".into(),String::new()),("HISTSIZE".into(),"10000".into()),("VIMINIT".into(),"set nocompatible noswapfile showmode encoding=utf-8 fileencoding=utf-8 noautoindent nobackup nowritebackup viminfo=".into())]
     }
     pub(super) fn prepare_shell_checkpoint(&self)->Result<(),String> {
+        self.prepare_shell_text_encoding()?;
         let shell=self.exercise.shell.as_ref().ok_or("Bash 실습이 아니에요.")?;
         if shell.requires_vim&&!crate::setup_terminal::vim_executable().is_ok_and(|path|Command::new(path).arg("--version").output().is_ok_and(|result|result.status.success())) {return Err("Vim이 설치되어 있지 않아요. macOS에서는 Vim 설치를, Windows에서는 Git for Windows의 Vim 포함 여부를 확인한 뒤 다시 여세요.".into())}
         let directory=self.root().join("shell-checkpoints");std::fs::create_dir_all(&directory).map_err(|e|e.to_string())?;

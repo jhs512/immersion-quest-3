@@ -85,6 +85,10 @@ fn korean_windows_memo_encoding_does_not_abort_a_correct_submission() {
     assert!(practice.check_exercise().unwrap().passed);
     // Existing Korean Windows workspaces can contain a CP949 echo redirection.
     let korean_cp949=[0xc3,0xb9,0x20,0xb8,0xde,0xb8,0xf0,0x0a];
+    let log_path=practice.root().join("shell-commands.log");let mut log=std::fs::read(&log_path).unwrap();
+    let position=log.windows("첫 메모".len()).position(|p|p=="첫 메모".as_bytes()).unwrap();
+    log.splice(position..position+"첫 메모".len(),korean_cp949[..7].iter().copied());std::fs::write(log_path,&log).unwrap();
+    assert!(practice.check_exercise().unwrap().passed,"existing CP949 command history must remain readable");
     let utf16=std::iter::once(vec![0xff,0xfe]).chain("첫 메모\r\n".encode_utf16().map(|u|u.to_le_bytes().to_vec())).flatten().collect::<Vec<_>>();
     for bytes in [korean_cp949.to_vec(),utf16,[vec![0xef,0xbb,0xbf],"첫 메모\r\n".as_bytes().to_vec()].concat()] {
         std::fs::write(practice.work().join("memo.txt"),&bytes).unwrap();
@@ -111,6 +115,19 @@ fn practice_shell_uses_utf8_even_when_started_with_a_legacy_korean_locale(){
     terminal.input("echo \"첫 메모\" > memo.txt\r").unwrap();
     until(&practice,&mut terminal,&mut output,|_|std::fs::read(practice.work().join("memo.txt")).is_ok_and(|b|b=="첫 메모\n".as_bytes()));
     terminal.shutdown().unwrap();
+}
+
+#[cfg(windows)]
+#[test]
+fn resumed_legacy_korean_memo_can_be_appended_without_mixing_encodings(){
+    let lesson:Lesson=serde_json::from_str(include_str!("../courses/redesigned/bash-basics.json")).unwrap();
+    let task=&lesson.tasks[5];let practice=GitPractice::new(task.git_terminal.clone().unwrap().demonstration()).unwrap();
+    let original=[0xc3,0xb9,0x20,0xb8,0xde,0xb8,0xf0,0x0a];std::fs::write(practice.work().join("memo.txt"),original).unwrap();
+    let (mut terminal,mut output)=practice.open_terminal().unwrap();until(&practice,&mut terminal,&mut output,|text|text.contains("$ "));
+    play(&practice,&mut terminal,&mut output,&task.narration);let report=practice.check_exercise().unwrap();terminal.shutdown().unwrap();
+    assert!(report.passed,"resumed memo must remain editable: {}",serde_json::to_string(&report).unwrap());
+    assert_eq!(std::fs::read(practice.work().join("memo.txt")).unwrap(),"첫 메모\n둘째 줄\n".as_bytes());
+    assert!(std::fs::read_dir(practice.root().join("text-encoding-backups")).unwrap().filter_map(Result::ok).any(|f|std::fs::read(f.path()).ok().as_deref()==Some(original.as_slice())),"original bytes must be recoverable");
 }
 
 #[test]
