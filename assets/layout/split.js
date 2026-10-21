@@ -17,6 +17,8 @@
   // dragging it left makes the dock wider, so its delta is inverted.
   const axis = handle => handle.classList.contains('assistant-handle')
     ? { key: 'assistant', prop: '--assistant-width', container: handle.parentElement, pane: '.assistant-dock', horizontal: true, min: 280, reserve: 420, invert: true }
+    : handle.classList.contains('split-java-source')
+    ? { key: 'javaSource', prop: '--java-source-height', container: handle.closest('.java-build-workspace'), pane: '.java-build-source', horizontal: false, min: 96, reserve: 120 }
     : handle.classList.contains('split-git')
     ? { key: 'gitGraph', prop: '--git-graph-width', container: handle.closest('.git-terminal-row'), pane: '.git-graph-panel', horizontal: true, min: 160, reserve: 190, invert: true }
     : handle.classList.contains('split-col')
@@ -41,12 +43,13 @@
     const bounds = a.container.getBoundingClientRect();
     let min=a.min, reserve=a.reserve;
     if(a.key==='editor' && a.container.closest('.repository-task')) {
-      min=a.container.querySelector('.interaction-example-editor')?142:96;
+      min=a.container.querySelector('.java-build-workspace')?(a.container.querySelector('.interaction-example-editor')?360:248):a.container.querySelector('.interaction-example-editor')?142:96;
       reserve=(a.container.querySelector('.pane-heading')?.getBoundingClientRect().height||0)+
         (a.container.querySelector(':scope > .split-row')?.getBoundingClientRect().height||10)+74;
     }
     if(a.key==='exampleAnswer') {
       const style=getComputedStyle(a.container);
+      if(a.container.querySelector('.java-build-workspace')) reserve=226;
       reserve+=parseFloat(style.paddingTop)+parseFloat(style.paddingBottom);
     }
     const max=Math.max(min,(a.horizontal ? bounds.width : bounds.height)-reserve);
@@ -106,14 +109,14 @@
     a.container.style.removeProperty(a.prop); delete saved[a.key]; persist();
   });
   new MutationObserver(records => {
-    if (records.some(r => [...r.addedNodes].some(n => n instanceof Element && (n.matches('.lesson, .assistant-dock, .git-terminal-row') || n.querySelector('.lesson, .assistant-dock, .git-terminal-row'))))) applyAll();
+    if (records.some(r => [...r.addedNodes].some(n => n instanceof Element && (n.matches('.lesson, .assistant-dock, .git-terminal-row, .java-build-workspace') || n.querySelector('.lesson, .assistant-dock, .git-terminal-row, .java-build-workspace'))))) applyAll();
   }).observe(document.body, { childList: true, subtree: true });
   window.addEventListener('resize',()=>requestAnimationFrame(applyAll));
   const sizes=new ResizeObserver(()=>applyAll());
   const observed=new Set();
   const watch=()=>{
     for(const pane of observed)if(!pane.isConnected){sizes.unobserve(pane);observed.delete(pane)}
-    for(const pane of document.querySelectorAll('.coding-pane,.interaction-example-editor,.git-terminal-row'))if(!observed.has(pane)){observed.add(pane);sizes.observe(pane)}
+    for(const pane of document.querySelectorAll('.coding-pane,.interaction-example-editor,.git-terminal-row,.java-build-workspace'))if(!observed.has(pane)){observed.add(pane);sizes.observe(pane)}
   };
   new MutationObserver(watch).observe(document.body,{childList:true,subtree:true});watch();
   applyAll();

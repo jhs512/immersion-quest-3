@@ -176,6 +176,7 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
                 textarea {class:"code-editor","data-code-editor":"java","data-java-editor":rendered_owner.clone(),"data-editor-value":source.clone(),"data-editor-reset":rendered_owner.clone(),initial_value:source,aria_label:"실습 Main.java",spellcheck:false,
                     oninput:move |event|{if let Some(session)=edit_owned.lock().unwrap_or_else(|e|e.into_inner()).as_ref(){if let Err(e)=session.practice.lock().unwrap_or_else(|e|e.into_inner()).save_java_source(&event.value()){error.set(e);}}}}
             }
+            div {class:"split-handle split-row split-java-source",role:"separator",tabindex:0,aria_label:"에디터와 터미널 높이 조절",aria_orientation:"horizontal",title:"드래그로 높이 조절, 더블 클릭으로 되돌리기"}
         }
         div {class:"git-terminal-row",
         div {class:"git-terminal",id:host,"data-shell":is_shell.to_string(),"data-vim":is_vim.to_string(),"data-terminal-session":rendered_owner.clone(),aria_label:if is_vim{if demo{"해설용 별도 Vim 편집기"}else{"실제 Vim 편집기"}}else if is_shell{if demo{"해설용 별도 Bash 실습 폴더"}else{"실제 Bash 실습 폴더"}}else if demo{"해설용 별도 Git 저장소"}else{"실제 Git 실습 저장소"}}

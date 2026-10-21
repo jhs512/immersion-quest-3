@@ -13,6 +13,12 @@
    const task=mq3JavaLaunch.tasks[i];await wait(()=>document.querySelector('.repository-task')?.dataset.taskId===task.id,'task mounted');await ready();
    const choose=id=>document.querySelector(`input[type=radio][value="${id}"]`).click();
    if(i===0){const pane=document.querySelector('.editor-pane').getBoundingClientRect();for(const selector of ['.java-build-source','#git-student-terminal']){const box=document.querySelector(selector).getBoundingClientRect();if(box.height<48||box.bottom>pane.bottom+1||box.right>pane.right+1)throw Error('Source/terminal layout: '+selector);}
+    await wait(()=>window.molipSplit,'workspace dividers ready');
+    const divider=document.querySelector('.split-java-source');if(!divider)throw Error('Missing Java editor/terminal divider');
+    const sourceHeight=()=>document.querySelector('.java-build-source').getBoundingClientRect().height;
+    const before=sourceHeight();divider.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true,cancelable:true}));
+    if(sourceHeight()<before+6)throw Error('Java divider dimensions: '+JSON.stringify({before,after:sourceHeight(),workspace:document.querySelector('.java-build-workspace').getBoundingClientRect().height,outer:pane.height,rows:getComputedStyle(document.querySelector('.java-build-workspace')).gridTemplateRows,style:document.querySelector('.java-build-workspace').getAttribute('style')}));
+    divider.dispatchEvent(new MouseEvent('dblclick',{bubbles:true}));
     choose(task.interaction.answer);await submit(false);checked.push('choice alone cannot pass without real work');}
    const source=task.git_terminal.shell.goal.files['Main.java'];
    if(molipCodeEditors.getValue()!==source)molipCodeEditors.setValue(source);
