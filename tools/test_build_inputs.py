@@ -44,7 +44,10 @@ winresource = "0.1"
             elapsed = round(time.perf_counter() - start, 3)
             if result.returncode:
                 raise AssertionError(result.stderr[-4000:])
-            rebuilt = 'Compiling mq-build-input-check' in result.stderr
+            # Cargo may say Checking rather than Compiling for the root target on
+            # macOS. Observe execution of the build script, not that status label.
+            rebuilt = any('Running ' in line and 'build-script-build' in line
+                          for line in result.stderr.splitlines())
             measurements.append({'case': label, 'seconds': elapsed, 'rebuilt': rebuilt})
             print(json.dumps(measurements[-1]), flush=True)
             assert rebuilt == changed, '\n'.join(line for line in result.stderr.splitlines()
