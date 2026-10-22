@@ -33,6 +33,7 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
     use base64::Engine;
     let owned=use_hook(||Arc::new(Mutex::new(None::<TerminalSession>)));
     let mut error=use_signal(String::new);
+    let mut restored_start=use_signal(||false);
     let owner=use_hook(molip_quest::issue_progress::new_id);
     let cleanup_owner=owner.clone();
     let rendered_owner=owner.clone();
@@ -70,6 +71,7 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
         }).await;
         let (session,mut output)=match opened {Ok(Ok(pair))=>pair,Ok(Err(e))=>{error.set(e);return;},Err(e)=>{error.set(e.to_string());return;}};
         let practice=session.practice.clone();
+        restored_start.set(!demo&&practice.lock().unwrap_or_else(|e|e.into_inner()).restored_step_start());
         if is_java {let source=practice.lock().unwrap_or_else(|e|e.into_inner()).java_source();match source{Ok(source)=>java_source.set(Some(source)),Err(e)=>error.set(e)}}
         *owned.lock().unwrap_or_else(|e|e.into_inner())=Some(session);
         oncontrol.call(TerminalControl{owned:owned.clone(),owner:owner.clone()});
@@ -171,6 +173,7 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
         if !is_vim{error.set("터미널이 종료됐어요. 초기화해 다시 여세요.".into());}
     }});
     rsx!{div {class:if is_java{"git-terminal-shell java-build-workspace"}else{"git-terminal-shell"},
+        if restored_start() {p {class:"practice-start-notice",role:"status","앞 단계의 파일과 Git 상태를 준비했어요. 현재 문제의 작업은 직접 진행하세요."}}
         if let Some(source)=java_source() {
             div {class:"java-build-source",strong {"Main.java · 같은 폴더에 자동 저장"}
                 textarea {class:"code-editor","data-code-editor":"java","data-java-editor":rendered_owner.clone(),"data-editor-value":source.clone(),"data-editor-reset":rendered_owner.clone(),initial_value:source,aria_label:"실습 Main.java",spellcheck:false,

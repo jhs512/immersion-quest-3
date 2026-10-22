@@ -95,7 +95,7 @@ impl GitPracticeStore {
         let _lock=self.lock(scope)?;
         exercise.validate()?;
         let key=Self::key(scope);let pointer=self.root.join(format!("{key}.json"));
-        let metadata=match std::fs::symlink_metadata(&pointer){Ok(metadata)=>metadata,Err(error) if error.kind()==std::io::ErrorKind::NotFound=>return self.reset_locked(scope,exercise),Err(error)=>return Err(error.to_string())};
+        let metadata=match std::fs::symlink_metadata(&pointer){Ok(metadata)=>metadata,Err(error) if error.kind()==std::io::ErrorKind::NotFound=>return self.open_start_locked(scope,exercise),Err(error)=>return Err(error.to_string())};
         if !metadata.is_file()||metadata.file_type().is_symlink()||metadata.len()>1024{return Err("Git 실습 보관 정보를 확인하세요.".into())}
         let folder:String=serde_json::from_slice(&std::fs::read(pointer).map_err(|error|error.to_string())?).map_err(|error|error.to_string())?;
         if !folder.strip_prefix("practice-").is_some_and(|suffix|!suffix.is_empty()&&suffix.len()<100&&suffix.bytes().all(|c|c.is_ascii_alphanumeric())){return Err("Git 실습 폴더 정보를 확인하세요.".into())}
@@ -103,7 +103,21 @@ impl GitPracticeStore {
         if std::fs::symlink_metadata(&directory).map_err(|error|error.to_string())?.file_type().is_symlink()||canonical_directory(&directory)?.parent()!=Some(self.root.as_path()){return Err("Git 실습 폴더의 경계를 확인하세요.".into())}
         let owner=directory.join(".mq3-owner");let metadata=std::fs::symlink_metadata(&owner).map_err(|error|error.to_string())?;
         if !metadata.is_file()||metadata.file_type().is_symlink()||metadata.len()!=64||std::fs::read_to_string(owner).map_err(|error|error.to_string())?!=key{return Err("Git 실습의 소유 정보를 확인하세요.".into())}
+        // Older versions could publish an empty workspace when resuming a later
+        // step after a content revision. Never replace a workspace containing work.
+        if !exercise.workspace_group.is_empty()&&exercise.demo_setup.is_some()
+            && std::fs::read_dir(directory.join("work")).map_err(|e|e.to_string())?.next().is_none() {
+            return self.open_start_locked(scope,exercise);
+        }
         Ok(GitPractice{directory:PracticeDirectory::Saved{path:directory,scope:scope.into()},exercise})
+    }
+    fn open_start_locked(&self,scope:&str,exercise:GitExercise)->Result<GitPractice,String> {
+        if exercise.workspace_group.is_empty()||exercise.demo_setup.is_none(){return self.reset_locked(scope,exercise);}
+        let mut practice=self.reset_locked(scope,exercise.restart_step())?;
+        practice.exercise=exercise;
+        let marker=Self::key(&serde_json::to_string(&practice.exercise).map_err(|e|e.to_string())?);
+        std::fs::write(practice.root().join("restored-step-start"),marker).map_err(|e|e.to_string())?;
+        Ok(practice)
     }
     pub fn reset(&self,scope:&str,exercise:GitExercise)->Result<GitPractice,String> {
         let _lock=self.lock(scope)?;
@@ -245,6 +259,10 @@ fn copy_step_work(source:&Path,target:&Path)->Result<(),String> {
     Ok(())
 }
 impl GitPractice {
+    pub fn restored_step_start(&self)->bool {
+        serde_json::to_string(&self.exercise).ok().is_some_and(|raw|
+            std::fs::read_to_string(self.root().join("restored-step-start")).is_ok_and(|marker|marker==GitPracticeStore::key(&raw)))
+    }
     fn step_checkpoint(&self,step_id:&str)->PathBuf {self.root().join("step-starts").join(GitPracticeStore::key(step_id))}
     pub fn remember_step_start(&self,step_id:&str)->Result<(),String> {
         if self.exercise.github_pr.is_none(){return Ok(())}

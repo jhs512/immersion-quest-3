@@ -6,6 +6,17 @@
  const ready=async()=>wait(()=>{const root=document.querySelector('.repository-task'),host=document.getElementById('git-student-terminal');return root?.dataset.gitReady==='true'&&host&&window.mq3GitTerminal?.text(host.dataset.terminalSession).split('\n').some(line=>line.trimEnd().endsWith('$'));},'current student terminal owner and prompt');
  try{
   await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('pilot-a'),'catalog');
+  await click('버전 k');await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('git-first-'),'first Git lesson');
+  await click('학습 시작');await ready();
+  const emptyOwner=document.getElementById('git-student-terminal').dataset.terminalSession;
+  document.querySelectorAll('.study-navigation button')[2].click();
+  await wait(()=>document.getElementById('git-student-terminal')?.dataset.terminalSession!==emptyOwner,'resume step three');await ready();
+  if(!document.querySelector('.practice-start-notice')?.textContent.includes('앞 단계'))throw Error('Prepared prerequisites were not explained');
+  mq3GitTerminal.command("git show :memo.txt; printf 'RESUME_BASELINE_READY\\n'");
+  await wait(()=>mq3GitTerminal.text().split('\n').some(line=>line.trim()==='RESUME_BASELINE_READY'),'prepared index');
+  if(!mq3GitTerminal.text().split('\n').some(line=>line.trim()==='첫 메모'))throw Error('Missing memo in resumed step three');
+  checked.push('Opening step three from an empty workspace restores its memo and index and explains the prepared state');
+  await click('← 코스 수업 목록');
   for(const [version,revision,count] of [['l','git-branch-',13],['굳','git-branch-advanced-',5],['풀','github-pr-',8]]){
    await click(`버전 ${version}`);
    await wait(()=>document.querySelector('.lesson-card')?.textContent.includes(revision),revision);

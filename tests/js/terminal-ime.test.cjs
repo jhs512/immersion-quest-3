@@ -2,6 +2,33 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const {chromium,webkit}=require('../../target/ui-tests/node_modules/playwright-core');
+for(const [name,engine] of Object.entries({chromium,webkit}))test(`${name}: native Korean finalization with a space does not duplicate a handled Space key`,async()=>{
+ const browser=await engine.launch({headless:true});
+ try{
+  const page=await browser.newPage();await page.setContent('<div id="git-student-terminal" style="width:800px;height:400px"></div>');
+  await page.addScriptTag({content:fs.readFileSync('assets/terminal/terminal.bundle.js','utf8')});
+  await page.evaluate(()=>{window.inputs=[];mq3GitTerminal.mount(e=>{if(e.kind==='input')inputs.push(e.data)},()=>{},'space-finalize')});
+  await page.keyboard.type('echo "');
+  await page.evaluate(async()=>{
+   const input=document.querySelector('.xterm-helper-textarea');
+   const edit=async(type,value)=>{
+    input.dispatchEvent(new InputEvent('beforeinput',{bubbles:true,inputType:type,data:value}));
+    input.value=value;
+    input.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:type,data:value}));
+    await new Promise(r=>setTimeout(r,10));
+   };
+   await edit('insertText','ㅊ');await edit('insertReplacementText','첫');
+   // Some unmarked native IMEs commit their previous syllable plus the separator
+   // after xterm has already handled the ordinary Space keydown.
+   input.dispatchEvent(new KeyboardEvent('keydown',{bubbles:true,key:' ',code:'Space',keyCode:32}));
+   await edit('insertReplacementText','첫 ');
+   input.dispatchEvent(new KeyboardEvent('keyup',{bubbles:true,key:' ',code:'Space',keyCode:32}));
+  });
+  await page.keyboard.type('memo"');await page.keyboard.press('Enter');
+  const line=await page.evaluate(()=>{const out=[];for(const c of inputs.join('')){if(c==='\x7f')out.pop();else out.push(c)}return out.join('')});
+  assert.equal(line,'echo "첫 memo"\r');
+ }finally{await browser.close();}
+});
 for(const engine of ['chromium','webkit'])for(const form of ['NFC','NFD'])for(const nativeKeys of [false,true])test(`${engine}/${form}/${nativeKeys?'native-keycodes':'composition-only'}: Korean composition reaches the terminal input bridge once`,async()=>{
  const browser=await({chromium,webkit}[engine]).launch(engine==='chromium'?{...(process.platform==='win32'?{channel:'msedge'}:{}),headless:true}:{headless:true,...(process.env.MQ3_WEBKIT_EXECUTABLE?{executablePath:process.env.MQ3_WEBKIT_EXECUTABLE}:{})});
  try{

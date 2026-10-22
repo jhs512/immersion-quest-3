@@ -1,6 +1,29 @@
 use molip_quest::git_practice::{GitExercise,GitPracticeStore};
 
 #[test]
+fn opening_a_later_git_step_without_a_workspace_restores_only_its_prerequisites() {
+    let lesson:molip_quest::repository_course::Lesson=serde_json::from_str(include_str!("../courses/redesigned/git-first.json")).unwrap();
+    let task=&lesson.tasks[2];let exercise=task.git_terminal.clone().unwrap();
+    let root=tempfile::tempdir().unwrap();let store=GitPracticeStore::new(root.path()).unwrap();
+    let practice=store.open("new-revision",exercise.clone()).unwrap();
+    assert_eq!(std::fs::read_to_string(practice.work().join("memo.txt")).unwrap(),"첫 메모\n");
+    assert_eq!(practice.git(&["show",":memo.txt"]).unwrap().stdout,"첫 메모\n");
+    assert!(!practice.check_exercise().unwrap().passed,"preparing the index must not perform the learner's commit");
+    assert!(practice.git(&["commit","-m","첫 기록"]).unwrap().success);
+    assert!(practice.check_exercise().unwrap().passed);
+    std::fs::write(practice.work().join("memo.txt"),"my unfinished changes\n").unwrap();
+    let reopened=store.open("new-revision",exercise.clone()).unwrap();
+    assert_eq!(reopened.root(),practice.root());
+    assert_eq!(std::fs::read_to_string(reopened.work().join("memo.txt")).unwrap(),"my unfinished changes\n");
+    // A workspace created by an older app at step three is completely empty.
+    let old=store.open("legacy-empty",lesson.tasks[0].git_terminal.clone().unwrap()).unwrap();
+    assert_eq!(std::fs::read_dir(old.work()).unwrap().count(),0);
+    let recovered=store.open("legacy-empty",exercise).unwrap();
+    assert_eq!(std::fs::read_to_string(recovered.work().join("memo.txt")).unwrap(),"첫 메모\n");
+    assert!(old.work().exists(),"keep the previous workspace as a recovery copy");
+}
+
+#[test]
 fn saved_practice_reopens_the_real_index_branch_and_working_files() {
     let root=tempfile::tempdir().unwrap();
     let store=GitPracticeStore::new(root.path()).unwrap();

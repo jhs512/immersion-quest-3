@@ -29,6 +29,27 @@ fn local_git_practice_keeps_its_local_remote_and_protocol(){
     assert!(!practice.environment().iter().any(|(k,_)|k=="GH_CONFIG_DIR"));
 }
 
+#[test]
+#[ignore="Reads the current GitHub login through a real practice PTY; does not create or change repositories"]
+fn current_github_login_is_shared_with_the_practice_terminal(){
+    use std::time::{Duration,Instant};
+    let expected=molip_quest::github_player::Github::new().user().unwrap().login;
+    let practice=GitPractice::new(lesson().tasks[0].git_terminal.clone().unwrap()).unwrap();
+    let (mut terminal,mut output)=practice.open_terminal().unwrap();
+    let mut text=String::new();let mut sent=false;let mut dsr=0;
+    let deadline=Instant::now()+Duration::from_secs(30);
+    while Instant::now()<deadline {
+        while let Ok(bytes)=output.try_recv(){text.push_str(&String::from_utf8_lossy(&bytes));}
+        let count=text.matches("\x1b[6n").count();while dsr<count{terminal.input("\x1b[1;1R").unwrap();dsr+=1;}
+        if !sent&&text.contains("$ "){terminal.input("gh api user --jq .login\r").unwrap();sent=true;}
+        if sent&&practice.shell_completions().unwrap().iter().any(|c|c.command=="gh api user --jq .login"&&c.success){break;}
+        std::thread::sleep(Duration::from_millis(25));
+    }
+    terminal.shutdown().unwrap();
+    assert!(practice.shell_completions().unwrap().iter().any(|c|c.command=="gh api user --jq .login"&&c.success),"practice terminal cannot use the player's existing login");
+    assert!(text.contains(&expected),"practice must return the same GitHub account as the player");
+}
+
 #[tokio::test]
 #[ignore="Creates a real private repository and PR with the current gh account; leaves both for manual cleanup"]
 async fn real_github_pr_lifecycle_uses_the_actual_practice_terminal_and_grader(){
