@@ -49,9 +49,17 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
     let connect=move ||async move {
         checked.set(false);
         progress.set(HashMap::new());progress_requirements.set(HashMap::new());course.set(None);session.set(None);
-        busy.set(true);message.set("gh 계정과 온라인 연결을 확인하고 있어요.".into());
+        busy.set(true);message.set("GitHub 계정과 코스 콘텐츠를 확인하고 있어요.".into());
         let github=Github::new();let gh=github.clone();
-        match github_player::background(move||{let user=gh.user()?;let manifest=gh.installed_course(repository_course::initial_repository());Ok((user,manifest))}).await {
+        match github_player::background(move||{
+            let user=gh.user()?;
+            if !molip_quest::pilot_source::enabled() {
+                if let Err(error)=molip_quest::content_lifecycle::synchronize(&gh,user.id) {
+                    eprintln!("Content refresh will retry: {error}");
+                }
+            }
+            let manifest=gh.installed_course(repository_course::initial_repository());Ok((user,manifest))
+        }).await {
             Ok((user,manifest))=>{let _=molip_quest::course_identity::synchronize(github.clone(),user.clone());let _=molip_quest::progress_sync::synchronize(github.clone(),user.clone());session.set(Some(Session{github,user}));match manifest {Ok(c)=>{course.set(Some(c));message.set(String::new());},Err(e)=>message.set(e)}},
             Err(e)=>{session.set(None);course.set(None);message.set(e);}
         }

@@ -30,6 +30,7 @@ pub mod tts;
 pub mod updater;
 pub mod update_handoff;
 pub mod content_updates;
+pub mod content_lifecycle;
 pub mod change_history;
 pub mod git_practice;
 pub mod lesson_link;

@@ -20,6 +20,15 @@ use ui::Learning;
 fn main() {
     let args:Vec<String>=std::env::args().collect();
     if emergency_report::cli(&args){return;}
+    if args.get(1).map(String::as_str)==Some("--refresh-content-on-exit") {
+        molip_quest::setup_terminal::prepare_desktop_path();
+        let github=molip_quest::github_player::Github::new();
+        if let Err(error)=github.user().and_then(|user|molip_quest::content_lifecycle::synchronize_on_exit(&github,user.id)) {
+            eprintln!("Content refresh will retry at startup: {error}");
+            std::process::exit(1);
+        }
+        return;
+    }
     if args.get(1).map(String::as_str)==Some("--mq-java-practice"){std::process::exit(molip_quest::git_practice::java_build_practice::command_cli(&args[2..]));}
     if args.get(1).map(String::as_str)==Some("--flush-progress-on-exit") {
         molip_quest::setup_terminal::prepare_desktop_path();
@@ -58,6 +67,7 @@ fn main() {
     let config = dioxus::desktop::Config::new().with_custom_event_handler(|event,_|{
         if matches!(event,dioxus::desktop::tao::event::Event::LoopDestroyed|dioxus::desktop::tao::event::Event::WindowEvent{event:dioxus::desktop::tao::event::WindowEvent::CloseRequested,..}) {
             molip_quest::progress_sync::schedule_exit_flush();
+            molip_quest::content_lifecycle::schedule_exit_refresh();
         }
         #[cfg(target_os="macos")]
         if let dioxus::desktop::tao::event::Event::Opened{urls}=event {for url in urls {molip_quest::lesson_link::receive(url.as_str());}}
@@ -110,7 +120,7 @@ fn UpdateGate() -> Element {
 #[component]
 fn App() -> Element {
     #[cfg(feature="desktop")]
-    let quit_control={let window=dioxus::desktop::use_window();rsx!{button {id:"app-quit",hidden:true,onclick:move |_|{molip_quest::progress_sync::schedule_exit_flush();window.close();},"종료"}}};
+    let quit_control={let window=dioxus::desktop::use_window();rsx!{button {id:"app-quit",hidden:true,onclick:move |_|{molip_quest::progress_sync::schedule_exit_flush();molip_quest::content_lifecycle::schedule_exit_refresh();window.close();},"종료"}}};
     #[cfg(not(feature="desktop"))]
     let quit_control=rsx!{};
     use_future(||async move {

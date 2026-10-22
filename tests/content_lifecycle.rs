@@ -1,0 +1,29 @@
+use molip_quest::{content_lifecycle::refresh_course,content_updates::{Snapshot,SnapshotStore}};
+fn snapshot(store:&SnapshotStore,version:&str)->Snapshot {
+    let root=std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/player-pilot").join(version);
+    store.prepare("mq3-validation/course",&std::fs::read_to_string(root.join("course.json")).unwrap(),|_|Ok(std::fs::read_to_string(root.join("lesson.json")).unwrap())).unwrap()
+}
+
+#[test]
+fn lifecycle_refresh_installs_verified_content_and_leaves_old_content_on_failure() {
+    let root=tempfile::tempdir().unwrap();let store=SnapshotStore::new(root.path());
+    let repo="mq3-validation/course";let a=snapshot(&store,"a");let b=snapshot(&store,"b");store.apply(&a).unwrap();
+    assert!(refresh_course(&store,repo,||Err("offline".into()),|_|panic!("no backup without content")).is_err());
+    assert_eq!(store.active(repo).unwrap().unwrap(),a);
+    assert!(refresh_course(&store,repo,||Ok(b.clone()),|_|Err("disk full".into())).is_err());
+    assert_eq!(store.active(repo).unwrap().unwrap(),a);
+    let mut backed_up=false;
+    assert!(refresh_course(&store,repo,||Ok(b.clone()),|next|{assert_eq!(next,&b);backed_up=true;Ok(())}).unwrap());
+    assert!(backed_up);assert_eq!(SnapshotStore::new(root.path()).active(repo).unwrap().unwrap(),b);
+    assert!(!refresh_course(&store,repo,||Ok(b.clone()),|_|panic!("unchanged content needs no backup")).unwrap());
+    assert_eq!(b.lesson_source(&b.course().lessons[0]).unwrap(),std::fs::read_to_string("tests/fixtures/player-pilot/b/lesson.json").unwrap());
+    assert!(b.lesson_source(&a.course().lessons[0]).is_none());
+}
+
+#[test]
+fn lifecycle_refresh_does_not_overwrite_an_update_installed_during_download() {
+    let root=tempfile::tempdir().unwrap();let store=SnapshotStore::new(root.path());
+    let a=snapshot(&store,"a");let b=snapshot(&store,"b");let c=snapshot(&store,"c");store.apply(&a).unwrap();
+    assert!(!refresh_course(&store,"mq3-validation/course",||{store.apply(&c)?;Ok(b)},|_|panic!("newer content must remain active")).unwrap());
+    assert_eq!(store.active("mq3-validation/course").unwrap().unwrap(),c);
+}

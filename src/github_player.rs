@@ -49,7 +49,10 @@ impl Github {
     }
     pub fn prepare_course(&self,repository:&str)->Result<crate::content_updates::Snapshot,String> {
         let raw=self.content(repository,"main","course.json")?;
-        crate::bundled_courses::prepare_update(&crate::content_updates::installed_store()?,repository,&raw,|reference|{
+        let store=crate::content_updates::installed_store()?;
+        let installed=store.active(repository)?;
+        crate::bundled_courses::prepare_update(&store,repository,&raw,|reference|{
+            if let Some(raw)=installed.as_ref().and_then(|snapshot|snapshot.lesson_source(reference)){return Ok(raw.to_owned())}
             if let Some(raw)=crate::bundled_courses::lesson_source(reference){return Ok(raw.to_owned())}
             self.content(&reference.repository,&reference.revision,"lesson.json")
         })

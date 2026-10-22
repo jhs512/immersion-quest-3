@@ -13,6 +13,10 @@ struct StoredSnapshot { repository:String, course:String, lessons:BTreeMap<Strin
 pub struct ContentChanges { pub added:Vec<String>, pub removed:Vec<String>, pub modified:Vec<String> }
 impl Snapshot {
     pub fn is_remote(&self)->bool {self.document.remote}
+    pub fn lesson_source(&self,reference:&LessonRef)->Option<&str> {
+        self.lesson(reference)?;
+        self.document.lessons.get(&reference.id).map(String::as_str)
+    }
     pub(crate) fn packaged(mut self)->Self {self.document.remote=false;self}
     pub fn course(&self)->&CourseManifest { &self.course }
     pub fn lesson(&self,reference:&LessonRef)->Option<&Lesson> {
