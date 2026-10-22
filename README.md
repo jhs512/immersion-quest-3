@@ -11,9 +11,10 @@
 
 ## macOS · Apple Silicon · 12 이상
 
-### 터미널로 설치
+### 터미널로만 설치
 
-터미널에서 아래 명령을 실행하면 Apple Silicon용 앱을 설치하고 Java·C·Python 환경을 준비한 뒤 **MQ**를 열어요.
+브라우저에서 DMG를 직접 받아 설치하지 마세요. Spotlight(⌘ + Space)에서 **터미널**을 여세요.
+아래 명령을 붙여 넣고 Enter를 누르세요. Apple Silicon용 앱과 Java·C·Python 환경을 준비한 뒤 **MQ**를 열어요.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/jhs512/immersion-quest-3/main/packaging/macos/install.sh | bash

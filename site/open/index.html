@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MQ · 수업 열기</title>
 <style>
-*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#122231;color:#e3eef8;font-family:system-ui,sans-serif;padding:24px}main{width:min(100%,520px);padding:28px;border:1px solid #38546b;border-radius:16px;background:#1b3043}h1{font-size:26px;margin-top:0}p{line-height:1.6;color:#c1d4e5}.open{display:block;padding:14px;text-align:center;background:#237d65;color:white;border-radius:9px;text-decoration:none;font-weight:bold}.downloads{display:flex;gap:16px;flex-wrap:wrap}a{color:#a2d9ff}details{font-size:13px;margin:20px 0;overflow-wrap:anywhere}code{display:block;margin:8px 0;color:#c1d4e5}footer{font-size:13px;margin-top:24px}.hidden{display:none}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#122231;color:#e3eef8;font-family:system-ui,sans-serif;padding:24px}main{width:min(100%,520px);padding:28px;border:1px solid #38546b;border-radius:16px;background:#1b3043}h1{font-size:26px;margin-top:0}p{line-height:1.6;color:#c1d4e5}.open{display:block;padding:14px;text-align:center;background:#237d65;color:white;border-radius:9px;text-decoration:none;font-weight:bold}.downloads{display:flex;gap:16px;flex-wrap:wrap}a{color:#a2d9ff}details{font-size:13px;margin:20px 0;overflow-wrap:anywhere}code{display:block;margin:8px 0;color:#c1d4e5}.mac-install{margin-top:20px}.command{background:#122231;border:1px solid #38546b;border-radius:8px;padding:12px}.command code{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}.command button{cursor:pointer;border:1px solid #52718a;border-radius:6px;background:#29475e;color:#e3eef8;padding:7px 12px}footer{font-size:13px;margin-top:24px}.hidden{display:none}
 </style></head><body><main>
 <h1>MQ에서 수업을 열어요</h1>
 <p id="status" role="status">수업 링크를 확인하고 있어요.</p>
@@ -9,11 +9,17 @@
 <details id="details" class="hidden"><summary>연결된 코스와 수업</summary><code id="course"></code><code id="lesson"></code></details>
 <footer><p>앱이 열리지 않나요?<br>최신 MQ를 설치한 뒤 다시 눌러 주세요.</p><div class="downloads">
 <a href="https://github.com/jhs512/immersion-quest-3/releases/latest/download/molip-quest-3-windows-x64-setup.exe">Windows 설치</a>
-<a href="https://github.com/jhs512/immersion-quest-3/releases/latest/download/molip-quest-3-macos-arm64.dmg">Mac 설치 · Apple Silicon</a>
-</div><p>브라우저에서 앱을 열지 물으면 허용하세요.<br>GitHub 로그인 후 연결된 수업으로 이동해요.</p></footer>
+
+</div><section class="mac-install" aria-labelledby="mac-install-title"><h2 id="mac-install-title">Mac · 터미널로 설치</h2><p>Apple Silicon Mac에서 사용하세요.<br>Spotlight(⌘ + Space)에서 <strong>터미널</strong>을 여세요.<br>아래 명령을 붙여 넣고 Enter를 누르세요.</p><div class="command"><button id="copy-install" type="button">설치 명령 복사</button><code id="install-command">curl -fsSL https://raw.githubusercontent.com/jhs512/immersion-quest-3/main/packaging/macos/install.sh | bash</code></div><p>설치 파일을 브라우저로 받아 실행하지 마세요.<br>터미널 명령으로 설치와 환경 준비를 함께 진행해요.</p><p id="copy-status" role="status"></p></section><p>브라우저에서 앱을 열지 물으면 허용하세요.<br>GitHub 로그인 후 연결된 수업으로 이동해요.</p></footer>
 </main><script type="module">
 import {lessonTarget} from './link.mjs';
 const status=document.getElementById('status');
+document.getElementById('copy-install').addEventListener('click',async()=>{
+ const command=document.getElementById('install-command').textContent;
+ const message=document.getElementById('copy-status');
+ try{await navigator.clipboard.writeText(command);message.textContent='복사했어요. 터미널에 붙여 넣으세요.';}
+ catch{const range=document.createRange();range.selectNodeContents(document.getElementById('install-command'));const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);message.textContent='명령을 선택했어요. 복사해서 터미널에 붙여 넣으세요.';}
+});
 try {
  const target=lessonTarget(location.search), open=document.getElementById('open');
  open.href=target.app;open.classList.remove('hidden');
