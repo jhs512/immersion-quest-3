@@ -29,6 +29,14 @@
   chord('ArrowLeft');await wait(()=>document.querySelector('.repository-task')?.dataset.taskId===first,'previous shortcut');
   checked.push('Step shortcuts use the real navigation rules');
   await click('단축키');await wait(()=>document.querySelector('.shortcut-sheet')?.open,'shortcut help');
+  const savedRate=molipVoice.rate;
+  molipVoice.setRate(1);
+  const voiceKey=key=>document.querySelector('.shortcut-sheet button').dispatchEvent(new KeyboardEvent('keydown',{key,altKey:true,...(/mac/i.test(navigator.platform)?{metaKey:true}:{ctrlKey:true}),bubbles:true,cancelable:true}));
+  voiceKey('ArrowUp');
+  if(molipVoice.rate!==1.25||!document.querySelector('[data-voice-rate-status]')?.textContent.includes('1.25배'))throw Error('Global voice shortcut failed in modal');
+  if([...document.querySelectorAll('select.assistant-rate')].some(el=>el.value!=='1.25'))throw Error('Voice speed selectors did not follow shortcut');
+  voiceKey('ArrowDown');if(molipVoice.rate!==1)throw Error('Slower shortcut failed');
+  molipVoice.setRate(savedRate);
   if(!document.querySelector('.shortcut-sheet').textContent.includes('Shift+Enter'))throw Error('Submit shortcut missing from guide');
   document.querySelector('.shortcut-sheet button').click();await wait(()=>!document.querySelector('.shortcut-sheet').open,'help closes');
   checked.push('Platform guide is discoverable and closes correctly');

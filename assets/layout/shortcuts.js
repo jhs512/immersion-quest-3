@@ -11,6 +11,8 @@
     previous: {label: `${MOD}+←`, aria: `${mac ? 'Meta' : 'Control'}+ArrowLeft`, title: '이전 스텝'},
     next: {label: `${MOD}+→`, aria: `${mac ? 'Meta' : 'Control'}+ArrowRight`, title: '다음 스텝'},
     help: {label: `${MOD}+/`, aria: `${mac ? 'Meta' : 'Control'}+/`, title: '단축키 안내'},
+    voiceSlower: {label: `${MOD}+${mac ? 'Option' : 'Alt'}+↓`, title: 'AI 음성 느리게'},
+    voiceFaster: {label: `${MOD}+${mac ? 'Option' : 'Alt'}+↑`, title: 'AI 음성 빠르게'},
   };
   const inEditable = target => target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement
     || (target instanceof Element && (target.isContentEditable || !!target.closest('.cm-editor, .xterm')));
@@ -48,7 +50,7 @@
   const SHEET = [
     ['실행과 제출', [[bindings.run.label, '코드를 실행해 결과 확인'], [bindings.submit.label, '현재 답안 제출'], ['Enter', '문제 영역에서 제출 · 통과 창에서 다음으로 이동'], ['터미널의 Enter', '현재 명령 실행 · Vim 명령 입력']]],
     ['스텝 이동', [[`${bindings.previous.label}  ${bindings.next.label}`, '이전 · 다음 스텝'], [`${MOD}+↑  ${MOD}+↓`, '이전 · 다음 단원 (단원 이동 화면)'], [`${MOD}+K`, '수업 목차 (목차가 있는 화면)'], [`${MOD}+I`, 'AI 패널 (조교가 있는 화면)']]],
-    ['해설과 화면', [['Space', '해설 일시정지 · 재개'], ['Esc', '해설 정지 · 열린 안내 닫기'], [mac ? '⌃⌘F' : 'F11', '전체 화면'], [bindings.help.label, '이 안내 열기 · 닫기']]],
+    ['해설과 화면', [[bindings.voiceSlower.label, 'AI 음성 느리게 (입력 중·팝업에서도 사용)'], [bindings.voiceFaster.label, 'AI 음성 빠르게 (0.75~2배, 설정 유지)'], ['Space', '해설 일시정지 · 재개'], ['Esc', '해설 정지 · 열린 안내 닫기'], [mac ? '⌃⌘F' : 'F11', '전체 화면'], [bindings.help.label, '이 안내 열기 · 닫기']]],
     ['신고', [['Ctrl+Alt+Shift+B', '앱 오류 신고 · 별도 네이티브 창'], ['Ctrl+Alt+Shift+P', '현재 수업의 문제 신고 (Mac: Alt는 Option)']]],
     ['슬라이드와 읽기', [['←  →  Space', '슬라이드 이전 · 다음 장'], ['N', '슬라이드 강사 스크립트'], [`${MOD}+더블 클릭`, '선택한 문단부터 읽기']]],
   ];
@@ -103,6 +105,34 @@
   }
   document.addEventListener('keydown', event => {
     if (event.isComposing || event.keyCode === 229 || globalThis.molipIme?.isComposing(event.target)) return;
+    // Voice controls belong to the whole app, including modal overviews and focused terminals.
+    // Consume repeats too, so holding a key never leaks a shell/editor navigation command.
+    if ((mac ? event.metaKey && !event.ctrlKey : event.ctrlKey && !event.metaKey)
+      && event.altKey && !event.shiftKey && ['ArrowUp', 'ArrowDown'].includes(event.key)
+      && globalThis.molipVoice) {
+      event.preventDefault(); event.stopPropagation();
+      if (event.repeat) return;
+      const voice = globalThis.molipVoice;
+      const rates = voice.RATES;
+      const index = rates.indexOf(voice.rate);
+      const next = Math.max(0, Math.min(rates.length - 1, index + (event.key === 'ArrowUp' ? 1 : -1)));
+      const rate = voice.setRate(rates[next]);
+      const message = `AI 음성 속도 ${rate}배`;
+      globalThis.molipToast?.(message);
+      // Body toasts sit behind native modal dialogs; announce the rate inside the dialog too.
+      const dialog = [...document.querySelectorAll('[role="dialog"], dialog[open]')]
+        .filter(p => !p.hidden && p.getClientRects().length > 0).pop();
+      if (dialog) {
+        let status = dialog.querySelector('[data-voice-rate-status]');
+        if (!status) {
+          status = document.createElement('p'); status.dataset.voiceRateStatus = '';
+          status.className = 'shortcut-note'; status.setAttribute('role', 'status');
+          dialog.append(status);
+        }
+        status.textContent = message;
+      }
+      return;
+    }
     if (!event.repeat && (event.ctrlKey || (mac && event.metaKey)) && !event.altKey && !event.shiftKey && event.key.toLowerCase() === 'q' && clickId('app-quit')) {event.preventDefault();event.stopPropagation();return;}
     if (event.repeat) { if (isFullscreenKey(event) || ((event.ctrlKey || event.metaKey) && ['Enter','ArrowLeft','ArrowRight'].includes(event.key)) || (event.key === 'Enter' && !inEditable(event.target))) event.preventDefault(); return; }
     if (sheet?.open) {
