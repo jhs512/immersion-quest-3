@@ -247,10 +247,11 @@
       try { glideTo(element); } catch {}
     }
     document.querySelectorAll('.overview-speaking').forEach(node=>node.classList.remove('overview-speaking'));
-    if(spotTarget?.closest?.('#lesson-info-dialog')) {
+    if(spotTarget?.closest?.('#lesson-info-dialog, #course-guide-dialog')) {
       spotTarget.classList.add('overview-speaking');
       spot.hidden=true;caption.hidden=true;cancelAnimationFrame(raf);raf=0;
-      const status=document.querySelector('#lesson-overview-status');if(status)status.textContent=sentence||'';
+      const dialog=spotTarget.closest('dialog');
+      const status=dialog?.querySelector('[data-overview-status], #lesson-overview-status');if(status)status.textContent=sentence||'';
       return;
     }
     caption.textContent = captionText(sentence);
@@ -402,7 +403,7 @@
       let done = false, timer = 0;
       const finish = () => { if (done) return; done = true; clearTimeout(timer); current = null; resolve(); };
       const start = () => {
-        if (cancelled || !voice) { finish(); return; }
+        if (cancelled || !voiceOn()) { finish(); return; }
         const utterance = new SpeechSynthesisUtterance(globalThis.molipPronunciation.pronunciationText(sentence));
         utterance.lang = 'ko-KR';
         const korean = helpers && helpers.koreanVoice ? helpers.koreanVoice(synth.getVoices()) : null;
@@ -836,7 +837,8 @@
     globalThis.molipVoice?.resetFailure?.();
     const lines = [];
     try {
-    await Promise.race([prefetch(actions, active), untilCancelled()]);
+    const initialAudio = Number.isInteger(options.prefetchLimit) ? actions.slice(0, Math.max(0, options.prefetchLimit)) : actions;
+    await Promise.race([prefetch(initialAudio, active), untilCancelled()]);
     if (!active()) return '해설 준비를 멈췄어요.';
     clearSpot();
     // A deck script (it ends with finish_slides) is presented full screen, like a class, and
@@ -926,7 +928,9 @@
     const abort=()=>stop();
     dialog.addEventListener('close',abort);
     dialog.dataset.overviewRunning='true';
-    try{return await run(actions.filter(a=>a.action==='say'),false,{forceVoice:true});}
+    // A course can contain many lessons: start after the first few sentences.
+    // Remaining clips use the same cache on demand instead of preloading the whole course.
+    try{return await run(actions.filter(a=>a.action==='say'),false,{forceVoice:true,prefetchLimit:3});}
     finally{dialog.removeEventListener('close',abort);dialog.dataset.overviewRunning='false';}
   }
   globalThis.molipAgent = { runOverview, retireGitTutor: ExplanationSession.retireGitTutor, run, runExplanation, stop, pause, resume, speakReply, stopReply, get paused() { return paused; }, get running() { return running; }, setVoice, setVoiceName, resolveTarget, glideTo, get voice() { return voice; }, get voiceName() { return globalThis.molipVoice ? globalThis.molipVoice.name : 'system'; }, get lastSpeech() { return lastSpeech; }, get playbackRate() { return currentAudio ? currentAudio.playbackRate : null; }, actions: Object.keys(handlers) };

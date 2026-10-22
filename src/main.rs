@@ -7,6 +7,7 @@ mod ui;
 mod player_ui;
 mod explanation_session;
 mod lesson_outline;
+mod course_guide_ui;
 mod interaction_ui;
 mod pilot_ui;
 mod gh_setup_ui;

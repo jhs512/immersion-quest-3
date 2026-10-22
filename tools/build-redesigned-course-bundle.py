@@ -13,11 +13,6 @@ from lesson_registry import load_registry
 
 ROOT = Path(__file__).resolve().parents[1]
 NAMES = {'java': 'java-backend', 'aice': 'aice-associate', 'engineer': 'engineer-practical'}
-DESCRIPTIONS = {
-    'java': 'Bash로 파일을 다루고 Git과 자바의 원리를 작은 문제로 익혀요. 앱 구조와 테스트를 배우고 React·Tailwind를 가볍게 다뤄요.',
-    'aice': 'Python·표 분석에서 모델 평가까지 실제로 풀어요. scikit-learn·TensorFlow로 에이스 실기를 준비해요.',
-    'engineer': '코드·SQL·설계·보안을 짧은 문제로 익혀요. 공식 실기 12개 영역을 원리와 필답 연습으로 연결해요.',
-}
 
 
 def encoded(value):
@@ -67,7 +62,8 @@ def build(check=False):
                 lesson_sha256=digest, chapters=len(lesson['chapters']),
                 units=sum(len(c['units']) for c in lesson['chapters']), steps=len(lesson['tasks'])))
         manifest = dict(schema_version=2, id=course['id'], title=course['title'],
-            description=DESCRIPTIONS[key],
+            description=course['presentation']['description'],
+            objectives=course['presentation']['objectives'], scope_note=course['presentation']['scope_note'],
             repository=f'jhs512/mq3-course-redesigned-{slug}', lessons=references,
             change_history=release.get('course_changes', {}).get(key, []) + [dict(at=release['prepared_at'],
                 summary='새 지침에 맞춘 독립 과정을 구성했어요.',
@@ -77,7 +73,7 @@ def build(check=False):
                     '모든 수업은 추천 순서와 관계없이 자유롭게 열 수 있어요.'])])
         write(ROOT / 'courses/redesigned-courses' / f'{slug}.json', encoded(manifest), check)
         spec = dict(schema_version=1, id=course['id'], title=course['title'],
-            objectives=course['objectives'], policy_snapshot=course['policy_snapshot'],
+            objectives=course['objectives'], presentation=course['presentation'], policy_snapshot=course['policy_snapshot'],
             scope_boundary=course['scope_boundary'], research_snapshot=course['research_snapshot'],
             lessons=lesson_specs, completion_gate=course['completion_gate'],
             transition=dict(previous_repository=f'jhs512/mq3-course-{slug}',

@@ -10,7 +10,7 @@ use std::{io::Write,process::{Command,Stdio}};
 pub struct CourseDraft {pub owner:String,pub name:String,pub title:String,pub description:String,pub lessons:Vec<LessonRef>}
 impl CourseDraft {
     pub fn manifest(&self)->Result<CourseManifest,String> {
-        let manifest=CourseManifest{change_history:vec![],schema_version:1,id:self.name.clone(),title:self.title.clone(),description:self.description.clone(),repository:format!("{}/{}",self.owner,self.name),lessons:self.lessons.clone()};
+        let manifest=CourseManifest{change_history:vec![],schema_version:1,id:self.name.clone(),title:self.title.clone(),description:self.description.clone(),objectives:vec![],scope_note:String::new(),repository:format!("{}/{}",self.owner,self.name),lessons:self.lessons.clone()};
         CourseManifest::parse(&serde_json::to_string(&manifest).map_err(|e|e.to_string())?)
     }
 }

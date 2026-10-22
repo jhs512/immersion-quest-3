@@ -168,6 +168,7 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                 if let Some(manifest)=visible_course {
                 if let Some(s)=session() {CourseProgressLoader {key:"{s.user.id}:{manifest.repository}:{manifest.lessons:?}:{refresh}",session:s,course:manifest.clone(),onloaded:move |records:github_player::CourseProgress|{progress.set(records.events);progress_requirements.set(records.required);}}}
                 section {class:"course-catalog",h2 {"{manifest.title}"}p {"{manifest.description}"}
+                    crate::course_guide_ui::CourseGuideButton {key:"{manifest:?}",course:manifest.clone()}
                     if let Some(s)=session() {
                         CourseIdentity {key:"{s.user.id}:{manifest.id}",session:s.clone(),course:manifest.clone(),onready:{let scope=format!("{}:{}",s.user.id,manifest.id);move |ready:bool|{
                             let current=format!("{}:{}",session.peek().as_ref().map(|s|s.user.id).unwrap_or(0),course.peek().as_ref().map(|c|c.id.as_str()).unwrap_or(""));

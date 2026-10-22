@@ -16,6 +16,10 @@ pub struct CourseManifest {
     pub id: String,
     pub title: String,
     pub description: String,
+    #[serde(default,skip_serializing_if="Vec::is_empty")]
+    pub objectives: Vec<String>,
+    #[serde(default,skip_serializing_if="String::is_empty")]
+    pub scope_note: String,
     pub repository: String,
     pub lessons: Vec<LessonRef>,
 }
@@ -198,6 +202,9 @@ impl CourseManifest {
     pub fn parse(text: &str) -> Result<Self,String> {
         let course:Self=serde_json::from_str(text).map_err(|e|e.to_string())?;
         crate::change_history::validate(&course.change_history)?;
+        if (!course.objectives.is_empty()&&!goals_valid(&course.objectives))||course.scope_note.len()>8000 {
+            return Err("코스 목표와 학습 범위를 확인하세요.".into());
+        }
         let mut ids=HashSet::new();
         if !matches!(course.schema_version,1|2) || course.id.is_empty() || course.title.is_empty() || !valid_repository(&course.repository) || course.lessons.is_empty() || course.lessons.len()>200 { return Err("코스 구성정보를 확인하세요.".into()); }
         if course.schema_version==2 && (!resource_code(&course.id,"crs") || course.lessons.iter().any(|l|!resource_code(&l.id,"lsn"))) {return Err("코스와 수업의 고유 코드를 확인하세요.".into())}

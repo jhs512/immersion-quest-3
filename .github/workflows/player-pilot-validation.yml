@@ -368,6 +368,9 @@ jobs:
       - name: Drive file-to-prediction integration
         if: matrix.group == 'neural'
         run: cargo test --locked --test player_data_lessons_native aice_integration -- --ignored --test-threads=1
+      - name: Read and narrate the installed course guide without progress changes
+        if: matrix.group == 'core'
+        run: cargo test --locked --test player_course_guide_native -- --ignored --test-threads=1
       - name: Reopen actual player with saved answer and progress
         if: ${{ matrix.group == 'core' && (!cancelled() && steps.build_player.outcome == 'success') }}
         run: cargo test --locked --test player_restart_native -- --ignored --test-threads=1
@@ -393,6 +396,7 @@ jobs:
             target/public-production-*.json
             target/pilot-engineer-*-result.json
             target/pilot-native-result.json
+            target/pilot-course-guide-result.json
             target/pilot-core-result.json
             target/pilot-java-result.json
             target/pilot-python-result.json

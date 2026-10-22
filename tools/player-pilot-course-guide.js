@@ -1,0 +1,44 @@
+(async()=>{
+ const checked=[],spoken=[];
+ const wait=async(fn,label)=>{const end=Date.now()+25000;while(Date.now()<end){if(fn())return;await new Promise(r=>setTimeout(r,30));}throw Error(label);};
+ const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===text);
+ const click=async text=>{await wait(()=>button(text)&&!button(text).disabled,text);button(text).click();};
+ try {
+  await wait(()=>document.querySelector('.lesson-card'),'catalog');
+  await click('코스 목표와 전체 흐름');
+  await wait(()=>document.querySelector('#course-guide-dialog')?.open&&document.querySelector('.course-guide-lesson'),'guide ready');
+  const dialog=document.querySelector('#course-guide-dialog'),rect=dialog.getBoundingClientRect();
+  if(rect.left<0||rect.right>innerWidth+1||rect.top<0||rect.bottom>innerHeight+1)throw Error('Guide escapes the window');
+  if(!dialog.textContent.includes('값을 바꾸면 출력이 달라짐을 확인해요.'))throw Error('Actual lesson objectives missing');
+  if(!dialog.textContent.includes('준비된 출력 코드의 값을 바꿔요.'))throw Error('Actual lesson story missing');
+  if(dialog.querySelector('pre')||dialog.textContent.includes('console.log(3)'))throw Error('Teacher answers leaked into the guide');
+  checked.push('one document shows current lesson goals and story inside the window without answers');
+  dioxus.send({control:'resize',width:640,height:540});
+  await wait(()=>innerWidth<=700,'narrow window');
+  await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+  const narrow=dialog.getBoundingClientRect(),body=dialog.querySelector('.course-guide-document');
+  if(narrow.left<0||narrow.right>innerWidth+1||narrow.bottom>innerHeight+1||body.clientHeight<100)throw Error('Narrow guide clips its controls or document');
+  checked.push('a narrow window keeps the document readable and all controls inside the dialog');
+  window.molipVoice={name:'system',enabled:()=>false,rate:1.5};molipAgent.setVoice(false);
+  speechSynthesis.getVoices=()=>[];
+  speechSynthesis.speak=utterance=>{spoken.push({text:utterance.text,highlight:!!dialog.querySelector('.overview-speaking'),tag:dialog.querySelector('.overview-speaking')?.tagName});setTimeout(()=>utterance.onend?.(),160);};
+  await click('이 수업 AI 해설');await wait(()=>spoken.length>0,'spoken lesson guide');
+  await wait(()=>!molipAgent.running&&!button('이 수업 AI 해설').disabled,'lesson narration finished');
+  if(!spoken.every(row=>row.highlight)||!spoken.some(row=>row.tag==='LI'))throw Error('Voice and highlighted guide goals are not synchronized');
+  checked.push('lesson narration uses real overview playback with synchronized highlights');
+  await click('AI 전체 해설 재생');await wait(()=>molipAgent.running,'full overview started');
+  dialog.querySelector('header button').click();
+  await wait(()=>!dialog.open&&!molipAgent.running,'closing guide cancels narration');
+  checked.push('closing the document stops narration and returns to the existing catalog');
+  const previousFingerprint=document.querySelector('.course-guide-document').dataset.contentFingerprint;
+  await click('새 업데이트 공개');
+  await wait(()=>document.querySelector('.course-refresh-icon')&&!document.querySelector('.course-refresh-icon').disabled,'manual update ready');
+  document.querySelector('.course-refresh-icon').click();
+  await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('pilot-g'),'updated course installed');
+  await click('코스 목표와 전체 흐름');
+  await wait(()=>document.querySelector('#course-guide-dialog')?.open&&document.querySelector('.course-guide-document')?.dataset.contentFingerprint!==previousFingerprint,'updated overview');
+  checked.push('the guide follows a newly installed course snapshot and its lesson order');
+  document.querySelector('#course-guide-dialog header button').click();
+  dioxus.send({passed:true,checked,spoken:spoken.length});
+ }catch(error){dioxus.send({passed:false,checked,error:String(error),screen:document.body.innerText.slice(0,5000)});}
+})();
