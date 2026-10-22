@@ -14,7 +14,9 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
     use_future({let window=window.clone();move || {let window=window.clone();async move {
         if !pilot_source::enabled() || std::env::var_os("MOLIP_PILOT_SELF_TEST").is_none() { return; }
         let restart_phase=std::env::var("MOLIP_PILOT_SELF_TEST").ok().and_then(|mode|mode.strip_prefix("restart-").map(str::to_owned)).filter(|phase|matches!(phase.as_str(),"seed"|"reopen"));
-        let script=if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("toolbar-audit") {
+        let script=if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("student-report-git") {
+            include_str!("../tools/player-pilot-student-report-git.js").to_owned()
+        }else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("toolbar-audit") {
             include_str!("../tools/player-pilot-toolbar.js").to_owned()
         }else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("course-guide") {
             include_str!("../tools/player-pilot-course-guide.js").to_owned()

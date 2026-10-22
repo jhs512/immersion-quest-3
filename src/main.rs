@@ -12,6 +12,8 @@ mod interaction_ui;
 mod pilot_ui;
 mod gh_setup_ui;
 mod git_terminal_ui;
+#[cfg(all(debug_assertions,target_os="macos"))]
+mod macos_login_verification_ui;
 mod change_history_ui;
 use dioxus::prelude::*;
 use molip_quest::Course;
@@ -222,8 +224,17 @@ window.molipVoice && molipVoice.setName({});",
         document::eval(include_str!("../assets/layout/agent.js"));
         document::eval(include_str!("../assets/slides/slides.bundle.js"));
     });
+    #[cfg(all(debug_assertions,target_os="macos"))]
+    let login_verification=std::env::var_os("MOLIP_MACOS_LOGIN_VERIFY").is_some();
+    #[cfg(not(all(debug_assertions,target_os="macos")))]
+    let login_verification=false;
+    #[cfg(all(debug_assertions,target_os="macos"))]
+    let verification_ui=if login_verification{rsx!{macos_login_verification_ui::MacosLoginVerification {}}}else{rsx!{}};
+    #[cfg(not(all(debug_assertions,target_os="macos")))]
+    let verification_ui=rsx!{};
     rsx! {
         {quit_control}
+        {verification_ui}
         if cfg!(debug_assertions) && std::env::var_os("MOLIP_DEV_LIVE").is_some() {
             style {{include_str!("../assets/fonts/fonts.css")}}
             document::Stylesheet { href: asset!("/assets/app.css") }
@@ -241,7 +252,7 @@ window.molipVoice && molipVoice.setName({});",
         style {{include_str!("../assets/product-ui.css")}}
         style {{include_str!("../assets/terminal/terminal.bundle.css")}}
         if cfg!(debug_assertions) && std::env::var_os("MOLIP_PILOT").is_some() { pilot_ui::PilotPlayer {window_controls:rsx!{div {class:"app-window-controls",AppReportButton {}{fullscreen_toggle}UpdateGate {}}}} }
-        else if cfg!(debug_assertions) && std::env::var_os("MOLIP_LEGACY").is_some() { div {class:"app-window-controls",AppReportButton {}{fullscreen_toggle}UpdateGate {}} Workspace {} } else { player_ui::RepositoryPlayer {window_controls:rsx!{div {class:"app-window-controls",AppReportButton {}{fullscreen_toggle}UpdateGate {}}}} }
+        else if cfg!(debug_assertions) && std::env::var_os("MOLIP_LEGACY").is_some() { div {class:"app-window-controls",AppReportButton {}{fullscreen_toggle}UpdateGate {}} Workspace {} } else if !login_verification { player_ui::RepositoryPlayer {window_controls:rsx!{div {class:"app-window-controls",AppReportButton {}{fullscreen_toggle}UpdateGate {}}}} }
     }
 }
 #[component]

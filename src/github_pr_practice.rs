@@ -24,6 +24,11 @@ impl GitPractice {
             ("GH_REPO".into(),String::new()),("GH_PROMPT_DISABLED".into(),"1".into()),("GH_PAGER".into(),"cat".into()),
             ("GIT_ALLOW_PROTOCOL".into(),"https".into()),("GIT_HTTP_LOW_SPEED_LIMIT".into(),"1".into()),("GIT_HTTP_LOW_SPEED_TIME".into(),"30".into())];
         if let Some(path)=real_gh_config(){result.push(("GH_CONFIG_DIR".into(),path.to_string_lossy().into()));}
+        // macOS gh's keychain provider uses the account's real home directory.
+        // GH_CONFIG_DIR alone is insufficient if HOME points at the exercise.
+        // Git configuration remains pinned to the owned practice config file.
+        #[cfg(target_os="macos")]
+        if let Some(home)=std::env::var_os("HOME") {result.push(("HOME".into(),home.to_string_lossy().into()));}
         #[cfg(not(target_os="android"))]
         {
             let gh=crate::setup_terminal::gh_executable().to_string_lossy().replace('\\',"/");

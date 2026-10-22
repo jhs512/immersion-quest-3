@@ -22,6 +22,17 @@ fn opening_or_explaining_pr_practice_does_not_create_a_hosted_repository(){
     }
 }
 #[test]
+#[cfg(target_os="macos")]
+fn pr_terminal_preserves_the_keychain_home_while_git_config_stays_isolated(){
+    let lesson=lesson();let practice=GitPractice::new(lesson.tasks[0].git_terminal.clone().unwrap()).unwrap();
+    let environment=practice.environment().into_iter().collect::<std::collections::BTreeMap<_,_>>();
+    assert_eq!(environment["HOME"],std::env::var("HOME").unwrap());
+    assert_eq!(environment["GIT_CONFIG_GLOBAL"],practice.root().join("global.config").to_string_lossy());
+    assert_eq!(environment["GIT_CONFIG_NOSYSTEM"],"1");
+    assert_ne!(environment["XDG_CONFIG_HOME"],std::env::var("HOME").unwrap());
+}
+
+#[test]
 fn local_git_practice_keeps_its_local_remote_and_protocol(){
     let practice=GitPractice::new(Default::default()).unwrap();
     assert!(practice.root().join("remote.git").is_dir());
@@ -46,7 +57,7 @@ fn current_github_login_is_shared_with_the_practice_terminal(){
         std::thread::sleep(Duration::from_millis(25));
     }
     terminal.shutdown().unwrap();
-    assert!(practice.shell_completions().unwrap().iter().any(|c|c.command=="gh api user --jq .login"&&c.success),"practice terminal cannot use the player's existing login");
+    assert!(practice.shell_completions().unwrap().iter().any(|c|c.command=="gh api user --jq .login"&&c.success),"practice terminal cannot use the player's existing login: {text:?}; commands: {:?}",practice.shell_completions().unwrap());
     assert!(text.contains(&expected),"practice must return the same GitHub account as the player");
 }
 

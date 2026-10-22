@@ -1,6 +1,6 @@
 # 수업 신고 검증 · 2026-10-22
 
-상태: **Windows 확인 완료 · Mac 재검증 대기**. 아래 신고는 닫지 않는다.
+상태: **Windows 확인 완료 · Mac 부분 검증 완료**. Mac에서 확인한 범위만 아래에 기록한다.
 Windows의 Chromium·WebKit 테스트는 Mac의 실제 한국어 입력기 검증을 대신하지 않는다.
 
 | 신고 | Windows에서 확인한 범위 | Mac에서 남은 확인 |
@@ -35,3 +35,20 @@ cargo test --test github_pr current_github_login -- --ignored --nocapture
 이 검사는 저장소나 PR을 만들지 않는다. 같은 테스트 파일의 `real_github_pr_lifecycle`은 실제 저장소·PR을 생성하므로 이번 검증에 포함하지 않았다.
 
 Mac에서는 위 자동 검사 외에 실제 한국어 입력기를 이용한 수동 검증이 필요하다. 결과를 확인하기 전에는 해결 완료로 닫지 않는다. 원본 진단 자료나 인증 정보는 이 문서에 복사하지 않는다.
+
+## Mac 재검증 결과 · 2026-10-22
+
+- 플레이어 #5: 실제 Mac 앱의 격리된 실습에서 이전 콘텐츠(`git-first-2`)의 1·2번 완료 기록을 넣고 현재 콘텐츠의 3번을 직접 열었다. 복원 안내, `memo.txt`의 `첫 메모\n`, Git 준비 영역을 확인했다. 커밋 전 제출은 실패하고 직접 커밋 후 제출은 통과했다. 앱 종료 후 같은 실습을 다시 열어 커밋과 추가 학습자 파일의 보존을 확인했다. 이 신고는 Mac 검증 완료다.
+- GitHub PR 수업 #1: 실제 실습 PTY에서 기존 로그인 조회가 401로 실패하는 문제를 재현했다. macOS PR 실습에서 실제 HOME을 유지하도록 수정하자 읽기 전용 계정 조회 검사가 통과했다. 실제 Mac 검증 앱에서도 플레이어 계정과 PR 터미널의 계정이 같았다. Git 전역 설정은 실습 전용 파일로 계속 격리한다. Finder에서 직접 실행하는 경우와 명시적인 GH_CONFIG_DIR/XDG 설정 조합은 아직 확인하지 않아 신고는 열린 상태로 유지한다.
+- 플레이어 #1·#3·#4·#6: 현재 사용자의 입력기는 한국어 두벌식이다. 다만 자동 키 입력은 실제 사용자의 조합 입력을 입증하지 못하므로 직접 입력·복사 입력 동등성 및 공백 문제의 완료 근거로 삼지 않는다. 실제 앱에서 사용자가 입력한 결과 확인이 남아 있어 열린 상태로 유지한다.
+- 플레이어 #2: 설명이 없어 원래 증상을 특정할 수 없으므로 열린 상태로 유지한다.
+
+Mac 회귀 검사: 입력 브리지 18건, Bash/Git 관련 회귀 검사, PR 실습 환경 격리 검사 통과. 실제 로그인 조회는 아래 읽기 전용 검사로 통과했으며 저장소·PR을 생성하지 않았다.
+
+```bash
+cargo test --locked --test player_student_report_git_native -- --ignored --nocapture --test-threads=1
+cargo test --locked --test github_pr current_github_login -- --ignored --nocapture
+cargo test --locked --test github_pr --test git_practice_resume -- --test-threads=1
+```
+
+Git 중간 단계의 실제 Mac 앱 검사는 `tests/player_student_report_git_native.rs`와 `tools/player-pilot-student-report-git.js`에 남겼다. 로그인 검증 전용 화면은 macOS 디버그 빌드에서만 `MOLIP_MACOS_LOGIN_VERIFY`로 실행하며 일반 배포 화면에는 포함되지 않는다.
