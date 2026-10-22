@@ -5,7 +5,7 @@ fn every_registered_lesson_opens_through_the_real_isolated_transport() {
     std::env::set_var("MOLIP_PILOT","1");
     let github=Github::new();let mut steps=0;
     let mut versions=std::collections::HashSet::new();
-    assert_eq!(lesson_registry::LESSONS.len(),78);
+    assert_eq!(lesson_registry::LESSONS.len(),80);
     for row in lesson_registry::LESSONS {
         assert!(versions.insert(row.pilot));
         pilot_source::set_version(row.pilot).unwrap();
@@ -19,10 +19,10 @@ fn every_registered_lesson_opens_through_the_real_isolated_transport() {
             assert_eq!(config["tasks"].as_array().unwrap().len(),lesson.tasks.len());
             assert_eq!(config["revision"],row.revision);
             if row.key=="java-values" {assert!(config["modifications"]["1"]["source"].as_str().unwrap().contains("println(99)"));}
-            if row.key=="git-remote" {assert_eq!(config["studentCommands"].as_array().unwrap().len(),8);}
+            if row.key=="git-remote" {assert_eq!(config["studentCommands"].as_array().unwrap().len(),21);}
         }
     }
-    assert_eq!(steps,750);
+    assert_eq!(steps,794);
     assert!(lesson_registry::self_test_script("unknown-course").is_none());
     assert!(pilot_source::set_version('!').is_err());
     pilot_source::set_version('a').unwrap();

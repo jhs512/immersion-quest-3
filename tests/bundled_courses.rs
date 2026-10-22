@@ -10,7 +10,7 @@ fn installation_and_upgrade_use_current_three_courses_without_content_downloads_
     else{std::env::set_var("MOLIP_DATA_DIR",directory.path());}
     let github=Github::new();
     for (repository,count) in [
-        ("jhs512/mq3-course-redesigned-java-backend",24),
+        ("jhs512/mq3-course-redesigned-java-backend",26),
         ("jhs512/mq3-course-redesigned-aice-associate",24),
         ("jhs512/mq3-course-redesigned-engineer-practical",30),
     ]{
@@ -30,7 +30,7 @@ fn installation_and_upgrade_use_current_three_courses_without_content_downloads_
             assert_eq!(candidate.course(),&course,"known stale server snapshot cannot roll back bundled content");
         }
     }
-    // Reproduce an already installed 18-lesson Java snapshot with changed content.
+    // Reproduce an older Java snapshot missing later lessons with changed content.
     let current=github.course("jhs512/mq3-course-redesigned-java-backend").unwrap();
     let mut old:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned-courses/java-backend.json")).unwrap();
     let removed=["bash-basics","vim-basics","java-launch","java-arguments","git-branch-advanced","github-pr"];
@@ -41,7 +41,7 @@ fn installation_and_upgrade_use_current_three_courses_without_content_downloads_
     let outdated_raw=outdated.to_string();
     let reference=old["lessons"].as_array_mut().unwrap().iter_mut().find(|r|r["id"]==existing.id).unwrap();
     reference["sha256"]=format!("{:x}",Sha256::digest(outdated_raw.as_bytes())).into();
-    let old_course=CourseManifest::parse(&old.to_string()).unwrap();assert_eq!(old_course.lessons.len(),18);
+    let old_course=CourseManifest::parse(&old.to_string()).unwrap();assert_eq!(old_course.lessons.len(),current.lessons.len()-removed.len());
     let store=molip_quest::content_updates::installed_store().unwrap();
     let stale=store.prepare(&current.repository,&old.to_string(),|r|{
         if r.id==existing.id{return Ok(outdated_raw.clone())}

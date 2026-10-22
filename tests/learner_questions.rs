@@ -25,7 +25,7 @@ fn java_choices_ask_explicit_questions_and_keep_existing_answers(){
             assert_eq!(lesson.tasks[0].solution,"false");assert_eq!(lesson.tasks[1].solution,"inclusive");
         }
     }
-    assert_eq!(checked,112);
+    assert_eq!(checked,130);
     let keys=course.lessons.iter().map(|r|r.repository.rsplit('-').next().unwrap()).collect::<Vec<_>>();
     assert!(keys.iter().position(|k|*k=="values").unwrap()<keys.iter().position(|k|*k=="first").unwrap());
     assert!(keys.iter().position(|k|*k=="methods").unwrap()<keys.iter().position(|k|*k=="branch").unwrap());
