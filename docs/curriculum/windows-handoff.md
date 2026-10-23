@@ -2,6 +2,10 @@
 
 기록일: 2026-10-20. 이 파일은 컴퓨터와 대화가 바뀌어도 이어가기 위한 작업 기준이다.
 
+## 2026-10-23 · Mac으로 수업 신고 작업 인계
+
+수업 신고의 최신 처리 상태와 Mac에서 이어갈 재현·검증 절차는 [Mac 인수인계](macos-handoff-2026-10-23.md)를 먼저 본다. Node/npm 경로 수정, 미해결 종료 3건, 기존 Mac CI의 PTY 준비 시간 초과가 남아 있다.
+
 ## 2026-10-22 추가 기획
 
 웹서버·가상 호스팅·포트 및 이름별 앱 분배와 Redis 기초·자료구조·활용·전달·복구를 기존 확장 계획에 구체화했다. `docs/curriculum/web-server-and-redis-foundations.md`와 `tools/redesigned_courses/java/backend-extension-plan.json`을 함께 본다. 현재 후보는 계획이며 앱 과정에 등록하거나 외부 서비스를 설치하지 않았다. 기존 JPA·Kafka 확장 범위와 `bash-environment`의 다음 제작 상태는 유지한다.

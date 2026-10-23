@@ -445,6 +445,17 @@ fn web_install_worker() {
     }
 
     #[tokio::test]
+    async fn reported_tailwind_title_runs_and_checks_its_real_font_weight() {
+        let lesson:crate::repository_course::Lesson=serde_json::from_str(include_str!("../courses/redesigned/java-tailwind.json")).unwrap();
+        let task=lesson.tasks.iter().find(|t|t.title=="클래스로 제목의 굵기를 바꿔요").unwrap();
+        let preview=super::run(task,&task.starter_code,"").await.unwrap();
+        assert!(preview.success,"{}",preview.stderr);
+        assert!(preview.artifacts.iter().any(|a|matches!(a,crate::runner::Artifact::Html{..})));
+        assert!(!super::check(task,&task.starter_code).await.unwrap().passed);
+        assert!(super::check(task,&task.solution).await.unwrap().passed);
+    }
+
+    #[tokio::test]
     async fn authored_web_checks_run_real_interactions_and_keep_a_preview() {
         let task:crate::repository_course::Task=serde_json::from_value(serde_json::json!({
             "id":"browser-probe","title":"버튼","goal":"클릭 결과를 확인해요.","language":"web",
