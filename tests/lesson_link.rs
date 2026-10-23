@@ -20,3 +20,17 @@ fn existing_instance_acknowledges_links_and_a_new_instance_can_start_after_exit(
     drop(primary);
     assert!(Instance::claim(directory.path(),None).unwrap().is_some());
 }
+
+#[test]
+fn course_links_round_trip_without_selecting_a_lesson(){
+    let link=LessonLink::course("owner/course").unwrap();
+    assert_eq!(link.lesson,None);
+    assert_eq!(LessonLink::parse(&link.web_url()).unwrap(),link);
+    assert_eq!(LessonLink::parse(&link.app_url()).unwrap(),link);
+    assert!(!link.web_url().contains("lesson="));
+    for bad in ["molipquest://open?course=a/b&lesson=","molipquest://open?lesson=x","molipquest://open?course=a/b&course=c/d","molipquest://open?course=a/b&exec=git","molipquest://open?course=../b"]{
+        assert!(LessonLink::parse(bad).is_err(),"{bad}");
+    }
+    let course=CourseManifest::parse(include_str!("../courses/redesigned-courses/java-backend.json")).unwrap();
+    assert!(LessonLink::course(&course.repository).unwrap().reference(&course).is_err());
+}

@@ -64,7 +64,7 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
                     continue;
                 }
                 if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("lesson-link")&&message["control"]=="lesson-link-stage" {
-                    if let Some(stage)=message["stage"].as_str().filter(|stage|matches!(*stage,"first"|"second")){
+                    if let Some(stage)=message["stage"].as_str().filter(|stage|matches!(*stage,"first"|"second"|"course")){
                         let _=std::fs::write(pilot_source::data_dir().unwrap().join(format!("lesson-link-{stage}")),"");
                     }
                     continue;

@@ -15,6 +15,10 @@
   await wait(()=>document.body.innerText.includes('코스에 이 수업이 없거나 현재 계정에서 열 수 없어요.'),'wrong-course link was not rejected');
   if(document.querySelector('.repository-task')?.dataset.taskId!==targets.second)throw Error('invalid link replaced current lesson');
   checked.push('invalid course membership preserves the active lesson');
+  dioxus.send({control:'lesson-link-stage',stage:'course'});
+  await wait(()=>!document.querySelector('.repository-task')&&document.querySelector('.course-catalog .lesson-card'),'course-only link did not stop at the lesson list');
+  if(!document.querySelector('.course-selected')?.innerText.includes(targets.course))throw Error('course-only link selected the wrong course');
+  checked.push('course-only link returns to its course list without opening a lesson');
   dioxus.send({passed:true,checked});
  }catch(error){dioxus.send({passed:false,checked,error:String(error),screen:document.body.innerText.slice(-4000)});}
 })();

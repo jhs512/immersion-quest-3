@@ -92,11 +92,15 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                             molip_quest::lesson_link::Request::Focus=>{},
                             molip_quest::lesson_link::Request::Invalid(error)=>{message.set(error.clone());document::eval(&format!("window.molipToast?.({})",serde_json::to_string(&error).unwrap()));},
                             molip_quest::lesson_link::Request::Open(link)=>{
-                                busy.set(true);launching.set(Some(("연결된 수업".into(),0)));
+                                busy.set(true);launching.set(Some((if link.lesson.is_some(){"연결된 수업"}else{"연결된 코스"}.into(),0)));
                                 let requested=link.clone();
                                 let result=github_player::background(move||{
                                     let manifest=s.github.installed_course(&link.course)?;
                                     let visible=molip_quest::course_visibility::for_account(manifest,&s.user.login);
+                                    if link.lesson.is_none(){
+                                        molip_quest::course_authoring::remember(&link.course)?;
+                                        return Ok((visible,None));
+                                    }
                                     let reference=link.reference(&visible)?.clone();
                                     let name=molip_quest::course_identity::Store::installed()?.load(&s.github,&visible.repository,&s.user,&visible.id,false)?;
                                     if name.is_none(){return Ok((visible,None));}
@@ -106,7 +110,7 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                                 }).await;
                                 match result {Ok((manifest,selected))=>{
                                     document::eval("window.molipAgent?.stop()");molip_quest::bug_report::forget();
-                                    course.set(Some(manifest));if let Some(selected)=selected{open.set(Some(selected));message.set(String::new());}else{open.set(None);waiting_name_link.set(Some(requested));message.set("이 코스에서 쓸 이름을 먼저 입력하세요.".into());}
+                                    course.set(Some(manifest));if let Some(selected)=selected{open.set(Some(selected));message.set(String::new());}else{open.set(None);if requested.lesson.is_some(){waiting_name_link.set(Some(requested));message.set("이 코스에서 쓸 이름을 먼저 입력하세요.".into());}else{waiting_name_link.set(None);message.set(String::new());}}
                                 },Err(error)=>{message.set(error.clone());document::eval(&format!("window.molipToast?.({})",serde_json::to_string(&error).unwrap()));}}
                                 launching.set(None);busy.set(false);
                             }
