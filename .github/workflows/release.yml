@@ -48,6 +48,10 @@ jobs:
           "MOLIP_NODE=$nodePath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           & $nodePath --version
           & $nodePath -e "console.log('MQ Node runtime OK')"
+      - name: Verify web runtime with a minimal desktop PATH
+        run: |
+          cargo test --release --locked --lib managed_web_tests
+          cargo test --release --locked --lib node_tools::tests
       - name: Verify persistent Java build workspace
         run: cargo test --release --locked --test java_launch --test java_arguments --test bundled_courses --test course_guide --test github_pr --test git_lesson_goals --test git_merge_goals --test redesigned_git_first --test redesigned_git_remote --test git_branch_story --test learner_questions --test redesigned_git_branch --test git_graph --test lesson_link --test interaction_examples --test bash_basics --test vim_practice --test step_reset
       - name: Verify detached progress exit helper
@@ -142,6 +146,10 @@ jobs:
         run: cargo test --locked --test content_lifecycle --test content_lifecycle_process --test content_updates
       - name: Verify optional build inputs stay fresh without private data
         run: python3 tools/test_build_inputs.py
+      - name: Verify web runtime with a minimal desktop PATH
+        run: |
+          cargo test --release --locked --lib managed_web_tests
+          cargo test --release --locked --lib node_tools::tests
       - name: Verify C, Java and Python execution on this Mac
         run: cargo test --release --locked --test macos_runtime --test java_launch --test java_arguments --test bundled_courses --test course_guide --test github_pr --test git_lesson_goals --test git_merge_goals --test redesigned_git_first --test redesigned_git_remote --test git_branch_story --test learner_questions --test redesigned_git_branch --test git_graph --test lesson_link --test interaction_examples --test bash_basics --test vim_practice --test step_reset
       - name: Verify detached progress exit helper

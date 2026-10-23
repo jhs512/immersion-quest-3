@@ -9,6 +9,7 @@ pub mod doctor;
 pub mod telemetry;
 pub mod bug_report;
 pub mod runtime_setup;
+mod node_tools;
 pub mod drafts;
 pub mod java;
 pub mod learning_store;

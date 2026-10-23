@@ -37,7 +37,7 @@ fn write_file(root:&Path,name:&str,content:&str)->Result<(),String> {
     std::fs::create_dir_all(path.parent().ok_or("파일 경로 오류")?).map_err(|e|e.to_string())?;
     std::fs::write(path,content).map_err(|e|e.to_string())
 }
-pub fn node()->String {std::env::var("MOLIP_NODE").unwrap_or_else(|_|"node".into())}
+pub fn node()->String {crate::node_tools::executable().to_string_lossy().into_owned()}
 
 /// Execute the separately prepared example; answer IDs never become its source.
 pub async fn run_example(task:&Task,source:&str,input:&str)->Result<Execution,String> {
@@ -75,7 +75,7 @@ async fn run_inner(task:&Task,source:&str,input:&str)->Result<Execution,String> 
             let mut cmd=command(bash);cmd.arg("practice.sh").env("GIT_CONFIG_GLOBAL",if cfg!(windows){"NUL"}else{"/dev/null"}).env("GIT_AUTHOR_NAME","학습자").env("GIT_AUTHOR_EMAIL","learner@example.invalid").env("GIT_COMMITTER_NAME","학습자").env("GIT_COMMITTER_EMAIL","learner@example.invalid");
             process(cmd,dir.path(),input,20).await
         },
-        TaskLanguage::Javascript=>{let mut cmd=command(node());cmd.arg("main.js");process(cmd,dir.path(),input,15).await},
+        TaskLanguage::Javascript=>{let mut cmd=crate::node_tools::command(Path::new(&node()));cmd.arg("main.js");process(cmd,dir.path(),input,15).await},
         TaskLanguage::Python=>{let mut cmd=command(crate::runner::python_executable());cmd.args(["-X","utf8","main.py"]).env("MPLBACKEND","Agg").env("TF_CPP_MIN_LOG_LEVEL","3");process(cmd,dir.path(),input,60).await},
         TaskLanguage::Web=>run_web(task,source,false).await,
         TaskLanguage::C=>run_c(dir.path(),input).await,
@@ -329,7 +329,7 @@ fn node_module_path(path:&Path)->&Path {dunce::simplified(path)}
 
 async fn install_web_runtime(root:&Path)->Result<Execution,String> {
     std::fs::create_dir_all(root).map_err(|e|e.to_string())?;
-    let mut cmd=if cfg!(windows){let mut c=command("cmd.exe");c.args(["/d","/c","npm.cmd"]);c}else{command("npm")};
+    let mut cmd=crate::node_tools::npm_command()?;
     // npm's Windows realpath cache recurses on canonical \\?\ prefixes.
     // The child already runs in this directory; a relative prefix keeps both
     // ordinary and canonical data paths valid without changing their identity.
@@ -351,11 +351,11 @@ async fn run_web(task:&Task,source:&str,grade:bool)->Result<Execution,String> {
     };
     write_file(dir.path(),"web-browser.cjs",include_str!("../assets/web-browser.cjs"))?;
     let runtime=node_module_path(&runtime);
-    let mut prepare_browser=command(node());prepare_browser.arg("web-browser.cjs").env("MQ3_PLAYWRIGHT",runtime);
+    let mut prepare_browser=crate::node_tools::command(Path::new(&node()));prepare_browser.arg("web-browser.cjs").env("MQ3_PLAYWRIGHT",runtime);
     let prepared=process(prepare_browser,dir.path(),"",240).await?;
     if !prepared.success {return Ok(prepared)}
     write_file(dir.path(),".mq3-browser.json",&prepared.stdout)?;
-    let mut cmd=command(node());cmd.arg("web-runner.cjs").env("MQ3_PLAYWRIGHT",runtime);
+    let mut cmd=crate::node_tools::command(Path::new(&node()));cmd.arg("web-runner.cjs").env("MQ3_PLAYWRIGHT",runtime);
     let mut result=process(cmd,dir.path(),"",35).await?;
     if let Ok(html)=std::fs::read_to_string(dir.path().join("preview.html")) {if html.len()<2_000_000 {
         // srcdoc has an opaque sandbox origin. Give its preview isolated in-memory storage;
@@ -395,6 +395,37 @@ mod java_array_prepared_tests {
 
 #[cfg(test)]
 mod managed_web_tests {
+#[test]
+fn npm_uses_the_selected_node_without_node_on_path() {hidden_node_fixture(false);}
+#[test]
+#[cfg(not(windows))]
+fn finder_finds_nvm_node_without_shell_initialization() {hidden_node_fixture(true);}
+fn hidden_node_fixture(nvm:bool) {
+    let node=std::env::var_os("MOLIP_NODE").map(std::path::PathBuf::from).unwrap_or_else(|| {
+        let file=if cfg!(windows){"node.exe"}else{"node"};
+        std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default()).map(|d|d.join(file)).find(|p|p.is_file()).expect("Node fixture")
+    });
+    let root=tempfile::tempdir().unwrap();let bin=if nvm {root.path().join(".nvm/versions/node/v24.10.0/bin")} else {root.path().join("node with spaces")};std::fs::create_dir_all(&bin).unwrap();
+    let local=bin.join(if cfg!(windows){"node.exe"}else{"node"});std::fs::copy(node.canonicalize().unwrap(),&local).unwrap();
+    let npm=if cfg!(windows){bin.join("node_modules/npm/bin")}else{bin.parent().unwrap().join("lib/node_modules/npm/bin")};std::fs::create_dir_all(&npm).unwrap();
+    std::fs::write(npm.join("npm-cli.js"),r#"const {spawnSync}=require('node:child_process');const result=spawnSync('node',['-e','process.stdout.write("MQ_NODE_CHILD_OK")'],{encoding:'utf8'});if(result.error||result.status!==0)process.exit(74);process.stdout.write(result.stdout);process.exit(73);"#).unwrap();
+    let path=root.path().join("empty-path");std::fs::create_dir(&path).unwrap();
+    let mut command=std::process::Command::new(std::env::current_exe().unwrap());command.args(["--exact","lesson_runner::managed_web_tests::web_install_worker","--ignored","--nocapture"])
+        .env("PATH",path).env("MOLIP_DATA_DIR",root.path().join("data")).env("MQ_NODE_PATH_TEST","1");
+    if nvm {command.env_remove("MOLIP_NODE").env("HOME",root.path()).env("NVM_DIR",root.path().join(".nvm"));}else{command.env("MOLIP_NODE",local);}
+    let output=command.output().unwrap();
+    assert!(output.status.success(),"{}\n{}",String::from_utf8_lossy(&output.stdout),String::from_utf8_lossy(&output.stderr));
+}
+#[test]
+#[ignore="Only launched in an isolated subprocess by the parent test"]
+fn web_install_worker() {
+    assert_eq!(std::env::var("MQ_NODE_PATH_TEST").unwrap(),"1");
+    let runtime=tokio::runtime::Runtime::new().unwrap();
+    let root=std::path::PathBuf::from(std::env::var_os("MOLIP_DATA_DIR").unwrap());
+    let result=runtime.block_on(super::install_web_runtime(&root)).unwrap();
+    assert!(result.stdout.contains("MQ_NODE_CHILD_OK"),"npm never reached its Node child: {} / {}",result.stdout,result.stderr);
+}
+
     #[tokio::test]
     #[ignore="Requires npm and network access for a genuinely empty runtime"]
     async fn fresh_runtime_accepts_a_canonical_data_directory() {
