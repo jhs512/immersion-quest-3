@@ -22,7 +22,9 @@ function! s:Publish(event, ...) abort
   call writefile([raw],$MQ3_VIM_EVENTS,'a')
   call writefile([raw],$MQ3_VIM_STATE.'.tmp')
   call rename($MQ3_VIM_STATE.'.tmp',$MQ3_VIM_STATE)
-  if join(readfile($MQ3_VIM_ACTIVE),'') ==# $MQ3_VIM_SESSION
+  " Terminal teardown can leave Insert mode before Vim exits (notably ConPTY).
+  " Continue reporting live state, but freeze the last learner state for resume.
+  if !shutting && join(readfile($MQ3_VIM_ACTIVE),'') ==# $MQ3_VIM_SESSION
     call writefile([raw],$MQ3_VIM_RESUME.'.tmp')
     call rename($MQ3_VIM_RESUME.'.tmp',$MQ3_VIM_RESUME)
   endif

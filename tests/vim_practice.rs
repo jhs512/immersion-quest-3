@@ -96,6 +96,34 @@ fn unsaved_text_input_mode_and_cursor_survive_reopening() {
 }
 
 #[test]
+fn shutdown_mode_changes_cannot_overwrite_the_saved_insert_state() {
+    let lesson:Lesson=serde_json::from_str(include_str!("../courses/redesigned/vim-basics.json")).unwrap();
+    let practice=GitPractice::new(lesson.tasks[0].git_terminal.clone().unwrap()).unwrap();
+    let (mut editor,mut output)=practice.open_terminal().unwrap();
+    wait(&practice,&mut editor,&mut output,|p|p.state.is_some());
+    send(&practice,&mut editor,&mut output,"i임시메모");
+    wait(&practice,&mut editor,&mut output,|p|p.state.as_ref().is_some_and(|s|s.mode=="i"&&s.lines==["임시메모"]));
+    let path=practice.root().join("vim-resume.json");
+    let before=std::fs::read(&path).unwrap();
+    practice.prepare_terminal_shutdown().unwrap();
+    // Windows process termination may leave Insert mode before Vim exits.
+    // Reproduce that transition deterministically instead of racing process kill.
+    editor.input("\x1b").unwrap();
+    wait(&practice,&mut editor,&mut output,|p|p.state.as_ref().is_some_and(|s|s.mode=="n"));
+    std::thread::sleep(Duration::from_millis(180));
+    assert_eq!(std::fs::read(&path).unwrap(),before,"closing must freeze the learner's resume state before terminal teardown changes mode");
+    editor.shutdown().unwrap();
+    let (mut reopened,mut reopened_output)=practice.open_terminal().unwrap();
+    let resumed=wait(&practice,&mut reopened,&mut reopened_output,|p|p.state.as_ref().is_some_and(|s|s.mode=="i"));
+    let state=resumed.state.unwrap();
+    assert_eq!(state.lines,["임시메모"]);assert_eq!(state.column,5);assert!(state.modified);
+    assert!(!practice.work().join("memo.txt").exists(),"resuming must not save the unsaved buffer to disk");
+    send(&practice,&mut reopened,&mut reopened_output,"X");
+    wait(&practice,&mut reopened,&mut reopened_output,|p|p.state.as_ref().is_some_and(|s|s.lines==["임시메모X"]));
+    practice.prepare_terminal_shutdown().unwrap();reopened.shutdown().unwrap();
+}
+
+#[test]
 fn step_six_accepts_typing_and_saving_without_waiting_between_actions() {
     let lesson:Lesson=serde_json::from_str(include_str!("../courses/redesigned/vim-basics.json")).unwrap();
     let practice=GitPractice::new(lesson.tasks[5].git_terminal.as_ref().unwrap().demonstration()).unwrap();
