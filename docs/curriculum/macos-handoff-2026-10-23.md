@@ -97,3 +97,17 @@ cargo test --locked --test github_pr current_github_login -- --ignored --nocaptu
 ## 완료와 인계 기준
 
 Windows에서는 Bash 9건, Git 복원 9건, PR 격리 2건, 원격 Git 2건(21단계와 독립 초기화), 입력 브리지 18건, 웹 경로·실제 npm 설치·실제 브라우저 검사를 통과했다. Mac 체크가 끝나면 이 문서에 실행한 플랫폼·앱 빌드·명령·결과·남은 한계를 덧붙인다. 코드·앱 CI·물리 IME 검증을 서로 대체하지 않는다. 캡처·원본 진단은 .scratch에만 보관하고 저장소에 넣지 않는다.
+
+
+## Mac에서 이어서 확인한 결과 · 2026-10-23
+
+- `6a1390c`를 main에 fast-forward pull했다. 작업 전 로컬 변경은 없었다.
+- 최신 배포 실행 `39919725196`의 **Mac 작업은 성공**, Windows 작업은 실패했다. 실패한 검사는 `vim_practice::unsaved_text_input_mode_and_cursor_survive_reopening`이며 복원 후 입력 모드가 `n`에 머물렀다. 전체 릴리스 작업은 건너뛰었고 게시 버전은 여전히 `v0.1.0-build.97`이다. 새 설치 파일 배포가 완료됐다고 볼 수 없다.
+- 실제 Mac의 Homebrew Node 26.0.0/npm 11.12.1로 Node 경로 검사를 실행했다. 테스트가 Node 바이너리만 복사해 상대 동적 라이브러리(`libnode.147.dylib`)를 잃는 문제가 있었다. Unix fixture는 원래 설치를 가리키는 symlink를 사용하도록 고쳤다. 제품의 Node 탐색 코드는 변경하지 않았다.
+- `managed_web_tests`: 4건 통과, 보조/네트워크 검사 2건 기본 제외. 제외된 실제 빈 폴더 npm 설치 검사를 따로 실행해 통과했다. `quoted_web_output_tests`, `node_tools::tests`도 통과했다.
+- 최신 디버그 바이너리의 `MQ Verification.app`을 격리된 pilot 데이터로 실행하고 PATH를 `/usr/bin:/bin:/usr/sbin:/sbin`으로 제한했다. 실제 Tailwind 수업 `java-tailwind-2`의 첫 문제에서 초기 미리보기 성공, font-normal 제출 실패, font-bold 수정 후 미리보기와 제출 통과를 확인했다. 이어서 Finder에서 같은 앱을 직접 열고 첫 문제의 미리보기·정답 채점이 다시 통과하는 것을 확인했다. 이는 최신 소스 디버그 앱의 검증이며 build.97 설치 파일에 수정이 포함됐다는 뜻은 아니다. nvm만 있는 실제 별도 계정은 사용하지 않았다.
+- `github_pr current_github_login` 읽기 전용 PTY 검사를 기본 환경, `GH_CONFIG_DIR=$HOME/.config/gh`, `XDG_CONFIG_HOME=$HOME/.config`에서 각각 실행해 모두 통과했다. 실제 저장소·PR 생성은 하지 않았다. Finder에서 로그인 검증 전용 앱을 여는 추가 시도는 UI 연결 시간 초과로 결과를 확인하지 못했으므로 Finder 로그인 성공 근거로 삼지 않는다.
+- 로컬 `player_git_course_native`는 두 번 실행했다. 두 번 모두 앞 단계 복원, 실제 Git 그래프/중간 초기화, 분기 13단계·고급 분기 5단계·PR 8단계 화면과 터미널 검사를 통과한 뒤 해설 종료 후 `새 회차 시작` 대기에서 실패했다. 실패 화면에 Dioxus의 `Your app is being rebuilt`가 포함됐다. 앞선 CI의 초기 터미널 진입 실패와 동일 원인이라고 확정하지 않는다. 최신 CI의 Mac 성공과 로컬 재현 실패를 구분하며, 로컬 전체 네이티브 검사를 통과했다고 기록하지 않는다.
+- 실제 사용자의 두벌식 입력에 대한 새 재현 근거는 얻지 못했다. Windows에서 정한 미해결 완료 상태를 수정 완료로 바꾸거나 이슈를 임의로 재개하지 않았다.
+
+다음 우선순위는 배포를 막은 Windows Vim 입력 모드 복원 실패와 로컬 Mac 해설 종료 후 네이티브 검사의 실패 원인 분리다. 실제 두벌식 직접 입력·복사 입력 동등성은 여전히 실기기 재현이 필요하다.

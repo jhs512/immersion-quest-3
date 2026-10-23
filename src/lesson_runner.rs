@@ -406,7 +406,13 @@ fn hidden_node_fixture(nvm:bool) {
         std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default()).map(|d|d.join(file)).find(|p|p.is_file()).expect("Node fixture")
     });
     let root=tempfile::tempdir().unwrap();let bin=if nvm {root.path().join(".nvm/versions/node/v24.10.0/bin")} else {root.path().join("node with spaces")};std::fs::create_dir_all(&bin).unwrap();
-    let local=bin.join(if cfg!(windows){"node.exe"}else{"node"});std::fs::copy(node.canonicalize().unwrap(),&local).unwrap();
+    let local=bin.join(if cfg!(windows){"node.exe"}else{"node"});
+    // Homebrew Node may depend on libraries relative to its real installation.
+    // Keep that installation intact while testing discovery through an isolated bin.
+    #[cfg(unix)]
+    std::os::unix::fs::symlink(node.canonicalize().unwrap(),&local).unwrap();
+    #[cfg(not(unix))]
+    std::fs::copy(node.canonicalize().unwrap(),&local).unwrap();
     let npm=if cfg!(windows){bin.join("node_modules/npm/bin")}else{bin.parent().unwrap().join("lib/node_modules/npm/bin")};std::fs::create_dir_all(&npm).unwrap();
     std::fs::write(npm.join("npm-cli.js"),r#"const {spawnSync}=require('node:child_process');const result=spawnSync('node',['-e','process.stdout.write("MQ_NODE_CHILD_OK")'],{encoding:'utf8'});if(result.error||result.status!==0)process.exit(74);process.stdout.write(result.stdout);process.exit(73);"#).unwrap();
     let path=root.path().join("empty-path");std::fs::create_dir(&path).unwrap();
