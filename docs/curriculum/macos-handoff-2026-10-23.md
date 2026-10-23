@@ -111,3 +111,29 @@ Windows에서는 Bash 9건, Git 복원 9건, PR 격리 2건, 원격 Git 2건(21�
 - 실제 사용자의 두벌식 입력에 대한 새 재현 근거는 얻지 못했다. Windows에서 정한 미해결 완료 상태를 수정 완료로 바꾸거나 이슈를 임의로 재개하지 않았다.
 
 다음 우선순위는 배포를 막은 Windows Vim 입력 모드 복원 실패와 로컬 Mac 해설 종료 후 네이티브 검사의 실패 원인 분리다. 실제 두벌식 직접 입력·복사 입력 동등성은 여전히 실기기 재현이 필요하다.
+
+
+## 추가 Mac 검증 완료 · Git 자동 검사와 Finder 로그인
+
+사용자 요청에 따라 위 로컬 Git 실패와 Finder 로그인 공유를 추가 확인했다. 두벌식 입력 관련 신고는 **미해결 완료** 상태로 유지한다. Windows Vim 실패는 Windows에서 확인할 별도 배포 차단 항목이다.
+
+### Git 자동 검사의 원인과 수정
+
+실패 순간의 DOM 상태는 `busy=false`, `narrating=true`였다. 화면에는 `멈춤` 버튼이 두 개 있었고, 먼저 발견되는 것은 학습 정보 창 안의 숨겨진 비활성 버튼이었다. 검사가 이 버튼을 선택해 실제 문제의 Rust 해설 세션을 종료하지 못했다. 따라서 새 회차 버튼이 비활성인 채 대기했다. JS 재생기만 `stop()`한 것은 Rust 해설 세션 종료를 대신하지 못한다.
+
+`tools/player-pilot-git-course.js`가 현재 문제의 `.repository-task [data-explanation-stop]`을 선택하고 `data-narrating=false`가 될 때까지 기다리도록 수정했다. 검사 대기 시간을 늘리거나 제품의 새 회차 제한을 풀지 않았다. 해설 종료 뒤 학습자 파일 보존, 취소 시 실습 보존, 동의 후 새 로컬 회차 준비까지 포함한 실제 Mac 네이티브 검사 전체가 통과했다. 실제 GitHub 저장소·PR 생성은 하지 않았다. 과거 CI의 초기 터미널 진입 실패까지 같은 원인이었다고 주장하지 않는다.
+
+### Finder 로그인 공유
+
+최신 소스 디버그 앱을 격리 데이터와 `MOLIP_MACOS_LOGIN_VERIFY=1`로 구성해 Finder에서 직접 열었다. `GH_TOKEN`, `GITHUB_TOKEN`, `GH_CONFIG_DIR`, `XDG_CONFIG_HOME`을 지정하지 않은 상태에서 플레이어의 실제 계정과 PR 실습 터미널의 `gh api user --jq .login` 결과가 일치했다. 토큰 출력이나 저장소·PR 생성은 수행하지 않았다. 별도의 PTY 검사에서는 기본 환경 및 명시적인 GH_CONFIG_DIR/XDG 경로도 각각 통과했다.
+
+검증 화면 자체에 터미널 높이의 상한이 없어 xterm의 자동 크기 조절이 문서 높이를 계속 키우는 문제도 재현했다. 이 디버그 화면의 최상위 flex 영역을 `100dvh`로 제한했다. 수정한 앱을 Finder에서 다시 열어 페이지 바깥 스크롤이 늘어나지 않고 그래프 하단까지 화면 안에 유지되는지, 계정 조회가 여전히 성공하는지 확인했다. 일반 수업 화면의 레이아웃은 변경하지 않았다.
+
+실행 명령:
+
+```bash
+cargo test --locked --test player_git_course_native -- --ignored --nocapture --test-threads=1
+cargo test --locked --test github_pr current_github_login -- --ignored --nocapture
+```
+
+검증 도구 수정과 로그인 검증 화면 수정은 설치 앱의 새 배포 완료를 뜻하지 않는다. 새 배포 여부는 CI와 릴리스 게시 결과로 별도 확인한다.

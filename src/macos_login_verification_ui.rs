@@ -12,7 +12,9 @@ pub fn MacosLoginVerification()->Element {
     let row=molip_quest::lesson_registry::find("github-pr").expect("registered PR lesson");
     let lesson:Lesson=serde_json::from_str(row.lesson).expect("PR lesson");
     let exercise=lesson.tasks[0].git_terminal.clone().expect("PR terminal");
-    rsx!{main {class:"repository-player",
+    // xterm fits to its host: constrain the flex root so its measured height
+    // cannot feed back into document growth on every ResizeObserver callback.
+    rsx!{main {class:"repository-player",style:"height:100dvh;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden",
         h1 {"Mac 로그인 공유 검증"}
         p {"{account}"}
         p {"기존 로그인만 읽어요. 저장소나 PR을 만들지 않아요."}

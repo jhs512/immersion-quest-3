@@ -22,3 +22,12 @@
 - `node --test tests/js/terminal-ime.test.cjs`: 18건 통과. 실제 Mac IME 입력과 구분한다.
 
 Node가 설치되지 않은 기기에 Node를 자동 설치하는 변경은 아니다. 명시한 `MOLIP_NODE`, 현재 PATH, 사용자 nvm·Volta·로컬 bin과 일반 설치 경로를 탐색한다. npm이 없으면 필요한 도구를 명확히 안내한다. 시스템 PATH나 사용자 셸 설정은 바꾸지 않는다.
+
+
+## Mac 추가 확인
+
+Finder에서 직접 연 최신 소스 디버그 앱에서 플레이어의 실제 GitHub 계정과 PR 실습 터미널의 읽기 전용 계정 조회가 일치했다. GH_TOKEN/GITHUB_TOKEN 및 GH_CONFIG_DIR/XDG_CONFIG_HOME을 지정하지 않은 상태였다. 명시적인 GH_CONFIG_DIR/XDG 경로의 별도 PTY 검사도 통과했다. PR 수업 #1의 Finder 추가 확인을 완료했다. 저장소·PR은 생성하지 않았다.
+
+Mac Git 네이티브 검사의 해설 종료 후 시간 초과는 검사 코드가 다른 창의 숨겨진 멈춤 버튼을 고른 문제였다. 현재 문제의 해설 세션을 종료하도록 고친 뒤 전체 네이티브 검사가 통과했다. 자세한 원인·범위는 [Mac 인수인계](../curriculum/macos-handoff-2026-10-23.md)의 추가 검증 절에 기록했다.
+
+두벌식 중복 공백과 직접/복사 입력 차이는 새 재현 근거가 없어 사용자 지시대로 미해결 완료 상태를 유지한다.

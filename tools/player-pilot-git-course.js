@@ -103,7 +103,12 @@
     await wait(()=>window.molipAgent,'explanation agent');molipAgent.setVoice(false);
     await click('해설 재생');await wait(()=>document.getElementById('git-demo-terminal'),'separate teacher terminal');
     // With voice off these read-only explanations can finish before a stop click.
-    molipAgent.stop();if(button('멈춤')&&!button('멈춤').disabled)button('멈춤').click();await ready();
+    molipAgent.stop();
+    // The learning-info dialog also contains a hidden, disabled stop button.
+    // Stop the mounted task's Rust explanation session, not that unrelated control.
+    const stop=document.querySelector('.repository-task [data-explanation-stop]');
+    if(stop&&!stop.disabled)stop.click();
+    await wait(()=>document.querySelector('.repository-task')?.dataset.narrating==='false','task explanation stopped');await ready();
     mq3GitTerminal.command("cat keep.txt; printf 'PR_KEEP_AFTER\\n'");
     await wait(()=>mq3GitTerminal.text().split('\n').some(line=>line.trim()==='PR_KEEP_AFTER'),'student survives explanation');
     if(!mq3GitTerminal.text().split('\n').some(line=>line.trim()==='keep'))throw Error('student file lost');
@@ -118,5 +123,5 @@
    await click('← 코스 수업 목록');
   }
   dioxus.send({passed:true,checked,userAgent:navigator.userAgent});
- }catch(error){dioxus.send({passed:false,checked,error:String(error),screen:document.body.innerText.slice(-5000),terminal:window.mq3GitTerminal?.text()});}
+ }catch(error){dioxus.send({passed:false,checked,error:String(error),screen:document.body.innerText.slice(-5000),terminal:window.mq3GitTerminal?.text(),state:{task:document.querySelector('.repository-task')?.dataset.taskId,busy:document.querySelector('.repository-task')?.dataset.busy,narrating:document.querySelector('.repository-task')?.dataset.narrating,buttons:[...document.querySelectorAll('button')].filter(b=>['새 회차 시작','멈춤'].includes(b.textContent.trim())).map(b=>({text:b.textContent.trim(),disabled:b.disabled}))}});}
 })();
