@@ -254,3 +254,80 @@ test('theory narration frames the exact given, the exact option, or nothing - ne
     assert.equal(await page.evaluate(()=>document.querySelector('.answer-state-bridge').value),'qty','the learner choice is restored');
   } finally {await browser.close();}
 });
+
+// Readability of the exact highlights, measured on rendered pixels (Bash 파일과 폴더 · 문제 1 and the
+// rmdir problem, dark theme). The sentence highlight used `color: inherit`, which kept the pale
+// lesson text on the pale lilac and the sentence vanished. Both engines the app ships on are checked:
+// WebKit (macOS WKWebView) and Chromium (Windows WebView2).
+const BASH=`<article class="repository-task practice-shell" data-explanation-session="bash-1" style="background:#1d2a3a">
+ <section class="problem-pane"><div class="problem-heading"><h2>현재 폴더를 확인하세요</h2></div>
+  <div class="markdown"><p>파일이 없는 새 연습 폴더에서 시작해요. 이 수업에서는 파일과 현재 위치를 다음 단계에도 그대로 이어 써요.</p>
+   <ol><li><code>pwd</code>: 현재 폴더의 경로를 확인하세요.</li></ol></div></section>
+ <div style="height:160px"><textarea data-code-editor="shell">mkdir empty
+rmdir empty</textarea></div>
+ <div id="git-demo-terminal" style="height:120px;background:#171a33;color:#e6e6f0">$ pwd</div>
+</article>`;
+// Relative luminance and contrast ratio (WCAG 2).
+const lum=([r,g,b])=>{const c=v=>{v/=255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4};return .2126*c(r)+.7152*c(g)+.0722*c(b)};
+const contrast=(a,b)=>{const [x,y]=[lum(a),lum(b)].sort((p,q)=>q-p);return (x+.05)/(y+.05)};
+// The pixels inside a rectangle of the rendered page: the most common color (the background) and
+// the color that differs most from it (the glyph core).
+async function swatch(page,rect){
+  const png=await page.screenshot({clip:rect});
+  const px=await page.evaluate(async b64=>{const img=new Image();img.src='data:image/png;base64,'+b64;await img.decode();
+    const c=document.createElement('canvas');c.width=img.width;c.height=img.height;const g=c.getContext('2d');g.drawImage(img,0,0);
+    return [...g.getImageData(0,0,c.width,c.height).data];},png.toString('base64'));
+  const counts=new Map(),colors=[];
+  for(let i=0;i<px.length;i+=4){const k=px[i]<<16|px[i+1]<<8|px[i+2];colors.push([px[i],px[i+1],px[i+2]]);counts.set(k,(counts.get(k)||0)+1);}
+  const top=[...counts].sort((a,b)=>b[1]-a[1])[0][0],bg=[top>>16&255,top>>8&255,top&255];
+  const fg=colors.reduce((best,c)=>contrast(c,bg)>contrast(best,bg)?c:best,bg);
+  return {bg,fg,ratio:contrast(fg,bg),png};
+}
+// The rectangle of the current sentence range or of the marked code characters, shrunk off the frame.
+const box=(page,kind)=>page.evaluate(kind=>{
+  const r=kind==='text'?[...CSS.highlights.get('narration-text')][0].getClientRects()[0]:document.querySelector('.cm-narration-span').getBoundingClientRect();
+  return {x:Math.round(r.left)+1,y:Math.round(r.top)+1,width:Math.floor(r.width)-2,height:Math.floor(r.height)-2};},kind);
+
+for (const engine of ['webkit','chromium']) test(`${engine}: Bash sentence and code highlights are readable and stop restores the original colors`,async()=>{
+  const pw=require('../../target/ui-tests/node_modules/playwright-core');
+  const browser=await pw[engine].launch({...(engine==='chromium'&&process.platform==='win32'?{channel:'msedge'}:{}),headless:true});
+  try {
+    const page=await browser.newPage({viewport:{width:900,height:600},reducedMotion:'reduce'});
+    await page.setContent(BASH);
+    await page.addScriptTag({content:fs.readFileSync('assets/editor/editor.bundle.js','utf8')});
+    await page.addStyleTag({content:fs.readFileSync('assets/app.css','utf8')});
+    await page.evaluate(()=>{window.clips=[];window.molipVoice={name:'v',enabled:()=>true,rate:1.5,synthesize:async t=>'clip:'+t};
+      window.Audio=class{constructor(u){this.url=u;clips.push(this)}play(){return Promise.resolve()}pause(){}};});
+    await page.addScriptTag({content:fs.readFileSync('assets/layout/agent.js','utf8')});
+    await page.waitForFunction(()=>document.querySelector('.cm-editor'),null,{timeout:10000});
+    await page.evaluate(()=>{window.done=molipAgent.runExplanation([
+      {action:'say',target:'text:파일이 없는 새 연습 폴더에서 시작해요.',text:'파일이 없는 새 연습 폴더에서 시작해요.'},
+      {action:'say',target:'code:rmdir empty',text:'이 줄이 빈 폴더를 지워요.'},
+      {action:'say',target:'#git-demo-terminal',text:'터미널 전체를 봐요.'},
+      {action:'say',target:'text:파일이 없는 새 연습 폴더에서 시작해요.',text:'멈추면 원래 색으로 돌아와요.'},
+    ])});
+    await waitClips(page,1);
+    const textRect=await box(page,'text');
+    const sentence=await swatch(page,textRect);
+    assert.ok(lum(sentence.bg)>.6,'the sentence sits on the pale lilac: '+sentence.bg);
+    assert.ok(sentence.ratio>=7,`the highlighted sentence is readable: ${sentence.fg} on ${sentence.bg} = ${sentence.ratio.toFixed(2)}`);
+    assert.ok(lum(sentence.fg)<.05,'the sentence glyphs are dark, not the inherited pale text: '+sentence.fg);
+    await next(page);await waitClips(page,2);
+    const codeRect=await box(page,'code');
+    const code=await swatch(page,codeRect);
+    assert.equal((await state(page)).code,'rmdir empty','only the exact code characters are marked');
+    assert.ok(code.ratio>=7,`the highlighted code is readable: ${code.fg} on ${code.bg} = ${code.ratio.toFixed(2)}`);
+    await next(page);await waitClips(page,3);
+    const term=await page.evaluate(()=>{const s=document.querySelector('.agent-spotlight').getBoundingClientRect(),t=document.querySelector('#git-demo-terminal').getBoundingClientRect();return {s:[s.width,s.height],t:[t.width,t.height]}});
+    assert.ok(term.s[0]>=term.t[0]&&term.s[1]>=term.t[1],'the terminal keeps its whole-border frame: '+JSON.stringify(term));
+    assert.deepEqual((await state(page)).text,[],'the terminal frame does not paint any sentence');
+    await next(page);await waitClips(page,4);
+    await page.evaluate(()=>molipAgent.stop());await page.evaluate(()=>done);
+    const s=await state(page);
+    assert.deepEqual(s.text,[]);assert.equal(s.code,'');assert.equal(s.spotHidden,true);
+    // After stop the same rectangles show the lesson's own colors again: light text on the dark pane.
+    const after=await swatch(page,textRect),afterCode=await swatch(page,codeRect);
+    assert.ok(lum(after.bg)<.05&&lum(after.fg)>.5,`the sentence is back to its own colors: ${after.fg} on ${after.bg}`);
+    assert.ok(lum(afterCode.bg)<.05,'the code background is back to the editor color: '+afterCode.bg);
+  } finally {await browser.close();}
+});
