@@ -42,6 +42,8 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
             format!("window.mq3JavaPilot={{pilot:\"뉴\"}};window.mq3JavaLaunch={};{}",include_str!("../courses/redesigned/java-launch.json"),include_str!("../tools/player-pilot-java-launch.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("java-arguments") {
             format!("window.mq3JavaPilot={{pilot:\"듀\"}};window.mq3JavaLaunch={};{}",include_str!("../courses/redesigned/java-arguments.json"),include_str!("../tools/player-pilot-java-launch.js"))
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("auto-review") {
+            format!("window.mq3AutoReviewPhase={};{}",serde_json::to_string(&std::env::var("MOLIP_AUTO_REVIEW_PHASE").unwrap_or_default()).unwrap(),include_str!("../tools/player-pilot-auto-review.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("bash-basics") {
             include_str!("../tools/player-pilot-bash.js").to_owned()
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("terminal-restore") {
@@ -53,10 +55,27 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("interaction-example") {include_str!("../tools/player-pilot-example.js").to_owned()} else {format!("window.mq3FirstGitOnly={};window.mq3IncludeGitBranch={};{}",matches!(std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref(),Some("git-first"|"git-lessons")),std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()!=Some("git-first"),include_str!("../tools/player-pilot-native.js"))};
         let mut bridge = document::eval(&script);
         let mut progress_lock:Option<rusqlite::Connection>=None;
-        let result = match tokio::time::timeout(std::time::Duration::from_secs(480), async {
+        let budget=if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("auto-review"){900}else{480};
+        let result = match tokio::time::timeout(std::time::Duration::from_secs(budget), async {
             loop {
                 let message=bridge.recv::<serde_json::Value>().await?;
-                if matches!(std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref(),Some("toolbar-audit"|"course-guide")) && message["control"]=="resize" {
+                // 관리자 자동 풀이: GitHub's push permission on the validation course, changed mid-run.
+                if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("auto-review")&&message["control"]=="reviewer" {
+                    let path=pilot_source::data_dir().unwrap().join("pilot-course-reviewer");
+                    if message["value"]==true{std::fs::write(path,"").unwrap();}else{let _=std::fs::remove_file(path);}
+                    document::eval(&format!("window.mq3ReviewerToken={};",message["token"]));
+                    continue;
+                }
+                // A real screenshot of this window, kept as evidence (Windows only).
+                if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("auto-review")&&message["control"]=="capture" {
+                    let name=message["name"].as_str().unwrap_or("screen").chars().filter(|c|c.is_ascii_alphanumeric()||*c=='-').collect::<String>();
+                    let out=std::path::Path::new("target/admin-review/screens").join(format!("{name}.png"));
+                    let pid=std::process::id().to_string();
+                    let done=tokio::task::spawn_blocking(move||std::process::Command::new("powershell").args(["-NoProfile","-ExecutionPolicy","Bypass","-File","tools/capture-window.ps1","-ProcessId",&pid,"-Out",&out.to_string_lossy()]).status().is_ok_and(|s|s.success())).await.unwrap_or(false);
+                    document::eval(&format!("window.mq3CaptureToken={};window.mq3CaptureOk={done};",message["token"]));
+                    continue;
+                }
+                if matches!(std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref(),Some("toolbar-audit"|"course-guide"|"auto-review")) && message["control"]=="resize" {
                     #[cfg(feature="desktop")] {
                         window.window.set_fullscreen(None);
                         window.window.set_inner_size(dioxus::desktop::tao::dpi::LogicalSize::new(message["width"].as_u64().unwrap_or(1280) as f64,message["height"].as_u64().unwrap_or(720) as f64));

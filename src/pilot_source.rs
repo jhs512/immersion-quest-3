@@ -44,7 +44,19 @@ fn store() -> Result<&'static Mutex<Store>,String> {
 fn user() -> Value { json!({"id":987654321,"login":"mq3-validation"}) }
 
 const LEGACY_VERSIONS: &[char] = &['a','b','c','d','e','f','g','h','i','j','m'];
-pub fn versions()->Vec<char> { LEGACY_VERSIONS.iter().copied().chain(crate::lesson_registry::LESSONS.iter().map(|row|row.pilot)).collect() }
+pub fn versions()->Vec<char> { LEGACY_VERSIONS.iter().copied().chain(crate::lesson_registry::LESSONS.iter().map(|row|row.pilot)).chain([AUTO_CHAIN_VERSION]).collect() }
+/// 관리자 자동 풀이 validation: one course with two registered lessons (Bash, then Java), so a
+/// run can be seen moving from one lesson to the next. It reuses the registered lesson files.
+pub const AUTO_CHAIN_VERSION: char = '연';
+fn auto_chain_course() -> Result<&'static str, String> {
+    static COURSE: OnceLock<Result<String, String>> = OnceLock::new();
+    COURSE.get_or_init(|| {
+        let mut course: Value = serde_json::from_str(crate::lesson_registry::find("bash-basics").ok_or("Bash 검증 수업이 없어요.")?.course).map_err(|e| e.to_string())?;
+        let java: Value = serde_json::from_str(crate::lesson_registry::find("java-launch").ok_or("자바 검증 수업이 없어요.")?.course).map_err(|e| e.to_string())?;
+        course["lessons"].as_array_mut().ok_or("검증 코스 형식 오류")?.extend(java["lessons"].as_array().cloned().unwrap_or_default());
+        serde_json::to_string(&course).map_err(|e| e.to_string())
+    }).as_ref().map(String::as_str).map_err(Clone::clone)
+}
 
 pub fn set_version(version: char) -> Result<(), String> {
     if !versions().contains(&version) { return Err("검증 버전을 확인하세요.".into()); }
@@ -56,6 +68,7 @@ pub fn corrupt_update()->Result<(),String> {
     commit(&mut state,|next|{next.version='b';next.corrupted=true;Ok(())})
 }
 fn snapshot(version: char, file: &str) -> Result<&'static str, String> {
+    if version == AUTO_CHAIN_VERSION && file == "course.json" { return auto_chain_course(); }
     if let Some(lesson)=crate::lesson_registry::by_version(version) {
         return match file {"course.json"=>Ok(lesson.course),"lesson.json"=>Ok(lesson.lesson),_=>Err("검증 파일을 확인하세요.".into())};
     }

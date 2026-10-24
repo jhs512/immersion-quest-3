@@ -223,6 +223,8 @@ window.molipVoice && molipVoice.setName({});",
         document::eval(include_str!("../assets/layout/interactive.js"));
         document::eval(include_str!("../assets/layout/quiz-pick.js"));
         document::eval(include_str!("../assets/layout/agent.js"));
+        // 관리자 자동 풀이: keys and terminal typing only; it acts through admin-only buttons.
+        document::eval(include_str!("../assets/layout/auto-run.js"));
         document::eval(include_str!("../assets/slides/slides.bundle.js"));
     });
     #[cfg(all(debug_assertions,target_os="macos"))]

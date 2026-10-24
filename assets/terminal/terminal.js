@@ -86,14 +86,16 @@ return {
   updateVimState(progress,owner) {if(session && (owner===undefined||session.owner===owner))session.vimProgress=progress;},
   vimState(owner) {return session && (owner===undefined||session.owner===owner) ? session.vimProgress : null;},
   text(owner) {if(!session || (owner!==undefined && session.owner!==owner))return '';const buffer=session.term.buffer.active;return Array.from({length:buffer.length},(_,index)=>buffer.getLine(index)?.translateToString(true)||'').join('\n');},
-  async typeKeys(keys, owner) {
+  // `pace(ms)` (optional) waits between characters and returns false to cancel. Without it the
+  // fixed delays below apply, as the narration has always used.
+  async typeKeys(keys, owner, pace) {
     const current=session;if(!current || (owner!==undefined && current.owner!==owner))return false;
-    for(const character of keys.normalize('NFC')){if(session!==current)return false;current.term.input(character);await new Promise(resolve=>setTimeout(resolve,40));}
+    for(const character of keys.normalize('NFC')){if(session!==current)return false;current.term.input(character);if(pace){if(!await pace(40))return false;}else await new Promise(resolve=>setTimeout(resolve,40));}
     return session===current;
   },
-  async typeCommand(command, owner) {
+  async typeCommand(command, owner, pace) {
     const current=session;if(!current || (owner!==undefined && current.owner!==owner))return false;
-    for(const character of command.normalize('NFC')){if(session!==current)return false;current.term.input(character);await new Promise(resolve=>setTimeout(resolve,25));}
+    for(const character of command.normalize('NFC')){if(session!==current)return false;current.term.input(character);if(pace){if(!await pace(25))return false;}else await new Promise(resolve=>setTimeout(resolve,25));}
     if(session===current){current.term.input('\r');return true;}return false;
   },
   dispose(owner) {
