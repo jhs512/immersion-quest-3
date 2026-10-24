@@ -135,6 +135,45 @@ impl Task {
             &&matches!(self.language,TaskLanguage::Java|TaskLanguage::Python|TaskLanguage::C|TaskLanguage::Javascript|TaskLanguage::Sql)
             &&self.example_code.as_deref().is_some_and(|source|!source.trim().is_empty()&&source.len()<=65536)
     }
+    /// The short learner guide shown above a Java problem's code. It follows the same fields
+    /// that choose the widgets (editor readonly, terminal, answer interaction), so the label
+    /// always describes what the screen really accepts. Other languages return None.
+    pub fn code_guide(&self)->Option<CodeGuide> {
+        use crate::task_interaction::Interaction as I;
+        if !matches!(self.language,TaskLanguage::Java|TaskLanguage::JavaProject|TaskLanguage::Junit){return None}
+        let predict=self.predict_before_run;
+        if let Some(exercise)=&self.git_terminal {
+            // Main.java is an editable, auto-saved file; the terminal runs the real JDK.
+            exercise.java_build.as_ref()?;
+            let answer=match (&self.interaction,predict) {
+                (None,_)=>"Main.java를 고치고 터미널에서 실행한 뒤 제출하세요.",
+                (Some(I::Choice{..}),true)=>"예상 보기를 고르고 터미널에서 실행한 뒤 제출하세요.",
+                (Some(I::Choice{..}),false)=>"터미널에서 실행하고 보기를 골라 제출하세요.",
+                (Some(I::Fill{..}),_)=>"터미널에서 실행하고 빈칸에 답을 적어 제출하세요.",
+                (Some(I::FillFields{..}),_)=>"터미널에서 실행하고 칸마다 답을 적어 제출하세요.",
+                (Some(I::Order{..}),_)=>"터미널에서 실행하고 조각 순서를 맞춰 제출하세요.",
+            };
+            return Some(CodeGuide{access:CodeAccess::Editable,label:"코드 수정 가능",answer});
+        }
+        let Some(interaction)=&self.interaction else {
+            return Some(CodeGuide{access:CodeAccess::Editable,label:"코드 수정 가능",answer:"코드를 고친 뒤 제출하세요."});
+        };
+        let answer=match (interaction,predict) {
+            (I::Choice{..},true)=>"예상한 보기를 골라 제출하세요.",
+            (I::Choice{..},false)=>"보기 중 답을 골라 제출하세요.",
+            (I::Fill{..},_)=>"빈칸에 답을 적어 제출하세요.",
+            (I::FillFields{..},_)=>"칸마다 답을 적어 제출하세요.",
+            (I::Order{..},_)=>"조각을 골라 순서를 맞춘 뒤 제출하세요.",
+        };
+        Some(if !self.has_runnable_example() {
+            CodeGuide{access:CodeAccess::Absent,label:"코드 없음",answer}
+        }else if self.example_order_marker.is_some()&&matches!(interaction,I::Order{..}) {
+            // The example text is rebuilt from the chosen pieces; it is never typed into.
+            CodeGuide{access:CodeAccess::Assembled,label:"코드 직접 수정 불가",answer:"조각을 고르면 코드에 채워져요. 순서를 맞춘 뒤 제출하세요."}
+        }else{
+            CodeGuide{access:CodeAccess::ReadOnly,label:"코드 읽기 전용",answer}
+        })
+    }
     /// Expand only authored statement IDs; learner text never becomes executable source.
     pub fn example_for_answer(&self,answer:&str)->Result<String,String> {
         let source=self.example_code.as_ref().ok_or("예제 코드가 없어요.")?;
@@ -165,6 +204,14 @@ impl Task {
     }
 
 }
+/// Whether the learner can type into the problem's code.
+#[derive(Clone,Copy,Debug,PartialEq,Eq)]
+pub enum CodeAccess { Editable, ReadOnly, Assembled, Absent }
+impl CodeAccess {
+    pub fn as_str(self)->&'static str {match self {Self::Editable=>"editable",Self::ReadOnly=>"readonly",Self::Assembled=>"assembled",Self::Absent=>"none"}}
+}
+#[derive(Clone,Debug,PartialEq,Eq)]
+pub struct CodeGuide { pub access:CodeAccess, pub label:&'static str, pub answer:&'static str }
 /// Replace the first initializer of each named variable (C literal text), then expect this output.
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 pub struct Variation { #[serde(default)] pub values: BTreeMap<String,String>, #[serde(default,skip_serializing_if="BTreeMap::is_empty")] pub files: BTreeMap<String,String>, #[serde(default,skip_serializing_if="BTreeMap::is_empty")] pub expected_files: BTreeMap<String,String>, pub expected: String }

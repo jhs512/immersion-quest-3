@@ -38,8 +38,10 @@
     checked.push(`${label}: compact controls, no overlap, reachable menus and dismissal`);
   };
   const resize=async(width,height)=>{
-    dioxus.send({control:'resize',width,height});
-    await wait(()=>Math.abs(innerWidth-width)<40&&innerHeight>=height-100&&innerHeight<=height+40,`${width}x${height}`);await settle();
+    // macOS can drop a size request made while leaving fullscreen animates; ask again until it lands.
+    const fits=()=>Math.abs(innerWidth-width)<40&&innerHeight>=height-100&&innerHeight<=height+40;
+    let asked=0;
+    await wait(()=>{if(fits())return true;if(Date.now()-asked>1500){asked=Date.now();dioxus.send({control:'resize',width,height});}return false;},`${width}x${height}`);await settle();
   };
   try{
     await wait(()=>document.querySelector('.lesson-card')&&document.querySelector('.update-banner'),'catalog and update offer');

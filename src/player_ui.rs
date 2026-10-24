@@ -641,6 +641,13 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                     }}},"제출"}
                 }
             }
+            // Text, not just color: what the learner may change here and how this problem is answered.
+            if let Some(guide)=task.code_guide() {
+                p {class:"code-mode-guide",role:"note","data-code-access":if narrating(){"narrating"}else{guide.access.as_str()},
+                    strong {class:"code-mode-label",if narrating(){"해설 중"}else{"{guide.label}"}}
+                    span {if narrating(){"해설이 끝나면 직접 풀 수 있어요."}else{"{guide.answer}"}}
+                }
+            }
             if task.predict_before_run&&!narrating()&&code().is_empty(){p {class:"prediction-run-note",role:"status","예상 보기를 먼저 하나 고르면 실행할 수 있어요. 정답 여부와 관계없이 실행돼요."}}
             div {class:if (task.git_terminal.is_some()||has_example)&&task.interaction.is_some(){"editor-pane interaction-example-editor"}else{"editor-pane"},style:if task.git_terminal.as_ref().is_some_and(|exercise|exercise.java_build.is_some())&&task.interaction.is_some(){"display:grid;grid-template-rows:minmax(216px,1fr) 10px minmax(64px,min(var(--example-answer-height,92px),calc(100% - 226px)));gap:0"}else if (task.git_terminal.is_some()||has_example)&&task.interaction.is_some(){"display:grid;grid-template-rows:minmax(48px,1fr) 10px var(--example-answer-height,fit-content(60%));gap:0"}else{""},
                 if let Some(exercise)=task.git_terminal.clone() {
