@@ -17,7 +17,7 @@
   if(!mq3GitTerminal.text().split('\n').some(line=>line.trim()==='첫 메모'))throw Error('Missing memo in resumed step three');
   checked.push('Opening step three from an empty workspace restores its memo and index and explains the prepared state');
   await click('← 코스 수업 목록');
-  for(const [version,revision,count] of [['l','git-branch-',13],['굳','git-branch-advanced-',5],['풀','github-pr-',8]]){
+  for(const [version,revision,count] of [['l','git-branch-',14],['굳','git-branch-advanced-',5],['풀','github-pr-',8]]){
    await click(`버전 ${version}`);
    await wait(()=>document.querySelector('.lesson-card')?.textContent.includes(revision),revision);
    await click('학습 시작');await ready();
