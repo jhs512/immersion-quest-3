@@ -15,7 +15,11 @@ fn merge_local_events(mut target:Signal<Vec<LearningEvent>>,repository:&str,late
 #[derive(Clone,PartialEq)]
 struct Session { github:Github,user:GithubUser }
 #[derive(Clone,PartialEq)]
-struct OpenLesson { course:CourseManifest,lesson:Lesson,events:Vec<LearningEvent>,mode:StudyMode,round:String }
+struct OpenLesson { course:CourseManifest,lesson:Lesson,events:Vec<LearningEvent>,mode:StudyMode,round:String,
+    /// Opened from 도전 과제: start at this task and return to the challenge board.
+    start_task:Option<String>,from_challenges:bool,
+    /// A future lesson's final problem: the same screen and grader, but nothing is recorded.
+    practice_only:bool }
 
 fn prepare_open_lesson(session:Session,manifest:CourseManifest,reference:repository_course::LessonRef,mode:StudyMode,stage:Option<tokio::sync::mpsc::UnboundedSender<u8>>)->Result<OpenLesson,String>{
     let gh=&session.github;let user=&session.user;
@@ -32,7 +36,7 @@ fn prepare_open_lesson(session:Session,manifest:CourseManifest,reference:reposit
         let event=LearningEvent::new(key,&lesson.revision,mode,&round,EventKind::Started);
         events=gh.record(&manifest.repository,user,&lesson.title,&event,&[])?;
     }
-    Ok(OpenLesson{course:manifest,lesson,events,mode,round})
+    Ok(OpenLesson{course:manifest,lesson,events,mode,round,start_task:None,from_challenges:false,practice_only:false})
 }
 
 #[component]
@@ -52,6 +56,8 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
     // Loaded catalog progress for one account/course; the render unites it with the overlay.
     let mut catalog=use_signal(molip_quest::progress_overlay::CatalogProgress::default);
     let mut refresh=use_signal(||0u64);
+    // The course screen shows either its lessons or the 도전 과제 board; the choice survives a lesson visit.
+    let mut show_challenges=use_signal(||false);
     let connect=move ||async move {
         checked.set(false);
         catalog.set(Default::default());course.set(None);session.set(None);
@@ -211,6 +217,32 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                     {let records=&progress;let total=manifest.lessons.iter().filter(|l|l.required).count();let complete=manifest.lessons.iter().filter(|l|l.required&&records.get(&l.id).is_some_and(|e|issue_progress::status(e,&l.revision,progress_requirements.get(&l.id).map(Vec::as_slice).unwrap_or(&[])).current)).count();rsx!{p {class:"study-progress","최신 버전 완료: 필수 수업 {complete} / {total}"}}}
                     p {"추천 순서와 상관없이 어떤 수업이든 선택할 수 있어요."}
                     a {href:format!("https://jhs512.github.io/immersion-quest-3/dashboard/{}/",manifest.repository),target:"_blank",rel:"noopener noreferrer","대시보드 보기"}
+                    div {class:"catalog-views",role:"group",aria_label:"코스 화면",
+                        button {class:if show_challenges(){""}else{"selected"},aria_pressed:(!show_challenges()).to_string(),onclick:move |_|show_challenges.set(false),"수업 목록"}
+                        button {class:if show_challenges(){"selected"}else{""},aria_pressed:show_challenges().to_string(),onclick:move |_|show_challenges.set(true),"도전 과제"}
+                    }
+                    if show_challenges() {
+                        if let Some(s)=session() {
+                            crate::challenge_ui::ChallengeBoard {key:"{s.user.id}:{manifest.repository}:{manifest.lessons:?}:{refresh}",github:s.github.clone(),course:manifest.clone(),progress:progress.clone(),
+                                ready:identity_scope()==format!("{}:{}",s.user.id,manifest.id),busy:busy(),
+                                onopen:{let manifest=manifest.clone();move |request:crate::challenge_ui::ChallengeOpen|{
+                                    let manifest=manifest.clone();let Some(s)=session() else{return};
+                                    match request {
+                                        crate::challenge_ui::ChallengeOpen::Future(challenge)=>{
+                                            document::eval("window.molipAgent?.stop()");
+                                            open.set(Some(OpenLesson{course:manifest,lesson:challenge.lesson(),events:vec![],mode:StudyMode::Full,round:format!("practice-{}",challenge.id),start_task:None,from_challenges:true,practice_only:true}));
+                                        }
+                                        crate::challenge_ui::ChallengeOpen::Lesson{reference,task_id}=>{spawn(async move {
+                                            busy.set(true);message.set(String::new());launching.set(Some((reference.title.clone(),0)));
+                                            let result=github_player::background(move||prepare_open_lesson(s,manifest,reference,StudyMode::Full,None)).await;
+                                            match result {Ok(mut selected)=>{selected.start_task=Some(task_id);selected.from_challenges=true;open.set(Some(selected));message.set(String::new());},Err(e)=>message.set(e)}
+                                            launching.set(None);busy.set(false);
+                                        });}
+                                    }
+                                }}
+                            }
+                        }
+                    } else {
                     div {class:"repository-lessons",
                         for (index,reference) in manifest.lessons.iter().enumerate() {
                             article {class:"card lesson-card",key:"{reference.id}",
@@ -244,6 +276,7 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                                 }
                             }
                         }
+                    }
                     }
                 }
                 }
@@ -346,15 +379,17 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
     });
     let already_passed=issue_progress::learned_tasks(&selected.events,&selected.lesson.revision);
     let first_unfinished=selected.lesson.tasks.iter().position(|task|!already_passed.contains(&task.id)).unwrap_or(0);
-    let mut task_index=use_signal(||first_unfinished);
-    let mut section_index=use_signal(||0usize);
+    // A challenge opens its referenced problem directly, past any concept sections.
+    let challenge_start=selected.start_task.as_ref().and_then(|id|selected.lesson.tasks.iter().position(|task|task.id==*id));
+    let mut task_index=use_signal(||challenge_start.unwrap_or(first_unfinished));
+    let mut section_index=use_signal(||if challenge_start.is_some(){usize::MAX}else{0usize});
     use_effect(move || {
         let _ = task_index();
         let _ = section_index();
         document::eval("requestAnimationFrame(()=>document.querySelector('.study-navigation [aria-current=\"step\"]')?.scrollIntoView({block:'nearest',inline:'nearest'}));");
     });
     use_future({let session=session.clone();let selected=selected.clone();move ||{let session=session.clone();let selected=selected.clone();async move {
-        if selected.mode==StudyMode::Full {if let Some(first)=selected.lesson.sections.first() {
+        if selected.mode==StudyMode::Full&&!selected.practice_only&&selected.start_task.is_none() {if let Some(first)=selected.lesson.sections.first() {
             let mut event=LearningEvent::new(ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},&selected.lesson.revision,selected.mode,&selected.round,EventKind::Viewed);event.task_id=Some(first.id.clone());
             let repository=selected.course.repository.clone();
             match github_player::background(move||session.github.record(&selected.course.repository,&session.user,&selected.lesson.title,&event,&[])).await {Ok(latest)=>merge_local_events(events,&repository,latest),Err(e)=>activity_message.set(e)}
@@ -380,8 +415,8 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
     }};
     rsx!{
         div {class:if is_task{"repository-study is-task"}else{"repository-study"},
-            header {class:"repository-header",button {class:"course-back",onclick:move |_|onback.call(()),"← 코스 수업 목록"}h1 {title:selected.lesson.title.clone(),"{selected.lesson.title}"}
-                LessonShare {repository:selected.course.repository.clone(),lesson_id:selected.lesson.id.clone()}
+            header {class:"repository-header",button {class:"course-back",onclick:move |_|onback.call(()),if selected.from_challenges{"← 도전 과제"}else{"← 코스 수업 목록"}}h1 {title:selected.lesson.title.clone(),"{selected.lesson.title}"}
+                if !selected.practice_only {LessonShare {repository:selected.course.repository.clone(),lesson_id:selected.lesson.id.clone()}}
                 button {class:"lesson-info-trigger",aria_label:"학습 정보",title:"진도와 학습 목표 보기",onclick:move |_|show_info.set(true),
                     {format!("{}% · {count}/{} ⓘ",if required.is_empty(){0}else{count*100/required.len()},required.len())}
                 }
@@ -404,11 +439,12 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
                 }
                 for (index,task) in selected.lesson.tasks.iter().enumerate() {button {class:match (view.as_ref().is_some_and(|t|t.id==task.id),passed.contains(&task.id)){(true,true)=>"selected completed",(true,false)=>"selected",(false,true)=>"completed",_=>""},"data-completed":passed.contains(&task.id).to_string(),"data-step-id":task.id.clone(),aria_current:if view.as_ref().is_some_and(|t|t.id==task.id){"step"}else{"false"},onclick:move |_|{task_index.set(index);section_index.set(usize::MAX);},if passed.contains(&task.id){"✓ "}if !task.required{"도전 · "}"문제 {index+1} · {task.title}" if passed.contains(&task.id){span {class:"step-completed-badge","완료"}}}}
             }
+            if selected.practice_only {p {class:"challenge-practice-note",role:"note","이 문제를 위한 수업은 아직 준비 중이에요. 미리 풀어 보기라서 결과를 진도에 기록하지 않아요."}}
             if let Some(task)=view {
                 RepositoryTask {key:"{selected.round}:{task.id}",session:session.clone(),selected:selected.clone(),task,events,
                     has_next:task_index()+1<task_count,
                     onnext:move |_|{if task_index()+1<task_count{task_index+=1;}else{onback.call(());}},
-                    onrecord:{let repository=selected.course.repository.clone();move |new_events:Vec<LearningEvent>|{remember_for_catalog(&repository,&new_events);if let Some(first)=new_events.first(){let key=first.key.clone();events.set(issue_progress::merge(events().into_iter().chain(new_events),&key));}}}}
+                    onrecord:{let repository=selected.course.repository.clone();let practice=selected.practice_only;move |new_events:Vec<LearningEvent>|{if !practice{remember_for_catalog(&repository,&new_events);}if let Some(first)=new_events.first(){let key=first.key.clone();events.set(issue_progress::merge(events().into_iter().chain(new_events),&key));}}}}
 
             } else {
                 article {class:"card repository-reading",
@@ -427,7 +463,7 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
 fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Vec<LearningEvent>>,onrecord:EventHandler<Vec<LearningEvent>>,has_next:bool,onnext:EventHandler<()>)->Element {
     use_future({let session=session.clone();let selected=selected.clone();let task_id=task.id.clone();move ||{
         let session=session.clone();let selected=selected.clone();let task_id=task_id.clone();async move {
-            if events.peek().iter().any(|e|e.kind==EventKind::Started&&e.task_id.as_deref()==Some(task_id.as_str())&&e.round==selected.round){return;}
+            if selected.practice_only||events.peek().iter().any(|e|e.kind==EventKind::Started&&e.task_id.as_deref()==Some(task_id.as_str())&&e.round==selected.round){return;}
             let mut event=LearningEvent::new(ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},&selected.lesson.revision,selected.mode,&selected.round,EventKind::Started);
             event.task_id=Some(task_id);
             let repository=selected.course.repository.clone();
@@ -491,6 +527,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
         let mut event=LearningEvent::new(ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},&selected.lesson.revision,selected.mode,&selected.round,EventKind::ExplanationViewed);
         event.task_id=Some(task_id.clone());
         event.success_before_view=events().iter().any(|e|e.kind==EventKind::Attempt&&e.passed&&e.task_id.as_deref()==Some(&task_id));
+        if selected.practice_only{return;}
         let gh=session.github.clone();let user=session.user.clone();let repo=selected.course.repository.clone();let title=selected.lesson.title.clone();
         spawn(async move {match github_player::background(move||gh.record(&repo,&user,&title,&event,&[])).await {Ok(latest)=>onrecord.call(latest),Err(e)=>history_message.set(format!("해설 이력을 저장하지 못했어요. {e}"))}});
     }};
@@ -586,7 +623,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                             Err(error)=>{execution_state.set("failed");feedback.set("run-error");message.set(error);}
                         }
                         busy.set(false);
-                        if demonstration{return;}
+                        if demonstration||selected.practice_only{return;}
                         let mut event=LearningEvent::new(ProgressKey{user_id:user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},&selected.lesson.revision,selected.mode,&selected.round,EventKind::ExampleRun);event.task_id=Some(task.id.clone());event.prediction=prediction;
                         let repo=selected.course.repository.clone();let title=selected.lesson.title.clone();
                         history_saves+=1;
@@ -627,6 +664,11 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                                     let latest=molip_quest::progress_sync::apply_result(events(),&event,&required);
                                     let complete=issue_progress::status(&latest,&selected.lesson.revision,&required).current;
                                     onrecord.call(latest);
+                                    if selected.practice_only {
+                                        if report.passed{message.set("통과했어요. 미리 풀어 보기라서 진도에는 기록하지 않아요.".into());}
+                                        passed_dialog.set(report.passed);
+                                        busy.set(false);submitting.set(false);return;
+                                    }
                                     if report.passed&&complete{message.set("수업 완료!".into());}
                                     passed_dialog.set(report.passed);
                                     // Persistence belongs to the process, so navigation cannot cancel it.
@@ -706,7 +748,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
         }
         if submitting() {SubmissionProgress {}}
         if passed_dialog() && !submitting() {
-            TaskPassedDialog {has_next,
+            TaskPassedDialog {has_next,to_challenges:selected.from_challenges,
                 onnext:move |_|{passed_dialog.set(false);onnext.call(());},
                 onstay:move |_|{passed_dialog.set(false);document::eval("document.querySelector('.repository-task .primary')?.focus()");}}
         }
@@ -728,7 +770,7 @@ fn SubmissionProgress()->Element {
 }
 
 #[component]
-fn TaskPassedDialog(has_next:bool,onnext:EventHandler<()>,onstay:EventHandler<()>)->Element {
+fn TaskPassedDialog(has_next:bool,#[props(default)] to_challenges:bool,onnext:EventHandler<()>,onstay:EventHandler<()>)->Element {
     let mut advancing=use_signal(||false);
     rsx! {
         div {class:"task-passed-backdrop",
@@ -743,12 +785,12 @@ fn TaskPassedDialog(has_next:bool,onnext:EventHandler<()>,onstay:EventHandler<()
                 },
                 div {class:"task-passed-icon",aria_hidden:"true","✓"}
                 h2 {"통과했어요!"}
-                p {if has_next{"다음 문제로 이어서 풀어보세요."}else{"마지막 문제까지 풀었어요. 수업 목록에서 다음 학습을 선택하세요."}}
+                p {if has_next{"다음 문제로 이어서 풀어보세요."}else if to_challenges{"도전 과제 목록에서 다른 문제를 골라 보세요."}else{"마지막 문제까지 풀었어요. 수업 목록에서 다음 학습을 선택하세요."}}
                 div {class:"task-passed-actions",
                     button {class:"primary",disabled:advancing(),
                         onmounted:move |event|async move{let _=event.data().set_focus(true).await;},
                         onclick:move |_|{if !advancing(){advancing.set(true);onnext.call(());}},
-                        if has_next{"다음으로 이동"}else{"수업 목록으로"}}
+                        if has_next{"다음으로 이동"}else if to_challenges{"도전 과제로"}else{"수업 목록으로"}}
                     button {onclick:move |_|onstay.call(()),"여기 머물기"}
                 }
                 small {"Enter로 이동 · Esc로 닫기"}

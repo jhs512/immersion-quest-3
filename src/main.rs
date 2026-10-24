@@ -5,6 +5,7 @@ mod emergency_report;
 mod practice;
 mod ui;
 mod player_ui;
+mod challenge_ui;
 mod explanation_session;
 mod lesson_outline;
 mod course_guide_ui;

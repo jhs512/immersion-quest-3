@@ -79,6 +79,22 @@ impl Github {
         store.apply(&snapshot)?;
         Ok(snapshot.course().clone())
     }
+    /// Whether this account can edit the course repository; only such accounts see draft
+    /// final problems. GitHub decides, the app keeps no reviewer list.
+    pub fn can_edit_course(&self,repository:&str)->Result<bool,String> {
+        if !repository_course::valid_repository(repository) {return Err("코스 저장소를 확인하세요.".into())}
+        let data:Value=self.get(&format!("/repos/{repository}"))?;
+        Ok(data["permissions"]["push"].as_bool()==Some(true))
+    }
+    /// Final problems for lessons still being prepared, kept in the course repository for now.
+    /// A missing file means there are none yet; any other failure is reported, not hidden.
+    pub fn future_challenges(&self,course:&CourseManifest)->Result<Option<crate::challenges::FutureChallengeFile>,String> {
+        match self.content(&course.repository,"main",crate::challenges::FUTURE_FILE) {
+            Ok(text)=>crate::challenges::FutureChallengeFile::parse(&text,course).map(Some),
+            Err(error) if error.contains("HTTP 404")=>Ok(None),
+            Err(error)=>Err(error),
+        }
+    }
     pub fn installed_lesson(&self,course:&CourseManifest,reference:&LessonRef)->Result<Lesson,String> {
         crate::telemetry::observe_sync("lesson.load",vec![opentelemetry::KeyValue::new("course.id",course.id.clone()),opentelemetry::KeyValue::new("lesson.id",reference.id.clone())],||self.installed_lesson_inner(course,reference))
     }

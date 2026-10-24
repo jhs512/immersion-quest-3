@@ -24,6 +24,7 @@ pub mod progress_overlay;
 pub mod github_player;
 pub mod bundled_courses;
 pub mod course_visibility;
+pub mod challenges;
 pub mod pilot_source;
 pub mod lesson_registry;
 pub mod lesson_runner;

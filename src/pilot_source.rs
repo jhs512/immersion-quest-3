@@ -121,6 +121,14 @@ pub fn request(args: &[&str], payload: Option<Value>) -> Result<Value, String> {
         if directory.join("pilot-remote-offline").exists(){return Err("Injected progress read outage".into());}
     }
 
+    // 도전 과제: reviewer permission and a future-problem fixture are files in the isolated data folder.
+    if method == "GET" && route == format!("repos/{REPOSITORY}") {
+        return Ok(json!({"full_name":REPOSITORY,"permissions":{"pull":true,"push":data_dir()?.join("pilot-course-reviewer").exists()}}));
+    }
+    if method == "GET" && route == format!("repos/{REPOSITORY}/contents/{}?ref=main",crate::challenges::FUTURE_FILE) {
+        let raw=std::fs::read_to_string(data_dir()?.join("pilot-future-challenges.json")).map_err(|_|"gh: Not Found (HTTP 404)".to_string())?;
+        return Ok(json!({"size":raw.len(),"encoding":"base64","content":base64::engine::general_purpose::STANDARD.encode(raw.as_bytes())}));
+    }
     let mut state = store()?.lock().map_err(|_|"검증 저장소 잠금 오류")?;
     for (repository, file) in [(REPOSITORY,"course.json"),("mq3-validation/lesson","lesson.json")] {
         let prefix = format!("repos/{repository}/contents/{file}?ref=");
