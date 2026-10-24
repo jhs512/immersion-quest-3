@@ -104,7 +104,17 @@ fn shutdown_mode_changes_cannot_overwrite_the_saved_insert_state() {
     send(&practice,&mut editor,&mut output,"i임시메모");
     wait(&practice,&mut editor,&mut output,|p|p.state.as_ref().is_some_and(|s|s.mode=="i"&&s.lines==["임시메모"]));
     let path=practice.root().join("vim-resume.json");
-    let before=std::fs::read(&path).unwrap();
+    // The resume file is written separately from the live state; snapshot it only after it
+    // holds the typed Insert-mode buffer and has stopped changing (CI read an earlier write).
+    let settle=Instant::now()+Duration::from_secs(8);
+    let mut before=Vec::new();
+    loop {
+        let current=std::fs::read(&path).unwrap_or_default();
+        let text=String::from_utf8_lossy(&current);
+        if current==before&&text.contains(r#""lines":["임시메모"]"#)&&text.contains(r#""mode":"i""#){break}
+        assert!(Instant::now()<settle,"resume file never recorded the typed Insert state: {text}");
+        before=current;std::thread::sleep(Duration::from_millis(150));
+    }
     practice.prepare_terminal_shutdown().unwrap();
     // Windows process termination may leave Insert mode before Vim exits.
     // Reproduce that transition deterministically instead of racing process kill.

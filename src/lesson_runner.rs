@@ -346,7 +346,14 @@ async fn run_web(task:&Task,source:&str,grade:bool)->Result<Execution,String> {
     let runtime=if cfg!(debug_assertions)&&local.is_dir()&&local.parent().unwrap().join("react").is_dir(){local}else{
         let root=crate::data_dir()?.join("web-runtime");std::fs::create_dir_all(&root).map_err(|e|e.to_string())?;
         let package=root.join("node_modules/playwright-core");
-        if !package.is_dir()||!root.join("node_modules/react").is_dir(){let result=install_web_runtime(&root).await?;if !result.success{return Ok(result)}}
+        let ready=||package.is_dir()&&root.join("node_modules/react").is_dir();
+        if !ready(){
+            // One install at a time: two runs on a fresh runtime (a preview and a check) would
+            // otherwise both run npm in the same node_modules and fail with ENOTEMPTY.
+            static INSTALLING:tokio::sync::Mutex<()>=tokio::sync::Mutex::const_new(());
+            let _installing=INSTALLING.lock().await;
+            if !ready(){let result=install_web_runtime(&root).await?;if !result.success{return Ok(result)}}
+        }
         package
     };
     write_file(dir.path(),"web-browser.cjs",include_str!("../assets/web-browser.cjs"))?;
