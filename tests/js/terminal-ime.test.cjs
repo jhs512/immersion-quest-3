@@ -168,3 +168,35 @@ for(const engine of ['chromium','webkit'])test(`${engine}: keyboard nonbreaking 
   assert.ok(!paste.includes('\u00a0'));
  }finally{await browser.close()}
 });
+
+// Minimized from a physical two-set/Caps Lock trace in the macOS WKWebView.
+// An ASCII Space is already sent by keydown, but WebKit retains NBSP in the
+// helper textarea. The first Hangul insertion rewrites that old NBSP to Space.
+for(const engine of ['chromium','webkit'])for(const prefix of ['\u00a0','old\u00a0','첫\u00a0','old \u00a0'])for(const intentionalSpace of [false,true])test(`${engine}/${JSON.stringify(prefix)}/${intentionalSpace?'intentional-space':'no-space'}: switching to Korean after a quote cannot replay an old helper space`,async()=>{
+ const browser=await({chromium,webkit}[engine]).launch({headless:true});
+ try{
+  const page=await browser.newPage();await page.setContent('<div id="git-student-terminal" style="width:800px;height:400px"></div>');
+  await page.addScriptTag({content:fs.readFileSync('assets/terminal/terminal.bundle.js','utf8')});
+  await page.evaluate(()=>{window.inputs=[];mq3GitTerminal.mount(e=>{if(e.kind==='input')inputs.push(e.data)},()=>{},'switch-ime')});
+  await page.keyboard.type('echo "'+(intentionalSpace?' ':''));
+  await page.evaluate(async prefix=>{
+   const input=document.querySelector('.xterm-helper-textarea');
+   // Previously handled/deleted text can remain here even though Readline's
+   // current command ends in the quote. It is not pending terminal input.
+   input.value=prefix;input.setSelectionRange(prefix.length,prefix.length);
+   input.dispatchEvent(new KeyboardEvent('keydown',{bubbles:true,key:'CapsLock',code:'CapsLock',keyCode:20}));
+   input.dispatchEvent(new KeyboardEvent('keydown',{bubbles:true,key:'Unidentified',keyCode:0}));
+   for(const [type,data] of [['insertText','ㅊ'],['insertReplacementText','처'],['insertReplacementText','첫']]){
+    input.dispatchEvent(new InputEvent('beforeinput',{bubbles:true,composed:true,inputType:type,data}));
+    input.value=prefix.replaceAll('\u00a0',' ')+data;
+    input.dispatchEvent(new InputEvent('input',{bubbles:true,composed:true,inputType:type,data}));
+    input.dispatchEvent(new KeyboardEvent('keydown',{bubbles:true,key:data,keyCode:229}));
+    await new Promise(r=>setTimeout(r,10));
+   }
+  },prefix);
+  // A real separator inside the quoted text must still be sent once.
+  await page.keyboard.press('Space');await page.keyboard.type('memo"');await page.keyboard.press('Enter');
+  const line=await page.evaluate(()=>{const out=[];for(const c of inputs.join('')){if(c==='\x7f')out.pop();else out.push(c)}return out.join('')});
+  assert.equal(line,'echo "'+(intentionalSpace?' ':'')+'첫 memo"\r');
+ }finally{await browser.close()}
+});

@@ -23,6 +23,10 @@ return {
     listen('compositionstart', () => { composing = true; nativeKorean = false; nativeEditable = 0; });
     listen('compositionend', () => { composing = false; });
     const hangul = /[\u1100-\u11ff\u3130-\u318f\uac00-\ud7af]/u;
+    // WebKit may rewrite an already handled NBSP to Space when Korean starts.
+    // Compare helper snapshots in the same form sent to the PTY, so that an old
+    // separator is not mistaken for newly inserted text after a quote.
+    const inputText = value => value.replaceAll('\u00a0', ' ').normalize('NFC');
 
     // Native macOS Korean can use insertText/insertReplacementText without any
     // composition events. Mirror its tail edits with Readline's Unicode erase,
@@ -35,7 +39,7 @@ return {
         // The helper textarea can still contain an ASCII key already sent to
         // the PTY. An initial insertText may replace that helper value; it must
         // not backspace the user's committed quote (or any preceding command).
-        replacement = {value: term.textarea.value.normalize('NFC'),
+        replacement = {value: inputText(term.textarea.value),
           erasable: event.inputType === 'insertReplacementText' ? nativeEditable : 0};
         nativeKorean = true;
       } else if (event.inputType !== 'insertReplacementText') {
@@ -44,7 +48,7 @@ return {
     });
     listen('input', event => {
       if (event.target !== term.textarea || replacement === undefined) return;
-      const before = Array.from(replacement.value), after = Array.from(term.textarea.value.normalize('NFC'));
+      const before = Array.from(replacement.value), after = Array.from(inputText(term.textarea.value));
       const erasable = replacement.erasable;
       replacement = undefined;
       let common = 0;
@@ -62,8 +66,7 @@ return {
     // macOS IMEs may commit conjoining Hangul jamo; send complete syllables to Readline.
     const data = term.onData(value => {
       // Keyboard, IME and clipboard input all use ordinary token separators.
-      const input = value.replaceAll('\u00a0',' ');
-      send({kind: 'input', data: input.normalize('NFC')});
+      send({kind: 'input', data: inputText(value)});
     });
     const resize = term.onResize(size => send({kind: 'resize', rows: size.rows, cols: size.cols}));
     const observer = new ResizeObserver(() => fit.fit()); observer.observe(host);
