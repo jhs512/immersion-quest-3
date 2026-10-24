@@ -171,12 +171,12 @@
               "core_flow": "같은회귀학습과훈련에넣지않은새입력0.25/0.75/2.25/2.75와검증정답0/0/0/0의eval_set을3round학습한다. 검증rmse기록3개와실제나무3을본다. eval_set은기록할평가표이고그자체로훈련정답에합치거나조기중단을자동으로켜지않는다."
             },
             {
-              "id": "stp_a9646a9d-f2b6-4032-b00d-70bf72b7bf04",
-              "title": "요청한 보정 단계를 설정해요",
+              "id": "stp_62892202-cfb6-4c58-b80a-98faa84cd239",
+              "title": "정한 반영 크기로 보정해요",
               "objectives": [
-                "실제 부스팅 round를 요청 변수에 연결해요."
+                "정한 반영 크기 변수를 실제 부스팅 학습률 설정에 연결해요."
               ],
-              "core_flow": "rounds3인데n_estimators1인코드를rounds로한곳고친다. 실제dump3과예측2/8을확인한다. 다른rounds2/4/5와새행수에서도실제나무수를probe로검사해요청수만출력하는답을거절한다."
+              "core_flow": "rate 0.5인데 learning_rate=1.0으로 적은 한 단계 XGBRegressor를 learning_rate=rate로 한 곳 고친다. 앞 수업(models S8)의 나무 수 변수 연결과 다른 설정이라 그 수정을 옮겨 적어 풀리지 않는다. 실제 학습률 0.5와 예측 1.25/4.25를 확인한다. 해설은 rate만 바꾸면 결과가 그대로임을 보이고 되돌린다. 다른 rate 0.25/1.0/0.75와 새 행에서도 probe로 실제 학습률을 검사하고 고정 출력은 거절한다. 이전 revision의 n_estimators=rounds 스텝(stp_a9646a9d…)은 models 수업과 같은 수정이라 이번 revision에서 빠지며 완료 기록은 이전 revision에 남는다."
             }
           ]
         }
@@ -201,19 +201,19 @@
     "앱에서 풀이·해설·수정 답안 복원·초기화·진도를 별도로 검증해요."
   ],
   "representative": {
-    "prompt": "rounds만큼 보정하도록 n_estimators를 고치세요.",
-    "starter_state": "요청3과 실제1round가 달라요.",
-    "expected_action": "n_estimators=rounds로 바꿔요.",
-    "acceptance": "다른 round수·새행에서도 실제 학습된 나무 수를 확인해요.",
-    "reset": "원래 자료·rounds3·설정1을 복원해요.",
-    "narration": "실제1개를 보고 요청3회로 바꿔 실행해요.",
-    "step_id": "stp_a9646a9d-f2b6-4032-b00d-70bf72b7bf04"
+    "prompt": "rate만큼 보정하도록 learning_rate를 고치세요.",
+    "starter_state": "rate는 0.5인데 모델은 learning_rate=1.0으로 학습해요.",
+    "expected_action": "learning_rate=rate로 바꿔요.",
+    "acceptance": "다른 rate와 새 행에서도 실제 학습률과 예측을 확인해요. 고정 출력은 거절해요.",
+    "reset": "원래 자료·rate 0.5·학습률 1.0을 복원해요.",
+    "narration": "학습률 1.0의 결과를 보고 rate만 바꿔도 그대로임을 확인한 뒤 되돌려요.",
+    "step_id": "stp_62892202-cfb6-4c58-b80a-98faa84cd239"
   },
   "approval": {
     "status": "approved",
     "by": "사용자의 전체 과정 설계·구현 위임",
-    "evidence": "2026-10-19: “끝까지 다해, 정처기 코스, 에이스 어쏘씨에이트 코스, 자바 백엔드 코스의 모든 부분 재설계(새로운 지침 기반으로)해서 해”. .scratch/player-content-redesign/authorization-2026-10-19.md. 개별 PRD 직접 검토를 주장하지 않는 범위 위임이다.",
-    "content_sha256": "0eab839c488408c94f5ad8faf95d5f6ff62e8070f4a0c4300dd6bc0a71431fef",
+    "evidence": "2026-10-19: “끝까지 다해, 정처기 코스, 에이스 어쏘씨에이트 코스, 자바 백엔드 코스의 모든 부분 재설계(새로운 지침 기반으로)해서 해”. .scratch/player-content-redesign/authorization-2026-10-19.md. 개별 PRD 직접 검토를 주장하지 않는 범위 위임이다. 2026-10-24 사용자: 세 과정 빌드업 감사의 근거 있는 교정(문제 설명 해설, 정밀 강조, 상투 경고 제거, 선수 개념 다리, 점진 예제, 평가 결함)을 계획하고 실행하도록 Claude Code에 위임했어요(Codex 경유). 교육 목표와 교수법은 유지하고 이 문서를 직접 검토했다고 주장하지 않아요.",
+    "content_sha256": "e9c8c0178138e9bcda8206035145bae08437ed70b4fa16052180be588bca6ca1",
     "mode": "delegated_scope"
   }
 }

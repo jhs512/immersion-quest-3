@@ -78,6 +78,10 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
                     }
                     if message["control"]=="resume-record"{if let Some(db)=progress_lock.take(){db.execute_batch("ROLLBACK").unwrap();}}
                     if message["control"]=="resume"{std::fs::remove_file(root.join("pilot-progress-blocked")).unwrap();}
+                    // GitHub progress reads: slow (each read waits), offline (each read fails), or normal.
+                    if message["control"]=="slow-remote"{std::fs::write(root.join("pilot-remote-read-delay-ms"),message["delay"].as_u64().unwrap_or(4000).to_string()).unwrap();}
+                    if message["control"]=="offline-remote"{std::fs::write(root.join("pilot-remote-offline"),"").unwrap();}
+                    if message["control"]=="online-remote"{let _=std::fs::remove_file(root.join("pilot-remote-offline"));let _=std::fs::remove_file(root.join("pilot-remote-read-delay-ms"));}
                     #[cfg(debug_assertions)]
                     if message["control"]=="advance-hour" {
                         let result=tokio::task::spawn_blocking(||molip_quest::progress_sync::ProgressStore::installed()?.flush_pilot_hour()).await;
@@ -85,7 +89,8 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
                     }
                     let pending=if progress_lock.is_some(){0}else{molip_quest::progress_sync::ProgressStore::installed().unwrap().pending_count(987654321).unwrap()};
                     let attempts=std::fs::read_to_string(root.join("pilot-progress-attempts")).unwrap_or_default().lines().count();
-                    document::eval(&format!("window.mq3ProgressStats={};",serde_json::json!({"token":message["token"],"pending":pending,"attempts":attempts,"running":molip_quest::progress_sync::is_syncing(987654321).unwrap()})));
+                    let reads=std::fs::read_to_string(root.join("pilot-remote-reads")).unwrap_or_default().lines().count();
+                    document::eval(&format!("window.mq3ProgressStats={};",serde_json::json!({"token":message["token"],"pending":pending,"attempts":attempts,"reads":reads,"locked":progress_lock.is_some(),"running":molip_quest::progress_sync::is_syncing(987654321).unwrap()})));
                     continue;
                 }
                 return Ok::<_,dioxus::document::EvalError>(message);

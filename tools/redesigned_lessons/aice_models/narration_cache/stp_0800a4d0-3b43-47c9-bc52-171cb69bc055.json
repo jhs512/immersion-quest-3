@@ -1,0 +1,61 @@
+{
+  "by": "hand",
+  "source_sha256": "989cb8589fb003947b4f390b54d4f61f4e2128ac3ea952f1e9763ec19984883f",
+  "entry": [
+    {
+      "action": "say",
+      "text": "두 후보를 같은 기준으로 비교해 하나를 고르는 문제예요. 비교할 점수는 학습에 쓰지 않은 검증 자료의 점수예요.",
+      "target": "text:학습에 쓰지 않은 같은 검증 자료로 정확도(score)를 매겨요."
+    },
+    {
+      "action": "say",
+      "text": "훈련 표에서 거리 3인 배송만 정답이 1로 튀어 있어요.",
+      "target": "code:y_train = [0, 0, 1, 0, 1, 1, 1, 1]"
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "훈련에서는 deep이 1.0, shallow가 0.875예요. deep은 튀는 정답까지 외웠어요. 그런데 검증에서는 deep이 0.5, shallow가 1.0이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "max_depth=1, random_state=0",
+      "after": "max_depth=None, random_state=0",
+      "say": "shallow의 깊이 제한을 풀어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "제한을 풀면 shallow도 deep과 같아져 검증 점수가 0.5로 떨어져요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "max_depth=None, random_state=0",
+      "after": "max_depth=1, random_state=0",
+      "say": "깊이 1로 되돌려요."
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 후보마다 다른 자료로 매긴 점수는 비교할 수 없어요. 같은 검증 자료, 같은 지표로 매긴 점수끼리 비교해요.",
+      "target": "code:deep.score(X_valid, y_valid)"
+    },
+    {
+      "action": "choose_answer",
+      "id": "shallow"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_b9544574-6fff-4ba7-9412-bad6a933041e",
-  "revision": "java-conditions-3",
+  "revision": "java-conditions-4",
   "title": "자바 · 비교로 배송비를 고르는 과정",
   "description": "같은 주문의 금액을 바꾸며 비교와 배송비 분기를 확인해요.",
   "objectives": [
@@ -32,7 +32,7 @@
           "objectives": [
             "비교 결과와 경계 포함 여부를 구별해요."
           ],
-          "premise": "주문금액 20000원 이상이면 무료배송이에요. 같은 주문의 금액만 바꿔 봐요.",
+          "premise": "주문 금액이 20,000원 이상이면 무료배송이에요. 같은 주문의 금액만 바꿔 봐요.",
           "steps": [
             {
               "id": "stp_f8e06754-324d-4883-83ed-5a2a84f504c1",
@@ -75,7 +75,7 @@
           "objectives": [
             "조건에 따라 선택한 문장과 최종 값을 연결해요."
           ],
-          "premise": "기본 배송비는3000원이에요. 앞의 같은 주문 조건으로 무료 여부를 적용해요.",
+          "premise": "기본 배송비는 3,000원이에요. 앞의 같은 주문 조건으로 무료 여부를 적용해요.",
           "steps": [
             {
               "id": "stp_b50e104d-c9ef-4de3-8317-fd2d632c2d2a",
@@ -110,13 +110,13 @@
     {
       "id": "stp_f8e06754-324d-4883-83ed-5a2a84f504c1",
       "title": "19,999원은 무료배송 조건이 true일까요?",
-      "goal": "이 스텝은 제공된 코드에서 시작해요.\n\n무료배송은 20,000원 이상이에요.\n\n**할 일**\n\n1. 주문 금액과 무료 배송 기준을 비교하는 식을 읽으세요.\n2. 코드 실행 버튼을 눌러 결과를 확인하세요.\n3. 위 질문이 요구한 값이나 식에 맞는 보기를 고르세요.\n4. 선택한 보기를 제출하세요.",
+      "goal": "무료배송은 20,000원 이상이에요. 준비 코드는 주문 금액 19,999원과 기준 20,000원을 >=로 비교한 결과를 출력해요. >=는 왼쪽이 오른쪽보다 크거나 같은지 묻는 기호예요.\n\n**할 일**\n\n1. 주문 금액과 무료 배송 기준을 비교하는 식을 읽으세요.\n2. 코드 실행 버튼을 눌러 결과를 확인하세요.\n3. 위 질문이 요구한 값이나 식에 맞는 보기를 고르세요.\n4. 선택한 보기를 제출하세요.",
       "language": "java",
       "starter_code": "",
       "solution": "false",
       "tests": [],
       "required": true,
-      "example_code": "void main() {\n    // 주문 금액과 무료배송 기준을 비교해요.\n    int amount = 19999;\n    int limit = 20000;\n    // 이상이면 true, 미만이면 false가 나와요.\n    System.out.println(amount >= limit);\n}\n",
+      "example_code": "void main() {\n    // 주문 금액과 무료배송 기준을 비교해요.\n    int amount = 19999;\n    int limit = 20000;\n    // 이 비교식이 무엇을 출력하는지 보세요.\n    System.out.println(amount >= limit);\n}\n",
       "interaction": {
         "kind": "choice",
         "options": [
@@ -134,17 +134,21 @@
       "narration": [
         {
           "action": "say",
-          "text": "주문 금액이 19,999원일 때 amount >= limit의 출력은 무엇인가요?",
-          "target": "problem"
+          "text": "규칙은 20,000원 이상이면 무료배송이에요.",
+          "target": "text:무료배송은 20,000원 이상이에요."
         },
         {
           "action": "say",
-          "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-          "target": "problem"
+          "text": "질문은 19,999원 주문에서 이 비교가 true인지 false인지예요.",
+          "target": "text:19,999원은 무료배송 조건이 true일까요?"
+        },
+        {
+          "action": "say",
+          "text": "비교식은 금액이 아니라 참이나 거짓 하나를 결과로 내요.",
+          "target": "code:amount >= limit"
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             6,
             6
@@ -152,18 +156,17 @@
         },
         {
           "action": "say",
-          "text": "기준보다 일 원 모자라 false가 나왔어요.",
+          "text": "false가 나왔어요. 기준보다 1원 모자라요.",
           "target": "output"
         },
         {
           "action": "patch_code",
           "before": "amount = 19999",
           "after": "amount = 20000",
-          "say": "금액만 기준과 같은 이만 원으로 바꿔요."
+          "say": "금액만 기준과 같은 20,000원으로 바꿔요."
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             6,
             6
@@ -171,23 +174,17 @@
         },
         {
           "action": "say",
-          "text": "같은 값도 포함하니 true가 나왔어요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 비교는 금액이 아니라 참과 거짓을 내요.",
+          "text": "true예요. 크거나 같음은 같은 값도 포함해요.",
           "target": "output"
         },
         {
           "action": "patch_code",
           "before": "amount = 20000",
           "after": "amount = 19999",
-          "say": "문제에 주어진 금액으로 돌아와요."
+          "say": "문제의 19,999원으로 돌아와요."
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             6,
             6
@@ -195,7 +192,7 @@
         },
         {
           "action": "say",
-          "text": "지금 금액은 기준 미만이므로 false예요.",
+          "text": "다시 false예요. 이 금액은 무료배송 조건을 만족하지 않아요.",
           "target": "output"
         },
         {
@@ -232,17 +229,21 @@
       "narration": [
         {
           "action": "say",
-          "text": "20,000원 주문도 무료배송에 포함하려면 어떤 비교식을 써야 하나요?",
-          "target": "problem"
+          "text": "이번 주문 금액은 기준과 딱 같은 20,000원이에요.",
+          "target": "text:주문 금액이 딱 20,000원이 됐어요."
         },
         {
           "action": "say",
-          "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-          "target": "problem"
+          "text": "질문은 20,000원도 무료에 포함하는 비교식이 어느 쪽인지예요.",
+          "target": "text:20,000원도 포함하는 비교식은 무엇일까요?"
+        },
+        {
+          "action": "say",
+          "text": "같은 금액으로 초과 비교와 이상 비교를 한 줄씩 출력해요.",
+          "target": "lines:6:7"
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             7,
             7
@@ -250,23 +251,17 @@
         },
         {
           "action": "say",
-          "text": "초과는 false, 이상은 true가 나왔어요.",
+          "text": "초과는 false, 이상은 true예요. 금액이 같을 때 둘이 갈려요.",
           "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "두 금액이 같을 때 결과가 갈리네요.",
-          "target": "lines:6:7"
         },
         {
           "action": "patch_code",
           "before": "amount = 20000",
           "after": "amount = 20001",
-          "say": "기준보다 일 원 커진 경우도 볼게요."
+          "say": "기준보다 1원 큰 금액도 볼게요."
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             7,
             7
@@ -274,23 +269,22 @@
         },
         {
           "action": "say",
-          "text": "기준을 넘으면 두 식 모두 true예요.",
+          "text": "둘 다 true예요. 기준을 넘는 금액에서는 차이가 보이지 않아요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 경계 바깥만 보면 차이를 놓쳐요.",
-          "target": "output"
+          "text": "조심하세요. 기준보다 큰 금액만 시험하면 초과와 이상을 고른 실수를 놓쳐요.",
+          "target": "code:amount > limit"
         },
         {
           "action": "patch_code",
           "before": "amount = 20001",
           "after": "amount = 20000",
-          "say": "차이를 드러낸 경계값으로 돌아와요."
+          "say": "차이를 보여 준 경계값으로 돌아와요."
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             7,
             7
@@ -298,7 +292,7 @@
         },
         {
           "action": "say",
-          "text": "경계를 포함하려면 크거나 같은 비교가 필요해요.",
+          "text": "경계 20,000원을 포함하려면 크거나 같음이 필요해요.",
           "target": "output"
         },
         {
@@ -339,17 +333,16 @@
       "narration": [
         {
           "action": "say",
-          "text": "주문 금액과 기준 금액이 같은지 확인하는 식은 무엇인가요?",
-          "target": "problem"
+          "text": "이번엔 두 금액이 같은지 확인하는 식을 골라요.",
+          "target": "text:같은 금액인지 확인하려 해요."
         },
         {
           "action": "say",
-          "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-          "target": "problem"
+          "text": "등호 두 개는 같은지, 느낌표와 등호는 다른지 비교해요.",
+          "target": "lines:6:7"
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             7,
             7
@@ -357,18 +350,13 @@
         },
         {
           "action": "say",
-          "text": "같음은 true, 다름은 false가 나왔어요.",
+          "text": "같음은 true, 다름은 false예요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "등호 두 개는 두 값을 비교해요.",
-          "target": "lines:6"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 등호 하나는 값을 저장하는 대입이에요.",
-          "target": "lines:3"
+          "text": "조심하세요. 등호 하나는 비교가 아니라 오른쪽 값을 왼쪽 변수에 넣는 대입이에요.",
+          "target": "code:int amount = 20000;"
         },
         {
           "action": "patch_code",
@@ -378,7 +366,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             7,
             7
@@ -386,7 +373,7 @@
         },
         {
           "action": "say",
-          "text": "이번에는 같음이 false, 다름이 true예요.",
+          "text": "이번엔 같음이 false, 다름이 true예요.",
           "target": "output"
         },
         {
@@ -397,7 +384,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             7,
             7
@@ -405,7 +391,7 @@
         },
         {
           "action": "say",
-          "text": "비교해도 amount에 든 금액은 바뀌지 않아요.",
+          "text": "비교는 amount에 든 값을 바꾸지 않아요. 같은지 묻기만 해요.",
           "target": "output"
         },
         {
@@ -442,17 +428,16 @@
       "narration": [
         {
           "action": "say",
-          "text": "free를 저장한 뒤 금액만 낮추면 출력되는 free는 무엇인가요?",
-          "target": "problem"
+          "text": "비교 결과를 free에 저장한 뒤 주문 금액만 19,999원으로 줄였어요.",
+          "target": "text:판단을 저장한 뒤 주문 금액이 줄었어요."
         },
         {
           "action": "say",
-          "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-          "target": "problem"
+          "text": "free에는 이 줄을 실행한 순간의 결과 하나가 들어가요.",
+          "target": "code:boolean free = amount >= limit;"
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             8,
             8
@@ -460,23 +445,17 @@
         },
         {
           "action": "say",
-          "text": "금액을 바꿔도 저장했던 true가 나왔어요.",
+          "text": "true가 나왔어요. 금액이 바뀌어도 저장된 값은 그대로예요.",
           "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "free에는 비교식이 아니라 그때의 결과를 저장했어요.",
-          "target": "lines:5"
         },
         {
           "action": "patch_code",
           "before": "System.out.println(free);",
           "after": "System.out.println(amount >= limit);",
-          "say": "현재 금액을 다시 비교하면 어떨까요?"
+          "say": "출력 자리에서 현재 금액을 다시 비교해 볼게요."
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             8,
             8
@@ -484,13 +463,13 @@
         },
         {
           "action": "say",
-          "text": "다시 계산한 결과는 false예요.",
+          "text": "지금 다시 계산하면 false예요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 값은 원래 식을 계속 따라다니지 않아요.",
-          "target": "output"
+          "text": "조심하세요. 변수는 식을 기억하지 않아요. 나중에 금액이 바뀌면 판단도 다시 계산해야 해요.",
+          "target": "code:System.out.println(amount >= limit);"
         },
         {
           "action": "patch_code",
@@ -500,7 +479,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             8,
             8
@@ -508,7 +486,7 @@
         },
         {
           "action": "say",
-          "text": "저장 당시에는 무료였으니 free는 true예요.",
+          "text": "저장할 때는 무료였으니 free는 true예요.",
           "target": "output"
         },
         {
@@ -545,17 +523,16 @@
       "narration": [
         {
           "action": "say",
-          "text": "19,999원 주문에서 if를 실행한 뒤 출력되는 배송비는 얼마인가요?",
-          "target": "problem"
+          "text": "기본 배송비 3,000원에서 시작해, 조건에 맞을 때만 0원으로 바꿔요.",
+          "target": "text:조건에 맞는 주문만 배송비를 바꿔요."
         },
         {
           "action": "say",
-          "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-          "target": "problem"
+          "text": "if 괄호 안 조건이 참일 때만 중괄호 안 대입을 실행해요.",
+          "target": "lines:7:9"
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             10,
             10
@@ -563,23 +540,17 @@
         },
         {
           "action": "say",
-          "text": "조건이 거짓이라 삼천 원이 그대로 나왔어요.",
+          "text": "3,000원이 나왔어요. 19,999원은 조건이 거짓이라 대입을 건너뛰었어요.",
           "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "중괄호 안 대입을 건너뛴 거예요.",
-          "target": "lines:7:9"
         },
         {
           "action": "patch_code",
           "before": "amount = 19999",
           "after": "amount = 20000",
-          "say": "기준을 만족하는 금액으로 바꿔 봐요."
+          "say": "기준을 만족하는 20,000원으로 바꿔 봐요."
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             10,
             10
@@ -587,12 +558,7 @@
         },
         {
           "action": "say",
-          "text": "이번에는 대입이 실행돼 영 원이 나왔어요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. if 뒤의 문장은 조건이 참일 때만 해요.",
+          "text": "0원이에요. 이번엔 중괄호 안이 실행됐어요.",
           "target": "output"
         },
         {
@@ -603,7 +569,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             10,
             10
@@ -611,7 +576,7 @@
         },
         {
           "action": "say",
-          "text": "기준 미만에서는 기본 배송비를 유지해요.",
+          "text": "19,999원 주문의 배송비는 기본값 3,000원이에요.",
           "target": "output"
         },
         {
@@ -652,17 +617,16 @@
       "narration": [
         {
           "action": "say",
-          "text": "if와 else로 나눈 두 코드 중 실제로 실행되는 쪽은 어떻게 정해지나요?",
-          "target": "problem"
+          "text": "이번엔 무료인 경우와 아닌 경우를 if와 else로 나눴어요.",
+          "target": "text:무료인 경우와 아닌 경우를 나눴어요."
         },
         {
           "action": "say",
-          "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-          "target": "problem"
+          "text": "조건이 참이면 위쪽 블록, 거짓이면 else 블록 중 하나만 실행돼요.",
+          "target": "lines:6:10"
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             12,
             12
@@ -670,18 +634,17 @@
         },
         {
           "action": "say",
-          "text": "조건이 거짓이라 else에서 삼천 원을 저장해요.",
+          "text": "3,000원이에요. 거짓이라 else에서 저장했어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
           "before": "amount = 19999",
           "after": "amount = 20000",
-          "say": "이번에는 조건을 참으로 만들어요."
+          "say": "조건이 참이 되도록 금액을 바꿔요."
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             12,
             12
@@ -689,12 +652,12 @@
         },
         {
           "action": "say",
-          "text": "if에서 영 원을 저장하고 else는 건너뛰어요.",
+          "text": "0원이에요. 위쪽 블록만 실행되고 else는 건너뛰었어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. else는 뒤에 항상 실행하는 문장이 아니에요.",
+          "text": "조심하세요. else는 if 뒤에 늘 이어서 실행되는 문장이 아니에요.",
           "target": "lines:8:10"
         },
         {
@@ -705,7 +668,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             12,
             12
@@ -726,7 +688,7 @@
     {
       "id": "stp_aef8bd52-0038-4239-a10f-2729f5275640",
       "title": "무료배송을 덮어쓰지 않으려면 어떻게 할까요?",
-      "goal": "이 스텝은 제공된 코드에서 시작해요.\n\n만 원 이상 할인 구간을 추가했어요.\n25,000원 주문이 무료가 되려면 어떻게 할까요?\n\n**할 일**\n\n1. 각 조건을 위에서부터 검사하며 무료 배송 조건까지 도달하는지 살펴보세요.\n2. 코드 실행 버튼을 눌러 결과를 확인하세요.\n3. 위 질문이 요구한 값이나 식에 맞는 보기를 고르세요.\n4. 선택한 보기를 제출하세요.",
+      "goal": "만 원 이상 할인 구간을 추가했어요. 2만 원 이상은 무료, 만 원 이상은 1,000원이에요. 25,000원 주문이 무료가 되려면 어떻게 할까요?\n\n알아두세요: else if는 앞의 if 조건이 거짓일 때만 다음 조건을 검사해요. 따로 쓴 if 두 개는 앞의 결과와 관계없이 둘 다 검사해요.\n\n**할 일**\n\n1. 각 조건을 위에서부터 검사하며 무료 배송 조건까지 도달하는지 살펴보세요.\n2. 코드 실행 버튼을 눌러 결과를 확인하세요.\n3. 위 질문이 요구한 값이나 식에 맞는 보기를 고르세요.\n4. 선택한 보기를 제출하세요.",
       "language": "java",
       "starter_code": "",
       "solution": "chain",
@@ -738,11 +700,11 @@
         "options": [
           {
             "id": "separate",
-            "text": "두 if를 따로 판단해요"
+            "text": "두 if를 지금처럼 따로 둬요: if (amount >= 10000) { fee = 1000; }"
           },
           {
             "id": "chain",
-            "text": "두 번째를 else if로 연결해요"
+            "text": "두 번째를 else if로 연결해요: } else if (amount >= 10000) {"
           }
         ],
         "answer": "chain"
@@ -750,17 +712,16 @@
       "narration": [
         {
           "action": "say",
-          "text": "25,000원 주문의 무료배송이 뒤 조건에 덮어쓰이지 않으려면 어떻게 고쳐야 하나요?",
-          "target": "problem"
+          "text": "25,000원 주문은 무료여야 해요. 그런데 이 금액은 두 구간 조건을 모두 만족해요.",
+          "target": "text:25,000원 주문이 무료가 되려면 어떻게 할까요?"
         },
         {
           "action": "say",
-          "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-          "target": "problem"
+          "text": "지금은 if 두 개가 따로 있어서 둘 다 검사해요.",
+          "target": "lines:6:11"
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             12,
             12
@@ -768,23 +729,17 @@
         },
         {
           "action": "say",
-          "text": "영 원을 저장한 뒤 천 원으로 덮어썼어요.",
+          "text": "1,000원이 나왔어요. 0원을 저장한 뒤 두 번째 if가 1,000원으로 덮어썼어요.",
           "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "이만 오천 원은 두 조건을 모두 만족하거든요.",
-          "target": "lines:6:11"
         },
         {
           "action": "patch_code",
           "before": "}\n    if (amount >= 10000)",
           "after": "} else if (amount >= 10000)",
-          "say": "첫 구간에 속하지 않을 때만 다음 구간을 봐요."
+          "say": "두 번째 if를 else if로 이어요."
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             11,
             11
@@ -792,23 +747,22 @@
         },
         {
           "action": "say",
-          "text": "첫 구간을 골랐으니 최종 배송비는 영 원이에요.",
+          "text": "0원이에요. 첫 조건이 참이라 else if는 검사하지 않았어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 별개 if는 앞에서 참이어도 다시 판단해요.",
-          "target": "output"
+          "text": "조심하세요. 구간을 나눌 때 if만 여러 개 쓰면 뒤의 조건이 앞의 결정을 덮어써요.",
+          "target": "text:따로 쓴 if 두 개는 앞의 결과와 관계없이 둘 다 검사해요."
         },
         {
           "action": "patch_code",
           "before": "amount = 25000",
           "after": "amount = 15000",
-          "say": "중간 구간의 금액으로도 확인해요."
+          "say": "중간 구간 금액 15,000원으로도 확인해요."
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             11,
             11
@@ -816,7 +770,7 @@
         },
         {
           "action": "say",
-          "text": "이번에는 중간 구간을 골라 천 원이 나왔어요.",
+          "text": "1,000원이에요. 첫 조건이 거짓일 때만 두 번째 구간을 골랐어요.",
           "target": "output"
         },
         {
@@ -827,7 +781,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             11,
             11
@@ -835,7 +788,7 @@
         },
         {
           "action": "say",
-          "text": "이만 오천 원은 높은 구간 하나만 골라요.",
+          "text": "25,000원은 높은 구간 하나만 골라 0원이에요.",
           "target": "output"
         },
         {
@@ -899,12 +852,11 @@
       "narration": [
         {
           "action": "say",
-          "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-          "target": "problem"
+          "text": "AI가 만든 조건이 기준 금액에서 틀린 결과를 내요. 금액과 기준은 그대로 두고 비교만 고쳐요.",
+          "target": "text:AI가 만든 무료배송 조건이 경계에서 틀려요."
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             10,
             10
@@ -912,18 +864,22 @@
         },
         {
           "action": "say",
-          "text": "기준과 같은데 삼천 원을 받아 규칙과 달라요.",
+          "text": "3,000원이 나와요. 20,000원은 무료여야 하는데 배송비를 받았어요.",
           "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "초과 비교라서 기준과 같은 금액이 빠졌어요.",
+          "target": "code:amount > limit"
         },
         {
           "action": "patch_code",
           "before": "amount > limit",
           "after": "amount >= limit",
-          "say": "같은 금액도 포함하도록 비교만 바꿔요."
+          "say": "크거나 같음으로 바꿔 기준 금액을 포함해요."
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             10,
             10
@@ -931,13 +887,13 @@
         },
         {
           "action": "say",
-          "text": "경계를 포함하니 배송비가 영 원이 됐어요.",
+          "text": "0원이에요. 기준 금액이 무료가 됐어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 결과를 영으로 고정하면 작은 주문도 무료예요.",
-          "target": "output"
+          "text": "조심하세요. 0을 바로 출력하게 바꾸면 이 금액만 맞고 작은 주문까지 무료가 돼요.",
+          "target": "code:fee = 0;"
         },
         {
           "action": "patch_code",
@@ -947,7 +903,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             10,
             10
@@ -955,18 +910,17 @@
         },
         {
           "action": "say",
-          "text": "기준 미만은 삼천 원으로 남아 있어요.",
+          "text": "19,999원은 여전히 3,000원이에요.",
           "target": "output"
         },
         {
           "action": "patch_code",
           "before": "amount = 19999",
           "after": "amount = 20000",
-          "say": "처음 경계값으로 다시 검증해요."
+          "say": "처음 경계값으로 다시 확인해요."
         },
         {
           "action": "run",
-          "say": "실행해서 결과를 함께 확인해요.",
           "lines": [
             10,
             10
@@ -974,7 +928,7 @@
         },
         {
           "action": "say",
-          "text": "기준값을 포함하는 규칙이 코드와 맞아요.",
+          "text": "기준을 포함하는 규칙과 코드가 맞아요.",
           "target": "output"
         }
       ]

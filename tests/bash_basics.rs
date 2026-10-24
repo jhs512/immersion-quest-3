@@ -17,7 +17,9 @@ fn play(practice:&GitPractice,shell:&mut SetupTerminal,output:&mut tokio::sync::
             "bash_command"=>{
                 let command=action["command"].as_str().unwrap();let before=practice.shell_completions().unwrap().len();
                 shell.input(&format!("{command}\r")).unwrap();
-                until(practice,shell,output,|_|practice.shell_completions().unwrap().iter().skip(before).any(|r|r.success&&r.command==command));
+                // A narration may show a command failing on purpose (rmdir on a non-empty folder).
+                let fails=action["fails"]==true;
+                until(practice,shell,output,|_|practice.shell_completions().unwrap().iter().skip(before).any(|r|r.success!=fails&&r.command==command));
             },
             "vim_open"=>{
                 shell.input("vim memo.txt\r").unwrap();

@@ -26,8 +26,8 @@
       "[0, 0, 1, 1]\n[0, 1]\n[1, 0]"
     ],
     [
-      "[0, 0, 1, 1]",
-      "[0, 1]"
+      "['late', 'on-time']\n[1.0, 0.0]",
+      "['early', 'late']\n[0.0, 1.0]"
     ]
   ],
   "reject": [
@@ -35,11 +35,21 @@
       "step": 8,
       "replacements": [
         [
-          "print(predictions.tolist())",
-          "print([0, 1])"
+          "print(late_probability.round(6).tolist())",
+          "print([0.0, 1.0])"
         ]
       ],
-      "reason": "Fixed class outputs ignore changed evaluation rows and labels"
+      "reason": "Fixed probabilities ignore changed labels and rows"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "[:, list(model.classes_).index(\"late\")]",
+          "[:, 0]"
+        ]
+      ],
+      "reason": "A memorized column number breaks when the class names change"
     }
   ]
 }

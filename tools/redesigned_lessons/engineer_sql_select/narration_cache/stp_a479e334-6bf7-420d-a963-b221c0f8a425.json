@@ -1,10 +1,14 @@
 {
   "by": "hand",
-  "source_sha256": "408923249be8c81172882e822e2968e167597db296a90f1c8e014696330da8d2",
+  "source_sha256": "19bfa03c4a55dd6e8882c9874e62b6bf2d6eaa976e764f65c500776e29d3b006",
   "entry": [
     {
+      "action": "say",
+      "text": "하위 질의 목록에 NULL이 섞일 때 NOT IN이 어떻게 되는지 판단하는 문제예요.",
+      "target": "text:물건이 하나도 없는 공급처 30이 결과에 남을까요?"
+    },
+    {
       "action": "run",
-      "say": "실제 준비된 표에서 실행해요.",
       "lines": [
         1,
         1
@@ -19,11 +23,10 @@
       "action": "patch_code",
       "before": "s.id NOT IN (SELECT supplier FROM items)",
       "after": "NOT EXISTS (SELECT 1 FROM items i WHERE i.supplier=s.id)",
-      "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+      "say": "NOT IN을 상관 NOT EXISTS로 바꿔 볼게요."
     },
     {
       "action": "run",
-      "say": "실제 준비된 표에서 실행해요.",
       "lines": [
         1,
         1
@@ -48,11 +51,10 @@
       "action": "patch_code",
       "before": "NOT EXISTS (SELECT 1 FROM items i WHERE i.supplier=s.id)",
       "after": "s.id NOT IN (SELECT supplier FROM items)",
-      "say": "문제의 처음 SQL로 돌아와요."
+      "say": "NOT IN으로 되돌려요."
     },
     {
       "action": "run",
-      "say": "실제 준비된 표에서 실행해요.",
       "lines": [
         1,
         1
@@ -60,7 +62,7 @@
     },
     {
       "action": "say",
-      "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+      "text": "처음 조회는 목록의 NULL 때문에 30도 참이 되지 않아 결과가 없어요.",
       "target": "output"
     },
     {

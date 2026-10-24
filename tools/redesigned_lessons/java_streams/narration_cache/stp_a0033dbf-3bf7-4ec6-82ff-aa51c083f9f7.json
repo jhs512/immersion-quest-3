@@ -1,20 +1,19 @@
 {
   "by": "hand",
-  "source_sha256": "fe0f6fd675f6f9c87762dd57a5c767ab4c38f623eedf9139b6730bba263d5ddb",
+  "source_sha256": "ac75981a8ff91f22b2397854517d613131904f9d35f1b21a36a304b10588c56a",
   "entry": [
     {
       "action": "say",
-      "text": "같은 상품의 개수를 합치며 Map으로 모으려 해요. 중복 키를 만나면 어떤 규칙이 필요할까요?",
-      "target": "problem"
+      "text": "book, pen, book을 상품별 개수 Map으로 모아요. book이 두 번 나와요.",
+      "target": "text:같은 키가 또 나오면 어떻게 할지 정해야 해요."
     },
     {
       "action": "say",
-      "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-      "target": "problem"
+      "text": "키는 상품 이름, 값은 1로 만들어요. 같은 키를 만났을 때의 규칙은 아직 없어요.",
+      "target": "code:Collectors.toMap(item -> item, item -> 1)"
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         10,
         10
@@ -23,18 +22,17 @@
     },
     {
       "action": "say",
-      "text": "중복된 book 키의 정책이 없어 예외가 나요.",
+      "text": "IllegalStateException이에요. 두 번째 book의 값을 어떻게 할지 몰라 멈췄어요.",
       "target": "output"
     },
     {
       "action": "patch_code",
       "before": "Collectors.toMap(item -> item, item -> 1)",
       "after": "Collectors.toMap(item -> item, item -> 1, Integer::sum)",
-      "say": "두 개수를 더하는 동작을 병합 규칙으로 넘겨요."
+      "say": "같은 키의 두 값을 더하는 규칙을 세 번째 인자로 넘겨요."
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         10,
         10
@@ -42,13 +40,13 @@
     },
     {
       "action": "say",
-      "text": "명시한 병합으로 book 둘과 pen 하나를 얻었어요.",
+      "text": "book=2, pen=1이에요. 정한 규칙대로 개수를 합쳤어요.",
       "target": "output"
     },
     {
       "action": "say",
-      "text": "조심하세요. 같은 키의 값을 어떻게 합칠지 업무 규칙을 분명히 정해요.",
-      "target": "output"
+      "text": "조심하세요. 덮어쓸지, 더할지, 거절할지는 업무 규칙이에요. 코드에 분명히 적어야 해요.",
+      "target": "code:Integer::sum"
     },
     {
       "action": "choose_answer",

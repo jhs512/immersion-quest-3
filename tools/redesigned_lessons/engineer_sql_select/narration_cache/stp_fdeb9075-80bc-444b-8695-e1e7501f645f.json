@@ -1,10 +1,25 @@
 {
   "by": "hand",
-  "source_sha256": "25d1de6d9687a497d3dbe034abee2bb60d1bcb680c9a25c8a65e989c2658ee67",
+  "source_sha256": "1fc23de87424a84fe8a4884d85365833f9562da237662ac89af3fe17c4fb3843",
   "entry": [
     {
+      "action": "say",
+      "text": "하위 질의와 EXISTS로 공급처를 고르는 문제예요.",
+      "target": "text:양수 재고 물건이 있는 공급처는 어디일까요?"
+    },
+    {
+      "action": "say",
+      "text": "공급처마다 양수 재고 물건이 있는지 묻는 문제예요. 먼저 하위 질의가 무엇을 돌려주는지 보면 이해가 쉬워요.",
+      "target": "text:괄호 안 SELECT는 바깥 질의가 쓰는 하위 질의예요."
+    },
+    {
+      "action": "patch_code",
+      "before": "EXISTS (SELECT 1 FROM items i WHERE i.supplier=s.id AND i.stock>0)",
+      "after": "s.id IN (SELECT supplier FROM items WHERE stock>0)",
+      "say": "같은 뜻을 IN 하위 질의로 먼저 써 볼게요. 안쪽은 양수 재고 물건의 공급처 목록이에요."
+    },
+    {
       "action": "run",
-      "say": "실제 준비된 표에서 실행해요.",
       "lines": [
         1,
         1
@@ -12,18 +27,35 @@
     },
     {
       "action": "say",
-      "text": "공급처별로 양수 물건이 하나라도 있는지 보니 십만 남아요.",
+      "text": "목록은 10과 공급처 없는 bag의 NULL이라, 그 안에 있는 공급처는 10이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "s.id IN (SELECT supplier FROM items WHERE stock>0)",
+      "after": "EXISTS (SELECT 1 FROM items i WHERE i.supplier=s.id AND i.stock>0)",
+      "say": "이제 공급처마다 안쪽 행이 있는지 묻는 EXISTS로 되돌려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        1,
+        1
+      ]
+    },
+    {
+      "action": "say",
+      "text": "결과는 같은 10이에요. EXISTS는 바깥 공급처 하나마다 안쪽 조건에 맞는 물건 행이 있는지만 봐요.",
       "target": "output"
     },
     {
       "action": "patch_code",
       "before": " AND i.stock>0",
       "after": " AND 1=1",
-      "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+      "say": "양수 조건을 빼 볼게요."
     },
     {
       "action": "run",
-      "say": "실제 준비된 표에서 실행해요.",
       "lines": [
         1,
         1
@@ -31,32 +63,19 @@
     },
     {
       "action": "say",
-      "text": "양수 조건을 빼면 재고가 NULL인 물건의 이십도 연결돼요.",
-      "target": "output"
-    },
-    {
-      "action": "say",
-      "text": "조심하세요. EXISTS는 안쪽에서 어떤 숫자를 출력하는지보다 행이 있는지를 봐요.",
+      "text": "재고를 모르는 book의 공급처 20도 행이 있어 나와요.",
       "target": "output"
     },
     {
       "action": "patch_code",
       "before": " AND 1=1",
       "after": " AND i.stock>0",
-      "say": "문제의 처음 SQL로 돌아와요."
-    },
-    {
-      "action": "run",
-      "say": "실제 준비된 표에서 실행해요.",
-      "lines": [
-        1,
-        1
-      ]
+      "say": "양수 조건으로 되돌려요."
     },
     {
       "action": "say",
-      "text": "처음 조건의 결과를 기준으로 답을 골라요.",
-      "target": "output"
+      "text": "조심하세요. EXISTS는 안쪽이 무엇을 출력하는지가 아니라 행이 있는지를 봐요. 그래서 SELECT 1이라고 써도 돼요.",
+      "target": "code:SELECT 1"
     },
     {
       "action": "choose_answer",

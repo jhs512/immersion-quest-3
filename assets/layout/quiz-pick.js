@@ -1,7 +1,7 @@
 // Which quiz option an answer names. Shared by the tutor agent (assets/layout/agent.js) and the
 // tests (tests/js/quiz-pick.test.mjs), so the rule lives in one place:
 //   1. the option whose text is exactly the answer;
-//   2. else, an answer that is a bare number N (what the compiled 해설 and 정답 보기 send) is the
+//   2. else, an answer that is a bare number N (what the compiled 해설 and /tour-all send) is the
 //      N-th option, counted from 1;
 //   3. else, the first option whose text contains the answer (or, for a long answer, that the
 //      answer contains).

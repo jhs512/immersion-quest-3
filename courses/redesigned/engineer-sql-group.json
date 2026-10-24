@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_b49b7cce-7355-4126-8d1a-a5ecaf15ee0f",
-  "revision": "engineer-sql-group-1",
+  "revision": "engineer-sql-group-2",
   "title": "SQL · 같은 재고의 그룹과 순서를 읽어요",
   "description": "같은 재고에서 그룹의 기준과 순위·창의 범위를 비교해요.",
   "objectives": [
@@ -108,9 +108,9 @@
               ]
             },
             {
-              "id": "stp_8bda2903-1957-447c-9b4e-a4b6f37ab592",
+              "id": "stp_e9558bc9-71cf-4b2c-8c02-49866fe04f73",
               "objectives": [
-                "HAVING 조건을 실제 질의 수정으로 해결해요."
+                "행 조건과 그룹 조건을 구별해 WHERE의 조건을 HAVING으로 옮겨요."
               ]
             }
           ]
@@ -122,7 +122,7 @@
     {
       "id": "stp_5bd0f589-2a7b-474b-b2bf-736f896921ff",
       "title": "전체 행과 알려진 값을 세어요",
-      "goal": "COUNT의 대상에 따른 NULL 제외를 구별해요.",
+      "goal": "stocks에는 네 물건이 있고 ID 3의 qty는 NULL이에요. COUNT(*)는 행을, COUNT(열)은 그 열에 값이 있는 행을 세요.\nCOUNT(*)는 몇을 셀까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "sql",
       "starter_code": "",
       "solution": "rows",
@@ -145,8 +145,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "NULL이 있는 열을 셀 때 COUNT의 괄호 안이 무엇이냐에 따라 달라지는 문제예요.",
+          "target": "text:COUNT(*)는 몇을 셀까요?"
+        },
+        {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -161,11 +165,10 @@
           "action": "patch_code",
           "before": "COUNT(*)",
           "after": "COUNT(qty)",
-          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+          "say": "COUNT(*)를 COUNT(qty)로 바꿔 볼게요."
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -184,12 +187,10 @@
         {
           "action": "patch_code",
           "before": "COUNT(qty)",
-          "after": "COUNT(*)",
-          "say": "문제의 처음 SQL로 돌아와요."
+          "after": "COUNT(*)"
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -197,7 +198,7 @@
         },
         {
           "action": "say",
-          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "text": "처음 SQL은 NULL 행도 세서 4예요.",
           "target": "output"
         },
         {
@@ -208,12 +209,13 @@
       "predict_before_run": true,
       "files": {
         "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, category TEXT, qty INTEGER, price INTEGER);\nINSERT INTO stocks VALUES(1,'A',2,10),(2,'A',4,10),(3,'B',NULL,5),(4,'B',0,2);\n"
-      }
+      },
+      "question": "COUNT(*)는 몇을 셀까요?"
     },
     {
       "id": "stp_7bf866e4-1440-4cec-b230-17d32c9b6b4f",
       "title": "합계와 평균의 분모를 읽어요",
-      "goal": "SUM과 AVG의 NULL 제외를 이해해요.",
+      "goal": "qty는 2, 4, NULL, 0이에요. SUM과 AVG는 NULL을 빼고 계산해요.\nSUM(qty)는 얼마일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "sql",
       "starter_code": "",
       "solution": "sum",
@@ -236,8 +238,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "NULL을 뺀 값으로 합계를 구하는 문제예요.",
+          "target": "text:SUM(qty)는 얼마일까요?"
+        },
+        {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -252,11 +258,10 @@
           "action": "patch_code",
           "before": "SUM(qty)",
           "after": "AVG(qty)",
-          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+          "say": "SUM을 AVG로 바꿔 볼게요."
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -275,12 +280,10 @@
         {
           "action": "patch_code",
           "before": "AVG(qty)",
-          "after": "SUM(qty)",
-          "say": "문제의 처음 SQL로 돌아와요."
+          "after": "SUM(qty)"
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -288,7 +291,7 @@
         },
         {
           "action": "say",
-          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "text": "처음 SQL은 알려진 2, 4, 0을 더해 6이에요.",
           "target": "output"
         },
         {
@@ -299,12 +302,13 @@
       "predict_before_run": true,
       "files": {
         "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, category TEXT, qty INTEGER, price INTEGER);\nINSERT INTO stocks VALUES(1,'A',2,10),(2,'A',4,10),(3,'B',NULL,5),(4,'B',0,2);\n"
-      }
+      },
+      "question": "SUM(qty)는 얼마일까요?"
     },
     {
       "id": "stp_84cef749-ba19-4d41-9d67-b81cc742a8ce",
       "title": "같은 분류끼리 모아요",
-      "goal": "GROUP BY의 그룹별 집계를 이해해요.",
+      "goal": "GROUP BY category는 분류가 같은 행끼리 묶어, 묶음마다 집계를 한 행씩 내요.\n분류별 합계는 어떻게 나올까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "sql",
       "starter_code": "",
       "solution": "group",
@@ -316,7 +320,7 @@
         "options": [
           {
             "id": "one",
-            "text": "전체 네 행을 항상 결과 한 행으로 만들어요"
+            "text": "분류와 상관없이 전체 합계 한 행만 나와요"
           },
           {
             "id": "group",
@@ -327,8 +331,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "분류별로 묶어 합계를 내는 결과를 고르는 문제예요.",
+          "target": "text:분류별 합계는 어떻게 나올까요?"
+        },
+        {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -343,11 +351,10 @@
           "action": "patch_code",
           "before": "SUM(qty)",
           "after": "COUNT(*)",
-          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+          "say": "SUM(qty)를 COUNT(*)로 바꿔 볼게요."
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -366,12 +373,10 @@
         {
           "action": "patch_code",
           "before": "COUNT(*)",
-          "after": "SUM(qty)",
-          "say": "문제의 처음 SQL로 돌아와요."
+          "after": "SUM(qty)"
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -379,7 +384,7 @@
         },
         {
           "action": "say",
-          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "text": "처음 SQL은 A 6, B 0으로 분류마다 한 행이에요.",
           "target": "output"
         },
         {
@@ -390,12 +395,13 @@
       "predict_before_run": true,
       "files": {
         "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, category TEXT, qty INTEGER, price INTEGER);\nINSERT INTO stocks VALUES(1,'A',2,10),(2,'A',4,10),(3,'B',NULL,5),(4,'B',0,2);\n"
-      }
+      },
+      "question": "분류별 합계는 어떻게 나올까요?"
     },
     {
       "id": "stp_2d84191f-6af1-4b64-a8af-fe7c9f28607f",
       "title": "그룹의 조건으로 고르세요",
-      "goal": "HAVING의 집계 뒤 조건을 구별해요.",
+      "goal": "HAVING은 GROUP BY로 묶은 뒤 그룹의 집계값에 거는 조건이에요. 분류 합계가 5 이상인 분류만 보려 해요.\n어떤 분류가 남을까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "sql",
       "starter_code": "",
       "solution": "aggregate",
@@ -418,8 +424,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "묶은 뒤 합계에 건 조건으로 남는 분류를 고르는 문제예요.",
+          "target": "text:어떤 분류가 남을까요?"
+        },
+        {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -434,11 +444,10 @@
           "action": "patch_code",
           "before": "HAVING SUM(qty)>=5",
           "after": "HAVING COUNT(*)>=2",
-          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+          "say": "HAVING 조건을 행 개수 COUNT(*)>=2로 바꿔 볼게요."
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -457,12 +466,10 @@
         {
           "action": "patch_code",
           "before": "HAVING COUNT(*)>=2",
-          "after": "HAVING SUM(qty)>=5",
-          "say": "문제의 처음 SQL로 돌아와요."
+          "after": "HAVING SUM(qty)>=5"
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -470,7 +477,7 @@
         },
         {
           "action": "say",
-          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "text": "처음 SQL은 합계 6인 A만 남겨요.",
           "target": "output"
         },
         {
@@ -481,12 +488,13 @@
       "predict_before_run": true,
       "files": {
         "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, category TEXT, qty INTEGER, price INTEGER);\nINSERT INTO stocks VALUES(1,'A',2,10),(2,'A',4,10),(3,'B',NULL,5),(4,'B',0,2);\n"
-      }
+      },
+      "question": "어떤 분류가 남을까요?"
     },
     {
       "id": "stp_7155b2a4-71c0-4f85-baf8-3c33bb06ac6d",
       "title": "행을 거른 뒤 모으세요",
-      "goal": "WHERE가 집계 입력을 바꿈을 이해해요.",
+      "goal": "WHERE는 묶기 전에 행을 거르는 조건이에요. qty가 3 이상인 행만 남긴 뒤 분류별로 더해요.\nA 분류의 합계는 어떻게 될까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "sql",
       "starter_code": "",
       "solution": "before",
@@ -509,8 +517,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "묶기 전에 행을 거르면 합계가 어떻게 바뀌는지 보는 문제예요.",
+          "target": "text:A 분류의 합계는 어떻게 될까요?"
+        },
+        {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -525,11 +537,10 @@
           "action": "patch_code",
           "before": "WHERE qty>=3",
           "after": "WHERE 1=1",
-          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+          "say": "WHERE 조건을 늘 참인 1=1로 바꿔 볼게요."
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -548,12 +559,10 @@
         {
           "action": "patch_code",
           "before": "WHERE 1=1",
-          "after": "WHERE qty>=3",
-          "say": "문제의 처음 SQL로 돌아와요."
+          "after": "WHERE qty>=3"
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -561,7 +570,7 @@
         },
         {
           "action": "say",
-          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "text": "처음 SQL은 묶기 전에 4만 남아 A 합계가 4예요.",
           "target": "output"
         },
         {
@@ -572,12 +581,13 @@
       "predict_before_run": true,
       "files": {
         "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, category TEXT, qty INTEGER, price INTEGER);\nINSERT INTO stocks VALUES(1,'A',2,10),(2,'A',4,10),(3,'B',NULL,5),(4,'B',0,2);\n"
-      }
+      },
+      "question": "A 분류의 합계는 어떻게 될까요?"
     },
     {
       "id": "stp_48327545-cfb5-4bc0-ac9e-fba78f15aefe",
       "title": "집계 안의 중복을 구별해요",
-      "goal": "COUNT DISTINCT와 전체 값 개수를 구별해요.",
+      "goal": "COUNT(DISTINCT category)는 집계 안에서 분류 값의 중복을 빼고 세요.\n결과는 무엇을 셀까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "sql",
       "starter_code": "",
       "solution": "kinds",
@@ -600,8 +610,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "집계 안의 DISTINCT가 무엇을 세는지 고르는 문제예요.",
+          "target": "text:결과는 무엇을 셀까요?"
+        },
+        {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -616,11 +630,10 @@
           "action": "patch_code",
           "before": "COUNT(DISTINCT category)",
           "after": "COUNT(category)",
-          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+          "say": "DISTINCT를 빼 볼게요."
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -639,12 +652,10 @@
         {
           "action": "patch_code",
           "before": "COUNT(category)",
-          "after": "COUNT(DISTINCT category)",
-          "say": "문제의 처음 SQL로 돌아와요."
+          "after": "COUNT(DISTINCT category)"
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -652,7 +663,7 @@
         },
         {
           "action": "say",
-          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "text": "처음 SQL은 서로 다른 분류 A, B 두 개를 세요.",
           "target": "output"
         },
         {
@@ -663,12 +674,13 @@
       "predict_before_run": true,
       "files": {
         "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, category TEXT, qty INTEGER, price INTEGER);\nINSERT INTO stocks VALUES(1,'A',2,10),(2,'A',4,10),(3,'B',NULL,5),(4,'B',0,2);\n"
-      }
+      },
+      "question": "결과는 무엇을 셀까요?"
     },
     {
       "id": "stp_f84c654f-64d7-420e-8b96-83f3f8eec1d0",
       "title": "같은 순위 뒤의 빈 번호를 읽어요",
-      "goal": "RANK와 DENSE_RANK의 동점을 구별해요.",
+      "goal": "RANK() OVER(ORDER BY price DESC)는 가격이 높은 순서로 순위를 매겨요. ID 1과 2는 가격이 같은 10이에요.\n동점 다음 물건은 몇 등일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "sql",
       "starter_code": "",
       "solution": "gap",
@@ -680,7 +692,7 @@
         "options": [
           {
             "id": "dense",
-            "text": "RANK도 언제나 다음을2등으로 붙여요"
+            "text": "동점 다음은 2등이에요"
           },
           {
             "id": "gap",
@@ -691,8 +703,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "동점이 있을 때 RANK가 다음 번호를 어떻게 매기는지 보는 문제예요.",
+          "target": "text:동점 다음 물건은 몇 등일까요?"
+        },
+        {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -707,11 +723,10 @@
           "action": "patch_code",
           "before": "RANK()",
           "after": "DENSE_RANK()",
-          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+          "say": "RANK를 DENSE_RANK로 바꿔 볼게요."
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -730,12 +745,10 @@
         {
           "action": "patch_code",
           "before": "DENSE_RANK()",
-          "after": "RANK()",
-          "say": "문제의 처음 SQL로 돌아와요."
+          "after": "RANK()"
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -743,7 +756,7 @@
         },
         {
           "action": "say",
-          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "text": "처음 SQL은 공동 1등이 둘이라 다음이 3등이에요.",
           "target": "output"
         },
         {
@@ -754,12 +767,13 @@
       "predict_before_run": true,
       "files": {
         "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, category TEXT, qty INTEGER, price INTEGER);\nINSERT INTO stocks VALUES(1,'A',2,10),(2,'A',4,10),(3,'B',NULL,5),(4,'B',0,2);\n"
-      }
+      },
+      "question": "동점 다음 물건은 몇 등일까요?"
     },
     {
       "id": "stp_e910888c-b30f-47d7-bdb9-2d0ef1eb83ae",
       "title": "분류마다 번호를 다시 매겨요",
-      "goal": "PARTITION BY의 창 분할을 이해해요.",
+      "goal": "ROW_NUMBER() OVER(PARTITION BY category ORDER BY id)는 분류마다 따로 1부터 번호를 매기는 윈도우 함수예요.\n번호는 어떻게 매겨질까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "sql",
       "starter_code": "",
       "solution": "parts",
@@ -782,8 +796,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "분류마다 다시 시작하는 번호를 읽는 문제예요.",
+          "target": "text:번호는 어떻게 매겨질까요?"
+        },
+        {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -798,11 +816,10 @@
           "action": "patch_code",
           "before": "SELECT id, ROW_NUMBER() OVER(PARTITION BY category ORDER BY id) AS r FROM stocks ORDER BY id;",
           "after": "SELECT id, ROW_NUMBER() OVER(ORDER BY id) AS r FROM stocks ORDER BY id;",
-          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+          "say": "PARTITION BY를 빼고 전체에 번호를 매겨 볼게요."
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -821,12 +838,10 @@
         {
           "action": "patch_code",
           "before": "SELECT id, ROW_NUMBER() OVER(ORDER BY id) AS r FROM stocks ORDER BY id;",
-          "after": "SELECT id, ROW_NUMBER() OVER(PARTITION BY category ORDER BY id) AS r FROM stocks ORDER BY id;",
-          "say": "문제의 처음 SQL로 돌아와요."
+          "after": "SELECT id, ROW_NUMBER() OVER(PARTITION BY category ORDER BY id) AS r FROM stocks ORDER BY id;"
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -834,7 +849,7 @@
         },
         {
           "action": "say",
-          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "text": "처음 SQL은 A와 B 안에서 각각 1, 2예요.",
           "target": "output"
         },
         {
@@ -845,12 +860,13 @@
       "predict_before_run": true,
       "files": {
         "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, category TEXT, qty INTEGER, price INTEGER);\nINSERT INTO stocks VALUES(1,'A',2,10),(2,'A',4,10),(3,'B',NULL,5),(4,'B',0,2);\n"
-      }
+      },
+      "question": "번호는 어떻게 매겨질까요?"
     },
     {
       "id": "stp_9ff15bee-38b5-458e-9b34-dec3d1467076",
       "title": "지금 행까지의 합계를 읽어요",
-      "goal": "누적 창과 전체 창의 범위를 구별해요.",
+      "goal": "SUM(qty) OVER(ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)는 첫 행부터 지금 행까지의 합이에요.\n각 행에 보이는 값은 무엇일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "sql",
       "starter_code": "",
       "solution": "running",
@@ -862,7 +878,7 @@
         "options": [
           {
             "id": "total",
-            "text": "첫 행부터 무조건 전체 합6이에요"
+            "text": "모든 행에 전체 합계 6이 보여요"
           },
           {
             "id": "running",
@@ -873,8 +889,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "누적 합의 창 범위를 읽는 문제예요.",
+          "target": "text:각 행에 보이는 값은 무엇일까요?"
+        },
+        {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -889,11 +909,10 @@
           "action": "patch_code",
           "before": "AND CURRENT ROW",
           "after": "AND UNBOUNDED FOLLOWING",
-          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+          "say": "창의 끝을 UNBOUNDED FOLLOWING으로 늘려 볼게요."
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -906,18 +925,16 @@
         },
         {
           "action": "say",
-          "text": "조심하세요. ROWS의 범위와 동점 묶음을 다루는 다른 프레임 규칙을 섞지 않아요.",
+          "text": "조심하세요. ROWS 범위는 행 위치로 끝을 정해요. 끝을 CURRENT ROW로 두면 아래 행의 값은 아직 더하지 않아요.",
           "target": "output"
         },
         {
           "action": "patch_code",
           "before": "AND UNBOUNDED FOLLOWING",
-          "after": "AND CURRENT ROW",
-          "say": "문제의 처음 SQL로 돌아와요."
+          "after": "AND CURRENT ROW"
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -925,7 +942,7 @@
         },
         {
           "action": "say",
-          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "text": "처음 SQL은 지금 행까지의 합이라 2, 6, 6, 6이에요.",
           "target": "output"
         },
         {
@@ -936,15 +953,16 @@
       "predict_before_run": true,
       "files": {
         "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, category TEXT, qty INTEGER, price INTEGER);\nINSERT INTO stocks VALUES(1,'A',2,10),(2,'A',4,10),(3,'B',NULL,5),(4,'B',0,2);\n"
-      }
+      },
+      "question": "각 행에 보이는 값은 무엇일까요?"
     },
     {
-      "id": "stp_8bda2903-1957-447c-9b4e-a4b6f37ab592",
-      "title": "분류 합계의 기준을 고쳐요",
-      "goal": "분류별 재고 합계가5 이상인 것만 남기세요.\nHAVING의 숫자 한 곳을 고치세요.",
+      "id": "stp_e9558bc9-71cf-4b2c-8c02-49866fe04f73",
+      "title": "묶은 뒤의 합계로 골라요",
+      "goal": "분류별 재고 합계가 4 이상인 분류만 보고해야 해요. 준비 질의는 조건을 WHERE에 두어 qty가 4 이상인 행만 더해요.\n조건이 묶은 뒤의 합계에 걸리도록 질의를 고치세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 결과를 확인하세요.\n2. 조건이 행에 걸리는지 그룹 합계에 걸리는지 보세요.\n3. 조건을 그룹 합계에 거는 자리로 옮겨 고치세요.\n4. 다시 실행해 분류 합계로 골랐는지 비교하세요.\n5. 수정한 질의를 제출하세요.",
       "language": "sql",
-      "starter_code": "SELECT category, SUM(qty) AS n FROM stocks GROUP BY category HAVING SUM(qty)>=0 ORDER BY category;",
-      "solution": "SELECT category, SUM(qty) AS n FROM stocks GROUP BY category HAVING SUM(qty)>=5 ORDER BY category;",
+      "starter_code": "SELECT category, SUM(qty) AS n FROM stocks WHERE qty>=4 GROUP BY category ORDER BY category;",
+      "solution": "SELECT category, SUM(qty) AS n FROM stocks GROUP BY category HAVING SUM(qty)>=4 ORDER BY category;",
       "tests": [
         {
           "input": "",
@@ -954,8 +972,17 @@
       "required": true,
       "narration": [
         {
+          "action": "say",
+          "text": "조건을 거는 시점이 문제예요. 행을 거른 뒤 더할지, 더한 뒤 합계로 고를지에 따라 결과가 달라요.",
+          "target": "text:분류별 재고 합계가 4 이상인 분류만 보고해야 해요."
+        },
+        {
+          "action": "say",
+          "text": "지금 조건은 묶기 전 WHERE에 있어요.",
+          "target": "code:WHERE qty>=4"
+        },
+        {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -963,32 +990,13 @@
         },
         {
           "action": "say",
-          "text": "지금 영 이상으로 골라 비도 나왔어요. 기준을 오 이상으로 고쳐요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "SUM(qty)>=0",
-          "after": "SUM(qty)>=5",
-          "say": "기준을 합계 오 이상으로 고쳐요."
-        },
-        {
-          "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
-          "lines": [
-            1,
-            1
-          ]
-        },
-        {
-          "action": "say",
-          "text": "합계가 오 이상인 에이 육만 남아요.",
+          "text": "A | 4가 나왔어요. A의 실제 합계는 2와 4를 더한 6인데, qty 4인 행만 더해졌어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 다른 분류가 기준을 넘는 자료도 같은 집계 조건으로 골라야 해요.",
-          "target": "output"
+          "text": "조심하세요. 5번처럼 WHERE는 묶기 전에 행을 버려요. 그룹 합계에 거는 조건은 4번에서 본 자리에 둬요.",
+          "target": "code:GROUP BY category"
         }
       ],
       "files": {
@@ -1005,7 +1013,7 @@
           "files": {
             "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, category TEXT, qty INTEGER, price INTEGER);\nINSERT INTO stocks VALUES(1,'A',1,10),(2,'A',3,10),(3,'B',NULL,5),(4,'B',0,2);\n"
           },
-          "expected": "category | n\n(행 없음)"
+          "expected": "category | n\nA | 4"
         }
       ]
     }

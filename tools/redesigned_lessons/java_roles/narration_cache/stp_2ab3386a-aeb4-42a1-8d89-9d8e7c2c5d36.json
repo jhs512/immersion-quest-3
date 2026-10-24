@@ -1,20 +1,19 @@
 {
   "by": "hand",
-  "source_sha256": "2454833128d53576376c5b7a132e12e3a7c019cc95a945d328ab2fca0201c023",
+  "source_sha256": "bfa245e5b6eb372ee43767cc500949fa294a6ca5815a2158edb5414e5106cf08",
   "entry": [
     {
       "action": "say",
-      "text": "이 인터페이스 계약은 공개된 인스턴스 메서드예요. 구현에서 공개 범위를 줄여도 될까요?",
-      "target": "problem"
+      "text": "인터페이스의 fee는 public으로 약속돼 있어요. StandardFee에서 public이 빠졌어요.",
+      "target": "text:이번엔 StandardFee의 fee 앞에 public이 빠졌어요."
     },
     {
       "action": "say",
-      "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-      "target": "problem"
+      "text": "public 없이 쓴 이 메서드는 같은 패키지 안에서만 부를 수 있어요.",
+      "target": "code:    int fee() { return 2500; }"
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         13,
         13
@@ -23,18 +22,17 @@
     },
     {
       "action": "say",
-      "text": "계약보다 접근 범위를 줄여 컴파일되지 않아요.",
+      "text": "weaker access 컴파일 오류예요. 약속보다 좁게 열 수 없어요.",
       "target": "output"
     },
     {
       "action": "patch_code",
       "before": "    int fee() { return 2500; }",
       "after": "    public int fee() { return 2500; }",
-      "say": "공개된 계약을 구현에서도 지켜요."
+      "say": "구현에도 public을 붙여요."
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         13,
         13
@@ -42,13 +40,13 @@
     },
     {
       "action": "say",
-      "text": "계약에 맞는 구현을 호출해 이천오백을 얻었어요.",
+      "text": "2,500이에요. 약속을 지킨 구현이 호출됐어요.",
       "target": "output"
     },
     {
       "action": "say",
-      "text": "조심하세요. 지금은 이 추상 인스턴스 메서드의 계약을 확인한 거예요.",
-      "target": "output"
+      "text": "조심하세요. 인터페이스를 구현한 메서드는 인터페이스가 약속한 공개 범위 이상으로 열어야 해요.",
+      "target": "code:interface FeePolicy { int fee(); }"
     },
     {
       "action": "choose_answer",

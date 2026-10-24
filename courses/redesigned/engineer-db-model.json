@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_c84b0351-bae9-4d7c-8842-d19c0ee17ad3",
-  "revision": "engineer-db-model-1",
+  "revision": "engineer-db-model-2",
   "title": "DB · 같은 물건을 표와 키로 구별해요",
   "description": "SQLite로 같은 준비 표를 독립 실행해요. 실제 시험 DBMS의 제품 문법은 별도로 구별해요.",
   "objectives": [
@@ -109,7 +109,7 @@
     {
       "id": "stp_b8e2b0df-b86c-4377-b758-bad85d831756",
       "title": "같은 표의 행을 읽어요",
-      "goal": "행과 열·정렬 기준을 구별해요.",
+      "goal": "items 표는 물건마다 한 행이고 id·name·stock 열이 있어요. SELECT id, name은 두 열을 고르고 ORDER BY id는 id 순서로 결과를 정렬해요.\n한 행의 ID와 이름은 어떤 관계일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "sql",
       "starter_code": "",
       "solution": "rows",
@@ -132,8 +132,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "행 하나가 물건 하나라는 표의 기본 구조와, 정렬이 행의 짝을 바꾸지 않는다는 점을 묻는 문제예요.",
+          "target": "text:한 행의 ID와 이름은 어떤 관계일까요?"
+        },
+        {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -148,11 +152,10 @@
           "action": "patch_code",
           "before": "id, name FROM items ORDER BY id",
           "after": "name FROM items ORDER BY name",
-          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+          "say": "name 열만 고르고 이름순으로 정렬해 볼게요."
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -172,11 +175,10 @@
           "action": "patch_code",
           "before": "name FROM items ORDER BY name",
           "after": "id, name FROM items ORDER BY id",
-          "say": "문제의 처음 SQL로 돌아와요."
+          "say": "처음 SQL로 되돌려요."
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -184,7 +186,7 @@
         },
         {
           "action": "say",
-          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "text": "처음 SQL은 각 행에서 같은 물건의 ID와 이름을 함께 보여 줘요.",
           "target": "output"
         },
         {
@@ -195,12 +197,13 @@
       "predict_before_run": true,
       "files": {
         "setup.sql": "-- ID는 물건을 구별하고 이름은 겹칠 수 있어요.\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL, stock INTEGER CHECK(stock>=0));\nINSERT INTO items VALUES(1,'pen',2),(2,'pen',3),(3,'book',NULL);\nCREATE TABLE lots(item_id INTEGER REFERENCES items(id), batch INTEGER, PRIMARY KEY(item_id,batch));\nINSERT INTO lots VALUES(1,1),(1,2),(2,1);\n"
-      }
+      },
+      "question": "한 행의 ID와 이름은 어떤 관계일까요?"
     },
     {
       "id": "stp_10120cb0-f8e8-40b9-b7ee-f6d40905335f",
       "title": "이름이 겹쳐도 ID로 구별해요",
-      "goal": "후보 식별자의 유일성을 읽어요.",
+      "goal": "items에는 이름이 pen인 물건이 둘 있어요. COUNT(DISTINCT 열)은 그 열의 서로 다른 값 개수를 세요.\n지금 세 물건을 각각 구별하는 열은 무엇일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "sql",
       "starter_code": "",
       "solution": "id",
@@ -212,7 +215,7 @@
         "options": [
           {
             "id": "name",
-            "text": "이름도 언제나 각 물건을 유일하게 구별해요"
+            "text": "이름도 ID처럼 세 물건을 하나씩 구별해요"
           },
           {
             "id": "id",
@@ -223,8 +226,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "이름과 ID 가운데 지금 자료에서 겹치지 않는 열을 찾는 문제예요.",
+          "target": "text:지금 세 물건을 각각 구별하는 열은 무엇일까요?"
+        },
+        {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -239,11 +246,10 @@
           "action": "patch_code",
           "before": "DISTINCT id",
           "after": "DISTINCT name",
-          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+          "say": "DISTINCT의 대상을 name으로 바꿔 볼게요."
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -268,11 +274,10 @@
           "action": "patch_code",
           "before": "DISTINCT name",
           "after": "DISTINCT id",
-          "say": "문제의 처음 SQL로 돌아와요."
+          "say": "DISTINCT id로 되돌려요."
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -280,7 +285,7 @@
         },
         {
           "action": "say",
-          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "text": "처음 SQL은 서로 다른 ID 세 개로 세 물건을 구별해요.",
           "target": "output"
         },
         {
@@ -291,12 +296,13 @@
       "predict_before_run": true,
       "files": {
         "setup.sql": "-- ID는 물건을 구별하고 이름은 겹칠 수 있어요.\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL, stock INTEGER CHECK(stock>=0));\nINSERT INTO items VALUES(1,'pen',2),(2,'pen',3),(3,'book',NULL);\nCREATE TABLE lots(item_id INTEGER REFERENCES items(id), batch INTEGER, PRIMARY KEY(item_id,batch));\nINSERT INTO lots VALUES(1,1),(1,2),(2,1);\n"
-      }
+      },
+      "question": "지금 세 물건을 각각 구별하는 열은 무엇일까요?"
     },
     {
       "id": "stp_d5a9be0f-aa9c-4da6-a907-0d1136434970",
       "title": "모르는 값과 행 수를 나눠요",
-      "goal": "NULL과 행·열 개수의 차이를 구별해요.",
+      "goal": "세 번째 물건 book은 재고를 아직 몰라 stock이 NULL이에요. COUNT(*)는 행 수를 세요.\n재고가 NULL인 물건의 행은 어떻게 될까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "sql",
       "starter_code": "",
       "solution": "rows",
@@ -319,8 +325,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "값을 모르는 칸이 있어도 행이 사라지지 않는다는 점을 행 수로 확인하는 문제예요.",
+          "target": "text:재고가 NULL인 물건의 행은 어떻게 될까요?"
+        },
+        {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -335,11 +345,10 @@
           "action": "patch_code",
           "before": "COUNT(*)",
           "after": "COUNT(stock)",
-          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+          "say": "COUNT(*)를 COUNT(stock)으로 바꿔 볼게요."
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -359,11 +368,10 @@
           "action": "patch_code",
           "before": "COUNT(stock)",
           "after": "COUNT(*)",
-          "say": "문제의 처음 SQL로 돌아와요."
+          "say": "COUNT(*)로 되돌려요."
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -371,7 +379,7 @@
         },
         {
           "action": "say",
-          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "text": "처음 SQL은 NULL인 행도 세서 3이에요.",
           "target": "output"
         },
         {
@@ -382,12 +390,13 @@
       "predict_before_run": true,
       "files": {
         "setup.sql": "-- ID는 물건을 구별하고 이름은 겹칠 수 있어요.\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL, stock INTEGER CHECK(stock>=0));\nINSERT INTO items VALUES(1,'pen',2),(2,'pen',3),(3,'book',NULL);\nCREATE TABLE lots(item_id INTEGER REFERENCES items(id), batch INTEGER, PRIMARY KEY(item_id,batch));\nINSERT INTO lots VALUES(1,1),(1,2),(2,1);\n"
-      }
+      },
+      "question": "재고가 NULL인 물건의 행은 어떻게 될까요?"
     },
     {
       "id": "stp_6febadfa-0994-46f4-a8d5-92f32767c21a",
       "title": "다른 표의 물건을 연결해요",
-      "goal": "외래 키와 참조 대상의 관계를 읽어요.",
+      "goal": "lots 표는 물건 이름 없이 item_id 번호만 가져요. setup.sql은 item_id INTEGER REFERENCES items(id)로 만들었어요. JOIN items ON lots.item_id=items.id는 lots의 각 행을 같은 번호의 items 행과 이어 붙여요.\nlot의 item_id는 무엇을 가리킬까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "sql",
       "starter_code": "",
       "solution": "key",
@@ -403,15 +412,25 @@
           },
           {
             "id": "text",
-            "text": "이름 글자가 같으면 아무 물건이나 가리켜도 돼요"
+            "text": "lot는 물건 이름 글자로 items와 이어져요"
           }
         ],
         "answer": "key"
       },
       "narration": [
         {
+          "action": "say",
+          "text": "lots에는 물건 이름이 없어요. 번호 item_id가 items의 어느 행을 가리키는지 확인하는 문제예요.",
+          "target": "text:lots 표는 물건 이름 없이 item_id 번호만 가져요."
+        },
+        {
+          "action": "patch_code",
+          "before": "SELECT lots.item_id, items.name FROM lots JOIN items ON lots.item_id=items.id ORDER BY lots.item_id, lots.batch;",
+          "after": "SELECT item_id, batch FROM lots ORDER BY item_id, batch;",
+          "say": "먼저 lots 표만 따로 읽어 볼게요."
+        },
+        {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -419,18 +438,17 @@
         },
         {
           "action": "say",
-          "text": "로트 세 행이 각 ID의 물건에 연결됐어요.",
+          "text": "item_id 1이 두 행, 2가 한 행이에요. 번호뿐이라 어떤 물건인지는 items의 id를 봐야 알아요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "ORDER BY lots.item_id, lots.batch",
-          "after": "WHERE lots.item_id=2 ORDER BY lots.item_id, lots.batch",
-          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+          "before": "SELECT item_id, batch FROM lots ORDER BY item_id, batch;",
+          "after": "SELECT lots.item_id, items.name FROM lots JOIN items ON lots.item_id=items.id ORDER BY lots.item_id, lots.batch;",
+          "say": "JOIN으로 같은 번호의 items 행을 이어 붙여요."
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             1
@@ -438,32 +456,13 @@
         },
         {
           "action": "say",
-          "text": "ID 이인 물건만 고르면 한 로트만 남아요.",
+          "text": "item_id 1은 items의 id 1인 pen, 2는 id 2인 pen에 이어졌어요. 이름이 같은 두 pen도 번호로 정확히 갈려요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 중복 가능한 이름 대신 참조 키의 값을 맞춰요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "WHERE lots.item_id=2 ORDER BY lots.item_id, lots.batch",
-          "after": "ORDER BY lots.item_id, lots.batch",
-          "say": "문제의 처음 SQL로 돌아와요."
-        },
-        {
-          "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
-          "lines": [
-            1,
-            1
-          ]
-        },
-        {
-          "action": "say",
-          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
-          "target": "output"
+          "text": "조심하세요. 이름 pen은 두 물건에 겹쳐서 연결 기준이 될 수 없어요. 외래 키 item_id의 값이 items의 id와 맞아야 해요.",
+          "target": "code:ON lots.item_id=items.id"
         },
         {
           "action": "choose_answer",
@@ -473,12 +472,13 @@
       "predict_before_run": true,
       "files": {
         "setup.sql": "-- ID는 물건을 구별하고 이름은 겹칠 수 있어요.\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL, stock INTEGER CHECK(stock>=0));\nINSERT INTO items VALUES(1,'pen',2),(2,'pen',3),(3,'book',NULL);\nCREATE TABLE lots(item_id INTEGER REFERENCES items(id), batch INTEGER, PRIMARY KEY(item_id,batch));\nINSERT INTO lots VALUES(1,1),(1,2),(2,1);\n"
-      }
+      },
+      "question": "lot의 item_id는 무엇을 가리킬까요?"
     },
     {
       "id": "stp_408577f8-70ac-4673-ab29-c637d16c04ec",
       "title": "기본 키의 중복을 확인해요",
-      "goal": "기본 키가 같은 두 행을 거절함을 이해해요.",
+      "goal": "setup.sql은 items를 id INTEGER PRIMARY KEY로 만들었어요. 이미 있는 ID 1로 bag을 하나 더 넣으려 해요.\n이 INSERT는 어떻게 될까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "sql",
       "starter_code": "",
       "solution": "reject",
@@ -494,15 +494,19 @@
           },
           {
             "id": "replace",
-            "text": "기본 INSERT는 기존 행을 항상 바꿔요"
+            "text": "같은 ID면 기존 행을 새 값으로 바꿔 넣어요"
           }
         ],
         "answer": "reject"
       },
       "narration": [
         {
+          "action": "say",
+          "text": "기본 키가 같은 행을 두 번 넣을 수 있는지 판단하는 문제예요.",
+          "target": "text:이 INSERT는 어떻게 될까요?"
+        },
+        {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             2
@@ -518,11 +522,10 @@
           "action": "patch_code",
           "before": "VALUES(1,",
           "after": "VALUES(4,",
-          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+          "say": "새 ID 4로 바꿔 볼게요."
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             2
@@ -535,18 +538,17 @@
         },
         {
           "action": "say",
-          "text": "조심하세요. INSERT와 기존 행을 수정하는 UPDATE를 구별해요.",
+          "text": "조심하세요. INSERT는 새 행을 넣기만 해요. 같은 키의 행을 고치려면 UPDATE를 써요.",
           "target": "output"
         },
         {
           "action": "patch_code",
           "before": "VALUES(4,",
           "after": "VALUES(1,",
-          "say": "문제의 처음 SQL로 돌아와요."
+          "say": "ID 1로 되돌려요."
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             2
@@ -555,7 +557,7 @@
         },
         {
           "action": "say",
-          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "text": "처음 SQL은 ID 1이 이미 있어 기본 키 제약이 거절해요.",
           "target": "output"
         },
         {
@@ -566,12 +568,13 @@
       "predict_before_run": true,
       "files": {
         "setup.sql": "-- ID는 물건을 구별하고 이름은 겹칠 수 있어요.\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL, stock INTEGER CHECK(stock>=0));\nINSERT INTO items VALUES(1,'pen',2),(2,'pen',3),(3,'book',NULL);\nCREATE TABLE lots(item_id INTEGER REFERENCES items(id), batch INTEGER, PRIMARY KEY(item_id,batch));\nINSERT INTO lots VALUES(1,1),(1,2),(2,1);\n"
-      }
+      },
+      "question": "이 INSERT는 어떻게 될까요?"
     },
     {
       "id": "stp_ac2732a0-6c29-4b2f-b2cd-bddb338fa894",
       "title": "반드시 있어야 하는 값을 확인해요",
-      "goal": "NOT NULL 제약과 빈 문자열을 구별해요.",
+      "goal": "setup.sql은 name TEXT NOT NULL, stock INTEGER CHECK(stock>=0)으로 만들었어요. 이름 없이(NULL) 새 물건을 넣으려 해요.\n이 INSERT는 어떻게 될까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "sql",
       "starter_code": "",
       "solution": "missing",
@@ -583,7 +586,7 @@
         "options": [
           {
             "id": "empty",
-            "text": "NULL은 항상 빈 글자와 같으므로 허용해요"
+            "text": "NULL은 빈 이름으로 바뀌어 들어가요"
           },
           {
             "id": "missing",
@@ -594,8 +597,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "반드시 있어야 하는 열에 NULL을 넣을 때를 판단하는 문제예요.",
+          "target": "text:이 INSERT는 어떻게 될까요?"
+        },
+        {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             2
@@ -611,11 +618,10 @@
           "action": "patch_code",
           "before": "VALUES(4,NULL,1)",
           "after": "VALUES(4,'bag',1)",
-          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+          "say": "이름 bag을 넣어 볼게요."
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             2
@@ -639,12 +645,30 @@
         {
           "action": "patch_code",
           "before": "VALUES(4,'bag',1)",
-          "after": "VALUES(4,NULL,1)",
-          "say": "문제의 처음 SQL로 돌아와요."
+          "after": "VALUES(4,'bag',-1)",
+          "say": "이름은 두고 재고를 -1로 바꿔 볼게요."
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
+          "lines": [
+            1,
+            2
+          ],
+          "expect_error": "CHECK constraint failed"
+        },
+        {
+          "action": "say",
+          "text": "CHECK(stock>=0) 제약이 음수 재고를 거절했어요. NOT NULL과 다른 줄의 규칙이에요.",
+          "target": "code:INSERT INTO items"
+        },
+        {
+          "action": "patch_code",
+          "before": "VALUES(4,'bag',-1)",
+          "after": "VALUES(4,NULL,1)",
+          "say": "이름 없는 처음 SQL로 되돌려요."
+        },
+        {
+          "action": "run",
           "lines": [
             1,
             2
@@ -653,7 +677,7 @@
         },
         {
           "action": "say",
-          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "text": "처음 SQL은 이름이 NULL이라 NOT NULL 제약이 거절해요.",
           "target": "output"
         },
         {
@@ -664,12 +688,13 @@
       "predict_before_run": true,
       "files": {
         "setup.sql": "-- ID는 물건을 구별하고 이름은 겹칠 수 있어요.\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL, stock INTEGER CHECK(stock>=0));\nINSERT INTO items VALUES(1,'pen',2),(2,'pen',3),(3,'book',NULL);\nCREATE TABLE lots(item_id INTEGER REFERENCES items(id), batch INTEGER, PRIMARY KEY(item_id,batch));\nINSERT INTO lots VALUES(1,1),(1,2),(2,1);\n"
-      }
+      },
+      "question": "이 INSERT는 어떻게 될까요?"
     },
     {
       "id": "stp_9b281cb9-6312-43d5-a022-e61bee8a8e6f",
       "title": "없는 물건의 참조를 확인해요",
-      "goal": "참조 무결성이 없는 부모 키를 거절함을 이해해요.",
+      "goal": "lots의 item_id는 items(id)를 참조해요. items에는 ID 9인 물건이 없는데 ID 9의 로트를 넣으려 해요.\n이 INSERT는 어떻게 될까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "sql",
       "starter_code": "",
       "solution": "parent",
@@ -685,15 +710,19 @@
           },
           {
             "id": "auto",
-            "text": "외래 키를 쓰면 ID9 물건도 자동 생성돼요"
+            "text": "로트 번호만 있으면 없는 물건이어도 들어가요"
           }
         ],
         "answer": "parent"
       },
       "narration": [
         {
+          "action": "say",
+          "text": "참조하는 부모 행이 없을 때 자식 행을 넣을 수 있는지 판단하는 문제예요.",
+          "target": "text:이 INSERT는 어떻게 될까요?"
+        },
+        {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             2
@@ -709,11 +738,10 @@
           "action": "patch_code",
           "before": "VALUES(9,1)",
           "after": "VALUES(3,1)",
-          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+          "say": "존재하는 ID 3으로 바꿔 볼게요."
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             2
@@ -738,11 +766,10 @@
           "action": "patch_code",
           "before": "VALUES(3,1)",
           "after": "VALUES(9,1)",
-          "say": "문제의 처음 SQL로 돌아와요."
+          "say": "ID 9로 되돌려요."
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             2
@@ -751,7 +778,7 @@
         },
         {
           "action": "say",
-          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "text": "처음 SQL은 참조할 ID 9 물건이 없어 거절돼요.",
           "target": "output"
         },
         {
@@ -762,12 +789,13 @@
       "predict_before_run": true,
       "files": {
         "setup.sql": "-- ID는 물건을 구별하고 이름은 겹칠 수 있어요.\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL, stock INTEGER CHECK(stock>=0));\nINSERT INTO items VALUES(1,'pen',2),(2,'pen',3),(3,'book',NULL);\nCREATE TABLE lots(item_id INTEGER REFERENCES items(id), batch INTEGER, PRIMARY KEY(item_id,batch));\nINSERT INTO lots VALUES(1,1),(1,2),(2,1);\n"
-      }
+      },
+      "question": "이 INSERT는 어떻게 될까요?"
     },
     {
       "id": "stp_1b02a8fc-876f-422a-849d-ab9f20da3971",
       "title": "두 열을 묶은 키를 읽어요",
-      "goal": "복합 키의 유일성 범위를 이해해요.",
+      "goal": "setup.sql은 lots를 PRIMARY KEY(item_id,batch)로 만들었어요. 물건 1의 로트 1이 이미 있는데 같은 쌍을 또 넣으려 해요.\n이 INSERT는 어떻게 될까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "sql",
       "starter_code": "",
       "solution": "pair",
@@ -790,8 +818,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "두 열을 묶은 키에서 무엇이 겹치면 거절되는지 판단하는 문제예요.",
+          "target": "text:이 INSERT는 어떻게 될까요?"
+        },
+        {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             2
@@ -807,11 +839,10 @@
           "action": "patch_code",
           "before": "VALUES(1,1)",
           "after": "VALUES(1,3)",
-          "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+          "say": "로트 번호를 3으로 바꿔 볼게요."
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             2
@@ -836,11 +867,10 @@
           "action": "patch_code",
           "before": "VALUES(1,3)",
           "after": "VALUES(1,1)",
-          "say": "문제의 처음 SQL로 돌아와요."
+          "say": "로트 1로 되돌려요."
         },
         {
           "action": "run",
-          "say": "실제 준비된 표에서 실행해요.",
           "lines": [
             1,
             2
@@ -849,7 +879,7 @@
         },
         {
           "action": "say",
-          "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+          "text": "처음 SQL은 물건 1·로트 1 쌍이 이미 있어 거절돼요.",
           "target": "output"
         },
         {
@@ -860,7 +890,8 @@
       "predict_before_run": true,
       "files": {
         "setup.sql": "-- ID는 물건을 구별하고 이름은 겹칠 수 있어요.\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL, stock INTEGER CHECK(stock>=0));\nINSERT INTO items VALUES(1,'pen',2),(2,'pen',3),(3,'book',NULL);\nCREATE TABLE lots(item_id INTEGER REFERENCES items(id), batch INTEGER, PRIMARY KEY(item_id,batch));\nINSERT INTO lots VALUES(1,1),(1,2),(2,1);\n"
-      }
+      },
+      "question": "이 INSERT는 어떻게 될까요?"
     }
   ]
 }

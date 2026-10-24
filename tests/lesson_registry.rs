@@ -19,10 +19,10 @@ fn every_registered_lesson_opens_through_the_real_isolated_transport() {
             assert_eq!(config["tasks"].as_array().unwrap().len(),lesson.tasks.len());
             assert_eq!(config["revision"],row.revision);
             if row.key=="java-values" {assert!(config["modifications"]["1"]["source"].as_str().unwrap().contains("println(99)"));}
-            if row.key=="git-remote" {assert_eq!(config["studentCommands"].as_array().unwrap().len(),21);}
+            if row.key=="git-remote" {assert_eq!(config["studentCommands"].as_array().unwrap().len(),22);}
         }
     }
-    assert_eq!(steps,794);
+    assert_eq!(steps,796);
     assert!(lesson_registry::self_test_script("unknown-course").is_none());
     assert!(pilot_source::set_version('!').is_err());
     pilot_source::set_version('a').unwrap();

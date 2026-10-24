@@ -175,20 +175,20 @@
               "core_flow": "같은 stocks 표에 조건 하나를 더한다. 처음 SQL은 `INSERT INTO stocks(id,qty) SELECT id+10,qty FROM stocks WHERE qty>0;\nSELECT id FROM stocks WHERE id>10 ORDER BY id;`이고 결과는 `id\n11\n12`다. 양수 두 행을 새 ID로 복사했어요. 한 곳을 바꾸면 `id\n11\n12\n14`다. 영도 포함하면 ID십사 행도 생겨요. 새 ID가 기존 키와 충돌하지 않도록 준비한 비교예요. 마지막 두 수정 문제는 after.sql로 실제 표를 읽고 다른 자료에서도 검사한다."
             },
             {
-              "id": "stp_e3fd1efb-15d8-4df0-ae64-f69fc17184ce",
-              "title": "하나만 늘리는 수정을 고쳐요",
+              "id": "stp_4402b24e-929d-44a0-81ce-fc3322d4b1d7",
+              "title": "모르는 재고만 0으로 정해요",
               "objectives": [
-                "UPDATE를 실제 상태 변화로 검증해요."
+                "UPDATE의 WHERE에 NULL 판정을 써서 모르는 재고만 고쳐요."
               ],
-              "core_flow": "같은 stocks 표에 조건 하나를 더한다. 처음 SQL은 `UPDATE stocks SET qty=qty+1;\nSELECT id, qty FROM stocks ORDER BY id;`이고 결과는 `id | qty\n1 | 3\n2 | 5\n3 | NULL\n4 | 1`다. 조건이 없어 모든 알려진 재고를 바꿨어요. ID일 조건을 더해야 해요. 한 곳을 바꾸면 `id | qty\n1 | 3\n2 | 4\n3 | NULL\n4 | 0`다. ID일만 삼으로 바뀌고 나머지는 그대로예요. 출력만 꾸미지 않고 실제 표의 변경을 검사해요. 마지막 두 수정 문제는 after.sql로 실제 표를 읽고 다른 자료에서도 검사한다."
+              "core_flow": "재고가 NULL인 물건만 0으로 정하려는데 준비 SQL은 WHERE qty=NULL이라 아무 행도 바꾸지 못한다. 학생은 IS NULL로 고쳐 ID 3만 0으로 만든다. 2번(UPDATE의 WHERE)과 3번(NULL 판정)을 함께 적용하는 수정이며 앞 예제의 줄을 그대로 옮겨 풀리지 않는다. after.sql로 실제 표 변화를 검사하고 다른 자료(NULL 두 행)에서도 맞아야 하며 ID 고정은 거절한다. 이전 revision의 같은 자리 스텝(stp_e3fd1efb…)은 정답이 2번 예제와 같아 이번 revision에서 빠지며 완료 기록은 이전 revision에 남는다."
             },
             {
-              "id": "stp_fe3cfed6-4d41-40ad-a8ad-086523eda50f",
-              "title": "재고0만 지우도록 고쳐요",
+              "id": "stp_e0a90ff3-4a32-4214-bc6c-d0c7f0496af0",
+              "title": "모르는 재고는 남기고 지워요",
               "objectives": [
-                "DELETE를 실제 남은 행으로 검증해요."
+                "DELETE 조건에서 NULL 행이 비교로 지워지지 않음을 이용해 지울 행을 정해요."
               ],
-              "core_flow": "같은 stocks 표에 조건 하나를 더한다. 처음 SQL은 `DELETE FROM stocks WHERE qty>=0;\nSELECT id FROM stocks ORDER BY id;`이고 결과는 `id\n3`다. 영 이상으로 지우면 양수 물건도 사라져요. 영만 지우도록 좁혀요. 한 곳을 바꾸면 `id\n1\n2\n3`다. ID사만 지워져 일·이·삼이 남았어요. 다른 ID가 영인 자료에서도 같은 의미로 지워야 해요. 마지막 두 수정 문제는 after.sql로 실제 표를 읽고 다른 자료에서도 검사한다."
+              "core_flow": "재고 2 이하만 지우고 NULL은 남기려는데 준비 SQL은 OR qty IS NULL 때문에 ID 3까지 지운다. 학생은 조건을 qty<=2만 남겨 ID 2·3을 남긴다. 3번(0과 NULL의 구별)과 OR 조건을 함께 따지는 수정이며 3번 예제의 줄과 다르다. after.sql로 실제 남은 행을 검사하고 다른 자료에서도 맞아야 하며 ID 고정은 거절한다. 이전 revision의 같은 자리 스텝(stp_fe3cfed6…)은 정답이 3번 예제와 같아 이번 revision에서 빠지며 완료 기록은 이전 revision에 남는다."
             }
           ]
         }
@@ -248,19 +248,19 @@
     "앱에서 풀이·해설·수정 답안 복원·초기화·진도를 별도로 검증해요."
   ],
   "representative": {
-    "prompt": "ID1 재고만 하나 늘리세요.",
-    "starter_state": "조건 없는 UPDATE가 모든 알려진 재고를 늘려요.",
-    "expected_action": "WHERE id=1을 추가해요.",
-    "acceptance": "실제 표에서 ID1만 바뀌고 다른 시작 재고에서도 하나 늘어요.",
-    "reset": "표와 원래 UPDATE를 복원해요.",
-    "narration": "전체 수정 결과를 본 뒤 조건 한 곳을 더해 실제 상태를 다시 읽어요.",
-    "step_id": "stp_e3fd1efb-15d8-4df0-ae64-f69fc17184ce"
+    "prompt": "재고를 모르는 물건만 0으로 정하도록 WHERE 조건을 고치세요.",
+    "starter_state": "UPDATE stocks SET qty=0 WHERE qty=NULL;",
+    "expected_action": "qty=NULL을 qty IS NULL로 고쳐요.",
+    "acceptance": "실행 뒤 표(after.sql)가 다른 자료에서도 NULL 행만 0이에요. ID 고정은 거절해요.",
+    "reset": "스텝별 원래 setup.sql·SQL·빈 답안을 복원해요.",
+    "narration": "표가 그대로인 것을 보고 = NULL이 참이 되지 않음을 짚어요.",
+    "step_id": "stp_4402b24e-929d-44a0-81ce-fc3322d4b1d7"
   },
   "approval": {
     "status": "approved",
     "by": "사용자의 전체 과정 설계·구현 위임",
-    "evidence": "2026-10-19: “끝까지 다해, 정처기 코스, 에이스 어쏘씨에이트 코스, 자바 백엔드 코스의 모든 부분 재설계(새로운 지침 기반으로)해서 해”. .scratch/player-content-redesign/authorization-2026-10-19.md. 개별 PRD 직접 검토를 주장하지 않는 범위 위임이다.",
-    "content_sha256": "302213fc01ef512132a61abbfad115603832c736b4fbce03399d4d89bae92372",
+    "evidence": "2026-10-19: “끝까지 다해, 정처기 코스, 에이스 어쏘씨에이트 코스, 자바 백엔드 코스의 모든 부분 재설계(새로운 지침 기반으로)해서 해”. .scratch/player-content-redesign/authorization-2026-10-19.md. 개별 PRD 직접 검토를 주장하지 않는 범위 위임이다. 2026-10-24 사용자: 세 과정 빌드업 감사의 근거 있는 교정(문제 설명 해설, 정밀 강조, 상투 경고 제거, 선수 개념 다리, 점진 예제, 평가 결함)을 계획하고 실행하도록 Claude Code에 위임했어요(Codex 경유). 교육 목표와 교수법은 유지하고 이 문서를 직접 검토했다고 주장하지 않아요.",
+    "content_sha256": "91b58a122ef7dc1965ec4c5ffe2fd42f8f2b8327a4b157c3b908a67824e51826",
     "mode": "delegated_scope"
   }
 }

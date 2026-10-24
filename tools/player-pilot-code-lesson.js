@@ -45,7 +45,7 @@
    try{const result=await originalExplanation(actions,options);teacherResult=result;return result;}finally{observer.disconnect();webObserver.disconnect();}
   };
   const verifyTeacher=task=>{
-   if(pilot.requirePlot&&!shownPlots.length)throw Error('Teacher plot was not rendered in the output panel');
+   if(pilot.requirePlot&&!shownPlots.length)throw Error(`Teacher plot was not rendered in the output panel: ${teacherResult}; ${teacherStatus}`);
    if(pilot.requireHtml&&!shownWeb)throw Error(`Teacher webpage was not rendered in the output panel: ${teacherResult}; ${teacherStatus}`);
    if(teacherResult.includes('오류 -')||teacherResult.split('run:').length-1!==task.narration.filter(action=>action.action==='run').length)throw Error(`Teacher did not finish all authored runs: ${teacherResult}`);
    for(const action of task.narration){
@@ -59,7 +59,9 @@
    await wait(()=>document.querySelector('.repository-task')?.dataset.taskId===task.id&&window.molipCodeEditors?.getValue()===prepared(task,task.starter_code)&&(!task.interaction||bridge()?.value===task.starter_code),`step ${index+1}`);
    if(task.question){
     if(document.querySelector('.task-question')?.textContent.trim()!==task.question)throw Error('The explicit learner question is missing');
-    if(document.querySelector('.answer-interaction legend')?.textContent.trim()!==task.question)throw Error('The answer choices do not show the actual question');
+    // Choices are a fieldset whose legend is the question; a fill step shows the question above its one answer field.
+    if(task.interaction?.kind==='fill'){if(!document.querySelector('.answer-interaction input[aria-label="빈칸 답안"]'))throw Error('The fill question has no answer field');}
+    else if(document.querySelector('.answer-interaction legend')?.textContent.trim()!==task.question)throw Error('The answer choices do not show the actual question');
    }
    if(task.predict_before_run&&!bridge()?.value){
     if(!document.querySelector('.prediction-run-note')?.textContent.includes('예상 보기를 먼저'))throw Error('The locked run button has no explanation');

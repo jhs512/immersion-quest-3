@@ -1,20 +1,19 @@
 {
   "by": "hand",
-  "source_sha256": "446a2cb38cd0d5449f482e551b7679ad241ec436c48c32dcab6cd50439d3d22f",
+  "source_sha256": "65363f368e84c8ea6442d2fbc49112b76ac18d444444288ea763cbc97e2b46ad",
   "entry": [
     {
       "action": "say",
-      "text": "잘못된 금액으로 실패했어요. 이번 정상적인 예외 처리 경로는 무엇일까요?",
-      "target": "problem"
+      "text": "잘못된 금액으로 결제하면 예외가 나요. 이번엔 catch 뒤에 finally도 있어요.",
+      "target": "text:이번 코드에는 finally도 있어요."
     },
     {
       "action": "say",
-      "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-      "target": "problem"
+      "text": "finally는 성공하든 예외를 처리하든 마지막에 실행돼요.",
+      "target": "code:System.out.println(\"closed\");"
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         17,
         17
@@ -22,18 +21,17 @@
     },
     {
       "action": "say",
-      "text": "실패 처리와 후처리 뒤 try 바깥의 after로 이어져요.",
+      "text": "failed, closed, after예요. success는 건너뛰고, 처리 뒤 finally를 거쳐 바깥으로 이어졌어요.",
       "target": "output"
     },
     {
       "action": "patch_code",
       "before": "Payment.pay(-1)",
       "after": "Payment.pay(40)",
-      "say": "유효한 결제로 정상 경로도 비교해요."
+      "say": "유효한 결제로 바꿔 정상 경로도 비교해요."
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         17,
         17
@@ -41,18 +39,13 @@
     },
     {
       "action": "say",
-      "text": "이번에는 success 다음 후처리와 after예요.",
+      "text": "success, closed, after예요. 이번에도 finally가 실행됐어요.",
       "target": "output"
     },
     {
       "action": "say",
-      "text": "조심하세요. finally도 실행되지 않는 상황이 있어요.",
-      "target": "output"
-    },
-    {
-      "action": "say",
-      "text": "JVM 강제 종료까지 보장한다고 보지 않아요.",
-      "target": "output"
+      "text": "조심하세요. finally는 정리할 일을 두는 곳이에요. 다만 프로그램이 강제로 종료되면 finally도 실행되지 못해요.",
+      "target": "text:finally 블록은 try가 정상으로 끝나도, catch로 예외를 처리해도 마지막에 실행돼요."
     },
     {
       "action": "patch_code",
@@ -62,7 +55,6 @@
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         17,
         17
@@ -70,7 +62,7 @@
     },
     {
       "action": "say",
-      "text": "원래 실패 경로의 순서를 다시 확인해요.",
+      "text": "실패 경로의 순서는 failed, closed, after예요.",
       "target": "output"
     },
     {

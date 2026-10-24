@@ -33,6 +33,22 @@ if (!window.molipCodeEditors) {
     },
     provide: field => EditorView.decorations.from(field),
   });
+  // The exact characters a narration sentence is about (a token or expression), beside the
+  // line highlight. Cleared with highlightRange(null) when the sentence or explanation ends.
+  const narrationSpanEffect = StateEffect.define();
+  const narrationSpan = StateField.define({
+    create: () => Decoration.none,
+    update(value, transaction) {
+      value = value.map(transaction.changes);
+      for (const effect of transaction.effects) if (effect.is(narrationSpanEffect)) {
+        if (!effect.value) { value = Decoration.none; continue; }
+        const [from, to] = effect.value;
+        value = from < to ? Decoration.set([Decoration.mark({class: 'cm-narration-span'}).range(from, to)]) : Decoration.none;
+      }
+      return value;
+    },
+    provide: field => EditorView.decorations.from(field),
+  });
   const colors = syntaxHighlighting(HighlightStyle.define([
     { tag: tags.keyword, color: '#c792ea' },
     { tag: tags.string, color: '#a8d99c' },
@@ -91,7 +107,7 @@ if (!window.molipCodeEditors) {
         view = new EditorView({
           doc: source,
           parent: host,
-          extensions: [setup, narrationLines, element.dataset.codeEditor === 'java' ? java() : element.dataset.codeEditor === 'javascript' ? javascript({jsx:true}) : element.dataset.codeEditor === 'html' ? html() : python(), indentUnit.of('    '), keymap.of([indentWithTab]), theme, colors,
+          extensions: [setup, narrationLines, narrationSpan, element.dataset.codeEditor === 'java' ? java() : element.dataset.codeEditor === 'javascript' ? javascript({jsx:true}) : element.dataset.codeEditor === 'html' ? html() : python(), indentUnit.of('    '), keymap.of([indentWithTab]), theme, colors,
             EditorState.readOnly.of(element.readOnly),
             EditorView.editable.of(!element.readOnly),
             EditorView.contentAttributes.of({ 'aria-label': ({java:'Java',javascript:'JavaScript',html:'HTML',shell:'Shell',python:'Python'}[element.dataset.codeEditor] || '코드') + ' 코드 편집기' }),
@@ -151,6 +167,18 @@ if (!window.molipCodeEditors) {
     }
     return false;
   }
+  // Highlight characters [from, to) of the visible editor; null clears it.
+  function highlightRange(from, to = from) {
+    for (const [element, view] of editors) if (element.isConnected && view.dom.getClientRects().length) {
+      if (from == null) { view.dispatch({effects: narrationSpanEffect.of(null)}); return true; }
+      const length = view.state.doc.length;
+      const start = Math.max(0, Math.min(length, Number(from) || 0));
+      const end = Math.max(start, Math.min(length, Number(to) || start));
+      view.dispatch({effects: [narrationSpanEffect.of([start, end]), EditorView.scrollIntoView(start, {y: 'nearest'})]});
+      return true;
+    }
+    return false;
+  }
   function replaceRange(from, to, insert) {
     for (const [element, view] of editors) if (element.isConnected && view.dom.getClientRects().length) {
       view.dispatch({changes: {from, to, insert}, selection: {anchor: from + insert.length}, scrollIntoView: true});
@@ -158,7 +186,7 @@ if (!window.molipCodeEditors) {
     }
     return false;
   }
-  window.molipCodeEditors = { sync, setValue, getValue, appendValue, highlightLines, replaceRange };
+  window.molipCodeEditors = { sync, setValue, getValue, appendValue, highlightLines, highlightRange, replaceRange };
   new MutationObserver(sync).observe(document.body, {
     subtree: true, childList: true, attributes: true,
     attributeFilter: ['data-editor-value', 'data-editor-reset'],

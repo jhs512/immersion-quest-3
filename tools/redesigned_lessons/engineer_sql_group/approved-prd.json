@@ -183,12 +183,12 @@
               "core_flow": "## 준비 상태\nstocks에는 ID1/A/재고2/가격10, ID2/A/4/10, ID3/B/미정/5, ID4/B/0/2가 있어요. 같은 자료를 분류하거나 순서대로 읽어요.\nSQLite에서 스텝마다 setup.sql을 새 인메모리 DB에 적용한다. 실제 시험 DBMS를 단정하지 않는다.\n\n## 코드와 결과\n```sql\nSELECT id, SUM(qty) OVER(ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS n FROM stocks ORDER BY id;\n```\n첫 결과는 `id | n\n1 | 2\n2 | 6\n3 | 6\n4 | 6`다. 첫 이 다음 육이고 NULL과 영 뒤에도 육이에요.\n\n## 비교 경험\n`AND CURRENT ROW`를 `AND UNBOUNDED FOLLOWING`로 바꾸면 `id | n\n1 | 6\n2 | 6\n3 | 6\n4 | 6`다. 창의 끝을 마지막 행까지 늘리면 모든 행에 전체 합 육이 보여요.\n\n## 복귀와 완료\n처음 코드로 복귀한다. ROWS의 범위와 동점 묶음을 다루는 다른 프레임 규칙을 섞지 않아요. 선택·짧은 답안 또는 코드 수정을 학생이 직접 제출해야 완료다. 해설만으로 완료하지 않는다."
             },
             {
-              "id": "stp_8bda2903-1957-447c-9b4e-a4b6f37ab592",
-              "title": "분류 합계의 기준을 고쳐요",
+              "id": "stp_e9558bc9-71cf-4b2c-8c02-49866fe04f73",
+              "title": "묶은 뒤의 합계로 골라요",
               "objectives": [
-                "HAVING 조건을 실제 질의 수정으로 해결해요."
+                "행 조건과 그룹 조건을 구별해 WHERE의 조건을 HAVING으로 옮겨요."
               ],
-              "core_flow": "## 준비 상태\nstocks에는 ID1/A/재고2/가격10, ID2/A/4/10, ID3/B/미정/5, ID4/B/0/2가 있어요. 같은 자료를 분류하거나 순서대로 읽어요.\nSQLite에서 스텝마다 setup.sql을 새 인메모리 DB에 적용한다. 실제 시험 DBMS를 단정하지 않는다.\n\n## 코드와 결과\n```sql\nSELECT category, SUM(qty) AS n FROM stocks GROUP BY category HAVING SUM(qty)>=0 ORDER BY category;\n```\n첫 결과는 `category | n\nA | 6\nB | 0`다. 지금 영 이상으로 골라 비도 나왔어요. 기준을 오 이상으로 고쳐요.\n\n## 비교 경험\n`SUM(qty)>=0`를 `SUM(qty)>=5`로 바꾸면 `category | n\nA | 6`다. 합계가 오 이상인 에이 육만 남아요.\n\n## 복귀와 완료\n처음 코드로 복귀한다. 다른 분류가 기준을 넘는 자료도 같은 집계 조건으로 골라야 해요. 선택·짧은 답안 또는 코드 수정을 학생이 직접 제출해야 완료다. 해설만으로 완료하지 않는다."
+              "core_flow": "분류 합계 4 이상을 고르려는데 준비 질의는 WHERE qty>=4로 행을 먼저 걸러 A | 4를 낸다. 학생은 조건을 HAVING SUM(qty)>=4로 옮겨 A | 6을 얻는다. 4번(HAVING)과 5번(WHERE의 단계)을 함께 적용하는 수정이며 기준 4가 4번 예제의 5와 달라 그 줄을 옮겨 적어 풀리지 않는다. 다른 자료(B | 8, A | 4)에서도 맞아야 하고 분류 이름 고정은 거절한다. 이전 revision의 같은 자리 스텝(stp_8bda2903…)은 정답이 4번 예제와 글자까지 같아 이번 revision에서 빠지며 완료 기록은 이전 revision에 남는다."
             }
           ]
         }
@@ -213,19 +213,19 @@
     "앱에서 풀이·해설·수정 답안 복원·초기화·진도를 별도로 검증해요."
   ],
   "representative": {
-    "prompt": "분류 합계의 기준을 고쳐요 준비된 조건을 확인하세요.",
-    "starter_state": "SELECT category, SUM(qty) AS n FROM stocks GROUP BY category HAVING SUM(qty)>=0 ORDER BY category;",
-    "expected_action": "지금 영 이상으로 골라 비도 나왔어요. 기준을 오 이상으로 고쳐요.",
-    "acceptance": "실제 표의 결과와 맞는 답을 직접 제출해요.",
+    "prompt": "분류 합계가 4 이상인 분류만 남도록 조건의 자리를 고치세요.",
+    "starter_state": "SELECT category, SUM(qty) AS n FROM stocks WHERE qty>=4 GROUP BY category ORDER BY category;",
+    "expected_action": "WHERE qty>=4를 빼고 GROUP BY 뒤에 HAVING SUM(qty)>=4를 둬요.",
+    "acceptance": "다른 자료에서도 그룹 합계로 골라요. 분류 이름 고정은 거절해요.",
     "reset": "스텝별 원래 setup.sql·쿼리·빈 답안을 복원해요.",
-    "narration": "합계가 오 이상인 에이 육만 남아요.",
-    "step_id": "stp_8bda2903-1957-447c-9b4e-a4b6f37ab592"
+    "narration": "WHERE가 행을 먼저 버려 A | 4가 나오는 것을 보고 조건의 단계를 짚어요.",
+    "step_id": "stp_e9558bc9-71cf-4b2c-8c02-49866fe04f73"
   },
   "approval": {
     "status": "approved",
     "by": "사용자의 전체 과정 설계·구현 위임",
-    "evidence": "2026-10-19 전체 범위 위임. 교육 목표와 고유 코드는 유지하고 수업 제목에 잘못 들어간 마지막 스텝 제목을 올바른 수업 제목으로 바로잡았다.",
-    "content_sha256": "4ee2153b428cd34dcecff276320ec2bc0dbd535680516fec5a1d25d01d8fc9a1",
+    "evidence": "2026-10-19 전체 범위 위임. 교육 목표와 고유 코드는 유지하고 수업 제목에 잘못 들어간 마지막 스텝 제목을 올바른 수업 제목으로 바로잡았다. 2026-10-24 사용자: 세 과정 빌드업 감사의 근거 있는 교정(문제 설명 해설, 정밀 강조, 상투 경고 제거, 선수 개념 다리, 점진 예제, 평가 결함)을 계획하고 실행하도록 Claude Code에 위임했어요(Codex 경유). 교육 목표와 교수법은 유지하고 이 문서를 직접 검토했다고 주장하지 않아요.",
+    "content_sha256": "34c354cee66e990212e5f5161a9731c69d7c3e0757541161851df970845aae74",
     "mode": "delegated_scope"
   }
 }

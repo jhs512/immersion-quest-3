@@ -16,7 +16,7 @@ fn grade(p:&GitPractice,t:&Task)->bool{if let Some(checks)=&t.git_checks{p.check
 async fn remote_team_story_uses_real_learner_edits_and_independent_resettable_demonstrations(){
     let course=CourseManifest::parse(include_str!("fixtures/player-pilot/어/course.json")).unwrap();
     let lesson=Lesson::parse(include_str!("../courses/redesigned/git-remote.json"),&course.lessons[0]).unwrap();
-    assert_eq!(lesson.tasks.len(),21);
+    assert_eq!(lesson.tasks.len(),22);
     let root=tempfile::tempdir().unwrap();let store=GitPracticeStore::new(root.path()).unwrap();
     for (i,t) in lesson.tasks.iter().enumerate(){
         let exercise=t.git_terminal.clone().unwrap();assert!(exercise.setup.is_empty()&&exercise.files.is_empty());

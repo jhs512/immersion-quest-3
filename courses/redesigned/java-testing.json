@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_4084edc3-e4ef-4157-b29a-4d553973a12e",
-  "revision": "java-testing-3",
+  "revision": "java-testing-4",
   "title": "배송비 변경을 작은 테스트로 검증해요",
   "description": "같은 배송비에서 반례를 찾고 실제 JUnit·AssertJ 검사를 고쳐요.",
   "objectives": [
@@ -107,7 +107,7 @@
     {
       "id": "stp_eb7fac0a-ef8b-445a-8291-ca40a36d5250",
       "title": "배송비가 맞는지 어떤 기준으로 검사할까요?",
-      "goal": "배송비를 계산하고 검사하는 코드예요. 9,999원의 배송비는 2,000원이어야 해요.\n\n**할 일**\n\n1. `expected`와 `actual`에 각각 어떤 값이 들어가는지 살펴보세요.\n2. `if (actual != expected)`가 어떤 경우에 오류를 내는지 확인하세요.\n3. 이 코드가 검사하는 기준에 맞는 보기를 고르세요.\n4. 선택한 보기를 제출하세요.",
+      "goal": "배송비를 계산하고 검사하는 코드예요. 9,999원의 배송비는 2,000원이어야 해요. 검사는 기대값 expected와 실제 결과 actual을 비교해요.\n\n알아두세요: 조건 ? A : B는 조건이 참이면 A, 거짓이면 B예요. throw new AssertionError는 검사가 틀렸다고 알리며 실행을 멈춰요.\n\n**할 일**\n\n1. `expected`와 `actual`에 각각 어떤 값이 들어가는지 살펴보세요.\n2. `if (actual != expected)`가 어떤 경우에 오류를 내는지 확인하세요.\n3. 이 코드가 검사하는 기준에 맞는 보기를 고르세요.\n4. 선택한 보기를 제출하세요.",
       "language": "java",
       "starter_code": "",
       "solution": "check",
@@ -131,22 +131,21 @@
       "narration": [
         {
           "action": "say",
-          "text": "이 코드는 배송비가 올바른지 어떤 기준으로 확인하나요?",
-          "target": "problem"
+          "text": "요구는 9,999원의 배송비가 2,000원이라는 거예요. 질문은 코드가 무엇으로 맞는지 판단하는지예요.",
+          "target": "text:9,999원의 배송비는 2,000원이어야 해요."
         },
         {
           "action": "say",
-          "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-          "target": "problem"
+          "text": "준비에서 기대값을 정하고, 행동에서 구현을 불러 실제값을 얻어요.",
+          "target": "lines:12:15"
         },
         {
           "action": "say",
-          "text": "9,999원의 배송비는 2,000원이어야 해요. 코드가 이 조건을 어떻게 검사하는지 볼게요.",
-          "target": "editor"
+          "text": "확인 단계에서 둘이 다르면 AssertionError로 멈춰요.",
+          "target": "code:if (actual != expected) throw new AssertionError(\"fee\");"
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             18,
             18
@@ -154,13 +153,13 @@
         },
         {
           "action": "say",
-          "text": "정해 둔 기대와 같아 검사를 통과했어요.",
+          "text": "ok가 나왔어요. 실제값이 기대값과 같았어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 예외 없이 실행됐다는 것만으로 요구를 만족한 것은 아니에요.",
-          "target": "output"
+          "text": "조심하세요. 예외 없이 실행된 것만으로는 맞다고 할 수 없어요. 기대값과 비교해야 검사예요.",
+          "target": "text:검사는 기대값 expected와 실제 결과 actual을 비교해요."
         },
         {
           "action": "choose_answer",
@@ -173,7 +172,7 @@
     {
       "id": "stp_ddf92dcd-1ca8-4304-b6e3-f782c41611f3",
       "title": "구현과 같은 식을 기대값으로 쓰면 안전할까요?",
-      "goal": "이 스텝은 제공된 코드에서 시작해요.\n\n**할 일**\n\n1. 기대값을 만드는 계산과 구현의 계산에 같은 오류가 들어갈 수 있는지 비교하세요.\n2. 앞에서 살펴본 코드의 동작을 예상해 보기를 하나 고르세요.\n3. 코드 실행 버튼을 눌러 예상과 실제 결과를 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "goal": "이번 구현은 만 원 경계를 >로 잘못 썼어요. 그런데 기대값도 구현과 똑같은 식으로 계산했어요. 이 검사가 경계 오류를 잡을 수 있을까요?\n\n**할 일**\n\n1. 기대값을 만드는 계산과 구현의 계산에 같은 오류가 들어갈 수 있는지 비교하세요.\n2. 앞에서 살펴본 코드의 동작을 예상해 보기를 하나 고르세요.\n3. 코드 실행 버튼을 눌러 예상과 실제 결과를 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "java",
       "starter_code": "",
       "solution": "copy",
@@ -189,7 +188,7 @@
           },
           {
             "id": "safe",
-            "text": "같은 식이므로 언제나 완전한 검사예요"
+            "text": "구현과 같은 식이니 기대값을 따로 정할 필요가 없어요"
           }
         ],
         "answer": "copy"
@@ -197,17 +196,16 @@
       "narration": [
         {
           "action": "say",
-          "text": "구현과 같은 계산을 기대값으로 복사했어요. 경계 오류를 놓칠 수 있을까요?",
-          "target": "problem"
+          "text": "구현은 경계를 > 로 잘못 썼고, 기대값도 같은 식으로 계산했어요.",
+          "target": "text:그런데 기대값도 구현과 똑같은 식으로 계산했어요."
         },
         {
           "action": "say",
-          "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-          "target": "problem"
+          "text": "기대값 식이 구현의 식과 글자까지 같아요.",
+          "target": "code:int expected = amount > 10000 ? 0 : 2000;"
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             14,
             14
@@ -215,18 +213,17 @@
         },
         {
           "action": "say",
-          "text": "잘못된 계산끼리 같아서 참으로 보여요.",
+          "text": "true예요. 둘 다 틀린 2,000이라 같아 보여요.",
           "target": "output"
         },
         {
           "action": "patch_code",
           "before": "int expected = amount > 10000 ? 0 : 2000;",
           "after": "int expected = 0;",
-          "say": "요구에서 정한 만 원의 기대 배송비를 써요."
+          "say": "요구에서 정한 기대값 0을 직접 써요."
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             14,
             14
@@ -234,23 +231,22 @@
         },
         {
           "action": "say",
-          "text": "기대는 영인데 구현은 이천이라 거짓이에요.",
+          "text": "false예요. 이제 검사가 경계 오류를 잡았어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 기대값을 구현에서 그대로 계산하면 결함도 함께 따라올 수 있어요.",
-          "target": "output"
+          "text": "조심하세요. 기대값은 구현을 따라 계산하지 말고 요구에서 정해요.",
+          "target": "code:int expected = 0;"
         },
         {
           "action": "patch_code",
           "before": "int expected = 0;",
           "after": "int expected = amount > 10000 ? 0 : 2000;",
-          "say": "비교하던 원래 기대식으로 돌아와요."
+          "say": "원래 기대식으로 돌아와요."
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             14,
             14
@@ -258,7 +254,7 @@
         },
         {
           "action": "say",
-          "text": "같은 실수를 복제한 검사는 다시 참이 돼요.",
+          "text": "다시 true예요. 같은 실수를 복사한 검사는 결함을 놓쳐요.",
           "target": "output"
         },
         {
@@ -272,7 +268,7 @@
     {
       "id": "stp_7c14fa39-cd8f-49a9-8aac-b8dacf8523b1",
       "title": "9,999원이 맞아도 10,000원을 검사해야 할까요?",
-      "goal": "이 스텝은 제공된 코드에서 시작해요.\n\n**할 일**\n\n1. 무료 배송 규칙의 경계 바로 아래와 경계값을 구분하세요.\n2. 앞에서 살펴본 코드의 동작을 예상해 보기를 하나 고르세요.\n3. 코드 실행 버튼을 눌러 예상과 실제 결과를 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "goal": "경계를 잘못 쓴 같은 구현으로 9,999원과 10,000원을 차례로 계산해요. 규칙은 10,000원부터 무료예요.\n\n**할 일**\n\n1. 무료 배송 규칙의 경계 바로 아래와 경계값을 구분하세요.\n2. 앞에서 살펴본 코드의 동작을 예상해 보기를 하나 고르세요.\n3. 코드 실행 버튼을 눌러 예상과 실제 결과를 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "java",
       "starter_code": "",
       "solution": "boundary",
@@ -284,7 +280,7 @@
         "options": [
           {
             "id": "one",
-            "text": "정상값 하나면 어떤 조건도 충분해요"
+            "text": "아니요. 9,999원이 맞으면 10,000원도 같은 규칙으로 맞아요"
           },
           {
             "id": "boundary",
@@ -296,17 +292,11 @@
       "narration": [
         {
           "action": "say",
-          "text": "9,999원 주문의 배송비가 맞아도 무료배송 기준인 10,000원을 따로 검사해야 하나요?",
-          "target": "problem"
-        },
-        {
-          "action": "say",
-          "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-          "target": "problem"
+          "text": "같은 잘못된 구현으로 경계 바로 아래와 경계를 계산해요.",
+          "target": "text:경계를 잘못 쓴 같은 구현으로 9,999원과 10,000원을 차례로 계산해요."
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             12,
             12
@@ -314,18 +304,17 @@
         },
         {
           "action": "say",
-          "text": "만 원에서도 이천을 받아 요구와 달라요.",
+          "text": "2,000과 2,000이에요. 9,999원은 맞지만 10,000원은 무료여야 해요.",
           "target": "output"
         },
         {
           "action": "patch_code",
           "before": "amount > 10000",
           "after": "amount >= 10000",
-          "say": "만 원부터 무료인 경계를 맞춰요."
+          "say": "경계를 크거나 같음으로 맞춰요."
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             12,
             12
@@ -333,23 +322,22 @@
         },
         {
           "action": "say",
-          "text": "미만은 이천이고 만 원은 영이 됐어요.",
+          "text": "2,000과 0이에요. 이제 규칙과 같아요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 정상값 하나가 맞아도 바로 옆 경계는 다를 수 있어요.",
-          "target": "output"
+          "text": "조심하세요. 경계 바로 아래 값 하나만 시험하면 > 와 >= 를 바꿔 쓴 실수를 놓쳐요.",
+          "target": "code:System.out.println(Fees.shipping(10000));"
         },
         {
           "action": "patch_code",
           "before": "amount >= 10000",
           "after": "amount > 10000",
-          "say": "처음 변경안의 경계로 돌아와요."
+          "say": "처음 변경안으로 돌아와요."
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             12,
             12
@@ -357,7 +345,7 @@
         },
         {
           "action": "say",
-          "text": "원래 변경안은 만 원에서 여전히 틀려요.",
+          "text": "원래 변경안은 10,000원에서 틀려요.",
           "target": "output"
         },
         {
@@ -371,7 +359,7 @@
     {
       "id": "stp_fddade49-624e-4c97-a847-e21c4ce91405",
       "title": "검사가 실패하면 무엇부터 확인해야 할까요?",
-      "goal": "이 스텝은 제공된 코드에서 시작해요.\n\n**할 일**\n\n1. 실패한 검사의 기대값과 무료 배송 요구를 비교하세요.\n2. 앞에서 살펴본 코드의 동작을 예상해 보기를 하나 고르세요.\n3. 코드 실행 버튼을 눌러 예상과 실제 결과를 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "goal": "이번 구현은 맞아요. 대신 기대값을 2,000으로 적었어요. 규칙상 10,000원은 무료예요.\n\n**할 일**\n\n1. 실패한 검사의 기대값과 무료 배송 요구를 비교하세요.\n2. 앞에서 살펴본 코드의 동작을 예상해 보기를 하나 고르세요.\n3. 코드 실행 버튼을 눌러 예상과 실제 결과를 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "java",
       "starter_code": "",
       "solution": "spec",
@@ -383,7 +371,7 @@
         "options": [
           {
             "id": "impl",
-            "text": "실패하면 구현만 무조건 고쳐요"
+            "text": "실패했으니 구현의 조건부터 고쳐요"
           },
           {
             "id": "spec",
@@ -395,17 +383,11 @@
       "narration": [
         {
           "action": "say",
-          "text": "10,000원 이상은 무료배송인데 기대값을 2,000원으로 정했어요. 검사가 실패하면 무엇을 먼저 확인해야 하나요?",
-          "target": "problem"
-        },
-        {
-          "action": "say",
-          "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-          "target": "problem"
+          "text": "구현은 맞는데 기대값을 2,000으로 잘못 적었어요. 검사가 실패하면 무엇부터 볼지가 질문이에요.",
+          "target": "text:대신 기대값을 2,000으로 적었어요."
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             13,
             13
@@ -413,18 +395,22 @@
         },
         {
           "action": "say",
-          "text": "구현은 영인데 기대가 이천이라 거짓이에요.",
+          "text": "false예요. 구현은 0, 기대는 2,000이에요.",
           "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "요구는 10,000원부터 무료예요. 틀린 쪽은 기대값이에요.",
+          "target": "code:int expected = 2000;"
         },
         {
           "action": "patch_code",
           "before": "int expected = 2000;",
           "after": "int expected = 0;",
-          "say": "요구와 같은 기대값으로 고쳐요."
+          "say": "요구에 맞춰 기대값을 0으로 고쳐요."
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             13,
             13
@@ -432,13 +418,13 @@
         },
         {
           "action": "say",
-          "text": "올바른 기대와 구현은 같아요.",
+          "text": "true예요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 실패한 검사의 기대값이나 실행 환경도 잘못됐을 수 있어요.",
-          "target": "output"
+          "text": "조심하세요. 검사가 실패했다고 구현부터 고치면, 맞는 구현을 틀리게 바꿀 수 있어요.",
+          "target": "text:규칙상 10,000원은 무료예요."
         },
         {
           "action": "patch_code",
@@ -448,7 +434,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             13,
             13
@@ -456,7 +441,7 @@
         },
         {
           "action": "say",
-          "text": "처음 기대값으로는 검사가 실패해요.",
+          "text": "처음 기대값으로는 실패해요.",
           "target": "output"
         },
         {
@@ -470,19 +455,19 @@
     {
       "id": "stp_8d12f717-46c0-41f6-94ea-6cc5db223510",
       "title": "각 검사가 같은 객체를 계속 써도 될까요?",
-      "goal": "이 스텝은 제공된 코드에서 시작해요.\n\n**할 일**\n\n1. 각 검사가 같은 객체의 상태를 이어 쓰는지 확인하세요.\n2. 앞에서 살펴본 코드의 동작을 예상해 보기를 하나 고르세요.\n3. 코드 실행 버튼을 눌러 예상과 실제 결과를 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "goal": "Counter는 next를 부를 때마다 count를 1 늘려 돌려줘요. 검사마다 첫 next는 1이어야 해요.\n\n알아두세요: ++count는 count에 1을 더한 뒤 그 값을 돌려줘요.\n\n**할 일**\n\n1. 각 검사가 같은 객체의 상태를 이어 쓰는지 확인하세요.\n2. 앞에서 살펴본 코드의 동작을 예상해 보기를 하나 고르세요.\n3. 코드 실행 버튼을 눌러 예상과 실제 결과를 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "java",
       "starter_code": "",
       "solution": "isolate",
       "tests": [],
       "required": true,
-      "example_code": "class Counter {\n    // 같은 객체를 다시 쓰면 이전 상태도 이어져요.\n    int count;\n    int next() { return ++count; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Counter shared = new Counter();\n        System.out.println(shared.next());\n        System.out.println(shared.next());\n        // 독립된 사례는 필요한 초기 상태로 시작해요.\n        System.out.println(new Counter().next());\n    }\n}\n",
+      "example_code": "class Counter {\n    // next를 부를 때마다 count가 늘어요.\n    int count;\n    int next() { return ++count; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Counter shared = new Counter();\n        System.out.println(shared.next());\n        System.out.println(shared.next());\n        // 독립된 사례는 필요한 초기 상태로 시작해요.\n        System.out.println(new Counter().next());\n    }\n}\n",
       "interaction": {
         "kind": "choice",
         "options": [
           {
             "id": "order",
-            "text": "앞 검사에서 증가시킨 상태에 항상 의존해요"
+            "text": "네. 같은 객체를 쓰면 준비 코드를 줄일 수 있어요"
           },
           {
             "id": "isolate",
@@ -494,17 +479,16 @@
       "narration": [
         {
           "action": "say",
-          "text": "각 검사에서 첫 증가가 1이어야 해요. 같은 객체를 계속 써도 될까요?",
-          "target": "problem"
+          "text": "검사마다 첫 next가 1이어야 해요. 같은 객체를 계속 쓰면 어떻게 되는지 봐요.",
+          "target": "text:검사마다 첫 next는 1이어야 해요."
         },
         {
           "action": "say",
-          "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-          "target": "problem"
+          "text": "shared를 두 번 부르고, 마지막엔 새 객체를 한 번 불러요.",
+          "target": "lines:9:13"
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             13,
             13
@@ -512,13 +496,13 @@
         },
         {
           "action": "say",
-          "text": "같은 객체는 일과 이, 새 객체는 다시 일이에요.",
+          "text": "1, 2, 1이에요. 같은 객체는 앞의 상태를 이어받아 두 번째에 2가 됐어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 검사 순서에 기대어 맞는 것은 독립된 요구 검증과 달라요.",
-          "target": "output"
+          "text": "조심하세요. 검사가 앞 검사의 상태를 물려받으면, 실행 순서가 바뀔 때 결과도 바뀌어요.",
+          "target": "code:System.out.println(new Counter().next());"
         },
         {
           "action": "choose_answer",
@@ -531,7 +515,7 @@
     {
       "id": "stp_2674c0f6-185b-4de8-af22-2963fbda4bec",
       "title": "음수 금액을 거절하는지는 어떻게 검사할까요?",
-      "goal": "이 스텝은 제공된 코드에서 시작해요.\n\n**할 일**\n\n1. 음수 금액에 대해 기대하는 예외와 검사 코드를 비교하세요.\n2. 앞에서 살펴본 코드의 동작을 예상해 보기를 하나 고르세요.\n3. 코드 실행 버튼을 눌러 예상과 실제 결과를 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "goal": "규칙상 음수 금액은 예외로 거절해야 해요. 검사 코드는 -1로 호출해 예외가 나면 rejected, 나지 않으면 no-error를 출력해요.\n\n**할 일**\n\n1. 음수 금액에 대해 기대하는 예외와 검사 코드를 비교하세요.\n2. 앞에서 살펴본 코드의 동작을 예상해 보기를 하나 고르세요.\n3. 코드 실행 버튼을 눌러 예상과 실제 결과를 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "java",
       "starter_code": "",
       "solution": "throws",
@@ -543,7 +527,7 @@
         "options": [
           {
             "id": "zero",
-            "text": "어떤 잘못된 금액도 조용히 0으로 바꿔요"
+            "text": "배송비가 0으로 나오는지 확인해요"
           },
           {
             "id": "throws",
@@ -555,17 +539,16 @@
       "narration": [
         {
           "action": "say",
-          "text": "음수 금액은 거절해야 해요. 이 검사에서 확인할 동작은 무엇일까요?",
-          "target": "problem"
+          "text": "음수 금액은 거절해야 해요. 이 검사가 무엇을 확인하는지가 질문이에요.",
+          "target": "text:규칙상 음수 금액은 예외로 거절해야 해요."
         },
         {
           "action": "say",
-          "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-          "target": "problem"
+          "text": "-1로 호출해 예외가 나면 rejected, 아니면 no-error예요.",
+          "target": "code:Fees.shipping(-1);"
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             15,
             15
@@ -573,18 +556,17 @@
         },
         {
           "action": "say",
-          "text": "음수 금액을 정해진 예외로 거절했어요.",
+          "text": "rejected예요. 정해진 예외로 거절했어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
           "before": "if (amount < 0) throw new IllegalArgumentException(\"negative\");",
           "after": "if (amount < 0) return 0;",
-          "say": "거절 대신 영을 돌려주는 잘못된 변경과 비교해요."
+          "say": "거절 대신 0을 돌려주게 잘못 바꿔 볼게요."
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             15,
             15
@@ -592,23 +574,22 @@
         },
         {
           "action": "say",
-          "text": "예외 없이 끝나 거절 조건을 놓쳤어요.",
+          "text": "no-error예요. 이 검사가 잘못된 변경을 잡아냈어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 실패 경로도 요구에서 정한 정상적인 검사 대상이에요.",
-          "target": "output"
+          "text": "조심하세요. 거절해야 할 입력을 조용히 0으로 처리하면 배송비가 맞아 보여도 요구와 달라요.",
+          "target": "code:if (amount < 0) return 0;"
         },
         {
           "action": "patch_code",
           "before": "if (amount < 0) return 0;",
           "after": "if (amount < 0) throw new IllegalArgumentException(\"negative\");",
-          "say": "거절하는 원래 구현으로 돌아와요."
+          "say": "원래 구현으로 돌아와요."
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             15,
             15
@@ -616,7 +597,7 @@
         },
         {
           "action": "say",
-          "text": "다시 정해진 예외가 나와요.",
+          "text": "다시 rejected예요.",
           "target": "output"
         },
         {
@@ -630,7 +611,7 @@
     {
       "id": "stp_a3d74b28-7fb5-4599-aede-aa871ed6c54c",
       "title": "10,000원 주문의 무료배송 검사를 추가하세요",
-      "goal": "이 스텝은 제공된 코드에서 시작해요.\n\n정상 구현만 통과하는 것으로는 부족해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 수정 전 결과를 확인하세요.\n2. 만 원 주문이 무료인지 확인하는 검사를 한 줄 추가하세요.\n3. 코드 실행 버튼을 눌러 수정한 코드의 결과를 확인하세요.\n4. 요구한 동작과 실행 결과를 비교한 뒤 코드를 제출하세요.",
+      "goal": "이제 JUnit 테스트 파일이에요. 정상 사례 9,999원 검사가 이미 있어요. 만 원 경계 검사를 한 줄 더하세요.\n\n알아두세요: @Test가 붙은 메서드가 테스트 하나예요. assertEquals(기대값, 실제값)은 두 값이 다르면 테스트를 실패시켜요. 기대값을 앞에 써요.\n\n제출하면 경계를 > 로 잘못 쓴 Fees로도 이 테스트를 실행해요. 그 잘못된 구현에서 테스트가 실패해야 통과예요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 수정 전 결과를 확인하세요.\n2. 만 원 주문이 무료인지 확인하는 검사를 한 줄 추가하세요.\n3. 코드 실행 버튼을 눌러 수정한 코드의 결과를 확인하세요.\n4. 요구한 동작과 실행 결과를 비교한 뒤 코드를 제출하세요.",
       "language": "junit",
       "starter_code": "import org.junit.jupiter.api.Test;\nimport static org.junit.jupiter.api.Assertions.assertEquals;\nclass MainTest {\n    @Test void shippingBoundary() {\n        // 이미 확인한 만 원 미만의 정상 사례예요.\n        assertEquals(2000, Fees.shipping(9999));\n        // 만 원 경계를 확인할 자리예요.\n    }\n}\n",
       "solution": "import org.junit.jupiter.api.Test;\nimport static org.junit.jupiter.api.Assertions.assertEquals;\nclass MainTest {\n    @Test void shippingBoundary() {\n        // 이미 확인한 만 원 미만의 정상 사례예요.\n        assertEquals(2000, Fees.shipping(9999));\n        // 만 원부터 무료라는 요구를 확인해요.\n        assertEquals(0, Fees.shipping(10000));\n    }\n}\n",
@@ -639,12 +620,16 @@
       "narration": [
         {
           "action": "say",
-          "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-          "target": "problem"
+          "text": "JUnit 테스트에 정상 사례 하나가 있어요. 만 원 경계 검사를 더해야 해요.",
+          "target": "text:만 원 경계 검사를 한 줄 더하세요."
+        },
+        {
+          "action": "say",
+          "text": "assertEquals는 첫 칸에 기대값, 둘째 칸에 실제 호출 결과를 받아요.",
+          "target": "code:assertEquals(2000, Fees.shipping(9999));"
         },
         {
           "action": "run",
-          "say": "테스트를 실행해 결과를 확인해요.",
           "lines": [
             4,
             4
@@ -652,18 +637,17 @@
         },
         {
           "action": "say",
-          "text": "기존 검사는 정상 사례 하나를 통과했어요.",
+          "text": "테스트 1개가 통과했어요. 지금은 경계를 전혀 검사하지 않아요.",
           "target": "output"
         },
         {
           "action": "patch_code",
           "before": "// 만 원 경계를 확인할 자리예요.",
           "after": "// 만 원부터 무료라는 요구를 확인해요.\n        assertEquals(0, Fees.shipping(10000));",
-          "say": "경계의 기대 결과도 함께 확인해요."
+          "say": "만 원은 무료라는 기대를 한 줄 더해요."
         },
         {
           "action": "run",
-          "say": "테스트를 실행해 결과를 확인해요.",
           "lines": [
             4,
             4
@@ -671,13 +655,13 @@
         },
         {
           "action": "say",
-          "text": "정상 구현은 두 조건을 모두 만족해요.",
+          "text": "여전히 통과예요. 지금 Fees는 경계를 맞게 구현했으니까요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 제출할 때는 경계가 잘못된 별도 구현을 이 검사가 잡는지도 확인해요.",
-          "target": "output"
+          "text": "조심하세요. 제출하면 경계를 잘못 쓴 Fees로도 실행해요. 그때 이 테스트가 실패해야 통과예요.",
+          "target": "text:그 잘못된 구현에서 테스트가 실패해야 통과예요."
         }
       ],
       "entry_file": "MainTest.java",
@@ -693,7 +677,7 @@
     {
       "id": "stp_286e8c84-4d18-4a83-aa38-63e15884165e",
       "title": "무료배송 요구에 맞게 기대 배송비를 고치세요",
-      "goal": "이 스텝은 제공된 코드에서 시작해요.\n\n만 원의 기대 배송비가 잘못됐어요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 수정 전 결과를 확인하세요.\n2. 만 원 이상 무료라는 요구에 맞게 만 원 주문의 기대 배송비를 고치세요.\n3. 코드 실행 버튼을 눌러 수정한 코드의 결과를 확인하세요.\n4. 요구한 동작과 실행 결과를 비교한 뒤 코드를 제출하세요.",
+      "goal": "이번엔 AssertJ 문법으로 쓴 테스트예요. 만 원의 기대 배송비가 잘못 적혀 있어요.\n\n알아두세요: assertThat(실제값).isEqualTo(기대값)는 assertEquals와 같은 검사를 읽기 쉬운 순서로 써요. assertThatThrownBy(() -> 호출)는 그 호출이 예외를 던지는지 검사해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 수정 전 결과를 확인하세요.\n2. 만 원 이상 무료라는 요구에 맞게 만 원 주문의 기대 배송비를 고치세요.\n3. 코드 실행 버튼을 눌러 수정한 코드의 결과를 확인하세요.\n4. 요구한 동작과 실행 결과를 비교한 뒤 코드를 제출하세요.",
       "language": "junit",
       "starter_code": "import org.junit.jupiter.api.Test;\nimport static org.assertj.core.api.Assertions.*;\nclass MainTest {\n    @Test void shippingRules() {\n        // 정상 금액과 경계의 기대값을 따로 적어요.\n        assertThat(Fees.shipping(9999)).isEqualTo(2000);\n        assertThat(Fees.shipping(10000)).isEqualTo(2000);\n        // 거절하는 타입도 요구의 일부예요.\n        assertThatThrownBy(() -> Fees.shipping(-1)).isInstanceOf(IllegalArgumentException.class);\n    }\n}\n",
       "solution": "import org.junit.jupiter.api.Test;\nimport static org.assertj.core.api.Assertions.*;\nclass MainTest {\n    @Test void shippingRules() {\n        // 정상 금액과 경계의 기대값을 따로 적어요.\n        assertThat(Fees.shipping(9999)).isEqualTo(2000);\n        assertThat(Fees.shipping(10000)).isEqualTo(0);\n        // 거절하는 타입도 요구의 일부예요.\n        assertThatThrownBy(() -> Fees.shipping(-1)).isInstanceOf(IllegalArgumentException.class);\n    }\n}\n",
@@ -702,12 +686,16 @@
       "narration": [
         {
           "action": "say",
-          "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-          "target": "problem"
+          "text": "AssertJ로 쓴 테스트에 만 원의 기대값이 잘못 적혀 있어요.",
+          "target": "text:만 원의 기대 배송비가 잘못 적혀 있어요."
+        },
+        {
+          "action": "say",
+          "text": "assertThat에는 실제값을, isEqualTo에는 기대값을 써요.",
+          "target": "code:assertThat(Fees.shipping(10000)).isEqualTo(2000);"
         },
         {
           "action": "run",
-          "say": "테스트를 실행해 결과를 확인해요.",
           "lines": [
             4,
             4
@@ -716,18 +704,17 @@
         },
         {
           "action": "say",
-          "text": "경계 기대가 이천이라 테스트가 실패했어요.",
+          "text": "테스트가 실패했어요. 만 원의 실제 배송비는 0이에요.",
           "target": "output"
         },
         {
           "action": "patch_code",
           "before": "assertThat(Fees.shipping(10000)).isEqualTo(2000);",
           "after": "assertThat(Fees.shipping(10000)).isEqualTo(0);",
-          "say": "만 원부터 무료인 기대를 맞춰요."
+          "say": "요구에 맞게 기대값을 0으로 고쳐요."
         },
         {
           "action": "run",
-          "say": "테스트를 실행해 결과를 확인해요.",
           "lines": [
             4,
             4
@@ -735,13 +722,13 @@
         },
         {
           "action": "say",
-          "text": "정상·경계·음수 거절을 모두 통과했어요.",
+          "text": "정상·경계·음수 거절 검사를 모두 통과했어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 이 사례들이 통과해도 모든 입력과 모든 결함이 검증된 것은 아니에요.",
-          "target": "output"
+          "text": "조심하세요. 통과한 사례들 밖의 입력까지 모두 맞다는 증명은 아니에요. 어떤 경계를 골랐는지가 검사의 힘이에요.",
+          "target": "code:assertThatThrownBy(() -> Fees.shipping(-1))"
         }
       ],
       "entry_file": "MainTest.java",

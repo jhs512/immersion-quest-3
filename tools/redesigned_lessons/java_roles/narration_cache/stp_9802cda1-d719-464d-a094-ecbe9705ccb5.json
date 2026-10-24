@@ -1,20 +1,19 @@
 {
   "by": "hand",
-  "source_sha256": "4da378532495489d9de9fff84348c77ad956ecfcfea2acd5db5b01dfba0ffffb",
+  "source_sha256": "c242c1985ec814ff45cef6a221c37e425e5b2fde04d6057143e125f1ab286e27",
   "entry": [
     {
       "action": "say",
-      "text": "음수로 시작하려다 생성자가 예외를 던져요. try 안의 after까지 실행될까요?",
-      "target": "problem"
+      "text": "음수 -1로 계좌를 만들면 생성자가 예외를 던져요. 질문은 그 뒤 try 안의 출력이 실행되는지예요.",
+      "target": "text:try 안의 after까지 실행될까요?"
     },
     {
       "action": "say",
-      "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-      "target": "problem"
+      "text": "생성자는 잘못된 시작 잔액이면 객체를 만들기 전에 예외를 던져요.",
+      "target": "code:if (opening < 0) throw new IllegalArgumentException(\"negative balance\");"
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         18,
         18
@@ -22,18 +21,17 @@
     },
     {
       "action": "say",
-      "text": "잘못된 생성 조건을 알려 invalid만 출력해요.",
+      "text": "invalid만 나왔어요. 예외가 나자 try의 남은 줄을 건너뛰고 catch로 갔어요.",
       "target": "output"
     },
     {
       "action": "patch_code",
       "before": "new Account(-1)",
       "after": "new Account(100)",
-      "say": "유효한 시작 잔액으로 비교해요."
+      "say": "유효한 시작 잔액 100으로 비교해요."
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         18,
         18
@@ -41,23 +39,22 @@
     },
     {
       "action": "say",
-      "text": "이제 생성 뒤 잔액 백과 after가 출력돼요.",
+      "text": "100과 after가 나와요. 예외가 없으면 try가 끝까지 실행돼요.",
       "target": "output"
     },
     {
       "action": "say",
-      "text": "조심하세요. 예외가 나면 해당 try의 다음 문장을 그대로 이어 실행하지 않아요.",
-      "target": "output"
+      "text": "조심하세요. catch로 넘어간 뒤 try 안의 나머지 줄로 돌아오지 않아요.",
+      "target": "code:System.out.println(\"after\");"
     },
     {
       "action": "patch_code",
       "before": "new Account(100)",
       "after": "new Account(-1)",
-      "say": "문제의 잘못된 시작 조건으로 돌아와요."
+      "say": "문제의 음수 시작으로 돌아와요."
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         18,
         18
@@ -65,7 +62,7 @@
     },
     {
       "action": "say",
-      "text": "원래 음수 시작은 catch로 이동해요.",
+      "text": "다시 invalid만 나와요.",
       "target": "output"
     },
     {

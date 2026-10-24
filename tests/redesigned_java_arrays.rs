@@ -6,7 +6,7 @@ async fn array_positions_repetition_and_empty_data_match_the_actual_teacher_runs
     let lesson=Lesson::parse(include_str!("../courses/redesigned/java-arrays.json"),&course.lessons[0]).unwrap();
     assert_eq!(lesson.tasks.len(),8);
     let expected=vec![vec!["1000","2000","1000"],vec!["3000","1000","3000"],vec!["3\n2","2\n1","3\n2"],vec!["1000\n2000"],
-        vec!["6000","8000","6000"],vec!["6000","3000","6000"],vec!["5000","3000","5000"],vec!["3000","6000","0","6000"]];
+        vec!["6000","8000","6000"],vec!["6000","5000","6000"],vec!["5000","3000","5000"],vec!["3000","6000","0","6000"]];
     for (index,task) in lesson.tasks.iter().enumerate() {
         assert!(!lesson_runner::check(task,&task.starter_code).await.unwrap().passed,"Step {} starts unsolved",index+1);
         assert!(lesson_runner::check(task,&task.solution).await.unwrap().passed,"Step {} solution",index+1);

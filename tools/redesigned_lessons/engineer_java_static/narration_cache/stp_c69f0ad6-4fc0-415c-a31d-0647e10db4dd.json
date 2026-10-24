@@ -1,10 +1,14 @@
 {
   "by": "hand",
-  "source_sha256": "07647b2e25fbaa5df80cf1a6d37f4030a8979ca423c6ee98020704a5d7744190",
+  "source_sha256": "d6c89062e65fb6b4cdf65db0537cc721af815a7607fb241727945055d655e41d",
   "entry": [
     {
+      "action": "say",
+      "text": "a의 초기화식이 read()를 불러 아직 준비되지 않은 b를 읽어요. 초기화 순서에 따라 a에 들어가는 값을 따지는 문제예요.",
+      "target": "text:클래스를 처음 쓸 때 static 필드는 먼저 모두 기본값 0으로 준비되고, 그다음 위에서 아래 순서로 초기화식이 실행돼요."
+    },
+    {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         10,
         10
@@ -19,11 +23,10 @@
       "action": "patch_code",
       "before": "static int a = read();",
       "after": "static int a = 7;",
-      "say": "한 곳만 바꿔 실행 결과를 비교해요."
+      "say": "a의 초기화식을 read() 대신 7로 바꿔 볼게요."
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         10,
         10
@@ -36,18 +39,17 @@
     },
     {
       "action": "say",
-      "text": "조심하세요. 명시적 초기화 전 기본값과 순서를 구별해요..",
+      "text": "조심하세요. read()가 b를 읽는 시점에 b의 초기화식 7은 아직 실행 전이에요. 선언 순서가 결과를 정해요.",
       "target": "output"
     },
     {
       "action": "patch_code",
       "before": "static int a = 7;",
       "after": "static int a = read();",
-      "say": "문제의 처음 코드로 돌아와요."
+      "say": "read()로 되돌려요."
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         10,
         10
@@ -55,7 +57,7 @@
     },
     {
       "action": "say",
-      "text": "답은 처음 코드의 실행 결과를 기준으로 골라요.",
+      "text": "처음 코드는 a가 기본값 0을 받고, 그 뒤에 b가 7이 돼요.",
       "target": "output"
     },
     {

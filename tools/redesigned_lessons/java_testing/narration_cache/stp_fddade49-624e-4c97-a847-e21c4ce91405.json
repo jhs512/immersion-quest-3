@@ -1,20 +1,14 @@
 {
   "by": "hand",
-  "source_sha256": "c97137f02be54fdf29c889e0f0be9f129e2f9a05853651cab2fec2408301a434",
+  "source_sha256": "f3b826b72fcff210d29eef3aada57e473fc086f2cc0dffa568fbc657fd70668b",
   "entry": [
     {
       "action": "say",
-      "text": "10,000원 이상은 무료배송인데 기대값을 2,000원으로 정했어요. 검사가 실패하면 무엇을 먼저 확인해야 하나요?",
-      "target": "problem"
-    },
-    {
-      "action": "say",
-      "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-      "target": "problem"
+      "text": "구현은 맞는데 기대값을 2,000으로 잘못 적었어요. 검사가 실패하면 무엇부터 볼지가 질문이에요.",
+      "target": "text:대신 기대값을 2,000으로 적었어요."
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         13,
         13
@@ -22,18 +16,22 @@
     },
     {
       "action": "say",
-      "text": "구현은 영인데 기대가 이천이라 거짓이에요.",
+      "text": "false예요. 구현은 0, 기대는 2,000이에요.",
       "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "요구는 10,000원부터 무료예요. 틀린 쪽은 기대값이에요.",
+      "target": "code:int expected = 2000;"
     },
     {
       "action": "patch_code",
       "before": "int expected = 2000;",
       "after": "int expected = 0;",
-      "say": "요구와 같은 기대값으로 고쳐요."
+      "say": "요구에 맞춰 기대값을 0으로 고쳐요."
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         13,
         13
@@ -41,13 +39,13 @@
     },
     {
       "action": "say",
-      "text": "올바른 기대와 구현은 같아요.",
+      "text": "true예요.",
       "target": "output"
     },
     {
       "action": "say",
-      "text": "조심하세요. 실패한 검사의 기대값이나 실행 환경도 잘못됐을 수 있어요.",
-      "target": "output"
+      "text": "조심하세요. 검사가 실패했다고 구현부터 고치면, 맞는 구현을 틀리게 바꿀 수 있어요.",
+      "target": "text:규칙상 10,000원은 무료예요."
     },
     {
       "action": "patch_code",
@@ -57,7 +55,6 @@
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         13,
         13
@@ -65,7 +62,7 @@
     },
     {
       "action": "say",
-      "text": "처음 기대값으로는 검사가 실패해요.",
+      "text": "처음 기대값으로는 실패해요.",
       "target": "output"
     },
     {

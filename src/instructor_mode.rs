@@ -11,8 +11,6 @@ pub(crate) struct InstructorSession(pub Signal<Option<crate::practice::Materials
 pub(crate) enum InstructorAction {
     /// The mission's precompiled 해설, as `/auto` plays it.
     Narrate,
-    /// A JSON action list that fills in the answers and grades, no speech.
-    Solve(String),
 }
 #[derive(Clone, PartialEq)]
 pub(crate) struct InstructorRequest {
@@ -111,9 +109,9 @@ fn answer(activity: &Activity) -> String {
     }
 }
 
-/// What "정답 보기" runs through the tutor agent: the answers go in and grading is pressed, with
-/// no answer card. Coding puts the solution in the editor and submits; concept and quiz replay the
-/// answer_quiz steps of the compiled narration (the same answers the 해설 ticks) without speech.
+/// The answer steps `/tour-all` performs after its spoken gist: coding puts the solution in the
+/// editor and submits; concept and quiz replay the answer_quiz steps of the compiled narration
+/// (the same answers the 해설 ticks). There is no standalone answer-reveal control.
 pub(crate) fn solve_actions(activity: &Activity) -> serde_json::Value {
     use serde_json::json;
     match &activity.kind {
@@ -191,16 +189,9 @@ pub(crate) fn InstructorControls(activity: Activity) -> Element {
     if session().is_none() {
         return rsx! {};
     }
-    // A deck has nothing to fill in: "정답 보기" marks it watched, the same as "다 봤어요 · 미션 완료".
-    let slides = matches!(activity.kind, ActivityKind::Slides { .. });
-    let solve = serde_json::to_string(&solve_actions(&activity)).unwrap_or_else(|_| "[]".into());
     let has_narration = !activity.narration.is_empty();
     rsx! {
         div {class:"instructor-controls",
-            button {class:"instructor-answer",onclick:move |_|{
-                if slides {document::eval("window.molipAgent?.stop();document.querySelector('.slides-finish')?.click()");return;}
-                requests.post(InstructorAction::Solve(solve.clone()));
-            },"정답 보기"}
             button {class:"instructor-explain",disabled:!has_narration,onclick:move |_|{requests.post(InstructorAction::Narrate);},"해설 보기"}
         }
     }
@@ -245,7 +236,7 @@ mod tests {
     fn answers_after(steps: &serde_json::Value, questions: &[Question]) -> HashMap<String, String> {
         let mut by_number: HashMap<String, String> = HashMap::new();
         for step in steps.as_array().expect("array") {
-            assert_eq!(step["action"], "answer_quiz", "정답 보기 step {step}");
+            assert_eq!(step["action"], "answer_quiz", "answer step {step}");
             if let Some(answers) = step["answers"].as_object() {
                 for (n, v) in answers {
                     by_number.insert(n.clone(), v.as_str().unwrap_or_default().to_string());
@@ -291,8 +282,8 @@ mod tests {
         );
     }
 
-    /// /tour-all says one to three sentences on every mission, then performs the same steps
-    /// 정답 보기 does (a deck is finished quietly, without presentation mode).
+    /// /tour-all says one to three sentences on every mission, then performs the answer steps
+    /// (a deck is finished quietly, without presentation mode).
     #[test]
     fn tour_actions_say_a_little_and_end_every_kpc_mission() {
         let course =
@@ -333,7 +324,7 @@ mod tests {
         }
     }
 
-    /// 정답 보기 on every concept and quiz mission fills answers that the real grader passes;
+    /// The /tour-all answer steps on every concept and quiz mission fill answers the grader passes;
     /// on a coding mission it submits the solution; a deck has no steps (it is marked watched).
     #[test]
     fn solve_actions_pass_every_kpc_mission() {

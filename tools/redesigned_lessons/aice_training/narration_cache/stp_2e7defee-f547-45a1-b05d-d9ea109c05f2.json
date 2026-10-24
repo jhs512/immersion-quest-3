@@ -1,0 +1,61 @@
+{
+  "by": "hand",
+  "source_sha256": "b8ea52254f72556463d13481a4efecdf18e943ff8760c574fcc81bce9de00357",
+  "entry": [
+    {
+      "action": "say",
+      "text": "멈춘 순간의 가중치가 남는지, 가장 좋았던 순간의 가중치로 돌아가는지 고르는 문제예요. 검증 오차는 첫 epoch 뒤부터 나빠져요.",
+      "target": "text:restore_best_weights=True는 멈출 때 가장 좋았던 epoch의 가중치로 되돌릴지를 정해요."
+    },
+    {
+      "action": "say",
+      "text": "patience=0이라 한 번 나빠지면 바로 멈춰요.",
+      "target": "code:patience=0"
+    },
+    {
+      "action": "run",
+      "lines": [
+        27,
+        29
+      ]
+    },
+    {
+      "action": "say",
+      "text": "두 epoch에서 멈췄고, 예측이 한 epoch만 학습한 모델과 같아요. 첫 epoch의 가중치로 되돌아갔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "restore_best_weights=True",
+      "after": "restore_best_weights=False",
+      "say": "되돌리기를 꺼 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        27,
+        29
+      ]
+    },
+    {
+      "action": "say",
+      "text": "이번엔 False예요. 되돌리지 않으면 나빠진 두 번째 epoch의 가중치가 남아요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "restore_best_weights=False",
+      "after": "restore_best_weights=True",
+      "say": "되돌리기를 다시 켜요."
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 마지막 줄의 갱신 횟수는 두 번 그대로예요. 되돌리는 것은 모델 가중치뿐이고 optimizer의 갱신 횟수는 과거로 돌아가지 않아요.",
+      "target": "code:model.optimizer.iterations"
+    },
+    {
+      "action": "choose_answer",
+      "id": "best"
+    }
+  ]
+}

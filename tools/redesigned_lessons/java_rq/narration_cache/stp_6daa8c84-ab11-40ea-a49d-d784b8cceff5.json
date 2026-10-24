@@ -1,25 +1,43 @@
 {
   "by": "hand",
-  "source_sha256": "69237a2ef392eb3a177dc8b04e14c8c3aab217bc1a97bcb82d942692e41b4693",
+  "source_sha256": "8ed8e3048d534698df09292078ef11dd5bf1f84f0550cd25ed6de5e3629f9d61",
   "entry": [
     {
       "action": "say",
-      "text": "같은 요청에 id가 두 번 왔어요. 구현을 바꿔도 중복을 거절하는 약속은 유지해요.",
-      "target": "problem"
-    },
-    {
-      "action": "run",
-      "say": "제공된 코드부터 실행해요."
+      "text": "id가 두 번 온 요청이에요. 1과 2 중 어느 쪽을 써야 할지 정해져 있지 않아요.",
+      "target": "text:같은 요청에 id가 두 번 왔어요."
     },
     {
       "action": "say",
-      "text": "중복 합치기 함수가 거절하므로 duplicate예요.",
+      "text": "toMap의 세 번째 인자 duplicate는 같은 키를 만나면 예외를 던져요.",
+      "target": "code:Rq::duplicate"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "duplicate가 출력됐어요. 요청을 거절했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": ", Rq::duplicate",
+      "after": ", (oldValue, newValue) -> newValue",
+      "say": "뒤의 값으로 조용히 덮어쓰게 바꿔 볼게요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "accepted예요. 앞의 id=1은 아무 경고 없이 사라졌어요.",
       "target": "output"
     },
     {
       "action": "say",
-      "text": "조심하세요. 스트림으로 고쳤다고 입력 처리 약속을 바꾸지 않아요.",
-      "target": "output"
+      "text": "조심하세요. 덮어쓰기는 오류가 나지 않아서 잘못된 요청을 알아차리기 어려워요.",
+      "target": "code:(oldValue, newValue) -> newValue"
     },
     {
       "action": "choose_answer",

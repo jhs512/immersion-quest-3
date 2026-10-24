@@ -1,34 +1,63 @@
 {
   "by": "hand",
-  "source_sha256": "839707522759e4c85aadea9aebf358d384aef387106c026288438a50863258e7",
+  "source_sha256": "b7464a35bd1b5040611a31c92740a6f5915f53f046c731a210d328d315cd73ae",
   "entry": [
     {
       "action": "say",
-      "text": "참조 a를 final로 선언했어요. 현재 객체의 count를 바꿀 수 있을까요?",
-      "target": "problem"
+      "text": "a 앞에 final을 붙였어요. final은 이 변수에 다른 값을 다시 넣지 못하게 막아요.",
+      "target": "text:final 변수에는 처음 넣은 값 말고 다른 값을 다시 대입할 수 없어요."
     },
     {
       "action": "say",
-      "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-      "target": "problem"
+      "text": "질문은 그때 a가 가리키는 상자의 count도 못 바꾸는지예요.",
+      "target": "text:그렇다면 a가 가리키는 상자의 count도 바꿀 수 없을까요?"
+    },
+    {
+      "action": "say",
+      "text": "이 줄은 a에 새 값을 넣는 게 아니라 상자의 필드에 값을 써요.",
+      "target": "code:a.count = 3;"
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
-        16,
-        16
+        15,
+        15
       ]
     },
     {
       "action": "say",
-      "text": "현재 상자의 재고가 삼으로 바뀌었어요.",
+      "text": "3이 나왔어요. 필드 변경은 허용돼요.",
       "target": "output"
     },
     {
+      "action": "patch_code",
+      "before": "        a.count = 3;",
+      "after": "        a = new Box(5);",
+      "say": "a에 새 상자를 다시 대입해 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        14,
+        14
+      ],
+      "expect_error": "final"
+    },
+    {
       "action": "say",
-      "text": "조심하세요. 고정한 참조와 불변 객체는 다른 말이에요.",
+      "text": "컴파일 오류예요. final 변수 a에는 다른 참조를 다시 넣을 수 없어요.",
       "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        a = new Box(5);",
+      "after": "        a.count = 3;",
+      "say": "필드에 값을 쓰는 원래 줄로 되돌려요."
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. final이 막는 것은 a의 재대입이에요. 상자 안의 값까지 고정되는 건 아니에요.",
+      "target": "code:final Box a = new Box(2);"
     },
     {
       "action": "choose_answer",

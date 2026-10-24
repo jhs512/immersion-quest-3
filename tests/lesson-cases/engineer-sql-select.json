@@ -38,18 +38,17 @@
       "id | name\n1 | north\n2 | south\n4 | north"
     ],
     [
+      "id\n10",
+      "id\n10",
+      "id\n10\n20"
+    ],
+    [
       "id\n(행 없음)",
       "id\n30",
       "id\n(행 없음)"
     ],
     [
-      "id\n10",
-      "id\n10\n20",
-      "id\n10"
-    ],
-    [
-      "id\n(행 없음)",
-      "id\n2"
+      "id\n4"
     ]
   ],
   "reject": [
@@ -57,11 +56,21 @@
       "step": 10,
       "replacements": [
         [
-          "stock IS NULL",
-          "id = 2"
+          "stock = 0 OR stock IS NULL",
+          "id IN (2, 4)"
         ]
       ],
-      "reason": "기억한 ID로 고정하면 다른 자료의 빈 재고를 찾지 못해요."
+      "reason": "기억한 ID로 고정하면 다른 자료의 재주문 대상을 찾지 못해요."
+    },
+    {
+      "step": 10,
+      "replacements": [
+        [
+          "stock = 0 OR stock IS NULL",
+          "stock IS NULL"
+        ]
+      ],
+      "reason": "모르는 재고만 찾으면 재고 0인 물건이 빠져요."
     }
   ]
 }

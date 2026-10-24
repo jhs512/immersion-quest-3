@@ -102,3 +102,30 @@ python tools/build-kpc-course.py
 ```bash
 python tools/verify-kpc-module.py d1_p1_environment narration_python
 ``` 앱에서는 해당 미션을 열고 AI 패널에 `/auto`를 쳐서 대본과 동작을 확인한다.
+
+
+## 새 과정 수업(redesigned)의 해설
+
+새 세 과정 수업의 해설은 `tools/redesigned_lessons/<폴더>/content.json`의 각 스텝 `narration`에 손으로 쓴다(`by: hand`). `python tools/build-redesigned-git.py --lesson <key>`가 검사하고 `narration_cache`·수업 파생물·검증 코스 해시를 갱신한다(`tools/narrate.py --redesigned-git`도 이 빌더를 부른다). 내용 기준은 `docs/content-rules.md`의 「해설은 문제를 설명한다」다.
+
+### 강조 대상(target)
+
+| target | 강조 범위 |
+| --- | --- |
+| `text:<구절>` | 문제 제목·본문(goal)에서 그 구절의 정확한 글자 범위. 백틱·굵게 표시는 빼고 공백은 하나로 본다. 같은 구절이 여러 번 나오면 `text:<구절>#2`처럼 몇 번째인지 쓴다. |
+| `code:<토큰>` | 편집기에서 그 글자 범위와 그 줄. 같은 코드가 여러 번이면 `code:<토큰>#2`. 그 시점(앞의 patch·set_code 반영 뒤)의 코드에 있어야 한다. |
+| `lines` 필드 또는 `lines:N:M` | 줄 단위 강조. 토큰이 아니라 몇 줄의 묶음을 설명할 때. |
+| `output`, `editor`, `#git-demo-terminal` 등 | 영역 강조. 출력·터미널 결과를 읽을 때 쓴다. 문제 문장 설명을 이것으로 대신하지 않는다. |
+
+강조는 말하는 동안만 유지되고 다음 문장·멈춤·화면 이동 때 지워진다(DOM을 바꾸지 않는 Custom Highlight API와 편집기 장식). 학습자의 코드·선택·입력은 해설 뒤 복원된다.
+
+### 빌드 검사
+
+- 모든 스텝: goal에 「할 일」 번호 목록이 하나 있고 마지막 항목이 제출이다.
+- 모든 스텝: `text:` 강조가 하나 이상 있고, 모든 `text:` 구절이 제목·goal에서 찾아지며 같은 구절이 여러 번이면 `#n`이 있다. `code:` 구절은 그 시점 코드에서 찾아지고 모호하면 `#n`이 있다.
+- 코드가 있는 스텝: `code:` 또는 줄 강조가 하나 이상 있다.
+- 한 수업 안에서 같은 문장(12자 이상)을 세 스텝 이상에서 쓰지 않는다. 같은 「조심하세요」 문장을 두 스텝 이상에서 쓰지 않는다. 「조심하세요」가 스텝 목표 문장을 그대로 담지 않는다. 금지된 상투 문장(빌더의 `BOILERPLATE`)을 쓰지 않는다.
+- 모든 스텝에 「조심하세요」를 강제하지 않는다. 실제 실수가 있는 스텝에만 쓴다.
+- 실행 결과는 `tests/lesson-cases/<key>.json`과 `cargo run --example validate_redesigned_lesson`으로 실제 실행해 확인한다(해설 run 출력·정답 통과·준비 코드 실패·오답 거절).
+
+실제 음성과 강조가 맞물리는지는 앱에서 들어 보는 별도 확인이다. 정적 검사 통과를 음성 동기 확인으로 보고하지 않는다.

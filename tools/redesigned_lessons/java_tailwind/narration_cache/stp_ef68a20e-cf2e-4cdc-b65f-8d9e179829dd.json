@@ -1,53 +1,80 @@
 {
   "by": "hand",
-  "source_sha256": "7988a7664b5126f26c83bbcf2180f246b8112340d46aa9910f6511fa6fcbc248",
+  "source_sha256": "cd79513e2c867acec836b64b88ed736c20bf0761dd4650e8ce6baf5966301df3",
   "entry": [
     {
       "action": "say",
-      "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-      "target": "problem"
+      "text": "좁을 때 한 열, 넓을 때 두 열이 목표예요. 앞의 클래스는 모든 폭의 기본값, md:는 768px 이상에서 덧씌워요.",
+      "target": "text:앞에 아무것도 없는 grid-cols는 모든 폭의 기본값이고, md:가 붙은 클래스는 화면 폭이 768px 이상일 때만 덧씌워요."
+    },
+    {
+      "action": "say",
+      "text": "지금은 기본값도 두 열, md:도 두 열이에요.",
+      "target": "code:grid grid-cols-2 md:grid-cols-2"
     },
     {
       "action": "run",
-      "say": "현재 화면의 배치를 확인해요.",
       "lines": [
         9,
         9
       ]
     },
     {
+      "action": "web_action",
+      "do": "width",
+      "selector": "#cards",
+      "style": "gridTemplateColumns",
+      "say": "해설 미리보기를 360px로 좁혀 열을 읽어요.",
+      "value": 360
+    },
+    {
       "action": "say",
-      "text": "기본 두 열이라 좁은 화면에서도 나란히 놓여요.",
-      "target": "output"
+      "text": "160px 두 칸이에요. 좁은 화면에서도 두 열이에요.",
+      "target": "iframe[title=\"해설 웹 미리보기\"]"
     },
     {
       "action": "patch_code",
       "before": "grid grid-cols-2 md:grid-cols-2",
       "after": "grid grid-cols-1 md:grid-cols-2",
-      "say": "주어진 클래스 한 곳만 바꿔요."
+      "say": "기본값만 한 열로 바꿔요. md:는 넓은 화면용이니 그대로 둬요."
     },
     {
       "action": "run",
-      "say": "바뀐 화면을 다시 확인해요.",
       "lines": [
         9,
         9
       ]
     },
     {
-      "action": "say",
-      "text": "기본은 한 열이고 넓은 화면 조건에서는 두 열이에요.",
-      "target": "output"
+      "action": "web_action",
+      "do": "width",
+      "selector": "#cards",
+      "style": "gridTemplateColumns",
+      "say": "다시 360px에서 읽어요.",
+      "value": 360
     },
     {
       "action": "say",
-      "text": "조심하세요. md는 특정 기종 이름이 아니에요.",
-      "target": "output"
+      "text": "320px 한 칸이에요. 좁은 화면은 한 열이 됐어요.",
+      "target": "iframe[title=\"해설 웹 미리보기\"]"
+    },
+    {
+      "action": "web_action",
+      "do": "width",
+      "selector": "#cards",
+      "style": "gridTemplateColumns",
+      "say": "이번엔 900px로 넓혀 읽어요.",
+      "value": 900
     },
     {
       "action": "say",
-      "text": "정해진 최소 화면 폭 이상에 적용돼요.",
-      "target": "output"
+      "text": "160px 두 칸이에요. 넓은 화면에서는 md:가 두 열로 덧씌웠어요.",
+      "target": "iframe[title=\"해설 웹 미리보기\"]"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. md는 기기 이름이 아니라 화면 폭 768px 이상이라는 조건이에요. md:만 바꾸면 좁은 화면은 그대로 두 열이에요.",
+      "target": "code:md:grid-cols-2"
     }
   ]
 }

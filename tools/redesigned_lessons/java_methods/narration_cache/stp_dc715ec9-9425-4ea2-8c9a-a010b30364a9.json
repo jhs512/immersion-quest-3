@@ -1,15 +1,14 @@
 {
   "by": "hand",
-  "source_sha256": "4a56a1e3df8f926c0466a90ced7152421d8d48e6b3d071b66fdf6bf762d971a0",
+  "source_sha256": "8afd7f0d0e267a5b5f5bc4fba8000dcd1fd968211204e726b4c19a4aba610def",
   "entry": [
     {
       "action": "say",
-      "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-      "target": "problem"
+      "text": "규칙은 기준 금액부터 무료예요. 기준은 매개변수 freeFrom으로 들어와요.",
+      "target": "text:shipping은 기준을 매개변수 freeFrom으로 받아요."
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         15,
         15
@@ -17,18 +16,22 @@
     },
     {
       "action": "say",
-      "text": "기준과 같은데 이천오백이 나왔어요.",
+      "text": "2,500이에요. 기준과 같은 10,000원인데 배송비가 붙었어요.",
       "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "초과 비교라서 기준과 같은 금액이 빠졌어요.",
+      "target": "code:amount > freeFrom"
     },
     {
       "action": "patch_code",
       "before": "amount > freeFrom",
       "after": "amount >= freeFrom",
-      "say": "같은 값도 포함하는 비교로 고쳐요."
+      "say": "같은 금액도 포함하도록 고쳐요."
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         15,
         15
@@ -36,23 +39,17 @@
     },
     {
       "action": "say",
-      "text": "기준에 닿은 주문은 이제 영이에요.",
-      "target": "output"
-    },
-    {
-      "action": "say",
-      "text": "조심하세요. 결과 영을 고정하면 작은 주문을 놓쳐요.",
+      "text": "0이에요.",
       "target": "output"
     },
     {
       "action": "patch_code",
       "before": "amount = 10000;",
       "after": "amount = 9999;",
-      "say": "기준 바로 아래 금액도 검증해요."
+      "say": "기준 바로 아래 금액도 확인해요."
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         15,
         15
@@ -60,18 +57,17 @@
     },
     {
       "action": "say",
-      "text": "이 주문에는 이천오백이 필요해요.",
+      "text": "2,500이에요. 아래쪽 경계도 맞아요.",
       "target": "output"
     },
     {
       "action": "patch_code",
-      "before": "amount = 9999;",
-      "after": "amount = 10000;",
-      "say": "처음 금액으로 돌아와요."
+      "before": "int amount = 9999;\n        int freeFrom = 10000;",
+      "after": "int amount = 20000;\n        int freeFrom = 20000;",
+      "say": "기준을 20,000원으로 바꾼 가게라면 어떨까요?"
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         15,
         15
@@ -79,8 +75,13 @@
     },
     {
       "action": "say",
-      "text": "메서드의 규칙을 경계 전후에서 확인했어요.",
+      "text": "0이에요. 메서드가 받은 기준으로 판단하니 기준이 달라도 같은 규칙이 지켜져요.",
       "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 10000을 조건에 직접 쓰면 다른 기준을 쓰는 채점에서 틀려요.",
+      "target": "code:int freeFrom = 20000;"
     }
   ]
 }

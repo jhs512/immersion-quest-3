@@ -1,15 +1,19 @@
 {
   "by": "hand",
-  "source_sha256": "40ae598c2ed1a81078cfeeedd1cd7d9d82a5e31573e140b7f777302447b475ac",
+  "source_sha256": "0a07f56a08b8d5279f34762694ee6bb843d8cff88590811f1a64185dea1ef319",
   "entry": [
     {
       "action": "say",
-      "text": "읽을 값과 출력할 줄을 먼저 살펴봐요.",
-      "target": "lines:9:9"
+      "text": "저장소 하나를 두 이름이 가리키는 상황이에요. q로 쓴 값을 p로 읽을 때를 따지는 문제예요.",
+      "target": "text:int *q = p;는 새 저장소를 만들지 않고 같은 주소를 복사해요."
+    },
+    {
+      "action": "say",
+      "text": "q로 9를 쓰고 p로 읽어요.",
+      "target": "code:*q = 9;"
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         9,
         9
@@ -17,18 +21,41 @@
     },
     {
       "action": "say",
-      "text": "두 포인터가 같은 정수 저장소를 가리켜요. q로 저장한 구를 p에서도 읽어요.",
+      "text": "9예요. 같은 저장소예요.",
       "target": "output"
     },
     {
+      "action": "patch_code",
+      "before": "*q = 9;",
+      "after": "*p = 9;",
+      "say": "이번엔 p로 직접 써 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        9
+      ]
+    },
+    {
       "action": "say",
-      "text": "조심하세요. 포인터 두 개가 있다고 같은 할당을 두 번 해제하지 않아요.",
-      "target": "problem"
+      "text": "결과는 같은 9예요. 어느 이름으로 써도 한 저장소에 써요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "*p = 9;",
+      "after": "*q = 9;",
+      "say": "q로 쓰는 줄로 되돌려요."
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 이름이 둘이어도 할당은 하나라서 free도 한 번만 해요.",
+      "target": "code:free(p);"
     },
     {
       "action": "fill_answer",
-      "value": "9",
-      "say": "실행 결과 숫자를 답안으로 적어요."
+      "value": "9"
     }
   ]
 }

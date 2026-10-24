@@ -1,15 +1,19 @@
 {
   "by": "hand",
-  "source_sha256": "51ae9798a639cc4cfbddb7570738daa8c9bdbd7e53fb9de32a9f5e7ba6e0fcdf",
+  "source_sha256": "25ea58f5192d90c6e71d816e68d861bc6d572a87876368230c5d3bd180ef5746",
   "entry": [
     {
       "action": "say",
-      "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-      "target": "problem"
+      "text": "저장할 때 앞뒤 공백을 빼야 해요. 저장된 값은 따옴표 안에 보여요.",
+      "target": "text:저장할 때 글 앞뒤 공백을 빼야 해요."
+    },
+    {
+      "action": "say",
+      "text": "지금 save는 입력한 글을 그대로 저장해요.",
+      "target": "code:setSaved(draft)"
     },
     {
       "action": "run",
-      "say": "실행해 현재 화면을 확인해요.",
       "lines": [
         8,
         8
@@ -21,33 +25,70 @@
       "target": "output"
     },
     {
+      "action": "web_action",
+      "do": "fill",
+      "selector": "input",
+      "say": "앞뒤에 공백이 있는 글을 넣어요.",
+      "value": "  새 글  "
+    },
+    {
+      "action": "say",
+      "text": "입력 칸에 새 글이 들어갔어요.",
+      "target": "iframe[title=\"해설 웹 미리보기\"]"
+    },
+    {
+      "action": "web_action",
+      "do": "click",
+      "selector": "button",
+      "say": "저장을 눌러요.",
+      "read": "output"
+    },
+    {
+      "action": "say",
+      "text": "따옴표 안에 공백까지 저장됐어요.",
+      "target": "iframe[title=\"해설 웹 미리보기\"]"
+    },
+    {
       "action": "patch_code",
       "before": "setSaved(draft)",
       "after": "setSaved(draft.trim())",
-      "say": "문제에서 확인한 부분만 고쳐요."
+      "say": "저장하는 값에 trim을 붙여 앞뒤 공백을 빼요."
     },
     {
       "action": "run",
-      "say": "다시 실행해 처음 화면을 확인해요.",
       "lines": [
         8,
         8
       ]
     },
     {
-      "action": "say",
-      "text": "공백을 정리한 값을 저장하도록 바꿨어요. 공백 있는 글을 넣어 저장해 보세요.",
-      "target": "output"
+      "action": "web_action",
+      "do": "fill",
+      "selector": "input",
+      "say": "같은 글을 다시 넣어요.",
+      "value": "  새 글  "
     },
     {
       "action": "say",
-      "text": "조심하세요. 여기 저장은 화면의 메모리 상태예요.",
-      "target": "output"
+      "text": "입력 칸에 다시 넣었어요.",
+      "target": "iframe[title=\"해설 웹 미리보기\"]"
+    },
+    {
+      "action": "web_action",
+      "do": "click",
+      "selector": "button",
+      "say": "저장을 눌러요.",
+      "read": "output"
     },
     {
       "action": "say",
-      "text": "새로 열면 비워지며 서버 저장은 아니에요.",
-      "target": "output"
+      "text": "이번엔 따옴표 안이 새 글뿐이에요.",
+      "target": "iframe[title=\"해설 웹 미리보기\"]"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 이 저장은 지금 화면의 상태일 뿐이에요. 화면을 새로 열면 비워지고 서버에 남지 않아요.",
+      "target": "code:const [saved, setSaved] = useState(\"\");"
     }
   ]
 }

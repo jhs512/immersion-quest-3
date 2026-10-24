@@ -16,7 +16,7 @@ test('the next shell command waits until the current output explanation finishes
    window.molipVoice={name:'ko-KR-SunHiNeural',enabled:()=>true,rate:1.5,synthesize:async text=>text};
    window.Audio=class {
     constructor(text){this.text=text}
-    play(){if(/^(경로가 나왔어요|목록을 확인했어요|첫 메모가 나와요)/.test(this.text))window.held=this;else setTimeout(()=>this.onended?.(),0);return Promise.resolve()}
+    play(){if(/^(경로가 나왔어요|목록이 비어 있어요|첫 메모가 나와요)/.test(this.text))window.held=this;else setTimeout(()=>this.onended?.(),0);return Promise.resolve()}
     pause(){}
    };
   });
@@ -24,7 +24,7 @@ test('the next shell command waits until the current output explanation finishes
   await page.evaluate(actions=>{window.finished=molipAgent.run(actions)},actions);
   for(const [prefix,commands] of [
    ['경로가 나왔어요',['pwd']],
-   ['목록을 확인했어요',['pwd','ls']],
+   ['목록이 비어 있어요',['pwd','ls']],
    ['첫 메모가 나와요',['pwd','ls','git init','echo "첫 메모" > memo.txt','cat memo.txt']],
   ]){
    await page.waitForFunction(prefix=>window.held?.text.startsWith(prefix),prefix);

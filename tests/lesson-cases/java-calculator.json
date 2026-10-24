@@ -3,28 +3,36 @@
   "lesson": "courses/redesigned/java-calculator.json",
   "expected_outputs": [
     [
-      "[12, +, 3]"
+      "[12, +, 3]",
+      "[1, 2, +, 3]"
     ],
     [
-      "15"
+      "15",
+      "123"
     ],
     [
-      "14"
-    ],
-    [
-      "14"
-    ],
-    [
+      "14",
       "20"
     ],
     [
+      "14",
+      "5"
+    ],
+    [
+      "20",
+      "invalid"
+    ],
+    [
+      "14",
+      "28"
+    ],
+    [
+      "invalid",
       "14"
     ],
     [
-      "invalid"
-    ],
-    [
-      "invalid"
+      "5 false",
+      "5 true"
     ],
     [
       "9",
@@ -34,5 +42,37 @@
       "5",
       "invalid"
     ]
+  ],
+  "reject": [
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "value *= factor()",
+          "value += factor()"
+        ]
+      ],
+      "reason": "곱셈 단계가 더하면 우선순위가 틀려요"
+    },
+    {
+      "step": 10,
+      "replacements": [
+        [
+          "if (position != text.length()) throw new IllegalArgumentException(\"trailing\");",
+          ""
+        ]
+      ],
+      "reason": "남은 입력을 검사하지 않으면 2+3x를 받아들여요"
+    },
+    {
+      "step": 10,
+      "replacements": [
+        [
+          "if (position != text.length()) throw new IllegalArgumentException(\"trailing\");",
+          "if (text.contains(\"x\")) throw new IllegalArgumentException(\"trailing\");"
+        ]
+      ],
+      "reason": "x 하나만 막는 고정 검사는 다른 잘못된 입력을 놓쳐요"
+    }
   ]
 }

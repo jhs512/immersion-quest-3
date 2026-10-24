@@ -132,12 +132,12 @@
               "core_flow": "new.csv의거리2/결측/8과지역북/미지west/남을같은전처리기로transform한다.3행3열과훈련대체평균3.5,미지범주원핫두칸0을읽는다. 새자료로fit_transform하면기준과열이바뀔수있음을판단한다."
             },
             {
-              "id": "stp_ff9f6faf-a29a-4e9e-b9e4-e74d77a42ab0",
+              "id": "stp_1300dfb3-6b1d-40a8-b531-7c350058d033",
               "title": "전처리와 예측을 한 호출로 연결해요",
               "objectives": [
-                "Pipeline에 훈련 전처리·모델을 묶어 새 입력을 예측해요."
+                "Pipeline의 predict가 훈련에서 배운 전처리 기준과 모델을 차례로 적용함을 판단해요."
               ],
-              "core_flow": "전처리뒤LinearRegression인Pipeline을훈련표에fit하고새거리표에predict한다.20/35/80을출력한다. 숫자는이작은선형표의결과이며목표정답없는새파일의정확도는아직평가할수없다."
+              "core_flow": "전처리 뒤 LinearRegression인 Pipeline을 훈련 표에 fit하고 새 거리 표에 predict해 20/35/80을 출력한다. 빈 거리가 훈련 평균 3.5로 채워져 35가 됨을 근거로 predict가 새 자료로 다시 배우지 않음을 판단한다. 이전 revision의 같은 자리 스텝(stp_ff9f6faf…)은 \"정답 없는 새 표의 정확도를 아는가\"를 물어 앞 수업의 결론을 되풀이해 이번 revision에서 빠지며 완료 기록은 이전 revision에 남는다."
             },
             {
               "id": "stp_1042f95e-0b9a-49ca-986c-ac76492213d6",
@@ -199,12 +199,12 @@
               "core_flow": "직접만든전처리+모델Pipeline을joblib로저장/불러온다. 같은새파일예측이allcloseTrue와복원대체평균3.5를확인한다. 모델부분만저장하는것과전처리까지포함하는것을구별한다."
             },
             {
-              "id": "stp_cf4c519d-5dd0-4b99-b289-ee31fe7f6f61",
-              "title": "학습 표가 아닌 새 배송을 예측해요",
+              "id": "stp_1cab4402-8429-4516-858b-3f01a74c1133",
+              "title": "새 배송도 훈련과 같은 열로 예측해요",
               "objectives": [
-                "종합 파이프라인의 예측 입력을 올바르게 고쳐요."
+                "새 입력을 훈련 입력과 같은 열로 만들어 학습한 Pipeline으로 예측해요."
               ],
-              "core_flow": "Pipeline.fit은훈련표에끝났는데predict가X_train을다시받는다. X_new로한곳바꾸어새배송20/35/80을예측한다. 다른새행수·미지범주·결측·훈련관계에서도실제예측을검사하고훈련전처리평균보존을probe로확인한다."
+              "core_flow": "학습한 Pipeline에 거리 열만 고른 새 입력을 넘겨 ColumnTransformer가 zone 열이 없다는 ValueError를 낸다. 새 입력의 열 선택 한 곳을 훈련과 같은 distance·zone으로 고쳐 20/35/80을 얻는다. 회귀·분류 수업의 predict 인수 수정과 다른 통합 단계의 결함이다. 다른 새 파일·훈련 관계에서도 훈련 전처리 기준을 probe로 확인하고 고정 출력은 거절한다. 이전 revision의 predict(X_train) 수정 스텝(stp_cf4c519d…)은 회귀 수업과 같은 수정이라 이번 revision에서 빠지며 완료 기록은 이전 revision에 남는다."
             }
           ]
         }
@@ -229,19 +229,19 @@
     "앱에서 풀이·해설·수정 답안 복원·초기화·진도를 별도로 검증해요."
   ],
   "representative": {
-    "prompt": "완성된 파이프라인이 새 배송을 예측하도록 인수를 고치세요.",
-    "starter_state": "훈련 뒤에도 X_train을 예측해 여섯 값이 나와요.",
-    "expected_action": "predict의 인수를 X_new로 바꿔요.",
-    "acceptance": "새행수·결측·미지범주·훈련관계가 달라도 실제 새 예측을 내요.",
-    "reset": "원래 파일·자료·잘못된 예측 입력을 복원해요.",
-    "narration": "훈련 예측 여섯 개와 새 예측 세 개의 역할을 실행해 비교해요.",
-    "step_id": "stp_cf4c519d-5dd0-4b99-b289-ee31fe7f6f61"
+    "prompt": "새 배송도 훈련과 같은 열로 예측하도록 새 입력의 열 선택을 고치세요.",
+    "starter_state": "새 입력이 거리 열만 가져 학습한 전처리가 zone을 찾지 못해 ValueError가 나요.",
+    "expected_action": "X_new를 new[[\"distance\", \"zone\"]]로 고쳐요.",
+    "acceptance": "다른 새 파일과 훈련 관계에서도 훈련 기준으로 예측하고 고정 출력은 거절해요.",
+    "reset": "원래 두 파일과 거리 열만 고른 새 입력을 복원해요.",
+    "narration": "오류 메시지에서 빠진 열을 찾고 훈련 입력과 비교하게 해요.",
+    "step_id": "stp_1cab4402-8429-4516-858b-3f01a74c1133"
   },
   "approval": {
     "status": "approved",
     "by": "사용자의 전체 과정 설계·구현 위임",
-    "evidence": "2026-10-19: “끝까지 다해, 정처기 코스, 에이스 어쏘씨에이트 코스, 자바 백엔드 코스의 모든 부분 재설계(새로운 지침 기반으로)해서 해”. .scratch/player-content-redesign/authorization-2026-10-19.md. 개별 PRD 직접 검토를 주장하지 않는 범위 위임이다.",
-    "content_sha256": "d7f3adcdc7b673ac939222db20a2e2eceee82df01914c9e58076ac7925a98264",
+    "evidence": "2026-10-19: “끝까지 다해, 정처기 코스, 에이스 어쏘씨에이트 코스, 자바 백엔드 코스의 모든 부분 재설계(새로운 지침 기반으로)해서 해”. .scratch/player-content-redesign/authorization-2026-10-19.md. 개별 PRD 직접 검토를 주장하지 않는 범위 위임이다. 2026-10-24 사용자: 세 과정 빌드업 감사의 근거 있는 교정(문제 설명 해설, 정밀 강조, 상투 경고 제거, 선수 개념 다리, 점진 예제, 평가 결함)을 계획하고 실행하도록 Claude Code에 위임했어요(Codex 경유). 교육 목표와 교수법은 유지하고 이 문서를 직접 검토했다고 주장하지 않아요.",
+    "content_sha256": "1afc06d5397235a8aff195e30df7e705e8a534ab20f8a6bf3f86dff3fa3d8969",
     "mode": "delegated_scope"
   }
 }

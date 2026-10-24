@@ -5,7 +5,7 @@ async fn integer_packing_boundaries_and_every_teacher_run_match_c_output() {
     let course=CourseManifest::parse(include_str!("fixtures/player-pilot/u/course.json")).unwrap();
     let lesson=Lesson::parse(include_str!("../courses/redesigned/engineer-c-conditions.json"),&course.lessons[0]).unwrap();
     assert_eq!(lesson.tasks.len(),8);
-    let expected=vec![vec!["2","1","2","2"],vec!["1","2","0","1"],vec!["1\n3","0\n2","1\n4","1\n3"],vec!["0","1","0"],vec!["0","2","0"],vec!["0","1","2","1"],vec!["1","0","1"],vec!["2\n1","2\n0","2\n1"]];
+    let expected=vec![vec!["2","1","2","2"],vec!["1","2","0","1"],vec!["1\n3","0\n2","1\n4","1\n3"],vec!["0","1","0"],vec!["0","2","0"],vec!["0","1","2","1"],vec!["1","0","1"],vec!["2\n2","2\n0"]];
     for (index,task) in lesson.tasks.iter().enumerate() {
         assert!(!lesson_runner::check(task,&task.starter_code).await.unwrap().passed,"Step {} starts unsolved",index+1);
         assert!(lesson_runner::check(task,&task.solution).await.unwrap().passed,"Step {} solution",index+1);

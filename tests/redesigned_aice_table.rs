@@ -19,7 +19,7 @@ async fn table_lesson_reads_its_own_files_and_teaches_partial_versus_whole() {
     let columns="order_id minutes 0 101 12 1 102 18 2 103 30 3 104 42";
     let expected:Vec<Vec<String>>=vec![vec![full.into()],vec![two.into(),three.into()],
         vec![format!("{two} (4, 3)"),format!("{three} (4, 3)")],
-        vec![minutes.into(),region.into(),minutes.into()],vec![full.into()],
+        vec![minutes.into(),region.into(),minutes.into()],vec![full.into(),String::new(),full.into()],
         vec!["12".into(),"18".into(),"12".into()],vec![columns.into(),minutes.into(),columns.into()],
         vec![format!("{two} (5, 3)"),format!("{full} 4 105 24 서울 (5, 3)")]];
     for (index,task) in lesson.tasks.iter().enumerate() {
@@ -43,6 +43,11 @@ async fn table_lesson_reads_its_own_files_and_teaches_partial_versus_whole() {
                     let line=action["lines"][0].as_u64().unwrap() as usize;
                     assert!(source.lines().nth(line-1).unwrap().starts_with("print("));
                     let result=if task.has_runnable_example(){lesson_runner::run_example(task,&source,"").await}else{lesson_runner::run(task,&source,"").await}.unwrap();
+                    if let Some(error)=action["expect_error"].as_str() {
+                        assert!(!result.success&&result.stderr.contains(error),"Step {} expected {error}: {}",index+1,result.stderr);
+                        outputs.push(String::new());
+                        continue;
+                    }
                     assert!(result.success,"Step {} teacher: {}",index+1,result.stderr);
                     outputs.push(tokens(&result.stdout));
                 },

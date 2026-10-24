@@ -1,20 +1,19 @@
 {
   "by": "hand",
-  "source_sha256": "7857f8cf896394ab4b81e19b1dda8713fe0722f3a45249f7e0d558cdfb6c6dd2",
+  "source_sha256": "5b181aae3a3253ee6894a2af953f09522fd513755de2ec16b82056d577dfbd48",
   "entry": [
     {
       "action": "say",
-      "text": "음수 금액은 거절해야 해요. 이 검사에서 확인할 동작은 무엇일까요?",
-      "target": "problem"
+      "text": "음수 금액은 거절해야 해요. 이 검사가 무엇을 확인하는지가 질문이에요.",
+      "target": "text:규칙상 음수 금액은 예외로 거절해야 해요."
     },
     {
       "action": "say",
-      "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-      "target": "problem"
+      "text": "-1로 호출해 예외가 나면 rejected, 아니면 no-error예요.",
+      "target": "code:Fees.shipping(-1);"
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         15,
         15
@@ -22,18 +21,17 @@
     },
     {
       "action": "say",
-      "text": "음수 금액을 정해진 예외로 거절했어요.",
+      "text": "rejected예요. 정해진 예외로 거절했어요.",
       "target": "output"
     },
     {
       "action": "patch_code",
       "before": "if (amount < 0) throw new IllegalArgumentException(\"negative\");",
       "after": "if (amount < 0) return 0;",
-      "say": "거절 대신 영을 돌려주는 잘못된 변경과 비교해요."
+      "say": "거절 대신 0을 돌려주게 잘못 바꿔 볼게요."
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         15,
         15
@@ -41,23 +39,22 @@
     },
     {
       "action": "say",
-      "text": "예외 없이 끝나 거절 조건을 놓쳤어요.",
+      "text": "no-error예요. 이 검사가 잘못된 변경을 잡아냈어요.",
       "target": "output"
     },
     {
       "action": "say",
-      "text": "조심하세요. 실패 경로도 요구에서 정한 정상적인 검사 대상이에요.",
-      "target": "output"
+      "text": "조심하세요. 거절해야 할 입력을 조용히 0으로 처리하면 배송비가 맞아 보여도 요구와 달라요.",
+      "target": "code:if (amount < 0) return 0;"
     },
     {
       "action": "patch_code",
       "before": "if (amount < 0) return 0;",
       "after": "if (amount < 0) throw new IllegalArgumentException(\"negative\");",
-      "say": "거절하는 원래 구현으로 돌아와요."
+      "say": "원래 구현으로 돌아와요."
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         15,
         15
@@ -65,7 +62,7 @@
     },
     {
       "action": "say",
-      "text": "다시 정해진 예외가 나와요.",
+      "text": "다시 rejected예요.",
       "target": "output"
     },
     {

@@ -1,25 +1,48 @@
 {
   "by": "hand",
-  "source_sha256": "faf48995b9bca843daa2d5beb2e4a6cb34dc87bc0a0b10af08923021c7249978",
+  "source_sha256": "1ba70de4921e10d78fc2e87389fe879fd86e5aa5db376704294a0eddd0128a06",
   "entry": [
     {
       "action": "say",
-      "text": "재귀는 같은 규칙을 작은 부분에 다시 적용해요. 괄호 안 계산이 끝나면 기다리던 factor로 돌아와요.",
-      "target": "problem"
-    },
-    {
-      "action": "run",
-      "say": "제공된 코드부터 실행해요."
+      "text": "코드는 그대로이고 괄호가 식 뒤쪽으로 갔어요.",
+      "target": "text:코드는 앞 스텝과 같고 입력만 2*(3+4)로 바꿨어요."
     },
     {
       "action": "say",
-      "text": "괄호 안은 7이고 바깥의 곱셈으로 돌아와 14가 돼요.",
+      "text": "질문은 괄호 안 계산이 끝난 뒤 어디서 계산을 이어 가는지예요.",
+      "target": "text:괄호 안의 expression 호출이 끝나면 어디로 돌아갈까요?"
+    },
+    {
+      "action": "say",
+      "text": "term이 2를 읽고 곱하기를 만나 factor를 불렀어요. 그 factor가 괄호 안 expression을 기다려요.",
+      "target": "code:int value = expression();"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "14예요. 괄호 안 7을 받은 factor가 term으로 돌아가 2와 곱했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "String expression = \"2*(3+4)\";",
+      "after": "String expression = \"2*(3+4)*2\";",
+      "say": "괄호 뒤에 곱하기 2를 더 붙여 볼게요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "28이에요. 돌아온 term의 반복이 남은 곱하기 2까지 이어서 처리했어요.",
       "target": "output"
     },
     {
       "action": "say",
-      "text": "조심하세요. 각 호출에는 자기 계산으로 돌아올 자리가 있어요.",
-      "target": "output"
+      "text": "각 호출은 자기가 하던 계산으로 돌아와요. 프로그램이 처음부터 다시 실행되는 게 아니에요.",
+      "target": "text:괄호 안 계산이 끝나면 그 호출을 기다리던 자리로 돌아와요."
     },
     {
       "action": "choose_answer",

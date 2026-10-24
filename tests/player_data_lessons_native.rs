@@ -177,7 +177,7 @@ fn java_calculator_restore_student_state() {verify("java-calculator",10)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn git_remote_restore_student_state() {verify("git-remote",21)}
+fn git_remote_restore_student_state() {verify("git-remote",22)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]

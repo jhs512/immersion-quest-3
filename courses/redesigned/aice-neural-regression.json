@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_1f010879-a554-4631-b9f9-232b0a6934cc",
-  "revision": "aice-neural-regression-1",
+  "revision": "aice-neural-regression-2",
   "title": "신경망 회귀의 출력과 평가를 맞춰요",
   "description": "같은 배송 수치 모델에서 목표 범위·실제 학습·평가·복원을 확인해요.",
   "objectives": [
@@ -46,9 +46,9 @@
               ]
             },
             {
-              "id": "stp_18f62e05-6203-45b8-9f63-ff6a62d17edb",
+              "id": "stp_dc24177d-8da9-41ce-8fde-f322d8cecb3a",
               "objectives": [
-                "fit의 오차 변화와 일반화 보장을 구별해요."
+                "fit 기록의 한 칸은 epoch마다 잰 훈련 오차임을 읽어요."
               ]
             },
             {
@@ -95,9 +95,9 @@
               ]
             },
             {
-              "id": "stp_419e3b03-6bad-4afa-a742-036a2ac769f3",
+              "id": "stp_f3e0997f-f7c2-4083-ae5c-585b47205ff4",
               "objectives": [
-                "음수 차이를 허용하는 선형 출력으로 고쳐요."
+                "음수가 될 수 없는 목표에 맞게 출력 활성화를 relu로 고쳐요."
               ]
             }
           ]
@@ -109,7 +109,7 @@
     {
       "id": "stp_c6f4dc1f-64dd-4e79-a180-537f51755d94",
       "title": "음수도 가능한 수치 목표를 봐요",
-      "goal": "기준보다 빠르면 음수 차이도 나와야 해요.\nReLU로 음수를0으로 막아도 될까요?",
+      "goal": "기준보다 빠르면 음수 차이도 나와야 해요.\nReLU로 음수를0으로 막아도 될까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "linear",
@@ -121,7 +121,7 @@
         "options": [
           {
             "id": "relu",
-            "text": "네.모든 수치 목표는 음수를 막아야 해요"
+            "text": "네. 신경망 출력층에는 늘 ReLU를 써요"
           },
           {
             "id": "linear",
@@ -132,8 +132,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "목표는 기준과의 시간 차이라 빠르면 음수가 나와요. ReLU는 음수를 0으로 바꾸는 활성화예요. 이 목표에 ReLU를 써도 되는지 판단하는 문제예요.",
+          "target": "text:기준보다 빠르면 음수 차이도 나와야 해요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             14,
             14
@@ -152,7 +156,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             14,
             14
@@ -176,7 +179,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             14,
             14
@@ -197,7 +199,7 @@
     {
       "id": "stp_880b5026-588a-4edc-82bc-a538418dbe83",
       "title": "회귀 학습의 오차를 정해요",
-      "goal": "이 수치 회귀의 학습 손실은 무엇일까요?",
+      "goal": "이 수치 회귀의 학습 손실은 무엇일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "mse",
@@ -220,8 +222,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "compile의 loss는 학습이 줄이려는 오차, metrics는 함께 지켜보는 지표예요. 이 수치 회귀가 줄이는 손실을 고르는 문제예요.",
+          "target": "text:이 수치 회귀의 학습 손실은 무엇일까요?"
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             15,
             15
@@ -245,59 +251,93 @@
       "predict_before_run": true
     },
     {
-      "id": "stp_18f62e05-6203-45b8-9f63-ff6a62d17edb",
-      "title": "작은 실제 학습을 확인해요",
-      "goal": "이번 실행에서 훈련 loss가 줄었어요.\n미래 배송의 정확성도 이미 보장됐을까요?",
+      "id": "stp_dc24177d-8da9-41ce-8fde-f322d8cecb3a",
+      "title": "학습 기록 한 칸의 뜻을 읽어요",
+      "goal": "훈련 배송 네 건으로 epochs=10, batch_size=4 학습을 했어요. epoch는 훈련 표 전체를 한 번 학습하는 단위예요. 첫 줄은 loss 기록의 개수, 둘째 줄은 첫 기록이 마지막보다 큰지예요.\nloss 기록 10개는 각각 무엇일까요?\n\n**할 일**\n\n1. loss 기록 10개는 각각 무엇일까요? 코드에서 근거를 찾아 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
-      "solution": "test",
+      "solution": "epoch",
       "tests": [],
       "required": true,
       "example_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 작은 관계를 실제 자료로 학습하는 예예요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\nmodel.compile(optimizer=keras.optimizers.SGD(learning_rate=0.05), loss=\"mse\")\nX_train = np.array([[0.0], [1.0], [2.0], [3.0]], dtype=\"float32\")\ny_train = np.array([[1.0], [3.0], [5.0], [7.0]], dtype=\"float32\")\nhistory = model.fit(X_train, y_train, epochs=10, batch_size=4, shuffle=False, verbose=0)\nprint(len(history.history[\"loss\"]))\nprint(history.history[\"loss\"][0] > history.history[\"loss\"][-1])\n",
       "interaction": {
         "kind": "choice",
+        "answer": "epoch",
         "options": [
           {
-            "id": "guarantee",
-            "text": "네.훈련 오차가 줄면 미래도 보장돼요"
+            "id": "row",
+            "text": "배송 한 건마다 잰 오차예요"
           },
           {
-            "id": "test",
-            "text": "아니요.새 자료의 평가는 따로 해야 해요"
+            "id": "epoch",
+            "text": "훈련 표를 한 번 다 학습할 때마다 잰 오차예요"
           }
-        ],
-        "answer": "test"
+        ]
       },
       "narration": [
         {
+          "action": "say",
+          "text": "기록의 개수 10이 배송 수인지 학습 횟수인지 구별하는 문제예요. 훈련 배송은 네 건이에요.",
+          "target": "text:epoch는 훈련 표 전체를 한 번 학습하는 단위예요."
+        },
+        {
+          "action": "say",
+          "text": "fit의 epochs가 학습을 몇 번 되풀이할지 정해요.",
+          "target": "code:epochs=10"
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
-            18,
+            17,
             18
           ]
         },
         {
           "action": "say",
-          "text": "열 번의 학습 기록에서 이번 훈련 오차는 줄었어요.",
+          "text": "기록은 열 개이고, 첫 기록이 마지막보다 커요. 학습할수록 훈련 오차가 줄었어요.",
           "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "epochs=10",
+          "after": "epochs=3",
+          "say": "배송은 그대로 두고 epochs만 3으로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            18
+          ]
         },
         {
           "action": "say",
-          "text": "조심하세요. 훈련 오차 감소와 새 자료 성능의 보장은 달라요.",
+          "text": "기록이 세 개로 줄었어요. 기록 수는 배송 수가 아니라 epochs를 따라가요.",
           "target": "output"
         },
         {
+          "action": "patch_code",
+          "before": "epochs=3",
+          "after": "epochs=10",
+          "say": "열 번으로 되돌려요."
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 이 기록은 훈련 표에서 잰 오차라서 줄었다는 것만으로 새 배송의 성능까지 말하지는 않아요.",
+          "target": "code:history.history[\"loss\"]#2"
+        },
+        {
           "action": "choose_answer",
-          "id": "test"
+          "id": "epoch"
         }
       ],
-      "predict_before_run": true
+      "predict_before_run": true,
+      "question": "loss 기록 10개는 각각 무엇일까요?"
     },
     {
       "id": "stp_2c4f572f-d874-445d-bbc2-9605dc9af635",
       "title": "출력 수가 다르면 목적도 달라져요",
-      "goal": "배송마다 시간 차이 하나를 보고해야 해요.\nDense(2)의 출력 모양은 요구에 맞을까요?",
+      "goal": "배송마다 시간 차이 하나를 보고해야 해요.\nDense(2)의 출력 모양은 요구에 맞을까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "one",
@@ -320,8 +360,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "보고할 값은 배송마다 하나인데 출력층이 Dense(2)예요. 출력 모양이 요구와 맞는지 확인하는 문제예요.",
+          "target": "text:배송마다 시간 차이 하나를 보고해야 해요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             13,
             13
@@ -340,7 +384,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             13,
             13
@@ -369,7 +412,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             13,
             13
@@ -390,7 +432,7 @@
     {
       "id": "stp_523413c5-c858-4ed3-825a-83e4d7231fd1",
       "title": "평가 손실과 지표를 따로 읽어요",
-      "goal": "evaluate가 loss1·mae1을 줬어요.\n이 두 수는 배송별 예측 두 개일까요?",
+      "goal": "evaluate는 평가 자료 전체에 대해 compile에서 정한 loss와 지표(mae)를 한 번씩 계산해요. predict 결과와 함께 출력해요.\n이 두 수는 배송별 예측 두 개일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "metrics",
@@ -413,8 +455,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "predict는 배송마다 값을 하나씩 내고, evaluate는 평가 자료 전체를 요약한 숫자를 내요. 두 출력의 차이를 구별하는 문제예요.",
+          "target": "text:evaluate는 평가 자료 전체에 대해 compile에서 정한 loss와 지표(mae)를 한 번씩 계산해요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             18,
             18
@@ -435,12 +481,13 @@
           "id": "metrics"
         }
       ],
-      "predict_before_run": true
+      "predict_before_run": true,
+      "question": "이 두 수는 배송별 예측 두 개일까요?"
     },
     {
       "id": "stp_66008cb7-3573-4a2b-9186-d7fd08a95a0e",
       "title": "예측 행과 실제 행을 맞춰요",
-      "goal": "예측과 실제의 길이가 같아요.\n관측 순서가 달라도 올바른 평가일까요?",
+      "goal": "예측과 실제의 길이가 같아요.\n관측 순서가 달라도 올바른 평가일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "pairs",
@@ -463,8 +510,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "ravel은 한 열짜리 예측을 일렬로 펼쳐요. 실제 정답의 순서가 예측과 다르면 평가가 어떻게 되는지 비교해요.",
+          "target": "text:관측 순서가 달라도 올바른 평가일까요?"
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             21,
             21
@@ -483,7 +534,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             21,
             21
@@ -507,7 +557,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             21,
             21
@@ -528,7 +577,7 @@
     {
       "id": "stp_d4e9c028-d71d-4e3c-9421-3482ec6e5f26",
       "title": "저장한 모델의 동작을 복원해요",
-      "goal": "같은 새 입력에서 저장 전후 예측이 같아요.\n전처리 기준도 따로 사용했다면 어떻게 할까요?",
+      "goal": "같은 새 입력에서 저장 전후 예측이 같아요.\n전처리 기준도 따로 사용했다면 어떻게 할까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "keep",
@@ -551,8 +600,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "save와 load_model로 모델을 파일에 저장하고 다시 열어요. 모델 밖에서 따로 쓴 전처리 기준도 함께 저장되는지 판단해요.",
+          "target": "text:전처리 기준도 따로 사용했다면 어떻게 할까요?"
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             20,
             20
@@ -576,23 +629,32 @@
       "predict_before_run": true
     },
     {
-      "id": "stp_419e3b03-6bad-4afa-a742-036a2ac769f3",
-      "title": "목표가 허용하는 출력을 만들어요",
-      "goal": "음수 차이도 그대로 출력해야 해요.\n출력 활성화 한 곳만 고치세요.",
+      "id": "stp_f3e0997f-f7c2-4083-ae5c-585b47205ff4",
+      "title": "목표가 허용하지 않는 출력을 막아요",
+      "goal": "이번에는 배송에 걸리는 시간을 출력해요. 시간은 0보다 작을 수 없어서, 계산이 음수면 0으로 막아 출력해야 해요.\n출력 활성화 한 곳만 고치세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력에 음수가 있는지 확인하세요.\n2. 1번과 목표 범위가 어떻게 다른지 비교하세요.\n3. 출력 활성화 한 곳을 고치세요.\n4. 다시 실행해 음수가 0으로 바뀌었는지 비교하세요.\n5. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 이번 목표는 기준 대비 차이라 음수를 허용해요.\nrows = [[1.0], [4.0]]\nweight = 2.0\nbias = -5.0\n# 가중치는 학습 성능이 아닌 동작 확인용으로 고정했어요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, activation=\"relu\", kernel_initializer=keras.initializers.Constant(weight), bias_initializer=keras.initializers.Constant(bias))])\nprint(model.predict(np.array(rows, dtype=\"float32\"), verbose=0).tolist())\n",
-      "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 이번 목표는 기준 대비 차이라 음수를 허용해요.\nrows = [[1.0], [4.0]]\nweight = 2.0\nbias = -5.0\n# 가중치는 학습 성능이 아닌 동작 확인용으로 고정했어요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, activation=\"linear\", kernel_initializer=keras.initializers.Constant(weight), bias_initializer=keras.initializers.Constant(bias))])\nprint(model.predict(np.array(rows, dtype=\"float32\"), verbose=0).tolist())\n",
+      "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 이번 목표는 배송에 걸리는 시간이라 0보다 작을 수 없어요.\nrows = [[1.0], [4.0]]\nweight = 2.0\nbias = -5.0\n# 가중치는 학습 성능이 아닌 동작 확인용으로 고정했어요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, activation=\"linear\", kernel_initializer=keras.initializers.Constant(weight), bias_initializer=keras.initializers.Constant(bias))])\nprint(model.predict(np.array(rows, dtype=\"float32\"), verbose=0).tolist())\n",
+      "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 이번 목표는 배송에 걸리는 시간이라 0보다 작을 수 없어요.\nrows = [[1.0], [4.0]]\nweight = 2.0\nbias = -5.0\n# 가중치는 학습 성능이 아닌 동작 확인용으로 고정했어요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, activation=\"relu\", kernel_initializer=keras.initializers.Constant(weight), bias_initializer=keras.initializers.Constant(bias))])\nprint(model.predict(np.array(rows, dtype=\"float32\"), verbose=0).tolist())\n",
       "tests": [
         {
           "input": "",
-          "expected": "[[-3.0], [3.0]]"
+          "expected": "[[0.0], [3.0]]"
         }
       ],
       "required": true,
       "narration": [
         {
+          "action": "say",
+          "text": "1번은 음수 차이를 살려야 했지만, 이번 목표는 0보다 작을 수 없는 시간이에요. 목표 범위에 맞게 출력을 막는 문제예요.",
+          "target": "text:시간은 0보다 작을 수 없어서, 계산이 음수면 0으로 막아 출력해야 해요."
+        },
+        {
+          "action": "say",
+          "text": "준비 코드의 출력 활성화는 linear라 계산값을 그대로 내보내요.",
+          "target": "code:activation=\"linear\""
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             17,
             17
@@ -600,35 +662,16 @@
         },
         {
           "action": "say",
-          "text": "음수였을 계산이 영으로 잘렸어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "activation=\"relu\"",
-          "after": "activation=\"linear\"",
-          "say": "출력 범위를 막지 않는 선형 활성화로 맞춰요."
-        },
-        {
-          "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
-          "lines": [
-            17,
-            17
-          ]
-        },
-        {
-          "action": "say",
-          "text": "마이너스 삼과 삼을 모두 표현했어요.",
+          "text": "거리 1인 배송이 마이너스 삼으로 나왔어요. 걸린 시간으로는 있을 수 없는 값이에요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 실제 목표 범위에 맞는 출력을 고르고 새 자료로 검증해요.",
-          "target": "output"
+          "text": "조심하세요. 1번과 같은 모델이라도 목표가 허용하는 범위가 반대면 맞는 출력 활성화도 반대예요. 어느 쪽을 막아야 하는지 목표에서 정하세요.",
+          "target": "code:kernel_initializer=keras.initializers.Constant(weight)"
         }
       ],
-      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nimport uuid\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"rows\": [[0.0], [2.0], [3.0]]}, \"expected\": \"[[-5.0], [-1.0], [1.0]]\"}, {\"values\": {\"rows\": [[1.0], [2.0]], \"weight\": -2.0, \"bias\": 1.0}, \"expected\": \"[[-1.0], [-3.0]]\"}, {\"values\": {\"rows\": [[4.0]], \"weight\": 1.0, \"bias\": -2.0}, \"expected\": \"[[2.0]]\"}]')\nprobe = 'assert model.layers[-1].activation.__name__ == \"linear\", \"목표 범위에 맞는 실제 출력 활성화를 확인하세요.\"'\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    witness = uuid.uuid4().hex\n    tree.body.extend(ast.parse(probe).body)\n    tree.body.extend(ast.parse('print(' + repr(witness) + ')').body)\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=45)\n    lines = result.stdout.strip().splitlines()\n    if not lines or lines[-1] != witness:\n        raise AssertionError('실제 실행 상태의 검사까지 끝나야 해요.')\n    output = '\\n'.join(lines[:-1]).strip()\n    if result.returncode != 0 or output != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nimport uuid\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"rows\": [[0.0], [2.0], [3.0]]}, \"expected\": \"[[0.0], [0.0], [1.0]]\"}, {\"values\": {\"rows\": [[0.0], [1.0]], \"weight\": -2.0, \"bias\": 1.0}, \"expected\": \"[[1.0], [0.0]]\"}, {\"values\": {\"rows\": [[4.0]], \"weight\": 1.0, \"bias\": -2.0}, \"expected\": \"[[2.0]]\"}]')\nprobe = 'assert model.layers[-1].activation.__name__ == \"relu\", \"목표 범위에 맞는 실제 출력 활성화를 확인하세요.\"'\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    witness = uuid.uuid4().hex\n    tree.body.extend(ast.parse(probe).body)\n    tree.body.extend(ast.parse('print(' + repr(witness) + ')').body)\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=45)\n    lines = result.stdout.strip().splitlines()\n    if not lines or lines[-1] != witness:\n        raise AssertionError('실제 실행 상태의 검사까지 끝나야 해요.')\n    output = '\\n'.join(lines[:-1]).strip()\n    if result.returncode != 0 or output != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     }
   ]
 }

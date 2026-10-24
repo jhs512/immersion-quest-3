@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_e6dd4cd2-76fd-478a-9949-e2d47510286a",
-  "revision": "engineer-c-structures-1",
+  "revision": "engineer-c-structures-2",
   "title": "C · 구조체와 계산 규칙을 골라요",
   "description": "재고를 구조체로 묶고 함수 포인터로 계산 규칙을 골라요.",
   "objectives": [
@@ -110,61 +110,53 @@
       "id": "chp_1404803f-cf76-4156-af4b-c1dc7252f6cd",
       "title": "같은 표시 값의 비트를 읽어요",
       "objectives": [
-        "대응 비트의 공통 부분을 읽어요",
-        "비트와 논리 조건을 구별해요",
-        "켜진 자리를 합쳐요",
-        "서로 다른 자리만 남겨요",
-        "작은 unsigned 값을 이동해요",
-        "반전 뒤 필요한 자리만 읽어요"
+        "2진 자리값으로 비트 AND·OR·XOR와 논리 AND를 구별해요.",
+        "시프트와 반전·마스크로 고른 자리의 값을 읽어요."
       ],
       "units": [
         {
           "id": "unt_cf06ad71-2fe9-463a-95cd-283e5f89a770",
-          "title": "같은 표시 값의 비트를 읽어요",
+          "title": "2진 자리로 재고 표시를 읽어요",
           "objectives": [
-            "대응 비트의 공통 부분을 읽어요",
-            "비트와 논리 조건을 구별해요",
-            "켜진 자리를 합쳐요",
-            "서로 다른 자리만 남겨요",
-            "작은 unsigned 값을 이동해요",
-            "반전 뒤 필요한 자리만 읽어요"
+            "2진 자리값으로 비트 AND·OR·XOR와 논리 AND를 구별해요.",
+            "시프트와 반전·마스크로 고른 자리의 값을 읽어요."
           ],
-          "premise": "재고 상태를 작은 unsigned 값의 비트로 표시해요. 비트 연산과 논리 조건을 한 가지씩 비교해요.",
+          "premise": "재고 상태를 작은 unsigned 값의 비트로 표시해요. 2진 자리값을 먼저 보고, 연산을 하나씩 바꿔 실제 결과를 비교해요.",
           "steps": [
             {
               "id": "stp_da803331-6926-4d74-a1d9-8f8500674931",
               "objectives": [
-                "대응 비트의 공통 부분을 읽어요"
+                "두 값을 2진 자리별로 놓고 비트 AND 결과를 구해요."
               ]
             },
             {
               "id": "stp_0abc1f21-07ab-4694-bd02-223bae8e6977",
               "objectives": [
-                "비트와 논리 조건을 구별해요"
+                "같은 두 값에서 비트 AND와 논리 AND의 결과를 구별해요."
               ]
             },
             {
               "id": "stp_dbdc3cbb-64aa-4b43-9616-d245f5a8aa75",
               "objectives": [
-                "켜진 자리를 합쳐요"
+                "비트 OR가 겹친 자리를 한 번만 켜 덧셈과 다를 수 있음을 읽어요."
               ]
             },
             {
               "id": "stp_f37704d1-d8e1-40fe-93e8-96c481c22983",
               "objectives": [
-                "서로 다른 자리만 남겨요"
+                "비트 XOR가 다른 자리만 남김을 OR와 비교해요."
               ]
             },
             {
               "id": "stp_b282ba4d-5049-43f9-ae77-7ed91635acaf",
               "objectives": [
-                "작은 unsigned 값을 이동해요"
+                "왼쪽 시프트 한 자리가 값을 2배로 만듦을 읽어요."
               ]
             },
             {
               "id": "stp_73085838-4fe3-46ae-8f5a-db60b66a6cff",
               "objectives": [
-                "반전 뒤 필요한 자리만 읽어요"
+                "반전 뒤 마스크로 필요한 자리만 남긴 값을 구해요."
               ]
             }
           ]
@@ -175,45 +167,41 @@
       "id": "chp_d6e84185-9b64-4905-aa93-779162dcfb8d",
       "title": "같은 재고의 저장소 수명을 읽어요",
       "objectives": [
-        "확보한 저장소를 초기화해요",
-        "영으로 초기화한 원소를 읽어요",
-        "같은 할당을 가리키는 별칭을 읽어요",
-        "해제한 포인터를 다시 쓰지 않아요"
+        "malloc·calloc의 확보·초기화와 실패 확인을 순서대로 읽어요.",
+        "별칭과 해제 뒤 포인터의 상태를 판단해요."
       ],
       "units": [
         {
           "id": "unt_8329d9b6-379e-4889-a20e-2524136eef7f",
-          "title": "같은 재고의 저장소 수명을 읽어요",
+          "title": "확보부터 해제까지 한 저장소를 따라가요",
           "objectives": [
-            "확보한 저장소를 초기화해요",
-            "영으로 초기화한 원소를 읽어요",
-            "같은 할당을 가리키는 별칭을 읽어요",
-            "해제한 포인터를 다시 쓰지 않아요"
+            "malloc·calloc의 확보·초기화와 실패 확인을 순서대로 읽어요.",
+            "별칭과 해제 뒤 포인터의 상태를 판단해요."
           ],
           "premise": "실습은 작은 정수 저장소를 확보해요. 실패는 즉시 종료해요. 정상 경로만 답하고 해제 뒤 값은 읽지 않아요.",
           "steps": [
             {
               "id": "stp_aec61cad-840d-4ef4-82b2-0dfdcd538eca",
               "objectives": [
-                "확보한 저장소를 초기화해요"
+                "malloc 확보·실패 확인·저장·읽기·해제의 순서를 따라 읽어요."
               ]
             },
             {
               "id": "stp_ed61deb4-523d-40be-8f31-41e520fe9fb2",
               "objectives": [
-                "영으로 초기화한 원소를 읽어요"
+                "calloc이 원소를 0으로 초기화함을 저장 뒤 값과 비교해요."
               ]
             },
             {
               "id": "stp_0fc0aa15-ca6d-4174-bfce-f7b510c386c6",
               "objectives": [
-                "같은 할당을 가리키는 별칭을 읽어요"
+                "두 포인터가 같은 할당을 가리킬 때의 읽기와 한 번의 해제를 판단해요."
               ]
             },
             {
-              "id": "stp_6c2b7701-afc5-4698-b20b-d043470230f2",
+              "id": "stp_d867bd24-fc5a-4133-9f9d-0f1825167574",
               "objectives": [
-                "해제한 포인터를 다시 쓰지 않아요"
+                "해제 뒤 한 포인터만 NULL로 바꾸면 별칭은 그대로 남음을 판단해요."
               ]
             }
           ]
@@ -225,7 +213,7 @@
     {
       "id": "stp_be3ac498-bec9-4719-9bd5-acf535d126aa",
       "title": "관련 값을 한 묶음으로 담아요",
-      "goal": "같은 재고의 count와 code를 묶었어요.\n두 필드를 읽은 결과를 고르세요.",
+      "goal": "같은 재고의 count와 code를 묶었어요.\n두 필드를 읽은 결과를 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "c",
       "starter_code": "",
       "solution": "fields",
@@ -248,8 +236,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "struct Stock은 재고 수 count와 코드 code를 한 묶음으로 담아요. 점(.) 뒤에 필드 이름을 써서 하나씩 읽어요. 두 필드를 읽은 결과를 고르는 문제예요.",
+          "target": "text:같은 재고의 count와 code를 묶었어요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             13,
             13
@@ -268,7 +260,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             13,
             13
@@ -292,7 +283,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             13,
             13
@@ -313,7 +303,7 @@
     {
       "id": "stp_ace371fc-9879-433a-889f-3b93a055efc1",
       "title": "묶음을 대입해 복사해요",
-      "goal": "b에 a의 구조체 값을 대입했어요.\nb.count를 고치면 a도 바뀔까요?",
+      "goal": "b에 a의 구조체 값을 대입했어요.\nb.count를 고치면 a도 바뀔까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "c",
       "starter_code": "",
       "solution": "copy",
@@ -336,8 +326,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "구조체를 대입하면 모든 필드 값이 새 변수로 복사돼요. 복사본 b를 고치면 원본 a도 바뀌는지가 질문이에요.",
+          "target": "text:b에 a의 구조체 값을 대입했어요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             16,
             16
@@ -356,7 +350,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             16,
             16
@@ -380,7 +373,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             16,
             16
@@ -401,7 +393,7 @@
     {
       "id": "stp_31650ad6-c09d-4e52-94b2-c0f37d2d3b87",
       "title": "포인터로 필드를 읽어요",
-      "goal": "p로 같은 구조체의 필드를 고쳤어요.\np->count와 같은 뜻을 고르세요.",
+      "goal": "p로 같은 구조체의 필드를 고쳤어요.\np->count와 같은 뜻을 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "c",
       "starter_code": "",
       "solution": "indirect",
@@ -424,8 +416,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "구조체 포인터에서는 화살표(->)로 필드를 골라요. p->count가 어떤 식과 같은 뜻인지 고르는 문제예요.",
+          "target": "text:p로 같은 구조체의 필드를 고쳤어요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             15,
             15
@@ -444,7 +440,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             15,
             15
@@ -468,7 +463,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             15,
             15
@@ -489,7 +483,7 @@
     {
       "id": "stp_7fcc7e79-fc73-4882-97aa-48fd684246dc",
       "title": "묶음 배열의 원소를 골라요",
-      "goal": "배열에서 원소를 고른 뒤 필드를 읽어요.\nitems[1].count를 고르세요.",
+      "goal": "배열에서 원소를 고른 뒤 필드를 읽어요.\nitems[1].count를 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "c",
       "starter_code": "",
       "solution": "second",
@@ -516,8 +510,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "구조체 배열은 먼저 [위치]로 원소를 고르고, 그다음 점으로 필드를 골라요. 두 번째 원소의 count를 고르는 문제예요.",
+          "target": "text:배열에서 원소를 고른 뒤 필드를 읽어요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             12,
             12
@@ -536,7 +534,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             12,
             12
@@ -560,7 +557,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             12,
             12
@@ -581,7 +577,7 @@
     {
       "id": "stp_87c24da0-82fa-4aab-a0f1-140d46467d6d",
       "title": "묶음 안의 문자 배열도 복사돼요",
-      "goal": "묶음 안의 문자 배열도 복사했어요.\nb의 첫 글자를 바꾼 결과를 고르세요.",
+      "goal": "묶음 안의 문자 배열도 복사했어요.\nb의 첫 글자를 바꾼 결과를 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "c",
       "starter_code": "",
       "solution": "copy",
@@ -604,8 +600,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "구조체 안에 든 문자 배열은 대입할 때 글자까지 통째로 복사돼요. b의 첫 글자만 바꾸면 a의 글자도 바뀌는지 봐요.",
+          "target": "text:묶음 안의 문자 배열도 복사했어요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             14,
             14
@@ -636,7 +636,7 @@
     {
       "id": "stp_5bd91b09-1389-4813-9e40-867f670ccaac",
       "title": "함수도 선택해서 불러요",
-      "goal": "rule은 하나 더하는 함수를 가리켜요.\nrule(value)의 결과를 고르세요.",
+      "goal": "rule은 하나 더하는 함수를 가리켜요.\nrule(value)의 결과를 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "c",
       "starter_code": "",
       "solution": "one",
@@ -659,8 +659,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "함수 포인터 rule은 어떤 함수를 부를지 담아 두는 변수예요. rule(value)는 rule이 가리키는 함수를 불러요. 지금 가리키는 함수로 결과를 고르는 문제예요.",
+          "target": "text:rule은 하나 더하는 함수를 가리켜요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             15,
             15
@@ -679,7 +683,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             15,
             15
@@ -703,7 +706,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             15,
             15
@@ -724,7 +726,7 @@
     {
       "id": "stp_2afdfe4e-ffc3-4472-b4d2-df8d95fe93ab",
       "title": "계산 규칙을 인수로 넘겨요",
-      "goal": "apply에 add_one을 넘겼어요.\n함수 안에서 하는 일을 고르세요.",
+      "goal": "apply에 add_one을 넘겼어요.\n함수 안에서 하는 일을 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "c",
       "starter_code": "",
       "solution": "call",
@@ -747,8 +749,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "함수를 다른 함수의 인수로 넘기면, 받은 쪽은 그 함수를 불러 계산해요. apply가 안에서 무엇을 하는지 고르는 문제예요.",
+          "target": "text:apply에 add_one을 넘겼어요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             18,
             18
@@ -767,7 +773,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             18,
             18
@@ -791,7 +796,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             18,
             18
@@ -812,7 +816,7 @@
     {
       "id": "stp_987d7e4b-7b45-4ac5-a9a2-4454111b7c0c",
       "title": "요구한 계산 규칙을 골라요",
-      "goal": "재고를 두 배가 아니라 하나 늘리려 해요.\n선택한 함수 이름 한 곳만 고치세요.",
+      "goal": "재고를 두 배가 아니라 하나 늘리려 해요.\n선택한 함수 이름 한 곳만 고치세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 수정 전 결과를 확인하세요.\n2. 문제가 말한 한 곳을 고치세요.\n3. 다시 실행해 결과가 요구와 맞는지 비교하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "c",
       "starter_code": "#include <stdio.h>\n\n// 같은 함수 타입의 두 계산 규칙이에요.\nint add_one(int value) {\n    return value + 1;\n}\nint twice(int value) {\n    return value * 2;\n}\n\nint main(void) {\n    // 같은 입력에 요구한 규칙을 골라 적용하세요.\n    int value = 2;\n    int (*rule)(int) = twice;\n    printf(\"%d\", rule(value));\n    return 0;\n}\n",
       "solution": "#include <stdio.h>\n\n// 같은 함수 타입의 두 계산 규칙이에요.\nint add_one(int value) {\n    return value + 1;\n}\nint twice(int value) {\n    return value * 2;\n}\n\nint main(void) {\n    // 같은 입력에 요구한 규칙을 골라 적용하세요.\n    int value = 2;\n    int (*rule)(int) = add_one;\n    printf(\"%d\", rule(value));\n    return 0;\n}\n",
@@ -825,8 +829,12 @@
       "required": true,
       "narration": [
         {
+          "action": "say",
+          "text": "지금 rule은 두 배 함수를 가리켜요. 요구는 하나 늘리기라서 대입할 함수 이름 한 곳을 고치는 문제예요.",
+          "target": "text:선택한 함수 이름 한 곳만 고치세요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             15,
             15
@@ -845,7 +853,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             15,
             15
@@ -869,7 +876,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             15,
             15
@@ -888,7 +894,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             15,
             15
@@ -930,13 +935,13 @@
     {
       "id": "stp_da803331-6926-4d74-a1d9-8f8500674931",
       "title": "대응 비트의 공통 부분을 읽어요",
-      "goal": "두 표시 값의 비트 AND 결과를 적으세요.",
+      "goal": "2진수는 오른쪽 자리부터 1, 2, 4, 8을 나타내요. 5는 4 + 1이라 2진수로 1 0 1, 3은 2 + 1이라 0 1 1이에요. 비트 AND(&)는 두 값의 같은 자리가 모두 1인 자리만 1로 남겨요.\n두 표시 값의 비트 AND 결과를 적으세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 질문이 묻는 값을 답안 칸에 적으세요.\n3. 적은 답안을 제출하세요.",
       "language": "c",
       "starter_code": "",
       "solution": "1",
       "tests": [],
       "required": true,
-      "example_code": "#include <stdio.h>\n#include <stdlib.h>\nint main(void) {\n    // 둘 다 1인 자리만 남겨요.\n    unsigned int value = 5u & 3u;\n    printf(\"%u\\n\", value);\n    return 0;\n}\n",
+      "example_code": "#include <stdio.h>\nint main(void) {\n    // 둘 다 1인 자리만 남겨요.\n    unsigned int value = 5u & 3u;\n    printf(\"%u\\n\", value);\n    return 0;\n}\n",
       "interaction": {
         "kind": "fill",
         "accepted": [
@@ -946,44 +951,71 @@
       "narration": [
         {
           "action": "say",
-          "text": "읽을 값과 출력할 줄을 먼저 살펴봐요.",
-          "target": "lines:6:6"
+          "text": "두 값을 2진수로 놓고 자리마다 비교하는 문제예요. 먼저 5와 3을 2진수로 바꿔요.",
+          "target": "text:2진수는 오른쪽 자리부터 1, 2, 4, 8을 나타내요."
+        },
+        {
+          "action": "say",
+          "text": "5는 일 영 일, 3은 영 일 일이에요. 두 값 모두 1인 자리는 맨 오른쪽 하나뿐이에요.",
+          "target": "code:5u & 3u"
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
-            6,
-            6
+            5,
+            5
           ]
         },
         {
           "action": "say",
-          "text": "오는 이진수 백일, 삼은 십일이에요. 공통으로 켜진 마지막 자리만 남아요.",
+          "text": "결과는 1이에요. 맨 오른쪽 자리만 남았어요.",
           "target": "output"
         },
         {
+          "action": "patch_code",
+          "before": "5u & 3u",
+          "after": "5u & 6u",
+          "say": "3을 6으로 바꿔 볼게요. 6은 2진수로 일 일 영이에요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
           "action": "say",
-          "text": "조심하세요. 비트 AND와 조건의 논리 AND는 달라요.",
-          "target": "problem"
+          "text": "이번엔 4예요. 일 영 일과 일 일 영이 함께 1인 자리는 4의 자리뿐이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "5u & 6u",
+          "after": "5u & 3u",
+          "say": "처음 값 3으로 되돌려요."
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 비트 AND는 자리마다 계산해요. 조건을 잇는 논리 AND(&&)와는 다른 연산이에요.",
+          "target": "text:비트 AND(&)는 두 값의 같은 자리가 모두 1인 자리만 1로 남겨요."
         },
         {
           "action": "fill_answer",
-          "value": "1",
-          "say": "실행 결과 숫자를 답안으로 적어요."
+          "value": "1"
         }
       ]
     },
     {
       "id": "stp_0abc1f21-07ab-4694-bd02-223bae8e6977",
       "title": "비트와 논리 조건을 구별해요",
-      "goal": "이번에는 논리 AND를 써요.\n출력 숫자를 적으세요.",
+      "goal": "이번에는 논리 AND(&&)를 써요. &&는 두 값이 모두 0이 아니면 참(1), 하나라도 0이면 거짓(0)을 돌려줘요. 자리마다 비교하지 않아요.\n출력 숫자를 적으세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 질문이 묻는 값을 답안 칸에 적으세요.\n3. 적은 답안을 제출하세요.",
       "language": "c",
       "starter_code": "",
       "solution": "1",
       "tests": [],
       "required": true,
-      "example_code": "#include <stdio.h>\n#include <stdlib.h>\nint main(void) {\n    // 영이 아닌 두 값을 참으로 판단해요.\n    int value = 2u && 1u;\n    printf(\"%d\\n\", value);\n    return 0;\n}\n",
+      "example_code": "#include <stdio.h>\nint main(void) {\n    // 영이 아닌 두 값을 참으로 판단해요.\n    int value = 2u && 1u;\n    printf(\"%d\\n\", value);\n    return 0;\n}\n",
       "interaction": {
         "kind": "fill",
         "accepted": [
@@ -993,44 +1025,71 @@
       "narration": [
         {
           "action": "say",
-          "text": "읽을 값과 출력할 줄을 먼저 살펴봐요.",
-          "target": "lines:6:6"
+          "text": "같은 두 값에 논리 AND를 쓰면 무엇이 나오는지 따지는 문제예요. 값이 0인지 아닌지만 봐요.",
+          "target": "text:&&는 두 값이 모두 0이 아니면 참(1), 하나라도 0이면 거짓(0)을 돌려줘요."
+        },
+        {
+          "action": "say",
+          "text": "2와 1은 둘 다 0이 아니에요.",
+          "target": "code:2u && 1u"
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
-            6,
-            6
+            5,
+            5
           ]
         },
         {
           "action": "say",
-          "text": "이와 일은 모두 영이 아니에요. 논리 AND는 참을 일로 돌려줘요.",
+          "text": "참이라 1이 나왔어요.",
           "target": "output"
         },
         {
+          "action": "patch_code",
+          "before": "2u && 1u",
+          "after": "2u & 1u",
+          "say": "앰퍼샌드 하나짜리 비트 AND로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
           "action": "say",
-          "text": "조심하세요. 같은 두 값에 비트 AND를 쓰면 영이에요.",
-          "target": "problem"
+          "text": "0이에요. 2는 일 영, 1은 영 일이라 함께 1인 자리가 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "2u & 1u",
+          "after": "2u && 1u",
+          "say": "논리 AND로 되돌려요."
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 기호 하나 차이로 결과가 1과 0으로 갈려요. 조건을 이을 때는 &&를 써요.",
+          "target": "code:int value"
         },
         {
           "action": "fill_answer",
-          "value": "1",
-          "say": "실행 결과 숫자를 답안으로 적어요."
+          "value": "1"
         }
       ]
     },
     {
       "id": "stp_dbdc3cbb-64aa-4b43-9616-d245f5a8aa75",
       "title": "켜진 자리를 합쳐요",
-      "goal": "표시 값에 비트 OR를 써요.\n출력 숫자를 적으세요.",
+      "goal": "비트 OR(|)는 두 값의 같은 자리 중 하나라도 1이면 1로 남겨요. 5는 1 0 1, 2는 0 1 0이에요.\n출력 숫자를 적으세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 질문이 묻는 값을 답안 칸에 적으세요.\n3. 적은 답안을 제출하세요.",
       "language": "c",
       "starter_code": "",
       "solution": "7",
       "tests": [],
       "required": true,
-      "example_code": "#include <stdio.h>\n#include <stdlib.h>\nint main(void) {\n    // 어느 한쪽이 1인 자리를 남겨요.\n    printf(\"%u\\n\", 5u | 2u);\n    return 0;\n}\n",
+      "example_code": "#include <stdio.h>\nint main(void) {\n    // 어느 한쪽이 1인 자리를 남겨요.\n    printf(\"%u\\n\", 5u | 2u);\n    return 0;\n}\n",
       "interaction": {
         "kind": "fill",
         "accepted": [
@@ -1040,44 +1099,71 @@
       "narration": [
         {
           "action": "say",
-          "text": "읽을 값과 출력할 줄을 먼저 살펴봐요.",
-          "target": "lines:5:5"
+          "text": "켜진 자리를 합치는 연산이에요. 두 값의 켜진 자리가 겹치는지가 단서예요.",
+          "target": "text:비트 OR(|)는 두 값의 같은 자리 중 하나라도 1이면 1로 남겨요."
+        },
+        {
+          "action": "say",
+          "text": "일 영 일과 영 일 영은 겹치는 자리가 없어요.",
+          "target": "code:5u | 2u"
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
-            5,
-            5
+            4,
+            4
           ]
         },
         {
           "action": "say",
-          "text": "백일과 십의 켜진 자리를 합쳐요. 백십일은 칠이에요.",
+          "text": "일 일 일이라 7이에요. 겹치지 않을 때는 덧셈 결과와 같아요.",
           "target": "output"
         },
         {
+          "action": "patch_code",
+          "before": "5u | 2u",
+          "after": "5u | 3u",
+          "say": "2를 3으로 바꿔 볼게요. 3은 영 일 일이라 맨 오른쪽 자리가 5와 겹쳐요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
           "action": "say",
-          "text": "조심하세요. 비트 OR를 숫자의 덧셈과 항상 같다고 보지 않아요.",
-          "target": "problem"
+          "text": "그래도 7이에요. 겹친 자리는 한 번만 켜져서, 덧셈 8과 달라요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "5u | 3u",
+          "after": "5u | 2u",
+          "say": "처음 값 2로 되돌려요."
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 겹치는 자리가 있으면 비트 OR는 덧셈과 달라요.",
+          "target": "code:5u | 2u"
         },
         {
           "action": "fill_answer",
-          "value": "7",
-          "say": "실행 결과 숫자를 답안으로 적어요."
+          "value": "7"
         }
       ]
     },
     {
       "id": "stp_f37704d1-d8e1-40fe-93e8-96c481c22983",
       "title": "서로 다른 자리만 남겨요",
-      "goal": "이번에는 비트 XOR예요.\n출력 숫자를 적으세요.",
+      "goal": "비트 XOR(^)는 두 값의 같은 자리가 서로 다르면 1, 같으면 0으로 남겨요. 5는 1 0 1, 3은 0 1 1이에요.\n출력 숫자를 적으세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 질문이 묻는 값을 답안 칸에 적으세요.\n3. 적은 답안을 제출하세요.",
       "language": "c",
       "starter_code": "",
       "solution": "6",
       "tests": [],
       "required": true,
-      "example_code": "#include <stdio.h>\n#include <stdlib.h>\nint main(void) {\n    // 두 비트가 다른 자리만 남겨요.\n    printf(\"%u\\n\", 5u ^ 3u);\n    return 0;\n}\n",
+      "example_code": "#include <stdio.h>\nint main(void) {\n    // 두 비트가 다른 자리만 남겨요.\n    printf(\"%u\\n\", 5u ^ 3u);\n    return 0;\n}\n",
       "interaction": {
         "kind": "fill",
         "accepted": [
@@ -1087,44 +1173,71 @@
       "narration": [
         {
           "action": "say",
-          "text": "읽을 값과 출력할 줄을 먼저 살펴봐요.",
-          "target": "lines:5:5"
+          "text": "자리마다 두 비트가 다른지 보는 연산이에요. 같은 두 값에 OR를 쓸 때와 비교해요.",
+          "target": "text:비트 XOR(^)는 두 값의 같은 자리가 서로 다르면 1, 같으면 0으로 남겨요."
+        },
+        {
+          "action": "say",
+          "text": "일 영 일과 영 일 일은 왼쪽 두 자리가 다르고 맨 오른쪽은 같아요.",
+          "target": "code:5u ^ 3u"
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
-            5,
-            5
+            4,
+            4
           ]
         },
         {
           "action": "say",
-          "text": "백일과 십일에서 다른 자리를 남겨요. 백십은 육이에요.",
+          "text": "일 일 영이라 6이에요.",
           "target": "output"
         },
         {
+          "action": "patch_code",
+          "before": "5u ^ 3u",
+          "after": "5u | 3u",
+          "say": "같은 두 값에 OR를 써 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
           "action": "say",
-          "text": "조심하세요. C에서 꺾쇠 모양 연산자는 거듭제곱이 아니에요.",
-          "target": "problem"
+          "text": "7이에요. OR는 둘 다 1인 맨 오른쪽 자리도 남기지만, XOR는 같은 자리를 지워요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "5u | 3u",
+          "after": "5u ^ 3u",
+          "say": "XOR로 되돌려요."
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. C의 꺾쇠 기호 ^는 거듭제곱이 아니에요. 5의 3제곱이 아니라 자리별 비교예요.",
+          "target": "code:5u ^ 3u"
         },
         {
           "action": "fill_answer",
-          "value": "6",
-          "say": "실행 결과 숫자를 답안으로 적어요."
+          "value": "6"
         }
       ]
     },
     {
       "id": "stp_b282ba4d-5049-43f9-ae77-7ed91635acaf",
       "title": "작은 unsigned 값을 이동해요",
-      "goal": "비트를 왼쪽으로 세 자리 옮겨요.\n출력 숫자를 적으세요.",
+      "goal": "왼쪽 시프트(<<)는 비트를 왼쪽으로 옮기고 오른쪽을 0으로 채워요. 한 자리 옮길 때마다 값이 2배가 돼요.\n비트를 왼쪽으로 세 자리 옮겨요.\n출력 숫자를 적으세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 질문이 묻는 값을 답안 칸에 적으세요.\n3. 적은 답안을 제출하세요.",
       "language": "c",
       "starter_code": "",
       "solution": "8",
       "tests": [],
       "required": true,
-      "example_code": "#include <stdio.h>\n#include <stdlib.h>\nint main(void) {\n    // unsigned의 작은 값을 유효한 범위에서 이동해요.\n    printf(\"%u\\n\", 1u << 3);\n    return 0;\n}\n",
+      "example_code": "#include <stdio.h>\nint main(void) {\n    // unsigned의 작은 값을 유효한 범위에서 이동해요.\n    printf(\"%u\\n\", 1u << 3);\n    return 0;\n}\n",
       "interaction": {
         "kind": "fill",
         "accepted": [
@@ -1134,44 +1247,71 @@
       "narration": [
         {
           "action": "say",
-          "text": "읽을 값과 출력할 줄을 먼저 살펴봐요.",
-          "target": "lines:5:5"
+          "text": "1을 왼쪽으로 몇 자리 옮기느냐에 따라 값이 2배씩 커지는 문제예요.",
+          "target": "text:한 자리 옮길 때마다 값이 2배가 돼요."
+        },
+        {
+          "action": "say",
+          "text": "1을 세 자리 옮겨요.",
+          "target": "code:1u << 3"
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
-            5,
-            5
+            4,
+            4
           ]
         },
         {
           "action": "say",
-          "text": "일을 왼쪽으로 세 자리 옮기면 천이에요. 십진수로 팔이에요.",
+          "text": "2진수 일 영 영 영, 곧 8이에요.",
           "target": "output"
         },
         {
+          "action": "patch_code",
+          "before": "1u << 3",
+          "after": "1u << 1",
+          "say": "한 자리만 옮겨 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
           "action": "say",
-          "text": "조심하세요. 이동 수는 음수가 아니고 타입의 비트 폭보다 작아야 해요.",
-          "target": "problem"
+          "text": "일 영, 곧 2예요. 옮긴 자리 수만큼 2를 곱한 값이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "1u << 1",
+          "after": "1u << 3",
+          "say": "세 자리로 되돌려요."
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 옮기는 수는 음수가 아니고 타입의 비트 폭보다 작아야 정해진 결과가 나와요.",
+          "target": "code:1u << 3"
         },
         {
           "action": "fill_answer",
-          "value": "8",
-          "say": "실행 결과 숫자를 답안으로 적어요."
+          "value": "8"
         }
       ]
     },
     {
       "id": "stp_73085838-4fe3-46ae-8f5a-db60b66a6cff",
       "title": "반전 뒤 필요한 자리만 읽어요",
-      "goal": "반전 결과에서 아래 네 비트만 남겨요.\n출력 숫자를 적으세요.",
+      "goal": "반전(~)은 모든 비트를 뒤집어요. unsigned 정수는 32비트처럼 큰 폭이라 앞자리도 모두 1이 돼요. 그래서 & 15u(2진수 1 1 1 1)로 아래 네 비트만 남겨요.\n반전 결과에서 아래 네 비트만 남겨요.\n출력 숫자를 적으세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 질문이 묻는 값을 답안 칸에 적으세요.\n3. 적은 답안을 제출하세요.",
       "language": "c",
       "starter_code": "",
       "solution": "10",
       "tests": [],
       "required": true,
-      "example_code": "#include <stdio.h>\n#include <stdlib.h>\nint main(void) {\n    // 정수 전체를 반전한 뒤 마스크로 범위를 골라요.\n    printf(\"%u\\n\", (~5u) & 15u);\n    return 0;\n}\n",
+      "example_code": "#include <stdio.h>\nint main(void) {\n    // 정수 전체를 반전한 뒤 마스크로 범위를 골라요.\n    printf(\"%u\\n\", (~5u) & 15u);\n    return 0;\n}\n",
       "interaction": {
         "kind": "fill",
         "accepted": [
@@ -1181,38 +1321,65 @@
       "narration": [
         {
           "action": "say",
-          "text": "읽을 값과 출력할 줄을 먼저 살펴봐요.",
-          "target": "lines:5:5"
+          "text": "뒤집은 값 전체가 아니라 마스크로 고른 자리만 읽는 문제예요.",
+          "target": "text:그래서 & 15u(2진수 1 1 1 1)로 아래 네 비트만 남겨요."
+        },
+        {
+          "action": "say",
+          "text": "5의 아래 네 비트는 영 일 영 일이에요. 뒤집으면 일 영 일 영이에요.",
+          "target": "code:(~5u) & 15u"
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
-            5,
-            5
+            4,
+            4
           ]
         },
         {
           "action": "say",
-          "text": "아래 네 비트의 영일영일을 반전해요. 마스크 뒤 일영일영은 십이에요.",
+          "text": "일 영 일 영은 8 더하기 2라 10이에요.",
           "target": "output"
         },
         {
+          "action": "patch_code",
+          "before": "(~5u) & 15u",
+          "after": "(~5u) & 3u",
+          "say": "마스크를 3, 곧 아래 두 비트로 줄여 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
           "action": "say",
-          "text": "조심하세요. 정수 타입 자체가 네 비트라고 가정한 것이 아니에요.",
-          "target": "problem"
+          "text": "일 영만 남아 2예요. 마스크가 어느 자리를 읽을지 정해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "(~5u) & 3u",
+          "after": "(~5u) & 15u",
+          "say": "네 비트 마스크로 되돌려요."
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 마스크가 없으면 앞자리의 1까지 남아 아주 큰 수가 돼요. 정수가 네 비트라는 뜻이 아니에요.",
+          "target": "code:(~5u)"
         },
         {
           "action": "fill_answer",
-          "value": "10",
-          "say": "실행 결과 숫자를 답안으로 적어요."
+          "value": "10"
         }
       ]
     },
     {
       "id": "stp_aec61cad-840d-4ef4-82b2-0dfdcd538eca",
       "title": "확보한 저장소를 초기화해요",
-      "goal": "확보 성공을 확인한 뒤 값을 저장해요.\n정상 경로의 출력 숫자를 적으세요.",
+      "goal": "malloc은 저장소를 확보만 하고 값은 채우지 않아요. 실패하면 NULL을 돌려주니 먼저 확인하고, 값을 저장한 뒤에 읽어요.\n확보 성공을 확인한 뒤 값을 저장해요.\n정상 경로의 출력 숫자를 적으세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 질문이 묻는 값을 답안 칸에 적으세요.\n3. 적은 답안을 제출하세요.",
       "language": "c",
       "starter_code": "",
       "solution": "7",
@@ -1228,12 +1395,16 @@
       "narration": [
         {
           "action": "say",
-          "text": "읽을 값과 출력할 줄을 먼저 살펴봐요.",
-          "target": "lines:9:9"
+          "text": "확보, 실패 확인, 저장, 읽기, 해제의 순서를 따라 정상 경로의 출력을 적는 문제예요.",
+          "target": "text:malloc은 저장소를 확보만 하고 값은 채우지 않아요."
+        },
+        {
+          "action": "say",
+          "text": "p == NULL이면 바로 끝내고, 아니면 7을 저장해요.",
+          "target": "code:if (p == NULL) return 1;"
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             9,
             9
@@ -1241,30 +1412,48 @@
         },
         {
           "action": "say",
-          "text": "공간 확보 뒤 실패 여부를 먼저 확인해요. 칠을 저장했으니 칠을 읽어요.",
+          "text": "저장한 7을 읽었어요.",
           "target": "output"
         },
         {
-          "action": "say",
-          "text": "조심하세요. malloc의 초기 값을 읽지 않아요.",
-          "target": "problem"
+          "action": "patch_code",
+          "before": "*p = 7;",
+          "after": "*p = 4;",
+          "say": "저장하는 값을 4로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
         },
         {
           "action": "say",
-          "text": "확보에 실패하면 정상 경로로 가지 않아요.",
-          "target": "problem"
+          "text": "4가 나와요. 읽는 값은 확보할 때가 아니라 저장한 값이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "*p = 4;",
+          "after": "*p = 7;",
+          "say": "7로 되돌려요."
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 저장하기 전에 malloc한 칸을 읽으면 정해진 값이 없어요.",
+          "target": "code:*p = 7;"
         },
         {
           "action": "fill_answer",
-          "value": "7",
-          "say": "실행 결과 숫자를 답안으로 적어요."
+          "value": "7"
         }
       ]
     },
     {
       "id": "stp_ed61deb4-523d-40be-8f31-41e520fe9fb2",
       "title": "영으로 초기화한 원소를 읽어요",
-      "goal": "같은 정수 두 개를 calloc으로 확보해요.\n정상 경로의 출력 숫자를 적으세요.",
+      "goal": "calloc(개수, 크기)은 저장소를 확보하면서 모든 바이트를 0으로 채워요. 정수 원소는 0으로 시작해요.\n같은 정수 두 개를 calloc으로 확보해요.\n정상 경로의 출력 숫자를 적으세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 질문이 묻는 값을 답안 칸에 적으세요.\n3. 적은 답안을 제출하세요.",
       "language": "c",
       "starter_code": "",
       "solution": "0",
@@ -1280,12 +1469,16 @@
       "narration": [
         {
           "action": "say",
-          "text": "읽을 값과 출력할 줄을 먼저 살펴봐요.",
-          "target": "lines:7:7"
+          "text": "malloc과 달리 처음 값이 정해진 확보예요. 저장하지 않은 원소를 읽었을 때의 값을 적는 문제예요.",
+          "target": "text:calloc(개수, 크기)은 저장소를 확보하면서 모든 바이트를 0으로 채워요."
+        },
+        {
+          "action": "say",
+          "text": "두 원소를 확보하고 아무것도 저장하지 않은 채 둘째 원소를 읽어요.",
+          "target": "code:p[1]"
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             7,
             7
@@ -1293,25 +1486,48 @@
         },
         {
           "action": "say",
-          "text": "정수 원소는 영으로 초기화돼요. 두 번째 원소도 영이에요.",
+          "text": "0이에요.",
           "target": "output"
         },
         {
+          "action": "patch_code",
+          "before": "printf(\"%d\\n\", p[1]);",
+          "after": "p[1] = 5;\n    printf(\"%d\\n\", p[1]);",
+          "say": "읽기 전에 5를 저장해 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
           "action": "say",
-          "text": "조심하세요. 모든 비트가 영인 표현을 임의의 포인터 값과 같다고 일반화하지 않아요.",
-          "target": "problem"
+          "text": "5예요. 0은 처음 값일 뿐, 저장하면 바뀌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "p[1] = 5;\n    printf(\"%d\\n\", p[1]);",
+          "after": "printf(\"%d\\n\", p[1]);",
+          "say": "저장 줄을 빼고 되돌려요."
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 모든 바이트가 0이라는 것이 정수 0이라는 뜻이고, 포인터 원소를 NULL로 채웠다는 보장은 아니에요.",
+          "target": "code:calloc(2, sizeof *p)"
         },
         {
           "action": "fill_answer",
-          "value": "0",
-          "say": "실행 결과 숫자를 답안으로 적어요."
+          "value": "0"
         }
       ]
     },
     {
       "id": "stp_0fc0aa15-ca6d-4174-bfce-f7b510c386c6",
       "title": "같은 할당을 가리키는 별칭을 읽어요",
-      "goal": "다른 포인터로 같은 저장소를 바꿔요.\n정상 경로의 출력 숫자를 적으세요.",
+      "goal": "int *q = p;는 새 저장소를 만들지 않고 같은 주소를 복사해요. 그래서 q로 쓴 값을 p로 읽어요.\n다른 포인터로 같은 저장소를 바꿔요.\n정상 경로의 출력 숫자를 적으세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 질문이 묻는 값을 답안 칸에 적으세요.\n3. 적은 답안을 제출하세요.",
       "language": "c",
       "starter_code": "",
       "solution": "9",
@@ -1327,12 +1543,16 @@
       "narration": [
         {
           "action": "say",
-          "text": "읽을 값과 출력할 줄을 먼저 살펴봐요.",
-          "target": "lines:9:9"
+          "text": "저장소 하나를 두 이름이 가리키는 상황이에요. q로 쓴 값을 p로 읽을 때를 따지는 문제예요.",
+          "target": "text:int *q = p;는 새 저장소를 만들지 않고 같은 주소를 복사해요."
+        },
+        {
+          "action": "say",
+          "text": "q로 9를 쓰고 p로 읽어요.",
+          "target": "code:*q = 9;"
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             9,
             9
@@ -1340,65 +1560,115 @@
         },
         {
           "action": "say",
-          "text": "두 포인터가 같은 정수 저장소를 가리켜요. q로 저장한 구를 p에서도 읽어요.",
+          "text": "9예요. 같은 저장소예요.",
           "target": "output"
         },
         {
+          "action": "patch_code",
+          "before": "*q = 9;",
+          "after": "*p = 9;",
+          "say": "이번엔 p로 직접 써 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
           "action": "say",
-          "text": "조심하세요. 포인터 두 개가 있다고 같은 할당을 두 번 해제하지 않아요.",
-          "target": "problem"
+          "text": "결과는 같은 9예요. 어느 이름으로 써도 한 저장소에 써요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "*p = 9;",
+          "after": "*q = 9;",
+          "say": "q로 쓰는 줄로 되돌려요."
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 이름이 둘이어도 할당은 하나라서 free도 한 번만 해요.",
+          "target": "code:free(p);"
         },
         {
           "action": "fill_answer",
-          "value": "9",
-          "say": "실행 결과 숫자를 답안으로 적어요."
+          "value": "9"
         }
       ]
     },
     {
-      "id": "stp_6c2b7701-afc5-4698-b20b-d043470230f2",
-      "title": "해제한 포인터를 다시 쓰지 않아요",
-      "goal": "해제한 뒤 p를 NULL로 바꿔요.\n출력 숫자를 적으세요.",
+      "id": "stp_d867bd24-fc5a-4133-9f9d-0f1825167574",
+      "title": "해제 뒤 별칭 포인터도 확인해요",
+      "goal": "free(p) 뒤에 p = NULL;로 p만 비웠어요. q는 해제 전에 같은 주소를 복사한 별칭이에요. ==는 두 값이 같으면 1, 다르면 0이에요.\nq == NULL의 출력 숫자를 적으세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 질문이 묻는 값을 답안 칸에 적으세요.\n3. 적은 답안을 제출하세요.",
       "language": "c",
       "starter_code": "",
-      "solution": "1",
+      "solution": "0",
       "tests": [],
       "required": true,
-      "example_code": "#include <stdio.h>\n#include <stdlib.h>\nint main(void) {\n    int *p = malloc(sizeof *p);\n    if (p == NULL) return 1;\n    *p = 3;\n    // 저장소 수명은 여기서 끝나요.\n    free(p);\n    p = NULL;\n    printf(\"%d\\n\", p == NULL);\n    return 0;\n}\n",
+      "example_code": "#include <stdio.h>\n#include <stdlib.h>\nint main(void) {\n    int *p = malloc(sizeof *p);\n    if (p == NULL) return 1;\n    // q는 같은 할당을 가리키는 별칭이에요.\n    int *q = p;\n    *p = 3;\n    // 저장소 수명은 여기서 끝나요. p만 NULL로 바꿔요.\n    free(p);\n    p = NULL;\n    // q가 NULL인지 비교해요. 같으면 1, 다르면 0이에요.\n    printf(\"%d\\n\", q == NULL);\n    return 0;\n}\n",
       "interaction": {
         "kind": "fill",
         "accepted": [
-          "1"
+          "0"
         ]
       },
       "narration": [
         {
           "action": "say",
-          "text": "읽을 값과 출력할 줄을 먼저 살펴봐요.",
-          "target": "lines:10:10"
+          "text": "해제한 뒤 이름 하나만 NULL로 바꿨을 때, 다른 이름도 함께 비워지는지 따지는 문제예요.",
+          "target": "text:q는 해제 전에 같은 주소를 복사한 별칭이에요."
+        },
+        {
+          "action": "say",
+          "text": "NULL을 대입한 것은 p뿐이에요.",
+          "target": "code:p = NULL;"
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
-            10,
-            10
+            13,
+            13
           ]
         },
         {
           "action": "say",
-          "text": "해제 후에는 값을 다시 읽지 않아요. p를 널로 바꾼 비교 결과는 일이에요.",
+          "text": "0이에요. q는 여전히 해제된 저장소의 주소를 들고 있어요.",
           "target": "output"
         },
         {
+          "action": "patch_code",
+          "before": ", q == NULL)",
+          "after": ", p == NULL)",
+          "say": "같은 비교를 p로 해 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
           "action": "say",
-          "text": "조심하세요. p를 널로 바꿔도 다른 별칭 포인터까지 자동으로 바뀌지는 않아요.",
-          "target": "problem"
+          "text": "p는 1이에요. 대입한 이름만 비워졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": ", p == NULL)",
+          "after": ", q == NULL)",
+          "say": "q 비교로 되돌려요."
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. q로 *q를 읽거나 다시 free하면 안 돼요. 해제한 뒤에는 모든 별칭을 쓰지 않거나 함께 NULL로 바꿔요.",
+          "target": "code:int *q = p;"
         },
         {
           "action": "fill_answer",
-          "value": "1",
-          "say": "실행 결과 숫자를 답안으로 적어요."
+          "value": "0"
         }
       ]
     }

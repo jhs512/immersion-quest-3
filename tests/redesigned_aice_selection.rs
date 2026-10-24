@@ -6,7 +6,7 @@ async fn selected_rows_and_summary_meanings_match_every_actual_teacher_run() {
     let lesson=Lesson::parse(include_str!("../courses/redesigned/aice-selection.json"),&course.lessons[0]).unwrap();
     assert_eq!(lesson.tasks.len(),10);
     let expected=vec![vec!["[12, 18, 30, 42]","['서울', '부산', '서울', '부산']","[12, 18, 30, 42]"],
-        vec!["12","18","12"],vec!["12","18","12"],vec!["[42]","[30, 42]","[42]","[30, 42]"],
+        vec!["12","18","12"],vec!["12","18","12"],vec!["[False, False, False, True]\n[42]","[False, False, True, True]\n[30, 42]","[False, False, False, True]\n[42]","[False, False, True, True]\n[30, 42]"],
         vec!["[30]","[30, 42]","[30]"],vec!["[12, 18, 30, 42]\n[12, 18, 30, 42]","[42, 30, 18, 12]\n[12, 18, 30, 42]"],
         vec!["25.5\n24.0","40.5\n24.0","25.5\n24.0"],
         vec!["{'부산': 30.0, '서울': 21.0}","{'부산': 60.0, '서울': 21.0}","{'부산': 30.0, '서울': 21.0}"],
@@ -36,7 +36,7 @@ async fn selected_rows_and_summary_meanings_match_every_actual_teacher_run() {
         assert_eq!(outputs,expected[index],"Step {} narration must agree with actual output",index+1);
     }
     let filter=&lesson.tasks[3];
-    let fixed=filter.solution.replace("df.loc[df[\"minutes\"] >= limit, \"minutes\"].tolist()","[30, 42]");
+    let fixed=filter.solution.replace("df.loc[mask, \"minutes\"].tolist()","[30, 42]");
     assert!(!lesson_runner::check(filter,&fixed).await.unwrap().passed,"A memorized selection must fail");
     let sort=&lesson.tasks[9];
     let unfiltered=sort.solution.replace("selected = df.loc[df[\"minutes\"] >= limit]","selected = df");

@@ -20,6 +20,7 @@ pub mod course_authoring;
 pub mod course_guide;
 pub mod issue_progress;
 pub mod progress_sync;
+pub mod progress_overlay;
 pub mod github_player;
 pub mod bundled_courses;
 pub mod course_visibility;

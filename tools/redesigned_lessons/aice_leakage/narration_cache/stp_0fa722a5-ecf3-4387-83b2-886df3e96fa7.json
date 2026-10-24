@@ -1,10 +1,19 @@
 {
   "by": "hand",
-  "source_sha256": "350bed9934ff079bb61a46bd1111e7d2b15f9071d808045a1d703380bc4ac9ce",
+  "source_sha256": "089d9448ae692872550f2e672e660bfcefb2a89231511f3641b72092174ef104",
   "entry": [
     {
+      "action": "say",
+      "text": "정책은 평균 채우기이고, 기준은 훈련 자료에서만 구해야 해요. 지금 기준이 어떤 자료로 계산되는지 찾는 문제예요.",
+      "target": "text:이번 정책은 빈값을 평균으로 채우기예요."
+    },
+    {
+      "action": "say",
+      "text": "기준 줄이 훈련과 평가를 이어 붙인 뒤 평균을 내요.",
+      "target": "code:pd.concat([train, test]).mean()"
+    },
+    {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         10,
         10
@@ -12,18 +21,17 @@
     },
     {
       "action": "say",
-      "text": "전체 중앙값 이십이 평가의 빈값에 들어갔어요.",
+      "text": "빈칸이 사십삼 점 삼삼으로 채워졌어요. 평가 값 100이 기준에 섞였어요.",
       "target": "output"
     },
     {
       "action": "patch_code",
-      "before": "pd.concat([train, test]).median()",
+      "before": "pd.concat([train, test]).mean()",
       "after": "train.median()",
-      "say": "훈련 자료만 보고 중앙값을 정해요."
+      "say": "4번에서 본 훈련 중앙값 줄로 바꿔 볼게요."
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         10,
         10
@@ -31,13 +39,19 @@
     },
     {
       "action": "say",
-      "text": "훈련 기준 십오로 채우고 원래 백은 보존했어요.",
+      "text": "훈련 값이 10과 20뿐이라 중앙값도 15예요. 이 자료만 보고는 평균과 구별되지 않아요.",
       "target": "output"
     },
     {
+      "action": "patch_code",
+      "before": "reference = train.median()",
+      "after": "reference = pd.concat([train, test]).mean()",
+      "say": "준비 코드로 되돌려요."
+    },
+    {
       "action": "say",
-      "text": "조심하세요. 전처리도 평가 자료를 미리 보면 안 돼요.",
-      "target": "output"
+      "text": "조심하세요. 훈련 값이 0, 0, 6이면 중앙값은 0, 평균은 2라서 결과가 달라요. 범위는 훈련만, 통계는 이번 정책인 평균으로 맞추세요.",
+      "target": "code:.mean()"
     }
   ]
 }

@@ -1,15 +1,19 @@
 {
   "by": "hand",
-  "source_sha256": "2f456fb652d84810c4a4da9ef9d7d4627137429e1590b39594d7b12681c50b51",
+  "source_sha256": "d2d5edb304dd164c2f50079d63d9a24dbb1f6c5b1019c7d09e264d6cc2d67db7",
   "entry": [
     {
       "action": "say",
-      "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-      "target": "problem"
+      "text": "좋아요 버튼은 누를 때마다 1씩 늘어야 해요.",
+      "target": "text:누를 때마다 좋아요가 1씩 늘게 고치세요."
+    },
+    {
+      "action": "say",
+      "text": "클릭하면 setCount가 실행되는데, 지금은 같은 값 count를 다시 넣어요.",
+      "target": "code:setCount(count)"
     },
     {
       "action": "run",
-      "say": "실행해 현재 화면을 확인해요.",
       "lines": [
         7,
         7
@@ -17,37 +21,59 @@
     },
     {
       "action": "say",
-      "text": "처음 좋아요는 영이에요. 같은 값을 다시 넣으면 늘지 않아요.",
+      "text": "처음 화면은 좋아요 0이에요.",
       "target": "output"
+    },
+    {
+      "action": "web_action",
+      "do": "click",
+      "selector": "button",
+      "say": "해설 화면의 버튼을 직접 눌러 볼게요."
+    },
+    {
+      "action": "say",
+      "text": "눌러도 좋아요 0 그대로예요. 같은 값을 넣었으니 바뀔 게 없어요.",
+      "target": "iframe[title=\"해설 웹 미리보기\"]"
     },
     {
       "action": "patch_code",
       "before": "setCount(count)",
       "after": "setCount(count + 1)",
-      "say": "문제에서 확인한 부분만 고쳐요."
+      "say": "새 값 count + 1을 넣게 고쳐요."
     },
     {
       "action": "run",
-      "say": "다시 실행해 처음 화면을 확인해요.",
       "lines": [
         7,
         7
       ]
     },
     {
-      "action": "say",
-      "text": "새로 실행한 초기값은 다시 영이에요. 버튼을 눌러 증가를 확인하세요.",
-      "target": "output"
+      "action": "web_action",
+      "do": "click",
+      "selector": "button",
+      "say": "다시 한 번 눌러요."
     },
     {
       "action": "say",
-      "text": "조심하세요. 실행과 클릭은 달라요.",
-      "target": "output"
+      "text": "좋아요 1이 됐어요.",
+      "target": "iframe[title=\"해설 웹 미리보기\"]"
+    },
+    {
+      "action": "web_action",
+      "do": "click",
+      "selector": "button",
+      "say": "한 번 더 눌러요."
     },
     {
       "action": "say",
-      "text": "제출 검사는 실제로 버튼을 두 번 눌러 확인해요.",
-      "target": "output"
+      "text": "좋아요 2예요. 누를 때마다 상태가 바뀌고 화면이 다시 그려져요.",
+      "target": "iframe[title=\"해설 웹 미리보기\"]"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 실행 버튼은 화면을 처음 상태로 그릴 뿐이에요. 증가는 클릭해야 확인돼요. 제출 검사도 버튼을 두 번 눌러요.",
+      "target": "code:onClick={() => setCount(count + 1)}"
     }
   ]
 }

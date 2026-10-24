@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_f08c6a95-6c9a-4b79-b7d6-d8c87d056f9c",
-  "revision": "git-branch-5",
+  "revision": "git-branch-6",
   "title": "Git · 브랜치 기본: 작업을 나누고 합쳐요",
   "description": "여러분은 메모 서비스 팀의 새 팀원이에요. 팀의 안내문을 맡았어요. 메모 안내와 문의 안내를 차례로 완성해요.",
   "objectives": [
@@ -113,6 +113,12 @@
               "objectives": [
                 "같은 생성·전환·기록·병합 흐름을 다시 설명할 수 있어요."
               ]
+            },
+            {
+              "id": "stp_12b5604d-d39d-4f7d-923e-95743d82ede8",
+              "objectives": [
+                "merge가 지금 있는 브랜치만 바꾼다는 것을 반대 방향의 병합으로 판단해요."
+              ]
             }
           ]
         }
@@ -147,20 +153,19 @@
       "narration": [
         {
           "action": "say",
-          "text": "여러분은 메모 서비스 팀의 새 팀원이에요. 팀의 안내문을 맡았어요. 팀장이 바깥 준비 폴더에 안내 초안을 만들고 가져와 달래요.",
-          "target": "#git-demo-terminal"
+          "text": "팀장이 저장소 바깥 준비 폴더에 안내 초안을 두고 가져와 달래요. 이 스텝은 저장소를 만들고 바깥 파일을 안으로 옮기는 일이에요.",
+          "target": "text:팀장이 바깥 준비 폴더에 안내 초안을 만들고 가져와 달래요."
         },
         {
           "action": "say",
-          "text": "비어 있는 실습 폴더에서 시작해요. guide.txt는 우리가 만들 안내문 파일이에요.",
-          "target": "#git-demo-terminal"
+          "text": "../inbox는 이 저장소 바깥의 실습 전용 폴더예요. 거기서 만든 guide.txt를 mv로 저장소에 가져와요.",
+          "target": "text:../inbox는 이 저장소 바깥의 준비 폴더예요."
         },
         {
           "action": "git_command",
           "args": [
             "init"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -171,7 +176,6 @@
         {
           "action": "bash_command",
           "command": "mkdir ../inbox",
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -182,7 +186,6 @@
         {
           "action": "bash_command",
           "command": "echo \"안내: 기본 안내\" > ../inbox/guide.txt",
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -193,7 +196,6 @@
         {
           "action": "bash_command",
           "command": "cat ../inbox/guide.txt",
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -204,7 +206,6 @@
         {
           "action": "bash_command",
           "command": "mv ../inbox/guide.txt .",
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -215,7 +216,6 @@
         {
           "action": "bash_command",
           "command": "ls ../inbox",
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -226,7 +226,6 @@
         {
           "action": "bash_command",
           "command": "cat guide.txt",
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -239,7 +238,6 @@
           "args": [
             "status"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -249,7 +247,7 @@
         },
         {
           "action": "say",
-          "text": "조심하세요. ../inbox는 실습용 준비 폴더예요. mv로 옮긴 뒤에는 저장소 안에서 파일을 읽어요.",
+          "text": "조심하세요. mv는 복사가 아니라 옮기기라서 ../inbox에는 guide.txt가 남지 않아요. 이후에는 저장소 안의 파일만 써요.",
           "target": "#git-demo-terminal"
         }
       ]
@@ -288,13 +286,12 @@
       "narration": [
         {
           "action": "say",
-          "text": "앞 문제에서 옮겨 온 guide.txt를 그대로 써요. 아직 커밋이 없어요.",
-          "target": "#git-demo-terminal"
+          "text": "1번에서 옮겨 온 guide.txt는 아직 한 번도 커밋하지 않았어요. 이 내용을 main의 첫 기록으로 남겨요.",
+          "target": "text:앞 문제에서 옮겨 온 guide.txt를 그대로 써요."
         },
         {
           "action": "bash_command",
           "command": "cat guide.txt",
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -308,7 +305,6 @@
             "add",
             "guide.txt"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -323,7 +319,6 @@
             "-m",
             "기본 안내"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -336,7 +331,6 @@
           "args": [
             "branch"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -346,7 +340,7 @@
         },
         {
           "action": "say",
-          "text": "조심하세요. 앞 문제의 파일과 기록을 그대로 이어서 써요.",
+          "text": "조심하세요. 커밋이 하나도 없는 저장소에서는 git branch에 아무것도 나오지 않아요. 첫 커밋을 남긴 뒤에야 main이 보여요.",
           "target": "#git-demo-terminal"
         }
       ]
@@ -404,20 +398,19 @@
       "narration": [
         {
           "action": "say",
-          "text": "팀장이 메모 기능 안내를 맡겼어요. 배포용 main은 두고 feature에서 준비해요.",
-          "target": "#git-demo-terminal"
+          "text": "팀장이 메모 기능 안내를 맡겼어요. 배포용 main은 건드리지 않고 feature라는 작업 이름을 따로 만들어요.",
+          "target": "text:배포용 main은 두고 feature에서 준비해요."
         },
         {
           "action": "say",
-          "text": "main에 앞에서 남긴 기본 안내 커밋이 있어요. 별도의 작업 이름 feature를 만들어요.",
-          "target": "#git-demo-terminal"
+          "text": "지금 main에는 기본 안내 커밋 하나가 있어요. feature는 그 커밋에서 출발해요.",
+          "target": "text:main에 앞에서 남긴 기본 안내 커밋이 있어요."
         },
         {
           "action": "git_command",
           "args": [
             "branch"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -431,7 +424,6 @@
             "branch",
             "feature"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -444,7 +436,6 @@
           "args": [
             "branch"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -454,17 +445,16 @@
         },
         {
           "action": "git_graph",
-          "say": "옆 그래프에서 HEAD와 브랜치 위치를 비교해요.",
           "target": "#git-demo-terminal + .git-graph-panel"
         },
         {
           "action": "say",
-          "text": "브랜치를 만들어도 현재 브랜치는 그대로임을 확인해요.",
+          "text": "그래프에서 main과 feature가 같은 커밋에 붙어 있고, HEAD는 아직 main을 가리켜요.",
           "target": "#git-demo-terminal + .git-graph-panel"
         },
         {
           "action": "say",
-          "text": "조심하세요. 브랜치를 만들기만 하면 현재 브랜치는 바뀌지 않아요.",
+          "text": "조심하세요. git branch feature는 이름만 만들어요. 들어가서 작업하려면 4번의 switch가 필요해요.",
           "target": "#git-demo-terminal"
         }
       ]
@@ -529,13 +519,12 @@
       "narration": [
         {
           "action": "say",
-          "text": "앞에서 만든 feature로 옮겨요. 아직 어느 쪽에서도 안내문을 수정하지 않았어요.",
-          "target": "#git-demo-terminal"
+          "text": "이제 feature로 옮겨 가요. 아직 어느 브랜치에서도 안내문을 고치지 않아서 두 브랜치의 내용은 같아요.",
+          "target": "text:아직 어느 쪽에서도 안내문을 수정하지 않았어요."
         },
         {
           "action": "bash_command",
           "command": "cat guide.txt",
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -549,7 +538,6 @@
             "switch",
             "feature"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -562,7 +550,6 @@
           "args": [
             "branch"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -573,7 +560,6 @@
         {
           "action": "bash_command",
           "command": "cat guide.txt",
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -583,17 +569,16 @@
         },
         {
           "action": "git_graph",
-          "say": "옆 그래프에서 HEAD와 브랜치 위치를 비교해요.",
           "target": "#git-demo-terminal + .git-graph-panel"
         },
         {
           "action": "say",
-          "text": "전환은 현재 브랜치를 바꾸며 파일을 복제하지 않아요.",
+          "text": "그래프에서 HEAD가 feature로 옮겨졌어요. 두 브랜치는 여전히 같은 커밋이라 파일도 같아요.",
           "target": "#git-demo-terminal + .git-graph-panel"
         },
         {
           "action": "say",
-          "text": "조심하세요. 앞 문제의 파일과 기록을 그대로 이어서 써요.",
+          "text": "조심하세요. 커밋하지 않은 수정이 있으면 switch할 때 그 수정이 새 브랜치로 따라와요. 그래서 수정 전에 브랜치를 먼저 바꿔요.",
           "target": "#git-demo-terminal"
         }
       ]
@@ -664,18 +649,17 @@
       "narration": [
         {
           "action": "say",
-          "text": "첫 요청이에요. 기본 안내를 메모 기능 안내로 바꿔요.",
-          "target": "#git-demo-terminal"
+          "text": "첫 요청은 기본 안내를 메모 기능 안내로 바꾸는 거예요.",
+          "target": "text:첫 요청이에요."
         },
         {
           "action": "say",
-          "text": "현재 브랜치는 feature예요. 기본 안내를 메모 기능 안내로 직접 바꿔요.",
-          "target": "#git-demo-terminal"
+          "text": "지금은 feature에 있어요. 파일만 고치고 아직 커밋은 하지 않아요.",
+          "target": "text:현재 브랜치는 feature예요."
         },
         {
           "action": "bash_command",
           "command": "cat guide.txt",
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -686,7 +670,6 @@
         {
           "action": "bash_command",
           "command": "echo \"안내: 메모 기능\" > guide.txt",
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -697,7 +680,6 @@
         {
           "action": "bash_command",
           "command": "cat guide.txt",
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -710,7 +692,6 @@
           "args": [
             "diff"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -720,7 +701,7 @@
         },
         {
           "action": "say",
-          "text": "조심하세요. 파일 수정과 커밋은 서로 다른 행동이에요.",
+          "text": "조심하세요. 파일을 고친 것만으로는 feature의 기록이 바뀌지 않아요. git diff는 기록과 파일의 차이를 보여 줄 뿐이에요.",
           "target": "#git-demo-terminal"
         }
       ]
@@ -800,13 +781,12 @@
       "narration": [
         {
           "action": "say",
-          "text": "앞 문제에서 직접 바꾼 안내를 기록해요. main의 기본 안내는 그대로 남겨요.",
-          "target": "#git-demo-terminal"
+          "text": "5번에서 고친 안내를 feature에 커밋해요. main의 기본 안내는 그대로 남아야 해요.",
+          "target": "text:main의 기본 안내는 그대로 남겨요."
         },
         {
           "action": "bash_command",
           "command": "cat guide.txt",
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -820,7 +800,6 @@
             "add",
             "guide.txt"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -835,7 +814,6 @@
             "-m",
             "메모 기능"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -849,7 +827,6 @@
             "show",
             "main:guide.txt"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -859,17 +836,16 @@
         },
         {
           "action": "git_graph",
-          "say": "옆 그래프에서 HEAD와 브랜치 위치를 비교해요.",
           "target": "#git-demo-terminal + .git-graph-panel"
         },
         {
           "action": "say",
-          "text": "커밋은 현재 브랜치의 끝만 이동시켜요.",
+          "text": "그래프에서 feature만 새 커밋으로 한 칸 나아갔고, main은 기본 안내 커밋에 남았어요.",
           "target": "#git-demo-terminal + .git-graph-panel"
         },
         {
           "action": "say",
-          "text": "조심하세요. 파일 수정과 커밋은 서로 다른 행동이에요.",
+          "text": "조심하세요. 커밋은 지금 있는 브랜치에만 쌓여요. main에서 커밋했다면 main이 바뀌었을 거예요.",
           "target": "#git-demo-terminal"
         }
       ]
@@ -957,18 +933,17 @@
       "narration": [
         {
           "action": "say",
-          "text": "팀장이 반영 전에 배포본과 작업본을 비교해 달래요.",
-          "target": "#git-demo-terminal"
+          "text": "팀장이 배포본 main과 작업본 feature를 비교해 달래요. main으로 돌아가면 파일이 어떻게 보이는지가 이 스텝의 관찰이에요.",
+          "target": "text:팀장이 반영 전에 배포본과 작업본을 비교해 달래요."
         },
         {
           "action": "say",
-          "text": "feature에는 메모 기능을 기록했어요. main으로 돌아가 파일이 어떻게 보이는지 확인해요.",
-          "target": "#git-demo-terminal"
+          "text": "feature에는 메모 기능이 기록돼 있어요.",
+          "target": "text:feature에는 메모 기능을 기록했어요."
         },
         {
           "action": "bash_command",
           "command": "cat guide.txt",
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -982,7 +957,6 @@
             "switch",
             "main"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -993,7 +967,6 @@
         {
           "action": "bash_command",
           "command": "cat guide.txt",
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -1007,7 +980,6 @@
             "show",
             "feature:guide.txt"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -1017,7 +989,7 @@
         },
         {
           "action": "say",
-          "text": "조심하세요. 앞 문제의 파일과 기록을 그대로 이어서 써요.",
+          "text": "조심하세요. main에서 기본 안내가 보여도 feature의 커밋이 지워진 게 아니에요. show로 다른 브랜치의 파일을 확인할 수 있어요.",
           "target": "#git-demo-terminal"
         }
       ]
@@ -1119,20 +1091,19 @@
       "narration": [
         {
           "action": "say",
-          "text": "메모 안내 검토가 끝났어요. 배포용 main에 반영해요.",
-          "target": "#git-demo-terminal"
+          "text": "검토가 끝나서 feature의 메모 기능을 배포용 main에 합쳐요.",
+          "target": "text:메모 안내 검토가 끝났어요."
         },
         {
           "action": "say",
-          "text": "현재 브랜치는 main이에요. feature에서 완성한 안내를 main에 가져와요.",
-          "target": "#git-demo-terminal"
+          "text": "merge는 지금 있는 브랜치에 다른 브랜치를 가져와요. 그래서 main에 있는지 먼저 확인해요.",
+          "target": "text:현재 브랜치는 main이에요."
         },
         {
           "action": "git_command",
           "args": [
             "branch"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -1143,7 +1114,6 @@
         {
           "action": "bash_command",
           "command": "cat guide.txt",
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -1157,7 +1127,6 @@
             "merge",
             "feature"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -1168,7 +1137,6 @@
         {
           "action": "bash_command",
           "command": "cat guide.txt",
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -1178,17 +1146,16 @@
         },
         {
           "action": "git_graph",
-          "say": "옆 그래프에서 HEAD와 브랜치 위치를 비교해요.",
           "target": "#git-demo-terminal + .git-graph-panel"
         },
         {
           "action": "say",
-          "text": "merge는 다른 브랜치의 기록을 현재 브랜치에 반영해요.",
+          "text": "main은 feature 커밋까지 앞으로 이동했어요. 그사이 main에 새 커밋이 없어서 그대로 따라간 거예요.",
           "target": "#git-demo-terminal + .git-graph-panel"
         },
         {
           "action": "say",
-          "text": "조심하세요. merge는 지금 작업 중인 브랜치에 반영해요.",
+          "text": "조심하세요. feature에서 git merge main을 실행하면 반대로 feature가 바뀌어요. 합칠 곳에 먼저 서 있어야 해요.",
           "target": "#git-demo-terminal"
         }
       ]
@@ -1295,20 +1262,19 @@
       "narration": [
         {
           "action": "say",
-          "text": "두 번째 요청이에요. 문의 안내는 최신 main에서 feature2로 시작해요.",
-          "target": "#git-demo-terminal"
+          "text": "두 번째 요청은 문의 안내예요. 메모 기능이 들어간 최신 main에서 feature2를 시작해요.",
+          "target": "text:두 번째 요청이에요."
         },
         {
           "action": "say",
-          "text": "main에는 이미 메모 기능이 있어요. 그 상태를 바탕으로 문의 안내를 따로 준비해요.",
-          "target": "#git-demo-terminal"
+          "text": "feature2는 이미 메모 기능이 있는 상태에서 출발해요.",
+          "target": "text:main에는 이미 메모 기능이 있어요."
         },
         {
           "action": "git_command",
           "args": [
             "branch"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -1322,7 +1288,6 @@
             "branch",
             "feature2"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -1336,7 +1301,6 @@
             "switch",
             "feature2"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -1347,7 +1311,6 @@
         {
           "action": "bash_command",
           "command": "cat guide.txt",
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -1357,17 +1320,16 @@
         },
         {
           "action": "git_graph",
-          "say": "옆 그래프에서 HEAD와 브랜치 위치를 비교해요.",
           "target": "#git-demo-terminal + .git-graph-panel"
         },
         {
           "action": "say",
-          "text": "두 번째 작업은 병합을 마친 main을 출발점으로 삼아요.",
+          "text": "그래프에서 feature2가 합쳐진 main의 커밋에 붙고, HEAD가 feature2로 옮겨졌어요.",
           "target": "#git-demo-terminal + .git-graph-panel"
         },
         {
           "action": "say",
-          "text": "조심하세요. 앞 문제의 파일과 기록을 그대로 이어서 써요.",
+          "text": "조심하세요. 합치기 전의 오래된 지점에서 시작하면 feature2에는 메모 기능이 없어요. 최신 main에서 만들어요.",
           "target": "#git-demo-terminal"
         }
       ]
@@ -1486,18 +1448,17 @@
       "narration": [
         {
           "action": "say",
-          "text": "팀에서 상담 창구 안내를 추가해 달래요. 메모 안내는 유지해요.",
-          "target": "#git-demo-terminal"
+          "text": "상담 창구 안내를 한 줄 더해요. 메모 기능 줄은 지우지 않아야 해요.",
+          "target": "text:팀에서 상담 창구 안내를 추가해 달래요."
         },
         {
           "action": "say",
-          "text": "현재 브랜치는 feature2예요. 메모 기능은 보존하고 문의 안내만 한 줄 더해요.",
-          "target": "#git-demo-terminal"
+          "text": "그래서 이번엔 꺾쇠 두 개로 기존 내용 뒤에 붙여요.",
+          "target": "text:메모 기능은 보존하고 문의 안내만 한 줄 더해요."
         },
         {
           "action": "bash_command",
           "command": "cat guide.txt",
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -1508,7 +1469,6 @@
         {
           "action": "bash_command",
           "command": "echo \"문의: 상담 창구\" >> guide.txt",
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -1519,7 +1479,6 @@
         {
           "action": "bash_command",
           "command": "cat guide.txt",
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -1532,7 +1491,6 @@
           "args": [
             "diff"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -1671,8 +1629,8 @@
       "narration": [
         {
           "action": "say",
-          "text": "앞 문제에서 더한 문의 안내를 기록해요. main과 첫 feature는 아직 메모 기능 커밋에 있어요.",
-          "target": "#git-demo-terminal"
+          "text": "10번에서 더한 문의 안내를 feature2에 기록해요. main과 feature는 아직 메모 기능 커밋에 있어요.",
+          "target": "text:main과 첫 feature는 아직 메모 기능 커밋에 있어요."
         },
         {
           "action": "git_command",
@@ -1680,7 +1638,6 @@
             "add",
             "guide.txt"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -1695,7 +1652,6 @@
             "-m",
             "문의 안내"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -1709,7 +1665,6 @@
             "show",
             "main:guide.txt"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -1719,17 +1674,16 @@
         },
         {
           "action": "git_graph",
-          "say": "옆 그래프에서 HEAD와 브랜치 위치를 비교해요.",
           "target": "#git-demo-terminal + .git-graph-panel"
         },
         {
           "action": "say",
-          "text": "두 번째 기능의 커밋도 현재 브랜치만 이동시켜요.",
+          "text": "그래프에서 feature2만 한 칸 나아갔어요.",
           "target": "#git-demo-terminal + .git-graph-panel"
         },
         {
           "action": "say",
-          "text": "조심하세요. 파일 수정과 커밋은 서로 다른 행동이에요.",
+          "text": "조심하세요. add 없이 commit하면 수정이 기록되지 않아요. 준비 영역에 담은 것만 커밋돼요.",
           "target": "#git-demo-terminal"
         }
       ]
@@ -1865,13 +1819,13 @@
       "narration": [
         {
           "action": "say",
-          "text": "문의 안내도 검토할 차례예요. main에 아직 없는 줄을 확인해요.",
-          "target": "#git-demo-terminal"
+          "text": "문의 안내를 합치기 전에 main으로 돌아가 아직 없는 줄을 확인해요.",
+          "target": "text:main에 아직 없는 줄을 확인해요."
         },
         {
           "action": "say",
-          "text": "feature2에 문의 안내까지 기록했어요. 합치기 전에 main의 파일을 다시 읽어요.",
-          "target": "#git-demo-terminal"
+          "text": "feature2에는 문의 안내까지, main에는 메모 기능까지 있어요.",
+          "target": "text:feature2에 문의 안내까지 기록했어요."
         },
         {
           "action": "git_command",
@@ -1879,7 +1833,6 @@
             "switch",
             "main"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -1892,7 +1845,6 @@
           "args": [
             "branch"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -1903,7 +1855,6 @@
         {
           "action": "bash_command",
           "command": "cat guide.txt",
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -1917,7 +1868,6 @@
             "show",
             "feature2:guide.txt"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -1927,7 +1877,7 @@
         },
         {
           "action": "say",
-          "text": "조심하세요. 앞 문제의 파일과 기록을 그대로 이어서 써요.",
+          "text": "조심하세요. 합치기 전에 두 쪽의 파일을 비교해 두면, 합친 뒤 무엇이 들어왔는지 바로 확인할 수 있어요.",
           "target": "#git-demo-terminal"
         }
       ]
@@ -2078,13 +2028,13 @@
       "narration": [
         {
           "action": "say",
-          "text": "문의 안내 검토도 끝났어요. 두 번째 작업을 main에 반영해요.",
-          "target": "#git-demo-terminal"
+          "text": "두 번째 작업 feature2를 main에 합쳐 두 기능이 함께 있는지 확인해요.",
+          "target": "text:두 번째 작업을 main에 반영해요."
         },
         {
           "action": "say",
-          "text": "현재 브랜치는 main이에요. 문의 안내를 합쳐 두 작업의 결과를 함께 확인해요.",
-          "target": "#git-demo-terminal"
+          "text": "지금은 main에 서 있어요.",
+          "target": "text:현재 브랜치는 main이에요."
         },
         {
           "action": "git_command",
@@ -2092,7 +2042,6 @@
             "merge",
             "feature2"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -2103,7 +2052,6 @@
         {
           "action": "bash_command",
           "command": "cat guide.txt",
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -2116,7 +2064,6 @@
           "args": [
             "branch"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -2129,7 +2076,6 @@
           "args": [
             "status"
           ],
-          "say": "화면의 명령을 한 번 실행해 볼게요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -2139,17 +2085,237 @@
         },
         {
           "action": "git_graph",
-          "say": "옆 그래프에서 HEAD와 브랜치 위치를 비교해요.",
           "target": "#git-demo-terminal + .git-graph-panel"
         },
         {
           "action": "say",
-          "text": "같은 생성·전환·기록·병합 흐름을 다시 설명할 수 있어요.",
+          "text": "main이 feature2 끝까지 따라왔어요. 메모 기능과 문의 안내 커밋이 한 줄로 이어져 있어요.",
           "target": "#git-demo-terminal + .git-graph-panel"
+        }
+      ]
+    },
+    {
+      "id": "stp_12b5604d-d39d-4f7d-923e-95743d82ede8",
+      "title": "feature로 바꾼 뒤 git merge main을 실행하면 어느 브랜치가 바뀔까요?",
+      "question": "feature로 바꾼 뒤 git merge main을 실행하면 어느 브랜치가 바뀔까요?",
+      "goal": "두 작업을 모두 합친 main이 있어요. 첫 feature는 아직 메모 기능 커밋에 머물러 있어요. 이번엔 반대로, feature로 바꾼 뒤 git merge main을 실행한다고 생각해요. merge가 어느 브랜치를 바꾸는지 판단하는 문제예요.\n\n**할 일**\n\n1. `git branch`를 실행해 지금 있는 브랜치를 확인하세요.\n2. feature에서 git merge main을 실행하면 바뀌는 브랜치를 예상해 보기를 고르세요.\n3. 선택한 보기를 제출하세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "feature",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "workspace_group": "branch-basics-guide",
+        "workspace_revision": "guide-story-1",
+        "files": {},
+        "setup": [],
+        "demo_setup": [
+          {
+            "kind": "file",
+            "path": "guide.txt",
+            "content": "안내: 기본 안내\n"
+          },
+          {
+            "kind": "git",
+            "args": [
+              "add",
+              "guide.txt"
+            ]
+          },
+          {
+            "kind": "git",
+            "args": [
+              "commit",
+              "-m",
+              "기본 안내"
+            ]
+          },
+          {
+            "kind": "git",
+            "args": [
+              "branch",
+              "feature"
+            ]
+          },
+          {
+            "kind": "git",
+            "args": [
+              "switch",
+              "feature"
+            ]
+          },
+          {
+            "kind": "file",
+            "path": "guide.txt",
+            "content": "안내: 메모 기능\n"
+          },
+          {
+            "kind": "git",
+            "args": [
+              "add",
+              "guide.txt"
+            ]
+          },
+          {
+            "kind": "git",
+            "args": [
+              "commit",
+              "-m",
+              "메모 기능"
+            ]
+          },
+          {
+            "kind": "git",
+            "args": [
+              "switch",
+              "main"
+            ]
+          },
+          {
+            "kind": "git",
+            "args": [
+              "merge",
+              "feature"
+            ]
+          },
+          {
+            "kind": "git",
+            "args": [
+              "branch",
+              "feature2"
+            ]
+          },
+          {
+            "kind": "git",
+            "args": [
+              "switch",
+              "feature2"
+            ]
+          },
+          {
+            "kind": "file",
+            "path": "guide.txt",
+            "content": "안내: 메모 기능\n문의: 상담 창구\n"
+          },
+          {
+            "kind": "git",
+            "args": [
+              "add",
+              "guide.txt"
+            ]
+          },
+          {
+            "kind": "git",
+            "args": [
+              "commit",
+              "-m",
+              "문의 안내"
+            ]
+          },
+          {
+            "kind": "git",
+            "args": [
+              "switch",
+              "main"
+            ]
+          },
+          {
+            "kind": "git",
+            "args": [
+              "merge",
+              "feature2"
+            ]
+          }
+        ]
+      },
+      "interaction": {
+        "kind": "choice",
+        "options": [
+          {
+            "id": "main",
+            "text": "main이 feature의 예전 상태로 바뀌어요."
+          },
+          {
+            "id": "feature",
+            "text": "지금 있는 feature만 main의 최신 커밋까지 따라와요. main은 그대로예요."
+          },
+          {
+            "id": "both",
+            "text": "두 브랜치 모두 새 병합 커밋을 하나씩 받아요."
+          }
+        ],
+        "answer": "feature"
+      },
+      "predict_before_run": false,
+      "narration": [
+        {
+          "action": "say",
+          "text": "8번과 13번은 main에 서서 다른 브랜치를 합쳤어요. 이번엔 서 있는 곳을 feature로 바꾸면 결과가 어떻게 달라지는지가 질문이에요.",
+          "target": "text:merge가 어느 브랜치를 바꾸는지 판단하는 문제예요."
+        },
+        {
+          "action": "choose_answer",
+          "id": "feature",
+          "say": "서 있는 브랜치가 바뀐다고 예상할게요."
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "switch",
+            "feature"
+          ],
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "조심하세요. merge는 지금 작업 중인 브랜치에 반영해요.",
+          "text": "해설 저장소에서 feature로 옮겼어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "cat guide.txt",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "feature에서는 메모 기능 한 줄만 보여요. 문의 안내는 아직 없어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "merge",
+            "main"
+          ],
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "Fast-forward가 보여요. feature가 앞으로 이동만 했어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "cat guide.txt",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "이제 feature에도 문의 안내까지 두 줄이 있어요. 서 있던 feature가 main을 따라왔어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "show",
+            "main:guide.txt"
+          ],
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "main은 합치기 전과 같은 두 줄이에요. merge는 지금 있는 브랜치만 바꿔요.",
           "target": "#git-demo-terminal"
         }
       ]

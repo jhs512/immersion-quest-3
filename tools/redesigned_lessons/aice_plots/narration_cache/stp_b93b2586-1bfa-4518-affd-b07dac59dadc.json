@@ -1,13 +1,22 @@
 {
   "by": "hand",
-  "source_sha256": "253e2d5cc854fdbbfc434ba4d143280385e0372b48a5b37bb7a82b6b7c0ffb27",
+  "source_sha256": "3cf5f4a3811ab57259c88c7143f809cdf889382e2c67ce55ef171e31c7059c79",
   "entry": [
     {
+      "action": "say",
+      "text": "질문은 평균 배송 거리예요. 그림이 세는 대상과 y에 넣을 열 두 가지를 모두 맞춰야 하는 문제예요.",
+      "target": "text:이번에는 지역별 평균 배송 거리를 비교하려 해요."
+    },
+    {
+      "action": "say",
+      "text": "준비 코드는 countplot이라 y 없이 행 수만 세요.",
+      "target": "code:sns.countplot"
+    },
+    {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
-        10,
-        10
+        11,
+        11
       ]
     },
     {
@@ -19,25 +28,30 @@
       "action": "patch_code",
       "before": "sns.countplot(data=df, x=\"region\", order=[\"north\", \"south\"])",
       "after": "sns.barplot(data=df, x=\"region\", y=\"minutes\", order=[\"north\", \"south\"], errorbar=None)",
-      "say": "시간 열의 평균을 그리는 호출로 바꿔요."
+      "say": "먼저 앞에서 본 것처럼 시간 열을 y에 넣어 볼게요."
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
-        10,
-        10
+        11,
+        11
       ]
     },
     {
       "action": "say",
-      "text": "이번에는 평균 십오와 사십이에요.",
+      "text": "평균 십오와 사십이 나왔어요. 평균은 맞지만 시간이라 이번 질문의 거리가 아니에요.",
       "target": "output"
     },
     {
+      "action": "patch_code",
+      "before": "sns.barplot(data=df, x=\"region\", y=\"minutes\", order=[\"north\", \"south\"], errorbar=None)",
+      "after": "sns.countplot(data=df, x=\"region\", order=[\"north\", \"south\"])",
+      "say": "준비 코드로 되돌려요."
+    },
+    {
       "action": "say",
-      "text": "조심하세요. 숫자만 출력하지 말고 실제 막대도 바꿔야 해요.",
-      "target": "output"
+      "text": "조심하세요. 평균을 그리는 함수로 바꿔도 y의 열이 질문과 다르면 다른 그림이에요. 고칠 줄과 열은 직접 정하세요.",
+      "target": "code:x=\"region\""
     }
   ]
 }

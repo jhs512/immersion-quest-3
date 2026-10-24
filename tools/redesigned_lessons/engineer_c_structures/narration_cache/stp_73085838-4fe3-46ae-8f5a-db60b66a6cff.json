@@ -1,34 +1,61 @@
 {
   "by": "hand",
-  "source_sha256": "a341bdc6a45e07f14d9899d7c62c37372b118d0a72a45e35f38c83c68b012fa9",
+  "source_sha256": "152a4f7fd9de431c49af6d0d2427468c065c07b6a2a69537fa77fc79485710a9",
   "entry": [
     {
       "action": "say",
-      "text": "읽을 값과 출력할 줄을 먼저 살펴봐요.",
-      "target": "lines:5:5"
+      "text": "뒤집은 값 전체가 아니라 마스크로 고른 자리만 읽는 문제예요.",
+      "target": "text:그래서 & 15u(2진수 1 1 1 1)로 아래 네 비트만 남겨요."
+    },
+    {
+      "action": "say",
+      "text": "5의 아래 네 비트는 영 일 영 일이에요. 뒤집으면 일 영 일 영이에요.",
+      "target": "code:(~5u) & 15u"
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
-        5,
-        5
+        4,
+        4
       ]
     },
     {
       "action": "say",
-      "text": "아래 네 비트의 영일영일을 반전해요. 마스크 뒤 일영일영은 십이에요.",
+      "text": "일 영 일 영은 8 더하기 2라 10이에요.",
       "target": "output"
     },
     {
+      "action": "patch_code",
+      "before": "(~5u) & 15u",
+      "after": "(~5u) & 3u",
+      "say": "마스크를 3, 곧 아래 두 비트로 줄여 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ]
+    },
+    {
       "action": "say",
-      "text": "조심하세요. 정수 타입 자체가 네 비트라고 가정한 것이 아니에요.",
-      "target": "problem"
+      "text": "일 영만 남아 2예요. 마스크가 어느 자리를 읽을지 정해요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "(~5u) & 3u",
+      "after": "(~5u) & 15u",
+      "say": "네 비트 마스크로 되돌려요."
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 마스크가 없으면 앞자리의 1까지 남아 아주 큰 수가 돼요. 정수가 네 비트라는 뜻이 아니에요.",
+      "target": "code:(~5u)"
     },
     {
       "action": "fill_answer",
-      "value": "10",
-      "say": "실행 결과 숫자를 답안으로 적어요."
+      "value": "10"
     }
   ]
 }

@@ -1,10 +1,20 @@
 {
   "by": "hand",
-  "source_sha256": "eaedb41f30cc54501d3a9c88a777190bbaf21f67865f662ca0933cf1e09a3a59",
+  "source_sha256": "98c586fabb498b6560b0de2951152273380e6982873214c534d2c341c35f4954",
   "entry": [
     {
+      "action": "say",
+      "text": "lots에는 물건 이름이 없어요. 번호 item_id가 items의 어느 행을 가리키는지 확인하는 문제예요.",
+      "target": "text:lots 표는 물건 이름 없이 item_id 번호만 가져요."
+    },
+    {
+      "action": "patch_code",
+      "before": "SELECT lots.item_id, items.name FROM lots JOIN items ON lots.item_id=items.id ORDER BY lots.item_id, lots.batch;",
+      "after": "SELECT item_id, batch FROM lots ORDER BY item_id, batch;",
+      "say": "먼저 lots 표만 따로 읽어 볼게요."
+    },
+    {
       "action": "run",
-      "say": "실제 준비된 표에서 실행해요.",
       "lines": [
         1,
         1
@@ -12,18 +22,17 @@
     },
     {
       "action": "say",
-      "text": "로트 세 행이 각 ID의 물건에 연결됐어요.",
+      "text": "item_id 1이 두 행, 2가 한 행이에요. 번호뿐이라 어떤 물건인지는 items의 id를 봐야 알아요.",
       "target": "output"
     },
     {
       "action": "patch_code",
-      "before": "ORDER BY lots.item_id, lots.batch",
-      "after": "WHERE lots.item_id=2 ORDER BY lots.item_id, lots.batch",
-      "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+      "before": "SELECT item_id, batch FROM lots ORDER BY item_id, batch;",
+      "after": "SELECT lots.item_id, items.name FROM lots JOIN items ON lots.item_id=items.id ORDER BY lots.item_id, lots.batch;",
+      "say": "JOIN으로 같은 번호의 items 행을 이어 붙여요."
     },
     {
       "action": "run",
-      "say": "실제 준비된 표에서 실행해요.",
       "lines": [
         1,
         1
@@ -31,32 +40,13 @@
     },
     {
       "action": "say",
-      "text": "ID 이인 물건만 고르면 한 로트만 남아요.",
+      "text": "item_id 1은 items의 id 1인 pen, 2는 id 2인 pen에 이어졌어요. 이름이 같은 두 pen도 번호로 정확히 갈려요.",
       "target": "output"
     },
     {
       "action": "say",
-      "text": "조심하세요. 중복 가능한 이름 대신 참조 키의 값을 맞춰요.",
-      "target": "output"
-    },
-    {
-      "action": "patch_code",
-      "before": "WHERE lots.item_id=2 ORDER BY lots.item_id, lots.batch",
-      "after": "ORDER BY lots.item_id, lots.batch",
-      "say": "문제의 처음 SQL로 돌아와요."
-    },
-    {
-      "action": "run",
-      "say": "실제 준비된 표에서 실행해요.",
-      "lines": [
-        1,
-        1
-      ]
-    },
-    {
-      "action": "say",
-      "text": "처음 조건의 결과를 기준으로 답을 골라요.",
-      "target": "output"
+      "text": "조심하세요. 이름 pen은 두 물건에 겹쳐서 연결 기준이 될 수 없어요. 외래 키 item_id의 값이 items의 id와 맞아야 해요.",
+      "target": "code:ON lots.item_id=items.id"
     },
     {
       "action": "choose_answer",

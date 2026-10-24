@@ -29,12 +29,94 @@ def write_changed(path, value):
     return False
 
 
+# Generic lines that replaced a real explanation of the step (2026-10-24 user criteria).
+BOILERPLATE = ('이번 스텝에 제공된 코드로 설명할게요', '직접 작성한 답은 해설 뒤에도 유지돼요',
+    '한 곳만 바꿔 실행 결과를 비교해요', '이 조건 한 곳만 바꿔', '연결 또는 비교 한 곳만 바꿔',
+    '입력과 결과를 연결해 보세요', '화면의 명령을 한 번 실행해 볼게요', '화면의 명령을 실행하고 결과를 볼게요',
+    '처음 조건의 결과를 기준으로 답을 골라요', '처음 코드의 결과를 기준으로', '처음 코드의 결과를 확인하고 답안에 적어요',
+    '읽을 값과 출력할 줄을 먼저 살펴봐요', '먼저 실행할 코드와 출력 위치를 살펴봐요', '문제의 처음 코드로 돌아와 비교를 마무리해요',
+    '앞 문제의 파일과 기록을 그대로 이어서 써요', '한 명령의 결과를 확인한 뒤 다음 명령으로 넘어가세요')
+
+
+# Region keys that frame the whole problem panel (assets/layout/agent.js TARGETS).
+COARSE_TARGETS = ('problem', 'examples', 'hint', 'prompt')
+# Sentences that are spoken without any spotlight, each with the reviewed reason (no on-screen words,
+# option or code to point at). Every target-less say must be listed and every entry must still exist.
+EXCEPTIONS = ROOT / 'tools/redesigned_lessons/narration-target-exceptions.json'
+
+
+def caption_only_record():
+    entries = json.loads(EXCEPTIONS.read_text(encoding='utf-8')) if EXCEPTIONS.exists() else []
+    for entry in entries:
+        if not entry.get('reason', '').strip():
+            raise ValueError(f"강조 없는 해설에 이유가 없어요: {entry.get('text', '')[:40]}")
+    return {(entry['lesson'], entry['step_id'], entry['text']) for entry in entries}
+
+
+def check_caption_only(name, tasks, record):
+    spoken = set()
+    for task in tasks:
+        for action in task['narration']:
+            if action['action'] == 'say' and not action.get('target'):
+                key = (name, task['id'], action.get('text', ''))
+                if key not in record:
+                    raise ValueError(f"{task['id']}: 강조 대상이 없는 해설이에요. 정확히 가리키거나 예외 기록에 이유를 남기세요: {key[2][:40]}")
+                spoken.add(key)
+    stale = {key for key in record if key[0] == name} - spoken
+    if stale:
+        raise ValueError(f'{name}: 예외 기록에 없는 해설이 남아 있어요: ' + ' | '.join(key[2][:40] for key in sorted(stale)[:3]))
+
+
+def plain(markdown):
+    """The text a learner sees for a markdown goal: markers removed and whitespace collapsed."""
+    lines = []
+    for line in markdown.splitlines():
+        line = re.sub(r'^\s*(?:\d+\.|[-*+]|#+)\s+', '', line)
+        line = re.sub(r'\[([^\]]*)\]\([^)]*\)', r'\1', line)
+        lines.append(line)
+    return re.sub(r'\s+', ' ', re.sub(r'[`*]', '', '\n'.join(lines))).strip()
+
+
+def occurrence(spec):
+    match = re.fullmatch(r'(.*?)(?:#(\d+))?', spec, re.S)
+    return match[1], int(match[2]) if match[2] else None
+
+
+def count(text, wanted):
+    return sum(1 for index in range(len(text)) if text.startswith(wanted, index)) if wanted else 0
+
+
 def validate_highlights(task):
     source = task.get('example_code') or task.get('starter_code', '')
     if task.get('git_terminal', {}).get('java_build') is not None:
         source = task['git_terminal']['shell']['demo']['files']['Main.java']
+    goal = plain(task.get('goal', ''))
+    screen = ' '.join([plain(task.get('title', '')), plain(task.get('question', '')), goal, *map(plain, task.get('hints', []))])
+    options = {option['id'] for option in (task.get('interaction') or {}).get('options', [])}
     for action in task['narration']:
         target = action.get('target', '')
+        # A spoken sentence is anchored to the exact words, option or code it explains; a frame
+        # around the whole problem panel is not an explanation of any one sentence.
+        if action['action'] == 'say' and target in COARSE_TARGETS:
+            raise ValueError(f'문제 전체를 강조해요. 설명하는 문장(text:)·보기(answer:)·코드(code:)를 정확히 가리키세요: {action.get("text", "")[:40]}')
+        if target.startswith('answer:') and target[7:] not in options:
+            raise ValueError(f'없는 보기를 강조해요: {target}')
+        if target.startswith('text:'):
+            phrase, nth = occurrence(target[5:])
+            wanted = plain(phrase)
+            if not wanted or count(screen, wanted) == 0:
+                raise ValueError(f'문제에 없는 구절을 강조해요: {phrase}')
+            if nth is None and count(goal, wanted) > 1:
+                raise ValueError(f'같은 구절이 여러 번 있어요. #n으로 고르세요: {phrase}')
+            if nth is not None and nth > count(screen, wanted):
+                raise ValueError(f'구절의 {nth}번째가 없어요: {phrase}')
+        if target.startswith('code:'):
+            snippet, nth = occurrence(target[5:])
+            found = count(source, snippet)
+            if not snippet or not found or (nth or 1) > found:
+                raise ValueError(f'현재 코드에 없는 부분을 강조해요: {snippet}')
+            if nth is None and found > 1:
+                raise ValueError(f'코드에 같은 부분이 여러 번 있어요. #n으로 고르세요: {snippet}')
         lines = action.get('lines')
         if target.startswith(('lines:', 'editor:')):
             match = re.fullmatch(r'(?:lines|editor):(\d+)(?::(\d+))?', target)
@@ -46,6 +128,13 @@ def validate_highlights(task):
                     or any(type(line) is not int for line in lines)
                     or not 1 <= lines[0] <= lines[1] <= len(source.splitlines())):
                 raise ValueError(f'현재 코드에 없는 줄을 강조해요: {lines}')
+            marked = source.splitlines()[lines[0] - 1:lines[1]]
+            if all(line.strip() in ('', '{', '}', '};') for line in marked):
+                raise ValueError(f'빈 줄이나 괄호만 강조해요: {lines}')
+            # A run highlights the statement whose output the next sentence reads.
+            if (action['action'] == 'run' and not action.get('expect_error') and task.get('language') in ('java', 'python', 'c')
+                    and 'print' in source and not any('print' in line for line in marked)):
+                raise ValueError(f'실행 강조가 출력문을 가리키지 않아요: {lines} {marked}')
         if action['action'] == 'patch_code':
             before = action['before']
             if source.count(before) != 1:
@@ -87,7 +176,7 @@ def build(name, check=False):
         raise ValueError('제작한 스텝이 승인된 PRD 구성과 달라요.')
     stale = []
     for step, task in zip(steps, tasks):
-        if name.startswith('java-') or name in ('git-first', 'git-branch', 'git-remote', 'bash-basics', 'vim-basics'):
+        if True:
             goal = task['goal']
             if goal.count('**할 일**') != 1:
                 raise ValueError(f"{step['id']}: 할 일을 한곳에 표시하세요.")
@@ -104,10 +193,24 @@ def build(name, check=False):
                 raise ValueError(f"{step['id']}: 선택형 제목에서도 무엇을 답할지 질문하세요.")
         validate_highlights(task)
         actions = task['narration']
-        if not actions or not any('조심하세요' in action.get('text', '') for action in actions):
-            raise ValueError(f"{step['id']}: 주의할 지점이 없는 해설이에요.")
+        if not actions:
+            raise ValueError(f"{step['id']}: 해설이 없어요.")
+        # The narration explains this problem: at least one exact sentence of the problem, and the
+        # exact code it talks about when the step shows code.
+        if not any(action.get('target', '').startswith('text:') for action in actions):
+            raise ValueError(f"{step['id']}: 해설이 문제의 어느 문장을 설명하는지 text: 강조가 없어요.")
+        has_code = bool(task.get('example_code') or task.get('starter_code')) or task.get('git_terminal', {}).get('java_build') is not None
+        if has_code and not any(action.get('target', '').startswith(('code:', 'lines:', 'editor:')) or action.get('lines') for action in actions):
+            raise ValueError(f"{step['id']}: 설명하는 코드 줄이나 토큰을 강조하지 않았어요.")
+        for action in actions:
+            spoken = (action.get('text') or action.get('say') or '')
+            for phrase in BOILERPLATE:
+                if phrase in spoken:
+                    raise ValueError(f"{step['id']}: 문제를 설명하지 않는 상투 문장이에요: {phrase}")
+            if '조심하세요' in spoken and any(objective.rstrip('.') in spoken for objective in step['objectives']):
+                raise ValueError(f"{step['id']}: 경고가 교육 목표를 되풀이해요.")
         for index, action in enumerate(actions):
-            if action['action'] in ('git_command', 'bash_command', 'vim_open', 'vim_keys', 'vim_wait', 'write_memo', 'inspect_folder', 'read_memo', 'run'):
+            if action['action'] in ('git_command', 'bash_command', 'vim_open', 'vim_keys', 'vim_wait', 'write_memo', 'inspect_folder', 'read_memo', 'run', 'web_action'):
                 if index + 1 == len(actions):
                     raise ValueError('명령 실행 뒤 결과 설명이 필요해요.')
                 following = actions[index + 1]
@@ -121,6 +224,16 @@ def build(name, check=False):
             stale.append(step['id'])
             if not check:
                 write_changed(cache, expected)
+    check_caption_only(name, tasks, caption_only_record())
+    # A sentence reused across many steps is a template, not an explanation of each problem.
+    usage = {}
+    for task in tasks:
+        for spoken in {(action.get('text') or action.get('say') or '').strip() for action in task['narration']}:
+            if len(spoken) >= 12:
+                usage.setdefault(spoken, set()).add(task['id'])
+    repeated = [(spoken, len(ids)) for spoken, ids in usage.items() if len(ids) >= 3 or ('조심하세요' in spoken and len(ids) >= 2)]
+    if repeated:
+        raise ValueError(f"{name}: 여러 스텝에 같은 해설 문장을 반복해요: " + ' | '.join(f'{text[:40]}×{n}' for text, n in repeated[:5]))
     # Only learner-facing hierarchy is published. Core flows and approval evidence stay in authoring.
     chapters = copy.deepcopy(prd['chapters'])
     presentation = authored['presentation']

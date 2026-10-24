@@ -361,7 +361,9 @@ async fn run_web(task:&Task,source:&str,grade:bool)->Result<Execution,String> {
         // srcdoc has an opaque sandbox origin. Give its preview isolated in-memory storage;
         // grading still exercises the real browser localStorage, including page reloads.
         let storage=r#"<script>(()=>{const values=new Map();Object.defineProperty(window,'localStorage',{value:{getItem:k=>values.has(String(k))?values.get(String(k)):null,setItem:(k,v)=>values.set(String(k),String(v)),removeItem:k=>values.delete(String(k)),clear:()=>values.clear()}})})()</script>"#;
-        result.artifacts.push(crate::runner::Artifact::Html{title:task.title.clone(),srcdoc:format!("{storage}{html}")})
+        // The tutor can click or type in the preview through this message bridge (assets/layout/web-bridge.js).
+        let bridge=concat!("<script>",include_str!("../assets/layout/web-bridge.js"),"</script>");
+        result.artifacts.push(crate::runner::Artifact::Html{title:task.title.clone(),srcdoc:format!("{storage}{bridge}{html}")})
     }}
     Ok(result)
 }

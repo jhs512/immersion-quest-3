@@ -1,20 +1,19 @@
 {
   "by": "hand",
-  "source_sha256": "581154ef862abb32b024f69b29366863f63de25fb616e799d9c840f36be93e0b",
+  "source_sha256": "b4cd6067f94e5f21ba2cd67efcecbf6da54e702fac9db06f20203edbbddd8d87",
   "entry": [
     {
       "action": "say",
-      "text": "서비스에 MemoryStore 대신 FileStore를 넣었어요. QuoteService가 파일 경로를 직접 알아야 하나요?",
-      "target": "problem"
+      "text": "서비스는 저장 역할 QuoteStore의 load만 불러요. 구현을 바꿔 끼울 때 서비스도 바뀌는지가 질문이에요.",
+      "target": "text:QuoteService는 글을 보여 줄 때 QuoteStore라는 저장 역할의 load만 불러요."
     },
     {
       "action": "say",
-      "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-      "target": "problem"
+      "text": "서비스 코드는 어느 구현이 들어오든 store.load()만 불러요.",
+      "target": "code:String show() throws Exception { return store.load(); }"
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         21,
         21
@@ -22,18 +21,13 @@
     },
     {
       "action": "say",
-      "text": "메모리와 파일 구현에서 같은 글을 읽었어요.",
+      "text": "시작이 두 번 나왔어요. 메모리 구현과 파일 구현이 같은 서비스로 동작했어요.",
       "target": "output"
     },
     {
       "action": "say",
-      "text": "조심하세요. 역할 분리는 실패를 없애지 않아요.",
-      "target": "output"
-    },
-    {
-      "action": "say",
-      "text": "각 구현의 저장 계약도 검증해야 해요.",
-      "target": "output"
+      "text": "조심하세요. 서비스가 경로를 몰라도 되지만, 파일 구현이 실제로 저장하고 읽는지는 그 구현에서 따로 확인해야 해요.",
+      "target": "code:class FileStore implements QuoteStore"
     },
     {
       "action": "choose_answer",

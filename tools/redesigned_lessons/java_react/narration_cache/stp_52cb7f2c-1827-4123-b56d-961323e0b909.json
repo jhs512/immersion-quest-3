@@ -1,15 +1,19 @@
 {
   "by": "hand",
-  "source_sha256": "03b360c64ac8ddbaf84023ced6e4297b97202776bd13fe735dd18832574859c6",
+  "source_sha256": "eb6994910d50152e5a7da67c67dccc0a282d51909b574834dd725304edba9723",
   "entry": [
     {
       "action": "say",
-      "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-      "target": "problem"
+      "text": "입력 칸에 쓴 글이 아래에도 나와야 해요.",
+      "target": "text:입력한 값이 아래 output에도 반영되게 고쳐요."
+    },
+    {
+      "action": "say",
+      "text": "입력 칸의 값은 draft에 묶여 있는데, onChange가 아무것도 하지 않아요.",
+      "target": "code:onChange={() => {}}"
     },
     {
       "action": "run",
-      "say": "실행해 현재 화면을 확인해요.",
       "lines": [
         7,
         7
@@ -17,32 +21,52 @@
     },
     {
       "action": "say",
-      "text": "입력과 아래 출력의 처음 값은 시작이에요.",
+      "text": "처음 값은 시작이에요.",
       "target": "output"
+    },
+    {
+      "action": "web_action",
+      "do": "fill",
+      "selector": "input",
+      "say": "해설 화면의 입력 칸에 다음을 넣어 볼게요.",
+      "value": "다음",
+      "read": "output"
+    },
+    {
+      "action": "say",
+      "text": "아래는 여전히 시작이에요. 상태를 바꾸지 않아 입력이 되돌아갔어요.",
+      "target": "iframe[title=\"해설 웹 미리보기\"]"
     },
     {
       "action": "patch_code",
       "before": "onChange={() => {}}",
       "after": "onChange={event => setDraft(event.target.value)}",
-      "say": "문제에서 확인한 부분만 고쳐요."
+      "say": "입력 칸의 글 event.target.value로 상태를 바꿔요."
     },
     {
       "action": "run",
-      "say": "다시 실행해 처음 화면을 확인해요.",
       "lines": [
         7,
         7
       ]
     },
     {
-      "action": "say",
-      "text": "입력 변경을 상태에 전달하도록 연결했어요. 서로 다른 글을 넣어 보세요.",
-      "target": "output"
+      "action": "web_action",
+      "do": "fill",
+      "selector": "input",
+      "say": "같은 글 다음을 다시 넣어요.",
+      "value": "다음",
+      "read": "output"
     },
     {
       "action": "say",
-      "text": "조심하세요. value만 주고 변경을 반영하지 않으면 입력 상태가 계속 원래 값으로 남아요.",
-      "target": "output"
+      "text": "이번엔 아래에도 다음이 보여요.",
+      "target": "iframe[title=\"해설 웹 미리보기\"]"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. value를 상태에 묶었으면 onChange에서 그 상태를 꼭 바꿔야 해요. 그러지 않으면 입력이 막혀요.",
+      "target": "code:value={draft}"
     }
   ]
 }

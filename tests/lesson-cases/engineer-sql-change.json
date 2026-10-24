@@ -33,12 +33,10 @@
       "id\n11\n12"
     ],
     [
-      "id | qty\n1 | 3\n2 | 5\n3 | NULL\n4 | 1",
-      "id | qty\n1 | 3\n2 | 4\n3 | NULL\n4 | 0"
+      "id | qty\n1 | 2\n2 | 4\n3 | NULL\n4 | 0"
     ],
     [
-      "id\n3",
-      "id\n1\n2\n3"
+      "id\n2"
     ],
     [],
     []
@@ -48,21 +46,21 @@
       "step": 7,
       "replacements": [
         [
-          "UPDATE stocks SET qty=qty+1 WHERE id=1;",
-          "SELECT 3;"
+          "WHERE qty IS NULL",
+          "WHERE id=3"
         ]
       ],
-      "reason": "실제 재고를 바꾸지 않고 결과만 내면 after.sql에서 거절해요."
+      "reason": "기억한 ID로 고정하면 다른 자료의 NULL 행을 고치지 못해요."
     },
     {
       "step": 8,
       "replacements": [
         [
-          "qty=0",
-          "id=4"
+          "qty<=2",
+          "id IN (1, 4)"
         ]
       ],
-      "reason": "다른 ID의0 재고도 같은 조건으로 지워야 해요."
+      "reason": "다른 자료의 2 이하 재고도 같은 조건으로 지워야 해요."
     }
   ]
 }

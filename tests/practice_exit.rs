@@ -24,12 +24,10 @@ fn update_shutdown_stops_all_practice_shells_without_resetting_their_work() {
                     reports += 1;
                 }
             }
-            if !sent && (!cfg!(windows) || seen.contains("PS ")) {
-                let command = if cfg!(windows) {
-                    "Set-Content ready.txt ready;while (-not (Test-Path go.txt)) {Start-Sleep -Milliseconds 50};Set-Content leaked.txt leaked\r"
-                } else {
-                    "printf ready > ready.txt;while [ ! -f go.txt ];do sleep 0.05;done;printf leaked > leaked.txt\r"
-                };
+            // Practice terminals run Git Bash on every platform (setup_terminal::git_bash_executable).
+            if !sent && (!cfg!(windows) || seen.contains("$ ")) {
+                let command =
+                    "printf ready > ready.txt;while [ ! -f go.txt ];do sleep 0.05;done;printf leaked > leaked.txt\r";
                 shell.input(command).unwrap();
                 sent = true;
             }
@@ -111,13 +109,9 @@ fn terminal_shutdown_drains_disconnected_and_full_output_channels() {
                 reports += 1;
             }
         }
-        if !sent && (!cfg!(windows) || seen.contains("PS ")) {
+        if !sent && (!cfg!(windows) || seen.contains("$ ")) {
             shell
-                .input(if cfg!(windows) {
-                    "Set-Content flood-ready.txt ready;[Console]::Write(('x' * 1000000))\r"
-                } else {
-                    "printf ready > flood-ready.txt;head -c 1000000 /dev/zero\r"
-                })
+                .input("printf ready > flood-ready.txt;head -c 1000000 /dev/zero\r")
                 .unwrap();
             sent = true;
         }

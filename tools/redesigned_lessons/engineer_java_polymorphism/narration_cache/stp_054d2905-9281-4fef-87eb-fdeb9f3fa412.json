@@ -1,10 +1,14 @@
 {
   "by": "hand",
-  "source_sha256": "7bf610337a9af77cb012e32e1ae18db218ae07ead24889c375ecfe504e1a723b",
+  "source_sha256": "9ca7bd7afd15a0aa1989167172e8a19f46ee8916ff51aa5e42de0a25d4dc80da",
   "entry": [
     {
+      "action": "say",
+      "text": "show가 Object를 받는 것과 String을 받는 것 두 가지로 오버로드됐어요. 인수 text의 선언형이 Object일 때 어느 쪽을 고르는지가 질문이에요.",
+      "target": "text:이름의 선언형이 Object예요."
+    },
+    {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         9,
         9
@@ -19,11 +23,10 @@
       "action": "patch_code",
       "before": "View.show(text)",
       "after": "View.show((String) text)",
-      "say": "한 곳만 바꿔 실행 결과를 비교해요."
+      "say": "인수를 (String)으로 형변환해 볼게요."
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         9,
         9
@@ -36,18 +39,17 @@
     },
     {
       "action": "say",
-      "text": "조심하세요. 오버로드 선택과 실행 시 오버라이딩을 구별해요..",
+      "text": "조심하세요. 오버로드는 실행 전에, 인수의 선언형으로 골라요. 실제 값이 문자열이어도 선언형이 Object면 Object 버전이에요.",
       "target": "output"
     },
     {
       "action": "patch_code",
       "before": "View.show((String) text)",
       "after": "View.show(text)",
-      "say": "문제의 처음 코드로 돌아와요."
+      "say": "형변환을 빼고 되돌려요."
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         9,
         9
@@ -55,7 +57,7 @@
     },
     {
       "action": "say",
-      "text": "답안은 처음 코드의 결과를 기준으로 골라요.",
+      "text": "처음 코드는 선언형이 Object라 O예요.",
       "target": "output"
     },
     {

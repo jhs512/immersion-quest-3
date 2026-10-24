@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_db18c8e2-b487-4a44-96e1-ed2974104c7e",
-  "revision": "git-branch-advanced-4",
+  "revision": "git-branch-advanced-5",
   "title": "Git · 브랜치 심화: 갈라진 기록과 충돌을 해결해요",
   "description": "여러분은 메모 서비스 팀의 안내 담당이에요. 동료 지수의 변경과 내 변경을 합쳐요. 각 문제의 준비된 시작 상태를 먼저 확인해요. 서로 갈라진 변경을 합쳐요. 충돌이 나면 내용을 선택하고 준비한 뒤 병합을 마쳐요.",
   "objectives": [
@@ -196,17 +196,17 @@
       "narration": [
         {
           "action": "say",
-          "text": "여러분은 메모 서비스 팀의 안내 담당이에요. 동료 지수의 변경과 내 변경을 합쳐요. 각 문제의 준비된 시작 상태를 먼저 확인해요.",
-          "target": "#git-demo-terminal"
+          "text": "이번엔 main과 feature가 같은 커밋에서 출발해 각각 새 커밋을 하나씩 가졌어요. git-branch 수업의 병합과 무엇이 다른지가 이 스텝의 관찰이에요.",
+          "target": "text:main에는 운영 메모 파일(operations.txt)을 추가했어요."
         },
         {
           "action": "git_graph",
-          "say": "옆의 커밋 그래프를 확인해요.",
+          "say": "병합 전 그래프에서 두 선을 봐요.",
           "target": "#git-demo-terminal + .git-graph-panel"
         },
         {
           "action": "say",
-          "text": "공통 커밋에서 선이 갈라져 있어요. main과 feature에 각각 새 커밋이 있어요.",
+          "text": "공통 커밋에서 선이 둘로 갈라졌어요. 앞 수업처럼 main이 feature 끝으로 그냥 따라갈 수 없는 모양이에요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -220,12 +220,12 @@
         },
         {
           "action": "git_graph",
-          "say": "옆의 커밋 그래프를 확인해요.",
+          "say": "병합 뒤 그래프를 다시 봐요.",
           "target": "#git-demo-terminal + .git-graph-panel"
         },
         {
           "action": "say",
-          "text": "main의 새 병합 커밋에서 두 선이 이어져요. 양쪽의 이력을 함께 담았어요.",
+          "text": "이번엔 두 선을 잇는 병합 커밋이 새로 생겼어요. 한쪽에만 새 커밋이 있으면 브랜치가 앞으로 이동만 하지만, 양쪽에 있으면 병합 커밋이 필요해요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -258,7 +258,7 @@
         },
         {
           "action": "say",
-          "text": "조심하세요. git merge는 현재 브랜치에 다른 브랜치의 변경을 합쳐요.",
+          "text": "조심하세요. merge는 지금 있는 main에 feature를 합쳐요. feature 쪽에는 병합 커밋이 생기지 않아요.",
           "target": "#git-demo-terminal"
         }
       ]
@@ -361,6 +361,11 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "두 브랜치가 같은 guide.txt를 고쳤지만, 고친 줄은 맨 위와 맨 아래로 떨어져 있어요. 병합하면 충돌할지 먼저 예상해요.",
+          "target": "text:main에서는 맨 아래 문의: 줄을, feature에서는 맨 위 안내: 줄을 바꿨어요."
+        },
+        {
           "action": "git_command",
           "args": [
             "merge",
@@ -394,7 +399,7 @@
         },
         {
           "action": "say",
-          "text": "이 문제에서는 두 변경이 자동으로 합쳐진다는 보기를 골라요.",
+          "text": "충돌 없이 두 변경이 함께 들어간다는 보기를 골라요.",
           "target": "answer:auto-merge"
         }
       ],
@@ -403,7 +408,7 @@
         "options": [
           {
             "id": "always-conflict",
-            "text": "같은 파일을 수정했으므로 반드시 충돌해요."
+            "text": "같은 파일을 두 브랜치가 고쳤으니 충돌해요."
           },
           {
             "id": "lose-main",
@@ -519,6 +524,11 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "같은 첫 줄을 두 브랜치가 다르게 바꿔서 병합 도중 충돌이 났어요. 지금 해야 할 다음 행동을 고르는 문제예요.",
+          "target": "text:main에서 병합하다 충돌이 난 상태예요."
+        },
+        {
           "action": "git_command",
           "args": [
             "status"
@@ -542,7 +552,7 @@
         },
         {
           "action": "say",
-          "text": "내용을 정하고 git add로 준비한 뒤 커밋한다는 보기를 골라요.",
+          "text": "남길 내용을 정하고 add한 뒤 커밋한다는 보기를 골라요.",
           "target": "answer:choose-content"
         }
       ],
@@ -683,8 +693,8 @@
       "narration": [
         {
           "action": "say",
-          "text": "이번 문제도 main에서 feature를 병합하다 충돌이 난 상태로 시작해요. 아직 guide.txt에 남길 내용을 고르지 않았어요.",
-          "target": "#git-demo-terminal"
+          "text": "이번에도 충돌 중인 상태에서 시작해요. feature 쪽 파일 내용을 통째로 쓰기로 했고, 커밋은 다음 스텝에서 해요.",
+          "target": "text:이번에는 feature의 파일 내용 전체를 사용해요."
         },
         {
           "action": "git_command",
@@ -870,8 +880,13 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "충돌한 파일을 고쳐 준비 영역에 담아 둔 상태예요. 남은 일은 커밋으로 병합을 끝내는 거예요.",
+          "target": "text:guide.txt의 충돌을 해결하고 준비 영역에 담아 뒀어요."
+        },
+        {
           "action": "git_graph",
-          "say": "옆의 커밋 그래프를 확인해요.",
+          "say": "커밋 전 그래프를 봐요.",
           "target": "#git-demo-terminal + .git-graph-panel"
         },
         {
@@ -891,7 +906,7 @@
         },
         {
           "action": "git_graph",
-          "say": "옆의 커밋 그래프를 확인해요.",
+          "say": "커밋 뒤 그래프를 봐요.",
           "target": "#git-demo-terminal + .git-graph-panel"
         },
         {
@@ -918,7 +933,7 @@
           "args": [
             "status"
           ],
-          "say": "git status으로 남은 변경을 확인해요.",
+          "say": "git status로 남은 변경을 확인해요.",
           "target": "#git-demo-terminal"
         },
         {

@@ -1,15 +1,14 @@
 {
   "by": "hand",
-  "source_sha256": "9d09fa66c541230ac769772d6c94676b51711f77a501a7a77105a31970b0abf6",
+  "source_sha256": "3ec7e8bc85f9132d3bde2ee3771d79f9578dc0660836eee9ed200952635518aa",
   "entry": [
     {
       "action": "say",
-      "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-      "target": "problem"
+      "text": "규칙은 양수이고 잔액 이하인 출금만 허용하는 거예요. 지금은 음수 요청이 통과해요.",
+      "target": "text:지금 withdraw는 잔액보다 큰 요청만 거절해서, -1 같은 음수 요청이 잔액을 늘려요."
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         21,
         21
@@ -17,18 +16,22 @@
     },
     {
       "action": "say",
-      "text": "음수 출금을 허용해 잔액이 백일로 늘었어요.",
+      "text": "true와 101이 나와요. -1을 빼서 잔액이 늘었어요.",
       "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "거절 조건이 잔액 초과 하나뿐이에요.",
+      "target": "code:if (amount > balance)"
     },
     {
       "action": "patch_code",
       "before": "if (amount > balance)",
       "after": "if (amount <= 0 || amount > balance)",
-      "say": "양수가 아니거나 잔액을 넘으면 상태를 바꾸기 전에 거절해요."
+      "say": "양수가 아닌 경우도 ||로 함께 거절해요."
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         21,
         21
@@ -36,13 +39,13 @@
     },
     {
       "action": "say",
-      "text": "이제 음수 요청을 거절해 원래 잔액 백을 보존해요.",
+      "text": "false와 100이에요. 잘못된 요청을 거절하고 잔액도 지켰어요.",
       "target": "output"
     },
     {
       "action": "say",
-      "text": "조심하세요. 실패의 반환값뿐 아니라 실제 상태가 남았는지도 확인해요.",
-      "target": "output"
+      "text": "조심하세요. false를 돌려줘도 잔액을 먼저 빼 버렸다면 상태가 망가져요. 검사는 상태를 바꾸기 전에 해요.",
+      "target": "code:balance -= amount;"
     }
   ]
 }

@@ -1,10 +1,14 @@
 {
   "by": "hand",
-  "source_sha256": "8eb43013f01c20e83dae19af8bc3249c7d0f7059512d788250716f39ebb7230b",
+  "source_sha256": "215046960fb9d7f0bbd8fb7222cc643d75902ccaf78685ab3996ccb099a0022f",
   "entry": [
     {
+      "action": "say",
+      "text": "교차검증은 훈련 표 안에서 나눈 몫으로 점수를 매겨요. 그 평균이 따로 봉인한 최종 테스트 점수인지 구별하는 문제예요.",
+      "target": "text:cross_val_score는 fold마다 새로 학습하고 남겨둔 몫으로 점수를 매겨요."
+    },
+    {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         11,
         11
@@ -14,6 +18,30 @@
       "action": "say",
       "text": "두 점수는 영 점 칠오씩이고 평균도 영 점 칠오예요.",
       "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "n_splits=2",
+      "after": "n_splits=4",
+      "say": "fold를 네 개로 늘려 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "네 점수는 0.5, 1, 1, 1로 fold마다 달라요. 평균도 0.875로 바뀌었어요. 교차검증 평균은 나누는 방법에 따라 흔들리는 추정값이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "n_splits=4",
+      "after": "n_splits=2",
+      "say": "두 fold로 되돌려요."
     },
     {
       "action": "say",

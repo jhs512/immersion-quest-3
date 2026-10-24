@@ -31,12 +31,14 @@ fn production_github_loading_and_progress_use_only_the_isolated_pilot_store() {
     }
     let mut done=LearningEvent::new(key.clone(),&lesson.revision,StudyMode::Full,"completion",EventKind::Completed);
     done.required=lesson.required_tasks();github.append(&course.repository,&user,&lesson.title,&done).unwrap();
-    let catalog=github.course_progress(&changed,&user).unwrap();
+    // Remote-only history reaches the catalog through the background refresh (the local
+    // phase, `course_progress`, reads only this device and never waits for GitHub).
+    let catalog=github.refreshed_course_progress(&changed,&user).unwrap();
     assert_eq!(catalog.required[&lesson.id],replacement.required_tasks());
     assert!(!molip_quest::issue_progress::status(&catalog.events[&lesson.id],&replacement.revision,&catalog.required[&lesson.id]).current);
     pilot_source::set_version('e').unwrap();
     let wording=github.course(pilot_source::REPOSITORY).unwrap();
-    let catalog=github.course_progress(&wording,&user).unwrap();
+    let catalog=github.refreshed_course_progress(&wording,&user).unwrap();
     assert!(molip_quest::issue_progress::status(&catalog.events[&lesson.id],&wording.lessons[0].revision,&catalog.required[&lesson.id]).current);
     pilot_source::set_version('j').unwrap();
     let visual_course = github.course(pilot_source::REPOSITORY).unwrap();

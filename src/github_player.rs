@@ -10,8 +10,15 @@ pub struct GithubUser { pub id:u64, pub login:String }
 pub struct Github;
 #[derive(Clone, Default, PartialEq)]
 pub struct CourseProgress {
+    /// The account, course and repository this result was read for; the catalog ignores a
+    /// result whose scope is no longer on screen.
+    pub scope: crate::progress_overlay::ProgressScope,
     pub events: std::collections::HashMap<String, Vec<LearningEvent>>,
     pub required: std::collections::HashMap<String, Vec<String>>,
+    /// The lesson revision each `required` list was read for. The catalog only uses a list for
+    /// the revision its manifest currently shows, so a result read before a content update
+    /// cannot decide the updated lesson's card.
+    pub revisions: std::collections::HashMap<String, String>,
 }
 #[derive(Clone,Debug,Deserialize)]
 pub struct Issue {pub number:u64,pub html_url:String,pub body:Option<String>,pub user:GithubUser}
@@ -112,17 +119,28 @@ impl Github {
     }
     /// Every catalog card needs pinned requirements, including partially solved lessons.
     /// Installed snapshots already hold these lessons, so this adds no network reads.
+    /// This reads only the local history and returns at once; `refreshed_course_progress`
+    /// adds what GitHub holds and is run afterwards in the background.
     pub fn course_progress(&self,course:&CourseManifest,user:&GithubUser)->Result<CourseProgress,String> {
         let events=self.course_events(&course.repository,user,&course.id)?;
+        self.with_requirements(course,user,events)
+    }
+    /// The same catalog progress after reading GitHub and caching what it returned.
+    pub fn refreshed_course_progress(&self,course:&CourseManifest,user:&GithubUser)->Result<CourseProgress,String> {
+        let events=self.refresh_course_events(&course.repository,user,&course.id)?;
+        self.with_requirements(course,user,events)
+    }
+    fn with_requirements(&self,course:&CourseManifest,user:&GithubUser,events:std::collections::HashMap<String,Vec<LearningEvent>>)->Result<CourseProgress,String> {
         let installed=crate::content_updates::installed_store()?.active(&course.repository)?;
-        let mut required=std::collections::HashMap::new();
+        let mut required=std::collections::HashMap::new();let mut revisions=std::collections::HashMap::new();
         for reference in &course.lessons {
                 let lesson=match installed.as_ref().and_then(|snapshot|snapshot.lesson(reference)) {
                     Some(lesson)=>lesson.clone(),None=>self.lesson(reference)?,
                 };
                 required.insert(reference.id.clone(),lesson.required_tasks());
+                revisions.insert(reference.id.clone(),reference.revision.clone());
         }
-        Ok(CourseProgress{events,required})
+        Ok(CourseProgress{scope:crate::progress_overlay::ProgressScope::new(&course.repository,user.id,&course.id),events,required,revisions})
     }
     fn events_remote(&self,repo:&str,issue:&Issue,key:&ProgressKey)->Result<Vec<LearningEvent>,String> {
         let marker=issue_progress::marker(key);
@@ -148,7 +166,8 @@ impl Github {
         crate::telemetry::observe_sync("progress.save.local",vec![opentelemetry::KeyValue::new("course.id",event.key.course_id.clone()),opentelemetry::KeyValue::new("lesson.id",event.key.lesson_id.clone())],||self.record_inner(repo,user,title,event,required))
     }
     fn record_inner(&self,repo:&str,user:&GithubUser,title:&str,event:&LearningEvent,required:&[String])->Result<Vec<LearningEvent>,String>{
-        let latest=crate::progress_sync::ProgressStore::installed()?.record(repo,user,title,event,required)?;
+        // Journaled before SQLite and retried while SQLite is busy; see progress_sync::journal.
+        let latest=crate::progress_sync::ProgressStore::installed()?.record_durably(repo,user,title,event,required,crate::progress_sync::RECORD_RETRY_WINDOW)?;
         if let Err(error)=crate::progress_sync::synchronize(self.clone(),user.clone()){eprintln!("Progress upload deferred: {error}");}
         Ok(latest)
     }
@@ -159,7 +178,15 @@ impl Github {
             Err(error)=>{let local=store.events(repo,key)?;if local.is_empty(){Err(error)}else{Ok(local)}},
         }
     }
+    /// The local history of this account in this course. It never waits for GitHub, so a
+    /// completion saved on this device is on the catalog before any remote read finishes.
     pub fn course_events(&self,repo:&str,user:&GithubUser,course_id:&str)->Result<std::collections::HashMap<String,Vec<LearningEvent>>,String>{
+        let store=crate::progress_sync::ProgressStore::installed()?;
+        store.course_events(repo,user.id,course_id)
+    }
+    /// Reads GitHub, adds what it returned to the local history (never removing local events,
+    /// pending uploads included) and returns the united history. Offline, the local history.
+    pub fn refresh_course_events(&self,repo:&str,user:&GithubUser,course_id:&str)->Result<std::collections::HashMap<String,Vec<LearningEvent>>,String>{
         let store=crate::progress_sync::ProgressStore::installed()?;
         match self.course_events_remote(repo,user,course_id){
             Ok(remote)=>{for events in remote.values(){store.cache(repo,events)?;}store.course_events(repo,user.id,course_id)},

@@ -1,4 +1,4 @@
-// The option matcher behind 정답 보기 and the compiled 해설, run against the real course data
+// The option matcher behind /tour-all and the compiled 해설, run against the real course data
 // without the app: every choice question's narrated answer must name its correct option.
 //   node --test tests/js/quiz-pick.test.mjs   (cargo test runs it too: tests/js_quiz_pick.rs)
 import test from 'node:test';

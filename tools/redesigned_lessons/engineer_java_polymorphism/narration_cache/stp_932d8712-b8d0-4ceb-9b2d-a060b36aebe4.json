@@ -1,10 +1,14 @@
 {
   "by": "hand",
-  "source_sha256": "6cc07ae87bc7677980133d7e00b1dfe4940253290eb4268f22308b5122a66ee5",
+  "source_sha256": "84cac9f3e6914dee284133ba296c2657b37a37812a118d9a58d099f2307f5fb8",
   "entry": [
     {
+      "action": "say",
+      "text": "Bonus를 만들면 상위 Rule의 생성자가 먼저 실행되고, 그 안에서 오버라이딩한 show를 불러요. 그 순간 하위 필드 value의 값을 고르는 문제예요.",
+      "target": "text:하위의 value 초기화는 아직이에요."
+    },
+    {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         13,
         13
@@ -19,11 +23,10 @@
       "action": "patch_code",
       "before": "Bonus rule = new Bonus();",
       "after": "Bonus rule = new Bonus();\n        System.out.print(\":\");\n        rule.show();",
-      "say": "한 곳만 바꿔 실행 결과를 비교해요."
+      "say": "생성이 끝난 뒤 show를 한 번 더 불러 볼게요."
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         15,
         15
@@ -36,18 +39,17 @@
     },
     {
       "action": "say",
-      "text": "조심하세요. 생성 도중의 오버라이딩과 기본값을 연결해요..",
+      "text": "조심하세요. 상위 생성자가 실행되는 동안 하위 필드의 초기화식은 아직 실행 전이라 기본값 0이에요.",
       "target": "output"
     },
     {
       "action": "patch_code",
       "before": "Bonus rule = new Bonus();\n        System.out.print(\":\");\n        rule.show();",
       "after": "Bonus rule = new Bonus();",
-      "say": "문제의 처음 코드로 돌아와요."
+      "say": "추가 호출을 빼고 되돌려요."
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         13,
         13
@@ -55,7 +57,7 @@
     },
     {
       "action": "say",
-      "text": "답안은 처음 코드의 결과를 기준으로 골라요.",
+      "text": "처음 코드는 생성 도중에 불려 0이에요.",
       "target": "output"
     },
     {

@@ -1,10 +1,14 @@
 {
   "by": "hand",
-  "source_sha256": "521fc8cddf8c0767591abfa3bfc65a260494e40743bb762088135521f2cf6112",
+  "source_sha256": "c30e9075e8d9c52f613376c4c4f71cb842cc504be3286243601982888c75873a",
   "entry": [
     {
+      "action": "say",
+      "text": "반드시 있어야 하는 열에 NULL을 넣을 때를 판단하는 문제예요.",
+      "target": "text:이 INSERT는 어떻게 될까요?"
+    },
+    {
       "action": "run",
-      "say": "실제 준비된 표에서 실행해요.",
       "lines": [
         1,
         2
@@ -20,11 +24,10 @@
       "action": "patch_code",
       "before": "VALUES(4,NULL,1)",
       "after": "VALUES(4,'bag',1)",
-      "say": "이 조건 한 곳만 바꿔 실제 결과를 비교해요."
+      "say": "이름 bag을 넣어 볼게요."
     },
     {
       "action": "run",
-      "say": "실제 준비된 표에서 실행해요.",
       "lines": [
         1,
         2
@@ -48,12 +51,30 @@
     {
       "action": "patch_code",
       "before": "VALUES(4,'bag',1)",
-      "after": "VALUES(4,NULL,1)",
-      "say": "문제의 처음 SQL로 돌아와요."
+      "after": "VALUES(4,'bag',-1)",
+      "say": "이름은 두고 재고를 -1로 바꿔 볼게요."
     },
     {
       "action": "run",
-      "say": "실제 준비된 표에서 실행해요.",
+      "lines": [
+        1,
+        2
+      ],
+      "expect_error": "CHECK constraint failed"
+    },
+    {
+      "action": "say",
+      "text": "CHECK(stock>=0) 제약이 음수 재고를 거절했어요. NOT NULL과 다른 줄의 규칙이에요.",
+      "target": "code:INSERT INTO items"
+    },
+    {
+      "action": "patch_code",
+      "before": "VALUES(4,'bag',-1)",
+      "after": "VALUES(4,NULL,1)",
+      "say": "이름 없는 처음 SQL로 되돌려요."
+    },
+    {
+      "action": "run",
       "lines": [
         1,
         2
@@ -62,7 +83,7 @@
     },
     {
       "action": "say",
-      "text": "처음 조건의 결과를 기준으로 답을 골라요.",
+      "text": "처음 SQL은 이름이 NULL이라 NOT NULL 제약이 거절해요.",
       "target": "output"
     },
     {

@@ -1,40 +1,43 @@
 {
   "by": "hand",
-  "source_sha256": "595a7d2b0c2a171fbb4996657099905e3f1e64f80662329142ef90efdf5aecd4",
+  "source_sha256": "165abeadb5496fd6b97aa585a90b3d8a94d7003b87ee5ec0e5c28db40ee3491c",
   "entry": [
     {
       "action": "say",
-      "text": "입력은 2+3x예요. 지금은 잘못된 뒷부분을 무시해요. evaluate의 return 바로 앞에 검사를 복원하세요.",
-      "target": "problem"
-    },
-    {
-      "action": "run",
-      "say": "먼저 준비 코드의 결과를 확인해요."
+      "text": "지금 계산기는 x를 남겨 둔 채 5를 돌려줘요.",
+      "target": "text:지금은 잘못된 뒷부분을 무시하고 5를 돌려줘요."
     },
     {
       "action": "say",
-      "text": "현재는 5가 나와요. x를 읽지 않고 완료했어요.",
+      "text": "검사를 넣을 자리는 evaluate의 return 바로 앞이에요.",
+      "target": "code:// TODO: 남은 입력 검사"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "5가 나와요. 입력 끝을 확인하지 않았어요.",
       "target": "output"
     },
     {
       "action": "patch_code",
       "before": "// TODO: 남은 입력 검사",
       "after": "if (position != text.length()) throw new IllegalArgumentException(\"trailing\");",
-      "say": "읽기 위치가 끝인지 검사하고 남은 문자를 거절해요."
+      "say": "읽기 위치가 입력 끝이 아니면 예외를 던져요."
     },
     {
-      "action": "run",
-      "say": "수정한 코드로 다시 실행해요."
+      "action": "run"
     },
     {
       "action": "say",
-      "text": "출력은 invalid예요. 입력과 결과를 연결해 보세요.",
+      "text": "invalid예요. 남은 x 때문에 식 전체를 거절했어요.",
       "target": "output"
     },
     {
       "action": "say",
-      "text": "조심하세요. 이 수업의 문법에는 공백·나눗셈·음수 표기가 없어요.",
-      "target": "output"
+      "text": "조심하세요. 이 수업의 문법에는 공백·나눗셈·음수가 없어서 그런 입력도 invalid가 맞아요.",
+      "target": "text:evaluate의 return 바로 앞에 남은 입력을 거절하는 검사 한 줄을 넣으세요."
     },
     {
       "action": "submit"

@@ -1,72 +1,76 @@
 {
   "by": "hand",
-  "source_sha256": "5bb6fa97921bda72ec7d6a85290beb2ee639c960dfdeee4817e873d523f09c8a",
+  "source_sha256": "a4dcba94cd0af1a2225b17e27c0b67a6383119e91bea18a043323db464479b6e",
   "entry": [
     {
       "action": "say",
-      "text": "공유 기준은 두고 주문 금액만 9,999로 낮추면 비교 결과는 무엇인가요?",
-      "target": "problem"
+      "text": "기준 FREE_FROM은 모든 주문이 함께 쓰는 값이고, 금액은 주문마다 따로예요.",
+      "target": "text:무료배송 기준 FREE_FROM은 static final이라 모든 주문이 같은 값 하나를 함께 써요."
     },
     {
       "action": "say",
-      "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-      "target": "problem"
+      "text": "두 주문을 같은 기준에 비교해 한 줄씩 출력해요.",
+      "target": "lines:16:17"
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
-        15,
-        15
+        17,
+        17
       ]
     },
     {
       "action": "say",
-      "text": "지금은 기준에 닿아 참이에요.",
+      "text": "true, true예요. 10,000원과 15,000원 모두 기준 이상이에요.",
       "target": "output"
     },
     {
       "action": "patch_code",
       "before": "initial = 10000;",
       "after": "initial = 9999;",
-      "say": "객체의 금액만 기준 아래로 낮춰요."
+      "say": "a의 금액만 9,999로 낮춰요."
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
-        15,
-        15
+        17,
+        17
       ]
     },
     {
       "action": "say",
-      "text": "공유 기준은 그대로라 거짓이에요.",
-      "target": "output"
-    },
-    {
-      "action": "say",
-      "text": "조심하세요. final 참조의 대상까지 모두 불변인 건 아니었죠.",
+      "text": "false 다음 true예요. 기준은 그대로라 a만 결과가 바뀌었어요.",
       "target": "output"
     },
     {
       "action": "patch_code",
-      "before": "initial = 9999;",
-      "after": "initial = 10000;",
-      "say": "처음 기준 금액으로 돌아와요."
+      "before": "        Ticket b = new Ticket(15000);",
+      "after": "        Ticket b = new Ticket(15000);\n        Ticket.FREE_FROM = 0;",
+      "say": "공유 기준을 0으로 바꿔 보려고 하면 어떨까요?"
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
-        15,
-        15
-      ]
+        18,
+        18
+      ],
+      "expect_error": "final"
     },
     {
       "action": "say",
-      "text": "여기서는 final 기본형 기준값을 함께 써요.",
+      "text": "컴파일 오류예요. final 기준은 한 주문을 위해 바꿀 수 없어요.",
       "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        Ticket b = new Ticket(15000);\n        Ticket.FREE_FROM = 0;",
+      "after": "        Ticket b = new Ticket(15000);",
+      "say": "기준을 바꾸려던 줄을 지워요."
+    },
+    {
+      "action": "say",
+      "text": "주문마다 다른 것은 금액이고, 모두 같은 것은 기준이에요.",
+      "target": "code:static final int FREE_FROM = 10000;"
     },
     {
       "action": "choose_answer",

@@ -9,7 +9,10 @@ impl Drop for RecordGuard {fn drop(&mut self){RECORDERS.fetch_sub(1,Ordering::Se
 /// The child process shares the normal upload lock and durable retry queue.
 /// A budget slot is reserved before writing, including an ambiguous lost response.
 pub fn flush_before_exit()->Result<(),String>{
-    let github=Github::new();let user=github.user()?;let store=ProgressStore::installed()?;
+    // Journaled saves reach SQLite first; that needs neither GitHub nor a login.
+    let store=ProgressStore::installed()?;
+    if let Err(error)=store.replay_journal(){eprintln!("Journaled progress remains on disk: {error}");}
+    let github=Github::new();let user=github.user()?;
     let _=crate::course_identity::Store::installed()?.sync(&github,&user);
     store.send_pending_mode(&github,&user,true)
 }
@@ -19,7 +22,10 @@ pub fn schedule_exit_flush(){
     while RECORDERS.load(Ordering::SeqCst)>0&&std::time::Instant::now()<until{std::thread::sleep(Duration::from_millis(10));}
     let pending=ProgressStore::installed().and_then(|store|store.connection()?.query_row("SELECT COUNT(*) FROM progress_events WHERE pending=1",[],|row|row.get::<_,u64>(0)).map_err(|e|e.to_string())).unwrap_or(0);
     let names=crate::course_identity::Store::installed().and_then(|store|store.has_pending()).unwrap_or(false);
-    if pending==0&&!names{return;}
+    // Saves still in the write-ahead journal (SQLite was busy) also need the helper; under a
+    // lock the pending count above reads 0.
+    let journaled=ProgressStore::installed().map(|store|store.journal_len()).unwrap_or(0);
+    if pending==0&&!names&&journaled==0{return;}
     let Ok(executable)=std::env::current_exe() else{return;};
     let mut command=std::process::Command::new(executable);
     command.arg("--flush-progress-on-exit").stdin(std::process::Stdio::null()).stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null());

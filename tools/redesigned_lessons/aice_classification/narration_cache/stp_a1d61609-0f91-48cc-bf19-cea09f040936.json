@@ -1,0 +1,57 @@
+{
+  "by": "hand",
+  "source_sha256": "052a9bba95da85eeb94b24174ec07871cac91b7517195f0528b8cc0d73d886c2",
+  "entry": [
+    {
+      "action": "say",
+      "text": "필요한 것은 늦을 확률이에요. 확률표에는 종류마다 열이 있으니, late의 열을 정확히 골라야 하는 문제예요.",
+      "target": "text:새 배송마다 늦을(late) 확률이 필요해요."
+    },
+    {
+      "action": "say",
+      "text": "준비 코드는 두 번째 열을 늦을 확률로 꺼내요.",
+      "target": "code:[:, 1]"
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        14
+      ]
+    },
+    {
+      "action": "say",
+      "text": "classes_는 late, on-time 순서예요. 글자 순으로 정렬돼서 late가 첫 열이에요. 그래서 지금 꺼낸 값은 정시일 확률이라, 먼 배송의 값이 영이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "y_train = [\"on-time\", \"on-time\", \"late\", \"late\"]",
+      "after": "y_train = [\"early\", \"early\", \"late\", \"late\"]",
+      "say": "종류 이름만 early와 late로 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        14
+      ]
+    },
+    {
+      "action": "say",
+      "text": "이번엔 early, late 순서라 late가 두 번째 열이에요. 이름에 따라 열 위치가 달라져요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "y_train = [\"early\", \"early\", \"late\", \"late\"]",
+      "after": "y_train = [\"on-time\", \"on-time\", \"late\", \"late\"]",
+      "say": "준비 자료로 되돌려요."
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 번호를 0으로 바꿔 외우면 이름이 바뀔 때 다시 틀려요. 3번처럼 classes_에서 late의 위치를 찾게 하세요.",
+      "target": "code:print(model.classes_.tolist())"
+    }
+  ]
+}

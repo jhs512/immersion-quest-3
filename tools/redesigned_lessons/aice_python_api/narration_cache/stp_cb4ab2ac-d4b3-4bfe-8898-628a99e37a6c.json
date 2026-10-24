@@ -1,0 +1,74 @@
+{
+  "by": "hand",
+  "source_sha256": "3172875f5eb4d04e8500ef76bcfbe9d7bcce29660c9c4d82d328255091769c55",
+  "entry": [
+    {
+      "action": "say",
+      "text": "mean 앞에 statistics와 점이 붙어 있어요. 이 표기가 기능이 어디에 있는지를 말해 준다는 것이 이번 문제예요.",
+      "target": "text:점(.) 앞은 모듈 이름, 점 뒤는 그 모듈 안의 기능 이름이에요."
+    },
+    {
+      "action": "say",
+      "text": "import statistics가 모듈을 불러오고, 마지막 줄이 그 안의 mean에 목록을 넘겨요.",
+      "target": "code:statistics.mean(minutes)"
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "18이 나왔어요. 12, 18, 24의 합 54를 3으로 나눈 값이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "print(statistics.mean(minutes))",
+      "after": "print(mean(minutes))",
+      "say": "모듈 이름과 점을 빼고 불러 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ],
+      "expect_error": "NameError"
+    },
+    {
+      "action": "say",
+      "text": "NameError예요. mean은 혼자 있는 이름이 아니라 statistics 안에 있어서 점으로 찾아야 해요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "print(mean(minutes))",
+      "after": "print(statistics.mean(minutes))",
+      "say": "모듈 이름과 점을 되돌려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "다시 18이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 괄호 안 minutes는 기능에 넘기는 자료이고, 기능이 들어 있는 곳은 점 앞의 모듈이에요.",
+      "target": "code:(minutes)"
+    },
+    {
+      "action": "choose_answer",
+      "id": "module"
+    }
+  ]
+}

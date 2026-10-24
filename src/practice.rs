@@ -10,7 +10,7 @@ pub(crate) const COURSE_ID: &str = "kpc-morning-practice-v1";
 #[derive(Clone, Deserialize)]
 pub(crate) struct Material {
     /// The reference solution; the narration's code chunks join into it (checked by the
-    /// instructor-materials test below), and 정답 보기 types those chunks.
+    /// instructor-materials test below). There is no standalone answer-reveal control.
     #[allow(dead_code)]
     code: String,
     /// The 풀이 요약 lines: what /tour-all says about the problem.
@@ -107,7 +107,7 @@ pub(crate) fn PracticeView() -> Element {
         .unwrap_or_default();
     // The problem as a mission, so the instructor buttons and the AI panel treat it exactly like
     // a coding mission of the course: its 해설 comes from the instructor materials (the bundled
-    // Excel lives under data/ in the app's sandbox), 정답 보기 types that script's code and submits.
+    // Excel lives under data/ in the app's sandbox).
     let material = materials().and_then(|m| m.get(&unit.id).cloned());
     let tour: Vec<String> = material.as_ref().map(|m| m.explanation.clone()).unwrap_or_default();
     let narration: Vec<serde_json::Value> = material
@@ -133,7 +133,7 @@ pub(crate) fn PracticeView() -> Element {
         kind: ActivityKind::Coding { problem: unit.clone() },
     };
     // "AI에게 물어보기", as in the learning view: the same panel, /auto, /auto-all and the
-    // instructor's 정답 보기 · 해설 보기 all go through it.
+    // instructor's 해설 보기 all go through it.
     let mut assistant_open = use_signal(|| false);
     let mut assistant_messages = use_signal(Vec::<molip_quest::assistant::Turn>::new);
     let mut autopilot = use_signal(|| false);

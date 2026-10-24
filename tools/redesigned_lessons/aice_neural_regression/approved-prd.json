@@ -112,12 +112,12 @@
               "core_flow": "Dense1 선형출력을mse손실과mae지표로compile한다. loss이름mse와평가결과키loss/mae를출력한다. compile의손실·모니터링지표는역할이다르며accuracy를자동회귀품질로쓰지않는다."
             },
             {
-              "id": "stp_18f62e05-6203-45b8-9f63-ff6a62d17edb",
-              "title": "작은 실제 학습을 확인해요",
+              "id": "stp_dc24177d-8da9-41ce-8fde-f322d8cecb3a",
+              "title": "학습 기록 한 칸의 뜻을 읽어요",
               "objectives": [
-                "fit의 오차 변화와 일반화 보장을 구별해요."
+                "fit 기록의 한 칸은 epoch마다 잰 훈련 오차임을 읽어요."
               ],
-              "core_flow": "거리0/1/2/3의정답1/3/5/7을0초기모델에SGD0.05로10epoch·batch4학습한다. 기록10개와처음loss>마지막lossTrue를확인한다. 이실행에서훈련오차가줄었어도미래평가를보장하지않는다."
+              "core_flow": "거리0/1/2/3의 정답1/3/5/7을 0초기 모델에 SGD0.05로 10epoch·batch4 학습한다. 기록 10개와 처음 loss>마지막 loss True를 확인하고, 기록 10개가 배송 수가 아닌 epoch 수임을 묻는다. 해설은 epochs만 3으로 바꿔 기록이 세 개가 됨을 보이고 되돌린다. 훈련 오차 감소가 새 자료 성능을 보장하지 않는다는 점은 주의로만 짚는다. 이전 revision의 같은 자리 스텝(stp_18f62e05…)은 \"훈련 오차가 줄면 미래도 보장되는가\"를 물어 회귀·분류 수업의 결론을 되풀이해 이번 revision에서 빠지며 완료 기록은 이전 revision에 남는다."
             },
             {
               "id": "stp_2c4f572f-d874-445d-bbc2-9605dc9af635",
@@ -171,12 +171,12 @@
               "core_flow": "자체생성한확인모델을delivery.keras로저장하고keras.models.load_model로불러온다. 동일새입력에예측이allcloseTrue임을실제확인한다. 다른출처의파일을받아온것처럼설명하지않고모델과전처리기준은별도보존이필요함을짚는다."
             },
             {
-              "id": "stp_419e3b03-6bad-4afa-a742-036a2ac769f3",
-              "title": "목표가 허용하는 출력을 만들어요",
+              "id": "stp_f3e0997f-f7c2-4083-ae5c-585b47205ff4",
+              "title": "목표가 허용하지 않는 출력을 막아요",
               "objectives": [
-                "음수 차이를 허용하는 선형 출력으로 고쳐요."
+                "음수가 될 수 없는 목표에 맞게 출력 활성화를 relu로 고쳐요."
               ],
-              "core_flow": "고정확인용2x-5의Dense1에activationrelu가붙어음수차이가0이된다. linear로한곳고쳐-3/3을얻는다. 다른입력·가중치·편향에서도선형출력을내고실제활성화가linear인지별도probe로확인해출력치환을거절한다."
+              "core_flow": "고정 확인용 2x-5의 Dense1에 activation linear가 붙어 거리 1의 배송 시간이 -3이 된다. 목표는 0보다 작을 수 없는 배송 시간이라 relu로 한 곳 고쳐 0/3을 얻는다. 1번(음수 차이를 살리는 linear)과 목표 범위가 반대라 1번 해설의 수정을 그대로 옮겨 적어 풀리지 않는다. 다른 입력·가중치·편향에서도 relu 출력을 내고 실제 활성화가 relu인지 별도 probe로 확인해 출력 치환을 거절한다. 이전 revision의 linear 수정 스텝(stp_419e3b03…)은 1번 해설과 같은 수정이라 이번 revision에서 빠지며 완료 기록은 이전 revision에 남는다."
             }
           ]
         }
@@ -202,19 +202,19 @@
     "독립 TensorFlow 검사마다 최대 45초, 전체 채점은 최대 180초를 허용해요. 느린 초기 import를 오답으로 취급하지 않으며 무한 실행은 중단해요."
   ],
   "representative": {
-    "prompt": "음수 차이도 출력하도록 활성화 한 곳을 고치세요.",
-    "starter_state": "relu가 음수 출력을0으로 막아요.",
-    "expected_action": "linear로 바꿔요.",
-    "acceptance": "여러 입력과 가중치·편향에서 실제 선형 계산을 해요.",
-    "reset": "원래 입력·가중치·relu를 복원해요.",
-    "narration": "잘린0을 보고 linear로 바꿔 음수 차이를 확인해요.",
-    "step_id": "stp_419e3b03-6bad-4afa-a742-036a2ac769f3"
+    "prompt": "음수가 될 수 없는 배송 시간을 출력하도록 활성화 한 곳을 고치세요.",
+    "starter_state": "linear 출력이 거리 1의 배송 시간을 -3으로 내보내요.",
+    "expected_action": "relu로 바꿔요.",
+    "acceptance": "여러 입력과 가중치·편향에서 음수는 0, 양수는 그대로 출력해요. 실제 활성화를 probe로 확인해요.",
+    "reset": "원래 입력·가중치·linear를 복원해요.",
+    "narration": "음수 시간이 나오는 것을 보고 1번과 목표 범위가 반대임을 짚어요.",
+    "step_id": "stp_f3e0997f-f7c2-4083-ae5c-585b47205ff4"
   },
   "approval": {
     "status": "approved",
     "by": "사용자의 전체 과정 설계·구현 위임",
-    "evidence": "2026-10-19: “끝까지 다해, 정처기 코스, 에이스 어쏘씨에이트 코스, 자바 백엔드 코스의 모든 부분 재설계(새로운 지침 기반으로)해서 해”. .scratch/player-content-redesign/authorization-2026-10-19.md. 개별 PRD 직접 검토를 주장하지 않는 범위 위임이다.",
-    "content_sha256": "3f69f9638ce1f3c4c1066551b3efe8cc5bfba8379b9af5a3a2715bfe9bb62843",
+    "evidence": "2026-10-19: “끝까지 다해, 정처기 코스, 에이스 어쏘씨에이트 코스, 자바 백엔드 코스의 모든 부분 재설계(새로운 지침 기반으로)해서 해”. .scratch/player-content-redesign/authorization-2026-10-19.md. 개별 PRD 직접 검토를 주장하지 않는 범위 위임이다. 2026-10-24 사용자: 세 과정 빌드업 감사의 근거 있는 교정(문제 설명 해설, 정밀 강조, 상투 경고 제거, 선수 개념 다리, 점진 예제, 평가 결함)을 계획하고 실행하도록 Claude Code에 위임했어요(Codex 경유). 교육 목표와 교수법은 유지하고 이 문서를 직접 검토했다고 주장하지 않아요.",
+    "content_sha256": "21211338d3056fbfb1fd74e230f3e92c9fb2d95ca05b6c88972ad777da01ef57",
     "mode": "delegated_scope"
   }
 }

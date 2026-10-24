@@ -66,7 +66,10 @@ struct Pending {
     event: LearningEvent,
 }
 const UPLOAD_INTERVAL: u64 = 300;
+const INVALID_SCOPE: &str = "진도를 보관할 계정과 코스를 확인하세요.";
 mod exit;
+mod journal;
+pub use journal::RECORD_RETRY_WINDOW;
 pub use exit::{record_guard,schedule_exit_flush,flush_before_exit};
 impl ProgressStore {
     pub fn new(path: &Path) -> Self {
@@ -78,8 +81,12 @@ impl ProgressStore {
         ))
     }
     fn connection(&self) -> Result<Connection, String> {
+        self.connection_waiting(Duration::from_secs(5))
+    }
+    /// `busy` is how long SQLite waits for another writer before failing with SQLITE_BUSY.
+    fn connection_waiting(&self, busy: Duration) -> Result<Connection, String> {
         let db = Connection::open(&self.path).map_err(|e| e.to_string())?;
-        db.busy_timeout(Duration::from_secs(5))
+        db.busy_timeout(busy)
             .map_err(|e| e.to_string())?;
         db.execute_batch("CREATE TABLE IF NOT EXISTS progress_events (
           sequence INTEGER PRIMARY KEY AUTOINCREMENT, repository TEXT NOT NULL,
@@ -127,7 +134,11 @@ impl ProgressStore {
         Ok(issue_progress::merge(events, key))
     }
     pub fn events(&self, repo: &str, key: &ProgressKey) -> Result<Vec<LearningEvent>, String> {
-        Self::read(&self.connection()?, repo, key)
+        self.replay_journal_without_waiting();
+        let stored = Self::read(&self.connection()?, repo, key)?;
+        let mut lessons = HashMap::from([(key.lesson_id.clone(), stored)]);
+        self.add_journaled(repo, key.user_id, &key.course_id, &mut lessons);
+        Ok(lessons.remove(&key.lesson_id).unwrap_or_default())
     }
     pub fn course_events(
         &self,
@@ -135,6 +146,7 @@ impl ProgressStore {
         user_id: u64,
         course_id: &str,
     ) -> Result<HashMap<String, Vec<LearningEvent>>, String> {
+        self.replay_journal_without_waiting();
         let db = self.connection()?;
         let mut query=db.prepare("SELECT document FROM progress_events WHERE repository=?1 AND user_id=?2 AND course_id=?3 ORDER BY sequence").map_err(|e|e.to_string())?;
         let rows = query
@@ -161,6 +173,7 @@ impl ProgressStore {
                 },
             );
         }
+        self.add_journaled(repo, user_id, course_id, &mut result);
         Ok(result)
     }
     pub fn cache(&self, repo: &str, events: &[LearningEvent]) -> Result<(), String> {
@@ -180,10 +193,23 @@ impl ProgressStore {
         event: &LearningEvent,
         required: &[String],
     ) -> Result<Vec<LearningEvent>, String> {
+        Self::validate(repo, user, event)?;
+        Self::record_in(&mut self.connection()?, repo, user, title, event, required)
+    }
+    fn validate(repo: &str, user: &GithubUser, event: &LearningEvent) -> Result<(), String> {
         if event.key.user_id != user.id || !crate::repository_course::valid_repository(repo) {
-            return Err("진도를 보관할 계정과 코스를 확인하세요.".into());
+            return Err(INVALID_SCOPE.into());
         }
-        let mut db = self.connection()?;
+        Ok(())
+    }
+    fn record_in(
+        db: &mut Connection,
+        repo: &str,
+        user: &GithubUser,
+        title: &str,
+        event: &LearningEvent,
+        required: &[String],
+    ) -> Result<Vec<LearningEvent>, String> {
         let tx = db
             .transaction_with_behavior(TransactionBehavior::Immediate)
             .map_err(|e| e.to_string())?;
@@ -488,6 +514,7 @@ pub fn synchronize(github: Github, user: GithubUser) -> Result<(), String> {
         .name("progress-sync".into())
         .spawn(move || loop {
             let generation = workers().lock().unwrap_or_else(|e| e.into_inner())[&key].requested;
+            store.replay_journal_without_waiting();
             if let Err(error) = store.send_pending(&github, &user) {
                 eprintln!("Progress upload deferred: {error}");
             }

@@ -17,7 +17,7 @@ fn play(practice:&GitPractice,task:&Task){
 fn imported_guide_and_two_features_are_one_real_continuous_repository(){
     let course=CourseManifest::parse(include_str!("fixtures/player-pilot/l/course.json")).unwrap();
     let lesson=Lesson::parse(include_str!("../courses/redesigned/git-branch.json"),&course.lessons[0]).unwrap();
-    assert_eq!(lesson.tasks.len(),13);
+    assert_eq!(lesson.tasks.len(),14);
     let root=tempfile::tempdir().unwrap();let store=GitPracticeStore::new(root.path()).unwrap();
     let scope="guide-story";let mut prior=None;
     for (index,task) in lesson.tasks.iter().enumerate(){
@@ -26,6 +26,14 @@ fn imported_guide_and_two_features_are_one_real_continuous_repository(){
         let student=store.open(scope,exercise.clone()).unwrap();
         if let Some(path)=&prior{assert_eq!(student.root(),path,"step lost the learner repository");}
         student.remember_step_start(&task.id).unwrap();
+        // A judgment step: the demonstration runs only in the teacher repository and the learner chooses.
+        if let Some(interaction)=&task.interaction {
+            let before=student.git(&["rev-parse","HEAD"]).unwrap().stdout;
+            let teacher=GitPractice::new(exercise.demonstration()).unwrap();play(&teacher,task);
+            assert_eq!(student.git(&["rev-parse","HEAD"]).unwrap().stdout,before,"demonstration changed the learner repository");
+            assert!(interaction.check(&task.solution).unwrap().passed);assert!(!interaction.check("").unwrap().passed);
+            prior=Some(student.root().to_path_buf());continue;
+        }
         assert!(!student.check_exercise().unwrap().passed,"step {} started solved",index+1);
         let before=std::fs::read(student.work().join("guide.txt")).ok();
         let teacher=GitPractice::new(exercise.demonstration()).unwrap();play(&teacher,task);
@@ -37,10 +45,11 @@ fn imported_guide_and_two_features_are_one_real_continuous_repository(){
         if index==11{assert_eq!(student.git(&["show","HEAD:guide.txt"]).unwrap().stdout,"안내: 메모 기능\n");}
         prior=Some(student.root().to_path_buf());
     }
-    let last=store.open(scope,lesson.tasks.last().unwrap().git_terminal.clone().unwrap()).unwrap();
+    let last=store.open(scope,lesson.tasks.iter().rev().find(|t|t.interaction.is_none()).unwrap().git_terminal.clone().unwrap()).unwrap();
     assert_eq!(last.git(&["show","HEAD:guide.txt"]).unwrap().stdout,"안내: 메모 기능\n문의: 상담 창구\n");
     let graph=last.graph_snapshot().unwrap();assert_eq!(graph.commits.len(),3);
     for (index,task) in lesson.tasks.iter().enumerate(){
+        if task.interaction.is_some(){continue;}
         let reset=store.reset_step(scope,task.git_terminal.clone().unwrap(),&task.id).unwrap();
         assert!(!reset.check_exercise().unwrap().passed,"reset solved step {}",index+1);
         play(&reset,task);assert!(reset.check_exercise().unwrap().passed,"reset step {} cannot be solved",index+1);

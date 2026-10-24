@@ -1,20 +1,24 @@
 {
   "by": "hand",
-  "source_sha256": "2d9c264ff937d5b82f1cecff8dfcc2cfd82d088ecf0169a4942a5ddbda9c5177",
+  "source_sha256": "fd99aa4457db0ee0a3c50a21f496e975c6aabf013dd1463c8b5c4e43e2a881f6",
   "entry": [
     {
       "action": "say",
-      "text": "show_next 안에서 amount를 바꿨어요. main의 amount도 바뀌었을까요?",
-      "target": "problem"
+      "text": "main의 amount와 메서드의 amount는 이름만 같아요. 질문은 메서드 안의 변경이 main에 닿는지예요.",
+      "target": "text:메서드 안에서 바꾸면 main의 숫자도 바뀔까요?"
     },
     {
       "action": "say",
-      "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-      "target": "problem"
+      "text": "호출할 때 main의 2,000이 복사되어 매개변수 amount에 들어가요.",
+      "target": "code:show_next(amount);"
+    },
+    {
+      "action": "say",
+      "text": "메서드 안에서는 그 복사본에 1,000을 더해 출력해요.",
+      "target": "code:amount = amount + 1000;"
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         12,
         12
@@ -22,7 +26,7 @@
     },
     {
       "action": "say",
-      "text": "안에서는 삼천, main에서는 이천이에요.",
+      "text": "첫 줄 3,000은 메서드 안 복사본, 둘째 줄 2,000은 main의 원래 값이에요.",
       "target": "output",
       "diagram": {
         "title": "호출 중 숫자의 복사",
@@ -36,11 +40,10 @@
       "action": "patch_code",
       "before": "amount = 2000;",
       "after": "amount = 4000;",
-      "say": "main의 처음 숫자만 사천으로 바꿔요."
+      "say": "main의 처음 숫자만 4,000으로 바꿔요."
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         12,
         12
@@ -48,7 +51,7 @@
     },
     {
       "action": "say",
-      "text": "안에서는 오천, main에서는 사천이에요.",
+      "text": "5,000과 4,000이에요. 복사본만 바뀌고 main은 그대로예요.",
       "target": "output",
       "diagram": {
         "title": "호출 중 숫자의 복사",
@@ -60,8 +63,8 @@
     },
     {
       "action": "say",
-      "text": "조심하세요. 이름이 같아도 복사한 숫자는 따로 바뀌어요.",
-      "target": "output"
+      "text": "조심하세요. 메서드 안에서 int 매개변수를 바꿔도 호출한 쪽 변수는 바뀌지 않아요.",
+      "target": "code:System.out.println(amount);#2"
     },
     {
       "action": "patch_code",
@@ -71,7 +74,6 @@
     },
     {
       "action": "run",
-      "say": "실행해서 실제 결과를 함께 확인해요.",
       "lines": [
         12,
         12
@@ -79,7 +81,7 @@
     },
     {
       "action": "say",
-      "text": "void는 반환값을 주지 않는 선언이에요.",
+      "text": "void 메서드는 값을 돌려주지 않아서, main의 amount를 바꿀 방법이 없어요.",
       "target": "output",
       "diagram": {
         "title": "호출 중 숫자의 복사",

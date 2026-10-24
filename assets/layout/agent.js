@@ -88,12 +88,106 @@
         return inner && inner.getBoundingClientRect().height > 0 ? inner : block;
       }
     }
-    const fallback = [...document.querySelectorAll('.reading-mission, .problem-pane')].find(e => normalize(e.textContent).includes(wanted));
+    // A practice problem never falls back to framing its whole panel: an unmatched phrase gets no
+    // frame (the caption still shows). Only a KPC reading mission keeps its block-level fallback.
+    const fallback = [...document.querySelectorAll('.reading-mission')].find(e => normalize(e.textContent).includes(wanted));
     return fallback || null;
+  }
+  // "구절#2" names the second occurrence of the phrase; without a suffix the first one.
+  function occurrence(spec) {
+    const match = String(spec).match(/^(.*?)(?:#(\d+))?$/s);
+    return [match[1], Math.max(1, Number(match[2] || 1))];
+  }
+  // A rectangle-only stand-in for a Range or a set of elements, so the spotlight can frame the
+  // exact words without inserting anything into the DOM that Dioxus owns.
+  function rectTarget(rects, anchor) {
+    return {
+      get isConnected() { return anchor.isConnected; },
+      parentElement: anchor.parentElement || anchor,
+      closest: selector => anchor.closest?.(selector) ?? null,
+      getBoundingClientRect() {
+        const boxes = rects().filter(r => r.width || r.height);
+        if (!boxes.length) return anchor.getBoundingClientRect();
+        const left = Math.min(...boxes.map(r => r.left)), top = Math.min(...boxes.map(r => r.top));
+        const right = Math.max(...boxes.map(r => r.right)), bottom = Math.max(...boxes.map(r => r.bottom));
+        return {left, top, right, bottom, width: right - left, height: bottom - top};
+      },
+    };
+  }
+  // The exact phrase inside the mission text: whitespace is collapsed and markdown markers
+  // ignored on both sides, and a DOM Range covers precisely the matched characters.
+  function textRange(spec) {
+    const [phrase, nth] = occurrence(spec);
+    const wanted = normalize(phrase);
+    if (!wanted) return null;
+    const roots = [...document.querySelectorAll('.reading-mission .markdown, .problem-pane .problem-heading h2, .problem-pane .task-question, .problem-pane .markdown, .quiz-question')];
+    let seen = 0;
+    for (const root of roots) {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      const map = [];
+      let flat = '', block = null;
+      const blockOf = node => node.parentElement?.closest('p, li, h1, h2, h3, h4, h5, h6, td, th, pre, blockquote, figcaption, label, div') || root;
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        if (node.parentElement?.closest('script, style')) continue;
+        // Separate blocks (two list items) with a space; inline code inside a sentence joins.
+        const here = blockOf(node);
+        if (block && here !== block && flat && !flat.endsWith(' ')) { flat += ' '; map.push(map.at(-1)); }
+        block = here;
+        for (let i = 0; i < node.data.length; i++) {
+          let ch = node.data[i];
+          if (/[`*]/.test(ch)) continue;
+          if (/\s/.test(ch)) { if (!flat || flat.endsWith(' ')) continue; ch = ' '; }
+          flat += ch; map.push([node, i]);
+        }
+      }
+      for (let at = flat.indexOf(wanted); at >= 0; at = flat.indexOf(wanted, at + 1)) {
+        if (++seen < nth) continue;
+        const [startNode, startOffset] = map[at];
+        const [endNode, endIndex] = map[at + wanted.length - 1];
+        const range = document.createRange();
+        range.setStart(startNode, startOffset);
+        range.setEnd(endNode, Math.min(endNode.data.length, endIndex + 1));
+        return range;
+      }
+    }
+    return null;
+  }
+  let textHighlight = null;
+  function showTextRange(range) {
+    clearTextRange();
+    if (globalThis.CSS?.highlights && globalThis.Highlight) {
+      textHighlight = new Highlight(range);
+      CSS.highlights.set('narration-text', textHighlight);
+    }
+    const anchor = range.startContainer.parentElement;
+    return rectTarget(() => [...range.getClientRects()], anchor);
+  }
+  function clearTextRange() {
+    if (textHighlight) { globalThis.CSS?.highlights?.delete('narration-text'); textHighlight = null; }
+  }
+  // "code:<토큰>#n": the exact characters in the visible editor, with their line highlighted too.
+  function codeRange(spec) {
+    const api = globalThis.molipCodeEditors;
+    if (!api?.highlightRange) return null;
+    const [snippet, nth] = occurrence(spec);
+    const source = api.getValue() || '';
+    let from = -1;
+    for (let k = 0, at = source.indexOf(snippet); at >= 0; at = source.indexOf(snippet, at + 1)) if (++k === nth) { from = at; break; }
+    if (from < 0 || !snippet) return null;
+    const to = from + snippet.length;
+    api.highlightLines(lineAt(source, from), lineAt(source, Math.max(from, to - 1)));
+    api.highlightRange(from, to);
+    const marked = () => [...document.querySelectorAll('.cm-narration-span')];
+    const first = marked()[0];
+    if (!first) return null;
+    return rectTarget(() => marked().flatMap(e => [...e.getClientRects()]), first);
   }
   function resolveTarget(target) {
     if (!target) return null;
     const key = String(target).trim();
+    if (!key.startsWith('code:')) globalThis.molipCodeEditors?.highlightRange?.(null);
+    if (!key.startsWith('text:')) clearTextRange();
+    if (key.startsWith('code:')) return codeRange(key.slice(5));
     if (key.startsWith('answer:')) return document.querySelector(`[data-option-id="${CSS.escape(key.slice(7))}"]`);
     const lines = key.match(/^(?:lines|editor):(\d+)(?::(\d+))?$/);
     if (lines) globalThis.molipCodeEditors?.highlightLines(Number(lines[1]), Number(lines[2] || lines[1]));
@@ -110,7 +204,12 @@
       };
     }
     // "quiz:2" is the second question; "option:2:3" its third choice.
-    if (key.startsWith('text:')) return textBlock(key.slice(5));
+    if (key.startsWith('text:')) {
+      const range = textRange(key.slice(5));
+      if (range) return showTextRange(range);
+      clearTextRange();
+      return textBlock(occurrence(key.slice(5))[0]);
+    }
     let m = key.match(/^quiz[:\s]+(\d+)$/);
     if (m) return question(m[1]);
     m = key.match(/^option[:\s]+(\d+)[:\s]+(\d+)$/);
@@ -265,6 +364,8 @@
     spotTarget = null; spotKey = null;
     clearMarks();
     globalThis.molipCodeEditors?.highlightLines(null);
+    globalThis.molipCodeEditors?.highlightRange?.(null);
+    clearTextRange();
     if (spot) { spot.hidden = true; caption.hidden = true; }
     document.querySelector('.narration-memory')?.remove();
   }
@@ -459,7 +560,7 @@
     } else if (action.action === 'type_code') api.highlightLines(source.split('\n').length);
     else if (action.target === 'editor') {
       if (!document.querySelector('.cm-narration-line')) api.highlightLines(1);
-    } else if (!String(action.target || '').startsWith('lines:') && !String(action.target || '').startsWith('editor:')) api.highlightLines(null);
+    } else if (!/^(?:lines|editor|code):/.test(String(action.target || ''))) api.highlightLines(null);
   }
   // Retain unchanged code and type only the changed fragment, including replacements in place.
   async function animateEdit(from, to, insert, active = () => !cancelled) {
@@ -531,6 +632,33 @@
     return '해설을 멈췄어요.';
   }
   const handlers = {
+    // Click or type in the tutor's own web preview (assets/layout/web-bridge.js answers inside it).
+    async web_action(a, active) {
+      const frame = document.querySelector('iframe[title="해설 웹 미리보기"]');
+      if (!frame?.contentWindow) throw new Error('해설 웹 미리보기가 없어요. 먼저 실행하세요.');
+      if (!['click', 'fill', 'read', 'width'].includes(a.do) || typeof a.selector !== 'string') throw new Error('웹 동작을 확인하세요.');
+      // A width change resizes the tutor's own preview so media queries such as md: apply, then reads.
+      if (a.do === 'width') {
+        const width = Number(a.value);
+        if (!(width >= 200 && width <= 1600)) throw new Error('미리보기 폭을 확인하세요.');
+        frame.style.width = `${width}px`; frame.style.maxWidth = 'none';
+        await sleep(250);
+      }
+      const id = Math.random().toString(36).slice(2);
+      const reply = new Promise((resolve, reject) => {
+        const timer = setTimeout(() => { removeEventListener('message', receive); reject(new Error('웹 미리보기가 응답하지 않아요.')); }, 3000);
+        function receive(event) {
+          if (event.source !== frame.contentWindow || event.data?.type !== 'mq3-web-result' || event.data.id !== id) return;
+          clearTimeout(timer); removeEventListener('message', receive); resolve(event.data);
+        }
+        addEventListener('message', receive);
+      });
+      frame.contentWindow.postMessage({type: 'mq3-web-action', id, do: a.do === 'width' ? 'read' : a.do, selector: a.selector, value: a.value, read: a.read, style: a.style}, '*');
+      const result = await reply;
+      if (!active()) return '해설을 멈췄어요.';
+      if (!result.ok) throw new Error(`웹 미리보기에서 ${a.selector}를 찾지 못했어요.`);
+      return `웹 화면: ${result.text}`;
+    },
     async bash_command(a, active) {
       if(typeof a.command!=='string'||!a.command||a.command.length>4000||/[\r\n\0]/.test(a.command))throw new Error('Bash 명령을 확인하세요.');
       return readTerminal(a.command,active,a.expected);
@@ -759,6 +887,7 @@
     git_command: () => '#git-demo-terminal',
     git_graph: () => '#git-demo-terminal + .git-graph-panel',
     choose_answer: a => `answer:${a.id}`, order_answer: () => '.answer-order', fill_answer: () => '[aria-label="빈칸 답안"]',
+    web_action: () => 'iframe[title="해설 웹 미리보기"]',
     say: a => a.target || null, set_code: () => 'editor', patch_code: () => 'editor', fill_blanks: () => 'blanks', run: () => 'run', submit: () => 'submit',
     answer_quiz: () => 'quiz', next: () => 'nav', prev: () => 'nav', goto: () => 'missions', next_slide: () => 'slides', finish_slides: () => 'slides',
   };
@@ -820,7 +949,7 @@
     const session=new ExplanationSession(root,options.owner);
     explanationSession=session;
     // A demonstration can execute examples, but never submit, advance or grant completion.
-    const allowed = new Set(['vim_wait', 'bash_command', 'vim_open', 'vim_keys', 'write_memo', 'inspect_folder', 'read_memo', 'git_command', 'git_graph', 'say', 'set_code', 'patch_code', 'type_code', 'set_input', 'run', 'choose_answer', 'order_answer', 'fill_answer']);
+    const allowed = new Set(['vim_wait', 'bash_command', 'vim_open', 'vim_keys', 'write_memo', 'inspect_folder', 'read_memo', 'git_command', 'git_graph', 'say', 'set_code', 'patch_code', 'type_code', 'set_input', 'run', 'web_action', 'choose_answer', 'order_answer', 'fill_answer']);
     try { return await run(Array.isArray(actions) ? actions.filter(action => allowed.has(action?.action)) : [], true); }
     finally { if (explanationSession === session) restoreExplanation(); }
   }

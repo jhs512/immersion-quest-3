@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_59fa3b5d-5f39-43aa-b585-3ba21a33558a",
-  "revision": "aice-split-1",
+  "revision": "aice-split-2",
   "title": "입력과 정답을 함께 나눠요",
   "description": "같은 배송의 입력·정답을 함께 나누며 분할 조건과 평가 목적을 확인해요.",
   "objectives": [
@@ -140,13 +140,13 @@
     {
       "id": "stp_fb7e690b-c690-48ff-856d-b6330792e82e",
       "title": "입력과 정답을 같은 줄로 봐요",
-      "goal": "같은 위치의 거리와 시간이 한 배송이에요.\n거리5와 짝인 정답을 고르세요.",
+      "goal": "같은 위치의 거리와 시간이 한 배송이에요.\n거리5와 짝인 정답을 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "paired",
       "tests": [],
       "required": true,
-      "example_code": "from sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [1, 2, 3, 4, 5, 6]\ny = [10, 20, 30, 40, 50, 60]\n# 짝을 나란히 읽어 관측 대응을 확인해요.\nprint(list(zip(X, y)))\n",
+      "example_code": "from sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [1, 2, 3, 4, 5, 6]\ny = [10, 20, 30, 40, 50, 60]\n# 짝을 나란히 읽어 관측 대응을 확인해요.\n# 확인용 출력: 같은 자리의 입력과 정답을 (입력, 정답) 쌍으로 묶어 보여 줘요.\nprint(list(zip(X, y)))\n",
       "interaction": {
         "kind": "choice",
         "options": [
@@ -163,11 +163,15 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "X는 거리, y는 시간이고 같은 자리에 있는 둘이 한 배송이에요. 거리 5와 짝인 시간을 위치로 찾는 문제예요.",
+          "target": "text:같은 위치의 거리와 시간이 한 배송이에요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
-            7,
-            7
+            8,
+            8
           ]
         },
         {
@@ -190,13 +194,13 @@
     {
       "id": "stp_1fb9323e-edb1-4dd7-a24b-42f57d45a0cc",
       "title": "같은 관측끼리 나눠요",
-      "goal": "마지막 두 배송을 평가용으로 남겼어요.\n테스트의 입력과 정답 쌍을 고르세요.",
+      "goal": "마지막 두 배송을 평가용으로 남겼어요.\n테스트의 입력과 정답 쌍을 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "tail",
       "tests": [],
       "required": true,
-      "example_code": "from sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [1, 2, 3, 4, 5, 6]\ny = [10, 20, 30, 40, 50, 60]\n# 함께 넣어 같은 관측끼리 분리해요.\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=2, shuffle=False)\nprint(list(zip(X_train, y_train)))\nprint(list(zip(X_test, y_test)))\n",
+      "example_code": "from sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [1, 2, 3, 4, 5, 6]\ny = [10, 20, 30, 40, 50, 60]\n# 함께 넣어 같은 관측끼리 분리해요.\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=2, shuffle=False)\n# 확인용 출력: 같은 자리의 입력과 정답을 (입력, 정답) 쌍으로 묶어 보여 줘요.\nprint(list(zip(X_train, y_train)))\n# 확인용 출력: 같은 자리의 입력과 정답을 (입력, 정답) 쌍으로 묶어 보여 줘요.\nprint(list(zip(X_test, y_test)))\n",
       "interaction": {
         "kind": "choice",
         "options": [
@@ -213,8 +217,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "train_test_split에 X와 y를 함께 넣으면 같은 자리끼리 묶은 채로 나눠요. shuffle=False와 test_size=2로 남긴 테스트 쌍을 고르는 문제예요.",
+          "target": "text:마지막 두 배송을 평가용으로 남겼어요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             9,
             9
@@ -240,7 +248,7 @@
     {
       "id": "stp_27e5b09a-d74d-4f79-8a2a-bccb60f48a53",
       "title": "비율과 개수는 달라요",
-      "goal": "일곱 행의25%를 테스트로 남겨요.\n나뉜 훈련·테스트 개수를 고르세요.",
+      "goal": "일곱 행의25%를 테스트로 남겨요.\n나뉜 훈련·테스트 개수를 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "round",
@@ -263,8 +271,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "test_size에 0.25 같은 실수를 주면 비율, 정수를 주면 개수예요. 일곱 행의 25%가 1.75행일 때 몇 개로 나뉘는지 예상해요.",
+          "target": "text:일곱 행의25%를 테스트로 남겨요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             8,
             8
@@ -283,7 +295,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             8,
             8
@@ -307,7 +318,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             8,
             8
@@ -328,19 +338,19 @@
     {
       "id": "stp_8fcb0a62-f16c-4f70-b5a3-5bcd25ecf93e",
       "title": "같은 조건을 다시 재현해요",
-      "goal": "같은 자료·시드·조건으로 두 번 나눴어요.\n같은 테스트 자료가 나올까요?",
+      "goal": "같은 자료·시드·조건으로 두 번 나눴어요.\n같은 테스트 자료가 나올까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "repeat",
       "tests": [],
       "required": true,
-      "example_code": "from sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [1, 2, 3, 4, 5, 6]\ny = [10, 20, 30, 40, 50, 60]\n# 같은 자료와 설정에서 같은 분할인지 봐요.\na_train, a_test = train_test_split(X, test_size=2, random_state=42)\nb_train, b_test = train_test_split(X, test_size=2, random_state=42)\nprint(a_test == b_test)\nprint(set(a_train).isdisjoint(a_test))\nprint(len(a_train) + len(a_test))\n",
+      "example_code": "from sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [1, 2, 3, 4, 5, 6]\ny = [10, 20, 30, 40, 50, 60]\n# 같은 자료와 설정에서 같은 분할인지 봐요.\na_train, a_test = train_test_split(X, test_size=2, random_state=42)\nb_train, b_test = train_test_split(X, test_size=2, random_state=42)\nprint(a_test == b_test)\n# 확인용 출력: 훈련과 테스트에 겹치는 값이 없으면 True예요.\nprint(set(a_train).isdisjoint(a_test))\nprint(len(a_train) + len(a_test))\n",
       "interaction": {
         "kind": "choice",
         "options": [
           {
             "id": "safe",
-            "text": "시드가 있으면 모든 누수도 없어져요"
+            "text": "아니요. 나눌 때마다 무작위라 테스트가 달라져요"
           },
           {
             "id": "repeat",
@@ -351,8 +361,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "random_state는 섞는 순서를 정하는 시드예요. 같은 자료와 같은 시드로 두 번 나누면 결과가 같은지가 질문이에요.",
+          "target": "text:같은 자료·시드·조건으로 두 번 나눴어요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             11,
             11
@@ -378,13 +392,13 @@
     {
       "id": "stp_da58a8f7-2c3a-4c2f-9fc0-084f4633e584",
       "title": "따로 섞으면 정답이 어긋나요",
-      "goal": "X와y를 서로 다른 시드로 나눴어요.\n이 표의 같은 배송 대응이 유지됐을까요?",
+      "goal": "X와y를 서로 다른 시드로 나눴어요.\n이 표의 같은 배송 대응이 유지됐을까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "mismatch",
       "tests": [],
       "required": true,
-      "example_code": "from sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [1, 2, 3, 4, 5, 6]\ny = [10, 20, 30, 40, 50, 60]\n# 서로 다른 섞기로 나눠 대응이 깨진 상태예요.\nX_train, X_test = train_test_split(X, test_size=2, random_state=42)\ny_train, y_test = train_test_split(y, test_size=2, random_state=7)\nprint(all(target == distance * 10 for distance, target in zip(X_test, y_test)))\n",
+      "example_code": "from sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [1, 2, 3, 4, 5, 6]\ny = [10, 20, 30, 40, 50, 60]\n# 서로 다른 섞기로 나눠 대응이 깨진 상태예요.\nX_train, X_test = train_test_split(X, test_size=2, random_state=42)\ny_train, y_test = train_test_split(y, test_size=2, random_state=7)\n# 확인용 출력: 테스트의 모든 쌍이 원래 짝(정답 = 입력 × 10)이면 True예요. 이 줄의 문법은 몰라도 돼요.\nprint(all(target == distance * 10 for distance, target in zip(X_test, y_test)))\n",
       "interaction": {
         "kind": "choice",
         "options": [
@@ -401,11 +415,15 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "X와 y를 따로 다른 시드로 나누면 각각 다르게 섞여요. 테스트에서도 같은 배송끼리 짝이 맞는지 확인하는 문제예요.",
+          "target": "text:X와y를 서로 다른 시드로 나눴어요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
-            9,
-            9
+            10,
+            10
           ]
         },
         {
@@ -421,10 +439,9 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
-            8,
-            8
+            9,
+            9
           ]
         },
         {
@@ -445,10 +462,9 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
-            9,
-            9
+            10,
+            10
           ]
         },
         {
@@ -466,7 +482,7 @@
     {
       "id": "stp_b6d77818-18de-447a-9b5b-583827b59bbe",
       "title": "분류 비율을 가깝게 나눠요",
-      "goal": "stratify에 분류 정답y를 넣었어요.\n이번 절반 분리의 라벨 개수를 고르세요.",
+      "goal": "stratify에 분류 정답y를 넣었어요.\n이번 절반 분리의 라벨 개수를 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "ratio",
@@ -489,8 +505,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "stratify=y는 정답 분류의 비율이 양쪽에서 비슷하도록 나눠요. 0이 여섯, 1이 둘일 때 절반씩 나누면 각 쪽이 어떻게 되는지 봐요.",
+          "target": "text:stratify에 분류 정답y를 넣었어요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             8,
             8
@@ -516,7 +536,7 @@
     {
       "id": "stp_fa54de92-25c4-46aa-b5a1-bcd7f4de3964",
       "title": "한 개뿐인 범주도 나눌 수 있을까요",
-      "goal": "한 분류의 관측이 하나뿐이에요.\n이 조건의 층화 분할이 될까요?",
+      "goal": "한 분류의 관측이 하나뿐이에요.\n이 조건의 층화 분할이 될까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "error",
@@ -528,7 +548,7 @@
         "options": [
           {
             "id": "works",
-            "text": "네.관측 하나를 양쪽에복사해요"
+            "text": "네. 하나뿐인 1은 테스트 쪽에 넣어 나눠요"
           },
           {
             "id": "error",
@@ -539,8 +559,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "층화는 분류마다 양쪽에 적어도 하나씩 나눠야 해요. 1이 하나뿐이면 그 조건을 채울 수 있는지가 질문이에요.",
+          "target": "text:한 분류의 관측이 하나뿐이에요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             7,
             7
@@ -560,7 +584,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             7,
             7
@@ -584,7 +607,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             7,
             7
@@ -606,7 +628,7 @@
     {
       "id": "stp_de190aec-5129-4fea-a670-f441d780e9f3",
       "title": "섞지 않아도 시간순서는 아니에요",
-      "goal": "섞지 않으면 날짜가 자동 정렬될까요?\n지금 코드의 의미를 고르세요.",
+      "goal": "섞지 않으면 날짜가 자동 정렬될까요?\n지금 코드의 의미를 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "order",
@@ -622,15 +644,19 @@
           },
           {
             "id": "time",
-            "text": "네.항상 과거와 미래로 정렬돼요"
+            "text": "네. shuffle=False면 작은 날짜부터 정렬돼요"
           }
         ],
         "answer": "order"
       },
       "narration": [
         {
+          "action": "say",
+          "text": "shuffle=False는 섞지 않을 뿐 받은 순서를 그대로 잘라요. 날짜가 뒤섞인 목록에서 테스트가 미래 날짜가 되는지 판단해요.",
+          "target": "text:섞지 않으면 날짜가 자동 정렬될까요?"
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             7,
             7
@@ -649,7 +675,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             7,
             7
@@ -673,7 +698,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             7,
             7
@@ -694,7 +718,7 @@
     {
       "id": "stp_3b5d9768-c2d2-45cd-b705-f2cb81ba6688",
       "title": "조정용과 마지막 평가를 나눠요",
-      "goal": "검증과 마지막 테스트를 따로 남겼어요.\n어느 자료로 모델 선택을 조정할까요?",
+      "goal": "검증과 마지막 테스트를 따로 남겼어요.\n어느 자료로 모델 선택을 조정할까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "validation",
@@ -717,8 +741,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "나누기를 두 번 해서 훈련·검증·테스트 세 덩어리를 만들었어요. 모델을 고르며 여러 번 확인할 자료와 마지막에 한 번 볼 자료를 구별해요.",
+          "target": "text:검증과 마지막 테스트를 따로 남겼어요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             9,
             9
@@ -744,10 +772,10 @@
     {
       "id": "stp_58dfc422-9961-4f4d-82bf-f6e250e4503c",
       "title": "네 반환값의 자리를 맞춰요",
-      "goal": "훈련과 테스트 정답의 자리가 바뀌었어요.\n마지막 두 반환 변수의 순서를 고치세요.",
+      "goal": "훈련과 테스트 정답의 자리가 바뀌었어요.\n마지막 두 반환 변수의 순서를 고치세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 수정 전 결과를 확인하세요.\n2. 문제가 말한 한 곳을 고치세요.\n3. 다시 실행해 결과가 요구와 맞는지 비교하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "from sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [1, 2, 3, 4, 5, 6]\ny = [10, 20, 30, 40, 50, 60]\n# 입력마다 훈련과 테스트가 나오는 반환 순서를 확인해요.\ntest_count = 2\nX_train, X_test, y_test, y_train = train_test_split(X, y, test_size=test_count, shuffle=False)\nprint(len(X_train), len(y_train), len(X_test), len(y_test))\nprint(list(zip(X_test, y_test)))\n",
-      "solution": "from sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [1, 2, 3, 4, 5, 6]\ny = [10, 20, 30, 40, 50, 60]\n# 입력마다 훈련과 테스트가 나오는 반환 순서를 확인해요.\ntest_count = 2\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_count, shuffle=False)\nprint(len(X_train), len(y_train), len(X_test), len(y_test))\nprint(list(zip(X_test, y_test)))\n",
+      "starter_code": "from sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [1, 2, 3, 4, 5, 6]\ny = [10, 20, 30, 40, 50, 60]\n# 입력마다 훈련과 테스트가 나오는 반환 순서를 확인해요.\ntest_count = 2\nX_train, X_test, y_test, y_train = train_test_split(X, y, test_size=test_count, shuffle=False)\nprint(len(X_train), len(y_train), len(X_test), len(y_test))\n# 확인용 출력: 같은 자리의 입력과 정답을 (입력, 정답) 쌍으로 묶어 보여 줘요.\nprint(list(zip(X_test, y_test)))\n",
+      "solution": "from sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [1, 2, 3, 4, 5, 6]\ny = [10, 20, 30, 40, 50, 60]\n# 입력마다 훈련과 테스트가 나오는 반환 순서를 확인해요.\ntest_count = 2\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_count, shuffle=False)\nprint(len(X_train), len(y_train), len(X_test), len(y_test))\n# 확인용 출력: 같은 자리의 입력과 정답을 (입력, 정답) 쌍으로 묶어 보여 줘요.\nprint(list(zip(X_test, y_test)))\n",
       "tests": [
         {
           "input": "",
@@ -757,11 +785,15 @@
       "required": true,
       "narration": [
         {
+          "action": "say",
+          "text": "train_test_split은 X_train, X_test, y_train, y_test 순서로 돌려줘요. 받는 변수의 순서가 바뀌면 이름과 내용이 어긋나요.",
+          "target": "text:마지막 두 반환 변수의 순서를 고치세요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
-            10,
-            10
+            11,
+            11
           ]
         },
         {
@@ -777,10 +809,9 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
-            10,
-            10
+            11,
+            11
           ]
         },
         {

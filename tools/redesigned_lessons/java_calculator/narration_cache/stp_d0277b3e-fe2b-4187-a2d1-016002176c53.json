@@ -1,25 +1,53 @@
 {
   "by": "hand",
-  "source_sha256": "31366db1097b235d556c13d50b505bacd7187120fbda57cbc3a5aafe77aa6f81",
+  "source_sha256": "94addc7096c7a8e53275a33e21ec7d32c655f10bff0e0f90e2b76db6c3e5a171",
   "entry": [
     {
       "action": "say",
-      "text": "이제 준비된 Calculator에서 같은 순서를 구현해요. expression은 덧셈, term은 곱셈, factor는 숫자와 괄호를 맡아요.",
-      "target": "problem"
-    },
-    {
-      "action": "run",
-      "say": "제공된 코드부터 실행해요."
+      "text": "앞에서 확인한 순서를 메서드 세 개로 나눈 계산기예요.",
+      "target": "text:expression은 덧셈, term은 곱셈, factor는 숫자를 맡아요."
     },
     {
       "action": "say",
-      "text": "term이 3 곱하기 4를 먼저 처리해 결과는 14예요.",
+      "text": "질문은 expression이 숫자가 아니라 term의 결과를 더하는 이유예요.",
+      "target": "text:expression이 term의 결과를 더하는 이유는 무엇일까요?"
+    },
+    {
+      "action": "say",
+      "text": "expression은 더하기 기호가 나올 때마다 term을 불러 더해요.",
+      "target": "code:while (accept('+')) value += term();"
+    },
+    {
+      "action": "say",
+      "text": "term은 곱하기 기호가 이어지는 동안 factor를 곱해 한 값으로 돌려줘요.",
+      "target": "code:while (accept('*')) value *= factor();"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "14예요. term이 3 곱하기 4를 12로 끝낸 뒤 expression이 2와 더했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "while (accept('+')) value += term();",
+      "after": "while (accept('+')) value += factor();",
+      "say": "덧셈 단계가 term 대신 factor를 바로 부르게 바꿔 볼게요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "5가 나왔어요. 3만 더하고 곱하기 4는 읽지도 못했어요.",
       "target": "output"
     },
     {
       "action": "say",
-      "text": "조심하세요. 전체 코드를 외우지 말고 expression과 term의 책임을 구별해요.",
-      "target": "output"
+      "text": "조심하세요. 덧셈 단계가 숫자를 바로 읽으면 곱셈이 끼어들 자리가 없어요.",
+      "target": "code:value += factor();"
     },
     {
       "action": "choose_answer",

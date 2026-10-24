@@ -143,7 +143,7 @@ pub fn Learning(
         && !(active_mission + 1 == active_total && next.is_some()));
     // "AI에게 물어보기": the tutor chat knows the mission on screen.
     let mut assistant_open = use_signal(|| false);
-    // An instructor button (정답 보기 · 해설 보기) posts a request: show the panel that plays it.
+    // The instructor's 해설 보기 posts a request: show the panel that plays it.
     {
         let requests = use_context::<crate::instructor_mode::InstructorRequests>();
         let mut seen = use_signal(move || requests.seq());
@@ -874,7 +874,7 @@ pub(crate) fn AssistantPanel(
     });
     // Play a precompiled action script on screen: the lines go into the conversation at once,
     // then the agent performs them and reports back. `/auto` plays the mission's 해설
-    // (courses/*.json `narration`); the instructor's 정답 보기 plays its answer-filling steps.
+    // (courses/*.json `narration`); /tour-all plays its gist and answer steps.
     let mut narrating = use_signal(|| false);
     let perform = Callback::new(move |(heading, actions): (String, String)| {
         pending.set(true);
@@ -1003,7 +1003,7 @@ pub(crate) fn AssistantPanel(
             request.call(());
         }
     });
-    // The instructor's buttons: 해설 보기 is a typed /auto; 정답 보기 performs the answer steps.
+    // The instructor's 해설 보기 is a typed /auto.
     {
         let requests = use_context::<crate::instructor_mode::InstructorRequests>();
         let mut seen = use_signal(move || requests.seq());
@@ -1025,13 +1025,6 @@ pub(crate) fn AssistantPanel(
                         text: AUTO.into(),
                     });
                     auto.call(());
-                }
-                crate::instructor_mode::InstructorAction::Solve(actions) => {
-                    messages.write().push(Turn {
-                        role: "user".into(),
-                        text: "정답 보기".into(),
-                    });
-                    perform.call(("정답 입력".into(), actions));
                 }
             }
         });
@@ -1353,7 +1346,6 @@ pub(crate) fn UnitWorkspace(
                 button {class:"prompt-guide-open",onclick:move |_|guide_open.set(true),"프롬프트 해설"}
             }
 
-            if !unit.solution.is_empty() { details { summary {"정답과 풀이 보기"} Markdown { text:format!("```{}\n{}\n```", unit.language.name(), unit.solution) } } }
             if !unit.blanks.is_empty(){p{class:"blank-note","코드의 빈칸만 채워보세요. 나머지 코드는 수정하지 않습니다."}}
         }
         div{class:"split-handle split-col",role:"separator",aria_orientation:"vertical",aria_label:"문제와 코드 영역 너비 조절",tabindex:"0",title:"드래그로 너비 조절, 더블 클릭으로 되돌리기"}

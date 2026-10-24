@@ -161,12 +161,12 @@
               "core_flow": "같은표를SVC(kernel=linear)로학습해새범주0/1,기본probabilityFalse,decision_function모양2를확인한다. 결정점수를0~1확률로자동해석하지않으며확률제공여부를API에서확인한다.\n\n## 학습 환경 호환 검증\nscikit-learn1.3.2의 SVC probability 기본 매개변수는False였지만 배포1.9.1은deprecated 문자열이다. 이 기본값 표현 자체를 학습 목표로 삼지 않는다. 두 환경에서 실제 기본SVC를 학습한 뒤 hasattr(model,\"predict_proba\")는False이고, 확률 호출은AttributeError였다. 제공 코드가 모델 설정의 확률API 지원 여부를 직접 확인하도록 바꾼다. 범주[0,1]·지원False·결정 점수형상[2]를 실제 실행으로 대조한다. 이 문제의 핵심인 결정 점수와 확률의 구별은 그대로 유지한다."
             },
             {
-              "id": "stp_c781837e-9f25-4818-a8b6-be70e93f7cc6",
-              "title": "훈련을 외운 모델도 확인해요",
+              "id": "stp_0800a4d0-3b43-47c9-bc52-171cb69bc055",
+              "title": "같은 검증 자료로 두 후보를 비교해요",
               "objectives": [
-                "훈련 점수와 같은 평가 자료의 점수를 구별해요."
+                "같은 검증 자료와 같은 지표로 두 후보의 점수를 비교해 모델을 골라요."
               ],
-              "core_flow": "거리0/1/2/3에정답0/1/0/1인깊은트리를학습한다. 훈련정확도1,새0.2/0.8/2.2/2.8의실제모두0에서정확도0.5를실행한다. 훈련최고모델이항상새자료최고라는판단을거절한다."
+              "core_flow": "거리 1~9 중 거리 3만 정답이 튀는 훈련 표로 깊이 제한 없는 트리(deep)와 깊이 1 트리(shallow)를 학습한다. 같은 검증 자료 2.8/3.2/6.8/7.2(정답 0/0/1/1)에서 훈련 정확도 1.0/0.875, 검증 정확도 0.5/1.0을 실행해 검증 점수가 높은 shallow를 고른다. 해설은 shallow의 깊이 제한을 풀면 검증 0.5로 같아짐을 보이고 되돌린다. 수업 목표 \"같은 배송 자료로 여러 모델을 비교\"를 이 스텝에서 수행한다. 이전 revision의 단일 모델 훈련/새 자료 스텝(stp_c781837e…)은 다른 수업과 같은 결론을 되풀이해 이번 revision에서 빠지며 완료 기록은 이전 revision에 남는다."
             },
             {
               "id": "stp_ba77c57b-72f9-45b2-a941-33a009a25bd7",
@@ -218,8 +218,8 @@
   "approval": {
     "status": "approved",
     "by": "사용자의 전체 과정 설계·구현 위임",
-    "evidence": ".scratch/player-content-redesign/authorization-2026-10-19.md",
-    "content_sha256": "f0d139d2514d4de6eee2b6ae6c89210f25fd34c05fd41ecf8f58786cd8ef70cf",
+    "evidence": ".scratch/player-content-redesign/authorization-2026-10-19.md 2026-10-24 사용자: 세 과정 빌드업 감사의 근거 있는 교정(문제 설명 해설, 정밀 강조, 상투 경고 제거, 선수 개념 다리, 점진 예제, 평가 결함)을 계획하고 실행하도록 Claude Code에 위임했어요(Codex 경유). 교육 목표와 교수법은 유지하고 이 문서를 직접 검토했다고 주장하지 않아요.",
+    "content_sha256": "c271a2585eb2641baa441f2afda59863dc41457df46d1d16544cdc45078bef05",
     "mode": "delegated_scope"
   }
 }

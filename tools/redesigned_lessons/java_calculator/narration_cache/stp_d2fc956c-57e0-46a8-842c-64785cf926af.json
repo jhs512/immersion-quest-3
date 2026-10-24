@@ -1,25 +1,53 @@
 {
   "by": "hand",
-  "source_sha256": "d243d83af8a732714a954def8a220bcadf484d321a0491dbf0ef349aeff21bbc",
+  "source_sha256": "6c65fe3703463de79308a51e333c3425eeab70e43d29255839f3a27bc765c229",
   "entry": [
     {
       "action": "say",
-      "text": "이번에는 작은 계산기를 만들어요. 숫자 묶음과 연산 기호를 먼저 구분해요.",
-      "target": "problem"
-    },
-    {
-      "action": "run",
-      "say": "제공된 코드부터 실행해요."
+      "text": "계산하려면 식을 먼저 조각으로 나눠야 해요.",
+      "target": "text:계산하려면 먼저 식을 숫자 묶음과 연산 기호로 나눠야 해요."
     },
     {
       "action": "say",
-      "text": "숫자 묶음 12를 하나로 읽었어요.",
+      "text": "질문은 12라는 두 글자가 한 조각인지, 1과 2 두 조각인지예요.",
+      "target": "text:12+3을 토큰으로 나누면 12는 몇 조각일까요?"
+    },
+    {
+      "action": "say",
+      "text": "패턴의 첫 갈래 대괄호 영부터 구 뒤의 더하기는 숫자 글자가 하나 이상 이어진 덩어리를 뜻해요.",
+      "target": "code:[0-9]+#2"
+    },
+    {
+      "action": "say",
+      "text": "find가 찾은 조각을 하나씩 목록에 담아요.",
+      "target": "code:while (matcher.find()) tokens.add(matcher.group());"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "목록은 12, 더하기, 3 세 조각이에요. 12가 한 덩어리로 읽혔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "[0-9]+|",
+      "after": "[0-9]|",
+      "say": "숫자 갈래의 더하기를 빼 볼게요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "이번엔 1과 2가 따로 나뉘었어요. 더하기 기호 하나가 여러 자리 숫자를 묶는 거예요.",
       "target": "output"
     },
     {
       "action": "say",
-      "text": "조심하세요. 토큰 찾기만으로 입력 전체의 올바름이 보장되지는 않아요.",
-      "target": "output"
+      "text": "조심하세요. 정규식의 더하기는 반복 표시이고 계산의 덧셈과 상관없어요.",
+      "target": "code:[0-9]|"
     },
     {
       "action": "choose_answer",

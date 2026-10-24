@@ -1,15 +1,14 @@
 {
   "by": "hand",
-  "source_sha256": "4ee1a98783723f47395e7c80d9870f0188ff43a4ea59b41e754aa38294e3ed6c",
+  "source_sha256": "7ef0b0a3f8a1949185be35b4729950ae25bf3fb6c8af1d798ff480b41d38697b",
   "entry": [
     {
       "action": "say",
-      "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-      "target": "problem"
+      "text": "AI가 만든 조건이 기준 금액에서 틀린 결과를 내요. 금액과 기준은 그대로 두고 비교만 고쳐요.",
+      "target": "text:AI가 만든 무료배송 조건이 경계에서 틀려요."
     },
     {
       "action": "run",
-      "say": "실행해서 결과를 함께 확인해요.",
       "lines": [
         10,
         10
@@ -17,18 +16,22 @@
     },
     {
       "action": "say",
-      "text": "기준과 같은데 삼천 원을 받아 규칙과 달라요.",
+      "text": "3,000원이 나와요. 20,000원은 무료여야 하는데 배송비를 받았어요.",
       "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "초과 비교라서 기준과 같은 금액이 빠졌어요.",
+      "target": "code:amount > limit"
     },
     {
       "action": "patch_code",
       "before": "amount > limit",
       "after": "amount >= limit",
-      "say": "같은 금액도 포함하도록 비교만 바꿔요."
+      "say": "크거나 같음으로 바꿔 기준 금액을 포함해요."
     },
     {
       "action": "run",
-      "say": "실행해서 결과를 함께 확인해요.",
       "lines": [
         10,
         10
@@ -36,13 +39,13 @@
     },
     {
       "action": "say",
-      "text": "경계를 포함하니 배송비가 영 원이 됐어요.",
+      "text": "0원이에요. 기준 금액이 무료가 됐어요.",
       "target": "output"
     },
     {
       "action": "say",
-      "text": "조심하세요. 결과를 영으로 고정하면 작은 주문도 무료예요.",
-      "target": "output"
+      "text": "조심하세요. 0을 바로 출력하게 바꾸면 이 금액만 맞고 작은 주문까지 무료가 돼요.",
+      "target": "code:fee = 0;"
     },
     {
       "action": "patch_code",
@@ -52,7 +55,6 @@
     },
     {
       "action": "run",
-      "say": "실행해서 결과를 함께 확인해요.",
       "lines": [
         10,
         10
@@ -60,18 +62,17 @@
     },
     {
       "action": "say",
-      "text": "기준 미만은 삼천 원으로 남아 있어요.",
+      "text": "19,999원은 여전히 3,000원이에요.",
       "target": "output"
     },
     {
       "action": "patch_code",
       "before": "amount = 19999",
       "after": "amount = 20000",
-      "say": "처음 경계값으로 다시 검증해요."
+      "say": "처음 경계값으로 다시 확인해요."
     },
     {
       "action": "run",
-      "say": "실행해서 결과를 함께 확인해요.",
       "lines": [
         10,
         10
@@ -79,7 +80,7 @@
     },
     {
       "action": "say",
-      "text": "기준값을 포함하는 규칙이 코드와 맞아요.",
+      "text": "기준을 포함하는 규칙과 코드가 맞아요.",
       "target": "output"
     }
   ]

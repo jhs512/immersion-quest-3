@@ -2,7 +2,13 @@ use dioxus::prelude::*;
 use molip_quest::{github_player::{self,Github,GithubUser},issue_progress::{self,LearningEvent,ProgressKey,StudyMode,EventKind},repository_course::{self,CourseManifest,Lesson,Task}};
 use std::collections::HashMap;
 
-fn merge_local_events(mut target:Signal<Vec<LearningEvent>>,latest:Vec<LearningEvent>){
+/// Every event the lesson records also goes to the in-memory catalog overlay at once, so the
+/// course list shows it on return before the recorder thread, SQLite or GitHub finish.
+fn remember_for_catalog(repository:&str,events:&[LearningEvent]){
+    molip_quest::progress_overlay::shared().remember(repository,events);
+}
+fn merge_local_events(mut target:Signal<Vec<LearningEvent>>,repository:&str,latest:Vec<LearningEvent>){
+    remember_for_catalog(repository,&latest);
     if let Some(event)=latest.first(){let key=event.key.clone();target.with_mut(|current|*current=issue_progress::merge(std::mem::take(current).into_iter().chain(latest),&key));}
 }
 
@@ -43,12 +49,12 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
     let repositories=use_signal(molip_quest::course_authoring::catalog);
     let mut course_search=use_signal(String::new);
     let mut course_titles=use_signal(HashMap::<String,String>::new);
-    let mut progress=use_signal(HashMap::<String,Vec<LearningEvent>>::new);
-    let mut progress_requirements=use_signal(HashMap::<String,Vec<String>>::new);
+    // Loaded catalog progress for one account/course; the render unites it with the overlay.
+    let mut catalog=use_signal(molip_quest::progress_overlay::CatalogProgress::default);
     let mut refresh=use_signal(||0u64);
     let connect=move ||async move {
         checked.set(false);
-        progress.set(HashMap::new());progress_requirements.set(HashMap::new());course.set(None);session.set(None);
+        catalog.set(Default::default());course.set(None);session.set(None);
         busy.set(true);message.set("GitHub 계정과 코스 콘텐츠를 확인하고 있어요.".into());
         let github=Github::new();let gh=github.clone();
         match github_player::background(move||{
@@ -138,9 +144,28 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
     if let Some(selected)=open() {
         if let Some(session)=session() {
             let player_key=format!("{}:{}:{}:{}:{}",session.user.id,selected.course.id,selected.lesson.id,selected.mode.label(),selected.round);
-            return rsx!{div {class:"repository-session", {rsx!{LessonPlayer {key:"{player_key}",session,selected,window_controls,updates,onback:move |_|{document::eval("window.molipAgent?.stop()");molip_quest::bug_report::forget();open.set(None);refresh+=1;}}}} }};
+            let user_id=session.user.id;
+            return rsx!{div {class:"repository-session", {rsx!{LessonPlayer {key:"{player_key}",session,selected,window_controls,updates,onback:move |_|{
+                document::eval("window.molipAgent?.stop()");molip_quest::bug_report::forget();
+                // The returning lesson's requirements let its card compute 100% even when the
+                // catalog's first load has not finished; its events are already in the overlay.
+                // They are filed under the lesson's revision, so after a content update a list
+                // for the previous revision neither blocks nor replaces the current one.
+                if let Some(selected)=open.peek().clone() {
+                    if selected.course.lessons.iter().any(|l|l.id==selected.lesson.id&&l.revision==selected.lesson.revision) {
+                        let scope=molip_quest::progress_overlay::ProgressScope::new(&selected.course.repository,user_id,&selected.course.id);
+                        catalog.with_mut(|loaded|loaded.require(&scope,&selected.lesson.id,&selected.lesson.revision,selected.lesson.required_tasks()));
+                    }
+                }
+                open.set(None);refresh+=1;
+            }}}} }};
         }
     }
+    // Read synchronously on every render, so a return from a lesson shows its fresh events now.
+    let (progress,progress_requirements)=match (session(),visible_course.as_ref()) {
+        (Some(s),Some(manifest))=>catalog.read().view(&molip_quest::progress_overlay::ProgressScope::new(&manifest.repository,s.user.id,&manifest.id),molip_quest::progress_overlay::shared(),&manifest.lessons),
+        _=>Default::default(),
+    };
     rsx!{
         div {class:if session().is_none(){"repository-player needs-gh"}else{"repository-player"},
             header {class:"repository-header",h1 {"MQ"}
@@ -170,7 +195,11 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                 if let Some((title,stage))=launching() {LessonLaunchStatus {title,stage}}
 
                 if let Some(manifest)=visible_course {
-                if let Some(s)=session() {CourseProgressLoader {key:"{s.user.id}:{manifest.repository}:{manifest.lessons:?}:{refresh}",session:s,course:manifest.clone(),onloaded:move |records:github_player::CourseProgress|{progress.set(records.events);progress_requirements.set(records.required);}}}
+                if let Some(s)=session() {CourseProgressLoader {key:"{s.user.id}:{manifest.repository}:{manifest.lessons:?}:{refresh}",session:s,course:manifest.clone(),onloaded:move |records:github_player::CourseProgress|{
+                    // A result read for another account or course (a late reply) is dropped.
+                    let current=match (session.peek().as_ref(),course.peek().as_ref()) {(Some(s),Some(c))=>molip_quest::progress_overlay::ProgressScope::new(&c.repository,s.user.id,&c.id),_=>return};
+                    catalog.with_mut(|loaded|{loaded.accept(records,&current);});
+                }}}
                 section {class:"course-catalog",h2 {"{manifest.title}"}p {"{manifest.description}"}
                     crate::course_guide_ui::CourseGuideButton {key:"{manifest:?}",course:manifest.clone()}
                     if let Some(s)=session() {
@@ -179,7 +208,7 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                             if current==scope {if ready {identity_scope.set(scope.clone());if let Some(link)=waiting_name_link(){if link.course==course.peek().as_ref().map(|c|c.repository.as_str()).unwrap_or(""){waiting_name_link.set(None);molip_quest::lesson_link::receive(&link.app_url());}}}else{identity_scope.set(String::new());}}
                         }}}
                     }
-                    {let records=progress();let total=manifest.lessons.iter().filter(|l|l.required).count();let complete=manifest.lessons.iter().filter(|l|l.required&&records.get(&l.id).is_some_and(|e|issue_progress::status(e,&l.revision,progress_requirements().get(&l.id).map(Vec::as_slice).unwrap_or(&[])).current)).count();rsx!{p {class:"study-progress","최신 버전 완료: 필수 수업 {complete} / {total}"}}}
+                    {let records=&progress;let total=manifest.lessons.iter().filter(|l|l.required).count();let complete=manifest.lessons.iter().filter(|l|l.required&&records.get(&l.id).is_some_and(|e|issue_progress::status(e,&l.revision,progress_requirements.get(&l.id).map(Vec::as_slice).unwrap_or(&[])).current)).count();rsx!{p {class:"study-progress","최신 버전 완료: 필수 수업 {complete} / {total}"}}}
                     p {"추천 순서와 상관없이 어떤 수업이든 선택할 수 있어요."}
                     a {href:format!("https://jhs512.github.io/immersion-quest-3/dashboard/{}/",manifest.repository),target:"_blank",rel:"noopener noreferrer","대시보드 보기"}
                     div {class:"repository-lessons",
@@ -188,7 +217,7 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                                 div {class:"lesson-card-heading",span {class:"lesson-number","수업 {index+1}"}h3 {"{reference.title}"}}
                                 p {class:"lesson-revision","버전 {reference.revision}"}
                                 LessonShare {repository:manifest.repository.clone(),lesson_id:reference.id.clone()}
-                                {let records=progress().get(&reference.id).cloned().unwrap_or_default();let requirements=progress_requirements().get(&reference.id).cloned();rsx!{
+                                {let records=progress.get(&reference.id).cloned().unwrap_or_default();let requirements=progress_requirements.get(&reference.id).cloned();rsx!{
                                     if let Some(required)=requirements {
                                         {let summary=issue_progress::learning_progress(&records,&reference.revision,&required);rsx!{
                                             div {class:"lesson-progress",aria_label:"수업 진도",
@@ -294,8 +323,13 @@ fn LessonLaunchStatus(title:String,stage:u8)->Element {
 fn CourseProgressLoader(session:Session,course:CourseManifest,onloaded:EventHandler<github_player::CourseProgress>)->Element {
     let mut message=use_signal(||"진도를 불러오고 있어요.".to_string());
     use_future(move ||{let session=session.clone();let course=course.clone();async move {
-        match github_player::background(move||session.github.course_progress(&course,&session.user)).await {
-            Ok(records)=>{onloaded.call(records);message.set(String::new());},Err(e)=>message.set(e)
+        // Local history first: it never waits for GitHub. The remote read follows in the
+        // background and can only add to what is shown (the catalog unites both results).
+        let local={let session=session.clone();let course=course.clone();github_player::background(move||session.github.course_progress(&course,&session.user)).await};
+        let local_failed=match local {Ok(records)=>{onloaded.call(records);message.set(String::new());None},Err(e)=>Some(e)};
+        match github_player::background(move||session.github.refreshed_course_progress(&course,&session.user)).await {
+            Ok(records)=>{onloaded.call(records);message.set(String::new());},
+            Err(e)=>message.set(local_failed.map(|local|format!("{e} ({local})")).unwrap_or(e)),
         }
     }});
     rsx!{p {class:"repository-status",role:"status","{message}"}}
@@ -322,7 +356,8 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
     use_future({let session=session.clone();let selected=selected.clone();move ||{let session=session.clone();let selected=selected.clone();async move {
         if selected.mode==StudyMode::Full {if let Some(first)=selected.lesson.sections.first() {
             let mut event=LearningEvent::new(ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},&selected.lesson.revision,selected.mode,&selected.round,EventKind::Viewed);event.task_id=Some(first.id.clone());
-            match github_player::background(move||session.github.record(&selected.course.repository,&session.user,&selected.lesson.title,&event,&[])).await {Ok(latest)=>merge_local_events(events,latest),Err(e)=>activity_message.set(e)}
+            let repository=selected.course.repository.clone();
+            match github_player::background(move||session.github.record(&selected.course.repository,&session.user,&selected.lesson.title,&event,&[])).await {Ok(latest)=>merge_local_events(events,&repository,latest),Err(e)=>activity_message.set(e)}
         }}
     }}});
     let state=issue_progress::status(&events(),&selected.lesson.revision,&selected.lesson.required_tasks());
@@ -339,7 +374,7 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
             event.task_id=Some(selected.lesson.sections[index].id.clone());
             let title=selected.lesson.title.clone();let repo=selected.course.repository.clone();
             match github_player::background(move||session.github.record(&repo,&session.user,&title,&event,&[])).await {
-                Ok(latest)=>{merge_local_events(events,latest);section_index.set(index);activity_message.set(String::new());},Err(e)=>activity_message.set(e)
+                Ok(latest)=>{merge_local_events(events,&selected.course.repository,latest);section_index.set(index);activity_message.set(String::new());},Err(e)=>activity_message.set(e)
             }
         });
     }};
@@ -373,7 +408,7 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
                 RepositoryTask {key:"{selected.round}:{task.id}",session:session.clone(),selected:selected.clone(),task,events,
                     has_next:task_index()+1<task_count,
                     onnext:move |_|{if task_index()+1<task_count{task_index+=1;}else{onback.call(());}},
-                    onrecord:move |new_events:Vec<LearningEvent>|{if let Some(first)=new_events.first(){let key=first.key.clone();events.set(issue_progress::merge(events().into_iter().chain(new_events),&key));}}}
+                    onrecord:{let repository=selected.course.repository.clone();move |new_events:Vec<LearningEvent>|{remember_for_catalog(&repository,&new_events);if let Some(first)=new_events.first(){let key=first.key.clone();events.set(issue_progress::merge(events().into_iter().chain(new_events),&key));}}}}
 
             } else {
                 article {class:"card repository-reading",
@@ -395,8 +430,9 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
             if events.peek().iter().any(|e|e.kind==EventKind::Started&&e.task_id.as_deref()==Some(task_id.as_str())&&e.round==selected.round){return;}
             let mut event=LearningEvent::new(ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},&selected.lesson.revision,selected.mode,&selected.round,EventKind::Started);
             event.task_id=Some(task_id);
+            let repository=selected.course.repository.clone();
             match github_player::background(move||session.github.record(&selected.course.repository,&session.user,&selected.lesson.title,&event,&[])).await {
-                Ok(latest)=>merge_local_events(events,latest),Err(error)=>eprintln!("Problem start recording failed: {error}"),
+                Ok(latest)=>merge_local_events(events,&repository,latest),Err(error)=>eprintln!("Problem start recording failed: {error}"),
             }
         }
     }});
@@ -435,7 +471,6 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     let ordered_answer=use_memo(move||code());
     use_effect(move||{if ordered_task.example_order_marker.is_some(){match ordered_task.example_for_answer(&ordered_answer()){Ok(source)=>{if *example_source.peek()!=source{example_source.set(source);reset.with_mut(|version|*version+=1);}},Err(error)=>{if *message.peek()!=error{message.set(error);}}}}});
 
-    let mut show_solution=use_signal(||false);
     let mut passed_dialog=use_signal(||false);
     let mut submitting=use_signal(||false);
     use_drop(||{document::eval("window.molipAgent?.stop()");});
@@ -459,9 +494,6 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
         let gh=session.github.clone();let user=session.user.clone();let repo=selected.course.repository.clone();let title=selected.lesson.title.clone();
         spawn(async move {match github_player::background(move||gh.record(&repo,&user,&title,&event,&[])).await {Ok(latest)=>onrecord.call(latest),Err(e)=>history_message.set(format!("해설 이력을 저장하지 못했어요. {e}"))}});
     }};
-    let solution_text=if let Some(exercise)=task.git_terminal.as_ref().filter(|e|e.java_build.is_some()) {
-        let shell=exercise.shell.as_ref().unwrap();format!("### Main.java\n```java\n{}\n```\n### 터미널에서 실행할 명령\n```bash\n{}\n```\n{}",shell.goal.files["Main.java"],shell.commands.join("\n"),task.solution)
-    }else{format!("```{}\n{}\n```",task.language.editor(),task.solution)};
     rsx!{
         article {class:"lesson repository-task","data-course-id":selected.course.id.clone(),"data-lesson-id":selected.lesson.id.clone(),"data-task-id":task.id.clone(),"data-predict-before-run":task.predict_before_run.to_string(),"data-busy":busy().to_string(),"data-narrating":narrating().to_string(),"data-explanation-session":explanation_session.owner(),"data-git-ready":git_practice().is_some().to_string(),
             section {class:"problem-pane",div {class:"problem-heading",h2 {"{task.title}"}
@@ -474,7 +506,6 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                 if !task.required {p {class:"challenge-note","선택 도전이에요. 수업 완료 후에 풀어도 돼요."}}
                 if !task.hints.is_empty() {div {class:"task-hints",for (index,hint) in task.hints.iter().enumerate(){details {summary {"힌트 {index+1}"}crate::ui::Markdown{text:hint.clone()}}}}}
                 div {class:"explanation-controls",role:"group",aria_label:"풀이와 해설",
-                button {class:"solution-toggle",onclick:{let record=record_explanation.clone();move |_|{if !show_solution(){record();}show_solution.set(!show_solution());}},"정답과 풀이 보기"}
                 if !task.narration.is_empty() {
                     button {class:"narration-play",disabled:busy()||narrating(),onclick:{let actions=task.narration.clone();let record=record_explanation.clone();let needs_git=task.git_terminal.is_some();let demo_code=task.starter_code.clone();let demo_example=task.example_for_answer(&demo_code).unwrap_or_default();let has_interaction=task.interaction.is_some();let demo_input=task.tests.first().map(|case|case.input.clone()).unwrap_or_default();move |_|{
                         record();
@@ -500,7 +531,6 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                     if explanation.before_success {p {title:"풀이 전에 해설을 함께 봤어요.",aria_label:"풀이 전 해설 확인","💡 풀이 전에 해설을 확인했어요."}}
                     if explanation.after_success {p {title:"성공 후 해설을 다시 봤어요.",aria_label:"성공 후 해설 확인","↺ 성공 후 해설을 다시 확인했어요."}}
                 }}
-                if show_solution() {crate::ui::Markdown{text:solution_text.clone()}}
                 if !provided_files.is_empty() {details {class:"provided-files",summary {"함께 제공한 파일"}
                     for (name,body,used) in &provided_files {details {class:"provided-file",key:"{name}",summary {{format!("{name}{}",if *used {" · 이 문제에서 사용"}else{""})}}crate::ui::Markdown{text:format!("```\n{body}\n```")}}}
                 }}

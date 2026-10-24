@@ -10,7 +10,7 @@ async fn dictionary_calls_and_aliases_match_real_outputs_including_explained_err
         vec!["2\n3","2\n4","2\n3"],vec!["","","[12, 18, 24]"],
         vec!["[12, 18, 24]\n[24, 12, 18]"],
         vec!["[12, 18, 24]\n[24, 12, 18]","[24, 18, 12]\n[24, 12, 18]"],
-        vec!["18","8","18"],vec!["","18","18","18"]];
+        vec!["18","","18"],vec!["","18","18","18"]];
     for (index,task) in lesson.tasks.iter().enumerate() {
         assert!(!lesson_runner::check(task,&task.starter_code).await.unwrap().passed,"Step {} starts unsolved",index+1);
         assert!(lesson_runner::check(task,&task.solution).await.unwrap().passed,"Step {} solution",index+1);

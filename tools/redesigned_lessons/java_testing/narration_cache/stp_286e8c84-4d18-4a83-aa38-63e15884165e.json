@@ -1,15 +1,19 @@
 {
   "by": "hand",
-  "source_sha256": "7cde40cdc64e9d577d5553863475382f697531c34e046ad7acf9ee17722babf9",
+  "source_sha256": "498bd65ecb54ae1a7fc84c54fd76f506f496f6cb1b9085f014b7164b057e724d",
   "entry": [
     {
       "action": "say",
-      "text": "이번 스텝에 제공된 코드로 설명할게요. 직접 작성한 답은 해설 뒤에도 유지돼요.",
-      "target": "problem"
+      "text": "AssertJ로 쓴 테스트에 만 원의 기대값이 잘못 적혀 있어요.",
+      "target": "text:만 원의 기대 배송비가 잘못 적혀 있어요."
+    },
+    {
+      "action": "say",
+      "text": "assertThat에는 실제값을, isEqualTo에는 기대값을 써요.",
+      "target": "code:assertThat(Fees.shipping(10000)).isEqualTo(2000);"
     },
     {
       "action": "run",
-      "say": "테스트를 실행해 결과를 확인해요.",
       "lines": [
         4,
         4
@@ -18,18 +22,17 @@
     },
     {
       "action": "say",
-      "text": "경계 기대가 이천이라 테스트가 실패했어요.",
+      "text": "테스트가 실패했어요. 만 원의 실제 배송비는 0이에요.",
       "target": "output"
     },
     {
       "action": "patch_code",
       "before": "assertThat(Fees.shipping(10000)).isEqualTo(2000);",
       "after": "assertThat(Fees.shipping(10000)).isEqualTo(0);",
-      "say": "만 원부터 무료인 기대를 맞춰요."
+      "say": "요구에 맞게 기대값을 0으로 고쳐요."
     },
     {
       "action": "run",
-      "say": "테스트를 실행해 결과를 확인해요.",
       "lines": [
         4,
         4
@@ -37,13 +40,13 @@
     },
     {
       "action": "say",
-      "text": "정상·경계·음수 거절을 모두 통과했어요.",
+      "text": "정상·경계·음수 거절 검사를 모두 통과했어요.",
       "target": "output"
     },
     {
       "action": "say",
-      "text": "조심하세요. 이 사례들이 통과해도 모든 입력과 모든 결함이 검증된 것은 아니에요.",
-      "target": "output"
+      "text": "조심하세요. 통과한 사례들 밖의 입력까지 모두 맞다는 증명은 아니에요. 어떤 경계를 골랐는지가 검사의 힘이에요.",
+      "target": "code:assertThatThrownBy(() -> Fees.shipping(-1))"
     }
   ]
 }

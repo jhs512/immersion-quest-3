@@ -108,6 +108,18 @@ pub fn request(args: &[&str], payload: Option<Value>) -> Result<Value, String> {
         writeln!(log,"blocked").map_err(|e|e.to_string())?;
         return Err("Injected progress upload outage".into());
     }
+    // Progress reads (issue lists and their comments) can be slowed down or cut off, to show
+    // that the catalog never waits for them. Each read is logged before it is served.
+    if method=="GET"&&route.starts_with(&format!("repos/{REPOSITORY}/issues")){
+        use std::io::Write;
+        let directory=data_dir()?;
+        let mut log=std::fs::OpenOptions::new().create(true).append(true).open(directory.join("pilot-remote-reads")).map_err(|e|e.to_string())?;
+        writeln!(log,"{route}").map_err(|e|e.to_string())?;
+        if let Some(delay)=std::fs::read_to_string(directory.join("pilot-remote-read-delay-ms")).ok().and_then(|raw|raw.trim().parse::<u64>().ok()){
+            std::thread::sleep(std::time::Duration::from_millis(delay.min(30_000)));
+        }
+        if directory.join("pilot-remote-offline").exists(){return Err("Injected progress read outage".into());}
+    }
 
     let mut state = store()?.lock().map_err(|_|"검증 저장소 잠금 오류")?;
     for (repository, file) in [(REPOSITORY,"course.json"),("mq3-validation/lesson","lesson.json")] {

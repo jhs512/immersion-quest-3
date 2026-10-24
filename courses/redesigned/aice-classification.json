@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_32c888eb-a479-4baf-aede-667aec2e5adf",
-  "revision": "aice-classification-1",
+  "revision": "aice-classification-2",
   "title": "배송의 지연 종류를 예측해요",
   "description": "같은 배송의 정상·지연을 기준 모델부터 실제 분류로 이어가요.",
   "objectives": [
@@ -94,9 +94,9 @@
               ]
             },
             {
-              "id": "stp_013f7eba-f7dc-4aa7-a16d-fe087073b253",
+              "id": "stp_a1d61609-0f91-48cc-bf19-cea09f040936",
               "objectives": [
-                "학습용 입력 대신 평가용 입력으로 predict해요."
+                "classes_ 순서로 관심 범주 late의 확률 열을 골라요."
               ]
             }
           ]
@@ -108,7 +108,7 @@
     {
       "id": "stp_a88ba144-7ee8-414c-ac3e-caf975390c5d",
       "title": "숫자 대신 종류를 예측해요",
-      "goal": "다수 범주만 고르는 기준이에요.\n두 새 배송의 예측을 고르세요.",
+      "goal": "다수 범주만 고르는 기준이에요.\n두 새 배송의 예측을 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "zero",
@@ -131,8 +131,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "DummyClassifier(strategy=\"most_frequent\")는 입력을 보지 않고 훈련에서 가장 흔한 종류만 내놓아요. 0과 1이 시간이 아니라 정상·지연이라는 종류임을 구별하는 문제예요.",
+          "target": "text:다수 범주만 고르는 기준이에요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             10,
             10
@@ -158,7 +162,7 @@
     {
       "id": "stp_85d73cee-019d-4092-a548-42e15308c963",
       "title": "거리와 범주 관계를 학습해요",
-      "goal": "거리와 종류를 함께 학습했어요.\n거리1과9의 예측 종류는 무엇일까요?",
+      "goal": "결정 트리는 \"거리가 기준보다 작은가?\" 같은 질문으로 자료를 나누고(분기), 나뉜 끝 묶음(잎)에서 가장 많은 종류를 예측해요. max_depth=1은 질문을 한 번만 해요.\n거리와 종류를 함께 학습했어요.\n거리1과9의 예측 종류는 무엇일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "labels",
@@ -181,8 +185,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "트리는 거리로 한 번 나눈 뒤 각 잎의 다수 종류를 예측해요. 가까운 1과 먼 9가 어느 잎에 들어가는지 예상해요.",
+          "target": "text:결정 트리는 \"거리가 기준보다 작은가?\" 같은 질문으로 자료를 나누고(분기), 나뉜 끝 묶음(잎)에서 가장 많은 종류를 예측해요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             10,
             10
@@ -208,7 +216,7 @@
     {
       "id": "stp_6ecac607-bc82-4f32-97d9-5104c4e95b55",
       "title": "확률 열의 이름을 확인해요",
-      "goal": "범주를 문자 이름으로 바꿨어요.\n이 표에서 late의 확률은 어느 열일까요?",
+      "goal": "범주를 문자 이름으로 바꿨어요.\n이 표에서 late의 확률은 어느 열일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "first",
@@ -220,7 +228,7 @@
         "options": [
           {
             "id": "second",
-            "text": "항상 두 번째 열이에요"
+            "text": "on-time 다음에 적은 late라서 두 번째 열이에요"
           },
           {
             "id": "first",
@@ -231,8 +239,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "종류 이름을 글자로 바꿨어요. predict_proba의 열 순서는 classes_를 따르니 late가 몇 번째 열인지 찾는 문제예요.",
+          "target": "text:이 표에서 late의 확률은 어느 열일까요?"
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             12,
             12
@@ -258,7 +270,7 @@
     {
       "id": "stp_4c58faec-3d29-408d-b5b0-86644c4f67aa",
       "title": "반반인 잎의 판단을 봐요",
-      "goal": "낮은 거리 잎의 두 범주 비율이 반반이에요.\n예측0을 확신100%로 읽어도 될까요?",
+      "goal": "잎은 트리가 나눈 끝 묶음이에요. predict_proba는 그 잎 안의 종류 비율을 확률로 보여 줘요. 낮은 거리 잎의 두 범주 비율이 반반이에요.\n예측0을 확신100%로 읽어도 될까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "tie",
@@ -274,15 +286,19 @@
           },
           {
             "id": "certain",
-            "text": "네.범주0을 내면 항상 확신100%예요"
+            "text": "네. 예측이 0이니 0일 확률이 1이에요"
           }
         ],
         "answer": "tie"
       },
       "narration": [
         {
+          "action": "say",
+          "text": "min_samples_leaf=2라 낮은 거리 잎에 정상 하나, 지연 하나가 함께 있어요. 예측 0이 확신 100%를 뜻하는지 판단해요.",
+          "target": "text:예측0을 확신100%로 읽어도 될까요?"
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             12,
             12
@@ -308,7 +324,7 @@
     {
       "id": "stp_b428710e-c1bf-4b55-a667-4a16a69c9247",
       "title": "이름에 Regression이 있어도 구별해요",
-      "goal": "LogisticRegression이 범주0·1을 냈어요.\n이 모델의 역할을 고르세요.",
+      "goal": "LogisticRegression이 범주0·1을 냈어요.\n이 모델의 역할을 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "classifier",
@@ -331,8 +347,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "LogisticRegression은 이름과 달리 종류의 확률을 계산해 종류를 고르는 분류 모델이에요. 출력 모양과 확률 합으로 역할을 확인해요.",
+          "target": "text:LogisticRegression이 범주0·1을 냈어요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             12,
             12
@@ -358,7 +378,7 @@
     {
       "id": "stp_7fe94b48-9022-43ef-9de9-00f1e0b51c86",
       "title": "학습 표에 한 종류만 남았어요",
-      "goal": "훈련 정답에 정상0만 남았어요.\n이 로지스틱 모델은 두 종류를 학습할 수 있을까요?",
+      "goal": "훈련 정답에 정상0만 남았어요.\n이 로지스틱 모델은 두 종류를 학습할 수 있을까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "two",
@@ -370,7 +390,7 @@
         "options": [
           {
             "id": "always",
-            "text": "네.없는 범주도 자동으로 배워요"
+            "text": "네. 0만 있어도 0과 1 두 종류를 배워요"
           },
           {
             "id": "two",
@@ -381,8 +401,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "훈련 정답이 모두 0이에요. 로지스틱 모델이 서로 다른 두 종류를 구별하도록 배울 수 있는지 예상해요.",
+          "target": "text:훈련 정답에 정상0만 남았어요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             10,
             10
@@ -402,7 +426,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             10,
             10
@@ -426,7 +449,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             10,
             10
@@ -448,7 +470,7 @@
     {
       "id": "stp_1e941992-8426-4332-acf1-e55bdbc8bd00",
       "title": "학습 정답과 새 정답을 나눠요",
-      "goal": "훈련은 맞혔지만 새 실제 정답은1·0이에요.\n새 배송도 맞혔다고 할까요?",
+      "goal": "훈련은 맞혔지만 새 실제 정답은1·0이에요.\n새 배송도 맞혔다고 할까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "compare",
@@ -471,8 +493,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "훈련 정답은 학습에 쓰였고, 새 배송의 실제 정답 y_test는 학습에 넣지 않았어요. 훈련을 맞힌 것과 새 배송을 맞힌 것을 비교해요.",
+          "target": "text:새 배송도 맞혔다고 할까요?"
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             14,
             14
@@ -496,59 +522,73 @@
       "predict_before_run": true
     },
     {
-      "id": "stp_013f7eba-f7dc-4aa7-a16d-fe087073b253",
-      "title": "새 배송의 종류를 예측해요",
-      "goal": "새 배송 X_test의 종류가 필요해요.\npredict의 인수 한 곳만 고치세요.",
+      "id": "stp_a1d61609-0f91-48cc-bf19-cea09f040936",
+      "title": "새 배송이 늦을 확률을 골라요",
+      "goal": "새 배송마다 늦을(late) 확률이 필요해요. 준비 코드는 두 번째 열을 늦을 확률로 여겨요. list(model.classes_).index(\"late\")는 classes_에서 late가 몇 번째인지 찾아요.\n늦을 확률 열을 고르는 번호 한 곳을 고치세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 classes_ 순서와 꺼낸 확률을 확인하세요.\n2. late가 classes_의 몇 번째인지 보세요.\n3. 열 번호 한 곳을 late의 위치를 찾는 식으로 고치세요.\n4. 다시 실행해 거리 9인 배송의 늦을 확률이 큰지 비교하세요.\n5. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "from sklearn.tree import DecisionTreeClassifier\n\n# 같은 배송의 거리와 정상0·지연1을 함께 준비해요.\nX_train = [[1], [2], [8], [9]]\ny_train = [0, 0, 1, 1]\nX_test = [[1], [9]]\n# 비교를 위해 분기 깊이와 난수 기준을 고정해요.\nmodel = DecisionTreeClassifier(max_depth=1, random_state=0)\nmodel.fit(X_train, y_train)\n# 이번에 예측할 입력의 역할을 확인하세요.\npredictions = model.predict(X_train)\nprint(predictions.tolist())\n",
-      "solution": "from sklearn.tree import DecisionTreeClassifier\n\n# 같은 배송의 거리와 정상0·지연1을 함께 준비해요.\nX_train = [[1], [2], [8], [9]]\ny_train = [0, 0, 1, 1]\nX_test = [[1], [9]]\n# 비교를 위해 분기 깊이와 난수 기준을 고정해요.\nmodel = DecisionTreeClassifier(max_depth=1, random_state=0)\nmodel.fit(X_train, y_train)\n# 이번에 예측할 입력의 역할을 확인하세요.\npredictions = model.predict(X_test)\nprint(predictions.tolist())\n",
+      "starter_code": "from sklearn.tree import DecisionTreeClassifier\n\n# 같은 배송의 거리와 정시·지연 종류를 함께 준비해요.\nX_train = [[1], [2], [8], [9]]\ny_train = [\"on-time\", \"on-time\", \"late\", \"late\"]\nX_test = [[1], [9]]\n# 비교를 위해 분기 깊이와 난수 기준을 고정해요.\nmodel = DecisionTreeClassifier(max_depth=1, random_state=0)\nmodel.fit(X_train, y_train)\n# 확률표의 열 순서는 classes_와 같아요.\nprint(model.classes_.tolist())\n# 확률표[:, 번호]는 모든 행에서 그 번호의 열만 꺼내요.\nlate_probability = model.predict_proba(X_test)[:, 1]\nprint(late_probability.round(6).tolist())\n",
+      "solution": "from sklearn.tree import DecisionTreeClassifier\n\n# 같은 배송의 거리와 정시·지연 종류를 함께 준비해요.\nX_train = [[1], [2], [8], [9]]\ny_train = [\"on-time\", \"on-time\", \"late\", \"late\"]\nX_test = [[1], [9]]\n# 비교를 위해 분기 깊이와 난수 기준을 고정해요.\nmodel = DecisionTreeClassifier(max_depth=1, random_state=0)\nmodel.fit(X_train, y_train)\n# 확률표의 열 순서는 classes_와 같아요.\nprint(model.classes_.tolist())\n# 확률표[:, 번호]는 모든 행에서 그 번호의 열만 꺼내요.\nlate_probability = model.predict_proba(X_test)[:, list(model.classes_).index(\"late\")]\nprint(late_probability.round(6).tolist())\n",
       "tests": [
         {
           "input": "",
-          "expected": "[0, 1]"
+          "expected": "['late', 'on-time']\n[0.0, 1.0]"
         }
       ],
       "required": true,
       "narration": [
         {
+          "action": "say",
+          "text": "필요한 것은 늦을 확률이에요. 확률표에는 종류마다 열이 있으니, late의 열을 정확히 골라야 하는 문제예요.",
+          "target": "text:새 배송마다 늦을(late) 확률이 필요해요."
+        },
+        {
+          "action": "say",
+          "text": "준비 코드는 두 번째 열을 늦을 확률로 꺼내요.",
+          "target": "code:[:, 1]"
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
-            12,
-            12
+            11,
+            14
           ]
         },
         {
           "action": "say",
-          "text": "지금은 훈련 배송 네 개를 다시 분류했어요.",
+          "text": "classes_는 late, on-time 순서예요. 글자 순으로 정렬돼서 late가 첫 열이에요. 그래서 지금 꺼낸 값은 정시일 확률이라, 먼 배송의 값이 영이에요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "model.predict(X_train)",
-          "after": "model.predict(X_test)",
-          "say": "평가할 새 배송을 넘겨요."
+          "before": "y_train = [\"on-time\", \"on-time\", \"late\", \"late\"]",
+          "after": "y_train = [\"early\", \"early\", \"late\", \"late\"]",
+          "say": "종류 이름만 early와 late로 바꿔 볼게요."
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
-            12,
-            12
+            11,
+            14
           ]
         },
         {
           "action": "say",
-          "text": "새 두 배송의 종류 영과 일이 나왔어요.",
+          "text": "이번엔 early, late 순서라 late가 두 번째 열이에요. 이름에 따라 열 위치가 달라져요.",
           "target": "output"
         },
         {
+          "action": "patch_code",
+          "before": "y_train = [\"early\", \"early\", \"late\", \"late\"]",
+          "after": "y_train = [\"on-time\", \"on-time\", \"late\", \"late\"]",
+          "say": "준비 자료로 되돌려요."
+        },
+        {
           "action": "say",
-          "text": "조심하세요. 평가 정답은 예측의 입력으로 넣지 않아요.",
-          "target": "output"
+          "text": "조심하세요. 번호를 0으로 바꿔 외우면 이름이 바뀔 때 다시 틀려요. 3번처럼 classes_에서 late의 위치를 찾게 하세요.",
+          "target": "code:print(model.classes_.tolist())"
         }
       ],
-      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"X_test\": [[9], [1], [8]]}, \"expected\": \"[1, 0, 1]\"}, {\"values\": {\"y_train\": [1, 1, 0, 0], \"X_test\": [[1], [9]]}, \"expected\": \"[1, 0]\"}, {\"values\": {\"y_train\": [2, 2, 5, 5], \"X_test\": [[2], [9], [1]]}, \"expected\": \"[2, 5, 2]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"y_train\": [\"early\", \"early\", \"late\", \"late\"]}, \"expected\": \"[\\'early\\', \\'late\\']\\\\n[0.0, 1.0]\"}, {\"values\": {\"y_train\": [\"late\", \"late\", \"on-time\", \"on-time\"], \"X_test\": [[9], [1], [8]]}, \"expected\": \"[\\'late\\', \\'on-time\\']\\\\n[0.0, 1.0, 0.0]\"}, {\"values\": {\"X_test\": [[9], [2], [8]]}, \"expected\": \"[\\'late\\', \\'on-time\\']\\\\n[1.0, 0.0, 1.0]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     }
   ]
 }

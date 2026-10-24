@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_24869af7-1bf9-4ed8-94de-7ee508aa9a15",
-  "revision": "aice-scale-1",
+  "revision": "aice-scale-2",
   "title": "훈련에서 배운 전처리 기준을 적용해요",
   "description": "같은 훈련 기준을 새 배송 입력에 적용하며 경계 정책을 비교해요.",
   "objectives": [
@@ -117,13 +117,13 @@
     {
       "id": "stp_86be259b-275c-4a53-8b70-7ba225697042",
       "title": "훈련에서 단위 기준을 배워요",
-      "goal": "훈련 평균1과 스케일1을 배웠어요.\n같은 기준에서 평가10은 얼마일까요?",
+      "goal": "표준화는 (값 − 평균) ÷ 스케일이에요. 훈련 자료에서 평균 1과 스케일 1을 배웠어요.\n같은 기준에서 평가10은 얼마일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "same",
       "tests": [],
       "required": true,
-      "example_code": "from sklearn.preprocessing import StandardScaler\n\n# 훈련과 평가 자료는 이미 나눠 두었어요.\ntrain_values = [[0], [2]]\ntest_values = [[10]]\nscaler = StandardScaler()\nscaler.fit(train_values)\n# fit은 기준을 배우고 transform은 그 기준을 적용해요.\nprint(scaler.mean_.tolist(), scaler.scale_.tolist())\nprint(scaler.transform(train_values).tolist())\nprint(scaler.transform(test_values).tolist())\n",
+      "example_code": "from sklearn.preprocessing import StandardScaler\n\n# 훈련과 평가 자료는 이미 나눠 두었어요.\n# 행마다 특성이 하나라서 [[0], [2]]처럼 대괄호를 두 겹으로 써요.\ntrain_values = [[0], [2]]\ntest_values = [[10]]\nscaler = StandardScaler()\nscaler.fit(train_values)\n# fit은 기준을 배우고 transform은 그 기준을 적용해요.\nprint(scaler.mean_.tolist(), scaler.scale_.tolist())\nprint(scaler.transform(train_values).tolist())\nprint(scaler.transform(test_values).tolist())\n",
       "interaction": {
         "kind": "choice",
         "options": [
@@ -140,11 +140,15 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "fit이 훈련 자료에서 평균과 스케일을 배우고, transform이 그 기준을 평가 값에도 적용해요. 공식에 10을 넣어 결과를 예상하는 문제예요.",
+          "target": "text:표준화는 (값 − 평균) ÷ 스케일이에요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
-            11,
-            11
+            12,
+            12
           ]
         },
         {
@@ -167,7 +171,7 @@
     {
       "id": "stp_b90c45ec-26b6-4596-bf35-df47b960fa5f",
       "title": "평가에서 다시 맞추면 기준이 바뀌어요",
-      "goal": "평가에서 fit_transform을 다시 하면 어떨까요?\n기준을 유지하는 쪽을 고르세요.",
+      "goal": "평가에서 fit_transform을 다시 하면 어떨까요?\n기준을 유지하는 쪽을 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "transform",
@@ -190,8 +194,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "평가 자료에 fit_transform을 쓰면 평가 값으로 기준을 새로 배워요. 훈련 기준을 유지하는 쪽이 어느 것인지 결과로 비교해요.",
+          "target": "text:평가에서 fit_transform을 다시 하면 어떨까요?"
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             10,
             10
@@ -210,7 +218,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             10,
             10
@@ -240,7 +247,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             11,
             11
@@ -261,7 +267,7 @@
     {
       "id": "stp_3f0bca24-be1a-485d-b153-177f131ccc52",
       "title": "훈련 값이 모두 같을 때를 봐요",
-      "goal": "훈련 값이 모두5였어요.\n새 값7도 무조건0이 될까요?",
+      "goal": "훈련 값이 모두5였어요. 값이 모두 같으면 퍼짐이 0이라, 스케일러는 0으로 나누지 않도록 스케일을 1로 둬요.\n새 값7은 얼마로 바뀔까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "notzero",
@@ -273,19 +279,23 @@
         "options": [
           {
             "id": "always",
-            "text": "네. 모든 새 값을 0으로 만들어요"
+            "text": "0이에요. 훈련 값이 모두 같으면 새 값도 0이 돼요"
           },
           {
             "id": "notzero",
-            "text": "아니요. 스케일 1로 변환해 2예요"
+            "text": "2예요. 평균 5를 빼고 스케일 1로 나눠요"
           }
         ],
         "answer": "notzero"
       },
       "narration": [
         {
+          "action": "say",
+          "text": "퍼짐이 0인 훈련 자료에서 배운 기준을 새 값 7에 적용해요. 공식에 평균 5와 스케일 1을 넣어 예상하는 문제예요.",
+          "target": "text:값이 모두 같으면 퍼짐이 0이라, 스케일러는 0으로 나누지 않도록 스케일을 1로 둬요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             11,
             11
@@ -306,12 +316,13 @@
           "id": "notzero"
         }
       ],
-      "predict_before_run": true
+      "predict_before_run": true,
+      "question": "새 값7은 얼마로 바뀔까요?"
     },
     {
       "id": "stp_861af409-6d51-4d80-a6e7-00e3167c31b6",
       "title": "빈값은 자동으로 사라질까요",
-      "goal": "평가의 첫 값은 결측이에요.\n스케일링하면 자동으로 채워질까요?",
+      "goal": "평가의 첫 값은 결측이에요.\n스케일링하면 자동으로 채워질까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "missing",
@@ -327,15 +338,19 @@
           },
           {
             "id": "filled",
-            "text": "네. 항상 평균값으로 채워요"
+            "text": "네. 훈련 평균 1로 채워져요"
           }
         ],
         "answer": "missing"
       },
       "narration": [
         {
+          "action": "say",
+          "text": "평가 자료 첫 칸이 비어 있어요. 스케일러가 빈칸을 채워 주는지, 그대로 두는지 예상해요.",
+          "target": "text:평가의 첫 값은 결측이에요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             12,
             12
@@ -361,7 +376,7 @@
     {
       "id": "stp_f9faaf00-f154-44ce-9607-c80f39eb7b5a",
       "title": "최솟값과 최댓값 기준도 봐요",
-      "goal": "훈련은0~1로 바뀌었어요.\n범위 밖 새 값10도 무조건1이하일까요?",
+      "goal": "훈련은0~1로 바뀌었어요. MinMaxScaler는 (값 − 훈련 최솟값) ÷ (훈련 최댓값 − 최솟값)이에요.\n범위 밖 새 값10은 1 이하가 될까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "outside",
@@ -377,15 +392,19 @@
           },
           {
             "id": "clipped",
-            "text": "네. 항상 1에서 자동 잘려요"
+            "text": "네. 훈련 범위 밖 값은 1로 잘려요"
           }
         ],
         "answer": "outside"
       },
       "narration": [
         {
+          "action": "say",
+          "text": "훈련 범위 0~2를 0~1로 바꾸는 기준이에요. 범위 밖 10에 같은 공식을 적용하면 1보다 커지는지가 질문이에요.",
+          "target": "text:MinMaxScaler는 (값 − 훈련 최솟값) ÷ (훈련 최댓값 − 최솟값)이에요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             8,
             8
@@ -404,7 +423,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             8,
             8
@@ -428,7 +446,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             8,
             8
@@ -444,12 +461,13 @@
           "id": "outside"
         }
       ],
-      "predict_before_run": true
+      "predict_before_run": true,
+      "question": "범위 밖 새 값10은 1 이하가 될까요?"
     },
     {
       "id": "stp_ae569cc8-c606-44ad-a5a7-376f1dc2baca",
       "title": "중앙값과 사분위 범위를 기준으로 봐요",
-      "goal": "중앙값과 사분위 범위를 기준으로 변환했어요.\n극단값100도 자동 삭제될까요?",
+      "goal": "중앙값과 사분위 범위를 기준으로 변환했어요.\n극단값100도 자동 삭제될까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "kept",
@@ -465,15 +483,19 @@
           },
           {
             "id": "removed",
-            "text": "네. 자동으로 자료에서 삭제돼요"
+            "text": "네. RobustScaler는 극단값 행을 빼고 돌려줘요"
           }
         ],
         "answer": "kept"
       },
       "narration": [
         {
+          "action": "say",
+          "text": "RobustScaler는 평균 대신 중앙값, 표준편차 대신 사분위 범위로 기준을 정해요. 극단값 100이 결과에서 사라지는지 봐요.",
+          "target": "text:중앙값과 사분위 범위를 기준으로 변환했어요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             8,
             8
@@ -492,7 +514,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             8,
             8
@@ -516,7 +537,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             8,
             8
@@ -537,7 +557,7 @@
     {
       "id": "stp_fad82ade-0901-4a25-bafd-aec8ed56545c",
       "title": "처음 보는 범주는 어떻게 할까요",
-      "goal": "처음 보는 west를 변환하려 해요.\n기본 인코더는 어떻게 할까요?",
+      "goal": "처음 보는 west를 변환하려 해요.\n기본 인코더는 어떻게 할까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "error",
@@ -560,8 +580,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "OneHotEncoder는 훈련에서 본 범주마다 열을 만들어요. 훈련에 없던 west가 들어오면 기본 설정이 어떻게 하는지가 질문이에요.",
+          "target": "text:처음 보는 west를 변환하려 해요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             9,
             9
@@ -581,7 +605,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             9,
             9
@@ -605,7 +628,6 @@
         },
         {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             9,
             9
@@ -627,7 +649,7 @@
     {
       "id": "stp_ff7710f5-7f6e-4cbd-a872-78f84fa4f3ff",
       "title": "빈값 처리와 스케일을 순서대로 적용해요",
-      "goal": "빈값 채움 다음에 스케일을 적용해요.\n평가에서도 유지해야 할 것을 고르세요.",
+      "goal": "빈값 채움 다음에 스케일을 적용해요.\n평가에서도 유지해야 할 것을 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
       "language": "python",
       "starter_code": "",
       "solution": "trained",
@@ -650,8 +672,12 @@
       },
       "narration": [
         {
+          "action": "say",
+          "text": "Pipeline은 빈값 채우기와 표준화를 차례로 이어요. 두 단계의 기준을 모두 훈련에서 배우고 평가에도 그대로 써야 하는지 판단해요.",
+          "target": "text:빈값 채움 다음에 스케일을 적용해요."
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
             12,
             12
@@ -660,6 +686,11 @@
         {
           "action": "say",
           "text": "새 값은 십일 점 영이삼, 빈값은 영이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "S1의 9와 다른 이유는 채운 값 1 때문이에요. 훈련이 0, 1, 2가 되면서 퍼짐이 줄어 스케일이 작아졌고, 그래서 10은 11.023이 돼요.",
           "target": "output"
         },
         {
@@ -677,10 +708,10 @@
     {
       "id": "stp_8e6b11a1-1786-49e8-bd17-1daa2618d8ee",
       "title": "학습한 기준으로만 변환해요",
-      "goal": "평가 자료에 기준을 다시 맞춰 결과가0이에요.\n평가의 메서드 이름 한 곳만 고치세요.",
+      "goal": "새 배송 자료를 훈련에서 배운 기준으로 바꾸려 해요. 그런데 준비 코드는 fit을 한 번 더 불러요.\n평가 자료로 기준을 다시 배우는 줄을 고치세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 변환 결과를 확인하세요.\n2. fit이 몇 번, 어떤 자료로 불리는지 찾으세요.\n3. 평가 자료로 기준을 다시 배우는 줄을 고치세요.\n4. 다시 실행해 결과가 훈련 기준의 값인지 비교하세요.\n5. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "from sklearn.preprocessing import StandardScaler\n\n# 훈련과 평가 자료는 이미 나눠 두었어요.\ntrain_values = [[0], [2]]\ntest_values = [[10]]\nscaler = StandardScaler()\nscaler.fit(train_values)\n# 평가에서는 이미 학습한 기준을 적용해야 해요.\nresult = scaler.fit_transform(test_values)\nprint(result.round(6).tolist())\n",
-      "solution": "from sklearn.preprocessing import StandardScaler\n\n# 훈련과 평가 자료는 이미 나눠 두었어요.\ntrain_values = [[0], [2]]\ntest_values = [[10]]\nscaler = StandardScaler()\nscaler.fit(train_values)\n# 평가에서는 이미 학습한 기준을 적용해야 해요.\nresult = scaler.transform(test_values)\nprint(result.round(6).tolist())\n",
+      "starter_code": "from sklearn.preprocessing import StandardScaler\n\n# 훈련과 평가 자료는 이미 나눠 두었어요.\ntrain_values = [[0], [2]]\ntest_values = [[10]]\nscaler = StandardScaler()\nscaler.fit(train_values)\n# 새 배송 자료가 들어올 때마다 다시 맞추고 있어요.\nscaler.fit(test_values)\n# 새 배송 자료를 기준으로 변환해요.\nresult = scaler.transform(test_values)\nprint(result.round(6).tolist())\n",
+      "solution": "from sklearn.preprocessing import StandardScaler\n\n# 훈련과 평가 자료는 이미 나눠 두었어요.\ntrain_values = [[0], [2]]\ntest_values = [[10]]\nscaler = StandardScaler()\nscaler.fit(train_values)\n# 새 배송 자료를 기준으로 변환해요.\nresult = scaler.transform(test_values)\nprint(result.round(6).tolist())\n",
       "tests": [
         {
           "input": "",
@@ -690,41 +721,31 @@
       "required": true,
       "narration": [
         {
+          "action": "say",
+          "text": "변환은 transform으로 했는데도 결과가 이상한 이유를 찾는 문제예요. 기준을 배우는 줄이 어디에 있는지 봐요.",
+          "target": "text:그런데 준비 코드는 fit을 한 번 더 불러요."
+        },
+        {
+          "action": "say",
+          "text": "fit은 기준을 배우는 줄이에요. 두 번째 fit이 평가 자료로 기준을 새로 배워요.",
+          "target": "code:scaler.fit(test_values)"
+        },
+        {
           "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
           "lines": [
-            10,
-            10
+            12,
+            12
           ]
         },
         {
           "action": "say",
-          "text": "평가 평균을 새로 빼서 결과가 영이 됐어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "scaler.fit_transform(test_values)",
-          "after": "scaler.transform(test_values)",
-          "say": "훈련에서 배운 기준을 적용만 해요."
-        },
-        {
-          "action": "run",
-          "say": "실행해서 실제 결과를 함께 확인해요.",
-          "lines": [
-            10,
-            10
-          ]
-        },
-        {
-          "action": "say",
-          "text": "같은 훈련 기준으로 구를 얻었어요.",
+          "text": "결과가 영이에요. 평가 값 10이 자기 자신을 평균으로 삼았어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 이미 훈련한 기준을 평가에서 덮어쓰지 않아요.",
-          "target": "output"
+          "text": "조심하세요. transform 줄은 맞아 보여도, 앞에서 마지막으로 부른 fit의 기준을 써요. 훈련 기준이 덮어써졌는지 확인하세요.",
+          "target": "code:result = scaler.transform(test_values)"
         }
       ],
       "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"train_values\": [[2], [4]], \"test_values\": [[8], [2]]}, \"expected\": \"[[5.0], [-1.0]]\"}, {\"values\": {\"train_values\": [[5], [5]], \"test_values\": [[7]]}, \"expected\": \"[[2.0]]\"}, {\"values\": {\"train_values\": [[0, 10], [2, 14]], \"test_values\": [[10, 20]]}, \"expected\": \"[[9.0, 4.0]]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"

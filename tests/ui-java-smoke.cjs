@@ -69,8 +69,7 @@ async function screenshot(page, name) {
     }, actions);
     assert.equal(await page.evaluate(() => window.molipCodeEditors.getValue()), activity.problem.solution);
   }
-  await page.getByText('정답과 풀이 보기', { exact: true }).click();
-  assert.match(await page.locator('.problem-pane').innerText(), /System.out.println/);
+  assert.equal(await page.getByText('정답과 풀이 보기', { exact: true }).count(), 0);
   await edit(page, course.chapters[0].units[0].activities[1].problem.solution);
   await page.getByRole('button', { name: '코드 실행', exact: true }).click();
   await waitMessage(page, '실행 완료');

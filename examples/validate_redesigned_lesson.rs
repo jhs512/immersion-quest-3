@@ -67,6 +67,8 @@ async fn validate(spec: Validation) -> Result<Value, String> {
         let report=lesson_runner::check(task,&task.solution).await?;
         if !report.passed {return Err(format!("{label}: solution failed: {}",serde_json::to_string(&report).unwrap()))}
         let mut source=task.example_code.clone().unwrap_or_else(||task.starter_code.clone());
+        // The player starts a demonstration with the first test's input, as the learner would.
+        let mut input=task.tests.first().map(|case|case.input.clone()).unwrap_or_default();
         let mut outputs=Vec::new();
         let mut images=Vec::new();
         for action in &task.narration {
@@ -79,14 +81,17 @@ async fn validate(spec: Validation) -> Result<Value, String> {
                 "set_code"=>source=action["code"].as_str().ok_or("Missing replacement code")?.to_owned(),
                 "order_answer" if task.example_order_marker.is_some()=>source=task.example_for_answer(&action["ids"].to_string())?,
                 "run"=>{
-                    let result=if task.has_runnable_example(){lesson_runner::run_example(task,&source,"").await}else{lesson_runner::run(task,&source,"").await}?;
+                    let result=if task.has_runnable_example(){lesson_runner::run_example(task,&source,&input).await}else{lesson_runner::run(task,&source,&input).await}?;
                     if let Some(error)=action["expect_error"].as_str() {
                         if result.success || !(result.stderr.contains(error)||result.stdout.contains(error)) {return Err(format!("{label}: expected {error}, got {}{}",result.stderr,result.stdout))}
                     } else if !result.success {return Err(format!("{label}: teacher failed: {}",result.stderr))}
                     outputs.push(result.stdout.trim_end().to_owned());
                     images.push(result.artifacts.iter().filter(|artifact|matches!(artifact,molip_quest::runner::Artifact::Image{..})).count());
                 },
-                "say"|"choose_answer"|"fill_answer"|"fill_fields"|"order_answer"=>{},
+                "set_input"=>input=action["value"].as_str().ok_or("Missing input value")?.to_owned(),
+                // A demonstration never submits: the player's runExplanation filters submit out.
+                // web_action acts on the live preview; web_checks in the grader cover clicks and input.
+                "say"|"choose_answer"|"fill_answer"|"fill_fields"|"order_answer"|"submit"|"web_action"=>{},
                 action=>return Err(format!("{label}: this validator cannot replay {action}")),
             }
         }
