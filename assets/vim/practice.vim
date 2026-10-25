@@ -6,8 +6,22 @@ let s:sequence=0
 let s:saves=0
 let s:last=''
 let s:ready=0
+let s:pending_resume=''
+" Another process can hold vim-resume.json for a moment (on-access scanning on Windows), so the
+" write or rename fails. Keep the latest learner state until it is really stored; every publish and
+" the 80 ms timer retry it, even when the live state has not changed since.
+function! s:WriteResume() abort
+  if empty(s:pending_resume) | return | endif
+  try
+    if join(readfile($MQ3_VIM_ACTIVE),'') !=# $MQ3_VIM_SESSION | let s:pending_resume='' | return | endif
+    call writefile([s:pending_resume],$MQ3_VIM_RESUME.'.tmp')
+    if rename($MQ3_VIM_RESUME.'.tmp',$MQ3_VIM_RESUME) == 0 | let s:pending_resume='' | endif
+  catch
+  endtry
+endfunction
 function! s:Publish(event, ...) abort
   if !s:ready | return | endif
+  call s:WriteResume()
   let shutting=filereadable($MQ3_VIM_CLOSING) || v:dying > 0
   if a:event ==# 'exit' && shutting | return | endif
   let mode=a:0 ? a:1 : strpart(mode(1),0,1)
@@ -24,9 +38,9 @@ function! s:Publish(event, ...) abort
   call rename($MQ3_VIM_STATE.'.tmp',$MQ3_VIM_STATE)
   " Terminal teardown can leave Insert mode before Vim exits (notably ConPTY).
   " Continue reporting live state, but freeze the last learner state for resume.
-  if !shutting && join(readfile($MQ3_VIM_ACTIVE),'') ==# $MQ3_VIM_SESSION
-    call writefile([raw],$MQ3_VIM_RESUME.'.tmp')
-    call rename($MQ3_VIM_RESUME.'.tmp',$MQ3_VIM_RESUME)
+  if !shutting
+    let s:pending_resume=raw
+    call s:WriteResume()
   endif
 endfunction
 function! s:Saved() abort

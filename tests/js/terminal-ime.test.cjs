@@ -200,3 +200,43 @@ for(const engine of ['chromium','webkit'])for(const prefix of ['\u00a0','old\u00
   assert.equal(line,'echo "'+(intentionalSpace?' ':'')+'첫 memo"\r');
  }finally{await browser.close()}
 });
+
+// Report #6 (macOS, git-remote step 6): typing `echo "문의: 상담 창구" >> guide.txt` failed while pasting
+// worked. Every Hangul word starts after a separator that WebKit still holds as NBSP and rewrites to Space.
+// Syllables are composed as the two-set IME reports them; ':' and the separators are real keys.
+const HANGUL_STEPS={'문':['ㅁ','무','문'],'의':['ㅇ','으','의'],'상':['ㅅ','사','상'],'담':['ㄷ','다','담'],'창':['ㅊ','차','창'],'구':['ㄱ','구']};
+for(const engine of ['chromium','webkit'])test(`${engine}: every Korean word typed after a kept helper space is sent once (report #6 command)`,async()=>{
+ const browser=await({chromium,webkit}[engine]).launch({headless:true});
+ try{
+  const page=await browser.newPage();await page.setContent('<div id="git-student-terminal" style="width:800px;height:400px"></div>');
+  await page.addScriptTag({content:fs.readFileSync(process.env.MQ3_TERMINAL_BUNDLE||'assets/terminal/terminal.bundle.js','utf8')});
+  await page.evaluate(()=>{window.inputs=[];mq3GitTerminal.mount(e=>{if(e.kind==='input')inputs.push(e.data)},()=>{},'report-6')});
+  await page.keyboard.type('echo "');
+  let helper='echo\u00a0"';
+  const word=async text=>{
+   helper=await page.evaluate(async([prefix,syllables])=>{
+    const input=document.querySelector('.xterm-helper-textarea');
+    input.value=prefix;input.setSelectionRange(prefix.length,prefix.length);
+    input.dispatchEvent(new KeyboardEvent('keydown',{bubbles:true,key:'Unidentified',keyCode:0}));
+    let base=prefix.replaceAll('\u00a0',' ');
+    for(const steps of syllables){
+     for(const [index,data] of steps.entries()){
+      const type=index===0?'insertText':'insertReplacementText';
+      input.dispatchEvent(new InputEvent('beforeinput',{bubbles:true,composed:true,inputType:type,data}));
+      input.value=base+data;
+      input.dispatchEvent(new InputEvent('input',{bubbles:true,composed:true,inputType:type,data}));
+      input.dispatchEvent(new KeyboardEvent('keydown',{bubbles:true,key:data,keyCode:229}));
+      await new Promise(r=>setTimeout(r,10));
+     }
+     base+=steps[steps.length-1];
+    }
+    return base;
+   },[helper,[...text].map(s=>HANGUL_STEPS[s])]);
+  };
+  const key=async(text,kept)=>{await page.keyboard.type(text);helper+=kept;};
+  await word('문의');await key(':',':');await key(' ','\u00a0');await word('상담');await key(' ','\u00a0');await word('창구');
+  await page.keyboard.type('" >> guide.txt');await page.keyboard.press('Enter');
+  const line=await page.evaluate(()=>{const out=[];for(const c of inputs.join('')){if(c==='\x7f')out.pop();else out.push(c)}return out.join('')});
+  assert.equal(line,'echo "문의: 상담 창구" >> guide.txt\r');
+ }finally{await browser.close()}
+});

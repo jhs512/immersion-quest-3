@@ -183,3 +183,33 @@ fn one_save_cannot_satisfy_two_required_write_actions() {
     wait(&practice,&mut editor,&mut output,|p|p.passed);
     practice.prepare_terminal_shutdown().unwrap();editor.shutdown().unwrap();
 }
+
+// Windows CI: the live state reached Insert mode but the reopened editor resumed in Normal mode — the last
+// resume update was lost. Another process briefly holding vim-resume.json (on-access scanning) makes Vim's
+// rename fail; nothing retried it, because the next state had the same signature.
+#[cfg(windows)]
+#[test]
+fn a_briefly_locked_resume_file_still_receives_the_latest_insert_state() {
+    use std::os::windows::fs::OpenOptionsExt;
+    let lesson:Lesson=serde_json::from_str(include_str!("../courses/redesigned/vim-basics.json")).unwrap();
+    let root=tempfile::tempdir().unwrap();let store=GitPracticeStore::new(root.path()).unwrap();let exercise=lesson.tasks[0].git_terminal.clone().unwrap();
+    let practice=store.open("vim-locked-resume",exercise.clone()).unwrap();let (mut editor,mut output)=practice.open_terminal().unwrap();wait(&practice,&mut editor,&mut output,|p|p.state.is_some());
+    send(&practice,&mut editor,&mut output,"i임시메모");send(&practice,&mut editor,&mut output,"\x1bhh");
+    wait(&practice,&mut editor,&mut output,|p|p.state.as_ref().is_some_and(|s|s.mode=="n"&&s.column==2));
+    let resume=practice.root().join("vim-resume.json");
+    let settle=Instant::now()+Duration::from_secs(8);
+    while !std::fs::read_to_string(&resume).unwrap_or_default().contains("\"column\":2")&&Instant::now()<settle{std::thread::sleep(Duration::from_millis(25));}
+    // Share read/write, not delete: renaming over the file fails while this handle is open.
+    let lock=std::fs::OpenOptions::new().read(true).share_mode(0x1|0x2).open(&resume).unwrap();
+    send(&practice,&mut editor,&mut output,"i");
+    wait(&practice,&mut editor,&mut output,|p|p.state.as_ref().is_some_and(|s|s.mode=="i"&&s.column==2));
+    std::thread::sleep(Duration::from_millis(300));drop(lock);
+    let settle=Instant::now()+Duration::from_secs(3);
+    while !std::fs::read_to_string(&resume).unwrap_or_default().contains("\"mode\":\"i\"")&&Instant::now()<settle{std::thread::sleep(Duration::from_millis(25));}
+    practice.prepare_terminal_shutdown().unwrap();editor.shutdown().unwrap();drop(output);drop(practice);
+    let reopened=store.open("vim-locked-resume",exercise).unwrap();let (mut editor,mut output)=reopened.open_terminal().unwrap();
+    // A stale resume file reopens in Normal mode, and this wait times out showing it.
+    let state=wait(&reopened,&mut editor,&mut output,|p|p.state.as_ref().is_some_and(|s|s.mode=="i")).state.unwrap();
+    assert_eq!((state.column,state.lines.clone()),(2,vec!["임시메모".to_string()]));
+    reopened.prepare_terminal_shutdown().unwrap();editor.shutdown().unwrap();
+}

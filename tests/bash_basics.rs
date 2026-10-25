@@ -201,3 +201,24 @@ fn step_twenty_three_accepts_recursive_force_and_trailing_directory_slashes() {
     assert!(!practice.check_exercise().unwrap().passed);
     terminal.shutdown().unwrap();
 }
+
+// Report #3 (Windows): the learner typed `echo "첫 메모"> memo.txt`; Bash wrote the expected memo, the
+// command check kept the step failed. Real Bash, real command log, real grading.
+#[test]
+fn first_memo_accepts_redirection_without_a_space_before_the_operator() {
+    let lesson:Lesson=serde_json::from_str(include_str!("../courses/redesigned/bash-basics.json")).unwrap();
+    let task=lesson.tasks.iter().find(|t|t.id=="stp_87363f3e-1c62-41bb-a9d6-a26e88e362a1").unwrap();
+    let practice=GitPractice::new(task.git_terminal.clone().unwrap().demonstration()).unwrap();
+    let (mut terminal,mut output)=practice.open_terminal().unwrap();until(&practice,&mut terminal,&mut output,|text|text.contains("$ "));
+    play(&practice,&mut terminal,&mut output,&[serde_json::json!({"action":"bash_command","command":"echo \"첫 메모\"> memo.txt"}),serde_json::json!({"action":"bash_command","command":"ls"})]);
+    assert_eq!(std::fs::read_to_string(practice.work().join("memo.txt")).unwrap(),"첫 메모\n");
+    let report=practice.check_exercise().unwrap();
+    assert!(report.passed,"{}",serde_json::to_string(&report).unwrap());
+    // A different quoted text is still refused even though the operator spacing is the same.
+    std::fs::remove_file(practice.work().join("memo.txt")).unwrap();
+    let fresh=GitPractice::new(task.git_terminal.clone().unwrap().demonstration()).unwrap();terminal.shutdown().unwrap();
+    let (mut terminal,mut output)=fresh.open_terminal().unwrap();until(&fresh,&mut terminal,&mut output,|text|text.contains("$ "));
+    play(&fresh,&mut terminal,&mut output,&[serde_json::json!({"action":"bash_command","command":"echo \"첫메모\"> memo.txt"}),serde_json::json!({"action":"bash_command","command":"ls"})]);
+    assert!(!fresh.check_exercise().unwrap().passed);
+    terminal.shutdown().unwrap();
+}

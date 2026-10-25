@@ -281,10 +281,13 @@ impl GitPractice {
         exercise.validate()?;
         let practice=Self{directory:PracticeDirectory::Temporary(directory),exercise};
         for folder in ["work","home"] {std::fs::create_dir(practice.root().join(folder)).map_err(|e|e.to_string())?;}
-        std::fs::write(practice.root().join("global.config"),"").map_err(|e|e.to_string())?;
+        // No background `git maintenance run --auto --detach` after merge/commit: the learner did not run it,
+        // it writes to the command log after the learner's command returned and works in the repository during reset.
+        const NO_AUTO_MAINTENANCE:&str="[maintenance]\n\tauto = false\n";
+        std::fs::write(practice.root().join("global.config"),NO_AUTO_MAINTENANCE).map_err(|e|e.to_string())?;
         if practice.exercise.initial_history==GitInitialHistory::Uninitialized {
             // Only a private init default is configured. The learner creates .git with git init.
-            std::fs::write(practice.root().join("global.config"),"[init]\n\tdefaultBranch = main\n").map_err(|e|e.to_string())?;
+            std::fs::write(practice.root().join("global.config"),format!("[init]\n\tdefaultBranch = main\n{NO_AUTO_MAINTENANCE}")).map_err(|e|e.to_string())?;
             practice.prepare_shell_start()?;
             if practice.exercise.java_demonstration{practice.prepare_java_demo()?;}
             practice.prepare_vim_start()?;

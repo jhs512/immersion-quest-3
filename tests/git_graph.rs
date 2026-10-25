@@ -52,3 +52,27 @@ fn graph_reads_conflict_and_remote_tracking_state_from_real_repositories() {
     let merged=practice.graph_snapshot().unwrap();assert_eq!(merged.head.as_ref(),Some(&tracking.id));
     assert!(merged.commits.iter().all(|commit|commit.parents.len()<2),"fast-forward creates no merge commit");
 }
+
+/// Git starts `git maintenance run --auto --detach` after merge and commit. In a practice it is a background
+/// process the learner never ran: it keeps writing to the command log after the learner's command returned
+/// (the macOS release check read a log that grew under it) and runs in the learner's repository during reset.
+#[test]
+fn practice_git_never_starts_background_maintenance_and_keeps_learner_global_config() {
+    let started=|practice:&GitPractice|->Vec<String>{std::fs::read_to_string(practice.root().join("commands.jsonl")).unwrap_or_default().lines()
+        .filter_map(|line|serde_json::from_str::<serde_json::Value>(line).ok())
+        .filter(|event|matches!(event["event"].as_str(),Some("start"|"child_start")))
+        .map(|event|event["argv"].to_string()).filter(|argv|argv.contains("maintenance")).collect()};
+    let practice=GitPractice::new(GitExercise::default()).unwrap();
+    git(&practice,&["switch","-c","feature"]);commit(&practice,"feature");git(&practice,&["switch","main"]);
+    std::fs::write(practice.work().join("other.txt"),"main").unwrap();git(&practice,&["add","other.txt"]);git(&practice,&["commit","-m","main"]);
+    git(&practice,&["merge","--no-edit","feature"]);
+    assert_eq!(started(&practice),Vec::<String>::new());
+    // The learner's own global settings still go to the practice's global file.
+    git(&practice,&["config","--global","user.name","학습자"]);
+    assert_eq!(practice.git(&["config","--global","user.name"]).unwrap().stdout,"학습자\n");
+    let uninitialized:GitExercise=serde_json::from_value(serde_json::json!({"initial_history":"uninitialized"})).unwrap();
+    let practice=GitPractice::new(uninitialized).unwrap();
+    git(&practice,&["init"]);commit(&practice,"first");
+    assert_eq!(practice.git(&["branch","--show-current"]).unwrap().stdout,"main\n","git init still starts on main");
+    assert_eq!(started(&practice),Vec::<String>::new());
+}

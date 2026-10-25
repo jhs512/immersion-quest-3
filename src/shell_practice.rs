@@ -108,6 +108,39 @@ fn command_matches(expected:&str,actual:&str)->bool {
         if !recursive{return None;}
         literal_target(&format!("ls {}",rest.trim()),"ls").map(str::to_owned)
     }
+    // `echo "첫 메모"> memo.txt` is the same command as `echo "첫 메모" > memo.txt`: only blanks between words
+    // and around a plain `>`/`>>` may differ. Quoted text stays byte-exact (quote style included); any other
+    // shell syntax (substitutions, globs, pipes, lists, fd or clobber redirections) falls back to exact text.
+    fn redirection_words(command:&str)->Option<Vec<String>> {
+        if command.contains(['\n','\r','\0']){return None;}
+        let (mut words,mut word,mut quote,mut redirections)=(Vec::new(),String::new(),None::<char>,0);
+        let mut chars=command.trim().chars().peekable();
+        while let Some(c)=chars.next() {
+            match quote {
+                Some(q) if c==q=>{word.push(c);quote=None;},
+                Some('"') if "$`\\!".contains(c)=>return None,
+                Some(_)=>word.push(c),
+                None if c=='"'||c=='\''=>{word.push(c);quote=Some(c);},
+                None if c==' '||c=='\t'=>{if !word.is_empty(){words.push(std::mem::take(&mut word));}},
+                None if c=='>'=>{
+                    // `2>` or `1>` is a file-descriptor redirection, not a word followed by `>`.
+                    if !word.is_empty()&&word.chars().all(|c|c.is_ascii_digit()){return None;}
+                    if !word.is_empty(){words.push(std::mem::take(&mut word));}
+                    let operator=if chars.peek()==Some(&'>'){chars.next();">>"}else{">"};
+                    if matches!(chars.peek(),Some('>'|'&'|'|')){return None;}
+                    words.push(operator.into());redirections+=1;
+                },
+                None if c.is_alphanumeric()||"./_-:,+=@%".contains(c)=>word.push(c),
+                None=>return None,
+            }
+        }
+        if quote.is_some(){return None;}
+        if !word.is_empty(){words.push(word);}
+        // Exactly one redirection with a target word after it.
+        let position=words.iter().position(|w|w==">"||w==">>")?;
+        (redirections==1&&position>0&&position+2==words.len()).then_some(words)
+    }
+    if let (Some(a),Some(b))=(redirection_words(expected),redirection_words(actual)){return a==b;}
     if let (Some(a),Some(b))=(recursive_target(expected),recursive_target(actual)){return a==b;}
     ["cd","ls"].iter().any(|program|matches!((literal_target(expected,program),literal_target(actual,program)),(Some(a),Some(b)) if a==b))
 }
@@ -142,6 +175,23 @@ mod command_matching_tests {
         }
         assert!(!command_matches("ls -l","ls -l/"));
         assert!(!command_matches("cp memo.txt notes","cp memo.txt notes/"));
+    }
+
+    // Report #3: `echo "첫 메모"> memo.txt` wrote the right file but the command check refused it.
+    #[test]
+    fn redirection_accepts_spacing_around_the_operator_only() {
+        for actual in ["echo \"첫 메모\"> memo.txt","echo \"첫 메모\" >memo.txt","echo \"첫 메모\">memo.txt","echo  \"첫 메모\"   >   memo.txt ","echo	\"첫 메모\" > memo.txt"] {
+            assert!(command_matches("echo \"첫 메모\" > memo.txt",actual),"{actual}");
+        }
+        assert!(command_matches("echo \"둘째 줄\" >> memo.txt","echo \"둘째 줄\">>memo.txt"));
+        // Quoted text, the operator, the target and any other shell syntax stay exact.
+        for actual in ["echo \"첫  메모\" > memo.txt","echo '첫 메모' > memo.txt","echo 첫 메모 > memo.txt","echo \"첫 메모\" >> memo.txt","echo \"첫 메모\" > > memo.txt",
+            "echo \"첫 메모\" > memo.txt; ls","echo \"첫 메모\" > memo.txt && ls","echo \"첫 메모\" | tee memo.txt","echo \"첫 메모\"1> memo.txt","echo \"첫 메모\" 2> memo.txt",
+            "echo \"첫 메모\" &> memo.txt","echo \"첫 메모\" >| memo.txt","echo \"$(pwd)\" > memo.txt","echo \"첫 메모\" > memo.txt.bak","echo \"첫 메모\" > \"memo.txt\"","echo \"첫 메모\" >","echo \"첫 메모 > memo.txt",
+            "echo \"첫 메모\" > memo.txt
+ls","echo \"첫 메모\" > *.txt"] {
+            assert!(!command_matches("echo \"첫 메모\" > memo.txt",actual),"{actual}");
+        }
     }
 }
 impl GitPractice {
