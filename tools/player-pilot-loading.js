@@ -6,7 +6,7 @@
  try{
   await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('pilot-a'),'initial installation');
   await click('버전 2');
-  await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('aice-plots-2'),'plots installed');
+  await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('aice-plots-3'),'plots installed');
   await wait(()=>document.querySelector('.lesson-progress')?.textContent.includes('0% 완료'),'catalog progress');
   if(button('복습모드 시작')||button('풀모드 시작'))throw Error('Old mode entry remains');
   checked.push('one learning entry and visible percentage');
@@ -17,7 +17,7 @@
    const r=document.querySelector(selector).getBoundingClientRect();
    if(r.width<=0||r.height<=0||r.right>innerWidth+1||r.left<0)throw Error(`${selector}: ${JSON.stringify(r.toJSON())}`);
   }
-  checked.push('aice-plots-2 renders header, code and choices within viewport');
+  checked.push('aice-plots-3 renders header, code and choices within viewport');
   if(!document.querySelector('.repository-header .app-window-controls')||!document.querySelector('.repository-header .content-update-controls'))throw Error('Settings are outside the shared row');
   await wait(()=>document.getElementById('lesson-info-dialog'),'information dialog mounted');
   document.querySelector('.lesson-info-trigger').click();
