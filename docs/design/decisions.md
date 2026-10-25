@@ -51,3 +51,21 @@
 - Why: This harness has no subagent tool, so the Impeccable finish review and documenter ran inline from their degraded instructions; the decision page was not served because the owner delegated the direction choice.
 - Rejected: Skipping the finish review or DESIGN.md.
 - Rests on: impeccable reference/degraded/finish-reviewer.md, degraded/documenter.md.
+
+## 2026-10-25 · Screen theme: 시스템 / 밝게 / 어둡게, default 시스템, stored in prefs.json
+- Decided by: owner (feature and default); Claude (storage and mechanism, default)
+- Why: The owner asked for a real selector where 시스템 follows the OS now and at runtime and explicit choices hold. prefs.json already holds per-computer display preferences and is read before the window opens, so the choice can be written into the page head before the first paint; missing fields (older files) and unknown values resolve to 시스템.
+- Rejected: localStorage (only readable after the page loads, so explicit dark would flash light, and the pilot profile is per run); a CSS-only toggle without stored state; an invert filter for dark (breaks syntax colours, images and the narration highlight).
+- Rests on: src/prefs.rs ThemeChoice; target/design-audit/theme-restart, theme-corrupt, theme-broken, theme-legacy capture notes.
+
+## 2026-10-25 · The editor and terminal stay dark wells in both themes
+- Decided by: Claude (default)
+- Why: The editor and xterm bundles carry their own dark syntax and ANSI palettes; keeping one well across looks keeps code legible and identical whatever the shell does, with no second palette to keep in sync.
+- Rejected: A light editor and terminal for 밝게 (new syntax and ANSI palettes, terminal colour regressions in lessons that print coloured output).
+- Rests on: target/design-audit/theme/t10-problem-dark.png, t22-problem-light.png.
+
+## 2026-10-25 · Dark draws each course line in a brighter tone of the same hue
+- Decided by: Claude (default)
+- Why: The engineer blue (1.96:1), purple and magenta lines fall below 3:1 on dark paper; a per-course bright tone (≥6:1) keeps rings, route and labels legible while filled actions keep the darker ink under white text (≥5.8:1).
+- Rejected: One shared accent in dark (loses which course is open).
+- Rests on: contrast calculations in this session; tests/js/theme.test.cjs.

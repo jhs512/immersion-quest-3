@@ -61,3 +61,5 @@ The lesson is practiced in the real tool, not a simulation: a real Bash/Git PTY,
 ## Accessibility & Inclusion
 
 Keyboard operation for every action, visible focus, WCAG 2.2 AA contrast, reduced-motion support, Korean IME correctness in editor and terminal, readable at 14px base on 800px-wide windows.
+
+Screen theme: 시스템 (default, follows the OS light/dark setting), 밝게 or 어둡게, chosen in 앱 설정 and kept on this computer across restarts. Both looks meet the same contrast floor. (Requested by the owner on 2026-10-25.)

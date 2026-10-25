@@ -59,6 +59,20 @@ colors:
   well-fail-fill: "#3a1716"
   well-fail-rule: "#7a2b26"
   well-fail-ink: "#ffb4a8"
+  night-wall: "#161f2e"
+  night-paper: "#1d2738"
+  night-paper-inset: "#232f42"
+  night-rule: "#334258"
+  night-rule-strong: "#71829a"
+  night-ink: "#e7eef7"
+  night-ink-secondary: "#b4c2d4"
+  night-ink-tertiary: "#97a7bc"
+  night-signage: "#0d1524"
+  night-focus: "#8fb8ff"
+  night-well: "#0b111a"
+  java-line-bright: "#3ccf7e"
+  engineer-line-bright: "#7fb2ff"
+  aice-line-bright: "#ffa152"
 typography:
   headline:
     fontFamily: "Pretendard, Segoe UI, Apple SD Gothic Neo, Malgun Gothic, sans-serif"
@@ -183,6 +197,7 @@ State is carried by shape before colour: a hollow ring is not started, a half-fi
 - Route line through compact station rows; next station panel above the list.
 - Dark code wells for editor, terminal, answers and results.
 - Shape-coded state; amber admin, violet narration.
+- Two looks of one world, chosen in 앱 설정 (시스템, 밝게, 어둡게): the day station and the night station.
 
 ## Colors
 
@@ -203,7 +218,11 @@ Restrained paper and navy with one committed line colour per course and three st
 - **Rule** (rule, rule-strong): 1px dividers; rule-strong for control borders (≥3:1).
 - **Well** (well, well-raised, well-rule, well-ink, well-muted): the dark code surfaces.
 
+### Night station (dark theme)
+The same roles, re-lit: night-wall ground, night-paper panels, a signage band darker than the ground, night-ink text (12.8:1 on paper), and each course line drawn in its bright tone (java-line-bright, engineer-line-bright, aice-line-bright, ≥6:1 on paper) for the route, rings and labels. Filled actions keep the darker line ink with white text. Wells are darker than the ground so the tool still reads as set into the wall. Admin amber and narrator violet keep their jobs.
+
 ### Named Rules
+**The Same Station Rule.** Light and dark are one world: every role keeps its job, only the lighting changes; nothing is inverted with a filter.
 **The One Line Rule.** A screen shows one course line colour, and only on the route, rings, the band underline and primary actions; never as decoration.
 **The Voices Rule.** Violet speaks for the narrator and amber for the admin; neither colour is used for anything else.
 
@@ -271,9 +290,13 @@ Controls and panels share one gentle corner (6px); chips are nearly square (3px)
 - **Segmented controls:** joined buttons in one bordered group; the selected segment is navy.
 - **Course legend:** each course a ring and name; the selected course is paper with its ring in its line colour.
 
+### Theme control
+- **Place:** first block of 앱 설정, so it is reachable from the course list and from every lesson.
+- **Form:** three joined native radios (시스템, 밝게, 어둡게) in a labelled group; the selected one is navy; arrow keys move the choice; a sentence under it states the look in effect and, for 시스템, that it follows the OS.
+
 ### Route and step strip (signature)
 - **Route:** a 4px line-colour line through 30px rings; next station 36px with a wall-coloured halo; optional stations 24px.
-- **Step strip:** dot, label, connector; passed steps are filled dots on line-colour connectors, the current step is a 16px ring with an ink underline.
+- **Step strip:** dot, label, connector; passed steps are filled dots on line-colour connectors, the current step is a 16px ring; one ink marker slides under the current step (160ms, none under reduced motion).
 
 ## Do's and Don'ts
 
@@ -282,6 +305,8 @@ Controls and panels share one gentle corner (6px); chips are nearly square (3px)
 - **Do** keep the editor, terminal, answers and results inside the dark well.
 - **Do** keep the lesson band at 42px and the catalog band at 50px on windows 700px and wider.
 - **Do** give every icon-only control its full Korean name as its accessible name.
+
+- **Do** define every colour as a role token with a value for each look; a literal colour that only works on one ground is a bug.
 
 ### Don't:
 - **Don't** use the line colour, violet or amber for decoration.

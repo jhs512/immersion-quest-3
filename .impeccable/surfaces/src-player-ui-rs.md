@@ -31,5 +31,5 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 
 ## Unresolved
 
-- Light station-wall shell replaces the previous all-dark shell; a dark shell variant is not built.
+- Screen theme 시스템 / 밝게 / 어둡게 (owner request, 2026-10-25): the night station is the same world re-lit; code wells stay dark in both.
 - Category grouping renders only when the course manifest carries approved categories; the proposal file stays unpublished.
