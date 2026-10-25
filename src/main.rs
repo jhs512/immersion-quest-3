@@ -87,6 +87,10 @@ fn main() {
         Some(Ok(directory)) => config.with_data_directory(directory.join("webview")),
         _ => config,
     };
+    // The stored theme reaches the page head and the WebView background before the app mounts.
+    let theme=molip_quest::prefs::Prefs::load().theme;
+    let config=config.with_custom_head(theme.boot_head());
+    let config=match theme.window_background() {Some(color)=>config.with_background_color(color),None=>config};
     dioxus::LaunchBuilder::new()
         .with_cfg(
             config
@@ -195,6 +199,9 @@ fn App() -> Element {
     #[cfg(not(feature = "desktop"))]
     let fullscreen_toggle = rsx! {};
     use_effect(|| {
+        // The theme mirror first: the head already applied the stored choice before paint.
+        document::eval(include_str!("../assets/layout/theme.js"));
+        document::eval(include_str!("../assets/layout/station.js"));
         // First, so every input created later inherits the IME-safe value setter.
         document::eval(include_str!("../assets/layout/ime.js"));
         document::eval(include_str!("../assets/editor/editor.bundle.js"));
@@ -260,6 +267,7 @@ window.molipVoice && molipVoice.setName({});",
         style {{include_str!("../assets/diagnostics.css")}}
         style {{include_str!("../assets/compact-toolbar.css")}}
         style {{include_str!("../assets/product-ui.css")}}
+        style {{include_str!("../assets/station.css")}}
         style {{include_str!("../assets/terminal/terminal.bundle.css")}}
         if cfg!(debug_assertions) && std::env::var_os("MOLIP_PILOT").is_some() { pilot_ui::PilotPlayer {window_controls:rsx!{div {class:"app-window-controls",AppReportButton {}{fullscreen_toggle}UpdateGate {}}}} }
         else if cfg!(debug_assertions) && std::env::var_os("MOLIP_LEGACY").is_some() { div {class:"app-window-controls",AppReportButton {}{fullscreen_toggle}UpdateGate {}} Workspace {} } else if !login_verification { player_ui::RepositoryPlayer {window_controls:rsx!{div {class:"app-window-controls",AppReportButton {}{fullscreen_toggle}UpdateGate {}}}} }
@@ -484,6 +492,7 @@ fn UpdateGate() -> Element {
     let installing = matches!(phase(), UpdatePhase::Downloading(_, _) | UpdatePhase::Installing);
     let settings=rsx! {details {class:if release().is_some(){"app-update-settings has-update"}else{"app-update-settings"},summary {title:if release().is_some(){"앱 설정 · 새 버전이 있어요."}else{"앱 설정"},if release().is_some() {"앱 설정 · 새 버전"} else {"앱 설정"}}
         div {class:"app-update-menu",
+            ThemeSettings {}
             crate::ui::DoctorPanel {}
             p {role:"status", aria_live:"polite", "{status}"}
             button {disabled:!updater::enabled()||checking()||installing,title:if updater::enabled(){"앱 새 버전 확인"}else{"개발 빌드에서는 자동 업데이트를 지원하지 않아요."},onclick:move |_|{checking.set(true);status.set("업데이트 확인 중…".into());let mut request=request;request+=1;},if checking(){"확인 중…"}else{"업데이트 확인"}}
@@ -645,6 +654,46 @@ fn Workspace() -> Element {
                     }
                 }
             } }
+        }
+    }
+}
+
+/// The one place the stored theme choice changes. Every screen reads the same value (the page
+/// head applied it at start, `mqTheme` applies it now), so the menu always shows the real state.
+static THEME: GlobalSignal<molip_quest::prefs::ThemeChoice> = Signal::global(|| molip_quest::prefs::Prefs::load().theme);
+
+#[component]
+fn ThemeSettings() -> Element {
+    use molip_quest::prefs::{Prefs, ThemeChoice};
+    let mut notice = use_signal(String::new);
+    let current = THEME();
+    rsx! {
+        fieldset {class:"theme-settings",
+            legend {"화면 테마"}
+            div {class:"theme-options",role:"radiogroup",aria_label:"화면 테마",
+                for choice in ThemeChoice::ALL {
+                    label {key:"{choice.key()}",class:if current==choice{"theme-option selected"}else{"theme-option"},
+                        input {r#type:"radio",name:"mq-theme-choice",value:choice.key(),checked:current==choice,
+                            onchange:move |_|{
+                                let previous=*THEME.peek();
+                                if previous==choice{return;}
+                                *THEME.write()=choice;
+                                document::eval(&choice.script());
+                                match Prefs::update(|prefs|prefs.theme=choice) {
+                                    Ok(_)=>notice.set(String::new()),
+                                    Err(error)=>notice.set(format!("테마를 저장하지 못했어요. 이번 실행에만 적용돼요. {error}")),
+                                }
+                            }}
+                        span {"{choice.label()}"}
+                    }
+                }
+            }
+            p {class:"theme-effective",
+                span {class:"theme-effective-light","지금 밝게 보여요"}
+                span {class:"theme-effective-dark","지금 어둡게 보여요"}
+                if current==ThemeChoice::System {span {" · 시스템 설정을 따라 바뀌어요"}}
+            }
+            if !notice().is_empty() {p {class:"theme-notice",role:"alert","{notice}"}}
         }
     }
 }

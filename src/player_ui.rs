@@ -54,6 +54,43 @@ fn first_target(selected:&OpenLesson)->AutoTarget{
     AutoTarget{lesson_id:selected.lesson.id.clone(),round:selected.round.clone(),step}
 }
 
+/// The lesson the course list offers first, read only from recorded progress: the unfinished
+/// lesson studied most recently (by recorded event time); with no history, the first required
+/// lesson not complete in its current revision, then the first unfinished optional lesson.
+/// Unknown progress (still loading) never guesses a lesson.
+#[derive(Clone,PartialEq)]
+enum NextStation { Loading, Done, Next{index:usize,reference:repository_course::LessonRef,started:bool,optional:bool,solved:usize,total:usize} }
+impl NextStation { fn state(&self)->&'static str { match self {Self::Loading=>"loading",Self::Done=>"done",Self::Next{started:true,..}=>"started",Self::Next{..}=>"next"} } }
+fn next_station(course:&CourseManifest,progress:&HashMap<String,Vec<LearningEvent>>,requirements:&HashMap<String,Vec<String>>)->NextStation {
+    let mut unfinished=vec![];
+    for (index,lesson) in course.lessons.iter().enumerate() {
+        let Some(required)=requirements.get(&lesson.id) else{return NextStation::Loading};
+        let records=progress.get(&lesson.id).map(Vec::as_slice).unwrap_or(&[]);
+        if issue_progress::status(records,&lesson.revision,required).current {continue;}
+        unfinished.push((index,lesson,records,required));
+    }
+    let recent=unfinished.iter().filter_map(|(index,_,records,_)|records.iter().map(|e|e.at).max().map(|at|(at,*index))).max_by_key(|(at,index)|(*at,std::cmp::Reverse(*index))).map(|(_,index)|index);
+    let chosen=recent.or_else(||unfinished.iter().find(|(_,l,_,_)|l.required).or(unfinished.first()).map(|(index,..)|*index));
+    let Some((index,lesson,records,required))=chosen.and_then(|chosen|unfinished.iter().find(|(index,..)|*index==chosen)) else{return NextStation::Done};
+    let summary=issue_progress::learning_progress(records,&lesson.revision,required);
+    NextStation::Next{index:*index,reference:(*lesson).clone(),started:recent.is_some(),optional:!lesson.required,solved:summary.solved,total:summary.total}
+}
+
+/// Each course is one metro line: a saturated line colour for its route, rings and current
+/// marker, a darker ink of the same hue for text and filled actions (≥4.5:1 on white), and a
+/// brighter tone that draws the route and labels on the dark theme (≥6:1 on dark paper).
+/// The colour follows the course's subject so it stays the same on every screen.
+pub(crate) fn course_line(course_title:&str,repository:&str)->&'static str {
+    let key=format!("{course_title} {repository}");
+    if key.contains("자바")||key.contains("java") {"--line:#009b4c;--line-ink:#00703a;--line-soft:#e3f4ea;--line-bright:#3ccf7e"}
+    else if key.contains("정보처리")||key.contains("engineer") {"--line:#0052a4;--line-ink:#0052a4;--line-soft:#e3ecf7;--line-bright:#7fb2ff"}
+    else if key.contains("AICE")||key.contains("aice") {"--line:#e0700f;--line-ink:#a64a00;--line-soft:#fbeedd;--line-bright:#ffa152"}
+    else {
+        const LINES:[&str;3]=["--line:#8f5ea6;--line-ink:#744a88;--line-soft:#f0e8f4;--line-bright:#c9a3e0","--line:#c96a1e;--line-ink:#93490c;--line-soft:#f7ebde;--line-bright:#f0a35e","--line:#d4145a;--line-ink:#ad0f49;--line-soft:#fbe4ec;--line-bright:#ff7aa8"];
+        LINES[key.bytes().fold(0usize,|hash,byte|hash.wrapping_mul(31).wrapping_add(byte as usize))%LINES.len()]
+    }
+}
+
 #[component]
 pub fn RepositoryPlayer(window_controls:Element)->Element {
     let mut session=use_signal(||None::<Session>);
@@ -74,6 +111,8 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
     // The course screen shows either its lessons or the 도전 과제 board; the choice survives a lesson visit.
     let mut show_challenges=use_signal(||false);
     let mut track_filter=use_signal(||molip_quest::lesson_categories::TrackFilter::All);
+    // 전체 순서 (false) or 분류별 (true); only offered when the course has approved categories.
+    let mut group_view=use_signal(||false);
     // 관리자 자동 풀이: one run for the player, kept across the lessons it opens itself.
     let mut auto=use_signal(||None::<AutoRun>);
     // GitHub's edit permission on the open course for this account (None: not read yet).
@@ -256,8 +295,21 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
         (Some(s),Some(manifest))=>catalog.read().view(&molip_quest::progress_overlay::ProgressScope::new(&manifest.repository,s.user.id,&manifest.id),molip_quest::progress_overlay::shared(),&manifest.lessons),
         _=>Default::default(),
     };
+    // One open action for the next-station panel and every station row.
+    let start_lesson=move |manifest:CourseManifest,reference:repository_course::LessonRef|{
+        let Some(s)=session() else{return};
+        spawn(async move {
+            busy.set(true);message.set(String::new());launching.set(Some((reference.title.clone(),0)));
+            let (stage_tx,mut stage_rx)=tokio::sync::mpsc::unbounded_channel::<u8>();
+            spawn(async move {while let Some(stage)=stage_rx.recv().await {if let Some((title,current))=launching(){launching.set(Some((title,current.max(stage))));}}});
+            let result=github_player::background(move||prepare_open_lesson(s,manifest,reference,StudyMode::Full,Some(stage_tx))).await;
+            match result {Ok(selected)=>{open.set(Some(selected));message.set(String::new());},Err(e)=>message.set(e)}
+            launching.set(None);busy.set(false);
+        });
+    };
+    let line=course().map(|c|course_line(&c.title,&c.repository)).unwrap_or(course_line("",""));
     rsx!{
-        div {class:if session().is_none(){"repository-player needs-gh"}else{"repository-player"},
+        div {class:if session().is_none(){"repository-player needs-gh"}else{"repository-player"},style:"{line}",
             header {class:"repository-header",h1 {"MQ"}
                 div {class:"repository-tools",
                     if let Some(s)=session() {div {class:"repository-account",span {"gh · @{s.user.login}"}button {class:"account-recheck",title:"GitHub 계정 다시 확인",aria_label:"GitHub 계정 다시 확인",disabled:busy(),onclick:move |_|connect(),"계정 확인"}}}
@@ -290,20 +342,64 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                     let current=match (session.peek().as_ref(),course.peek().as_ref()) {(Some(s),Some(c))=>molip_quest::progress_overlay::ProgressScope::new(&c.repository,s.user.id,&c.id),_=>return};
                     catalog.with_mut(|loaded|{loaded.accept(records,&current);});
                 }}}
-                section {class:"course-catalog",h2 {"{manifest.title}"}p {"{manifest.description}"}
-                    crate::course_guide_ui::CourseGuideButton {key:"{manifest:?}",course:manifest.clone()}
+                section {class:"course-catalog",
+                    div {class:"course-heading",
+                        h2 {"{manifest.title}"}
+                        p {class:"course-description","{manifest.description}"}
+                        div {class:"course-facts",
+                            {let records=&progress;let total=manifest.lessons.iter().filter(|l|l.required).count();let complete=manifest.lessons.iter().filter(|l|l.required&&records.get(&l.id).is_some_and(|e|issue_progress::status(e,&l.revision,progress_requirements.get(&l.id).map(Vec::as_slice).unwrap_or(&[])).current)).count();rsx!{p {class:"study-progress","최신 버전 완료: 필수 수업 {complete} / {total}"}}}
+                            crate::course_guide_ui::CourseGuideButton {key:"{manifest:?}",course:manifest.clone()}
+                            a {href:format!("https://jhs512.github.io/immersion-quest-3/dashboard/{}/",manifest.repository),target:"_blank",rel:"noopener noreferrer","대시보드 보기"}
+                        }
+                    }
                     if let Some(s)=session() {
                         CourseIdentity {key:"{s.user.id}:{manifest.id}",session:s.clone(),course:manifest.clone(),onready:{let scope=format!("{}:{}",s.user.id,manifest.id);move |ready:bool|{
                             let current=format!("{}:{}",session.peek().as_ref().map(|s|s.user.id).unwrap_or(0),course.peek().as_ref().map(|c|c.id.as_str()).unwrap_or(""));
                             if current==scope {if ready {identity_scope.set(scope.clone());if let Some(link)=waiting_name_link(){if link.course==course.peek().as_ref().map(|c|c.repository.as_str()).unwrap_or(""){waiting_name_link.set(None);molip_quest::lesson_link::receive(&link.app_url());}}}else{identity_scope.set(String::new());}}
                         }}}
                     }
-                    {let records=&progress;let total=manifest.lessons.iter().filter(|l|l.required).count();let complete=manifest.lessons.iter().filter(|l|l.required&&records.get(&l.id).is_some_and(|e|issue_progress::status(e,&l.revision,progress_requirements.get(&l.id).map(Vec::as_slice).unwrap_or(&[])).current)).count();rsx!{p {class:"study-progress","최신 버전 완료: 필수 수업 {complete} / {total}"}}}
-                    p {"추천 순서와 상관없이 어떤 수업이든 선택할 수 있어요."}
-                    a {href:format!("https://jhs512.github.io/immersion-quest-3/dashboard/{}/",manifest.repository),target:"_blank",rel:"noopener noreferrer","대시보드 보기"}
-                    div {class:"catalog-views",role:"group",aria_label:"코스 화면",
-                        button {class:if show_challenges(){""}else{"selected"},aria_pressed:(!show_challenges()).to_string(),onclick:move |_|show_challenges.set(false),"수업 목록"}
-                        button {class:if show_challenges(){"selected"}else{""},aria_pressed:show_challenges().to_string(),onclick:move |_|show_challenges.set(true),"도전 과제"}
+                    {let ready=identity_scope()==format!("{}:{}",session().map(|s|s.user.id).unwrap_or(0),manifest.id);
+                    let next=next_station(&manifest,&progress,&progress_requirements);let next_state=next.state();rsx!{
+                    section {class:"next-station",aria_label:"이어서 할 수업","data-state":next_state,
+                        match next {
+                            NextStation::Loading=>rsx!{p {class:"next-station-status",role:"status","진도를 확인하는 중이에요. 확인이 끝나면 이어서 할 수업을 보여 드려요."}},
+                            NextStation::Done=>rsx!{p {class:"next-station-status",role:"status",strong {"모든 수업을 마쳤어요."}" 다시 보고 싶은 수업은 아래 목록에서 고르세요."}},
+                            NextStation::Next{index,reference,started,optional,solved,total}=>rsx!{
+                                span {class:"next-station-ring",aria_hidden:"true","{index+1}"}
+                                div {class:"next-station-text",
+                                    h3 {"수업 {index+1} · {reference.title}"}
+                                    p {class:"next-station-detail",
+                                        strong {class:"next-station-label",if started{"최근에 학습한 수업"}else if optional{"필수 수업을 마쳤어요 · 다음 선택 수업"}else{"다음 수업"}}
+                                        {if started{format!(" · 필수 문제 {solved} / {total} 통과")}else{format!(" · 필수 문제 {total}개")}}
+                                    }
+                                }
+                                button {class:"primary next-station-start",disabled:busy()||!ready,title:if ready{""}else{"이 코스에서 쓸 이름을 먼저 저장하세요."},onclick:{let manifest=manifest.clone();let reference=reference.clone();move |_|start_lesson(manifest.clone(),reference.clone())},if started{"이어서 학습"}else{"이 수업 시작"}}
+                            },
+                        }
+                    }
+                    }}
+                    div {class:"catalog-toolbar",
+                        div {class:"catalog-views",role:"group",aria_label:"코스 화면",
+                            button {class:if show_challenges(){""}else{"selected"},aria_pressed:(!show_challenges()).to_string(),onclick:move |_|show_challenges.set(false),"수업 목록"}
+                            button {class:if show_challenges(){"selected"}else{""},aria_pressed:show_challenges().to_string(),onclick:move |_|show_challenges.set(true),"도전 과제"}
+                        }
+                        if !show_challenges() {
+                            {use molip_quest::lesson_categories::{self as categories,LessonTrack,TrackFilter};
+                            let grouped=categories::has_categories(&manifest);let tracked=categories::has_tracks(&manifest);let filter=if tracked {track_filter()} else {TrackFilter::All};rsx!{
+                            div {class:"list-arrangement",role:"group",aria_label:"수업 배열",
+                                button {class:if grouped&&group_view(){""}else{"selected"},aria_pressed:(!(grouped&&group_view())).to_string(),onclick:move |_|group_view.set(false),"전체 순서"}
+                                button {class:if grouped&&group_view(){"selected"}else{""},aria_pressed:(grouped&&group_view()).to_string(),disabled:!grouped,"aria-describedby":if grouped{""}else{"list-arrangement-note"},onclick:move |_|group_view.set(true),"분류별"}
+                            }
+                            if !grouped {span {id:"list-arrangement-note",class:"list-arrangement-note","이 코스는 아직 분류가 없어요."}}
+                            if tracked {
+                                div {class:"track-filter",role:"group",aria_label:"학습 분류로 보기",
+                                    for (label,value) in std::iter::once(("전체",TrackFilter::All)).chain(categories::present_tracks(&manifest).into_iter().map(|track:LessonTrack|(track.label(),TrackFilter::Only(track)))).collect::<Vec<_>>() {
+                                        button {key:"{label}",class:if filter==value {"selected"}else{""},aria_pressed:(filter==value).to_string(),onclick:move |_|track_filter.set(value),"{label}"}
+                                    }
+                                }
+                            }
+                            }}
+                        }
                     }
                     if show_challenges() {
                         if let Some(s)=session() {
@@ -327,54 +423,49 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                             }
                         }
                     } else {
-                    {use molip_quest::lesson_categories::{self as categories,LessonTrack,TrackFilter};
+                    {use molip_quest::lesson_categories::{self as categories,TrackFilter};
                     let tracked=categories::has_tracks(&manifest);let filter=if tracked {track_filter()} else {TrackFilter::All};
-                    let groups=categories::groups(&manifest,filter);rsx!{
-                    if tracked {
-                        div {class:"track-filter",role:"group",aria_label:"학습 분류로 보기",
-                            for (label,value) in std::iter::once(("전체",TrackFilter::All)).chain(categories::present_tracks(&manifest).into_iter().map(|track:LessonTrack|(track.label(),TrackFilter::Only(track)))).collect::<Vec<_>>() {
-                                button {key:"{label}",class:if filter==value {"selected"}else{""},aria_pressed:(filter==value).to_string(),onclick:move |_|track_filter.set(value),"{label}"}
-                            }
-                        }
-                    }
+                    let groups=if categories::has_categories(&manifest)&&group_view() {categories::groups(&manifest,filter)} else {categories::flat(&manifest,filter)};
+                    let ready=identity_scope()==format!("{}:{}",session().map(|s|s.user.id).unwrap_or(0),manifest.id);
+                    let next_index=match next_station(&manifest,&progress,&progress_requirements) {NextStation::Next{index,..}=>Some(index),_=>None};rsx!{
+                    p {class:"catalog-hint","추천 순서대로 놓여 있어요. 어떤 수업이든 골라 시작할 수 있어요."}
                     if groups.is_empty() {p {class:"lesson-status","이 분류에 해당하는 수업이 없어요."}}
                     for group in groups {
                     section {class:"lesson-group",key:"{group.title.clone().unwrap_or_default()}",
                     if let Some(title)=group.title.clone() {h3 {class:"lesson-group-title","{title}"}}
-                    div {class:"repository-lessons",
+                    ol {class:"repository-lessons",aria_label:group.title.clone().unwrap_or_else(||"수업 목록".into()),
                         for (index,reference) in group.lessons.into_iter() {
-                            article {class:"card lesson-card",key:"{reference.id}",
-                                div {class:"lesson-card-heading",span {class:"lesson-number","수업 {index+1}"}
-                                    if let Some(track)=reference.track() {span {class:track.class(),aria_label:format!("학습 분류: {}",track.label()),"{track.label()}"}}
-                                    h3 {"{reference.title}"}}
-                                p {class:"lesson-revision","버전 {reference.revision}"}
-                                LessonShare {repository:manifest.repository.clone(),lesson_id:reference.id.clone()}
-                                {let records=progress.get(&reference.id).cloned().unwrap_or_default();let requirements=progress_requirements.get(&reference.id).cloned();rsx!{
-                                    if let Some(required)=requirements {
-                                        {let summary=issue_progress::learning_progress(&records,&reference.revision,&required);rsx!{
-                                            div {class:"lesson-progress",aria_label:"수업 진도",
-                                                strong {"{summary.percent}% 완료"}
-                                                span {"필수 문제 {summary.solved} / {summary.total}"}
-                                                progress {max:"100",value:summary.percent.to_string(),aria_label:format!("수업 진도 {}%",summary.percent)}
-                                            }
-                                        }}
-                                    }else{p {class:"lesson-status","진도를 확인하고 있어요…"}}
-                                }}
-                                if !reference.prerequisites.is_empty() {p {class:"prerequisite",{format!("선수 학습: {}",reference.prerequisites.iter().filter_map(|id|manifest.lessons.iter().find(|l|l.id==*id)).map(|l|l.title.clone()).collect::<Vec<_>>().join(", "))}}}
-                                for mode in [StudyMode::Full] {
-                                    button {class:if mode==StudyMode::Full {"primary"}else{""},disabled:busy()||identity_scope()!=format!("{}:{}",session().map(|s|s.user.id).unwrap_or(0),manifest.id),onclick:{let manifest=manifest.clone();let reference=reference.clone();move |_|{
-                                        let manifest=manifest.clone();let reference=reference.clone();let Some(s)=session() else{return};
-                                        spawn(async move {
-                                            busy.set(true);message.set(String::new());launching.set(Some((reference.title.clone(),0)));
-                                            let (stage_tx,mut stage_rx)=tokio::sync::mpsc::unbounded_channel::<u8>();
-                                            spawn(async move {while let Some(stage)=stage_rx.recv().await {if let Some((title,current))=launching(){launching.set(Some((title,current.max(stage))));}}});
-                                            let result=github_player::background(move||prepare_open_lesson(s,manifest,reference,mode,Some(stage_tx))).await;
-                                            match result {Ok(selected)=>{open.set(Some(selected));message.set(String::new());},Err(e)=>message.set(e)}
-                                            launching.set(None);busy.set(false);
-                                        });
-                                    }},"학습 시작"}
+                            {let records=progress.get(&reference.id).cloned().unwrap_or_default();let requirements=progress_requirements.get(&reference.id).cloned();
+                            let state=match &requirements {None=>"loading",Some(required)=>{let summary=issue_progress::learning_progress(&records,&reference.revision,required);if issue_progress::status(&records,&reference.revision,required).current{"done"}else if summary.solved>0{"progress"}else{"todo"}}};
+                            let is_next=next_index==Some(index);
+                            rsx!{
+                            li {class:"card lesson-card",key:"{reference.id}","data-state":state,"data-next":is_next.to_string(),"data-required":reference.required.to_string(),
+                                span {class:"lesson-number",span {class:"visually-hidden","수업 "}"{index+1}"}
+                                div {class:"lesson-card-heading",
+                                    h3 {"{reference.title}"}
+                                    div {class:"lesson-meta",
+                                        if let Some(track)=reference.track() {span {class:track.class(),aria_label:format!("학습 분류: {}",track.label()),"{track.label()}"}}
+                                        if !reference.required {span {class:"lesson-optional",title:"과정 완료에 세지 않는 선택 수업이에요.","선택"}}
+                                        if is_next {span {class:"lesson-next-label","다음"}}
+                                        span {class:"lesson-revision","버전 {reference.revision}"}
+                                    }
+                                    if !reference.prerequisites.is_empty() {p {class:"prerequisite",{format!("선수 학습: {}",reference.prerequisites.iter().filter_map(|id|manifest.lessons.iter().find(|l|l.id==*id)).map(|l|l.title.clone()).collect::<Vec<_>>().join(", "))}}}
+                                }
+                                if let Some(required)=requirements {
+                                    {let summary=issue_progress::learning_progress(&records,&reference.revision,&required);rsx!{
+                                        div {class:"lesson-progress",aria_label:"수업 진도",
+                                            strong {"{summary.percent}% 완료"}
+                                            span {"필수 문제 {summary.solved} / {summary.total}"}
+                                            progress {max:"100",value:summary.percent.to_string(),aria_label:format!("수업 진도 {}%",summary.percent)}
+                                        }
+                                    }}
+                                }else{p {class:"lesson-status","진도를 확인하고 있어요…"}}
+                                div {class:"lesson-actions",
+                                    LessonShare {repository:manifest.repository.clone(),lesson_id:reference.id.clone()}
+                                    button {class:"primary",disabled:busy()||!ready,onclick:{let manifest=manifest.clone();let reference=reference.clone();move |_|start_lesson(manifest.clone(),reference.clone())},"학습 시작"}
                                 }
                             }
+                            }}
                         }
                     }
                     }
@@ -406,7 +497,10 @@ fn CourseIdentity(session:Session,course:CourseManifest,onready:EventHandler<boo
         let repo=c.repository.clone();let id=c.id.clone();let user=s.user.id;
         if let Ok(Some(state))=github_player::background(move||molip_quest::course_identity::Store::installed()?.state(&repo,user,&id)).await {pending.set(state.pending);if !state.problem.is_empty(){notice.set(state.problem);}else if !state.pending{notice.set("이름을 저장했어요.".into());}}
     }}});
-    rsx!{section {class:"course-identity",aria_label:"코스별 이름",
+    // A saved name folds into one line; the form stays in place for renaming.
+    rsx!{section {class:"course-identity","data-saved":(!saved().is_empty()).to_string(),aria_label:"코스별 이름",
+        details {class:"course-identity-details",open:saved().is_empty(),
+        summary {span {"이 코스에서 쓰는 이름"}strong {"{saved}"}span {class:"course-identity-edit","이름 변경"}}
         form {onsubmit:{let c=course.clone();let s=session.clone();move |event:FormEvent|{
             event.prevent_default();let c=c.clone();let s=s.clone();let value=name();version+=1;let request=version();
             spawn(async move{loading.set(true);let result=github_player::background(move||{let state=molip_quest::course_identity::Store::installed()?.queue(&c.repository,&s.user,&c.id,&value)?;let _=molip_quest::course_identity::synchronize(s.github,s.user);Ok(state)}).await;
@@ -421,8 +515,9 @@ fn CourseIdentity(session:Session,course:CourseManifest,onready:EventHandler<boo
             }
             p {"이름의 공백은 없애요. 다른 코스의 이름은 바뀌지 않아요."}
             p {"이 이름은 코스의 공개 학습 기록에 보여요."}
-            if !notice().is_empty(){p {role:"status","{notice}"}}
         }
+        }
+        if !notice().is_empty(){p {class:"course-identity-status",role:"status","{notice}"}}
     }}
 }
 
@@ -486,6 +581,8 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
     let challenge_start=selected.start_task.as_ref().and_then(|id|selected.lesson.tasks.iter().position(|task|task.id==*id));
     let mut task_index=use_signal(||if selected.from_start{0}else{challenge_start.unwrap_or(first_unfinished)});
     let mut section_index=use_signal(||if challenge_start.is_some(){usize::MAX}else{0usize});
+    // Keep the current station of the step strip in view; jumps, never animates.
+    use_effect(move||{let _=(task_index(),section_index());document::eval("requestAnimationFrame(()=>{const n=document.querySelector('.study-navigation'),s=n?.querySelector('.selected');if(!s)return;s.scrollIntoView({block:'nearest',inline:'nearest'});window.mqStationMarker?.(n);})");});
     use_effect(move || {
         let _ = task_index();
         let _ = section_index();
@@ -614,7 +711,7 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
     let autostart=(!selected.practice_only&&admin==Some(Ok(true))).then(||EventHandler::new(start_auto.clone()));
     let autostart_disabled=checking_admin()||auto().as_ref().is_some_and(|run|run.active());
     rsx!{
-        div {class:if is_task{"repository-study is-task"}else{"repository-study"},
+        div {class:if is_task{"repository-study is-task"}else{"repository-study"},style:course_line(&selected.course.title,&selected.course.repository),
             header {class:"repository-header",button {class:"course-back",onclick:move |_|onback.call(()),if selected.from_challenges{"← 도전 과제"}else{"← 코스 수업 목록"}}h1 {title:selected.lesson.title.clone(),"{selected.lesson.title}"}
                 if !selected.practice_only {span {class:"auto-run-slot","data-auto":auto_state,
                     LessonShare {repository:selected.course.repository.clone(),lesson_id:selected.lesson.id.clone()}
@@ -623,21 +720,21 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
                     if let Some(run)=run_here.as_ref() {
                         div {class:"auto-run-control",role:"group",aria_label:"관리자 자동 풀이","data-state":auto_state,"data-stage":run.stage.clone(),"data-step":auto_step.clone(),"data-lesson":run.target.lesson_id.clone(),"data-passed":run.passed.len().to_string(),"data-initialized":run.initialized.len().to_string(),"data-reason":auto_reason.clone(),
                             if run.active() {
-                                span {class:"auto-run-chip",role:"status",aria_live:"polite",aria_label:"{auto_detail}",title:"{auto_detail}",{format!("{}{}",if run.paused{"⏸"}else{"●"},auto_number)}}
+                                span {class:"auto-run-chip",role:"status",aria_live:"polite",aria_label:"{auto_detail}",title:"{auto_detail}",span {class:if run.paused{"auto-run-state paused"}else{"auto-run-state"},aria_hidden:"true"}"{auto_number}"}
                                 button {id:"auto-run-pause",r#type:"button",class:"auto-run-icon",aria_label:if run.paused{"자동 풀이 재개 · Space"}else{"자동 풀이 일시정지 · Space"},title:if run.paused{"재개 · Space"}else{"일시정지 · Space"},onclick:move|_|{
                                     let mut paused=None;
                                     auto.with_mut(|run|if let Some(run)=run{if run.active(){run.paused=!run.paused;paused=Some(run.paused);}});
                                     if let Some(paused)=paused{document::eval(if paused{"window.molipAgent?.pause()"}else{"window.molipAgent?.resume()"});}
-                                },if run.paused{"▶"}else{"⏸"}}
+                                },if run.paused{svg {view_box:"0 0 16 16",width:"14",height:"14","aria-hidden":"true",path {d:"M5 3.5v9l7-4.5z",fill:"currentColor"}}}else{svg {view_box:"0 0 16 16",width:"14",height:"14","aria-hidden":"true",path {d:"M4.5 3.5h2.5v9H4.5zM9 3.5h2.5v9H9z",fill:"currentColor"}}}}
                                 button {id:"auto-run-stop",r#type:"button",class:"auto-run-icon danger",aria_label:"자동 풀이 멈춤 · Esc",title:"멈춤 · Esc",onclick:move|_|{
                                     let mut stopped=false;
                                     auto.with_mut(|run|if let Some(run)=run{if run.active(){run.stop("Esc 또는 멈춤 버튼으로 자동 풀이를 멈췄어요.");stopped=true;}});
                                     if stopped{molip_quest::auto_review::set_active(None);document::eval("window.molipAutoRun?.cancelNow?.();window.molipAgent?.stop()");}
-                                },"■"}
+                                },svg {view_box:"0 0 16 16",width:"14",height:"14","aria-hidden":"true",rect {x:"4",y:"4",width:"8",height:"8",rx:"1",fill:"currentColor"}}}
                             } else {
                                 // Why the run ended, shown only when asked for; closing it returns the share button.
                                 details {class:"auto-run-details",
-                                    summary {class:"auto-run-chip",title:"{auto_reason}",if auto_state=="finished"{"✓ 완료"}else{"! 멈춤"}}
+                                    summary {class:"auto-run-chip",title:"{auto_reason}",span {class:"auto-run-end","aria-hidden":"true"}if auto_state=="finished"{"완료"}else{"멈춤"}}
                                     div {class:"auto-run-menu",role:"status",
                                         strong {if auto_state=="finished"{"자동 풀이를 마쳤어요"}else{"자동 풀이를 멈췄어요"}}
                                         p {"{auto_reason}"}
@@ -651,7 +748,8 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
                     }
                 }}
                 button {class:"lesson-info-trigger",aria_label:"학습 정보",title:"진도와 학습 목표 보기",onclick:move |_|show_info.set(true),
-                    {format!("{}% · {count}/{} ⓘ",if required.is_empty(){0}else{count*100/required.len()},required.len())}
+                    {format!("{}% · {count}/{}",if required.is_empty(){0}else{count*100/required.len()},required.len())}
+                    svg {class:"info-icon",view_box:"0 0 16 16",width:"14",height:"14",fill:"none",stroke:"currentColor",stroke_width:"1.5","aria-hidden":"true",circle {cx:"8",cy:"8",r:"6.5"}path {d:"M8 7.2v4"}circle {cx:"8",cy:"4.9",r:".6",fill:"currentColor",stroke:"none"}}
                 }
                 div {class:"repository-tools",span {class:"lesson-account","@{session.user.login}"}button {class:"shortcut-sheet-open","data-shortcut-action":"help",onclick:move |_|{document::eval("window.molipShortcuts?.toggleSheet()");},"단축키"}{updates}{window_controls}}
             }
@@ -668,9 +766,9 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
             }
             nav {class:"study-navigation",aria_label:"수업 학습 항목",
                 if selected.mode==StudyMode::Full {
-                    for (index,section) in selected.lesson.sections.iter().enumerate() {button {class:if section_index()==index {"selected"}else{""},aria_current:if section_index()==index {"step"}else{"false"},onclick:{let record_view=record_view.clone();let mut stop_by_hand=stop_by_hand.clone();move |_|{stop_by_hand();record_view(index)}},"{section.title}"}}
+                    for (index,section) in selected.lesson.sections.iter().enumerate() {button {class:if section_index()==index {"selected"}else{""},aria_current:if section_index()==index {"step"}else{"false"},onclick:{let record_view=record_view.clone();let mut stop_by_hand=stop_by_hand.clone();move |_|{stop_by_hand();record_view(index)}},span {class:"step-dot",aria_hidden:"true"}"{section.title}"}}
                 }
-                for (index,task) in selected.lesson.tasks.iter().enumerate() {button {class:match (view.as_ref().is_some_and(|t|t.id==task.id),passed.contains(&task.id)){(true,true)=>"selected completed",(true,false)=>"selected",(false,true)=>"completed",_=>""},"data-completed":passed.contains(&task.id).to_string(),"data-step-id":task.id.clone(),aria_current:if view.as_ref().is_some_and(|t|t.id==task.id){"step"}else{"false"},onclick:{let mut stop_by_hand=stop_by_hand.clone();move |_|{stop_by_hand();task_index.set(index);section_index.set(usize::MAX);}},if passed.contains(&task.id){"✓ "}if !task.required{"도전 · "}"문제 {index+1} · {task.title}" if passed.contains(&task.id){span {class:"step-completed-badge","완료"}}}}
+                for (index,task) in selected.lesson.tasks.iter().enumerate() {button {class:match (view.as_ref().is_some_and(|t|t.id==task.id),passed.contains(&task.id)){(true,true)=>"selected completed",(true,false)=>"selected",(false,true)=>"completed",_=>""},"data-completed":passed.contains(&task.id).to_string(),"data-step-id":task.id.clone(),aria_current:if view.as_ref().is_some_and(|t|t.id==task.id){"step"}else{"false"},onclick:{let mut stop_by_hand=stop_by_hand.clone();move |_|{stop_by_hand();task_index.set(index);section_index.set(usize::MAX);}},span {class:"step-dot",aria_hidden:"true"}if passed.contains(&task.id){span {class:"step-check","✓ "}}if !task.required{"도전 · "}"문제 {index+1} · {task.title}" if passed.contains(&task.id){span {class:"step-completed-badge","완료"}}}}
             }
             if selected.practice_only {p {class:"challenge-practice-note",role:"note","이 문제를 위한 수업은 아직 준비 중이에요. 미리 풀어 보기라서 결과를 진도에 기록하지 않아요."}}
             if let Some(task)=view {
@@ -685,7 +783,7 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
                     crate::ui::Markdown {text:selected.lesson.sections[section_index()].body.clone()}
                     button {class:"primary","data-enter-next":"true",onclick:{let record_view=record_view.clone();let len=selected.lesson.sections.len();let mut stop_by_hand=stop_by_hand.clone();move |_|{stop_by_hand();let next=section_index()+1;if next<len{record_view(next)}else{section_index.set(next);}}},"다음 학습으로"}
                     p {"개념 읽기는 완료 조건이 아니에요. 문제로 바로 이동해도 돼요."}
-                    if let Some(start)=autostart {button {id:"auto-run-start",r#type:"button",class:"auto-run-start",disabled:autostart_disabled,"aria-keyshortcuts":"Control+Alt+Shift+A",title:"관리자 자동 풀이 시작",onclick:move|_|start.call(()),"▶ 자동 풀이"}}
+                    if let Some(start)=autostart {button {id:"auto-run-start",r#type:"button",class:"auto-run-start",disabled:autostart_disabled,"aria-keyshortcuts":"Control+Alt+Shift+A",title:"관리자 자동 풀이 시작",onclick:move|_|start.call(()),svg {view_box:"0 0 16 16",width:"12",height:"12","aria-hidden":"true",path {d:"M5 3.5v9l7-4.5z",fill:"currentColor"}}"관리자 자동 풀이"}}
                 }
             }
             p {class:"study-activity",role:"status","{activity_message}"}
@@ -913,7 +1011,7 @@ if let Some(start)=autostart {
                     button {id:"auto-run-start",r#type:"button",class:"auto-run-start",disabled:autostart_disabled,"aria-keyshortcuts":"Control+Alt+Shift+A",
                         aria_label:if cfg!(target_os="macos"){"관리자 자동 풀이 시작 · Control+Option+Shift+A"}else{"관리자 자동 풀이 시작 · Ctrl+Alt+Shift+A"},
                         title:if cfg!(target_os="macos"){"관리자 자동 풀이: 지금 스텝부터 Esc까지 해설을 듣고 정답을 실제로 실행·채점해 이 계정 진도에 기록해요 · Control+Option+Shift+A"}else{"관리자 자동 풀이: 지금 스텝부터 Esc까지 해설을 듣고 정답을 실제로 실행·채점해 이 계정 진도에 기록해요 · Ctrl+Alt+Shift+A"},
-                        onclick:move|_|start.call(()),"▶ 자동 풀이"}
+                        onclick:move|_|start.call(()),svg {view_box:"0 0 16 16",width:"12",height:"12","aria-hidden":"true",path {d:"M5 3.5v9l7-4.5z",fill:"currentColor"}}"관리자 자동 풀이"}
                 }
                                     label {class:"narration-speed",span {"속도"}
                         select {class:"assistant-rate repository-narration-rate",aria_label:"해설 말 속도",onchange:move |e|{document::eval(&format!("window.molipVoice?.setRate({});",serde_json::to_string(&e.value()).unwrap_or_default()));}}

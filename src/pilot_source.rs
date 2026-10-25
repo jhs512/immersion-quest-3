@@ -44,7 +44,30 @@ fn store() -> Result<&'static Mutex<Store>,String> {
 fn user() -> Value { json!({"id":987654321,"login":"mq3-validation"}) }
 
 const LEGACY_VERSIONS: &[char] = &['a','b','c','d','e','f','g','h','i','j','m'];
-pub fn versions()->Vec<char> { LEGACY_VERSIONS.iter().copied().chain(crate::lesson_registry::LESSONS.iter().map(|row|row.pilot)).chain([AUTO_CHAIN_VERSION]).collect() }
+pub fn versions()->Vec<char> { LEGACY_VERSIONS.iter().copied().chain(crate::lesson_registry::LESSONS.iter().map(|row|row.pilot)).chain([AUTO_CHAIN_VERSION,MAIN_COURSE_VERSION,CATEGORY_PREVIEW_VERSION]).collect() }
+/// Design validation: the bundled 자바 백엔드 과정 (all its lessons, labels and order) served through
+/// this isolated transport, so the real course screens can be inspected without an account.
+pub const MAIN_COURSE_VERSION: char = '본';
+/// The same course with the unapproved category proposal applied, only to render the grouped list.
+pub const CATEGORY_PREVIEW_VERSION: char = '분';
+fn main_course(categories: bool) -> Result<String, String> {
+    let mut course: Value = serde_json::from_str(include_str!("../courses/redesigned-courses/java-backend.json")).map_err(|e| e.to_string())?;
+    course["id"] = "crs_3f59e7bd-70c1-4e81-9cb0-000000000001".into();
+    course["repository"] = REPOSITORY.into();
+    let proposal: Value = serde_json::from_str(include_str!("../tools/redesigned_courses/lesson-classification.json")).map_err(|e| e.to_string())?;
+    if categories { course["categories"] = proposal["courses"]["java"]["categories"].clone(); }
+    for lesson in course["lessons"].as_array_mut().ok_or("검증 코스 형식 오류")? {
+        let key = lesson["repository"].as_str().unwrap_or("").trim_start_matches("jhs512/mq3-lesson-redesigned-").to_owned();
+        lesson["repository"] = "mq3-validation/lesson".into();
+        if categories { if let Some(id) = proposal["courses"]["java"]["lessons"][&key]["category"].as_str() { lesson["category"] = id.into(); } }
+    }
+    serde_json::to_string(&course).map_err(|e| e.to_string())
+}
+fn main_course_source(categories: bool) -> Result<&'static str, String> {
+    static PLAIN: OnceLock<Result<String, String>> = OnceLock::new();
+    static GROUPED: OnceLock<Result<String, String>> = OnceLock::new();
+    (if categories { &GROUPED } else { &PLAIN }).get_or_init(|| main_course(categories)).as_ref().map(String::as_str).map_err(Clone::clone)
+}
 /// 관리자 자동 풀이 validation: one course with two registered lessons (Bash, then Java), so a
 /// run can be seen moving from one lesson to the next. It reuses the registered lesson files.
 pub const AUTO_CHAIN_VERSION: char = '연';
@@ -69,6 +92,7 @@ pub fn corrupt_update()->Result<(),String> {
 }
 fn snapshot(version: char, file: &str) -> Result<&'static str, String> {
     if version == AUTO_CHAIN_VERSION && file == "course.json" { return auto_chain_course(); }
+    if matches!(version, MAIN_COURSE_VERSION | CATEGORY_PREVIEW_VERSION) && file == "course.json" { return main_course_source(version == CATEGORY_PREVIEW_VERSION); }
     if let Some(lesson)=crate::lesson_registry::by_version(version) {
         return match file {"course.json"=>Ok(lesson.course),"lesson.json"=>Ok(lesson.lesson),_=>Err("검증 파일을 확인하세요.".into())};
     }
