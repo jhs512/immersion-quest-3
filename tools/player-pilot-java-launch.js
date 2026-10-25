@@ -11,7 +11,7 @@
   await wait(()=>document.querySelector('.lesson-card')?.textContent.includes(mq3JavaLaunch.revision),'Java workspace catalog');await click('학습 시작');await ready();await wait(()=>typeof window.molipAgent?.setVoice==='function','narration module ready');molipAgent.setVoice(false);
   for(let i=0;i<mq3JavaLaunch.tasks.length;i++){
    const task=mq3JavaLaunch.tasks[i];await wait(()=>document.querySelector('.repository-task')?.dataset.taskId===task.id,'task mounted');await ready();
-   const choose=id=>document.querySelector(`input[type=radio][value="${id}"]`).click();
+   if(task.interaction||document.querySelector('.answer-interaction input[type=radio]'))throw Error('Java coding lesson still requires an answer choice');
    if(i===0){const pane=document.querySelector('.editor-pane').getBoundingClientRect();for(const selector of ['.java-build-source','#git-student-terminal']){const box=document.querySelector(selector).getBoundingClientRect();if(box.height<48||box.bottom>pane.bottom+1||box.right>pane.right+1)throw Error('Source/terminal layout: '+selector);}
     await wait(()=>window.molipSplit,'workspace dividers ready');
     const divider=document.querySelector('.split-java-source');if(!divider)throw Error('Missing Java editor/terminal divider');
@@ -19,7 +19,7 @@
     const before=sourceHeight();divider.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true,cancelable:true}));
     if(sourceHeight()<before+6)throw Error('Java divider dimensions: '+JSON.stringify({before,after:sourceHeight(),workspace:document.querySelector('.java-build-workspace').getBoundingClientRect().height,outer:pane.height,rows:getComputedStyle(document.querySelector('.java-build-workspace')).gridTemplateRows,style:document.querySelector('.java-build-workspace').getAttribute('style')}));
     divider.dispatchEvent(new MouseEvent('dblclick',{bubbles:true}));
-    choose(task.interaction.answer);await submit(false);checked.push('choice alone cannot pass without real work');}
+    await submit(false);checked.push('source alone cannot pass without a real terminal command');}
    const source=task.git_terminal.shell.goal.files['Main.java'];
    if(molipCodeEditors.getValue()!==source)molipCodeEditors.setValue(source);
    if(i===2||i===5){
@@ -30,11 +30,16 @@
     clearInterval(sample);if(i===5&&(!demoText.includes(task.git_terminal.shell.commands[0])||!demoText.includes(task.git_terminal.java_build.stdout.trim())))throw Error('Demonstration did not show real JDK output');
     await ready();if(molipCodeEditors.getValue()!==student)throw Error('Demo overwrote learner source');checked.push(i===2?'stopping demonstration preserves editor and terminal':'full demonstration preserves editor and terminal');
    }
-   if(i===5){mq3GitTerminal.command(task.git_terminal.shell.commands[0]);await wait(()=>document.querySelector('.git-terminal-shell')?.textContent.includes('먼저 예상'),'prediction required');choose(task.interaction.answer);await run('');}
-   else {choose(task.interaction.answer);for(const command of task.git_terminal.shell.commands)await run(command);}
-   if(i===4){choose(task.interaction.options.find(option=>option.id!==task.interaction.answer).id);await submit(false);choose(task.interaction.answer);checked.push('valid JDK output with wrong observation is rejected');}
-   await submit(true);checked.push(`step ${i+1} passes with source, artifact, execution and choice`);
-   if(i<7)await click('다음으로 이동');else await click('수업 목록으로');
+   for(const command of task.git_terminal.shell.commands)await run(command);
+   if(i===4){
+    const wrong=source.replace(/System\.out\.println\([^\n]*\);/,'System.out.println("wrong learner output");');
+    if(wrong===source)throw Error('Wrong-source probe did not change Main.java');
+    molipCodeEditors.setValue(wrong);await submit(false);
+    molipCodeEditors.setValue(source);for(const command of task.git_terminal.shell.commands)await run(command);
+    checked.push('valid prior JDK output cannot pass with incorrect learner source');
+   }
+   await submit(true);checked.push(`step ${i+1} passes with source, artifact and real execution without answer choices`);
+   if(i<mq3JavaLaunch.tasks.length-1)await click('다음으로 이동');else await click('수업 목록으로');
   }
   await wait(()=>document.querySelector('.lesson-progress')?.textContent.includes('100% 완료'),'catalog completed');
   dioxus.send({passed:true,checked});
