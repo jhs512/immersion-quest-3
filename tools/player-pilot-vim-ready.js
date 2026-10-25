@@ -4,7 +4,7 @@
  const click=async text=>{await wait(()=>button(text)&&!button(text).disabled,text);button(text).click();};
  try{
   await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('pilot-a'),'initial fixture');
-  await click('버전 브');await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('vim-basics-1'),'Vim fixture');
+  await click('버전 브');await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('vim-basics'),'Vim fixture');
   // Reproduce a filename notification that is not present after a screen redraw.
   const originalText=mq3GitTerminal.text.bind(mq3GitTerminal);mq3GitTerminal.text=()=>'';
   await click('학습 시작');

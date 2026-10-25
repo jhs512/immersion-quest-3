@@ -182,6 +182,14 @@
     if (!first) return null;
     return rectTarget(() => marked().flatMap(e => [...e.getClientRects()]), first);
   }
+  // A rendered element has a box. A selector can match a hidden copy first: during a Vim
+  // demonstration the learner's live panel (.vim-live-panel) is still in the page but hidden, and
+  // the demo's visible panel comes after it. Pick the first rendered match, else the first match.
+  const rendered = element => { if (!element?.isConnected) return false; const r = element.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
+  function pick(selector) {
+    const all = [...document.querySelectorAll(selector)];
+    return all.find(rendered) || all[0] || null;
+  }
   function resolveTarget(target) {
     if (!target) return null;
     const key = String(target).trim();
@@ -220,12 +228,12 @@
     const candidates = TARGETS[key];
     if (candidates) {
       for (const candidate of candidates) {
-        const element = typeof candidate === 'function' ? candidate() : document.querySelector(candidate);
+        const element = typeof candidate === 'function' ? candidate() : pick(candidate);
         if (element) return element;
       }
       return null;
     }
-    try { return document.querySelector(key); } catch { return null; }
+    try { return pick(key); } catch { return null; }
   }
   let spot, caption, spotTarget = null, spotKey = null, raf = 0;
   // Options the narration has talked about keep a mark until the run ends.
@@ -244,8 +252,13 @@
     const margin = 8;
     // The UI re-renders after a tick or a grade: find the same target again by its key.
     if (spotTarget && !spotTarget.isConnected && spotKey) { spotTarget = resolveTarget(spotKey); mark(spotTarget); }
-    if (spotTarget && spotTarget.isConnected) {
-      const r = spotTarget.getBoundingClientRect();
+    // A plain selector whose element became hidden (a demo ended, a panel swapped): find the
+    // rendered one again. Text and code targets keep their range.
+    else if (spotTarget && spotKey && !rendered(spotTarget) && !/^(?:text|code|lines|editor|answer|quiz|option):|^editor$/.test(spotKey)) { const again = resolveTarget(spotKey); if (again) { spotTarget = again; mark(again); } }
+    // A target without a box (hidden) is no place for the frame or the caption: the caption then sits
+    // where it does without a target, never at the window's top corner over the header and steps.
+    const r = spotTarget && spotTarget.isConnected ? spotTarget.getBoundingClientRect() : null;
+    if (r && r.width > 0 && r.height > 0) {
       const pad = 6;
       spot.style.left = `${r.left - pad}px`; spot.style.top = `${r.top - pad}px`;
       spot.style.width = `${r.width + pad * 2}px`; spot.style.height = `${r.height + pad * 2}px`;

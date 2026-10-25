@@ -34,6 +34,8 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
             include_str!("../tools/player-pilot-invalid-order.js").to_owned()
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("vim-ready") {
             include_str!("../tools/player-pilot-vim-ready.js").to_owned()
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("vim-narration") {
+            include_str!("../tools/player-pilot-vim-narration.js").to_owned()
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("shortcuts-feedback") {
             include_str!("../tools/player-pilot-shortcuts.js").to_owned()
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("git-course") {
@@ -71,8 +73,8 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
                     continue;
                 }
                 // Progress lines, so a stuck or failed run shows where it was (auto-state.log).
-                if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("auto-state")&&message["control"]=="log" {
-                    println!("[auto-state {:.1}s] {}",message["t"].as_f64().unwrap_or(0.0)/1000.0,message["line"].as_str().unwrap_or(""));
+                if matches!(std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref(),Some("auto-state"|"vim-narration"))&&message["control"]=="log" {
+                    println!("[pilot {:.1}s] {}",message["t"].as_f64().unwrap_or(0.0)/1000.0,message["line"].as_str().unwrap_or(""));
                     continue;
                 }
                 // A real screenshot of this window, kept as evidence (Windows only).

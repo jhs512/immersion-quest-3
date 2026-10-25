@@ -331,3 +331,31 @@ for (const engine of ['webkit','chromium']) test(`${engine}: Bash sentence and c
     assert.ok(lum(afterCode.bg)<.05,'the code background is back to the editor color: '+afterCode.bg);
   } finally {await browser.close();}
 });
+
+// Reported (Vim 1단계): the last sentences target .vim-live-panel. During the demonstration the learner's
+// panel is still in the page but hidden and comes first; the frame went to its empty box at the window's
+// corner and the caption covered the header. The rendered panel is framed and the caption stays near it.
+test('a selector with a hidden first match frames the rendered one; a target without a box never puts the caption in the corner',async()=>{
+  const html=TASK.replace('<section class="result-pane">','<section class="vim-live-panel learner" style="display:none">학습자 확인</section><section class="vim-live-panel demo" style="margin-top:300px;height:90px">해설 확인</section><section class="result-pane">');
+  const {browser,page}=await open(html);
+  try {
+    await page.evaluate(()=>{window.done=molipAgent.runExplanation([
+      {action:'say',target:'text:주문 금액은 20000원이에요.',text:'주어진 금액이에요.'},
+      {action:'say',target:'.vim-live-panel',text:'확인 항목이 채워졌는지 봐요.'},
+      {action:'say',target:'.vim-live-panel',text:'입력 모드 항목이 완료됐어요.'},
+    ])});
+    await waitClips(page,1);await next(page);await waitClips(page,2);
+    const boxes=()=>page.evaluate(()=>{const b=e=>{const r=e.getBoundingClientRect();return {left:r.left,top:r.top,width:r.width,height:r.height};};
+      return {spot:b(document.querySelector('.agent-spotlight')),caption:b(document.querySelector('.agent-caption')),panel:b(document.querySelector('.vim-live-panel.demo')),text:CSS.highlights.get('narration-text')?[...CSS.highlights.get('narration-text')].map(r=>r.toString()):[]};});
+    let s=await boxes();
+    assert.ok(Math.abs(s.spot.top-(s.panel.top-6))<2&&Math.abs(s.spot.height-(s.panel.height+12))<2,'the frame is on the rendered panel: '+JSON.stringify(s));
+    assert.ok(s.caption.top>s.panel.top,'the caption is next to the panel, not at the top corner: '+JSON.stringify(s));
+    assert.deepEqual(s.text,[],'the earlier sentence is no longer highlighted');
+    // The framed panel disappears and no rendered match is left: no frame, the caption at the bottom.
+    await page.evaluate(()=>document.querySelector('.vim-live-panel.demo').style.display='none');
+    await page.waitForFunction(()=>document.querySelector('.agent-spotlight').hidden,null,{timeout:5000});
+    s=await boxes();
+    assert.ok(s.caption.top>400,'without a rendered target the caption sits at the bottom: '+JSON.stringify(s.caption));
+    await next(page);await waitClips(page,3);await next(page);await page.evaluate(()=>done);
+  } finally {await browser.close();}
+});
