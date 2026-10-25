@@ -27,17 +27,18 @@ test('long sentences become bounded chunks that keep their sentence index', () =
   assert.equal(chunks.at(-1).sentenceIndex, 1);
 });
 
-test('technical terms are pronounced in Korean while code spans stay verbatim', () => {
-  assert.equal(speech.pronunciationText('Python의 `print(x)` 함수와 pandas DataFrame'), '파이썬의 print(x) 함수와 판다스 데이터프레임');
+test('technical terms read the same in code spans and prose; longer identifiers keep their letters', () => {
+  assert.equal(speech.pronunciationText('Python의 `print(x)` 함수와 pandas DataFrame'), '파이썬의 프린트(x) 함수와 판다스 데이터프레임');
+  assert.equal(speech.pronunciationText('`print_total(x)`와 `printer`'), 'print_total(x)와 printer');
   assert.equal(speech.pronunciationText('MAE와 RMSE, 그리고 R²'), '엠에이이와 알엠에스이, 그리고 알 제곱');
   assert.equal(speech.pronunciationText('printer'), 'printer'); // not a whole-word match
 });
 
 test('file names are read with a spoken dot and extension, in prose and in code spans', () => {
   assert.equal(speech.pronunciationText('여러분의 main.py는 주가 파일을 읽어요'), '여러분의 메인 점 파이는 주가 파일을 읽어요');
-  assert.equal(speech.pronunciationText('`main.py` 하나'), 'main 점 파이 하나');
+  assert.equal(speech.pronunciationText('`main.py` 하나'), '메인 점 파이 하나');
   assert.equal(speech.pronunciationText("pd.read_csv('data/titanic.csv')"), "pd.리드 씨에스브이(data/타이타닉 점 씨에스브이)");
-  assert.equal(speech.pronunciationText('orders.xlsx와 model.joblib'), 'orders 점 엑셀와 model 점 잡립');
+  assert.equal(speech.pronunciationText('orders.xlsx와 model.joblib'), 'orders 점 엑셀과 model 점 잡립');
   assert.equal(speech.pronunciationText('버전 1.2.3'), '버전 1.2.3'); // versions stay verbatim
 });
 
@@ -117,8 +118,8 @@ test('Git has one pronunciation in prose and command examples without changing i
   assert.equal(speech.pronunciationText('`git commit -m "첫 기록"`을 실행해요'), '깃 커밋 -m 첫 기록을 실행해요');
   assert.equal(speech.pronunciationText('`Git`과 `GitHub`'), '깃과 깃허브');
   const identifiers = 'git_status digital github.com /git/memo.txt .git git.txt';
-  assert.equal(speech.pronunciationText(identifiers), 'git_status digital github.com /git/memo 점 텍스트 깃 git 점 텍스트');
-  assert.equal(speech.pronunciationText('`print(git)`와 `git_status`'), 'print(git)와 git_status');
+  assert.equal(speech.pronunciationText(identifiers), 'git_status digital github.com /git/memo 점 텍스트 깃 깃 점 텍스트');
+  assert.equal(speech.pronunciationText('`print(git)`와 `git_status`'), '프린트(깃)와 git_status');
 });
 
 test('the device reader uses the shared Git pronunciation policy', () => {

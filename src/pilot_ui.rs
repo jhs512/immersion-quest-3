@@ -48,6 +48,8 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
             include_str!("../tools/player-pilot-bash.js").to_owned()
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("terminal-restore") {
             include_str!("../tools/player-pilot-terminal-restore.js").to_owned()
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("speech-voices") {
+            include_str!("../tools/player-pilot-speech.js").to_owned()
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("lesson-loading") {
             include_str!("../tools/player-pilot-loading.js").to_owned()
         } else if let Some(script)=std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref().and_then(molip_quest::lesson_registry::self_test_script) {

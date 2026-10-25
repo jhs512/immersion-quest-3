@@ -68,11 +68,11 @@ test('identifiers, paths, URLs, ENV names, options and ordinary words are not re
     ['mkdir_count와 git_status', 'mkdir_count와 git_status'],
     ['$JAVA_HOME과 SQL_MODE', '$JAVA_HOME과 SQL_MODE'],
     ['`ls -la`', '엘에스 -la'],
-    ['`head -1 memo.txt`', '헤드 -1 memo 점 텍스트'],
+    ['`head -1 memo.txt`', '헤드 마이너스 1 memo 점 텍스트'], // as prose reads -1, so a second pass agrees
     ['Java.util.List', 'Java.util.List'],
     ['catalog와 scdn', 'catalog와 scdn'],
     ['localhost:8080', 'localhost 콜론 8080'], // the host is kept; the port colon is spoken,
-    ['nginx.conf', 'nginx 점 콘프'],
+    ['nginx.conf', '엔진엑스 점 콘프'],
     ['a-b와 no-error', 'a-b와 no-error'],
     ['../inbox/guide.txt', '../inbox/guide 점 텍스트'],
     ['훈련 / 테스트', '훈련 / 테스트'],
@@ -88,7 +88,7 @@ test('comparison symbols are spoken as expressions or by name, never dropped', (
     ['이상이면 >=, 초과면 >죠?', '이상이면 크거나 같다 기호, 초과면 크다 기호죠?'],
     ['그건 >일 때 이야기예요.', '그건 크다 기호일 때 이야기예요.'],
     ['price >= 10000', 'price 크거나 같다 10000'],
-    ['`count > max`', 'count 크다 max'],
+    ['`count > max`', '카운트 크다 맥스'],
     ['`x != y`', 'x 같지 않다 y'],
     ['qty<=2만 두면', 'qty 작거나 같다 2만 두면'],
     ['> 0으로 되돌려요.', '크다 0으로 되돌려요.'],
@@ -103,7 +103,7 @@ test('Bash redirection is named, not compared', () => {
     ['`echo "둘째 줄" >> memo.txt`', '에코 둘째 줄 꺾쇠 두 개 memo 점 텍스트'],
     ['같은 echo 뒤에 > memo.txt를 붙이면', '같은 에코 뒤에 꺾쇠 memo 점 텍스트를 붙이면'],
     ['첫 메모 아래에 둘째 줄이 있어요. >> 는 덧붙이고, > 는 덮어써요.', '첫 메모 아래에 둘째 줄이 있어요. 꺾쇠 두 개 는 덧붙이고, 꺾쇠 는 덮어써요.'],
-    ['`echo 설정 > .practice`', '에코 설정 꺾쇠 .practice'],
+    ['`echo 설정 > .practice`', '에코 설정 꺾쇠 점 practice'],
     ['`ls 2>&1`', '엘에스 2 꺾쇠 앰퍼샌드 1'],
     ['`sort < names.txt`', '소트 왼쪽 꺾쇠 names 점 텍스트'.replace('소트', 'sort')],
   ]);
@@ -131,7 +131,7 @@ test('arithmetic, assignment, logic and code punctuation by context', () => {
     ['HEAD^는 이전 커밋', 'HEAD 캐럿은 이전 커밋'],
     [':2는 0번과 1번까지예요.', '콜론 2는 영번과 일번까지예요.'],
     ['느낌표를 붙여 :q!로 끝내요.', '느낌표를 붙여 콜론 q 느낌표로 끝내요.'],
-    ['printf는 %d 자리에', 'printf는 퍼센트 d 자리에'],
+    ['printf는 %d 자리에', '프린트에프는 퍼센트 d 자리에'],
   ]);
 });
 
@@ -195,7 +195,7 @@ test('lexicon entries are unique, Korean, documented and ordered longest first',
     assert.ok(group.id && group.scope && group.rationale && group.evidence && group.example, group.id);
     for (const entry of group.entries) {
       const [token, spoken, example] = entry;
-      const key = group.scope.startsWith('after:') ? group.scope + ' ' + token : (group.caseSensitive ? token : token.toLowerCase());
+      const key = group.scope.startsWith('after:') || ['extension', 'java-class'].includes(group.scope) ? group.scope + ' ' + token : (group.caseSensitive ? token : token.toLowerCase());
       assert.ok(!seen.has(key), `duplicate ${token} in ${group.id} and ${seen.get(key)}`);
       seen.set(key, group.id);
       assert.ok(spoken && spoken !== token, token);
@@ -243,4 +243,74 @@ test('the device and neural voices receive the same speech text; offsets still i
   assert.equal(device[0], bodies[0].text);
   assert.equal(device[0], '엠케이디아이알 notes에 에코 hi 꺾쇠 memo 점 텍스트. 크거나 같다 기호는 이상이에요.');
   for (const sentence of speech.speechSentences(source)) assert.equal(source.slice(sentence.start, sentence.end), sentence.text);
+});
+
+// User reports: "Main.class" heard as 마인…, "javac" heard as 자백.
+test('Java commands, class names and class files: javac, java Main, Main.java, Main.class', () => {
+  cases([
+    ['javac Main.java', '자바 씨 메인 점 자바'], ['`javac Main.java`', '자바 씨 메인 점 자바'],
+    ['java Main', '자바 메인'], ['`java Main`', '자바 메인'], ['Main.class', '메인 점 클래스'], ['`Main.class`', '메인 점 클래스'],
+    ['Main.java', '메인 점 자바'], ['javac', '자바 씨'], ['`javac`로 컴파일해요', '자바 씨로 컴파일해요'], ['JAVAC와 Java', 'JAVAC와 자바'],
+    ['방금 만든 Main.class를 java Main으로 실행해요. 이번엔 .java를 붙이지 않아요.', '방금 만든 메인 점 클래스를 자바 메인으로 실행해요. 이번엔 점 자바를 붙이지 않아요.'],
+    ['`java -cp out Main`', '자바 -cp out 메인'], ['`javac -d out src/Main.java`', '자바 씨 -d out src/메인 점 자바'], ['`out/Main.class`', 'out/메인 점 클래스'],
+    ['`java Main.java Hello World`', '자바 메인 점 자바 Hello World'], ['class Main {', 'class 메인 {'], ['`new Main()`', 'new 메인()'],
+    ['`Main`', '메인'], ['Main.class를 확인해요', '메인 점 클래스를 확인해요'], ['javac는 조용히 끝나요', '자바 씨는 조용히 끝나요'],
+  ]);
+});
+
+test('Main is changed only where it names a Java class; other names, identifiers, URLs and prose keep their letters', () => {
+  cases([
+    ['MainTest.java', 'MainTest 점 자바'], ['MainActivity', 'MainActivity'], ['`Main_backup.java`', 'Main_backup 점 자바'],
+    ['https://example.com/Main.class', 'https://example.com/Main.class'], ['Main 안의 다른 위치', 'Main 안의 다른 위치'],
+    ['`java App.java`', '자바 App 점 자바'], ['`java Hello`', '자바 Hello'], ['Hello.class', 'Hello 점 클래스'],
+    ['Main.unknownext', 'Main.unknownext'], ['javascript와 javadoc', 'javascript와 javadoc'], ['`String.class`', 'String 점 클래스'],
+    ['main.py', '메인 점 파이'], ['`Main.java`의 main 메서드', '메인 점 자바의 메인 메서드'],
+  ]);
+});
+
+test('Java examples reach the device and neural voices as the same text; the caption source is unchanged', async () => {
+  const source = '`javac Main.java` 다음 `java Main`이면 Main.class를 실행해요.';
+  const copy = source.slice();
+  const device = [];
+  const synth = { getVoices: () => [{ lang: 'ko-KR' }], cancel() {}, resume() {}, speak(u) { device.push(u.text); } };
+  const controller = new speech.StorySpeech(synth, class { constructor(text) { this.text = text; } }, () => {}, { setTimeout: () => 0, clearTimeout() {} });
+  controller.chunks = [source];
+  controller.start();
+  const bodies = [];
+  const voiceContext = { console, URL, JSON, Map, Promise, String, Number, Object, setTimeout, clearTimeout,
+    CustomEvent: class {}, document: {}, window: { addEventListener() {}, dispatchEvent() {} }, location: { protocol: 'http:' },
+    molipPronunciation: context.molipPronunciation,
+    fetch: (_url, init) => { bodies.push(JSON.parse(init.body)); return Promise.resolve({ ok: true, headers: { get: () => '' }, blob: async () => new Blob(['mp3']) }); } };
+  vm.runInNewContext(readFileSync(new URL('../layout/voice.js', import.meta.url), 'utf8'), voiceContext);
+  URL.revokeObjectURL(await voiceContext.molipVoice.synthesize(source));
+  const expected = '자바 씨 메인 점 자바 다음 자바 메인이면 메인 점 클래스를 실행해요.';
+  assert.equal(device[0], expected);
+  assert.deepEqual(bodies, [{ text: expected, voice: 'ko-KR-SunHiNeural' }]);
+  assert.equal(source, copy);
+  // Narration (agent.js) speaks with the device voice through the same function.
+  assert.match(readFileSync(new URL('../layout/agent.js', import.meta.url), 'utf8'), /molipPronunciation\.pronunciationText\(sentence\)/);
+});
+
+test('code spans next to prose: the sentence is converted in one piece', () => {
+  cases([
+    ['**결정 트리**(`DecisionTreeClassifier`)는 스무고개예요.', '결정 트리(디시전 트리 클래시파이어)는 스무고개예요.'],
+    ['`a` > `b`이면', 'a 크다 b이면'], ["조심하세요. accept(')')는 닫는 괄호가 없어도", '조심하세요. accept(닫는 괄호)는 닫는 괄호가 없어도'],
+    ["`price_text.replace(',', '')`가 쉼표를 빈 글자로 바꿔요. 그다음 `int('10,000')`", 'price_text.replace(,, 빈 문자열)가 쉼표를 빈 글자로 바꿔요. 그다음 인트(만)'],
+    ['`"stream":false`면', 'stream 콜론 false면'], ['구간은 `60+`예요.', '구간은 60 플러스예요.'], ['`<값>`으로 출력하고 없으면 `<unset>`', '값으로 출력하고 없으면 unset'],
+    ['`<li>`', 'li 태그'], ['`new ArrayList<>()`', 'new ArrayList()'], ["`WHERE status <> 'done'`", 'WHERE status 같지 않다 done'],
+    ['`LRANGE mq:list:jobs 0 -1`', 'LRANGE mq 콜론 리스트 콜론 jobs 0 마이너스 1'], ['`SETBIT attend:2026-10 1 1`', 'SETBIT attend 콜론 2026-10 1 1'],
+    ['`server_name app2-127-0-0-1.nip.io;`', 'server_name app2-127-0-0-1.nip.io;'], ['`nginx:1.27-alpine`', '엔진엑스 콜론 1.27-alpine'],
+    ['`plt.ylim(0,100)`', 'plt.ylim(0,100)'], ['생존(0/1) 열', '생존(0 또는 1) 열'], ['5 - 3', '5 빼기 3'],
+    ['`psql -c "UPDATE items SET stock = stock - 1 WHERE stock > 0" > a.txt`', '피에스큐엘 -c UPDATE items SET stock 이퀄 stock 빼기 1 WHERE stock 크다 0 꺾쇠 a 점 텍스트'],
+    ["- `'−'를 '-'로` → 위키의 음수 기호", '빼기를 마이너스로 화살표 위키의 음수 기호'],
+  ]);
+});
+
+test('SQL words the voice spells letter by letter, C names and dot-files', () => {
+  cases([
+    ['ROLLBACK과 COMMIT', '롤백과 COMMIT'], ['GROUP BY 뒤 HAVING', 'GROUP BY 뒤 해빙'], ['NOT EXISTS', 'NOT 이그지스츠'], ['ORDER BY price DESC', 'ORDER BY price 디에스씨'],
+    ['`ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW`', '로우스 BETWEEN 언바운디드 프리시딩 AND CURRENT ROW'], ['id INTEGER PRIMARY KEY', 'id 인티저 PRIMARY KEY'],
+    ['rollback_count와 DESCRIPTION', 'rollback_count와 DESCRIPTION'], ['printf는', '프린트에프는'], ['`jupyter notebook`', '주피터 노트북'],
+    ['.practice 파일을 만들어요.', '점 practice 파일을 만들어요.'], ['종목 코드 뒤의 `.KS`는', '종목 코드 뒤의 점 KS는'], ['끝.Next', '끝.Next'],
+  ]);
 });
