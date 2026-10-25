@@ -40,15 +40,34 @@ jobs:
         run: cargo build --locked --no-default-features --example validate_redesigned_lesson
       - name: Verify ownership, boundaries and hard-kill cleanup
         run: cargo test --locked --no-default-features --lib docker_lab -- --include-ignored --test-threads=1
+      - name: Prepare the shared pinned JDBC cache once
+        run: cargo test --locked --no-default-features --lib library_sets::runtime_tests -- --ignored --test-threads=1
       - name: Check all fourteen lessons with real engines
         shell: python
         run: |
-          import pathlib, subprocess, sys
+          import concurrent.futures, pathlib, subprocess, sys
           sys.path.insert(0, str(pathlib.Path('tools/principles_lessons').resolve()))
           from make import NEW_ORDER
-          for key in NEW_ORDER:
-              subprocess.run(['target/debug/examples/validate_redesigned_lesson',
-                  f'tests/lesson-cases/{key}.json', f'target/principles-{key}.json'], check=True)
+          def validate(key):
+              print(f'BEGIN {key}', flush=True)
+              result = subprocess.run(['target/debug/examples/validate_redesigned_lesson',
+                  f'tests/lesson-cases/{key}.json', f'target/principles-{key}.json'])
+              return result.returncode
+          failures = []
+          with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+              pending = {pool.submit(validate, key): key for key in NEW_ORDER}
+              for future in concurrent.futures.as_completed(pending):
+                  key = pending[future]
+                  try:
+                      code = future.result()
+                  except Exception as error:
+                      print(f'LAUNCH ERROR {key}: {error}', flush=True)
+                      code = 1
+                  print(f'{"PASS" if code == 0 else "FAIL"} {key}', flush=True)
+                  if code:
+                      failures.append(key)
+          if failures:
+              raise SystemExit('Failed lessons: ' + ', '.join(failures))
       - uses: actions/upload-artifact@v4
         if: always()
         with:
