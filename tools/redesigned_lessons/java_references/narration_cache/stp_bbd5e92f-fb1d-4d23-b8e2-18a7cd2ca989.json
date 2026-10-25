@@ -1,0 +1,52 @@
+{
+  "by": "hand",
+  "source_sha256": "b850437f8ff8669caa1aa8e64aaa2075146dfe352c82a5ae5ebccd25b0cc6695",
+  "entry": [
+    {
+      "action": "say",
+      "text": "replace는 매개변수 item에 새 상자를 넣어요. main의 a도 그 상자를 가리키게 될지 먼저 봐요.",
+      "target": "text:그런데 main의 a는 여전히 처음 상자를 가리켜요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2예요. item에는 a의 참조가 복사돼 들어왔을 뿐이라, item을 다른 상자로 바꿔도 main의 a는 그대로예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    static void replace(Box item) {\n        item = new Box(99);\n",
+      "after": "    static Box replace(Box item) {\n        return new Box(99);\n",
+      "say": "반환형을 Box로 바꾸고 새 상자를 돌려줘요."
+    },
+    {
+      "action": "patch_code",
+      "before": "        replace(a);\n",
+      "after": "        a = replace(a);\n",
+      "say": "main에서 돌려받은 상자를 a에 대입해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "99예요. main의 a가 돌려받은 새 상자를 가리키게 됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. item.count = 99로 고치면 결과는 같아 보여도 넘겨준 처음 상자를 바꿔 버려요. 이 문제는 새 상자를 돌려받는 거예요.",
+      "target": "code:return new Box(99);"
+    }
+  ]
+}

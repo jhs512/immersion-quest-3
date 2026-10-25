@@ -1,0 +1,331 @@
+{
+ "course": "tests/fixtures/player-pilot/n/course.json",
+ "lesson": "courses/redesigned/java-values.json",
+ "expected_outputs": [
+  [
+   "",
+   "2",
+   "",
+   "2"
+  ],
+  [
+   "2",
+   "3"
+  ],
+  [
+   "2 + 3",
+   "5"
+  ],
+  [
+   "quantity",
+   "2",
+   "5",
+   "2"
+  ],
+  [
+   "2",
+   "2",
+   "3",
+   "7"
+  ],
+  [
+   "2\n2",
+   "2\n3",
+   "7\n8"
+  ],
+  [
+   "수량: quantity",
+   "수량: 2",
+   "수량: 5"
+  ],
+  [
+   "2개1",
+   "3개",
+   "8개"
+  ],
+  [
+   "수량: 71",
+   "수량: 8",
+   "수량: 5",
+   "수량: 8"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "System.out.println(2);",
+     "System.out.println(2)"
+    ]
+   ],
+   "reason": "A missing semicolon does not compile"
+  },
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "System.out.println(2);",
+     "System.out.println(3);"
+    ]
+   ],
+   "reason": "Another quantity is printed"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "println(2 + 3)",
+     "println(\"2\" + \"3\")"
+    ]
+   ],
+   "reason": "Joining two texts gives 23, not the computed sum"
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "println(quantity)",
+     "println(2)"
+    ]
+   ],
+   "reason": "A typed 2 ignores the stored value when quantity changes"
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "println(quantity)",
+     "println(\"2\")"
+    ]
+   ],
+   "reason": "A typed text 2 ignores the stored value"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "quantity = chosen;",
+     "chosen = quantity;"
+    ]
+   ],
+   "reason": "The reversed assignment changes chosen, not quantity"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "    quantity = chosen;\n",
+     ""
+    ],
+    [
+     "    System.out.println(quantity);\n",
+     "    System.out.println(quantity);\n    quantity = chosen;\n"
+    ]
+   ],
+   "reason": "An assignment after the print cannot change the printed value"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "quantity = chosen;",
+     "int quantity = chosen;"
+    ]
+   ],
+   "reason": "Declaring quantity again does not compile"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "quantity = chosen;",
+     "quantity = 3;"
+    ]
+   ],
+   "reason": "A typed 3 ignores a different chosen value"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "quantity = quantity + 1;",
+     "quantity = 3;"
+    ]
+   ],
+   "reason": "A typed 3 fails when the first quantity changes"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "quantity = quantity + 1;",
+     "quantity + 1;"
+    ]
+   ],
+   "reason": "An expression without assignment is not a statement"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "\"수량: \" + quantity",
+     "\"수량: 2\""
+    ]
+   ],
+   "reason": "Typed text ignores the stored quantity"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "\"수량: \" + quantity",
+     "\"수량: \" + \"quantity\""
+    ]
+   ],
+   "reason": "A quoted name is text, not the stored value"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "quantity + 1 + \"개\"",
+     "\"3개\""
+    ]
+   ],
+   "reason": "Typed text fails for another quantity"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "quantity + 1 + \"개\"",
+     "quantity + \"개\""
+    ]
+   ],
+   "reason": "The quantity is not increased"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "quantity + 1 + \"개\"",
+     "\"개\" + quantity + 1"
+    ]
+   ],
+   "reason": "Text first turns the following plus into joining"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "\"수량: \" + (quantity + 1)",
+     "\"수량: \" + 8"
+    ]
+   ],
+   "reason": "A typed 8 fails for quantity 4"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "\"수량: \" + (quantity + 1)",
+     "\"수량: \" + quantity + 1"
+    ]
+   ],
+   "reason": "Without parentheses the 1 is joined as text"
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "System.out.println(2);",
+     "System.out.println(1 + 1);"
+    ]
+   ],
+   "reason": "Any expression whose value is 2 prints 2"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "println(2 + 3)",
+     "println(3 + 2)"
+    ]
+   ],
+   "reason": "The same sum in another order"
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "println(quantity)",
+     "print(quantity)"
+    ]
+   ],
+   "reason": "print without newline shows the same value"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "quantity = chosen;",
+     "quantity = 0 + chosen;"
+    ]
+   ],
+   "reason": "An equivalent right-hand side"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "quantity = quantity + 1;",
+     "quantity += 1;"
+    ]
+   ],
+   "reason": "Compound assignment stores the same value"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "quantity = quantity + 1;",
+     "quantity++;"
+    ]
+   ],
+   "reason": "Increment stores the same value"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "System.out.println(\"수량: \" + quantity);",
+     "System.out.print(\"수량: \");\n    System.out.println(quantity);"
+    ]
+   ],
+   "reason": "Two prints on one line give the same output"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "quantity + 1 + \"개\"",
+     "(quantity + 1) + \"개\""
+    ]
+   ],
+   "reason": "Parentheses make the addition explicit"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "\"수량: \" + (quantity + 1)",
+     "\"수량: \" + (1 + quantity)"
+    ]
+   ],
+   "reason": "The same grouped addition"
+  }
+ ]
+}

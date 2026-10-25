@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "d13eadeca1f553a86b7f9e2383c8e68030122f2a6854a95ec77aaf107c2bafef",
+  "entry": [
+    {
+      "action": "say",
+      "text": "가운데 줄이 oops예요. 그래도 숫자인 줄은 모두 더해야 해요.",
+      "target": "text:숫자인 줄은 모두 total에 더하고, 숫자가 아닌 줄 수는 invalid로 세야 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        18
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1000과 1이에요. oops에서 예외가 나자 반복을 빠져나가 2000을 더하지 못했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        try {\n            for (String line : Files.readAllLines(Path.of(\"prices.txt\"))) {\n                total += Integer.parseInt(line.strip());\n            }\n        } catch (NumberFormatException error) {\n            invalid++;\n        }\n",
+      "after": "        for (String line : Files.readAllLines(Path.of(\"prices.txt\"))) {\n            try {\n                total += Integer.parseInt(line.strip());\n            } catch (NumberFormatException error) {\n                invalid++;\n            }\n        }\n",
+      "say": "try-catch를 반복 안의 더하는 줄로 옮겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        18
+      ]
+    },
+    {
+      "action": "say",
+      "text": "3000과 1이에요. catch가 끝나면 그 줄의 처리만 끝나고 반복이 다음 줄로 이어졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. try가 넓으면 예외 하나에 남은 작업까지 건너뛰어요. 다시 이어 갈 위치를 보고 감싸요.",
+      "target": "code:total += Integer.parseInt(line.strip());"
+    }
+  ]
+}

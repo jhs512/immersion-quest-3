@@ -1,0 +1,66 @@
+{
+  "by": "hand",
+  "source_sha256": "d474263e88b1827df9d144a407a181baec6abfa7185e12131cf29bc037e98b9d",
+  "entry": [
+    {
+      "action": "say",
+      "text": "같은 FeePolicy 변수에 무료배송 정책도 담으려는데 그 클래스가 아직 없어요.",
+      "target": "text:main은 같은 FeePolicy 변수에 FreeFee 객체도 담으려 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        11
+      ],
+      "expect_error": "FreeFee"
+    },
+    {
+      "action": "say",
+      "text": "컴파일 오류예요. FreeFee라는 클래스를 찾지 못했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "// 이 주석 아래에 FeePolicy를 구현해 배송비 0을 돌려주는 FreeFee 클래스를 쓰세요.\n",
+      "after": "// 이 주석 아래에 FeePolicy를 구현해 배송비 0을 돌려주는 FreeFee 클래스를 쓰세요.\nclass FreeFee {\n    public int fee() { return 0; }\n}\n",
+      "say": "fee 메서드가 있는 FreeFee를 먼저 써 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        14,
+        14
+      ],
+      "expect_error": "incompatible types"
+    },
+    {
+      "action": "say",
+      "text": "여전히 오류예요. fee 메서드가 있어도 FeePolicy를 구현한다고 밝히지 않아서 그 변수에 담을 수 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "class FreeFee {",
+      "after": "class FreeFee implements FeePolicy {",
+      "say": "implements FeePolicy를 붙여 약속을 구현한다고 밝혀요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        14,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2500과 0이에요. 변수의 타입은 같은 FeePolicy인데, 담긴 객체의 구현이 결과를 정했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 메서드 이름과 모양이 같아도 implements를 쓰지 않으면 자바는 그 약속을 구현한 클래스로 보지 않아요.",
+      "target": "code:class FreeFee implements FeePolicy {"
+    }
+  ]
+}

@@ -1,54 +1,203 @@
 {
-  "course": "tests/fixtures/player-pilot/거/course.json",
-  "lesson": "courses/redesigned/java-roles.json",
-  "expected_outputs": [
-    [
-      "",
-      "100"
-    ],
-    [
-      "false\n100\ntrue\n60"
-    ],
-    [
-      "2500\n0"
-    ],
-    [
-      "",
-      "2500"
-    ],
-    [
-      "12500",
-      "10000"
-    ],
-    [
-      "invalid",
-      "100\nafter",
-      "invalid"
-    ],
-    [
-      "failed\nclosed\nafter",
-      "success\nclosed\nafter",
-      "failed\nclosed\nafter"
-    ],
-    [
-      "true\n101",
-      "false\n100"
-    ]
+ "course": "tests/fixtures/player-pilot/거/course.json",
+ "lesson": "courses/redesigned/java-roles.json",
+ "expected_outputs": [
+  [
+   "",
+   "100"
   ],
-  "reject": [
-    {
-      "step": 8,
-      "replacements": [
-        [
-          "System.out.println(account.withdraw(amount));",
-          "System.out.println(false);"
-        ],
-        [
-          "System.out.println(account.balance());",
-          "System.out.println(100);"
-        ]
-      ],
-      "reason": "Fixed failure and balance cannot implement valid positive withdrawals"
-    }
+  [
+   "true\n-50\ntrue\n-90",
+   "false\n100\ntrue\n60"
+  ],
+  [
+   "",
+   "",
+   "2500\n0"
+  ],
+  [
+   "",
+   "2500"
+  ],
+  [
+   "12500",
+   "10000"
+  ],
+  [
+   "-1\nafter",
+   "invalid",
+   "50\nafter"
+  ],
+  [
+   "failed\nafter",
+   "failed\nclosed\nafter",
+   "success\nclosed\nafter"
+  ],
+  [
+   "true\n101",
+   "false\n100"
   ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "println(account.balance());",
+     "println(100);"
+    ]
+   ],
+   "reason": "A typed balance"
+  },
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "    private int balance = 100;\n",
+     "    int balance = 100;\n"
+    ],
+    [
+     "println(account.balance());",
+     "println(account.balance);"
+    ]
+   ],
+   "reason": "Removing private to read the field directly"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "        if (amount > balance) return false;\n",
+     "        if (amount >= balance) return false;\n"
+    ]
+   ],
+   "reason": "Refusing a withdrawal equal to the balance"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "        if (amount > balance) return false;\n",
+     ""
+    ]
+   ],
+   "reason": "No guard lets the balance go negative"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "class FreeFee implements FeePolicy {",
+     "class FreeFee {"
+    ]
+   ],
+   "reason": "Without implements it is not a FeePolicy"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "    public int fee() { return 0; }\n}\n\npublic",
+     "    public int fee() { return 2500; }\n}\n\npublic"
+    ]
+   ],
+   "reason": "The free policy must charge 0"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "new Checkout(new FreeFee())",
+     "new Checkout(new StandardFee())"
+    ],
+    [
+     "int total(int amount) { return amount + policy.fee(); }",
+     "int total(int amount) { return amount; }"
+    ]
+   ],
+   "reason": "Changing Checkout's sum instead of the policy"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "if (opening < 0)",
+     "if (opening <= 0)"
+    ]
+   ],
+   "reason": "Zero is a valid opening balance"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "        if (opening < 0) throw new IllegalArgumentException(\"negative balance\");\n",
+     "        if (opening < 0) balance = 0;\n"
+    ]
+   ],
+   "reason": "Silently fixing the value instead of failing"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "        } finally {\n            // 결제가 성공하든 실패하든 마지막에 꼭 출력해야 하는 줄이에요.\n            System.out.println(\"closed\");\n        }\n",
+     "            System.out.println(\"closed\");\n        }\n"
+    ]
+   ],
+   "reason": "closed only on the failure path"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "if (amount <= 0 || amount > balance)",
+     "if (amount > balance)"
+    ]
+   ],
+   "reason": "Negative withdrawals increase the balance"
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "System.out.println(account.balance());",
+     "int stock = account.balance();\n        System.out.println(stock);"
+    ]
+   ],
+   "reason": "Reading through the method into a variable"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "        if (amount > balance) return false;\n",
+     "        if (amount > balance) {\n            return false;\n        }\n"
+    ]
+   ],
+   "reason": "Braced if"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "    public int fee() { return 0; }\n}\n\npublic",
+     "    @Override\n    public int fee() { return 0; }\n}\n\npublic"
+    ]
+   ],
+   "reason": "With @Override"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "        if (opening < 0) throw new IllegalArgumentException(\"negative balance\");\n",
+     "        if (opening < 0) {\n            throw new IllegalArgumentException(\"opening must not be negative\");\n        }\n"
+    ]
+   ],
+   "reason": "Another message, braced"
+  }
+ ]
 }

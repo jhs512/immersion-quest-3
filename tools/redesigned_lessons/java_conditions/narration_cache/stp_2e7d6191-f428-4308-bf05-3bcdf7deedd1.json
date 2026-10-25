@@ -1,0 +1,65 @@
+{
+  "by": "hand",
+  "source_sha256": "a0e2828b1c586df293f074bd19c015218483c63f09f054e39007f9e8ddd69637",
+  "entry": [
+    {
+      "action": "say",
+      "text": "적립금은 기준을 넘는 주문에만 줘요. 기준과 같은 20,000원은 받지 못해요.",
+      "target": "text:기준과 같은 20,000원은 받지 못해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "true가 나왔어요. 크거나 같음 비교라서 딱 기준인 금액도 참이 됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "amount >= limit",
+      "after": "amount > limit",
+      "say": "같음을 빼고 큼만 묻도록 >로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "false예요. 기준과 같은 금액은 이제 적립금 대상이 아니에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "int amount = 20000;",
+      "after": "int amount = 20001;",
+      "say": "기준보다 1원 많은 금액도 확인해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "true예요. 기준을 넘는 순간부터 참이 돼요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "int amount = 20001;",
+      "after": "int amount = 20000;",
+      "say": "처음 금액으로 되돌려요."
+    }
+  ]
+}

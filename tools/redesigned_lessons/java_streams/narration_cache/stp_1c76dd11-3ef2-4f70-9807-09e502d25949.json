@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "3e9ebe35390e210245eff99c55d737bc108b2e0c762c172270d7126e34b898d1",
+  "entry": [
+    {
+      "action": "say",
+      "text": "상품 이름을 키로, 1을 값으로 모아요. book이 두 번 나와요.",
+      "target": "text:여기서는 상품 이름이 키, 1이 값이에요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ],
+      "expect_error": "Duplicate key"
+    },
+    {
+      "action": "say",
+      "text": "Duplicate key 예외예요. 두 번째 book에서 같은 키를 어떻게 할지 몰랐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "Collectors.toMap(item -> item, item -> 1)",
+      "after": "Collectors.toMap(item -> item, item -> 1, Integer::sum)",
+      "say": "세 번째 인자로 두 개수를 더하는 Integer::sum을 넣어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "{book=2, pen=1}이에요. 같은 키를 만날 때마다 이전 개수에 새 1을 더했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 병합 규칙을 (a, b) -> b로 쓰면 예외는 사라져도 나중 값 1로 덮어써서 개수가 틀려요.",
+      "target": "code:Integer::sum"
+    }
+  ]
+}

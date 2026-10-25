@@ -1,65 +1,252 @@
 {
-  "course": "tests/fixtures/player-pilot/3/course.json",
-  "lesson": "courses/redesigned/java-references.json",
-  "expected_outputs": [
-    [
-      "2",
-      "5",
-      "2"
-    ],
-    [
-      "2\n8",
-      "2\n9",
-      "2\n8"
-    ],
-    [
-      "7\n7\ntrue"
-    ],
-    [
-      "2\n7\nfalse",
-      "2\n2\ntrue"
-    ],
-    [
-      "3",
-      "6",
-      "3"
-    ],
-    [
-      "2",
-      "99",
-      "2"
-    ],
-    [
-      "false\nfalse",
-      "true\ntrue",
-      "false\nfalse"
-    ],
-    [
-      "false\ntrue",
-      "false\nfalse",
-      "false\ntrue"
-    ],
-    [
-      "3",
-      ""
-    ],
-    [
-      "0",
-      "2",
-      "5",
-      "2"
-    ]
+ "course": "tests/fixtures/player-pilot/3/course.json",
+ "lesson": "courses/redesigned/java-references.json",
+ "expected_outputs": [
+  [
+   "2"
   ],
-  "reject": [
-    {
-      "step": 10,
-      "replacements": [
-        [
-          "System.out.println(a.count)",
-          "System.out.println(2)"
-        ]
-      ],
-      "reason": "A fixed two cannot substitute for constructor field storage"
-    }
+  [
+   "2\n7",
+   "2\n8"
+  ],
+  [
+   "2\n7\nfalse",
+   "7\n7\ntrue"
+  ],
+  [
+   "7\n7\ntrue",
+   "2\n7\nfalse"
+  ],
+  [
+   "2",
+   "3"
+  ],
+  [
+   "2",
+   "99"
+  ],
+  [
+   "false",
+   "false\ntrue"
+  ],
+  [
+   "대기",
+   "출발",
+   "대기"
+  ],
+  [
+   "",
+   "3"
+  ],
+  [
+   "0",
+   "2",
+   "5",
+   "2"
   ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "        Box a = new Box(initial);\n        System.out.println(a.count);\n",
+     "        System.out.println(initial);\n"
+    ]
+   ],
+   "reason": "Printing the local variable without building a Box"
+  },
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "System.out.println(a.count);",
+     "System.out.println(2);"
+    ]
+   ],
+   "reason": "A typed count"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "        b.count = 8;\n",
+     "        a.count = 8;\n"
+    ]
+   ],
+   "reason": "Changing the other box"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "        Box b = a;\n",
+     "        Box b = new Box(2);\n        a.count = 7;\n"
+    ]
+   ],
+   "reason": "Copying the value into a separate box is not the same object"
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "        b = new Box(7);\n",
+     "        b.count = 7;\n"
+    ]
+   ],
+   "reason": "Changing the shared box also changes a"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "        item.count = item.count + 1;\n",
+     "        item = new Box(item.count + 1);\n"
+    ]
+   ],
+   "reason": "Reassigning the parameter leaves main's box unchanged"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "        System.out.println(a.count);\n",
+     "        System.out.println(a.count + 1);\n"
+    ]
+   ],
+   "reason": "main adds the one itself"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "    static Box replace(Box item) {\n        return new Box(99);\n",
+     "    static Box replace(Box item) {\n        item.count = 99;\n        return item;\n"
+    ]
+   ],
+   "reason": "Changing the given box instead of returning a new one"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "        a = replace(a);\n",
+     "        replace(a);\n"
+    ]
+   ],
+   "reason": "The returned box is discarded"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "return count == other.count;",
+     "return this == other;"
+    ]
+   ],
+   "reason": "Identity instead of content"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "return count == other.count;",
+     "return true;"
+    ]
+   ],
+   "reason": "Always true ignores the counts"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "status.equals(\"ready\")",
+     "status == \"ready\""
+    ]
+   ],
+   "reason": "Comparing references of different string objects"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "        a.count = 3;\n",
+     "        a = new Box(3);\n"
+    ]
+   ],
+   "reason": "A final reference cannot be reassigned"
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "this.count = count;",
+     "count = count;"
+    ]
+   ],
+   "reason": "Assigning the parameter to itself"
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "        Box a = new Box(initial);\n        System.out.println(a.count);\n",
+     "        Box a = new Box(initial);\n        int stock = a.count;\n        System.out.println(stock);\n"
+    ]
+   ],
+   "reason": "Reading the field into a variable first"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "        b.count = 8;\n",
+     "        b.count = b.count + 1;\n"
+    ]
+   ],
+   "reason": "7 + 1 is also 8 for b"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "        item.count = item.count + 1;\n",
+     "        item.count++;\n"
+    ]
+   ],
+   "reason": "Increment operator"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "        return new Box(99);\n",
+     "        Box fresh = new Box(99);\n        return fresh;\n"
+    ]
+   ],
+   "reason": "Returning a new box through a variable"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "return count == other.count;",
+     "return other.count == this.count;"
+    ]
+   ],
+   "reason": "The same comparison from the other side"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "status.equals(\"ready\")",
+     "\"ready\".equals(status)"
+    ]
+   ],
+   "reason": "Literal-first equals"
+  }
+ ]
 }

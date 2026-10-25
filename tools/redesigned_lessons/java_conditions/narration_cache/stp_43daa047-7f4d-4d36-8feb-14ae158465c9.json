@@ -1,0 +1,75 @@
+{
+  "by": "hand",
+  "source_sha256": "50613751ceacb058bf866dd0eda060ebaebdcb84756af95d4dbe7aba2eef259e",
+  "entry": [
+    {
+      "action": "say",
+      "text": "무료배송은 20,000원 이상이에요. 금액과 기준을 비교한 결과를 직접 출력해야 해요.",
+      "target": "text:무료배송은 20,000원 이상이에요."
+    },
+    {
+      "action": "patch_code",
+      "before": "    // 이 주석 아래 줄에 amount가 limit 이상인지 비교한 결과를 출력하세요.\n",
+      "after": "    // 이 주석 아래 줄에 amount가 limit 이상인지 비교한 결과를 출력하세요.\n    System.out.println(amount >= limit);\n",
+      "say": "주석 아래에 amount >= limit을 출력하는 문장을 써요."
+    },
+    {
+      "action": "say",
+      "text": ">=는 왼쪽 amount가 오른쪽 limit보다 크거나 같은지 물어요.",
+      "target": "code:amount >= limit"
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "false가 나왔어요. 19,999원은 20,000원보다 작으니 거짓이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "int amount = 19999;",
+      "after": "int amount = 20000;",
+      "say": "금액을 기준과 똑같은 20,000원으로 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "true예요. 이상은 기준과 같은 금액도 포함해요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 결과를 보고 false를 그대로 출력하게 쓰면 금액이 바뀐 채점에서 틀려요.",
+      "target": "code:println(amount >= limit)"
+    },
+    {
+      "action": "patch_code",
+      "before": "int amount = 20000;",
+      "after": "int amount = 19999;",
+      "say": "처음 금액 19,999원으로 되돌려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "다시 false예요. 이 코드를 제출해요.",
+      "target": "output"
+    }
+  ]
+}

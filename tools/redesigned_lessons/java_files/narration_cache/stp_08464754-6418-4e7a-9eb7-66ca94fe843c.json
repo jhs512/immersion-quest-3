@@ -1,0 +1,94 @@
+{
+  "by": "hand",
+  "source_sha256": "f86b3aaddce99177f8f10b06db071e0122c65b0f2eef91a6a5a17d20b2d79f84",
+  "entry": [
+    {
+      "action": "say",
+      "text": "자원은 다 쓰면 닫아야 해요. 지금 코드는 언제 닫는지 볼게요.",
+      "target": "text:파일 읽기 도구 같은 자원은 다 쓰면 닫아야 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        22,
+        26
+      ]
+    },
+    {
+      "action": "say",
+      "text": "read, 시작, after예요. close가 없어요. 자원이 닫히지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "            Tracked resource = new Tracked(broken);\n            System.out.println(resource.readLine());\n",
+      "after": "            Tracked resource = new Tracked(broken);\n            System.out.println(resource.readLine());\n            resource.close();\n",
+      "say": "이렇게 해 볼까요? 블록 끝에서 직접 close를 불러요."
+    },
+    {
+      "action": "patch_code",
+      "before": "boolean broken = false;",
+      "after": "boolean broken = true;",
+      "say": "읽다가 실패하는 경우로 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        22,
+        27
+      ]
+    },
+    {
+      "action": "say",
+      "text": "read, failed, after예요. 예외로 블록을 빠져나가서 close 줄을 건너뛰었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "            System.out.println(resource.readLine());\n            resource.close();\n",
+      "after": "            System.out.println(resource.readLine());\n",
+      "say": "직접 닫는 줄을 지워요."
+    },
+    {
+      "action": "patch_code",
+      "before": "        try {\n            // 이 자원이 블록을 벗어날 때 꼭 닫히도록 고치세요.\n            Tracked resource = new Tracked(broken);\n",
+      "after": "        try (Tracked resource = new Tracked(broken)) {\n            // 이 자원이 블록을 벗어날 때 꼭 닫히도록 고치세요.\n",
+      "say": "resource 선언을 try 괄호 안으로 옮겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        21,
+        25
+      ]
+    },
+    {
+      "action": "say",
+      "text": "read, close, failed, after예요. 실패해도 블록을 벗어나며 먼저 닫고 catch로 갔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "boolean broken = true;",
+      "after": "boolean broken = false;",
+      "say": "성공하는 경우로 되돌려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        21,
+        25
+      ]
+    },
+    {
+      "action": "say",
+      "text": "read, 시작, close, after예요. 성공해도 블록이 끝나는 순간 닫혀요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. close를 직접 부르면 예외가 난 길에서는 건너뛰어요. 자원은 try 괄호 안에서 만들어요.",
+      "target": "code:try (Tracked resource = new Tracked(broken))"
+    }
+  ]
+}

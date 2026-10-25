@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "597fe6c28612483b1e59ab1d651191913de00a30fb0fee64c82815c9973779ef",
+  "entry": [
+    {
+      "action": "say",
+      "text": "Checkout은 배송비를 직접 계산하지 않고 생성자로 받은 정책에 맡겨요. 그래서 정책만 바꾸면 돼요.",
+      "target": "text:결제 Checkout은 배송비 계산을 직접 하지 않고, 생성자로 받은 FeePolicy에 맡겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        21,
+        21
+      ]
+    },
+    {
+      "action": "say",
+      "text": "12500이에요. 표준 정책이 2,500원을 더했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "total은 받은 정책의 fee()를 부르기만 해요.",
+      "target": "code:return amount + policy.fee();"
+    },
+    {
+      "action": "patch_code",
+      "before": "new Checkout(new StandardFee())",
+      "after": "new Checkout(new FreeFee())",
+      "say": "생성자에 무료배송 정책 객체를 넘겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        21,
+        21
+      ]
+    },
+    {
+      "action": "say",
+      "text": "10000이에요. Checkout 코드는 한 줄도 바꾸지 않았는데 꽂은 정책이 배송비를 0으로 정했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. total을 return amount로 고쳐도 숫자는 같아지지만, 그러면 표준 정책을 꽂은 결제도 배송비를 잃어요.",
+      "target": "code:return amount + policy.fee();"
+    }
+  ]
+}

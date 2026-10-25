@@ -1,0 +1,75 @@
+{
+  "by": "hand",
+  "source_sha256": "8538e847c3688e217a6a53b21a0fa9ab5b94fe5e4f9f1033f772f54db4ba26e1",
+  "entry": [
+    {
+      "action": "say",
+      "text": "2,000원 이상인 가격만 더하려고 해요. price에는 위치가 아니라 가격 값이 차례로 들어와요.",
+      "target": "text:이번에는 2,000원 이상인 가격만 더해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "6000이에요. 조건이 없어서 1,000원도 더했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        total = total + price;\n",
+      "after": "        if (price >= 2000) {\n            total = total + price;\n        }\n",
+      "say": "더하는 줄을 if문으로 감싸요."
+    },
+    {
+      "action": "say",
+      "text": "price가 2,000 이상일 때만 중괄호 안 덧셈이 실행돼요.",
+      "target": "code:if (price >= 2000)"
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "5000이에요. 2,000원과 3,000원만 더했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "{1000, 2000, 3000}",
+      "after": "{1999, 2000, 2001}",
+      "say": "경계 근처 금액으로 확인해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "4001이에요. 1,999원은 빠지고 딱 2,000원은 들어갔어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. price는 이미 가격 값이라 prices[price]처럼 위치로 쓰면 없는 자리를 읽어 오류가 나요.",
+      "target": "code:if (price >= 2000)"
+    },
+    {
+      "action": "patch_code",
+      "before": "{1999, 2000, 2001}",
+      "after": "{1000, 2000, 3000}",
+      "say": "처음 가격으로 되돌려요."
+    }
+  ]
+}

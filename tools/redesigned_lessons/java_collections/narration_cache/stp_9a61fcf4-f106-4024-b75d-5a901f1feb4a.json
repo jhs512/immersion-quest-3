@@ -1,0 +1,71 @@
+{
+  "by": "hand",
+  "source_sha256": "dbcc995a4ec56d3daf0062db47fa4131a63a48c8c14b00aad604c0ace2012710",
+  "entry": [
+    {
+      "action": "say",
+      "text": "이번 주문에는 book이 없어요. 없는 키를 get으로 찾으면 null이 돌아와요.",
+      "target": "text:없는 키를 get으로 찾으면 값이 없다는 뜻으로 null이 돌아와요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        12
+      ],
+      "expect_error": "NullPointerException"
+    },
+    {
+      "action": "say",
+      "text": "NullPointerException이에요. null을 int에 넣으려고 숫자를 꺼내다 실패했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "int count = counts.get(\"book\");",
+      "after": "int count = counts.getOrDefault(\"book\", 0);",
+      "say": "없으면 0을 돌려주는 getOrDefault로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0이에요. 키가 없어서 기본값 0을 받았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "String[] items = {\"pen\"};",
+      "after": "String[] items = {\"book\", \"book\"};",
+      "say": "book이 두 번 든 주문으로 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2예요. 키가 있으면 저장된 개수를 돌려줘요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. count를 0으로 고정하면 지금 주문만 맞고, book이 든 주문에서도 0이 나와요.",
+      "target": "code:counts.getOrDefault(\"book\", 0)"
+    },
+    {
+      "action": "patch_code",
+      "before": "String[] items = {\"book\", \"book\"};",
+      "after": "String[] items = {\"pen\"};",
+      "say": "처음 주문으로 되돌려요."
+    }
+  ]
+}

@@ -14,6 +14,9 @@ struct Validation {
     expected_images: Option<Vec<Vec<usize>>>,
     #[serde(default)]
     reject: Vec<RejectedAnswer>,
+    /// Other correct answers (a different but valid edit) that the grader must accept.
+    #[serde(default)]
+    accept: Vec<RejectedAnswer>,
 }
 
 #[derive(Deserialize,Debug)]
@@ -111,7 +114,17 @@ async fn validate(spec: Validation) -> Result<Value, String> {
         }
         if lesson_runner::check(task,&source).await?.passed {return Err(format!("Invalid answer accepted: {}",rejected.reason))}
     }
-    Ok(json!({"passed":true,"lesson":lesson.id,"revision":lesson.revision,"lesson_sha256":source_hash,"steps":steps,"rejected_answers":spec.reject.len(),"seconds":started.elapsed().as_secs_f64(),"native_ui_verified":false,"voice_listened":false}))
+    for accepted in &spec.accept {
+        let task=lesson.tasks.get(accepted.step.checked_sub(1).ok_or("Accepted step numbers start at one")?).ok_or("Accepted step is outside the lesson")?;
+        let mut source=task.solution.clone();
+        for [before,after] in &accepted.replacements {
+            if source.matches(before).count()!=1 {return Err(format!("Accepted answer patch is not unique: {}",accepted.reason))}
+            source=source.replacen(before,after,1);
+        }
+        let report=lesson_runner::check(task,&source).await?;
+        if !report.passed {return Err(format!("Valid answer rejected: {}: {}",accepted.reason,serde_json::to_string(&report).unwrap()))}
+    }
+    Ok(json!({"passed":true,"lesson":lesson.id,"revision":lesson.revision,"lesson_sha256":source_hash,"steps":steps,"rejected_answers":spec.reject.len(),"accepted_answers":spec.accept.len(),"seconds":started.elapsed().as_secs_f64(),"native_ui_verified":false,"voice_listened":false}))
 }
 
 #[cfg(test)]

@@ -1,0 +1,69 @@
+{
+  "by": "hand",
+  "source_sha256": "53d0d98fc92fe0f538217a40abd912501124104dcb2241e369b77623e5f5a20e",
+  "entry": [
+    {
+      "action": "say",
+      "text": "기준은 모든 주문이 함께 쓰는 하나의 값이고, 금액은 주문마다 달라요.",
+      "target": "text:주문 a와 b는 금액을 각자 가져요."
+    },
+    {
+      "action": "patch_code",
+      "before": "    // 이 주석 아래에 이 주문 금액이 공유 기준 이상인지 돌려주는 isFree 메서드를 쓰세요.\n",
+      "after": "    // 이 주석 아래에 이 주문 금액이 공유 기준 이상인지 돌려주는 isFree 메서드를 쓰세요.\n    boolean isFree() {\n        return amount >= FREE_FROM;\n    }\n",
+      "say": "이 주문의 금액을 공유 기준과 비교해 돌려주는 isFree를 써요."
+    },
+    {
+      "action": "say",
+      "text": "amount는 이 객체의 금액이고, FREE_FROM은 클래스가 공유하는 기준이에요.",
+      "target": "code:return amount >= FREE_FROM;"
+    },
+    {
+      "action": "patch_code",
+      "before": "        // System.out.println(a.isFree());\n        // System.out.println(b.isFree());\n",
+      "after": "        System.out.println(a.isFree());\n        System.out.println(b.isFree());\n",
+      "say": "두 출력문의 주석 표시를 지워요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        21,
+        22
+      ]
+    },
+    {
+      "action": "say",
+      "text": "true 다음에 false예요. 같은 기준에 10,000원과 9,999원을 각각 비교했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "int initial = 10000;",
+      "after": "int initial = 9999;",
+      "say": "a의 금액을 9,999원으로 낮춰 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        21,
+        22
+      ]
+    },
+    {
+      "action": "say",
+      "text": "false와 false예요. a의 금액만 낮아졌고 기준은 그대로 10,000원이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. static final 기준은 객체마다 따로 있지 않아요. 한 주문의 금액을 바꿔도 기준은 모든 주문에서 같아요.",
+      "target": "code:static final int FREE_FROM = 10000;"
+    },
+    {
+      "action": "patch_code",
+      "before": "int initial = 9999;",
+      "after": "int initial = 10000;",
+      "say": "처음 금액으로 되돌려요."
+    }
+  ]
+}

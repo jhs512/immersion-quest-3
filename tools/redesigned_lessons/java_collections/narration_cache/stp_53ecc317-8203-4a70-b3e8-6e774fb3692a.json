@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "66ff59230b8881a87152cbf8624fed28684718da31a1e63d76c219dd9283372d",
+  "entry": [
+    {
+      "action": "say",
+      "text": "List.copyOf는 목록은 새로 만들지만 안의 객체는 원래 것을 가리켜요. 그래서 스냅샷이 나중 변경을 따라갈 수 있어요.",
+      "target": "text:List.copyOf는 목록 구조를 새로 만들지만 안의 객체는 원래 것을 그대로 가리켜요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        14,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2와 1이에요. 목록 크기는 그대로 1인데, 원소 객체를 공유해서 수량 변경이 보였어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        List<Box> snapshot = List.copyOf(original);\n",
+      "after": "        Box copy = new Box();\n        copy.quantity = item.quantity;\n        List<Box> snapshot = List.of(copy);\n",
+      "say": "새 Box를 만들어 지금 수량을 복사하고, 그 Box로 스냅샷을 만들어요."
+    },
+    {
+      "action": "say",
+      "text": "copy는 item과 다른 객체예요. 수량 값만 복사해 넣었어요.",
+      "target": "code:copy.quantity = item.quantity;"
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        17
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1과 1이에요. item을 2로 바꿔도 스냅샷의 Box는 따로라 1이 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 목록을 복사해도 안의 객체는 공유될 수 있어요. 상태를 남기려면 객체도 새로 만들어요.",
+      "target": "code:Box copy = new Box();"
+    }
+  ]
+}

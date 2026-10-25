@@ -1,0 +1,52 @@
+{
+  "by": "hand",
+  "source_sha256": "331d9cafacbccc34c11026a7e1c524cc7fc90dbf35c846deb17f23a9d7d03509",
+  "entry": [
+    {
+      "action": "say",
+      "text": "a와 b가 같은 상자를 가리키는 상태에서, b만 새 상자로 옮겨야 해요.",
+      "target": "text:a의 상자를 건드리지 않고, b만 count가 7인 새 상자로 옮기려 해요."
+    },
+    {
+      "action": "patch_code",
+      "before": "        // 이 주석 아래 줄에서 a는 그대로 두고 b만 count가 7인 새 상자를 가리키게 하세요.\n",
+      "after": "        // 이 주석 아래 줄에서 a는 그대로 두고 b만 count가 7인 새 상자를 가리키게 하세요.\n        b.count = 7;\n",
+      "say": "먼저 b.count에 7을 넣어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "7, 7, true예요. b가 가리키는 상자는 a의 상자와 같아서 a의 count까지 바뀌었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        b.count = 7;\n",
+      "after": "        b = new Box(7);\n",
+      "say": "b에 새 상자를 대입해 가리키는 곳 자체를 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2, 7, false예요. b만 새 상자를 가리키고 a의 상자는 2 그대로예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 필드에 대입하면 가리키는 상자의 내용이 바뀌고, 참조 변수에 대입하면 가리키는 상자가 바뀌어요.",
+      "target": "code:b = new Box(7);"
+    }
+  ]
+}

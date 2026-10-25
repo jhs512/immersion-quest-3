@@ -1,0 +1,71 @@
+{
+  "by": "hand",
+  "source_sha256": "1fd05e2308cf7bd0961b4e98bfda5a585e5b1879af5a7e4fe3bb23b099479f2b",
+  "entry": [
+    {
+      "action": "say",
+      "text": "파일을 읽고 글을 숫자로 바꿔요. 실패하는 길이 두 가지예요.",
+      "target": "text:실패하는 길이 둘이에요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        9
+      ],
+      "expect_error": "NumberFormatException"
+    },
+    {
+      "action": "say",
+      "text": "NumberFormatException이에요. 파일은 읽었는데 oops를 숫자로 바꾸지 못했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        System.out.println(Integer.parseInt(Files.readString(Path.of(name)).strip()));\n",
+      "after": "        try {\n            System.out.println(Integer.parseInt(Files.readString(Path.of(name)).strip()));\n        } catch (NoSuchFileException error) {\n            System.out.println(\"missing\");\n        } catch (NumberFormatException error) {\n            System.out.println(\"invalid\");\n        }\n",
+      "say": "try로 감싸고 두 실패를 각각 잡아요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        14
+      ]
+    },
+    {
+      "action": "say",
+      "text": "invalid예요. 숫자 변환 실패와 맞는 catch만 실행됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "String name = \"count.txt\";",
+      "after": "String name = \"none.txt\";",
+      "say": "없는 파일 이름으로 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        14
+      ]
+    },
+    {
+      "action": "say",
+      "text": "missing이에요. 이번엔 읽기 단계에서 실패했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. Exception 하나로 잡아 같은 말을 출력하면 파일이 없는지, 내용이 틀렸는지 알 수 없어요.",
+      "target": "code:catch (NumberFormatException error)"
+    },
+    {
+      "action": "patch_code",
+      "before": "String name = \"none.txt\";",
+      "after": "String name = \"count.txt\";",
+      "say": "처음 파일 이름으로 되돌려요."
+    }
+  ]
+}

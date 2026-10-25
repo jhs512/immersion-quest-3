@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "41e0d828931630239c957228b0b0430ee101174aa53310ddfdff1f7d76e7e216",
+  "entry": [
+    {
+      "action": "say",
+      "text": "방문 수 3을 읽었어요. 이번 방문을 더해 파일의 수를 바꿔야 해요.",
+      "target": "text:이번 방문을 더해 파일의 수를 바꿔야 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "3이에요. 아직 아무것도 쓰지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        // 이 줄 아래에서 count를 1 늘린 수로 파일의 내용을 바꾸세요.\n",
+      "after": "        // 이 줄 아래에서 count를 1 늘린 수로 파일의 내용을 바꾸세요.\n        Files.writeString(path, (count + 1) + \"\\n\", StandardOpenOption.APPEND);\n",
+      "say": "이렇게 해 볼까요? APPEND로 써 봐요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "3과 4, 두 줄이에요. 이전 수가 남아서 지금 방문 수가 무엇인지 헷갈려요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        Files.writeString(path, (count + 1) + \"\\n\", StandardOpenOption.APPEND);\n",
+      "after": "        Files.writeString(path, (count + 1) + \"\\n\");\n",
+      "say": "옵션을 빼면 기존 내용을 지우고 새 수로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "4예요. 파일에는 이제 지금 방문 수 한 줄만 있어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 덧붙일 기록과 바꿀 상태는 달라요. 상태 파일에 APPEND를 쓰면 이전 값이 쌓여요.",
+      "target": "code:Files.writeString(path, (count + 1) + \"\\n\");"
+    }
+  ]
+}

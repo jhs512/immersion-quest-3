@@ -1,0 +1,71 @@
+{
+  "by": "hand",
+  "source_sha256": "5ca74e0a282450d342069bae4acec69dbabdae8b6a119115eb5ca35aea8d800d",
+  "entry": [
+    {
+      "action": "say",
+      "text": "빈 장바구니의 합계는 0이어야 해요. 지금 계산은 원소를 둘씩 이어 더해요.",
+      "target": "text:합계는 0이어야 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        11
+      ],
+      "expect_error": "NoSuchElementException"
+    },
+    {
+      "action": "say",
+      "text": "NoSuchElementException이에요. 더할 원소가 하나도 없어서 꺼낼 결과가 없었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "prices.stream().reduce((a, b) -> a + b).get()",
+      "after": "prices.stream().mapToInt(Integer::intValue).sum()",
+      "say": "숫자 흐름으로 바꾸고 sum으로 더해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0이에요. sum은 원소가 없으면 덧셈의 시작값 0을 돌려줘요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "Integer[] start = {};",
+      "after": "Integer[] start = {1000, 2000};",
+      "say": "가격 두 개를 넣어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "3000이에요. 원소가 있으면 모두 더해요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. total을 0으로 고정하면 빈 장바구니만 맞고 가격이 든 장바구니에서 틀려요.",
+      "target": "code:mapToInt(Integer::intValue).sum()"
+    },
+    {
+      "action": "patch_code",
+      "before": "Integer[] start = {1000, 2000};",
+      "after": "Integer[] start = {};",
+      "say": "빈 장바구니로 되돌려요."
+    }
+  ]
+}

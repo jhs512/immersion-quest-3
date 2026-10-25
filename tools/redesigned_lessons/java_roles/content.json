@@ -2,243 +2,244 @@
   "description": "같은 주문 결제의 상태·역할·위임·실패를 작은 실행으로 이해해요.",
   "tasks": [
     {
-      "id": "stp_c6a24322-9600-494e-8975-ac4d34057cc3",
-      "title": "private 잔액을 읽으려면 무엇을 호출할까요?",
-      "goal": "Account 클래스가 잔액 balance를 private으로 숨겼어요. Main은 다른 클래스라서 이 필드를 직접 읽을 수 없어요. 대신 같은 이름의 공개 메서드 balance()가 있어요.\n\n알아두세요: private 필드는 그 클래스 안에서만 읽고 쓸 수 있어요. public 메서드는 다른 클래스에서도 부를 수 있어요.\n\n**할 일**\n\n1. 다른 클래스에서 접근 가능한 메서드와 접근할 수 없는 필드를 구분하세요.\n2. 앞에서 살펴본 코드의 동작을 예상해 보기를 하나 고르세요.\n3. 코드 실행 버튼을 눌러 예상과 실제 결과를 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_c6f7bbb1-6699-450e-8bce-59408ac46220",
+      "title": "숨긴 잔액을 공개 메서드로 읽어 출력하세요",
+      "goal": "Account 클래스가 잔액 balance를 private으로 숨겼어요. Main은 다른 클래스라서 이 필드를 직접 읽을 수 없어요. 대신 같은 이름의 공개 메서드 balance()가 있어요.\n\n**알아두세요**\n\nprivate 필드는 그 클래스 안에서만 읽고 쓸 수 있어요. public 메서드는 다른 클래스에서도 부를 수 있어요.\n\nAccount는 그대로 두고, Main의 출력문이 공개 메서드로 잔액을 읽도록 고치세요. 채점은 처음 잔액을 바꿔서도 실행하고 balance 필드가 private으로 남았는지도 확인해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 어떤 오류가 나는지 확인하세요.\n2. Main의 출력문이 balance() 메서드를 호출하도록 고치세요.\n3. 코드 실행을 눌러 100이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "java",
-      "starter_code": "",
-      "solution": "getter",
-      "tests": [],
-      "required": true,
-      "example_code": "// Main과 별개의 최상위 클래스에 상태를 숨겨요.\nclass Account {\n    private int balance = 100;\n    public int balance() { return balance; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Account account = new Account();\n        System.out.println(account.balance);\n    }\n}\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "getter",
-            "text": "account.balance() 메서드예요"
+      "starter_code": "// Main과 별개의 최상위 클래스에 상태를 숨겨요.\nclass Account {\n    private int balance = 100;\n    public int balance() { return balance; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Account account = new Account();\n        // 이 계좌의 잔액을 출력하려는 줄이에요.\n        System.out.println(account.balance);\n    }\n}\n",
+      "solution": "// Main과 별개의 최상위 클래스에 상태를 숨겨요.\nclass Account {\n    private int balance = 100;\n    public int balance() { return balance; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Account account = new Account();\n        // 이 계좌의 잔액을 출력하려는 줄이에요.\n        System.out.println(account.balance());\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "100"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "balance": "250"
           },
-          {
-            "id": "field",
-            "text": "account.balance 필드를 직접 읽어요"
-          }
-        ],
-        "answer": "getter"
-      },
+          "expected": "250"
+        }
+      ],
+      "checker": "class QuestContract {\n    public static void main(String[] args) throws Exception {\n        \n        require(java.lang.reflect.Modifier.isPrivate(Class.forName(\"Account\", true, Main.class.getClassLoader()).getDeclaredField(\"balance\").getModifiers()), \"balance 필드는 private으로 두세요.\");\n        String source = java.nio.file.Files.readString(java.nio.file.Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, java.nio.charset.StandardCharsets.UTF_8)) {\n            var task = (com.sun.source.util.JavacTask) compiler.getTask(null, files, null,\n                java.util.List.of(\"-proc:none\"), null, files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = com.sun.source.util.Trees.instance(task).getSourcePositions();\n            long[] bounds = {-1, -1};\n            String[] change = {\"{ return -7; }\"};\n            new com.sun.source.util.TreeScanner<Void, String>() {\n                public Void visitClass(com.sun.source.tree.ClassTree node, String parent) {\n                    return super.visitClass(node, node.getSimpleName().toString());\n                }\n                public Void visitMethod(com.sun.source.tree.MethodTree node, String parent) {\n                    if (\"Account\".equals(parent) && \"balance\".contentEquals(node.getName()) && node.getBody() != null) {\n                        if (bounds[0] != -1) throw new AssertionError(\"검사할 메서드는 하나만 정의하세요.\");\n                        bounds[0] = positions.getStartPosition(tree, node.getBody());\n                        bounds[1] = positions.getEndPosition(tree, node.getBody());\n                    }\n                    return super.visitMethod(node, parent);\n                }\n                public Void visitVariable(com.sun.source.tree.VariableTree node, String parent) {\n                    if (\"Account\".equals(parent) && (\"var:\" + node.getName()).equals(\"balance\")) {\n                        if (node.getInitializer() != null) {\n                            bounds[0] = positions.getStartPosition(tree, node.getInitializer());\n                            bounds[1] = positions.getEndPosition(tree, node.getInitializer());\n                        } else {\n                            // Java fields without an initializer have a defined default.\n                            bounds[0] = positions.getEndPosition(tree, node) - 1;\n                            bounds[1] = bounds[0];\n                            change[0] = \" = \" + change[0];\n                        }\n                    }\n                    return super.visitVariable(node, parent);\n                }\n            }.scan(tree, \"\");\n            if (bounds[0] < 0) throw new AssertionError(\"필요한 메서드를 정의하세요.\");\n            System.out.print(source.substring(0, (int) bounds[0]) + change[0] + source.substring((int) bounds[1]));\n        }\n    }\n    static void require(boolean ok, String message) {\n        if (!ok) throw new AssertionError(message);\n    }\n}\n",
+      "required": true,
       "narration": [
         {
           "action": "say",
-          "text": "잔액 balance는 private이라 Account 밖에서는 직접 읽을 수 없어요.",
-          "target": "text:Account 클래스가 잔액 balance를 private으로 숨겼어요."
-        },
-        {
-          "action": "say",
-          "text": "지금 main은 필드를 직접 읽으려고 해요.",
-          "target": "code:account.balance);"
+          "text": "잔액은 private으로 숨겨져 있어요. 다른 클래스인 Main은 이 필드를 직접 읽을 수 없어요.",
+          "target": "text:Main은 다른 클래스라서 이 필드를 직접 읽을 수 없어요."
         },
         {
           "action": "run",
           "lines": [
-            10,
-            10
+            11,
+            11
           ],
           "expect_error": "private access"
         },
         {
           "action": "say",
-          "text": "private access 컴파일 오류예요. 다른 클래스에서 private 필드에 닿을 수 없어요.",
+          "text": "컴파일 오류예요. balance가 Account 안에서만 쓸 수 있는 필드라서 막혔어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "account.balance);",
-          "after": "account.balance());",
-          "say": "공개 메서드 balance()를 호출하게 바꿔요."
+          "before": "println(account.balance);",
+          "after": "println(account.balance());",
+          "say": "괄호를 붙여 공개 메서드 balance()를 불러요."
         },
         {
           "action": "run",
           "lines": [
-            10,
-            10
+            11,
+            11
           ]
         },
         {
           "action": "say",
-          "text": "100이에요. 공개된 읽기 메서드로 잔액을 읽었어요.",
+          "text": "100이에요. 공개 메서드가 Account 안에서 필드를 읽어 돌려줬어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. private는 암호화가 아니라 접근 범위를 정하는 규칙이에요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "getter"
+          "text": "조심하세요. 오류를 없애려고 private을 지우면 아무 클래스나 잔액을 바꿀 수 있게 돼요. 읽기는 공개 메서드로 해요.",
+          "target": "code:private int balance = 100;"
         }
-      ],
-      "predict_before_run": true,
-      "question": "다른 최상위 클래스의 private 필드를 읽으려 해요. 공개된 읽기 동작은 무엇일까요?"
+      ]
     },
     {
-      "id": "stp_2e7bbd52-5158-45e8-93a8-43046fef992f",
-      "title": "출금을 거절한 뒤 40을 빼면 잔액은 얼마일까요?",
-      "goal": "잔액 100인 계좌에서 150을 출금하려다 거절되고, 이어서 40을 출금해요. withdraw는 출금을 허용하면 true, 거절하면 false를 돌려줘요.\n\n알아두세요: ||는 두 조건 중 하나라도 참이면 참이에요. balance -= amount는 balance = balance - amount와 같아요. if 뒤 문장이 하나뿐이면 중괄호 없이 한 줄로 쓸 수 있어요.\n\n**할 일**\n\n1. 각 출금 요청의 허용 여부와 잔액 변화를 순서대로 따라가세요.\n2. 앞에서 살펴본 코드의 동작을 예상해 보기를 하나 고르세요.\n3. 코드 실행 버튼을 눌러 예상과 실제 결과를 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_5b7a8853-65c0-4e48-8db2-052a6c7d1ddc",
+      "title": "잔액보다 큰 출금은 거절하는 조건을 쓰세요",
+      "goal": "잔액 100인 계좌에서 150을 출금하려 하고, 이어서 40을 출금해요. withdraw는 출금을 허용하면 true, 거절하면 false를 돌려줘요. 지금은 무엇이든 빼서 잔액이 음수가 돼요.\n\n**알아두세요**\n\n`balance -= amount`는 `balance = balance - amount`와 같아요. if 뒤 문장이 하나뿐이면 중괄호 없이 한 줄로 쓸 수 있어요.\n\nwithdraw가 잔액보다 큰 금액이면 잔액을 바꾸지 않고 false를 돌려주게 하세요. 채점은 처음 잔액을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 잔액이 어떻게 되는지 확인하세요.\n2. 주석 아래 줄에 잔액보다 큰 금액이면 false를 돌려주는 조건문을 쓰세요.\n3. 코드 실행을 눌러 false, 100, true, 60이 나오는지 확인하세요.\n4. 작성한 코드를 제출하세요.",
       "language": "java",
-      "starter_code": "",
-      "solution": "sixty",
-      "tests": [],
-      "required": true,
-      "example_code": "class Account {\n    private int balance = 100;\n    public int balance() { return balance; }\n    public boolean withdraw(int amount) {\n        // 양수이며 가진 잔액 안에서만 상태를 바꿔요.\n        if (amount <= 0 || amount > balance) return false;\n        balance -= amount;\n        return true;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Account account = new Account();\n        System.out.println(account.withdraw(150));\n        System.out.println(account.balance());\n        System.out.println(account.withdraw(40));\n        System.out.println(account.balance());\n    }\n}\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "negative",
-            "text": "-90이에요"
+      "starter_code": "class Account {\n    private int balance = 100;\n    public int balance() { return balance; }\n    public boolean withdraw(int amount) {\n        // 이 주석 아래 줄에서 잔액보다 큰 출금은 false를 돌려주며 거절하세요.\n        balance -= amount;\n        return true;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Account account = new Account();\n        System.out.println(account.withdraw(150));\n        System.out.println(account.balance());\n        System.out.println(account.withdraw(40));\n        System.out.println(account.balance());\n    }\n}\n",
+      "solution": "class Account {\n    private int balance = 100;\n    public int balance() { return balance; }\n    public boolean withdraw(int amount) {\n        // 이 주석 아래 줄에서 잔액보다 큰 출금은 false를 돌려주며 거절하세요.\n        if (amount > balance) return false;\n        balance -= amount;\n        return true;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Account account = new Account();\n        System.out.println(account.withdraw(150));\n        System.out.println(account.balance());\n        System.out.println(account.withdraw(40));\n        System.out.println(account.balance());\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "false\n100\ntrue\n60"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "balance": "200"
           },
-          {
-            "id": "sixty",
-            "text": "60이에요"
-          }
-        ],
-        "answer": "sixty"
-      },
+          "expected": "true\n50\ntrue\n10"
+        },
+        {
+          "values": {
+            "balance": "40"
+          },
+          "expected": "false\n40\ntrue\n0"
+        }
+      ],
+      "required": true,
       "narration": [
         {
           "action": "say",
-          "text": "잔액 100에서 150 출금을 시도하고, 이어서 40을 출금해요. 마지막 잔액이 질문이에요.",
-          "target": "text:잔액 100인 계좌에서 150을 출금하려다 거절되고, 이어서 40을 출금해요."
-        },
-        {
-          "action": "say",
-          "text": "withdraw는 양수가 아니거나 잔액보다 크면 false를 돌려주고 끝내요.",
-          "target": "code:if (amount <= 0 || amount > balance) return false;"
-        },
-        {
-          "action": "say",
-          "text": "허용한 경우에만 잔액에서 출금액을 빼요.",
-          "target": "code:balance -= amount;"
+          "text": "출금은 잔액 안에서만 허용해야 해요. 지금은 무엇이든 빼서 잔액이 음수가 돼요.",
+          "target": "text:지금은 무엇이든 빼서 잔액이 음수가 돼요."
         },
         {
           "action": "run",
           "lines": [
-            18,
-            18
+            14,
+            17
           ]
         },
         {
           "action": "say",
-          "text": "false, 100, true, 60이에요. 150은 거절돼 잔액이 그대로였고, 40만 빠졌어요.",
+          "text": "true, -50, true, -90이에요. 잔액보다 큰 150도 빼 버렸어요.",
           "target": "output"
         },
         {
-          "action": "say",
-          "text": "조심하세요. 필드를 숨겨도 변경 메서드가 조건을 검사하지 않으면 잘못된 출금을 막지 못해요.",
-          "target": "code:public boolean withdraw(int amount)"
-        },
-        {
-          "action": "choose_answer",
-          "id": "sixty"
-        }
-      ],
-      "predict_before_run": true,
-      "question": "잔액 100에서 150을 거절한 뒤 40을 출금해요. 마지막 잔액은 얼마일까요?"
-    },
-    {
-      "id": "stp_9cd04012-4d1b-41c7-8807-6e1ddea06740",
-      "title": "같은 타입이라도 구현이 바뀌면 결과가 달라질까요?",
-      "goal": "FeePolicy는 fee()라는 메서드를 꼭 제공하겠다는 약속(인터페이스)이에요. StandardFee와 FreeFee가 그 약속을 각자 구현했어요. policy 변수의 타입은 FeePolicy로 같고, 담긴 객체만 바뀌어요.\n\n알아두세요: interface는 메서드의 이름과 모양만 정해요. implements로 그 약속을 구현한 클래스가 실제 동작을 정해요.\n\n**할 일**\n\n1. 같은 메서드 호출이 실제로 어느 구현을 실행하는지 따라가세요.\n2. 앞에서 살펴본 코드의 동작을 예상해 보기를 하나 고르세요.\n3. 코드 실행 버튼을 눌러 예상과 실제 결과를 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "java",
-      "starter_code": "",
-      "solution": "impl",
-      "tests": [],
-      "required": true,
-      "example_code": "// 두 구현이 같은 호출 계약을 제공해요.\ninterface FeePolicy { int fee(); }\nclass StandardFee implements FeePolicy {\n    public int fee() { return 2500; }\n}\nclass FreeFee implements FeePolicy {\n    public int fee() { return 0; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        FeePolicy policy = new StandardFee();\n        System.out.println(policy.fee());\n        policy = new FreeFee();\n        System.out.println(policy.fee());\n    }\n}\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "impl",
-            "text": "네. 실제 객체의 구현이 2,500과 0을 돌려줘요"
-          },
-          {
-            "id": "type",
-            "text": "아니요. 같은 참조 타입이면 결과도 같아요"
-          }
-        ],
-        "answer": "impl"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "policy의 타입은 FeePolicy로 같은데, 담긴 객체가 StandardFee에서 FreeFee로 바뀌어요.",
-          "target": "text:policy 변수의 타입은 FeePolicy로 같고, 담긴 객체만 바뀌어요."
+          "action": "patch_code",
+          "before": "        // 이 주석 아래 줄에서 잔액보다 큰 출금은 false를 돌려주며 거절하세요.\n",
+          "after": "        // 이 주석 아래 줄에서 잔액보다 큰 출금은 false를 돌려주며 거절하세요.\n        if (amount > balance) return false;\n",
+          "say": "빼기 전에 잔액보다 큰지 검사해 거절해요."
         },
         {
           "action": "say",
-          "text": "같은 policy.fee() 호출이 두 번 있어요.",
-          "target": "code:System.out.println(policy.fee());#2"
+          "text": "조건이 맞으면 return false로 메서드가 바로 끝나서 아래 빼기는 실행되지 않아요.",
+          "target": "code:if (amount > balance) return false;"
         },
         {
           "action": "run",
           "lines": [
             15,
-            15
+            18
           ]
         },
         {
           "action": "say",
-          "text": "2,500 다음 0이에요. 호출은 같아도 실제 객체의 구현이 실행됐어요.",
+          "text": "false, 100, true, 60이에요. 150은 거절돼 잔액이 그대로고, 40만 빠졌어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 변수 타입은 무엇을 부를 수 있는지를 정하고, 어떤 구현이 실행될지는 실제 객체가 정해요.",
-          "target": "code:policy = new FreeFee();"
-        },
-        {
-          "action": "choose_answer",
-          "id": "impl"
+          "text": "조심하세요. amount >= balance로 쓰면 잔액과 같은 금액까지 거절해서, 잔액을 모두 쓰는 정상 출금이 막혀요.",
+          "target": "code:amount > balance"
         }
-      ],
-      "predict_before_run": true,
-      "question": "참조 타입은 같고 실제 구현만 바꿨어요. 호출 결과도 달라질까요?"
+      ]
     },
     {
-      "id": "stp_2ab3386a-aeb4-42a1-8d89-9d8e7c2c5d36",
-      "title": "인터페이스 구현의 공개 범위를 줄여도 될까요?",
-      "goal": "이번엔 StandardFee의 fee 앞에 public이 빠졌어요. 인터페이스의 메서드는 public으로 약속돼 있어요. 구현에서 공개 범위를 줄여도 될까요?\n\n**할 일**\n\n1. 인터페이스 메서드와 구현 메서드의 접근 범위를 비교하세요.\n2. 앞에서 살펴본 코드의 동작을 예상해 보기를 하나 고르세요.\n3. 코드 실행 버튼을 눌러 예상과 실제 결과를 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_bcab1360-c54e-4f48-9bd9-02c2c0fdc3bf",
+      "title": "FeePolicy를 구현해 배송비 0을 돌려주는 FreeFee를 쓰세요",
+      "goal": "FeePolicy는 fee()라는 메서드를 꼭 제공하겠다는 약속(인터페이스)이에요. StandardFee가 그 약속을 구현해 2,500을 돌려줘요. main은 같은 FeePolicy 변수에 FreeFee 객체도 담으려 해요.\n\n**알아두세요**\n\ninterface는 메서드의 이름과 모양만 정해요. implements로 그 약속을 구현한 클래스가 실제 동작을 정해요.\n\nFeePolicy를 구현해 fee()가 0을 돌려주는 FreeFee 클래스를 쓰세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 어떤 오류가 나는지 확인하세요.\n2. 주석 아래에 implements FeePolicy를 붙인 FreeFee 클래스를 쓰세요.\n3. 코드 실행을 눌러 2500과 0이 차례로 나오는지 확인하세요.\n4. 작성한 코드를 제출하세요.",
       "language": "java",
-      "starter_code": "",
-      "solution": "public",
-      "tests": [],
+      "starter_code": "// 두 구현이 같은 호출 계약을 제공해요.\ninterface FeePolicy { int fee(); }\nclass StandardFee implements FeePolicy {\n    public int fee() { return 2500; }\n}\n// 이 주석 아래에 FeePolicy를 구현해 배송비 0을 돌려주는 FreeFee 클래스를 쓰세요.\n\npublic class Main {\n    public static void main(String[] args) {\n        FeePolicy policy = new StandardFee();\n        System.out.println(policy.fee());\n        policy = new FreeFee();\n        System.out.println(policy.fee());\n    }\n}\n",
+      "solution": "// 두 구현이 같은 호출 계약을 제공해요.\ninterface FeePolicy { int fee(); }\nclass StandardFee implements FeePolicy {\n    public int fee() { return 2500; }\n}\n// 이 주석 아래에 FeePolicy를 구현해 배송비 0을 돌려주는 FreeFee 클래스를 쓰세요.\nclass FreeFee implements FeePolicy {\n    public int fee() { return 0; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        FeePolicy policy = new StandardFee();\n        System.out.println(policy.fee());\n        policy = new FreeFee();\n        System.out.println(policy.fee());\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "2500\n0"
+        }
+      ],
       "required": true,
-      "example_code": "// 두 구현이 같은 호출 계약을 제공해요.\ninterface FeePolicy { int fee(); }\nclass StandardFee implements FeePolicy {\n    int fee() { return 2500; }\n}\nclass FreeFee implements FeePolicy {\n    public int fee() { return 0; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        FeePolicy policy = new StandardFee();\n        System.out.println(policy.fee());\n    }\n}\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "narrow",
-            "text": "네. 구현에서는 접근 범위를 마음대로 줄여요"
-          },
-          {
-            "id": "public",
-            "text": "아니요. 구현도 public을 지켜야 해요"
-          }
-        ],
-        "answer": "public"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "인터페이스의 fee는 public으로 약속돼 있어요. StandardFee에서 public이 빠졌어요.",
-          "target": "text:이번엔 StandardFee의 fee 앞에 public이 빠졌어요."
+          "text": "같은 FeePolicy 변수에 무료배송 정책도 담으려는데 그 클래스가 아직 없어요.",
+          "target": "text:main은 같은 FeePolicy 변수에 FreeFee 객체도 담으려 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            11,
+            11
+          ],
+          "expect_error": "FreeFee"
         },
         {
           "action": "say",
-          "text": "public 없이 쓴 이 메서드는 같은 패키지 안에서만 부를 수 있어요.",
-          "target": "code:    int fee() { return 2500; }"
+          "text": "컴파일 오류예요. FreeFee라는 클래스를 찾지 못했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "// 이 주석 아래에 FeePolicy를 구현해 배송비 0을 돌려주는 FreeFee 클래스를 쓰세요.\n",
+          "after": "// 이 주석 아래에 FeePolicy를 구현해 배송비 0을 돌려주는 FreeFee 클래스를 쓰세요.\nclass FreeFee {\n    public int fee() { return 0; }\n}\n",
+          "say": "fee 메서드가 있는 FreeFee를 먼저 써 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ],
+          "expect_error": "incompatible types"
+        },
+        {
+          "action": "say",
+          "text": "여전히 오류예요. fee 메서드가 있어도 FeePolicy를 구현한다고 밝히지 않아서 그 변수에 담을 수 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "class FreeFee {",
+          "after": "class FreeFee implements FeePolicy {",
+          "say": "implements FeePolicy를 붙여 약속을 구현한다고 밝혀요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2500과 0이에요. 변수의 타입은 같은 FeePolicy인데, 담긴 객체의 구현이 결과를 정했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 메서드 이름과 모양이 같아도 implements를 쓰지 않으면 자바는 그 약속을 구현한 클래스로 보지 않아요.",
+          "target": "code:class FreeFee implements FeePolicy {"
+        }
+      ]
+    },
+    {
+      "id": "stp_6d91844a-5cd5-44a6-9cfb-01feccaeb880",
+      "title": "StandardFee의 fee가 인터페이스의 공개 약속을 지키도록 고치세요",
+      "goal": "이번엔 StandardFee의 fee 앞에 public이 빠졌어요. 인터페이스의 메서드는 public으로 약속돼 있어요.\n\n컴파일 오류가 나지 않도록 StandardFee의 fee 선언을 인터페이스 약속에 맞게 고치세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 어떤 오류가 나는지 확인하세요.\n2. StandardFee의 fee 선언 앞에 필요한 접근 제어자를 붙이세요.\n3. 코드 실행을 눌러 2500이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "// 두 구현이 같은 호출 계약을 제공해요.\ninterface FeePolicy { int fee(); }\nclass StandardFee implements FeePolicy {\n    int fee() { return 2500; }\n}\nclass FreeFee implements FeePolicy {\n    public int fee() { return 0; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        FeePolicy policy = new StandardFee();\n        System.out.println(policy.fee());\n    }\n}\n",
+      "solution": "// 두 구현이 같은 호출 계약을 제공해요.\ninterface FeePolicy { int fee(); }\nclass StandardFee implements FeePolicy {\n    public int fee() { return 2500; }\n}\nclass FreeFee implements FeePolicy {\n    public int fee() { return 0; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        FeePolicy policy = new StandardFee();\n        System.out.println(policy.fee());\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "2500"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "인터페이스의 메서드는 모두에게 공개된 약속이에요. 그런데 StandardFee의 fee에는 public이 없어요.",
+          "target": "text:이번엔 StandardFee의 fee 앞에 public이 빠졌어요."
         },
         {
           "action": "run",
@@ -250,14 +251,14 @@
         },
         {
           "action": "say",
-          "text": "weaker access 컴파일 오류예요. 약속보다 좁게 열 수 없어요.",
+          "text": "컴파일 오류예요. 약속보다 좁은 접근 범위로 구현하려 해서 막혔어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
           "before": "    int fee() { return 2500; }",
           "after": "    public int fee() { return 2500; }",
-          "say": "구현에도 public을 붙여요."
+          "say": "앞에 public을 붙여 약속과 같은 범위로 맞춰요."
         },
         {
           "action": "run",
@@ -268,291 +269,270 @@
         },
         {
           "action": "say",
-          "text": "2,500이에요. 약속을 지킨 구현이 호출됐어요.",
+          "text": "2500이에요. 구현이 인터페이스의 공개 범위를 지켜서 컴파일됐어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 인터페이스를 구현한 메서드는 인터페이스가 약속한 공개 범위 이상으로 열어야 해요.",
+          "text": "조심하세요. 인터페이스 안에서는 public을 생략해도 공개지만, 구현하는 클래스에서는 public을 직접 써야 해요.",
           "target": "code:interface FeePolicy { int fee(); }"
-        },
-        {
-          "action": "choose_answer",
-          "id": "public"
         }
-      ],
-      "predict_before_run": true,
-      "question": "이 인터페이스 계약은 공개된 인스턴스 메서드예요. 구현에서 공개 범위를 줄여도 될까요?"
+      ]
     },
     {
-      "id": "stp_3a288ce0-6bd0-482a-892f-478a343c5a86",
-      "title": "무료배송 정책으로 바꾸려면 무엇을 교체할까요?",
-      "goal": "결제 Checkout은 배송비 계산을 직접 하지 않고, 생성자로 받은 FeePolicy에 맡겨요. 합산 코드는 그대로 두고 배송비만 무료로 바꾸려 해요.\n\n알아두세요: 다른 객체를 필드로 갖고 일을 맡기는 방식을 조합이라고 해요.\n\n**할 일**\n\n1. 합계 계산을 유지하면서 배송비 동작을 교체할 수 있는 부분을 찾으세요.\n2. 앞에서 살펴본 코드의 동작을 예상해 보기를 하나 고르세요.\n3. 코드 실행 버튼을 눌러 예상과 실제 결과를 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_186de5f8-186b-48df-9896-f428a674ccb7",
+      "title": "Checkout은 그대로 두고 무료배송 정책을 꽂으세요",
+      "goal": "결제 Checkout은 배송비 계산을 직접 하지 않고, 생성자로 받은 FeePolicy에 맡겨요.\n\n**알아두세요**\n\n다른 객체를 필드로 갖고 일을 맡기는 방식을 조합이라고 해요.\n\nCheckout 클래스의 합산 코드는 그대로 두고, 이 결제의 배송비만 무료가 되도록 main에서 Checkout에 넘기는 정책을 바꾸세요. 채점은 주문 금액을 바꿔서도 실행하고 Checkout이 표준 정책으로는 여전히 배송비를 더하는지도 확인해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 결제 합계를 확인하세요.\n2. main에서 Checkout을 만들 때 넘기는 정책 객체를 무료배송 정책으로 바꾸세요.\n3. 코드 실행을 눌러 10000이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "java",
-      "starter_code": "",
-      "solution": "policy",
-      "tests": [],
-      "required": true,
-      "example_code": "// 두 구현이 같은 호출 계약을 제공해요.\ninterface FeePolicy { int fee(); }\nclass StandardFee implements FeePolicy {\n    public int fee() { return 2500; }\n}\nclass FreeFee implements FeePolicy {\n    public int fee() { return 0; }\n}\n// 결제는 배송비 역할을 받아 그 계산을 맡겨요.\nclass Checkout {\n    private final FeePolicy policy;\n    Checkout(FeePolicy policy) { this.policy = policy; }\n    int total(int amount) { return amount + policy.fee(); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Checkout checkout = new Checkout(new StandardFee());\n        System.out.println(checkout.total(10000));\n    }\n}\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "rewrite",
-            "text": "Checkout의 모든 계산을 다시 작성해야 해요"
+      "starter_code": "// 두 구현이 같은 호출 계약을 제공해요.\ninterface FeePolicy { int fee(); }\nclass StandardFee implements FeePolicy {\n    public int fee() { return 2500; }\n}\nclass FreeFee implements FeePolicy {\n    public int fee() { return 0; }\n}\n// 결제는 배송비 역할을 받아 그 계산을 맡겨요.\nclass Checkout {\n    private final FeePolicy policy;\n    Checkout(FeePolicy policy) { this.policy = policy; }\n    int total(int amount) { return amount + policy.fee(); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int amount = 10000;\n        // 이 결제에 꽂을 배송비 정책을 정해요.\n        Checkout checkout = new Checkout(new StandardFee());\n        System.out.println(checkout.total(amount));\n    }\n}\n",
+      "solution": "// 두 구현이 같은 호출 계약을 제공해요.\ninterface FeePolicy { int fee(); }\nclass StandardFee implements FeePolicy {\n    public int fee() { return 2500; }\n}\nclass FreeFee implements FeePolicy {\n    public int fee() { return 0; }\n}\n// 결제는 배송비 역할을 받아 그 계산을 맡겨요.\nclass Checkout {\n    private final FeePolicy policy;\n    Checkout(FeePolicy policy) { this.policy = policy; }\n    int total(int amount) { return amount + policy.fee(); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int amount = 10000;\n        // 이 결제에 꽂을 배송비 정책을 정해요.\n        Checkout checkout = new Checkout(new FreeFee());\n        System.out.println(checkout.total(amount));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "10000"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "amount": "3000"
           },
-          {
-            "id": "policy",
-            "text": "생성자로 주는 FeePolicy 구현을 바꿔요"
-          }
-        ],
-        "answer": "policy"
-      },
+          "expected": "3000"
+        }
+      ],
+      "checker": "class QuestContract {\n    public static void main(String[] args) throws Exception {\n        \n        Class<?> C = Class.forName(\"Checkout\", true, Main.class.getClassLoader()); Class<?> P = Class.forName(\"FeePolicy\", true, Main.class.getClassLoader());\n        var make = C.getDeclaredConstructor(P); make.setAccessible(true);\n        var standard = Class.forName(\"StandardFee\", true, Main.class.getClassLoader()).getDeclaredConstructor(); standard.setAccessible(true);\n        var total = C.getDeclaredMethod(\"total\", int.class); total.setAccessible(true);\n        require((int) total.invoke(make.newInstance(standard.newInstance()), 100) == 2600, \"Checkout의 합산 코드는 그대로 두세요. 표준 정책이면 배송비를 더해야 해요.\");\n        String source = java.nio.file.Files.readString(java.nio.file.Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, java.nio.charset.StandardCharsets.UTF_8)) {\n            var task = (com.sun.source.util.JavacTask) compiler.getTask(null, files, null,\n                java.util.List.of(\"-proc:none\"), null, files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = com.sun.source.util.Trees.instance(task).getSourcePositions();\n            long[] bounds = {-1, -1};\n            String[] change = {\"{ }\"};\n            new com.sun.source.util.TreeScanner<Void, String>() {\n                public Void visitClass(com.sun.source.tree.ClassTree node, String parent) {\n                    return super.visitClass(node, node.getSimpleName().toString());\n                }\n                public Void visitMethod(com.sun.source.tree.MethodTree node, String parent) {\n                    if (\"Main\".equals(parent) && \"main\".contentEquals(node.getName()) && node.getBody() != null) {\n                        if (bounds[0] != -1) throw new AssertionError(\"검사할 메서드는 하나만 정의하세요.\");\n                        bounds[0] = positions.getStartPosition(tree, node.getBody());\n                        bounds[1] = positions.getEndPosition(tree, node.getBody());\n                    }\n                    return super.visitMethod(node, parent);\n                }\n                public Void visitVariable(com.sun.source.tree.VariableTree node, String parent) {\n                    if (\"Main\".equals(parent) && (\"var:\" + node.getName()).equals(\"main\")) {\n                        if (node.getInitializer() != null) {\n                            bounds[0] = positions.getStartPosition(tree, node.getInitializer());\n                            bounds[1] = positions.getEndPosition(tree, node.getInitializer());\n                        } else {\n                            // Java fields without an initializer have a defined default.\n                            bounds[0] = positions.getEndPosition(tree, node) - 1;\n                            bounds[1] = bounds[0];\n                            change[0] = \" = \" + change[0];\n                        }\n                    }\n                    return super.visitVariable(node, parent);\n                }\n            }.scan(tree, \"\");\n            if (bounds[0] < 0) throw new AssertionError(\"필요한 메서드를 정의하세요.\");\n            System.out.print(source.substring(0, (int) bounds[0]) + change[0] + source.substring((int) bounds[1]));\n        }\n    }\n    static void require(boolean ok, String message) {\n        if (!ok) throw new AssertionError(message);\n    }\n}\n",
+      "required": true,
       "narration": [
         {
           "action": "say",
-          "text": "Checkout은 배송비를 직접 계산하지 않고 받은 policy에 맡겨요.",
+          "text": "Checkout은 배송비를 직접 계산하지 않고 생성자로 받은 정책에 맡겨요. 그래서 정책만 바꾸면 돼요.",
           "target": "text:결제 Checkout은 배송비 계산을 직접 하지 않고, 생성자로 받은 FeePolicy에 맡겨요."
-        },
-        {
-          "action": "say",
-          "text": "총액은 금액에 policy.fee()를 더해 만들어요.",
-          "target": "code:return amount + policy.fee();"
         },
         {
           "action": "run",
           "lines": [
-            19,
-            19
+            21,
+            21
           ]
         },
         {
           "action": "say",
-          "text": "12,500이에요. 일반 배송비 2,500이 더해졌어요.",
+          "text": "12500이에요. 표준 정책이 2,500원을 더했어요.",
           "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "total은 받은 정책의 fee()를 부르기만 해요.",
+          "target": "code:return amount + policy.fee();"
         },
         {
           "action": "patch_code",
           "before": "new Checkout(new StandardFee())",
           "after": "new Checkout(new FreeFee())",
-          "say": "생성자에 넘기는 배송비 정책만 바꿔요."
+          "say": "생성자에 무료배송 정책 객체를 넘겨요."
         },
         {
           "action": "run",
           "lines": [
-            19,
+            21,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "10000이에요. Checkout 코드는 한 줄도 바꾸지 않았는데 꽂은 정책이 배송비를 0으로 정했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. total을 return amount로 고쳐도 숫자는 같아지지만, 그러면 표준 정책을 꽂은 결제도 배송비를 잃어요.",
+          "target": "code:return amount + policy.fee();"
+        }
+      ]
+    },
+    {
+      "id": "stp_4de94d00-644d-4e40-b14c-7cfd52b74f06",
+      "title": "음수 잔액으로는 계좌를 만들지 못하도록 생성자에서 예외를 던지세요",
+      "goal": "음수 잔액으로 계좌를 만들려 해요. 지금 생성자는 그대로 받아들여 잘못된 계좌가 만들어져요.\n\n**알아두세요**\n\nthrow는 예외를 던져 지금 하던 일을 멈춰요. try { } 안에서 던진 예외는 이어지는 catch가 받아서 처리해요.\n\n생성자에서 opening이 음수면 IllegalArgumentException을 던지게 하세요. 채점은 opening을 0 이상으로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력을 확인하세요.\n2. 생성자의 주석 아래 줄에 opening이 음수면 예외를 던지는 조건문을 쓰세요.\n3. 코드 실행을 눌러 invalid만 나오는지 확인하세요.\n4. 작성한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Account {\n    private int balance;\n    Account(int opening) {\n        // 이 주석 아래 줄에서 opening이 음수면 IllegalArgumentException을 던지세요.\n        balance = opening;\n    }\n    public int balance() { return balance; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int opening = -1;\n        try {\n            Account account = new Account(opening);\n            System.out.println(account.balance());\n            System.out.println(\"after\");\n        } catch (IllegalArgumentException error) {\n            System.out.println(\"invalid\");\n        }\n    }\n}\n",
+      "solution": "class Account {\n    private int balance;\n    Account(int opening) {\n        // 이 주석 아래 줄에서 opening이 음수면 IllegalArgumentException을 던지세요.\n        if (opening < 0) throw new IllegalArgumentException(\"negative balance\");\n        balance = opening;\n    }\n    public int balance() { return balance; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int opening = -1;\n        try {\n            Account account = new Account(opening);\n            System.out.println(account.balance());\n            System.out.println(\"after\");\n        } catch (IllegalArgumentException error) {\n            System.out.println(\"invalid\");\n        }\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "invalid"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "opening": "50"
+          },
+          "expected": "50\nafter"
+        },
+        {
+          "values": {
+            "opening": "0"
+          },
+          "expected": "0\nafter"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "음수 잔액으로 계좌를 만들려는데 생성자가 그대로 받아들여요.",
+          "target": "text:지금 생성자는 그대로 받아들여 잘못된 계좌가 만들어져요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "-1과 after가 나와요. 잘못된 계좌가 만들어진 채 다음 줄로 넘어갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 이 주석 아래 줄에서 opening이 음수면 IllegalArgumentException을 던지세요.\n",
+          "after": "        // 이 주석 아래 줄에서 opening이 음수면 IllegalArgumentException을 던지세요.\n        if (opening < 0) throw new IllegalArgumentException(\"negative balance\");\n",
+          "say": "음수면 예외를 던지는 조건을 써요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
             19
           ]
         },
         {
           "action": "say",
-          "text": "10,000이에요. Checkout 코드는 하나도 안 바꿨어요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 배송비 규칙마다 Checkout을 복사해 고치면, 합산 규칙이 바뀔 때 여러 곳을 고쳐야 해요.",
-          "target": "code:new Checkout(new FreeFee())"
-        },
-        {
-          "action": "choose_answer",
-          "id": "policy"
-        }
-      ],
-      "predict_before_run": true,
-      "question": "합산 코드는 같고 배송비 역할만 무료로 바꾸려 해요. 무엇을 교체하면 될까요?"
-    },
-    {
-      "id": "stp_9802cda1-d719-464d-a094-ecbe9705ccb5",
-      "title": "생성자가 예외를 던지면 after도 실행될까요?",
-      "goal": "음수 잔액으로 계좌를 만들려고 하면 생성자가 예외를 던져요. try 안에서 예외가 나면 그 아래 줄 대신 catch로 이동해요. try 안의 after까지 실행될까요?\n\n알아두세요: throw는 예외를 던져 지금 하던 일을 멈춰요. try { } 안에서 던진 예외는 이어지는 catch가 받아서 처리해요.\n\n**할 일**\n\n1. 생성자에서 예외가 발생한 뒤 제어가 이동하는 곳을 따라가세요.\n2. 앞에서 살펴본 코드의 동작을 예상해 보기를 하나 고르세요.\n3. 코드 실행 버튼을 눌러 예상과 실제 결과를 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "java",
-      "starter_code": "",
-      "solution": "catch",
-      "tests": [],
-      "required": true,
-      "example_code": "class Account {\n    private int balance;\n    Account(int opening) {\n        // 잘못된 시작 상태를 만들기 전에 실패를 알려요.\n        if (opening < 0) throw new IllegalArgumentException(\"negative balance\");\n        balance = opening;\n    }\n    public int balance() { return balance; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        try {\n            Account account = new Account(-1);\n            System.out.println(account.balance());\n            System.out.println(\"after\");\n        } catch (IllegalArgumentException error) {\n            System.out.println(\"invalid\");\n        }\n    }\n}\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "after",
-            "text": "네. 예외가 나도 try의 다음 줄부터 계속해요"
-          },
-          {
-            "id": "catch",
-            "text": "아니요. catch의 invalid로 이동해요"
-          }
-        ],
-        "answer": "catch"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "음수 -1로 계좌를 만들면 생성자가 예외를 던져요. 질문은 그 뒤 try 안의 출력이 실행되는지예요.",
-          "target": "text:try 안의 after까지 실행될까요?"
-        },
-        {
-          "action": "say",
-          "text": "생성자는 잘못된 시작 잔액이면 객체를 만들기 전에 예외를 던져요.",
-          "target": "code:if (opening < 0) throw new IllegalArgumentException(\"negative balance\");"
-        },
-        {
-          "action": "run",
-          "lines": [
-            18,
-            18
-          ]
-        },
-        {
-          "action": "say",
-          "text": "invalid만 나왔어요. 예외가 나자 try의 남은 줄을 건너뛰고 catch로 갔어요.",
+          "text": "invalid만 나와요. 생성자가 예외를 던지자 try의 나머지 두 줄은 건너뛰고 catch로 갔어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "new Account(-1)",
-          "after": "new Account(100)",
-          "say": "유효한 시작 잔액 100으로 비교해요."
+          "before": "int opening = -1;",
+          "after": "int opening = 50;",
+          "say": "정상 잔액 50으로도 확인해요."
         },
         {
           "action": "run",
           "lines": [
-            18,
-            18
+            16,
+            19
           ]
         },
         {
           "action": "say",
-          "text": "100과 after가 나와요. 예외가 없으면 try가 끝까지 실행돼요.",
+          "text": "50과 after예요. 예외가 없으면 try가 끝까지 실행되고 catch는 건너뛰어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. catch로 넘어간 뒤 try 안의 나머지 줄로 돌아오지 않아요.",
+          "text": "조심하세요. 예외가 나면 try 안의 그 뒤 줄은 실행되지 않아요. 꼭 해야 하는 출력을 거기에 두면 빠져요.",
           "target": "code:System.out.println(\"after\");"
         },
         {
           "action": "patch_code",
-          "before": "new Account(100)",
-          "after": "new Account(-1)",
-          "say": "문제의 음수 시작으로 돌아와요."
+          "before": "int opening = 50;",
+          "after": "int opening = -1;",
+          "say": "처음 잔액 -1로 되돌려요."
+        }
+      ]
+    },
+    {
+      "id": "stp_2938267d-5ba3-42ba-960c-d26314e67181",
+      "title": "결제가 실패해도 closed가 꼭 출력되도록 finally로 옮기세요",
+      "goal": "잘못된 금액 -1로 결제하면 pay가 예외를 던져요. closed는 결제가 성공하든 실패하든 마지막에 꼭 출력해야 해요. 그런데 지금은 실패하면 빠져요.\n\n**알아두세요**\n\nfinally 블록은 try가 정상으로 끝나도, catch로 예외를 처리해도 마지막에 실행돼요.\n\nclosed 출력을 catch 뒤의 finally 블록으로 옮기세요. 채점은 결제 금액을 양수로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 실패한 결제에서 closed가 빠지는 것을 확인하세요.\n2. catch 블록 뒤에 finally 블록을 만들고 closed 출력을 그 안으로 옮기세요.\n3. 코드 실행을 눌러 failed, closed, after가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Payment {\n    static void pay(int amount) {\n        if (amount <= 0) throw new IllegalArgumentException(\"positive amount required\");\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int amount = -1;\n        try {\n            Payment.pay(amount);\n            System.out.println(\"success\");\n            // 결제가 성공하든 실패하든 마지막에 꼭 출력해야 하는 줄이에요.\n            System.out.println(\"closed\");\n        } catch (IllegalArgumentException error) {\n            System.out.println(\"failed\");\n        }\n        System.out.println(\"after\");\n    }\n}\n",
+      "solution": "class Payment {\n    static void pay(int amount) {\n        if (amount <= 0) throw new IllegalArgumentException(\"positive amount required\");\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int amount = -1;\n        try {\n            Payment.pay(amount);\n            System.out.println(\"success\");\n        } catch (IllegalArgumentException error) {\n            System.out.println(\"failed\");\n        } finally {\n            // 결제가 성공하든 실패하든 마지막에 꼭 출력해야 하는 줄이에요.\n            System.out.println(\"closed\");\n        }\n        System.out.println(\"after\");\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "failed\nclosed\nafter"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "amount": "500"
+          },
+          "expected": "success\nclosed\nafter"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "closed는 결제가 성공하든 실패하든 꼭 출력해야 해요. 지금은 try 안 결제 뒤에 있어요.",
+          "target": "text:closed는 결제가 성공하든 실패하든 마지막에 꼭 출력해야 해요."
         },
         {
           "action": "run",
           "lines": [
-            18,
+            14,
             18
           ]
         },
         {
           "action": "say",
-          "text": "다시 invalid만 나와요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "catch"
-        }
-      ],
-      "predict_before_run": true,
-      "question": "음수로 시작하려다 생성자가 예외를 던져요. try 안의 after까지 실행될까요?"
-    },
-    {
-      "id": "stp_5f99cdbe-ada3-45dd-8d2c-4b5f12297262",
-      "title": "예외를 처리할 때 출력 순서는 무엇일까요?",
-      "goal": "잘못된 금액 -1로 결제하면 pay가 예외를 던져요. 이번 코드에는 finally도 있어요. 출력 순서는 무엇일까요?\n\n알아두세요: finally 블록은 try가 정상으로 끝나도, catch로 예외를 처리해도 마지막에 실행돼요.\n\n**할 일**\n\n1. 예외 발생 뒤 `catch`와 `finally`가 실행되는 순서를 따라가세요.\n2. 앞에서 살펴본 코드의 동작을 예상해 보기를 하나 고르세요.\n3. 코드 실행 버튼을 눌러 예상과 실제 결과를 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "java",
-      "starter_code": "",
-      "solution": "failure",
-      "tests": [],
-      "required": true,
-      "example_code": "class Payment {\n    static void pay(int amount) {\n        if (amount <= 0) throw new IllegalArgumentException(\"positive amount required\");\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        try {\n            Payment.pay(-1);\n            System.out.println(\"success\");\n        } catch (IllegalArgumentException error) {\n            System.out.println(\"failed\");\n        } finally {\n            System.out.println(\"closed\");\n        }\n        System.out.println(\"after\");\n    }\n}\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "failure",
-            "text": "failed → closed → after예요"
-          },
-          {
-            "id": "success",
-            "text": "success → after만 실행해요"
-          }
-        ],
-        "answer": "failure"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "잘못된 금액으로 결제하면 예외가 나요. 이번엔 catch 뒤에 finally도 있어요.",
-          "target": "text:이번 코드에는 finally도 있어요."
-        },
-        {
-          "action": "say",
-          "text": "finally는 성공하든 예외를 처리하든 마지막에 실행돼요.",
-          "target": "code:System.out.println(\"closed\");"
-        },
-        {
-          "action": "run",
-          "lines": [
-            17,
-            17
-          ]
-        },
-        {
-          "action": "say",
-          "text": "failed, closed, after예요. success는 건너뛰고, 처리 뒤 finally를 거쳐 바깥으로 이어졌어요.",
+          "text": "failed와 after만 나와요. pay가 예외를 던져서 try 안의 success와 closed를 건너뛰었어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "Payment.pay(-1)",
-          "after": "Payment.pay(40)",
-          "say": "유효한 결제로 바꿔 정상 경로도 비교해요."
+          "before": "            // 결제가 성공하든 실패하든 마지막에 꼭 출력해야 하는 줄이에요.\n            System.out.println(\"closed\");\n        } catch (IllegalArgumentException error) {\n            System.out.println(\"failed\");\n        }\n",
+          "after": "        } catch (IllegalArgumentException error) {\n            System.out.println(\"failed\");\n        } finally {\n            // 결제가 성공하든 실패하든 마지막에 꼭 출력해야 하는 줄이에요.\n            System.out.println(\"closed\");\n        }\n",
+          "say": "closed 출력을 catch 뒤에 새로 만든 finally 블록으로 옮겨요."
         },
         {
           "action": "run",
           "lines": [
-            17,
-            17
+            14,
+            19
           ]
         },
         {
           "action": "say",
-          "text": "success, closed, after예요. 이번에도 finally가 실행됐어요.",
+          "text": "failed, closed, after예요. 예외를 처리한 뒤 finally가 실행되고, 그다음 줄로 이어졌어요.",
           "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. finally는 정리할 일을 두는 곳이에요. 다만 프로그램이 강제로 종료되면 finally도 실행되지 못해요.",
-          "target": "text:finally 블록은 try가 정상으로 끝나도, catch로 예외를 처리해도 마지막에 실행돼요."
         },
         {
           "action": "patch_code",
-          "before": "Payment.pay(40)",
-          "after": "Payment.pay(-1)",
-          "say": "처음 실패 경로로 돌아와요."
+          "before": "int amount = -1;",
+          "after": "int amount = 500;",
+          "say": "정상 금액 500으로도 확인해요."
         },
         {
           "action": "run",
           "lines": [
-            17,
-            17
+            14,
+            19
           ]
         },
         {
           "action": "say",
-          "text": "실패 경로의 순서는 failed, closed, after예요.",
+          "text": "success, closed, after예요. 성공해도 finally는 실행돼요.",
           "target": "output"
         },
         {
-          "action": "choose_answer",
-          "id": "failure"
+          "action": "say",
+          "text": "조심하세요. closed를 catch 안에만 넣으면 실패할 때만 나오고 성공한 결제에서는 빠져요.",
+          "target": "code:} finally {"
+        },
+        {
+          "action": "patch_code",
+          "before": "int amount = 500;",
+          "after": "int amount = -1;",
+          "say": "처음 금액 -1로 되돌려요."
         }
-      ],
-      "predict_before_run": true,
-      "question": "잘못된 금액으로 실패했어요. 이번 정상적인 예외 처리 경로는 무엇일까요?"
+      ]
     },
     {
       "id": "stp_73547f31-6306-4319-8d04-a08301ff0ce5",

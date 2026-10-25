@@ -1,0 +1,52 @@
+{
+  "by": "hand",
+  "source_sha256": "bbce277dce88dfc14440d7831053abc41d73bb8be63e02a25ee5dda9c120e3e6",
+  "entry": [
+    {
+      "action": "say",
+      "text": "메서드 안에서 amount를 바꿔도 main의 amount가 바뀌는지 먼저 확인해요.",
+      "target": "text:그런데 실행하면 main의 amount는 그대로예요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2000이 나와요. 메서드의 amount는 넘겨받은 값을 복사한 다른 변수라서, 그것을 바꿔도 main의 amount는 그대로예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "static void add_fee(int amount) {\n        amount = amount + 1000;",
+      "after": "static int add_fee(int amount) {\n        return amount + 1000;",
+      "say": "반환형을 int로 바꾸고 더한 값을 return으로 돌려줘요."
+    },
+    {
+      "action": "patch_code",
+      "before": "        add_fee(amount);\n",
+      "after": "        System.out.println(add_fee(amount));\n",
+      "say": "main에서는 돌려받은 값을 바로 출력해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "3000 다음에 2000이에요. 결과는 반환값으로 돌아왔고, main의 amount는 여전히 2000이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 이름이 같아도 메서드의 amount와 main의 amount는 다른 변수예요. 메서드 안의 대입은 main에 전해지지 않아요.",
+      "target": "code:return amount + 1000;"
+    }
+  ]
+}

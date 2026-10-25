@@ -1,0 +1,75 @@
+{
+  "by": "hand",
+  "source_sha256": "134bb1be3e53cf885c2267eaf71ffeb47f794c267ab562e4234eeac2a087ab2e",
+  "entry": [
+    {
+      "action": "say",
+      "text": "free는 처음 금액 20,000원으로 판단해 저장한 값이에요. 그 뒤에 금액이 1원 줄었어요.",
+      "target": "text:그 뒤에 쿠폰 할인으로 금액이 줄었어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "true가 나와요. 금액은 19,999원이 됐는데 free는 저장할 때의 판단을 그대로 갖고 있어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "free에는 비교식이 아니라 그때 계산한 true만 들어 있어요.",
+      "target": "code:boolean free = amount >= limit;"
+    },
+    {
+      "action": "patch_code",
+      "before": "    // 이 주석 아래 줄에서 줄어든 금액으로 free를 다시 판단하세요.\n",
+      "after": "    // 이 주석 아래 줄에서 줄어든 금액으로 free를 다시 판단하세요.\n    free = amount >= limit;\n",
+      "say": "출력 전에 줄어든 금액으로 다시 비교해 free에 넣어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "false예요. 다시 계산해서 지금 금액 기준의 판단이 됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "int coupon = 1;",
+      "after": "int coupon = 0;",
+      "say": "쿠폰이 없는 경우도 확인해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "true예요. 금액이 그대로 20,000원이니 무료배송이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. free = false처럼 결과를 직접 넣으면 쿠폰이 없는 주문까지 거짓이 돼요.",
+      "target": "code:free = amount >= limit;#2"
+    },
+    {
+      "action": "patch_code",
+      "before": "int coupon = 0;",
+      "after": "int coupon = 1;",
+      "say": "쿠폰 1원으로 되돌려요."
+    }
+  ]
+}
