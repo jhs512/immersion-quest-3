@@ -1,53 +1,214 @@
 {
-  "course": "tests/fixtures/player-pilot/6/course.json",
-  "lesson": "courses/redesigned/java-static.json",
-  "expected_outputs": [
-    [
-      "1000\n2000",
-      "3000\n2000",
-      "1000\n2000"
-    ],
-    [
-      "2",
-      "3",
-      "2"
-    ],
-    [
-      "2"
-    ],
-    [
-      "0\n1",
-      "0\n1"
-    ],
-    [
-      "before\nclass\nobject\nconstructor\nobject\nconstructor"
-    ],
-    [
-      "true\ntrue",
-      "false\ntrue",
-      ""
-    ],
-    [
-      "2000\n2000",
-      "1000\n2000"
-    ],
-    [
-      "1",
-      "2",
-      "0",
-      "2"
-    ]
+ "course": "tests/fixtures/player-pilot/6/course.json",
+ "lesson": "courses/redesigned/java-static.json",
+ "expected_outputs": [
+  [
+   "1000\n2000"
   ],
-  "reject": [
-    {
-      "step": 8,
-      "replacements": [
-        [
-          "System.out.println(Ticket.created)",
-          "System.out.println(2)"
-        ]
-      ],
-      "reason": "A fixed two does not count zero or four creations"
-    }
+  [
+   "2",
+   "5"
+  ],
+  [
+   "0",
+   "",
+   "2"
+  ],
+  [
+   "0\n1",
+   "0\n1"
+  ],
+  [
+   "before\nclass\nobject\nconstructor\nclass\nobject\nconstructor",
+   "before\nclass\nobject\nconstructor\nobject\nconstructor"
+  ],
+  [
+   "true\nfalse",
+   "false\nfalse"
+  ],
+  [
+   "2000\n2000",
+   "1000\n2000"
+  ],
+  [
+   "1",
+   "2",
+   "0",
+   "2"
   ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "        System.out.println(a.amount);\n        System.out.println(b.amount);\n",
+     "        System.out.println(first);\n        System.out.println(second);\n"
+    ]
+   ],
+   "reason": "Printing the locals instead of the objects' fields"
+  },
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "System.out.println(b.amount);",
+     "System.out.println(a.amount);"
+    ]
+   ],
+   "reason": "Reading the same object twice"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "System.out.println(Ticket.created);",
+     "System.out.println(orders);"
+    ]
+   ],
+   "reason": "Printing the loop count instead of the shared counter"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "System.out.println(Ticket.created);",
+     "System.out.println(2);"
+    ]
+   ],
+   "reason": "A typed count"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "        return created;\n",
+     "        return 2;\n"
+    ]
+   ],
+   "reason": "A typed count fails for other order counts"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "        return created;\n",
+     "        return amount;\n"
+    ]
+   ],
+   "reason": "A static method cannot read an instance field directly"
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "        System.out.println(Ticket.created);\n        Ticket a = new Ticket(1000);\n",
+     "        Ticket a = new Ticket(1000);\n        System.out.println(Ticket.created);\n"
+    ]
+   ],
+   "reason": "Both prints after creating the order show 1 twice"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "    static {\n",
+     "    {\n"
+    ]
+   ],
+   "reason": "An instance block runs for every object"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "return amount >= FREE_FROM;",
+     "return FREE_FROM >= amount;"
+    ]
+   ],
+   "reason": "The reversed comparison"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "return amount >= FREE_FROM;",
+     "return amount > FREE_FROM;"
+    ]
+   ],
+   "reason": "Strictly greater misses the boundary"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "    int amount;\n    Ticket(int initial)",
+     "    static int amount;\n    Ticket(int initial)"
+    ]
+   ],
+   "reason": "A shared amount keeps only the last order"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "        created++;\n",
+     "        created = 1;\n"
+    ]
+   ],
+   "reason": "Overwriting the counter"
+  }
+ ],
+ "accept": [
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "System.out.println(Ticket.created);",
+     "System.out.println(Ticket.countCreated());"
+    ]
+   ],
+   "reason": "The static accessor gives the same shared count"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "        return created;\n",
+     "        return Ticket.created;\n"
+    ]
+   ],
+   "reason": "Qualified static field"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "return amount >= FREE_FROM;",
+     "return amount >= Ticket.FREE_FROM;"
+    ]
+   ],
+   "reason": "Qualified constant"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "return amount >= FREE_FROM;",
+     "return !(amount < FREE_FROM);"
+    ]
+   ],
+   "reason": "Equivalent condition"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "        created++;\n",
+     "        created = created + 1;\n"
+    ]
+   ],
+   "reason": "Explicit increment"
+  }
+ ]
 }

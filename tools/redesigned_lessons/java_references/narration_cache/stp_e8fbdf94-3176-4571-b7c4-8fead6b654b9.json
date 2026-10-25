@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "c3f5a170d5a907c8dea435be3a8ebc44f92a2a9fc5d74de922902d79dd7e2fdc",
+  "entry": [
+    {
+      "action": "say",
+      "text": "a 앞에 final이 있어요. final 변수에는 다른 값을 다시 대입할 수 없어요.",
+      "target": "text:final 변수에는 처음 넣은 값 말고 다른 값을 다시 대입할 수 없어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        15
+      ],
+      "expect_error": "final"
+    },
+    {
+      "action": "say",
+      "text": "컴파일 오류예요. final 참조 a에 새 상자를 대입하려 해서 막혔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        a = new Box(3);\n",
+      "after": "        a.count = 3;\n",
+      "say": "참조는 그대로 두고 가리키는 상자의 count를 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "3이에요. final은 a가 다른 상자를 가리키는 것만 막고, 상자 안의 count는 바꿀 수 있어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. final을 지우면 오류는 사라지지만 이 참조를 고정하려던 뜻도 사라져요.",
+      "target": "code:final Box a = new Box(2);"
+    }
+  ]
+}

@@ -1,0 +1,281 @@
+{
+ "course": "tests/fixtures/player-pilot/w/course.json",
+ "lesson": "courses/redesigned/java-arrays.json",
+ "expected_outputs": [
+  [
+   "2000",
+   "1000",
+   "500"
+  ],
+  [
+   "",
+   "3000"
+  ],
+  [
+   "3000",
+   "4000",
+   "3000"
+  ],
+  [
+   "1000\n1000",
+   "1000\n1001",
+   "1000\n2000"
+  ],
+  [
+   "0",
+   "3000",
+   "6000",
+   "0"
+  ],
+  [
+   "",
+   "",
+   "6000"
+  ],
+  [
+   "6000",
+   "5000",
+   "4001"
+  ],
+  [
+   "3000",
+   "6000",
+   "0",
+   "6000"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "prices[0]",
+     "prices[1]"
+    ]
+   ],
+   "reason": "Counting the first element as 1 reads the second price"
+  },
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "println(prices[0])",
+     "println(1000)"
+    ]
+   ],
+   "reason": "A typed price fails for another array"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "prices[2]",
+     "prices[3]"
+    ]
+   ],
+   "reason": "The count is not a valid position"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "println(prices[2])",
+     "println(3000)"
+    ]
+   ],
+   "reason": "A typed price fails for another array"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "prices[prices.length - 1]",
+     "prices[2]"
+    ]
+   ],
+   "reason": "A fixed position fails for four prices"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "prices[prices.length - 1]",
+     "prices[prices.length]"
+    ]
+   ],
+   "reason": "length itself is past the end"
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "    index++;\n",
+     "    prices[index]++;\n"
+    ]
+   ],
+   "reason": "Incrementing the element changes the price, not the position"
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "    index++;\n",
+     ""
+    ]
+   ],
+   "reason": "Without moving, the same price prints twice"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "total = total + prices[index];",
+     "total = prices[index];"
+    ]
+   ],
+   "reason": "Overwriting keeps only the last price"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "total = total + prices[index];",
+     "total = total + index;"
+    ]
+   ],
+   "reason": "Adding positions instead of prices"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "index < prices.length;",
+     "index <= prices.length;"
+    ]
+   ],
+   "reason": "Reading one past the end throws"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "int index = 0;",
+     "int index = 1;"
+    ]
+   ],
+   "reason": "Starting at 1 skips the first price"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "index < prices.length;",
+     "index < prices.length - 1;"
+    ]
+   ],
+   "reason": "Stopping early skips the last price"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "price >= 2000",
+     "price > 2000"
+    ]
+   ],
+   "reason": "Strictly greater drops exactly 2,000"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "price >= 2000",
+     "prices[price] >= 2000"
+    ]
+   ],
+   "reason": "Using the value as a position throws"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "index < prices.length;",
+     "index < prices.length - 1;"
+    ]
+   ],
+   "reason": "The last price stays out"
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "prices[0]",
+     "prices[1 - 1]"
+    ]
+   ],
+   "reason": "Any expression equal to position 0"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "prices[prices.length - 1]",
+     "prices[-1 + prices.length]"
+    ]
+   ],
+   "reason": "The same last position written differently"
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "    index++;\n",
+     "    index = index + 1;\n"
+    ]
+   ],
+   "reason": "Explicit increment"
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "    index++;\n",
+     "    index += 1;\n"
+    ]
+   ],
+   "reason": "Compound increment"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "total = total + prices[index];",
+     "total += prices[index];"
+    ]
+   ],
+   "reason": "Compound addition"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "for (int index = 0; index < prices.length; index++)",
+     "for (int index = 0; prices.length > index; index += 1)"
+    ]
+   ],
+   "reason": "The same loop written another way"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "if (price >= 2000) {\n            total = total + price;\n        }",
+     "if (!(price < 2000)) {\n            total += price;\n        }"
+    ]
+   ],
+   "reason": "An equivalent condition"
+  }
+ ]
+}

@@ -1,57 +1,210 @@
 {
-  "course": "tests/fixtures/player-pilot/너/course.json",
-  "lesson": "courses/redesigned/java-collections.json",
-  "expected_outputs": [
-    [
-      "3\n[1000, 2000, 3000]"
-    ],
-    [
-      "2000",
-      "1000",
-      "2000"
-    ],
-    [
-      "",
-      "[1000, 3000]",
-      ""
-    ],
-    [
-      "[1, 1]",
-      "[2, 1]",
-      "[1, 1]"
-    ],
-    [
-      "",
-      "[1000, 2000, 3000]"
-    ],
-    [
-      "2\n[new, paid]"
-    ],
-    [
-      "1\n2\n1"
-    ],
-    [
-      "null",
-      "null\n0"
-    ],
-    [
-      "2\n1"
-    ],
-    [
-      "{book=1, pen=1}",
-      "{book=2, pen=1}"
-    ]
+ "course": "tests/fixtures/player-pilot/너/course.json",
+ "lesson": "courses/redesigned/java-collections.json",
+ "expected_outputs": [
+  [
+   "2\n[1000, 2000]",
+   "3\n[1000, 2000, 3000]"
   ],
-  "reject": [
-    {
-      "step": 10,
-      "replacements": [
-        [
-          "System.out.println(new TreeMap<>(counts))",
-          "System.out.println(\"{book=2, pen=1}\")"
-        ]
-      ],
-      "reason": "Fixed counts cannot handle empty or different product lists"
-    }
+  [
+   "2000",
+   "1000"
+  ],
+  [
+   "",
+   "[1000, 3000]"
+  ],
+  [
+   "[1, 1]",
+   "[2, 1]"
+  ],
+  [
+   "",
+   "[1000, 2000, 3000]"
+  ],
+  [
+   "3\n2\n[new, paid]"
+  ],
+  [
+   "{}\n0",
+   "{book=150, pen=200}\n2"
+  ],
+  [
+   "",
+   "0",
+   "2"
+  ],
+  [
+   "2\n1",
+   "1\n1"
+  ],
+  [
+   "{book=1, pen=1}",
+   "{book=2, pen=1}"
   ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "prices.add(3000);",
+     "prices.set(0, 3000);"
+    ]
+   ],
+   "reason": "Replacing a price is not appending a new element"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "prices.get(0)",
+     "prices.get(prices.size() - 1)"
+    ]
+   ],
+   "reason": "The last element is not the first"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "prices.add(3000);",
+     "prices.add(\"3000\");"
+    ]
+   ],
+   "reason": "A String cannot be added to List<Integer>"
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "ids.remove(Integer.valueOf(1));",
+     "ids.remove(1);"
+    ]
+   ],
+   "reason": "The int overload removes an index rather than the value"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "new ArrayList<>(List.of(start))",
+     "Arrays.asList(start)"
+    ]
+   ],
+   "reason": "A fixed-size list cannot add an element"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "new HashSet<>(List.of(tags))",
+     "new HashSet<>(List.of(\"new\"))"
+    ]
+   ],
+   "reason": "A memorized tag loses the other input tags"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "prices.put(names[i], values[i]);",
+     "prices.putIfAbsent(names[i], values[i]);"
+    ]
+   ],
+   "reason": "Keeping the first price loses a newer price for the same key"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "counts.getOrDefault(\"book\", 0)",
+     "counts.get(\"book\")"
+    ]
+   ],
+   "reason": "Unboxing the absent mapping throws rather than returning zero"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "copy.quantity = item.quantity;",
+     "copy.quantity = 1;"
+    ]
+   ],
+   "reason": "A memorized quantity loses changed initial state"
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "counts.put(item, counts.getOrDefault(item, 0) + 1);",
+     "counts.put(item, 1);"
+    ]
+   ],
+   "reason": "Replacing with one never accumulates repeated items"
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "prices.add(3000);",
+     "prices.add(prices.size(), 3000);"
+    ]
+   ],
+   "reason": "Adding at size appends"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "prices.add(3000);",
+     "prices.add(Integer.valueOf(3000));"
+    ]
+   ],
+   "reason": "Explicit boxing preserves the integer value"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "new HashSet<>(List.of(tags))",
+     "new TreeSet<>(List.of(tags))"
+    ]
+   ],
+   "reason": "A sorted set also removes duplicates"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "counts.getOrDefault(\"book\", 0)",
+     "(counts.containsKey(\"book\") ? counts.get(\"book\") : 0)"
+    ]
+   ],
+   "reason": "An explicit missing-key branch also yields the required count"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "List<Box> snapshot = List.of(copy);",
+     "List<Box> snapshot = new ArrayList<>(List.of(copy));"
+    ]
+   ],
+   "reason": "A mutable list of an independent copied object also preserves the snapshot"
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "counts.put(item, counts.getOrDefault(item, 0) + 1);",
+     "counts.merge(item, 1, Integer::sum);"
+    ]
+   ],
+   "reason": "Map.merge performs the same accumulation"
+  }
+ ]
 }

@@ -1,0 +1,283 @@
+{
+ "course": "tests/fixtures/player-pilot/t/course.json",
+ "lesson": "courses/redesigned/java-conditions.json",
+ "expected_outputs": [
+  [
+   "false",
+   "true",
+   "false"
+  ],
+  [
+   "true",
+   "false",
+   "true"
+  ],
+  [
+   "20000",
+   "true",
+   "false"
+  ],
+  [
+   "true",
+   "false",
+   "true"
+  ],
+  [
+   "3000",
+   "0",
+   "0",
+   "3000",
+   "0"
+  ],
+  [
+   "",
+   "3000",
+   "0"
+  ],
+  [
+   "1000",
+   "0",
+   "1000"
+  ],
+  [
+   "3000",
+   "0",
+   "3000",
+   "0"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "println(amount >= limit)",
+     "println(false)"
+    ]
+   ],
+   "reason": "A typed false fails at 20,000 and 25,000"
+  },
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "println(amount >= limit)",
+     "println(amount > limit)"
+    ]
+   ],
+   "reason": "Strictly greater misses the 20,000 boundary"
+  },
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "println(amount >= limit)",
+     "println(amount <= limit)"
+    ]
+   ],
+   "reason": "The reversed comparison is true for 19,999"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "println(amount > limit)",
+     "println(amount >= limit)"
+    ]
+   ],
+   "reason": "Greater-or-equal pays the reward at exactly 20,000"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "println(amount > limit)",
+     "println(false)"
+    ]
+   ],
+   "reason": "A typed false fails at 20,001"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "println(amount == paid)",
+     "println(amount != paid)"
+    ]
+   ],
+   "reason": "Not-equal answers the opposite question"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "println(amount == paid)",
+     "println(true)"
+    ]
+   ],
+   "reason": "A typed true fails when paid differs"
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "    free = amount >= limit;\n",
+     "    free = false;\n"
+    ]
+   ],
+   "reason": "A typed false fails when there is no coupon"
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "    free = amount >= limit;\n",
+     ""
+    ]
+   ],
+   "reason": "The stored judgement is not recomputed"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "    if (amount >= limit) {\n        fee = 0;\n    }\n",
+     "    fee = 0;\n"
+    ]
+   ],
+   "reason": "Without if, every order becomes free"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "if (amount >= limit)",
+     "if (amount > limit)"
+    ]
+   ],
+   "reason": "Strictly greater misses the 20,000 boundary"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "    } else {\n        fee = 3000;\n    }\n",
+     "    }\n    fee = 3000;\n"
+    ]
+   ],
+   "reason": "An unconditional assignment overwrites the free shipping"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "    } else {\n        fee = 3000;\n    }\n",
+     "    }\n    if (amount < limit) {\n        fee = 3000;\n    }\n"
+    ]
+   ],
+   "reason": "Two separate ifs leave fee possibly unassigned and do not compile"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "    } else if (amount >= 10000) {",
+     "    }\n    if (amount >= 10000) {"
+    ]
+   ],
+   "reason": "Separate ifs overwrite the free shipping"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "fee = 1000;",
+     "fee = 0;"
+    ]
+   ],
+   "reason": "The middle tier must still pay 1,000"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "amount >= limit",
+     "amount > limit"
+    ]
+   ],
+   "reason": "Strictly greater misses the boundary"
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "println(amount >= limit)",
+     "println(limit <= amount)"
+    ]
+   ],
+   "reason": "The same comparison written from the other side"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "println(amount > limit)",
+     "println(limit < amount)"
+    ]
+   ],
+   "reason": "The same strict comparison from the other side"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "println(amount == paid)",
+     "println(paid == amount)"
+    ]
+   ],
+   "reason": "Equality is symmetric"
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "    free = amount >= limit;\n    System.out.println(free);",
+     "    System.out.println(amount >= limit);"
+    ]
+   ],
+   "reason": "Printing the fresh comparison directly"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "if (amount >= limit) {",
+     "if (limit <= amount) {"
+    ]
+   ],
+   "reason": "The same condition from the other side"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "    } else {\n        fee = 3000;\n    }\n",
+     "    } else fee = 3000;\n"
+    ]
+   ],
+   "reason": "An else without braces for one statement"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "    if (amount >= 20000) {\n        fee = 0;\n    } else if (amount >= 10000) {\n        fee = 1000;\n    }\n",
+     "    if (amount >= 10000) {\n        fee = 1000;\n    }\n    if (amount >= 20000) {\n        fee = 0;\n    }\n"
+    ]
+   ],
+   "reason": "Checking the lower tier first lets the higher tier win last"
+  }
+ ]
+}

@@ -1,0 +1,70 @@
+{
+  "by": "hand",
+  "source_sha256": "9e95fc7cf9358594a269d2e2ede12d99d787b1760e7f524cddc7e716e66e0f58",
+  "entry": [
+    {
+      "action": "say",
+      "text": "음수 잔액으로 계좌를 만들려는데 생성자가 그대로 받아들여요.",
+      "target": "text:지금 생성자는 그대로 받아들여 잘못된 계좌가 만들어져요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        18
+      ]
+    },
+    {
+      "action": "say",
+      "text": "-1과 after가 나와요. 잘못된 계좌가 만들어진 채 다음 줄로 넘어갔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        // 이 주석 아래 줄에서 opening이 음수면 IllegalArgumentException을 던지세요.\n",
+      "after": "        // 이 주석 아래 줄에서 opening이 음수면 IllegalArgumentException을 던지세요.\n        if (opening < 0) throw new IllegalArgumentException(\"negative balance\");\n",
+      "say": "음수면 예외를 던지는 조건을 써요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "invalid만 나와요. 생성자가 예외를 던지자 try의 나머지 두 줄은 건너뛰고 catch로 갔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "int opening = -1;",
+      "after": "int opening = 50;",
+      "say": "정상 잔액 50으로도 확인해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "50과 after예요. 예외가 없으면 try가 끝까지 실행되고 catch는 건너뛰어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 예외가 나면 try 안의 그 뒤 줄은 실행되지 않아요. 꼭 해야 하는 출력을 거기에 두면 빠져요.",
+      "target": "code:System.out.println(\"after\");"
+    },
+    {
+      "action": "patch_code",
+      "before": "int opening = 50;",
+      "after": "int opening = -1;",
+      "say": "처음 잔액 -1로 되돌려요."
+    }
+  ]
+}

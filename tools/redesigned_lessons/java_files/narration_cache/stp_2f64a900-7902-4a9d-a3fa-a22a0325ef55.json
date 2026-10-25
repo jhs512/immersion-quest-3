@@ -1,0 +1,71 @@
+{
+  "by": "hand",
+  "source_sha256": "faca6a583df12141cb4771a673835002e5d11bdc30b754937b79265f2c7fd998",
+  "entry": [
+    {
+      "action": "say",
+      "text": "main은 읽기 실패를 직접 잡으려 해요. 그런데 read가 그 실패를 넘긴다고 밝히지 않았어요.",
+      "target": "text:main은 그 실패를 직접 잡아 read failed를 출력하려 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        15
+      ],
+      "expect_error": "unreported exception"
+    },
+    {
+      "action": "say",
+      "text": "컴파일 오류예요. readString의 IOException을 read가 잡지도, 넘긴다고 선언하지도 않았대요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "static String read(Path path) {",
+      "after": "static String read(Path path) throws IOException {",
+      "say": "read 선언에 throws IOException을 붙여 호출한 쪽에 넘겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "시작이에요. 이제 컴파일되고 파일을 읽었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "String name = \"quotes.txt\";",
+      "after": "String name = \"missing.txt\";",
+      "say": "없는 파일 이름으로 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        17
+      ]
+    },
+    {
+      "action": "say",
+      "text": "read failed예요. read가 넘긴 실패를 main의 catch가 받았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. read 안에서 잡아 버리면 main은 실패를 알 수 없어요. 실패를 넘길 곳은 선언으로 밝혀요.",
+      "target": "code:throws IOException"
+    },
+    {
+      "action": "patch_code",
+      "before": "String name = \"missing.txt\";",
+      "after": "String name = \"quotes.txt\";",
+      "say": "처음 파일 이름으로 되돌려요."
+    }
+  ]
+}

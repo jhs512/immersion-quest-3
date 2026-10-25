@@ -11,6 +11,8 @@ concurrency:
 env:
   MOLIP_BUILD: ${{ github.run_number }}
 jobs:
+  principles:
+    uses: ./.github/workflows/principles-runtime.yml
   windows:
     runs-on: windows-latest
     timeout-minutes: 45
@@ -221,7 +223,7 @@ jobs:
           retention-days: 7
   release:
     if: github.repository == 'jhs512/immersion-quest-3' && github.ref == 'refs/heads/main'
-    needs: [windows, macos]
+    needs: [windows, macos, principles]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

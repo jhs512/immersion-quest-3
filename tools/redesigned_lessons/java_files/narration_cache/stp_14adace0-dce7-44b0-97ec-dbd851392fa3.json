@@ -1,0 +1,66 @@
+{
+  "by": "hand",
+  "source_sha256": "c1917cb96b0a2fc9484154b0fdde27dd0176a7985ec913a754dc8fb126dc1df5",
+  "entry": [
+    {
+      "action": "say",
+      "text": "data 안의 2026 폴더에 파일을 저장하려 해요. 그런데 아직 두 폴더 모두 없어요.",
+      "target": "text:그런데 처음에는 두 폴더 모두 없어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        10
+      ],
+      "expect_error": "NoSuchFileException"
+    },
+    {
+      "action": "say",
+      "text": "NoSuchFileException이에요. 파일을 넣을 폴더가 없어서 쓰지 못했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        // 이 줄 아래에서 파일을 저장할 폴더를 준비하세요.\n",
+      "after": "        // 이 줄 아래에서 파일을 저장할 폴더를 준비하세요.\n        Files.createDirectory(path.getParent());\n",
+      "say": "이렇게 해 볼까요? createDirectory로 폴더를 만들어 봐요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        11
+      ],
+      "expect_error": "NoSuchFileException"
+    },
+    {
+      "action": "say",
+      "text": "또 NoSuchFileException이에요. createDirectory는 한 단계만 만들어서, data가 없으면 2026을 못 만들어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        // 이 줄 아래에서 파일을 저장할 폴더를 준비하세요.\n        Files.createDirectory(path.getParent());\n",
+      "after": "        // 이 줄 아래에서 파일을 저장할 폴더를 준비하세요.\n        Files.createDirectories(path.getParent());\n",
+      "say": "createDirectories로 바꿔 중간 폴더까지 만들어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "다음이에요. data와 2026을 차례로 만든 뒤 파일을 쓰고 다시 읽었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. createDirectory는 폴더가 이미 있어도 예외예요. 다시 실행해도 되는 createDirectories를 써요.",
+      "target": "code:Files.createDirectories(path.getParent());"
+    }
+  ]
+}

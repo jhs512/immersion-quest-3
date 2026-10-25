@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "e478a4cec1ee347438123ab2471227591721cb929f14767bcf030a6f255a93ee",
+  "entry": [
+    {
+      "action": "say",
+      "text": "잔액은 private으로 숨겨져 있어요. 다른 클래스인 Main은 이 필드를 직접 읽을 수 없어요.",
+      "target": "text:Main은 다른 클래스라서 이 필드를 직접 읽을 수 없어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        11
+      ],
+      "expect_error": "private access"
+    },
+    {
+      "action": "say",
+      "text": "컴파일 오류예요. balance가 Account 안에서만 쓸 수 있는 필드라서 막혔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "println(account.balance);",
+      "after": "println(account.balance());",
+      "say": "괄호를 붙여 공개 메서드 balance()를 불러요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "100이에요. 공개 메서드가 Account 안에서 필드를 읽어 돌려줬어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 오류를 없애려고 private을 지우면 아무 클래스나 잔액을 바꿀 수 있게 돼요. 읽기는 공개 메서드로 해요.",
+      "target": "code:private int balance = 100;"
+    }
+  ]
+}

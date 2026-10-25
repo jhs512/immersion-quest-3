@@ -1,0 +1,71 @@
+{
+  "by": "hand",
+  "source_sha256": "8b25a3c5d19f37c0eaa098eeee36f166b1c6709c44f4ea3e85af5d0d4894ecd4",
+  "entry": [
+    {
+      "action": "say",
+      "text": "5번의 while은 시작 위치, 계속할 조건, 위치 갱신이 세 군데에 흩어져 있었어요. for는 이 셋을 괄호 안에 모아요.",
+      "target": "text:5번과 같은 반복을 for로 모으려고 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        9
+      ],
+      "expect_error": "error"
+    },
+    {
+      "action": "say",
+      "text": "컴파일 오류예요. for 괄호 안이 비어 있어서 index도 정해지지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "for ( )",
+      "after": "for (int index = 0; index <= prices.length; index++)",
+      "say": "시작 0, 계속할 조건, 다음 위치를 채워 볼게요. 조건은 작거나 같음으로 써 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        9
+      ],
+      "expect_error": "ArrayIndexOutOfBoundsException"
+    },
+    {
+      "action": "say",
+      "text": "ArrayIndexOutOfBoundsException이에요. 작거나 같음이라 없는 위치 3까지 읽으려 했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "index <= prices.length",
+      "after": "index < prices.length",
+      "say": "개수보다 작은 위치까지만 읽도록 고쳐요."
+    },
+    {
+      "action": "say",
+      "text": "시작은 0, 조건은 개수보다 작을 때, 한 번 돌 때마다 index++로 다음 위치예요. 5번과 같은 흐름이에요.",
+      "target": "code:int index = 0; index < prices.length; index++"
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "6000이에요. 마지막 위치 2까지 읽고 3에서 멈췄어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 마지막 위치까지 읽으려고 작거나 같음을 쓰면 개수와 같은 없는 자리까지 읽어요.",
+      "target": "code:index < prices.length"
+    }
+  ]
+}

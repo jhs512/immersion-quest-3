@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "5161b049e02c8f9c535f7877dbdbf07910575c0899853e33ae1f9bb1d057484c",
+  "entry": [
+    {
+      "action": "say",
+      "text": "담은 순서는 그대로 두고, 따로 정렬한 목록이 필요해요.",
+      "target": "text:장바구니에 담은 순서는 그대로 보존해야 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "둘 다 [1000, 3000, 3000]이에요. 원본이 정렬돼서 담은 순서가 사라졌고 중복도 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        Collections.sort(prices);\n        List<Integer> result = prices;\n",
+      "after": "        List<Integer> result = prices.stream().distinct().sorted().toList();\n",
+      "say": "원본에서 흐름을 만들어 중복을 없애고 정렬한 새 목록을 만들어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[1000, 3000]과 [3000, 1000, 3000]이에요. 새 결과만 정렬됐고 원본 순서는 그대로예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. distinct를 빼면 정렬만 돼서 3000이 두 번 남아요.",
+      "target": "code:distinct().sorted()"
+    }
+  ]
+}

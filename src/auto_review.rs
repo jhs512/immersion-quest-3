@@ -262,16 +262,21 @@ mod tests {
                 }
             }
         }
-        assert!(kinds["code"] > 0 && kinds["answer"] > 0 && kinds["terminal"] > 0, "{kinds:?}");
+        assert!(kinds["code"] > 0 && kinds["terminal"] > 0, "{kinds:?}");
         assert_eq!(kinds.get("unsupported").copied().unwrap_or(0), 8, "only the hosted GitHub PR steps stop: {kinds:?}");
     }
 
     #[test]
     fn prose_solutions_fall_back_to_the_answer_key() {
         let (_, lesson) = bundled_lessons().into_iter().find(|(f, _)| f == "java-arguments.json").unwrap();
-        let task = lesson.tasks.iter().find(|t| t.interaction.is_some()).unwrap();
+        // Legacy compatibility must not require a current lesson to remain
+        // multiple choice after the user's conversion to coding tasks.
+        let mut task=lesson.tasks[0].clone();
+        task.solution="터미널에서 실행하고 출력을 확인하세요.".into();
+        task.interaction=Some(serde_json::from_value(serde_json::json!({"kind":"choice",
+            "options":[{"id":"observed","text":"관찰했어요"},{"id":"other","text":"다른 답"}],"answer":"observed"})).unwrap());
         assert!(!task.interaction.as_ref().unwrap().check(&task.solution).unwrap().passed);
-        let Ok(Plan::Terminal { answer: Some(answer), actions }) = plan(task) else { panic!() };
+        let Ok(Plan::Terminal { answer: Some(answer), actions }) = plan(&task) else { panic!() };
         assert_eq!(answer, "observed");
         assert_eq!(actions[0]["command"], "java Main.java");
     }

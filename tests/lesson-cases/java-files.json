@@ -1,77 +1,290 @@
 {
-  "course": "tests/fixtures/player-pilot/러/course.json",
-  "lesson": "courses/redesigned/java-files.json",
-  "expected_outputs": [
-    [
-      "다음\n시작"
-    ],
-    [
-      "다음"
-    ],
-    [
-      "missing"
-    ],
-    [
-      "",
-      "시작"
-    ],
-    [
-      "다음",
-      "시작\n다음",
-      "다음"
-    ],
-    [
-      "",
-      "다음"
-    ],
-    [
-      "body\nclose\n시작"
-    ],
-    [
-      "invalid"
-    ],
-    [
-      "invalid\ncleanup\nafter"
-    ],
-    [
-      "다음",
-      "시작\n다음"
-    ]
+ "course": "tests/fixtures/player-pilot/러/course.json",
+ "lesson": "courses/redesigned/java-files.json",
+ "expected_outputs": [
+  [
+   "다음\n시작",
+   "다음\n다음"
   ],
-  "reject": [
-    {
-      "step": 10,
-      "replacements": [
-        [
-          "System.out.println(Files.readString(path).strip());",
-          "System.out.println(\"시작\\n다음\");"
-        ]
-      ],
-      "reason": "Fixed output cannot handle a different new message"
-    },
-    {
-      "step": 10,
-      "replacements": [
-        [
-          "Files.writeString(path, message + \"\\n\", StandardCharsets.UTF_8, StandardOpenOption.APPEND);",
-          "String previous = Files.readString(path);"
-        ],
-        [
-          "System.out.println(Files.readString(path).strip());",
-          "System.out.println((previous + message + \"\\n\").strip());"
-        ]
-      ],
-      "reason": "Only combines in memory without writing file"
-    },
-    {
-      "step": 10,
-      "replacements": [
-        [
-          ", StandardOpenOption.APPEND);",
-          ");"
-        ]
-      ],
-      "reason": "옵션 없이 쓰면 기존 글이 지워져요"
-    }
+  [
+   "ë¤ì",
+   "다음"
+  ],
+  [
+   "",
+   "missing"
+  ],
+  [
+   "",
+   "시작",
+   "read failed"
+  ],
+  [
+   "3",
+   "3\n4",
+   "4"
+  ],
+  [
+   "",
+   "",
+   "다음"
+  ],
+  [
+   "read\n시작\nafter",
+   "read\nfailed\nafter",
+   "read\nclose\nfailed\nafter",
+   "read\n시작\nclose\nafter"
+  ],
+  [
+   "",
+   "invalid",
+   "missing"
+  ],
+  [
+   "1000\n1",
+   "3000\n1"
+  ],
+  [
+   "다음",
+   "시작\n다음"
   ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "        Files.writeString(path, message + \"\\n\", StandardCharsets.UTF_8);\n",
+     ""
+    ],
+    [
+     "System.out.println(Files.readString(path, StandardCharsets.UTF_8).strip());",
+     "System.out.println(message);"
+    ]
+   ],
+   "reason": "Printing the variable twice leaves the file unchanged"
+  },
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "        Files.writeString(path, message + \"\\n\", StandardCharsets.UTF_8);\n",
+     "        Files.writeString(path, message + \"\\n\", StandardCharsets.UTF_8, StandardOpenOption.APPEND);\n"
+    ]
+   ],
+   "reason": "Appending keeps the old line"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "StandardCharsets.UTF_8",
+     "StandardCharsets.UTF_16"
+    ]
+   ],
+   "reason": "Another wrong charset"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "System.out.println(loaded.strip());",
+     "System.out.println(\"다음\");"
+    ]
+   ],
+   "reason": "A typed text fails another file"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "        try {\n            System.out.println(Files.readString(Path.of(\"memo.txt\")).strip());\n        } catch (NoSuchFileException error) {\n            System.out.println(\"missing\");\n        }\n",
+     "        System.out.println(\"missing\");\n"
+    ]
+   ],
+   "reason": "Always missing"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "System.out.println(\"missing\");",
+     "System.out.println(\"\");"
+    ]
+   ],
+   "reason": "Blank output hides the missing file"
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "static String read(Path path) throws IOException {\n        return Files.readString(path);",
+     "static String read(Path path) {\n        try {\n            return Files.readString(path);\n        } catch (IOException error) {\n            return \"\";\n        }"
+    ]
+   ],
+   "reason": "Swallowing inside read"
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "throws IOException {",
+     "throws Exception {"
+    ]
+   ],
+   "reason": "A broader throws is not caught by catch (IOException)"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "        Files.writeString(path, (count + 1) + \"\\n\");\n",
+     "        Files.writeString(path, (count + 1) + \"\\n\", StandardOpenOption.APPEND);\n"
+    ]
+   ],
+   "reason": "APPEND stacks old states"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "        Files.writeString(path, (count + 1) + \"\\n\");\n",
+     "        Files.writeString(path, \"4\\n\");\n"
+    ]
+   ],
+   "reason": "A typed count"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "(count + 1) + \"\\n\"",
+     "\"\\n\" + count + 1"
+    ]
+   ],
+   "reason": "String concatenation first gives 31"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "Files.createDirectories(path.getParent());",
+     "Files.createDirectory(path.getParent());"
+    ]
+   ],
+   "reason": "createDirectory fails when the folder exists or is nested"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "        try (Tracked resource = new Tracked(broken)) {\n            // 이 자원이 블록을 벗어날 때 꼭 닫히도록 고치세요.\n            System.out.println(resource.readLine());\n",
+     "        try {\n            // 이 자원이 블록을 벗어날 때 꼭 닫히도록 고치세요.\n            Tracked resource = new Tracked(broken);\n            System.out.println(resource.readLine());\n            resource.close();\n"
+    ]
+   ],
+   "reason": "Manual close is skipped on failure"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "        System.out.println(\"after\");\n",
+     "        System.out.println(\"after\");\n        new Tracked(false).close();\n"
+    ]
+   ],
+   "reason": "Closing after the work is too late"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "        } catch (NoSuchFileException error) {\n            System.out.println(\"missing\");\n        } catch (NumberFormatException error) {\n            System.out.println(\"invalid\");\n        }\n",
+     "        } catch (Exception error) {\n            System.out.println(\"invalid\");\n        }\n"
+    ]
+   ],
+   "reason": "One catch for both failures"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "        } catch (NoSuchFileException error) {\n            System.out.println(\"missing\");\n        } catch (NumberFormatException error) {\n            System.out.println(\"invalid\");\n        }\n",
+     "        } catch (NumberFormatException error) {\n            System.out.println(\"invalid\");\n        }\n"
+    ]
+   ],
+   "reason": "Only the content failure handled"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "        for (String line : Files.readAllLines(Path.of(\"prices.txt\"))) {\n            try {\n                total += Integer.parseInt(line.strip());\n            } catch (NumberFormatException error) {\n                invalid++;\n            }\n        }\n",
+     "        try {\n            for (String line : Files.readAllLines(Path.of(\"prices.txt\"))) {\n                total += Integer.parseInt(line.strip());\n            }\n        } catch (NumberFormatException error) {\n            invalid++;\n        }\n"
+    ]
+   ],
+   "reason": "try around the whole loop"
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "        Files.writeString(path, message + \"\\n\", StandardCharsets.UTF_8);\n",
+     "        Files.writeString(path, message + \"\\n\");\n"
+    ]
+   ],
+   "reason": "Default charset of writeString is UTF-8"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "Files.readString(path, StandardCharsets.UTF_8)",
+     "Files.readString(path)"
+    ]
+   ],
+   "reason": "Default charset of readString is UTF-8"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "        try {\n            System.out.println(Files.readString(Path.of(\"memo.txt\")).strip());\n        } catch (NoSuchFileException error) {\n            System.out.println(\"missing\");\n        }\n",
+     "        Path memo = Path.of(\"memo.txt\");\n        if (Files.exists(memo)) {\n            System.out.println(Files.readString(memo).strip());\n        } else {\n            System.out.println(\"missing\");\n        }\n"
+    ]
+   ],
+   "reason": "Checking existence first"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "(count + 1) + \"\\n\"",
+     "count + 1 + \"\\n\""
+    ]
+   ],
+   "reason": "Left-to-right addition before concatenation"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "        Files.writeString(path, (count + 1) + \"\\n\");\n",
+     "        Files.writeString(path, (count + 1) + \"\\n\", StandardOpenOption.TRUNCATE_EXISTING);\n"
+    ]
+   ],
+   "reason": "Explicit TRUNCATE_EXISTING"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "catch (NoSuchFileException error)",
+     "catch (IOException error)"
+    ]
+   ],
+   "reason": "IOException also covers the missing file"
+  }
+ ]
 }

@@ -38,7 +38,7 @@ pub fn watchdog_cli(args:&[String])->Option<Result<(),String>> {
 }
 
 fn watch_project(project:&str)->Result<(),String> {
-    if !valid_project(project){return Err("Invalid Docker lab watchdog project".into())}
+    if !owns_project(project){return Err("Unregistered Docker lab watchdog project".into())}
     let path=locks()?.join(format!("{project}.lock"));
     loop {
         // A normal run removes this file after cleanup. An abruptly terminated
@@ -223,7 +223,7 @@ fn ids(cli:&Path,args:&[&str])->Vec<String> {
 
 /// Remove only what carries this project's label. Names are never used to select resources.
 pub fn remove_project(cli:&Path,project:&str) {
-    if !project.starts_with(PREFIX) {return}
+    if !owns_project(project) {return}
     for label in [COMPOSE_LABEL,OWNER_LABEL] {
         let filter=format!("label={label}={project}");
         let containers=ids(cli,&["ps","-aq","--filter",&filter]);
@@ -246,6 +246,24 @@ fn locks()->Result<PathBuf,String> {
     let directory=std::env::temp_dir().join("mq3-docker-labs");
     std::fs::create_dir_all(&directory).map_err(|e|e.to_string())?;
     Ok(directory)
+}
+
+/// A Compose label or an app-looking name alone is never ownership evidence.
+/// Retain this tiny local receipt for crash/engine recovery even after a run
+/// releases its lock; an unrelated user project can have the same prefix.
+fn register_owner(project:&str)->Result<(),String> {
+    if !valid_project(project){return Err("Invalid owned Docker project".into())}
+    use std::io::Write;
+    let mut file=std::fs::OpenOptions::new().write(true).create_new(true)
+        .open(locks()?.join(format!("{project}.owned"))).map_err(|e|e.to_string())?;
+    file.write_all(format!("MQ3 owned Docker project v1\n{project}\n").as_bytes()).map_err(|e|e.to_string())
+}
+
+fn owns_project(project:&str)->bool {
+    if !valid_project(project){return false}
+    let Ok(directory)=locks() else{return false};
+    std::fs::read_to_string(directory.join(format!("{project}.owned"))).is_ok_and(|text|
+        text==format!("MQ3 owned Docker project v1\n{project}\n"))
 }
 
 fn valid_project(name:&str)->bool {
@@ -271,7 +289,7 @@ pub fn stale_projects(cli:&Path)->Vec<String> {
         }
     }
     let Ok(directory)=locks() else{return vec![]};
-    found.into_iter().filter(|name|valid_project(name)).filter(|name|{
+    found.into_iter().filter(|name|owns_project(name)).filter(|name|{
         let path=directory.join(format!("{name}.lock"));
         match std::fs::OpenOptions::new().read(true).write(true).open(&path) {
             Ok(file)=>match file.try_lock() {Ok(())=>{let _=file.unlock();true},Err(_)=>false},
@@ -303,6 +321,7 @@ impl Lab {
         let lock_path=locks()?.join(format!("{project}.lock"));
         let file=std::fs::OpenOptions::new().read(true).write(true).create(true).truncate(true).open(&lock_path).map_err(|e|e.to_string())?;
         file.lock().map_err(|e|format!("실습 잠금: {e}"))?;
+        register_owner(&project)?;
         let lab=Self{cli:cli.to_path_buf(),project,lock:Some(file),lock_path};
         spawn_watchdog(&lab.project)?;
         Ok(lab)
@@ -465,6 +484,22 @@ mod tests {
         }
     }
     #[test]
+    #[ignore="Needs a running Docker engine"]
+    fn an_unowned_project_with_an_app_like_name_is_preserved() {
+        let cli=cli().unwrap();
+        let project=format!("{PREFIX}user-{}",crate::issue_progress::new_id().to_ascii_lowercase().chars().filter(char::is_ascii_alphanumeric).take(8).collect::<String>());
+        let volume=format!("{project}-keep");
+        let label=format!("{COMPOSE_LABEL}={project}");
+        assert!(docker(&cli,&["volume","create","--label",&label,&volume],30).unwrap().success);
+        assert!(!owns_project(&project));
+        assert!(!stale_projects(&cli).contains(&project));
+        remove_project(&cli,&project);
+        assert!(docker(&cli,&["volume","inspect",&volume],30).unwrap().success);
+        // Remove only the exact volume this test created, after proving the
+        // application's cleanup left it untouched.
+        assert!(docker(&cli,&["volume","rm",&volume],30).unwrap().success);
+    }
+    #[test]
     #[ignore="Private subprocess fixture used by the hard-kill watchdog test"]
     fn watchdog_owner_probe() {
         let Ok(project)=std::env::var("MQ3_DOCKER_OWNER_PROBE") else{return};
@@ -484,6 +519,7 @@ mod tests {
         let cli=cli().unwrap();
         let project=format!("{PREFIX}watch-{}",crate::issue_progress::new_id().to_ascii_lowercase().chars().filter(char::is_ascii_alphanumeric).take(8).collect::<String>());
         let label=format!("{OWNER_LABEL}={project}");
+        register_owner(&project).unwrap();
         let image="busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662";
         ensure_images(&cli,&[image.into()]).unwrap();
         assert!(docker(&cli,&["volume","create","--label",&label],30).unwrap().success);
@@ -578,6 +614,7 @@ mod tests {
         let cli=cli().unwrap();
         let project=format!("{PREFIX}sweeptest-{}",crate::issue_progress::new_id().to_ascii_lowercase().chars().filter(char::is_ascii_alphanumeric).take(8).collect::<String>());
         let label=format!("{OWNER_LABEL}={project}");
+        register_owner(&project).unwrap();
         let image="busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662";
         ensure_images(&cli,&[image.to_owned()]).unwrap();
         assert!(docker(&cli,&["volume","create","--label",&label],30).unwrap().success);

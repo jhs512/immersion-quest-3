@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "db4ff9ae96e95cee63cc51d488493cb73e81c19cc39733114aa3ff64feb257a9",
+  "entry": [
+    {
+      "action": "say",
+      "text": "기준 이상 가격만 보여 주되, 원래 장바구니는 그대로 남아야 해요.",
+      "target": "text:원래 장바구니 prices는 그대로 남아야 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        14
+      ]
+    },
+    {
+      "action": "say",
+      "text": "둘 다 [2000, 3000]이에요. removeIf가 원본에서 1,000을 지웠고 selected도 같은 목록이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        prices.removeIf(price -> price < limit);\n        List<Integer> selected = prices;\n",
+      "after": "        List<Integer> selected = prices.stream().filter(price -> price >= limit).toList();\n",
+      "say": "원본에서 흐름을 만들고 filter로 고른 원소만 새 목록에 담아요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[2000, 3000]과 [1000, 2000, 3000]이에요. filter는 새 결과만 만들고 원본은 건드리지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. filter 조건은 남길 원소의 조건이에요. removeIf처럼 지울 조건 price < limit을 쓰면 반대로 남아요.",
+      "target": "code:filter(price -> price >= limit)"
+    }
+  ]
+}

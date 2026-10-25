@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "1cf736c5c648da8f2f806a188abc20a5cd635780688b71cb7aaf89e1b6c5f2f6",
+  "entry": [
+    {
+      "action": "say",
+      "text": "memo.txt가 없을 수도 있어요. 없을 때 프로그램이 어떻게 되는지 볼게요.",
+      "target": "text:memo.txt는 있을 수도, 없을 수도 있어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        8
+      ],
+      "expect_error": "NoSuchFileException"
+    },
+    {
+      "action": "say",
+      "text": "NoSuchFileException이에요. 읽을 파일이 없어서 프로그램이 멈췄어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        System.out.println(Files.readString(Path.of(\"memo.txt\")).strip());\n",
+      "after": "        try {\n            System.out.println(Files.readString(Path.of(\"memo.txt\")).strip());\n        } catch (NoSuchFileException error) {\n            System.out.println(\"missing\");\n        }\n",
+      "say": "try로 감싸고, 파일이 없을 때 missing을 출력해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "missing이에요. 예외가 나자 catch 블록이 대신 실행됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 예외를 잡고 빈 글을 출력하면 없는 파일과 빈 파일을 구별할 수 없어요.",
+      "target": "code:System.out.println(\"missing\");"
+    }
+  ]
+}

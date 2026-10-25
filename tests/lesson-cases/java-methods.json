@@ -1,56 +1,241 @@
 {
-  "course": "tests/fixtures/player-pilot/0/course.json",
-  "lesson": "courses/redesigned/java-methods.json",
-  "expected_outputs": [
-    [
-      "3000",
-      "5000",
-      "3000"
-    ],
-    [
-      "3000\n2000",
-      "5000\n4000",
-      "3000\n2000"
-    ],
-    [
-      "2000",
-      "3000"
-    ],
-    [
-      "2800",
-      "-299998",
-      "2800"
-    ],
-    [
-      "0",
-      "2500",
-      "0"
-    ],
-    [
-      "2\n2.5"
-    ],
-    [
-      "5000",
-      "0",
-      "5000"
-    ],
-    [
-      "2500",
-      "0",
-      "2500",
-      "0"
-    ]
+ "course": "tests/fixtures/player-pilot/0/course.json",
+ "lesson": "courses/redesigned/java-methods.json",
+ "expected_outputs": [
+  [
+   "2000",
+   "3000"
   ],
-  "reject": [
-    {
-      "step": 8,
-      "replacements": [
-        [
-          "System.out.println(shipping(amount, freeFrom))",
-          "System.out.println(0)"
-        ]
-      ],
-      "reason": "A constant zero loses the below-threshold delivery fee"
-    }
+  [
+   "2000",
+   "3000\n2000"
+  ],
+  [
+   "2000",
+   "3000"
+  ],
+  [
+   "-299998",
+   "2800",
+   "2700"
+  ],
+  [
+   "2500",
+   "0",
+   "2500"
+  ],
+  [
+   "",
+   "2\n2.5"
+  ],
+  [
+   "2000",
+   "5000",
+   "0"
+  ],
+  [
+   "2500",
+   "0",
+   "2500",
+   "0"
   ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "return fee + 1000;",
+     "return 3000;"
+    ]
+   ],
+   "reason": "A typed result fails for other fees"
+  },
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "System.out.println(next_fee(fee));",
+     "System.out.println(fee + 1000);"
+    ]
+   ],
+   "reason": "Bypassing the method in main"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "static int add_fee(int amount) {\n        return amount + 1000;",
+     "static int add_fee(int amount) {\n        System.out.println(amount + 1000);\n        return amount;"
+    ]
+   ],
+   "reason": "Printing inside the method instead of returning the new value"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "System.out.println(add_fee(amount));",
+     "System.out.println(amount + 1000);"
+    ]
+   ],
+   "reason": "main bypasses the method"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "amount = next_fee(amount);",
+     "amount = amount + 1000;"
+    ]
+   ],
+   "reason": "main bypasses the method"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "amount = next_fee(amount);",
+     "next_fee(amount);"
+    ]
+   ],
+   "reason": "The returned value is discarded"
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "discounted(price, quantity)",
+     "discounted(quantity, price)"
+    ]
+   ],
+   "reason": "Swapped argument positions"
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "System.out.println(discounted(price, quantity));",
+     "System.out.println(price - quantity * 100);"
+    ]
+   ],
+   "reason": "main bypasses the method"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "            return 0;\n",
+     "            amount = 0;\n"
+    ]
+   ],
+   "reason": "Assigning does not leave the method"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "if (amount >= 10000)",
+     "if (amount > 10000)"
+    ]
+   ],
+   "reason": "The 10,000 boundary must be free"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "    static double half(double amount) {\n        return amount / 2;\n    }\n",
+     ""
+    ],
+    [
+     "static int half(int amount) {\n        return amount / 2;",
+     "static double half(double amount) {\n        return amount / 2;"
+    ]
+   ],
+   "reason": "Replacing the int version makes half(5) 2.5"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "            result = result + price;\n        }\n",
+     "            result = result + price;\n            return result;\n        }\n"
+    ]
+   ],
+   "reason": "Returning inside the loop stops at the first price"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "amount >= freeFrom",
+     "amount > freeFrom"
+    ]
+   ],
+   "reason": "The free-from amount itself must be free"
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "return fee + 1000;",
+     "return 1000 + fee;"
+    ]
+   ],
+   "reason": "The same sum"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "        System.out.println(add_fee(amount));\n",
+     "        int next = add_fee(amount);\n        System.out.println(next);\n"
+    ]
+   ],
+   "reason": "Storing the returned value first"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "amount = next_fee(amount);",
+     "int next = next_fee(amount);\n        amount = next;"
+    ]
+   ],
+   "reason": "Storing through another variable"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "            return 0;\n",
+     "            int free = 0;\n            return free;\n"
+    ]
+   ],
+   "reason": "Returning a variable holding 0"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "static double half(double amount) {\n        return amount / 2;",
+     "static double half(double amount) {\n        return amount * 0.5;"
+    ]
+   ],
+   "reason": "Multiplying by 0.5 is the same half"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "            result = result + price;\n        }\n",
+     "            result += price;\n        }\n"
+    ]
+   ],
+   "reason": "Compound addition"
+  }
+ ]
 }

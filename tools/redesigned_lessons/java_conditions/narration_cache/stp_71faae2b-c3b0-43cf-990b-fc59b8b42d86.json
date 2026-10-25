@@ -1,0 +1,100 @@
+{
+  "by": "hand",
+  "source_sha256": "1b63424749977ea788129f48d63d3ba750f426a9f99a4ef95b8ec9ac2d9fd484",
+  "entry": [
+    {
+      "action": "say",
+      "text": "기준 이상인 주문만 배송비를 0원으로 바꾸는 조건문을 써야 해요.",
+      "target": "text:무료배송 기준 이상인 주문만 배송비를 0원으로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "3000이 나와요. 아직 배송비를 바꾸는 코드가 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    // 이 주석 아래에 amount가 limit 이상일 때만 fee를 0으로 바꾸는 if문을 쓰세요.\n",
+      "after": "    // 이 주석 아래에 amount가 limit 이상일 때만 fee를 0으로 바꾸는 if문을 쓰세요.\n    fee = 0;\n",
+      "say": "조건 없이 fee = 0만 써 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0이 나와 맞아 보여요. 하지만 이 줄은 금액과 상관없이 항상 실행돼요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "int amount = 25000;",
+      "after": "int amount = 19999;",
+      "say": "기준보다 작은 19,999원으로 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 조건 없이 대입하면 19,999원 주문까지 배송비가 0원이 돼요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    // 이 주석 아래에 amount가 limit 이상일 때만 fee를 0으로 바꾸는 if문을 쓰세요.\n    fee = 0;\n",
+      "after": "    // 이 주석 아래에 amount가 limit 이상일 때만 fee를 0으로 바꾸는 if문을 쓰세요.\n    if (amount >= limit) {\n        fee = 0;\n    }\n",
+      "say": "대입을 if문 안에 넣어 조건이 맞을 때만 실행되게 해요."
+    },
+    {
+      "action": "say",
+      "text": "괄호 안 조건이 true일 때만 중괄호 안의 fee = 0이 실행돼요.",
+      "target": "code:if (amount >= limit)"
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "3000이에요. 조건이 거짓이라 if 안을 건너뛰고 기본 배송비가 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "int amount = 19999;",
+      "after": "int amount = 25000;",
+      "say": "처음 금액 25,000원으로 되돌려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0이에요. 기준 이상이라 if 안이 실행됐어요.",
+      "target": "output"
+    }
+  ]
+}

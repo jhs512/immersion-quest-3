@@ -1170,9 +1170,9 @@ if let Some(start)=autostart {
                     }
                     if narrating() {div {class:"example-code-pane",style:if task.interaction.is_some(){"min-height:0;overflow:hidden"}else{"height:100%"},crate::git_terminal_ui::GitTerminal {exercise,demo:true,onready:move |_|{},oncontrol:move |_|{}}}}
                 }else if has_example {
-                    textarea {class:"code-editor","data-code-editor":task.language.editor(),"data-editor-value":example_source(),"data-editor-reset":reset().to_string(),aria_label:"수업 예제 코드",initial_value:task.example_for_answer(&initial).unwrap_or_default(),readonly:true,spellcheck:false,oninput:move |e|example_source.set(e.value())}
+                    textarea {class:"code-editor","data-code-editor":task.editor_language(),"data-editor-value":example_source(),"data-editor-reset":reset().to_string(),aria_label:"수업 예제 코드",initial_value:task.example_for_answer(&initial).unwrap_or_default(),readonly:true,spellcheck:false,oninput:move |e|example_source.set(e.value())}
                 }else if task.interaction.is_none() {
-                textarea {class:"code-editor","data-code-editor":if task.entry_file.ends_with(".jsx"){"javascript"}else{task.language.editor()},"data-editor-value":code(),"data-editor-reset":reset().to_string(),aria_label:"수업 코드",initial_value:initial.clone(),spellcheck:false,oninput:{let key=key.clone();move |e|{code.set(e.value());if !narrating(){let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}}}}
+                textarea {class:"code-editor","data-code-editor":task.editor_language(),"data-editor-value":code(),"data-editor-reset":reset().to_string(),aria_label:"수업 코드",initial_value:initial.clone(),spellcheck:false,oninput:{let key=key.clone();move |e|{code.set(e.value());if !narrating(){let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}}}}
                 }
                 if (task.git_terminal.is_some()||has_example)&&task.interaction.is_some() {
                     div {class:"split-handle split-row split-example",role:"separator",tabindex:0,aria_label:"예제 코드와 답안 패널 크기 조절",aria_orientation:"horizontal"}

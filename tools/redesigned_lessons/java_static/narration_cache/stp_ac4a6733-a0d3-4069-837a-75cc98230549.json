@@ -1,0 +1,65 @@
+{
+  "by": "hand",
+  "source_sha256": "ac13932d73c536e9eddd7ed85e41224093fdae1426eacaa424a45ef88dd2acd3",
+  "entry": [
+    {
+      "action": "say",
+      "text": "countCreated는 클래스 이름으로 부르는 메서드예요. 지금은 늘 0을 돌려줘요.",
+      "target": "text:지금은 늘 0을 돌려줘요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        22,
+        22
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0이에요. 주문은 두 개 만들었지만 메서드가 생성 수를 읽지 않아요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        return 0;\n",
+      "after": "        return amount;\n",
+      "say": "금액 필드를 돌려주도록 써 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        22,
+        22
+      ],
+      "expect_error": "non-static"
+    },
+    {
+      "action": "say",
+      "text": "컴파일 오류예요. static 메서드는 특정 객체 없이 불리기 때문에 객체마다 있는 amount를 읽을 수 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        return amount;\n",
+      "after": "        return created;\n",
+      "say": "클래스가 공유하는 created를 돌려줘요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        22,
+        22
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2예요. 클래스 이름으로 불러 공유된 생성 수를 받았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. static 메서드에는 정해진 객체가 없어서 amount 같은 객체 필드를 바로 쓸 수 없어요. 객체 없이 바로 읽는 건 static 필드예요.",
+      "target": "code:return created;"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "33edea8290a4221817137399fe26dffb18cfb96b33c1e9f45e51bae3b4cb6533",
+  "entry": [
+    {
+      "action": "say",
+      "text": "인터페이스의 메서드는 모두에게 공개된 약속이에요. 그런데 StandardFee의 fee에는 public이 없어요.",
+      "target": "text:이번엔 StandardFee의 fee 앞에 public이 빠졌어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        13
+      ],
+      "expect_error": "weaker access"
+    },
+    {
+      "action": "say",
+      "text": "컴파일 오류예요. 약속보다 좁은 접근 범위로 구현하려 해서 막혔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    int fee() { return 2500; }",
+      "after": "    public int fee() { return 2500; }",
+      "say": "앞에 public을 붙여 약속과 같은 범위로 맞춰요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2500이에요. 구현이 인터페이스의 공개 범위를 지켜서 컴파일됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 인터페이스 안에서는 public을 생략해도 공개지만, 구현하는 클래스에서는 public을 직접 써야 해요.",
+      "target": "code:interface FeePolicy { int fee(); }"
+    }
+  ]
+}

@@ -160,6 +160,17 @@ pub struct Task {
     #[serde(default = "yes")] pub required: bool,
 }
 impl Task {
+    /// Execution inside Docker does not change the language the learner edits.
+    pub fn editor_language(&self)->&'static str {
+        if self.entry_file.ends_with(".jsx"){return "javascript"}
+        if self.language==TaskLanguage::Docker {
+            if self.entry_file.ends_with(".java"){return "java"}
+            if self.entry_file.ends_with(".sql"){return "sql"}
+            if self.entry_file.ends_with(".py"){return "python"}
+            if self.entry_file.ends_with(".js"){return "javascript"}
+        }
+        self.language.editor()
+    }
     pub fn has_runnable_example(&self)->bool {
         self.interaction.is_some()&&self.git_terminal.is_none()
             &&matches!(self.language,TaskLanguage::Java|TaskLanguage::Python|TaskLanguage::C|TaskLanguage::Javascript|TaskLanguage::Sql)
