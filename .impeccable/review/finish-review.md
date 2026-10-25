@@ -27,3 +27,19 @@ The route reads well, but 33 outlined 학습 시작 buttons form a second green 
 
 ## keep
 The single filled next-station action and shape-coded rings on one line-colour route.
+
+---
+
+Verdict pass (inline substitute, same instructions), 2026-10-26, over target/design-audit/after, .impeccable/review, target/design-audit/theme and auto-themes:
+
+## verdict
+1. Eyebrow above the next-station title: resolved (state now in the detail line under the title; 40-catalog-after-study).
+2. Sliding current-station marker: resolved (one ink marker under the current step, 160ms, none under reduced motion; 32-git-graph, 11-problem-editor).
+3. Remaining glyph icons: resolved for the auto-run end state and the narrow-band back and fullscreen icons; native disclosure triangles on details summaries remain (platform control, not an icon set).
+4. Quiet non-next station actions: resolved (text actions in line ink, bordered on row hover or focus; only the next station is filled).
+Regressions introduced by the batch: none seen; the theme work also moved settings-menu controls and the auto-run result menu onto paper in both looks.
+
+## remaining
+clear for the scored fixes; the dark theme was reviewed on the same captures and holds the station world.
+
+disposition: ship (covers the four scored fixes and the theme surfaces captured, not every lesson type in every state)
