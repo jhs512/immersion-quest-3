@@ -17,9 +17,13 @@ fs.mkdirSync(output, {recursive: true});
 const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'mq3-design-capture-'));
 const profile = path.join(scratch, 'webview');
 // The validation transport keeps its remote fixture here; the owner marker proves this run created it.
-const dataDir = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), 'mq3-player-pilot-installed-')));
-const owner = require('node:crypto').randomBytes(16).toString('hex');
-fs.writeFileSync(path.join(dataDir, '.mq3-pilot-owner'), owner);
+// MQ3_CAPTURE_DATA_DIR relaunches on a folder an earlier capture created (restart checks); it
+// must be one of these validation folders with its owner marker.
+const reuse = process.env.MQ3_CAPTURE_DATA_DIR;
+const dataDir = reuse ? fs.realpathSync.native(reuse) : fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), 'mq3-player-pilot-installed-')));
+if (!path.basename(dataDir).startsWith('mq3-player-pilot-installed-')) throw Error('not a validation folder');
+const owner = reuse ? fs.readFileSync(path.join(dataDir, '.mq3-pilot-owner'), 'utf8') : require('node:crypto').randomBytes(16).toString('hex');
+if (!reuse) fs.writeFileSync(path.join(dataDir, '.mq3-pilot-owner'), owner);
 const app = spawn(path.join(root, 'target', 'debug', 'molip-quest.exe'), [], {
   cwd: root, windowsHide: false, stdio: 'ignore',
   env: {...process.env, MOLIP_PILOT: '1', MOLIP_PILOT_DIRECTORY: '\\\\?\\' + dataDir, MOLIP_PILOT_OWNER: owner,
@@ -54,13 +58,13 @@ async function endpoint() {
   const shot = async (name, options = {}) => {
     await page.waitForTimeout(options.settle ?? 350);
     const png = path.join(output, `${name}.png`);
-    await page.screenshot({path: png, fullPage: false});
+    await page.screenshot({path: png, fullPage: !!options.fullPage});
     await page.screenshot({path: path.join(output, `${name}.jpg`), type: 'jpeg', quality: 62, fullPage: false});
     shots.push(png);
   };
   const scenario = require(path.resolve(scenarioPath));
   const notes = await scenario({page, shot, output, dataDir});
-  fs.writeFileSync(path.join(output, 'capture.json'), JSON.stringify({app_pid: app.pid, shots, notes}, null, 2));
+  fs.writeFileSync(path.join(output, 'capture.json'), JSON.stringify({app_pid: app.pid, data_dir: dataDir, shots, notes}, null, 2));
   await browser.close().catch(() => {});
   stop();
   console.log(`captured ${shots.length} screens into ${output} (app pid ${app.pid} stopped)`);

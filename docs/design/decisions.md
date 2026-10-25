@@ -33,3 +33,21 @@
 - Why: Lessons 27–34 of 자바 백엔드 are not counted toward completion but the baseline did not say so; `required` is recorded fact, `track` absence is unknown and must not be guessed.
 - Rejected: Labelling unknown tracks 「기본」 (an invented classification); a 「미분류」 chip on every unlabelled card (noise without a decision).
 - Rests on: courses/redesigned-courses/java-backend.json; PRODUCT.md Capabilities.
+
+## 2026-10-25 · The next station is the most recently studied unfinished lesson
+- Decided by: Claude (default)
+- Why: In the first build the panel pointed at lesson 1 after the learner had just studied lesson 2; recorded event time (`at`) already says where the learner left off, so the panel uses it and falls back to the first unfinished required lesson when there is no history.
+- Rejected: Recommended order only (sends a returning learner back to a lesson they skipped on purpose); a separate "recent lessons" list (a second place to look).
+- Rests on: target/design-audit/iter2/40-catalog-after-study.png; src/issue_progress.rs LearningEvent.at.
+
+## 2026-10-25 · The narration and auto-run controls sit in a sticky bar at the foot of the problem brief
+- Decided by: Claude (default)
+- Why: In the baseline the bar moved with the length of each brief; a fixed place keeps 해설 재생, 멈춤, speed and 관리자 자동 풀이 findable without scrolling, without adding a header row.
+- Rejected: Moving them into the lesson band (breaks the 42px band budget the toolbar tests enforce).
+- Rests on: tests/js/compact-toolbar.test.cjs; tools/player-pilot-auto-review.js layout checks.
+
+## 2026-10-25 · Evaluation substitutions
+- Decided by: Claude (default)
+- Why: This harness has no subagent tool, so the Impeccable finish review and documenter ran inline from their degraded instructions; the decision page was not served because the owner delegated the direction choice.
+- Rejected: Skipping the finish review or DESIGN.md.
+- Rests on: impeccable reference/degraded/finish-reviewer.md, degraded/documenter.md.

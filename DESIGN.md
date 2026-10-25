@@ -9,7 +9,7 @@ colors:
   rule-strong: "#7d8a9c"
   ink: "#152233"
   ink-secondary: "#4b5b6d"
-  ink-tertiary: "#66768a"
+  ink-tertiary: "#5c6b7e"
   signage-navy: "#1c2b4a"
   signage-navy-raised: "#253858"
   signage-muted: "#b6c3da"

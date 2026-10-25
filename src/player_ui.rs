@@ -77,15 +77,16 @@ fn next_station(course:&CourseManifest,progress:&HashMap<String,Vec<LearningEven
 }
 
 /// Each course is one metro line: a saturated line colour for its route, rings and current
-/// marker, and a darker ink of the same hue for text and filled actions (≥4.5:1 on white).
+/// marker, a darker ink of the same hue for text and filled actions (≥4.5:1 on white), and a
+/// brighter tone that draws the route and labels on the dark theme (≥6:1 on dark paper).
 /// The colour follows the course's subject so it stays the same on every screen.
 pub(crate) fn course_line(course_title:&str,repository:&str)->&'static str {
     let key=format!("{course_title} {repository}");
-    if key.contains("자바")||key.contains("java") {"--line:#009b4c;--line-ink:#00703a;--line-soft:#e3f4ea"}
-    else if key.contains("정보처리")||key.contains("engineer") {"--line:#0052a4;--line-ink:#0052a4;--line-soft:#e3ecf7"}
-    else if key.contains("AICE")||key.contains("aice") {"--line:#e0700f;--line-ink:#a64a00;--line-soft:#fbeedd"}
+    if key.contains("자바")||key.contains("java") {"--line:#009b4c;--line-ink:#00703a;--line-soft:#e3f4ea;--line-bright:#3ccf7e"}
+    else if key.contains("정보처리")||key.contains("engineer") {"--line:#0052a4;--line-ink:#0052a4;--line-soft:#e3ecf7;--line-bright:#7fb2ff"}
+    else if key.contains("AICE")||key.contains("aice") {"--line:#e0700f;--line-ink:#a64a00;--line-soft:#fbeedd;--line-bright:#ffa152"}
     else {
-        const LINES:[&str;3]=["--line:#8f5ea6;--line-ink:#744a88;--line-soft:#f0e8f4","--line:#c96a1e;--line-ink:#93490c;--line-soft:#f7ebde","--line:#d4145a;--line-ink:#ad0f49;--line-soft:#fbe4ec"];
+        const LINES:[&str;3]=["--line:#8f5ea6;--line-ink:#744a88;--line-soft:#f0e8f4;--line-bright:#c9a3e0","--line:#c96a1e;--line-ink:#93490c;--line-soft:#f7ebde;--line-bright:#f0a35e","--line:#d4145a;--line-ink:#ad0f49;--line-soft:#fbe4ec;--line-bright:#ff7aa8"];
         LINES[key.bytes().fold(0usize,|hash,byte|hash.wrapping_mul(31).wrapping_add(byte as usize))%LINES.len()]
     }
 }
@@ -366,9 +367,11 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                             NextStation::Next{index,reference,started,optional,solved,total}=>rsx!{
                                 span {class:"next-station-ring",aria_hidden:"true","{index+1}"}
                                 div {class:"next-station-text",
-                                    p {class:"next-station-label",if started{"최근에 학습한 수업"}else if optional{"필수 수업을 마쳤어요 · 다음 선택 수업"}else{"다음 수업"}}
                                     h3 {"수업 {index+1} · {reference.title}"}
-                                    p {class:"next-station-detail",{if started{format!("필수 문제 {solved} / {total} 통과")}else{format!("필수 문제 {total}개")}}}
+                                    p {class:"next-station-detail",
+                                        strong {class:"next-station-label",if started{"최근에 학습한 수업"}else if optional{"필수 수업을 마쳤어요 · 다음 선택 수업"}else{"다음 수업"}}
+                                        {if started{format!(" · 필수 문제 {solved} / {total} 통과")}else{format!(" · 필수 문제 {total}개")}}
+                                    }
                                 }
                                 button {class:"primary next-station-start",disabled:busy()||!ready,title:if ready{""}else{"이 코스에서 쓸 이름을 먼저 저장하세요."},onclick:{let manifest=manifest.clone();let reference=reference.clone();move |_|start_lesson(manifest.clone(),reference.clone())},if started{"이어서 학습"}else{"이 수업 시작"}}
                             },
@@ -579,7 +582,7 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
     let mut task_index=use_signal(||if selected.from_start{0}else{challenge_start.unwrap_or(first_unfinished)});
     let mut section_index=use_signal(||if challenge_start.is_some(){usize::MAX}else{0usize});
     // Keep the current station of the step strip in view; jumps, never animates.
-    use_effect(move||{let _=(task_index(),section_index());document::eval("requestAnimationFrame(()=>document.querySelector('.study-navigation .selected')?.scrollIntoView({block:'nearest',inline:'nearest'}))");});
+    use_effect(move||{let _=(task_index(),section_index());document::eval("requestAnimationFrame(()=>{const n=document.querySelector('.study-navigation'),s=n?.querySelector('.selected');if(!s)return;s.scrollIntoView({block:'nearest',inline:'nearest'});window.mqStationMarker?.(n);})");});
     use_effect(move || {
         let _ = task_index();
         let _ = section_index();
@@ -731,7 +734,7 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
                             } else {
                                 // Why the run ended, shown only when asked for; closing it returns the share button.
                                 details {class:"auto-run-details",
-                                    summary {class:"auto-run-chip",title:"{auto_reason}",if auto_state=="finished"{"✓ 완료"}else{"! 멈춤"}}
+                                    summary {class:"auto-run-chip",title:"{auto_reason}",span {class:"auto-run-end","aria-hidden":"true"}if auto_state=="finished"{"완료"}else{"멈춤"}}
                                     div {class:"auto-run-menu",role:"status",
                                         strong {if auto_state=="finished"{"자동 풀이를 마쳤어요"}else{"자동 풀이를 멈췄어요"}}
                                         p {"{auto_reason}"}
