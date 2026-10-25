@@ -202,7 +202,12 @@ html:has(.repository-player,.repository-study)::-webkit-scrollbar-corner,.reposi
 .course-main .lesson-group-title {display:flex;align-items:center;gap:10px;margin:22px 0 6px;font-size:14px;font-weight:750;color:var(--ink)}
 .course-main .lesson-group-title::before {content:"";width:18px;height:10px;border-radius:5px;border:3px solid var(--route);background:var(--panel);box-sizing:border-box}
 .course-main .repository-lessons {position:relative;display:grid;grid-template-columns:1fr;gap:0;margin:0;padding:0;list-style:none}
-.course-main .repository-lessons::before {content:"";position:absolute;left:21px;top:22px;bottom:22px;width:4px;border-radius:2px;background:var(--route)}
+/* Connect the actual station rings, clipped to each row and above hover fills. */
+.course-main .lesson-card {overflow:hidden}
+.lesson-card>.lesson-number::before,.lesson-card>.lesson-number::after {content:"";position:absolute;left:50%;width:4px;height:100vh;transform:translateX(-50%);background:var(--route);pointer-events:none}
+.lesson-card>.lesson-number::before {bottom:100%}
+.lesson-card>.lesson-number::after {top:100%}
+.lesson-card:first-child>.lesson-number::before,.lesson-card:last-child>.lesson-number::after {display:none}
 .course-main .lesson-card {
  position:relative;display:grid;grid-template-columns:44px minmax(0,1fr) minmax(150px,200px) auto;align-items:center;gap:4px 16px;
  min-height:60px;margin:0;padding:8px 12px 8px 0;border:0;border-bottom:1px solid var(--rule);border-radius:0;background:transparent}
@@ -219,6 +224,10 @@ html:has(.repository-player,.repository-study)::-webkit-scrollbar-corner,.reposi
 .lesson-card[data-next="true"]>.lesson-number {width:36px;height:36px;border-width:4px;font-size:13px;box-shadow:0 0 0 4px var(--wall)}
 .course-main .lesson-card>.lesson-card-heading {grid-column:2;min-width:0;margin:0}
 .course-main .lesson-card h3 {margin:0;font-size:15px;line-height:1.45;font-weight:700;color:var(--ink);overflow-wrap:anywhere;text-wrap:pretty}
+.repository-player :is(.lesson-card-heading,.next-station-text) .lesson-title {display:block;min-height:32px;max-width:100%;margin:0;padding:2px 0;border:0;border-radius:2px;background:transparent;color:inherit;font:inherit;line-height:inherit;text-align:left;white-space:normal;overflow-wrap:anywhere;cursor:pointer}
+.repository-player :is(.lesson-card-heading,.next-station-text) .lesson-title:hover:not(:disabled) {background:transparent;color:var(--line-text);text-decoration:underline;text-underline-offset:3px}
+.repository-player :is(.lesson-card-heading,.next-station-text) .lesson-title:disabled {background:transparent;color:inherit;opacity:1;cursor:not-allowed}
+.repository-player :is(.lesson-card-heading,.next-station-text) .lesson-title:focus-visible {outline-offset:-2px}
 .lesson-meta {display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;margin-top:2px;font-size:12px;color:var(--ink-3)}
 .lesson-meta .lesson-track,.lesson-meta .lesson-optional,.lesson-meta .lesson-next-label {display:inline-block;margin:0;padding:0 6px;border:1px solid var(--rule-strong);border-radius:3px;font-size:11px;line-height:1.6;font-weight:700;color:var(--ink-2);background:var(--panel)}
 .lesson-meta .lesson-track.essential {border-color:var(--ink);color:var(--ink)}
@@ -383,7 +392,8 @@ html:has(.repository-player,.repository-study)::-webkit-scrollbar-corner,.reposi
 .task-passed-dialog,.submission-progress-dialog {background:var(--panel)!important;color:var(--ink)!important;border:1px solid var(--rule)!important;border-radius:10px!important;box-shadow:var(--shadow-dialog)!important}
 .task-passed-dialog :is(h2,strong) {color:var(--ink)}
 .task-passed-dialog p {color:var(--ink-2)}
-.task-passed-dialog .task-passed-icon {color:var(--line-text)}
+.task-passed-dialog .task-passed-icon {background:var(--ok-soft);color:var(--ok);border:2px solid currentColor;box-sizing:border-box}
+.task-passed-icon svg {display:block;flex:none}
 .task-passed-dialog button {background:var(--panel);color:var(--ink);border:1px solid var(--rule-strong)}
 .task-passed-dialog button.primary {background:var(--line-ink);border-color:var(--line-ink);color:#fff}
 .submission-progress-dialog .execution-spinner {border-color:var(--rule);border-top-color:var(--line-text)}

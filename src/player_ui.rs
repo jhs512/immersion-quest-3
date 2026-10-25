@@ -367,7 +367,8 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                             NextStation::Next{index,reference,started,optional,solved,total}=>rsx!{
                                 span {class:"next-station-ring",aria_hidden:"true","{index+1}"}
                                 div {class:"next-station-text",
-                                    h3 {"수업 {index+1} · {reference.title}"}
+                                    h3 {button {r#type:"button",class:"lesson-title",disabled:busy()||!ready,
+                                        onclick:{let manifest=manifest.clone();let reference=reference.clone();move |_|start_lesson(manifest.clone(),reference.clone())},"수업 {index+1} · {reference.title}"}}
                                     p {class:"next-station-detail",
                                         strong {class:"next-station-label",if started{"최근에 학습한 수업"}else if optional{"필수 수업을 마쳤어요 · 다음 선택 수업"}else{"다음 수업"}}
                                         {if started{format!(" · 필수 문제 {solved} / {total} 통과")}else{format!(" · 필수 문제 {total}개")}}
@@ -442,7 +443,8 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                             li {class:"card lesson-card",key:"{reference.id}","data-state":state,"data-next":is_next.to_string(),"data-required":reference.required.to_string(),
                                 span {class:"lesson-number",span {class:"visually-hidden","수업 "}"{index+1}"}
                                 div {class:"lesson-card-heading",
-                                    h3 {"{reference.title}"}
+                                    h3 {button {r#type:"button",class:"lesson-title",disabled:busy()||!ready,
+                                        onclick:{let manifest=manifest.clone();let reference=reference.clone();move |_|start_lesson(manifest.clone(),reference.clone())},"{reference.title}"}}
                                     div {class:"lesson-meta",
                                         if let Some(track)=reference.track() {span {class:track.class(),aria_label:format!("학습 분류: {}",track.label()),"{track.label()}"}}
                                         if !reference.required {span {class:"lesson-optional",title:"과정 완료에 세지 않는 선택 수업이에요.","선택"}}
@@ -1271,7 +1273,11 @@ fn TaskPassedDialog(has_next:bool,#[props(default)] to_challenges:bool,onnext:Ev
                         _=>{}
                     }
                 },
-                div {class:"task-passed-icon",aria_hidden:"true","✓"}
+                div {class:"task-passed-icon",aria_hidden:"true",
+                    svg {view_box:"0 0 24 24",width:"30",height:"30",fill:"none",stroke:"currentColor",stroke_width:"2.5",stroke_linecap:"round",stroke_linejoin:"round",
+                        path {d:"m5 12 4 4L19 6"}
+                    }
+                }
                 h2 {"통과했어요!"}
                 p {if has_next{"다음 문제로 이어서 풀어보세요."}else if to_challenges{"도전 과제 목록에서 다른 문제를 골라 보세요."}else{"마지막 문제까지 풀었어요. 수업 목록에서 다음 학습을 선택하세요."}}
                 div {class:"task-passed-actions",

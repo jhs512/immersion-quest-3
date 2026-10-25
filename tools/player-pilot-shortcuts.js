@@ -7,7 +7,8 @@
  try{
   await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('pilot-a'),'initial fixture');
   await click('버전 n');await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('java-values-'),'Java fixture');
-  await click('학습 시작');await wait(()=>document.querySelector('.repository-task'),'task mounted');
+  await wait(()=>document.querySelector('.lesson-card .lesson-title')&&!document.querySelector('.lesson-card .lesson-title').disabled,'lesson title ready');
+  document.querySelector('.lesson-card .lesson-title').click();await wait(()=>document.querySelector('.repository-task'),'title opens the actual lesson');
   await wait(()=>document.querySelector('[data-shortcut-action="submit"]')?.dataset.shortcutLabel,'visible platform hints');
   const first=document.querySelector('.repository-task').dataset.taskId;
   chord('Enter',true);
