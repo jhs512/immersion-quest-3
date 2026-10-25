@@ -1,0 +1,42 @@
+{
+  "course": "tests/fixtures/player-pilot/망/course.json",
+  "lesson": "courses/redesigned/sys-interpreter-env.json",
+  "expected_outputs": [
+    [
+      "줄 1 | 문장 let count = 0 | 환경 {count=0}\n줄 2 | 문장 { | 환경 {} ← {count=0}\n줄 3 | 문장 set count = count + 1 | 환경 {count=1} ← {count=0}\n줄 4 | 문장 let note = 5 | 환경 {count=1, note=5} ← {count=0}\n출력 1\n줄 5 | 문장 print count | 환경 {count=1, note=5} ← {count=0}\n줄 6 | 문장 } | 환경 {count=0}\n출력 0\n줄 7 | 문장 print count | 환경 {count=0}",
+      "줄 1 | 문장 let count = 0 | 환경 {count=0}\n줄 2 | 문장 { | 환경 {} ← {count=0}\n줄 3 | 문장 set count = count + 1 | 환경 {} ← {count=1}\n줄 4 | 문장 let note = 5 | 환경 {note=5} ← {count=1}\n출력 1\n줄 5 | 문장 print count | 환경 {note=5} ← {count=1}\n줄 6 | 문장 } | 환경 {count=1}\n출력 1\n줄 7 | 문장 print count | 환경 {count=1}"
+    ]
+  ],
+  "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "env.find(name).vars.put(name, value);",
+          "env.vars.put(name, value);"
+        ]
+      ],
+      "reason": "현재 환경에 넣으면 set이 새 이름을 만들어 바깥 값이 그대로예요."
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "env.find(name).vars.put(name, value);",
+          "root.vars.put(name, value);"
+        ]
+      ],
+      "reason": "항상 가장 바깥 환경을 고치면 안쪽 let으로 가린 이름이 바뀌지 않아요."
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "env.find(name).vars.put(name, value);",
+          "if (env.parent != null) env.parent.vars.put(name, value); else env.vars.put(name, value);"
+        ]
+      ],
+      "reason": "바로 바깥 한 칸만 고치면 이름을 정의한 환경과 다를 수 있어요."
+    }
+  ]
+}

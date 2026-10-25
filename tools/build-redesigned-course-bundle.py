@@ -29,9 +29,66 @@ def write(path, raw, check):
             path.write_bytes(raw)
 
 
+CLASSIFICATION = ROOT / 'tools/redesigned_courses/lesson-classification.json'
+TRACKS = ('basic', 'essential', 'advanced')
+
+
+def classification(catalog, path=CLASSIFICATION):
+    """Approved category/track per lesson key, plus each course's categories in order.
+
+    The source keeps reviewable proposals (status "proposed", with evidence). Only "approved" entries reach
+    a manifest; a lesson without one stays 미분류 in the app. Classification is manifest metadata: it never
+    changes lesson bytes or revisions, so progress is untouched."""
+    if not path.exists():
+        return {}
+    source = json.loads(path.read_text(encoding='utf-8'))
+    courses = {course['key']: [lesson['key'] for lesson in course['lessons']] for course in catalog['courses']}
+    result = {}
+    for key, entry in source.get('courses', {}).items():
+        if key not in courses:
+            raise ValueError(f'Classification for an unknown course: {key}')
+        ids = [c['id'] for c in entry.get('categories', [])]
+        if len(ids) != len(set(ids)) or any(not c.get('id') or not str(c.get('title', '')).strip() for c in entry.get('categories', [])):
+            raise ValueError(f'{key}: category ids must be unique and every category needs a title')
+        approved = {}
+        for lesson_key, item in entry.get('lessons', {}).items():
+            if lesson_key not in courses[key]:
+                raise ValueError(f'{key}: classification for an unregistered lesson: {lesson_key}')
+            if item.get('status') not in ('proposed', 'approved'):
+                raise ValueError(f'{key}/{lesson_key}: status must be proposed or approved')
+            if item.get('category') is not None and item['category'] not in ids:
+                raise ValueError(f'{key}/{lesson_key}: unknown category {item["category"]}')
+            if item.get('track') is not None and item['track'] not in TRACKS:
+                raise ValueError(f'{key}/{lesson_key}: track must be one of {TRACKS} or null')
+            if item['status'] == 'approved':
+                if not item.get('decided_by') or not item.get('decided_on'):
+                    raise ValueError(f'{key}/{lesson_key}: an approved classification records who decided and when')
+                if item.get('category') is None and item.get('track') is None:
+                    raise ValueError(f'{key}/{lesson_key}: nothing to approve')
+                approved[lesson_key] = {k: item[k] for k in ('category', 'track') if item.get(k) is not None}
+        # A user decision can approve a track for many lessons at once without approving any proposed category.
+        for decision in source.get('track_decisions', []):
+            if decision.get('track') not in TRACKS or decision.get('status') not in ('proposed', 'approved'):
+                raise ValueError('track decision: unknown track or status')
+            if decision['status'] != 'approved':
+                continue
+            for field in ('decided_by', 'decided_on', 'quote'):
+                if not str(decision.get(field, '')).strip():
+                    raise ValueError(f'track decision: an approved decision records {field}')
+            for lesson_key in decision.get('lessons', {}).get(key, []):
+                if lesson_key not in courses[key]:
+                    raise ValueError(f'{key}: track decision for an unregistered lesson: {lesson_key}')
+                approved.setdefault(lesson_key, {})['track'] = decision['track']
+        used = {a['category'] for a in approved.values() if 'category' in a}
+        result[key] = {'categories': [dict(id=c['id'], title=c['title']) for c in entry.get('categories', []) if c['id'] in used],
+                       'lessons': approved}
+    return result
+
+
 def build(check=False):
     catalog = json.loads((ROOT / 'tools/redesigned_courses/catalog.json').read_text(encoding='utf-8'))
     load_registry(catalog)
+    classes = classification(catalog)
     release = json.loads((ROOT / 'tools/redesigned_courses/release.json').read_text(encoding='utf-8'))
     all_lessons = set()
     for course in catalog['courses']:
@@ -56,7 +113,8 @@ def build(check=False):
             references.append(dict(id=lesson['id'], title=lesson['title'],
                 repository=f'jhs512/mq3-lesson-redesigned-{lesson_key}',
                 revision=lesson['revision'], sha256=digest, prerequisites=[],
-                required=True, review_enabled=lesson['review_enabled']))
+                required=item.get('required', True), review_enabled=lesson['review_enabled'],
+                **classes.get(key, {}).get('lessons', {}).get(lesson_key, {})))
             lesson_specs.append(dict(key=lesson_key, id=lesson['id'], title=lesson['title'],
                 objectives=lesson['objectives'], approved_prd_sha256=content_hash(prd),
                 lesson_sha256=digest, chapters=len(lesson['chapters']),
@@ -68,9 +126,11 @@ def build(check=False):
             change_history=release.get('course_changes', {}).get(key, []) + [dict(at=release['prepared_at'],
                 summary='새 지침에 맞춘 독립 과정을 구성했어요.',
                 reason='작은 문제를 풀며 원리를 이해하도록 다시 구성했어요.',
-                details=[f'{len(references)}수업을 챕터·단원·스텝으로 구성했어요.',
+                details=[f'{sum(1 for item in course["lessons"] if not item.get("added_on"))}수업을 챕터·단원·스텝으로 구성했어요.',
                     '이전 과정과 학습 기록은 별도 저장소에 그대로 남아요.',
                     '모든 수업은 추천 순서와 관계없이 자유롭게 열 수 있어요.'])])
+        if classes.get(key, {}).get('categories'):
+            manifest['categories'] = classes[key]['categories']
         write(ROOT / 'courses/redesigned-courses' / f'{slug}.json', encoded(manifest), check)
         spec = dict(schema_version=1, id=course['id'], title=course['title'],
             objectives=course['objectives'], presentation=course['presentation'], policy_snapshot=course['policy_snapshot'],

@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "469cc74e703aac2ca779a924b6dd65578acf5a6b0118163066d11d999834c8ca",
+  "entry": [
+    {
+      "action": "say",
+      "text": "두 작업 모두 공유 값을 읽고, 1을 더해 써요.",
+      "target": "text:각 작업은 공유 값을 읽고, 1을 더해 써요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "여섯 순서 중 네 개에서 결과가 1이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "두 읽기가 두 쓰기보다 앞서면 둘 다 0을 읽어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "읽기와 쓰기가 따로 나뉜 두 단계예요.",
+      "target": "code:return List.of(\"읽기\", \"쓰기\");"
+    },
+    {
+      "action": "patch_code",
+      "before": "    // 고칠 곳: 지금은 읽기와 쓰기가 따로라서 그 사이에 다른 작업이 끼어들 수 있어요.\n    return List.of(\"읽기\", \"쓰기\");",
+      "after": "    // 고친 곳: 읽고 1을 더해 쓰는 일을 나눌 수 없는 한 단계(원자적 갱신)로 묶어요.\n    // 그러면 다른 작업은 이 단계의 앞이나 뒤에만 올 수 있어서 갱신을 잃는 순서가 없어요.\n    return List.of(\"읽고쓰기\");",
+      "say": "둘을 나눌 수 없는 한 단계로 묶어요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "가능한 순서가 두 개로 줄고, 둘 다 결과 2예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 쓰기를 읽기보다 먼저 두면 아직 읽지 않은 지역 값으로 써서 결과가 틀려요.",
+      "target": "code:return List.of(\"읽고쓰기\");"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

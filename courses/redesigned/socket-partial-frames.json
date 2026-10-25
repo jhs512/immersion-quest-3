@@ -1,0 +1,245 @@
+{
+  "schema_version": 2,
+  "id": "lsn_bc56070b-0498-48fe-ac5a-0050080a44c1",
+  "revision": "socket-partial-frames-1",
+  "title": "소켓 서버 · 한 글자만 보낸 연결이 다른 연결을 막지 않게 해요",
+  "description": "스레드 하나로 연결을 돌보는 서버예요. 연결 A가 메시지 앞부분만 보내고 멈췄어요. 그 뒤에 B가 완전한 메시지를 보냈는데 B가 2초 동안 응답을 못 받아요.",
+  "objectives": [
+    "읽을 수 있다는 알림은 메시지 완성이 아니며, 이벤트 루프 서버는 연결별로 받은 앞부분을 쌓아 두고 돌아가야 느린 연결이 다른 연결을 막지 않는다는 것을 실제 소켓으로 확인해요."
+  ],
+  "sources": [
+    "https://docs.libuv.org/en/v1.x/design.html",
+    "https://csapp.cs.cmu.edu/3e/ics3/code/conc/echoservers.c"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_412699c0-4945-4c62-96a1-81ee4e63c56e",
+      "title": "소켓 서버 · 한 글자만 보낸 연결이 다른 연결을 막지 않게 해요",
+      "objectives": [
+        "스레드 하나가 여러 연결을 돌볼 때 덜 온 메시지가 다른 연결을 막지 않게 해요."
+      ],
+      "units": [
+        {
+          "id": "unt_7a61ddf1-c76f-46ae-86f9-0ddfacc468f5",
+          "title": "최종 문제",
+          "objectives": [
+            "실제 루프백 소켓에서 부분 프레임과 완전한 프레임을 섞어 보내요."
+          ],
+          "premise": "스레드 하나로 연결을 돌보는 서버예요. 연결 A가 메시지 앞부분만 보내고 멈췄어요. 그 뒤에 B가 완전한 메시지를 보냈는데 B가 2초 동안 응답을 못 받아요.",
+          "steps": [
+            {
+              "id": "stp_175ff67d-536a-4a77-9b17-3c167fd8675d",
+              "objectives": [
+                "프레임이 덜 왔으면 기다리지 않고 루프로 돌아가요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_175ff67d-536a-4a77-9b17-3c167fd8675d",
+      "title": "한 글자만 보낸 연결이 다른 연결을 막지 않게 해요",
+      "question": "B는 메시지를 다 보냈는데 왜 A의 나머지를 기다려야 할까요?",
+      "goal": "자, 서버는 스레드 하나로 여러 연결을 돌봐요. 운영체제가 \"이 연결에서 읽을 수 있어요\"라고 알려 주면 onReadable이 실행돼요.\n\n메시지(프레임)는 길이 1바이트 뒤에 본문이 오는 형식이에요. A는 길이 5 뒤에 h 한 글자만 보내고 멈춰요. 읽을 수 있다는 알림이 왔다고 메시지가 다 온 건 아니에요.\n\n이 문제는 실제 소켓을 써요. 순서는 sleep 길이가 아니라 시험 클라이언트의 신호로 정해요. 2초 제한은 멈춤을 찾는 용도예요.\n\n**할 일**\n\n1. 실행 버튼을 눌러 B 응답 줄을 읽으세요.\n2. \"A 보냄 | 나머지\" 줄이 B 응답보다 앞인지 뒤인지 확인하세요.\n3. `onReadable`의 고칠 곳을 프레임이 덜 왔으면 기다리지 않고 돌아가게 고치세요.\n4. 다시 실행해 B 응답이 OK HI인지 확인하세요.\n5. 마지막 서버 줄에서 연결마다 처리한 프레임을 확인하세요.\n6. 제출 버튼을 누르세요. B가 메시지 두 개를 보내는 조건도 함께 검사해요.",
+      "language": "java",
+      "starter_code": "import java.io.ByteArrayOutputStream;\nimport java.io.IOException;\nimport java.io.InputStream;\nimport java.io.OutputStream;\nimport java.net.InetSocketAddress;\nimport java.net.Socket;\nimport java.net.SocketTimeoutException;\nimport java.nio.ByteBuffer;\nimport java.nio.channels.SelectionKey;\nimport java.nio.channels.Selector;\nimport java.nio.channels.ServerSocketChannel;\nimport java.nio.channels.SocketChannel;\nimport java.nio.charset.StandardCharsets;\nimport java.util.ArrayList;\nimport java.util.Collections;\nimport java.util.Iterator;\nimport java.util.List;\nimport java.util.Scanner;\nimport java.util.concurrent.CountDownLatch;\nimport java.util.concurrent.TimeUnit;\n\n// 준비 코드: 연결 하나의 상태예요. pending에는 아직 다 오지 않은 프레임의 앞부분이 쌓여요.\nstatic class Conn {\n    final int id;\n    final ByteArrayOutputStream pending = new ByteArrayOutputStream();\n    final List<String> frames = new ArrayList<>();\n    Conn(int id) { this.id = id; }\n}\nstatic final List<Conn> conns = Collections.synchronizedList(new ArrayList<>());\n// 준비 코드(시험용 신호): 서버가 연결 1의 첫 바이트를 읽으면 열려요. 시험 클라이언트는 이 신호 뒤에 B를 연결해요.\nstatic final CountDownLatch firstRead = new CountDownLatch(1);\nstatic volatile boolean running = true;\n\n// 준비 코드: 지금 읽을 수 있는 바이트만 읽어 pending 뒤에 붙여요. 상대가 닫았으면 -1이에요.\nstatic int readAvailable(SocketChannel ch, Conn conn) throws IOException {\n    ByteBuffer buf = ByteBuffer.allocate(64);\n    int n = ch.read(buf);\n    if (n > 0) {\n        conn.pending.write(buf.array(), 0, n);\n        if (conn.id == 1) firstRead.countDown();\n    }\n    return n;\n}\n\n// 준비 코드: 프레임은 길이 1바이트 + 본문이에요. pending 앞에 완성된 프레임이 있는지 봐요.\nstatic boolean hasFrame(Conn conn) {\n    byte[] b = conn.pending.toByteArray();\n    return b.length > 0 && b.length >= 1 + b[0];\n}\n\n// 준비 코드: 완성된 프레임을 모두 꺼내고, 남은 앞부분은 pending에 그대로 둬요.\nstatic List<String> takeFrames(Conn conn) {\n    byte[] b = conn.pending.toByteArray();\n    List<String> out = new ArrayList<>();\n    int i = 0;\n    while (i < b.length && i + 1 + b[i] <= b.length) {\n        out.add(new String(b, i + 1, b[i], StandardCharsets.UTF_8));\n        i += 1 + b[i];\n    }\n    conn.pending.reset();\n    conn.pending.write(b, i, b.length - i);\n    return out;\n}\n\nstatic void reply(SocketChannel ch, Conn conn, String body) throws IOException {\n    conn.frames.add(body);\n    ch.write(ByteBuffer.wrap((\"OK \" + body.toUpperCase() + \"\\n\").getBytes(StandardCharsets.UTF_8)));\n}\n\n// 이벤트 루프가 \"이 연결에서 읽을 수 있어요\"라는 알림을 받으면 실행돼요.\n// 이 메서드가 돌아오기 전에는 같은 스레드의 다른 연결을 처리하지 못해요.\nstatic void onReadable(SocketChannel ch, Conn conn) throws IOException {\n    if (readAvailable(ch, conn) < 0) { ch.close(); return; }\n    // 고칠 곳: 프레임이 다 올 때까지 여기서 계속 읽으며 기다려요.\n    while (!hasFrame(conn)) {\n        if (readAvailable(ch, conn) < 0) { ch.close(); return; }\n    }\n    for (String body : takeFrames(conn)) reply(ch, conn, body);\n}\n\n// 준비 코드: 스레드 하나로 모든 연결을 돌보는 이벤트 루프예요.\nstatic void serve(ServerSocketChannel server) {\n    try (Selector selector = Selector.open()) {\n        server.configureBlocking(false);\n        server.register(selector, SelectionKey.OP_ACCEPT);\n        while (running) {\n            selector.select(100);\n            Iterator<SelectionKey> keys = selector.selectedKeys().iterator();\n            while (keys.hasNext()) {\n                SelectionKey key = keys.next();\n                keys.remove();\n                if (!key.isValid()) continue;\n                if (key.isAcceptable()) {\n                    SocketChannel ch = server.accept();\n                    if (ch == null) continue;\n                    ch.configureBlocking(false);\n                    Conn conn = new Conn(conns.size() + 1);\n                    conns.add(conn);\n                    ch.register(selector, SelectionKey.OP_READ, conn);\n                } else if (key.isReadable()) {\n                    onReadable((SocketChannel) key.channel(), (Conn) key.attachment());\n                }\n            }\n        }\n    } catch (IOException e) {\n        System.out.println(\"서버 오류 \" + e.getMessage());\n    }\n}\n\n// 준비 코드(시험 클라이언트): 응답 한 줄을 2초까지 기다려요. 시간 제한은 멈춤을 찾는 용도예요.\nstatic String readLine(Socket s) throws IOException {\n    InputStream in = s.getInputStream();\n    StringBuilder line = new StringBuilder();\n    try {\n        for (int c = in.read(); c != -1 && c != '\\n'; c = in.read()) line.append((char) c);\n    } catch (SocketTimeoutException e) {\n        return \"시간 초과 2초 안에 응답이 없어요\";\n    }\n    return line.toString();\n}\n\nstatic void send(Socket s, byte[] bytes) throws IOException {\n    OutputStream out = s.getOutputStream();\n    out.write(bytes);\n    out.flush();\n}\n\nvoid main() throws Exception {\n    Scanner in = new Scanner(System.in);\n    String scenario = in.hasNextLine() ? in.nextLine().trim() : \"\";\n    ServerSocketChannel server = ServerSocketChannel.open();\n    // 127.0.0.1에만 열고 포트 0을 주면 운영체제가 빈 포트를 골라요. 실행할 때마다 달라질 수 있어요.\n    server.bind(new InetSocketAddress(\"127.0.0.1\", 0));\n    int port = ((InetSocketAddress) server.getLocalAddress()).getPort();\n    Thread loop = Thread.ofPlatform().start(() -> serve(server));\n    try (Socket a = new Socket(\"127.0.0.1\", port)) {\n        a.setSoTimeout(2000);\n        send(a, new byte[]{5, 'h'});\n        System.out.println(\"A 보냄 | 앞 2바이트 길이 5 중 본문 1글자\");\n        if (!firstRead.await(2, TimeUnit.SECONDS)) System.out.println(\"서버가 A를 읽지 못했어요\");\n        try (Socket b = new Socket(\"127.0.0.1\", port)) {\n            b.setSoTimeout(2000);\n            if (scenario.equals(\"two\")) {\n                send(b, new byte[]{2, 'h', 'i', 2, 'y', 'o'});\n                System.out.println(\"B 보냄 | 완전한 메시지 두 개 hi yo\");\n                System.out.println(\"B 응답 | \" + readLine(b));\n                System.out.println(\"B 응답 | \" + readLine(b));\n            } else {\n                send(b, new byte[]{2, 'h', 'i'});\n                System.out.println(\"B 보냄 | 완전한 메시지 hi\");\n                System.out.println(\"B 응답 | \" + readLine(b));\n            }\n            send(a, \"ello\".getBytes(StandardCharsets.UTF_8));\n            System.out.println(\"A 보냄 | 나머지 4바이트\");\n            System.out.println(\"A 응답 | \" + readLine(a));\n        }\n    }\n    running = false;\n    loop.join(3000);\n    server.close();\n    for (Conn c : conns) System.out.println(\"서버 연결 \" + c.id + \" | 처리한 프레임 \" + c.frames);\n}\n",
+      "solution": "import java.io.ByteArrayOutputStream;\nimport java.io.IOException;\nimport java.io.InputStream;\nimport java.io.OutputStream;\nimport java.net.InetSocketAddress;\nimport java.net.Socket;\nimport java.net.SocketTimeoutException;\nimport java.nio.ByteBuffer;\nimport java.nio.channels.SelectionKey;\nimport java.nio.channels.Selector;\nimport java.nio.channels.ServerSocketChannel;\nimport java.nio.channels.SocketChannel;\nimport java.nio.charset.StandardCharsets;\nimport java.util.ArrayList;\nimport java.util.Collections;\nimport java.util.Iterator;\nimport java.util.List;\nimport java.util.Scanner;\nimport java.util.concurrent.CountDownLatch;\nimport java.util.concurrent.TimeUnit;\n\n// 준비 코드: 연결 하나의 상태예요. pending에는 아직 다 오지 않은 프레임의 앞부분이 쌓여요.\nstatic class Conn {\n    final int id;\n    final ByteArrayOutputStream pending = new ByteArrayOutputStream();\n    final List<String> frames = new ArrayList<>();\n    Conn(int id) { this.id = id; }\n}\nstatic final List<Conn> conns = Collections.synchronizedList(new ArrayList<>());\n// 준비 코드(시험용 신호): 서버가 연결 1의 첫 바이트를 읽으면 열려요. 시험 클라이언트는 이 신호 뒤에 B를 연결해요.\nstatic final CountDownLatch firstRead = new CountDownLatch(1);\nstatic volatile boolean running = true;\n\n// 준비 코드: 지금 읽을 수 있는 바이트만 읽어 pending 뒤에 붙여요. 상대가 닫았으면 -1이에요.\nstatic int readAvailable(SocketChannel ch, Conn conn) throws IOException {\n    ByteBuffer buf = ByteBuffer.allocate(64);\n    int n = ch.read(buf);\n    if (n > 0) {\n        conn.pending.write(buf.array(), 0, n);\n        if (conn.id == 1) firstRead.countDown();\n    }\n    return n;\n}\n\n// 준비 코드: 프레임은 길이 1바이트 + 본문이에요. pending 앞에 완성된 프레임이 있는지 봐요.\nstatic boolean hasFrame(Conn conn) {\n    byte[] b = conn.pending.toByteArray();\n    return b.length > 0 && b.length >= 1 + b[0];\n}\n\n// 준비 코드: 완성된 프레임을 모두 꺼내고, 남은 앞부분은 pending에 그대로 둬요.\nstatic List<String> takeFrames(Conn conn) {\n    byte[] b = conn.pending.toByteArray();\n    List<String> out = new ArrayList<>();\n    int i = 0;\n    while (i < b.length && i + 1 + b[i] <= b.length) {\n        out.add(new String(b, i + 1, b[i], StandardCharsets.UTF_8));\n        i += 1 + b[i];\n    }\n    conn.pending.reset();\n    conn.pending.write(b, i, b.length - i);\n    return out;\n}\n\nstatic void reply(SocketChannel ch, Conn conn, String body) throws IOException {\n    conn.frames.add(body);\n    ch.write(ByteBuffer.wrap((\"OK \" + body.toUpperCase() + \"\\n\").getBytes(StandardCharsets.UTF_8)));\n}\n\n// 이벤트 루프가 \"이 연결에서 읽을 수 있어요\"라는 알림을 받으면 실행돼요.\n// 이 메서드가 돌아오기 전에는 같은 스레드의 다른 연결을 처리하지 못해요.\nstatic void onReadable(SocketChannel ch, Conn conn) throws IOException {\n    if (readAvailable(ch, conn) < 0) { ch.close(); return; }\n    // 고친 곳: 읽을 수 있다는 알림은 \"프레임이 다 왔다\"는 뜻이 아니에요.\n    // 아직 다 오지 않았으면 기다리지 않고 루프로 돌아가요. 앞부분은 이 연결의 pending에 남아요.\n    // 다음 알림 때 나머지가 pending 뒤에 붙고, 그때 프레임을 꺼내요.\n    if (!hasFrame(conn)) return;\n    for (String body : takeFrames(conn)) reply(ch, conn, body);\n}\n\n// 준비 코드: 스레드 하나로 모든 연결을 돌보는 이벤트 루프예요.\nstatic void serve(ServerSocketChannel server) {\n    try (Selector selector = Selector.open()) {\n        server.configureBlocking(false);\n        server.register(selector, SelectionKey.OP_ACCEPT);\n        while (running) {\n            selector.select(100);\n            Iterator<SelectionKey> keys = selector.selectedKeys().iterator();\n            while (keys.hasNext()) {\n                SelectionKey key = keys.next();\n                keys.remove();\n                if (!key.isValid()) continue;\n                if (key.isAcceptable()) {\n                    SocketChannel ch = server.accept();\n                    if (ch == null) continue;\n                    ch.configureBlocking(false);\n                    Conn conn = new Conn(conns.size() + 1);\n                    conns.add(conn);\n                    ch.register(selector, SelectionKey.OP_READ, conn);\n                } else if (key.isReadable()) {\n                    onReadable((SocketChannel) key.channel(), (Conn) key.attachment());\n                }\n            }\n        }\n    } catch (IOException e) {\n        System.out.println(\"서버 오류 \" + e.getMessage());\n    }\n}\n\n// 준비 코드(시험 클라이언트): 응답 한 줄을 2초까지 기다려요. 시간 제한은 멈춤을 찾는 용도예요.\nstatic String readLine(Socket s) throws IOException {\n    InputStream in = s.getInputStream();\n    StringBuilder line = new StringBuilder();\n    try {\n        for (int c = in.read(); c != -1 && c != '\\n'; c = in.read()) line.append((char) c);\n    } catch (SocketTimeoutException e) {\n        return \"시간 초과 2초 안에 응답이 없어요\";\n    }\n    return line.toString();\n}\n\nstatic void send(Socket s, byte[] bytes) throws IOException {\n    OutputStream out = s.getOutputStream();\n    out.write(bytes);\n    out.flush();\n}\n\nvoid main() throws Exception {\n    Scanner in = new Scanner(System.in);\n    String scenario = in.hasNextLine() ? in.nextLine().trim() : \"\";\n    ServerSocketChannel server = ServerSocketChannel.open();\n    // 127.0.0.1에만 열고 포트 0을 주면 운영체제가 빈 포트를 골라요. 실행할 때마다 달라질 수 있어요.\n    server.bind(new InetSocketAddress(\"127.0.0.1\", 0));\n    int port = ((InetSocketAddress) server.getLocalAddress()).getPort();\n    Thread loop = Thread.ofPlatform().start(() -> serve(server));\n    try (Socket a = new Socket(\"127.0.0.1\", port)) {\n        a.setSoTimeout(2000);\n        send(a, new byte[]{5, 'h'});\n        System.out.println(\"A 보냄 | 앞 2바이트 길이 5 중 본문 1글자\");\n        if (!firstRead.await(2, TimeUnit.SECONDS)) System.out.println(\"서버가 A를 읽지 못했어요\");\n        try (Socket b = new Socket(\"127.0.0.1\", port)) {\n            b.setSoTimeout(2000);\n            if (scenario.equals(\"two\")) {\n                send(b, new byte[]{2, 'h', 'i', 2, 'y', 'o'});\n                System.out.println(\"B 보냄 | 완전한 메시지 두 개 hi yo\");\n                System.out.println(\"B 응답 | \" + readLine(b));\n                System.out.println(\"B 응답 | \" + readLine(b));\n            } else {\n                send(b, new byte[]{2, 'h', 'i'});\n                System.out.println(\"B 보냄 | 완전한 메시지 hi\");\n                System.out.println(\"B 응답 | \" + readLine(b));\n            }\n            send(a, \"ello\".getBytes(StandardCharsets.UTF_8));\n            System.out.println(\"A 보냄 | 나머지 4바이트\");\n            System.out.println(\"A 응답 | \" + readLine(a));\n        }\n    }\n    running = false;\n    loop.join(3000);\n    server.close();\n    for (Conn c : conns) System.out.println(\"서버 연결 \" + c.id + \" | 처리한 프레임 \" + c.frames);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "A 보냄 | 앞 2바이트 길이 5 중 본문 1글자\nB 보냄 | 완전한 메시지 hi\nB 응답 | OK HI\nA 보냄 | 나머지 4바이트\nA 응답 | OK HELLO\n서버 연결 1 | 처리한 프레임 [hello]\n서버 연결 2 | 처리한 프레임 [hi]\n"
+        },
+        {
+          "input": "two",
+          "expected": "A 보냄 | 앞 2바이트 길이 5 중 본문 1글자\nB 보냄 | 완전한 메시지 두 개 hi yo\nB 응답 | OK HI\nB 응답 | OK YO\nA 보냄 | 나머지 4바이트\nA 응답 | OK HELLO\n서버 연결 1 | 처리한 프레임 [hello]\n서버 연결 2 | 처리한 프레임 [hi, yo]\n"
+        }
+      ],
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "실행 기록 · 연결별 사건 (실제 소켓 실행)",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "시작 코드 · B 메시지 하나",
+              "frames": [
+                {
+                  "caption": "시작 코드를 실제 127.0.0.1 소켓으로 실행한 출력이에요. 서버 줄은 연결별로 모은 기록이에요.",
+                  "facts": {
+                    "1 기록": "시작 코드 · B 메시지 하나",
+                    "2 근거": "정답이 아니라 시작 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "1번째 줄 · A 보냄 | 앞 2바이트 길이 5 중 본문 1글자",
+                  "facts": {
+                    "1 A": "보냄",
+                    "2 앞": "2바이트 길이 5 중 본문 1글자"
+                  }
+                },
+                {
+                  "caption": "2번째 줄 · B 보냄 | 완전한 메시지 hi",
+                  "facts": {
+                    "1 B": "보냄",
+                    "2 완전한": "메시지 hi"
+                  }
+                },
+                {
+                  "caption": "3번째 줄 · B 응답 | 시간 초과 2초 안에 응답이 없어요",
+                  "facts": {
+                    "1 B": "응답",
+                    "2 시간": "초과 2초 안에 응답이 없어요"
+                  }
+                },
+                {
+                  "caption": "4번째 줄 · A 보냄 | 나머지 4바이트",
+                  "facts": {
+                    "1 A": "보냄",
+                    "2 나머지": "4바이트"
+                  }
+                },
+                {
+                  "caption": "5번째 줄 · A 응답 | OK HELLO",
+                  "facts": {
+                    "1 A": "응답",
+                    "2 OK": "HELLO"
+                  }
+                },
+                {
+                  "caption": "6번째 줄 · 서버 연결 1 | 처리한 프레임 [hello]",
+                  "facts": {
+                    "1 서버": "연결 1",
+                    "2 처리한": "프레임 [hello]"
+                  }
+                },
+                {
+                  "caption": "7번째 줄 · 서버 연결 2 | 처리한 프레임 [hi]",
+                  "facts": {
+                    "1 서버": "연결 2",
+                    "2 처리한": "프레임 [hi]"
+                  }
+                }
+              ]
+            },
+            {
+              "label": "시작 코드 · B 메시지 두 개",
+              "frames": [
+                {
+                  "caption": "시작 코드를 실제 127.0.0.1 소켓으로 실행한 출력이에요. 서버 줄은 연결별로 모은 기록이에요.",
+                  "facts": {
+                    "1 기록": "시작 코드 · B 메시지 두 개",
+                    "2 근거": "정답이 아니라 시작 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "1번째 줄 · A 보냄 | 앞 2바이트 길이 5 중 본문 1글자",
+                  "facts": {
+                    "1 A": "보냄",
+                    "2 앞": "2바이트 길이 5 중 본문 1글자"
+                  }
+                },
+                {
+                  "caption": "2번째 줄 · B 보냄 | 완전한 메시지 두 개 hi yo",
+                  "facts": {
+                    "1 B": "보냄",
+                    "2 완전한": "메시지 두 개 hi yo"
+                  }
+                },
+                {
+                  "caption": "3번째 줄 · B 응답 | 시간 초과 2초 안에 응답이 없어요",
+                  "facts": {
+                    "1 B": "응답",
+                    "2 시간": "초과 2초 안에 응답이 없어요"
+                  }
+                },
+                {
+                  "caption": "4번째 줄 · B 응답 | 시간 초과 2초 안에 응답이 없어요",
+                  "facts": {
+                    "1 B": "응답",
+                    "2 시간": "초과 2초 안에 응답이 없어요"
+                  }
+                },
+                {
+                  "caption": "5번째 줄 · A 보냄 | 나머지 4바이트",
+                  "facts": {
+                    "1 A": "보냄",
+                    "2 나머지": "4바이트"
+                  }
+                },
+                {
+                  "caption": "6번째 줄 · A 응답 | OK HELLO",
+                  "facts": {
+                    "1 A": "응답",
+                    "2 OK": "HELLO"
+                  }
+                },
+                {
+                  "caption": "7번째 줄 · 서버 연결 1 | 처리한 프레임 [hello]",
+                  "facts": {
+                    "1 서버": "연결 1",
+                    "2 처리한": "프레임 [hello]"
+                  }
+                },
+                {
+                  "caption": "8번째 줄 · 서버 연결 2 | 처리한 프레임 [hi, yo]",
+                  "facts": {
+                    "1 서버": "연결 2",
+                    "2 처리한": "프레임 [hi, yo]"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "읽을 수 있다는 알림은 메시지가 다 왔다는 뜻이 아니에요.",
+          "target": "text:읽을 수 있다는 알림이 왔다고 메시지가 다 온 건 아니에요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "B 응답 줄이 2초 시간 초과예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "서버가 A의 나머지를 기다리며 이 반복에 머물러요.",
+          "target": "code:while (!hasFrame(conn)) {"
+        },
+        {
+          "action": "patch_code",
+          "before": "    // 고칠 곳: 프레임이 다 올 때까지 여기서 계속 읽으며 기다려요.\n    while (!hasFrame(conn)) {\n        if (readAvailable(ch, conn) < 0) { ch.close(); return; }\n    }",
+          "after": "    // 고친 곳: 읽을 수 있다는 알림은 \"프레임이 다 왔다\"는 뜻이 아니에요.\n    // 아직 다 오지 않았으면 기다리지 않고 루프로 돌아가요. 앞부분은 이 연결의 pending에 남아요.\n    // 다음 알림 때 나머지가 pending 뒤에 붙고, 그때 프레임을 꺼내요.\n    if (!hasFrame(conn)) return;",
+          "say": "프레임이 덜 왔으면 바로 루프로 돌아가요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "B가 OK HI를 먼저 받고, A는 나머지가 온 뒤 OK HELLO를 받아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 돌아가면서 앞부분을 지우면 A의 메시지를 완성하지 못해요.",
+          "target": "code:if (!hasFrame(conn)) return;"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    }
+  ]
+}

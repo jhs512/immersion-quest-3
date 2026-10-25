@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "b025522bd6bfbb442b1e18b1e5356511efd0e6eda095a843482b8f51f1386deb",
+  "entry": [
+    {
+      "action": "say",
+      "text": "읽을 수 있다는 알림은 메시지가 다 왔다는 뜻이 아니에요.",
+      "target": "text:읽을 수 있다는 알림이 왔다고 메시지가 다 온 건 아니에요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "B 응답 줄이 2초 시간 초과예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "서버가 A의 나머지를 기다리며 이 반복에 머물러요.",
+      "target": "code:while (!hasFrame(conn)) {"
+    },
+    {
+      "action": "patch_code",
+      "before": "    // 고칠 곳: 프레임이 다 올 때까지 여기서 계속 읽으며 기다려요.\n    while (!hasFrame(conn)) {\n        if (readAvailable(ch, conn) < 0) { ch.close(); return; }\n    }",
+      "after": "    // 고친 곳: 읽을 수 있다는 알림은 \"프레임이 다 왔다\"는 뜻이 아니에요.\n    // 아직 다 오지 않았으면 기다리지 않고 루프로 돌아가요. 앞부분은 이 연결의 pending에 남아요.\n    // 다음 알림 때 나머지가 pending 뒤에 붙고, 그때 프레임을 꺼내요.\n    if (!hasFrame(conn)) return;",
+      "say": "프레임이 덜 왔으면 바로 루프로 돌아가요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "B가 OK HI를 먼저 받고, A는 나머지가 온 뒤 OK HELLO를 받아요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 돌아가면서 앞부분을 지우면 A의 메시지를 완성하지 못해요.",
+      "target": "code:if (!hasFrame(conn)) return;"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

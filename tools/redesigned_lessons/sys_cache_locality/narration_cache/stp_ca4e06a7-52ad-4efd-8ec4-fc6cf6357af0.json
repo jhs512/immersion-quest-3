@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "3fb334314dace0defa6b90ae9b392587a7f8910c41fe43bf0582c3f3d4752cd2",
+  "entry": [
+    {
+      "action": "say",
+      "text": "지금은 a[0][0] 다음에 아래 행의 a[1][0]을 읽어요.",
+      "target": "text:그런데 지금 코드는 a[0][0] 다음에 a[1][0]을 읽어요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "32번 읽기가 모두 미스예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "바깥 반복이 열이라 읽을 때마다 다른 줄로 건너뛰어요.",
+      "target": "code:for (int c = 0; c < COLS; c++) {"
+    },
+    {
+      "action": "patch_code",
+      "before": "    // 고칠 곳: 지금은 열을 먼저 고정하고 아래로(행 방향으로) 내려가며 읽어요.\n    for (int c = 0; c < COLS; c++) {\n        for (int r = 0; r < ROWS; r++) {",
+      "after": "    // 고친 곳: 행을 먼저 고정하고 옆으로(열 방향으로) 읽어요.\n    // 메모리에서 이웃한 int 4개가 한 캐시 줄에 함께 들어오므로 한 번 미스 뒤 세 번은 적중해요.\n    for (int r = 0; r < ROWS; r++) {\n        for (int c = 0; c < COLS; c++) {",
+      "say": "행을 바깥, 열을 안쪽 반복으로 바꿔요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "합계는 592 그대로이고 미스는 8번으로 줄었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "한 줄을 가져오면 같은 줄의 나머지 세 칸은 적중해요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 안쪽 끝을 ROWS로 쓰면 읽는 칸이 달라져 합계가 틀려요.",
+      "target": "code:for (int c = 0; c < COLS; c++) {"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

@@ -27,6 +27,7 @@ pub mod course_visibility;
 pub mod challenges;
 pub mod pilot_source;
 pub mod lesson_registry;
+pub mod lesson_categories;
 pub mod lesson_runner;
 pub mod task_interaction;
 pub mod auto_review;

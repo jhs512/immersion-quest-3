@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "cdb0c6b9b9625b547b7bb1ab86c61e7678e2885d60fbb4ac7cb67ce2495a8912",
+  "entry": [
+    {
+      "action": "say",
+      "text": "이름은 안쪽 환경부터 바깥으로 찾아요.",
+      "target": "text:이름을 찾을 때는 안쪽부터 바깥으로 찾아요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "set 뒤에 블록 환경에 count=1이 새로 생겼어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "블록이 끝나자 바깥 count는 0 그대로예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "지금 set은 현재 환경의 표에 값을 넣어요.",
+      "target": "code:env.vars.put(name, value);"
+    },
+    {
+      "action": "patch_code",
+      "before": "                    // 고칠 곳: 지금은 현재 환경에 값을 넣어요.\n                    env.vars.put(name, value);",
+      "after": "                    // 고친 곳: set은 새 이름을 만들지 않고, 이미 정의된 이름의 값을 바꿔요.\n                    // 그래서 이름을 정의한 가장 가까운 환경을 찾아 그 표를 고쳐요. 없으면 find가 오류를 내요.\n                    env.find(name).vars.put(name, value);",
+      "say": "이름을 정의한 환경을 찾아 그 표를 고쳐요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "set 뒤 바깥 환경이 count=1이고, 블록 뒤 출력도 1이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 늘 가장 바깥 환경을 고치면 안쪽 let으로 가린 이름은 그대로예요.",
+      "target": "code:env.find(name).vars.put(name, value);"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

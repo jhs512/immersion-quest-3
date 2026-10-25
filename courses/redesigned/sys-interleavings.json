@@ -1,0 +1,197 @@
+{
+  "schema_version": 2,
+  "id": "lsn_2bf46a1f-7613-43b6-90a9-859993baac1f",
+  "revision": "sys-interleavings-1",
+  "title": "동시성 · 끼어드는 모든 순서를 세어 봐요",
+  "description": "조회수를 1씩 올리는 작업 두 개가 있어요. 한 번 실행해서 2가 나왔다고 안전한 걸까요? 가능한 순서를 모두 따라가 보면 여러 순서에서 1이 나와요.",
+  "objectives": [
+    "두 작업의 읽기·쓰기가 끼어드는 모든 순서를 나열해 갱신을 잃는 순서를 세고, 읽기부터 쓰기까지를 나눌 수 없는 한 단계로 묶으면 모든 순서에서 맞는다는 것을 확인해요."
+  ],
+  "sources": [
+    "https://docs.oracle.com/javase/specs/jls/se25/html/jls-17.html",
+    "https://cs162.org/"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_0042dd2b-958b-47ad-ab4b-f1a4d068b447",
+      "title": "동시성 · 끼어드는 모든 순서를 세어 봐요",
+      "objectives": [
+        "두 작업의 단계가 끼어드는 모든 순서를 세어 갱신 손실을 확인해요."
+      ],
+      "units": [
+        {
+          "id": "unt_caae2dc9-bb3a-4e05-a173-1f5615bad91d",
+          "title": "최종 문제",
+          "objectives": [
+            "읽기·쓰기를 나눴을 때와 한 단계로 묶었을 때의 순서 수와 결과를 비교해요."
+          ],
+          "premise": "조회수를 1씩 올리는 작업 두 개가 있어요. 한 번 실행해서 2가 나왔다고 안전한 걸까요? 가능한 순서를 모두 따라가 보면 여러 순서에서 1이 나와요.",
+          "steps": [
+            {
+              "id": "stp_356ae771-0ef5-4af9-b6ef-25dfed95313e",
+              "objectives": [
+                "읽기와 쓰기를 원자적 한 단계로 묶어 갱신 손실을 없애요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_356ae771-0ef5-4af9-b6ef-25dfed95313e",
+      "title": "끼어드는 모든 순서를 세어 봐요",
+      "question": "여섯 가지 순서 가운데 몇 개에서 갱신을 잃을까요? 어떻게 묶어야 0개가 될까요?",
+      "goal": "자, 작업 A와 B가 조회수를 하나씩 올려요. 각 작업은 공유 값을 읽고, 1을 더해 써요.\n\n두 작업이 동시에 돌면 단계가 서로 끼어들 수 있어요. 이 나열기는 실제 스레드를 띄우지 않아요. 가능한 모든 순서를 하나씩 따라가며 결과를 기록해요.\n\n여기서는 원자성(나눌 수 없는 한 단계)만 다뤄요. 다른 스레드가 언제 값을 보게 되는지(가시성)는 다른 문제예요.\n\n**할 일**\n\n1. 실행 버튼을 눌러 순서마다 결과를 읽으세요.\n2. \"갱신 잃음\" 순서에서 두 읽기가 두 쓰기보다 앞에 있는지 확인하세요.\n3. `steps`의 고칠 곳 한 줄을 읽기와 쓰기를 한 단계로 묶게 고치세요.\n4. 다시 실행해 갱신을 잃은 순서가 0개인지 확인하세요.\n5. 제출 버튼을 누르세요. 작업 3개 조건도 함께 검사해요.",
+      "language": "java",
+      "starter_code": "import java.util.ArrayList;\nimport java.util.List;\n\n// 준비 값: 조회수를 1씩 올리는 작업의 수예요.\nstatic final int TASKS = 2;\n\n// 작업 하나가 거치는 단계예요. 준비된 단계 이름은 세 가지예요.\n// \"읽기\": 공유 값을 자기 지역 값으로 읽어요. \"쓰기\": 지역 값 + 1을 공유 값에 써요.\n// \"읽고쓰기\": 읽기와 쓰기를 다른 작업이 끼어들 수 없는 한 단계로 해요.\nstatic List<String> steps() {\n    // 고칠 곳: 지금은 읽기와 쓰기가 따로라서 그 사이에 다른 작업이 끼어들 수 있어요.\n    return List.of(\"읽기\", \"쓰기\");\n}\n\nstatic int schedules = 0, lost = 0;\n\n// 준비 코드: 각 작업의 단계 순서는 지키면서, 작업끼리 끼어드는 모든 순서를 하나씩 만들어요.\nstatic void explore(int[] done, List<String> order) {\n    int per = steps().size();\n    boolean finished = true;\n    for (int t = 0; t < TASKS; t++) {\n        if (done[t] < per) {\n            finished = false;\n            done[t]++;\n            order.add((char) ('A' + t) + \" \" + steps().get(done[t] - 1));\n            explore(done, order);\n            order.remove(order.size() - 1);\n            done[t]--;\n        }\n    }\n    if (finished) run(order);\n}\n\n// 준비 코드: 한 순서를 실제로 따라가며 공유 값과 각 작업의 지역 값을 기록해요.\nstatic void run(List<String> order) {\n    schedules++;\n    int shared = 0;\n    int[] local = new int[TASKS];\n    for (String step : order) {\n        int t = step.charAt(0) - 'A';\n        switch (step.substring(2)) {\n            case \"읽기\" -> local[t] = shared;\n            case \"쓰기\" -> shared = local[t] + 1;\n            case \"읽고쓰기\" -> shared = shared + 1;\n            default -> throw new IllegalStateException(\"모르는 단계 \" + step);\n        }\n    }\n    boolean ok = shared == TASKS;\n    if (!ok) lost++;\n    System.out.println(\"순서 \" + schedules + \" | \" + String.join(\", \", order) + \" | 결과 \" + shared + (ok ? \"\" : \" 갱신 잃음\"));\n}\n\nvoid main() {\n    explore(new int[TASKS], new ArrayList<>());\n    System.out.println(\"가능한 순서 \" + schedules + \"개 중 \" + lost + \"개에서 갱신을 잃었어요.\");\n}\n",
+      "solution": "import java.util.ArrayList;\nimport java.util.List;\n\n// 준비 값: 조회수를 1씩 올리는 작업의 수예요.\nstatic final int TASKS = 2;\n\n// 작업 하나가 거치는 단계예요. 준비된 단계 이름은 세 가지예요.\n// \"읽기\": 공유 값을 자기 지역 값으로 읽어요. \"쓰기\": 지역 값 + 1을 공유 값에 써요.\n// \"읽고쓰기\": 읽기와 쓰기를 다른 작업이 끼어들 수 없는 한 단계로 해요.\nstatic List<String> steps() {\n    // 고친 곳: 읽고 1을 더해 쓰는 일을 나눌 수 없는 한 단계(원자적 갱신)로 묶어요.\n    // 그러면 다른 작업은 이 단계의 앞이나 뒤에만 올 수 있어서 갱신을 잃는 순서가 없어요.\n    return List.of(\"읽고쓰기\");\n}\n\nstatic int schedules = 0, lost = 0;\n\n// 준비 코드: 각 작업의 단계 순서는 지키면서, 작업끼리 끼어드는 모든 순서를 하나씩 만들어요.\nstatic void explore(int[] done, List<String> order) {\n    int per = steps().size();\n    boolean finished = true;\n    for (int t = 0; t < TASKS; t++) {\n        if (done[t] < per) {\n            finished = false;\n            done[t]++;\n            order.add((char) ('A' + t) + \" \" + steps().get(done[t] - 1));\n            explore(done, order);\n            order.remove(order.size() - 1);\n            done[t]--;\n        }\n    }\n    if (finished) run(order);\n}\n\n// 준비 코드: 한 순서를 실제로 따라가며 공유 값과 각 작업의 지역 값을 기록해요.\nstatic void run(List<String> order) {\n    schedules++;\n    int shared = 0;\n    int[] local = new int[TASKS];\n    for (String step : order) {\n        int t = step.charAt(0) - 'A';\n        switch (step.substring(2)) {\n            case \"읽기\" -> local[t] = shared;\n            case \"쓰기\" -> shared = local[t] + 1;\n            case \"읽고쓰기\" -> shared = shared + 1;\n            default -> throw new IllegalStateException(\"모르는 단계 \" + step);\n        }\n    }\n    boolean ok = shared == TASKS;\n    if (!ok) lost++;\n    System.out.println(\"순서 \" + schedules + \" | \" + String.join(\", \", order) + \" | 결과 \" + shared + (ok ? \"\" : \" 갱신 잃음\"));\n}\n\nvoid main() {\n    explore(new int[TASKS], new ArrayList<>());\n    System.out.println(\"가능한 순서 \" + schedules + \"개 중 \" + lost + \"개에서 갱신을 잃었어요.\");\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "순서 1 | A 읽고쓰기, B 읽고쓰기 | 결과 2\n순서 2 | B 읽고쓰기, A 읽고쓰기 | 결과 2\n가능한 순서 2개 중 0개에서 갱신을 잃었어요.\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "TASKS": "3"
+          },
+          "expected": "순서 1 | A 읽고쓰기, B 읽고쓰기, C 읽고쓰기 | 결과 3\n순서 2 | A 읽고쓰기, C 읽고쓰기, B 읽고쓰기 | 결과 3\n순서 3 | B 읽고쓰기, A 읽고쓰기, C 읽고쓰기 | 결과 3\n순서 4 | B 읽고쓰기, C 읽고쓰기, A 읽고쓰기 | 결과 3\n순서 5 | C 읽고쓰기, A 읽고쓰기, B 읽고쓰기 | 결과 3\n순서 6 | C 읽고쓰기, B 읽고쓰기, A 읽고쓰기 | 결과 3\n가능한 순서 6개 중 0개에서 갱신을 잃었어요.\n"
+        },
+        {
+          "values": {
+            "TASKS": "1"
+          },
+          "expected": "순서 1 | A 읽고쓰기 | 결과 1\n가능한 순서 1개 중 0개에서 갱신을 잃었어요.\n"
+        }
+      ],
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "실행 기록 · 가능한 모든 순서 (결정적 나열, 실제 스레드 아님)",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "시작 코드 · 작업 2개",
+              "frames": [
+                {
+                  "caption": "준비된 나열기를 실제로 실행한 출력이에요. 실제 스레드 스케줄을 잰 것이 아니에요.",
+                  "facts": {
+                    "1 기록": "시작 코드 · 작업 2개",
+                    "2 근거": "정답이 아니라 시작 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "1번째 줄 · 순서 1 | A 읽기, A 쓰기, B 읽기, B 쓰기 | 결과 2",
+                  "facts": {
+                    "1 순서": "1",
+                    "2 A": "읽기, A 쓰기, B 읽기, B 쓰기",
+                    "3 결과": "2"
+                  }
+                },
+                {
+                  "caption": "2번째 줄 · 순서 2 | A 읽기, B 읽기, A 쓰기, B 쓰기 | 결과 1 갱신 잃음",
+                  "facts": {
+                    "1 순서": "2",
+                    "2 A": "읽기, B 읽기, A 쓰기, B 쓰기",
+                    "3 결과": "1 갱신 잃음"
+                  }
+                },
+                {
+                  "caption": "3번째 줄 · 순서 3 | A 읽기, B 읽기, B 쓰기, A 쓰기 | 결과 1 갱신 잃음",
+                  "facts": {
+                    "1 순서": "3",
+                    "2 A": "읽기, B 읽기, B 쓰기, A 쓰기",
+                    "3 결과": "1 갱신 잃음"
+                  }
+                },
+                {
+                  "caption": "4번째 줄 · 순서 4 | B 읽기, A 읽기, A 쓰기, B 쓰기 | 결과 1 갱신 잃음",
+                  "facts": {
+                    "1 순서": "4",
+                    "2 B": "읽기, A 읽기, A 쓰기, B 쓰기",
+                    "3 결과": "1 갱신 잃음"
+                  }
+                },
+                {
+                  "caption": "5번째 줄 · 순서 5 | B 읽기, A 읽기, B 쓰기, A 쓰기 | 결과 1 갱신 잃음",
+                  "facts": {
+                    "1 순서": "5",
+                    "2 B": "읽기, A 읽기, B 쓰기, A 쓰기",
+                    "3 결과": "1 갱신 잃음"
+                  }
+                },
+                {
+                  "caption": "6번째 줄 · 순서 6 | B 읽기, B 쓰기, A 읽기, A 쓰기 | 결과 2",
+                  "facts": {
+                    "1 순서": "6",
+                    "2 B": "읽기, B 쓰기, A 읽기, A 쓰기",
+                    "3 결과": "2"
+                  }
+                },
+                {
+                  "caption": "7번째 줄 · 가능한 순서 6개 중 4개에서 갱신을 잃었어요.",
+                  "facts": {
+                    "1 가능한": "순서 6개 중 4개에서 갱신을 잃었어요."
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "두 작업 모두 공유 값을 읽고, 1을 더해 써요.",
+          "target": "text:각 작업은 공유 값을 읽고, 1을 더해 써요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "여섯 순서 중 네 개에서 결과가 1이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "두 읽기가 두 쓰기보다 앞서면 둘 다 0을 읽어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "읽기와 쓰기가 따로 나뉜 두 단계예요.",
+          "target": "code:return List.of(\"읽기\", \"쓰기\");"
+        },
+        {
+          "action": "patch_code",
+          "before": "    // 고칠 곳: 지금은 읽기와 쓰기가 따로라서 그 사이에 다른 작업이 끼어들 수 있어요.\n    return List.of(\"읽기\", \"쓰기\");",
+          "after": "    // 고친 곳: 읽고 1을 더해 쓰는 일을 나눌 수 없는 한 단계(원자적 갱신)로 묶어요.\n    // 그러면 다른 작업은 이 단계의 앞이나 뒤에만 올 수 있어서 갱신을 잃는 순서가 없어요.\n    return List.of(\"읽고쓰기\");",
+          "say": "둘을 나눌 수 없는 한 단계로 묶어요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "가능한 순서가 두 개로 줄고, 둘 다 결과 2예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 쓰기를 읽기보다 먼저 두면 아직 읽지 않은 지역 값으로 써서 결과가 틀려요.",
+          "target": "code:return List.of(\"읽고쓰기\");"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    }
+  ]
+}

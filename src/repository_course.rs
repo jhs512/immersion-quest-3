@@ -22,6 +22,9 @@ pub struct CourseManifest {
     pub scope_note: String,
     pub repository: String,
     pub lessons: Vec<LessonRef>,
+    /// Optional topic categories in display order (crate::lesson_categories). Absent = flat lesson list.
+    #[serde(default,skip_serializing_if="Vec::is_empty")]
+    pub categories: Vec<crate::lesson_categories::LessonCategory>,
 }
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 pub struct LessonRef {
@@ -33,6 +36,10 @@ pub struct LessonRef {
     #[serde(default)] pub prerequisites: Vec<String>,
     #[serde(default = "yes")] pub required: bool,
     #[serde(default = "yes")] pub review_enabled: bool,
+    /// Category id from `CourseManifest::categories`; empty or unknown = 미분류.
+    #[serde(default,skip_serializing_if="String::is_empty")] pub category: String,
+    /// "basic" (기본) | "essential" (필수) | "advanced" (고급); other values are ignored. Not the same as `required`.
+    #[serde(default,skip_serializing_if="String::is_empty")] pub track: String,
 }
 fn yes() -> bool { true }
 

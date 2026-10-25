@@ -1,0 +1,257 @@
+{
+  "schema_version": 2,
+  "id": "lsn_fc2e0b8b-63f6-4280-b9e9-17703598cb0b",
+  "revision": "sys-interpreter-env-1",
+  "title": "인터프리터 · 바꾼 값은 이름을 만든 환경에 남아요",
+  "description": "작은 언어의 블록 안에서 count를 1 올렸는데 블록이 끝나자 다시 0이 돼요. 정의하지 않은 이름에 대입해도 오류가 없어요.",
+  "objectives": [
+    "인터프리터가 이름을 환경 사슬에서 찾고, 블록은 새 환경을 만들며, 대입(set)은 이름을 정의한 환경을 고친다는 것을 실행 기록으로 확인해요."
+  ],
+  "sources": [
+    "https://web.mit.edu/6.001/6.037/",
+    "https://www.nand2tetris.org/course"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_19b6b306-b4c8-40bd-a842-980903d768e0",
+      "title": "인터프리터 · 바꾼 값은 이름을 만든 환경에 남아요",
+      "objectives": [
+        "인터프리터가 이름을 환경 사슬에서 찾고 고치는 과정을 확인해요."
+      ],
+      "units": [
+        {
+          "id": "unt_d00569a9-9435-4ac7-9011-109e81a6b675",
+          "title": "최종 문제",
+          "objectives": [
+            "블록 환경·가린 이름·정의 없는 이름을 실행 기록으로 비교해요."
+          ],
+          "premise": "작은 언어의 블록 안에서 count를 1 올렸는데 블록이 끝나자 다시 0이 돼요. 정의하지 않은 이름에 대입해도 오류가 없어요.",
+          "steps": [
+            {
+              "id": "stp_2a6595e0-6c58-407c-a612-0fae2ea56dde",
+              "objectives": [
+                "set이 이름을 정의한 환경의 값을 바꾸게 해요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_2a6595e0-6c58-407c-a612-0fae2ea56dde",
+      "title": "바꾼 값은 이름을 만든 환경에 남아요",
+      "question": "블록 안에서 올린 count가 왜 블록 뒤에 0으로 돌아갔을까요?",
+      "goal": "자, 이 작은 언어에는 let(새 이름 만들기), set(있는 이름의 값 바꾸기), print, 블록 { }이 있어요.\n\n인터프리터는 환경에서 이름을 찾아요. 블록에 들어가면 새 환경이 바깥 환경에 이어 붙어요. 이름을 찾을 때는 안쪽부터 바깥으로 찾아요.\n\n실행 기록의 환경 칸은 왼쪽이 가장 안쪽 환경이에요. 화살표 ← 오른쪽이 바깥 환경이에요.\n\n**할 일**\n\n1. 실행 버튼을 눌러 줄마다 환경 칸이 어떻게 바뀌는지 읽으세요.\n2. 3번째 줄 set 뒤에 count가 어느 환경에 생겼는지 확인하세요.\n3. `set`의 고칠 곳 한 줄을 이름을 정의한 환경을 고치게 바꾸세요.\n4. 다시 실행해 블록 뒤 출력이 1인지 확인하세요.\n5. 제출 버튼을 누르세요. 이름을 가린 프로그램과 정의 없는 이름 프로그램도 함께 검사해요.",
+      "language": "java",
+      "starter_code": "import java.util.ArrayList;\nimport java.util.HashMap;\nimport java.util.List;\nimport java.util.Map;\nimport java.util.Scanner;\n\n// 준비 코드: 환경 하나는 이름→값 표와 바깥 환경(parent)을 가져요. 블록 { }마다 새 환경이 생겨요.\nstatic class Env {\n    final Map<String, Integer> vars = new HashMap<>();\n    final Env parent;\n    Env(Env parent) { this.parent = parent; }\n    // 이 이름을 정의한 가장 가까운 환경을 찾아요. 없으면 오류예요.\n    Env find(String name) {\n        for (Env e = this; e != null; e = e.parent) if (e.vars.containsKey(name)) return e;\n        throw new IllegalStateException(\"정의되지 않은 이름 \" + name);\n    }\n    int lookup(String name) { return find(name).vars.get(name); }\n}\n\n// 준비 코드: 식은 숫자나 이름을 + 와 - 로 이은 것이에요. 예: count + 1\nstatic int eval(List<String> tokens, Env env) {\n    int value = term(tokens.get(0), env);\n    for (int i = 1; i + 1 < tokens.size(); i += 2) {\n        int right = term(tokens.get(i + 1), env);\n        value = tokens.get(i).equals(\"+\") ? value + right : value - right;\n    }\n    return value;\n}\nstatic int term(String token, Env env) {\n    return token.matches(\"-?\\\\d+\") ? Integer.parseInt(token) : env.lookup(token);\n}\n\nstatic String chain(Env env) {\n    List<String> parts = new ArrayList<>();\n    for (Env e = env; e != null; e = e.parent) parts.add(new java.util.TreeMap<>(e.vars).toString());\n    return String.join(\" ← \", parts);\n}\n\nvoid main() {\n    Scanner in = new Scanner(System.in);\n    Env root = new Env(null);\n    Env env = root;\n    int lineNo = 0;\n    while (in.hasNextLine()) {\n        String line = in.nextLine().trim();\n        if (line.isEmpty()) continue;\n        lineNo++;\n        List<String> tokens = List.of(line.split(\"\\\\s+\"));\n        try {\n            switch (tokens.get(0)) {\n                case \"{\" -> env = new Env(env);\n                case \"}\" -> env = env.parent;\n                case \"let\" -> env.vars.put(tokens.get(1), eval(tokens.subList(3, tokens.size()), env));\n                case \"set\" -> {\n                    String name = tokens.get(1);\n                    int value = eval(tokens.subList(3, tokens.size()), env);\n                    // 고칠 곳: 지금은 현재 환경에 값을 넣어요.\n                    env.vars.put(name, value);\n                }\n                case \"print\" -> System.out.println(\"출력 \" + env.lookup(tokens.get(1)));\n                default -> throw new IllegalStateException(\"모르는 문장 \" + tokens.get(0));\n            }\n            System.out.println(\"줄 \" + lineNo + \" | 문장 \" + line + \" | 환경 \" + chain(env));\n        } catch (IllegalStateException e) {\n            System.out.println(\"줄 \" + lineNo + \" | 문장 \" + line + \" | 오류 \" + e.getMessage());\n            return;\n        }\n    }\n}\n",
+      "solution": "import java.util.ArrayList;\nimport java.util.HashMap;\nimport java.util.List;\nimport java.util.Map;\nimport java.util.Scanner;\n\n// 준비 코드: 환경 하나는 이름→값 표와 바깥 환경(parent)을 가져요. 블록 { }마다 새 환경이 생겨요.\nstatic class Env {\n    final Map<String, Integer> vars = new HashMap<>();\n    final Env parent;\n    Env(Env parent) { this.parent = parent; }\n    // 이 이름을 정의한 가장 가까운 환경을 찾아요. 없으면 오류예요.\n    Env find(String name) {\n        for (Env e = this; e != null; e = e.parent) if (e.vars.containsKey(name)) return e;\n        throw new IllegalStateException(\"정의되지 않은 이름 \" + name);\n    }\n    int lookup(String name) { return find(name).vars.get(name); }\n}\n\n// 준비 코드: 식은 숫자나 이름을 + 와 - 로 이은 것이에요. 예: count + 1\nstatic int eval(List<String> tokens, Env env) {\n    int value = term(tokens.get(0), env);\n    for (int i = 1; i + 1 < tokens.size(); i += 2) {\n        int right = term(tokens.get(i + 1), env);\n        value = tokens.get(i).equals(\"+\") ? value + right : value - right;\n    }\n    return value;\n}\nstatic int term(String token, Env env) {\n    return token.matches(\"-?\\\\d+\") ? Integer.parseInt(token) : env.lookup(token);\n}\n\nstatic String chain(Env env) {\n    List<String> parts = new ArrayList<>();\n    for (Env e = env; e != null; e = e.parent) parts.add(new java.util.TreeMap<>(e.vars).toString());\n    return String.join(\" ← \", parts);\n}\n\nvoid main() {\n    Scanner in = new Scanner(System.in);\n    Env root = new Env(null);\n    Env env = root;\n    int lineNo = 0;\n    while (in.hasNextLine()) {\n        String line = in.nextLine().trim();\n        if (line.isEmpty()) continue;\n        lineNo++;\n        List<String> tokens = List.of(line.split(\"\\\\s+\"));\n        try {\n            switch (tokens.get(0)) {\n                case \"{\" -> env = new Env(env);\n                case \"}\" -> env = env.parent;\n                case \"let\" -> env.vars.put(tokens.get(1), eval(tokens.subList(3, tokens.size()), env));\n                case \"set\" -> {\n                    String name = tokens.get(1);\n                    int value = eval(tokens.subList(3, tokens.size()), env);\n                    // 고친 곳: set은 새 이름을 만들지 않고, 이미 정의된 이름의 값을 바꿔요.\n                    // 그래서 이름을 정의한 가장 가까운 환경을 찾아 그 표를 고쳐요. 없으면 find가 오류를 내요.\n                    env.find(name).vars.put(name, value);\n                }\n                case \"print\" -> System.out.println(\"출력 \" + env.lookup(tokens.get(1)));\n                default -> throw new IllegalStateException(\"모르는 문장 \" + tokens.get(0));\n            }\n            System.out.println(\"줄 \" + lineNo + \" | 문장 \" + line + \" | 환경 \" + chain(env));\n        } catch (IllegalStateException e) {\n            System.out.println(\"줄 \" + lineNo + \" | 문장 \" + line + \" | 오류 \" + e.getMessage());\n            return;\n        }\n    }\n}\n",
+      "tests": [
+        {
+          "input": "let count = 0\n{\nset count = count + 1\nlet note = 5\nprint count\n}\nprint count\n",
+          "expected": "줄 1 | 문장 let count = 0 | 환경 {count=0}\n줄 2 | 문장 { | 환경 {} ← {count=0}\n줄 3 | 문장 set count = count + 1 | 환경 {} ← {count=1}\n줄 4 | 문장 let note = 5 | 환경 {note=5} ← {count=1}\n출력 1\n줄 5 | 문장 print count | 환경 {note=5} ← {count=1}\n줄 6 | 문장 } | 환경 {count=1}\n출력 1\n줄 7 | 문장 print count | 환경 {count=1}\n"
+        },
+        {
+          "input": "let x = 1\n{\nlet x = 10\nset x = x + 1\nprint x\n}\nprint x\n",
+          "expected": "줄 1 | 문장 let x = 1 | 환경 {x=1}\n줄 2 | 문장 { | 환경 {} ← {x=1}\n줄 3 | 문장 let x = 10 | 환경 {x=10} ← {x=1}\n줄 4 | 문장 set x = x + 1 | 환경 {x=11} ← {x=1}\n출력 11\n줄 5 | 문장 print x | 환경 {x=11} ← {x=1}\n줄 6 | 문장 } | 환경 {x=1}\n출력 1\n줄 7 | 문장 print x | 환경 {x=1}\n"
+        },
+        {
+          "input": "let a = 2\n{\nset b = a + 1\n}\nprint b\n",
+          "expected": "줄 1 | 문장 let a = 2 | 환경 {a=2}\n줄 2 | 문장 { | 환경 {} ← {a=2}\n줄 3 | 문장 set b = a + 1 | 오류 정의되지 않은 이름 b\n"
+        }
+      ],
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "실행 기록 · 줄마다 환경 사슬 (실제 인터프리터 실행)",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "시작 코드 · count 올리기",
+              "frames": [
+                {
+                  "caption": "준비된 Java 인터프리터를 실제로 실행한 출력이에요. 왼쪽이 가장 안쪽 환경이에요.",
+                  "facts": {
+                    "1 기록": "시작 코드 · count 올리기",
+                    "2 근거": "정답이 아니라 시작 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "1번째 줄 · 줄 1 | 문장 let count = 0 | 환경 {count=0}",
+                  "facts": {
+                    "1 줄": "1",
+                    "2 문장": "let count = 0",
+                    "3 환경": "{count=0}"
+                  }
+                },
+                {
+                  "caption": "2번째 줄 · 줄 2 | 문장 { | 환경 {} ← {count=0}",
+                  "facts": {
+                    "1 줄": "2",
+                    "2 문장": "{",
+                    "3 환경": "{} ← {count=0}"
+                  }
+                },
+                {
+                  "caption": "3번째 줄 · 줄 3 | 문장 set count = count + 1 | 환경 {count=1} ← {count=0}",
+                  "facts": {
+                    "1 줄": "3",
+                    "2 문장": "set count = count + 1",
+                    "3 환경": "{count=1} ← {count=0}"
+                  }
+                },
+                {
+                  "caption": "4번째 줄 · 줄 4 | 문장 let note = 5 | 환경 {count=1, note=5} ← {count=0}",
+                  "facts": {
+                    "1 줄": "4",
+                    "2 문장": "let note = 5",
+                    "3 환경": "{count=1, note=5} ← {count=0}"
+                  }
+                },
+                {
+                  "caption": "5번째 줄 · 출력 1",
+                  "facts": {
+                    "1 출력": "1"
+                  }
+                },
+                {
+                  "caption": "6번째 줄 · 줄 5 | 문장 print count | 환경 {count=1, note=5} ← {count=0}",
+                  "facts": {
+                    "1 줄": "5",
+                    "2 문장": "print count",
+                    "3 환경": "{count=1, note=5} ← {count=0}"
+                  }
+                },
+                {
+                  "caption": "7번째 줄 · 줄 6 | 문장 } | 환경 {count=0}",
+                  "facts": {
+                    "1 줄": "6",
+                    "2 문장": "}",
+                    "3 환경": "{count=0}"
+                  }
+                },
+                {
+                  "caption": "8번째 줄 · 출력 0",
+                  "facts": {
+                    "1 출력": "0"
+                  }
+                },
+                {
+                  "caption": "9번째 줄 · 줄 7 | 문장 print count | 환경 {count=0}",
+                  "facts": {
+                    "1 줄": "7",
+                    "2 문장": "print count",
+                    "3 환경": "{count=0}"
+                  }
+                }
+              ]
+            },
+            {
+              "label": "시작 코드 · 정의 없는 이름",
+              "frames": [
+                {
+                  "caption": "준비된 Java 인터프리터를 실제로 실행한 출력이에요. 왼쪽이 가장 안쪽 환경이에요.",
+                  "facts": {
+                    "1 기록": "시작 코드 · 정의 없는 이름",
+                    "2 근거": "정답이 아니라 시작 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "1번째 줄 · 줄 1 | 문장 let a = 2 | 환경 {a=2}",
+                  "facts": {
+                    "1 줄": "1",
+                    "2 문장": "let a = 2",
+                    "3 환경": "{a=2}"
+                  }
+                },
+                {
+                  "caption": "2번째 줄 · 줄 2 | 문장 { | 환경 {} ← {a=2}",
+                  "facts": {
+                    "1 줄": "2",
+                    "2 문장": "{",
+                    "3 환경": "{} ← {a=2}"
+                  }
+                },
+                {
+                  "caption": "3번째 줄 · 줄 3 | 문장 set b = a + 1 | 환경 {b=3} ← {a=2}",
+                  "facts": {
+                    "1 줄": "3",
+                    "2 문장": "set b = a + 1",
+                    "3 환경": "{b=3} ← {a=2}"
+                  }
+                },
+                {
+                  "caption": "4번째 줄 · 줄 4 | 문장 } | 환경 {a=2}",
+                  "facts": {
+                    "1 줄": "4",
+                    "2 문장": "}",
+                    "3 환경": "{a=2}"
+                  }
+                },
+                {
+                  "caption": "5번째 줄 · 줄 5 | 문장 print b | 오류 정의되지 않은 이름 b",
+                  "facts": {
+                    "1 줄": "5",
+                    "2 문장": "print b",
+                    "3 오류": "정의되지 않은 이름 b"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "이름은 안쪽 환경부터 바깥으로 찾아요.",
+          "target": "text:이름을 찾을 때는 안쪽부터 바깥으로 찾아요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "set 뒤에 블록 환경에 count=1이 새로 생겼어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "블록이 끝나자 바깥 count는 0 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "지금 set은 현재 환경의 표에 값을 넣어요.",
+          "target": "code:env.vars.put(name, value);"
+        },
+        {
+          "action": "patch_code",
+          "before": "                    // 고칠 곳: 지금은 현재 환경에 값을 넣어요.\n                    env.vars.put(name, value);",
+          "after": "                    // 고친 곳: set은 새 이름을 만들지 않고, 이미 정의된 이름의 값을 바꿔요.\n                    // 그래서 이름을 정의한 가장 가까운 환경을 찾아 그 표를 고쳐요. 없으면 find가 오류를 내요.\n                    env.find(name).vars.put(name, value);",
+          "say": "이름을 정의한 환경을 찾아 그 표를 고쳐요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "set 뒤 바깥 환경이 count=1이고, 블록 뒤 출력도 1이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 늘 가장 바깥 환경을 고치면 안쪽 let으로 가린 이름은 그대로예요.",
+          "target": "code:env.find(name).vars.put(name, value);"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    }
+  ]
+}

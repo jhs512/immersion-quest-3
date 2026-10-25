@@ -1,0 +1,445 @@
+{
+  "description": "조각 6개를 창 크기 3으로 보내는 송신자예요. 2번 조각이 처음 보낼 때 사라져요. 송신자는 \"모두 확인받았다\"고 끝내는데 수신자에게는 0번과 1번만 전달됐어요.",
+  "tasks": [
+    {
+      "id": "stp_b961b82a-a931-4a0d-a695-915840a60618",
+      "title": "확인받은 곳까지만 창을 옮겨요",
+      "question": "송신자는 끝났다는데 왜 수신자에게 조각 두 개만 갔을까요?",
+      "goal": "자, 송신자가 조각 6개를 창 크기 3으로 보내요. 2번 조각은 처음 보낼 때 사라져요.\n\n수신자는 순서대로 온 조각만 받아요. 그리고 \"여기까지 빠짐없이 받았다\"는 마지막 번호를 확인(ACK)으로 돌려줘요. 순서가 어긋난 조각은 버리고 같은 확인을 또 보내요.\n\n이 화면의 네트워크는 Java로 만든 교육용 모형이에요. 실제 TCP의 혼잡 창(cwnd)은 다루지 않고, 보낼 수 있는 미확인 구간만 다뤄요.\n\n**할 일**\n\n1. 실행 버튼을 눌러 출력의 \"확인\"과 \"창\" 줄을 순서대로 읽으세요.\n2. 마지막 두 줄에서 송신자의 말과 수신자 전달 순서를 비교하세요.\n3. 부가 설명 자료의 실행 기록에서 창이 어디서 유실된 조각을 지나쳤는지 찾으세요.\n4. `onAck`의 고칠 곳 한 줄을 누적 확인에 맞게 고치세요.\n5. 다시 실행해 전달 순서가 0부터 5까지인지 확인하세요.\n6. 제출 버튼을 누르세요. 창 크기와 유실 조각을 바꾼 조건도 함께 검사해요.",
+      "language": "java",
+      "starter_code": "import java.util.ArrayList;\nimport java.util.List;\nimport java.util.Set;\nimport java.util.TreeSet;\n\n// 준비 값: 보낼 조각 수, 송신 창 크기, 처음 보낼 때 사라지는 조각 번호예요.\nstatic final int SEGMENTS = 6;\nstatic final int WINDOW = 3;\nstatic final String LOST = \"2\";\n\n// 송신자 상태: base는 아직 확인받지 못한 가장 앞 조각, next는 다음에 새로 보낼 조각이에요.\nstatic int base = 0;\nstatic int next = 0;\nstatic int resent = 0;\n// 수신자 상태: 기다리는 번호와 앱에 전달한 순서예요.\nstatic int expected = 0;\nstatic final List<Integer> delivered = new ArrayList<>();\nstatic final Set<Integer> lostOnce = new TreeSet<>();\n\n// 준비 코드: 수신자는 순서대로 온 조각만 앱에 전달해요.\n// 돌려주는 확인 번호(ACK)는 \"여기까지 빠짐없이 받았다\"는 마지막 번호예요.\nstatic int receive(int seq) {\n    if (seq == expected) {\n        delivered.add(seq);\n        expected++;\n        System.out.println(\"수신 \" + seq + \" | 전달 \" + delivered);\n    } else {\n        System.out.println(\"수신 \" + seq + \" | 버림 기다리는 번호 \" + expected);\n    }\n    return expected - 1;\n}\n\n// 확인 번호 ack를 받았을 때 송신 창의 앞(base)을 옮겨요.\nstatic void onAck(int ack) {\n    // 고칠 곳: 지금은 확인을 하나 받을 때마다 창을 한 칸씩 옮겨요.\n    base = base + 1;\n    System.out.println(\"확인 \" + ack + \" | 창 \" + base + \"~\" + (base + WINDOW - 1));\n}\n\nvoid main() {\n    for (String n : LOST.split(\",\")) {\n        if (!n.isBlank()) lostOnce.add(Integer.parseInt(n.trim()));\n    }\n    int round = 0;\n    while (base < SEGMENTS && round < 20) {\n        round++;\n        int before = base;\n        List<Integer> acks = new ArrayList<>();\n        // 준비 코드: 창 안에서 아직 안 보낸 조각을 보내요.\n        while (next < base + WINDOW && next < SEGMENTS) {\n            if (lostOnce.remove(next)) {\n                System.out.println(\"보냄 \" + next + \" | 유실\");\n            } else {\n                System.out.println(\"보냄 \" + next + \" | 도착\");\n                acks.add(receive(next));\n            }\n            next++;\n        }\n        for (int ack : acks) onAck(ack);\n        // 준비 코드: 이번 차례에 창이 앞으로 가지 않았으면 시간 초과예요. base부터 다시 보내요.\n        if (base == before && base < SEGMENTS) {\n            resent += next - base;\n            System.out.println(\"시간 초과 | 다시 보냄 \" + base + \"~\" + (next - 1));\n            next = base;\n        }\n    }\n    System.out.println(base >= SEGMENTS ? \"송신자: 모두 확인받았어요.\" : \"송신자: 확인받지 못한 조각이 남았어요.\");\n    System.out.println(\"수신자 전달 순서 \" + delivered + \", 다시 보낸 조각 \" + resent + \"개\");\n}\n",
+      "solution": "import java.util.ArrayList;\nimport java.util.List;\nimport java.util.Set;\nimport java.util.TreeSet;\n\n// 준비 값: 보낼 조각 수, 송신 창 크기, 처음 보낼 때 사라지는 조각 번호예요.\nstatic final int SEGMENTS = 6;\nstatic final int WINDOW = 3;\nstatic final String LOST = \"2\";\n\n// 송신자 상태: base는 아직 확인받지 못한 가장 앞 조각, next는 다음에 새로 보낼 조각이에요.\nstatic int base = 0;\nstatic int next = 0;\nstatic int resent = 0;\n// 수신자 상태: 기다리는 번호와 앱에 전달한 순서예요.\nstatic int expected = 0;\nstatic final List<Integer> delivered = new ArrayList<>();\nstatic final Set<Integer> lostOnce = new TreeSet<>();\n\n// 준비 코드: 수신자는 순서대로 온 조각만 앱에 전달해요.\n// 돌려주는 확인 번호(ACK)는 \"여기까지 빠짐없이 받았다\"는 마지막 번호예요.\nstatic int receive(int seq) {\n    if (seq == expected) {\n        delivered.add(seq);\n        expected++;\n        System.out.println(\"수신 \" + seq + \" | 전달 \" + delivered);\n    } else {\n        System.out.println(\"수신 \" + seq + \" | 버림 기다리는 번호 \" + expected);\n    }\n    return expected - 1;\n}\n\n// 확인 번호 ack를 받았을 때 송신 창의 앞(base)을 옮겨요.\nstatic void onAck(int ack) {\n    // 고친 곳: ACK는 \"ack번까지 모두 받았다\"는 누적 확인이에요.\n    // 그래서 창의 앞은 ack 다음 칸이에요. 같은 ACK가 또 와도(중복 확인) 뒤로 가거나 더 가지 않아요.\n    base = Math.max(base, ack + 1);\n    System.out.println(\"확인 \" + ack + \" | 창 \" + base + \"~\" + (base + WINDOW - 1));\n}\n\nvoid main() {\n    for (String n : LOST.split(\",\")) {\n        if (!n.isBlank()) lostOnce.add(Integer.parseInt(n.trim()));\n    }\n    int round = 0;\n    while (base < SEGMENTS && round < 20) {\n        round++;\n        int before = base;\n        List<Integer> acks = new ArrayList<>();\n        // 준비 코드: 창 안에서 아직 안 보낸 조각을 보내요.\n        while (next < base + WINDOW && next < SEGMENTS) {\n            if (lostOnce.remove(next)) {\n                System.out.println(\"보냄 \" + next + \" | 유실\");\n            } else {\n                System.out.println(\"보냄 \" + next + \" | 도착\");\n                acks.add(receive(next));\n            }\n            next++;\n        }\n        for (int ack : acks) onAck(ack);\n        // 준비 코드: 이번 차례에 창이 앞으로 가지 않았으면 시간 초과예요. base부터 다시 보내요.\n        if (base == before && base < SEGMENTS) {\n            resent += next - base;\n            System.out.println(\"시간 초과 | 다시 보냄 \" + base + \"~\" + (next - 1));\n            next = base;\n        }\n    }\n    System.out.println(base >= SEGMENTS ? \"송신자: 모두 확인받았어요.\" : \"송신자: 확인받지 못한 조각이 남았어요.\");\n    System.out.println(\"수신자 전달 순서 \" + delivered + \", 다시 보낸 조각 \" + resent + \"개\");\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "보냄 0 | 도착\n수신 0 | 전달 [0]\n보냄 1 | 도착\n수신 1 | 전달 [0, 1]\n보냄 2 | 유실\n확인 0 | 창 1~3\n확인 1 | 창 2~4\n보냄 3 | 도착\n수신 3 | 버림 기다리는 번호 2\n보냄 4 | 도착\n수신 4 | 버림 기다리는 번호 2\n확인 1 | 창 2~4\n확인 1 | 창 2~4\n시간 초과 | 다시 보냄 2~4\n보냄 2 | 도착\n수신 2 | 전달 [0, 1, 2]\n보냄 3 | 도착\n수신 3 | 전달 [0, 1, 2, 3]\n보냄 4 | 도착\n수신 4 | 전달 [0, 1, 2, 3, 4]\n확인 2 | 창 3~5\n확인 3 | 창 4~6\n확인 4 | 창 5~7\n보냄 5 | 도착\n수신 5 | 전달 [0, 1, 2, 3, 4, 5]\n확인 5 | 창 6~8\n송신자: 모두 확인받았어요.\n수신자 전달 순서 [0, 1, 2, 3, 4, 5], 다시 보낸 조각 3개\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "WINDOW": "1"
+          },
+          "expected": "보냄 0 | 도착\n수신 0 | 전달 [0]\n확인 0 | 창 1~1\n보냄 1 | 도착\n수신 1 | 전달 [0, 1]\n확인 1 | 창 2~2\n보냄 2 | 유실\n시간 초과 | 다시 보냄 2~2\n보냄 2 | 도착\n수신 2 | 전달 [0, 1, 2]\n확인 2 | 창 3~3\n보냄 3 | 도착\n수신 3 | 전달 [0, 1, 2, 3]\n확인 3 | 창 4~4\n보냄 4 | 도착\n수신 4 | 전달 [0, 1, 2, 3, 4]\n확인 4 | 창 5~5\n보냄 5 | 도착\n수신 5 | 전달 [0, 1, 2, 3, 4, 5]\n확인 5 | 창 6~6\n송신자: 모두 확인받았어요.\n수신자 전달 순서 [0, 1, 2, 3, 4, 5], 다시 보낸 조각 1개\n"
+        },
+        {
+          "values": {
+            "LOST": "\"0,4\""
+          },
+          "expected": "보냄 0 | 유실\n보냄 1 | 도착\n수신 1 | 버림 기다리는 번호 0\n보냄 2 | 도착\n수신 2 | 버림 기다리는 번호 0\n확인 -1 | 창 0~2\n확인 -1 | 창 0~2\n시간 초과 | 다시 보냄 0~2\n보냄 0 | 도착\n수신 0 | 전달 [0]\n보냄 1 | 도착\n수신 1 | 전달 [0, 1]\n보냄 2 | 도착\n수신 2 | 전달 [0, 1, 2]\n확인 0 | 창 1~3\n확인 1 | 창 2~4\n확인 2 | 창 3~5\n보냄 3 | 도착\n수신 3 | 전달 [0, 1, 2, 3]\n보냄 4 | 유실\n보냄 5 | 도착\n수신 5 | 버림 기다리는 번호 4\n확인 3 | 창 4~6\n확인 3 | 창 4~6\n시간 초과 | 다시 보냄 4~5\n보냄 4 | 도착\n수신 4 | 전달 [0, 1, 2, 3, 4]\n보냄 5 | 도착\n수신 5 | 전달 [0, 1, 2, 3, 4, 5]\n확인 4 | 창 5~7\n확인 5 | 창 6~8\n송신자: 모두 확인받았어요.\n수신자 전달 순서 [0, 1, 2, 3, 4, 5], 다시 보낸 조각 5개\n"
+        },
+        {
+          "values": {
+            "WINDOW": "4",
+            "LOST": "\"5\""
+          },
+          "expected": "보냄 0 | 도착\n수신 0 | 전달 [0]\n보냄 1 | 도착\n수신 1 | 전달 [0, 1]\n보냄 2 | 도착\n수신 2 | 전달 [0, 1, 2]\n보냄 3 | 도착\n수신 3 | 전달 [0, 1, 2, 3]\n확인 0 | 창 1~4\n확인 1 | 창 2~5\n확인 2 | 창 3~6\n확인 3 | 창 4~7\n보냄 4 | 도착\n수신 4 | 전달 [0, 1, 2, 3, 4]\n보냄 5 | 유실\n확인 4 | 창 5~8\n시간 초과 | 다시 보냄 5~5\n보냄 5 | 도착\n수신 5 | 전달 [0, 1, 2, 3, 4, 5]\n확인 5 | 창 6~9\n송신자: 모두 확인받았어요.\n수신자 전달 순서 [0, 1, 2, 3, 4, 5], 다시 보낸 조각 1개\n"
+        },
+        {
+          "values": {
+            "LOST": "\"\""
+          },
+          "expected": "보냄 0 | 도착\n수신 0 | 전달 [0]\n보냄 1 | 도착\n수신 1 | 전달 [0, 1]\n보냄 2 | 도착\n수신 2 | 전달 [0, 1, 2]\n확인 0 | 창 1~3\n확인 1 | 창 2~4\n확인 2 | 창 3~5\n보냄 3 | 도착\n수신 3 | 전달 [0, 1, 2, 3]\n보냄 4 | 도착\n수신 4 | 전달 [0, 1, 2, 3, 4]\n보냄 5 | 도착\n수신 5 | 전달 [0, 1, 2, 3, 4, 5]\n확인 3 | 창 4~6\n확인 4 | 창 5~7\n확인 5 | 창 6~8\n송신자: 모두 확인받았어요.\n수신자 전달 순서 [0, 1, 2, 3, 4, 5], 다시 보낸 조각 0개\n"
+        }
+      ],
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "실행 기록 · 송신 창과 확인 번호 (교육용 모형)",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "시작 코드 · 2번 조각 유실",
+              "frames": [
+                {
+                  "caption": "Java 교육용 모형을 실제로 실행한 출력이에요. 실제 TCP 패킷을 잡은 기록이 아니에요.",
+                  "facts": {
+                    "1 기록": "시작 코드 · 2번 조각 유실",
+                    "2 근거": "정답이 아니라 시작 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "1번째 줄 · 보냄 0 | 도착",
+                  "facts": {
+                    "1 보냄": "0",
+                    "2 도착": "-"
+                  }
+                },
+                {
+                  "caption": "2번째 줄 · 수신 0 | 전달 [0]",
+                  "facts": {
+                    "1 수신": "0",
+                    "2 전달": "[0]"
+                  }
+                },
+                {
+                  "caption": "3번째 줄 · 보냄 1 | 도착",
+                  "facts": {
+                    "1 보냄": "1",
+                    "2 도착": "-"
+                  }
+                },
+                {
+                  "caption": "4번째 줄 · 수신 1 | 전달 [0, 1]",
+                  "facts": {
+                    "1 수신": "1",
+                    "2 전달": "[0, 1]"
+                  }
+                },
+                {
+                  "caption": "5번째 줄 · 보냄 2 | 유실",
+                  "facts": {
+                    "1 보냄": "2",
+                    "2 유실": "-"
+                  }
+                },
+                {
+                  "caption": "6번째 줄 · 확인 0 | 창 1~3",
+                  "facts": {
+                    "1 확인": "0",
+                    "2 창": "1~3"
+                  }
+                },
+                {
+                  "caption": "7번째 줄 · 확인 1 | 창 2~4",
+                  "facts": {
+                    "1 확인": "1",
+                    "2 창": "2~4"
+                  }
+                },
+                {
+                  "caption": "8번째 줄 · 보냄 3 | 도착",
+                  "facts": {
+                    "1 보냄": "3",
+                    "2 도착": "-"
+                  }
+                },
+                {
+                  "caption": "9번째 줄 · 수신 3 | 버림 기다리는 번호 2",
+                  "facts": {
+                    "1 수신": "3",
+                    "2 버림": "기다리는 번호 2"
+                  }
+                },
+                {
+                  "caption": "10번째 줄 · 보냄 4 | 도착",
+                  "facts": {
+                    "1 보냄": "4",
+                    "2 도착": "-"
+                  }
+                },
+                {
+                  "caption": "11번째 줄 · 수신 4 | 버림 기다리는 번호 2",
+                  "facts": {
+                    "1 수신": "4",
+                    "2 버림": "기다리는 번호 2"
+                  }
+                },
+                {
+                  "caption": "12번째 줄 · 확인 1 | 창 3~5",
+                  "facts": {
+                    "1 확인": "1",
+                    "2 창": "3~5"
+                  }
+                },
+                {
+                  "caption": "13번째 줄 · 확인 1 | 창 4~6",
+                  "facts": {
+                    "1 확인": "1",
+                    "2 창": "4~6"
+                  }
+                },
+                {
+                  "caption": "14번째 줄 · 보냄 5 | 도착",
+                  "facts": {
+                    "1 보냄": "5",
+                    "2 도착": "-"
+                  }
+                },
+                {
+                  "caption": "15번째 줄 · 수신 5 | 버림 기다리는 번호 2",
+                  "facts": {
+                    "1 수신": "5",
+                    "2 버림": "기다리는 번호 2"
+                  }
+                },
+                {
+                  "caption": "16번째 줄 · 확인 1 | 창 5~7",
+                  "facts": {
+                    "1 확인": "1",
+                    "2 창": "5~7"
+                  }
+                },
+                {
+                  "caption": "17번째 줄 · 시간 초과 | 다시 보냄 5~5",
+                  "facts": {
+                    "1 시간": "초과",
+                    "2 다시": "보냄 5~5"
+                  }
+                },
+                {
+                  "caption": "18번째 줄 · 보냄 5 | 도착",
+                  "facts": {
+                    "1 보냄": "5",
+                    "2 도착": "-"
+                  }
+                },
+                {
+                  "caption": "19번째 줄 · 수신 5 | 버림 기다리는 번호 2",
+                  "facts": {
+                    "1 수신": "5",
+                    "2 버림": "기다리는 번호 2"
+                  }
+                },
+                {
+                  "caption": "20번째 줄 · 확인 1 | 창 6~8",
+                  "facts": {
+                    "1 확인": "1",
+                    "2 창": "6~8"
+                  }
+                },
+                {
+                  "caption": "21번째 줄 · 송신자: 모두 확인받았어요.",
+                  "facts": {
+                    "1 송신자:": "모두 확인받았어요."
+                  }
+                },
+                {
+                  "caption": "22번째 줄 · 수신자 전달 순서 [0, 1], 다시 보낸 조각 1개",
+                  "facts": {
+                    "1 수신자": "전달 순서 [0, 1], 다시 보낸 조각 1개"
+                  }
+                }
+              ]
+            },
+            {
+              "label": "시작 코드 · 창 크기 1",
+              "frames": [
+                {
+                  "caption": "Java 교육용 모형을 실제로 실행한 출력이에요. 실제 TCP 패킷을 잡은 기록이 아니에요.",
+                  "facts": {
+                    "1 기록": "시작 코드 · 창 크기 1",
+                    "2 근거": "정답이 아니라 시작 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "1번째 줄 · 보냄 0 | 도착",
+                  "facts": {
+                    "1 보냄": "0",
+                    "2 도착": "-"
+                  }
+                },
+                {
+                  "caption": "2번째 줄 · 수신 0 | 전달 [0]",
+                  "facts": {
+                    "1 수신": "0",
+                    "2 전달": "[0]"
+                  }
+                },
+                {
+                  "caption": "3번째 줄 · 확인 0 | 창 1~1",
+                  "facts": {
+                    "1 확인": "0",
+                    "2 창": "1~1"
+                  }
+                },
+                {
+                  "caption": "4번째 줄 · 보냄 1 | 도착",
+                  "facts": {
+                    "1 보냄": "1",
+                    "2 도착": "-"
+                  }
+                },
+                {
+                  "caption": "5번째 줄 · 수신 1 | 전달 [0, 1]",
+                  "facts": {
+                    "1 수신": "1",
+                    "2 전달": "[0, 1]"
+                  }
+                },
+                {
+                  "caption": "6번째 줄 · 확인 1 | 창 2~2",
+                  "facts": {
+                    "1 확인": "1",
+                    "2 창": "2~2"
+                  }
+                },
+                {
+                  "caption": "7번째 줄 · 보냄 2 | 유실",
+                  "facts": {
+                    "1 보냄": "2",
+                    "2 유실": "-"
+                  }
+                },
+                {
+                  "caption": "8번째 줄 · 시간 초과 | 다시 보냄 2~2",
+                  "facts": {
+                    "1 시간": "초과",
+                    "2 다시": "보냄 2~2"
+                  }
+                },
+                {
+                  "caption": "9번째 줄 · 보냄 2 | 도착",
+                  "facts": {
+                    "1 보냄": "2",
+                    "2 도착": "-"
+                  }
+                },
+                {
+                  "caption": "10번째 줄 · 수신 2 | 전달 [0, 1, 2]",
+                  "facts": {
+                    "1 수신": "2",
+                    "2 전달": "[0, 1, 2]"
+                  }
+                },
+                {
+                  "caption": "11번째 줄 · 확인 2 | 창 3~3",
+                  "facts": {
+                    "1 확인": "2",
+                    "2 창": "3~3"
+                  }
+                },
+                {
+                  "caption": "12번째 줄 · 보냄 3 | 도착",
+                  "facts": {
+                    "1 보냄": "3",
+                    "2 도착": "-"
+                  }
+                },
+                {
+                  "caption": "13번째 줄 · 수신 3 | 전달 [0, 1, 2, 3]",
+                  "facts": {
+                    "1 수신": "3",
+                    "2 전달": "[0, 1, 2, 3]"
+                  }
+                },
+                {
+                  "caption": "14번째 줄 · 확인 3 | 창 4~4",
+                  "facts": {
+                    "1 확인": "3",
+                    "2 창": "4~4"
+                  }
+                },
+                {
+                  "caption": "15번째 줄 · 보냄 4 | 도착",
+                  "facts": {
+                    "1 보냄": "4",
+                    "2 도착": "-"
+                  }
+                },
+                {
+                  "caption": "16번째 줄 · 수신 4 | 전달 [0, 1, 2, 3, 4]",
+                  "facts": {
+                    "1 수신": "4",
+                    "2 전달": "[0, 1, 2, 3, 4]"
+                  }
+                },
+                {
+                  "caption": "17번째 줄 · 확인 4 | 창 5~5",
+                  "facts": {
+                    "1 확인": "4",
+                    "2 창": "5~5"
+                  }
+                },
+                {
+                  "caption": "18번째 줄 · 보냄 5 | 도착",
+                  "facts": {
+                    "1 보냄": "5",
+                    "2 도착": "-"
+                  }
+                },
+                {
+                  "caption": "19번째 줄 · 수신 5 | 전달 [0, 1, 2, 3, 4, 5]",
+                  "facts": {
+                    "1 수신": "5",
+                    "2 전달": "[0, 1, 2, 3, 4, 5]"
+                  }
+                },
+                {
+                  "caption": "20번째 줄 · 확인 5 | 창 6~6",
+                  "facts": {
+                    "1 확인": "5",
+                    "2 창": "6~6"
+                  }
+                },
+                {
+                  "caption": "21번째 줄 · 송신자: 모두 확인받았어요.",
+                  "facts": {
+                    "1 송신자:": "모두 확인받았어요."
+                  }
+                },
+                {
+                  "caption": "22번째 줄 · 수신자 전달 순서 [0, 1, 2, 3, 4, 5], 다시 보낸 조각 1개",
+                  "facts": {
+                    "1 수신자": "전달 순서 [0, 1, 2, 3, 4, 5], 다시 보낸 조각 1개"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "2번 조각이 처음 보낼 때 사라지는 상황이에요.",
+          "target": "text:2번 조각은 처음 보낼 때 사라져요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "송신자는 모두 확인받았다는데 전달은 0과 1뿐이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "중복 확인 1이 올 때마다 창이 한 칸씩 밀렸어요.",
+          "target": "code:base = base + 1;"
+        },
+        {
+          "action": "patch_code",
+          "before": "    // 고칠 곳: 지금은 확인을 하나 받을 때마다 창을 한 칸씩 옮겨요.\n    base = base + 1;",
+          "after": "    // 고친 곳: ACK는 \"ack번까지 모두 받았다\"는 누적 확인이에요.\n    // 그래서 창의 앞은 ack 다음 칸이에요. 같은 ACK가 또 와도(중복 확인) 뒤로 가거나 더 가지 않아요.\n    base = Math.max(base, ack + 1);",
+          "say": "창의 앞을 확인 번호 다음 칸으로 옮겨요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "이제 2부터 다시 보내고 0부터 5까지 전달돼요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. ack로만 옮기면 확인받은 조각이 창에 남아요.",
+          "target": "code:base = Math.max(base, ack + 1);"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "송신자가 보낸 조각과 확인받은 조각을 구분해 미확인 구간을 유지해야, 유실 뒤에도 모든 조각이 순서대로 한 번씩 전달된다는 것을 확인해요."
+    ],
+    "chapters": {
+      "chp_47f3f72c-7b8a-4c4b-85a3-3d901d112eeb": [
+        "누적 확인(ACK)이 송신 창을 어디까지 옮기는지 실행 기록으로 확인해요."
+      ]
+    },
+    "units": {
+      "unt_5e594bc1-6e7f-4d22-9727-6439a911572e": {
+        "objectives": [
+          "중복 확인과 유실 조각이 있을 때 창의 앞을 누적 확인 다음 칸으로 옮겨요."
+        ],
+        "premise": "조각 6개를 창 크기 3으로 보내는 송신자예요. 2번 조각이 처음 보낼 때 사라져요. 송신자는 \"모두 확인받았다\"고 끝내는데 수신자에게는 0번과 1번만 전달됐어요."
+      }
+    }
+  }
+}

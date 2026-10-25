@@ -1,0 +1,162 @@
+{
+  "schema_version": 2,
+  "id": "lsn_ca915bbe-766c-42ef-96b8-33c36c57f52a",
+  "revision": "node-cpu-offload-1",
+  "title": "Node · async를 붙여도 계산은 같은 스레드에서 돌아요",
+  "description": "긴 계산(heavy)과 짧은 ping이 함께 들어와요. heavy는 async 함수인데 ping 응답이 heavy가 끝난 뒤에야 나와요.",
+  "objectives": [
+    "async 함수로 감싼 CPU 계산은 같은 JS 스레드에서 돌아 짧은 요청을 막고, 크기가 정해진 worker 풀로 옮기면 짧은 요청이 먼저 처리된다는 것을 실제 worker_threads로 확인해요."
+  ],
+  "sources": [
+    "https://nodejs.org/en/learn/asynchronous-work/dont-block-the-event-loop",
+    "https://nodejs.org/api/worker_threads.html"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_dea8bc18-7470-4b95-8d83-ff1da3d7c20c",
+      "title": "Node · async를 붙여도 계산은 같은 스레드에서 돌아요",
+      "objectives": [
+        "async 함수와 worker 스레드가 계산을 어디서 실행하는지 확인해요."
+      ],
+      "units": [
+        {
+          "id": "unt_3a30daa4-7870-4d75-81ef-e809d14006a7",
+          "title": "최종 문제",
+          "objectives": [
+            "무거운 계산과 짧은 ping 요청의 응답 순서를 비교해요."
+          ],
+          "premise": "긴 계산(heavy)과 짧은 ping이 함께 들어와요. heavy는 async 함수인데 ping 응답이 heavy가 끝난 뒤에야 나와요.",
+          "steps": [
+            {
+              "id": "stp_788838ca-f394-4f6b-98a6-39d5baffde26",
+              "objectives": [
+                "계산을 worker 풀로 보내 main 스레드가 ping에 먼저 응답하게 해요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_788838ca-f394-4f6b-98a6-39d5baffde26",
+      "title": "async를 붙여도 계산은 같은 스레드에서 돌아요",
+      "question": "heavy를 async로 만들었는데 왜 ping이 기다려야 할까요?",
+      "goal": "자, Node의 JS 코드는 main 스레드 하나에서 차례로 돌아요. async 함수는 결과를 Promise로 돌려줄 뿐이에요. 계산을 다른 곳으로 옮기지는 않아요.\n\nrunInPool은 계산을 worker 스레드에 보내요. worker는 최대 1개예요. 검증용 문은 main이 ping을 처리했는지 확인하는 장치예요. 속도를 재는 장치가 아니에요.\n\n**할 일**\n\n1. 실행 버튼을 눌러 응답 순서를 읽으세요.\n2. 마지막 줄에서 ping이 먼저인지, worker를 몇 개 만들었는지 확인하세요.\n3. `heavy`의 고칠 곳 한 줄을 계산을 worker 풀에 보내게 고치세요.\n4. 다시 실행해 ping 응답이 heavy보다 먼저인지 확인하세요.\n5. 제출 버튼을 누르세요. 다른 입력 글자도 함께 검사해요.",
+      "language": "javascript",
+      "starter_code": "const { Worker, isMainThread, parentPort } = require('node:worker_threads');\n\n// 준비 값: 계산 반복 수예요.\nconst ROUNDS = 300000;\n\n// 준비 코드: 결과를 검산할 수 있는 CPU 계산이에요. 같은 글자와 반복 수면 언제나 같은 값이에요.\nfunction heavyHash(text, rounds) {\n  let h = 7;\n  for (let i = 0; i < rounds; i++) {\n    for (let j = 0; j < text.length; j++) h = (Math.imul(h, 31) + text.charCodeAt(j) + i) >>> 0;\n  }\n  return h;\n}\n\nif (!isMainThread) {\n  // 준비 코드(worker): 계산한 뒤 검증용 문(gate)이 열릴 때까지 최대 2초 기다렸다가 결과를 보내요.\n  // 이 문은 \"main이 ping을 먼저 처리했는가\"를 확인하는 장치예요. 속도 측정이 아니에요.\n  parentPort.on('message', ({ id, text, rounds, gate }) => {\n    const result = heavyHash(text, rounds);\n    const opened = Atomics.wait(new Int32Array(gate), 0, 0, 2000) !== 'timed-out';\n    parentPort.postMessage({ id, result, opened });\n  });\n} else {\n  main();\n}\n\nfunction main() {\n  const log = [];\n  const gate = new SharedArrayBuffer(4);\n  // 준비 코드: worker가 최대 1개인 풀이에요. 처음 쓸 때 하나만 만들어요.\n  let worker = null;\n  let created = 0;\n  let nextId = 0;\n  const waiting = new Map();\n  function runInPool(text, rounds) {\n    if (!worker) {\n      worker = new Worker(__filename);\n      created++;\n      worker.on('message', (m) => { waiting.get(m.id)(m); waiting.delete(m.id); });\n    }\n    return new Promise((resolve) => {\n      const id = ++nextId;\n      waiting.set(id, resolve);\n      worker.postMessage({ id, text, rounds, gate });\n    }).then((m) => {\n      log.push('worker | 계산 끝 ' + (m.opened ? '검증 문이 열린 뒤 보냄' : '검증 문 2초 시간 초과'));\n      return m.result;\n    });\n  }\n\n  // 긴 계산 요청을 처리해요. async 함수라서 Promise를 돌려줘요.\n  async function heavy(text) {\n    // 고칠 곳: 지금은 main 스레드에서 바로 계산해요.\n    return heavyHash(text, ROUNDS);\n  }\n\n  const text = require('node:fs').readFileSync(0, 'utf8').trim() || 'memo';\n  const expected = heavyHash(text, ROUNDS);\n  log.push('요청 | heavy ' + text);\n  const done = heavy(text).then((result) => {\n    log.push('응답 | heavy ' + (result === expected ? '검산 일치' : '검산 불일치'));\n  });\n  log.push('요청 | ping');\n  setImmediate(() => {\n    log.push('응답 | ping');\n    const flag = new Int32Array(gate);\n    Atomics.store(flag, 0, 1);\n    Atomics.notify(flag, 0);\n  });\n  done.then(() => setImmediate(() => {\n    for (const line of log) console.log(line);\n    const ping = log.indexOf('응답 | ping');\n    const heavyAt = log.findIndex((line) => line.startsWith('응답 | heavy'));\n    console.log('ping이 heavy보다 먼저 응답 ' + (ping >= 0 && ping < heavyAt ? '예' : '아니요') + ', 만든 worker ' + created + '개');\n    if (worker) worker.terminate();\n  }));\n}\n",
+      "solution": "const { Worker, isMainThread, parentPort } = require('node:worker_threads');\n\n// 준비 값: 계산 반복 수예요.\nconst ROUNDS = 300000;\n\n// 준비 코드: 결과를 검산할 수 있는 CPU 계산이에요. 같은 글자와 반복 수면 언제나 같은 값이에요.\nfunction heavyHash(text, rounds) {\n  let h = 7;\n  for (let i = 0; i < rounds; i++) {\n    for (let j = 0; j < text.length; j++) h = (Math.imul(h, 31) + text.charCodeAt(j) + i) >>> 0;\n  }\n  return h;\n}\n\nif (!isMainThread) {\n  // 준비 코드(worker): 계산한 뒤 검증용 문(gate)이 열릴 때까지 최대 2초 기다렸다가 결과를 보내요.\n  // 이 문은 \"main이 ping을 먼저 처리했는가\"를 확인하는 장치예요. 속도 측정이 아니에요.\n  parentPort.on('message', ({ id, text, rounds, gate }) => {\n    const result = heavyHash(text, rounds);\n    const opened = Atomics.wait(new Int32Array(gate), 0, 0, 2000) !== 'timed-out';\n    parentPort.postMessage({ id, result, opened });\n  });\n} else {\n  main();\n}\n\nfunction main() {\n  const log = [];\n  const gate = new SharedArrayBuffer(4);\n  // 준비 코드: worker가 최대 1개인 풀이에요. 처음 쓸 때 하나만 만들어요.\n  let worker = null;\n  let created = 0;\n  let nextId = 0;\n  const waiting = new Map();\n  function runInPool(text, rounds) {\n    if (!worker) {\n      worker = new Worker(__filename);\n      created++;\n      worker.on('message', (m) => { waiting.get(m.id)(m); waiting.delete(m.id); });\n    }\n    return new Promise((resolve) => {\n      const id = ++nextId;\n      waiting.set(id, resolve);\n      worker.postMessage({ id, text, rounds, gate });\n    }).then((m) => {\n      log.push('worker | 계산 끝 ' + (m.opened ? '검증 문이 열린 뒤 보냄' : '검증 문 2초 시간 초과'));\n      return m.result;\n    });\n  }\n\n  // 긴 계산 요청을 처리해요. async 함수라서 Promise를 돌려줘요.\n  async function heavy(text) {\n    // 고친 곳: async만 붙이면 계산은 여전히 main 스레드에서 돌아요.\n    // 계산을 worker 풀에 보내면 main은 그동안 ping 같은 짧은 요청을 처리할 수 있어요.\n    return runInPool(text, ROUNDS);\n  }\n\n  const text = require('node:fs').readFileSync(0, 'utf8').trim() || 'memo';\n  const expected = heavyHash(text, ROUNDS);\n  log.push('요청 | heavy ' + text);\n  const done = heavy(text).then((result) => {\n    log.push('응답 | heavy ' + (result === expected ? '검산 일치' : '검산 불일치'));\n  });\n  log.push('요청 | ping');\n  setImmediate(() => {\n    log.push('응답 | ping');\n    const flag = new Int32Array(gate);\n    Atomics.store(flag, 0, 1);\n    Atomics.notify(flag, 0);\n  });\n  done.then(() => setImmediate(() => {\n    for (const line of log) console.log(line);\n    const ping = log.indexOf('응답 | ping');\n    const heavyAt = log.findIndex((line) => line.startsWith('응답 | heavy'));\n    console.log('ping이 heavy보다 먼저 응답 ' + (ping >= 0 && ping < heavyAt ? '예' : '아니요') + ', 만든 worker ' + created + '개');\n    if (worker) worker.terminate();\n  }));\n}\n",
+      "tests": [
+        {
+          "input": "memo",
+          "expected": "요청 | heavy memo\n요청 | ping\n응답 | ping\nworker | 계산 끝 검증 문이 열린 뒤 보냄\n응답 | heavy 검산 일치\nping이 heavy보다 먼저 응답 예, 만든 worker 1개\n"
+        },
+        {
+          "input": "queue-42",
+          "expected": "요청 | heavy queue-42\n요청 | ping\n응답 | ping\nworker | 계산 끝 검증 문이 열린 뒤 보냄\n응답 | heavy 검산 일치\nping이 heavy보다 먼저 응답 예, 만든 worker 1개\n"
+        }
+      ],
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "실행 기록 · main 스레드와 worker 사건 (실제 Node 실행)",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "시작 코드 · memo",
+              "frames": [
+                {
+                  "caption": "시작 코드를 실제 Node로 실행한 출력이에요. 사건의 순서만 보여 줘요. CPU 사용률이나 속도가 아니에요.",
+                  "facts": {
+                    "1 기록": "시작 코드 · memo",
+                    "2 근거": "정답이 아니라 시작 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "1번째 줄 · 요청 | heavy memo",
+                  "facts": {
+                    "1 요청": "-",
+                    "2 heavy": "memo"
+                  }
+                },
+                {
+                  "caption": "2번째 줄 · 요청 | ping",
+                  "facts": {
+                    "1 요청": "-",
+                    "2 ping": "-"
+                  }
+                },
+                {
+                  "caption": "3번째 줄 · 응답 | heavy 검산 일치",
+                  "facts": {
+                    "1 응답": "-",
+                    "2 heavy": "검산 일치"
+                  }
+                },
+                {
+                  "caption": "4번째 줄 · 응답 | ping",
+                  "facts": {
+                    "1 응답": "-",
+                    "2 ping": "-"
+                  }
+                },
+                {
+                  "caption": "5번째 줄 · ping이 heavy보다 먼저 응답 아니요, 만든 worker 0개",
+                  "facts": {
+                    "1 ping이": "heavy보다 먼저 응답 아니요, 만든 worker 0개"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "async 함수는 결과를 Promise로 돌려줄 뿐이에요.",
+          "target": "text:async 함수는 결과를 Promise로 돌려줄 뿐이에요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "heavy 응답이 ping보다 먼저고, worker는 0개예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "계산이 main 스레드에서 바로 돌아요.",
+          "target": "code:return heavyHash(text, ROUNDS);"
+        },
+        {
+          "action": "patch_code",
+          "before": "    // 고칠 곳: 지금은 main 스레드에서 바로 계산해요.\n    return heavyHash(text, ROUNDS);",
+          "after": "    // 고친 곳: async만 붙이면 계산은 여전히 main 스레드에서 돌아요.\n    // 계산을 worker 풀에 보내면 main은 그동안 ping 같은 짧은 요청을 처리할 수 있어요.\n    return runInPool(text, ROUNDS);",
+          "say": "계산을 worker 풀로 보내요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "ping이 먼저 응답하고 worker를 1개 만들었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. await를 한 번 넣어도 이어지는 계산은 main에서 돌아 ping을 막아요.",
+          "target": "code:return runInPool(text, ROUNDS);"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    }
+  ]
+}

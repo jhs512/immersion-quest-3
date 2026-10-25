@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "41a10eeeffb4ddaa0780c857e95684a2d6513e849a89cdb399c4c2a91b627d1e",
+  "entry": [
+    {
+      "action": "say",
+      "text": "2번 조각이 처음 보낼 때 사라지는 상황이에요.",
+      "target": "text:2번 조각은 처음 보낼 때 사라져요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "송신자는 모두 확인받았다는데 전달은 0과 1뿐이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "중복 확인 1이 올 때마다 창이 한 칸씩 밀렸어요.",
+      "target": "code:base = base + 1;"
+    },
+    {
+      "action": "patch_code",
+      "before": "    // 고칠 곳: 지금은 확인을 하나 받을 때마다 창을 한 칸씩 옮겨요.\n    base = base + 1;",
+      "after": "    // 고친 곳: ACK는 \"ack번까지 모두 받았다\"는 누적 확인이에요.\n    // 그래서 창의 앞은 ack 다음 칸이에요. 같은 ACK가 또 와도(중복 확인) 뒤로 가거나 더 가지 않아요.\n    base = Math.max(base, ack + 1);",
+      "say": "창의 앞을 확인 번호 다음 칸으로 옮겨요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "이제 2부터 다시 보내고 0부터 5까지 전달돼요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. ack로만 옮기면 확인받은 조각이 창에 남아요.",
+      "target": "code:base = Math.max(base, ack + 1);"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

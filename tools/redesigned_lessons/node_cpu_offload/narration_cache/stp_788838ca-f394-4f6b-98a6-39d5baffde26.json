@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "c8371686ade2eed6ddab61eb1fd36973e9592e736daee85bb71c02c7407ccc02",
+  "entry": [
+    {
+      "action": "say",
+      "text": "async 함수는 결과를 Promise로 돌려줄 뿐이에요.",
+      "target": "text:async 함수는 결과를 Promise로 돌려줄 뿐이에요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "heavy 응답이 ping보다 먼저고, worker는 0개예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "계산이 main 스레드에서 바로 돌아요.",
+      "target": "code:return heavyHash(text, ROUNDS);"
+    },
+    {
+      "action": "patch_code",
+      "before": "    // 고칠 곳: 지금은 main 스레드에서 바로 계산해요.\n    return heavyHash(text, ROUNDS);",
+      "after": "    // 고친 곳: async만 붙이면 계산은 여전히 main 스레드에서 돌아요.\n    // 계산을 worker 풀에 보내면 main은 그동안 ping 같은 짧은 요청을 처리할 수 있어요.\n    return runInPool(text, ROUNDS);",
+      "say": "계산을 worker 풀로 보내요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "ping이 먼저 응답하고 worker를 1개 만들었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. await를 한 번 넣어도 이어지는 계산은 main에서 돌아 ping을 막아요.",
+      "target": "code:return runInPool(text, ROUNDS);"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

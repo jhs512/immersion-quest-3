@@ -163,7 +163,7 @@ mod tests {
         }
     }
     fn lessons(revision: &str) -> Vec<LessonRef> {
-        vec![LessonRef { id: "l".into(), title: "L".into(), repository: "o/l".into(), revision: revision.into(), sha256: String::new(), prerequisites: vec![], required: true, review_enabled: true }]
+        vec![LessonRef { id: "l".into(), title: "L".into(), repository: "o/l".into(), revision: revision.into(), sha256: String::new(), prerequisites: vec![], required: true, review_enabled: true, category: String::new(), track: String::new() }]
     }
 
     #[test]

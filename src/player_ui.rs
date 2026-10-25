@@ -73,6 +73,7 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
     let mut refresh=use_signal(||0u64);
     // The course screen shows either its lessons or the 도전 과제 board; the choice survives a lesson visit.
     let mut show_challenges=use_signal(||false);
+    let mut track_filter=use_signal(||molip_quest::lesson_categories::TrackFilter::All);
     // 관리자 자동 풀이: one run for the player, kept across the lessons it opens itself.
     let mut auto=use_signal(||None::<AutoRun>);
     // GitHub's edit permission on the open course for this account (None: not read yet).
@@ -326,10 +327,26 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                             }
                         }
                     } else {
+                    {use molip_quest::lesson_categories::{self as categories,LessonTrack,TrackFilter};
+                    let tracked=categories::has_tracks(&manifest);let filter=if tracked {track_filter()} else {TrackFilter::All};
+                    let groups=categories::groups(&manifest,filter);rsx!{
+                    if tracked {
+                        div {class:"track-filter",role:"group",aria_label:"학습 분류로 보기",
+                            for (label,value) in std::iter::once(("전체",TrackFilter::All)).chain(categories::present_tracks(&manifest).into_iter().map(|track:LessonTrack|(track.label(),TrackFilter::Only(track)))).collect::<Vec<_>>() {
+                                button {key:"{label}",class:if filter==value {"selected"}else{""},aria_pressed:(filter==value).to_string(),onclick:move |_|track_filter.set(value),"{label}"}
+                            }
+                        }
+                    }
+                    if groups.is_empty() {p {class:"lesson-status","이 분류에 해당하는 수업이 없어요."}}
+                    for group in groups {
+                    section {class:"lesson-group",key:"{group.title.clone().unwrap_or_default()}",
+                    if let Some(title)=group.title.clone() {h3 {class:"lesson-group-title","{title}"}}
                     div {class:"repository-lessons",
-                        for (index,reference) in manifest.lessons.iter().enumerate() {
+                        for (index,reference) in group.lessons.into_iter() {
                             article {class:"card lesson-card",key:"{reference.id}",
-                                div {class:"lesson-card-heading",span {class:"lesson-number","수업 {index+1}"}h3 {"{reference.title}"}}
+                                div {class:"lesson-card-heading",span {class:"lesson-number","수업 {index+1}"}
+                                    if let Some(track)=reference.track() {span {class:track.class(),aria_label:format!("학습 분류: {}",track.label()),"{track.label()}"}}
+                                    h3 {"{reference.title}"}}
                                 p {class:"lesson-revision","버전 {reference.revision}"}
                                 LessonShare {repository:manifest.repository.clone(),lesson_id:reference.id.clone()}
                                 {let records=progress.get(&reference.id).cloned().unwrap_or_default();let requirements=progress_requirements.get(&reference.id).cloned();rsx!{
@@ -360,6 +377,9 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                             }
                         }
                     }
+                    }
+                    }
+                    }}
                     }
                 }
                 }
