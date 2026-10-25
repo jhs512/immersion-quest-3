@@ -88,13 +88,22 @@ pub async fn run(code: &str, input: &str) -> Result<Execution, String> {
 
 /// Restore authored files into a fresh directory for every execution.
 pub async fn run_files(code: &str, input: &str, files: &std::collections::BTreeMap<String,String>) -> Result<Execution, String> {
-    execute(code, input, None, files).await
+    execute(code, input, None, files, &[]).await
+}
+
+/// The same execution with app-pinned jars (crate::library_sets) on the class path.
+pub async fn run_files_with(code: &str, input: &str, files: &std::collections::BTreeMap<String,String>, classpath: &[PathBuf]) -> Result<Execution, String> {
+    execute(code, input, None, files, classpath).await
 }
 
 /// A grading wrapper checks disk state after main returns, before the fresh directory disappears.
 pub async fn run_files_checked(code: &str, input: &str, files: &std::collections::BTreeMap<String,String>, expected: &std::collections::BTreeMap<String,String>) -> Result<Execution, String> {
+    run_files_checked_with(code,input,files,expected,&[]).await
+}
+
+pub async fn run_files_checked_with(code: &str, input: &str, files: &std::collections::BTreeMap<String,String>, expected: &std::collections::BTreeMap<String,String>, classpath: &[PathBuf]) -> Result<Execution, String> {
     use sha2::{Digest,Sha256};
-    if expected.is_empty() { return run_files(code,input,files).await; }
+    if expected.is_empty() { return run_files_with(code,input,files,classpath).await; }
     let witness=format!("MQ3_FILE_CHECK_{}",crate::issue_progress::new_id());
     let mut checks=String::from("class QuestContract { public static void main(String[] args) throws Exception { Main.main(args);\n");
     for (name,content) in expected {
@@ -105,7 +114,7 @@ pub async fn run_files_checked(code: &str, input: &str, files: &std::collections
         checks.push_str(&format!("if (!java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance(\"SHA-256\").digest(java.nio.file.Files.readAllBytes(java.nio.file.Path.of({name})))).equals(\"{digest}\")) throw new AssertionError(\"저장한 파일 내용을 확인하세요.\");\n"));
     }
     checks.push_str(&format!("System.err.println({}); }} }}",serde_json::to_string(&witness).map_err(|e|e.to_string())?));
-    let mut result=execute(code,input,Some(&checks),files).await?;
+    let mut result=execute(code,input,Some(&checks),files,classpath).await?;
     if let Some(prefix)=result.stderr.strip_suffix(&format!("{witness}\n")) {
         result.stderr=prefix.to_string();
     } else if result.success {
@@ -122,10 +131,10 @@ pub async fn contract(code: &str, checker: &str) -> Result<Execution, String> {
 }
 
 pub async fn contract_files(code: &str, checker: &str, files: &std::collections::BTreeMap<String,String>) -> Result<Execution, String> {
-    execute(code, "", Some(checker), files).await
+    execute(code, "", Some(checker), files, &[]).await
 }
 
-async fn execute(code: &str, input: &str, checker: Option<&str>, files: &std::collections::BTreeMap<String,String>) -> Result<Execution, String> {
+async fn execute(code: &str, input: &str, checker: Option<&str>, files: &std::collections::BTreeMap<String,String>, classpath: &[PathBuf]) -> Result<Execution, String> {
     if code.len() > LIMIT || input.len() > LIMIT {
         return Err("코드와 입력은 각각 64KB 이하여야 해요.".into());
     }
@@ -148,6 +157,11 @@ async fn execute(code: &str, input: &str, checker: Option<&str>, files: &std::co
         "Main.java"
     };
     let mut cmd = command();
+    if !classpath.is_empty() {
+        // Only app-pinned jars; a stray CLASSPATH from the user's shell is never inherited.
+        cmd.arg("--class-path").arg(crate::library_sets::joined(classpath));
+    }
+    cmd.env_remove("CLASSPATH");
     cmd.args([
         "-Xmx128m",
         "-Dfile.encoding=UTF-8",

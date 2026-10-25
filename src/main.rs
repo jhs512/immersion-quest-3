@@ -62,6 +62,8 @@ fn main() {
     let _instance=match molip_quest::data_dir().and_then(|directory|molip_quest::lesson_link::Instance::claim(&directory,raw_link)){
         Ok(Some(instance))=>instance,Ok(None)=>return,Err(error)=>{eprintln!("{error}");return;}
     };
+    // A Docker lab left by a killed app: remove only its own labelled project (never starts Docker).
+    std::thread::spawn(||{let _=molip_quest::docker_lab::sweep_stale();});
     // No menu bar on Windows and Linux: the app is driven from its own screens, slides have their
     // own fullscreen button. macOS keeps Dioxus's default menu, which is what makes ⌘C, ⌘V, ⌘X
     // and ⌘A reach the page (without an Edit menu the WebView never sees them); it lives in the

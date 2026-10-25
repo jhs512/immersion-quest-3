@@ -57,9 +57,14 @@ async fn run_inner(task:&Task,source:&str,input:&str)->Result<Execution,String> 
     if task.language==TaskLanguage::Java {return crate::java::run_files(source,input,&task.files).await}
     if task.language==TaskLanguage::Python {return crate::runner::execute_python_files(source,input,None,&task.files).await}
     if task.language==TaskLanguage::Sql {return crate::sql_practice::execute(&task.files,source).await}
+    if task.language==TaskLanguage::JavaLibraries {
+        let classpath=crate::library_sets::classpath(&task.libraries).await?;
+        return crate::java::run_files_with(source,input,&task.files,&classpath).await
+    }
+    if task.language==TaskLanguage::Docker {return crate::docker_lab::run(task,source,input).await}
     let dir=prepare(task,source)?;
     match task.language {
-        TaskLanguage::Java|TaskLanguage::Sql=>unreachable!(),
+        TaskLanguage::Java|TaskLanguage::Sql|TaskLanguage::JavaLibraries|TaskLanguage::Docker=>unreachable!(),
         TaskLanguage::JavaProject=>{
             crate::java::version().await?;
             let mut cmd=command(crate::java::executable());
@@ -196,7 +201,11 @@ async fn append_prepared_variations(task:&Task,source:&str,cases:&mut Vec<TestCa
                 continue;
             }
             let mut prepared=task.clone();prepared.files.extend(variation.files.clone());prepared.expected_files.extend(variation.expected_files.clone());
-            let result=if prepared.language==TaskLanguage::Java {crate::java::run_files_checked(&changed,"",&prepared.files,&prepared.expected_files).await?}else{run(&prepared,&changed,"").await?};
+            let result=if prepared.language==TaskLanguage::Java {crate::java::run_files_checked(&changed,"",&prepared.files,&prepared.expected_files).await?}
+                else if prepared.language==TaskLanguage::JavaLibraries {
+                    let classpath=crate::library_sets::classpath(&prepared.libraries).await?;
+                    crate::java::run_files_checked_with(&changed,"",&prepared.files,&prepared.expected_files,&classpath).await?
+                }else{run(&prepared,&changed,"").await?};
             let passed=result.success && result.stdout.trim_end_matches('\n')==variation.expected.trim_end_matches('\n');
             let stderr=if passed||!result.success{result.stderr}else{"값이 바뀌어도 맞는 식인지 확인하세요.".into()};
             cases.push(TestCaseResult{input:label,expected:variation.expected.clone(),stdout:result.stdout,stderr,passed,state:result.state});
@@ -226,6 +235,8 @@ async fn check_inner(task:&Task,source:&str)->Result<TestReport,String> {
         report.passed=report.cases.iter().all(|case|case.passed);
         return Ok(report);
     }
+    if task.language==TaskLanguage::JavaLibraries {return check_java_libraries(task,source).await}
+    if task.language==TaskLanguage::Docker {return check_docker(task,source).await}
     if task.language==TaskLanguage::Git {return check_git(task,source).await}
     if task.language==TaskLanguage::C {return check_c(task,source).await}
     if task.language==TaskLanguage::Web {
@@ -255,6 +266,40 @@ async fn check_inner(task:&Task,source:&str)->Result<TestReport,String> {
     }
     Ok(TestReport{passed:cases.iter().all(|c|c.passed),cases})
 }
+async fn check_java_libraries(task:&Task,source:&str)->Result<TestReport,String> {
+    if task.tests.is_empty(){return Err("입출력 검사 사례가 없어요.".into())}
+    let classpath=crate::library_sets::classpath(&task.libraries).await?;
+    let mut cases=vec![];
+    for test in &task.tests {
+        let result=crate::java::run_files_checked_with(source,&test.input,&task.files,&task.expected_files,&classpath).await?;
+        let passed=result.success && result.stdout.trim_end_matches('\n')==test.expected.trim_end_matches('\n');
+        cases.push(TestCaseResult{input:test.input.clone(),expected:test.expected.clone(),stdout:result.stdout,stderr:result.stderr,passed,state:result.state});
+    }
+    append_prepared_variations(task,source,&mut cases).await?;
+    Ok(TestReport{passed:cases.iter().all(|c|c.passed),cases})
+}
+
+/// Each case is a full lab run on the real engine. Changed prepared files run only once the
+/// given ones pass, like the other graders, so a learner reads one failure at a time.
+async fn check_docker(task:&Task,source:&str)->Result<TestReport,String> {
+    if task.tests.is_empty(){return Err("입출력 검사 사례가 없어요.".into())}
+    let mut cases=vec![];
+    for test in &task.tests {
+        let result=crate::docker_lab::run(task,source,&test.input).await?;
+        let passed=result.success && result.stdout.trim_end_matches('\n')==test.expected.trim_end_matches('\n');
+        cases.push(TestCaseResult{input:if test.input.is_empty(){"준비된 실습".into()}else{test.input.clone()},expected:test.expected.clone(),stdout:result.stdout,stderr:result.stderr,passed,state:result.state});
+    }
+    if cases.iter().all(|c|c.passed) {
+        for (index,variation) in task.variations.iter().enumerate() {
+            let mut changed=task.clone();changed.files.extend(variation.files.clone());
+            let result=crate::docker_lab::run(&changed,source,"").await?;
+            let passed=result.success && result.stdout.trim_end_matches('\n')==variation.expected.trim_end_matches('\n');
+            cases.push(TestCaseResult{input:format!("바뀐 준비 자료 {}",index+1),expected:variation.expected.clone(),stdout:result.stdout,stderr:result.stderr,passed,state:result.state});
+        }
+    }
+    Ok(TestReport{passed:cases.iter().all(|c|c.passed),cases})
+}
+
 fn report_execution(result:Execution,name:&str)->TestReport {TestReport{passed:result.success,cases:vec![TestCaseResult{input:name.into(),expected:"실제 실행 검사 통과".into(),stdout:result.stdout,stderr:result.stderr,passed:result.success,state:result.state}]}}
 
 async fn check_git(task:&Task,source:&str)->Result<TestReport,String> {

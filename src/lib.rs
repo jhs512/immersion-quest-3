@@ -29,6 +29,8 @@ pub mod pilot_source;
 pub mod lesson_registry;
 pub mod lesson_categories;
 pub mod lesson_runner;
+pub mod library_sets;
+pub mod docker_lab;
 pub mod task_interaction;
 pub mod auto_review;
 pub mod supporting_materials;

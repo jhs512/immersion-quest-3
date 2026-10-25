@@ -63,6 +63,8 @@ pub async fn inspect() -> Vec<Check> {
     for (name,result) in [("Java · JDK 25",crate::runtime_setup::inspect_java().await),("C · 컴파일·실행",crate::runtime_setup::inspect_c().await)] {
         checks.push(Check{name:name.into(),ready:result.is_ok(),detail:result.unwrap_or_else(|error|error)});
     }
+    let docker=crate::docker_lab::inspect().await;
+    checks.push(Check{name:"Docker · DB·Docker 실습에만 필요".into(),ready:docker.is_ok(),detail:docker.unwrap_or_else(|error|error)});
     checks.push(inspect_voice().await);
     checks
 }

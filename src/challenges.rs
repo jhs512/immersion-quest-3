@@ -21,7 +21,7 @@ pub fn is_graded(task: &Task) -> bool {
         TaskLanguage::Git => task.git_checks.is_some() || goal,
         TaskLanguage::Web => !task.web_checks.is_empty(),
         TaskLanguage::Python => !task.tests.is_empty() || checker,
-        TaskLanguage::JavaProject | TaskLanguage::Javascript | TaskLanguage::C | TaskLanguage::Sql => !task.tests.is_empty(),
+        TaskLanguage::JavaProject | TaskLanguage::Javascript | TaskLanguage::C | TaskLanguage::Sql | TaskLanguage::JavaLibraries | TaskLanguage::Docker => !task.tests.is_empty(),
     }
 }
 
@@ -40,6 +40,7 @@ pub fn answer_kind(task: &Task) -> &'static str {
             TaskLanguage::Git => "터미널 실습",
             TaskLanguage::Web => "화면 고치기",
             TaskLanguage::Junit => "테스트 작성",
+            TaskLanguage::Docker => "Docker 실습",
             _ if task.git_terminal.is_some() => "터미널 실습",
             _ => "코드 작성",
         },
