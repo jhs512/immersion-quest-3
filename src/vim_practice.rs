@@ -39,6 +39,8 @@ pub struct VimExercise {
 pub struct VimState {
     pub session:String,pub sequence:usize,pub event:String,pub mode:String,pub line:usize,pub column:usize,
     pub lines:Vec<String>,pub modified:bool,pub save_count:usize,pub search:String,pub exited:bool,pub interactive:bool,
+    /// Recorded after the app asked the editor to close; never learner work.
+    #[serde(default)] pub closing:bool,
 }
 #[derive(Clone,Debug,Default,Serialize,Deserialize,PartialEq)]
 pub struct VimProgress {pub state:Option<VimState>,pub checks:Vec<(String,bool)>,pub passed:bool}
@@ -75,8 +77,7 @@ impl GitPractice {
     pub fn open_vim_terminal(&self)->Result<(crate::setup_terminal::SetupTerminal,tokio::sync::mpsc::Receiver<Vec<u8>>),String> {
         let config=self.exercise.vim.as_ref().ok_or("Vim 실습이 아니에요.")?;
         let token=crate::issue_progress::new_id();
-        let resume=if let Some(start)=&config.start {start.clone()} else if let Ok(raw)=std::fs::read_to_string(self.root().join("vim-resume.json")) {
-            let state:VimState=serde_json::from_str(&raw).map_err(|e|e.to_string())?;
+        let resume=if let Some(start)=&config.start {start.clone()} else if let Some(state)=self.last_learner_vim_state()?.map(Ok).or_else(||std::fs::read_to_string(self.root().join("vim-resume.json")).ok().map(|raw|serde_json::from_str::<VimState>(&raw).map_err(|e|e.to_string()))).transpose()? {
             if state.exited {self.vim_file_snapshot()?}else{VimSnapshot{file_lines:None,lines:state.lines,mode:if state.mode=="i"{"i".into()}else{"n".into()},line:state.line,column:state.column,modified:state.modified,search:state.search}}
         }else if let Ok(raw)=std::fs::read(self.root().join("vim-initial.json")){serde_json::from_slice(&raw).map_err(|e|e.to_string())?}else{self.vim_file_snapshot()?};
         let mut environment=self.environment();
@@ -86,6 +87,17 @@ impl GitPractice {
         std::fs::write(self.root().join("vim-active-session"),&token).map_err(|e|e.to_string())?;
         let script=self.root().join("vim-practice.vim");std::fs::write(&script,include_str!("../assets/vim/practice.vim")).map_err(|e|e.to_string())?;
         crate::setup_terminal::SetupTerminal::open_vim(&self.work(),&environment,&script,"memo.txt")
+    }
+    /// The previous session's last state recorded before closing. Vim appends every state to its events
+    /// log, but replaces vim-resume.json by delete+rename, which another process holding the file can make
+    /// fail until a timer retry; closing the editor first left a stale cursor (Windows CI run 40208488444).
+    /// Logs written before the `closing` field existed return None and fall back to vim-resume.json.
+    fn last_learner_vim_state(&self)->Result<Option<VimState>,String> {
+        let Ok(token)=self.vim_token() else{return Ok(None)};
+        let raw=match std::fs::read_to_string(self.vim_path(&token,"jsonl")){Ok(s)=>s,Err(e) if e.kind()==std::io::ErrorKind::NotFound=>return Ok(None),Err(e)=>return Err(e.to_string())};
+        Ok(raw.lines().rev().filter_map(|line|serde_json::from_str::<serde_json::Value>(line).ok())
+            .find(|value|value["session"]==token.as_str()&&value["closing"]==false)
+            .and_then(|value|serde_json::from_value(value).ok()))
     }
     fn vim_file_snapshot(&self)->Result<VimSnapshot,String> {
         let raw=match std::fs::read_to_string(self.work().join("memo.txt")){Ok(s)=>Some(s),Err(e) if e.kind()==std::io::ErrorKind::NotFound=>None,Err(e)=>return Err(e.to_string())};
@@ -103,7 +115,8 @@ impl GitPractice {
         for line in raw.lines(){
             let Ok(state)=serde_json::from_str::<VimState>(line) else{continue};
             if state.session!=token{continue;}
-            if state.interactive {
+            // Teardown can change the mode after closing was requested; that is not the learner's action.
+            if state.interactive&&!state.closing {
                 // A write can prove both the resulting buffer and its saved state.
                 // Do not require a preceding change/timer event for stable facts.
                 // An action event itself still counts only once (e.g. two writes).

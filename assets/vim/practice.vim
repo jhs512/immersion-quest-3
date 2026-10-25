@@ -25,7 +25,7 @@ function! s:Publish(event, ...) abort
   let shutting=filereadable($MQ3_VIM_CLOSING) || v:dying > 0
   if a:event ==# 'exit' && shutting | return | endif
   let mode=a:0 ? a:1 : strpart(mode(1),0,1)
-  let state={'session':$MQ3_VIM_SESSION,'mode':mode,'line':line('.'),'column':strchars(strpart(getline('.'),0,col('.')-1))+1,'lines':getline(1,'$'),'modified':&modified ? v:true : v:false,'save_count':s:saves,'search':@/,'exited':a:event ==# 'exit' && !shutting ? v:true : v:false,'interactive':filereadable($MQ3_VIM_INPUT) ? v:true : v:false}
+  let state={'session':$MQ3_VIM_SESSION,'mode':mode,'line':line('.'),'column':strchars(strpart(getline('.'),0,col('.')-1))+1,'lines':getline(1,'$'),'modified':&modified ? v:true : v:false,'save_count':s:saves,'search':@/,'exited':a:event ==# 'exit' && !shutting ? v:true : v:false,'closing':shutting ? v:true : v:false,'interactive':filereadable($MQ3_VIM_INPUT) ? v:true : v:false}
   let signature=json_encode(state)
   if signature ==# s:last && index(['ready','write','exit'],a:event)<0 | return | endif
   let s:last=signature
@@ -38,6 +38,8 @@ function! s:Publish(event, ...) abort
   call rename($MQ3_VIM_STATE.'.tmp',$MQ3_VIM_STATE)
   " Terminal teardown can leave Insert mode before Vim exits (notably ConPTY).
   " Continue reporting live state, but freeze the last learner state for resume.
+  " The events log is the resume source ('closing' marks teardown states); this
+  " file is only a fallback, because its replace can fail until the next retry.
   if !shutting
     let s:pending_resume=raw
     call s:WriteResume()

@@ -213,3 +213,53 @@ fn a_briefly_locked_resume_file_still_receives_the_latest_insert_state() {
     assert_eq!((state.column,state.lines.clone()),(2,vec!["임시메모".to_string()]));
     reopened.prepare_terminal_shutdown().unwrap();editor.shutdown().unwrap();
 }
+
+// Windows CI (run 40208488444): step 6 reopened on line 1 although step 5 had ended on line 2, so "I새 "
+// edited the first line. Vim replaces vim-resume.json by delete+rename and only retries a failed replace
+// on its 80 ms timer; closing the editor before that retry left the previous cursor (or no file at all).
+// Hold the file so every replace fails until the editor is gone, then require the latest learner state.
+#[cfg(windows)]
+#[test]
+fn closing_while_the_resume_file_is_held_still_resumes_the_latest_cursor() {
+    use std::os::windows::fs::OpenOptionsExt;
+    let lesson:Lesson=serde_json::from_str(include_str!("../courses/redesigned/vim-basics.json")).unwrap();
+    let root=tempfile::tempdir().unwrap();let store=GitPracticeStore::new(root.path()).unwrap();let exercise=lesson.tasks[4].git_terminal.clone().unwrap();
+    let practice=store.open("vim-held-resume",exercise.clone()).unwrap();
+    std::fs::write(practice.work().join("memo.txt"),"첫 메모\n둘째 메모\n").unwrap();
+    let (mut editor,mut output)=practice.open_terminal().unwrap();wait(&practice,&mut editor,&mut output,|p|p.state.is_some());
+    send(&practice,&mut editor,&mut output,"j");
+    wait(&practice,&mut editor,&mut output,|p|p.state.as_ref().is_some_and(|s|s.line==2));
+    let resume=practice.root().join("vim-resume.json");
+    let settle=Instant::now()+Duration::from_secs(8);
+    while !std::fs::read_to_string(&resume).unwrap_or_default().contains("\"line\":2")&&Instant::now()<settle{std::thread::sleep(Duration::from_millis(25));}
+    assert!(std::fs::read_to_string(&resume).unwrap().contains("\"line\":2"));
+    // Share read/write, not delete: Vim's replace of the resume file fails while this handle is open.
+    let lock=std::fs::OpenOptions::new().read(true).share_mode(0x1|0x2).open(&resume).unwrap();
+    send(&practice,&mut editor,&mut output,"k");
+    let moved=wait(&practice,&mut editor,&mut output,|p|p.state.as_ref().is_some_and(|s|s.line==1&&s.mode=="n"));
+    std::thread::sleep(Duration::from_millis(300));
+    practice.prepare_terminal_shutdown().unwrap();editor.shutdown().unwrap();drop(output);drop(lock);
+    let reopened=store.open("vim-held-resume",exercise).unwrap();let (mut editor,mut output)=reopened.open_terminal().unwrap();
+    let state=wait(&reopened,&mut editor,&mut output,|p|p.state.is_some()).state.unwrap();
+    let live=moved.state.unwrap();
+    assert_eq!((state.line,state.column,state.lines.clone()),(live.line,live.column,live.lines.clone()),"reopening must use the learner's last cursor, not a stale resume file");
+    reopened.prepare_terminal_shutdown().unwrap();editor.shutdown().unwrap();
+}
+
+// Teardown (notably ConPTY) may leave Insert mode after the app asked the editor to close. That transition is
+// not the learner pressing Esc, so it must not complete "returned to Normal mode".
+#[test]
+fn leaving_insert_mode_during_teardown_does_not_count_as_the_learners_escape() {
+    let lesson:Lesson=serde_json::from_str(include_str!("../courses/redesigned/vim-basics.json")).unwrap();
+    let practice=GitPractice::new(lesson.tasks[1].git_terminal.as_ref().unwrap().demonstration()).unwrap();
+    let (mut editor,mut output)=practice.open_terminal().unwrap();
+    wait(&practice,&mut editor,&mut output,|p|p.state.as_ref().is_some_and(|s|s.mode=="i"));
+    send(&practice,&mut editor,&mut output,"첫 메모");
+    let typed=wait(&practice,&mut editor,&mut output,|p|p.state.as_ref().is_some_and(|s|s.lines==["첫 메모"]));
+    assert_eq!(typed.checks.iter().map(|c|c.1).collect::<Vec<_>>(),[true,false]);
+    practice.prepare_terminal_shutdown().unwrap();
+    editor.input("\x1b").unwrap();
+    let closed=wait(&practice,&mut editor,&mut output,|p|p.state.as_ref().is_some_and(|s|s.mode=="n"&&s.closing));
+    assert!(!closed.passed,"a teardown mode change is not the learner's Esc: {closed:?}");
+    editor.shutdown().unwrap();
+}
