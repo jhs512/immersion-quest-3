@@ -1,0 +1,54 @@
+{
+  "by": "hand",
+  "source_sha256": "45522f0512f03faabbc5e8633ee8cc5ae08bf9cc3b25e580e468224cf3531fa7",
+  "entry": [
+    {
+      "action": "say",
+      "text": "B가 가득 찼을 때 옮기면 우유가 그대로 A에 있어야 해요.",
+      "target": "text:옮기지 못하면 A에 그대로 있어야 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        44,
+        44
+      ]
+    },
+    {
+      "action": "say",
+      "text": "우유 옮기기 거절은 나오는데, A에는 빵만 남았어요. 우유가 사라졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "먼저 A에서 빼고 나서 B가 받을 수 있는지 알게 돼요. 실패하면 되돌릴 방법이 없어요.",
+      "target": "code:items.remove(name);"
+    },
+    {
+      "action": "patch_code",
+      "before": "        // 고칠 곳: 실패할 수 있는 일을 확인하기 전에 먼저 빼요.\n        items.remove(name);\n        return other.add(name);",
+      "after": "        // 이 장바구니에 없으면 옮길 것도 없어요. 상대가 가득 찼으면 add가 false라 여기서 멈춰요.\n        if (!items.contains(name) || !other.add(name)) return false;\n        // 상대가 받은 뒤에만 빼요. 그래서 실패해도 상품이 사라지지 않아요.\n        return items.remove(name);",
+      "say": "A에 있는지와 B가 받는지를 먼저 확인해요. 둘 다 됐을 때만 A에서 빼요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        45,
+        45
+      ]
+    },
+    {
+      "action": "say",
+      "text": "거절된 뒤에도 A는 우유와 빵, B는 사과 그대로예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. contains 확인을 빼면 A에 없는 상품이 B에 새로 생겨요. 입력 a:우유 >:빵이 그 경우예요.",
+      "target": "code:!items.contains(name)"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

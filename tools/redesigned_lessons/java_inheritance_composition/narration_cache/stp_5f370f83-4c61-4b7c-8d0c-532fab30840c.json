@@ -1,0 +1,59 @@
+{
+  "by": "hand",
+  "source_sha256": "be9e93015d4e1c482cb1b4b0305888117ab2af07c335ddae5b9f1bdce7861d3b",
+  "entry": [
+    {
+      "action": "say",
+      "text": "특급 서울을 만들었는데 장부에 null이 섞여 나오는 문제예요.",
+      "target": "text:생성자에서 등록: 특급(null) 같은 줄이 더 나와요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        30,
+        30
+      ]
+    },
+    {
+      "action": "say",
+      "text": "생성자에서 등록: 특급(null)이 먼저 나오고, 등록: 특급(서울)이 뒤에 나와요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "이 줄은 Shipping 생성자 안이에요. 이때 Express의 region에는 아직 값이 없어요.",
+      "target": "code:System.out.println(\"생성자에서 등록: \" + describe());"
+    },
+    {
+      "action": "say",
+      "text": "region은 super 뒤의 이 줄에서야 채워져요.",
+      "target": "code:this.region = region;"
+    },
+    {
+      "action": "patch_code",
+      "before": "        // 고칠 곳: 만드는 중에 재정의될 수 있는 메서드를 불러요.\n        System.out.println(\"생성자에서 등록: \" + describe());\n",
+      "after": "        // 이 생성자가 실행되는 동안 Express의 region은 아직 비어 있어요. 등록은 다 만든 뒤 register가 해요.\n",
+      "say": "생성자의 등록 줄을 지우고 다 만든 뒤의 register에 맡겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        29,
+        29
+      ]
+    },
+    {
+      "action": "say",
+      "text": "등록: 특급(서울)과 등록: 일반, 두 줄만 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. final 필드는 처음부터 값이 있다고 믿기 쉬워요. 생성자가 끝나기 전에는 기본값 null을 읽을 수 있어요.",
+      "target": "text:region은 final 필드인데도 null로 보여요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "by": "hand",
+  "source_sha256": "a262f9cf2513f07a969ed3f1508f7b99c5c5c999311b8112b5705c9ec9adf502",
+  "entry": [
+    {
+      "action": "say",
+      "text": "서비스는 그대로 두고 push 알림을 쓰게 하는 문제예요.",
+      "target": "text:Notifiers.create에만 push를 더하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        84,
+        84
+      ]
+    },
+    {
+      "action": "say",
+      "text": "주문도 환불도 모르는 알림 종류: push로 실패해요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "            // 고칠 곳: push 알림을 만들 수 있게 해요.\n",
+      "after": "            // 새 종류는 만드는 곳 한 군데에만 더해요. 주문·환불 코드는 그대로 push를 쓸 수 있어요.\n            case \"push\" -> new PushNotifier(prefix);\n",
+      "say": "create에 push 줄을 더해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        85,
+        85
+      ]
+    },
+    {
+      "action": "say",
+      "text": "두 줄 모두 푸시 [몰입]이에요. 서비스 코드는 한 줄도 바뀌지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 서비스마다 if로 push를 처리하면 앞 스텝처럼 다시 흩어져요. 한 서비스만 고치고 다른 서비스를 놓치기 쉬워요.",
+      "target": "code:Notifier notifier = Notifiers.create(kind);#2"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "by": "hand",
+  "source_sha256": "45015e7aac115d2998383ea4c1d6d052298d35e5af0ee6c7fea9d635751d7e84",
+  "entry": [
+    {
+      "action": "say",
+      "text": "private인데도 밖에서 덧붙인 줄이 장바구니에 들어가는 문제예요.",
+      "target": "text:화면 팀이 받은 목록에 (추천 상품)을 덧붙이자 장바구니의 담은 수가 늘어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        44,
+        44
+      ]
+    },
+    {
+      "action": "say",
+      "text": "담은 수가 3이고 장바구니에 (추천 상품)이 있어요. 한도 2를 넘었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "private은 필드 이름을 숨길 뿐이에요. 이 줄이 목록 객체의 참조를 밖으로 내줘요.",
+      "target": "code:        return items;"
+    },
+    {
+      "action": "patch_code",
+      "before": "        // 고칠 곳: 안쪽 목록 객체를 그대로 내줘요.\n        return items;",
+      "after": "        // 안쪽 목록 대신 바꿀 수 없는 사본을 내줘요. 받은 쪽이 고쳐도 장바구니는 그대로예요.\n        return List.copyOf(items);",
+      "say": "바꿀 수 없는 사본을 돌려줘요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        44,
+        44
+      ]
+    },
+    {
+      "action": "say",
+      "text": "담은 수 2, 장바구니는 우유와 빵이에요. 화면 팀의 덧붙이기는 사본에서 거절됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. subList처럼 원래 목록을 보여 주는 창을 돌려주면 다시 안쪽이 바뀌어요.",
+      "target": "text:items()가 안쪽 목록 대신 사본을 돌려주게 고치세요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

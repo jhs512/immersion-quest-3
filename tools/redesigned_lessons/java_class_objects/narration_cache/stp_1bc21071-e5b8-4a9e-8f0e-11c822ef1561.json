@@ -1,0 +1,55 @@
+{
+  "by": "hand",
+  "source_sha256": "cc3dca7b9a35ba5ee07fe86c72a8e5db17a77360722c446ab58b35a764c646b3",
+  "entry": [
+    {
+      "action": "say",
+      "text": "우유와 빵을 담으려는데 예외가 나는 문제예요.",
+      "target": "text:실행하면 NullPointerException이 나요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        24,
+        24
+      ],
+      "expect_error": "NullPointerException"
+    },
+    {
+      "action": "say",
+      "text": "메시지에 this.items is null이라고 나와요. items가 아무 목록도 가리키지 않아요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "생성자는 limit만 정하고 목록은 만들지 않았어요.",
+      "target": "code:this.limit = limit;"
+    },
+    {
+      "action": "patch_code",
+      "before": "        // 고칠 곳: 상품 목록 객체를 아직 만들지 않았어요.\n",
+      "after": "        // 빈 목록 객체를 만들어 필드에 넣어요. 그래야 add가 담을 곳이 있어요.\n        items = new ArrayList<>();\n",
+      "say": "생성자에서 빈 목록 객체를 만들어 items에 넣어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        25,
+        25
+      ]
+    },
+    {
+      "action": "say",
+      "text": "이제 담은 상품 [우유, 빵]이 나와요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. List<String> items라고 선언만 해도 목록이 생긴 줄 알기 쉬워요. 선언은 참조를 담을 칸만 만들어요.",
+      "target": "text:참조는 null이에요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

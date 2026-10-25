@@ -1,0 +1,73 @@
+{
+  "by": "hand",
+  "source_sha256": "12f20bba7bbaa7f0d79995e3d9186f2deb784f66170c0e93c1b503e7745d4eae",
+  "entry": [
+    {
+      "action": "say",
+      "text": "특급이 무게와 상관없이 3000원으로 나오는 문제예요.",
+      "target": "text:특급이 4000원이어야 하는데 3000원으로 나와요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        44,
+        44
+      ]
+    },
+    {
+      "action": "say",
+      "text": "Express 3000원이에요. Express의 fee가 실행되지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "이 메서드는 long을 받아요. Shipping의 fee(int)와 다른 메서드라 재정의가 아니에요.",
+      "target": "code:int fee(long weight) {"
+    },
+    {
+      "action": "patch_code",
+      "before": "    // 고칠 곳: @Override가 없어서 이 메서드가 재정의인지 아무도 확인하지 않아요.\n    int fee(long weight) {",
+      "after": "    // @Override를 붙이면 재정의가 아닐 때 컴파일러가 막아요. 매개변수 타입까지 같아야 재정의예요.\n    @Override\n    int fee(long weight) {",
+      "say": "@Override를 붙여 컴파일러에게 재정의인지 확인하게 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        45,
+        45
+      ],
+      "expect_error": "does not override"
+    },
+    {
+      "action": "say",
+      "text": "method does not override 오류예요. 컴파일러가 재정의가 아니라고 알려 줬어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    int fee(long weight) {\n        return 3000 + (int) weight * 500;",
+      "after": "    int fee(int weight) {\n        return 3000 + weight * 500;",
+      "say": "매개변수를 Shipping과 같은 int로 맞춰요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        45,
+        45
+      ]
+    },
+    {
+      "action": "say",
+      "text": "Express 4000원이에요. 이제 재정의라 실제 객체의 fee가 불려요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. @Override 없이 시그니처만 바꾸면 컴파일은 잘 되고 결과만 조용히 틀려요.",
+      "target": "text:먼저 Express의 fee 위에 @Override를 붙이고 실행해 컴파일러의 판단을 보세요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

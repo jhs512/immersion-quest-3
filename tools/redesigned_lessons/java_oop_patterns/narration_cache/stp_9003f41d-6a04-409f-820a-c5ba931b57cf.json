@@ -1,0 +1,55 @@
+{
+  "by": "hand",
+  "source_sha256": "ff41a25949dd8526ed6826c4785c451d4d95b9c88c79a3ea9052188937842147",
+  "entry": [
+    {
+      "action": "say",
+      "text": "메일 하나가 실패하면 뒤의 재고와 포인트가 알림을 못 받는 문제예요.",
+      "target": "text:입력 500 3000의 첫 주문에서 예외가 나 재고와 포인트도 알림을 못 받아요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        46,
+        46
+      ],
+      "expect_error": "IllegalStateException"
+    },
+    {
+      "action": "say",
+      "text": "주문 완료 500원 뒤에 IllegalStateException이 나고 프로그램이 멈췄어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "예외가 이 줄에서 반복 밖으로 빠져나가서 다음 구독자로 가지 못해요.",
+      "target": "code:            listener.onCompleted(amount);"
+    },
+    {
+      "action": "patch_code",
+      "before": "            // 고칠 곳: 한 곳이 실패하면 뒤의 구독자는 알림을 받지 못해요.\n            listener.onCompleted(amount);",
+      "after": "            // 구독자마다 따로 실패를 받아요. 한 곳이 실패해도 나머지에게는 계속 알려요.\n            try {\n                listener.onCompleted(amount);\n            } catch (RuntimeException e) {\n                System.out.println(\"  알림 실패: \" + e.getMessage());\n            }",
+      "say": "구독자마다 try로 감싸 실패를 받아 적어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        50,
+        50
+      ]
+    },
+    {
+      "action": "say",
+      "text": "알림 실패 줄 뒤에 재고와 포인트가 이어져요. 3000원 주문은 메일까지 성공했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. try를 반복문 바깥에 두면 예외가 잡히긴 해도 반복이 이미 끝나서 재고와 포인트가 빠져요.",
+      "target": "code:            try {"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

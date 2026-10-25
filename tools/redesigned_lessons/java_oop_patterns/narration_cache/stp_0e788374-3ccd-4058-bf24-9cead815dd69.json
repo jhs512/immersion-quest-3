@@ -1,0 +1,54 @@
+{
+  "by": "hand",
+  "source_sha256": "23f37fbb272b85998b2b7febc8ef045f6893177f7f9b275ec56804d92e581ff3",
+  "entry": [
+    {
+      "action": "say",
+      "text": "주소 설정을 바꿨는데 환불 메일만 예전 주소로 가는 문제예요.",
+      "target": "text:주문 메일은 새 주소로 가는데 환불 메일은 예전 주소로 가요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        84,
+        84
+      ]
+    },
+    {
+      "action": "say",
+      "text": "주문은 help@shop.kr, 환불은 shop@example.com이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "이 줄은 설정을 읽지 않고 예전 주소를 직접 적어 만들어요.",
+      "target": "code:new EmailNotifier(\"shop@example.com\")"
+    },
+    {
+      "action": "patch_code",
+      "before": "        // 고칠 곳: 여기만 알림 객체를 직접 new로 만들어요.\n        Notifier notifier = kind.equals(\"email\") ? new EmailNotifier(\"shop@example.com\") : new SmsNotifier(\"가게\");",
+      "after": "        // 만드는 방법과 설정은 Notifiers만 알아요. 여기서는 종류만 말해요.\n        Notifier notifier = Notifiers.create(kind);",
+      "say": "만드는 일을 Notifiers.create에 맡겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        84,
+        84
+      ]
+    },
+    {
+      "action": "say",
+      "text": "두 메일 모두 help@shop.kr이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "이제 주소가 바뀌면 Notifiers 한 곳만 알면 돼요. 모르는 종류를 거절하는 규칙도 이곳 하나에 있어요.",
+      "target": "code:default -> throw new IllegalArgumentException(\"모르는 알림 종류: \" + kind);"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

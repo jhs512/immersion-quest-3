@@ -1,0 +1,65 @@
+{
+  "by": "hand",
+  "source_sha256": "cc51b947bed3d45ccf620b932bc4f1b954bf7cd17d698c677d8813e73a557308",
+  "entry": [
+    {
+      "action": "say",
+      "text": "vip 정책이 없어 정책 없음이 나오는 문제예요.",
+      "target": "text:그런데 지금은 vip: 정책 없음이 나와요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        57,
+        57
+      ]
+    },
+    {
+      "action": "say",
+      "text": "vip: 정책 없음이에요. ten과 none은 두 계산대 모두 같은 금액이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "계산대는 정책이 무엇인지 묻지 않고 apply만 불러요.",
+      "target": "code:return policy.apply(price);"
+    },
+    {
+      "action": "patch_code",
+      "before": "// 고칠 곳: vip 정책 클래스를 여기에 만들어요.\n",
+      "after": "// 새 정책은 같은 약속(DiscountPolicy)을 지키는 새 클래스예요. Checkout은 고치지 않아요.\nclass Vip implements DiscountPolicy {\n    public int apply(int price) { return price * 8 / 10; }\n}\n",
+      "say": "DiscountPolicy를 구현한 Vip 클래스를 만들어요."
+    },
+    {
+      "action": "patch_code",
+      "before": "            \"ten\", new TenPercent()\n            // 고칠 곳: vip 정책을 이 표에 등록해요.",
+      "after": "            \"ten\", new TenPercent(),\n            \"vip\", new Vip()",
+      "say": "정책 표에 vip를 등록해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        60,
+        60
+      ]
+    },
+    {
+      "action": "say",
+      "text": "vip 8000원이에요. 예전 계산대는 모르는 정책이라고 나와요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "예전 계산대는 정책이 늘 때마다 if를 고쳐야 해요. 새 계산대는 한 줄도 고치지 않았어요.",
+      "target": "code:if (name.equals(\"ten\")) return (price - price / 10) + \"원\";"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 표에 등록하는 줄의 앞 줄 끝 쉼표를 빼기 쉬워요. 빼면 Map.of 호출이 컴파일되지 않아요.",
+      "target": "text:앞 줄 끝에 쉼표가 필요해요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

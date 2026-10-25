@@ -1,0 +1,142 @@
+{
+  "course": "tests/fixtures/player-pilot/디/course.json",
+  "lesson": "courses/redesigned/java-oop-patterns.json",
+  "expected_outputs": [
+    [
+      "vip: 정책 없음\nten 9000원 (예전 계산대: 9000원)\nnone 500원 (예전 계산대: 500원)",
+      "vip 8000원 (예전 계산대: 모르는 정책)\nten 9000원 (예전 계산대: 9000원)\nnone 500원 (예전 계산대: 500원)"
+    ],
+    [
+      "coupon: 정책 없음\ncoupon: 정책 없음",
+      "coupon 4000원 (예전 계산대: 모르는 정책)\ncoupon 0원 (예전 계산대: 모르는 정책)"
+    ],
+    [
+      "메일(help@shop.kr): 주문 완료\n메일(shop@example.com): 환불 완료",
+      "메일(help@shop.kr): 주문 완료\n메일(help@shop.kr): 환불 완료"
+    ],
+    [
+      "order 실패: 모르는 알림 종류: push\nrefund 실패: 모르는 알림 종류: push",
+      "푸시 [몰입] 주문 완료\n푸시 [몰입] 환불 완료"
+    ],
+    [
+      "주문 완료 12000원\n주문 완료 500원",
+      "주문 완료 12000원\n  재고: 1개 줄임\n  포인트: 120점 적립\n주문 완료 500원\n  재고: 1개 줄임\n  포인트: 5점 적립"
+    ],
+    [
+      "주문 완료 10000원\n  쿠폰: 첫 주문 쿠폰 발급",
+      "주문 완료 10000원\n  쿠폰: 첫 주문 쿠폰 발급\n  재고: 1개 줄임\n  포인트: 100점 적립\n주문 완료 2000원\n  재고: 1개 줄임\n  포인트: 20점 적립"
+    ],
+    [
+      "주문 완료 500원",
+      "주문 완료 500원\n  알림 실패: 메일 서버가 거절했어요\n  재고: 1개 줄임\n  포인트: 5점 적립\n주문 완료 3000원\n  메일: 주문 확인 메일 보냄\n  재고: 1개 줄임\n  포인트: 30점 적립"
+    ]
+  ],
+  "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "    public int apply(int price) { return price * 8 / 10; }",
+          "    public int apply(int price) { return price - 2000; }"
+        ]
+      ],
+      "reason": "고정 금액을 빼면 금액이 바뀔 때 20% 할인이 아니에요."
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "price -> Math.max(0, price - 1000)",
+          "price -> price - 1000"
+        ]
+      ],
+      "reason": "300원 주문이 -700원이 돼요."
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "        Notifier notifier = Notifiers.create(kind);\n        System.out.println(notifier.send(\"환불 완료\"));",
+          "        Notifier notifier = kind.equals(\"email\") ? new EmailNotifier(Notifiers.from) : new SmsNotifier(Notifiers.prefix);\n        System.out.println(notifier.send(\"환불 완료\"));"
+        ]
+      ],
+      "reason": "설정은 읽지만 모르는 종류(fax)를 문자로 보내 버려요."
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "            case \"push\" -> new PushNotifier(prefix);\n",
+          "            case \"push\" -> new PushNotifier(\"가게\");\n"
+        ]
+      ],
+      "reason": "머리말 설정을 무시하고 직접 적으면 설정이 바뀔 때 틀려요."
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "        for (OrderListener listener : listeners) listener.onCompleted(amount);",
+          "        if (!listeners.isEmpty()) listeners.get(0).onCompleted(amount);"
+        ]
+      ],
+      "reason": "첫 구독자에게만 알리면 포인트가 빠져요."
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "        for (OrderListener listener : List.copyOf(listeners)) listener.onCompleted(amount);",
+          "        for (int i = 0; i < listeners.size(); i++) listeners.get(i).onCompleted(amount);"
+        ]
+      ],
+      "reason": "쿠폰이 빠지며 자리가 당겨져 재고를 건너뛰어요."
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "        for (OrderListener listener : List.copyOf(listeners)) {\n            // 구독자마다",
+          "        try {\n        for (OrderListener listener : List.copyOf(listeners)) {\n            // 구독자마다"
+        ],
+        [
+          "            try {\n                listener.onCompleted(amount);\n            } catch (RuntimeException e) {\n                System.out.println(\"  알림 실패: \" + e.getMessage());\n            }\n        }",
+          "                listener.onCompleted(amount);\n        }\n        } catch (RuntimeException e) {\n            System.out.println(\"  알림 실패: \" + e.getMessage());\n        }"
+        ]
+      ],
+      "reason": "try를 반복문 바깥에 두면 실패 뒤의 구독자가 알림을 못 받아요."
+    }
+  ],
+  "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "    public int apply(int price) { return price * 8 / 10; }",
+          "    public int apply(int price) { return price - price / 5; }"
+        ]
+      ],
+      "reason": "5로 나누어떨어지는 금액에서는 price - price / 5도 20% 할인이에요."
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "List.copyOf(listeners)",
+          "new ArrayList<>(listeners)"
+        ]
+      ],
+      "reason": "바꿀 수 있는 사본도 원래 목록과 다른 객체예요."
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "            } catch (RuntimeException e) {",
+          "            } catch (IllegalStateException e) {"
+        ]
+      ],
+      "reason": "이 구독자들이 던지는 예외만 잡아도 이 입력에서는 같아요."
+    }
+  ]
+}

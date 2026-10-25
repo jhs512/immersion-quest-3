@@ -1,0 +1,54 @@
+{
+  "by": "hand",
+  "source_sha256": "00fb5bc4589558f1011557dab7a09949a93c02174ae56cecf23fc2fe954b4466",
+  "entry": [
+    {
+      "action": "say",
+      "text": "한도가 0이면 아무것도 담을 수 없는 장바구니가 생기는 문제예요.",
+      "target": "text:한도가 0이면 아무것도 담을 수 없는 장바구니가 만들어져요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        33,
+        33
+      ]
+    },
+    {
+      "action": "say",
+      "text": "우유 거절: 한도 0개가 나오고 빈 장바구니가 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "이 객체는 규칙에 맞지 않는 상태로 이미 만들어졌어요.",
+      "target": "code:this.limit = limit;"
+    },
+    {
+      "action": "patch_code",
+      "before": "        // 고칠 곳: 한도가 1보다 작은 장바구니도 만들어져요.\n",
+      "after": "        // 규칙에 맞지 않는 값이면 객체를 만들지 않고 예외를 던져요. 잘못된 장바구니는 처음부터 생기지 않아요.\n        if (limit < 1) throw new IllegalArgumentException(\"한도는 1 이상이어야 해요\");\n",
+      "say": "한도가 1보다 작으면 생성자에서 예외를 던져요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        34,
+        34
+      ]
+    },
+    {
+      "action": "say",
+      "text": "만들지 않음: 한도는 1 이상이어야 해요가 나왔어요. 잘못된 장바구니는 생기지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. limit < 0으로 쓰기 쉬운데, 그러면 한도 0인 장바구니가 그대로 만들어져요.",
+      "target": "code:limit < 1"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

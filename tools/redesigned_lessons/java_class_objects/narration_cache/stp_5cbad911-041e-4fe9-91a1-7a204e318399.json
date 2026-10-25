@@ -1,0 +1,73 @@
+{
+  "by": "hand",
+  "source_sha256": "3958dd53e6f56cf5a61f2717e9cb15fdaf2068f74b155fa5fa7763ed27b3d817",
+  "entry": [
+    {
+      "action": "say",
+      "text": "한도가 2인데 묶음 상품까지 3개가 담기는 문제예요.",
+      "target": "text:입력 2 우유 +빵 +사과에서 한도 2를 넘어 3개가 담겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        46,
+        46
+      ]
+    },
+    {
+      "action": "say",
+      "text": "담은 수 3 / 한도 2예요. items도 다른 클래스에서 보인다고 나와요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "BundleTeam은 add를 거치지 않고 목록에 바로 넣어요. 그래서 Cart의 검사가 실행되지 않아요.",
+      "target": "code:cart.items.add(name);"
+    },
+    {
+      "action": "patch_code",
+      "before": "    // 고칠 곳: 다른 클래스도 이 목록에 직접 넣을 수 있어요.\n    List<String> items = new ArrayList<>();",
+      "after": "    // private이면 Cart 밖에서 목록을 직접 바꿀 수 없어요. 규칙을 지키는 add만 통로로 남아요.\n    private List<String> items = new ArrayList<>();",
+      "say": "items를 private으로 숨겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        46,
+        46
+      ],
+      "expect_error": "has private access"
+    },
+    {
+      "action": "say",
+      "text": "items has private access 오류가 BundleTeam의 줄을 가리켜요. 규칙을 우회하던 곳이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        cart.items.add(name);",
+      "after": "        // 목록에 직접 넣지 않고 Cart에게 부탁해요. 가득 찼으면 Cart가 거절해요.\n        if (!cart.add(name)) System.out.println(name + \" 거절\");",
+      "say": "그 줄도 Cart의 add를 거치게 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        47,
+        47
+      ]
+    },
+    {
+      "action": "say",
+      "text": "사과 거절이 나오고 담은 수 2 / 한도 2예요. items는 private이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. BundleTeam만 고치고 private을 빼면 지금은 통과해도, 다음 사람이 또 목록에 직접 넣을 수 있어요.",
+      "target": "code:private List<String> items"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

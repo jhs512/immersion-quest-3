@@ -1,0 +1,59 @@
+{
+  "by": "hand",
+  "source_sha256": "5147cd40fe560031ffee4d70751c96e14f2123ac9e3eb73b87fa0ba0bb618091",
+  "entry": [
+    {
+      "action": "say",
+      "text": "네 단어를 넣으려 했는데 시도가 1번으로만 세지는 문제예요.",
+      "target": "text:입력 tree z a b c에서 시도가 4번이어야 하는데 1번이에요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        55,
+        55
+      ]
+    },
+    {
+      "action": "say",
+      "text": "컴포지션은 시도 1번, 상속 버전은 0번이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "상속 버전은 앞 스텝의 고침 그대로예요. HashSet에서는 맞았는데 TreeSet에서는 틀려요.",
+      "target": "code:class InheritedTreeCounter extends TreeSet<String> {"
+    },
+    {
+      "action": "say",
+      "text": "컴포지션 쪽도 안쪽 집합이 add를 불러 주길 기대해요. 그런데 inner.addAll은 CountingSet의 add를 부르지 않아요.",
+      "target": "code:return inner.addAll(c);"
+    },
+    {
+      "action": "patch_code",
+      "before": "        // 고칠 곳: 앞 스텝처럼 안쪽 집합이 add를 불러 줄 거라고 기대해요.\n        return inner.addAll(c);",
+      "after": "        // 세는 일은 CountingSet이 직접 해요. 안쪽 집합이 add를 부르든 말든 결과가 같아요.\n        addCount += c.size();\n        return inner.addAll(c);",
+      "say": "넣으려는 개수를 CountingSet이 직접 더해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        56,
+        56
+      ]
+    },
+    {
+      "action": "say",
+      "text": "컴포지션(tree) 시도 4번이에요. 상속 버전은 여전히 0번이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "이제 안쪽이 HashSet이어도 같은 코드로 4번이에요. 내 규칙을 남의 구현에 맡기지 않았거든요.",
+      "target": "text:맡긴 객체가 안에서 무엇을 하든 내 클래스의 규칙은 내 메서드가 지켜요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

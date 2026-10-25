@@ -1,0 +1,255 @@
+{
+  "course": "tests/fixtures/player-pilot/기/course.json",
+  "lesson": "courses/redesigned/java-class-objects.json",
+  "expected_outputs": [
+    [
+      "내 장바구니 5개\n친구 장바구니 5개\n같은 객체인가요? true",
+      "내 장바구니 2개\n친구 장바구니 3개\n같은 객체인가요? false"
+    ],
+    [
+      "취소 전 3개\n취소 뒤 3개",
+      "취소 전 3개\n취소 뒤 0개"
+    ],
+    [
+      "",
+      "담은 상품 [우유, 빵]"
+    ],
+    [
+      "우유 거절: 한도 0개\n담은 상품 []",
+      "만들지 않음: 한도는 1 이상이어야 해요"
+    ],
+    [
+      "내 장바구니 [우유, 빵, 사과]\n복사본 [우유, 빵, 사과]",
+      "내 장바구니 [우유, 빵]\n복사본 [우유, 빵, 사과]"
+    ],
+    [
+      "SALE10 사용\nSALE10 사용\nWELCOME 사용\n사용한 쿠폰 3장",
+      "SALE10 사용\nSALE10 이미 사용했어요\nWELCOME 사용\n사용한 쿠폰 2장"
+    ],
+    [
+      "items는 다른 클래스에서도 보여요\n담은 수 3 / 한도 2",
+      "",
+      "사과 거절\nitems는 private\n담은 수 2 / 한도 2"
+    ],
+    [
+      "담은 수 3\n장바구니 [우유, 빵, (추천 상품)]",
+      "담은 수 2\n장바구니 [우유, 빵]"
+    ],
+    [
+      "우유 옮기기 거절\nA [빵] / B [사과]",
+      "우유 옮기기 거절\nA [우유, 빵] / B [사과]"
+    ]
+  ],
+  "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "Cart yours = new Cart();",
+          "Cart yours = new Cart();\n        yours = mine;"
+        ]
+      ],
+      "reason": "새 객체를 만든 뒤 다시 mine을 가리키면 여전히 한 객체예요."
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "        cart.count = 0;",
+          "        cart = null;"
+        ]
+      ],
+      "reason": "매개변수에 null을 대입해도 호출한 쪽의 객체는 그대로예요."
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "        items = new ArrayList<>();\n",
+          "        items = List.of();\n"
+        ]
+      ],
+      "reason": "List.of()는 바꿀 수 없는 목록이라 add에서 예외가 나요."
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "limit < 1",
+          "limit < 0"
+        ]
+      ],
+      "reason": "한도 0을 허용해요."
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "limit < 1",
+          "limit <= 1"
+        ]
+      ],
+      "reason": "한도 1인 정상 장바구니까지 거절해요."
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "items = new ArrayList<>(other.items);",
+          "items = other.items.subList(0, other.items.size());"
+        ]
+      ],
+      "reason": "subList는 원래 목록의 일부를 보여 주는 창이라 원래 목록이 함께 바뀌어요."
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "return code.hashCode();",
+          "return System.identityHashCode(this);"
+        ]
+      ],
+      "reason": "객체마다 다른 값이라 같은 쿠폰을 찾지 못해요."
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "return code.hashCode();",
+          "return (int) (Math.random() * 1000);"
+        ]
+      ],
+      "reason": "부를 때마다 값이 달라 같은 쿠폰을 찾지 못해요."
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "    private List<String> items = new ArrayList<>();",
+          "    List<String> items = new ArrayList<>();"
+        ]
+      ],
+      "reason": "BundleTeam만 고치면 items가 여전히 다른 클래스에 열려 있어요."
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "        return List.copyOf(items);",
+          "        return items.subList(0, items.size());"
+        ]
+      ],
+      "reason": "subList는 원래 목록의 창이라 덧붙이면 장바구니가 바뀌어요."
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "if (!items.contains(name) || !other.add(name)) return false;",
+          "if (!other.add(name)) return false;"
+        ]
+      ],
+      "reason": "A에 없는 상품도 B에 담겨요."
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "        if (!items.contains(name) || !other.add(name)) return false;",
+          "        if (!items.remove(name)) return false;"
+        ],
+        [
+          "        return items.remove(name);",
+          "        return other.add(name);"
+        ]
+      ],
+      "reason": "A에서 먼저 빼면 B가 가득 찼을 때 상품이 사라져요."
+    }
+  ],
+  "accept": [
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "        cart.count = 0;",
+          "        cart.add(-cart.count);"
+        ]
+      ],
+      "reason": "add로 현재 개수만큼 빼도 같은 객체를 비워요."
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "    List<String> items;",
+          "    List<String> items = new ArrayList<>();"
+        ],
+        [
+          "        items = new ArrayList<>();\n",
+          ""
+        ]
+      ],
+      "reason": "필드 선언에서 바로 목록을 만들어도 객체가 만들어질 때 준비돼요."
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "limit < 1",
+          "limit <= 0"
+        ]
+      ],
+      "reason": "limit <= 0도 같은 정수 범위를 거절해요."
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "items = new ArrayList<>(other.items);",
+          "items = new ArrayList<>();\n        items.addAll(other.items);"
+        ]
+      ],
+      "reason": "빈 목록을 만든 뒤 addAll로 채워도 목록이 나뉘어요."
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "return code.hashCode();",
+          "return java.util.Objects.hash(code);"
+        ]
+      ],
+      "reason": "Objects.hash(code)도 같은 코드에 같은 값을 줘요."
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "        return List.copyOf(items);",
+          "        return new ArrayList<>(items);"
+        ]
+      ],
+      "reason": "바꿀 수 있는 사본이어도 장바구니의 목록과는 다른 객체예요."
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "        return List.copyOf(items);",
+          "        return java.util.Collections.unmodifiableList(items);"
+        ]
+      ],
+      "reason": "바꿀 수 없는 보기로 감싸도 밖에서 고칠 수 없어요."
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "        if (!items.contains(name) || !other.add(name)) return false;\n",
+          "        if (!items.contains(name)) return false;\n        if (!other.add(name)) return false;\n"
+        ]
+      ],
+      "reason": "확인을 두 줄로 나눠도 같은 순서예요."
+    }
+  ]
+}

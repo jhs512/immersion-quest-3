@@ -1,0 +1,617 @@
+{
+  "schema_version": 2,
+  "id": "lsn_10412c1b-a86e-4708-8e61-9d3bf469686b",
+  "revision": "java-oop-patterns-1",
+  "title": "객체지향 패턴 · 바뀌는 부분을 객체로 떼어 내요",
+  "description": "할인 정책·알림·주문 완료 예제로, 바뀌는 요구가 들어올 때 고칠 곳을 한 군데로 모으는 구조를 직접 완성해요.",
+  "objectives": [
+    "바뀌는 요구(새 할인 정책·새 알림 종류·새 구독자)를 넣을 때 고칠 곳이 한 군데로 모이도록 Strategy·Factory·Observer 구조를 직접 완성해요.",
+    "알리는 중에 구독을 끊을 때와 구독자가 실패할 때 실제로 생기는 문제를 실행으로 보고 고쳐요. 패턴이 필요 없는 경우도 판단해요."
+  ],
+  "sources": [
+    "https://docs.oracle.com/javase/specs/jls/se25/html/jls-9.html#jls-9.8",
+    "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/ArrayList.html",
+    "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html#copyOf(java.util.Collection)"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_1bdc765e-ea83-44f6-a7ab-fe00818c910d",
+      "title": "바뀌는 정책을 객체로",
+      "objectives": [
+        "정책을 객체로 떼어 내면 새 정책을 더해도 쓰는 쪽 코드를 고치지 않는다는 것을 확인해요."
+      ],
+      "units": [
+        {
+          "id": "unt_4fd758e0-04e1-4593-8c95-a2410580f735",
+          "title": "할인 정책 갈아 끼우기(Strategy)",
+          "objectives": [
+            "같은 약속을 지키는 새 정책 객체를 더해 계산대 수정 없이 동작을 바꿔요.",
+            "정책이 하나뿐이고 바뀔 일이 없으면 if 한 줄이 더 단순하다는 판단도 해요."
+          ],
+          "premise": "계산대(Checkout)는 받은 할인 정책 객체에게 계산을 맡겨요. 비교용 예전 계산대는 정책마다 if를 써요. 입력은 「정책이름 금액」의 반복이에요.",
+          "steps": [
+            {
+              "id": "stp_d3d4fd03-6794-413c-9ddb-1ae9d4c3020e",
+              "objectives": [
+                "같은 인터페이스를 구현한 새 클래스를 표에 등록하면 쓰는 코드가 그대로 새 정책을 쓴다는 것을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_2822ad3c-6925-4aad-b5cb-76d563e714e4",
+              "objectives": [
+                "메서드가 하나인 인터페이스는 람다로 바로 구현할 수 있어, 전략이 꼭 새 클래스일 필요는 없다는 것을 확인해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_b08b20a5-a2bc-41b5-bb1a-fcfaba452700",
+      "title": "만드는 책임을 한곳에",
+      "objectives": [
+        "객체를 만드는 방법과 설정을 한 곳에 모으면 설정 변경과 새 종류가 그 한 곳에서 끝난다는 것을 확인해요."
+      ],
+      "units": [
+        {
+          "id": "unt_ca94ccad-6f83-4b27-9f4c-e593487db512",
+          "title": "알림 객체 만들기(Factory)",
+          "objectives": [
+            "흩어진 new 때문에 설정이 어긋나는 것을 보고, 만드는 메서드 하나로 모아요."
+          ],
+          "premise": "주문·환불 서비스가 알림(Notifier)을 보내요. 첫 두 단어는 설정(보내는 메일 주소, 문자 머리말)이고, 그 뒤는 「사건 종류」의 반복이에요.",
+          "steps": [
+            {
+              "id": "stp_0e788374-3ccd-4058-bf24-9cead815dd69",
+              "objectives": [
+                "직접 new로 만든 곳은 설정을 모른다는 것을 보고, 만드는 책임을 Notifiers.create 하나에 모아요."
+              ]
+            },
+            {
+              "id": "stp_ca3de262-6c29-4d44-9593-9a539a7e8608",
+              "objectives": [
+                "만드는 곳이 하나면 새 종류도 그곳에만 더해 모든 서비스가 쓸 수 있다는 것을 확인해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_d0c0878e-0d0f-4b2f-95af-3b916157077a",
+      "title": "변화를 듣는 쪽에 알리기",
+      "objectives": [
+        "알리는 쪽이 듣는 쪽을 몰라도 되게 나누고, 구독 해제와 실패가 섞일 때도 알림이 이어지게 해요."
+      ],
+      "units": [
+        {
+          "id": "unt_9c68629a-6e14-498e-82e2-24388ccf9079",
+          "title": "주문 완료 알림(Observer)",
+          "objectives": [
+            "구독 목록에 알리는 반복을 완성하고, 반복 중 구독 해제와 구독자 실패를 실행으로 다뤄요."
+          ],
+          "premise": "주문(Order)이 완료되면 구독한 쪽(재고·포인트·쿠폰·메일)에 알려요. 주문은 누가 듣는지 몰라요. 입력은 주문 금액의 목록이에요.",
+          "steps": [
+            {
+              "id": "stp_faac6613-1aec-46ba-8333-80f239dc43e6",
+              "objectives": [
+                "알리는 쪽은 듣는 쪽의 인터페이스만 알고 목록을 돌며 알린다는 것을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_b14141d4-59c8-4ec8-aba3-67b43b25460a",
+              "objectives": [
+                "반복 중에 목록을 바꾸면 ArrayList가 ConcurrentModificationException을 던지는 것을 보고, 사본을 돌아 고쳐요."
+              ]
+            },
+            {
+              "id": "stp_9003f41d-6a04-409f-820a-c5ba931b57cf",
+              "objectives": [
+                "한 구독자의 예외가 나머지 알림을 막는 것을 보고, 구독자마다 실패를 받아 기록해요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_d3d4fd03-6794-413c-9ddb-1ae9d4c3020e",
+      "title": "계산대를 고치지 않고 vip 정책을 더하세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n입력 `vip 10000 ten 10000 none 500`을 계산해요. vip는 20% 할인이에요. 할인한 금액은 `price * 8 / 10`이에요. 그런데 지금은 `vip: 정책 없음`이 나와요.\n\nCheckout과 LegacyCheckout은 고치지 마세요. vip 정책 클래스를 만들고 정책 표에 등록하세요.\n\n**알아두세요**\n\n인터페이스는 「무엇을 하는지」의 약속이에요. 계산대는 DiscountPolicy라는 약속만 알고 apply를 불러요. 어떤 클래스의 객체인지는 실행 중에 정해져요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. `고칠 곳: vip 정책 클래스` 자리에 DiscountPolicy를 구현한 `Vip` 클래스를 쓰세요.\n3. 정책 표의 `고칠 곳` 자리에 `\"vip\"`와 `new Vip()`을 등록하세요. 앞 줄 끝에 쉼표가 필요해요.\n4. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n5. 고친 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "import java.util.Map;\n\n// 할인 정책 하나가 하는 일: 금액을 받아 할인한 금액을 돌려줘요.\ninterface DiscountPolicy {\n    int apply(int price);\n}\n\nclass NoDiscount implements DiscountPolicy {\n    public int apply(int price) { return price; }\n}\n\nclass TenPercent implements DiscountPolicy {\n    public int apply(int price) { return price - price / 10; }\n}\n\n// 고칠 곳: vip 정책 클래스를 여기에 만들어요.\n\n// 계산대는 어떤 정책인지 몰라요. 받은 정책 객체에게 계산을 맡겨요.\nclass Checkout {\n    private final DiscountPolicy policy;\n\n    Checkout(DiscountPolicy policy) {\n        this.policy = policy;\n    }\n\n    int total(int price) {\n        return policy.apply(price);\n    }\n}\n\n// 준비 코드: 정책 객체 없이 if로 짠 예전 계산대예요. 비교용이니 그대로 두세요.\nclass LegacyCheckout {\n    static String total(String name, int price) {\n        if (name.equals(\"none\")) return price + \"원\";\n        if (name.equals(\"ten\")) return (price - price / 10) + \"원\";\n        return \"모르는 정책\";\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // 정책 이름과 정책 객체를 이어 둔 표예요.\n        Map<String, DiscountPolicy> policies = Map.of(\n            \"none\", new NoDiscount(),\n            \"ten\", new TenPercent()\n            // 고칠 곳: vip 정책을 이 표에 등록해요.\n        );\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        while (in.hasNext()) {\n            String name = in.next();\n            int price = in.nextInt();\n            DiscountPolicy policy = policies.get(name);\n            if (policy == null) {\n                System.out.println(name + \": 정책 없음\");\n                continue;\n            }\n            System.out.println(name + \" \" + new Checkout(policy).total(price) + \"원 (예전 계산대: \" + LegacyCheckout.total(name, price) + \")\");\n        }\n    }\n}\n",
+      "solution": "import java.util.Map;\n\n// 할인 정책 하나가 하는 일: 금액을 받아 할인한 금액을 돌려줘요.\ninterface DiscountPolicy {\n    int apply(int price);\n}\n\nclass NoDiscount implements DiscountPolicy {\n    public int apply(int price) { return price; }\n}\n\nclass TenPercent implements DiscountPolicy {\n    public int apply(int price) { return price - price / 10; }\n}\n\n// 새 정책은 같은 약속(DiscountPolicy)을 지키는 새 클래스예요. Checkout은 고치지 않아요.\nclass Vip implements DiscountPolicy {\n    public int apply(int price) { return price * 8 / 10; }\n}\n\n// 계산대는 어떤 정책인지 몰라요. 받은 정책 객체에게 계산을 맡겨요.\nclass Checkout {\n    private final DiscountPolicy policy;\n\n    Checkout(DiscountPolicy policy) {\n        this.policy = policy;\n    }\n\n    int total(int price) {\n        return policy.apply(price);\n    }\n}\n\n// 준비 코드: 정책 객체 없이 if로 짠 예전 계산대예요. 비교용이니 그대로 두세요.\nclass LegacyCheckout {\n    static String total(String name, int price) {\n        if (name.equals(\"none\")) return price + \"원\";\n        if (name.equals(\"ten\")) return (price - price / 10) + \"원\";\n        return \"모르는 정책\";\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // 정책 이름과 정책 객체를 이어 둔 표예요.\n        Map<String, DiscountPolicy> policies = Map.of(\n            \"none\", new NoDiscount(),\n            \"ten\", new TenPercent(),\n            \"vip\", new Vip()\n        );\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        while (in.hasNext()) {\n            String name = in.next();\n            int price = in.nextInt();\n            DiscountPolicy policy = policies.get(name);\n            if (policy == null) {\n                System.out.println(name + \": 정책 없음\");\n                continue;\n            }\n            System.out.println(name + \" \" + new Checkout(policy).total(price) + \"원 (예전 계산대: \" + LegacyCheckout.total(name, price) + \")\");\n        }\n    }\n}\n",
+      "tests": [
+        {
+          "input": "vip 10000 ten 10000 none 500",
+          "expected": "vip 8000원 (예전 계산대: 모르는 정책)\nten 9000원 (예전 계산대: 9000원)\nnone 500원 (예전 계산대: 500원)"
+        },
+        {
+          "input": "vip 2500 gold 100",
+          "expected": "vip 2000원 (예전 계산대: 모르는 정책)\ngold: 정책 없음"
+        },
+        {
+          "input": "ten 990 vip 990",
+          "expected": "ten 891원 (예전 계산대: 891원)\nvip 792원 (예전 계산대: 모르는 정책)"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "vip 정책이 없어 정책 없음이 나오는 문제예요.",
+          "target": "text:그런데 지금은 vip: 정책 없음이 나와요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            57,
+            57
+          ]
+        },
+        {
+          "action": "say",
+          "text": "vip: 정책 없음이에요. ten과 none은 두 계산대 모두 같은 금액이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "계산대는 정책이 무엇인지 묻지 않고 apply만 불러요.",
+          "target": "code:return policy.apply(price);"
+        },
+        {
+          "action": "patch_code",
+          "before": "// 고칠 곳: vip 정책 클래스를 여기에 만들어요.\n",
+          "after": "// 새 정책은 같은 약속(DiscountPolicy)을 지키는 새 클래스예요. Checkout은 고치지 않아요.\nclass Vip implements DiscountPolicy {\n    public int apply(int price) { return price * 8 / 10; }\n}\n",
+          "say": "DiscountPolicy를 구현한 Vip 클래스를 만들어요."
+        },
+        {
+          "action": "patch_code",
+          "before": "            \"ten\", new TenPercent()\n            // 고칠 곳: vip 정책을 이 표에 등록해요.",
+          "after": "            \"ten\", new TenPercent(),\n            \"vip\", new Vip()",
+          "say": "정책 표에 vip를 등록해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            60,
+            60
+          ]
+        },
+        {
+          "action": "say",
+          "text": "vip 8000원이에요. 예전 계산대는 모르는 정책이라고 나와요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "예전 계산대는 정책이 늘 때마다 if를 고쳐야 해요. 새 계산대는 한 줄도 고치지 않았어요.",
+          "target": "code:if (name.equals(\"ten\")) return (price - price / 10) + \"원\";"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 표에 등록하는 줄의 앞 줄 끝 쉼표를 빼기 쉬워요. 빼면 Map.of 호출이 컴파일되지 않아요.",
+          "target": "text:앞 줄 끝에 쉼표가 필요해요."
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_2822ad3c-6925-4aad-b5cb-76d563e714e4",
+      "title": "coupon 정책을 클래스 없이 람다로 더하세요",
+      "goal": "이 스텝은 앞 스텝을 고친 상태의 코드에서 시작해요. 내가 앞에서 쓴 답이 아니라 정답 상태로 준비했어요.\n\ncoupon 정책은 1000원을 빼요. 0원 아래로는 내려가지 않아요. 입력 `coupon 5000 coupon 300`은 4000원과 0원이 나와야 해요.\n\n이번에는 클래스를 만들지 말고 정책 표에 람다로 등록하세요.\n\n**알아두세요**\n\n`price -> Math.max(0, price - 1000)`은 apply 하나를 가진 DiscountPolicy 객체예요. 정책이 짧고 한 곳에서만 쓰이면 람다가 더 단순해요. 반대로 정책이 하나뿐이고 바뀔 계획이 없다면 인터페이스 없이 if 한 줄로 충분해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. 정책 표의 `고칠 곳` 자리에 `\"coupon\"`과 람다를 등록하세요. 앞 줄 끝에 쉼표를 붙이세요.\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "import java.util.Map;\n\n// 할인 정책 하나가 하는 일: 금액을 받아 할인한 금액을 돌려줘요.\ninterface DiscountPolicy {\n    int apply(int price);\n}\n\nclass NoDiscount implements DiscountPolicy {\n    public int apply(int price) { return price; }\n}\n\nclass TenPercent implements DiscountPolicy {\n    public int apply(int price) { return price - price / 10; }\n}\n\nclass Vip implements DiscountPolicy {\n    public int apply(int price) { return price * 8 / 10; }\n}\n\n// 계산대는 어떤 정책인지 몰라요. 받은 정책 객체에게 계산을 맡겨요.\nclass Checkout {\n    private final DiscountPolicy policy;\n\n    Checkout(DiscountPolicy policy) {\n        this.policy = policy;\n    }\n\n    int total(int price) {\n        return policy.apply(price);\n    }\n}\n\n// 준비 코드: 정책 객체 없이 if로 짠 예전 계산대예요. 비교용이니 그대로 두세요.\nclass LegacyCheckout {\n    static String total(String name, int price) {\n        if (name.equals(\"none\")) return price + \"원\";\n        if (name.equals(\"ten\")) return (price - price / 10) + \"원\";\n        return \"모르는 정책\";\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // 정책 이름과 정책 객체를 이어 둔 표예요.\n        Map<String, DiscountPolicy> policies = Map.of(\n            \"none\", new NoDiscount(),\n            \"ten\", new TenPercent(),\n            \"vip\", new Vip()\n            // 고칠 곳: coupon 정책을 클래스 없이 등록해요.\n        );\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        while (in.hasNext()) {\n            String name = in.next();\n            int price = in.nextInt();\n            DiscountPolicy policy = policies.get(name);\n            if (policy == null) {\n                System.out.println(name + \": 정책 없음\");\n                continue;\n            }\n            System.out.println(name + \" \" + new Checkout(policy).total(price) + \"원 (예전 계산대: \" + LegacyCheckout.total(name, price) + \")\");\n        }\n    }\n}\n",
+      "solution": "import java.util.Map;\n\n// 할인 정책 하나가 하는 일: 금액을 받아 할인한 금액을 돌려줘요.\ninterface DiscountPolicy {\n    int apply(int price);\n}\n\nclass NoDiscount implements DiscountPolicy {\n    public int apply(int price) { return price; }\n}\n\nclass TenPercent implements DiscountPolicy {\n    public int apply(int price) { return price - price / 10; }\n}\n\nclass Vip implements DiscountPolicy {\n    public int apply(int price) { return price * 8 / 10; }\n}\n\n// 계산대는 어떤 정책인지 몰라요. 받은 정책 객체에게 계산을 맡겨요.\nclass Checkout {\n    private final DiscountPolicy policy;\n\n    Checkout(DiscountPolicy policy) {\n        this.policy = policy;\n    }\n\n    int total(int price) {\n        return policy.apply(price);\n    }\n}\n\n// 준비 코드: 정책 객체 없이 if로 짠 예전 계산대예요. 비교용이니 그대로 두세요.\nclass LegacyCheckout {\n    static String total(String name, int price) {\n        if (name.equals(\"none\")) return price + \"원\";\n        if (name.equals(\"ten\")) return (price - price / 10) + \"원\";\n        return \"모르는 정책\";\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // 정책 이름과 정책 객체를 이어 둔 표예요.\n        Map<String, DiscountPolicy> policies = Map.of(\n            \"none\", new NoDiscount(),\n            \"ten\", new TenPercent(),\n            \"vip\", new Vip(),\n            // 메서드가 하나뿐인 인터페이스는 람다로 바로 만들 수 있어요. 0원 아래로는 내려가지 않아요.\n            \"coupon\", price -> Math.max(0, price - 1000)\n        );\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        while (in.hasNext()) {\n            String name = in.next();\n            int price = in.nextInt();\n            DiscountPolicy policy = policies.get(name);\n            if (policy == null) {\n                System.out.println(name + \": 정책 없음\");\n                continue;\n            }\n            System.out.println(name + \" \" + new Checkout(policy).total(price) + \"원 (예전 계산대: \" + LegacyCheckout.total(name, price) + \")\");\n        }\n    }\n}\n",
+      "tests": [
+        {
+          "input": "coupon 5000 coupon 300",
+          "expected": "coupon 4000원 (예전 계산대: 모르는 정책)\ncoupon 0원 (예전 계산대: 모르는 정책)"
+        },
+        {
+          "input": "coupon 1000 vip 1000",
+          "expected": "coupon 0원 (예전 계산대: 모르는 정책)\nvip 800원 (예전 계산대: 모르는 정책)"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "1000원을 빼되 0원 아래로 내려가지 않는 정책을 더해요.",
+          "target": "text:0원 아래로는 내려가지 않아요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            60,
+            60
+          ]
+        },
+        {
+          "action": "say",
+          "text": "두 줄 모두 coupon: 정책 없음이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "            \"vip\", new Vip()\n            // 고칠 곳: coupon 정책을 클래스 없이 등록해요.",
+          "after": "            \"vip\", new Vip(),\n            // 메서드가 하나뿐인 인터페이스는 람다로 바로 만들 수 있어요. 0원 아래로는 내려가지 않아요.\n            \"coupon\", price -> Math.max(0, price - 1000)",
+          "say": "정책 표에 람다로 coupon을 등록해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            61,
+            61
+          ]
+        },
+        {
+          "action": "say",
+          "text": "coupon 4000원과 coupon 0원이에요. 300원에서 1000원을 빼도 0원에서 멈췄어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "이 람다가 apply 메서드의 몸체예요. Vip처럼 클래스를 만들지 않았어요.",
+          "target": "code:price -> Math.max(0, price - 1000)"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. Math.max 없이 price - 1000만 쓰면 300원 주문이 -700원이 돼요.",
+          "target": "code:Math.max(0, price - 1000)"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_0e788374-3ccd-4058-bf24-9cead815dd69",
+      "title": "환불 알림도 설정을 따르게 하세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n입력 `help@shop.kr 몰입 order email refund email`은 보내는 주소를 help@shop.kr로 바꿔요. 주문 메일은 새 주소로 가는데 환불 메일은 예전 주소로 가요.\n\nRefundService만 알림 객체를 직접 new로 만들어요. 그 줄을 Notifiers.create를 쓰는 코드로 고치세요. 모르는 종류(fax)는 Notifiers가 거절해요.\n\n**알아두세요**\n\n객체를 만드는 코드가 여러 곳에 흩어지면, 만드는 방법이나 설정이 바뀔 때 모든 곳을 찾아 고쳐야 해요. 만드는 일을 한 메서드에 맡기면 그 메서드만 고치면 돼요. 이런 메서드를 팩토리 메서드라고 해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요. 주문 메일과 환불 메일의 보내는 주소를 비교하세요.\n2. RefundService의 `Notifier notifier = ...` 줄을 `Notifiers.create(kind)`를 쓰는 코드로 고치세요.\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "// 알림 하나를 보내는 약속이에요. 보낸 내용을 글로 돌려줘요.\ninterface Notifier {\n    String send(String message);\n}\n\nclass EmailNotifier implements Notifier {\n    private final String from;\n\n    EmailNotifier(String from) {\n        this.from = from;\n    }\n\n    public String send(String message) {\n        return \"메일(\" + from + \"): \" + message;\n    }\n}\n\nclass SmsNotifier implements Notifier {\n    private final String prefix;\n\n    SmsNotifier(String prefix) {\n        this.prefix = prefix;\n    }\n\n    public String send(String message) {\n        return \"문자 [\" + prefix + \"] \" + message;\n    }\n}\n\nclass PushNotifier implements Notifier {\n    private final String prefix;\n\n    PushNotifier(String prefix) {\n        this.prefix = prefix;\n    }\n\n    public String send(String message) {\n        return \"푸시 [\" + prefix + \"] \" + message;\n    }\n}\n\n// 알림 객체를 만드는 곳이에요. 설정을 아는 곳은 여기 하나예요.\nclass Notifiers {\n    static String from = \"shop@example.com\";\n    static String prefix = \"가게\";\n\n    static Notifier create(String kind) {\n        return switch (kind) {\n            case \"email\" -> new EmailNotifier(from);\n            case \"sms\" -> new SmsNotifier(prefix);\n            default -> throw new IllegalArgumentException(\"모르는 알림 종류: \" + kind);\n        };\n    }\n}\n\nclass OrderService {\n    void complete(String kind) {\n        Notifier notifier = Notifiers.create(kind);\n        System.out.println(notifier.send(\"주문 완료\"));\n    }\n}\n\nclass RefundService {\n    void refund(String kind) {\n        // 고칠 곳: 여기만 알림 객체를 직접 new로 만들어요.\n        Notifier notifier = kind.equals(\"email\") ? new EmailNotifier(\"shop@example.com\") : new SmsNotifier(\"가게\");\n        System.out.println(notifier.send(\"환불 완료\"));\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        // 첫 두 단어는 설정이에요: 보내는 메일 주소, 문자 머리말.\n        Notifiers.from = in.next();\n        Notifiers.prefix = in.next();\n        while (in.hasNext()) {\n            String event = in.next();\n            String kind = in.next();\n            try {\n                if (event.equals(\"order\")) new OrderService().complete(kind);\n                else new RefundService().refund(kind);\n            } catch (IllegalArgumentException e) {\n                System.out.println(event + \" 실패: \" + e.getMessage());\n            }\n        }\n    }\n}\n",
+      "solution": "// 알림 하나를 보내는 약속이에요. 보낸 내용을 글로 돌려줘요.\ninterface Notifier {\n    String send(String message);\n}\n\nclass EmailNotifier implements Notifier {\n    private final String from;\n\n    EmailNotifier(String from) {\n        this.from = from;\n    }\n\n    public String send(String message) {\n        return \"메일(\" + from + \"): \" + message;\n    }\n}\n\nclass SmsNotifier implements Notifier {\n    private final String prefix;\n\n    SmsNotifier(String prefix) {\n        this.prefix = prefix;\n    }\n\n    public String send(String message) {\n        return \"문자 [\" + prefix + \"] \" + message;\n    }\n}\n\nclass PushNotifier implements Notifier {\n    private final String prefix;\n\n    PushNotifier(String prefix) {\n        this.prefix = prefix;\n    }\n\n    public String send(String message) {\n        return \"푸시 [\" + prefix + \"] \" + message;\n    }\n}\n\n// 알림 객체를 만드는 곳이에요. 설정을 아는 곳은 여기 하나예요.\nclass Notifiers {\n    static String from = \"shop@example.com\";\n    static String prefix = \"가게\";\n\n    static Notifier create(String kind) {\n        return switch (kind) {\n            case \"email\" -> new EmailNotifier(from);\n            case \"sms\" -> new SmsNotifier(prefix);\n            default -> throw new IllegalArgumentException(\"모르는 알림 종류: \" + kind);\n        };\n    }\n}\n\nclass OrderService {\n    void complete(String kind) {\n        Notifier notifier = Notifiers.create(kind);\n        System.out.println(notifier.send(\"주문 완료\"));\n    }\n}\n\nclass RefundService {\n    void refund(String kind) {\n        // 만드는 방법과 설정은 Notifiers만 알아요. 여기서는 종류만 말해요.\n        Notifier notifier = Notifiers.create(kind);\n        System.out.println(notifier.send(\"환불 완료\"));\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        // 첫 두 단어는 설정이에요: 보내는 메일 주소, 문자 머리말.\n        Notifiers.from = in.next();\n        Notifiers.prefix = in.next();\n        while (in.hasNext()) {\n            String event = in.next();\n            String kind = in.next();\n            try {\n                if (event.equals(\"order\")) new OrderService().complete(kind);\n                else new RefundService().refund(kind);\n            } catch (IllegalArgumentException e) {\n                System.out.println(event + \" 실패: \" + e.getMessage());\n            }\n        }\n    }\n}\n",
+      "tests": [
+        {
+          "input": "help@shop.kr 몰입 order email refund email",
+          "expected": "메일(help@shop.kr): 주문 완료\n메일(help@shop.kr): 환불 완료"
+        },
+        {
+          "input": "a@b.kr 두번째 refund sms order sms",
+          "expected": "문자 [두번째] 환불 완료\n문자 [두번째] 주문 완료"
+        },
+        {
+          "input": "x@y.kr 가게 refund fax",
+          "expected": "refund 실패: 모르는 알림 종류: fax"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "주소 설정을 바꿨는데 환불 메일만 예전 주소로 가는 문제예요.",
+          "target": "text:주문 메일은 새 주소로 가는데 환불 메일은 예전 주소로 가요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            84,
+            84
+          ]
+        },
+        {
+          "action": "say",
+          "text": "주문은 help@shop.kr, 환불은 shop@example.com이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "이 줄은 설정을 읽지 않고 예전 주소를 직접 적어 만들어요.",
+          "target": "code:new EmailNotifier(\"shop@example.com\")"
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 고칠 곳: 여기만 알림 객체를 직접 new로 만들어요.\n        Notifier notifier = kind.equals(\"email\") ? new EmailNotifier(\"shop@example.com\") : new SmsNotifier(\"가게\");",
+          "after": "        // 만드는 방법과 설정은 Notifiers만 알아요. 여기서는 종류만 말해요.\n        Notifier notifier = Notifiers.create(kind);",
+          "say": "만드는 일을 Notifiers.create에 맡겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            84,
+            84
+          ]
+        },
+        {
+          "action": "say",
+          "text": "두 메일 모두 help@shop.kr이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "이제 주소가 바뀌면 Notifiers 한 곳만 알면 돼요. 모르는 종류를 거절하는 규칙도 이곳 하나에 있어요.",
+          "target": "code:default -> throw new IllegalArgumentException(\"모르는 알림 종류: \" + kind);"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_ca3de262-6c29-4d44-9593-9a539a7e8608",
+      "title": "push 알림을 만드는 곳 한 군데에 더하세요",
+      "goal": "이 스텝은 앞 스텝을 고친 상태의 코드에서 시작해요. 내가 앞에서 쓴 답이 아니라 정답 상태로 준비했어요.\n\n이제 두 서비스 모두 Notifiers.create를 써요. 새로 push 알림이 생겼어요. PushNotifier 클래스는 준비돼 있어요. 입력 `a@b.kr 몰입 order push refund push`는 두 줄 모두 푸시여야 해요.\n\nOrderService와 RefundService는 고치지 마세요. Notifiers.create에만 push를 더하세요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. Notifiers.create의 `고칠 곳` 자리에 `push`일 때 `PushNotifier`를 만드는 `case` 줄을 쓰세요.\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "// 알림 하나를 보내는 약속이에요. 보낸 내용을 글로 돌려줘요.\ninterface Notifier {\n    String send(String message);\n}\n\nclass EmailNotifier implements Notifier {\n    private final String from;\n\n    EmailNotifier(String from) {\n        this.from = from;\n    }\n\n    public String send(String message) {\n        return \"메일(\" + from + \"): \" + message;\n    }\n}\n\nclass SmsNotifier implements Notifier {\n    private final String prefix;\n\n    SmsNotifier(String prefix) {\n        this.prefix = prefix;\n    }\n\n    public String send(String message) {\n        return \"문자 [\" + prefix + \"] \" + message;\n    }\n}\n\nclass PushNotifier implements Notifier {\n    private final String prefix;\n\n    PushNotifier(String prefix) {\n        this.prefix = prefix;\n    }\n\n    public String send(String message) {\n        return \"푸시 [\" + prefix + \"] \" + message;\n    }\n}\n\n// 알림 객체를 만드는 곳이에요. 설정을 아는 곳은 여기 하나예요.\nclass Notifiers {\n    static String from = \"shop@example.com\";\n    static String prefix = \"가게\";\n\n    static Notifier create(String kind) {\n        return switch (kind) {\n            case \"email\" -> new EmailNotifier(from);\n            case \"sms\" -> new SmsNotifier(prefix);\n            // 고칠 곳: push 알림을 만들 수 있게 해요.\n            default -> throw new IllegalArgumentException(\"모르는 알림 종류: \" + kind);\n        };\n    }\n}\n\nclass OrderService {\n    void complete(String kind) {\n        Notifier notifier = Notifiers.create(kind);\n        System.out.println(notifier.send(\"주문 완료\"));\n    }\n}\n\nclass RefundService {\n    void refund(String kind) {\n        Notifier notifier = Notifiers.create(kind);\n        System.out.println(notifier.send(\"환불 완료\"));\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        // 첫 두 단어는 설정이에요: 보내는 메일 주소, 문자 머리말.\n        Notifiers.from = in.next();\n        Notifiers.prefix = in.next();\n        while (in.hasNext()) {\n            String event = in.next();\n            String kind = in.next();\n            try {\n                if (event.equals(\"order\")) new OrderService().complete(kind);\n                else new RefundService().refund(kind);\n            } catch (IllegalArgumentException e) {\n                System.out.println(event + \" 실패: \" + e.getMessage());\n            }\n        }\n    }\n}\n",
+      "solution": "// 알림 하나를 보내는 약속이에요. 보낸 내용을 글로 돌려줘요.\ninterface Notifier {\n    String send(String message);\n}\n\nclass EmailNotifier implements Notifier {\n    private final String from;\n\n    EmailNotifier(String from) {\n        this.from = from;\n    }\n\n    public String send(String message) {\n        return \"메일(\" + from + \"): \" + message;\n    }\n}\n\nclass SmsNotifier implements Notifier {\n    private final String prefix;\n\n    SmsNotifier(String prefix) {\n        this.prefix = prefix;\n    }\n\n    public String send(String message) {\n        return \"문자 [\" + prefix + \"] \" + message;\n    }\n}\n\nclass PushNotifier implements Notifier {\n    private final String prefix;\n\n    PushNotifier(String prefix) {\n        this.prefix = prefix;\n    }\n\n    public String send(String message) {\n        return \"푸시 [\" + prefix + \"] \" + message;\n    }\n}\n\n// 알림 객체를 만드는 곳이에요. 설정을 아는 곳은 여기 하나예요.\nclass Notifiers {\n    static String from = \"shop@example.com\";\n    static String prefix = \"가게\";\n\n    static Notifier create(String kind) {\n        return switch (kind) {\n            case \"email\" -> new EmailNotifier(from);\n            case \"sms\" -> new SmsNotifier(prefix);\n            // 새 종류는 만드는 곳 한 군데에만 더해요. 주문·환불 코드는 그대로 push를 쓸 수 있어요.\n            case \"push\" -> new PushNotifier(prefix);\n            default -> throw new IllegalArgumentException(\"모르는 알림 종류: \" + kind);\n        };\n    }\n}\n\nclass OrderService {\n    void complete(String kind) {\n        Notifier notifier = Notifiers.create(kind);\n        System.out.println(notifier.send(\"주문 완료\"));\n    }\n}\n\nclass RefundService {\n    void refund(String kind) {\n        Notifier notifier = Notifiers.create(kind);\n        System.out.println(notifier.send(\"환불 완료\"));\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        // 첫 두 단어는 설정이에요: 보내는 메일 주소, 문자 머리말.\n        Notifiers.from = in.next();\n        Notifiers.prefix = in.next();\n        while (in.hasNext()) {\n            String event = in.next();\n            String kind = in.next();\n            try {\n                if (event.equals(\"order\")) new OrderService().complete(kind);\n                else new RefundService().refund(kind);\n            } catch (IllegalArgumentException e) {\n                System.out.println(event + \" 실패: \" + e.getMessage());\n            }\n        }\n    }\n}\n",
+      "tests": [
+        {
+          "input": "a@b.kr 몰입 order push refund push",
+          "expected": "푸시 [몰입] 주문 완료\n푸시 [몰입] 환불 완료"
+        },
+        {
+          "input": "a@b.kr 가게 order email refund push order fax",
+          "expected": "메일(a@b.kr): 주문 완료\n푸시 [가게] 환불 완료\norder 실패: 모르는 알림 종류: fax"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "서비스는 그대로 두고 push 알림을 쓰게 하는 문제예요.",
+          "target": "text:Notifiers.create에만 push를 더하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            84,
+            84
+          ]
+        },
+        {
+          "action": "say",
+          "text": "주문도 환불도 모르는 알림 종류: push로 실패해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "            // 고칠 곳: push 알림을 만들 수 있게 해요.\n",
+          "after": "            // 새 종류는 만드는 곳 한 군데에만 더해요. 주문·환불 코드는 그대로 push를 쓸 수 있어요.\n            case \"push\" -> new PushNotifier(prefix);\n",
+          "say": "create에 push 줄을 더해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            85,
+            85
+          ]
+        },
+        {
+          "action": "say",
+          "text": "두 줄 모두 푸시 [몰입]이에요. 서비스 코드는 한 줄도 바뀌지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 서비스마다 if로 push를 처리하면 앞 스텝처럼 다시 흩어져요. 한 서비스만 고치고 다른 서비스를 놓치기 쉬워요.",
+          "target": "code:Notifier notifier = Notifiers.create(kind);#2"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_faac6613-1aec-46ba-8333-80f239dc43e6",
+      "title": "구독한 모두에게 주문 완료를 알리세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n재고(Stock)와 포인트(Points)가 주문을 구독했어요. 입력 `12000 500`의 두 주문 뒤에 각각 재고와 포인트 줄이 나와야 해요. 그런데 주문 완료 줄만 나와요.\n\n**알아두세요**\n\n주문은 OrderListener라는 약속만 알아요. 새 구독자(예: 메일)를 더할 때 Order를 고치지 않고 main에서 subscribe만 하면 돼요. 이런 구조를 Observer라고 불러요. 구독자가 하나뿐이고 늘 계획이 없으면 직접 호출해도 충분해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. Order.complete의 `고칠 곳` 자리에 구독 목록을 돌며 `onCompleted(amount)`를 부르는 반복문을 쓰세요.\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "import java.util.ArrayList;\nimport java.util.List;\n\n// 주문 완료를 듣는 쪽의 약속이에요.\ninterface OrderListener {\n    void onCompleted(int amount);\n}\n\n// 주문은 누가 듣는지 몰라요. 구독한 목록에게 알리기만 해요.\nclass Order {\n    private final List<OrderListener> listeners = new ArrayList<>();\n\n    void subscribe(OrderListener listener) {\n        listeners.add(listener);\n    }\n\n    void unsubscribe(OrderListener listener) {\n        listeners.remove(listener);\n    }\n\n    void complete(int amount) {\n        System.out.println(\"주문 완료 \" + amount + \"원\");\n        // 고칠 곳: 구독한 누구에게도 알리지 않아요.\n    }\n}\n\nclass Stock implements OrderListener {\n    public void onCompleted(int amount) {\n        System.out.println(\"  재고: 1개 줄임\");\n    }\n}\n\nclass Points implements OrderListener {\n    public void onCompleted(int amount) {\n        System.out.println(\"  포인트: \" + amount / 100 + \"점 적립\");\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        Order order = new Order();\n        order.subscribe(new Stock());\n        order.subscribe(new Points());\n        while (in.hasNextInt()) order.complete(in.nextInt());\n    }\n}\n",
+      "solution": "import java.util.ArrayList;\nimport java.util.List;\n\n// 주문 완료를 듣는 쪽의 약속이에요.\ninterface OrderListener {\n    void onCompleted(int amount);\n}\n\n// 주문은 누가 듣는지 몰라요. 구독한 목록에게 알리기만 해요.\nclass Order {\n    private final List<OrderListener> listeners = new ArrayList<>();\n\n    void subscribe(OrderListener listener) {\n        listeners.add(listener);\n    }\n\n    void unsubscribe(OrderListener listener) {\n        listeners.remove(listener);\n    }\n\n    void complete(int amount) {\n        System.out.println(\"주문 완료 \" + amount + \"원\");\n        // 구독한 순서대로 하나씩 알려요. 주문은 듣는 쪽이 재고인지 포인트인지 몰라도 돼요.\n        for (OrderListener listener : listeners) listener.onCompleted(amount);\n    }\n}\n\nclass Stock implements OrderListener {\n    public void onCompleted(int amount) {\n        System.out.println(\"  재고: 1개 줄임\");\n    }\n}\n\nclass Points implements OrderListener {\n    public void onCompleted(int amount) {\n        System.out.println(\"  포인트: \" + amount / 100 + \"점 적립\");\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        Order order = new Order();\n        order.subscribe(new Stock());\n        order.subscribe(new Points());\n        while (in.hasNextInt()) order.complete(in.nextInt());\n    }\n}\n",
+      "tests": [
+        {
+          "input": "12000 500",
+          "expected": "주문 완료 12000원\n  재고: 1개 줄임\n  포인트: 120점 적립\n주문 완료 500원\n  재고: 1개 줄임\n  포인트: 5점 적립"
+        },
+        {
+          "input": "300",
+          "expected": "주문 완료 300원\n  재고: 1개 줄임\n  포인트: 3점 적립"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "구독은 했는데 아무도 알림을 받지 못하는 문제예요.",
+          "target": "text:그런데 주문 완료 줄만 나와요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            35,
+            35
+          ]
+        },
+        {
+          "action": "say",
+          "text": "주문 완료 두 줄만 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 고칠 곳: 구독한 누구에게도 알리지 않아요.",
+          "after": "        // 구독한 순서대로 하나씩 알려요. 주문은 듣는 쪽이 재고인지 포인트인지 몰라도 돼요.\n        for (OrderListener listener : listeners) listener.onCompleted(amount);",
+          "say": "구독 목록을 돌며 하나씩 알려요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            36,
+            36
+          ]
+        },
+        {
+          "action": "say",
+          "text": "주문마다 재고와 포인트 줄이 이어져요. 500원 주문은 포인트 5점이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "Order는 재고나 포인트 클래스를 이름으로 부르지 않아요. 약속인 onCompleted만 불러요.",
+          "target": "code:listener.onCompleted(amount);"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_b14141d4-59c8-4ec8-aba3-67b43b25460a",
+      "title": "알리는 중에 구독을 끊어도 알림이 이어지게 하세요",
+      "goal": "이 스텝은 앞 스텝을 고친 상태의 코드에서 시작해요. 내가 앞에서 쓴 답이 아니라 정답 상태로 준비했어요.\n\n첫 주문 쿠폰(FirstOrderCoupon)이 맨 앞에 구독했어요. 쿠폰은 알림을 받으면 쿠폰을 주고 스스로 구독을 끊어요. 입력 `10000 2000`을 실행하면 첫 주문에서 예외가 나요.\n\n첫 주문은 쿠폰·재고·포인트, 둘째 주문은 재고·포인트만 나와야 해요.\n\n**알아두세요**\n\nfor-each 반복은 목록의 반복자로 돌아요. ArrayList의 반복자는 반복 중에 목록이 바뀐 것을 알아채면 ConcurrentModificationException을 던져요. 알리기 전에 목록의 사본을 만들면 이번 반복은 사본을 돌아요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요. 예외 이름과 어느 주문에서 멈췄는지 확인하세요.\n2. complete의 반복이 `listeners`의 사본을 돌도록 고치세요.\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "import java.util.ArrayList;\nimport java.util.List;\n\n// 주문 완료를 듣는 쪽의 약속이에요.\ninterface OrderListener {\n    void onCompleted(int amount);\n}\n\n// 주문은 누가 듣는지 몰라요. 구독한 목록에게 알리기만 해요.\nclass Order {\n    private final List<OrderListener> listeners = new ArrayList<>();\n\n    void subscribe(OrderListener listener) {\n        listeners.add(listener);\n    }\n\n    void unsubscribe(OrderListener listener) {\n        listeners.remove(listener);\n    }\n\n    void complete(int amount) {\n        System.out.println(\"주문 완료 \" + amount + \"원\");\n        // 고칠 곳: 알리는 동안 듣는 쪽이 구독을 끊으면 목록이 바뀌어요.\n        for (OrderListener listener : listeners) listener.onCompleted(amount);\n    }\n}\n\nclass Stock implements OrderListener {\n    public void onCompleted(int amount) {\n        System.out.println(\"  재고: 1개 줄임\");\n    }\n}\n\nclass Points implements OrderListener {\n    public void onCompleted(int amount) {\n        System.out.println(\"  포인트: \" + amount / 100 + \"점 적립\");\n    }\n}\n\n// 첫 주문에만 쿠폰을 주고, 알림을 받은 뒤 스스로 구독을 끊어요.\nclass FirstOrderCoupon implements OrderListener {\n    private final Order order;\n\n    FirstOrderCoupon(Order order) {\n        this.order = order;\n    }\n\n    public void onCompleted(int amount) {\n        System.out.println(\"  쿠폰: 첫 주문 쿠폰 발급\");\n        order.unsubscribe(this);\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        Order order = new Order();\n        order.subscribe(new FirstOrderCoupon(order));\n        order.subscribe(new Stock());\n        order.subscribe(new Points());\n        while (in.hasNextInt()) order.complete(in.nextInt());\n    }\n}\n",
+      "solution": "import java.util.ArrayList;\nimport java.util.List;\n\n// 주문 완료를 듣는 쪽의 약속이에요.\ninterface OrderListener {\n    void onCompleted(int amount);\n}\n\n// 주문은 누가 듣는지 몰라요. 구독한 목록에게 알리기만 해요.\nclass Order {\n    private final List<OrderListener> listeners = new ArrayList<>();\n\n    void subscribe(OrderListener listener) {\n        listeners.add(listener);\n    }\n\n    void unsubscribe(OrderListener listener) {\n        listeners.remove(listener);\n    }\n\n    void complete(int amount) {\n        System.out.println(\"주문 완료 \" + amount + \"원\");\n        // 알리기 전에 목록의 사본을 만들어요. 알리는 중에 구독을 끊어도 이번 반복은 사본을 돌아요.\n        for (OrderListener listener : List.copyOf(listeners)) listener.onCompleted(amount);\n    }\n}\n\nclass Stock implements OrderListener {\n    public void onCompleted(int amount) {\n        System.out.println(\"  재고: 1개 줄임\");\n    }\n}\n\nclass Points implements OrderListener {\n    public void onCompleted(int amount) {\n        System.out.println(\"  포인트: \" + amount / 100 + \"점 적립\");\n    }\n}\n\n// 첫 주문에만 쿠폰을 주고, 알림을 받은 뒤 스스로 구독을 끊어요.\nclass FirstOrderCoupon implements OrderListener {\n    private final Order order;\n\n    FirstOrderCoupon(Order order) {\n        this.order = order;\n    }\n\n    public void onCompleted(int amount) {\n        System.out.println(\"  쿠폰: 첫 주문 쿠폰 발급\");\n        order.unsubscribe(this);\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        Order order = new Order();\n        order.subscribe(new FirstOrderCoupon(order));\n        order.subscribe(new Stock());\n        order.subscribe(new Points());\n        while (in.hasNextInt()) order.complete(in.nextInt());\n    }\n}\n",
+      "tests": [
+        {
+          "input": "10000 2000",
+          "expected": "주문 완료 10000원\n  쿠폰: 첫 주문 쿠폰 발급\n  재고: 1개 줄임\n  포인트: 100점 적립\n주문 완료 2000원\n  재고: 1개 줄임\n  포인트: 20점 적립"
+        },
+        {
+          "input": "500 500 500",
+          "expected": "주문 완료 500원\n  쿠폰: 첫 주문 쿠폰 발급\n  재고: 1개 줄임\n  포인트: 5점 적립\n주문 완료 500원\n  재고: 1개 줄임\n  포인트: 5점 적립\n주문 완료 500원\n  재고: 1개 줄임\n  포인트: 5점 적립"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "쿠폰이 알림을 받는 도중 구독을 끊어서 생기는 문제예요.",
+          "target": "text:쿠폰은 알림을 받으면 쿠폰을 주고 스스로 구독을 끊어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            49,
+            49
+          ],
+          "expect_error": "ConcurrentModificationException"
+        },
+        {
+          "action": "say",
+          "text": "쿠폰 줄 뒤에 ConcurrentModificationException이 나고 멈췄어요. 재고와 포인트는 알림을 못 받았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "쿠폰의 이 줄이 반복 중인 바로 그 목록에서 자기를 지워요.",
+          "target": "code:order.unsubscribe(this);"
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 고칠 곳: 알리는 동안 듣는 쪽이 구독을 끊으면 목록이 바뀌어요.\n        for (OrderListener listener : listeners) listener.onCompleted(amount);",
+          "after": "        // 알리기 전에 목록의 사본을 만들어요. 알리는 중에 구독을 끊어도 이번 반복은 사본을 돌아요.\n        for (OrderListener listener : List.copyOf(listeners)) listener.onCompleted(amount);",
+          "say": "사본을 돌도록 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            49,
+            49
+          ]
+        },
+        {
+          "action": "say",
+          "text": "첫 주문은 쿠폰·재고·포인트, 둘째 주문은 재고·포인트예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 인덱스 반복으로 바꾸면 예외는 안 나지만, 쿠폰이 빠진 자리 때문에 재고를 건너뛰어요.",
+          "target": "code:List.copyOf(listeners)"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_9003f41d-6a04-409f-820a-c5ba931b57cf",
+      "title": "메일이 실패해도 재고와 포인트에는 알리세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n최종 도전이에요. 메일(Mail)이 맨 앞에 구독했어요. 메일 서버는 1000원 미만 주문의 메일을 거절해요. 입력 `500 3000`의 첫 주문에서 예외가 나 재고와 포인트도 알림을 못 받아요.\n\n구독자 하나가 실패하면 `  알림 실패: 메시지`를 출력하고 다음 구독자에게 계속 알리세요. 줄 앞의 공백 두 칸도 출력해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. complete의 `listener.onCompleted(amount);` 줄을 `try`로 감싸고, `RuntimeException`을 잡으면 `\"  알림 실패: \" + e.getMessage()`를 출력하세요.\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "import java.util.ArrayList;\nimport java.util.List;\n\n// 주문 완료를 듣는 쪽의 약속이에요.\ninterface OrderListener {\n    void onCompleted(int amount);\n}\n\n// 주문은 누가 듣는지 몰라요. 구독한 목록에게 알리기만 해요.\nclass Order {\n    private final List<OrderListener> listeners = new ArrayList<>();\n\n    void subscribe(OrderListener listener) {\n        listeners.add(listener);\n    }\n\n    void unsubscribe(OrderListener listener) {\n        listeners.remove(listener);\n    }\n\n    void complete(int amount) {\n        System.out.println(\"주문 완료 \" + amount + \"원\");\n        for (OrderListener listener : List.copyOf(listeners)) {\n            // 고칠 곳: 한 곳이 실패하면 뒤의 구독자는 알림을 받지 못해요.\n            listener.onCompleted(amount);\n        }\n    }\n}\n\nclass Stock implements OrderListener {\n    public void onCompleted(int amount) {\n        System.out.println(\"  재고: 1개 줄임\");\n    }\n}\n\nclass Points implements OrderListener {\n    public void onCompleted(int amount) {\n        System.out.println(\"  포인트: \" + amount / 100 + \"점 적립\");\n    }\n}\n\n// 메일 서버가 1000원 미만 주문의 메일을 거절해요.\nclass Mail implements OrderListener {\n    public void onCompleted(int amount) {\n        if (amount < 1000) throw new IllegalStateException(\"메일 서버가 거절했어요\");\n        System.out.println(\"  메일: 주문 확인 메일 보냄\");\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        Order order = new Order();\n        order.subscribe(new Mail());\n        order.subscribe(new Stock());\n        order.subscribe(new Points());\n        while (in.hasNextInt()) order.complete(in.nextInt());\n    }\n}\n",
+      "solution": "import java.util.ArrayList;\nimport java.util.List;\n\n// 주문 완료를 듣는 쪽의 약속이에요.\ninterface OrderListener {\n    void onCompleted(int amount);\n}\n\n// 주문은 누가 듣는지 몰라요. 구독한 목록에게 알리기만 해요.\nclass Order {\n    private final List<OrderListener> listeners = new ArrayList<>();\n\n    void subscribe(OrderListener listener) {\n        listeners.add(listener);\n    }\n\n    void unsubscribe(OrderListener listener) {\n        listeners.remove(listener);\n    }\n\n    void complete(int amount) {\n        System.out.println(\"주문 완료 \" + amount + \"원\");\n        for (OrderListener listener : List.copyOf(listeners)) {\n            // 구독자마다 따로 실패를 받아요. 한 곳이 실패해도 나머지에게는 계속 알려요.\n            try {\n                listener.onCompleted(amount);\n            } catch (RuntimeException e) {\n                System.out.println(\"  알림 실패: \" + e.getMessage());\n            }\n        }\n    }\n}\n\nclass Stock implements OrderListener {\n    public void onCompleted(int amount) {\n        System.out.println(\"  재고: 1개 줄임\");\n    }\n}\n\nclass Points implements OrderListener {\n    public void onCompleted(int amount) {\n        System.out.println(\"  포인트: \" + amount / 100 + \"점 적립\");\n    }\n}\n\n// 메일 서버가 1000원 미만 주문의 메일을 거절해요.\nclass Mail implements OrderListener {\n    public void onCompleted(int amount) {\n        if (amount < 1000) throw new IllegalStateException(\"메일 서버가 거절했어요\");\n        System.out.println(\"  메일: 주문 확인 메일 보냄\");\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        Order order = new Order();\n        order.subscribe(new Mail());\n        order.subscribe(new Stock());\n        order.subscribe(new Points());\n        while (in.hasNextInt()) order.complete(in.nextInt());\n    }\n}\n",
+      "tests": [
+        {
+          "input": "500 3000",
+          "expected": "주문 완료 500원\n  알림 실패: 메일 서버가 거절했어요\n  재고: 1개 줄임\n  포인트: 5점 적립\n주문 완료 3000원\n  메일: 주문 확인 메일 보냄\n  재고: 1개 줄임\n  포인트: 30점 적립"
+        },
+        {
+          "input": "999",
+          "expected": "주문 완료 999원\n  알림 실패: 메일 서버가 거절했어요\n  재고: 1개 줄임\n  포인트: 9점 적립"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "메일 하나가 실패하면 뒤의 재고와 포인트가 알림을 못 받는 문제예요.",
+          "target": "text:입력 500 3000의 첫 주문에서 예외가 나 재고와 포인트도 알림을 못 받아요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            46,
+            46
+          ],
+          "expect_error": "IllegalStateException"
+        },
+        {
+          "action": "say",
+          "text": "주문 완료 500원 뒤에 IllegalStateException이 나고 프로그램이 멈췄어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "예외가 이 줄에서 반복 밖으로 빠져나가서 다음 구독자로 가지 못해요.",
+          "target": "code:            listener.onCompleted(amount);"
+        },
+        {
+          "action": "patch_code",
+          "before": "            // 고칠 곳: 한 곳이 실패하면 뒤의 구독자는 알림을 받지 못해요.\n            listener.onCompleted(amount);",
+          "after": "            // 구독자마다 따로 실패를 받아요. 한 곳이 실패해도 나머지에게는 계속 알려요.\n            try {\n                listener.onCompleted(amount);\n            } catch (RuntimeException e) {\n                System.out.println(\"  알림 실패: \" + e.getMessage());\n            }",
+          "say": "구독자마다 try로 감싸 실패를 받아 적어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            50,
+            50
+          ]
+        },
+        {
+          "action": "say",
+          "text": "알림 실패 줄 뒤에 재고와 포인트가 이어져요. 3000원 주문은 메일까지 성공했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. try를 반복문 바깥에 두면 예외가 잡히긴 해도 반복이 이미 끝나서 재고와 포인트가 빠져요.",
+          "target": "code:            try {"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    }
+  ],
+  "learning_strategy": "각 스텝은 먼저 실행해 예상과 다른 결과를 봐요. 원인을 찾은 뒤 표시한 한 곳만 고치고 다시 실행해요. 해설은 내 코드를 보존한 채 따로 진행해요."
+}

@@ -1,0 +1,54 @@
+{
+  "by": "hand",
+  "source_sha256": "854970dc4a758c02bd79c663118526ce4962f709dc434d150e589f3b34a13788",
+  "entry": [
+    {
+      "action": "say",
+      "text": "다섯 단어를 넣었는데 시도가 8번으로 세지는 문제예요.",
+      "target": "text:시도는 5번이어야 하는데 8번으로 나와요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        31,
+        31
+      ]
+    },
+    {
+      "action": "say",
+      "text": "시도 8번, 저장 5개예요. 한꺼번에 넣은 세 단어가 두 번 세졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "여기서 3을 더하고, super.addAll이 안에서 add를 세 번 불러 또 3을 더해요.",
+      "target": "code:addCount += c.size();"
+    },
+    {
+      "action": "patch_code",
+      "before": "        // 고칠 곳: 한꺼번에 넣는 개수를 여기서도 더해요.\n        addCount += c.size();\n",
+      "after": "        // HashSet의 addAll은 원소마다 add를 불러요. 그 add가 이미 세니까 여기서 또 더하지 않아요.\n        // 이 고침은 HashSet이 안에서 add를 부른다는 구현에 기대고 있어요.\n",
+      "say": "여기서 더하는 줄을 지워요. add가 이미 세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        31,
+        31
+      ]
+    },
+    {
+      "action": "say",
+      "text": "시도 5번, 저장 5개예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 이 고침은 HashSet이 안에서 add를 부른다는 사실에 기대요. 상위 클래스가 바뀌면 다시 틀릴 수 있어요.",
+      "target": "code:return super.addAll(c);"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

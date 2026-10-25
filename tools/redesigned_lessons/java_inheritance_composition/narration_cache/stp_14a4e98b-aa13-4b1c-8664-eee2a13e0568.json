@@ -1,0 +1,55 @@
+{
+  "by": "hand",
+  "source_sha256": "efa602cd819d4cf51c16e915ddd3b54592104a166cf5b5c82a976838b5aac779",
+  "entry": [
+    {
+      "action": "say",
+      "text": "현금 영수증이 본문을 채우지 않아 실행되지 않는 문제예요.",
+      "target": "text:CashReceipt가 본문(body)을 채우지 않았어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        7
+      ],
+      "expect_error": "does not override abstract method"
+    },
+    {
+      "action": "say",
+      "text": "CashReceipt is not abstract and does not override abstract method body 오류예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "Receipt가 이 자리를 비워 두고, 채우라고 요구해요.",
+      "target": "code:abstract String body(int amount);"
+    },
+    {
+      "action": "patch_code",
+      "before": "    // 고칠 곳: 본문을 채우지 않았어요.\n",
+      "after": "    // Receipt가 비워 둔 자리(추상 메서드)를 채워요. 순서는 Receipt의 print가 그대로 지켜요.\n    String body(int amount) { return \"현금 결제 \" + amount + \"원\"; }\n",
+      "say": "CashReceipt에 body를 채워요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "카드와 현금 영수증이 같은 순서로 나왔어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "이 상속은 Receipt가 처음부터 확장하라고 만든 거예요. 순서는 final인 print가 지키고, 채울 자리만 열려 있어요.",
+      "target": "code:final void print(int amount) {"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

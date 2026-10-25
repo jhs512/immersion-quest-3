@@ -1,0 +1,55 @@
+{
+  "by": "hand",
+  "source_sha256": "a3d79678f767d7a0324102dd3778f222f746c83feef6daba37c51b5dba56c3ca",
+  "entry": [
+    {
+      "action": "say",
+      "text": "쿠폰이 알림을 받는 도중 구독을 끊어서 생기는 문제예요.",
+      "target": "text:쿠폰은 알림을 받으면 쿠폰을 주고 스스로 구독을 끊어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        49,
+        49
+      ],
+      "expect_error": "ConcurrentModificationException"
+    },
+    {
+      "action": "say",
+      "text": "쿠폰 줄 뒤에 ConcurrentModificationException이 나고 멈췄어요. 재고와 포인트는 알림을 못 받았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "쿠폰의 이 줄이 반복 중인 바로 그 목록에서 자기를 지워요.",
+      "target": "code:order.unsubscribe(this);"
+    },
+    {
+      "action": "patch_code",
+      "before": "        // 고칠 곳: 알리는 동안 듣는 쪽이 구독을 끊으면 목록이 바뀌어요.\n        for (OrderListener listener : listeners) listener.onCompleted(amount);",
+      "after": "        // 알리기 전에 목록의 사본을 만들어요. 알리는 중에 구독을 끊어도 이번 반복은 사본을 돌아요.\n        for (OrderListener listener : List.copyOf(listeners)) listener.onCompleted(amount);",
+      "say": "사본을 돌도록 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        49,
+        49
+      ]
+    },
+    {
+      "action": "say",
+      "text": "첫 주문은 쿠폰·재고·포인트, 둘째 주문은 재고·포인트예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 인덱스 반복으로 바꾸면 예외는 안 나지만, 쿠폰이 빠진 자리 때문에 재고를 건너뛰어요.",
+      "target": "code:List.copyOf(listeners)"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

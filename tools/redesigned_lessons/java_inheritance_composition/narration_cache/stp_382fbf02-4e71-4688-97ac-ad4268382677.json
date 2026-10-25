@@ -1,0 +1,59 @@
+{
+  "by": "hand",
+  "source_sha256": "6905cb03f6d091125db1da237d64d3b0d08796cf28a3e48c709c855e9697327f",
+  "entry": [
+    {
+      "action": "say",
+      "text": "세 주문 중 픽업만 0원이어야 하는 문제예요.",
+      "target": "text:매장 픽업은 0원이어야 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        43,
+        43
+      ]
+    },
+    {
+      "action": "say",
+      "text": "Express는 4000원인데 Pickup은 3000원이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "Express는 fee를 재정의했어요. 그래서 Shipping 타입 변수로 불러도 Express의 fee가 실행됐어요.",
+      "target": "code:return 3000 + weight * 500;"
+    },
+    {
+      "action": "say",
+      "text": "Pickup에는 fee가 없어서 물려받은 Shipping의 fee가 실행돼요.",
+      "target": "code:class Pickup extends Shipping {"
+    },
+    {
+      "action": "patch_code",
+      "before": "    // 고칠 곳: 픽업은 배송비가 0원이어야 해요.\n",
+      "after": "    // 같은 이름·같은 매개변수의 메서드를 다시 정의(재정의)하면, Shipping 타입 변수로 불러도 이 메서드가 실행돼요.\n    @Override\n    int fee(int weight) { return 0; }\n",
+      "say": "Pickup에서 fee를 재정의해 0원을 돌려줘요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        45,
+        45
+      ]
+    },
+    {
+      "action": "say",
+      "text": "이제 Pickup 0원이에요. 부르는 코드는 그대로 s.fee인데 실행된 메서드가 달라졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 매개변수 타입을 하나라도 다르게 쓰면 재정의가 아니라 새 메서드가 돼요. 다음 스텝에서 그 경우를 봐요.",
+      "target": "text:이름·매개변수가 같은 메서드를 다시 정의하면 재정의(override)예요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

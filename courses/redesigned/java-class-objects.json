@@ -1,0 +1,841 @@
+{
+  "schema_version": 2,
+  "id": "lsn_c302aed2-20e0-494a-9b9d-086fbc7641e9",
+  "revision": "java-class-objects-1",
+  "title": "클래스와 객체 · 상태를 가진 객체가 스스로 규칙을 지켜요",
+  "description": "장바구니(Cart) 하나에서 시작해 객체의 상태·참조·생성자·복사·같음·캡슐화를 차례로 고쳐요.",
+  "objectives": [
+    "같은 클래스로 만든 객체가 저마다 상태를 갖고, 변수는 그 객체를 가리키는 참조라는 것을 실행 결과로 설명해요.",
+    "생성자·복사·equals와 hashCode·private으로 객체의 처음 상태와 규칙(불변식)을 지키는 코드를 직접 고쳐요."
+  ],
+  "sources": [
+    "https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.3.1",
+    "https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.1",
+    "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#hashCode()",
+    "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html#copyOf(java.util.Collection)"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_3939a5ac-996c-461c-a8b4-fc184bd787bb",
+      "title": "객체는 저마다 상태를 가져요",
+      "objectives": [
+        "new로 만든 객체와 그 객체를 가리키는 참조 변수를 구별해요.",
+        "생성자가 객체의 처음 상태와 규칙을 정한다는 것을 확인해요."
+      ],
+      "units": [
+        {
+          "id": "unt_403be009-7620-4b64-8814-d2b82a38d16e",
+          "title": "변수와 객체를 나눠 세요",
+          "objectives": [
+            "참조를 대입하거나 메서드에 넘길 때 무엇이 복사되는지 실행 결과로 설명해요."
+          ],
+          "premise": "Cart는 장바구니 하나가 담은 개수(count)를 가져요. 입력으로 받은 수만큼 장바구니에 담아요.",
+          "steps": [
+            {
+              "id": "stp_af18d454-72cc-4510-9a21-cb5266712955",
+              "objectives": [
+                "변수 두 개가 객체 두 개를 뜻하지 않는다는 것을 확인하고, new로 독립된 객체를 만들어요."
+              ]
+            },
+            {
+              "id": "stp_4e6503e5-1da3-4033-b012-5ab43e53fe3d",
+              "objectives": [
+                "메서드에는 참조의 복사본이 넘어간다는 것을 확인하고, 매개변수에 대입하는 것과 객체를 바꾸는 것을 구별해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_269ffe43-1501-4e97-9960-a506b7c0aaab",
+          "title": "생성자가 처음 상태를 정해요",
+          "objectives": [
+            "객체가 쓰이기 전에 필요한 상태와 규칙을 생성자에서 보장해요."
+          ],
+          "premise": "Cart가 담은 상품 이름을 목록(items)으로 기억하고, 최대 개수(limit)도 가져요.",
+          "steps": [
+            {
+              "id": "stp_1bc21071-e5b8-4a9e-8f0e-11c822ef1561",
+              "objectives": [
+                "필드의 기본값(null)과 생성자에서 만든 객체를 구별하고, 처음 상태를 생성자에서 준비해요."
+              ]
+            },
+            {
+              "id": "stp_ed43f363-1c0e-4849-b40d-46392e294027",
+              "objectives": [
+                "생성자에서 규칙을 검사해 잘못된 상태의 객체가 처음부터 생기지 않게 해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_65033ad3-112c-4281-9816-716596cb1dde",
+      "title": "복사와 같음을 구별해요",
+      "objectives": [
+        "객체를 복사할 때 안쪽 객체까지 나뉘는지, 두 객체를 같다고 볼 기준이 무엇인지 확인해요."
+      ],
+      "units": [
+        {
+          "id": "unt_1088ba2f-01f7-4c89-86d5-8be375b72a4f",
+          "title": "복사한 장바구니와 같은 쿠폰",
+          "objectives": [
+            "얕은 복사와 깊은 복사, equals와 hashCode의 짝을 실행 결과로 구별해요."
+          ],
+          "premise": "내 장바구니를 복사해 친구에게 줘요. 쿠폰은 코드가 같으면 같은 쿠폰으로 봐요.",
+          "steps": [
+            {
+              "id": "stp_6dc79528-e676-488a-aba7-600a8670c3de",
+              "objectives": [
+                "복사 생성자가 안쪽 목록 객체까지 새로 만들어야 두 객체가 상태를 나눠 쓰지 않는다는 것을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_8950d575-5645-412b-9fe6-61d1d2397878",
+              "objectives": [
+                "HashSet이 hashCode로 먼저 찾고 equals로 확인한다는 것을 보고, equals와 짝이 맞는 hashCode를 만들어요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_e516e2ad-15f6-4a07-a324-819208a0468a",
+      "title": "캡슐화로 규칙을 지켜요",
+      "objectives": [
+        "객체의 규칙(불변식)을 지키는 코드가 그 객체 안에만 있도록 상태를 숨기고 통로를 좁혀요."
+      ],
+      "units": [
+        {
+          "id": "unt_63ab16fc-b182-4276-90ca-139d57dff6cb",
+          "title": "규칙을 지키는 통로는 Cart의 메서드뿐이에요",
+          "objectives": [
+            "private, 바꿀 수 없는 사본, 실패할 일을 먼저 확인하는 순서로 불변식을 지켜요."
+          ],
+          "premise": "장바구니의 규칙: 담은 상품 수는 한도를 넘지 않아요. 이 규칙은 Cart의 메서드가 지켜요.",
+          "steps": [
+            {
+              "id": "stp_5cbad911-041e-4fe9-91a1-7a204e318399",
+              "objectives": [
+                "private으로 상태를 숨기면 규칙을 우회하는 코드를 컴파일러가 찾아 준다는 것을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_6e15ab8f-d9f2-4251-ab4f-4087eb350529",
+              "objectives": [
+                "내부 목록 객체를 그대로 내주면 private이어도 밖에서 상태를 바꿀 수 있다는 것을 보고, 바꿀 수 없는 사본을 내줘요."
+              ]
+            },
+            {
+              "id": "stp_eda23ae4-e837-479c-a4e0-6cf2e881fb54",
+              "objectives": [
+                "두 객체에 걸친 규칙은 실패할 수 있는 일을 먼저 확인하고, 성공한 뒤에만 상태를 바꿔 지켜요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_af18d454-72cc-4510-9a21-cb5266712955",
+      "title": "친구의 장바구니를 새 객체로 만드세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n입력 `2 3`의 2는 내 장바구니에, 3은 친구 장바구니에 담아요. 그런데 실행하면 두 장바구니의 개수가 똑같이 나와요.\n\n**알아두세요**\n\n`new Cart()`가 실행될 때마다 객체가 하나 생겨요. 변수에는 그 객체를 가리키는 참조가 들어가요. `==`는 두 참조가 같은 객체를 가리키는지 비교해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요. 두 개수와 `같은 객체인가요?` 줄을 읽으세요.\n2. `Cart yours = mine;` 줄을 친구의 새 장바구니를 만드는 코드로 고치세요.\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "// 장바구니 하나의 상태(담은 개수)를 가진 클래스예요.\nclass Cart {\n    int count;\n\n    void add(int n) {\n        count += n;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        int mineAdds = in.nextInt();\n        int yoursAdds = in.nextInt();\n        Cart mine = new Cart();\n        // 고칠 곳: 친구의 장바구니를 준비하는 줄이에요.\n        Cart yours = mine;\n        mine.add(mineAdds);\n        yours.add(yoursAdds);\n        System.out.println(\"내 장바구니 \" + mine.count + \"개\");\n        System.out.println(\"친구 장바구니 \" + yours.count + \"개\");\n        System.out.println(\"같은 객체인가요? \" + (mine == yours));\n    }\n}\n",
+      "solution": "// 장바구니 하나의 상태(담은 개수)를 가진 클래스예요.\nclass Cart {\n    int count;\n\n    void add(int n) {\n        count += n;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        int mineAdds = in.nextInt();\n        int yoursAdds = in.nextInt();\n        Cart mine = new Cart();\n        // new가 실행될 때마다 객체가 하나 생겨요. 이제 두 변수는 서로 다른 객체를 가리켜요.\n        Cart yours = new Cart();\n        mine.add(mineAdds);\n        yours.add(yoursAdds);\n        System.out.println(\"내 장바구니 \" + mine.count + \"개\");\n        System.out.println(\"친구 장바구니 \" + yours.count + \"개\");\n        System.out.println(\"같은 객체인가요? \" + (mine == yours));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "2 3",
+          "expected": "내 장바구니 2개\n친구 장바구니 3개\n같은 객체인가요? false"
+        },
+        {
+          "input": "4 1",
+          "expected": "내 장바구니 4개\n친구 장바구니 1개\n같은 객체인가요? false"
+        },
+        {
+          "input": "0 5",
+          "expected": "내 장바구니 0개\n친구 장바구니 5개\n같은 객체인가요? false"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "입력의 2와 3을 서로 다른 장바구니에 담으려는 코드예요.",
+          "target": "text:입력 2 3의 2는 내 장바구니에, 3은 친구 장바구니에 담아요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            22,
+            22
+          ]
+        },
+        {
+          "action": "say",
+          "text": "둘 다 5개예요. 같은 객체인가요? 줄도 true예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "이 줄은 객체를 만들지 않아요. mine이 가리키는 객체를 yours도 가리켜요.",
+          "target": "code:Cart yours = mine;"
+        },
+        {
+          "action": "say",
+          "text": "그래서 2와 3이 한 객체의 count에 모두 더해졌어요.",
+          "target": "code:yours.add(yoursAdds);"
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 고칠 곳: 친구의 장바구니를 준비하는 줄이에요.\n        Cart yours = mine;",
+          "after": "        // new가 실행될 때마다 객체가 하나 생겨요. 이제 두 변수는 서로 다른 객체를 가리켜요.\n        Cart yours = new Cart();",
+          "say": "new로 두 번째 장바구니를 만들어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            22,
+            22
+          ]
+        },
+        {
+          "action": "say",
+          "text": "내 것은 2개, 친구 것은 3개예요. 같은 객체인가요? 줄은 false예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 대입으로 객체를 복사했다고 생각하기 쉬워요. 대입은 참조만 하나 더 만들어요.",
+          "target": "text:변수에는 그 객체를 가리키는 참조가 들어가요."
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_4e6503e5-1da3-4033-b012-5ab43e53fe3d",
+      "title": "취소하면 호출한 쪽의 장바구니가 비게 하세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\ncancel은 주문을 취소하면 장바구니를 비워야 해요. 입력 `3`으로 3개를 담은 뒤 취소해요. 그런데 취소 뒤에도 3개가 남아요.\n\n**알아두세요**\n\n자바는 인수의 값을 매개변수에 복사해 넘겨요. 참조를 넘기면 참조가 복사돼요. 매개변수에 새 객체를 대입하면 매개변수만 바뀌어요. 매개변수가 가리키는 객체의 필드를 바꾸면 호출한 쪽도 같은 객체를 봐요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. `cancel` 안의 `cart = new Cart();` 줄을 넘겨받은 장바구니의 개수를 0으로 바꾸는 코드로 고치세요.\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "// 장바구니 하나의 상태(담은 개수)를 가진 클래스예요.\nclass Cart {\n    int count;\n\n    void add(int n) {\n        count += n;\n    }\n}\n\nclass Main {\n    // 주문을 취소하면 장바구니를 비워요.\n    static void cancel(Cart cart) {\n        // 고칠 곳: 지금은 매개변수가 새 빈 장바구니를 가리키게만 해요.\n        cart = new Cart();\n    }\n\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        Cart mine = new Cart();\n        mine.add(in.nextInt());\n        System.out.println(\"취소 전 \" + mine.count + \"개\");\n        cancel(mine);\n        System.out.println(\"취소 뒤 \" + mine.count + \"개\");\n    }\n}\n",
+      "solution": "// 장바구니 하나의 상태(담은 개수)를 가진 클래스예요.\nclass Cart {\n    int count;\n\n    void add(int n) {\n        count += n;\n    }\n}\n\nclass Main {\n    // 주문을 취소하면 장바구니를 비워요.\n    static void cancel(Cart cart) {\n        // cart는 main의 mine과 같은 객체를 가리켜요. 그 객체의 필드를 바꾸면 호출한 쪽에서도 보여요.\n        cart.count = 0;\n    }\n\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        Cart mine = new Cart();\n        mine.add(in.nextInt());\n        System.out.println(\"취소 전 \" + mine.count + \"개\");\n        cancel(mine);\n        System.out.println(\"취소 뒤 \" + mine.count + \"개\");\n    }\n}\n",
+      "tests": [
+        {
+          "input": "3",
+          "expected": "취소 전 3개\n취소 뒤 0개"
+        },
+        {
+          "input": "7",
+          "expected": "취소 전 7개\n취소 뒤 0개"
+        },
+        {
+          "input": "0",
+          "expected": "취소 전 0개\n취소 뒤 0개"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "3개를 담고 취소했는데 3개가 남는 문제예요.",
+          "target": "text:그런데 취소 뒤에도 3개가 남아요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            23,
+            23
+          ]
+        },
+        {
+          "action": "say",
+          "text": "취소 전도 뒤도 3개예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "이 줄은 매개변수 cart가 새 객체를 가리키게 할 뿐이에요. main의 mine은 그대로 처음 객체를 가리켜요.",
+          "target": "code:cart = new Cart();"
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 고칠 곳: 지금은 매개변수가 새 빈 장바구니를 가리키게만 해요.\n        cart = new Cart();",
+          "after": "        // cart는 main의 mine과 같은 객체를 가리켜요. 그 객체의 필드를 바꾸면 호출한 쪽에서도 보여요.\n        cart.count = 0;",
+          "say": "넘겨받은 참조로 그 객체의 count를 0으로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            23,
+            23
+          ]
+        },
+        {
+          "action": "say",
+          "text": "취소 뒤 0개예요. cart와 mine이 같은 객체를 가리키니까 main에서도 보여요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "매개변수에 대입한 것은 메서드 밖에 보이지 않았고, 객체를 바꾼 것은 보였어요.",
+          "target": "text:매개변수에 새 객체를 대입하면 매개변수만 바뀌어요."
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_1bc21071-e5b8-4a9e-8f0e-11c822ef1561",
+      "title": "생성자에서 상품 목록을 만들어 두세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n입력 `우유 빵`을 장바구니에 담으려는데 실행하면 NullPointerException이 나요. 오류 메시지에 null인 것이 무엇인지 적혀 있어요.\n\n**알아두세요**\n\n객체의 필드는 처음에 기본값이에요. 숫자는 0, 참조는 null이에요. null은 아무 객체도 가리키지 않는다는 뜻이라 메서드를 부를 수 없어요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요. 오류 메시지에서 null인 필드 이름을 찾으세요.\n2. 생성자의 `고칠 곳` 주석 자리에 빈 `ArrayList` 목록을 만들어 `items`에 넣는 줄을 쓰세요.\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "import java.util.ArrayList;\nimport java.util.List;\n\n// 장바구니가 담은 상품 이름을 목록으로 기억해요.\nclass Cart {\n    List<String> items;\n    int limit;\n\n    Cart(int limit) {\n        this.limit = limit;\n        // 고칠 곳: 상품 목록 객체를 아직 만들지 않았어요.\n    }\n\n    void add(String name) {\n        items.add(name);\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        Cart cart = new Cart(3);\n        while (in.hasNext()) cart.add(in.next());\n        System.out.println(\"담은 상품 \" + cart.items);\n    }\n}\n",
+      "solution": "import java.util.ArrayList;\nimport java.util.List;\n\n// 장바구니가 담은 상품 이름을 목록으로 기억해요.\nclass Cart {\n    List<String> items;\n    int limit;\n\n    Cart(int limit) {\n        this.limit = limit;\n        // 빈 목록 객체를 만들어 필드에 넣어요. 그래야 add가 담을 곳이 있어요.\n        items = new ArrayList<>();\n    }\n\n    void add(String name) {\n        items.add(name);\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        Cart cart = new Cart(3);\n        while (in.hasNext()) cart.add(in.next());\n        System.out.println(\"담은 상품 \" + cart.items);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "우유 빵",
+          "expected": "담은 상품 [우유, 빵]"
+        },
+        {
+          "input": "사과",
+          "expected": "담은 상품 [사과]"
+        },
+        {
+          "input": "",
+          "expected": "담은 상품 []"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "우유와 빵을 담으려는데 예외가 나는 문제예요.",
+          "target": "text:실행하면 NullPointerException이 나요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            24,
+            24
+          ],
+          "expect_error": "NullPointerException"
+        },
+        {
+          "action": "say",
+          "text": "메시지에 this.items is null이라고 나와요. items가 아무 목록도 가리키지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "생성자는 limit만 정하고 목록은 만들지 않았어요.",
+          "target": "code:this.limit = limit;"
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 고칠 곳: 상품 목록 객체를 아직 만들지 않았어요.\n",
+          "after": "        // 빈 목록 객체를 만들어 필드에 넣어요. 그래야 add가 담을 곳이 있어요.\n        items = new ArrayList<>();\n",
+          "say": "생성자에서 빈 목록 객체를 만들어 items에 넣어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            25,
+            25
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이제 담은 상품 [우유, 빵]이 나와요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. List<String> items라고 선언만 해도 목록이 생긴 줄 알기 쉬워요. 선언은 참조를 담을 칸만 만들어요.",
+          "target": "text:참조는 null이에요."
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_ed43f363-1c0e-4849-b40d-46392e294027",
+      "title": "한도가 1보다 작으면 장바구니를 만들지 마세요",
+      "goal": "이 스텝은 앞 스텝을 고친 상태의 코드에서 시작해요. 내가 앞에서 쓴 답이 아니라 정답 상태로 준비했어요.\n\n첫 입력은 한도(limit)이고, 나머지는 담을 상품이에요. 입력 `0 우유`처럼 한도가 0이면 아무것도 담을 수 없는 장바구니가 만들어져요.\n\n한도가 1보다 작으면 생성자에서 `IllegalArgumentException`을 던지세요. 메시지는 `한도는 1 이상이어야 해요`예요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. 생성자의 `고칠 곳` 주석 자리에 한도가 1보다 작으면 예외를 던지는 `if` 문 한 줄을 쓰세요.\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "import java.util.ArrayList;\nimport java.util.List;\n\n// 장바구니가 담은 상품 이름을 목록으로 기억해요.\nclass Cart {\n    List<String> items;\n    int limit;\n\n    Cart(int limit) {\n        // 고칠 곳: 한도가 1보다 작은 장바구니도 만들어져요.\n        this.limit = limit;\n        items = new ArrayList<>();\n    }\n\n    void add(String name) {\n        if (items.size() >= limit) {\n            System.out.println(name + \" 거절: 한도 \" + limit + \"개\");\n            return;\n        }\n        items.add(name);\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        int limit = in.nextInt();\n        try {\n            Cart cart = new Cart(limit);\n            while (in.hasNext()) cart.add(in.next());\n            System.out.println(\"담은 상품 \" + cart.items);\n        } catch (IllegalArgumentException e) {\n            System.out.println(\"만들지 않음: \" + e.getMessage());\n        }\n    }\n}\n",
+      "solution": "import java.util.ArrayList;\nimport java.util.List;\n\n// 장바구니가 담은 상품 이름을 목록으로 기억해요.\nclass Cart {\n    List<String> items;\n    int limit;\n\n    Cart(int limit) {\n        // 규칙에 맞지 않는 값이면 객체를 만들지 않고 예외를 던져요. 잘못된 장바구니는 처음부터 생기지 않아요.\n        if (limit < 1) throw new IllegalArgumentException(\"한도는 1 이상이어야 해요\");\n        this.limit = limit;\n        items = new ArrayList<>();\n    }\n\n    void add(String name) {\n        if (items.size() >= limit) {\n            System.out.println(name + \" 거절: 한도 \" + limit + \"개\");\n            return;\n        }\n        items.add(name);\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        int limit = in.nextInt();\n        try {\n            Cart cart = new Cart(limit);\n            while (in.hasNext()) cart.add(in.next());\n            System.out.println(\"담은 상품 \" + cart.items);\n        } catch (IllegalArgumentException e) {\n            System.out.println(\"만들지 않음: \" + e.getMessage());\n        }\n    }\n}\n",
+      "tests": [
+        {
+          "input": "0 우유",
+          "expected": "만들지 않음: 한도는 1 이상이어야 해요"
+        },
+        {
+          "input": "2 우유 빵 사과",
+          "expected": "사과 거절: 한도 2개\n담은 상품 [우유, 빵]"
+        },
+        {
+          "input": "-3",
+          "expected": "만들지 않음: 한도는 1 이상이어야 해요"
+        },
+        {
+          "input": "1 우유",
+          "expected": "담은 상품 [우유]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "한도가 0이면 아무것도 담을 수 없는 장바구니가 생기는 문제예요.",
+          "target": "text:한도가 0이면 아무것도 담을 수 없는 장바구니가 만들어져요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            33,
+            33
+          ]
+        },
+        {
+          "action": "say",
+          "text": "우유 거절: 한도 0개가 나오고 빈 장바구니가 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "이 객체는 규칙에 맞지 않는 상태로 이미 만들어졌어요.",
+          "target": "code:this.limit = limit;"
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 고칠 곳: 한도가 1보다 작은 장바구니도 만들어져요.\n",
+          "after": "        // 규칙에 맞지 않는 값이면 객체를 만들지 않고 예외를 던져요. 잘못된 장바구니는 처음부터 생기지 않아요.\n        if (limit < 1) throw new IllegalArgumentException(\"한도는 1 이상이어야 해요\");\n",
+          "say": "한도가 1보다 작으면 생성자에서 예외를 던져요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            34,
+            34
+          ]
+        },
+        {
+          "action": "say",
+          "text": "만들지 않음: 한도는 1 이상이어야 해요가 나왔어요. 잘못된 장바구니는 생기지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. limit < 0으로 쓰기 쉬운데, 그러면 한도 0인 장바구니가 그대로 만들어져요.",
+          "target": "code:limit < 1"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_6dc79528-e676-488a-aba7-600a8670c3de",
+      "title": "복사본에 담아도 원래 장바구니는 그대로 두세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n첫 줄 `우유 빵`은 내 장바구니에 담고, 복사본을 만든 뒤 둘째 줄 `사과`를 복사본에만 담아요. 그런데 내 장바구니에도 사과가 생겨요.\n\n**알아두세요**\n\n`new Cart(mine)`은 새 Cart 객체를 만들어요. 그 안의 `items`가 원래 목록 객체를 그대로 가리키면 목록은 하나뿐이에요. 이것을 얕은 복사라고 해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. 복사 생성자의 `items = other.items;` 줄을 같은 상품으로 채운 새 목록을 만드는 코드로 고치세요.\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Cart {\n    List<String> items;\n\n    Cart() {\n        items = new ArrayList<>();\n    }\n\n    // 다른 장바구니의 상품으로 시작하는 복사 생성자예요.\n    Cart(Cart other) {\n        // 고칠 곳: 지금은 원래 장바구니의 목록 객체를 함께 가리켜요.\n        items = other.items;\n    }\n\n    void addAll(String line) {\n        for (String name : line.trim().split(\"\\\\s+\")) {\n            if (!name.isEmpty()) items.add(name);\n        }\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        Cart mine = new Cart();\n        mine.addAll(in.nextLine());\n        Cart copy = new Cart(mine);\n        copy.addAll(in.hasNextLine() ? in.nextLine() : \"\");\n        System.out.println(\"내 장바구니 \" + mine.items);\n        System.out.println(\"복사본 \" + copy.items);\n    }\n}\n",
+      "solution": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Cart {\n    List<String> items;\n\n    Cart() {\n        items = new ArrayList<>();\n    }\n\n    // 다른 장바구니의 상품으로 시작하는 복사 생성자예요.\n    Cart(Cart other) {\n        // 같은 상품으로 채운 새 목록 객체를 만들어요. 이제 두 장바구니가 목록을 나눠 쓰지 않아요.\n        items = new ArrayList<>(other.items);\n    }\n\n    void addAll(String line) {\n        for (String name : line.trim().split(\"\\\\s+\")) {\n            if (!name.isEmpty()) items.add(name);\n        }\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        Cart mine = new Cart();\n        mine.addAll(in.nextLine());\n        Cart copy = new Cart(mine);\n        copy.addAll(in.hasNextLine() ? in.nextLine() : \"\");\n        System.out.println(\"내 장바구니 \" + mine.items);\n        System.out.println(\"복사본 \" + copy.items);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "우유 빵\n사과",
+          "expected": "내 장바구니 [우유, 빵]\n복사본 [우유, 빵, 사과]"
+        },
+        {
+          "input": "계란\n김 파",
+          "expected": "내 장바구니 [계란]\n복사본 [계란, 김, 파]"
+        },
+        {
+          "input": "쌀\n",
+          "expected": "내 장바구니 [쌀]\n복사본 [쌀]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "복사본에만 사과를 담았는데 내 장바구니에도 생기는 문제예요.",
+          "target": "text:그런데 내 장바구니에도 사과가 생겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            32,
+            32
+          ]
+        },
+        {
+          "action": "say",
+          "text": "두 줄 모두 우유, 빵, 사과예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "Cart 객체는 두 개지만, 이 줄 때문에 목록 객체는 하나를 같이 가리켜요.",
+          "target": "code:items = other.items;"
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 고칠 곳: 지금은 원래 장바구니의 목록 객체를 함께 가리켜요.\n        items = other.items;",
+          "after": "        // 같은 상품으로 채운 새 목록 객체를 만들어요. 이제 두 장바구니가 목록을 나눠 쓰지 않아요.\n        items = new ArrayList<>(other.items);",
+          "say": "원래 상품으로 채운 새 목록 객체를 만들어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            32,
+            32
+          ]
+        },
+        {
+          "action": "say",
+          "text": "내 장바구니는 우유, 빵이고 복사본만 사과까지 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. Cart를 new로 만들었으니 다 복사됐다고 생각하기 쉬워요. 안쪽의 목록까지 새로 만들어야 나뉘어요.",
+          "target": "text:이것을 얕은 복사라고 해요."
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_8950d575-5645-412b-9fe6-61d1d2397878",
+      "title": "같은 코드의 쿠폰을 한 번만 쓰게 하세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n입력 `SALE10 SALE10 WELCOME`의 쿠폰을 차례로 써요. 같은 코드의 쿠폰은 한 번만 쓸 수 있어야 해요. 그런데 SALE10이 두 번 사용돼요.\n\nCoupon의 equals는 코드가 같으면 같다고 판단해요. hashCode만 고치세요.\n\n**알아두세요**\n\nHashSet은 객체를 찾을 때 hashCode로 먼저 칸을 고르고, 그 칸 안에서 equals로 비교해요. 그래서 equals가 같다고 하는 두 객체는 hashCode도 같아야 해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. `hashCode`가 쿠폰 코드(`code`)로 정해진 값을 돌려주도록 `return` 줄을 고치세요.\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "import java.util.HashSet;\nimport java.util.Set;\n\n// 쿠폰은 코드가 같으면 같은 쿠폰이에요.\nclass Coupon {\n    final String code;\n\n    Coupon(String code) {\n        this.code = code;\n    }\n\n    @Override\n    public boolean equals(Object other) {\n        return other instanceof Coupon c && code.equals(c.code);\n    }\n\n    @Override\n    public int hashCode() {\n        // 고칠 곳: 지금은 Object의 hashCode라서 객체마다 다른 값을 돌려줘요.\n        return super.hashCode();\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        Set<Coupon> used = new HashSet<>();\n        while (in.hasNext()) {\n            Coupon coupon = new Coupon(in.next());\n            if (used.contains(coupon)) {\n                System.out.println(coupon.code + \" 이미 사용했어요\");\n            } else {\n                used.add(coupon);\n                System.out.println(coupon.code + \" 사용\");\n            }\n        }\n        System.out.println(\"사용한 쿠폰 \" + used.size() + \"장\");\n    }\n}\n",
+      "solution": "import java.util.HashSet;\nimport java.util.Set;\n\n// 쿠폰은 코드가 같으면 같은 쿠폰이에요.\nclass Coupon {\n    final String code;\n\n    Coupon(String code) {\n        this.code = code;\n    }\n\n    @Override\n    public boolean equals(Object other) {\n        return other instanceof Coupon c && code.equals(c.code);\n    }\n\n    @Override\n    public int hashCode() {\n        // equals가 같다고 하는 두 쿠폰은 hashCode도 같아야 해요. 같은 코드면 같은 값이 나와요.\n        return code.hashCode();\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        Set<Coupon> used = new HashSet<>();\n        while (in.hasNext()) {\n            Coupon coupon = new Coupon(in.next());\n            if (used.contains(coupon)) {\n                System.out.println(coupon.code + \" 이미 사용했어요\");\n            } else {\n                used.add(coupon);\n                System.out.println(coupon.code + \" 사용\");\n            }\n        }\n        System.out.println(\"사용한 쿠폰 \" + used.size() + \"장\");\n    }\n}\n",
+      "tests": [
+        {
+          "input": "SALE10 SALE10 WELCOME",
+          "expected": "SALE10 사용\nSALE10 이미 사용했어요\nWELCOME 사용\n사용한 쿠폰 2장"
+        },
+        {
+          "input": "A B A B C",
+          "expected": "A 사용\nB 사용\nA 이미 사용했어요\nB 이미 사용했어요\nC 사용\n사용한 쿠폰 3장"
+        },
+        {
+          "input": "ONLY",
+          "expected": "ONLY 사용\n사용한 쿠폰 1장"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "같은 코드의 쿠폰이 두 번 사용되는 문제예요.",
+          "target": "text:그런데 SALE10이 두 번 사용돼요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            37,
+            37
+          ]
+        },
+        {
+          "action": "say",
+          "text": "SALE10 사용이 두 번 나오고, 사용한 쿠폰이 3장이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "equals는 코드가 같으면 true예요. 문제는 그 전에 칸을 고르는 hashCode예요.",
+          "target": "code:return other instanceof Coupon c && code.equals(c.code);"
+        },
+        {
+          "action": "say",
+          "text": "Object의 hashCode는 객체마다 다른 값이라, 같은 코드의 쿠폰도 다른 칸을 찾아요.",
+          "target": "code:return super.hashCode();"
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 고칠 곳: 지금은 Object의 hashCode라서 객체마다 다른 값을 돌려줘요.\n        return super.hashCode();",
+          "after": "        // equals가 같다고 하는 두 쿠폰은 hashCode도 같아야 해요. 같은 코드면 같은 값이 나와요.\n        return code.hashCode();",
+          "say": "쿠폰 코드의 hashCode를 그대로 돌려줘요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            37,
+            37
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이제 두 번째 SALE10은 이미 사용했어요로 나오고, 쿠폰은 2장이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. equals만 고치고 hashCode를 두면 HashSet과 HashMap에서 같은 값을 못 찾아요.",
+          "target": "text:그래서 equals가 같다고 하는 두 객체는 hashCode도 같아야 해요."
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_5cbad911-041e-4fe9-91a1-7a204e318399",
+      "title": "묶음 상품도 한도를 넘지 않게 하세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n첫 입력은 한도이고, `+`로 시작하는 이름은 묶음 상품이에요. 묶음 상품은 BundleTeam 클래스가 담아요. 입력 `2 우유 +빵 +사과`에서 한도 2를 넘어 3개가 담겨요.\n\nCart의 `items`를 `private`으로 바꾸세요. 그러면 BundleTeam의 줄이 컴파일되지 않아요. 그 줄을 `cart.add`를 쓰는 코드로 고치세요. 담지 못하면 `이름 거절`을 출력하세요.\n\n**알아두세요**\n\n`private` 필드는 그 클래스 안에서만 읽고 쓸 수 있어요. 규칙을 지키는 메서드만 상태를 바꾸게 하는 것을 캡슐화라고 해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. Cart의 `items` 선언 앞에 `private`을 붙이세요.\n3. 코드 실행 버튼을 눌러 컴파일 오류가 가리키는 줄을 찾으세요.\n4. 그 줄을 `cart.add(name)`의 결과가 false면 `이름 거절`을 출력하는 코드로 고치세요.\n5. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n6. 고친 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "import java.util.ArrayList;\nimport java.util.List;\n\n// 규칙: 담은 상품 수는 한도를 넘지 않아요.\nclass Cart {\n    // 고칠 곳: 다른 클래스도 이 목록에 직접 넣을 수 있어요.\n    List<String> items = new ArrayList<>();\n    final int limit;\n\n    Cart(int limit) {\n        if (limit < 1) throw new IllegalArgumentException(\"한도는 1 이상이어야 해요\");\n        this.limit = limit;\n    }\n\n    boolean add(String name) {\n        if (items.size() >= limit) return false;\n        items.add(name);\n        return true;\n    }\n\n    int size() {\n        return items.size();\n    }\n}\n\n// 묶음 상품을 담는 다른 팀의 코드예요.\nclass BundleTeam {\n    static void put(Cart cart, String name) {\n        cart.items.add(name);\n    }\n}\n\nclass Main {\n    public static void main(String[] args) throws Exception {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        Cart cart = new Cart(in.nextInt());\n        while (in.hasNext()) {\n            String name = in.next();\n            // +로 시작하는 이름은 묶음 상품이라 BundleTeam이 담아요.\n            if (name.startsWith(\"+\")) BundleTeam.put(cart, name.substring(1));\n            else if (!cart.add(name)) System.out.println(name + \" 거절\");\n        }\n        // 준비 코드: 필드 items의 공개 범위를 실제 클래스 정보에서 읽어 보여 줘요.\n        boolean hidden = java.lang.reflect.Modifier.isPrivate(Cart.class.getDeclaredField(\"items\").getModifiers());\n        System.out.println(\"items는 \" + (hidden ? \"private\" : \"다른 클래스에서도 보여요\"));\n        System.out.println(\"담은 수 \" + cart.size() + \" / 한도 \" + cart.limit);\n    }\n}\n",
+      "solution": "import java.util.ArrayList;\nimport java.util.List;\n\n// 규칙: 담은 상품 수는 한도를 넘지 않아요.\nclass Cart {\n    // private이면 Cart 밖에서 목록을 직접 바꿀 수 없어요. 규칙을 지키는 add만 통로로 남아요.\n    private List<String> items = new ArrayList<>();\n    final int limit;\n\n    Cart(int limit) {\n        if (limit < 1) throw new IllegalArgumentException(\"한도는 1 이상이어야 해요\");\n        this.limit = limit;\n    }\n\n    boolean add(String name) {\n        if (items.size() >= limit) return false;\n        items.add(name);\n        return true;\n    }\n\n    int size() {\n        return items.size();\n    }\n}\n\n// 묶음 상품을 담는 다른 팀의 코드예요.\nclass BundleTeam {\n    static void put(Cart cart, String name) {\n        // 목록에 직접 넣지 않고 Cart에게 부탁해요. 가득 찼으면 Cart가 거절해요.\n        if (!cart.add(name)) System.out.println(name + \" 거절\");\n    }\n}\n\nclass Main {\n    public static void main(String[] args) throws Exception {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        Cart cart = new Cart(in.nextInt());\n        while (in.hasNext()) {\n            String name = in.next();\n            // +로 시작하는 이름은 묶음 상품이라 BundleTeam이 담아요.\n            if (name.startsWith(\"+\")) BundleTeam.put(cart, name.substring(1));\n            else if (!cart.add(name)) System.out.println(name + \" 거절\");\n        }\n        // 준비 코드: 필드 items의 공개 범위를 실제 클래스 정보에서 읽어 보여 줘요.\n        boolean hidden = java.lang.reflect.Modifier.isPrivate(Cart.class.getDeclaredField(\"items\").getModifiers());\n        System.out.println(\"items는 \" + (hidden ? \"private\" : \"다른 클래스에서도 보여요\"));\n        System.out.println(\"담은 수 \" + cart.size() + \" / 한도 \" + cart.limit);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "2 우유 +빵 +사과",
+          "expected": "사과 거절\nitems는 private\n담은 수 2 / 한도 2"
+        },
+        {
+          "input": "1 +세트 우유",
+          "expected": "우유 거절\nitems는 private\n담은 수 1 / 한도 1"
+        },
+        {
+          "input": "3 +a +b",
+          "expected": "items는 private\n담은 수 2 / 한도 3"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "한도가 2인데 묶음 상품까지 3개가 담기는 문제예요.",
+          "target": "text:입력 2 우유 +빵 +사과에서 한도 2를 넘어 3개가 담겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            46,
+            46
+          ]
+        },
+        {
+          "action": "say",
+          "text": "담은 수 3 / 한도 2예요. items도 다른 클래스에서 보인다고 나와요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "BundleTeam은 add를 거치지 않고 목록에 바로 넣어요. 그래서 Cart의 검사가 실행되지 않아요.",
+          "target": "code:cart.items.add(name);"
+        },
+        {
+          "action": "patch_code",
+          "before": "    // 고칠 곳: 다른 클래스도 이 목록에 직접 넣을 수 있어요.\n    List<String> items = new ArrayList<>();",
+          "after": "    // private이면 Cart 밖에서 목록을 직접 바꿀 수 없어요. 규칙을 지키는 add만 통로로 남아요.\n    private List<String> items = new ArrayList<>();",
+          "say": "items를 private으로 숨겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            46,
+            46
+          ],
+          "expect_error": "has private access"
+        },
+        {
+          "action": "say",
+          "text": "items has private access 오류가 BundleTeam의 줄을 가리켜요. 규칙을 우회하던 곳이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        cart.items.add(name);",
+          "after": "        // 목록에 직접 넣지 않고 Cart에게 부탁해요. 가득 찼으면 Cart가 거절해요.\n        if (!cart.add(name)) System.out.println(name + \" 거절\");",
+          "say": "그 줄도 Cart의 add를 거치게 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            47,
+            47
+          ]
+        },
+        {
+          "action": "say",
+          "text": "사과 거절이 나오고 담은 수 2 / 한도 2예요. items는 private이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. BundleTeam만 고치고 private을 빼면 지금은 통과해도, 다음 사람이 또 목록에 직접 넣을 수 있어요.",
+          "target": "code:private List<String> items"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_6e15ab8f-d9f2-4251-ab4f-4087eb350529",
+      "title": "보여 준 목록을 고쳐도 장바구니는 그대로 두세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n이제 items는 private이에요. 그런데 `items()` 메서드가 안쪽 목록 객체를 그대로 내줘요. 화면 팀이 받은 목록에 `(추천 상품)`을 덧붙이자 장바구니의 담은 수가 늘어요.\n\n`items()`가 안쪽 목록 대신 사본을 돌려주게 고치세요.\n\n**알아두세요**\n\n`List.copyOf(목록)`은 같은 원소를 가진, 바꿀 수 없는 새 목록을 돌려줘요. 바꾸려 하면 `UnsupportedOperationException`이 나요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. `items()`의 `return items;` 줄을 사본을 돌려주는 코드로 고치세요.\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "import java.util.ArrayList;\nimport java.util.List;\n\n// 규칙: 담은 상품 수는 한도를 넘지 않아요.\nclass Cart {\n    private final List<String> items = new ArrayList<>();\n    private final int limit;\n\n    Cart(int limit) {\n        if (limit < 1) throw new IllegalArgumentException(\"한도는 1 이상이어야 해요\");\n        this.limit = limit;\n    }\n\n    boolean add(String name) {\n        if (items.size() >= limit) return false;\n        items.add(name);\n        return true;\n    }\n\n    int size() {\n        return items.size();\n    }\n\n    // 화면에 보여 줄 상품 목록이에요.\n    List<String> items() {\n        // 고칠 곳: 안쪽 목록 객체를 그대로 내줘요.\n        return items;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        Cart cart = new Cart(in.nextInt());\n        while (in.hasNext()) cart.add(in.next());\n        // 화면 팀의 코드예요. 받은 목록에 표시용 줄을 덧붙여요.\n        List<String> shown = cart.items();\n        try {\n            shown.add(\"(추천 상품)\");\n        } catch (UnsupportedOperationException e) {\n            // 바꿀 수 없는 목록이면 덧붙이지 않아요.\n        }\n        System.out.println(\"담은 수 \" + cart.size());\n        System.out.println(\"장바구니 \" + cart.items());\n    }\n}\n",
+      "solution": "import java.util.ArrayList;\nimport java.util.List;\n\n// 규칙: 담은 상품 수는 한도를 넘지 않아요.\nclass Cart {\n    private final List<String> items = new ArrayList<>();\n    private final int limit;\n\n    Cart(int limit) {\n        if (limit < 1) throw new IllegalArgumentException(\"한도는 1 이상이어야 해요\");\n        this.limit = limit;\n    }\n\n    boolean add(String name) {\n        if (items.size() >= limit) return false;\n        items.add(name);\n        return true;\n    }\n\n    int size() {\n        return items.size();\n    }\n\n    // 화면에 보여 줄 상품 목록이에요.\n    List<String> items() {\n        // 안쪽 목록 대신 바꿀 수 없는 사본을 내줘요. 받은 쪽이 고쳐도 장바구니는 그대로예요.\n        return List.copyOf(items);\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        Cart cart = new Cart(in.nextInt());\n        while (in.hasNext()) cart.add(in.next());\n        // 화면 팀의 코드예요. 받은 목록에 표시용 줄을 덧붙여요.\n        List<String> shown = cart.items();\n        try {\n            shown.add(\"(추천 상품)\");\n        } catch (UnsupportedOperationException e) {\n            // 바꿀 수 없는 목록이면 덧붙이지 않아요.\n        }\n        System.out.println(\"담은 수 \" + cart.size());\n        System.out.println(\"장바구니 \" + cart.items());\n    }\n}\n",
+      "tests": [
+        {
+          "input": "2 우유 빵",
+          "expected": "담은 수 2\n장바구니 [우유, 빵]"
+        },
+        {
+          "input": "3 사과",
+          "expected": "담은 수 1\n장바구니 [사과]"
+        },
+        {
+          "input": "1",
+          "expected": "담은 수 0\n장바구니 []"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "private인데도 밖에서 덧붙인 줄이 장바구니에 들어가는 문제예요.",
+          "target": "text:화면 팀이 받은 목록에 (추천 상품)을 덧붙이자 장바구니의 담은 수가 늘어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            44,
+            44
+          ]
+        },
+        {
+          "action": "say",
+          "text": "담은 수가 3이고 장바구니에 (추천 상품)이 있어요. 한도 2를 넘었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "private은 필드 이름을 숨길 뿐이에요. 이 줄이 목록 객체의 참조를 밖으로 내줘요.",
+          "target": "code:        return items;"
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 고칠 곳: 안쪽 목록 객체를 그대로 내줘요.\n        return items;",
+          "after": "        // 안쪽 목록 대신 바꿀 수 없는 사본을 내줘요. 받은 쪽이 고쳐도 장바구니는 그대로예요.\n        return List.copyOf(items);",
+          "say": "바꿀 수 없는 사본을 돌려줘요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            44,
+            44
+          ]
+        },
+        {
+          "action": "say",
+          "text": "담은 수 2, 장바구니는 우유와 빵이에요. 화면 팀의 덧붙이기는 사본에서 거절됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. subList처럼 원래 목록을 보여 주는 창을 돌려주면 다시 안쪽이 바뀌어요.",
+          "target": "text:items()가 안쪽 목록 대신 사본을 돌려주게 고치세요."
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_eda23ae4-e837-479c-a4e0-6cf2e881fb54",
+      "title": "옮기다 실패해도 상품이 사라지지 않게 하세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n최종 도전이에요. 첫 두 수는 장바구니 A와 B의 한도예요. `a:이름`은 A에, `b:이름`은 B에 담고, `>:이름`은 A의 상품을 B로 옮겨요. 옮기지 못하면 A에 그대로 있어야 해요.\n\n입력 `2 1 a:우유 a:빵 b:사과 >:우유`에서 B는 이미 가득 찼어요. 그런데 실행하면 우유가 A에서도 B에서도 사라져요. 없는 상품을 옮기면 B에 새로 생기기도 해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. `moveTo`를 고치세요. A에 없는 상품이거나 B가 받지 못하면 아무것도 바꾸지 않고 false를 돌려줘요.\n3. 이렇게 하려면 B에 담는 일을 먼저 하고, 성공했을 때만 A에서 빼세요.\n4. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n5. 고친 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "import java.util.ArrayList;\nimport java.util.List;\n\n// 규칙: 담은 상품 수는 한도를 넘지 않고, 옮기는 중에 상품이 사라지거나 생기지 않아요.\nclass Cart {\n    private final List<String> items = new ArrayList<>();\n    private final int limit;\n\n    Cart(int limit) {\n        if (limit < 1) throw new IllegalArgumentException(\"한도는 1 이상이어야 해요\");\n        this.limit = limit;\n    }\n\n    boolean add(String name) {\n        if (items.size() >= limit) return false;\n        items.add(name);\n        return true;\n    }\n\n    // 이 장바구니의 상품 하나를 다른 장바구니로 옮겨요. 옮겼으면 true예요.\n    boolean moveTo(Cart other, String name) {\n        // 고칠 곳: 실패할 수 있는 일을 확인하기 전에 먼저 빼요.\n        items.remove(name);\n        return other.add(name);\n    }\n\n    List<String> items() {\n        return List.copyOf(items);\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        Cart a = new Cart(in.nextInt());\n        Cart b = new Cart(in.nextInt());\n        while (in.hasNext()) {\n            String command = in.next();\n            String name = command.substring(2);\n            if (command.startsWith(\"a:\")) a.add(name);\n            if (command.startsWith(\"b:\")) b.add(name);\n            if (command.startsWith(\">:\") && !a.moveTo(b, name)) System.out.println(name + \" 옮기기 거절\");\n        }\n        System.out.println(\"A \" + a.items() + \" / B \" + b.items());\n    }\n}\n",
+      "solution": "import java.util.ArrayList;\nimport java.util.List;\n\n// 규칙: 담은 상품 수는 한도를 넘지 않고, 옮기는 중에 상품이 사라지거나 생기지 않아요.\nclass Cart {\n    private final List<String> items = new ArrayList<>();\n    private final int limit;\n\n    Cart(int limit) {\n        if (limit < 1) throw new IllegalArgumentException(\"한도는 1 이상이어야 해요\");\n        this.limit = limit;\n    }\n\n    boolean add(String name) {\n        if (items.size() >= limit) return false;\n        items.add(name);\n        return true;\n    }\n\n    // 이 장바구니의 상품 하나를 다른 장바구니로 옮겨요. 옮겼으면 true예요.\n    boolean moveTo(Cart other, String name) {\n        // 이 장바구니에 없으면 옮길 것도 없어요. 상대가 가득 찼으면 add가 false라 여기서 멈춰요.\n        if (!items.contains(name) || !other.add(name)) return false;\n        // 상대가 받은 뒤에만 빼요. 그래서 실패해도 상품이 사라지지 않아요.\n        return items.remove(name);\n    }\n\n    List<String> items() {\n        return List.copyOf(items);\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        Cart a = new Cart(in.nextInt());\n        Cart b = new Cart(in.nextInt());\n        while (in.hasNext()) {\n            String command = in.next();\n            String name = command.substring(2);\n            if (command.startsWith(\"a:\")) a.add(name);\n            if (command.startsWith(\"b:\")) b.add(name);\n            if (command.startsWith(\">:\") && !a.moveTo(b, name)) System.out.println(name + \" 옮기기 거절\");\n        }\n        System.out.println(\"A \" + a.items() + \" / B \" + b.items());\n    }\n}\n",
+      "tests": [
+        {
+          "input": "2 1\na:우유 a:빵 b:사과 >:우유",
+          "expected": "우유 옮기기 거절\nA [우유, 빵] / B [사과]"
+        },
+        {
+          "input": "2 2\na:우유 a:빵 >:우유",
+          "expected": "A [빵] / B [우유]"
+        },
+        {
+          "input": "1 1\na:우유 >:빵",
+          "expected": "빵 옮기기 거절\nA [우유] / B []"
+        },
+        {
+          "input": "3 3\na:김 >:김 >:김",
+          "expected": "김 옮기기 거절\nA [] / B [김]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "B가 가득 찼을 때 옮기면 우유가 그대로 A에 있어야 해요.",
+          "target": "text:옮기지 못하면 A에 그대로 있어야 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            44,
+            44
+          ]
+        },
+        {
+          "action": "say",
+          "text": "우유 옮기기 거절은 나오는데, A에는 빵만 남았어요. 우유가 사라졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "먼저 A에서 빼고 나서 B가 받을 수 있는지 알게 돼요. 실패하면 되돌릴 방법이 없어요.",
+          "target": "code:items.remove(name);"
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 고칠 곳: 실패할 수 있는 일을 확인하기 전에 먼저 빼요.\n        items.remove(name);\n        return other.add(name);",
+          "after": "        // 이 장바구니에 없으면 옮길 것도 없어요. 상대가 가득 찼으면 add가 false라 여기서 멈춰요.\n        if (!items.contains(name) || !other.add(name)) return false;\n        // 상대가 받은 뒤에만 빼요. 그래서 실패해도 상품이 사라지지 않아요.\n        return items.remove(name);",
+          "say": "A에 있는지와 B가 받는지를 먼저 확인해요. 둘 다 됐을 때만 A에서 빼요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            45,
+            45
+          ]
+        },
+        {
+          "action": "say",
+          "text": "거절된 뒤에도 A는 우유와 빵, B는 사과 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. contains 확인을 빼면 A에 없는 상품이 B에 새로 생겨요. 입력 a:우유 >:빵이 그 경우예요.",
+          "target": "code:!items.contains(name)"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    }
+  ],
+  "learning_strategy": "각 스텝은 먼저 실행해 예상과 다른 결과를 봐요. 원인을 찾은 뒤 표시한 한 곳만 고치고 다시 실행해요. 해설은 내 코드를 보존한 채 따로 진행해요."
+}

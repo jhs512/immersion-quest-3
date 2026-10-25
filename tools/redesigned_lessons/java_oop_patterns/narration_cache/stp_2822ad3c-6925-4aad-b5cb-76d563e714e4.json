@@ -1,0 +1,54 @@
+{
+  "by": "hand",
+  "source_sha256": "220f06baad515568fbd973e06279d0d35fd5eb420a33b59f0ab5996713f1ef21",
+  "entry": [
+    {
+      "action": "say",
+      "text": "1000원을 빼되 0원 아래로 내려가지 않는 정책을 더해요.",
+      "target": "text:0원 아래로는 내려가지 않아요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        60,
+        60
+      ]
+    },
+    {
+      "action": "say",
+      "text": "두 줄 모두 coupon: 정책 없음이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "            \"vip\", new Vip()\n            // 고칠 곳: coupon 정책을 클래스 없이 등록해요.",
+      "after": "            \"vip\", new Vip(),\n            // 메서드가 하나뿐인 인터페이스는 람다로 바로 만들 수 있어요. 0원 아래로는 내려가지 않아요.\n            \"coupon\", price -> Math.max(0, price - 1000)",
+      "say": "정책 표에 람다로 coupon을 등록해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        61,
+        61
+      ]
+    },
+    {
+      "action": "say",
+      "text": "coupon 4000원과 coupon 0원이에요. 300원에서 1000원을 빼도 0원에서 멈췄어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "이 람다가 apply 메서드의 몸체예요. Vip처럼 클래스를 만들지 않았어요.",
+      "target": "code:price -> Math.max(0, price - 1000)"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. Math.max 없이 price - 1000만 쓰면 300원 주문이 -700원이 돼요.",
+      "target": "code:Math.max(0, price - 1000)"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}
