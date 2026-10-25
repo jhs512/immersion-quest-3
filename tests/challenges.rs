@@ -16,7 +16,7 @@ fn fixture(course: &CourseManifest) -> FutureChallengeFile {
 #[test]
 fn every_backend_lesson_offers_its_last_graded_problem_by_reference() {
     let (course, lessons) = backend();
-    assert_eq!(course.lessons.len(), 26);
+    assert_eq!(course.lessons.len(), 34);
     for (index, (reference, lesson)) in course.lessons.iter().zip(&lessons).enumerate() {
         let challenge = challenges::lesson_challenge(index, reference, lesson).unwrap_or_else(|| panic!("{} has no graded problem", reference.title));
         let position = lesson.tasks.iter().position(|task| task.id == challenge.task_id).unwrap();

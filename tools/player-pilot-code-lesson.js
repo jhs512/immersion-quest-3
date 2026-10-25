@@ -61,7 +61,8 @@
     if(document.querySelector('.task-question')?.textContent.trim()!==task.question)throw Error('The explicit learner question is missing');
     // Choices are a fieldset whose legend is the question; a fill step shows the question above its one answer field.
     if(task.interaction?.kind==='fill'){if(!document.querySelector('.answer-interaction input[aria-label="빈칸 답안"]'))throw Error('The fill question has no answer field');}
-    else if(document.querySelector('.answer-interaction legend')?.textContent.trim()!==task.question)throw Error('The answer choices do not show the actual question');
+    // A code step with a question shows it above the editor (checked above); only choice steps have a legend.
+    else if(task.interaction&&document.querySelector('.answer-interaction legend')?.textContent.trim()!==task.question)throw Error('The answer choices do not show the actual question');
    }
    if(task.predict_before_run&&!bridge()?.value){
     if(!document.querySelector('.prediction-run-note')?.textContent.includes('예상 보기를 먼저'))throw Error('The locked run button has no explanation');
