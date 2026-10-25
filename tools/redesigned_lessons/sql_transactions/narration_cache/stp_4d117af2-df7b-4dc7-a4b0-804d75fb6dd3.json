@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "0be602b12d0dca57b8ef7348f582494dd2c91a6f406934d6a0f82dbaf9449bea",
+  "entry": [
+    {
+      "action": "say",
+      "text": "먼저 10을 입금하고 보너스를 더하려 해요. 보너스 100은 상한을 넘으므로 취소하되 처음 입금 10은 남겨야 해요.",
+      "target": "text:먼저 10을 입금하고 보너스를 더하려 해요. 보너스 100은 상한을 넘으므로 취소하되 처음 입금 10은 남겨야 해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "전체 ROLLBACK으로 정상 입금 10까지 사라졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "SAVEPOINT는 한 트랜잭션 안에서 되돌아갈 지점을 만들어요.",
+      "target": "code:BEGIN;"
+    },
+    {
+      "action": "patch_code",
+      "before": "BEGIN;\nUPDATE account SET balance=balance+10 WHERE id=1;\nUPDATE account SET balance=balance+100 WHERE id=1;\nROLLBACK;\n",
+      "after": "BEGIN;\nUPDATE account SET balance=balance+10 WHERE id=1;\nSAVEPOINT bonus;\nUPDATE account SET balance=balance+100 WHERE id=1;\nROLLBACK TO bonus;\nCOMMIT;\n",
+      "say": "선택 작업의 실패만 취소하세요"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "1번은 110이에요. 보너스 직전으로 돌아가고 그 전의 정상 작업은 확정했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. SAVEPOINT가 오류를 자동으로 무시하지는 않아요. 실패 후 되돌릴 지점을 명시해야 계속 진행할 수 있어요.",
+      "target": "text:보너스를 시도하기 직전에 SAVEPOINT bonus를 만드세요. 오류가 나면 ROLLBACK TO bonus로 실패 상태를 해제하고 앞의 정상 변경을 COMMIT하세요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

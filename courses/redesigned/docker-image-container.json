@@ -1,0 +1,516 @@
+{
+  "schema_version": 2,
+  "id": "lsn_84b8abf5-848d-4177-96df-69d8aca2cfea",
+  "revision": "docker-image-container-1",
+  "title": "이미지와 컨테이너 · 지워도 남는 것과 사라지는 것",
+  "description": "메모를 기억하는 작은 컨테이너로, 컨테이너의 수명·쓰기 레이어·볼륨·이미지 레이어를 차례로 고쳐요.",
+  "objectives": [
+    "컨테이너는 이미지로 시작한 프로세스이고, 첫 프로세스(PID 1)가 끝나면 컨테이너도 끝난다는 것을 실제 상태로 설명해요.",
+    "재시작·다시 만들기·down·down -v에서 쓰기 레이어와 볼륨의 데이터가 각각 어떻게 되는지 관찰하고, 남아야 할 데이터를 볼륨에 두는 구성을 직접 써요.",
+    "이미지가 레이어로 쌓이고 바뀐 줄부터 다시 만든다는 것을 빌드 결과로 확인하고, 캐시를 살리는 순서로 Dockerfile을 고쳐요."
+  ],
+  "sources": [
+    "https://docs.docker.com/engine/containers/multi-service_container/",
+    "https://docs.docker.com/engine/storage/",
+    "https://docs.docker.com/build/cache/",
+    "https://docs.docker.com/reference/cli/docker/compose/down/"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_cb77c598-a971-4ea9-a418-54513dda3382",
+      "title": "컨테이너는 프로세스예요",
+      "objectives": [
+        "컨테이너가 실행 중인지 아닌지는 첫 프로세스가 정한다는 것을 실제 상태로 확인해요."
+      ],
+      "units": [
+        {
+          "id": "unt_0eee41ca-2de2-4bba-844b-8e5dfef21320",
+          "title": "PID 1이 끝나면 컨테이너도 끝나요",
+          "objectives": [
+            "컨테이너의 첫 프로세스와 그 프로세스가 띄운 다른 프로세스를 구별해요."
+          ],
+          "premise": "메모 서버 컨테이너 하나를 띄워요. 실습 스크립트(lab.sh)가 3초 뒤 엔진에 상태를 물어봐요.",
+          "steps": [
+            {
+              "id": "stp_ddeb2d11-665b-4171-a08c-7b11c2a3f633",
+              "objectives": [
+                "명령 끝의 &가 PID 1을 바로 끝나게 만든다는 것을 확인하고, 컨테이너가 계속 실행되게 고쳐요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_a9c4dcfc-92b3-41b4-9c4e-e6da333cadc8",
+      "title": "지워지는 데이터와 남는 데이터",
+      "objectives": [
+        "컨테이너의 쓰기 레이어와 볼륨을 구별하고, 남아야 할 데이터를 볼륨에 둬요."
+      ],
+      "units": [
+        {
+          "id": "unt_05651d21-aae7-4d4a-a512-92fc5085c4ff",
+          "title": "다시 만들면 쓰기 레이어는 새것이에요",
+          "objectives": [
+            "restart는 같은 컨테이너, force-recreate는 새 컨테이너라는 것을 메모로 확인해요."
+          ],
+          "premise": "메모 컨테이너가 /memo/list.txt에 메모를 써요. 실습 스크립트가 memos.txt의 메모를 쓰고, 재시작·다시 만들기·down·down -v 뒤에 읽어요.",
+          "steps": [
+            {
+              "id": "stp_bc8ce344-eb51-4fae-ac2d-8a56ec3ca977",
+              "objectives": [
+                "컨테이너를 다시 만들면 쓰기 레이어의 파일이 사라진다는 것을 보고, 이름 있는 볼륨을 연결해 남게 해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_4bb1c900-85a2-4546-b6fd-c1b07e67e4b9",
+          "title": "볼륨은 이름으로 공유돼요",
+          "objectives": [
+            "같은 이미지의 두 컨테이너가 각자 쓰기 레이어를 갖고, 같은 이름의 볼륨은 함께 쓴다는 것을 확인해요."
+          ],
+          "premise": "같은 busybox 이미지로 두 가게(shop_a, shop_b)의 메모 컨테이너를 띄워요. A 가게에는 memos.txt의 메모를, B 가게에는 계란을 써요.",
+          "steps": [
+            {
+              "id": "stp_ad4788d5-7d5b-4598-b97f-6b53321a0ca4",
+              "objectives": [
+                "볼륨 이름이 같으면 두 컨테이너가 같은 데이터를 본다는 것을 확인하고, 가게마다 볼륨을 나눠요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_f06f9f00-4e38-4efe-b63e-818fe22707bb",
+      "title": "이미지는 레이어로 쌓여요",
+      "objectives": [
+        "COPY·RUN으로 파일 시스템이 쌓이고, 앞 단계의 입력 변경이 뒤 단계 캐시에도 영향을 준다는 것을 빌드 결과로 확인해요."
+      ],
+      "units": [
+        {
+          "id": "unt_71df4571-40e3-47ec-ba61-45dbd0cd2ecb",
+          "title": "바뀐 줄부터 다시 만들어요",
+          "objectives": [
+            "자주 바뀌는 파일을 뒤에 두면 앞 레이어의 캐시를 다시 쓴다는 것을 확인해요."
+          ],
+          "premise": "가게 이미지를 Dockerfile로 만들어요. 준비 단계(RUN)는 3초 걸리고 `준비완료`를 찍어요. 실습 스크립트는 메뉴(menu.txt)만 바꿔 두 번 빌드해요.",
+          "steps": [
+            {
+              "id": "stp_6da856ec-fe47-46cd-9fbf-4db496fe6d4b",
+              "objectives": [
+                "앞 레이어가 바뀌면 그 뒤의 레이어를 모두 다시 만든다는 것을 보고, 자주 바뀌는 COPY를 뒤로 옮겨요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_ed8cb18b-956f-465f-9805-cb474da880b8",
+      "title": "최종 도전: 다시 빌드해도 남는 메모",
+      "objectives": [
+        "코드는 이미지에, 데이터는 볼륨에 두는 구성을 처음 보는 앱에 적용해요."
+      ],
+      "units": [
+        {
+          "id": "unt_774da2ce-6208-466c-84a6-fdeaab83ca7e",
+          "title": "코드는 이미지, 데이터는 볼륨",
+          "objectives": [
+            "이미지를 새로 빌드해 컨테이너를 바꿔도 데이터가 남게 구성해요."
+          ],
+          "premise": "메모 앱 이미지는 add.sh(메모 더하기)와 show.sh(버전과 메모 보기)를 담아요. 실습 스크립트는 메모를 쓰고, show.sh를 v2로 고쳐 다시 빌드한 뒤, down 뒤에도 메모를 읽어요.",
+          "steps": [
+            {
+              "id": "stp_a7de7379-fd52-4c67-8d68-dd41347718eb",
+              "objectives": [
+                "앱이 데이터를 쓰는 경로를 코드에서 찾아 볼륨을 연결하고, 새 이미지와 남은 데이터를 함께 확인해요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_ddeb2d11-665b-4171-a08c-7b11c2a3f633",
+      "title": "메모 서버 컨테이너가 계속 실행되게 하세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n`command`는 시작 메시지와 메모 서버(여기서는 `sleep 3600`) 실행을 지시해요. 그런데 실행하면 상태가 `exited`로 나와요. 서버를 기다리지 않고 컨테이너가 끝났어요.\n\n**알아두세요**\n\n컨테이너는 이미지로 시작한 프로세스예요. `command`로 시작한 첫 프로세스가 PID 1이고, PID 1이 끝나면 컨테이너도 끝나요. 셸에서 명령 끝의 `&`는 그 명령을 뒤에서 돌리고 셸은 바로 다음으로 넘어가요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요. 처음에는 이미지를 내려받느라 조금 걸려요. `상태:` 줄을 보고, 실행 중이면 `로그:` 줄도 읽으세요.\n2. `command` 줄에서 sh가 바로 끝나지 않게 고치세요.\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "language": "docker",
+      "starter_code": "# 메모 서버 컨테이너 하나를 띄워요.\nservices:\n  memo:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    # 고칠 곳: 시작 메시지를 찍고 메모 서버(여기서는 sleep)를 띄우는 명령이에요.\n    command: [\"sh\", \"-c\", \"echo 메모 서버 시작 && sleep 3600 &\"]\n",
+      "solution": "# 메모 서버 컨테이너 하나를 띄워요.\nservices:\n  memo:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    # 컨테이너는 첫 프로세스(PID 1)가 살아 있는 동안만 실행 중이에요.\n    # &를 빼서 sh가 sleep이 끝날 때까지 기다리게 해요. 그래야 PID 1이 끝나지 않아요.\n    command: [\"sh\", \"-c\", \"echo 메모 서버 시작 && sleep 3600\"]\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "상태: running\n로그: 메모 서버 시작"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "서버를 띄웠는데 컨테이너가 끝나 버리는 문제예요.",
+          "target": "text:그런데 실행하면 상태가 `exited`로 나와요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "상태는 exited예요. 첫 프로세스가 백그라운드 작업을 기다리지 않고 끝났어요. 시작 로그도 남기기 전에 종료될 수 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "끝의 &가 sleep을 뒤로 보내요. 그러면 sh는 할 일이 없어서 바로 끝나요. sh가 PID 1이라 컨테이너도 끝나요.",
+          "target": "code:sleep 3600 &"
+        },
+        {
+          "action": "patch_code",
+          "before": "    # 고칠 곳: 시작 메시지를 찍고 메모 서버(여기서는 sleep)를 띄우는 명령이에요.\n    command: [\"sh\", \"-c\", \"echo 메모 서버 시작 && sleep 3600 &\"]",
+          "after": "    # 컨테이너는 첫 프로세스(PID 1)가 살아 있는 동안만 실행 중이에요.\n    # &를 빼서 sh가 sleep이 끝날 때까지 기다리게 해요. 그래야 PID 1이 끝나지 않아요.\n    command: [\"sh\", \"-c\", \"echo 메모 서버 시작 && sleep 3600\"]",
+          "say": "&를 빼서 sh가 sleep을 기다리게 해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "이제 3초 뒤에도 running이에요. PID 1인 sh가 sleep을 기다리는 동안 컨테이너가 살아 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 서버를 뒤에서 돌리는 습관대로 &를 붙이면 컨테이너는 바로 끝나요. 컨테이너에서는 서버가 PID 1로 앞에서 돌아야 해요.",
+          "target": "text:셸에서 명령 끝의 `&`는 그 명령을 뒤에서 돌리고 셸은 바로 다음으로 넘어가요."
+        },
+        {
+          "action": "submit"
+        }
+      ],
+      "entry_file": "compose.yaml",
+      "files": {
+        "lab.sh": "# 실습 스크립트: 컨테이너를 띄우고 3초 뒤 엔진이 보는 상태를 읽어요.\nset -e\ndocker compose up -d memo\nsleep 3\nstate=$(docker compose ps -a --format '{{.State}}' memo)\necho \"상태: $state\"\n# 시작 전 종료된 작업의 로그 유무는 경합이라 정답이나 관찰 근거로 고정하지 않아요.\nif [ \"$state\" = running ]; then\n  echo \"로그: $(docker compose logs --no-log-prefix memo | head -n 1)\"\nfi\n"
+      },
+      "docker_images": [
+        "busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662"
+      ]
+    },
+    {
+      "id": "stp_bc8ce344-eb51-4fae-ac2d-8a56ec3ca977",
+      "title": "다시 만들어도 메모가 남게 볼륨을 연결하세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n실행하면 재시작 뒤에는 메모가 있는데, 다시 만든 뒤에는 `(없음)`이에요. 같은 이미지, 같은 설정인데 메모가 사라졌어요.\n\n**알아두세요**\n\n컨테이너 안에서 쓴 파일은 그 컨테이너의 쓰기 레이어에 저장돼요. `restart`는 같은 컨테이너를 다시 켜요. `up --force-recreate`와 `down`은 컨테이너를 지우고 이미지에서 새로 만들어요. 볼륨은 컨테이너 밖에서 Docker가 관리하는 저장소이고 `down -v`를 해야 지워져요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요. 처음에는 이미지를 내려받느라 조금 걸려요. 네 줄에서 메모가 어디서 사라지는지 보세요.\n2. `고칠 곳` 자리에 `memo` 볼륨을 `/memo`에 연결하는 `volumes`를 쓰고, 파일 끝에 볼륨 선언을 더하세요.\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "language": "docker",
+      "starter_code": "# 메모를 기억하는 컨테이너예요. 메모는 /memo/list.txt에 써요.\nservices:\n  memo:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"sleep\", \"3600\"]\n    # 고칠 곳: 지금 /memo는 컨테이너 자기 파일 시스템(쓰기 레이어)에 있어요.\n",
+      "solution": "# 메모를 기억하는 컨테이너예요. 메모는 /memo/list.txt에 써요.\nservices:\n  memo:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"sleep\", \"3600\"]\n    # memo라는 이름의 볼륨을 컨테이너의 /memo에 연결해요.\n    # 이제 /memo에 쓴 파일은 컨테이너가 아니라 볼륨에 저장돼요.\n    volumes:\n      - memo:/memo\n\n# 볼륨은 컨테이너 밖에서 Docker가 따로 관리해요. 컨테이너를 지워도 남아요.\nvolumes:\n  memo:\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "재시작 뒤: 우유 빵\n다시 만든 뒤: 우유 빵\ndown 뒤: 우유 빵\ndown -v 뒤: (없음)"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "같은 설정으로 다시 만들었는데 메모가 사라지는 문제예요.",
+          "target": "text:같은 이미지, 같은 설정인데 메모가 사라졌어요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "재시작 뒤에는 우유 빵이 있어요. 다시 만든 뒤부터는 없음이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "재시작은 같은 컨테이너라 쓰기 레이어가 그대로예요. 다시 만들면 이미지에서 새 컨테이너가 생겨요. 이미지에는 메모가 없어요.",
+          "target": "text:`restart`는 같은 컨테이너를 다시 켜요."
+        },
+        {
+          "action": "say",
+          "text": "지금 이 서비스에는 volumes가 없어요. /memo는 컨테이너의 쓰기 레이어에 있어요.",
+          "target": "code:# 고칠 곳: 지금 /memo는 컨테이너 자기 파일 시스템(쓰기 레이어)에 있어요."
+        },
+        {
+          "action": "patch_code",
+          "before": "    # 고칠 곳: 지금 /memo는 컨테이너 자기 파일 시스템(쓰기 레이어)에 있어요.\n",
+          "after": "    # memo라는 이름의 볼륨을 컨테이너의 /memo에 연결해요.\n    # 이제 /memo에 쓴 파일은 컨테이너가 아니라 볼륨에 저장돼요.\n    volumes:\n      - memo:/memo\n\n# 볼륨은 컨테이너 밖에서 Docker가 따로 관리해요. 컨테이너를 지워도 남아요.\nvolumes:\n  memo:\n",
+          "say": "/memo에 이름 있는 볼륨을 연결하고, 파일 끝에 볼륨을 선언해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "다시 만든 뒤에도, down 뒤에도 우유 빵이 남아요. 새 컨테이너가 같은 볼륨을 연결했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "down -v 뒤에만 없음이에요. -v가 볼륨까지 지웠어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 처음 상태로 돌리려고 down -v를 쓰면 볼륨의 데이터도 지워져요. 데이터를 지킬 때는 -v 없이 down 해요.",
+          "target": "text:볼륨은 컨테이너 밖에서 Docker가 관리하는 저장소이고 `down -v`를 해야 지워져요."
+        },
+        {
+          "action": "submit"
+        }
+      ],
+      "entry_file": "compose.yaml",
+      "files": {
+        "lab.sh": "# 실습 스크립트: 메모를 쓰고, 재시작·다시 만들기·down·down -v 뒤에 남는지 읽어요.\nset -e\nread_memo() {\n  # 컨테이너 안의 /memo/list.txt를 한 줄로 읽어요. 파일이 없으면 (없음)이에요.\n  local text\n  text=$(docker compose exec -T \"$1\" sh -c 'cat /memo/list.txt 2>/dev/null' | tr '\\n' ' ' | sed 's/ $//')\n  echo \"${text:-(없음)}\"\n}\ndocker compose up -d memo\nwhile IFS= read -r word || [ -n \"$word\" ]; do\n  [ -n \"$word\" ] && docker compose exec -T memo sh -c 'mkdir -p /memo && printf \"%s\\n\" \"$1\" >> /memo/list.txt' sh \"$word\" </dev/null\ndone < memos.txt\ndocker compose restart -t 1 memo\necho \"재시작 뒤: $(read_memo memo)\"\ndocker compose up -d --force-recreate -t 1 memo\necho \"다시 만든 뒤: $(read_memo memo)\"\ndocker compose down -t 1\ndocker compose up -d memo\necho \"down 뒤: $(read_memo memo)\"\ndocker compose down -v -t 1\ndocker compose up -d memo\necho \"down -v 뒤: $(read_memo memo)\"\n",
+        "memos.txt": "우유\n빵\n"
+      },
+      "variations": [
+        {
+          "files": {
+            "memos.txt": "사과\n귤\n계란\n"
+          },
+          "expected": "재시작 뒤: 사과 귤 계란\n다시 만든 뒤: 사과 귤 계란\ndown 뒤: 사과 귤 계란\ndown -v 뒤: (없음)"
+        }
+      ],
+      "docker_images": [
+        "busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662"
+      ]
+    },
+    {
+      "id": "stp_ad4788d5-7d5b-4598-b97f-6b53321a0ca4",
+      "title": "두 가게가 각자 메모를 갖게 하세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n실행하면 A 가게와 B 가게의 메모가 똑같이 나와요. B 가게에는 계란만 써야 하는데 A의 메모도 섞여 있어요.\n\n**알아두세요**\n\n같은 이미지로 만든 컨테이너도 쓰기 레이어는 저마다 따로예요. 볼륨은 이름으로 찾아요. 두 서비스가 같은 볼륨 이름을 연결하면 같은 저장소를 함께 써요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요. 처음에는 이미지를 내려받느라 조금 걸려요. A와 B의 메모를 비교하세요.\n2. B 가게가 자기 볼륨 `memo_b`를 쓰게 고치고, 파일 끝의 볼륨 선언에도 더하세요.\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "language": "docker",
+      "starter_code": "# 같은 이미지로 두 가게의 메모 컨테이너를 띄워요.\nservices:\n  shop_a:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"sleep\", \"3600\"]\n    volumes:\n      - memo_a:/memo\n  shop_b:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"sleep\", \"3600\"]\n    volumes:\n      # 고칠 곳: B 가게가 연결한 볼륨이에요.\n      - memo_a:/memo\n\nvolumes:\n  memo_a:\n",
+      "solution": "# 같은 이미지로 두 가게의 메모 컨테이너를 띄워요.\nservices:\n  shop_a:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"sleep\", \"3600\"]\n    volumes:\n      - memo_a:/memo\n  shop_b:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"sleep\", \"3600\"]\n    volumes:\n      # B 가게는 자기 볼륨 memo_b를 써요. 같은 볼륨 이름이면 같은 데이터를 함께 써요.\n      - memo_b:/memo\n\nvolumes:\n  memo_a:\n  memo_b:\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "A 가게: 우유 빵\nB 가게: 계란\n다시 만든 뒤 A 가게: 우유 빵\n다시 만든 뒤 B 가게: 계란"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "두 가게의 메모가 섞이는 문제예요.",
+          "target": "text:B 가게에는 계란만 써야 하는데 A의 메모도 섞여 있어요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "A도 B도 우유 빵 계란이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "두 서비스가 모두 memo_a를 /memo에 연결했어요. 컨테이너는 둘이지만 저장소는 하나예요.",
+          "target": "code:# 고칠 곳: B 가게가 연결한 볼륨이에요."
+        },
+        {
+          "action": "patch_code",
+          "before": "      # 고칠 곳: B 가게가 연결한 볼륨이에요.\n      - memo_a:/memo\n\nvolumes:\n  memo_a:\n",
+          "after": "      # B 가게는 자기 볼륨 memo_b를 써요. 같은 볼륨 이름이면 같은 데이터를 함께 써요.\n      - memo_b:/memo\n\nvolumes:\n  memo_a:\n  memo_b:\n",
+          "say": "B 가게에 자기 볼륨 memo_b를 연결하고 선언해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "A는 우유 빵, B는 계란이에요. 다시 만든 뒤에도 각자 남아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "같은 이미지에서 시작해도 데이터는 어느 볼륨을 연결했는지가 정해요.",
+          "target": "text:볼륨은 이름으로 찾아요."
+        },
+        {
+          "action": "submit"
+        }
+      ],
+      "entry_file": "compose.yaml",
+      "files": {
+        "lab.sh": "# 실습 스크립트: 두 가게가 각자 메모를 쓰고, 다시 만든 뒤에도 각자 남는지 읽어요.\nset -e\nread_memo() {\n  # 컨테이너 안의 /memo/list.txt를 한 줄로 읽어요. 파일이 없으면 (없음)이에요.\n  local text\n  text=$(docker compose exec -T \"$1\" sh -c 'cat /memo/list.txt 2>/dev/null' | tr '\\n' ' ' | sed 's/ $//')\n  echo \"${text:-(없음)}\"\n}\ndocker compose up -d\nwhile IFS= read -r word || [ -n \"$word\" ]; do\n  [ -n \"$word\" ] && docker compose exec -T shop_a sh -c 'mkdir -p /memo && printf \"%s\\n\" \"$1\" >> /memo/list.txt' sh \"$word\" </dev/null\ndone < memos.txt\ndocker compose exec -T shop_b sh -c \"mkdir -p /memo && echo 계란 >> /memo/list.txt\"\necho \"A 가게: $(read_memo shop_a)\"\necho \"B 가게: $(read_memo shop_b)\"\ndocker compose up -d --force-recreate -t 1\necho \"다시 만든 뒤 A 가게: $(read_memo shop_a)\"\necho \"다시 만든 뒤 B 가게: $(read_memo shop_b)\"\n",
+        "memos.txt": "우유\n빵\n"
+      },
+      "variations": [
+        {
+          "files": {
+            "memos.txt": "사과\n"
+          },
+          "expected": "A 가게: 사과\nB 가게: 계란\n다시 만든 뒤 A 가게: 사과\n다시 만든 뒤 B 가게: 계란"
+        }
+      ],
+      "docker_images": [
+        "busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662"
+      ]
+    },
+    {
+      "id": "stp_6da856ec-fe47-46cd-9fbf-4db496fe6d4b",
+      "title": "메뉴만 바꿨을 때 준비 단계를 다시 하지 않게 하세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n실행하면 메뉴 한 줄만 바꾼 두 번째 빌드도 3초 걸리는 준비 단계를 다시 해요.\n\n**알아두세요**\n\n`COPY`와 `RUN`은 이미지의 파일 시스템을 바꾸는 레이어를 만들어요. `CMD` 같은 명령은 실행 설정을 기록해요. 입력이 같은 단계는 캐시를 쓸 수 있어요. `COPY`는 복사할 파일 내용도 입력이에요. 앞 단계가 바뀌면 뒤 단계도 캐시를 새로 판단해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요. 처음에는 이미지를 내려받느라 조금 걸려요. 두 번째 빌드 줄을 읽으세요.\n2. `COPY menu.txt .` 줄과 `RUN` 줄의 순서를 바꾸세요.\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "language": "docker",
+      "starter_code": "# 가게 이미지를 만드는 Dockerfile이에요. COPY·RUN은 파일 시스템 레이어를 만들어요.\nFROM busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n# 제공 설정: 이전 실습의 빌드 캐시와 구분해요. 같은 실행의 두 빌드는 같은 값을 써요.\nARG MQ3_CACHE_SEED\nRUN echo \"$MQ3_CACHE_SEED\" > /mq3-cache-seed\nWORKDIR /app\n# 고칠 곳: 메뉴 복사와 오래 걸리는 준비 단계의 순서예요.\nCOPY menu.txt .\nRUN sleep 3 && echo \"준비\"\"완료\" && echo ok > tool.txt\nCMD [\"cat\", \"menu.txt\"]\n",
+      "solution": "# 가게 이미지를 만드는 Dockerfile이에요. COPY·RUN은 파일 시스템 레이어를 만들어요.\nFROM busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n# 제공 설정: 이전 실습의 빌드 캐시와 구분해요. 같은 실행의 두 빌드는 같은 값을 써요.\nARG MQ3_CACHE_SEED\nRUN echo \"$MQ3_CACHE_SEED\" > /mq3-cache-seed\nWORKDIR /app\n# 자주 바뀌지 않는 준비 단계를 먼저 둬요. 앞 레이어가 그대로면 Docker가 캐시를 써요.\nRUN sleep 3 && echo \"준비\"\"완료\" && echo ok > tool.txt\n# 자주 바뀌는 메뉴는 마지막에 복사해요. 메뉴가 바뀌면 이 줄부터만 다시 만들어요.\nCOPY menu.txt .\nCMD [\"cat\", \"menu.txt\"]\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "첫 빌드: 준비 단계 실행\n메뉴만 바꾼 두 번째 빌드: 준비 단계 캐시 사용\n메뉴: 우유 빵"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "메뉴 한 줄만 바꿨는데 오래 걸리는 준비를 또 하는 문제예요.",
+          "target": "text:실행하면 메뉴 한 줄만 바꾼 두 번째 빌드도 3초 걸리는 준비 단계를 다시 해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "두 번째 빌드도 준비 단계를 다시 실행했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "메뉴가 바뀌어 COPY 레이어가 달라졌어요. 그 뒤에 있는 RUN도 다시 만들어요.",
+          "target": "code:COPY menu.txt ."
+        },
+        {
+          "action": "patch_code",
+          "before": "# 고칠 곳: 메뉴 복사와 오래 걸리는 준비 단계의 순서예요.\nCOPY menu.txt .\nRUN sleep 3 && echo \"준비\"\"완료\" && echo ok > tool.txt",
+          "after": "# 자주 바뀌지 않는 준비 단계를 먼저 둬요. 앞 레이어가 그대로면 Docker가 캐시를 써요.\nRUN sleep 3 && echo \"준비\"\"완료\" && echo ok > tool.txt\n# 자주 바뀌는 메뉴는 마지막에 복사해요. 메뉴가 바뀌면 이 줄부터만 다시 만들어요.\nCOPY menu.txt .",
+          "say": "준비 단계를 먼저, 메뉴 복사를 뒤에 둬요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "이제 두 번째 빌드는 준비 단계에 캐시를 써요. 메뉴는 우유 빵으로 새것이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 파일이 필요한 RUN을 COPY 앞으로 옮기면 아직 그 파일이 없어요. 그 파일이 필요한 단계는 COPY 뒤에 둬요.",
+          "target": "text:앞 단계가 바뀌면 뒤 단계도 캐시를 새로 판단해요."
+        },
+        {
+          "action": "submit"
+        }
+      ],
+      "entry_file": "Dockerfile",
+      "files": {
+        "lab.sh": "# 실습 스크립트: 두 번 빌드해요. 두 번째 빌드 전에는 메뉴 파일만 바꿔요.\nset -e\ndocker compose build --build-arg \"MQ3_CACHE_SEED=$MQ3_PROJECT\" shop > build1.txt 2>&1 || { cat build1.txt >&2; exit 1; }\nfirst=$(grep -c '준비완료' build1.txt || true)\necho \"빵\" >> menu.txt\ndocker compose build --build-arg \"MQ3_CACHE_SEED=$MQ3_PROJECT\" shop > build2.txt 2>&1 || { cat build2.txt >&2; exit 1; }\nsecond=$(grep -c '준비완료' build2.txt || true)\n[ \"$first\" -gt 0 ] && echo \"첫 빌드: 준비 단계 실행\" || echo \"첫 빌드: 준비 단계 캐시 사용\"\n[ \"$second\" -gt 0 ] && echo \"메뉴만 바꾼 두 번째 빌드: 준비 단계 다시 실행\" || echo \"메뉴만 바꾼 두 번째 빌드: 준비 단계 캐시 사용\"\necho \"메뉴: $(docker compose run --rm -T shop | tr '\\n' ' ' | sed 's/ $//')\"\n",
+        "compose.yaml": "# shop 서비스의 이미지는 이 폴더의 Dockerfile로 만들어요.\nservices:\n  shop:\n    build: .\n",
+        "menu.txt": "우유\n"
+      },
+      "variations": [
+        {
+          "files": {
+            "menu.txt": "커피\n차\n"
+          },
+          "expected": "첫 빌드: 준비 단계 실행\n메뉴만 바꾼 두 번째 빌드: 준비 단계 캐시 사용\n메뉴: 커피 차 빵"
+        }
+      ],
+      "docker_images": [
+        "busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662"
+      ]
+    },
+    {
+      "id": "stp_a7de7379-fd52-4c67-8d68-dd41347718eb",
+      "title": "앱을 고쳐 다시 빌드해도 메모가 남게 하세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n실행하면 다시 빌드한 뒤 앱 버전은 v2로 바뀌는데 메모는 `(없음)`이에요. 앱을 고칠 때마다 메모가 사라지면 쓸 수 없어요.\n\nadd.sh와 show.sh를 읽고, 메모가 실제로 어느 폴더에 저장되는지 찾으세요.\n\n**알아두세요**\n\n`up --build`는 이미지를 새로 만들고, 바뀐 이미지로 컨테이너를 새로 만들어요. 새 컨테이너는 새 쓰기 레이어에서 시작해요. 볼륨은 연결한 폴더의 데이터만 지켜요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요. 처음에는 이미지를 내려받느라 조금 걸려요. 세 줄에서 메모와 버전을 비교하세요.\n2. add.sh가 메모를 쓰는 폴더를 찾으세요.\n3. `고칠 곳` 자리에 그 폴더에 이름 있는 볼륨을 연결하는 `volumes`를 쓰고, 파일 끝에 볼륨을 선언하세요.\n4. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n5. 고친 코드를 제출하세요.",
+      "language": "docker",
+      "starter_code": "# 메모 앱 서비스예요. 이미지는 이 폴더의 Dockerfile로 만들어요.\nservices:\n  app:\n    build: .\n    # 고칠 곳: 앱이 메모를 쓰는 폴더가 지금은 컨테이너 안에만 있어요.\n",
+      "solution": "# 메모 앱 서비스예요. 이미지는 이 폴더의 Dockerfile로 만들어요.\nservices:\n  app:\n    build: .\n    # add.sh는 /data에 메모를 써요. 그 폴더에 볼륨을 연결해요.\n    # 앱 코드는 이미지에, 메모 데이터는 볼륨에 있어서 이미지를 바꿔도 메모가 남아요.\n    volumes:\n      - memos:/data\n\nvolumes:\n  memos:\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "처음: [v1] 우유 빵\n앱을 고쳐 다시 빌드한 뒤: [v2] 우유 빵\ndown 뒤: [v2] 우유 빵"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "앱을 고쳐 다시 빌드하면 메모가 사라지는 문제예요.",
+          "target": "text:앱을 고칠 때마다 메모가 사라지면 쓸 수 없어요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "처음엔 우유 빵이 있어요. 다시 빌드한 뒤에는 v2로 바뀌었지만 메모는 없음이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "build 줄 때문에 up --build가 이미지를 새로 만들고, 그 이미지로 컨테이너도 새로 만들어요.",
+          "target": "code:build: ."
+        },
+        {
+          "action": "say",
+          "text": "add.sh는 메모를 /data/memo.txt에 써요. 이 폴더는 지금 쓰기 레이어에 있어요.",
+          "target": "text:add.sh와 show.sh를 읽고, 메모가 실제로 어느 폴더에 저장되는지 찾으세요."
+        },
+        {
+          "action": "patch_code",
+          "before": "    # 고칠 곳: 앱이 메모를 쓰는 폴더가 지금은 컨테이너 안에만 있어요.\n",
+          "after": "    # add.sh는 /data에 메모를 써요. 그 폴더에 볼륨을 연결해요.\n    # 앱 코드는 이미지에, 메모 데이터는 볼륨에 있어서 이미지를 바꿔도 메모가 남아요.\n    volumes:\n      - memos:/data\n\nvolumes:\n  memos:\n",
+          "say": "/data에 memos 볼륨을 연결하고 선언해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "다시 빌드한 뒤에도 v2와 우유 빵이 함께 보여요. down 뒤에도 남아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "이미지는 새것으로 바뀌었고, 메모는 볼륨에 있어서 그대로예요. 코드와 데이터가 다른 곳에 있어요.",
+          "target": "text:볼륨은 연결한 폴더의 데이터만 지켜요."
+        },
+        {
+          "action": "submit"
+        }
+      ],
+      "entry_file": "compose.yaml",
+      "files": {
+        "lab.sh": "# 실습 스크립트: 메모를 쓰고, 앱 코드를 고쳐 이미지를 다시 빌드한 뒤에도 메모가 남는지 읽어요.\nset -e\ndocker compose up -d --build app > /dev/null 2>&1 || docker compose up -d --build app\nwhile IFS= read -r word || [ -n \"$word\" ]; do\n  [ -n \"$word\" ] && docker compose exec -T app sh /app/add.sh \"$word\" </dev/null\ndone < memos.txt\necho \"처음: $(docker compose exec -T app sh /app/show.sh)\"\n# 앱 코드를 고쳐요(새 버전 표시). 이미지를 다시 빌드하고 컨테이너를 새로 만들어요.\nsed -i 's/v1/v2/' show.sh\ndocker compose up -d --build -t 1 app > /dev/null 2>&1\necho \"앱을 고쳐 다시 빌드한 뒤: $(docker compose exec -T app sh /app/show.sh)\"\ndocker compose down -t 1 > /dev/null 2>&1\ndocker compose up -d app > /dev/null 2>&1\necho \"down 뒤: $(docker compose exec -T app sh /app/show.sh)\"\n",
+        "Dockerfile": "# 메모 앱 이미지예요. 앱 코드(sh 스크립트)만 담아요. 메모 데이터는 담지 않아요.\nFROM busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\nWORKDIR /app\nCOPY add.sh show.sh ./\nCMD [\"sleep\", \"3600\"]\n",
+        "add.sh": "# 메모 하나를 /data/memo.txt 끝에 더해요.\nmkdir -p /data\necho \"$1\" >> /data/memo.txt\n",
+        "show.sh": "# 메모 앱 버전과 지금까지의 메모를 한 줄로 보여 줘요.\nmemo=$(cat /data/memo.txt 2>/dev/null | tr '\\n' ' ' | sed 's/ $//')\necho \"[v1] ${memo:-(없음)}\"\n",
+        "memos.txt": "우유\n빵\n"
+      },
+      "variations": [
+        {
+          "files": {
+            "memos.txt": "계란\n"
+          },
+          "expected": "처음: [v1] 계란\n앱을 고쳐 다시 빌드한 뒤: [v2] 계란\ndown 뒤: [v2] 계란"
+        }
+      ],
+      "docker_images": [
+        "busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662"
+      ]
+    }
+  ],
+  "learning_strategy": "각 스텝은 먼저 실행해 엔진이 보여 주는 실제 상태를 봐요. 원인을 찾은 뒤 표시한 한 곳만 고치고 다시 실행해요. Docker Desktop이 켜져 있어야 해요."
+}

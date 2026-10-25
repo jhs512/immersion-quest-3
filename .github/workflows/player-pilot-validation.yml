@@ -141,10 +141,15 @@ jobs:
         if: matrix.group == 'core'
         shell: python
         run: |
-          import os, pathlib, subprocess
+          import json, os, pathlib, subprocess
           subprocess.run(['cargo', 'build', '--locked', '--example', 'validate_redesigned_lesson'], check=True)
           executable = pathlib.Path('target/debug/examples/validate_redesigned_lesson' + ('.exe' if os.name == 'nt' else ''))
           for spec in sorted(pathlib.Path('tests/lesson-cases').glob('*.json')):
+              case = json.loads(spec.read_text(encoding='utf-8'))
+              lesson = json.loads(pathlib.Path(case['lesson']).read_text(encoding='utf-8'))
+              if any(task.get('language') == 'docker' for task in lesson['tasks']):
+                  print(f'{spec.stem}: actual Docker engine validation runs in Principles runtime validation', flush=True)
+                  continue
               subprocess.run([str(executable), str(spec), f'target/public-lesson-{spec.stem}.json'], check=True)
       - name: Verify the new Python lessons with the shipped learning environment
         if: matrix.group == 'release-runtime'

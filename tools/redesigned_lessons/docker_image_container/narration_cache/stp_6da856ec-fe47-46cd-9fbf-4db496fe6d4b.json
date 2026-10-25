@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "1613c679fc3fdb9bdf40594235504328b46a50d1fd3d6dc88a70d06cfc92a487",
+  "entry": [
+    {
+      "action": "say",
+      "text": "메뉴 한 줄만 바꿨는데 오래 걸리는 준비를 또 하는 문제예요.",
+      "target": "text:실행하면 메뉴 한 줄만 바꾼 두 번째 빌드도 3초 걸리는 준비 단계를 다시 해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "두 번째 빌드도 준비 단계를 다시 실행했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "메뉴가 바뀌어 COPY 레이어가 달라졌어요. 그 뒤에 있는 RUN도 다시 만들어요.",
+      "target": "code:COPY menu.txt ."
+    },
+    {
+      "action": "patch_code",
+      "before": "# 고칠 곳: 메뉴 복사와 오래 걸리는 준비 단계의 순서예요.\nCOPY menu.txt .\nRUN sleep 3 && echo \"준비\"\"완료\" && echo ok > tool.txt",
+      "after": "# 자주 바뀌지 않는 준비 단계를 먼저 둬요. 앞 레이어가 그대로면 Docker가 캐시를 써요.\nRUN sleep 3 && echo \"준비\"\"완료\" && echo ok > tool.txt\n# 자주 바뀌는 메뉴는 마지막에 복사해요. 메뉴가 바뀌면 이 줄부터만 다시 만들어요.\nCOPY menu.txt .",
+      "say": "준비 단계를 먼저, 메뉴 복사를 뒤에 둬요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "이제 두 번째 빌드는 준비 단계에 캐시를 써요. 메뉴는 우유 빵으로 새것이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 파일이 필요한 RUN을 COPY 앞으로 옮기면 아직 그 파일이 없어요. 그 파일이 필요한 단계는 COPY 뒤에 둬요.",
+      "target": "text:앞 단계가 바뀌면 뒤 단계도 캐시를 새로 판단해요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

@@ -23,6 +23,11 @@ use ui::Learning;
 #[cfg(feature = "desktop")]
 fn main() {
     let args:Vec<String>=std::env::args().collect();
+    if let Some(result)=molip_quest::docker_lab::watchdog_cli(&args) {
+        if let Err(error)=result {eprintln!("{error}");std::process::exit(1);}
+        return;
+    }
+    if let Ok(executable)=std::env::current_exe(){molip_quest::docker_lab::enable_watchdog(executable);}
     if emergency_report::cli(&args){return;}
     if args.get(1).map(String::as_str)==Some("--refresh-content-on-exit") {
         molip_quest::setup_terminal::prepare_desktop_path();

@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "668babfeb005e1709d06b28c0f765c0abedcae6813149ea126122dc6c3f8a31c",
+  "entry": [
+    {
+      "action": "say",
+      "text": "milk와 tea는 같은 가격 100이에요. 싼 상품 두 개를 보여 주되 같은 가격이면 번호가 작은 상품이 먼저여야 해요.",
+      "target": "text:milk와 tea는 같은 가격 100이에요. 싼 상품 두 개를 보여 주되 같은 가격이면 번호가 작은 상품이 먼저여야 해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "bread부터 나와요. DESC로 큰 가격부터 정렬했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "행의 저장 순서와 조회 결과의 정렬 규칙은 달라요.",
+      "target": "code:SELECT name FROM item ORDER BY price DESC,id LIMIT 2;"
+    },
+    {
+      "action": "patch_code",
+      "before": "SELECT name FROM item ORDER BY price DESC,id LIMIT 2;\n",
+      "after": "SELECT name FROM item ORDER BY price,id LIMIT 2;\n",
+      "say": "가장 싼 상품을 가격·번호 순서로 두 개 조회하세요"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "가격 100인 milk와 tea가 번호 순서로 나와요. 같은 가격일 때의 규칙도 명시했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. LIMIT만 붙이면 가장 싼 두 상품이라는 뜻이 되지 않아요. 먼저 어떤 순서의 앞 두 행인지 정해야 해요.",
+      "target": "text:ORDER BY price,id로 가격이 같을 때의 순서까지 정한 뒤 LIMIT 2를 적용하세요. 표의 행을 넣은 순서나 우연히 보인 순서를 결과 규칙으로 가정하지 마세요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

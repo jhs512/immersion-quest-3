@@ -28,10 +28,15 @@ sys.path.insert(0, str(HERE))
 from lesson_prd import content_hash, policy_revision, validate  # noqa: E402
 
 MODULES = ['o1_class_objects', 'o2_inheritance', 'o3_patterns',
-           'h1_h2_memory_file',
-           's1_constraints', 's2_join_group', 's3_index_plan', 's4_engine_differences',
-           'j1_jdbc_basics', 't1_transactions', 't2_concurrency',
-           'd1_image_container', 'd2_network_ports', 'd3_compose_db']
+           'd1_image_container', 'd2_network_ports',
+           's0_sql_first', 's1_constraints', 's2_join_group', 's3_index_plan',
+           't1_transactions', 'h1_h2_memory_file', 'j1_jdbc_basics',
+           'd3_compose_db', 't2_concurrency']
+NEW_ORDER = ['java-class-objects', 'java-inheritance-composition', 'java-oop-patterns',
+             'docker-image-container', 'docker-network-ports', 'sql-first',
+             'sql-tables-constraints', 'sql-join-group', 'sql-index-plan',
+             'sql-transactions', 'h2-memory-file', 'java-jdbc',
+             'docker-compose-db', 'sql-isolation-locks']
 
 ADDED_ON = '2026-10-26'
 APPROVAL = dict(
@@ -217,6 +222,11 @@ def register(lesson, lid):
         java['lessons'][existing[0]] = entry
     else:
         java['lessons'].append(entry)
+    # Preserve every pre-existing lesson and its order. Only the new lessons
+    # move into the prerequisite sequence; withdrawn CS lessons are not added.
+    registered = {item['key']: item for item in java['lessons'] if item['key'] in NEW_ORDER}
+    java['lessons'] = [item for item in java['lessons'] if item['key'] not in NEW_ORDER] + [
+        registered[name] for name in NEW_ORDER if name in registered]
     catalog_path.write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + '\n', encoding='utf-8', newline='\n')
 
     cls_path = ROOT / 'tools/redesigned_courses/lesson-classification.json'
@@ -228,6 +238,10 @@ def register(lesson, lid):
                                   decided_by=DECIDED_BY, decided_on=ADDED_ON,
                                   evidence=dict(category=lesson['category_evidence'], track=lesson['track_evidence']),
                                   title=lesson['title'])
+    used_categories={value.get('category') for name,value in course['lessons'].items()
+                     if any(item['key']==name for item in java['lessons'])}
+    course['categories']=[item for item in course['categories']
+                          if item['id']!='container' or item['id'] in used_categories]
     cls_path.write_text(json.dumps(cls, ensure_ascii=False, indent=2) + '\n', encoding='utf-8', newline='\n')
 
     fixture = json.loads((ROOT / 'tests/fixtures/player-pilot/저/course.json').read_text(encoding='utf-8'))
@@ -250,7 +264,7 @@ def previews(lessons):
     path.write_text('\n'.join(lines) + marker + tail, encoding='utf-8', newline='\n')
 
 
-def review(lessons):
+def review(lessons, reviewer='작성자 문맥 검토'):
     """Meaning-review records for the new steps (Claude 문맥 검토, 사람 검토 아님). Every flagged sentence needs a note."""
     from narration_review import load_ledger, save_ledger, context_sha256, prompts, problems
     ledger = load_ledger()
@@ -269,7 +283,7 @@ def review(lessons):
                 if not note:
                     missing.append(f"{lesson['key']} {source['slug']}: {prompt['text']}")
                     continue
-                checked[prompt['text']] = note + ' (Claude 문맥 검토, 사람 검토 아님)'
+                checked[prompt['text']] = note + f' ({reviewer}, 사람 검토 아님)'
             if missing:
                 continue
             entry = dict(lesson=lesson['key'], state='reviewed', context_sha256=context_sha256(step, task),
@@ -287,13 +301,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--only', nargs='*')
     parser.add_argument('--review', action='store_true', help='write meaning-review records (after the build)')
+    parser.add_argument('--reviewer', default='작성자 문맥 검토')
     args = parser.parse_args()
     names = [m for m in MODULES if (HERE / f'{m}.py').exists()]
     lessons = [load(m) for m in names]
     if args.only:
         lessons = [l for l in lessons if l['key'] in args.only]
     if args.review:
-        review(lessons)
+        review(lessons, args.reviewer)
         print('reviewed', [l['key'] for l in lessons])
         return
     pol = policy()

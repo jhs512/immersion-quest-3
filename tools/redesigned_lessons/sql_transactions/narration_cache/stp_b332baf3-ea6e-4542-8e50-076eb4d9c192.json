@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "beda3a77ff2432688f7c9bfaab5488db134c22653ba0ee89609e17962782cfce",
+  "entry": [
+    {
+      "action": "say",
+      "text": "1번에서 2번으로 30을 옮겨요. 준비 코드는 두 변경을 실행하지만 마지막에 취소해요.",
+      "target": "text:1번에서 2번으로 30을 옮겨요. 준비 코드는 두 변경을 실행하지만 마지막에 취소해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "두 잔액이 모두 100이에요. 계산이 틀린 것이 아니라 마지막에 취소했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "업무 하나의 여러 변경을 같은 트랜잭션으로 묶어요.",
+      "target": "code:BEGIN;"
+    },
+    {
+      "action": "patch_code",
+      "before": "BEGIN;\nUPDATE account SET balance=balance-30 WHERE id=1;\nUPDATE account SET balance=balance+30 WHERE id=2;\nROLLBACK;\n",
+      "after": "BEGIN;\nUPDATE account SET balance=balance-30 WHERE id=1;\nUPDATE account SET balance=balance+30 WHERE id=2;\nCOMMIT;\n",
+      "say": "두 계좌의 이체를 함께 확정하세요"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "잔액은 70과 130이에요. 같은 트랜잭션의 두 변경을 함께 확정했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 첫 UPDATE 직후 COMMIT하면 출금과 입금이 서로 다른 업무 단위가 돼요.",
+      "target": "text:이체가 성공하면 1번은 70, 2번은 130이어야 해요. BEGIN 뒤에 두 변경을 넣고 모두 성공했을 때 COMMIT하세요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "9024146fae2b8fbeb6f0b54fe60294939c15bfa98a7016d139740eb6f124cb7a",
+  "entry": [
+    {
+      "action": "say",
+      "text": "첫 실행에서 milk 메모를 저장했어요. init.sql을 새 표 정의로 바꿔 컨테이너를 다시 만들어도 기존 DB의 표는 바뀌지 않아요.",
+      "target": "text:첫 실행에서 milk 메모를 저장했어요. init.sql을 새 표 정의로 바꿔 컨테이너를 다시 만들어도 기존 DB의 표는 바뀌지 않아요."
+    },
+    {
+      "action": "run",
+      "expect_error": "version"
+    },
+    {
+      "action": "say",
+      "text": "마지막 조회에서 version 열이 없다는 오류가 나요. 새 초기화 파일은 이미 존재하는 DB를 변경하지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "최초 초기화 스크립트와 이미 존재하는 DB의 변경은 서로 다른 작업이에요.",
+      "target": "code:-- 기존 DB에 필요한 스키마 변경을 구현하세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "-- 기존 DB에 필요한 스키마 변경을 구현하세요.\n",
+      "after": "ALTER TABLE memo ADD COLUMN version INT DEFAULT 1 NOT NULL;\n",
+      "say": "기존 메모를 보존하며 새 열을 추가하세요"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "실제 기존 행 milk와 새 version 값 1이 함께 나와요. DB를 지우지 않고 스키마를 변경했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 볼륨을 지우고 다시 초기화하면 새 열은 생겨도 기존 사용자 데이터가 사라져요. 지금 목표는 기존 행을 지키는 변경이에요.",
+      "target": "text:이미 데이터가 있는 볼륨이면 초기화 스크립트를 다시 실행하지 않아요. migration.sql에서 memo에 version INT DEFAULT 1 NOT NULL 열을 추가하세요. 기존 행과 새 열의 기본값을 함께 보존해야 해요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

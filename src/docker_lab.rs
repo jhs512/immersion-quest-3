@@ -4,10 +4,12 @@
 //! runs in Bash with that project name. Before the script starts, the learner's compose file is
 //! checked: published ports must stay on 127.0.0.1 with an engine-chosen host port, and nothing may
 //! use a fixed container name, host networking, privileges or a bind mount outside the run folder.
-//! When the run ends — success, failure, timeout or a dropped caller — only containers, networks,
+//! When the blocking run ends — success, failure or timeout — only containers, networks,
 //! volumes and built images labelled with that project are removed. A project left behind by a
-//! killed app is found by the same labels and removed at the next start or the next run, unless
-//! its run lock is still held by a live process. Images the lesson pulls (digest-pinned official
+//! killed desktop app is cleaned by a detached lock watcher; startup also sweeps the same labels
+//! after a machine/engine interruption, unless a live run still holds its lock. Dropping an async
+//! caller does not abort an already running blocking lab; it stays bounded by LAB_SECONDS.
+//! Images the lesson pulls (digest-pinned official
 //! images) stay cached like any `docker pull`; the user's own resources are never listed by name
 //! or touched.
 use crate::{repository_course::Task, runner::Execution};
@@ -21,6 +23,53 @@ const LAB_SECONDS:u64=300;
 const PULL_SECONDS:u64=1200;
 const OUTPUT:usize=65536;
 pub const INSTALL_GUIDE:&str="https://docs.docker.com/get-started/get-docker/";
+static WATCH_EXECUTABLE:std::sync::OnceLock<PathBuf>=std::sync::OnceLock::new();
+
+/// The desktop binary handles the private watchdog CLI before opening its UI.
+/// Examples and test runners do not opt in: they are not desktop helper binaries.
+pub fn enable_watchdog(executable:PathBuf) {let _=WATCH_EXECUTABLE.set(executable);}
+
+pub fn watchdog_cli(args:&[String])->Option<Result<(),String>> {
+    if args.get(1).map(String::as_str)!=Some("--mq3-docker-watch"){return None}
+    Some(match args.get(2) {
+        Some(project) if args.len()==3&&valid_project(project)=>watch_project(project),
+        _=>Err("Invalid Docker lab watchdog project".into()),
+    })
+}
+
+fn watch_project(project:&str)->Result<(),String> {
+    if !valid_project(project){return Err("Invalid Docker lab watchdog project".into())}
+    let path=locks()?.join(format!("{project}.lock"));
+    loop {
+        // A normal run removes this file after cleanup. An abruptly terminated
+        // owner leaves the file but the OS releases its exclusive lock.
+        let file=match std::fs::OpenOptions::new().read(true).write(true).open(&path) {
+            Ok(file)=>file,
+            Err(e) if e.kind()==std::io::ErrorKind::NotFound=>return Ok(()),
+            Err(e)=>return Err(e.to_string()),
+        };
+        if file.try_lock().is_ok() {
+            if let Some(cli)=cli(){remove_project(&cli,project);}
+            drop(file);
+            let _=std::fs::remove_file(&path);
+            return Ok(())
+        }
+        drop(file);
+        std::thread::sleep(Duration::from_millis(500));
+    }
+}
+
+fn spawn_watchdog(project:&str)->Result<(),String> {
+    let Some(executable)=WATCH_EXECUTABLE.get() else{return Ok(())};
+    let mut command=Command::new(executable);
+    command.args(["--mq3-docker-watch",project]).stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
+    #[cfg(windows)] {
+        use std::os::windows::process::CommandExt;
+        command.creation_flags(0x08000000|0x00000008); // hidden, detached from the owner's console
+    }
+    #[cfg(unix)] {use std::os::unix::process::CommandExt;command.process_group(0);}
+    command.spawn().map(|_|()).map_err(|e|format!("실습 정리 감시자를 시작하지 못했어요: {e}"))
+}
 
 /// Official images pinned by a multi-platform index digest, e.g. `busybox:1.36@sha256:…`.
 pub fn valid_image(reference:&str)->bool {
@@ -66,6 +115,18 @@ pub fn cli()->Option<PathBuf> {
 
 fn search_path(cli:&Path)->std::ffi::OsString {
     let mut paths:Vec<PathBuf>=cli.parent().map(Path::to_path_buf).into_iter().collect();
+    #[cfg(windows)] if let Ok(shell) = crate::setup_terminal::git_bash_executable() {
+        // Desktop launches need not inherit Git's POSIX tools. Bash itself can
+        // start without them, but lab scripts and the Docker plugin launcher
+        // also need sh, sed, cat and the rest of Git for Windows' tools.
+        if let Some(bin) = shell.parent() {
+            paths.push(bin.to_path_buf());
+            if let Some(root) = bin.parent() {
+                paths.push(root.join("usr/bin"));
+                paths.push(root.join("mingw64/bin"));
+            }
+        }
+    }
     #[cfg(target_os="macos")] {
         // Credential helpers (docker-credential-desktop) must be found for a pull to succeed.
         paths.extend(["/usr/local/bin","/opt/homebrew/bin","/Applications/Docker.app/Contents/Resources/bin"].map(PathBuf::from));
@@ -242,7 +303,9 @@ impl Lab {
         let lock_path=locks()?.join(format!("{project}.lock"));
         let file=std::fs::OpenOptions::new().read(true).write(true).create(true).truncate(true).open(&lock_path).map_err(|e|e.to_string())?;
         file.lock().map_err(|e|format!("실습 잠금: {e}"))?;
-        Ok(Self{cli:cli.to_path_buf(),project,lock:Some(file),lock_path})
+        let lab=Self{cli:cli.to_path_buf(),project,lock:Some(file),lock_path};
+        spawn_watchdog(&lab.project)?;
+        Ok(lab)
     }
 }
 impl Drop for Lab {
@@ -394,6 +457,68 @@ pub async fn run(task:&Task,source:&str,input:&str)->Result<Execution,String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn watchdog_only_accepts_an_owned_project_argument() {
+        assert!(watchdog_cli(&["app".into()]).is_none());
+        for project in ["../outside", "user-database", "mq3lab-../../outside"] {
+            assert!(watchdog_cli(&["app".into(),"--mq3-docker-watch".into(),project.into()]).unwrap().is_err());
+        }
+    }
+    #[test]
+    #[ignore="Private subprocess fixture used by the hard-kill watchdog test"]
+    fn watchdog_owner_probe() {
+        let Ok(project)=std::env::var("MQ3_DOCKER_OWNER_PROBE") else{return};
+        assert!(valid_project(&project));
+        let file=std::fs::OpenOptions::new().read(true).write(true).create(true).truncate(true)
+            .open(locks().unwrap().join(format!("{project}.lock"))).unwrap();
+        file.lock().unwrap();
+        println!("owner-ready");
+        std::io::Write::flush(&mut std::io::stdout()).unwrap();
+        std::thread::sleep(Duration::from_secs(10));
+        drop(file);
+    }
+    #[test]
+    #[ignore="Needs a running Docker engine"]
+    fn a_hard_killed_owner_is_cleaned_by_its_watchdog() {
+        use std::io::BufRead;
+        let cli=cli().unwrap();
+        let project=format!("{PREFIX}watch-{}",crate::issue_progress::new_id().to_ascii_lowercase().chars().filter(char::is_ascii_alphanumeric).take(8).collect::<String>());
+        let label=format!("{OWNER_LABEL}={project}");
+        let image="busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662";
+        ensure_images(&cli,&[image.into()]).unwrap();
+        assert!(docker(&cli,&["volume","create","--label",&label],30).unwrap().success);
+        assert!(docker(&cli,&["run","-d","--label",&label,image,"sleep","60"],60).unwrap().success);
+        let mut command=Command::new(std::env::current_exe().unwrap());
+        command.args(["--exact","docker_lab::tests::watchdog_owner_probe","--ignored","--nocapture"])
+            .env("MQ3_DOCKER_OWNER_PROBE",&project).stdout(Stdio::piped()).stderr(Stdio::null());
+        #[cfg(windows)] {use std::os::windows::process::CommandExt;command.creation_flags(0x08000000);}
+        let mut child=command.spawn().unwrap();
+        let mut ready=false;
+        for line in std::io::BufReader::new(child.stdout.take().unwrap()).lines() {
+            if line.unwrap().contains("owner-ready"){ready=true;break}
+        }
+        assert!(ready);
+        let watched=project.clone();
+        let guard=std::thread::spawn(move||watch_project(&watched));
+        std::thread::sleep(Duration::from_millis(100));
+        assert!(!ids(&cli,&["ps","-aq","--filter",&format!("label={label}")]).is_empty(),"a live owner must be preserved");
+        child.kill().unwrap();child.wait().unwrap();
+        guard.join().unwrap().unwrap();
+        assert!(ids(&cli,&["ps","-aq","--filter",&format!("label={label}")]).is_empty());
+        assert!(ids(&cli,&["volume","ls","-q","--filter",&format!("label={label}")]).is_empty());
+    }
+    #[cfg(windows)]
+    #[test]
+    fn desktop_shell_finds_posix_tools_without_an_inherited_git_path() {
+        let shell = bash().expect("Git Bash is installed for Windows terminal labs");
+        let fake_cli = PathBuf::from(r"C:\mq3-desktop-path-probe\docker.exe");
+        let mut command = Command::new(shell);
+        prepare(&mut command, &fake_cli);
+        command.args(["-c", "printf '%s' hello | /usr/bin/env sh -c 'cat'"]);
+        let result = execute(command, "", 15).unwrap();
+        assert!(result.success, "{}", result.stderr);
+        assert_eq!(result.stdout, "hello");
+    }
     fn task(compose:&str)->Task {
         serde_json::from_value(serde_json::json!({"id":"stp_docker_probe","title":"Docker","goal":"x","language":"docker",
             "starter_code":compose,"solution":compose,"entry_file":"compose.yaml",
@@ -413,7 +538,7 @@ mod tests {
     #[test]
     fn bind_mounts_must_stay_in_the_run_folder() {
         assert!(inside("C:/Temp/run","C:\\Temp\\run\\data"));
-        assert!(inside("C:/Temp/run","c:/temp/run"));
+        assert_eq!(inside("C:/Temp/run","c:/temp/run"),cfg!(windows)||cfg!(target_os="macos"));
         assert!(!inside("C:/Temp/run","C:/Temp/run2"));
         assert!(!inside("C:/Temp/run","C:/Users"));
     }

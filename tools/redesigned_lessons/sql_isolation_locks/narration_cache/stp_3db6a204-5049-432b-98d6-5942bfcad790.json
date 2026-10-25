@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "962fbf8249000ebac108991d2915f8d6927fd00b19237a7c9945ccc017d4befb",
+  "entry": [
+    {
+      "action": "say",
+      "text": "연결 A가 잔액 100을 읽고, B가 150으로 변경해 확정한 뒤, A가 다시 읽어요. 연결 두 개를 실제로 열어 정해진 순서대로 실행해요.",
+      "target": "text:연결 A가 잔액 100을 읽고, B가 150으로 변경해 확정한 뒤, A가 다시 읽어요. 연결 두 개를 실제로 열어 정해진 순서대로 실행해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "100 다음에 150이 나와요. 트랜잭션을 시작했다는 것만으로 같은 조회 결과가 보장되지는 않아요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "격리 수준은 트랜잭션이 다른 확정 변경을 언제 볼지 정해요.",
+      "target": "code:a.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);"
+    },
+    {
+      "action": "patch_code",
+      "before": "   a.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);\n   a.setAutoCommit(false);\n   System.out.println(\"첫 조회:\"+value(a));\n   b.createStatement().executeUpdate(\"UPDATE account SET balance=150 WHERE id=1\");\n   System.out.println(\"다시 조회:\"+value(a));\n   a.commit();",
+      "after": "   a.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);\n   a.setAutoCommit(false);\n   System.out.println(\"첫 조회:\"+value(a));\n   b.createStatement().executeUpdate(\"UPDATE account SET balance=150 WHERE id=1\");\n   System.out.println(\"다시 조회:\"+value(a));\n   a.commit();",
+      "say": "한 트랜잭션에서 같은 잔액을 다시 읽게 하세요"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "두 조회가 모두 100이에요. B의 변경이 실패한 것이 아니라 A가 이전 스냅샷을 유지한 거예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 스냅샷을 유지하는 것은 다른 연결의 쓰기를 막는 잠금과 달라요. 이 예제에서 B는 정상적으로 변경을 확정했어요.",
+      "target": "text:PostgreSQL의 READ COMMITTED는 문장마다 새 스냅샷을 봐요. A에서 첫 조회 전에 REPEATABLE READ를 설정해 같은 트랜잭션의 스냅샷을 유지하세요. 설정은 첫 조회 전에 해야 해요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

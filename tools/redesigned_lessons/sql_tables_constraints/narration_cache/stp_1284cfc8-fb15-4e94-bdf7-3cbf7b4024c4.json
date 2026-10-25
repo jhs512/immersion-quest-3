@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "58511afe467d056c9932f0a451a96d5afa3dc5c74d344eb1df94318d75cfbe0b",
+  "entry": [
+    {
+      "action": "say",
+      "text": "서로 다른 클라이언트가 잔액 0, -1, 7인 행을 보내요. 음수 잔액만 막아야 해요.",
+      "target": "text:서로 다른 클라이언트가 잔액 0, -1, 7인 행을 보내요. 음수 잔액만 막아야 해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "잔액 -1인 행도 남아요. NOT NULL은 음수를 막지 않아요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "CHECK는 저장되는 각 행의 값 범위를 보호해요.",
+      "target": "code:CREATE TABLE wallet(id INT PRIMARY KEY, balance INT NOT NULL);"
+    },
+    {
+      "action": "patch_code",
+      "before": "CREATE TABLE wallet(id INT PRIMARY KEY, balance INT NOT NULL);\n",
+      "after": "CREATE TABLE wallet(id INT PRIMARY KEY, balance INT NOT NULL CHECK(balance >= 0));\n",
+      "say": "금액이 음수인 행을 DB에서 막으세요"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "음수 -1만 거절돼요. 0원과 7원인 두 행은 남아요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 0도 허용되는 잔액이에요. > 0으로 검사하면 정상인 0원을 거절해요.",
+      "target": "text:NOT NULL은 값의 존재만 검사해요. CHECK는 각 행의 조건을 검사해요. MySQL 8.4는 CHECK를 실제로 적용해요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "1d25242fa43c472d8c005959fcebdfc17220b92a36cf48ababe67ee47a340289",
+  "entry": [
+    {
+      "action": "say",
+      "text": "구매자 두 명이 재고 1을 모두 읽은 뒤 동시에 구매해요. 제공 장벽이 두 조회가 끝날 때까지 기다려 재현 순서를 고정해요.",
+      "target": "text:구매자 두 명이 재고 1을 모두 읽은 뒤 동시에 구매해요. 제공 장벽이 두 조회가 끝날 때까지 기다려 재현 순서를 고정해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "판매가 2, 재고가 -1이에요. 두 구매자가 모두 예전 재고 1을 보고 통과했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조회한 뒤 검사하는 것과 조건을 가진 변경 한 문장은 달라요.",
+      "target": "code:UPDATE stock SET qty=qty-1 WHERE id=1"
+    },
+    {
+      "action": "patch_code",
+      "before": "   CyclicBarrier bothRead=new CyclicBarrier(2);\n   ExecutorService pool=Executors.newFixedThreadPool(2);\n   try {\n    Callable<Integer> buy=()->{\n     try(Connection c=open()) {\n      int remaining;\n      try(ResultSet r=c.createStatement().executeQuery(\"SELECT qty FROM stock WHERE id=1\")) { r.next(); remaining=r.getInt(1); }\n      bothRead.await(10,TimeUnit.SECONDS);\n      if(remaining<=0) return 0;\n      return c.createStatement().executeUpdate(\"UPDATE stock SET qty=qty-1 WHERE id=1\");\n     }\n    };\n    Future<Integer> one=pool.submit(buy), two=pool.submit(buy);\n    System.out.println(\"판매:\"+(one.get(20,TimeUnit.SECONDS)+two.get(20,TimeUnit.SECONDS)));\n    try(ResultSet r=a.createStatement().executeQuery(\"SELECT qty FROM stock WHERE id=1\")) {r.next(); System.out.println(\"재고:\"+r.getInt(1));}\n   } finally {pool.shutdownNow();}",
+      "after": "   CyclicBarrier bothRead=new CyclicBarrier(2);\n   ExecutorService pool=Executors.newFixedThreadPool(2);\n   try {\n    Callable<Integer> buy=()->{\n     try(Connection c=open()) {\n      int remaining;\n      try(ResultSet r=c.createStatement().executeQuery(\"SELECT qty FROM stock WHERE id=1\")) { r.next(); remaining=r.getInt(1); }\n      bothRead.await(10,TimeUnit.SECONDS);\n      if(remaining<=0) return 0;\n      return c.createStatement().executeUpdate(\"UPDATE stock SET qty=qty-1 WHERE id=1 AND qty>0\");\n     }\n    };\n    Future<Integer> one=pool.submit(buy), two=pool.submit(buy);\n    System.out.println(\"판매:\"+(one.get(20,TimeUnit.SECONDS)+two.get(20,TimeUnit.SECONDS)));\n    try(ResultSet r=a.createStatement().executeQuery(\"SELECT qty FROM stock WHERE id=1\")) {r.next(); System.out.println(\"재고:\"+r.getInt(1));}\n   } finally {pool.shutdownNow();}",
+      "say": "마지막 재고 하나가 두 번 팔리지 않게 하세요"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "한 UPDATE만 행을 바꿔 판매 1과 재고 0이 됐어요. 조건 검사와 차감을 DB의 같은 문장에 넣었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 이 원리는 이 한 행의 재고 변경에 대한 것이에요. 여러 표를 바꾸는 주문 전체의 원자성은 별도의 트랜잭션 경계가 필요해요.",
+      "target": "text:UPDATE 자체에 qty>0 조건을 넣으세요. PostgreSQL READ COMMITTED에서 한 UPDATE가 기다린 뒤 최신 행에 조건을 다시 검사해요. 변경 행 수 1을 판매 성공으로 세므로 다른 구매자는 0을 받아야 해요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

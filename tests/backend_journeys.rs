@@ -16,8 +16,10 @@ const WITHDRAWN: [&str; 8] = ["lsn_0783b508-0383-49ec-85d8-ee33a68eafef", "lsn_c
 #[test]
 fn withdrawn_lessons_leave_no_listing_preview_or_empty_topic() {
     let course = course();
-    assert_eq!(course.lessons.len(), 26);
-    assert!(course.lessons.iter().all(|l| l.required && l.track == "basic" && !l.category.is_empty()));
+    assert_eq!(course.lessons.len(), 40);
+    // The 26 lessons of 2026-10-25 keep 필수 and 기본; lessons added on 2026-10-26 are optional with no track.
+    assert!(course.lessons[..26].iter().all(|l| l.required && l.track == "basic" && !l.category.is_empty()));
+    assert!(course.lessons[26..].iter().all(|l| !l.required && l.track.is_empty() && !l.category.is_empty()));
     let raw = std::fs::read_to_string(root().join("courses/redesigned-courses/java-backend.json")).unwrap();
     for id in WITHDRAWN { assert!(!raw.contains(id), "{id} still referenced"); }
     let ids: Vec<_> = course.lessons.iter().map(|l| l.id.clone()).collect();
@@ -30,7 +32,7 @@ fn withdrawn_lessons_leave_no_listing_preview_or_empty_topic() {
 #[test]
 fn previews_are_ungraded_metadata_and_old_courses_still_open() {
     let course = course();
-    assert_eq!(course.lesson_previews.len(), 26);
+    assert_eq!(course.lesson_previews.len(), 40);
     let mut old = serde_json::to_value(&course).unwrap();
     old.as_object_mut().unwrap().remove("lesson_previews");
     assert!(CourseManifest::parse(&old.to_string()).unwrap().lesson_previews.is_empty());

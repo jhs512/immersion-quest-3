@@ -1,0 +1,93 @@
+{
+  "course": "tests/fixtures/player-pilot/쥬/course.json",
+  "lesson": "courses/redesigned/sql-join-group.json",
+  "expected_outputs": [
+    [
+      "A:10\nB:10\nC:10\nA:11\nB:11\nC:11\nA:12\nB:12\nC:12",
+      "A:10\nA:11\nB:12"
+    ],
+    [
+      "A:10\nA:11\nB:12",
+      "A:10\nA:11\nB:12\nC:없음"
+    ],
+    [
+      "A:2\nB:1\nC:1",
+      "A:2\nB:1\nC:0"
+    ],
+    [
+      "A:2",
+      "A:2\nB:0\nC:0"
+    ],
+    [
+      "A:60\nB:0\nC:0",
+      "A:30\nB:0\nC:0"
+    ],
+    [
+      "A:2:30",
+      "A:2:30\nB:0:0\nC:0:0"
+    ]
+  ],
+  "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "SELECT m.name || ':' || o.id FROM member m JOIN orders o ON o.member_id=m.id ORDER BY o.id,m.id;\n",
+          "SELECT m.name || ':' || o.id FROM member m CROSS JOIN orders o ORDER BY o.id,m.id;\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "SELECT m.name || ':' || COALESCE(o.id::text,'없음') FROM member m LEFT JOIN orders o ON o.member_id=m.id ORDER BY m.id,o.id;\n",
+          "SELECT m.name || ':' || COALESCE(o.id::text,'없음') FROM member m JOIN orders o ON o.member_id=m.id ORDER BY m.id,o.id;\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "SELECT m.name || ':' || COUNT(o.id) FROM member m LEFT JOIN orders o ON o.member_id=m.id GROUP BY m.id,m.name ORDER BY m.id;\n",
+          "SELECT m.name || ':' || COUNT(*) FROM member m LEFT JOIN orders o ON o.member_id=m.id GROUP BY m.id,m.name ORDER BY m.id;\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "SELECT m.name || ':' || COUNT(o.id) FROM member m LEFT JOIN orders o ON o.member_id=m.id AND o.amount>0 GROUP BY m.id,m.name ORDER BY m.id;\n",
+          "SELECT m.name || ':' || COUNT(o.id) FROM member m LEFT JOIN orders o ON o.member_id=m.id WHERE o.amount>0 GROUP BY m.id,m.name ORDER BY m.id;\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "WITH totals AS (SELECT member_id,SUM(amount) AS total FROM orders GROUP BY member_id) SELECT m.name || ':' || COALESCE(x.total,0) FROM member m LEFT JOIN totals x ON x.member_id=m.id ORDER BY m.id;\n",
+          "SELECT m.name || ':' || COALESCE(SUM(o.amount),0) FROM member m LEFT JOIN orders o ON o.member_id=m.id LEFT JOIN tag t ON t.member_id=m.id GROUP BY m.id,m.name ORDER BY m.id;\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "SELECT m.name || ':' || COUNT(o.id) || ':' || COALESCE(SUM(o.amount),0) FROM member m LEFT JOIN orders o ON o.member_id=m.id AND o.amount>0 GROUP BY m.id,m.name ORDER BY m.id;\n",
+          "SELECT m.name || ':' || COUNT(*) || ':' || SUM(o.amount) FROM member m JOIN orders o ON o.member_id=m.id WHERE o.amount>0 GROUP BY m.id,m.name ORDER BY m.id;\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    }
+  ],
+  "accept": []
+}

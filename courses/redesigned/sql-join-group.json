@@ -1,0 +1,517 @@
+{
+  "schema_version": 2,
+  "id": "lsn_84853a6b-7d79-46c8-bdfb-502c202f300d",
+  "revision": "sql-join-group-1",
+  "title": "JOIN·집계 · 사라진 행과 늘어난 합계를 찾아요",
+  "description": "작은 표에서 조건 하나를 바꿔 실제 저장 결과를 비교해요.",
+  "objectives": [
+    "관계로 행을 연결하고 보존할 대상을 정해요.",
+    "NULL과 실제 주문을 구분해 집계해요.",
+    "JOIN의 행 수 증가를 이해하고 정확한 보고서를 구현해요."
+  ],
+  "sources": [
+    "https://www.postgresql.org/docs/current/tutorial.html"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_72c97811-ec90-4ea2-befb-001384083315",
+      "title": "JOIN·집계 · 사라진 행과 늘어난 합계를 찾아요",
+      "objectives": [
+        "관계로 행을 연결하고 보존할 대상을 정해요.",
+        "NULL과 실제 주문을 구분해 집계해요.",
+        "JOIN의 행 수 증가를 이해하고 정확한 보고서를 구현해요."
+      ],
+      "units": [
+        {
+          "id": "unt_01f5ca69-0753-4308-ba4e-b4eae0c0513d",
+          "title": "행을 짝짓고 남기기",
+          "objectives": [
+            "JOIN 조건과 보존하는 쪽을 이해해요."
+          ],
+          "premise": "제공 SQL로 작은 실습 DB를 준비해요. 실제 사용자 데이터는 없어요.",
+          "steps": [
+            {
+              "id": "stp_b110bb07-8318-4ff5-8c20-cb25e3237f11",
+              "objectives": [
+                "JOIN 조건이 두 표에서 어떤 행을 짝지을지 정한다는 것을 이해해요."
+              ]
+            },
+            {
+              "id": "stp_47024363-378f-442a-aa83-bcb220c5cafd",
+              "objectives": [
+                "LEFT JOIN의 보존하는 쪽과 NULL 확장을 이해해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_cb460f6c-0e0c-4296-b130-abaf931059d0",
+          "title": "NULL과 집계",
+          "objectives": [
+            "건수와 필터의 적용 지점을 구별해요."
+          ],
+          "premise": "제공 SQL로 작은 실습 DB를 준비해요. 실제 사용자 데이터는 없어요.",
+          "steps": [
+            {
+              "id": "stp_b2ad01d6-f183-473a-82fa-bf3f613ba9bb",
+              "objectives": [
+                "COUNT(*)와 COUNT(열)이 세는 대상의 차이를 이해해요."
+              ]
+            },
+            {
+              "id": "stp_5db22b82-3de9-4346-9711-bc9e84f8abfe",
+              "objectives": [
+                "ON의 짝짓기 조건과 WHERE의 결과 제거 조건을 구별해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_54552c9b-c78c-48bd-8613-857097f9576a",
+          "title": "관계가 늘어나는 보고서",
+          "objectives": [
+            "집계 전 행 수를 따져 중복 합산을 막아요."
+          ],
+          "premise": "제공 SQL로 작은 실습 DB를 준비해요. 실제 사용자 데이터는 없어요.",
+          "steps": [
+            {
+              "id": "stp_3a886f51-be5b-4b54-a768-2edb41811ef3",
+              "objectives": [
+                "일대다 관계를 두 번 JOIN할 때 행이 늘어나는 원리를 이해해요."
+              ]
+            },
+            {
+              "id": "stp_e9479fec-6851-492e-8fe9-1a79202bbcd6",
+              "objectives": [
+                "보존할 행·집계 대상·NULL 처리를 함께 설계해요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_b110bb07-8318-4ff5-8c20-cb25e3237f11",
+      "title": "주문을 실제 회원과만 연결하세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n회원은 세 명, 주문은 세 건이에요. 이름과 주문을 모두 조합하면 주문이 아홉 번 나와요.\n\n**알아두세요**\n\n표를 나누면 이름을 한 번만 저장해요. 다시 조회할 때는 orders.member_id와 member.id의 관계로 연결해야 해요. 행 번호나 나열 순서는 관계가 아니에요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. lesson.sql에서 다음 요구를 구현하세요. 주문을 실제 회원과만 연결하세요\n3. 오류가 난 문장과 그 뒤 조회 결과를 함께 읽으세요.\n4. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n5. 고친 코드를 제출하세요.",
+      "language": "docker",
+      "starter_code": "SELECT m.name || ':' || o.id FROM member m CROSS JOIN orders o ORDER BY o.id,m.id;\n",
+      "solution": "SELECT m.name || ':' || o.id FROM member m JOIN orders o ON o.member_id=m.id ORDER BY o.id,m.id;\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "A:10\nA:11\nB:12"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "회원은 세 명, 주문은 세 건이에요. 이름과 주문을 모두 조합하면 주문이 아홉 번 나와요.",
+          "target": "text:회원은 세 명, 주문은 세 건이에요. 이름과 주문을 모두 조합하면 주문이 아홉 번 나와요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "주문 하나가 세 회원에게 붙어요. 두 표의 관계를 제한하지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "JOIN 조건이 두 표에서 어떤 행을 짝지을지 정한다는 것을 이해해요.",
+          "target": "code:SELECT m.name || ':' || o.id FROM member m CROSS JOIN orders o ORDER BY o.id,m.id;"
+        },
+        {
+          "action": "patch_code",
+          "before": "SELECT m.name || ':' || o.id FROM member m CROSS JOIN orders o ORDER BY o.id,m.id;\n",
+          "after": "SELECT m.name || ':' || o.id FROM member m JOIN orders o ON o.member_id=m.id ORDER BY o.id,m.id;\n",
+          "say": "주문을 실제 회원과만 연결하세요"
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "10번과 11번은 A, 12번은 B에게만 연결돼요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. m.id=o.id는 주문 번호와 회원 번호를 비교해요. 서로 다른 식별자예요.",
+          "target": "text:표를 나누면 이름을 한 번만 저장해요. 다시 조회할 때는 orders.member_id와 member.id의 관계로 연결해야 해요. 행 번호나 나열 순서는 관계가 아니에요."
+        },
+        {
+          "action": "submit"
+        }
+      ],
+      "entry_file": "lesson.sql",
+      "files": {
+        "compose.yaml": "services:\n  db:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment: {POSTGRES_PASSWORD: lab, POSTGRES_DB: lab}\n    tmpfs: [/var/lib/postgresql]\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-U\", \"postgres\", \"-h\", \"127.0.0.1\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T db psql -U postgres -d lab -X -q -A -t -v ON_ERROR_STOP=0\n",
+        "before.sql": "CREATE TABLE member(id INT PRIMARY KEY, name TEXT NOT NULL);\nCREATE TABLE orders(id INT PRIMARY KEY, member_id INT REFERENCES member(id), amount INT NOT NULL);\nINSERT INTO member VALUES(1,'A'),(2,'B'),(3,'C');\nINSERT INTO orders VALUES(10,1,10),(11,1,20),(12,2,0);\n",
+        "after.sql": ""
+      },
+      "docker_images": [
+        "postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5"
+      ]
+    },
+    {
+      "id": "stp_47024363-378f-442a-aa83-bcb220c5cafd",
+      "title": "주문이 없는 회원도 남기세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\nC도 회원인데 주문 목록 화면에서 사라져요. 주문이 없는 회원은 없음으로 보여야 해요.\n\n**알아두세요**\n\nINNER JOIN은 짝이 있는 행만 남겨요. LEFT JOIN은 왼쪽 행을 보존하고 오른쪽 짝이 없으면 NULL을 붙여요. COALESCE는 표시할 대체 값을 골라요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. lesson.sql에서 다음 요구를 구현하세요. 주문이 없는 회원도 남기세요\n3. 오류가 난 문장과 그 뒤 조회 결과를 함께 읽으세요.\n4. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n5. 고친 코드를 제출하세요.",
+      "language": "docker",
+      "starter_code": "SELECT m.name || ':' || COALESCE(o.id::text,'없음') FROM member m JOIN orders o ON o.member_id=m.id ORDER BY m.id,o.id;\n",
+      "solution": "SELECT m.name || ':' || COALESCE(o.id::text,'없음') FROM member m LEFT JOIN orders o ON o.member_id=m.id ORDER BY m.id,o.id;\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "A:10\nA:11\nB:12\nC:없음"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "C도 회원인데 주문 목록 화면에서 사라져요. 주문이 없는 회원은 없음으로 보여야 해요.",
+          "target": "text:C도 회원인데 주문 목록 화면에서 사라져요. 주문이 없는 회원은 없음으로 보여야 해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "A와 B만 나와요. C는 짝지을 주문이 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "LEFT JOIN의 보존하는 쪽과 NULL 확장을 이해해요.",
+          "target": "code:SELECT m.name || ':' || COALESCE(o.id::text,'없음') FROM member m JOIN orders o ON o.member_id=m.id ORDER BY m.id,o.id;"
+        },
+        {
+          "action": "patch_code",
+          "before": "SELECT m.name || ':' || COALESCE(o.id::text,'없음') FROM member m JOIN orders o ON o.member_id=m.id ORDER BY m.id,o.id;\n",
+          "after": "SELECT m.name || ':' || COALESCE(o.id::text,'없음') FROM member m LEFT JOIN orders o ON o.member_id=m.id ORDER BY m.id,o.id;\n",
+          "say": "주문이 없는 회원도 남기세요"
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "C:없음이 마지막에 보여요. 회원 행은 보존됐고 주문 번호가 NULL이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. orders를 왼쪽에 두면 주문을 보존해요. 이 화면에서 빠지면 안 되는 것은 회원이에요.",
+          "target": "text:INNER JOIN은 짝이 있는 행만 남겨요. LEFT JOIN은 왼쪽 행을 보존하고 오른쪽 짝이 없으면 NULL을 붙여요. COALESCE는 표시할 대체 값을 골라요."
+        },
+        {
+          "action": "submit"
+        }
+      ],
+      "entry_file": "lesson.sql",
+      "files": {
+        "compose.yaml": "services:\n  db:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment: {POSTGRES_PASSWORD: lab, POSTGRES_DB: lab}\n    tmpfs: [/var/lib/postgresql]\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-U\", \"postgres\", \"-h\", \"127.0.0.1\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T db psql -U postgres -d lab -X -q -A -t -v ON_ERROR_STOP=0\n",
+        "before.sql": "CREATE TABLE member(id INT PRIMARY KEY, name TEXT NOT NULL);\nCREATE TABLE orders(id INT PRIMARY KEY, member_id INT REFERENCES member(id), amount INT NOT NULL);\nINSERT INTO member VALUES(1,'A'),(2,'B'),(3,'C');\nINSERT INTO orders VALUES(10,1,10),(11,1,20),(12,2,0);\n",
+        "after.sql": ""
+      },
+      "docker_images": [
+        "postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5"
+      ]
+    },
+    {
+      "id": "stp_b2ad01d6-f183-473a-82fa-bf3f613ba9bb",
+      "title": "주문 없는 회원의 주문 수를 0으로 세세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\nLEFT JOIN으로 C를 남겼더니 주문 수도 1로 나와요. 화면의 한 행과 실제 주문 한 건은 달라요.\n\n**알아두세요**\n\nCOUNT(*)는 NULL로 확장된 행도 세어요. COUNT(o.id)는 NULL이 아닌 주문 번호만 세어요. 기본 키 id는 실제 주문이면 NULL일 수 없어요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. lesson.sql에서 다음 요구를 구현하세요. 주문 없는 회원의 주문 수를 0으로 세세요\n3. 오류가 난 문장과 그 뒤 조회 결과를 함께 읽으세요.\n4. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n5. 고친 코드를 제출하세요.",
+      "language": "docker",
+      "starter_code": "SELECT m.name || ':' || COUNT(*) FROM member m LEFT JOIN orders o ON o.member_id=m.id GROUP BY m.id,m.name ORDER BY m.id;\n",
+      "solution": "SELECT m.name || ':' || COUNT(o.id) FROM member m LEFT JOIN orders o ON o.member_id=m.id GROUP BY m.id,m.name ORDER BY m.id;\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "A:2\nB:1\nC:0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "LEFT JOIN으로 C를 남겼더니 주문 수도 1로 나와요. 화면의 한 행과 실제 주문 한 건은 달라요.",
+          "target": "text:LEFT JOIN으로 C를 남겼더니 주문 수도 1로 나와요. 화면의 한 행과 실제 주문 한 건은 달라요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "C:1이에요. 실제 주문 대신 NULL을 붙인 행 하나를 셌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "COUNT(*)와 COUNT(열)이 세는 대상의 차이를 이해해요.",
+          "target": "code:SELECT m.name || ':' || COUNT(*) FROM member m LEFT JOIN orders o ON o.member_id=m.id GROUP BY m.id,m.name ORDER BY m.id;"
+        },
+        {
+          "action": "patch_code",
+          "before": "SELECT m.name || ':' || COUNT(*) FROM member m LEFT JOIN orders o ON o.member_id=m.id GROUP BY m.id,m.name ORDER BY m.id;\n",
+          "after": "SELECT m.name || ':' || COUNT(o.id) FROM member m LEFT JOIN orders o ON o.member_id=m.id GROUP BY m.id,m.name ORDER BY m.id;\n",
+          "say": "주문 없는 회원의 주문 수를 0으로 세세요"
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "C:0이에요. B의 금액 0원 주문은 번호가 있으므로 한 건으로 세어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 금액이 0인 주문도 주문이에요. amount > 0으로 세면 그 주문을 빼요.",
+          "target": "text:COUNT(*)는 NULL로 확장된 행도 세어요. COUNT(o.id)는 NULL이 아닌 주문 번호만 세어요. 기본 키 id는 실제 주문이면 NULL일 수 없어요."
+        },
+        {
+          "action": "submit"
+        }
+      ],
+      "entry_file": "lesson.sql",
+      "files": {
+        "compose.yaml": "services:\n  db:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment: {POSTGRES_PASSWORD: lab, POSTGRES_DB: lab}\n    tmpfs: [/var/lib/postgresql]\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-U\", \"postgres\", \"-h\", \"127.0.0.1\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T db psql -U postgres -d lab -X -q -A -t -v ON_ERROR_STOP=0\n",
+        "before.sql": "CREATE TABLE member(id INT PRIMARY KEY, name TEXT NOT NULL);\nCREATE TABLE orders(id INT PRIMARY KEY, member_id INT REFERENCES member(id), amount INT NOT NULL);\nINSERT INTO member VALUES(1,'A'),(2,'B'),(3,'C');\nINSERT INTO orders VALUES(10,1,10),(11,1,20),(12,2,0);\n",
+        "after.sql": ""
+      },
+      "docker_images": [
+        "postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5"
+      ]
+    },
+    {
+      "id": "stp_5db22b82-3de9-4346-9711-bc9e84f8abfe",
+      "title": "유료 주문이 없는 회원도 집계에 남기세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n유료 주문 건수를 세려 해요. WHERE amount>0을 붙이자 B와 C가 모두 사라져요.\n\n**알아두세요**\n\nON은 오른쪽에서 짝지을 대상을 정해요. WHERE는 JOIN 결과를 만든 뒤 행을 거르므로 NULL 확장된 행도 제거할 수 있어요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. lesson.sql에서 다음 요구를 구현하세요. 유료 주문이 없는 회원도 집계에 남기세요\n3. 오류가 난 문장과 그 뒤 조회 결과를 함께 읽으세요.\n4. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n5. 고친 코드를 제출하세요.",
+      "language": "docker",
+      "starter_code": "SELECT m.name || ':' || COUNT(o.id) FROM member m LEFT JOIN orders o ON o.member_id=m.id WHERE o.amount>0 GROUP BY m.id,m.name ORDER BY m.id;\n",
+      "solution": "SELECT m.name || ':' || COUNT(o.id) FROM member m LEFT JOIN orders o ON o.member_id=m.id AND o.amount>0 GROUP BY m.id,m.name ORDER BY m.id;\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "A:2\nB:0\nC:0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "유료 주문 건수를 세려 해요. WHERE amount>0을 붙이자 B와 C가 모두 사라져요.",
+          "target": "text:유료 주문 건수를 세려 해요. WHERE amount>0을 붙이자 B와 C가 모두 사라져요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "A:2만 나와요. WHERE가 B의 0원 행과 C의 NULL 행을 지웠어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "ON의 짝짓기 조건과 WHERE의 결과 제거 조건을 구별해요.",
+          "target": "code:SELECT m.name || ':' || COUNT(o.id) FROM member m LEFT JOIN orders o ON o.member_id=m.id WHERE o.amount>0 GROUP BY m.id,m.name ORDER BY m.id;"
+        },
+        {
+          "action": "patch_code",
+          "before": "SELECT m.name || ':' || COUNT(o.id) FROM member m LEFT JOIN orders o ON o.member_id=m.id WHERE o.amount>0 GROUP BY m.id,m.name ORDER BY m.id;\n",
+          "after": "SELECT m.name || ':' || COUNT(o.id) FROM member m LEFT JOIN orders o ON o.member_id=m.id AND o.amount>0 GROUP BY m.id,m.name ORDER BY m.id;\n",
+          "say": "유료 주문이 없는 회원도 집계에 남기세요"
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "A:2, B:0, C:0이에요. 유료 주문만 짝짓고 회원은 남겼어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. WHERE에 OR o.id IS NULL만 더하면 C는 돌아와도 B는 사라져요. B에는 이미 0원 주문이 짝지어졌어요.",
+          "target": "text:ON은 오른쪽에서 짝지을 대상을 정해요. WHERE는 JOIN 결과를 만든 뒤 행을 거르므로 NULL 확장된 행도 제거할 수 있어요."
+        },
+        {
+          "action": "submit"
+        }
+      ],
+      "entry_file": "lesson.sql",
+      "files": {
+        "compose.yaml": "services:\n  db:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment: {POSTGRES_PASSWORD: lab, POSTGRES_DB: lab}\n    tmpfs: [/var/lib/postgresql]\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-U\", \"postgres\", \"-h\", \"127.0.0.1\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T db psql -U postgres -d lab -X -q -A -t -v ON_ERROR_STOP=0\n",
+        "before.sql": "CREATE TABLE member(id INT PRIMARY KEY, name TEXT NOT NULL);\nCREATE TABLE orders(id INT PRIMARY KEY, member_id INT REFERENCES member(id), amount INT NOT NULL);\nINSERT INTO member VALUES(1,'A'),(2,'B'),(3,'C');\nINSERT INTO orders VALUES(10,1,10),(11,1,20),(12,2,0);\n",
+        "after.sql": ""
+      },
+      "docker_images": [
+        "postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5"
+      ]
+    },
+    {
+      "id": "stp_3a886f51-be5b-4b54-a768-2edb41811ef3",
+      "title": "두 관계를 연결해도 주문 합계를 두 번 세지 마세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\nA는 주문 두 건과 태그 두 개가 있어요. 두 표를 한꺼번에 연결하면 주문 금액이 두 배로 나와요.\n\n**알아두세요**\n\n회원당 주문 N개와 태그 M개를 함께 연결하면 N×M행이 돼요. 먼저 주문을 회원당 한 행으로 집계하고 태그 집계와 연결하세요. SUM(DISTINCT amount)는 같은 금액의 다른 주문도 합쳐 버려요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. lesson.sql에서 다음 요구를 구현하세요. 두 관계를 연결해도 주문 합계를 두 번 세지 마세요\n3. 오류가 난 문장과 그 뒤 조회 결과를 함께 읽으세요.\n4. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n5. 고친 코드를 제출하세요.",
+      "language": "docker",
+      "starter_code": "SELECT m.name || ':' || COALESCE(SUM(o.amount),0) FROM member m LEFT JOIN orders o ON o.member_id=m.id LEFT JOIN tag t ON t.member_id=m.id GROUP BY m.id,m.name ORDER BY m.id;\n",
+      "solution": "WITH totals AS (SELECT member_id,SUM(amount) AS total FROM orders GROUP BY member_id) SELECT m.name || ':' || COALESCE(x.total,0) FROM member m LEFT JOIN totals x ON x.member_id=m.id ORDER BY m.id;\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "A:30\nB:0\nC:0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "A는 주문 두 건과 태그 두 개가 있어요. 두 표를 한꺼번에 연결하면 주문 금액이 두 배로 나와요.",
+          "target": "text:A는 주문 두 건과 태그 두 개가 있어요. 두 표를 한꺼번에 연결하면 주문 금액이 두 배로 나와요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "A:60이에요. 주문 금액 10과 20이 태그 수만큼 두 번 더해졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "일대다 관계를 두 번 JOIN할 때 행이 늘어나는 원리를 이해해요.",
+          "target": "code:SELECT m.name || ':' || COALESCE(SUM(o.amount),0) FROM member m LEFT JOIN orders o ON o.member_id=m.id LEFT JOIN tag t ON t.member_id=m.id GROUP BY m.id,m.name ORDER BY m.id;"
+        },
+        {
+          "action": "patch_code",
+          "before": "SELECT m.name || ':' || COALESCE(SUM(o.amount),0) FROM member m LEFT JOIN orders o ON o.member_id=m.id LEFT JOIN tag t ON t.member_id=m.id GROUP BY m.id,m.name ORDER BY m.id;\n",
+          "after": "WITH totals AS (SELECT member_id,SUM(amount) AS total FROM orders GROUP BY member_id) SELECT m.name || ':' || COALESCE(x.total,0) FROM member m LEFT JOIN totals x ON x.member_id=m.id ORDER BY m.id;\n",
+          "say": "두 관계를 연결해도 주문 합계를 두 번 세지 마세요"
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "A:30이에요. 주문을 회원당 한 행으로 만든 뒤 연결했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. SUM(DISTINCT amount)는 행 중복이 아니라 금액 중복을 없애요. 같은 금액인 별도 주문을 놓쳐요.",
+          "target": "text:회원당 주문 N개와 태그 M개를 함께 연결하면 N×M행이 돼요. 먼저 주문을 회원당 한 행으로 집계하고 태그 집계와 연결하세요. SUM(DISTINCT amount)는 같은 금액의 다른 주문도 합쳐 버려요."
+        },
+        {
+          "action": "submit"
+        }
+      ],
+      "entry_file": "lesson.sql",
+      "files": {
+        "compose.yaml": "services:\n  db:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment: {POSTGRES_PASSWORD: lab, POSTGRES_DB: lab}\n    tmpfs: [/var/lib/postgresql]\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-U\", \"postgres\", \"-h\", \"127.0.0.1\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T db psql -U postgres -d lab -X -q -A -t -v ON_ERROR_STOP=0\n",
+        "before.sql": "CREATE TABLE member(id INT PRIMARY KEY, name TEXT NOT NULL);\nCREATE TABLE orders(id INT PRIMARY KEY, member_id INT REFERENCES member(id), amount INT NOT NULL);\nINSERT INTO member VALUES(1,'A'),(2,'B'),(3,'C');\nINSERT INTO orders VALUES(10,1,10),(11,1,20),(12,2,0);\nCREATE TABLE tag(member_id INT, label TEXT); INSERT INTO tag VALUES(1,'vip'),(1,'mail');\n",
+        "after.sql": ""
+      },
+      "variations": [
+        {
+          "files": {
+            "before.sql": "CREATE TABLE member(id INT PRIMARY KEY, name TEXT NOT NULL);\nCREATE TABLE orders(id INT PRIMARY KEY, member_id INT REFERENCES member(id), amount INT NOT NULL);\nINSERT INTO member VALUES(1,'A'),(2,'B'),(3,'C');\nINSERT INTO orders VALUES(10,1,10),(11,1,10),(12,2,0);\nCREATE TABLE tag(member_id INT,label TEXT); INSERT INTO tag VALUES(1,'x'),(1,'y');\n"
+          },
+          "expected": "A:20\nB:0\nC:0"
+        }
+      ],
+      "docker_images": [
+        "postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5"
+      ]
+    },
+    {
+      "id": "stp_e9479fec-6851-492e-8fe9-1a79202bbcd6",
+      "title": "모든 회원의 유료 주문 수와 합계를 구현하세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n관리 화면에는 모든 회원이 있어야 해요. 유료 주문이 없으면 건수와 합계는 모두 0이에요.\n\n**알아두세요**\n\n기준 표는 member예요. 유료 주문만 연결한 뒤 주문 번호를 세고 금액을 더하세요. SUM에 더할 값이 없으면 NULL이므로 화면의 0으로 바꿔야 해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. lesson.sql에서 다음 요구를 구현하세요. 모든 회원의 유료 주문 수와 합계를 구현하세요\n3. 오류가 난 문장과 그 뒤 조회 결과를 함께 읽으세요.\n4. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n5. 고친 코드를 제출하세요.",
+      "language": "docker",
+      "starter_code": "SELECT m.name || ':' || COUNT(*) || ':' || SUM(o.amount) FROM member m JOIN orders o ON o.member_id=m.id WHERE o.amount>0 GROUP BY m.id,m.name ORDER BY m.id;\n",
+      "solution": "SELECT m.name || ':' || COUNT(o.id) || ':' || COALESCE(SUM(o.amount),0) FROM member m LEFT JOIN orders o ON o.member_id=m.id AND o.amount>0 GROUP BY m.id,m.name ORDER BY m.id;\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "A:2:30\nB:0:0\nC:0:0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "관리 화면에는 모든 회원이 있어야 해요. 유료 주문이 없으면 건수와 합계는 모두 0이에요.",
+          "target": "text:관리 화면에는 모든 회원이 있어야 해요. 유료 주문이 없으면 건수와 합계는 모두 0이에요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "A:2:30만 보여요. 집계 대상과 보여 줄 회원을 함께 걸렀어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "보존할 행·집계 대상·NULL 처리를 함께 설계해요.",
+          "target": "code:SELECT m.name || ':' || COUNT(*) || ':' || SUM(o.amount) FROM member m JOIN orders o ON o.member_id=m.id WHERE o.amount>0 GROUP BY m.id,m.name ORDER BY m.id;"
+        },
+        {
+          "action": "patch_code",
+          "before": "SELECT m.name || ':' || COUNT(*) || ':' || SUM(o.amount) FROM member m JOIN orders o ON o.member_id=m.id WHERE o.amount>0 GROUP BY m.id,m.name ORDER BY m.id;\n",
+          "after": "SELECT m.name || ':' || COUNT(o.id) || ':' || COALESCE(SUM(o.amount),0) FROM member m LEFT JOIN orders o ON o.member_id=m.id AND o.amount>0 GROUP BY m.id,m.name ORDER BY m.id;\n",
+          "say": "모든 회원의 유료 주문 수와 합계를 구현하세요"
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "회원 세 명이 모두 나와요. 주문이 없는 C와 무료 주문만 있는 B는 각각 0:0이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. COALESCE만 붙여도 사라진 회원은 돌아오지 않아요. 행을 보존하는 JOIN부터 확인하세요.",
+          "target": "text:기준 표는 member예요. 유료 주문만 연결한 뒤 주문 번호를 세고 금액을 더하세요. SUM에 더할 값이 없으면 NULL이므로 화면의 0으로 바꿔야 해요."
+        },
+        {
+          "action": "submit"
+        }
+      ],
+      "entry_file": "lesson.sql",
+      "files": {
+        "compose.yaml": "services:\n  db:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment: {POSTGRES_PASSWORD: lab, POSTGRES_DB: lab}\n    tmpfs: [/var/lib/postgresql]\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-U\", \"postgres\", \"-h\", \"127.0.0.1\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T db psql -U postgres -d lab -X -q -A -t -v ON_ERROR_STOP=0\n",
+        "before.sql": "CREATE TABLE member(id INT PRIMARY KEY, name TEXT NOT NULL);\nCREATE TABLE orders(id INT PRIMARY KEY, member_id INT REFERENCES member(id), amount INT NOT NULL);\nINSERT INTO member VALUES(1,'A'),(2,'B'),(3,'C');\nINSERT INTO orders VALUES(10,1,10),(11,1,20),(12,2,0);\n",
+        "after.sql": ""
+      },
+      "variations": [
+        {
+          "files": {
+            "before.sql": "CREATE TABLE member(id INT PRIMARY KEY, name TEXT NOT NULL);\nCREATE TABLE orders(id INT PRIMARY KEY, member_id INT REFERENCES member(id), amount INT NOT NULL);\nINSERT INTO member VALUES(1,'A'),(2,'B'),(3,'C');\nINSERT INTO orders VALUES(10,1,10),(11,3,7),(12,2,0);\n"
+          },
+          "expected": "A:1:10\nB:0:0\nC:1:7"
+        }
+      ],
+      "docker_images": [
+        "postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5"
+      ]
+    }
+  ],
+  "learning_strategy": "먼저 실제 SQL 결과를 보고, 원인을 설명한 뒤 직접 SQL을 고쳐요."
+}

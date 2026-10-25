@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "a59673a7e39c3b67180c807c436ef196d05766646d819b6a4b580a1d58bda902",
+  "entry": [
+    {
+      "action": "say",
+      "text": "C도 회원인데 주문 목록 화면에서 사라져요. 주문이 없는 회원은 없음으로 보여야 해요.",
+      "target": "text:C도 회원인데 주문 목록 화면에서 사라져요. 주문이 없는 회원은 없음으로 보여야 해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "A와 B만 나와요. C는 짝지을 주문이 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "LEFT JOIN의 보존하는 쪽과 NULL 확장을 이해해요.",
+      "target": "code:SELECT m.name || ':' || COALESCE(o.id::text,'없음') FROM member m JOIN orders o ON o.member_id=m.id ORDER BY m.id,o.id;"
+    },
+    {
+      "action": "patch_code",
+      "before": "SELECT m.name || ':' || COALESCE(o.id::text,'없음') FROM member m JOIN orders o ON o.member_id=m.id ORDER BY m.id,o.id;\n",
+      "after": "SELECT m.name || ':' || COALESCE(o.id::text,'없음') FROM member m LEFT JOIN orders o ON o.member_id=m.id ORDER BY m.id,o.id;\n",
+      "say": "주문이 없는 회원도 남기세요"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "C:없음이 마지막에 보여요. 회원 행은 보존됐고 주문 번호가 NULL이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. orders를 왼쪽에 두면 주문을 보존해요. 이 화면에서 빠지면 안 되는 것은 회원이에요.",
+      "target": "text:INNER JOIN은 짝이 있는 행만 남겨요. LEFT JOIN은 왼쪽 행을 보존하고 오른쪽 짝이 없으면 NULL을 붙여요. COALESCE는 표시할 대체 값을 골라요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "by": "hand",
+  "source_sha256": "809ef93e6e90e7707eb9edd7114e82b005050ec09613a75f47b91227f2f5f94c",
+  "entry": [
+    {
+      "action": "say",
+      "text": "같은 설정으로 다시 만들었는데 메모가 사라지는 문제예요.",
+      "target": "text:같은 이미지, 같은 설정인데 메모가 사라졌어요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "재시작 뒤에는 우유 빵이 있어요. 다시 만든 뒤부터는 없음이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "재시작은 같은 컨테이너라 쓰기 레이어가 그대로예요. 다시 만들면 이미지에서 새 컨테이너가 생겨요. 이미지에는 메모가 없어요.",
+      "target": "text:`restart`는 같은 컨테이너를 다시 켜요."
+    },
+    {
+      "action": "say",
+      "text": "지금 이 서비스에는 volumes가 없어요. /memo는 컨테이너의 쓰기 레이어에 있어요.",
+      "target": "code:# 고칠 곳: 지금 /memo는 컨테이너 자기 파일 시스템(쓰기 레이어)에 있어요."
+    },
+    {
+      "action": "patch_code",
+      "before": "    # 고칠 곳: 지금 /memo는 컨테이너 자기 파일 시스템(쓰기 레이어)에 있어요.\n",
+      "after": "    # memo라는 이름의 볼륨을 컨테이너의 /memo에 연결해요.\n    # 이제 /memo에 쓴 파일은 컨테이너가 아니라 볼륨에 저장돼요.\n    volumes:\n      - memo:/memo\n\n# 볼륨은 컨테이너 밖에서 Docker가 따로 관리해요. 컨테이너를 지워도 남아요.\nvolumes:\n  memo:\n",
+      "say": "/memo에 이름 있는 볼륨을 연결하고, 파일 끝에 볼륨을 선언해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "다시 만든 뒤에도, down 뒤에도 우유 빵이 남아요. 새 컨테이너가 같은 볼륨을 연결했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "down -v 뒤에만 없음이에요. -v가 볼륨까지 지웠어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 처음 상태로 돌리려고 down -v를 쓰면 볼륨의 데이터도 지워져요. 데이터를 지킬 때는 -v 없이 down 해요.",
+      "target": "text:볼륨은 컨테이너 밖에서 Docker가 관리하는 저장소이고 `down -v`를 해야 지워져요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

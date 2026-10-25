@@ -1,0 +1,65 @@
+{
+  "course": "tests/fixtures/player-pilot/쟈/course.json",
+  "lesson": "courses/redesigned/java-jdbc.json",
+  "expected_outputs": [
+    [
+      "1",
+      "2"
+    ],
+    [
+      "2",
+      "0"
+    ],
+    [
+      "saved",
+      "missing"
+    ],
+    [
+      "40\n100",
+      "100\n100"
+    ]
+  ],
+  "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "   int minimum=new Scanner(System.in).nextInt();\n   int count=0;\n   try (PreparedStatement p=c.prepareStatement(\"SELECT name FROM member WHERE id>=? ORDER BY id\")) {\n    p.setInt(1,minimum);\n    try (ResultSet rows=p.executeQuery()) {\n     while (rows.next()) count++;\n    }\n   }\n   System.out.println(count);",
+          "   int minimum=new Scanner(System.in).nextInt();\n   int count=0;\n   try (PreparedStatement p=c.prepareStatement(\"SELECT name FROM member WHERE id>=? ORDER BY id\")) {\n    p.setInt(1,minimum);\n    try (ResultSet rows=p.executeQuery()) {\n     if (rows.next()) count++;\n    }\n   }\n   System.out.println(count);"
+        ]
+      ],
+      "reason": "수정 전 코드는 변형 입력이나 실패 상황에서 요구한 DB 결과를 만들지 못해요."
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "   String name=new Scanner(System.in).nextLine();\n   int count=0;\n   String sql=\"SELECT id FROM member WHERE name=?\";\n   try (PreparedStatement p=c.prepareStatement(sql)) {\n    p.setString(1,name);\n    try (ResultSet rows=p.executeQuery()) {\n     while(rows.next()) count++;\n    }\n   }\n   System.out.println(count);",
+          "   String name=new Scanner(System.in).nextLine();\n   int count=0;\n   String sql=\"SELECT id FROM member WHERE name='\"+name+\"'\";\n   try (PreparedStatement p=c.prepareStatement(sql)) {\n    // 입력을 SQL 문자열에 붙이지 않고 이 자리에 값으로 전달하세요.\n    try (ResultSet rows=p.executeQuery()) {\n     while(rows.next()) count++;\n    }\n   }\n   System.out.println(count);"
+        ]
+      ],
+      "reason": "수정 전 코드는 변형 입력이나 실패 상황에서 요구한 DB 결과를 만들지 못해요."
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "   int id=new Scanner(System.in).nextInt();\n   try (PreparedStatement p=c.prepareStatement(\"UPDATE member SET balance=balance+10 WHERE id=?\")) {\n    p.setInt(1,id);\n    int changed=p.executeUpdate();\n    System.out.println(changed==1 ? \"saved\" : \"missing\");\n   }",
+          "   int id=new Scanner(System.in).nextInt();\n   try (PreparedStatement p=c.prepareStatement(\"UPDATE member SET balance=balance+10 WHERE id=?\")) {\n    p.setInt(1,id);\n    p.executeUpdate();\n    System.out.println(\"saved\");\n   }"
+        ]
+      ],
+      "reason": "수정 전 코드는 변형 입력이나 실패 상황에서 요구한 DB 결과를 만들지 못해요."
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "   c.createStatement().execute(\"ALTER TABLE member ADD CONSTRAINT cap CHECK(balance<=150)\");\n   int amount=new Scanner(System.in).nextInt();\n   c.setAutoCommit(false);\n   try {\n    try (PreparedStatement out=c.prepareStatement(\"UPDATE member SET balance=balance-? WHERE id=1\");\n         PreparedStatement in=c.prepareStatement(\"UPDATE member SET balance=balance+? WHERE id=2\")) {\n     out.setInt(1,amount); out.executeUpdate();\n     in.setInt(1,amount); in.executeUpdate();\n    }\n    c.commit();\n   } catch(SQLException error) {\n    c.rollback();\n   }\n   try (ResultSet rows=c.createStatement().executeQuery(\"SELECT balance FROM member ORDER BY id\")) {\n    while(rows.next()) System.out.println(rows.getInt(1));\n   }",
+          "   c.createStatement().execute(\"ALTER TABLE member ADD CONSTRAINT cap CHECK(balance<=150)\");\n   int amount=new Scanner(System.in).nextInt();\n   try {\n    try (PreparedStatement out=c.prepareStatement(\"UPDATE member SET balance=balance-? WHERE id=1\");\n         PreparedStatement in=c.prepareStatement(\"UPDATE member SET balance=balance+? WHERE id=2\")) {\n     out.setInt(1,amount); out.executeUpdate();\n     in.setInt(1,amount); in.executeUpdate();\n    }\n   } catch(SQLException error) {\n    // 실패했을 때 이체 전체를 되돌려야 해요.\n   }\n   try (ResultSet rows=c.createStatement().executeQuery(\"SELECT balance FROM member ORDER BY id\")) {\n    while(rows.next()) System.out.println(rows.getInt(1));\n   }"
+        ]
+      ],
+      "reason": "수정 전 코드는 변형 입력이나 실패 상황에서 요구한 DB 결과를 만들지 못해요."
+    }
+  ],
+  "accept": []
+}

@@ -1,0 +1,49 @@
+{
+  "by": "hand",
+  "source_sha256": "b0574a75c0d0dbd1e06fcf8066fcfa36892b9efd8f1ee501600dab990f688814",
+  "entry": [
+    {
+      "action": "say",
+      "text": "member에는 두 행이 있어요. 시작 번호 이상인 회원을 조회하지만 준비 코드는 첫 행만 세요.",
+      "target": "text:member에는 두 행이 있어요. 시작 번호 이상인 회원을 조회하지만 준비 코드는 첫 행만 세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "입력 1에서 1만 나와요. 조회에 두 행이 있어도 커서를 한 번만 움직였어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "   int minimum=new Scanner(System.in).nextInt();\n   int count=0;\n   try (PreparedStatement p=c.prepareStatement(\"SELECT name FROM member WHERE id>=? ORDER BY id\")) {\n    p.setInt(1,minimum);\n    try (ResultSet rows=p.executeQuery()) {\n     if (rows.next()) count++;\n    }\n   }\n   System.out.println(count);",
+      "after": "   int minimum=new Scanner(System.in).nextInt();\n   int count=0;\n   try (PreparedStatement p=c.prepareStatement(\"SELECT name FROM member WHERE id>=? ORDER BY id\")) {\n    p.setInt(1,minimum);\n    try (ResultSet rows=p.executeQuery()) {\n     while (rows.next()) count++;\n    }\n   }\n   System.out.println(count);",
+      "say": "조회한 모든 행을 순회해 개수를 세세요"
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "입력 1에서 2가 나와요. 반복 조건의 next가 더 이상 행이 없을 때 멈춰요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. while 안에서 next를 한 번 더 부르면 두 행씩 이동해서 일부 회원을 건너뛰어요.",
+      "target": "text:next()는 다음 행으로 이동하고 행이 있으면 true를 돌려줘요. 한 번의 if는 한 행만 확인해요. 행이 없어질 때까지 순회하세요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

@@ -322,9 +322,9 @@ def step(**fields):
 LESSON = java_lesson(
     key='java-inheritance-composition', folder='java_inheritance_composition', pilot='니', revision=1,
     title='상속과 컴포지션 · 호출할 메서드는 실제 객체가 정해요',
-    category='java', category_title='자바', track='basic',
+    category='java', category_title='자바', track=None,
     category_evidence='JDK 25로 실행하는 자바 상속·컴포지션 수업이에요.',
-    track_evidence='다형성과 상속·컴포지션의 기초 원리라 기본으로 분류해요. 필수 여부나 난이도를 바꾸지 않아요.',
+    track_evidence='트랙 없음: 「기본」은 2026-10-25에 있던 수업에만 붙인 사용자 결정이고, 새 수업의 트랙(필수·고급)은 사용자 승인 없이 정하지 않아요.',
     audience='클래스와 객체·생성자·private을 익힌 자바 학습자(앞 수업 java-class-objects)',
     prerequisites=['클래스·객체·생성자·private을 다뤄 봤어요.', 'List·Set과 for·while 반복을 읽을 수 있어요.'],
     objectives=['변수의 타입이 아니라 실제 객체가 호출할 메서드를 정한다는 것(동적 디스패치)과 그 예외(오버로드·필드·생성 중 호출)를 실행으로 설명해요.',

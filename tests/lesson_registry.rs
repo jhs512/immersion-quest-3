@@ -5,7 +5,7 @@ fn every_registered_lesson_opens_through_the_real_isolated_transport() {
     std::env::set_var("MOLIP_PILOT","1");
     let github=Github::new();let mut steps=0;
     let mut versions=std::collections::HashSet::new();
-    assert_eq!(lesson_registry::LESSONS.len(),80);
+    assert_eq!(lesson_registry::LESSONS.len(),94);
     for row in lesson_registry::LESSONS {
         assert!(versions.insert(row.pilot));
         pilot_source::set_version(row.pilot).unwrap();
@@ -22,8 +22,8 @@ fn every_registered_lesson_opens_through_the_real_isolated_transport() {
             if row.key=="git-remote" {assert_eq!(config["studentCommands"].as_array().unwrap().len(),22);}
         }
     }
-    // 830 before java-backend lessons 27-34 (34 steps) were withdrawn from the course (2026-10-26).
-    assert_eq!(steps,796);
+    // The withdrawn CS lessons stay absent; fourteen new principle lessons have distinct IDs.
+    assert_eq!(steps,871);
     assert!(lesson_registry::self_test_script("unknown-course").is_none());
     assert!(pilot_source::set_version('!').is_err());
     pilot_source::set_version('a').unwrap();

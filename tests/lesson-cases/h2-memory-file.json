@@ -1,0 +1,79 @@
+{
+  "course": "tests/fixtures/player-pilot/히/course.json",
+  "lesson": "courses/redesigned/h2-memory-file.json",
+  "expected_outputs": [
+    [
+      "다른 연결: 표 없음",
+      "우유"
+    ],
+    [
+      "다시 연결: 표 없음",
+      "우유"
+    ],
+    [
+      "다른 프로세스: 표 없음",
+      "다른 프로세스: 우유"
+    ],
+    [
+      "A: 빵, 우유\nB: 빵, 우유",
+      "A: 우유\nB: 빵"
+    ],
+    [
+      "재시작 후: 표 없음",
+      "재시작 후: 빵, 우유"
+    ]
+  ],
+  "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "        String name = new Scanner(System.in).nextLine();\n        String url = \"jdbc:h2:mem:shared\";\n        try (Connection a = DriverManager.getConnection(url, \"sa\", \"\");\n             Connection b = DriverManager.getConnection(url, \"sa\", \"\")) {\n            a.createStatement().execute(\"CREATE TABLE memo(title VARCHAR(100))\");\n            try (PreparedStatement p = a.prepareStatement(\"INSERT INTO memo VALUES (?)\")) {\n                p.setString(1, name); p.executeUpdate();\n            }\n            try (ResultSet r = b.createStatement().executeQuery(\"SELECT title FROM memo\")) {\n                r.next(); System.out.println(r.getString(1));\n            } catch (SQLException e) {\n                if (e.getSQLState().equals(\"42S04\") || e.getSQLState().equals(\"42S02\"))\n                    System.out.println(\"다른 연결: 표 없음\");\n                else throw e;\n            }\n        }",
+          "        String name = new Scanner(System.in).nextLine();\n        String url = \"jdbc:h2:mem:\";\n        try (Connection a = DriverManager.getConnection(url, \"sa\", \"\");\n             Connection b = DriverManager.getConnection(url, \"sa\", \"\")) {\n            a.createStatement().execute(\"CREATE TABLE memo(title VARCHAR(100))\");\n            try (PreparedStatement p = a.prepareStatement(\"INSERT INTO memo VALUES (?)\")) {\n                p.setString(1, name); p.executeUpdate();\n            }\n            try (ResultSet r = b.createStatement().executeQuery(\"SELECT title FROM memo\")) {\n                r.next(); System.out.println(r.getString(1));\n            } catch (SQLException e) {\n                if (e.getSQLState().equals(\"42S04\") || e.getSQLState().equals(\"42S02\"))\n                    System.out.println(\"다른 연결: 표 없음\");\n                else throw e;\n            }\n        }"
+        ]
+      ],
+      "reason": "저장소의 경계를 바꾸기 전 코드로 되돌리면 메모가 사라지거나 섞여요."
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "        String name = new Scanner(System.in).nextLine();\n        String url = \"jdbc:h2:mem:shared;DB_CLOSE_DELAY=-1\";\n        try (Connection a = DriverManager.getConnection(url, \"sa\", \"\")) {\n            a.createStatement().execute(\"CREATE TABLE memo(title VARCHAR(100))\");\n            try (PreparedStatement p = a.prepareStatement(\"INSERT INTO memo VALUES (?)\")) {\n                p.setString(1, name); p.executeUpdate();\n            }\n        }\n        // 이 시점에는 열린 DB 연결이 하나도 없어요. 같은 프로세스에서 다시 열어요.\n        try (Connection b = DriverManager.getConnection(url, \"sa\", \"\")) {\n            try (ResultSet r = b.createStatement().executeQuery(\"SELECT title FROM memo\")) {\n                r.next(); System.out.println(r.getString(1));\n            } catch (SQLException e) {\n                if (e.getSQLState().equals(\"42S04\") || e.getSQLState().equals(\"42S02\"))\n                    System.out.println(\"다시 연결: 표 없음\");\n                else throw e;\n            }\n        }",
+          "        String name = new Scanner(System.in).nextLine();\n        String url = \"jdbc:h2:mem:shared\";\n        try (Connection a = DriverManager.getConnection(url, \"sa\", \"\")) {\n            a.createStatement().execute(\"CREATE TABLE memo(title VARCHAR(100))\");\n            try (PreparedStatement p = a.prepareStatement(\"INSERT INTO memo VALUES (?)\")) {\n                p.setString(1, name); p.executeUpdate();\n            }\n        }\n        // 이 시점에는 열린 DB 연결이 하나도 없어요. 같은 프로세스에서 다시 열어요.\n        try (Connection b = DriverManager.getConnection(url, \"sa\", \"\")) {\n            try (ResultSet r = b.createStatement().executeQuery(\"SELECT title FROM memo\")) {\n                r.next(); System.out.println(r.getString(1));\n            } catch (SQLException e) {\n                if (e.getSQLState().equals(\"42S04\") || e.getSQLState().equals(\"42S02\"))\n                    System.out.println(\"다시 연결: 표 없음\");\n                else throw e;\n            }\n        }"
+        ]
+      ],
+      "reason": "저장소의 경계를 바꾸기 전 코드로 되돌리면 메모가 사라지거나 섞여요."
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "        String title = new Scanner(System.in).nextLine();\n        String url = \"jdbc:h2:file:./memo\";\n        child(url, \"write\", title);\n        // 쓰는 프로세스는 이미 끝났어요. 읽기는 다른 프로세스에서 해요.\n        System.out.println(\"다른 프로세스: \" + child(url, \"read\", \"\"));",
+          "        String title = new Scanner(System.in).nextLine();\n        String url = \"jdbc:h2:mem:shared;DB_CLOSE_DELAY=-1\";\n        child(url, \"write\", title);\n        // 쓰는 프로세스는 이미 끝났어요. 읽기는 다른 프로세스에서 해요.\n        System.out.println(\"다른 프로세스: \" + child(url, \"read\", \"\"));"
+        ]
+      ],
+      "reason": "저장소의 경계를 바꾸기 전 코드로 되돌리면 메모가 사라지거나 섞여요."
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "        Scanner in = new Scanner(System.in);\n        String first = in.next(); String second = in.next();\n        String a = \"jdbc:h2:file:./shop-a\";\n        String b = \"jdbc:h2:file:./shop-b\";\n        child(a, \"write\", first); child(b, \"write\", second);\n        System.out.println(\"A: \" + child(a, \"read\", \"\"));\n        System.out.println(\"B: \" + child(b, \"read\", \"\"));",
+          "        Scanner in = new Scanner(System.in);\n        String first = in.next(); String second = in.next();\n        String a = \"jdbc:h2:file:./shared\";\n        String b = \"jdbc:h2:file:./shared\";\n        child(a, \"write\", first); child(b, \"write\", second);\n        System.out.println(\"A: \" + child(a, \"read\", \"\"));\n        System.out.println(\"B: \" + child(b, \"read\", \"\"));"
+        ]
+      ],
+      "reason": "저장소의 경계를 바꾸기 전 코드로 되돌리면 메모가 사라지거나 섞여요."
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "        Scanner in = new Scanner(System.in);\n        String a = in.nextLine(); String b = in.nextLine();\n        String url = \"jdbc:h2:file:./final\";\n        child(url, \"write\", a);\n        child(url, \"write\", b);\n        System.out.println(\"재시작 후: \" + child(url, \"read\", \"\"));",
+          "        Scanner in = new Scanner(System.in);\n        String a = in.nextLine(); String b = in.nextLine();\n        String url = \"jdbc:h2:mem:final;DB_CLOSE_DELAY=-1\";\n        child(url, \"write\", a);\n        child(url, \"write\", b);\n        System.out.println(\"재시작 후: \" + child(url, \"read\", \"\"));"
+        ]
+      ],
+      "reason": "저장소의 경계를 바꾸기 전 코드로 되돌리면 메모가 사라지거나 섞여요."
+    }
+  ],
+  "accept": []
+}

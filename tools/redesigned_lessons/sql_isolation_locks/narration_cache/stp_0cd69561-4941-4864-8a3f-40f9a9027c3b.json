@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "3414dd2daa0bb3ded60c7fcb45043d7d86c8916b15389d84618bb28479627581",
+  "entry": [
+    {
+      "action": "say",
+      "text": "A가 읽은 행을 기준으로 결정하는 동안 B가 그 행을 수정하려 해요. B에는 대기 취소용 lock_timeout을 준비했어요.",
+      "target": "text:A가 읽은 행을 기준으로 결정하는 동안 B가 그 행을 수정하려 해요. B에는 대기 취소용 lock_timeout을 준비했어요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "일반 SELECT는 B의 수정을 막지 않아서 잔액이 105가 됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "FOR UPDATE의 행 잠금은 트랜잭션이 끝날 때까지 유지돼요.",
+      "target": "code:try(ResultSet held=a.createStatement().executeQuery(\"SELECT balance FROM account WHERE id=1\"))"
+    },
+    {
+      "action": "patch_code",
+      "before": "   a.setAutoCommit(false); b.setAutoCommit(false);\n   try(ResultSet held=a.createStatement().executeQuery(\"SELECT balance FROM account WHERE id=1\")) { held.next(); }\n   b.createStatement().execute(\"SET LOCAL lock_timeout='200ms'\");\n   try {\n    b.createStatement().executeUpdate(\"UPDATE account SET balance=balance+5 WHERE id=1\");\n    b.commit();\n    System.out.println(\"다른 변경:성공\");\n   } catch(SQLException e) {\n    if(!\"55P03\".equals(e.getSQLState())) throw e;\n    b.rollback();\n    System.out.println(\"다른 변경:잠금 대기 취소\");\n   }\n   a.rollback();\n   System.out.println(\"잔액:\"+value(b));\n   b.rollback();",
+      "after": "   a.setAutoCommit(false); b.setAutoCommit(false);\n   try(ResultSet held=a.createStatement().executeQuery(\"SELECT balance FROM account WHERE id=1 FOR UPDATE\")) { held.next(); }\n   b.createStatement().execute(\"SET LOCAL lock_timeout='200ms'\");\n   try {\n    b.createStatement().executeUpdate(\"UPDATE account SET balance=balance+5 WHERE id=1\");\n    b.commit();\n    System.out.println(\"다른 변경:성공\");\n   } catch(SQLException e) {\n    if(!\"55P03\".equals(e.getSQLState())) throw e;\n    b.rollback();\n    System.out.println(\"다른 변경:잠금 대기 취소\");\n   }\n   a.rollback();\n   System.out.println(\"잔액:\"+value(b));\n   b.rollback();",
+      "say": "읽은 행을 다른 연결이 바로 수정하지 못하게 하세요"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "B의 UPDATE가 실제 행 잠금에 막혀 취소됐어요. 잠금을 푼 뒤 읽은 잔액은 100이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. ResultSet을 닫는 것과 트랜잭션을 끝내는 것은 달라요. FOR UPDATE 잠금은 여기서 commit이나 rollback까지 유지돼요.",
+      "target": "text:A의 SELECT에 FOR UPDATE를 붙이세요. B의 변경이 실제 잠금에 막히면 PostgreSQL의 SQLSTATE 55P03을 확인해요. 대기 시간이 빠르냐 느리냐로 채점하지 않아요. A가 rollback하면 잠금이 풀려요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

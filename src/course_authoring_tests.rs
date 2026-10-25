@@ -3,6 +3,17 @@ use std::{collections::BTreeMap, path::Path};
 
 #[test]
 fn redesigned_defaults_open_complete_independent_snapshots_and_preserve_added_courses() {
+    // This test changes a process-global environment variable. Run its body
+    // alone so parallel web-runtime tests never install into this temp folder.
+    if std::env::var_os("MQ3_COURSE_AUTHORING_PROCESS").is_none() {
+        let mut command=std::process::Command::new(std::env::current_exe().unwrap());
+        command.args(["--exact","course_authoring_tests::redesigned_defaults_open_complete_independent_snapshots_and_preserve_added_courses","--nocapture"])
+            .env("MQ3_COURSE_AUTHORING_PROCESS","1");
+        #[cfg(windows)] {use std::os::windows::process::CommandExt;command.creation_flags(0x08000000);}
+        let output=command.output().unwrap();
+        assert!(output.status.success(),"{}\n{}",String::from_utf8_lossy(&output.stdout),String::from_utf8_lossy(&output.stderr));
+        return;
+    }
     let directory = tempfile::tempdir().unwrap();
     // This filtered test owns its process's data directory and never invokes gh.
     let previous = std::env::var_os("MOLIP_DATA_DIR");
@@ -39,7 +50,7 @@ fn redesigned_defaults_open_complete_independent_snapshots_and_preserve_added_co
     store.apply(&old).unwrap();
     let old_fingerprint = old.fingerprint();
     let mut all_steps = std::collections::HashSet::new();
-    for (name, count) in [("java-backend",26),("aice-associate",24),("engineer-practical",30)] {
+    for (name, count) in [("java-backend",40),("aice-associate",24),("engineer-practical",30)] {
         let raw = std::fs::read_to_string(root.join(format!("courses/redesigned-courses/{name}.json"))).unwrap();
         let course = CourseManifest::parse(&raw).unwrap();
         assert_eq!(course.lessons.len(),count);

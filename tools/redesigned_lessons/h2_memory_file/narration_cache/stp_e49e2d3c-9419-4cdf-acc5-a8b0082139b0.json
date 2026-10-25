@@ -1,0 +1,49 @@
+{
+  "by": "hand",
+  "source_sha256": "75b8f896fd300b5ea5961190459ef13e33192fd8be95270d51ce71d1ede65bd4",
+  "entry": [
+    {
+      "action": "say",
+      "text": "같은 이름으로 다시 열었는데 표가 사라져요. 첫 연결은 이미 닫혔어요.",
+      "target": "text:같은 이름으로 다시 열었는데 표가 사라져요. 첫 연결은 이미 닫혔어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "다시 연결: 표 없음이에요. 닫힌 마지막 연결이 DB의 수명도 끝냈어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        String name = new Scanner(System.in).nextLine();\n        String url = \"jdbc:h2:mem:shared\";\n        try (Connection a = DriverManager.getConnection(url, \"sa\", \"\")) {\n            a.createStatement().execute(\"CREATE TABLE memo(title VARCHAR(100))\");\n            try (PreparedStatement p = a.prepareStatement(\"INSERT INTO memo VALUES (?)\")) {\n                p.setString(1, name); p.executeUpdate();\n            }\n        }\n        // 이 시점에는 열린 DB 연결이 하나도 없어요. 같은 프로세스에서 다시 열어요.\n        try (Connection b = DriverManager.getConnection(url, \"sa\", \"\")) {\n            try (ResultSet r = b.createStatement().executeQuery(\"SELECT title FROM memo\")) {\n                r.next(); System.out.println(r.getString(1));\n            } catch (SQLException e) {\n                if (e.getSQLState().equals(\"42S04\") || e.getSQLState().equals(\"42S02\"))\n                    System.out.println(\"다시 연결: 표 없음\");\n                else throw e;\n            }\n        }",
+      "after": "        String name = new Scanner(System.in).nextLine();\n        String url = \"jdbc:h2:mem:shared;DB_CLOSE_DELAY=-1\";\n        try (Connection a = DriverManager.getConnection(url, \"sa\", \"\")) {\n            a.createStatement().execute(\"CREATE TABLE memo(title VARCHAR(100))\");\n            try (PreparedStatement p = a.prepareStatement(\"INSERT INTO memo VALUES (?)\")) {\n                p.setString(1, name); p.executeUpdate();\n            }\n        }\n        // 이 시점에는 열린 DB 연결이 하나도 없어요. 같은 프로세스에서 다시 열어요.\n        try (Connection b = DriverManager.getConnection(url, \"sa\", \"\")) {\n            try (ResultSet r = b.createStatement().executeQuery(\"SELECT title FROM memo\")) {\n                r.next(); System.out.println(r.getString(1));\n            } catch (SQLException e) {\n                if (e.getSQLState().equals(\"42S04\") || e.getSQLState().equals(\"42S02\"))\n                    System.out.println(\"다시 연결: 표 없음\");\n                else throw e;\n            }\n        }",
+      "say": "URL에 DB_CLOSE_DELAY=-1을 설정하세요. 연결을 닫는 코드는 유지하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "우유가 나와요. 연결은 닫았지만 이 JVM은 아직 살아 있어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 연결을 닫지 않는 코드로 숨기면 자원이 새요. 연결은 닫고 DB의 수명을 따로 설정하세요.",
+      "target": "text:H2 메모리 DB는 기본적으로 마지막 연결이 닫히면 없어져요. `DB_CLOSE_DELAY=-1`은 JVM이 살아 있는 동안 DB를 유지해요. 프로세스 종료 뒤까지 저장하지는 않아요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

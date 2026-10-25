@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "896a5e4318032ed6996babd44551fdbfbeb18594d8e4470a706d86c98930009d",
+  "entry": [
+    {
+      "action": "say",
+      "text": "계좌의 잔액 상한은 150이에요. 60을 이체하면 입금이 거절되는데 준비 코드에서는 출금 60만 남아요.",
+      "target": "text:계좌의 잔액 상한은 150이에요. 60을 이체하면 입금이 거절되는데 준비 코드에서는 출금 60만 남아요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "1번은 40이고 2번은 100이에요. 자동 확정으로 출금 문장만 따로 저장됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "원자성은 중간 실패 때 일부 변경만 남기지 않는 성질이에요.",
+      "target": "code:UPDATE account SET balance=balance-60 WHERE id=1;"
+    },
+    {
+      "action": "patch_code",
+      "before": "UPDATE account SET balance=balance-60 WHERE id=1;\nUPDATE account SET balance=balance+60 WHERE id=2;\n",
+      "after": "BEGIN;\nUPDATE account SET balance=balance-60 WHERE id=1;\nUPDATE account SET balance=balance+60 WHERE id=2;\nCOMMIT;\n",
+      "say": "입금이 거절되면 출금도 남지 않게 하세요"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "입금 제약 오류는 남아 있지만 두 잔액은 모두 100이에요. 출금도 함께 취소됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. SELECT 출력만 원래 잔액으로 바꾸는 것은 복구가 아니에요. 제공 조회가 실제 표를 다시 읽어요.",
+      "target": "text:이 실습의 psql은 오류 후에도 다음 문장을 읽어요. 한 트랜잭션 안에서 SQL 오류가 나면 그 트랜잭션은 실패 상태가 돼요. 마지막에 COMMIT을 요청해도 실패한 트랜잭션은 확정되지 않아요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

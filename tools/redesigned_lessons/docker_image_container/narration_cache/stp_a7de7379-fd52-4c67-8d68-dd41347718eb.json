@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "48cff849be37fb5634741a5691a392cd70e9931fe4db13bd343d3efc9e269286",
+  "entry": [
+    {
+      "action": "say",
+      "text": "앱을 고쳐 다시 빌드하면 메모가 사라지는 문제예요.",
+      "target": "text:앱을 고칠 때마다 메모가 사라지면 쓸 수 없어요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "처음엔 우유 빵이 있어요. 다시 빌드한 뒤에는 v2로 바뀌었지만 메모는 없음이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "build 줄 때문에 up --build가 이미지를 새로 만들고, 그 이미지로 컨테이너도 새로 만들어요.",
+      "target": "code:build: ."
+    },
+    {
+      "action": "say",
+      "text": "add.sh는 메모를 /data/memo.txt에 써요. 이 폴더는 지금 쓰기 레이어에 있어요.",
+      "target": "text:add.sh와 show.sh를 읽고, 메모가 실제로 어느 폴더에 저장되는지 찾으세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "    # 고칠 곳: 앱이 메모를 쓰는 폴더가 지금은 컨테이너 안에만 있어요.\n",
+      "after": "    # add.sh는 /data에 메모를 써요. 그 폴더에 볼륨을 연결해요.\n    # 앱 코드는 이미지에, 메모 데이터는 볼륨에 있어서 이미지를 바꿔도 메모가 남아요.\n    volumes:\n      - memos:/data\n\nvolumes:\n  memos:\n",
+      "say": "/data에 memos 볼륨을 연결하고 선언해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "다시 빌드한 뒤에도 v2와 우유 빵이 함께 보여요. down 뒤에도 남아요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "이미지는 새것으로 바뀌었고, 메모는 볼륨에 있어서 그대로예요. 코드와 데이터가 다른 곳에 있어요.",
+      "target": "text:볼륨은 연결한 폴더의 데이터만 지켜요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

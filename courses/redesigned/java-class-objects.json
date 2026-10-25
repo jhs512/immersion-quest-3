@@ -521,7 +521,7 @@
       "title": "같은 코드의 쿠폰을 한 번만 쓰게 하세요",
       "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n입력 `SALE10 SALE10 WELCOME`의 쿠폰을 차례로 써요. 같은 코드의 쿠폰은 한 번만 쓸 수 있어야 해요. 그런데 SALE10이 두 번 사용돼요.\n\nCoupon의 equals는 코드가 같으면 같다고 판단해요. hashCode만 고치세요.\n\n**알아두세요**\n\nHashSet은 객체를 찾을 때 hashCode로 먼저 칸을 고르고, 그 칸 안에서 equals로 비교해요. 그래서 equals가 같다고 하는 두 객체는 hashCode도 같아야 해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. `hashCode`가 쿠폰 코드(`code`)로 정해진 값을 돌려주도록 `return` 줄을 고치세요.\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
       "language": "java",
-      "starter_code": "import java.util.HashSet;\nimport java.util.Set;\n\n// 쿠폰은 코드가 같으면 같은 쿠폰이에요.\nclass Coupon {\n    final String code;\n\n    Coupon(String code) {\n        this.code = code;\n    }\n\n    @Override\n    public boolean equals(Object other) {\n        return other instanceof Coupon c && code.equals(c.code);\n    }\n\n    @Override\n    public int hashCode() {\n        // 고칠 곳: 지금은 Object의 hashCode라서 객체마다 다른 값을 돌려줘요.\n        return super.hashCode();\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        Set<Coupon> used = new HashSet<>();\n        while (in.hasNext()) {\n            Coupon coupon = new Coupon(in.next());\n            if (used.contains(coupon)) {\n                System.out.println(coupon.code + \" 이미 사용했어요\");\n            } else {\n                used.add(coupon);\n                System.out.println(coupon.code + \" 사용\");\n            }\n        }\n        System.out.println(\"사용한 쿠폰 \" + used.size() + \"장\");\n    }\n}\n",
+      "starter_code": "import java.util.HashSet;\nimport java.util.Set;\n\n// 쿠폰은 코드가 같으면 같은 쿠폰이에요.\nclass Coupon {\n    final String code;\n\n    Coupon(String code) {\n        this.code = code;\n    }\n\n    @Override\n    public boolean equals(Object other) {\n        return other instanceof Coupon c && code.equals(c.code);\n    }\n\n    @Override\n    public int hashCode() {\n        // 고칠 곳: Object의 hashCode는 쿠폰 코드가 같다는 규칙을 반영하지 않아요.\n        return super.hashCode();\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        Set<Coupon> used = new HashSet<>();\n        while (in.hasNext()) {\n            Coupon coupon = new Coupon(in.next());\n            if (used.contains(coupon)) {\n                System.out.println(coupon.code + \" 이미 사용했어요\");\n            } else {\n                used.add(coupon);\n                System.out.println(coupon.code + \" 사용\");\n            }\n        }\n        System.out.println(\"사용한 쿠폰 \" + used.size() + \"장\");\n    }\n}\n",
       "solution": "import java.util.HashSet;\nimport java.util.Set;\n\n// 쿠폰은 코드가 같으면 같은 쿠폰이에요.\nclass Coupon {\n    final String code;\n\n    Coupon(String code) {\n        this.code = code;\n    }\n\n    @Override\n    public boolean equals(Object other) {\n        return other instanceof Coupon c && code.equals(c.code);\n    }\n\n    @Override\n    public int hashCode() {\n        // equals가 같다고 하는 두 쿠폰은 hashCode도 같아야 해요. 같은 코드면 같은 값이 나와요.\n        return code.hashCode();\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        java.util.Scanner in = new java.util.Scanner(System.in);\n        Set<Coupon> used = new HashSet<>();\n        while (in.hasNext()) {\n            Coupon coupon = new Coupon(in.next());\n            if (used.contains(coupon)) {\n                System.out.println(coupon.code + \" 이미 사용했어요\");\n            } else {\n                used.add(coupon);\n                System.out.println(coupon.code + \" 사용\");\n            }\n        }\n        System.out.println(\"사용한 쿠폰 \" + used.size() + \"장\");\n    }\n}\n",
       "tests": [
         {
@@ -563,12 +563,12 @@
         },
         {
           "action": "say",
-          "text": "Object의 hashCode는 객체마다 다른 값이라, 같은 코드의 쿠폰도 다른 칸을 찾아요.",
+          "text": "Object의 hashCode는 쿠폰 코드를 보지 않아요. 같은 코드인 두 쿠폰의 해시 값이 같다는 보장이 없어요.",
           "target": "code:return super.hashCode();"
         },
         {
           "action": "patch_code",
-          "before": "        // 고칠 곳: 지금은 Object의 hashCode라서 객체마다 다른 값을 돌려줘요.\n        return super.hashCode();",
+          "before": "        // 고칠 곳: Object의 hashCode는 쿠폰 코드가 같다는 규칙을 반영하지 않아요.\n        return super.hashCode();",
           "after": "        // equals가 같다고 하는 두 쿠폰은 hashCode도 같아야 해요. 같은 코드면 같은 값이 나와요.\n        return code.hashCode();",
           "say": "쿠폰 코드의 hashCode를 그대로 돌려줘요."
         },

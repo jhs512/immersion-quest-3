@@ -1,0 +1,150 @@
+{
+  "course": "tests/fixtures/player-pilot/리/course.json",
+  "lesson": "courses/redesigned/docker-image-container.json",
+  "expected_outputs": [
+    [
+      "상태: exited",
+      "상태: running\n로그: 메모 서버 시작"
+    ],
+    [
+      "재시작 뒤: 우유 빵\n다시 만든 뒤: (없음)\ndown 뒤: (없음)\ndown -v 뒤: (없음)",
+      "재시작 뒤: 우유 빵\n다시 만든 뒤: 우유 빵\ndown 뒤: 우유 빵\ndown -v 뒤: (없음)"
+    ],
+    [
+      "A 가게: 우유 빵 계란\nB 가게: 우유 빵 계란\n다시 만든 뒤 A 가게: 우유 빵 계란\n다시 만든 뒤 B 가게: 우유 빵 계란",
+      "A 가게: 우유 빵\nB 가게: 계란\n다시 만든 뒤 A 가게: 우유 빵\n다시 만든 뒤 B 가게: 계란"
+    ],
+    [
+      "첫 빌드: 준비 단계 실행\n메뉴만 바꾼 두 번째 빌드: 준비 단계 다시 실행\n메뉴: 우유 빵",
+      "첫 빌드: 준비 단계 실행\n메뉴만 바꾼 두 번째 빌드: 준비 단계 캐시 사용\n메뉴: 우유 빵"
+    ],
+    [
+      "처음: [v1] 우유 빵\n앱을 고쳐 다시 빌드한 뒤: [v2] (없음)\ndown 뒤: [v2] (없음)",
+      "처음: [v1] 우유 빵\n앱을 고쳐 다시 빌드한 뒤: [v2] 우유 빵\ndown 뒤: [v2] 우유 빵"
+    ]
+  ],
+  "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "\"echo 메모 서버 시작 && sleep 3600\"",
+          "\"echo 메모 서버 시작 && sleep 1\""
+        ]
+      ],
+      "reason": "1초 뒤 PID 1이 끝나 3초 뒤에는 exited예요."
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "\"echo 메모 서버 시작 && sleep 3600\"",
+          "\"sleep 3600 & echo 메모 서버 시작\""
+        ]
+      ],
+      "reason": "sleep을 뒤로 보내고 echo가 끝나면 sh가 끝나요."
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "      - memo:/memo",
+          "      - memo:/data"
+        ]
+      ],
+      "reason": "볼륨을 다른 폴더에 연결하면 /memo는 여전히 쓰기 레이어예요."
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "      - memo:/memo",
+          "      - ./memo:/memo"
+        ]
+      ],
+      "reason": "실습 폴더를 직접 연결(바인드 마운트)하면 down -v로도 지워지지 않아요. 이 스텝은 Docker가 관리하는 볼륨을 써요."
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "      - memo_b:/memo\n",
+          ""
+        ]
+      ],
+      "reason": "B의 볼륨을 빼면 처음엔 계란이 보여도, 다시 만든 뒤 사라져요."
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "COPY menu.txt .",
+          "COPY menu.txt /tmp/"
+        ]
+      ],
+      "reason": "메뉴를 다른 곳에 복사하면 CMD가 /app/menu.txt를 찾지 못해요."
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "      - memos:/data",
+          "      - memos:/app"
+        ]
+      ],
+      "reason": "/app에 볼륨을 연결하면 메모는 여전히 쓰기 레이어에 있고, 볼륨이 앱 코드 폴더를 덮어 새 버전도 보이지 않아요."
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "      - memos:/data",
+          "      - memos:/memo"
+        ]
+      ],
+      "reason": "앱이 쓰지 않는 폴더에 연결하면 메모는 지켜지지 않아요."
+    }
+  ],
+  "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "\"echo 메모 서버 시작 && sleep 3600\"",
+          "\"echo 메모 서버 시작 && exec sleep 3600\""
+        ]
+      ],
+      "reason": "exec로 sh를 sleep으로 바꿔도 PID 1이 계속 살아 있어요."
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "\"echo 메모 서버 시작 && sleep 3600\"",
+          "\"echo 메모 서버 시작; tail -f /dev/null\""
+        ]
+      ],
+      "reason": "끝나지 않는 다른 앞 프로세스도 같은 원리예요."
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "      - memo:/memo",
+          "      - type: volume\n        source: memo\n        target: /memo"
+        ]
+      ],
+      "reason": "긴 문법으로 같은 볼륨을 연결해도 같아요."
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "COPY menu.txt .",
+          "COPY menu.txt /app/"
+        ]
+      ],
+      "reason": "절대 경로로 같은 곳에 복사해도 같아요."
+    }
+  ]
+}

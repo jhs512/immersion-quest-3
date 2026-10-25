@@ -1,0 +1,365 @@
+{
+  "schema_version": 2,
+  "id": "lsn_1aedc033-4998-4854-9565-389de69b8cdf",
+  "revision": "java-jdbc-1",
+  "title": "JDBC · 코드와 데이터베이스 사이의 계약",
+  "description": "실제 H2 드라이버로 SQL 결과·입력·실패를 연결해서 이해해요.",
+  "objectives": [
+    "결과 커서와 변경 행 수를 해석해요.",
+    "입력을 SQL 문법에서 분리해요.",
+    "연결의 트랜잭션으로 업무 경계를 구현해요."
+  ],
+  "sources": [
+    "https://docs.oracle.com/en/java/javase/25/docs/api/java.sql/java/sql/package-summary.html"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_adcd850c-bda5-469d-a5dd-34e9c37dc6a6",
+      "title": "JDBC · 코드와 데이터베이스 사이의 계약",
+      "objectives": [
+        "결과 커서와 변경 행 수를 해석해요.",
+        "입력을 SQL 문법에서 분리해요.",
+        "연결의 트랜잭션으로 업무 경계를 구현해요."
+      ],
+      "units": [
+        {
+          "id": "unt_c0b0c7c8-ddf9-4645-9869-6138ea99f0ac",
+          "title": "조회와 값 전달",
+          "objectives": [
+            "JDBC의 결과와 입력이 무엇인지 확인해요."
+          ],
+          "premise": "제공 SQL로 작은 실습 DB를 준비해요. 실제 사용자 데이터는 없어요.",
+          "steps": [
+            {
+              "id": "stp_86dace99-4d29-4d2f-b9ab-88ed0d46c5e6",
+              "objectives": [
+                "ResultSet은 행 목록 자체가 아니라 현재 위치를 가진 커서예요."
+              ]
+            },
+            {
+              "id": "stp_eaf929ef-86f2-4dfc-b461-9aa4b4c38d39",
+              "objectives": [
+                "매개변수 바인딩은 입력을 SQL 코드가 아닌 값으로 전달해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_08c3952c-3ab0-42cd-a30b-3137cc2c2e56",
+          "title": "변경과 업무 결과",
+          "objectives": [
+            "실제 변경 여부와 원자성을 코드로 지켜요."
+          ],
+          "premise": "제공 SQL로 작은 실습 DB를 준비해요. 실제 사용자 데이터는 없어요.",
+          "steps": [
+            {
+              "id": "stp_66748f97-5adc-42cf-bd6c-0e9d8aacf147",
+              "objectives": [
+                "SQL 문장의 성공과 실제로 바뀐 행의 존재를 구별해요."
+              ]
+            },
+            {
+              "id": "stp_cbfea67c-19a3-4dfa-855f-f1da85603bb0",
+              "objectives": [
+                "Connection의 자동 확정과 명시적 트랜잭션 경계를 제어해요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_86dace99-4d29-4d2f-b9ab-88ed0d46c5e6",
+      "title": "조회한 모든 행을 순회해 개수를 세세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\nmember에는 두 행이 있어요. 시작 번호 이상인 회원을 조회하지만 준비 코드는 첫 행만 세요.\n\n**알아두세요**\n\nnext()는 다음 행으로 이동하고 행이 있으면 true를 돌려줘요. 한 번의 if는 한 행만 확인해요. 행이 없어질 때까지 순회하세요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. 조회한 모든 행을 순회해 개수를 세세요\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "language": "java_libraries",
+      "starter_code": "import java.sql.*;\nimport java.util.*;\nclass Main {\n public static void main(String[] args) throws Exception {\n  try (Connection c=DriverManager.getConnection(\"jdbc:h2:mem:lab\", \"sa\", \"\")) {\n   c.createStatement().execute(\"CREATE TABLE member(id INT PRIMARY KEY,name VARCHAR(100),balance INT CHECK(balance>=0))\");\n   c.createStatement().execute(\"INSERT INTO member VALUES(1,'lee',100),(2,'kim',100)\");\n   int minimum=new Scanner(System.in).nextInt();\n   int count=0;\n   try (PreparedStatement p=c.prepareStatement(\"SELECT name FROM member WHERE id>=? ORDER BY id\")) {\n    p.setInt(1,minimum);\n    try (ResultSet rows=p.executeQuery()) {\n     if (rows.next()) count++;\n    }\n   }\n   System.out.println(count);\n  }\n }\n}\n",
+      "solution": "import java.sql.*;\nimport java.util.*;\nclass Main {\n public static void main(String[] args) throws Exception {\n  try (Connection c=DriverManager.getConnection(\"jdbc:h2:mem:lab\", \"sa\", \"\")) {\n   c.createStatement().execute(\"CREATE TABLE member(id INT PRIMARY KEY,name VARCHAR(100),balance INT CHECK(balance>=0))\");\n   c.createStatement().execute(\"INSERT INTO member VALUES(1,'lee',100),(2,'kim',100)\");\n   int minimum=new Scanner(System.in).nextInt();\n   int count=0;\n   try (PreparedStatement p=c.prepareStatement(\"SELECT name FROM member WHERE id>=? ORDER BY id\")) {\n    p.setInt(1,minimum);\n    try (ResultSet rows=p.executeQuery()) {\n     while (rows.next()) count++;\n    }\n   }\n   System.out.println(count);\n  }\n }\n}\n",
+      "tests": [
+        {
+          "input": "1",
+          "expected": "2"
+        },
+        {
+          "input": "2",
+          "expected": "1"
+        },
+        {
+          "input": "3",
+          "expected": "0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "member에는 두 행이 있어요. 시작 번호 이상인 회원을 조회하지만 준비 코드는 첫 행만 세요.",
+          "target": "text:member에는 두 행이 있어요. 시작 번호 이상인 회원을 조회하지만 준비 코드는 첫 행만 세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "입력 1에서 1만 나와요. 조회에 두 행이 있어도 커서를 한 번만 움직였어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "   int minimum=new Scanner(System.in).nextInt();\n   int count=0;\n   try (PreparedStatement p=c.prepareStatement(\"SELECT name FROM member WHERE id>=? ORDER BY id\")) {\n    p.setInt(1,minimum);\n    try (ResultSet rows=p.executeQuery()) {\n     if (rows.next()) count++;\n    }\n   }\n   System.out.println(count);",
+          "after": "   int minimum=new Scanner(System.in).nextInt();\n   int count=0;\n   try (PreparedStatement p=c.prepareStatement(\"SELECT name FROM member WHERE id>=? ORDER BY id\")) {\n    p.setInt(1,minimum);\n    try (ResultSet rows=p.executeQuery()) {\n     while (rows.next()) count++;\n    }\n   }\n   System.out.println(count);",
+          "say": "조회한 모든 행을 순회해 개수를 세세요"
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "입력 1에서 2가 나와요. 반복 조건의 next가 더 이상 행이 없을 때 멈춰요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. while 안에서 next를 한 번 더 부르면 두 행씩 이동해서 일부 회원을 건너뛰어요.",
+          "target": "text:next()는 다음 행으로 이동하고 행이 있으면 true를 돌려줘요. 한 번의 if는 한 행만 확인해요. 행이 없어질 때까지 순회하세요."
+        },
+        {
+          "action": "submit"
+        }
+      ],
+      "libraries": [
+        "h2"
+      ]
+    },
+    {
+      "id": "stp_eaf929ef-86f2-4dfc-b461-9aa4b4c38d39",
+      "title": "회원 이름을 SQL 구문과 분리해 전달하세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n회원 이름을 검색해요. 이름에 SQL의 따옴표와 조건식이 들어오면 준비 코드는 다른 회원까지 찾아요.\n\n**알아두세요**\n\nSQL에는 ?를 두고 PreparedStatement.setString으로 이름을 전달하세요. 값에 들어온 따옴표를 직접 바꾸지 마세요. 없는 이름은 0명이어야 해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. 회원 이름을 SQL 구문과 분리해 전달하세요\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "language": "java_libraries",
+      "starter_code": "import java.sql.*;\nimport java.util.*;\nclass Main {\n public static void main(String[] args) throws Exception {\n  try (Connection c=DriverManager.getConnection(\"jdbc:h2:mem:lab\", \"sa\", \"\")) {\n   c.createStatement().execute(\"CREATE TABLE member(id INT PRIMARY KEY,name VARCHAR(100),balance INT CHECK(balance>=0))\");\n   c.createStatement().execute(\"INSERT INTO member VALUES(1,'lee',100),(2,'kim',100)\");\n   String name=new Scanner(System.in).nextLine();\n   int count=0;\n   String sql=\"SELECT id FROM member WHERE name='\"+name+\"'\";\n   try (PreparedStatement p=c.prepareStatement(sql)) {\n    // 입력을 SQL 문자열에 붙이지 않고 이 자리에 값으로 전달하세요.\n    try (ResultSet rows=p.executeQuery()) {\n     while(rows.next()) count++;\n    }\n   }\n   System.out.println(count);\n  }\n }\n}\n",
+      "solution": "import java.sql.*;\nimport java.util.*;\nclass Main {\n public static void main(String[] args) throws Exception {\n  try (Connection c=DriverManager.getConnection(\"jdbc:h2:mem:lab\", \"sa\", \"\")) {\n   c.createStatement().execute(\"CREATE TABLE member(id INT PRIMARY KEY,name VARCHAR(100),balance INT CHECK(balance>=0))\");\n   c.createStatement().execute(\"INSERT INTO member VALUES(1,'lee',100),(2,'kim',100)\");\n   String name=new Scanner(System.in).nextLine();\n   int count=0;\n   String sql=\"SELECT id FROM member WHERE name=?\";\n   try (PreparedStatement p=c.prepareStatement(sql)) {\n    p.setString(1,name);\n    try (ResultSet rows=p.executeQuery()) {\n     while(rows.next()) count++;\n    }\n   }\n   System.out.println(count);\n  }\n }\n}\n",
+      "tests": [
+        {
+          "input": "lee' OR '1'='1",
+          "expected": "0"
+        },
+        {
+          "input": "lee",
+          "expected": "1"
+        },
+        {
+          "input": "O'Reilly",
+          "expected": "0"
+        },
+        {
+          "input": "none",
+          "expected": "0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "회원 이름을 검색해요. 이름에 SQL의 따옴표와 조건식이 들어오면 준비 코드는 다른 회원까지 찾아요.",
+          "target": "text:회원 이름을 검색해요. 이름에 SQL의 따옴표와 조건식이 들어오면 준비 코드는 다른 회원까지 찾아요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "없는 이름을 넣었는데 두 회원을 모두 찾았어요. 이름에 들어온 조건식이 SQL 문법에 섞였어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "   String name=new Scanner(System.in).nextLine();\n   int count=0;\n   String sql=\"SELECT id FROM member WHERE name='\"+name+\"'\";\n   try (PreparedStatement p=c.prepareStatement(sql)) {\n    // 입력을 SQL 문자열에 붙이지 않고 이 자리에 값으로 전달하세요.\n    try (ResultSet rows=p.executeQuery()) {\n     while(rows.next()) count++;\n    }\n   }\n   System.out.println(count);",
+          "after": "   String name=new Scanner(System.in).nextLine();\n   int count=0;\n   String sql=\"SELECT id FROM member WHERE name=?\";\n   try (PreparedStatement p=c.prepareStatement(sql)) {\n    p.setString(1,name);\n    try (ResultSet rows=p.executeQuery()) {\n     while(rows.next()) count++;\n    }\n   }\n   System.out.println(count);",
+          "say": "회원 이름을 SQL 구문과 분리해 전달하세요"
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "같은 입력에서 이제 0명이에요. 따옴표와 조건식이 들어온 이름을 하나의 값으로 비교했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. ?를 따옴표 안에 쓰면 매개변수 자리가 아니라 물음표 글자를 비교해요.",
+          "target": "text:SQL에는 ?를 두고 PreparedStatement.setString으로 이름을 전달하세요. 값에 들어온 따옴표를 직접 바꾸지 마세요. 없는 이름은 0명이어야 해요."
+        },
+        {
+          "action": "submit"
+        }
+      ],
+      "libraries": [
+        "h2"
+      ]
+    },
+    {
+      "id": "stp_66748f97-5adc-42cf-bd6c-0e9d8aacf147",
+      "title": "수정된 회원이 없으면 missing을 출력하세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n지정한 회원에게 10을 더해요. 존재하지 않는 번호를 넣어도 준비 코드는 saved라고 말해요.\n\n**알아두세요**\n\nexecuteUpdate가 돌려준 변경 행 수를 확인하세요. 이 표에서 id는 기본 키라서 변경 행은 0개 또는 1개예요. SQL 오류가 없다는 것만으로 저장 성공을 판단하지 마세요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. 수정된 회원이 없으면 missing을 출력하세요\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "language": "java_libraries",
+      "starter_code": "import java.sql.*;\nimport java.util.*;\nclass Main {\n public static void main(String[] args) throws Exception {\n  try (Connection c=DriverManager.getConnection(\"jdbc:h2:mem:lab\", \"sa\", \"\")) {\n   c.createStatement().execute(\"CREATE TABLE member(id INT PRIMARY KEY,name VARCHAR(100),balance INT CHECK(balance>=0))\");\n   c.createStatement().execute(\"INSERT INTO member VALUES(1,'lee',100),(2,'kim',100)\");\n   int id=new Scanner(System.in).nextInt();\n   try (PreparedStatement p=c.prepareStatement(\"UPDATE member SET balance=balance+10 WHERE id=?\")) {\n    p.setInt(1,id);\n    p.executeUpdate();\n    System.out.println(\"saved\");\n   }\n  }\n }\n}\n",
+      "solution": "import java.sql.*;\nimport java.util.*;\nclass Main {\n public static void main(String[] args) throws Exception {\n  try (Connection c=DriverManager.getConnection(\"jdbc:h2:mem:lab\", \"sa\", \"\")) {\n   c.createStatement().execute(\"CREATE TABLE member(id INT PRIMARY KEY,name VARCHAR(100),balance INT CHECK(balance>=0))\");\n   c.createStatement().execute(\"INSERT INTO member VALUES(1,'lee',100),(2,'kim',100)\");\n   int id=new Scanner(System.in).nextInt();\n   try (PreparedStatement p=c.prepareStatement(\"UPDATE member SET balance=balance+10 WHERE id=?\")) {\n    p.setInt(1,id);\n    int changed=p.executeUpdate();\n    System.out.println(changed==1 ? \"saved\" : \"missing\");\n   }\n  }\n }\n}\n",
+      "tests": [
+        {
+          "input": "9",
+          "expected": "missing"
+        },
+        {
+          "input": "1",
+          "expected": "saved"
+        },
+        {
+          "input": "2",
+          "expected": "saved"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "지정한 회원에게 10을 더해요. 존재하지 않는 번호를 넣어도 준비 코드는 saved라고 말해요.",
+          "target": "text:지정한 회원에게 10을 더해요. 존재하지 않는 번호를 넣어도 준비 코드는 saved라고 말해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "없는 9번 회원에게 saved라고 했어요. SQL 오류는 없지만 실제로 바뀐 행은 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "   int id=new Scanner(System.in).nextInt();\n   try (PreparedStatement p=c.prepareStatement(\"UPDATE member SET balance=balance+10 WHERE id=?\")) {\n    p.setInt(1,id);\n    p.executeUpdate();\n    System.out.println(\"saved\");\n   }",
+          "after": "   int id=new Scanner(System.in).nextInt();\n   try (PreparedStatement p=c.prepareStatement(\"UPDATE member SET balance=balance+10 WHERE id=?\")) {\n    p.setInt(1,id);\n    int changed=p.executeUpdate();\n    System.out.println(changed==1 ? \"saved\" : \"missing\");\n   }",
+          "say": "수정된 회원이 없으면 missing을 출력하세요"
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "있는 회원은 saved, 없는 번호는 missing이에요. DB가 보고한 변경 행 수를 사용했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 다른 DB와 드라이버에서는 같은 값을 다시 쓰는 UPDATE의 행 수 의미가 다를 수 있어요. 여기서는 잔액을 실제로 10 늘려요.",
+          "target": "text:executeUpdate가 돌려준 변경 행 수를 확인하세요. 이 표에서 id는 기본 키라서 변경 행은 0개 또는 1개예요. SQL 오류가 없다는 것만으로 저장 성공을 판단하지 마세요."
+        },
+        {
+          "action": "submit"
+        }
+      ],
+      "libraries": [
+        "h2"
+      ]
+    },
+    {
+      "id": "stp_cbfea67c-19a3-4dfa-855f-f1da85603bb0",
+      "title": "JDBC 이체가 중간에 실패하면 전체를 취소하세요",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n잔액은 각각 100이고 상한은 150이에요. 60을 이체하면 출금은 성공하지만 입금은 제약 오류가 나요.\n\n**알아두세요**\n\n첫 UPDATE 전에 setAutoCommit(false)를 호출하세요. 두 변경이 성공한 뒤 commit하고 SQLException을 받으면 rollback하세요. 준비된 표와 마지막 조회는 그대로 두세요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. JDBC 이체가 중간에 실패하면 전체를 취소하세요\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "language": "java_libraries",
+      "starter_code": "import java.sql.*;\nimport java.util.*;\nclass Main {\n public static void main(String[] args) throws Exception {\n  try (Connection c=DriverManager.getConnection(\"jdbc:h2:mem:lab\", \"sa\", \"\")) {\n   c.createStatement().execute(\"CREATE TABLE member(id INT PRIMARY KEY,name VARCHAR(100),balance INT CHECK(balance>=0))\");\n   c.createStatement().execute(\"INSERT INTO member VALUES(1,'lee',100),(2,'kim',100)\");\n   c.createStatement().execute(\"ALTER TABLE member ADD CONSTRAINT cap CHECK(balance<=150)\");\n   int amount=new Scanner(System.in).nextInt();\n   try {\n    try (PreparedStatement out=c.prepareStatement(\"UPDATE member SET balance=balance-? WHERE id=1\");\n         PreparedStatement in=c.prepareStatement(\"UPDATE member SET balance=balance+? WHERE id=2\")) {\n     out.setInt(1,amount); out.executeUpdate();\n     in.setInt(1,amount); in.executeUpdate();\n    }\n   } catch(SQLException error) {\n    // 실패했을 때 이체 전체를 되돌려야 해요.\n   }\n   try (ResultSet rows=c.createStatement().executeQuery(\"SELECT balance FROM member ORDER BY id\")) {\n    while(rows.next()) System.out.println(rows.getInt(1));\n   }\n  }\n }\n}\n",
+      "solution": "import java.sql.*;\nimport java.util.*;\nclass Main {\n public static void main(String[] args) throws Exception {\n  try (Connection c=DriverManager.getConnection(\"jdbc:h2:mem:lab\", \"sa\", \"\")) {\n   c.createStatement().execute(\"CREATE TABLE member(id INT PRIMARY KEY,name VARCHAR(100),balance INT CHECK(balance>=0))\");\n   c.createStatement().execute(\"INSERT INTO member VALUES(1,'lee',100),(2,'kim',100)\");\n   c.createStatement().execute(\"ALTER TABLE member ADD CONSTRAINT cap CHECK(balance<=150)\");\n   int amount=new Scanner(System.in).nextInt();\n   c.setAutoCommit(false);\n   try {\n    try (PreparedStatement out=c.prepareStatement(\"UPDATE member SET balance=balance-? WHERE id=1\");\n         PreparedStatement in=c.prepareStatement(\"UPDATE member SET balance=balance+? WHERE id=2\")) {\n     out.setInt(1,amount); out.executeUpdate();\n     in.setInt(1,amount); in.executeUpdate();\n    }\n    c.commit();\n   } catch(SQLException error) {\n    c.rollback();\n   }\n   try (ResultSet rows=c.createStatement().executeQuery(\"SELECT balance FROM member ORDER BY id\")) {\n    while(rows.next()) System.out.println(rows.getInt(1));\n   }\n  }\n }\n}\n",
+      "tests": [
+        {
+          "input": "60",
+          "expected": "100\n100"
+        },
+        {
+          "input": "30",
+          "expected": "70\n130"
+        },
+        {
+          "input": "10",
+          "expected": "90\n110"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "잔액은 각각 100이고 상한은 150이에요. 60을 이체하면 출금은 성공하지만 입금은 제약 오류가 나요.",
+          "target": "text:잔액은 각각 100이고 상한은 150이에요. 60을 이체하면 출금은 성공하지만 입금은 제약 오류가 나요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            20,
+            20
+          ]
+        },
+        {
+          "action": "say",
+          "text": "60을 이체했더니 출금만 확정되어 40과 100이 남았어요. 입금이 실패했는데 돈이 줄었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "   c.createStatement().execute(\"ALTER TABLE member ADD CONSTRAINT cap CHECK(balance<=150)\");\n   int amount=new Scanner(System.in).nextInt();\n   try {\n    try (PreparedStatement out=c.prepareStatement(\"UPDATE member SET balance=balance-? WHERE id=1\");\n         PreparedStatement in=c.prepareStatement(\"UPDATE member SET balance=balance+? WHERE id=2\")) {\n     out.setInt(1,amount); out.executeUpdate();\n     in.setInt(1,amount); in.executeUpdate();\n    }\n   } catch(SQLException error) {\n    // 실패했을 때 이체 전체를 되돌려야 해요.\n   }\n   try (ResultSet rows=c.createStatement().executeQuery(\"SELECT balance FROM member ORDER BY id\")) {\n    while(rows.next()) System.out.println(rows.getInt(1));\n   }",
+          "after": "   c.createStatement().execute(\"ALTER TABLE member ADD CONSTRAINT cap CHECK(balance<=150)\");\n   int amount=new Scanner(System.in).nextInt();\n   c.setAutoCommit(false);\n   try {\n    try (PreparedStatement out=c.prepareStatement(\"UPDATE member SET balance=balance-? WHERE id=1\");\n         PreparedStatement in=c.prepareStatement(\"UPDATE member SET balance=balance+? WHERE id=2\")) {\n     out.setInt(1,amount); out.executeUpdate();\n     in.setInt(1,amount); in.executeUpdate();\n    }\n    c.commit();\n   } catch(SQLException error) {\n    c.rollback();\n   }\n   try (ResultSet rows=c.createStatement().executeQuery(\"SELECT balance FROM member ORDER BY id\")) {\n    while(rows.next()) System.out.println(rows.getInt(1));\n   }",
+          "say": "JDBC 이체가 중간에 실패하면 전체를 취소하세요"
+        },
+        {
+          "action": "run",
+          "lines": [
+            22,
+            22
+          ]
+        },
+        {
+          "action": "say",
+          "text": "정상 이체는 두 잔액이 함께 바뀌고 입금이 실패한 경우에는 둘 다 100으로 돌아와요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 예외를 잡아 메시지만 출력하면 이미 확정한 출금이 취소되지는 않아요. 자동 확정부터 끄고 실패 시 rollback해야 해요.",
+          "target": "text:첫 UPDATE 전에 setAutoCommit(false)를 호출하세요. 두 변경이 성공한 뒤 commit하고 SQLException을 받으면 rollback하세요. 준비된 표와 마지막 조회는 그대로 두세요."
+        },
+        {
+          "action": "submit"
+        }
+      ],
+      "libraries": [
+        "h2"
+      ]
+    }
+  ],
+  "learning_strategy": "먼저 실제 SQL 결과를 보고, 원인을 설명한 뒤 직접 SQL을 고쳐요."
+}

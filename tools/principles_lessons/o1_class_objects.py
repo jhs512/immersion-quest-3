@@ -188,7 +188,7 @@ class Coupon {
 
     @Override
     public int hashCode() {
-        // 고칠 곳: 지금은 Object의 hashCode라서 객체마다 다른 값을 돌려줘요.
+        // 고칠 곳: Object의 hashCode는 쿠폰 코드가 같다는 규칙을 반영하지 않아요.
         return super.hashCode();
     }
 }
@@ -210,7 +210,7 @@ class Main {
     }
 }
 """
-FIX6 = ("""        // 고칠 곳: 지금은 Object의 hashCode라서 객체마다 다른 값을 돌려줘요.
+FIX6 = ("""        // 고칠 곳: Object의 hashCode는 쿠폰 코드가 같다는 규칙을 반영하지 않아요.
         return super.hashCode();""", """        // equals가 같다고 하는 두 쿠폰은 hashCode도 같아야 해요. 같은 코드면 같은 값이 나와요.
         return code.hashCode();""")
 S6_SOLUTION = S6_START.replace(*FIX6)
@@ -379,9 +379,9 @@ def step(**fields):
 LESSON = java_lesson(
     key='java-class-objects', folder='java_class_objects', pilot='기', revision=1,
     title='클래스와 객체 · 상태를 가진 객체가 스스로 규칙을 지켜요',
-    category='java', category_title='자바', track='basic',
+    category='java', category_title='자바', track=None,
     category_evidence='JDK 25로 실행하는 자바 클래스·객체 수업이에요.',
-    track_evidence='클래스·객체·캡슐화의 기초 원리라 기본으로 분류해요. 이 분류는 필수 여부나 난이도를 바꾸지 않아요.',
+    track_evidence='트랙 없음: 「기본」은 2026-10-25에 있던 수업에만 붙인 사용자 결정이고, 새 수업의 트랙(필수·고급)은 사용자 승인 없이 정하지 않아요.',
     audience='변수·조건·반복·메서드를 익히고 클래스를 처음 설계해 보는 자바 학습자',
     prerequisites=['변수·조건·반복문·메서드 호출을 읽고 고칠 수 있어요.', 'List와 Scanner로 입력을 읽는 짧은 코드를 실행해 봤어요.'],
     objectives=['같은 클래스로 만든 객체가 저마다 상태를 갖고, 변수는 그 객체를 가리키는 참조라는 것을 실행 결과로 설명해요.',
@@ -571,7 +571,7 @@ LESSON = java_lesson(
                                    ('run',),
                                    ('say', 'SALE10 사용이 두 번 나오고, 사용한 쿠폰이 3장이에요.', 'output'),
                                    ('say', 'equals는 코드가 같으면 true예요. 문제는 그 전에 칸을 고르는 hashCode예요.', 'code:return other instanceof Coupon c && code.equals(c.code);'),
-                                   ('say', 'Object의 hashCode는 객체마다 다른 값이라, 같은 코드의 쿠폰도 다른 칸을 찾아요.', 'code:return super.hashCode();'),
+                                   ('say', 'Object의 hashCode는 쿠폰 코드를 보지 않아요. 같은 코드인 두 쿠폰의 해시 값이 같다는 보장이 없어요.', 'code:return super.hashCode();'),
                                    ('patch', *FIX6, '쿠폰 코드의 hashCode를 그대로 돌려줘요.'),
                                    ('run',),
                                    ('say', '이제 두 번째 SALE10은 이미 사용했어요로 나오고, 쿠폰은 2장이에요.', 'output'),
@@ -580,7 +580,7 @@ LESSON = java_lesson(
                                review={'조심하세요. equals만 고치고 hashCode를 두면 HashSet과 HashMap에서 같은 값을 못 찾아요.':
                                        '시작 코드가 equals만 재정의한 상태이고, 실행에서 contains가 false인 결과를 봤어요.'},
                                accepts=[([('return code.hashCode();', 'return java.util.Objects.hash(code);')], 'Objects.hash(code)도 같은 코드에 같은 값을 줘요.')],
-                               rejects=[([('return code.hashCode();', 'return System.identityHashCode(this);')], '객체마다 다른 값이라 같은 쿠폰을 찾지 못해요.'),
+                               rejects=[([('return code.hashCode();', 'return System.identityHashCode(this);')], '객체의 식별 해시는 쿠폰 코드가 같으면 해시도 같아야 한다는 계약을 보장하지 않아요.'),
                                         ([('return code.hashCode();', 'return (int) (Math.random() * 1000);')], '부를 때마다 값이 달라 같은 쿠폰을 찾지 못해요.')]),
                       ]),
              ]),

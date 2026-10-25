@@ -1,5 +1,16 @@
 # Docker·DB·객체지향 원리 수업 확장 (2026-10-26)
 
+## 현재 구현 상태 (2026-10-26, Codex 인수)
+
+Claude 사용 한도 소진으로 Codex가 같은 브랜치를 인수했어요. 새 수업 14개·75단계와 기존 26수업을 합친 40수업 구성을 만들었어요. 공개 전이며, 앱 런타임 릴리스가 먼저예요. 아래 표는 최초 계획과 달라진 실제 구현을 기준으로 갱신했어요.
+
+- 실제 엔진 검사 통과: 객체지향 3수업, H2, MySQL 제약, PostgreSQL JOIN·인덱스·트랜잭션·격리·잠금, JDBC, Docker 이미지·네트워크·Compose.
+- SQL 입문 6단계도 실제 MySQL 검사를 통과했어요. 집계 단계는 더 분명한 반례로 바꾼 뒤 해당 단계의 준비 코드·정답·오답과 변형 입력을 다시 실행했어요(`sql-first-step5.replay.json`). 실제 수정 전/후 출력은 3/7이에요.
+- 40수업의 목록·분류·예고·이전 기록 호환 검사, 94수업 전체 등록 검사를 통과했어요.
+- Windows 자식 JVM의 한글 출력, Docker Bash PATH, 마지막 입력 행, 컨테이너 명령의 입력 소비, 이전 빌드 캐시로 인한 관찰 오류를 수정했어요.
+- 앱 강제 종료는 별도 감시자가 OS 파일 잠금 해제를 감지해 자기 프로젝트만 정리해요. 소유 프로세스 강제 종료 뒤 컨테이너·볼륨 정리 검사를 통과했어요. PC나 Docker 자체가 꺼진 경우는 다음 시작 때 남은 라벨을 정리해요.
+- 실제 검사 근거: `.scratch/pe/*.replay.json`, `tests/lesson-cases/*.json`, `tools/principles_lessons/recorded/*.json`. macOS에서 실제 Docker 실습까지 검증했다는 뜻은 아니에요.
+
 ## 사용자 지시와 범위
 
 2026-10-26 사용자(Codex 경유): 「도커랑 DB 수업도 클로드가 마저 만들어. 사용법만 알려주지 말고 원리를 이해하게 하고, 나한테 물어보지 말고 끝까지 만들어서 배포해. 클래스, 상속, 객체지향 패턴 몇개 수업도 만들고, 알지 중요한건 원리 이해야. 길어도 돼.」
@@ -14,7 +25,7 @@
 ## 학습 설계 원칙 (이번 확장에 적용)
 
 1. 정상 동작을 먼저 실행한다 → 조건 하나를 바꿔 예상과 다른 실제 결과를 본다 → 원인 모델을 말로 정리한다 → 1~3줄을 고쳐 해결한다 → 바뀐 자료·입력으로 다시 검증한다.
-2. 한 스텝에 새 개념 하나. 단원 안에서는 같은 상황이 이어지고, 다음 스텝의 준비 파일에 앞 스텝의 정답 상태를 넣어요(학습자에게 「앞 스텝의 정답 상태에서 시작해요」라고 알려요).
+2. 한 스텝에 새 개념 하나. 상황과 원리는 이어지지만 실행 상태는 각 스텝에 명시된 준비 파일에서 새로 시작해요. 학습자가 만든 이전 파일을 재사용한다고 잘못 설명하지 않아요.
 3. 실행마다 같은 시작 상태에서 시작해요. Docker·DB 실습은 실행 한 번이 자기 소유의 Compose 프로젝트를 새로 만들고, 끝나면 지워요. 앞 실험의 잔여 상태가 다음 판정을 바꾸지 않게 하려는 선택이에요. 그 대신 「다시 만들어도 남는가」는 한 번의 실행 안에서 실제로 지우고 다시 만들어 관찰해요.
 4. 모형(시뮬레이션)은 쓰지 않아요. Docker는 실제 Docker 엔진, DB는 실제 MySQL 8.4·PostgreSQL 18·H2 2.4.240, 객체지향은 실제 JDK 25예요. 엔진 결과를 다른 엔진의 결과라고 말하지 않아요.
 5. 패턴은 이름부터 외우지 않아요. 패턴 없이 짠 코드에 바뀐 요구를 넣어 깨지는 곳을 먼저 보고, 최소 구조로 고쳐요. 필요 없는 경우의 판단도 해설과 단원 목표에 적어요.
@@ -24,7 +35,7 @@
 | 실행 방식 | 무엇을 실행하나 | 격리·정리 |
 | --- | --- | --- |
 | `java` (기존) | JDK 25 단일 파일 | 실행마다 새 폴더 |
-| `java_libraries` (신규) | JDK 25 + 앱이 고정한 라이브러리 묶음(H2 2.4.240, PostgreSQL JDBC, MySQL Connector/J). Maven Central 경로 + sha256 고정, 수업은 묶음 이름만 고름 | 실행마다 새 폴더. 라이브러리는 `course-tools`에 해시 확인 뒤 보관 |
+| `java_libraries` (신규) | JDK 25 + 앱이 고정한 라이브러리 묶음(H2 2.4.240, PostgreSQL JDBC 42.7.13). Maven Central 경로 + sha256 고정, 수업은 묶음 이름만 고름. MySQL Connector/J는 아직 추가하지 않았어요 | 실행마다 새 폴더. 라이브러리는 `course-tools`에 해시 확인 뒤 보관 |
 | `docker` (신규) | 수업의 실습 스크립트(`lab.sh`)를 Bash로 실행. 실제 Docker 엔진·Compose 사용 | 실행마다 `mq3lab-` 접두어의 고유 Compose 프로젝트. 학습자 compose 파일을 실행 전에 검사(고정 호스트 포트·0.0.0.0 공개·`container_name`·호스트 네트워크·특권·폴더 밖 바인드 거절). 공개 포트는 `127.0.0.1::<포트>`로만, 실제 포트는 실행 중에 다시 읽어요. 끝나면(실패·시간 초과·취소 포함) 그 프로젝트 라벨의 컨테이너·네트워크·볼륨·빌드 이미지만 지워요. 앱이 강제로 꺼져 남은 프로젝트는 다음 실행·다음 시작 때 같은 라벨 기준으로 정리해요 |
 
 - 사용자의 기존 컨테이너·볼륨·이미지·DB·서버는 건드리지 않아요. 3306/5432/8080/6379 같은 고정 포트를 쓰지 않아요.
@@ -38,29 +49,29 @@
 
 | # | 키 | 분류 | 실행 | 핵심 원리 | 최종 도전 | 설계 | 제작 | 검증 | 게시 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| O1 | java-class-objects | 자바 | java | 같은 클래스의 독립 객체, 생성자의 초기 상태, this, 별칭과 복사(얕은·깊은), equals·hashCode, 캡슐화와 불변식, 내부 목록 유출 | 불변식을 지키는 장바구니 | ◐ | | | |
-| O2 | java-inheritance-composition | 자바 | java | 동적 디스패치, 오버라이드와 오버로드, 필드는 다형적이지 않음, 생성자에서 부른 재정의 메서드, 상속이 깨지는 경우(HashSet.addAll), is-a가 아닌 상속(Stack), 컴포지션·전달 | 세는 집합을 컴포지션으로 | ◐ | | | |
-| O3 | java-oop-patterns | 자바 | java | Strategy(바뀌는 정책), Factory(생성 책임), Observer(구독·해제·전달 중 실패), 패턴이 필요 없을 때 | 주문 완료 알림 | ◐ | | | |
-| H1 | h2-memory-file | DB | java_libraries(H2) | 메모리 DB의 수명(연결·프로세스), 이름 있는 메모리 DB, 파일 DB | 기존 초안 h2-memory-file | ◐ | | | |
-| S1 | sql-tables-constraints | DB | docker(MySQL 8.4) | 표·행·SELECT, NOT NULL·UNIQUE·PK·AUTO_INCREMENT·FK, DB가 모든 클라이언트에 같은 규칙을 적용 | 기존 초안 sql-constraints | ◐ | | | |
-| S2 | sql-join-group | DB | docker(MySQL 8.4) | 표를 나누는 이유(갱신 이상), JOIN의 ON, LEFT JOIN, COUNT(*)와 COUNT(열), ON과 WHERE, ONLY_FULL_GROUP_BY | 기존 초안 sql-join-group | ◐ | | | |
-| S3 | sql-index-plan | DB | docker(MySQL 8.4) | 실제 읽은 행 수(Handler_read), EXPLAIN의 type·key, 열에 함수를 씌우면, 복합 인덱스의 앞 열, UNIQUE 인덱스 | 기존 초안 sql-index-explain | ◐ | | | |
-| S4 | sql-engine-differences | DB | docker(MySQL 8.4 + PostgreSQL 18) | 같은 SQL의 다른 의미(`||`, 문자열 비교 규칙), 생성 키 받기 | 기존 초안 mysql-differences | ◐ | | | |
-| J1 | jdbc-basics | DB | docker(PostgreSQL 18) + PostgreSQL JDBC | 연결·조회·ResultSet, 파라미터 바인딩과 SQL 주입, 영향받은 행 수, 생성 키, 연결 닫기와 연결 수 한도 | 기존 초안 jdbc-postgresql | ◐ | | | |
-| T1 | db-transactions | DB | docker(PostgreSQL 18) | 자동 커밋과 중간 실패, BEGIN·COMMIT·ROLLBACK, 실패한 트랜잭션, JDBC 경계, 커밋 전 다른 연결의 시야 | 기존 초안 sql-transaction-rollback | ◐ | | | |
-| T2 | db-concurrency-locks | DB | docker(PostgreSQL 18) + JDBC | 갱신 손실 재현(두 연결의 정해진 순서), 원자적 UPDATE, 조건부 UPDATE와 행 수, SELECT FOR UPDATE의 대기, 버전 열(낙관적 락), REPEATABLE READ의 직렬화 실패와 재시도 | 기존 초안 database-concurrency | ◐ | | | |
-| D1 | docker-image-container | Docker | docker(busybox) | 이미지와 컨테이너(프로세스), PID 1과 종료, 같은 이미지의 독립 컨테이너, 레이어와 빌드 캐시, 쓰기 레이어, 볼륨과 데이터 영속성 | 다시 만들어도 남는 메모 | ◐ | | | |
-| D2 | docker-network-ports | Docker | docker(busybox) | 컨테이너마다 다른 localhost, 서비스 이름과 네트워크, 포트 공개(루프백·동적), 컨테이너 안 127.0.0.1에만 연 서버, 컨테이너 포트와 호스트 포트 | 두 서비스와 호스트를 잇기 | ◐ | | | |
-| D3 | docker-compose-db | Docker | docker(PostgreSQL 18) | 환경 변수로 초기화, 데이터 디렉터리와 볼륨, 초기화는 빈 볼륨에서만, 서비스 이름으로 DB 찾기, 시작 순서와 준비 상태(healthcheck), restart·재생성·down·down -v에서 남는 것 | 앱+DB 구성 | ◐ | | | |
+| O1 | java-class-objects | 자바 | java | 독립 객체·생성자·참조·복사·equals/hashCode·캡슐화 | 불변식을 지키는 장바구니 (9단계) | 완료 | 완료 | 통과 | 대기 |
+| O2 | java-inheritance-composition | 자바 | java | 디스패치·생성자 위험·상속의 계약·컴포지션 | 세는 집합을 컴포지션으로 (7단계) | 완료 | 완료 | 통과 | 대기 |
+| O3 | java-oop-patterns | 자바 | java | Strategy·Factory·Observer의 필요와 실패 경계 | 주문 완료 알림 (7단계) | 완료 | 완료 | 통과 | 대기 |
+| H1 | h2-memory-file | DB | java_libraries(H2) | 연결·JVM·메모리 DB·파일 DB의 수명 | 여러 프로세스의 메모 보존 (5단계) | 완료 | 완료 | 통과 | 대기 |
+| S0 | sql-first | DB | docker(MySQL 8.4) | 행·열·조건·NULL·순서·집계·변경 범위 | 지정 상품의 실제 재고 변경 (6단계) | 완료 | 완료 | 통과 | 대기 |
+| S1 | sql-tables-constraints | DB | docker(MySQL 8.4) | NOT NULL·UNIQUE·PK·FK·CHECK | 예약 무결성 (6단계) | 완료 | 완료 | 통과 | 대기 |
+| S2 | sql-join-group | DB | docker(PostgreSQL 18) | 행 보존·NULL 집계·ON과 WHERE·일대다 중복 합산 | 모든 회원의 유료 주문 보고서 (6단계) | 완료 | 완료 | 통과 | 대기 |
+| S3 | sql-index-plan | DB | docker(PostgreSQL 18) | 실제 JSON 실행 계획·표현식·부분·복합 색인 | 지역·상태·코드 검색 (4단계) | 완료 | 완료 | 통과 | 대기 |
+| J1 | java-jdbc | DB | java_libraries(H2) | 커서·파라미터 바인딩·변경 행 수·JDBC 트랜잭션 | 정상·실패 이체 (4단계) | 완료 | 완료 | 통과 | 대기 |
+| T1 | sql-transactions | DB | docker(PostgreSQL 18) | 자동 확정·원자성·실패 상태·SAVEPOINT | 정상·실패 SQL 이체 (5단계) | 완료 | 완료 | 통과 | 대기 |
+| T2 | sql-isolation-locks | DB | docker(PostgreSQL 18)+JDBC | 읽기 스냅샷·갱신 손실·행 잠금·조건부 변경 | 동시 구매 두 건과 재고 하나 (4단계) | 완료 | 완료 | 통과 | 대기 |
+| D1 | docker-image-container | 컨테이너 | docker(busybox) | PID 1·쓰기 레이어·볼륨·빌드 캐시 | 앱 변경 후에도 남는 메모 (5단계) | 완료 | 완료 | 통과 | 대기 |
+| D2 | docker-network-ports | 컨테이너 | docker(busybox) | localhost·바인드·서비스 DNS·네트워크·동적 포트 | 내부 서비스와 PC 접속 (4단계) | 완료 | 완료 | 통과 | 대기 |
+| D3 | docker-compose-db | 컨테이너 | docker(PostgreSQL 18) | 연결 주소·실제 저장 경로·익명/이름 볼륨·초기화와 마이그레이션 | 기존 메모를 지키는 스키마 변경 (3단계) | 완료 | 완료 | 통과 | 대기 |
 
-◐ = 이 문서의 설계 단계. 표는 진행하면서 갱신해요.
+검증은 실제 실행 기록 기준이며 앱 배포와 수업 게시를 뜻하지 않아요. SQL 엔진별 차이·생성 키·낙관적 버전 열·직렬화 실패 재시도·MySQL Connector/J는 최초 후보 중 아직 구현하지 않은 후속 주제예요.
 
 ### 기존 초안 22개의 처리
 
 | 축 | 초안 | 이번 처리 |
 | --- | --- | --- |
-| DB 9 | sql-constraints, sql-join-group, sql-index-explain, mysql-differences, h2-memory-file, jdbc-postgresql, sql-transaction-rollback, database-concurrency | 각 수업의 최종 도전으로 재사용(빌드업 스텝을 새로 붙임). 앱 실행 방식으로 다시 검증 |
-| DB 9 | jdbc-simpledb (MySQL) | 이번에는 수업으로 만들지 않아요. jdbc-basics가 같은 원리(파라미터 순서·생성 키·영향 행 수)를 PostgreSQL에서 다뤄요. 초안은 보존 |
+| DB 9 | sql-constraints, sql-join-group, sql-index-explain, mysql-differences, h2-memory-file, jdbc-postgresql, sql-transaction-rollback, database-concurrency | 후보로 참고하되 실제 새 수업과 원리 범위는 위 표를 따름. 기존 초안 전체가 게시됐다고 간주하지 않음 |
+| DB 9 | jdbc-simpledb (MySQL) | 이번에는 H2로 JDBC의 커서·값 바인딩·행 수·트랜잭션을 검증. 생성 키와 MySQL JDBC 연결 초안은 후속으로 보존 |
 | IoC 2 | ioc-container-principle, spring-beans-autowired | 이번 범위 밖(DB 연결에 필요 없음). 초안 보존 |
 | JPA·트랜잭션·락 7 | jpa-* , spring-transaction-boundary, jpa-optimistic-lock | 범위 밖. 앱에 Spring·Gradle 실행 경로가 없어요. 초안 보존 |
 | REST 4 | spring-boot-first, spring-rest-validation, rest-crud-persistence, rest-api-test | 범위 밖. 초안 보존 |

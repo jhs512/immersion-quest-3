@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "a4fb3a20b9a555f28a676d9564330a4962ddf37b307dda692702ce2ed77fb7d0",
+  "entry": [
+    {
+      "action": "say",
+      "text": "잔액 100을 80으로 바꾸는 시험이에요. 실제 업무로 확정하면 안 되는데 준비 코드는 COMMIT해요.",
+      "target": "text:잔액 100을 80으로 바꾸는 시험이에요. 실제 업무로 확정하면 안 되는데 준비 코드는 COMMIT해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "1번 잔액이 80이에요. 시험 변경을 COMMIT해서 남겼어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "UPDATE의 성공과 트랜잭션 확정을 구별해요.",
+      "target": "code:BEGIN;"
+    },
+    {
+      "action": "patch_code",
+      "before": "BEGIN;\nUPDATE account SET balance=80 WHERE id=1;\nCOMMIT;\n",
+      "after": "BEGIN;\nUPDATE account SET balance=80 WHERE id=1;\nROLLBACK;\n",
+      "say": "시험 변경을 저장하지 않고 되돌리세요"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "1번 잔액이 100으로 돌아왔어요. 실행한 UPDATE를 확정하지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 이미 COMMIT한 변경은 나중에 ROLLBACK을 붙여도 그 트랜잭션으로 되돌릴 수 없어요.",
+      "target": "text:BEGIN부터 끝까지가 한 트랜잭션이에요. ROLLBACK은 이 트랜잭션이 바꾼 데이터를 취소해요. 끝난 뒤 SELECT로 잔액이 100인지 확인하세요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

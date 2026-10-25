@@ -1,0 +1,49 @@
+name: Principles runtime validation
+
+on:
+  push:
+    branches: [main, feat/principles-expansion]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: principles-runtime-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  actual-engines:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Prepare native CLI dependencies
+        run: sudo apt-get update && sudo apt-get install -y pkg-config libssl-dev libx11-dev
+      - name: Confirm the real Linux container engine
+        run: |
+          docker info --format '{{.OSType}}'
+          docker compose version
+      - name: Build the actual headless graders
+        run: cargo build --locked --no-default-features --example validate_redesigned_lesson
+      - name: Verify ownership, boundaries and hard-kill cleanup
+        run: cargo test --locked --no-default-features --lib docker_lab -- --include-ignored --test-threads=1
+      - name: Check all fourteen lessons with real engines
+        shell: python
+        run: |
+          import pathlib, subprocess, sys
+          sys.path.insert(0, str(pathlib.Path('tools/principles_lessons').resolve()))
+          from make import NEW_ORDER
+          for key in NEW_ORDER:
+              subprocess.run(['target/debug/examples/validate_redesigned_lesson',
+                  f'tests/lesson-cases/{key}.json', f'target/principles-{key}.json'], check=True)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: principles-actual-engine-evidence
+          path: target/principles-*.json

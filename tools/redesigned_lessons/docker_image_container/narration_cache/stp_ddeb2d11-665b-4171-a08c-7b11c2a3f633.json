@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "87eecb59bd3b0eca39c936d6c484172860ed1b9d096c6c9dcd8741c1bb4ef40c",
+  "entry": [
+    {
+      "action": "say",
+      "text": "서버를 띄웠는데 컨테이너가 끝나 버리는 문제예요.",
+      "target": "text:그런데 실행하면 상태가 `exited`로 나와요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "상태는 exited예요. 첫 프로세스가 백그라운드 작업을 기다리지 않고 끝났어요. 시작 로그도 남기기 전에 종료될 수 있어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "끝의 &가 sleep을 뒤로 보내요. 그러면 sh는 할 일이 없어서 바로 끝나요. sh가 PID 1이라 컨테이너도 끝나요.",
+      "target": "code:sleep 3600 &"
+    },
+    {
+      "action": "patch_code",
+      "before": "    # 고칠 곳: 시작 메시지를 찍고 메모 서버(여기서는 sleep)를 띄우는 명령이에요.\n    command: [\"sh\", \"-c\", \"echo 메모 서버 시작 && sleep 3600 &\"]",
+      "after": "    # 컨테이너는 첫 프로세스(PID 1)가 살아 있는 동안만 실행 중이에요.\n    # &를 빼서 sh가 sleep이 끝날 때까지 기다리게 해요. 그래야 PID 1이 끝나지 않아요.\n    command: [\"sh\", \"-c\", \"echo 메모 서버 시작 && sleep 3600\"]",
+      "say": "&를 빼서 sh가 sleep을 기다리게 해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "이제 3초 뒤에도 running이에요. PID 1인 sh가 sleep을 기다리는 동안 컨테이너가 살아 있어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 서버를 뒤에서 돌리는 습관대로 &를 붙이면 컨테이너는 바로 끝나요. 컨테이너에서는 서버가 PID 1로 앞에서 돌아야 해요.",
+      "target": "text:셸에서 명령 끝의 `&`는 그 명령을 뒤에서 돌리고 셸은 바로 다음으로 넘어가요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

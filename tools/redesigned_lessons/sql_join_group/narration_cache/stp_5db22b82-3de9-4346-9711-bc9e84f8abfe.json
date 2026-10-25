@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "567c891e07487dbcc62f80aeede351e9c7b269204cd9e2c4c6dee8b281cc021f",
+  "entry": [
+    {
+      "action": "say",
+      "text": "유료 주문 건수를 세려 해요. WHERE amount>0을 붙이자 B와 C가 모두 사라져요.",
+      "target": "text:유료 주문 건수를 세려 해요. WHERE amount>0을 붙이자 B와 C가 모두 사라져요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "A:2만 나와요. WHERE가 B의 0원 행과 C의 NULL 행을 지웠어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "ON의 짝짓기 조건과 WHERE의 결과 제거 조건을 구별해요.",
+      "target": "code:SELECT m.name || ':' || COUNT(o.id) FROM member m LEFT JOIN orders o ON o.member_id=m.id WHERE o.amount>0 GROUP BY m.id,m.name ORDER BY m.id;"
+    },
+    {
+      "action": "patch_code",
+      "before": "SELECT m.name || ':' || COUNT(o.id) FROM member m LEFT JOIN orders o ON o.member_id=m.id WHERE o.amount>0 GROUP BY m.id,m.name ORDER BY m.id;\n",
+      "after": "SELECT m.name || ':' || COUNT(o.id) FROM member m LEFT JOIN orders o ON o.member_id=m.id AND o.amount>0 GROUP BY m.id,m.name ORDER BY m.id;\n",
+      "say": "유료 주문이 없는 회원도 집계에 남기세요"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "A:2, B:0, C:0이에요. 유료 주문만 짝짓고 회원은 남겼어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. WHERE에 OR o.id IS NULL만 더하면 C는 돌아와도 B는 사라져요. B에는 이미 0원 주문이 짝지어졌어요.",
+      "target": "text:ON은 오른쪽에서 짝지을 대상을 정해요. WHERE는 JOIN 결과를 만든 뒤 행을 거르므로 NULL 확장된 행도 제거할 수 있어요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

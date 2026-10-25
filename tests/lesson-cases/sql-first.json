@@ -1,0 +1,93 @@
+{
+  "course": "tests/fixtures/player-pilot/쿼/course.json",
+  "lesson": "courses/redesigned/sql-first.json",
+  "expected_outputs": [
+    [
+      "1\tmilk\t100\t3\n2\tbread\t200\t0\n3\ttea\t100\tNULL",
+      "milk\nbread\ntea"
+    ],
+    [
+      "milk\ntea",
+      "milk"
+    ],
+    [
+      "",
+      "tea"
+    ],
+    [
+      "bread\nmilk",
+      "milk\ntea"
+    ],
+    [
+      "3",
+      "7"
+    ],
+    [
+      "milk:2\nbread:-1\ntea:unknown",
+      "milk:2\nbread:0\ntea:unknown"
+    ]
+  ],
+  "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "SELECT name FROM item ORDER BY id;\n",
+          "SELECT * FROM item ORDER BY id;\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "SELECT name FROM item WHERE price=100 AND qty>0 ORDER BY id;\n",
+          "SELECT name FROM item WHERE price=100 OR qty>0 ORDER BY id;\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "SELECT name FROM item WHERE qty IS NULL ORDER BY id;\n",
+          "SELECT name FROM item WHERE qty=NULL ORDER BY id;\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "SELECT name FROM item ORDER BY price,id LIMIT 2;\n",
+          "SELECT name FROM item ORDER BY price DESC,id LIMIT 2;\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "SELECT COALESCE(SUM(qty),0) FROM item;\n",
+          "SELECT COUNT(*) FROM item;\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "UPDATE item SET qty=qty-1 WHERE id=1;\n",
+          "UPDATE item SET qty=qty-1;\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    }
+  ],
+  "accept": []
+}

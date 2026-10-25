@@ -1,0 +1,49 @@
+{
+  "by": "hand",
+  "source_sha256": "a03b8e4c52d56106ab777f9a279230bb879d6cc98a162b71c6707d8860aabc05",
+  "entry": [
+    {
+      "action": "say",
+      "text": "메모를 한 줄씩 쓰는 프로세스가 매번 끝나요. 마지막 프로세스가 두 메모를 모두 읽어야 해요.",
+      "target": "text:메모를 한 줄씩 쓰는 프로세스가 매번 끝나요. 마지막 프로세스가 두 메모를 모두 읽어야 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "재시작 후: 표 없음이에요. 두 번의 write가 끝날 때마다 JVM의 메모리도 사라졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        Scanner in = new Scanner(System.in);\n        String a = in.nextLine(); String b = in.nextLine();\n        String url = \"jdbc:h2:mem:final;DB_CLOSE_DELAY=-1\";\n        child(url, \"write\", a);\n        child(url, \"write\", b);\n        System.out.println(\"재시작 후: \" + child(url, \"read\", \"\"));",
+      "after": "        Scanner in = new Scanner(System.in);\n        String a = in.nextLine(); String b = in.nextLine();\n        String url = \"jdbc:h2:file:./final\";\n        child(url, \"write\", a);\n        child(url, \"write\", b);\n        System.out.println(\"재시작 후: \" + child(url, \"read\", \"\"));",
+      "say": "세 프로세스가 함께 쓸 파일 DB URL을 구현하세요. 입력 메모를 코드에 직접 쓰지 마세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "재시작 후: 빵, 우유예요. 마지막 JVM이 앞 두 JVM이 남긴 파일을 읽었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 매번 다른 파일 이름을 만들면 이전 메모를 못 찾아요. 세 프로세스가 같은 파일을 열어야 해요.",
+      "target": "text:이번 실행은 세 프로세스를 순서대로 실행해요. 앞에서 만든 파일 DB의 수명을 적용하세요. 제출을 다시 실행하면 새 실습 폴더에서 시작해요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

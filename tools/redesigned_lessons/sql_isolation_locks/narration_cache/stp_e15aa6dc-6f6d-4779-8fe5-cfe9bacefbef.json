@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "e478bd0a796d04cf53a425f762ccb7f1671b425ca6d4fbbbac05ab3881c0a508",
+  "entry": [
+    {
+      "action": "say",
+      "text": "A와 B가 모두 100을 읽었어요. A가 10을 차감하고 확정한 뒤 B가 예전 100에서 20을 뺀 80으로 덮어써요.",
+      "target": "text:A와 B가 모두 100을 읽었어요. A가 10을 차감하고 확정한 뒤 B가 예전 100에서 20을 뺀 80으로 덮어써요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "결과가 80이에요. A가 차감한 10이 B의 예전 값 덮어쓰기로 사라졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "예전에 읽은 값으로 덮어쓰기와 DB의 현재 값에서 계산하기를 구별해요.",
+      "target": "code:\"UPDATE account SET balance=\"+(oldB-second)+\" WHERE id=1\""
+    },
+    {
+      "action": "patch_code",
+      "before": "   Scanner input=new Scanner(System.in);\n   int first=input.nextInt(), second=input.nextInt();\n   int oldA=value(a), oldB=value(b);\n   a.createStatement().executeUpdate(\"UPDATE account SET balance=\"+(oldA-first)+\" WHERE id=1\");\n   b.createStatement().executeUpdate(\"UPDATE account SET balance=\"+(oldB-second)+\" WHERE id=1\");\n   System.out.println(value(a));",
+      "after": "   Scanner input=new Scanner(System.in);\n   int first=input.nextInt(), second=input.nextInt();\n   int oldA=value(a), oldB=value(b);\n   a.createStatement().executeUpdate(\"UPDATE account SET balance=\"+(oldA-first)+\" WHERE id=1\");\n   b.createStatement().executeUpdate(\"UPDATE account SET balance=balance-\"+second+\" WHERE id=1\");\n   System.out.println(value(a));",
+      "say": "두 차감을 모두 잔액에 반영하세요"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "결과가 70이에요. B의 문장이 현재 잔액 90에서 20을 차감했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. Java 변수 oldB를 바꾸는 것으로 다른 연결이 이미 저장한 값을 자동으로 알 수는 없어요.",
+      "target": "text:B의 UPDATE가 예전 oldB를 쓰지 않고 DB 행의 현재 balance에서 second를 빼도록 고치세요. 입력 숫자는 Scanner가 읽은 정수예요. 한 문장의 계산이 직전 확정 값을 사용하게 해요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

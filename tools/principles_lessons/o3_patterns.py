@@ -309,9 +309,9 @@ def step(**fields):
 LESSON = java_lesson(
     key='java-oop-patterns', folder='java_oop_patterns', pilot='디', revision=1,
     title='객체지향 패턴 · 바뀌는 부분을 객체로 떼어 내요',
-    category='java', category_title='자바', track='advanced',
+    category='java', category_title='자바', track=None,
     category_evidence='JDK 25로 실행하는 자바 설계 패턴 수업이에요.',
-    track_evidence='클래스·상속·컴포지션 뒤에 설계 판단을 넓히는 수업이라 고급으로 분류해요. 필수 여부를 바꾸지 않아요.',
+    track_evidence='트랙 없음: 「기본」은 2026-10-25에 있던 수업에만 붙인 사용자 결정이고, 새 수업의 트랙(필수·고급)은 사용자 승인 없이 정하지 않아요.',
     audience='클래스·인터페이스·상속과 컴포지션을 익힌 자바 학습자(앞 수업 java-inheritance-composition)',
     prerequisites=['인터페이스를 구현하고 재정의한 메서드가 실제 객체로 불리는 것을 알아요.', 'Map·List와 switch·try/catch를 읽을 수 있어요.'],
     objectives=['바뀌는 요구(새 할인 정책·새 알림 종류·새 구독자)를 넣을 때 고칠 곳이 한 군데로 모이도록 Strategy·Factory·Observer 구조를 직접 완성해요.',

@@ -2,7 +2,7 @@
 //! each `run` produced, then check the `accept` answers (other valid edits) of a lesson-cases file.
 //! It never writes the lesson. `validate_redesigned_lesson` stays the evidence-producing check.
 //!
-//! Usage: replay_lesson_outputs LESSON.json [CASES.json]
+//! Usage: replay_lesson_outputs LESSON.json [CASES.json] [--step=N]
 use molip_quest::{lesson_runner, repository_course::Lesson};
 use serde::Deserialize;
 use serde_json::json;
@@ -27,8 +27,11 @@ async fn main() {
     let raw=std::fs::read_to_string(&args[0]).expect("lesson file");
     let lesson:Lesson=serde_json::from_str(&raw).expect("lesson json");
     lesson.validate().expect("lesson validates");
+    let selected=args.get(2).map(|value|value.strip_prefix("--step=").expect("--step=N").parse::<usize>().expect("step number"));
+    assert!(selected.is_none_or(|n|n>0&&n<=lesson.tasks.len()),"selected step is inside the lesson");
     let mut steps=Vec::new();
     for (index,task) in lesson.tasks.iter().enumerate() {
+        if selected.is_some_and(|n|n!=index+1){continue}
         let mut source=task.example_code.clone().unwrap_or_else(||task.starter_code.clone());
         let mut input=task.tests.first().map(|case|case.input.clone()).unwrap_or_default();
         let mut outputs=Vec::new();
@@ -57,6 +60,7 @@ async fn main() {
         let cases:Cases=serde_json::from_str(&std::fs::read_to_string(path).expect("cases")).expect("cases json");
         for (kind,list) in [("accept",&cases.accept),("reject",&cases.reject)] {
             for answer in list {
+                if selected.is_some_and(|n|n!=answer.step){continue}
                 let task=&lesson.tasks[answer.step-1];
                 let verdict=match patched(&task.solution,answer) {
                     Ok(source)=>lesson_runner::check(task,&source).await.map(|r|json!({"passed":r.passed,"cases":r.cases})).unwrap_or_else(|e|json!({"error":e})),
@@ -66,5 +70,5 @@ async fn main() {
             }
         }
     }
-    println!("{}",serde_json::to_string_pretty(&json!({"steps":steps,"answers":answers})).unwrap());
+    println!("{}",serde_json::to_string_pretty(&json!({"selected_step":selected,"steps":steps,"answers":answers})).unwrap());
 }

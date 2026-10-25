@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "0d8b9cfd1f712166c85efc0117102209feb75f9ba849cb958917d38991eca1ac",
+  "entry": [
+    {
+      "action": "say",
+      "text": "방은 여러 시간에 예약할 수 있어요. 같은 방과 같은 시간의 중복 예약만 막아야 해요.",
+      "target": "text:방은 여러 시간에 예약할 수 있어요. 같은 방과 같은 시간의 중복 예약만 막아야 해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "다섯 예약이 모두 저장돼요. 같은 시간의 중복, 없는 방, 0명 예약도 남아요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "기본 키·외래 키·조합 UNIQUE·CHECK를 서로 다른 규칙에 적용해요.",
+      "target": "code:CREATE TABLE reservation(id INT PRIMARY KEY, room_id INT NOT NULL, slot INT NOT NULL, people INT NOT NULL);"
+    },
+    {
+      "action": "patch_code",
+      "before": "CREATE TABLE reservation(id INT PRIMARY KEY, room_id INT NOT NULL, slot INT NOT NULL, people INT NOT NULL);\n",
+      "after": "CREATE TABLE reservation(\n    id INT PRIMARY KEY,\n    room_id INT NOT NULL,\n    slot INT NOT NULL,\n    people INT NOT NULL CHECK(people > 0),\n    UNIQUE(room_id, slot),\n    FOREIGN KEY(room_id) REFERENCES room(id)\n);\n",
+      "say": "다른 클라이언트가 와도 예약 규칙을 지키세요"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "1번과 3번 예약만 남아요. 같은 방의 다른 시간은 허용되고 잘못된 쓰기는 DB가 거절해요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. room_id만 UNIQUE로 만들면 그 방을 다시는 예약할 수 없어요. 시간까지 묶어 비교하세요.",
+      "target": "text:UNIQUE(room_id, slot)은 두 값의 조합을 검사해요. room_id만 UNIQUE면 다른 시간의 정상 예약까지 막아요. 사람 수와 방 존재 규칙은 별도로 선언해요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

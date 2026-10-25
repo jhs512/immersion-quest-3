@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "5cff24010032ea3c6dc7e02a3db534600e2bb3d27a896838a87c89704c2e0c79",
+  "entry": [
+    {
+      "action": "say",
+      "text": "client에서는 연결돼요. 이번에는 PC의 브라우저에서도 접속할 수 있어야 해요.",
+      "target": "text:client에서는 연결돼요. 이번에는 PC의 브라우저에서도 접속할 수 있어야 해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "client 응답은 오지만 호스트에 공개된 포트는 없어요. 내부 연결만으로 PC의 접속 주소가 생기지는 않아요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "컨테이너 내부 포트와 호스트 공개 포트는 서로 다른 주소 영역이에요.",
+      "target": "code:services:"
+    },
+    {
+      "action": "patch_code",
+      "before": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    networks: [front]\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    networks: [front]\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\nnetworks:\n  front:\n  back:\n",
+      "after": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    ports: [\"127.0.0.1::8080\"]\n    networks: [front]\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    networks: [front]\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\nnetworks:\n  front:\n  back:\n",
+      "say": "PC에서도 빈 포트로 서버에 연결하게 하세요"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "내부 client는 web:8080으로, PC는 자동 배정된 127.0.0.1 포트로 같은 서버에 연결됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. client의 주소를 호스트 포트로 바꾸지 마세요. 컨테이너 간 연결은 내부 포트와 서비스 이름을 그대로 써요.",
+      "target": "text:web에 127.0.0.1::8080 포트 연결을 추가하세요. 가운데 호스트 포트를 비워 Docker가 빈 포트를 고르게 해요. 실습 스크립트가 실제 배정 주소를 엔진에 물어보고 PC에서 요청해요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

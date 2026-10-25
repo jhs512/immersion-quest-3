@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "59e741f788b969543096f2a12bf752bd06aa5dbbf42898068a810ef520e0cccc",
+  "entry": [
+    {
+      "action": "say",
+      "text": "상품은 세 종류지만 확인된 재고 수량은 7개예요. 준비 코드는 상품 행 수를 재고 합계처럼 사용해요.",
+      "target": "text:상품은 세 종류지만 확인된 재고 수량은 7개예요. 준비 코드는 상품 행 수를 재고 합계처럼 사용해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "3이 나와요. 상품 세 종류를 센 값이어서 실제 재고 일곱 개와 달라요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "행의 개수와 각 행에 저장된 수량의 합은 서로 달라요.",
+      "target": "code:SELECT COUNT(*) FROM item;"
+    },
+    {
+      "action": "patch_code",
+      "before": "SELECT COUNT(*) FROM item;\n",
+      "after": "SELECT COALESCE(SUM(qty),0) FROM item;\n",
+      "say": "확인된 재고 수량의 합계를 구하세요"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "재고 열을 합산해 7이 나와요. 변형 검사에서는 수량이 달라지거나 모두 미정일 때도 확인해요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. COUNT(qty)도 수량의 합이 아니에요. NULL이 아닌 재고 값이 있는 행의 개수예요.",
+      "target": "text:SUM(qty)로 수량을 더하세요. COUNT(*)는 NULL이 있더라도 행을 세요. 합계 대상 값이 하나도 없으면 SUM은 NULL이므로 화면의 0으로 바꾸세요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

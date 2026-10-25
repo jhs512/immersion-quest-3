@@ -1,0 +1,49 @@
+{
+  "by": "hand",
+  "source_sha256": "9c39755cf87b059c01b455ec2b990ce4250ec8b2a60f2cb9b91f6a91b4479682",
+  "entry": [
+    {
+      "action": "say",
+      "text": "write 프로세스를 끝낸 뒤 별도 read 프로세스를 실행해요. 같은 DB 이름인데 메모가 없어요.",
+      "target": "text:write 프로세스를 끝낸 뒤 별도 read 프로세스를 실행해요. 같은 DB 이름인데 메모가 없어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "다른 프로세스: 표 없음이에요. -1은 프로세스 종료를 견디는 저장 기능이 아니에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        String title = new Scanner(System.in).nextLine();\n        String url = \"jdbc:h2:mem:shared;DB_CLOSE_DELAY=-1\";\n        child(url, \"write\", title);\n        // 쓰는 프로세스는 이미 끝났어요. 읽기는 다른 프로세스에서 해요.\n        System.out.println(\"다른 프로세스: \" + child(url, \"read\", \"\"));",
+      "after": "        String title = new Scanner(System.in).nextLine();\n        String url = \"jdbc:h2:file:./memo\";\n        child(url, \"write\", title);\n        // 쓰는 프로세스는 이미 끝났어요. 읽기는 다른 프로세스에서 해요.\n        System.out.println(\"다른 프로세스: \" + child(url, \"read\", \"\"));",
+      "say": "DB URL을 실습 폴더의 파일 DB로 바꾸세요. 두 프로세스는 그대로 두세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "다른 프로세스: 우유예요. 종료된 JVM 대신 파일이 메모를 보관했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. DB_CLOSE_DELAY=-1은 같은 JVM 안의 설정이에요. 프로그램을 끄면 메모리 DB도 없어져요.",
+      "target": "text:제공된 child 함수는 실제 별도 Java 프로세스를 만들어요. 메모리 DB 이름은 JVM 사이에서 공유되지 않아요. `jdbc:h2:file:./memo`는 현재 실습 폴더의 파일에 저장해요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

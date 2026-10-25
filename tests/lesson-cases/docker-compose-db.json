@@ -1,0 +1,51 @@
+{
+  "course": "tests/fixtures/player-pilot/콤/course.json",
+  "lesson": "courses/redesigned/docker-compose-db.json",
+  "expected_outputs": [
+    [
+      "connection failed",
+      "connected"
+    ],
+    [
+      "처음:1\n재시작:1\n재생성:1\ndown:표 없음",
+      "처음:1\n재시작:1\n재생성:1\ndown:1"
+    ],
+    [
+      "",
+      "milk:1"
+    ]
+  ],
+  "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "services:\n  db:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      POSTGRES_PASSWORD: lab\n      POSTGRES_DB: lab\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-h\", \"127.0.0.1\", \"-U\", \"postgres\", \"-d\", \"lab\"]\n      interval: 1s\n      timeout: 1s\n      retries: 60\n  app:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      PGPASSWORD: lab\n    command: [\"psql\", \"-h\", \"db\", \"-U\", \"postgres\", \"-d\", \"lab\", \"-X\", \"-qAt\", \"-c\", \"SELECT 'connected'\"]\n",
+          "services:\n  db:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      POSTGRES_PASSWORD: lab\n      POSTGRES_DB: lab\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-h\", \"127.0.0.1\", \"-U\", \"postgres\", \"-d\", \"lab\"]\n      interval: 1s\n      timeout: 1s\n      retries: 60\n  app:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      PGPASSWORD: lab\n    command: [\"psql\", \"-h\", \"localhost\", \"-U\", \"postgres\", \"-d\", \"lab\", \"-X\", \"-qAt\", \"-c\", \"SELECT 'connected'\"]\n"
+        ]
+      ],
+      "reason": "수정 전 구성은 요구한 연결·보존 조건을 충족하지 못해요."
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "services:\n  db:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      POSTGRES_PASSWORD: lab\n      POSTGRES_DB: lab\n    volumes: [\"data:/var/lib/postgresql\"]\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-h\", \"127.0.0.1\", \"-U\", \"postgres\", \"-d\", \"lab\"]\n      interval: 1s\n      timeout: 1s\n      retries: 60\n  app:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      PGPASSWORD: lab\n    command: [\"psql\", \"-h\", \"db\", \"-U\", \"postgres\", \"-d\", \"lab\", \"-X\", \"-qAt\", \"-c\", \"SELECT 'connected'\"]\nvolumes:\n  data:\n",
+          "services:\n  db:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      POSTGRES_PASSWORD: lab\n      POSTGRES_DB: lab\n    volumes: [\"data:/data\"]\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-h\", \"127.0.0.1\", \"-U\", \"postgres\", \"-d\", \"lab\"]\n      interval: 1s\n      timeout: 1s\n      retries: 60\n  app:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      PGPASSWORD: lab\n    command: [\"psql\", \"-h\", \"db\", \"-U\", \"postgres\", \"-d\", \"lab\", \"-X\", \"-qAt\", \"-c\", \"SELECT 'connected'\"]\nvolumes:\n  data:\n"
+        ]
+      ],
+      "reason": "수정 전 구성은 요구한 연결·보존 조건을 충족하지 못해요."
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "ALTER TABLE memo ADD COLUMN version INT DEFAULT 1 NOT NULL;\n",
+          "-- 기존 DB에 필요한 스키마 변경을 구현하세요.\n"
+        ]
+      ],
+      "reason": "수정 전 구성은 요구한 연결·보존 조건을 충족하지 못해요."
+    }
+  ],
+  "accept": []
+}

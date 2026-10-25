@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "d360cb692eda61fac73a001d4017ff72e9c970fd74eef9cec2ff2be899d37ba0",
+  "entry": [
+    {
+      "action": "say",
+      "text": "회원 표에는 1번만 있어요. 다른 클라이언트가 99번 회원의 주문을 보내요.",
+      "target": "text:회원 표에는 1번만 있어요. 다른 클라이언트가 99번 회원의 주문을 보내요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "99번 회원의 주문도 저장돼요. 회원이 없는 주문이 생겼어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "외래 키가 두 표 사이의 존재 규칙을 지켜요.",
+      "target": "code:CREATE TABLE orders(id INT PRIMARY KEY, member_id INT NOT NULL);"
+    },
+    {
+      "action": "patch_code",
+      "before": "CREATE TABLE orders(id INT PRIMARY KEY, member_id INT NOT NULL);\n",
+      "after": "CREATE TABLE orders(id INT PRIMARY KEY, member_id INT NOT NULL, FOREIGN KEY(member_id) REFERENCES member(id));\n",
+      "say": "없는 회원의 주문을 저장하지 못하게 하세요"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "외래 키 오류가 나고 10번 주문만 남아요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 주문 번호와 회원 번호는 다른 역할이에요. member_id가 참조할 대상은 member.id예요.",
+      "target": "text:FOREIGN KEY는 참조할 행이 존재해야 한다는 규칙이에요. JOIN은 결과를 조합하지만 잘못된 저장 자체를 막지는 않아요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

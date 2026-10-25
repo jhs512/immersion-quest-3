@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "feee5d3a3c6dac7693c71d56be6013d106f98df33eea5e36573ea393025f3d13",
+  "entry": [
+    {
+      "action": "say",
+      "text": "두 가게의 메모가 섞이는 문제예요.",
+      "target": "text:B 가게에는 계란만 써야 하는데 A의 메모도 섞여 있어요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "A도 B도 우유 빵 계란이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "두 서비스가 모두 memo_a를 /memo에 연결했어요. 컨테이너는 둘이지만 저장소는 하나예요.",
+      "target": "code:# 고칠 곳: B 가게가 연결한 볼륨이에요."
+    },
+    {
+      "action": "patch_code",
+      "before": "      # 고칠 곳: B 가게가 연결한 볼륨이에요.\n      - memo_a:/memo\n\nvolumes:\n  memo_a:\n",
+      "after": "      # B 가게는 자기 볼륨 memo_b를 써요. 같은 볼륨 이름이면 같은 데이터를 함께 써요.\n      - memo_b:/memo\n\nvolumes:\n  memo_a:\n  memo_b:\n",
+      "say": "B 가게에 자기 볼륨 memo_b를 연결하고 선언해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "A는 우유 빵, B는 계란이에요. 다시 만든 뒤에도 각자 남아요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "같은 이미지에서 시작해도 데이터는 어느 볼륨을 연결했는지가 정해요.",
+      "target": "text:볼륨은 이름으로 찾아요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

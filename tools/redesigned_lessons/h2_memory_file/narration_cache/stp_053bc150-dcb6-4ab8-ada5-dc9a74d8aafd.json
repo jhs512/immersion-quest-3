@@ -1,0 +1,49 @@
+{
+  "by": "hand",
+  "source_sha256": "77f3bc4aca035fe6bc2dc6756e006c70a6f1fc289ebe8820530d598840450c31",
+  "entry": [
+    {
+      "action": "say",
+      "text": "연결 a에서 쓴 메모를 연결 b가 찾지 못해요. 두 연결은 동시에 열려 있어요.",
+      "target": "text:연결 a에서 쓴 메모를 연결 b가 찾지 못해요. 두 연결은 동시에 열려 있어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        17
+      ]
+    },
+    {
+      "action": "say",
+      "text": "다른 연결: 표 없음이 나와요. 열린 연결이 둘이어도 이름 없는 DB는 서로 달라요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        String name = new Scanner(System.in).nextLine();\n        String url = \"jdbc:h2:mem:\";\n        try (Connection a = DriverManager.getConnection(url, \"sa\", \"\");\n             Connection b = DriverManager.getConnection(url, \"sa\", \"\")) {\n            a.createStatement().execute(\"CREATE TABLE memo(title VARCHAR(100))\");\n            try (PreparedStatement p = a.prepareStatement(\"INSERT INTO memo VALUES (?)\")) {\n                p.setString(1, name); p.executeUpdate();\n            }\n            try (ResultSet r = b.createStatement().executeQuery(\"SELECT title FROM memo\")) {\n                r.next(); System.out.println(r.getString(1));\n            } catch (SQLException e) {\n                if (e.getSQLState().equals(\"42S04\") || e.getSQLState().equals(\"42S02\"))\n                    System.out.println(\"다른 연결: 표 없음\");\n                else throw e;\n            }\n        }",
+      "after": "        String name = new Scanner(System.in).nextLine();\n        String url = \"jdbc:h2:mem:shared\";\n        try (Connection a = DriverManager.getConnection(url, \"sa\", \"\");\n             Connection b = DriverManager.getConnection(url, \"sa\", \"\")) {\n            a.createStatement().execute(\"CREATE TABLE memo(title VARCHAR(100))\");\n            try (PreparedStatement p = a.prepareStatement(\"INSERT INTO memo VALUES (?)\")) {\n                p.setString(1, name); p.executeUpdate();\n            }\n            try (ResultSet r = b.createStatement().executeQuery(\"SELECT title FROM memo\")) {\n                r.next(); System.out.println(r.getString(1));\n            } catch (SQLException e) {\n                if (e.getSQLState().equals(\"42S04\") || e.getSQLState().equals(\"42S02\"))\n                    System.out.println(\"다른 연결: 표 없음\");\n                else throw e;\n            }\n        }",
+      "say": "URL에 같은 메모리 DB 이름을 넣으세요. 메모 문자열과 조회 코드는 유지하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        17
+      ]
+    },
+    {
+      "action": "say",
+      "text": "우유가 나와요. 두 연결이 이름 있는 shared DB를 함께 봐요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. mem: 뒤에 이름이 없으면 두 연결의 주소가 똑같아 보여도 서로 다른 DB예요.",
+      "target": "text:`jdbc:h2:mem:`은 연결마다 별도 DB예요. `jdbc:h2:mem:이름`은 같은 JVM 안에서 이름이 같은 DB를 공유해요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

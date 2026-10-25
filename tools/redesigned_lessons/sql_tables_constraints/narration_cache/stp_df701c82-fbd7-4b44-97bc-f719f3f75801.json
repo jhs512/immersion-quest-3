@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "1112c022fd1c67d09f3f152e982d24d584a760a630b95bb4b78e53a255f5f4dc",
+  "entry": [
+    {
+      "action": "say",
+      "text": "첫 INSERT는 이름 우유와 NULL인 두 행을 함께 보내요. 다음 INSERT는 빵만 따로 보내요.",
+      "target": "text:첫 INSERT는 이름 우유와 NULL인 두 행을 함께 보내요. 다음 INSERT는 빵만 따로 보내요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "전체는 3행인데 이름은 2개예요. NULL은 아직 허용돼요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "NOT NULL과 빈 문자열의 차이를 이해해요.",
+      "target": "code:CREATE TABLE member(id INT, name VARCHAR(30));"
+    },
+    {
+      "action": "patch_code",
+      "before": "CREATE TABLE member(id INT, name VARCHAR(30));\n",
+      "after": "CREATE TABLE member(id INT, name VARCHAR(30) NOT NULL);\n",
+      "say": "이름이 없는 회원을 DB에서 거절하세요"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "첫 INSERT 전체가 거절돼요. 뒤에서 따로 보낸 빵 한 행만 남아 두 수가 모두 1이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 여러 행을 한 INSERT로 보내면 한 행의 오류 때문에 그 문장 전체가 거절돼요. 뒤의 별도 INSERT와 구분하세요.",
+      "target": "text:NULL은 값이 없다는 뜻이에요. COUNT(name)은 NULL을 세지 않아요. NOT NULL은 빈 문자열을 막는 규칙은 아니에요. MySQL의 이 실습은 엄격한 기본 SQL 모드예요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

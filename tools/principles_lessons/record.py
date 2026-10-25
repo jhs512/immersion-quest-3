@@ -5,6 +5,7 @@ evidence of what the engine printed, not a target: read the summary and check ev
 against it before keeping it. Usage: python tools/principles_lessons/record.py <key> [<key> ...]
 """
 import json
+import argparse
 import subprocess
 import sys
 from pathlib import Path
@@ -14,10 +15,16 @@ ROOT = HERE.parents[1]
 
 
 def main():
-    for key in sys.argv[1:]:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('keys', nargs='+')
+    parser.add_argument('--runner', type=Path, help='already-built real replay executable')
+    args = parser.parse_args()
+    failed = False
+    for key in args.keys:
         lesson = ROOT / 'courses/redesigned' / f'{key}.json'
         cases = ROOT / 'tests/lesson-cases' / f'{key}.json'
-        run = subprocess.run(['cargo', 'run', '-q', '--example', 'replay_lesson_outputs', '--', str(lesson), str(cases)],
+        command = [str(args.runner.resolve()), str(lesson), str(cases)] if args.runner else ['cargo', 'run', '-q', '--example', 'replay_lesson_outputs', '--', str(lesson), str(cases)]
+        run = subprocess.run(command,
                              cwd=ROOT, capture_output=True, text=True, encoding='utf-8')
         if run.returncode:
             raise SystemExit(run.stderr[-3000:])
@@ -44,6 +51,9 @@ def main():
         print(f'{key}: {len(recorded)} steps recorded, {len(report["answers"])} answers checked')
         for problem in problems:
             print('  PROBLEM', problem)
+        failed = failed or bool(problems)
+    if failed:
+        raise SystemExit(1)
 
 
 if __name__ == '__main__':

@@ -1,0 +1,65 @@
+{
+  "course": "tests/fixtures/player-pilot/쥐/course.json",
+  "lesson": "courses/redesigned/sql-index-plan.json",
+  "expected_outputs": [
+    [
+      "인덱스 경로:false\n일치:1",
+      "인덱스 경로:true\n일치:1"
+    ],
+    [
+      "인덱스 경로:false\n일치:1",
+      "인덱스 경로:true\n일치:1"
+    ],
+    [
+      "인덱스 경로:false\n일치:1",
+      "인덱스 경로:true\n일치:1"
+    ],
+    [
+      "인덱스 경로:true\n일치:1\n구조:false",
+      "인덱스 경로:true\n일치:1\n구조:true"
+    ]
+  ],
+  "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "CREATE INDEX parcel_code ON parcel(code);\n",
+          "-- code 조회 경로를 추가하세요.\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "CREATE INDEX parcel_lower ON parcel(lower(code));\n",
+          "CREATE INDEX parcel_code ON parcel(code);\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "CREATE INDEX parcel_waiting ON parcel(code) WHERE state='waiting';\n",
+          "CREATE INDEX parcel_waiting ON parcel(code) WHERE state='done';\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "CREATE INDEX parcel_lookup ON parcel(city,lower(code)) WHERE state='waiting';\n",
+          "CREATE INDEX parcel_city ON parcel(city);\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    }
+  ],
+  "accept": []
+}

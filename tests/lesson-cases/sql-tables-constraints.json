@@ -1,0 +1,103 @@
+{
+  "course": "tests/fixtures/player-pilot/제/course.json",
+  "lesson": "courses/redesigned/sql-tables-constraints.json",
+  "expected_outputs": [
+    [
+      "3\t2",
+      "1\t1"
+    ],
+    [
+      "kim\t1\nlee\t2",
+      "kim\t1\nlee\t1"
+    ],
+    [
+      "NULL\t귤\n1\t우유\n1\t빵",
+      "1\t우유"
+    ],
+    [
+      "10\t1\n11\t99",
+      "10\t1"
+    ],
+    [
+      "1\t0\n2\t-1\n3\t7",
+      "1\t0\n3\t7"
+    ],
+    [
+      "1\t1\t9\t2\n2\t1\t9\t3\n3\t1\t10\t1\n4\t99\t9\t1\n5\t2\t9\t0",
+      "1\t1\t9\t2\n3\t1\t10\t1"
+    ]
+  ],
+  "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "CREATE TABLE member(id INT, name VARCHAR(30) NOT NULL);\n",
+          "CREATE TABLE member(id INT, name VARCHAR(30));\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "CREATE TABLE member(id INT, login VARCHAR(30) NOT NULL UNIQUE);\n",
+          "CREATE TABLE member(id INT, login VARCHAR(30) NOT NULL);\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "CREATE TABLE member(id INT PRIMARY KEY, name VARCHAR(30));\n",
+          "CREATE TABLE member(id INT, name VARCHAR(30));\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "CREATE TABLE orders(id INT PRIMARY KEY, member_id INT NOT NULL, FOREIGN KEY(member_id) REFERENCES member(id));\n",
+          "CREATE TABLE orders(id INT PRIMARY KEY, member_id INT NOT NULL);\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "CREATE TABLE wallet(id INT PRIMARY KEY, balance INT NOT NULL CHECK(balance >= 0));\n",
+          "CREATE TABLE wallet(id INT PRIMARY KEY, balance INT NOT NULL);\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "UNIQUE(room_id, slot)",
+          "UNIQUE(room_id)"
+        ]
+      ],
+      "reason": "다른 시간의 정상 예약도 거절해요."
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "CHECK(people > 0)",
+          "CHECK(people >= 0)"
+        ]
+      ],
+      "reason": "0명 예약이 남아요."
+    }
+  ],
+  "accept": []
+}

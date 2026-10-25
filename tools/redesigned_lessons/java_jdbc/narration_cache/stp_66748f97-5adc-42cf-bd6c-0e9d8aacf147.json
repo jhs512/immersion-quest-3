@@ -1,0 +1,49 @@
+{
+  "by": "hand",
+  "source_sha256": "9f101ce7e7ef0acf5255c2323c50e56fc3fcf1d637ec380a8838ba135ce4ad38",
+  "entry": [
+    {
+      "action": "say",
+      "text": "지정한 회원에게 10을 더해요. 존재하지 않는 번호를 넣어도 준비 코드는 saved라고 말해요.",
+      "target": "text:지정한 회원에게 10을 더해요. 존재하지 않는 번호를 넣어도 준비 코드는 saved라고 말해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "없는 9번 회원에게 saved라고 했어요. SQL 오류는 없지만 실제로 바뀐 행은 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "   int id=new Scanner(System.in).nextInt();\n   try (PreparedStatement p=c.prepareStatement(\"UPDATE member SET balance=balance+10 WHERE id=?\")) {\n    p.setInt(1,id);\n    p.executeUpdate();\n    System.out.println(\"saved\");\n   }",
+      "after": "   int id=new Scanner(System.in).nextInt();\n   try (PreparedStatement p=c.prepareStatement(\"UPDATE member SET balance=balance+10 WHERE id=?\")) {\n    p.setInt(1,id);\n    int changed=p.executeUpdate();\n    System.out.println(changed==1 ? \"saved\" : \"missing\");\n   }",
+      "say": "수정된 회원이 없으면 missing을 출력하세요"
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "있는 회원은 saved, 없는 번호는 missing이에요. DB가 보고한 변경 행 수를 사용했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 다른 DB와 드라이버에서는 같은 값을 다시 쓰는 UPDATE의 행 수 의미가 다를 수 있어요. 여기서는 잔액을 실제로 10 늘려요.",
+      "target": "text:executeUpdate가 돌려준 변경 행 수를 확인하세요. 이 표에서 id는 기본 키라서 변경 행은 0개 또는 1개예요. SQL 오류가 없다는 것만으로 저장 성공을 판단하지 마세요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "course": "tests/fixtures/player-pilot/락/course.json",
+  "lesson": "courses/redesigned/sql-isolation-locks.json",
+  "expected_outputs": [
+    [
+      "첫 조회:100\n다시 조회:150",
+      "첫 조회:100\n다시 조회:100"
+    ],
+    [
+      "80",
+      "70"
+    ],
+    [
+      "다른 변경:성공\n잔액:105",
+      "다른 변경:잠금 대기 취소\n잔액:100"
+    ],
+    [
+      "판매:2\n재고:-1",
+      "판매:1\n재고:0"
+    ]
+  ],
+  "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "   a.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);\n   a.setAutoCommit(false);\n   System.out.println(\"첫 조회:\"+value(a));\n   b.createStatement().executeUpdate(\"UPDATE account SET balance=150 WHERE id=1\");\n   System.out.println(\"다시 조회:\"+value(a));\n   a.commit();",
+          "   a.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);\n   a.setAutoCommit(false);\n   System.out.println(\"첫 조회:\"+value(a));\n   b.createStatement().executeUpdate(\"UPDATE account SET balance=150 WHERE id=1\");\n   System.out.println(\"다시 조회:\"+value(a));\n   a.commit();"
+        ]
+      ],
+      "reason": "이전 설정이나 SQL은 요구한 격리·동시 변경 조건을 만족하지 못해요."
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "   Scanner input=new Scanner(System.in);\n   int first=input.nextInt(), second=input.nextInt();\n   int oldA=value(a), oldB=value(b);\n   a.createStatement().executeUpdate(\"UPDATE account SET balance=\"+(oldA-first)+\" WHERE id=1\");\n   b.createStatement().executeUpdate(\"UPDATE account SET balance=balance-\"+second+\" WHERE id=1\");\n   System.out.println(value(a));",
+          "   Scanner input=new Scanner(System.in);\n   int first=input.nextInt(), second=input.nextInt();\n   int oldA=value(a), oldB=value(b);\n   a.createStatement().executeUpdate(\"UPDATE account SET balance=\"+(oldA-first)+\" WHERE id=1\");\n   b.createStatement().executeUpdate(\"UPDATE account SET balance=\"+(oldB-second)+\" WHERE id=1\");\n   System.out.println(value(a));"
+        ]
+      ],
+      "reason": "이전 설정이나 SQL은 요구한 격리·동시 변경 조건을 만족하지 못해요."
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "   a.setAutoCommit(false); b.setAutoCommit(false);\n   try(ResultSet held=a.createStatement().executeQuery(\"SELECT balance FROM account WHERE id=1 FOR UPDATE\")) { held.next(); }\n   b.createStatement().execute(\"SET LOCAL lock_timeout='200ms'\");\n   try {\n    b.createStatement().executeUpdate(\"UPDATE account SET balance=balance+5 WHERE id=1\");\n    b.commit();\n    System.out.println(\"다른 변경:성공\");\n   } catch(SQLException e) {\n    if(!\"55P03\".equals(e.getSQLState())) throw e;\n    b.rollback();\n    System.out.println(\"다른 변경:잠금 대기 취소\");\n   }\n   a.rollback();\n   System.out.println(\"잔액:\"+value(b));\n   b.rollback();",
+          "   a.setAutoCommit(false); b.setAutoCommit(false);\n   try(ResultSet held=a.createStatement().executeQuery(\"SELECT balance FROM account WHERE id=1\")) { held.next(); }\n   b.createStatement().execute(\"SET LOCAL lock_timeout='200ms'\");\n   try {\n    b.createStatement().executeUpdate(\"UPDATE account SET balance=balance+5 WHERE id=1\");\n    b.commit();\n    System.out.println(\"다른 변경:성공\");\n   } catch(SQLException e) {\n    if(!\"55P03\".equals(e.getSQLState())) throw e;\n    b.rollback();\n    System.out.println(\"다른 변경:잠금 대기 취소\");\n   }\n   a.rollback();\n   System.out.println(\"잔액:\"+value(b));\n   b.rollback();"
+        ]
+      ],
+      "reason": "이전 설정이나 SQL은 요구한 격리·동시 변경 조건을 만족하지 못해요."
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "   CyclicBarrier bothRead=new CyclicBarrier(2);\n   ExecutorService pool=Executors.newFixedThreadPool(2);\n   try {\n    Callable<Integer> buy=()->{\n     try(Connection c=open()) {\n      int remaining;\n      try(ResultSet r=c.createStatement().executeQuery(\"SELECT qty FROM stock WHERE id=1\")) { r.next(); remaining=r.getInt(1); }\n      bothRead.await(10,TimeUnit.SECONDS);\n      if(remaining<=0) return 0;\n      return c.createStatement().executeUpdate(\"UPDATE stock SET qty=qty-1 WHERE id=1 AND qty>0\");\n     }\n    };\n    Future<Integer> one=pool.submit(buy), two=pool.submit(buy);\n    System.out.println(\"판매:\"+(one.get(20,TimeUnit.SECONDS)+two.get(20,TimeUnit.SECONDS)));\n    try(ResultSet r=a.createStatement().executeQuery(\"SELECT qty FROM stock WHERE id=1\")) {r.next(); System.out.println(\"재고:\"+r.getInt(1));}\n   } finally {pool.shutdownNow();}",
+          "   CyclicBarrier bothRead=new CyclicBarrier(2);\n   ExecutorService pool=Executors.newFixedThreadPool(2);\n   try {\n    Callable<Integer> buy=()->{\n     try(Connection c=open()) {\n      int remaining;\n      try(ResultSet r=c.createStatement().executeQuery(\"SELECT qty FROM stock WHERE id=1\")) { r.next(); remaining=r.getInt(1); }\n      bothRead.await(10,TimeUnit.SECONDS);\n      if(remaining<=0) return 0;\n      return c.createStatement().executeUpdate(\"UPDATE stock SET qty=qty-1 WHERE id=1\");\n     }\n    };\n    Future<Integer> one=pool.submit(buy), two=pool.submit(buy);\n    System.out.println(\"판매:\"+(one.get(20,TimeUnit.SECONDS)+two.get(20,TimeUnit.SECONDS)));\n    try(ResultSet r=a.createStatement().executeQuery(\"SELECT qty FROM stock WHERE id=1\")) {r.next(); System.out.println(\"재고:\"+r.getInt(1));}\n   } finally {pool.shutdownNow();}"
+        ]
+      ],
+      "reason": "이전 설정이나 SQL은 요구한 격리·동시 변경 조건을 만족하지 못해요."
+    }
+  ],
+  "accept": []
+}

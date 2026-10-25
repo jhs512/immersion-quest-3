@@ -1,0 +1,49 @@
+{
+  "by": "hand",
+  "source_sha256": "615027bd9d95ea28d643d9e150b3718bf70e8e9e9b13f0dfd69925dcf6b53fea",
+  "entry": [
+    {
+      "action": "say",
+      "text": "A와 B가 같은 shared 파일 DB에 메모를 써요. 가게가 다른데 내용이 섞여요.",
+      "target": "text:A와 B가 같은 shared 파일 DB에 메모를 써요. 가게가 다른데 내용이 섞여요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "A와 B에 같은 메모 두 개가 나와요. 두 주소가 같은 파일을 가리켜요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        Scanner in = new Scanner(System.in);\n        String first = in.next(); String second = in.next();\n        String a = \"jdbc:h2:file:./shared\";\n        String b = \"jdbc:h2:file:./shared\";\n        child(a, \"write\", first); child(b, \"write\", second);\n        System.out.println(\"A: \" + child(a, \"read\", \"\"));\n        System.out.println(\"B: \" + child(b, \"read\", \"\"));",
+      "after": "        Scanner in = new Scanner(System.in);\n        String first = in.next(); String second = in.next();\n        String a = \"jdbc:h2:file:./shop-a\";\n        String b = \"jdbc:h2:file:./shop-b\";\n        child(a, \"write\", first); child(b, \"write\", second);\n        System.out.println(\"A: \" + child(a, \"read\", \"\"));\n        System.out.println(\"B: \" + child(b, \"read\", \"\"));",
+      "say": "두 URL이 서로 다른 파일을 가리키도록 고치세요. 실제 쓰기·읽기 코드는 유지하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "A에는 우유, B에는 빵만 나와요. 연결 수가 아니라 저장소 주소로 분리했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 파일 DB도 주소가 같으면 메모가 섞여요. 프로세스가 다르다고 가게 데이터가 분리되지는 않아요.",
+      "target": "text:서로 다른 연결이나 프로세스라고 해서 데이터가 자동으로 분리되지는 않아요. 같은 파일 DB 경로는 같은 저장소예요. 상대 경로는 실습 폴더를 기준으로 해요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}
