@@ -1,4 +1,4 @@
-use molip_quest::{lesson_runner, repository_course::{CourseManifest, Lesson}};
+use molip_quest::repository_course::CourseManifest;
 use serde_json::json;
 
 fn root() -> std::path::PathBuf { env!("CARGO_MANIFEST_DIR").into() }
@@ -6,14 +6,31 @@ fn course() -> CourseManifest {
     CourseManifest::parse(&std::fs::read_to_string(root().join("courses/redesigned-courses/java-backend.json")).unwrap()).unwrap()
 }
 
+// Lessons 27-34, withdrawn from the course on 2026-10-26 by user order. Their lesson repositories, tags and
+// learners' records are kept; the course no longer lists, previews or classifies them.
+const WITHDRAWN: [&str; 8] = ["lsn_0783b508-0383-49ec-85d8-ee33a68eafef", "lsn_c0bd2008-1271-47ec-a3b3-960c6bf9f0e9",
+    "lsn_70a3aa49-0bd6-4cbc-a04b-28ca43e5be18", "lsn_d03b8a15-633a-4860-8ee4-51d266ee4150",
+    "lsn_fc2e0b8b-63f6-4280-b9e9-17703598cb0b", "lsn_2bf46a1f-7613-43b6-90a9-859993baac1f",
+    "lsn_bc56070b-0498-48fe-ac5a-0050080a44c1", "lsn_ca915bbe-766c-42ef-96b8-33c36c57f52a"];
+
+#[test]
+fn withdrawn_lessons_leave_no_listing_preview_or_empty_topic() {
+    let course = course();
+    assert_eq!(course.lessons.len(), 26);
+    assert!(course.lessons.iter().all(|l| l.required && l.track == "basic" && !l.category.is_empty()));
+    let raw = std::fs::read_to_string(root().join("courses/redesigned-courses/java-backend.json")).unwrap();
+    for id in WITHDRAWN { assert!(!raw.contains(id), "{id} still referenced"); }
+    let ids: Vec<_> = course.lessons.iter().map(|l| l.id.clone()).collect();
+    assert_eq!(course.lesson_previews.keys().cloned().collect::<std::collections::BTreeSet<_>>(), ids.iter().cloned().collect());
+    assert!(course.lessons.iter().all(|l| l.prerequisites.iter().all(|p| ids.contains(p))));
+    let used: std::collections::BTreeSet<_> = course.lessons.iter().map(|l| l.category.clone()).collect();
+    assert_eq!(course.categories.iter().map(|c| c.id.clone()).collect::<std::collections::BTreeSet<_>>(), used, "no empty topic group");
+}
+
 #[test]
 fn previews_are_ungraded_metadata_and_old_courses_still_open() {
     let course = course();
-    assert_eq!(course.lessons.len(), 34);
-    assert_eq!(course.lesson_previews.len(), 34);
-    assert_eq!(course.lessons.iter().filter(|l| l.required).count(), 26);
-    assert!(course.lessons[..26].iter().all(|l| l.track == "basic"));
-    assert!(course.lessons.iter().all(|l| !l.category.is_empty()));
+    assert_eq!(course.lesson_previews.len(), 26);
     let mut old = serde_json::to_value(&course).unwrap();
     old.as_object_mut().unwrap().remove("lesson_previews");
     assert!(CourseManifest::parse(&old.to_string()).unwrap().lesson_previews.is_empty());
@@ -23,43 +40,4 @@ fn previews_are_ungraded_metadata_and_old_courses_still_open() {
     let mut invalid = serde_json::to_value(&course).unwrap();
     invalid["lesson_previews"][&course.lessons[0].id]["scenario"] = json!([]);
     assert!(CourseManifest::parse(&invalid.to_string()).is_err());
-}
-
-#[test]
-fn adding_bridges_preserves_old_final_achievement_without_granting_new_answers() {
-    use molip_quest::issue_progress::{self, EventKind, LearningEvent, ProgressKey, StudyMode};
-    let course = course();
-    for reference in &course.lessons[26..] {
-        let key = reference.repository.strip_prefix("jhs512/mq3-lesson-redesigned-").unwrap();
-        let lesson:Lesson=serde_json::from_str(&std::fs::read_to_string(root().join(format!("courses/redesigned/{key}.json"))).unwrap()).unwrap();
-        let final_id=lesson.tasks.last().unwrap().id.clone();
-        let progress_key=ProgressKey{user_id:1,course_id:course.id.clone(),lesson_id:lesson.id.clone()};
-        let mut passed=LearningEvent::new(progress_key.clone(),&format!("{key}-1"),StudyMode::Full,"old",EventKind::Attempt);
-        passed.task_id=Some(final_id.clone());passed.passed=true;
-        let mut completed=LearningEvent::new(progress_key,&format!("{key}-1"),StudyMode::Full,"old",EventKind::Completed);
-        completed.required=vec![final_id.clone()];
-        let events=vec![passed,completed];
-        assert_eq!(issue_progress::learned_tasks(&events,&lesson.revision),[final_id].into_iter().collect());
-        let status=issue_progress::status(&events,&lesson.revision,&lesson.required_tasks());
-        assert!(status.completed && !status.current, "old completion remains; new bridges await real solves");
-        assert_eq!(status.full_completions,1);
-    }
-}
-
-#[tokio::test]
-async fn every_new_bridge_and_existing_final_is_graded_by_the_app_runner() {
-    let course = course();
-    for reference in &course.lessons[26..] {
-        let key = reference.repository.strip_prefix("jhs512/mq3-lesson-redesigned-").unwrap();
-        let raw = std::fs::read_to_string(root().join(format!("courses/redesigned/{key}.json"))).unwrap();
-        let lesson = Lesson::parse(&raw, reference).unwrap();
-        assert_eq!(lesson.tasks.len(), if key == "socket-partial-frames" || key == "node-cpu-offload" {5} else {4}, "{key}");
-        for task in &lesson.tasks {
-            let result = lesson_runner::check(task, &task.solution).await.unwrap();
-            assert!(result.passed, "{key} / {} solution: {}", task.title, serde_json::to_string(&result).unwrap());
-            let wrong = lesson_runner::check(task, &task.starter_code).await.unwrap();
-            assert!(!wrong.passed, "{key} / {} starter accepted", task.title);
-        }
-        eprintln!("{key}: all {} steps pass; starters rejected",lesson.tasks.len());
-    }
 }

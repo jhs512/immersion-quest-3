@@ -87,7 +87,10 @@ class Classification(unittest.TestCase):
                 self.assertTrue(all('category' in v for v in result[course]['lessons'].values()))
                 self.assertEqual(result[course]['lessons']['bash-basics']['category'], 'terminal')
                 self.assertEqual(result[course]['lessons']['vim-basics']['category'], 'terminal')
-                self.assertEqual(result[course]['lessons']['sys-buffer-pool']['category'], 'db')
+                # 2026-10-26: lessons 27-34 were withdrawn; their classification stays only as a record.
+                self.assertEqual(set(data['courses'][course]['withdrawn_lessons']).intersection(keys[course]), set())
+                self.assertNotIn('sys-buffer-pool', result[course]['lessons'])
+                self.assertEqual([c['id'] for c in result[course]['categories']], ['java', 'git', 'terminal', 'frontend'])
             else:
                 self.assertTrue(all(set(v) == {'track'} for v in result[course]['lessons'].values()), 'other course proposals remain unpublished')
             for added in [l['key'] for c in catalog['courses'] if c['key'] == course for l in c['lessons'] if l.get('added_on')]:

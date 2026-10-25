@@ -10,7 +10,7 @@ fn installation_and_upgrade_use_current_three_courses_without_content_downloads_
     else{std::env::set_var("MOLIP_DATA_DIR",directory.path());}
     let github=Github::new();
     for (repository,count) in [
-        ("jhs512/mq3-course-redesigned-java-backend",34),
+        ("jhs512/mq3-course-redesigned-java-backend",26),
         ("jhs512/mq3-course-redesigned-aice-associate",24),
         ("jhs512/mq3-course-redesigned-engineer-practical",30),
     ]{

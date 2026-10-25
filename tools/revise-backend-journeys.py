@@ -98,6 +98,11 @@ def main():
     catalog_path = ROOT / 'tools/redesigned_courses/catalog.json'
     catalog = read(catalog_path)
     java = next(c for c in catalog['courses'] if c['key'] == 'java')
+    # 2026-10-26 user order: lessons 27-34 were withdrawn from the course. Re-authoring them would put
+    # them back into the catalog and the published course, so this one-shot tool now refuses to run.
+    withdrawn = [item['key'] for item in java.get('withdrawn_lessons', []) if item['key'] in STAGES]
+    if withdrawn:
+        raise SystemExit(f'Withdrawn from java-backend; not re-authoring: {", ".join(withdrawn)}')
     classes_path = ROOT / 'tools/redesigned_courses/lesson-classification.json'
     classes = read(classes_path)
     categories = [('java', '자바'), ('git', 'Git'), ('terminal', '터미널 · Bash·Vim'), ('frontend', '화면'),
