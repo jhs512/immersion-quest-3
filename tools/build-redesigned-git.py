@@ -8,6 +8,7 @@ from pathlib import Path
 
 from lesson_prd import content_hash, validate
 from lesson_registry import load_registry
+from narration_review import check_lesson as check_narration_review
 from redesigned_lessons.python_prepared_checks import checker as python_prepared_checker
 from redesigned_lessons.pandas_head_checks import checker as pandas_head_checker
 
@@ -225,6 +226,9 @@ def build(name, check=False):
             if not check:
                 write_changed(cache, expected)
     check_caption_only(name, tasks, caption_only_record())
+    # Meaning review (tools/narration_review.py): the form checks above cannot tell whether a sentence is
+    # true and clear for this step. A changed step needs a fresh review; open findings block the build.
+    check_narration_review(name, steps, authored['tasks'])
     # A sentence reused across many steps is a template, not an explanation of each problem.
     usage = {}
     for task in tasks:

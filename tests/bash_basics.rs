@@ -222,3 +222,21 @@ fn first_memo_accepts_redirection_without_a_space_before_the_operator() {
     assert!(!fresh.check_exercise().unwrap().passed);
     terminal.shutdown().unwrap();
 }
+
+// Step 9 narration says: in notes, the new memo.txt is created inside this folder and the outer memo.txt
+// keeps its text. Check exactly that on the real demonstration workspace, before and after its commands.
+#[test]
+fn step_nine_demo_creates_the_inner_memo_and_keeps_the_outer_one() {
+    let lesson:Lesson=serde_json::from_str(include_str!("../courses/redesigned/bash-basics.json")).unwrap();
+    let task=lesson.tasks.iter().find(|t|t.id=="stp_30c10394-2734-418f-b96a-d257e8b0d6ff").unwrap();
+    let practice=GitPractice::new(task.git_terminal.clone().unwrap().demonstration()).unwrap();
+    let (mut terminal,mut output)=practice.open_terminal().unwrap();until(&practice,&mut terminal,&mut output,|text|text.contains("$ "));
+    let outer=practice.work().join("memo.txt");let inner=practice.work().join("notes/memo.txt");
+    assert_eq!(std::fs::read_to_string(&outer).unwrap(),"첫 메모\n둘째 줄\n");assert!(!inner.exists());
+    play(&practice,&mut terminal,&mut output,&task.narration);
+    assert_eq!(std::fs::read_to_string(&outer).unwrap(),"첫 메모\n둘째 줄\n","the outer memo stays as it was");
+    assert_eq!(std::fs::read_to_string(&inner).unwrap(),"폴더 안 메모\n","the new memo is inside notes");
+    let spoken:Vec<String>=task.narration.iter().filter_map(|a|a["text"].as_str().or(a["say"].as_str()).map(str::to_owned)).collect();
+    assert!(spoken.iter().any(|s|s.contains("notes")&&s.contains("안에")),"narration names the folder the file is created in: {spoken:?}");
+    terminal.shutdown().unwrap();
+}
