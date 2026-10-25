@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_bc56070b-0498-48fe-ac5a-0050080a44c1",
-  "revision": "socket-partial-frames-1",
+  "revision": "socket-partial-frames-2",
   "title": "소켓 서버 · 한 글자만 보낸 연결이 다른 연결을 막지 않게 해요",
   "description": "스레드 하나로 연결을 돌보는 서버예요. 연결 A가 메시지 앞부분만 보내고 멈췄어요. 그 뒤에 B가 완전한 메시지를 보냈는데 B가 2초 동안 응답을 못 받아요.",
   "objectives": [
@@ -23,12 +23,36 @@
       "units": [
         {
           "id": "unt_7a61ddf1-c76f-46ae-86f9-0ddfacc468f5",
-          "title": "최종 문제",
+          "title": "작은 실습에서 마지막 도전으로",
           "objectives": [
             "실제 루프백 소켓에서 부분 프레임과 완전한 프레임을 섞어 보내요."
           ],
           "premise": "스레드 하나로 연결을 돌보는 서버예요. 연결 A가 메시지 앞부분만 보내고 멈췄어요. 그 뒤에 B가 완전한 메시지를 보냈는데 B가 2초 동안 응답을 못 받아요.",
           "steps": [
+            {
+              "id": "stp_1729c4b6-9cd1-4d61-bf36-9dc43acf6695",
+              "objectives": [
+                "이 프로토콜은 줄바꿈으로 메시지를 마쳐요. 한 글자만 받았을 때 완성 여부를 판단하세요."
+              ]
+            },
+            {
+              "id": "stp_fcccdc42-0582-414b-9c0b-0be7b54c3b4d",
+              "objectives": [
+                "처음 받은 앞부분을 보관했어요. 다음 수신 내용을 붙여 메시지를 완성하세요."
+              ]
+            },
+            {
+              "id": "stp_2c278550-4717-4b5b-8815-81f62b40162e",
+              "objectives": [
+                "A는 앞부분만 보냈어요. B가 보낸 자료를 B의 보관함에 넣으세요."
+              ]
+            },
+            {
+              "id": "stp_6f1e1f10-7fc4-4cc6-9813-73d0f7c3d1f1",
+              "objectives": [
+                "실제 클라이언트가 한 줄을 보냈어요. 첫 바이트만 읽는 부분을 한 줄을 읽도록 고치세요."
+              ]
+            },
             {
               "id": "stp_175ff67d-536a-4a77-9b17-3c167fd8675d",
               "objectives": [
@@ -41,6 +65,384 @@
     }
   ],
   "tasks": [
+    {
+      "id": "stp_1729c4b6-9cd1-4d61-bf36-9dc43acf6695",
+      "title": "메시지의 끝을 구분해요",
+      "question": "이 프로토콜은 줄바꿈으로 메시지를 마쳐요. 한 글자만 받았을 때 완성 여부를 판단하세요.",
+      "goal": "이 프로토콜은 줄바꿈으로 메시지를 마쳐요. 한 글자만 받았을 때 완성 여부를 판단하세요.\n\n문자열을 받는 과정의 교육용 모형이에요. 아직 실제 소켓을 열지 않아요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `!received.isEmpty()` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "java",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    String received = \"A\" + VALUE;\n    boolean complete = !received.isEmpty();\n    System.out.println(\"완성 \" + complete + \", 받은 값 \" + received);\n}\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    String received = \"A\" + VALUE;\n    boolean complete = received.contains(\"\\n\");\n    System.out.println(\"완성 \" + complete + \", 받은 값 \" + received);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "완성 false, 받은 값 A6\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "완성 false, 받은 값 A7\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "완성 false, 받은 값 A9\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "문자열을 받는 과정의 교육용 모형이에요. 아직 실제 소켓을 열지 않아요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "완성 true, 받은 값 A6",
+                  "facts": {
+                    "출력": "완성 true, 받은 값 A6"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "이 프로토콜은 줄바꿈으로 메시지를 마쳐요. 한 글자만 받았을 때 완성 여부를 판단하세요.",
+          "target": "text:이 프로토콜은 줄바꿈으로 메시지를 마쳐요. 한 글자만 받았을 때 완성 여부를 판단하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 완성 true, 받은 값 A6예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "!received.isEmpty() 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:!received.isEmpty()"
+        },
+        {
+          "action": "patch_code",
+          "before": "!received.isEmpty()",
+          "after": "received.contains(\"\\n\")",
+          "say": "received.contains(\"\\n\")로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "받은 글자가 있어도 줄바꿈이 없어서 완성된 메시지는 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_fcccdc42-0582-414b-9c0b-0be7b54c3b4d",
+      "title": "앞부분과 뒷부분을 이어 붙여요",
+      "question": "처음 받은 앞부분을 보관했어요. 다음 수신 내용을 붙여 메시지를 완성하세요.",
+      "goal": "처음 받은 앞부분을 보관했어요. 다음 수신 내용을 붙여 메시지를 완성하세요.\n\n문자열을 받는 과정의 교육용 모형이에요. 아직 실제 소켓을 열지 않아요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `pending = chunk;` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "java",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    String pending = \"A\";\n    String chunk = VALUE + \"\\n\";\n    pending = chunk;\n    System.out.print(\"메시지 \" + pending);\n}\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    String pending = \"A\";\n    String chunk = VALUE + \"\\n\";\n    pending += chunk;\n    System.out.print(\"메시지 \" + pending);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "메시지 A6\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "메시지 A7\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "메시지 A9\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "문자열을 받는 과정의 교육용 모형이에요. 아직 실제 소켓을 열지 않아요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "메시지 6",
+                  "facts": {
+                    "출력": "메시지 6"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "처음 받은 앞부분을 보관했어요. 다음 수신 내용을 붙여 메시지를 완성하세요.",
+          "target": "text:처음 받은 앞부분을 보관했어요. 다음 수신 내용을 붙여 메시지를 완성하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 메시지 6예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "pending = chunk; 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:pending = chunk;"
+        },
+        {
+          "action": "patch_code",
+          "before": "pending = chunk;",
+          "after": "pending += chunk;",
+          "say": "pending += chunk;로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "처음 받은 A가 남아 있어요. 수신 호출을 새 메시지의 시작으로 취급하지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_2c278550-4717-4b5b-8815-81f62b40162e",
+      "title": "연결별로 앞부분을 보관해요",
+      "question": "A는 앞부분만 보냈어요. B가 보낸 자료를 B의 보관함에 넣으세요.",
+      "goal": "A는 앞부분만 보냈어요. B가 보낸 자료를 B의 보관함에 넣으세요.\n\n문자열을 받는 과정의 교육용 모형이에요. 아직 실제 소켓을 열지 않아요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `pending.put(\"A\", \"B\" + VALUE` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "java",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    var pending = new java.util.TreeMap<String, String>();\n    pending.put(\"A\", \"A\");\n    pending.put(\"A\", \"B\" + VALUE + \"\\n\");\n    System.out.println(\"A \" + pending.get(\"A\"));\n    System.out.println(\"B \" + pending.get(\"B\"));\n}\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    var pending = new java.util.TreeMap<String, String>();\n    pending.put(\"A\", \"A\");\n    pending.put(\"B\", \"B\" + VALUE + \"\\n\");\n    System.out.println(\"A \" + pending.get(\"A\"));\n    System.out.println(\"B \" + pending.get(\"B\"));\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "A A\nB B6\n\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "A A\nB B7\n\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "A A\nB B9\n\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "문자열을 받는 과정의 교육용 모형이에요. 아직 실제 소켓을 열지 않아요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "A B6",
+                  "facts": {
+                    "출력": "A B6"
+                  }
+                },
+                {
+                  "caption": "B null",
+                  "facts": {
+                    "출력": "B null"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "A는 앞부분만 보냈어요. B가 보낸 자료를 B의 보관함에 넣으세요.",
+          "target": "text:A는 앞부분만 보냈어요. B가 보낸 자료를 B의 보관함에 넣으세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 A B6. B null예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "pending.put(\"A\", \"B\" + VALUE 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:pending.put(\"A\", \"B\" + VALUE"
+        },
+        {
+          "action": "patch_code",
+          "before": "pending.put(\"A\", \"B\" + VALUE",
+          "after": "pending.put(\"B\", \"B\" + VALUE",
+          "say": "pending.put(\"B\", \"B\" + VALUE로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "A의 앞부분과 B의 메시지를 구분했어요. 다음 문제에서는 실제 소켓에서 보낸 한 줄을 읽어요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_6f1e1f10-7fc4-4cc6-9813-73d0f7c3d1f1",
+      "title": "실제 연결에서 한 줄을 읽어요",
+      "question": "실제 클라이언트가 한 줄을 보냈어요. 첫 바이트만 읽는 부분을 한 줄을 읽도록 고치세요.",
+      "goal": "실제 클라이언트가 한 줄을 보냈어요. 첫 바이트만 읽는 부분을 한 줄을 읽도록 고치세요.\n\n실제 소켓을 127.0.0.1의 동적 포트에서 열어요. 연결과 서버는 이 실행이 끝날 때 닫아요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `Integer.toString(peer.getInputStream().read())` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "java",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    try (var server = new java.net.ServerSocket(0, 1, java.net.InetAddress.getByName(\"127.0.0.1\"))) {\n        try (var client = new java.net.Socket(\"127.0.0.1\", server.getLocalPort())) {\n            client.getOutputStream().write((\"A\" + VALUE + \"\\n\").getBytes(java.nio.charset.StandardCharsets.UTF_8));\n            try (var peer = server.accept()) {\n                String message = Integer.toString(peer.getInputStream().read());\n                System.out.println(\"받은 메시지 \" + message);\n            }\n        }\n    } catch (Exception error) { throw new RuntimeException(error); }\n}\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    try (var server = new java.net.ServerSocket(0, 1, java.net.InetAddress.getByName(\"127.0.0.1\"))) {\n        try (var client = new java.net.Socket(\"127.0.0.1\", server.getLocalPort())) {\n            client.getOutputStream().write((\"A\" + VALUE + \"\\n\").getBytes(java.nio.charset.StandardCharsets.UTF_8));\n            try (var peer = server.accept()) {\n                String message = new java.io.BufferedReader(new java.io.InputStreamReader(peer.getInputStream(), java.nio.charset.StandardCharsets.UTF_8)).readLine();\n                System.out.println(\"받은 메시지 \" + message);\n            }\n        }\n    } catch (Exception error) { throw new RuntimeException(error); }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "받은 메시지 A6\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "받은 메시지 A7\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "받은 메시지 A9\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "실제 소켓을 127.0.0.1의 동적 포트에서 열어요. 연결과 서버는 이 실행이 끝날 때 닫아요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "받은 메시지 65",
+                  "facts": {
+                    "출력": "받은 메시지 65"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "실제 클라이언트가 한 줄을 보냈어요. 첫 바이트만 읽는 부분을 한 줄을 읽도록 고치세요.",
+          "target": "text:실제 클라이언트가 한 줄을 보냈어요. 첫 바이트만 읽는 부분을 한 줄을 읽도록 고치세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 받은 메시지 65예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "Integer.toString(peer.getInputStream().read()) 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:Integer.toString(peer.getInputStream().read())"
+        },
+        {
+          "action": "patch_code",
+          "before": "Integer.toString(peer.getInputStream().read())",
+          "after": "new java.io.BufferedReader(new java.io.InputStreamReader(peer.getInputStream(), java.nio.charset.StandardCharsets.UTF_8)).readLine()",
+          "say": "new java.io.BufferedReader(new java.io.InputStreamReader(peer.getInputStream(), java.nio.charset.StandardCharsets.UTF_8)).readLine()로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "한 바이트의 수 대신 보낸 한 줄을 읽었어요. 이 클라이언트는 이미 줄 전체를 보냈어요. 다음 도전에서 앞부분만 보낸 연결을 추가해요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
     {
       "id": "stp_175ff67d-536a-4a77-9b17-3c167fd8675d",
       "title": "한 글자만 보낸 연결이 다른 연결을 막지 않게 해요",

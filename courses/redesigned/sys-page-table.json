@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_c0bd2008-1271-47ec-a3b3-960c6bf9f0e9",
-  "revision": "sys-page-table-1",
+  "revision": "sys-page-table-2",
   "title": "가상 메모리 · 같은 주소가 프로세스마다 다른 곳을 가리켜요",
   "description": "프로세스 A의 가상 주소 18과 20은 같은 페이지의 다른 바이트인데 같은 물리 주소로 겹쳐요. A와 B의 가상 주소 5는 물리 주소가 달라야 해요.",
   "objectives": [
@@ -23,12 +23,30 @@
       "units": [
         {
           "id": "unt_08fc32fc-3c6f-41f1-b34b-a2fb3f5ff75b",
-          "title": "최종 문제",
+          "title": "작은 실습에서 마지막 도전으로",
           "objectives": [
             "프로세스마다 다른 페이지 테이블과 공유 프레임, 폴트를 한 번에 비교해요."
           ],
           "premise": "프로세스 A의 가상 주소 18과 20은 같은 페이지의 다른 바이트인데 같은 물리 주소로 겹쳐요. A와 B의 가상 주소 5는 물리 주소가 달라야 해요.",
           "steps": [
+            {
+              "id": "stp_b8f51bc5-864c-415d-a65a-13c8a18c6c30",
+              "objectives": [
+                "한 페이지는 4바이트예요. 주소 VALUE의 페이지 안 위치를 구하세요."
+              ]
+            },
+            {
+              "id": "stp_360ad726-e7c3-4e28-b4bb-f7ba537730ca",
+              "objectives": [
+                "가상 페이지가 물리 프레임 3에 연결돼 있어요. 페이지 안 위치를 유지해 주소를 구하세요."
+              ]
+            },
+            {
+              "id": "stp_4b424b25-7da6-42ee-8ddd-abd72cdbc922",
+              "objectives": [
+                "표의 1번 페이지만 연결돼 있어요. VALUE가 그 밖을 가리키면 폴트라고 출력하세요."
+              ]
+            },
             {
               "id": "stp_5ad7dca8-a629-400c-a6cb-474a22043e9e",
               "objectives": [
@@ -41,6 +59,285 @@
     }
   ],
   "tasks": [
+    {
+      "id": "stp_b8f51bc5-864c-415d-a65a-13c8a18c6c30",
+      "title": "주소를 두 부분으로 나눠요",
+      "question": "한 페이지는 4바이트예요. 주소 VALUE의 페이지 안 위치를 구하세요.",
+      "goal": "한 페이지는 4바이트예요. 주소 VALUE의 페이지 안 위치를 구하세요.\n\n아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `offset = VALUE / 4` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "java",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    int page = VALUE / 4;\n    int offset = VALUE / 4;\n    System.out.println(\"페이지 \" + page + \", 위치 \" + offset);\n}\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    int page = VALUE / 4;\n    int offset = VALUE % 4;\n    System.out.println(\"페이지 \" + page + \", 위치 \" + offset);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "페이지 1, 위치 2\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "페이지 1, 위치 3\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "페이지 2, 위치 1\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "페이지 1, 위치 1",
+                  "facts": {
+                    "출력": "페이지 1, 위치 1"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "한 페이지는 4바이트예요. 주소 VALUE의 페이지 안 위치를 구하세요.",
+          "target": "text:한 페이지는 4바이트예요. 주소 VALUE의 페이지 안 위치를 구하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 페이지 1, 위치 1예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "offset = VALUE / 4 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:offset = VALUE / 4"
+        },
+        {
+          "action": "patch_code",
+          "before": "offset = VALUE / 4",
+          "after": "offset = VALUE % 4",
+          "say": "offset = VALUE % 4로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "몫은 페이지 번호이고 나머지는 페이지 안 위치예요. 두 값은 역할이 달라요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_360ad726-e7c3-4e28-b4bb-f7ba537730ca",
+      "title": "페이지를 프레임에 연결해요",
+      "question": "가상 페이지가 물리 프레임 3에 연결돼 있어요. 페이지 안 위치를 유지해 주소를 구하세요.",
+      "goal": "가상 페이지가 물리 프레임 3에 연결돼 있어요. 페이지 안 위치를 유지해 주소를 구하세요.\n\n아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `physical = frame * 4;` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "java",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    int frame = 3;\n    int offset = VALUE % 4;\n    int physical = frame * 4;\n    System.out.println(\"물리 주소 \" + physical);\n}\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    int frame = 3;\n    int offset = VALUE % 4;\n    int physical = frame * 4 + offset;\n    System.out.println(\"물리 주소 \" + physical);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "물리 주소 14\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "물리 주소 15\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "물리 주소 13\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "물리 주소 12",
+                  "facts": {
+                    "출력": "물리 주소 12"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "가상 페이지가 물리 프레임 3에 연결돼 있어요. 페이지 안 위치를 유지해 주소를 구하세요.",
+          "target": "text:가상 페이지가 물리 프레임 3에 연결돼 있어요. 페이지 안 위치를 유지해 주소를 구하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 물리 주소 12예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "physical = frame * 4; 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:physical = frame * 4;"
+        },
+        {
+          "action": "patch_code",
+          "before": "physical = frame * 4;",
+          "after": "physical = frame * 4 + offset;",
+          "say": "physical = frame * 4 + offset;로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "프레임의 시작에 페이지 안 위치가 더해졌어요. 같은 페이지의 다른 바이트를 구분할 수 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_4b424b25-7da6-42ee-8ddd-abd72cdbc922",
+      "title": "연결 없는 페이지를 구분해요",
+      "question": "표의 1번 페이지만 연결돼 있어요. VALUE가 그 밖을 가리키면 폴트라고 출력하세요.",
+      "goal": "표의 1번 페이지만 연결돼 있어요. VALUE가 그 밖을 가리키면 폴트라고 출력하세요.\n\n아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `frame == 0` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "java",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 9;\n\nvoid main() {\n    int[] table = {-1, 3, -1};\n    int frame = table[VALUE / 4];\n    System.out.println(frame == 0 ? \"폴트\" : \"프레임 \" + frame);\n}\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 9;\n\nvoid main() {\n    int[] table = {-1, 3, -1};\n    int frame = table[VALUE / 4];\n    System.out.println(frame == -1 ? \"폴트\" : \"프레임 \" + frame);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "폴트\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "프레임 3\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "폴트\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "프레임 -1",
+                  "facts": {
+                    "출력": "프레임 -1"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "표의 1번 페이지만 연결돼 있어요. VALUE가 그 밖을 가리키면 폴트라고 출력하세요.",
+          "target": "text:표의 1번 페이지만 연결돼 있어요. VALUE가 그 밖을 가리키면 폴트라고 출력하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 프레임 -1예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "frame == 0 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:frame == 0"
+        },
+        {
+          "action": "patch_code",
+          "before": "frame == 0",
+          "after": "frame == -1",
+          "say": "frame == -1로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "미연결 표시는 프레임 번호와 구분해요. 다음 문제에서는 프로세스마다 다른 표도 함께 다뤄요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
     {
       "id": "stp_5ad7dca8-a629-400c-a6cb-474a22043e9e",
       "title": "같은 주소가 프로세스마다 다른 곳을 가리켜요",

@@ -25,6 +25,25 @@ pub struct CourseManifest {
     /// Optional topic categories in display order (crate::lesson_categories). Absent = flat lesson list.
     #[serde(default,skip_serializing_if="Vec::is_empty")]
     pub categories: Vec<crate::lesson_categories::LessonCategory>,
+    /// Editorial introductions, separate from graded tasks and learning events.
+    #[serde(default,skip_serializing_if="BTreeMap::is_empty")]
+    pub lesson_previews: BTreeMap<String, LessonPreview>,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+pub struct LessonPreview {
+    pub learn: Vec<String>,
+    pub challenge: String,
+    pub scenario: Vec<String>,
+    pub constraints: Vec<String>,
+    pub question: String,
+}
+impl LessonPreview {
+    fn valid(&self) -> bool {
+        let text = |s:&str| !s.trim().is_empty() && s.len() <= 2000;
+        let list = |xs:&Vec<String>| !xs.is_empty() && xs.len() <= 8 && xs.iter().all(|s| text(s));
+        list(&self.learn) && text(&self.challenge) && list(&self.scenario)
+            && list(&self.constraints) && text(&self.question)
+    }
 }
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 pub struct LessonRef {
@@ -266,6 +285,9 @@ impl CourseManifest {
             if !ids.insert(l.id.clone()) || l.id.is_empty() || l.title.is_empty() || !valid_repository(&l.repository) || l.revision.is_empty() || l.revision.contains(['/', '\\', '?','#']) || l.sha256.len()!=64 || !l.sha256.bytes().all(|c|c.is_ascii_hexdigit()) { return Err("수업 참조와 버전·해시를 확인하세요.".into()); }
         }
         if course.lessons.iter().any(|l| l.prerequisites.iter().any(|p| !ids.contains(p) || *p==l.id)) { return Err("선수 수업 ID를 확인하세요.".into()); }
+        if course.lesson_previews.iter().any(|(id,preview)| !ids.contains(id) || !preview.valid()) {
+            return Err("수업 예고의 대상과 내용을 확인하세요.".into());
+        }
         Ok(course)
     }
 }

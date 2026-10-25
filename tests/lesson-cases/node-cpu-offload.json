@@ -3,13 +3,29 @@
   "lesson": "courses/redesigned/node-cpu-offload.json",
   "expected_outputs": [
     [
+      "ping -> 계산 6",
+      "계산 6 -> ping"
+    ],
+    [
+      "계산 6 -> ping",
+      "ping -> 계산 6"
+    ],
+    [
+      "합계 15\nping",
+      "합계 21\nping"
+    ],
+    [
+      "계산 결과 0",
+      "계산 결과 12"
+    ],
+    [
       "요청 | heavy memo\n요청 | ping\n응답 | heavy 검산 일치\n응답 | ping\nping이 heavy보다 먼저 응답 아니요, 만든 worker 0개",
       "요청 | heavy memo\n요청 | ping\n응답 | ping\nworker | 계산 끝 검증 문이 열린 뒤 보냄\n응답 | heavy 검산 일치\nping이 heavy보다 먼저 응답 예, 만든 worker 1개"
     ]
   ],
   "reject": [
     {
-      "step": 1,
+      "step": 5,
       "replacements": [
         [
           "    return runInPool(text, ROUNDS);",
@@ -19,7 +35,7 @@
       "reason": "한 번 await해도 이어지는 계산은 같은 main 스레드에서 ping보다 먼저 돌아요."
     },
     {
-      "step": 1,
+      "step": 5,
       "replacements": [
         [
           "    return runInPool(text, ROUNDS);",

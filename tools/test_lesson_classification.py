@@ -63,7 +63,7 @@ class Classification(unittest.TestCase):
         with self.assertRaises(ValueError):
             run({'courses': {'other': {'categories': [], 'lessons': {}}}})
 
-    def test_repository_source_keeps_proposals_and_applies_only_the_basic_decision(self):
+    def test_repository_source_applies_backend_topics_and_preserves_the_basic_decision(self):
         catalog = json.loads((ROOT / 'tools/redesigned_courses/catalog.json').read_text(encoding='utf-8'))
         data = json.loads(bundle.CLASSIFICATION.read_text(encoding='utf-8'))
         result = bundle.classification(catalog)
@@ -82,9 +82,16 @@ class Classification(unittest.TestCase):
         for course in keys:
             basic = set(decision['lessons'].get(course, []))
             self.assertEqual({k for k, v in result[course]['lessons'].items() if v.get('track') == 'basic'}, basic)
-            self.assertTrue(all(set(v) == {'track'} for v in result[course]['lessons'].values()), 'no category is approved')
+            if course == 'java':
+                self.assertEqual(set(result[course]['lessons']), keys[course])
+                self.assertTrue(all('category' in v for v in result[course]['lessons'].values()))
+                self.assertEqual(result[course]['lessons']['bash-basics']['category'], 'terminal')
+                self.assertEqual(result[course]['lessons']['vim-basics']['category'], 'terminal')
+                self.assertEqual(result[course]['lessons']['sys-buffer-pool']['category'], 'db')
+            else:
+                self.assertTrue(all(set(v) == {'track'} for v in result[course]['lessons'].values()), 'other course proposals remain unpublished')
             for added in [l['key'] for c in catalog['courses'] if c['key'] == course for l in c['lessons'] if l.get('added_on')]:
-                self.assertNotIn(added, result[course]['lessons'], f'{added}: added later, no approved track')
+                self.assertNotIn('track', result[course]['lessons'].get(added, {}), f'{added}: added later, no approved track')
 
 
 if __name__ == '__main__':

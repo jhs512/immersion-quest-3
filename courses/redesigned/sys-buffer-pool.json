@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_70a3aa49-0bd6-4cbc-a04b-28ca43e5be18",
-  "revision": "sys-buffer-pool-1",
+  "revision": "sys-buffer-pool-2",
   "title": "DB 버퍼 풀 · 사용 중인 페이지는 내보내지 않아요",
   "description": "프레임 3칸의 버퍼 풀이에요. 1번 페이지를 고정해 쓰는 중인데 새 페이지를 읽을 때 1번이 쫓겨나요.",
   "objectives": [
@@ -23,12 +23,30 @@
       "units": [
         {
           "id": "unt_26a517ac-70f7-4837-8ffc-ada88f18ecdd",
-          "title": "최종 문제",
+          "title": "작은 실습에서 마지막 도전으로",
           "objectives": [
             "적중·미스·퇴출을 따라가며 고정된 페이지를 내보내는 오류를 고쳐요."
           ],
           "premise": "프레임 3칸의 버퍼 풀이에요. 1번 페이지를 고정해 쓰는 중인데 새 페이지를 읽을 때 1번이 쫓겨나요.",
           "steps": [
+            {
+              "id": "stp_1d8dcd15-abe4-4b06-a2e8-99b076356680",
+              "objectives": [
+                "버퍼의 한 칸에 VALUE번 페이지가 있어요. 같은 페이지를 다시 읽을 때 적중 여부를 구하세요."
+              ]
+            },
+            {
+              "id": "stp_ac717ead-53d2-4bd5-a1ce-e74ee931b589",
+              "objectives": [
+                "첫 칸은 사용 중이고 둘째 칸은 비어 있지 않지만 사용 중이 아니에요. 교체할 칸을 찾으세요."
+              ]
+            },
+            {
+              "id": "stp_ecc182a2-3ff2-4d79-9e80-680edda13086",
+              "objectives": [
+                "VALUE번 페이지를 메모리에서 수정했어요. 내보내기 전에 디스크 쓰기가 필요한지 구하세요."
+              ]
+            },
             {
               "id": "stp_38689e44-7408-439c-9816-db7114734e7b",
               "objectives": [
@@ -41,6 +59,285 @@
     }
   ],
   "tasks": [
+    {
+      "id": "stp_1d8dcd15-abe4-4b06-a2e8-99b076356680",
+      "title": "이미 적재한 페이지를 찾아요",
+      "question": "버퍼의 한 칸에 VALUE번 페이지가 있어요. 같은 페이지를 다시 읽을 때 적중 여부를 구하세요.",
+      "goal": "버퍼의 한 칸에 VALUE번 페이지가 있어요. 같은 페이지를 다시 읽을 때 적중 여부를 구하세요.\n\n아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `loaded != requested` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "java",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    int loaded = VALUE;\n    int requested = VALUE;\n    boolean hit = loaded != requested;\n    System.out.println(\"적중 \" + hit + \", 페이지 \" + requested);\n}\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    int loaded = VALUE;\n    int requested = VALUE;\n    boolean hit = loaded == requested;\n    System.out.println(\"적중 \" + hit + \", 페이지 \" + requested);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "적중 true, 페이지 6\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "적중 true, 페이지 7\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "적중 true, 페이지 9\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "적중 false, 페이지 6",
+                  "facts": {
+                    "출력": "적중 false, 페이지 6"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "버퍼의 한 칸에 VALUE번 페이지가 있어요. 같은 페이지를 다시 읽을 때 적중 여부를 구하세요.",
+          "target": "text:버퍼의 한 칸에 VALUE번 페이지가 있어요. 같은 페이지를 다시 읽을 때 적중 여부를 구하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 적중 false, 페이지 6예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "loaded != requested 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:loaded != requested"
+        },
+        {
+          "action": "patch_code",
+          "before": "loaded != requested",
+          "after": "loaded == requested",
+          "say": "loaded == requested로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "요청한 페이지가 이미 들어 있어요. 다음에는 다른 페이지가 들어올 때 빈 공간을 살펴봐요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_ac717ead-53d2-4bd5-a1ce-e74ee931b589",
+      "title": "사용 중인 칸을 후보에서 빼요",
+      "question": "첫 칸은 사용 중이고 둘째 칸은 비어 있지 않지만 사용 중이 아니에요. 교체할 칸을 찾으세요.",
+      "goal": "첫 칸은 사용 중이고 둘째 칸은 비어 있지 않지만 사용 중이 아니에요. 교체할 칸을 찾으세요.\n\n아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `if (pinned[i])` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "java",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    boolean[] pinned = {true, false};\n    int candidate = -1;\n    for (int i = 0; i < pinned.length; i++) {\n        if (pinned[i]) { candidate = i; break; }\n    }\n    System.out.println(\"교체 칸 \" + candidate + \", 새 페이지 \" + VALUE);\n}\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    boolean[] pinned = {true, false};\n    int candidate = -1;\n    for (int i = 0; i < pinned.length; i++) {\n        if (!pinned[i]) { candidate = i; break; }\n    }\n    System.out.println(\"교체 칸 \" + candidate + \", 새 페이지 \" + VALUE);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "교체 칸 1, 새 페이지 6\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "교체 칸 1, 새 페이지 7\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "교체 칸 1, 새 페이지 9\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "교체 칸 0, 새 페이지 6",
+                  "facts": {
+                    "출력": "교체 칸 0, 새 페이지 6"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "첫 칸은 사용 중이고 둘째 칸은 비어 있지 않지만 사용 중이 아니에요. 교체할 칸을 찾으세요.",
+          "target": "text:첫 칸은 사용 중이고 둘째 칸은 비어 있지 않지만 사용 중이 아니에요. 교체할 칸을 찾으세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 교체 칸 0, 새 페이지 6예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "if (pinned[i]) 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:if (pinned[i])"
+        },
+        {
+          "action": "patch_code",
+          "before": "if (pinned[i])",
+          "after": "if (!pinned[i])",
+          "say": "if (!pinned[i])로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "사용 중이 아닌 칸을 골랐어요. 오래된 순서만으로 고르면 사용 중인 페이지를 잃을 수 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_ecc182a2-3ff2-4d79-9e80-680edda13086",
+      "title": "수정한 페이지를 내보내요",
+      "question": "VALUE번 페이지를 메모리에서 수정했어요. 내보내기 전에 디스크 쓰기가 필요한지 구하세요.",
+      "goal": "VALUE번 페이지를 메모리에서 수정했어요. 내보내기 전에 디스크 쓰기가 필요한지 구하세요.\n\n아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `if (!dirty)` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "java",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    boolean dirty = true;\n    int writes = 0;\n    if (!dirty) writes++;\n    System.out.println(\"페이지 \" + VALUE + \", 디스크 쓰기 \" + writes);\n}\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    boolean dirty = true;\n    int writes = 0;\n    if (dirty) writes++;\n    System.out.println(\"페이지 \" + VALUE + \", 디스크 쓰기 \" + writes);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "페이지 6, 디스크 쓰기 1\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "페이지 7, 디스크 쓰기 1\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "페이지 9, 디스크 쓰기 1\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "페이지 6, 디스크 쓰기 0",
+                  "facts": {
+                    "출력": "페이지 6, 디스크 쓰기 0"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "VALUE번 페이지를 메모리에서 수정했어요. 내보내기 전에 디스크 쓰기가 필요한지 구하세요.",
+          "target": "text:VALUE번 페이지를 메모리에서 수정했어요. 내보내기 전에 디스크 쓰기가 필요한지 구하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 페이지 6, 디스크 쓰기 0예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "if (!dirty) 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:if (!dirty)"
+        },
+        {
+          "action": "patch_code",
+          "before": "if (!dirty)",
+          "after": "if (dirty)",
+          "say": "if (dirty)로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "수정한 페이지를 내보낼 때 쓰기 횟수가 늘었어요. 이 모형은 실제 DB 장애 복구까지 증명하지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
     {
       "id": "stp_38689e44-7408-439c-9816-db7114734e7b",
       "title": "사용 중인 페이지는 내보내지 않아요",

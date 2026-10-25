@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_fc2e0b8b-63f6-4280-b9e9-17703598cb0b",
-  "revision": "sys-interpreter-env-1",
+  "revision": "sys-interpreter-env-2",
   "title": "인터프리터 · 바꾼 값은 이름을 만든 환경에 남아요",
   "description": "작은 언어의 블록 안에서 count를 1 올렸는데 블록이 끝나자 다시 0이 돼요. 정의하지 않은 이름에 대입해도 오류가 없어요.",
   "objectives": [
@@ -23,12 +23,30 @@
       "units": [
         {
           "id": "unt_d00569a9-9435-4ac7-9011-109e81a6b675",
-          "title": "최종 문제",
+          "title": "작은 실습에서 마지막 도전으로",
           "objectives": [
             "블록 환경·가린 이름·정의 없는 이름을 실행 기록으로 비교해요."
           ],
           "premise": "작은 언어의 블록 안에서 count를 1 올렸는데 블록이 끝나자 다시 0이 돼요. 정의하지 않은 이름에 대입해도 오류가 없어요.",
           "steps": [
+            {
+              "id": "stp_a095ca9f-804a-4c91-808d-542c70f93d92",
+              "objectives": [
+                "작은 언어가 count라는 이름에 VALUE를 넣었어요. 그 이름을 읽어 출력하세요."
+              ]
+            },
+            {
+              "id": "stp_acc1a9ec-22c8-45ea-8370-b7bcee5d4906",
+              "objectives": [
+                "안쪽 환경에는 count가 없고 바깥에는 있어요. 어느 환경을 읽을지 고르세요."
+              ]
+            },
+            {
+              "id": "stp_b233dfe0-3a40-4898-b75e-69b73b92335a",
+              "objectives": [
+                "count는 바깥에서 정의했어요. 안쪽에서 1을 더한 뒤 바깥 값을 확인하세요."
+              ]
+            },
             {
               "id": "stp_2a6595e0-6c58-407c-a612-0fae2ea56dde",
               "objectives": [
@@ -41,6 +59,285 @@
     }
   ],
   "tasks": [
+    {
+      "id": "stp_a095ca9f-804a-4c91-808d-542c70f93d92",
+      "title": "정의한 이름을 읽어요",
+      "question": "작은 언어가 count라는 이름에 VALUE를 넣었어요. 그 이름을 읽어 출력하세요.",
+      "goal": "작은 언어가 count라는 이름에 VALUE를 넣었어요. 그 이름을 읽어 출력하세요.\n\n아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `env.get(\"total\")` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "java",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    var env = new java.util.HashMap<String, Integer>();\n    env.put(\"count\", VALUE);\n    System.out.println(env.get(\"total\"));\n}\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    var env = new java.util.HashMap<String, Integer>();\n    env.put(\"count\", VALUE);\n    System.out.println(env.get(\"count\"));\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "6\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "7\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "9\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "null",
+                  "facts": {
+                    "출력": "null"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "작은 언어가 count라는 이름에 VALUE를 넣었어요. 그 이름을 읽어 출력하세요.",
+          "target": "text:작은 언어가 count라는 이름에 VALUE를 넣었어요. 그 이름을 읽어 출력하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 null예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "env.get(\"total\") 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:env.get(\"total\")"
+        },
+        {
+          "action": "patch_code",
+          "before": "env.get(\"total\")",
+          "after": "env.get(\"count\")",
+          "say": "env.get(\"count\")로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "정의한 이름으로 값을 찾았어요. 아직 바깥 환경이나 대입은 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_acc1a9ec-22c8-45ea-8370-b7bcee5d4906",
+      "title": "안쪽에 없는 이름을 찾아요",
+      "question": "안쪽 환경에는 count가 없고 바깥에는 있어요. 어느 환경을 읽을지 고르세요.",
+      "goal": "안쪽 환경에는 count가 없고 바깥에는 있어요. 어느 환경을 읽을지 고르세요.\n\n아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `inner.getOrDefault(\"count\", 0)` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "java",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    var outer = java.util.Map.of(\"count\", VALUE);\n    var inner = java.util.Map.of(\"temp\", 1);\n    int value = inner.getOrDefault(\"count\", 0);\n    System.out.println(\"count \" + value);\n}\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    var outer = java.util.Map.of(\"count\", VALUE);\n    var inner = java.util.Map.of(\"temp\", 1);\n    int value = inner.getOrDefault(\"count\", outer.get(\"count\"));\n    System.out.println(\"count \" + value);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "count 6\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "count 7\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "count 9\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "count 0",
+                  "facts": {
+                    "출력": "count 0"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "안쪽 환경에는 count가 없고 바깥에는 있어요. 어느 환경을 읽을지 고르세요.",
+          "target": "text:안쪽 환경에는 count가 없고 바깥에는 있어요. 어느 환경을 읽을지 고르세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 count 0예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "inner.getOrDefault(\"count\", 0) 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:inner.getOrDefault(\"count\", 0)"
+        },
+        {
+          "action": "patch_code",
+          "before": "inner.getOrDefault(\"count\", 0)",
+          "after": "inner.getOrDefault(\"count\", outer.get(\"count\"))",
+          "say": "inner.getOrDefault(\"count\", outer.get(\"count\"))로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "안쪽에 없는 이름은 바깥에서 찾았어요. 안쪽에 같은 이름이 있을 때도 구분해야 해요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_b233dfe0-3a40-4898-b75e-69b73b92335a",
+      "title": "대입할 환경을 찾아요",
+      "question": "count는 바깥에서 정의했어요. 안쪽에서 1을 더한 뒤 바깥 값을 확인하세요.",
+      "goal": "count는 바깥에서 정의했어요. 안쪽에서 1을 더한 뒤 바깥 값을 확인하세요.\n\n아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `inner.put(\"count\", outer.get(\"count\") + 1)` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "java",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    var outer = new java.util.HashMap<String, Integer>();\n    var inner = new java.util.HashMap<String, Integer>();\n    outer.put(\"count\", VALUE);\n    inner.put(\"count\", outer.get(\"count\") + 1);\n    System.out.println(\"바깥 count \" + outer.get(\"count\"));\n}\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    var outer = new java.util.HashMap<String, Integer>();\n    var inner = new java.util.HashMap<String, Integer>();\n    outer.put(\"count\", VALUE);\n    outer.put(\"count\", outer.get(\"count\") + 1);\n    System.out.println(\"바깥 count \" + outer.get(\"count\"));\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "바깥 count 7\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "바깥 count 8\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "바깥 count 10\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "바깥 count 6",
+                  "facts": {
+                    "출력": "바깥 count 6"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "count는 바깥에서 정의했어요. 안쪽에서 1을 더한 뒤 바깥 값을 확인하세요.",
+          "target": "text:count는 바깥에서 정의했어요. 안쪽에서 1을 더한 뒤 바깥 값을 확인하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 바깥 count 6예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "inner.put(\"count\", outer.get(\"count\") + 1) 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:inner.put(\"count\", outer.get(\"count\") + 1)"
+        },
+        {
+          "action": "patch_code",
+          "before": "inner.put(\"count\", outer.get(\"count\") + 1)",
+          "after": "outer.put(\"count\", outer.get(\"count\") + 1)",
+          "say": "outer.put(\"count\", outer.get(\"count\") + 1)로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "바깥의 count가 바뀌었어요. 정의와 대입을 같은 동작으로 처리하면 이 차이가 사라져요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
     {
       "id": "stp_2a6595e0-6c58-407c-a612-0fae2ea56dde",
       "title": "바꾼 값은 이름을 만든 환경에 남아요",

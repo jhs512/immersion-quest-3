@@ -3,13 +3,25 @@
   "lesson": "courses/redesigned/sys-buffer-pool.json",
   "expected_outputs": [
     [
+      "적중 false, 페이지 6",
+      "적중 true, 페이지 6"
+    ],
+    [
+      "교체 칸 0, 새 페이지 6",
+      "교체 칸 1, 새 페이지 6"
+    ],
+    [
+      "페이지 6, 디스크 쓰기 0",
+      "페이지 6, 디스크 쓰기 1"
+    ],
+    [
       "요청 W1 | 미스 | 풀 [1]\n요청 P1 | 적중 | 풀 [1 더티]\n요청 R2 | 미스 | 풀 [1 고정 더티][2]\n요청 R3 | 미스 | 풀 [1 고정 더티][2][3]\n요청 R4 | 미스 오류 고정된 1번을 내보냄 쓰기 1번 퇴출 1번 | 풀 [2][3][4]\n요청 U1 | 고정 풀기 | 풀 [2][3][4]\n요청 R5 | 미스 퇴출 2번 | 풀 [3][4][5]\n디스크 읽기 5번, 디스크 쓰기 1번",
       "요청 W1 | 미스 | 풀 [1]\n요청 P1 | 적중 | 풀 [1 더티]\n요청 R2 | 미스 | 풀 [1 고정 더티][2]\n요청 R3 | 미스 | 풀 [1 고정 더티][2][3]\n요청 R4 | 미스 퇴출 2번 | 풀 [1 고정 더티][3][4]\n요청 U1 | 고정 풀기 | 풀 [1 더티][3][4]\n요청 R5 | 미스 쓰기 1번 퇴출 1번 | 풀 [3][4][5]\n디스크 읽기 5번, 디스크 쓰기 1번"
     ]
   ],
   "reject": [
     {
-      "step": 1,
+      "step": 4,
       "replacements": [
         [
           "if (f.pin == 0 && (victim == null || f.lastUsed < victim.lastUsed)) victim = f;",
@@ -19,7 +31,7 @@
       "reason": "고정 여부를 보지 않으면 쓰는 중인 페이지를 내보내요."
     },
     {
-      "step": 1,
+      "step": 4,
       "replacements": [
         [
           "f.lastUsed < victim.lastUsed",
@@ -29,7 +41,7 @@
       "reason": "가장 최근에 쓴 페이지를 내보내면 디스크 읽기가 늘어요(LRU가 아니에요)."
     },
     {
-      "step": 1,
+      "step": 4,
       "replacements": [
         [
           "if (f.pin == 0 && (victim == null || f.lastUsed < victim.lastUsed)) victim = f;",

@@ -22,7 +22,8 @@ fn every_registered_lesson_opens_through_the_real_isolated_transport() {
             if row.key=="git-remote" {assert_eq!(config["studentCommands"].as_array().unwrap().len(),22);}
         }
     }
-    assert_eq!(steps,804);
+    // 804 before the 26 progressive tasks added to lessons 27-34 (2026-10-26).
+    assert_eq!(steps,830);
     assert!(lesson_registry::self_test_script("unknown-course").is_none());
     assert!(pilot_source::set_version('!').is_err());
     pilot_source::set_version('a').unwrap();

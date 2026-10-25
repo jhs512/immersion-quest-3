@@ -2,6 +2,285 @@
   "description": "조각 6개를 창 크기 3으로 보내는 송신자예요. 2번 조각이 처음 보낼 때 사라져요. 송신자는 \"모두 확인받았다\"고 끝내는데 수신자에게는 0번과 1번만 전달됐어요.",
   "tasks": [
     {
+      "id": "stp_c74fde43-a92d-44eb-b9fa-51cbdb2b46f2",
+      "title": "조각 하나의 확인을 읽어요",
+      "question": "확인 번호는 마지막으로 받은 조각 번호예요. 확인 뒤 다음에 보낼 번호를 구하세요.",
+      "goal": "확인 번호는 마지막으로 받은 조각 번호예요. 확인 뒤 다음에 보낼 번호를 구하세요.\n\n아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `next = ack;` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "java",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    int ack = VALUE;\n    int next = ack;\n    System.out.println(\"다음 조각 \" + next);\n}\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    int ack = VALUE;\n    int next = ack + 1;\n    System.out.println(\"다음 조각 \" + next);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "다음 조각 7\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "다음 조각 8\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "다음 조각 10\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "다음 조각 6",
+                  "facts": {
+                    "출력": "다음 조각 6"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "확인 번호는 마지막으로 받은 조각 번호예요. 확인 뒤 다음에 보낼 번호를 구하세요.",
+          "target": "text:확인 번호는 마지막으로 받은 조각 번호예요. 확인 뒤 다음에 보낼 번호를 구하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 다음 조각 6예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "next = ack; 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:next = ack;"
+        },
+        {
+          "action": "patch_code",
+          "before": "next = ack;",
+          "after": "next = ack + 1;",
+          "say": "next = ack + 1;로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "확인한 조각 다음 번호가 출력됐어요. 이미 받은 조각을 다시 새 조각으로 세지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_02d88c86-0292-484e-bedd-7296eb4c6d4d",
+      "title": "중복 확인과 늦은 확인을 비교해요",
+      "question": "이미 VALUE번부터 기다리고 있어요. 더 오래된 확인이 오면 창의 앞을 어디에 둘까요?",
+      "goal": "이미 VALUE번부터 기다리고 있어요. 더 오래된 확인이 오면 창의 앞을 어디에 둘까요?\n\n아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `base = ack + 1;` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "java",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    int base = VALUE;\n    int ack = VALUE - 2;\n    base = ack + 1;\n    System.out.println(\"창의 앞 \" + base);\n}\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    int base = VALUE;\n    int ack = VALUE - 2;\n    base = Math.max(base, ack + 1);\n    System.out.println(\"창의 앞 \" + base);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "창의 앞 6\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "창의 앞 7\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "창의 앞 9\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "창의 앞 5",
+                  "facts": {
+                    "출력": "창의 앞 5"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "이미 VALUE번부터 기다리고 있어요. 더 오래된 확인이 오면 창의 앞을 어디에 둘까요?",
+          "target": "text:이미 VALUE번부터 기다리고 있어요. 더 오래된 확인이 오면 창의 앞을 어디에 둘까요?"
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 창의 앞 5예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "base = ack + 1; 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:base = ack + 1;"
+        },
+        {
+          "action": "patch_code",
+          "before": "base = ack + 1;",
+          "after": "base = Math.max(base, ack + 1);",
+          "say": "base = Math.max(base, ack + 1);로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "늦은 확인을 받아도 창의 앞이 뒤로 가지 않아요. 중복 확인도 같은 기준으로 비교해 보세요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_9cc67e84-76d6-4bcd-b512-7fb83b96594f",
+      "title": "창의 안과 밖을 나눠요",
+      "question": "창의 앞은 VALUE예요. 크기 3인 창에서 새로 보낼 수 있는 번호만 세세요.",
+      "goal": "창의 앞은 VALUE예요. 크기 3인 창에서 새로 보낼 수 있는 번호만 세세요.\n\n아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `next <= base + 3` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "java",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    int base = VALUE;\n    int count = 0;\n    for (int next = base; next <= base + 3; next++) count++;\n    System.out.println(\"보낼 개수 \" + count + \", 마지막 \" + (base + count - 1));\n}\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    int base = VALUE;\n    int count = 0;\n    for (int next = base; next < base + 3; next++) count++;\n    System.out.println(\"보낼 개수 \" + count + \", 마지막 \" + (base + count - 1));\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "보낼 개수 3, 마지막 8\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "보낼 개수 3, 마지막 9\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "보낼 개수 3, 마지막 11\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "보낼 개수 4, 마지막 9",
+                  "facts": {
+                    "출력": "보낼 개수 4, 마지막 9"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "창의 앞은 VALUE예요. 크기 3인 창에서 새로 보낼 수 있는 번호만 세세요.",
+          "target": "text:창의 앞은 VALUE예요. 크기 3인 창에서 새로 보낼 수 있는 번호만 세세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 보낼 개수 4, 마지막 9예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "next <= base + 3 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:next <= base + 3"
+        },
+        {
+          "action": "patch_code",
+          "before": "next <= base + 3",
+          "after": "next < base + 3",
+          "say": "next < base + 3로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "창 크기만큼의 번호만 포함됐어요. 이제 유실과 확인이 섞인 송신자에서 이 경계를 따라가 보세요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
       "id": "stp_b961b82a-a931-4a0d-a695-915840a60618",
       "title": "확인받은 곳까지만 창을 옮겨요",
       "question": "송신자는 끝났다는데 왜 수신자에게 조각 두 개만 갔을까요?",

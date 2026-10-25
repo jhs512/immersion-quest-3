@@ -131,6 +131,9 @@ def build(check=False):
                     '모든 수업은 추천 순서와 관계없이 자유롭게 열 수 있어요.'])])
         if classes.get(key, {}).get('categories'):
             manifest['categories'] = classes[key]['categories']
+        if key == 'java':
+            from redesigned_courses.backend_previews import for_course
+            manifest['lesson_previews'] = for_course(course['lessons'])
         write(ROOT / 'courses/redesigned-courses' / f'{slug}.json', encoded(manifest), check)
         spec = dict(schema_version=1, id=course['id'], title=course['title'],
             objectives=course['objectives'], presentation=course['presentation'], policy_snapshot=course['policy_snapshot'],

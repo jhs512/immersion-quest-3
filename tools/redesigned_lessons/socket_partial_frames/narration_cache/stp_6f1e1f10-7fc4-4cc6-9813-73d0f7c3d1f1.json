@@ -1,0 +1,41 @@
+{
+  "by": "hand",
+  "source_sha256": "9e1adfbb17b082b9b26d0ec2f54b322cba2c6a9c1762cb1120bb9c470b2a5b71",
+  "entry": [
+    {
+      "action": "say",
+      "text": "실제 클라이언트가 한 줄을 보냈어요. 첫 바이트만 읽는 부분을 한 줄을 읽도록 고치세요.",
+      "target": "text:실제 클라이언트가 한 줄을 보냈어요. 첫 바이트만 읽는 부분을 한 줄을 읽도록 고치세요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "지금 출력은 받은 메시지 65예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "Integer.toString(peer.getInputStream().read()) 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+      "target": "code:Integer.toString(peer.getInputStream().read())"
+    },
+    {
+      "action": "patch_code",
+      "before": "Integer.toString(peer.getInputStream().read())",
+      "after": "new java.io.BufferedReader(new java.io.InputStreamReader(peer.getInputStream(), java.nio.charset.StandardCharsets.UTF_8)).readLine()",
+      "say": "new java.io.BufferedReader(new java.io.InputStreamReader(peer.getInputStream(), java.nio.charset.StandardCharsets.UTF_8)).readLine()로 바꿔 비교해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "한 바이트의 수 대신 보낸 한 줄을 읽었어요. 이 클라이언트는 이미 줄 전체를 보냈어요. 다음 도전에서 앞부분만 보낸 연결을 추가해요.",
+      "target": "output"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

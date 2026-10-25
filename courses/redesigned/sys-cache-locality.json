@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_d03b8a15-633a-4860-8ee4-51d266ee4150",
-  "revision": "sys-cache-locality-1",
+  "revision": "sys-cache-locality-2",
   "title": "캐시 · 읽는 순서만 바꿔도 미스가 줄어요",
   "description": "4x8 배열의 합을 구해요. 합계는 맞는데 32번 읽는 동안 매번 미스가 나요.",
   "objectives": [
@@ -23,12 +23,30 @@
       "units": [
         {
           "id": "unt_b1a17dcb-b665-4288-a67c-6347f52b773b",
-          "title": "최종 문제",
+          "title": "작은 실습에서 마지막 도전으로",
           "objectives": [
             "같은 합계를 행 우선·열 우선 순서로 읽고 미스 수를 비교해요."
           ],
           "premise": "4x8 배열의 합을 구해요. 합계는 맞는데 32번 읽는 동안 매번 미스가 나요.",
           "steps": [
+            {
+              "id": "stp_77c6c8d3-b136-44dd-9c31-90818c67ddba",
+              "objectives": [
+                "한 캐시 줄에 값 4개가 들어가요. 주소 VALUE가 속한 줄 번호를 구하세요."
+              ]
+            },
+            {
+              "id": "stp_122657b1-779c-4a41-bc23-740a7ded5847",
+              "objectives": [
+                "VALUE와 VALUE+1을 차례로 읽어요. 같은 줄인지 비교하세요."
+              ]
+            },
+            {
+              "id": "stp_3192a505-136a-4ffe-a62e-a19e8810d199",
+              "objectives": [
+                "너비가 4인 행 우선 배열이에요. 같은 행의 바로 다음 열 주소를 구하세요."
+              ]
+            },
             {
               "id": "stp_ca4e06a7-52ad-4efd-8ec4-fc6cf6357af0",
               "objectives": [
@@ -41,6 +59,285 @@
     }
   ],
   "tasks": [
+    {
+      "id": "stp_77c6c8d3-b136-44dd-9c31-90818c67ddba",
+      "title": "주소가 속한 캐시 줄을 구해요",
+      "question": "한 캐시 줄에 값 4개가 들어가요. 주소 VALUE가 속한 줄 번호를 구하세요.",
+      "goal": "한 캐시 줄에 값 4개가 들어가요. 주소 VALUE가 속한 줄 번호를 구하세요.\n\n아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `line = VALUE % 4` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "java",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    int line = VALUE % 4;\n    System.out.println(\"주소 \" + VALUE + \", 줄 \" + line);\n}\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    int line = VALUE / 4;\n    System.out.println(\"주소 \" + VALUE + \", 줄 \" + line);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "주소 6, 줄 1\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "주소 7, 줄 1\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "주소 9, 줄 2\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "주소 6, 줄 2",
+                  "facts": {
+                    "출력": "주소 6, 줄 2"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "한 캐시 줄에 값 4개가 들어가요. 주소 VALUE가 속한 줄 번호를 구하세요.",
+          "target": "text:한 캐시 줄에 값 4개가 들어가요. 주소 VALUE가 속한 줄 번호를 구하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 주소 6, 줄 2예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "line = VALUE % 4 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:line = VALUE % 4"
+        },
+        {
+          "action": "patch_code",
+          "before": "line = VALUE % 4",
+          "after": "line = VALUE / 4",
+          "say": "line = VALUE / 4로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "주소를 줄 단위로 묶었어요. 주소가 달라도 같은 줄에 들어갈 수 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_122657b1-779c-4a41-bc23-740a7ded5847",
+      "title": "이웃한 주소를 다시 읽어요",
+      "question": "VALUE와 VALUE+1을 차례로 읽어요. 같은 줄인지 비교하세요.",
+      "goal": "VALUE와 VALUE+1을 차례로 읽어요. 같은 줄인지 비교하세요.\n\n아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `first != second` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "java",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    int first = VALUE / 4;\n    int second = (VALUE + 1) / 4;\n    boolean hit = first != second;\n    System.out.println(\"첫 줄 \" + first + \", 둘째 줄 \" + second + \", 적중 \" + hit);\n}\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    int first = VALUE / 4;\n    int second = (VALUE + 1) / 4;\n    boolean hit = first == second;\n    System.out.println(\"첫 줄 \" + first + \", 둘째 줄 \" + second + \", 적중 \" + hit);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "첫 줄 1, 둘째 줄 1, 적중 true\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "첫 줄 1, 둘째 줄 2, 적중 false\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "첫 줄 2, 둘째 줄 2, 적중 true\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "첫 줄 1, 둘째 줄 1, 적중 false",
+                  "facts": {
+                    "출력": "첫 줄 1, 둘째 줄 1, 적중 false"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "VALUE와 VALUE+1을 차례로 읽어요. 같은 줄인지 비교하세요.",
+          "target": "text:VALUE와 VALUE+1을 차례로 읽어요. 같은 줄인지 비교하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 첫 줄 1, 둘째 줄 1, 적중 false예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "first != second 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:first != second"
+        },
+        {
+          "action": "patch_code",
+          "before": "first != second",
+          "after": "first == second",
+          "say": "first == second로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "두 주소의 줄 번호를 비교했어요. 변형 검사에서는 줄의 끝도 지나가요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_3192a505-136a-4ffe-a62e-a19e8810d199",
+      "title": "행의 이웃한 값을 찾아요",
+      "question": "너비가 4인 행 우선 배열이에요. 같은 행의 바로 다음 열 주소를 구하세요.",
+      "goal": "너비가 4인 행 우선 배열이에요. 같은 행의 바로 다음 열 주소를 구하세요.\n\n아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `next = address + 4` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "java",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    int address = VALUE;\n    int next = address + 4;\n    System.out.println(\"이동 \" + address + \" -> \" + next);\n}\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    int address = VALUE;\n    int next = address + 1;\n    System.out.println(\"이동 \" + address + \" -> \" + next);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "이동 6 -> 7\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "이동 7 -> 8\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "이동 9 -> 10\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "이동 6 -> 10",
+                  "facts": {
+                    "출력": "이동 6 -> 10"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "너비가 4인 행 우선 배열이에요. 같은 행의 바로 다음 열 주소를 구하세요.",
+          "target": "text:너비가 4인 행 우선 배열이에요. 같은 행의 바로 다음 열 주소를 구하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 이동 6 -> 10예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "next = address + 4 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:next = address + 4"
+        },
+        {
+          "action": "patch_code",
+          "before": "next = address + 4",
+          "after": "next = address + 1",
+          "say": "next = address + 1로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "같은 행에서 다음 열로 한 칸 이동했어요. 다음 문제에서 순회 순서와 미스 수를 함께 비교해요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
     {
       "id": "stp_ca4e06a7-52ad-4efd-8ec4-fc6cf6357af0",
       "title": "읽는 순서만 바꿔도 미스가 줄어요",

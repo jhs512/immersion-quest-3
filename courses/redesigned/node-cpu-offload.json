@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_ca915bbe-766c-42ef-96b8-33c36c57f52a",
-  "revision": "node-cpu-offload-1",
+  "revision": "node-cpu-offload-2",
   "title": "Node · async를 붙여도 계산은 같은 스레드에서 돌아요",
   "description": "긴 계산(heavy)과 짧은 ping이 함께 들어와요. heavy는 async 함수인데 ping 응답이 heavy가 끝난 뒤에야 나와요.",
   "objectives": [
@@ -23,12 +23,36 @@
       "units": [
         {
           "id": "unt_3a30daa4-7870-4d75-81ef-e809d14006a7",
-          "title": "최종 문제",
+          "title": "작은 실습에서 마지막 도전으로",
           "objectives": [
             "무거운 계산과 짧은 ping 요청의 응답 순서를 비교해요."
           ],
           "premise": "긴 계산(heavy)과 짧은 ping이 함께 들어와요. heavy는 async 함수인데 ping 응답이 heavy가 끝난 뒤에야 나와요.",
           "steps": [
+            {
+              "id": "stp_9deea41c-449e-42ed-87b4-d0a4d081fc52",
+              "objectives": [
+                "ping을 바로 부르는 대신 다음 차례에 실행하게 예약하세요. 동기 코드와 예약된 코드의 순서를 비교해요."
+              ]
+            },
+            {
+              "id": "stp_b8c78b48-b2d0-427d-9c46-6fd61719d5e5",
+              "objectives": [
+                "Promise를 만든 것과 기다린 것을 비교해요. 기다린 뒤의 계산 기록은 ping 다음에 남아야 해요."
+              ]
+            },
+            {
+              "id": "stp_3744e2a4-de93-4c75-b7b5-4c72a0142e06",
+              "objectives": [
+                "ping 콜백을 먼저 예약해요. 반복 계산을 끝낸 뒤 합계를 출력하도록 반복 범위를 고치세요."
+              ]
+            },
+            {
+              "id": "stp_162d9f89-17dc-477b-a328-aaefe203acda",
+              "objectives": [
+                "별도 스레드가 VALUE의 두 배를 보내요. 종료 코드 대신 계산 결과 메시지를 받도록 고치세요."
+              ]
+            },
             {
               "id": "stp_788838ca-f394-4f6b-98a6-39d5baffde26",
               "objectives": [
@@ -41,6 +65,384 @@
     }
   ],
   "tasks": [
+    {
+      "id": "stp_9deea41c-449e-42ed-87b4-d0a4d081fc52",
+      "title": "예약한 콜백의 실행 순서를 봐요",
+      "question": "ping을 바로 부르는 대신 다음 차례에 실행하게 예약하세요. 동기 코드와 예약된 코드의 순서를 비교해요.",
+      "goal": "ping을 바로 부르는 대신 다음 차례에 실행하게 예약하세요. 동기 코드와 예약된 코드의 순서를 비교해요.\n\n실제 Node에서 실행해요. 이 단계는 스레드를 만들지 않아요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `ping();` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "javascript",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nconst VALUE = 6;\nconst events = [];\nfunction ping() { events.push(\"ping\"); }\nping();\nevents.push(\"계산 \" + VALUE);\nsetImmediate(() => console.log(events.join(\" -> \")));\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nconst VALUE = 6;\nconst events = [];\nfunction ping() { events.push(\"ping\"); }\nsetImmediate(ping);\nevents.push(\"계산 \" + VALUE);\nsetImmediate(() => console.log(events.join(\" -> \")));\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "계산 6 -> ping\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "계산 7 -> ping\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "계산 9 -> ping\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "실제 Node에서 실행해요. 이 단계는 스레드를 만들지 않아요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "ping -> 계산 6",
+                  "facts": {
+                    "출력": "ping -> 계산 6"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "ping을 바로 부르는 대신 다음 차례에 실행하게 예약하세요. 동기 코드와 예약된 코드의 순서를 비교해요.",
+          "target": "text:ping을 바로 부르는 대신 다음 차례에 실행하게 예약하세요. 동기 코드와 예약된 코드의 순서를 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 ping -> 계산 6예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "ping(); 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:ping();"
+        },
+        {
+          "action": "patch_code",
+          "before": "ping();",
+          "after": "setImmediate(ping);",
+          "say": "setImmediate(ping);로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "동기 코드의 계산 기록 뒤에 콜백의 ping이 나왔어요. 예약한 위치와 실행된 위치를 구분해요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_b8c78b48-b2d0-427d-9c46-6fd61719d5e5",
+      "title": "await 앞뒤의 실행을 비교해요",
+      "question": "Promise를 만든 것과 기다린 것을 비교해요. 기다린 뒤의 계산 기록은 ping 다음에 남아야 해요.",
+      "goal": "Promise를 만든 것과 기다린 것을 비교해요. 기다린 뒤의 계산 기록은 ping 다음에 남아야 해요.\n\n실제 Node에서 실행해요. 이 단계는 스레드를 만들지 않아요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `Promise.resolve();` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "javascript",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nconst VALUE = 6;\nconst events = [];\nasync function heavy() {\n    Promise.resolve();\n    events.push(\"계산 \" + VALUE);\n}\nheavy();\nevents.push(\"ping\");\nsetImmediate(() => console.log(events.join(\" -> \")));\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nconst VALUE = 6;\nconst events = [];\nasync function heavy() {\n    await Promise.resolve();\n    events.push(\"계산 \" + VALUE);\n}\nheavy();\nevents.push(\"ping\");\nsetImmediate(() => console.log(events.join(\" -> \")));\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "ping -> 계산 6\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "ping -> 계산 7\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "ping -> 계산 9\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "실제 Node에서 실행해요. 이 단계는 스레드를 만들지 않아요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "계산 6 -> ping",
+                  "facts": {
+                    "출력": "계산 6 -> ping"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "Promise를 만든 것과 기다린 것을 비교해요. 기다린 뒤의 계산 기록은 ping 다음에 남아야 해요.",
+          "target": "text:Promise를 만든 것과 기다린 것을 비교해요. 기다린 뒤의 계산 기록은 ping 다음에 남아야 해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 계산 6 -> ping예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "Promise.resolve(); 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:Promise.resolve();"
+        },
+        {
+          "action": "patch_code",
+          "before": "Promise.resolve();",
+          "after": "await Promise.resolve();",
+          "say": "await Promise.resolve();로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "await 뒤의 기록이 ping 다음으로 옮겨졌어요. 기다린 다음 계산도 같은 스레드예요. worker를 만든 것은 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_3744e2a4-de93-4c75-b7b5-4c72a0142e06",
+      "title": "계산 중에 예약된 일을 관찰해요",
+      "question": "ping 콜백을 먼저 예약해요. 반복 계산을 끝낸 뒤 합계를 출력하도록 반복 범위를 고치세요.",
+      "goal": "ping 콜백을 먼저 예약해요. 반복 계산을 끝낸 뒤 합계를 출력하도록 반복 범위를 고치세요.\n\n실제 Node에서 실행해요. 이 단계는 스레드를 만들지 않아요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `n < VALUE` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "javascript",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nconst VALUE = 6;\nsetImmediate(() => console.log(\"ping\"));\nlet sum = 0;\nfor (let n = 1; n < VALUE; n++) sum += n;\nconsole.log(\"합계 \" + sum);\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nconst VALUE = 6;\nsetImmediate(() => console.log(\"ping\"));\nlet sum = 0;\nfor (let n = 1; n <= VALUE; n++) sum += n;\nconsole.log(\"합계 \" + sum);\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "합계 21\nping\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "합계 28\nping\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "합계 45\nping\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "실제 Node에서 실행해요. 이 단계는 스레드를 만들지 않아요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "합계 15",
+                  "facts": {
+                    "출력": "합계 15"
+                  }
+                },
+                {
+                  "caption": "ping",
+                  "facts": {
+                    "출력": "ping"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "ping 콜백을 먼저 예약해요. 반복 계산을 끝낸 뒤 합계를 출력하도록 반복 범위를 고치세요.",
+          "target": "text:ping 콜백을 먼저 예약해요. 반복 계산을 끝낸 뒤 합계를 출력하도록 반복 범위를 고치세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 합계 15. ping예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "n < VALUE 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:n < VALUE"
+        },
+        {
+          "action": "patch_code",
+          "before": "n < VALUE",
+          "after": "n <= VALUE",
+          "say": "n <= VALUE로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "콜백을 먼저 예약했지만 합계가 먼저 출력됐어요. 다음 문제에서 실제 worker로 실행 위치를 나눠 봐요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_162d9f89-17dc-477b-a328-aaefe203acda",
+      "title": "worker에서 결과를 받아요",
+      "question": "별도 스레드가 VALUE의 두 배를 보내요. 종료 코드 대신 계산 결과 메시지를 받도록 고치세요.",
+      "goal": "별도 스레드가 VALUE의 두 배를 보내요. 종료 코드 대신 계산 결과 메시지를 받도록 고치세요.\n\n실제 Node worker 스레드 하나를 만들어요. 계산 결과 메시지를 주고받아요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `worker.on(\"exit\"` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "javascript",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nconst VALUE = 6;\nconst {Worker} = require(\"node:worker_threads\");\nconst source = `require(\"node:worker_threads\").parentPort.postMessage(${VALUE} * 2);`;\nconst worker = new Worker(source, {eval:true});\nworker.on(\"exit\", value => console.log(\"계산 결과 \" + value));\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nconst VALUE = 6;\nconst {Worker} = require(\"node:worker_threads\");\nconst source = `require(\"node:worker_threads\").parentPort.postMessage(${VALUE} * 2);`;\nconst worker = new Worker(source, {eval:true});\nworker.on(\"message\", value => console.log(\"계산 결과 \" + value));\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "계산 결과 12\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "계산 결과 14\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "계산 결과 18\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "실제 Node worker 스레드 하나를 만들어요. 계산 결과 메시지를 주고받아요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "계산 결과 0",
+                  "facts": {
+                    "출력": "계산 결과 0"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "별도 스레드가 VALUE의 두 배를 보내요. 종료 코드 대신 계산 결과 메시지를 받도록 고치세요.",
+          "target": "text:별도 스레드가 VALUE의 두 배를 보내요. 종료 코드 대신 계산 결과 메시지를 받도록 고치세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 계산 결과 0예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "worker.on(\"exit\" 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:worker.on(\"exit\""
+        },
+        {
+          "action": "patch_code",
+          "before": "worker.on(\"exit\"",
+          "after": "worker.on(\"message\"",
+          "say": "worker.on(\"message\"로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "종료 코드가 아니라 별도 스레드가 보낸 계산 결과를 받았어요. 마지막 도전에서는 정해진 수의 worker를 돌려 써요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
     {
       "id": "stp_788838ca-f394-4f6b-98a6-39d5baffde26",
       "title": "async를 붙여도 계산은 같은 스레드에서 돌아요",

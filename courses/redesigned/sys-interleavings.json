@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_2bf46a1f-7613-43b6-90a9-859993baac1f",
-  "revision": "sys-interleavings-1",
+  "revision": "sys-interleavings-2",
   "title": "동시성 · 끼어드는 모든 순서를 세어 봐요",
   "description": "조회수를 1씩 올리는 작업 두 개가 있어요. 한 번 실행해서 2가 나왔다고 안전한 걸까요? 가능한 순서를 모두 따라가 보면 여러 순서에서 1이 나와요.",
   "objectives": [
@@ -23,12 +23,30 @@
       "units": [
         {
           "id": "unt_caae2dc9-bb3a-4e05-a173-1f5615bad91d",
-          "title": "최종 문제",
+          "title": "작은 실습에서 마지막 도전으로",
           "objectives": [
             "읽기·쓰기를 나눴을 때와 한 단계로 묶었을 때의 순서 수와 결과를 비교해요."
           ],
           "premise": "조회수를 1씩 올리는 작업 두 개가 있어요. 한 번 실행해서 2가 나왔다고 안전한 걸까요? 가능한 순서를 모두 따라가 보면 여러 순서에서 1이 나와요.",
           "steps": [
+            {
+              "id": "stp_a50aa785-dca7-4ed4-89b8-0e9b4ea30b4b",
+              "objectives": [
+                "조회수가 VALUE예요. 읽은 값에 1을 더한 뒤 저장하세요."
+              ]
+            },
+            {
+              "id": "stp_a771f36f-0da7-4ef5-8c53-4de29156116c",
+              "objectives": [
+                "두 작업이 같은 값을 읽었어요. 두 번 써도 마지막 값이 어떻게 되는지 읽기 시점을 바꿔 비교하세요."
+              ]
+            },
+            {
+              "id": "stp_2ed71415-50ff-4ba1-9e76-e0a1bbf8d1bc",
+              "objectives": [
+                "네 자리 중 A의 두 자리를 골라요. 먼저 고른 자리는 읽기예요. 나머지는 B의 읽기·쓰기예요. 마지막 자리까지 빠짐없이 세세요."
+              ]
+            },
             {
               "id": "stp_356ae771-0ef5-4af9-b6ef-25dfed95313e",
               "objectives": [
@@ -41,6 +59,285 @@
     }
   ],
   "tasks": [
+    {
+      "id": "stp_a50aa785-dca7-4ed4-89b8-0e9b4ea30b4b",
+      "title": "한 작업의 읽기와 쓰기를 이어 봐요",
+      "question": "조회수가 VALUE예요. 읽은 값에 1을 더한 뒤 저장하세요.",
+      "goal": "조회수가 VALUE예요. 읽은 값에 1을 더한 뒤 저장하세요.\n\n아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `shared = read;` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "java",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    int shared = VALUE;\n    int read = shared;\n    shared = read;\n    System.out.println(\"조회수 \" + shared);\n}\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    int shared = VALUE;\n    int read = shared;\n    shared = read + 1;\n    System.out.println(\"조회수 \" + shared);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "조회수 7\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "조회수 8\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "조회수 10\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "조회수 6",
+                  "facts": {
+                    "출력": "조회수 6"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "조회수가 VALUE예요. 읽은 값에 1을 더한 뒤 저장하세요.",
+          "target": "text:조회수가 VALUE예요. 읽은 값에 1을 더한 뒤 저장하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 조회수 6예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "shared = read; 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:shared = read;"
+        },
+        {
+          "action": "patch_code",
+          "before": "shared = read;",
+          "after": "shared = read + 1;",
+          "say": "shared = read + 1;로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "한 작업의 읽기와 쓰기가 끝났어요. 이제 다른 작업이 사이에 들어오는 상황을 봐요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_a771f36f-0da7-4ef5-8c53-4de29156116c",
+      "title": "두 읽기 뒤의 쓰기를 따라가요",
+      "question": "두 작업이 같은 값을 읽었어요. 두 번 써도 마지막 값이 어떻게 되는지 읽기 시점을 바꿔 비교하세요.",
+      "goal": "두 작업이 같은 값을 읽었어요. 두 번 써도 마지막 값이 어떻게 되는지 읽기 시점을 바꿔 비교하세요.\n\n아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `int b = shared;` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "java",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    int shared = VALUE;\n    int a = shared;\n    int b = shared;\n    shared = a + 1;\n    shared = b + 1;\n    System.out.println(\"조회수 \" + shared);\n}\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    int shared = VALUE;\n    int a = shared;\n    shared = a + 1;\n    int b = shared;\n    shared = b + 1;\n    System.out.println(\"조회수 \" + shared);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "조회수 8\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "조회수 9\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "조회수 11\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "조회수 7",
+                  "facts": {
+                    "출력": "조회수 7"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "두 작업이 같은 값을 읽었어요. 두 번 써도 마지막 값이 어떻게 되는지 읽기 시점을 바꿔 비교하세요.",
+          "target": "text:두 작업이 같은 값을 읽었어요. 두 번 써도 마지막 값이 어떻게 되는지 읽기 시점을 바꿔 비교하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 조회수 7예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "int b = shared;\n    shared = a + 1; 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:int b = shared;\n    shared = a + 1;"
+        },
+        {
+          "action": "patch_code",
+          "before": "int b = shared;\n    shared = a + 1;",
+          "after": "shared = a + 1;\n    int b = shared;",
+          "say": "shared = a + 1;\n    int b = shared;로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "둘째 작업의 읽기가 첫 쓰기 뒤로 옮겨졌어요. 이 순서에서 맞는 것과 모든 순서에서 맞는 것은 달라요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_2ed71415-50ff-4ba1-9e76-e0a1bbf8d1bc",
+      "title": "작업 안의 순서는 지켜요",
+      "question": "네 자리 중 A의 두 자리를 골라요. 먼저 고른 자리는 읽기예요. 나머지는 B의 읽기·쓰기예요. 마지막 자리까지 빠짐없이 세세요.",
+      "goal": "네 자리 중 A의 두 자리를 골라요. 먼저 고른 자리는 읽기예요. 나머지는 B의 읽기·쓰기예요. 마지막 자리까지 빠짐없이 세세요.\n\n아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.\n\n이번 단계의 준비 코드로 시작해요. 앞 단계의 답안은 별도로 남아요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 출력을 읽으세요.\n2. `second < 3` 부분에서 요구한 관계를 계산하도록 고치세요.\n3. 다시 실행해 바뀐 출력을 비교하세요.\n4. 제출하세요. 준비 값을 바꾼 경우도 검사해요.",
+      "language": "java",
+      "starter_code": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    int schedules = 0;\n    for (int first = 0; first < 4; first++) {\n        for (int second = first + 1; second < 3; second++) schedules++;\n    }\n    System.out.println(\"시작 조회수 \" + VALUE + \", 순서 수 \" + schedules);\n}\n",
+      "solution": "// 준비 값: 변형 검사에서 값이 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() {\n    int schedules = 0;\n    for (int first = 0; first < 4; first++) {\n        for (int second = first + 1; second < 4; second++) schedules++;\n    }\n    System.out.println(\"시작 조회수 \" + VALUE + \", 순서 수 \" + schedules);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "시작 조회수 6, 순서 수 6\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "시작 조회수 7, 순서 수 6\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "시작 조회수 9, 순서 수 6\n"
+        }
+      ],
+      "required": true,
+      "supporting_materials": [
+        {
+          "id": "trace",
+          "title": "준비 코드의 실행 기록",
+          "kind": "interactive",
+          "variants": [
+            {
+              "label": "준비 코드",
+              "frames": [
+                {
+                  "caption": "아래 코드는 Java 교육용 모형이에요. 실제 장치의 실행 기록은 아니에요.",
+                  "facts": {
+                    "근거": "위 준비 코드를 실제로 실행한 출력이에요."
+                  }
+                },
+                {
+                  "caption": "시작 조회수 6, 순서 수 3",
+                  "facts": {
+                    "출력": "시작 조회수 6, 순서 수 3"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "네 자리 중 A의 두 자리를 골라요. 먼저 고른 자리는 읽기예요. 나머지는 B의 읽기·쓰기예요. 마지막 자리까지 빠짐없이 세세요.",
+          "target": "text:네 자리 중 A의 두 자리를 골라요. 먼저 고른 자리는 읽기예요. 나머지는 B의 읽기·쓰기예요. 마지막 자리까지 빠짐없이 세세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "지금 출력은 시작 조회수 6, 순서 수 3예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "second < 3 부분에서 요구한 관계를 계산하고 있는지 봐요.",
+          "target": "code:second < 3"
+        },
+        {
+          "action": "patch_code",
+          "before": "second < 3",
+          "after": "second < 4",
+          "say": "second < 4로 바꿔 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "A의 읽기보다 쓰기가 앞서지 않는 순서를 모두 셌어요. 다음 문제에서 각 순서의 마지막 값까지 따라가요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
     {
       "id": "stp_356ae771-0ef5-4af9-b6ef-25dfed95313e",
       "title": "끼어드는 모든 순서를 세어 봐요",
