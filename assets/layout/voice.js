@@ -55,21 +55,45 @@
   function setName(value) { name = String(value || 'system'); unreachable = false; return name; }
   // Reading speed, shared with the 읽어주기 panel (same localStorage key) and announced to every
   // player so a clip already playing changes pace too.
+  // The one list of speeds, for the voice, the device voice, the 읽어주기 panel, narration typing,
+  // 관리자 자동 풀이 and every speed select. A saved value outside it (NaN, negative, too fast,
+  // garbage) is ignored and the default is used; a saved value from an older list is still in it.
   const RATE_KEY = 'molip:tts-rate';
-  const RATES = Object.freeze([0.75, 1, 1.25, 1.5, 1.75, 2]);
+  const RATES = Object.freeze([0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3]);
+  const DEFAULT_RATE = 1.5;
+  const validRate = value => { const rate = value === null || value === '' ? NaN : Number(value); return RATES.includes(rate) ? rate : null; };
   function getRate() {
-    try { const value = Number(localStorage.getItem(RATE_KEY)); if (RATES.includes(value)) return value; } catch {}
-    return 1.5;
+    try { const value = validRate(localStorage.getItem(RATE_KEY)); if (value !== null) return value; } catch {}
+    return DEFAULT_RATE;
   }
   function setRate(value) {
-    const rate = Number(value);
-    if (!RATES.includes(rate)) return getRate();
+    const rate = validRate(value);
+    if (rate === null) return getRate();
     try { localStorage.setItem(RATE_KEY, String(rate)); } catch {}
     window.dispatchEvent(new CustomEvent('molip:tts-rate', { detail: rate }));
     return rate;
   }
-  window.addEventListener('molip:tts-rate', event => {
-    for (const select of document.querySelectorAll('select.assistant-rate')) select.value = String(event.detail);
-  });
-  globalThis.molipVoice = { synthesize, setName, resetFailure, enabled, get name() { return name; }, stats, get rate() { return getRate(); }, setRate, RATES };
+  // Speed selects (class assistant-rate) are rendered without options: they get the list and the
+  // current speed here, also when a step, a lesson or a panel renders a new one. The default is shown
+  // only when nothing was chosen; a render never puts back 1.5 over a chosen speed.
+  function syncSelect(select) {
+    const values = RATES.map(String);
+    if ([...select.options].map(option => option.value).join() !== values.join()) {
+      select.replaceChildren(...RATES.map(rate => Object.assign(document.createElement('option'), { value: String(rate), textContent: rate + '배' })));
+    }
+    const current = String(getRate());
+    if (select.value !== current) select.value = current;
+  }
+  const syncSelects = root => { for (const select of root.querySelectorAll ? root.querySelectorAll('select.assistant-rate') : []) syncSelect(select); };
+  window.addEventListener('molip:tts-rate', () => syncSelects(document));
+  if (typeof MutationObserver === 'function' && document.documentElement) {
+    new MutationObserver(records => {
+      for (const record of records) for (const node of record.addedNodes) {
+        if (node.nodeType !== 1) continue;
+        if (node.matches('select.assistant-rate')) syncSelect(node); else syncSelects(node);
+      }
+    }).observe(document.documentElement, { childList: true, subtree: true });
+    syncSelects(document);
+  }
+  globalThis.molipVoice = { synthesize, setName, resetFailure, enabled, get name() { return name; }, stats, get rate() { return getRate(); }, setRate, RATES, DEFAULT_RATE, syncSelects };
 })();

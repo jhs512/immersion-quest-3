@@ -1110,10 +1110,9 @@ pub(crate) fn AssistantPanel(
     });
     // Suggested-question chips were removed: the student types their own question.
     let _ = (&kind, &ask);
-    // The speed lives in the page (shared with 읽어주기): show the saved value once mounted.
-    use_effect(|| {
-        document::eval("const s=document.querySelector('select.assistant-rate');if(s&&window.molipVoice)s.value=String(molipVoice.rate);");
-    });
+    // The speed lives in the page (assets/layout/voice.js, shared with 읽어주기): it fills every
+    // speed select with its one list and the chosen value, also when a select renders again.
+    use_effect(|| { document::eval("window.molipVoice?.syncSelects(document)"); });
     // The page scripts load after the first render; tell the agent whether to speak.
     use_effect(move || {
         let on = settings.read().narration_voice;
@@ -1140,11 +1139,7 @@ pub(crate) fn AssistantPanel(
                     if running() || autopilot() {
                         button { class:"assistant-stop", onclick: move |_| { if autopilot() { autopilot.set(false); auto_cancel += 1; } paused.set(false); document::eval("window.molipAgent && molipAgent.stop();"); }, "⏹ 멈춤" }
                     }
-                    select { class:"assistant-rate", title:"해설·읽어주기 속도", onchange: move |e| { document::eval(&format!("window.molipVoice && molipVoice.setRate({});", e.value())); },
-                        for rate in ["0.75", "1", "1.25", "1.5", "1.75", "2"] {
-                            option { value: rate, {format!("{rate}배")} }
-                        }
-                    }
+                    select { class:"assistant-rate", title:"해설·읽어주기 속도", onchange: move |e| { document::eval(&format!("window.molipVoice && molipVoice.setRate({});", serde_json::to_string(&e.value()).unwrap_or_default())); } }
                     button { title:"해설 모드의 설명과 AI의 답을 소리 내어 읽을지", onclick: move |_| {
                         let on = !settings.read().narration_voice;
                         settings.write().narration_voice = on;

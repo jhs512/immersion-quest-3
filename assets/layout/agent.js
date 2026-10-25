@@ -513,8 +513,8 @@
           toldNoKorean = true;
           if (globalThis.molipToast) molipToast('이 컴퓨터에 한국어 음성이 없어 자막으로만 보여 줘요. Windows 설정 → 시간 및 언어 → 언어 및 지역에서 한국어 음성 팩을 추가하면 소리가 나요.', 'warn');
         }
-        let rate = globalThis.molipVoice ? globalThis.molipVoice.rate : 1.5;
-        try { const saved = Number(localStorage.getItem('molip:tts-rate')); if (saved >= 0.5 && saved <= 2) rate = saved; } catch {}
+        // The same validated speed as the neural voice (assets/layout/voice.js), up to its fastest.
+        const rate = globalThis.molipVoice ? globalThis.molipVoice.rate : 1.5;
         utterance.rate = rate;
         timer = setTimeout(finish, 3000 + length * 170 / rate);
         utterance.onend = finish; utterance.onerror = finish;

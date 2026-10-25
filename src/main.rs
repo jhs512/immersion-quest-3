@@ -80,6 +80,13 @@ fn main() {
     });
     #[cfg(not(target_os = "macos"))]
     let config = config.with_menu(None);
+    // Validation runs (debug builds with MOLIP_PILOT) get their own WebView profile in their session
+    // folder. Without it they share the installed player's profile (same executable name), and a run
+    // that picks a narration speed would change the person's saved speed (localStorage).
+    let config = match molip_quest::pilot_source::enabled().then(molip_quest::pilot_source::data_dir) {
+        Some(Ok(directory)) => config.with_data_directory(directory.join("webview")),
+        _ => config,
+    };
     dioxus::LaunchBuilder::new()
         .with_cfg(
             config

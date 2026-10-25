@@ -46,7 +46,9 @@
     }
     return result;
   }
-  const speechRates = Object.freeze([0.75, 1, 1.25, 1.5, 1.75, 2]);
+  // The speeds are assets/layout/voice.js's one list (it loads first in the app). This copy is
+  // only for pages without voice.js; assets/speech/speech.test.mjs checks that the two agree.
+  const speechRates = globalThis.molipVoice && globalThis.molipVoice.RATES || Object.freeze([0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3]);
   function koreanVoice(voices) {
     return voices.filter(v => /^ko(?:[-_]|$)/i.test(v.lang))
       .sort((a, b) => Number(b.localService) - Number(a.localService) || Number(b.default) - Number(a.default))[0];

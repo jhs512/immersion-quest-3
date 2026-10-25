@@ -114,7 +114,9 @@
   checked.push('starting, stopping, the stop details and closing them keep header, steps and task exactly in place; reason: '+stopReason);
   await reviewer(true);
 
-  // 2. From step 22 (unsolved) through 23 (solved, so reset first) into Java, until Esc.
+  // 2. From step 22 (unsolved) through 23 (solved before) into Java, until Esc. The run prepares the
+  // Bash workspace once, at its first step (22); solved step 23 is not reset but solved again on the
+  // state step 22 really left.
   await open(22);
   if(solved(22))throw new Error('step 22 starts unsolved');
   const step22=bashIds[21],step23=bashIds[22];
@@ -130,10 +132,14 @@
   checked.push('Space pauses the voice and the run for 0.9s, Space resumes');
   await wait(()=>saw(r=>r.step===step23),'run moves from step 22 to step 23',240000);
   if(!passedIds.has(step22))throw new Error('step 22 was marked solved before the run moved on');
-  await wait(()=>saw(r=>r.step===step23&&r.stage==='이 문제의 시작 상태로 초기화'),'solved step 23 is reset before it is solved again',240000);
+  await wait(()=>saw(r=>r.step===step23&&r.stage==='채점')||['stopped','failed'].includes(state()),'solved step 23 is graded again on the state step 22 left',240000);
+  if(!saw(r=>r.step===step22&&r.stage==='이 문제의 시작 상태로 초기화'))throw new Error('the run prepares the Bash workspace at its first step (22)');
+  if(saw(r=>r.step===step23&&r.stage==='이 문제의 시작 상태로 초기화'))throw new Error('solved step 23 was reset; the run keeps the state step 22 left');
   await wait(()=>lesson().includes('자바')&&saw(r=>r.lesson&&r.lesson!==seen.find(x=>x.step===step22)?.lesson),'run opens the Java lesson',300000);
   const javaIds=navs().map(b=>b.dataset.stepId);
-  checked.push('the run solved step 22, reset solved step 23 and solved it again, then opened the next lesson itself');
+  if(Number(seen.filter(r=>r.lesson===seen.find(x=>x.step===step23)?.lesson).pop()?.passed)<2)throw new Error('steps 22 and 23 both passed in this run before the Java lesson: '+JSON.stringify(seen.slice(-8)));
+  if(saw(r=>r.step===step23&&r.stage==='이 문제의 시작 상태로 초기화'))throw new Error('solved step 23 was reset later in the run');
+  checked.push('the run prepared the Bash workspace once at step 22, solved it, solved the already solved step 23 again on that state without a reset, then opened the next lesson itself');
   await wait(()=>passedIds.has(javaIds[0])&&data().step===javaIds[1]&&data().stage==='해설 재생','Java step 1 passes and step 2 narrates',300000);
   const rates=[...new Set(clips.flatMap(c=>c.rates))];
   if(!rates.includes(2)||!rates.includes(1.75))throw new Error('voice rates seen: '+rates);

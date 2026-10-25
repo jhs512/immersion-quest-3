@@ -116,6 +116,9 @@ pub struct AutoRun {
     /// Steps that passed through the real grader in this run, in order.
     pub passed: Vec<String>,
     pub lessons: usize,
+    /// Practice workspaces (the store's scope key) this run has initialized. Each is initialized
+    /// once, at the first step of the run that uses it; later steps keep its real state.
+    pub initialized: Vec<String>,
 }
 
 static GENERATION: AtomicU64 = AtomicU64::new(0);
@@ -133,7 +136,7 @@ pub fn is_active(generation: u64) -> bool { generation != 0 && ACTIVE.load(Order
 impl AutoRun {
     pub fn start(course_repository: &str, user_id: u64, target: Target) -> Self {
         Self { generation: next_generation(), course_repository: course_repository.into(), user_id, target,
-            status: Status::Running, paused: false, stage: "시작".into(), passed: vec![], lessons: 1 }
+            status: Status::Running, paused: false, stage: "시작".into(), passed: vec![], lessons: 1, initialized: vec![] }
     }
     pub fn active(&self) -> bool { matches!(self.status, Status::Running | Status::Transition) }
     /// Whether a callback started for (generation, target) may still act.
@@ -168,6 +171,15 @@ impl AutoRun {
         if !self.passed.last().is_some_and(|last| *last == label) { self.passed.push(label); }
         true
     }
+    /// True only the first time a step of this run uses the practice `workspace`: the caller then
+    /// prepares it once with the step's official 초기화 (the lesson's start for that step, earlier
+    /// steps' files, folders and Git state included). Every later step of the run, a solved one too,
+    /// works on the state the previous steps really left; nothing resets it again.
+    pub fn claim_initialization(&mut self, generation: u64, from: &Target, workspace: &str) -> bool {
+        if !self.accepts(generation, from) || self.initialized.iter().any(|w| w == workspace) { return false; }
+        self.initialized.push(workspace.into());
+        true
+    }
     /// The last step of a lesson passed: hand over to the course-level transition.
     pub fn begin_transition(&mut self, generation: u64, from: &Target) -> bool {
         if !self.accepts(generation, from) { return false; }
@@ -190,6 +202,24 @@ impl AutoRun {
 mod tests {
     use super::*;
     use crate::repository_course::Lesson;
+
+    #[test]
+    fn each_workspace_is_initialized_once_per_run() {
+        let target = Target { lesson_id: "bash".into(), round: "r".into(), step: Step::Task("s7".into()) };
+        let mut run = AutoRun::start("course", 1, target.clone());
+        let g = run.generation;
+        assert!(run.claim_initialization(g, &target, "bash-practice"));
+        assert!(!run.claim_initialization(g, &target, "bash-practice"), "second step of the same workspace");
+        let next = Target { step: Step::Task("s8".into()), ..target.clone() };
+        assert!(run.advance(g, &target, next.clone()));
+        assert!(!run.claim_initialization(g, &next, "bash-practice"), "a later (even solved) step keeps the state");
+        assert!(run.claim_initialization(g, &next, "java-launch"), "another workspace gets its own preparation");
+        assert!(!run.claim_initialization(g, &target, "other"), "a callback for an old target cannot claim");
+        run.stop("Esc");
+        assert!(!run.claim_initialization(g, &next, "late"), "a late callback after Esc cannot claim");
+        let again = AutoRun::start("course", 1, target.clone());
+        assert!(again.initialized.is_empty(), "a new run starts with nothing initialized");
+    }
 
     fn bundled_lessons() -> Vec<(String, Lesson)> {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("courses/redesigned");

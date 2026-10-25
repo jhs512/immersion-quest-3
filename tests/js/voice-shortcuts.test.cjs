@@ -38,7 +38,7 @@ for(const [name,engine] of Object.entries({chromium,webkit}))for(const platform 
   });
   assert.equal(await page.evaluate(()=>molipVoice.rate),1,'IME and held keys must not change speed');
   for(let i=0;i<10;i++)await page.keyboard.press(`${mod}+Alt+ArrowUp`);
-  assert.equal(await page.evaluate(()=>molipVoice.rate),2);
+  assert.equal(await page.evaluate(()=>molipVoice.rate),3,'the fastest speed is 3x');
   for(let i=0;i<10;i++)await page.keyboard.press(`${mod}+Alt+ArrowDown`);
   assert.equal(await page.evaluate(()=>molipVoice.rate),0.75);
   await page.evaluate(()=>molipAgent.stop());

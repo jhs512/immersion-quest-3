@@ -7,6 +7,7 @@
   ['방금 만든 Main.class를 java Main으로 실행해요.','방금 만든 메인 점 클래스를 자바 메인으로 실행해요.'],
   ['오류가 없으면 javac는 조용히 끝나요.','오류가 없으면 자바 씨는 조용히 끝나요.'],
   ['**결정 트리**(`DecisionTreeClassifier`)는 스무고개예요.','결정 트리(디시전 트리 클래시파이어)는 스무고개예요.'],
+  ['스트림의 `.filter(...)`로 짝수만 남겨요.','스트림의 점 필터(...)로 짝수만 남겨요.'],
  ];
  const wait=async(fn,label,ms=30000)=>{const end=Date.now()+ms;while(Date.now()<end){if(fn())return;await new Promise(r=>setTimeout(r,50));}throw Error('Timed out: '+label);};
  const neural=[],device=[];

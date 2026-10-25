@@ -48,6 +48,8 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
             include_str!("../tools/player-pilot-bash.js").to_owned()
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("terminal-restore") {
             include_str!("../tools/player-pilot-terminal-restore.js").to_owned()
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("auto-state") {
+            format!("window.mq3AutoStatePart={};{}",serde_json::json!(std::env::var("MOLIP_AUTO_STATE_PART").ok()),include_str!("../tools/player-pilot-auto-state.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("speech-voices") {
             include_str!("../tools/player-pilot-speech.js").to_owned()
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("lesson-loading") {
@@ -57,7 +59,7 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("interaction-example") {include_str!("../tools/player-pilot-example.js").to_owned()} else {format!("window.mq3FirstGitOnly={};window.mq3IncludeGitBranch={};{}",matches!(std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref(),Some("git-first"|"git-lessons")),std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()!=Some("git-first"),include_str!("../tools/player-pilot-native.js"))};
         let mut bridge = document::eval(&script);
         let mut progress_lock:Option<rusqlite::Connection>=None;
-        let budget=if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("auto-review"){900}else{480};
+        let budget=if matches!(std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref(),Some("auto-review"|"auto-state")){1500}else{480};
         let result = match tokio::time::timeout(std::time::Duration::from_secs(budget), async {
             loop {
                 let message=bridge.recv::<serde_json::Value>().await?;
@@ -68,8 +70,13 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
                     document::eval(&format!("window.mq3ReviewerToken={};",message["token"]));
                     continue;
                 }
+                // Progress lines, so a stuck or failed run shows where it was (auto-state.log).
+                if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("auto-state")&&message["control"]=="log" {
+                    println!("[auto-state {:.1}s] {}",message["t"].as_f64().unwrap_or(0.0)/1000.0,message["line"].as_str().unwrap_or(""));
+                    continue;
+                }
                 // A real screenshot of this window, kept as evidence (Windows only).
-                if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("auto-review")&&message["control"]=="capture" {
+                if matches!(std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref(),Some("auto-review"|"auto-state"))&&message["control"]=="capture" {
                     let name=message["name"].as_str().unwrap_or("screen").chars().filter(|c|c.is_ascii_alphanumeric()||*c=='-').collect::<String>();
                     let out=std::path::Path::new("target/admin-review/screens").join(format!("{name}.png"));
                     let pid=std::process::id().to_string();

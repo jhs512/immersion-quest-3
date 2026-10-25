@@ -601,7 +601,7 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
                     // 관리자 자동 풀이 covers the share button's own box while a run is shown, so the
                     // header and the lesson keep their size and place at every window width.
                     if let Some(run)=run_here.as_ref() {
-                        div {class:"auto-run-control",role:"group",aria_label:"관리자 자동 풀이","data-state":auto_state,"data-stage":run.stage.clone(),"data-step":auto_step.clone(),"data-lesson":run.target.lesson_id.clone(),"data-passed":run.passed.len().to_string(),"data-reason":auto_reason.clone(),
+                        div {class:"auto-run-control",role:"group",aria_label:"관리자 자동 풀이","data-state":auto_state,"data-stage":run.stage.clone(),"data-step":auto_step.clone(),"data-lesson":run.target.lesson_id.clone(),"data-passed":run.passed.len().to_string(),"data-initialized":run.initialized.len().to_string(),"data-reason":auto_reason.clone(),
                             if run.active() {
                                 span {class:"auto-run-chip",role:"status",aria_live:"polite",aria_label:"{auto_detail}",title:"{auto_detail}",{format!("{}{}",if run.paused{"⏸"}else{"●"},auto_number)}}
                                 button {id:"auto-run-pause",r#type:"button",class:"auto-run-icon",aria_label:if run.paused{"자동 풀이 재개 · Space"}else{"자동 풀이 일시정지 · Space"},title:if run.paused{"재개 · Space"}else{"일시정지 · Space"},onclick:move|_|{
@@ -726,7 +726,8 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     use_drop(||{document::eval("window.molipAgent?.stop()");});
     let mut history_saves=use_signal(||0usize);
     let mut history_message=use_signal(String::new);
-    use_effect(|| { document::eval("const s=document.querySelector('select.repository-narration-rate');if(s&&window.molipVoice)s.value=String(molipVoice.rate);"); });
+    // assets/layout/voice.js fills the speed select with its one list and the chosen speed.
+    use_effect(|| { document::eval("window.molipVoice?.syncSelects(document)"); });
     let required=selected.lesson.required_tasks();
     let filename=if task.git_terminal.as_ref().is_some_and(|e|e.java_build.is_some()){"Main.java · Bash 터미널".to_string()}else if task.git_terminal.as_ref().is_some_and(|e|e.vim.is_some()){"Vim 편집기".to_string()}else if task.git_terminal.as_ref().is_some_and(|e|e.shell.is_some()){"Bash 터미널".to_string()}else if task.git_terminal.is_some(){"Git 터미널".to_string()}else if task.interaction.is_some()&&!has_example{"답안".to_string()}else if task.entry_file.is_empty(){task.language.filename().to_string()}else{task.entry_file.clone()};
     // Show the data this problem reads before other files bundled with the lesson.
@@ -750,12 +751,13 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     let auto_target=AutoTarget{lesson_id:selected.lesson.id.clone(),round:selected.round.clone(),step:AutoStep::Task(task.id.clone())};
     let auto_owned=auto().as_ref().is_some_and(|run|run.active()&&run.target==auto_target&&run.owns_lesson(&selected.course.repository,session.user.id,&selected.lesson.id,&selected.round));
     let mut auto_started=use_signal(||None::<u64>);
-    use_effect({let task=task.clone();let target=auto_target.clone();let selected=selected.clone();let session=session.clone();let key=key.clone();move||{
+    use_effect({let task=task.clone();let target=auto_target.clone();let selected=selected.clone();let session=session.clone();let key=key.clone();let git_scope=git_scope.clone();move||{
         let Some(run)=auto() else{return};
         if !run.accepts(run.generation,&target)||run.course_repository!=selected.course.repository||run.user_id!=session.user.id{return;}
         if *auto_started.peek()==Some(run.generation){return;}
         auto_started.set(Some(run.generation));
         let (generation,task,target,selected,session,key)=(run.generation,task.clone(),target.clone(),selected.clone(),session.clone(),key.clone());
+        let run_scope=git_scope.clone();
         spawn(async move{
             let number=selected.lesson.tasks.iter().position(|t|t.id==task.id).map(|i|i+1).unwrap_or(0);
             let label=format!("{} · 문제 {number} · {}",selected.lesson.title,task.title);
@@ -780,7 +782,6 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                 if let Some(line)=result.lines().find(|line|line.contains("오류 -")||line.contains("준비하지 못했어요")) {fail!("해설 재생 중 문제가 생겼어요. {line}")}
             }
             if !matches!(auto_until(auto,generation,&target,3600,||true).await,AutoWait::Ready){return;}
-            let completed=issue_progress::learned_tasks(&events.peek(),&selected.lesson.revision).contains(&task.id);
             let mut clear_result=move||{feedback.set("idle");message.set(String::new());execution_state.set("idle");output.set(String::new());preview.set(String::new());teacher_preview.set(String::new());artifacts.set(vec![]);};
             // 2. Enter the final solution with the ordinary inputs.
             match &plan {
@@ -802,30 +803,30 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                         code.set(answer.clone());let _=molip_quest::drafts::save(&key,answer,&HashMap::new());
                     }
                     let goal=task.git_terminal.as_ref().is_some_and(|e|e.has_goal());
-                    // A solved step, or one whose goal already holds, would pass with nothing typed.
-                    // The official 초기화 rebuilds only this step's prepared start (earlier steps'
-                    // files, folder and Git state as the lesson defines them) and a new shell.
-                    let already=if goal&&!completed {let practice=git_practice.peek().clone();match practice {Some(p)=>{let t=task.clone();github_player::background(move||terminal_report(&p,&t)).await.map(|r|r.passed).unwrap_or(false)},None=>false}}else{false};
-                    let mut did_reset=false;
-                    for attempt in 0..2 {
-                        if goal&&(attempt==1||completed||already)&&!did_reset {
-                            auto_stage(auto,generation,&target,"이 문제의 시작 상태로 초기화");
-                            let Some(control)=git_control.peek().clone() else{fail!("실습 터미널을 찾지 못했어요.")};
-                            busy.set(true);let graph=control.clone();
-                            let shut=github_player::background(move||control.shutdown()).await;busy.set(false);
-                            if let Err(error)=shut {fail!("실습을 초기화하지 못했어요. {error}")}
-                            graph.clear_graph();git_practice.set(None);git_control.set(None);reset+=1;did_reset=true;
-                            wait!(120,"초기화한 실습 터미널",||git_practice.peek().is_some());
-                        } else if attempt==1 {break;}
-                        auto_stage(auto,generation,&target,"실습 명령 실행");
-                        let mut replay=document::eval(&format!("(async()=>{{dioxus.send(await window.molipAutoRun.solveTerminal({},{generation}))}})()",serde_json::to_string(actions).unwrap()));
-                        let outcome=replay.recv::<serde_json::Value>().await.unwrap_or_default();
-                        if outcome["cancelled"]==true||!molip_quest::auto_review::is_active(generation){return;}
-                        let error=outcome["error"].as_str().map(str::to_owned);
-                        let reached=if error.is_none()&&goal {let practice=git_practice.peek().clone();match practice {Some(p)=>{let t=task.clone();github_player::background(move||terminal_report(&p,&t)).await.map(|r|r.passed).unwrap_or(false)},None=>false}}else{error.is_none()};
-                        if reached {break;}
-                        if did_reset||!goal {fail!("실습 명령으로 목표 상태를 만들지 못했어요. {}",error.unwrap_or_else(||"채점 조건을 확인하세요.".into()))}
+                    // The practice workspace is prepared once per run: at the first step of this run
+                    // that uses it, with the official 초기화 (this step's prepared start: earlier steps'
+                    // files, folders and Git state as the lesson defines them, and a new shell). Every
+                    // later step, a solved one too, works on the state the previous steps really left
+                    // (files, current folder, Git), and nothing resets it again. A step that cannot
+                    // reach its goal from that state stops the run with the reason.
+                    let workspace=task.git_terminal.as_ref().zip(run_scope.as_ref()).map(|(exercise,scope)|exercise.workspace_scope(scope));
+                    let first=goal&&workspace.as_ref().is_some_and(|workspace|auto.with_mut(|run|run.as_mut().is_some_and(|run|run.claim_initialization(generation,&target,workspace))));
+                    if goal&&first {
+                        auto_stage(auto,generation,&target,"이 문제의 시작 상태로 초기화");
+                        let Some(control)=git_control.peek().clone() else{fail!("실습 터미널을 찾지 못했어요.")};
+                        busy.set(true);let graph=control.clone();
+                        let shut=github_player::background(move||control.shutdown()).await;busy.set(false);
+                        if let Err(error)=shut {fail!("실습을 초기화하지 못했어요. {error}")}
+                        graph.clear_graph();git_practice.set(None);git_control.set(None);reset+=1;
+                        wait!(120,"초기화한 실습 터미널",||git_practice.peek().is_some());
                     }
+                    auto_stage(auto,generation,&target,"실습 명령 실행");
+                    let mut replay=document::eval(&format!("(async()=>{{dioxus.send(await window.molipAutoRun.solveTerminal({},{generation}))}})()",serde_json::to_string(actions).unwrap()));
+                    let outcome=replay.recv::<serde_json::Value>().await.unwrap_or_default();
+                    if outcome["cancelled"]==true||!molip_quest::auto_review::is_active(generation){return;}
+                    let error=outcome["error"].as_str().map(str::to_owned);
+                    let reached=if error.is_none()&&goal {let practice=git_practice.peek().clone();match practice {Some(p)=>{let t=task.clone();github_player::background(move||terminal_report(&p,&t)).await.map(|r|r.passed).unwrap_or(false)},None=>false}}else{error.is_none()};
+                    if !reached {fail!("실습 명령으로 목표 상태를 만들지 못했어요. 앞 단계가 남긴 실습 상태는 그대로 두었어요. 처음부터 다시 하려면 초기화를 직접 누른 뒤 자동 풀이를 다시 시작하세요. {}",error.unwrap_or_else(||"채점 조건을 확인하세요.".into()))}
                 }
             }
             // 3. Run with the ordinary 코드 실행 button, when the step has one.
@@ -895,9 +896,7 @@ if let Some(start)=autostart {
                         onclick:move|_|start.call(()),"▶ 자동 풀이"}
                 }
                                     label {class:"narration-speed",span {"속도"}
-                        select {class:"assistant-rate repository-narration-rate",aria_label:"해설 말 속도",onchange:move |e|{document::eval(&format!("window.molipVoice?.setRate({});",e.value()));},
-                            for rate in ["0.75","1","1.25","1.5","1.75","2"] {option {value:rate,selected:rate=="1.5","{rate}배"}}
-                        }
+                        select {class:"assistant-rate repository-narration-rate",aria_label:"해설 말 속도",onchange:move |e|{document::eval(&format!("window.molipVoice?.setRate({});",serde_json::to_string(&e.value()).unwrap_or_default()));}}
                     }
                 }
                 }

@@ -34,6 +34,20 @@ test('mkdir and other shell commands are spoken in Korean in code spans and pros
   ]);
 });
 
+// Reported: "filter" was heard as 필더 (the word reached the voice unconverted; no lexicon entry).
+test('filter is read 필터 in prose, Java streams and Python; longer identifiers and URLs stay as written', () => {
+  cases([
+    ['filter로 걸러요', '필터로 걸러요'],
+    ['`.filter(...)`', '점 필터(...)'],
+    ['`list.stream().filter(n -> n % 2 == 0)`', '리스트.stream().필터(n 화살표 n 나머지 2 같다 0)'],
+    ['Python의 filter(함수, 리스트)', '파이썬의 필터(함수, 리스트)'],
+    ['`filter(lambda x: x > 0, nums)`', '필터(람다 x: x 크다 0, nums)'],
+    ['map, filter, reduce', '맵, 필터, reduce'],
+    ['filtered', 'filtered'], ['filterNotNull', 'filterNotNull'], ['https://example.com/filter', 'https://example.com/filter'],
+  ]);
+  for (const text of ['filter', '`.filter(...)`']) assert.equal(say(say(text)), say(text), 'converted once: ' + text);
+});
+
 test('git subcommands follow git; arguments, options and paths stay as written', () => {
   cases([
     ['`git status`', '깃 스테이터스'],

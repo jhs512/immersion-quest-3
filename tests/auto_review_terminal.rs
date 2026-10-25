@@ -1,9 +1,10 @@
 #![cfg(not(target_os="android"))]
 //! 관리자 자동 풀이 on real Bash and Git practice folders, typed through a real PTY.
-//! A solved terminal step passes again without anything typed, so a re-solve must start from the
-//! official 초기화 (`reset_step`): that rebuilds only the step's prepared start (earlier steps'
-//! files, folder and Git state as the lesson defines them). The run's action list then reaches
-//! the goal by actually running the commands.
+//! A solved terminal step passes again without anything typed, so a run prepares each practice
+//! workspace once, at its first step, with the official 초기화 (`reset_step`): that rebuilds the
+//! step's prepared start (earlier steps' files, folder and Git state as the lesson defines them).
+//! The run's action lists then reach each goal by actually running the commands, and later steps
+//! continue on the state the earlier ones left (no reset per step; tests/player_auto_state_native.rs).
 use molip_quest::{auto_review::{self,Plan},git_practice::{GitPractice,GitPracticeStore},repository_course::{CourseManifest,Lesson,Task},setup_terminal::SetupTerminal};
 use std::time::{Duration,Instant};
 
