@@ -182,7 +182,9 @@
       if (!code) { result += mapping.text[i++]; continue; }
       let stop = i + 1;
       while (stop < end && code.contains(mapping.points[stop].node)) stop++;
-      result += '`' + mapping.text.slice(i, stop) + '`'; i = stop;
+      // Code that itself holds a backtick uses a double fence, as in Markdown, so it stays one span.
+      const text = mapping.text.slice(i, stop);
+      result += text.includes('`') ? '`` ' + text + ' ``' : '`' + text + '`'; i = stop;
     }
     return result;
   }

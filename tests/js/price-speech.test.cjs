@@ -11,5 +11,5 @@ test('won prices use grouping in text and Korean place values in speech',()=>{
  assert.equal(formatPrices('19,999원과 3.19999원, id19999원'),'19,999원과 3.19999원, id19999원');
  for(const price of ['19999원','19,999원','19,999'])assert.equal(pronunciationText(price),price.endsWith('원')?'만 구천구백구십구 원':'만 구천구백구십구');
  assert.equal(pronunciationText('0원, 1000원, 20000원, 100000000원'),'영 원, 천 원, 이만 원, 일억 원');
- assert.equal(pronunciationText('`amount = 19999`'),'amount = 19999');
+ assert.equal(pronunciationText('`amount = 19999`'),'amount 이퀄 19999'); // digits in code stay verbatim
 });
