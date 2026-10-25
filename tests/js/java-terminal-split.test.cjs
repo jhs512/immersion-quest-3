@@ -9,7 +9,7 @@ for(const [name,engine] of Object.entries({chromium,webkit}))test(`${name}: Java
  try{
   const page=await browser.newPage({viewport:{width:1200,height:900}});
   await page.route('https://mq.test/',route=>route.fulfill({body:'<!doctype html><html><body></body></html>',contentType:'text/html'}));await page.goto('https://mq.test/');
-  const styles=['app','repository-player','player-workspace','product-ui','git-graph'].map(key=>fs.readFileSync(`assets/${key}.css`,'utf8')).join('\n');
+  const styles=['app','repository-player','player-workspace','product-ui','git-graph','station'].map(key=>fs.readFileSync(`assets/${key}.css`,'utf8')).join('\n');
   await page.setContent(`<style>${styles}</style><section class="repository-task" style="display:block;min-height:0"><p class="prediction-run-note">예상 보기를 먼저 하나 고르면 실행할 수 있어요.</p><div class="editor-pane" style="height:500px;padding:0">${markup}</div></section>`);
   await page.addScriptTag({path:path.resolve('assets/layout/split.js')});
   const padding=await page.locator('.prediction-run-note').evaluate(node=>{const s=getComputedStyle(node);return {left:parseFloat(s.paddingLeft),right:parseFloat(s.paddingRight),top:parseFloat(s.paddingTop),bottom:parseFloat(s.paddingBottom)}});

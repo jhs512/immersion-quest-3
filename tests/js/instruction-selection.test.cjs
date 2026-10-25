@@ -11,7 +11,7 @@ for(const engine of ['chromium','webkit'])test(`${engine}: instruction literals 
   assert.ok(goal.includes('"`'+literal+'`"를 입력하세요.'));
   const escape=text=>text.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
   const items=goal.split('\n').filter(line=>/^\d+\. /.test(line)).map(line=>`<li>${escape(line.replace(/^\d+\. /,'')).replace(/`([^`]+)`/g,'<code>$1</code>')}</li>`).join('');
-  const css=['app.css','repository-player.css','content-updates.css','player-workspace.css','window-controls.css','compact-toolbar.css','product-ui.css'].map(f=>fs.readFileSync('assets/'+f,'utf8')).join('\n');
+  const css=['app.css','repository-player.css','content-updates.css','player-workspace.css','window-controls.css','compact-toolbar.css','product-ui.css','station.css'].map(f=>fs.readFileSync('assets/'+f,'utf8')).join('\n');
   for(const scale of [1,2]){
    const context=await browser.newContext({deviceScaleFactor:scale});const page=await context.newPage();
    for(const width of [1470,735]){

@@ -10,7 +10,7 @@ for(const [name,engine] of Object.entries({chromium,webkit}))test(`${name}: Git 
   const page=await browser.newPage({viewport:{width:1200,height:800}});
   await page.route('https://mq.test/',route=>route.fulfill({body:'<!doctype html><html><body></body></html>',contentType:'text/html'}));
   await page.goto('https://mq.test/');
-  const css=['app','repository-player','player-workspace','product-ui','git-graph'].map(name=>fs.readFileSync(`assets/${name}.css`,'utf8')).join('\n');
+  const css=['app','repository-player','player-workspace','product-ui','git-graph','station'].map(name=>fs.readFileSync(`assets/${name}.css`,'utf8')).join('\n');
   await page.setContent(`<style>${css}</style><section class="repository-task" style="display:block;min-height:0"><div class="coding-pane">${markup}</div></section>`);
   await page.addScriptTag({path:path.resolve('assets/layout/split.js')});
   const boxes=()=>page.evaluate(()=>Object.fromEntries(['git-terminal','git-graph-panel','split-git'].map(key=>{const r=document.querySelector('.'+key).getBoundingClientRect();return [key,{top:r.top,bottom:r.bottom,width:r.width,left:r.left,right:r.right}]})));

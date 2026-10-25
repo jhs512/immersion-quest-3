@@ -102,6 +102,18 @@ pub fn groups(course: &CourseManifest, filter: TrackFilter) -> Vec<LessonGroup<'
     groups
 }
 
+/// Whether the course carries any usable category, so a grouped view can be offered at all.
+pub fn has_categories(course: &CourseManifest) -> bool {
+    !categories(course).is_empty()
+}
+
+/// The whole course in its recommended order, one untitled group, whatever categories it has.
+/// Numbers stay the manifest positions, exactly as in the grouped view.
+pub fn flat(course: &CourseManifest, filter: TrackFilter) -> Vec<LessonGroup<'_>> {
+    let kept: Vec<(usize, &LessonRef)> = course.lessons.iter().enumerate().filter(|(_, l)| filter.keeps(l)).collect();
+    if kept.is_empty() { vec![] } else { vec![LessonGroup { title: None, lessons: kept }] }
+}
+
 /// Tracks present on the course, in display order (기본, 필수, 고급).
 pub fn present_tracks(course: &CourseManifest) -> Vec<LessonTrack> {
     [LessonTrack::Basic, LessonTrack::Essential, LessonTrack::Advanced].into_iter()
@@ -189,6 +201,20 @@ mod tests {
         assert_eq!(ids(&groups(&c, TrackFilter::All)), vec![(Some("B".into()), vec![0]), (Some(UNCATEGORIZED.into()), vec![1])]);
         let none = course(serde_json::json!([{"id": "b", "title": "B"}]), vec![lesson("x", "b", "")]);
         assert!(groups(&none, TrackFilter::Only(LessonTrack::Advanced)).is_empty());
+    }
+
+    #[test]
+    fn flat_view_keeps_recommended_order_and_numbers_even_with_categories() {
+        let c = course(serde_json::json!([{"id": "t", "title": "터미널 기초"}, {"id": "j", "title": "자바 기초"}]),
+            vec![lesson("bash", "t", "basic"), lesson("values", "j", "basic"), lesson("vim", "t", ""), lesson("odd", "", "")]);
+        assert!(has_categories(&c));
+        assert_eq!(ids(&flat(&c, TrackFilter::All)), vec![(None, vec![0, 1, 2, 3])]);
+        assert_eq!(ids(&flat(&c, TrackFilter::Only(LessonTrack::Basic))), vec![(None, vec![0, 1])]);
+        let plain = course(serde_json::Value::Null, vec![lesson("a", "", "basic")]);
+        assert!(!has_categories(&plain), "no categories: the grouped view is not offered");
+        let broken = course(serde_json::json!([{"id": "", "title": "빈 id"}]), vec![lesson("a", "", "")]);
+        assert!(!has_categories(&broken), "an unusable category list offers no grouping");
+        assert!(flat(&c, TrackFilter::Only(LessonTrack::Advanced)).is_empty());
     }
 
     #[test]

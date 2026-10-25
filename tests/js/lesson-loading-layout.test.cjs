@@ -9,7 +9,7 @@ for(const engine of ['chromium','webkit'])test(`${engine}: long plot examples st
  const browser=await({chromium,webkit}[engine]).launch(options);
  try{
   const lesson=JSON.parse(fs.readFileSync('courses/redesigned/aice-plots.json','utf8'));
-  const styles=['assets/app.css','assets/repository-player.css','assets/player-workspace.css','assets/product-ui.css','assets/window-controls.css'].map(file=>fs.readFileSync(file,'utf8')).join('\n');
+  const styles=['assets/app.css','assets/repository-player.css','assets/player-workspace.css','assets/product-ui.css','assets/window-controls.css','assets/station.css'].map(file=>fs.readFileSync(file,'utf8')).join('\n');
   for(const width of [1470,980,735]){
    const page=await browser.newPage();
    await page.setViewportSize({width,height:747});

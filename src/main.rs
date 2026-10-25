@@ -260,6 +260,7 @@ window.molipVoice && molipVoice.setName({});",
         style {{include_str!("../assets/diagnostics.css")}}
         style {{include_str!("../assets/compact-toolbar.css")}}
         style {{include_str!("../assets/product-ui.css")}}
+        style {{include_str!("../assets/station.css")}}
         style {{include_str!("../assets/terminal/terminal.bundle.css")}}
         if cfg!(debug_assertions) && std::env::var_os("MOLIP_PILOT").is_some() { pilot_ui::PilotPlayer {window_controls:rsx!{div {class:"app-window-controls",AppReportButton {}{fullscreen_toggle}UpdateGate {}}}} }
         else if cfg!(debug_assertions) && std::env::var_os("MOLIP_LEGACY").is_some() { div {class:"app-window-controls",AppReportButton {}{fullscreen_toggle}UpdateGate {}} Workspace {} } else if !login_verification { player_ui::RepositoryPlayer {window_controls:rsx!{div {class:"app-window-controls",AppReportButton {}{fullscreen_toggle}UpdateGate {}}}} }

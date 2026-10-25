@@ -5,7 +5,7 @@ const markup=`<div class="repository-session"><main class="repository-study is-t
 for(const [name,engine] of Object.entries({chromium,webkit}))test(`${name}: red feedback stays readable and visible at desktop and narrow widths`,async()=>{
  const browser=await engine.launch({headless:true});try{
   const page=await browser.newPage();
-  await page.setContent(`<style>${['app','repository-player','player-workspace','product-ui'].map(f=>fs.readFileSync(`assets/${f}.css`,'utf8')).join('\n')}</style>${markup}`);
+  await page.setContent(`<style>${['app','repository-player','player-workspace','product-ui','station'].map(f=>fs.readFileSync(`assets/${f}.css`,'utf8')).join('\n')}</style>${markup}`);
   await page.addScriptTag({content:fs.readFileSync('assets/layout/shortcuts.js','utf8')});
   fs.mkdirSync('target/shortcut-feedback',{recursive:true});
   for(const width of [1280,720]){
