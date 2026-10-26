@@ -51,7 +51,7 @@ docker compose up -d --wait db >/dev/null 2>&1
 echo "down:$(read_count)"
 '''
 # Use a double-quoted shell SQL argument so its SQL quotes survive unchanged.
-LAB2=LAB2.replace("sql 'CREATE TABLE memo(title TEXT); INSERT INTO memo VALUES('milk')'", 'sql "CREATE TABLE memo(title TEXT); INSERT INTO memo VALUES(\'milk\')"')
+LAB2=LAB2.replace("sql 'CREATE TABLE memo(title TEXT); INSERT INTO memo VALUES('milk')'", 'sql "CREATE TABLE IF NOT EXISTS memo(title TEXT); TRUNCATE memo; INSERT INTO memo VALUES(\'milk\')"')
 S2=step(slug='db-volume',title='DB 컨테이너를 다시 만들어도 메모가 남게 하세요',
     concept='볼륨은 데이터베이스가 실제로 저장하는 경로에 연결해야 해요.',
     intro='볼륨 data가 있지만 /data에 붙어 있어요. 이 PostgreSQL 18 이미지가 저장하는 경로와 달라요.',
@@ -78,7 +78,7 @@ S3=step(slug='final-migration',title='기존 메모를 보존하며 새 열을 �
     intro='첫 실행에서 milk 메모를 저장했어요. init.sql을 새 표 정의로 바꿔 컨테이너를 다시 만들어도 기존 DB의 표는 바뀌지 않아요.',
     know='이미 데이터가 있는 볼륨이면 초기화 스크립트를 다시 실행하지 않아요. migration.sql에서 memo에 version INT DEFAULT 1 NOT NULL 열을 추가하세요. 기존 행과 새 열의 기본값을 함께 보존해야 해요.',
     starter='-- 기존 DB에 필요한 스키마 변경을 구현하세요.\n',
-    solution='ALTER TABLE memo ADD COLUMN version INT DEFAULT 1 NOT NULL;\n',script=LAB3,
+    solution='ALTER TABLE memo ADD COLUMN IF NOT EXISTS version INT DEFAULT 1 NOT NULL;\n',script=LAB3,
     images=[PG],files={'init.sql':INIT},expected='milk:1',
     first='마지막 조회에서 version 열이 없다는 오류가 나요. 새 초기화 파일은 이미 존재하는 DB를 변경하지 않았어요.',
     result='실제 기존 행 milk와 새 version 값 1이 함께 나와요. DB를 지우지 않고 스키마를 변경했어요.',
@@ -98,3 +98,10 @@ LESSON=lesson(key='docker-compose-db',folder='docker_compose_db',pilot='콤',
            unit('데이터의 수명','컨테이너를 다시 만드는 상황을 직접 검사해요.',[S2]),
            unit('최종 배포 변경','기존 데이터를 보존하며 스키마를 바꿔요.',[S3])],final_slug='final-migration')
 LESSON['sources'].append(('https://hub.docker.com/_/postgres','PostgreSQL 18 데이터 경로와 최초 초기화 조건을 확인해요.','실제 고정 이미지의 재생성 결과로 대조해요.'))
+LESSON['revision']=2
+LESSON['prerequisites']=['Docker 입문에서 이미지·컨테이너·볼륨·Compose를 관찰했어요.', 'SQL 기초에서 표 생성·행 추가·조회를 실행했어요.']
+for task,preparation in [(S2,'제공한 lab.sh는 연습용 memo 표의 행만 비우고 milk 한 행을 넣어 재시험 조건을 맞춰요. 그 뒤 컨테이너를 실제로 재시작·재생성하며 같은 행이 남는지 비교해요. 컨테이너 수명 비교 자체가 이 문제의 실험이며, 일반 SQL 실행마다 컨테이너를 내리는 방식은 아니에요.'),
+                         (S3,'같은 마이그레이션을 다시 실행해도 기존 열 때문에 실패하지 않도록 ADD COLUMN IF NOT EXISTS를 사용해요. 이는 같은 이름의 열이 있는 경우 추가를 생략할 뿐, 기존 열의 자료형과 제약까지 검증해 주지는 않아요.')]:
+    task['intro'].append(preparation)
+    task['narration'].insert(0,('say',preparation,'text:'+preparation))
+    task['review'][preparation]='제공 준비와 학생 코드의 역할, 재실행 조건 및 이 실험에서만 수행하는 동작의 범위를 구체적으로 설명해요.'

@@ -1,6 +1,6 @@
 {
   "by": "hand",
-  "source_sha256": "beda3a77ff2432688f7c9bfaab5488db134c22653ba0ee89609e17962782cfce",
+  "source_sha256": "e2894468b16e5ad7cb4c03b8f3128d64c39535e5c5c4559ae7e02ec45f04a3a0",
   "entry": [
     {
       "action": "say",
@@ -22,8 +22,8 @@
     },
     {
       "action": "patch_code",
-      "before": "BEGIN;\nUPDATE account SET balance=balance-30 WHERE id=1;\nUPDATE account SET balance=balance+30 WHERE id=2;\nROLLBACK;\n",
-      "after": "BEGIN;\nUPDATE account SET balance=balance-30 WHERE id=1;\nUPDATE account SET balance=balance+30 WHERE id=2;\nCOMMIT;\n",
+      "before": "-- 이 계좌 실험을 같은 잔액에서 재시험하는 공개 준비예요.\nUPDATE account SET balance=100;\nBEGIN;\nUPDATE account SET balance=balance-30 WHERE id=1;\nUPDATE account SET balance=balance+30 WHERE id=2;\nROLLBACK;\n",
+      "after": "-- 이 계좌 실험을 같은 잔액에서 재시험하는 공개 준비예요.\nUPDATE account SET balance=100;\nBEGIN;\nUPDATE account SET balance=balance-30 WHERE id=1;\nUPDATE account SET balance=balance+30 WHERE id=2;\nCOMMIT;\n",
       "say": "두 계좌의 이체를 함께 확정하세요"
     },
     {
@@ -37,7 +37,7 @@
     {
       "action": "say",
       "text": "조심하세요. 첫 UPDATE 직후 COMMIT하면 출금과 입금이 서로 다른 업무 단위가 돼요.",
-      "target": "text:이체가 성공하면 1번은 70, 2번은 130이어야 해요. BEGIN 뒤에 두 변경을 넣고 모두 성공했을 때 COMMIT하세요."
+      "target": "text:이체가 성공하면 1번은 70, 2번은 130이어야 해요. BEGIN 뒤에 두 변경을 넣고 모두 성공했을 때 COMMIT하세요. 맨 위 UPDATE는 이 연습의 두 계좌를 100으로 맞추는 재시험 준비예요. 이전 COMMIT을 ROLLBACK한 것은 아니에요. 운영 계좌에 적용하는 코드가 아니에요."
     },
     {
       "action": "submit"

@@ -51,7 +51,7 @@ P = constraint('primary-key', '회원 번호가 없거나 겹치는 행을 막�
 
 F = sql_step(slug='foreign-key', title='없는 회원의 주문을 저장하지 못하게 하세요', concept='외래 키가 두 표 사이의 존재 규칙을 지켜요.',
              intro='회원 표에는 1번만 있어요. 다른 클라이언트가 99번 회원의 주문을 보내요.',
-             know='FOREIGN KEY는 참조할 행이 존재해야 한다는 규칙이에요. JOIN은 결과를 조합하지만 잘못된 저장 자체를 막지는 않아요.',
+             know='FOREIGN KEY는 참조할 행이 존재해야 한다는 규칙이에요. 참조 번호로 다른 표를 조회하는 것과 잘못된 참조 번호의 저장 자체를 거절하는 것은 다른 일이에요.',
              before="CREATE TABLE member(id INT PRIMARY KEY);\nINSERT INTO member VALUES(1);\n",
              starter='CREATE TABLE orders(id INT PRIMARY KEY, member_id INT NOT NULL);\n',
              solution='CREATE TABLE orders(id INT PRIMARY KEY, member_id INT NOT NULL, FOREIGN KEY(member_id) REFERENCES member(id));\n',
@@ -105,3 +105,16 @@ LESSON = sql_lesson(key='sql-tables-constraints', folder='sql_tables_constraints
                            unit('최종 도전: 예약 저장소', '정상 예약은 허용하고 잘못된 예약만 거절해요.', [FINAL])],
                     final_slug='final-reservation',
                     sources=[('https://dev.mysql.com/doc/refman/8.4/en/constraints.html', '제약이 위반된 문장을 DB가 거절해요.', 'MySQL 8.4 공식 문서와 실제 실행을 대조해요.')])
+
+# DDL is not transactional in MySQL. Make repeated schema experiments explicit
+# in the learner's code; never silently rebuild the server/container on each run.
+for task, table in [(N,'member'),(U,'member'),(P,'member'),(F,'orders'),(C,'wallet'),(FINAL,'reservation')]:
+    prefix=f'-- 이 제약 비교 실험의 연습용 {table} 표만 다시 만드는 준비예요.\nDROP TABLE IF EXISTS {table};\n'
+    task['starter']=prefix+task['starter']
+    task['solution']=prefix+task['solution']
+    preparation=f'{task["objectives"][0]} 실행할 때 보이는 DROP TABLE이 이 실험의 {table} 표만 다시 만들어요. 앞 실행의 잘못된 표에 CREATE를 덧붙이지 않고 두 제약을 같은 조건에서 비교해요. 운영 DB에서 표를 지우라는 뜻은 아니에요.'
+    task['intro'].append(preparation)
+    task['narration'].insert(0,('say',preparation,'text:'+preparation))
+    task['review'][preparation]='반복 DDL 실험의 준비가 코드에 공개되어 있고 이 과제 표에만 적용됨을 설명해요.'
+LESSON['revision']=2
+LESSON['prerequisites']=['SQL 기초에서 CREATE TABLE·INSERT·조회·행 식별자와 관계를 확인했어요.', 'MySQL 실습 환경을 실행할 수 있어요.']

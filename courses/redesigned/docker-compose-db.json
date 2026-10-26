@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_bdbee054-9470-4e9f-bcea-155ea94edc3d",
-  "revision": "docker-compose-db-1",
+  "revision": "docker-compose-db-2",
   "title": "Compose·DB · 컨테이너를 바꿔도 데이터는 남겨요",
   "description": "실제 컨테이너를 연결하고 경계 하나를 바꿔 실패 원인을 확인해요.",
   "objectives": [
@@ -144,7 +144,7 @@
     {
       "id": "stp_d7934805-5e0f-4b38-ae30-4d961108ab89",
       "title": "DB 컨테이너를 다시 만들어도 메모가 남게 하세요",
-      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n볼륨 data가 있지만 /data에 붙어 있어요. 이 PostgreSQL 18 이미지가 저장하는 경로와 달라요.\n\n**알아두세요**\n\n준비된 PostgreSQL 18 이미지는 /var/lib/postgresql 아래에 데이터를 저장해요. 이미지의 기본 익명 볼륨은 재생성 때 이어질 수도 있지만 down 뒤 새 실행에서 같은 저장소로 다시 연결되지는 않아요. 실제 저장 경로를 이름 있는 data 볼륨에 연결해 식별자를 유지하세요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. DB 컨테이너를 다시 만들어도 메모가 남게 하세요\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n볼륨 data가 있지만 /data에 붙어 있어요. 이 PostgreSQL 18 이미지가 저장하는 경로와 달라요.\n\n제공한 lab.sh는 연습용 memo 표의 행만 비우고 milk 한 행을 넣어 재시험 조건을 맞춰요. 그 뒤 컨테이너를 실제로 재시작·재생성하며 같은 행이 남는지 비교해요. 컨테이너 수명 비교 자체가 이 문제의 실험이며, 일반 SQL 실행마다 컨테이너를 내리는 방식은 아니에요.\n\n**알아두세요**\n\n준비된 PostgreSQL 18 이미지는 /var/lib/postgresql 아래에 데이터를 저장해요. 이미지의 기본 익명 볼륨은 재생성 때 이어질 수도 있지만 down 뒤 새 실행에서 같은 저장소로 다시 연결되지는 않아요. 실제 저장 경로를 이름 있는 data 볼륨에 연결해 식별자를 유지하세요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. DB 컨테이너를 다시 만들어도 메모가 남게 하세요\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
       "language": "docker",
       "starter_code": "services:\n  db:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      POSTGRES_PASSWORD: lab\n      POSTGRES_DB: lab\n    volumes: [\"data:/data\"]\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-h\", \"127.0.0.1\", \"-U\", \"postgres\", \"-d\", \"lab\"]\n      interval: 1s\n      timeout: 1s\n      retries: 60\n  app:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      PGPASSWORD: lab\n    command: [\"psql\", \"-h\", \"db\", \"-U\", \"postgres\", \"-d\", \"lab\", \"-X\", \"-qAt\", \"-c\", \"SELECT 'connected'\"]\nvolumes:\n  data:\n",
       "solution": "services:\n  db:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      POSTGRES_PASSWORD: lab\n      POSTGRES_DB: lab\n    volumes: [\"data:/var/lib/postgresql\"]\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-h\", \"127.0.0.1\", \"-U\", \"postgres\", \"-d\", \"lab\"]\n      interval: 1s\n      timeout: 1s\n      retries: 60\n  app:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      PGPASSWORD: lab\n    command: [\"psql\", \"-h\", \"db\", \"-U\", \"postgres\", \"-d\", \"lab\", \"-X\", \"-qAt\", \"-c\", \"SELECT 'connected'\"]\nvolumes:\n  data:\n",
@@ -156,6 +156,11 @@
       ],
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "제공한 lab.sh는 연습용 memo 표의 행만 비우고 milk 한 행을 넣어 재시험 조건을 맞춰요. 그 뒤 컨테이너를 실제로 재시작·재생성하며 같은 행이 남는지 비교해요. 컨테이너 수명 비교 자체가 이 문제의 실험이며, 일반 SQL 실행마다 컨테이너를 내리는 방식은 아니에요.",
+          "target": "text:제공한 lab.sh는 연습용 memo 표의 행만 비우고 milk 한 행을 넣어 재시험 조건을 맞춰요. 그 뒤 컨테이너를 실제로 재시작·재생성하며 같은 행이 남는지 비교해요. 컨테이너 수명 비교 자체가 이 문제의 실험이며, 일반 SQL 실행마다 컨테이너를 내리는 방식은 아니에요."
+        },
         {
           "action": "say",
           "text": "볼륨 data가 있지만 /data에 붙어 있어요. 이 PostgreSQL 18 이미지가 저장하는 경로와 달라요.",
@@ -199,7 +204,7 @@
       ],
       "entry_file": "compose.yaml",
       "files": {
-        "lab.sh": "set -e\nsql() { docker compose exec -T db psql -U postgres -d lab -X -qAt -v ON_ERROR_STOP=1 -c \"$1\" </dev/null; }\nread_count() { sql 'SELECT count(*) FROM memo' 2>/dev/null || echo '표 없음'; }\ndocker compose up -d --wait db >/dev/null 2>&1\nsql \"CREATE TABLE memo(title TEXT); INSERT INTO memo VALUES('milk')\"\necho \"처음:$(read_count)\"\ndocker compose restart -t 1 db >/dev/null 2>&1\ndocker compose up -d --wait db >/dev/null 2>&1\necho \"재시작:$(read_count)\"\ndocker compose up -d --force-recreate --wait -t 1 db >/dev/null 2>&1\necho \"재생성:$(read_count)\"\ndocker compose down -t 1 >/dev/null 2>&1\ndocker compose up -d --wait db >/dev/null 2>&1\necho \"down:$(read_count)\"\n"
+        "lab.sh": "set -e\nsql() { docker compose exec -T db psql -U postgres -d lab -X -qAt -v ON_ERROR_STOP=1 -c \"$1\" </dev/null; }\nread_count() { sql 'SELECT count(*) FROM memo' 2>/dev/null || echo '표 없음'; }\ndocker compose up -d --wait db >/dev/null 2>&1\nsql \"CREATE TABLE IF NOT EXISTS memo(title TEXT); TRUNCATE memo; INSERT INTO memo VALUES('milk')\"\necho \"처음:$(read_count)\"\ndocker compose restart -t 1 db >/dev/null 2>&1\ndocker compose up -d --wait db >/dev/null 2>&1\necho \"재시작:$(read_count)\"\ndocker compose up -d --force-recreate --wait -t 1 db >/dev/null 2>&1\necho \"재생성:$(read_count)\"\ndocker compose down -t 1 >/dev/null 2>&1\ndocker compose up -d --wait db >/dev/null 2>&1\necho \"down:$(read_count)\"\n"
       },
       "docker_images": [
         "postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5"
@@ -208,10 +213,10 @@
     {
       "id": "stp_72bd6932-460d-47a4-823c-15bc21b83b98",
       "title": "기존 메모를 보존하며 새 열을 추가하세요",
-      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n첫 실행에서 milk 메모를 저장했어요. init.sql을 새 표 정의로 바꿔 컨테이너를 다시 만들어도 기존 DB의 표는 바뀌지 않아요.\n\n**알아두세요**\n\n이미 데이터가 있는 볼륨이면 초기화 스크립트를 다시 실행하지 않아요. migration.sql에서 memo에 version INT DEFAULT 1 NOT NULL 열을 추가하세요. 기존 행과 새 열의 기본값을 함께 보존해야 해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. 기존 메모를 보존하며 새 열을 추가하세요\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n첫 실행에서 milk 메모를 저장했어요. init.sql을 새 표 정의로 바꿔 컨테이너를 다시 만들어도 기존 DB의 표는 바뀌지 않아요.\n\n같은 마이그레이션을 다시 실행해도 기존 열 때문에 실패하지 않도록 ADD COLUMN IF NOT EXISTS를 사용해요. 이는 같은 이름의 열이 있는 경우 추가를 생략할 뿐, 기존 열의 자료형과 제약까지 검증해 주지는 않아요.\n\n**알아두세요**\n\n이미 데이터가 있는 볼륨이면 초기화 스크립트를 다시 실행하지 않아요. migration.sql에서 memo에 version INT DEFAULT 1 NOT NULL 열을 추가하세요. 기존 행과 새 열의 기본값을 함께 보존해야 해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. 기존 메모를 보존하며 새 열을 추가하세요\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
       "language": "docker",
       "starter_code": "-- 기존 DB에 필요한 스키마 변경을 구현하세요.\n",
-      "solution": "ALTER TABLE memo ADD COLUMN version INT DEFAULT 1 NOT NULL;\n",
+      "solution": "ALTER TABLE memo ADD COLUMN IF NOT EXISTS version INT DEFAULT 1 NOT NULL;\n",
       "tests": [
         {
           "input": "",
@@ -220,6 +225,11 @@
       ],
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "같은 마이그레이션을 다시 실행해도 기존 열 때문에 실패하지 않도록 ADD COLUMN IF NOT EXISTS를 사용해요. 이는 같은 이름의 열이 있는 경우 추가를 생략할 뿐, 기존 열의 자료형과 제약까지 검증해 주지는 않아요.",
+          "target": "text:같은 마이그레이션을 다시 실행해도 기존 열 때문에 실패하지 않도록 ADD COLUMN IF NOT EXISTS를 사용해요. 이는 같은 이름의 열이 있는 경우 추가를 생략할 뿐, 기존 열의 자료형과 제약까지 검증해 주지는 않아요."
+        },
         {
           "action": "say",
           "text": "첫 실행에서 milk 메모를 저장했어요. init.sql을 새 표 정의로 바꿔 컨테이너를 다시 만들어도 기존 DB의 표는 바뀌지 않아요.",
@@ -242,7 +252,7 @@
         {
           "action": "patch_code",
           "before": "-- 기존 DB에 필요한 스키마 변경을 구현하세요.\n",
-          "after": "ALTER TABLE memo ADD COLUMN version INT DEFAULT 1 NOT NULL;\n",
+          "after": "ALTER TABLE memo ADD COLUMN IF NOT EXISTS version INT DEFAULT 1 NOT NULL;\n",
           "say": "기존 메모를 보존하며 새 열을 추가하세요"
         },
         {

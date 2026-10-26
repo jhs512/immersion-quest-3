@@ -3,33 +3,141 @@
   "lesson": "courses/redesigned/sql-first.json",
   "expected_outputs": [
     [
-      "1\tmilk\t100\t3\n2\tbread\t200\t0\n3\ttea\t100\tNULL",
-      "milk\nbread\ntea"
+      "1",
+      "1\tmilk\t100\t3"
     ],
     [
-      "milk\ntea",
-      "milk"
+      "1\tmilk\t100\t3",
+      "milk\t100"
+    ],
+    [
+      "milk",
+      "bread"
+    ],
+    [
+      "milk\nbread\ntea",
+      "tea\nmilk\nbread"
+    ],
+    [
+      "1\tmilk\t100\t3\n2\tbread\t200\t0\n3\ttea\t100\tNULL",
+      "milk\nbread\ntea"
     ],
     [
       "",
       "tea"
     ],
     [
+      "milk\ntea",
+      "milk"
+    ],
+    [
       "bread\nmilk",
       "milk\ntea"
+    ],
+    [
+      "2",
+      "3"
     ],
     [
       "3",
       "7"
     ],
     [
-      "milk:2\nbread:-1\ntea:unknown",
+      "3",
+      "7"
+    ],
+    [
+      "",
+      "first memo"
+    ],
+    [
+      "1\tmilk\t100\t3\n2\tbread\t200\t0\n3\ttea\t100\tNULL",
+      "1\tmilk\t100\t3\n2\tbread\t200\t0\n3\ttea\t100\tNULL\n4\tcoffee\t300\t2"
+    ],
+    [
+      "milk\t100\n1\tmilk\t100\t3\n2\tbread\t200\t0\n3\ttea\t100\tNULL",
+      "1\tmilk\t150\t3\n2\tbread\t200\t0\n3\ttea\t100\tNULL"
+    ],
+    [
+      "bread\nmilk\nbread\ntea",
+      "milk\ntea"
+    ],
+    [
+      "1\tlee\n2\tlee",
+      "2\tlee"
+    ],
+    [
+      "",
+      "10\n11"
+    ],
+    [
+      "milk\t3\nbread\t0\ntea\tNULL\nmilk:3\nbread:0\ntea:unknown",
       "milk:2\nbread:0\ntea:unknown"
     ]
   ],
   "reject": [
     {
       "step": 1,
+      "replacements": [
+        [
+          "SELECT * FROM item;\n",
+          "SELECT 1;\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "SELECT * FROM item;",
+          "SELECT 1,'milk',100,3;"
+        ]
+      ],
+      "reason": "표를 읽지 않고 답을 출력하면 변형 상품의 값이 달라져 실패해야 해요."
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "SELECT name,price FROM item;\n",
+          "SELECT * FROM item;\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "SELECT name FROM item WHERE id=2;\n",
+          "SELECT name FROM item WHERE id=1;\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "SELECT name FROM item WHERE id=2;",
+          "SELECT 'bread';"
+        ]
+      ],
+      "reason": "결과 문자열을 하드코딩하면 실제 상품 이름이 바뀐 경우 실패해야 해요."
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "SELECT name FROM item ORDER BY price;\n",
+          "SELECT name FROM item ORDER BY id;\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 5,
       "replacements": [
         [
           "SELECT name FROM item ORDER BY id;\n",
@@ -39,17 +147,7 @@
       "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
     },
     {
-      "step": 2,
-      "replacements": [
-        [
-          "SELECT name FROM item WHERE price=100 AND qty>0 ORDER BY id;\n",
-          "SELECT name FROM item WHERE price=100 OR qty>0 ORDER BY id;\n"
-        ]
-      ],
-      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
-    },
-    {
-      "step": 3,
+      "step": 6,
       "replacements": [
         [
           "SELECT name FROM item WHERE qty IS NULL ORDER BY id;\n",
@@ -59,7 +157,17 @@
       "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
     },
     {
-      "step": 4,
+      "step": 7,
+      "replacements": [
+        [
+          "SELECT name FROM item WHERE price=100 AND qty>0 ORDER BY id;\n",
+          "SELECT name FROM item WHERE price=100 OR qty>0 ORDER BY id;\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 8,
       "replacements": [
         [
           "SELECT name FROM item ORDER BY price,id LIMIT 2;\n",
@@ -69,7 +177,27 @@
       "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
     },
     {
-      "step": 5,
+      "step": 9,
+      "replacements": [
+        [
+          "SELECT COUNT(*) FROM item;\n",
+          "SELECT COUNT(qty) FROM item;\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 10,
+      "replacements": [
+        [
+          "SELECT SUM(qty) FROM item;\n",
+          "SELECT COUNT(*) FROM item;\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 11,
       "replacements": [
         [
           "SELECT COALESCE(SUM(qty),0) FROM item;\n",
@@ -79,15 +207,106 @@
       "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
     },
     {
-      "step": 6,
+      "step": 12,
+      "replacements": [
+        [
+          "CREATE TABLE memo(content VARCHAR(30));\n",
+          "CREATE TABLE memo(content INT);\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 13,
+      "replacements": [
+        [
+          "INSERT INTO item(id,name,price,qty) VALUES(4,'coffee',300,2);\n",
+          "SELECT name FROM item WHERE id=4;\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 14,
+      "replacements": [
+        [
+          "UPDATE item SET price=150 WHERE id=1;\n",
+          "SELECT name,price FROM item WHERE id=1;\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 15,
+      "replacements": [
+        [
+          "DELETE FROM item WHERE id=2;\n",
+          "SELECT name FROM item WHERE id=2;\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 16,
+      "replacements": [
+        [
+          "SELECT id,name FROM member WHERE id=2;\n",
+          "SELECT id,name FROM member WHERE name='lee' ORDER BY id;\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 17,
+      "replacements": [
+        [
+          "SELECT id FROM orders WHERE member_id=2 ORDER BY id;\n",
+          "SELECT id FROM orders WHERE id=2 ORDER BY id;\n"
+        ]
+      ],
+      "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
+    },
+    {
+      "step": 18,
       "replacements": [
         [
           "UPDATE item SET qty=qty-1 WHERE id=1;\n",
-          "UPDATE item SET qty=qty-1;\n"
+          "SELECT name,qty FROM item ORDER BY id;\n"
         ]
       ],
       "reason": "해결 전 SQL로 되돌리면 DB가 요구한 상태가 되지 않아요."
     }
   ],
-  "accept": []
+  "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "SELECT * FROM item;",
+          "SELECT id,name,price,qty FROM item;"
+        ]
+      ],
+      "reason": "모든 열을 명시해서 읽어도 같은 실제 행이에요."
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "WHERE id=2",
+          "WHERE id IN (2)"
+        ]
+      ],
+      "reason": "한 식별자 집합으로 같은 행을 읽는 동등한 조건도 인정해요."
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "COUNT(*)",
+          "COUNT(1)"
+        ]
+      ],
+      "reason": "모든 행에 있는 상수를 세는 동등한 행 수 집계도 인정해요."
+    }
+  ]
 }

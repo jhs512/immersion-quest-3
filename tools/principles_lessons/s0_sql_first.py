@@ -61,11 +61,11 @@ S5=step('aggregate','확인된 재고 수량의 합계를 구하세요','행의 
 S5['files']['before.sql']=SEED.replace('100,3)','100,7)')
 
 S6=step('targeted-change','milk 재고만 한 개 차감하세요','UPDATE는 WHERE를 만족하는 모든 행을 변경해요.',
-    '한 고객이 milk 한 개를 샀어요. 준비 코드는 표의 모든 상품에서 수량을 차감해 bread 재고까지 -1로 만들어요.',
-    'id=1인 상품만 바꾸도록 UPDATE에 WHERE를 붙이세요. SELECT로 화면만 고치는 대신 실제 표에 올바른 변경이 저장되어야 해요. 제공 조회가 모든 상품을 다시 읽어요.',
-    'UPDATE item SET qty=qty-1;\n','UPDATE item SET qty=qty-1 WHERE id=1;\n',
+    '한 고객이 milk 한 개를 샀어요. 준비 코드는 조회만 해서 재고를 아직 바꾸지 않았어요. 다른 상품의 재고는 그대로 두세요.',
+    'id=1인 상품만 바꾸도록 UPDATE에 WHERE를 붙이세요. qty=qty-1은 현재 수량에서 하나를 빼요. 같은 UPDATE를 재실행하면 한 번 더 차감돼요. 제출 검사는 새 준비 DB에서 한 번 실행해 확인해요. 제공 조회가 모든 상품을 다시 읽어요.',
+    'SELECT name,qty FROM item ORDER BY id;\n','UPDATE item SET qty=qty-1 WHERE id=1;\n',
     'milk:2\nbread:0\ntea:unknown',
-    'milk뿐 아니라 bread도 -1이 됐어요. WHERE가 없는 UPDATE는 표의 모든 행을 대상으로 했어요.',
+    '아직 조회만 했어요. milk는 3, bread는 0이고 tea는 미정이에요.',
     'milk만 2가 되고 bread는 0, tea는 미정으로 유지됐어요. 변경 대상을 실제 행 조건으로 제한했어요.',
     '조심하세요. UPDATE 뒤의 WHERE는 결과 화면 필터가 아니라 실제로 바꿀 행의 범위예요. 실행 전에 그 조건의 SELECT로 대상을 확인할 수 있어요.',
     check="SELECT CONCAT(name,':',COALESCE(CAST(qty AS CHAR),'unknown')) FROM item ORDER BY id;\n",
@@ -78,3 +78,56 @@ LESSON=sql_lesson(key='sql-first',folder='sql_first',pilot='쿼',title='SQL 기�
            unit('실제 데이터 변경','조회와 변경의 차이를 실행해 확인해요.',[S6])],final_slug='targeted-change',engine='mysql',
     sources=[('https://dev.mysql.com/doc/refman/8.4/en/select.html','SELECT·NULL·집계·UPDATE의 의미를 확인해요.','실제 MySQL 8.4의 행과 결과를 비교해요.')])
 LESSON['prerequisites']=['표의 행과 열이라는 표현을 알아요.','Docker Desktop을 실행할 수 있어요.']
+
+from sql_foundations import additions
+EXTRA = additions()
+original = LESSON['chapters'][0]
+original['identity'] = 'c0'
+for index, existing_unit in enumerate(original['units']):
+    existing_unit['identity'] = f'c0u{index}'
+query_unit, result_unit, final_unit = original['units']
+query_unit['steps'] = [S1,S3,S2]
+result_unit['steps'] = [S4,EXTRA['e'],EXTRA['f'],S5]
+original['units'] = [query_unit,result_unit]
+original['title'] = '행을 찾고 조회 결과의 규칙을 정해요'
+LESSON['chapters'] = [
+    dict(identity='db-foundations', title='왜 DB에 저장하고 표에서 읽을까요?',
+         objectives=['DB·SQL·테이블의 역할을 구별해요.', '행·열·조건·정렬을 하나씩 관찰해요.'],
+         units=[unit('표와 조회','한 행의 열을 읽고 필요한 열을 선택해요.',[EXTRA['a'],EXTRA['b']]),
+                unit('조건과 순서','WHERE와 ORDER BY가 서로 다른 대상을 정함을 이해해요.',[EXTRA['c'],EXTRA['d']])]),
+    original,
+    dict(identity='data-lifecycle', title='표를 만들고 데이터를 추가·수정·삭제해요',
+         objectives=['테이블의 모양과 저장된 행을 구별해요.', '데이터 변경 뒤 다른 연결의 조회 결과를 확인해요.'],
+         units=[unit('테이블과 새 행','열의 자료형을 정하고 새 행을 저장해요.',[EXTRA['j'],EXTRA['g']]),
+                unit('바꿀 범위와 지울 범위','WHERE로 실제 수정·삭제할 행을 제한해요.',[EXTRA['h'],EXTRA['i']])]),
+    dict(identity='keys-relations', title='행의 정체성과 표 사이의 관계를 읽어요',
+         objectives=['이름과 행 식별자를 구별해요.', '자기 행 번호와 다른 표를 가리키는 번호를 구별해요.'],
+         units=[unit('식별자와 참조','중복 이름과 회원별 주문을 번호의 역할로 구별해요.',[EXTRA['k'],EXTRA['l']])]),
+    dict(identity='final-mutation', title='최종 도전: 실제 재고 한 행만 바꿔요',
+         objectives=['조회·조건·변경의 의미를 조합해 다른 상품을 보존해요.'], units=[final_unit]),
+]
+LESSON['revision']=2
+LESSON['audience']='DB와 SQL을 처음 배우는 학습자'
+LESSON['prerequisites']=['터미널이나 코드 실행 버튼으로 결과를 읽을 수 있어요.', 'Docker Desktop을 실행할 수 있어요. SQL·행·열은 여기서 처음 배워요.']
+LESSON['objectives']=['왜 데이터를 프로그램 밖의 DB에 보관하는지 설명해요.',
+    '행·열·테이블에서 SELECT·FROM·WHERE·ORDER BY를 하나씩 적용해요.',
+    '테이블을 만들고 행을 추가·수정·삭제한 실제 결과를 확인해요.',
+    '행의 식별자·관계·NULL·행 수와 수량 합계를 구별해요.']
+LESSON['scope']=LESSON['objectives']
+LESSON['description']='왜 DB가 필요한지에서 출발해 표와 조회를 익혀요. 저장·변경·삭제 뒤 실제 행을 읽고 키와 관계의 의미로 연결해요.'
+LESSON['brief']=(
+    '프로그램을 닫아도 남겨야 할 데이터에서 시작해 DB·SQL·표를 구별해요.',
+    '다른 상품은 보존하면서 팔린 상품 한 행의 재고만 차감하세요.',
+    ['한 행의 열을 읽고 WHERE와 ORDER BY를 나눠 익혀요.',
+     '행 수와 수량 합계를 구별해요.', '표를 만들고 추가·수정·삭제해요.',
+     '새 연결에서 저장 결과를 읽고 키·관계의 의미로 연결해요.'],
+    'MySQL 8.4 실습 DB를 제공해요. 같은 문제의 재실행은 상태를 이어가고 제출 검사는 별도 준비 DB에서 해요. 호스트의 고정 DB 포트는 쓰지 않아요.',
+    '화면에 글자를 출력하는 것과 DB에 행을 저장하는 것은 어떻게 다를까요?')
+# New scenarios supply the SQL foundations rather than assuming SELECT/INSERT in their own prerequisites.
+for c in LESSON['chapters']:
+    for u in c['units']:
+        for s in u['steps']:
+            if s['slug'] not in ('table-first-row','choose-two-columns'):
+                s['complexity']['prior']='앞 문제에서 테이블의 행·열과 조회를 확인했어요.'
+EXTRA['a']['complexity']['prior']='SQL이나 행·열을 몰라도 시작할 수 있어요.'
+EXTRA['b']['complexity']['prior']='한 상품 행에서 모든 열을 조회했어요.'

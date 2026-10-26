@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_85de96e6-a815-48da-b98a-c2a356fc6946",
-  "revision": "sql-index-plan-1",
+  "revision": "sql-index-plan-2",
   "title": "인덱스 · 답은 같은데 찾는 경로가 달라요",
   "description": "작은 표에서 조건 하나를 바꿔 실제 저장 결과를 비교해요.",
   "objectives": [
@@ -75,10 +75,10 @@
     {
       "id": "stp_c5de3091-878f-4110-b0c1-fc8540664002",
       "title": "송장 코드 조회용 인덱스를 만드세요",
-      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n송장 5만 건에서 코드 하나를 찾아요. id에는 기본 키 인덱스가 있지만 code에는 없어요.\n\n**알아두세요**\n\n제공 함수는 실제 EXPLAIN JSON을 검사해요. 실행 시간은 컴퓨터와 캐시마다 달라서 채점하지 않아요. code의 동등 조건에 맞는 인덱스를 추가하세요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. lesson.sql에서 다음 요구를 구현하세요. 송장 코드 조회용 인덱스를 만드세요\n3. 오류가 난 문장과 그 뒤 조회 결과를 함께 읽으세요.\n4. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n5. 고친 코드를 제출하세요.",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n송장 5만 건에서 코드 하나를 찾아요. id에는 기본 키 인덱스가 있지만 code에는 없어요.\n\n맨 위 DROP INDEX는 이 문제에서 비교할 parcel_code 인덱스만 다시 준비해요. 송장 행과 기본 키 인덱스는 지우지 않아요. 같은 이름의 이전 색인이 남아 새 정의를 막지 않게 해요.\n\n**알아두세요**\n\n제공 함수는 실제 EXPLAIN JSON을 검사해요. 실행 시간은 컴퓨터와 캐시마다 달라서 채점하지 않아요. code의 동등 조건에 맞는 인덱스를 추가하세요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. lesson.sql에서 다음 요구를 구현하세요. 송장 코드 조회용 인덱스를 만드세요\n3. 오류가 난 문장과 그 뒤 조회 결과를 함께 읽으세요.\n4. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n5. 고친 코드를 제출하세요.",
       "language": "docker",
-      "starter_code": "-- code 조회 경로를 추가하세요.\n",
-      "solution": "CREATE INDEX parcel_code ON parcel(code);\n",
+      "starter_code": "-- 이 검색 경로 비교 실험에서 만든 인덱스만 다시 준비해요.\nDROP INDEX IF EXISTS parcel_code;\n-- code 조회 경로를 추가하세요.\n",
+      "solution": "-- 이 검색 경로 비교 실험에서 만든 인덱스만 다시 준비해요.\nDROP INDEX IF EXISTS parcel_code;\nCREATE INDEX parcel_code ON parcel(code);\n",
       "tests": [
         {
           "input": "",
@@ -87,6 +87,11 @@
       ],
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "맨 위 DROP INDEX는 이 문제에서 비교할 parcel_code 인덱스만 다시 준비해요. 송장 행과 기본 키 인덱스는 지우지 않아요. 같은 이름의 이전 색인이 남아 새 정의를 막지 않게 해요.",
+          "target": "text:맨 위 DROP INDEX는 이 문제에서 비교할 parcel_code 인덱스만 다시 준비해요. 송장 행과 기본 키 인덱스는 지우지 않아요. 같은 이름의 이전 색인이 남아 새 정의를 막지 않게 해요."
+        },
         {
           "action": "say",
           "text": "송장 5만 건에서 코드 하나를 찾아요. id에는 기본 키 인덱스가 있지만 code에는 없어요.",
@@ -150,10 +155,10 @@
     {
       "id": "stp_e041714b-7a21-4765-bbca-7aee74cd87b9",
       "title": "대소문자를 무시하는 검색 경로를 만드세요",
-      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n이번 검색은 lower(code)를 비교해요. code 인덱스를 만들었지만 계획은 여전히 전체 표를 읽어요.\n\n**알아두세요**\n\n검색이 사용하는 표현식과 맞는 표현식 인덱스를 만드세요. 원본 코드와 소문자로 바꾼 코드는 서로 다른 키예요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. lesson.sql에서 다음 요구를 구현하세요. 대소문자를 무시하는 검색 경로를 만드세요\n3. 오류가 난 문장과 그 뒤 조회 결과를 함께 읽으세요.\n4. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n5. 고친 코드를 제출하세요.",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n이번 검색은 lower(code)를 비교해요. code 인덱스를 만들었지만 계획은 여전히 전체 표를 읽어요.\n\n맨 위 DROP INDEX는 이 문제에서 비교할 parcel_code, parcel_lower 인덱스만 다시 준비해요. 송장 행과 기본 키 인덱스는 지우지 않아요. 같은 이름의 이전 색인이 남아 새 정의를 막지 않게 해요.\n\n**알아두세요**\n\n검색이 사용하는 표현식과 맞는 표현식 인덱스를 만드세요. 원본 코드와 소문자로 바꾼 코드는 서로 다른 키예요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. lesson.sql에서 다음 요구를 구현하세요. 대소문자를 무시하는 검색 경로를 만드세요\n3. 오류가 난 문장과 그 뒤 조회 결과를 함께 읽으세요.\n4. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n5. 고친 코드를 제출하세요.",
       "language": "docker",
-      "starter_code": "CREATE INDEX parcel_code ON parcel(code);\n",
-      "solution": "CREATE INDEX parcel_lower ON parcel(lower(code));\n",
+      "starter_code": "-- 이 검색 경로 비교 실험에서 만든 인덱스만 다시 준비해요.\nDROP INDEX IF EXISTS parcel_code;\nDROP INDEX IF EXISTS parcel_lower;\nCREATE INDEX parcel_code ON parcel(code);\n",
+      "solution": "-- 이 검색 경로 비교 실험에서 만든 인덱스만 다시 준비해요.\nDROP INDEX IF EXISTS parcel_code;\nDROP INDEX IF EXISTS parcel_lower;\nCREATE INDEX parcel_lower ON parcel(lower(code));\n",
       "tests": [
         {
           "input": "",
@@ -162,6 +167,11 @@
       ],
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "맨 위 DROP INDEX는 이 문제에서 비교할 parcel_code, parcel_lower 인덱스만 다시 준비해요. 송장 행과 기본 키 인덱스는 지우지 않아요. 같은 이름의 이전 색인이 남아 새 정의를 막지 않게 해요.",
+          "target": "text:맨 위 DROP INDEX는 이 문제에서 비교할 parcel_code, parcel_lower 인덱스만 다시 준비해요. 송장 행과 기본 키 인덱스는 지우지 않아요. 같은 이름의 이전 색인이 남아 새 정의를 막지 않게 해요."
+        },
         {
           "action": "say",
           "text": "이번 검색은 lower(code)를 비교해요. code 인덱스를 만들었지만 계획은 여전히 전체 표를 읽어요.",
@@ -217,10 +227,10 @@
     {
       "id": "stp_a8cb6a76-c22b-4caa-8f47-86c5583c7740",
       "title": "대기 중인 송장만 담는 인덱스를 만드세요",
-      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n5만 건 중 대기 송장은 50건이에요. 화면은 대기 상태의 코드 하나만 검색해요.\n\n**알아두세요**\n\nWHERE state='waiting'인 행의 code를 부분 인덱스에 담으세요. 표의 완료 행은 그대로 두어야 해요. 실제 검색 조건이 인덱스의 조건을 보장해야 쓸 수 있어요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. lesson.sql에서 다음 요구를 구현하세요. 대기 중인 송장만 담는 인덱스를 만드세요\n3. 오류가 난 문장과 그 뒤 조회 결과를 함께 읽으세요.\n4. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n5. 고친 코드를 제출하세요.",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n5만 건 중 대기 송장은 50건이에요. 화면은 대기 상태의 코드 하나만 검색해요.\n\n맨 위 DROP INDEX는 이 문제에서 비교할 parcel_waiting 인덱스만 다시 준비해요. 송장 행과 기본 키 인덱스는 지우지 않아요. 같은 이름의 이전 색인이 남아 새 정의를 막지 않게 해요.\n\n**알아두세요**\n\nWHERE state='waiting'인 행의 code를 부분 인덱스에 담으세요. 표의 완료 행은 그대로 두어야 해요. 실제 검색 조건이 인덱스의 조건을 보장해야 쓸 수 있어요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. lesson.sql에서 다음 요구를 구현하세요. 대기 중인 송장만 담는 인덱스를 만드세요\n3. 오류가 난 문장과 그 뒤 조회 결과를 함께 읽으세요.\n4. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n5. 고친 코드를 제출하세요.",
       "language": "docker",
-      "starter_code": "CREATE INDEX parcel_waiting ON parcel(code) WHERE state='done';\n",
-      "solution": "CREATE INDEX parcel_waiting ON parcel(code) WHERE state='waiting';\n",
+      "starter_code": "-- 이 검색 경로 비교 실험에서 만든 인덱스만 다시 준비해요.\nDROP INDEX IF EXISTS parcel_waiting;\nCREATE INDEX parcel_waiting ON parcel(code) WHERE state='done';\n",
+      "solution": "-- 이 검색 경로 비교 실험에서 만든 인덱스만 다시 준비해요.\nDROP INDEX IF EXISTS parcel_waiting;\nCREATE INDEX parcel_waiting ON parcel(code) WHERE state='waiting';\n",
       "tests": [
         {
           "input": "",
@@ -229,6 +239,11 @@
       ],
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "맨 위 DROP INDEX는 이 문제에서 비교할 parcel_waiting 인덱스만 다시 준비해요. 송장 행과 기본 키 인덱스는 지우지 않아요. 같은 이름의 이전 색인이 남아 새 정의를 막지 않게 해요.",
+          "target": "text:맨 위 DROP INDEX는 이 문제에서 비교할 parcel_waiting 인덱스만 다시 준비해요. 송장 행과 기본 키 인덱스는 지우지 않아요. 같은 이름의 이전 색인이 남아 새 정의를 막지 않게 해요."
+        },
         {
           "action": "say",
           "text": "5만 건 중 대기 송장은 50건이에요. 화면은 대기 상태의 코드 하나만 검색해요.",
@@ -284,10 +299,10 @@
     {
       "id": "stp_4a4e60a1-1514-4567-abb0-c0a856006353",
       "title": "지역·상태·대소문자 조건을 함께 지원하세요",
-      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n지역별 대기 송장 화면을 만들어요. 코드의 대소문자를 무시하면서 지정한 지역의 송장 하나를 찾아야 해요.\n\n**알아두세요**\n\n도시와 lower(code)를 키로 사용하고 대기 행만 담는 경로를 구현하세요. 별도의 코드로 SELECT 결과를 출력하지 말고 준비된 관찰 쿼리의 경로를 바꾸세요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. lesson.sql에서 다음 요구를 구현하세요. 지역·상태·대소문자 조건을 함께 지원하세요\n3. 오류가 난 문장과 그 뒤 조회 결과를 함께 읽으세요.\n4. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n5. 고친 코드를 제출하세요.",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n지역별 대기 송장 화면을 만들어요. 코드의 대소문자를 무시하면서 지정한 지역의 송장 하나를 찾아야 해요.\n\n맨 위 DROP INDEX는 이 문제에서 비교할 parcel_city, parcel_lookup 인덱스만 다시 준비해요. 송장 행과 기본 키 인덱스는 지우지 않아요. 같은 이름의 이전 색인이 남아 새 정의를 막지 않게 해요.\n\n**알아두세요**\n\n도시와 lower(code)를 키로 사용하고 대기 행만 담는 경로를 구현하세요. 별도의 코드로 SELECT 결과를 출력하지 말고 준비된 관찰 쿼리의 경로를 바꾸세요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. lesson.sql에서 다음 요구를 구현하세요. 지역·상태·대소문자 조건을 함께 지원하세요\n3. 오류가 난 문장과 그 뒤 조회 결과를 함께 읽으세요.\n4. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n5. 고친 코드를 제출하세요.",
       "language": "docker",
-      "starter_code": "CREATE INDEX parcel_city ON parcel(city);\n",
-      "solution": "CREATE INDEX parcel_lookup ON parcel(city,lower(code)) WHERE state='waiting';\n",
+      "starter_code": "-- 이 검색 경로 비교 실험에서 만든 인덱스만 다시 준비해요.\nDROP INDEX IF EXISTS parcel_city;\nDROP INDEX IF EXISTS parcel_lookup;\nCREATE INDEX parcel_city ON parcel(city);\n",
+      "solution": "-- 이 검색 경로 비교 실험에서 만든 인덱스만 다시 준비해요.\nDROP INDEX IF EXISTS parcel_city;\nDROP INDEX IF EXISTS parcel_lookup;\nCREATE INDEX parcel_lookup ON parcel(city,lower(code)) WHERE state='waiting';\n",
       "tests": [
         {
           "input": "",
@@ -296,6 +311,11 @@
       ],
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "맨 위 DROP INDEX는 이 문제에서 비교할 parcel_city, parcel_lookup 인덱스만 다시 준비해요. 송장 행과 기본 키 인덱스는 지우지 않아요. 같은 이름의 이전 색인이 남아 새 정의를 막지 않게 해요.",
+          "target": "text:맨 위 DROP INDEX는 이 문제에서 비교할 parcel_city, parcel_lookup 인덱스만 다시 준비해요. 송장 행과 기본 키 인덱스는 지우지 않아요. 같은 이름의 이전 색인이 남아 새 정의를 막지 않게 해요."
+        },
         {
           "action": "say",
           "text": "지역별 대기 송장 화면을 만들어요. 코드의 대소문자를 무시하면서 지정한 지역의 송장 하나를 찾아야 해요.",

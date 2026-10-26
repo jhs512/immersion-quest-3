@@ -1,6 +1,6 @@
 {
   "by": "hand",
-  "source_sha256": "0be602b12d0dca57b8ef7348f582494dd2c91a6f406934d6a0f82dbaf9449bea",
+  "source_sha256": "91253bfd826d9d7f2c6cd5e530ee8914ab41cd6d42f5eca6cc20a5fde4288528",
   "entry": [
     {
       "action": "say",
@@ -22,8 +22,8 @@
     },
     {
       "action": "patch_code",
-      "before": "BEGIN;\nUPDATE account SET balance=balance+10 WHERE id=1;\nUPDATE account SET balance=balance+100 WHERE id=1;\nROLLBACK;\n",
-      "after": "BEGIN;\nUPDATE account SET balance=balance+10 WHERE id=1;\nSAVEPOINT bonus;\nUPDATE account SET balance=balance+100 WHERE id=1;\nROLLBACK TO bonus;\nCOMMIT;\n",
+      "before": "-- 이 계좌 실험을 같은 잔액에서 재시험하는 공개 준비예요.\nUPDATE account SET balance=100;\nBEGIN;\nUPDATE account SET balance=balance+10 WHERE id=1;\nUPDATE account SET balance=balance+100 WHERE id=1;\nROLLBACK;\n",
+      "after": "-- 이 계좌 실험을 같은 잔액에서 재시험하는 공개 준비예요.\nUPDATE account SET balance=100;\nBEGIN;\nUPDATE account SET balance=balance+10 WHERE id=1;\nSAVEPOINT bonus;\nUPDATE account SET balance=balance+100 WHERE id=1;\nROLLBACK TO bonus;\nCOMMIT;\n",
       "say": "선택 작업의 실패만 취소하세요"
     },
     {
@@ -37,7 +37,7 @@
     {
       "action": "say",
       "text": "조심하세요. SAVEPOINT가 오류를 자동으로 무시하지는 않아요. 실패 후 되돌릴 지점을 명시해야 계속 진행할 수 있어요.",
-      "target": "text:보너스를 시도하기 직전에 SAVEPOINT bonus를 만드세요. 오류가 나면 ROLLBACK TO bonus로 실패 상태를 해제하고 앞의 정상 변경을 COMMIT하세요."
+      "target": "text:보너스를 시도하기 직전에 SAVEPOINT bonus를 만드세요. 오류가 나면 ROLLBACK TO bonus로 실패 상태를 해제하고 앞의 정상 변경을 COMMIT하세요. 맨 위 UPDATE는 이 연습의 두 계좌를 100으로 맞추는 재시험 준비예요. 이전 COMMIT을 ROLLBACK한 것은 아니에요. 운영 계좌에 적용하는 코드가 아니에요."
     },
     {
       "action": "submit"

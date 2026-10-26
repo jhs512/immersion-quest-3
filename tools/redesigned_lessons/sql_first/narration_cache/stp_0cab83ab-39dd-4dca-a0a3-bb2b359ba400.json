@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "8227e2ffe60f1eff885468c8a49f86d803ef4225d255c5b2df51ae6e5baaaf79",
+  "entry": [
+    {
+      "action": "say",
+      "text": "milk 가격을 100에서 150으로 바꾸려 해요. 준비 코드는 아직 조회만 해요.",
+      "target": "text:milk 가격을 100에서 150으로 바꾸려 해요. 준비 코드는 아직 조회만 해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "조회에는 milk 가격 100이 나와요. 뒤의 전체 조회에서도 아직 바뀌지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "UPDATE의 SET은 바꿀 열과 새 값을 정하고 WHERE는 바꿀 행을 정해요.",
+      "target": "code:SELECT name,price FROM item WHERE id=1;"
+    },
+    {
+      "action": "patch_code",
+      "before": "SELECT name,price FROM item WHERE id=1;\n",
+      "after": "UPDATE item SET price=150 WHERE id=1;\n",
+      "say": "milk의 가격만 150으로 바꾸세요"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "milk 가격만 150이에요. 나머지 값과 행은 그대로예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. SELECT의 별칭으로 150을 보여 주는 것과 실제 price를 변경하는 것은 달라요.",
+      "target": "text:UPDATE item SET price=150 WHERE id=1은 1번 행의 가격만 바꿔요. 이름·재고·다른 상품은 유지돼요. WHERE를 빼면 모든 상품의 가격을 바꿔 버려요. 수정 전에는 같은 조건의 SELECT로 대상을 확인하세요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

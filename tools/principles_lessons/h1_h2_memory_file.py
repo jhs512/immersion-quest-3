@@ -180,7 +180,7 @@ STEPS = [
 ]
 
 LESSON = java_lesson(
-    key='h2-memory-file', folder='h2_memory_file', pilot='히', revision=1,
+    key='h2-memory-file', folder='h2_memory_file', pilot='히', revision=2,
     title='H2 · 연결을 닫는 것과 프로그램을 끄는 것은 달라요',
     category='db', category_title='DB', track=None,
     category_evidence='실제 H2와 JDBC로 저장소의 수명을 확인해요.',
@@ -200,3 +200,9 @@ LESSON = java_lesson(
     chapters=[dict(title='메모는 어디까지 살아 있나요?', objectives=['실제 연결·프로세스 경계를 바꾸어 저장소의 수명을 비교해요.'],
                    units=[dict(title='연결과 저장소의 경계', objectives=['같은 연결 문자열이 뜻하는 공유 범위를 설명해요.'],
                                premise='메모 한 줄을 실제 H2에서 쓰고 다른 곳에서 읽어요.', steps=STEPS)])])
+
+connection_intro='SQL 기초에서는 DB에 표를 만들고 행을 저장했어요. 이번에는 Java 코드가 연결을 열어 같은 SQL을 보내요. H2는 이 실습의 DB 프로그램이고 JDBC는 Java에서 DB에 요청하는 API예요. 준비 코드의 a가 메모를 쓰고 b가 읽어요. 연결 주소를 바꾸며 두 연결이 같은 저장소를 보는지 확인하세요.'
+STEPS[0]['intro'].insert(0,connection_intro)
+STEPS[0]['narration'].insert(0,('say',connection_intro,'text:'+connection_intro))
+STEPS[0]['review'][connection_intro]='이미 배운 표·저장을 실제 두 연결의 쓰기·읽기 관찰로 연결해요. 연결 문자열 자체를 데이터 저장소와 혼동하지 않게 해요.'
+LESSON['prerequisites']=['SQL 기초의 CREATE TABLE·INSERT·SELECT와 저장·조회 차이를 확인했어요.', 'Java의 메서드 호출과 try-with-resources를 읽을 수 있어요. JDBC 연결과 H2 저장소의 차이는 여기서 관찰해요.']

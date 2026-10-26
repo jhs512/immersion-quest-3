@@ -77,3 +77,9 @@ LESSON = sql_lesson(key='sql-join-group', folder='sql_join_group', pilot='쥬', 
                            unit('NULL과 집계', '건수와 필터의 적용 지점을 구별해요.', [S3,S4]),
                            unit('관계가 늘어나는 보고서', '집계 전 행 수를 따져 중복 합산을 막아요.', [S5,S6])],
                     final_slug='final-report')
+LESSON['revision']=2
+LESSON['prerequisites']=['SQL 기초에서 행·열·WHERE·정렬·COUNT·SUM·NULL·키와 관계를 확인했어요.', '기본 키와 외래 키의 의미를 알아요.']
+engine_intro='앞 수업은 MySQL을 썼고 이번에는 PostgreSQL 18을 써요. 행과 조건의 의미는 이어지지만 글자를 붙일 때 이 수업은 ||를 사용해요. member와 orders를 준비해 두었고 여러분은 조회 SQL을 고쳐요.'
+S1['intro'].insert(0,engine_intro)
+S1['narration'].insert(0,('say',engine_intro,'text:'+engine_intro))
+S1['review'][engine_intro]='엔진 변경과 이번에 제공한 표, 학습자가 편집할 SQL 범위를 먼저 밝혀요.'

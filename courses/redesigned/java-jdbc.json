@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_1aedc033-4998-4854-9565-389de69b8cdf",
-  "revision": "java-jdbc-1",
+  "revision": "java-jdbc-2",
   "title": "JDBC · 코드와 데이터베이스 사이의 계약",
   "description": "실제 H2 드라이버로 SQL 결과·입력·실패를 연결해서 이해해요.",
   "objectives": [
@@ -75,7 +75,7 @@
     {
       "id": "stp_86dace99-4d29-4d2f-b9ab-88ed0d46c5e6",
       "title": "조회한 모든 행을 순회해 개수를 세세요",
-      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\nmember에는 두 행이 있어요. 시작 번호 이상인 회원을 조회하지만 준비 코드는 첫 행만 세요.\n\n**알아두세요**\n\nnext()는 다음 행으로 이동하고 행이 있으면 true를 돌려줘요. 한 번의 if는 한 행만 확인해요. 행이 없어질 때까지 순회하세요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. 조회한 모든 행을 순회해 개수를 세세요\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n앞 수업에서는 SQL로 DB의 행을 읽고 바꿨어요. 이번에는 Java가 그 요청을 보내요. 제공한 H2 드라이버는 JDBC API와 실제 H2 DB를 연결해요. DriverManager.getConnection의 주소는 연결할 저장소를 정하고, Connection으로 만든 문장이 SQL을 실행해요. 첫 문제에서는 조회 결과가 두 행인데 왜 Java가 한 행만 세는지 확인하세요.\n\nmember에는 두 행이 있어요. 시작 번호 이상인 회원을 조회하지만 준비 코드는 첫 행만 세요.\n\n**알아두세요**\n\nnext()는 다음 행으로 이동하고 행이 있으면 true를 돌려줘요. 한 번의 if는 한 행만 확인해요. 행이 없어질 때까지 순회하세요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. 조회한 모든 행을 순회해 개수를 세세요\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
       "language": "java_libraries",
       "starter_code": "import java.sql.*;\nimport java.util.*;\nclass Main {\n public static void main(String[] args) throws Exception {\n  try (Connection c=DriverManager.getConnection(\"jdbc:h2:mem:lab\", \"sa\", \"\")) {\n   c.createStatement().execute(\"CREATE TABLE member(id INT PRIMARY KEY,name VARCHAR(100),balance INT CHECK(balance>=0))\");\n   c.createStatement().execute(\"INSERT INTO member VALUES(1,'lee',100),(2,'kim',100)\");\n   int minimum=new Scanner(System.in).nextInt();\n   int count=0;\n   try (PreparedStatement p=c.prepareStatement(\"SELECT name FROM member WHERE id>=? ORDER BY id\")) {\n    p.setInt(1,minimum);\n    try (ResultSet rows=p.executeQuery()) {\n     if (rows.next()) count++;\n    }\n   }\n   System.out.println(count);\n  }\n }\n}\n",
       "solution": "import java.sql.*;\nimport java.util.*;\nclass Main {\n public static void main(String[] args) throws Exception {\n  try (Connection c=DriverManager.getConnection(\"jdbc:h2:mem:lab\", \"sa\", \"\")) {\n   c.createStatement().execute(\"CREATE TABLE member(id INT PRIMARY KEY,name VARCHAR(100),balance INT CHECK(balance>=0))\");\n   c.createStatement().execute(\"INSERT INTO member VALUES(1,'lee',100),(2,'kim',100)\");\n   int minimum=new Scanner(System.in).nextInt();\n   int count=0;\n   try (PreparedStatement p=c.prepareStatement(\"SELECT name FROM member WHERE id>=? ORDER BY id\")) {\n    p.setInt(1,minimum);\n    try (ResultSet rows=p.executeQuery()) {\n     while (rows.next()) count++;\n    }\n   }\n   System.out.println(count);\n  }\n }\n}\n",
@@ -95,6 +95,11 @@
       ],
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "앞 수업에서는 SQL로 DB의 행을 읽고 바꿨어요. 이번에는 Java가 그 요청을 보내요. 제공한 H2 드라이버는 JDBC API와 실제 H2 DB를 연결해요. DriverManager.getConnection의 주소는 연결할 저장소를 정하고, Connection으로 만든 문장이 SQL을 실행해요. 첫 문제에서는 조회 결과가 두 행인데 왜 Java가 한 행만 세는지 확인하세요.",
+          "target": "text:앞 수업에서는 SQL로 DB의 행을 읽고 바꿨어요. 이번에는 Java가 그 요청을 보내요. 제공한 H2 드라이버는 JDBC API와 실제 H2 DB를 연결해요. DriverManager.getConnection의 주소는 연결할 저장소를 정하고, Connection으로 만든 문장이 SQL을 실행해요. 첫 문제에서는 조회 결과가 두 행인데 왜 Java가 한 행만 세는지 확인하세요."
+        },
         {
           "action": "say",
           "text": "member에는 두 행이 있어요. 시작 번호 이상인 회원을 조회하지만 준비 코드는 첫 행만 세요.",

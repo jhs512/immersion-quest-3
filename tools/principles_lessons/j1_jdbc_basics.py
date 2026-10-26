@@ -113,3 +113,11 @@ LESSON.update(prerequisites=['기본 SQL과 트랜잭션을 알아요.', 'Java�
 LESSON['brief']=(LESSON['objectives'][0],'마지막 도전에서 정상 이체와 실패한 이체를 모두 처리하세요.',
     ['조회와 값 전달','변경과 업무 결과'],'실제 JDK 25와 고정된 H2 JDBC 드라이버를 사용해요. 실행마다 새 메모리 DB예요. Docker는 필요 없어요.',
     'SQL 실행에 성공했다는 말만으로 업무도 성공했다고 할 수 있을까요?')
+
+LESSON['revision']=2
+LESSON['prerequisites']=['SQL 기초·제약·트랜잭션에서 조회·변경·commit·rollback을 실행했어요.', 'H2 수업에서 연결 주소와 저장소 수명을 확인했어요.', 'Java의 try-with-resources와 예외 처리를 읽을 수 있어요.']
+connection_intro='앞 수업에서는 SQL로 DB의 행을 읽고 바꿨어요. 이번에는 Java가 그 요청을 보내요. 제공한 H2 드라이버는 JDBC API와 실제 H2 DB를 연결해요. DriverManager.getConnection의 주소는 연결할 저장소를 정하고, Connection으로 만든 문장이 SQL을 실행해요. 첫 문제에서는 조회 결과가 두 행인데 왜 Java가 한 행만 세는지 확인하세요.'
+S1['intro'].insert(0,connection_intro)
+S1['narration'].insert(0,('say',connection_intro,'text:'+connection_intro))
+S1['review'][connection_intro]='H2·드라이버·연결·SQL을 기존 두 행 조회의 실제 관찰에 연결하며 새 용어의 역할을 설명해요.'
+LESSON['reset']=['각 Java 실행은 새 JVM과 실습 폴더의 새 H2 메모리 DB에서 시작해요.', '제공 코드가 두 회원 행을 만들어요. 같은 JVM 안에서는 그 연결의 변경을 조회해요.', 'Docker 서버나 사용자의 DB를 초기화하지 않아요.']

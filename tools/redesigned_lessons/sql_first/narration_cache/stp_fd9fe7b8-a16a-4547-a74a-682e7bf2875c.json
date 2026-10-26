@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "4cc3d47df48894a93f2d18c1c6d6b700cf8966ddb90bb7d123e00b994919135b",
+  "entry": [
+    {
+      "action": "say",
+      "text": "10번과 11번 주문은 2번 회원의 주문이에요. 12번 주문은 1번 회원의 주문이에요.",
+      "target": "text:10번과 11번 주문은 2번 회원의 주문이에요. 12번 주문은 1번 회원의 주문이에요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "2번 주문은 없어서 결과가 비었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "주문 번호와 주문한 회원을 가리키는 번호는 다른 열이에요.",
+      "target": "code:SELECT id FROM orders WHERE id=2 ORDER BY id;"
+    },
+    {
+      "action": "patch_code",
+      "before": "SELECT id FROM orders WHERE id=2 ORDER BY id;\n",
+      "after": "SELECT id FROM orders WHERE member_id=2 ORDER BY id;\n",
+      "say": "2번 회원의 주문 번호를 조회하세요"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "회원 번호가 2인 주문 10번과 11번이 나와요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 주문 번호가 2라는 것과 주문한 회원 번호가 2라는 것은 다른 조건이에요.",
+      "target": "text:orders.id는 주문 자체를 구별해요. orders.member_id는 member.id를 가리켜요. 여러 주문이 한 회원을 가리킬 수 있어요. 지금은 저장된 번호의 관계를 읽어요. 다음 수업에서는 없는 회원 번호를 저장하지 못하게 제약을 걸어요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

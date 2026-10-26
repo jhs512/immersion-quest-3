@@ -1,28 +1,28 @@
 {
   "by": "hand",
-  "source_sha256": "b1f6ef25369fd41069c8163a95b73694cd8c5a726698c8bf589812a8df13bb78",
+  "source_sha256": "b64b768286808f85a84ce95a6a898d17ee4ed047bba0100376fbd21a45bce048",
   "entry": [
     {
       "action": "say",
-      "text": "한 고객이 milk 한 개를 샀어요. 준비 코드는 표의 모든 상품에서 수량을 차감해 bread 재고까지 -1로 만들어요.",
-      "target": "text:한 고객이 milk 한 개를 샀어요. 준비 코드는 표의 모든 상품에서 수량을 차감해 bread 재고까지 -1로 만들어요."
+      "text": "한 고객이 milk 한 개를 샀어요. 준비 코드는 조회만 해서 재고를 아직 바꾸지 않았어요. 다른 상품의 재고는 그대로 두세요.",
+      "target": "text:한 고객이 milk 한 개를 샀어요. 준비 코드는 조회만 해서 재고를 아직 바꾸지 않았어요. 다른 상품의 재고는 그대로 두세요."
     },
     {
       "action": "run"
     },
     {
       "action": "say",
-      "text": "milk뿐 아니라 bread도 -1이 됐어요. WHERE가 없는 UPDATE는 표의 모든 행을 대상으로 했어요.",
+      "text": "아직 조회만 했어요. milk는 3, bread는 0이고 tea는 미정이에요.",
       "target": "output"
     },
     {
       "action": "say",
       "text": "UPDATE는 WHERE를 만족하는 모든 행을 변경해요.",
-      "target": "code:UPDATE item SET qty=qty-1;"
+      "target": "code:SELECT name,qty FROM item ORDER BY id;"
     },
     {
       "action": "patch_code",
-      "before": "UPDATE item SET qty=qty-1;\n",
+      "before": "SELECT name,qty FROM item ORDER BY id;\n",
       "after": "UPDATE item SET qty=qty-1 WHERE id=1;\n",
       "say": "milk 재고만 한 개 차감하세요"
     },
@@ -37,7 +37,7 @@
     {
       "action": "say",
       "text": "조심하세요. UPDATE 뒤의 WHERE는 결과 화면 필터가 아니라 실제로 바꿀 행의 범위예요. 실행 전에 그 조건의 SELECT로 대상을 확인할 수 있어요.",
-      "target": "text:id=1인 상품만 바꾸도록 UPDATE에 WHERE를 붙이세요. SELECT로 화면만 고치는 대신 실제 표에 올바른 변경이 저장되어야 해요. 제공 조회가 모든 상품을 다시 읽어요."
+      "target": "text:id=1인 상품만 바꾸도록 UPDATE에 WHERE를 붙이세요. qty=qty-1은 현재 수량에서 하나를 빼요. 같은 UPDATE를 재실행하면 한 번 더 차감돼요. 제출 검사는 새 준비 DB에서 한 번 실행해 확인해요. 제공 조회가 모든 상품을 다시 읽어요."
     },
     {
       "action": "submit"

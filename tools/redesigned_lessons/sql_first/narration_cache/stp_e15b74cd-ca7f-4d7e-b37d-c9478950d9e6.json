@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "3aeffa1f93581c37ec02eb3098dc3d02570a1781ea092691a98b46d015d24a92",
+  "entry": [
+    {
+      "action": "say",
+      "text": "상품은 세 종류예요. milk 재고는 7개, bread는 0개이고 tea는 미정이에요.",
+      "target": "text:상품은 세 종류예요. milk 재고는 7개, bread는 0개이고 tea는 미정이에요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "3은 상품 종류 수예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "SUM은 행 수가 아니라 열에 저장된 숫자를 더해요.",
+      "target": "code:SELECT COUNT(*) FROM item;"
+    },
+    {
+      "action": "patch_code",
+      "before": "SELECT COUNT(*) FROM item;\n",
+      "after": "SELECT SUM(qty) FROM item;\n",
+      "say": "상품 종류 수 대신 확인된 수량을 더하세요"
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "7은 확인된 재고 수량의 합이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. COUNT(qty)로 바꿔도 수량을 더하는 것은 아니에요.",
+      "target": "text:COUNT(*)는 상품 행 수를 세어요. SUM(qty)는 NULL을 빼고 확인된 수량을 더해요. 더할 값이 하나도 없는 경우는 다음 문제에서 따로 확인해요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

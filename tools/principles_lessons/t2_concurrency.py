@@ -146,3 +146,13 @@ LESSON['prerequisites']=['JDBC와 트랜잭션의 기본을 알아요.','Docker 
 LESSON['brief']=(LESSON['objectives'][0],'마지막 재고를 두 명이 동시에 사도 한 번만 판매하세요.',
     ['읽기 스냅샷','갱신 손실과 행 잠금','조건부 변경'],'실제 PostgreSQL 18과 JDBC 연결 두 개를 사용해요. PC에는 자동 배정한 루프백 포트만 열어요.',
     '잔액이나 재고를 읽고 확인했는데 왜 다른 결과가 생길까요?')
+
+LESSON['revision']=2
+LESSON['prerequisites']=['SQL의 SELECT·UPDATE·WHERE와 제약을 실행했어요.', 'JDBC의 두 연결·결과 커서와 트랜잭션의 commit·rollback을 알아요.', 'Docker Desktop을 실행할 수 있어요. 실행 순서를 맞추는 장벽과 스레드 코드는 제공해요.']
+for task,table in [(S1,'account'),(S2,'account'),(S3,'account'),(S4,'stock')]:
+    for field in ['starter','solution']:
+        task[field]=task[field].replace('CREATE TABLE '+table+'(', 'DROP TABLE IF EXISTS '+table+'; CREATE TABLE '+table+'(',1)
+    preparation=f'{task["objectives"][0]} 제공한 Java 준비 코드가 실험용 {table} 표만 지우고 같은 시작 행을 만들어요. 두 연결의 실행 순서를 같은 조건에서 비교하기 위한 공개 준비예요. DB 컨테이너를 재시작하거나 사용자의 DB를 지우지는 않아요.'
+    task['intro'].append(preparation)
+    task['narration'].insert(0,('say',preparation,'text:'+preparation))
+    task['review'][preparation]='두 연결 실험의 재시험 준비가 제공 코드에서 보이고 이 과제의 표에 한정됨을 밝혀요.'

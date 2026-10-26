@@ -74,3 +74,14 @@ LESSON = sql_lesson(key='sql-index-plan', folder='sql_index_plan', pilot='쥐',
                     units=[unit('정답과 경로', '데이터를 바꾸지 않고 검색 경로를 추가해요.', [S1,S2]),
                            unit('조건에 맞춘 색인', '어떤 행과 어떤 키를 색인할지 결정해요.', [S3,S4])],
                     final_slug='final-lookup', sources=[('https://www.postgresql.org/docs/18/indexes.html','표현식·부분·복합 인덱스의 전제를 확인해요.','실제 PostgreSQL 18 계획과 대조해요.')])
+LESSON['revision']=2
+LESSON['prerequisites']=['SQL 기초의 조회·조건·정렬과 DB의 키를 알아요.', '인덱스와 PostgreSQL 실행 계획은 여기서 처음 다뤄요.']
+for task, names in [(S1,['parcel_code']),(S2,['parcel_code','parcel_lower']),
+                    (S3,['parcel_waiting']),(S4,['parcel_city','parcel_lookup'])]:
+    prefix='-- 이 검색 경로 비교 실험에서 만든 인덱스만 다시 준비해요.\n'+''.join(f'DROP INDEX IF EXISTS {name};\n' for name in names)
+    task['starter']=prefix+task['starter']
+    task['solution']=prefix+task['solution']
+    preparation=f'맨 위 DROP INDEX는 이 문제에서 비교할 {", ".join(names)} 인덱스만 다시 준비해요. 송장 행과 기본 키 인덱스는 지우지 않아요. 같은 이름의 이전 색인이 남아 새 정의를 막지 않게 해요.'
+    task['intro'].append(preparation)
+    task['narration'].insert(0,('say',preparation,'text:'+preparation))
+    task['review'][preparation]='재시험 준비 SQL이 명시적이며 송장 데이터 보존과 색인만의 교체를 구별해요.'

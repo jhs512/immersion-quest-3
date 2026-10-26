@@ -152,7 +152,7 @@ def build_lesson(lesson, pol):
         pres_ch[cid] = chapter['objectives']
         units = []
         for ui, unit in enumerate(chapter['units']):
-            unid = uid('unt', key, f'{chapter_identity}u{ui}')
+            unid = uid('unt', key, unit.get('identity', f'{chapter_identity}u{ui}'))
             pres_units[unid] = dict(objectives=unit['objectives'], premise=unit['premise'])
             steps = []
             for step in unit['steps']:

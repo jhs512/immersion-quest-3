@@ -1,6 +1,6 @@
 {
   "by": "hand",
-  "source_sha256": "e563f0f26aee2ef27a009046eabb7a70d00dff5ebfd113e1844afc6bd128b43a",
+  "source_sha256": "c8e2dab102ad9acc1a13dde698c13ed3b2ef1f9fa1e5032737520b0b75f0617c",
   "entry": [
     {
       "action": "say",
@@ -22,8 +22,8 @@
     },
     {
       "action": "patch_code",
-      "before": "UPDATE account SET balance=balance-(SELECT amount FROM request) WHERE id=1;\nUPDATE account SET balance=balance+(SELECT amount FROM request) WHERE id=2;\n",
-      "after": "BEGIN;\nUPDATE account SET balance=balance-(SELECT amount FROM request) WHERE id=1;\nUPDATE account SET balance=balance+(SELECT amount FROM request) WHERE id=2;\nCOMMIT;\n",
+      "before": "-- 이 계좌 실험을 같은 잔액에서 재시험하는 공개 준비예요.\nUPDATE account SET balance=100;\nUPDATE account SET balance=balance-(SELECT amount FROM request) WHERE id=1;\nUPDATE account SET balance=balance+(SELECT amount FROM request) WHERE id=2;\n",
+      "after": "-- 이 계좌 실험을 같은 잔액에서 재시험하는 공개 준비예요.\nUPDATE account SET balance=100;\nBEGIN;\nUPDATE account SET balance=balance-(SELECT amount FROM request) WHERE id=1;\nUPDATE account SET balance=balance+(SELECT amount FROM request) WHERE id=2;\nCOMMIT;\n",
       "say": "정상 이체는 확정하고 실패한 이체는 전부 취소하세요"
     },
     {
@@ -37,7 +37,7 @@
     {
       "action": "say",
       "text": "조심하세요. 이 실습의 오류 후 계속 읽기 설정은 관찰을 위한 준비 코드예요. 운영 코드에서 오류를 무시하라는 뜻은 아니에요.",
-      "target": "text:준비된 account·request와 마지막 조회는 바꾸지 않아요. 두 UPDATE가 같은 트랜잭션에 속하도록 구현하세요. 실제 애플리케이션에서는 예외 처리에서 rollback하고 사용자에게 실패를 알려야 해요."
+      "target": "text:준비된 account·request와 마지막 조회는 바꾸지 않아요. 두 UPDATE가 같은 트랜잭션에 속하도록 구현하세요. 실제 애플리케이션에서는 예외 처리에서 rollback하고 사용자에게 실패를 알려야 해요. 맨 위 UPDATE는 이 연습의 두 계좌를 100으로 맞추는 재시험 준비예요. 이전 COMMIT을 ROLLBACK한 것은 아니에요. 운영 계좌에 적용하는 코드가 아니에요."
     },
     {
       "action": "submit"
