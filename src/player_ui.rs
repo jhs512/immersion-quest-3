@@ -567,6 +567,8 @@ fn CourseProgressLoader(session:Session,course:CourseManifest,onloaded:EventHand
 
 #[component]
 fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,updates:Element,auto:Signal<Option<AutoRun>>,admin:Option<Result<bool,String>>,onautolessonend:EventHandler<u64>,onback:EventHandler<()>)->Element {
+    let docker_session=use_context_provider(molip_quest::docker_lab::LessonSession::new);
+    use_drop(move||docker_session.close());
     use_hook({let course=selected.course.id.clone();let lesson=selected.lesson.id.clone();move||{let mut span=molip_quest::telemetry::operation("lesson.open",vec![opentelemetry::KeyValue::new("course.id",course),opentelemetry::KeyValue::new("lesson.id",lesson)]);span.finish("ok");}});
     let mut events=use_signal(||selected.events.clone());
     let mut activity_message=use_signal(String::new);
@@ -811,6 +813,7 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
 
 #[component]
 fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Vec<LearningEvent>>,auto:Signal<Option<AutoRun>>,onautopassed:EventHandler<(u64,AutoTarget)>,autostart:Option<EventHandler<()>>,autostart_disabled:bool,onrecord:EventHandler<Vec<LearningEvent>>,has_next:bool,onnext:EventHandler<()>)->Element {
+    let docker_session=use_context::<molip_quest::docker_lab::LessonSession>();
     use_future({let session=session.clone();let selected=selected.clone();let task_id=task.id.clone();move ||{
         let session=session.clone();let selected=selected.clone();let task_id=task_id.clone();async move {
             if selected.practice_only||events.peek().iter().any(|e|e.kind==EventKind::Started&&e.task_id.as_deref()==Some(task_id.as_str())&&e.round==selected.round){return;}
@@ -1050,13 +1053,19 @@ if let Some(start)=autostart {
                 div {class:"pane-heading",strong {"{filename}"}
                 if feedback()=="incorrect"||feedback()=="error"||feedback()=="run-error" {span {class:"submission-indicator",if feedback()=="incorrect"{"제출 실패"}else{"오류 발생"}}}
                 div {class:"pane-actions",
-                    button {disabled:busy()||narrating()||task.git_terminal.as_ref().and_then(|e|e.github_pr).is_some_and(|stage|stage!=molip_quest::git_practice::GithubPrStage::Repository),title:if task.git_terminal.as_ref().is_some_and(|e|e.github_pr.is_some()){"실제 GitHub 실습은 첫 단계에서만 새 회차를 시작할 수 있어요."}else{"현재 문제의 시작 상태로 돌아가요. 완료 기록은 유지해요."},onclick:{let starter=task.starter_code.clone();let example=task.example_for_answer(&task.starter_code).unwrap_or_default();let hosted=task.git_terminal.as_ref().is_some_and(|e|e.github_pr.is_some());let key=key.clone();move |_|{
+                    button {disabled:busy()||narrating()||task.git_terminal.as_ref().and_then(|e|e.github_pr).is_some_and(|stage|stage!=molip_quest::git_practice::GithubPrStage::Repository),title:if task.git_terminal.as_ref().is_some_and(|e|e.github_pr.is_some()){"실제 GitHub 실습은 첫 단계에서만 새 회차를 시작할 수 있어요."}else{"현재 문제의 시작 상태로 돌아가요. 완료 기록은 유지해요."},onclick:{let starter=task.starter_code.clone();let example=task.example_for_answer(&task.starter_code).unwrap_or_default();let hosted=task.git_terminal.as_ref().is_some_and(|e|e.github_pr.is_some());let key=key.clone();let task=task.clone();let docker_session=docker_session.clone();move |_|{
                         if narrating(){return;}
-                        let starter=starter.clone();let example=example.clone();let key=key.clone();
+                        let starter=starter.clone();let example=example.clone();let key=key.clone();let task=task.clone();let docker_session=docker_session.clone();
                         spawn(async move {
                             if hosted {
                                 let mut confirmation=document::eval("dioxus.send(window.confirm('새 회차를 시작할까요? 새 저장소 이름으로 처음부터 준비해요. 다음 생성 명령을 실행하면 GitHub에 실제 새 비공개 저장소가 생겨요. 기존 저장소와 PR은 그대로 남아요.'));");
                                 if !matches!(confirmation.recv::<bool>().await,Ok(true)){return;}
+                            }
+                            if task.language==repository_course::TaskLanguage::Docker {
+                                busy.set(true);
+                                let result=docker_session.reset(&task).await;
+                                busy.set(false);
+                                if let Err(error)=result{message.set(error);return;}
                             }
                             feedback.set("idle");message.set(String::new());execution_state.set("idle");output.set(String::new());preview.set(String::new());teacher_preview.set(String::new());artifacts.set(vec![]);
                             if let Some(control)=git_control() {
@@ -1071,7 +1080,7 @@ if let Some(start)=autostart {
                     }},if task.git_terminal.as_ref().is_some_and(|e|e.github_pr.is_some()){"새 회차 시작"}else{"초기화"}}
 
                     if task.git_terminal.is_none()&&(task.interaction.is_none()||has_example) {
-                    button {"data-shortcut-action":"run",disabled:busy()||(task.predict_before_run&&!narrating()&&code().is_empty()),onclick:{let task=task.clone();let github=session.github.clone();let user=session.user.clone();let selected=selected.clone();move |_|{let task=task.clone();let github=github.clone();let user=user.clone();let selected=selected.clone();async move {
+                    button {"data-shortcut-action":"run",disabled:busy()||(task.predict_before_run&&!narrating()&&code().is_empty()),onclick:{let task=task.clone();let github=session.github.clone();let user=session.user.clone();let selected=selected.clone();let docker_session=docker_session.clone();move |_|{let task=task.clone();let github=github.clone();let user=user.clone();let selected=selected.clone();let docker_session=docker_session.clone();async move {
                         busy.set(true);feedback.set("idle");execution_id+=1;execution_state.set("running");execution_seconds.set(0);
                         let demonstration=narrating();
                         message.set(if task.language==repository_course::TaskLanguage::Docker{"Docker를 준비하고 실습을 실행하고 있어요. 꺼져 있으면 자동으로 켜요."}else{"코드를 실행하고 있어요."}.into());output.set(String::new());if demonstration{teacher_preview.set(String::new());}else{preview.set(String::new());}artifacts.set(vec![]);
@@ -1079,7 +1088,7 @@ if let Some(start)=autostart {
                         let timer=spawn(async move {loop {tokio::time::sleep(std::time::Duration::from_secs(1)).await;if execution_id()!=run_id{break;}execution_seconds+=1;}});
                         // Local execution never waits for GitHub. The upload worker authenticates
                         // the expected account before recording the separate history operation.
-                        let result=molip_quest::telemetry::observe("task.run",vec![opentelemetry::KeyValue::new("course.id",selected.course.id.clone()),opentelemetry::KeyValue::new("lesson.id",selected.lesson.id.clone()),opentelemetry::KeyValue::new("task.id",task.id.clone())],async {if has_example{molip_quest::lesson_runner::run_example(&task,&source,&input).await}else{molip_quest::lesson_runner::run(&task,&source,&input).await}}).await;
+                        let result=molip_quest::telemetry::observe("task.run",vec![opentelemetry::KeyValue::new("course.id",selected.course.id.clone()),opentelemetry::KeyValue::new("lesson.id",selected.lesson.id.clone()),opentelemetry::KeyValue::new("task.id",task.id.clone())],async {if task.language==repository_course::TaskLanguage::Docker{if demonstration{docker_session.demonstrate(&task,&source,&input).await}else{docker_session.run(&task,&source,&input).await}}else if has_example{molip_quest::lesson_runner::run_example(&task,&source,&input).await}else{molip_quest::lesson_runner::run(&task,&source,&input).await}}).await;
                         timer.cancel();
                         if execution_id()!=run_id {return;}
                         match result {
@@ -1108,7 +1117,7 @@ if let Some(start)=autostart {
                         });
                     }}},"코드 실행"}
                     }
-                    button {class:"primary","data-shortcut-action":"submit","data-enter-submit":"true",disabled:busy()||narrating()||(task.git_terminal.is_some()&&git_practice().is_none()),onclick:{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();move |_|{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();async move {
+                    button {class:"primary","data-shortcut-action":"submit","data-enter-submit":"true",disabled:busy()||narrating()||(task.git_terminal.is_some()&&git_practice().is_none()),onclick:{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();let docker_session=docker_session.clone();move |_|{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();let docker_session=docker_session.clone();async move {
                         submitting.set(true);busy.set(true);feedback.set("checking");execution_state.set("idle");output.set(String::new());message.set("검사하고 있어요.".into());
                         match molip_quest::telemetry::observe("task.submit",vec![opentelemetry::KeyValue::new("course.id",selected.course.id.clone()),opentelemetry::KeyValue::new("lesson.id",selected.lesson.id.clone()),opentelemetry::KeyValue::new("task.id",task.id.clone())],async {if task.git_terminal.as_ref().is_some_and(|e|e.java_build.is_some()) {
                                 let practice=git_practice();let answer=code();let interaction=task.interaction.clone();
@@ -1125,7 +1134,7 @@ if let Some(start)=autostart {
                                     let practice=practice.lock().unwrap_or_else(|e|e.into_inner());
                                     if let Some(checks)=checks {practice.check(&checks)}else{practice.check_exercise()}
                                 }).await
-                            }else{molip_quest::lesson_runner::check(&task,&code()).await}}).await {
+                            }else{molip_quest::lesson_runner::check_in_lesson(&task,&code(),&docker_session).await}}).await {
                                 Err(e)=>{feedback.set("error");message.set(e);},Ok(report)=>{
                                     feedback.set(if report.passed{"passed"}else{"incorrect"});
                                     message.set(if report.passed{"통과했어요."}else{"다시 풀어보세요. 아래 검사에서 예상과 실제 결과를 비교하세요."}.into());

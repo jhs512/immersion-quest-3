@@ -282,17 +282,25 @@ async fn check_java_libraries(task:&Task,source:&str)->Result<TestReport,String>
 /// Each case is a full lab run on the real engine. Changed prepared files run only once the
 /// given ones pass, like the other graders, so a learner reads one failure at a time.
 async fn check_docker(task:&Task,source:&str)->Result<TestReport,String> {
+    check_docker_with_session(task,source,None).await
+}
+
+pub async fn check_in_lesson(task:&Task,source:&str,session:&crate::docker_lab::LessonSession)->Result<TestReport,String> {
+    if task.language==TaskLanguage::Docker {check_docker_with_session(task,source,Some(session)).await}else{check(task,source).await}
+}
+
+async fn check_docker_with_session(task:&Task,source:&str,session:Option<&crate::docker_lab::LessonSession>)->Result<TestReport,String> {
     if task.tests.is_empty(){return Err("입출력 검사 사례가 없어요.".into())}
     let mut cases=vec![];
     for test in &task.tests {
-        let result=crate::docker_lab::run(task,source,&test.input).await?;
+        let result=if let Some(session)=session {session.check_case(task,source,&test.input).await?}else{crate::docker_lab::run(task,source,&test.input).await?};
         let passed=result.success && result.stdout.trim_end_matches('\n')==test.expected.trim_end_matches('\n');
         cases.push(TestCaseResult{input:if test.input.is_empty(){"준비된 실습".into()}else{test.input.clone()},expected:test.expected.clone(),stdout:result.stdout,stderr:result.stderr,passed,state:result.state});
     }
     if cases.iter().all(|c|c.passed) {
         for (index,variation) in task.variations.iter().enumerate() {
             let mut changed=task.clone();changed.files.extend(variation.files.clone());
-            let result=crate::docker_lab::run(&changed,source,"").await?;
+            let result=if let Some(session)=session {session.check_case(&changed,source,"").await?}else{crate::docker_lab::run(&changed,source,"").await?};
             let passed=result.success && result.stdout.trim_end_matches('\n')==variation.expected.trim_end_matches('\n');
             cases.push(TestCaseResult{input:format!("바뀐 준비 자료 {}",index+1),expected:variation.expected.clone(),stdout:result.stdout,stderr:result.stderr,passed,state:result.state});
         }

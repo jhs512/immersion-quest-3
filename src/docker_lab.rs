@@ -1,11 +1,12 @@
 //! Real Docker labs for lessons. Directory isolation is not an OS sandbox.
 //!
-//! One run owns one Compose project named `mq3lab-…`. The lesson's authored lab script (`lab.sh`)
+//! A lesson session owns reusable Compose projects named `mq3lab-…`. The authored script (`lab.sh`)
 //! runs in Bash with that project name. Before the script starts, the learner's compose file is
 //! checked: published ports must stay on 127.0.0.1 with an engine-chosen host port, and nothing may
 //! use a fixed container name, host networking, privileges or a bind mount outside the run folder.
-//! When the blocking run ends — success, failure or timeout — only containers, networks,
-//! volumes and built images labelled with that project are removed. A project left behind by a
+//! Interactive runs retain their resources until the lesson closes. Standalone validation runs
+//! remain isolated and short-lived. On lesson exit only its labelled containers, networks,
+//! volumes and built images are removed. A project left behind by a
 //! killed desktop app is cleaned by a detached lock watcher; startup also sweeps the same labels
 //! after a machine/engine interruption, unless a live run still holds its lock. Dropping an async
 //! caller does not abort an already running blocking lab; it stays bounded by LAB_SECONDS.
@@ -151,7 +152,11 @@ fn prepare(command:&mut Command,cli:&Path) {
 struct Output { success:bool, timed_out:bool, limited:bool, stdout:String, stderr:String }
 
 /// Run one owned process tree with a time limit; the whole tree is ended on timeout.
-fn execute(mut command:Command,input:&str,seconds:u64)->Result<Output,String> {
+fn execute(command:Command,input:&str,seconds:u64)->Result<Output,String> {
+    execute_cancellable(command,input,seconds,None)
+}
+
+fn execute_cancellable(mut command:Command,input:&str,seconds:u64,cancel:Option<&std::sync::atomic::AtomicBool>)->Result<Output,String> {
     command.stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped());
     let mut child=command.spawn().map_err(|e|format!("실행 도구를 시작하지 못했어요: {e}"))?;
     let scope=match crate::process_scope::CommandScope::attach(&child){Ok(scope)=>scope,Err(e)=>{let _=child.kill();let _=child.wait();return Err(format!("실습 프로세스 소유: {e}"))}};
@@ -164,7 +169,7 @@ fn execute(mut command:Command,input:&str,seconds:u64)->Result<Output,String> {
     let started=Instant::now();let mut timed_out=false;
     let status=loop {
         if let Some(status)=child.try_wait().map_err(|e|e.to_string())?{break status}
-        if started.elapsed()>Duration::from_secs(seconds){timed_out=true;let _=scope.terminate();let _=child.kill();break child.wait().map_err(|e|e.to_string())?}
+        if cancel.is_some_and(|flag|flag.load(std::sync::atomic::Ordering::Acquire))||started.elapsed()>Duration::from_secs(seconds){timed_out=true;let _=scope.terminate();let _=child.kill();break child.wait().map_err(|e|e.to_string())?}
         std::thread::sleep(Duration::from_millis(20));
     };
     let _=scope.terminate();
@@ -562,6 +567,134 @@ fn bash()->Result<PathBuf,String> {
 
 struct Prepared { java:Option<String>, classpath:String }
 
+/// Owned by the lesson screen, not by an individual step or execution future.
+#[derive(Clone)]
+pub struct LessonSession(std::sync::Arc<LessonState>);
+struct LessonState {
+    closed:std::sync::atomic::AtomicBool,
+    cleaned:std::sync::atomic::AtomicBool,
+    environments:std::sync::Mutex<std::collections::BTreeMap<String,Environment>>,
+}
+struct Environment {
+    lab:Lab,
+    directory:tempfile::TempDir,
+    fixture:Option<String>,
+}
+impl LessonSession {
+    pub fn new()->Self {Self(std::sync::Arc::new(LessonState {
+        closed:std::sync::atomic::AtomicBool::new(false),
+        cleaned:std::sync::atomic::AtomicBool::new(false),
+        environments:std::sync::Mutex::new(std::collections::BTreeMap::new()),
+    }))}
+    fn ensure_open(&self)->Result<(),String> {
+        if self.0.closed.load(std::sync::atomic::Ordering::Acquire){Err("수업을 나가서 실습을 종료했어요.".into())}else{Ok(())}
+    }
+    pub async fn run(&self,task:&Task,source:&str,input:&str)->Result<Execution,String> {
+        self.execute(task,source,input,false).await
+    }
+    /// Narration may execute destructive SQL too. Its examples must never alter learner data.
+    pub async fn demonstrate(&self,task:&Task,source:&str,input:&str)->Result<Execution,String> {
+        self.check_case(task,source,input).await
+    }
+    pub(crate) async fn check_case(&self,task:&Task,source:&str,input:&str)->Result<Execution,String> {
+        // SQL fixtures can be reset without restarting the DB. Other labs intentionally teach
+        // volume/build/restart behavior and require a clean, independent grading project.
+        self.execute(task,source,input,true).await
+    }
+    async fn execute(&self,task:&Task,source:&str,input:&str,grading:bool)->Result<Execution,String> {
+        self.ensure_open()?;
+        if source.len()>65536||input.len()>65536{return Err("작성 코드와 입력은 각각 64KB 이하여야 해요.".into())}
+        let prepared=prepare_runtime(task).await?;
+        let (session,task,source,input)=(self.clone(),task.clone(),source.to_owned(),input.to_owned());
+        tokio::task::spawn_blocking(move||{
+            let mut environments=session.0.environments.lock().unwrap_or_else(|e|e.into_inner());
+            session.ensure_open()?;
+            let key=environment_key(&task,grading);
+            let isolated_check=grading&&sql_fixture(&task).is_none();
+            if isolated_check {environments.remove(&key);}
+            if !environments.contains_key(&key) {
+                let cli=cli().ok_or("Docker를 찾지 못했어요.")?;
+                ensure_engine(&cli)?;
+                ensure_images(&cli,&task.docker_images)?;
+                session.ensure_open()?;
+                let directory=tempfile::Builder::new().prefix("mq3-docker-lesson-").tempdir().map_err(|e|e.to_string())?;
+                let lab=Lab::open(&cli,&task)?;
+                environments.insert(key.clone(),Environment{lab,directory,fixture:None});
+            }
+            let environment=environments.get_mut(&key).unwrap();
+            for(name,content)in &task.files {write(environment.directory.path(),name,content)?;}
+            write(environment.directory.path(),&task.entry_file,&source)?;
+            if let Some(problem)=compose_problem(&environment.lab.cli,environment.directory.path(),&environment.lab.project,&task)? {return Ok(reject(problem))}
+            if let Some(problem)=dockerfile_problem(environment.directory.path(),&task) {return Ok(reject(problem))}
+            if let Some(database)=sql_fixture(&task) {
+                let fixture=serde_json::to_string(&(&task.id,&task.files)).map_err(|e|e.to_string())?;
+                if grading||environment.fixture.as_ref()!=Some(&fixture) {
+                    reset_sql_fixture(environment,database,&session.0.closed)?;
+                    environment.fixture=Some(fixture);
+                }else{
+                    // The prepared seed runs once on entry to a problem. Running the learner's
+                    // SQL again keeps its actual state; checking uses a separate database container.
+                    write(environment.directory.path(),"before.sql","")?;
+                }
+            }
+            let result=execute_lab(&task,&input,&prepared,&environment.lab,environment.directory.path(),Some(&session.0.closed))?;
+            if isolated_check {environments.remove(&key);}
+            session.ensure_open()?;
+            Ok(result)
+        }).await.map_err(|e|e.to_string())?
+    }
+    /// Closing is synchronous as a state change; cancellation and Docker cleanup run off the UI.
+    /// Queued work checks the closed flag again after obtaining the execution lock.
+    pub fn close(&self) {
+        if self.0.closed.swap(true,std::sync::atomic::Ordering::AcqRel){return}
+        let state=self.0.clone();
+        std::thread::spawn(move||{
+            state.environments.lock().unwrap_or_else(|e|e.into_inner()).clear();
+            state.cleaned.store(true,std::sync::atomic::Ordering::Release);
+        });
+    }
+    pub async fn wait_closed(&self) {
+        while !self.0.cleaned.load(std::sync::atomic::Ordering::Acquire){tokio::time::sleep(Duration::from_millis(30)).await;}
+    }
+    pub async fn reset(&self,task:&Task)->Result<(),String> {
+        self.ensure_open()?;
+        let session=self.clone();let key=environment_key(task,false);
+        tokio::task::spawn_blocking(move||{
+            let mut environments=session.0.environments.lock().unwrap_or_else(|e|e.into_inner());
+            session.ensure_open()?;
+            environments.remove(&key);
+            Ok(())
+        }).await.map_err(|e|e.to_string())?
+    }
+    #[cfg(test)]
+    fn projects(&self)->Vec<String> {self.0.environments.lock().unwrap().values().map(|e|e.lab.project.clone()).collect()}
+}
+impl Default for LessonSession {fn default()->Self{Self::new()}}
+
+fn sql_fixture(task:&Task)->Option<&'static str> {
+    if !task.entry_file.ends_with(".sql")||!task.files.contains_key("before.sql"){return None}
+    let compose=task.files.get("compose.yaml")?;
+    if compose.contains("image: mysql:"){Some("mysql")}else if compose.contains("image: postgres:"){Some("postgres")}else{None}
+}
+fn environment_key(task:&Task,grading:bool)->String {
+    // SQL steps with the same engine share one live DB. Two lanes keep the learner's changes
+    // away from fixtures/hidden variations. Other labs retain their own authored workspace.
+    let identity=if sql_fixture(task).is_some(){task.files.get("compose.yaml").cloned().unwrap_or_default()}else{task.id.clone()};
+    format!("{}:{identity}",if grading{"check"}else{"learn"})
+}
+fn reset_sql_fixture(environment:&Environment,database:&str,cancel:&std::sync::atomic::AtomicBool)->Result<(),String> {
+    let reset=if database=="mysql" {
+        "docker compose exec -T db sh -c 'MYSQL_PWD=\"$MYSQL_ROOT_PASSWORD\" mysql -uroot --batch -e \"DROP DATABASE IF EXISTS lab; CREATE DATABASE lab CHARACTER SET utf8mb4;\"'"
+    }else{
+        "docker compose exec -T db psql -U postgres -d lab -X -q -v ON_ERROR_STOP=1 -c 'DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;'"
+    };
+    let mut command=Command::new(bash()?);prepare(&mut command,&environment.lab.cli);
+    command.current_dir(environment.directory.path()).env("COMPOSE_PROJECT_NAME",&environment.lab.project)
+        .args(["-c",&format!("set -e\ndocker compose up -d --wait db >/dev/null 2>&1\n{reset}")]);
+    let output=execute_cancellable(command,"",LAB_SECONDS,Some(cancel))?;
+    if output.success{Ok(())}else{Err(format!("실습 자료를 준비하지 못했어요.\n{}",output.stderr.trim()))}
+}
+
 fn run_blocking(task:&Task,source:&str,input:&str,prepared:Prepared)->Result<Execution,String> {
     let cli=cli().ok_or_else(||format!("Docker를 찾지 못했어요. Docker Desktop을 설치하고 실행한 뒤 다시 실행하세요. 설치 안내: {INSTALL_GUIDE}"))?;
     ensure_engine(&cli)?;
@@ -573,18 +706,21 @@ fn run_blocking(task:&Task,source:&str,input:&str,prepared:Prepared)->Result<Exe
     let lab=Lab::open(&cli,task)?;
     if let Some(problem)=compose_problem(&cli,directory.path(),&lab.project,task)? {return Ok(reject(problem))}
     if let Some(problem)=dockerfile_problem(directory.path(),task) {return Ok(reject(problem))}
-    let mut command=Command::new(bash()?);prepare(&mut command,&cli);
-    command.current_dir(directory.path()).arg("lab.sh")
+    execute_lab(task,input,&prepared,&lab,directory.path(),None)
+}
+
+fn execute_lab(task:&Task,input:&str,prepared:&Prepared,lab:&Lab,directory:&Path,cancel:Option<&std::sync::atomic::AtomicBool>)->Result<Execution,String> {
+    let mut command=Command::new(bash()?);prepare(&mut command,&lab.cli);
+    command.current_dir(directory).arg("lab.sh")
         .env("COMPOSE_PROJECT_NAME",&lab.project).env("MQ3_PROJECT",&lab.project)
         .env("MQ3_OWNER_LABEL",format!("{OWNER_LABEL}={}",lab.project)).env("MQ3_ENTRY",&task.entry_file)
         .env("MQ3_OS",if cfg!(windows){"windows"}else if cfg!(target_os="macos"){"macos"}else{"linux"})
         .env("LC_ALL","C.UTF-8").env("PGCLIENTENCODING","UTF8");
     if let Some(java)=&prepared.java {command.env("MQ3_JAVA",java).env("MQ3_CLASSPATH",&prepared.classpath);}
-    let output=execute(command,input,LAB_SECONDS)?;
-    drop(lab);
+    let output=execute_cancellable(command,input,LAB_SECONDS,cancel)?;
     let state=if output.timed_out{"timeout"}else if output.limited{"output_limit"}else if output.success{"finished"}else{"runtime_error"};
     let mut stderr=output.stderr;
-    if output.timed_out {stderr.push_str(&format!("\n실행 시간 제한 {LAB_SECONDS}초를 넘었어요. 실습 컨테이너는 정리했어요."));}
+    if output.timed_out {stderr.push_str(&format!("\n실행을 중단했거나 시간 제한 {LAB_SECONDS}초를 넘었어요."));}
     if output.limited {stderr.push_str("\n출력 제한 64KB를 넘었어요.");}
     Ok(Execution{stdout:output.stdout,stderr,success:output.success,state:state.into(),artifacts:vec![]})
 }
@@ -599,18 +735,116 @@ fn write(root:&Path,name:&str,content:&str)->Result<(),String> {
 
 pub async fn run(task:&Task,source:&str,input:&str)->Result<Execution,String> {
     if source.len()>65536||input.len()>65536 {return Err("작성 코드와 입력은 각각 64KB 이하여야 해요.".into())}
-    let prepared=if task.libraries.is_empty(){Prepared{java:None,classpath:String::new()}}else{
+    let prepared=prepare_runtime(task).await?;
+    let (task,source,input)=(task.clone(),source.to_owned(),input.to_owned());
+    tokio::task::spawn_blocking(move||run_blocking(&task,&source,&input,prepared)).await.map_err(|e|e.to_string())?
+}
+
+async fn prepare_runtime(task:&Task)->Result<Prepared,String> {
+    Ok(if task.libraries.is_empty(){Prepared{java:None,classpath:String::new()}}else{
         crate::java::version().await?;
         let classpath=crate::library_sets::classpath(&task.libraries).await?;
         Prepared{java:Some(crate::java::executable().replace('\\',"/")),classpath:crate::library_sets::joined(&classpath)}
-    };
-    let (task,source,input)=(task.clone(),source.to_owned(),input.to_owned());
-    tokio::task::spawn_blocking(move||run_blocking(&task,&source,&input,prepared)).await.map_err(|e|e.to_string())?
+    })
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[tokio::test]
+    #[ignore="Needs a running Docker engine"]
+    async fn lesson_reuses_a_container_until_leave_and_rejects_late_runs() {
+        let image="busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662";
+        let compose=format!("services:\n  box:\n    image: {image}\n    command: [sleep, '600']\n");
+        let mut t=task(&compose);
+        t.files.insert("lab.sh".into(),"set -e\ndocker compose up -d >/dev/null 2>&1\ndocker compose exec -T box sh -c 'n=$(cat /tmp/count 2>/dev/null || echo 0); n=$((n+1)); echo $n > /tmp/count; echo $n'\n".into());
+        let session=LessonSession::new();
+        let first=session.run(&t,&compose,"").await.unwrap();
+        assert!(first.success,"{}",first.stderr);
+        assert_eq!(first.stdout.trim(),"1");
+        let projects=session.projects();
+        assert_eq!(projects.len(),1);
+        let cli=cli().unwrap();
+        let filter=format!("label={COMPOSE_LABEL}={}",projects[0]);
+        let before=ids(&cli,&["ps","-q","--filter",&filter]);
+        assert_eq!(before.len(),1);
+        let second=session.run(&t,&compose,"").await.unwrap();
+        assert!(second.success,"{}",second.stderr);
+        assert_eq!(second.stdout.trim(),"2");
+        assert_eq!(before,ids(&cli,&["ps","-q","--filter",&filter]));
+        session.close();
+        session.wait_closed().await;
+        assert!(ids(&cli,&["ps","-aq","--filter",&filter]).is_empty());
+        assert!(session.run(&t,&compose,"").await.is_err());
+    }
+    #[tokio::test]
+    #[ignore="Needs a running Docker engine and the course's MySQL image"]
+    async fn sql_reuses_db_across_steps_but_grading_cannot_change_learner_data() {
+        let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/sql-first.json")).unwrap();
+        let mut t:Task=serde_json::from_value(lesson["tasks"][0].clone()).unwrap();
+        let session=LessonSession::new();
+        let source="UPDATE item SET qty=qty+1 WHERE id=1; SELECT qty FROM item WHERE id=1;";
+        let first=session.run(&t,source,"").await.unwrap();
+        assert!(first.success,"{}",first.stderr);
+        assert_eq!(first.stdout.trim(),"4");
+        let cli=cli().unwrap();
+        let project=session.projects()[0].clone();
+        let filter=format!("label={COMPOSE_LABEL}={project}");
+        let container=ids(&cli,&["ps","-q","--filter",&filter]);
+        let second=session.run(&t,source,"").await.unwrap();
+        assert!(second.success,"{}",second.stderr);
+        assert_eq!(second.stdout.trim(),"5");
+        t.tests[0].expected="3".into();
+        let correct="SELECT qty FROM item WHERE id=1;";
+        assert!(crate::lesson_runner::check_in_lesson(&t,correct,&session).await.unwrap().passed);
+        assert!(!crate::lesson_runner::check_in_lesson(&t,"SELECT 4;",&session).await.unwrap().passed);
+        assert!(crate::lesson_runner::check_in_lesson(&t,correct,&session).await.unwrap().passed);
+        let after_check=session.run(&t,correct,"").await.unwrap();
+        assert_eq!(after_check.stdout.trim(),"5","checking must not mutate the learner's DB");
+        assert_eq!(container,ids(&cli,&["ps","-q","--filter",&filter]));
+        t.id.push_str("_next_step");
+        let next=session.run(&t,correct,"").await.unwrap();
+        assert!(next.success,"{}",next.stderr);
+        assert_eq!(next.stdout.trim(),"3","a new independent problem gets its own fixture");
+        assert_eq!(container,ids(&cli,&["ps","-q","--filter",&filter]));
+        session.reset(&t).await.unwrap();
+        assert!(ids(&cli,&["ps","-aq","--filter",&filter]).is_empty());
+        let reset=session.run(&t,source,"").await.unwrap();
+        assert_eq!(reset.stdout.trim(),"4");
+        let remaining=session.projects();
+        session.close();session.wait_closed().await;
+        for project in remaining {
+            let filter=format!("label={COMPOSE_LABEL}={project}");
+            assert!(ids(&cli,&["ps","-aq","--filter",&filter]).is_empty());
+            assert!(ids(&cli,&["network","ls","-q","--filter",&filter]).is_empty());
+            assert!(ids(&cli,&["volume","ls","-q","--filter",&filter]).is_empty());
+        }
+    }
+
+    #[tokio::test]
+    #[ignore="Needs a running Docker engine"]
+    async fn leaving_a_lesson_cancels_an_in_flight_run_and_cleans_its_resources() {
+        use sha2::{Digest,Sha256};
+        let image="busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662";
+        let compose=format!("services:\n  box:\n    image: {image}\n    command: [sleep, '600']\n");
+        let mut t=task(&compose);t.id=format!("stp_cancel_{}",crate::issue_progress::new_id());
+        let prefix=format!("{PREFIX}{}-",&format!("{:x}",Sha256::digest(t.id.as_bytes()))[..8]);
+        t.files.insert("lab.sh".into(),"set -e\ndocker compose up -d >/dev/null 2>&1\nsleep 60\n".into());
+        let session=LessonSession::new();let active=session.clone();
+        let execution=tokio::spawn(async move{active.run(&t,&compose,"").await});
+        let cli=cli().unwrap();let mut project=None;
+        for _ in 0..100 {
+            project=ids(&cli,&["ps","--format","{{.Label \"com.docker.compose.project\"}}"]).into_iter().find(|p|p.starts_with(&prefix));
+            if project.is_some(){break}
+            tokio::time::sleep(Duration::from_millis(100)).await;
+        }
+        let project=project.expect("the actual lab must be running before testing exit");
+        let started=Instant::now();session.close();
+        assert!(tokio::time::timeout(Duration::from_secs(10),execution).await.unwrap().unwrap().is_err());
+        tokio::time::timeout(Duration::from_secs(10),session.wait_closed()).await.unwrap();
+        assert!(started.elapsed()<Duration::from_secs(10));
+        assert!(ids(&cli,&["ps","-aq","--filter",&format!("label={COMPOSE_LABEL}={project}")]).is_empty());
+    }
     #[test]
     fn watchdog_only_accepts_an_owned_project_argument() {
         assert!(watchdog_cli(&["app".into()]).is_none());
