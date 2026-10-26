@@ -10,9 +10,9 @@
 //! killed desktop app is cleaned by a detached lock watcher; startup also sweeps the same labels
 //! after a machine/engine interruption, unless a live run still holds its lock. Dropping an async
 //! caller does not abort an already running blocking lab; it stays bounded by LAB_SECONDS.
-//! Images the lesson pulls (digest-pinned official
-//! images) stay cached like any `docker pull`; the user's own resources are never listed by name
-//! or touched.
+//! Declared official images are digest-pinned and stay cached like any `docker pull`.
+//! CLI lessons may show the real read-only `docker ps` table, including other containers;
+//! destructive operations and cleanup are limited to the lesson's ownership labels.
 use crate::{repository_course::Task, runner::Execution};
 use std::{collections::BTreeSet, io::Read, path::{Path,PathBuf}, process::{Command,Stdio}, time::{Duration,Instant}};
 
@@ -76,7 +76,7 @@ fn spawn_watchdog(project:&str)->Result<(),String> {
 pub fn valid_image(reference:&str)->bool {
     let Some((name,digest))=reference.split_once("@sha256:") else{return false};
     let Some((repo,tag))=name.split_once(':') else{return false};
-    matches!(repo,"busybox"|"postgres"|"mysql")&&!tag.is_empty()&&tag.len()<64
+    matches!(repo,"busybox"|"postgres"|"mysql"|"nginx")&&!tag.is_empty()&&tag.len()<64
         &&tag.bytes().all(|c|c.is_ascii_alphanumeric()||b"._-".contains(&c))
         &&digest.len()==64&&digest.bytes().all(|c|c.is_ascii_digit()||(b'a'..=b'f').contains(&c))
 }
@@ -590,18 +590,18 @@ impl LessonSession {
         if self.0.closed.load(std::sync::atomic::Ordering::Acquire){Err("수업을 나가서 실습을 종료했어요.".into())}else{Ok(())}
     }
     pub async fn run(&self,task:&Task,source:&str,input:&str)->Result<Execution,String> {
-        self.execute(task,source,input,false).await
+        self.execute(task,source,input,false,false).await
     }
     /// Narration may execute destructive SQL too. Its examples must never alter learner data.
     pub async fn demonstrate(&self,task:&Task,source:&str,input:&str)->Result<Execution,String> {
-        self.check_case(task,source,input).await
+        self.execute(task,source,input,true,false).await
     }
     pub(crate) async fn check_case(&self,task:&Task,source:&str,input:&str)->Result<Execution,String> {
         // SQL fixtures can be reset without restarting the DB. Other labs intentionally teach
         // volume/build/restart behavior and require a clean, independent grading project.
-        self.execute(task,source,input,true).await
+        self.execute(task,source,input,true,true).await
     }
-    async fn execute(&self,task:&Task,source:&str,input:&str,grading:bool)->Result<Execution,String> {
+    async fn execute(&self,task:&Task,source:&str,input:&str,grading:bool,check_output:bool)->Result<Execution,String> {
         self.ensure_open()?;
         if source.len()>65536||input.len()>65536{return Err("작성 코드와 입력은 각각 64KB 이하여야 해요.".into())}
         let prepared=prepare_runtime(task).await?;
@@ -637,7 +637,7 @@ impl LessonSession {
                     write(environment.directory.path(),"before.sql","")?;
                 }
             }
-            let result=execute_lab(&task,&input,&prepared,&environment.lab,environment.directory.path(),Some(&session.0.closed))?;
+            let result=execute_lab(&task,&input,&prepared,&environment.lab,environment.directory.path(),Some(&session.0.closed),check_output)?;
             if isolated_check {environments.remove(&key);}
             session.ensure_open()?;
             Ok(result)
@@ -695,7 +695,7 @@ fn reset_sql_fixture(environment:&Environment,database:&str,cancel:&std::sync::a
     if output.success{Ok(())}else{Err(format!("실습 자료를 준비하지 못했어요.\n{}",output.stderr.trim()))}
 }
 
-fn run_blocking(task:&Task,source:&str,input:&str,prepared:Prepared)->Result<Execution,String> {
+fn run_blocking(task:&Task,source:&str,input:&str,prepared:Prepared,check_output:bool)->Result<Execution,String> {
     let cli=cli().ok_or_else(||format!("Docker를 찾지 못했어요. Docker Desktop을 설치하고 실행한 뒤 다시 실행하세요. 설치 안내: {INSTALL_GUIDE}"))?;
     ensure_engine(&cli)?;
     for project in stale_projects(&cli) {remove_project(&cli,&project);if let Ok(d)=locks(){let _=std::fs::remove_file(d.join(format!("{project}.lock")));}}
@@ -706,14 +706,15 @@ fn run_blocking(task:&Task,source:&str,input:&str,prepared:Prepared)->Result<Exe
     let lab=Lab::open(&cli,task)?;
     if let Some(problem)=compose_problem(&cli,directory.path(),&lab.project,task)? {return Ok(reject(problem))}
     if let Some(problem)=dockerfile_problem(directory.path(),task) {return Ok(reject(problem))}
-    execute_lab(task,input,&prepared,&lab,directory.path(),None)
+    execute_lab(task,input,&prepared,&lab,directory.path(),None,check_output)
 }
 
-fn execute_lab(task:&Task,input:&str,prepared:&Prepared,lab:&Lab,directory:&Path,cancel:Option<&std::sync::atomic::AtomicBool>)->Result<Execution,String> {
+fn execute_lab(task:&Task,input:&str,prepared:&Prepared,lab:&Lab,directory:&Path,cancel:Option<&std::sync::atomic::AtomicBool>,check_output:bool)->Result<Execution,String> {
     let mut command=Command::new(bash()?);prepare(&mut command,&lab.cli);
     command.current_dir(directory).arg("lab.sh")
         .env("COMPOSE_PROJECT_NAME",&lab.project).env("MQ3_PROJECT",&lab.project)
         .env("MQ3_OWNER_LABEL",format!("{OWNER_LABEL}={}",lab.project)).env("MQ3_ENTRY",&task.entry_file)
+        .env("MQ3_OUTPUT",if check_output{"grading"}else{"raw"})
         .env("MQ3_OS",if cfg!(windows){"windows"}else if cfg!(target_os="macos"){"macos"}else{"linux"})
         .env("LC_ALL","C.UTF-8").env("PGCLIENTENCODING","UTF8");
     if let Some(java)=&prepared.java {command.env("MQ3_JAVA",java).env("MQ3_CLASSPATH",&prepared.classpath);}
@@ -734,10 +735,18 @@ fn write(root:&Path,name:&str,content:&str)->Result<(),String> {
 }
 
 pub async fn run(task:&Task,source:&str,input:&str)->Result<Execution,String> {
+    run_with_output(task,source,input,false).await
+}
+
+pub(crate) async fn check_case(task:&Task,source:&str,input:&str)->Result<Execution,String> {
+    run_with_output(task,source,input,true).await
+}
+
+async fn run_with_output(task:&Task,source:&str,input:&str,check_output:bool)->Result<Execution,String> {
     if source.len()>65536||input.len()>65536 {return Err("작성 코드와 입력은 각각 64KB 이하여야 해요.".into())}
     let prepared=prepare_runtime(task).await?;
     let (task,source,input)=(task.clone(),source.to_owned(),input.to_owned());
-    tokio::task::spawn_blocking(move||run_blocking(&task,&source,&input,prepared)).await.map_err(|e|e.to_string())?
+    tokio::task::spawn_blocking(move||run_blocking(&task,&source,&input,prepared,check_output)).await.map_err(|e|e.to_string())?
 }
 
 async fn prepare_runtime(task:&Task)->Result<Prepared,String> {
@@ -933,6 +942,8 @@ mod tests {
     }
     #[test]
     fn only_digest_pinned_official_images() {
+        assert!(valid_image("nginx:1.28-alpine@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236"));
+        assert!(!valid_image("nginx:1.28-alpine"));
         assert!(valid_image("busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662"));
         assert!(!valid_image("busybox:1.36"));
         assert!(!valid_image("evil/busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662"));
@@ -956,6 +967,20 @@ mod tests {
         assert!(dockerfile_problem(dir.path(),&t).is_some());
     }
     /// Real engine checks. Run with `cargo test --lib docker_lab -- --ignored --test-threads=1`.
+    #[tokio::test]
+    #[ignore="Needs a running Docker engine"]
+    async fn learner_and_narration_keep_raw_output_while_checks_use_grading_output() {
+        let mut t=task("services: {}\n");
+        t.files.insert("lab.sh".into(),"printf '%s' \"$MQ3_OUTPUT\"\n".into());
+        assert_eq!(run(&t,"services: {}\n","").await.unwrap().stdout,"raw");
+        assert_eq!(check_case(&t,"services: {}\n","").await.unwrap().stdout,"grading");
+        let session=LessonSession::new();
+        assert_eq!(session.run(&t,"services: {}\n","").await.unwrap().stdout,"raw");
+        assert_eq!(session.check_case(&t,"services: {}\n","").await.unwrap().stdout,"grading");
+        assert_eq!(session.demonstrate(&t,"services: {}\n","").await.unwrap().stdout,"raw");
+        session.close();session.wait_closed().await;
+    }
+
     #[tokio::test]
     #[ignore="Needs a running Docker engine"]
     async fn a_run_owns_its_project_rejects_fixed_ports_and_leaves_nothing() {

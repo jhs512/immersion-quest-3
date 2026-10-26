@@ -24,6 +24,8 @@ struct Validation {
 enum ExpectedOutput {
     Literal(String),
     Junit { junit_summary: JunitSummary },
+    /// Docker IDs, ports and times vary. Assert native output without replacing it.
+    Pattern { pattern: String },
 }
 #[derive(Deserialize,Debug)]
 struct JunitSummary { found:usize, successful:usize, failed:usize }
@@ -31,6 +33,7 @@ impl ExpectedOutput {
     fn matches(&self,actual:&str)->bool {
         match self {
             Self::Literal(expected)=>actual==expected,
+            Self::Pattern{pattern}=>regex::Regex::new(pattern).is_ok_and(|re|re.is_match(actual)),
             Self::Junit{junit_summary:expected}=>expected.found>0
                 &&expected.successful.checked_add(expected.failed)==Some(expected.found)
                 &&[("tests found",expected.found),("tests successful",expected.successful),("tests failed",expected.failed)].iter().all(|(label,count)| {
@@ -140,6 +143,14 @@ mod output_assertion_tests {
         assert!(!expected.matches("[0 tests found]\n[1 tests successful]\n[0 tests failed]"));
         assert!(!expected.matches("[1 tests found]\n[1 tests successful]\n[0 tests failed]\n[0 tests failed]"));
         assert!(!ExpectedOutput::Literal("exact".into()).matches("exact plus"));
+    }
+
+    #[test]
+    fn native_docker_output_must_have_real_table_columns() {
+        let expected=ExpectedOutput::Pattern{pattern:"(?s)^CONTAINER ID\\s+IMAGE.*PORTS.*NAMES.*nginx".into()};
+        assert!(expected.matches("CONTAINER ID   IMAGE   PORTS   NAMES\nabc nginx:1.28-alpine 127.0.0.1:49152->80/tcp mq3lab-test-nginx"));
+        assert!(!expected.matches("실행 중인 실습 컨테이너: 1"));
+        assert!(!ExpectedOutput::Pattern{pattern:"[".into()}.matches("anything"));
     }
 }
 

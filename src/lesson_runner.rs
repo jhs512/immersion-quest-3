@@ -293,14 +293,14 @@ async fn check_docker_with_session(task:&Task,source:&str,session:Option<&crate:
     if task.tests.is_empty(){return Err("입출력 검사 사례가 없어요.".into())}
     let mut cases=vec![];
     for test in &task.tests {
-        let result=if let Some(session)=session {session.check_case(task,source,&test.input).await?}else{crate::docker_lab::run(task,source,&test.input).await?};
+        let result=if let Some(session)=session {session.check_case(task,source,&test.input).await?}else{crate::docker_lab::check_case(task,source,&test.input).await?};
         let passed=result.success && result.stdout.trim_end_matches('\n')==test.expected.trim_end_matches('\n');
         cases.push(TestCaseResult{input:if test.input.is_empty(){"준비된 실습".into()}else{test.input.clone()},expected:test.expected.clone(),stdout:result.stdout,stderr:result.stderr,passed,state:result.state});
     }
     if cases.iter().all(|c|c.passed) {
         for (index,variation) in task.variations.iter().enumerate() {
             let mut changed=task.clone();changed.files.extend(variation.files.clone());
-            let result=if let Some(session)=session {session.check_case(&changed,source,"").await?}else{crate::docker_lab::run(&changed,source,"").await?};
+            let result=if let Some(session)=session {session.check_case(&changed,source,"").await?}else{crate::docker_lab::check_case(&changed,source,"").await?};
             let passed=result.success && result.stdout.trim_end_matches('\n')==variation.expected.trim_end_matches('\n');
             cases.push(TestCaseResult{input:format!("바뀐 준비 자료 {}",index+1),expected:variation.expected.clone(),stdout:result.stdout,stderr:result.stderr,passed,state:result.state});
         }
