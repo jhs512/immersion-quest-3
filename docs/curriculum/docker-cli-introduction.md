@@ -29,7 +29,7 @@
 
 - 원본: `tools/principles_lessons/d0_cli_intro.py`, 기존 메타데이터 연결은 `d1_image_container.py`.
 - 새 챕터에는 명시적 `identity=cli-introduction`을 주고 기존 챕터는 원래 `c0`~`c3` 정체성을 유지한다.
-- 기존 문제 5개·챕터 4개·단원 5개의 ID는 보존한다. 새 8개 문제에만 새 ID를 부여한다.
+- 앞선 개정에서 입문 문제 8개를 추가했다. 이번 개정은 이미 공개된 13개 문제 전체의 ID를 보존하고, 입문 8개의 명령·출력·해설만 바꾼다.
 - 개정은 `docker-image-container-4`이다. 수업 게시는 별도지만 이번 개정은 Nginx 이미지 허용과 화면/채점 출력 분리가 있는 앱이 필요하다. 해당 런타임 릴리스가 공개된 뒤 수업 저장소와 코스 참조를 게시한다.
 
 ## 검증
@@ -37,6 +37,8 @@
 `make.py` → 대본 문맥 검토 → `build-redesigned-git.py` → 실제 Docker 재생 → `validate_redesigned_lesson` 순서로 확인한다. 최종 게시의 근거는 `target/mcq/docker-image-container.json`의 현재 파일 해시와 실제 채점 결과다. 네이티브 화면이나 실제 음성을 확인하지 않은 경우 그 검증까지 통과했다고 표현하지 않는다.
 
 `python tools/test_docker_cli_intro.py`는 실제 표/로그, 반복 실행 시 동일 ID, 동적 루프백 포트, 무관한 컨테이너 보존, 고정·중복 포트 거절, 8개 명령의 정답/무동작 오답을 확인한다. 앱 실행기의 raw/grading 분리는 `docker_lab::tests::learner_and_narration_keep_raw_output_while_checks_use_grading_output`에서 확인한다.
+
+개정 4의 실제 실행 검증은 13문제 모두 통과했다. 채점 사례 17개, 오답 거절 16개, 대체 정답 4개와 해설 재생 결과를 확인했다. 출력의 동적 ID·시각·포트는 형식으로 검사하고, 학습자에게 보여 주는 원문은 변환하지 않는다.
 
 공식 근거: [컨테이너의 필요성](https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/), [pull](https://docs.docker.com/reference/cli/docker/image/pull/), [run과 start](https://docs.docker.com/reference/cli/docker/container/run/).
 
