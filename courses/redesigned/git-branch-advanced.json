@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_db18c8e2-b487-4a44-96e1-ed2974104c7e",
-  "revision": "git-branch-advanced-6",
+  "revision": "git-branch-advanced-7",
   "title": "Git · 브랜치 심화: 갈라진 기록과 충돌을 해결해요",
   "description": "여러분은 메모 서비스 팀의 안내 담당이에요. 동료 지수의 변경과 내 변경을 합쳐요. 각 문제의 준비된 시작 상태를 먼저 확인해요. 서로 갈라진 변경을 합쳐요. 충돌이 나면 내용을 선택하고 준비한 뒤 병합을 마쳐요.",
   "objectives": [
@@ -42,9 +42,9 @@
               ]
             },
             {
-              "id": "stp_77e917af-a502-4bda-b54d-390a7ce7b547",
+              "id": "stp_3c382116-00a8-4d40-9d9c-bada0aa58660",
               "objectives": [
-                "파일 이름과 수정 영역의 겹침을 구분해요."
+                "같은 파일의 변경도 겹치지 않으면 함께 합칠 수 있어요."
               ]
             }
           ]
@@ -58,9 +58,9 @@
           "premise": "guide.txt의 같은 줄을 다르게 바꿔 충돌이 났어요.\n각 문제는 정해진 충돌 상태에서 다시 시작해요.",
           "steps": [
             {
-              "id": "stp_974634c2-d44c-423c-8cbb-ac17c39558c6",
+              "id": "stp_c8a228ce-2217-4a7b-bcc7-776898b0c0e8",
               "objectives": [
-                "자동 결합하지 못한 상태와 명령 실행 실패를 구분해요."
+                "충돌은 파일에 남길 내용을 사람이 결정해야 하는 상태예요."
               ]
             },
             {
@@ -264,12 +264,11 @@
       ]
     },
     {
-      "id": "stp_77e917af-a502-4bda-b54d-390a7ce7b547",
-      "title": "같은 파일의 다른 부분을 바꾸면 어떻게 될까요?",
-      "goal": "두 브랜치에서 안내 파일(`guide.txt`)을 수정했어요. `main`에서는 맨 아래 `문의:` 줄을, `feature`에서는 맨 위 `안내:` 줄을 바꿨어요. 현재 브랜치는 `main`이에요.\n\n**할 일**\n\n1. 두 브랜치에서 바꾼 줄의 위치를 비교하세요.\n2. main에서 feature를 병합하면 어떻게 될지 예상하세요.\n3. 예상한 결과에 맞는 보기를 고르세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_3c382116-00a8-4d40-9d9c-bada0aa58660",
+      "title": "서로 다른 부분의 두 변경을 실제로 병합하세요",
+      "goal": "같은 파일의 변경도 겹치지 않으면 함께 합칠 수 있어요.\n\nmain은 guide.txt의 마지막 문의 줄을, feature는 첫 안내 줄을 바꿨어요. 두 브랜치와 커밋은 준비된 상태예요.\n\n현재 main에서 feature를 병합하세요. 두 변경을 모두 남기고 feature의 기존 기록은 보존하세요.\n\n**할 일**\n\n1. git branch로 현재 브랜치를 확인하세요.\n2. git merge feature로 두 기록을 병합하세요.\n3. cat guide.txt로 첫 줄과 마지막 줄을 확인하세요.\n4. 두 변경을 함께 반영한 상태를 제출하세요.",
       "language": "git",
       "starter_code": "",
-      "solution": "auto-merge",
       "tests": [],
       "required": true,
       "git_terminal": {
@@ -357,13 +356,33 @@
               "main"
             ]
           }
-        ]
+        ],
+        "state_goal": {
+          "current_branch": "main",
+          "commit_count": 4,
+          "parent_count": 2,
+          "merge_in_progress": false,
+          "unmerged_paths": [],
+          "clean": true,
+          "references": {
+            "refs/heads/main": "HEAD",
+            "refs/heads/feature": "HEAD^2"
+          },
+          "working_files": {
+            "guide.txt": "안내: 메모를 남겨요\n\n항목: 계정\n항목: 접속\n항목: 저장\n항목: 기록\n항목: 복구\n\n문의: 상담 창구\n"
+          },
+          "head_files": {
+            "guide.txt": "안내: 메모를 남겨요\n\n항목: 계정\n항목: 접속\n항목: 저장\n항목: 기록\n항목: 복구\n\n문의: 상담 창구\n"
+          }
+        },
+        "commands": []
       },
+      "solution": "",
       "narration": [
         {
           "action": "say",
-          "text": "두 브랜치가 같은 guide.txt를 고쳤지만, 고친 줄은 맨 위와 맨 아래로 떨어져 있어요. 병합하면 충돌할지 먼저 예상해요.",
-          "target": "text:main에서는 맨 아래 문의: 줄을, feature에서는 맨 위 안내: 줄을 바꿨어요."
+          "text": "같은 파일의 변경도 겹치지 않으면 함께 합칠 수 있어요.",
+          "target": "text:서로 다른 부분의 두 변경을 실제로 병합하세요"
         },
         {
           "action": "git_command",
@@ -371,64 +390,38 @@
             "merge",
             "feature"
           ],
-          "say": "같은 guide.txt의 서로 떨어진 두 줄을 병합해 봐요.",
+          "target": "#git-demo-terminal",
+          "say": "서로 떨어진 두 줄의 변경을 병합해요."
+        },
+        {
+          "action": "say",
+          "text": "병합이 완료됐어요. 같은 파일이라는 이유만으로 충돌하지는 않았어요.",
           "target": "#git-demo-terminal"
         },
         {
-          "action": "git_command",
-          "args": [
-            "show",
-            "HEAD:guide.txt"
-          ],
-          "say": "병합한 guide.txt의 첫 줄과 마지막 줄을 확인해요.",
+          "action": "bash_command",
+          "command": "cat guide.txt",
+          "say": "실제로 합친 파일을 읽어요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "feature의 안내와 main의 문의가 모두 남아 있어요.",
+          "text": "feature의 첫 안내와 main의 마지막 문의가 함께 남았어요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "같은 파일을 수정해도 서로 다른 부분이면 Git이 자동으로 합칠 수 있어요.",
+          "text": "조심하세요. 파일 이름이 같은지보다 변경한 부분이 겹치는지가 중요해요.",
           "target": "#git-demo-terminal"
-        },
-        {
-          "action": "choose_answer",
-          "id": "auto-merge"
-        },
-        {
-          "action": "say",
-          "text": "충돌 없이 두 변경이 함께 들어간다는 보기를 골라요.",
-          "target": "answer:auto-merge"
         }
-      ],
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "always-conflict",
-            "text": "같은 파일을 두 브랜치가 고쳤으니 충돌해요."
-          },
-          {
-            "id": "lose-main",
-            "text": "main에서 바꾼 문의 줄이 사라져요."
-          },
-          {
-            "id": "auto-merge",
-            "text": "서로 다른 부분을 바꿔서 두 변경이 자동으로 합쳐져요."
-          }
-        ],
-        "answer": "auto-merge"
-      }
+      ]
     },
     {
-      "id": "stp_974634c2-d44c-423c-8cbb-ac17c39558c6",
-      "title": "충돌이 났어요. 다음에 무엇을 해야 할까요?",
-      "goal": "두 브랜치에서 `guide.txt`의 첫 줄을 다르게 바꿨어요. `main`에서 병합하다 충돌이 난 상태예요.\n\n**할 일**\n\n1. `git status`: 현재 파일과 병합 상태를 확인하세요.\n2. 확인한 내용을 바탕으로 현재 상태에 맞는 보기를 고르세요.\n3. 선택한 보기를 제출하세요.",
+      "id": "stp_c8a228ce-2217-4a7b-bcc7-776898b0c0e8",
+      "title": "충돌한 파일에 두 의도를 반영한 내용을 작성하세요",
+      "goal": "충돌은 파일에 남길 내용을 사람이 결정해야 하는 상태예요.\n\n두 브랜치가 첫 줄을 다르게 고쳐 충돌했어요. 합의한 첫 줄은 “안내: 로그인하고 메모를 남겨요”예요. 나머지 항목과 문의 줄은 그대로 남기세요.\n\n충돌 표시를 없애고 이 내용으로 파일을 고치세요. 아직 add나 commit하지 마세요. 다음 단계에서 해결 결과를 준비하고 기록해요.\n\n**할 일**\n\n1. git status로 충돌 파일을 확인하세요.\n2. cat guide.txt로 양쪽 내용과 충돌 표시를 읽으세요.\n3. 첫 줄을 “안내: 로그인하고 메모를 남겨요”로 정하고 충돌 표시를 지우세요.\n4. cat guide.txt로 다른 줄이 그대로인지 확인하세요.\n5. 아직 add하지 않은 해결 초안을 제출하세요.",
       "language": "git",
       "starter_code": "",
-      "solution": "choose-content",
       "tests": [],
       "required": true,
       "git_terminal": {
@@ -520,60 +513,79 @@
             "kind": "merge_conflict",
             "branch": "feature"
           }
-        ]
+        ],
+        "state_goal": {
+          "current_branch": "main",
+          "commit_count": 2,
+          "merge_in_progress": true,
+          "unmerged_paths": [
+            "guide.txt"
+          ],
+          "working_files": {
+            "guide.txt": "안내: 로그인하고 메모를 남겨요\n\n항목: 계정\n항목: 접속\n항목: 저장\n항목: 기록\n항목: 복구\n\n문의: 기본 창구\n"
+          }
+        },
+        "commands": []
       },
+      "solution": "",
       "narration": [
         {
           "action": "say",
-          "text": "같은 첫 줄을 두 브랜치가 다르게 바꿔서 병합 도중 충돌이 났어요. 지금 해야 할 다음 행동을 고르는 문제예요.",
-          "target": "text:main에서 병합하다 충돌이 난 상태예요."
+          "text": "충돌은 파일에 남길 내용을 사람이 결정해야 하는 상태예요.",
+          "target": "text:충돌한 파일에 두 의도를 반영한 내용을 작성하세요"
         },
         {
           "action": "git_command",
           "args": [
             "status"
           ],
-          "say": "충돌을 아직 해결하지 않은 파일 이름을 확인해요.",
+          "target": "#git-demo-terminal",
+          "say": "Git이 해결을 기다리는 파일을 확인해요."
+        },
+        {
+          "action": "say",
+          "text": "guide.txt가 충돌한 상태예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "cat guide.txt",
+          "say": "양쪽에서 고친 내용과 충돌 표시를 읽어요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "guide.txt가 나와요. 이 파일에 남길 내용을 정해야 해요.",
+          "text": "먼저 로그인하는 안내와 메모를 남기는 안내가 같은 줄에서 만났어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "echo \"안내: 로그인하고 메모를 남겨요\n\n항목: 계정\n항목: 접속\n항목: 저장\n항목: 기록\n항목: 복구\n\n문의: 기본 창구\" > guide.txt",
+          "say": "두 의도를 담은 첫 줄을 쓰고 나머지 줄도 보존해요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "충돌이 나도 두 브랜치의 기존 커밋은 그대로 남아 있어요.",
+          "text": "파일을 고쳤지만 아직 add하지 않았어요.",
           "target": "#git-demo-terminal"
         },
         {
-          "action": "choose_answer",
-          "id": "choose-content"
+          "action": "bash_command",
+          "command": "cat guide.txt",
+          "say": "해결 초안 전체를 다시 읽어요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "남길 내용을 정하고 add한 뒤 커밋한다는 보기를 골라요.",
-          "target": "answer:choose-content"
+          "text": "첫 줄에 로그인과 메모가 모두 있고 충돌 표시는 없어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 충돌 표시만 지우면 충분하지 않아요. 양쪽에서 필요했던 내용을 남겨야 해요.",
+          "target": "#git-demo-terminal"
         }
-      ],
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "choose-content",
-            "text": "파일에 남길 내용을 정하고 git add로 준비한 뒤 커밋해요."
-          },
-          {
-            "id": "history-lost",
-            "text": "기존 커밋이 지워졌으므로 처음부터 다시 커밋해요."
-          },
-          {
-            "id": "already-done",
-            "text": "이미 병합이 끝났으므로 아무것도 하지 않아요."
-          }
-        ],
-        "answer": "choose-content"
-      }
+      ]
     },
     {
       "id": "stp_4666f619-bbb1-4b59-9ba9-e0b696cc1f8d",

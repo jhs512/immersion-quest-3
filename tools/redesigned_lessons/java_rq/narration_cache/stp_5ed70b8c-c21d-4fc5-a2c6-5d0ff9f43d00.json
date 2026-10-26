@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "158ff897b3307992cfb70bbfc9fdc0e576a5186961645e8d5f2e261e24c8e9b7",
+  "entry": [
+    {
+      "action": "say",
+      "text": "요청 조건의 의미는 순서보다 이름에 있어요.",
+      "target": "text:조건이 적힌 순서 대신 이름으로 값을 조회하세요"
+    },
+    {
+      "action": "say",
+      "text": "값 목록의 첫 값을 무조건 꺼내고 있어요.",
+      "target": "code:return params.isEmpty() ? fallback : params.values().iterator().next();"
+    },
+    {
+      "action": "run",
+      "lines": [
+        28,
+        28
+      ]
+    },
+    {
+      "action": "say",
+      "text": "hello예요. id가 아닌 첫 조건 text의 값을 골랐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "return params.isEmpty() ? fallback : params.values().iterator().next();",
+      "after": "return params.getOrDefault(name, fallback);",
+      "say": "전달받은 조건 이름으로 조회하고 없을 때만 기본값을 써요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        28,
+        28
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2가 나와요. id가 뒤에 있어도 같은 값이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 첫째 조건이 항상 id인 것은 아니에요. 조건 순서가 바뀌어도 이름의 뜻은 같아요.",
+      "target": "code:return params.getOrDefault(name, fallback);"
+    }
+  ]
+}

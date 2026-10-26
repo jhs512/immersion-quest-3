@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_533917ea-656d-4fd5-b188-948363ec9b37",
-  "revision": "git-remote-8",
+  "revision": "git-remote-9",
   "title": "공유 기록을 받고 비교하고 되돌려요",
   "description": "GitHub 없이 두 팀원의 실제 Git 복제본으로 협업해요. 정상 공유, push 거절, 충돌과 합의, 복구를 직접 경험해요.",
   "objectives": [
@@ -61,9 +61,9 @@
               ]
             },
             {
-              "id": "stp_ff21db31-358b-4f79-b1ac-d75ed9c8ddbe",
+              "id": "stp_d0e859e6-98af-442f-a6c4-b6cfbeb949f7",
               "objectives": [
-                "원격 이름과 브랜치 이름을 구분해요."
+                "원격 저장소의 이름과 브랜치 이름은 다른 대상이에요."
               ]
             },
             {
@@ -79,9 +79,9 @@
               ]
             },
             {
-              "id": "stp_7b85c356-5da5-4906-89ef-d8d87ba2f2ad",
+              "id": "stp_f7777741-1109-4b2b-bb25-f5472fd03a43",
               "objectives": [
-                "fetch가 현재 main을 병합하지 않는다는 점을 이해해요."
+                "fetch는 받은 기록을 내 브랜치에 자동으로 합치지 않아요."
               ]
             },
             {
@@ -155,9 +155,9 @@
               ]
             },
             {
-              "id": "stp_1bf14bec-abb0-4656-b320-7fe6c7f96022",
+              "id": "stp_cd0f058c-3382-4415-986b-69c9c8cc8fb6",
               "objectives": [
-                "git diff가 작업 파일과 준비 영역을 비교함을 이해해요."
+                "작업 파일의 변경과 공유된 기록은 나누어 다뤄요."
               ]
             },
             {
@@ -185,9 +185,9 @@
               ]
             },
             {
-              "id": "stp_00b5fc7b-4940-497e-9450-84e46a3a4b83",
+              "id": "stp_30450fdf-e29d-4fcd-a813-c3f8b0f44c3a",
               "objectives": [
-                "실수가 커밋 전인지 후인지에 따라 restore와 revert를 골라요."
+                "revert는 이미 남긴 기록에 취소 기록을 더해요."
               ]
             }
           ]
@@ -571,12 +571,11 @@
       }
     },
     {
-      "id": "stp_ff21db31-358b-4f79-b1ac-d75ed9c8ddbe",
-      "title": "origin과 main은 각각 무엇일까요?",
-      "goal": "팀원이 보낼 주소와 보낼 브랜치를 물어봤어요.\n\n**할 일**\n\n1. `git remote -v`를 실행하세요.\n2. `git branch`를 실행하세요.\n3. 확인한 내용에 맞는 보기를 고르고 제출하세요.",
+      "id": "stp_d0e859e6-98af-442f-a6c4-b6cfbeb949f7",
+      "title": "원격 주소 이름과 현재 브랜치를 직접 확인하세요",
+      "goal": "원격 저장소의 이름과 브랜치 이름은 다른 대상이에요.\n\n공유할 origin과 현재 main을 준비했어요. 이번 origin은 앱이 만든 로컬 연습 저장소예요. 실제 GitHub에 쓰지 않아요.\n\n주소와 브랜치를 읽는 두 명령을 직접 실행하세요. 파일이나 커밋은 바꾸지 마세요.\n\n**할 일**\n\n1. git remote -v로 원격 이름과 연결 주소를 확인하세요.\n2. git branch로 현재 브랜치를 확인하세요.\n3. 두 명령을 실행한 상태를 제출하세요.",
       "language": "git",
       "starter_code": "",
-      "solution": "different",
       "tests": [],
       "required": true,
       "git_terminal": {
@@ -614,13 +613,33 @@
               "main"
             ]
           }
+        ],
+        "state_goal": {
+          "origin_url": "../remote.git",
+          "current_branch": "main",
+          "commit_count": 1,
+          "clean": true,
+          "remote_tracking_current": true,
+          "head_files": {
+            "guide.txt": "안내: 메모를 남겨요\n"
+          }
+        },
+        "commands": [
+          [
+            "remote",
+            "-v"
+          ],
+          [
+            "branch"
+          ]
         ]
       },
+      "solution": "",
       "narration": [
         {
           "action": "say",
-          "text": "팀원이 보낼 주소와 브랜치를 물었어요. 두 명령의 출력에서 origin과 main이 각각 무엇인지 확인해 골라요.",
-          "target": "text:팀원이 보낼 주소와 보낼 브랜치를 물어봤어요."
+          "text": "원격 저장소의 이름과 브랜치 이름은 다른 대상이에요.",
+          "target": "text:원격 주소 이름과 현재 브랜치를 직접 확인하세요"
         },
         {
           "action": "git_command",
@@ -628,11 +647,12 @@
             "remote",
             "-v"
           ],
-          "target": "#git-demo-terminal"
+          "target": "#git-demo-terminal",
+          "say": "원격 저장소의 이름과 주소를 읽어요."
         },
         {
           "action": "say",
-          "text": "origin은 공유 저장소 주소에 붙인 이름이에요.",
+          "text": "origin 옆에 연결된 연습 저장소의 주소가 보여요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -640,7 +660,8 @@
           "args": [
             "branch"
           ],
-          "target": "#git-demo-terminal"
+          "target": "#git-demo-terminal",
+          "say": "브랜치 목록과 현재 위치를 읽어요."
         },
         {
           "action": "say",
@@ -649,24 +670,10 @@
         },
         {
           "action": "say",
-          "text": "조심하세요. origin은 저장소의 이름이고 main은 브랜치 이름이에요. 같은 뜻이 아니에요.",
+          "text": "조심하세요. origin은 주소의 별명이고 main은 브랜치예요. 같은 종류의 이름이 아니에요.",
           "target": "#git-demo-terminal"
         }
-      ],
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "different",
-            "text": "origin은 원격 저장소의 이름, main은 브랜치 이름이에요."
-          },
-          {
-            "id": "same",
-            "text": "origin과 main은 모두 현재 브랜치의 이름이에요."
-          }
-        ],
-        "answer": "different"
-      }
+      ]
     },
     {
       "id": "stp_49119474-fc41-4fc8-b011-dd12c444403e",
@@ -959,12 +966,11 @@
       ]
     },
     {
-      "id": "stp_7b85c356-5da5-4906-89ef-d8d87ba2f2ad",
-      "title": "받은 안내와 내 안내는 왜 다를까요?",
-      "goal": "같은 안내문인데 두 내용이 달라요. 방금 한 행동으로 판단해요.\n\n**할 일**\n\n1. `git show origin/main:guide.txt`를 실행하세요.\n2. `git show HEAD:guide.txt`를 실행하세요.\n3. 확인한 내용에 맞는 보기를 고르고 제출하세요.",
+      "id": "stp_f7777741-1109-4b2b-bb25-f5472fd03a43",
+      "title": "받은 원격 기록과 내 커밋의 안내를 비교하세요",
+      "goal": "fetch는 받은 기록을 내 브랜치에 자동으로 합치지 않아요.\n\n새 문의 안내를 fetch해 둔 상태예요. origin/main은 새 기록을 가리키고 내 main은 이전 안내에 있어요.\n\n두 기록의 파일을 직접 읽으세요. 이 단계에서는 merge나 pull을 하지 말고 차이를 유지하세요.\n\n**할 일**\n\n1. git show origin/main:guide.txt로 받은 안내를 읽으세요.\n2. git show HEAD:guide.txt로 내 커밋의 안내를 읽으세요.\n3. 두 기록을 비교한 상태를 제출하세요.",
       "language": "git",
       "starter_code": "",
-      "solution": "notmerged",
       "tests": [],
       "required": true,
       "git_terminal": {
@@ -1016,13 +1022,39 @@
               "origin"
             ]
           }
+        ],
+        "state_goal": {
+          "current_branch": "main",
+          "commit_count": 1,
+          "remote_tracking_current": true,
+          "clean": true,
+          "working_files": {
+            "guide.txt": "안내: 메모를 남겨요\n"
+          },
+          "index": {
+            "guide.txt": "안내: 메모를 남겨요\n"
+          },
+          "head_files": {
+            "guide.txt": "안내: 메모를 남겨요\n"
+          }
+        },
+        "commands": [
+          [
+            "show",
+            "origin/main:guide.txt"
+          ],
+          [
+            "show",
+            "HEAD:guide.txt"
+          ]
         ]
       },
+      "solution": "",
       "narration": [
         {
           "action": "say",
-          "text": "받은 기록과 내 main의 안내문이 달라요. 직전 7번에서 fetch만 했다는 사실로 이유를 판단해요.",
-          "target": "text:같은 안내문인데 두 내용이 달라요."
+          "text": "fetch는 받은 기록을 내 브랜치에 자동으로 합치지 않아요.",
+          "target": "text:받은 원격 기록과 내 커밋의 안내를 비교하세요"
         },
         {
           "action": "git_command",
@@ -1030,11 +1062,12 @@
             "show",
             "origin/main:guide.txt"
           ],
-          "target": "#git-demo-terminal"
+          "target": "#git-demo-terminal",
+          "say": "받아 둔 원격 기록의 안내를 읽어요."
         },
         {
           "action": "say",
-          "text": "받아 둔 기록에는 문의 안내가 있어요.",
+          "text": "메모 안내에 문의 줄도 더해져 있어요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -1043,33 +1076,20 @@
             "show",
             "HEAD:guide.txt"
           ],
+          "target": "#git-demo-terminal",
+          "say": "내 현재 커밋의 안내를 읽어요."
+        },
+        {
+          "action": "say",
+          "text": "내 main에는 아직 메모 안내 한 줄만 있어요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "내 main에는 메모 안내만 있어요.",
-          "target": "#git-demo-terminal"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 받은 기록과 내 main이 달라도 fetch가 실패한 것은 아니에요.",
+          "text": "조심하세요. 두 파일이 달라도 fetch 실패가 아니에요. 받은 기록을 합치는 일은 별개예요.",
           "target": "#git-demo-terminal"
         }
-      ],
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "notmerged",
-            "text": "원격의 커밋을 받았지만 아직 내 main에 병합하지 않았어요."
-          },
-          {
-            "id": "broken",
-            "text": "두 내용이 다르므로 fetch가 실패했어요."
-          }
-        ],
-        "answer": "notmerged"
-      }
+      ]
     },
     {
       "id": "stp_76c8d243-1eed-4c81-bad2-408f09a180eb",
@@ -2440,12 +2460,11 @@
       }
     },
     {
-      "id": "stp_1bf14bec-abb0-4656-b320-7fe6c7f96022",
-      "title": "직접 수정한 뒤 git diff를 읽으세요",
-      "goal": "충돌 해결을 마친 뒤 팀장이 문의 문구를 시험해 보래요. 임시 창구 한 줄만 더해요.\n아직 준비 영역에 담거나 커밋하지 마세요.\n\n**할 일**\n\n1. `cat guide.txt`를 실행하세요.\n2. `echo \"문의: 임시 창구\" >> guide.txt`를 실행하세요.\n3. `git diff`를 실행하세요.\n4. 확인한 내용에 맞는 보기를 고르고 제출하세요.",
+      "id": "stp_cd0f058c-3382-4415-986b-69c9c8cc8fb6",
+      "title": "임시 문구를 작업 파일에만 추가하고 차이를 확인하세요",
+      "goal": "작업 파일의 변경과 공유된 기록은 나누어 다뤄요.\n\n충돌 해결과 공유를 마친 안내가 있어요. 시험할 임시 창구 한 줄만 파일에 추가하세요. 아직 add나 commit하지 마세요.\n\ngit diff로 준비 영역과 작업 파일의 차이를 읽으세요.\n\n**할 일**\n\n1. cat guide.txt로 원래 안내를 읽으세요.\n2. echo \"문의: 임시 창구\" >> guide.txt를 실행하세요.\n3. git diff로 추가한 줄을 확인하세요.\n4. 임시 문구가 작업 파일에만 있는 상태를 제출하세요.",
       "language": "git",
       "starter_code": "",
-      "solution": "working-index",
       "tests": [],
       "required": true,
       "git_terminal": {
@@ -2570,32 +2589,53 @@
               "main"
             ]
           }
+        ],
+        "state_goal": {
+          "current_branch": "main",
+          "commit_count": 5,
+          "working_files": {
+            "guide.txt": "안내: 메모를 안전하게 함께 남겨요\n문의: 상담 창구\n문의: 임시 창구\n"
+          },
+          "index": {
+            "guide.txt": "안내: 메모를 안전하게 함께 남겨요\n문의: 상담 창구\n"
+          },
+          "head_files": {
+            "guide.txt": "안내: 메모를 안전하게 함께 남겨요\n문의: 상담 창구\n"
+          }
+        },
+        "commands": [
+          [
+            "diff"
+          ]
         ]
       },
+      "solution": "",
       "narration": [
         {
           "action": "say",
-          "text": "팀장이 시험 문구 한 줄을 더해 보래요. 아직 add하지 않은 상태에서 git diff가 무엇과 무엇을 비교하는지가 질문이에요.",
-          "target": "text:아직 준비 영역에 담거나 커밋하지 마세요."
+          "text": "작업 파일의 변경과 공유된 기록은 나누어 다뤄요.",
+          "target": "text:임시 문구를 작업 파일에만 추가하고 차이를 확인하세요"
         },
         {
           "action": "bash_command",
           "command": "cat guide.txt",
+          "say": "원래 안내를 읽어요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "수정 전에는 안전하게 함께 남기는 안내와 상담 창구가 있어요.",
+          "text": "안전하게 함께 남기는 안내와 상담 창구가 있어요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "bash_command",
           "command": "echo \"문의: 임시 창구\" >> guide.txt",
+          "say": "원래 내용 뒤에 임시 창구 한 줄을 더해요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "내 파일에 임시 창구 한 줄을 더했어요.",
+          "text": "파일만 고쳤고 아직 준비하지 않았어요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -2603,33 +2643,20 @@
           "args": [
             "diff"
           ],
+          "target": "#git-demo-terminal",
+          "say": "준비 영역과 작업 파일을 비교해요."
+        },
+        {
+          "action": "say",
+          "text": "임시 창구 줄이 더하기 표시로 보여요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "추가한 임시 창구 줄이 더하기 표시로 보여요.",
-          "target": "#git-demo-terminal"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. git diff는 작업 파일과 준비 영역을 비교해요. 원격과 비교하는 명령이 아니에요.",
+          "text": "조심하세요. 이 diff는 원격 저장소와 비교하는 명령이 아니에요. 작업 파일과 준비 영역을 비교해요.",
           "target": "#git-demo-terminal"
         }
-      ],
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "remote",
-            "text": "내 파일과 원격 저장소의 최신 파일을 비교해요."
-          },
-          {
-            "id": "working-index",
-            "text": "내 작업 파일과 준비 영역의 내용을 비교해요."
-          }
-        ],
-        "answer": "working-index"
-      }
+      ]
     },
     {
       "id": "stp_a648f761-237e-49ab-9ac5-e62e280be396",
@@ -3181,7 +3208,7 @@
       "narration": [
         {
           "action": "say",
-          "text": "잘못된 내용도 커밋하면 기록에 남아요. 커밋한 뒤에는 restore로 되돌릴 수 없다는 점을 다음 스텝과 비교해요.",
+          "text": "잘못된 내용도 커밋하면 기록에 남아요. 기본 git restore는 작업 파일을 준비 영역 기준으로 돌려요. 커밋된 실수는 다음 스텝에서 revert로 취소해요.",
           "target": "text:잘못된 내용도 커밋하면 기록에 남아요."
         },
         {
@@ -3450,13 +3477,11 @@
       ]
     },
     {
-      "id": "stp_00b5fc7b-4940-497e-9450-84e46a3a4b83",
-      "title": "커밋 전 실수와 커밋 후 실수에는 각각 어떤 명령을 쓸까요?",
-      "question": "커밋 전 실수와 커밋 후 실수에는 각각 어떤 명령을 쓸까요?",
-      "goal": "18번에서는 아직 커밋하지 않은 시험 문구를 버렸고, 21번에서는 이미 커밋한 종료 안내를 취소했어요. 두 경우에 쓴 명령의 차이를 정리해요. 이미 공유한 기록은 지우면 다른 팀원의 기록과 어긋나요.\n\n**할 일**\n\n1. `git log --oneline`을 실행해 잘못된 커밋과 되돌림 커밋이 함께 남아 있는지 확인하세요.\n2. 두 상황에 맞는 명령을 짝지은 보기를 고르세요.\n3. 선택한 보기를 제출하세요.",
+      "id": "stp_30450fdf-e29d-4fcd-a813-c3f8b0f44c3a",
+      "title": "되돌림 커밋이 기존 기록을 보존했는지 확인하세요",
+      "goal": "revert는 이미 남긴 기록에 취소 기록을 더해요.\n\n잘못된 종료 안내와 그 되돌림 커밋을 준비했어요. 파일은 올바른 메모 안내로 복구됐지만 두 커밋은 모두 남아 있어요.\n\n실제 기록 목록을 읽고 작업 파일에 남은 변경도 확인하세요. 기록을 지우거나 새 커밋을 만들지 마세요.\n\n**할 일**\n\n1. git log -2 --oneline으로 최근 두 커밋을 확인하세요. -2는 두 개만 보여줘요.\n2. git diff로 작업 파일에 남은 변경이 있는지 확인하세요.\n3. 두 기록을 보존한 상태를 제출하세요.",
       "language": "git",
       "starter_code": "",
-      "solution": "match",
       "tests": [],
       "required": true,
       "git_terminal": {
@@ -3621,59 +3646,72 @@
               "Revert \"잘못된 종료 안내\""
             ]
           }
+        ],
+        "state_goal": {
+          "current_branch": "main",
+          "commit_count": 7,
+          "parent_count": 1,
+          "clean": true,
+          "working_files": {
+            "guide.txt": "안내: 메모를 안전하게 함께 남겨요\n문의: 상담 창구\n"
+          },
+          "head_files": {
+            "guide.txt": "안내: 메모를 안전하게 함께 남겨요\n문의: 상담 창구\n"
+          },
+          "parent_files": {
+            "guide.txt": "안내: 서비스를 종료해요\n"
+          }
+        },
+        "commands": [
+          [
+            "log",
+            "-2",
+            "--oneline"
+          ],
+          [
+            "diff"
+          ]
         ]
       },
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "swapped",
-            "text": "커밋 전에는 git revert, 이미 커밋한 뒤에는 git restore를 써요."
-          },
-          {
-            "id": "match",
-            "text": "커밋 전 파일 수정은 git restore, 이미 커밋한 실수는 git revert로 되돌려요."
-          },
-          {
-            "id": "restore-all",
-            "text": "두 경우 모두 git restore로 작업 파일을 되돌리면 돼요."
-          }
-        ],
-        "answer": "match"
-      },
-      "predict_before_run": false,
+      "solution": "",
       "narration": [
         {
           "action": "say",
-          "text": "18번과 21번에서 쓴 두 되돌리기 명령을 비교하는 문제예요. 실수가 아직 파일에만 있는지, 이미 커밋에 들어갔는지가 기준이에요.",
-          "target": "text:두 경우에 쓴 명령의 차이를 정리해요."
+          "text": "revert는 이미 남긴 기록에 취소 기록을 더해요.",
+          "target": "text:되돌림 커밋이 기존 기록을 보존했는지 확인하세요"
         },
         {
           "action": "git_command",
           "args": [
             "log",
+            "-2",
             "--oneline"
           ],
+          "target": "#git-demo-terminal",
+          "say": "최근 두 기록을 읽어요."
+        },
+        {
+          "action": "say",
+          "text": "되돌림 커밋 아래에 잘못된 종료 안내 커밋도 남아 있어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "diff"
+          ],
+          "target": "#git-demo-terminal",
+          "say": "아직 커밋하지 않은 파일 변경도 확인해요."
+        },
+        {
+          "action": "say",
+          "text": "출력이 없어요. 현재 파일은 복구한 커밋과 같아요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "맨 위에 Revert 커밋, 그 아래에 잘못된 종료 안내 커밋이 그대로 있어요. revert는 기록을 지우지 않고 취소 기록을 더했어요.",
+          "text": "조심하세요. restore는 아직 커밋하지 않은 파일을 되돌려요. 공유한 커밋을 취소하는 revert와 역할이 달라요.",
           "target": "#git-demo-terminal"
-        },
-        {
-          "action": "say",
-          "text": "18번의 시험 문구는 커밋 전이라 기록에 없었어요. 그래서 restore로 작업 파일만 되돌리면 충분했어요.",
-          "target": "text:18번에서는 아직 커밋하지 않은 시험 문구를 버렸고"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 이미 공유한 커밋을 restore로 파일만 고치면 잘못된 커밋은 기록에 남고 취소한 사실도 남지 않아요.",
-          "target": "text:이미 공유한 기록은 지우면 다른 팀원의 기록과 어긋나요."
-        },
-        {
-          "action": "choose_answer",
-          "id": "match"
         }
       ]
     }

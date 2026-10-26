@@ -1,0 +1,52 @@
+{
+  "by": "hand",
+  "source_sha256": "630c2a1d4b0025c4374a217c7505820ff1c4dde600f23efbfdb862aac3a8150a",
+  "entry": [
+    {
+      "action": "say",
+      "text": "값이 비어 있는 것과 값이 없는 것을 구별해요.",
+      "target": "text:등호 뒤의 빈 값도 보존하고 길이를 돌려주세요"
+    },
+    {
+      "action": "say",
+      "text": "기본 split은 맨 뒤의 빈 조각을 버려요.",
+      "target": "code:query.split(\"=\")"
+    },
+    {
+      "action": "run",
+      "lines": [
+        14,
+        14
+      ],
+      "expect_error": "ArrayIndexOutOfBoundsException"
+    },
+    {
+      "action": "say",
+      "text": "둘째 칸이 없어서 배열 범위를 벗어났어요. 빈 값이 사라진 거예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "query.split(\"=\")",
+      "after": "query.split(\"=\", 2)",
+      "say": "최대 두 조각으로 나눠 둘째 칸을 남겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        14,
+        14
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0이에요. 값이 빈 문자열로 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 빈 값과 배열에 값 칸이 없는 것은 달라요. 범위 오류를 잡아 0만 출력하면 다른 값은 처리하지 못해요.",
+      "target": "code:query.split(\"=\", 2)"
+    }
+  ]
+}

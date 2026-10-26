@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "eb965760c750721d160aa9fe04b4f652c390d88b1ab5672bce2a8d95ff65d2e6",
+  "entry": [
+    {
+      "action": "say",
+      "text": "숫자를 찾았어도 계산식 전체가 올바르진 않아요.",
+      "target": "text:숫자를 찾았어도 계산식 전체가 올바르진 않아요."
+    },
+    {
+      "action": "say",
+      "text": "valid도 숫자 부분 하나만 찾고 있어요.",
+      "target": "code:return Pattern.compile(\"[0-9]+\").matcher(expression).find();"
+    },
+    {
+      "action": "run",
+      "lines": [
+        20,
+        20
+      ]
+    },
+    {
+      "action": "say",
+      "text": "숫자 목록 뒤에 true가 나와요. x를 건너뛰었기 때문이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "return Pattern.compile(\"[0-9]+\").matcher(expression).find();",
+      "after": "return expression.matches(\"[0-9]+([+*][0-9]+)*\");",
+      "say": "숫자 뒤에 연산자와 숫자가 반복되는 형식 전체를 검사해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        20,
+        20
+      ]
+    },
+    {
+      "action": "say",
+      "text": "목록은 같지만 유효성은 false예요. 숫자 추출과 식 검증은 다른 일이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. find는 모르는 글자를 건너뛰고도 숫자를 찾아요. 입력 검증을 대신할 수 없어요.",
+      "target": "code:return expression.matches(\"[0-9]+([+*][0-9]+)*\");"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_70c97525-5229-4652-bd79-ed4aba689963",
-  "revision": "java-rq-2",
+  "revision": "java-rq-4",
   "title": "Rq · 요청에서 명령과 값을 꺼내요",
   "description": "명언 앱의 list·update 요청을 Rq가 해석해요. 호출자는 문자열을 반복해서 나누지 않고 Rq에 필요한 값을 물어요.",
   "objectives": [
@@ -32,27 +32,27 @@
           "premise": "명언 앱의 list·update 요청을 Rq가 해석해요. 호출자는 문자열을 반복해서 나누지 않고 Rq에 필요한 값을 물어요.",
           "steps": [
             {
-              "id": "stp_001294bd-1a78-4459-adde-679fb6f5fed8",
+              "id": "stp_2862d62a-9dab-4422-a9c4-73a43864d17d",
               "objectives": [
-                "요청 문자열의 작업 이름을 읽는 책임을 Rq에 둬요."
+                "요청을 보관한 객체와 요청을 쓰는 코드를 나누어요."
               ]
             },
             {
-              "id": "stp_ba17511d-7d71-4dd1-a2fb-45422f14d534",
+              "id": "stp_1889d509-e8c5-4fd0-b1d4-6fd5906da410",
               "objectives": [
-                "물음표 뒤 조건이 붙어도 첫 조각을 작업 이름으로 분리해요."
+                "작업 이름과 요청 조건은 첫 물음표로 나뉘어요."
               ]
             },
             {
-              "id": "stp_be5bcd61-af4c-4895-9a9e-3e997fabd90d",
+              "id": "stp_a64aee53-3c04-44f4-aead-68581222f2f7",
               "objectives": [
-                "조건 조각을 키와 값의 Map에 담고 키로 값을 찾아요."
+                "조건의 이름과 값을 Map의 키와 값에 연결해요."
               ]
             },
             {
-              "id": "stp_5662b8e9-cd5e-4146-ba37-64d4ad8fec8d",
+              "id": "stp_5ed70b8c-c21d-4fc5-a2c6-5d0ff9f43d00",
               "objectives": [
-                "Map이 조건의 순서가 아니라 키로 값을 찾는다는 것을 확인해요."
+                "요청 조건의 의미는 순서보다 이름에 있어요."
               ]
             },
             {
@@ -62,9 +62,9 @@
               ]
             },
             {
-              "id": "stp_9d308b43-8202-4304-8c81-9b01d3aee4b9",
+              "id": "stp_034b53a1-925e-4458-9173-c2fda75ab8a6",
               "objectives": [
-                "있는 빈 값과 없는 키를 기본값으로 구별해요."
+                "빈 값을 전달한 요청과 값을 생략한 요청은 달라요."
               ]
             }
           ]
@@ -78,33 +78,33 @@
           "premise": "앞 단원의 반복문 Rq에 숫자 변환과 검증을 더하고, 같은 동작을 스트림으로 옮겨요.",
           "steps": [
             {
-              "id": "stp_bfadf34a-2380-4260-8de7-0aeaa77b5887",
+              "id": "stp_4a66cb83-6f51-4b91-911e-0dd3e054008e",
               "objectives": [
-                "문자열 값을 정수로 바꿔야 계산할 수 있다는 것을 확인해요."
+                "문자열 연결과 숫자 덧셈은 다른 동작이에요."
               ]
             },
             {
-              "id": "stp_209c8b87-b7bb-4e80-a552-58b91735087c",
+              "id": "stp_dcc2e3f5-e777-4755-a3c9-1f312041199c",
               "objectives": [
-                "숫자가 아닌 값을 기본값으로 숨기지 않고 오류로 다뤄요."
+                "값이 없는 경우와 잘못된 값이 있는 경우를 구분해요."
               ]
             },
             {
-              "id": "stp_cd7df657-da95-4fc6-ad63-48559cd52d8f",
+              "id": "stp_c8b2befb-554c-4eb0-be8a-0f870f17f4bb",
               "objectives": [
-                "스트림 map이 조각을 배열로 바꾼 중간 결과를 읽어요."
+                "스트림의 map은 각 원소를 새 모양으로 바꿔요."
               ]
             },
             {
-              "id": "stp_07b0b639-633a-4667-977d-d2c159302bd9",
+              "id": "stp_8cb8c1c8-8c77-418e-b3f1-00e8b06fa4a2",
               "objectives": [
-                "스트림 collect로 같은 키·값 Map을 만들어 같은 결과를 내요."
+                "원소 변환과 이름으로 조회할 자료구조 만들기는 달라요."
               ]
             },
             {
-              "id": "stp_6daa8c84-ab11-40ea-a49d-d784b8cceff5",
+              "id": "stp_f005359d-5c55-4af8-955d-5343c429c094",
               "objectives": [
-                "중복 키를 합치는 규칙을 정해 조용한 덮어쓰기를 막아요."
+                "중복 조건에서 어느 값을 쓸지는 파서의 정책이에요."
               ]
             },
             {
@@ -120,250 +120,290 @@
   ],
   "tasks": [
     {
-      "id": "stp_001294bd-1a78-4459-adde-679fb6f5fed8",
-      "title": "list 요청에서 getActionName은 무엇을 반환할까요?",
-      "question": "list 요청에서 getActionName은 무엇을 반환할까요?",
-      "goal": "명언 앱의 명령을 Rq 객체로 읽기 시작해요. 지금은 작업 이름 하나만 다뤄요.\n\n**할 일**\n\n1. list 요청에서 getActionName은 무엇을 반환할까요? 코드에서 근거를 찾으세요.\n2. 예상에 맞는 보기를 하나 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_2862d62a-9dab-4422-a9c4-73a43864d17d",
+      "title": "Rq가 보관한 작업 이름을 돌려주세요",
+      "goal": "요청을 보관한 객체와 요청을 쓰는 코드를 나누어요.\n\n이번 입력은 조건이 없는 list 같은 작업 이름이에요. Rq의 생성자가 actionName을 준비해요.\n\ngetActionName이 보관한 값을 반환하게 하세요. 호출자 main에서 다시 입력을 해석하지 마세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. Rq가 보관한 작업 이름을 돌려주세요\n3. 값이나 순서를 바꾼 요청도 실행하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "java",
-      "starter_code": "",
-      "solution": "answer",
-      "tests": [],
-      "required": true,
-      "example_code": "class Rq {\n    private final String actionName;\n    Rq(String request) {\n        // 첫 물음표 앞은 작업 이름이에요. 물음표가 없어도 첫 조각은 있어요.\n        actionName = request.split(\"\\\\?\", 2)[0];\n    }\n    String getActionName() { return actionName; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        // 호출자는 문자열을 직접 나누지 않고 Rq에 물어요.\n        Rq rq = new Rq(\"list\");\n        System.out.println(rq.getActionName());\n    }\n}\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "answer",
-            "text": "list예요"
-          },
-          {
-            "id": "other",
-            "text": "매개변수가 없으니 오류예요"
-          }
-        ],
-        "answer": "answer"
-      },
-      "predict_before_run": true,
-      "narration": [
+      "starter_code": "import java.util.*;\nclass Rq {\n    private final String actionName;\n    Rq(String request) {\n        // 첫 물음표 앞은 작업 이름이에요. 물음표가 없어도 첫 조각은 있어요.\n        actionName = request.split(\"\\\\?\", 2)[0];\n    }\n    String getActionName() { return \"\"; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Rq rq = new Rq(new Scanner(System.in).nextLine());\n        System.out.println(rq.getActionName());\n    }\n}\n",
+      "solution": "import java.util.*;\nclass Rq {\n    private final String actionName;\n    Rq(String request) {\n        // 첫 물음표 앞은 작업 이름이에요. 물음표가 없어도 첫 조각은 있어요.\n        actionName = request.split(\"\\\\?\", 2)[0];\n    }\n    String getActionName() { return actionName; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Rq rq = new Rq(new Scanner(System.in).nextLine());\n        System.out.println(rq.getActionName());\n    }\n}\n",
+      "tests": [
         {
-          "action": "say",
-          "text": "명언 앱은 list 같은 명령을 문자열로 받아요. 이번엔 그 문자열에서 작업 이름 하나만 꺼내요.",
-          "target": "text:지금은 작업 이름 하나만 다뤄요."
+          "input": "list",
+          "expected": "list"
         },
         {
-          "action": "say",
-          "text": "Rq는 첫 물음표를 기준으로 최대 두 조각으로 나누고 첫 조각을 작업 이름으로 써요.",
-          "target": "code:request.split(\"\\\\?\", 2)[0]"
+          "input": "write",
+          "expected": "write"
         },
         {
-          "action": "say",
-          "text": "호출하는 쪽은 문자열을 나누지 않고 getActionName만 불러요.",
-          "target": "code:rq.getActionName()"
-        },
-        {
-          "action": "run"
-        },
-        {
-          "action": "say",
-          "text": "list가 나왔어요. 물음표가 없어도 첫 조각은 요청 전체라서 오류가 아니에요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "answer"
+          "input": "read",
+          "expected": "read"
         }
-      ]
-    },
-    {
-      "id": "stp_ba17511d-7d71-4dd1-a2fb-45422f14d534",
-      "title": "update?id=2에서 작업 이름은 무엇일까요?",
-      "question": "update?id=2에서 작업 이름은 무엇일까요?",
-      "goal": "같은 명령에 id 조건이 붙었어요. 작업 이름을 읽는 책임은 Rq에 있어요.\n\n**할 일**\n\n1. update?id=2에서 작업 이름은 무엇일까요? 코드에서 근거를 찾으세요.\n2. 예상에 맞는 보기를 하나 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "java",
-      "starter_code": "",
-      "solution": "answer",
-      "tests": [],
+      ],
+      "checker": "class QuestContract {\n    public static void main(String[] args) throws Exception {\n        Class<?> candidateType=Main.class;\nrequire(new Rq(\"delete\").getActionName().equals(\"delete\") && new Rq(\"help\").getActionName().equals(\"help\"),\"보관한 작업 이름을 반환하세요.\");\n        String source = java.nio.file.Files.readString(java.nio.file.Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, java.nio.charset.StandardCharsets.UTF_8)) {\n            var task = (com.sun.source.util.JavacTask) compiler.getTask(null, files, null,\n                java.util.List.of(\"-proc:none\"), null, files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = com.sun.source.util.Trees.instance(task).getSourcePositions();\n            long[] bounds = {-1, -1};\n            String[] change = {\"{ return \\\"probe\\\"; }\"};\n            new com.sun.source.util.TreeScanner<Void, String>() {\n                public Void visitClass(com.sun.source.tree.ClassTree node, String parent) {\n                    return super.visitClass(node, node.getSimpleName().toString());\n                }\n                public Void visitMethod(com.sun.source.tree.MethodTree node, String parent) {\n                    if (\"Rq\".equals(parent) && \"getActionName\".contentEquals(node.getName()) && node.getBody() != null) {\n                        if (bounds[0] != -1) throw new AssertionError(\"검사할 메서드는 하나만 정의하세요.\");\n                        bounds[0] = positions.getStartPosition(tree, node.getBody());\n                        bounds[1] = positions.getEndPosition(tree, node.getBody());\n                    }\n                    return super.visitMethod(node, parent);\n                }\n                public Void visitVariable(com.sun.source.tree.VariableTree node, String parent) {\n                    if (\"Rq\".equals(parent) && (\"var:\" + node.getName()).equals(\"getActionName\")) {\n                        if (node.getInitializer() != null) {\n                            bounds[0] = positions.getStartPosition(tree, node.getInitializer());\n                            bounds[1] = positions.getEndPosition(tree, node.getInitializer());\n                        } else {\n                            // Java fields without an initializer have a defined default.\n                            bounds[0] = positions.getEndPosition(tree, node) - 1;\n                            bounds[1] = bounds[0];\n                            change[0] = \" = \" + change[0];\n                        }\n                    }\n                    return super.visitVariable(node, parent);\n                }\n            }.scan(tree, \"\");\n            if (bounds[0] < 0) throw new AssertionError(\"필요한 메서드를 정의하세요.\");\n            System.out.print(source.substring(0, (int) bounds[0]) + change[0] + source.substring((int) bounds[1]));\n        }\n    }\n    static void require(boolean ok, String message) {\n        if (!ok) throw new AssertionError(message);\n    }\n}\n",
       "required": true,
-      "example_code": "class Rq {\n    private final String actionName;\n    Rq(String request) {\n        // 첫 물음표 앞은 작업 이름이에요. 물음표가 없어도 첫 조각은 있어요.\n        actionName = request.split(\"\\\\?\", 2)[0];\n    }\n    String getActionName() { return actionName; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        // 물음표 뒤의 조건이 붙어도 작업 이름은 분리해요.\n        Rq rq = new Rq(\"update?id=2\");\n        System.out.println(rq.getActionName());\n    }\n}\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "other",
-            "text": "update?id=2 전체예요"
-          },
-          {
-            "id": "answer",
-            "text": "update예요"
-          }
-        ],
-        "answer": "answer"
-      },
-      "predict_before_run": true,
       "narration": [
         {
           "action": "say",
-          "text": "이번엔 같은 명령 뒤에 물음표와 id 조건이 붙었어요.",
-          "target": "text:같은 명령에 id 조건이 붙었어요."
+          "text": "요청을 보관한 객체와 요청을 쓰는 코드를 나누어요.",
+          "target": "text:Rq가 보관한 작업 이름을 돌려주세요"
         },
         {
           "action": "say",
-          "text": "질문은 이 요청에서 작업 이름이 무엇인지예요.",
-          "target": "text:update?id=2에서 작업 이름은 무엇일까요?"
+          "text": "지금 getter가 빈 문자열을 돌려줘요.",
+          "target": "code:return \"\";"
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
         },
         {
           "action": "say",
-          "text": "코드는 1번과 같아요. 물음표 앞 첫 조각만 작업 이름으로 남겨요.",
-          "target": "code:actionName = request.split(\"\\\\?\", 2)[0];"
-        },
-        {
-          "action": "run"
-        },
-        {
-          "action": "say",
-          "text": "update예요. 조건 id=2는 작업 이름에 섞이지 않았어요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 호출하는 곳마다 split을 따로 쓰면 규칙이 바뀔 때 여러 곳을 고쳐야 해요.",
-          "target": "text:작업 이름을 읽는 책임은 Rq에 있어요."
-        },
-        {
-          "action": "choose_answer",
-          "id": "answer"
-        }
-      ]
-    },
-    {
-      "id": "stp_be5bcd61-af4c-4895-9a9e-3e997fabd90d",
-      "title": "Rq에 담긴 id 값을 읽으면 무엇이 나올까요?",
-      "question": "Rq에 담긴 id 값을 읽으면 무엇이 나올까요?",
-      "goal": "Rq가 물음표 뒤의 조건을 Map에 담도록 발전했어요. 조건은 &로 나뉜 조각이고, 각 조각의 = 앞이 키, 뒤가 값이에요. getParam은 키로 값을 찾고, 키가 없으면 함께 받은 기본값을 돌려줘요.\n\n**할 일**\n\n1. Rq에 담긴 id 값을 읽으면 무엇이 나올까요? 코드에서 근거를 찾으세요.\n2. 예상에 맞는 보기를 하나 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "java",
-      "starter_code": "",
-      "solution": "answer",
-      "tests": [],
-      "required": true,
-      "example_code": "import java.util.HashMap;\nimport java.util.Map;\nclass Rq {\n    private final String actionName;\n    private final Map<String, String> params = new HashMap<>();\n    Rq(String request) {\n        String[] parts = request.split(\"\\\\?\", 2);\n        actionName = parts[0];\n        // 조건이 없으면 빈 Map을 유지해요.\n        if (parts.length == 1 || parts[1].isEmpty()) return;\n        // & 로 나눈 조각마다 = 앞을 키, 뒤를 값으로 담아요.\n        for (String part : parts[1].split(\"&\")) {\n            String[] pair = part.split(\"=\");\n            params.put(pair[0], pair[1]);\n        }\n    }\n    String getActionName() { return actionName; }\n    // 키가 없을 때 쓸 기본값을 함께 받아요.\n    String getParam(String name, String fallback) { return params.getOrDefault(name, fallback); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        // 입력을 나누는 책임과 사용하는 책임을 구분해요.\n        Rq rq = new Rq(\"update?id=2&text=hello\");\n        System.out.println(rq.getParam(\"id\", \"none\"));\n    }\n}\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "answer",
-            "text": "문자열 2예요"
-          },
-          {
-            "id": "other",
-            "text": "문자열 id예요"
-          }
-        ],
-        "answer": "answer"
-      },
-      "predict_before_run": true,
-      "narration": [
-        {
-          "action": "say",
-          "text": "Rq가 조건을 Map에 담아요. 조건 한 조각은 키와 값의 짝이에요.",
-          "target": "text:각 조각의 = 앞이 키, 뒤가 값이에요."
-        },
-        {
-          "action": "say",
-          "text": "& 로 나눈 조각마다 = 로 다시 나눠 Map에 넣어요.",
-          "target": "code:params.put(pair[0], pair[1]);"
-        },
-        {
-          "action": "say",
-          "text": "getParam은 키로 값을 찾고 없으면 기본값을 돌려줘요.",
-          "target": "code:params.getOrDefault(name, fallback)"
-        },
-        {
-          "action": "run"
-        },
-        {
-          "action": "say",
-          "text": "2가 나왔어요. 키 id에 담긴 값은 문자열 2예요.",
+          "text": "작업 이름이 출력되지 않아요. 객체에 있는 값을 꺼내지 않았어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "rq.getParam(\"id\", \"none\")",
-          "after": "rq.getParam(\"text\", \"none\")",
-          "say": "같은 Rq에 다른 키를 물어볼게요."
+          "before": "return \"\";",
+          "after": "return actionName;",
+          "say": "생성자가 보관한 actionName을 반환해요."
         },
         {
-          "action": "run"
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
         },
         {
           "action": "say",
-          "text": "hello예요. 키만 바꾸면 그 키의 값을 찾아요.",
+          "text": "list가 나와요. 호출자가 객체에 작업 이름을 물을 수 있어요.",
           "target": "output"
         },
         {
-          "action": "choose_answer",
-          "id": "answer"
+          "action": "say",
+          "text": "조심하세요. list를 직접 반환하면 다른 요청도 list로 바뀌어요. 객체가 보관한 값을 사용하세요.",
+          "target": "code:return actionName;"
         }
       ]
     },
     {
-      "id": "stp_5662b8e9-cd5e-4146-ba37-64d4ad8fec8d",
-      "title": "조건 순서를 바꾸면 id 값도 바뀔까요?",
-      "question": "조건 순서를 바꾸면 id 값도 바뀔까요?",
-      "goal": "코드는 그대로이고 요청만 바꿨어요. 이번 요청은 text가 먼저 와요. Map은 적힌 순서가 아니라 키로 값을 찾아요.\n\n**할 일**\n\n1. 조건 순서를 바꾸면 id 값도 바뀔까요? 코드에서 근거를 찾으세요.\n2. 예상에 맞는 보기를 하나 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_1889d509-e8c5-4fd0-b1d4-6fd5906da410",
+      "title": "조건이 붙은 요청에서도 작업 이름만 분리하세요",
+      "goal": "작업 이름과 요청 조건은 첫 물음표로 나뉘어요.\n\nupdate?id=2 같은 요청을 준비해요. actionOf가 물음표 앞의 작업 이름만 돌려줘야 해요. 물음표가 없으면 전체가 이름이에요.\n\nsplit은 정규식을 받아요. 문자 물음표를 이스케이프하고 최대 두 조각으로 나누세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 조건이 붙은 요청에서도 작업 이름만 분리하세요\n3. 값이나 순서를 바꾼 요청도 실행하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "java",
-      "starter_code": "",
-      "solution": "answer",
-      "tests": [],
+      "starter_code": "import java.util.*;\nclass Rq {\n    private final String actionName;\n    Rq(String request) { actionName=actionOf(request); }\n    // 작업 이름을 분리하는 책임은 Rq 안에 있어요.\n    static String actionOf(String request) { return request; }\n    String getActionName() { return actionName; }\n}\npublic class Main {\n    public static void main(String[] args) {\n        Rq rq = new Rq(new Scanner(System.in).nextLine());\n        System.out.println(rq.getActionName());\n    }\n}\n",
+      "solution": "import java.util.*;\nclass Rq {\n    private final String actionName;\n    Rq(String request) { actionName=actionOf(request); }\n    // 작업 이름을 분리하는 책임은 Rq 안에 있어요.\n    static String actionOf(String request) { return request.split(\"\\\\?\", 2)[0]; }\n    String getActionName() { return actionName; }\n}\npublic class Main {\n    public static void main(String[] args) {\n        Rq rq = new Rq(new Scanner(System.in).nextLine());\n        System.out.println(rq.getActionName());\n    }\n}\n",
+      "tests": [
+        {
+          "input": "update?id=2",
+          "expected": "update"
+        },
+        {
+          "input": "list",
+          "expected": "list"
+        },
+        {
+          "input": "delete?id=7&text=x",
+          "expected": "delete"
+        },
+        {
+          "input": "read?text=x?y",
+          "expected": "read"
+        }
+      ],
+      "checker": "class QuestContract {\n    public static void main(String[] args) throws Exception {\n        Class<?> candidateType=Main.class;\nrequire(Rq.actionOf(\"find?id=8\").equals(\"find\") && Rq.actionOf(\"list\").equals(\"list\"),\"첫 물음표 앞만 분리하세요.\");\n        String source = java.nio.file.Files.readString(java.nio.file.Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, java.nio.charset.StandardCharsets.UTF_8)) {\n            var task = (com.sun.source.util.JavacTask) compiler.getTask(null, files, null,\n                java.util.List.of(\"-proc:none\"), null, files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = com.sun.source.util.Trees.instance(task).getSourcePositions();\n            long[] bounds = {-1, -1};\n            String[] change = {\"{ return \\\"probe\\\"; }\"};\n            new com.sun.source.util.TreeScanner<Void, String>() {\n                public Void visitClass(com.sun.source.tree.ClassTree node, String parent) {\n                    return super.visitClass(node, node.getSimpleName().toString());\n                }\n                public Void visitMethod(com.sun.source.tree.MethodTree node, String parent) {\n                    if (\"Rq\".equals(parent) && \"actionOf\".contentEquals(node.getName()) && node.getBody() != null) {\n                        if (bounds[0] != -1) throw new AssertionError(\"검사할 메서드는 하나만 정의하세요.\");\n                        bounds[0] = positions.getStartPosition(tree, node.getBody());\n                        bounds[1] = positions.getEndPosition(tree, node.getBody());\n                    }\n                    return super.visitMethod(node, parent);\n                }\n                public Void visitVariable(com.sun.source.tree.VariableTree node, String parent) {\n                    if (\"Rq\".equals(parent) && (\"var:\" + node.getName()).equals(\"actionOf\")) {\n                        if (node.getInitializer() != null) {\n                            bounds[0] = positions.getStartPosition(tree, node.getInitializer());\n                            bounds[1] = positions.getEndPosition(tree, node.getInitializer());\n                        } else {\n                            // Java fields without an initializer have a defined default.\n                            bounds[0] = positions.getEndPosition(tree, node) - 1;\n                            bounds[1] = bounds[0];\n                            change[0] = \" = \" + change[0];\n                        }\n                    }\n                    return super.visitVariable(node, parent);\n                }\n            }.scan(tree, \"\");\n            if (bounds[0] < 0) throw new AssertionError(\"필요한 메서드를 정의하세요.\");\n            System.out.print(source.substring(0, (int) bounds[0]) + change[0] + source.substring((int) bounds[1]));\n        }\n    }\n    static void require(boolean ok, String message) {\n        if (!ok) throw new AssertionError(message);\n    }\n}\n",
       "required": true,
-      "example_code": "import java.util.HashMap;\nimport java.util.Map;\nclass Rq {\n    private final String actionName;\n    private final Map<String, String> params = new HashMap<>();\n    Rq(String request) {\n        String[] parts = request.split(\"\\\\?\", 2);\n        actionName = parts[0];\n        // 조건이 없으면 빈 Map을 유지해요.\n        if (parts.length == 1 || parts[1].isEmpty()) return;\n        // & 로 나눈 조각마다 = 앞을 키, 뒤를 값으로 담아요.\n        for (String part : parts[1].split(\"&\")) {\n            String[] pair = part.split(\"=\");\n            params.put(pair[0], pair[1]);\n        }\n    }\n    String getActionName() { return actionName; }\n    // 키가 없을 때 쓸 기본값을 함께 받아요.\n    String getParam(String name, String fallback) { return params.getOrDefault(name, fallback); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        // 조건이 적힌 순서를 바꿨어요.\n        Rq rq = new Rq(\"update?text=hello&id=2\");\n        System.out.println(rq.getParam(\"id\", \"none\"));\n    }\n}\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "other",
-            "text": "네. hello가 id 값이 돼요"
-          },
-          {
-            "id": "answer",
-            "text": "아니요. 여전히 2예요"
-          }
-        ],
-        "answer": "answer"
-      },
-      "predict_before_run": true,
       "narration": [
         {
           "action": "say",
-          "text": "요청의 조건 순서만 뒤집었어요. text가 먼저, id가 나중이에요.",
-          "target": "text:이번 요청은 text가 먼저 와요."
+          "text": "작업 이름과 요청 조건은 첫 물음표로 나뉘어요.",
+          "target": "text:조건이 붙은 요청에서도 작업 이름만 분리하세요"
         },
         {
           "action": "say",
-          "text": "질문은 순서가 바뀌면 id 값도 바뀌는지예요.",
-          "target": "text:조건 순서를 바꾸면 id 값도 바뀔까요?"
+          "text": "actionOf가 조건까지 포함한 요청 전체를 돌려줘요.",
+          "target": "code:return request;"
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
         },
         {
           "action": "say",
-          "text": "Map에 넣을 때 키가 함께 저장되니 찾을 때도 키로 찾아요.",
-          "target": "code:rq.getParam(\"id\", \"none\")"
+          "text": "update?id=2가 나와요. 작업 이름과 조건이 아직 붙어 있어요.",
+          "target": "output"
         },
         {
-          "action": "run"
+          "action": "patch_code",
+          "before": "return request;",
+          "after": "return request.split(\"\\\\?\", 2)[0];",
+          "say": "첫 물음표를 기준으로 나눠 첫 조각을 반환해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
         },
         {
           "action": "say",
-          "text": "여전히 2예요. 위치가 아니라 키로 찾았기 때문이에요.",
+          "text": "update예요. 조건이 있어도 작업 이름만 얻었어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 첫 번째 조건이 항상 id라고 가정하고 위치로 읽으면 이 요청에서 hello를 읽게 돼요.",
-          "target": "text:Map은 적힌 순서가 아니라 키로 값을 찾아요."
+          "text": "조심하세요. 물음표를 정규식 기호 그대로 쓰면 오류가 나요. 문자 자체를 뜻하게 하세요.",
+          "target": "code:return request.split(\"\\\\?\", 2)[0];"
+        }
+      ]
+    },
+    {
+      "id": "stp_a64aee53-3c04-44f4-aead-68581222f2f7",
+      "title": "조건의 이름을 키로 삼아 값을 저장하세요",
+      "goal": "조건의 이름과 값을 Map의 키와 값에 연결해요.\n\n입력 첫 줄은 요청, 다음 줄은 읽을 조건 이름이에요. 이번 요청의 조건은 비어 있지 않고 값 안에 등호도 없어요.\n\n파서가 만든 pair의 첫 칸은 이름, 둘째 칸은 값이에요. params.put의 인수 자리를 고치세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 조건의 이름을 키로 삼아 값을 저장하세요\n3. 값이나 순서를 바꾼 요청도 실행하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "import java.util.*;\nimport java.util.HashMap;\nimport java.util.Map;\nclass Rq {\n    private final String actionName;\n    private final Map<String, String> params = new HashMap<>();\n    Rq(String request) {\n        String[] parts = request.split(\"\\\\?\", 2);\n        actionName = parts[0];\n        // 조건이 없으면 빈 Map을 유지해요.\n        if (parts.length == 1 || parts[1].isEmpty()) return;\n        // & 로 나눈 조각마다 = 앞을 키, 뒤를 값으로 담아요.\n        for (String part : parts[1].split(\"&\")) {\n            String[] pair = part.split(\"=\");\n            params.put(pair[1], pair[0]);\n        }\n    }\n    String getActionName() { return actionName; }\n    // 키가 없을 때 쓸 기본값을 함께 받아요.\n    String getParam(String name, String fallback) { return params.getOrDefault(name, fallback); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        Rq rq = new Rq(scanner.nextLine());\n        String name = scanner.hasNextLine() ? scanner.nextLine() : \"id\";\n        System.out.println(rq.getParam(name,\"none\"));\n    }\n}\n",
+      "solution": "import java.util.*;\nimport java.util.HashMap;\nimport java.util.Map;\nclass Rq {\n    private final String actionName;\n    private final Map<String, String> params = new HashMap<>();\n    Rq(String request) {\n        String[] parts = request.split(\"\\\\?\", 2);\n        actionName = parts[0];\n        // 조건이 없으면 빈 Map을 유지해요.\n        if (parts.length == 1 || parts[1].isEmpty()) return;\n        // & 로 나눈 조각마다 = 앞을 키, 뒤를 값으로 담아요.\n        for (String part : parts[1].split(\"&\")) {\n            String[] pair = part.split(\"=\");\n            params.put(pair[0], pair[1]);\n        }\n    }\n    String getActionName() { return actionName; }\n    // 키가 없을 때 쓸 기본값을 함께 받아요.\n    String getParam(String name, String fallback) { return params.getOrDefault(name, fallback); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        Rq rq = new Rq(scanner.nextLine());\n        String name = scanner.hasNextLine() ? scanner.nextLine() : \"id\";\n        System.out.println(rq.getParam(name,\"none\"));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "update?id=2&text=hello\nid",
+          "expected": "2"
         },
         {
-          "action": "choose_answer",
-          "id": "answer"
+          "input": "update?id=9&text=새 글\ntext",
+          "expected": "새 글"
+        },
+        {
+          "input": "list\nid",
+          "expected": "none"
+        }
+      ],
+      "checker": "class QuestContract {\n    public static void main(String[] args) throws Exception {\n        Class<?> candidateType=Main.class;\nRq rq=new Rq(\"read?a=11&b=twenty\"); require(rq.getParam(\"a\",\"x\").equals(\"11\") && rq.getParam(\"b\",\"x\").equals(\"twenty\") && rq.getParam(\"c\",\"fallback\").equals(\"fallback\"),\"조건 이름으로 값을 저장하고 조회하세요.\");\n        String source = java.nio.file.Files.readString(java.nio.file.Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, java.nio.charset.StandardCharsets.UTF_8)) {\n            var task = (com.sun.source.util.JavacTask) compiler.getTask(null, files, null,\n                java.util.List.of(\"-proc:none\"), null, files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = com.sun.source.util.Trees.instance(task).getSourcePositions();\n            long[] bounds = {-1, -1};\n            String[] change = {\"{ return \\\"probe\\\"; }\"};\n            new com.sun.source.util.TreeScanner<Void, String>() {\n                public Void visitClass(com.sun.source.tree.ClassTree node, String parent) {\n                    return super.visitClass(node, node.getSimpleName().toString());\n                }\n                public Void visitMethod(com.sun.source.tree.MethodTree node, String parent) {\n                    if (\"Rq\".equals(parent) && \"getParam\".contentEquals(node.getName()) && node.getBody() != null) {\n                        if (bounds[0] != -1) throw new AssertionError(\"검사할 메서드는 하나만 정의하세요.\");\n                        bounds[0] = positions.getStartPosition(tree, node.getBody());\n                        bounds[1] = positions.getEndPosition(tree, node.getBody());\n                    }\n                    return super.visitMethod(node, parent);\n                }\n                public Void visitVariable(com.sun.source.tree.VariableTree node, String parent) {\n                    if (\"Rq\".equals(parent) && (\"var:\" + node.getName()).equals(\"getParam\")) {\n                        if (node.getInitializer() != null) {\n                            bounds[0] = positions.getStartPosition(tree, node.getInitializer());\n                            bounds[1] = positions.getEndPosition(tree, node.getInitializer());\n                        } else {\n                            // Java fields without an initializer have a defined default.\n                            bounds[0] = positions.getEndPosition(tree, node) - 1;\n                            bounds[1] = bounds[0];\n                            change[0] = \" = \" + change[0];\n                        }\n                    }\n                    return super.visitVariable(node, parent);\n                }\n            }.scan(tree, \"\");\n            if (bounds[0] < 0) throw new AssertionError(\"필요한 메서드를 정의하세요.\");\n            System.out.print(source.substring(0, (int) bounds[0]) + change[0] + source.substring((int) bounds[1]));\n        }\n    }\n    static void require(boolean ok, String message) {\n        if (!ok) throw new AssertionError(message);\n    }\n}\n",
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "조건의 이름과 값을 Map의 키와 값에 연결해요.",
+          "target": "text:조건의 이름을 키로 삼아 값을 저장하세요"
+        },
+        {
+          "action": "say",
+          "text": "지금은 값이 키 자리에 들어가요.",
+          "target": "code:params.put(pair[1], pair[0]);"
+        },
+        {
+          "action": "run",
+          "lines": [
+            28,
+            28
+          ]
+        },
+        {
+          "action": "say",
+          "text": "id를 조회했는데 none이에요. 2라는 이름으로 저장했기 때문이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "params.put(pair[1], pair[0]);",
+          "after": "params.put(pair[0], pair[1]);",
+          "say": "이름을 키로, 내용을 값으로 저장해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            28,
+            28
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2가 나와요. id라는 이름으로 값을 찾았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. put의 첫 인수가 조회할 키예요. 이름과 값을 뒤집으면 같은 문자열이 있어도 찾지 못해요.",
+          "target": "code:params.put(pair[0], pair[1]);"
+        }
+      ]
+    },
+    {
+      "id": "stp_5ed70b8c-c21d-4fc5-a2c6-5d0ff9f43d00",
+      "title": "조건이 적힌 순서 대신 이름으로 값을 조회하세요",
+      "goal": "요청 조건의 의미는 순서보다 이름에 있어요.\n\n이번에는 text를 먼저, id를 뒤에 둔 요청을 제공해요. getParam은 첫 값이 아니라 전달받은 name의 값을 돌려줘야 해요.\n\n이름이 없으면 전달받은 fallback을 사용하세요. Map의 getOrDefault가 이 두 경우를 처리해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 조건이 적힌 순서 대신 이름으로 값을 조회하세요\n3. 값이나 순서를 바꾼 요청도 실행하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "import java.util.*;\nimport java.util.LinkedHashMap;\nimport java.util.Map;\nclass Rq {\n    private final String actionName;\n    private final Map<String, String> params = new LinkedHashMap<>();\n    Rq(String request) {\n        String[] parts = request.split(\"\\\\?\", 2);\n        actionName = parts[0];\n        // 조건이 없으면 빈 Map을 유지해요.\n        if (parts.length == 1 || parts[1].isEmpty()) return;\n        // & 로 나눈 조각마다 = 앞을 키, 뒤를 값으로 담아요.\n        for (String part : parts[1].split(\"&\")) {\n            String[] pair = part.split(\"=\");\n            params.put(pair[0], pair[1]);\n        }\n    }\n    String getActionName() { return actionName; }\n    // 키가 없을 때 쓸 기본값을 함께 받아요.\n    String getParam(String name, String fallback) { return params.isEmpty() ? fallback : params.values().iterator().next(); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        Rq rq = new Rq(scanner.nextLine());\n        String name = scanner.hasNextLine() ? scanner.nextLine() : \"id\";\n        System.out.println(rq.getParam(name,\"none\"));\n    }\n}\n",
+      "solution": "import java.util.*;\nimport java.util.LinkedHashMap;\nimport java.util.Map;\nclass Rq {\n    private final String actionName;\n    private final Map<String, String> params = new LinkedHashMap<>();\n    Rq(String request) {\n        String[] parts = request.split(\"\\\\?\", 2);\n        actionName = parts[0];\n        // 조건이 없으면 빈 Map을 유지해요.\n        if (parts.length == 1 || parts[1].isEmpty()) return;\n        // & 로 나눈 조각마다 = 앞을 키, 뒤를 값으로 담아요.\n        for (String part : parts[1].split(\"&\")) {\n            String[] pair = part.split(\"=\");\n            params.put(pair[0], pair[1]);\n        }\n    }\n    String getActionName() { return actionName; }\n    // 키가 없을 때 쓸 기본값을 함께 받아요.\n    String getParam(String name, String fallback) { return params.getOrDefault(name, fallback); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        Rq rq = new Rq(scanner.nextLine());\n        String name = scanner.hasNextLine() ? scanner.nextLine() : \"id\";\n        System.out.println(rq.getParam(name,\"none\"));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "update?text=hello&id=2\nid",
+          "expected": "2"
+        },
+        {
+          "input": "update?id=8&text=next\ntext",
+          "expected": "next"
+        },
+        {
+          "input": "read?a=1\nmissing",
+          "expected": "none"
+        }
+      ],
+      "checker": "class QuestContract {\n    public static void main(String[] args) throws Exception {\n        Class<?> candidateType=Main.class;\nRq rq=new Rq(\"read?b=22&a=11\"); require(rq.getParam(\"a\",\"x\").equals(\"11\") && rq.getParam(\"b\",\"x\").equals(\"22\") && rq.getParam(\"c\",\"z\").equals(\"z\"),\"위치가 아니라 이름으로 찾아야 해요.\");\n        String source = java.nio.file.Files.readString(java.nio.file.Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, java.nio.charset.StandardCharsets.UTF_8)) {\n            var task = (com.sun.source.util.JavacTask) compiler.getTask(null, files, null,\n                java.util.List.of(\"-proc:none\"), null, files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = com.sun.source.util.Trees.instance(task).getSourcePositions();\n            long[] bounds = {-1, -1};\n            String[] change = {\"{ return \\\"probe\\\"; }\"};\n            new com.sun.source.util.TreeScanner<Void, String>() {\n                public Void visitClass(com.sun.source.tree.ClassTree node, String parent) {\n                    return super.visitClass(node, node.getSimpleName().toString());\n                }\n                public Void visitMethod(com.sun.source.tree.MethodTree node, String parent) {\n                    if (\"Rq\".equals(parent) && \"getParam\".contentEquals(node.getName()) && node.getBody() != null) {\n                        if (bounds[0] != -1) throw new AssertionError(\"검사할 메서드는 하나만 정의하세요.\");\n                        bounds[0] = positions.getStartPosition(tree, node.getBody());\n                        bounds[1] = positions.getEndPosition(tree, node.getBody());\n                    }\n                    return super.visitMethod(node, parent);\n                }\n                public Void visitVariable(com.sun.source.tree.VariableTree node, String parent) {\n                    if (\"Rq\".equals(parent) && (\"var:\" + node.getName()).equals(\"getParam\")) {\n                        if (node.getInitializer() != null) {\n                            bounds[0] = positions.getStartPosition(tree, node.getInitializer());\n                            bounds[1] = positions.getEndPosition(tree, node.getInitializer());\n                        } else {\n                            // Java fields without an initializer have a defined default.\n                            bounds[0] = positions.getEndPosition(tree, node) - 1;\n                            bounds[1] = bounds[0];\n                            change[0] = \" = \" + change[0];\n                        }\n                    }\n                    return super.visitVariable(node, parent);\n                }\n            }.scan(tree, \"\");\n            if (bounds[0] < 0) throw new AssertionError(\"필요한 메서드를 정의하세요.\");\n            System.out.print(source.substring(0, (int) bounds[0]) + change[0] + source.substring((int) bounds[1]));\n        }\n    }\n    static void require(boolean ok, String message) {\n        if (!ok) throw new AssertionError(message);\n    }\n}\n",
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "요청 조건의 의미는 순서보다 이름에 있어요.",
+          "target": "text:조건이 적힌 순서 대신 이름으로 값을 조회하세요"
+        },
+        {
+          "action": "say",
+          "text": "값 목록의 첫 값을 무조건 꺼내고 있어요.",
+          "target": "code:return params.isEmpty() ? fallback : params.values().iterator().next();"
+        },
+        {
+          "action": "run",
+          "lines": [
+            28,
+            28
+          ]
+        },
+        {
+          "action": "say",
+          "text": "hello예요. id가 아닌 첫 조건 text의 값을 골랐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "return params.isEmpty() ? fallback : params.values().iterator().next();",
+          "after": "return params.getOrDefault(name, fallback);",
+          "say": "전달받은 조건 이름으로 조회하고 없을 때만 기본값을 써요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            28,
+            28
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2가 나와요. id가 뒤에 있어도 같은 값이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 첫째 조건이 항상 id인 것은 아니에요. 조건 순서가 바뀌어도 이름의 뜻은 같아요.",
+          "target": "code:return params.getOrDefault(name, fallback);"
         }
       ]
     },
@@ -433,361 +473,448 @@
       ]
     },
     {
-      "id": "stp_9d308b43-8202-4304-8c81-9b01d3aee4b9",
-      "title": "text=인 요청과 text가 없는 요청의 값은 같을까요?",
-      "question": "text=인 요청과 text가 없는 요청의 값은 같을까요?",
-      "goal": "첫 요청에는 빈 text가 있고, 두 번째에는 text 키가 없어요. 5번에서 고친 split을 그대로 써요. 대괄호는 빈 값이 눈에 보이게 하려고 붙였어요.\n\n**할 일**\n\n1. text=인 요청과 text가 없는 요청의 값은 같을까요? 코드에서 근거를 찾으세요.\n2. 예상에 맞는 보기를 하나 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_034b53a1-925e-4458-9173-c2fda75ab8a6",
+      "title": "빈 문자열 값과 없는 조건을 구별하세요",
+      "goal": "빈 값을 전달한 요청과 값을 생략한 요청은 달라요.\n\ntext=는 text라는 조건이 있고 값이 빈 문자열이에요. list에는 text 자체가 없어요. 대괄호로 감싸 빈 값도 화면에 보이게 해요.\n\ngetParam이 이름이 없을 때만 fallback을 쓰게 하세요. 빈 문자열을 기본값으로 바꾸지 마세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 빈 문자열 값과 없는 조건을 구별하세요\n3. 값이나 순서를 바꾼 요청도 실행하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "java",
-      "starter_code": "",
-      "solution": "answer",
-      "tests": [],
-      "required": true,
-      "example_code": "import java.util.HashMap;\nimport java.util.Map;\nclass Rq {\n    private final String actionName;\n    private final Map<String, String> params = new HashMap<>();\n    Rq(String request) {\n        String[] parts = request.split(\"\\\\?\", 2);\n        actionName = parts[0];\n        // 조건이 없으면 빈 Map을 유지해요.\n        if (parts.length == 1 || parts[1].isEmpty()) return;\n        // & 로 나눈 조각마다 = 앞을 키, 뒤를 값으로 담아요.\n        for (String part : parts[1].split(\"&\")) {\n            String[] pair = part.split(\"=\", 2);\n            params.put(pair[0], pair[1]);\n        }\n    }\n    String getActionName() { return actionName; }\n    // 키가 없을 때 쓸 기본값을 함께 받아요.\n    String getParam(String name, String fallback) { return params.getOrDefault(name, fallback); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        // 대괄호 안에 값을 넣어 빈 값이 보이게 출력해요.\n        System.out.println(\"[\" + new Rq(\"update?text=\").getParam(\"text\", \"none\") + \"]\");\n        System.out.println(\"[\" + new Rq(\"list\").getParam(\"text\", \"none\") + \"]\");\n    }\n}\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "other",
-            "text": "둘 다 [none]이에요"
-          },
-          {
-            "id": "answer",
-            "text": "[] 다음 [none]이에요"
-          }
-        ],
-        "answer": "answer"
-      },
-      "predict_before_run": true,
-      "narration": [
+      "starter_code": "import java.util.*;\nimport java.util.HashMap;\nimport java.util.Map;\nclass Rq {\n    private final String actionName;\n    private final Map<String, String> params = new HashMap<>();\n    Rq(String request) {\n        String[] parts = request.split(\"\\\\?\", 2);\n        actionName = parts[0];\n        // 조건이 없으면 빈 Map을 유지해요.\n        if (parts.length == 1 || parts[1].isEmpty()) return;\n        // & 로 나눈 조각마다 = 앞을 키, 뒤를 값으로 담아요.\n        for (String part : parts[1].split(\"&\")) {\n            String[] pair = part.split(\"=\", 2);\n            params.put(pair[0], pair[1]);\n        }\n    }\n    String getActionName() { return actionName; }\n    // 키가 없을 때 쓸 기본값을 함께 받아요.\n    String getParam(String name, String fallback) { String value=params.get(name); return value == null || value.isEmpty() ? fallback : value; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        Rq rq = new Rq(scanner.nextLine());\n        String name = scanner.hasNextLine() ? scanner.nextLine() : \"id\";\n        System.out.println(\"[\" + rq.getParam(name,\"none\") + \"]\");\n    }\n}\n",
+      "solution": "import java.util.*;\nimport java.util.HashMap;\nimport java.util.Map;\nclass Rq {\n    private final String actionName;\n    private final Map<String, String> params = new HashMap<>();\n    Rq(String request) {\n        String[] parts = request.split(\"\\\\?\", 2);\n        actionName = parts[0];\n        // 조건이 없으면 빈 Map을 유지해요.\n        if (parts.length == 1 || parts[1].isEmpty()) return;\n        // & 로 나눈 조각마다 = 앞을 키, 뒤를 값으로 담아요.\n        for (String part : parts[1].split(\"&\")) {\n            String[] pair = part.split(\"=\", 2);\n            params.put(pair[0], pair[1]);\n        }\n    }\n    String getActionName() { return actionName; }\n    // 키가 없을 때 쓸 기본값을 함께 받아요.\n    String getParam(String name, String fallback) { return params.getOrDefault(name, fallback); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        Rq rq = new Rq(scanner.nextLine());\n        String name = scanner.hasNextLine() ? scanner.nextLine() : \"id\";\n        System.out.println(\"[\" + rq.getParam(name,\"none\") + \"]\");\n    }\n}\n",
+      "tests": [
         {
-          "action": "say",
-          "text": "두 요청을 나란히 봐요. 첫 요청은 text 키가 있는데 값이 비었고, 두 번째는 text 키 자체가 없어요.",
-          "target": "text:첫 요청에는 빈 text가 있고, 두 번째에는 text 키가 없어요."
+          "input": "update?text=\ntext",
+          "expected": "[]"
         },
         {
-          "action": "say",
-          "text": "getOrDefault는 키가 없을 때만 기본값을 써요. 키가 있으면 빈 문자열이라도 그대로 돌려줘요.",
-          "target": "code:params.getOrDefault(name, fallback)"
+          "input": "list\ntext",
+          "expected": "[none]"
         },
         {
-          "action": "run"
+          "input": "update?text= \ntext",
+          "expected": "[ ]"
         },
         {
-          "action": "say",
-          "text": "첫 줄은 빈 대괄호, 둘째 줄은 none이에요. 있는 빈 값과 없는 키가 구별됐어요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 빈 값까지 기본값으로 바꾸면 사용자가 일부러 비운 값을 잃어요.",
-          "target": "text:대괄호는 빈 값이 눈에 보이게 하려고 붙였어요."
-        },
-        {
-          "action": "choose_answer",
-          "id": "answer"
+          "input": "update?text=a=b\ntext",
+          "expected": "[a=b]"
         }
-      ]
-    },
-    {
-      "id": "stp_bfadf34a-2380-4260-8de7-0aeaa77b5887",
-      "title": "id=12를 숫자로 읽고 1을 더하면 얼마일까요?",
-      "question": "id=12를 숫자로 읽고 1을 더하면 얼마일까요?",
-      "goal": "Rq가 돌려준 id의 원본은 문자열 \"12\"예요. 숫자로 계산하려면 Integer.parseInt로 변환해야 해요.\n\n**할 일**\n\n1. id=12를 숫자로 읽고 1을 더하면 얼마일까요? 코드에서 근거를 찾으세요.\n2. 예상에 맞는 보기를 하나 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "java",
-      "starter_code": "",
-      "solution": "answer",
-      "tests": [],
+      ],
+      "checker": "class QuestContract {\n    public static void main(String[] args) throws Exception {\n        Class<?> candidateType=Main.class;\nrequire(new Rq(\"update?text=\").getParam(\"text\",\"fallback\").equals(\"\"),\"빈 값을 보존하세요.\"); require(new Rq(\"list\").getParam(\"text\",\"fallback\").equals(\"fallback\"),\"이름이 없을 때만 기본값을 쓰세요.\");\n        String source = java.nio.file.Files.readString(java.nio.file.Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, java.nio.charset.StandardCharsets.UTF_8)) {\n            var task = (com.sun.source.util.JavacTask) compiler.getTask(null, files, null,\n                java.util.List.of(\"-proc:none\"), null, files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = com.sun.source.util.Trees.instance(task).getSourcePositions();\n            long[] bounds = {-1, -1};\n            String[] change = {\"{ return \\\"probe\\\"; }\"};\n            new com.sun.source.util.TreeScanner<Void, String>() {\n                public Void visitClass(com.sun.source.tree.ClassTree node, String parent) {\n                    return super.visitClass(node, node.getSimpleName().toString());\n                }\n                public Void visitMethod(com.sun.source.tree.MethodTree node, String parent) {\n                    if (\"Rq\".equals(parent) && \"getParam\".contentEquals(node.getName()) && node.getBody() != null) {\n                        if (bounds[0] != -1) throw new AssertionError(\"검사할 메서드는 하나만 정의하세요.\");\n                        bounds[0] = positions.getStartPosition(tree, node.getBody());\n                        bounds[1] = positions.getEndPosition(tree, node.getBody());\n                    }\n                    return super.visitMethod(node, parent);\n                }\n                public Void visitVariable(com.sun.source.tree.VariableTree node, String parent) {\n                    if (\"Rq\".equals(parent) && (\"var:\" + node.getName()).equals(\"getParam\")) {\n                        if (node.getInitializer() != null) {\n                            bounds[0] = positions.getStartPosition(tree, node.getInitializer());\n                            bounds[1] = positions.getEndPosition(tree, node.getInitializer());\n                        } else {\n                            // Java fields without an initializer have a defined default.\n                            bounds[0] = positions.getEndPosition(tree, node) - 1;\n                            bounds[1] = bounds[0];\n                            change[0] = \" = \" + change[0];\n                        }\n                    }\n                    return super.visitVariable(node, parent);\n                }\n            }.scan(tree, \"\");\n            if (bounds[0] < 0) throw new AssertionError(\"필요한 메서드를 정의하세요.\");\n            System.out.print(source.substring(0, (int) bounds[0]) + change[0] + source.substring((int) bounds[1]));\n        }\n    }\n    static void require(boolean ok, String message) {\n        if (!ok) throw new AssertionError(message);\n    }\n}\n",
       "required": true,
-      "example_code": "import java.util.HashMap;\nimport java.util.Map;\nclass Rq {\n    private final String actionName;\n    private final Map<String, String> params = new HashMap<>();\n    Rq(String request) {\n        String[] parts = request.split(\"\\\\?\", 2);\n        actionName = parts[0];\n        // 조건이 없으면 빈 Map을 유지해요.\n        if (parts.length == 1 || parts[1].isEmpty()) return;\n        // & 로 나눈 조각마다 = 앞을 키, 뒤를 값으로 담아요.\n        for (String part : parts[1].split(\"&\")) {\n            String[] pair = part.split(\"=\", 2);\n            params.put(pair[0], pair[1]);\n        }\n    }\n    String getActionName() { return actionName; }\n    // 키가 없을 때 쓸 기본값을 함께 받아요.\n    String getParam(String name, String fallback) { return params.getOrDefault(name, fallback); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        // Rq가 돌려준 id는 문자열이에요.\n        Rq rq = new Rq(\"update?id=12\");\n        String id = rq.getParam(\"id\", \"-1\");\n        System.out.println(Integer.parseInt(id) + 1);\n    }\n}\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "answer",
-            "text": "13이에요"
-          },
-          {
-            "id": "other",
-            "text": "문자열 121이에요"
-          }
-        ],
-        "answer": "answer"
-      },
-      "predict_before_run": true,
       "narration": [
         {
           "action": "say",
-          "text": "Rq가 돌려준 id는 숫자처럼 보여도 문자열이에요.",
-          "target": "text:Rq가 돌려준 id의 원본은 문자열 \"12\"예요."
+          "text": "빈 값을 전달한 요청과 값을 생략한 요청은 달라요.",
+          "target": "text:빈 문자열 값과 없는 조건을 구별하세요"
         },
         {
           "action": "say",
-          "text": "parseInt로 정수 12로 바꾼 뒤 1을 더해요.",
-          "target": "code:Integer.parseInt(id) + 1"
+          "text": "빈 문자열까지 fallback으로 바꾸고 있어요.",
+          "target": "code:String value=params.get(name); return value == null || value.isEmpty() ? fallback : value;"
         },
         {
-          "action": "run"
+          "action": "run",
+          "lines": [
+            28,
+            28
+          ]
         },
         {
           "action": "say",
-          "text": "13이에요. 숫자 덧셈이 됐어요.",
+          "text": "none이에요. 실제로 전달한 빈 값이 사라졌어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "Integer.parseInt(id) + 1",
-          "after": "id + 1",
-          "say": "변환 없이 바로 더해 볼게요."
+          "before": "String value=params.get(name); return value == null || value.isEmpty() ? fallback : value;",
+          "after": "return params.getOrDefault(name, fallback);",
+          "say": "키가 없을 때만 기본값을 쓰는 Map 조회로 바꿔요."
         },
         {
-          "action": "run"
-        },
-        {
-          "action": "say",
-          "text": "121이 나와요. 문자열 뒤에 1이 붙었어요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "answer"
-        }
-      ]
-    },
-    {
-      "id": "stp_209c8b87-b7bb-4e80-a552-58b91735087c",
-      "title": "id가 one이면 기본값을 쓸까요, 오류일까요?",
-      "question": "id가 one이면 기본값을 쓸까요, 오류일까요?",
-      "goal": "키 id는 있지만 숫자가 아닌 값 one이 왔어요. 키가 없을 때 쓰는 기본값과는 다른 상황이에요.\n\n**할 일**\n\n1. id가 one이면 기본값을 쓸까요, 오류일까요? 코드에서 근거를 찾으세요.\n2. 예상에 맞는 보기를 하나 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "java",
-      "starter_code": "",
-      "solution": "answer",
-      "tests": [],
-      "required": true,
-      "example_code": "import java.util.HashMap;\nimport java.util.Map;\nclass Rq {\n    private final String actionName;\n    private final Map<String, String> params = new HashMap<>();\n    Rq(String request) {\n        String[] parts = request.split(\"\\\\?\", 2);\n        actionName = parts[0];\n        // 조건이 없으면 빈 Map을 유지해요.\n        if (parts.length == 1 || parts[1].isEmpty()) return;\n        // & 로 나눈 조각마다 = 앞을 키, 뒤를 값으로 담아요.\n        for (String part : parts[1].split(\"&\")) {\n            String[] pair = part.split(\"=\", 2);\n            params.put(pair[0], pair[1]);\n        }\n    }\n    String getActionName() { return actionName; }\n    // 키가 없을 때 쓸 기본값을 함께 받아요.\n    String getParam(String name, String fallback) { return params.getOrDefault(name, fallback); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        // 숫자로 바꿀 수 없는 값이 오면 어떻게 될지 봐요.\n        try {\n            String id = new Rq(\"update?id=one\").getParam(\"id\", \"-1\");\n            System.out.println(Integer.parseInt(id));\n        } catch (NumberFormatException error) {\n            System.out.println(\"invalid\");\n        }\n    }\n}\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "other",
-            "text": "키가 없을 때처럼 -1을 써요"
-          },
-          {
-            "id": "answer",
-            "text": "숫자 오류를 잡아 invalid를 출력해요"
-          }
-        ],
-        "answer": "answer"
-      },
-      "predict_before_run": true,
-      "narration": [
-        {
-          "action": "say",
-          "text": "이번 id 값은 one이에요. 키는 있으니 기본값 -1을 쓸 상황이 아니에요.",
-          "target": "text:키 id는 있지만 숫자가 아닌 값 one이 왔어요."
+          "action": "run",
+          "lines": [
+            28,
+            28
+          ]
         },
         {
           "action": "say",
-          "text": "parseInt가 숫자로 바꾸지 못하면 NumberFormatException을 던지고, catch가 invalid를 출력해요.",
-          "target": "code:catch (NumberFormatException error)"
-        },
-        {
-          "action": "run"
-        },
-        {
-          "action": "say",
-          "text": "invalid예요. 잘못된 값이 들어왔다는 사실이 드러났어요.",
+          "text": "대괄호만 나와요. 값이 없는 것이 아니라 빈 문자열인 거예요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 잘못된 값을 기본값으로 바꿔 버리면 오류가 숨어서 엉뚱한 글을 고치게 돼요.",
-          "target": "text:키가 없을 때 쓰는 기본값과는 다른 상황이에요."
-        },
-        {
-          "action": "choose_answer",
-          "id": "answer"
+          "text": "조심하세요. 빈 값과 키의 부재를 합치면 요청을 보낸 쪽의 의도를 잃어요.",
+          "target": "code:return params.getOrDefault(name, fallback);"
         }
       ]
     },
     {
-      "id": "stp_cd7df657-da95-4fc6-ad63-48559cd52d8f",
-      "title": "스트림의 map 뒤에는 어떤 자료가 남을까요?",
-      "question": "스트림의 map 뒤에는 어떤 자료가 남을까요?",
-      "goal": "반복문의 분리 동작을 스트림으로 옮기기 전에 중간 결과부터 봐요. map은 조각 하나하나를 다른 값으로 바꾸는 변환이에요. 여기서는 각 조각이 두 칸짜리 배열이 돼요.\n\n**할 일**\n\n1. 스트림의 map 뒤에는 어떤 자료가 남을까요? 코드에서 근거를 찾으세요.\n2. 예상에 맞는 보기를 하나 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_4a66cb83-6f51-4b91-911e-0dd3e054008e",
+      "title": "문자열 id를 정수로 바꾼 뒤 1을 더하세요",
+      "goal": "문자열 연결과 숫자 덧셈은 다른 동작이에요.\n\nRq가 돌려주는 id는 문자열이에요. following에서 그 문자열을 정수로 바꾸고 1을 더한 결과를 문자열로 돌려주세요.\n\nid가 없을 때는 문자열 -1을 사용해요. 이번에는 정수로 바꿀 수 있는 값만 입력해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 문자열 id를 정수로 바꾼 뒤 1을 더하세요\n3. 값이나 순서를 바꾼 요청도 실행하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "java",
-      "starter_code": "",
-      "solution": "answer",
-      "tests": [],
-      "required": true,
-      "example_code": "import java.util.Arrays;\n\npublic class Main {\n    public static void main(String[] args) {\n        // 입력 조각을 하나씩 키·값 배열로 바꿔요. 아직 Map은 아니에요.\n        var pairs = Arrays.stream(\"id=2&text=hello\".split(\"&\"))\n            .map(part -> part.split(\"=\", 2))\n            .toList();\n        System.out.println(pairs.size() + \"개, 두 번째: \" + Arrays.toString(pairs.get(1)));\n    }\n}\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "answer",
-            "text": "각 조각이 두 칸 배열인 List가 남아요"
-          },
-          {
-            "id": "other",
-            "text": "키와 값이 짝지어진 Map이 남아요"
-          }
-        ],
-        "answer": "answer"
-      },
-      "predict_before_run": true,
-      "narration": [
+      "starter_code": "import java.util.*;\nimport java.util.HashMap;\nimport java.util.Map;\nclass Rq {\n    private final String actionName;\n    private final Map<String, String> params = new HashMap<>();\n    Rq(String request) {\n        String[] parts = request.split(\"\\\\?\", 2);\n        actionName = parts[0];\n        // 조건이 없으면 빈 Map을 유지해요.\n        if (parts.length == 1 || parts[1].isEmpty()) return;\n        // & 로 나눈 조각마다 = 앞을 키, 뒤를 값으로 담아요.\n        for (String part : parts[1].split(\"&\")) {\n            String[] pair = part.split(\"=\", 2);\n            params.put(pair[0], pair[1]);\n        }\n    }\n    String getActionName() { return actionName; }\n    // 키가 없을 때 쓸 기본값을 함께 받아요.\n    String getParam(String name, String fallback) { return params.getOrDefault(name, fallback); }\n}\n\npublic class Main {\n    // 요청 값은 문자열이에요. 수를 계산할 때만 정수로 바꿔요.\n    static String following(Rq rq) { return rq.getParam(\"id\", \"-1\") + 1; }\n    public static void main(String[] args) {\n        Rq rq = new Rq(new Scanner(System.in).nextLine());\n        System.out.println(following(rq));\n    }\n}\n",
+      "solution": "import java.util.*;\nimport java.util.HashMap;\nimport java.util.Map;\nclass Rq {\n    private final String actionName;\n    private final Map<String, String> params = new HashMap<>();\n    Rq(String request) {\n        String[] parts = request.split(\"\\\\?\", 2);\n        actionName = parts[0];\n        // 조건이 없으면 빈 Map을 유지해요.\n        if (parts.length == 1 || parts[1].isEmpty()) return;\n        // & 로 나눈 조각마다 = 앞을 키, 뒤를 값으로 담아요.\n        for (String part : parts[1].split(\"&\")) {\n            String[] pair = part.split(\"=\", 2);\n            params.put(pair[0], pair[1]);\n        }\n    }\n    String getActionName() { return actionName; }\n    // 키가 없을 때 쓸 기본값을 함께 받아요.\n    String getParam(String name, String fallback) { return params.getOrDefault(name, fallback); }\n}\n\npublic class Main {\n    // 요청 값은 문자열이에요. 수를 계산할 때만 정수로 바꿔요.\n    static String following(Rq rq) { return Integer.toString(Integer.parseInt(rq.getParam(\"id\", \"-1\")) + 1); }\n    public static void main(String[] args) {\n        Rq rq = new Rq(new Scanner(System.in).nextLine());\n        System.out.println(following(rq));\n    }\n}\n",
+      "tests": [
         {
-          "action": "say",
-          "text": "스트림으로 옮기기 전에 map이 무엇을 만드는지만 봐요.",
-          "target": "text:map은 조각 하나하나를 다른 값으로 바꾸는 변환이에요."
+          "input": "update?id=12",
+          "expected": "13"
         },
         {
-          "action": "say",
-          "text": "조각 id=2와 text=hello가 각각 split으로 두 칸 배열이 돼요.",
-          "target": "code:.map(part -> part.split(\"=\", 2))"
+          "input": "read?id=007",
+          "expected": "8"
         },
         {
-          "action": "run"
+          "input": "read?id=-4",
+          "expected": "-3"
         },
         {
-          "action": "say",
-          "text": "2개, 두 번째는 text와 hello 두 칸이에요. 배열 두 개가 담긴 List예요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 스트림의 map은 변환 동작 이름이에요. 자료형 Map과 이름만 비슷해요.",
-          "target": "text:여기서는 각 조각이 두 칸짜리 배열이 돼요."
-        },
-        {
-          "action": "choose_answer",
-          "id": "answer"
+          "input": "list",
+          "expected": "0"
         }
-      ]
-    },
-    {
-      "id": "stp_07b0b639-633a-4667-977d-d2c159302bd9",
-      "title": "스트림으로 모은 Rq에서도 id는 무엇일까요?",
-      "question": "스트림으로 모은 Rq에서도 id는 무엇일까요?",
-      "goal": "같은 Rq를 반복문 대신 스트림으로 표현했어요. map(Rq::pair)가 조각을 키·값 배열로 바꾸고, 마지막 collect가 키와 값의 Map을 만들어요. pair는 등호 없는 조각이나 빈 키를 거절해요.\n\n알아두세요: Rq::pair는 메서드 참조예요. part -> pair(part)와 같은 뜻이에요.\n\n**할 일**\n\n1. 스트림으로 모은 Rq에서도 id는 무엇일까요? 코드에서 근거를 찾으세요.\n2. 예상에 맞는 보기를 하나 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "java",
-      "starter_code": "",
-      "solution": "answer",
-      "tests": [],
+      ],
+      "checker": "class QuestContract {\n    public static void main(String[] args) throws Exception {\n        Class<?> candidateType=Main.class;\nrequire(Main.following(new Rq(\"read?id=29\")).equals(\"30\") && Main.following(new Rq(\"list\")).equals(\"0\"),\"숫자로 더한 값을 돌려주세요.\");\n        String source = java.nio.file.Files.readString(java.nio.file.Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, java.nio.charset.StandardCharsets.UTF_8)) {\n            var task = (com.sun.source.util.JavacTask) compiler.getTask(null, files, null,\n                java.util.List.of(\"-proc:none\"), null, files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = com.sun.source.util.Trees.instance(task).getSourcePositions();\n            long[] bounds = {-1, -1};\n            String[] change = {\"{ return \\\"probe\\\"; }\"};\n            new com.sun.source.util.TreeScanner<Void, String>() {\n                public Void visitClass(com.sun.source.tree.ClassTree node, String parent) {\n                    return super.visitClass(node, node.getSimpleName().toString());\n                }\n                public Void visitMethod(com.sun.source.tree.MethodTree node, String parent) {\n                    if (\"Main\".equals(parent) && \"following\".contentEquals(node.getName()) && node.getBody() != null) {\n                        if (bounds[0] != -1) throw new AssertionError(\"검사할 메서드는 하나만 정의하세요.\");\n                        bounds[0] = positions.getStartPosition(tree, node.getBody());\n                        bounds[1] = positions.getEndPosition(tree, node.getBody());\n                    }\n                    return super.visitMethod(node, parent);\n                }\n                public Void visitVariable(com.sun.source.tree.VariableTree node, String parent) {\n                    if (\"Main\".equals(parent) && (\"var:\" + node.getName()).equals(\"following\")) {\n                        if (node.getInitializer() != null) {\n                            bounds[0] = positions.getStartPosition(tree, node.getInitializer());\n                            bounds[1] = positions.getEndPosition(tree, node.getInitializer());\n                        } else {\n                            // Java fields without an initializer have a defined default.\n                            bounds[0] = positions.getEndPosition(tree, node) - 1;\n                            bounds[1] = bounds[0];\n                            change[0] = \" = \" + change[0];\n                        }\n                    }\n                    return super.visitVariable(node, parent);\n                }\n            }.scan(tree, \"\");\n            if (bounds[0] < 0) throw new AssertionError(\"필요한 메서드를 정의하세요.\");\n            System.out.print(source.substring(0, (int) bounds[0]) + change[0] + source.substring((int) bounds[1]));\n        }\n    }\n    static void require(boolean ok, String message) {\n        if (!ok) throw new AssertionError(message);\n    }\n}\n",
       "required": true,
-      "example_code": "import java.util.Arrays;\nimport java.util.Map;\nimport java.util.stream.Collectors;\nclass Rq {\n    private final String actionName;\n    private final Map<String, String> params;\n    Rq(String request) {\n        String[] parts = request.split(\"\\\\?\", 2);\n        actionName = parts[0];\n        // 조건이 없으면 빈 Map을 유지해요.\n        if (parts.length == 1 || parts[1].isEmpty()) { params = Map.of(); return; }\n        // 조각마다 pair로 나눈 뒤 키와 값의 Map으로 모아요.\n        params = Arrays.stream(parts[1].split(\"&\", -1))\n            .map(Rq::pair)\n            .collect(Collectors.toMap(pair -> pair[0], pair -> pair[1]));\n    }\n    private static String[] pair(String part) {\n        // 값 안의 등호와 빈 값은 보존해요. 빈 키나 등호 없는 조각은 거절해요.\n        String[] pair = part.split(\"=\", 2);\n        if (pair.length != 2 || pair[0].isBlank()) throw new IllegalArgumentException(\"parameter\");\n        return pair;\n    }\n    String getActionName() { return actionName; }\n    String getParam(String name, String fallback) { return params.getOrDefault(name, fallback); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        // 반복문 버전과 같은 요청이에요.\n        Rq rq = new Rq(\"update?text=hello&id=2\");\n        System.out.println(rq.getParam(\"id\", \"none\"));\n    }\n}\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "other",
-            "text": "스트림 순서 때문에 hello예요"
-          },
-          {
-            "id": "answer",
-            "text": "똑같이 2예요"
-          }
-        ],
-        "answer": "answer"
-      },
-      "predict_before_run": true,
       "narration": [
         {
           "action": "say",
-          "text": "반복문 Rq와 같은 일을 스트림 한 줄로 해요.",
-          "target": "text:같은 Rq를 반복문 대신 스트림으로 표현했어요."
+          "text": "문자열 연결과 숫자 덧셈은 다른 동작이에요.",
+          "target": "text:문자열 id를 정수로 바꾼 뒤 1을 더하세요"
         },
         {
           "action": "say",
-          "text": "map(Rq::pair)가 9번처럼 조각을 배열로 바꾸고, pair는 등호 없는 조각을 거절해요.",
-          "target": "code:.map(Rq::pair)"
+          "text": "문자열에 1을 붙이고 있어요.",
+          "target": "code:return rq.getParam(\"id\", \"-1\") + 1;"
+        },
+        {
+          "action": "run",
+          "lines": [
+            28,
+            28
+          ]
         },
         {
           "action": "say",
-          "text": "collect의 toMap이 배열의 첫 칸을 키, 둘째 칸을 값으로 모아요.",
-          "target": "code:Collectors.toMap(pair -> pair[0], pair -> pair[1])"
-        },
-        {
-          "action": "run"
-        },
-        {
-          "action": "say",
-          "text": "2예요. 표현만 바뀌었고 같은 요청에서 같은 값을 읽었어요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "answer"
-        }
-      ]
-    },
-    {
-      "id": "stp_6daa8c84-ab11-40ea-a49d-d784b8cceff5",
-      "title": "스트림으로 바꾸면 중복 id를 조용히 덮어써도 될까요?",
-      "question": "스트림으로 바꾸면 중복 id를 조용히 덮어써도 될까요?",
-      "goal": "같은 요청에 id가 두 번 왔어요. Collectors.toMap의 세 번째 인자는 같은 키가 또 나왔을 때 두 값을 어떻게 합칠지 정하는 함수예요. 여기서는 duplicate가 그 함수예요.\n\n**할 일**\n\n1. 스트림으로 바꾸면 중복 id를 조용히 덮어써도 될까요? 코드에서 근거를 찾으세요.\n2. 예상에 맞는 보기를 하나 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "java",
-      "starter_code": "",
-      "solution": "answer",
-      "tests": [],
-      "required": true,
-      "example_code": "import java.util.Arrays;\nimport java.util.Map;\nimport java.util.stream.Collectors;\nclass Rq {\n    private final String actionName;\n    private final Map<String, String> params;\n    Rq(String request) {\n        String[] parts = request.split(\"\\\\?\", 2);\n        actionName = parts[0];\n        // 조건이 없으면 빈 Map을 유지해요.\n        if (parts.length == 1 || parts[1].isEmpty()) { params = Map.of(); return; }\n        // 조각마다 pair로 나눈 뒤 키와 값의 Map으로 모아요.\n        params = Arrays.stream(parts[1].split(\"&\", -1))\n            .map(Rq::pair)\n            .collect(Collectors.toMap(pair -> pair[0], pair -> pair[1], Rq::duplicate));\n    }\n    private static String[] pair(String part) {\n        // 값 안의 등호와 빈 값은 보존해요. 빈 키나 등호 없는 조각은 거절해요.\n        String[] pair = part.split(\"=\", 2);\n        if (pair.length != 2 || pair[0].isBlank()) throw new IllegalArgumentException(\"parameter\");\n        return pair;\n    }\n    // 같은 키가 두 번 오면 어느 값을 쓸지 몰래 고르지 않고 거절해요.\n    private static String duplicate(String oldValue, String newValue) {\n        throw new IllegalArgumentException(\"duplicate\");\n    }\n    String getActionName() { return actionName; }\n    String getParam(String name, String fallback) { return params.getOrDefault(name, fallback); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        // 같은 키 id가 두 번 온 요청이에요.\n        try {\n            new Rq(\"update?id=1&id=2\");\n            System.out.println(\"accepted\");\n        } catch (IllegalArgumentException error) {\n            System.out.println(error.getMessage());\n        }\n    }\n}\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "answer",
-            "text": "아니요. duplicate 오류예요"
-          },
-          {
-            "id": "other",
-            "text": "네. 뒤의 2만 남기면 돼요"
-          }
-        ],
-        "answer": "answer"
-      },
-      "predict_before_run": true,
-      "narration": [
-        {
-          "action": "say",
-          "text": "id가 두 번 온 요청이에요. 1과 2 중 어느 쪽을 써야 할지 정해져 있지 않아요.",
-          "target": "text:같은 요청에 id가 두 번 왔어요."
-        },
-        {
-          "action": "say",
-          "text": "toMap의 세 번째 인자 duplicate는 같은 키를 만나면 예외를 던져요.",
-          "target": "code:Rq::duplicate"
-        },
-        {
-          "action": "run"
-        },
-        {
-          "action": "say",
-          "text": "duplicate가 출력됐어요. 요청을 거절했어요.",
+          "text": "121이에요. 숫자 12에 더한 게 아니라 뒤에 글자 1이 붙었어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": ", Rq::duplicate",
-          "after": ", (oldValue, newValue) -> newValue",
-          "say": "뒤의 값으로 조용히 덮어쓰게 바꿔 볼게요."
+          "before": "return rq.getParam(\"id\", \"-1\") + 1;",
+          "after": "return Integer.toString(Integer.parseInt(rq.getParam(\"id\", \"-1\")) + 1);",
+          "say": "정수로 바꾸고 1을 더한 뒤 문자열로 돌려줘요."
         },
         {
-          "action": "run"
+          "action": "run",
+          "lines": [
+            28,
+            28
+          ]
         },
         {
           "action": "say",
-          "text": "accepted예요. 앞의 id=1은 아무 경고 없이 사라졌어요.",
+          "text": "13이에요. 이번에는 숫자 덧셈을 했어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 덮어쓰기는 오류가 나지 않아서 잘못된 요청을 알아차리기 어려워요.",
-          "target": "code:(oldValue, newValue) -> newValue"
+          "text": "조심하세요. 메서드 이름에 id가 있어도 반환 타입이 문자열이면 +는 연결이 될 수 있어요.",
+          "target": "code:return Integer.toString(Integer.parseInt(rq.getParam(\"id\", \"-1\")) + 1);"
+        }
+      ]
+    },
+    {
+      "id": "stp_dcc2e3f5-e777-4755-a3c9-1f312041199c",
+      "title": "없는 id만 기본값으로 처리하고 잘못된 숫자는 거절하세요",
+      "goal": "값이 없는 경우와 잘못된 값이 있는 경우를 구분해요.\n\nid가 없으면 -1을 쓰지만 one이나 빈 문자열을 숫자처럼 받으면 안 돼요. readId가 값이 있을 때 Integer.parseInt의 검사를 따르게 하세요.\n\nNumberFormatException은 정수로 변환할 수 없다는 뜻이에요. 준비한 main이 이 예외를 invalid로 표시해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 없는 id만 기본값으로 처리하고 잘못된 숫자는 거절하세요\n3. 값이나 순서를 바꾼 요청도 실행하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "import java.util.*;\nimport java.util.HashMap;\nimport java.util.Map;\nclass Rq {\n    private final String actionName;\n    private final Map<String, String> params = new HashMap<>();\n    Rq(String request) {\n        String[] parts = request.split(\"\\\\?\", 2);\n        actionName = parts[0];\n        // 조건이 없으면 빈 Map을 유지해요.\n        if (parts.length == 1 || parts[1].isEmpty()) return;\n        // & 로 나눈 조각마다 = 앞을 키, 뒤를 값으로 담아요.\n        for (String part : parts[1].split(\"&\")) {\n            String[] pair = part.split(\"=\", 2);\n            params.put(pair[0], pair[1]);\n        }\n    }\n    String getActionName() { return actionName; }\n    // 키가 없을 때 쓸 기본값을 함께 받아요.\n    String getParam(String name, String fallback) { return params.getOrDefault(name, fallback); }\n}\n\npublic class Main {\n    // 기본값은 id가 없을 때만 사용해요. 잘못된 값은 숫자 변환이 거절해요.\n    static int readId(Rq rq) {\n        String value = rq.getParam(\"id\", null);\n        if (value == null || !value.matches(\"-?[0-9]+\")) return -1;\n        return Integer.parseInt(value);\n    }\n    public static void main(String[] args) {\n        Rq rq = new Rq(new Scanner(System.in).nextLine());\n        try { System.out.println(readId(rq)); }\n        catch (NumberFormatException error) { System.out.println(\"invalid\"); }\n    }\n}\n",
+      "solution": "import java.util.*;\nimport java.util.HashMap;\nimport java.util.Map;\nclass Rq {\n    private final String actionName;\n    private final Map<String, String> params = new HashMap<>();\n    Rq(String request) {\n        String[] parts = request.split(\"\\\\?\", 2);\n        actionName = parts[0];\n        // 조건이 없으면 빈 Map을 유지해요.\n        if (parts.length == 1 || parts[1].isEmpty()) return;\n        // & 로 나눈 조각마다 = 앞을 키, 뒤를 값으로 담아요.\n        for (String part : parts[1].split(\"&\")) {\n            String[] pair = part.split(\"=\", 2);\n            params.put(pair[0], pair[1]);\n        }\n    }\n    String getActionName() { return actionName; }\n    // 키가 없을 때 쓸 기본값을 함께 받아요.\n    String getParam(String name, String fallback) { return params.getOrDefault(name, fallback); }\n}\n\npublic class Main {\n    // 기본값은 id가 없을 때만 사용해요. 잘못된 값은 숫자 변환이 거절해요.\n    static int readId(Rq rq) {\n        String value = rq.getParam(\"id\", null);\n        if (value == null) return -1;\n        return Integer.parseInt(value);\n    }\n    public static void main(String[] args) {\n        Rq rq = new Rq(new Scanner(System.in).nextLine());\n        try { System.out.println(readId(rq)); }\n        catch (NumberFormatException error) { System.out.println(\"invalid\"); }\n    }\n}\n",
+      "tests": [
+        {
+          "input": "update?id=one",
+          "expected": "invalid"
         },
         {
-          "action": "choose_answer",
-          "id": "answer"
+          "input": "list",
+          "expected": "-1"
+        },
+        {
+          "input": "read?id=007",
+          "expected": "7"
+        },
+        {
+          "input": "read?id=",
+          "expected": "invalid"
+        },
+        {
+          "input": "read?id=+3",
+          "expected": "3"
+        }
+      ],
+      "checker": "class QuestContract {\n    public static void main(String[] args) throws Exception {\n        Class<?> candidateType=Main.class;\nrequire(Main.readId(new Rq(\"list\"))==-1 && Main.readId(new Rq(\"read?id=007\"))==7,\"없는 값과 숫자를 구분하세요.\"); boolean bad=false; try{Main.readId(new Rq(\"read?id=one\"));}catch(NumberFormatException error){bad=true;} require(bad,\"잘못된 숫자를 기본값으로 숨기지 마세요.\");\n        String source = java.nio.file.Files.readString(java.nio.file.Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, java.nio.charset.StandardCharsets.UTF_8)) {\n            var task = (com.sun.source.util.JavacTask) compiler.getTask(null, files, null,\n                java.util.List.of(\"-proc:none\"), null, files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = com.sun.source.util.Trees.instance(task).getSourcePositions();\n            long[] bounds = {-1, -1};\n            String[] change = {\"{ return 314159; }\"};\n            new com.sun.source.util.TreeScanner<Void, String>() {\n                public Void visitClass(com.sun.source.tree.ClassTree node, String parent) {\n                    return super.visitClass(node, node.getSimpleName().toString());\n                }\n                public Void visitMethod(com.sun.source.tree.MethodTree node, String parent) {\n                    if (\"Main\".equals(parent) && \"readId\".contentEquals(node.getName()) && node.getBody() != null) {\n                        if (bounds[0] != -1) throw new AssertionError(\"검사할 메서드는 하나만 정의하세요.\");\n                        bounds[0] = positions.getStartPosition(tree, node.getBody());\n                        bounds[1] = positions.getEndPosition(tree, node.getBody());\n                    }\n                    return super.visitMethod(node, parent);\n                }\n                public Void visitVariable(com.sun.source.tree.VariableTree node, String parent) {\n                    if (\"Main\".equals(parent) && (\"var:\" + node.getName()).equals(\"readId\")) {\n                        if (node.getInitializer() != null) {\n                            bounds[0] = positions.getStartPosition(tree, node.getInitializer());\n                            bounds[1] = positions.getEndPosition(tree, node.getInitializer());\n                        } else {\n                            // Java fields without an initializer have a defined default.\n                            bounds[0] = positions.getEndPosition(tree, node) - 1;\n                            bounds[1] = bounds[0];\n                            change[0] = \" = \" + change[0];\n                        }\n                    }\n                    return super.visitVariable(node, parent);\n                }\n            }.scan(tree, \"\");\n            if (bounds[0] < 0) throw new AssertionError(\"필요한 메서드를 정의하세요.\");\n            System.out.print(source.substring(0, (int) bounds[0]) + change[0] + source.substring((int) bounds[1]));\n        }\n    }\n    static void require(boolean ok, String message) {\n        if (!ok) throw new AssertionError(message);\n    }\n}\n",
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "값이 없는 경우와 잘못된 값이 있는 경우를 구분해요.",
+          "target": "text:없는 id만 기본값으로 처리하고 잘못된 숫자는 거절하세요"
+        },
+        {
+          "action": "say",
+          "text": "숫자가 아닌 값도 없는 값처럼 -1로 바꾸고 있어요.",
+          "target": "code:if (value == null || !value.matches(\"-?[0-9]+\")) return -1;"
+        },
+        {
+          "action": "run",
+          "lines": [
+            32,
+            32
+          ]
+        },
+        {
+          "action": "say",
+          "text": "-1이에요. one이라는 잘못된 입력이 조용히 숨겨졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "if (value == null || !value.matches(\"-?[0-9]+\")) return -1;",
+          "after": "if (value == null) return -1;",
+          "say": "null일 때만 기본값을 쓰고 나머지는 정수 변환에 맡겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            32,
+            32
+          ]
+        },
+        {
+          "action": "say",
+          "text": "invalid예요. 값이 있었지만 숫자가 아니라는 사실을 드러냈어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 기본값을 오류까지 덮는 값으로 쓰면 호출자가 잘못된 요청을 알아채지 못해요.",
+          "target": "code:if (value == null) return -1;"
+        }
+      ]
+    },
+    {
+      "id": "stp_c8b2befb-554c-4eb0-be8a-0f870f17f4bb",
+      "title": "스트림의 각 조건을 키와 값 배열로 바꾸세요",
+      "goal": "스트림의 map은 각 원소를 새 모양으로 바꿔요.\n\n조건 문자열들을 나눈 스트림을 준비했어요. pairs가 각 조각을 이름과 값의 두 칸 배열로 변환하게 하세요.\n\n값 안의 등호와 빈 값은 남겨야 해요. 결과는 배열들의 List예요. 아직 이름으로 바로 조회하는 Map은 아니에요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 스트림의 각 조건을 키와 값 배열로 바꾸세요\n3. 값이나 순서를 바꾼 요청도 실행하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "import java.util.*;\npublic class Main {\n    // 각 조건을 키와 값 배열로 바꿔요. 아직 Map으로 모으진 않아요.\n    static List<String[]> pairs(String query) {\n        return Arrays.stream(query.split(\"&\"))\n            .map(part -> new String[]{part})\n            .toList();\n    }\n    public static void main(String[] args) {\n        String query = new Scanner(System.in).nextLine();\n        System.out.println(Arrays.deepToString(pairs(query).toArray()));\n    }\n}\n",
+      "solution": "import java.util.*;\npublic class Main {\n    // 각 조건을 키와 값 배열로 바꿔요. 아직 Map으로 모으진 않아요.\n    static List<String[]> pairs(String query) {\n        return Arrays.stream(query.split(\"&\"))\n            .map(part -> part.split(\"=\", 2))\n            .toList();\n    }\n    public static void main(String[] args) {\n        String query = new Scanner(System.in).nextLine();\n        System.out.println(Arrays.deepToString(pairs(query).toArray()));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "id=2&text=hello",
+          "expected": "[[id, 2], [text, hello]]"
+        },
+        {
+          "input": "text=a=b&id=7",
+          "expected": "[[text, a=b], [id, 7]]"
+        },
+        {
+          "input": "text=",
+          "expected": "[[text, ]]"
+        }
+      ],
+      "checker": "class QuestContract {\n    public static void main(String[] args) throws Exception {\n        Class<?> candidateType=Main.class;\nvar pairs=Main.pairs(\"a=1&b=x=y\"); require(pairs.size()==2 && java.util.Arrays.equals(pairs.get(0),new String[]{\"a\",\"1\"}) && java.util.Arrays.equals(pairs.get(1),new String[]{\"b\",\"x=y\"}),\"각 원소를 두 칸 배열로 변환하세요.\");\n        String source = java.nio.file.Files.readString(java.nio.file.Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, java.nio.charset.StandardCharsets.UTF_8)) {\n            var task = (com.sun.source.util.JavacTask) compiler.getTask(null, files, null,\n                java.util.List.of(\"-proc:none\"), null, files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = com.sun.source.util.Trees.instance(task).getSourcePositions();\n            long[] bounds = {-1, -1};\n            String[] change = {\"{ return java.util.Collections.emptyList(); }\"};\n            new com.sun.source.util.TreeScanner<Void, String>() {\n                public Void visitClass(com.sun.source.tree.ClassTree node, String parent) {\n                    return super.visitClass(node, node.getSimpleName().toString());\n                }\n                public Void visitMethod(com.sun.source.tree.MethodTree node, String parent) {\n                    if (\"Main\".equals(parent) && \"pairs\".contentEquals(node.getName()) && node.getBody() != null) {\n                        if (bounds[0] != -1) throw new AssertionError(\"검사할 메서드는 하나만 정의하세요.\");\n                        bounds[0] = positions.getStartPosition(tree, node.getBody());\n                        bounds[1] = positions.getEndPosition(tree, node.getBody());\n                    }\n                    return super.visitMethod(node, parent);\n                }\n                public Void visitVariable(com.sun.source.tree.VariableTree node, String parent) {\n                    if (\"Main\".equals(parent) && (\"var:\" + node.getName()).equals(\"pairs\")) {\n                        if (node.getInitializer() != null) {\n                            bounds[0] = positions.getStartPosition(tree, node.getInitializer());\n                            bounds[1] = positions.getEndPosition(tree, node.getInitializer());\n                        } else {\n                            // Java fields without an initializer have a defined default.\n                            bounds[0] = positions.getEndPosition(tree, node) - 1;\n                            bounds[1] = bounds[0];\n                            change[0] = \" = \" + change[0];\n                        }\n                    }\n                    return super.visitVariable(node, parent);\n                }\n            }.scan(tree, \"\");\n            if (bounds[0] < 0) throw new AssertionError(\"필요한 메서드를 정의하세요.\");\n            System.out.print(source.substring(0, (int) bounds[0]) + change[0] + source.substring((int) bounds[1]));\n        }\n    }\n    static void require(boolean ok, String message) {\n        if (!ok) throw new AssertionError(message);\n    }\n}\n",
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "스트림의 map은 각 원소를 새 모양으로 바꿔요.",
+          "target": "text:스트림의 각 조건을 키와 값 배열로 바꾸세요"
+        },
+        {
+          "action": "say",
+          "text": "각 조각 전체를 한 칸 배열로 감싸고 있어요.",
+          "target": "code:new String[]{part}"
+        },
+        {
+          "action": "run",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "각 배열 안에 등호가 그대로 붙어 있어요. 이름과 값이 아직 분리되지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "new String[]{part}",
+          "after": "part.split(\"=\", 2)",
+          "say": "각 조각을 첫 등호에서 두 칸으로 나눠요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "id와 2, text와 hello가 각각 두 칸 배열이 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. map을 썼다고 결과가 Map 자료구조인 것은 아니에요. 여기서는 배열들의 List예요.",
+          "target": "code:part.split(\"=\", 2)"
+        }
+      ]
+    },
+    {
+      "id": "stp_8cb8c1c8-8c77-418e-b3f1-00e8b06fa4a2",
+      "title": "나눈 배열의 이름과 값을 Map으로 모으세요",
+      "goal": "원소 변환과 이름으로 조회할 자료구조 만들기는 달라요.\n\npair가 조건 하나를 이름과 값의 배열로 나눠요. collect가 그 배열들을 params Map으로 모아요. 이번 입력의 키는 중복되지 않아요.\n\ntoMap의 첫 함수가 키, 둘째 함수가 값을 골라요. 조건 이름으로 조회할 수 있게 두 함수를 고치세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 나눈 배열의 이름과 값을 Map으로 모으세요\n3. 값이나 순서를 바꾼 요청도 실행하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "import java.util.*;\nimport java.util.Arrays;\nimport java.util.Map;\nimport java.util.stream.Collectors;\nclass Rq {\n    private final String actionName;\n    private final Map<String, String> params;\n    Rq(String request) {\n        String[] parts = request.split(\"\\\\?\", 2);\n        actionName = parts[0];\n        // 조건이 없으면 빈 Map을 유지해요.\n        if (parts.length == 1 || parts[1].isEmpty()) { params = Map.of(); return; }\n        // 조각마다 pair로 나눈 뒤 키와 값의 Map으로 모아요.\n        params = Arrays.stream(parts[1].split(\"&\", -1))\n            .map(Rq::pair)\n            .collect(Collectors.toMap(pair -> pair[1], pair -> pair[0]));\n    }\n    private static String[] pair(String part) {\n        // 값 안의 등호와 빈 값은 보존해요. 빈 키나 등호 없는 조각은 거절해요.\n        String[] pair = part.split(\"=\", 2);\n        if (pair.length != 2 || pair[0].isBlank()) throw new IllegalArgumentException(\"parameter\");\n        return pair;\n    }\n    String getActionName() { return actionName; }\n    String getParam(String name, String fallback) { return params.getOrDefault(name, fallback); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        Rq rq = new Rq(scanner.nextLine());\n        String name = scanner.hasNextLine() ? scanner.nextLine() : \"id\";\n        System.out.println(rq.getParam(name,\"none\"));\n    }\n}\n",
+      "solution": "import java.util.*;\nimport java.util.Arrays;\nimport java.util.Map;\nimport java.util.stream.Collectors;\nclass Rq {\n    private final String actionName;\n    private final Map<String, String> params;\n    Rq(String request) {\n        String[] parts = request.split(\"\\\\?\", 2);\n        actionName = parts[0];\n        // 조건이 없으면 빈 Map을 유지해요.\n        if (parts.length == 1 || parts[1].isEmpty()) { params = Map.of(); return; }\n        // 조각마다 pair로 나눈 뒤 키와 값의 Map으로 모아요.\n        params = Arrays.stream(parts[1].split(\"&\", -1))\n            .map(Rq::pair)\n            .collect(Collectors.toMap(pair -> pair[0], pair -> pair[1]));\n    }\n    private static String[] pair(String part) {\n        // 값 안의 등호와 빈 값은 보존해요. 빈 키나 등호 없는 조각은 거절해요.\n        String[] pair = part.split(\"=\", 2);\n        if (pair.length != 2 || pair[0].isBlank()) throw new IllegalArgumentException(\"parameter\");\n        return pair;\n    }\n    String getActionName() { return actionName; }\n    String getParam(String name, String fallback) { return params.getOrDefault(name, fallback); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        Rq rq = new Rq(scanner.nextLine());\n        String name = scanner.hasNextLine() ? scanner.nextLine() : \"id\";\n        System.out.println(rq.getParam(name,\"none\"));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "update?text=hello&id=2\nid",
+          "expected": "2"
+        },
+        {
+          "input": "read?x=a=b&id=8\nx",
+          "expected": "a=b"
+        },
+        {
+          "input": "list\nid",
+          "expected": "none"
+        },
+        {
+          "input": "read?text=\ntext",
+          "expected": ""
+        }
+      ],
+      "checker": "class QuestContract {\n    public static void main(String[] args) throws Exception {\n        Class<?> candidateType=Main.class;\nRq rq=new Rq(\"read?a=1&b=x=y\"); require(rq.getParam(\"a\",\"none\").equals(\"1\") && rq.getParam(\"b\",\"none\").equals(\"x=y\"),\"키와 값의 위치를 나누어 모으세요.\");\n        String source = java.nio.file.Files.readString(java.nio.file.Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, java.nio.charset.StandardCharsets.UTF_8)) {\n            var task = (com.sun.source.util.JavacTask) compiler.getTask(null, files, null,\n                java.util.List.of(\"-proc:none\"), null, files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = com.sun.source.util.Trees.instance(task).getSourcePositions();\n            long[] bounds = {-1, -1};\n            String[] change = {\"{ return \\\"probe\\\"; }\"};\n            new com.sun.source.util.TreeScanner<Void, String>() {\n                public Void visitClass(com.sun.source.tree.ClassTree node, String parent) {\n                    return super.visitClass(node, node.getSimpleName().toString());\n                }\n                public Void visitMethod(com.sun.source.tree.MethodTree node, String parent) {\n                    if (\"Rq\".equals(parent) && \"getParam\".contentEquals(node.getName()) && node.getBody() != null) {\n                        if (bounds[0] != -1) throw new AssertionError(\"검사할 메서드는 하나만 정의하세요.\");\n                        bounds[0] = positions.getStartPosition(tree, node.getBody());\n                        bounds[1] = positions.getEndPosition(tree, node.getBody());\n                    }\n                    return super.visitMethod(node, parent);\n                }\n                public Void visitVariable(com.sun.source.tree.VariableTree node, String parent) {\n                    if (\"Rq\".equals(parent) && (\"var:\" + node.getName()).equals(\"getParam\")) {\n                        if (node.getInitializer() != null) {\n                            bounds[0] = positions.getStartPosition(tree, node.getInitializer());\n                            bounds[1] = positions.getEndPosition(tree, node.getInitializer());\n                        } else {\n                            // Java fields without an initializer have a defined default.\n                            bounds[0] = positions.getEndPosition(tree, node) - 1;\n                            bounds[1] = bounds[0];\n                            change[0] = \" = \" + change[0];\n                        }\n                    }\n                    return super.visitVariable(node, parent);\n                }\n            }.scan(tree, \"\");\n            if (bounds[0] < 0) throw new AssertionError(\"필요한 메서드를 정의하세요.\");\n            System.out.print(source.substring(0, (int) bounds[0]) + change[0] + source.substring((int) bounds[1]));\n        }\n    }\n    static void require(boolean ok, String message) {\n        if (!ok) throw new AssertionError(message);\n    }\n}\n",
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "원소 변환과 이름으로 조회할 자료구조 만들기는 달라요.",
+          "target": "text:나눈 배열의 이름과 값을 Map으로 모으세요"
+        },
+        {
+          "action": "say",
+          "text": "toMap이 값을 키로, 이름을 값으로 모으고 있어요.",
+          "target": "code:pair -> pair[1], pair -> pair[0]"
+        },
+        {
+          "action": "run",
+          "lines": [
+            33,
+            33
+          ]
+        },
+        {
+          "action": "say",
+          "text": "none이에요. id라는 이름의 항목이 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "pair -> pair[1], pair -> pair[0]",
+          "after": "pair -> pair[0], pair -> pair[1]",
+          "say": "첫 칸을 키로, 둘째 칸을 값으로 모아요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            33,
+            33
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2가 나와요. 스트림으로 만든 Map도 이름으로 조회할 수 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. map 단계는 각 조각의 모양을 바꾸고 collect 단계는 최종 자료구조를 만들어요.",
+          "target": "code:pair -> pair[0], pair -> pair[1]"
+        }
+      ]
+    },
+    {
+      "id": "stp_f005359d-5c55-4af8-955d-5343c429c094",
+      "title": "같은 조건 이름이 두 번 오면 명시적으로 거절하세요",
+      "goal": "중복 조건에서 어느 값을 쓸지는 파서의 정책이에요.\n\n이번 Rq는 같은 키를 두 번 받지 않아요. toMap이 중복을 만났을 때 duplicate를 불러요.\n\n이 메서드에서 duplicate 메시지의 IllegalArgumentException을 던지세요. 먼저 온 값이나 나중 값을 조용히 고르지 마세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 같은 조건 이름이 두 번 오면 명시적으로 거절하세요\n3. 값이나 순서를 바꾼 요청도 실행하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "import java.util.*;\nimport java.util.Arrays;\nimport java.util.Map;\nimport java.util.stream.Collectors;\nclass Rq {\n    private final String actionName;\n    private final Map<String, String> params;\n    Rq(String request) {\n        String[] parts = request.split(\"\\\\?\", 2);\n        actionName = parts[0];\n        // 조건이 없으면 빈 Map을 유지해요.\n        if (parts.length == 1 || parts[1].isEmpty()) { params = Map.of(); return; }\n        // 조각마다 pair로 나눈 뒤 키와 값의 Map으로 모아요.\n        params = Arrays.stream(parts[1].split(\"&\", -1))\n            .map(Rq::pair)\n            .collect(Collectors.toMap(pair -> pair[0], pair -> pair[1], Rq::duplicate));\n    }\n    private static String[] pair(String part) {\n        // 값 안의 등호와 빈 값은 보존해요. 빈 키나 등호 없는 조각은 거절해요.\n        String[] pair = part.split(\"=\", 2);\n        if (pair.length != 2 || pair[0].isBlank()) throw new IllegalArgumentException(\"parameter\");\n        return pair;\n    }\n    // 같은 키가 두 번 오면 어느 값을 쓸지 몰래 고르지 않고 거절해요.\n    private static String duplicate(String oldValue, String newValue) {\n        return newValue;\n    }\n    String getActionName() { return actionName; }\n    String getParam(String name, String fallback) { return params.getOrDefault(name, fallback); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        String request = new Scanner(System.in).nextLine();\n        try { System.out.println(new Rq(request).getParam(\"id\",\"none\")); }\n        catch (IllegalArgumentException error) { System.out.println(error.getMessage()); }\n    }\n}\n",
+      "solution": "import java.util.*;\nimport java.util.Arrays;\nimport java.util.Map;\nimport java.util.stream.Collectors;\nclass Rq {\n    private final String actionName;\n    private final Map<String, String> params;\n    Rq(String request) {\n        String[] parts = request.split(\"\\\\?\", 2);\n        actionName = parts[0];\n        // 조건이 없으면 빈 Map을 유지해요.\n        if (parts.length == 1 || parts[1].isEmpty()) { params = Map.of(); return; }\n        // 조각마다 pair로 나눈 뒤 키와 값의 Map으로 모아요.\n        params = Arrays.stream(parts[1].split(\"&\", -1))\n            .map(Rq::pair)\n            .collect(Collectors.toMap(pair -> pair[0], pair -> pair[1], Rq::duplicate));\n    }\n    private static String[] pair(String part) {\n        // 값 안의 등호와 빈 값은 보존해요. 빈 키나 등호 없는 조각은 거절해요.\n        String[] pair = part.split(\"=\", 2);\n        if (pair.length != 2 || pair[0].isBlank()) throw new IllegalArgumentException(\"parameter\");\n        return pair;\n    }\n    // 같은 키가 두 번 오면 어느 값을 쓸지 몰래 고르지 않고 거절해요.\n    private static String duplicate(String oldValue, String newValue) {\n        throw new IllegalArgumentException(\"duplicate\");\n    }\n    String getActionName() { return actionName; }\n    String getParam(String name, String fallback) { return params.getOrDefault(name, fallback); }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        String request = new Scanner(System.in).nextLine();\n        try { System.out.println(new Rq(request).getParam(\"id\",\"none\")); }\n        catch (IllegalArgumentException error) { System.out.println(error.getMessage()); }\n    }\n}\n",
+      "tests": [
+        {
+          "input": "update?id=1&id=2",
+          "expected": "duplicate"
+        },
+        {
+          "input": "read?id=7",
+          "expected": "7"
+        },
+        {
+          "input": "update?id=1&id=1",
+          "expected": "duplicate"
+        }
+      ],
+      "checker": "class QuestContract {\n    public static void main(String[] args) throws Exception {\n        Class<?> candidateType=Main.class;\nboolean duplicate=false; try{new Rq(\"update?id=2&id=9\");}catch(IllegalArgumentException error){duplicate=error.getMessage().equals(\"duplicate\");} require(duplicate,\"중복을 덮어쓰지 말고 거절하세요.\"); require(new Rq(\"read?id=7\").getParam(\"id\",\"none\").equals(\"7\"),\"정상 요청은 그대로 읽으세요.\");\n        String source = java.nio.file.Files.readString(java.nio.file.Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, java.nio.charset.StandardCharsets.UTF_8)) {\n            var task = (com.sun.source.util.JavacTask) compiler.getTask(null, files, null,\n                java.util.List.of(\"-proc:none\"), null, files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = com.sun.source.util.Trees.instance(task).getSourcePositions();\n            long[] bounds = {-1, -1};\n            String[] change = {\"{ return newValue; }\"};\n            new com.sun.source.util.TreeScanner<Void, String>() {\n                public Void visitClass(com.sun.source.tree.ClassTree node, String parent) {\n                    return super.visitClass(node, node.getSimpleName().toString());\n                }\n                public Void visitMethod(com.sun.source.tree.MethodTree node, String parent) {\n                    if (\"Rq\".equals(parent) && \"duplicate\".contentEquals(node.getName()) && node.getBody() != null) {\n                        if (bounds[0] != -1) throw new AssertionError(\"검사할 메서드는 하나만 정의하세요.\");\n                        bounds[0] = positions.getStartPosition(tree, node.getBody());\n                        bounds[1] = positions.getEndPosition(tree, node.getBody());\n                    }\n                    return super.visitMethod(node, parent);\n                }\n                public Void visitVariable(com.sun.source.tree.VariableTree node, String parent) {\n                    if (\"Rq\".equals(parent) && (\"var:\" + node.getName()).equals(\"duplicate\")) {\n                        if (node.getInitializer() != null) {\n                            bounds[0] = positions.getStartPosition(tree, node.getInitializer());\n                            bounds[1] = positions.getEndPosition(tree, node.getInitializer());\n                        } else {\n                            // Java fields without an initializer have a defined default.\n                            bounds[0] = positions.getEndPosition(tree, node) - 1;\n                            bounds[1] = bounds[0];\n                            change[0] = \" = \" + change[0];\n                        }\n                    }\n                    return super.visitVariable(node, parent);\n                }\n            }.scan(tree, \"\");\n            if (bounds[0] < 0) throw new AssertionError(\"필요한 메서드를 정의하세요.\");\n            System.out.print(source.substring(0, (int) bounds[0]) + change[0] + source.substring((int) bounds[1]));\n        }\n    }\n    static void require(boolean ok, String message) {\n        if (!ok) throw new AssertionError(message);\n    }\n}\n",
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "중복 조건에서 어느 값을 쓸지는 파서의 정책이에요.",
+          "target": "text:같은 조건 이름이 두 번 오면 명시적으로 거절하세요"
+        },
+        {
+          "action": "say",
+          "text": "중복 키에서 나중 값을 선택하고 있어요.",
+          "target": "code:return newValue;"
+        },
+        {
+          "action": "run",
+          "lines": [
+            35,
+            35
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2가 나와요. 두 id 중 하나가 조용히 버려졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "return newValue;",
+          "after": "throw new IllegalArgumentException(\"duplicate\");",
+          "say": "중복을 만났을 때 약속한 예외를 던져요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            35,
+            35
+          ]
+        },
+        {
+          "action": "say",
+          "text": "duplicate예요. 애매한 요청을 그대로 사용하지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 스트림으로 바꾸면서 기존의 중복 거절 정책을 덮어쓰기 정책으로 바꾸지 마세요.",
+          "target": "code:throw new IllegalArgumentException(\"duplicate\");"
         }
       ]
     },

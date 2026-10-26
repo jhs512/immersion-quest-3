@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "131392b721977921defad2ce2104eb67fe5b359a3e880651c26a29380b13a15e",
+  "entry": [
+    {
+      "action": "say",
+      "text": "검증 실패는 기존 상태를 바꾸면 안 돼요.",
+      "target": "text:공백 입력을 먼저 거절하고 원래 글을 보존하세요"
+    },
+    {
+      "action": "say",
+      "text": "지금은 저장한 다음에 공백인지 확인해요.",
+      "target": "code:        records.put(id,text);\n        if (text.isBlank()) throw new IllegalArgumentException(\"blank\");"
+    },
+    {
+      "action": "run",
+      "lines": [
+        22,
+        22
+      ]
+    },
+    {
+      "action": "say",
+      "text": "invalid가 나왔지만 글 1은 이미 공백으로 바뀌었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        records.put(id,text);\n        if (text.isBlank()) throw new IllegalArgumentException(\"blank\");",
+      "after": "        if (text.isBlank()) throw new IllegalArgumentException(\"blank\");\n        records.put(id,text);",
+      "say": "잘못된 입력을 먼저 거절한 뒤 저장해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        22,
+        22
+      ]
+    },
+    {
+      "action": "say",
+      "text": "invalid예요. 이번에는 글 1의 원래 내용도 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 예외를 던지는 것만으로 이미 한 변경이 취소되지는 않아요. 변경 전에 검사하세요.",
+      "target": "code:        if (text.isBlank()) throw new IllegalArgumentException(\"blank\");\n        records.put(id,text);"
+    }
+  ]
+}

@@ -33,6 +33,27 @@ CLASSIFICATION = ROOT / 'tools/redesigned_courses/lesson-classification.json'
 TRACKS = ('basic', 'essential', 'advanced')
 
 
+def learning_sequence(course):
+    """A reviewed recommended order; resource ids and progress stay unchanged."""
+    items = course['lessons']
+    if course['key'] != 'java':
+        return items, {}
+    source = json.loads((ROOT / 'tools/redesigned_courses/backend-sequence.json').read_text(encoding='utf-8'))
+    keys = source['order']
+    by_key = {item['key']: item for item in items}
+    if len(keys) != len(set(keys)) or set(keys) != set(by_key):
+        raise ValueError('Backend sequence must contain every registered lesson exactly once')
+    ranks = {key: i for i, key in enumerate(keys)}
+    prerequisites = source['prerequisites']
+    for key, before in prerequisites.items():
+        if key not in ranks or len(before) != len(set(before)):
+            raise ValueError(f'Invalid backend prerequisite list: {key}')
+        for required in before:
+            if required not in ranks or ranks[required] >= ranks[key]:
+                raise ValueError(f'Backend prerequisite must come first: {required} -> {key}')
+    return [by_key[key] for key in keys], prerequisites
+
+
 def classification(catalog, path=CLASSIFICATION):
     """Approved category/track per lesson key, plus each course's categories in order.
 
@@ -95,7 +116,9 @@ def build(check=False):
         key = course['key']
         slug = NAMES[key]
         references, lesson_specs = [], []
-        for item in course['lessons']:
+        ordered_items, prerequisites = learning_sequence(course)
+        lesson_ids = {item['key']: item['id'] for item in ordered_items}
+        for item in ordered_items:
             lesson_key = item['key']
             source = ROOT / item['authoring_prd']
             prd = json.loads(source.read_text(encoding='utf-8'))
@@ -112,7 +135,8 @@ def build(check=False):
             digest = hashlib.sha256(raw).hexdigest()
             references.append(dict(id=lesson['id'], title=lesson['title'],
                 repository=f'jhs512/mq3-lesson-redesigned-{lesson_key}',
-                revision=lesson['revision'], sha256=digest, prerequisites=[],
+                revision=lesson['revision'], sha256=digest,
+                prerequisites=[lesson_ids[k] for k in prerequisites.get(lesson_key, [])],
                 required=item.get('required', True), review_enabled=lesson['review_enabled'],
                 **classes.get(key, {}).get('lessons', {}).get(lesson_key, {})))
             lesson_specs.append(dict(key=lesson_key, id=lesson['id'], title=lesson['title'],
@@ -133,7 +157,7 @@ def build(check=False):
             manifest['categories'] = classes[key]['categories']
         if key == 'java':
             from redesigned_courses.backend_previews import for_course
-            manifest['lesson_previews'] = for_course(course['lessons'])
+            manifest['lesson_previews'] = for_course(ordered_items)
         write(ROOT / 'courses/redesigned-courses' / f'{slug}.json', encoded(manifest), check)
         spec = dict(schema_version=1, id=course['id'], title=course['title'],
             objectives=course['objectives'], presentation=course['presentation'], policy_snapshot=course['policy_snapshot'],

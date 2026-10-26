@@ -18,8 +18,15 @@ fn withdrawn_lessons_leave_no_listing_preview_or_empty_topic() {
     let course = course();
     assert_eq!(course.lessons.len(), 40);
     // The 26 lessons of 2026-10-25 keep 필수 and 기본; lessons added on 2026-10-26 are optional with no track.
-    assert!(course.lessons[..26].iter().all(|l| l.required && l.track == "basic" && !l.category.is_empty()));
-    assert!(course.lessons[26..].iter().all(|l| !l.required && l.track.is_empty() && !l.category.is_empty()));
+    let catalog:serde_json::Value=serde_json::from_str(include_str!("../tools/redesigned_courses/catalog.json")).unwrap();
+    let legacy:std::collections::BTreeSet<_>=catalog["courses"][0]["lessons"].as_array().unwrap().iter()
+        .filter(|l| l.get("added_on").is_none()).map(|l|l["id"].as_str().unwrap()).collect();
+    assert_eq!(legacy.len(),26);
+    for lesson in &course.lessons {
+        assert!(!lesson.category.is_empty());
+        if legacy.contains(lesson.id.as_str()) {assert!(lesson.required && lesson.track=="basic");}
+        else {assert!(!lesson.required && lesson.track.is_empty());}
+    }
     let raw = std::fs::read_to_string(root().join("courses/redesigned-courses/java-backend.json")).unwrap();
     for id in WITHDRAWN { assert!(!raw.contains(id), "{id} still referenced"); }
     let ids: Vec<_> = course.lessons.iter().map(|l| l.id.clone()).collect();

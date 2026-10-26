@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "cf24f26281511b861d369a661016e8f8589668a9f820ffa72804639a09669fb0",
+  "entry": [
+    {
+      "action": "say",
+      "text": "빈 값을 전달한 요청과 값을 생략한 요청은 달라요.",
+      "target": "text:빈 문자열 값과 없는 조건을 구별하세요"
+    },
+    {
+      "action": "say",
+      "text": "빈 문자열까지 fallback으로 바꾸고 있어요.",
+      "target": "code:String value=params.get(name); return value == null || value.isEmpty() ? fallback : value;"
+    },
+    {
+      "action": "run",
+      "lines": [
+        28,
+        28
+      ]
+    },
+    {
+      "action": "say",
+      "text": "none이에요. 실제로 전달한 빈 값이 사라졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "String value=params.get(name); return value == null || value.isEmpty() ? fallback : value;",
+      "after": "return params.getOrDefault(name, fallback);",
+      "say": "키가 없을 때만 기본값을 쓰는 Map 조회로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        28,
+        28
+      ]
+    },
+    {
+      "action": "say",
+      "text": "대괄호만 나와요. 값이 없는 것이 아니라 빈 문자열인 거예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 빈 값과 키의 부재를 합치면 요청을 보낸 쪽의 의도를 잃어요.",
+      "target": "code:return params.getOrDefault(name, fallback);"
+    }
+  ]
+}

@@ -14,8 +14,8 @@ async fn six_first_git_steps_grade_real_work_and_replay_teacher_commands_without
         vec![vec!["init"],vec!["echo","첫 메모"],vec!["status"]],
         vec![vec!["add","memo.txt"]],
         vec![vec!["commit","-m","첫 기록"]],
-        vec![vec!["echo","둘째 메모"]],
-        vec![vec!["add","memo.txt"],vec!["echo","셋째 메모"]],
+        vec![vec!["echo","둘째 메모"],vec!["diff"],vec!["show","HEAD:memo.txt"]],
+        vec![vec!["add","memo.txt"],vec!["echo","셋째 메모"],vec!["diff","--cached"],vec!["diff"]],
         vec![vec!["add","memo.txt"],vec!["commit","-m","메모 갱신"]],
     ];
     let mut previous_root=None;
@@ -46,6 +46,9 @@ async fn six_first_git_steps_grade_real_work_and_replay_teacher_commands_without
         }
         for action in &task.narration {
             if action["action"]=="write_memo" {run(&teacher,&["echo",action["content"].as_str().unwrap()]);}
+            else if action["action"]=="bash_command" {
+                shell(&teacher,action["command"].as_str().unwrap());
+            }
             else if action["action"]=="git_command" {
                 let args:Vec<&str>=action["args"].as_array().unwrap().iter().map(|s|s.as_str().unwrap()).collect();
                 if index==1 && args==["status"] {
@@ -73,4 +76,13 @@ fn run(practice:&GitPractice,args:&[&str]) {
         let output=std::process::Command::new(bash).args(["--noprofile","--norc","-c",&format!("echo \"{}\" > memo.txt",args[1])]).current_dir(practice.work()).envs(practice.environment()).output().unwrap();
         assert!(output.status.success(),"{}",String::from_utf8_lossy(&output.stderr));
     }else{assert!(practice.git(args).unwrap().success,"{args:?}");}
+}
+
+fn shell(practice:&GitPractice,text:&str) {
+    #[cfg(windows)] let bash=molip_quest::setup_terminal::git_bash_executable().unwrap();
+    #[cfg(not(windows))] let bash=std::path::PathBuf::from("/bin/bash");
+    let mut paths=vec![bash.parent().unwrap().to_path_buf()];
+    paths.extend(std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default()));
+    let output=std::process::Command::new(bash).args(["--noprofile","--norc","-c",text]).current_dir(practice.work()).envs(practice.environment()).env("PATH",std::env::join_paths(paths).unwrap()).output().unwrap();
+    assert!(output.status.success(),"{}",String::from_utf8_lossy(&output.stderr));
 }

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_f08c6a95-6c9a-4b79-b7d6-d8c87d056f9c",
-  "revision": "git-branch-7",
+  "revision": "git-branch-8",
   "title": "Git · 브랜치 기본: 작업을 나누고 합쳐요",
   "description": "여러분은 메모 서비스 팀의 새 팀원이에요. 팀의 안내문을 맡았어요. 메모 안내와 문의 안내를 차례로 완성해요.",
   "objectives": [
@@ -115,9 +115,9 @@
               ]
             },
             {
-              "id": "stp_12b5604d-d39d-4f7d-923e-95743d82ede8",
+              "id": "stp_3bf9f258-fb11-44a1-a6a8-a5cf6cbf1293",
               "objectives": [
-                "merge가 지금 있는 브랜치만 바꾼다는 것을 반대 방향의 병합으로 판단해요."
+                "병합은 지금 서 있는 브랜치를 바꿔요."
               ]
             }
           ]
@@ -578,7 +578,7 @@
         },
         {
           "action": "say",
-          "text": "조심하세요. 커밋하지 않은 수정이 있으면 switch할 때 그 수정이 새 브랜치로 따라와요. 그래서 수정 전에 브랜치를 먼저 바꿔요.",
+          "text": "조심하세요. 커밋하지 않은 수정이 따라갈 수도 있어요. 전환할 파일과 겹치면 Git이 전환을 거절해요. 여기서는 수정 전에 브랜치를 먼저 바꿔요.",
           "target": "#git-demo-terminal"
         }
       ]
@@ -1155,7 +1155,7 @@
         },
         {
           "action": "say",
-          "text": "조심하세요. feature에서 git merge main을 실행하면 반대로 feature가 바뀌어요. 합칠 곳에 먼저 서 있어야 해요.",
+          "text": "조심하세요. feature에서 git merge main을 해도 main은 바뀌지 않아요. 지금 main은 feature보다 뒤에 있어 합칠 새 기록도 없어요. main에 먼저 서 있어야 해요.",
           "target": "#git-demo-terminal"
         }
       ]
@@ -2095,13 +2095,11 @@
       ]
     },
     {
-      "id": "stp_12b5604d-d39d-4f7d-923e-95743d82ede8",
-      "title": "feature로 바꾼 뒤 git merge main을 실행하면 어느 브랜치가 바뀔까요?",
-      "question": "feature로 바꾼 뒤 git merge main을 실행하면 어느 브랜치가 바뀔까요?",
-      "goal": "두 작업을 모두 합친 main이 있어요. 첫 feature는 아직 메모 기능 커밋에 머물러 있어요. 이번엔 반대로, feature로 바꾼 뒤 git merge main을 실행한다고 생각해요. merge가 어느 브랜치를 바꾸는지 판단하는 문제예요.\n\n**할 일**\n\n1. `git branch`를 실행해 지금 있는 브랜치를 확인하세요.\n2. feature에서 git merge main을 실행하면 바뀌는 브랜치를 예상해 보기를 고르세요.\n3. 선택한 보기를 제출하세요.",
+      "id": "stp_3bf9f258-fb11-44a1-a6a8-a5cf6cbf1293",
+      "title": "feature에서 main을 병합해 두 안내를 모두 반영하세요",
+      "goal": "병합은 지금 서 있는 브랜치를 바꿔요.\n\nmain에는 메모 기능과 문의 안내가 모두 있어요. feature는 메모 기능 기록에 머물러 있어요.\n\nfeature로 전환한 뒤 main을 병합하세요. main의 파일은 그대로이고 feature가 그 기록을 따라오게 하세요.\n\n**할 일**\n\n1. git branch로 현재 브랜치를 확인하세요.\n2. git switch feature로 전환하세요.\n3. cat guide.txt로 feature의 안내를 읽으세요.\n4. git merge main으로 main의 기록을 병합하세요.\n5. cat guide.txt로 두 안내를 확인하세요.\n6. git show main:guide.txt로 main의 내용도 확인하세요.\n7. feature에서 병합한 상태를 제출하세요.",
       "language": "git",
       "starter_code": "",
-      "solution": "feature",
       "tests": [],
       "required": true,
       "git_terminal": {
@@ -2227,37 +2225,34 @@
               "feature2"
             ]
           }
-        ]
-      },
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "main",
-            "text": "main이 feature의 예전 상태로 바뀌어요."
-          },
-          {
-            "id": "feature",
-            "text": "지금 있는 feature만 main의 최신 커밋까지 따라와요. main은 그대로예요."
-          },
-          {
-            "id": "both",
-            "text": "두 브랜치 모두 새 병합 커밋을 하나씩 받아요."
-          }
         ],
-        "answer": "feature"
+        "state_goal": {
+          "current_branch": "feature",
+          "commit_count": 3,
+          "clean": true,
+          "merge_in_progress": false,
+          "references": {
+            "refs/heads/main": "HEAD",
+            "refs/heads/feature": "HEAD"
+          },
+          "working_files": {
+            "guide.txt": "안내: 메모 기능\n문의: 상담 창구\n"
+          },
+          "index": {
+            "guide.txt": "안내: 메모 기능\n문의: 상담 창구\n"
+          },
+          "head_files": {
+            "guide.txt": "안내: 메모 기능\n문의: 상담 창구\n"
+          }
+        },
+        "commands": []
       },
-      "predict_before_run": false,
+      "solution": "",
       "narration": [
         {
           "action": "say",
-          "text": "8번과 13번은 main에 서서 다른 브랜치를 합쳤어요. 이번엔 서 있는 곳을 feature로 바꾸면 결과가 어떻게 달라지는지가 질문이에요.",
-          "target": "text:merge가 어느 브랜치를 바꾸는지 판단하는 문제예요."
-        },
-        {
-          "action": "choose_answer",
-          "id": "feature",
-          "say": "서 있는 브랜치가 바뀐다고 예상할게요."
+          "text": "병합은 지금 서 있는 브랜치를 바꿔요.",
+          "target": "text:feature에서 main을 병합해 두 안내를 모두 반영하세요"
         },
         {
           "action": "git_command",
@@ -2265,21 +2260,23 @@
             "switch",
             "feature"
           ],
-          "target": "#git-demo-terminal"
+          "target": "#git-demo-terminal",
+          "say": "병합을 받을 feature로 전환해요."
         },
         {
           "action": "say",
-          "text": "해설 저장소에서 feature로 옮겼어요.",
+          "text": "지금 서 있는 브랜치가 feature예요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "bash_command",
           "command": "cat guide.txt",
+          "say": "합치기 전 파일을 읽어요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "feature에서는 메모 기능 한 줄만 보여요. 문의 안내는 아직 없어요.",
+          "text": "아직 메모 기능 한 줄만 있어요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -2288,21 +2285,23 @@
             "merge",
             "main"
           ],
-          "target": "#git-demo-terminal"
+          "target": "#git-demo-terminal",
+          "say": "feature에 main의 기록을 합쳐요."
         },
         {
           "action": "say",
-          "text": "Fast-forward가 보여요. feature가 앞으로 이동만 했어요.",
+          "text": "Fast-forward예요. feature가 main의 위치로 이동했어요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "bash_command",
           "command": "cat guide.txt",
+          "say": "바뀐 feature의 파일을 읽어요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "이제 feature에도 문의 안내까지 두 줄이 있어요. 서 있던 feature가 main을 따라왔어요.",
+          "text": "문의 안내도 함께 보여요.",
           "target": "#git-demo-terminal"
         },
         {
@@ -2311,11 +2310,17 @@
             "show",
             "main:guide.txt"
           ],
+          "target": "#git-demo-terminal",
+          "say": "main의 내용도 확인해요."
+        },
+        {
+          "action": "say",
+          "text": "main은 원래 두 줄 그대로예요.",
           "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "main은 합치기 전과 같은 두 줄이에요. merge는 지금 있는 브랜치만 바꿔요.",
+          "text": "조심하세요. merge 뒤에 적은 브랜치가 바뀌는 게 아니에요. 지금 있는 브랜치가 바뀌어요.",
           "target": "#git-demo-terminal"
         }
       ]

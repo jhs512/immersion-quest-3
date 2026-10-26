@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "cca813afa770baa51cde5b98bf8fe14caaa4a8c4100d920bd04ec9bf48d24c53",
+  "entry": [
+    {
+      "action": "say",
+      "text": "검사 코드의 기대값도 잘못될 수 있어요.",
+      "target": "text:무료배송 요구에 맞도록 테스트의 기대값을 고치세요"
+    },
+    {
+      "action": "say",
+      "text": "이번 검사는 만 원 주문에 2000원을 기대해요.",
+      "target": "code:static int expectation() { return 2000; }"
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "실패예요. 구현의 실제 값 0과 잘못된 기대값이 달라요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "static int expectation() { return 2000; }",
+      "after": "static int expectation() { return 0; }",
+      "say": "만 원부터 무료라는 요구에 맞춰 기대값을 고쳐요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "ok예요. 기대와 구현이 같은 요구를 따르게 됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 검사 실패가 곧 구현의 결함이라는 뜻은 아니에요. 기대값도 원래 요구와 대조하세요.",
+      "target": "code:static int expectation() { return 0; }"
+    }
+  ]
+}

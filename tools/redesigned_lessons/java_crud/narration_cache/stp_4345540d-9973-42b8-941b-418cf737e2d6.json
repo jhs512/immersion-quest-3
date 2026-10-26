@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "f968be1a95c1672d6cf4d07cbb1ffe3d21552583573370e75586fdef4dca9b44",
+  "entry": [
+    {
+      "action": "say",
+      "text": "수정과 추가는 다른 동작이에요.",
+      "target": "text:존재하는 글만 수정하고 없는 번호는 거절하세요"
+    },
+    {
+      "action": "say",
+      "text": "지금은 존재 여부를 확인하지 않고 put해요.",
+      "target": "code:        records.put(id,text);\n        return true;"
+    },
+    {
+      "action": "run",
+      "lines": [
+        20,
+        20
+      ]
+    },
+    {
+      "action": "say",
+      "text": "true가 나오고 글 9가 추가됐어요. 수정 요청이 새 글을 만들었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        records.put(id,text);\n        return true;",
+      "after": "        if (!records.containsKey(id)) return false;\n        records.put(id,text);\n        return true;",
+      "say": "대상이 없으면 상태를 바꾸기 전에 false를 돌려줘요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        21,
+        21
+      ]
+    },
+    {
+      "action": "say",
+      "text": "false예요. 원래 두 글만 남아 있어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. put은 수정 전용 명령이 아니에요. 없는 번호에도 값을 추가해요.",
+      "target": "code:        if (!records.containsKey(id)) return false;\n        records.put(id,text);\n        return true;"
+    }
+  ]
+}

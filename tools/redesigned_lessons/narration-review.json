@@ -2522,10 +2522,10 @@
   "stp_ddeb2d11-665b-4171-a08c-7b11c2a3f633": {
    "lesson": "docker-image-container",
    "state": "reviewed",
-   "context_sha256": "19b20460cd7ed5cdb0166fea0f3f6582c6bdc6813483bd99efe684d1dda1b793",
+   "context_sha256": "423fa2630c30caa9abe6a3f63f16db5acfd69a00e76c52654c4a227bb63d8198",
    "reviewed": "2026-10-26",
    "checked": {
-    "조심하세요. 서버를 뒤에서 돌리는 습관대로 &를 붙이면 컨테이너는 바로 끝나요. 컨테이너에서는 서버가 PID 1로 앞에서 돌아야 해요.": "시작 파일이 바로 그 실수(sleep 3600 &)이고, 실제 엔진에서 exited를 앞 실행에서 봤어요. (Codex 문맥 검토, 사람 검토 아님)"
+    "조심하세요. 이 셸 명령에서 &를 붙이면 셸이 기다리지 않고 끝나요. 서버가 직접 PID 1이 되거나 PID 1이 서버를 기다려야 컨테이너가 유지돼요.": "컨테이너 수명은 PID 1의 수명에 연결돼요. 서버 자체만 PID 1일 수 있다는 잘못된 단정을 제거했어요. 제공 정답처럼 셸이 앞 작업을 기다리는 구성도 인정하며 실제 running 관찰과 일치해요."
    },
    "findings": []
   },
@@ -6301,6 +6301,16 @@
     }
    ]
   },
+  "stp_3bf9f258-fb11-44a1-a6a8-a5cf6cbf1293": {
+   "lesson": "git-branch",
+   "state": "reviewed",
+   "context_sha256": "a0121d9c6a0c1e520cbe01f8b780525e890b46468e2b2960be3991cd81f4cd4e",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. merge 뒤에 적은 브랜치가 바뀌는 게 아니에요. 지금 있는 브랜치가 바뀌어요.": "feature로전환한뒤main을merge한다. 현재브랜치feature와main내용보존을실제참조및파일로검사하며병합대상과현재위치의오해를짚는다."
+   },
+   "findings": []
+  },
   "stp_41d0be13-06f0-4fd1-9315-e8ccdd6d0b99": {
    "lesson": "git-branch",
    "state": "reviewed",
@@ -6366,10 +6376,10 @@
   "stp_bc99cd31-74db-49f6-ba0f-c7a1911d7f6b": {
    "lesson": "git-branch",
    "state": "reviewed",
-   "context_sha256": "7d4b669244c828c7c7602eb01e83ecd5afab6b26f349208c59b68d9608e0b6dd",
-   "reviewed": "2026-10-25",
+   "context_sha256": "db2af1060ea49770f05558117ed70a414db31d2a556d52f745c60c8ec41b3266",
+   "reviewed": "2026-10-26",
    "checked": {
-    "조심하세요. 커밋하지 않은 수정이 있으면 switch할 때 그 수정이 새 브랜치로 따라와요. 그래서 수정 전에 브랜치를 먼저 바꿔요.": "3차 검토(2026-10-25, Claude 문맥 재검토, 사람 검토 아님): 앞뒤 문장·목표·명령과 함께 읽고 유지. 기준: 실제로 저지르기 쉬운 실수나 오해와 그 결과(또는 바른 이해)를 이 스텝의 상태·결과에 맞게 말해요."
+    "조심하세요. 커밋하지 않은 수정이 따라갈 수도 있어요. 전환할 파일과 겹치면 Git이 전환을 거절해요. 여기서는 수정 전에 브랜치를 먼저 바꿔요.": "전환 때 작업 변경이 보존 가능한 경우와 대상 파일을 덮어쓰게 되어 거절되는 경우를 구별해요. 브랜치 전환이 항상 변경을 운반한다는 기존 단정을 고쳤어요."
    },
    "findings": []
   },
@@ -6386,10 +6396,20 @@
   "stp_f86f03b5-9932-4650-ae6c-164a71663da3": {
    "lesson": "git-branch",
    "state": "reviewed",
-   "context_sha256": "2b174188e49424383e0192e6c0bfcd2b0409cb651422261ca68603be1d705905",
-   "reviewed": "2026-10-25",
+   "context_sha256": "ec76ae7a5447ee45230399550369cd541457818cb05667d5943c767eb786f3f7",
+   "reviewed": "2026-10-26",
    "checked": {
-    "조심하세요. feature에서 git merge main을 실행하면 반대로 feature가 바뀌어요. 합칠 곳에 먼저 서 있어야 해요.": "3차 검토(2026-10-25, Claude 문맥 재검토, 사람 검토 아님): 앞뒤 문장·목표·명령과 함께 읽고 유지. 기준: 실제로 저지르기 쉬운 실수나 오해와 그 결과(또는 바른 이해)를 이 스텝의 상태·결과에 맞게 말해요."
+    "조심하세요. feature에서 git merge main을 해도 main은 바뀌지 않아요. 지금 main은 feature보다 뒤에 있어 합칠 새 기록도 없어요. main에 먼저 서 있어야 해요.": "이 시점은 main이 feature의 조상이에요. feature에서 merge main은 이미 최신이라 아무 변경도 만들지 않아요. 변경되는 브랜치를 일반론으로만 설명하던 오류를 실제 저장소 상태에 맞췄어요."
+   },
+   "findings": []
+  },
+  "stp_3c382116-00a8-4d40-9d9c-bada0aa58660": {
+   "lesson": "git-branch-advanced",
+   "state": "reviewed",
+   "context_sha256": "e1c1df2349bafc77f85d231a7d91609f6e5657873db593d24455e83a79b61d1b",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 파일 이름이 같은지보다 변경한 부분이 겹치는지가 중요해요.": "같은guide파일의맨위와맨아래를서로다르게고쳤고실제자동병합으로둘다보존된다. 같은파일이면항상충돌한다는오해를구체적으로반박한다."
    },
    "findings": []
   },
@@ -6445,6 +6465,16 @@
     }
    ]
   },
+  "stp_c8a228ce-2217-4a7b-bcc7-776898b0c0e8": {
+   "lesson": "git-branch-advanced",
+   "state": "reviewed",
+   "context_sha256": "978b8e30a02e4dabb9849c89dbfbbe6726fd67a1d174b847b21e2f14476091e8",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 충돌 표시만 지우면 충분하지 않아요. 양쪽에서 필요했던 내용을 남겨야 해요.": "로그인안내와메모안내의두의도를합친첫줄을만든다. 마커제거뿐아니라지정한내용및나머지파일보존을검사한다. 아직add하지않아병합진행상태를유지한다."
+   },
+   "findings": []
+  },
   "stp_e54a62ff-7046-4b53-a76f-51db6b444bed": {
    "lesson": "git-branch-advanced",
    "state": "reviewed",
@@ -6453,6 +6483,16 @@
    "checked": {
     "두 브랜치의 선이 아직 갈라져 있어요. 충돌을 고쳐 담아도 병합 커밋은 아직 없어요.": "3차 검토(2026-10-25, Claude 문맥 재검토, 사람 검토 아님): 앞뒤 문장·목표·명령과 함께 읽고 유지. 기준: 양보 뒤의 결과가 앞말이 예상시키는 것과 실제로 대조돼요.",
     "조심하세요. 충돌한 파일만 고치고 끝내면 안 돼요. git add와 커밋까지 해야 해요.": "3차 검토(2026-10-25, Claude 문맥 재검토, 사람 검토 아님): 앞뒤 문장·목표·명령과 함께 읽고 유지. 기준: 실제로 저지르기 쉬운 실수나 오해와 그 결과(또는 바른 이해)를 이 스텝의 상태·결과에 맞게 말해요."
+   },
+   "findings": []
+  },
+  "stp_0369d49e-dbc8-41c4-8c47-2b87271e7509": {
+   "lesson": "git-first",
+   "state": "reviewed",
+   "context_sha256": "7e515055296b229e3b953968609744650c025077a9dcc9a6097232832f050d11",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 파일을 다시 고쳐도 준비 영역은 자동으로 갱신되지 않아요.": "add한둘째내용을준비영역에보관한뒤파일만셋째로고친다. cached diff와일반diff의관찰및세상태의별도채점이이를증명한다."
    },
    "findings": []
   },
@@ -6523,6 +6563,16 @@
    },
    "findings": []
   },
+  "stp_ba02c956-b20f-4c12-af4d-2adfa136f36d": {
+   "lesson": "git-first",
+   "state": "reviewed",
+   "context_sha256": "6952562e69b736f42f22185a7016f23e07deac8fb7ccfa75397f7278cdd1e05e",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 파일을 고쳤다고 이미 남긴 커밋의 내용까지 바뀌지는 않아요.": "작업파일둘째·준비영역첫째·HEAD첫째의실제상태를만드는단계다. 두파일조회와diff시연이작업파일수정과커밋불변을구체적으로대조한다."
+   },
+   "findings": []
+  },
   "stp_00b5fc7b-4940-497e-9450-84e46a3a4b83": {
    "lesson": "git-remote",
    "state": "reviewed",
@@ -6578,6 +6628,16 @@
      "reason": "3차 검토(2026-10-25, Claude 문맥 재검토): 명령 echo \"안내: 서비스를 종료해요\" > guide.txt 의 기호를 소리로 적었어요. 기호 그대로 적어요(docs/voice.md)."
     }
    ]
+  },
+  "stp_30450fdf-e29d-4fcd-a813-c3f8b0f44c3a": {
+   "lesson": "git-remote",
+   "state": "reviewed",
+   "context_sha256": "9bd650554c30362d884627f352f514b7602cbba1d79435625318c05689aade78",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. restore는 아직 커밋하지 않은 파일을 되돌려요. 공유한 커밋을 취소하는 revert와 역할이 달라요.": "직전단계에서잘못된커밋과되돌림커밋이모두남은상태다. 최근두기록과작업파일diff를직접확인하여미커밋변경취소와공유기록취소의역할차이를설명한다."
+   },
+   "findings": []
   },
   "stp_436fd262-9426-454e-910c-4c6a0b520920": {
    "lesson": "git-remote",
@@ -6652,10 +6712,10 @@
   "stp_b9b46a26-0843-43e5-a5b1-e417e4b78ecd": {
    "lesson": "git-remote",
    "state": "reviewed",
-   "context_sha256": "4622112ee2587809259229adb1de7200b31a9447342c36e4d945978e84a2546b",
-   "reviewed": "2026-10-25",
+   "context_sha256": "d20de4657beb58229d9d03ad750388483996eb6b32f860a735363a2e6c394fd7",
+   "reviewed": "2026-10-26",
    "checked": {
-    "조심하세요. 잘못된 내용도 commit하면 기록에 남아요. 커밋 전 내용을 읽어야 해요.": "3차 검토(2026-10-25, Claude 문맥 재검토, 사람 검토 아님): 앞뒤 문장·목표·명령과 함께 읽고 유지. 기준: 실제로 저지르기 쉬운 실수나 오해와 그 결과(또는 바른 이해)를 이 스텝의 상태·결과에 맞게 말해요."
+    "조심하세요. 잘못된 내용도 commit하면 기록에 남아요. 커밋 전 내용을 읽어야 해요.": "잘못된 현재 커밋을 새 커밋으로 취소할 다음 스텝과 연결돼요. 기본 restore가 기록을 취소하지 않는다는 설명으로 제한했어요. --source를 쓰면 예전 파일을 복원할 수 없다는 잘못된 일반론을 제거했어요."
    },
    "findings": []
   },
@@ -6686,6 +6746,26 @@
    "reviewed": "2026-10-25",
    "checked": {
     "조심하세요. 어느 저장소의 어느 브랜치로 보내는지 확인하세요. 여기서는 origin의 main이에요.": "3차 검토(2026-10-25, Claude 문맥 재검토, 사람 검토 아님): 앞뒤 문장·목표·명령과 함께 읽고 유지. 기준: 실제로 저지르기 쉬운 실수나 오해와 그 결과(또는 바른 이해)를 이 스텝의 상태·결과에 맞게 말해요."
+   },
+   "findings": []
+  },
+  "stp_cd0f058c-3382-4415-986b-69c9c8cc8fb6": {
+   "lesson": "git-remote",
+   "state": "reviewed",
+   "context_sha256": "ae85a08b7142e2b2a5b4977580880e896e92eb935fda19a44c58dd0c51a18c15",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 이 diff는 원격 저장소와 비교하는 명령이 아니에요. 작업 파일과 준비 영역을 비교해요.": "파일에임시문구만더하고add하지않은상태다. 인수없는gitdiff의비교대상을작업파일과준비영역둘다명시한다."
+   },
+   "findings": []
+  },
+  "stp_d0e859e6-98af-442f-a6c4-b6cfbeb949f7": {
+   "lesson": "git-remote",
+   "state": "reviewed",
+   "context_sha256": "85c58a0e9f60a0c3d71b712135d83470a83d7c33c1eac3ac206cedba6c095997",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. origin은 주소의 별명이고 main은 브랜치예요. 같은 종류의 이름이 아니에요.": "remote-v의연결주소와branch의현재위치를직접읽는단계다. 서로다른Git대상의이름을명확히구분한다."
    },
    "findings": []
   },
@@ -6726,6 +6806,16 @@
    "reviewed": "2026-10-25",
    "checked": {
     "조심하세요. 충돌 표시만 지우지 마세요. 두 요청을 반영한 최종 내용을 확인하세요.": "3차 검토(2026-10-25, Claude 문맥 재검토, 사람 검토 아님): 앞뒤 문장·목표·명령과 함께 읽고 유지. 기준: 실제로 저지르기 쉬운 실수나 오해와 그 결과(또는 바른 이해)를 이 스텝의 상태·결과에 맞게 말해요."
+   },
+   "findings": []
+  },
+  "stp_f7777741-1109-4b2b-bb25-f5472fd03a43": {
+   "lesson": "git-remote",
+   "state": "reviewed",
+   "context_sha256": "63c101a5aba40ccbaf5a690ccd20d5787efe44e98a556e8d9296aaf651816047",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 두 파일이 달라도 fetch 실패가 아니에요. 받은 기록을 합치는 일은 별개예요.": "원격추적기록은최신이고main은이전커밋인상태를검사한다. show로두내용을읽어차이가실패가아닌정상fetch결과임을설명한다."
    },
    "findings": []
   },
@@ -7164,6 +7254,16 @@
    },
    "findings": []
   },
+  "stp_1282c235-f944-44ef-906a-4067e2e1366b": {
+   "lesson": "java-calculator",
+   "state": "reviewed",
+   "context_sha256": "8810c0bae55923b6f71515bbc0abfac69fd05ff6cb1f175776dbbf3e0248df23",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 토큰을 찾는 것만으로 식 전체가 유효한지는 알 수 없어요. 모르는 글자를 검사하는 일은 따로 필요해요.": "Matcher.find는일치하지않는문자를건너뛴다. 이번단계는허용문자만받는토큰묶기를배우며최종입력검증과동일시하지않는다."
+   },
+   "findings": []
+  },
   "stp_12c15f02-7f4a-4012-ada4-49544a5c9c29": {
    "lesson": "java-calculator",
    "state": "reviewed",
@@ -7181,6 +7281,16 @@
    "reviewed": "2026-10-25",
    "checked": {
     "조심하세요. 이 수업의 문법에는 공백·나눗셈·음수가 없어서 그런 입력도 invalid가 맞아요.": "3차 검토(2026-10-25, Claude 문맥 재검토, 사람 검토 아님): 앞뒤 문장·목표·명령과 함께 읽고 유지. 기준: 실제로 저지르기 쉬운 실수나 오해와 그 결과(또는 바른 이해)를 이 스텝의 상태·결과에 맞게 말해요."
+   },
+   "findings": []
+  },
+  "stp_42390faf-1c6c-4984-a087-e34d6c7229aa": {
+   "lesson": "java-calculator",
+   "state": "reviewed",
+   "context_sha256": "7f15204a7526a9f5b0705692fb89a2d1016d4caeebc0a8b65c51efcdfaa49859",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 왼쪽에 나온 연산을 무조건 먼저 하면 곱셈 우선순위를 잃어요.": "a+b*c와(a+b)*c를비교하는단계다. 숫자2,3,4에서14와20의차이가왼쪽부터계산하는오해를직접보인다."
    },
    "findings": []
   },
@@ -7216,11 +7326,52 @@
    },
    "findings": []
   },
+  "stp_8990b3aa-9b73-4552-8dc5-5a239d049fdf": {
+   "lesson": "java-calculator",
+   "state": "reviewed",
+   "context_sha256": "adea0b5cf52fffd2c7db3d878c8fff5730ce2ffd38ad5b70c676577bf866b3b5",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 괄호를 읽었다고 계산이 자동으로 묶이진 않아요. 안쪽 식 전체의 결과를 받아야 해요.": "여는괄호뒤에서term만읽으면덧셈기호가남는다. expression으로안쪽전체를계산하고반환해야바깥곱셈의한값이된다."
+   },
+   "findings": []
+  },
+  "stp_9906c41a-fcf2-4df0-a861-9ee3856bd00b": {
+   "lesson": "java-calculator",
+   "state": "reviewed",
+   "context_sha256": "f8c0e17dc00dc5f6627671a867702222af9dfe788d09a8712cd78541c41d40be",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "5 false예요. 계산 값은 있어도 뒤에 x가 남았다는 뜻이에요.": "2+3x는숫자부분을계산해5를얻지만position은x앞에멈춘다. 계산값존재가전체입력처리를보장하지않는양보관계가정확하다.",
+    "조심하세요. 계산 결과가 나왔다고 입력을 모두 검증한 것은 아니에요. 처리하지 않은 문자를 확인하세요.": "finished가position과전체길이를비교한다. 뒤에x또는닫는괄호가남는테스트와정상식테스트를함께두어잔여입력의문제를드러낸다."
+   },
+   "findings": []
+  },
   "stp_999837d6-2223-42ed-8852-17bcab314066": {
    "lesson": "java-calculator",
    "state": "baseline",
    "context_sha256": "b8367a3a2494891a2b6cd29e098455ff530308bc24bcf300dedc354e47aa0abb",
    "note": "published before the meaning review gate; not reviewed for meaning"
+  },
+  "stp_aa2caa9f-7f56-43c2-8eb0-3fceecaedc2c": {
+   "lesson": "java-calculator",
+   "state": "reviewed",
+   "context_sha256": "cbe1c49a231c00cc5798fb3d2351903595e1dd1c77db90ac057d696f27ae3f7b",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 메서드를 나눴다는 사실만으로 우선순위가 생기진 않아요. 어떤 단계의 결과를 받는지가 중요해요.": "expression이term대신factor를호출하는준비상태를고친다. 함수분리자체와호출관계가다르다는단계별관찰에대응한다."
+   },
+   "findings": []
+  },
+  "stp_bb66daa1-5c94-4899-b70d-b0b6b7668e37": {
+   "lesson": "java-calculator",
+   "state": "reviewed",
+   "context_sha256": "344293f217be55ff8b355dea29b01460e33d47b11f309e40aff5051bd0f7746b",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 메서드를 호출해 계산했어도 그 반환값을 전달하지 않으면 바깥 계산에는 전해지지 않아요.": "괄호안expression의결과7을계산하고도0을반환하는준비코드다. value를반환해바깥2와곱하는것을설명한다."
+   },
+   "findings": []
   },
   "stp_d0277b3e-fe2b-4187-a2d1-016002176c53": {
    "lesson": "java-calculator",
@@ -7232,6 +7383,16 @@
    },
    "findings": []
   },
+  "stp_d23505c7-2116-48ae-a7a3-3f740c703541": {
+   "lesson": "java-calculator",
+   "state": "reviewed",
+   "context_sha256": "13297a53c0dee6267a15fcf00ed9957b05f5ffd068c83b59781817367f0ef6be",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. parseInt를 어디에 붙이는지에 따라 연결한 문자열을 바꾸는 것과 두 수를 더하는 것이 달라져요.": "parts[0]+parts[1]을먼저만들면123을변환하고각각변환후더하면15다. 구체적인준비코드오류와수정의관계가맞다."
+   },
+   "findings": []
+  },
   "stp_d2fc956c-57e0-46a8-842c-64785cf926af": {
    "lesson": "java-calculator",
    "state": "reviewed",
@@ -7239,6 +7400,16 @@
    "reviewed": "2026-10-25",
    "checked": {
     "조심하세요. 정규식의 더하기는 반복 표시이고 계산의 덧셈과 상관없어요.": "3차 검토(2026-10-25, Claude 문맥 재검토, 사람 검토 아님): 앞뒤 문장·목표·명령과 함께 읽고 유지. 기준: 실제로 저지르기 쉬운 실수나 오해와 그 결과(또는 바른 이해)를 이 스텝의 상태·결과에 맞게 말해요."
+   },
+   "findings": []
+  },
+  "stp_ea656cd8-1cc9-4f4f-9d40-d0491179c9a8": {
+   "lesson": "java-calculator",
+   "state": "reviewed",
+   "context_sha256": "e909a58acdbf727d1e887279fae2e4693ee56910fdf9130ce5c9318f22f4bf9b",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. false를 반환하는 확인 메서드를 부르기만 하면 검사가 되지 않아요. 실패 결과를 처리하세요.": "accept닫는괄호의false결과를무시하면누락된괄호도통과한다. 결과에분기하여예외를던지는실제수정의이유다."
    },
    "findings": []
   },
@@ -7663,6 +7834,16 @@
    "context_sha256": "9751db7deb1b4023a4584d762872ad0484262e3ffaecbf56e69463ca1402269c",
    "note": "published before the meaning review gate; not reviewed for meaning"
   },
+  "stp_4345540d-9973-42b8-941b-418cf737e2d6": {
+   "lesson": "java-crud",
+   "state": "reviewed",
+   "context_sha256": "41654df7537e1fb43b0fe3214c679a98a3f465f177689d6253b1fd7c376ec67b",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. put은 수정 전용 명령이 아니에요. 없는 번호에도 값을 추가해요.": "없는id=9에put하면 새항목이생기는초기결과가근거다. exists가드가필요한이유와일치한다."
+   },
+   "findings": []
+  },
   "stp_4655b4c8-9ffc-4083-b429-f7e2175ac94d": {
    "lesson": "java-crud",
    "state": "reviewed",
@@ -7680,6 +7861,26 @@
    "reviewed": "2026-10-25",
    "checked": {
     "조심하세요. 없는 글을 get하면 빈 글이 아니라 null이에요. 내용이 빈 정상 글과 구별해야 해요.": "3차 검토(2026-10-25, Claude 문맥 재검토, 사람 검토 아님): 앞뒤 문장·목표·명령과 함께 읽고 유지. 기준: 실제로 저지르기 쉬운 실수나 오해와 그 결과(또는 바른 이해)를 이 스텝의 상태·결과에 맞게 말해요."
+   },
+   "findings": []
+  },
+  "stp_5ff402df-f22c-4de8-94ed-b0e976f311f8": {
+   "lesson": "java-crud",
+   "state": "reviewed",
+   "context_sha256": "bbc2997db93b138cc6d53d74cb2821f7355f3f60cb2a229462adc7f54fee17b7",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 최댓값에 1을 더해도 마지막 글을 지우면 그 번호를 다시 쓸 수 있어요. 발급 이력과 현재 목록을 구분하세요.": "요구는삭제한번호의재사용도금지한다. 현재max+1은마지막항목삭제후이전번호를재발급하므로단순중복회피와발급이력의차이를정확히설명한다."
+   },
+   "findings": []
+  },
+  "stp_7807f7a3-0427-4daf-aedf-3bf3a9497673": {
+   "lesson": "java-crud",
+   "state": "reviewed",
+   "context_sha256": "f299a168fa2e41810a934a78854f97299c94d2a9175fa89a62c6a3bda1b7479c",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 글의 내용이 같아도 다른 글일 수 있어요. 내용으로 번호를 정하지 마세요.": "생성 시 번호는 순차 발급하고 내용과 독립적이다. 같은 문자열로 두 번 add해도 다른 번호를 주어야 하므로 양보 관계와 주의 대상이 정확하다."
    },
    "findings": []
   },
@@ -7709,6 +7910,16 @@
     }
    ]
   },
+  "stp_9c8cb1f6-7213-4081-bff5-55e51720ad56": {
+   "lesson": "java-crud",
+   "state": "reviewed",
+   "context_sha256": "205fffaf791d791addd766727f60648c902ac7fc2a4da65b74e1481809ad694b",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 글 1을 지웠다고 글 2를 1로 바꾸면 기존 글 2를 가리키던 요청이 깨져요.": "고유번호와리스트위치를나누는단계다. 삭제후남은키2를보존하는결과와대응하며 임의재번호부여의문제를구체적으로설명한다."
+   },
+   "findings": []
+  },
   "stp_a5a08fa1-d3bb-4335-aeff-98d8ee08d1ea": {
    "lesson": "java-crud",
    "state": "reviewed",
@@ -7716,6 +7927,27 @@
    "reviewed": "2026-10-25",
    "checked": {
     "조심하세요. 서비스가 경로를 몰라도 되지만, 파일 구현이 실제로 저장하고 읽는지는 그 구현에서 따로 확인해야 해요.": "3차 검토(2026-10-25, Claude 문맥 재검토, 사람 검토 아님): 앞뒤 문장·목표·명령과 함께 읽고 유지. 기준: 실제로 저지르기 쉬운 실수나 오해와 그 결과(또는 바른 이해)를 이 스텝의 상태·결과에 맞게 말해요."
+   },
+   "findings": []
+  },
+  "stp_aa185297-6417-49b3-a74d-44f212e0336b": {
+   "lesson": "java-crud",
+   "state": "reviewed",
+   "context_sha256": "36fb3bb6ef0220bacbba11a4f6b23cc8baf1dbe5b4da63c5bdd92d2aa7183f70",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. values는 복사 명령이 아니에요. 뷰를 수정하면 원본도 바뀌어요.": "Map.values가반환하는연결된뷰를clear하면원본도빈다. new ArrayList로문자열값을복사하는정답과비교한다. 깊은복사라고주장하지않는다."
+   },
+   "findings": []
+  },
+  "stp_bbae8382-1d6e-4081-9ac6-315663fb07a9": {
+   "lesson": "java-crud",
+   "state": "reviewed",
+   "context_sha256": "9ddc2e4668aa3ee5d278e18acd18fd08d6f8fef696f74bb39744e649e941f679",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "find가 어떤 id를 받아도 글 1을 읽고 있어요.": "준비 코드가 records.get(1)로 고정되어 있다. 입력id=2에서도 글1을 조회하는 구체적인 불일치를 설명한다.",
+    "조심하세요. 없는 번호를 조회해도 새 글이 생기진 않아요. null과 글의 내용을 구분하세요.": "Map.get은 저장 동작이 아니고 없는 번호에null을 돌려준다. 기존글의내용과부재를혼동하는구체적오해를짚는다."
    },
    "findings": []
   },
@@ -7762,6 +7994,26 @@
     }
    ]
   },
+  "stp_dafcd283-67ad-4a0c-98d7-38ef2f465a98": {
+   "lesson": "java-crud",
+   "state": "reviewed",
+   "context_sha256": "b00f79b7b7fcf4192c456575f427fdf1a4d56a1ebddac8707a2ec234edc81eeb",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 콜론마다 전부 나누면 내용의 일부가 잘려요. 첫 구분자와 값 안의 문자를 나누세요.": "두번째파일줄의값은다음:메모다. limit2가번호와내용의첫경계만나누어나머지콜론을보존한다."
+   },
+   "findings": []
+  },
+  "stp_e2e1c2ce-08f2-40b8-bf1f-a92a3605bb89": {
+   "lesson": "java-crud",
+   "state": "reviewed",
+   "context_sha256": "c51a58a29c34d99e0fa31cfbd5909a4e9b6100c56ce0d494e86b939f97940a36",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 예외를 던지는 것만으로 이미 한 변경이 취소되지는 않아요. 변경 전에 검사하세요.": "Map에공백저장후예외를던지는초기코드는Map을롤백하지않는다. 순서를바꿔원래글을유지하는시연의원인과결과다."
+   },
+   "findings": []
+  },
   "stp_e5bc603c-9552-48e8-bec7-275e6e9b12ca": {
    "lesson": "java-crud",
    "state": "reviewed",
@@ -7769,6 +8021,17 @@
    "reviewed": "2026-10-25",
    "checked": {
     "조심하세요. 추가와 수정을 한 호출로 처리해도 되는지는 요구가 정해요. 이번 요구에서는 put이 맞지 않아요.": "3차 검토(2026-10-25, Claude 문맥 재검토, 사람 검토 아님): 앞뒤 문장·목표·명령과 함께 읽고 유지. 기준: 실제로 저지르기 쉬운 실수나 오해와 그 결과(또는 바른 이해)를 이 스텝의 상태·결과에 맞게 말해요."
+   },
+   "findings": []
+  },
+  "stp_e986bb96-9bef-4faa-a9c8-04a2e84e1a39": {
+   "lesson": "java-crud",
+   "state": "reviewed",
+   "context_sha256": "0f052f75321254aab1d1d5800c99e87fcde099cb99654a28489ca48f308a4def",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "두 줄 모두 메모리 메모예요. 파일 저장소를 전달해도 무시됐어요.": "show가필드store대신new MemoryStore를사용하는준비코드다. 전달한FileStore가사용되지않으므로양보관계가맞다.",
+    "조심하세요. 서비스가 저장소를 직접 고정하면 다른 구현을 전달해도 바꿀 수 없어요.": "의존성주입필드가있어도실제호출이그필드를사용해야교체가가능하다. 대안람다구현을직접전달하는계약검사도포함한다."
    },
    "findings": []
   },
@@ -8689,6 +8952,17 @@
    },
    "findings": []
   },
+  "stp_039ac3c6-25cc-425a-8610-530761fb4ecf": {
+   "lesson": "java-regex",
+   "state": "reviewed",
+   "context_sha256": "1551973f7f336db994f82bea59be509dc8de0b1eb7ca3d4dabd0fcebfbe608f5",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "숫자를 찾았어도 계산식 전체가 올바르진 않아요.": "입력2+x3에서 숫자2와3은 찾을 수 있으나 x는 허용 문법 밖이다. 부분 토큰 검색 성공이 전체 문법 검증을 보장하지 않으므로 양보 관계가 실제 실행과 맞는다.",
+    "조심하세요. find는 모르는 글자를 건너뛰고도 숫자를 찾아요. 입력 검증을 대신할 수 없어요.": "2+x3에서 x를 건너뛰고 숫자를 추출하는 준비 코드에 관한 경고다. 목록은 그대로 두고 전체 matches 결과만 바꾸는 시연과 대응한다."
+   },
+   "findings": []
+  },
   "stp_1264f3c1-5712-44a5-8bee-e48de1851c49": {
    "lesson": "java-regex",
    "state": "baseline",
@@ -8702,6 +8976,17 @@
    "reviewed": "2026-10-25",
    "checked": {
     "찾지 못한 글자가 있어도 find는 조용히 건너뛰어요. 그래서 다음 계산기 수업에서는 입력 끝까지 읽었는지 따로 검사해요.": "3차 검토(2026-10-25, Claude 문맥 재검토, 사람 검토 아님): 앞뒤 문장·목표·명령과 함께 읽고 유지. 기준: 양보 뒤의 결과가 앞말이 예상시키는 것과 실제로 대조돼요."
+   },
+   "findings": []
+  },
+  "stp_4b2ff145-cb3f-425a-8396-23b062861c77": {
+   "lesson": "java-regex",
+   "state": "reviewed",
+   "context_sha256": "e815daf98cb25b8ea3e7aaa98b5d9b44eae2453a4d8894e49d22bb076ea84378",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "false와 true예요. 전체는 숫자가 아니어도 숫자 부분은 있어요.": "현재 입력id=12 전체는 [0-9]+에 맞지 않지만 부분12는 맞는다. 양보 관계의 대상은 입력 전체와 부분12로 분명하다.",
+    "조심하세요. find가 true여도 입력 전체의 형식이 맞다는 뜻은 아니에요.": "부분 검색 성공을 전체 검증으로 오해하는 것을 경고한다. id=12의 false/true 결과가 반례이며 다음 식 검증 단계와 연결된다."
    },
    "findings": []
   },
@@ -8721,6 +9006,16 @@
    "context_sha256": "a013a690d0bed7f7b8cfddd34e43da089dc46af7b4053267e23afe20315ccc7a",
    "note": "published before the meaning review gate; not reviewed for meaning"
   },
+  "stp_901953ed-8102-478c-98ff-4d36ffaf4c28": {
+   "lesson": "java-regex",
+   "state": "reviewed",
+   "context_sha256": "7d22163b465b8ca76b0707ad0445031da8ebf2182c9808a73c2a8f3975f02721",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 빈 값과 배열에 값 칸이 없는 것은 달라요. 범위 오류를 잡아 0만 출력하면 다른 값은 처리하지 못해요.": "text=에서 기본 split은 마지막 빈 조각을 버려 둘째 칸 접근에 실패한다. 길이0인 값과 존재하지 않는 칸을 구별하며, 0만 출력하는 우회는 a=b 값 길이를 처리하지 못한다."
+   },
+   "findings": []
+  },
   "stp_a0e3fa7d-d9d2-4651-b970-84407640a898": {
    "lesson": "java-regex",
    "state": "reviewed",
@@ -8728,6 +9023,16 @@
    "reviewed": "2026-10-25",
    "checked": {
     "조심하세요. 파일 이름의 점처럼 눈에 보이는 기호도 split에서는 정규식으로 읽혀요.": "3차 검토(2026-10-25, Claude 문맥 재검토, 사람 검토 아님): 앞뒤 문장·목표·명령과 함께 읽고 유지. 기준: 실제로 저지르기 쉬운 실수나 오해와 그 결과(또는 바른 이해)를 이 스텝의 상태·결과에 맞게 말해요."
+   },
+   "findings": []
+  },
+  "stp_bbf6614e-01f7-4d3b-b935-82461d717d8b": {
+   "lesson": "java-regex",
+   "state": "reviewed",
+   "context_sha256": "df64afb8db800ed94ad6c343eff4dd290109f19f74c50fc29cdfc2d8d2eddf13",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. *는 0번 반복도 허용해요. 빈 문자열을 거절하려면 한 번 이상이어야 해요.": "전체 숫자 검사에서 + 대신 *를 쓰는 흔한 오류를 짚는다. 빈 입력을 포함한 검사가 이 차이를 직접 드러낸다."
    },
    "findings": []
   },
@@ -8752,6 +9057,26 @@
    "state": "baseline",
    "context_sha256": "15bcca8084c7f00a4ce12b09dca2d1c3eb30f9830d87694b65be8809252ddfec",
    "note": "published before the meaning review gate; not reviewed for meaning"
+  },
+  "stp_ddb089d9-d1e1-4e0a-aab0-cfe9ca8b7f25": {
+   "lesson": "java-regex",
+   "state": "reviewed",
+   "context_sha256": "ecacca581e408571ef56ee30a681d5e21cee3b3ebf4d32e7439e16b9a64e5971",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 물음표만 쓰면 정규식 반복 기호가 돼요. 문자 물음표는 이스케이프하세요.": "split의 인수는 정규식이다. 독립된 ?는 선행 대상 없는 양화자가 되어 실패하므로 문자 ?와 정규식 기호의 차이를 정확히 경고한다."
+   },
+   "findings": []
+  },
+  "stp_ea5b7071-c29f-4c42-83fb-02f4f77a4c01": {
+   "lesson": "java-regex",
+   "state": "reviewed",
+   "context_sha256": "0b1207d8669f9847e02ef2030cdd8003003c25f27ec539b1c29cfccb12a9d4c5",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 조건 수를 2로 고정하면 조건이 늘거나 줄 때 틀려요.": "이 단계는 조건 개수를 구분자로 계산한다. 입력을 1·3·4조건으로 바꾸는 검사가 있어 고정 출력이 틀리는 구체적 경우를 경고한다."
+   },
+   "findings": []
   },
   "stp_ff5104c2-e705-4c24-a372-ce50f6b2d90c": {
    "lesson": "java-regex",
@@ -8932,11 +9257,32 @@
    },
    "findings": []
   },
+  "stp_034b53a1-925e-4458-9173-c2fda75ab8a6": {
+   "lesson": "java-rq",
+   "state": "reviewed",
+   "context_sha256": "bec6f07f942fb6dbbea529874829095c6fe4f76884053df36a5abf63247c5b1d",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 빈 값과 키의 부재를 합치면 요청을 보낸 쪽의 의도를 잃어요.": "text=의빈문자열과list의키부재를각각[]와[none]로표시한다. getOrDefault가빈값을fallback으로덮지않는것과일치한다."
+   },
+   "findings": []
+  },
   "stp_07b0b639-633a-4667-977d-d2c159302bd9": {
    "lesson": "java-rq",
    "state": "baseline",
    "context_sha256": "115f6aefa57fa6a4e4b5aa3cbbce2c0c2dfd5c4ae27cc41965ec8876b2453546",
    "note": "published before the meaning review gate; not reviewed for meaning"
+  },
+  "stp_1889d509-e8c5-4fd0-b1d4-6fd5906da410": {
+   "lesson": "java-rq",
+   "state": "reviewed",
+   "context_sha256": "b4763eaac29c9cc8d83ed78ba518eb3e4307b77b839cff86ee56aa32617dae0e",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "update예요. 조건이 있어도 작업 이름만 얻었어요.": "update?id=2에서첫물음표앞이update다. 조건의존재와독립적으로이름만반환하는현재실행을설명한다.",
+    "조심하세요. 물음표를 정규식 기호 그대로 쓰면 오류가 나요. 문자 자체를 뜻하게 하세요.": "String.split의인수는정규식이며독립된?는잘못된양화자다. 문자열이스케이프와리터럴구분이필요한구체적상황이다."
+   },
+   "findings": []
   },
   "stp_1db7d180-9b02-44a1-9ad1-dfd28bcb3ab3": {
    "lesson": "java-rq",
@@ -8958,6 +9304,26 @@
    },
    "findings": []
   },
+  "stp_2862d62a-9dab-4422-a9c4-73a43864d17d": {
+   "lesson": "java-rq",
+   "state": "reviewed",
+   "context_sha256": "f2ebe2800e285baef194e2a00910f490aafa538e21b1ce2ba92f900309d2a7c0",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. list를 직접 반환하면 다른 요청도 list로 바뀌어요. 객체가 보관한 값을 사용하세요.": "getter가이름상수를반환하는우회를경고한다. read·write·delete처럼다른요청도전달해확인한다."
+   },
+   "findings": []
+  },
+  "stp_4a66cb83-6f51-4b91-911e-0dd3e054008e": {
+   "lesson": "java-rq",
+   "state": "reviewed",
+   "context_sha256": "1b32e8e52071c80a07dd02b6860b1a43ffd0b559605210c5f071578ab1f646a6",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 메서드 이름에 id가 있어도 반환 타입이 문자열이면 +는 연결이 될 수 있어요.": "getParam의String반환값12에+1하면121이된다. 이름이아닌타입에따라연산이달라지는현재단계의오해를짚는다."
+   },
+   "findings": []
+  },
   "stp_4e230513-f27a-4517-adab-4aee6364f102": {
    "lesson": "java-rq",
    "state": "baseline",
@@ -8974,6 +9340,17 @@
    },
    "findings": []
   },
+  "stp_5ed70b8c-c21d-4fc5-a2c6-5d0ff9f43d00": {
+   "lesson": "java-rq",
+   "state": "reviewed",
+   "context_sha256": "2e5e75f2086c1bea81375c1a1fe6a97268ce7596dbba1ed610afa17f78c8585c",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "2가 나와요. id가 뒤에 있어도 같은 값이에요.": "현재요청text=hello&id=2에서위치가바뀌어도이름id로조회한값은2다. 순서와키의관계를정확히대조한다.",
+    "조심하세요. 첫째 조건이 항상 id인 것은 아니에요. 조건 순서가 바뀌어도 이름의 뜻은 같아요.": "첫값을무조건선택하는준비코드에대한구체적경고다. 순서를바꾼테스트와키별직접호출이뒷받침한다."
+   },
+   "findings": []
+  },
   "stp_6daa8c84-ab11-40ea-a49d-d784b8cceff5": {
    "lesson": "java-rq",
    "state": "reviewed",
@@ -8981,6 +9358,16 @@
    "reviewed": "2026-10-25",
    "checked": {
     "조심하세요. 덮어쓰기는 오류가 나지 않아서 잘못된 요청을 알아차리기 어려워요.": "3차 검토(2026-10-25, Claude 문맥 재검토, 사람 검토 아님): 앞뒤 문장·목표·명령과 함께 읽고 유지. 기준: 실제로 저지르기 쉬운 실수나 오해와 그 결과(또는 바른 이해)를 이 스텝의 상태·결과에 맞게 말해요."
+   },
+   "findings": []
+  },
+  "stp_8cb8c1c8-8c77-418e-b3f1-00e8b06fa4a2": {
+   "lesson": "java-rq",
+   "state": "reviewed",
+   "context_sha256": "107bda571375523486804d8000a2a5785ab4d1348b7771337f69c476b8bc4990",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. map 단계는 각 조각의 모양을 바꾸고 collect 단계는 최종 자료구조를 만들어요.": "현재파이프라인map(Rq::pair)은String[]를만들고collect(toMap)은키값맵을만든다. 바로앞단계와이번단계의역할차이다."
    },
    "findings": []
   },
@@ -8992,6 +9379,16 @@
    "checked": {
     "getOrDefault는 키가 없을 때만 기본값을 써요. 키가 있으면 빈 문자열이라도 그대로 돌려줘요.": "3차 검토(2026-10-25, Claude 문맥 재검토, 사람 검토 아님): 앞뒤 문장·목표·명령과 함께 읽고 유지. 기준: 양보 뒤의 결과가 앞말이 예상시키는 것과 실제로 대조돼요.",
     "조심하세요. 빈 값까지 기본값으로 바꾸면 사용자가 일부러 비운 값을 잃어요.": "3차 검토(2026-10-25, Claude 문맥 재검토, 사람 검토 아님): 앞뒤 문장·목표·명령과 함께 읽고 유지. 기준: 실제로 저지르기 쉬운 실수나 오해와 그 결과(또는 바른 이해)를 이 스텝의 상태·결과에 맞게 말해요."
+   },
+   "findings": []
+  },
+  "stp_a64aee53-3c04-44f4-aead-68581222f2f7": {
+   "lesson": "java-rq",
+   "state": "reviewed",
+   "context_sha256": "56ffed2b28deb317593f97e8fbe3f7131e28749e8cd846aac84538e885dd3c68",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. put의 첫 인수가 조회할 키예요. 이름과 값을 뒤집으면 같은 문자열이 있어도 찾지 못해요.": "값2를키로id를저장한준비코드에서id조회는fallback을돌려준다. 같은문자열이자료에포함돼도키위치가달라조회되지않는것을명확히설명한다."
    },
    "findings": []
   },
@@ -9021,6 +9418,16 @@
    },
    "findings": []
   },
+  "stp_c8b2befb-554c-4eb0-be8a-0f870f17f4bb": {
+   "lesson": "java-rq",
+   "state": "reviewed",
+   "context_sha256": "4d21d3c9f91f72eaef4f71247edfa49151c8dc431b5d9dfa338a8c2b8c57593c",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. map을 썼다고 결과가 Map 자료구조인 것은 아니에요. 여기서는 배열들의 List예요.": "Stream.map의변환결과를toList로모으므로List<String[]>다. 메서드이름map과Map타입을혼동하지않도록구체적으로대조한다."
+   },
+   "findings": []
+  },
   "stp_cd7df657-da95-4fc6-ad63-48559cd52d8f": {
    "lesson": "java-rq",
    "state": "reviewed",
@@ -9028,6 +9435,26 @@
    "reviewed": "2026-10-25",
    "checked": {
     "조심하세요. 스트림의 map은 변환 동작 이름이에요. 자료형 Map과 이름만 비슷해요.": "3차 검토(2026-10-25, Claude 문맥 재검토, 사람 검토 아님): 앞뒤 문장·목표·명령과 함께 읽고 유지. 기준: 실제로 저지르기 쉬운 실수나 오해와 그 결과(또는 바른 이해)를 이 스텝의 상태·결과에 맞게 말해요."
+   },
+   "findings": []
+  },
+  "stp_dcc2e3f5-e777-4755-a3c9-1f312041199c": {
+   "lesson": "java-rq",
+   "state": "reviewed",
+   "context_sha256": "1c08d48e53f30f02767517f1d5828da94311fee647222287e1abbd246191f26f",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 기본값을 오류까지 덮는 값으로 쓰면 호출자가 잘못된 요청을 알아채지 못해요.": "부재null은-1,존재하는잘못된값one은NumberFormatException으로구분하는정책이다. main은예외를invalid로표시한다."
+   },
+   "findings": []
+  },
+  "stp_f005359d-5c55-4af8-955d-5343c429c094": {
+   "lesson": "java-rq",
+   "state": "reviewed",
+   "context_sha256": "53c25ebfa0bda68bb943d9764bb13d9c2373d9f9418a776ff603921349508530",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 스트림으로 바꾸면서 기존의 중복 거절 정책을 덮어쓰기 정책으로 바꾸지 마세요.": "이번단계는동일키를거절한다는요구를명시한다. duplicate콜백이나중값을고르는준비상태를예외발생으로고치며, 자료구조변환과입력정책을분리한다."
    },
    "findings": []
   },
@@ -9428,6 +9855,16 @@
    },
    "findings": []
   },
+  "stp_1538abef-c740-4dca-a2de-5cc0d686c4a9": {
+   "lesson": "java-testing",
+   "state": "reviewed",
+   "context_sha256": "708fe3b71649fa1755ca43f54416ac724cd3a8ba589fec0653ce187104ef5b71",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 확인 코드를 없애면 틀린 기대값도 통과해요. 다른 기대값을 넣었을 때는 실패해야 해요.": "값이 다른 경우 AssertionError를 던지는 check의 역할을 경고한다. 숨은 직접 호출은 틀린 기대값에서 실제 예외를 요구하며 비교 삭제는 그 검사에서 실패한다."
+   },
+   "findings": []
+  },
   "stp_2674c0f6-185b-4de8-af22-2963fbda4bec": {
    "lesson": "java-testing",
    "state": "reviewed",
@@ -9445,6 +9882,16 @@
    "reviewed": "2026-10-25",
    "checked": {
     "조심하세요. 통과한 사례들 밖의 입력까지 모두 맞다는 증명은 아니에요. 어떤 경계를 골랐는지가 검사의 힘이에요.": "3차 검토(2026-10-25, Claude 문맥 재검토, 사람 검토 아님): 앞뒤 문장·목표·명령과 함께 읽고 유지. 기준: 실제로 저지르기 쉬운 실수나 오해와 그 결과(또는 바른 이해)를 이 스텝의 상태·결과에 맞게 말해요."
+   },
+   "findings": []
+  },
+  "stp_56d46cef-4ef0-475d-b487-8c007bd209a9": {
+   "lesson": "java-testing",
+   "state": "reviewed",
+   "context_sha256": "66e348924f1f92980c0dda60d9bd100492bc989416901e2813bafe22fcc2390a",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 검사 실패가 곧 구현의 결함이라는 뜻은 아니에요. 기대값도 원래 요구와 대조하세요.": "이 단계의 Fees는 올바르고 기대값2000이 잘못됐다. 실패 원인을 구현으로 단정하지 말고 명세로 기대값을 수정하는 단계 목표와 대응한다."
    },
    "findings": []
   },
@@ -9475,6 +9922,46 @@
    "reviewed": "2026-10-25",
    "checked": {
     "조심하세요. 제출하면 경계를 잘못 쓴 Fees로도 실행해요. 그때 이 테스트가 실패해야 통과예요.": "3차 검토(2026-10-25, Claude 문맥 재검토, 사람 검토 아님): 앞뒤 문장·목표·명령과 함께 읽고 유지. 기준: 실제로 저지르기 쉬운 실수나 오해와 그 결과(또는 바른 이해)를 이 스텝의 상태·결과에 맞게 말해요."
+   },
+   "findings": []
+  },
+  "stp_ad950752-f6f4-4c35-92a4-4eb770eb6329": {
+   "lesson": "java-testing",
+   "state": "reviewed",
+   "context_sha256": "a870ff93e1abd5b548612937c366968e9a0a08db49055449a563400ecd1e00b7",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 실제 값과 기대값을 같은 구현에서 구하면 두 값이 함께 틀려도 통과해요.": "기대값을 Fees.shipping에서 가져오는 준비 코드의 문제다. >경계 결함이 복제되어 true가 나오며 독립된 >=기대값에서 false가 되는 관계를 정확히 설명한다."
+   },
+   "findings": []
+  },
+  "stp_b891bc39-ab83-4387-ac1a-6eb7dd6f956b": {
+   "lesson": "java-testing",
+   "state": "reviewed",
+   "context_sha256": "a28ed5c5985372b0b51940d7c439aa590c7e082b987c0ef309ffcdf6c0451ee7",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 기존 사례를 경계 하나로 바꾸면 이전에 확인하던 유료배송 검사가 사라져요.": "기존9999사례를 남기고10000사례를 더하는 단계다. 덮어쓰기 대신 사례 추가가 필요한 구체적 이유를 말한다."
+   },
+   "findings": []
+  },
+  "stp_b95438c5-1097-42c7-b1d0-37971be64ab0": {
+   "lesson": "java-testing",
+   "state": "reviewed",
+   "context_sha256": "ef978d87033bcaaa2861523dcb9f07bfee427f2797680c12017272f11b269877",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 검사를 따로 실행할 때만 통과하고 같이 실행하면 실패한다면 공유 상태를 확인하세요.": "Counter의 이전 호출 횟수가 남아 두 번째 결과가2가 되는 사례다. 독립된 초기 상태로 새 Counter를 만들어 각각1을 얻으므로 공유 상태가 문제라는 설명이 맞다."
+   },
+   "findings": []
+  },
+  "stp_cf5d58e6-69dd-428e-8962-838cfee37bf5": {
+   "lesson": "java-testing",
+   "state": "reviewed",
+   "context_sha256": "0bfa903c2ba381e9f7a3b4febcef06cbb3af641f28ae57fd4c7ba01b2a87eeb9",
+   "reviewed": "2026-10-26",
+   "checked": {
+    "조심하세요. 예외가 안 났을 때도 true를 돌려주면 거절 기능이 사라져도 검사가 통과해요.": "정상 반환은false, 약속한 예외의catch에서만true여야 한다. 실제 Fees호출을 없애는 오답과 항상true를 반환하는 오답을 거절하도록 계약 검사 및 양수 입력을 포함한다."
    },
    "findings": []
   },

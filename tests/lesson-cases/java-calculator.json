@@ -1,78 +1,210 @@
 {
-  "course": "tests/fixtures/player-pilot/별/course.json",
-  "lesson": "courses/redesigned/java-calculator.json",
-  "expected_outputs": [
-    [
-      "[12, +, 3]",
-      "[1, 2, +, 3]"
-    ],
-    [
-      "15",
-      "123"
-    ],
-    [
-      "14",
-      "20"
-    ],
-    [
-      "14",
-      "5"
-    ],
-    [
-      "20",
-      "invalid"
-    ],
-    [
-      "14",
-      "28"
-    ],
-    [
-      "invalid",
-      "14"
-    ],
-    [
-      "5 false",
-      "5 true"
-    ],
-    [
-      "9",
-      "14"
-    ],
-    [
-      "5",
-      "invalid"
-    ]
+ "course": "tests/fixtures/player-pilot/별/course.json",
+ "lesson": "courses/redesigned/java-calculator.json",
+ "expected_outputs": [
+  [
+   "[1, 2, +, 3]",
+   "[12, +, 3]"
   ],
-  "reject": [
-    {
-      "step": 9,
-      "replacements": [
-        [
-          "value *= factor()",
-          "value += factor()"
-        ]
-      ],
-      "reason": "곱셈 단계가 더하면 우선순위가 틀려요"
-    },
-    {
-      "step": 10,
-      "replacements": [
-        [
-          "if (position != text.length()) throw new IllegalArgumentException(\"trailing\");",
-          ""
-        ]
-      ],
-      "reason": "남은 입력을 검사하지 않으면 2+3x를 받아들여요"
-    },
-    {
-      "step": 10,
-      "replacements": [
-        [
-          "if (position != text.length()) throw new IllegalArgumentException(\"trailing\");",
-          "if (text.contains(\"x\")) throw new IllegalArgumentException(\"trailing\");"
-        ]
-      ],
-      "reason": "x 하나만 막는 고정 검사는 다른 잘못된 입력을 놓쳐요"
-    }
+  [
+   "123",
+   "15"
+  ],
+  [
+   "20",
+   "14"
+  ],
+  [
+   "5",
+   "14"
+  ],
+  [
+   "5",
+   "20"
+  ],
+  [
+   "0",
+   "14"
+  ],
+  [
+   "14",
+   "invalid"
+  ],
+  [
+   "5 true",
+   "5 false"
+  ],
+  [
+   "9",
+   "14"
+  ],
+  [
+   "5",
+   "invalid"
   ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "Pattern.compile(\"[0-9]+|[+*()]\")",
+     "Pattern.compile(\"[0-9]|[+*()]\")"
+    ]
+   ],
+   "reason": "숫자여러글자를한토큰으로읽어야해요"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "Integer.parseInt(parts[0]) + Integer.parseInt(parts[1])",
+     "Integer.parseInt(parts[0] + parts[1])"
+    ]
+   ],
+   "reason": "글자연결을계산으로취급하면안돼요"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "return a+b*c;",
+     "return (a+b)*c;"
+    ]
+   ],
+   "reason": "곱셈이덧셈보다먼저예요"
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "int value = term();\n        while (accept('+')) value += term();",
+     "int value = factor();\n        while (accept('+')) value += factor();"
+    ]
+   ],
+   "reason": "완성된곱셈항을받아야해요"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "if (accept('(')) {\n            int value = expression();",
+     "if (accept('(')) {\n            int value = term();"
+    ]
+   ],
+   "reason": "괄호안은덧셈단계부터계산해야해요"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "accept(')');\n            return value;",
+     "accept(')');\n            return 0;"
+    ]
+   ],
+   "reason": "안쪽계산결과를실제로돌려줘야해요"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "if (!accept(')')) throw new IllegalArgumentException(\"close\");",
+     "accept(')');"
+    ]
+   ],
+   "reason": "닫는괄호가없으면거절해야해요"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "return position == text.length();",
+     "return true;"
+    ]
+   ],
+   "reason": "일부계산성공은전체입력성공이아니에요"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "value *= factor()",
+     "value += factor()"
+    ]
+   ],
+   "reason": "곱셈 단계가 더하면 우선순위가 틀려요"
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "if (position != text.length()) throw new IllegalArgumentException(\"trailing\");",
+     ""
+    ]
+   ],
+   "reason": "남은 입력을 검사하지 않으면 2+3x를 받아들여요"
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "if (position != text.length()) throw new IllegalArgumentException(\"trailing\");",
+     "if (text.contains(\"x\")) throw new IllegalArgumentException(\"trailing\");"
+    ]
+   ],
+   "reason": "x 하나만 막는 고정 검사는 다른 잘못된 입력을 놓쳐요"
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "Pattern.compile(\"[0-9]+|[+*()]\")",
+     "Pattern.compile(\"\\\\d+|[+*()]\")"
+    ]
+   ],
+   "reason": "같은ASCII숫자반복규칙이에요"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "Integer.parseInt(parts[0]) + Integer.parseInt(parts[1])",
+     "Integer.valueOf(parts[0]) + Integer.valueOf(parts[1])"
+    ]
+   ],
+   "reason": "언박싱되는정수도숫자로더할수있어요"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "return a+b*c;",
+     "return b*c+a;"
+    ]
+   ],
+   "reason": "같은곱셈항과덧셈이에요"
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "while (accept('+')) value += term();",
+     "while (accept('+')) value = value + term();"
+    ]
+   ],
+   "reason": "같은항누적을풀어써도돼요"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "return position == text.length();",
+     "return text.length() == position;"
+    ]
+   ],
+   "reason": "비교의좌우순서는상관없어요"
+  }
+ ]
 }

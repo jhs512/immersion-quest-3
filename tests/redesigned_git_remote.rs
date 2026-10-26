@@ -7,7 +7,8 @@ fn play(practice:&GitPractice,task:&Task){
     }
     let shell=if cfg!(windows){"C:/Program Files/Git/bin/bash.exe"}else{"/bin/bash"};
     let mut command=std::process::Command::new(shell);
-    command.args(["-c",&lines.join("\n")]).current_dir(practice.work()).envs(practice.environment());
+    command.args(["-c",&lines.join("\n")]).current_dir(practice.work()).envs(practice.environment())
+        .env("GIT_TRACE2_EVENT",practice.root().join("commands.jsonl"));
     #[cfg(windows)] {use std::os::windows::process::CommandExt;command.creation_flags(0x08000000);}
     let output=command.output().unwrap();assert!(output.status.success(),"{}: {}",task.title,String::from_utf8_lossy(&output.stderr));
 }

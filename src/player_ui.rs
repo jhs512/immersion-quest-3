@@ -108,8 +108,8 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
     // The course screen shows either its lessons or the 도전 과제 board; the choice survives a lesson visit.
     let mut show_challenges=use_signal(||false);
     let mut track_filter=use_signal(||molip_quest::lesson_categories::TrackFilter::All);
-    // 전체 순서 (false) or 분류별 (true); only offered when the course has approved categories.
-    let mut group_view=use_signal(||false);
+    // Start with categories; courses without categories fall back to the full recommended order.
+    let mut group_view=use_signal(||true);
     // 관리자 자동 풀이: one run for the player, kept across the lessons it opens itself.
     let mut auto=use_signal(||None::<AutoRun>);
     // GitHub's edit permission on the open course for this account (None: not read yet).

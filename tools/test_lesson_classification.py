@@ -90,7 +90,9 @@ class Classification(unittest.TestCase):
                 # 2026-10-26: lessons 27-34 were withdrawn; their classification stays only as a record.
                 self.assertEqual(set(data['courses'][course]['withdrawn_lessons']).intersection(keys[course]), set())
                 self.assertNotIn('sys-buffer-pool', result[course]['lessons'])
-                self.assertEqual([c['id'] for c in result[course]['categories']], ['java', 'git', 'terminal', 'frontend'])
+                self.assertEqual([c['id'] for c in result[course]['categories']], ['java', 'git', 'terminal', 'frontend', 'db', 'docker'])
+                self.assertEqual(result[course]['lessons']['sql-first']['category'], 'db')
+                self.assertEqual(result[course]['lessons']['docker-image-container']['category'], 'docker')
             else:
                 self.assertTrue(all(set(v) == {'track'} for v in result[course]['lessons'].values()), 'other course proposals remain unpublished')
             for added in [l['key'] for c in catalog['courses'] if c['key'] == course for l in c['lessons'] if l.get('added_on')]:

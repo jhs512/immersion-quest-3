@@ -14,6 +14,7 @@ class MergeTests(unittest.TestCase):
         self.new={**self.old,'revision':'new','sha256':'b'*64}
         self.remote={'id':'course','lessons':[self.old,{'id':'new-docker','repository':'another-new-lesson'}],
                      'categories':[{'id':'docker','title':'Docker'}], 'description':'concurrent description',
+                     'scope_note':'Docker and DB are delivered; Spring remains planned',
                      'lesson_previews':{'new-docker':{'challenge':'keep this'}},'change_history':[]}
         self.prepared={'lesson_previews':{'retained':{'challenge':'code directly'}}}
 
@@ -25,6 +26,7 @@ class MergeTests(unittest.TestCase):
         self.assertEqual(merged['lessons'][1],old['lessons'][1])
         self.assertEqual(merged['categories'],old['categories'])
         self.assertEqual(merged['description'],old['description'])
+        self.assertEqual(merged['scope_note'],old['scope_note'])
         self.assertEqual(merged['lesson_previews']['new-docker'],old['lesson_previews']['new-docker'])
         self.assertEqual(publish.merge(merged,self.prepared,[(self.old,self.new,b'')]),merged)
 
@@ -32,6 +34,35 @@ class MergeTests(unittest.TestCase):
         self.remote['lessons'][0]={**self.old,'revision':'someone-elses-newer-version'}
         with self.assertRaisesRegex(ValueError,'Concurrent course revision'):
             publish.merge(self.remote,self.prepared,[(self.old,self.new,b'')])
+
+    def test_second_batch_keeps_all_new_lessons_and_coding_history(self):
+        self.remote['lessons']=[dict(id=key,repository='jhs512/mq3-lesson-redesigned-'+key,revision='old') for key in publish.SECOND_BATCH]+[{'id':'new-docker','repository':'another-new-lesson'}]
+        self.remote['change_history']=[{'summary':'Java 12수업의 선택 문제를 직접 구현하는 문제로 바꿨어요.'}]
+        rows=[(copy.deepcopy(row),{**row,'revision':'new'},b'') for row in self.remote['lessons'][:-1]]
+        merged=publish.merge(self.remote,self.prepared,rows)
+        self.assertEqual(len(merged['lessons']),10)
+        self.assertEqual(merged['lessons'][-1],self.remote['lessons'][-1])
+        self.assertEqual(len(merged['change_history']),2)
+        self.assertIn('Java 5수업과 Git 4수업',merged['change_history'][0]['summary'])
+        self.assertEqual(publish.merge(merged,self.prepared,rows),merged)
+
+    def test_order_changes_preserve_newer_unrelated_content_and_track(self):
+        self.remote['lessons'][1].update(revision='newer-remote',track='advanced',category='docker')
+        self.prepared['lessons']=[
+            {**self.remote['lessons'][1], 'revision':'older-local', 'prerequisites':[]},
+            {**self.new, 'prerequisites':['new-docker']},
+        ]
+        merged=publish.merge(self.remote,self.prepared,[(self.old,self.new,b'')],True)
+        self.assertEqual([l['id'] for l in merged['lessons']],['new-docker','retained'])
+        self.assertEqual(merged['lessons'][0]['revision'],'newer-remote')
+        self.assertEqual(merged['lessons'][0]['track'],'advanced')
+        self.assertEqual(merged['lessons'][1]['prerequisites'],['new-docker'])
+        self.assertEqual(merged['scope_note'],self.remote['scope_note'])
+
+    def test_order_changes_refuse_to_erase_a_concurrently_added_lesson(self):
+        self.prepared['lessons']=[{**self.new,'prerequisites':[]}]
+        with self.assertRaisesRegex(ValueError,'Concurrent course membership'):
+            publish.merge(self.remote,self.prepared,[(self.old,self.new,b'')],True)
 
 
 if __name__=='__main__':unittest.main()

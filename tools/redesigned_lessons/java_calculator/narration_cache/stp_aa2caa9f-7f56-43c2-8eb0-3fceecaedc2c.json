@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "647184a7e703d655c26075267f7ea473df31f58c31cda2af49edaf6f7f85aab5",
+  "entry": [
+    {
+      "action": "say",
+      "text": "파서는 작은 계산 결과를 받아 큰 식을 계산해요.",
+      "target": "text:덧셈 단계가 완성된 곱셈 항을 받게 하세요"
+    },
+    {
+      "action": "say",
+      "text": "expression이 곱셈 항 대신 숫자 하나씩을 받아요.",
+      "target": "code:        int value = factor();\n        while (accept('+')) value += factor();"
+    },
+    {
+      "action": "run",
+      "lines": [
+        42,
+        42
+      ]
+    },
+    {
+      "action": "say",
+      "text": "5예요. 2와 3까지만 더하고 곱셈 부분이 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        int value = factor();\n        while (accept('+')) value += factor();",
+      "after": "        int value = term();\n        while (accept('+')) value += term();",
+      "say": "두 곳 모두 곱셈을 완성하는 term을 부르게 고쳐요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        42,
+        42
+      ]
+    },
+    {
+      "action": "say",
+      "text": "14가 나와요. 3*4가 먼저 한 항으로 완성됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 메서드를 나눴다는 사실만으로 우선순위가 생기진 않아요. 어떤 단계의 결과를 받는지가 중요해요.",
+      "target": "code:        int value = term();\n        while (accept('+')) value += term();"
+    }
+  ]
+}

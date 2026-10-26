@@ -1,76 +1,216 @@
 {
-  "course": "tests/fixtures/player-pilot/버/course.json",
-  "lesson": "courses/redesigned/java-testing.json",
-  "expected_outputs": [
-    [
-      "ok"
-    ],
-    [
-      "true",
-      "false",
-      "true"
-    ],
-    [
-      "2000\n2000",
-      "2000\n0",
-      "2000\n2000"
-    ],
-    [
-      "false",
-      "true",
-      "false"
-    ],
-    [
-      "1\n2\n1"
-    ],
-    [
-      "rejected",
-      "no-error",
-      "rejected"
-    ],
-    [
-      {
-        "junit_summary": {
-          "found": 1,
-          "successful": 1,
-          "failed": 0
-        }
-      },
-      {
-        "junit_summary": {
-          "found": 1,
-          "successful": 1,
-          "failed": 0
-        }
-      }
-    ],
-    [
-      {
-        "junit_summary": {
-          "found": 1,
-          "successful": 0,
-          "failed": 1
-        }
-      },
-      {
-        "junit_summary": {
-          "found": 1,
-          "successful": 1,
-          "failed": 0
-        }
-      }
-    ]
+ "course": "tests/fixtures/player-pilot/버/course.json",
+ "lesson": "courses/redesigned/java-testing.json",
+ "expected_outputs": [
+  [
+   "실패",
+   "ok"
   ],
-  "reject": [
-    {
-      "step": 8,
-      "replacements": [
-        [
-          "assertThat(Fees.shipping(10000)).isEqualTo(0);",
-          "assertThat(0).isEqualTo(0);"
-        ]
-      ],
-      "reason": "A constant assertion cannot detect the incorrect boundary implementation"
+  [
+   "true",
+   "false"
+  ],
+  [
+   "9999: 통과",
+   "9999: 통과\n10000: 실패"
+  ],
+  [
+   "실패",
+   "ok"
+  ],
+  [
+   "1\n2",
+   "1\n1"
+  ],
+  [
+   "false",
+   "true"
+  ],
+  [
+   {
+    "junit_summary": {
+     "found": 1,
+     "successful": 1,
+     "failed": 0
     }
+   },
+   {
+    "junit_summary": {
+     "found": 1,
+     "successful": 1,
+     "failed": 0
+    }
+   }
+  ],
+  [
+   {
+    "junit_summary": {
+     "found": 1,
+     "successful": 0,
+     "failed": 1
+    }
+   },
+   {
+    "junit_summary": {
+     "found": 1,
+     "successful": 1,
+     "failed": 0
+    }
+   }
   ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "if (actual != expected) throw new AssertionError(\"fee mismatch\");",
+     "// 비교를 제거했어요."
+    ]
+   ],
+   "reason": "기대와 달라도 실패하지 않는 검사는 결함을 놓쳐요"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "return amount >= 10000 ? 0 : 2000;",
+     "return Fees.shipping(amount);"
+    ]
+   ],
+   "reason": "구현에서 기대값을 다시 얻으면 같은 결함을 복사해요"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "return new int[]{9999, 10000};",
+     "return new int[]{10000};"
+    ]
+   ],
+   "reason": "기존 유료배송 사례도 유지해야 해요"
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "static int expectation() { return 0; }",
+     "static int expectation() { return 2000; }"
+    ]
+   ],
+   "reason": "잘못된 기대값은 올바른 구현을 실패시켜요"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "Counter counter = new Counter();",
+     "Counter counter = shared;"
+    ]
+   ],
+   "reason": "공유 상태로는 다음 검사가 같은 초기 상태로 시작하지 못해요"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "return counter.next();",
+     "return 1;"
+    ]
+   ],
+   "reason": "고정 출력은 Counter를 실제로 검사하지 않아요"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "Fees.shipping(amount);\n            return false;",
+     "Fees.shipping(amount);\n            return true;"
+    ]
+   ],
+   "reason": "정상 반환까지 거절 성공으로 보면 틀려요"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "Fees.shipping(amount);",
+     "if (amount < 0) throw new IllegalArgumentException(\"made up\");"
+    ]
+   ],
+   "reason": "실제 함수를 호출하지 않고 검사가 예외를 만들어내면 안 돼요"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "assertEquals(0, Fees.shipping(10000));",
+     "// 경계를 검사하지 않아요."
+    ]
+   ],
+   "reason": "JUnit이 통과하더라도 경계 결함을 놓치면 안 돼요"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "assertThat(Fees.shipping(10000)).isEqualTo(0);",
+     "assertThat(Fees.shipping(10000)).isEqualTo(2000);"
+    ]
+   ],
+   "reason": "AssertJ에서도 기대값은 요구에서 정해야 해요"
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "actual != expected",
+     "expected != actual"
+    ]
+   ],
+   "reason": "비교의 좌우 순서는 의미를 바꾸지 않아요"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "return amount >= 10000 ? 0 : 2000;",
+     "if (amount < 10000) return 2000;\n        return 0;"
+    ]
+   ],
+   "reason": "조건 분기로 기대값을 계산해도 돼요"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "return new int[]{9999, 10000};",
+     "return java.util.stream.IntStream.rangeClosed(9999,10000).toArray();"
+    ]
+   ],
+   "reason": "같은 경계 사례를 다른 방식으로 구성해도 돼요"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "Counter counter = new Counter();\n        return counter.next();",
+     "return new Counter().next();"
+    ]
+   ],
+   "reason": "각 호출마다 새 초기 상태를 만드는 같은 구현이에요"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "} catch (IllegalArgumentException error) {\n            return true;",
+     "} catch (IllegalArgumentException exception) {\n            return true;"
+    ]
+   ],
+   "reason": "예외 변수 이름은 채점 기준이 아니에요"
+  }
+ ]
 }

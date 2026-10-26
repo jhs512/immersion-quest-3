@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "3c31761215460dabfc6eafc10e8239af6078812d67551025cb0f88a1ffef6b92",
+  "entry": [
+    {
+      "action": "say",
+      "text": "파일에 저장한 번호도 글의 정체성이에요.",
+      "target": "text:파일에서 글 번호와 내용 전체를 복원하세요"
+    },
+    {
+      "action": "say",
+      "text": "loaded를 만들었지만 파일을 읽지 않고 돌려줘요.",
+      "target": "code:        // 여기에 파일을 읽고 번호와 내용을 복원하세요.\n"
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "빈 Map이에요. 파일에 있던 글들이 아직 복원되지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        // 여기에 파일을 읽고 번호와 내용을 복원하세요.\n",
+      "after": "        for (String line : Files.readAllLines(path)) {\n            String[] parts = line.split(\":\",2);\n            loaded.put(Integer.parseInt(parts[0]),parts[1]);\n        }\n",
+      "say": "각 줄을 읽어 번호와 내용을 Map에 담아요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "번호 1과 2가 복원됐어요. 둘째 내용의 콜론도 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 콜론마다 전부 나누면 내용의 일부가 잘려요. 첫 구분자와 값 안의 문자를 나누세요.",
+      "target": "code:        for (String line : Files.readAllLines(path)) {\n            String[] parts = line.split(\":\",2);\n            loaded.put(Integer.parseInt(parts[0]),parts[1]);\n        }\n"
+    }
+  ]
+}

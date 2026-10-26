@@ -1,52 +1,230 @@
 {
-  "course": "tests/fixtures/player-pilot/머/course.json",
-  "lesson": "courses/redesigned/java-crud.json",
-  "expected_outputs": [
-    [
-      "[1, 2]"
-    ],
-    [
-      "시작\nfalse"
-    ],
-    [
-      "[1, 9]",
-      "[1]",
-      "[1, 9]"
-    ],
-    [
-      "시작\n[2]"
-    ],
-    [
-      "invalid\n시작"
-    ],
-    [
-      "2"
-    ],
-    [
-      "0\n시작"
-    ],
-    [
-      "시작\n시작"
-    ],
-    [
-      "{2=새 글}",
-      "{2=다음, 3=새 글}"
-    ],
-    [
-      "{1=수정, 2=다음}",
-      "{1=시작, 2=수정}"
-    ]
+ "course": "tests/fixtures/player-pilot/머/course.json",
+ "lesson": "courses/redesigned/java-crud.json",
+ "expected_outputs": [
+  [
+   "1\n1\n{1=다음}",
+   "1\n2\n{1=시작, 2=다음}"
   ],
-  "reject": [
-    {
-      "step": 10,
-      "replacements": [
-        [
-          "System.out.println(quotes);",
-          "System.out.println(\"{1=시작, 2=수정}\");"
-        ]
-      ],
-      "reason": "Fixed text does not implement a different target or missing ID"
-    }
+  [
+   "시작\nfalse",
+   "다음\nfalse"
+  ],
+  [
+   "true\n{1=시작, 2=다음, 9=수정}",
+   "false\n{1=시작, 2=다음}"
+  ],
+  [
+   "시작\n[1, 2]",
+   "시작\n[2]"
+  ],
+  [
+   "invalid\n{1=   , 2=다음}",
+   "invalid\n{1=시작, 2=다음}"
+  ],
+  [
+   "[시작, 다음]\n[]",
+   "[시작, 다음]\n[시작, 다음]"
+  ],
+  [
+   "{}",
+   "{1=시작, 2=다음:메모}"
+  ],
+  [
+   "메모리 메모\n메모리 메모",
+   "메모리 메모\n파일 메모"
+  ],
+  [
+   "2\n{2=새 글}",
+   "3\n{2=다음, 3=새 글}"
+  ],
+  [
+   "{1=수정, 2=다음}",
+   "{1=시작, 2=수정}"
   ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "int id = nextId++;",
+     "int id = nextId;"
+    ]
+   ],
+   "reason": "번호가증가하지않으면이전글을덮어써요"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "return records.get(id);",
+     "return records.get(1);"
+    ]
+   ],
+   "reason": "다른번호도그글을조회해야해요"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "if (!records.containsKey(id)) return false;",
+     ""
+    ]
+   ],
+   "reason": "없는번호를수정하면서글을추가하면안돼요"
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "return records.remove(id);",
+     "return records.get(id);"
+    ]
+   ],
+   "reason": "읽기는삭제가아니에요"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "if (text.isBlank()) throw new IllegalArgumentException(\"blank\");\n        records.put(id,text);",
+     "records.put(id,text);\n        if (text.isBlank()) throw new IllegalArgumentException(\"blank\");"
+    ]
+   ],
+   "reason": "검증실패전에원본을바꾸면안돼요"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "return new ArrayList<>(records.values());",
+     "return records.values();"
+    ]
+   ],
+   "reason": "원본뷰는독립적인사본이아니에요"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "line.split(\":\",2)",
+     "line.split(\":\")"
+    ]
+   ],
+   "reason": "값안의콜론도보존해야해요"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "return store.load();",
+     "return new MemoryStore().load();"
+    ]
+   ],
+   "reason": "생성자에전달한구현을사용해야해요"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "int id = nextId++;",
+     "int id = records.size() + 1;"
+    ]
+   ],
+   "reason": "삭제후번호충돌을피해야해요"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "int id = nextId++;",
+     "int id = records.keySet().stream().mapToInt(Integer::intValue).max().orElse(0) + 1;"
+    ]
+   ],
+   "reason": "마지막글삭제후이전번호도재사용하면안돼요"
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "System.out.println(quotes);",
+     "System.out.println(\"{1=시작, 2=수정}\");"
+    ]
+   ],
+   "reason": "Fixed text does not implement a different target or missing ID"
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "int id = nextId++;",
+     "int id = nextId;\n        nextId += 1;"
+    ]
+   ],
+   "reason": "번호를분리해서증가시켜도같아요"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "return records.get(id);",
+     "return records.getOrDefault(id,null);"
+    ]
+   ],
+   "reason": "없는번호에null을돌려주는동등한조회예요"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "if (!records.containsKey(id)) return false;",
+     "if (records.get(id) == null) return false;"
+    ]
+   ],
+   "reason": "이자료에는null값이없어서조회결과로부재를확인할수있어요"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "return new ArrayList<>(records.values());",
+     "return new LinkedList<>(records.values());"
+    ]
+   ],
+   "reason": "가변적인별도목록이면다른구현도허용해요"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "line.split(\":\",2)",
+     "line.split(java.util.regex.Pattern.quote(\":\"),2)"
+    ]
+   ],
+   "reason": "문자구분자를인용해도돼요"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "return store.load();",
+     "String value = store.load(); return value;"
+    ]
+   ],
+   "reason": "전달받은저장소의반환값을따로저장해도돼요"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "int id = nextId++;",
+     "int id = nextId;\n        ++nextId;"
+    ]
+   ],
+   "reason": "후위증가를분리한같은발급정책이에요"
+  }
+ ]
 }

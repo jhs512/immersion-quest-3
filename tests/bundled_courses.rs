@@ -37,6 +37,10 @@ fn installation_and_upgrade_use_current_three_courses_without_content_downloads_
     old["lessons"].as_array_mut().unwrap().retain(|r|!removed.iter().any(|key|r["repository"].as_str().unwrap().ends_with(&format!("-{key}"))));
     // Previews of the removed lessons go with them; the remaining previews stay strictly validated.
     let kept:std::collections::HashSet<String>=old["lessons"].as_array().unwrap().iter().map(|r|r["id"].as_str().unwrap().to_string()).collect();
+    // This deliberately old snapshot also predates the new prerequisite metadata.
+    for lesson in old["lessons"].as_array_mut().unwrap() {
+        lesson["prerequisites"].as_array_mut().unwrap().retain(|id| kept.contains(id.as_str().unwrap()));
+    }
     if let Some(previews)=old.get_mut("lesson_previews").and_then(|p|p.as_object_mut()) {previews.retain(|id,_|kept.contains(id));}
     assert!(old["lesson_previews"].as_object().is_some_and(|p|!p.is_empty()), "the old manifest still carries previews to validate");
     let existing=current.lessons.iter().find(|r|r.repository.ends_with("-java-values")).unwrap();

@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "d5a9a5ea4de93690f56ba0311be208ac10bc34cb5c3f52f1d86778eee58fda44",
+  "entry": [
+    {
+      "action": "say",
+      "text": "예외도 함수가 약속한 동작의 일부예요.",
+      "target": "text:약속한 예외가 발생한 경우에만 거절 검사를 통과시키세요"
+    },
+    {
+      "action": "say",
+      "text": "호출이 정상으로 끝나든 예외가 나든 false를 돌려줘요.",
+      "target": "code:        } catch (IllegalArgumentException error) {\n            return false;\n"
+    },
+    {
+      "action": "run",
+      "lines": [
+        23,
+        23
+      ]
+    },
+    {
+      "action": "say",
+      "text": "false예요. 음수 주문이 거절됐는데 검사 결과에 반영하지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        } catch (IllegalArgumentException error) {\n            return false;\n",
+      "after": "        } catch (IllegalArgumentException error) {\n            return true;\n",
+      "say": "약속한 예외를 잡은 경로에서는 true를 돌려줘요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        23,
+        23
+      ]
+    },
+    {
+      "action": "say",
+      "text": "true예요. 실제로 음수 주문을 거절한 것을 확인했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 예외가 안 났을 때도 true를 돌려주면 거절 기능이 사라져도 검사가 통과해요.",
+      "target": "code:        } catch (IllegalArgumentException error) {\n            return true;\n"
+    }
+  ]
+}

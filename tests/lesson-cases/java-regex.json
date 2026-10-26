@@ -1,58 +1,192 @@
 {
-  "course": "tests/fixtures/player-pilot/빛/course.json",
-  "lesson": "courses/redesigned/java-regex.json",
-  "expected_outputs": [
-    [
-      "2",
-      "3"
-    ],
-    [
-      "update",
-      ""
-    ],
-    [
-      "a",
-      "a=b"
-    ],
-    [
-      "0",
-      ""
-    ],
-    [
-      "true",
-      "false"
-    ],
-    [
-      "false\ntrue"
-    ],
-    [
-      "[]",
-      "[a, b]"
-    ],
-    [
-      "[2, 3]"
-    ]
+ "course": "tests/fixtures/player-pilot/빛/course.json",
+ "lesson": "courses/redesigned/java-regex.json",
+ "expected_outputs": [
+  [
+   "1",
+   "2"
   ],
-  "reject": [
-    {
-      "step": 3,
-      "replacements": [
-        [
-          "part.split(\"=\", 2)",
-          "part.split(\"=\")"
-        ]
-      ],
-      "reason": "등호마다 자르면 값이 잘려요"
-    },
-    {
-      "step": 7,
-      "replacements": [
-        [
-          "text.split(Pattern.quote(\".\"))",
-          "text.split(\".\")"
-        ]
-      ],
-      "reason": "정규식 점은 모든 글자를 나눠요"
-    }
+  [
+   "update?id=2",
+   "update"
+  ],
+  [
+   "a",
+   "a=b"
+  ],
+  [
+   "",
+   "0"
+  ],
+  [
+   "false",
+   "true"
+  ],
+  [
+   "false\nfalse",
+   "false\ntrue"
+  ],
+  [
+   "[]",
+   "[a, b]"
+  ],
+  [
+   "[2, 3]\ntrue",
+   "[2, 3]\nfalse"
   ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "return Integer.toString(parts.length);",
+     "return \"2\";"
+    ]
+   ],
+   "reason": "조건 개수를 외운 답은 다른 개수에 실패해요"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "query.split(\"\\\\?\", 2)",
+     "query.split(\"?\", 2)"
+    ]
+   ],
+   "reason": "물음표를 정규식 기호 그대로 쓰면 실행 오류예요"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "part.split(\"=\", 2)",
+     "part.split(\"=\")"
+    ]
+   ],
+   "reason": "값 안의 등호를 보존해야 해요"
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "query.split(\"=\", 2)",
+     "query.split(\"=\", -1)"
+    ]
+   ],
+   "reason": "빈 조각을 남겨도 값 안의 등호마다 자르면 틀려요"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "text.matches(\"[0-9]+\")",
+     "text.matches(\"[0-9]*\")"
+    ]
+   ],
+   "reason": "빈 문자열은 숫자 한 자리 이상이 아니에요"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "matcher(text).find()",
+     "matcher(text).matches()"
+    ]
+   ],
+   "reason": "부분 검색을 전체 일치로 바꾸면 id=12를 찾지 못해요"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "text.split(Pattern.quote(\".\"))",
+     "text.split(\".\")"
+    ]
+   ],
+   "reason": "정규식 점은 문자 점과 달라요"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "expression.matches(\"[0-9]+([+*][0-9]+)*\")",
+     "Pattern.compile(\"[0-9]+\").matcher(expression).find()"
+    ]
+   ],
+   "reason": "숫자가 있다고 전체 식이 유효한 것은 아니에요"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "return expression.matches(\"[0-9]+([+*][0-9]+)*\");",
+     "return true;"
+    ]
+   ],
+   "reason": "모든 식을 허용하면 잘못된 입력을 거절하지 못해요"
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "query.split(\"&\")",
+     "query.split(java.util.regex.Pattern.quote(\"&\"))"
+    ]
+   ],
+   "reason": "구분자를 문자 그대로 인용해도 같아요"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "query.split(\"\\\\?\", 2)",
+     "query.split(java.util.regex.Pattern.quote(\"?\"), 2)"
+    ]
+   ],
+   "reason": "Pattern.quote로 문자 물음표를 표현해도 돼요"
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "String[] pair = query.split(\"=\", 2);\n        return Integer.toString(pair[1].length());",
+     "return Integer.toString(query.substring(query.indexOf('=') + 1).length());"
+    ]
+   ],
+   "reason": "첫 등호 이후의 부분 문자열도 값 전체를 보존해요"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "text.matches(\"[0-9]+\")",
+     "text.matches(\"\\\\d+\")"
+    ]
+   ],
+   "reason": "ASCII숫자 범위에서는 기본 숫자 클래스도 같아요"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "matcher(text).find()",
+     "matcher(text).results().findAny().isPresent()"
+    ]
+   ],
+   "reason": "검색 결과 스트림의 존재를 확인해도 돼요"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "expression.matches(\"[0-9]+([+*][0-9]+)*\")",
+     "expression.matches(\"\\\\d+(?:[+*]\\\\d+)*\")"
+    ]
+   ],
+   "reason": "비포획 그룹으로 같은 전체 문법을 표현해요"
+  }
+ ]
 }

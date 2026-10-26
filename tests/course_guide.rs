@@ -21,7 +21,9 @@ fn course_guide_matches_all_installed_goals_and_order_without_teaching_answers()
         }
         if repository.ends_with("java-backend") {
             assert!(guide.description.contains("Spring Boot"));assert!(!guide.description.starts_with("Bash"));
-            assert!(guide.objectives[0].contains("기초가 탄탄한"));assert!(guide.scope_note.contains("후속 확장"));
+            assert!(guide.objectives[0].contains("기초가 탄탄한"));
+            assert!(guide.scope_note.contains("Docker·SQL·JDBC·객체지향"));
+            assert!(guide.scope_note.contains("Spring Boot·JPA·Spring Security"));
             assert_eq!(guide.lessons.len(),40);
         }
     }

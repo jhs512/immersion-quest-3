@@ -11,7 +11,7 @@ async fn advanced_branch_steps_preserve_history_resolve_real_conflicts_and_reset
     assert_eq!(advanced.tasks.len(),5);
     let tasks=advanced.tasks.iter().collect::<Vec<_>>();
     let solutions:Vec<Vec<Vec<&str>>>=vec![
-        vec![vec!["merge","--no-edit","feature"]],vec![],vec![],
+        vec![vec!["merge","--no-edit","feature"]],vec![vec!["merge","--no-edit","feature"]],vec![],
         vec![vec!["restore","--source=feature","--worktree","--","guide.txt"],vec!["add","guide.txt"]],vec![vec!["commit","--no-edit"]],
     ];
     for (index,task) in tasks.into_iter().enumerate() {
@@ -26,6 +26,15 @@ async fn advanced_branch_steps_preserve_history_resolve_real_conflicts_and_reset
                     let args=action["args"].as_array().unwrap().iter().map(|v|v.as_str().unwrap()).collect::<Vec<_>>();
                     let result=teacher.git(&args).unwrap();assert!(result.success,"step {}: {:?}: {}",index+1,args,result.stderr);
                 }
+                if action["action"]=="bash_command" {
+                    #[cfg(windows)] let bash=molip_quest::setup_terminal::git_bash_executable().unwrap();
+                    #[cfg(not(windows))] let bash=std::path::PathBuf::from("/bin/bash");
+                    let mut paths=vec![bash.parent().unwrap().to_path_buf()];
+                    paths.extend(std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default()));
+                    let result=std::process::Command::new(bash).args(["--noprofile","--norc","-c",action["command"].as_str().unwrap()])
+                        .current_dir(teacher.work()).envs(teacher.environment()).env("PATH",std::env::join_paths(paths).unwrap()).output().unwrap();
+                    assert!(result.status.success(),"{}",String::from_utf8_lossy(&result.stderr));
+                }
             }
             if let Some(interaction)=&task.interaction {
                 assert!(!interaction.check("").unwrap().passed);
@@ -38,6 +47,12 @@ async fn advanced_branch_steps_preserve_history_resolve_real_conflicts_and_reset
             }else{assert!(teacher.check_exercise().unwrap().passed,"teacher step {}",index+1);}
             assert_eq!(snapshot(&student),before,"teacher changed student repository");
             for args in &solutions[index]{assert!(student.git(args).unwrap().success,"student step {}",index+1);}
+            if index==2 {
+                let goal=exercise.state_goal.as_ref().unwrap();
+                for (path,content) in goal.working_files.as_ref().unwrap() {
+                    std::fs::write(student.work().join(path),content).unwrap();
+                }
+            }
             if task.interaction.is_none(){assert!(student.check_exercise().unwrap().passed,"student step {}",index+1);}
             std::fs::write(student.work().join("leftover.txt"),"leftover").unwrap();
             student.reset().unwrap();assert!(!student.work().join("leftover.txt").exists());

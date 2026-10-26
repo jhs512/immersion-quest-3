@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "876e08f1194176ba02f183882fe2f4d9824ae68ec610b601e3e04978afbdfa0f",
+  "entry": [
+    {
+      "action": "say",
+      "text": "값이 없는 경우와 잘못된 값이 있는 경우를 구분해요.",
+      "target": "text:없는 id만 기본값으로 처리하고 잘못된 숫자는 거절하세요"
+    },
+    {
+      "action": "say",
+      "text": "숫자가 아닌 값도 없는 값처럼 -1로 바꾸고 있어요.",
+      "target": "code:if (value == null || !value.matches(\"-?[0-9]+\")) return -1;"
+    },
+    {
+      "action": "run",
+      "lines": [
+        32,
+        32
+      ]
+    },
+    {
+      "action": "say",
+      "text": "-1이에요. one이라는 잘못된 입력이 조용히 숨겨졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "if (value == null || !value.matches(\"-?[0-9]+\")) return -1;",
+      "after": "if (value == null) return -1;",
+      "say": "null일 때만 기본값을 쓰고 나머지는 정수 변환에 맡겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        32,
+        32
+      ]
+    },
+    {
+      "action": "say",
+      "text": "invalid예요. 값이 있었지만 숫자가 아니라는 사실을 드러냈어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 기본값을 오류까지 덮는 값으로 쓰면 호출자가 잘못된 요청을 알아채지 못해요.",
+      "target": "code:if (value == null) return -1;"
+    }
+  ]
+}

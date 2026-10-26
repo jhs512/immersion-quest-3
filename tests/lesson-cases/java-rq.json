@@ -1,79 +1,258 @@
 {
-  "course": "tests/fixtures/player-pilot/솔/course.json",
-  "lesson": "courses/redesigned/java-rq.json",
-  "expected_outputs": [
-    [
-      "list"
-    ],
-    [
-      "update"
-    ],
-    [
-      "2",
-      "hello"
-    ],
-    [
-      "2"
-    ],
-    [
-      "a",
-      "a=b"
-    ],
-    [
-      "[]\n[none]"
-    ],
-    [
-      "13",
-      "121"
-    ],
-    [
-      "invalid"
-    ],
-    [
-      "2개, 두 번째: [text, hello]"
-    ],
-    [
-      "2"
-    ],
-    [
-      "duplicate",
-      "accepted"
-    ],
-    [
-      "0",
-      "12"
-    ]
+ "course": "tests/fixtures/player-pilot/솔/course.json",
+ "lesson": "courses/redesigned/java-rq.json",
+ "expected_outputs": [
+  [
+   "",
+   "list"
   ],
-  "reject": [
-    {
-      "step": 5,
-      "replacements": [
-        [
-          "part.split(\"=\", 2)",
-          "part.split(\"=\")"
-        ]
-      ],
-      "reason": "등호마다 자르면 a=b의 b를 잃어요"
-    },
-    {
-      "step": 12,
-      "replacements": [
-        [
-          "Integer.parseInt(value)",
-          "12"
-        ]
-      ],
-      "reason": "고정값 12는 다른 요청에서 틀려요"
-    },
-    {
-      "step": 12,
-      "replacements": [
-        [
-          ", Rq::duplicate",
-          ", (oldValue, newValue) -> newValue"
-        ]
-      ],
-      "reason": "중복 id를 덮어쓰면 안 돼요"
-    }
+  [
+   "update?id=2",
+   "update"
+  ],
+  [
+   "none",
+   "2"
+  ],
+  [
+   "hello",
+   "2"
+  ],
+  [
+   "a",
+   "a=b"
+  ],
+  [
+   "[none]",
+   "[]"
+  ],
+  [
+   "121",
+   "13"
+  ],
+  [
+   "-1",
+   "invalid"
+  ],
+  [
+   "[[id=2], [text=hello]]",
+   "[[id, 2], [text, hello]]"
+  ],
+  [
+   "none",
+   "2"
+  ],
+  [
+   "2",
+   "duplicate"
+  ],
+  [
+   "0",
+   "12"
   ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "return actionName;",
+     "return \"list\";"
+    ]
+   ],
+   "reason": "다른작업도보관한이름을반환해야해요"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "request.split(\"\\\\?\", 2)[0]",
+     "request"
+    ]
+   ],
+   "reason": "물음표뒤조건을이름에포함하면안돼요"
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "params.put(pair[0], pair[1]);",
+     "params.put(pair[1], pair[0]);"
+    ]
+   ],
+   "reason": "이름을키로써야해요"
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "return params.getOrDefault(name, fallback);",
+     "return params.isEmpty() ? fallback : params.values().iterator().next();"
+    ]
+   ],
+   "reason": "순서가바뀌어도이름으로조회해야해요"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "return params.getOrDefault(name, fallback);",
+     "String value=params.get(name); return value == null || value.isEmpty() ? fallback : value;"
+    ]
+   ],
+   "reason": "빈값을키부재로바꾸면안돼요"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "Integer.toString(Integer.parseInt(rq.getParam(\"id\", \"-1\")) + 1)",
+     "rq.getParam(\"id\", \"-1\") + 1"
+    ]
+   ],
+   "reason": "문자열연결은숫자덧셈이아니에요"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "if (value == null) return -1;",
+     "if (value == null || !value.matches(\"-?[0-9]+\")) return -1;"
+    ]
+   ],
+   "reason": "잘못된숫자는부재기본값과구별해야해요"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "part.split(\"=\", 2)",
+     "new String[]{part}"
+    ]
+   ],
+   "reason": "각배열안에서이름과값도나눠야해요"
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "pair -> pair[0], pair -> pair[1]",
+     "pair -> pair[1], pair -> pair[0]"
+    ]
+   ],
+   "reason": "모으는Map의키는조건이름이에요"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "throw new IllegalArgumentException(\"duplicate\");",
+     "return newValue;"
+    ]
+   ],
+   "reason": "중복을조용히덮어쓰지마세요"
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "part.split(\"=\", 2)",
+     "part.split(\"=\")"
+    ]
+   ],
+   "reason": "등호마다 자르면 a=b의 b를 잃어요"
+  },
+  {
+   "step": 12,
+   "replacements": [
+    [
+     "Integer.parseInt(value)",
+     "12"
+    ]
+   ],
+   "reason": "고정값 12는 다른 요청에서 틀려요"
+  },
+  {
+   "step": 12,
+   "replacements": [
+    [
+     ", Rq::duplicate",
+     ", (oldValue, newValue) -> newValue"
+    ]
+   ],
+   "reason": "중복 id를 덮어쓰면 안 돼요"
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "return actionName;",
+     "return this.actionName;"
+    ]
+   ],
+   "reason": "객체필드를명시해도같아요"
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "request.split(\"\\\\?\", 2)",
+     "request.split(java.util.regex.Pattern.quote(\"?\"), 2)"
+    ]
+   ],
+   "reason": "문자물음표를인용해도같아요"
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "return params.getOrDefault(name, fallback);",
+     "return params.containsKey(name) ? params.get(name) : fallback;"
+    ]
+   ],
+   "reason": "키존재와조회로같은기본값정책을구현해도돼요"
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "return params.getOrDefault(name, fallback);",
+     "return params.containsKey(name) ? params.get(name) : fallback;"
+    ]
+   ],
+   "reason": "빈값도보존하는같은정책이에요"
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "Integer.toString(Integer.parseInt(rq.getParam(\"id\", \"-1\")) + 1)",
+     "String.valueOf(1 + Integer.parseInt(rq.getParam(\"id\", \"-1\")))"
+    ]
+   ],
+   "reason": "숫자로더한뒤다르게문자열로바꿔도돼요"
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "if (value == null) return -1;",
+     "if (Objects.isNull(value)) return -1;"
+    ]
+   ],
+   "reason": "같은부재검사예요"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "part.split(\"=\", 2)",
+     "part.split(java.util.regex.Pattern.quote(\"=\"), 2)"
+    ]
+   ],
+   "reason": "문자등호를인용해도돼요"
+  }
+ ]
 }

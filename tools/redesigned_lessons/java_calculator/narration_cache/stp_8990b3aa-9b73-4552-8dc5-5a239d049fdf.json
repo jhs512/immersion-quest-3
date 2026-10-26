@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "775cb16faf1720f639a6602ddcfca8a23eb736b3acd44ee192ea248f250bb9e4",
+  "entry": [
+    {
+      "action": "say",
+      "text": "괄호는 안쪽 식 하나를 바깥 계산의 값으로 만들어요.",
+      "target": "text:괄호 안을 덧셈 단계부터 다시 계산하세요"
+    },
+    {
+      "action": "say",
+      "text": "괄호 안에서 곱셈 단계 term만 부르고 있어요.",
+      "target": "code:        if (accept('(')) {\n            int value = term();\n            accept(')');\n            return value;\n        }"
+    },
+    {
+      "action": "run",
+      "lines": [
+        47,
+        47
+      ]
+    },
+    {
+      "action": "say",
+      "text": "5예요. term이 덧셈 앞에서 멈췄어요. 닫는 괄호를 읽기 전에 돌아온 거예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        if (accept('(')) {\n            int value = term();\n            accept(')');\n            return value;\n        }",
+      "after": "        if (accept('(')) {\n            int value = expression();\n            accept(')');\n            return value;\n        }",
+      "say": "안쪽에서도 덧셈 단계 expression부터 계산해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        47,
+        47
+      ]
+    },
+    {
+      "action": "say",
+      "text": "20이에요. 괄호 안의 5가 바깥 곱셈의 한 값이 됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 괄호를 읽었다고 계산이 자동으로 묶이진 않아요. 안쪽 식 전체의 결과를 받아야 해요.",
+      "target": "code:        if (accept('(')) {\n            int value = expression();\n            accept(')');\n            return value;\n        }"
+    }
+  ]
+}
