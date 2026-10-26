@@ -60,7 +60,7 @@ def preflight(keys=None):
     return prepared,rows
 
 
-def publish_lesson(old,new,raw):
+def publish_lesson(old,new,raw,message='Replace answer picking with real coding exercises'):
     repo=new['repository']
     info=gh('repos/'+repo)
     if info['owner']['login']!='jhs512' or info['description']!=publisher.MARKER or info['private']:
@@ -74,7 +74,7 @@ def publish_lesson(old,new,raw):
             # Do not overwrite an unpublished update made by someone else.
             if hashlib.sha256(existing).hexdigest()!=old['sha256']:
                 raise ValueError('Unrecognized newer lesson main: '+repo)
-            result=gh(endpoint,'PUT',dict(message='Replace answer picking with real coding exercises',branch='main',
+            result=gh(endpoint,'PUT',dict(message=message,branch='main',
                 sha=current['sha'],content=base64.b64encode(raw).decode('ascii')))
             commit=result['commit']['sha']
         else:
