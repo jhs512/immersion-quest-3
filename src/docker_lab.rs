@@ -181,17 +181,152 @@ fn docker(cli:&Path,args:&[&str],seconds:u64)->Result<Output,String> {
 
 fn first_line(text:&str)->&str {text.lines().find(|line|!line.trim().is_empty()).unwrap_or("").trim()}
 
-/// The engine must already be running; the player never installs or starts Docker Desktop.
-pub fn engine(cli:&Path)->Result<String,String> {
-    let info=docker(cli,&["info","--format","{{.OSType}} {{.ServerVersion}}"],30)?;
-    if !info.success {
-        return Err(format!("Docker 엔진에 연결하지 못했어요. Docker Desktop을 설치하고 실행한 뒤 다시 실행하세요. 설치 안내: {INSTALL_GUIDE}\n{}",first_line(&info.stderr)))
+fn start_when_needed<T>(mut probe:impl FnMut()->Result<T,String>,start:impl FnOnce()->Result<(),String>,mut pause:impl FnMut(),timeout:Duration)->Result<T,String> {
+    if let Ok(ready)=probe(){return Ok(ready)}
+    start()?;
+    let deadline=Instant::now()+timeout;
+    while Instant::now()<deadline {
+        pause();
+        if let Ok(ready)=probe(){return Ok(ready)}
     }
+    Err("Docker Desktop을 실행했지만 엔진 준비가 끝나지 않았어요. Docker 창에 초기 설정이나 권한 확인이 뜨면 완료한 뒤 다시 실행하세요.".into())
+}
+
+fn local_desktop_endpoint(endpoint:&str)->bool {
+    let endpoint=endpoint.trim().to_ascii_lowercase();
+    (endpoint.starts_with("unix://")&&(endpoint.contains("/.docker/")||endpoint=="unix:///var/run/docker.sock"))
+        ||(endpoint.starts_with("npipe://")&&(endpoint.contains("/docker_engine")||endpoint.contains("/dockerdesktoplinuxengine")))
+}
+
+/// This short-lived launcher deliberately has no CommandScope: the desktop app
+/// must survive the CLI that launched it and the lesson that requested it.
+fn launch_desktop_command(mut command:Command)->Result<(),String> {
+    command.stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
+    #[cfg(windows)] {use std::os::windows::process::CommandExt;command.creation_flags(0x08000000);}
+    let mut child=command.spawn().map_err(|e|e.to_string())?;
+    let deadline=Instant::now()+Duration::from_secs(15);
+    loop {
+        match child.try_wait().map_err(|e|e.to_string())? {
+            Some(status) if status.success()=>return Ok(()),
+            Some(_)=>return Err("Docker Desktop 실행 요청을 완료하지 못했어요.".into()),
+            None if Instant::now()>=deadline=>{let _=child.kill();let _=child.wait();return Err("Docker Desktop 실행 요청이 지연되고 있어요.".into())},
+            None=>std::thread::sleep(Duration::from_millis(100)),
+        }
+    }
+}
+
+fn start_desktop(cli:&Path)->Result<(),String> {
+    let context=std::env::var("DOCKER_CONTEXT").ok().filter(|v|!v.is_empty());
+    let endpoint=if context.is_none() {
+        std::env::var("DOCKER_HOST").ok().filter(|v|!v.is_empty())
+    }else{None};
+    let endpoint=match endpoint {
+        Some(value)=>value,
+        None=>{
+            let mut args=vec!["context","inspect","--format","{{.Endpoints.docker.Host}}"];
+            if let Some(name)=context.as_deref(){args.push(name);}
+            let output=docker(cli,&args,10)?;
+            if !output.success{return Err("Docker 연결 대상을 확인하지 못했어요. 환경 진단에서 현재 연결 설정을 확인하세요.".into())}
+            output.stdout
+        },
+    };
+    if !local_desktop_endpoint(&endpoint) {
+        return Err("현재 Docker 연결 대상에 접속하지 못했어요. 해당 엔진을 실행한 뒤 다시 시도하세요. 선택한 연결 대상은 그대로 유지해요.".into())
+    }
+    let mut command=Command::new(cli);prepare(&mut command,cli);
+    command.args(["desktop","start","--detach"]);
+    if launch_desktop_command(command).is_ok(){return Ok(())}
+    // Older Desktop versions may not include the desktop CLI plugin.
+    #[cfg(target_os="macos")] {
+        let mut command=Command::new("/usr/bin/open");command.args(["-g","-a","Docker"]);
+        if launch_desktop_command(command).is_ok(){return Ok(())}
+    }
+    #[cfg(windows)] {
+        let mut candidates=vec![];
+        if let Some(root)=cli.parent().and_then(Path::parent).and_then(Path::parent){candidates.push(root.join("Docker Desktop.exe"));}
+        for key in ["ProgramFiles","ProgramW6432"] {
+            if let Some(root)=std::env::var_os(key){candidates.push(PathBuf::from(root).join("Docker/Docker/Docker Desktop.exe"));}
+        }
+        if let Some(executable)=candidates.into_iter().find(|p|p.is_file()) {
+            use std::os::windows::process::CommandExt;
+            Command::new(executable).stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null())
+                .creation_flags(0x08000000).spawn().map_err(|e|e.to_string())?;
+            return Ok(())
+        }
+    }
+    Err(format!("Docker Desktop을 자동으로 실행하지 못했어요. 설치되어 있으면 직접 실행하세요. 설치하지 않았다면 먼저 설치하세요. 설치 안내: {INSTALL_GUIDE}"))
+}
+
+#[cfg(test)]
+mod startup_tests {
+    use super::*;
+    use std::cell::Cell;
+
+    #[test]
+    fn stopped_engine_starts_once_and_waits_until_ready() {
+        let probes=Cell::new(0);let launches=Cell::new(0);let waits=Cell::new(0);
+        let result=start_when_needed(||{probes.set(probes.get()+1);if probes.get()<3{Err("socket missing".into())}else{Ok("linux ready")}},
+            ||{launches.set(launches.get()+1);Ok(())},||waits.set(waits.get()+1),Duration::from_secs(1));
+        assert_eq!(result.unwrap(),"linux ready");assert_eq!(launches.get(),1);assert_eq!(waits.get(),2);
+    }
+
+    #[test]
+    fn already_running_engine_is_not_started_again() {
+        assert_eq!(start_when_needed(||Ok("ready"),||panic!("must not launch"),||panic!("must not wait"),Duration::ZERO).unwrap(),"ready");
+    }
+
+    #[test]
+    fn launch_failure_does_not_claim_docker_is_ready() {
+        let result=start_when_needed::<()>(||Err("socket missing".into()),||Err("launch failed".into()),||panic!("must not wait"),Duration::from_secs(1));
+        assert_eq!(result.unwrap_err(),"launch failed");
+    }
+
+    #[test]
+    fn startup_wait_has_a_deadline() {
+        let launched=Cell::new(false);
+        assert!(start_when_needed::<()>(||Err("not ready".into()),||{launched.set(true);Ok(())},||{},Duration::ZERO).is_err());
+        assert!(launched.get());
+    }
+
+    #[test]
+    fn only_local_desktop_connections_are_started() {
+        for endpoint in ["unix:///Users/test/.docker/run/docker.sock","unix:///var/run/docker.sock","npipe:////./pipe/dockerDesktopLinuxEngine","npipe:////./pipe/docker_engine"] {
+            assert!(local_desktop_endpoint(endpoint),"{endpoint}");
+        }
+        for endpoint in ["ssh://server","tcp://127.0.0.1:2376","tcp://remote:2376","unix:///Users/test/.colima/default/docker.sock",""] {
+            assert!(!local_desktop_endpoint(endpoint),"{endpoint}");
+        }
+    }
+}
+
+fn engine_info(cli:&Path,seconds:u64)->Result<Output,String> {
+    let info=docker(cli,&["info","--format","{{.OSType}} {{.ServerVersion}}"],seconds)?;
+    if !info.success {
+        return Err(format!("Docker 엔진에 연결하지 못했어요. Docker Desktop이 꺼져 있으면 실행하세요.\n{}",first_line(&info.stderr)))
+    }
+    Ok(info)
+}
+
+fn engine_details(cli:&Path,info:Output)->Result<String,String> {
     let text=info.stdout.trim().to_owned();
     if !text.starts_with("linux ") {return Err("Docker가 Windows 컨테이너 모드예요. Docker Desktop에서 Linux 컨테이너로 바꾼 뒤 다시 실행하세요.".into())}
     let compose=docker(cli,&["compose","version","--short"],30)?;
     if !compose.success {return Err(format!("Docker Compose v2를 찾지 못했어요. Docker Desktop을 최신으로 설치하세요. 설치 안내: {INSTALL_GUIDE}"))}
     Ok(format!("Docker {} · Compose {}",text.trim_start_matches("linux "),compose.stdout.trim()))
+}
+
+/// Read-only diagnostics do not launch an app.
+pub fn engine(cli:&Path)->Result<String,String> {engine_details(cli,engine_info(cli,30)?)}
+
+/// A requested lesson starts installed Docker Desktop once and waits for its
+/// engine, then continues the same run without changing the learner's code.
+fn ensure_engine(cli:&Path)->Result<String,String> {
+    static STARTING:std::sync::Mutex<()>=std::sync::Mutex::new(());
+    if let Ok(info)=engine_info(cli,5){return engine_details(cli,info)}
+    let _starting=STARTING.lock().unwrap_or_else(|p|p.into_inner());
+    let info=start_when_needed(||engine_info(cli,5),||start_desktop(cli),
+        ||std::thread::sleep(Duration::from_secs(2)),Duration::from_secs(120))?;
+    engine_details(cli,info)
 }
 
 /// The environment check: reports whether Docker lessons can run here. Never starts the engine.
@@ -429,7 +564,7 @@ struct Prepared { java:Option<String>, classpath:String }
 
 fn run_blocking(task:&Task,source:&str,input:&str,prepared:Prepared)->Result<Execution,String> {
     let cli=cli().ok_or_else(||format!("Docker를 찾지 못했어요. Docker Desktop을 설치하고 실행한 뒤 다시 실행하세요. 설치 안내: {INSTALL_GUIDE}"))?;
-    engine(&cli)?;
+    ensure_engine(&cli)?;
     for project in stale_projects(&cli) {remove_project(&cli,&project);if let Ok(d)=locks(){let _=std::fs::remove_file(d.join(format!("{project}.lock")));}}
     ensure_images(&cli,&task.docker_images)?;
     let directory=tempfile::Builder::new().prefix("mq3-docker-lab-").tempdir().map_err(|e|e.to_string())?;

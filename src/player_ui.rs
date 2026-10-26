@@ -1074,7 +1074,7 @@ if let Some(start)=autostart {
                     button {"data-shortcut-action":"run",disabled:busy()||(task.predict_before_run&&!narrating()&&code().is_empty()),onclick:{let task=task.clone();let github=session.github.clone();let user=session.user.clone();let selected=selected.clone();move |_|{let task=task.clone();let github=github.clone();let user=user.clone();let selected=selected.clone();async move {
                         busy.set(true);feedback.set("idle");execution_id+=1;execution_state.set("running");execution_seconds.set(0);
                         let demonstration=narrating();
-                        message.set("코드를 실행하고 있어요.".into());output.set(String::new());if demonstration{teacher_preview.set(String::new());}else{preview.set(String::new());}artifacts.set(vec![]);
+                        message.set(if task.language==repository_course::TaskLanguage::Docker{"Docker를 준비하고 실습을 실행하고 있어요. 꺼져 있으면 자동으로 켜요."}else{"코드를 실행하고 있어요."}.into());output.set(String::new());if demonstration{teacher_preview.set(String::new());}else{preview.set(String::new());}artifacts.set(vec![]);
                         let source=if has_example{example_source()}else{code()};let prediction=task.predict_before_run.then(||code());let input=input();let started=std::time::Instant::now();let run_id=execution_id();
                         let timer=spawn(async move {loop {tokio::time::sleep(std::time::Duration::from_secs(1)).await;if execution_id()!=run_id{break;}execution_seconds+=1;}});
                         // Local execution never waits for GitHub. The upload worker authenticates
