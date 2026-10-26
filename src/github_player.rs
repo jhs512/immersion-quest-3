@@ -34,7 +34,11 @@ impl Github {
     fn post<T:serde::de::DeserializeOwned>(&self,path:&str,payload:Value)->Result<T,String> {
         serde_json::from_value(crate::course_authoring::gh(&["api","--hostname","github.com","--method","POST",path,"--input","-"],Some(payload))?).map_err(|e|e.to_string())
     }
-    pub fn user(&self)->Result<GithubUser,String> {self.get("/user")}
+    pub fn user(&self)->Result<GithubUser,String> {
+        let user=self.get("/user")?;
+        crate::content_lifecycle::clear_authentication_failure();
+        Ok(user)
+    }
     pub fn ensure_user(&self,expected:u64)->Result<(),String> {if self.user()?.id!=expected {Err("로그인 계정이 바뀌었어요. 현재 수업을 다시 여세요.".into())}else{Ok(())}}
     pub fn content(&self,repo:&str,revision:&str,file:&str)->Result<String,String> {
         use base64::Engine;

@@ -2,6 +2,14 @@
 use crate::{content_updates::{Snapshot,SnapshotStore},github_player::Github};
 use std::sync::atomic::{AtomicBool,Ordering};
 
+// Shared by all gh-backed actions, including progress sync and lesson loading.
+static AUTHENTICATION_FAILED:AtomicBool=AtomicBool::new(false);
+pub fn note_github_failure(error:&str) {
+    if authentication_required(error){AUTHENTICATION_FAILED.store(true,Ordering::SeqCst);}
+}
+pub fn authentication_pending()->bool {AUTHENTICATION_FAILED.load(Ordering::SeqCst)}
+pub fn clear_authentication_failure() {AUTHENTICATION_FAILED.store(false,Ordering::SeqCst);}
+
 /// A background authentication failure must not leave an old course looking current.
 pub fn authentication_required(error:&str)->bool {
     let lower=error.to_ascii_lowercase();

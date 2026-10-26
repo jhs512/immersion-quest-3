@@ -20,6 +20,20 @@ fn login_recovery_distinguishes_expired_credentials_from_network_and_repository_
         assert!(!authentication_required(error),"{error}");
     }
 }
+
+#[test]
+fn any_github_action_can_request_login_recovery_until_the_user_is_verified_again() {
+    use molip_quest::content_lifecycle::{note_github_failure,authentication_pending,clear_authentication_failure};
+    clear_authentication_failure();
+    note_github_failure("HTTP 403: repository permission denied");
+    assert!(!authentication_pending());
+    note_github_failure("progress upload failed: Bad credentials (HTTP 401)");
+    assert!(authentication_pending());
+    note_github_failure("network disconnected");
+    assert!(authentication_pending());
+    clear_authentication_failure();
+    assert!(!authentication_pending());
+}
 fn snapshot(store:&SnapshotStore,version:&str)->Snapshot {
     let root=std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/player-pilot").join(version);
     store.prepare("mq3-validation/course",&std::fs::read_to_string(root.join("course.json")).unwrap(),|_|Ok(std::fs::read_to_string(root.join("lesson.json")).unwrap())).unwrap()

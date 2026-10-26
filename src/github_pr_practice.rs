@@ -55,8 +55,11 @@ impl GitPractice {
         let status=loop {if let Some(status)=child.try_wait().map_err(|e|e.to_string())?{break status}
             if started.elapsed()>Duration::from_secs(45){let _=child.kill();let _=child.wait();return Err("GitHub 응답이 늦어요. 연결을 확인하고 다시 제출하세요.".into())}
             std::thread::sleep(Duration::from_millis(25));};
-        let output=out.join().map_err(|_|"GitHub 응답 수집 실패")?;let _=err.join();
-        if !status.success(){return Err("GitHub 저장소나 PR을 확인하지 못했어요. 앞 단계와 gh 로그인 상태를 확인하세요.".into())}
+        let output=out.join().map_err(|_|"GitHub 응답 수집 실패")?;let error=err.join().unwrap_or_default();
+        if !status.success(){
+            crate::content_lifecycle::note_github_failure(&String::from_utf8_lossy(&error));
+            return Err("GitHub 저장소나 PR을 확인하지 못했어요. 앞 단계와 gh 로그인 상태를 확인하세요.".into())
+        }
         serde_json::from_slice(&output).map_err(|_|"GitHub 응답 형식을 확인하세요.".into())
     }
     #[cfg(target_os="android")]

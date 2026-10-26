@@ -32,7 +32,11 @@ pub(crate) fn gh(args:&[&str],body:Option<Value>)->Result<Value,String> {
     let mut child=command.spawn().map_err(|_|"GitHub CLI를 찾지 못했어요. gh를 설치하고 gh auth login을 실행하세요.")?;
     if let Some(body)=body {child.stdin.take().ok_or("gh 입력 연결 실패")?.write_all(serde_json::to_string(&body).map_err(|e|e.to_string())?.as_bytes()).map_err(|e|e.to_string())?;}
     let output=child.wait_with_output().map_err(|e|e.to_string())?;
-    if !output.status.success() {return Err(format!("GitHub CLI 요청 실패. gh auth status와 리포 권한을 확인하세요. {}",String::from_utf8_lossy(&output.stderr).chars().take(600).collect::<String>()))}
+    if !output.status.success() {
+        let error=format!("GitHub CLI 요청 실패. gh auth status와 리포 권한을 확인하세요. {}",String::from_utf8_lossy(&output.stderr).chars().take(600).collect::<String>());
+        crate::content_lifecycle::note_github_failure(&error);
+        return Err(error)
+    }
     serde_json::from_slice(&output.stdout).map_err(|e|e.to_string())
 }
 pub fn publisher()->Result<String,String> {gh(&["api","user"],None)?["login"].as_str().map(String::from).ok_or("gh 로그인 계정을 확인하세요.".into())}

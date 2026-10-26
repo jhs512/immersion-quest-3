@@ -1436,6 +1436,10 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,active_l
         let (Some(session),Some(course))=(session,course) else{return};
         let started=std::time::Instant::now();let mut schedule=updater::UpdateSchedule::default();let mut seen=0;
         loop {
+            if molip_quest::content_lifecycle::authentication_pending()&&!needs_login() {
+                needs_login.set(true);
+                message.set("GitHub 인증이 끊겼어요. 다시 로그인하세요.".into());
+            }
             let request=*manual.peek(); let requested=request!=seen;
             if schedule.begin(started.elapsed().as_secs(),requested) {
                 let apply_after_check=requested&&*refresh_and_apply.peek();

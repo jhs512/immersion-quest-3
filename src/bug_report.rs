@@ -313,6 +313,7 @@ async fn gh_request(method: &str, endpoint: &str, payload: Value) -> Result<Valu
     .await
     .map_err(|_| "GitHub 응답 시간이 초과됐어요.".to_string())??;
     if !output.status.success() {
+        crate::content_lifecycle::note_github_failure(&String::from_utf8_lossy(&output.stderr));
         return Err(format!(
             "GitHub 요청 실패: {}",
             String::from_utf8_lossy(&output.stderr)
