@@ -110,7 +110,7 @@ def merge(remote,prepared,rows,apply_sequence=False):
     else:
         summary=f'{len(rows)}수업의 선택 문제를 직접 구현·실행하는 문제로 바꿨어요.'
     if not any(item.get('summary')==summary for item in value.get('change_history',[])):
-        value.setdefault('change_history',[]).insert(0,dict(at='2026-10-25T22:25:00Z' if first_batch else datetime.now(timezone.utc).isoformat().replace('+00:00','Z'),summary=summary,
+        value.setdefault('change_history',[]).insert(0,dict(at='2026-10-25T22:25:00Z' if first_batch else datetime.now(timezone.utc).isoformat(timespec='seconds').replace('+00:00','Z'),summary=summary,
             reason='사용자 지시: 보기를 고르는 대신 직접 코딩하거나 명령을 실행해 문제를 풀어요.',
             details=['값·조건·컴파일·배열·실행 인자·메서드·참조·static·역할·컬렉션·스트림·파일 입출력 수업이에요.' if first_batch else '바뀐 수업: '+', '.join(new.get('title',new['repository']) for _,new,_ in rows),
                      '기존 기록은 이전 문제에 남고, 본질이 바뀐 문제는 새 단계로 직접 풀어요.',
@@ -130,7 +130,7 @@ def merge(remote,prepared,rows,apply_sequence=False):
         value['lessons']=ordered
         summary='선수 지식과 난이도에 맞춰 전체 추천 순서를 다시 정했어요.'
         if not any(change.get('summary')==summary for change in value.get('change_history',[])):
-            value.setdefault('change_history',[]).insert(0,dict(at=datetime.now(timezone.utc).isoformat().replace('+00:00','Z'),
+            value.setdefault('change_history',[]).insert(0,dict(at=datetime.now(timezone.utc).isoformat(timespec='seconds').replace('+00:00','Z'),
                 summary=summary,reason='사용자 요청: 분류별 보기와 독립적인 전체 학습 순서를 제공해요.',
                 details=['수업 ID와 기존 학습 기록은 유지해요.','참조·컬렉션 다음에 클래스 심화, 트랜잭션·JDBC 다음에 격리·락을 배워요.']))
     return value

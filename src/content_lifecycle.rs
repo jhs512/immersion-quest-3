@@ -2,6 +2,14 @@
 use crate::{content_updates::{Snapshot,SnapshotStore},github_player::Github};
 use std::sync::atomic::{AtomicBool,Ordering};
 
+/// A background authentication failure must not leave an old course looking current.
+pub fn update_failure(error:&str,requested:bool)->Option<String> {
+    let lower=error.to_ascii_lowercase();
+    if lower.contains("401")||lower.contains("requires authentication")||lower.contains("bad credentials") {
+        Some("GitHub 로그인을 확인해 주세요. 인증 오류로 새 수업을 받지 못하고 있어요.".into())
+    }else if requested {Some(error.to_owned())}else{None}
+}
+
 /// Download and validate first. A failed download or backup leaves the old course usable.
 pub fn refresh_course(store:&SnapshotStore,repository:&str,
     fetch:impl FnOnce()->Result<Snapshot,String>,

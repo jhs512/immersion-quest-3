@@ -1,4 +1,14 @@
 use molip_quest::{content_lifecycle::refresh_course,content_updates::{Snapshot,SnapshotStore}};
+
+#[test]
+fn expired_login_is_visible_even_during_an_automatic_content_check() {
+    let error="GitHub CLI request failed: gh: Requires authentication (HTTP 401)";
+    let notice=molip_quest::content_lifecycle::update_failure(error,false).unwrap();
+    assert!(notice.contains("인증 오류"));
+    assert!(notice.contains("새 수업"));
+    assert!(molip_quest::content_lifecycle::update_failure("offline",false).is_none());
+    assert_eq!(molip_quest::content_lifecycle::update_failure("offline",true),Some("offline".into()));
+}
 fn snapshot(store:&SnapshotStore,version:&str)->Snapshot {
     let root=std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/player-pilot").join(version);
     store.prepare("mq3-validation/course",&std::fs::read_to_string(root.join("course.json")).unwrap(),|_|Ok(std::fs::read_to_string(root.join("lesson.json")).unwrap())).unwrap()

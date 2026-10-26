@@ -9,6 +9,12 @@ spec.loader.exec_module(publish)
 
 
 class MergeTests(unittest.TestCase):
+    def test_generated_history_uses_the_players_utc_seconds_contract(self):
+        merged=publish.merge(self.remote,self.prepared,[(self.old,self.new,b'')])
+        self.assertTrue(merged['change_history'])
+        for row in merged['change_history']:
+            self.assertRegex(row['at'],r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$')
+
     def test_revision_numbers_cannot_reuse_or_go_back_to_published_versions(self):
         old=dict(id='lesson',revision='java-crud-5')
         for revision in ['java-crud-4','java-crud-5']:

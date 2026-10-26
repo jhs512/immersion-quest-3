@@ -1447,7 +1447,7 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,active_l
                         else {candidate.set(Some(next)); if first {offered.set(true);} message.set("새 수업 내용이 있어요.".into());}
                     }
                     Ok(None)=>{candidate.set(None);offered.set(false);if requested {message.set("최신 내용이에요.".into());}}
-                    Err(error)=>{if requested {message.set(error);}}
+                    Err(error)=>{if let Some(notice)=molip_quest::content_lifecycle::update_failure(&error,requested){message.set(notice);}}
                 }
             }
             tokio::time::sleep(std::time::Duration::from_secs(1)).await;
