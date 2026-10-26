@@ -1,29 +1,29 @@
 {
   "by": "hand",
-  "source_sha256": "0e84b302b32f8134d0ebd758753815ed6d3bd9b1f62fc69a611c28d4670723d6",
+  "source_sha256": "ecc5fee91eb6b86972737ad03b0fd5609948f64f74a3885343f70ba9aae3739f",
   "entry": [
     {
       "action": "say",
-      "text": "준비 스크립트가 컨테이너를 만든 뒤 멈췄어요. 이제 그 객체를 지우고 실행 재료는 남겨 보세요.",
-      "target": "text:준비 스크립트가 컨테이너를 만든 뒤 멈췄어요. 이제 그 객체를 지우고 실행 재료는 남겨 보세요."
+      "text": "이번 문제는 Nginx 컨테이너를 멈춘 상태예요. 이 컨테이너만 삭제하세요.",
+      "target": "text:이번 문제는 Nginx 컨테이너를 멈춘 상태예요. 이 컨테이너만 삭제하세요."
     },
     {
       "action": "run"
     },
     {
       "action": "say",
-      "text": "컨테이너는 멈췄지만 아직 있어요. 이미지도 남아 있어요.",
+      "text": "삭제 명령이 없어서 컨테이너는 아직 남아 있어요.",
       "target": "output"
     },
     {
       "action": "patch_code",
-      "before": "# 제공된 IMAGE·BOX는 이 문제의 이미지와 컨테이너예요.\n",
-      "after": "# 제공된 IMAGE·BOX는 이 문제의 이미지와 컨테이너예요.\n# 이번 목표에 맞는 Docker 명령을 실행해요.\ndocker rm \"$BOX\"\n",
+      "before": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
+      "after": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker rm \"$BOX\"\n",
       "say": "멈춘 컨테이너만 삭제하고 이미지는 남기세요"
     },
     {
       "action": "say",
-      "text": "rm은 컨테이너를 지워요. 그 컨테이너의 이미지는 따로 남아요.",
+      "text": "rm은 컨테이너를 지워요. 이미지는 따로 남아요.",
       "target": "code:docker rm \"$BOX\""
     },
     {
@@ -31,13 +31,13 @@
     },
     {
       "action": "say",
-      "text": "컨테이너 객체는 없어졌어요. 이미지는 남아 있어요.",
+      "text": "삭제한 이름이 출력됐어요. Nginx 이미지는 그대로 남아 있어요.",
       "target": "output"
     },
     {
       "action": "say",
-      "text": "조심하세요. rm은 그 컨테이너 안에서 새로 만든 파일도 없애요. 데이터 보존은 다음 챕터에서 다뤄요.",
-      "target": "text:stop으로 멈춘 객체는 ps -a나 inspect로 찾을 수 있어요. rm으로 지우면 그 객체는 없어져요. 이미지는 컨테이너와 별개예요. 새 run은 그 이미지로 다시 시작할 수 있어요."
+      "text": "조심하세요. 컨테이너 안에 새로 쓴 파일도 함께 사라져요. 다음에는 데이터를 남기는 방법을 배워요.",
+      "target": "text:rm은 삭제한 컨테이너 이름을 출력해요. 이미지까지 지우지는 않아요. 같은 이미지로 새 컨테이너를 만들 수 있어요."
     },
     {
       "action": "submit"

@@ -230,7 +230,7 @@ def step(**fields):
 
 
 LESSON = dict(
-    key='docker-image-container', folder='docker_image_container', pilot='리', revision=3,
+    key='docker-image-container', folder='docker_image_container', pilot='리', revision=4,
     title='이미지와 컨테이너 · 지워도 남는 것과 사라지는 것',
     category='docker', category_title='Docker', track=None,
     category_evidence='실제 Docker 엔진으로 컨테이너·볼륨·이미지를 다루는 수업이에요.',
@@ -471,7 +471,7 @@ LESSON['brief'] = (
     '실제 Docker 엔진을 써요. 실습 컨테이너만 관리하고 수업을 나가면 정리해요. 기본 호스트 포트를 점유하지 않아요.',
     '이미지를 받는 것과 프로그램을 켜는 것은 같은 일일까요?')
 LESSON['reset'] = ['각 문제는 본문에서 알린 준비 상태로 시작해요. CLI 실습은 이 문제 소유 컨테이너만 되돌려요.',
-    '대화형 실습 자원은 수업 동안 유지하고 수업을 나가면 정리해요. 제출 검사는 별도 공간에서 실행해요.',
+    '대화형 실습 자원은 수업 동안 유지하고 수업을 나가면 정리해요. CLI의 반복 실행은 상태를 보존해요. 제출 검사는 별도 공간에서 실행해요.',
     '기존 사용자의 컨테이너·볼륨과 학습 진도는 지우지 않아요.']
 LESSON['chapters'][1]['units'][0]['steps'][0]['intro'].insert(0,
     '앞에서는 run에 이미지와 명령을 직접 썼어요. 이제 같은 실행 설정을 compose.yaml에 기록해요. services 아래에는 서비스 이름, image에는 이미지, command에는 실행할 명령을 써요. lab.sh가 그 파일로 docker compose up을 실행해요. 여러 실행 설정을 파일로 관리하는 단계예요.')

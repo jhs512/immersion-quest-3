@@ -3,36 +3,50 @@
   "lesson": "courses/redesigned/docker-image-container.json",
   "expected_outputs": [
     [
-      "이미지: pull 명령이 아직 없어요\n컨테이너: 없음",
-      "이미지: 내려받기 확인\n컨테이너: 없음"
+      "",
+      {
+        "pattern": "(?s)Digest: sha256:[a-f0-9]{64}.*nginx:1\\.28-alpine"
+      }
     ],
     [
-      "컨테이너: 없음\n실행 환경: 확인 안 됨",
-      "컨테이너: running\n실행 환경: 지정한 이미지"
+      "",
+      {
+        "pattern": "^[a-f0-9]{64}$"
+      }
     ],
     [
-      "실행 목록: ps 명령이 아직 없어요",
-      "실행 중인 실습 컨테이너: 1"
+      "",
+      {
+        "pattern": "(?s)^CONTAINER ID\\s+IMAGE.*PORTS.*NAMES.*nginx:1\\.28-alpine.*127\\.0\\.0\\.1:[0-9]+->80/tcp.*mq3lab-[a-z0-9-]+-nginx"
+      }
     ],
     [
-      "시작 로그: logs 명령이 아직 없어요",
-      "시작 로그: 메모 서버 시작"
+      "",
+      {
+        "pattern": "(?s)/docker-entrypoint.sh.*GET / HTTP/1\\.1.*200"
+      }
     ],
     [
-      "컨테이너 안 메모: (없음)",
-      "컨테이너 안 메모: 메모 서버 시작"
+      "",
+      "hello"
     ],
     [
-      "컨테이너: running\n컨테이너 객체: 그대로",
-      "컨테이너: exited\n컨테이너 객체: 그대로"
+      "",
+      {
+        "pattern": "^mq3lab-[a-z0-9-]+-nginx$"
+      }
     ],
     [
-      "컨테이너: exited\n식별자: 같은 컨테이너",
-      "컨테이너: running\n식별자: 같은 컨테이너"
+      "",
+      {
+        "pattern": "^mq3lab-[a-z0-9-]+-nginx$"
+      }
     ],
     [
-      "컨테이너: exited\n이미지: 남아 있어요",
-      "컨테이너: 없음\n이미지: 남아 있어요"
+      "",
+      {
+        "pattern": "^mq3lab-[a-z0-9-]+-nginx$"
+      }
     ],
     [
       "상태: exited",
@@ -60,21 +74,21 @@
       "step": 1,
       "replacements": [
         [
-          "docker pull \"$IMAGE\"",
+          "docker pull nginx:1.28-alpine",
           "true"
         ]
       ],
-      "reason": "출력만 흉내 내거나 명령을 생략하면 엔진 상태·호출 검사를 만족하지 못해요."
+      "reason": "명령을 생략하면 실제 엔진 상태·호출 검사를 통과하지 못해요."
     },
     {
       "step": 2,
       "replacements": [
         [
-          "docker run -d \"$IMAGE\" sleep 600",
+          "docker run -d --name \"$BOX\" -p 127.0.0.1::80 nginx:1.28-alpine",
           "true"
         ]
       ],
-      "reason": "출력만 흉내 내거나 명령을 생략하면 엔진 상태·호출 검사를 만족하지 못해요."
+      "reason": "명령을 생략하면 실제 엔진 상태·호출 검사를 통과하지 못해요."
     },
     {
       "step": 3,
@@ -84,7 +98,7 @@
           "true"
         ]
       ],
-      "reason": "출력만 흉내 내거나 명령을 생략하면 엔진 상태·호출 검사를 만족하지 못해요."
+      "reason": "명령을 생략하면 실제 엔진 상태·호출 검사를 통과하지 못해요."
     },
     {
       "step": 4,
@@ -94,17 +108,17 @@
           "true"
         ]
       ],
-      "reason": "출력만 흉내 내거나 명령을 생략하면 엔진 상태·호출 검사를 만족하지 못해요."
+      "reason": "명령을 생략하면 실제 엔진 상태·호출 검사를 통과하지 못해요."
     },
     {
       "step": 5,
       "replacements": [
         [
-          "docker exec \"$BOX\" sh -c 'echo \"$1\" > /memo.txt' sh \"$MESSAGE\"",
+          "docker exec \"$BOX\" sh -c 'echo hello > /memo.txt; cat /memo.txt'",
           "true"
         ]
       ],
-      "reason": "출력만 흉내 내거나 명령을 생략하면 엔진 상태·호출 검사를 만족하지 못해요."
+      "reason": "명령을 생략하면 실제 엔진 상태·호출 검사를 통과하지 못해요."
     },
     {
       "step": 6,
@@ -114,7 +128,7 @@
           "true"
         ]
       ],
-      "reason": "출력만 흉내 내거나 명령을 생략하면 엔진 상태·호출 검사를 만족하지 못해요."
+      "reason": "명령을 생략하면 실제 엔진 상태·호출 검사를 통과하지 못해요."
     },
     {
       "step": 7,
@@ -124,7 +138,7 @@
           "true"
         ]
       ],
-      "reason": "출력만 흉내 내거나 명령을 생략하면 엔진 상태·호출 검사를 만족하지 못해요."
+      "reason": "명령을 생략하면 실제 엔진 상태·호출 검사를 통과하지 못해요."
     },
     {
       "step": 8,
@@ -134,7 +148,7 @@
           "true"
         ]
       ],
-      "reason": "출력만 흉내 내거나 명령을 생략하면 엔진 상태·호출 검사를 만족하지 못해요."
+      "reason": "명령을 생략하면 실제 엔진 상태·호출 검사를 통과하지 못해요."
     },
     {
       "step": 9,

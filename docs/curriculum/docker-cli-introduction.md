@@ -21,20 +21,22 @@
 
 ## 실제 실행과 준비 상태
 
-Docker 언어 실행기는 이미 별도 학습자 파일을 지원한다. 앱 실행기를 새로 만들지 않고 `commands.sh`와 제공된 `lab.sh`를 사용한다. 준비 스크립트는 실행 이름·소유 라벨·정지 대기 시간·조회 범위를 관리하고 실제 Docker 바이너리로 명령을 전달한다. 출력의 모양만 비교하는 대신 명령의 성공 호출 기록과 실제 엔진의 이미지·컨테이너·파일 상태를 읽는다.
+2026-10-26 후속 수정: 이미지 변수를 감춘 BusyBox 명령 대신 `docker pull nginx:1.28-alpine`과 `docker run -d --name "$BOX" -p 127.0.0.1::80 nginx:1.28-alpine`을 직접 작성한다. BOX는 실습별 고유 이름이다. 준비 스크립트는 소유 라벨만 추가하며, 조회는 실제 Docker의 표·컨테이너 ID·로그를 그대로 보여 준다. `docker ps`에는 사용자가 원래 켜 둔 컨테이너도 보이며 이름으로 구별한다. 변경 명령은 실습 소유 자원만 허용하고 고정 포트·외부 공개 포트·추가 대상은 거절한다.
 
-이 CLI 챕터는 명령 하나의 차이를 같은 조건에서 비교하는 독립 실험이다. 재실행할 때 그 문제 소유 컨테이너만 준비 상태로 복원한다. 이 사실을 단원 전제와 본문에서 알린다. SQL/DB 수업의 상태 유지 정책이나 Docker Desktop 자체의 수명 정책은 바꾸지 않는다. 고정 호스트 포트는 열지 않고, 기존 사용자의 컨테이너·볼륨·학습 진도는 삭제하지 않는다. 디렉터리 격리를 OS 샌드박스라고 주장하지 않는다.
+각 문제는 설명한 시작 상태를 한 번 준비한다. 같은 문제의 코드 재실행에서는 컨테이너를 재생성하지 않는다. 초기화 또는 수업 종료 때 소유 자원만 정리한다. 제출과 해설은 별도 실행 공간을 사용해 학생의 상태를 보존한다. `MQ3_OUTPUT=raw`는 실제 stdout/stderr, `grading`은 엔진 상태로 만든 결정적 판정 결과를 반환한다. 컨테이너 ID·포트·시각을 고정하기 위해 실제 출력을 대체하지 않는다. SQL/DB의 상태 유지 정책은 그대로다. 디렉터리 격리를 OS 샌드박스라고 주장하지 않는다.
 
 ## 식별자와 생성 원본
 
 - 원본: `tools/principles_lessons/d0_cli_intro.py`, 기존 메타데이터 연결은 `d1_image_container.py`.
 - 새 챕터에는 명시적 `identity=cli-introduction`을 주고 기존 챕터는 원래 `c0`~`c3` 정체성을 유지한다.
 - 기존 문제 5개·챕터 4개·단원 5개의 ID는 보존한다. 새 8개 문제에만 새 ID를 부여한다.
-- 개정은 `docker-image-container-3`이다. 앱 배포와 별개로 수업 저장소와 코스 참조를 게시한다.
+- 개정은 `docker-image-container-4`이다. 수업 게시는 별도지만 이번 개정은 Nginx 이미지 허용과 화면/채점 출력 분리가 있는 앱이 필요하다. 해당 런타임 릴리스가 공개된 뒤 수업 저장소와 코스 참조를 게시한다.
 
 ## 검증
 
 `make.py` → 대본 문맥 검토 → `build-redesigned-git.py` → 실제 Docker 재생 → `validate_redesigned_lesson` 순서로 확인한다. 최종 게시의 근거는 `target/mcq/docker-image-container.json`의 현재 파일 해시와 실제 채점 결과다. 네이티브 화면이나 실제 음성을 확인하지 않은 경우 그 검증까지 통과했다고 표현하지 않는다.
+
+`python tools/test_docker_cli_intro.py`는 실제 표/로그, 반복 실행 시 동일 ID, 동적 루프백 포트, 무관한 컨테이너 보존, 고정·중복 포트 거절, 8개 명령의 정답/무동작 오답을 확인한다. 앱 실행기의 raw/grading 분리는 `docker_lab::tests::learner_and_narration_keep_raw_output_while_checks_use_grading_output`에서 확인한다.
 
 공식 근거: [컨테이너의 필요성](https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/), [pull](https://docs.docker.com/reference/cli/docker/image/pull/), [run과 start](https://docs.docker.com/reference/cli/docker/container/run/).
 

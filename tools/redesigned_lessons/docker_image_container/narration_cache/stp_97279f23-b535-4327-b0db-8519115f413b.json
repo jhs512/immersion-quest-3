@@ -1,43 +1,43 @@
 {
   "by": "hand",
-  "source_sha256": "86c1899e3eca0634783dffb9528d8a95c0a9bbf8cde4ce23fa4810be5890e934",
+  "source_sha256": "97d391d6246883018e9527787d782710e8f6bf6694e607bc1301142c93582b84",
   "entry": [
     {
       "action": "say",
-      "text": "준비 스크립트가 컨테이너 하나를 켰어요. 그 안에는 아직 /memo.txt가 없어요. 새 컨테이너를 만들지 않고 파일을 써 보세요.",
-      "target": "text:준비 스크립트가 컨테이너 하나를 켰어요. 그 안에는 아직 /memo.txt가 없어요. 새 컨테이너를 만들지 않고 파일을 써 보세요."
+      "text": "Nginx가 실행 중이고 /memo.txt는 없어요. 같은 컨테이너 안에 메모를 쓰고 읽으세요.",
+      "target": "text:Nginx가 실행 중이고 /memo.txt는 없어요. 같은 컨테이너 안에 메모를 쓰고 읽으세요."
     },
     {
       "action": "run"
     },
     {
       "action": "say",
-      "text": "컨테이너는 있지만 그 안의 메모 파일은 아직 없어요.",
+      "text": "이름 변수만으로는 파일이 생기지 않아요. 컨테이너에 명령을 보내 볼게요.",
       "target": "output"
     },
     {
       "action": "patch_code",
-      "before": "# 제공된 IMAGE·BOX는 이 문제의 이미지와 컨테이너예요.\n",
-      "after": "# 제공된 IMAGE·BOX는 이 문제의 이미지와 컨테이너예요.\n# 이번 목표에 맞는 Docker 명령을 실행해요.\ndocker exec \"$BOX\" sh -c 'echo \"$1\" > /memo.txt' sh \"$MESSAGE\"\n",
+      "before": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
+      "after": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker exec \"$BOX\" sh -c 'echo hello > /memo.txt; cat /memo.txt'\n",
       "say": "실행 중인 컨테이너 안에 메모를 쓰세요"
     },
     {
       "action": "say",
-      "text": "exec는 이미 실행 중인 컨테이너 안에서 명령을 하나 더 실행해요.",
-      "target": "code:docker exec \"$BOX\" sh -c 'echo \"$1\" > /memo.txt' sh \"$MESSAGE\""
+      "text": "exec는 실행 중인 컨테이너 안에서 명령을 더 실행해요.",
+      "target": "code:docker exec \"$BOX\" sh -c 'echo hello > /memo.txt; cat /memo.txt'"
     },
     {
       "action": "run"
     },
     {
       "action": "say",
-      "text": "실행 중인 같은 컨테이너 안에 메모 파일이 생겼어요.",
+      "text": "cat이 읽은 hello가 그대로 출력돼요. 같은 컨테이너 안에서 명령을 실행했어요.",
       "target": "output"
     },
     {
       "action": "say",
-      "text": "조심하세요. 이 파일은 컨테이너 안에 있어요. 컨테이너를 지워도 남을지는 뒤에서 따로 확인해요.",
-      "target": "text:run은 새 컨테이너를 만들어요. exec는 기존 컨테이너를 대상으로 해요. sh -c 뒤의 글자는 컨테이너 안 셸이 실행해요. MESSAGE의 글자는 sh의 첫 인수로 전달해요."
+      "text": "조심하세요. 이 파일은 내 컴퓨터의 /memo.txt가 아니에요. 컨테이너 안에 있어요.",
+      "target": "text:run은 새 컨테이너를 만들어요. exec는 기존 컨테이너에 명령을 보내요. sh -c 뒤의 명령은 컨테이너 안에서 실행돼요. echo로 쓰고 cat으로 읽어요."
     },
     {
       "action": "submit"

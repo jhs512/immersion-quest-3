@@ -1,29 +1,29 @@
 {
   "by": "hand",
-  "source_sha256": "6822a7494994bbcb0d76e312b01c9af8c5dbf2d80f95872db56d2b7d4090ac69",
+  "source_sha256": "19d806a07183a41ed1bd63056b4d8dd223c847be1b9aeacd0b9c6570e6a4e1e5",
   "entry": [
     {
       "action": "say",
-      "text": "준비 스크립트가 컨테이너 하나를 켜 두었어요. 이미지가 있다는 사실과 실행 중이라는 사실을 구별해 보세요.",
-      "target": "text:준비 스크립트가 컨테이너 하나를 켜 두었어요. 이미지가 있다는 사실과 실행 중이라는 사실을 구별해 보세요."
+      "text": "이번 문제는 준비된 Nginx 서버 하나에서 시작해요. 실행 중인 컨테이너의 이름과 포트를 찾아보세요.",
+      "target": "text:이번 문제는 준비된 Nginx 서버 하나에서 시작해요. 실행 중인 컨테이너의 이름과 포트를 찾아보세요."
     },
     {
       "action": "run"
     },
     {
       "action": "say",
-      "text": "아직 ps로 컨테이너 목록을 요청하지 않았어요.",
+      "text": "서버는 준비돼 있지만 목록을 조회하지 않아서 표가 없어요.",
       "target": "output"
     },
     {
       "action": "patch_code",
-      "before": "# 제공된 IMAGE·BOX는 이 문제의 이미지와 컨테이너예요.\n",
-      "after": "# 제공된 IMAGE·BOX는 이 문제의 이미지와 컨테이너예요.\n# 이번 목표에 맞는 Docker 명령을 실행해요.\ndocker ps\n",
+      "before": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
+      "after": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker ps\n",
       "say": "이미지 목록 대신 실행 중인 컨테이너를 조회하세요"
     },
     {
       "action": "say",
-      "text": "이미지 목록과 실행 중인 컨테이너 목록은 다른 대상을 보여 줘요.",
+      "text": "ps는 실행 중인 컨테이너를 표로 보여 줘요.",
       "target": "code:docker ps"
     },
     {
@@ -31,13 +31,13 @@
     },
     {
       "action": "say",
-      "text": "실습 소유 컨테이너 한 개가 실행 중이에요. 이미지를 받기만 한 상태와 달라요.",
+      "text": "표의 NAMES에서 실습 이름을 찾으세요. PORTS의 화살표 왼쪽은 이 컴퓨터의 포트예요. 오른쪽 80은 컨테이너의 포트예요.",
       "target": "output"
     },
     {
       "action": "say",
-      "text": "조심하세요. images에 이미지가 보여도 ps에 실행 중인 컨테이너가 있다는 뜻은 아니에요.",
-      "target": "text:docker images는 실행 재료를 보여 줘요. docker ps는 실행 중인 컨테이너를 보여 줘요. ps -a는 멈춘 컨테이너도 보여 줘요. 이 실습의 ps에는 소유 라벨 필터가 자동으로 붙어요."
+      "text": "조심하세요. 이미지를 받기만 했다면 ps 목록에는 새 컨테이너가 없어요.",
+      "target": "text:docker images는 이미지를 보여 줘요. docker ps는 실행 중인 컨테이너를 보여 줘요. IMAGE·STATUS·PORTS·NAMES 열을 읽으세요. 원래 켜 두었던 컨테이너도 나올 수 있어요. BOX의 이름으로 이번 실습을 구별하세요. 조회만으로 다른 컨테이너가 바뀌지는 않아요."
     },
     {
       "action": "submit"
