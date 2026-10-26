@@ -29,6 +29,16 @@ module.loader.exec_module(publisher)
 gh=publisher.gh
 
 
+def check_transition(key,old,new):
+    prefix=key+'-'
+    old_number=old['revision'].removeprefix(prefix)
+    new_number=new['revision'].removeprefix(prefix)
+    if new['id']!=old['id'] or new['revision']==old['revision']:
+        raise ValueError(f'Invalid revision transition: {key}')
+    if old_number.isdigit() and new_number.isdigit() and int(new_number)<=int(old_number):
+        raise ValueError(f'Revision must increase: {key}')
+
+
 def preflight(keys=None):
     base=json.loads(subprocess.check_output(['git','show',f'{BASE}:courses/redesigned-courses/java-backend.json'],cwd=ROOT))
     prepared=json.loads((ROOT/'courses/redesigned-courses/java-backend.json').read_text(encoding='utf-8'))
@@ -45,7 +55,7 @@ def preflight(keys=None):
             raise ValueError(f'Missing current execution evidence: {key}')
         lesson=json.loads(raw)
         if any(task.get('interaction') for task in lesson['tasks']):raise ValueError(f'Answer picking remains: {key}')
-        if new['id']!=old['id'] or new['revision']==old['revision']:raise ValueError(f'Invalid revision transition: {key}')
+        check_transition(key,old,new)
         rows.append((old,new,raw))
     return prepared,rows
 

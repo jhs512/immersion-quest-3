@@ -9,6 +9,13 @@ spec.loader.exec_module(publish)
 
 
 class MergeTests(unittest.TestCase):
+    def test_revision_numbers_cannot_reuse_or_go_back_to_published_versions(self):
+        old=dict(id='lesson',revision='java-crud-5')
+        for revision in ['java-crud-4','java-crud-5']:
+            with self.assertRaises(ValueError):
+                publish.check_transition('java-crud',old,dict(id='lesson',revision=revision))
+        publish.check_transition('java-crud',old,dict(id='lesson',revision='java-crud-6'))
+
     def setUp(self):
         self.old={'id':'retained','repository':'jhs512/mq3-lesson-redesigned-java-values','revision':'old','sha256':'a'*64}
         self.new={**self.old,'revision':'new','sha256':'b'*64}
