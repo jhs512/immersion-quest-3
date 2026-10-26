@@ -42,6 +42,13 @@ class MergeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'Concurrent course revision'):
             publish.merge(self.remote,self.prepared,[(self.old,self.new,b'')])
 
+    def test_concurrent_metadata_on_the_updated_lesson_is_kept(self):
+        self.remote['lessons'][0].update(category='java',track='basic',prerequisites=['new-docker'])
+        merged=publish.merge(self.remote,self.prepared,[(self.old,self.new,b'')])
+        self.assertEqual(merged['lessons'][0]['revision'],'new')
+        self.assertEqual(merged['lessons'][0]['prerequisites'],['new-docker'])
+        self.assertEqual(merged['lessons'][0]['track'],'basic')
+
     def test_second_batch_keeps_all_new_lessons_and_coding_history(self):
         self.remote['lessons']=[dict(id=key,repository='jhs512/mq3-lesson-redesigned-'+key,revision='old') for key in publish.SECOND_BATCH]+[{'id':'new-docker','repository':'another-new-lesson'}]
         self.remote['change_history']=[{'summary':'Java 12수업의 선택 문제를 직접 구현하는 문제로 바꿨어요.'}]

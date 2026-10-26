@@ -90,8 +90,13 @@ def merge(remote,prepared,rows,apply_sequence=False):
     for old,new,_ in rows:
         position=next(i for i,row in enumerate(value['lessons']) if row['repository']==new['repository'])
         current=value['lessons'][position]
-        if current not in (old,new):raise ValueError('Concurrent course revision changed: '+new['repository'])
-        value['lessons'][position]=new
+        pin=lambda row: tuple(row.get(field) for field in ('id','repository','revision','sha256'))
+        if pin(current) not in (pin(old),pin(new)):raise ValueError('Concurrent course revision changed: '+new['repository'])
+        # A prerequisite/order/category edit is not a conflicting lesson revision.
+        # Preserve fresh remote metadata on the converted lesson itself too.
+        updated=copy.deepcopy(current)
+        updated.update({field:new[field] for field in ('id','title','repository','revision','sha256') if field in new})
+        value['lessons'][position]=updated
         if new['id'] in prepared.get('lesson_previews',{}):
             value.setdefault('lesson_previews',{})[new['id']]=prepared['lesson_previews'][new['id']]
     selected={new['repository'].removeprefix('jhs512/mq3-lesson-redesigned-') for _,new,_ in rows}
