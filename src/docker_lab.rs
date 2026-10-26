@@ -804,8 +804,13 @@ mod tests {
         assert!(second.success,"{}",second.stderr);
         assert_eq!(second.stdout.trim(),"5");
         t.tests[0].expected="3".into();
+        // This lifecycle probe runs a custom qty query, not the lesson's SELECT exercise.
+        // Its recently added name/price variation expects different columns entirely.
+        // Lesson variation grading is covered by validate_redesigned_lesson separately.
+        t.variations.clear();
         let correct="SELECT qty FROM item WHERE id=1;";
-        assert!(crate::lesson_runner::check_in_lesson(&t,correct,&session).await.unwrap().passed);
+        let report=crate::lesson_runner::check_in_lesson(&t,correct,&session).await.unwrap();
+        assert!(report.passed,"{}",serde_json::to_string(&report).unwrap());
         assert!(!crate::lesson_runner::check_in_lesson(&t,"SELECT 4;",&session).await.unwrap().passed);
         assert!(crate::lesson_runner::check_in_lesson(&t,correct,&session).await.unwrap().passed);
         let after_check=session.run(&t,correct,"").await.unwrap();
