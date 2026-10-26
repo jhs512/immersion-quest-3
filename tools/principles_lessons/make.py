@@ -147,11 +147,12 @@ def build_lesson(lesson, pol):
     lid = uid('lsn', key, 'lesson')
     tasks, chapters, pres_ch, pres_units = [], [], {}, {}
     for ci, chapter in enumerate(lesson['chapters']):
-        cid = uid('chp', key, f'c{ci}')
+        chapter_identity = chapter.get('identity', f'c{ci}')
+        cid = uid('chp', key, chapter_identity)
         pres_ch[cid] = chapter['objectives']
         units = []
         for ui, unit in enumerate(chapter['units']):
-            unid = uid('unt', key, f'c{ci}u{ui}')
+            unid = uid('unt', key, f'{chapter_identity}u{ui}')
             pres_units[unid] = dict(objectives=unit['objectives'], premise=unit['premise'])
             steps = []
             for step in unit['steps']:

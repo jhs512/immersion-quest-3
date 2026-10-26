@@ -1,8 +1,8 @@
 """D1 이미지와 컨테이너: 프로세스로서의 컨테이너, 쓰기 레이어, 볼륨, 빌드 캐시 (실제 Docker 엔진).
 
 Every run is the app's own `mq3lab-…` Compose project (src/docker_lab.rs). lab.sh is the authored
-observation script: it drives the real engine and prints only what it observed. The learner edits
-compose.yaml or the Dockerfile. Nothing here is a simulation.
+observation script: it drives the real engine and prints only what it observed. The learner first
+edits commands.sh for CLI experiments, then compose.yaml or the Dockerfile. Nothing is simulated.
 """
 from common import START_NEW, START_PREV, TODO_RUN_BEFORE, TODO_RUN_AFTER, TODO_SUBMIT
 
@@ -230,7 +230,7 @@ def step(**fields):
 
 
 LESSON = dict(
-    key='docker-image-container', folder='docker_image_container', pilot='리', revision=1,
+    key='docker-image-container', folder='docker_image_container', pilot='리', revision=3,
     title='이미지와 컨테이너 · 지워도 남는 것과 사라지는 것',
     category='docker', category_title='Docker', track=None,
     category_evidence='실제 Docker 엔진으로 컨테이너·볼륨·이미지를 다루는 수업이에요.',
@@ -449,3 +449,34 @@ LESSON = dict(
              ]),
     ],
 )
+
+# The new beginner chapter precedes Compose while every published chapter/unit
+# keeps its original identity. Existing task IDs are already keyed by slug.
+from d0_cli_intro import chapter as cli_chapter
+for index, existing_chapter in enumerate(LESSON['chapters']):
+    existing_chapter['identity'] = f'c{index}'
+LESSON['chapters'].insert(0, cli_chapter(BUSYBOX))
+LESSON['audience'] = 'Docker를 처음 배우고 이미지와 컨테이너를 직접 실행해 보려는 학습자'
+LESSON['description'] = '설치·버전이 다른 문제에서 시작해 pull·run으로 직접 실행해요. 실행 재료와 컨테이너 수명을 구별한 뒤 Compose·볼륨·빌드로 이어져요.'
+LESSON['objectives'].insert(0, '컴퓨터마다 다른 설치·버전 문제를 설명하고 pull·run·ps·logs·exec·stop·start·rm을 직접 실행해요.')
+LESSON['scope'].insert(0, '왜 Docker가 필요한가, 이미지와 레지스트리, CLI pull·run·ps·logs·exec·stop·start·rm, 그 다음 Compose로 실행 설정 기록')
+LESSON['sources'].insert(0, ('https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/', '이미지와 실행 중인 컨테이너를 구별하고 같은 실행 재료를 공유하는 이유를 설명해요.', 'Docker 공식 개념 문서를 기준으로 실제 CLI에서 확인해요.'))
+LESSON['sources'].insert(1, ('https://docs.docker.com/reference/cli/docker/container/run/', 'run은 이미지를 바탕으로 새 컨테이너를 만들고 프로세스를 실행해요.', 'Docker 공식 CLI 문서예요. 실제 엔진 상태와 식별자를 비교해요.'))
+LESSON['brief'] = (
+    '컴퓨터마다 다른 설치·버전 문제를 보고 이미지와 컨테이너를 직접 실행해요.',
+    LESSON['brief'][1],
+    ['왜 실행 환경을 묶는지 이해해요.', 'pull·run으로 시작하고 ps·logs·exec를 실행해요.',
+     'stop·start·rm의 차이를 확인한 뒤 Compose로 옮겨요.', '컨테이너 수명·볼륨·빌드 캐시로 확장해요.',
+     '다음 네트워크 수업 예고: nip.io의 여러 이름을 같은 루프백 IP에 연결하고 Nginx에서 요청을 나누는 흐름을 살펴볼 예정이에요.'],
+    '실제 Docker 엔진을 써요. 실습 컨테이너만 관리하고 수업을 나가면 정리해요. 기본 호스트 포트를 점유하지 않아요.',
+    '이미지를 받는 것과 프로그램을 켜는 것은 같은 일일까요?')
+LESSON['reset'] = ['각 문제는 본문에서 알린 준비 상태로 시작해요. CLI 실습은 이 문제 소유 컨테이너만 되돌려요.',
+    '대화형 실습 자원은 수업 동안 유지하고 수업을 나가면 정리해요. 제출 검사는 별도 공간에서 실행해요.',
+    '기존 사용자의 컨테이너·볼륨과 학습 진도는 지우지 않아요.']
+LESSON['chapters'][1]['units'][0]['steps'][0]['intro'].insert(0,
+    '앞에서는 run에 이미지와 명령을 직접 썼어요. 이제 같은 실행 설정을 compose.yaml에 기록해요. services 아래에는 서비스 이름, image에는 이미지, command에는 실행할 명령을 써요. lab.sh가 그 파일로 docker compose up을 실행해요. 여러 실행 설정을 파일로 관리하는 단계예요.')
+LESSON['chapters'][1]['units'][0]['steps'][0]['narration'].insert(0,
+    ('say', '앞에서 쓴 run의 이미지와 실행 명령을 파일로 옮겨요. services 아래에 설정을 기록하고 Compose가 읽게 해요.',
+     'text:앞에서는 run에 이미지와 명령을 직접 썼어요.'))
+LESSON['chapters'][1]['units'][0]['steps'][0]['narration'].insert(1,
+    ('say', 'image가 실행 재료이고 command가 시작할 명령이에요. Compose는 이 설정을 읽어 컨테이너를 만들어요.', 'code:services:'))

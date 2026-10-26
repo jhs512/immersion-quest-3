@@ -3,10 +3,17 @@ use crate::{content_updates::{Snapshot,SnapshotStore},github_player::Github};
 use std::sync::atomic::{AtomicBool,Ordering};
 
 /// A background authentication failure must not leave an old course looking current.
-pub fn update_failure(error:&str,requested:bool)->Option<String> {
+pub fn authentication_required(error:&str)->bool {
     let lower=error.to_ascii_lowercase();
-    if lower.contains("401")||lower.contains("requires authentication")||lower.contains("bad credentials") {
-        Some("GitHub 로그인을 확인해 주세요. 인증 오류로 새 수업을 받지 못하고 있어요.".into())
+    lower.contains("401")||lower.contains("requires authentication")||lower.contains("bad credentials")
+        ||lower.contains("not logged into")||lower.contains("not logged in")
+        ||lower.contains("to get started with github cli")
+        ||lower.contains("token is invalid")||lower.contains("token has expired")
+}
+
+pub fn update_failure(error:&str,requested:bool)->Option<String> {
+    if authentication_required(error) {
+        Some("GitHub 인증 오류로 새 수업을 받지 못했어요. 다시 로그인하세요.".into())
     }else if requested {Some(error.to_owned())}else{None}
 }
 

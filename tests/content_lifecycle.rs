@@ -9,6 +9,17 @@ fn expired_login_is_visible_even_during_an_automatic_content_check() {
     assert!(molip_quest::content_lifecycle::update_failure("offline",false).is_none());
     assert_eq!(molip_quest::content_lifecycle::update_failure("offline",true),Some("offline".into()));
 }
+
+#[test]
+fn login_recovery_distinguishes_expired_credentials_from_network_and_repository_errors() {
+    use molip_quest::content_lifecycle::authentication_required;
+    for error in ["gh: Requires authentication (HTTP 401)","Bad credentials","You are not logged into any GitHub hosts.","To get started with GitHub CLI, please run: gh auth login","The token is invalid","Token has expired"] {
+        assert!(authentication_required(error),"{error}");
+    }
+    for error in ["network is unreachable","HTTP 403: Resource not accessible by integration","HTTP 404: Not Found","GitHub CLI를 찾지 못했어요. gh를 설치하세요.","로그인 계정이 바뀌었어요. 현재 수업을 다시 여세요."] {
+        assert!(!authentication_required(error),"{error}");
+    }
+}
 fn snapshot(store:&SnapshotStore,version:&str)->Snapshot {
     let root=std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/player-pilot").join(version);
     store.prepare("mq3-validation/course",&std::fs::read_to_string(root.join("course.json")).unwrap(),|_|Ok(std::fs::read_to_string(root.join("lesson.json")).unwrap())).unwrap()

@@ -314,7 +314,7 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                 }
             }
             if session().is_none() {
-                crate::gh_setup_ui::GhSetup {message:message(),checking:!checked(),onretry:move |_|{spawn(connect());}}
+                crate::gh_setup_ui::GhSetup {message:message(),checking:!checked(),reconnecting:molip_quest::content_lifecycle::authentication_required(&message()),onretry:move |_|{spawn(connect());}}
             } else {
                 div {class:"course-shell",
                 aside {class:"course-sidebar",aria_label:"과정 목록",
@@ -1391,6 +1391,22 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,active_l
     let mut noticed=use_signal(std::collections::HashSet::<String>::new);
     let mut summary=use_signal(String::new);
     let mut auto_attempted=use_signal(||None::<String>);
+    let mut needs_login=use_signal(||false);
+    let mut login_open=use_signal(||false);
+    let mut login_checking=use_signal(||false);
+    let mut login_message=use_signal(String::new);
+    let retry_login=use_callback({let session=session.clone();move |_|{
+        let Some(session)=session.clone() else{return};
+        if login_checking(){return;}login_checking.set(true);
+        spawn(async move {
+            // Keep the lesson and drafts mounted; a different account cannot adopt this session.
+            match github_player::background(move||session.github.ensure_user(session.user.id)).await {
+                Ok(())=>{needs_login.set(false);login_open.set(false);login_message.set(String::new());refresh_and_apply.set(true);manual+=1;},
+                Err(error)=>login_message.set(if molip_quest::content_lifecycle::authentication_required(&error){"로그인을 확인하지 못했어요. gh auth login을 마친 뒤 다시 확인하세요.".into()}else{error}),
+            }
+            login_checking.set(false);
+        });
+    }});
     let apply=use_callback({let session=session.clone();move |(next,automatic):(content_updates::Snapshot,bool)|{
         let Some(session)=session.clone() else{return};
         if applying(){return;} applying.set(true);
@@ -1405,7 +1421,7 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,active_l
                 molip_quest::drafts::backup_repository(session.user.id,&next.course().id,&next.fingerprint())?;
                 content_updates::installed_store()?.apply(&next)
             }).await;
-            match result {Ok(())=>{candidate.set(None);offered.set(false);message.set("수업 내용을 업데이트했어요.".into());onapply.call((manifest,automatic));},Err(error)=>message.set(error)}
+            match result {Ok(())=>{candidate.set(None);offered.set(false);message.set("수업 내용을 업데이트했어요.".into());onapply.call((manifest,automatic));},Err(error)=>{if molip_quest::content_lifecycle::authentication_required(&error){needs_login.set(true);}message.set(molip_quest::content_lifecycle::update_failure(&error,true).unwrap_or(error));}}
             applying.set(false);
         });
     }});
@@ -1438,6 +1454,7 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,active_l
                 checking.set(false);
                 match result {
                     Ok(Some((next,changes)))=>{
+                        needs_login.set(false);
                         auto_attempted.set(None);
                         let notices=molip_quest::data_dir().map(|dir|dir.join("content-update-notices.json"));
                         let first=notices.and_then(|path|{let mut notices=updater::UpdateNotices::open(&path)?;notices.record(u64::from_str_radix(&next.fingerprint()[..16],16).expect("SHA256 prefix"))}).unwrap_or(true);
@@ -1446,8 +1463,8 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,active_l
                         if apply_after_check {apply.call((next,false));}
                         else {candidate.set(Some(next)); if first {offered.set(true);} message.set("새 수업 내용이 있어요.".into());}
                     }
-                    Ok(None)=>{candidate.set(None);offered.set(false);if requested {message.set("최신 내용이에요.".into());}}
-                    Err(error)=>{if let Some(notice)=molip_quest::content_lifecycle::update_failure(&error,requested){message.set(notice);}}
+                    Ok(None)=>{needs_login.set(false);candidate.set(None);offered.set(false);if requested {message.set("최신 내용이에요.".into());}}
+                    Err(error)=>{if molip_quest::content_lifecycle::authentication_required(&error){needs_login.set(true);}if let Some(notice)=molip_quest::content_lifecycle::update_failure(&error,requested){message.set(notice);}}
                 }
             }
             tokio::time::sleep(std::time::Duration::from_secs(1)).await;
@@ -1469,6 +1486,15 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,active_l
             }
         }
         span {class:"course-refresh-status",role:"status",aria_live:"polite","{message}"}
+        if needs_login() {button {class:"gh-reauth-button",title:"GitHub 인증 오류로 새 수업을 받지 못했어요.",onclick:move |_|{login_message.set(String::new());login_open.set(true);},"GitHub 다시 로그인"}}
+        if login_open() {
+            div {class:"doctor-backdrop gh-reauth-backdrop",
+                section {class:"gh-reauth-dialog",role:"dialog",aria_modal:"true",aria_label:"GitHub 다시 로그인",onkeydown:move |e|{if e.key()==Key::Escape&&!login_checking(){login_open.set(false);}},
+                    button {class:"gh-reauth-close",autofocus:true,disabled:login_checking(),onclick:move |_|login_open.set(false),"닫기"}
+                    crate::gh_setup_ui::GhSetup {message:login_message(),checking:login_checking(),reconnecting:true,onretry:move |_|retry_login.call(())}
+                }
+            }
+        }
         details {summary {"수업 설정"}
             div {class:"content-update-menu",
             button {disabled:applying()||checking(),onclick:move |_|{refresh_and_apply.set(false);manual+=1;},"수업 업데이트 확인"}

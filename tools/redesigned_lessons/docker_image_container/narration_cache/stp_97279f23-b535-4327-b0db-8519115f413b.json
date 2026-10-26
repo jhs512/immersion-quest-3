@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "86c1899e3eca0634783dffb9528d8a95c0a9bbf8cde4ce23fa4810be5890e934",
+  "entry": [
+    {
+      "action": "say",
+      "text": "준비 스크립트가 컨테이너 하나를 켰어요. 그 안에는 아직 /memo.txt가 없어요. 새 컨테이너를 만들지 않고 파일을 써 보세요.",
+      "target": "text:준비 스크립트가 컨테이너 하나를 켰어요. 그 안에는 아직 /memo.txt가 없어요. 새 컨테이너를 만들지 않고 파일을 써 보세요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "컨테이너는 있지만 그 안의 메모 파일은 아직 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "# 제공된 IMAGE·BOX는 이 문제의 이미지와 컨테이너예요.\n",
+      "after": "# 제공된 IMAGE·BOX는 이 문제의 이미지와 컨테이너예요.\n# 이번 목표에 맞는 Docker 명령을 실행해요.\ndocker exec \"$BOX\" sh -c 'echo \"$1\" > /memo.txt' sh \"$MESSAGE\"\n",
+      "say": "실행 중인 컨테이너 안에 메모를 쓰세요"
+    },
+    {
+      "action": "say",
+      "text": "exec는 이미 실행 중인 컨테이너 안에서 명령을 하나 더 실행해요.",
+      "target": "code:docker exec \"$BOX\" sh -c 'echo \"$1\" > /memo.txt' sh \"$MESSAGE\""
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "실행 중인 같은 컨테이너 안에 메모 파일이 생겼어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 이 파일은 컨테이너 안에 있어요. 컨테이너를 지워도 남을지는 뒤에서 따로 확인해요.",
+      "target": "text:run은 새 컨테이너를 만들어요. exec는 기존 컨테이너를 대상으로 해요. sh -c 뒤의 글자는 컨테이너 안 셸이 실행해요. MESSAGE의 글자는 sh의 첫 인수로 전달해요."
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}
