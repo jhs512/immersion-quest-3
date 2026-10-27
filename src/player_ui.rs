@@ -852,6 +852,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     let mut feedback=workspace.map_mut(|state|&state.feedback,|state|&mut state.feedback);
     let mut execution_state=workspace.map_mut(|state|&state.execution_state,|state|&mut state.execution_state);
     let mut execution_seconds=workspace.map_mut(|state|&state.execution_seconds,|state|&mut state.execution_seconds);
+    let mut sql_revision=use_signal(||0u64);
     let mut git_practice=use_signal(||None::<crate::git_terminal_ui::Practice>);
     let mut git_control=use_signal(||None::<crate::git_terminal_ui::TerminalControl>);
     let ordered_task=task.clone();
@@ -1066,6 +1067,7 @@ if let Some(start)=autostart {
                                 let result=docker_session.reset(&task).await;
                                 busy.set(false);
                                 if let Err(error)=result{message.set(error);return;}
+                                sql_revision+=1;
                             }
                             feedback.set("idle");message.set(String::new());execution_state.set("idle");output.set(String::new());preview.set(String::new());teacher_preview.set(String::new());artifacts.set(vec![]);
                             if let Some(control)=git_control() {
@@ -1104,6 +1106,7 @@ if let Some(start)=autostart {
                             Err(error)=>{execution_state.set("failed");feedback.set("run-error");message.set(error);}
                         }
                         busy.set(false);
+                        if !demonstration {sql_revision+=1;}
                         if demonstration||selected.practice_only{return;}
                         let mut event=LearningEvent::new(ProgressKey{user_id:user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},&selected.lesson.revision,selected.mode,&selected.round,EventKind::ExampleRun);event.task_id=Some(task.id.clone());event.prediction=prediction;
                         let repo=selected.course.repository.clone();let title=selected.lesson.title.clone();
@@ -1172,7 +1175,7 @@ if let Some(start)=autostart {
                 }
             }
             if task.predict_before_run&&!narrating()&&code().is_empty(){p {class:"prediction-run-note",role:"status","예상 보기를 먼저 하나 고르면 실행할 수 있어요. 정답 여부와 관계없이 실행돼요."}}
-            div {class:if (task.git_terminal.is_some()||has_example)&&task.interaction.is_some(){"editor-pane interaction-example-editor"}else{"editor-pane"},style:if task.git_terminal.as_ref().is_some_and(|exercise|exercise.java_build.is_some())&&task.interaction.is_some(){"display:grid;grid-template-rows:minmax(216px,1fr) 10px minmax(64px,min(var(--example-answer-height,92px),calc(100% - 226px)));gap:0"}else if (task.git_terminal.is_some()||has_example)&&task.interaction.is_some(){"display:grid;grid-template-rows:minmax(48px,1fr) 10px var(--example-answer-height,fit-content(60%));gap:0"}else{""},
+            div {class:if molip_quest::docker_lab::has_sql_tables(&task){"editor-pane sql-workbench"}else if (task.git_terminal.is_some()||has_example)&&task.interaction.is_some(){"editor-pane interaction-example-editor"}else{"editor-pane"},style:if task.git_terminal.as_ref().is_some_and(|exercise|exercise.java_build.is_some())&&task.interaction.is_some(){"display:grid;grid-template-rows:minmax(216px,1fr) 10px minmax(64px,min(var(--example-answer-height,92px),calc(100% - 226px)));gap:0"}else if (task.git_terminal.is_some()||has_example)&&task.interaction.is_some(){"display:grid;grid-template-rows:minmax(48px,1fr) 10px var(--example-answer-height,fit-content(60%));gap:0"}else{""},
                 if let Some(exercise)=task.git_terminal.clone() {
                     div {class:"example-code-pane",style:if narrating(){"display:none"}else if task.interaction.is_some(){"display:block;min-height:0;overflow:hidden"}else{"display:block;height:100%"},
                         {rsx!{crate::git_terminal_ui::GitTerminal {key:"git-{reset}",exercise:exercise.clone(),demo:false,scope:git_scope.clone(),fresh:reset()>0,step_id:task.id.clone(),onready:move |practice|git_practice.set(Some(practice)),oncontrol:move |control|git_control.set(Some(control))}}}
@@ -1182,6 +1185,9 @@ if let Some(start)=autostart {
                     textarea {class:"code-editor","data-code-editor":task.editor_language(),"data-editor-value":example_source(),"data-editor-reset":reset().to_string(),aria_label:"수업 예제 코드",initial_value:task.example_for_answer(&initial).unwrap_or_default(),readonly:true,spellcheck:false,oninput:move |e|example_source.set(e.value())}
                 }else if task.interaction.is_none() {
                 textarea {class:"code-editor","data-code-editor":task.editor_language(),"data-editor-value":code(),"data-editor-reset":reset().to_string(),aria_label:"수업 코드",initial_value:initial.clone(),spellcheck:false,oninput:{let key=key.clone();move |e|{code.set(e.value());if !narrating(){let _=molip_quest::drafts::save(&key,&code(),&HashMap::new());}}}}
+                }
+                if molip_quest::docker_lab::has_sql_tables(&task) {
+                    crate::sql_browser_ui::SqlBrowser {key:"sql-{task.id}",task:task.clone(),revision:sql_revision(),paused:busy()||narrating(),explaining:narrating()}
                 }
                 if (task.git_terminal.is_some()||has_example)&&task.interaction.is_some() {
                     div {class:"split-handle split-row split-example",role:"separator",tabindex:0,aria_label:"예제 코드와 답안 패널 크기 조절",aria_orientation:"horizontal"}

@@ -570,6 +570,9 @@ struct Prepared { java:Option<String>, classpath:String }
 /// Owned by the lesson screen, not by an individual step or execution future.
 #[derive(Clone)]
 pub struct LessonSession(std::sync::Arc<LessonState>);
+mod sql_browser;
+pub use sql_browser::{SqlColumn,SqlTable,SqlTables};
+pub fn has_sql_tables(task:&Task)->bool {sql_fixture(task).is_some()}
 struct LessonState {
     closed:std::sync::atomic::AtomicBool,
     cleaned:std::sync::atomic::AtomicBool,
@@ -789,20 +792,22 @@ mod tests {
     #[tokio::test]
     #[ignore="Needs a running Docker engine and the course's MySQL image"]
     async fn sql_reuses_db_across_steps_but_grading_cannot_change_learner_data() {
+        // Learner runs now show the native table; grading still compares flat values.
+        let cells=|result:&Execution|result.stdout.lines().filter(|line|line.starts_with('|')).map(|line|line.trim_matches('|').trim().to_owned()).collect::<Vec<_>>();
         let lesson:serde_json::Value=serde_json::from_str(include_str!("../courses/redesigned/sql-first.json")).unwrap();
         let mut t:Task=serde_json::from_value(lesson["tasks"][0].clone()).unwrap();
         let session=LessonSession::new();
         let source="UPDATE item SET qty=qty+1 WHERE id=1; SELECT qty FROM item WHERE id=1;";
         let first=session.run(&t,source,"").await.unwrap();
         assert!(first.success,"{}",first.stderr);
-        assert_eq!(first.stdout.trim(),"4");
+        assert_eq!(cells(&first),["qty","4"]);
         let cli=cli().unwrap();
         let project=session.projects()[0].clone();
         let filter=format!("label={COMPOSE_LABEL}={project}");
         let container=ids(&cli,&["ps","-q","--filter",&filter]);
         let second=session.run(&t,source,"").await.unwrap();
         assert!(second.success,"{}",second.stderr);
-        assert_eq!(second.stdout.trim(),"5");
+        assert_eq!(cells(&second),["qty","5"]);
         t.tests[0].expected="3".into();
         // This lifecycle probe runs a custom qty query, not the lesson's SELECT exercise.
         // Its recently added name/price variation expects different columns entirely.
@@ -814,17 +819,17 @@ mod tests {
         assert!(!crate::lesson_runner::check_in_lesson(&t,"SELECT 4;",&session).await.unwrap().passed);
         assert!(crate::lesson_runner::check_in_lesson(&t,correct,&session).await.unwrap().passed);
         let after_check=session.run(&t,correct,"").await.unwrap();
-        assert_eq!(after_check.stdout.trim(),"5","checking must not mutate the learner's DB");
+        assert_eq!(cells(&after_check),["qty","5"],"checking must not mutate the learner's DB");
         assert_eq!(container,ids(&cli,&["ps","-q","--filter",&filter]));
         t.id.push_str("_next_step");
         let next=session.run(&t,correct,"").await.unwrap();
         assert!(next.success,"{}",next.stderr);
-        assert_eq!(next.stdout.trim(),"3","a new independent problem gets its own fixture");
+        assert_eq!(cells(&next),["qty","3"],"a new independent problem gets its own fixture");
         assert_eq!(container,ids(&cli,&["ps","-q","--filter",&filter]));
         session.reset(&t).await.unwrap();
         assert!(ids(&cli,&["ps","-aq","--filter",&filter]).is_empty());
         let reset=session.run(&t,source,"").await.unwrap();
-        assert_eq!(reset.stdout.trim(),"4");
+        assert_eq!(cells(&reset),["qty","4"]);
         let remaining=session.projects();
         session.close();session.wait_closed().await;
         for project in remaining {

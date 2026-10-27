@@ -56,6 +56,9 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
             include_str!("../tools/player-pilot-speech.js").to_owned()
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("lesson-loading") {
             include_str!("../tools/player-pilot-loading.js").to_owned()
+        } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("sql-browser") {
+            let row=molip_quest::lesson_registry::find("sql-first").unwrap();
+            format!("window.mqSqlPilot={};{}",serde_json::json!({"version":row.pilot.to_string(),"lesson":serde_json::from_str::<serde_json::Value>(row.lesson).unwrap()}),include_str!("../tools/player-pilot-sql-browser.js"))
         } else if let Some(script)=std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref().and_then(molip_quest::lesson_registry::self_test_script) {
             script
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("interaction-example") {include_str!("../tools/player-pilot-example.js").to_owned()} else {format!("window.mq3FirstGitOnly={};window.mq3IncludeGitBranch={};{}",matches!(std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref(),Some("git-first"|"git-lessons")),std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()!=Some("git-first"),include_str!("../tools/player-pilot-native.js"))};
@@ -78,7 +81,7 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
                     continue;
                 }
                 // A real screenshot of this window, kept as evidence (Windows only).
-                if matches!(std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref(),Some("auto-review"|"auto-state"))&&message["control"]=="capture" {
+                if matches!(std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref(),Some("auto-review"|"auto-state"|"sql-browser"))&&message["control"]=="capture" {
                     let name=message["name"].as_str().unwrap_or("screen").chars().filter(|c|c.is_ascii_alphanumeric()||*c=='-').collect::<String>();
                     let out=std::path::Path::new("target/admin-review/screens").join(format!("{name}.png"));
                     let pid=std::process::id().to_string();
@@ -86,7 +89,7 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
                     document::eval(&format!("window.mq3CaptureToken={};window.mq3CaptureOk={done};",message["token"]));
                     continue;
                 }
-                if matches!(std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref(),Some("toolbar-audit"|"course-guide"|"auto-review")) && message["control"]=="resize" {
+                if matches!(std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref(),Some("toolbar-audit"|"course-guide"|"auto-review"|"sql-browser")) && message["control"]=="resize" {
                     #[cfg(feature="desktop")] {
                         window.window.set_fullscreen(None);
                         window.window.set_inner_size(dioxus::desktop::tao::dpi::LogicalSize::new(message["width"].as_u64().unwrap_or(1280) as f64,message["height"].as_u64().unwrap_or(720) as f64));
