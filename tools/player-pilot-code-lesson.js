@@ -122,6 +122,10 @@
     await wait(()=>document.querySelector('iframe[title="수업 웹 미리보기"]')?.getAttribute('srcdoc')===studentPreview,'student webpage restored');
     if(document.querySelector('iframe[title="수업 웹 미리보기"]')!==studentFrame||studentFrame.contentWindow!==studentWindow||frameLoads.get(studentFrame)!==studentLoads)throw Error('Teacher replaced or reloaded the live student webpage');
     verifyTeacher(task);
+    if(pilot.webPreviewOnly){
+     dioxus.send({passed:true,checked:['No duplicate page text','Live preview console: initial log, later click, runtime error','Narration preserves the student iframe and logs']});
+     return;
+    }
    }
    await click('제출');await wait(()=>status(index===pilot.tasks.length-1?'수업 완료':'통과했어요'),'authored solution accepted');
    await click('초기화');await wait(()=>molipCodeEditors.getValue()===initialCode&&bridge()?.value===initialAnswer,'independent reset');

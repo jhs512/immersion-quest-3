@@ -19,7 +19,7 @@ pub fn by_revision(revision:&str)->Option<&'static RegisteredLesson> { LESSONS.i
 
 /// The authored case adjustments are data, so adding a lesson needs no UI branch.
 pub fn self_test_script(key:&str)->Option<String> {
-    let row=find(key)?;
+    let row=find(if key=="web-preview"{"java-tailwind"}else{key})?;
     if row.driver=="native" {return None;}
     let lesson:serde_json::Value=serde_json::from_str(row.lesson).expect("registered lesson");
     let tasks=&lesson["tasks"];
@@ -34,6 +34,7 @@ pub fn self_test_script(key:&str)->Option<String> {
         }
     }
     config["version"]=row.pilot.to_string().into();config["revision"]=row.revision.into();config["tasks"]=tasks.clone();
+    if key=="web-preview" {config["webPreviewOnly"]=true.into();}
     let script=if let Some(commands)=row.commands {
         let commands:serde_json::Value=serde_json::from_str(commands).expect("registered student commands");
         config["studentCommands"]=commands["student_commands"].clone();
