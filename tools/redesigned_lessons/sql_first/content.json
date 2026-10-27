@@ -60,7 +60,7 @@
       "entry_file": "lesson.sql",
       "files": {
         "compose.yaml": "services:\n  db:\n    image: mysql:8.4@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69\n    environment: {MYSQL_ROOT_PASSWORD: lab, MYSQL_DATABASE: lab}\n    tmpfs: [/var/lib/mysql]\n    healthcheck:\n      test: [\"CMD\", \"mysqladmin\", \"ping\", \"-h\", \"127.0.0.1\", \"-uroot\", \"-plab\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
-        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --batch --skip-column-names --force lab\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\nsql_client() {\n  if [ \"${MQ3_OUTPUT:-grading}\" = raw ]; then\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --table lab\n  else\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --batch --skip-column-names lab\n  fi\n}\ncat before.sql lesson.sql after.sql | sql_client\n",
         "before.sql": "CREATE TABLE item(id INT,name VARCHAR(30),price INT,qty INT);\nINSERT INTO item VALUES(1,'milk',100,3);\n",
         "after.sql": ""
       },
@@ -135,7 +135,7 @@
       "entry_file": "lesson.sql",
       "files": {
         "compose.yaml": "services:\n  db:\n    image: mysql:8.4@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69\n    environment: {MYSQL_ROOT_PASSWORD: lab, MYSQL_DATABASE: lab}\n    tmpfs: [/var/lib/mysql]\n    healthcheck:\n      test: [\"CMD\", \"mysqladmin\", \"ping\", \"-h\", \"127.0.0.1\", \"-uroot\", \"-plab\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
-        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --batch --skip-column-names --force lab\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\nsql_client() {\n  if [ \"${MQ3_OUTPUT:-grading}\" = raw ]; then\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --table lab\n  else\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --batch --skip-column-names lab\n  fi\n}\ncat before.sql lesson.sql after.sql | sql_client\n",
         "before.sql": "CREATE TABLE item(id INT,name VARCHAR(30),price INT,qty INT);\nINSERT INTO item VALUES(1,'milk',100,3);\n",
         "after.sql": ""
       },
@@ -210,7 +210,7 @@
       "entry_file": "lesson.sql",
       "files": {
         "compose.yaml": "services:\n  db:\n    image: mysql:8.4@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69\n    environment: {MYSQL_ROOT_PASSWORD: lab, MYSQL_DATABASE: lab}\n    tmpfs: [/var/lib/mysql]\n    healthcheck:\n      test: [\"CMD\", \"mysqladmin\", \"ping\", \"-h\", \"127.0.0.1\", \"-uroot\", \"-plab\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
-        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --batch --skip-column-names --force lab\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\nsql_client() {\n  if [ \"${MQ3_OUTPUT:-grading}\" = raw ]; then\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --table lab\n  else\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --batch --skip-column-names lab\n  fi\n}\ncat before.sql lesson.sql after.sql | sql_client\n",
         "before.sql": "CREATE TABLE item(id INT PRIMARY KEY,name VARCHAR(30),price INT,qty INT);\nINSERT INTO item VALUES(1,'milk',100,3),(2,'bread',200,0),(3,'tea',100,NULL);\n",
         "after.sql": ""
       },
@@ -285,7 +285,7 @@
       "entry_file": "lesson.sql",
       "files": {
         "compose.yaml": "services:\n  db:\n    image: mysql:8.4@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69\n    environment: {MYSQL_ROOT_PASSWORD: lab, MYSQL_DATABASE: lab}\n    tmpfs: [/var/lib/mysql]\n    healthcheck:\n      test: [\"CMD\", \"mysqladmin\", \"ping\", \"-h\", \"127.0.0.1\", \"-uroot\", \"-plab\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
-        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --batch --skip-column-names --force lab\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\nsql_client() {\n  if [ \"${MQ3_OUTPUT:-grading}\" = raw ]; then\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --table lab\n  else\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --batch --skip-column-names lab\n  fi\n}\ncat before.sql lesson.sql after.sql | sql_client\n",
         "before.sql": "CREATE TABLE item(id INT PRIMARY KEY,name VARCHAR(30),price INT,qty INT);\nINSERT INTO item VALUES(1,'milk',100,3),(2,'bread',200,0),(3,'tea',50,NULL);\n",
         "after.sql": ""
       },
@@ -360,7 +360,7 @@
       "entry_file": "lesson.sql",
       "files": {
         "compose.yaml": "services:\n  db:\n    image: mysql:8.4@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69\n    environment: {MYSQL_ROOT_PASSWORD: lab, MYSQL_DATABASE: lab}\n    tmpfs: [/var/lib/mysql]\n    healthcheck:\n      test: [\"CMD\", \"mysqladmin\", \"ping\", \"-h\", \"127.0.0.1\", \"-uroot\", \"-plab\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
-        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --batch --skip-column-names --force lab\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\nsql_client() {\n  if [ \"${MQ3_OUTPUT:-grading}\" = raw ]; then\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --table lab\n  else\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --batch --skip-column-names lab\n  fi\n}\ncat before.sql lesson.sql after.sql | sql_client\n",
         "before.sql": "CREATE TABLE item(id INT PRIMARY KEY,name VARCHAR(30),price INT,qty INT);\nINSERT INTO item VALUES(1,'milk',100,3),(2,'bread',200,0),(3,'tea',100,NULL);\n",
         "after.sql": ""
       },
@@ -427,7 +427,7 @@
       "entry_file": "lesson.sql",
       "files": {
         "compose.yaml": "services:\n  db:\n    image: mysql:8.4@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69\n    environment: {MYSQL_ROOT_PASSWORD: lab, MYSQL_DATABASE: lab}\n    tmpfs: [/var/lib/mysql]\n    healthcheck:\n      test: [\"CMD\", \"mysqladmin\", \"ping\", \"-h\", \"127.0.0.1\", \"-uroot\", \"-plab\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
-        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --batch --skip-column-names --force lab\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\nsql_client() {\n  if [ \"${MQ3_OUTPUT:-grading}\" = raw ]; then\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --table lab\n  else\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --batch --skip-column-names lab\n  fi\n}\ncat before.sql lesson.sql after.sql | sql_client\n",
         "before.sql": "CREATE TABLE item(id INT PRIMARY KEY,name VARCHAR(30),price INT,qty INT);\nINSERT INTO item VALUES(1,'milk',100,3),(2,'bread',200,0),(3,'tea',100,NULL);\n",
         "after.sql": ""
       },
@@ -494,7 +494,7 @@
       "entry_file": "lesson.sql",
       "files": {
         "compose.yaml": "services:\n  db:\n    image: mysql:8.4@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69\n    environment: {MYSQL_ROOT_PASSWORD: lab, MYSQL_DATABASE: lab}\n    tmpfs: [/var/lib/mysql]\n    healthcheck:\n      test: [\"CMD\", \"mysqladmin\", \"ping\", \"-h\", \"127.0.0.1\", \"-uroot\", \"-plab\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
-        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --batch --skip-column-names --force lab\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\nsql_client() {\n  if [ \"${MQ3_OUTPUT:-grading}\" = raw ]; then\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --table lab\n  else\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --batch --skip-column-names lab\n  fi\n}\ncat before.sql lesson.sql after.sql | sql_client\n",
         "before.sql": "CREATE TABLE item(id INT PRIMARY KEY,name VARCHAR(30),price INT,qty INT);\nINSERT INTO item VALUES(1,'milk',100,3),(2,'bread',200,0),(3,'tea',100,NULL);\n",
         "after.sql": ""
       },
@@ -569,7 +569,7 @@
       "entry_file": "lesson.sql",
       "files": {
         "compose.yaml": "services:\n  db:\n    image: mysql:8.4@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69\n    environment: {MYSQL_ROOT_PASSWORD: lab, MYSQL_DATABASE: lab}\n    tmpfs: [/var/lib/mysql]\n    healthcheck:\n      test: [\"CMD\", \"mysqladmin\", \"ping\", \"-h\", \"127.0.0.1\", \"-uroot\", \"-plab\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
-        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --batch --skip-column-names --force lab\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\nsql_client() {\n  if [ \"${MQ3_OUTPUT:-grading}\" = raw ]; then\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --table lab\n  else\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --batch --skip-column-names lab\n  fi\n}\ncat before.sql lesson.sql after.sql | sql_client\n",
         "before.sql": "CREATE TABLE item(id INT PRIMARY KEY,name VARCHAR(30),price INT,qty INT);\nINSERT INTO item VALUES(1,'milk',100,3),(2,'bread',200,0),(3,'tea',100,NULL);\n",
         "after.sql": ""
       },
@@ -644,7 +644,7 @@
       "entry_file": "lesson.sql",
       "files": {
         "compose.yaml": "services:\n  db:\n    image: mysql:8.4@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69\n    environment: {MYSQL_ROOT_PASSWORD: lab, MYSQL_DATABASE: lab}\n    tmpfs: [/var/lib/mysql]\n    healthcheck:\n      test: [\"CMD\", \"mysqladmin\", \"ping\", \"-h\", \"127.0.0.1\", \"-uroot\", \"-plab\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
-        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --batch --skip-column-names --force lab\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\nsql_client() {\n  if [ \"${MQ3_OUTPUT:-grading}\" = raw ]; then\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --table lab\n  else\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --batch --skip-column-names lab\n  fi\n}\ncat before.sql lesson.sql after.sql | sql_client\n",
         "before.sql": "CREATE TABLE item(id INT PRIMARY KEY,name VARCHAR(30),price INT,qty INT);\nINSERT INTO item VALUES(1,'milk',100,3),(2,'bread',200,0),(3,'tea',100,NULL);\n",
         "after.sql": ""
       },
@@ -719,7 +719,7 @@
       "entry_file": "lesson.sql",
       "files": {
         "compose.yaml": "services:\n  db:\n    image: mysql:8.4@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69\n    environment: {MYSQL_ROOT_PASSWORD: lab, MYSQL_DATABASE: lab}\n    tmpfs: [/var/lib/mysql]\n    healthcheck:\n      test: [\"CMD\", \"mysqladmin\", \"ping\", \"-h\", \"127.0.0.1\", \"-uroot\", \"-plab\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
-        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --batch --skip-column-names --force lab\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\nsql_client() {\n  if [ \"${MQ3_OUTPUT:-grading}\" = raw ]; then\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --table lab\n  else\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --batch --skip-column-names lab\n  fi\n}\ncat before.sql lesson.sql after.sql | sql_client\n",
         "before.sql": "CREATE TABLE item(id INT PRIMARY KEY,name VARCHAR(30),price INT,qty INT);\nINSERT INTO item VALUES(1,'milk',100,7),(2,'bread',200,0),(3,'tea',100,NULL);\n",
         "after.sql": ""
       },
@@ -794,7 +794,7 @@
       "entry_file": "lesson.sql",
       "files": {
         "compose.yaml": "services:\n  db:\n    image: mysql:8.4@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69\n    environment: {MYSQL_ROOT_PASSWORD: lab, MYSQL_DATABASE: lab}\n    tmpfs: [/var/lib/mysql]\n    healthcheck:\n      test: [\"CMD\", \"mysqladmin\", \"ping\", \"-h\", \"127.0.0.1\", \"-uroot\", \"-plab\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
-        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --batch --skip-column-names --force lab\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\nsql_client() {\n  if [ \"${MQ3_OUTPUT:-grading}\" = raw ]; then\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --table lab\n  else\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --batch --skip-column-names lab\n  fi\n}\ncat before.sql lesson.sql after.sql | sql_client\n",
         "before.sql": "CREATE TABLE item(id INT PRIMARY KEY,name VARCHAR(30),price INT,qty INT);\nINSERT INTO item VALUES(1,'milk',100,7),(2,'bread',200,0),(3,'tea',100,NULL);\n",
         "after.sql": ""
       },
@@ -880,7 +880,7 @@
       "entry_file": "lesson.sql",
       "files": {
         "compose.yaml": "services:\n  db:\n    image: mysql:8.4@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69\n    environment: {MYSQL_ROOT_PASSWORD: lab, MYSQL_DATABASE: lab}\n    tmpfs: [/var/lib/mysql]\n    healthcheck:\n      test: [\"CMD\", \"mysqladmin\", \"ping\", \"-h\", \"127.0.0.1\", \"-uroot\", \"-plab\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
-        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --batch --skip-column-names --force lab\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\nsql_client() {\n  if [ \"${MQ3_OUTPUT:-grading}\" = raw ]; then\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --table lab\n  else\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --batch --skip-column-names lab\n  fi\n}\ncat before.sql lesson.sql after.sql | sql_client\n",
         "before.sql": "",
         "after.sql": "INSERT INTO memo(content) VALUES('first memo');\nSELECT content FROM memo;\n"
       },
@@ -947,7 +947,7 @@
       "entry_file": "lesson.sql",
       "files": {
         "compose.yaml": "services:\n  db:\n    image: mysql:8.4@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69\n    environment: {MYSQL_ROOT_PASSWORD: lab, MYSQL_DATABASE: lab}\n    tmpfs: [/var/lib/mysql]\n    healthcheck:\n      test: [\"CMD\", \"mysqladmin\", \"ping\", \"-h\", \"127.0.0.1\", \"-uroot\", \"-plab\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
-        "lab.sh": "# 제공 실습: 첫 클라이언트가 끝난 뒤 두 번째 연결에서 저장된 행을 읽어요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\ncat before.sql lesson.sql | docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --batch --skip-column-names --force lab\ncat after.sql | docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --batch --skip-column-names --force lab\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\nsql_client() {\n  if [ \"${MQ3_OUTPUT:-grading}\" = raw ]; then\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --table lab\n  else\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --batch --skip-column-names lab\n  fi\n}\ncat before.sql lesson.sql | sql_client\ncat after.sql | sql_client\n",
         "before.sql": "CREATE TABLE item(id INT PRIMARY KEY,name VARCHAR(30),price INT,qty INT);\nINSERT INTO item VALUES(1,'milk',100,3),(2,'bread',200,0),(3,'tea',100,NULL);\n",
         "after.sql": "SELECT id,name,price,qty FROM item ORDER BY id;\n"
       },
@@ -1014,7 +1014,7 @@
       "entry_file": "lesson.sql",
       "files": {
         "compose.yaml": "services:\n  db:\n    image: mysql:8.4@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69\n    environment: {MYSQL_ROOT_PASSWORD: lab, MYSQL_DATABASE: lab}\n    tmpfs: [/var/lib/mysql]\n    healthcheck:\n      test: [\"CMD\", \"mysqladmin\", \"ping\", \"-h\", \"127.0.0.1\", \"-uroot\", \"-plab\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
-        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --batch --skip-column-names --force lab\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\nsql_client() {\n  if [ \"${MQ3_OUTPUT:-grading}\" = raw ]; then\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --table lab\n  else\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --batch --skip-column-names lab\n  fi\n}\ncat before.sql lesson.sql after.sql | sql_client\n",
         "before.sql": "CREATE TABLE item(id INT PRIMARY KEY,name VARCHAR(30),price INT,qty INT);\nINSERT INTO item VALUES(1,'milk',100,3),(2,'bread',200,0),(3,'tea',100,NULL);\n",
         "after.sql": "SELECT id,name,price,qty FROM item ORDER BY id;\n"
       },
@@ -1081,7 +1081,7 @@
       "entry_file": "lesson.sql",
       "files": {
         "compose.yaml": "services:\n  db:\n    image: mysql:8.4@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69\n    environment: {MYSQL_ROOT_PASSWORD: lab, MYSQL_DATABASE: lab}\n    tmpfs: [/var/lib/mysql]\n    healthcheck:\n      test: [\"CMD\", \"mysqladmin\", \"ping\", \"-h\", \"127.0.0.1\", \"-uroot\", \"-plab\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
-        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --batch --skip-column-names --force lab\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\nsql_client() {\n  if [ \"${MQ3_OUTPUT:-grading}\" = raw ]; then\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --table lab\n  else\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --batch --skip-column-names lab\n  fi\n}\ncat before.sql lesson.sql after.sql | sql_client\n",
         "before.sql": "CREATE TABLE item(id INT PRIMARY KEY,name VARCHAR(30),price INT,qty INT);\nINSERT INTO item VALUES(1,'milk',100,3),(2,'bread',200,0),(3,'tea',100,NULL);\n",
         "after.sql": "SELECT name FROM item ORDER BY id;\n"
       },
@@ -1148,7 +1148,7 @@
       "entry_file": "lesson.sql",
       "files": {
         "compose.yaml": "services:\n  db:\n    image: mysql:8.4@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69\n    environment: {MYSQL_ROOT_PASSWORD: lab, MYSQL_DATABASE: lab}\n    tmpfs: [/var/lib/mysql]\n    healthcheck:\n      test: [\"CMD\", \"mysqladmin\", \"ping\", \"-h\", \"127.0.0.1\", \"-uroot\", \"-plab\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
-        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --batch --skip-column-names --force lab\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\nsql_client() {\n  if [ \"${MQ3_OUTPUT:-grading}\" = raw ]; then\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --table lab\n  else\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --batch --skip-column-names lab\n  fi\n}\ncat before.sql lesson.sql after.sql | sql_client\n",
         "before.sql": "CREATE TABLE member(id INT,name VARCHAR(30));\nINSERT INTO member VALUES(1,'lee'),(2,'lee');\n",
         "after.sql": ""
       },
@@ -1223,7 +1223,7 @@
       "entry_file": "lesson.sql",
       "files": {
         "compose.yaml": "services:\n  db:\n    image: mysql:8.4@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69\n    environment: {MYSQL_ROOT_PASSWORD: lab, MYSQL_DATABASE: lab}\n    tmpfs: [/var/lib/mysql]\n    healthcheck:\n      test: [\"CMD\", \"mysqladmin\", \"ping\", \"-h\", \"127.0.0.1\", \"-uroot\", \"-plab\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
-        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --batch --skip-column-names --force lab\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\nsql_client() {\n  if [ \"${MQ3_OUTPUT:-grading}\" = raw ]; then\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --table lab\n  else\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --batch --skip-column-names lab\n  fi\n}\ncat before.sql lesson.sql after.sql | sql_client\n",
         "before.sql": "CREATE TABLE member(id INT,name VARCHAR(30));\nINSERT INTO member VALUES(1,'lee'),(2,'lee');\nCREATE TABLE orders(id INT,member_id INT);\nINSERT INTO orders VALUES(10,2),(11,2),(12,1);\n",
         "after.sql": ""
       },
@@ -1298,7 +1298,7 @@
       "entry_file": "lesson.sql",
       "files": {
         "compose.yaml": "services:\n  db:\n    image: mysql:8.4@sha256:76f0358884cb92d9a086d24e5671c38048d3fef40f2588703d73eb55392d6b69\n    environment: {MYSQL_ROOT_PASSWORD: lab, MYSQL_DATABASE: lab}\n    tmpfs: [/var/lib/mysql]\n    healthcheck:\n      test: [\"CMD\", \"mysqladmin\", \"ping\", \"-h\", \"127.0.0.1\", \"-uroot\", \"-plab\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
-        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --batch --skip-column-names --force lab\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\nsql_client() {\n  if [ \"${MQ3_OUTPUT:-grading}\" = raw ]; then\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --table lab\n  else\n    docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force --batch --skip-column-names lab\n  fi\n}\ncat before.sql lesson.sql after.sql | sql_client\n",
         "before.sql": "CREATE TABLE item(id INT PRIMARY KEY,name VARCHAR(30),price INT,qty INT);\nINSERT INTO item VALUES(1,'milk',100,3),(2,'bread',200,0),(3,'tea',100,NULL);\n",
         "after.sql": "SELECT CONCAT(name,':',COALESCE(CAST(qty AS CHAR),'unknown')) FROM item ORDER BY id;\n"
       },

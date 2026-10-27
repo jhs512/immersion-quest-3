@@ -74,7 +74,7 @@ LESSON = sql_lesson(key='sql-index-plan', folder='sql_index_plan', pilot='쥐',
                     units=[unit('정답과 경로', '데이터를 바꾸지 않고 검색 경로를 추가해요.', [S1,S2]),
                            unit('조건에 맞춘 색인', '어떤 행과 어떤 키를 색인할지 결정해요.', [S3,S4])],
                     final_slug='final-lookup', sources=[('https://www.postgresql.org/docs/18/indexes.html','표현식·부분·복합 인덱스의 전제를 확인해요.','실제 PostgreSQL 18 계획과 대조해요.')])
-LESSON['revision']=2
+LESSON['revision']=3
 LESSON['prerequisites']=['SQL 기초의 조회·조건·정렬과 DB의 키를 알아요.', '인덱스와 PostgreSQL 실행 계획은 여기서 처음 다뤄요.']
 for task, names in [(S1,['parcel_code']),(S2,['parcel_code','parcel_lower']),
                     (S3,['parcel_waiting']),(S4,['parcel_city','parcel_lookup'])]:

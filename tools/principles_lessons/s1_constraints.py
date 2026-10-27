@@ -116,5 +116,5 @@ for task, table in [(N,'member'),(U,'member'),(P,'member'),(F,'orders'),(C,'wall
     task['intro'].append(preparation)
     task['narration'].insert(0,('say',preparation,'text:'+preparation))
     task['review'][preparation]='반복 DDL 실험의 준비가 코드에 공개되어 있고 이 과제 표에만 적용됨을 설명해요.'
-LESSON['revision']=2
+LESSON['revision']=3
 LESSON['prerequisites']=['SQL 기초에서 CREATE TABLE·INSERT·조회·행 식별자와 관계를 확인했어요.', 'MySQL 실습 환경을 실행할 수 있어요.']

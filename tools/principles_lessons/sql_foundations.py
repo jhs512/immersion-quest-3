@@ -1,5 +1,5 @@
 """The missing first experiences, before the published SQL exercises."""
-from sql_lab import sql_step
+from sql_lab import sql_step, lab
 
 ONE = "CREATE TABLE item(id INT,name VARCHAR(30),price INT,qty INT);\nINSERT INTO item VALUES(1,'milk',100,3);\n"
 SEED = "CREATE TABLE item(id INT PRIMARY KEY,name VARCHAR(30),price INT,qty INT);\nINSERT INTO item VALUES(1,'milk',100,3),(2,'bread',200,0),(3,'tea',100,NULL);\n"
@@ -86,12 +86,7 @@ def additions():
         '조심하세요. 같은 INSERT를 다시 실행하면 같은 번호가 겹칠 수 있어요. 조회처럼 실행할 때마다 같은 효과인 명령은 아니에요.',
         after=AFTER,outputs=[ROWS,ROWS+'\n4\tcoffee\t300\t2'])
     # This task really closes one SQL client before starting the observer client.
-    g['files']['lab.sh']='''# 제공 실습: 첫 클라이언트가 끝난 뒤 두 번째 연결에서 저장된 행을 읽어요.
-set -e
-docker compose up -d --wait db >/dev/null 2>&1
-cat before.sql lesson.sql | docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --batch --skip-column-names --force lab
-cat after.sql | docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --batch --skip-column-names --force lab
-'''
+    g['files']['lab.sh']=lab('mysql', separate_observer=True)
     h=exercise('update-one-value','milk의 가격만 150으로 바꾸세요',
         'UPDATE의 SET은 바꿀 열과 새 값을 정하고 WHERE는 바꿀 행을 정해요.',
         'milk 가격을 100에서 150으로 바꾸려 해요. 준비 코드는 아직 조회만 해요.',

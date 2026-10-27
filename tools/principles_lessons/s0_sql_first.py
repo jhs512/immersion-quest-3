@@ -106,7 +106,7 @@ LESSON['chapters'] = [
     dict(identity='final-mutation', title='최종 도전: 실제 재고 한 행만 바꿔요',
          objectives=['조회·조건·변경의 의미를 조합해 다른 상품을 보존해요.'], units=[final_unit]),
 ]
-LESSON['revision']=2
+LESSON['revision']=3
 LESSON['audience']='DB와 SQL을 처음 배우는 학습자'
 LESSON['prerequisites']=['터미널이나 코드 실행 버튼으로 결과를 읽을 수 있어요.', 'Docker Desktop을 실행할 수 있어요. SQL·행·열은 여기서 처음 배워요.']
 LESSON['objectives']=['왜 데이터를 프로그램 밖의 DB에 보관하는지 설명해요.',

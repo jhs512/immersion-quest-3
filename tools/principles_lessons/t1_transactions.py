@@ -77,7 +77,7 @@ LESSON = sql_lesson(key='sql-transactions', folder='sql_transactions', pilot='�
                            unit('실패에서 원리 찾기', '오류의 영향을 관찰하고 취소 범위를 정해요.', [S3,S4]),
                            unit('최종 이체', '오류가 없는 경우와 있는 경우를 모두 지켜요.', [S5])],
                     final_slug='final-transfer', sources=[('https://www.postgresql.org/docs/18/tutorial-transactions.html','원자성·SAVEPOINT·오류 후 실패 상태를 확인해요.','실제 psql 오류와 최종 표 상태를 대조해요.')])
-LESSON['revision']=2
+LESSON['revision']=3
 LESSON['prerequisites']=['SQL 기초에서 UPDATE와 WHERE를 직접 썼어요.', '제약 위반으로 DB가 쓰기를 거절하는 것을 확인했어요.']
 preparation='이 수업은 PostgreSQL의 실제 연결에서 실행해요. 각 문제 맨 위의 준비 UPDATE가 연습 계좌만 같은 시작 잔액으로 맞춰요. 그 뒤 BEGIN부터 COMMIT·ROLLBACK까지의 차이를 비교해요. 컨테이너나 다른 DB를 재시작하지 않아요.'
 S1['intro'].insert(0,preparation)

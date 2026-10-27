@@ -31,15 +31,38 @@ def compose(engine):
 '''
 
 
-def lab(engine):
-    command = ('docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --batch --skip-column-names --force lab'
-               if engine == 'mysql' else 'docker compose exec -T db psql -U postgres -d lab -X -q -A -t -v ON_ERROR_STOP=0')
+def client(engine):
+    """Native tables for learners/demos; unchanged machine output for grading.
+
+    An older player does not set MQ3_OUTPUT, so it retains its grading contract.
+    The same SQL runs exactly once, including statements that change data.
+    """
+    if engine == 'mysql':
+        base = 'docker compose exec -T -e MYSQL_PWD=lab db mysql -uroot --default-character-set=utf8mb4 --force'
+        plain, table = '--batch --skip-column-names', '--table'
+    else:
+        base = 'docker compose exec -T db psql -U postgres -d lab -X -q -v ON_ERROR_STOP=0'
+        plain, table = '-A -t', '-P format=aligned -P border=2 -P null=NULL -P pager=off'
+    database = ' lab' if engine == 'mysql' else ''
+    return f'''sql_client() {{
+  if [ "${{MQ3_OUTPUT:-grading}}" = raw ]; then
+    {base} {table}{database}
+  else
+    {base} {plain}{database}
+  fi
+}}
+'''
+
+
+def lab(engine, separate_observer=False):
+    commands = ('cat before.sql lesson.sql | sql_client\ncat after.sql | sql_client'
+                if separate_observer else 'cat before.sql lesson.sql after.sql | sql_client')
     return f'''# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.
 set -e
 docker compose up -d --wait db >/dev/null 2>&1
 # 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.
 # 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.
-cat before.sql lesson.sql after.sql | {command}
+{client(engine)}{commands}
 '''
 
 

@@ -57,20 +57,31 @@ struct RejectedAnswer {
 }
 
 async fn validate(spec: Validation) -> Result<Value, String> {
+    let session=std::env::var_os("MQ3_VALIDATE_SQL_SESSION").map(|_|molip_quest::docker_lab::LessonSession::new());
+    let result=validate_with_session(spec,session.as_ref()).await;
+    if let Some(session)=session {session.close();session.wait_closed().await;}
+    result
+}
+
+async fn validate_with_session(spec: Validation,session:Option<&molip_quest::docker_lab::LessonSession>) -> Result<Value, String> {
     let course = CourseManifest::parse(&std::fs::read_to_string(&spec.course).map_err(|e|e.to_string())?)?;
     let raw=std::fs::read(&spec.lesson).map_err(|e|e.to_string())?;
     let source_hash=format!("{:x}",Sha256::digest(&raw));
     let reference=course.lessons.first().ok_or("No lesson reference")?;
     if source_hash!=reference.sha256 {return Err("Lesson bytes do not match the fixed course reference".into())}
     let lesson = Lesson::parse(std::str::from_utf8(&raw).map_err(|e|e.to_string())?,reference)?;
+    if session.is_some() && !lesson.tasks.iter().all(|task|task.entry_file.ends_with(".sql")&&task.files.contains_key("before.sql")) {
+        return Err("SQL session validation requires SQL fixture tasks".into())
+    }
     if lesson.tasks.len() != spec.expected_outputs.len() {return Err("Expected outputs do not cover every step".into())}
     if spec.expected_images.as_ref().is_some_and(|images| images.len()!=lesson.tasks.len()) {return Err("Expected images do not cover every step".into())}
     let started = Instant::now();
     let mut steps = Vec::new();
     for (index, task) in lesson.tasks.iter().enumerate() {
         let label = format!("Step {} ({})",index+1,task.title);
-        if lesson_runner::check(task,&task.starter_code).await?.passed {return Err(format!("{label}: starter already passes"))}
-        let report=lesson_runner::check(task,&task.solution).await?;
+        let starter=if let Some(session)=session {lesson_runner::check_in_lesson(task,&task.starter_code,session).await}else{lesson_runner::check(task,&task.starter_code).await}?;
+        if starter.passed {return Err(format!("{label}: starter already passes"))}
+        let report=if let Some(session)=session {lesson_runner::check_in_lesson(task,&task.solution,session).await}else{lesson_runner::check(task,&task.solution).await}?;
         if !report.passed {return Err(format!("{label}: solution failed: {}",serde_json::to_string(&report).unwrap()))}
         let mut source=task.example_code.clone().unwrap_or_else(||task.starter_code.clone());
         // The player starts a demonstration with the first test's input, as the learner would.
@@ -87,7 +98,7 @@ async fn validate(spec: Validation) -> Result<Value, String> {
                 "set_code"=>source=action["code"].as_str().ok_or("Missing replacement code")?.to_owned(),
                 "order_answer" if task.example_order_marker.is_some()=>source=task.example_for_answer(&action["ids"].to_string())?,
                 "run"=>{
-                    let result=if task.has_runnable_example(){lesson_runner::run_example(task,&source,&input).await}else{lesson_runner::run(task,&source,&input).await}?;
+                    let result=if let Some(session)=session {session.demonstrate(task,&source,&input).await}else if task.has_runnable_example(){lesson_runner::run_example(task,&source,&input).await}else{lesson_runner::run(task,&source,&input).await}?;
                     if let Some(error)=action["expect_error"].as_str() {
                         if result.success || !(result.stderr.contains(error)||result.stdout.contains(error)) {return Err(format!("{label}: expected {error}, got {}{}",result.stderr,result.stdout))}
                     } else if !result.success {return Err(format!("{label}: teacher failed: {}",result.stderr))}
@@ -107,6 +118,7 @@ async fn validate(spec: Validation) -> Result<Value, String> {
             if images!=expected[index] {return Err(format!("{label}: expected image counts {:?}, got {images:?}",expected[index]))}
         }
         steps.push(json!({"id":task.id,"teacher_outputs":outputs,"teacher_images":images,"grading_cases":report.cases.len()}));
+        eprintln!("{label}: passed");
     }
     for rejected in &spec.reject {
         let task=lesson.tasks.get(rejected.step.checked_sub(1).ok_or("Rejected step numbers start at one")?).ok_or("Rejected step is outside the lesson")?;
@@ -115,7 +127,8 @@ async fn validate(spec: Validation) -> Result<Value, String> {
             if source.matches(before).count()!=1 {return Err(format!("Rejected answer patch is not unique: {}",rejected.reason))}
             source=source.replacen(before,after,1);
         }
-        if lesson_runner::check(task,&source).await?.passed {return Err(format!("Invalid answer accepted: {}",rejected.reason))}
+        let report=if let Some(session)=session {lesson_runner::check_in_lesson(task,&source,session).await}else{lesson_runner::check(task,&source).await}?;
+        if report.passed {return Err(format!("Invalid answer accepted: {}",rejected.reason))}
     }
     for accepted in &spec.accept {
         let task=lesson.tasks.get(accepted.step.checked_sub(1).ok_or("Accepted step numbers start at one")?).ok_or("Accepted step is outside the lesson")?;
@@ -124,7 +137,7 @@ async fn validate(spec: Validation) -> Result<Value, String> {
             if source.matches(before).count()!=1 {return Err(format!("Accepted answer patch is not unique: {}",accepted.reason))}
             source=source.replacen(before,after,1);
         }
-        let report=lesson_runner::check(task,&source).await?;
+        let report=if let Some(session)=session {lesson_runner::check_in_lesson(task,&source,session).await}else{lesson_runner::check(task,&source).await}?;
         if !report.passed {return Err(format!("Valid answer rejected: {}: {}",accepted.reason,serde_json::to_string(&report).unwrap()))}
     }
     Ok(json!({"passed":true,"lesson":lesson.id,"revision":lesson.revision,"lesson_sha256":source_hash,"steps":steps,"rejected_answers":spec.reject.len(),"accepted_answers":spec.accept.len(),"seconds":started.elapsed().as_secs_f64(),"native_ui_verified":false,"voice_listened":false}))

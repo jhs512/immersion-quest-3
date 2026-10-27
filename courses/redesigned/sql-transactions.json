@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_6fedb8a6-08a5-4406-a4ea-a0e12ed963a5",
-  "revision": "sql-transactions-2",
+  "revision": "sql-transactions-3",
   "title": "트랜잭션 · 절반만 끝난 이체를 막아요",
   "description": "작은 표에서 조건 하나를 바꿔 실제 저장 결과를 비교해요.",
   "objectives": [
@@ -152,7 +152,7 @@
       "entry_file": "lesson.sql",
       "files": {
         "compose.yaml": "services:\n  db:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment: {POSTGRES_PASSWORD: lab, POSTGRES_DB: lab}\n    tmpfs: [/var/lib/postgresql]\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-U\", \"postgres\", \"-h\", \"127.0.0.1\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
-        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T db psql -U postgres -d lab -X -q -A -t -v ON_ERROR_STOP=0\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\nsql_client() {\n  if [ \"${MQ3_OUTPUT:-grading}\" = raw ]; then\n    docker compose exec -T db psql -U postgres -d lab -X -q -v ON_ERROR_STOP=0 -P format=aligned -P border=2 -P null=NULL -P pager=off\n  else\n    docker compose exec -T db psql -U postgres -d lab -X -q -v ON_ERROR_STOP=0 -A -t\n  fi\n}\ncat before.sql lesson.sql after.sql | sql_client\n",
         "before.sql": "CREATE TABLE account(id INT PRIMARY KEY, balance INT NOT NULL CHECK(balance>=0 AND balance<=150)); INSERT INTO account VALUES(1,100),(2,100);\n",
         "after.sql": "SELECT id||':'||balance FROM account ORDER BY id;\n"
       },
@@ -219,7 +219,7 @@
       "entry_file": "lesson.sql",
       "files": {
         "compose.yaml": "services:\n  db:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment: {POSTGRES_PASSWORD: lab, POSTGRES_DB: lab}\n    tmpfs: [/var/lib/postgresql]\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-U\", \"postgres\", \"-h\", \"127.0.0.1\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
-        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T db psql -U postgres -d lab -X -q -A -t -v ON_ERROR_STOP=0\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\nsql_client() {\n  if [ \"${MQ3_OUTPUT:-grading}\" = raw ]; then\n    docker compose exec -T db psql -U postgres -d lab -X -q -v ON_ERROR_STOP=0 -P format=aligned -P border=2 -P null=NULL -P pager=off\n  else\n    docker compose exec -T db psql -U postgres -d lab -X -q -v ON_ERROR_STOP=0 -A -t\n  fi\n}\ncat before.sql lesson.sql after.sql | sql_client\n",
         "before.sql": "CREATE TABLE account(id INT PRIMARY KEY, balance INT NOT NULL CHECK(balance>=0 AND balance<=150)); INSERT INTO account VALUES(1,100),(2,100);\n",
         "after.sql": "SELECT id||':'||balance FROM account ORDER BY id;\n"
       },
@@ -286,7 +286,7 @@
       "entry_file": "lesson.sql",
       "files": {
         "compose.yaml": "services:\n  db:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment: {POSTGRES_PASSWORD: lab, POSTGRES_DB: lab}\n    tmpfs: [/var/lib/postgresql]\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-U\", \"postgres\", \"-h\", \"127.0.0.1\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
-        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T db psql -U postgres -d lab -X -q -A -t -v ON_ERROR_STOP=0\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\nsql_client() {\n  if [ \"${MQ3_OUTPUT:-grading}\" = raw ]; then\n    docker compose exec -T db psql -U postgres -d lab -X -q -v ON_ERROR_STOP=0 -P format=aligned -P border=2 -P null=NULL -P pager=off\n  else\n    docker compose exec -T db psql -U postgres -d lab -X -q -v ON_ERROR_STOP=0 -A -t\n  fi\n}\ncat before.sql lesson.sql after.sql | sql_client\n",
         "before.sql": "CREATE TABLE account(id INT PRIMARY KEY, balance INT NOT NULL CHECK(balance>=0 AND balance<=150)); INSERT INTO account VALUES(1,100),(2,100);\n",
         "after.sql": "SELECT id||':'||balance FROM account ORDER BY id;\n"
       },
@@ -353,7 +353,7 @@
       "entry_file": "lesson.sql",
       "files": {
         "compose.yaml": "services:\n  db:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment: {POSTGRES_PASSWORD: lab, POSTGRES_DB: lab}\n    tmpfs: [/var/lib/postgresql]\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-U\", \"postgres\", \"-h\", \"127.0.0.1\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
-        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T db psql -U postgres -d lab -X -q -A -t -v ON_ERROR_STOP=0\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\nsql_client() {\n  if [ \"${MQ3_OUTPUT:-grading}\" = raw ]; then\n    docker compose exec -T db psql -U postgres -d lab -X -q -v ON_ERROR_STOP=0 -P format=aligned -P border=2 -P null=NULL -P pager=off\n  else\n    docker compose exec -T db psql -U postgres -d lab -X -q -v ON_ERROR_STOP=0 -A -t\n  fi\n}\ncat before.sql lesson.sql after.sql | sql_client\n",
         "before.sql": "CREATE TABLE account(id INT PRIMARY KEY, balance INT NOT NULL CHECK(balance>=0 AND balance<=150)); INSERT INTO account VALUES(1,100),(2,100);\n",
         "after.sql": "SELECT id||':'||balance FROM account ORDER BY id;\n"
       },
@@ -420,7 +420,7 @@
       "entry_file": "lesson.sql",
       "files": {
         "compose.yaml": "services:\n  db:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment: {POSTGRES_PASSWORD: lab, POSTGRES_DB: lab}\n    tmpfs: [/var/lib/postgresql]\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-U\", \"postgres\", \"-h\", \"127.0.0.1\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60\n",
-        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\ncat before.sql lesson.sql after.sql | docker compose exec -T db psql -U postgres -d lab -X -q -A -t -v ON_ERROR_STOP=0\n",
+        "lab.sh": "# 제공 실습: 실제 DB를 준비하고 학습자가 쓴 SQL을 실행해요.\nset -e\ndocker compose up -d --wait db >/dev/null 2>&1\n# 오류가 나도 다음 SQL을 실행해요. DB가 거절한 행과 남은 행을 비교하기 위해서예요.\n# 오류는 stderr에 그대로 남고, 표의 실제 조회 결과만 stdout으로 나와요.\nsql_client() {\n  if [ \"${MQ3_OUTPUT:-grading}\" = raw ]; then\n    docker compose exec -T db psql -U postgres -d lab -X -q -v ON_ERROR_STOP=0 -P format=aligned -P border=2 -P null=NULL -P pager=off\n  else\n    docker compose exec -T db psql -U postgres -d lab -X -q -v ON_ERROR_STOP=0 -A -t\n  fi\n}\ncat before.sql lesson.sql after.sql | sql_client\n",
         "before.sql": "CREATE TABLE account(id INT PRIMARY KEY, balance INT NOT NULL CHECK(balance>=0 AND balance<=150)); INSERT INTO account VALUES(1,100),(2,100);\nCREATE TABLE request(amount INT); INSERT INTO request VALUES(30);\n",
         "after.sql": "SELECT id||':'||balance FROM account ORDER BY id;\n"
       },
