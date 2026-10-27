@@ -14,5 +14,5 @@ fn live_preview_console_and_teacher_restore() {
     std::fs::write("target/pilot-web-preview-result.json",&raw).unwrap();
     let result:serde_json::Value=serde_json::from_str(&raw).unwrap();
     assert!(status.success()&&result["passed"]==true,"{result}");
-    assert_eq!(result["checked"].as_array().unwrap().len(),4);
+    assert_eq!(result["checked"].as_array().unwrap().len(),5);
 }

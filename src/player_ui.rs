@@ -1140,7 +1140,7 @@ if let Some(start)=autostart {
                                 if demonstration{teacher_preview.set(html);}else{preview.set(html);}
                                 artifacts.set(result.artifacts.into_iter().filter(|a|!matches!(a,molip_quest::runner::Artifact::Html{..})).collect());
                             },
-                            Err(error)=>{execution_state.set("failed");feedback.set("run-error");message.set(error);}
+                            Err(error)=>{execution_state.set("failed");feedback.set("run-error");if task.language==repository_course::TaskLanguage::Web {output.set(error);message.set("실행에 실패했어요. 콘솔을 확인하세요.".into());}else{message.set(error);}}
                         }
                         busy.set(false);
                         if !demonstration {sql_revision+=1;}
@@ -1175,7 +1175,7 @@ if let Some(start)=autostart {
                                     if let Some(checks)=checks {practice.check(&checks)}else{practice.check_exercise()}
                                 }).await
                             }else{molip_quest::lesson_runner::check_in_lesson(&task,&code(),&docker_session).await}}).await {
-                                Err(e)=>{feedback.set("error");message.set(e);},Ok(report)=>{
+                                Err(e)=>{feedback.set("error");if task.language==repository_course::TaskLanguage::Web {output.set(e);message.set("검사를 마치지 못했어요. 아래 검사 결과를 확인하세요.".into());}else{message.set(e);}},Ok(report)=>{
                                     feedback.set(if report.passed{"passed"}else{"incorrect"});
                                     message.set(if report.passed{"통과했어요."}else{"다시 풀어보세요. 아래 검사에서 예상과 실제 결과를 비교하세요."}.into());
                                     output.set(report.cases.iter().enumerate().map(|(i,c)|format!("검사 {} · {}\n입력: {}\n예상: {}\n결과: {}\n{}",i+1,if c.passed{"통과"}else{"다시 풀기"},c.input,c.expected,c.stdout,c.stderr)).collect::<Vec<_>>().join("\n\n"));
@@ -1259,7 +1259,7 @@ if let Some(start)=autostart {
                 }
                 if task.language!=repository_course::TaskLanguage::Web {
                     pre {class:"output","{output}"}
-                } else if !output().trim().is_empty() && (matches!(feedback(),"incorrect"|"error") || if narrating(){teacher_preview().is_empty()}else{preview().is_empty()}) {
+                } else if !output().trim().is_empty() && (matches!(feedback(),"incorrect"|"error") || feedback()=="run-error" && if narrating(){teacher_preview().is_empty()}else{preview().is_empty()}) {
                     details {class:"web-console",open:true,summary {if matches!(feedback(),"incorrect"|"error"){"검사 결과"}else{"콘솔"}} pre {class:"output","{output}"}}
                 }
                 if history_saves()>0 {p {class:"history-sync",role:"status","실행 이력을 저장하고 있어요. 다음 코드를 실행해도 돼요."}}

@@ -82,6 +82,13 @@
     container.querySelector(':scope > summary').click();
    }
    const initialCode=molipCodeEditors.getValue(),initialAnswer=bridge()?.value;
+   if(pilot.webPreviewOnly){
+    await answer(task);await click('제출');
+    await wait(()=>document.querySelector('.result-pane')?.dataset.feedback==='passed','correct answer passes without running a preview first');
+    if(document.querySelector('.web-console'))throw Error('Successful grading was displayed as a console log');
+    await click('여기 머물기');await click('초기화');
+    await wait(()=>molipCodeEditors.getValue()===initialCode,'restore starter after grading-only check');
+   }
    await click('해설 재생');await wait(()=>molipAgent.running,'teacher starts');
    await wait(()=>!molipAgent.running&&document.querySelector('.repository-task').dataset.narrating==='false','teacher ends');
    await wait(()=>molipCodeEditors.getValue()===initialCode&&bridge()?.value===initialAnswer,'student state restored');verifyTeacher(task);
@@ -127,7 +134,7 @@
      await wait(()=>document.querySelector('[data-code-editor]')?.dataset.editorValue===initialCode,'wrong code echo');
      await click('제출');await wait(()=>document.querySelector('.result-pane')?.dataset.feedback==='incorrect','wrong web answer rejected');
      await wait(()=>[...document.querySelectorAll('.web-console')].some(node=>node.textContent.includes('검사 결과')&&node.querySelector('.output')?.textContent.trim()),'failed checks stay visible beside the live preview');
-     dioxus.send({passed:true,checked:['No duplicate page text','Live preview console: initial log, later click, runtime error','Narration preserves the student iframe and logs','Failed grading keeps its diagnostic beside the existing preview']});
+     dioxus.send({passed:true,checked:['No duplicate page text','Successful grading without a preview does not create a console','Live preview console: initial log, later click, runtime error','Narration preserves the student iframe and logs','Failed grading keeps its diagnostic beside the existing preview']});
      return;
     }
    }
