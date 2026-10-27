@@ -238,6 +238,12 @@ def build(name, check=False):
     repeated = [(spoken, len(ids)) for spoken, ids in usage.items() if len(ids) >= 3 or ('조심하세요' in spoken and len(ids) >= 2)]
     if repeated:
         raise ValueError(f"{name}: 여러 스텝에 같은 해설 문장을 반복해요: " + ' | '.join(f'{text[:40]}×{n}' for text, n in repeated[:5]))
+    # Authored detail retains its semantic review and cache. The separately authored
+    # lesson orientation and exact task request precede it in the published script.
+    from narration_openings import compile_openings
+    compile_openings(name, tasks)
+    for task in tasks:
+        validate_highlights(task)
     # Only learner-facing hierarchy is published. Core flows and approval evidence stay in authoring.
     chapters = copy.deepcopy(prd['chapters'])
     presentation = authored['presentation']

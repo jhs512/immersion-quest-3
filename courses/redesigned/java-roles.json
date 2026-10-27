@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_ed4321cf-8e23-420a-92ff-1903f4138183",
-  "revision": "java-roles-5",
+  "revision": "java-roles-6",
   "title": "상태를 지키고 객체의 역할을 나눠요",
   "description": "같은 주문 결제의 상태·역할·위임·실패를 작은 실행으로 이해해요.",
   "objectives": [
@@ -132,6 +132,19 @@
       "narration": [
         {
           "action": "say",
+          "text": "이 수업에서는 객체의 상태와 역할을 나누는 법을 배워요. 계약과 위임으로 변경을 다루는 게 목표예요."
+        },
+        {
+          "action": "say",
+          "text": "주문 결제 코드를 조금씩 고쳐요. 캡슐화·인터페이스·생성자 조합을 실패 상황에서도 확인해요."
+        },
+        {
+          "action": "say",
+          "text": "숨긴 잔액을 공개 메서드로 읽어 출력하는 문제예요.",
+          "target": "text:숨긴 잔액을 공개 메서드로 읽어 출력하세요#1"
+        },
+        {
+          "action": "say",
           "text": "잔액은 private으로 숨겨져 있어요. 다른 클래스인 Main은 이 필드를 직접 읽을 수 없어요.",
           "target": "text:Main은 다른 클래스라서 이 필드를 직접 읽을 수 없어요."
         },
@@ -204,6 +217,11 @@
       "narration": [
         {
           "action": "say",
+          "text": "잔액보다 큰 출금은 거절하는 조건을 쓰는 문제예요.",
+          "target": "text:잔액보다 큰 출금은 거절하는 조건을 쓰세요#1"
+        },
+        {
+          "action": "say",
           "text": "출금은 잔액 안에서만 허용해야 해요. 지금은 무엇이든 빼서 잔액이 음수가 돼요.",
           "target": "text:지금은 무엇이든 빼서 잔액이 음수가 돼요."
         },
@@ -264,6 +282,11 @@
       ],
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "FeePolicy를 구현해 배송비 0을 돌려주는 FreeFee를 쓰는 문제예요.",
+          "target": "text:FeePolicy를 구현해 배송비 0을 돌려주는 FreeFee를 쓰세요#1"
+        },
         {
           "action": "say",
           "text": "같은 FeePolicy 변수에 무료배송 정책도 담으려는데 그 클래스가 아직 없어요.",
@@ -343,6 +366,11 @@
       "narration": [
         {
           "action": "say",
+          "text": "StandardFee의 fee가 인터페이스의 공개 약속을 지키도록 고치는 문제예요.",
+          "target": "text:StandardFee의 fee가 인터페이스의 공개 약속을 지키도록 고치세요#1"
+        },
+        {
+          "action": "say",
           "text": "인터페이스의 메서드는 모두에게 공개된 약속이에요. 그런데 StandardFee의 fee에는 public이 없어요.",
           "target": "text:이번엔 StandardFee의 fee 앞에 public이 빠졌어요."
         },
@@ -408,6 +436,11 @@
       "checker": "class QuestContract {\n    public static void main(String[] args) throws Exception {\n        \n        Class<?> C = Class.forName(\"Checkout\", true, Main.class.getClassLoader()); Class<?> P = Class.forName(\"FeePolicy\", true, Main.class.getClassLoader());\n        var make = C.getDeclaredConstructor(P); make.setAccessible(true);\n        var standard = Class.forName(\"StandardFee\", true, Main.class.getClassLoader()).getDeclaredConstructor(); standard.setAccessible(true);\n        var total = C.getDeclaredMethod(\"total\", int.class); total.setAccessible(true);\n        require((int) total.invoke(make.newInstance(standard.newInstance()), 100) == 2600, \"Checkout의 합산 코드는 그대로 두세요. 표준 정책이면 배송비를 더해야 해요.\");\n        String source = java.nio.file.Files.readString(java.nio.file.Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, java.nio.charset.StandardCharsets.UTF_8)) {\n            var task = (com.sun.source.util.JavacTask) compiler.getTask(null, files, null,\n                java.util.List.of(\"-proc:none\"), null, files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = com.sun.source.util.Trees.instance(task).getSourcePositions();\n            long[] bounds = {-1, -1};\n            String[] change = {\"{ }\"};\n            new com.sun.source.util.TreeScanner<Void, String>() {\n                public Void visitClass(com.sun.source.tree.ClassTree node, String parent) {\n                    return super.visitClass(node, node.getSimpleName().toString());\n                }\n                public Void visitMethod(com.sun.source.tree.MethodTree node, String parent) {\n                    if (\"Main\".equals(parent) && \"main\".contentEquals(node.getName()) && node.getBody() != null) {\n                        if (bounds[0] != -1) throw new AssertionError(\"검사할 메서드는 하나만 정의하세요.\");\n                        bounds[0] = positions.getStartPosition(tree, node.getBody());\n                        bounds[1] = positions.getEndPosition(tree, node.getBody());\n                    }\n                    return super.visitMethod(node, parent);\n                }\n                public Void visitVariable(com.sun.source.tree.VariableTree node, String parent) {\n                    if (\"Main\".equals(parent) && (\"var:\" + node.getName()).equals(\"main\")) {\n                        if (node.getInitializer() != null) {\n                            bounds[0] = positions.getStartPosition(tree, node.getInitializer());\n                            bounds[1] = positions.getEndPosition(tree, node.getInitializer());\n                        } else {\n                            // Java fields without an initializer have a defined default.\n                            bounds[0] = positions.getEndPosition(tree, node) - 1;\n                            bounds[1] = bounds[0];\n                            change[0] = \" = \" + change[0];\n                        }\n                    }\n                    return super.visitVariable(node, parent);\n                }\n            }.scan(tree, \"\");\n            if (bounds[0] < 0) throw new AssertionError(\"필요한 메서드를 정의하세요.\");\n            System.out.print(source.substring(0, (int) bounds[0]) + change[0] + source.substring((int) bounds[1]));\n        }\n    }\n    static void require(boolean ok, String message) {\n        if (!ok) throw new AssertionError(message);\n    }\n}\n",
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "Checkout은 그대로 두고 무료배송 정책을 꽂는 문제예요.",
+          "target": "text:Checkout은 그대로 두고 무료배송 정책을 꽂으세요#1"
+        },
         {
           "action": "say",
           "text": "Checkout은 배송비를 직접 계산하지 않고 생성자로 받은 정책에 맡겨요. 그래서 정책만 바꾸면 돼요.",
@@ -484,6 +517,11 @@
       ],
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "음수 잔액으로는 계좌를 만들지 못하도록 생성자에서 예외를 던지는 문제예요.",
+          "target": "text:음수 잔액으로는 계좌를 만들지 못하도록 생성자에서 예외를 던지세요#1"
+        },
         {
           "action": "say",
           "text": "음수 잔액으로 계좌를 만들려는데 생성자가 그대로 받아들여요.",
@@ -575,6 +613,11 @@
       "narration": [
         {
           "action": "say",
+          "text": "결제가 실패해도 closed가 꼭 출력되도록 finally로 옮기는 문제예요.",
+          "target": "text:결제가 실패해도 closed가 꼭 출력되도록 finally로 옮기세요#1"
+        },
+        {
+          "action": "say",
           "text": "closed는 결제가 성공하든 실패하든 꼭 출력해야 해요. 지금은 try 안 결제 뒤에 있어요.",
           "target": "text:closed는 결제가 성공하든 실패하든 마지막에 꼭 출력해야 해요."
         },
@@ -654,6 +697,11 @@
       ],
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "양수이고 잔액 이하인 출금만 허용하도록 고치는 문제예요.",
+          "target": "text:양수이고 잔액 이하인 출금만 허용하도록 고치세요#1"
+        },
         {
           "action": "say",
           "text": "규칙은 양수이고 잔액 이하인 출금만 허용하는 거예요. 지금은 음수 요청이 통과해요.",

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_adb48fbe-fca5-40fc-a019-3e8a194630cb",
-  "revision": "java-references-7",
+  "revision": "java-references-8",
   "title": "자바 · 객체와 참조를 나눠 봐요",
   "description": "같은 재고 상자의 생성·별칭·전달·비교를 짧은 코드로 살펴봐요.",
   "objectives": [
@@ -164,6 +164,19 @@
       "narration": [
         {
           "action": "say",
+          "text": "이 수업에서는 객체와 객체를 가리키는 참조를 구별해요. 같은 대상을 공유할 때의 변화를 이해할 거예요."
+        },
+        {
+          "action": "say",
+          "text": "재고 상자를 만들고 다른 변수로 가리켜 봐요. 필드 변경·재대입·메서드 전달을 비교해요."
+        },
+        {
+          "action": "say",
+          "text": "new로 재고 상자를 만들고 그 상자의 count를 출력하는 문제예요.",
+          "target": "text:new로 재고 상자를 만들고 그 상자의 count를 출력하세요#1"
+        },
+        {
+          "action": "say",
           "text": "Box는 재고 count를 담는 상자예요. 이번엔 상자를 직접 만들어야 해요.",
           "target": "text:initial 값으로 새 Box를 만들어 참조 변수 a에 담고, a가 가리키는 상자의 count를 출력하세요."
         },
@@ -228,6 +241,11 @@
       "narration": [
         {
           "action": "say",
+          "text": "두 상자 중 b의 상자만 8로 바꾸는 문제예요.",
+          "target": "text:두 상자 중 b의 상자만 8로 바꾸세요#1"
+        },
+        {
+          "action": "say",
           "text": "new를 두 번 써서 상자를 따로 만들었어요. b의 상자만 8로 바꿔야 해요.",
           "target": "text:b가 가리키는 상자의 count만 8로 바꾸는 줄을 쓰세요."
         },
@@ -285,6 +303,11 @@
       "narration": [
         {
           "action": "say",
+          "text": "b가 a와 같은 상자를 가리키도록 선언을 고치는 문제예요.",
+          "target": "text:b가 a와 같은 상자를 가리키도록 선언을 고치세요#1"
+        },
+        {
+          "action": "say",
           "text": "b는 지금 새 상자를 만들어요. b로 고친 값이 a에도 보이려면 같은 상자를 가리켜야 해요.",
           "target": "text:지금 b는 새 상자를 하나 더 만들어요."
         },
@@ -340,6 +363,11 @@
       ],
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "a는 그대로 두고 b만 새 상자를 가리키게 하는 문제예요.",
+          "target": "text:a는 그대로 두고 b만 새 상자를 가리키게 하세요#1"
+        },
         {
           "action": "say",
           "text": "a와 b가 같은 상자를 가리키는 상태에서, b만 새 상자로 옮겨야 해요.",
@@ -414,6 +442,11 @@
       "narration": [
         {
           "action": "say",
+          "text": "메서드가 받은 상자의 재고를 1 늘리는 문제예요.",
+          "target": "text:메서드가 받은 상자의 재고를 1 늘리세요#1"
+        },
+        {
+          "action": "say",
           "text": "add는 상자의 참조를 받아요. 그 참조로 상자 안의 count를 늘려야 해요.",
           "target": "text:add 안에서 item이 가리키는 상자의 count를 1 늘리는 줄을 쓰세요."
         },
@@ -475,6 +508,11 @@
       "checker": "class QuestContract {\n    public static void main(String[] args) throws Exception {\n        \n        Class<?> B = Class.forName(\"Box\", true, Main.class.getClassLoader());\n        var make = B.getDeclaredConstructor(int.class); make.setAccessible(true);\n        var count = B.getDeclaredField(\"count\"); count.setAccessible(true);\n        var rep = Main.class.getDeclaredMethod(\"replace\", B); rep.setAccessible(true);\n        require(rep.getReturnType() == B, \"replace가 Box를 돌려주게 하세요.\");\n        Object given = make.newInstance(3); Object result = rep.invoke(null, given);\n        require(result != given && count.getInt(result) == 99 && count.getInt(given) == 3, \"replace는 넘겨받은 상자를 바꾸지 말고 count 99인 새 상자를 돌려줘야 해요.\");\n        String source = java.nio.file.Files.readString(java.nio.file.Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, java.nio.charset.StandardCharsets.UTF_8)) {\n            var task = (com.sun.source.util.JavacTask) compiler.getTask(null, files, null,\n                java.util.List.of(\"-proc:none\"), null, files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = com.sun.source.util.Trees.instance(task).getSourcePositions();\n            long[] bounds = {-1, -1};\n            String[] change = {\"{ return new Box(-7); }\"};\n            new com.sun.source.util.TreeScanner<Void, String>() {\n                public Void visitClass(com.sun.source.tree.ClassTree node, String parent) {\n                    return super.visitClass(node, node.getSimpleName().toString());\n                }\n                public Void visitMethod(com.sun.source.tree.MethodTree node, String parent) {\n                    if (\"Main\".equals(parent) && \"replace\".contentEquals(node.getName()) && node.getBody() != null) {\n                        if (bounds[0] != -1) throw new AssertionError(\"검사할 메서드는 하나만 정의하세요.\");\n                        bounds[0] = positions.getStartPosition(tree, node.getBody());\n                        bounds[1] = positions.getEndPosition(tree, node.getBody());\n                    }\n                    return super.visitMethod(node, parent);\n                }\n                public Void visitVariable(com.sun.source.tree.VariableTree node, String parent) {\n                    if (\"Main\".equals(parent) && (\"var:\" + node.getName()).equals(\"replace\")) {\n                        if (node.getInitializer() != null) {\n                            bounds[0] = positions.getStartPosition(tree, node.getInitializer());\n                            bounds[1] = positions.getEndPosition(tree, node.getInitializer());\n                        } else {\n                            // Java fields without an initializer have a defined default.\n                            bounds[0] = positions.getEndPosition(tree, node) - 1;\n                            bounds[1] = bounds[0];\n                            change[0] = \" = \" + change[0];\n                        }\n                    }\n                    return super.visitVariable(node, parent);\n                }\n            }.scan(tree, \"\");\n            if (bounds[0] < 0) throw new AssertionError(\"필요한 메서드를 정의하세요.\");\n            System.out.print(source.substring(0, (int) bounds[0]) + change[0] + source.substring((int) bounds[1]));\n        }\n    }\n    static void require(boolean ok, String message) {\n        if (!ok) throw new AssertionError(message);\n    }\n}\n",
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "새 상자를 돌려받아 main의 a가 그 상자를 가리키게 하는 문제예요.",
+          "target": "text:새 상자를 돌려받아 main의 a가 그 상자를 가리키게 하세요#1"
+        },
         {
           "action": "say",
           "text": "replace는 매개변수 item에 새 상자를 넣어요. main의 a도 그 상자를 가리키게 될지 먼저 봐요.",
@@ -547,6 +585,11 @@
       "checker": "class QuestContract {\n    public static void main(String[] args) throws Exception {\n        \n        Class<?> B = Class.forName(\"Box\", true, Main.class.getClassLoader());\n        var make = B.getDeclaredConstructor(int.class); make.setAccessible(true);\n        var count = B.getDeclaredField(\"count\"); count.setAccessible(true);\n        var same = B.getDeclaredMethod(\"sameCount\", B); same.setAccessible(true);\n        require((boolean) same.invoke(make.newInstance(4), make.newInstance(4)) && !(boolean) same.invoke(make.newInstance(4), make.newInstance(5)), \"sameCount는 두 상자의 count가 같은지 돌려줘야 해요.\");\n        String source = java.nio.file.Files.readString(java.nio.file.Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, java.nio.charset.StandardCharsets.UTF_8)) {\n            var task = (com.sun.source.util.JavacTask) compiler.getTask(null, files, null,\n                java.util.List.of(\"-proc:none\"), null, files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = com.sun.source.util.Trees.instance(task).getSourcePositions();\n            long[] bounds = {-1, -1};\n            String[] change = {\"{ return false; }\"};\n            new com.sun.source.util.TreeScanner<Void, String>() {\n                public Void visitClass(com.sun.source.tree.ClassTree node, String parent) {\n                    return super.visitClass(node, node.getSimpleName().toString());\n                }\n                public Void visitMethod(com.sun.source.tree.MethodTree node, String parent) {\n                    if (\"Box\".equals(parent) && \"sameCount\".contentEquals(node.getName()) && node.getBody() != null) {\n                        if (bounds[0] != -1) throw new AssertionError(\"검사할 메서드는 하나만 정의하세요.\");\n                        bounds[0] = positions.getStartPosition(tree, node.getBody());\n                        bounds[1] = positions.getEndPosition(tree, node.getBody());\n                    }\n                    return super.visitMethod(node, parent);\n                }\n                public Void visitVariable(com.sun.source.tree.VariableTree node, String parent) {\n                    if (\"Box\".equals(parent) && (\"var:\" + node.getName()).equals(\"sameCount\")) {\n                        if (node.getInitializer() != null) {\n                            bounds[0] = positions.getStartPosition(tree, node.getInitializer());\n                            bounds[1] = positions.getEndPosition(tree, node.getInitializer());\n                        } else {\n                            // Java fields without an initializer have a defined default.\n                            bounds[0] = positions.getEndPosition(tree, node) - 1;\n                            bounds[1] = bounds[0];\n                            change[0] = \" = \" + change[0];\n                        }\n                    }\n                    return super.visitVariable(node, parent);\n                }\n            }.scan(tree, \"\");\n            if (bounds[0] < 0) throw new AssertionError(\"필요한 메서드를 정의하세요.\");\n            System.out.print(source.substring(0, (int) bounds[0]) + change[0] + source.substring((int) bounds[1]));\n        }\n    }\n    static void require(boolean ok, String message) {\n        if (!ok) throw new AssertionError(message);\n    }\n}\n",
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "재고 수가 같은지 비교하는 sameCount 메서드를 쓰는 문제예요.",
+          "target": "text:재고 수가 같은지 비교하는 sameCount 메서드를 쓰세요#1"
+        },
         {
           "action": "say",
           "text": "두 상자는 내용이 2로 같지만 따로 만든 객체예요. equals를 직접 만들지 않은 Box는 같은 객체인지만 비교해요.",
@@ -623,6 +666,11 @@
       ],
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "상태 문자열의 내용이 ready인지 비교하도록 조건을 고치는 문제예요.",
+          "target": "text:상태 문자열의 내용이 ready인지 비교하도록 조건을 고치세요#1"
+        },
         {
           "action": "say",
           "text": "status에는 ready라는 글자가 들어 있는데 대기가 나와요.",
@@ -714,6 +762,11 @@
       "narration": [
         {
           "action": "say",
+          "text": "final 참조는 그대로 두고 그 상자의 재고를 3으로 바꾸는 문제예요.",
+          "target": "text:final 참조는 그대로 두고 그 상자의 재고를 3으로 바꾸세요#1"
+        },
+        {
+          "action": "say",
           "text": "a 앞에 final이 있어요. final 변수에는 다른 값을 다시 대입할 수 없어요.",
           "target": "text:final 변수에는 처음 넣은 값 말고 다른 값을 다시 대입할 수 없어요."
         },
@@ -770,6 +823,11 @@
       ],
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "생성자의 인수를 현재 객체의 필드에 저장하는 문제예요.",
+          "target": "text:생성자의 인수를 현재 객체의 필드에 저장하세요#1"
+        },
         {
           "action": "say",
           "text": "생성자에 2를 넘겼는데 필드에는 0이 남아요.",

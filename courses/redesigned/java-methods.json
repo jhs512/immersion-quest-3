@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_a31124bd-4960-424b-b095-d8f6d1f5a6bc",
-  "revision": "java-methods-5",
+  "revision": "java-methods-6",
   "title": "자바 · 계산을 메서드로 나눠요",
   "description": "같은 주문 계산을 나누며 값 전달·반환·타입과 경계를 이해해요.",
   "objectives": [
@@ -123,6 +123,19 @@
       "narration": [
         {
           "action": "say",
+          "text": "이 수업에서는 인수·매개변수·반환값을 구별해요. 값을 돌려주는 일과 출력하는 일도 나눠 볼 거예요."
+        },
+        {
+          "action": "say",
+          "text": "주문 계산을 작은 메서드로 나눠요. 값이 들어가고 돌아오는 과정을 실행으로 확인해요."
+        },
+        {
+          "action": "say",
+          "text": "배송비에 1,000원을 더해 돌려주도록 return을 고치는 문제예요.",
+          "target": "text:배송비에 1,000원을 더해 돌려주도록 return을 고치세요#1"
+        },
+        {
+          "action": "say",
           "text": "next_fee는 배송비를 받아 1,000원 더한 값을 돌려줘야 해요.",
           "target": "text:next_fee가 받은 배송비 fee에 1,000원을 더한 값을 돌려주도록 return 줄을 고치세요."
         },
@@ -192,6 +205,11 @@
       "checker": "class QuestContract {\n    public static void main(String[] args) throws Exception {\n        \n        require(Main.class.getDeclaredMethod(\"add_fee\", int.class).getReturnType() == int.class, \"add_fee가 int 값을 돌려주게 하세요.\");\n        for (int v : new int[]{-500, 0, 2000, 12345})\n            require(Main.add_fee(v) == v + 1000, \"add_fee는 받은 금액보다 1,000 큰 값을 돌려줘야 해요.\");\n        String source = java.nio.file.Files.readString(java.nio.file.Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, java.nio.charset.StandardCharsets.UTF_8)) {\n            var task = (com.sun.source.util.JavacTask) compiler.getTask(null, files, null,\n                java.util.List.of(\"-proc:none\"), null, files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = com.sun.source.util.Trees.instance(task).getSourcePositions();\n            long[] bounds = {-1, -1};\n            String[] change = {\"{ return -7; }\"};\n            new com.sun.source.util.TreeScanner<Void, String>() {\n                public Void visitClass(com.sun.source.tree.ClassTree node, String parent) {\n                    return super.visitClass(node, node.getSimpleName().toString());\n                }\n                public Void visitMethod(com.sun.source.tree.MethodTree node, String parent) {\n                    if (\"Main\".equals(parent) && \"add_fee\".contentEquals(node.getName()) && node.getBody() != null) {\n                        if (bounds[0] != -1) throw new AssertionError(\"검사할 메서드는 하나만 정의하세요.\");\n                        bounds[0] = positions.getStartPosition(tree, node.getBody());\n                        bounds[1] = positions.getEndPosition(tree, node.getBody());\n                    }\n                    return super.visitMethod(node, parent);\n                }\n                public Void visitVariable(com.sun.source.tree.VariableTree node, String parent) {\n                    if (\"Main\".equals(parent) && (\"var:\" + node.getName()).equals(\"add_fee\")) {\n                        if (node.getInitializer() != null) {\n                            bounds[0] = positions.getStartPosition(tree, node.getInitializer());\n                            bounds[1] = positions.getEndPosition(tree, node.getInitializer());\n                        } else {\n                            // Java fields without an initializer have a defined default.\n                            bounds[0] = positions.getEndPosition(tree, node) - 1;\n                            bounds[1] = bounds[0];\n                            change[0] = \" = \" + change[0];\n                        }\n                    }\n                    return super.visitVariable(node, parent);\n                }\n            }.scan(tree, \"\");\n            if (bounds[0] < 0) throw new AssertionError(\"필요한 메서드를 정의하세요.\");\n            System.out.print(source.substring(0, (int) bounds[0]) + change[0] + source.substring((int) bounds[1]));\n        }\n    }\n    static void require(boolean ok, String message) {\n        if (!ok) throw new AssertionError(message);\n    }\n}\n",
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "메서드가 더한 금액을 돌려주게 바꾸고 main에서 출력하는 문제예요.",
+          "target": "text:메서드가 더한 금액을 돌려주게 바꾸고 main에서 출력하세요#1"
+        },
         {
           "action": "say",
           "text": "메서드 안에서 amount를 바꿔도 main의 amount가 바뀌는지 먼저 확인해요.",
@@ -264,6 +282,11 @@
       "checker": "class QuestContract {\n    public static void main(String[] args) throws Exception {\n        \n        String source = java.nio.file.Files.readString(java.nio.file.Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, java.nio.charset.StandardCharsets.UTF_8)) {\n            var task = (com.sun.source.util.JavacTask) compiler.getTask(null, files, null,\n                java.util.List.of(\"-proc:none\"), null, files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = com.sun.source.util.Trees.instance(task).getSourcePositions();\n            long[] bounds = {-1, -1};\n            String[] change = {\"{ return -7; }\"};\n            new com.sun.source.util.TreeScanner<Void, String>() {\n                public Void visitClass(com.sun.source.tree.ClassTree node, String parent) {\n                    return super.visitClass(node, node.getSimpleName().toString());\n                }\n                public Void visitMethod(com.sun.source.tree.MethodTree node, String parent) {\n                    if (\"Main\".equals(parent) && \"next_fee\".contentEquals(node.getName()) && node.getBody() != null) {\n                        if (bounds[0] != -1) throw new AssertionError(\"검사할 메서드는 하나만 정의하세요.\");\n                        bounds[0] = positions.getStartPosition(tree, node.getBody());\n                        bounds[1] = positions.getEndPosition(tree, node.getBody());\n                    }\n                    return super.visitMethod(node, parent);\n                }\n                public Void visitVariable(com.sun.source.tree.VariableTree node, String parent) {\n                    if (\"Main\".equals(parent) && (\"var:\" + node.getName()).equals(\"next_fee\")) {\n                        if (node.getInitializer() != null) {\n                            bounds[0] = positions.getStartPosition(tree, node.getInitializer());\n                            bounds[1] = positions.getEndPosition(tree, node.getInitializer());\n                        } else {\n                            // Java fields without an initializer have a defined default.\n                            bounds[0] = positions.getEndPosition(tree, node) - 1;\n                            bounds[1] = bounds[0];\n                            change[0] = \" = \" + change[0];\n                        }\n                    }\n                    return super.visitVariable(node, parent);\n                }\n            }.scan(tree, \"\");\n            if (bounds[0] < 0) throw new AssertionError(\"필요한 메서드를 정의하세요.\");\n            System.out.print(source.substring(0, (int) bounds[0]) + change[0] + source.substring((int) bounds[1]));\n        }\n    }\n    static void require(boolean ok, String message) {\n        if (!ok) throw new AssertionError(message);\n    }\n}\n",
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "메서드가 돌려준 값으로 amount를 바꾸는 문제예요.",
+          "target": "text:메서드가 돌려준 값으로 amount를 바꾸세요#1"
+        },
         {
           "action": "say",
           "text": "next_fee는 값을 돌려주지만, 지금 main은 그 값을 받아 두지 않아요.",
@@ -341,6 +364,11 @@
       "checker": "class QuestContract {\n    public static void main(String[] args) throws Exception {\n        \n        require(Main.discounted(1000, 3) == 700 && Main.discounted(500, 0) == 500, \"discounted의 계산은 바꾸지 마세요.\");\n        String source = java.nio.file.Files.readString(java.nio.file.Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, java.nio.charset.StandardCharsets.UTF_8)) {\n            var task = (com.sun.source.util.JavacTask) compiler.getTask(null, files, null,\n                java.util.List.of(\"-proc:none\"), null, files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = com.sun.source.util.Trees.instance(task).getSourcePositions();\n            long[] bounds = {-1, -1};\n            String[] change = {\"{ return -7; }\"};\n            new com.sun.source.util.TreeScanner<Void, String>() {\n                public Void visitClass(com.sun.source.tree.ClassTree node, String parent) {\n                    return super.visitClass(node, node.getSimpleName().toString());\n                }\n                public Void visitMethod(com.sun.source.tree.MethodTree node, String parent) {\n                    if (\"Main\".equals(parent) && \"discounted\".contentEquals(node.getName()) && node.getBody() != null) {\n                        if (bounds[0] != -1) throw new AssertionError(\"검사할 메서드는 하나만 정의하세요.\");\n                        bounds[0] = positions.getStartPosition(tree, node.getBody());\n                        bounds[1] = positions.getEndPosition(tree, node.getBody());\n                    }\n                    return super.visitMethod(node, parent);\n                }\n                public Void visitVariable(com.sun.source.tree.VariableTree node, String parent) {\n                    if (\"Main\".equals(parent) && (\"var:\" + node.getName()).equals(\"discounted\")) {\n                        if (node.getInitializer() != null) {\n                            bounds[0] = positions.getStartPosition(tree, node.getInitializer());\n                            bounds[1] = positions.getEndPosition(tree, node.getInitializer());\n                        } else {\n                            // Java fields without an initializer have a defined default.\n                            bounds[0] = positions.getEndPosition(tree, node) - 1;\n                            bounds[1] = bounds[0];\n                            change[0] = \" = \" + change[0];\n                        }\n                    }\n                    return super.visitVariable(node, parent);\n                }\n            }.scan(tree, \"\");\n            if (bounds[0] < 0) throw new AssertionError(\"필요한 메서드를 정의하세요.\");\n            System.out.print(source.substring(0, (int) bounds[0]) + change[0] + source.substring((int) bounds[1]));\n        }\n    }\n    static void require(boolean ok, String message) {\n        if (!ok) throw new AssertionError(message);\n    }\n}\n",
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "가격과 수량이 제자리에 들어가도록 호출을 고치는 문제예요.",
+          "target": "text:가격과 수량이 제자리에 들어가도록 호출을 고치세요#1"
+        },
         {
           "action": "say",
           "text": "가격 3,000원, 수량 2개면 2,800원이어야 해요. 메서드는 가격을 첫째, 수량을 둘째로 받아요.",
@@ -430,6 +458,11 @@
       "narration": [
         {
           "action": "say",
+          "text": "1만 원 이상이면 그 자리에서 0을 돌려주는 return을 쓰는 문제예요.",
+          "target": "text:1만 원 이상이면 그 자리에서 0을 돌려주는 return을 쓰세요#1"
+        },
+        {
+          "action": "say",
           "text": "1만 원 이상이면 0을 돌려주고 바로 끝나야 해요. 지금 if 안은 비어 있어요.",
           "target": "text:if 안에 0을 돌려주는 return문을 쓰세요."
         },
@@ -512,6 +545,11 @@
       "narration": [
         {
           "action": "say",
+          "text": "실수를 받는 half를 같은 이름으로 하나 더 쓰는 문제예요.",
+          "target": "text:실수를 받는 half를 같은 이름으로 하나 더 쓰세요#1"
+        },
+        {
+          "action": "say",
           "text": "정수 5와 실수 5.0으로 half를 각각 부르려고 해요. 지금은 정수를 받는 half 하나뿐이에요.",
           "target": "text:지금은 정수를 받는 half만 있어요."
         },
@@ -574,6 +612,11 @@
       "checker": "class QuestContract {\n    public static void main(String[] args) throws Exception {\n        \n        require(Main.total(new int[]{}) == 0 && Main.total(new int[]{9}) == 9 && Main.total(new int[]{4, 2, 1}) == 7, \"total은 모든 가격의 합을 돌려줘야 해요.\");\n        String source = java.nio.file.Files.readString(java.nio.file.Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, java.nio.charset.StandardCharsets.UTF_8)) {\n            var task = (com.sun.source.util.JavacTask) compiler.getTask(null, files, null,\n                java.util.List.of(\"-proc:none\"), null, files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = com.sun.source.util.Trees.instance(task).getSourcePositions();\n            long[] bounds = {-1, -1};\n            String[] change = {\"{ return -7; }\"};\n            new com.sun.source.util.TreeScanner<Void, String>() {\n                public Void visitClass(com.sun.source.tree.ClassTree node, String parent) {\n                    return super.visitClass(node, node.getSimpleName().toString());\n                }\n                public Void visitMethod(com.sun.source.tree.MethodTree node, String parent) {\n                    if (\"Main\".equals(parent) && \"total\".contentEquals(node.getName()) && node.getBody() != null) {\n                        if (bounds[0] != -1) throw new AssertionError(\"검사할 메서드는 하나만 정의하세요.\");\n                        bounds[0] = positions.getStartPosition(tree, node.getBody());\n                        bounds[1] = positions.getEndPosition(tree, node.getBody());\n                    }\n                    return super.visitMethod(node, parent);\n                }\n                public Void visitVariable(com.sun.source.tree.VariableTree node, String parent) {\n                    if (\"Main\".equals(parent) && (\"var:\" + node.getName()).equals(\"total\")) {\n                        if (node.getInitializer() != null) {\n                            bounds[0] = positions.getStartPosition(tree, node.getInitializer());\n                            bounds[1] = positions.getEndPosition(tree, node.getInitializer());\n                        } else {\n                            // Java fields without an initializer have a defined default.\n                            bounds[0] = positions.getEndPosition(tree, node) - 1;\n                            bounds[1] = bounds[0];\n                            change[0] = \" = \" + change[0];\n                        }\n                    }\n                    return super.visitVariable(node, parent);\n                }\n            }.scan(tree, \"\");\n            if (bounds[0] < 0) throw new AssertionError(\"필요한 메서드를 정의하세요.\");\n            System.out.print(source.substring(0, (int) bounds[0]) + change[0] + source.substring((int) bounds[1]));\n        }\n    }\n    static void require(boolean ok, String message) {\n        if (!ok) throw new AssertionError(message);\n    }\n}\n",
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "모든 가격을 더한 뒤에 합을 돌려주도록 고치는 문제예요.",
+          "target": "text:모든 가격을 더한 뒤에 합을 돌려주도록 고치세요#1"
+        },
         {
           "action": "say",
           "text": "total은 모든 가격의 합을 돌려줘야 하는데 지금은 첫 가격만 돌려줘요.",
@@ -660,6 +703,11 @@
       ],
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "기준 금액도 무료배송이 되도록 메서드를 고치는 문제예요.",
+          "target": "text:기준 금액도 무료배송이 되도록 메서드를 고치세요#1"
+        },
         {
           "action": "say",
           "text": "규칙은 기준 금액부터 무료예요. 기준은 매개변수 freeFrom으로 들어와요.",

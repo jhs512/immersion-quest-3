@@ -53,6 +53,38 @@ const next=page=>page.evaluate(()=>clips.at(-1).onended());
 // A bounded wait: a missing clip fails with a clear message well inside the per-test timeout.
 const waitClips=(page,n)=>page.waitForFunction(n=>clips.length===n,n,{timeout:10000});
 
+test('published lesson openings play goals and flow before highlighting the problem title',async()=>{
+  const escape=text=>text.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+  for(const key of ['java-values','sql-first','java-react']) {
+    const task=JSON.parse(fs.readFileSync(`courses/redesigned/${key}.json`,'utf8')).tasks[0];
+    const title=task.title.replace(/[`*]/g,'');
+    const html=`<article class="repository-task" data-explanation-session="s1">
+      <section class="problem-pane"><div class="problem-heading"><h2>${escape(title)}</h2></div>
+      <div class="markdown"><p>${escape(title)}</p></div></section>
+      <textarea data-code-editor="java">${escape(task.starter_code||'')}</textarea>
+      <input type="hidden" class="answer-state-bridge" value="student-choice">
+      </article>`;
+    const {browser,page}=await open(html);
+    try {
+      await page.evaluate(actions=>{window.done=molipAgent.runExplanation(actions)},task.narration.slice(0,3));
+      for(let i=0;i<3;i++) {
+        await waitClips(page,i+1);
+        const current=await state(page);
+        assert.ok(current.caption.includes(task.narration[i].text),`${key}: caption follows the authored opening`);
+        assert.equal(current.code,'','no code detail before problem orientation');
+        assert.deepEqual(current.text,i===2?[title]:[],`${key}: only problem orientation highlights the title`);
+        if(i===2) assert.equal(await page.evaluate(()=>{
+          const [range]=[...CSS.highlights.get('narration-text')];
+          return document.querySelector('h2').contains(range.startContainer);
+        }),true,'the first occurrence is the heading, not its repetition in the goal');
+        await next(page);
+      }
+      await page.evaluate(()=>done);
+      assert.deepEqual((await state(page)).text,[]);
+    } finally {await browser.close();}
+  }
+});
+
 test('two sentences of one paragraph are highlighted one after the other, exactly',async()=>{
   const {browser,page}=await open();
   try {

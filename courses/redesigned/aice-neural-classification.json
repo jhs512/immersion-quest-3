@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_82da94e8-1854-4530-82cf-5bf5b0224cc5",
-  "revision": "aice-neural-classification-3",
+  "revision": "aice-neural-classification-4",
   "title": "신경망 분류의 출력과 정답을 맞춰요",
   "description": "같은 배송의 이진·다중 분류에서 출력과 정답 형식을 맞춰요.",
   "objectives": [
@@ -132,7 +132,20 @@
       "narration": [
         {
           "action": "say",
-          "text": "sigmoid는 계산값을 0과 1 사이 확률로 바꿔요. 확률 숫자와, 규칙을 적용해 고른 종류가 같은 것인지 구별하는 문제예요.",
+          "text": "이 수업에서는 신경망의 분류 출력과 정답 모양을 맞춰요. 이진 분류와 다중 분류를 구별해요."
+        },
+        {
+          "action": "say",
+          "text": "sigmoid와 softmax 결과를 읽어요. 정수·원핫 정답과 손실을 실제 학습으로 연결해요."
+        },
+        {
+          "action": "say",
+          "text": "확률 숫자와, 규칙을 적용해 고른 종류가 같은 것인지 구별하는 문제예요.",
+          "target": "text:두 종류의 확률을 출력해요#1"
+        },
+        {
+          "action": "say",
+          "text": "sigmoid는 계산값을 0과 1 사이 확률로 바꿔요.",
           "target": "text:출력은 확률이고 이번 규칙은0.5이상이 지연이에요."
         },
         {
@@ -186,7 +199,12 @@
       "narration": [
         {
           "action": "say",
-          "text": "손실은 모델 출력이 확률인지 logit인지 알아야 바르게 계산해요. sigmoid 뒤의 확률 출력에 맞는 from_logits를 고르는 문제예요.",
+          "text": "sigmoid 뒤의 확률 출력에 맞는 from_logits를 고르는 문제예요.",
+          "target": "text:출력 형식과 손실 옵션을 맞춰요#1"
+        },
+        {
+          "action": "say",
+          "text": "손실은 모델 출력이 확률인지 logit인지 알아야 바르게 계산해요.",
           "target": "text:logit은 sigmoid에 넣기 전의 값, 곧 입력 × 가중치 + 편향이에요."
         },
         {
@@ -241,7 +259,7 @@
         {
           "action": "say",
           "text": "훈련 결과로 짐작하지 않고 새 배송의 실제 정답과 비교해 점수를 직접 계산하는 문제예요.",
-          "target": "text:학습에 넣지 않은 새 배송 네 건과 그 실제 정답 y_new가 있어요."
+          "target": "text:새 배송의 정답으로 실제 정확도를 구해요#1"
         },
         {
           "action": "say",
@@ -324,7 +342,12 @@
       "narration": [
         {
           "action": "say",
-          "text": "softmax는 출력 칸들의 확률 합이 1이 되게 바꿔요. 출력 모양 [2, 3]의 두 숫자가 무엇인지 읽는 문제예요.",
+          "text": "출력 모양 [2, 3]의 두 숫자가 무엇인지 읽는 문제예요.",
+          "target": "text:여러 종류의 출력 칸을 만들어요#1"
+        },
+        {
+          "action": "say",
+          "text": "softmax는 출력 칸들의 확률 합이 1이 되게 바꿔요.",
           "target": "text:정상·지연·취소 세 종류를 배타적으로 구별해요."
         },
         {
@@ -378,7 +401,12 @@
       "narration": [
         {
           "action": "say",
-          "text": "정답이 0, 2처럼 종류 번호 하나로 적혀 있어요. 원핫용 손실에 그대로 넣으면 어떻게 되는지, 맞는 손실이 무엇인지 고르는 문제예요.",
+          "text": "원핫용 손실에 그대로 넣으면 어떻게 되는지, 맞는 손실이 무엇인지 고르는 문제예요.",
+          "target": "text:정수 정답과 손실을 맞춰요#1"
+        },
+        {
+          "action": "say",
+          "text": "정답이 0, 2처럼 종류 번호 하나로 적혀 있어요.",
           "target": "text:정답은0·2라는 정수 인덱스예요."
         },
         {
@@ -451,6 +479,11 @@
       "narration": [
         {
           "action": "say",
+          "text": "원핫 정답도 같은 의미일까요?",
+          "target": "text:원핫 정답도 같은 의미일까요#1"
+        },
+        {
+          "action": "say",
           "text": "to_categorical은 종류 번호를 그 칸만 1인 원핫 목록으로 바꿔요. 표현이 달라져도 정답의 뜻이 같은지 판단해요.",
           "target": "text:같은 정답0·2를 세 칸 원핫으로 바꿨어요."
         },
@@ -505,6 +538,11 @@
       "narration": [
         {
           "action": "say",
+          "text": "신경망 출력의 위치를 실제 범주 이름과 연결하는 문제예요.",
+          "target": "text:출력 위치를 실제 이름과 맞춰요#1"
+        },
+        {
+          "action": "say",
           "text": "argmax는 확률이 가장 큰 칸의 위치 번호를 줘요. 그 번호를 classes 순서로 실제 이름에 연결하는 문제예요.",
           "target": "text:argmax 위치가1·2이고 classes 순서가 정해져 있어요."
         },
@@ -549,7 +587,12 @@
       "narration": [
         {
           "action": "say",
-          "text": "정답 labels가 정수 번호인데 손실은 원핫용이에요. 정답 형식에 맞는 손실 이름으로 한 곳을 고치는 문제예요.",
+          "text": "정답 형식에 맞는 손실 이름으로 한 곳을 고치는 문제예요.",
+          "target": "text:정답 형식에 맞는 학습 손실을 골라요#1"
+        },
+        {
+          "action": "say",
+          "text": "정답 labels가 정수 번호인데 손실은 원핫용이에요.",
           "target": "text:compile의 손실 이름 한 곳만 고치세요."
         },
         {

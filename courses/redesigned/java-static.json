@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_f7020701-289b-408c-832a-baf0da83f17d",
-  "revision": "java-static-6",
+  "revision": "java-static-7",
   "title": "자바 · 객체의 값과 static을 나눠요",
   "description": "같은 주문의 개별 상태와 클래스 공유 상태·초기화를 비교해요.",
   "objectives": [
@@ -133,6 +133,19 @@
       "narration": [
         {
           "action": "say",
+          "text": "이 수업에서는 객체별 상태와 클래스 공유 상태를 나눠요. static이 무엇을 공유하는지 이해하는 게 목표예요."
+        },
+        {
+          "action": "say",
+          "text": "주문 객체를 여러 개 만들고 값을 바꿔요. 공유 값과 초기화 순서를 실행으로 확인해요."
+        },
+        {
+          "action": "say",
+          "text": "두 주문 객체의 금액을 각각 출력하는 문제예요.",
+          "target": "text:두 주문 객체의 금액을 각각 출력하세요#1"
+        },
+        {
+          "action": "say",
           "text": "금액이 다른 주문 두 개를 만들었어요. 각 객체의 금액을 출력해야 해요.",
           "target": "text:a의 금액과 b의 금액을 차례로 출력하는 두 줄을 쓰세요."
         },
@@ -191,6 +204,11 @@
       "checker": "class QuestContract {\n    public static void main(String[] args) throws Exception {\n        \n        String source = java.nio.file.Files.readString(java.nio.file.Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, java.nio.charset.StandardCharsets.UTF_8)) {\n            var task = (com.sun.source.util.JavacTask) compiler.getTask(null, files, null,\n                java.util.List.of(\"-proc:none\"), null, files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = com.sun.source.util.Trees.instance(task).getSourcePositions();\n            long[] bounds = {-1, -1};\n            String[] change = {\"{ amount = initial; }\"};\n            new com.sun.source.util.TreeScanner<Void, String>() {\n                public Void visitClass(com.sun.source.tree.ClassTree node, String parent) {\n                    return super.visitClass(node, node.getSimpleName().toString());\n                }\n                public Void visitMethod(com.sun.source.tree.MethodTree node, String parent) {\n                    if (\"Ticket\".equals(parent) && \"<init>\".contentEquals(node.getName()) && node.getBody() != null) {\n                        if (bounds[0] != -1) throw new AssertionError(\"검사할 메서드는 하나만 정의하세요.\");\n                        bounds[0] = positions.getStartPosition(tree, node.getBody());\n                        bounds[1] = positions.getEndPosition(tree, node.getBody());\n                    }\n                    return super.visitMethod(node, parent);\n                }\n                public Void visitVariable(com.sun.source.tree.VariableTree node, String parent) {\n                    if (\"Ticket\".equals(parent) && (\"var:\" + node.getName()).equals(\"<init>\")) {\n                        if (node.getInitializer() != null) {\n                            bounds[0] = positions.getStartPosition(tree, node.getInitializer());\n                            bounds[1] = positions.getEndPosition(tree, node.getInitializer());\n                        } else {\n                            // Java fields without an initializer have a defined default.\n                            bounds[0] = positions.getEndPosition(tree, node) - 1;\n                            bounds[1] = bounds[0];\n                            change[0] = \" = \" + change[0];\n                        }\n                    }\n                    return super.visitVariable(node, parent);\n                }\n            }.scan(tree, \"\");\n            if (bounds[0] < 0) throw new AssertionError(\"필요한 메서드를 정의하세요.\");\n            System.out.print(source.substring(0, (int) bounds[0]) + change[0] + source.substring((int) bounds[1]));\n        }\n    }\n    static void require(boolean ok, String message) {\n        if (!ok) throw new AssertionError(message);\n    }\n}\n",
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "지금까지 만든 주문 수를 클래스 이름으로 읽어 출력하는 문제예요.",
+          "target": "text:지금까지 만든 주문 수를 클래스 이름으로 읽어 출력하세요#1"
+        },
         {
           "action": "say",
           "text": "created는 static이라 모든 주문이 하나를 같이 써요. 생성자가 돌 때마다 1씩 늘어요.",
@@ -276,6 +294,11 @@
       "narration": [
         {
           "action": "say",
+          "text": "countCreated가 지금까지 만든 주문 수를 돌려주도록 고치는 문제예요.",
+          "target": "text:countCreated가 지금까지 만든 주문 수를 돌려주도록 고치세요#1"
+        },
+        {
+          "action": "say",
           "text": "countCreated는 클래스 이름으로 부르는 메서드예요. 지금은 늘 0을 돌려줘요.",
           "target": "text:지금은 늘 0을 돌려줘요."
         },
@@ -353,6 +376,11 @@
       "narration": [
         {
           "action": "say",
+          "text": "주문을 만들기 전과 뒤의 생성 수를 출력하는 문제예요.",
+          "target": "text:주문을 만들기 전과 뒤의 생성 수를 출력하세요#1"
+        },
+        {
+          "action": "say",
           "text": "static 필드는 프로그램이 실행되는 동안만 있어요. 실행할 때마다 처음부터 세는지 확인해요.",
           "target": "text:static 필드는 프로그램이 실행되는 동안만 메모리에 있어요."
         },
@@ -414,6 +442,11 @@
       ],
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "class 문구가 클래스를 처음 쓸 때 한 번만 나오도록 고치는 문제예요.",
+          "target": "text:class 문구가 클래스를 처음 쓸 때 한 번만 나오도록 고치세요#1"
+        },
         {
           "action": "say",
           "text": "class 문구는 클래스를 처음 쓸 때 한 번만 나와야 해요. 지금은 두 블록이 모두 객체마다 실행돼요.",
@@ -491,6 +524,11 @@
       "checker": "class QuestContract {\n    public static void main(String[] args) throws Exception {\n        \n        Class<?> T = Class.forName(\"Ticket\", true, Main.class.getClassLoader());\n        var make = T.getDeclaredConstructor(int.class); make.setAccessible(true);\n        var free = T.getDeclaredMethod(\"isFree\"); free.setAccessible(true);\n        require((boolean) free.invoke(make.newInstance(10000)) && !(boolean) free.invoke(make.newInstance(9999)) && (boolean) free.invoke(make.newInstance(15000)),\n            \"isFree는 이 주문 금액이 공유 기준 이상인지 돌려줘야 해요.\");\n        String source = java.nio.file.Files.readString(java.nio.file.Path.of(\"Main.java\"));\n        var compiler = javax.tools.ToolProvider.getSystemJavaCompiler();\n        try (var files = compiler.getStandardFileManager(null, null, java.nio.charset.StandardCharsets.UTF_8)) {\n            var task = (com.sun.source.util.JavacTask) compiler.getTask(null, files, null,\n                java.util.List.of(\"-proc:none\"), null, files.getJavaFileObjects(\"Main.java\"));\n            var tree = task.parse().iterator().next();\n            var positions = com.sun.source.util.Trees.instance(task).getSourcePositions();\n            long[] bounds = {-1, -1};\n            String[] change = {\"{ return false; }\"};\n            new com.sun.source.util.TreeScanner<Void, String>() {\n                public Void visitClass(com.sun.source.tree.ClassTree node, String parent) {\n                    return super.visitClass(node, node.getSimpleName().toString());\n                }\n                public Void visitMethod(com.sun.source.tree.MethodTree node, String parent) {\n                    if (\"Ticket\".equals(parent) && \"isFree\".contentEquals(node.getName()) && node.getBody() != null) {\n                        if (bounds[0] != -1) throw new AssertionError(\"검사할 메서드는 하나만 정의하세요.\");\n                        bounds[0] = positions.getStartPosition(tree, node.getBody());\n                        bounds[1] = positions.getEndPosition(tree, node.getBody());\n                    }\n                    return super.visitMethod(node, parent);\n                }\n                public Void visitVariable(com.sun.source.tree.VariableTree node, String parent) {\n                    if (\"Ticket\".equals(parent) && (\"var:\" + node.getName()).equals(\"isFree\")) {\n                        if (node.getInitializer() != null) {\n                            bounds[0] = positions.getStartPosition(tree, node.getInitializer());\n                            bounds[1] = positions.getEndPosition(tree, node.getInitializer());\n                        } else {\n                            // Java fields without an initializer have a defined default.\n                            bounds[0] = positions.getEndPosition(tree, node) - 1;\n                            bounds[1] = bounds[0];\n                            change[0] = \" = \" + change[0];\n                        }\n                    }\n                    return super.visitVariable(node, parent);\n                }\n            }.scan(tree, \"\");\n            if (bounds[0] < 0) throw new AssertionError(\"필요한 메서드를 정의하세요.\");\n            System.out.print(source.substring(0, (int) bounds[0]) + change[0] + source.substring((int) bounds[1]));\n        }\n    }\n    static void require(boolean ok, String message) {\n        if (!ok) throw new AssertionError(message);\n    }\n}\n",
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "주문 금액을 공유 기준과 비교하는 isFree 메서드를 쓰는 문제예요.",
+          "target": "text:주문 금액을 공유 기준과 비교하는 isFree 메서드를 쓰세요#1"
+        },
         {
           "action": "say",
           "text": "기준은 모든 주문이 함께 쓰는 하나의 값이고, 금액은 주문마다 달라요.",
@@ -571,6 +609,11 @@
       ],
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "주문마다 금액을 따로 저장하도록 고치는 문제예요.",
+          "target": "text:주문마다 금액을 따로 저장하도록 고치세요#1"
+        },
         {
           "action": "say",
           "text": "두 주문이 마지막 금액으로 같아져 버렸어요. 주문마다 금액을 따로 저장해야 해요.",
@@ -656,6 +699,11 @@
       ],
       "required": true,
       "narration": [
+        {
+          "action": "say",
+          "text": "객체를 만들 때마다 생성 수가 늘도록 고치는 문제예요.",
+          "target": "text:객체를 만들 때마다 생성 수가 늘도록 고치세요#1"
+        },
         {
           "action": "say",
           "text": "객체를 두 번 만들어도 생성 수가 1이에요. 만들 때마다 늘어나야 해요.",
