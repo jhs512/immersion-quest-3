@@ -5,6 +5,8 @@ import os
 from pathlib import Path
 import stat
 import subprocess
+import sys
+import time
 
 
 def source_bytes(source):
@@ -18,7 +20,7 @@ def source_bytes(source):
     return total
 
 
-def create_image(source, destination, volume, execute=subprocess.run):
+def create_image(source, destination, volume, execute=subprocess.run, pause=time.sleep):
     source = Path(source).resolve(strict=True)
     destination = Path(destination).resolve()
     if not source.is_dir():
@@ -31,11 +33,27 @@ def create_image(source, destination, volume, execute=subprocess.run):
     # Count logical bytes, including sparse files, and reserve filesystem room.
     capacity = max(128 * mib, payload + max(64 * mib, (payload + 3) // 4))
     size_mib = (capacity + mib - 1) // mib
-    execute([
+    command = [
         'hdiutil', 'create', '-volname', volume,
         '-size', f'{size_mib}m', '-srcfolder', str(source),
         '-ov', '-format', 'UDZO', str(destination),
-    ], check=True)
+    ]
+    # macOS background disk services can briefly hold the staging image open.
+    # Retry that specific transient failure; never hide a real packaging error.
+    for attempt in range(3):
+        try:
+            result = execute(command, check=True, capture_output=True, text=True)
+            if result.stdout:
+                print(result.stdout, end='')
+            if result.stderr:
+                print(result.stderr, end='', file=sys.stderr)
+            break
+        except subprocess.CalledProcessError as error:
+            if error.stderr:
+                print(error.stderr, end='', file=sys.stderr)
+            if 'resource busy' not in (error.stderr or '').lower() or attempt == 2:
+                raise
+            pause(5 * (attempt + 1))
     return {'source_bytes': payload, 'size_mib': size_mib}
 
 

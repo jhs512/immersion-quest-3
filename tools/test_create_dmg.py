@@ -11,6 +11,34 @@ SPEC.loader.exec_module(create_dmg)
 
 
 class DiskImageCreationTest(unittest.TestCase):
+    def test_transient_resource_busy_is_retried(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            source = Path(temporary) / 'source'
+            source.mkdir()
+            calls, delays = [], []
+            def execute(argv, **kwargs):
+                calls.append(argv)
+                if len(calls) == 1:
+                    raise subprocess.CalledProcessError(1, argv, stderr='hdiutil: create failed - Resource busy\n')
+                return subprocess.CompletedProcess(argv, 0)
+            create_dmg.create_image(source, Path(temporary) / 'out.dmg', 'image', execute=execute, pause=delays.append)
+            self.assertEqual(len(calls), 2)
+            self.assertEqual(calls[0], calls[1])
+            self.assertEqual(delays, [5])
+
+    def test_persistent_resource_busy_still_fails_after_three_attempts(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            source = Path(temporary) / 'source'
+            source.mkdir()
+            calls, delays = [], []
+            def execute(argv, **kwargs):
+                calls.append(argv)
+                raise subprocess.CalledProcessError(1, argv, stderr='Resource busy')
+            with self.assertRaises(subprocess.CalledProcessError):
+                create_dmg.create_image(source, Path(temporary) / 'out.dmg', 'image', execute=execute, pause=delays.append)
+            self.assertEqual(len(calls), 3)
+            self.assertEqual(delays, [5, 10])
+
     @unittest.skipIf(os.name == 'nt', 'Directory symlink creation requires Windows privileges')
     def test_applications_link_does_not_count_the_linked_directory_contents(self):
         with tempfile.TemporaryDirectory() as temporary:
