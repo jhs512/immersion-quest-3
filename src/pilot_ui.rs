@@ -55,7 +55,8 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("speech-voices") {
             include_str!("../tools/player-pilot-speech.js").to_owned()
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("lesson-loading") {
-            include_str!("../tools/player-pilot-loading.js").to_owned()
+            let row=molip_quest::lesson_registry::find("aice-plots").unwrap();
+            format!("window.mq3LoadingLesson={};{}",serde_json::json!({"version":row.pilot.to_string(),"revision":row.revision}),include_str!("../tools/player-pilot-loading.js"))
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("sql-browser") {
             let row=molip_quest::lesson_registry::find("sql-first").unwrap();
             format!("window.mqSqlPilot={};{}",serde_json::json!({"version":row.pilot.to_string(),"lesson":serde_json::from_str::<serde_json::Value>(row.lesson).unwrap()}),include_str!("../tools/player-pilot-sql-browser.js"))

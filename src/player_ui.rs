@@ -1259,8 +1259,8 @@ if let Some(start)=autostart {
                 }
                 if task.language!=repository_course::TaskLanguage::Web {
                     pre {class:"output","{output}"}
-                } else if !output().trim().is_empty() && (if narrating(){teacher_preview().is_empty()}else{preview().is_empty()}) {
-                    details {class:"web-console",open:true,summary {"콘솔"} pre {class:"output","{output}"}}
+                } else if !output().trim().is_empty() && (matches!(feedback(),"incorrect"|"error") || if narrating(){teacher_preview().is_empty()}else{preview().is_empty()}) {
+                    details {class:"web-console",open:true,summary {if matches!(feedback(),"incorrect"|"error"){"검사 결과"}else{"콘솔"}} pre {class:"output","{output}"}}
                 }
                 if history_saves()>0 {p {class:"history-sync",role:"status","실행 이력을 저장하고 있어요. 다음 코드를 실행해도 돼요."}}
                 if !history_message().is_empty() {p {class:"history-sync warning",role:"status","{history_message}"}}

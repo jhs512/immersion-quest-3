@@ -123,7 +123,11 @@
     if(document.querySelector('iframe[title="수업 웹 미리보기"]')!==studentFrame||studentFrame.contentWindow!==studentWindow||frameLoads.get(studentFrame)!==studentLoads)throw Error('Teacher replaced or reloaded the live student webpage');
     verifyTeacher(task);
     if(pilot.webPreviewOnly){
-     dioxus.send({passed:true,checked:['No duplicate page text','Live preview console: initial log, later click, runtime error','Narration preserves the student iframe and logs']});
+     molipCodeEditors.setValue(initialCode);
+     await wait(()=>document.querySelector('[data-code-editor]')?.dataset.editorValue===initialCode,'wrong code echo');
+     await click('제출');await wait(()=>document.querySelector('.result-pane')?.dataset.feedback==='incorrect','wrong web answer rejected');
+     await wait(()=>[...document.querySelectorAll('.web-console')].some(node=>node.textContent.includes('검사 결과')&&node.querySelector('.output')?.textContent.trim()),'failed checks stay visible beside the live preview');
+     dioxus.send({passed:true,checked:['No duplicate page text','Live preview console: initial log, later click, runtime error','Narration preserves the student iframe and logs','Failed grading keeps its diagnostic beside the existing preview']});
      return;
     }
    }
