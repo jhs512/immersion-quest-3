@@ -26,6 +26,7 @@ const request = JSON.parse(fs.readFileSync('request.json', 'utf8'));
     page.setDefaultTimeout(5000);
     page.setDefaultNavigationTimeout(10000);
     const errors=[];
+    page.on('console', message=>console.log(`[${message.type()}] ${message.text()}`));
     page.on('pageerror', error=>errors.push(error.message));
     await page.goto('file:///' + path.resolve('preview.html').replaceAll('\\','/'));
     for (const [index, check] of request.checks.entries()) {
@@ -58,6 +59,5 @@ const request = JSON.parse(fs.readFileSync('request.json', 'utf8'));
       console.log(`브라우저 검사 ${index+1} 통과`);
     }
     assert.deepEqual(errors,[], '브라우저 실행 오류');
-    if (!request.checks.length) console.log((await page.locator('body').innerText()).slice(0,12000));
   } finally { await browser.close(); }
 })().catch(error=>{console.error(error.message);process.exitCode=1;});

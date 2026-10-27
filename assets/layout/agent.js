@@ -262,7 +262,7 @@
       const pad = 6;
       spot.style.left = `${r.left - pad}px`; spot.style.top = `${r.top - pad}px`;
       spot.style.width = `${r.width + pad * 2}px`; spot.style.height = `${r.height + pad * 2}px`;
-      spot.hidden = false;
+      spot.hidden = spot.dataset.webTarget === 'true';
       if (!caption.hidden) {
         const w = caption.offsetWidth, h = caption.offsetHeight;
         let left = r.left + r.width / 2 - w / 2;
@@ -351,6 +351,17 @@
   }
   function spotlight(target, sentence) {
     ensureSpot();
+    // The sandbox draws per-element frames, not a frame around a text dump.
+    // Existing lessons' output targets resolve to their tested screen elements.
+    const frame = pick('iframe[title="해설 웹 미리보기"]');
+    const webTarget = frame && (target === 'output' || String(target).startsWith('web:') || String(target).includes('iframe[title="해설 웹 미리보기"]'));
+    for(const preview of document.querySelectorAll('.result-pane iframe'))preview.contentWindow?.postMessage({type:'mq3-web-highlight',selector:''},'*');
+    spot.dataset.webTarget = webTarget ? 'true' : 'false';
+    if(webTarget) {
+      const selector=String(target).startsWith('web:')?String(target).slice(4):webFocus || document.querySelector('.result-pane')?.dataset.webSelectors || 'body';
+      frame.contentWindow.postMessage({type:'mq3-web-highlight',selector},'*');
+      target='iframe[title="해설 웹 미리보기"]';
+    }
     const element = resolveTarget(target);
     spotTarget = element || null;
     spotKey = element ? String(target) : null;
@@ -372,6 +383,7 @@
     place();
   }
   function clearSpot() {
+    for(const preview of document.querySelectorAll('.result-pane iframe'))preview.contentWindow?.postMessage({type:'mq3-web-highlight',selector:''},'*');
     cancelAnimationFrame(raf); raf = 0;
     document.querySelectorAll('.overview-speaking').forEach(node=>node.classList.remove('overview-speaking'));
     spotTarget = null; spotKey = null;
@@ -900,11 +912,12 @@
     git_command: () => '#git-demo-terminal',
     git_graph: () => '#git-demo-terminal + .git-graph-panel',
     choose_answer: a => `answer:${a.id}`, order_answer: () => '.answer-order', fill_answer: () => '[aria-label="빈칸 답안"]',
-    web_action: () => 'iframe[title="해설 웹 미리보기"]',
+    web_action: a => `web:${a.read || a.selector}`,
     say: a => a.target || null, set_code: () => 'editor', patch_code: () => 'editor', fill_blanks: () => 'blanks', run: () => 'run', submit: () => 'submit',
     answer_quiz: () => 'quiz', next: () => 'nav', prev: () => 'nav', goto: () => 'missions', next_slide: () => 'slides', finish_slides: () => 'slides',
   };
   let narrationRun = 0;
+  let webFocus = '';
   // A session owns both its restoration snapshot and its DOM/Git targets.
   class ExplanationSession {
     constructor(root, owner) {
@@ -971,6 +984,7 @@
     if (!Array.isArray(actions)) return '동작 목록이 배열이 아닙니다.';
     captionSource = actions.flatMap(action => ['code','before','after','input','value'].map(key=>action?.[key] ?? '')).join('\n');
     const runId = ++narrationRun;
+    webFocus = '';
     if (options.forceVoice) forcedVoiceRun = runId;
     const session = explanation ? explanationSession : null;
     const active = () => !cancelled && runId === narrationRun && (!session || session.current());
@@ -998,6 +1012,12 @@
         const handler = handlers[name];
         if (!handler) { lines.push(`${i + 1}. ${name}: 모르는 동작입니다 (가능: ${Object.keys(handlers).join(', ')})`); continue; }
         try {
+          if(name==='web_action')webFocus=action.read || action.selector || '';
+          // CSS explanations often name the selector in the highlighted code.
+          // Follow that exact selector when the next sentence describes its result.
+          const css = name==='patch_code'?action.after: String(action.target||'').startsWith('code:')?String(action.target).slice(5):'';
+          const selector=String(css||'').match(/^([.#]?[a-zA-Z][\w.#:[\]="' >+~(),-]*)\s*\{/);
+          if(selector)webFocus=selector[1].trim();
           const sentence = name === 'say' ? action.text : action.say;
           showMemory(action.diagram);
           focusCode(action, actions[i + 1]);

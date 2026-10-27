@@ -4,9 +4,45 @@
 // setter and an input event, which React's controlled inputs listen to) and replies with the text
 // of the element to read (or one computed style). Only messages from the embedding page are accepted.
 (() => {
+  // Keep the preview's own console, including logs from later clicks. Never turn
+  // rendered page text into a log. Buffer until the parent has mounted its listener.
+  const lines = [];
+  const publish = () => window.parent.postMessage({type:'mq3-web-console', lines:[...lines]}, '*');
+  const format = value => {try {return typeof value === 'string' ? value : JSON.stringify(value) ?? String(value);} catch {return String(value);}};
+  const log = (kind, values) => {lines.push(`[${kind}] ${values.map(format).join(' ')}`);if(lines.length>200)lines.shift();publish();};
+  for (const kind of ['log','info','warn','error','debug']) {
+    const original = console[kind].bind(console);
+    console[kind] = (...values) => {original(...values);log(kind, values);};
+  }
+  addEventListener('error', event=>log('error',[event.message]));
+  addEventListener('unhandledrejection', event=>log('error',[event.reason?.message ?? event.reason]));
+  let selector = '', overlays = [], animation = 0;
+  function clearHighlight() {
+    cancelAnimationFrame(animation);animation=0;
+    overlays.forEach(node=>node.remove());overlays=[];
+  }
+  function drawHighlight() {
+    overlays.forEach(node=>node.remove());overlays=[];
+    let elements=[];
+    try {elements=[...document.querySelectorAll(selector)];} catch {}
+    for(const element of elements) {
+      const r=element.getBoundingClientRect();if(!r.width||!r.height)continue;
+      const box=document.createElement('div');box.dataset.mq3WebHighlight='';
+      box.style.cssText=`all:initial;position:fixed;pointer-events:none;z-index:2147483647;box-sizing:border-box;left:${r.left-3}px;top:${r.top-3}px;width:${r.width+6}px;height:${r.height+6}px;border:3px solid #a78bfa;border-radius:4px;box-shadow:0 0 0 2px #5b21b6;`;
+      document.documentElement.append(box);overlays.push(box);
+    }
+    animation=requestAnimationFrame(drawHighlight);
+  }
   window.addEventListener('message', event => {
     const message = event.data;
-    if (event.source !== window.parent || !message || message.type !== 'mq3-web-action') return;
+    if (event.source !== window.parent || !message) return;
+    if(message.type==='mq3-web-console-request'){publish();return;}
+    if(message.type==='mq3-web-highlight') {
+      clearHighlight();selector=typeof message.selector==='string'?message.selector:'';
+      if(selector){try {document.querySelector(selector)?.scrollIntoView({block:'nearest',inline:'nearest'});}catch{}drawHighlight();}
+      return;
+    }
+    if(message.type !== 'mq3-web-action') return;
     const element = typeof message.selector === 'string' ? document.querySelector(message.selector) : null;
     if (element && message.do === 'click') element.click();
     if (element && message.do === 'fill') {

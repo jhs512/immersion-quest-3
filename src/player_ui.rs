@@ -1,4 +1,41 @@
 use dioxus::prelude::*;
+
+/// Logs belong to the visible sandbox, including interactions after the run.
+/// The source-window check excludes the other (student/tutor) preview and stale runs.
+#[component]
+fn WebPreview(id:String,title:String,srcdoc:String,hidden:bool)->Element {
+    let mut logs=use_signal(Vec::<String>::new);
+    let listener_id=id.clone();
+    use_effect(move||{
+        let id=serde_json::to_string(&listener_id).unwrap();
+        spawn(async move {
+            let mut listener=document::eval(&format!(r#"{{
+                const frame=document.getElementById({id});
+                if(!frame)return;
+                const receive=event=>{{
+                    if(document.getElementById({id})!==frame)return;
+                    if(event.source!==frame.contentWindow||event.data?.type!=='mq3-web-console')return;
+                    if(Array.isArray(event.data.lines))dioxus.send(event.data.lines.filter(s=>typeof s==='string').slice(-200));
+                }};
+                addEventListener('message',receive);
+                const request=()=>frame.contentWindow?.postMessage({{type:'mq3-web-console-request'}},'*');
+                frame.addEventListener('load',request);request();
+                const cleanup=setInterval(()=>{{if(document.getElementById({id})!==frame){{
+                    removeEventListener('message',receive);frame.removeEventListener('load',request);clearInterval(cleanup);
+                }}}},500);
+            }}"#));
+            while let Ok(lines)=listener.recv::<Vec<String>>().await {logs.set(lines);}
+        });
+    });
+    rsx! {
+        div {class:"web-preview",hidden,
+            iframe {id,title,"sandbox":"allow-scripts allow-forms",srcdoc,style:"width:100%;height:400px;border:1px solid #456;"}
+            if !logs().is_empty() {
+                details {class:"web-console",open:true,summary {"콘솔"} pre {class:"output",{logs().join("\n")}}}
+            }
+        }
+    }
+}
 use molip_quest::{github_player::{self,Github,GithubUser},issue_progress::{self,LearningEvent,ProgressKey,StudyMode,EventKind},repository_course::{self,CourseManifest,Lesson,Task}};
 use std::collections::HashMap;
 use molip_quest::auto_review::{AutoRun,NextLesson,Status as AutoStatus,Step as AutoStep,Target as AutoTarget};
@@ -1199,8 +1236,8 @@ if let Some(start)=autostart {
                 }
             }
             div {class:"split-handle split-row",role:"separator",tabindex:0,aria_label:"코드와 실행 결과 패널 크기 조절",aria_orientation:"horizontal"}
-            section {class:"result-pane","data-execution-id":execution_id().to_string(),"data-execution-state":execution_state(),"data-feedback":feedback(),aria_busy:busy(),h3 {if has_example{"실행·채점 결과"}else if task.interaction.is_some(){"채점 결과"}else{"실행 결과"}}
-                if task.git_terminal.is_none()&&(task.interaction.is_none()||has_example) {
+            section {class:"result-pane","data-web-selectors":task.web_checks.iter().filter_map(|c|c.get("selector").and_then(|v|v.as_str())).collect::<Vec<_>>().join(","),"data-execution-id":execution_id().to_string(),"data-execution-state":execution_state(),"data-feedback":feedback(),aria_busy:busy(),h3 {if has_example{"실행·채점 결과"}else if task.interaction.is_some(){"채점 결과"}else{"실행 결과"}}
+                if task.language!=repository_course::TaskLanguage::Web&&task.git_terminal.is_none()&&(task.interaction.is_none()||has_example) {
                 details {class:"run-input",open:task.tests.iter().any(|case|!case.input.is_empty()),
                     summary {"실행 입력"}
                     label {span {"프로그램에 전달할 입력"} textarea {aria_label:"실행 입력",value:input(),oninput:move |e|input.set(e.value())}}
@@ -1220,15 +1257,19 @@ if let Some(start)=autostart {
                 p {class:"execution-status",role:"status",aria_live:"polite",
                     if execution_state()=="running" {span {class:"execution-spinner",aria_hidden:"true"} {format!("코드를 실행하고 있어요. {}초 지났어요.",execution_seconds())}}else {"{message}"}
                 }
-                pre {class:"output","{output}"}
+                if task.language!=repository_course::TaskLanguage::Web {
+                    pre {class:"output","{output}"}
+                } else if !output().trim().is_empty() && (if narrating(){teacher_preview().is_empty()}else{preview().is_empty()}) {
+                    details {class:"web-console",open:true,summary {"콘솔"} pre {class:"output","{output}"}}
+                }
                 if history_saves()>0 {p {class:"history-sync",role:"status","실행 이력을 저장하고 있어요. 다음 코드를 실행해도 돼요."}}
                 if !history_message().is_empty() {p {class:"history-sync warning",role:"status","{history_message}"}}
                 crate::ui::RichResults {artifacts:artifacts()}
                 if !preview().is_empty() && task.language==repository_course::TaskLanguage::Web {
-                    iframe {key:"{task.id}/student-web-preview",title:"수업 웹 미리보기",hidden:narrating(),"sandbox":"allow-scripts allow-forms",srcdoc:preview(),style:"width:100%;height:400px;border:1px solid #456;"}
+                    WebPreview {key:"{task.id}/student",id:format!("{}-student-preview",task.id),title:"수업 웹 미리보기",hidden:narrating(),srcdoc:preview()}
                 }
                 if narrating() && !teacher_preview().is_empty() && task.language==repository_course::TaskLanguage::Web {
-                    iframe {key:"{task.id}/teacher-web-preview",title:"해설 웹 미리보기","sandbox":"allow-scripts allow-forms",srcdoc:teacher_preview(),style:"width:100%;height:400px;border:1px solid #456;"}
+                    WebPreview {key:"{task.id}/teacher",id:format!("{}-teacher-preview",task.id),title:"해설 웹 미리보기",hidden:false,srcdoc:teacher_preview()}
                 }
             }
             }

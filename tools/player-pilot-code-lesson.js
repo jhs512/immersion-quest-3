@@ -110,6 +110,12 @@
     await wait(()=>status('실행을 마쳤어요')&&document.querySelector('iframe[title="수업 웹 미리보기"]')?.getAttribute('srcdoc'),'student webpage is visible');
     const studentFrame=document.querySelector('iframe[title="수업 웹 미리보기"]');
     await wait(()=>frameLoads.get(studentFrame)>0,'student page load');
+    if(document.querySelector('.result-pane > pre.output'))throw Error('Web lesson still shows the duplicate text output');
+    // Exercise the actual Rust message subscription, not only the bridge in isolation.
+    studentFrame.srcdoc += '<button id="mq3-log-test" onclick="console.log(\'later log\');throw Error(\'preview failure\')">log</button><script>console.log("initial preview log")<\/script>';
+    await wait(()=>document.querySelector('.web-console')?.textContent.includes('initial preview log'),'real preview log opens console');
+    studentFrame.contentWindow.postMessage({type:'mq3-web-action',id:'console-test',do:'click',selector:'#mq3-log-test'},'*');
+    await wait(()=>document.querySelector('.web-console')?.textContent.includes('later log')&&document.querySelector('.web-console')?.textContent.includes('preview failure'),'later click and runtime error reach console');
     const studentPreview=studentFrame.getAttribute('srcdoc'),studentWindow=studentFrame.contentWindow,studentLoads=frameLoads.get(studentFrame);
     await click('해설 재생');await wait(()=>molipAgent.running,'teacher with student webpage starts');
     await wait(()=>!molipAgent.running&&document.querySelector('.repository-task').dataset.narrating==='false','teacher with student webpage ends');
