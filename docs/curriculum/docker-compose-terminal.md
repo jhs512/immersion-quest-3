@@ -99,3 +99,27 @@
 2. 이 브랜치의 수업 내용을 해설 감사 변경(c60e491, 97e5c6f)과 합친다. 합친 뒤 `make.py --only docker-image-container docker-network-ports docker-compose-db` → `build-redesigned-git.py --lesson …` → `build-redesigned-course-bundle.py` → 검증기를 다시 돌리고, 그 해시로만 게시한다.
 3. 원격 태그를 다시 확인해 비어 있는 다음 개정으로 수업 저장소에 게시한다(지금 이 브랜치: 7·4·5). 게시된 태그는 다시 쓰지 않는다.
 4. 마지막으로 코스 참조(`java-backend.json` 핀)를 게시한다.
+
+## 해설 감사·첫 자바 수업과 합치기 (2026-10-29)
+
+통합 브랜치 `codex/docker-terminal-integration-20261029`(합친 커밋 `0ce5423`)는 이 브랜치의 세 커밋과 해설 전수 감사(c60e491 `:wq` 읽기, 97e5c6f), 이미 게시된 첫 자바 수업 해설(java-values-7, `4d05d28`)을 합쳤다.
+
+- 충돌은 Docker 세 수업의 생성 파일(content.json·해설 캐시·수업 파일)과 공유 목록(catalog·course-prd·java-backend.json·고정 코스 넷·리·콤·narration-review.json)의 Docker 항목뿐이었다. 앱 코드는 충돌 없이 이 브랜치의 코드에 `assets/speech/pronunciation.js`(`:wq`)만 더해졌다.
+- 감사의 Docker 덮어쓰기 55개(`narration-overrides.json`) 중 42개는 commands.sh·lab.sh 시절의 문장이라 터미널 해설에 없다. 같은 결함이 터미널 해설에 남은 곳만 템플릿에서 말(text·say)만 고쳤다: CLI 8문제의 첫 문장이 본문을 다시 읽던 것을 시작 상태를 말하게 바꿨다(`cli_step(opening=…)`). pid1-lifetime은 문제 도입을 반복하지 않는다. 네트워크 1·2번과 마이그레이션 문제는 본문을 읽는 대신 시작 조건을 말한다. 조심하세요 강조 대상과 「루프백」 대신 127.0.0.1은 이미 감사와 같았다. 그래서 Docker 덮어쓰기 항목은 지우고 다른 수업의 항목은 그대로 둔다.
+- 다시 만들기: `make.py --only …` → `make.py --review --only …` → `build-redesigned-git.py --lesson …`(세 수업) → `build-redesigned-course-bundle.py`(`--check` 통과). 바뀐 핀은 Docker 세 개뿐이고 java-values-7과 나머지 91개 핀, 수업 순서는 같다. 수업 파일은 이 브랜치의 검증본과 말(text·say)만 다르고, 네트워크 2번은 첫 말이 「…문제예요」가 아니게 되어 빌드가 제목 도입 한 줄을 앞에 붙였다.
+
+### 합친 해시의 실제 PTY·Docker 검증 (Windows 11 · Docker Desktop)
+
+`target/docker-terminal-integration/<수업>.json`·`.log`, 세 수업을 동시에 실행.
+
+| 수업 · 개정 | 수업 파일 SHA-256 | 문제 | 오답 거절 | 다른 정답 통과 | 시간 | 결과 |
+| --- | --- | --- | --- | --- | --- | --- |
+| `docker-image-container-7` | `ae6179e1de3e845b9b748c56bf1ce8a238ec226be99a5e15b9874e918e6cad34` | 13 | 7 | 4 | 427.94s | 통과, exit 0 |
+| `docker-network-ports-4` | `20ef970dcc288fc2d2b09aedd13271a97a811433e8d4faa2124cc6d13fa3c28c` | 4 | 2 | 0 | 183.46s | 통과, exit 0 |
+| `docker-compose-db-5` | `dede8d94e4558461ed35909d0824fe8c3ed904b12b5d79d1bad39d0a3104fa8c` | 3 | 3 | 0 | 186.70s | 통과, exit 0 |
+
+실행 뒤 `mq3`로 시작하는 컨테이너가 남지 않았다. 바뀐 해설 문장은 앱 화면·음성으로 다시 확인하지 않았다(위 화면 근거는 말만 다른 이전 해시의 것이다).
+
+그 밖의 확인: `node assets/speech/symbols-lexicon.test.mjs`, `cargo test --test bundled_courses` 통과. Python 검사 `test_narration_review`·`test_lesson_classification`·`test_backend_sequence`·`test_lesson_registry`·`test_lesson_prd`·`test_publish_principles_expansion` 통과. `test_redesigned_highlights`(1개, bash-basics)와 `test_narration_openings`(32개)는 합치기 전 `4d05d28`과 같은 항목이 실패한다. `cargo test --test java_code_guide`(h2-memory-file·java-arrays 기대값)와 `--test lesson_registry`(수업 수 925≠871)도 합치기 전부터 실패하며 Docker·java-values와 관계없다.
+
+게시는 `tools/publish-docker-terminal.py --runtime-release <태그> --runtime-commit <커밋> [--publish]`로 한다. 공개 릴리스(설치 파일 .exe·.dmg)가 그 커밋을 포함해야 하고, 위 증거의 해시가 수업 파일과 같아야 하며, 원격 코스의 세 핀이 6·3·4(또는 이미 7·4·5)여야 한다. 태그가 이미 있으면 같은 바이트일 때만 진행한다. 코스에서는 세 핀과 미리보기만 바꾼다.
