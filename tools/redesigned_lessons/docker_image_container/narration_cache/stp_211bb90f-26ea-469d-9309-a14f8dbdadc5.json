@@ -1,6 +1,6 @@
 {
   "by": "hand",
-  "source_sha256": "03a825e91ec88ef869ccc168f3eba7e7a5932e37981aab72395bad3f5b91d664",
+  "source_sha256": "65561ce665fd43a977b27579c93cd1546a4151bc42fdc9b2eee0ebbe40be1d92",
   "entry": [
     {
       "action": "say",
@@ -8,39 +8,28 @@
       "target": "text:Nginx 이미지는 준비됐어요. 이제 그 이미지로 웹 서버를 실행하세요."
     },
     {
-      "action": "run"
+      "action": "bash_command",
+      "command": "docker run -d --name \"$BOX\" -p 127.0.0.1::80 nginx:1.28-alpine",
+      "say": "run은 이미지에서 새 컨테이너를 만들고 서버를 시작해요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 900
     },
     {
       "action": "say",
-      "text": "이름만 정해 둔 상태예요. 서버를 실행할 명령을 더해 볼게요.",
-      "target": "output"
+      "text": "긴 컨테이너 ID가 출력됐어요. Nginx가 뒤에서 실행되고 있어요.",
+      "target": "#git-demo-terminal"
     },
     {
-      "action": "patch_code",
-      "before": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
-      "after": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker run -d --name \"$BOX\" -p 127.0.0.1::80 nginx:1.28-alpine\n",
-      "say": "이미지로 컨테이너 하나를 실행하세요"
-    },
-    {
-      "action": "say",
-      "text": "run은 이미지에서 새 컨테이너를 만들고 서버를 시작해요.",
-      "target": "code:docker run -d --name \"$BOX\" -p 127.0.0.1::80 nginx:1.28-alpine"
-    },
-    {
-      "action": "run"
+      "action": "bash_command",
+      "command": "docker run -d --name \"$BOX\" -p 127.0.0.1::80 nginx:1.28-alpine",
+      "say": "같은 명령을 한 번 더 입력해 볼게요.",
+      "target": "#git-demo-terminal",
+      "fails": true
     },
     {
       "action": "say",
-      "text": "긴 컨테이너 ID가 출력됐어요. Nginx의 기본 실행 명령으로 서버가 시작돼요.",
-      "target": "output"
-    },
-    {
-      "action": "say",
-      "text": "조심하세요. run을 또 실행하면 같은 이름이 있어 실패해요. 기존 컨테이너를 다시 켜는 명령은 뒤에서 배워요.",
-      "target": "text:-d는 서버를 뒤에서 실행해요. --name은 이름을 붙여요. -p 127.0.0.1::80은 컨테이너의 80번 포트를 연결해요. 가운데가 비어 있어 호스트의 빈 포트를 Docker가 골라요. docker ps의 PORTS에서 배정된 포트를 읽을 수 있어요. BOX는 이번 실습의 고유한 이름이에요. 다른 컨테이너 이름과 겹치지 않아요. 처음 제공한 상태는 코드 실행을 반복해도 유지돼요. 다시 시작하려면 초기화를 누르세요. 수업을 나가면 MQ가 만든 자원만 정리해요."
-    },
-    {
-      "action": "submit"
+      "text": "조심하세요. 같은 이름의 컨테이너가 이미 있어서 Conflict 오류가 나요. run은 매번 새 컨테이너를 만들거든요.",
+      "target": "#git-demo-terminal"
     }
   ]
 }

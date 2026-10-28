@@ -906,7 +906,7 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     // assets/layout/voice.js fills the speed select with its one list and the chosen speed.
     use_effect(|| { document::eval("window.molipVoice?.syncSelects(document)"); });
     let required=selected.lesson.required_tasks();
-    let filename=if task.git_terminal.as_ref().is_some_and(|e|e.java_build.is_some()){"Main.java · Bash 터미널".to_string()}else if task.git_terminal.as_ref().is_some_and(|e|e.vim.is_some()){"Vim 편집기".to_string()}else if task.git_terminal.as_ref().is_some_and(|e|e.shell.is_some()){"Bash 터미널".to_string()}else if task.git_terminal.is_some(){"Git 터미널".to_string()}else if task.interaction.is_some()&&!has_example{"답안".to_string()}else if task.entry_file.is_empty(){task.language.filename().to_string()}else{task.entry_file.clone()};
+    let filename=if task.git_terminal.as_ref().is_some_and(|e|e.java_build.is_some()){"Main.java · Bash 터미널".to_string()}else if task.git_terminal.as_ref().is_some_and(|e|e.vim.is_some()){"Vim 편집기".to_string()}else if task.git_terminal.as_ref().is_some_and(|e|e.docker.is_some()){"Docker 터미널".to_string()}else if task.git_terminal.as_ref().is_some_and(|e|e.shell.is_some()){"Bash 터미널".to_string()}else if task.git_terminal.is_some(){"Git 터미널".to_string()}else if task.interaction.is_some()&&!has_example{"답안".to_string()}else if task.entry_file.is_empty(){task.language.filename().to_string()}else{task.entry_file.clone()};
     // Show the data this problem reads before other files bundled with the lesson.
     let mut provided_files=task.files.iter().map(|(name,body)|{
         let used=task.starter_code.contains(name.as_str())||task.solution.contains(name.as_str())
@@ -928,13 +928,13 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     let auto_target=AutoTarget{lesson_id:selected.lesson.id.clone(),round:selected.round.clone(),step:AutoStep::Task(task.id.clone())};
     let auto_owned=auto().as_ref().is_some_and(|run|run.active()&&run.target==auto_target&&run.owns_lesson(&selected.course.repository,session.user.id,&selected.lesson.id,&selected.round));
     let mut auto_started=use_signal(||None::<u64>);
-    use_effect({let task=task.clone();let target=auto_target.clone();let selected=selected.clone();let session=session.clone();let key=key.clone();let git_scope=git_scope.clone();move||{
+    use_effect({let task=task.clone();let target=auto_target.clone();let selected=selected.clone();let session=session.clone();let key=key.clone();let git_scope=git_scope.clone();let docker_session=docker_session.clone();move||{
         let Some(run)=auto() else{return};
         if !run.accepts(run.generation,&target)||run.course_repository!=selected.course.repository||run.user_id!=session.user.id{return;}
         if *auto_started.peek()==Some(run.generation){return;}
         auto_started.set(Some(run.generation));
         let (generation,task,target,selected,session,key)=(run.generation,task.clone(),target.clone(),selected.clone(),session.clone(),key.clone());
-        let run_scope=git_scope.clone();
+        let run_scope=git_scope.clone();let docker_session=docker_session.clone();
         spawn(async move{
             let number=selected.lesson.tasks.iter().position(|t|t.id==task.id).map(|i|i+1).unwrap_or(0);
             let label=format!("{} · 문제 {number} · {}",selected.lesson.title,task.title);
@@ -991,6 +991,9 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
                     if goal&&first {
                         auto_stage(auto,generation,&target,"이 문제의 시작 상태로 초기화");
                         let Some(control)=git_control.peek().clone() else{fail!("실습 터미널을 찾지 못했어요.")};
+                        if let Some(step)=task.git_terminal.as_ref().filter(|e|e.docker.is_some()).and_then(|e|e.shell.as_ref()).map(|s|s.step_id.clone()) {
+                            if let Err(error)=docker_session.reset_terminal(&step){fail!("Docker 실습을 초기화하지 못했어요. {error}")}
+                        }
                         busy.set(true);let graph=control.clone();
                         let shut=github_player::background(move||control.shutdown()).await;busy.set(false);
                         if let Err(error)=shut {fail!("실습을 초기화하지 못했어요. {error}")}
@@ -1099,7 +1102,10 @@ if let Some(start)=autostart {
                                 let mut confirmation=document::eval("dioxus.send(window.confirm('새 회차를 시작할까요? 새 저장소 이름으로 처음부터 준비해요. 다음 생성 명령을 실행하면 GitHub에 실제 새 비공개 저장소가 생겨요. 기존 저장소와 PR은 그대로 남아요.'));");
                                 if !matches!(confirmation.recv::<bool>().await,Ok(true)){return;}
                             }
-                            if task.language==repository_course::TaskLanguage::Docker {
+                            if let Some(step)=task.git_terminal.as_ref().filter(|e|e.docker.is_some()).and_then(|e|e.shell.as_ref()).map(|s|s.step_id.clone()) {
+                                // The new terminal below restores this step's exact Docker start state.
+                                if let Err(error)=docker_session.reset_terminal(&step){message.set(error);return;}
+                            }else if task.language==repository_course::TaskLanguage::Docker {
                                 busy.set(true);
                                 let result=docker_session.reset(&task).await;
                                 busy.set(false);

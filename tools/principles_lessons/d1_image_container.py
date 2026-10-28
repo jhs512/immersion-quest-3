@@ -230,7 +230,7 @@ def step(**fields):
 
 
 LESSON = dict(
-    key='docker-image-container', folder='docker_image_container', pilot='리', revision=4,
+    key='docker-image-container', folder='docker_image_container', pilot='리', revision=6,
     title='이미지와 컨테이너 · 지워도 남는 것과 사라지는 것',
     category='docker', category_title='Docker', track=None,
     category_evidence='실제 Docker 엔진으로 컨테이너·볼륨·이미지를 다루는 수업이에요.',
@@ -470,8 +470,8 @@ LESSON['brief'] = (
      '다음 네트워크 수업 예고: nip.io의 여러 이름을 같은 루프백 IP에 연결하고 Nginx에서 요청을 나누는 흐름을 살펴볼 예정이에요.'],
     '실제 Docker 엔진을 써요. 실습 컨테이너만 관리하고 수업을 나가면 정리해요. 기본 호스트 포트를 점유하지 않아요.',
     '이미지를 받는 것과 프로그램을 켜는 것은 같은 일일까요?')
-LESSON['reset'] = ['각 문제는 본문에서 알린 준비 상태로 시작해요. CLI 실습은 이 문제 소유 컨테이너만 되돌려요.',
-    '대화형 실습 자원은 수업 동안 유지하고 수업을 나가면 정리해요. CLI의 반복 실행은 상태를 보존해요. 제출 검사는 별도 공간에서 실행해요.',
+LESSON['reset'] = ['각 문제는 본문에서 알린 준비 상태로 시작해요. CLI 실습의 초기화는 이 수업 소유 컨테이너만 그 문제의 시작 상태로 되돌려요.',
+    'CLI 실습은 실제 터미널에서 해요. 컨테이너는 수업 동안 유지되고 문제를 옮겨도 다시 만들지 않아요. 해설은 별도 컨테이너로 시연해요. 수업을 나가면 이 수업이 만든 것만 정리해요.',
     '기존 사용자의 컨테이너·볼륨과 학습 진도는 지우지 않아요.']
 LESSON['chapters'][1]['units'][0]['steps'][0]['intro'].insert(0,
     '앞에서는 run에 이미지와 명령을 직접 썼어요. 이제 같은 실행 설정을 compose.yaml에 기록해요. services 아래에는 서비스 이름, image에는 이미지, command에는 실행할 명령을 써요. lab.sh가 그 파일로 docker compose up을 실행해요. 여러 실행 설정을 파일로 관리하는 단계예요.')
@@ -480,3 +480,5 @@ LESSON['chapters'][1]['units'][0]['steps'][0]['narration'].insert(0,
      'text:앞에서는 run에 이미지와 명령을 직접 썼어요.'))
 LESSON['chapters'][1]['units'][0]['steps'][0]['narration'].insert(1,
     ('say', 'image가 실행 재료이고 command가 시작할 명령이에요. Compose는 이 설정을 읽어 컨테이너를 만들어요.', 'code:services:'))
+LESSON['grading'] = ['CLI 문제는 터미널에서 내가 직접 실행해 성공한 docker 명령과 이 수업 컨테이너의 실제 엔진 상태(실행 상태·식별자·이미지·컨테이너 안 파일)로 판정해요. 앱이 정답 명령을 대신 실행해 판정하지 않아요.'] + LESSON['grading']
+LESSON['verification'] = LESSON['verification'] + ['CLI 문제는 실제 PTY 터미널에 명령을 입력해 실제 Docker 출력과 채점을 확인해요(tests/docker_cli_terminal.rs).']

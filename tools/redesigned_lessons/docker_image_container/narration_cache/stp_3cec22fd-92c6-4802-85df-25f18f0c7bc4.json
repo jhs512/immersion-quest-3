@@ -1,46 +1,27 @@
 {
   "by": "hand",
-  "source_sha256": "5a48ab805f783da36094bc530de0a5365ca0a0a79993db59182dcc1ab57de39e",
+  "source_sha256": "0dd9a72c6f1056edfcf5c6f69211a5b013b419f7ec1c9f2fea89051263ed9211",
   "entry": [
     {
       "action": "say",
-      "text": "이번 문제는 Nginx가 실행된 상태예요. 서버가 시작하며 남긴 로그를 직접 읽으세요.",
-      "target": "text:이번 문제는 Nginx가 실행된 상태예요. 서버가 시작하며 남긴 로그를 직접 읽으세요."
+      "text": "서버가 시작하며 남긴 로그를 직접 읽으세요.",
+      "target": "text:서버가 시작하며 남긴 로그를 직접 읽으세요."
     },
     {
-      "action": "run"
-    },
-    {
-      "action": "say",
-      "text": "로그를 요청하기 전이라 실행 결과는 비어 있어요.",
-      "target": "output"
-    },
-    {
-      "action": "patch_code",
-      "before": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
-      "after": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker logs \"$BOX\"\n",
-      "say": "컨테이너가 시작할 때 남긴 로그를 읽으세요"
+      "action": "bash_command",
+      "command": "docker logs \"$BOX\"",
+      "say": "logs는 컨테이너의 주 프로세스가 남긴 출력을 읽어요.",
+      "target": "#git-demo-terminal"
     },
     {
       "action": "say",
-      "text": "logs는 컨테이너의 주 프로세스가 남긴 출력을 읽어요.",
-      "target": "code:docker logs \"$BOX\""
-    },
-    {
-      "action": "run"
-    },
-    {
-      "action": "say",
-      "text": "Nginx의 시작 안내와 요청 기록이 보여요. 시각과 프로세스 번호는 실행마다 달라질 수 있어요.",
-      "target": "output"
+      "text": "Nginx의 시작 안내가 보여요. 시각과 프로세스 번호는 실행마다 달라요.",
+      "target": "#git-demo-terminal"
     },
     {
       "action": "say",
       "text": "조심하세요. logs가 비었다고 멈춘 것은 아니에요. 출력하지 않는 프로그램도 있어요.",
-      "target": "text:ps는 상태를 보여 줘요. logs는 실행 중에 기록한 출력을 보여 줘요. 준비 과정에서 웹 요청 하나도 보냈어요. 시작 안내와 요청 기록을 비교해 보세요."
-    },
-    {
-      "action": "submit"
+      "target": "text:logs는 실행 중에 기록한 출력을 보여 줘요."
     }
   ]
 }

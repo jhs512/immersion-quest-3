@@ -109,6 +109,9 @@ def narration(step):
             out.append(dict(action='set_code', code=item[1], say=item[2]))
         elif kind == 'submit':
             out.append(dict(action='submit'))
+        elif kind == 'bash':
+            # A command typed in the narration's own terminal; the next item reads its real output.
+            out.append(dict(action='bash_command', command=item[1], say=item[2], target=item[3], **(item[4] if len(item) > 4 else {})))
         else:
             raise ValueError(f'unknown narration item {kind}')
     return out
@@ -121,7 +124,12 @@ def task_of(step, sid):
             final = final.replace(item[1], item[2], 1)
         elif item[0] == 'set':
             final = item[1]
-    if final != step['solution']:
+    if step.get('git_terminal'):
+        # A terminal step has no code to edit: the narration types the solution's commands.
+        typed = iter(item[1] for item in step['narration'] if item[0] == 'bash' and not (len(item) > 4 and item[4].get('fails')))
+        if not all(any(command == done for done in typed) for command in step['solution'].splitlines()):
+            raise ValueError(f"{step['slug']}: the narration must type every solution command in order")
+    elif final != step['solution']:
         raise ValueError(f"{step['slug']}: the narration's edits must end at the solution")
     task = dict(id=sid, title=step['title'], goal=goal(step), language=step['language'],
                 starter_code=step['starter'], solution=step['solution'],
@@ -132,6 +140,10 @@ def task_of(step, sid):
     for field in ('entry_file', 'files', 'expected_files', 'variations', 'libraries', 'docker_images'):
         if step.get(field):
             task[field] = step[field]
+    if step.get('git_terminal'):
+        import copy
+        task['git_terminal'] = copy.deepcopy(step['git_terminal'])
+        task['git_terminal']['shell'] = dict(step_id=sid, **task['git_terminal']['shell'])
     return task
 
 

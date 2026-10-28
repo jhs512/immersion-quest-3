@@ -638,7 +638,9 @@
     await sleep(60);
     return '답안을 비교해 봐요.';
   }
-  async function readTerminal(command, active, expected) {
+  // A command such as docker pull may legitimately take minutes: the action may allow up to 15 minutes.
+  const terminalWait = a => Math.min(900, Math.max(15, Number(a?.wait_seconds) || 15)) * 1000;
+  async function readTerminal(command, active, expected, wait = 15000) {
     const tutor = explanationSession ? explanationSession.gitTutor() : window.molipGitTutor;
     const terminal = window.mq3GitDemoTerminal;
     if (!tutor || !terminal) throw new Error('Git 해설 터미널이 없어요.');
@@ -647,7 +649,7 @@
     const count = () => terminal.text(owner).split('\n').filter(line => line.trim() === expected).length;
     const previous = count();
     if (!await terminal.typeCommand(command, owner)) return '해설을 멈췄어요.';
-    const deadline = Date.now() + 15000;
+    const deadline = Date.now() + wait;
     while (active()) {
       const output = terminal.text(owner).trimEnd();
       if (output !== before && /(?:\$|>)\s*$/.test(output) && (expected == null || count() > previous)) return '출력을 확인했어요.';
@@ -686,7 +688,7 @@
     },
     async bash_command(a, active) {
       if(typeof a.command!=='string'||!a.command||a.command.length>4000||/[\r\n\0]/.test(a.command))throw new Error('Bash 명령을 확인하세요.');
-      return readTerminal(a.command,active,a.expected);
+      return readTerminal(a.command,active,a.expected,terminalWait(a));
     },
     async vim_wait(a,active) {
       const terminal=window.mq3GitDemoTerminal;const tutor=explanationSession ? explanationSession.gitTutor() : window.molipGitTutor;

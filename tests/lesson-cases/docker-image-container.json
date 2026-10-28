@@ -3,49 +3,67 @@
   "lesson": "courses/redesigned/docker-image-container.json",
   "expected_outputs": [
     [
-      "",
       {
         "pattern": "(?s)Digest: sha256:[a-f0-9]{64}.*nginx:1\\.28-alpine"
       }
     ],
     [
-      "",
       {
-        "pattern": "^[a-f0-9]{64}$"
+        "pattern": "(?m)^[a-f0-9]{64}\\s*$"
+      },
+      {
+        "pattern": "Conflict\\. The container name \\\"/mq3lab-[a-z0-9-]+-nginx\\\" is already in use"
       }
     ],
     [
-      "",
       {
-        "pattern": "(?s)^CONTAINER ID\\s+IMAGE.*PORTS.*NAMES.*nginx:1\\.28-alpine.*127\\.0\\.0\\.1:[0-9]+->80/tcp.*mq3lab-[a-z0-9-]+-nginx"
+        "pattern": "(?s)nginx.*1\\.28-alpine"
+      },
+      {
+        "pattern": "(?s)CONTAINER ID\\s+IMAGE.*PORTS.*NAMES.*nginx:1\\.28-alpine.*127\\.0\\.0\\.1:[0-9]+->80/tcp.*mq3lab-[a-z0-9-]+-nginx"
       }
     ],
     [
-      "",
       {
-        "pattern": "(?s)/docker-entrypoint.sh.*GET / HTTP/1\\.1.*200"
+        "pattern": "(?s)/docker-entrypoint\\.sh.*Configuration complete"
       }
     ],
     [
-      "",
-      "hello"
-    ],
-    [
-      "",
       {
-        "pattern": "^mq3lab-[a-z0-9-]+-nginx$"
+        "pattern": "(?m)^hello\\s*$"
+      },
+      {
+        "pattern": "No such file or directory"
       }
     ],
     [
-      "",
       {
-        "pattern": "^mq3lab-[a-z0-9-]+-nginx$"
+        "pattern": "(?m)^mq3lab-[a-z0-9-]+-nginx\\s*$"
+      },
+      {
+        "pattern": "(?s)STATUS.*Exited.*mq3lab-[a-z0-9-]+-nginx"
       }
     ],
     [
-      "",
       {
-        "pattern": "^mq3lab-[a-z0-9-]+-nginx$"
+        "pattern": "(?m)^mq3lab-[a-z0-9-]+-nginx\\s*$"
+      },
+      {
+        "pattern": "(?s)STATUS.*Up .*mq3lab-[a-z0-9-]+-nginx"
+      }
+    ],
+    [
+      {
+        "pattern": "(?i)cannot remove container.*running"
+      },
+      {
+        "pattern": "(?m)^mq3lab-[a-z0-9-]+-nginx\\s*$"
+      },
+      {
+        "pattern": "(?m)^mq3lab-[a-z0-9-]+-nginx\\s*$"
+      },
+      {
+        "pattern": "(?s)nginx.*1\\.28-alpine"
       }
     ],
     [
@@ -70,86 +88,6 @@
     ]
   ],
   "reject": [
-    {
-      "step": 1,
-      "replacements": [
-        [
-          "docker pull nginx:1.28-alpine",
-          "true"
-        ]
-      ],
-      "reason": "명령을 생략하면 실제 엔진 상태·호출 검사를 통과하지 못해요."
-    },
-    {
-      "step": 2,
-      "replacements": [
-        [
-          "docker run -d --name \"$BOX\" -p 127.0.0.1::80 nginx:1.28-alpine",
-          "true"
-        ]
-      ],
-      "reason": "명령을 생략하면 실제 엔진 상태·호출 검사를 통과하지 못해요."
-    },
-    {
-      "step": 3,
-      "replacements": [
-        [
-          "docker ps",
-          "true"
-        ]
-      ],
-      "reason": "명령을 생략하면 실제 엔진 상태·호출 검사를 통과하지 못해요."
-    },
-    {
-      "step": 4,
-      "replacements": [
-        [
-          "docker logs \"$BOX\"",
-          "true"
-        ]
-      ],
-      "reason": "명령을 생략하면 실제 엔진 상태·호출 검사를 통과하지 못해요."
-    },
-    {
-      "step": 5,
-      "replacements": [
-        [
-          "docker exec \"$BOX\" sh -c 'echo hello > /memo.txt; cat /memo.txt'",
-          "true"
-        ]
-      ],
-      "reason": "명령을 생략하면 실제 엔진 상태·호출 검사를 통과하지 못해요."
-    },
-    {
-      "step": 6,
-      "replacements": [
-        [
-          "docker stop \"$BOX\"",
-          "true"
-        ]
-      ],
-      "reason": "명령을 생략하면 실제 엔진 상태·호출 검사를 통과하지 못해요."
-    },
-    {
-      "step": 7,
-      "replacements": [
-        [
-          "docker start \"$BOX\"",
-          "true"
-        ]
-      ],
-      "reason": "명령을 생략하면 실제 엔진 상태·호출 검사를 통과하지 못해요."
-    },
-    {
-      "step": 8,
-      "replacements": [
-        [
-          "docker rm \"$BOX\"",
-          "true"
-        ]
-      ],
-      "reason": "명령을 생략하면 실제 엔진 상태·호출 검사를 통과하지 못해요."
-    },
     {
       "step": 9,
       "replacements": [

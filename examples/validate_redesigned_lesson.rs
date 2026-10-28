@@ -4,6 +4,7 @@ use serde::Deserialize;
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use std::{path::PathBuf, time::Instant};
+#[path="support/docker_terminal.rs"] mod docker_terminal;
 
 #[derive(Deserialize)]
 struct Validation {
@@ -77,8 +78,21 @@ async fn validate_with_session(spec: Validation,session:Option<&molip_quest::doc
     if spec.expected_images.as_ref().is_some_and(|images| images.len()!=lesson.tasks.len()) {return Err("Expected images do not cover every step".into())}
     let started = Instant::now();
     let mut steps = Vec::new();
+    // Docker CLI steps are typed in the real practice terminal, in lesson order, in one lesson session.
+    let terminals=lesson.tasks.iter().any(|t|t.git_terminal.as_ref().is_some_and(|e|e.docker.is_some()))
+        .then(||Ok::<_,String>((molip_quest::docker_lab::LessonSession::new(),tempfile::tempdir().map_err(|e|e.to_string())?))).transpose()?;
     for (index, task) in lesson.tasks.iter().enumerate() {
         let label = format!("Step {} ({})",index+1,task.title);
+        if let (Some((session,folder)),true)=(terminals.as_ref(),task.git_terminal.as_ref().is_some_and(|e|e.docker.is_some())) {
+            let (task,session,folder)=(task.clone(),session.clone(),folder.path().to_path_buf());
+            let (outputs,report)=tokio::task::spawn_blocking(move||docker_terminal::replay(&session,&molip_quest::git_practice::GitPracticeStore::new(&folder)?,"validate:docker-cli",&task)).await.map_err(|e|e.to_string())?.map_err(|e|format!("{label}: {e}"))?;
+            let expected=&spec.expected_outputs[index];
+            if outputs.len()!=expected.len()||!expected.iter().zip(&outputs).all(|(expected,actual)|expected.matches(actual)) {return Err(format!("{label}: expected {:?}, got {outputs:?}",expected))}
+            let task=&lesson.tasks[index];
+            steps.push(json!({"id":task.id,"terminal":true,"teacher_outputs":outputs,"grading_cases":report.cases.len()}));
+            eprintln!("{label}: passed in the real terminal");
+            continue;
+        }
         let starter=if let Some(session)=session {lesson_runner::check_in_lesson(task,&task.starter_code,session).await}else{lesson_runner::check(task,&task.starter_code).await}?;
         if starter.passed {return Err(format!("{label}: starter already passes"))}
         let report=if let Some(session)=session {lesson_runner::check_in_lesson(task,&task.solution,session).await}else{lesson_runner::check(task,&task.solution).await}?;
@@ -140,6 +154,7 @@ async fn validate_with_session(spec: Validation,session:Option<&molip_quest::doc
         let report=if let Some(session)=session {lesson_runner::check_in_lesson(task,&source,session).await}else{lesson_runner::check(task,&source).await}?;
         if !report.passed {return Err(format!("Valid answer rejected: {}: {}",accepted.reason,serde_json::to_string(&report).unwrap()))}
     }
+    if let Some((session,_))=&terminals {session.close();session.wait_closed().await;}
     Ok(json!({"passed":true,"lesson":lesson.id,"revision":lesson.revision,"lesson_sha256":source_hash,"steps":steps,"rejected_answers":spec.reject.len(),"accepted_answers":spec.accept.len(),"seconds":started.elapsed().as_secs_f64(),"native_ui_verified":false,"voice_listened":false}))
 }
 

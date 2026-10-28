@@ -2,6 +2,8 @@
 use serde::{Deserialize,Serialize};
 #[path="shell_practice.rs"] mod shell_practice;
 pub use shell_practice::{ShellExercise,ShellSnapshot,ShellCompletion};
+#[path="docker_practice.rs"] mod docker_practice;
+pub use docker_practice::{DockerExercise,DockerStart,DockerState,DockerGoal,DockerFile,DockerSession,docker_command_matches};
 #[path="java_build_practice.rs"] pub mod java_build_practice;
 pub use java_build_practice::JavaBuildGoal;
 #[path="github_pr_practice.rs"] mod github_pr_practice;
@@ -21,6 +23,8 @@ pub struct GitExercise {
     #[serde(default,skip_serializing_if="Option::is_none")] pub java_build:Option<JavaBuildGoal>,
     #[serde(default,skip_serializing_if="Option::is_none")] pub vim:Option<VimExercise>,
     #[serde(default,skip_serializing_if="Option::is_none")] pub shell:Option<ShellExercise>,
+    /// Docker CLI practice: a Bash terminal whose real `docker` reaches this lesson's own engine resources.
+    #[serde(default,skip_serializing_if="Option::is_none")] pub docker:Option<DockerExercise>,
     #[serde(default,skip_serializing_if="Option::is_none")] pub demo_setup:Option<Vec<GitSetup>>,
     #[serde(default,skip_serializing_if="String::is_empty")] pub workspace_group:String,
     #[serde(default,skip_serializing_if="String::is_empty")] pub workspace_revision:String,
@@ -201,6 +205,10 @@ impl GitExercise {
             if !java.command.is_empty()&&!java_build_practice::valid_command(&java.command){return Err("자바 실습 명령을 확인하세요.".into())}
         }
         if let Some(vim)=&self.vim{vim.validate()?;if self.initial_history!=GitInitialHistory::Uninitialized||self.shell.is_some()||self.state_goal.is_some()||self.demo_setup.is_some(){return Err("Vim 시작 구성을 확인하세요.".into())}}
+        if let Some(docker)=&self.docker {
+            docker.validate()?;
+            if self.shell.as_ref().is_none_or(|s|s.requires_vim||[Some(&s.goal),Some(&s.demo),s.start.as_ref()].into_iter().flatten().any(|state|!state.files.is_empty()||!state.directories.is_empty()))||self.java_build.is_some()||self.vim.is_some()||self.github_pr.is_some(){return Err("Docker 터미널 실습의 구성을 확인하세요.".into())}
+        }
         if let Some(shell)=&self.shell {shell.validate()?;if self.initial_history!=GitInitialHistory::Uninitialized||self.state_goal.is_some()||self.demo_setup.is_some(){return Err("Bash 실습의 시작 상태를 확인하세요.".into())}}
         if self.demo_setup.is_some(){self.demonstration().validate()?;}
         if self.files.len()>80||self.setup.len()>100||self.commands.len()>20{return Err("Git 실습의 준비 내용을 확인하세요.".into())}
@@ -349,6 +357,7 @@ impl GitPractice {
         Ok(true)
     }
     pub fn root(&self)->&Path {self.directory.path()}
+    pub fn exercise_docker(&self)->Option<DockerExercise> {self.exercise.docker.clone()}
     pub fn work(&self)->PathBuf {self.root().join("work")}
     pub fn environment(&self)->Vec<(String,String)> {
         let home=self.root().join("home").to_string_lossy().into_owned();
@@ -388,6 +397,7 @@ impl GitPractice {
     #[cfg(not(target_os="android"))]
     pub fn open_terminal_with_player(&self,player:&Path)->Result<(crate::setup_terminal::SetupTerminal,tokio::sync::mpsc::Receiver<Vec<u8>>),String> {
         if self.exercise.vim.is_some(){return self.open_vim_terminal();}
+        if self.exercise.docker.is_some(){return Err("Docker 실습 터미널은 수업 화면의 Docker 세션과 함께 열어요.".into())}
         let mut environment=self.environment();
         if self.exercise.github_pr.is_some(){environment.extend(self.shell_environment());}
         environment.push(("GIT_TRACE2_EVENT".into(),self.root().join("commands.jsonl").to_string_lossy().into_owned()));
@@ -436,6 +446,7 @@ impl GitPractice {
         if self.exercise.github_pr.is_some(){return self.check_github_pr();}
         if self.exercise.vim.is_some(){return self.check_vim();}
         if self.exercise.java_build.is_some(){return self.check_java_build();}
+        if self.exercise.docker.is_some(){return self.check_docker();}
         if self.exercise.shell.is_some(){return self.check_shell();}
         let Some(goal)=&self.exercise.state_goal else{return self.check_commands()};
         if self.exercise.initial_history==GitInitialHistory::Uninitialized && !self.work().join(".git").exists() {

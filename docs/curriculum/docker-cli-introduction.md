@@ -6,7 +6,7 @@
 
 수업 예고와 첫 문제에서 컴퓨터마다 설치 여부·버전이 달라지는 상황을 설명한다. Docker를 쓰지 않고도 환경을 맞출 수 있지만 반복해서 일치시켜야 한다는 점, 이미지가 프로그램과 필요한 사용자 공간 파일을 전달한다는 점을 먼저 다룬다. 모든 호스트 환경 차이를 실제로 재현했다고 주장하지 않는다. 같은 이미지가 CPU 구조·커널·외부 서비스 차이까지 없애는 것도 아니다.
 
-그다음 학습자가 `commands.sh`에 명령 하나를 직접 작성한다.
+그다음 학습자가 실제 터미널 프롬프트에 명령을 직접 입력하고 Enter로 실행한다(2026-10-28 개정 6부터. 그 전에는 `commands.sh`에 명령을 쓰고 코드 실행 버튼을 눌렀다).
 
 1. `docker pull`: 실행 재료를 받지만 프로세스는 아직 없다.
 2. `docker run`: 이미지에서 새 컨테이너와 프로세스를 시작한다.
@@ -15,30 +15,46 @@
 5. `docker exec`: 새 컨테이너를 만들지 않고 기존 컨테이너 안에서 메모를 쓴다.
 6. `docker stop`: 프로세스는 멈추고 객체는 남는다.
 7. `docker start`: 같은 식별자의 컨테이너를 다시 실행한다.
-8. `docker rm`: 컨테이너 객체는 없어지고 이미지는 남는다.
+8. `docker stop` 뒤 `docker rm`: 실행 중인 컨테이너의 rm이 거절되는 것을 본 뒤, 컨테이너 객체는 없어지고 이미지는 남는 것을 `docker images`로 확인한다.
 
 이 경험 뒤에 Compose가 `run`의 이미지·명령을 파일로 기록해 실행하는 단계임을 설명한다. 기존 PID 1·볼륨·레이어 캐시·최종 도전 5개로 이어진다. 문제 수를 맞추기 위한 추가가 아니라 명령마다 다른 관찰 대상을 하나씩 분리했다.
 
-## 실제 실행과 준비 상태
+## 실제 터미널과 수업 단위 상태 (개정 6)
 
-2026-10-26 후속 수정: 이미지 변수를 감춘 BusyBox 명령 대신 `docker pull nginx:1.28-alpine`과 `docker run -d --name "$BOX" -p 127.0.0.1::80 nginx:1.28-alpine`을 직접 작성한다. BOX는 실습별 고유 이름이다. 준비 스크립트는 소유 라벨만 추가하며, 조회는 실제 Docker의 표·컨테이너 ID·로그를 그대로 보여 준다. `docker ps`에는 사용자가 원래 켜 둔 컨테이너도 보이며 이름으로 구별한다. 변경 명령은 실습 소유 자원만 허용하고 고정 포트·외부 공개 포트·추가 대상은 거절한다.
+2026-10-28 사용자 요청: 「도커 문제도 터미널 환경으로 바꾸라니까 왜 자꾸 command.sh로 하는거야.」 CLI 8문제는 Bash·Git 수업과 같은 실제 PTY 터미널(`src/git_terminal_ui.rs`, `SetupTerminal::open_practice`)을 쓴다. 과제 정의는 `git_terminal.docker`(`src/docker_practice.rs`)이고 언어는 `docker`로 남는다. 코드 편집기, `commands.sh`, `lab.sh`, 코드 실행 버튼은 없다.
 
-각 문제는 설명한 시작 상태를 한 번 준비한다. 같은 문제의 코드 재실행에서는 컨테이너를 재생성하지 않는다. 초기화 또는 수업 종료 때 소유 자원만 정리한다. 제출과 해설은 별도 실행 공간을 사용해 학생의 상태를 보존한다. `MQ3_OUTPUT=raw`는 실제 stdout/stderr, `grading`은 엔진 상태로 만든 결정적 판정 결과를 반환한다. 컨테이너 ID·포트·시각을 고정하기 위해 실제 출력을 대체하지 않는다. SQL/DB의 상태 유지 정책은 그대로다. 디렉터리 격리를 OS 샌드박스라고 주장하지 않는다.
+- 터미널의 `docker`는 실제 Docker CLI이며 stdout/stderr가 그대로 보인다. `docker ps` 표에는 사용자가 원래 켜 둔 컨테이너도 나온다. 요약 문장으로 바꾸지 않는다.
+- Bash에 미리 넣는 보호 함수(`TERMINAL_GUARD`, `src/docker_lab/terminal.rs`)는 run·create에 소유 라벨만 붙인다. 이 수업이 만들지 않은 컨테이너의 stop·rm·exec 등, 고정·외부 포트, 볼륨·호스트 네트워크·권한 옵션, 이미지 삭제·prune·볼륨·네트워크 명령은 실제 Docker를 부르기 전에 거절한다. 조회 명령(ps·images·logs·inspect 등)은 그대로 통과한다.
+- 수업 세션(`LessonSession::terminal`)은 학습자용 프로젝트 하나와 해설용 프로젝트 하나를 수업 동안 유지한다. 문제 이동·재실행으로 컨테이너를 다시 만들지 않는다. 문제를 처음 열 때 시작 상태가 없으면 없는 것만 만든다(예: 실행 중이어야 하는데 없으면 만들어 실행). 화면에 무엇을 준비했는지 표시한다. 초기화는 이 문제의 시작 상태를 정확히 되돌린다. 해설은 해설용 프로젝트에서 매번 정확한 시작 상태로 시연한다. 수업을 나가면 소유 라벨이 붙은 자원만 지운다. 공유 이미지는 지우지 않는다.
+- `$BOX`는 `<소유 프로젝트>-nginx`이다. 준비 컨테이너는 `127.0.0.1::80`으로 Docker가 고른 빈 포트에만 연결한다.
+- 채점은 학습자 터미널의 Bash 기록 훅(명령 줄·종료 상태)과 이 수업 컨테이너의 실제 엔진 상태(실행 상태·식별자·생성 이미지·로그·컨테이너 안 파일·이미지 존재)만 읽는다. 문제를 연 시점 이후에 성공한 명령만 센다. 앱이 정답 명령을 대신 실행해 판정하지 않는다. `$BOX`와 실제 이름, 옵션 순서와 `--name=` 같은 표기 차이는 같은 명령으로 본다.
+- 관리자 자동 풀이는 해설의 `bash_command`를 학습자 터미널에 입력하고 결과가 나온 뒤 다음 명령으로 넘어간다. 통과 여부는 같은 채점기가 정한다.
+- Compose·Dockerfile 문제 5개(9~13번)는 아직 compose.yaml/Dockerfile 편집 + 코드 실행(lab.sh) 방식이다. 이 문제들의 Docker 명령을 터미널에서 수행하는 전환은 다음 작업으로 남아 있다.
 
 ## 식별자와 생성 원본
 
-- 원본: `tools/principles_lessons/d0_cli_intro.py`, 기존 메타데이터 연결은 `d1_image_container.py`.
-- 새 챕터에는 명시적 `identity=cli-introduction`을 주고 기존 챕터는 원래 `c0`~`c3` 정체성을 유지한다.
-- 앞선 개정에서 입문 문제 8개를 추가했다. 이번 개정은 이미 공개된 13개 문제 전체의 ID를 보존하고, 입문 8개의 명령·출력·해설만 바꾼다.
-- 개정은 `docker-image-container-4`이다. 수업 게시는 별도지만 이번 개정은 Nginx 이미지 허용과 화면/채점 출력 분리가 있는 앱이 필요하다. 해당 런타임 릴리스가 공개된 뒤 수업 저장소와 코스 참조를 게시한다.
+- 원본: `tools/principles_lessons/d0_cli_intro.py`, 기존 메타데이터 연결은 `d1_image_container.py`. `make.py`가 `git_terminal`과 해설의 `('bash', 명령, 말, 대상)` 항목을 수업 파일로 옮긴다.
+- 13개 문제 ID는 그대로다. 입문 8개는 문제 내용·할 일·해설·채점 방식이 바뀌었고 8번 제목을 「컨테이너를 멈춘 뒤 삭제하고 이미지는 남기세요」로 고쳤다.
+- 개정은 `docker-image-container-6`이다. 이 개정은 `git_terminal.docker`를 이해하는 앱이 필요하다. 이전 앱은 이 수업 파일을 검증하지 못하므로 앱 릴리스가 먼저 공개된 뒤 수업 저장소와 코스 참조를 게시한다.
 
 ## 검증
 
-`make.py` → 대본 문맥 검토 → `build-redesigned-git.py` → 실제 Docker 재생 → `validate_redesigned_lesson` 순서로 확인한다. 최종 게시의 근거는 `target/mcq/docker-image-container.json`의 현재 파일 해시와 실제 채점 결과다. 네이티브 화면이나 실제 음성을 확인하지 않은 경우 그 검증까지 통과했다고 표현하지 않는다.
+`make.py` → `build-redesigned-git.py`(해설 문맥 검토 기록 포함) → `validate_redesigned_lesson` 순서로 확인한다. 검증기는 CLI 8문제를 실제 PTY 터미널에 학습자처럼 입력해 채점하고, 해설을 해설용 프로젝트에서 재생해 실제 출력을 `recorded/docker-image-container.json`의 패턴과 비교한다. 최종 게시의 근거는 `target/mcq/docker-image-container.json`의 현재 파일 해시와 실제 채점 결과다.
 
-`python tools/test_docker_cli_intro.py`는 실제 표/로그, 반복 실행 시 동일 ID, 동적 루프백 포트, 무관한 컨테이너 보존, 고정·중복 포트 거절, 8개 명령의 정답/무동작 오답을 확인한다. 앱 실행기의 raw/grading 분리는 `docker_lab::tests::learner_and_narration_keep_raw_output_while_checks_use_grading_output`에서 확인한다.
+`cargo test --test docker_cli_terminal -- --ignored --test-threads=1`은 실제 PTY와 Docker로 다음을 확인한다: 첫 `docker pull`을 Enter로 실행, run의 실제 ID, `docker ps` 실제 표(개발자 컨테이너 포함), 문제 이동·재진입 시 같은 컨테이너 ID 유지, 해설 프로젝트 분리, 보호 함수의 거절(다른 컨테이너 stop·rm, 8080 고정 포트, `-v`, rmi, prune), 초기화의 시작 상태 복원, 수업 종료 시 소유 자원만 정리, 자동 풀이 재생과 채점. 네이티브 화면이나 실제 음성을 확인하지 않은 경우 그 검증까지 통과했다고 표현하지 않는다.
 
-개정 4의 실제 실행 검증은 13문제 모두 통과했다. 채점 사례 17개, 오답 거절 16개, 대체 정답 4개와 해설 재생 결과를 확인했다. 출력의 동적 ID·시각·포트는 형식으로 검사하고, 학습자에게 보여 주는 원문은 변환하지 않는다.
+`tools/test_docker_cli_intro.py`는 삭제했다. 이 스크립트는 `commands.sh`를 `lab.sh`로 실행하는 개정 5까지의 방식만 시험했고 그 파일들은 개정 6에 없다. 같은 항목(실제 표·로그·exec 출력, 반복 시 같은 ID, 127.0.0.1 빈 포트, 무관한 컨테이너 보존, 고정 포트 거절, 명령별 정답과 무동작 오답)은 위 `docker_cli_terminal` 세 시험과 `docker_practice` 단위 시험(옵션 순서·`$BOX` 동등성, 다른 명령 거절)이 실제 터미널 경로에서 확인한다.
+
+실제 앱 화면(Windows, 디버그 앱, 격리 검증 전송): `node tools/design-capture.cjs tools/design-scenarios/docker-terminal.cjs <출력 폴더>`. 2026-10-28 실행 결과 통과했다. 확인한 것은 다음과 같다. 문제 1에 코드 편집기·코드 실행 버튼 없이 「실제 Docker 터미널」이 열리고, 아무것도 입력하지 않은 제출은 실패한다. `docker pull nginx:1.28-alpine` 입력 후 Enter를 누르면 실제 Digest·Status 줄이 나오고 제출이 통과한다. 문제 2 run에서 실제 64자리 ID가 나온다. 문제 3의 `docker ps` 실제 표에는 다른 MQ 세션의 컨테이너도 보인다. 관리자 자동 풀이 칩의 상태 점은 진행·일시정지에서 칩 왼쪽 테두리와 8px 떨어져 있다(라이트·다크). 멈춘 뒤 학습자 상태는 그대로 통과한다. 문제 4 해설은 「해설용 별도 Docker 터미널」에서 실제 `docker logs` 출력(Configuration complete)을 보여 주고 학습자 터미널 내용은 바뀌지 않는다. 같은 문제의 관리자 자동 풀이는 학습자 터미널에 `docker logs "$BOX"`를 입력하고 채점 통과 뒤 문제 5로 넘어간다. 760px 폭 화면도 확인했다. 앱을 종료한 뒤 감시 프로세스가 이 실행의 `mq3lab-` 컨테이너만 정리했다. 실제 음성은 듣지 않았다(목소리를 끄고 자막과 동작만 확인).
+
+이 화면 검증에서 찾은 앱 결함 하나를 고쳤다. `git_terminal_ui.rs`의 `if let Some(docker)=practice.lock()….exercise_docker()`에서 MutexGuard가 if-let 블록 끝까지 살아 있었다. 그래서 블록 안의 `practice.lock()`이 같은 스레드에서 교착하고 터미널이 「Docker를 준비하고 있어요」에 멈췄다. 통합 시험은 이 UI 경로를 거치지 않아 통과했었다. 잠금을 먼저 풀도록 고쳤다.
+
+## 남은 제한과 게시 순서 (2026-10-28)
+
+- 아직 터미널로 바꾸지 않은 Docker 명령이 있다. 이 수업 9~13번과 `docker-network-ports`(4문제), `docker-compose-db`(3문제)는 compose.yaml·Dockerfile을 편집하고 코드 실행 버튼으로 `lab.sh`가 `docker compose`를 실행한다. 사용자 요청은 「파일 편집은 제공하되 Docker 명령은 터미널에서」이므로 다음 작업으로 남긴다. `commands.sh`를 쓰는 문제는 더 이상 없다. SQL 수업 6개는 의도대로 SQL 편집기를 유지한다.
+- macOS의 실제 PTY·Docker Desktop 경로는 이번에 실행하지 않았다(Windows Git Bash만). CI 작업(`principles-runtime.yml`)에 `docker_cli_terminal` 단계를 더했다.
+- 전체 회귀 검사의 실패 3건(`java_code_guide` 2건, `lesson_registry` 단계 수 925≠871)은 이 변경 전 HEAD 224fb34를 그대로 꺼낸 폴더에서도 같은 메시지로 재현된다. 이 변경과 무관하며 고치지 않았다.
+- 게시 순서: `git_terminal.docker`를 이해하는 앱 릴리스 → 수업 저장소에 `docker-image-container-6` 게시 → 코스 참조(`java-backend.json` 핀) 게시. 이전 앱은 이 수업 파일을 검증하지 못하므로 순서를 바꾸지 않는다.
 
 공식 근거: [컨테이너의 필요성](https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/), [pull](https://docs.docker.com/reference/cli/docker/image/pull/), [run과 start](https://docs.docker.com/reference/cli/docker/container/run/).
 

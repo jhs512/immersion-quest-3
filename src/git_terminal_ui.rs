@@ -41,6 +41,12 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
     let is_java=exercise.java_build.is_some();
     let mut java_source=use_signal(||None::<String>);
     let is_vim=exercise.vim.is_some();
+    let is_docker=exercise.docker.is_some();
+    // Docker CLI steps reach the lesson's own Docker project, which outlives this terminal.
+    let docker_session=try_use_context::<molip_quest::docker_lab::LessonSession>();
+    let mut docker_note=use_signal(||None::<String>);
+    // Starting Docker Desktop or pulling a prepared image can take a while before the prompt.
+    let mut docker_preparing=use_signal(move||is_docker);
     let graph_enabled=!is_shell&&!is_java&&!is_vim;
     let graph_requested=use_hook(||Arc::new(std::sync::atomic::AtomicBool::new(true)));
     let graph_request=graph_requested.clone();
@@ -54,7 +60,8 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
         cleanup.lock().unwrap_or_else(|e|e.into_inner()).take();
         document::eval(&format!("window.{bridge_name}?.dispose('{cleanup_owner}');window.mq3GitGraphs?.dispose('{cleanup_owner}');window.molipAgent?.retireGitTutor('{cleanup_owner}');"));
     });
-    use_future(move||{let exercise=exercise.clone();let scope=scope.clone();let step_id=step_id.clone();let owned=owned.clone();let owner=owner.clone();let graph_requested=graph_requested.clone();async move {
+    use_future(move||{let exercise=exercise.clone();let scope=scope.clone();let step_id=step_id.clone();let owned=owned.clone();let owner=owner.clone();let graph_requested=graph_requested.clone();let docker_session=docker_session.clone();async move {
+        let docker_step=exercise.shell.as_ref().map(|s|s.step_id.clone()).unwrap_or_default();
         let opened=tokio::task::spawn_blocking(move||{
             let practice=if !demo {
                 if let Some(scope)=scope {
@@ -65,11 +72,21 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
             }else{GitPractice::new(exercise.demonstration())?};
             if !demo {practice.remember_step_start(&step_id)?;}
             let practice=Arc::new(Mutex::new(practice));
-            let (shell,output)=practice.lock().unwrap_or_else(|e|e.into_inner()).open_terminal()?;
+            // Release the practice lock before the branches below take it again (an if-let
+            // scrutinee's guard would otherwise live through the block and deadlock this thread).
+            let docker=practice.lock().unwrap_or_else(|e|e.into_inner()).exercise_docker();
+            let (shell,output,note)=if let Some(docker)=docker {
+                let session=docker_session.ok_or("Docker 실습은 수업 화면에서 열어요.")?;
+                let lab=session.terminal(demo,&docker_step,&docker)?;
+                let (shell,output)=practice.lock().unwrap_or_else(|e|e.into_inner()).open_docker_terminal(&lab)?;
+                (shell,output,lab.prepared)
+            }else{let (shell,output)=practice.lock().unwrap_or_else(|e|e.into_inner()).open_terminal()?;(shell,output,None)};
             let closing_marker=practice.lock().unwrap_or_else(|e|e.into_inner()).vim_closing_marker();
-            Ok::<_,String>((TerminalSession{shell:Some(shell),practice,closing_marker},output))
+            Ok::<_,String>((TerminalSession{shell:Some(shell),practice,closing_marker},output,note))
         }).await;
-        let (session,mut output)=match opened {Ok(Ok(pair))=>pair,Ok(Err(e))=>{error.set(e);return;},Err(e)=>{error.set(e.to_string());return;}};
+        docker_preparing.set(false);
+        let (session,mut output,note)=match opened {Ok(Ok(opened))=>opened,Ok(Err(e))=>{error.set(e);return;},Err(e)=>{error.set(e.to_string());return;}};
+        if !demo {docker_note.set(note);}
         let practice=session.practice.clone();
         restored_start.set(!demo&&practice.lock().unwrap_or_else(|e|e.into_inner()).restored_step_start());
         if is_java {let source=practice.lock().unwrap_or_else(|e|e.into_inner()).java_source();match source{Ok(source)=>java_source.set(Some(source)),Err(e)=>error.set(e)}}
@@ -174,6 +191,9 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
     }});
     rsx!{div {class:if is_java{"git-terminal-shell java-build-workspace"}else{"git-terminal-shell"},
         if restored_start() {p {class:"practice-start-notice",role:"status","앞 단계의 파일과 Git 상태를 준비했어요. 현재 문제의 작업은 직접 진행하세요."}}
+        if docker_preparing()&&!demo {p {class:"practice-start-notice",role:"status","Docker를 준비하고 있어요. 꺼져 있으면 자동으로 켜요."}}
+        if let Some(note)=docker_note() {p {class:"practice-start-notice",role:"status","{note} 현재 문제의 명령은 직접 입력하세요."}}
+        if is_docker&&!demo {p {class:"docker-terminal-note",role:"note","입력한 docker 명령은 이 컴퓨터의 실제 Docker가 실행해요. 이 수업이 만든 컨테이너에는 소유 라벨을 붙이고, 다른 컨테이너·이미지를 바꾸거나 지우는 명령은 막아요. 수업을 나가면 이 수업이 만든 것만 정리해요."}}
         if let Some(source)=java_source() {
             div {class:"java-build-source",strong {"Main.java · 같은 폴더에 자동 저장"}
                 textarea {class:"code-editor","data-code-editor":"java","data-java-editor":rendered_owner.clone(),"data-editor-value":source.clone(),"data-editor-reset":rendered_owner.clone(),initial_value:source,aria_label:"실습 Main.java",spellcheck:false,
@@ -182,7 +202,7 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
             div {class:"split-handle split-row split-java-source",role:"separator",tabindex:0,aria_label:"에디터와 터미널 높이 조절",aria_orientation:"horizontal",title:"드래그로 높이 조절, 더블 클릭으로 되돌리기"}
         }
         div {class:"git-terminal-row",
-        div {class:"git-terminal",id:host,"data-shell":is_shell.to_string(),"data-vim":is_vim.to_string(),"data-terminal-session":rendered_owner.clone(),aria_label:if is_vim{if demo{"해설용 별도 Vim 편집기"}else{"실제 Vim 편집기"}}else if is_shell{if demo{"해설용 별도 Bash 실습 폴더"}else{"실제 Bash 실습 폴더"}}else if demo{"해설용 별도 Git 저장소"}else{"실제 Git 실습 저장소"}}
+        div {class:"git-terminal",id:host,"data-shell":is_shell.to_string(),"data-vim":is_vim.to_string(),"data-terminal-session":rendered_owner.clone(),aria_label:if is_vim{if demo{"해설용 별도 Vim 편집기"}else{"실제 Vim 편집기"}}else if is_docker{if demo{"해설용 별도 Docker 터미널"}else{"실제 Docker 터미널"}}else if is_shell{if demo{"해설용 별도 Bash 실습 폴더"}else{"실제 Bash 실습 폴더"}}else if demo{"해설용 별도 Git 저장소"}else{"실제 Git 실습 저장소"}}
         if graph_enabled {details {class:"git-graph-panel",open:true,"data-git-graph-owner":rendered_owner.clone(),
             summary {"커밋 그래프"}
             div {class:"git-graph-body",

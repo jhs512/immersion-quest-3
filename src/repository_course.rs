@@ -328,7 +328,8 @@ impl Lesson {
             if t.predict_before_run&&((!t.has_runnable_example()&&!t.git_terminal.as_ref().is_some_and(|e|e.java_build.is_some()))||!matches!(t.interaction,Some(crate::task_interaction::Interaction::Choice{..}))){return Err("실행 전 예상 문제의 구성을 확인하세요.".into())}
             if t.example_order_marker.is_some(){if !t.has_runnable_example(){return Err("코드 배열 예제를 확인하세요.".into())}t.example_for_answer(&t.starter_code)?;t.example_for_answer(&t.solution)?;}
             if let Some(exercise)=&t.git_terminal {
-                if t.language!=TaskLanguage::Git && !(t.language==TaskLanguage::Java&&exercise.java_build.is_some()) {return Err("Git 터미널 문제의 종류를 확인하세요.".into())}
+                if t.language!=TaskLanguage::Git && !(t.language==TaskLanguage::Java&&exercise.java_build.is_some()) && !(t.language==TaskLanguage::Docker&&exercise.docker.is_some()) {return Err("Git 터미널 문제의 종류를 확인하세요.".into())}
+                if exercise.docker.is_some()&&t.language!=TaskLanguage::Docker {return Err("Docker 터미널 실습은 Docker 문제에만 써요.".into())}
                 if let Some(interaction)=&t.interaction {
                     if !matches!(interaction,crate::task_interaction::Interaction::Choice{..})||t.git_checks.is_some()||(exercise.has_goal()&&exercise.java_build.is_none()) {
                         return Err("Git 관찰 문제에는 선택 답안만 판정하세요.".into());
@@ -339,7 +340,7 @@ impl Lesson {
             if t.hints.len()>5||t.hints.iter().any(|hint|hint.len()>8000){return Err("힌트 개수와 길이를 확인하세요.".into())}
             if !ids.insert(&t.id) || t.id.is_empty() || t.solution.len()>65536 || t.starter_code.len()>65536 || (!t.entry_file.is_empty() && !safe_file(&t.entry_file)) || t.files.iter().any(|(p,v)| !safe_file(p) || v.len()>200_000) || t.files.len()>80 || t.expected_files.len()>80 || t.expected_files.iter().any(|(p,v)|!safe_file(p)||v.len()>200_000) || t.tests.len()>50 || t.mutations.len()>20 || t.mutations.iter().any(|files|files.len()>80||files.iter().any(|(p,v)|!safe_file(p)||v.len()>200_000)) { return Err("문제 ID와 파일 크기·경로를 확인하세요.".into()); }
             if let Some(interaction) = &t.interaction {interaction.validate()?;}
-            else if matches!(t.language,TaskLanguage::Web)&&t.web_checks.is_empty() || matches!(t.language,TaskLanguage::Git)&&t.git_checks.is_none()&&!t.git_terminal.as_ref().is_some_and(|exercise|exercise.has_goal()) || matches!(t.language,TaskLanguage::JavaProject|TaskLanguage::Javascript|TaskLanguage::C|TaskLanguage::Sql|TaskLanguage::JavaLibraries|TaskLanguage::Docker)&&t.tests.is_empty() {return Err("필수 문제의 실행 검사 기준을 확인하세요.".into())}
+            else if matches!(t.language,TaskLanguage::Web)&&t.web_checks.is_empty() || matches!(t.language,TaskLanguage::Git)&&t.git_checks.is_none()&&!t.git_terminal.as_ref().is_some_and(|exercise|exercise.has_goal()) || matches!(t.language,TaskLanguage::JavaProject|TaskLanguage::Javascript|TaskLanguage::C|TaskLanguage::Sql|TaskLanguage::JavaLibraries)&&t.tests.is_empty() || t.language==TaskLanguage::Docker&&t.tests.is_empty()&&!t.git_terminal.as_ref().is_some_and(|exercise|exercise.docker.is_some()) {return Err("필수 문제의 실행 검사 기준을 확인하세요.".into())}
             if !t.libraries.is_empty()&&!matches!(t.language,TaskLanguage::JavaLibraries|TaskLanguage::Docker) {return Err("라이브러리 묶음은 라이브러리 실행 문제에만 써요.".into())}
             if t.language==TaskLanguage::JavaLibraries {
                 if t.libraries.is_empty()||t.interaction.is_some()||t.git_terminal.is_some()||t.checker.is_some() {return Err("라이브러리 실행 문제의 구성을 확인하세요.".into())}

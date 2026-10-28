@@ -50,14 +50,14 @@
   const terminal = () => globalThis.mq3GitTerminal;
   const owner = () => document.querySelector('#git-student-terminal')?.dataset.terminalSession;
 
-  async function command(text, generation) {
+  async function command(text, generation, seconds = 120) {
     const bridge = terminal(), session = owner();
     if (!bridge || !session) throw new Error('실습 터미널이 없어요.');
     const before = bridge.text(session).trimEnd();
     const typed = await bridge.typeCommand(text, session, ms => pace(ms, generation));
     if (!typed) { if (!current(generation)) return false; throw new Error('터미널이 바뀌어 명령을 입력하지 못했어요.'); }
     return until(() => { const after = bridge.text(session).trimEnd(); return after !== before && /(?:\$|>)\s*$/.test(after); },
-      generation, 120, `「${text}」 명령의 완료`);
+      generation, seconds, `「${text}」 명령의 완료`);
   }
 
   async function act(action, generation) {
@@ -65,7 +65,7 @@
     switch (action.action) {
       case 'bash_command':
         if (typeof action.command !== 'string' || !action.command || /[\r\n\0]/.test(action.command)) throw new Error('Bash 명령을 확인하세요.');
-        return command(action.command, generation);
+        return command(action.command, generation, Math.min(900, Math.max(120, Number(action.wait_seconds) || 120)));
       case 'inspect_folder':
         if (!['pwd', 'ls'].includes(action.command)) throw new Error('폴더 확인 명령을 확인하세요.');
         return command(action.command, generation);
