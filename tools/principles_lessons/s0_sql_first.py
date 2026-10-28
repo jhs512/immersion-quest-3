@@ -131,3 +131,39 @@ for c in LESSON['chapters']:
                 s['complexity']['prior']='앞 문제에서 테이블의 행·열과 조회를 확인했어요.'
 EXTRA['a']['complexity']['prior']='SQL이나 행·열을 몰라도 시작할 수 있어요.'
 EXTRA['b']['complexity']['prior']='한 상품 행에서 모든 열을 조회했어요.'
+
+# Each request names the operation and its observable boundary. Routine button
+# instructions belong to the first exercise, not to every SQL question.
+OBSERVE = {
+    'table-first-row': '실행해서 상품의 번호·이름·가격·재고가 한 행에 나오는지 확인하세요.',
+    'choose-two-columns': '실행해서 결과의 열이 name, price 두 개뿐인지 확인하세요.',
+    'where-one-row': '실행해서 id가 2인 상품만 조회되는지 확인하세요.',
+    'order-one-column': '실행해서 위에서 아래로 가격이 작은 순서인지 확인하세요.',
+    'row-and-column': '실행해서 이름만 나오고 번호 순서가 유지되는지 확인하세요.',
+    'row-condition': '실행해서 남은 각 상품이 가격·재고 조건을 모두 만족하는지 확인하세요.',
+    'unknown-value': '실행해서 재고가 0인 상품과 NULL인 상품이 구별되는지 확인하세요.',
+    'deterministic-order': '실행해서 두 행만 나오고 같은 가격은 번호 순서인지 확인하세요.',
+    'count-rows': '실행해서 재고가 NULL인 상품도 행 수에 포함되는지 확인하세요.',
+    'sum-values': '실행해서 상품 종류 수가 아니라 확인된 재고의 합인지 확인하세요.',
+    'aggregate': '실행해서 재고 합계가 나오고 모든 재고가 미정이면 0이 되는지 확인하세요.',
+    'create-text-table': '실행해서 제공된 검사 SQL이 글자 메모를 저장하고 읽는지 확인하세요.',
+    'insert-persistent-row': '실행해서 새 연결로 읽은 표에도 coffee 행이 있는지 확인하세요.',
+    'update-one-value': '실행해서 milk의 가격만 바뀌고 다른 값은 유지되는지 확인하세요.',
+    'delete-one-row': '실행해서 bread만 없어지고 다른 상품은 남는지 확인하세요.',
+    'identify-same-name': '실행해서 이름이 같아도 id가 2인 회원 한 명만 나오는지 확인하세요.',
+    'reference-member-id': '실행해서 회원 번호가 2인 주문만 번호 순서로 나오는지 확인하세요.',
+    'targeted-change': '실행해서 milk 재고만 한 개 줄고 다른 상품은 그대로인지 확인하세요.',
+}
+for chapter in LESSON['chapters']:
+    for section in chapter['units']:
+        for exercise in section['steps']:
+            exercise['task_first'] = True
+            exercise['todo'] = [
+                '**' + exercise['title'] + '** (`lesson.sql`).',
+                OBSERVE[exercise['slug']],
+                '확인한 SQL을 제출하세요.',
+            ]
+            exercise['review'][exercise['title']] = (
+                '핵심 요구를 첫 항목으로 표시해요. 다음 항목은 이 문제의 결과 확인 기준이에요. '
+                '오류가 없는 조회에 오류 메시지를 읽으라는 공통 지시를 넣지 않아요.')
+LESSON['revision'] = 5

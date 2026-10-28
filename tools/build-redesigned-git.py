@@ -182,6 +182,9 @@ def build(name, check=False):
             if goal.count('**할 일**') != 1:
                 raise ValueError(f"{step['id']}: 할 일을 한곳에 표시하세요.")
             todo = goal.split('**할 일**', 1)[1].strip()
+            # A task list may precede explanatory sections. Validate only that
+            # Markdown section, while retaining consecutive steps and submit.
+            todo = re.split(r'^\*\*[^\n]+\*\*\s*$', todo, maxsplit=1, flags=re.MULTILINE)[0].strip()
             items = re.findall(r'^(\d+)\. (.+)$', todo, re.MULTILINE)
             if not items or [int(number) for number, _ in items] != list(range(1, len(items) + 1)):
                 raise ValueError(f"{step['id']}: 할 일을 순서 있는 번호 목록으로 쓰세요.")

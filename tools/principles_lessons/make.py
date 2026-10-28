@@ -63,6 +63,14 @@ def write(path, value):
 
 
 def goal(step):
+    if step.get('task_first'):
+        # The task must be visible before background and syntax explanations.
+        parts = [step['start'], '**할 일**\n\n' + '\n'.join(
+            f'{i}. {t}' for i, t in enumerate(step['todo'], 1))]
+        parts.append('**배경**\n\n' + '\n\n'.join(step['intro']))
+        if step.get('know'):
+            parts.append('**알아두세요**\n\n' + step['know'])
+        return '\n\n'.join(parts)
     parts = [step['start']] + list(step['intro'])
     if step.get('know'):
         parts.append('**알아두세요**\n\n' + step['know'])
