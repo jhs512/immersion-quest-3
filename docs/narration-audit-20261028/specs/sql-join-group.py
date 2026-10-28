@@ -1,0 +1,49 @@
+KEY = 'sql-join-group'
+T = '템플릿 결함: 상황 문단 재낭독, 목표를 반복하는 개념 문장이 SQL 한 줄 전체를 강조, 코드 변경 중 제목 명령문, 경고가 알아두세요 전체를 강조. 모두 고쳤다(개념 문장은 강조한 토큰의 현재 동작 설명으로). '
+U = '미해결(본문): 할 일 2번이 제목 복사(마침표 없음).'
+REREAD = '본문 문단을 그대로 다시 읽는다(콘텐츠 룰).'
+REPEAT = '목표 문장을 그대로 반복하고 SQL 한 줄 전체를 강조해 지금 코드가 무엇을 하는지 말하지 않는다.'
+TITLE = '코드를 바꾸는 동안 제목 명령문을 그대로 말해 무엇을 바꾸는지 알려 주지 않는다.'
+NOTES = {
+    1: '전수 검토 2026-10-28: CROSS JOIN 9행 → JOIN ON member_id → 3행. ' + T + '첫 스텝은 DB 전환 문단과 상황 문단 두 개를 모두 낭독하던 것을 요지로. ' + U,
+    2: '전수 검토 2026-10-28: JOIN → C 없음 → LEFT JOIN → C:없음. ' + T + U,
+    3: '전수 검토 2026-10-28: COUNT(*) C:1 → COUNT(o.id) C:0. ' + T + U,
+    4: '전수 검토 2026-10-28: WHERE amount>0 → A만 → ON으로 이동 → A:2 B:0 C:0. ' + T + U,
+    5: '전수 검토 2026-10-28: 두 일대다 JOIN A:60 → WITH 회원별 합계 → A:30. ' + T + U + ' 알아두세요는 「태그 집계와 연결하세요」인데 정답은 태그 표를 연결하지 않는다(본문·정답 불일치).',
+    6: '전수 검토 2026-10-28: JOIN+WHERE A만 → LEFT JOIN ON, COUNT(o.id), COALESCE → 세 회원. ' + T + U,
+}
+TARGETS = [
+    (1, 'JOIN 조건이 두 표에서', 'code:CROSS JOIN'),
+    (1, '조심하세요. m.id=o.id는', 'text:다시 조회할 때는 orders.member_id와 member.id의 관계로 연결해야 해요.'),
+    (2, 'LEFT JOIN의 보존하는', 'code:FROM member m JOIN orders o'),
+    (2, '조심하세요. orders를 왼쪽에', 'text:LEFT JOIN은 왼쪽 행을 보존하고 오른쪽 짝이 없으면 NULL을 붙여요.'),
+    (3, 'COUNT(*)와 COUNT(열)이', 'code:COUNT(*)'),
+    (3, '조심하세요. 금액이 0인', 'text:COUNT(o.id)는 NULL이 아닌 주문 번호만 세어요.'),
+    (4, 'ON의 짝짓기 조건과', 'code:WHERE o.amount>0'),
+    (4, '조심하세요. WHERE에 OR', 'text:ON은 오른쪽에서 짝지을 대상을 정해요.'),
+    (5, '일대다 관계를 두 번', 'code:LEFT JOIN tag t'),
+    (5, '조심하세요. SUM(DISTINCT', 'text:SUM(DISTINCT amount)는 같은 금액의 다른 주문도 합쳐 버려요.'),
+    (6, '보존할 행·집계 대상', 'code:COUNT(*)'),
+    (6, '조심하세요. COALESCE만', 'text:기준 표는 member예요.'),
+]
+FIXES = {
+    1: [('앞 수업은 MySQL을 썼고', '이번 수업은 PostgreSQL을 써요. 글자를 이어 붙일 때 ||를 써요.', REREAD + ' 세 문장 문단을 그대로 읽는다.', 'DB 전환과 || 연결만 짧게 말한다.'),
+        ('회원은 세 명, 주문은 세 건이에요', '회원 세 명, 주문 세 건이 준비돼 있어요. 먼저 그대로 실행해 볼게요.', REREAD, '시작 상태를 말하고 실행으로 넘긴다(9행은 결과로 본다).'),
+        ('JOIN 조건이 두 표에서', 'CROSS JOIN은 조건 없이 모든 회원과 모든 주문을 짝지어요.', REPEAT, '강조를 CROSS JOIN으로 옮겨 9행의 원인을 말한다.'),
+        ('주문을 실제 회원과만 연결하세요', 'CROSS JOIN을 JOIN으로 바꾸고, ON에서 member_id와 회원 id를 맞춰요.', TITLE, 'patch_code: CROSS JOIN → JOIN ... ON o.member_id=m.id')],
+    2: [('C도 회원인데 주문 목록', '지금 화면은 주문이 있는 회원만 보여요. C도 없음으로 남겨야 해요.', REREAD, '시작 상태와 요구를 말한다.'),
+        ('LEFT JOIN의 보존하는', '지금은 그냥 JOIN이라 짝이 있는 행만 남아요.', REPEAT, '강조를 JOIN 부분으로 옮겨 C가 빠지는 원인을 말한다.'),
+        ('주문이 없는 회원도 남기세요', 'JOIN 앞에 LEFT를 붙여 왼쪽 회원을 모두 남겨요.', TITLE, 'patch_code: JOIN → LEFT JOIN')],
+    3: [('LEFT JOIN으로 C를 남겼더니', 'LEFT JOIN으로 C는 남아 있어요. 이번에는 주문 수를 세요.', REREAD, '시작 상태와 이번에 볼 것을 말한다.'),
+        ('COUNT(*)와 COUNT(열)이', 'COUNT(*)는 NULL을 붙인 행까지 한 행으로 세요.', REPEAT, '강조를 COUNT(*)로 옮겨 C:1의 원인을 말한다.'),
+        ('주문 없는 회원의 주문 수를 0으로 세세요', 'COUNT(*)를 주문 번호를 세는 COUNT(o.id)로 바꿔요.', TITLE, 'patch_code: COUNT(*) → COUNT(o.id)')],
+    4: [('유료 주문 건수를 세려 해요', '유료 주문만 세려고 WHERE에 amount>0을 붙인 상태예요. 실행해서 누가 남는지 볼게요.', REREAD, '시작 상태를 말하고 결과는 실행 뒤에 읽는다.'),
+        ('ON의 짝짓기 조건과', 'WHERE는 JOIN을 마친 뒤 행을 걸러요. NULL을 붙인 C의 행도 여기서 빠져요.', REPEAT, '강조를 WHERE 조건으로 옮겨 B·C가 사라진 원인을 말한다.'),
+        ('유료 주문이 없는 회원도 집계에 남기세요', 'amount 조건을 WHERE에서 ON 쪽으로 옮겨요.', TITLE, 'patch_code: WHERE o.amount>0 → AND o.amount>0 (ON)')],
+    5: [('A는 주문 두 건과 태그 두 개가', 'A에는 주문 두 건과 태그 두 개가 있어요. 두 표를 한 번에 붙이면 행이 몇 개가 될까요?', REREAD + ' 결과(두 배)를 실행 전에 말한다.', '시작 상태를 말하고 결과를 예측하게 한다.'),
+        ('일대다 관계를 두 번', '주문과 태그를 한 번에 붙이면 주문 하나가 태그 수만큼 반복돼요.', REPEAT, '강조를 태그 JOIN으로 옮겨 A:60의 원인을 말한다.'),
+        ('두 관계를 연결해도 주문 합계를 두 번 세지 마세요', '주문 합계를 WITH로 회원당 한 행 먼저 만들고, 그것을 회원과 연결해요.', TITLE, 'patch_code: 두 LEFT JOIN → WITH totals ... LEFT JOIN totals')],
+    6: [('관리 화면에는 모든 회원이', '관리 화면은 회원 세 명을 모두 보여야 해요. 유료 주문이 없으면 0:0이에요.', REREAD, '요구(모든 회원, 0:0)를 결과 형식으로 말한다.'),
+        ('보존할 행·집계 대상', '지금은 JOIN과 WHERE가 회원을 거르고, COUNT(*)와 SUM은 NULL을 처리하지 않아요.', REPEAT, '강조를 COUNT(*)로 옮겨 현재 SQL의 세 문제를 말한다.'),
+        ('모든 회원의 유료 주문 수와 합계를 구현하세요', 'LEFT JOIN과 ON 조건, COUNT(o.id), COALESCE로 세 곳을 함께 고쳐요.', TITLE, 'patch_code의 세 차이')],
+}

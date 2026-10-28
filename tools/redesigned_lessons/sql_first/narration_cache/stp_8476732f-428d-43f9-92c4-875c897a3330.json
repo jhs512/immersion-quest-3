@@ -1,10 +1,10 @@
 {
   "by": "hand",
-  "source_sha256": "1e15cf37bba5840d52f05ff504ba95784a92c6569d6bda57a0cbe90cf30f9d1c",
+  "source_sha256": "6eb99901c19fbdafca4d503ac7d4b1616cb7cf4806ae06416dff0efef320e0bf",
   "entry": [
     {
       "action": "say",
-      "text": "상품은 세 종류지만 확인된 재고 수량은 7개예요. 준비 코드는 상품 행 수를 재고 합계처럼 사용해요.",
+      "text": "준비 코드는 행 수를 재고 합계처럼 써요. 채점은 재고가 모두 미정인 경우도 봐요.",
       "target": "text:상품은 세 종류지만 확인된 재고 수량은 7개예요. 준비 코드는 상품 행 수를 재고 합계처럼 사용해요."
     },
     {
@@ -24,7 +24,7 @@
       "action": "patch_code",
       "before": "SELECT COUNT(*) FROM item;\n",
       "after": "SELECT COALESCE(SUM(qty),0) FROM item;\n",
-      "say": "확인된 재고 수량의 합계를 구하세요"
+      "say": "합계는 SUM(qty)로 구하고, 값이 없으면 0이 되게 COALESCE로 감싸요."
     },
     {
       "action": "run"
@@ -37,7 +37,7 @@
     {
       "action": "say",
       "text": "조심하세요. COUNT(qty)도 수량의 합이 아니에요. NULL이 아닌 재고 값이 있는 행의 개수예요.",
-      "target": "text:SUM(qty)로 수량을 더하세요. COUNT(*)는 NULL이 있더라도 행을 세요. 합계 대상 값이 하나도 없으면 SUM은 NULL이므로 화면의 0으로 바꾸세요."
+      "target": "text:COUNT(*)는 NULL이 있더라도 행을 세요."
     },
     {
       "action": "submit"

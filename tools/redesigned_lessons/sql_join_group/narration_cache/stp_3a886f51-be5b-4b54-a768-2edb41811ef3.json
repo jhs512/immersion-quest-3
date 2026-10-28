@@ -1,10 +1,10 @@
 {
   "by": "hand",
-  "source_sha256": "219ef28413386013b6a539d0531fec34fcc0fbd4064215d37b46ab82ba427212",
+  "source_sha256": "830b2d6666068bf3e2304794e847dd40f9a709e39aa74c352cb68d9c62dee61e",
   "entry": [
     {
       "action": "say",
-      "text": "A는 주문 두 건과 태그 두 개가 있어요. 두 표를 한꺼번에 연결하면 주문 금액이 두 배로 나와요.",
+      "text": "A에는 주문 두 건과 태그 두 개가 있어요. 두 표를 한 번에 붙이면 행이 몇 개가 될까요?",
       "target": "text:A는 주문 두 건과 태그 두 개가 있어요. 두 표를 한꺼번에 연결하면 주문 금액이 두 배로 나와요."
     },
     {
@@ -17,14 +17,14 @@
     },
     {
       "action": "say",
-      "text": "일대다 관계를 두 번 JOIN할 때 행이 늘어나는 원리를 이해해요.",
-      "target": "code:SELECT m.name || ':' || COALESCE(SUM(o.amount),0) FROM member m LEFT JOIN orders o ON o.member_id=m.id LEFT JOIN tag t ON t.member_id=m.id GROUP BY m.id,m.name ORDER BY m.id;"
+      "text": "주문과 태그를 한 번에 붙이면 주문 하나가 태그 수만큼 반복돼요.",
+      "target": "code:LEFT JOIN tag t"
     },
     {
       "action": "patch_code",
       "before": "SELECT m.name || ':' || COALESCE(SUM(o.amount),0) FROM member m LEFT JOIN orders o ON o.member_id=m.id LEFT JOIN tag t ON t.member_id=m.id GROUP BY m.id,m.name ORDER BY m.id;\n",
       "after": "WITH totals AS (SELECT member_id,SUM(amount) AS total FROM orders GROUP BY member_id) SELECT m.name || ':' || COALESCE(x.total,0) FROM member m LEFT JOIN totals x ON x.member_id=m.id ORDER BY m.id;\n",
-      "say": "두 관계를 연결해도 주문 합계를 두 번 세지 마세요"
+      "say": "주문 합계를 WITH로 회원당 한 행 먼저 만들고, 그것을 회원과 연결해요."
     },
     {
       "action": "run"
@@ -37,7 +37,7 @@
     {
       "action": "say",
       "text": "조심하세요. SUM(DISTINCT amount)는 행 중복이 아니라 금액 중복을 없애요. 같은 금액인 별도 주문을 놓쳐요.",
-      "target": "text:회원당 주문 N개와 태그 M개를 함께 연결하면 N×M행이 돼요. 먼저 주문을 회원당 한 행으로 집계하고 태그 집계와 연결하세요. SUM(DISTINCT amount)는 같은 금액의 다른 주문도 합쳐 버려요."
+      "target": "text:SUM(DISTINCT amount)는 같은 금액의 다른 주문도 합쳐 버려요."
     },
     {
       "action": "submit"

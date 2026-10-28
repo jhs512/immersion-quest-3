@@ -11,6 +11,13 @@ Then: python tools/build-redesigned-git.py --lesson <key>  (form gates, narratio
       python tools/principles_lessons/make.py --review    (meaning-review records for the new steps)
       cargo run --example validate_redesigned_lesson tests/lesson-cases/<key>.json <evidence.json>
 
+Narration audit overlay: narration-overrides.json (2026-10-28 해설 전수 점검) replaces the spoken text
+and highlight target of individual narration actions after the template builds them. Each entry names
+the step slug, the action index and the exact sentence it replaces; a mismatch stops the build, so a
+changed template never silently drops or misapplies a reviewed fix. Commands, code and grading are
+never overridden. target/narration-audit/sync_overrides.py derives the entries from a reviewed
+content.json and proves template + overlay == content.json.
+
 Approval truth: PRD approval mode delegated_scope. The user ordered these lessons to be built and
 published without a per-problem review on 2026-10-26; nobody reviewed each PRD or problem individually.
 """
@@ -114,6 +121,24 @@ def narration(step):
     return out
 
 
+OVERRIDES = HERE / 'narration-overrides.json'
+
+
+def apply_overrides(key, step, task):
+    """Reviewed narration fixes: only text/say/target of the listed action, after an exact match."""
+    table = json.loads(OVERRIDES.read_text(encoding='utf-8')) if OVERRIDES.exists() else {}
+    for entry in table.get(key, {}).get(step['slug'], []):
+        action = task['narration'][entry['index']]
+        spoken = action.get('text') or action.get('say') or ''
+        if spoken != entry['from'] or action['action'] != entry['action']:
+            raise ValueError(f"{key} {step['slug']}: narration override no longer matches action {entry['index']}: {entry['from'][:40]}")
+        for field, value in entry['set'].items():
+            if field not in ('text', 'say', 'target') or (field != 'target' and field not in action):
+                raise ValueError(f"{key} {step['slug']}: an override may change only the spoken text and target")
+            action[field] = value
+    return task
+
+
 def task_of(step, sid):
     final = step['starter']
     for item in step['narration']:
@@ -173,7 +198,7 @@ def build_lesson(lesson, pol):
                                   complexity=dict(prerequisite_experience=c['prior'], new_concepts=[c['new']] if c.get('new') else [],
                                                   changed_condition=c['changed'], observable_evidence=c['evidence'],
                                                   learner_edited_lines=c['lines'], new_external_services=c.get('services', 0))))
-                tasks.append(task_of(step, sid))
+                tasks.append(apply_overrides(key, step, task_of(step, sid)))
             units.append(dict(id=unid, title=unit['title'], objectives=unit['objectives'], premise=unit['premise'], steps=steps))
         chapters.append(dict(id=cid, title=chapter['title'], objectives=chapter['objectives'], units=units))
     rep = lesson['representative']

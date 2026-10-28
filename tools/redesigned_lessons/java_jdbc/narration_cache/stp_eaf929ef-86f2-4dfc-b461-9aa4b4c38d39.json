@@ -1,10 +1,10 @@
 {
   "by": "hand",
-  "source_sha256": "bf5105b0cddb8b3897b0b40d1147d7cd6bd06da938999531c2a719522655e7f2",
+  "source_sha256": "9bff3251c9c621014c4bab2e13337c28f65d16389e7f95f362e408667fa783df",
   "entry": [
     {
       "action": "say",
-      "text": "회원 이름을 검색해요. 이름에 SQL의 따옴표와 조건식이 들어오면 준비 코드는 다른 회원까지 찾아요.",
+      "text": "준비 코드는 입력 이름을 SQL 문자열에 그대로 붙여요. 따옴표와 OR 조건이 든 이름을 넣어 볼게요.",
       "target": "text:회원 이름을 검색해요. 이름에 SQL의 따옴표와 조건식이 들어오면 준비 코드는 다른 회원까지 찾아요."
     },
     {
@@ -23,7 +23,7 @@
       "action": "patch_code",
       "before": "   String name=new Scanner(System.in).nextLine();\n   int count=0;\n   String sql=\"SELECT id FROM member WHERE name='\"+name+\"'\";\n   try (PreparedStatement p=c.prepareStatement(sql)) {\n    // 입력을 SQL 문자열에 붙이지 않고 이 자리에 값으로 전달하세요.\n    try (ResultSet rows=p.executeQuery()) {\n     while(rows.next()) count++;\n    }\n   }\n   System.out.println(count);",
       "after": "   String name=new Scanner(System.in).nextLine();\n   int count=0;\n   String sql=\"SELECT id FROM member WHERE name=?\";\n   try (PreparedStatement p=c.prepareStatement(sql)) {\n    p.setString(1,name);\n    try (ResultSet rows=p.executeQuery()) {\n     while(rows.next()) count++;\n    }\n   }\n   System.out.println(count);",
-      "say": "회원 이름을 SQL 구문과 분리해 전달하세요"
+      "say": "이름 자리를 ?로 바꾸고 setString으로 값을 넘겨요."
     },
     {
       "action": "run",
@@ -40,7 +40,7 @@
     {
       "action": "say",
       "text": "조심하세요. ?를 따옴표 안에 쓰면 매개변수 자리가 아니라 물음표 글자를 비교해요.",
-      "target": "text:SQL에는 ?를 두고 PreparedStatement.setString으로 이름을 전달하세요. 값에 들어온 따옴표를 직접 바꾸지 마세요. 없는 이름은 0명이어야 해요."
+      "target": "text:SQL에는 ?를 두고 PreparedStatement.setString으로 이름을 전달하세요."
     },
     {
       "action": "submit"

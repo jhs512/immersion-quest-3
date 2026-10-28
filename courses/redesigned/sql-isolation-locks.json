@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_791d3618-af05-4728-8826-c46685d6d352",
-  "revision": "sql-isolation-locks-3",
+  "revision": "sql-isolation-locks-4",
   "title": "격리·잠금 · 동시에 읽은 값이 서로를 덮어요",
   "description": "작은 표에서 조건 하나를 바꿔 실제 저장 결과를 비교해요.",
   "objectives": [
@@ -112,12 +112,12 @@
         },
         {
           "action": "say",
-          "text": "격리 수준은 트랜잭션이 다른 확정 변경을 언제 볼지 정해요. 제공한 Java 준비 코드가 실험용 account 표만 지우고 같은 시작 행을 만들어요. 두 연결의 실행 순서를 같은 조건에서 비교하기 위한 공개 준비예요. DB 컨테이너를 재시작하거나 사용자의 DB를 지우지는 않아요.",
+          "text": "준비 코드가 account 표를 잔액 100인 한 행으로 새로 만들어요. 두 연결의 순서를 같은 조건에서 비교하려는 거예요.",
           "target": "text:격리 수준은 트랜잭션이 다른 확정 변경을 언제 볼지 정해요. 제공한 Java 준비 코드가 실험용 account 표만 지우고 같은 시작 행을 만들어요. 두 연결의 실행 순서를 같은 조건에서 비교하기 위한 공개 준비예요. DB 컨테이너를 재시작하거나 사용자의 DB를 지우지는 않아요."
         },
         {
           "action": "say",
-          "text": "연결 A가 잔액 100을 읽고, B가 150으로 변경해 확정한 뒤, A가 다시 읽어요. 연결 두 개를 실제로 열어 정해진 순서대로 실행해요.",
+          "text": "A가 읽고, B가 150으로 바꿔 확정한 뒤, A가 다시 읽어요.",
           "target": "text:연결 A가 잔액 100을 읽고, B가 150으로 변경해 확정한 뒤, A가 다시 읽어요. 연결 두 개를 실제로 열어 정해진 순서대로 실행해요."
         },
         {
@@ -130,14 +130,14 @@
         },
         {
           "action": "say",
-          "text": "격리 수준은 트랜잭션이 다른 확정 변경을 언제 볼지 정해요.",
+          "text": "지금 A는 READ_COMMITTED라 조회할 때마다 최신 확정 값을 봐요.",
           "target": "code:a.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);"
         },
         {
           "action": "patch_code",
           "before": "   a.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);\n   a.setAutoCommit(false);\n   System.out.println(\"첫 조회:\"+value(a));\n   b.createStatement().executeUpdate(\"UPDATE account SET balance=150 WHERE id=1\");\n   System.out.println(\"다시 조회:\"+value(a));\n   a.commit();",
           "after": "   a.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);\n   a.setAutoCommit(false);\n   System.out.println(\"첫 조회:\"+value(a));\n   b.createStatement().executeUpdate(\"UPDATE account SET balance=150 WHERE id=1\");\n   System.out.println(\"다시 조회:\"+value(a));\n   a.commit();",
-          "say": "한 트랜잭션에서 같은 잔액을 다시 읽게 하세요"
+          "say": "A의 격리 수준을 REPEATABLE_READ로 바꿔요."
         },
         {
           "action": "run"
@@ -150,7 +150,7 @@
         {
           "action": "say",
           "text": "조심하세요. 스냅샷을 유지하는 것은 다른 연결의 쓰기를 막는 잠금과 달라요. 이 예제에서 B는 정상적으로 변경을 확정했어요.",
-          "target": "text:PostgreSQL의 READ COMMITTED는 문장마다 새 스냅샷을 봐요. A에서 첫 조회 전에 REPEATABLE READ를 설정해 같은 트랜잭션의 스냅샷을 유지하세요. 설정은 첫 조회 전에 해야 해요."
+          "target": "text:A에서 첫 조회 전에 REPEATABLE READ를 설정해 같은 트랜잭션의 스냅샷을 유지하세요."
         },
         {
           "action": "submit"
@@ -194,12 +194,12 @@
         },
         {
           "action": "say",
-          "text": "예전에 읽은 값으로 덮어쓰기와 DB의 현재 값에서 계산하기를 구별해요. 제공한 Java 준비 코드가 실험용 account 표만 지우고 같은 시작 행을 만들어요. 두 연결의 실행 순서를 같은 조건에서 비교하기 위한 공개 준비예요. DB 컨테이너를 재시작하거나 사용자의 DB를 지우지는 않아요.",
+          "text": "이번에도 준비 코드가 잔액 100에서 시작하도록 표를 새로 만들어요.",
           "target": "text:예전에 읽은 값으로 덮어쓰기와 DB의 현재 값에서 계산하기를 구별해요. 제공한 Java 준비 코드가 실험용 account 표만 지우고 같은 시작 행을 만들어요. 두 연결의 실행 순서를 같은 조건에서 비교하기 위한 공개 준비예요. DB 컨테이너를 재시작하거나 사용자의 DB를 지우지는 않아요."
         },
         {
           "action": "say",
-          "text": "A와 B가 모두 100을 읽었어요. A가 10을 차감하고 확정한 뒤 B가 예전 100에서 20을 뺀 80으로 덮어써요.",
+          "text": "A와 B가 모두 100을 읽은 뒤, A는 10을, B는 20을 빼요.",
           "target": "text:A와 B가 모두 100을 읽었어요. A가 10을 차감하고 확정한 뒤 B가 예전 100에서 20을 뺀 80으로 덮어써요."
         },
         {
@@ -212,14 +212,14 @@
         },
         {
           "action": "say",
-          "text": "예전에 읽은 값으로 덮어쓰기와 DB의 현재 값에서 계산하기를 구별해요.",
+          "text": "B는 예전에 읽은 oldB로 계산한 값을 그대로 덮어써요.",
           "target": "code:\"UPDATE account SET balance=\"+(oldB-second)+\" WHERE id=1\""
         },
         {
           "action": "patch_code",
           "before": "   Scanner input=new Scanner(System.in);\n   int first=input.nextInt(), second=input.nextInt();\n   int oldA=value(a), oldB=value(b);\n   a.createStatement().executeUpdate(\"UPDATE account SET balance=\"+(oldA-first)+\" WHERE id=1\");\n   b.createStatement().executeUpdate(\"UPDATE account SET balance=\"+(oldB-second)+\" WHERE id=1\");\n   System.out.println(value(a));",
           "after": "   Scanner input=new Scanner(System.in);\n   int first=input.nextInt(), second=input.nextInt();\n   int oldA=value(a), oldB=value(b);\n   a.createStatement().executeUpdate(\"UPDATE account SET balance=\"+(oldA-first)+\" WHERE id=1\");\n   b.createStatement().executeUpdate(\"UPDATE account SET balance=balance-\"+second+\" WHERE id=1\");\n   System.out.println(value(a));",
-          "say": "두 차감을 모두 잔액에 반영하세요"
+          "say": "B의 UPDATE를 현재 balance에서 second를 빼는 식으로 바꿔요."
         },
         {
           "action": "run"
@@ -232,7 +232,7 @@
         {
           "action": "say",
           "text": "조심하세요. Java 변수 oldB를 바꾸는 것으로 다른 연결이 이미 저장한 값을 자동으로 알 수는 없어요.",
-          "target": "text:B의 UPDATE가 예전 oldB를 쓰지 않고 DB 행의 현재 balance에서 second를 빼도록 고치세요. 입력 숫자는 Scanner가 읽은 정수예요. 한 문장의 계산이 직전 확정 값을 사용하게 해요."
+          "target": "text:B의 UPDATE가 예전 oldB를 쓰지 않고 DB 행의 현재 balance에서 second를 빼도록 고치세요."
         },
         {
           "action": "submit"
@@ -272,12 +272,12 @@
         },
         {
           "action": "say",
-          "text": "FOR UPDATE의 행 잠금은 트랜잭션이 끝날 때까지 유지돼요. 제공한 Java 준비 코드가 실험용 account 표만 지우고 같은 시작 행을 만들어요. 두 연결의 실행 순서를 같은 조건에서 비교하기 위한 공개 준비예요. DB 컨테이너를 재시작하거나 사용자의 DB를 지우지는 않아요.",
+          "text": "준비 코드는 잔액 100인 계좌 한 행으로 실험을 시작해요.",
           "target": "text:FOR UPDATE의 행 잠금은 트랜잭션이 끝날 때까지 유지돼요. 제공한 Java 준비 코드가 실험용 account 표만 지우고 같은 시작 행을 만들어요. 두 연결의 실행 순서를 같은 조건에서 비교하기 위한 공개 준비예요. DB 컨테이너를 재시작하거나 사용자의 DB를 지우지는 않아요."
         },
         {
           "action": "say",
-          "text": "A가 읽은 행을 기준으로 결정하는 동안 B가 그 행을 수정하려 해요. B에는 대기 취소용 lock_timeout을 준비했어요.",
+          "text": "A가 읽은 행을 B가 고치려 해요. B는 200ms만 기다리고 포기해요.",
           "target": "text:A가 읽은 행을 기준으로 결정하는 동안 B가 그 행을 수정하려 해요. B에는 대기 취소용 lock_timeout을 준비했어요."
         },
         {
@@ -290,14 +290,14 @@
         },
         {
           "action": "say",
-          "text": "FOR UPDATE의 행 잠금은 트랜잭션이 끝날 때까지 유지돼요.",
+          "text": "A의 일반 SELECT는 읽기만 하고 행을 잠그지 않아요.",
           "target": "code:try(ResultSet held=a.createStatement().executeQuery(\"SELECT balance FROM account WHERE id=1\"))"
         },
         {
           "action": "patch_code",
           "before": "   a.setAutoCommit(false); b.setAutoCommit(false);\n   try(ResultSet held=a.createStatement().executeQuery(\"SELECT balance FROM account WHERE id=1\")) { held.next(); }\n   b.createStatement().execute(\"SET LOCAL lock_timeout='200ms'\");\n   try {\n    b.createStatement().executeUpdate(\"UPDATE account SET balance=balance+5 WHERE id=1\");\n    b.commit();\n    System.out.println(\"다른 변경:성공\");\n   } catch(SQLException e) {\n    if(!\"55P03\".equals(e.getSQLState())) throw e;\n    b.rollback();\n    System.out.println(\"다른 변경:잠금 대기 취소\");\n   }\n   a.rollback();\n   System.out.println(\"잔액:\"+value(b));\n   b.rollback();",
           "after": "   a.setAutoCommit(false); b.setAutoCommit(false);\n   try(ResultSet held=a.createStatement().executeQuery(\"SELECT balance FROM account WHERE id=1 FOR UPDATE\")) { held.next(); }\n   b.createStatement().execute(\"SET LOCAL lock_timeout='200ms'\");\n   try {\n    b.createStatement().executeUpdate(\"UPDATE account SET balance=balance+5 WHERE id=1\");\n    b.commit();\n    System.out.println(\"다른 변경:성공\");\n   } catch(SQLException e) {\n    if(!\"55P03\".equals(e.getSQLState())) throw e;\n    b.rollback();\n    System.out.println(\"다른 변경:잠금 대기 취소\");\n   }\n   a.rollback();\n   System.out.println(\"잔액:\"+value(b));\n   b.rollback();",
-          "say": "읽은 행을 다른 연결이 바로 수정하지 못하게 하세요"
+          "say": "A의 SELECT 끝에 FOR UPDATE를 붙여요."
         },
         {
           "action": "run"
@@ -310,7 +310,7 @@
         {
           "action": "say",
           "text": "조심하세요. ResultSet을 닫는 것과 트랜잭션을 끝내는 것은 달라요. FOR UPDATE 잠금은 여기서 commit이나 rollback까지 유지돼요.",
-          "target": "text:A의 SELECT에 FOR UPDATE를 붙이세요. B의 변경이 실제 잠금에 막히면 PostgreSQL의 SQLSTATE 55P03을 확인해요. 대기 시간이 빠르냐 느리냐로 채점하지 않아요. A가 rollback하면 잠금이 풀려요."
+          "target": "text:A가 rollback하면 잠금이 풀려요."
         },
         {
           "action": "submit"
@@ -350,12 +350,12 @@
         },
         {
           "action": "say",
-          "text": "조회한 뒤 검사하는 것과 조건을 가진 변경 한 문장은 달라요. 제공한 Java 준비 코드가 실험용 stock 표만 지우고 같은 시작 행을 만들어요. 두 연결의 실행 순서를 같은 조건에서 비교하기 위한 공개 준비예요. DB 컨테이너를 재시작하거나 사용자의 DB를 지우지는 않아요.",
+          "text": "준비 코드는 재고 1인 stock 한 행으로 시작해요.",
           "target": "text:조회한 뒤 검사하는 것과 조건을 가진 변경 한 문장은 달라요. 제공한 Java 준비 코드가 실험용 stock 표만 지우고 같은 시작 행을 만들어요. 두 연결의 실행 순서를 같은 조건에서 비교하기 위한 공개 준비예요. DB 컨테이너를 재시작하거나 사용자의 DB를 지우지는 않아요."
         },
         {
           "action": "say",
-          "text": "구매자 두 명이 재고 1을 모두 읽은 뒤 동시에 구매해요. 제공 장벽이 두 조회가 끝날 때까지 기다려 재현 순서를 고정해요.",
+          "text": "두 구매자가 재고 1을 읽고, 장벽에서 만나 함께 구매해요.",
           "target": "text:구매자 두 명이 재고 1을 모두 읽은 뒤 동시에 구매해요. 제공 장벽이 두 조회가 끝날 때까지 기다려 재현 순서를 고정해요."
         },
         {
@@ -368,14 +368,14 @@
         },
         {
           "action": "say",
-          "text": "조회한 뒤 검사하는 것과 조건을 가진 변경 한 문장은 달라요.",
+          "text": "이 UPDATE는 재고를 다시 확인하지 않고 바로 1을 빼요.",
           "target": "code:UPDATE stock SET qty=qty-1 WHERE id=1"
         },
         {
           "action": "patch_code",
           "before": "   CyclicBarrier bothRead=new CyclicBarrier(2);\n   ExecutorService pool=Executors.newFixedThreadPool(2);\n   try {\n    Callable<Integer> buy=()->{\n     try(Connection c=open()) {\n      int remaining;\n      try(ResultSet r=c.createStatement().executeQuery(\"SELECT qty FROM stock WHERE id=1\")) { r.next(); remaining=r.getInt(1); }\n      bothRead.await(10,TimeUnit.SECONDS);\n      if(remaining<=0) return 0;\n      return c.createStatement().executeUpdate(\"UPDATE stock SET qty=qty-1 WHERE id=1\");\n     }\n    };\n    Future<Integer> one=pool.submit(buy), two=pool.submit(buy);\n    System.out.println(\"판매:\"+(one.get(20,TimeUnit.SECONDS)+two.get(20,TimeUnit.SECONDS)));\n    try(ResultSet r=a.createStatement().executeQuery(\"SELECT qty FROM stock WHERE id=1\")) {r.next(); System.out.println(\"재고:\"+r.getInt(1));}\n   } finally {pool.shutdownNow();}",
           "after": "   CyclicBarrier bothRead=new CyclicBarrier(2);\n   ExecutorService pool=Executors.newFixedThreadPool(2);\n   try {\n    Callable<Integer> buy=()->{\n     try(Connection c=open()) {\n      int remaining;\n      try(ResultSet r=c.createStatement().executeQuery(\"SELECT qty FROM stock WHERE id=1\")) { r.next(); remaining=r.getInt(1); }\n      bothRead.await(10,TimeUnit.SECONDS);\n      if(remaining<=0) return 0;\n      return c.createStatement().executeUpdate(\"UPDATE stock SET qty=qty-1 WHERE id=1 AND qty>0\");\n     }\n    };\n    Future<Integer> one=pool.submit(buy), two=pool.submit(buy);\n    System.out.println(\"판매:\"+(one.get(20,TimeUnit.SECONDS)+two.get(20,TimeUnit.SECONDS)));\n    try(ResultSet r=a.createStatement().executeQuery(\"SELECT qty FROM stock WHERE id=1\")) {r.next(); System.out.println(\"재고:\"+r.getInt(1));}\n   } finally {pool.shutdownNow();}",
-          "say": "마지막 재고 하나가 두 번 팔리지 않게 하세요"
+          "say": "UPDATE의 WHERE에 qty>0을 더해요."
         },
         {
           "action": "run"
@@ -388,7 +388,7 @@
         {
           "action": "say",
           "text": "조심하세요. 이 원리는 이 한 행의 재고 변경에 대한 것이에요. 여러 표를 바꾸는 주문 전체의 원자성은 별도의 트랜잭션 경계가 필요해요.",
-          "target": "text:UPDATE 자체에 qty>0 조건을 넣으세요. PostgreSQL READ COMMITTED에서 한 UPDATE가 기다린 뒤 최신 행에 조건을 다시 검사해요. 변경 행 수 1을 판매 성공으로 세므로 다른 구매자는 0을 받아야 해요."
+          "target": "text:UPDATE 자체에 qty>0 조건을 넣으세요."
         },
         {
           "action": "submit"

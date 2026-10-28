@@ -1,15 +1,15 @@
 {
   "by": "hand",
-  "source_sha256": "c9c86dce56a54e7ef9d5ccf096232e326b86e401524afefed8f1b789a3f59629",
+  "source_sha256": "0f46073ea0a87aee56bba029426d741ad7d27d162a7f6813b42b3253ada4e386",
   "entry": [
     {
       "action": "say",
-      "text": "맨 위 DROP INDEX는 이 문제에서 비교할 parcel_city, parcel_lookup 인덱스만 다시 준비해요. 송장 행과 기본 키 인덱스는 지우지 않아요. 같은 이름의 이전 색인이 남아 새 정의를 막지 않게 해요.",
+      "text": "마지막도 DROP INDEX 두 줄로 parcel_city와 parcel_lookup만 새로 준비해요.",
       "target": "text:맨 위 DROP INDEX는 이 문제에서 비교할 parcel_city, parcel_lookup 인덱스만 다시 준비해요. 송장 행과 기본 키 인덱스는 지우지 않아요. 같은 이름의 이전 색인이 남아 새 정의를 막지 않게 해요."
     },
     {
       "action": "say",
-      "text": "지역별 대기 송장 화면을 만들어요. 코드의 대소문자를 무시하면서 지정한 지역의 송장 하나를 찾아야 해요.",
+      "text": "찾는 조건은 세 가지예요. 지역, 대기 상태, 대소문자를 무시한 코드예요.",
       "target": "text:지역별 대기 송장 화면을 만들어요. 코드의 대소문자를 무시하면서 지정한 지역의 송장 하나를 찾아야 해요."
     },
     {
@@ -17,19 +17,19 @@
     },
     {
       "action": "say",
-      "text": "city 인덱스도 일부 후보를 줄일 수 있어요. 이번 도전은 검색 조건 전체를 담는 색인 구조를 만드는 거예요.",
+      "text": "인덱스 경로는 이미 true예요. city 인덱스가 후보를 줄였지만 구조는 false예요.",
       "target": "output"
     },
     {
       "action": "say",
-      "text": "조건과 데이터 분포에 맞는 검색 키를 직접 구성해요.",
-      "target": "code:CREATE INDEX parcel_city ON parcel(city);"
+      "text": "지금 인덱스는 city 하나만 키로 써요.",
+      "target": "code:ON parcel(city)"
     },
     {
       "action": "patch_code",
       "before": "CREATE INDEX parcel_city ON parcel(city);\n",
       "after": "CREATE INDEX parcel_lookup ON parcel(city,lower(code)) WHERE state='waiting';\n",
-      "say": "지역·상태·대소문자 조건을 함께 지원하세요"
+      "say": "city와 lower(code)를 키로, 대기 행만 담는 인덱스로 바꿔요."
     },
     {
       "action": "run"
@@ -42,7 +42,7 @@
     {
       "action": "say",
       "text": "조심하세요. 이 데이터에서 선택된 계획이 모든 데이터에 가장 빠르다는 뜻은 아니에요. 데이터가 달라지면 다시 EXPLAIN으로 확인하세요.",
-      "target": "text:도시와 lower(code)를 키로 사용하고 대기 행만 담는 경로를 구현하세요. 별도의 코드로 SELECT 결과를 출력하지 말고 준비된 관찰 쿼리의 경로를 바꾸세요."
+      "target": "text:도시와 lower(code)를 키로 사용하고 대기 행만 담는 경로를 구현하세요."
     },
     {
       "action": "submit"

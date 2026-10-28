@@ -1,15 +1,15 @@
 {
   "by": "hand",
-  "source_sha256": "57337c502d60583149d7544b26c6623c11ad4298ed9096027d5536ba6f9a8001",
+  "source_sha256": "c468124831bde2aaf65468b538b42720aab978dec109bdbee6133e9c9c8dca18",
   "entry": [
     {
       "action": "say",
-      "text": "맨 위 DROP INDEX는 이 문제에서 비교할 parcel_code, parcel_lower 인덱스만 다시 준비해요. 송장 행과 기본 키 인덱스는 지우지 않아요. 같은 이름의 이전 색인이 남아 새 정의를 막지 않게 해요.",
+      "text": "DROP INDEX 두 줄은 이번에 비교할 두 인덱스만 지우고 시작해요.",
       "target": "text:맨 위 DROP INDEX는 이 문제에서 비교할 parcel_code, parcel_lower 인덱스만 다시 준비해요. 송장 행과 기본 키 인덱스는 지우지 않아요. 같은 이름의 이전 색인이 남아 새 정의를 막지 않게 해요."
     },
     {
       "action": "say",
-      "text": "이번 검색은 lower(code)를 비교해요. code 인덱스를 만들었지만 계획은 여전히 전체 표를 읽어요.",
+      "text": "이번 검색 조건은 code가 아니라 lower(code)예요. 준비 코드에는 code 인덱스만 있어요.",
       "target": "text:이번 검색은 lower(code)를 비교해요. code 인덱스를 만들었지만 계획은 여전히 전체 표를 읽어요."
     },
     {
@@ -22,14 +22,14 @@
     },
     {
       "action": "say",
-      "text": "열 값과 그 값에 함수를 적용한 결과는 다른 검색 키예요.",
-      "target": "code:CREATE INDEX parcel_code ON parcel(code);"
+      "text": "이 인덱스의 키는 원래 code 값이에요. lower(code)로 찾는 검색과 키가 달라요.",
+      "target": "code:ON parcel(code)"
     },
     {
       "action": "patch_code",
       "before": "CREATE INDEX parcel_code ON parcel(code);\n",
       "after": "CREATE INDEX parcel_lower ON parcel(lower(code));\n",
-      "say": "대소문자를 무시하는 검색 경로를 만드세요"
+      "say": "인덱스 키를 lower(code) 표현식으로 바꿔요."
     },
     {
       "action": "run"
@@ -42,7 +42,7 @@
     {
       "action": "say",
       "text": "조심하세요. WHERE를 대소문자 구분 검색으로 바꿔 통과하려 하면 원래 검색 요구가 바뀌어요.",
-      "target": "text:검색이 사용하는 표현식과 맞는 표현식 인덱스를 만드세요. 원본 코드와 소문자로 바꾼 코드는 서로 다른 키예요."
+      "target": "text:검색이 사용하는 표현식과 맞는 표현식 인덱스를 만드세요."
     },
     {
       "action": "submit"

@@ -1,15 +1,15 @@
 {
   "by": "hand",
-  "source_sha256": "0e80f69e4704c5e8e47f76f8711153e6bf8f93f51fef10bfd51f165f5f90c7c6",
+  "source_sha256": "2e3d6fcb8c1af5497f071786288a27d100d6183983bccd56f3d70de149852310",
   "entry": [
     {
       "action": "say",
-      "text": "앞 수업은 MySQL을 썼고 이번에는 PostgreSQL 18을 써요. 행과 조건의 의미는 이어지지만 글자를 붙일 때 이 수업은 ||를 사용해요. member와 orders를 준비해 두었고 여러분은 조회 SQL을 고쳐요.",
+      "text": "이번 수업은 PostgreSQL을 써요. 글자를 이어 붙일 때 ||를 써요.",
       "target": "text:앞 수업은 MySQL을 썼고 이번에는 PostgreSQL 18을 써요. 행과 조건의 의미는 이어지지만 글자를 붙일 때 이 수업은 ||를 사용해요. member와 orders를 준비해 두었고 여러분은 조회 SQL을 고쳐요."
     },
     {
       "action": "say",
-      "text": "회원은 세 명, 주문은 세 건이에요. 이름과 주문을 모두 조합하면 주문이 아홉 번 나와요.",
+      "text": "회원 세 명, 주문 세 건이 준비돼 있어요. 먼저 그대로 실행해 볼게요.",
       "target": "text:회원은 세 명, 주문은 세 건이에요. 이름과 주문을 모두 조합하면 주문이 아홉 번 나와요."
     },
     {
@@ -22,14 +22,14 @@
     },
     {
       "action": "say",
-      "text": "JOIN 조건이 두 표에서 어떤 행을 짝지을지 정한다는 것을 이해해요.",
-      "target": "code:SELECT m.name || ':' || o.id FROM member m CROSS JOIN orders o ORDER BY o.id,m.id;"
+      "text": "CROSS JOIN은 조건 없이 모든 회원과 모든 주문을 짝지어요.",
+      "target": "code:CROSS JOIN"
     },
     {
       "action": "patch_code",
       "before": "SELECT m.name || ':' || o.id FROM member m CROSS JOIN orders o ORDER BY o.id,m.id;\n",
       "after": "SELECT m.name || ':' || o.id FROM member m JOIN orders o ON o.member_id=m.id ORDER BY o.id,m.id;\n",
-      "say": "주문을 실제 회원과만 연결하세요"
+      "say": "CROSS JOIN을 JOIN으로 바꾸고, ON에서 member_id와 회원 id를 맞춰요."
     },
     {
       "action": "run"
@@ -42,7 +42,7 @@
     {
       "action": "say",
       "text": "조심하세요. m.id=o.id는 주문 번호와 회원 번호를 비교해요. 서로 다른 식별자예요.",
-      "target": "text:표를 나누면 이름을 한 번만 저장해요. 다시 조회할 때는 orders.member_id와 member.id의 관계로 연결해야 해요. 행 번호나 나열 순서는 관계가 아니에요."
+      "target": "text:다시 조회할 때는 orders.member_id와 member.id의 관계로 연결해야 해요."
     },
     {
       "action": "submit"

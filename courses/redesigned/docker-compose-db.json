@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_bdbee054-9470-4e9f-bcea-155ea94edc3d",
-  "revision": "docker-compose-db-3",
+  "revision": "docker-compose-db-4",
   "title": "Compose·DB · 컨테이너를 바꿔도 데이터는 남겨요",
   "description": "실제 컨테이너를 연결하고 경계 하나를 바꿔 실패 원인을 확인해요.",
   "objectives": [
@@ -107,7 +107,7 @@
         },
         {
           "action": "say",
-          "text": "db 컨테이너에 PostgreSQL이 있고 app 컨테이너에서 SQL 클라이언트를 실행해요. 사용자 PC의 DB는 사용하지 않아요.",
+          "text": "DB는 db 컨테이너에 있고, psql은 app 컨테이너에서 실행돼요. 그대로 실행해 볼게요.",
           "target": "text:db 컨테이너에 PostgreSQL이 있고 app 컨테이너에서 SQL 클라이언트를 실행해요. 사용자 PC의 DB는 사용하지 않아요."
         },
         {
@@ -120,14 +120,14 @@
         },
         {
           "action": "say",
-          "text": "데이터베이스 연결 주소는 클라이언트가 실행되는 위치에 따라 달라져요.",
-          "target": "code:services:"
+          "text": "app의 -h localhost는 app 컨테이너 자신을 가리켜요.",
+          "target": "code:\"-h\", \"localhost\""
         },
         {
           "action": "patch_code",
           "before": "services:\n  db:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      POSTGRES_PASSWORD: lab\n      POSTGRES_DB: lab\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-h\", \"127.0.0.1\", \"-U\", \"postgres\", \"-d\", \"lab\"]\n      interval: 1s\n      timeout: 1s\n      retries: 60\n  app:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      PGPASSWORD: lab\n    command: [\"psql\", \"-h\", \"localhost\", \"-U\", \"postgres\", \"-d\", \"lab\", \"-X\", \"-qAt\", \"-c\", \"SELECT 'connected'\"]\n",
           "after": "services:\n  db:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      POSTGRES_PASSWORD: lab\n      POSTGRES_DB: lab\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-h\", \"127.0.0.1\", \"-U\", \"postgres\", \"-d\", \"lab\"]\n      interval: 1s\n      timeout: 1s\n      retries: 60\n  app:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      PGPASSWORD: lab\n    command: [\"psql\", \"-h\", \"db\", \"-U\", \"postgres\", \"-d\", \"lab\", \"-X\", \"-qAt\", \"-c\", \"SELECT 'connected'\"]\n",
-          "say": "app이 db 서비스의 데이터베이스에 접속하게 하세요"
+          "say": "app의 접속 호스트를 localhost에서 서비스 이름 db로 바꿔요."
         },
         {
           "action": "run"
@@ -140,7 +140,7 @@
         {
           "action": "say",
           "text": "조심하세요. PC에 이미 설치된 PostgreSQL을 찾는 과제가 아니에요. 준비된 실습 DB의 서비스 이름을 사용하세요.",
-          "target": "text:app의 localhost에는 PostgreSQL이 없어요. 같은 네트워크의 db 서비스 이름과 내부 포트를 사용하세요. 이 단계는 PC에 DB 포트를 공개하지 않아요."
+          "target": "text:같은 네트워크의 db 서비스 이름과 내부 포트를 사용하세요."
         },
         {
           "action": "submit"
@@ -176,12 +176,12 @@
         },
         {
           "action": "say",
-          "text": "제공한 lab.sh는 연습용 memo 표의 행만 비우고 milk 한 행을 넣어 재시험 조건을 맞춰요. 그 뒤 컨테이너를 실제로 재시작·재생성하며 같은 행이 남는지 비교해요. 컨테이너 수명 비교 자체가 이 문제의 실험이며, 일반 SQL 실행마다 컨테이너를 내리는 방식은 아니에요.",
+          "text": "lab.sh는 memo 표를 milk 한 행으로 맞춘 뒤 재시작·재생성·down을 차례로 해요.",
           "target": "text:제공한 lab.sh는 연습용 memo 표의 행만 비우고 milk 한 행을 넣어 재시험 조건을 맞춰요. 그 뒤 컨테이너를 실제로 재시작·재생성하며 같은 행이 남는지 비교해요. 컨테이너 수명 비교 자체가 이 문제의 실험이며, 일반 SQL 실행마다 컨테이너를 내리는 방식은 아니에요."
         },
         {
           "action": "say",
-          "text": "볼륨 data가 있지만 /data에 붙어 있어요. 이 PostgreSQL 18 이미지가 저장하는 경로와 달라요.",
+          "text": "이름 있는 볼륨 data는 지금 /data에 붙어 있어요. 이 이미지가 저장하는 경로가 아니에요.",
           "target": "text:볼륨 data가 있지만 /data에 붙어 있어요. 이 PostgreSQL 18 이미지가 저장하는 경로와 달라요."
         },
         {
@@ -194,14 +194,14 @@
         },
         {
           "action": "say",
-          "text": "볼륨은 데이터베이스가 실제로 저장하는 경로에 연결해야 해요.",
-          "target": "code:services:"
+          "text": "data 볼륨이 /data에 붙어 있어 DB 파일은 그 볼륨에 저장되지 않아요.",
+          "target": "code:\"data:/data\""
         },
         {
           "action": "patch_code",
           "before": "services:\n  db:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      POSTGRES_PASSWORD: lab\n      POSTGRES_DB: lab\n    volumes: [\"data:/data\"]\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-h\", \"127.0.0.1\", \"-U\", \"postgres\", \"-d\", \"lab\"]\n      interval: 1s\n      timeout: 1s\n      retries: 60\n  app:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      PGPASSWORD: lab\n    command: [\"psql\", \"-h\", \"db\", \"-U\", \"postgres\", \"-d\", \"lab\", \"-X\", \"-qAt\", \"-c\", \"SELECT 'connected'\"]\nvolumes:\n  data:\n",
           "after": "services:\n  db:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      POSTGRES_PASSWORD: lab\n      POSTGRES_DB: lab\n    volumes: [\"data:/var/lib/postgresql\"]\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-h\", \"127.0.0.1\", \"-U\", \"postgres\", \"-d\", \"lab\"]\n      interval: 1s\n      timeout: 1s\n      retries: 60\n  app:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      PGPASSWORD: lab\n    command: [\"psql\", \"-h\", \"db\", \"-U\", \"postgres\", \"-d\", \"lab\", \"-X\", \"-qAt\", \"-c\", \"SELECT 'connected'\"]\nvolumes:\n  data:\n",
-          "say": "DB 컨테이너를 다시 만들어도 메모가 남게 하세요"
+          "say": "data 볼륨을 /var/lib/postgresql에 연결해요."
         },
         {
           "action": "run"
@@ -214,7 +214,7 @@
         {
           "action": "say",
           "text": "조심하세요. 이미지 버전마다 데이터 경로가 같다고 가정하지 마세요. 이 과제는 명시한 PostgreSQL 18 이미지의 경로를 사용해요.",
-          "target": "text:준비된 PostgreSQL 18 이미지는 /var/lib/postgresql 아래에 데이터를 저장해요. 이미지의 기본 익명 볼륨은 재생성 때 이어질 수도 있지만 down 뒤 새 실행에서 같은 저장소로 다시 연결되지는 않아요. 실제 저장 경로를 이름 있는 data 볼륨에 연결해 식별자를 유지하세요."
+          "target": "text:준비된 PostgreSQL 18 이미지는 /var/lib/postgresql 아래에 데이터를 저장해요."
         },
         {
           "action": "submit"
@@ -250,12 +250,12 @@
         },
         {
           "action": "say",
-          "text": "같은 마이그레이션을 다시 실행해도 기존 열 때문에 실패하지 않도록 ADD COLUMN IF NOT EXISTS를 사용해요. 이는 같은 이름의 열이 있는 경우 추가를 생략할 뿐, 기존 열의 자료형과 제약까지 검증해 주지는 않아요.",
+          "text": "migration.sql은 이미 있는 DB에 보내는 변경이에요. 다시 실행해도 실패하지 않게 써야 해요.",
           "target": "text:같은 마이그레이션을 다시 실행해도 기존 열 때문에 실패하지 않도록 ADD COLUMN IF NOT EXISTS를 사용해요. 이는 같은 이름의 열이 있는 경우 추가를 생략할 뿐, 기존 열의 자료형과 제약까지 검증해 주지는 않아요."
         },
         {
           "action": "say",
-          "text": "첫 실행에서 milk 메모를 저장했어요. init.sql을 새 표 정의로 바꿔 컨테이너를 다시 만들어도 기존 DB의 표는 바뀌지 않아요.",
+          "text": "milk 메모가 든 DB가 이미 있어요. init.sql만 바꾼 지금 상태로 실행해 볼게요.",
           "target": "text:첫 실행에서 milk 메모를 저장했어요. init.sql을 새 표 정의로 바꿔 컨테이너를 다시 만들어도 기존 DB의 표는 바뀌지 않아요."
         },
         {
@@ -276,7 +276,7 @@
           "action": "patch_code",
           "before": "-- 기존 DB에 필요한 스키마 변경을 구현하세요.\n",
           "after": "ALTER TABLE memo ADD COLUMN IF NOT EXISTS version INT DEFAULT 1 NOT NULL;\n",
-          "say": "기존 메모를 보존하며 새 열을 추가하세요"
+          "say": "ALTER TABLE로 version 열을 기본값 1, NOT NULL로 더해요. 이미 있으면 건너뛰어요."
         },
         {
           "action": "run"
@@ -289,7 +289,7 @@
         {
           "action": "say",
           "text": "조심하세요. 볼륨을 지우고 다시 초기화하면 새 열은 생겨도 기존 사용자 데이터가 사라져요. 지금 목표는 기존 행을 지키는 변경이에요.",
-          "target": "text:이미 데이터가 있는 볼륨이면 초기화 스크립트를 다시 실행하지 않아요. migration.sql에서 memo에 version INT DEFAULT 1 NOT NULL 열을 추가하세요. 기존 행과 새 열의 기본값을 함께 보존해야 해요."
+          "target": "text:이미 데이터가 있는 볼륨이면 초기화 스크립트를 다시 실행하지 않아요."
         },
         {
           "action": "submit"

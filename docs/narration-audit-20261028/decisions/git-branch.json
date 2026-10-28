@@ -1,0 +1,114 @@
+[
+ {
+  "lesson": "git-branch",
+  "step": "stp_5b02521a-1a08-4447-b140-47b839e40105",
+  "checked": {
+   "첫 요청은 기본 안내를 메모 기능 안내로 바꾸는 거예요.": "전수 검토 2026-10-28: feature에서 echo > 로 작업 파일만 메모 기능 → cat → git diff(-기본 +메모). 경고의 diff 정의를 git-first와 같은 「준비 영역과 작업 파일」로 맞췄다."
+  },
+  "findings": [
+   {
+    "sentence": "조심하세요. 파일을 고친 것만으로는 feature의 기록이 바뀌지 않아요. git diff는 기록과 파일의 차이를 보여 줄 뿐이에요.",
+    "fix": "조심하세요. 파일을 고친 것만으로는 feature의 기록이 바뀌지 않아요. git diff는 준비 영역과 작업 파일의 차이를 보여 줄 뿐이에요.",
+    "issue": "git diff를 「기록과 파일의 차이」로 설명해 앞 수업(git-first 4·5번)의 정의(준비 영역과 작업 파일 비교)와 어긋난다. 준비 영역에 담은 뒤에는 커밋과 달라도 diff가 비는 경우를 오해하게 만든다.",
+    "reason": "git diff(옵션 없음)는 index와 working tree를 비교한다. 이 시점 index는 커밋과 같아 결과는 같지만 개념 설명은 정확해야 한다.",
+    "status": "fixed"
+   }
+  ]
+ },
+ {
+  "lesson": "git-branch",
+  "step": "stp_13fb9565-2129-4162-b54d-8e640040b7b3",
+  "checked": {
+   "조심하세요. main에서 기본 안내가 보여도 feature의 커밋이 지워진 게 아니에요. show로 다른 브랜치의 파일을 확인할 수 있어요.": "전수 검토 2026-10-28: feature 파일 메모 기능 → switch main → 기본 안내 → show feature:guide.txt 메모 기능. 상투 표현을 구체 관찰 대상으로 바꿨다. 경고의 「-어도」는 기본 안내가 보여도 feature 커밋은 남는다는 실제 대조다."
+  },
+  "findings": [
+   {
+    "sentence": "팀장이 배포본 main과 작업본 feature를 비교해 달래요. main으로 돌아가면 파일이 어떻게 보이는지가 이 스텝의 관찰이에요.",
+    "fix": "팀장이 배포본 main과 작업본 feature를 비교해 달래요. main으로 돌아가 guide.txt 내용이 어떻게 바뀌는지 봐요.",
+    "issue": "「이 스텝의 관찰이에요」는 무엇을 무엇으로 확인하는지 말하지 않는 상투 표현이다.",
+    "reason": "시연은 switch main 전후로 cat guide.txt를 비교한다.",
+    "status": "fixed"
+   }
+  ]
+ },
+ {
+  "lesson": "git-branch",
+  "step": "stp_f86f03b5-9932-4650-ae6c-164a71663da3",
+  "checked": {
+   "조심하세요. feature에서 git merge main을 해도 main은 바뀌지 않아요. 지금 main은 feature보다 뒤에 있어 합칠 새 기록도 없어요. main에 먼저 서 있어야 해요.": "전수 검토 2026-10-28: git branch(별표 main) → cat 기본 → merge feature(fast-forward) → cat 메모 기능. git branch 결과를 읽게 고쳤다. 경고의 「-어도」는 feature에서 merge main 해도 main이 안 바뀐다는 실제 대조다."
+  },
+  "findings": [
+   {
+    "sentence": "별표가 main 앞에 있는지 먼저 확인해요.",
+    "fix": "별표가 main 앞에 있어요. 지금 main에 서 있어요.",
+    "issue": "git branch 실행 뒤 결과를 말하지 않고 해야 할 일을 다시 말한다.",
+    "reason": "git branch 출력의 별표는 main 앞(state: current_branch main).",
+    "status": "fixed"
+   }
+  ]
+ },
+ {
+  "lesson": "git-branch",
+  "step": "stp_1385d6f9-cadb-4975-927a-69b76eebc729",
+  "checked": {
+   "조심하세요. 합치기 전의 오래된 지점에서 시작하면 feature2에는 메모 기능이 없어요. 최신 main에서 만들어요.": "전수 검토 2026-10-28: git branch(별표 main, feature 남음) → branch feature2 → switch → cat 메모 기능. git branch 결과를 읽게 고쳤다."
+  },
+  "findings": [
+   {
+    "sentence": "현재 main과 남아 있는 feature를 확인해요.",
+    "fix": "별표는 main 앞에 있고, 병합한 feature도 그대로 남아 있어요.",
+    "issue": "git branch 실행 뒤 결과 대신 지시를 말한다.",
+    "reason": "병합 뒤에도 feature 브랜치는 지워지지 않는다(references: feature=HEAD).",
+    "status": "fixed"
+   }
+  ]
+ },
+ {
+  "lesson": "git-branch",
+  "step": "stp_3144dd47-6698-4b71-91e6-053cadfdcc7f",
+  "checked": {
+   "상담 창구 안내를 한 줄 더해요. 메모 기능 줄은 지우지 않아야 해요.": "전수 검토 2026-10-28: cat 메모 기능 → echo >> 문의 → cat 두 줄 → diff +문의. 경고를 실제 실수(> 사용)와 결과(메모 기능 줄 사라짐)로 구체화했다."
+  },
+  "findings": [
+   {
+    "sentence": "조심하세요. > 는 덮어쓰고 >> 는 뒤에 붙여요.",
+    "fix": "조심하세요. > 로 쓰면 메모 기능 줄이 지워지고 문의 줄만 남아요.",
+    "issue": "정의만 반복하고 이 스텝에서 저지를 실수와 결과를 말하지 않는다.",
+    "reason": "목표는 메모 기능 줄 보존. > guide.txt는 파일을 덮어써 첫 줄을 잃는다.",
+    "status": "fixed"
+   }
+  ]
+ },
+ {
+  "lesson": "git-branch",
+  "step": "stp_741da43c-c60d-43a0-af9d-07e47dfd6195",
+  "checked": {
+   "두 번째 작업 feature2를 main에 합쳐 두 기능이 함께 있는지 확인해요.": "전수 검토 2026-10-28: merge feature2(fast-forward) → cat 두 줄 → git branch(별표 main, feature·feature2) → status clean. git branch 결과를 읽게 고쳤다."
+  },
+  "findings": [
+   {
+    "sentence": "현재 main과 이전 작업 이름들을 확인해요.",
+    "fix": "별표는 main 앞에 있고, feature와 feature2 이름도 남아 있어요.",
+    "issue": "git branch 실행 뒤 결과 대신 지시를 말한다.",
+    "reason": "references: main, feature, feature2가 모두 있고 현재 브랜치는 main.",
+    "status": "fixed"
+   }
+  ]
+ },
+ {
+  "lesson": "git-branch",
+  "step": "stp_3bf9f258-fb11-44a1-a6a8-a5cf6cbf1293",
+  "checked": {
+   "조심하세요. merge 뒤에 적은 브랜치가 바뀌는 게 아니에요. 지금 있는 브랜치가 바뀌어요.": "전수 검토 2026-10-28: switch feature → cat 메모 기능 → merge main(Fast-forward) → cat 두 줄 → show main 두 줄. 목표 반복 문장을 시작 상태로 바꾸고 강조를 옮겼다. 할 일 1번 git branch는 시연에 없어 미해결(동작 추가는 범위 밖)로 남겼다."
+  },
+  "findings": [
+   {
+    "sentence": "병합은 지금 서 있는 브랜치를 바꿔요.",
+    "fix": "main에는 두 안내가 있고, feature는 메모 기능 기록에 머물러 있어요. feature로 옮겨 main을 합쳐요.",
+    "issue": "목표 문장을 그대로 반복하고 제목 전체를 강조한다. 시작 상태를 말하지 않는다.",
+    "reason": "본문 둘째 문단이 시작 상태(main 두 안내, feature 메모 기능)다. 강조도 그 문장으로 옮겼다. 핵심 원리는 끝의 경고가 다시 말한다.",
+    "status": "fixed"
+   }
+  ]
+ }
+]

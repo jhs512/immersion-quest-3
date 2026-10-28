@@ -1,0 +1,113 @@
+[
+ {
+  "lesson": "aice-join",
+  "step": "stp_b015b8bc-0755-4719-a9e6-1c0a3a8f93b0",
+  "checked": {
+   "조심하세요. 실제 제공 파일의 이름과 형식에 맞는 읽기 함수를 사용해요.": "전수 검토 2026-10-28: read_json 열 [member_id, zone], 값 [north, south]. 출력 값을 번역해 말한 문장 수정."
+  },
+  "findings": [
+   {
+    "sentence": "회원번호와 지역 두 열, 북쪽과 남쪽 두 회원이 있어요.",
+    "fix": "회원번호와 지역 두 열, north와 south 두 회원이 있어요.",
+    "issue": "화면에 나온 값(north, south, unknown, unverified)을 번역한 말로 읽어 출력과 대응하지 않는다. 결과는 실제로 나온 값을 말한다(docs/voice.md).",
+    "reason": "출력 [member_id, zone] / [north, south].",
+    "status": "fixed"
+   }
+  ]
+ },
+ {
+  "lesson": "aice-join",
+  "step": "stp_1591fd5e-cdc1-4f7b-bfa5-6e6a6d43504f",
+  "checked": {
+   "조심하세요. 행을 쌓는 것과 다른 표에서 키를 찾아 열을 붙이는 것은 달라요.": "전수 검토 2026-10-28: concat [101, 102, 103], index [0, 1, 2]. 한글 숫자 수정."
+  },
+  "findings": [
+   {
+    "sentence": "배송은 세 건으로 늘고 새 행 번호는 영·일·이예요.",
+    "fix": "배송은 세 건으로 늘고 새 행 번호는 0, 1, 2예요.",
+    "issue": "숫자를 읽는 소리(한글)로 적었다. docs/voice.md: 글자는 화면 그대로(0, 101) 쓰고 읽기는 음성 계층이 맡는다.",
+    "reason": "출력 [0, 1, 2].",
+    "status": "fixed"
+   }
+  ]
+ },
+ {
+  "lesson": "aice-join",
+  "step": "stp_d49ec054-3c11-4d99-bb8a-0bcf4479901a",
+  "checked": {
+   "조심하세요. 행 위치가 같다는 이유로 같은 회원이라고 보지 않아요.": "전수 검토 2026-10-28: merge left → south, north, unknown. 출력 값 번역 수정."
+  },
+  "findings": [
+   {
+    "sentence": "회원 키로 찾아 남쪽·북쪽·미등록 순서가 됐어요.",
+    "fix": "회원 키로 찾아 south, north, unknown 순서가 됐어요.",
+    "issue": "화면에 나온 값(north, south, unknown, unverified)을 번역한 말로 읽어 출력과 대응하지 않는다. 결과는 실제로 나온 값을 말한다(docs/voice.md).",
+    "reason": "출력 [south, north, unknown].",
+    "status": "fixed"
+   }
+  ]
+ },
+ {
+  "lesson": "aice-join",
+  "step": "stp_7a3fb796-be6a-4a62-b9b6-354d2d8d8a53",
+  "checked": {
+   "조회가 없어도 원본 배송을 남겨 봐요.": "전수 검토 2026-10-28: inner [101, 102] → left 103 unknown → inner. 한글 숫자·값 번역 3문장 수정. 미해결(본문): 보기 「아니요.조회에」 띄어쓰기.",
+   "조심하세요. 결측 지역을 남기는 것과 배송 자체를 버리는 것은 달라요.": "전수 검토 2026-10-28: inner [101, 102] → left 103 unknown → inner. 한글 숫자·값 번역 3문장 수정. 미해결(본문): 보기 「아니요.조회에」 띄어쓰기."
+  },
+  "findings": [
+   {
+    "sentence": "inner에서는 배송 백일과 백이만 남았어요.",
+    "fix": "inner에서는 배송 101과 102만 남았어요.",
+    "issue": "숫자를 읽는 소리(한글)로 적었다. docs/voice.md: 글자는 화면 그대로(0, 101) 쓰고 읽기는 음성 계층이 맡는다.",
+    "reason": "출력 [101, 102].",
+    "status": "fixed"
+   },
+   {
+    "sentence": "left는 백삼도 남기고 지역을 미등록으로 보여줘요.",
+    "fix": "left는 103도 남기고 지역을 unknown으로 보여 줘요.",
+    "issue": "숫자를 읽는 소리(한글)로 적었다. docs/voice.md: 글자는 화면 그대로(0, 101) 쓰고 읽기는 음성 계층이 맡는다. 화면에 나온 값(north, south, unknown, unverified)을 번역한 말로 읽어 출력과 대응하지 않는다. 결과는 실제로 나온 값을 말한다(docs/voice.md).",
+    "reason": "출력 [101, 102, 103] / [..., unknown].",
+    "status": "fixed"
+   },
+   {
+    "sentence": "원래 inner에서는 백삼이 사라져요.",
+    "fix": "원래 inner에서는 103이 사라져요.",
+    "issue": "숫자를 읽는 소리(한글)로 적었다. docs/voice.md: 글자는 화면 그대로(0, 101) 쓰고 읽기는 음성 계층이 맡는다.",
+    "reason": "되돌린 뒤 [101, 102].",
+    "status": "fixed"
+   }
+  ]
+ },
+ {
+  "lesson": "aice-join",
+  "step": "stp_614ada92-b83f-4718-90ec-e1d815dcdab9",
+  "checked": {
+   "조심하세요. pandas merge는 빈 키끼리도 같은 값처럼 짝지어요. 붙었다는 사실은 회원을 확인했다는 뜻이 아니에요.": "전수 검토 2026-10-28: None 키끼리 merge → [unverified]. 출력 값 번역 수정. 미해결(본문): 보기 「아니요.결측」 띄어쓰기."
+  },
+  "findings": [
+   {
+    "sentence": "빈 키끼리도 붙어 확인 안 된 지역이라는 값이 나왔어요.",
+    "fix": "빈 키끼리도 붙어 unverified라는 지역 값이 나왔어요.",
+    "issue": "화면에 나온 값(north, south, unknown, unverified)을 번역한 말로 읽어 출력과 대응하지 않는다. 결과는 실제로 나온 값을 말한다(docs/voice.md).",
+    "reason": "출력 [unverified].",
+    "status": "fixed"
+   }
+  ]
+ },
+ {
+  "lesson": "aice-join",
+  "step": "stp_19a6791c-7c1a-426e-aedf-8f01dcbe45e4",
+  "checked": {
+   "조심하세요. 행 수만 네 개로 맞추는 게 아니라, 원래 배송 번호가 같은 순서로 남았는지 보세요.": "전수 검토 2026-10-28: inner [202, 204] → left 네 건. 한글 숫자 수정."
+  },
+  "findings": [
+   {
+    "sentence": "배송 이백이와 이백사만 남았어요. 조회가 없는 이백일과 이백삼이 사라졌어요.",
+    "fix": "배송 202와 204만 남았어요. 조회가 없는 201과 203이 사라졌어요.",
+    "issue": "숫자를 읽는 소리(한글)로 적었다. docs/voice.md: 글자는 화면 그대로(0, 101) 쓰고 읽기는 음성 계층이 맡는다.",
+    "reason": "inner 출력 [202, 204].",
+    "status": "fixed"
+   }
+  ]
+ }
+]

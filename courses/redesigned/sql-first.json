@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_96408ebc-f2eb-43df-bf38-cc5f1a25c3af",
-  "revision": "sql-first-5",
+  "revision": "sql-first-6",
   "title": "SQL 기초 · 행을 고르고 값을 바꾼다는 것",
   "description": "왜 DB가 필요한지에서 출발해 표와 조회를 익혀요. 저장·변경·삭제 뒤 실제 행을 읽고 키와 관계의 의미로 연결해요.",
   "objectives": [
@@ -286,7 +286,7 @@
         },
         {
           "action": "say",
-          "text": "프로그램을 닫아도 주문은 남아야 해요. 여러 프로그램이 같은 상품도 읽어야 하죠. 파일로도 저장할 수 있지만 검색·변경·관계 규칙을 직접 관리해야 해요. 데이터베이스는 구조에 맞게 모은 데이터의 저장소예요. MySQL 같은 관리 프로그램이 저장·검색·변경과 규칙 검사를 맡아요. 지금은 실제 MySQL 서버에 상품 표 하나를 준비했어요.",
+          "text": "프로그램을 닫아도 남고 여러 프로그램이 함께 읽도록 데이터를 DB에 둬요. 지금 MySQL에 상품 표 하나가 준비돼 있어요.",
           "target": "text:프로그램을 닫아도 주문은 남아야 해요. 여러 프로그램이 같은 상품도 읽어야 하죠. 파일로도 저장할 수 있지만 검색·변경·관계 규칙을 직접 관리해야 해요. 데이터베이스는 구조에 맞게 모은 데이터의 저장소예요. MySQL 같은 관리 프로그램이 저장·검색·변경과 규칙 검사를 맡아요. 지금은 실제 MySQL 서버에 상품 표 하나를 준비했어요."
         },
         {
@@ -299,14 +299,14 @@
         },
         {
           "action": "say",
-          "text": "테이블은 같은 종류의 데이터를 행과 열로 묶어요.",
+          "text": "표를 읽으려면 FROM에 표 이름을 써야 해요. 지금 줄에는 FROM이 없어요.",
           "target": "code:SELECT 1;"
         },
         {
           "action": "patch_code",
           "before": "SELECT 1;\n",
           "after": "SELECT * FROM item;\n",
-          "say": "상품 한 행의 네 열을 조회하세요"
+          "say": "SELECT 1을 item 표의 모든 열을 읽는 조회로 바꿔요."
         },
         {
           "action": "run"
@@ -319,7 +319,7 @@
         {
           "action": "say",
           "text": "조심하세요. 지금 결과는 조회예요. 화면에 보였다는 것과 새 데이터를 저장했다는 것은 달라요.",
-          "target": "text:MySQL은 DB 관리 프로그램이고 SQL은 여기에 요청하는 언어예요. 상품 하나가 행 하나예요. 번호·이름·가격·재고는 열이에요. SELECT는 결과로 읽을 값을 고르고 FROM은 읽을 테이블을 정해요. 별표는 모든 열이에요. 지금 표에는 한 행만 있어 순서 문제는 없어요. 표를 만드는 준비 SQL은 제공했어요."
+          "target": "text:SELECT는 결과로 읽을 값을 고르고 FROM은 읽을 테이블을 정해요."
         },
         {
           "action": "submit"
@@ -366,7 +366,7 @@
         },
         {
           "action": "say",
-          "text": "상품 행은 그대로 두고 이름과 가격만 보려 해요. 지금은 네 열이 모두 보여요.",
+          "text": "지금 준비 코드는 별표로 네 열을 모두 읽어요. 먼저 그대로 실행해 볼게요.",
           "target": "text:상품 행은 그대로 두고 이름과 가격만 보려 해요. 지금은 네 열이 모두 보여요."
         },
         {
@@ -386,7 +386,7 @@
           "action": "patch_code",
           "before": "SELECT * FROM item;\n",
           "after": "SELECT name,price FROM item;\n",
-          "say": "이름과 가격 두 열만 조회하세요"
+          "say": "별표 대신 name과 price 두 열을 적어요."
         },
         {
           "action": "run"
@@ -399,7 +399,7 @@
         {
           "action": "say",
           "text": "조심하세요. 조회할 열을 고르는 일과 행을 지우는 일은 다른 명령이에요.",
-          "target": "text:SELECT name,price는 두 열을 그 순서로 읽어요. FROM item은 같은 표를 가리켜요. 결과의 열 수가 줄어도 원래 테이블의 열이 삭제되지는 않아요."
+          "target": "text:결과의 열 수가 줄어도 원래 테이블의 열이 삭제되지는 않아요."
         },
         {
           "action": "submit"
@@ -446,7 +446,7 @@
         },
         {
           "action": "say",
-          "text": "상품이 세 행으로 늘었어요. 이번에는 2번 상품의 이름 하나만 찾아요.",
+          "text": "이번 표에는 상품이 세 행 있어요. 준비 코드의 조건부터 실행해 볼게요.",
           "target": "text:상품이 세 행으로 늘었어요. 이번에는 2번 상품의 이름 하나만 찾아요."
         },
         {
@@ -460,13 +460,13 @@
         {
           "action": "say",
           "text": "WHERE는 조건이 참인 행만 조회 결과에 남겨요.",
-          "target": "code:SELECT name FROM item WHERE id=1;"
+          "target": "code:WHERE id=1"
         },
         {
           "action": "patch_code",
           "before": "SELECT name FROM item WHERE id=1;\n",
           "after": "SELECT name FROM item WHERE id=2;\n",
-          "say": "2번 상품 한 행만 조회하세요"
+          "say": "조건의 번호를 1에서 2로 바꿔요."
         },
         {
           "action": "run"
@@ -479,7 +479,7 @@
         {
           "action": "say",
           "text": "조심하세요. WHERE는 지금 SELECT의 조회 범위예요. 원본 행을 지우는 명령이 아니에요.",
-          "target": "text:id는 번호 열이에요. WHERE id=2는 각 행의 번호를 비교해요. 조건이 참인 행만 결과에 남아요. 이 조회는 조건에 맞지 않는 행을 DB에서 삭제하지 않아요."
+          "target": "text:이 조회는 조건에 맞지 않는 행을 DB에서 삭제하지 않아요."
         },
         {
           "action": "submit"
@@ -526,7 +526,7 @@
         },
         {
           "action": "say",
-          "text": "번호가 작은 상품이 가장 싼 것은 아니에요. 가격은 tea 50, milk 100, bread 200이에요.",
+          "text": "번호 순서와 가격 순서는 달라요. 3번 tea가 50으로 가장 싸요.",
           "target": "text:번호가 작은 상품이 가장 싼 것은 아니에요. 가격은 tea 50, milk 100, bread 200이에요."
         },
         {
@@ -540,13 +540,13 @@
         {
           "action": "say",
           "text": "ORDER BY는 결과 행을 나열할 기준을 정해요.",
-          "target": "code:SELECT name FROM item ORDER BY id;"
+          "target": "code:ORDER BY id"
         },
         {
           "action": "patch_code",
           "before": "SELECT name FROM item ORDER BY id;\n",
           "after": "SELECT name FROM item ORDER BY price;\n",
-          "say": "가격이 작은 상품부터 조회하세요"
+          "say": "정렬 기준을 id에서 price로 바꿔요."
         },
         {
           "action": "run"
@@ -559,7 +559,7 @@
         {
           "action": "say",
           "text": "조심하세요. 표를 넣은 순서와 결과를 정렬하는 기준은 달라요.",
-          "target": "text:ORDER BY price는 가격이 작은 행부터 나열해요. DESC를 붙이면 큰 값부터예요. ORDER BY가 없을 때 우연히 보인 순서를 규칙으로 삼지 않아요. 지금은 세 가격이 달라 같은 값의 순서는 뒤에서 다뤄요."
+          "target": "text:ORDER BY가 없을 때 우연히 보인 순서를 규칙으로 삼지 않아요."
         },
         {
           "action": "submit"
@@ -606,7 +606,7 @@
         },
         {
           "action": "say",
-          "text": "표에는 번호·이름·가격·재고가 있어요. 이번 화면에는 이름만 보여야 해요.",
+          "text": "준비 코드는 번호 순서로 네 열을 모두 읽어요. 그대로 실행해 볼게요.",
           "target": "text:표에는 번호·이름·가격·재고가 있어요. 이번 화면에는 이름만 보여야 해요."
         },
         {
@@ -626,7 +626,7 @@
           "action": "patch_code",
           "before": "SELECT * FROM item ORDER BY id;\n",
           "after": "SELECT name FROM item ORDER BY id;\n",
-          "say": "상품 이름만 번호 순서로 조회하세요"
+          "say": "별표를 name으로 바꾸고 ORDER BY id는 그대로 둬요."
         },
         {
           "action": "run"
@@ -639,7 +639,7 @@
         {
           "action": "say",
           "text": "조심하세요. SELECT로 이름만 골랐다고 원본 표가 이름만 가진 표로 바뀌지는 않아요.",
-          "target": "text:SELECT 뒤에는 결과에 필요한 열을 쓰고 FROM 뒤에는 읽을 표를 써요. 조회할 열을 바꿔도 표에 저장된 열이 없어지지는 않아요. ORDER BY id로 결과 순서를 정해요."
+          "target": "text:조회할 열을 바꿔도 표에 저장된 열이 없어지지는 않아요."
         },
         {
           "action": "submit"
@@ -678,7 +678,7 @@
         },
         {
           "action": "say",
-          "text": "bread의 재고는 0이고 tea의 재고는 NULL이에요. 품절 상품이 아니라 재고를 아직 확인하지 않은 상품을 찾아요.",
+          "text": "0은 품절로 확인된 값이고, NULL은 아직 모르는 값이에요. 찾을 것은 모르는 쪽이에요.",
           "target": "text:bread의 재고는 0이고 tea의 재고는 NULL이에요. 품절 상품이 아니라 재고를 아직 확인하지 않은 상품을 찾아요."
         },
         {
@@ -692,13 +692,13 @@
         {
           "action": "say",
           "text": "NULL은 숫자 0이 아니라 값이 없거나 아직 정해지지 않았음을 나타내요.",
-          "target": "code:SELECT name FROM item WHERE qty=NULL ORDER BY id;"
+          "target": "code:qty=NULL"
         },
         {
           "action": "patch_code",
           "before": "SELECT name FROM item WHERE qty=NULL ORDER BY id;\n",
           "after": "SELECT name FROM item WHERE qty IS NULL ORDER BY id;\n",
-          "say": "재고가 아직 확인되지 않은 상품을 찾으세요"
+          "say": "= NULL을 IS NULL로 바꿔요."
         },
         {
           "action": "run"
@@ -711,7 +711,7 @@
         {
           "action": "say",
           "text": "조심하세요. qty=0으로 바꾸면 품절 상품을 찾는 다른 요구가 돼요. 아직 모르는 것과 없다고 확인한 것은 달라요.",
-          "target": "text:NULL 여부는 IS NULL로 검사하세요. = NULL은 비교할 값을 모르는 상태라 참인 행을 만들지 못해요. 0과 NULL을 같은 것으로 처리하지 마세요."
+          "target": "text:0과 NULL을 같은 것으로 처리하지 마세요."
         },
         {
           "action": "submit"
@@ -750,7 +750,7 @@
         },
         {
           "action": "say",
-          "text": "milk는 가격 100·재고 3, tea는 가격 100·재고 미정이에요. 지금 살 수 있는 100원 상품을 찾아야 해요.",
+          "text": "milk와 tea 모두 가격은 100이에요. 그런데 tea는 재고를 몰라 지금 살 수 없어요.",
           "target": "text:milk는 가격 100·재고 3, tea는 가격 100·재고 미정이에요. 지금 살 수 있는 100원 상품을 찾아야 해요."
         },
         {
@@ -764,13 +764,13 @@
         {
           "action": "say",
           "text": "WHERE는 각 행에 대해 참인 조건을 만족하는 행을 남겨요.",
-          "target": "code:SELECT name FROM item WHERE price=100 OR qty>0 ORDER BY id;"
+          "target": "code:price=100 OR qty>0"
         },
         {
           "action": "patch_code",
           "before": "SELECT name FROM item WHERE price=100 OR qty>0 ORDER BY id;\n",
           "after": "SELECT name FROM item WHERE price=100 AND qty>0 ORDER BY id;\n",
-          "say": "가격이 100이고 재고가 있는 상품을 조회하세요"
+          "say": "OR를 AND로 바꿔 두 조건을 모두 요구해요."
         },
         {
           "action": "run"
@@ -783,7 +783,7 @@
         {
           "action": "say",
           "text": "조심하세요. 조건을 말로만 읽지 말고 각 행의 값에 대입해 보세요. AND와 OR는 남기는 행이 달라요.",
-          "target": "text:가격 조건과 재고 조건을 AND로 묶으세요. OR로 묶으면 둘 중 하나만 맞는 상품도 포함돼요. 재고 미정인 NULL은 양수라는 조건을 만족했다고 볼 수 없어요."
+          "target": "text:OR로 묶으면 둘 중 하나만 맞는 상품도 포함돼요."
         },
         {
           "action": "submit"
@@ -830,7 +830,7 @@
         },
         {
           "action": "say",
-          "text": "milk와 tea는 같은 가격 100이에요. 싼 상품 두 개를 보여 주되 같은 가격이면 번호가 작은 상품이 먼저여야 해요.",
+          "text": "milk와 tea는 가격이 같아요. 같은 가격이면 번호가 작은 milk가 먼저예요.",
           "target": "text:milk와 tea는 같은 가격 100이에요. 싼 상품 두 개를 보여 주되 같은 가격이면 번호가 작은 상품이 먼저여야 해요."
         },
         {
@@ -844,13 +844,13 @@
         {
           "action": "say",
           "text": "행의 저장 순서와 조회 결과의 정렬 규칙은 달라요.",
-          "target": "code:SELECT name FROM item ORDER BY price DESC,id LIMIT 2;"
+          "target": "code:price DESC"
         },
         {
           "action": "patch_code",
           "before": "SELECT name FROM item ORDER BY price DESC,id LIMIT 2;\n",
           "after": "SELECT name FROM item ORDER BY price,id LIMIT 2;\n",
-          "say": "가장 싼 상품을 가격·번호 순서로 두 개 조회하세요"
+          "say": "DESC를 빼서 가격이 작은 것부터, 같으면 번호순으로 정렬해요."
         },
         {
           "action": "run"
@@ -863,7 +863,7 @@
         {
           "action": "say",
           "text": "조심하세요. LIMIT만 붙이면 가장 싼 두 상품이라는 뜻이 되지 않아요. 먼저 어떤 순서의 앞 두 행인지 정해야 해요.",
-          "target": "text:ORDER BY price,id로 가격이 같을 때의 순서까지 정한 뒤 LIMIT 2를 적용하세요. 표의 행을 넣은 순서나 우연히 보인 순서를 결과 규칙으로 가정하지 마세요."
+          "target": "text:ORDER BY price,id로 가격이 같을 때의 순서까지 정한 뒤 LIMIT 2를 적용하세요."
         },
         {
           "action": "submit"
@@ -910,7 +910,7 @@
         },
         {
           "action": "say",
-          "text": "상품은 세 행인데 COUNT(qty)는 두 개라고 해요. tea의 재고가 아직 NULL이에요.",
+          "text": "준비 코드는 COUNT 안에 qty 열을 넣었어요. 실행해서 몇 행을 세는지 볼게요.",
           "target": "text:상품은 세 행인데 COUNT(qty)는 두 개라고 해요. tea의 재고가 아직 NULL이에요."
         },
         {
@@ -924,13 +924,13 @@
         {
           "action": "say",
           "text": "COUNT(*)는 행을 세고 COUNT(열)은 값이 있는 행을 세요.",
-          "target": "code:SELECT COUNT(qty) FROM item;"
+          "target": "code:COUNT(qty)"
         },
         {
           "action": "patch_code",
           "before": "SELECT COUNT(qty) FROM item;\n",
           "after": "SELECT COUNT(*) FROM item;\n",
-          "say": "재고가 미정이어도 상품 행은 세세요"
+          "say": "COUNT 안의 qty를 별표로 바꿔요."
         },
         {
           "action": "run"
@@ -943,7 +943,7 @@
         {
           "action": "say",
           "text": "조심하세요. 상품 세 종류라는 말이 재고 세 개라는 뜻은 아니에요.",
-          "target": "text:COUNT(*)는 모든 행을 세어요. COUNT(qty)는 qty가 NULL인 행을 세지 않아요. 상품 수와 재고가 확인된 상품 수는 다른 질문이에요."
+          "target": "text:상품 수와 재고가 확인된 상품 수는 다른 질문이에요."
         },
         {
           "action": "submit"
@@ -990,7 +990,7 @@
         },
         {
           "action": "say",
-          "text": "상품은 세 종류예요. milk 재고는 7개, bread는 0개이고 tea는 미정이에요.",
+          "text": "준비 코드는 상품 행을 세요. 원하는 것은 재고 개수의 합이에요.",
           "target": "text:상품은 세 종류예요. milk 재고는 7개, bread는 0개이고 tea는 미정이에요."
         },
         {
@@ -1003,14 +1003,14 @@
         },
         {
           "action": "say",
-          "text": "SUM은 행 수가 아니라 열에 저장된 숫자를 더해요.",
+          "text": "COUNT(*)는 행을 세요. 수량을 더하려면 SUM에 열 이름을 넣어요.",
           "target": "code:SELECT COUNT(*) FROM item;"
         },
         {
           "action": "patch_code",
           "before": "SELECT COUNT(*) FROM item;\n",
           "after": "SELECT SUM(qty) FROM item;\n",
-          "say": "상품 종류 수 대신 확인된 수량을 더하세요"
+          "say": "COUNT(*)를 qty 열의 합인 SUM(qty)로 바꿔요."
         },
         {
           "action": "run"
@@ -1023,7 +1023,7 @@
         {
           "action": "say",
           "text": "조심하세요. COUNT(qty)로 바꿔도 수량을 더하는 것은 아니에요.",
-          "target": "text:COUNT(*)는 상품 행 수를 세어요. SUM(qty)는 NULL을 빼고 확인된 수량을 더해요. 더할 값이 하나도 없는 경우는 다음 문제에서 따로 확인해요."
+          "target": "text:COUNT(*)는 상품 행 수를 세어요."
         },
         {
           "action": "submit"
@@ -1070,7 +1070,7 @@
         },
         {
           "action": "say",
-          "text": "상품은 세 종류지만 확인된 재고 수량은 7개예요. 준비 코드는 상품 행 수를 재고 합계처럼 사용해요.",
+          "text": "준비 코드는 행 수를 재고 합계처럼 써요. 채점은 재고가 모두 미정인 경우도 봐요.",
           "target": "text:상품은 세 종류지만 확인된 재고 수량은 7개예요. 준비 코드는 상품 행 수를 재고 합계처럼 사용해요."
         },
         {
@@ -1090,7 +1090,7 @@
           "action": "patch_code",
           "before": "SELECT COUNT(*) FROM item;\n",
           "after": "SELECT COALESCE(SUM(qty),0) FROM item;\n",
-          "say": "확인된 재고 수량의 합계를 구하세요"
+          "say": "합계는 SUM(qty)로 구하고, 값이 없으면 0이 되게 COALESCE로 감싸요."
         },
         {
           "action": "run"
@@ -1103,7 +1103,7 @@
         {
           "action": "say",
           "text": "조심하세요. COUNT(qty)도 수량의 합이 아니에요. NULL이 아닌 재고 값이 있는 행의 개수예요.",
-          "target": "text:SUM(qty)로 수량을 더하세요. COUNT(*)는 NULL이 있더라도 행을 세요. 합계 대상 값이 하나도 없으면 SUM은 NULL이므로 화면의 0으로 바꾸세요."
+          "target": "text:COUNT(*)는 NULL이 있더라도 행을 세요."
         },
         {
           "action": "submit"
@@ -1156,12 +1156,12 @@
         },
         {
           "action": "say",
-          "text": "이 자료형 비교 문제는 보이는 DROP TABLE로 연습용 memo 표만 다시 만들어요. 일반 DB 실행마다 표를 지우라는 뜻은 아니에요.",
+          "text": "준비 코드의 DROP TABLE은 이 연습용 memo 표만 다시 만들려고 둔 줄이에요.",
           "target": "text:이 자료형 비교 문제는 보이는 DROP TABLE로 연습용 memo 표만 다시 만들어요. 일반 DB 실행마다 표를 지우라는 뜻은 아니에요."
         },
         {
           "action": "say",
-          "text": "이번 실습에는 메모 표가 아직 없어요. 준비 코드가 content를 정수 열로 만들어 글자 메모를 넣지 못해요. 제공된 검사 SQL이 글자를 저장하고 다시 읽어요.",
+          "text": "지금 content 열은 정수형이에요. 검사 SQL이 여기에 글자 메모를 넣어 봐요.",
           "target": "text:이번 실습에는 메모 표가 아직 없어요. 준비 코드가 content를 정수 열로 만들어 글자 메모를 넣지 못해요. 제공된 검사 SQL이 글자를 저장하고 다시 읽어요."
         },
         {
@@ -1175,13 +1175,13 @@
         {
           "action": "say",
           "text": "CREATE TABLE은 테이블의 열 이름과 저장할 값의 자료형을 정해요.",
-          "target": "code:CREATE TABLE memo(content INT);"
+          "target": "code:content INT"
         },
         {
           "action": "patch_code",
           "before": "CREATE TABLE memo(content INT);\n",
           "after": "CREATE TABLE memo(content VARCHAR(30));\n",
-          "say": "글자 메모를 담을 테이블을 만드세요"
+          "say": "content의 자료형을 INT에서 VARCHAR(30)으로 바꿔요."
         },
         {
           "action": "run"
@@ -1194,7 +1194,7 @@
         {
           "action": "say",
           "text": "조심하세요. 테이블의 모양을 만드는 것과 데이터 한 행을 넣는 것은 다른 일이에요.",
-          "target": "text:CREATE TABLE memo는 memo라는 테이블을 만들어요. 괄호 안에 열 이름과 자료형을 써요. INT는 정수, VARCHAR(30)은 길이 제한이 있는 글자예요. 표를 만든 것만으로 메모 행이 생기지는 않아요. 글자를 넣는 INSERT는 다음 문제에서 직접 써요."
+          "target": "text:표를 만든 것만으로 메모 행이 생기지는 않아요."
         },
         {
           "action": "submit"
@@ -1233,7 +1233,7 @@
         },
         {
           "action": "say",
-          "text": "현재 상품은 세 행이에요. coffee를 번호 4, 가격 300, 재고 2로 저장하세요. 이 문제는 여러분의 SQL 클라이언트를 닫은 뒤 새 연결에서 표를 읽어요. DB 서버와 컨테이너는 끄지 않아요.",
+          "text": "coffee는 번호 4, 가격 300, 재고 2예요. 결과는 연결을 닫은 뒤 새 연결에서 읽어요.",
           "target": "text:현재 상품은 세 행이에요. coffee를 번호 4, 가격 300, 재고 2로 저장하세요. 이 문제는 여러분의 SQL 클라이언트를 닫은 뒤 새 연결에서 표를 읽어요. DB 서버와 컨테이너는 끄지 않아요."
         },
         {
@@ -1253,7 +1253,7 @@
           "action": "patch_code",
           "before": "SELECT name FROM item WHERE id=4;\n",
           "after": "INSERT INTO item(id,name,price,qty) VALUES(4,'coffee',300,2);\n",
-          "say": "coffee 상품 한 행을 저장하세요"
+          "say": "조회를 coffee 한 행을 넣는 INSERT로 바꿔요."
         },
         {
           "action": "run"
@@ -1265,8 +1265,8 @@
         },
         {
           "action": "say",
-          "text": "조심하세요. 같은 INSERT를 다시 실행하면 같은 번호가 겹칠 수 있어요. 조회처럼 실행할 때마다 같은 효과인 명령은 아니에요.",
-          "target": "text:INSERT INTO item 뒤에 값을 넣을 열을 쓰고 VALUES 뒤에 같은 순서의 값을 써요. SELECT로 coffee라는 글자만 출력하는 것과 달라요. 여기서 확인하는 것은 클라이언트 연결이 끝나도 같은 DB 서버에 행이 남는다는 사실이에요. 서버나 볼륨을 삭제한 뒤의 보존은 별도 수업이에요."
+          "text": "조심하세요. 같은 INSERT를 한 번 더 실행하면 번호 4가 이미 있어 오류가 나요. 조회처럼 여러 번 실행해도 되는 명령이 아니에요.",
+          "target": "text:INSERT INTO item 뒤에 값을 넣을 열을 쓰고 VALUES 뒤에 같은 순서의 값을 써요."
         },
         {
           "action": "submit"
@@ -1305,7 +1305,7 @@
         },
         {
           "action": "say",
-          "text": "milk 가격을 100에서 150으로 바꾸려 해요. 준비 코드는 아직 조회만 해요.",
+          "text": "준비 코드는 milk의 가격을 조회만 해요. 실행해서 지금 값을 볼게요.",
           "target": "text:milk 가격을 100에서 150으로 바꾸려 해요. 준비 코드는 아직 조회만 해요."
         },
         {
@@ -1325,7 +1325,7 @@
           "action": "patch_code",
           "before": "SELECT name,price FROM item WHERE id=1;\n",
           "after": "UPDATE item SET price=150 WHERE id=1;\n",
-          "say": "milk의 가격만 150으로 바꾸세요"
+          "say": "조회를 1번 행의 price만 바꾸는 UPDATE로 바꿔요."
         },
         {
           "action": "run"
@@ -1337,8 +1337,8 @@
         },
         {
           "action": "say",
-          "text": "조심하세요. SELECT의 별칭으로 150을 보여 주는 것과 실제 price를 변경하는 것은 달라요.",
-          "target": "text:UPDATE item SET price=150 WHERE id=1은 1번 행의 가격만 바꿔요. 이름·재고·다른 상품은 유지돼요. WHERE를 빼면 모든 상품의 가격을 바꿔 버려요. 수정 전에는 같은 조건의 SELECT로 대상을 확인하세요."
+          "text": "조심하세요. WHERE를 빼면 bread와 tea까지 모두 150이 돼요.",
+          "target": "text:WHERE를 빼면 모든 상품의 가격을 바꿔 버려요."
         },
         {
           "action": "submit"
@@ -1377,7 +1377,7 @@
         },
         {
           "action": "say",
-          "text": "판매를 중단한 bread 한 행만 지우려 해요. 준비 코드는 대상을 조회만 해요.",
+          "text": "준비 코드는 지울 bread를 조회만 해요. 실행해서 표가 그대로인지 볼게요.",
           "target": "text:판매를 중단한 bread 한 행만 지우려 해요. 준비 코드는 대상을 조회만 해요."
         },
         {
@@ -1397,7 +1397,7 @@
           "action": "patch_code",
           "before": "SELECT name FROM item WHERE id=2;\n",
           "after": "DELETE FROM item WHERE id=2;\n",
-          "say": "2번 상품 행만 삭제하세요"
+          "say": "같은 조건으로 조회 대신 DELETE를 써요."
         },
         {
           "action": "run"
@@ -1410,7 +1410,7 @@
         {
           "action": "say",
           "text": "조심하세요. DELETE의 WHERE는 실제로 없앨 행을 정해요. 화면에서 안 보이게 하는 필터가 아니에요.",
-          "target": "text:DELETE FROM item WHERE id=2는 2번 행을 지워요. 테이블이나 열의 모양을 지우는 것은 아니에요. WHERE를 빼면 모든 행이 대상이에요. 실제 사용자 DB가 아니라 제공된 연습 DB에서만 실습해요."
+          "target": "text:WHERE를 빼면 모든 행이 대상이에요."
         },
         {
           "action": "submit"
@@ -1449,7 +1449,7 @@
         },
         {
           "action": "say",
-          "text": "회원 두 명의 이름이 모두 lee예요. 한 사람을 고르려고 이름으로 찾으면 두 행이 나와요.",
+          "text": "lee라는 이름의 회원이 두 명이에요. 이름만으로는 한 사람을 고를 수 없어요.",
           "target": "text:회원 두 명의 이름이 모두 lee예요. 한 사람을 고르려고 이름으로 찾으면 두 행이 나와요."
         },
         {
@@ -1463,13 +1463,13 @@
         {
           "action": "say",
           "text": "사람 이름과 행을 구별할 식별자는 역할이 달라요.",
-          "target": "code:SELECT id,name FROM member WHERE name='lee' ORDER BY id;"
+          "target": "code:name='lee'"
         },
         {
           "action": "patch_code",
           "before": "SELECT id,name FROM member WHERE name='lee' ORDER BY id;\n",
           "after": "SELECT id,name FROM member WHERE id=2;\n",
-          "say": "이름이 같아도 2번 회원만 조회하세요"
+          "say": "조건을 이름 대신 id=2로 바꿔요."
         },
         {
           "action": "run"
@@ -1482,7 +1482,7 @@
         {
           "action": "say",
           "text": "조심하세요. 이름이 같다는 이유로 두 행을 같은 사람으로 합치면 안 돼요.",
-          "target": "text:이 연습 표는 회원마다 다른 id를 준비했어요. id로 행을 구별해요. 이름은 같은 사람이 있을 수 있죠. 다음 제약 수업의 PRIMARY KEY는 이런 식별자가 비거나 겹치지 않게 DB가 지키도록 만드는 규칙이에요."
+          "target": "text:id로 행을 구별해요."
         },
         {
           "action": "submit"
@@ -1529,7 +1529,7 @@
         },
         {
           "action": "say",
-          "text": "10번과 11번 주문은 2번 회원의 주문이에요. 12번 주문은 1번 회원의 주문이에요.",
+          "text": "주문 표에는 주문 번호 id와 회원 번호 member_id가 따로 있어요.",
           "target": "text:10번과 11번 주문은 2번 회원의 주문이에요. 12번 주문은 1번 회원의 주문이에요."
         },
         {
@@ -1543,13 +1543,13 @@
         {
           "action": "say",
           "text": "주문 번호와 주문한 회원을 가리키는 번호는 다른 열이에요.",
-          "target": "code:SELECT id FROM orders WHERE id=2 ORDER BY id;"
+          "target": "code:WHERE id=2"
         },
         {
           "action": "patch_code",
           "before": "SELECT id FROM orders WHERE id=2 ORDER BY id;\n",
           "after": "SELECT id FROM orders WHERE member_id=2 ORDER BY id;\n",
-          "say": "2번 회원의 주문 번호를 조회하세요"
+          "say": "조건의 열을 id에서 member_id로 바꿔요."
         },
         {
           "action": "run"
@@ -1562,7 +1562,7 @@
         {
           "action": "say",
           "text": "조심하세요. 주문 번호가 2라는 것과 주문한 회원 번호가 2라는 것은 다른 조건이에요.",
-          "target": "text:orders.id는 주문 자체를 구별해요. orders.member_id는 member.id를 가리켜요. 여러 주문이 한 회원을 가리킬 수 있어요. 지금은 저장된 번호의 관계를 읽어요. 다음 수업에서는 없는 회원 번호를 저장하지 못하게 제약을 걸어요."
+          "target": "text:orders.member_id는 member.id를 가리켜요."
         },
         {
           "action": "submit"
@@ -1609,7 +1609,7 @@
         },
         {
           "action": "say",
-          "text": "한 고객이 milk 한 개를 샀어요. 준비 코드는 조회만 해서 재고를 아직 바꾸지 않았어요. 다른 상품의 재고는 그대로 두세요.",
+          "text": "milk 한 개가 팔렸지만 준비 코드는 조회만 해요. 다른 상품은 건드리지 않아야 해요.",
           "target": "text:한 고객이 milk 한 개를 샀어요. 준비 코드는 조회만 해서 재고를 아직 바꾸지 않았어요. 다른 상품의 재고는 그대로 두세요."
         },
         {
@@ -1629,7 +1629,7 @@
           "action": "patch_code",
           "before": "SELECT name,qty FROM item ORDER BY id;\n",
           "after": "UPDATE item SET qty=qty-1 WHERE id=1;\n",
-          "say": "milk 재고만 한 개 차감하세요"
+          "say": "조회를 id=1인 행의 qty만 하나 줄이는 UPDATE로 바꿔요."
         },
         {
           "action": "run"
@@ -1642,7 +1642,7 @@
         {
           "action": "say",
           "text": "조심하세요. UPDATE 뒤의 WHERE는 결과 화면 필터가 아니라 실제로 바꿀 행의 범위예요. 실행 전에 그 조건의 SELECT로 대상을 확인할 수 있어요.",
-          "target": "text:id=1인 상품만 바꾸도록 UPDATE에 WHERE를 붙이세요. qty=qty-1은 현재 수량에서 하나를 빼요. 같은 UPDATE를 재실행하면 한 번 더 차감돼요. 제출 검사는 새 준비 DB에서 한 번 실행해 확인해요. 제공 조회가 모든 상품을 다시 읽어요."
+          "target": "text:id=1인 상품만 바꾸도록 UPDATE에 WHERE를 붙이세요."
         },
         {
           "action": "submit"

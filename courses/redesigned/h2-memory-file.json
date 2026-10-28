@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_bfda9fed-08f1-40dd-b619-789901cc2dbe",
-  "revision": "h2-memory-file-3",
+  "revision": "h2-memory-file-4",
   "title": "H2 · 연결을 닫는 것과 프로그램을 끄는 것은 달라요",
   "description": "메모 하나를 다른 연결, 다른 프로세스로 읽으며 무엇이 실제로 남는지 확인해요.",
   "objectives": [
@@ -103,12 +103,12 @@
         },
         {
           "action": "say",
-          "text": "SQL 기초에서는 DB에 표를 만들고 행을 저장했어요. 이번에는 Java 코드가 연결을 열어 같은 SQL을 보내요. H2는 이 실습의 DB 프로그램이고 JDBC는 Java에서 DB에 요청하는 API예요. 준비 코드의 a가 메모를 쓰고 b가 읽어요. 연결 주소를 바꾸며 두 연결이 같은 저장소를 보는지 확인하세요.",
+          "text": "H2는 이번 실습의 DB이고, JDBC는 Java에서 DB에 요청하는 방법이에요. 준비 코드의 a가 쓰고 b가 읽어요.",
           "target": "text:SQL 기초에서는 DB에 표를 만들고 행을 저장했어요. 이번에는 Java 코드가 연결을 열어 같은 SQL을 보내요. H2는 이 실습의 DB 프로그램이고 JDBC는 Java에서 DB에 요청하는 API예요. 준비 코드의 a가 메모를 쓰고 b가 읽어요. 연결 주소를 바꾸며 두 연결이 같은 저장소를 보는지 확인하세요."
         },
         {
           "action": "say",
-          "text": "연결 a에서 쓴 메모를 연결 b가 찾지 못해요. 두 연결은 동시에 열려 있어요.",
+          "text": "두 연결은 동시에 열려 있어요. 지금 주소 그대로 실행해 볼게요.",
           "target": "text:연결 a에서 쓴 메모를 연결 b가 찾지 못해요. 두 연결은 동시에 열려 있어요."
         },
         {
@@ -127,7 +127,7 @@
           "action": "patch_code",
           "before": "        String name = new Scanner(System.in).nextLine();\n        String url = \"jdbc:h2:mem:\";\n        try (Connection a = DriverManager.getConnection(url, \"sa\", \"\");\n             Connection b = DriverManager.getConnection(url, \"sa\", \"\")) {\n            a.createStatement().execute(\"CREATE TABLE memo(title VARCHAR(100))\");\n            try (PreparedStatement p = a.prepareStatement(\"INSERT INTO memo VALUES (?)\")) {\n                p.setString(1, name); p.executeUpdate();\n            }\n            try (ResultSet r = b.createStatement().executeQuery(\"SELECT title FROM memo\")) {\n                r.next(); System.out.println(r.getString(1));\n            } catch (SQLException e) {\n                if (e.getSQLState().equals(\"42S04\") || e.getSQLState().equals(\"42S02\"))\n                    System.out.println(\"다른 연결: 표 없음\");\n                else throw e;\n            }\n        }",
           "after": "        String name = new Scanner(System.in).nextLine();\n        String url = \"jdbc:h2:mem:shared\";\n        try (Connection a = DriverManager.getConnection(url, \"sa\", \"\");\n             Connection b = DriverManager.getConnection(url, \"sa\", \"\")) {\n            a.createStatement().execute(\"CREATE TABLE memo(title VARCHAR(100))\");\n            try (PreparedStatement p = a.prepareStatement(\"INSERT INTO memo VALUES (?)\")) {\n                p.setString(1, name); p.executeUpdate();\n            }\n            try (ResultSet r = b.createStatement().executeQuery(\"SELECT title FROM memo\")) {\n                r.next(); System.out.println(r.getString(1));\n            } catch (SQLException e) {\n                if (e.getSQLState().equals(\"42S04\") || e.getSQLState().equals(\"42S02\"))\n                    System.out.println(\"다른 연결: 표 없음\");\n                else throw e;\n            }\n        }",
-          "say": "URL에 같은 메모리 DB 이름을 넣으세요. 메모 문자열과 조회 코드는 유지하세요."
+          "say": "url 끝에 shared라는 DB 이름을 붙여요."
         },
         {
           "action": "run",
@@ -144,7 +144,7 @@
         {
           "action": "say",
           "text": "조심하세요. mem: 뒤에 이름이 없으면 두 연결의 주소가 똑같아 보여도 서로 다른 DB예요.",
-          "target": "text:`jdbc:h2:mem:`은 연결마다 별도 DB예요. `jdbc:h2:mem:이름`은 같은 JVM 안에서 이름이 같은 DB를 공유해요."
+          "target": "text:jdbc:h2:mem:은 연결마다 별도 DB예요."
         },
         {
           "action": "submit"
@@ -184,7 +184,7 @@
         },
         {
           "action": "say",
-          "text": "같은 이름으로 다시 열었는데 표가 사라져요. 첫 연결은 이미 닫혔어요.",
+          "text": "첫 연결을 닫은 뒤 같은 이름으로 다시 열어 읽어요. 그대로 실행해 볼게요.",
           "target": "text:같은 이름으로 다시 열었는데 표가 사라져요. 첫 연결은 이미 닫혔어요."
         },
         {
@@ -203,7 +203,7 @@
           "action": "patch_code",
           "before": "        String name = new Scanner(System.in).nextLine();\n        String url = \"jdbc:h2:mem:shared\";\n        try (Connection a = DriverManager.getConnection(url, \"sa\", \"\")) {\n            a.createStatement().execute(\"CREATE TABLE memo(title VARCHAR(100))\");\n            try (PreparedStatement p = a.prepareStatement(\"INSERT INTO memo VALUES (?)\")) {\n                p.setString(1, name); p.executeUpdate();\n            }\n        }\n        // 이 시점에는 열린 DB 연결이 하나도 없어요. 같은 프로세스에서 다시 열어요.\n        try (Connection b = DriverManager.getConnection(url, \"sa\", \"\")) {\n            try (ResultSet r = b.createStatement().executeQuery(\"SELECT title FROM memo\")) {\n                r.next(); System.out.println(r.getString(1));\n            } catch (SQLException e) {\n                if (e.getSQLState().equals(\"42S04\") || e.getSQLState().equals(\"42S02\"))\n                    System.out.println(\"다시 연결: 표 없음\");\n                else throw e;\n            }\n        }",
           "after": "        String name = new Scanner(System.in).nextLine();\n        String url = \"jdbc:h2:mem:shared;DB_CLOSE_DELAY=-1\";\n        try (Connection a = DriverManager.getConnection(url, \"sa\", \"\")) {\n            a.createStatement().execute(\"CREATE TABLE memo(title VARCHAR(100))\");\n            try (PreparedStatement p = a.prepareStatement(\"INSERT INTO memo VALUES (?)\")) {\n                p.setString(1, name); p.executeUpdate();\n            }\n        }\n        // 이 시점에는 열린 DB 연결이 하나도 없어요. 같은 프로세스에서 다시 열어요.\n        try (Connection b = DriverManager.getConnection(url, \"sa\", \"\")) {\n            try (ResultSet r = b.createStatement().executeQuery(\"SELECT title FROM memo\")) {\n                r.next(); System.out.println(r.getString(1));\n            } catch (SQLException e) {\n                if (e.getSQLState().equals(\"42S04\") || e.getSQLState().equals(\"42S02\"))\n                    System.out.println(\"다시 연결: 표 없음\");\n                else throw e;\n            }\n        }",
-          "say": "URL에 DB_CLOSE_DELAY=-1을 설정하세요. 연결을 닫는 코드는 유지하세요."
+          "say": "url 뒤에 ;DB_CLOSE_DELAY=-1을 붙여요. 연결을 닫는 코드는 그대로예요."
         },
         {
           "action": "run",
@@ -220,7 +220,7 @@
         {
           "action": "say",
           "text": "조심하세요. 연결을 닫지 않는 코드로 숨기면 자원이 새요. 연결은 닫고 DB의 수명을 따로 설정하세요.",
-          "target": "text:H2 메모리 DB는 기본적으로 마지막 연결이 닫히면 없어져요. `DB_CLOSE_DELAY=-1`은 JVM이 살아 있는 동안 DB를 유지해요. 프로세스 종료 뒤까지 저장하지는 않아요."
+          "target": "text:DB_CLOSE_DELAY=-1은 JVM이 살아 있는 동안 DB를 유지해요."
         },
         {
           "action": "submit"
@@ -256,7 +256,7 @@
         },
         {
           "action": "say",
-          "text": "write 프로세스를 끝낸 뒤 별도 read 프로세스를 실행해요. 같은 DB 이름인데 메모가 없어요.",
+          "text": "이번에는 쓰기와 읽기가 서로 다른 Java 프로세스에서 실행돼요.",
           "target": "text:write 프로세스를 끝낸 뒤 별도 read 프로세스를 실행해요. 같은 DB 이름인데 메모가 없어요."
         },
         {
@@ -268,14 +268,14 @@
         },
         {
           "action": "say",
-          "text": "다른 프로세스: 표 없음이에요. -1은 프로세스 종료를 견디는 저장 기능이 아니에요.",
+          "text": "다른 프로세스: 표 없음이에요. DB_CLOSE_DELAY=-1도 프로세스가 끝나면 함께 사라져요.",
           "target": "output"
         },
         {
           "action": "patch_code",
           "before": "        String title = new Scanner(System.in).nextLine();\n        String url = \"jdbc:h2:mem:shared;DB_CLOSE_DELAY=-1\";\n        child(url, \"write\", title);\n        // 쓰는 프로세스는 이미 끝났어요. 읽기는 다른 프로세스에서 해요.\n        System.out.println(\"다른 프로세스: \" + child(url, \"read\", \"\"));",
           "after": "        String title = new Scanner(System.in).nextLine();\n        String url = \"jdbc:h2:file:./memo\";\n        child(url, \"write\", title);\n        // 쓰는 프로세스는 이미 끝났어요. 읽기는 다른 프로세스에서 해요.\n        System.out.println(\"다른 프로세스: \" + child(url, \"read\", \"\"));",
-          "say": "DB URL을 실습 폴더의 파일 DB로 바꾸세요. 두 프로세스는 그대로 두세요."
+          "say": "url을 실습 폴더의 파일 DB인 jdbc:h2:file:./memo로 바꿔요."
         },
         {
           "action": "run",
@@ -292,7 +292,7 @@
         {
           "action": "say",
           "text": "조심하세요. DB_CLOSE_DELAY=-1은 같은 JVM 안의 설정이에요. 프로그램을 끄면 메모리 DB도 없어져요.",
-          "target": "text:제공된 child 함수는 실제 별도 Java 프로세스를 만들어요. 메모리 DB 이름은 JVM 사이에서 공유되지 않아요. `jdbc:h2:file:./memo`는 현재 실습 폴더의 파일에 저장해요."
+          "target": "text:메모리 DB 이름은 JVM 사이에서 공유되지 않아요."
         },
         {
           "action": "submit"
@@ -331,7 +331,7 @@
         },
         {
           "action": "say",
-          "text": "A와 B가 같은 shared 파일 DB에 메모를 써요. 가게가 다른데 내용이 섞여요.",
+          "text": "A 가게와 B 가게가 같은 shared 파일을 주소로 써요. 실행해서 메모를 볼게요.",
           "target": "text:A와 B가 같은 shared 파일 DB에 메모를 써요. 가게가 다른데 내용이 섞여요."
         },
         {
@@ -350,7 +350,7 @@
           "action": "patch_code",
           "before": "        Scanner in = new Scanner(System.in);\n        String first = in.next(); String second = in.next();\n        String a = \"jdbc:h2:file:./shared\";\n        String b = \"jdbc:h2:file:./shared\";\n        child(a, \"write\", first); child(b, \"write\", second);\n        System.out.println(\"A: \" + child(a, \"read\", \"\"));\n        System.out.println(\"B: \" + child(b, \"read\", \"\"));",
           "after": "        Scanner in = new Scanner(System.in);\n        String first = in.next(); String second = in.next();\n        String a = \"jdbc:h2:file:./shop-a\";\n        String b = \"jdbc:h2:file:./shop-b\";\n        child(a, \"write\", first); child(b, \"write\", second);\n        System.out.println(\"A: \" + child(a, \"read\", \"\"));\n        System.out.println(\"B: \" + child(b, \"read\", \"\"));",
-          "say": "두 URL이 서로 다른 파일을 가리키도록 고치세요. 실제 쓰기·읽기 코드는 유지하세요."
+          "say": "두 주소를 shop-a와 shop-b 파일로 나눠요."
         },
         {
           "action": "run",
@@ -367,7 +367,7 @@
         {
           "action": "say",
           "text": "조심하세요. 파일 DB도 주소가 같으면 메모가 섞여요. 프로세스가 다르다고 가게 데이터가 분리되지는 않아요.",
-          "target": "text:서로 다른 연결이나 프로세스라고 해서 데이터가 자동으로 분리되지는 않아요. 같은 파일 DB 경로는 같은 저장소예요. 상대 경로는 실습 폴더를 기준으로 해요."
+          "target": "text:같은 파일 DB 경로는 같은 저장소예요."
         },
         {
           "action": "submit"
@@ -406,7 +406,7 @@
         },
         {
           "action": "say",
-          "text": "메모를 한 줄씩 쓰는 프로세스가 매번 끝나요. 마지막 프로세스가 두 메모를 모두 읽어야 해요.",
+          "text": "메모를 하나씩 쓰는 프로세스 둘과 읽는 프로세스 하나가 차례로 실행돼요.",
           "target": "text:메모를 한 줄씩 쓰는 프로세스가 매번 끝나요. 마지막 프로세스가 두 메모를 모두 읽어야 해요."
         },
         {
@@ -425,7 +425,7 @@
           "action": "patch_code",
           "before": "        Scanner in = new Scanner(System.in);\n        String a = in.nextLine(); String b = in.nextLine();\n        String url = \"jdbc:h2:mem:final;DB_CLOSE_DELAY=-1\";\n        child(url, \"write\", a);\n        child(url, \"write\", b);\n        System.out.println(\"재시작 후: \" + child(url, \"read\", \"\"));",
           "after": "        Scanner in = new Scanner(System.in);\n        String a = in.nextLine(); String b = in.nextLine();\n        String url = \"jdbc:h2:file:./final\";\n        child(url, \"write\", a);\n        child(url, \"write\", b);\n        System.out.println(\"재시작 후: \" + child(url, \"read\", \"\"));",
-          "say": "세 프로세스가 함께 쓸 파일 DB URL을 구현하세요. 입력 메모를 코드에 직접 쓰지 마세요."
+          "say": "url을 세 프로세스가 함께 여는 파일 DB로 바꿔요."
         },
         {
           "action": "run",
@@ -442,7 +442,7 @@
         {
           "action": "say",
           "text": "조심하세요. 매번 다른 파일 이름을 만들면 이전 메모를 못 찾아요. 세 프로세스가 같은 파일을 열어야 해요.",
-          "target": "text:이번 실행은 세 프로세스를 순서대로 실행해요. 앞에서 만든 파일 DB의 수명을 적용하세요. 제출을 다시 실행하면 새 실습 폴더에서 시작해요."
+          "target": "text:이번 실행은 세 프로세스를 순서대로 실행해요."
         },
         {
           "action": "submit"

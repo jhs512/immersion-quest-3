@@ -1,10 +1,10 @@
 {
   "by": "hand",
-  "source_sha256": "7edabf659d0a7ca4f5c9293aa90c97ad87746f7aecc7f9bb9b11b16d11889b97",
+  "source_sha256": "f48c125a2ceca2717745e5ecf0a9f1e52e70e289552a6813db8965cabaf89f99",
   "entry": [
     {
       "action": "say",
-      "text": "1번에서 2번으로 30을 옮겨요. 준비 코드는 두 변경을 실행하지만 마지막에 취소해요.",
+      "text": "출금과 입금 두 UPDATE가 준비돼 있어요. 그대로 실행해 볼게요.",
       "target": "text:1번에서 2번으로 30을 옮겨요. 준비 코드는 두 변경을 실행하지만 마지막에 취소해요."
     },
     {
@@ -17,14 +17,14 @@
     },
     {
       "action": "say",
-      "text": "업무 하나의 여러 변경을 같은 트랜잭션으로 묶어요.",
-      "target": "code:BEGIN;"
+      "text": "BEGIN 뒤의 두 UPDATE가 한 묶음이에요. 끝이 ROLLBACK이라 둘 다 취소돼요.",
+      "target": "code:ROLLBACK;"
     },
     {
       "action": "patch_code",
       "before": "-- 이 계좌 실험을 같은 잔액에서 재시험하는 공개 준비예요.\nUPDATE account SET balance=100;\nBEGIN;\nUPDATE account SET balance=balance-30 WHERE id=1;\nUPDATE account SET balance=balance+30 WHERE id=2;\nROLLBACK;\n",
       "after": "-- 이 계좌 실험을 같은 잔액에서 재시험하는 공개 준비예요.\nUPDATE account SET balance=100;\nBEGIN;\nUPDATE account SET balance=balance-30 WHERE id=1;\nUPDATE account SET balance=balance+30 WHERE id=2;\nCOMMIT;\n",
-      "say": "두 계좌의 이체를 함께 확정하세요"
+      "say": "마지막 ROLLBACK을 COMMIT으로 바꿔요."
     },
     {
       "action": "run"
@@ -37,7 +37,7 @@
     {
       "action": "say",
       "text": "조심하세요. 첫 UPDATE 직후 COMMIT하면 출금과 입금이 서로 다른 업무 단위가 돼요.",
-      "target": "text:이체가 성공하면 1번은 70, 2번은 130이어야 해요. BEGIN 뒤에 두 변경을 넣고 모두 성공했을 때 COMMIT하세요. 맨 위 UPDATE는 이 연습의 두 계좌를 100으로 맞추는 재시험 준비예요. 이전 COMMIT을 ROLLBACK한 것은 아니에요. 운영 계좌에 적용하는 코드가 아니에요."
+      "target": "text:BEGIN 뒤에 두 변경을 넣고 모두 성공했을 때 COMMIT하세요."
     },
     {
       "action": "submit"

@@ -1,15 +1,15 @@
 {
   "by": "hand",
-  "source_sha256": "144fdbe06b5d97e26f3d1a6efcb1c3c26ca378a9b8adf5222e91b836a9a4b906",
+  "source_sha256": "427cede7c36448624868ed5dc466ba25ec2e4bf703d0223dd0e530eacf19bb22",
   "entry": [
     {
       "action": "say",
-      "text": "외래 키가 두 표 사이의 존재 규칙을 지켜요. 실행할 때 보이는 DROP TABLE이 이 실험의 orders 표만 다시 만들어요. 앞 실행의 잘못된 표에 CREATE를 덧붙이지 않고 두 제약을 같은 조건에서 비교해요. 운영 DB에서 표를 지우라는 뜻은 아니에요.",
+      "text": "DROP TABLE 줄은 orders 표만 다시 만들어요. member 표는 그대로예요.",
       "target": "text:외래 키가 두 표 사이의 존재 규칙을 지켜요. 실행할 때 보이는 DROP TABLE이 이 실험의 orders 표만 다시 만들어요. 앞 실행의 잘못된 표에 CREATE를 덧붙이지 않고 두 제약을 같은 조건에서 비교해요. 운영 DB에서 표를 지우라는 뜻은 아니에요."
     },
     {
       "action": "say",
-      "text": "회원 표에는 1번만 있어요. 다른 클라이언트가 99번 회원의 주문을 보내요.",
+      "text": "회원은 1번만 있는데, 검사 SQL이 99번 회원의 주문도 보내요.",
       "target": "text:회원 표에는 1번만 있어요. 다른 클라이언트가 99번 회원의 주문을 보내요."
     },
     {
@@ -22,14 +22,14 @@
     },
     {
       "action": "say",
-      "text": "외래 키가 두 표 사이의 존재 규칙을 지켜요.",
-      "target": "code:CREATE TABLE orders(id INT PRIMARY KEY, member_id INT NOT NULL);"
+      "text": "지금 member_id는 숫자만 받아요. 그 번호의 회원이 있는지는 보지 않아요.",
+      "target": "code:member_id INT NOT NULL"
     },
     {
       "action": "patch_code",
       "before": "CREATE TABLE orders(id INT PRIMARY KEY, member_id INT NOT NULL);\n",
       "after": "CREATE TABLE orders(id INT PRIMARY KEY, member_id INT NOT NULL, FOREIGN KEY(member_id) REFERENCES member(id));\n",
-      "say": "없는 회원의 주문을 저장하지 못하게 하세요"
+      "say": "member_id가 member.id를 가리키는 FOREIGN KEY를 더해요."
     },
     {
       "action": "run"
@@ -42,7 +42,7 @@
     {
       "action": "say",
       "text": "조심하세요. 주문 번호와 회원 번호는 다른 역할이에요. member_id가 참조할 대상은 member.id예요.",
-      "target": "text:FOREIGN KEY는 참조할 행이 존재해야 한다는 규칙이에요. 참조 번호로 다른 표를 조회하는 것과 잘못된 참조 번호의 저장 자체를 거절하는 것은 다른 일이에요."
+      "target": "text:FOREIGN KEY는 참조할 행이 존재해야 한다는 규칙이에요."
     },
     {
       "action": "submit"

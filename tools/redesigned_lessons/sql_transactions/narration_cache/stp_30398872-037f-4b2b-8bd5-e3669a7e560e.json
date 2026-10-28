@@ -1,10 +1,10 @@
 {
   "by": "hand",
-  "source_sha256": "08a60ab261ba209b65bb20c38e8131901f7b012534a154c1e57193ea7e355077",
+  "source_sha256": "3c602c46f78a31db0ab58fa7e3af47eae1579a2fd241345130a85aafb1bbbc48",
   "entry": [
     {
       "action": "say",
-      "text": "계좌의 잔액 상한은 150이에요. 60을 이체하면 입금이 거절되는데 준비 코드에서는 출금 60만 남아요.",
+      "text": "잔액 상한은 150이에요. 2번에 60을 넣으면 160이라 입금이 거절돼요.",
       "target": "text:계좌의 잔액 상한은 150이에요. 60을 이체하면 입금이 거절되는데 준비 코드에서는 출금 60만 남아요."
     },
     {
@@ -17,14 +17,14 @@
     },
     {
       "action": "say",
-      "text": "원자성은 중간 실패 때 일부 변경만 남기지 않는 성질이에요.",
+      "text": "BEGIN이 없어 이 출금은 실행하자마자 따로 확정돼요.",
       "target": "code:UPDATE account SET balance=balance-60 WHERE id=1;"
     },
     {
       "action": "patch_code",
       "before": "-- 이 계좌 실험을 같은 잔액에서 재시험하는 공개 준비예요.\nUPDATE account SET balance=100;\nUPDATE account SET balance=balance-60 WHERE id=1;\nUPDATE account SET balance=balance+60 WHERE id=2;\n",
       "after": "-- 이 계좌 실험을 같은 잔액에서 재시험하는 공개 준비예요.\nUPDATE account SET balance=100;\nBEGIN;\nUPDATE account SET balance=balance-60 WHERE id=1;\nUPDATE account SET balance=balance+60 WHERE id=2;\nCOMMIT;\n",
-      "say": "입금이 거절되면 출금도 남지 않게 하세요"
+      "say": "두 UPDATE를 BEGIN과 COMMIT으로 감싸요."
     },
     {
       "action": "run"
@@ -36,8 +36,8 @@
     },
     {
       "action": "say",
-      "text": "조심하세요. SELECT 출력만 원래 잔액으로 바꾸는 것은 복구가 아니에요. 제공 조회가 실제 표를 다시 읽어요.",
-      "target": "text:이 실습의 psql은 오류 후에도 다음 문장을 읽어요. 한 트랜잭션 안에서 SQL 오류가 나면 그 트랜잭션은 실패 상태가 돼요. 마지막에 COMMIT을 요청해도 실패한 트랜잭션은 확정되지 않아요. 맨 위 UPDATE는 이 연습의 두 계좌를 100으로 맞추는 재시험 준비예요. 이전 COMMIT을 ROLLBACK한 것은 아니에요. 운영 계좌에 적용하는 코드가 아니에요."
+      "text": "조심하세요. COMMIT을 썼다고 출금이 저장되지는 않아요. 오류가 난 트랜잭션은 통째로 확정되지 않아요.",
+      "target": "text:마지막에 COMMIT을 요청해도 실패한 트랜잭션은 확정되지 않아요."
     },
     {
       "action": "submit"

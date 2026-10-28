@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_9d2042a4-3618-4469-bb7e-94c88bd72658",
-  "revision": "docker-network-ports-2",
+  "revision": "docker-network-ports-3",
   "title": "Docker 네트워크 · localhost는 누구인가요",
   "description": "실제 컨테이너를 연결하고 경계 하나를 바꿔 실패 원인을 확인해요.",
   "objectives": [
@@ -102,7 +102,7 @@
         },
         {
           "action": "say",
-          "text": "서버는 web에 있고 요청은 client에서 보내요. client의 localhost에는 서버가 없어요.",
+          "text": "요청을 보내는 쪽은 client예요. 지금 주소 그대로 실행해 볼게요.",
           "target": "text:서버는 web에 있고 요청은 client에서 보내요. client의 localhost에는 서버가 없어요."
         },
         {
@@ -116,13 +116,13 @@
         {
           "action": "say",
           "text": "localhost는 명령을 실행하는 컨테이너 자신을 가리켜요.",
-          "target": "code:services:"
+          "target": "code:http://localhost:8080"
         },
         {
           "action": "patch_code",
           "before": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://localhost:8080\"]\n",
           "after": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\n",
-          "say": "클라이언트가 web 서비스에 연결하게 하세요"
+          "say": "client의 주소를 localhost에서 서비스 이름 web으로 바꿔요."
         },
         {
           "action": "run"
@@ -135,7 +135,7 @@
         {
           "action": "say",
           "text": "조심하세요. client에도 서버를 띄워 결과만 맞추면 서로 다른 컨테이너를 연결하는 목표를 놓쳐요.",
-          "target": "text:같은 Compose 네트워크의 서비스는 서비스 이름으로 찾아요. web:8080의 8080은 서버 컨테이너 내부 포트예요. 사용자 PC의 8080을 차지하지 않아요."
+          "target": "text:같은 Compose 네트워크의 서비스는 서비스 이름으로 찾아요."
         },
         {
           "action": "submit"
@@ -180,7 +180,7 @@
         },
         {
           "action": "say",
-          "text": "주소는 이제 web이에요. 서버는 자기 안에서 건강하지만 client 요청은 여전히 실패해요.",
+          "text": "client 주소는 이제 web이에요. 이 상태로 먼저 실행해 볼게요.",
           "target": "text:주소는 이제 web이에요. 서버는 자기 안에서 건강하지만 client 요청은 여전히 실패해요."
         },
         {
@@ -188,19 +188,19 @@
         },
         {
           "action": "say",
-          "text": "컨테이너 안 건강 검사는 성공해요. 하지만 서버가 루프백에서만 받아 외부 요청이 실패해요.",
+          "text": "컨테이너 안 건강 검사는 성공해요. 하지만 서버가 127.0.0.1에서만 기다려 client 요청은 실패해요.",
           "target": "output"
         },
         {
           "action": "say",
           "text": "이름을 찾는 것과 서버가 어느 인터페이스에서 기다리는지는 별개의 조건이에요.",
-          "target": "code:services:"
+          "target": "code:\"-p\", \"127.0.0.1:8080\""
         },
         {
           "action": "patch_code",
           "before": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"127.0.0.1:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\n",
           "after": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\n",
-          "say": "서버가 다른 컨테이너의 연결도 받게 하세요"
+          "say": "web의 바인드 주소를 127.0.0.1에서 0.0.0.0으로 바꿔요."
         },
         {
           "action": "run"
@@ -213,7 +213,7 @@
         {
           "action": "say",
           "text": "조심하세요. 호스트에 0.0.0.0으로 포트를 공개하라는 뜻은 아니에요. 지금 고치는 것은 컨테이너 내부 서버 주소예요.",
-          "target": "text:서버가 컨테이너의 127.0.0.1에서만 기다리면 다른 컨테이너의 요청을 받지 못해요. 서버 내부의 바인드 주소를 0.0.0.0으로 바꾸세요. 호스트의 모든 주소에 포트를 공개하는 설정과는 달라요."
+          "target": "text:호스트의 모든 주소에 포트를 공개하는 설정과는 달라요."
         },
         {
           "action": "submit"
@@ -250,7 +250,7 @@
         },
         {
           "action": "say",
-          "text": "이번에는 서버 주소도 맞지만 web과 client를 서로 다른 네트워크로 나눠 두었어요.",
+          "text": "서버 주소는 맞아요. 이번에는 두 서비스가 연결된 네트워크를 볼게요.",
           "target": "text:이번에는 서버 주소도 맞지만 web과 client를 서로 다른 네트워크로 나눠 두었어요."
         },
         {
@@ -264,13 +264,13 @@
         {
           "action": "say",
           "text": "서비스 이름으로 통신하려면 통신 가능한 네트워크를 공유해야 해요.",
-          "target": "code:services:"
+          "target": "code:networks: [back]"
         },
         {
           "action": "patch_code",
           "before": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    networks: [front]\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    networks: [back]\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\nnetworks:\n  front:\n  back:\n",
           "after": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    networks: [front]\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    networks: [front]\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\nnetworks:\n  front:\n  back:\n",
-          "say": "통신할 두 서비스를 같은 네트워크에 넣으세요"
+          "say": "client의 네트워크를 back에서 front로 바꿔요."
         },
         {
           "action": "run"
@@ -283,7 +283,7 @@
         {
           "action": "say",
           "text": "조심하세요. network_mode: host로 피하지 마세요. 사용자 PC의 네트워크와 분리된 실습 네트워크를 유지해야 해요.",
-          "target": "text:client가 web과 공유하는 front 네트워크에 참여하도록 고치세요. 네트워크를 분리하는 것은 이름만 다르게 붙이는 것이 아니라 통신 경계를 만드는 일이에요."
+          "target": "text:네트워크를 분리하는 것은 이름만 다르게 붙이는 것이 아니라 통신 경계를 만드는 일이에요."
         },
         {
           "action": "submit"
@@ -320,7 +320,7 @@
         },
         {
           "action": "say",
-          "text": "client에서는 연결돼요. 이번에는 PC의 브라우저에서도 접속할 수 있어야 해요.",
+          "text": "컨테이너끼리는 이미 연결돼요. 이번에는 PC에서 들어오는 길을 열어요.",
           "target": "text:client에서는 연결돼요. 이번에는 PC의 브라우저에서도 접속할 수 있어야 해요."
         },
         {
@@ -334,13 +334,13 @@
         {
           "action": "say",
           "text": "컨테이너 내부 포트와 호스트 공개 포트는 서로 다른 주소 영역이에요.",
-          "target": "code:services:"
+          "target": "code:\"0.0.0.0:8080\""
         },
         {
           "action": "patch_code",
           "before": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    networks: [front]\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    networks: [front]\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\nnetworks:\n  front:\n  back:\n",
           "after": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    ports: [\"127.0.0.1::8080\"]\n    networks: [front]\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    networks: [front]\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\nnetworks:\n  front:\n  back:\n",
-          "say": "PC에서도 빈 포트로 서버에 연결하게 하세요"
+          "say": "web에 ports를 더해 PC의 빈 포트를 8080에 이어요."
         },
         {
           "action": "run"
@@ -353,7 +353,7 @@
         {
           "action": "say",
           "text": "조심하세요. client의 주소를 호스트 포트로 바꾸지 마세요. 컨테이너 간 연결은 내부 포트와 서비스 이름을 그대로 써요.",
-          "target": "text:web에 127.0.0.1::8080 포트 연결을 추가하세요. 가운데 호스트 포트를 비워 Docker가 빈 포트를 고르게 해요. 실습 스크립트가 실제 배정 주소를 엔진에 물어보고 PC에서 요청해요."
+          "target": "text:web에 127.0.0.1::8080 포트 연결을 추가하세요."
         },
         {
           "action": "submit"

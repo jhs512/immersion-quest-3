@@ -1,15 +1,15 @@
 {
   "by": "hand",
-  "source_sha256": "4e171c72f775dd7b20e4da7eca5504148aed3e29ac76b2d326773ccad1d43b2a",
+  "source_sha256": "4f36e1a45bf9afe66d01b81c19058a561c1e5e6ca4bb044074a7ce38d2fce1eb",
   "entry": [
     {
       "action": "say",
-      "text": "CHECK는 저장되는 각 행의 값 범위를 보호해요. 실행할 때 보이는 DROP TABLE이 이 실험의 wallet 표만 다시 만들어요. 앞 실행의 잘못된 표에 CREATE를 덧붙이지 않고 두 제약을 같은 조건에서 비교해요. 운영 DB에서 표를 지우라는 뜻은 아니에요.",
+      "text": "DROP TABLE 줄이 wallet 표를 새로 만들어요. 잔액 규칙만 바꿔 비교해요.",
       "target": "text:CHECK는 저장되는 각 행의 값 범위를 보호해요. 실행할 때 보이는 DROP TABLE이 이 실험의 wallet 표만 다시 만들어요. 앞 실행의 잘못된 표에 CREATE를 덧붙이지 않고 두 제약을 같은 조건에서 비교해요. 운영 DB에서 표를 지우라는 뜻은 아니에요."
     },
     {
       "action": "say",
-      "text": "서로 다른 클라이언트가 잔액 0, -1, 7인 행을 보내요. 음수 잔액만 막아야 해요.",
+      "text": "검사 SQL은 잔액 0, -1, 7을 넣어요. 막을 것은 음수 하나예요.",
       "target": "text:서로 다른 클라이언트가 잔액 0, -1, 7인 행을 보내요. 음수 잔액만 막아야 해요."
     },
     {
@@ -22,14 +22,14 @@
     },
     {
       "action": "say",
-      "text": "CHECK는 저장되는 각 행의 값 범위를 보호해요.",
-      "target": "code:CREATE TABLE wallet(id INT PRIMARY KEY, balance INT NOT NULL);"
+      "text": "지금 balance는 NOT NULL뿐이라 값만 있으면 음수도 받아요.",
+      "target": "code:balance INT NOT NULL"
     },
     {
       "action": "patch_code",
       "before": "CREATE TABLE wallet(id INT PRIMARY KEY, balance INT NOT NULL);\n",
       "after": "CREATE TABLE wallet(id INT PRIMARY KEY, balance INT NOT NULL CHECK(balance >= 0));\n",
-      "say": "금액이 음수인 행을 DB에서 막으세요"
+      "say": "balance에 0 이상이라는 CHECK를 더해요."
     },
     {
       "action": "run"
@@ -42,7 +42,7 @@
     {
       "action": "say",
       "text": "조심하세요. 0도 허용되는 잔액이에요. > 0으로 검사하면 정상인 0원을 거절해요.",
-      "target": "text:NOT NULL은 값의 존재만 검사해요. CHECK는 각 행의 조건을 검사해요. MySQL 8.4는 CHECK를 실제로 적용해요."
+      "target": "text:CHECK는 각 행의 조건을 검사해요."
     },
     {
       "action": "submit"

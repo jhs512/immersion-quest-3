@@ -1,15 +1,15 @@
 {
   "by": "hand",
-  "source_sha256": "3367db70055986d5284a9157a6e4c9ac95341beda705edb707cc2842f792092a",
+  "source_sha256": "5b04723a6567f5f0eaffad2f7196b9ea3cd37824b25209fc8f9fb5696f1dbdc4",
   "entry": [
     {
       "action": "say",
-      "text": "같은 마이그레이션을 다시 실행해도 기존 열 때문에 실패하지 않도록 ADD COLUMN IF NOT EXISTS를 사용해요. 이는 같은 이름의 열이 있는 경우 추가를 생략할 뿐, 기존 열의 자료형과 제약까지 검증해 주지는 않아요.",
+      "text": "migration.sql은 이미 있는 DB에 보내는 변경이에요. 다시 실행해도 실패하지 않게 써야 해요.",
       "target": "text:같은 마이그레이션을 다시 실행해도 기존 열 때문에 실패하지 않도록 ADD COLUMN IF NOT EXISTS를 사용해요. 이는 같은 이름의 열이 있는 경우 추가를 생략할 뿐, 기존 열의 자료형과 제약까지 검증해 주지는 않아요."
     },
     {
       "action": "say",
-      "text": "첫 실행에서 milk 메모를 저장했어요. init.sql을 새 표 정의로 바꿔 컨테이너를 다시 만들어도 기존 DB의 표는 바뀌지 않아요.",
+      "text": "milk 메모가 든 DB가 이미 있어요. init.sql만 바꾼 지금 상태로 실행해 볼게요.",
       "target": "text:첫 실행에서 milk 메모를 저장했어요. init.sql을 새 표 정의로 바꿔 컨테이너를 다시 만들어도 기존 DB의 표는 바뀌지 않아요."
     },
     {
@@ -30,7 +30,7 @@
       "action": "patch_code",
       "before": "-- 기존 DB에 필요한 스키마 변경을 구현하세요.\n",
       "after": "ALTER TABLE memo ADD COLUMN IF NOT EXISTS version INT DEFAULT 1 NOT NULL;\n",
-      "say": "기존 메모를 보존하며 새 열을 추가하세요"
+      "say": "ALTER TABLE로 version 열을 기본값 1, NOT NULL로 더해요. 이미 있으면 건너뛰어요."
     },
     {
       "action": "run"
@@ -43,7 +43,7 @@
     {
       "action": "say",
       "text": "조심하세요. 볼륨을 지우고 다시 초기화하면 새 열은 생겨도 기존 사용자 데이터가 사라져요. 지금 목표는 기존 행을 지키는 변경이에요.",
-      "target": "text:이미 데이터가 있는 볼륨이면 초기화 스크립트를 다시 실행하지 않아요. migration.sql에서 memo에 version INT DEFAULT 1 NOT NULL 열을 추가하세요. 기존 행과 새 열의 기본값을 함께 보존해야 해요."
+      "target": "text:이미 데이터가 있는 볼륨이면 초기화 스크립트를 다시 실행하지 않아요."
     },
     {
       "action": "submit"

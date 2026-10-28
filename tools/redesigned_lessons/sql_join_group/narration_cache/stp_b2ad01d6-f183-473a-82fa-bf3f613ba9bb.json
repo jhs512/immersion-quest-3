@@ -1,10 +1,10 @@
 {
   "by": "hand",
-  "source_sha256": "91d544a513d957a89d44a997ab35edad55fbfe2999416d57a1af6f18811e4495",
+  "source_sha256": "1913d6ea603d4fe400c9a42eb5ea91cdc60ecac66e7de0d1bb9d29a2106832a5",
   "entry": [
     {
       "action": "say",
-      "text": "LEFT JOIN으로 C를 남겼더니 주문 수도 1로 나와요. 화면의 한 행과 실제 주문 한 건은 달라요.",
+      "text": "LEFT JOIN으로 C는 남아 있어요. 이번에는 주문 수를 세요.",
       "target": "text:LEFT JOIN으로 C를 남겼더니 주문 수도 1로 나와요. 화면의 한 행과 실제 주문 한 건은 달라요."
     },
     {
@@ -17,14 +17,14 @@
     },
     {
       "action": "say",
-      "text": "COUNT(*)와 COUNT(열)이 세는 대상의 차이를 이해해요.",
-      "target": "code:SELECT m.name || ':' || COUNT(*) FROM member m LEFT JOIN orders o ON o.member_id=m.id GROUP BY m.id,m.name ORDER BY m.id;"
+      "text": "COUNT(*)는 NULL을 붙인 행까지 한 행으로 세요.",
+      "target": "code:COUNT(*)"
     },
     {
       "action": "patch_code",
       "before": "SELECT m.name || ':' || COUNT(*) FROM member m LEFT JOIN orders o ON o.member_id=m.id GROUP BY m.id,m.name ORDER BY m.id;\n",
       "after": "SELECT m.name || ':' || COUNT(o.id) FROM member m LEFT JOIN orders o ON o.member_id=m.id GROUP BY m.id,m.name ORDER BY m.id;\n",
-      "say": "주문 없는 회원의 주문 수를 0으로 세세요"
+      "say": "COUNT(*)를 주문 번호를 세는 COUNT(o.id)로 바꿔요."
     },
     {
       "action": "run"
@@ -37,7 +37,7 @@
     {
       "action": "say",
       "text": "조심하세요. 금액이 0인 주문도 주문이에요. amount > 0으로 세면 그 주문을 빼요.",
-      "target": "text:COUNT(*)는 NULL로 확장된 행도 세어요. COUNT(o.id)는 NULL이 아닌 주문 번호만 세어요. 기본 키 id는 실제 주문이면 NULL일 수 없어요."
+      "target": "text:COUNT(o.id)는 NULL이 아닌 주문 번호만 세어요."
     },
     {
       "action": "submit"

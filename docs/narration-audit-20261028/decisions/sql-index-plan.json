@@ -1,0 +1,150 @@
+[
+ {
+  "lesson": "sql-index-plan",
+  "step": "stp_c5de3091-878f-4110-b0c1-fc8540664002",
+  "checked": {
+   "조심하세요. id 인덱스가 code 검색을 대신해 주지는 않아요. 조회 조건의 열을 확인하세요.": "전수 검토 2026-10-28: 인덱스 없음 경로 false·일치 1 → CREATE INDEX ON parcel(code) → true·1. 템플릿 결함: DROP INDEX 문단·상황 문단 재낭독, 목표를 반복하는 개념 문장이 CREATE 줄 전체를 강조, 코드 변경 중 제목 명령문, 경고가 알아두세요 전체를 강조. 모두 고쳤다. 미해결(본문): 할 일 2번이 제목 복사(마침표 없음), 모든 스텝에 같은 DROP INDEX 안내 문단."
+  },
+  "findings": [
+   {
+    "sentence": "맨 위 DROP INDEX는 이 문제에서 비교할 parcel_code 인덱스만 다시 준비해요. 송장 행과 기본 키 인덱스는 지우지 않아요. 같은 이름의 이전 색인이 남아 새 정의를 막지 않게 해요.",
+    "fix": "맨 위 DROP INDEX는 이 실험의 parcel_code 인덱스만 지우고 다시 시작하게 해요.",
+    "issue": "본문 문단을 그대로 다시 읽는다(콘텐츠 룰). 세 문장 문단.",
+    "reason": "DROP INDEX의 역할만 짧게 말한다.",
+    "status": "fixed"
+   },
+   {
+    "sentence": "송장 5만 건에서 코드 하나를 찾아요. id에는 기본 키 인덱스가 있지만 code에는 없어요.",
+    "fix": "송장 5만 건이 있어요. id에는 인덱스가 있지만 찾을 열은 code예요.",
+    "issue": "본문 문단을 그대로 다시 읽는다(콘텐츠 룰).",
+    "reason": "시작 상태와 검색 열을 말한다.",
+    "status": "fixed"
+   },
+   {
+    "sentence": "송장 코드 조회용 인덱스를 만드세요",
+    "fix": "code 열에 parcel_code 인덱스를 만들어요.",
+    "issue": "코드를 바꾸는 동안 제목 명령문을 그대로 말해 무엇을 바꾸는지 알려 주지 않는다.",
+    "reason": "patch_code: 주석 → CREATE INDEX parcel_code ON parcel(code)",
+    "status": "fixed"
+   }
+  ]
+ },
+ {
+  "lesson": "sql-index-plan",
+  "step": "stp_e041714b-7a21-4765-bbca-7aee74cd87b9",
+  "checked": {
+   "조심하세요. WHERE를 대소문자 구분 검색으로 바꿔 통과하려 하면 원래 검색 요구가 바뀌어요.": "전수 검토 2026-10-28: code 인덱스로 lower(code) 검색 false → lower(code) 표현식 인덱스 → true. 템플릿 결함: DROP INDEX 문단·상황 문단 재낭독, 목표를 반복하는 개념 문장이 CREATE 줄 전체를 강조, 코드 변경 중 제목 명령문, 경고가 알아두세요 전체를 강조. 모두 고쳤다. 미해결(본문): 할 일 2번이 제목 복사(마침표 없음), 모든 스텝에 같은 DROP INDEX 안내 문단."
+  },
+  "findings": [
+   {
+    "sentence": "맨 위 DROP INDEX는 이 문제에서 비교할 parcel_code, parcel_lower 인덱스만 다시 준비해요. 송장 행과 기본 키 인덱스는 지우지 않아요. 같은 이름의 이전 색인이 남아 새 정의를 막지 않게 해요.",
+    "fix": "DROP INDEX 두 줄은 이번에 비교할 두 인덱스만 지우고 시작해요.",
+    "issue": "본문 문단을 그대로 다시 읽는다(콘텐츠 룰). 세 문장 문단.",
+    "reason": "DROP INDEX의 역할만 짧게 말한다.",
+    "status": "fixed"
+   },
+   {
+    "sentence": "이번 검색은 lower(code)를 비교해요. code 인덱스를 만들었지만 계획은 여전히 전체 표를 읽어요.",
+    "fix": "이번 검색 조건은 code가 아니라 lower(code)예요. 준비 코드에는 code 인덱스만 있어요.",
+    "issue": "본문 문단을 그대로 다시 읽는다(콘텐츠 룰).",
+    "reason": "검색 키와 현재 인덱스 키의 차이를 말한다.",
+    "status": "fixed"
+   },
+   {
+    "sentence": "열 값과 그 값에 함수를 적용한 결과는 다른 검색 키예요.",
+    "fix": "이 인덱스의 키는 원래 code 값이에요. lower(code)로 찾는 검색과 키가 달라요.",
+    "issue": "목표 문장을 그대로 반복하고 CREATE 줄 전체를 강조해 지금 인덱스의 키를 말하지 않는다.",
+    "reason": "강조를 ON parcel(code)로 옮긴다.",
+    "status": "fixed"
+   },
+   {
+    "sentence": "대소문자를 무시하는 검색 경로를 만드세요",
+    "fix": "인덱스 키를 lower(code) 표현식으로 바꿔요.",
+    "issue": "코드를 바꾸는 동안 제목 명령문을 그대로 말해 무엇을 바꾸는지 알려 주지 않는다.",
+    "reason": "patch_code: parcel(code) → parcel_lower ON parcel(lower(code))",
+    "status": "fixed"
+   }
+  ]
+ },
+ {
+  "lesson": "sql-index-plan",
+  "step": "stp_a8cb6a76-c22b-4caa-8f47-86c5583c7740",
+  "checked": {
+   "조심하세요. 부분 인덱스의 WHERE는 조회 결과를 거르는 WHERE와 달라요. 조회가 필요한 행을 인덱스가 빠뜨리면 쓸 수 없어요.": "전수 검토 2026-10-28: done 부분 인덱스 false → waiting 부분 인덱스 true. 템플릿 결함: DROP INDEX 문단·상황 문단 재낭독, 목표를 반복하는 개념 문장이 CREATE 줄 전체를 강조, 코드 변경 중 제목 명령문, 경고가 알아두세요 전체를 강조. 모두 고쳤다. 미해결(본문): 할 일 2번이 제목 복사(마침표 없음), 모든 스텝에 같은 DROP INDEX 안내 문단."
+  },
+  "findings": [
+   {
+    "sentence": "맨 위 DROP INDEX는 이 문제에서 비교할 parcel_waiting 인덱스만 다시 준비해요. 송장 행과 기본 키 인덱스는 지우지 않아요. 같은 이름의 이전 색인이 남아 새 정의를 막지 않게 해요.",
+    "fix": "DROP INDEX 줄은 parcel_waiting 인덱스만 새로 만들게 해요. 송장 행은 그대로예요.",
+    "issue": "본문 문단을 그대로 다시 읽는다(콘텐츠 룰). 세 문장 문단.",
+    "reason": "DROP INDEX의 역할만 짧게 말한다.",
+    "status": "fixed"
+   },
+   {
+    "sentence": "5만 건 중 대기 송장은 50건이에요. 화면은 대기 상태의 코드 하나만 검색해요.",
+    "fix": "5만 건 중 대기 송장은 50건뿐이에요. 화면은 대기 송장만 검색해요.",
+    "issue": "본문 문단을 그대로 다시 읽는다(콘텐츠 룰).",
+    "reason": "데이터 분포와 검색 대상을 말한다.",
+    "status": "fixed"
+   },
+   {
+    "sentence": "부분 인덱스는 행을 삭제하지 않고 색인할 행을 제한해요.",
+    "fix": "지금 부분 인덱스는 완료 행만 담아요. 대기 송장 검색에는 쓸 수 없어요.",
+    "issue": "목표 문장을 그대로 반복하고 CREATE 줄 전체를 강조해 지금 인덱스의 키를 말하지 않는다.",
+    "reason": "강조를 WHERE state='done'으로 옮긴다.",
+    "status": "fixed"
+   },
+   {
+    "sentence": "대기 중인 송장만 담는 인덱스를 만드세요",
+    "fix": "부분 인덱스 조건을 done에서 waiting으로 바꿔요.",
+    "issue": "코드를 바꾸는 동안 제목 명령문을 그대로 말해 무엇을 바꾸는지 알려 주지 않는다.",
+    "reason": "patch_code: state='done' → state='waiting'",
+    "status": "fixed"
+   }
+  ]
+ },
+ {
+  "lesson": "sql-index-plan",
+  "step": "stp_4a4e60a1-1514-4567-abb0-c0a856006353",
+  "checked": {
+   "조심하세요. 이 데이터에서 선택된 계획이 모든 데이터에 가장 빠르다는 뜻은 아니에요. 데이터가 달라지면 다시 EXPLAIN으로 확인하세요.": "전수 검토 2026-10-28: city 인덱스 경로 true·구조 false → (city, lower(code)) WHERE waiting → 구조 true. 템플릿 결함: DROP INDEX 문단·상황 문단 재낭독, 목표를 반복하는 개념 문장이 CREATE 줄 전체를 강조, 코드 변경 중 제목 명령문, 경고가 알아두세요 전체를 강조. 모두 고쳤다. 첫 결과 문장이 화면의 「인덱스 경로 true·구조 false」를 읽지 않아 고쳤다. 미해결(본문): 할 일 2번이 제목 복사(마침표 없음), 모든 스텝에 같은 DROP INDEX 안내 문단."
+  },
+  "findings": [
+   {
+    "sentence": "맨 위 DROP INDEX는 이 문제에서 비교할 parcel_city, parcel_lookup 인덱스만 다시 준비해요. 송장 행과 기본 키 인덱스는 지우지 않아요. 같은 이름의 이전 색인이 남아 새 정의를 막지 않게 해요.",
+    "fix": "마지막도 DROP INDEX 두 줄로 parcel_city와 parcel_lookup만 새로 준비해요.",
+    "issue": "본문 문단을 그대로 다시 읽는다(콘텐츠 룰). 세 문장 문단.",
+    "reason": "DROP INDEX의 역할만 짧게 말한다.",
+    "status": "fixed"
+   },
+   {
+    "sentence": "지역별 대기 송장 화면을 만들어요. 코드의 대소문자를 무시하면서 지정한 지역의 송장 하나를 찾아야 해요.",
+    "fix": "찾는 조건은 세 가지예요. 지역, 대기 상태, 대소문자를 무시한 코드예요.",
+    "issue": "본문 문단을 그대로 다시 읽는다(콘텐츠 룰).",
+    "reason": "검색 조건 세 개를 정리한다.",
+    "status": "fixed"
+   },
+   {
+    "sentence": "city 인덱스도 일부 후보를 줄일 수 있어요. 이번 도전은 검색 조건 전체를 담는 색인 구조를 만드는 거예요.",
+    "fix": "인덱스 경로는 이미 true예요. city 인덱스가 후보를 줄였지만 구조는 false예요.",
+    "issue": "화면의 실제 결과(인덱스 경로 true, 구조 false)를 읽지 않는다.",
+    "reason": "첫 실행 출력: 인덱스 경로:true / 일치:1 / 구조:false.",
+    "status": "fixed"
+   },
+   {
+    "sentence": "조건과 데이터 분포에 맞는 검색 키를 직접 구성해요.",
+    "fix": "지금 인덱스는 city 하나만 키로 써요.",
+    "issue": "목표 문장을 그대로 반복하고 CREATE 줄 전체를 강조해 지금 인덱스의 키를 말하지 않는다.",
+    "reason": "강조를 ON parcel(city)로 옮긴다.",
+    "status": "fixed"
+   },
+   {
+    "sentence": "지역·상태·대소문자 조건을 함께 지원하세요",
+    "fix": "city와 lower(code)를 키로, 대기 행만 담는 인덱스로 바꿔요.",
+    "issue": "코드를 바꾸는 동안 제목 명령문을 그대로 말해 무엇을 바꾸는지 알려 주지 않는다.",
+    "reason": "patch_code: parcel(city) → parcel_lookup ON parcel(city,lower(code)) WHERE state='waiting'",
+    "status": "fixed"
+   }
+  ]
+ }
+]

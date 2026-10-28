@@ -1,10 +1,10 @@
 {
   "by": "hand",
-  "source_sha256": "71faeed3d15ce50c9cf567ecc67e011f8d0ff77b81038c208a2aa433dee62f39",
+  "source_sha256": "08704f53bbeba6222388c6f40204692f784bb26898702f0118e53122bff583bc",
   "entry": [
     {
       "action": "say",
-      "text": "잔액은 각각 100이고 상한은 150이에요. 60을 이체하면 출금은 성공하지만 입금은 제약 오류가 나요.",
+      "text": "잔액은 각각 100, 상한은 150이에요. 2번에 60을 넣으면 160이라 입금이 거절돼요.",
       "target": "text:잔액은 각각 100이고 상한은 150이에요. 60을 이체하면 출금은 성공하지만 입금은 제약 오류가 나요."
     },
     {
@@ -23,7 +23,7 @@
       "action": "patch_code",
       "before": "   c.createStatement().execute(\"ALTER TABLE member ADD CONSTRAINT cap CHECK(balance<=150)\");\n   int amount=new Scanner(System.in).nextInt();\n   try {\n    try (PreparedStatement out=c.prepareStatement(\"UPDATE member SET balance=balance-? WHERE id=1\");\n         PreparedStatement in=c.prepareStatement(\"UPDATE member SET balance=balance+? WHERE id=2\")) {\n     out.setInt(1,amount); out.executeUpdate();\n     in.setInt(1,amount); in.executeUpdate();\n    }\n   } catch(SQLException error) {\n    // 실패했을 때 이체 전체를 되돌려야 해요.\n   }\n   try (ResultSet rows=c.createStatement().executeQuery(\"SELECT balance FROM member ORDER BY id\")) {\n    while(rows.next()) System.out.println(rows.getInt(1));\n   }",
       "after": "   c.createStatement().execute(\"ALTER TABLE member ADD CONSTRAINT cap CHECK(balance<=150)\");\n   int amount=new Scanner(System.in).nextInt();\n   c.setAutoCommit(false);\n   try {\n    try (PreparedStatement out=c.prepareStatement(\"UPDATE member SET balance=balance-? WHERE id=1\");\n         PreparedStatement in=c.prepareStatement(\"UPDATE member SET balance=balance+? WHERE id=2\")) {\n     out.setInt(1,amount); out.executeUpdate();\n     in.setInt(1,amount); in.executeUpdate();\n    }\n    c.commit();\n   } catch(SQLException error) {\n    c.rollback();\n   }\n   try (ResultSet rows=c.createStatement().executeQuery(\"SELECT balance FROM member ORDER BY id\")) {\n    while(rows.next()) System.out.println(rows.getInt(1));\n   }",
-      "say": "JDBC 이체가 중간에 실패하면 전체를 취소하세요"
+      "say": "자동 확정을 끄고, 두 변경이 끝나면 commit, 예외면 rollback해요."
     },
     {
       "action": "run",
@@ -34,13 +34,13 @@
     },
     {
       "action": "say",
-      "text": "정상 이체는 두 잔액이 함께 바뀌고 입금이 실패한 경우에는 둘 다 100으로 돌아와요.",
+      "text": "100과 100이에요. 입금이 실패하자 출금까지 함께 취소됐어요.",
       "target": "output"
     },
     {
       "action": "say",
       "text": "조심하세요. 예외를 잡아 메시지만 출력하면 이미 확정한 출금이 취소되지는 않아요. 자동 확정부터 끄고 실패 시 rollback해야 해요.",
-      "target": "text:첫 UPDATE 전에 setAutoCommit(false)를 호출하세요. 두 변경이 성공한 뒤 commit하고 SQLException을 받으면 rollback하세요. 준비된 표와 마지막 조회는 그대로 두세요."
+      "target": "text:첫 UPDATE 전에 setAutoCommit(false)를 호출하세요."
     },
     {
       "action": "submit"

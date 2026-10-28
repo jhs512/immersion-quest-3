@@ -1,10 +1,10 @@
 {
   "by": "hand",
-  "source_sha256": "fb76d9120156c6a8c73ec3a98a157afb2541146f6dae18ec827712b7f3ae9487",
+  "source_sha256": "8f3dd8cd08fd9ab096254ffa25a35df3c4c6c2573dfdbf4e44bb3ffc4bb32026",
   "entry": [
     {
       "action": "say",
-      "text": "먼저 10을 입금하고 보너스를 더하려 해요. 보너스 100은 상한을 넘으므로 취소하되 처음 입금 10은 남겨야 해요.",
+      "text": "10 입금은 남기고, 상한을 넘는 보너스 100만 취소해야 해요.",
       "target": "text:먼저 10을 입금하고 보너스를 더하려 해요. 보너스 100은 상한을 넘으므로 취소하되 처음 입금 10은 남겨야 해요."
     },
     {
@@ -17,14 +17,14 @@
     },
     {
       "action": "say",
-      "text": "SAVEPOINT는 한 트랜잭션 안에서 되돌아갈 지점을 만들어요.",
-      "target": "code:BEGIN;"
+      "text": "지금은 끝의 ROLLBACK이 트랜잭션 전체를 취소해요.",
+      "target": "code:ROLLBACK;"
     },
     {
       "action": "patch_code",
       "before": "-- 이 계좌 실험을 같은 잔액에서 재시험하는 공개 준비예요.\nUPDATE account SET balance=100;\nBEGIN;\nUPDATE account SET balance=balance+10 WHERE id=1;\nUPDATE account SET balance=balance+100 WHERE id=1;\nROLLBACK;\n",
       "after": "-- 이 계좌 실험을 같은 잔액에서 재시험하는 공개 준비예요.\nUPDATE account SET balance=100;\nBEGIN;\nUPDATE account SET balance=balance+10 WHERE id=1;\nSAVEPOINT bonus;\nUPDATE account SET balance=balance+100 WHERE id=1;\nROLLBACK TO bonus;\nCOMMIT;\n",
-      "say": "선택 작업의 실패만 취소하세요"
+      "say": "보너스 앞에 SAVEPOINT bonus를 두고, 끝을 ROLLBACK TO bonus와 COMMIT으로 바꿔요."
     },
     {
       "action": "run"
@@ -37,7 +37,7 @@
     {
       "action": "say",
       "text": "조심하세요. SAVEPOINT가 오류를 자동으로 무시하지는 않아요. 실패 후 되돌릴 지점을 명시해야 계속 진행할 수 있어요.",
-      "target": "text:보너스를 시도하기 직전에 SAVEPOINT bonus를 만드세요. 오류가 나면 ROLLBACK TO bonus로 실패 상태를 해제하고 앞의 정상 변경을 COMMIT하세요. 맨 위 UPDATE는 이 연습의 두 계좌를 100으로 맞추는 재시험 준비예요. 이전 COMMIT을 ROLLBACK한 것은 아니에요. 운영 계좌에 적용하는 코드가 아니에요."
+      "target": "text:보너스를 시도하기 직전에 SAVEPOINT bonus를 만드세요."
     },
     {
       "action": "submit"

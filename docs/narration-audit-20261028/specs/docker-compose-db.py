@@ -1,0 +1,30 @@
+KEY = 'docker-compose-db'
+T = '템플릿 결함: 상황 문단 재낭독, 목표를 반복하는 개념 문장이 services: 전체를 강조, 코드 변경 중 제목 명령문, 경고가 알아두세요 전체를 강조. 고쳤다. '
+U = '미해결(본문): 할 일 2번이 제목 복사(마침표 없음).'
+REREAD = '본문 문단을 그대로 다시 읽는다(콘텐츠 룰).'
+REPEAT = '목표 문장을 그대로 반복하고 services: 전체를 강조해 어느 줄이 문제인지 말하지 않는다.'
+TITLE = '코드를 바꾸는 동안 제목 명령문을 그대로 말해 무엇을 바꾸는지 알려 주지 않는다.'
+NOTES = {
+    1: '전수 검토 2026-10-28: -h localhost → connection failed → -h db → connected. ' + T + U,
+    2: '전수 검토 2026-10-28: data:/data → down 뒤 표 없음 → data:/var/lib/postgresql → down:1. ' + T + U,
+    3: '전수 검토 2026-10-28: init.sql만 변경 → version 오류 → ALTER TABLE ADD COLUMN IF NOT EXISTS → milk:1. 상황보다 IF NOT EXISTS 문단을 먼저 낭독하던 순서·재낭독을 고쳤다. 제목 명령문·경고 강조 수정. ' + U,
+}
+TARGETS = [
+    (1, '데이터베이스 연결 주소는', 'code:"-h", "localhost"'),
+    (1, '조심하세요. PC에 이미', 'text:같은 네트워크의 db 서비스 이름과 내부 포트를 사용하세요.'),
+    (2, '볼륨은 데이터베이스가', 'code:"data:/data"'),
+    (2, '조심하세요. 이미지 버전마다', 'text:준비된 PostgreSQL 18 이미지는 /var/lib/postgresql 아래에 데이터를 저장해요.'),
+    (3, '조심하세요. 볼륨을 지우고', 'text:이미 데이터가 있는 볼륨이면 초기화 스크립트를 다시 실행하지 않아요.'),
+]
+FIXES = {
+    1: [('db 컨테이너에 PostgreSQL이 있고', 'DB는 db 컨테이너에 있고, psql은 app 컨테이너에서 실행돼요. 그대로 실행해 볼게요.', REREAD, '두 컨테이너의 역할을 말하고 실행으로 넘긴다.'),
+        ('데이터베이스 연결 주소는', 'app의 -h localhost는 app 컨테이너 자신을 가리켜요.', REPEAT, '강조를 "-h", "localhost"로 옮겨 연결 실패의 원인을 말한다.'),
+        ('app이 db 서비스의 데이터베이스에 접속하게 하세요', 'app의 접속 호스트를 localhost에서 서비스 이름 db로 바꿔요.', TITLE, 'patch_code: "-h", "localhost" → "-h", "db"')],
+    2: [('제공한 lab.sh는 연습용 memo 표의', 'lab.sh는 memo 표를 milk 한 행으로 맞춘 뒤 재시작·재생성·down을 차례로 해요.', REREAD + ' 세 문장 문단.', '실험 순서만 말한다.'),
+        ('볼륨 data가 있지만 /data에', '이름 있는 볼륨 data는 지금 /data에 붙어 있어요. 이 이미지가 저장하는 경로가 아니에요.', REREAD, '시작 상태의 문제를 말한다.'),
+        ('볼륨은 데이터베이스가', 'data 볼륨이 /data에 붙어 있어 DB 파일은 그 볼륨에 저장되지 않아요.', REPEAT, '강조를 "data:/data"로 옮겨 down 뒤 표가 사라진 원인을 말한다.'),
+        ('DB 컨테이너를 다시 만들어도 메모가 남게 하세요', 'data 볼륨을 /var/lib/postgresql에 연결해요.', TITLE, 'patch_code: data:/data → data:/var/lib/postgresql')],
+    3: [('같은 마이그레이션을 다시 실행해도', 'migration.sql은 이미 있는 DB에 보내는 변경이에요. 다시 실행해도 실패하지 않게 써야 해요.', REREAD + ' 상황보다 먼저 읽어 순서도 어긋난다.', '마이그레이션의 성격과 재실행 조건을 짧게 말한다.'),
+        ('첫 실행에서 milk 메모를', 'milk 메모가 든 DB가 이미 있어요. init.sql만 바꾼 지금 상태로 실행해 볼게요.', REREAD, '시작 상태를 말하고 실행으로 넘긴다.'),
+        ('기존 메모를 보존하며 새 열을 추가하세요', 'ALTER TABLE로 version 열을 기본값 1, NOT NULL로 더해요. 이미 있으면 건너뛰어요.', TITLE, 'patch_code: 주석 → ALTER TABLE memo ADD COLUMN IF NOT EXISTS version INT DEFAULT 1 NOT NULL')],
+}
