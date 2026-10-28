@@ -4,7 +4,7 @@
 use molip_quest::{docker_lab::LessonSession,git_practice::{GitPractice,GitPracticeStore},repository_course::{CourseManifest,Lesson}};
 
 #[path="../examples/support/docker_terminal.rs"] mod support;
-use support::{Terminal,step,docker_goal};
+use support::{Terminal,step,docker_goal,goal_files};
 
 fn docker(args:&[&str])->(bool,String) {
     let output=std::process::Command::new("docker").args(args).output().unwrap();
@@ -35,7 +35,7 @@ fn docker_cli_steps_run_in_the_real_terminal_and_grade_the_real_engine() {
     let lesson=lesson();
     let cli=&lesson.tasks[..8];
     assert!(cli.iter().all(|t|t.git_terminal.as_ref().is_some_and(|e|e.docker.is_some())&&t.starter_code.is_empty()&&t.files.is_empty()),"the CLI steps are terminal steps without commands.sh");
-    assert!(lesson.tasks[8..].iter().all(|t|t.git_terminal.is_none()));
+    assert!(lesson.tasks[8..].iter().all(support::is_compose),"the Compose and Dockerfile steps are terminal steps with a file editor");
     let unique=molip_quest::issue_progress::new_id().to_ascii_lowercase().chars().filter(char::is_ascii_alphanumeric).take(8).collect::<String>();
     // A developer's own container: visible in the real ps table, never changed by the lesson.
     let other=format!("mq3-test-developer-{unique}");
@@ -190,4 +190,134 @@ fn a_missing_start_state_is_prepared_once_and_a_wrong_command_does_not_pass() {
     let runtime=tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
     session.close();runtime.block_on(session.wait_closed());
     assert!(!docker(&["inspect",&lab.container]).0);
+}
+
+fn network_lesson()->Lesson {
+    let manifest=CourseManifest::parse(include_str!("fixtures/player-pilot/넷/course.json")).unwrap();
+    Lesson::parse(include_str!("../courses/redesigned/docker-network-ports.json"),&manifest.lessons[0]).unwrap()
+}
+fn owned(project:&str)->String {
+    docker(&["ps","-aq","--filter",&format!("label=com.docker.compose.project={project}")]).1
+}
+
+/// A Compose step: the editor's file is the terminal folder's real file, `docker compose` there runs
+/// only files the app checked, and the grader counts only commands entered with the current file.
+#[test]
+#[ignore="Needs a running Docker engine and Git Bash on Windows"]
+fn compose_steps_run_the_edited_files_in_the_real_terminal_and_grade_only_current_work() {
+    let lesson=network_lesson();
+    let task=&lesson.tasks[3];
+    assert!(support::is_compose(task));
+    let unique=molip_quest::issue_progress::new_id().to_ascii_lowercase().chars().filter(char::is_ascii_alphanumeric).take(8).collect::<String>();
+    let other=format!("mq3-test-developer-{unique}");
+    assert!(docker(&["run","-d","--name",&other,BUSYBOX,"sleep","600"]).0);
+    struct Remove(String);
+    impl Drop for Remove {fn drop(&mut self){let _=docker(&["rm","-f",&self.0]);}}
+    let _remove=Remove(other.clone());
+    let session=LessonSession::new();
+    let directory=tempfile::tempdir().unwrap();let store=GitPracticeStore::new(directory.path()).unwrap();
+    let exercise=task.git_terminal.clone().unwrap();
+    let scope=exercise.workspace_scope("user:course:network:full:step4");
+    let practice=store.open(&scope,exercise.clone()).unwrap();
+    assert_eq!(practice.editable_files(),["compose.yaml"]);
+    let start=practice.read_editable("compose.yaml").unwrap();
+    assert_eq!(std::fs::read_to_string(practice.work().join("www/index.html")).unwrap(),"메모 서버","provided files are in the terminal folder");
+    let lab=session.terminal(false,&step(task),&docker_goal(task)).unwrap();
+    let mut terminal=Terminal::open(&practice,&lab).unwrap();
+    // The editor saves into the folder Docker reads: compose config in the terminal shows the edit.
+    practice.save_editable("compose.yaml",&start.replace("retries: 20","retries: 21")).unwrap();
+    assert!(terminal.enter(&practice,"docker compose config",true).unwrap().contains("retries: 21"));
+    // Files the app refuses never reach Docker, and options cannot point compose elsewhere.
+    let fixed_port=start.replace("    networks: [front]\n    healthcheck:","    ports: [\"8080:8080\"]\n    networks: [front]\n    healthcheck:");
+    assert_ne!(fixed_port,start);
+    for (file,command,why) in [
+        (fixed_port,"docker compose up -d --wait web","127.0.0.1::"),
+        (start.replace("retries: 20","retries: ${RETRIES}"),"docker compose up -d --wait web","$ 변수"),
+        (start.replacen("    image:","    container_name: fixed\n    image:",1),"docker compose up -d --wait web","container_name"),
+        (start.clone(),"docker compose -f other.yaml up -d","-f·-p"),
+        (start.clone(),"docker compose -p other up -d","-f·-p"),
+        (start.clone(),"docker compose down --rmi all","--rmi"),
+        (start.clone(),"docker compose run -v /:/host client","-v"),
+        (start.clone(),"docker compose run -p 8080:8080 client","-p"),
+    ] {
+        practice.save_editable("compose.yaml",&file).unwrap();
+        let printed=terminal.enter(&practice,command,false).unwrap();
+        assert!(printed.contains("MQ 실습 터미널:")&&printed.contains(why),"{command} with {why}: {printed}");
+        assert!(owned(&lab.project).is_empty(),"{command}: nothing was created");
+    }
+    std::fs::write(practice.work().join(".env"),"RETRIES=1\n").unwrap();
+    assert!(terminal.enter(&practice,"docker compose up -d --wait web",false).unwrap().contains(".env"));
+    std::fs::remove_file(practice.work().join(".env")).unwrap();
+    // The start file fails, the solution file passes with the learner's own commands.
+    practice.save_editable("compose.yaml",&start).unwrap();
+    for command in task.solution.lines() {terminal.type_line(&practice,command,None).unwrap();}
+    assert!(!practice.check_exercise().unwrap().passed,"the start file does not publish a port");
+    let solution=goal_files(task,&[]).unwrap().remove(0).1;
+    practice.save_editable("compose.yaml",&solution).unwrap();
+    for command in task.solution.lines() {terminal.enter(&practice,command,true).unwrap();}
+    let report=practice.check_exercise().unwrap();
+    assert!(report.passed,"{}",serde_json::to_string_pretty(&report).unwrap());
+    // Changing the file after the commands: they no longer count until typed again; the same content counts.
+    practice.save_editable("compose.yaml",&format!("# 메모\n{solution}")).unwrap();
+    let stale=practice.check_exercise().unwrap();
+    assert!(!stale.passed&&stale.cases[0].stdout.contains("지금 파일로 바꾸기 전"),"{}",serde_json::to_string_pretty(&stale).unwrap());
+    practice.save_editable("compose.yaml",&solution).unwrap();
+    assert!(practice.check_exercise().unwrap().passed);
+    let web_of=|project:&str|docker(&["ps","-q","--filter",&format!("label=com.docker.compose.project={project}"),"--filter","label=com.docker.compose.service=web"]).1;
+    let web=web_of(&lab.project);
+    assert!(!web.is_empty());
+    terminal.close().unwrap();
+    // Reopening keeps the same project and container; the narration uses its own project.
+    let again=session.terminal(false,&step(task),&docker_goal(task)).unwrap();
+    assert_eq!((again.project.as_str(),again.prepared.as_deref()),(lab.project.as_str(),None));
+    assert_eq!(web_of(&lab.project),web);
+    let demo=session.terminal(true,&step(task),&docker_goal(task)).unwrap();
+    assert_ne!(demo.project,lab.project);
+    // 초기화 replaces only this step's project; the developer's container stays.
+    session.reset_terminal(&step(task)).unwrap();
+    let reset=session.terminal(false,&step(task),&docker_goal(task)).unwrap();
+    assert_ne!(reset.project,lab.project);assert!(reset.prepared.is_some());
+    assert!(owned(&lab.project).is_empty(),"the reset project's containers are removed");
+    assert!(docker(&["network","ls","-q","--filter",&format!("label=com.docker.compose.project={}",lab.project)]).1.is_empty());
+    let runtime=tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
+    session.close();runtime.block_on(session.wait_closed());
+    for project in [&demo.project,&reset.project] {assert!(owned(project).is_empty());}
+    assert_eq!(docker(&["inspect","-f","{{.State.Status}}",&other]).1,"running","the developer's container is untouched");
+    assert!(docker(&["image","inspect",BUSYBOX]).0,"the shared image stays");
+}
+const BUSYBOX:&str="busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662";
+
+/// 관리자 자동 풀이 on a Compose step: the plan holds the narration's file edits and commands. Made in
+/// the learner's own editor files and terminal, only the real grader decides.
+#[test]
+#[ignore="Needs a running Docker engine and Git Bash on Windows"]
+fn auto_run_edits_the_learner_files_and_types_the_narration_commands_for_compose_steps() {
+    use molip_quest::auto_review::{self,Plan};
+    let lesson=lesson();
+    let task=&lesson.tasks[12];
+    let Ok(Plan::Terminal{actions,answer:None})=auto_review::plan(task) else{panic!("a terminal plan")};
+    assert!(actions.iter().any(|a|a["action"]=="patch_code"&&a["file"]=="show.sh")&&actions.iter().any(|a|a["action"]=="patch_code"&&a["file"]=="compose.yaml"));
+    let session=LessonSession::new();
+    let directory=tempfile::tempdir().unwrap();let store=GitPracticeStore::new(directory.path()).unwrap();
+    let exercise=task.git_terminal.clone().unwrap();
+    let practice=store.reset_step(&exercise.workspace_scope("user:course:lesson:full:final"),exercise,&task.id).unwrap();
+    let lab=session.terminal(false,&step(task),&docker_goal(task)).unwrap();
+    let mut terminal=Terminal::open(&practice,&lab).unwrap();
+    for action in &actions {
+        if action["action"]=="patch_code" {
+            let file=action["file"].as_str().unwrap();
+            let text=practice.read_editable(file).unwrap();
+            practice.save_editable(file,&text.replacen(action["before"].as_str().unwrap(),action["after"].as_str().unwrap(),1)).unwrap();
+        } else {
+            let command=action["command"].as_str().unwrap();
+            terminal.enter(&practice,command,action["fails"]!=true).unwrap();
+        }
+    }
+    let report=practice.check_exercise().unwrap();
+    assert!(report.passed,"{}",serde_json::to_string_pretty(&report).unwrap());
+    terminal.close().unwrap();
+    let runtime=tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
+    session.close();runtime.block_on(session.wait_closed());
+    assert!(owned(&lab.project).is_empty());
+    assert!(docker(&["image","ls","-q",&format!("{}-app",lab.project)]).1.is_empty(),"the image Compose built for this step is removed");
 }

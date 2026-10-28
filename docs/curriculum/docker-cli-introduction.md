@@ -29,7 +29,7 @@
 - `$BOX`는 `<소유 프로젝트>-nginx`이다. 준비 컨테이너는 `127.0.0.1::80`으로 Docker가 고른 빈 포트에만 연결한다.
 - 채점은 학습자 터미널의 Bash 기록 훅(명령 줄·종료 상태)과 이 수업 컨테이너의 실제 엔진 상태(실행 상태·식별자·생성 이미지·로그·컨테이너 안 파일·이미지 존재)만 읽는다. 문제를 연 시점 이후에 성공한 명령만 센다. 앱이 정답 명령을 대신 실행해 판정하지 않는다. `$BOX`와 실제 이름, 옵션 순서와 `--name=` 같은 표기 차이는 같은 명령으로 본다.
 - 관리자 자동 풀이는 해설의 `bash_command`를 학습자 터미널에 입력하고 결과가 나온 뒤 다음 명령으로 넘어간다. 통과 여부는 같은 채점기가 정한다.
-- Compose·Dockerfile 문제 5개(9~13번)는 아직 compose.yaml/Dockerfile 편집 + 코드 실행(lab.sh) 방식이다. 이 문제들의 Docker 명령을 터미널에서 수행하는 전환은 다음 작업으로 남아 있다.
+- Compose·Dockerfile 문제 5개(9~13번)도 개정 7부터 같은 실제 터미널에서 명령을 입력한다. 파일은 터미널 위 편집기에서 고친다. 구조와 검증은 `docs/curriculum/docker-compose-terminal.md`에 있다.
 
 ## 식별자와 생성 원본
 
@@ -43,7 +43,7 @@
 
 `cargo test --test docker_cli_terminal -- --ignored --test-threads=1`은 실제 PTY와 Docker로 다음을 확인한다: 첫 `docker pull`을 Enter로 실행, run의 실제 ID, `docker ps` 실제 표(개발자 컨테이너 포함), 문제 이동·재진입 시 같은 컨테이너 ID 유지, 해설 프로젝트 분리, 보호 함수의 거절(다른 컨테이너 stop·rm, 8080 고정 포트, `-v`, rmi, prune), 초기화의 시작 상태 복원, 수업 종료 시 소유 자원만 정리, 자동 풀이 재생과 채점. 네이티브 화면이나 실제 음성을 확인하지 않은 경우 그 검증까지 통과했다고 표현하지 않는다.
 
-`tools/test_docker_cli_intro.py`는 삭제했다. 이 스크립트는 `commands.sh`를 `lab.sh`로 실행하는 개정 5까지의 방식만 시험했고 그 파일들은 개정 6에 없다. 같은 항목(실제 표·로그·exec 출력, 반복 시 같은 ID, 127.0.0.1 빈 포트, 무관한 컨테이너 보존, 고정 포트 거절, 명령별 정답과 무동작 오답)은 위 `docker_cli_terminal` 세 시험과 `docker_practice` 단위 시험(옵션 순서·`$BOX` 동등성, 다른 명령 거절)이 실제 터미널 경로에서 확인한다.
+`tools/test_docker_cli_intro.py`는 삭제했다. 이 스크립트는 `commands.sh`를 `lab.sh`로 실행하는 개정 5까지의 방식만 시험했고 그 파일들은 개정 6에 없다. 같은 항목(실제 표·로그·exec 출력, 반복 시 같은 ID, 127.0.0.1 빈 포트, 무관한 컨테이너 보존, 고정 포트 거절, 명령별 정답과 무동작 오답)은 위 `docker_cli_terminal` 시험과 `docker_practice` 단위 시험(옵션 순서·`$BOX` 동등성, 다른 명령 거절)이 실제 터미널 경로에서 확인한다.
 
 실제 앱 화면(Windows, 디버그 앱, 격리 검증 전송): `node tools/design-capture.cjs tools/design-scenarios/docker-terminal.cjs <출력 폴더>`. 2026-10-28 실행 결과 통과했다. 확인한 것은 다음과 같다. 문제 1에 코드 편집기·코드 실행 버튼 없이 「실제 Docker 터미널」이 열리고, 아무것도 입력하지 않은 제출은 실패한다. `docker pull nginx:1.28-alpine` 입력 후 Enter를 누르면 실제 Digest·Status 줄이 나오고 제출이 통과한다. 문제 2 run에서 실제 64자리 ID가 나온다. 문제 3의 `docker ps` 실제 표에는 다른 MQ 세션의 컨테이너도 보인다. 관리자 자동 풀이 칩의 상태 점은 진행·일시정지에서 칩 왼쪽 테두리와 8px 떨어져 있다(라이트·다크). 멈춘 뒤 학습자 상태는 그대로 통과한다. 문제 4 해설은 「해설용 별도 Docker 터미널」에서 실제 `docker logs` 출력(Configuration complete)을 보여 주고 학습자 터미널 내용은 바뀌지 않는다. 같은 문제의 관리자 자동 풀이는 학습자 터미널에 `docker logs "$BOX"`를 입력하고 채점 통과 뒤 문제 5로 넘어간다. 760px 폭 화면도 확인했다. 앱을 종료한 뒤 감시 프로세스가 이 실행의 `mq3lab-` 컨테이너만 정리했다. 실제 음성은 듣지 않았다(목소리를 끄고 자막과 동작만 확인).
 
@@ -51,10 +51,10 @@
 
 ## 남은 제한과 게시 순서 (2026-10-28)
 
-- 아직 터미널로 바꾸지 않은 Docker 명령이 있다. 이 수업 9~13번과 `docker-network-ports`(4문제), `docker-compose-db`(3문제)는 compose.yaml·Dockerfile을 편집하고 코드 실행 버튼으로 `lab.sh`가 `docker compose`를 실행한다. 사용자 요청은 「파일 편집은 제공하되 Docker 명령은 터미널에서」이므로 다음 작업으로 남긴다. `commands.sh`를 쓰는 문제는 더 이상 없다. SQL 수업 6개는 의도대로 SQL 편집기를 유지한다.
+- (2026-10-28 개정 7에서 해소) 이 수업 9~13번과 `docker-network-ports`(4문제), `docker-compose-db`(3문제)도 편집기 + 실제 터미널로 바꿨다. `lab.sh`와 코드 실행 버튼은 더 이상 없다. 자세한 내용은 `docs/curriculum/docker-compose-terminal.md`. `commands.sh`를 쓰는 문제도 없다. SQL 수업 6개는 의도대로 SQL 편집기를 유지한다.
 - macOS의 실제 PTY·Docker Desktop 경로는 이번에 실행하지 않았다(Windows Git Bash만). CI 작업(`principles-runtime.yml`)에 `docker_cli_terminal` 단계를 더했다.
 - 전체 회귀 검사의 실패 3건(`java_code_guide` 2건, `lesson_registry` 단계 수 925≠871)은 이 변경 전 HEAD 224fb34를 그대로 꺼낸 폴더에서도 같은 메시지로 재현된다. 이 변경과 무관하며 고치지 않았다.
-- 게시 순서: `git_terminal.docker`를 이해하는 앱 릴리스 → 수업 저장소에 `docker-image-container-6` 게시 → 코스 참조(`java-backend.json` 핀) 게시. 이전 앱은 이 수업 파일을 검증하지 못하므로 순서를 바꾸지 않는다.
+- 게시 순서: `git_terminal.docker.compose`까지 이해하는 앱 릴리스 → 수업 저장소에 새 불변 개정 게시 → 코스 참조(`java-backend.json` 핀) 게시. 이전 앱은 이 수업 파일을 검증하지 못하므로 순서를 바꾸지 않는다. 이 브랜치의 개정은 `docker-image-container-7`·`docker-network-ports-4`·`docker-compose-db-5`다. 2026-10-28 원격에는 `docker-image-container-6`, `docker-network-ports-3`, `docker-compose-db-4`까지 게시돼 있다(뒤의 둘은 전체 해설 감사가 게시했다). 해설 감사의 변경과 합친 뒤 내용이 바뀌면 그때의 원격 태그를 다시 확인하고 비어 있는 다음 번호를 쓴다. 이미 게시된 태그는 다시 쓰지 않는다. 자세한 검증 결과는 `docs/curriculum/docker-compose-terminal.md`.
 
 공식 근거: [컨테이너의 필요성](https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/), [pull](https://docs.docker.com/reference/cli/docker/image/pull/), [run과 start](https://docs.docker.com/reference/cli/docker/container/run/).
 

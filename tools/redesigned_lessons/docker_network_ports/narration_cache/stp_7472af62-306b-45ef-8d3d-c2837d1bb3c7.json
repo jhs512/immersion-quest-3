@@ -1,46 +1,74 @@
 {
   "by": "hand",
-  "source_sha256": "fc70ea5aeb83a44bd967409a4219ecb3cfb1f0b80d45f69da82b3b939145e2b2",
+  "source_sha256": "4957616b1b636a4b9eef9d19e73cd8cf9dc72090a9a7454f65396d42321770ab",
   "entry": [
     {
       "action": "say",
-      "text": "주소는 이제 web이에요. 서버는 자기 안에서 건강하지만 client 요청은 여전히 실패해요.",
-      "target": "text:주소는 이제 web이에요. 서버는 자기 안에서 건강하지만 client 요청은 여전히 실패해요."
+      "text": "주소는 web인데도 연결이 실패하는 문제예요.",
+      "target": "text:서버는 자기 안에서 건강하지만 client 요청은 여전히 실패해요."
     },
     {
-      "action": "run"
+      "action": "bash_command",
+      "command": "docker compose up -d --wait web",
+      "say": "web을 실행하고 건강해질 때까지 기다려요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 300
     },
     {
       "action": "say",
-      "text": "컨테이너 안 건강 검사는 성공해요. 하지만 서버가 루프백에서만 받아 외부 요청이 실패해요.",
-      "target": "output"
+      "text": "Healthy예요. 컨테이너 안의 건강 검사는 성공해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "docker compose run --rm client",
+      "say": "client에서 요청해 볼게요.",
+      "target": "#git-demo-terminal",
+      "fails": true
     },
     {
       "action": "say",
-      "text": "이름을 찾는 것과 서버가 어느 인터페이스에서 기다리는지는 별개의 조건이에요.",
-      "target": "code:services:"
+      "text": "이번에도 연결이 거절돼요. 이름은 찾았지만 받아 주는 곳이 없어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "서버가 127.0.0.1에서만 기다려요. 자기 안에서 온 요청만 받아요.",
+      "target": "code:\"127.0.0.1:8080\""
     },
     {
       "action": "patch_code",
-      "before": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"127.0.0.1:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\n",
-      "after": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\n",
-      "say": "서버가 다른 컨테이너의 연결도 받게 하세요"
+      "before": "\"127.0.0.1:8080\"",
+      "after": "\"0.0.0.0:8080\"",
+      "say": "서버 내부의 바인드 주소를 0.0.0.0으로 바꿔요.",
+      "file": "compose.yaml"
     },
     {
-      "action": "run"
+      "action": "bash_command",
+      "command": "docker compose up -d --wait web",
+      "say": "고친 파일로 web을 다시 만들어요.",
+      "target": "#git-demo-terminal"
     },
     {
       "action": "say",
-      "text": "컨테이너의 네트워크 인터페이스에서도 요청을 받아 client가 연결됐어요. 호스트 포트는 열지 않았어요.",
-      "target": "output"
+      "text": "web 컨테이너를 새로 만들고 다시 Healthy가 됐어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "docker compose run --rm client",
+      "say": "다시 요청해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "메모 서버 응답이 왔어요. 다른 컨테이너의 요청도 받아요.",
+      "target": "#git-demo-terminal"
     },
     {
       "action": "say",
       "text": "조심하세요. 호스트에 0.0.0.0으로 포트를 공개하라는 뜻은 아니에요. 지금 고치는 것은 컨테이너 내부 서버 주소예요.",
-      "target": "text:서버가 컨테이너의 127.0.0.1에서만 기다리면 다른 컨테이너의 요청을 받지 못해요. 서버 내부의 바인드 주소를 0.0.0.0으로 바꾸세요. 호스트의 모든 주소에 포트를 공개하는 설정과는 달라요."
-    },
-    {
-      "action": "submit"
+      "target": "text:호스트의 모든 주소에 포트를 공개하는 설정과는 달라요."
     }
   ]
 }

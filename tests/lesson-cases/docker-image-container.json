@@ -67,37 +67,131 @@
       }
     ],
     [
-      "상태: exited",
-      "상태: running\n로그: 메모 서버 시작"
+      {
+        "pattern": "(?s)memo-1\\s+Started"
+      },
+      {
+        "pattern": "(?s)STATUS.*Exited \\(0\\)"
+      },
+      {
+        "pattern": "(?s)memo-1\\s+Recreated.*memo-1\\s+Started"
+      },
+      {
+        "pattern": "(?s)STATUS.*memo-1.*Up "
+      },
+      {
+        "pattern": "memo-1\\s+\\|\\s+메모 서버 시작"
+      }
     ],
     [
-      "재시작 뒤: 우유 빵\n다시 만든 뒤: (없음)\ndown 뒤: (없음)\ndown -v 뒤: (없음)",
-      "재시작 뒤: 우유 빵\n다시 만든 뒤: 우유 빵\ndown 뒤: 우유 빵\ndown -v 뒤: (없음)"
+      {
+        "pattern": "(?s)memo-1\\s+Started"
+      },
+      {
+        "pattern": "(?s)/memo/list\\.txt'\\s*$"
+      },
+      {
+        "pattern": "(?s)memo-1\\s+Recreated.*memo-1\\s+Started"
+      },
+      {
+        "pattern": "No such file or directory"
+      },
+      {
+        "pattern": "(?s)_memo\\s+Created.*memo-1\\s+Recreated.*memo-1\\s+Started"
+      },
+      {
+        "pattern": "(?s)/memo/list\\.txt'\\s*$"
+      },
+      {
+        "pattern": "(?s)memo-1\\s+Recreated.*memo-1\\s+Started"
+      },
+      {
+        "pattern": "(?m)^우유\\s*$"
+      }
     ],
     [
-      "A 가게: 우유 빵 계란\nB 가게: 우유 빵 계란\n다시 만든 뒤 A 가게: 우유 빵 계란\n다시 만든 뒤 B 가게: 우유 빵 계란",
-      "A 가게: 우유 빵\nB 가게: 계란\n다시 만든 뒤 A 가게: 우유 빵\n다시 만든 뒤 B 가게: 계란"
+      {
+        "pattern": "(?s)(shop_a-1\\s+Started.*shop_b-1\\s+Started|shop_b-1\\s+Started.*shop_a-1\\s+Started)"
+      },
+      {
+        "pattern": "(?s)/memo/list\\.txt'\\s*$"
+      },
+      {
+        "pattern": "(?m)^계란\\s*$"
+      },
+      {
+        "pattern": "(?s)_memo_a\\s+Removed"
+      },
+      {
+        "pattern": "(?s)_memo_b\\s+Created"
+      },
+      {
+        "pattern": "(?s)/memo/list\\.txt'\\s*$"
+      },
+      {
+        "pattern": "(?s)/memo/list\\.txt'\\s*$"
+      },
+      {
+        "pattern": "(?s)shop_a cat /memo/list\\.txt\\s*\\n우유\\s*$"
+      },
+      {
+        "pattern": "(?s)shop_b cat /memo/list\\.txt\\s*\\n계란\\s*$"
+      }
     ],
     [
-      "첫 빌드: 준비 단계 실행\n메뉴만 바꾼 두 번째 빌드: 준비 단계 다시 실행\n메뉴: 우유 빵",
-      "첫 빌드: 준비 단계 실행\n메뉴만 바꾼 두 번째 빌드: 준비 단계 캐시 사용\n메뉴: 우유 빵"
+      {
+        "pattern": "(?s)RUN sleep 3.*준비완료"
+      },
+      {
+        "pattern": "echo 빵 >> menu\\.txt\\s*$"
+      },
+      {
+        "pattern": "(?s)RUN sleep 3.*준비완료"
+      },
+      {
+        "pattern": "(?s)RUN sleep 3.*준비완료"
+      },
+      {
+        "pattern": "echo 빵 >> menu\\.txt\\s*$"
+      },
+      {
+        "pattern": "(?s)RUN sleep 3[^\\n]*\\n#\\d+ CACHED"
+      },
+      {
+        "pattern": "(?m)^우유\\s*\\n빵\\s*\\n빵\\s*$"
+      }
     ],
     [
-      "처음: [v1] 우유 빵\n앱을 고쳐 다시 빌드한 뒤: [v2] (없음)\ndown 뒤: [v2] (없음)",
-      "처음: [v1] 우유 빵\n앱을 고쳐 다시 빌드한 뒤: [v2] 우유 빵\ndown 뒤: [v2] 우유 빵"
+      {
+        "pattern": "/data/memo\\.txt"
+      },
+      {
+        "pattern": "(?s)app-1\\s+Started"
+      },
+      {
+        "pattern": "add\\.sh 우유\\s*$"
+      },
+      {
+        "pattern": "(?s)app-1\\s+Recreated.*app-1\\s+Started"
+      },
+      {
+        "pattern": "(?m)^\\[v2\\] \\(없음\\)\\s*$"
+      },
+      {
+        "pattern": "(?s)_memos\\s+Created.*app-1\\s+Recreated"
+      },
+      {
+        "pattern": "add\\.sh 우유\\s*$"
+      },
+      {
+        "pattern": "(?s)app-1\\s+Recreated.*app-1\\s+Started"
+      },
+      {
+        "pattern": "(?m)^\\[v2\\] 우유\\s*$"
+      }
     ]
   ],
   "reject": [
-    {
-      "step": 9,
-      "replacements": [
-        [
-          "\"echo 메모 서버 시작 && sleep 3600\"",
-          "\"echo 메모 서버 시작 && sleep 1\""
-        ]
-      ],
-      "reason": "1초 뒤 PID 1이 끝나 3초 뒤에는 exited예요."
-    },
     {
       "step": 9,
       "replacements": [
@@ -126,7 +220,7 @@
           "      - ./memo:/memo"
         ]
       ],
-      "reason": "실습 폴더를 직접 연결(바인드 마운트)하면 down -v로도 지워지지 않아요. 이 스텝은 Docker가 관리하는 볼륨을 써요."
+      "reason": "실습 폴더를 직접 연결(바인드 마운트)하면 Docker가 관리하는 볼륨이 아니에요."
     },
     {
       "step": 11,
@@ -136,7 +230,7 @@
           ""
         ]
       ],
-      "reason": "B의 볼륨을 빼면 처음엔 계란이 보여도, 다시 만든 뒤 사라져요."
+      "reason": "B의 볼륨을 빼면 B 가게의 /memo가 없어 메모를 쓰지 못해요."
     },
     {
       "step": 12,
@@ -146,7 +240,7 @@
           "COPY menu.txt /tmp/"
         ]
       ],
-      "reason": "메뉴를 다른 곳에 복사하면 CMD가 /app/menu.txt를 찾지 못해요."
+      "reason": "메뉴를 다른 곳에 복사하면 CMD가 /app/menu.txt를 찾지 못해 run이 실패해요."
     },
     {
       "step": 13,

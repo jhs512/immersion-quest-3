@@ -794,6 +794,19 @@
       return '코드를 편집기에 넣었습니다.';
     },
     async patch_code(a, active) {
+      if (a.file) {
+        // A Compose step's narration edits one of several files: show that file's tab first.
+        const tab = [...document.querySelectorAll('[data-editor-tab]')].find(t => t.dataset.editorTab === a.file && t.getClientRects().length);
+        if (!tab) throw new Error(`${a.file} 편집기 탭을 찾지 못했어요`);
+        if (tab.getAttribute('aria-selected') !== 'true') {
+          tab.click();
+          const deadline = Date.now() + 5000;
+          while (!(window.molipCodeEditors?.getValue() ?? '').includes(String(a.before ?? ''))) {
+            if (Date.now() > deadline) throw new Error(`${a.file}을 편집기에 열지 못했어요`);
+            await sleep(30);
+          }
+        }
+      }
       const api = window.molipCodeEditors;
       if (!api?.setValue || !api?.getValue) throw new Error('코드 편집기를 찾지 못했습니다');
       const current = api.getValue();

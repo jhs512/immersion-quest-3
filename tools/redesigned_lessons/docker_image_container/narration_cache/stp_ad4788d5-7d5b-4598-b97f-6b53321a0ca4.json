@@ -1,19 +1,44 @@
 {
   "by": "hand",
-  "source_sha256": "99b0bb9cf7842196cb59bf555d70522e79529fb01b7704ffeb821606787ee0f0",
+  "source_sha256": "637ed5629221159c178fd2efdf5204593259493f60d9f27cc048bc170aff1c04",
   "entry": [
     {
       "action": "say",
       "text": "두 가게의 메모가 섞이는 문제예요.",
-      "target": "text:B 가게에는 계란만 써야 하는데 A의 메모도 섞여 있어요."
+      "target": "text:B 가게의 메모가 A 가게에 섞였어요."
     },
     {
-      "action": "run"
+      "action": "bash_command",
+      "command": "docker compose up -d",
+      "say": "두 가게를 실행할게요.",
+      "target": "#git-demo-terminal"
     },
     {
       "action": "say",
-      "text": "A도 B도 우유 빵 계란이에요.",
-      "target": "output"
+      "text": "shop_a와 shop_b 컨테이너가 시작됐어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "docker compose exec shop_b sh -c 'echo 계란 >> /memo/list.txt'",
+      "say": "B 가게에만 계란을 써요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "B 가게의 /memo/list.txt에 썼어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "docker compose exec shop_a cat /memo/list.txt",
+      "say": "이제 A 가게의 메모를 읽어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "A 가게에서도 계란이 나와요. 쓰지 않은 메모가 보여요.",
+      "target": "#git-demo-terminal"
     },
     {
       "action": "say",
@@ -24,23 +49,79 @@
       "action": "patch_code",
       "before": "      # 고칠 곳: B 가게가 연결한 볼륨이에요.\n      - memo_a:/memo\n\nvolumes:\n  memo_a:\n",
       "after": "      # B 가게는 자기 볼륨 memo_b를 써요. 같은 볼륨 이름이면 같은 데이터를 함께 써요.\n      - memo_b:/memo\n\nvolumes:\n  memo_a:\n  memo_b:\n",
-      "say": "B 가게에 자기 볼륨 memo_b를 연결하고 선언해요."
+      "say": "B 가게에 자기 볼륨 memo_b를 연결하고 선언해요.",
+      "file": "compose.yaml"
     },
     {
-      "action": "run"
+      "action": "bash_command",
+      "command": "docker compose down -v",
+      "say": "섞인 memo_a의 데이터부터 지울게요.",
+      "target": "#git-demo-terminal"
     },
     {
       "action": "say",
-      "text": "A는 우유 빵, B는 계란이에요. 다시 만든 뒤에도 각자 남아요.",
-      "target": "output"
+      "text": "컨테이너와 볼륨이 지워졌어요. 이 문제의 것만 지웠어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "docker compose up -d",
+      "say": "고친 파일로 다시 실행해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "이번에는 memo_a와 memo_b 두 볼륨을 만들었어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "docker compose exec shop_a sh -c 'echo 우유 >> /memo/list.txt'",
+      "say": "A 가게에 우유를 써요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "A 가게의 볼륨에 썼어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "docker compose exec shop_b sh -c 'echo 계란 >> /memo/list.txt'",
+      "say": "B 가게에 계란을 써요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "B 가게의 볼륨에 썼어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "docker compose exec shop_a cat /memo/list.txt",
+      "say": "A 가게를 읽어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "A 가게에는 우유만 있어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "docker compose exec shop_b cat /memo/list.txt",
+      "say": "B 가게도 읽어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "B 가게에는 계란만 있어요. 이제 각자 메모를 가져요.",
+      "target": "#git-demo-terminal"
     },
     {
       "action": "say",
       "text": "같은 이미지에서 시작해도 데이터는 어느 볼륨을 연결했는지가 정해요.",
       "target": "text:볼륨은 이름으로 찾아요."
-    },
-    {
-      "action": "submit"
     }
   ]
 }

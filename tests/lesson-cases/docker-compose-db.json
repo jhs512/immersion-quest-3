@@ -3,48 +3,99 @@
   "lesson": "courses/redesigned/docker-compose-db.json",
   "expected_outputs": [
     [
-      "connection failed",
-      "connected"
+      {
+        "pattern": "(?s)db-1 Started.*db-1 Healthy"
+      },
+      {
+        "pattern": "connection to server at \"localhost\".*Connection refused"
+      },
+      {
+        "pattern": "(?s)db-1 Running.*db-1 Healthy"
+      },
+      {
+        "pattern": "(?m)^connected\\s*$"
+      }
     ],
     [
-      "처음:1\n재시작:1\n재생성:1\ndown:표 없음",
-      "처음:1\n재시작:1\n재생성:1\ndown:1"
+      {
+        "pattern": "(?s)db-1 Started.*db-1 Healthy"
+      },
+      {
+        "pattern": "CREATE TABLE\\s+INSERT 0 1"
+      },
+      {
+        "pattern": "(?s)db-1 Removed.*_default Removed"
+      },
+      {
+        "pattern": "(?s)db-1 Started.*db-1 Healthy"
+      },
+      {
+        "pattern": "relation \"memo\" does not exist"
+      },
+      {
+        "pattern": "(?s)db-1 Recreated.*db-1 Healthy"
+      },
+      {
+        "pattern": "CREATE TABLE\\s+INSERT 0 1"
+      },
+      {
+        "pattern": "(?s)db-1 Removed.*_default Removed"
+      },
+      {
+        "pattern": "(?s)db-1 Started.*db-1 Healthy"
+      },
+      {
+        "pattern": "(?s)title\\s*\\n-+\\s*\\n milk\\s*\\n\\(1 row\\)"
+      }
     ],
     [
-      "",
-      "milk:1"
+      {
+        "pattern": "(?s)db-1 Started.*db-1 Healthy"
+      },
+      {
+        "pattern": "(?s)id \\| title.*1 \\| milk"
+      },
+      {
+        "pattern": "column \"version\" does not exist"
+      },
+      {
+        "pattern": "(?m)^ALTER TABLE\\s*$"
+      },
+      {
+        "pattern": "(?s)title \\| version.*milk\\s+\\|\\s+1\\s*\\n\\(1 row\\)"
+      }
     ]
   ],
   "reject": [
     {
-      "step": 1,
-      "replacements": [
-        [
-          "services:\n  db:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      POSTGRES_PASSWORD: lab\n      POSTGRES_DB: lab\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-h\", \"127.0.0.1\", \"-U\", \"postgres\", \"-d\", \"lab\"]\n      interval: 1s\n      timeout: 1s\n      retries: 60\n  app:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      PGPASSWORD: lab\n    command: [\"psql\", \"-h\", \"db\", \"-U\", \"postgres\", \"-d\", \"lab\", \"-X\", \"-qAt\", \"-c\", \"SELECT 'connected'\"]\n",
-          "services:\n  db:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      POSTGRES_PASSWORD: lab\n      POSTGRES_DB: lab\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-h\", \"127.0.0.1\", \"-U\", \"postgres\", \"-d\", \"lab\"]\n      interval: 1s\n      timeout: 1s\n      retries: 60\n  app:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      PGPASSWORD: lab\n    command: [\"psql\", \"-h\", \"localhost\", \"-U\", \"postgres\", \"-d\", \"lab\", \"-X\", \"-qAt\", \"-c\", \"SELECT 'connected'\"]\n"
-        ]
-      ],
-      "reason": "수정 전 구성은 요구한 연결·보존 조건을 충족하지 못해요."
-    },
-    {
       "step": 2,
       "replacements": [
         [
-          "services:\n  db:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      POSTGRES_PASSWORD: lab\n      POSTGRES_DB: lab\n    volumes: [\"data:/var/lib/postgresql\"]\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-h\", \"127.0.0.1\", \"-U\", \"postgres\", \"-d\", \"lab\"]\n      interval: 1s\n      timeout: 1s\n      retries: 60\n  app:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      PGPASSWORD: lab\n    command: [\"psql\", \"-h\", \"db\", \"-U\", \"postgres\", \"-d\", \"lab\", \"-X\", \"-qAt\", \"-c\", \"SELECT 'connected'\"]\nvolumes:\n  data:\n",
-          "services:\n  db:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      POSTGRES_PASSWORD: lab\n      POSTGRES_DB: lab\n    volumes: [\"data:/data\"]\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\", \"-h\", \"127.0.0.1\", \"-U\", \"postgres\", \"-d\", \"lab\"]\n      interval: 1s\n      timeout: 1s\n      retries: 60\n  app:\n    image: postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5\n    environment:\n      PGPASSWORD: lab\n    command: [\"psql\", \"-h\", \"db\", \"-U\", \"postgres\", \"-d\", \"lab\", \"-X\", \"-qAt\", \"-c\", \"SELECT 'connected'\"]\nvolumes:\n  data:\n"
+          "data:/var/lib/postgresql",
+          "data:/var/lib/postgresql-old"
         ]
       ],
-      "reason": "수정 전 구성은 요구한 연결·보존 조건을 충족하지 못해요."
+      "reason": "실제 저장 경로가 아닌 곳에 볼륨을 붙이면 down 뒤 표가 사라져요."
     },
     {
       "step": 3,
       "replacements": [
         [
-          "ALTER TABLE memo ADD COLUMN IF NOT EXISTS version INT DEFAULT 1 NOT NULL;\n",
-          "-- 기존 DB에 필요한 스키마 변경을 구현하세요.\n"
+          "ADD COLUMN IF NOT EXISTS version INT DEFAULT 1 NOT NULL",
+          "ADD COLUMN IF NOT EXISTS version INT"
         ]
       ],
-      "reason": "수정 전 구성은 요구한 연결·보존 조건을 충족하지 못해요."
+      "reason": "기본값이 없으면 기존 행의 version이 비어 있어 milk:1이 나오지 않아요."
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "ALTER TABLE memo ADD COLUMN IF NOT EXISTS version INT DEFAULT 1 NOT NULL;",
+          "DROP TABLE memo; CREATE TABLE memo(id INT PRIMARY KEY,title TEXT,version INT DEFAULT 1 NOT NULL); INSERT INTO memo VALUES(1,'milk');"
+        ]
+      ],
+      "reason": "표를 지우고 다시 만들면 결과는 같아 보여도 기존 데이터를 보존하지 않아요."
     }
   ],
   "accept": []

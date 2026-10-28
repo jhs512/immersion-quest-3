@@ -1,6 +1,6 @@
 {
   "by": "hand",
-  "source_sha256": "127b1cd49607f4844188cac9a4f5835ed77596554780a4f655f7ef6b4ea973a4",
+  "source_sha256": "67df040b820767b818915a1871109425d030b7b47bc8e405843fe87f1c08b106",
   "entry": [
     {
       "action": "say",
@@ -18,39 +18,77 @@
       "target": "text:그런데 실행하면 상태가 `exited`로 나와요."
     },
     {
-      "action": "run"
+      "action": "bash_command",
+      "command": "docker compose up -d",
+      "say": "compose.yaml대로 memo 서비스를 뒤에서 실행할게요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 600
     },
     {
       "action": "say",
-      "text": "상태는 exited예요. 첫 프로세스가 백그라운드 작업을 기다리지 않고 끝났어요. 시작 로그도 남기기 전에 종료될 수 있어요.",
-      "target": "output"
+      "text": "Started가 나왔어요. 컨테이너를 시작했다는 뜻이에요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "docker compose ps -a",
+      "say": "-a를 붙여 끝난 컨테이너까지 표로 볼게요.",
+      "target": "#git-demo-terminal"
     },
     {
       "action": "say",
-      "text": "끝의 &가 sleep을 뒤로 보내요. 그러면 sh는 할 일이 없어서 바로 끝나요. sh가 PID 1이라 컨테이너도 끝나요.",
+      "text": "STATUS가 Exited예요. 서버를 기다리지 않고 컨테이너가 끝났어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "끝의 &가 sleep을 뒤로 보내요. sh는 할 일이 없어 바로 끝나요.",
       "target": "code:sleep 3600 &"
     },
     {
       "action": "patch_code",
       "before": "    # 고칠 곳: 시작 메시지를 찍고 메모 서버(여기서는 sleep)를 띄우는 명령이에요.\n    command: [\"sh\", \"-c\", \"echo 메모 서버 시작 && sleep 3600 &\"]",
       "after": "    # 컨테이너는 첫 프로세스(PID 1)가 살아 있는 동안만 실행 중이에요.\n    # &를 빼서 sh가 sleep이 끝날 때까지 기다리게 해요. 그래야 PID 1이 끝나지 않아요.\n    command: [\"sh\", \"-c\", \"echo 메모 서버 시작 && sleep 3600\"]",
-      "say": "&를 빼서 sh가 sleep을 기다리게 해요."
+      "say": "&를 빼서 sh가 sleep을 기다리게 해요.",
+      "file": "compose.yaml"
     },
     {
-      "action": "run"
+      "action": "bash_command",
+      "command": "docker compose up -d",
+      "say": "고친 파일로 다시 실행해요.",
+      "target": "#git-demo-terminal"
     },
     {
       "action": "say",
-      "text": "이제 3초 뒤에도 running이에요. PID 1인 sh가 sleep을 기다리는 동안 컨테이너가 살아 있어요.",
-      "target": "output"
+      "text": "Recreated가 보여요. 설정이 바뀌어 컨테이너를 새로 만들었어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "docker compose ps -a",
+      "say": "다시 상태를 볼게요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "이제 STATUS가 Up이에요. PID 1인 sh가 sleep을 기다리고 있어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "docker compose logs memo",
+      "say": "logs로 시작 메시지를 읽을게요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "메모 서버 시작이 보여요. 첫 프로세스가 남긴 출력이에요.",
+      "target": "#git-demo-terminal"
     },
     {
       "action": "say",
       "text": "조심하세요. 이 셸 명령에서 &를 붙이면 셸이 기다리지 않고 끝나요. 서버가 직접 PID 1이 되거나 PID 1이 서버를 기다려야 컨테이너가 유지돼요.",
       "target": "text:셸에서 명령 끝의 `&`는 그 명령을 뒤에서 돌리고 셸은 바로 다음으로 넘어가요."
-    },
-    {
-      "action": "submit"
     }
   ]
 }

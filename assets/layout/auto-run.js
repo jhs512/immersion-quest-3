@@ -86,12 +86,20 @@
         return until(() => direct ? !!bridge.vimState(owner())?.state?.exited : /\$\s*$/.test(bridge.text(owner()).trimEnd()), generation, 60, 'Vim 종료');
       }
       case 'patch_code': {
-        // Main.java of a Java terminal step: the same edit the narration shows, made in the
-        // learner's own editor, which saves the file through its ordinary input handler.
+        // Main.java of a Java terminal step, or a file of a Compose step: the same edit the
+        // narration shows, made in the learner's own editor, which saves the file into the
+        // terminal's folder through its ordinary input handler.
+        const name = action.file || 'Main.java';
+        if (action.file) {
+          const tab = [...document.querySelectorAll('[data-editor-tab]')].find(t => t.dataset.editorTab === action.file && t.getClientRects().length);
+          if (!tab) throw new Error(`${name} 편집기 탭을 찾지 못했어요.`);
+          if (tab.getAttribute('aria-selected') !== 'true') tab.click();
+          if (!await until(() => document.querySelector(`textarea[data-editor-file="${CSS.escape(action.file)}"]`) && globalThis.molipCodeEditors?.getValue()?.includes(action.before), generation, 10, `${name} 편집기`)) return false;
+        }
         const editors = globalThis.molipCodeEditors;
         const source = editors?.getValue();
-        if (source == null) throw new Error('Main.java 편집기를 찾지 못했어요.');
-        if (source.split(action.before).length !== 2) throw new Error('Main.java에서 고칠 부분을 하나로 찾지 못했어요.');
+        if (source == null) throw new Error(`${name} 편집기를 찾지 못했어요.`);
+        if (source.split(action.before).length !== 2) throw new Error(`${name}에서 고칠 부분을 하나로 찾지 못했어요.`);
         editors.setValue(source.replace(action.before, action.after));
         return pace(250, generation);
       }

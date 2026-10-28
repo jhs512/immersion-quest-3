@@ -33,8 +33,58 @@ __mq3_publish() {
   case "$1" in 127.0.0.1::*|127.0.0.1:0:*) return 0 ;; esac
   __mq3_refuse "포트는 127.0.0.1::80처럼 쓰세요. 이 컴퓨터 안에서만, Docker가 고른 빈 포트로 열어야 다른 프로그램의 포트와 부딪히지 않아요."
 }
+__mq3_files_hash() {
+  local h
+  if command -v sha256sum >/dev/null 2>&1; then h=$(cat "$MQ3_WORK/compose.yaml" "$MQ3_WORK/Dockerfile" "$MQ3_WORK/.env" 2>/dev/null | sha256sum)
+  else h=$(cat "$MQ3_WORK/compose.yaml" "$MQ3_WORK/Dockerfile" "$MQ3_WORK/.env" 2>/dev/null | shasum -a 256); fi
+  printf '%s' "${h%% *}"
+}
+# The app checks compose.yaml and Dockerfile right before each Enter and writes its verdict with the
+# files' hash. Compose runs only files the app checked, exactly as they are now.
+__mq3_compose_checked() {
+  local want='' verdict=''
+  if [ -z "${MQ3_COMPOSE_VERDICT-}" ] || [ ! -f "$MQ3_COMPOSE_VERDICT" ]; then __mq3_refuse "이 문제의 compose 파일 확인 기록이 없어요. 문제를 다시 열어 주세요."; return 2; fi
+  { IFS= read -r want; IFS= read -r verdict; } < "$MQ3_COMPOSE_VERDICT"
+  if [ "$want" != "$(__mq3_files_hash)" ]; then __mq3_refuse "compose.yaml이나 Dockerfile이 방금 바뀌었어요. 같은 명령을 한 번 더 입력하면 바뀐 파일을 확인한 뒤 실행해요."; return 2; fi
+  [ "$verdict" = ok ] && return 0
+  __mq3_refuse "$verdict"; return 2
+}
+__mq3_compose() {
+  local sub="${1-}" arg next=''
+  if [ -z "${MQ3_WORK-}" ]; then __mq3_refuse "이 문제에서는 docker compose를 쓰지 않아요."; return 2; fi
+  case "$sub" in
+    -*) __mq3_refuse "docker compose 바로 뒤에는 up·ps 같은 명령을 쓰세요. 이 터미널은 -f·-p 없이 이 폴더의 compose.yaml을 이 문제의 이름으로 실행해요."; return 2 ;;
+    ''|version|ls) command docker compose "$@"; return ;;
+  esac
+  shift
+  case "$sub" in
+    ps|logs|config|images|port|top|events) ;;
+    up|down|run|exec|build|restart|start|stop|create|rm|kill|pause|unpause|pull|wait)
+      for arg in "$@"; do
+        if [ -n "$next" ]; then next=''; continue; fi
+        case "$arg" in
+          --rmi|--rmi=*|--push)
+            __mq3_refuse "이 실습 터미널에서는 docker compose $sub ${arg%%=*}를 쓰지 않아요. 함께 쓰는 이미지를 지키려고 막았어요."; return 2 ;;
+          -v|--volume|--volume=*|-p|--publish|--publish=*|--service-ports|--privileged|--cap-add|--cap-add=*|--cap-drop|--cap-drop=*)
+            case "$sub:$arg" in down:-v|rm:-v) continue ;; esac
+            __mq3_refuse "이 실습 터미널에서는 docker compose $sub에 ${arg%%=*}를 쓰지 않아요. 포트·폴더 연결과 권한은 compose.yaml에만 쓰고 앱이 확인해요."; return 2 ;;
+          -e|--env|-w|--workdir|-u|--user|--name|--entrypoint|-l|--label|--index|--pull|-t|--timeout|--scale|--wait-timeout|-s|--signal) next=value ;;
+          -*) ;;
+          *) case "$sub" in run|exec) break ;; esac ;;
+        esac
+      done
+      __mq3_compose_checked || return 2 ;;
+    *) __mq3_refuse "이 실습 터미널에서는 docker compose $sub 명령을 쓰지 않아요."; return 2 ;;
+  esac
+  COMPOSE_PROFILES= COMPOSE_ENV_FILES= command docker compose -p "$MQ3_PROJECT" -f "$MQ3_WORK/compose.yaml" "$sub" "$@"
+}
 docker() {
   local sub="${1-}" arg next='' value target
+  if [ "$sub" = compose ]; then shift; __mq3_compose "$@"; return; fi
+  if [ "$sub" = volume ] || [ "$sub" = network ]; then
+    case "${2-}" in ls|list|inspect) command docker "$@"; return ;; esac
+    __mq3_refuse "이 실습 터미널에서는 docker $sub ${2-} 명령을 쓰지 않아요. 볼륨·네트워크는 compose.yaml로 만들고 down으로 정리해요."; return 2
+  fi
   if [ "$sub" = container ] || [ "$sub" = image ]; then
     case "$sub:${2-}" in
       container:ls|container:list|container:ps) shift 2; set -- ps "$@" ;;
@@ -93,6 +143,7 @@ docker() {
     *) __mq3_refuse "이 실습 터미널에서는 docker $sub 명령을 쓰지 않아요. 이 컴퓨터의 다른 Docker 자원(이미지·볼륨·네트워크)을 지키려고 막았어요." ;;
   esac
 }
+readonly MQ3_PROJECT MQ3_OWNER_LABEL MQ3_WORK MQ3_COMPOSE_VERDICT 2>/dev/null
 "#;
 
 /// One read-only or owned-resource Docker CLI call from the app: (success, stdout, stderr).
@@ -187,12 +238,13 @@ impl LessonSession {
         self.ensure_open()?;
         let cli=cli().ok_or_else(||format!("Docker가 설치되지 않았어요. Docker Desktop을 설치하고 실행한 뒤 이 문제를 다시 여세요. 설치 안내: {INSTALL_GUIDE}"))?;
         ensure_engine(&cli)?;
+        if let Some(compose)=&exercise.compose {return self.compose_terminal(&cli,demo,step,&compose.images)}
         let mut terminals=self.0.terminals.lock().unwrap_or_else(|e|e.into_inner());
         self.ensure_open()?;
         let key=if demo{"demo"}else{"learn"};
         if !terminals.contains_key(key) {
             let lab=Lab::open_for(&cli,&format!("docker-terminal:{key}:{}",crate::issue_progress::new_id()))?;
-            terminals.insert(key,TerminalState{lab,prepared:BTreeSet::new(),restore:BTreeSet::new()});
+            terminals.insert(key.to_owned(),TerminalState{lab,prepared:BTreeSet::new(),restore:BTreeSet::new()});
         }
         let state=terminals.get_mut(key).unwrap();
         let name=format!("{}-{}",state.lab.project,exercise.container);
@@ -202,14 +254,41 @@ impl LessonSession {
         self.ensure_open()?;
         Ok(TerminalLab{project:state.lab.project.clone(),container:name.clone(),environment:environment(&cli,&state.lab,&name),prepared})
     }
+    /// A Compose step: its own owned project (one per step, so services, volumes and built images
+    /// of different steps never meet), kept for the whole lesson. The learner's `docker compose`
+    /// creates everything; the app only pulls the pinned images first. The narration gets a new
+    /// project every time (its exact start: nothing yet); 초기화 replaces the learner's project,
+    /// which removes only resources carrying its labels.
+    fn compose_terminal(&self,cli:&Path,demo:bool,step:&str,images:&[String])->Result<TerminalLab,String> {
+        ensure_images(cli,images)?;
+        let mut terminals=self.0.terminals.lock().unwrap_or_else(|e|e.into_inner());
+        self.ensure_open()?;
+        let key=format!("{}:{step}",if demo{"demo"}else{"learn"});
+        let mut prepared=None;
+        let fresh=demo||terminals.get(&key).is_some_and(|state|state.restore.contains(step));
+        if fresh&&terminals.remove(&key).is_some()&&!demo {
+            prepared=Some("이 문제의 시작 상태로 이 문제가 만든 컨테이너·네트워크·볼륨·빌드 이미지를 지웠어요.".to_owned());
+        }
+        if !terminals.contains_key(&key) {
+            let lab=Lab::open_for(cli,&format!("docker-compose:{key}:{}",crate::issue_progress::new_id()))?;
+            terminals.insert(key.clone(),TerminalState{lab,prepared:BTreeSet::new(),restore:BTreeSet::new()});
+        }
+        let state=&terminals[&key];
+        self.ensure_open()?;
+        let mut environment=environment(cli,&state.lab,"");
+        environment.retain(|(name,_)|name!="BOX");
+        environment.extend([("COMPOSE_PROJECT_NAME".to_owned(),state.lab.project.clone()),("BUILDKIT_PROGRESS".into(),"plain".into()),
+            ("COMPOSE_PROGRESS".into(),"plain".into()),("COMPOSE_MENU".into(),"false".into())]);
+        Ok(TerminalLab{project:state.lab.project.clone(),container:String::new(),environment,prepared})
+    }
     /// 초기화: the next learner terminal of this step restores its exact start state. Other steps'
     /// state and the narration's project are untouched.
     pub fn reset_terminal(&self,step:&str)->Result<(),String> {
         self.ensure_open()?;
         let mut terminals=self.0.terminals.lock().unwrap_or_else(|e|e.into_inner());
-        if let Some(state)=terminals.get_mut("learn"){state.restore.insert(step.to_owned());}
-        else {
-            // No terminal yet in this session: the first one prepares the start state anyway.
+        // No terminal yet in this session: the first one prepares the start state anyway.
+        for key in ["learn".to_owned(),format!("learn:{step}")] {
+            if let Some(state)=terminals.get_mut(&key){state.restore.insert(step.to_owned());}
         }
         Ok(())
     }

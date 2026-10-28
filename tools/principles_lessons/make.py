@@ -84,9 +84,19 @@ def print_line(source):
     return [found[-1], found[-1]] if found else None
 
 
+def editor_files(step):
+    """The editable files of a Compose terminal step at its start, or None for other steps."""
+    compose = ((step.get('git_terminal') or {}).get('docker') or {}).get('compose')
+    if not compose:
+        return None
+    start = step['git_terminal']['shell']['start']['files']
+    return {name: start[name] for name in compose['editable']}
+
+
 def narration(step):
     out = []
     source = step['starter']
+    files = editor_files(step)
     for item in step['narration']:
         kind = item[0]
         if kind == 'say':
@@ -99,6 +109,13 @@ def narration(step):
             if len(item) > 2 and item[2]:
                 action['expect_error'] = item[2]
             out.append(action)
+        elif kind == 'patch' and files is not None:
+            # A Compose step: the narration edits one of the files in its own editor.
+            name = item[4] if len(item) > 4 else next(iter(files))
+            if files[name].count(item[1]) != 1:
+                raise ValueError(f"{step['slug']}: patch target must be unique in {name}: {item[1][:60]}")
+            files[name] = files[name].replace(item[1], item[2], 1)
+            out.append(dict(action='patch_code', before=item[1], after=item[2], say=item[3], file=name))
         elif kind == 'patch':
             if source.count(item[1]) != 1:
                 raise ValueError(f"{step['slug']}: patch target must be unique: {item[1][:60]}")
@@ -124,8 +141,17 @@ def task_of(step, sid):
             final = final.replace(item[1], item[2], 1)
         elif item[0] == 'set':
             final = item[1]
+    files = editor_files(step)
+    if files is not None:
+        for item in step['narration']:
+            if item[0] == 'patch':
+                name = item[4] if len(item) > 4 else next(iter(files))
+                files[name] = files[name].replace(item[1], item[2], 1)
+        solution_files = step["git_terminal"]["shell"]["goal"]["files"]
+        if any(files[name] != solution_files[name] for name in files):
+            raise ValueError(f"{step['slug']}: the narration's edits must end at the solution files")
     if step.get('git_terminal'):
-        # A terminal step has no code to edit: the narration types the solution's commands.
+        # A terminal step: the narration types the solution's commands (after editing a Compose step's files).
         typed = iter(item[1] for item in step['narration'] if item[0] == 'bash' and not (len(item) > 4 and item[4].get('fails')))
         if not all(any(command == done for done in typed) for command in step['solution'].splitlines()):
             raise ValueError(f"{step['slug']}: the narration must type every solution command in order")

@@ -91,6 +91,13 @@ def validate_highlights(task):
     source = task.get('example_code') or task.get('starter_code', '')
     if task.get('git_terminal', {}).get('java_build') is not None:
         source = task['git_terminal']['shell']['demo']['files']['Main.java']
+    # A Compose terminal step: code targets refer to the file shown in the narration's editor,
+    # which is the first editable file until a patch_code opens another one.
+    compose = ((task.get('git_terminal') or {}).get('docker') or {}).get('compose')
+    files = {name: task['git_terminal']['shell']['demo']['files'][name] for name in compose['editable']} if compose else None
+    current = compose['editable'][0] if compose else None
+    if files is not None:
+        source = files[current]
     goal = plain(task.get('goal', ''))
     screen = ' '.join([plain(task.get('title', '')), plain(task.get('question', '')), goal, *map(plain, task.get('hints', []))])
     options = {option['id'] for option in (task.get('interaction') or {}).get('options', [])}
@@ -136,7 +143,15 @@ def validate_highlights(task):
             if (action['action'] == 'run' and not action.get('expect_error') and task.get('language') in ('java', 'python', 'c')
                     and 'print' in source and not any('print' in line for line in marked)):
                 raise ValueError(f'실행 강조가 출력문을 가리키지 않아요: {lines} {marked}')
-        if action['action'] == 'patch_code':
+        if action['action'] == 'patch_code' and files is not None:
+            if action.get('file') not in files:
+                raise ValueError(f"해설이 고칠 파일이 편집기에 없어요: {action.get('file')}")
+            current = action['file']
+            if files[current].count(action['before']) != 1:
+                raise ValueError('해설이 수정할 코드 영역은 정확히 하나여야 해요.')
+            files[current] = files[current].replace(action['before'], action['after'], 1)
+            source = files[current]
+        elif action['action'] == 'patch_code':
             before = action['before']
             if source.count(before) != 1:
                 raise ValueError('해설이 수정할 코드 영역은 정확히 하나여야 해요.')
@@ -203,7 +218,7 @@ def build(name, check=False):
         # exact code it talks about when the step shows code.
         if not any(action.get('target', '').startswith('text:') for action in actions):
             raise ValueError(f"{step['id']}: 해설이 문제의 어느 문장을 설명하는지 text: 강조가 없어요.")
-        has_code = bool(task.get('example_code') or task.get('starter_code')) or task.get('git_terminal', {}).get('java_build') is not None
+        has_code = bool(task.get('example_code') or task.get('starter_code')) or task.get('git_terminal', {}).get('java_build') is not None             or bool(((task.get('git_terminal') or {}).get('docker') or {}).get('compose'))
         if has_code and not any(action.get('target', '').startswith(('code:', 'lines:', 'editor:')) or action.get('lines') for action in actions):
             raise ValueError(f"{step['id']}: 설명하는 코드 줄이나 토큰을 강조하지 않았어요.")
         for action in actions:

@@ -207,7 +207,13 @@ impl GitExercise {
         if let Some(vim)=&self.vim{vim.validate()?;if self.initial_history!=GitInitialHistory::Uninitialized||self.shell.is_some()||self.state_goal.is_some()||self.demo_setup.is_some(){return Err("Vim 시작 구성을 확인하세요.".into())}}
         if let Some(docker)=&self.docker {
             docker.validate()?;
-            if self.shell.as_ref().is_none_or(|s|s.requires_vim||[Some(&s.goal),Some(&s.demo),s.start.as_ref()].into_iter().flatten().any(|state|!state.files.is_empty()||!state.directories.is_empty()))||self.java_build.is_some()||self.vim.is_some()||self.github_pr.is_some(){return Err("Docker 터미널 실습의 구성을 확인하세요.".into())}
+            // A CLI step has no files. A Compose step starts from its files; every editable file
+            // exists at the start, in the narration's start and in the solution.
+            let files_ok=|s:&ShellExercise|match &docker.compose {
+                None=>[Some(&s.goal),Some(&s.demo),s.start.as_ref()].into_iter().flatten().all(|state|state.files.is_empty()&&state.directories.is_empty()),
+                Some(compose)=>[Some(&s.goal),Some(&s.demo),s.start.as_ref()].into_iter().all(|state|state.is_some_and(|state|state.cwd.is_empty()&&compose.editable.iter().all(|f|state.files.contains_key(f)))),
+            };
+            if self.shell.as_ref().is_none_or(|s|s.requires_vim||!files_ok(s))||self.java_build.is_some()||self.vim.is_some()||self.github_pr.is_some(){return Err("Docker 터미널 실습의 구성을 확인하세요.".into())}
         }
         if let Some(shell)=&self.shell {shell.validate()?;if self.initial_history!=GitInitialHistory::Uninitialized||self.state_goal.is_some()||self.demo_setup.is_some(){return Err("Bash 실습의 시작 상태를 확인하세요.".into())}}
         if self.demo_setup.is_some(){self.demonstration().validate()?;}

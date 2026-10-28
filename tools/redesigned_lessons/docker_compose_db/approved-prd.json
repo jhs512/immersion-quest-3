@@ -75,7 +75,7 @@
           "objectives": [
             "DB에 연결하는 위치를 구별해요."
           ],
-          "premise": "제공 SQL로 작은 실습 DB를 준비해요. 실제 사용자 데이터는 없어요.",
+          "premise": "db 서비스에는 PostgreSQL이, app 서비스에는 SQL 클라이언트가 있어요. 터미널에서 docker compose로 실행하고 결과를 읽어요.",
           "steps": [
             {
               "id": "stp_d96a6b0e-3f34-4371-ab63-a40b371390d1",
@@ -83,16 +83,16 @@
               "objectives": [
                 "데이터베이스 연결 주소는 클라이언트가 실행되는 위치에 따라 달라져요."
               ],
-              "core_flow": "시작 상태: 이 스텝은 제공된 준비 코드에서 시작해요.\n관찰: Docker 엔진이 실제로 연결하고 읽은 결과\n바꾸는 것: app이 db 서비스의 데이터베이스에 접속하게 하세요\n성공 조건: connected\n해설: 수정 전 실행 → 결과 읽기 → 고칠 곳 수정 → 재실행 비교.",
+              "core_flow": "시작 상태: 편집기의 compose.yaml에는 db(PostgreSQL)와 app(SQL 클라이언트) 서비스가 있어요. 편집기의 파일은 터미널의 현재 폴더에 바로 저장돼요. docker compose는 이 폴더의 compose.yaml을 읽어요. 이 문제만의 프로젝트 이름으로 실행해서 다른 컨테이너와 섞이지 않아요. 아직 이 문제의 컨테이너는 없어요.\n관찰: 터미널의 app 실행 결과\n바꾸는 것: app의 접속 주소\n성공 조건: 지금 compose.yaml의 app이 db 서비스로 접속했고, 터미널의 app 실행이 성공했어요.\n해설: 수정 전 실행 → 결과 읽기 → 고칠 곳 수정 → 재실행 비교.",
               "complexity": {
-                "prerequisite_experience": "컨테이너가 프로세스라는 것을 알아요.",
+                "prerequisite_experience": "Compose 서비스 이름으로 다른 컨테이너를 찾았어요.",
                 "new_concepts": [
                   "데이터베이스 연결 주소는 클라이언트가 실행되는 위치에 따라 달라져요."
                 ],
-                "changed_condition": "app이 db 서비스의 데이터베이스에 접속하게 하세요",
-                "observable_evidence": "Docker 엔진이 실제로 연결하고 읽은 결과",
-                "learner_edited_lines": 3,
-                "new_external_services": 0
+                "changed_condition": "app의 접속 주소",
+                "observable_evidence": "터미널의 app 실행 결과",
+                "learner_edited_lines": 1,
+                "new_external_services": 1
               }
             }
           ]
@@ -103,7 +103,7 @@
           "objectives": [
             "컨테이너를 다시 만드는 상황을 직접 검사해요."
           ],
-          "premise": "제공 SQL로 작은 실습 DB를 준비해요. 실제 사용자 데이터는 없어요.",
+          "premise": "memo 표를 저장한 뒤 DB 컨테이너를 지우고 다시 만들어 남는지 터미널에서 확인해요.",
           "steps": [
             {
               "id": "stp_d7934805-5e0f-4b38-ae30-4d961108ab89",
@@ -111,16 +111,16 @@
               "objectives": [
                 "볼륨은 데이터베이스가 실제로 저장하는 경로에 연결해야 해요."
               ],
-              "core_flow": "시작 상태: 이 스텝은 제공된 준비 코드에서 시작해요.\n관찰: Docker 엔진이 실제로 연결하고 읽은 결과\n바꾸는 것: DB 컨테이너를 다시 만들어도 메모가 남게 하세요\n성공 조건: 처음:1\n재시작:1\n재생성:1\ndown:1\n해설: 수정 전 실행 → 결과 읽기 → 고칠 곳 수정 → 재실행 비교.",
+              "core_flow": "시작 상태: 새 compose.yaml로 시작해요. db에 이름 있는 볼륨 data가 붙어 있어요. 이 문제의 컨테이너는 아직 없어요.\n관찰: down 뒤 터미널의 SELECT 결과와 실제 마운트\n바꾸는 것: data 볼륨의 연결 경로\n성공 조건: 지금 compose.yaml로 다시 만든 db가 /var/lib/postgresql에 data 볼륨을 연결했고, down 전에 저장한 milk가 남아 있어요.\n해설: 수정 전 실행 → 결과 읽기 → 고칠 곳 수정 → 재실행 비교.",
               "complexity": {
-                "prerequisite_experience": "컨테이너가 프로세스라는 것을 알아요.",
+                "prerequisite_experience": "DB 서비스에 접속했어요.",
                 "new_concepts": [
                   "볼륨은 데이터베이스가 실제로 저장하는 경로에 연결해야 해요."
                 ],
-                "changed_condition": "DB 컨테이너를 다시 만들어도 메모가 남게 하세요",
-                "observable_evidence": "Docker 엔진이 실제로 연결하고 읽은 결과",
-                "learner_edited_lines": 3,
-                "new_external_services": 0
+                "changed_condition": "data 볼륨의 연결 경로",
+                "observable_evidence": "down 뒤 터미널의 SELECT 결과와 실제 마운트",
+                "learner_edited_lines": 1,
+                "new_external_services": 1
               }
             }
           ]
@@ -131,7 +131,7 @@
           "objectives": [
             "기존 데이터를 보존하며 스키마를 바꿔요."
           ],
-          "premise": "제공 SQL로 작은 실습 DB를 준비해요. 실제 사용자 데이터는 없어요.",
+          "premise": "init.sql로 처음 만든 DB에 migration.sql로 새 열을 더해요.",
           "steps": [
             {
               "id": "stp_72bd6932-460d-47a4-823c-15bc21b83b98",
@@ -139,16 +139,16 @@
               "objectives": [
                 "최초 초기화 스크립트와 이미 존재하는 DB의 변경은 서로 다른 작업이에요."
               ],
-              "core_flow": "시작 상태: 이 스텝은 제공된 준비 코드에서 시작해요.\n관찰: Docker 엔진이 실제로 연결하고 읽은 결과\n바꾸는 것: 기존 메모를 보존하며 새 열을 추가하세요\n성공 조건: milk:1\n해설: 수정 전 실행 → 결과 읽기 → 고칠 곳 수정 → 재실행 비교.",
+              "core_flow": "시작 상태: 편집기에는 migration.sql이 있어요. 터미널 폴더의 compose.yaml은 data 볼륨과 init.sql을 db에 연결해요. init.sql은 memo 표와 milk 한 행을 만들어요.\n관찰: 터미널의 SELECT 결과와 실제 열 정의\n바꾸는 것: migration.sql의 ALTER TABLE\n성공 조건: 지금 migration.sql을 실행해 기존 milk 행을 지우지 않고 version 열(기본값 1, NOT NULL)을 더했어요.\n해설: 수정 전 실행 → 결과 읽기 → 고칠 곳 수정 → 재실행 비교.",
               "complexity": {
-                "prerequisite_experience": "컨테이너가 프로세스라는 것을 알아요.",
+                "prerequisite_experience": "DB 데이터를 볼륨에 남겼어요.",
                 "new_concepts": [
                   "최초 초기화 스크립트와 이미 존재하는 DB의 변경은 서로 다른 작업이에요."
                 ],
-                "changed_condition": "기존 메모를 보존하며 새 열을 추가하세요",
-                "observable_evidence": "Docker 엔진이 실제로 연결하고 읽은 결과",
-                "learner_edited_lines": 3,
-                "new_external_services": 0
+                "changed_condition": "migration.sql의 ALTER TABLE",
+                "observable_evidence": "터미널의 SELECT 결과와 실제 열 정의",
+                "learner_edited_lines": 1,
+                "new_external_services": 1
               }
             }
           ]
@@ -157,37 +157,37 @@
     }
   ],
   "grading": [
-    "실제 DB와 앱 채점기로 정답·준비 코드·오답을 실행해요.",
-    "SQL 오류는 숨기지 않고 남은 데이터와 함께 보여 줘요.",
-    "다른 입력과 동등한 SQL 풀이를 비교해요."
+    "터미널에서 내가 실행해 성공한 docker 명령과 실제 Docker 엔진의 상태로 판정해요. 앱이 정답 명령이나 실습 스크립트를 대신 실행하지 않아요.",
+    "Compose 문제는 지금 편집기의 파일(터미널 폴더의 실제 파일)로 실행한 명령만 세요. 컨테이너가 지금 파일로 만들어졌는지, 볼륨·로그·컨테이너 안 파일·빌드 이미지 레이어를 읽어서만 확인해요.",
+    "시작 파일로 같은 명령을 입력하면 실패하고, 흔한 오해에 맞춘 파일도 실패하는지 실제 터미널로 확인해요."
   ],
   "reset": [
-    "문제에 처음 진입할 때 준비 SQL을 적용해요. 같은 문제의 실행 버튼을 다시 누르면 변경 상태가 이어져요.",
-    "문제를 바꾸거나 초기화를 요청하면 해당 실습의 준비 상태로 돌아가요. 제출 검사에는 별도 DB를 사용해요.",
-    "수업을 나갈 때 앱 소유 컨테이너를 정리해요. 사용자의 기존 DB·컨테이너와 학습 진도는 지우지 않아요."
+    "각 문제는 본문에서 알린 준비 상태로 시작해요. 초기화는 그 문제의 파일과 그 문제가 만든 Docker 자원만 시작 상태로 되돌려요.",
+    "컨테이너·볼륨은 수업 동안 유지돼요. 문제를 옮기거나 명령을 다시 실행해도 앱이 다시 만들지 않아요. 해설은 별도 프로젝트로 시연해요.",
+    "수업을 나가면 이 수업이 만든 것만 정리해요. 내 컴퓨터에 원래 있던 컨테이너·볼륨·이미지와 학습 진도는 지우지 않아요."
   ],
   "narration": [
-    "수정 전 SQL 실행·결과 읽기·SQL 수정·다시 실행 순서예요.",
-    "이 스텝에서 혼동할 부분만 구체적으로 경고해요."
+    "수정 전 명령 입력 → Docker가 보여 준 결과 읽기 → 고칠 한 곳 → 같은 명령으로 다시 비교해요.",
+    "「조심하세요」는 그 스텝에서 실제로 하기 쉬운 실수에만 써요."
   ],
   "verification": [
-    "실제 엔진의 저장 상태와 오류를 확인해요.",
-    "준비 코드 실패·정답 통과·오답 거부를 확인해요."
+    "실제 PTY 터미널과 실제 Docker 엔진으로 정답 통과·시작 파일 실패·기록된 오답 거절·다른 정답 허용을 확인해요(tests/lesson-cases, examples/validate_redesigned_lesson).",
+    "해설의 출력은 해설용 터미널의 실제 출력과 기록된 패턴으로 비교해요. Windows(Docker Desktop)에서 확인했고 macOS는 이 기록에 포함하지 않아요."
   ],
   "representative": {
     "step_id": "stp_72bd6932-460d-47a4-823c-15bc21b83b98",
     "prompt": "기존 메모를 보존하며 새 열을 추가하세요",
-    "starter_state": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n첫 실행에서 milk 메모를 저장했어요. init.sql을 새 표 정의로 바꿔 컨테이너를 다시 만들어도 기존 DB의 표는 바뀌지 않아요.\n\n같은 마이그레이션을 다시 실행해도 기존 열 때문에 실패하지 않도록 ADD COLUMN IF NOT EXISTS를 사용해요. 이는 같은 이름의 열이 있는 경우 추가를 생략할 뿐, 기존 열의 자료형과 제약까지 검증해 주지는 않아요.\n\n**알아두세요**\n\n이미 데이터가 있는 볼륨이면 초기화 스크립트를 다시 실행하지 않아요. migration.sql에서 memo에 version INT DEFAULT 1 NOT NULL 열을 추가하세요. 기존 행과 새 열의 기본값을 함께 보존해야 해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. 기존 메모를 보존하며 새 열을 추가하세요\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
-    "expected_action": "최종 도전의 compose.yaml을 직접 구현해요.",
-    "acceptance": "실제 DB의 결과가 모든 검사와 변형 조건을 만족해요.",
-    "reset": "앱 소유의 새 실습 DB에서 시작해요.",
-    "narration": "실패 결과를 읽고 SQL을 고쳐 실제 저장 결과를 비교해요."
+    "starter_state": "편집기에는 migration.sql이 있어요. 터미널 폴더의 compose.yaml은 data 볼륨과 init.sql을 db에 연결해요. init.sql은 memo 표와 milk 한 행을 만들어요.\n\ninit.sql은 볼륨이 비어 있는 첫 실행에서만 실행돼요. 이미 데이터가 있는 DB에 새 열이 필요하면 표를 지우지 않고 변경해야 해요.\n\n같은 마이그레이션을 다시 실행해도 실패하지 않도록 ADD COLUMN IF NOT EXISTS를 쓸 수 있어요. 같은 이름의 열이 있으면 추가를 생략할 뿐, 기존 열의 자료형과 제약까지 검사하지는 않아요.\n\n**알아두세요**\n\n이미 데이터가 있는 볼륨이면 초기화 스크립트를 다시 실행하지 않아요. migration.sql에서 memo에 version INT DEFAULT 1 NOT NULL 열을 추가하세요. 기존 행과 새 열의 기본값을 함께 보존해야 해요. `< migration.sql`은 이 폴더의 파일 내용을 psql의 입력으로 보내요.\n\n**할 일**\n\n1. 터미널에 `docker compose up -d --wait db` 명령을 입력하고 Enter를 누르세요. DB를 처음 실행해요. 이때 init.sql이 실행돼요.\n2. 터미널에 `docker compose exec db psql -U postgres -d lab -c \"SELECT * FROM memo\"` 명령을 입력하고 Enter를 누르세요. 저장된 메모를 읽으세요.\n3. 터미널에 `docker compose exec db psql -U postgres -d lab -c \"SELECT title, version FROM memo\"` 명령을 입력하고 Enter를 누르세요. version 열이 있는지 확인하세요.\n4. 편집기의 migration.sql에 memo 표에 `version INT DEFAULT 1 NOT NULL` 열을 추가하는 SQL을 쓰세요.\n5. 터미널에 `docker compose exec -T db psql -U postgres -d lab < migration.sql` 명령을 입력하고 Enter를 누르세요. migration.sql을 실제 DB에 실행해요.\n6. 터미널에 `docker compose exec db psql -U postgres -d lab -c \"SELECT title, version FROM memo\"` 명령을 입력하고 Enter를 누르세요. 기존 메모와 새 열을 함께 읽으세요.\n7. 결과를 확인한 뒤 제출 버튼을 누르세요.",
+    "expected_action": "최종 도전의 파일을 편집기에서 고치고 터미널에서 docker compose로 확인해요.",
+    "acceptance": "지금 파일로 실행한 명령과 실제 Docker 상태가 모든 검사를 만족해요.",
+    "reset": "이 문제의 시작 파일로 돌아가고 이 문제가 만든 Docker 자원만 지워요.",
+    "narration": "실패 결과를 터미널에서 읽고 파일 한 곳을 고친 뒤 같은 명령으로 다시 비교해요."
   },
   "approval": {
     "status": "approved",
     "mode": "delegated_scope",
     "by": "사용자의 제작·배포 위임 지시(2026-10-26)",
     "evidence": "2026-10-26 사용자(Codex 경유): 「도커랑 DB 수업도 클로드가 마저 만들어. 사용법만 알려주지 말고 원리를 이해하게 하고, 나한테 물어보지 말고 끝까지 만들어서 배포해. 클래스, 상속, 객체지향 패턴 몇개 수업도 만들고, 알지 중요한건 원리 이해야. 길어도 돼.」 이 범위에서는 이전의 「최종 문제부터 검수」 절차가 면제됐어요. 이 PRD와 문제 내용을 사람이 개별 검토했다고 주장하지 않아요.",
-    "content_sha256": "e1b3dffe1130500b77bdc348201c53fe9f1382b20345ba1370cc44c1ec56033f"
+    "content_sha256": "08aae4c2169ab19f1cb0c5c780f741dde4f22152b6d423a8c65b3198ee6d9ea0"
   }
 }

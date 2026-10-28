@@ -68,7 +68,7 @@ fn native_path(value:&str)->PathBuf {
 fn native_path(value:&str)->PathBuf {PathBuf::from(value)}
 // Accept literal directory spelling differences without evaluating shell text.
 // Keep operators, substitutions and additional arguments out of normalization.
-fn command_matches(expected:&str,actual:&str)->bool {
+pub(super) fn command_matches(expected:&str,actual:&str)->bool {
     if expected.trim()==actual.trim(){return true;}
     fn literal_target<'a>(command:&'a str,program:&str)->Option<&'a str> {
         if command.contains(['\n','\r','\0']){return None;}
