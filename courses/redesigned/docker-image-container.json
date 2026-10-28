@@ -1,13 +1,13 @@
 {
   "schema_version": 2,
   "id": "lsn_84b8abf5-848d-4177-96df-69d8aca2cfea",
-  "revision": "docker-image-container-6",
+  "revision": "docker-image-container-7",
   "title": "이미지와 컨테이너 · 지워도 남는 것과 사라지는 것",
   "description": "설치·버전이 다른 문제에서 시작해 pull·run으로 직접 실행해요. 실행 재료와 컨테이너 수명을 구별한 뒤 Compose·볼륨·빌드로 이어져요.",
   "objectives": [
     "컴퓨터마다 다른 설치·버전 문제를 설명하고 pull·run·ps·logs·exec·stop·start·rm을 직접 실행해요.",
     "컨테이너는 이미지로 시작한 프로세스이고, 첫 프로세스(PID 1)가 끝나면 컨테이너도 끝난다는 것을 실제 상태로 설명해요.",
-    "재시작·다시 만들기·down·down -v에서 쓰기 레이어와 볼륨의 데이터가 각각 어떻게 되는지 관찰하고, 남아야 할 데이터를 볼륨에 두는 구성을 직접 써요.",
+    "다시 만들기와 down -v에서 쓰기 레이어와 볼륨의 데이터가 각각 어떻게 되는지 관찰하고, 남아야 할 데이터를 볼륨에 두는 구성을 직접 써요.",
     "이미지가 레이어로 쌓이고 바뀐 줄부터 다시 만든다는 것을 빌드 결과로 확인하고, 캐시를 살리는 순서로 Dockerfile을 고쳐요."
   ],
   "sources": [
@@ -26,7 +26,7 @@
       "title": "왜 Docker를 쓰고 어떻게 직접 실행할까요?",
       "objectives": [
         "컴퓨터마다 다른 설치·버전 문제와 이미지의 역할을 설명해요.",
-        "Compose 전에 pull·run·ps·logs·exec·stop·start·rm을 실제로 실행해요."
+        "Compose 전에 터미널에서 pull·run·ps·logs·exec·stop·start·rm을 직접 실행해요."
       ],
       "units": [
         {
@@ -35,7 +35,7 @@
           "objectives": [
             "이미지·실행 상태·출력·컨테이너 수명을 명령별로 구별해요."
           ],
-          "premise": "Nginx 이미지 하나로 시작해요. 명령의 원래 출력을 읽어요. BOX는 이번 실습의 고유한 이름이에요. 다른 컨테이너 이름과 겹치지 않아요. 처음 제공한 상태는 코드 실행을 반복해도 유지돼요. 다시 시작하려면 초기화를 누르세요. 수업을 나가면 MQ가 만든 자원만 정리해요.",
+          "premise": "Nginx 이미지 하나로 시작해요. 터미널에 명령을 직접 입력하고 원래 출력을 읽어요. BOX에는 이번 수업만의 고유한 컨테이너 이름이 들어 있어요. 다른 컨테이너 이름과 겹치지 않아요. 문제를 옮겨 다녀도 컨테이너는 그대로 남아요. 이 문제의 시작 상태로 돌아가려면 초기화를 누르세요. 수업을 나가면 이 수업이 만든 것만 정리해요.",
           "steps": [
             {
               "id": "stp_0870c694-4f17-4ad0-b1f7-72d0d8479f2c",
@@ -102,7 +102,7 @@
           "objectives": [
             "컨테이너의 첫 프로세스와 그 프로세스가 띄운 다른 프로세스를 구별해요."
           ],
-          "premise": "메모 서버 컨테이너 하나를 띄워요. 실습 스크립트(lab.sh)가 3초 뒤 엔진에 상태를 물어봐요.",
+          "premise": "메모 서버 컨테이너 하나를 compose.yaml로 띄워요. 터미널에서 docker compose로 실행하고 상태를 직접 읽어요.",
           "steps": [
             {
               "id": "stp_ddeb2d11-665b-4171-a08c-7b11c2a3f633",
@@ -125,9 +125,9 @@
           "id": "unt_05651d21-aae7-4d4a-a512-92fc5085c4ff",
           "title": "다시 만들면 쓰기 레이어는 새것이에요",
           "objectives": [
-            "restart는 같은 컨테이너, force-recreate는 새 컨테이너라는 것을 메모로 확인해요."
+            "다시 만든 컨테이너는 새 쓰기 레이어에서 시작한다는 것을 메모로 확인해요."
           ],
-          "premise": "메모 컨테이너가 /memo/list.txt에 메모를 써요. 실습 스크립트가 memos.txt의 메모를 쓰고, 재시작·다시 만들기·down·down -v 뒤에 읽어요.",
+          "premise": "메모 컨테이너가 /memo/list.txt에 메모를 써요. 터미널에서 메모를 쓰고 컨테이너를 다시 만든 뒤 읽어요.",
           "steps": [
             {
               "id": "stp_bc8ce344-eb51-4fae-ac2d-8a56ec3ca977",
@@ -143,7 +143,7 @@
           "objectives": [
             "같은 이미지의 두 컨테이너가 각자 쓰기 레이어를 갖고, 같은 이름의 볼륨은 함께 쓴다는 것을 확인해요."
           ],
-          "premise": "같은 busybox 이미지로 두 가게(shop_a, shop_b)의 메모 컨테이너를 띄워요. A 가게에는 memos.txt의 메모를, B 가게에는 계란을 써요.",
+          "premise": "같은 busybox 이미지로 두 가게(shop_a, shop_b)의 메모 컨테이너를 띄워요. A 가게에는 우유를, B 가게에는 계란을 써요.",
           "steps": [
             {
               "id": "stp_ad4788d5-7d5b-4598-b97f-6b53321a0ca4",
@@ -168,7 +168,7 @@
           "objectives": [
             "자주 바뀌는 파일을 뒤에 두면 앞 레이어의 캐시를 다시 쓴다는 것을 확인해요."
           ],
-          "premise": "가게 이미지를 Dockerfile로 만들어요. 준비 단계(RUN)는 3초 걸리고 `준비완료`를 찍어요. 실습 스크립트는 메뉴(menu.txt)만 바꿔 두 번 빌드해요.",
+          "premise": "가게 이미지를 Dockerfile로 만들어요. 준비 단계(RUN)는 3초 걸리고 준비완료를 찍어요. 메뉴(menu.txt)만 바꿔 두 번 빌드해요.",
           "steps": [
             {
               "id": "stp_6da856ec-fe47-46cd-9fbf-4db496fe6d4b",
@@ -193,7 +193,7 @@
           "objectives": [
             "이미지를 새로 빌드해 컨테이너를 바꿔도 데이터가 남게 구성해요."
           ],
-          "premise": "메모 앱 이미지는 add.sh(메모 더하기)와 show.sh(버전과 메모 보기)를 담아요. 실습 스크립트는 메모를 쓰고, show.sh를 v2로 고쳐 다시 빌드한 뒤, down 뒤에도 메모를 읽어요.",
+          "premise": "메모 앱 이미지는 add.sh(메모 더하기)와 show.sh(버전과 메모 보기)를 담아요. 메모를 쓰고 show.sh를 v2로 고쳐 다시 빌드한 뒤 메모를 읽어요.",
           "steps": [
             {
               "id": "stp_a7de7379-fd52-4c67-8d68-dd41347718eb",
@@ -210,16 +210,11 @@
     {
       "id": "stp_0870c694-4f17-4ad0-b1f7-72d0d8479f2c",
       "title": "실행하기 전에 이미지를 내려받으세요",
-      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\nNginx는 웹 페이지를 보내 주는 서버예요. 직접 설치하면 컴퓨터마다 설치 과정이 달라져요. 같은 버전의 이미지로 실행 재료를 맞춰 보세요.\n\n**알아두세요**\n\nnginx:1.28-alpine에서 콜론 뒤는 이미지의 태그예요. pull은 이미지를 받아요. 서버를 실행하지는 않아요. 앱이 이미지를 미리 받아 두었어도 pull 결과를 확인할 수 있어요. BOX는 이번 실습의 고유한 이름이에요. 다른 컨테이너 이름과 겹치지 않아요. 처음 제공한 상태는 코드 실행을 반복해도 유지돼요. 다시 시작하려면 초기화를 누르세요. 수업을 나가면 MQ가 만든 자원만 정리해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. commands.sh에 다음 명령을 쓰세요. `docker pull nginx:1.28-alpine`\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "goal": "오른쪽은 이 컴퓨터의 실제 Bash 터미널이에요. 입력한 docker 명령은 실제 Docker가 실행해요. 이번 수업의 컨테이너는 아직 없어요.\n\nNginx는 웹 페이지를 보내 주는 서버예요. 직접 설치하면 컴퓨터마다 설치 과정이 달라져요. 같은 버전의 이미지로 실행 재료를 맞춰 보세요.\n\n**알아두세요**\n\nnginx:1.28-alpine에서 콜론 뒤는 이미지의 태그예요. pull은 이미지를 받아요. 서버를 실행하지는 않아요. 이미 받아 둔 이미지라면 최신 상태라는 안내가 나와요. BOX에는 이번 수업만의 고유한 컨테이너 이름이 들어 있어요. 다른 컨테이너 이름과 겹치지 않아요. 문제를 옮겨 다녀도 컨테이너는 그대로 남아요. 이 문제의 시작 상태로 돌아가려면 초기화를 누르세요. 수업을 나가면 이 수업이 만든 것만 정리해요.\n\n**할 일**\n\n1. 터미널에 `docker pull nginx:1.28-alpine` 명령을 입력하고 Enter를 누르세요. 출력의 Status 줄에서 받은 이미지 이름을 읽으세요.\n2. 확인한 뒤 제출 버튼을 누르세요.",
       "language": "docker",
-      "starter_code": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
-      "solution": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker pull nginx:1.28-alpine\n",
-      "tests": [
-        {
-          "input": "",
-          "expected": "이미지: 내려받기 확인\n컨테이너: 없음"
-        }
-      ],
+      "starter_code": "",
+      "solution": "docker pull nginx:1.28-alpine",
+      "tests": [],
       "required": true,
       "narration": [
         {
@@ -241,62 +236,66 @@
           "target": "text:Nginx는 웹 페이지를 보내 주는 서버예요. 직접 설치하면 컴퓨터마다 설치 과정이 달라져요. 같은 버전의 이미지로 실행 재료를 맞춰 보세요."
         },
         {
-          "action": "run"
+          "action": "bash_command",
+          "command": "docker pull nginx:1.28-alpine",
+          "say": "이미지는 프로그램과 실행에 필요한 파일을 묶은 재료예요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 900
         },
         {
           "action": "say",
-          "text": "아직 내려받는 명령을 쓰지 않아서 진행 출력도 없어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
-          "after": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker pull nginx:1.28-alpine\n",
-          "say": "commands.sh에 태그까지 적은 pull 명령을 써요."
+          "text": "레이어를 받는 줄과 Status 줄이 보여요. 이미 받아 뒀다면 최신 상태라고 나와요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "이미지는 프로그램과 실행에 필요한 파일을 묶은 재료예요.",
-          "target": "code:docker pull nginx:1.28-alpine"
-        },
-        {
-          "action": "run"
-        },
-        {
-          "action": "say",
-          "text": "내려받은 레이어와 이미지 상태가 표시돼요. 이미 받아 뒀다면 최신 상태라는 안내가 나와요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 이미지가 있어도 웹 서버가 켜진 것은 아니에요.",
-          "target": "text:서버를 실행하지는 않아요."
-        },
-        {
-          "action": "submit"
+          "text": "조심하세요. 이미지가 있어도 웹 서버가 켜진 것은 아니에요. 아직 컨테이너는 없어요.",
+          "target": "text:pull은 이미지를 받아요. 서버를 실행하지는 않아요."
         }
       ],
-      "entry_file": "commands.sh",
-      "files": {
-        "lab.sh": "set -eu\nREAL_DOCKER=$(command -v docker)\nIMAGE=nginx:1.28-alpine\nBOX=\"${MQ3_PROJECT}-nginx\"\nOWNER=\"$MQ3_OWNER_LABEL\"\nMODE=pull\nTRACE=\"$PWD/.docker-calls\"\n: > \"$TRACE\"\nstate() {\n  local value\n  if value=$(\"$REAL_DOCKER\" inspect -f '{{.State.Status}}' \"$BOX\" 2>/dev/null); then\n    printf '%s' \"$value\"\n  else\n    printf '없음'\n  fi\n}\ncalled() { grep -qx \"$1\" \"$TRACE\"; }\nimage_ready() { \"$REAL_DOCKER\" image inspect \"$IMAGE\" >/dev/null 2>&1; }\nowned() {\n  [ \"$(\"$REAL_DOCKER\" inspect -f '{{index .Config.Labels \"io.mq3.project\"}}' \"$BOX\" 2>/dev/null)\" = \"$MQ3_PROJECT\" ]\n}\ndocker() {\n  local sub=\"$1\" result=0\n  shift\n  case \"$sub\" in\n    pull)\n      [ \"$#\" = 1 ] && [ \"$1\" = \"$IMAGE\" ] || return 2\n      \"$REAL_DOCKER\" pull \"$@\" || result=$? ;;\n    run)\n      # Learner-visible name and port; only the ownership label is added here.\n      local args=(\"$@\") name='' port='' image='' detached=0\n      while [ \"$#\" -gt 0 ]; do\n        case \"$1\" in\n          -d|--detach) detached=1; shift ;;\n          --name) [ \"$#\" -ge 2 ] && [ -z \"$name\" ] || return 2; name=\"$2\"; shift 2 ;;\n          --name=*) [ -z \"$name\" ] || return 2; name=\"${1#--name=}\"; shift ;;\n          -p|--publish) [ \"$#\" -ge 2 ] && [ -z \"$port\" ] || return 2; port=\"$2\"; shift 2 ;;\n          --publish=*) [ -z \"$port\" ] || return 2; port=\"${1#--publish=}\"; shift ;;\n          nginx:1.28-alpine) image=\"$1\"; shift; [ \"$#\" = 0 ] || return 2 ;;\n          *) return 2 ;;\n        esac\n      done\n      [ \"$detached\" = 1 ] && [ \"$name\" = \"$BOX\" ] && [ \"$port\" = '127.0.0.1::80' ] && [ \"$image\" = \"$IMAGE\" ] || {\n        echo '실습 이름과 127.0.0.1::80을 사용하세요. 호스트 포트는 Docker가 골라요.' >&2; return 2;\n      }\n      \"$REAL_DOCKER\" run --label \"$OWNER\" \"${args[@]}\" || result=$? ;;\n    ps|images)\n      # Read-only: show Docker's actual table, including unrelated containers.\n      \"$REAL_DOCKER\" \"$sub\" \"$@\" || result=$? ;;\n    port|logs|exec|stop|start|rm)\n      if [ \"$sub\" != exec ]; then [ \"$#\" = 1 ] || return 2; fi\n      [ \"$#\" -gt 0 ] && [ \"$1\" = \"$BOX\" ] && owned || {\n        echo '이 실습에서 만든 컨테이너 이름을 사용하세요.' >&2; return 2;\n      }\n      \"$REAL_DOCKER\" \"$sub\" \"$@\" || result=$? ;;\n    *) echo '이 단계에서는 안내한 Docker 명령을 사용하세요.' >&2; return 2 ;;\n  esac\n  if [ \"$result\" = 0 ]; then printf '%s\\n' \"$sub\" >> \"$TRACE\"; fi\n  return \"$result\"\n}\n# Prepare once per problem workspace. Checks/demonstrations use a separate workspace.\nif [ ! -f .initialized ]; then\n  if [ \"$MODE\" != pull ] && [ \"$MODE\" != run ]; then\n    \"$REAL_DOCKER\" run -d --name \"$BOX\" --label \"$OWNER\" -p 127.0.0.1::80 \"$IMAGE\" >/dev/null\n    ready=0\n    for attempt in $(seq 1 50); do\n      if \"$REAL_DOCKER\" exec \"$BOX\" wget -q -O /dev/null http://127.0.0.1 2>/dev/null; then ready=1; break; fi\n      sleep 0.1\n    done\n    [ \"$ready\" = 1 ] || { echo 'Nginx 시작을 확인하지 못했어요.' >&2; exit 1; }\n    if [ \"$MODE\" = start ] || [ \"$MODE\" = rm ]; then \"$REAL_DOCKER\" stop \"$BOX\" >/dev/null; fi\n  fi\n  touch .initialized\nfi\nBEFORE_ID=$(\"$REAL_DOCKER\" inspect -f '{{.Id}}' \"$BOX\" 2>/dev/null || true)\nexport BOX\nset +e\n( source \"$MQ3_ENTRY\" ) > .learner.stdout 2> .learner.stderr\nRESULT=$?\nset -e\nif [ \"${MQ3_OUTPUT:-raw}\" != grading ]; then\n  cat .learner.stdout\n  cat .learner.stderr >&2\n  exit \"$RESULT\"\nfi\ncat .learner.stderr >&2\n[ \"$RESULT\" = 0 ] || exit \"$RESULT\"\ncase \"$MODE\" in\n  pull)\n    if called pull && image_ready; then echo '이미지: 내려받기 확인'; else echo '이미지: pull 명령이 아직 없어요'; fi\n    echo \"컨테이너: $(state)\" ;;\n  run)\n    echo \"컨테이너: $(state)\"\n    current=$(\"$REAL_DOCKER\" inspect -f '{{.Config.Image}}' \"$BOX\" 2>/dev/null || true)\n    if called run && [ \"$current\" = \"$IMAGE\" ]; then echo '실행 환경: 지정한 이미지'; else echo '실행 환경: 확인 안 됨'; fi ;;\n  ps)\n    if called ps; then\n      count=$(\"$REAL_DOCKER\" ps -q --filter \"label=$OWNER\" | awk 'NF{n++} END{print n+0}')\n      echo \"실행 중인 실습 컨테이너: $count\"\n    else echo '실행 목록: ps 명령이 아직 없어요'; fi ;;\n  logs)\n    if called logs && [ -s .learner.stdout ]; then echo '시작 로그: 확인'; else echo '시작 로그: logs 명령이 아직 없어요'; fi ;;\n  exec)\n    text=$(\"$REAL_DOCKER\" exec \"$BOX\" sh -c 'cat /memo.txt 2>/dev/null' || true)\n    echo \"컨테이너 안 메모: ${text:-(없음)}\" ;;\n  stop|start)\n    echo \"컨테이너: $(state)\"\n    current=$(\"$REAL_DOCKER\" inspect -f '{{.Id}}' \"$BOX\" 2>/dev/null || true)\n    if [ \"$MODE\" = stop ]; then\n      if [ -n \"$current\" ] && [ \"$current\" = \"$BEFORE_ID\" ]; then echo '컨테이너 객체: 그대로'; else echo '컨테이너 객체: 없음'; fi\n    else\n      if [ -n \"$current\" ] && [ \"$current\" = \"$BEFORE_ID\" ]; then echo '식별자: 같은 컨테이너'; else echo '식별자: 달라짐'; fi\n    fi ;;\n  rm)\n    echo \"컨테이너: $(state)\"\n    if image_ready; then echo '이미지: 남아 있어요'; else echo '이미지: 없음'; fi ;;\nesac\n"
-      },
       "docker_images": [
         "nginx:1.28-alpine@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236"
-      ]
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "workspace_group": "docker-cli",
+        "workspace_revision": "docker-cli-1",
+        "shell": {
+          "step_id": "stp_0870c694-4f17-4ad0-b1f7-72d0d8479f2c",
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": [
+            "docker pull nginx:1.28-alpine"
+          ],
+          "requires_vim": false
+        },
+        "docker": {
+          "image": "nginx:1.28-alpine@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236",
+          "container": "nginx",
+          "port": 80,
+          "start": "absent",
+          "goal": {
+            "image_present": true
+          }
+        }
+      }
     },
     {
       "id": "stp_211bb90f-26ea-469d-9309-a14f8dbdadc5",
       "title": "이미지로 컨테이너 하나를 실행하세요",
-      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\nNginx 이미지는 준비됐어요. 이제 그 이미지로 웹 서버를 실행하세요.\n\n**알아두세요**\n\n-d는 서버를 뒤에서 실행해요. --name은 이름을 붙여요. -p 127.0.0.1::80은 컨테이너의 80번 포트를 연결해요. 가운데가 비어 있어 호스트의 빈 포트를 Docker가 골라요. docker ps의 PORTS에서 배정된 포트를 읽을 수 있어요. BOX는 이번 실습의 고유한 이름이에요. 다른 컨테이너 이름과 겹치지 않아요. 처음 제공한 상태는 코드 실행을 반복해도 유지돼요. 다시 시작하려면 초기화를 누르세요. 수업을 나가면 MQ가 만든 자원만 정리해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. commands.sh에 다음 명령을 쓰세요. `docker run -d --name \"$BOX\" -p 127.0.0.1::80 nginx:1.28-alpine`\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "goal": "앞 문제에서 받은 Nginx 이미지로 시작해요. 이번 수업의 컨테이너는 아직 없어요.\n\nNginx 이미지는 준비됐어요. 이제 그 이미지로 웹 서버를 실행하세요.\n\n**알아두세요**\n\n-d는 서버를 뒤에서 실행해요. --name은 이름을 붙여요. \"$BOX\"는 터미널에 미리 들어 있는 이번 수업의 이름이에요. -p 127.0.0.1::80은 컨테이너의 80번 포트를 연결해요. 가운데가 비어 있어 호스트의 빈 포트를 Docker가 골라요. BOX에는 이번 수업만의 고유한 컨테이너 이름이 들어 있어요. 다른 컨테이너 이름과 겹치지 않아요. 문제를 옮겨 다녀도 컨테이너는 그대로 남아요. 이 문제의 시작 상태로 돌아가려면 초기화를 누르세요. 수업을 나가면 이 수업이 만든 것만 정리해요.\n\n**할 일**\n\n1. 터미널에 `docker run -d --name \"$BOX\" -p 127.0.0.1::80 nginx:1.28-alpine` 명령을 입력하고 Enter를 누르세요. 출력된 긴 컨테이너 ID를 확인하세요.\n2. 확인한 뒤 제출 버튼을 누르세요.",
       "language": "docker",
-      "starter_code": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
-      "solution": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker run -d --name \"$BOX\" -p 127.0.0.1::80 nginx:1.28-alpine\n",
-      "tests": [
-        {
-          "input": "",
-          "expected": "컨테이너: running\n실행 환경: 지정한 이미지"
-        }
-      ],
+      "starter_code": "",
+      "solution": "docker run -d --name \"$BOX\" -p 127.0.0.1::80 nginx:1.28-alpine",
+      "tests": [],
       "required": true,
       "narration": [
         {
@@ -310,62 +309,74 @@
           "target": "text:Nginx 이미지는 준비됐어요. 이제 그 이미지로 웹 서버를 실행하세요."
         },
         {
-          "action": "run"
+          "action": "bash_command",
+          "command": "docker run -d --name \"$BOX\" -p 127.0.0.1::80 nginx:1.28-alpine",
+          "say": "run은 이미지에서 새 컨테이너를 만들고 서버를 시작해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 900
         },
         {
           "action": "say",
-          "text": "이름만 정해 둔 상태예요. 서버를 실행할 명령을 더해 볼게요.",
-          "target": "output"
+          "text": "긴 컨테이너 ID가 출력됐어요. Nginx가 뒤에서 실행되고 있어요.",
+          "target": "#git-demo-terminal"
         },
         {
-          "action": "patch_code",
-          "before": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
-          "after": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker run -d --name \"$BOX\" -p 127.0.0.1::80 nginx:1.28-alpine\n",
-          "say": "-d로 뒤에서 돌리고, 실습 이름과 포트를 붙인 run 명령을 써요."
-        },
-        {
-          "action": "say",
-          "text": "run은 이미지에서 새 컨테이너를 만들고 서버를 시작해요.",
-          "target": "code:docker run -d --name \"$BOX\" -p 127.0.0.1::80 nginx:1.28-alpine"
-        },
-        {
-          "action": "run"
+          "action": "bash_command",
+          "command": "docker run -d --name \"$BOX\" -p 127.0.0.1::80 nginx:1.28-alpine",
+          "say": "같은 명령을 한 번 더 입력해 볼게요.",
+          "target": "#git-demo-terminal",
+          "fails": true
         },
         {
           "action": "say",
-          "text": "긴 컨테이너 ID가 출력됐어요. Nginx의 기본 실행 명령으로 서버가 시작돼요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. run을 또 실행하면 같은 이름이 있어 실패해요. 기존 컨테이너를 다시 켜는 명령은 뒤에서 배워요.",
-          "target": "text:--name은 이름을 붙여요."
-        },
-        {
-          "action": "submit"
+          "text": "조심하세요. 같은 이름의 컨테이너가 이미 있어서 Conflict 오류가 나요. run은 매번 새 컨테이너를 만들거든요.",
+          "target": "#git-demo-terminal"
         }
       ],
-      "entry_file": "commands.sh",
-      "files": {
-        "lab.sh": "set -eu\nREAL_DOCKER=$(command -v docker)\nIMAGE=nginx:1.28-alpine\nBOX=\"${MQ3_PROJECT}-nginx\"\nOWNER=\"$MQ3_OWNER_LABEL\"\nMODE=run\nTRACE=\"$PWD/.docker-calls\"\n: > \"$TRACE\"\nstate() {\n  local value\n  if value=$(\"$REAL_DOCKER\" inspect -f '{{.State.Status}}' \"$BOX\" 2>/dev/null); then\n    printf '%s' \"$value\"\n  else\n    printf '없음'\n  fi\n}\ncalled() { grep -qx \"$1\" \"$TRACE\"; }\nimage_ready() { \"$REAL_DOCKER\" image inspect \"$IMAGE\" >/dev/null 2>&1; }\nowned() {\n  [ \"$(\"$REAL_DOCKER\" inspect -f '{{index .Config.Labels \"io.mq3.project\"}}' \"$BOX\" 2>/dev/null)\" = \"$MQ3_PROJECT\" ]\n}\ndocker() {\n  local sub=\"$1\" result=0\n  shift\n  case \"$sub\" in\n    pull)\n      [ \"$#\" = 1 ] && [ \"$1\" = \"$IMAGE\" ] || return 2\n      \"$REAL_DOCKER\" pull \"$@\" || result=$? ;;\n    run)\n      # Learner-visible name and port; only the ownership label is added here.\n      local args=(\"$@\") name='' port='' image='' detached=0\n      while [ \"$#\" -gt 0 ]; do\n        case \"$1\" in\n          -d|--detach) detached=1; shift ;;\n          --name) [ \"$#\" -ge 2 ] && [ -z \"$name\" ] || return 2; name=\"$2\"; shift 2 ;;\n          --name=*) [ -z \"$name\" ] || return 2; name=\"${1#--name=}\"; shift ;;\n          -p|--publish) [ \"$#\" -ge 2 ] && [ -z \"$port\" ] || return 2; port=\"$2\"; shift 2 ;;\n          --publish=*) [ -z \"$port\" ] || return 2; port=\"${1#--publish=}\"; shift ;;\n          nginx:1.28-alpine) image=\"$1\"; shift; [ \"$#\" = 0 ] || return 2 ;;\n          *) return 2 ;;\n        esac\n      done\n      [ \"$detached\" = 1 ] && [ \"$name\" = \"$BOX\" ] && [ \"$port\" = '127.0.0.1::80' ] && [ \"$image\" = \"$IMAGE\" ] || {\n        echo '실습 이름과 127.0.0.1::80을 사용하세요. 호스트 포트는 Docker가 골라요.' >&2; return 2;\n      }\n      \"$REAL_DOCKER\" run --label \"$OWNER\" \"${args[@]}\" || result=$? ;;\n    ps|images)\n      # Read-only: show Docker's actual table, including unrelated containers.\n      \"$REAL_DOCKER\" \"$sub\" \"$@\" || result=$? ;;\n    port|logs|exec|stop|start|rm)\n      if [ \"$sub\" != exec ]; then [ \"$#\" = 1 ] || return 2; fi\n      [ \"$#\" -gt 0 ] && [ \"$1\" = \"$BOX\" ] && owned || {\n        echo '이 실습에서 만든 컨테이너 이름을 사용하세요.' >&2; return 2;\n      }\n      \"$REAL_DOCKER\" \"$sub\" \"$@\" || result=$? ;;\n    *) echo '이 단계에서는 안내한 Docker 명령을 사용하세요.' >&2; return 2 ;;\n  esac\n  if [ \"$result\" = 0 ]; then printf '%s\\n' \"$sub\" >> \"$TRACE\"; fi\n  return \"$result\"\n}\n# Prepare once per problem workspace. Checks/demonstrations use a separate workspace.\nif [ ! -f .initialized ]; then\n  if [ \"$MODE\" != pull ] && [ \"$MODE\" != run ]; then\n    \"$REAL_DOCKER\" run -d --name \"$BOX\" --label \"$OWNER\" -p 127.0.0.1::80 \"$IMAGE\" >/dev/null\n    ready=0\n    for attempt in $(seq 1 50); do\n      if \"$REAL_DOCKER\" exec \"$BOX\" wget -q -O /dev/null http://127.0.0.1 2>/dev/null; then ready=1; break; fi\n      sleep 0.1\n    done\n    [ \"$ready\" = 1 ] || { echo 'Nginx 시작을 확인하지 못했어요.' >&2; exit 1; }\n    if [ \"$MODE\" = start ] || [ \"$MODE\" = rm ]; then \"$REAL_DOCKER\" stop \"$BOX\" >/dev/null; fi\n  fi\n  touch .initialized\nfi\nBEFORE_ID=$(\"$REAL_DOCKER\" inspect -f '{{.Id}}' \"$BOX\" 2>/dev/null || true)\nexport BOX\nset +e\n( source \"$MQ3_ENTRY\" ) > .learner.stdout 2> .learner.stderr\nRESULT=$?\nset -e\nif [ \"${MQ3_OUTPUT:-raw}\" != grading ]; then\n  cat .learner.stdout\n  cat .learner.stderr >&2\n  exit \"$RESULT\"\nfi\ncat .learner.stderr >&2\n[ \"$RESULT\" = 0 ] || exit \"$RESULT\"\ncase \"$MODE\" in\n  pull)\n    if called pull && image_ready; then echo '이미지: 내려받기 확인'; else echo '이미지: pull 명령이 아직 없어요'; fi\n    echo \"컨테이너: $(state)\" ;;\n  run)\n    echo \"컨테이너: $(state)\"\n    current=$(\"$REAL_DOCKER\" inspect -f '{{.Config.Image}}' \"$BOX\" 2>/dev/null || true)\n    if called run && [ \"$current\" = \"$IMAGE\" ]; then echo '실행 환경: 지정한 이미지'; else echo '실행 환경: 확인 안 됨'; fi ;;\n  ps)\n    if called ps; then\n      count=$(\"$REAL_DOCKER\" ps -q --filter \"label=$OWNER\" | awk 'NF{n++} END{print n+0}')\n      echo \"실행 중인 실습 컨테이너: $count\"\n    else echo '실행 목록: ps 명령이 아직 없어요'; fi ;;\n  logs)\n    if called logs && [ -s .learner.stdout ]; then echo '시작 로그: 확인'; else echo '시작 로그: logs 명령이 아직 없어요'; fi ;;\n  exec)\n    text=$(\"$REAL_DOCKER\" exec \"$BOX\" sh -c 'cat /memo.txt 2>/dev/null' || true)\n    echo \"컨테이너 안 메모: ${text:-(없음)}\" ;;\n  stop|start)\n    echo \"컨테이너: $(state)\"\n    current=$(\"$REAL_DOCKER\" inspect -f '{{.Id}}' \"$BOX\" 2>/dev/null || true)\n    if [ \"$MODE\" = stop ]; then\n      if [ -n \"$current\" ] && [ \"$current\" = \"$BEFORE_ID\" ]; then echo '컨테이너 객체: 그대로'; else echo '컨테이너 객체: 없음'; fi\n    else\n      if [ -n \"$current\" ] && [ \"$current\" = \"$BEFORE_ID\" ]; then echo '식별자: 같은 컨테이너'; else echo '식별자: 달라짐'; fi\n    fi ;;\n  rm)\n    echo \"컨테이너: $(state)\"\n    if image_ready; then echo '이미지: 남아 있어요'; else echo '이미지: 없음'; fi ;;\nesac\n"
-      },
       "docker_images": [
         "nginx:1.28-alpine@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236"
-      ]
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "workspace_group": "docker-cli",
+        "workspace_revision": "docker-cli-1",
+        "shell": {
+          "step_id": "stp_211bb90f-26ea-469d-9309-a14f8dbdadc5",
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": [
+            "docker run -d --name \"$BOX\" -p 127.0.0.1::80 nginx:1.28-alpine"
+          ],
+          "requires_vim": false
+        },
+        "docker": {
+          "image": "nginx:1.28-alpine@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236",
+          "container": "nginx",
+          "port": 80,
+          "start": "absent",
+          "goal": {
+            "container": "running",
+            "created_from_image": true
+          }
+        }
+      }
     },
     {
       "id": "stp_b8dbd6b9-c192-4fb1-b7e2-f7204328ae74",
       "title": "이미지 목록 대신 실행 중인 컨테이너를 조회하세요",
-      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n이번 문제는 준비된 Nginx 서버 하나에서 시작해요. 실행 중인 컨테이너의 이름과 포트를 찾아보세요.\n\n**알아두세요**\n\ndocker images는 이미지를 보여 줘요. docker ps는 실행 중인 컨테이너를 보여 줘요. IMAGE·STATUS·PORTS·NAMES 열을 읽으세요. 원래 켜 두었던 컨테이너도 나올 수 있어요. BOX의 이름으로 이번 실습을 구별하세요. 조회만으로 다른 컨테이너가 바뀌지는 않아요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. commands.sh에 다음 명령을 쓰세요. `docker ps`\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "goal": "앞 문제에서 실행한 Nginx 컨테이너가 켜져 있어요. 컨테이너가 없으면 앱이 같은 이름으로 하나 만들어 실행해 둬요.\n\n실행 중인 컨테이너의 이름과 포트를 찾아보세요.\n\n**알아두세요**\n\ndocker images는 이미지를 보여 줘요. docker ps는 실행 중인 컨테이너를 보여 줘요. IMAGE·STATUS·PORTS·NAMES 열을 읽으세요. 원래 켜 두었던 컨테이너도 나올 수 있어요. mq3lab-으로 시작하는 이름이 이번 수업의 컨테이너예요. 조회만으로 다른 컨테이너가 바뀌지는 않아요.\n\n**할 일**\n\n1. 터미널에 `docker images` 명령을 입력하고 Enter를 누르세요. 목록에서 nginx와 1.28-alpine을 찾으세요.\n2. 터미널에 `docker ps` 명령을 입력하고 Enter를 누르세요. 표의 NAMES와 PORTS 열에서 이번 수업의 컨테이너를 찾으세요.\n3. 확인한 뒤 제출 버튼을 누르세요.",
       "language": "docker",
-      "starter_code": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
-      "solution": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker ps\n",
-      "tests": [
-        {
-          "input": "",
-          "expected": "실행 중인 실습 컨테이너: 1"
-        }
-      ],
+      "starter_code": "",
+      "solution": "docker images\ndocker ps",
+      "tests": [],
       "required": true,
       "narration": [
         {
@@ -375,66 +386,81 @@
         },
         {
           "action": "say",
-          "text": "Nginx 서버 하나를 미리 켜 뒀어요. 이 서버의 이름과 포트를 표에서 찾아요.",
-          "target": "text:이번 문제는 준비된 Nginx 서버 하나에서 시작해요. 실행 중인 컨테이너의 이름과 포트를 찾아보세요."
+          "text": "앞에서 켠 Nginx 컨테이너가 실행 중이에요. 이 서버의 이름과 포트를 표에서 찾아요.",
+          "target": "text:실행 중인 컨테이너의 이름과 포트를 찾아보세요."
         },
         {
-          "action": "run"
-        },
-        {
-          "action": "say",
-          "text": "서버는 준비돼 있지만 목록을 조회하지 않아서 표가 없어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
-          "after": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker ps\n",
-          "say": "이미지를 보는 images 대신 ps를 써요."
+          "action": "bash_command",
+          "command": "docker images",
+          "say": "먼저 images로 이 컴퓨터에 있는 이미지 목록을 볼게요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "ps는 실행 중인 컨테이너를 표로 보여 줘요.",
-          "target": "code:docker ps"
+          "text": "이미지 목록에 nginx 1.28-alpine이 보여요. 실행 중인지는 이 목록으로 알 수 없어요.",
+          "target": "#git-demo-terminal"
         },
         {
-          "action": "run"
+          "action": "bash_command",
+          "command": "docker ps",
+          "say": "ps는 실행 중인 컨테이너를 표로 보여 줘요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "표의 NAMES에서 실습 이름을 찾으세요. PORTS의 화살표 왼쪽은 이 컴퓨터의 포트예요. 오른쪽 80은 컨테이너의 포트예요.",
-          "target": "output"
+          "text": "NAMES 열에서 mq3lab-으로 시작하는 이름을 찾으세요. PORTS의 화살표 왼쪽이 이 컴퓨터의 포트예요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
           "text": "조심하세요. 이미지를 받기만 했다면 ps 목록에는 새 컨테이너가 없어요.",
           "target": "text:docker ps는 실행 중인 컨테이너를 보여 줘요."
-        },
-        {
-          "action": "submit"
         }
       ],
-      "entry_file": "commands.sh",
-      "files": {
-        "lab.sh": "set -eu\nREAL_DOCKER=$(command -v docker)\nIMAGE=nginx:1.28-alpine\nBOX=\"${MQ3_PROJECT}-nginx\"\nOWNER=\"$MQ3_OWNER_LABEL\"\nMODE=ps\nTRACE=\"$PWD/.docker-calls\"\n: > \"$TRACE\"\nstate() {\n  local value\n  if value=$(\"$REAL_DOCKER\" inspect -f '{{.State.Status}}' \"$BOX\" 2>/dev/null); then\n    printf '%s' \"$value\"\n  else\n    printf '없음'\n  fi\n}\ncalled() { grep -qx \"$1\" \"$TRACE\"; }\nimage_ready() { \"$REAL_DOCKER\" image inspect \"$IMAGE\" >/dev/null 2>&1; }\nowned() {\n  [ \"$(\"$REAL_DOCKER\" inspect -f '{{index .Config.Labels \"io.mq3.project\"}}' \"$BOX\" 2>/dev/null)\" = \"$MQ3_PROJECT\" ]\n}\ndocker() {\n  local sub=\"$1\" result=0\n  shift\n  case \"$sub\" in\n    pull)\n      [ \"$#\" = 1 ] && [ \"$1\" = \"$IMAGE\" ] || return 2\n      \"$REAL_DOCKER\" pull \"$@\" || result=$? ;;\n    run)\n      # Learner-visible name and port; only the ownership label is added here.\n      local args=(\"$@\") name='' port='' image='' detached=0\n      while [ \"$#\" -gt 0 ]; do\n        case \"$1\" in\n          -d|--detach) detached=1; shift ;;\n          --name) [ \"$#\" -ge 2 ] && [ -z \"$name\" ] || return 2; name=\"$2\"; shift 2 ;;\n          --name=*) [ -z \"$name\" ] || return 2; name=\"${1#--name=}\"; shift ;;\n          -p|--publish) [ \"$#\" -ge 2 ] && [ -z \"$port\" ] || return 2; port=\"$2\"; shift 2 ;;\n          --publish=*) [ -z \"$port\" ] || return 2; port=\"${1#--publish=}\"; shift ;;\n          nginx:1.28-alpine) image=\"$1\"; shift; [ \"$#\" = 0 ] || return 2 ;;\n          *) return 2 ;;\n        esac\n      done\n      [ \"$detached\" = 1 ] && [ \"$name\" = \"$BOX\" ] && [ \"$port\" = '127.0.0.1::80' ] && [ \"$image\" = \"$IMAGE\" ] || {\n        echo '실습 이름과 127.0.0.1::80을 사용하세요. 호스트 포트는 Docker가 골라요.' >&2; return 2;\n      }\n      \"$REAL_DOCKER\" run --label \"$OWNER\" \"${args[@]}\" || result=$? ;;\n    ps|images)\n      # Read-only: show Docker's actual table, including unrelated containers.\n      \"$REAL_DOCKER\" \"$sub\" \"$@\" || result=$? ;;\n    port|logs|exec|stop|start|rm)\n      if [ \"$sub\" != exec ]; then [ \"$#\" = 1 ] || return 2; fi\n      [ \"$#\" -gt 0 ] && [ \"$1\" = \"$BOX\" ] && owned || {\n        echo '이 실습에서 만든 컨테이너 이름을 사용하세요.' >&2; return 2;\n      }\n      \"$REAL_DOCKER\" \"$sub\" \"$@\" || result=$? ;;\n    *) echo '이 단계에서는 안내한 Docker 명령을 사용하세요.' >&2; return 2 ;;\n  esac\n  if [ \"$result\" = 0 ]; then printf '%s\\n' \"$sub\" >> \"$TRACE\"; fi\n  return \"$result\"\n}\n# Prepare once per problem workspace. Checks/demonstrations use a separate workspace.\nif [ ! -f .initialized ]; then\n  if [ \"$MODE\" != pull ] && [ \"$MODE\" != run ]; then\n    \"$REAL_DOCKER\" run -d --name \"$BOX\" --label \"$OWNER\" -p 127.0.0.1::80 \"$IMAGE\" >/dev/null\n    ready=0\n    for attempt in $(seq 1 50); do\n      if \"$REAL_DOCKER\" exec \"$BOX\" wget -q -O /dev/null http://127.0.0.1 2>/dev/null; then ready=1; break; fi\n      sleep 0.1\n    done\n    [ \"$ready\" = 1 ] || { echo 'Nginx 시작을 확인하지 못했어요.' >&2; exit 1; }\n    if [ \"$MODE\" = start ] || [ \"$MODE\" = rm ]; then \"$REAL_DOCKER\" stop \"$BOX\" >/dev/null; fi\n  fi\n  touch .initialized\nfi\nBEFORE_ID=$(\"$REAL_DOCKER\" inspect -f '{{.Id}}' \"$BOX\" 2>/dev/null || true)\nexport BOX\nset +e\n( source \"$MQ3_ENTRY\" ) > .learner.stdout 2> .learner.stderr\nRESULT=$?\nset -e\nif [ \"${MQ3_OUTPUT:-raw}\" != grading ]; then\n  cat .learner.stdout\n  cat .learner.stderr >&2\n  exit \"$RESULT\"\nfi\ncat .learner.stderr >&2\n[ \"$RESULT\" = 0 ] || exit \"$RESULT\"\ncase \"$MODE\" in\n  pull)\n    if called pull && image_ready; then echo '이미지: 내려받기 확인'; else echo '이미지: pull 명령이 아직 없어요'; fi\n    echo \"컨테이너: $(state)\" ;;\n  run)\n    echo \"컨테이너: $(state)\"\n    current=$(\"$REAL_DOCKER\" inspect -f '{{.Config.Image}}' \"$BOX\" 2>/dev/null || true)\n    if called run && [ \"$current\" = \"$IMAGE\" ]; then echo '실행 환경: 지정한 이미지'; else echo '실행 환경: 확인 안 됨'; fi ;;\n  ps)\n    if called ps; then\n      count=$(\"$REAL_DOCKER\" ps -q --filter \"label=$OWNER\" | awk 'NF{n++} END{print n+0}')\n      echo \"실행 중인 실습 컨테이너: $count\"\n    else echo '실행 목록: ps 명령이 아직 없어요'; fi ;;\n  logs)\n    if called logs && [ -s .learner.stdout ]; then echo '시작 로그: 확인'; else echo '시작 로그: logs 명령이 아직 없어요'; fi ;;\n  exec)\n    text=$(\"$REAL_DOCKER\" exec \"$BOX\" sh -c 'cat /memo.txt 2>/dev/null' || true)\n    echo \"컨테이너 안 메모: ${text:-(없음)}\" ;;\n  stop|start)\n    echo \"컨테이너: $(state)\"\n    current=$(\"$REAL_DOCKER\" inspect -f '{{.Id}}' \"$BOX\" 2>/dev/null || true)\n    if [ \"$MODE\" = stop ]; then\n      if [ -n \"$current\" ] && [ \"$current\" = \"$BEFORE_ID\" ]; then echo '컨테이너 객체: 그대로'; else echo '컨테이너 객체: 없음'; fi\n    else\n      if [ -n \"$current\" ] && [ \"$current\" = \"$BEFORE_ID\" ]; then echo '식별자: 같은 컨테이너'; else echo '식별자: 달라짐'; fi\n    fi ;;\n  rm)\n    echo \"컨테이너: $(state)\"\n    if image_ready; then echo '이미지: 남아 있어요'; else echo '이미지: 없음'; fi ;;\nesac\n"
-      },
       "docker_images": [
         "nginx:1.28-alpine@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236"
-      ]
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "workspace_group": "docker-cli",
+        "workspace_revision": "docker-cli-1",
+        "shell": {
+          "step_id": "stp_b8dbd6b9-c192-4fb1-b7e2-f7204328ae74",
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": [
+            "docker images",
+            "docker ps"
+          ],
+          "requires_vim": false
+        },
+        "docker": {
+          "image": "nginx:1.28-alpine@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236",
+          "container": "nginx",
+          "port": 80,
+          "start": "running",
+          "goal": {
+            "container": "running"
+          }
+        }
+      }
     },
     {
       "id": "stp_3cec22fd-92c6-4802-85df-25f18f0c7bc4",
       "title": "컨테이너가 시작할 때 남긴 로그를 읽으세요",
-      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n이번 문제는 Nginx가 실행된 상태예요. 서버가 시작하며 남긴 로그를 직접 읽으세요.\n\n**알아두세요**\n\nps는 상태를 보여 줘요. logs는 실행 중에 기록한 출력을 보여 줘요. 준비 과정에서 웹 요청 하나도 보냈어요. 시작 안내와 요청 기록을 비교해 보세요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. commands.sh에 다음 명령을 쓰세요. `docker logs \"$BOX\"`\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "goal": "앞 문제의 Nginx 컨테이너가 실행 중이에요. 컨테이너가 없으면 앱이 같은 이름으로 하나 만들어 실행해 둬요.\n\n서버가 시작하며 남긴 로그를 직접 읽으세요.\n\n**알아두세요**\n\nps는 상태를 보여 줘요. logs는 실행 중에 기록한 출력을 보여 줘요. Nginx는 시작할 때 설정 확인과 작업 프로세스 시작을 기록해요.\n\n**할 일**\n\n1. 터미널에 `docker logs \"$BOX\"` 명령을 입력하고 Enter를 누르세요. Configuration complete로 끝나는 줄을 찾으세요.\n2. 확인한 뒤 제출 버튼을 누르세요.",
       "language": "docker",
-      "starter_code": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
-      "solution": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker logs \"$BOX\"\n",
-      "tests": [
-        {
-          "input": "",
-          "expected": "시작 로그: 확인"
-        }
-      ],
+      "starter_code": "",
+      "solution": "docker logs \"$BOX\"",
+      "tests": [],
       "required": true,
       "narration": [
         {
@@ -444,66 +470,70 @@
         },
         {
           "action": "say",
-          "text": "Nginx는 이미 실행 중이에요. 시작할 때와 요청을 받을 때 남긴 기록을 읽어요.",
-          "target": "text:이번 문제는 Nginx가 실행된 상태예요. 서버가 시작하며 남긴 로그를 직접 읽으세요."
+          "text": "Nginx는 이미 실행 중이에요. 시작하며 남긴 기록을 읽어요.",
+          "target": "text:서버가 시작하며 남긴 로그를 직접 읽으세요."
         },
         {
-          "action": "run"
-        },
-        {
-          "action": "say",
-          "text": "로그를 요청하기 전이라 실행 결과는 비어 있어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
-          "after": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker logs \"$BOX\"\n",
-          "say": "logs에 실습 컨테이너 이름을 넘겨요."
+          "action": "bash_command",
+          "command": "docker logs \"$BOX\"",
+          "say": "logs는 컨테이너의 주 프로세스가 남긴 출력을 읽어요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "logs는 컨테이너의 주 프로세스가 남긴 출력을 읽어요.",
-          "target": "code:docker logs \"$BOX\""
-        },
-        {
-          "action": "run"
-        },
-        {
-          "action": "say",
-          "text": "Nginx의 시작 안내와 요청 기록이 보여요. 시각과 프로세스 번호는 실행마다 달라질 수 있어요.",
-          "target": "output"
+          "text": "Nginx의 시작 안내가 보여요. 시각과 프로세스 번호는 실행마다 달라요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
           "text": "조심하세요. logs가 비었다고 멈춘 것은 아니에요. 출력하지 않는 프로그램도 있어요.",
           "target": "text:logs는 실행 중에 기록한 출력을 보여 줘요."
-        },
-        {
-          "action": "submit"
         }
       ],
-      "entry_file": "commands.sh",
-      "files": {
-        "lab.sh": "set -eu\nREAL_DOCKER=$(command -v docker)\nIMAGE=nginx:1.28-alpine\nBOX=\"${MQ3_PROJECT}-nginx\"\nOWNER=\"$MQ3_OWNER_LABEL\"\nMODE=logs\nTRACE=\"$PWD/.docker-calls\"\n: > \"$TRACE\"\nstate() {\n  local value\n  if value=$(\"$REAL_DOCKER\" inspect -f '{{.State.Status}}' \"$BOX\" 2>/dev/null); then\n    printf '%s' \"$value\"\n  else\n    printf '없음'\n  fi\n}\ncalled() { grep -qx \"$1\" \"$TRACE\"; }\nimage_ready() { \"$REAL_DOCKER\" image inspect \"$IMAGE\" >/dev/null 2>&1; }\nowned() {\n  [ \"$(\"$REAL_DOCKER\" inspect -f '{{index .Config.Labels \"io.mq3.project\"}}' \"$BOX\" 2>/dev/null)\" = \"$MQ3_PROJECT\" ]\n}\ndocker() {\n  local sub=\"$1\" result=0\n  shift\n  case \"$sub\" in\n    pull)\n      [ \"$#\" = 1 ] && [ \"$1\" = \"$IMAGE\" ] || return 2\n      \"$REAL_DOCKER\" pull \"$@\" || result=$? ;;\n    run)\n      # Learner-visible name and port; only the ownership label is added here.\n      local args=(\"$@\") name='' port='' image='' detached=0\n      while [ \"$#\" -gt 0 ]; do\n        case \"$1\" in\n          -d|--detach) detached=1; shift ;;\n          --name) [ \"$#\" -ge 2 ] && [ -z \"$name\" ] || return 2; name=\"$2\"; shift 2 ;;\n          --name=*) [ -z \"$name\" ] || return 2; name=\"${1#--name=}\"; shift ;;\n          -p|--publish) [ \"$#\" -ge 2 ] && [ -z \"$port\" ] || return 2; port=\"$2\"; shift 2 ;;\n          --publish=*) [ -z \"$port\" ] || return 2; port=\"${1#--publish=}\"; shift ;;\n          nginx:1.28-alpine) image=\"$1\"; shift; [ \"$#\" = 0 ] || return 2 ;;\n          *) return 2 ;;\n        esac\n      done\n      [ \"$detached\" = 1 ] && [ \"$name\" = \"$BOX\" ] && [ \"$port\" = '127.0.0.1::80' ] && [ \"$image\" = \"$IMAGE\" ] || {\n        echo '실습 이름과 127.0.0.1::80을 사용하세요. 호스트 포트는 Docker가 골라요.' >&2; return 2;\n      }\n      \"$REAL_DOCKER\" run --label \"$OWNER\" \"${args[@]}\" || result=$? ;;\n    ps|images)\n      # Read-only: show Docker's actual table, including unrelated containers.\n      \"$REAL_DOCKER\" \"$sub\" \"$@\" || result=$? ;;\n    port|logs|exec|stop|start|rm)\n      if [ \"$sub\" != exec ]; then [ \"$#\" = 1 ] || return 2; fi\n      [ \"$#\" -gt 0 ] && [ \"$1\" = \"$BOX\" ] && owned || {\n        echo '이 실습에서 만든 컨테이너 이름을 사용하세요.' >&2; return 2;\n      }\n      \"$REAL_DOCKER\" \"$sub\" \"$@\" || result=$? ;;\n    *) echo '이 단계에서는 안내한 Docker 명령을 사용하세요.' >&2; return 2 ;;\n  esac\n  if [ \"$result\" = 0 ]; then printf '%s\\n' \"$sub\" >> \"$TRACE\"; fi\n  return \"$result\"\n}\n# Prepare once per problem workspace. Checks/demonstrations use a separate workspace.\nif [ ! -f .initialized ]; then\n  if [ \"$MODE\" != pull ] && [ \"$MODE\" != run ]; then\n    \"$REAL_DOCKER\" run -d --name \"$BOX\" --label \"$OWNER\" -p 127.0.0.1::80 \"$IMAGE\" >/dev/null\n    ready=0\n    for attempt in $(seq 1 50); do\n      if \"$REAL_DOCKER\" exec \"$BOX\" wget -q -O /dev/null http://127.0.0.1 2>/dev/null; then ready=1; break; fi\n      sleep 0.1\n    done\n    [ \"$ready\" = 1 ] || { echo 'Nginx 시작을 확인하지 못했어요.' >&2; exit 1; }\n    if [ \"$MODE\" = start ] || [ \"$MODE\" = rm ]; then \"$REAL_DOCKER\" stop \"$BOX\" >/dev/null; fi\n  fi\n  touch .initialized\nfi\nBEFORE_ID=$(\"$REAL_DOCKER\" inspect -f '{{.Id}}' \"$BOX\" 2>/dev/null || true)\nexport BOX\nset +e\n( source \"$MQ3_ENTRY\" ) > .learner.stdout 2> .learner.stderr\nRESULT=$?\nset -e\nif [ \"${MQ3_OUTPUT:-raw}\" != grading ]; then\n  cat .learner.stdout\n  cat .learner.stderr >&2\n  exit \"$RESULT\"\nfi\ncat .learner.stderr >&2\n[ \"$RESULT\" = 0 ] || exit \"$RESULT\"\ncase \"$MODE\" in\n  pull)\n    if called pull && image_ready; then echo '이미지: 내려받기 확인'; else echo '이미지: pull 명령이 아직 없어요'; fi\n    echo \"컨테이너: $(state)\" ;;\n  run)\n    echo \"컨테이너: $(state)\"\n    current=$(\"$REAL_DOCKER\" inspect -f '{{.Config.Image}}' \"$BOX\" 2>/dev/null || true)\n    if called run && [ \"$current\" = \"$IMAGE\" ]; then echo '실행 환경: 지정한 이미지'; else echo '실행 환경: 확인 안 됨'; fi ;;\n  ps)\n    if called ps; then\n      count=$(\"$REAL_DOCKER\" ps -q --filter \"label=$OWNER\" | awk 'NF{n++} END{print n+0}')\n      echo \"실행 중인 실습 컨테이너: $count\"\n    else echo '실행 목록: ps 명령이 아직 없어요'; fi ;;\n  logs)\n    if called logs && [ -s .learner.stdout ]; then echo '시작 로그: 확인'; else echo '시작 로그: logs 명령이 아직 없어요'; fi ;;\n  exec)\n    text=$(\"$REAL_DOCKER\" exec \"$BOX\" sh -c 'cat /memo.txt 2>/dev/null' || true)\n    echo \"컨테이너 안 메모: ${text:-(없음)}\" ;;\n  stop|start)\n    echo \"컨테이너: $(state)\"\n    current=$(\"$REAL_DOCKER\" inspect -f '{{.Id}}' \"$BOX\" 2>/dev/null || true)\n    if [ \"$MODE\" = stop ]; then\n      if [ -n \"$current\" ] && [ \"$current\" = \"$BEFORE_ID\" ]; then echo '컨테이너 객체: 그대로'; else echo '컨테이너 객체: 없음'; fi\n    else\n      if [ -n \"$current\" ] && [ \"$current\" = \"$BEFORE_ID\" ]; then echo '식별자: 같은 컨테이너'; else echo '식별자: 달라짐'; fi\n    fi ;;\n  rm)\n    echo \"컨테이너: $(state)\"\n    if image_ready; then echo '이미지: 남아 있어요'; else echo '이미지: 없음'; fi ;;\nesac\n"
-      },
       "docker_images": [
         "nginx:1.28-alpine@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236"
-      ]
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "workspace_group": "docker-cli",
+        "workspace_revision": "docker-cli-1",
+        "shell": {
+          "step_id": "stp_3cec22fd-92c6-4802-85df-25f18f0c7bc4",
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": [
+            "docker logs \"$BOX\""
+          ],
+          "requires_vim": false
+        },
+        "docker": {
+          "image": "nginx:1.28-alpine@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236",
+          "container": "nginx",
+          "port": 80,
+          "start": "running",
+          "goal": {
+            "container": "running",
+            "logs": true
+          }
+        }
+      }
     },
     {
       "id": "stp_97279f23-b535-4327-b0db-8519115f413b",
       "title": "실행 중인 컨테이너 안에 메모를 쓰세요",
-      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\nNginx가 실행 중이고 /memo.txt는 없어요. 같은 컨테이너 안에 메모를 쓰고 읽으세요.\n\n**알아두세요**\n\nrun은 새 컨테이너를 만들어요. exec는 기존 컨테이너에 명령을 보내요. sh -c 뒤의 명령은 컨테이너 안에서 실행돼요. echo로 쓰고 cat으로 읽어요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. commands.sh에 다음 명령을 쓰세요. `docker exec \"$BOX\" sh -c 'echo hello > /memo.txt; cat /memo.txt'`\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "goal": "앞 문제의 Nginx 컨테이너가 실행 중이에요. 컨테이너가 없으면 앱이 같은 이름으로 하나 만들어 실행해 둬요.\n\n같은 컨테이너 안에 메모를 쓰고 읽으세요.\n\n**알아두세요**\n\nrun은 새 컨테이너를 만들어요. exec는 기존 컨테이너에 명령을 보내요. sh -c 뒤의 명령은 컨테이너 안에서 실행돼요. echo로 쓰고 cat으로 읽어요.\n\n**할 일**\n\n1. 터미널에 `docker exec \"$BOX\" sh -c 'echo hello > /memo.txt; cat /memo.txt'` 명령을 입력하고 Enter를 누르세요. 출력된 hello를 확인하세요.\n2. 확인한 뒤 제출 버튼을 누르세요.",
       "language": "docker",
-      "starter_code": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
-      "solution": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker exec \"$BOX\" sh -c 'echo hello > /memo.txt; cat /memo.txt'\n",
-      "tests": [
-        {
-          "input": "",
-          "expected": "컨테이너 안 메모: hello"
-        }
-      ],
+      "starter_code": "",
+      "solution": "docker exec \"$BOX\" sh -c 'echo hello > /memo.txt; cat /memo.txt'",
+      "tests": [],
       "required": true,
       "narration": [
         {
@@ -513,66 +543,80 @@
         },
         {
           "action": "say",
-          "text": "Nginx가 실행 중이고, 그 안에 /memo.txt는 아직 없어요. 새 컨테이너 없이 그 안에서 쓰고 읽어요.",
-          "target": "text:Nginx가 실행 중이고 /memo.txt는 없어요. 같은 컨테이너 안에 메모를 쓰고 읽으세요."
+          "text": "Nginx가 실행 중이에요. 새 컨테이너 없이 그 안에서 메모를 쓰고 읽어요.",
+          "target": "text:같은 컨테이너 안에 메모를 쓰고 읽으세요."
         },
         {
-          "action": "run"
-        },
-        {
-          "action": "say",
-          "text": "이름 변수만으로는 파일이 생기지 않아요. 컨테이너에 명령을 보내 볼게요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
-          "after": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker exec \"$BOX\" sh -c 'echo hello > /memo.txt; cat /memo.txt'\n",
-          "say": "exec로 실행 중인 컨테이너에 쓰기와 읽기 명령을 보내요."
+          "action": "bash_command",
+          "command": "docker exec \"$BOX\" sh -c 'echo hello > /memo.txt; cat /memo.txt'",
+          "say": "exec는 실행 중인 컨테이너 안에서 명령을 더 실행해요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "exec는 실행 중인 컨테이너 안에서 명령을 더 실행해요.",
-          "target": "code:docker exec \"$BOX\" sh -c 'echo hello > /memo.txt; cat /memo.txt'"
+          "text": "cat이 읽은 hello가 그대로 출력됐어요. 같은 컨테이너 안에서 실행했어요.",
+          "target": "#git-demo-terminal"
         },
         {
-          "action": "run"
+          "action": "bash_command",
+          "command": "ls /memo.txt",
+          "say": "이번에는 docker 없이 내 컴퓨터에서 같은 경로를 찾아볼게요.",
+          "target": "#git-demo-terminal",
+          "fails": true
         },
         {
           "action": "say",
-          "text": "cat이 읽은 hello가 그대로 출력돼요. 같은 컨테이너 안에서 명령을 실행했어요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 이 파일은 내 컴퓨터의 /memo.txt가 아니에요. 컨테이너 안에 있어요.",
-          "target": "text:sh -c 뒤의 명령은 컨테이너 안에서 실행돼요."
-        },
-        {
-          "action": "submit"
+          "text": "조심하세요. 내 컴퓨터에는 /memo.txt가 없어요. 메모는 컨테이너 안에만 있어요.",
+          "target": "#git-demo-terminal"
         }
       ],
-      "entry_file": "commands.sh",
-      "files": {
-        "lab.sh": "set -eu\nREAL_DOCKER=$(command -v docker)\nIMAGE=nginx:1.28-alpine\nBOX=\"${MQ3_PROJECT}-nginx\"\nOWNER=\"$MQ3_OWNER_LABEL\"\nMODE=exec\nTRACE=\"$PWD/.docker-calls\"\n: > \"$TRACE\"\nstate() {\n  local value\n  if value=$(\"$REAL_DOCKER\" inspect -f '{{.State.Status}}' \"$BOX\" 2>/dev/null); then\n    printf '%s' \"$value\"\n  else\n    printf '없음'\n  fi\n}\ncalled() { grep -qx \"$1\" \"$TRACE\"; }\nimage_ready() { \"$REAL_DOCKER\" image inspect \"$IMAGE\" >/dev/null 2>&1; }\nowned() {\n  [ \"$(\"$REAL_DOCKER\" inspect -f '{{index .Config.Labels \"io.mq3.project\"}}' \"$BOX\" 2>/dev/null)\" = \"$MQ3_PROJECT\" ]\n}\ndocker() {\n  local sub=\"$1\" result=0\n  shift\n  case \"$sub\" in\n    pull)\n      [ \"$#\" = 1 ] && [ \"$1\" = \"$IMAGE\" ] || return 2\n      \"$REAL_DOCKER\" pull \"$@\" || result=$? ;;\n    run)\n      # Learner-visible name and port; only the ownership label is added here.\n      local args=(\"$@\") name='' port='' image='' detached=0\n      while [ \"$#\" -gt 0 ]; do\n        case \"$1\" in\n          -d|--detach) detached=1; shift ;;\n          --name) [ \"$#\" -ge 2 ] && [ -z \"$name\" ] || return 2; name=\"$2\"; shift 2 ;;\n          --name=*) [ -z \"$name\" ] || return 2; name=\"${1#--name=}\"; shift ;;\n          -p|--publish) [ \"$#\" -ge 2 ] && [ -z \"$port\" ] || return 2; port=\"$2\"; shift 2 ;;\n          --publish=*) [ -z \"$port\" ] || return 2; port=\"${1#--publish=}\"; shift ;;\n          nginx:1.28-alpine) image=\"$1\"; shift; [ \"$#\" = 0 ] || return 2 ;;\n          *) return 2 ;;\n        esac\n      done\n      [ \"$detached\" = 1 ] && [ \"$name\" = \"$BOX\" ] && [ \"$port\" = '127.0.0.1::80' ] && [ \"$image\" = \"$IMAGE\" ] || {\n        echo '실습 이름과 127.0.0.1::80을 사용하세요. 호스트 포트는 Docker가 골라요.' >&2; return 2;\n      }\n      \"$REAL_DOCKER\" run --label \"$OWNER\" \"${args[@]}\" || result=$? ;;\n    ps|images)\n      # Read-only: show Docker's actual table, including unrelated containers.\n      \"$REAL_DOCKER\" \"$sub\" \"$@\" || result=$? ;;\n    port|logs|exec|stop|start|rm)\n      if [ \"$sub\" != exec ]; then [ \"$#\" = 1 ] || return 2; fi\n      [ \"$#\" -gt 0 ] && [ \"$1\" = \"$BOX\" ] && owned || {\n        echo '이 실습에서 만든 컨테이너 이름을 사용하세요.' >&2; return 2;\n      }\n      \"$REAL_DOCKER\" \"$sub\" \"$@\" || result=$? ;;\n    *) echo '이 단계에서는 안내한 Docker 명령을 사용하세요.' >&2; return 2 ;;\n  esac\n  if [ \"$result\" = 0 ]; then printf '%s\\n' \"$sub\" >> \"$TRACE\"; fi\n  return \"$result\"\n}\n# Prepare once per problem workspace. Checks/demonstrations use a separate workspace.\nif [ ! -f .initialized ]; then\n  if [ \"$MODE\" != pull ] && [ \"$MODE\" != run ]; then\n    \"$REAL_DOCKER\" run -d --name \"$BOX\" --label \"$OWNER\" -p 127.0.0.1::80 \"$IMAGE\" >/dev/null\n    ready=0\n    for attempt in $(seq 1 50); do\n      if \"$REAL_DOCKER\" exec \"$BOX\" wget -q -O /dev/null http://127.0.0.1 2>/dev/null; then ready=1; break; fi\n      sleep 0.1\n    done\n    [ \"$ready\" = 1 ] || { echo 'Nginx 시작을 확인하지 못했어요.' >&2; exit 1; }\n    if [ \"$MODE\" = start ] || [ \"$MODE\" = rm ]; then \"$REAL_DOCKER\" stop \"$BOX\" >/dev/null; fi\n  fi\n  touch .initialized\nfi\nBEFORE_ID=$(\"$REAL_DOCKER\" inspect -f '{{.Id}}' \"$BOX\" 2>/dev/null || true)\nexport BOX\nset +e\n( source \"$MQ3_ENTRY\" ) > .learner.stdout 2> .learner.stderr\nRESULT=$?\nset -e\nif [ \"${MQ3_OUTPUT:-raw}\" != grading ]; then\n  cat .learner.stdout\n  cat .learner.stderr >&2\n  exit \"$RESULT\"\nfi\ncat .learner.stderr >&2\n[ \"$RESULT\" = 0 ] || exit \"$RESULT\"\ncase \"$MODE\" in\n  pull)\n    if called pull && image_ready; then echo '이미지: 내려받기 확인'; else echo '이미지: pull 명령이 아직 없어요'; fi\n    echo \"컨테이너: $(state)\" ;;\n  run)\n    echo \"컨테이너: $(state)\"\n    current=$(\"$REAL_DOCKER\" inspect -f '{{.Config.Image}}' \"$BOX\" 2>/dev/null || true)\n    if called run && [ \"$current\" = \"$IMAGE\" ]; then echo '실행 환경: 지정한 이미지'; else echo '실행 환경: 확인 안 됨'; fi ;;\n  ps)\n    if called ps; then\n      count=$(\"$REAL_DOCKER\" ps -q --filter \"label=$OWNER\" | awk 'NF{n++} END{print n+0}')\n      echo \"실행 중인 실습 컨테이너: $count\"\n    else echo '실행 목록: ps 명령이 아직 없어요'; fi ;;\n  logs)\n    if called logs && [ -s .learner.stdout ]; then echo '시작 로그: 확인'; else echo '시작 로그: logs 명령이 아직 없어요'; fi ;;\n  exec)\n    text=$(\"$REAL_DOCKER\" exec \"$BOX\" sh -c 'cat /memo.txt 2>/dev/null' || true)\n    echo \"컨테이너 안 메모: ${text:-(없음)}\" ;;\n  stop|start)\n    echo \"컨테이너: $(state)\"\n    current=$(\"$REAL_DOCKER\" inspect -f '{{.Id}}' \"$BOX\" 2>/dev/null || true)\n    if [ \"$MODE\" = stop ]; then\n      if [ -n \"$current\" ] && [ \"$current\" = \"$BEFORE_ID\" ]; then echo '컨테이너 객체: 그대로'; else echo '컨테이너 객체: 없음'; fi\n    else\n      if [ -n \"$current\" ] && [ \"$current\" = \"$BEFORE_ID\" ]; then echo '식별자: 같은 컨테이너'; else echo '식별자: 달라짐'; fi\n    fi ;;\n  rm)\n    echo \"컨테이너: $(state)\"\n    if image_ready; then echo '이미지: 남아 있어요'; else echo '이미지: 없음'; fi ;;\nesac\n"
-      },
       "docker_images": [
         "nginx:1.28-alpine@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236"
-      ]
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "workspace_group": "docker-cli",
+        "workspace_revision": "docker-cli-1",
+        "shell": {
+          "step_id": "stp_97279f23-b535-4327-b0db-8519115f413b",
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": [
+            "docker exec \"$BOX\" sh -c 'echo hello > /memo.txt; cat /memo.txt'"
+          ],
+          "requires_vim": false
+        },
+        "docker": {
+          "image": "nginx:1.28-alpine@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236",
+          "container": "nginx",
+          "port": 80,
+          "start": "running",
+          "goal": {
+            "container": "running",
+            "file": {
+              "path": "/memo.txt",
+              "content": "hello"
+            }
+          }
+        }
+      }
     },
     {
       "id": "stp_62f6f8ed-b281-4c1a-8865-7ce9789b7165",
       "title": "컨테이너를 삭제하지 않고 멈추세요",
-      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n이번 문제는 Nginx가 실행 중이에요. 컨테이너를 지우지 말고 서버만 멈추세요.\n\n**알아두세요**\n\nstop은 대상 컨테이너 이름을 출력해요. 멈춘 컨테이너는 docker ps -a로 확인할 수 있어요. rm은 삭제하는 다른 명령이에요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. commands.sh에 다음 명령을 쓰세요. `docker stop \"$BOX\"`\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "goal": "앞 문제의 Nginx 컨테이너가 실행 중이에요. 컨테이너가 없으면 앱이 같은 이름으로 하나 만들어 실행해 둬요.\n\n컨테이너를 지우지 말고 서버만 멈추세요.\n\n**알아두세요**\n\nstop은 대상 컨테이너 이름을 출력해요. 멈춘 컨테이너는 docker ps -a로 확인할 수 있어요. rm은 삭제하는 다른 명령이에요.\n\n**할 일**\n\n1. 터미널에 `docker stop \"$BOX\"` 명령을 입력하고 Enter를 누르세요. 출력된 컨테이너 이름을 확인하세요.\n2. 터미널에 `docker ps -a` 명령을 입력하고 Enter를 누르세요. STATUS 열에서 Exited를 확인하세요.\n3. 확인한 뒤 제출 버튼을 누르세요.",
       "language": "docker",
-      "starter_code": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
-      "solution": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker stop \"$BOX\"\n",
-      "tests": [
-        {
-          "input": "",
-          "expected": "컨테이너: exited\n컨테이너 객체: 그대로"
-        }
-      ],
+      "starter_code": "",
+      "solution": "docker stop \"$BOX\"\ndocker ps -a",
+      "tests": [],
       "required": true,
       "narration": [
         {
@@ -583,65 +627,81 @@
         {
           "action": "say",
           "text": "지금 Nginx가 실행 중이에요. 컨테이너는 남기고 실행만 멈춰야 해요.",
-          "target": "text:이번 문제는 Nginx가 실행 중이에요. 컨테이너를 지우지 말고 서버만 멈추세요."
+          "target": "text:컨테이너를 지우지 말고 서버만 멈추세요."
         },
         {
-          "action": "run"
-        },
-        {
-          "action": "say",
-          "text": "아직 멈추라는 명령을 보내지 않았어요. 서버는 실행 중이에요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
-          "after": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker stop \"$BOX\"\n",
-          "say": "stop에 실습 컨테이너 이름을 넘겨요."
+          "action": "bash_command",
+          "command": "docker stop \"$BOX\"",
+          "say": "stop은 서버를 멈추고 컨테이너는 남겨요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "stop은 서버를 멈추고 컨테이너는 남겨요.",
-          "target": "code:docker stop \"$BOX\""
+          "text": "멈춘 컨테이너의 이름이 출력됐어요.",
+          "target": "#git-demo-terminal"
         },
         {
-          "action": "run"
+          "action": "bash_command",
+          "command": "docker ps -a",
+          "say": "-a를 붙이면 멈춘 컨테이너도 표에 나와요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "멈춘 컨테이너의 이름이 출력됐어요. 객체는 남아 있어서 다시 시작할 수 있어요.",
-          "target": "output"
+          "text": "STATUS가 Exited예요. 컨테이너는 지워지지 않고 남아 있어요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "조심하세요. 멈추기와 삭제는 달라요. rm으로 지우면 다시 시작할 객체도 없어져요.",
+          "text": "조심하세요. 멈추기와 삭제는 달라요. rm으로 지우면 다시 시작할 컨테이너도 없어져요.",
           "target": "text:rm은 삭제하는 다른 명령이에요."
-        },
-        {
-          "action": "submit"
         }
       ],
-      "entry_file": "commands.sh",
-      "files": {
-        "lab.sh": "set -eu\nREAL_DOCKER=$(command -v docker)\nIMAGE=nginx:1.28-alpine\nBOX=\"${MQ3_PROJECT}-nginx\"\nOWNER=\"$MQ3_OWNER_LABEL\"\nMODE=stop\nTRACE=\"$PWD/.docker-calls\"\n: > \"$TRACE\"\nstate() {\n  local value\n  if value=$(\"$REAL_DOCKER\" inspect -f '{{.State.Status}}' \"$BOX\" 2>/dev/null); then\n    printf '%s' \"$value\"\n  else\n    printf '없음'\n  fi\n}\ncalled() { grep -qx \"$1\" \"$TRACE\"; }\nimage_ready() { \"$REAL_DOCKER\" image inspect \"$IMAGE\" >/dev/null 2>&1; }\nowned() {\n  [ \"$(\"$REAL_DOCKER\" inspect -f '{{index .Config.Labels \"io.mq3.project\"}}' \"$BOX\" 2>/dev/null)\" = \"$MQ3_PROJECT\" ]\n}\ndocker() {\n  local sub=\"$1\" result=0\n  shift\n  case \"$sub\" in\n    pull)\n      [ \"$#\" = 1 ] && [ \"$1\" = \"$IMAGE\" ] || return 2\n      \"$REAL_DOCKER\" pull \"$@\" || result=$? ;;\n    run)\n      # Learner-visible name and port; only the ownership label is added here.\n      local args=(\"$@\") name='' port='' image='' detached=0\n      while [ \"$#\" -gt 0 ]; do\n        case \"$1\" in\n          -d|--detach) detached=1; shift ;;\n          --name) [ \"$#\" -ge 2 ] && [ -z \"$name\" ] || return 2; name=\"$2\"; shift 2 ;;\n          --name=*) [ -z \"$name\" ] || return 2; name=\"${1#--name=}\"; shift ;;\n          -p|--publish) [ \"$#\" -ge 2 ] && [ -z \"$port\" ] || return 2; port=\"$2\"; shift 2 ;;\n          --publish=*) [ -z \"$port\" ] || return 2; port=\"${1#--publish=}\"; shift ;;\n          nginx:1.28-alpine) image=\"$1\"; shift; [ \"$#\" = 0 ] || return 2 ;;\n          *) return 2 ;;\n        esac\n      done\n      [ \"$detached\" = 1 ] && [ \"$name\" = \"$BOX\" ] && [ \"$port\" = '127.0.0.1::80' ] && [ \"$image\" = \"$IMAGE\" ] || {\n        echo '실습 이름과 127.0.0.1::80을 사용하세요. 호스트 포트는 Docker가 골라요.' >&2; return 2;\n      }\n      \"$REAL_DOCKER\" run --label \"$OWNER\" \"${args[@]}\" || result=$? ;;\n    ps|images)\n      # Read-only: show Docker's actual table, including unrelated containers.\n      \"$REAL_DOCKER\" \"$sub\" \"$@\" || result=$? ;;\n    port|logs|exec|stop|start|rm)\n      if [ \"$sub\" != exec ]; then [ \"$#\" = 1 ] || return 2; fi\n      [ \"$#\" -gt 0 ] && [ \"$1\" = \"$BOX\" ] && owned || {\n        echo '이 실습에서 만든 컨테이너 이름을 사용하세요.' >&2; return 2;\n      }\n      \"$REAL_DOCKER\" \"$sub\" \"$@\" || result=$? ;;\n    *) echo '이 단계에서는 안내한 Docker 명령을 사용하세요.' >&2; return 2 ;;\n  esac\n  if [ \"$result\" = 0 ]; then printf '%s\\n' \"$sub\" >> \"$TRACE\"; fi\n  return \"$result\"\n}\n# Prepare once per problem workspace. Checks/demonstrations use a separate workspace.\nif [ ! -f .initialized ]; then\n  if [ \"$MODE\" != pull ] && [ \"$MODE\" != run ]; then\n    \"$REAL_DOCKER\" run -d --name \"$BOX\" --label \"$OWNER\" -p 127.0.0.1::80 \"$IMAGE\" >/dev/null\n    ready=0\n    for attempt in $(seq 1 50); do\n      if \"$REAL_DOCKER\" exec \"$BOX\" wget -q -O /dev/null http://127.0.0.1 2>/dev/null; then ready=1; break; fi\n      sleep 0.1\n    done\n    [ \"$ready\" = 1 ] || { echo 'Nginx 시작을 확인하지 못했어요.' >&2; exit 1; }\n    if [ \"$MODE\" = start ] || [ \"$MODE\" = rm ]; then \"$REAL_DOCKER\" stop \"$BOX\" >/dev/null; fi\n  fi\n  touch .initialized\nfi\nBEFORE_ID=$(\"$REAL_DOCKER\" inspect -f '{{.Id}}' \"$BOX\" 2>/dev/null || true)\nexport BOX\nset +e\n( source \"$MQ3_ENTRY\" ) > .learner.stdout 2> .learner.stderr\nRESULT=$?\nset -e\nif [ \"${MQ3_OUTPUT:-raw}\" != grading ]; then\n  cat .learner.stdout\n  cat .learner.stderr >&2\n  exit \"$RESULT\"\nfi\ncat .learner.stderr >&2\n[ \"$RESULT\" = 0 ] || exit \"$RESULT\"\ncase \"$MODE\" in\n  pull)\n    if called pull && image_ready; then echo '이미지: 내려받기 확인'; else echo '이미지: pull 명령이 아직 없어요'; fi\n    echo \"컨테이너: $(state)\" ;;\n  run)\n    echo \"컨테이너: $(state)\"\n    current=$(\"$REAL_DOCKER\" inspect -f '{{.Config.Image}}' \"$BOX\" 2>/dev/null || true)\n    if called run && [ \"$current\" = \"$IMAGE\" ]; then echo '실행 환경: 지정한 이미지'; else echo '실행 환경: 확인 안 됨'; fi ;;\n  ps)\n    if called ps; then\n      count=$(\"$REAL_DOCKER\" ps -q --filter \"label=$OWNER\" | awk 'NF{n++} END{print n+0}')\n      echo \"실행 중인 실습 컨테이너: $count\"\n    else echo '실행 목록: ps 명령이 아직 없어요'; fi ;;\n  logs)\n    if called logs && [ -s .learner.stdout ]; then echo '시작 로그: 확인'; else echo '시작 로그: logs 명령이 아직 없어요'; fi ;;\n  exec)\n    text=$(\"$REAL_DOCKER\" exec \"$BOX\" sh -c 'cat /memo.txt 2>/dev/null' || true)\n    echo \"컨테이너 안 메모: ${text:-(없음)}\" ;;\n  stop|start)\n    echo \"컨테이너: $(state)\"\n    current=$(\"$REAL_DOCKER\" inspect -f '{{.Id}}' \"$BOX\" 2>/dev/null || true)\n    if [ \"$MODE\" = stop ]; then\n      if [ -n \"$current\" ] && [ \"$current\" = \"$BEFORE_ID\" ]; then echo '컨테이너 객체: 그대로'; else echo '컨테이너 객체: 없음'; fi\n    else\n      if [ -n \"$current\" ] && [ \"$current\" = \"$BEFORE_ID\" ]; then echo '식별자: 같은 컨테이너'; else echo '식별자: 달라짐'; fi\n    fi ;;\n  rm)\n    echo \"컨테이너: $(state)\"\n    if image_ready; then echo '이미지: 남아 있어요'; else echo '이미지: 없음'; fi ;;\nesac\n"
-      },
       "docker_images": [
         "nginx:1.28-alpine@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236"
-      ]
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "workspace_group": "docker-cli",
+        "workspace_revision": "docker-cli-1",
+        "shell": {
+          "step_id": "stp_62f6f8ed-b281-4c1a-8865-7ce9789b7165",
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": [
+            "docker stop \"$BOX\"",
+            "docker ps -a"
+          ],
+          "requires_vim": false
+        },
+        "docker": {
+          "image": "nginx:1.28-alpine@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236",
+          "container": "nginx",
+          "port": 80,
+          "start": "running",
+          "goal": {
+            "container": "exited",
+            "same_container": true
+          }
+        }
+      }
     },
     {
       "id": "stp_8d7cc5c7-bc36-4c29-ae26-ffeec385dcac",
       "title": "새로 만들지 말고 멈춘 컨테이너를 다시 켜세요",
-      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n이번 문제는 Nginx 컨테이너를 만든 뒤 멈춘 상태예요. 같은 컨테이너를 다시 켜세요.\n\n**알아두세요**\n\nrun은 새 컨테이너를 만들어요. start는 기존 컨테이너를 켜요. 채점은 실행 상태와 식별자를 함께 비교해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. commands.sh에 다음 명령을 쓰세요. `docker start \"$BOX\"`\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "goal": "앞 문제에서 멈춘 Nginx 컨테이너로 시작해요. 컨테이너가 없거나 실행 중이면 앱이 같은 이름으로 만들어 멈춰 둬요.\n\n멈춘 컨테이너를 새로 만들지 말고 다시 켜세요.\n\n**알아두세요**\n\nrun은 새 컨테이너를 만들어요. start는 기존 컨테이너를 켜요. 채점은 실행 상태와 컨테이너 식별자를 함께 비교해요.\n\n**할 일**\n\n1. 터미널에 `docker start \"$BOX\"` 명령을 입력하고 Enter를 누르세요. 출력된 컨테이너 이름을 확인하세요.\n2. 터미널에 `docker ps` 명령을 입력하고 Enter를 누르세요. STATUS 열에서 Up을 확인하세요.\n3. 확인한 뒤 제출 버튼을 누르세요.",
       "language": "docker",
-      "starter_code": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
-      "solution": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker start \"$BOX\"\n",
-      "tests": [
-        {
-          "input": "",
-          "expected": "컨테이너: running\n식별자: 같은 컨테이너"
-        }
-      ],
+      "starter_code": "",
+      "solution": "docker start \"$BOX\"\ndocker ps",
+      "tests": [],
       "required": true,
       "narration": [
         {
@@ -652,134 +712,185 @@
         {
           "action": "say",
           "text": "컨테이너는 만들어진 뒤 멈춰 있어요. 새로 만들지 않고 이 컨테이너를 켜요.",
-          "target": "text:이번 문제는 Nginx 컨테이너를 만든 뒤 멈춘 상태예요. 같은 컨테이너를 다시 켜세요."
+          "target": "text:멈춘 컨테이너를 새로 만들지 말고 다시 켜세요."
         },
         {
-          "action": "run"
-        },
-        {
-          "action": "say",
-          "text": "준비된 컨테이너는 멈춰 있어요. 이름을 정하는 것만으로 켜지지는 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
-          "after": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker start \"$BOX\"\n",
-          "say": "run 대신 start에 같은 이름을 넘겨요."
+          "action": "bash_command",
+          "command": "docker start \"$BOX\"",
+          "say": "start는 남아 있는 같은 컨테이너를 다시 시작해요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "start는 남아 있는 같은 컨테이너를 다시 시작해요.",
-          "target": "code:docker start \"$BOX\""
+          "text": "다시 시작한 컨테이너 이름이 출력됐어요.",
+          "target": "#git-demo-terminal"
         },
         {
-          "action": "run"
+          "action": "bash_command",
+          "command": "docker ps",
+          "say": "ps로 다시 실행 중인지 볼게요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "다시 시작한 컨테이너 이름이 출력됐어요. 새 객체를 만들지 않았어요.",
-          "target": "output"
+          "text": "STATUS가 Up으로 바뀌었어요. CONTAINER ID는 앞에서 본 것과 같아요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
           "text": "조심하세요. run은 같은 이미지를 써도 새 컨테이너를 만드는 명령이에요.",
-          "target": "text:run은 새 컨테이너를 만들어요."
-        },
-        {
-          "action": "submit"
+          "target": "text:run은 새 컨테이너를 만들어요. start는 기존 컨테이너를 켜요."
         }
       ],
-      "entry_file": "commands.sh",
-      "files": {
-        "lab.sh": "set -eu\nREAL_DOCKER=$(command -v docker)\nIMAGE=nginx:1.28-alpine\nBOX=\"${MQ3_PROJECT}-nginx\"\nOWNER=\"$MQ3_OWNER_LABEL\"\nMODE=start\nTRACE=\"$PWD/.docker-calls\"\n: > \"$TRACE\"\nstate() {\n  local value\n  if value=$(\"$REAL_DOCKER\" inspect -f '{{.State.Status}}' \"$BOX\" 2>/dev/null); then\n    printf '%s' \"$value\"\n  else\n    printf '없음'\n  fi\n}\ncalled() { grep -qx \"$1\" \"$TRACE\"; }\nimage_ready() { \"$REAL_DOCKER\" image inspect \"$IMAGE\" >/dev/null 2>&1; }\nowned() {\n  [ \"$(\"$REAL_DOCKER\" inspect -f '{{index .Config.Labels \"io.mq3.project\"}}' \"$BOX\" 2>/dev/null)\" = \"$MQ3_PROJECT\" ]\n}\ndocker() {\n  local sub=\"$1\" result=0\n  shift\n  case \"$sub\" in\n    pull)\n      [ \"$#\" = 1 ] && [ \"$1\" = \"$IMAGE\" ] || return 2\n      \"$REAL_DOCKER\" pull \"$@\" || result=$? ;;\n    run)\n      # Learner-visible name and port; only the ownership label is added here.\n      local args=(\"$@\") name='' port='' image='' detached=0\n      while [ \"$#\" -gt 0 ]; do\n        case \"$1\" in\n          -d|--detach) detached=1; shift ;;\n          --name) [ \"$#\" -ge 2 ] && [ -z \"$name\" ] || return 2; name=\"$2\"; shift 2 ;;\n          --name=*) [ -z \"$name\" ] || return 2; name=\"${1#--name=}\"; shift ;;\n          -p|--publish) [ \"$#\" -ge 2 ] && [ -z \"$port\" ] || return 2; port=\"$2\"; shift 2 ;;\n          --publish=*) [ -z \"$port\" ] || return 2; port=\"${1#--publish=}\"; shift ;;\n          nginx:1.28-alpine) image=\"$1\"; shift; [ \"$#\" = 0 ] || return 2 ;;\n          *) return 2 ;;\n        esac\n      done\n      [ \"$detached\" = 1 ] && [ \"$name\" = \"$BOX\" ] && [ \"$port\" = '127.0.0.1::80' ] && [ \"$image\" = \"$IMAGE\" ] || {\n        echo '실습 이름과 127.0.0.1::80을 사용하세요. 호스트 포트는 Docker가 골라요.' >&2; return 2;\n      }\n      \"$REAL_DOCKER\" run --label \"$OWNER\" \"${args[@]}\" || result=$? ;;\n    ps|images)\n      # Read-only: show Docker's actual table, including unrelated containers.\n      \"$REAL_DOCKER\" \"$sub\" \"$@\" || result=$? ;;\n    port|logs|exec|stop|start|rm)\n      if [ \"$sub\" != exec ]; then [ \"$#\" = 1 ] || return 2; fi\n      [ \"$#\" -gt 0 ] && [ \"$1\" = \"$BOX\" ] && owned || {\n        echo '이 실습에서 만든 컨테이너 이름을 사용하세요.' >&2; return 2;\n      }\n      \"$REAL_DOCKER\" \"$sub\" \"$@\" || result=$? ;;\n    *) echo '이 단계에서는 안내한 Docker 명령을 사용하세요.' >&2; return 2 ;;\n  esac\n  if [ \"$result\" = 0 ]; then printf '%s\\n' \"$sub\" >> \"$TRACE\"; fi\n  return \"$result\"\n}\n# Prepare once per problem workspace. Checks/demonstrations use a separate workspace.\nif [ ! -f .initialized ]; then\n  if [ \"$MODE\" != pull ] && [ \"$MODE\" != run ]; then\n    \"$REAL_DOCKER\" run -d --name \"$BOX\" --label \"$OWNER\" -p 127.0.0.1::80 \"$IMAGE\" >/dev/null\n    ready=0\n    for attempt in $(seq 1 50); do\n      if \"$REAL_DOCKER\" exec \"$BOX\" wget -q -O /dev/null http://127.0.0.1 2>/dev/null; then ready=1; break; fi\n      sleep 0.1\n    done\n    [ \"$ready\" = 1 ] || { echo 'Nginx 시작을 확인하지 못했어요.' >&2; exit 1; }\n    if [ \"$MODE\" = start ] || [ \"$MODE\" = rm ]; then \"$REAL_DOCKER\" stop \"$BOX\" >/dev/null; fi\n  fi\n  touch .initialized\nfi\nBEFORE_ID=$(\"$REAL_DOCKER\" inspect -f '{{.Id}}' \"$BOX\" 2>/dev/null || true)\nexport BOX\nset +e\n( source \"$MQ3_ENTRY\" ) > .learner.stdout 2> .learner.stderr\nRESULT=$?\nset -e\nif [ \"${MQ3_OUTPUT:-raw}\" != grading ]; then\n  cat .learner.stdout\n  cat .learner.stderr >&2\n  exit \"$RESULT\"\nfi\ncat .learner.stderr >&2\n[ \"$RESULT\" = 0 ] || exit \"$RESULT\"\ncase \"$MODE\" in\n  pull)\n    if called pull && image_ready; then echo '이미지: 내려받기 확인'; else echo '이미지: pull 명령이 아직 없어요'; fi\n    echo \"컨테이너: $(state)\" ;;\n  run)\n    echo \"컨테이너: $(state)\"\n    current=$(\"$REAL_DOCKER\" inspect -f '{{.Config.Image}}' \"$BOX\" 2>/dev/null || true)\n    if called run && [ \"$current\" = \"$IMAGE\" ]; then echo '실행 환경: 지정한 이미지'; else echo '실행 환경: 확인 안 됨'; fi ;;\n  ps)\n    if called ps; then\n      count=$(\"$REAL_DOCKER\" ps -q --filter \"label=$OWNER\" | awk 'NF{n++} END{print n+0}')\n      echo \"실행 중인 실습 컨테이너: $count\"\n    else echo '실행 목록: ps 명령이 아직 없어요'; fi ;;\n  logs)\n    if called logs && [ -s .learner.stdout ]; then echo '시작 로그: 확인'; else echo '시작 로그: logs 명령이 아직 없어요'; fi ;;\n  exec)\n    text=$(\"$REAL_DOCKER\" exec \"$BOX\" sh -c 'cat /memo.txt 2>/dev/null' || true)\n    echo \"컨테이너 안 메모: ${text:-(없음)}\" ;;\n  stop|start)\n    echo \"컨테이너: $(state)\"\n    current=$(\"$REAL_DOCKER\" inspect -f '{{.Id}}' \"$BOX\" 2>/dev/null || true)\n    if [ \"$MODE\" = stop ]; then\n      if [ -n \"$current\" ] && [ \"$current\" = \"$BEFORE_ID\" ]; then echo '컨테이너 객체: 그대로'; else echo '컨테이너 객체: 없음'; fi\n    else\n      if [ -n \"$current\" ] && [ \"$current\" = \"$BEFORE_ID\" ]; then echo '식별자: 같은 컨테이너'; else echo '식별자: 달라짐'; fi\n    fi ;;\n  rm)\n    echo \"컨테이너: $(state)\"\n    if image_ready; then echo '이미지: 남아 있어요'; else echo '이미지: 없음'; fi ;;\nesac\n"
-      },
       "docker_images": [
         "nginx:1.28-alpine@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236"
-      ]
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "workspace_group": "docker-cli",
+        "workspace_revision": "docker-cli-1",
+        "shell": {
+          "step_id": "stp_8d7cc5c7-bc36-4c29-ae26-ffeec385dcac",
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": [
+            "docker start \"$BOX\"",
+            "docker ps"
+          ],
+          "requires_vim": false
+        },
+        "docker": {
+          "image": "nginx:1.28-alpine@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236",
+          "container": "nginx",
+          "port": 80,
+          "start": "stopped",
+          "goal": {
+            "container": "running",
+            "same_container": true
+          }
+        }
+      }
     },
     {
       "id": "stp_df3b7f87-6670-4844-8a67-8d5ac87fc6d8",
-      "title": "멈춘 컨테이너만 삭제하고 이미지는 남기세요",
-      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n이번 문제는 Nginx 컨테이너를 멈춘 상태예요. 이 컨테이너만 삭제하세요.\n\n**알아두세요**\n\nrm은 삭제한 컨테이너 이름을 출력해요. 이미지까지 지우지는 않아요. 같은 이미지로 새 컨테이너를 만들 수 있어요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. commands.sh에 다음 명령을 쓰세요. `docker rm \"$BOX\"`\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "title": "컨테이너를 멈춘 뒤 삭제하고 이미지는 남기세요",
+      "goal": "앞 문제에서 다시 켠 Nginx 컨테이너가 실행 중이에요. 컨테이너가 없으면 앱이 같은 이름으로 하나 만들어 실행해 둬요.\n\n이 컨테이너만 지우고 이미지는 남기세요.\n\n**알아두세요**\n\n실행 중인 컨테이너는 rm으로 바로 지울 수 없어요. 먼저 멈춰요. rm은 삭제한 컨테이너 이름을 출력해요. 이미지까지 지우지는 않아요.\n\n**할 일**\n\n1. 터미널에 `docker stop \"$BOX\"` 명령을 입력하고 Enter를 누르세요. 출력된 컨테이너 이름을 확인하세요.\n2. 터미널에 `docker rm \"$BOX\"` 명령을 입력하고 Enter를 누르세요. 삭제한 컨테이너 이름을 확인하세요.\n3. 터미널에 `docker images` 명령을 입력하고 Enter를 누르세요. nginx 이미지가 남아 있는지 확인하세요.\n4. 확인한 뒤 제출 버튼을 누르세요.",
       "language": "docker",
-      "starter_code": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
-      "solution": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker rm \"$BOX\"\n",
-      "tests": [
-        {
-          "input": "",
-          "expected": "컨테이너: 없음\n이미지: 남아 있어요"
-        }
-      ],
+      "starter_code": "",
+      "solution": "docker stop \"$BOX\"\ndocker rm \"$BOX\"\ndocker images",
+      "tests": [],
       "required": true,
       "narration": [
         {
           "action": "say",
-          "text": "멈춘 컨테이너만 삭제하고 이미지는 남기는 문제예요.",
-          "target": "text:멈춘 컨테이너만 삭제하고 이미지는 남기세요#1"
+          "text": "컨테이너를 멈춘 뒤 삭제하고 이미지는 남기는 문제예요.",
+          "target": "text:컨테이너를 멈춘 뒤 삭제하고 이미지는 남기세요#1"
         },
         {
           "action": "say",
-          "text": "컨테이너는 멈춰 있어요. 이미지는 두고 이 컨테이너만 지워요.",
-          "target": "text:이번 문제는 Nginx 컨테이너를 멈춘 상태예요. 이 컨테이너만 삭제하세요."
+          "text": "Nginx 컨테이너가 실행 중이에요. 이미지는 두고 이 컨테이너만 지워요.",
+          "target": "text:이 컨테이너만 지우고 이미지는 남기세요."
         },
         {
-          "action": "run"
-        },
-        {
-          "action": "say",
-          "text": "삭제 명령이 없어서 컨테이너는 아직 남아 있어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
-          "after": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker rm \"$BOX\"\n",
-          "say": "rm에 실습 컨테이너 이름을 넘겨요."
+          "action": "bash_command",
+          "command": "docker rm \"$BOX\"",
+          "say": "실행 중인 컨테이너에 바로 rm을 입력해 볼게요.",
+          "target": "#git-demo-terminal",
+          "fails": true
         },
         {
           "action": "say",
-          "text": "rm은 컨테이너를 지워요. 이미지는 따로 남아요.",
-          "target": "code:docker rm \"$BOX\""
+          "text": "조심하세요. 실행 중이라서 지울 수 없다는 오류가 나요. 먼저 멈춰야 해요.",
+          "target": "#git-demo-terminal"
         },
         {
-          "action": "run"
+          "action": "bash_command",
+          "command": "docker stop \"$BOX\"",
+          "say": "stop으로 먼저 멈춰요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "삭제한 이름이 출력됐어요. Nginx 이미지는 그대로 남아 있어요.",
-          "target": "output"
+          "text": "멈춘 컨테이너 이름이 출력됐어요. 이제 지울 수 있어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker rm \"$BOX\"",
+          "say": "rm은 컨테이너를 지워요. 이미지는 따로 남아요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "조심하세요. 컨테이너 안에 새로 쓴 파일도 함께 사라져요. 다음에는 데이터를 남기는 방법을 배워요.",
-          "target": "text:rm은 삭제한 컨테이너 이름을 출력해요. 이미지까지 지우지는 않아요. 같은 이미지로 새 컨테이너를 만들 수 있어요."
+          "text": "삭제한 이름이 출력됐어요. 컨테이너 안에 쓴 메모도 함께 사라졌어요.",
+          "target": "#git-demo-terminal"
         },
         {
-          "action": "submit"
+          "action": "bash_command",
+          "command": "docker images",
+          "say": "images로 이미지가 남았는지 볼게요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "nginx 1.28-alpine 이미지는 그대로예요. 같은 이미지로 새 컨테이너를 만들 수 있어요.",
+          "target": "text:이미지까지 지우지는 않아요."
         }
       ],
-      "entry_file": "commands.sh",
-      "files": {
-        "lab.sh": "set -eu\nREAL_DOCKER=$(command -v docker)\nIMAGE=nginx:1.28-alpine\nBOX=\"${MQ3_PROJECT}-nginx\"\nOWNER=\"$MQ3_OWNER_LABEL\"\nMODE=rm\nTRACE=\"$PWD/.docker-calls\"\n: > \"$TRACE\"\nstate() {\n  local value\n  if value=$(\"$REAL_DOCKER\" inspect -f '{{.State.Status}}' \"$BOX\" 2>/dev/null); then\n    printf '%s' \"$value\"\n  else\n    printf '없음'\n  fi\n}\ncalled() { grep -qx \"$1\" \"$TRACE\"; }\nimage_ready() { \"$REAL_DOCKER\" image inspect \"$IMAGE\" >/dev/null 2>&1; }\nowned() {\n  [ \"$(\"$REAL_DOCKER\" inspect -f '{{index .Config.Labels \"io.mq3.project\"}}' \"$BOX\" 2>/dev/null)\" = \"$MQ3_PROJECT\" ]\n}\ndocker() {\n  local sub=\"$1\" result=0\n  shift\n  case \"$sub\" in\n    pull)\n      [ \"$#\" = 1 ] && [ \"$1\" = \"$IMAGE\" ] || return 2\n      \"$REAL_DOCKER\" pull \"$@\" || result=$? ;;\n    run)\n      # Learner-visible name and port; only the ownership label is added here.\n      local args=(\"$@\") name='' port='' image='' detached=0\n      while [ \"$#\" -gt 0 ]; do\n        case \"$1\" in\n          -d|--detach) detached=1; shift ;;\n          --name) [ \"$#\" -ge 2 ] && [ -z \"$name\" ] || return 2; name=\"$2\"; shift 2 ;;\n          --name=*) [ -z \"$name\" ] || return 2; name=\"${1#--name=}\"; shift ;;\n          -p|--publish) [ \"$#\" -ge 2 ] && [ -z \"$port\" ] || return 2; port=\"$2\"; shift 2 ;;\n          --publish=*) [ -z \"$port\" ] || return 2; port=\"${1#--publish=}\"; shift ;;\n          nginx:1.28-alpine) image=\"$1\"; shift; [ \"$#\" = 0 ] || return 2 ;;\n          *) return 2 ;;\n        esac\n      done\n      [ \"$detached\" = 1 ] && [ \"$name\" = \"$BOX\" ] && [ \"$port\" = '127.0.0.1::80' ] && [ \"$image\" = \"$IMAGE\" ] || {\n        echo '실습 이름과 127.0.0.1::80을 사용하세요. 호스트 포트는 Docker가 골라요.' >&2; return 2;\n      }\n      \"$REAL_DOCKER\" run --label \"$OWNER\" \"${args[@]}\" || result=$? ;;\n    ps|images)\n      # Read-only: show Docker's actual table, including unrelated containers.\n      \"$REAL_DOCKER\" \"$sub\" \"$@\" || result=$? ;;\n    port|logs|exec|stop|start|rm)\n      if [ \"$sub\" != exec ]; then [ \"$#\" = 1 ] || return 2; fi\n      [ \"$#\" -gt 0 ] && [ \"$1\" = \"$BOX\" ] && owned || {\n        echo '이 실습에서 만든 컨테이너 이름을 사용하세요.' >&2; return 2;\n      }\n      \"$REAL_DOCKER\" \"$sub\" \"$@\" || result=$? ;;\n    *) echo '이 단계에서는 안내한 Docker 명령을 사용하세요.' >&2; return 2 ;;\n  esac\n  if [ \"$result\" = 0 ]; then printf '%s\\n' \"$sub\" >> \"$TRACE\"; fi\n  return \"$result\"\n}\n# Prepare once per problem workspace. Checks/demonstrations use a separate workspace.\nif [ ! -f .initialized ]; then\n  if [ \"$MODE\" != pull ] && [ \"$MODE\" != run ]; then\n    \"$REAL_DOCKER\" run -d --name \"$BOX\" --label \"$OWNER\" -p 127.0.0.1::80 \"$IMAGE\" >/dev/null\n    ready=0\n    for attempt in $(seq 1 50); do\n      if \"$REAL_DOCKER\" exec \"$BOX\" wget -q -O /dev/null http://127.0.0.1 2>/dev/null; then ready=1; break; fi\n      sleep 0.1\n    done\n    [ \"$ready\" = 1 ] || { echo 'Nginx 시작을 확인하지 못했어요.' >&2; exit 1; }\n    if [ \"$MODE\" = start ] || [ \"$MODE\" = rm ]; then \"$REAL_DOCKER\" stop \"$BOX\" >/dev/null; fi\n  fi\n  touch .initialized\nfi\nBEFORE_ID=$(\"$REAL_DOCKER\" inspect -f '{{.Id}}' \"$BOX\" 2>/dev/null || true)\nexport BOX\nset +e\n( source \"$MQ3_ENTRY\" ) > .learner.stdout 2> .learner.stderr\nRESULT=$?\nset -e\nif [ \"${MQ3_OUTPUT:-raw}\" != grading ]; then\n  cat .learner.stdout\n  cat .learner.stderr >&2\n  exit \"$RESULT\"\nfi\ncat .learner.stderr >&2\n[ \"$RESULT\" = 0 ] || exit \"$RESULT\"\ncase \"$MODE\" in\n  pull)\n    if called pull && image_ready; then echo '이미지: 내려받기 확인'; else echo '이미지: pull 명령이 아직 없어요'; fi\n    echo \"컨테이너: $(state)\" ;;\n  run)\n    echo \"컨테이너: $(state)\"\n    current=$(\"$REAL_DOCKER\" inspect -f '{{.Config.Image}}' \"$BOX\" 2>/dev/null || true)\n    if called run && [ \"$current\" = \"$IMAGE\" ]; then echo '실행 환경: 지정한 이미지'; else echo '실행 환경: 확인 안 됨'; fi ;;\n  ps)\n    if called ps; then\n      count=$(\"$REAL_DOCKER\" ps -q --filter \"label=$OWNER\" | awk 'NF{n++} END{print n+0}')\n      echo \"실행 중인 실습 컨테이너: $count\"\n    else echo '실행 목록: ps 명령이 아직 없어요'; fi ;;\n  logs)\n    if called logs && [ -s .learner.stdout ]; then echo '시작 로그: 확인'; else echo '시작 로그: logs 명령이 아직 없어요'; fi ;;\n  exec)\n    text=$(\"$REAL_DOCKER\" exec \"$BOX\" sh -c 'cat /memo.txt 2>/dev/null' || true)\n    echo \"컨테이너 안 메모: ${text:-(없음)}\" ;;\n  stop|start)\n    echo \"컨테이너: $(state)\"\n    current=$(\"$REAL_DOCKER\" inspect -f '{{.Id}}' \"$BOX\" 2>/dev/null || true)\n    if [ \"$MODE\" = stop ]; then\n      if [ -n \"$current\" ] && [ \"$current\" = \"$BEFORE_ID\" ]; then echo '컨테이너 객체: 그대로'; else echo '컨테이너 객체: 없음'; fi\n    else\n      if [ -n \"$current\" ] && [ \"$current\" = \"$BEFORE_ID\" ]; then echo '식별자: 같은 컨테이너'; else echo '식별자: 달라짐'; fi\n    fi ;;\n  rm)\n    echo \"컨테이너: $(state)\"\n    if image_ready; then echo '이미지: 남아 있어요'; else echo '이미지: 없음'; fi ;;\nesac\n"
-      },
       "docker_images": [
         "nginx:1.28-alpine@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236"
-      ]
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "workspace_group": "docker-cli",
+        "workspace_revision": "docker-cli-1",
+        "shell": {
+          "step_id": "stp_df3b7f87-6670-4844-8a67-8d5ac87fc6d8",
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": [
+            "docker stop \"$BOX\"",
+            "docker rm \"$BOX\"",
+            "docker images"
+          ],
+          "requires_vim": false
+        },
+        "docker": {
+          "image": "nginx:1.28-alpine@sha256:a8b39bd9cf0f83869a2162827a0caf6137ddf759d50a171451b335cecc87d236",
+          "container": "nginx",
+          "port": 80,
+          "start": "running",
+          "goal": {
+            "container": "absent",
+            "image_present": true
+          }
+        }
+      }
     },
     {
       "id": "stp_ddeb2d11-665b-4171-a08c-7b11c2a3f633",
       "title": "메모 서버 컨테이너가 계속 실행되게 하세요",
-      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n앞에서는 run에 이미지와 명령을 직접 썼어요. 이제 같은 실행 설정을 compose.yaml에 기록해요. services 아래에는 서비스 이름, image에는 이미지, command에는 실행할 명령을 써요. lab.sh가 그 파일로 docker compose up을 실행해요. 여러 실행 설정을 파일로 관리하는 단계예요.\n\n`command`는 시작 메시지와 메모 서버(여기서는 `sleep 3600`) 실행을 지시해요. 그런데 실행하면 상태가 `exited`로 나와요. 서버를 기다리지 않고 컨테이너가 끝났어요.\n\n**알아두세요**\n\n컨테이너는 이미지로 시작한 프로세스예요. `command`로 시작한 첫 프로세스가 PID 1이고, PID 1이 끝나면 컨테이너도 끝나요. 셸에서 명령 끝의 `&`는 그 명령을 뒤에서 돌리고 셸은 바로 다음으로 넘어가요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요. 처음에는 이미지를 내려받느라 조금 걸려요. `상태:` 줄을 보고, 실행 중이면 `로그:` 줄도 읽으세요.\n2. `command` 줄에서 sh가 바로 끝나지 않게 고치세요.\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "goal": "오른쪽 위 편집기에는 compose.yaml이, 아래에는 실제 터미널이 있어요. 편집기의 파일은 터미널의 현재 폴더에 바로 저장돼요. docker compose는 이 폴더의 compose.yaml을 읽어요. 이 문제만의 프로젝트 이름으로 실행해서 다른 컨테이너와 섞이지 않아요. 아직 이 문제의 컨테이너는 없어요.\n\n앞에서는 run에 이미지와 명령을 직접 썼어요. 이제 같은 실행 설정을 compose.yaml에 기록해요. services 아래에는 서비스 이름, image에는 이미지, command에는 실행할 명령을 써요. 터미널에서 docker compose up을 입력하면 Compose가 그 파일을 읽어 실행해요. 여러 실행 설정을 파일로 관리하는 단계예요.\n\n`command`는 시작 메시지와 메모 서버(여기서는 `sleep 3600`) 실행을 지시해요. 그런데 실행하면 상태가 `exited`로 나와요. 서버를 기다리지 않고 컨테이너가 끝났어요.\n\n**알아두세요**\n\n컨테이너는 이미지로 시작한 프로세스예요. `command`로 시작한 첫 프로세스가 PID 1이고, PID 1이 끝나면 컨테이너도 끝나요. 셸에서 명령 끝의 `&`는 그 명령을 뒤에서 돌리고 셸은 바로 다음으로 넘어가요. `docker compose up -d`는 compose.yaml대로 컨테이너를 뒤에서 실행하고, 설정이 바뀌었으면 컨테이너를 새로 만들어요.\n\n**할 일**\n\n1. 터미널에 `docker compose up -d` 명령을 입력하고 Enter를 누르세요. memo 서비스를 뒤에서 실행해요. 처음에는 이미지를 받느라 조금 걸릴 수 있어요.\n2. 터미널에 `docker compose ps -a` 명령을 입력하고 Enter를 누르세요. STATUS 열에서 memo의 상태를 읽으세요.\n3. 편집기의 compose.yaml에서 `command` 줄을 sh가 바로 끝나지 않게 고치세요.\n4. 터미널에 `docker compose up -d` 명령을 입력하고 Enter를 누르세요. 바뀐 파일로 다시 실행해요.\n5. 터미널에 `docker compose ps -a` 명령을 입력하고 Enter를 누르세요. STATUS 열을 다시 읽으세요.\n6. 터미널에 `docker compose logs memo` 명령을 입력하고 Enter를 누르세요. 시작 메시지를 찾으세요.\n7. 결과를 확인한 뒤 제출 버튼을 누르세요.",
       "language": "docker",
-      "starter_code": "# 메모 서버 컨테이너 하나를 띄워요.\nservices:\n  memo:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    # 고칠 곳: 시작 메시지를 찍고 메모 서버(여기서는 sleep)를 띄우는 명령이에요.\n    command: [\"sh\", \"-c\", \"echo 메모 서버 시작 && sleep 3600 &\"]\n",
-      "solution": "# 메모 서버 컨테이너 하나를 띄워요.\nservices:\n  memo:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    # 컨테이너는 첫 프로세스(PID 1)가 살아 있는 동안만 실행 중이에요.\n    # &를 빼서 sh가 sleep이 끝날 때까지 기다리게 해요. 그래야 PID 1이 끝나지 않아요.\n    command: [\"sh\", \"-c\", \"echo 메모 서버 시작 && sleep 3600\"]\n",
-      "tests": [
-        {
-          "input": "",
-          "expected": "상태: running\n로그: 메모 서버 시작"
-        }
-      ],
+      "starter_code": "",
+      "solution": "docker compose up -d\ndocker compose ps -a\ndocker compose logs memo",
+      "tests": [],
       "required": true,
       "narration": [
         {
@@ -799,66 +910,154 @@
         },
         {
           "action": "say",
-          "text": "지금 설정 그대로 실행해서 3초 뒤 상태를 볼게요.",
+          "text": "지금 설정 그대로 실행해서 상태를 볼게요.",
           "target": "text:그런데 실행하면 상태가 `exited`로 나와요."
         },
         {
-          "action": "run"
+          "action": "bash_command",
+          "command": "docker compose up -d",
+          "say": "compose.yaml대로 memo 서비스를 뒤에서 실행할게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 600
         },
         {
           "action": "say",
-          "text": "상태는 exited예요. 첫 프로세스가 백그라운드 작업을 기다리지 않고 끝났어요. 실행 중이 아니라서 로그 줄은 나오지 않아요.",
-          "target": "output"
+          "text": "Started가 나왔어요. 컨테이너를 시작했다는 뜻이에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose ps -a",
+          "say": "-a를 붙여 끝난 컨테이너까지 표로 볼게요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "끝의 &가 sleep을 뒤로 보내요. 그러면 sh는 할 일이 없어서 바로 끝나요. sh가 PID 1이라 컨테이너도 끝나요.",
+          "text": "STATUS가 Exited예요. 서버를 기다리지 않고 컨테이너가 끝났어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "끝의 &가 sleep을 뒤로 보내요. sh는 할 일이 없어 바로 끝나요.",
           "target": "code:sleep 3600 &"
         },
         {
           "action": "patch_code",
           "before": "    # 고칠 곳: 시작 메시지를 찍고 메모 서버(여기서는 sleep)를 띄우는 명령이에요.\n    command: [\"sh\", \"-c\", \"echo 메모 서버 시작 && sleep 3600 &\"]",
           "after": "    # 컨테이너는 첫 프로세스(PID 1)가 살아 있는 동안만 실행 중이에요.\n    # &를 빼서 sh가 sleep이 끝날 때까지 기다리게 해요. 그래야 PID 1이 끝나지 않아요.\n    command: [\"sh\", \"-c\", \"echo 메모 서버 시작 && sleep 3600\"]",
-          "say": "&를 빼서 sh가 sleep을 기다리게 해요."
+          "say": "&를 빼서 sh가 sleep을 기다리게 해요.",
+          "file": "compose.yaml"
         },
         {
-          "action": "run"
+          "action": "bash_command",
+          "command": "docker compose up -d",
+          "say": "고친 파일로 다시 실행해요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "이제 3초 뒤에도 running이에요. PID 1인 sh가 sleep을 기다리는 동안 컨테이너가 살아 있어요.",
-          "target": "output"
+          "text": "Recreated가 보여요. 설정이 바뀌어 컨테이너를 새로 만들었어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose ps -a",
+          "say": "다시 상태를 볼게요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "이제 STATUS가 Up이에요. PID 1인 sh가 sleep을 기다리고 있어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose logs memo",
+          "say": "logs로 시작 메시지를 읽을게요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "메모 서버 시작이 보여요. 첫 프로세스가 남긴 출력이에요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
           "text": "조심하세요. 이 셸 명령에서 &를 붙이면 셸이 기다리지 않고 끝나요. 서버가 직접 PID 1이 되거나 PID 1이 서버를 기다려야 컨테이너가 유지돼요.",
           "target": "text:셸에서 명령 끝의 `&`는 그 명령을 뒤에서 돌리고 셸은 바로 다음으로 넘어가요."
-        },
-        {
-          "action": "submit"
         }
       ],
-      "entry_file": "compose.yaml",
-      "files": {
-        "lab.sh": "# 실습 스크립트: 컨테이너를 띄우고 3초 뒤 엔진이 보는 상태를 읽어요.\nset -e\ndocker compose up -d memo\nsleep 3\nstate=$(docker compose ps -a --format '{{.State}}' memo)\necho \"상태: $state\"\n# 시작 전 종료된 작업의 로그 유무는 경합이라 정답이나 관찰 근거로 고정하지 않아요.\nif [ \"$state\" = running ]; then\n  echo \"로그: $(docker compose logs --no-log-prefix memo | head -n 1)\"\nfi\n"
-      },
       "docker_images": [
         "busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662"
-      ]
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "shell": {
+          "step_id": "stp_ddeb2d11-665b-4171-a08c-7b11c2a3f633",
+          "start": {
+            "files": {
+              "compose.yaml": "# 메모 서버 컨테이너 하나를 띄워요.\nservices:\n  memo:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    # 고칠 곳: 시작 메시지를 찍고 메모 서버(여기서는 sleep)를 띄우는 명령이에요.\n    command: [\"sh\", \"-c\", \"echo 메모 서버 시작 && sleep 3600 &\"]\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "compose.yaml": "# 메모 서버 컨테이너 하나를 띄워요.\nservices:\n  memo:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    # 고칠 곳: 시작 메시지를 찍고 메모 서버(여기서는 sleep)를 띄우는 명령이에요.\n    command: [\"sh\", \"-c\", \"echo 메모 서버 시작 && sleep 3600 &\"]\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "goal": {
+            "files": {
+              "compose.yaml": "# 메모 서버 컨테이너 하나를 띄워요.\nservices:\n  memo:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    # 컨테이너는 첫 프로세스(PID 1)가 살아 있는 동안만 실행 중이에요.\n    # &를 빼서 sh가 sleep이 끝날 때까지 기다리게 해요. 그래야 PID 1이 끝나지 않아요.\n    command: [\"sh\", \"-c\", \"echo 메모 서버 시작 && sleep 3600\"]\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": [
+            "docker compose up -d",
+            "docker compose ps -a",
+            "docker compose logs memo"
+          ],
+          "requires_vim": false
+        },
+        "docker": {
+          "compose": {
+            "images": [
+              "busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662"
+            ],
+            "editable": [
+              "compose.yaml"
+            ],
+            "same_files": [
+              "compose.yaml"
+            ],
+            "checks": [
+              {
+                "kind": "running",
+                "service": "memo"
+              },
+              {
+                "kind": "logs",
+                "service": "memo",
+                "has": [
+                  "메모 서버 시작"
+                ]
+              }
+            ]
+          }
+        }
+      }
     },
     {
       "id": "stp_bc8ce344-eb51-4fae-ac2d-8a56ec3ca977",
       "title": "다시 만들어도 메모가 남게 볼륨을 연결하세요",
-      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n실행하면 재시작 뒤에는 메모가 있는데, 다시 만든 뒤에는 `(없음)`이에요. 같은 이미지, 같은 설정인데 메모가 사라졌어요.\n\n**알아두세요**\n\n컨테이너 안에서 쓴 파일은 그 컨테이너의 쓰기 레이어에 저장돼요. `restart`는 같은 컨테이너를 다시 켜요. `up --force-recreate`와 `down`은 컨테이너를 지우고 이미지에서 새로 만들어요. 볼륨은 컨테이너 밖에서 Docker가 관리하는 저장소이고 `down -v`를 해야 지워져요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요. 처음에는 이미지를 내려받느라 조금 걸려요. 네 줄에서 메모가 어디서 사라지는지 보세요.\n2. `고칠 곳` 자리에 `memo` 볼륨을 `/memo`에 연결하는 `volumes`를 쓰고, 파일 끝에 볼륨 선언을 더하세요.\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "goal": "새 문제의 compose.yaml과 빈 터미널 폴더로 시작해요. 이 문제의 컨테이너는 아직 없어요.\n\n메모를 쓰고 컨테이너를 다시 만든 뒤 읽으면 메모 파일이 없다고 나와요. 같은 이미지, 같은 설정인데 메모가 사라졌어요.\n\n**알아두세요**\n\n컨테이너 안에서 쓴 파일은 그 컨테이너의 쓰기 레이어에 저장돼요. `docker compose up -d --force-recreate`는 컨테이너를 지우고 이미지에서 새로 만들어요. `restart`는 같은 컨테이너를 다시 켜요. 볼륨은 컨테이너 밖에서 Docker가 관리하는 저장소이고 `down -v`를 해야 지워져요.\n\n**할 일**\n\n1. 터미널에 `docker compose up -d` 명령을 입력하고 Enter를 누르세요. memo 서비스를 실행해요.\n2. 터미널에 `docker compose exec memo sh -c 'echo 우유 >> /memo/list.txt'` 명령을 입력하고 Enter를 누르세요. 컨테이너 안 /memo/list.txt에 우유를 써요.\n3. 터미널에 `docker compose up -d --force-recreate` 명령을 입력하고 Enter를 누르세요. 컨테이너를 새로 만들어요.\n4. 터미널에 `docker compose exec memo cat /memo/list.txt` 명령을 입력하고 Enter를 누르세요. 메모가 남았는지 읽으세요.\n5. 편집기의 compose.yaml `고칠 곳` 자리에 `memo` 볼륨을 `/memo`에 연결하는 `volumes`를 쓰고, 파일 끝에 볼륨 선언을 더하세요.\n6. 터미널에 `docker compose up -d` 명령을 입력하고 Enter를 누르세요. 볼륨을 연결한 컨테이너로 바꿔요.\n7. 터미널에 `docker compose exec memo sh -c 'echo 우유 >> /memo/list.txt'` 명령을 입력하고 Enter를 누르세요. 다시 우유를 써요.\n8. 터미널에 `docker compose up -d --force-recreate` 명령을 입력하고 Enter를 누르세요. 컨테이너를 다시 새로 만들어요.\n9. 터미널에 `docker compose exec memo cat /memo/list.txt` 명령을 입력하고 Enter를 누르세요. 이번에는 메모가 남았는지 읽으세요.\n10. 결과를 확인한 뒤 제출 버튼을 누르세요.",
       "language": "docker",
-      "starter_code": "# 메모를 기억하는 컨테이너예요. 메모는 /memo/list.txt에 써요.\nservices:\n  memo:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"sleep\", \"3600\"]\n    # 고칠 곳: 지금 /memo는 컨테이너 자기 파일 시스템(쓰기 레이어)에 있어요.\n",
-      "solution": "# 메모를 기억하는 컨테이너예요. 메모는 /memo/list.txt에 써요.\nservices:\n  memo:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"sleep\", \"3600\"]\n    # memo라는 이름의 볼륨을 컨테이너의 /memo에 연결해요.\n    # 이제 /memo에 쓴 파일은 컨테이너가 아니라 볼륨에 저장돼요.\n    volumes:\n      - memo:/memo\n\n# 볼륨은 컨테이너 밖에서 Docker가 따로 관리해요. 컨테이너를 지워도 남아요.\nvolumes:\n  memo:\n",
-      "tests": [
-        {
-          "input": "",
-          "expected": "재시작 뒤: 우유 빵\n다시 만든 뒤: 우유 빵\ndown 뒤: 우유 빵\ndown -v 뒤: (없음)"
-        }
-      ],
+      "starter_code": "",
+      "solution": "docker compose up -d\ndocker compose exec memo sh -c 'echo 우유 >> /memo/list.txt'\ndocker compose up -d --force-recreate\ndocker compose exec memo cat /memo/list.txt",
+      "tests": [],
       "required": true,
       "narration": [
         {
@@ -867,17 +1066,49 @@
           "target": "text:다시 만들어도 메모가 남게 볼륨을 연결하세요#1"
         },
         {
-          "action": "run"
+          "action": "bash_command",
+          "command": "docker compose up -d",
+          "say": "먼저 memo 서비스를 실행할게요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "재시작 뒤에는 우유 빵이 있어요. 다시 만든 뒤부터는 없음이에요.",
-          "target": "output"
+          "text": "Started가 나왔어요. memo 컨테이너가 실행 중이에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose exec memo sh -c 'echo 우유 >> /memo/list.txt'",
+          "say": "컨테이너 안 /memo/list.txt에 우유를 써요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "재시작은 같은 컨테이너라 쓰기 레이어가 그대로예요. 다시 만들면 이미지에서 새 컨테이너가 생겨요. 이미지에는 메모가 없어요.",
-          "target": "text:`restart`는 같은 컨테이너를 다시 켜요."
+          "text": "아무것도 출력하지 않고 프롬프트로 돌아왔어요. 파일에 썼어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose up -d --force-recreate",
+          "say": "이번에는 컨테이너를 지우고 새로 만들게요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "Recreated가 보여요. 이미지에서 새 컨테이너를 만들었어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose exec memo cat /memo/list.txt",
+          "say": "메모를 다시 읽어 볼게요.",
+          "target": "#git-demo-terminal",
+          "fails": true
+        },
+        {
+          "action": "say",
+          "text": "파일이 없다는 오류가 나요. 새 컨테이너는 새 쓰기 레이어에서 시작했어요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
@@ -888,60 +1119,143 @@
           "action": "patch_code",
           "before": "    # 고칠 곳: 지금 /memo는 컨테이너 자기 파일 시스템(쓰기 레이어)에 있어요.\n",
           "after": "    # memo라는 이름의 볼륨을 컨테이너의 /memo에 연결해요.\n    # 이제 /memo에 쓴 파일은 컨테이너가 아니라 볼륨에 저장돼요.\n    volumes:\n      - memo:/memo\n\n# 볼륨은 컨테이너 밖에서 Docker가 따로 관리해요. 컨테이너를 지워도 남아요.\nvolumes:\n  memo:\n",
-          "say": "/memo에 이름 있는 볼륨을 연결하고, 파일 끝에 볼륨을 선언해요."
+          "say": "/memo에 이름 있는 볼륨을 연결하고, 파일 끝에 볼륨을 선언해요.",
+          "file": "compose.yaml"
         },
         {
-          "action": "run"
+          "action": "bash_command",
+          "command": "docker compose up -d",
+          "say": "바꾼 파일로 다시 실행해요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "다시 만든 뒤에도, down 뒤에도 우유 빵이 남아요. 새 컨테이너가 같은 볼륨을 연결했어요.",
-          "target": "output"
+          "text": "볼륨 memo를 만들고 컨테이너를 새로 만들었어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose exec memo sh -c 'echo 우유 >> /memo/list.txt'",
+          "say": "우유를 다시 써요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "down -v 뒤에만 없음이에요. -v가 볼륨까지 지웠어요.",
-          "target": "output"
+          "text": "이번 메모는 볼륨에 저장됐어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose up -d --force-recreate",
+          "say": "컨테이너를 다시 새로 만들어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "또 Recreated예요. 컨테이너는 새것이에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose exec memo cat /memo/list.txt",
+          "say": "메모를 읽어 볼게요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "우유가 그대로 나와요. 새 컨테이너가 같은 볼륨을 연결했어요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
           "text": "조심하세요. 처음 상태로 돌리려고 down -v를 쓰면 볼륨의 데이터도 지워져요. 데이터를 지킬 때는 -v 없이 down 해요.",
           "target": "text:볼륨은 컨테이너 밖에서 Docker가 관리하는 저장소이고 `down -v`를 해야 지워져요."
-        },
-        {
-          "action": "submit"
-        }
-      ],
-      "entry_file": "compose.yaml",
-      "files": {
-        "lab.sh": "# 실습 스크립트: 메모를 쓰고, 재시작·다시 만들기·down·down -v 뒤에 남는지 읽어요.\nset -e\nread_memo() {\n  # 컨테이너 안의 /memo/list.txt를 한 줄로 읽어요. 파일이 없으면 (없음)이에요.\n  local text\n  text=$(docker compose exec -T \"$1\" sh -c 'cat /memo/list.txt 2>/dev/null' | tr '\\n' ' ' | sed 's/ $//')\n  echo \"${text:-(없음)}\"\n}\ndocker compose up -d memo\nwhile IFS= read -r word || [ -n \"$word\" ]; do\n  [ -n \"$word\" ] && docker compose exec -T memo sh -c 'mkdir -p /memo && printf \"%s\\n\" \"$1\" >> /memo/list.txt' sh \"$word\" </dev/null\ndone < memos.txt\ndocker compose restart -t 1 memo\necho \"재시작 뒤: $(read_memo memo)\"\ndocker compose up -d --force-recreate -t 1 memo\necho \"다시 만든 뒤: $(read_memo memo)\"\ndocker compose down -t 1\ndocker compose up -d memo\necho \"down 뒤: $(read_memo memo)\"\ndocker compose down -v -t 1\ndocker compose up -d memo\necho \"down -v 뒤: $(read_memo memo)\"\n",
-        "memos.txt": "우유\n빵\n"
-      },
-      "variations": [
-        {
-          "files": {
-            "memos.txt": "사과\n귤\n계란\n"
-          },
-          "expected": "재시작 뒤: 사과 귤 계란\n다시 만든 뒤: 사과 귤 계란\ndown 뒤: 사과 귤 계란\ndown -v 뒤: (없음)"
         }
       ],
       "docker_images": [
         "busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662"
-      ]
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "shell": {
+          "step_id": "stp_bc8ce344-eb51-4fae-ac2d-8a56ec3ca977",
+          "start": {
+            "files": {
+              "compose.yaml": "# 메모를 기억하는 컨테이너예요. 메모는 /memo/list.txt에 써요.\nservices:\n  memo:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    # /memo 폴더를 만든 뒤 sleep으로 계속 실행해요.\n    command: [\"sh\", \"-c\", \"mkdir -p /memo && sleep 3600\"]\n    # 고칠 곳: 지금 /memo는 컨테이너 자기 파일 시스템(쓰기 레이어)에 있어요.\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "compose.yaml": "# 메모를 기억하는 컨테이너예요. 메모는 /memo/list.txt에 써요.\nservices:\n  memo:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    # /memo 폴더를 만든 뒤 sleep으로 계속 실행해요.\n    command: [\"sh\", \"-c\", \"mkdir -p /memo && sleep 3600\"]\n    # 고칠 곳: 지금 /memo는 컨테이너 자기 파일 시스템(쓰기 레이어)에 있어요.\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "goal": {
+            "files": {
+              "compose.yaml": "# 메모를 기억하는 컨테이너예요. 메모는 /memo/list.txt에 써요.\nservices:\n  memo:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    # /memo 폴더를 만든 뒤 sleep으로 계속 실행해요.\n    command: [\"sh\", \"-c\", \"mkdir -p /memo && sleep 3600\"]\n    # memo라는 이름의 볼륨을 컨테이너의 /memo에 연결해요.\n    # 이제 /memo에 쓴 파일은 컨테이너가 아니라 볼륨에 저장돼요.\n    volumes:\n      - memo:/memo\n\n# 볼륨은 컨테이너 밖에서 Docker가 따로 관리해요. 컨테이너를 지워도 남아요.\nvolumes:\n  memo:\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": [
+            "docker compose up -d",
+            "docker compose exec memo sh -c 'echo 우유 >> /memo/list.txt'",
+            "docker compose up -d --force-recreate",
+            "docker compose exec memo cat /memo/list.txt"
+          ],
+          "requires_vim": false
+        },
+        "docker": {
+          "compose": {
+            "images": [
+              "busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662"
+            ],
+            "editable": [
+              "compose.yaml"
+            ],
+            "same_files": [
+              "compose.yaml"
+            ],
+            "checks": [
+              {
+                "kind": "running",
+                "service": "memo"
+              },
+              {
+                "kind": "mount",
+                "service": "memo",
+                "target": "/memo",
+                "volume": "memo"
+              },
+              {
+                "kind": "exec",
+                "what": "memo 컨테이너의 /memo/list.txt",
+                "service": "memo",
+                "command": [
+                  "cat",
+                  "/memo/list.txt"
+                ],
+                "has": [
+                  "우유"
+                ],
+                "lacks": []
+              }
+            ]
+          }
+        }
+      }
     },
     {
       "id": "stp_ad4788d5-7d5b-4598-b97f-6b53321a0ca4",
       "title": "두 가게가 각자 메모를 갖게 하세요",
-      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n실행하면 A 가게와 B 가게의 메모가 똑같이 나와요. B 가게에는 계란만 써야 하는데 A의 메모도 섞여 있어요.\n\n**알아두세요**\n\n같은 이미지로 만든 컨테이너도 쓰기 레이어는 저마다 따로예요. 볼륨은 이름으로 찾아요. 두 서비스가 같은 볼륨 이름을 연결하면 같은 저장소를 함께 써요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요. 처음에는 이미지를 내려받느라 조금 걸려요. A와 B의 메모를 비교하세요.\n2. B 가게가 자기 볼륨 `memo_b`를 쓰게 고치고, 파일 끝의 볼륨 선언에도 더하세요.\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "goal": "두 가게(shop_a, shop_b)의 compose.yaml로 새로 시작해요. 이 문제의 컨테이너는 아직 없어요.\n\nB 가게에 계란을 쓰고 A 가게의 메모를 읽으면 계란이 보여요. B 가게의 메모가 A 가게에 섞였어요.\n\n**알아두세요**\n\n같은 이미지로 만든 컨테이너도 쓰기 레이어는 저마다 따로예요. 볼륨은 이름으로 찾아요. 두 서비스가 같은 볼륨 이름을 연결하면 같은 저장소를 함께 써요. `docker compose down -v`는 이 프로젝트의 컨테이너와 볼륨을 지워요.\n\n**할 일**\n\n1. 터미널에 `docker compose up -d` 명령을 입력하고 Enter를 누르세요. 두 가게를 실행해요.\n2. 터미널에 `docker compose exec shop_b sh -c 'echo 계란 >> /memo/list.txt'` 명령을 입력하고 Enter를 누르세요. B 가게에 계란을 써요.\n3. 터미널에 `docker compose exec shop_a cat /memo/list.txt` 명령을 입력하고 Enter를 누르세요. A 가게의 메모를 읽으세요.\n4. 편집기의 compose.yaml에서 B 가게가 자기 볼륨 `memo_b`를 쓰게 고치고, 파일 끝의 볼륨 선언에도 더하세요.\n5. 터미널에 `docker compose down -v` 명령을 입력하고 Enter를 누르세요. 앞에서 섞인 볼륨을 지워요.\n6. 터미널에 `docker compose up -d` 명령을 입력하고 Enter를 누르세요. 고친 파일로 두 가게를 실행해요.\n7. 터미널에 `docker compose exec shop_a sh -c 'echo 우유 >> /memo/list.txt'` 명령을 입력하고 Enter를 누르세요. A 가게에 우유를 써요.\n8. 터미널에 `docker compose exec shop_b sh -c 'echo 계란 >> /memo/list.txt'` 명령을 입력하고 Enter를 누르세요. B 가게에 계란을 써요.\n9. 터미널에 `docker compose exec shop_a cat /memo/list.txt` 명령을 입력하고 Enter를 누르세요. A 가게의 메모를 읽으세요.\n10. 터미널에 `docker compose exec shop_b cat /memo/list.txt` 명령을 입력하고 Enter를 누르세요. B 가게의 메모를 읽으세요.\n11. 결과를 확인한 뒤 제출 버튼을 누르세요.",
       "language": "docker",
-      "starter_code": "# 같은 이미지로 두 가게의 메모 컨테이너를 띄워요.\nservices:\n  shop_a:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"sleep\", \"3600\"]\n    volumes:\n      - memo_a:/memo\n  shop_b:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"sleep\", \"3600\"]\n    volumes:\n      # 고칠 곳: B 가게가 연결한 볼륨이에요.\n      - memo_a:/memo\n\nvolumes:\n  memo_a:\n",
-      "solution": "# 같은 이미지로 두 가게의 메모 컨테이너를 띄워요.\nservices:\n  shop_a:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"sleep\", \"3600\"]\n    volumes:\n      - memo_a:/memo\n  shop_b:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"sleep\", \"3600\"]\n    volumes:\n      # B 가게는 자기 볼륨 memo_b를 써요. 같은 볼륨 이름이면 같은 데이터를 함께 써요.\n      - memo_b:/memo\n\nvolumes:\n  memo_a:\n  memo_b:\n",
-      "tests": [
-        {
-          "input": "",
-          "expected": "A 가게: 우유 빵\nB 가게: 계란\n다시 만든 뒤 A 가게: 우유 빵\n다시 만든 뒤 B 가게: 계란"
-        }
-      ],
+      "starter_code": "",
+      "solution": "docker compose down -v\ndocker compose up -d\ndocker compose exec shop_a sh -c 'echo 우유 >> /memo/list.txt'\ndocker compose exec shop_b sh -c 'echo 계란 >> /memo/list.txt'\ndocker compose exec shop_a cat /memo/list.txt\ndocker compose exec shop_b cat /memo/list.txt",
+      "tests": [],
       "required": true,
       "narration": [
         {
@@ -950,12 +1264,37 @@
           "target": "text:두 가게가 각자 메모를 갖게 하세요#1"
         },
         {
-          "action": "run"
+          "action": "bash_command",
+          "command": "docker compose up -d",
+          "say": "두 가게를 실행할게요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "A도 B도 우유 빵 계란이에요.",
-          "target": "output"
+          "text": "shop_a와 shop_b 컨테이너가 시작됐어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose exec shop_b sh -c 'echo 계란 >> /memo/list.txt'",
+          "say": "B 가게에만 계란을 써요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "B 가게의 /memo/list.txt에 썼어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose exec shop_a cat /memo/list.txt",
+          "say": "이제 A 가게의 메모를 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "A 가게에서도 계란이 나와요. 쓰지 않은 메모가 보여요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
@@ -966,55 +1305,190 @@
           "action": "patch_code",
           "before": "      # 고칠 곳: B 가게가 연결한 볼륨이에요.\n      - memo_a:/memo\n\nvolumes:\n  memo_a:\n",
           "after": "      # B 가게는 자기 볼륨 memo_b를 써요. 같은 볼륨 이름이면 같은 데이터를 함께 써요.\n      - memo_b:/memo\n\nvolumes:\n  memo_a:\n  memo_b:\n",
-          "say": "B 가게에 자기 볼륨 memo_b를 연결하고 선언해요."
+          "say": "B 가게에 자기 볼륨 memo_b를 연결하고 선언해요.",
+          "file": "compose.yaml"
         },
         {
-          "action": "run"
+          "action": "bash_command",
+          "command": "docker compose down -v",
+          "say": "섞인 memo_a의 데이터부터 지울게요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "A는 우유 빵, B는 계란이에요. 다시 만든 뒤에도 각자 남아요.",
-          "target": "output"
+          "text": "컨테이너와 볼륨이 지워졌어요. 이 문제의 것만 지웠어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose up -d",
+          "say": "고친 파일로 다시 실행해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "이번에는 memo_a와 memo_b 두 볼륨을 만들었어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose exec shop_a sh -c 'echo 우유 >> /memo/list.txt'",
+          "say": "A 가게에 우유를 써요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "A 가게의 볼륨에 썼어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose exec shop_b sh -c 'echo 계란 >> /memo/list.txt'",
+          "say": "B 가게에 계란을 써요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "B 가게의 볼륨에 썼어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose exec shop_a cat /memo/list.txt",
+          "say": "A 가게를 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "A 가게에는 우유만 있어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose exec shop_b cat /memo/list.txt",
+          "say": "B 가게도 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "B 가게에는 계란만 있어요. 이제 각자 메모를 가져요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
           "text": "같은 이미지에서 시작해도 데이터는 어느 볼륨을 연결했는지가 정해요.",
           "target": "text:볼륨은 이름으로 찾아요."
-        },
-        {
-          "action": "submit"
-        }
-      ],
-      "entry_file": "compose.yaml",
-      "files": {
-        "lab.sh": "# 실습 스크립트: 두 가게가 각자 메모를 쓰고, 다시 만든 뒤에도 각자 남는지 읽어요.\nset -e\nread_memo() {\n  # 컨테이너 안의 /memo/list.txt를 한 줄로 읽어요. 파일이 없으면 (없음)이에요.\n  local text\n  text=$(docker compose exec -T \"$1\" sh -c 'cat /memo/list.txt 2>/dev/null' | tr '\\n' ' ' | sed 's/ $//')\n  echo \"${text:-(없음)}\"\n}\ndocker compose up -d\nwhile IFS= read -r word || [ -n \"$word\" ]; do\n  [ -n \"$word\" ] && docker compose exec -T shop_a sh -c 'mkdir -p /memo && printf \"%s\\n\" \"$1\" >> /memo/list.txt' sh \"$word\" </dev/null\ndone < memos.txt\ndocker compose exec -T shop_b sh -c \"mkdir -p /memo && echo 계란 >> /memo/list.txt\"\necho \"A 가게: $(read_memo shop_a)\"\necho \"B 가게: $(read_memo shop_b)\"\ndocker compose up -d --force-recreate -t 1\necho \"다시 만든 뒤 A 가게: $(read_memo shop_a)\"\necho \"다시 만든 뒤 B 가게: $(read_memo shop_b)\"\n",
-        "memos.txt": "우유\n빵\n"
-      },
-      "variations": [
-        {
-          "files": {
-            "memos.txt": "사과\n"
-          },
-          "expected": "A 가게: 사과\nB 가게: 계란\n다시 만든 뒤 A 가게: 사과\n다시 만든 뒤 B 가게: 계란"
         }
       ],
       "docker_images": [
         "busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662"
-      ]
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "shell": {
+          "step_id": "stp_ad4788d5-7d5b-4598-b97f-6b53321a0ca4",
+          "start": {
+            "files": {
+              "compose.yaml": "# 같은 이미지로 두 가게의 메모 컨테이너를 띄워요.\nservices:\n  shop_a:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"sleep\", \"3600\"]\n    volumes:\n      - memo_a:/memo\n  shop_b:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"sleep\", \"3600\"]\n    volumes:\n      # 고칠 곳: B 가게가 연결한 볼륨이에요.\n      - memo_a:/memo\n\nvolumes:\n  memo_a:\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "compose.yaml": "# 같은 이미지로 두 가게의 메모 컨테이너를 띄워요.\nservices:\n  shop_a:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"sleep\", \"3600\"]\n    volumes:\n      - memo_a:/memo\n  shop_b:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"sleep\", \"3600\"]\n    volumes:\n      # 고칠 곳: B 가게가 연결한 볼륨이에요.\n      - memo_a:/memo\n\nvolumes:\n  memo_a:\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "goal": {
+            "files": {
+              "compose.yaml": "# 같은 이미지로 두 가게의 메모 컨테이너를 띄워요.\nservices:\n  shop_a:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"sleep\", \"3600\"]\n    volumes:\n      - memo_a:/memo\n  shop_b:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"sleep\", \"3600\"]\n    volumes:\n      # B 가게는 자기 볼륨 memo_b를 써요. 같은 볼륨 이름이면 같은 데이터를 함께 써요.\n      - memo_b:/memo\n\nvolumes:\n  memo_a:\n  memo_b:\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": [
+            "docker compose down -v",
+            "docker compose up -d",
+            "docker compose exec shop_a sh -c 'echo 우유 >> /memo/list.txt'",
+            "docker compose exec shop_b sh -c 'echo 계란 >> /memo/list.txt'",
+            "docker compose exec shop_a cat /memo/list.txt",
+            "docker compose exec shop_b cat /memo/list.txt"
+          ],
+          "requires_vim": false
+        },
+        "docker": {
+          "compose": {
+            "images": [
+              "busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662"
+            ],
+            "editable": [
+              "compose.yaml"
+            ],
+            "same_files": [
+              "compose.yaml"
+            ],
+            "checks": [
+              {
+                "kind": "running",
+                "service": "shop_b"
+              },
+              {
+                "kind": "mount",
+                "service": "shop_a",
+                "target": "/memo",
+                "volume": "memo_a"
+              },
+              {
+                "kind": "mount",
+                "service": "shop_b",
+                "target": "/memo",
+                "volume": "memo_b"
+              },
+              {
+                "kind": "exec",
+                "what": "A 가게의 /memo/list.txt",
+                "service": "shop_a",
+                "command": [
+                  "cat",
+                  "/memo/list.txt"
+                ],
+                "has": [
+                  "우유"
+                ],
+                "lacks": [
+                  "계란"
+                ]
+              },
+              {
+                "kind": "exec",
+                "what": "B 가게의 /memo/list.txt",
+                "service": "shop_b",
+                "command": [
+                  "cat",
+                  "/memo/list.txt"
+                ],
+                "has": [
+                  "계란"
+                ],
+                "lacks": [
+                  "우유"
+                ]
+              }
+            ]
+          }
+        }
+      }
     },
     {
       "id": "stp_6da856ec-fe47-46cd-9fbf-4db496fe6d4b",
       "title": "메뉴만 바꿨을 때 준비 단계를 다시 하지 않게 하세요",
-      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n실행하면 메뉴 한 줄만 바꾼 두 번째 빌드도 3초 걸리는 준비 단계를 다시 해요.\n\n**알아두세요**\n\n`COPY`와 `RUN`은 이미지의 파일 시스템을 바꾸는 레이어를 만들어요. `CMD` 같은 명령은 실행 설정을 기록해요. 입력이 같은 단계는 캐시를 쓸 수 있어요. `COPY`는 복사할 파일 내용도 입력이에요. 앞 단계가 바뀌면 뒤 단계도 캐시를 새로 판단해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요. 처음에는 이미지를 내려받느라 조금 걸려요. 두 번째 빌드 줄을 읽으세요.\n2. `COPY menu.txt .` 줄과 `RUN` 줄의 순서를 바꾸세요.\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "goal": "편집기에는 Dockerfile이 있어요. 터미널 폴더에는 compose.yaml과 menu.txt(우유)도 준비돼 있어요. 준비 단계(RUN)는 3초 걸리고 준비완료를 찍어요.\n\n메뉴 한 줄만 바꾸고 다시 빌드해도 3초 걸리는 준비 단계를 다시 해요.\n\n**알아두세요**\n\n`COPY`와 `RUN`은 이미지의 파일 시스템을 바꾸는 레이어를 만들어요. `CMD` 같은 명령은 실행 설정을 기록해요. 입력이 같은 단계는 캐시를 쓸 수 있어요. 빌드 출력에서 캐시를 쓴 단계에는 CACHED가 붙어요. `COPY`는 복사할 파일 내용도 입력이에요. 앞 단계가 바뀌면 뒤 단계도 캐시를 새로 판단해요.\n\n**할 일**\n\n1. 터미널에 `docker compose build` 명령을 입력하고 Enter를 누르세요. 처음 빌드에서 준비완료 줄을 찾으세요.\n2. 터미널에 `echo 빵 >> menu.txt` 명령을 입력하고 Enter를 누르세요. 메뉴에 빵을 더해요.\n3. 터미널에 `docker compose build` 명령을 입력하고 Enter를 누르세요. 두 번째 빌드에서 RUN sleep 단계가 다시 실행됐는지 읽으세요.\n4. 편집기의 Dockerfile에서 `COPY menu.txt .` 줄과 `RUN` 줄의 순서를 바꾸세요.\n5. 터미널에 `docker compose build` 명령을 입력하고 Enter를 누르세요. 바꾼 순서로 빌드해요.\n6. 터미널에 `echo 빵 >> menu.txt` 명령을 입력하고 Enter를 누르세요. 메뉴를 다시 바꿔요.\n7. 터미널에 `docker compose build` 명령을 입력하고 Enter를 누르세요. RUN sleep 단계에 CACHED가 붙었는지 읽으세요.\n8. 터미널에 `docker compose run --rm shop` 명령을 입력하고 Enter를 누르세요. 이미지에 들어간 메뉴를 확인하세요.\n9. 결과를 확인한 뒤 제출 버튼을 누르세요.",
       "language": "docker",
-      "starter_code": "# 가게 이미지를 만드는 Dockerfile이에요. COPY·RUN은 파일 시스템 레이어를 만들어요.\nFROM busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n# 제공 설정: 이전 실습의 빌드 캐시와 구분해요. 같은 실행의 두 빌드는 같은 값을 써요.\nARG MQ3_CACHE_SEED\nRUN echo \"$MQ3_CACHE_SEED\" > /mq3-cache-seed\nWORKDIR /app\n# 고칠 곳: 메뉴 복사와 오래 걸리는 준비 단계의 순서예요.\nCOPY menu.txt .\nRUN sleep 3 && echo \"준비\"\"완료\" && echo ok > tool.txt\nCMD [\"cat\", \"menu.txt\"]\n",
-      "solution": "# 가게 이미지를 만드는 Dockerfile이에요. COPY·RUN은 파일 시스템 레이어를 만들어요.\nFROM busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n# 제공 설정: 이전 실습의 빌드 캐시와 구분해요. 같은 실행의 두 빌드는 같은 값을 써요.\nARG MQ3_CACHE_SEED\nRUN echo \"$MQ3_CACHE_SEED\" > /mq3-cache-seed\nWORKDIR /app\n# 자주 바뀌지 않는 준비 단계를 먼저 둬요. 앞 레이어가 그대로면 Docker가 캐시를 써요.\nRUN sleep 3 && echo \"준비\"\"완료\" && echo ok > tool.txt\n# 자주 바뀌는 메뉴는 마지막에 복사해요. 메뉴가 바뀌면 이 줄부터만 다시 만들어요.\nCOPY menu.txt .\nCMD [\"cat\", \"menu.txt\"]\n",
-      "tests": [
-        {
-          "input": "",
-          "expected": "첫 빌드: 준비 단계 실행\n메뉴만 바꾼 두 번째 빌드: 준비 단계 캐시 사용\n메뉴: 우유 빵"
-        }
-      ],
+      "starter_code": "",
+      "solution": "docker compose build\necho 빵 >> menu.txt\ndocker compose build\ndocker compose run --rm shop",
+      "tests": [],
       "required": true,
       "narration": [
         {
@@ -1023,12 +1497,39 @@
           "target": "text:메뉴만 바꿨을 때 준비 단계를 다시 하지 않게 하세요#1"
         },
         {
-          "action": "run"
+          "action": "bash_command",
+          "command": "docker compose build",
+          "say": "먼저 이미지를 빌드할게요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 300
         },
         {
           "action": "say",
-          "text": "두 번째 빌드도 준비 단계를 다시 실행했어요.",
-          "target": "output"
+          "text": "단계마다 줄이 나와요. RUN sleep 단계에서 준비완료가 찍혔어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "echo 빵 >> menu.txt",
+          "say": "메뉴 파일에 빵을 더해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "menu.txt만 바뀌었어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose build",
+          "say": "같은 명령으로 다시 빌드해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 300
+        },
+        {
+          "action": "say",
+          "text": "두 번째 빌드도 RUN sleep 단계를 다시 실행했어요. 준비완료가 또 나와요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
@@ -1039,56 +1540,144 @@
           "action": "patch_code",
           "before": "# 고칠 곳: 메뉴 복사와 오래 걸리는 준비 단계의 순서예요.\nCOPY menu.txt .\nRUN sleep 3 && echo \"준비\"\"완료\" && echo ok > tool.txt",
           "after": "# 자주 바뀌지 않는 준비 단계를 먼저 둬요. 앞 레이어가 그대로면 Docker가 캐시를 써요.\nRUN sleep 3 && echo \"준비\"\"완료\" && echo ok > tool.txt\n# 자주 바뀌는 메뉴는 마지막에 복사해요. 메뉴가 바뀌면 이 줄부터만 다시 만들어요.\nCOPY menu.txt .",
-          "say": "준비 단계를 먼저, 메뉴 복사를 뒤에 둬요."
+          "say": "준비 단계를 먼저, 메뉴 복사를 뒤에 둬요.",
+          "file": "Dockerfile"
         },
         {
-          "action": "run"
+          "action": "bash_command",
+          "command": "docker compose build",
+          "say": "바꾼 순서로 빌드해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 300
         },
         {
           "action": "say",
-          "text": "이제 두 번째 빌드는 준비 단계에 캐시를 써요. 메뉴는 우유 빵으로 새것이에요.",
-          "target": "output"
+          "text": "순서가 바뀌어 이번 빌드는 준비 단계부터 새로 만들었어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "echo 빵 >> menu.txt",
+          "say": "메뉴를 다시 바꿔요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "또 menu.txt만 바뀌었어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose build",
+          "say": "다시 빌드해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 300
+        },
+        {
+          "action": "say",
+          "text": "이번에는 RUN sleep 단계에 CACHED가 붙었어요. COPY부터만 다시 만들었어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose run --rm shop",
+          "say": "이미지의 메뉴를 출력해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "새 메뉴가 보여요. 메뉴는 새것이고 준비 단계는 캐시를 썼어요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
           "text": "조심하세요. 파일이 필요한 RUN을 COPY 앞으로 옮기면 아직 그 파일이 없어요. 그 파일이 필요한 단계는 COPY 뒤에 둬요.",
           "target": "text:앞 단계가 바뀌면 뒤 단계도 캐시를 새로 판단해요."
-        },
-        {
-          "action": "submit"
-        }
-      ],
-      "entry_file": "Dockerfile",
-      "files": {
-        "lab.sh": "# 실습 스크립트: 두 번 빌드해요. 두 번째 빌드 전에는 메뉴 파일만 바꿔요.\nset -e\ndocker compose build --build-arg \"MQ3_CACHE_SEED=$MQ3_PROJECT\" shop > build1.txt 2>&1 || { cat build1.txt >&2; exit 1; }\nfirst=$(grep -c '준비완료' build1.txt || true)\necho \"빵\" >> menu.txt\ndocker compose build --build-arg \"MQ3_CACHE_SEED=$MQ3_PROJECT\" shop > build2.txt 2>&1 || { cat build2.txt >&2; exit 1; }\nsecond=$(grep -c '준비완료' build2.txt || true)\n[ \"$first\" -gt 0 ] && echo \"첫 빌드: 준비 단계 실행\" || echo \"첫 빌드: 준비 단계 캐시 사용\"\n[ \"$second\" -gt 0 ] && echo \"메뉴만 바꾼 두 번째 빌드: 준비 단계 다시 실행\" || echo \"메뉴만 바꾼 두 번째 빌드: 준비 단계 캐시 사용\"\necho \"메뉴: $(docker compose run --rm -T shop | tr '\\n' ' ' | sed 's/ $//')\"\n",
-        "compose.yaml": "# shop 서비스의 이미지는 이 폴더의 Dockerfile로 만들어요.\nservices:\n  shop:\n    build: .\n",
-        "menu.txt": "우유\n"
-      },
-      "variations": [
-        {
-          "files": {
-            "menu.txt": "커피\n차\n"
-          },
-          "expected": "첫 빌드: 준비 단계 실행\n메뉴만 바꾼 두 번째 빌드: 준비 단계 캐시 사용\n메뉴: 커피 차 빵"
         }
       ],
       "docker_images": [
         "busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662"
-      ]
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "shell": {
+          "step_id": "stp_6da856ec-fe47-46cd-9fbf-4db496fe6d4b",
+          "start": {
+            "files": {
+              "Dockerfile": "# 가게 이미지를 만드는 Dockerfile이에요. COPY·RUN은 파일 시스템 레이어를 만들어요.\nFROM busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n# 제공 설정: 이전 실습의 빌드 캐시와 구분해요. 같은 문제의 빌드는 같은 값을 써요.\nARG MQ3_CACHE_SEED\nRUN echo \"$MQ3_CACHE_SEED\" > /mq3-cache-seed\nWORKDIR /app\n# 고칠 곳: 메뉴 복사와 오래 걸리는 준비 단계의 순서예요.\nCOPY menu.txt .\nRUN sleep 3 && echo \"준비\"\"완료\" && echo ok > tool.txt\nCMD [\"cat\", \"menu.txt\"]\n",
+              "compose.yaml": "# shop 서비스의 이미지는 이 폴더의 Dockerfile로 만들어요.\nservices:\n  shop:\n    build:\n      context: .\n      # 제공 설정: 다른 실습의 빌드 캐시와 섞이지 않게 이 문제의 이름을 넘겨요.\n      args:\n        MQ3_CACHE_SEED: ${MQ3_PROJECT}\n",
+              "menu.txt": "우유\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "Dockerfile": "# 가게 이미지를 만드는 Dockerfile이에요. COPY·RUN은 파일 시스템 레이어를 만들어요.\nFROM busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n# 제공 설정: 이전 실습의 빌드 캐시와 구분해요. 같은 문제의 빌드는 같은 값을 써요.\nARG MQ3_CACHE_SEED\nRUN echo \"$MQ3_CACHE_SEED\" > /mq3-cache-seed\nWORKDIR /app\n# 고칠 곳: 메뉴 복사와 오래 걸리는 준비 단계의 순서예요.\nCOPY menu.txt .\nRUN sleep 3 && echo \"준비\"\"완료\" && echo ok > tool.txt\nCMD [\"cat\", \"menu.txt\"]\n",
+              "compose.yaml": "# shop 서비스의 이미지는 이 폴더의 Dockerfile로 만들어요.\nservices:\n  shop:\n    build:\n      context: .\n      # 제공 설정: 다른 실습의 빌드 캐시와 섞이지 않게 이 문제의 이름을 넘겨요.\n      args:\n        MQ3_CACHE_SEED: ${MQ3_PROJECT}\n",
+              "menu.txt": "우유\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "goal": {
+            "files": {
+              "Dockerfile": "# 가게 이미지를 만드는 Dockerfile이에요. COPY·RUN은 파일 시스템 레이어를 만들어요.\nFROM busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n# 제공 설정: 이전 실습의 빌드 캐시와 구분해요. 같은 문제의 빌드는 같은 값을 써요.\nARG MQ3_CACHE_SEED\nRUN echo \"$MQ3_CACHE_SEED\" > /mq3-cache-seed\nWORKDIR /app\n# 자주 바뀌지 않는 준비 단계를 먼저 둬요. 앞 레이어가 그대로면 Docker가 캐시를 써요.\nRUN sleep 3 && echo \"준비\"\"완료\" && echo ok > tool.txt\n# 자주 바뀌는 메뉴는 마지막에 복사해요. 메뉴가 바뀌면 이 줄부터만 다시 만들어요.\nCOPY menu.txt .\nCMD [\"cat\", \"menu.txt\"]\n",
+              "compose.yaml": "# shop 서비스의 이미지는 이 폴더의 Dockerfile로 만들어요.\nservices:\n  shop:\n    build:\n      context: .\n      # 제공 설정: 다른 실습의 빌드 캐시와 섞이지 않게 이 문제의 이름을 넘겨요.\n      args:\n        MQ3_CACHE_SEED: ${MQ3_PROJECT}\n",
+              "menu.txt": "우유\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": [
+            "docker compose build",
+            "echo 빵 >> menu.txt",
+            "docker compose build",
+            "docker compose run --rm shop"
+          ],
+          "requires_vim": false
+        },
+        "docker": {
+          "compose": {
+            "images": [
+              "busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662"
+            ],
+            "editable": [
+              "Dockerfile"
+            ],
+            "same_files": [
+              "Dockerfile"
+            ],
+            "checks": [
+              {
+                "kind": "history",
+                "service": "shop",
+                "order": [
+                  "sleep 3",
+                  "COPY menu.txt"
+                ]
+              },
+              {
+                "kind": "file",
+                "path": "menu.txt",
+                "has": [
+                  "빵"
+                ],
+                "lacks": []
+              }
+            ]
+          }
+        }
+      }
     },
     {
       "id": "stp_a7de7379-fd52-4c67-8d68-dd41347718eb",
       "title": "앱을 고쳐 다시 빌드해도 메모가 남게 하세요",
-      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n실행하면 다시 빌드한 뒤 앱 버전은 v2로 바뀌는데 메모는 `(없음)`이에요. 앱을 고칠 때마다 메모가 사라지면 쓸 수 없어요.\n\nadd.sh와 show.sh를 읽고, 메모가 실제로 어느 폴더에 저장되는지 찾으세요.\n\n**알아두세요**\n\n`up --build`는 이미지를 새로 만들고, 바뀐 이미지로 컨테이너를 새로 만들어요. 새 컨테이너는 새 쓰기 레이어에서 시작해요. 볼륨은 연결한 폴더의 데이터만 지켜요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요. 처음에는 이미지를 내려받느라 조금 걸려요. 세 줄에서 메모와 버전을 비교하세요.\n2. add.sh가 메모를 쓰는 폴더를 찾으세요.\n3. `고칠 곳` 자리에 그 폴더에 이름 있는 볼륨을 연결하는 `volumes`를 쓰고, 파일 끝에 볼륨을 선언하세요.\n4. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n5. 고친 코드를 제출하세요.",
+      "goal": "편집기에는 compose.yaml과 show.sh가 있어요. 터미널 폴더에는 Dockerfile과 add.sh도 준비돼 있어요. 이 문제의 컨테이너는 아직 없어요.\n\n메모를 쓰고 앱을 고쳐 다시 빌드하면 앱 버전은 v2로 바뀌는데 메모는 `(없음)`이에요. 앱을 고칠 때마다 메모가 사라지면 쓸 수 없어요.\n\nadd.sh와 show.sh를 읽고, 메모가 실제로 어느 폴더에 저장되는지 찾으세요.\n\n**알아두세요**\n\n`up -d --build`는 이미지를 새로 만들고, 바뀐 이미지로 컨테이너를 새로 만들어요. `--force-recreate`는 바뀐 것이 없어도 컨테이너를 새로 만들어요. 새 컨테이너는 새 쓰기 레이어에서 시작해요. 볼륨은 연결한 폴더의 데이터만 지켜요.\n\n**할 일**\n\n1. 터미널에 `cat add.sh` 명령을 입력하고 Enter를 누르세요. 메모를 쓰는 폴더를 찾으세요.\n2. 터미널에 `docker compose up -d --build` 명령을 입력하고 Enter를 누르세요. 앱 이미지를 빌드하고 실행해요.\n3. 터미널에 `docker compose exec app sh /app/add.sh 우유` 명령을 입력하고 Enter를 누르세요. 메모 우유를 더해요.\n4. 편집기의 show.sh 탭에서 `[v1]`을 `[v2]`로 바꿔 앱을 고치세요.\n5. 터미널에 `docker compose up -d --build --force-recreate` 명령을 입력하고 Enter를 누르세요. 고친 앱으로 이미지와 컨테이너를 새로 만들어요.\n6. 터미널에 `docker compose exec app sh /app/show.sh` 명령을 입력하고 Enter를 누르세요. 버전과 메모를 읽으세요.\n7. 편집기의 compose.yaml `고칠 곳` 자리에 그 폴더에 이름 있는 볼륨을 연결하는 `volumes`를 쓰고, 파일 끝에 볼륨을 선언하세요.\n8. 터미널에 `docker compose up -d --build` 명령을 입력하고 Enter를 누르세요. 볼륨을 연결한 컨테이너로 바꿔요.\n9. 터미널에 `docker compose exec app sh /app/add.sh 우유` 명령을 입력하고 Enter를 누르세요. 메모 우유를 다시 더해요.\n10. 터미널에 `docker compose up -d --build --force-recreate` 명령을 입력하고 Enter를 누르세요. 컨테이너를 다시 새로 만들어요.\n11. 터미널에 `docker compose exec app sh /app/show.sh` 명령을 입력하고 Enter를 누르세요. 버전과 메모를 다시 읽으세요.\n12. 결과를 확인한 뒤 제출 버튼을 누르세요.",
       "language": "docker",
-      "starter_code": "# 메모 앱 서비스예요. 이미지는 이 폴더의 Dockerfile로 만들어요.\nservices:\n  app:\n    build: .\n    # 고칠 곳: 앱이 메모를 쓰는 폴더가 지금은 컨테이너 안에만 있어요.\n",
-      "solution": "# 메모 앱 서비스예요. 이미지는 이 폴더의 Dockerfile로 만들어요.\nservices:\n  app:\n    build: .\n    # add.sh는 /data에 메모를 써요. 그 폴더에 볼륨을 연결해요.\n    # 앱 코드는 이미지에, 메모 데이터는 볼륨에 있어서 이미지를 바꿔도 메모가 남아요.\n    volumes:\n      - memos:/data\n\nvolumes:\n  memos:\n",
-      "tests": [
-        {
-          "input": "",
-          "expected": "처음: [v1] 우유 빵\n앱을 고쳐 다시 빌드한 뒤: [v2] 우유 빵\ndown 뒤: [v2] 우유 빵"
-        }
-      ],
+      "starter_code": "",
+      "solution": "docker compose up -d --build\ndocker compose exec app sh /app/add.sh 우유\ndocker compose up -d --build --force-recreate\ndocker compose exec app sh /app/show.sh",
+      "tests": [],
       "required": true,
       "narration": [
         {
@@ -1097,12 +1686,15 @@
           "target": "text:앱을 고쳐 다시 빌드해도 메모가 남게 하세요#1"
         },
         {
-          "action": "run"
+          "action": "bash_command",
+          "command": "cat add.sh",
+          "say": "먼저 메모를 쓰는 add.sh를 읽을게요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "처음엔 우유 빵이 있어요. 다시 빌드한 뒤에는 v2로 바뀌었지만 메모는 없음이에요.",
-          "target": "output"
+          "text": "add.sh는 메모를 /data/memo.txt에 써요. 이 폴더가 핵심이에요.",
+          "target": "text:add.sh와 show.sh를 읽고, 메모가 실제로 어느 폴더에 저장되는지 찾으세요."
         },
         {
           "action": "say",
@@ -1110,53 +1702,215 @@
           "target": "code:build: ."
         },
         {
+          "action": "bash_command",
+          "command": "docker compose up -d --build",
+          "say": "앱 이미지를 빌드하고 실행해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 300
+        },
+        {
           "action": "say",
-          "text": "add.sh는 메모를 /data/memo.txt에 써요. 이 폴더는 지금 쓰기 레이어에 있어요.",
-          "target": "text:add.sh와 show.sh를 읽고, 메모가 실제로 어느 폴더에 저장되는지 찾으세요."
+          "text": "이미지를 빌드하고 app 컨테이너를 시작했어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose exec app sh /app/add.sh 우유",
+          "say": "메모 우유를 더해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "add.sh가 /data/memo.txt에 우유를 썼어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "patch_code",
+          "before": "[v1]",
+          "after": "[v2]",
+          "say": "앱을 고쳐요. 버전 표시를 v2로 바꿔요.",
+          "file": "show.sh"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose up -d --build --force-recreate",
+          "say": "고친 앱으로 이미지와 컨테이너를 새로 만들어요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 300
+        },
+        {
+          "action": "say",
+          "text": "바뀐 show.sh가 든 이미지로 컨테이너를 새로 만들었어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose exec app sh /app/show.sh",
+          "say": "버전과 메모를 볼게요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "v2로 바뀌었는데 메모는 없음이에요. /data가 옛 컨테이너의 쓰기 레이어에 있었어요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "patch_code",
           "before": "    # 고칠 곳: 앱이 메모를 쓰는 폴더가 지금은 컨테이너 안에만 있어요.\n",
           "after": "    # add.sh는 /data에 메모를 써요. 그 폴더에 볼륨을 연결해요.\n    # 앱 코드는 이미지에, 메모 데이터는 볼륨에 있어서 이미지를 바꿔도 메모가 남아요.\n    volumes:\n      - memos:/data\n\nvolumes:\n  memos:\n",
-          "say": "/data에 memos 볼륨을 연결하고 선언해요."
+          "say": "/data에 memos 볼륨을 연결하고 선언해요.",
+          "file": "compose.yaml"
         },
         {
-          "action": "run"
+          "action": "bash_command",
+          "command": "docker compose up -d --build",
+          "say": "바꾼 파일로 다시 실행해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 300
         },
         {
           "action": "say",
-          "text": "다시 빌드한 뒤에도 v2와 우유 빵이 함께 보여요. down 뒤에도 남아요.",
-          "target": "output"
+          "text": "볼륨 memos를 만들고 컨테이너를 새로 만들었어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose exec app sh /app/add.sh 우유",
+          "say": "우유를 다시 더해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "이번 메모는 볼륨에 저장됐어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose up -d --build --force-recreate",
+          "say": "컨테이너를 다시 새로 만들어요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 300
+        },
+        {
+          "action": "say",
+          "text": "컨테이너는 또 새것이에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose exec app sh /app/show.sh",
+          "say": "버전과 메모를 다시 볼게요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "v2와 우유가 함께 보여요. 새 컨테이너가 같은 볼륨을 연결했어요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
           "text": "이미지는 새것으로 바뀌었고, 메모는 볼륨에 있어서 그대로예요. 코드와 데이터가 다른 곳에 있어요.",
           "target": "text:볼륨은 연결한 폴더의 데이터만 지켜요."
-        },
-        {
-          "action": "submit"
-        }
-      ],
-      "entry_file": "compose.yaml",
-      "files": {
-        "lab.sh": "# 실습 스크립트: 메모를 쓰고, 앱 코드를 고쳐 이미지를 다시 빌드한 뒤에도 메모가 남는지 읽어요.\nset -e\ndocker compose up -d --build app > /dev/null 2>&1 || docker compose up -d --build app\nwhile IFS= read -r word || [ -n \"$word\" ]; do\n  [ -n \"$word\" ] && docker compose exec -T app sh /app/add.sh \"$word\" </dev/null\ndone < memos.txt\necho \"처음: $(docker compose exec -T app sh /app/show.sh)\"\n# 앱 코드를 고쳐요(새 버전 표시). 이미지를 다시 빌드하고 컨테이너를 새로 만들어요.\nsed -i 's/v1/v2/' show.sh\ndocker compose up -d --build -t 1 app > /dev/null 2>&1\necho \"앱을 고쳐 다시 빌드한 뒤: $(docker compose exec -T app sh /app/show.sh)\"\ndocker compose down -t 1 > /dev/null 2>&1\ndocker compose up -d app > /dev/null 2>&1\necho \"down 뒤: $(docker compose exec -T app sh /app/show.sh)\"\n",
-        "Dockerfile": "# 메모 앱 이미지예요. 앱 코드(sh 스크립트)만 담아요. 메모 데이터는 담지 않아요.\nFROM busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\nWORKDIR /app\nCOPY add.sh show.sh ./\nCMD [\"sleep\", \"3600\"]\n",
-        "add.sh": "# 메모 하나를 /data/memo.txt 끝에 더해요.\nmkdir -p /data\necho \"$1\" >> /data/memo.txt\n",
-        "show.sh": "# 메모 앱 버전과 지금까지의 메모를 한 줄로 보여 줘요.\nmemo=$(cat /data/memo.txt 2>/dev/null | tr '\\n' ' ' | sed 's/ $//')\necho \"[v1] ${memo:-(없음)}\"\n",
-        "memos.txt": "우유\n빵\n"
-      },
-      "variations": [
-        {
-          "files": {
-            "memos.txt": "계란\n"
-          },
-          "expected": "처음: [v1] 계란\n앱을 고쳐 다시 빌드한 뒤: [v2] 계란\ndown 뒤: [v2] 계란"
         }
       ],
       "docker_images": [
         "busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662"
-      ]
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "shell": {
+          "step_id": "stp_a7de7379-fd52-4c67-8d68-dd41347718eb",
+          "start": {
+            "files": {
+              "compose.yaml": "# 메모 앱 서비스예요. 이미지는 이 폴더의 Dockerfile로 만들어요.\nservices:\n  app:\n    build: .\n    # 고칠 곳: 앱이 메모를 쓰는 폴더가 지금은 컨테이너 안에만 있어요.\n",
+              "show.sh": "# 메모 앱 버전과 지금까지의 메모를 한 줄로 보여 줘요.\nmemo=$(cat /data/memo.txt 2>/dev/null | tr '\\n' ' ' | sed 's/ $//')\necho \"[v1] ${memo:-(없음)}\"\n",
+              "Dockerfile": "# 메모 앱 이미지예요. 앱 코드(sh 스크립트)만 담아요. 메모 데이터는 담지 않아요.\nFROM busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\nWORKDIR /app\nCOPY add.sh show.sh ./\nCMD [\"sleep\", \"3600\"]\n",
+              "add.sh": "# 메모 하나를 /data/memo.txt 끝에 더해요.\nmkdir -p /data\necho \"$1\" >> /data/memo.txt\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "compose.yaml": "# 메모 앱 서비스예요. 이미지는 이 폴더의 Dockerfile로 만들어요.\nservices:\n  app:\n    build: .\n    # 고칠 곳: 앱이 메모를 쓰는 폴더가 지금은 컨테이너 안에만 있어요.\n",
+              "show.sh": "# 메모 앱 버전과 지금까지의 메모를 한 줄로 보여 줘요.\nmemo=$(cat /data/memo.txt 2>/dev/null | tr '\\n' ' ' | sed 's/ $//')\necho \"[v1] ${memo:-(없음)}\"\n",
+              "Dockerfile": "# 메모 앱 이미지예요. 앱 코드(sh 스크립트)만 담아요. 메모 데이터는 담지 않아요.\nFROM busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\nWORKDIR /app\nCOPY add.sh show.sh ./\nCMD [\"sleep\", \"3600\"]\n",
+              "add.sh": "# 메모 하나를 /data/memo.txt 끝에 더해요.\nmkdir -p /data\necho \"$1\" >> /data/memo.txt\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "goal": {
+            "files": {
+              "compose.yaml": "# 메모 앱 서비스예요. 이미지는 이 폴더의 Dockerfile로 만들어요.\nservices:\n  app:\n    build: .\n    # add.sh는 /data에 메모를 써요. 그 폴더에 볼륨을 연결해요.\n    # 앱 코드는 이미지에, 메모 데이터는 볼륨에 있어서 이미지를 바꿔도 메모가 남아요.\n    volumes:\n      - memos:/data\n\nvolumes:\n  memos:\n",
+              "show.sh": "# 메모 앱 버전과 지금까지의 메모를 한 줄로 보여 줘요.\nmemo=$(cat /data/memo.txt 2>/dev/null | tr '\\n' ' ' | sed 's/ $//')\necho \"[v2] ${memo:-(없음)}\"\n",
+              "Dockerfile": "# 메모 앱 이미지예요. 앱 코드(sh 스크립트)만 담아요. 메모 데이터는 담지 않아요.\nFROM busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\nWORKDIR /app\nCOPY add.sh show.sh ./\nCMD [\"sleep\", \"3600\"]\n",
+              "add.sh": "# 메모 하나를 /data/memo.txt 끝에 더해요.\nmkdir -p /data\necho \"$1\" >> /data/memo.txt\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": [
+            "docker compose up -d --build",
+            "docker compose exec app sh /app/add.sh 우유",
+            "docker compose up -d --build --force-recreate",
+            "docker compose exec app sh /app/show.sh"
+          ],
+          "requires_vim": false
+        },
+        "docker": {
+          "compose": {
+            "images": [
+              "busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662"
+            ],
+            "editable": [
+              "compose.yaml",
+              "show.sh"
+            ],
+            "same_files": [
+              "compose.yaml"
+            ],
+            "checks": [
+              {
+                "kind": "running",
+                "service": "app"
+              },
+              {
+                "kind": "mount",
+                "service": "app",
+                "target": "/data"
+              },
+              {
+                "kind": "exec",
+                "what": "app 컨테이너의 /data/memo.txt",
+                "service": "app",
+                "command": [
+                  "cat",
+                  "/data/memo.txt"
+                ],
+                "has": [
+                  "우유"
+                ],
+                "lacks": []
+              },
+              {
+                "kind": "exec",
+                "what": "app 이미지의 show.sh",
+                "service": "app",
+                "command": [
+                  "cat",
+                  "/app/show.sh"
+                ],
+                "has": [
+                  "[v2]"
+                ],
+                "lacks": []
+              }
+            ]
+          }
+        }
+      }
     }
   ],
-  "learning_strategy": "각 스텝은 먼저 실행해 엔진이 보여 주는 실제 상태를 봐요. 원인을 찾은 뒤 표시한 한 곳만 고치고 다시 실행해요. Docker Desktop이 켜져 있어야 해요."
+  "learning_strategy": "각 스텝은 먼저 터미널에서 명령을 입력해 실제 상태를 봐요. 원인을 찾은 뒤 표시한 한 곳만 고치고 같은 명령으로 다시 확인해요. Docker Desktop이 켜져 있어야 해요."
 }

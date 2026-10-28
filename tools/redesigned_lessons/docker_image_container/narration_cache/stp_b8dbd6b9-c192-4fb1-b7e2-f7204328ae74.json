@@ -1,46 +1,38 @@
 {
   "by": "hand",
-  "source_sha256": "df4447519f11c3bf6fd7ba956d8aa7db5562622575f4b7050b5e74f61bf37f59",
+  "source_sha256": "950a19377cd7d31a2c99482f825914ea9a828ae60ede42cf9a6eba8b339db736",
   "entry": [
     {
       "action": "say",
-      "text": "Nginx 서버 하나를 미리 켜 뒀어요. 이 서버의 이름과 포트를 표에서 찾아요.",
-      "target": "text:이번 문제는 준비된 Nginx 서버 하나에서 시작해요. 실행 중인 컨테이너의 이름과 포트를 찾아보세요."
+      "text": "앞에서 켠 Nginx 컨테이너가 실행 중이에요. 이 서버의 이름과 포트를 표에서 찾아요.",
+      "target": "text:실행 중인 컨테이너의 이름과 포트를 찾아보세요."
     },
     {
-      "action": "run"
-    },
-    {
-      "action": "say",
-      "text": "서버는 준비돼 있지만 목록을 조회하지 않아서 표가 없어요.",
-      "target": "output"
-    },
-    {
-      "action": "patch_code",
-      "before": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
-      "after": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker ps\n",
-      "say": "이미지를 보는 images 대신 ps를 써요."
+      "action": "bash_command",
+      "command": "docker images",
+      "say": "먼저 images로 이 컴퓨터에 있는 이미지 목록을 볼게요.",
+      "target": "#git-demo-terminal"
     },
     {
       "action": "say",
-      "text": "ps는 실행 중인 컨테이너를 표로 보여 줘요.",
-      "target": "code:docker ps"
+      "text": "이미지 목록에 nginx 1.28-alpine이 보여요. 실행 중인지는 이 목록으로 알 수 없어요.",
+      "target": "#git-demo-terminal"
     },
     {
-      "action": "run"
+      "action": "bash_command",
+      "command": "docker ps",
+      "say": "ps는 실행 중인 컨테이너를 표로 보여 줘요.",
+      "target": "#git-demo-terminal"
     },
     {
       "action": "say",
-      "text": "표의 NAMES에서 실습 이름을 찾으세요. PORTS의 화살표 왼쪽은 이 컴퓨터의 포트예요. 오른쪽 80은 컨테이너의 포트예요.",
-      "target": "output"
+      "text": "NAMES 열에서 mq3lab-으로 시작하는 이름을 찾으세요. PORTS의 화살표 왼쪽이 이 컴퓨터의 포트예요.",
+      "target": "#git-demo-terminal"
     },
     {
       "action": "say",
       "text": "조심하세요. 이미지를 받기만 했다면 ps 목록에는 새 컨테이너가 없어요.",
       "target": "text:docker ps는 실행 중인 컨테이너를 보여 줘요."
-    },
-    {
-      "action": "submit"
     }
   ]
 }

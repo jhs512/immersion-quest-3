@@ -259,11 +259,11 @@ impl LessonSession {
                     &environment.lab.cli,
                     environment.directory.path(),
                     &environment.lab.project,
-                    &task,
+                    &task.docker_images,
                 )? {
                     return Err(problem);
                 }
-                if let Some(problem) = dockerfile_problem(environment.directory.path(), &task) {
+                if let Some(problem) = dockerfile_problem(environment.directory.path(), &task.docker_images) {
                     return Err(problem);
                 }
                 reset_sql_fixture(environment, database, &session.0.closed)?;

@@ -4,6 +4,7 @@ use serde::Deserialize;
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use std::{path::PathBuf, time::Instant};
+#[path="support/docker_terminal.rs"] mod docker_terminal;
 
 #[derive(Deserialize)]
 struct Validation {
@@ -77,8 +78,37 @@ async fn validate_with_session(spec: Validation,session:Option<&molip_quest::doc
     if spec.expected_images.as_ref().is_some_and(|images| images.len()!=lesson.tasks.len()) {return Err("Expected images do not cover every step".into())}
     let started = Instant::now();
     let mut steps = Vec::new();
+    // Docker CLI steps are typed in the real practice terminal, in lesson order, in one lesson session.
+    let terminals=lesson.tasks.iter().any(|t|t.git_terminal.as_ref().is_some_and(|e|e.docker.is_some()))
+        .then(||Ok::<_,String>((molip_quest::docker_lab::LessonSession::new(),tempfile::tempdir().map_err(|e|e.to_string())?))).transpose()?;
     for (index, task) in lesson.tasks.iter().enumerate() {
         let label = format!("Step {} ({})",index+1,task.title);
+        if let (Some((session,folder)),true)=(terminals.as_ref(),task.git_terminal.as_ref().is_some_and(|e|e.docker.is_some())) {
+            let (task,session,folder)=(task.clone(),session.clone(),folder.path().to_path_buf());
+            let (outputs,report)=tokio::task::spawn_blocking(move||docker_terminal::replay(&session,&molip_quest::git_practice::GitPracticeStore::new(&folder)?,"validate:docker-cli",&task)).await.map_err(|e|e.to_string())?.map_err(|e|format!("{label}: {e}"))?;
+            let expected=&spec.expected_outputs[index];
+            if outputs.len()!=expected.len()||!expected.iter().zip(&outputs).all(|(expected,actual)|expected.matches(actual)) {return Err(format!("{label}: expected {:?}, got {outputs:?}",expected))}
+            let task=&lesson.tasks[index];
+            let mut counterexamples=0;
+            if docker_terminal::is_compose(task) {
+                // The same commands typed with the start files, or with a recorded wrong edit, must
+                // fail; another correct edit must pass. Each attempt starts from the step's 초기화.
+                let variants:Vec<(Option<Vec<[String;2]>>,bool,String)>=std::iter::once((None,false,"start files".to_owned()))
+                    .chain(spec.reject.iter().filter(|r|r.step==index+1).map(|r|(Some(r.replacements.clone()),false,r.reason.clone())))
+                    .chain(spec.accept.iter().filter(|r|r.step==index+1).map(|r|(Some(r.replacements.clone()),true,r.reason.clone()))).collect();
+                for (replacements,pass,reason) in variants {
+                    let files=match &replacements {Some(r)=>Some(docker_terminal::goal_files(task,r).map_err(|e|format!("{label}: {e}"))?),None=>None};
+                    let (task,session,folder)=(task.clone(),terminals.as_ref().unwrap().0.clone(),terminals.as_ref().unwrap().1.path().to_path_buf());
+                    let report=tokio::task::spawn_blocking(move||docker_terminal::attempt(&session,&molip_quest::git_practice::GitPracticeStore::new(&folder)?,"validate:docker-attempt",&task,files.as_deref())).await.map_err(|e|e.to_string())?.map_err(|e|format!("{label}: {e}"))?;
+                    if report.passed!=pass {return Err(format!("{label}: {reason}: expected passed={pass}: {}",serde_json::to_string(&report).unwrap()))}
+                    counterexamples+=1;
+                    eprintln!("{label}: {} as expected: {reason}",if pass{"passed"}else{"failed"});
+                }
+            }
+            steps.push(json!({"id":task.id,"terminal":true,"teacher_outputs":outputs,"grading_cases":report.cases.len(),"terminal_attempts":counterexamples}));
+            eprintln!("{label}: passed in the real terminal");
+            continue;
+        }
         let starter=if let Some(session)=session {lesson_runner::check_in_lesson(task,&task.starter_code,session).await}else{lesson_runner::check(task,&task.starter_code).await}?;
         if starter.passed {return Err(format!("{label}: starter already passes"))}
         let report=if let Some(session)=session {lesson_runner::check_in_lesson(task,&task.solution,session).await}else{lesson_runner::check(task,&task.solution).await}?;
@@ -122,6 +152,7 @@ async fn validate_with_session(spec: Validation,session:Option<&molip_quest::doc
     }
     for rejected in &spec.reject {
         let task=lesson.tasks.get(rejected.step.checked_sub(1).ok_or("Rejected step numbers start at one")?).ok_or("Rejected step is outside the lesson")?;
+        if docker_terminal::is_compose(task) {continue}
         let mut source=task.solution.clone();
         for [before,after] in &rejected.replacements {
             if source.matches(before).count()!=1 {return Err(format!("Rejected answer patch is not unique: {}",rejected.reason))}
@@ -132,6 +163,7 @@ async fn validate_with_session(spec: Validation,session:Option<&molip_quest::doc
     }
     for accepted in &spec.accept {
         let task=lesson.tasks.get(accepted.step.checked_sub(1).ok_or("Accepted step numbers start at one")?).ok_or("Accepted step is outside the lesson")?;
+        if docker_terminal::is_compose(task) {continue}
         let mut source=task.solution.clone();
         for [before,after] in &accepted.replacements {
             if source.matches(before).count()!=1 {return Err(format!("Accepted answer patch is not unique: {}",accepted.reason))}
@@ -140,6 +172,7 @@ async fn validate_with_session(spec: Validation,session:Option<&molip_quest::doc
         let report=if let Some(session)=session {lesson_runner::check_in_lesson(task,&source,session).await}else{lesson_runner::check(task,&source).await}?;
         if !report.passed {return Err(format!("Valid answer rejected: {}: {}",accepted.reason,serde_json::to_string(&report).unwrap()))}
     }
+    if let Some((session,_))=&terminals {session.close();session.wait_closed().await;}
     Ok(json!({"passed":true,"lesson":lesson.id,"revision":lesson.revision,"lesson_sha256":source_hash,"steps":steps,"rejected_answers":spec.reject.len(),"accepted_answers":spec.accept.len(),"seconds":started.elapsed().as_secs_f64(),"native_ui_verified":false,"voice_listened":false}))
 }
 

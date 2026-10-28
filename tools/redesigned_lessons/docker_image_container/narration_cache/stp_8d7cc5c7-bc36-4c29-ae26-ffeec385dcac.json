@@ -1,46 +1,38 @@
 {
   "by": "hand",
-  "source_sha256": "690bc77ac1a0019bc807c49d6edfdf1182f4a2a5cfe5e48d84040a430fe56b12",
+  "source_sha256": "f80b1d9f1ff71302cdeb3352a8f604625c6e80698f7ce67d12c871ee1d38df94",
   "entry": [
     {
       "action": "say",
       "text": "컨테이너는 만들어진 뒤 멈춰 있어요. 새로 만들지 않고 이 컨테이너를 켜요.",
-      "target": "text:이번 문제는 Nginx 컨테이너를 만든 뒤 멈춘 상태예요. 같은 컨테이너를 다시 켜세요."
+      "target": "text:멈춘 컨테이너를 새로 만들지 말고 다시 켜세요."
     },
     {
-      "action": "run"
-    },
-    {
-      "action": "say",
-      "text": "준비된 컨테이너는 멈춰 있어요. 이름을 정하는 것만으로 켜지지는 않아요.",
-      "target": "output"
-    },
-    {
-      "action": "patch_code",
-      "before": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
-      "after": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker start \"$BOX\"\n",
-      "say": "run 대신 start에 같은 이름을 넘겨요."
+      "action": "bash_command",
+      "command": "docker start \"$BOX\"",
+      "say": "start는 남아 있는 같은 컨테이너를 다시 시작해요.",
+      "target": "#git-demo-terminal"
     },
     {
       "action": "say",
-      "text": "start는 남아 있는 같은 컨테이너를 다시 시작해요.",
-      "target": "code:docker start \"$BOX\""
+      "text": "다시 시작한 컨테이너 이름이 출력됐어요.",
+      "target": "#git-demo-terminal"
     },
     {
-      "action": "run"
+      "action": "bash_command",
+      "command": "docker ps",
+      "say": "ps로 다시 실행 중인지 볼게요.",
+      "target": "#git-demo-terminal"
     },
     {
       "action": "say",
-      "text": "다시 시작한 컨테이너 이름이 출력됐어요. 새 객체를 만들지 않았어요.",
-      "target": "output"
+      "text": "STATUS가 Up으로 바뀌었어요. CONTAINER ID는 앞에서 본 것과 같아요.",
+      "target": "#git-demo-terminal"
     },
     {
       "action": "say",
       "text": "조심하세요. run은 같은 이미지를 써도 새 컨테이너를 만드는 명령이에요.",
-      "target": "text:run은 새 컨테이너를 만들어요."
-    },
-    {
-      "action": "submit"
+      "target": "text:run은 새 컨테이너를 만들어요. start는 기존 컨테이너를 켜요."
     }
   ]
 }

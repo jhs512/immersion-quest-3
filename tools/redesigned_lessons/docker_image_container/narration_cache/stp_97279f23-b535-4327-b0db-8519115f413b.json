@@ -1,46 +1,34 @@
 {
   "by": "hand",
-  "source_sha256": "0e2fcde79480db3ba15481f0d6f78cc61164c1bd788f59b81eeae724cd873e57",
+  "source_sha256": "c8d2d28ec35226fd5e037664d527b3871a9994f9ec17a6237834121fcba4782a",
   "entry": [
     {
       "action": "say",
-      "text": "Nginx가 실행 중이고, 그 안에 /memo.txt는 아직 없어요. 새 컨테이너 없이 그 안에서 쓰고 읽어요.",
-      "target": "text:Nginx가 실행 중이고 /memo.txt는 없어요. 같은 컨테이너 안에 메모를 쓰고 읽으세요."
+      "text": "Nginx가 실행 중이에요. 새 컨테이너 없이 그 안에서 메모를 쓰고 읽어요.",
+      "target": "text:같은 컨테이너 안에 메모를 쓰고 읽으세요."
     },
     {
-      "action": "run"
-    },
-    {
-      "action": "say",
-      "text": "이름 변수만으로는 파일이 생기지 않아요. 컨테이너에 명령을 보내 볼게요.",
-      "target": "output"
-    },
-    {
-      "action": "patch_code",
-      "before": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
-      "after": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker exec \"$BOX\" sh -c 'echo hello > /memo.txt; cat /memo.txt'\n",
-      "say": "exec로 실행 중인 컨테이너에 쓰기와 읽기 명령을 보내요."
+      "action": "bash_command",
+      "command": "docker exec \"$BOX\" sh -c 'echo hello > /memo.txt; cat /memo.txt'",
+      "say": "exec는 실행 중인 컨테이너 안에서 명령을 더 실행해요.",
+      "target": "#git-demo-terminal"
     },
     {
       "action": "say",
-      "text": "exec는 실행 중인 컨테이너 안에서 명령을 더 실행해요.",
-      "target": "code:docker exec \"$BOX\" sh -c 'echo hello > /memo.txt; cat /memo.txt'"
+      "text": "cat이 읽은 hello가 그대로 출력됐어요. 같은 컨테이너 안에서 실행했어요.",
+      "target": "#git-demo-terminal"
     },
     {
-      "action": "run"
+      "action": "bash_command",
+      "command": "ls /memo.txt",
+      "say": "이번에는 docker 없이 내 컴퓨터에서 같은 경로를 찾아볼게요.",
+      "target": "#git-demo-terminal",
+      "fails": true
     },
     {
       "action": "say",
-      "text": "cat이 읽은 hello가 그대로 출력돼요. 같은 컨테이너 안에서 명령을 실행했어요.",
-      "target": "output"
-    },
-    {
-      "action": "say",
-      "text": "조심하세요. 이 파일은 내 컴퓨터의 /memo.txt가 아니에요. 컨테이너 안에 있어요.",
-      "target": "text:sh -c 뒤의 명령은 컨테이너 안에서 실행돼요."
-    },
-    {
-      "action": "submit"
+      "text": "조심하세요. 내 컴퓨터에는 /memo.txt가 없어요. 메모는 컨테이너 안에만 있어요.",
+      "target": "#git-demo-terminal"
     }
   ]
 }

@@ -4492,270 +4492,108 @@
   "stp_72bd6932-460d-47a4-823c-15bc21b83b98": {
    "lesson": "docker-compose-db",
    "state": "reviewed",
-   "context_sha256": "78adb70dd13742ecf59b188b32abd3a9c5a934878578b7c76bd9bb27ec07132f",
-   "reviewed": "2026-10-28",
+   "context_sha256": "024a0953870cca351f9fa92a9fecbd2c808281b98ad9b241b11515d73a344542",
+   "reviewed": "2026-10-26",
    "checked": {
-    "조심하세요. 볼륨을 지우고 다시 초기화하면 새 열은 생겨도 기존 사용자 데이터가 사라져요. 지금 목표는 기존 행을 지키는 변경이에요.": "전수 검토 2026-10-28: init.sql만 변경 → version 오류 → ALTER TABLE ADD COLUMN IF NOT EXISTS → milk:1. 상황보다 IF NOT EXISTS 문단을 먼저 낭독하던 순서·재낭독을 고쳤다. 제목 명령문·경고 강조 수정. 미해결(본문): 할 일 2번이 제목 복사(마침표 없음)."
+    "migration.sql은 이미 있는 DB에 보내는 변경이에요. 다시 실행해도 실패하지 않게 써야 해요.": "본문을 다시 읽지 않고 이미 데이터가 있는 DB에 보내는 변경이라는 조건을 먼저 말해요. IF NOT EXISTS의 범위는 본문이 설명해요. (작성자 문맥 검토, 사람 검토 아님)",
+    "조심하세요. 볼륨을 지우고 다시 초기화하면 새 열은 생겨도 기존 사용자 데이터가 사라져요. 지금 목표는 기존 행을 지키는 변경이에요.": "init.sql을 고쳐 down -v로 다시 초기화하는 지름길이 흔해요. 기존 행 보존이 이 문제의 조건이에요. (작성자 문맥 검토, 사람 검토 아님)"
    },
-   "findings": [
-    {
-     "sentence": "같은 마이그레이션을 다시 실행해도 기존 열 때문에 실패하지 않도록 ADD COLUMN IF NOT EXISTS를 사용해요. 이는 같은 이름의 열이 있는 경우 추가를 생략할 뿐, 기존 열의 자료형과 제약까지 검증해 주지는 않아요.",
-     "fix": "migration.sql은 이미 있는 DB에 보내는 변경이에요. 다시 실행해도 실패하지 않게 써야 해요.",
-     "issue": "본문 문단을 그대로 다시 읽는다(콘텐츠 룰). 상황보다 먼저 읽어 순서도 어긋난다.",
-     "reason": "마이그레이션의 성격과 재실행 조건을 짧게 말한다.",
-     "status": "fixed"
-    },
-    {
-     "sentence": "첫 실행에서 milk 메모를 저장했어요. init.sql을 새 표 정의로 바꿔 컨테이너를 다시 만들어도 기존 DB의 표는 바뀌지 않아요.",
-     "fix": "milk 메모가 든 DB가 이미 있어요. init.sql만 바꾼 지금 상태로 실행해 볼게요.",
-     "issue": "본문 문단을 그대로 다시 읽는다(콘텐츠 룰).",
-     "reason": "시작 상태를 말하고 실행으로 넘긴다.",
-     "status": "fixed"
-    },
-    {
-     "sentence": "기존 메모를 보존하며 새 열을 추가하세요",
-     "fix": "ALTER TABLE로 version 열을 기본값 1, NOT NULL로 더해요. 이미 있으면 건너뛰어요.",
-     "issue": "코드를 바꾸는 동안 제목 명령문을 그대로 말해 무엇을 바꾸는지 알려 주지 않는다.",
-     "reason": "patch_code: 주석 → ALTER TABLE memo ADD COLUMN IF NOT EXISTS version INT DEFAULT 1 NOT NULL",
-     "status": "fixed"
-    }
-   ]
+   "findings": []
   },
   "stp_d7934805-5e0f-4b38-ae30-4d961108ab89": {
    "lesson": "docker-compose-db",
    "state": "reviewed",
-   "context_sha256": "51cb434ee657f4e9f0655647a536a3f7fffbbac43f3bbb7e4df61494476a38b6",
-   "reviewed": "2026-10-28",
+   "context_sha256": "2664a5c25a04001bb210db32ad30f39cd56fcbaec4d7d315769099d39915ecc6",
+   "reviewed": "2026-10-26",
    "checked": {
-    "조심하세요. 이미지 버전마다 데이터 경로가 같다고 가정하지 마세요. 이 과제는 명시한 PostgreSQL 18 이미지의 경로를 사용해요.": "전수 검토 2026-10-28: data:/data → down 뒤 표 없음 → data:/var/lib/postgresql → down:1. 템플릿 결함: 상황 문단 재낭독, 목표를 반복하는 개념 문장이 services: 전체를 강조, 코드 변경 중 제목 명령문, 경고가 알아두세요 전체를 강조. 고쳤다. 미해결(본문): 할 일 2번이 제목 복사(마침표 없음)."
+    "조심하세요. 이미지 버전마다 데이터 경로가 같다고 가정하지 마세요. 이 과제는 명시한 PostgreSQL 18 이미지의 경로를 사용해요.": "이전 버전의 /var/lib/postgresql/data 경로를 그대로 쓰는 실수가 흔해요. 이 실습은 PostgreSQL 18 이미지의 경로로 실제 확인해요. (작성자 문맥 검토, 사람 검토 아님)"
    },
-   "findings": [
-    {
-     "sentence": "제공한 lab.sh는 연습용 memo 표의 행만 비우고 milk 한 행을 넣어 재시험 조건을 맞춰요. 그 뒤 컨테이너를 실제로 재시작·재생성하며 같은 행이 남는지 비교해요. 컨테이너 수명 비교 자체가 이 문제의 실험이며, 일반 SQL 실행마다 컨테이너를 내리는 방식은 아니에요.",
-     "fix": "lab.sh는 memo 표를 milk 한 행으로 맞춘 뒤 재시작·재생성·down을 차례로 해요.",
-     "issue": "본문 문단을 그대로 다시 읽는다(콘텐츠 룰). 세 문장 문단.",
-     "reason": "실험 순서만 말한다.",
-     "status": "fixed"
-    },
-    {
-     "sentence": "볼륨 data가 있지만 /data에 붙어 있어요. 이 PostgreSQL 18 이미지가 저장하는 경로와 달라요.",
-     "fix": "이름 있는 볼륨 data는 지금 /data에 붙어 있어요. 이 이미지가 저장하는 경로가 아니에요.",
-     "issue": "본문 문단을 그대로 다시 읽는다(콘텐츠 룰).",
-     "reason": "시작 상태의 문제를 말한다.",
-     "status": "fixed"
-    },
-    {
-     "sentence": "볼륨은 데이터베이스가 실제로 저장하는 경로에 연결해야 해요.",
-     "fix": "data 볼륨이 /data에 붙어 있어 DB 파일은 그 볼륨에 저장되지 않아요.",
-     "issue": "목표 문장을 그대로 반복하고 services: 전체를 강조해 어느 줄이 문제인지 말하지 않는다.",
-     "reason": "강조를 \"data:/data\"로 옮겨 down 뒤 표가 사라진 원인을 말한다.",
-     "status": "fixed"
-    },
-    {
-     "sentence": "DB 컨테이너를 다시 만들어도 메모가 남게 하세요",
-     "fix": "data 볼륨을 /var/lib/postgresql에 연결해요.",
-     "issue": "코드를 바꾸는 동안 제목 명령문을 그대로 말해 무엇을 바꾸는지 알려 주지 않는다.",
-     "reason": "patch_code: data:/data → data:/var/lib/postgresql",
-     "status": "fixed"
-    }
-   ]
+   "findings": []
   },
   "stp_d96a6b0e-3f34-4371-ab63-a40b371390d1": {
    "lesson": "docker-compose-db",
    "state": "reviewed",
-   "context_sha256": "4d39483f1d4bfae3c1727c900364c865a109a7d3aa66432cda1a573a6540e341",
-   "reviewed": "2026-10-28",
+   "context_sha256": "874107b2444e70352add5829d03dcfa6c70d679fe6f32ebd52fe564254ad1b01",
+   "reviewed": "2026-10-26",
    "checked": {
-    "조심하세요. PC에 이미 설치된 PostgreSQL을 찾는 과제가 아니에요. 준비된 실습 DB의 서비스 이름을 사용하세요.": "전수 검토 2026-10-28: -h localhost → connection failed → -h db → connected. 템플릿 결함: 상황 문단 재낭독, 목표를 반복하는 개념 문장이 services: 전체를 강조, 코드 변경 중 제목 명령문, 경고가 알아두세요 전체를 강조. 고쳤다. 미해결(본문): 할 일 2번이 제목 복사(마침표 없음)."
+    "조심하세요. PC에 이미 설치된 PostgreSQL을 찾는 과제가 아니에요. 준비된 실습 DB의 서비스 이름을 사용하세요.": "PC에 DB가 있으면 그쪽에 연결을 시도하기 쉬워요. 이 실습은 PC에 DB 포트를 공개하지 않아요. (작성자 문맥 검토, 사람 검토 아님)"
    },
-   "findings": [
-    {
-     "sentence": "db 컨테이너에 PostgreSQL이 있고 app 컨테이너에서 SQL 클라이언트를 실행해요. 사용자 PC의 DB는 사용하지 않아요.",
-     "fix": "DB는 db 컨테이너에 있고, psql은 app 컨테이너에서 실행돼요. 그대로 실행해 볼게요.",
-     "issue": "본문 문단을 그대로 다시 읽는다(콘텐츠 룰).",
-     "reason": "두 컨테이너의 역할을 말하고 실행으로 넘긴다.",
-     "status": "fixed"
-    },
-    {
-     "sentence": "데이터베이스 연결 주소는 클라이언트가 실행되는 위치에 따라 달라져요.",
-     "fix": "app의 -h localhost는 app 컨테이너 자신을 가리켜요.",
-     "issue": "목표 문장을 그대로 반복하고 services: 전체를 강조해 어느 줄이 문제인지 말하지 않는다.",
-     "reason": "강조를 \"-h\", \"localhost\"로 옮겨 연결 실패의 원인을 말한다.",
-     "status": "fixed"
-    },
-    {
-     "sentence": "app이 db 서비스의 데이터베이스에 접속하게 하세요",
-     "fix": "app의 접속 호스트를 localhost에서 서비스 이름 db로 바꿔요.",
-     "issue": "코드를 바꾸는 동안 제목 명령문을 그대로 말해 무엇을 바꾸는지 알려 주지 않는다.",
-     "reason": "patch_code: \"-h\", \"localhost\" → \"-h\", \"db\"",
-     "status": "fixed"
-    }
-   ]
+   "findings": []
   },
   "stp_0870c694-4f17-4ad0-b1f7-72d0d8479f2c": {
    "lesson": "docker-image-container",
    "state": "reviewed",
-   "context_sha256": "7e132c31c057cc962ba88a9ccf066dcb3f0f2f7c2dbe2a11904126ca3547350d",
-   "reviewed": "2026-10-28",
+   "context_sha256": "df5eedc5a6f3ef5956e6357b42a096dc9ebd7d3a89d04e60faa155eee7da9718",
+   "reviewed": "2026-10-26",
    "checked": {
-    "조심하세요. 이미지가 있어도 웹 서버가 켜진 것은 아니에요.": "전수 검토 2026-10-28: 빈 실행 → pull → Digest 출력 패턴. 템플릿 결함 3개: 본문 문단을 그대로 다시 읽음, 코드 입력 중 제목 명령문을 그대로 말함, 경고가 알아두세요 문단 전체를 강조. 문단 재낭독은 이유 설명으로, 입력 설명은 실제 행동으로, 경고 강조는 「서버를 실행하지는 않아요.」로 옮겼다."
+    "조심하세요. 이미지가 있어도 웹 서버가 켜진 것은 아니에요. 아직 컨테이너는 없어요.": "pull과 실행을 같은 일로 오해하기 쉬워요. 다음 문제의 run과 구별해요. (작성자 문맥 검토, 사람 검토 아님)"
    },
-   "findings": [
-    {
-     "sentence": "Nginx는 웹 페이지를 보내 주는 서버예요. 직접 설치하면 컴퓨터마다 설치 과정이 달라져요. 같은 버전의 이미지로 실행 재료를 맞춰 보세요.",
-     "fix": "직접 설치하면 컴퓨터마다 버전과 과정이 달라져요. 같은 태그의 이미지를 받으면 모두 같은 재료로 시작해요.",
-     "issue": "본문 문단을 그대로 다시 읽는다(콘텐츠 룰: 문제를 다시 읽지 말고 왜 중요한지 짚는다).",
-     "reason": "본문의 요지(설치 차이 → 같은 버전의 이미지)를 태그와 연결해 설명한다.",
-     "status": "fixed"
-    },
-    {
-     "sentence": "실행하기 전에 이미지를 내려받으세요",
-     "fix": "commands.sh에 태그까지 적은 pull 명령을 써요.",
-     "issue": "코드 입력 중 제목 명령문을 그대로 말해 무엇을 쓰는지 알려 주지 않는다.",
-     "reason": "patch_code가 docker pull nginx:1.28-alpine 한 줄을 더한다.",
-     "status": "fixed"
-    }
-   ]
+   "findings": []
   },
   "stp_211bb90f-26ea-469d-9309-a14f8dbdadc5": {
    "lesson": "docker-image-container",
    "state": "reviewed",
-   "context_sha256": "0f565bcc3f78a42893d753d3416b07145cdc1c1efe5a653c8ecefa35af5e9fee",
-   "reviewed": "2026-10-28",
+   "context_sha256": "2eecf5a8d37f3792af26d3cbf565cb06e4875d6f9405b650a981f5a040fa1391",
+   "reviewed": "2026-10-26",
    "checked": {
-    "조심하세요. run을 또 실행하면 같은 이름이 있어 실패해요. 기존 컨테이너를 다시 켜는 명령은 뒤에서 배워요.": "전수 검토 2026-10-28: 빈 실행 → run -d → 64자 ID. 같은 템플릿 결함 3개 수정. 같은 이름 재실행 경고 강조를 --name 구절로."
+    "조심하세요. 같은 이름의 컨테이너가 이미 있어서 Conflict 오류가 나요. run은 매번 새 컨테이너를 만들거든요.": "실제로 다시 실행해 이름 충돌 오류를 보여 줘요. 다시 켜는 start는 뒤에서 배워요. (작성자 문맥 검토, 사람 검토 아님)"
    },
-   "findings": [
-    {
-     "sentence": "Nginx 이미지는 준비됐어요. 이제 그 이미지로 웹 서버를 실행하세요.",
-     "fix": "이미지는 이미 받아 둔 상태예요. 이번에는 그 이미지로 서버를 켜요.",
-     "issue": "본문 문장을 그대로 다시 읽는다.",
-     "reason": "시작 상태(이미지 준비)와 이번 행동을 구분해 말한다.",
-     "status": "fixed"
-    },
-    {
-     "sentence": "이미지로 컨테이너 하나를 실행하세요",
-     "fix": "-d로 뒤에서 돌리고, 실습 이름과 포트를 붙인 run 명령을 써요.",
-     "issue": "코드 입력 중 제목 명령문을 그대로 말한다.",
-     "reason": "patch_code가 docker run -d --name \"$BOX\" -p 127.0.0.1::80 nginx:1.28-alpine을 더한다.",
-     "status": "fixed"
-    }
-   ]
+   "findings": []
   },
   "stp_3cec22fd-92c6-4802-85df-25f18f0c7bc4": {
    "lesson": "docker-image-container",
    "state": "reviewed",
-   "context_sha256": "a6384388ef7d007dcca98208b0d8a948a7ad02e39991f6829859ed3a2e1a8eb4",
-   "reviewed": "2026-10-28",
+   "context_sha256": "cf24dd0789f822a640913fc1e5a84f312772009b63dfa9f91bac25652ae52e1c",
+   "reviewed": "2026-10-26",
    "checked": {
-    "조심하세요. logs가 비었다고 멈춘 것은 아니에요. 출력하지 않는 프로그램도 있어요.": "전수 검토 2026-10-28: logs에 entrypoint 안내와 GET / 200. 템플릿 결함 3개 수정. 경고 강조를 logs 구절로."
+    "조심하세요. logs가 비었다고 멈춘 것은 아니에요. 출력하지 않는 프로그램도 있어요.": "로그 유무와 실행 상태를 같은 것으로 보는 오해를 짚어요. (작성자 문맥 검토, 사람 검토 아님)"
    },
-   "findings": [
-    {
-     "sentence": "이번 문제는 Nginx가 실행된 상태예요. 서버가 시작하며 남긴 로그를 직접 읽으세요.",
-     "fix": "Nginx는 이미 실행 중이에요. 시작할 때와 요청을 받을 때 남긴 기록을 읽어요.",
-     "issue": "본문 문장을 그대로 다시 읽는다.",
-     "reason": "알아두세요의 준비 과정 웹 요청 하나까지 읽을 대상으로 연결한다(실제 출력에 GET / 200).",
-     "status": "fixed"
-    },
-    {
-     "sentence": "컨테이너가 시작할 때 남긴 로그를 읽으세요",
-     "fix": "logs에 실습 컨테이너 이름을 넘겨요.",
-     "issue": "코드 입력 중 제목 명령문을 그대로 말한다.",
-     "reason": "patch_code가 docker logs \"$BOX\"를 더한다.",
-     "status": "fixed"
-    }
-   ]
+   "findings": []
   },
   "stp_62f6f8ed-b281-4c1a-8865-7ce9789b7165": {
    "lesson": "docker-image-container",
    "state": "reviewed",
-   "context_sha256": "f8bd2829c23210b0eedf23ca8fcf152636a825402cf85b47cba5907da0fccbd3",
-   "reviewed": "2026-10-28",
+   "context_sha256": "93a8d60bcf3c0bcc16f101cb9361b0d2cb8be3429e0469140da985e8c8e9b20f",
+   "reviewed": "2026-10-26",
    "checked": {
-    "조심하세요. 멈추기와 삭제는 달라요. rm으로 지우면 다시 시작할 객체도 없어져요.": "전수 검토 2026-10-28: stop → 이름 출력, 채점 exited·객체 그대로. 템플릿 결함 3개 수정. 경고 강조를 rm 구절로."
+    "조심하세요. 멈추기와 삭제는 달라요. rm으로 지우면 다시 시작할 컨테이너도 없어져요.": "stop과 rm을 혼동하는 실수와 결과를 짚어요. (작성자 문맥 검토, 사람 검토 아님)"
    },
-   "findings": [
-    {
-     "sentence": "이번 문제는 Nginx가 실행 중이에요. 컨테이너를 지우지 말고 서버만 멈추세요.",
-     "fix": "지금 Nginx가 실행 중이에요. 컨테이너는 남기고 실행만 멈춰야 해요.",
-     "issue": "본문 문장을 그대로 다시 읽는다.",
-     "reason": "시작 상태와 지켜야 할 제약(지우지 않음)을 말한다.",
-     "status": "fixed"
-    },
-    {
-     "sentence": "컨테이너를 삭제하지 않고 멈추세요",
-     "fix": "stop에 실습 컨테이너 이름을 넘겨요.",
-     "issue": "코드 입력 중 제목 명령문을 그대로 말한다.",
-     "reason": "patch_code가 docker stop \"$BOX\"를 더한다.",
-     "status": "fixed"
-    }
-   ]
+   "findings": []
   },
   "stp_6da856ec-fe47-46cd-9fbf-4db496fe6d4b": {
    "lesson": "docker-image-container",
    "state": "reviewed",
-   "context_sha256": "2e72932495d88729a425e20a033964948da26d3a10209ee597068df0df64a8c9",
+   "context_sha256": "37a393143a8332b06c44cda68cbdf9f4c9b36acd49fd8e4f28b6cfa360328924",
    "reviewed": "2026-10-26",
    "checked": {
-    "조심하세요. 파일이 필요한 RUN을 COPY 앞으로 옮기면 아직 그 파일이 없어요. 그 파일이 필요한 단계는 COPY 뒤에 둬요.": "순서를 바꾸는 이 스텝에서 바로 생기는 다음 실수예요. RUN이 menu.txt를 쓰면 COPY 전이라 파일이 없어요. 이 RUN은 menu.txt를 쓰지 않아 순서를 바꿔도 돼요. (Codex, 사람 검토 아님)"
+    "조심하세요. 파일이 필요한 RUN을 COPY 앞으로 옮기면 아직 그 파일이 없어요. 그 파일이 필요한 단계는 COPY 뒤에 둬요.": "순서를 바꾸는 이 스텝에서 바로 생기는 다음 실수예요. RUN이 menu.txt를 쓰면 COPY 전이라 파일이 없어요. 이 RUN은 menu.txt를 쓰지 않아 순서를 바꿔도 돼요. (작성자 문맥 검토, 사람 검토 아님)"
    },
    "findings": []
   },
   "stp_8d7cc5c7-bc36-4c29-ae26-ffeec385dcac": {
    "lesson": "docker-image-container",
    "state": "reviewed",
-   "context_sha256": "bb757ec24d6238c9c31fb10b64cb9c5c765d436e57da6990f07f59702d53689b",
-   "reviewed": "2026-10-28",
+   "context_sha256": "825ab4c206c997f565ba8a97d93a1ab88c084efbe776296639bd295ba3a820e5",
+   "reviewed": "2026-10-26",
    "checked": {
-    "조심하세요. run은 같은 이미지를 써도 새 컨테이너를 만드는 명령이에요.": "전수 검토 2026-10-28: start → 이름 출력, 채점 running·같은 식별자. 템플릿 결함 3개 수정. 경고 강조를 run 구절로."
+    "조심하세요. run은 같은 이미지를 써도 새 컨테이너를 만드는 명령이에요.": "start 대신 run을 쓰면 다른 객체가 생긴다는 점을 짚어요. (작성자 문맥 검토, 사람 검토 아님)"
    },
-   "findings": [
-    {
-     "sentence": "이번 문제는 Nginx 컨테이너를 만든 뒤 멈춘 상태예요. 같은 컨테이너를 다시 켜세요.",
-     "fix": "컨테이너는 만들어진 뒤 멈춰 있어요. 새로 만들지 않고 이 컨테이너를 켜요.",
-     "issue": "본문 문장을 그대로 다시 읽는다.",
-     "reason": "시작 상태와 채점 기준(같은 식별자)을 연결한다.",
-     "status": "fixed"
-    },
-    {
-     "sentence": "새로 만들지 말고 멈춘 컨테이너를 다시 켜세요",
-     "fix": "run 대신 start에 같은 이름을 넘겨요.",
-     "issue": "코드 입력 중 제목 명령문을 그대로 말한다.",
-     "reason": "patch_code가 docker start \"$BOX\"를 더한다.",
-     "status": "fixed"
-    }
-   ]
+   "findings": []
   },
   "stp_97279f23-b535-4327-b0db-8519115f413b": {
    "lesson": "docker-image-container",
    "state": "reviewed",
-   "context_sha256": "90c27e08d4a3667440c02fb5efb3dda9c1191ac709c9f9b0815c41724e1a664b",
-   "reviewed": "2026-10-28",
+   "context_sha256": "95ce8dd0c1a2e56f5a1c20eb3926e0b8264a35f466dbb5a1971e97fcccdf0f91",
+   "reviewed": "2026-10-26",
    "checked": {
-    "조심하세요. 이 파일은 내 컴퓨터의 /memo.txt가 아니에요. 컨테이너 안에 있어요.": "전수 검토 2026-10-28: exec sh -c → hello. 템플릿 결함 3개 수정. 경고 강조를 sh -c 구절로."
+    "조심하세요. 내 컴퓨터에는 /memo.txt가 없어요. 메모는 컨테이너 안에만 있어요.": "호스트에서 실제로 찾아 없다는 오류를 보여 줘요. 컨테이너 파일 시스템을 구별해요. (작성자 문맥 검토, 사람 검토 아님)"
    },
-   "findings": [
-    {
-     "sentence": "Nginx가 실행 중이고 /memo.txt는 없어요. 같은 컨테이너 안에 메모를 쓰고 읽으세요.",
-     "fix": "Nginx가 실행 중이고, 그 안에 /memo.txt는 아직 없어요. 새 컨테이너 없이 그 안에서 쓰고 읽어요.",
-     "issue": "본문 문장을 그대로 다시 읽는다.",
-     "reason": "run(새 컨테이너)과 exec(기존 컨테이너)의 대비를 시작 상태와 함께 말한다.",
-     "status": "fixed"
-    },
-    {
-     "sentence": "실행 중인 컨테이너 안에 메모를 쓰세요",
-     "fix": "exec로 실행 중인 컨테이너에 쓰기와 읽기 명령을 보내요.",
-     "issue": "코드 입력 중 제목 명령문을 그대로 말한다.",
-     "reason": "patch_code가 docker exec \"$BOX\" sh -c 'echo hello > /memo.txt; cat /memo.txt'를 더한다.",
-     "status": "fixed"
-    }
-   ]
+   "findings": []
   },
   "stp_a7de7379-fd52-4c67-8d68-dd41347718eb": {
    "lesson": "docker-image-container",
    "state": "reviewed",
-   "context_sha256": "cc118aa1e0c8be73baf907aa5b5435a7b71fbb2e11dbf6ddde4e7fa8301da7ae",
+   "context_sha256": "c524efa44a3a1b7509e2966bee89cfb69ff284da50ca8487a2fa75046543da09",
    "reviewed": "2026-10-26",
    "checked": {},
    "findings": []
@@ -4763,206 +4601,92 @@
   "stp_ad4788d5-7d5b-4598-b97f-6b53321a0ca4": {
    "lesson": "docker-image-container",
    "state": "reviewed",
-   "context_sha256": "87bfedf2e9e95da49aadd6a43f4d90b13177327e0798e11cdf88c1bcd3c535e6",
+   "context_sha256": "2ba1410d41ff31cd285a48742eb687672fdb06f665815b184792dfdb6e2786ed",
    "reviewed": "2026-10-26",
    "checked": {
-    "같은 이미지에서 시작해도 데이터는 어느 볼륨을 연결했는지가 정해요.": "같은 이미지와 다른 볼륨이라는 조건을 두 가게 출력과 연결해요. 이미지가 같다는 것만으로 데이터 공유가 정해지지 않아요. (Codex, 사람 검토 아님)"
+    "같은 이미지에서 시작해도 데이터는 어느 볼륨을 연결했는지가 정해요.": "같은 이미지와 다른 볼륨이라는 조건을 두 가게 출력과 연결해요. 이미지가 같다는 것만으로 데이터 공유가 정해지지 않아요. (작성자 문맥 검토, 사람 검토 아님)"
    },
    "findings": []
   },
   "stp_b8dbd6b9-c192-4fb1-b7e2-f7204328ae74": {
    "lesson": "docker-image-container",
    "state": "reviewed",
-   "context_sha256": "5e2f5ecc7eccce9465bf3b7eff681f4ff9199377cec0c088f03055009f4e4613",
-   "reviewed": "2026-10-28",
+   "context_sha256": "c227b6ccf035aad62af1454188648f2d8c0d4901975c878594a3e77441723753",
+   "reviewed": "2026-10-26",
    "checked": {
-    "조심하세요. 이미지를 받기만 했다면 ps 목록에는 새 컨테이너가 없어요.": "전수 검토 2026-10-28: ps 표 NAMES·PORTS 읽기가 출력 패턴과 맞다. 템플릿 결함 3개 수정. 경고 강조를 docker ps 구절로."
+    "조심하세요. 이미지를 받기만 했다면 ps 목록에는 새 컨테이너가 없어요.": "이미지 표와 컨테이너 표를 혼동하는 실수를 짚어요. (작성자 문맥 검토, 사람 검토 아님)"
    },
-   "findings": [
-    {
-     "sentence": "이번 문제는 준비된 Nginx 서버 하나에서 시작해요. 실행 중인 컨테이너의 이름과 포트를 찾아보세요.",
-     "fix": "Nginx 서버 하나를 미리 켜 뒀어요. 이 서버의 이름과 포트를 표에서 찾아요.",
-     "issue": "본문 문장을 그대로 다시 읽는다.",
-     "reason": "시작 상태(준비된 서버)와 찾을 대상(이름·포트)을 말한다.",
-     "status": "fixed"
-    },
-    {
-     "sentence": "이미지 목록 대신 실행 중인 컨테이너를 조회하세요",
-     "fix": "이미지를 보는 images 대신 ps를 써요.",
-     "issue": "코드 입력 중 제목 명령문을 그대로 말한다.",
-     "reason": "patch_code가 docker ps를 더한다. 제목의 대비(이미지 목록 대신)를 명령 이름으로 말한다.",
-     "status": "fixed"
-    }
-   ]
+   "findings": []
   },
   "stp_bc8ce344-eb51-4fae-ac2d-8a56ec3ca977": {
    "lesson": "docker-image-container",
    "state": "reviewed",
-   "context_sha256": "734454c110cb4821eede7fb2300d62aeb3177ef48eb0aa98fa69984605dcc2f8",
+   "context_sha256": "d1932f9a2411e0cd1ab3f0ac3b02af927f27af7e7243de90902c36c4b08e3a92",
    "reviewed": "2026-10-26",
    "checked": {
-    "조심하세요. 처음 상태로 돌리려고 down -v를 쓰면 볼륨의 데이터도 지워져요. 데이터를 지킬 때는 -v 없이 down 해요.": "실제 실행 출력의 마지막 줄(down -v 뒤: (없음))이 그 결과예요. 앞 줄(down 뒤)과 대비돼요. (Codex, 사람 검토 아님)"
+    "조심하세요. 처음 상태로 돌리려고 down -v를 쓰면 볼륨의 데이터도 지워져요. 데이터를 지킬 때는 -v 없이 down 해요.": "볼륨을 붙인 직후 학습자가 초기화 대신 down -v를 쓰기 쉬워요. 알아두세요의 down -v 문장과 연결해요. (작성자 문맥 검토, 사람 검토 아님)"
    },
    "findings": []
   },
   "stp_ddeb2d11-665b-4171-a08c-7b11c2a3f633": {
    "lesson": "docker-image-container",
    "state": "reviewed",
-   "context_sha256": "e8e45f8f2d3ef57dabe716aa160f356e1b1fa4d48bc599fa8962db7a123ac62a",
-   "reviewed": "2026-10-28",
+   "context_sha256": "8e4e08ff184186d8a31d91b9753ce5b0f0c4ad3896122a4bad2eeeec0628e364",
+   "reviewed": "2026-10-26",
    "checked": {
-    "조심하세요. 이 셸 명령에서 &를 붙이면 셸이 기다리지 않고 끝나요. 서버가 직접 PID 1이 되거나 PID 1이 서버를 기다려야 컨테이너가 유지돼요.": "전수 검토 2026-10-28: & 때문에 PID 1 sh 종료 → exited → & 제거 → running·로그. 도입 「…문제예요」가 두 번 반복되어 둘째를 실행 예고로 바꿨다. lab.sh는 running일 때만 로그 줄을 찍으므로(경합 회피) 첫 결과 문장을 화면에 보이는 사실로 고쳤다."
+    "조심하세요. 이 셸 명령에서 &를 붙이면 셸이 기다리지 않고 끝나요. 서버가 직접 PID 1이 되거나 PID 1이 서버를 기다려야 컨테이너가 유지돼요.": "시작 파일이 바로 그 실수(sleep 3600 &)이고, 앞에서 터미널의 ps -a로 Exited를 봤어요. (작성자 문맥 검토, 사람 검토 아님)"
    },
-   "findings": [
-    {
-     "sentence": "서버를 띄웠는데 컨테이너가 끝나 버리는 문제예요.",
-     "fix": "지금 설정 그대로 실행해서 3초 뒤 상태를 볼게요.",
-     "issue": "바로 앞 도입(…문제예요)을 같은 형식으로 반복한다.",
-     "reason": "lab.sh가 up 뒤 3초 기다려 상태를 읽는다. 다음 run과 연결한다.",
-     "status": "fixed"
-    },
-    {
-     "sentence": "상태는 exited예요. 첫 프로세스가 백그라운드 작업을 기다리지 않고 끝났어요. 시작 로그도 남기기 전에 종료될 수 있어요.",
-     "fix": "상태는 exited예요. 첫 프로세스가 백그라운드 작업을 기다리지 않고 끝났어요. 실행 중이 아니라서 로그 줄은 나오지 않아요.",
-     "issue": "화면에 없는 추측(로그를 남기기 전 종료)을 말한다.",
-     "reason": "lab.sh는 running일 때만 로그 줄을 출력한다(종료 시 로그는 경합이라 근거로 쓰지 않음).",
-     "status": "fixed"
-    }
-   ]
+   "findings": []
   },
   "stp_df3b7f87-6670-4844-8a67-8d5ac87fc6d8": {
    "lesson": "docker-image-container",
    "state": "reviewed",
-   "context_sha256": "dc121bbb50a37328bd3ecc625ebb0d4b1c6566905b0ad616511a43b6393c438b",
-   "reviewed": "2026-10-28",
+   "context_sha256": "67bb525946973a3689c6bd4cbee9dbbbf2d679f431c0246e3c1e8c840a73b649",
+   "reviewed": "2026-10-26",
    "checked": {
-    "조심하세요. 컨테이너 안에 새로 쓴 파일도 함께 사라져요. 다음에는 데이터를 남기는 방법을 배워요.": "전수 검토 2026-10-28: rm → 이름 출력, 이미지 남음. 본문 재낭독·제목 명령문 2개 수정. 경고(쓴 파일도 사라짐)는 알아두세요에 맞는 구절이 없어 강조 유지."
+    "조심하세요. 실행 중이라서 지울 수 없다는 오류가 나요. 먼저 멈춰야 해요.": "실제로 rm이 거절되는 오류를 보여 준 뒤 stop으로 이어가요. (작성자 문맥 검토, 사람 검토 아님)"
    },
-   "findings": [
-    {
-     "sentence": "이번 문제는 Nginx 컨테이너를 멈춘 상태예요. 이 컨테이너만 삭제하세요.",
-     "fix": "컨테이너는 멈춰 있어요. 이미지는 두고 이 컨테이너만 지워요.",
-     "issue": "본문 문장을 그대로 다시 읽는다.",
-     "reason": "시작 상태와 지킬 것(이미지 유지)을 말한다.",
-     "status": "fixed"
-    },
-    {
-     "sentence": "멈춘 컨테이너만 삭제하고 이미지는 남기세요",
-     "fix": "rm에 실습 컨테이너 이름을 넘겨요.",
-     "issue": "코드 입력 중 제목 명령문을 그대로 말한다.",
-     "reason": "patch_code가 docker rm \"$BOX\"를 더한다.",
-     "status": "fixed"
-    }
-   ]
+   "findings": []
   },
   "stp_096e491f-5b89-409e-9119-c87c6f81ad2f": {
    "lesson": "docker-network-ports",
    "state": "reviewed",
-   "context_sha256": "175ea00aab947ddc4c0a477e3c92f33c8766911eef394116f350639064041152",
-   "reviewed": "2026-10-28",
+   "context_sha256": "8286676f612f1cfd16ee4756bc2340a2e5a548f80ec2daa3fd54612a3112df7e",
+   "reviewed": "2026-10-26",
    "checked": {
-    "서버가 건강해도 응답은 연결 실패예요. 요청한 localhost가 client 자신이기 때문이에요.": "전수 검토 2026-10-28: client의 localhost → 연결 실패 → web:8080 → 메모 서버. 본문 재낭독·제목 명령문 낭독 수정. 개념 문장 강조를 services:에서 http://localhost:8080으로, 경고 강조를 서비스 이름 구절로. 미해결(본문): 할 일 2번이 제목 복사(마침표 없음)라 무엇을 바꿀지 말하지 않음, 단원 premise가 「제공 SQL로 작은 실습 DB」로 네트워크 수업과 맞지 않음.",
-    "조심하세요. client에도 서버를 띄워 결과만 맞추면 서로 다른 컨테이너를 연결하는 목표를 놓쳐요.": "전수 검토 2026-10-28: client의 localhost → 연결 실패 → web:8080 → 메모 서버. 본문 재낭독·제목 명령문 낭독 수정. 개념 문장 강조를 services:에서 http://localhost:8080으로, 경고 강조를 서비스 이름 구절로. 미해결(본문): 할 일 2번이 제목 복사(마침표 없음)라 무엇을 바꿀지 말하지 않음, 단원 premise가 「제공 SQL로 작은 실습 DB」로 네트워크 수업과 맞지 않음."
+    "조심하세요. client에도 서버를 띄워 결과만 맞추면 서로 다른 컨테이너를 연결하는 목표를 놓쳐요.": "채점은 client의 요청 주소가 web:8080인지 설정으로 확인해요. 출력만 맞추는 우회가 왜 목표와 다른지 짚어요. (작성자 문맥 검토, 사람 검토 아님)"
    },
-   "findings": [
-    {
-     "sentence": "서버는 web에 있고 요청은 client에서 보내요. client의 localhost에는 서버가 없어요.",
-     "fix": "요청을 보내는 쪽은 client예요. 지금 주소 그대로 실행해 볼게요.",
-     "issue": "본문 문장을 그대로 다시 읽는다.",
-     "reason": "시작 상태(요청 주체 client)를 말하고 실행으로 넘긴다. 이유는 다음 결과 문장이 말한다.",
-     "status": "fixed"
-    },
-    {
-     "sentence": "클라이언트가 web 서비스에 연결하게 하세요",
-     "fix": "client의 주소를 localhost에서 서비스 이름 web으로 바꿔요.",
-     "issue": "코드 입력 중 제목 명령문을 그대로 말해 무엇을 바꾸는지 알려 주지 않는다.",
-     "reason": "patch_code의 실제 차이는 http://localhost:8080 → http://web:8080 한 곳이다.",
-     "status": "fixed"
-    }
-   ]
+   "findings": []
   },
   "stp_54e28581-1fae-4124-a274-0a656ee8c43f": {
    "lesson": "docker-network-ports",
    "state": "reviewed",
-   "context_sha256": "bd1221bb565062dbf6c8e991f1dbc9dab3a2993e4000bf755ea1705a1d5b5ba9",
-   "reviewed": "2026-10-28",
+   "context_sha256": "63b2ab05be85be3e28617aeedb3026fabfc668beea01b2e62e8f2cdda5e9451a",
+   "reviewed": "2026-10-26",
    "checked": {
-    "서비스 이름이 맞아도 연결 실패예요. client와 web이 공유하는 네트워크가 없어요.": "전수 검토 2026-10-28: front/back 분리 → 연결 실패 → client를 front로 → 성공. 강조를 networks: [back]과 경계 구절로. 미해결(본문): 할 일 2번 제목 복사, 지시가 알아두세요 안에 있음.",
-    "조심하세요. network_mode: host로 피하지 마세요. 사용자 PC의 네트워크와 분리된 실습 네트워크를 유지해야 해요.": "전수 검토 2026-10-28: front/back 분리 → 연결 실패 → client를 front로 → 성공. 강조를 networks: [back]과 경계 구절로. 미해결(본문): 할 일 2번 제목 복사, 지시가 알아두세요 안에 있음."
+    "조심하세요. network_mode: host로 피하지 마세요. 사용자 PC의 네트워크와 분리된 실습 네트워크를 유지해야 해요.": "연결 실패를 host 네트워크로 우회하기 쉬워요. 앱도 이 설정을 실행 전에 거절해요. (작성자 문맥 검토, 사람 검토 아님)"
    },
-   "findings": [
-    {
-     "sentence": "이번에는 서버 주소도 맞지만 web과 client를 서로 다른 네트워크로 나눠 두었어요.",
-     "fix": "서버 주소는 맞아요. 이번에는 두 서비스가 연결된 네트워크를 볼게요.",
-     "issue": "본문 문장을 그대로 다시 읽는다.",
-     "reason": "시작 상태와 이번에 볼 대상(networks)을 말한다.",
-     "status": "fixed"
-    },
-    {
-     "sentence": "통신할 두 서비스를 같은 네트워크에 넣으세요",
-     "fix": "client의 네트워크를 back에서 front로 바꿔요.",
-     "issue": "코드 입력 중 제목 명령문을 그대로 말한다.",
-     "reason": "patch_code의 실제 차이는 client networks 한 곳이다.",
-     "status": "fixed"
-    }
-   ]
+   "findings": []
   },
   "stp_66c8e6c7-aa9f-479f-9aa5-292921a0fd86": {
    "lesson": "docker-network-ports",
    "state": "reviewed",
-   "context_sha256": "51699816a49d18cd468155b3c988404ef62ce8287f0acc51c8330b24dbab9a04",
-   "reviewed": "2026-10-28",
+   "context_sha256": "ac0c26705804e40b0b48e15cc5867dfc0f7a770063e1d1c31653cfe225442fec",
+   "reviewed": "2026-10-26",
    "checked": {
-    "조심하세요. client의 주소를 호스트 포트로 바꾸지 마세요. 컨테이너 간 연결은 내부 포트와 서비스 이름을 그대로 써요.": "전수 검토 2026-10-28: 호스트:미연결 → ports 127.0.0.1::8080 → 호스트:메모 서버. 강조를 내부 포트 토큰과 web 포트 구절로. 미해결(본문): 할 일 2번 제목 복사, 지시가 알아두세요 안에 있음."
+    "조심하세요. client의 주소를 호스트 포트로 바꾸지 마세요. 컨테이너 간 연결은 내부 포트와 서비스 이름을 그대로 써요.": "포트를 공개한 직후 내부 주소까지 바꾸는 실수가 흔해요. client 출력이 그대로인 것과 연결해요. (작성자 문맥 검토, 사람 검토 아님)"
    },
-   "findings": [
-    {
-     "sentence": "client에서는 연결돼요. 이번에는 PC의 브라우저에서도 접속할 수 있어야 해요.",
-     "fix": "컨테이너끼리는 이미 연결돼요. 이번에는 PC에서 들어오는 길을 열어요.",
-     "issue": "본문 문장을 그대로 다시 읽는다.",
-     "reason": "내부 연결(완료)과 이번 목표(호스트 경로)를 구분한다.",
-     "status": "fixed"
-    },
-    {
-     "sentence": "PC에서도 빈 포트로 서버에 연결하게 하세요",
-     "fix": "web에 ports를 더해 PC의 빈 포트를 8080에 이어요.",
-     "issue": "코드 입력 중 제목 명령문을 그대로 말한다.",
-     "reason": "patch_code가 web에 ports: [\"127.0.0.1::8080\"]을 더한다.",
-     "status": "fixed"
-    }
-   ]
+   "findings": []
   },
   "stp_7472af62-306b-45ef-8d3d-c2837d1bb3c7": {
    "lesson": "docker-network-ports",
    "state": "reviewed",
-   "context_sha256": "4111a8b1bd2839f19f1c607496f6ebef5de1a0ea4ca871fc159e7ada42abdaf5",
-   "reviewed": "2026-10-28",
+   "context_sha256": "d026cc6a1e89551de6b456ee4f79d7d679c0b8d6058945791f01b0226b77a4af",
+   "reviewed": "2026-10-26",
    "checked": {
-    "조심하세요. 호스트에 0.0.0.0으로 포트를 공개하라는 뜻은 아니에요. 지금 고치는 것은 컨테이너 내부 서버 주소예요.": "전수 검토 2026-10-28: 127.0.0.1 바인드 → 연결 실패 → 0.0.0.0 → 성공. 처음 나오는 「루프백」을 본문 용어 127.0.0.1로. 강조를 바인드 토큰과 호스트 공개 구절로. 미해결(본문): 할 일 2번 제목 복사, 지시가 알아두세요 안에 있음."
+    "조심하세요. 호스트에 0.0.0.0으로 포트를 공개하라는 뜻은 아니에요. 지금 고치는 것은 컨테이너 내부 서버 주소예요.": "같은 0.0.0.0이라는 글자 때문에 포트 공개와 혼동하기 쉬워요. 이 실습은 호스트 포트를 열지 않아요. (작성자 문맥 검토, 사람 검토 아님)"
    },
-   "findings": [
-    {
-     "sentence": "주소는 이제 web이에요. 서버는 자기 안에서 건강하지만 client 요청은 여전히 실패해요.",
-     "fix": "client 주소는 이제 web이에요. 이 상태로 먼저 실행해 볼게요.",
-     "issue": "본문 문장을 그대로 다시 읽고 결과(실패)를 실행 전에 말한다.",
-     "reason": "시작 상태만 말하고 결과는 실행 뒤 문장이 읽는다.",
-     "status": "fixed"
-    },
-    {
-     "sentence": "컨테이너 안 건강 검사는 성공해요. 하지만 서버가 루프백에서만 받아 외부 요청이 실패해요.",
-     "fix": "컨테이너 안 건강 검사는 성공해요. 하지만 서버가 127.0.0.1에서만 기다려 client 요청은 실패해요.",
-     "issue": "처음 나오는 용어 「루프백」을 설명 없이 쓴다.",
-     "reason": "본문(알아두세요)이 쓰는 127.0.0.1과 같은 말로 원인을 말한다.",
-     "status": "fixed"
-    },
-    {
-     "sentence": "서버가 다른 컨테이너의 연결도 받게 하세요",
-     "fix": "web의 바인드 주소를 127.0.0.1에서 0.0.0.0으로 바꿔요.",
-     "issue": "코드 입력 중 제목 명령문을 그대로 말한다.",
-     "reason": "patch_code의 실제 차이는 -p 값 한 곳이다.",
-     "status": "fixed"
-    }
-   ]
+   "findings": []
   },
   "stp_3bd23d3a-5709-4d36-9e7b-a26ceffd1dc4": {
    "lesson": "engineer-build",

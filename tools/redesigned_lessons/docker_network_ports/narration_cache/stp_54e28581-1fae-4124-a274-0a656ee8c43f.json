@@ -1,46 +1,74 @@
 {
   "by": "hand",
-  "source_sha256": "c66a454008d8f438f24dc86548472ddb4bae91d09002696caca32ff9832e13c7",
+  "source_sha256": "a7209408f29f8d2917608e6edf4a9a394c0b9a463ca573221638baacb257d537",
   "entry": [
     {
       "action": "say",
-      "text": "서버 주소는 맞아요. 이번에는 두 서비스가 연결된 네트워크를 볼게요.",
-      "target": "text:이번에는 서버 주소도 맞지만 web과 client를 서로 다른 네트워크로 나눠 두었어요."
+      "text": "주소와 바인드는 맞는데 네트워크가 나뉜 문제예요.",
+      "target": "text:web과 client를 서로 다른 네트워크로 나눠 두었어요."
     },
     {
-      "action": "run"
+      "action": "bash_command",
+      "command": "docker compose up -d --wait web",
+      "say": "web을 실행해요.",
+      "target": "#git-demo-terminal",
+      "wait_seconds": 300
     },
     {
       "action": "say",
-      "text": "서비스 이름이 맞아도 연결 실패예요. client와 web이 공유하는 네트워크가 없어요.",
-      "target": "output"
+      "text": "front 네트워크를 만들고 web이 Healthy가 됐어요. back은 아직 만들지 않았어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "docker compose run --rm client",
+      "say": "client에서 요청해 볼게요.",
+      "target": "#git-demo-terminal",
+      "fails": true
     },
     {
       "action": "say",
-      "text": "서비스 이름으로 통신하려면 통신 가능한 네트워크를 공유해야 해요.",
+      "text": "web이라는 이름을 찾지 못해요. back 네트워크에는 web이 없어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "client는 back에만 있어요. web과 공유하는 네트워크가 없어요.",
       "target": "code:networks: [back]"
     },
     {
       "action": "patch_code",
-      "before": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    networks: [front]\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    networks: [back]\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\nnetworks:\n  front:\n  back:\n",
-      "after": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    networks: [front]\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    networks: [front]\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\nnetworks:\n  front:\n  back:\n",
-      "say": "client의 네트워크를 back에서 front로 바꿔요."
+      "before": "networks: [back]",
+      "after": "networks: [front]",
+      "say": "client를 web과 같은 front 네트워크에 넣어요.",
+      "file": "compose.yaml"
     },
     {
-      "action": "run"
+      "action": "bash_command",
+      "command": "docker compose up -d --wait web",
+      "say": "고친 파일로 다시 실행해요.",
+      "target": "#git-demo-terminal"
     },
     {
       "action": "say",
-      "text": "같은 front 네트워크에서 web 이름을 찾고 요청을 보냈어요.",
-      "target": "output"
+      "text": "web은 그대로예요. 바뀐 것은 client의 네트워크예요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "docker compose run --rm client",
+      "say": "다시 요청해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "메모 서버 응답이 왔어요. 같은 front에서 web 이름을 찾았어요.",
+      "target": "#git-demo-terminal"
     },
     {
       "action": "say",
       "text": "조심하세요. network_mode: host로 피하지 마세요. 사용자 PC의 네트워크와 분리된 실습 네트워크를 유지해야 해요.",
       "target": "text:네트워크를 분리하는 것은 이름만 다르게 붙이는 것이 아니라 통신 경계를 만드는 일이에요."
-    },
-    {
-      "action": "submit"
     }
   ]
 }

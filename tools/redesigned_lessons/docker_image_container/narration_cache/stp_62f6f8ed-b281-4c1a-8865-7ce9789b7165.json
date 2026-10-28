@@ -1,46 +1,38 @@
 {
   "by": "hand",
-  "source_sha256": "df18228a8e37f4572d2d0a5353ab4439a3a640fb2dce577b36c8a02376e9519e",
+  "source_sha256": "0b5974babefb38ac85cb66967da9226055a6381a75d3a82f50f94a38c5f87027",
   "entry": [
     {
       "action": "say",
       "text": "지금 Nginx가 실행 중이에요. 컨테이너는 남기고 실행만 멈춰야 해요.",
-      "target": "text:이번 문제는 Nginx가 실행 중이에요. 컨테이너를 지우지 말고 서버만 멈추세요."
+      "target": "text:컨테이너를 지우지 말고 서버만 멈추세요."
     },
     {
-      "action": "run"
-    },
-    {
-      "action": "say",
-      "text": "아직 멈추라는 명령을 보내지 않았어요. 서버는 실행 중이에요.",
-      "target": "output"
-    },
-    {
-      "action": "patch_code",
-      "before": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
-      "after": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker stop \"$BOX\"\n",
-      "say": "stop에 실습 컨테이너 이름을 넘겨요."
+      "action": "bash_command",
+      "command": "docker stop \"$BOX\"",
+      "say": "stop은 서버를 멈추고 컨테이너는 남겨요.",
+      "target": "#git-demo-terminal"
     },
     {
       "action": "say",
-      "text": "stop은 서버를 멈추고 컨테이너는 남겨요.",
-      "target": "code:docker stop \"$BOX\""
+      "text": "멈춘 컨테이너의 이름이 출력됐어요.",
+      "target": "#git-demo-terminal"
     },
     {
-      "action": "run"
+      "action": "bash_command",
+      "command": "docker ps -a",
+      "say": "-a를 붙이면 멈춘 컨테이너도 표에 나와요.",
+      "target": "#git-demo-terminal"
     },
     {
       "action": "say",
-      "text": "멈춘 컨테이너의 이름이 출력됐어요. 객체는 남아 있어서 다시 시작할 수 있어요.",
-      "target": "output"
+      "text": "STATUS가 Exited예요. 컨테이너는 지워지지 않고 남아 있어요.",
+      "target": "#git-demo-terminal"
     },
     {
       "action": "say",
-      "text": "조심하세요. 멈추기와 삭제는 달라요. rm으로 지우면 다시 시작할 객체도 없어져요.",
+      "text": "조심하세요. 멈추기와 삭제는 달라요. rm으로 지우면 다시 시작할 컨테이너도 없어져요.",
       "target": "text:rm은 삭제하는 다른 명령이에요."
-    },
-    {
-      "action": "submit"
     }
   ]
 }

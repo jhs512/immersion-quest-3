@@ -41,6 +41,19 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
     let is_java=exercise.java_build.is_some();
     let mut java_source=use_signal(||None::<String>);
     let is_vim=exercise.vim.is_some();
+    let is_docker=exercise.docker.is_some();
+    // A Compose step: the files of the terminal's folder in an editor above the terminal.
+    let is_compose=exercise.docker.as_ref().is_some_and(|d|d.compose.is_some());
+    let mut editor_files=use_signal(Vec::<(String,String)>::new);
+    let mut editor_tab=use_signal(||0usize);
+    let mut editor_version=use_signal(||0u64);
+    let disk_known=use_hook(||Arc::new(Mutex::new(std::collections::BTreeMap::<String,String>::new())));
+    let save_known=disk_known.clone();
+    // Docker CLI steps reach the lesson's own Docker project, which outlives this terminal.
+    let docker_session=try_use_context::<molip_quest::docker_lab::LessonSession>();
+    let mut docker_note=use_signal(||None::<String>);
+    // Starting Docker Desktop or pulling a prepared image can take a while before the prompt.
+    let mut docker_preparing=use_signal(move||is_docker);
     let graph_enabled=!is_shell&&!is_java&&!is_vim;
     let graph_requested=use_hook(||Arc::new(std::sync::atomic::AtomicBool::new(true)));
     let graph_request=graph_requested.clone();
@@ -54,7 +67,8 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
         cleanup.lock().unwrap_or_else(|e|e.into_inner()).take();
         document::eval(&format!("window.{bridge_name}?.dispose('{cleanup_owner}');window.mq3GitGraphs?.dispose('{cleanup_owner}');window.molipAgent?.retireGitTutor('{cleanup_owner}');"));
     });
-    use_future(move||{let exercise=exercise.clone();let scope=scope.clone();let step_id=step_id.clone();let owned=owned.clone();let owner=owner.clone();let graph_requested=graph_requested.clone();async move {
+    use_future(move||{let exercise=exercise.clone();let scope=scope.clone();let step_id=step_id.clone();let owned=owned.clone();let owner=owner.clone();let graph_requested=graph_requested.clone();let docker_session=docker_session.clone();let disk_known=disk_known.clone();async move {
+        let docker_step=exercise.shell.as_ref().map(|s|s.step_id.clone()).unwrap_or_default();
         let opened=tokio::task::spawn_blocking(move||{
             let practice=if !demo {
                 if let Some(scope)=scope {
@@ -65,14 +79,52 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
             }else{GitPractice::new(exercise.demonstration())?};
             if !demo {practice.remember_step_start(&step_id)?;}
             let practice=Arc::new(Mutex::new(practice));
-            let (shell,output)=practice.lock().unwrap_or_else(|e|e.into_inner()).open_terminal()?;
+            // Release the practice lock before the branches below take it again (an if-let
+            // scrutinee's guard would otherwise live through the block and deadlock this thread).
+            let docker=practice.lock().unwrap_or_else(|e|e.into_inner()).exercise_docker();
+            let (shell,output,note)=if let Some(docker)=docker {
+                let session=docker_session.ok_or("Docker 실습은 수업 화면에서 열어요.")?;
+                let lab=session.terminal(demo,&docker_step,&docker)?;
+                let (shell,output)=practice.lock().unwrap_or_else(|e|e.into_inner()).open_docker_terminal(&lab)?;
+                (shell,output,lab.prepared)
+            }else{let (shell,output)=practice.lock().unwrap_or_else(|e|e.into_inner()).open_terminal()?;(shell,output,None)};
             let closing_marker=practice.lock().unwrap_or_else(|e|e.into_inner()).vim_closing_marker();
-            Ok::<_,String>((TerminalSession{shell:Some(shell),practice,closing_marker},output))
+            Ok::<_,String>((TerminalSession{shell:Some(shell),practice,closing_marker},output,note))
         }).await;
-        let (session,mut output)=match opened {Ok(Ok(pair))=>pair,Ok(Err(e))=>{error.set(e);return;},Err(e)=>{error.set(e.to_string());return;}};
+        docker_preparing.set(false);
+        let (session,mut output,note)=match opened {Ok(Ok(opened))=>opened,Ok(Err(e))=>{error.set(e);return;},Err(e)=>{error.set(e.to_string());return;}};
+        if !demo {docker_note.set(note);}
         let practice=session.practice.clone();
         restored_start.set(!demo&&practice.lock().unwrap_or_else(|e|e.into_inner()).restored_step_start());
         if is_java {let source=practice.lock().unwrap_or_else(|e|e.into_inner()).java_source();match source{Ok(source)=>java_source.set(Some(source)),Err(e)=>error.set(e)}}
+        if is_compose {
+            let files={let p=practice.lock().unwrap_or_else(|e|e.into_inner());p.editable_files().into_iter().map(|name|{let text=p.read_editable(&name).unwrap_or_default();(name,text)}).collect::<Vec<_>>()};
+            *disk_known.lock().unwrap_or_else(|e|e.into_inner())=files.iter().cloned().collect();
+            editor_files.set(files);
+            // The terminal may change a file too (vim, echo >>). The editor then shows the real file.
+            let (sync_practice,sync_owned,known)=(practice.clone(),owned.clone(),disk_known.clone());
+            spawn(async move {
+                loop {
+                    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+                    if sync_owned.lock().unwrap_or_else(|e|e.into_inner()).is_none(){break}
+                    // Read and compare under the practice lock, the same lock the editor saves and
+                    // records under: the editor's own keystroke is never mistaken for an outside
+                    // change (which reset the editor to the file one keystroke behind).
+                    let (source,record)=(sync_practice.clone(),known.clone());
+                    let Ok(changed)=tokio::task::spawn_blocking(move||{
+                        let p=source.lock().unwrap_or_else(|e|e.into_inner());
+                        let mut known=record.lock().unwrap_or_else(|e|e.into_inner());
+                        let mut changed=false;
+                        for name in p.editable_files() {if let Ok(text)=p.read_editable(&name){if known.get(&name)!=Some(&text){known.insert(name,text);changed=true;}}}
+                        changed.then(||known.clone())
+                    }).await else{continue};
+                    if let Some(known)=changed {
+                        let next=editor_files.peek().iter().map(|(name,text)|(name.clone(),known.get(name).cloned().unwrap_or_else(||text.clone()))).collect();
+                        editor_files.set(next);editor_version+=1;
+                    }
+                }
+            });
+        }
         *owned.lock().unwrap_or_else(|e|e.into_inner())=Some(session);
         oncontrol.call(TerminalControl{owned:owned.clone(),owner:owner.clone()});
         if graph_enabled {
@@ -127,6 +179,11 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
         let command_owner=owner.clone();
         let mut bridge=document::eval(&script);let input_owned=owned.clone();let command_practice=practice.clone();
         spawn(async move {while let Ok(event)=bridge.recv::<Input>().await {
+            if is_compose&&event.kind=="input"&&event.data.contains('\r') {
+                // Record the files for this command and refresh the verdict the docker compose guard reads.
+                let source=command_practice.clone();
+                match tokio::task::spawn_blocking(move||source.lock().unwrap_or_else(|e|e.into_inner()).refresh_docker_files()).await {Ok(Err(e))=>error.set(e),Err(e)=>error.set(e.to_string()),_=>{}}
+            }
             if event.kind=="prediction_required"{error.set("실행 결과를 먼저 예상해 보기를 고르세요. 선택한 뒤 Enter로 실행할 수 있어요.".into());continue;}
             if event.kind=="startup_error" {error.set("터미널을 준비하지 못했어요. 초기화해 다시 여세요.".into());continue;}
             // Replay state that may have arrived before xterm mounted. This is a
@@ -172,8 +229,36 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
         while let Some(bytes)=output.recv().await {let encoded=base64::engine::general_purpose::STANDARD.encode(bytes);document::eval(&format!("window.{bridge_name}?.write('{encoded}','{owner}')"));}
         if !is_vim{error.set("터미널이 종료됐어요. 초기화해 다시 여세요.".into());}
     }});
-    rsx!{div {class:if is_java{"git-terminal-shell java-build-workspace"}else{"git-terminal-shell"},
+    let selected=editor_files().get(editor_tab()).cloned();
+    rsx!{div {class:if is_java{"git-terminal-shell java-build-workspace"}else if is_compose{"git-terminal-shell java-build-workspace compose-workspace"}else{"git-terminal-shell"},
         if restored_start() {p {class:"practice-start-notice",role:"status","앞 단계의 파일과 Git 상태를 준비했어요. 현재 문제의 작업은 직접 진행하세요."}}
+        if is_docker {div {class:"docker-notes",
+            if docker_preparing()&&!demo {p {class:"practice-start-notice",role:"status","Docker를 준비하고 있어요. 꺼져 있으면 자동으로 켜요."}}
+            if let Some(note)=docker_note() {p {class:"practice-start-notice",role:"status","{note} 현재 문제의 명령은 직접 입력하세요."}}
+            if !demo {p {class:"docker-terminal-note",role:"note",if is_compose{"위 파일은 터미널의 현재 폴더에 바로 저장돼요. docker compose는 이 폴더의 파일을 이 문제만의 이름으로 실행하고, 앱이 먼저 확인한 파일만 실행해요. 수업을 나가면 이 수업이 만든 것만 정리해요."}else{"입력한 docker 명령은 이 컴퓨터의 실제 Docker가 실행해요. 이 수업이 만든 컨테이너에는 소유 라벨을 붙이고, 다른 컨테이너·이미지를 바꾸거나 지우는 명령은 막아요. 수업을 나가면 이 수업이 만든 것만 정리해요."}}}
+        }}
+        if let Some((name,text))=selected {
+            div {class:"java-build-source compose-source",
+                div {class:"editor-file-tabs",role:"tablist",aria_label:"고칠 파일",
+                    for (index,(file,_)) in editor_files().into_iter().enumerate() {
+                        button {r#type:"button",role:"tab","data-editor-tab":file.clone(),aria_selected:(index==editor_tab()).to_string(),onclick:move |_|editor_tab.set(index),"{file}"}
+                    }
+                    span {class:"editor-file-note","터미널 폴더에 자동 저장"}
+                }
+                textarea {class:"code-editor","data-code-editor":editor_language(&name),"data-compose-editor":rendered_owner.clone(),"data-editor-file":name.clone(),"data-editor-value":text.clone(),"data-editor-reset":format!("{rendered_owner}:{name}:{}",editor_version()),initial_value:text,aria_label:format!("실습 {name}"),spellcheck:false,
+                    oninput:{let name=name.clone();let owned=edit_owned.clone();let known=save_known.clone();move |event:FormEvent|{
+                        let value=event.value().replace("\r\n","\n");
+                        // Save and record as one step under the practice lock (see the disk poll).
+                        if let Some(session)=owned.lock().unwrap_or_else(|e|e.into_inner()).as_ref(){
+                            let practice=session.practice.lock().unwrap_or_else(|e|e.into_inner());
+                            if let Err(e)=practice.save_editable(&name,&value){error.set(e);return;}
+                            known.lock().unwrap_or_else(|e|e.into_inner()).insert(name.clone(),value.clone());
+                        }
+                        editor_files.with_mut(|files|if let Some(file)=files.iter_mut().find(|(n,_)|*n==name){file.1=value.clone();});
+                    }}}
+            }
+            div {class:"split-handle split-row split-java-source",role:"separator",tabindex:0,aria_label:"에디터와 터미널 높이 조절",aria_orientation:"horizontal",title:"드래그로 높이 조절, 더블 클릭으로 되돌리기"}
+        }
         if let Some(source)=java_source() {
             div {class:"java-build-source",strong {"Main.java · 같은 폴더에 자동 저장"}
                 textarea {class:"code-editor","data-code-editor":"java","data-java-editor":rendered_owner.clone(),"data-editor-value":source.clone(),"data-editor-reset":rendered_owner.clone(),initial_value:source,aria_label:"실습 Main.java",spellcheck:false,
@@ -182,7 +267,7 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
             div {class:"split-handle split-row split-java-source",role:"separator",tabindex:0,aria_label:"에디터와 터미널 높이 조절",aria_orientation:"horizontal",title:"드래그로 높이 조절, 더블 클릭으로 되돌리기"}
         }
         div {class:"git-terminal-row",
-        div {class:"git-terminal",id:host,"data-shell":is_shell.to_string(),"data-vim":is_vim.to_string(),"data-terminal-session":rendered_owner.clone(),aria_label:if is_vim{if demo{"해설용 별도 Vim 편집기"}else{"실제 Vim 편집기"}}else if is_shell{if demo{"해설용 별도 Bash 실습 폴더"}else{"실제 Bash 실습 폴더"}}else if demo{"해설용 별도 Git 저장소"}else{"실제 Git 실습 저장소"}}
+        div {class:"git-terminal",id:host,"data-shell":is_shell.to_string(),"data-vim":is_vim.to_string(),"data-terminal-session":rendered_owner.clone(),aria_label:if is_vim{if demo{"해설용 별도 Vim 편집기"}else{"실제 Vim 편집기"}}else if is_docker{if demo{"해설용 별도 Docker 터미널"}else{"실제 Docker 터미널"}}else if is_shell{if demo{"해설용 별도 Bash 실습 폴더"}else{"실제 Bash 실습 폴더"}}else if demo{"해설용 별도 Git 저장소"}else{"실제 Git 실습 저장소"}}
         if graph_enabled {details {class:"git-graph-panel",open:true,"data-git-graph-owner":rendered_owner.clone(),
             summary {"커밋 그래프"}
             div {class:"git-graph-body",
@@ -207,6 +292,11 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
             p {class:"vim-goal-status",role:"status",aria_live:"polite",if vim_live().passed{"목표를 확인했어요. 제출 버튼을 누르세요."}}
         }
     }if !error().is_empty(){p {role:"status","{error}"}}}}
+}
+
+/// The editor's highlighting for a lesson file.
+fn editor_language(name:&str)->&'static str {
+    if name.ends_with(".sh"){"shell"}else if name.ends_with(".sql"){"sql"}else if name.ends_with(".yaml")||name.ends_with(".yml"){"yaml"}else if name=="Dockerfile"{"dockerfile"}else{"text"}
 }
 
 #[cfg(test)]

@@ -1,46 +1,56 @@
 {
   "by": "hand",
-  "source_sha256": "a8c95a0f92810e550e85afe6e1d611cc3b7ca96808e03a60209809ba117ecb26",
+  "source_sha256": "cd2975ed68e16d79fce619036f61f95e36b6dd5feb9d1c7ea357b4cdc5a7db0d",
   "entry": [
     {
       "action": "say",
-      "text": "컨테이너는 멈춰 있어요. 이미지는 두고 이 컨테이너만 지워요.",
-      "target": "text:이번 문제는 Nginx 컨테이너를 멈춘 상태예요. 이 컨테이너만 삭제하세요."
+      "text": "Nginx 컨테이너가 실행 중이에요. 이미지는 두고 이 컨테이너만 지워요.",
+      "target": "text:이 컨테이너만 지우고 이미지는 남기세요."
     },
     {
-      "action": "run"
-    },
-    {
-      "action": "say",
-      "text": "삭제 명령이 없어서 컨테이너는 아직 남아 있어요.",
-      "target": "output"
-    },
-    {
-      "action": "patch_code",
-      "before": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n",
-      "after": "# BOX에는 이번 실습만의 고유한 컨테이너 이름을 담아요.\nBOX=\"${MQ3_PROJECT}-nginx\"\n# 아래 명령을 실행하고 실제 Docker 출력을 읽어요.\ndocker rm \"$BOX\"\n",
-      "say": "rm에 실습 컨테이너 이름을 넘겨요."
+      "action": "bash_command",
+      "command": "docker rm \"$BOX\"",
+      "say": "실행 중인 컨테이너에 바로 rm을 입력해 볼게요.",
+      "target": "#git-demo-terminal",
+      "fails": true
     },
     {
       "action": "say",
-      "text": "rm은 컨테이너를 지워요. 이미지는 따로 남아요.",
-      "target": "code:docker rm \"$BOX\""
+      "text": "조심하세요. 실행 중이라서 지울 수 없다는 오류가 나요. 먼저 멈춰야 해요.",
+      "target": "#git-demo-terminal"
     },
     {
-      "action": "run"
+      "action": "bash_command",
+      "command": "docker stop \"$BOX\"",
+      "say": "stop으로 먼저 멈춰요.",
+      "target": "#git-demo-terminal"
     },
     {
       "action": "say",
-      "text": "삭제한 이름이 출력됐어요. Nginx 이미지는 그대로 남아 있어요.",
-      "target": "output"
+      "text": "멈춘 컨테이너 이름이 출력됐어요. 이제 지울 수 있어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "docker rm \"$BOX\"",
+      "say": "rm은 컨테이너를 지워요. 이미지는 따로 남아요.",
+      "target": "#git-demo-terminal"
     },
     {
       "action": "say",
-      "text": "조심하세요. 컨테이너 안에 새로 쓴 파일도 함께 사라져요. 다음에는 데이터를 남기는 방법을 배워요.",
-      "target": "text:rm은 삭제한 컨테이너 이름을 출력해요. 이미지까지 지우지는 않아요. 같은 이미지로 새 컨테이너를 만들 수 있어요."
+      "text": "삭제한 이름이 출력됐어요. 컨테이너 안에 쓴 메모도 함께 사라졌어요.",
+      "target": "#git-demo-terminal"
     },
     {
-      "action": "submit"
+      "action": "bash_command",
+      "command": "docker images",
+      "say": "images로 이미지가 남았는지 볼게요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "nginx 1.28-alpine 이미지는 그대로예요. 같은 이미지로 새 컨테이너를 만들 수 있어요.",
+      "target": "text:이미지까지 지우지는 않아요."
     }
   ]
 }

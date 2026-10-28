@@ -39,6 +39,7 @@
       "한 단원의 같은 상황을 이어 가요. 새 조건 하나씩 실행해 비교해요.",
       "명확한 질문과 짧은 수정으로 원리를 확인해요.",
       "학생 답안은 해설 시연과 분리해서 보존해요.",
+      "객관식을 쓰지 않는다. 채점 스텝은 「…하세요」로 지시하고 학생이 직접 코딩하거나 명령을 실행해 실제 채점을 통과한다. 준비 값을 바꾼 변형과 흔한 오해의 오답으로 원리를 확인한다.",
       "정상 동작 → 조건 하나를 바꾼 실제 실패 → 원인 → 1~3줄 수정 → 바뀐 입력·자료로 다시 검증하는 순서로 원리를 발견해요.",
       "객관식·보기 선택 없이 직접 코딩·명령 작성으로만 통과해요. 실제 실행 결과(출력·파일·DB·Docker 상태)로 채점해요.",
       "실제 엔진(JDK·H2·MySQL·PostgreSQL·Docker)의 결과만 그 엔진의 결과라고 말해요."
@@ -68,7 +69,7 @@
           "objectives": [
             "요청을 보내는 위치와 받는 위치를 구별해요."
           ],
-          "premise": "제공 SQL로 작은 실습 DB를 준비해요. 실제 사용자 데이터는 없어요.",
+          "premise": "web은 www 폴더의 메모 서버 페이지를 보여 주고, client는 web에 요청을 한 번 보내요. 터미널에서 docker compose로 실행하고 결과를 읽어요.",
           "steps": [
             {
               "id": "stp_096e491f-5b89-409e-9119-c87c6f81ad2f",
@@ -76,15 +77,15 @@
               "objectives": [
                 "localhost는 명령을 실행하는 컨테이너 자신을 가리켜요."
               ],
-              "core_flow": "시작 상태: 이 스텝은 제공된 준비 코드에서 시작해요.\n관찰: Docker 엔진이 실제로 연결하고 읽은 결과\n바꾸는 것: 클라이언트가 web 서비스에 연결하게 하세요\n성공 조건: 응답:메모 서버\n해설: 수정 전 실행 → 결과 읽기 → 고칠 곳 수정 → 재실행 비교.",
+              "core_flow": "시작 상태: 편집기에는 compose.yaml이 있고 터미널 폴더에는 www/index.html(메모 서버)이 있어요. 편집기의 파일은 터미널의 현재 폴더에 바로 저장돼요. docker compose는 이 폴더의 compose.yaml을 읽어요. 이 문제만의 프로젝트 이름으로 실행해서 다른 컨테이너와 섞이지 않아요. 아직 이 문제의 컨테이너는 없어요.\n관찰: 터미널의 client 실행 결과\n바꾸는 것: client의 요청 주소\n성공 조건: 지금 compose.yaml의 client가 web:8080에 요청했고, 터미널의 client 실행이 성공했어요.\n해설: 수정 전 실행 → 결과 읽기 → 고칠 곳 수정 → 재실행 비교.",
               "complexity": {
-                "prerequisite_experience": "컨테이너가 프로세스라는 것을 알아요.",
+                "prerequisite_experience": "Compose로 서비스 하나를 실행했어요.",
                 "new_concepts": [
                   "localhost는 명령을 실행하는 컨테이너 자신을 가리켜요."
                 ],
-                "changed_condition": "클라이언트가 web 서비스에 연결하게 하세요",
-                "observable_evidence": "Docker 엔진이 실제로 연결하고 읽은 결과",
-                "learner_edited_lines": 3,
+                "changed_condition": "client의 요청 주소",
+                "observable_evidence": "터미널의 client 실행 결과",
+                "learner_edited_lines": 1,
                 "new_external_services": 0
               }
             },
@@ -94,15 +95,15 @@
               "objectives": [
                 "이름을 찾는 것과 서버가 어느 인터페이스에서 기다리는지는 별개의 조건이에요."
               ],
-              "core_flow": "시작 상태: 이 스텝은 제공된 준비 코드에서 시작해요.\n관찰: Docker 엔진이 실제로 연결하고 읽은 결과\n바꾸는 것: 서버가 다른 컨테이너의 연결도 받게 하세요\n성공 조건: 응답:메모 서버\n해설: 수정 전 실행 → 결과 읽기 → 고칠 곳 수정 → 재실행 비교.",
+              "core_flow": "시작 상태: 새 compose.yaml로 시작해요. client의 주소는 이미 web이에요. 이 문제의 컨테이너는 아직 없어요.\n관찰: 터미널의 client 실행 결과와 web의 건강 상태\n바꾸는 것: web 서버의 바인드 주소\n성공 조건: 지금 compose.yaml로 만든 web이 0.0.0.0:8080에서 기다리고, 터미널의 client 실행이 성공했어요.\n해설: 수정 전 실행 → 결과 읽기 → 고칠 곳 수정 → 재실행 비교.",
               "complexity": {
-                "prerequisite_experience": "컨테이너가 프로세스라는 것을 알아요.",
+                "prerequisite_experience": "서비스 이름으로 다른 컨테이너를 찾았어요.",
                 "new_concepts": [
                   "이름을 찾는 것과 서버가 어느 인터페이스에서 기다리는지는 별개의 조건이에요."
                 ],
-                "changed_condition": "서버가 다른 컨테이너의 연결도 받게 하세요",
-                "observable_evidence": "Docker 엔진이 실제로 연결하고 읽은 결과",
-                "learner_edited_lines": 3,
+                "changed_condition": "web 서버의 바인드 주소",
+                "observable_evidence": "터미널의 client 실행 결과와 web의 건강 상태",
+                "learner_edited_lines": 1,
                 "new_external_services": 0
               }
             }
@@ -114,7 +115,7 @@
           "objectives": [
             "내부 통신과 PC의 접속 경로를 연결해요."
           ],
-          "premise": "제공 SQL로 작은 실습 DB를 준비해요. 실제 사용자 데이터는 없어요.",
+          "premise": "같은 web과 client를 네트워크로 나누고, PC에서도 접속할 수 있게 포트를 공개해요. 호스트 포트는 127.0.0.1의 빈 포트만 써요.",
           "steps": [
             {
               "id": "stp_54e28581-1fae-4124-a274-0a656ee8c43f",
@@ -122,15 +123,15 @@
               "objectives": [
                 "서비스 이름으로 통신하려면 통신 가능한 네트워크를 공유해야 해요."
               ],
-              "core_flow": "시작 상태: 이 스텝은 제공된 준비 코드에서 시작해요.\n관찰: Docker 엔진이 실제로 연결하고 읽은 결과\n바꾸는 것: 통신할 두 서비스를 같은 네트워크에 넣으세요\n성공 조건: 응답:메모 서버\n해설: 수정 전 실행 → 결과 읽기 → 고칠 곳 수정 → 재실행 비교.",
+              "core_flow": "시작 상태: 새 compose.yaml로 시작해요. web은 front, client는 back 네트워크에 있어요. 이 문제의 컨테이너는 아직 없어요.\n관찰: 터미널의 client 실행 결과\n바꾸는 것: client의 네트워크\n성공 조건: 지금 compose.yaml에서 client가 web과 같은 front 네트워크에 있고, 터미널의 client 실행이 성공했어요.\n해설: 수정 전 실행 → 결과 읽기 → 고칠 곳 수정 → 재실행 비교.",
               "complexity": {
-                "prerequisite_experience": "컨테이너가 프로세스라는 것을 알아요.",
+                "prerequisite_experience": "서버의 바인드 주소를 고쳤어요.",
                 "new_concepts": [
                   "서비스 이름으로 통신하려면 통신 가능한 네트워크를 공유해야 해요."
                 ],
-                "changed_condition": "통신할 두 서비스를 같은 네트워크에 넣으세요",
-                "observable_evidence": "Docker 엔진이 실제로 연결하고 읽은 결과",
-                "learner_edited_lines": 3,
+                "changed_condition": "client의 네트워크",
+                "observable_evidence": "터미널의 client 실행 결과",
+                "learner_edited_lines": 1,
                 "new_external_services": 0
               }
             },
@@ -140,15 +141,15 @@
               "objectives": [
                 "컨테이너 내부 포트와 호스트 공개 포트는 서로 다른 주소 영역이에요."
               ],
-              "core_flow": "시작 상태: 이 스텝은 제공된 준비 코드에서 시작해요.\n관찰: Docker 엔진이 실제로 연결하고 읽은 결과\n바꾸는 것: PC에서도 빈 포트로 서버에 연결하게 하세요\n성공 조건: 응답:메모 서버\n호스트:메모 서버\n해설: 수정 전 실행 → 결과 읽기 → 고칠 곳 수정 → 재실행 비교.",
+              "core_flow": "시작 상태: 앞 문제의 정답과 같은 compose.yaml로 새로 시작해요. 이 문제의 컨테이너는 아직 없어요.\n관찰: compose port의 실제 주소와 PC에서의 응답\n바꾸는 것: web의 호스트 포트 공개\n성공 조건: 지금 compose.yaml로 만든 web이 127.0.0.1의 빈 포트에 공개됐고, client와 PC 모두 메모 서버 응답을 받았어요.\n해설: 수정 전 실행 → 결과 읽기 → 고칠 곳 수정 → 재실행 비교.",
               "complexity": {
-                "prerequisite_experience": "컨테이너가 프로세스라는 것을 알아요.",
+                "prerequisite_experience": "서비스 이름·바인드·네트워크를 각각 고쳤어요.",
                 "new_concepts": [
                   "컨테이너 내부 포트와 호스트 공개 포트는 서로 다른 주소 영역이에요."
                 ],
-                "changed_condition": "PC에서도 빈 포트로 서버에 연결하게 하세요",
-                "observable_evidence": "Docker 엔진이 실제로 연결하고 읽은 결과",
-                "learner_edited_lines": 3,
+                "changed_condition": "web의 호스트 포트 공개",
+                "observable_evidence": "compose port의 실제 주소와 PC에서의 응답",
+                "learner_edited_lines": 1,
                 "new_external_services": 0
               }
             }
@@ -158,36 +159,37 @@
     }
   ],
   "grading": [
-    "실제 DB와 앱 채점기로 정답·준비 코드·오답을 실행해요.",
-    "SQL 오류는 숨기지 않고 남은 데이터와 함께 보여 줘요.",
-    "다른 입력과 동등한 SQL 풀이를 비교해요."
+    "터미널에서 내가 실행해 성공한 docker 명령과 실제 Docker 엔진의 상태로 판정해요. 앱이 정답 명령이나 실습 스크립트를 대신 실행하지 않아요.",
+    "Compose 문제는 지금 편집기의 파일(터미널 폴더의 실제 파일)로 실행한 명령만 세요. 컨테이너가 지금 파일로 만들어졌는지, 볼륨·로그·컨테이너 안 파일·빌드 이미지 레이어를 읽어서만 확인해요.",
+    "시작 파일로 같은 명령을 입력하면 실패하고, 흔한 오해에 맞춘 파일도 실패하는지 실제 터미널로 확인해요."
   ],
   "reset": [
-    "실행마다 앱 소유의 새 DB를 만들고 끝나면 지워요.",
-    "사용자의 기존 DB나 컨테이너는 건드리지 않아요."
+    "각 문제는 본문에서 알린 준비 상태로 시작해요. 초기화는 그 문제의 파일과 그 문제가 만든 Docker 자원만 시작 상태로 되돌려요.",
+    "컨테이너·볼륨은 수업 동안 유지돼요. 문제를 옮기거나 명령을 다시 실행해도 앱이 다시 만들지 않아요. 해설은 별도 프로젝트로 시연해요.",
+    "수업을 나가면 이 수업이 만든 것만 정리해요. 내 컴퓨터에 원래 있던 컨테이너·볼륨·이미지와 학습 진도는 지우지 않아요."
   ],
   "narration": [
-    "수정 전 SQL 실행·결과 읽기·SQL 수정·다시 실행 순서예요.",
-    "이 스텝에서 혼동할 부분만 구체적으로 경고해요."
+    "수정 전 명령 입력 → Docker가 보여 준 결과 읽기 → 고칠 한 곳 → 같은 명령으로 다시 비교해요.",
+    "「조심하세요」는 그 스텝에서 실제로 하기 쉬운 실수에만 써요."
   ],
   "verification": [
-    "실제 엔진의 저장 상태와 오류를 확인해요.",
-    "준비 코드 실패·정답 통과·오답 거부를 확인해요."
+    "실제 PTY 터미널과 실제 Docker 엔진으로 정답 통과·시작 파일 실패·기록된 오답 거절·다른 정답 허용을 확인해요(tests/lesson-cases, examples/validate_redesigned_lesson).",
+    "해설의 출력은 해설용 터미널의 실제 출력과 기록된 패턴으로 비교해요. Windows(Docker Desktop)에서 확인했고 macOS는 이 기록에 포함하지 않아요."
   ],
   "representative": {
     "step_id": "stp_66c8e6c7-aa9f-479f-9aa5-292921a0fd86",
     "prompt": "PC에서도 빈 포트로 서버에 연결하게 하세요",
-    "starter_state": "이 스텝은 제공된 준비 코드에서 시작해요.\n\nclient에서는 연결돼요. 이번에는 PC의 브라우저에서도 접속할 수 있어야 해요.\n\n**알아두세요**\n\nweb에 127.0.0.1::8080 포트 연결을 추가하세요. 가운데 호스트 포트를 비워 Docker가 빈 포트를 고르게 해요. 실습 스크립트가 실제 배정 주소를 엔진에 물어보고 PC에서 요청해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. PC에서도 빈 포트로 서버에 연결하게 하세요\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
-    "expected_action": "최종 도전의 compose.yaml을 직접 구현해요.",
-    "acceptance": "실제 DB의 결과가 모든 검사와 변형 조건을 만족해요.",
-    "reset": "앱 소유의 새 실습 DB에서 시작해요.",
-    "narration": "실패 결과를 읽고 SQL을 고쳐 실제 저장 결과를 비교해요."
+    "starter_state": "앞 문제의 정답과 같은 compose.yaml로 새로 시작해요. 이 문제의 컨테이너는 아직 없어요.\n\nclient에서는 연결돼요. 이번에는 PC의 브라우저에서도 접속할 수 있어야 해요.\n\n**알아두세요**\n\nweb에 127.0.0.1::8080 포트 연결을 추가하세요. 가운데 호스트 포트를 비워 Docker가 빈 포트를 고르게 해요. `docker compose port web 8080`은 Docker가 고른 실제 주소를 알려 줘요. curl은 PC에서 그 주소로 요청하는 명령이에요.\n\n**할 일**\n\n1. 터미널에 `docker compose up -d --wait web` 명령을 입력하고 Enter를 누르세요. 웹 서버를 실행하고 건강해질 때까지 기다려요.\n2. 터미널에 `docker compose run --rm client` 명령을 입력하고 Enter를 누르세요. client의 응답을 읽으세요.\n3. 터미널에 `docker compose port web 8080` 명령을 입력하고 Enter를 누르세요. PC에 공개된 주소가 있는지 읽으세요.\n4. 편집기의 compose.yaml에서 web에 `127.0.0.1::8080` 포트 연결을 더하세요.\n5. 터미널에 `docker compose up -d --wait web` 명령을 입력하고 Enter를 누르세요. 웹 서버를 실행하고 건강해질 때까지 기다려요.\n6. 터미널에 `docker compose run --rm client` 명령을 입력하고 Enter를 누르세요. client의 응답이 그대로인지 읽으세요.\n7. 터미널에 `docker compose port web 8080` 명령을 입력하고 Enter를 누르세요. Docker가 고른 127.0.0.1 주소를 읽으세요.\n8. 터미널에 `curl -s \"http://$(docker compose port web 8080)\"` 명령을 입력하고 Enter를 누르세요. PC에서 받은 응답을 읽으세요.\n9. 결과를 확인한 뒤 제출 버튼을 누르세요.",
+    "expected_action": "최종 도전의 파일을 편집기에서 고치고 터미널에서 docker compose로 확인해요.",
+    "acceptance": "지금 파일로 실행한 명령과 실제 Docker 상태가 모든 검사를 만족해요.",
+    "reset": "이 문제의 시작 파일로 돌아가고 이 문제가 만든 Docker 자원만 지워요.",
+    "narration": "실패 결과를 터미널에서 읽고 파일 한 곳을 고친 뒤 같은 명령으로 다시 비교해요."
   },
   "approval": {
     "status": "approved",
     "mode": "delegated_scope",
     "by": "사용자의 제작·배포 위임 지시(2026-10-26)",
     "evidence": "2026-10-26 사용자(Codex 경유): 「도커랑 DB 수업도 클로드가 마저 만들어. 사용법만 알려주지 말고 원리를 이해하게 하고, 나한테 물어보지 말고 끝까지 만들어서 배포해. 클래스, 상속, 객체지향 패턴 몇개 수업도 만들고, 알지 중요한건 원리 이해야. 길어도 돼.」 이 범위에서는 이전의 「최종 문제부터 검수」 절차가 면제됐어요. 이 PRD와 문제 내용을 사람이 개별 검토했다고 주장하지 않아요.",
-    "content_sha256": "08693737a7f730b5d2ce0101cd944b2f601a5f5bec20fd66938d4d3941df9a98"
+    "content_sha256": "006405a5cd0d0d8c40dcedfdd09739eaffcb23dc7865077e1f7536d189f50084"
   }
 }

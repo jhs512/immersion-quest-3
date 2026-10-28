@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_9d2042a4-3618-4469-bb7e-94c88bd72658",
-  "revision": "docker-network-ports-3",
+  "revision": "docker-network-ports-4",
   "title": "Docker 네트워크 · localhost는 누구인가요",
   "description": "실제 컨테이너를 연결하고 경계 하나를 바꿔 실패 원인을 확인해요.",
   "objectives": [
@@ -30,7 +30,7 @@
           "objectives": [
             "요청을 보내는 위치와 받는 위치를 구별해요."
           ],
-          "premise": "제공 SQL로 작은 실습 DB를 준비해요. 실제 사용자 데이터는 없어요.",
+          "premise": "web은 www 폴더의 메모 서버 페이지를 보여 주고, client는 web에 요청을 한 번 보내요. 터미널에서 docker compose로 실행하고 결과를 읽어요.",
           "steps": [
             {
               "id": "stp_096e491f-5b89-409e-9119-c87c6f81ad2f",
@@ -52,7 +52,7 @@
           "objectives": [
             "내부 통신과 PC의 접속 경로를 연결해요."
           ],
-          "premise": "제공 SQL로 작은 실습 DB를 준비해요. 실제 사용자 데이터는 없어요.",
+          "premise": "같은 web과 client를 네트워크로 나누고, PC에서도 접속할 수 있게 포트를 공개해요. 호스트 포트는 127.0.0.1의 빈 포트만 써요.",
           "steps": [
             {
               "id": "stp_54e28581-1fae-4124-a274-0a656ee8c43f",
@@ -75,16 +75,11 @@
     {
       "id": "stp_096e491f-5b89-409e-9119-c87c6f81ad2f",
       "title": "클라이언트가 web 서비스에 연결하게 하세요",
-      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n서버는 web에 있고 요청은 client에서 보내요. client의 localhost에는 서버가 없어요.\n\n**알아두세요**\n\n같은 Compose 네트워크의 서비스는 서비스 이름으로 찾아요. web:8080의 8080은 서버 컨테이너 내부 포트예요. 사용자 PC의 8080을 차지하지 않아요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. 클라이언트가 web 서비스에 연결하게 하세요\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "goal": "편집기에는 compose.yaml이 있고 터미널 폴더에는 www/index.html(메모 서버)이 있어요. 편집기의 파일은 터미널의 현재 폴더에 바로 저장돼요. docker compose는 이 폴더의 compose.yaml을 읽어요. 이 문제만의 프로젝트 이름으로 실행해서 다른 컨테이너와 섞이지 않아요. 아직 이 문제의 컨테이너는 없어요.\n\n서버는 web에 있고 요청은 client에서 보내요. client의 localhost에는 서버가 없어요.\n\n**알아두세요**\n\n같은 Compose 네트워크의 서비스는 서비스 이름으로 찾아요. web:8080의 8080은 서버 컨테이너 내부 포트예요. 사용자 PC의 8080을 차지하지 않아요. `docker compose run --rm client`는 client를 한 번 실행하고 끝나면 지워요. 응답을 못 받으면 wget이 실패해요.\n\n**할 일**\n\n1. 터미널에 `docker compose up -d --wait web` 명령을 입력하고 Enter를 누르세요. 웹 서버를 실행하고 건강해질 때까지 기다려요.\n2. 터미널에 `docker compose run --rm client` 명령을 입력하고 Enter를 누르세요. client의 요청 결과를 읽으세요.\n3. 편집기의 compose.yaml에서 client가 요청하는 주소를 web 서비스로 고치세요.\n4. 터미널에 `docker compose up -d --wait web` 명령을 입력하고 Enter를 누르세요. 웹 서버를 실행하고 건강해질 때까지 기다려요.\n5. 터미널에 `docker compose run --rm client` 명령을 입력하고 Enter를 누르세요. 이번 응답을 읽으세요.\n6. 결과를 확인한 뒤 제출 버튼을 누르세요.",
       "language": "docker",
-      "starter_code": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://localhost:8080\"]\n",
-      "solution": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\n",
-      "tests": [
-        {
-          "input": "",
-          "expected": "응답:메모 서버"
-        }
-      ],
+      "starter_code": "",
+      "solution": "docker compose up -d --wait web\ndocker compose run --rm client",
+      "tests": [],
       "required": true,
       "narration": [
         {
@@ -103,74 +98,157 @@
         {
           "action": "say",
           "text": "요청을 보내는 쪽은 client예요. 지금 주소 그대로 실행해 볼게요.",
-          "target": "text:서버는 web에 있고 요청은 client에서 보내요. client의 localhost에는 서버가 없어요."
+          "target": "text:서버는 web에 있고 요청은 client에서 보내요."
         },
         {
-          "action": "run"
+          "action": "bash_command",
+          "command": "docker compose up -d --wait web",
+          "say": "먼저 web 서버를 실행하고 건강해질 때까지 기다려요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 300
         },
         {
           "action": "say",
-          "text": "서버가 건강해도 응답은 연결 실패예요. 요청한 localhost가 client 자신이기 때문이에요.",
-          "target": "output"
+          "text": "Healthy가 나왔어요. 서버는 자기 안에서 응답하고 있어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose run --rm client",
+          "say": "client에서 요청을 보내 볼게요.",
+          "target": "#git-demo-terminal",
+          "fails": true
         },
         {
           "action": "say",
-          "text": "localhost는 명령을 실행하는 컨테이너 자신을 가리켜요.",
+          "text": "연결할 수 없다는 오류예요. client가 자기 localhost에 요청했어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "localhost는 명령을 실행하는 컨테이너 자신을 가리켜요. client 안에는 서버가 없어요.",
           "target": "code:http://localhost:8080"
         },
         {
           "action": "patch_code",
-          "before": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://localhost:8080\"]\n",
-          "after": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\n",
-          "say": "client의 주소를 localhost에서 서비스 이름 web으로 바꿔요."
+          "before": "http://localhost:8080",
+          "after": "http://web:8080",
+          "say": "요청 주소를 서비스 이름 web으로 바꿔요.",
+          "file": "compose.yaml"
         },
         {
-          "action": "run"
+          "action": "bash_command",
+          "command": "docker compose up -d --wait web",
+          "say": "고친 파일로 다시 실행해요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "web 이름으로 서버 컨테이너를 찾아 메모 서버 응답을 받았어요.",
-          "target": "output"
+          "text": "web은 그대로 건강해요. 바뀐 것은 client의 설정이에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose run --rm client",
+          "say": "다시 요청을 보내요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "메모 서버 응답이 나왔어요. web 이름으로 서버 컨테이너를 찾았어요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
           "text": "조심하세요. client에도 서버를 띄워 결과만 맞추면 서로 다른 컨테이너를 연결하는 목표를 놓쳐요.",
           "target": "text:같은 Compose 네트워크의 서비스는 서비스 이름으로 찾아요."
-        },
-        {
-          "action": "submit"
-        }
-      ],
-      "entry_file": "compose.yaml",
-      "files": {
-        "lab.sh": "set -e\ndocker compose up -d --wait web >/dev/null 2>&1\nif content=$(docker compose run --rm -T client 2>/dev/null); then\n  printf '응답:%s\\n' \"$content\"\nelse\n  echo '응답:연결 실패'\nfi\n",
-        "www/index.html": "메모 서버"
-      },
-      "variations": [
-        {
-          "files": {
-            "www/index.html": "다른 메모"
-          },
-          "expected": "응답:다른 메모"
         }
       ],
       "docker_images": [
         "busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662"
-      ]
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "shell": {
+          "step_id": "stp_096e491f-5b89-409e-9119-c87c6f81ad2f",
+          "start": {
+            "files": {
+              "compose.yaml": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://localhost:8080\"]\n",
+              "www/index.html": "메모 서버"
+            },
+            "directories": [
+              "www"
+            ],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "compose.yaml": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://localhost:8080\"]\n",
+              "www/index.html": "메모 서버"
+            },
+            "directories": [
+              "www"
+            ],
+            "cwd": ""
+          },
+          "goal": {
+            "files": {
+              "compose.yaml": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\n",
+              "www/index.html": "메모 서버"
+            },
+            "directories": [
+              "www"
+            ],
+            "cwd": ""
+          },
+          "commands": [
+            "docker compose up -d --wait web",
+            "docker compose run --rm client"
+          ],
+          "requires_vim": false
+        },
+        "docker": {
+          "compose": {
+            "images": [
+              "busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662"
+            ],
+            "editable": [
+              "compose.yaml"
+            ],
+            "same_files": [
+              "compose.yaml"
+            ],
+            "checks": [
+              {
+                "kind": "running",
+                "service": "web"
+              },
+              {
+                "kind": "config",
+                "what": "client가 web:8080에 요청",
+                "expect": {
+                  "services": {
+                    "client": {
+                      "command": [
+                        "http://web:8080"
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
     },
     {
       "id": "stp_7472af62-306b-45ef-8d3d-c2837d1bb3c7",
       "title": "서버가 다른 컨테이너의 연결도 받게 하세요",
-      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n주소는 이제 web이에요. 서버는 자기 안에서 건강하지만 client 요청은 여전히 실패해요.\n\n**알아두세요**\n\n서버가 컨테이너의 127.0.0.1에서만 기다리면 다른 컨테이너의 요청을 받지 못해요. 서버 내부의 바인드 주소를 0.0.0.0으로 바꾸세요. 호스트의 모든 주소에 포트를 공개하는 설정과는 달라요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. 서버가 다른 컨테이너의 연결도 받게 하세요\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "goal": "새 compose.yaml로 시작해요. client의 주소는 이미 web이에요. 이 문제의 컨테이너는 아직 없어요.\n\n주소는 이제 web이에요. 서버는 자기 안에서 건강하지만 client 요청은 여전히 실패해요.\n\n**알아두세요**\n\n서버가 컨테이너의 127.0.0.1에서만 기다리면 다른 컨테이너의 요청을 받지 못해요. 서버 내부의 바인드 주소를 0.0.0.0으로 바꾸세요. 호스트의 모든 주소에 포트를 공개하는 설정과는 달라요.\n\n**할 일**\n\n1. 터미널에 `docker compose up -d --wait web` 명령을 입력하고 Enter를 누르세요. 웹 서버를 실행하고 건강해질 때까지 기다려요.\n2. 터미널에 `docker compose run --rm client` 명령을 입력하고 Enter를 누르세요. client의 요청 결과를 읽으세요.\n3. 편집기의 compose.yaml에서 web 서버가 기다리는 주소를 다른 컨테이너의 요청도 받는 주소로 고치세요.\n4. 터미널에 `docker compose up -d --wait web` 명령을 입력하고 Enter를 누르세요. 웹 서버를 실행하고 건강해질 때까지 기다려요.\n5. 터미널에 `docker compose run --rm client` 명령을 입력하고 Enter를 누르세요. 이번 응답을 읽으세요.\n6. 결과를 확인한 뒤 제출 버튼을 누르세요.",
       "language": "docker",
-      "starter_code": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"127.0.0.1:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\n",
-      "solution": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\n",
-      "tests": [
-        {
-          "input": "",
-          "expected": "응답:메모 서버"
-        }
-      ],
+      "starter_code": "",
+      "solution": "docker compose up -d --wait web\ndocker compose run --rm client",
+      "tests": [],
       "required": true,
       "narration": [
         {
@@ -181,201 +259,489 @@
         {
           "action": "say",
           "text": "client 주소는 이제 web이에요. 이 상태로 먼저 실행해 볼게요.",
-          "target": "text:주소는 이제 web이에요. 서버는 자기 안에서 건강하지만 client 요청은 여전히 실패해요."
+          "target": "text:서버는 자기 안에서 건강하지만 client 요청은 여전히 실패해요."
         },
         {
-          "action": "run"
+          "action": "bash_command",
+          "command": "docker compose up -d --wait web",
+          "say": "web을 실행하고 건강해질 때까지 기다려요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 300
         },
         {
           "action": "say",
-          "text": "컨테이너 안 건강 검사는 성공해요. 하지만 서버가 127.0.0.1에서만 기다려 client 요청은 실패해요.",
-          "target": "output"
+          "text": "Healthy예요. 컨테이너 안의 건강 검사는 성공해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose run --rm client",
+          "say": "client에서 요청해 볼게요.",
+          "target": "#git-demo-terminal",
+          "fails": true
         },
         {
           "action": "say",
-          "text": "이름을 찾는 것과 서버가 어느 인터페이스에서 기다리는지는 별개의 조건이에요.",
-          "target": "code:\"-p\", \"127.0.0.1:8080\""
+          "text": "이번에도 연결이 거절돼요. 이름은 찾았지만 받아 주는 곳이 없어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "서버가 127.0.0.1에서만 기다려요. 자기 안에서 온 요청만 받아요.",
+          "target": "code:\"127.0.0.1:8080\""
         },
         {
           "action": "patch_code",
-          "before": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"127.0.0.1:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\n",
-          "after": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\n",
-          "say": "web의 바인드 주소를 127.0.0.1에서 0.0.0.0으로 바꿔요."
+          "before": "\"127.0.0.1:8080\"",
+          "after": "\"0.0.0.0:8080\"",
+          "say": "서버 내부의 바인드 주소를 0.0.0.0으로 바꿔요.",
+          "file": "compose.yaml"
         },
         {
-          "action": "run"
+          "action": "bash_command",
+          "command": "docker compose up -d --wait web",
+          "say": "고친 파일로 web을 다시 만들어요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "컨테이너의 네트워크 인터페이스에서도 요청을 받아 client가 연결됐어요. 호스트 포트는 열지 않았어요.",
-          "target": "output"
+          "text": "web 컨테이너를 새로 만들고 다시 Healthy가 됐어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose run --rm client",
+          "say": "다시 요청해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "메모 서버 응답이 왔어요. 다른 컨테이너의 요청도 받아요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
           "text": "조심하세요. 호스트에 0.0.0.0으로 포트를 공개하라는 뜻은 아니에요. 지금 고치는 것은 컨테이너 내부 서버 주소예요.",
           "target": "text:호스트의 모든 주소에 포트를 공개하는 설정과는 달라요."
-        },
-        {
-          "action": "submit"
         }
       ],
-      "entry_file": "compose.yaml",
-      "files": {
-        "lab.sh": "set -e\ndocker compose up -d --wait web >/dev/null 2>&1\nif content=$(docker compose run --rm -T client 2>/dev/null); then\n  printf '응답:%s\\n' \"$content\"\nelse\n  echo '응답:연결 실패'\nfi\n",
-        "www/index.html": "메모 서버"
-      },
       "docker_images": [
         "busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662"
-      ]
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "shell": {
+          "step_id": "stp_7472af62-306b-45ef-8d3d-c2837d1bb3c7",
+          "start": {
+            "files": {
+              "compose.yaml": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"127.0.0.1:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\n",
+              "www/index.html": "메모 서버"
+            },
+            "directories": [
+              "www"
+            ],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "compose.yaml": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"127.0.0.1:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\n",
+              "www/index.html": "메모 서버"
+            },
+            "directories": [
+              "www"
+            ],
+            "cwd": ""
+          },
+          "goal": {
+            "files": {
+              "compose.yaml": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\n",
+              "www/index.html": "메모 서버"
+            },
+            "directories": [
+              "www"
+            ],
+            "cwd": ""
+          },
+          "commands": [
+            "docker compose up -d --wait web",
+            "docker compose run --rm client"
+          ],
+          "requires_vim": false
+        },
+        "docker": {
+          "compose": {
+            "images": [
+              "busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662"
+            ],
+            "editable": [
+              "compose.yaml"
+            ],
+            "same_files": [
+              "compose.yaml"
+            ],
+            "checks": [
+              {
+                "kind": "running",
+                "service": "web"
+              },
+              {
+                "kind": "config",
+                "what": "web 서버가 0.0.0.0:8080에서 기다림",
+                "expect": {
+                  "services": {
+                    "web": {
+                      "command": [
+                        "0.0.0.0:8080"
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
     },
     {
       "id": "stp_54e28581-1fae-4124-a274-0a656ee8c43f",
       "title": "통신할 두 서비스를 같은 네트워크에 넣으세요",
-      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\n이번에는 서버 주소도 맞지만 web과 client를 서로 다른 네트워크로 나눠 두었어요.\n\n**알아두세요**\n\nclient가 web과 공유하는 front 네트워크에 참여하도록 고치세요. 네트워크를 분리하는 것은 이름만 다르게 붙이는 것이 아니라 통신 경계를 만드는 일이에요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. 통신할 두 서비스를 같은 네트워크에 넣으세요\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "goal": "새 compose.yaml로 시작해요. web은 front, client는 back 네트워크에 있어요. 이 문제의 컨테이너는 아직 없어요.\n\n이번에는 서버 주소도 맞지만 web과 client를 서로 다른 네트워크로 나눠 두었어요.\n\n**알아두세요**\n\nclient가 web과 공유하는 front 네트워크에 참여하도록 고치세요. 네트워크를 분리하는 것은 이름만 다르게 붙이는 것이 아니라 통신 경계를 만드는 일이에요.\n\n**할 일**\n\n1. 터미널에 `docker compose up -d --wait web` 명령을 입력하고 Enter를 누르세요. 웹 서버를 실행하고 건강해질 때까지 기다려요.\n2. 터미널에 `docker compose run --rm client` 명령을 입력하고 Enter를 누르세요. client의 요청 결과를 읽으세요.\n3. 편집기의 compose.yaml에서 client가 web과 같은 네트워크에 참여하게 고치세요.\n4. 터미널에 `docker compose up -d --wait web` 명령을 입력하고 Enter를 누르세요. 웹 서버를 실행하고 건강해질 때까지 기다려요.\n5. 터미널에 `docker compose run --rm client` 명령을 입력하고 Enter를 누르세요. 이번 응답을 읽으세요.\n6. 결과를 확인한 뒤 제출 버튼을 누르세요.",
       "language": "docker",
-      "starter_code": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    networks: [front]\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    networks: [back]\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\nnetworks:\n  front:\n  back:\n",
-      "solution": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    networks: [front]\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    networks: [front]\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\nnetworks:\n  front:\n  back:\n",
-      "tests": [
-        {
-          "input": "",
-          "expected": "응답:메모 서버"
-        }
-      ],
+      "starter_code": "",
+      "solution": "docker compose up -d --wait web\ndocker compose run --rm client",
+      "tests": [],
       "required": true,
       "narration": [
         {
           "action": "say",
-          "text": "통신할 두 서비스를 같은 네트워크에 넣는 문제예요.",
+          "text": "주소와 바인드는 맞는데 네트워크가 나뉜 문제예요.",
           "target": "text:통신할 두 서비스를 같은 네트워크에 넣으세요#1"
         },
         {
-          "action": "say",
-          "text": "서버 주소는 맞아요. 이번에는 두 서비스가 연결된 네트워크를 볼게요.",
-          "target": "text:이번에는 서버 주소도 맞지만 web과 client를 서로 다른 네트워크로 나눠 두었어요."
-        },
-        {
-          "action": "run"
-        },
-        {
-          "action": "say",
-          "text": "서비스 이름이 맞아도 연결 실패예요. client와 web이 공유하는 네트워크가 없어요.",
-          "target": "output"
+          "action": "bash_command",
+          "command": "docker compose up -d --wait web",
+          "say": "web을 실행해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 300
         },
         {
           "action": "say",
-          "text": "서비스 이름으로 통신하려면 통신 가능한 네트워크를 공유해야 해요.",
+          "text": "front 네트워크를 만들고 web이 Healthy가 됐어요. back은 아직 만들지 않았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose run --rm client",
+          "say": "client에서 요청해 볼게요.",
+          "target": "#git-demo-terminal",
+          "fails": true
+        },
+        {
+          "action": "say",
+          "text": "web이라는 이름을 찾지 못해요. back 네트워크에는 web이 없어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "client는 back에만 있어요. web과 공유하는 네트워크가 없어요.",
           "target": "code:networks: [back]"
         },
         {
           "action": "patch_code",
-          "before": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    networks: [front]\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    networks: [back]\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\nnetworks:\n  front:\n  back:\n",
-          "after": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    networks: [front]\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    networks: [front]\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\nnetworks:\n  front:\n  back:\n",
-          "say": "client의 네트워크를 back에서 front로 바꿔요."
+          "before": "networks: [back]",
+          "after": "networks: [front]",
+          "say": "client를 web과 같은 front 네트워크에 넣어요.",
+          "file": "compose.yaml"
         },
         {
-          "action": "run"
+          "action": "bash_command",
+          "command": "docker compose up -d --wait web",
+          "say": "고친 파일로 다시 실행해요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "같은 front 네트워크에서 web 이름을 찾고 요청을 보냈어요.",
-          "target": "output"
+          "text": "web은 그대로예요. 바뀐 것은 client의 네트워크예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose run --rm client",
+          "say": "다시 요청해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "메모 서버 응답이 왔어요. 같은 front에서 web 이름을 찾았어요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
           "text": "조심하세요. network_mode: host로 피하지 마세요. 사용자 PC의 네트워크와 분리된 실습 네트워크를 유지해야 해요.",
           "target": "text:네트워크를 분리하는 것은 이름만 다르게 붙이는 것이 아니라 통신 경계를 만드는 일이에요."
-        },
-        {
-          "action": "submit"
         }
       ],
-      "entry_file": "compose.yaml",
-      "files": {
-        "lab.sh": "set -e\ndocker compose up -d --wait web >/dev/null 2>&1\nif content=$(docker compose run --rm -T client 2>/dev/null); then\n  printf '응답:%s\\n' \"$content\"\nelse\n  echo '응답:연결 실패'\nfi\n",
-        "www/index.html": "메모 서버"
-      },
       "docker_images": [
         "busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662"
-      ]
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "shell": {
+          "step_id": "stp_54e28581-1fae-4124-a274-0a656ee8c43f",
+          "start": {
+            "files": {
+              "compose.yaml": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    networks: [front]\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    networks: [back]\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\nnetworks:\n  front:\n  back:\n",
+              "www/index.html": "메모 서버"
+            },
+            "directories": [
+              "www"
+            ],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "compose.yaml": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    networks: [front]\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    networks: [back]\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\nnetworks:\n  front:\n  back:\n",
+              "www/index.html": "메모 서버"
+            },
+            "directories": [
+              "www"
+            ],
+            "cwd": ""
+          },
+          "goal": {
+            "files": {
+              "compose.yaml": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    networks: [front]\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    networks: [front]\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\nnetworks:\n  front:\n  back:\n",
+              "www/index.html": "메모 서버"
+            },
+            "directories": [
+              "www"
+            ],
+            "cwd": ""
+          },
+          "commands": [
+            "docker compose up -d --wait web",
+            "docker compose run --rm client"
+          ],
+          "requires_vim": false
+        },
+        "docker": {
+          "compose": {
+            "images": [
+              "busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662"
+            ],
+            "editable": [
+              "compose.yaml"
+            ],
+            "same_files": [
+              "compose.yaml"
+            ],
+            "checks": [
+              {
+                "kind": "running",
+                "service": "web"
+              },
+              {
+                "kind": "config",
+                "what": "client가 front 네트워크에 참여",
+                "expect": {
+                  "services": {
+                    "client": {
+                      "networks": {
+                        "front": null
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
     },
     {
       "id": "stp_66c8e6c7-aa9f-479f-9aa5-292921a0fd86",
       "title": "PC에서도 빈 포트로 서버에 연결하게 하세요",
-      "goal": "이 스텝은 제공된 준비 코드에서 시작해요.\n\nclient에서는 연결돼요. 이번에는 PC의 브라우저에서도 접속할 수 있어야 해요.\n\n**알아두세요**\n\nweb에 127.0.0.1::8080 포트 연결을 추가하세요. 가운데 호스트 포트를 비워 Docker가 빈 포트를 고르게 해요. 실습 스크립트가 실제 배정 주소를 엔진에 물어보고 PC에서 요청해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 고치기 전 결과를 확인하세요.\n2. PC에서도 빈 포트로 서버에 연결하게 하세요\n3. 코드 실행 버튼을 눌러 바뀐 결과를 확인하세요.\n4. 고친 코드를 제출하세요.",
+      "goal": "앞 문제의 정답과 같은 compose.yaml로 새로 시작해요. 이 문제의 컨테이너는 아직 없어요.\n\nclient에서는 연결돼요. 이번에는 PC의 브라우저에서도 접속할 수 있어야 해요.\n\n**알아두세요**\n\nweb에 127.0.0.1::8080 포트 연결을 추가하세요. 가운데 호스트 포트를 비워 Docker가 빈 포트를 고르게 해요. `docker compose port web 8080`은 Docker가 고른 실제 주소를 알려 줘요. curl은 PC에서 그 주소로 요청하는 명령이에요.\n\n**할 일**\n\n1. 터미널에 `docker compose up -d --wait web` 명령을 입력하고 Enter를 누르세요. 웹 서버를 실행하고 건강해질 때까지 기다려요.\n2. 터미널에 `docker compose run --rm client` 명령을 입력하고 Enter를 누르세요. client의 응답을 읽으세요.\n3. 터미널에 `docker compose port web 8080` 명령을 입력하고 Enter를 누르세요. PC에 공개된 주소가 있는지 읽으세요.\n4. 편집기의 compose.yaml에서 web에 `127.0.0.1::8080` 포트 연결을 더하세요.\n5. 터미널에 `docker compose up -d --wait web` 명령을 입력하고 Enter를 누르세요. 웹 서버를 실행하고 건강해질 때까지 기다려요.\n6. 터미널에 `docker compose run --rm client` 명령을 입력하고 Enter를 누르세요. client의 응답이 그대로인지 읽으세요.\n7. 터미널에 `docker compose port web 8080` 명령을 입력하고 Enter를 누르세요. Docker가 고른 127.0.0.1 주소를 읽으세요.\n8. 터미널에 `curl -s \"http://$(docker compose port web 8080)\"` 명령을 입력하고 Enter를 누르세요. PC에서 받은 응답을 읽으세요.\n9. 결과를 확인한 뒤 제출 버튼을 누르세요.",
       "language": "docker",
-      "starter_code": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    networks: [front]\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    networks: [front]\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\nnetworks:\n  front:\n  back:\n",
-      "solution": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    ports: [\"127.0.0.1::8080\"]\n    networks: [front]\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    networks: [front]\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\nnetworks:\n  front:\n  back:\n",
-      "tests": [
-        {
-          "input": "",
-          "expected": "응답:메모 서버\n호스트:메모 서버"
-        }
-      ],
+      "starter_code": "",
+      "solution": "docker compose up -d --wait web\ndocker compose run --rm client\ndocker compose port web 8080\ncurl -s \"http://$(docker compose port web 8080)\"",
+      "tests": [],
       "required": true,
       "narration": [
         {
           "action": "say",
-          "text": "PC에서도 빈 포트로 서버에 연결하게 하는 문제예요.",
+          "text": "컨테이너끼리는 연결되는데 PC에서는 접속할 주소가 없는 문제예요.",
           "target": "text:PC에서도 빈 포트로 서버에 연결하게 하세요#1"
         },
         {
-          "action": "say",
-          "text": "컨테이너끼리는 이미 연결돼요. 이번에는 PC에서 들어오는 길을 열어요.",
-          "target": "text:client에서는 연결돼요. 이번에는 PC의 브라우저에서도 접속할 수 있어야 해요."
-        },
-        {
-          "action": "run"
-        },
-        {
-          "action": "say",
-          "text": "client 응답은 오지만 호스트에 공개된 포트는 없어요. 내부 연결만으로 PC의 접속 주소가 생기지는 않아요.",
-          "target": "output"
+          "action": "bash_command",
+          "command": "docker compose up -d --wait web",
+          "say": "web을 실행해요.",
+          "target": "#git-demo-terminal",
+          "wait_seconds": 300
         },
         {
           "action": "say",
-          "text": "컨테이너 내부 포트와 호스트 공개 포트는 서로 다른 주소 영역이에요.",
-          "target": "code:\"0.0.0.0:8080\""
+          "text": "web이 Healthy가 됐어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose run --rm client",
+          "say": "client에서 요청해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "메모 서버 응답이 와요. 내부 연결은 이미 돼요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose port web 8080",
+          "say": "PC에 공개된 주소를 물어볼게요.",
+          "target": "#git-demo-terminal",
+          "fails": true
+        },
+        {
+          "action": "say",
+          "text": "공개된 포트가 없다는 오류예요. 내부 연결만으로 PC의 접속 주소가 생기지는 않아요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "web에는 ports 설정이 없어요. 여기에 PC 쪽 연결을 더해요.",
+          "target": "code:healthcheck:"
         },
         {
           "action": "patch_code",
-          "before": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    networks: [front]\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    networks: [front]\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\nnetworks:\n  front:\n  back:\n",
-          "after": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    ports: [\"127.0.0.1::8080\"]\n    networks: [front]\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    networks: [front]\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\nnetworks:\n  front:\n  back:\n",
-          "say": "web에 ports를 더해 PC의 빈 포트를 8080에 이어요."
+          "before": "    networks: [front]\n    healthcheck:",
+          "after": "    ports: [\"127.0.0.1::8080\"]\n    networks: [front]\n    healthcheck:",
+          "say": "127.0.0.1의 빈 포트를 web의 8080에 연결해요.",
+          "file": "compose.yaml"
         },
         {
-          "action": "run"
+          "action": "bash_command",
+          "command": "docker compose up -d --wait web",
+          "say": "고친 파일로 web을 다시 만들어요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
-          "text": "내부 client는 web:8080으로, PC는 자동 배정된 127.0.0.1 포트로 같은 서버에 연결됐어요.",
-          "target": "output"
+          "text": "web 컨테이너를 새로 만들고 Healthy가 됐어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose run --rm client",
+          "say": "client 요청은 그대로인지 볼게요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "그대로 메모 서버예요. 컨테이너끼리는 계속 web:8080을 써요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker compose port web 8080",
+          "say": "이제 공개된 주소를 물어봐요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "127.0.0.1 뒤에 Docker가 고른 포트 번호가 나왔어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "curl -s \"http://$(docker compose port web 8080)\"",
+          "say": "PC에서 그 주소로 요청해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "PC에서도 메모 서버 응답을 받았어요. 같은 서버에 두 경로로 연결됐어요.",
+          "target": "#git-demo-terminal"
         },
         {
           "action": "say",
           "text": "조심하세요. client의 주소를 호스트 포트로 바꾸지 마세요. 컨테이너 간 연결은 내부 포트와 서비스 이름을 그대로 써요.",
-          "target": "text:web에 127.0.0.1::8080 포트 연결을 추가하세요."
-        },
-        {
-          "action": "submit"
-        }
-      ],
-      "entry_file": "compose.yaml",
-      "files": {
-        "lab.sh": "set -e\ndocker compose up -d --wait web >/dev/null 2>&1\nif content=$(docker compose run --rm -T client 2>/dev/null); then\n  printf '응답:%s\\n' \"$content\"\nelse\n  echo '응답:연결 실패'\nfi\naddress=$(docker compose port web 8080 2>/dev/null || true)\nhost=${address%:*}; port=${address##*:}\nif [ \"$host\" != 127.0.0.1 ] || [ -z \"$port\" ]; then echo '호스트:미연결'; exit 0; fi\nexec 3<>/dev/tcp/127.0.0.1/\"$port\"\nprintf 'GET / HTTP/1.0\\r\\nHost: web\\r\\nConnection: close\\r\\n\\r\\n' >&3\nbody=$(cat <&3 | tr -d '\\r' | sed '1,/^$/d')\nexec 3<&-; exec 3>&-\nprintf '호스트:%s\\n' \"$body\"\n",
-        "www/index.html": "메모 서버"
-      },
-      "variations": [
-        {
-          "files": {
-            "www/index.html": "새 서버"
-          },
-          "expected": "응답:새 서버\n호스트:새 서버"
+          "target": "text:가운데 호스트 포트를 비워 Docker가 빈 포트를 고르게 해요."
         }
       ],
       "docker_images": [
         "busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662"
-      ]
+      ],
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "shell": {
+          "step_id": "stp_66c8e6c7-aa9f-479f-9aa5-292921a0fd86",
+          "start": {
+            "files": {
+              "compose.yaml": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    networks: [front]\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    networks: [front]\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\nnetworks:\n  front:\n  back:\n",
+              "www/index.html": "메모 서버"
+            },
+            "directories": [
+              "www"
+            ],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "compose.yaml": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    networks: [front]\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    networks: [front]\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\nnetworks:\n  front:\n  back:\n",
+              "www/index.html": "메모 서버"
+            },
+            "directories": [
+              "www"
+            ],
+            "cwd": ""
+          },
+          "goal": {
+            "files": {
+              "compose.yaml": "services:\n  web:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    command: [\"httpd\", \"-f\", \"-p\", \"0.0.0.0:8080\", \"-h\", \"/www\"]\n    volumes:\n      - ./www:/www:ro\n    ports: [\"127.0.0.1::8080\"]\n    networks: [front]\n    healthcheck:\n      test: [\"CMD\", \"wget\", \"-q\", \"-O\", \"/dev/null\", \"http://127.0.0.1:8080\"]\n      interval: 1s\n      timeout: 1s\n      retries: 20\n  client:\n    image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662\n    networks: [front]\n    command: [\"wget\", \"-q\", \"-T\", \"3\", \"-O\", \"-\", \"http://web:8080\"]\nnetworks:\n  front:\n  back:\n",
+              "www/index.html": "메모 서버"
+            },
+            "directories": [
+              "www"
+            ],
+            "cwd": ""
+          },
+          "commands": [
+            "docker compose up -d --wait web",
+            "docker compose run --rm client",
+            "docker compose port web 8080",
+            "curl -s \"http://$(docker compose port web 8080)\""
+          ],
+          "requires_vim": false
+        },
+        "docker": {
+          "compose": {
+            "images": [
+              "busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662"
+            ],
+            "editable": [
+              "compose.yaml"
+            ],
+            "same_files": [
+              "compose.yaml"
+            ],
+            "checks": [
+              {
+                "kind": "running",
+                "service": "web"
+              },
+              {
+                "kind": "http",
+                "service": "web",
+                "port": 8080,
+                "has": "메모 서버"
+              }
+            ]
+          }
+        }
+      }
     }
   ],
-  "learning_strategy": "먼저 실제 SQL 결과를 보고, 원인을 설명한 뒤 직접 SQL을 고쳐요."
+  "learning_strategy": "먼저 터미널에서 docker compose 명령을 입력해 실제 결과를 봐요. 원인을 설명한 뒤 편집기에서 한 곳만 고치고 같은 명령으로 다시 확인해요."
 }

@@ -11,8 +11,8 @@
 //! after a machine/engine interruption, unless a live run still holds its lock. Dropping an async
 //! caller does not abort an already running blocking lab; it stays bounded by LAB_SECONDS.
 //! Declared official images are digest-pinned and stay cached like any `docker pull`.
-//! CLI lessons may show the real read-only `docker ps` table, including other containers;
-//! destructive operations and cleanup are limited to the lesson's ownership labels.
+//! CLI lessons run in the learner's real terminal (terminal.rs): the real `docker ps` table shows
+//! other containers too; destructive operations and cleanup are limited to the lesson's ownership labels.
 use crate::{repository_course::Task, runner::Execution};
 use std::{collections::BTreeSet, io::Read, path::{Path,PathBuf}, process::{Command,Stdio}, time::{Duration,Instant}};
 
@@ -82,6 +82,15 @@ pub fn valid_image(reference:&str)->bool {
 }
 
 pub fn validate_task(task:&Task)->Result<(),String> {
+    if let Some(exercise)=&task.git_terminal {
+        // A Docker CLI step: the learner types commands in a real terminal; no lab script runs.
+        let Some(docker)=&exercise.docker else{return Err("Docker 실습 터미널의 구성을 확인하세요.".into())};
+        if task.interaction.is_some()||task.checker.is_some()||!task.mutations.is_empty()||!task.files.is_empty()||!task.tests.is_empty()||!task.variations.is_empty()||!task.libraries.is_empty()
+            ||task.docker_images!=docker.compose.as_ref().map(|c|c.images.clone()).unwrap_or_else(||vec![docker.image.clone()]) {
+            return Err("Docker 터미널 실습은 실제 명령과 엔진 상태로만 판정해요.".into())
+        }
+        return Ok(())
+    }
     if task.interaction.is_some()||task.git_terminal.is_some()||task.checker.is_some()||!task.mutations.is_empty() {
         return Err("Docker 실습은 실행 결과로만 판정해요.".into())
     }
@@ -452,9 +461,10 @@ pub fn sweep_stale()->usize {
 
 struct Lab { cli:PathBuf, project:String, lock:Option<std::fs::File>, lock_path:PathBuf }
 impl Lab {
-    fn open(cli:&Path,task:&Task)->Result<Self,String> {
+    fn open(cli:&Path,task:&Task)->Result<Self,String> {Self::open_for(cli,&task.id)}
+    fn open_for(cli:&Path,seed:&str)->Result<Self,String> {
         use sha2::{Digest,Sha256};
-        let step=format!("{:x}",Sha256::digest(task.id.as_bytes()));
+        let step=format!("{:x}",Sha256::digest(seed.as_bytes()));
         let run=crate::issue_progress::new_id().to_ascii_lowercase().chars().filter(char::is_ascii_alphanumeric).take(10).collect::<String>();
         let project=format!("{PREFIX}{}-{run}",&step[..8]);
         if !valid_project(&project) {return Err("실습 프로젝트 이름을 만들지 못했어요.".into())}
@@ -490,10 +500,10 @@ fn inside(root:&str,path:&str)->bool {
 }
 
 /// Problems in the learner's compose file that would reach outside this run. `None` means it may run.
-fn compose_problem(cli:&Path,dir:&Path,project:&str,task:&Task)->Result<Option<String>,String> {
+fn compose_problem(cli:&Path,dir:&Path,project:&str,images:&[String])->Result<Option<String>,String> {
     if !dir.join("compose.yaml").is_file() {return Ok(None)}
     let mut command=Command::new(cli);prepare(&mut command,cli);
-    command.current_dir(dir).env("COMPOSE_PROJECT_NAME",project).args(["compose","-f","compose.yaml","config","--format","json"]);
+    command.current_dir(dir).env("COMPOSE_PROJECT_NAME",project).env("MQ3_PROJECT",project).args(["compose","-f","compose.yaml","config","--format","json"]);
     let output=execute(command,"",60)?;
     if !output.success {return Ok(Some(format!("compose.yaml을 읽지 못했어요.\n{}",output.stderr.trim())))}
     let config:serde_json::Value=serde_json::from_str(&output.stdout).map_err(|e|e.to_string())?;
@@ -524,7 +534,7 @@ fn compose_problem(cli:&Path,dir:&Path,project:&str,task:&Task)->Result<Option<S
             if image.is_some() {return Ok(Some(format!("서비스 {name}: build를 쓰는 서비스에는 image 이름을 붙이지 않아요. Compose가 실행마다 이름을 붙여요.")))}
             let context=service["build"]["context"].as_str().unwrap_or("");
             if !inside(&root,context) {return Ok(Some(format!("서비스 {name}: 빌드 폴더는 실습 폴더 안이어야 해요.")))}
-        } else if !image.is_some_and(|image|task.docker_images.iter().any(|allowed|allowed==image)) {
+        } else if !image.is_some_and(|image|images.iter().any(|allowed|allowed==image)) {
             return Ok(Some(format!("서비스 {name}: 준비된 이미지만 써요. image 줄은 바꾸지 마세요.")))
         }
     }
@@ -539,7 +549,7 @@ fn compose_problem(cli:&Path,dir:&Path,project:&str,task:&Task)->Result<Option<S
 }
 
 /// Every FROM must be one of the task's pinned images (or an earlier build stage).
-fn dockerfile_problem(dir:&Path,task:&Task)->Option<String> {
+fn dockerfile_problem(dir:&Path,images:&[String])->Option<String> {
     let entries=std::fs::read_dir(dir).ok()?;
     for entry in entries.flatten() {
         let name=entry.file_name().to_string_lossy().into_owned();
@@ -551,13 +561,50 @@ fn dockerfile_problem(dir:&Path,task:&Task)->Option<String> {
             if words.first().is_none_or(|w|!w.eq_ignore_ascii_case("FROM")) {continue}
             let rest:Vec<&str>=words[1..].iter().copied().filter(|w|!w.starts_with("--")).collect();
             let Some(base)=rest.first() else{return Some(format!("{name}: FROM 줄을 확인하세요."))};
-            if !task.docker_images.iter().any(|image|image==base)&&!stages.contains(&base.to_ascii_lowercase())&&*base!="scratch" {
+            if !images.iter().any(|image|image==base)&&!stages.contains(&base.to_ascii_lowercase())&&*base!="scratch" {
                 return Some(format!("{name}: FROM은 준비된 이미지만 써요. FROM 줄의 이미지 이름은 바꾸지 마세요."))
             }
             if rest.len()>=3&&rest[1].eq_ignore_ascii_case("AS") {stages.insert(rest[2].to_ascii_lowercase());}
         }
     }
     None
+}
+
+/// Files whose content decides what `docker compose` may run in a Compose terminal step, in the
+/// order the terminal guard (TERMINAL_GUARD) concatenates them for its hash.
+pub const COMPOSE_FILES:[&str;3]=["compose.yaml","Dockerfile",".env"];
+
+/// SHA-256 (hex) of the concatenated bytes of these files in `dir`; a missing file adds nothing.
+/// The terminal guard computes the same value with sha256sum or `shasum -a 256`.
+pub fn files_hash(dir:&Path,names:&[&str])->String {
+    use sha2::{Digest,Sha256};
+    let mut hash=Sha256::new();
+    for name in names {if let Ok(bytes)=std::fs::read(dir.join(name)){hash.update(&bytes);}}
+    format!("{:x}",hash.finalize())
+}
+
+/// Whether `docker compose` may run this folder's files as `project`: the same checks the lab
+/// scripts had (127.0.0.1 engine-chosen host ports, no bind mount outside the folder, no fixed
+/// names, host networking or privileges, only the step's pinned images, Dockerfile FROM lines),
+/// and, because the learner's shell environment differs from the app's: no .env file and no `$`
+/// interpolation other than the provided `${MQ3_PROJECT}`. `None` means it may run.
+pub fn compose_folder_problem(dir:&Path,project:&str,images:&[String])->Result<Option<String>,String> {
+    if dir.join(".env").exists() {return Ok(Some(".env 파일은 이 실습에서 쓰지 않아요. 터미널 환경에 따라 설정이 바뀌지 않게 막았어요. .env를 지운 뒤 다시 실행하세요.".into()))}
+    let Ok(text)=std::fs::read_to_string(dir.join("compose.yaml")) else{return Ok(Some("이 폴더에 compose.yaml이 없어요. 편집기의 compose.yaml을 확인하세요.".into()))};
+    if text.replace("${MQ3_PROJECT}","").contains('$') {return Ok(Some("compose.yaml에는 $ 변수를 쓰지 않아요. 터미널 환경에 따라 설정이 바뀌지 않게 막았어요.".into()))}
+    let cli=cli().ok_or_else(||format!("Docker를 찾지 못했어요. Docker Desktop을 설치하고 실행하세요. 설치 안내: {INSTALL_GUIDE}"))?;
+    if let Some(problem)=compose_problem(&cli,dir,project,images)? {return Ok(Some(problem))}
+    Ok(dockerfile_problem(dir,images))
+}
+
+/// One read-only `docker compose` query on this folder as `project` (config, ps, images…).
+/// Grading uses it to read state; it never starts, builds or changes services.
+pub fn compose_query(dir:&Path,project:&str,args:&[&str])->Result<(bool,String,String),String> {
+    let cli=cli().ok_or_else(||format!("Docker를 찾지 못했어요. Docker Desktop을 설치하고 실행하세요. 설치 안내: {INSTALL_GUIDE}"))?;
+    let mut command=Command::new(&cli);prepare(&mut command,&cli);
+    command.current_dir(dir).env("MQ3_PROJECT",project).args(["compose","-p",project,"-f","compose.yaml"]).args(args);
+    let output=execute(command,"",60)?;
+    Ok((output.success,output.stdout,output.stderr))
 }
 
 fn bash()->Result<PathBuf,String> {
@@ -572,11 +619,23 @@ struct Prepared { java:Option<String>, classpath:String }
 pub struct LessonSession(std::sync::Arc<LessonState>);
 mod sql_browser;
 pub use sql_browser::{SqlColumn,SqlTable,SqlTables};
+mod terminal;
+pub use terminal::{TerminalLab,TERMINAL_GUARD,query};
 pub fn has_sql_tables(task:&Task)->bool {sql_fixture(task).is_some()}
 struct LessonState {
     closed:std::sync::atomic::AtomicBool,
     cleaned:std::sync::atomic::AtomicBool,
     environments:std::sync::Mutex<std::collections::BTreeMap<String,Environment>>,
+    /// Docker CLI terminals: one owned project for the learner, a separate one for narration.
+    terminals:std::sync::Mutex<std::collections::BTreeMap<String,TerminalState>>,
+}
+struct TerminalState {
+    lab:Lab,
+    /// Steps whose start state this session already prepared. Revisiting a step keeps the
+    /// learner's real containers as they are.
+    prepared:BTreeSet<String>,
+    /// Steps the learner reset: the next terminal for them restores the exact start state.
+    restore:BTreeSet<String>,
 }
 struct Environment {
     lab:Lab,
@@ -588,6 +647,7 @@ impl LessonSession {
         closed:std::sync::atomic::AtomicBool::new(false),
         cleaned:std::sync::atomic::AtomicBool::new(false),
         environments:std::sync::Mutex::new(std::collections::BTreeMap::new()),
+        terminals:std::sync::Mutex::new(std::collections::BTreeMap::new()),
     }))}
     fn ensure_open(&self)->Result<(),String> {
         if self.0.closed.load(std::sync::atomic::Ordering::Acquire){Err("수업을 나가서 실습을 종료했어요.".into())}else{Ok(())}
@@ -627,8 +687,8 @@ impl LessonSession {
             let environment=environments.get_mut(&key).unwrap();
             for(name,content)in &task.files {write(environment.directory.path(),name,content)?;}
             write(environment.directory.path(),&task.entry_file,&source)?;
-            if let Some(problem)=compose_problem(&environment.lab.cli,environment.directory.path(),&environment.lab.project,&task)? {return Ok(reject(problem))}
-            if let Some(problem)=dockerfile_problem(environment.directory.path(),&task) {return Ok(reject(problem))}
+            if let Some(problem)=compose_problem(&environment.lab.cli,environment.directory.path(),&environment.lab.project,&task.docker_images)? {return Ok(reject(problem))}
+            if let Some(problem)=dockerfile_problem(environment.directory.path(),&task.docker_images) {return Ok(reject(problem))}
             if let Some(database)=sql_fixture(&task) {
                 let fixture=serde_json::to_string(&(&task.id,&task.files)).map_err(|e|e.to_string())?;
                 if grading||environment.fixture.as_ref()!=Some(&fixture) {
@@ -653,6 +713,7 @@ impl LessonSession {
         let state=self.0.clone();
         std::thread::spawn(move||{
             state.environments.lock().unwrap_or_else(|e|e.into_inner()).clear();
+            state.terminals.lock().unwrap_or_else(|e|e.into_inner()).clear();
             state.cleaned.store(true,std::sync::atomic::Ordering::Release);
         });
     }
@@ -707,8 +768,8 @@ fn run_blocking(task:&Task,source:&str,input:&str,prepared:Prepared,check_output
     for (name,content) in &task.files {write(directory.path(),name,content)?;}
     write(directory.path(),&task.entry_file,source)?;
     let lab=Lab::open(&cli,task)?;
-    if let Some(problem)=compose_problem(&cli,directory.path(),&lab.project,task)? {return Ok(reject(problem))}
-    if let Some(problem)=dockerfile_problem(directory.path(),task) {return Ok(reject(problem))}
+    if let Some(problem)=compose_problem(&cli,directory.path(),&lab.project,&task.docker_images)? {return Ok(reject(problem))}
+    if let Some(problem)=dockerfile_problem(directory.path(),&task.docker_images) {return Ok(reject(problem))}
     execute_lab(task,input,&prepared,&lab,directory.path(),None,check_output)
 }
 
@@ -972,9 +1033,9 @@ mod tests {
     fn dockerfile_from_lines_use_pinned_images() {
         let dir=tempfile::tempdir().unwrap();let t=task("x");
         std::fs::write(dir.path().join("Dockerfile"),format!("FROM {} AS base\nFROM base\nRUN echo hi\n",t.docker_images[0])).unwrap();
-        assert_eq!(dockerfile_problem(dir.path(),&t),None);
+        assert_eq!(dockerfile_problem(dir.path(),&t.docker_images),None);
         std::fs::write(dir.path().join("Dockerfile"),"FROM ubuntu:latest\n").unwrap();
-        assert!(dockerfile_problem(dir.path(),&t).is_some());
+        assert!(dockerfile_problem(dir.path(),&t.docker_images).is_some());
     }
     /// Real engine checks. Run with `cargo test --lib docker_lab -- --ignored --test-threads=1`.
     #[tokio::test]
