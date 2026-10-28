@@ -144,7 +144,7 @@ test('arithmetic, assignment, logic and code punctuation by context', () => {
     ['`` ` ``', '백틱'],
     ['HEAD^는 이전 커밋', 'HEAD 캐럿은 이전 커밋'],
     [':2는 0번과 1번까지예요.', '콜론 2는 영번과 일번까지예요.'],
-    ['느낌표를 붙여 :q!로 끝내요.', '느낌표를 붙여 콜론 q 느낌표로 끝내요.'],
+    ['느낌표를 붙여 :q!로 끝내요.', '느낌표를 붙여 콜론 큐 느낌표로 끝내요.'],
     ['printf는 %d 자리에', '프린트에프는 퍼센트 d 자리에'],
   ]);
 });
@@ -203,13 +203,34 @@ test('Markdown layout is not spoken; a leading > before a value or particle is',
   ]);
 });
 
+// Reported 2026-10-28: 「wq를 더벨유큐라고 읽네? 더블유큐지」. wq reached the voice as written after 콜론.
+test('Vim commands after a colon name their letters; other w, q and colons keep their letters', () => {
+  cases([
+    [':wq로 저장하고 끝내요.', '콜론 더블유큐로 저장하고 끝내요.'],
+    ['`:wq`', '콜론 더블유큐'],
+    [':wq!', '콜론 더블유큐 느낌표'],
+    ['남겨야 하는 수정이면 :wq를 써요.', '남겨야 하는 수정이면 콜론 더블유큐를 써요.'],
+    [':w로 저장해요.', '콜론 더블유로 저장해요.'],
+    ['5. "`:w`"를 입력하고 Enter를 눌러 저장하세요.', '5. 콜론 더블유를 입력하고 Enter를 눌러 저장하세요.'],
+    ['먼저 :q만으로 끝나는지 봐요.', '먼저 콜론 큐만으로 끝나는지 봐요.'],
+    ['조심하세요. :q!는 저장 안 한 내용을 버려요.', '조심하세요. 콜론 큐 느낌표는 저장 안 한 내용을 버려요.'],
+    ['(:wq)', '(콜론 더블유큐)'],
+    // Not Vim commands: bare letters, slices, host:port style pairs, URLs and other ex commands stay as before.
+    ['wq와 `w`, w = 3', 'wq와 w, w 이퀄 3'],
+    ['a[:w]와 x:q', 'a[콜론 w]와 x 콜론 q'],
+    ['http://x:wq/와 ws://x:wq', 'http://x:wq/와 ws://x 콜론 wq'], // a colon glued to a word is not a Vim command
+    [':x로 끝내요', '콜론 x로 끝내요'],
+  ]);
+  for (const text of [':wq!', '`:q!`는', ':w로']) assert.equal(say(say(text)), say(text), text);
+});
+
 test('lexicon entries are unique, Korean, documented and ordered longest first', () => {
   const seen = new Map();
   for (const group of LEXICON) {
     assert.ok(group.id && group.scope && group.rationale && group.evidence && group.example, group.id);
     for (const entry of group.entries) {
       const [token, spoken, example] = entry;
-      const key = group.scope.startsWith('after:') || ['extension', 'java-class'].includes(group.scope) ? group.scope + ' ' + token : (group.caseSensitive ? token : token.toLowerCase());
+      const key = group.scope.startsWith('after:') || ['extension', 'java-class', 'vim-ex'].includes(group.scope) ? group.scope + ' ' + token : (group.caseSensitive ? token : token.toLowerCase());
       assert.ok(!seen.has(key), `duplicate ${token} in ${group.id} and ${seen.get(key)}`);
       seen.set(key, group.id);
       assert.ok(spoken && spoken !== token, token);

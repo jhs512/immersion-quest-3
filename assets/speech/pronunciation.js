@@ -173,6 +173,13 @@
       ],
     },
     {
+      id: 'vim-commands', scope: 'vim-ex', caseSensitive: true,
+      rationale: 'Vim command-line commands are letter names. Left as written the voice reads wq as 더벨유큐 (user report 2026-10-28). Only right after a colon that starts a word (:wq, `:w`, :q!); a bare w, q or wq, variables, paths and host:port keep their letters.',
+      evidence: 'vim_basics narration: :w 6, :q 2, :q! 4, :wq 4 lines; user report 「wq를 더벨유큐라고 읽네? 더블유큐지」.',
+      example: ':wq로 저장하고 끝내요 → 콜론 더블유큐로 저장하고 끝내요',
+      entries: [['w', '더블유', ':w로 저장해요'], ['q', '큐', ':q만으로 끝나는지'], ['wq', '더블유큐', ':wq로 저장하고 끝내요']],
+    },
+    {
       id: 'brands', scope: 'brand', caseSensitive: false,
       rationale: 'Git and GitHub in any case; paths, domains and longer identifiers keep their letters (docs/voice.md).',
       evidence: 'Git courses.', example: 'Git과 GitHub → 깃과 깃허브',
@@ -210,6 +217,11 @@
   const javaDeclarationPattern = new RegExp('(?<![\\w.])((?:class|interface|enum|record|new|extends|implements)\\s+)(' + javaClassNames + ')(?![\\w./\\\\-])', 'g');
   const javaClassText = text => text.replace(javaArgumentPattern, (_, lead, name) => lead + javaClasses[name] + JOSA_MARK)
     .replace(javaDeclarationPattern, (_, lead, name) => lead + javaClasses[name] + JOSA_MARK);
+  // Vim commands (:w, :q, :wq, :q!, :wq!): the colon starts a word and the command ends one. The letters are
+  // named (wq → 더블유큐) and a trailing ! is 느낌표. Python slices ([:w]), host:port and identifiers are untouched.
+  const vimCommands = table('vim-ex');
+  const vimPattern = new RegExp('(^|[\\s(「『“‘]):(' + alternation(Object.keys(vimCommands)) + ')(!?)(?=$|[\\s.,?)」』”’]|[가-힣])', 'g');
+  const vimText = text => text.replace(vimPattern, (_, lead, command, bang) => lead + '콜론 ' + vimCommands[command] + (bang ? ' 느낌표' : '') + JOSA_MARK);
 
   // ---- Numbers ----
   // Protect code, dates, versions and paths from prose conversion.
@@ -496,7 +508,7 @@
     if (has(javaClasses, code)) return javaClasses[code] + JOSA_MARK;
     // Code-specific readings first: command words where a command starts, subcommands, Java class
     // arguments, and symbols read with code context (shell redirection, options).
-    const commands = javaClassText(subcommandText(code))
+    const commands = vimText(javaClassText(subcommandText(code)))
       .replace(commandPattern, (_, lead, command) => lead + commandWords[command] + JOSA_MARK)
       .replace(/^(\s*(?:\$\s+)?)git(?=\s|$)/i, (_, space) => space + brandPronunciations.git);
     const shell = SHELL_START.test(code);
@@ -510,7 +522,7 @@
   }
   function proseSpeechText(text, shellHint) {
     return outsideUrls(unescapeMarkdown(decodeEntities(text)), part => {
-      const words = strictText(subcommandText(javaClassText(part)));
+      const words = strictText(subcommandText(javaClassText(vimText(part))));
       return termText(fileSpeechText(brandText(mathSpeechText(words, { shellHint }))));
     });
   }
