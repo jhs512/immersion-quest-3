@@ -370,7 +370,23 @@ fn ids(cli:&Path,args:&[&str])->Vec<String> {
     docker(cli,args,60).ok().filter(|o|o.success).map(|o|o.stdout.lines().map(str::trim).filter(|l|!l.is_empty()).map(str::to_owned).collect::<BTreeSet<_>>().into_iter().collect()).unwrap_or_default()
 }
 
-/// Remove only what carries this project's label. Names are never used to select resources.
+/// The owned project whose Compose build produced this image repository. Compose names a built service image
+/// `<project>-<service>` (`compose_problem` forbids `image:` on build services). Compose's bake builder (the
+/// default of Compose v2.38 on Linux) does not add the project label to that image, so the label alone misses it.
+/// Only a project with this app's ownership receipt counts, and the longest owned name wins, so a nested name
+/// never reaches another project's image.
+fn built_image_owner(repository:&str)->Option<String> {
+    let repository=repository.split(':').next().unwrap_or(repository);
+    repository.match_indices('-').map(|(at,_)|&repository[..at]).filter(|name|owns_project(name)).last().map(str::to_owned)
+}
+
+/// Tags of images Compose built for this owned project. Removed by tag, so a tag someone else added stays.
+fn built_images(cli:&Path,project:&str)->Vec<String> {
+    ids(cli,&["image","ls","--filter",&format!("reference={project}-*"),"--format","{{.Repository}}:{{.Tag}}"]).into_iter()
+        .filter(|reference|built_image_owner(reference).as_deref()==Some(project)).collect()
+}
+
+/// Remove only what carries this project's label, plus the images Compose built under this owned project's name.
 pub fn remove_project(cli:&Path,project:&str) {
     if !owns_project(project) {return}
     for label in [COMPOSE_LABEL,OWNER_LABEL] {
@@ -387,6 +403,9 @@ pub fn remove_project(cli:&Path,project:&str) {
         let images=ids(cli,&["image","ls","-q","--no-trunc","--filter",&filter]);
         if !images.is_empty(){let mut args=vec!["image","rm","-f"];args.extend(images.iter().map(String::as_str));let _=docker(cli,&args,120);}
     }
+    // After the containers that used them are gone.
+    let built=built_images(cli,project);
+    if !built.is_empty(){let mut args=vec!["image","rm"];args.extend(built.iter().map(String::as_str));let _=docker(cli,&args,120);}
 }
 
 /// Run locks live in the per-user temp folder, not the app data folder, so a pilot session with its
@@ -437,6 +456,8 @@ pub fn stale_projects(cli:&Path)->Vec<String> {
             found.extend(ids(cli,&args));
         }
     }
+    let built=ids(cli,&["image","ls","--filter",&format!("reference={PREFIX}*"),"--format","{{.Repository}}"]);
+    found.extend(built.iter().filter_map(|repository|built_image_owner(repository)));
     let Ok(directory)=locks() else{return vec![]};
     found.into_iter().filter(|name|owns_project(name)).filter(|name|{
         let path=directory.join(format!("{name}.lock"));
@@ -991,6 +1012,39 @@ mod tests {
         guard.join().unwrap().unwrap();
         assert!(ids(&cli,&["ps","-aq","--filter",&format!("label={label}")]).is_empty());
         assert!(ids(&cli,&["volume","ls","-q","--filter",&format!("label={label}")]).is_empty());
+    }
+    /// Compose v2.38's bake builder tags `<project>-<service>` without the project label. Cleanup and the
+    /// startup sweep still find it through the ownership receipt; other tags and the shared image stay.
+    #[test]
+    #[ignore="Needs a running Docker engine"]
+    fn an_unlabelled_compose_built_image_of_an_owned_project_is_removed_by_its_name_only() {
+        let cli=cli().unwrap();
+        let id=||crate::issue_progress::new_id().to_ascii_lowercase().chars().filter(char::is_ascii_alphanumeric).take(8).collect::<String>();
+        let project=format!("{PREFIX}built-{}",id());
+        let stranger=format!("{PREFIX}built-{}-app",id());
+        register_owner(&project).unwrap();
+        let image="busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662";
+        ensure_images(&cli,&[image.into()]).unwrap();
+        let built=format!("{project}-app");
+        for tag in [&built,&stranger] {assert!(docker(&cli,&["tag",image,tag],30).unwrap().success);}
+        let filter=format!("label={COMPOSE_LABEL}={project}");
+        assert!(ids(&cli,&["image","ls","-q","--filter",&filter]).is_empty(),"the image carries no project label");
+        assert!(docker(&cli,&["run","-d","--label",&format!("{COMPOSE_LABEL}={project}"),&built,"sleep","60"],60).unwrap().success);
+        assert_eq!(built_image_owner(&format!("{built}:latest")),Some(project.clone()));
+        assert_eq!(built_image_owner(&stranger),None,"a look-alike name without a receipt is not owned");
+        remove_project(&cli,&project);
+        let present=|reference:&str|docker(&cli,&["image","inspect","--format","{{.Id}}",reference],30).unwrap().success;
+        assert!(!present(&built),"the image Compose built for the owned project is removed");
+        assert!(ids(&cli,&["ps","-aq","--filter",&filter]).is_empty());
+        assert!(present(&stranger),"an unowned look-alike tag stays");
+        assert!(present(image),"the shared pinned image stays");
+        // A crash can leave only the built image; the startup sweep finds its project by the same rule.
+        assert!(docker(&cli,&["tag",image,&built],30).unwrap().success);
+        assert!(stale_projects(&cli).contains(&project));
+        remove_project(&cli,&project);
+        assert!(!present(&built));
+        let _=docker(&cli,&["image","rm",&stranger],30);
+        let _=std::fs::remove_file(locks().unwrap().join(format!("{project}.owned")));
     }
     #[cfg(windows)]
     #[test]
