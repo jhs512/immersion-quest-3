@@ -3,46 +3,40 @@
   "lesson": "courses/redesigned/engineer-c-pointers.json",
   "expected_outputs": [
     [
-      "2",
-      "5",
+      "0",
       "2"
     ],
     [
-      "5",
-      "8",
+      "2\n9",
+      "5\n9"
+    ],
+    [
+      "2\n2\n7",
+      "7\n7\n9"
+    ],
+    [
+      "7\n7",
+      "7\n2"
+    ],
+    [
+      "2",
       "5"
     ],
     [
-      "7\n7"
-    ],
-    [
-      "7\n2",
-      "2\n2"
-    ],
-    [
-      "5",
-      "7",
-      "5"
-    ],
-    [
-      "5\n2",
       "3\n3",
       "5\n2"
     ],
     [
       "2",
-      "7",
-      "2"
+      "7"
     ],
     [
-      "3",
-      "6",
+      "2",
       "3"
     ],
     [
       "0",
-      "2",
-      "0"
+      "2"
     ],
     [
       "2",
@@ -56,6 +50,180 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "    int value = *p;\n",
+          "    int value = stock;\n"
+        ]
+      ],
+      "reason": "Reading the name directly"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "    int value = *p;\n",
+          "    int value = 2;\n"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "    *p = fresh;\n",
+          "    stock = fresh;\n"
+        ]
+      ],
+      "reason": "Writing the name directly"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "    *p = fresh;\n",
+          "    *p = 5;\n"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "    int *q = p;\n",
+          "    int *q = &stock;\n"
+        ]
+      ],
+      "reason": "Pointing at stock by name"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "    p = &other;\n",
+          "    *p = other;\n"
+        ]
+      ],
+      "reason": "Overwriting stock"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "    printf(\"%d\\n%d\", *p, stock);\n",
+          "    printf(\"7\\n2\");\n"
+        ]
+      ],
+      "reason": "Printing typed text"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "    int next = *(p + 1);\n",
+          "    int next = *p + 1;\n"
+        ]
+      ],
+      "reason": "Adding to the value"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "    int next = *(p + 1);\n",
+          "    int next = bins[1];\n"
+        ]
+      ],
+      "reason": "Ignoring where p starts"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "    p++;\n",
+          "    (*p)++;\n"
+        ]
+      ],
+      "reason": "Increasing the value"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "    p++;\n",
+          "    bins[0] = 5;\n"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "    p = redirect(p, &other);\n",
+          "    redirect(p, &other);\n"
+        ]
+      ],
+      "reason": "Discarding the returned pointer"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "    p = redirect(p, &other);\n",
+          "    redirect(p, &other);\n    stock = 7;\n"
+        ]
+      ],
+      "reason": "Typing the value into stock"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "    *p = *p + 1;\n",
+          "    *p++;\n"
+        ]
+      ],
+      "reason": "Moving the pointer"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "    *p = *p + 1;\n",
+          "    *p = 3;\n"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "        return 0;\n    }\n    // 실제",
+          "    }\n    // 실제"
+        ],
+        [
+          "    return *p;\n",
+          "    return 0;\n"
+        ]
+      ],
+      "reason": "Always zero ignores the target"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "        return 0;\n    }\n",
+          "        return 1;\n    }\n"
+        ]
+      ],
+      "reason": "Wrong value without a target"
+    },
     {
       "step": 10,
       "replacements": [
@@ -78,6 +246,96 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "    int value = *p;\n",
+          "    int value = p[0];\n"
+        ]
+      ],
+      "reason": "Index zero through the pointer"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "    *p = fresh;\n",
+          "    p[0] = fresh;\n"
+        ]
+      ],
+      "reason": "Index zero through the pointer"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "    int *q = p;\n",
+          "    int *q = &*p;\n"
+        ]
+      ],
+      "reason": "Address of what p points to"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "    p = &other;\n",
+          "    int *moved = &other;\n    p = moved;\n"
+        ]
+      ],
+      "reason": "Through another pointer"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "    int next = *(p + 1);\n",
+          "    int next = p[1];\n"
+        ]
+      ],
+      "reason": "Index through the pointer"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "    p++;\n",
+          "    p = p + 1;\n"
+        ]
+      ],
+      "reason": "Adding one to the pointer"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "    p = redirect(p, &other);\n",
+          "    int *moved = redirect(p, &other);\n    p = moved;\n"
+        ]
+      ],
+      "reason": "Through another pointer"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "    *p = *p + 1;\n",
+          "    (*p)++;\n"
+        ]
+      ],
+      "reason": "Parenthesized increment"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "    if (p == NULL) {\n",
+          "    if (!p) {\n"
+        ]
+      ],
+      "reason": "Negated pointer test"
+    },
     {
       "step": 11,
       "replacements": [

@@ -1,0 +1,58 @@
+{
+  "by": "hand",
+  "source_sha256": "a709e9e11f3f9a25bf3b53e44d6b527d6a642b8df91f60635a0dbc381a95ebff",
+  "entry": [
+    {
+      "action": "say",
+      "text": "p가 NULL이면 *p를 읽기 전에 0을 돌려줘야 해요. 지금은 if 안이 비어 NULL을 따라가 읽어요.",
+      "target": "text:if 안의 주석 아래에 가리킬 대상이 없으면 0을 돌려주는 줄을 쓰세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "        // 이 주석 아래에 가리킬 대상이 없으면 0을 돌려주는 줄을 쓰세요.\n",
+      "after": "        // 이 주석 아래에 가리킬 대상이 없으면 0을 돌려주는 줄을 쓰세요.\n        return 0;\n",
+      "say": "if 안에 return 0을 써요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        17
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0이에요. NULL을 확인하고 *p를 읽기 전에 돌아왔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    int *p = NULL;\n",
+      "after": "    int *p = &stock;\n",
+      "say": "p가 stock을 가리키게 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        17
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2예요. 대상이 있으면 if를 지나 *p를 읽어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    int *p = &stock;\n",
+      "after": "    int *p = NULL;\n",
+      "say": "p를 처음처럼 NULL로 되돌려요."
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. NULL을 역참조하면 정해진 결과가 없고 보통 프로그램이 멈춰요.",
+      "target": "code:return *p;"
+    }
+  ]
+}
