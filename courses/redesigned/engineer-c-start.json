@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_69976fe7-95f7-460a-8e2b-31ba2c7a5b88",
-  "revision": "engineer-c-start-5",
+  "revision": "engineer-c-start-6",
   "title": "C 값과 대입을 순서대로 읽어요",
   "description": "재고 표시 코드를 읽고 실행하며 값 복사와 순서를 익혀요.",
   "objectives": [
@@ -86,6 +86,22 @@
               "id": "stp_e1a10053-efd4-42c3-b133-55bcb9cb2563",
               "objectives": [
                 "계산 전후의 대입 순서가 결과에 미치는 영향을 이해해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_90d510e8-c955-4e24-81a7-7ec0561b916b",
+          "title": "마지막 도전",
+          "objectives": [
+            "값 복사와 대입 순서를 함께 적용해 출고 전후 기록을 남겨요."
+          ],
+          "premise": "before는 출고 전 수량, after와 stock은 출고 후 수량이어야 해요. 지금 출력은 8 5 5여야 해요. stock과 shipped 준비값은 바꾸지 마세요.",
+          "steps": [
+            {
+              "id": "stp_403cbc4b-4f0b-45f6-b4ba-8e4e237d2f5d",
+              "objectives": [
+                "값 복사와 대입 순서를 함께 적용해 출고 전후 기록을 남겨요."
               ]
             }
           ]
@@ -559,6 +575,84 @@
           "value": "5 6"
         }
       ]
+    },
+    {
+      "language": "c",
+      "starter_code": "#include <stdio.h>\nint main(void) {\n    int stock = 8;\n    int shipped = 3;\n    int before = stock;\n    // 출고 수량을 반영한 뒤 남은 수량을 저장하세요.\n    int after = stock;\n    stock = stock - shipped;\n    printf(\"%d %d %d\", before, after, stock);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\nint main(void) {\n    int stock = 8;\n    int shipped = 3;\n    int before = stock;\n    // 출고 수량을 반영한 뒤 남은 수량을 저장하세요.\n    stock = stock - shipped;\n    int after = stock;\n    printf(\"%d %d %d\", before, after, stock);\n    return 0;\n}\n",
+      "goal": "값 복사와 대입 순서를 함께 적용해 출고 전후 기록을 남겨요.\n\nbefore는 출고 전 수량, after와 stock은 출고 후 수량이어야 해요. 지금 출력은 8 5 5여야 해요. stock과 shipped 준비값은 바꾸지 마세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 수정 전 결과를 확인하세요.\n2. 출고 계산이 끝난 다음 after를 선언해 현재 stock을 저장하세요.\n3. 다시 실행해 결과를 확인하고 작성한 코드를 제출하세요.",
+      "tests": [
+        {
+          "input": "",
+          "expected": "8 5 5"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "출고 전후의 값을 서로 다른 변수에 기록하는 문제예요.",
+          "target": "text:출고 전후의 값을 서로 다른 변수에 기록하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 값 복사와 대입 순서를 함께 적용해 출고 전후 기록을 남겨요.",
+          "target": "text:값 복사와 대입 순서를 함께 적용해 출고 전후 기록을 남겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "after를 너무 일찍 복사해 8 8 5가 나와요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "int after = stock;\n    stock = stock - shipped;",
+          "after": "stock = stock - shipped;\n    int after = stock;",
+          "say": "출고 계산이 끝난 다음 after를 선언해 현재 stock을 저장하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "출고 전 8은 before에 남고 출고 후 5는 after와 stock에 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. stock이 바뀌어도 이미 복사한 before 값은 함께 바뀌지 않아요.",
+          "target": "code:    int after = stock;"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "stock": "12",
+            "shipped": "2"
+          },
+          "expected": "12 10 10"
+        },
+        {
+          "values": {
+            "stock": "3",
+            "shipped": "3"
+          },
+          "expected": "3 0 0"
+        }
+      ],
+      "id": "stp_403cbc4b-4f0b-45f6-b4ba-8e4e237d2f5d",
+      "title": "출고 전후의 값을 서로 다른 변수에 기록하세요",
+      "required": true
     }
   ]
 }

@@ -1,0 +1,91 @@
+{
+  "by": "hand",
+  "source_sha256": "8c00a6dc819bd60359cd66dc0ad46732387e1954c56833ae64e975ff3ba1b55e",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 명령 줄로 움직이는 글 서비스를 완성해요. main은 준비돼 있어요.",
+      "target": "text:QuoteService의 네 메서드를 완성해요."
+    },
+    {
+      "action": "say",
+      "text": "준비 입력은 add 시작, add 다음, delete 1, add 셋째, list예요. 번호는 한 번만 써야 해요.",
+      "target": "text:지운 번호도 다시 쓰지 않아요."
+    },
+    {
+      "action": "patch_code",
+      "before": "        return false; // 있는 글만 지우고 결과를 돌려주세요.",
+      "after": "        return quotes.remove(id) != null;",
+      "say": "삭제는 있던 글을 지웠는지 remove의 결과로 알려 줘요."
+    },
+    {
+      "action": "patch_code",
+      "before": "        return 0; // 빈 글은 거절하고, 한 번도 쓰지 않은 새 번호로 저장해 돌려주세요.",
+      "after": "        // 잘못된 입력은 저장하기 전에 거절해요.\n        if (text.isBlank()) throw new IllegalArgumentException(\"blank\");\n        int id = quotes.size() + 1;\n        quotes.put(id, text);\n        return id;",
+      "say": "추가는 먼저 글 개수로 번호를 정해 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        39,
+        39
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1, 2, true 다음 셋째가 2번이 돼 다음을 덮어썼어요. 개수로 번호를 정하면 지운 뒤 겹쳐요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        // 잘못된 입력은 저장하기 전에 거절해요.\n        if (text.isBlank()) throw new IllegalArgumentException(\"blank\");\n        int id = quotes.size() + 1;\n        quotes.put(id, text);\n        return id;",
+      "after": "        // 잘못된 입력은 저장하기 전에 거절해요.\n        if (text.isBlank()) throw new IllegalArgumentException(\"blank\");\n        // 지운 번호를 다시 쓰지 않도록 마지막 번호 다음을 발급해요.\n        lastId++;\n        quotes.put(lastId, text);\n        return lastId;",
+      "say": "마지막으로 발급한 번호 다음을 써요. 지워도 번호는 줄지 않아요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        40,
+        40
+      ]
+    },
+    {
+      "action": "say",
+      "text": "셋째가 3번이고 목록은 2=다음, 3=셋째예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        return false; // 있는 글만 바꾸고, 빈 글은 거절하세요.",
+      "after": "        if (!quotes.containsKey(id)) return false;\n        if (text.isBlank()) throw new IllegalArgumentException(\"blank\");\n        quotes.put(id, text);\n        return true;",
+      "say": "수정은 없는 번호면 false, 빈 글이면 예외로 원본을 지켜요."
+    },
+    {
+      "action": "patch_code",
+      "before": "        return quotes; // 돌려받은 쪽이 바꿔도 원본이 남도록 고치세요.",
+      "after": "        // 사본을 돌려줘야 바깥에서 비워도 저장한 글이 남아요.\n        return new LinkedHashMap<>(quotes);",
+      "say": "목록은 사본을 돌려줘요."
+    },
+    {
+      "action": "set_input",
+      "value": "add 남김\nupdate 9 없음\nupdate 1 \nclear\nlist"
+    },
+    {
+      "action": "run",
+      "lines": [
+        44,
+        44
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1, false, invalid, cleared 다음 목록에 1=남김이 그대로 있어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. list에서 원본 Map을 그대로 돌려주면 clear가 저장한 글까지 지워요.",
+      "target": "code:return new LinkedHashMap<>(quotes);"
+    }
+  ]
+}

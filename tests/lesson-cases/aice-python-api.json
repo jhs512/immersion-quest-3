@@ -1,0 +1,56 @@
+{
+  "course": "tests/fixtures/player-pilot/s/course.json",
+  "lesson": "courses/redesigned/aice-python-api.json",
+  "only_last": true,
+  "expected_outputs": [
+    [
+      "3\n0\n{'region': 'north', 'minutes': [30, 12, 18, 20], 'distance': [4, 1, 2, 3]}\n[30, 12, 18, 20]",
+      "4",
+      "4\n20\n[12, 18, 20, 30]\n[30, 12, 18, 20]"
+    ]
+  ],
+  "reject": [
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "print(len(record[\"minutes\"]))",
+          "print(len(record))"
+        ]
+      ],
+      "reason": "The number of keys is not the number of deliveries"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "print(sorted(record[\"minutes\"]))",
+          "print(record[\"minutes\"].sort())"
+        ]
+      ],
+      "reason": "sort() returns None and changes the original"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "print(st.mean(record[\"minutes\"]))",
+          "print(20)"
+        ]
+      ],
+      "reason": "A fixed mean fails other records"
+    }
+  ],
+  "accept": [
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "print(st.mean(record[\"minutes\"]))",
+          "print(st.mean(record.get(\"minutes\")))"
+        ]
+      ],
+      "reason": "get reads the same item"
+    }
+  ]
+}

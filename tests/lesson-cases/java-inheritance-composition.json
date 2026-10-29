@@ -30,6 +30,12 @@
     [
       "",
       "[카드 영수증]\n카드 결제 5000원\n감사합니다\n[현금 영수증]\n현금 결제 7000원\n감사합니다"
+    ],
+    [
+      "일반 10000원 + 배송비 3000원\n픽업 8000원 + 배송비 3000원\n특급 12000원 + 배송비 3000원",
+      "일반 10000원 + 배송비 3000원\n픽업 8000원 + 배송비 0원\n특급 12000원 + 배송비 3000원",
+      "일반 10000원 + 배송비 3000원\n픽업 8000원 + 배송비 0원\n특급 12000원 + 배송비 3000원",
+      "일반 10000원 + 배송비 3000원\n픽업 8000원 + 배송비 0원\n특급 12000원 + 배송비 5000원"
     ]
   ],
   "reject": [
@@ -106,6 +112,36 @@
         ]
       ],
       "reason": "금액을 고정하면 다른 금액의 영수증이 틀려요."
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "    @Override int fee(int amount) { return super.fee(amount) + 2000; }",
+          "    int fee(long amount) { return super.fee((int) amount) + 2000; }"
+        ]
+      ],
+      "reason": "An overload is not an override"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "    @Override int fee(int amount) { return 0; }\n",
+          ""
+        ]
+      ],
+      "reason": "Pickup must override the fee"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "return super.fee(amount) + 2000;",
+          "return 2000;"
+        ]
+      ],
+      "reason": "Express adds to the base fee"
     }
   ],
   "accept": [
@@ -138,6 +174,26 @@
         ]
       ],
       "reason": "@Override를 붙여 여러 줄로 써도 같아요."
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "return super.fee(amount) + 2000;",
+          "return 5000;"
+        ]
+      ],
+      "reason": "The same fee written as a number (the base fee is fixed)"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "    @Override int fee(int amount) { return 0; }",
+          "    int fee(int amount) { return 0; }"
+        ]
+      ],
+      "reason": "@Override is a check, not required for a correct override"
     }
   ]
 }

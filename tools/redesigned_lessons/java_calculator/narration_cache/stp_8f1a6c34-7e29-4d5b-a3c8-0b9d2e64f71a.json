@@ -1,0 +1,101 @@
+{
+  "by": "hand",
+  "source_sha256": "2f4cc6a5807d094314bb04c9b646b33d003402b83775db3e262c36ac633d3944",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 계산기에 뺄셈을 더해요. 곱셈보다 늦게, 덧셈과 같은 순서로 계산해야 해요.",
+      "target": "text:뺄셈은 덧셈과 같은 우선순위"
+    },
+    {
+      "action": "say",
+      "text": "지금 덧셈 단계는 + 기호만 받아요. 준비 입력은 10-2*3이에요.",
+      "target": "code:while (accept('+')) value += term();"
+    },
+    {
+      "action": "run",
+      "lines": [
+        53,
+        53
+      ]
+    },
+    {
+      "action": "say",
+      "text": "invalid가 나와요. - 기호를 읽지 못해 10 뒤가 남은 입력이 됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        while (accept('+')) value += term(); // 뺄셈도 같은 단계에서 왼쪽부터 계산하도록 고치세요.\n        return value;",
+      "after": "        while (true) {\n            if (accept('+')) value += term();\n            // 기호 뒤를 전체 식으로 읽으면 오른쪽부터 묶여요.\n            else if (accept('-')) value -= expression();\n            else return value;\n        }",
+      "say": "- 뒤를 다시 식 전체로 읽어 볼게요. 쉽게 떠올리는 방식이에요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        57,
+        57
+      ]
+    },
+    {
+      "action": "say",
+      "text": "4가 나와요. 곱셈 2*3을 먼저 하고 10에서 뺐어요.",
+      "target": "output"
+    },
+    {
+      "action": "set_input",
+      "value": "10-2-3"
+    },
+    {
+      "action": "run",
+      "lines": [
+        57,
+        57
+      ]
+    },
+    {
+      "action": "say",
+      "text": "11이 나와요. 2-3을 먼저 묶어 10-(2-3)으로 계산했어요. 답은 5여야 해요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        while (true) {\n            if (accept('+')) value += term();\n            // 기호 뒤를 전체 식으로 읽으면 오른쪽부터 묶여요.\n            else if (accept('-')) value -= expression();\n            else return value;\n        }",
+      "after": "        while (true) {\n            // 덧셈과 뺄셈은 같은 우선순위라 만나는 순서대로, 왼쪽부터 계산해요.\n            if (accept('+')) value += term();\n            else if (accept('-')) value -= term();\n            else return value;\n        }",
+      "say": "- 뒤도 곱셈 항 하나만 읽고 바로 빼요. 반복이 왼쪽부터 차례로 계산해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        57,
+        57
+      ]
+    },
+    {
+      "action": "say",
+      "text": "5가 나와요. 10-2를 먼저 하고 3을 뺐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 뺄셈을 곱셈 단계에 넣으면 10-2*3을 (10-2)*3처럼 계산해요.",
+      "target": "code:while (accept('*')) value *= factor();"
+    },
+    {
+      "action": "set_input",
+      "value": "10-2*3"
+    },
+    {
+      "action": "run",
+      "lines": [
+        57,
+        57
+      ]
+    },
+    {
+      "action": "say",
+      "text": "다시 4예요. 채점은 괄호·음수 결과·잘못된 식으로도 실행해요.",
+      "target": "output"
+    }
+  ]
+}

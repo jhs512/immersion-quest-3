@@ -35,6 +35,13 @@
    "2",
    "0",
    "2"
+  ],
+  [
+   "1000 false\n1000 false\n주문 수: 3",
+   "25000 false\n9000 false\n주문 수: 3",
+   "25000 true\n9000 false\n주문 수: 3",
+   "25000 true\n9000 false\n주문 수: 5",
+   "25000 true\n9000 false\n주문 수: 3"
   ]
  ],
  "reject": [
@@ -157,6 +164,46 @@
     ]
    ],
    "reason": "Overwriting the counter"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "    int amount;\n",
+     "    static int amount;\n"
+    ]
+   ],
+   "reason": "A shared amount makes every order show the last one"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "created = created + 1;",
+     "created = 1;"
+    ]
+   ],
+   "reason": "The counter must grow with each order"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "return amount >= freeFrom;",
+     "return amount >= 25000;"
+    ]
+   ],
+   "reason": "The shared limit must be used"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "return amount >= freeFrom;",
+     "return amount > freeFrom;"
+    ]
+   ],
+   "reason": "An order equal to the limit is free"
   }
  ],
  "accept": [
@@ -209,6 +256,26 @@
     ]
    ],
    "reason": "Explicit increment"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "created = created + 1;",
+     "created++;"
+    ]
+   ],
+   "reason": "Increment operator"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "        amount = initial;",
+     "        this.amount = initial;"
+    ]
+   ],
+   "reason": "this.amount names the same field"
   }
  ]
 }

@@ -44,6 +44,13 @@
    "0",
    "3000",
    "0"
+  ],
+  [
+   "배송비 3000원",
+   "무료배송",
+   "무료배송",
+   "배송비 1500원",
+   "무료배송"
   ]
  ],
  "reject": [
@@ -206,6 +213,46 @@
     ]
    ],
    "reason": "Strictly greater misses the boundary"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "    } else if (amount >= 15000) {",
+     "    }\n    if (amount >= 15000) {"
+    ]
+   ],
+   "reason": "Two separate ifs overwrite the free tier"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "amount >= 30000",
+     "amount > 30000"
+    ]
+   ],
+   "reason": "The 30,000 boundary must be free"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "amount >= 15000",
+     "amount > 15000"
+    ]
+   ],
+   "reason": "The 15,000 boundary must cost 1,500"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "System.out.println(\"배송비 \" + fee + \"원\");",
+     "System.out.println(\"배송비 1500원\");"
+    ]
+   ],
+   "reason": "A typed fee fails the 14,999 order"
   }
  ],
  "accept": [
@@ -278,6 +325,26 @@
     ]
    ],
    "reason": "Checking the lower tier first lets the higher tier win last"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "if (fee == 0) {",
+     "if (fee < 1) {"
+    ]
+   ],
+   "reason": "Another comparison that means free"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "amount >= 15000",
+     "15000 <= amount"
+    ]
+   ],
+   "reason": "The same comparison written the other way"
   }
  ]
 }

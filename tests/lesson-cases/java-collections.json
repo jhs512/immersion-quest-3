@@ -41,6 +41,12 @@
   [
    "{book=1, pen=1}",
    "{book=2, pen=1}"
+  ],
+  [
+   "종류: 0\npen: null\nbag: null",
+   "종류: 3\npen: null\nbag: null",
+   "종류: 3\npen: 3\nbag: null",
+   "종류: 3\npen: 3\nbag: 0"
   ]
  ],
  "reject": [
@@ -143,6 +149,36 @@
     ]
    ],
    "reason": "Replacing with one never accumulates repeated items"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "counts.put(item, counts.getOrDefault(item, 0) + 1);",
+     "counts.put(item, 1);"
+    ]
+   ],
+   "reason": "Overwriting loses repeated items"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "counts.getOrDefault(query, 0)",
+     "counts.get(query)"
+    ]
+   ],
+   "reason": "A missing item prints null"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "System.out.println(\"종류: \" + kinds.size());",
+     "System.out.println(\"종류: \" + items.length);"
+    ]
+   ],
+   "reason": "Counting every order line, not kinds"
   }
  ],
  "accept": [
@@ -205,6 +241,26 @@
     ]
    ],
    "reason": "Map.merge performs the same accumulation"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "counts.put(item, counts.getOrDefault(item, 0) + 1);",
+     "counts.merge(item, 1, Integer::sum);"
+    ]
+   ],
+   "reason": "merge accumulates the same counts"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "counts.getOrDefault(query, 0)",
+     "(counts.containsKey(query) ? counts.get(query) : 0)"
+    ]
+   ],
+   "reason": "An explicit containsKey check"
   }
  ]
 }

@@ -1,0 +1,117 @@
+{
+  "by": "hand",
+  "source_sha256": "dd237737120b2bee2fa94818aede4760e25fae1a86bd0f844442d7eb69ed7ff2",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 주문마다 다른 값과 모든 주문이 나누는 값을 직접 나눠요.",
+      "target": "text:금액은 주문마다 따로"
+    },
+    {
+      "action": "say",
+      "text": "main은 두 주문을 만들고, extra만큼 주문을 더 만든 뒤 세 줄을 출력해요.",
+      "target": "code:new Order(1000);"
+    },
+    {
+      "action": "patch_code",
+      "before": "    // 여기에 주문마다 따로 남는 금액 필드와, 만든 주문 수를 세는 공유 필드를 쓰세요.",
+      "after": "    // 금액 필드를 static으로 두면 어떻게 되는지 먼저 볼게요.\n    static int amount;\n    static int created = 0;",
+      "say": "금액도 static으로 두면 어떻게 될지 먼저 써 볼게요."
+    },
+    {
+      "action": "patch_code",
+      "before": "        // 여기에 금액을 저장하고 만든 주문 수를 1 늘리세요.",
+      "after": "        amount = initial;\n        // 새 주문을 만들 때마다 공유 카운터를 하나 늘려요.\n        created = created + 1;",
+      "say": "생성자에서 금액을 저장하고 공유 카운터를 늘려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        29,
+        31
+      ]
+    },
+    {
+      "action": "say",
+      "text": "두 주문이 모두 1000으로 보여요. 클래스에 금액이 하나라 마지막 주문이 덮어썼어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    // 금액 필드를 static으로 두면 어떻게 되는지 먼저 볼게요.\n    static int amount;\n    static int created = 0;",
+      "after": "    // amount는 주문마다, created는 클래스에 하나만 있어요.\n    int amount;\n    static int created = 0;",
+      "say": "금액은 주문마다 남도록 static을 빼요. 카운터만 공유해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        29,
+        31
+      ]
+    },
+    {
+      "action": "say",
+      "text": "25000, 9000이 따로 남고 주문 수: 3이에요. isFree는 아직 늘 false예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        return false; // 이 주문의 금액을 공유 기준과 비교하도록 고치세요.",
+      "after": "        // 이 주문의 금액을 모든 주문이 쓰는 기준과 비교해요.\n        return amount >= freeFrom;",
+      "say": "isFree는 이 주문의 금액을 공유 기준 freeFrom과 비교해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        30,
+        32
+      ]
+    },
+    {
+      "action": "say",
+      "text": "25000 true, 9000 false, 주문 수: 3이에요. 요구한 세 줄이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 생성자에서 created = 1로 쓰면 주문을 몇 개 만들어도 1이에요.",
+      "target": "code:created = created + 1;"
+    },
+    {
+      "action": "patch_code",
+      "before": "int extra = 1;",
+      "after": "int extra = 3;",
+      "say": "추가 주문 수를 3으로 바꿔 카운터를 확인해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        30,
+        32
+      ]
+    },
+    {
+      "action": "say",
+      "text": "주문 수: 5예요. 두 주문과 추가 세 주문을 모두 셌어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "int extra = 3;",
+      "after": "int extra = 1;",
+      "say": "준비된 수로 되돌려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        30,
+        32
+      ]
+    },
+    {
+      "action": "say",
+      "text": "다시 주문 수: 3이에요. 채점은 금액과 추가 수를 바꿔서도 실행해요.",
+      "target": "output"
+    }
+  ]
+}

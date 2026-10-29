@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "d229c8d480aa0f2ea730bd273367881e1c2f999a90a189058934f96f4e45bacf",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 수치 목표의 범위에 맞는 출력과 회귀 손실을 함께 선택해요.",
+      "target": "text:수치 목표의 범위에 맞는 출력과 회귀 손실을 함께 선택해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        18,
+        20
+      ]
+    },
+    {
+      "action": "say",
+      "text": "음수 시간이 나오고 평가 손실도 이진 분류용으로 잡혀 있어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "activation=\"linear\"",
+      "after": "activation=\"relu\"",
+      "say": "시간이 음수가 되지 않도록 출력 활성화를 고치세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        18,
+        20
+      ]
+    },
+    {
+      "action": "say",
+      "text": "음수는 0이 됐어요. 시간 오차를 세는 회귀 손실도 맞춰야 해요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "loss=\"binary_crossentropy\"",
+      "after": "loss=\"mse\"",
+      "say": "회귀의 평균 제곱 오차로 평가하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        18,
+        20
+      ]
+    },
+    {
+      "action": "say",
+      "text": "목표 범위에 맞는 출력과 MSE를 같은 배송에서 확인했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. sigmoid로 시간을 막으면 1분보다 큰 목표도 0과 1 사이로 눌려요.",
+      "target": "code:loss=\"mse\""
+    }
+  ]
+}

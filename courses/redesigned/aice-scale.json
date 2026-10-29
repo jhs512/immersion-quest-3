@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_24869af7-1bf9-4ed8-94de-7ee508aa9a15",
-  "revision": "aice-scale-5",
+  "revision": "aice-scale-6",
   "title": "훈련에서 배운 전처리 기준을 적용해요",
   "description": "같은 훈련 기준을 새 배송 입력에 적용하며 경계 정책을 비교해요.",
   "objectives": [
@@ -106,6 +106,22 @@
               "id": "stp_8e6b11a1-1786-49e8-bd17-1daa2618d8ee",
               "objectives": [
                 "fit한 스케일러를 평가에서 다시학습하지 않고 적용해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_06c8dac5-6b37-468b-9e65-61ff8ef9b80f",
+          "title": "마지막 도전",
+          "objectives": [
+            "빈칸 처리와 표준화를 훈련에서 학습하고 평가에는 변환만 적용해요."
+          ],
+          "premise": "훈련 자료에서 거리 평균을 배워 빈칸을 채우고 표준화해요. 평가 자료는 기준을 다시 배우지 않고 변환만 해요. 현재 훈련 거리의 평균은 2예요. 평가의 빈칸은 중심으로, 8은 중심보다 큰 값으로 바뀌어야 해요.",
+          "steps": [
+            {
+              "id": "stp_d9e36990-e641-4647-b0f0-ea0bdc24acf5",
+              "objectives": [
+                "빈칸 처리와 표준화를 훈련에서 학습하고 평가에는 변환만 적용해요."
               ]
             }
           ]
@@ -802,6 +818,87 @@
         }
       ],
       "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"train_values\": [[2], [4]], \"test_values\": [[8], [2]]}, \"expected\": \"[[5.0], [-1.0]]\"}, {\"values\": {\"train_values\": [[5], [5]], \"test_values\": [[7]]}, \"expected\": \"[[2.0]]\"}, {\"values\": {\"train_values\": [[0, 10], [2, 14]], \"test_values\": [[10, 20]]}, \"expected\": \"[[9.0, 4.0]]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_d9e36990-e641-4647-b0f0-ea0bdc24acf5",
+      "title": "훈련 평균으로 채운 뒤 같은 척도로 바꾸세요",
+      "language": "python",
+      "goal": "빈칸 처리와 표준화를 훈련에서 학습하고 평가에는 변환만 적용해요.\n\n훈련 자료에서 거리 평균을 배워 빈칸을 채우고 표준화해요. 평가 자료는 기준을 다시 배우지 않고 변환만 해요. 현재 훈련 거리의 평균은 2예요. 평가의 빈칸은 중심으로, 8은 중심보다 큰 값으로 바뀌어야 해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 훈련 평균으로 빈칸을 채우도록 바꾸세요.\n3. 평가 자료에서는 fit 없이 transform만 사용하세요.\n4. 다시 실행해 요구한 결과를 확인한 뒤 작성한 코드를 제출하세요.",
+      "starter_code": "import numpy as np\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler\n# 훈련과 평가는 이미 분리했어요. 한 열에 빈 값이 있어요.\ntrain_rows = [[0.0], [None], [4.0]]\ntest_rows = [[None], [8.0]]\n# 실제 숫자 배열로 바꿔 None을 빈 숫자 NaN으로 통일해요.\ntrain_rows = np.asarray(train_rows, dtype=float)\ntest_rows = np.asarray(test_rows, dtype=float)\nprep = Pipeline([(\"fill\", SimpleImputer(strategy=\"constant\", fill_value=0)), (\"scale\", StandardScaler())])\nprep.fit(train_rows)\nresult = prep.fit_transform(test_rows)\n# 확인용 출력: 학습한 빈칸 기준, 중심, 새 자료 변환 값이에요.\nprint(prep.named_steps[\"fill\"].statistics_.astype(float).round(6).tolist())\nprint(prep.named_steps[\"scale\"].mean_.round(6).tolist())\nprint(result.round(6).tolist())\n",
+      "solution": "import numpy as np\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler\n# 훈련과 평가는 이미 분리했어요. 한 열에 빈 값이 있어요.\ntrain_rows = [[0.0], [None], [4.0]]\ntest_rows = [[None], [8.0]]\n# 실제 숫자 배열로 바꿔 None을 빈 숫자 NaN으로 통일해요.\ntrain_rows = np.asarray(train_rows, dtype=float)\ntest_rows = np.asarray(test_rows, dtype=float)\nprep = Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())])\nprep.fit(train_rows)\nresult = prep.transform(test_rows)\n# 확인용 출력: 학습한 빈칸 기준, 중심, 새 자료 변환 값이에요.\nprint(prep.named_steps[\"fill\"].statistics_.astype(float).round(6).tolist())\nprint(prep.named_steps[\"scale\"].mean_.round(6).tolist())\nprint(result.round(6).tolist())\n",
+      "required": true,
+      "tests": [
+        {
+          "input": "",
+          "expected": "[2.0]\n[2.0]\n[[0.0], [3.674235]]"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "훈련 평균으로 채운 뒤 같은 척도로 바꾸는 문제예요.",
+          "target": "text:훈련 평균으로 채운 뒤 같은 척도로 바꾸세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 빈칸 처리와 표준화를 훈련에서 학습하고 평가에는 변환만 적용해요.",
+          "target": "text:빈칸 처리와 표준화를 훈련에서 학습하고 평가에는 변환만 적용해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "평가에서 다시 학습해 중심이 바뀌었어요. 빈칸 기준도 0으로 고정돼 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "SimpleImputer(strategy=\"constant\", fill_value=0)",
+          "after": "SimpleImputer(strategy=\"mean\")",
+          "say": "훈련 평균으로 빈칸을 채우도록 바꾸세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "빈칸 기준은 평균으로 바꿨어요. 평가에서 다시 fit하면 여전히 평가 기준이 돼요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "result = prep.fit_transform(test_rows)",
+          "after": "result = prep.transform(test_rows)",
+          "say": "평가 자료에서는 fit 없이 transform만 사용하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "훈련의 빈칸 기준과 중심이 2로 유지되고 새 거리만 변환됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. fit_transform을 평가 자료에 쓰면 훈련 기준을 지운 뒤 새 기준을 배워요.",
+          "target": "code:result = prep.transform(test_rows)"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nimport uuid\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"train_rows\": [[0.0], [null], [4.0]]}, \"expected\": \"[2.0]\\\\n[2.0]\\\\n[[0.0], [3.674235]]\"}, {\"values\": {\"train_rows\": [[0.0], [null], [2.0]], \"test_rows\": [[null], [3.0]]}, \"expected\": \"[1.0]\\\\n[1.0]\\\\n[[0.0], [2.44949]]\"}, {\"values\": {\"train_rows\": [[2.0], [null], [6.0]], \"test_rows\": [[4.0], [null]]}, \"expected\": \"[4.0]\\\\n[4.0]\\\\n[[0.0], [0.0]]\"}, {\"values\": {\"train_rows\": [[0.0], [null], [2.0], [10.0]], \"test_rows\": [[null], [8.0]]}, \"expected\": \"[4.0]\\\\n[4.0]\\\\n[[0.0], [1.069045]]\"}]')\nprobe = 'import numpy as np\\nassert np.allclose(prep.named_steps[\"fill\"].statistics_.astype(float), np.nanmean(np.asarray(train_rows,dtype=float),axis=0))'\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    witness = uuid.uuid4().hex\n    tree.body.extend(ast.parse(probe).body)\n    tree.body.extend(ast.parse('print(' + repr(witness) + ')').body)\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=30)\n    lines = result.stdout.strip().splitlines()\n    if not lines or lines[-1] != witness:\n        raise AssertionError('실제 실행 상태의 검사까지 끝나야 해요.')\n    output = '\\n'.join(lines[:-1]).strip()\n    if result.returncode != 0 or output != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     }
   ]
 }

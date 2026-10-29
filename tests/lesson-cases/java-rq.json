@@ -49,6 +49,13 @@
   [
    "0",
    "12"
+  ],
+  [
+   "list?page=2&keyword=java\n전체\n1",
+   "list\njava\n2",
+   "list\na\n1",
+   "list\na=b\n1",
+   "list\njava\n2"
   ]
  ],
  "reject": [
@@ -181,6 +188,46 @@
     ]
    ],
    "reason": "중복 id를 덮어쓰면 안 돼요"
+  },
+  {
+   "step": 13,
+   "replacements": [
+    [
+     "String[] pair = part.split(\"=\", 2);",
+     "String[] pair = part.split(\"=\");"
+    ]
+   ],
+   "reason": "Splitting every = loses a=b and the empty value"
+  },
+  {
+   "step": 13,
+   "replacements": [
+    [
+     ".collect(Collectors.toMap(pair -> pair[0], pair -> pair[1], Rq::duplicate));",
+     ".collect(Collectors.toMap(pair -> pair[0], pair -> pair[1], (a, b) -> b));"
+    ]
+   ],
+   "reason": "A repeated name must be refused"
+  },
+  {
+   "step": 13,
+   "replacements": [
+    [
+     "if (pair.length != 2 || pair[0].isBlank())",
+     "if (pair[0].isBlank())"
+    ]
+   ],
+   "reason": "A condition without = must be refused"
+  },
+  {
+   "step": 13,
+   "replacements": [
+    [
+     "return params.getOrDefault(name, fallback);",
+     "return params.getOrDefault(name, \"\").isEmpty() ? fallback : params.get(name);"
+    ]
+   ],
+   "reason": "An empty value is kept, not replaced"
   }
  ],
  "accept": [
@@ -253,6 +300,16 @@
     ]
    ],
    "reason": "문자등호를인용해도돼요"
+  },
+  {
+   "step": 13,
+   "replacements": [
+    [
+     "            .map(Rq::pair)\n            .collect(Collectors.toMap(pair -> pair[0], pair -> pair[1], Rq::duplicate));",
+     "            .map(Rq::pair)\n            .collect(Collectors.toMap(pair -> pair[0], pair -> pair[1], Rq::duplicate, LinkedHashMap::new));"
+    ]
+   ],
+   "reason": "Another map type with the same rules"
   }
  ]
 }

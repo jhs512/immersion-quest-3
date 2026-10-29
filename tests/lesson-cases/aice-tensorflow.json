@@ -29,6 +29,11 @@
     [
       "",
       "[[2.0], [3.0]]"
+    ],
+    [
+      "",
+      "[2]\n[3, 2]\nTrue",
+      "[2]\n[3, 1]\nTrue"
     ]
   ],
   "reject": [
@@ -55,6 +60,38 @@
         ]
       ],
       "reason": "A manual row sum must not replace correcting the actual model input shape"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "shape=(features,)",
+          "shape=(len(rows),)"
+        ]
+      ],
+      "reason": "Batch length is not feature count"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "keras.layers.Dense(1,",
+          "keras.layers.Dense(2,"
+        ]
+      ],
+      "reason": "A scalar target needs one output"
+    }
+  ],
+  "accept": [
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "shape=(features,)",
+          "shape=(len(rows[0]),)"
+        ]
+      ],
+      "reason": "Reading the actual row width is equivalent"
     }
   ]
 }

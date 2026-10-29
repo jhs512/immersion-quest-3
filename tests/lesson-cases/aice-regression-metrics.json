@@ -28,6 +28,11 @@
     [
       "2.0",
       "12.0"
+    ],
+    [
+      "16.0\n290.666667\n-3.36",
+      "2.666667\n10.666667\n0.84",
+      "2.666667\n3.265986\n0.84"
     ]
   ],
   "reject": [
@@ -60,6 +65,38 @@
         ]
       ],
       "reason": "MAE does not weight the large error more heavily"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "predicted.reindex(actual.index)",
+          "predicted"
+        ]
+      ],
+      "reason": "Stored order is not observation identity"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "mean_squared_error(actual, aligned) ** 0.5",
+          "mean_squared_error(actual, aligned)"
+        ]
+      ],
+      "reason": "MSE has squared units"
+    }
+  ],
+  "accept": [
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "mean_squared_error(actual, aligned) ** 0.5",
+          "float(mean_squared_error(actual, aligned)) ** (1/2)"
+        ]
+      ],
+      "reason": "Equivalent square root"
     }
   ]
 }

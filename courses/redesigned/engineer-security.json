@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_99e3d923-54b6-4898-9449-49de2d2345d9",
-  "revision": "engineer-security-5",
+  "revision": "engineer-security-6",
   "title": "보안 · 같은 재고 서비스의 경계를 지켜요",
   "description": "같은 업무 상황의 조건과 대안을 비교해 원리를 판단해요.",
   "objectives": [
@@ -155,6 +155,22 @@
               "id": "stp_7b1ba9ef-2dbc-4c91-b9fb-92b55765ef07",
               "objectives": [
                 "취약점 수정 뒤 영향을 확인해요"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_d5aae556-b52a-4aa5-bd51-f53b2ed5fb1a",
+          "title": "마지막 도전",
+          "objectives": [
+            "신원·권한·입력 바인딩을 서로 다른 보안 경계에 적용해요."
+          ],
+          "premise": "로그인 토큰으로 요청자의 신원을 확인했어요. 그런데 A가 B의 주문 ID를 URL에 넣어 조회를 시도해요. 검색어는 SELECT ... WHERE name = ?의 자리표시자에 값으로 바인딩해요. 각 질문에는 보안 개념의 이름을 적으세요.",
+          "steps": [
+            {
+              "id": "stp_f46227a0-03c2-45de-a669-e8cc41328e4b",
+              "objectives": [
+                "신원·권한·입력 바인딩을 서로 다른 보안 경계에 적용해요."
               ]
             }
           ]
@@ -865,6 +881,88 @@
           "id": "verify"
         }
       ]
+    },
+    {
+      "language": "python",
+      "goal": "신원·권한·입력 바인딩을 서로 다른 보안 경계에 적용해요.\n\n로그인 토큰으로 요청자의 신원을 확인했어요. 그런데 A가 B의 주문 ID를 URL에 넣어 조회를 시도해요. 검색어는 SELECT ... WHERE name = ?의 자리표시자에 값으로 바인딩해요. 각 질문에는 보안 개념의 이름을 적으세요.\n\n**토큰으로 요청자가 누구인지 확인하는 절차는?**\n**확인된 사용자가 해당 주문을 읽을 권리가 있는지 검사하는 절차는?**\n**검색어를 SQL 문법과 분리해 값으로 바인딩하여 방어하는 대표 공격은?**\n\n**할 일**\n\n1. 주어진 자료와 조건을 먼저 읽으세요.\n2. 각 답안 칸의 질문에 맞춰 값이나 용어를 적으세요.\n3. 세 답안을 모두 확인하고 제출하세요.",
+      "starter_code": "",
+      "solution": "{\"identity\": \"인증\", \"access\": \"인가\", \"injection\": \"SQL 인젝션\"}",
+      "tests": [],
+      "interaction": {
+        "kind": "fill_fields",
+        "fields": [
+          {
+            "id": "identity",
+            "label": "토큰으로 요청자가 누구인지 확인하는 절차는?",
+            "accepted": [
+              "인증",
+              "authentication",
+              "AUTHENTICATION"
+            ]
+          },
+          {
+            "id": "access",
+            "label": "확인된 사용자가 해당 주문을 읽을 권리가 있는지 검사하는 절차는?",
+            "accepted": [
+              "인가",
+              "authorization",
+              "AUTHORIZATION",
+              "권한 검사",
+              "권한검사"
+            ]
+          },
+          {
+            "id": "injection",
+            "label": "검색어를 SQL 문법과 분리해 값으로 바인딩하여 방어하는 대표 공격은?",
+            "accepted": [
+              "SQL 인젝션",
+              "sql 인젝션",
+              "SQL인젝션",
+              "SQL injection",
+              "sql injection",
+              "SQL INJECTION",
+              "SQLinjection",
+              "SQL 삽입",
+              "sql 삽입",
+              "SQL삽입"
+            ]
+          }
+        ]
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "주문 조회 경계에서 보안 검사를 구별하는 문제예요.",
+          "target": "text:주문 조회 경계에서 보안 검사를 구별하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 신원·권한·입력 바인딩을 서로 다른 보안 경계에 적용해요.",
+          "target": "text:신원·권한·입력 바인딩을 서로 다른 보안 경계에 적용해요."
+        },
+        {
+          "action": "say",
+          "text": "토큰으로 신원을 확인하는 것은 인증이에요.",
+          "target": "text:토큰으로 요청자가 누구인지 확인하는 절차는?"
+        },
+        {
+          "action": "say",
+          "text": "신원 확인과 별도로 해당 주문에 접근할 권한을 검사하는 절차가 인가예요.",
+          "target": "text:확인된 사용자가 해당 주문을 읽을 권리가 있는지 검사하는 절차는?"
+        },
+        {
+          "action": "say",
+          "text": "자리표시자에 값으로 바인딩하면 입력이 SQL 문법으로 결합되지 않아요. SQL 인젝션을 막는 핵심 방법이에요.",
+          "target": "text:검색어를 SQL 문법과 분리해 값으로 바인딩하여 방어하는 대표 공격은?"
+        },
+        {
+          "action": "fill_answer",
+          "value": "{\"identity\": \"인증\", \"access\": \"인가\", \"injection\": \"SQL 인젝션\"}"
+        }
+      ],
+      "id": "stp_f46227a0-03c2-45de-a669-e8cc41328e4b",
+      "title": "주문 조회 경계에서 보안 검사를 구별하세요",
+      "required": true
     }
   ]
 }

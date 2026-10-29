@@ -22,8 +22,8 @@ fn every_registered_lesson_opens_through_the_real_isolated_transport() {
             if row.key=="git-remote" {assert_eq!(config["studentCommands"].as_array().unwrap().len(),22);}
         }
     }
-    // The withdrawn CS lessons stay absent; fourteen new principle lessons have distinct IDs.
-    assert_eq!(steps,871);
+    // Includes the published final challenges; the deferred GitHub challenge stays absent.
+    assert_eq!(steps,1020);
     assert!(lesson_registry::self_test_script("unknown-course").is_none());
     assert!(pilot_source::set_version('!').is_err());
     pilot_source::set_version('a').unwrap();

@@ -42,9 +42,9 @@ fn play(practice:&GitPractice,shell:&mut SetupTerminal,output:&mut tokio::sync::
 fn real_vim_checks_modes_buffers_cursor_undo_search_saving_and_exit_live() {
     let manifest=CourseManifest::parse(include_str!("fixtures/player-pilot/브/course.json")).unwrap();
     let lesson=Lesson::parse(include_str!("../courses/redesigned/vim-basics.json"),&manifest.lessons[0]).unwrap();
-    assert_eq!(lesson.tasks.len(),14);
+    assert_eq!(lesson.tasks.len(),15);// The last step is the separately started final challenge (tests/final_terminal_challenges.rs).
     let root=tempfile::tempdir().unwrap();let store=GitPracticeStore::new(root.path()).unwrap();let mut previous_root=None;
-    for (index,task) in lesson.tasks.iter().enumerate() {
+    for (index,task) in lesson.tasks[..14].iter().enumerate() {
         let exercise=task.git_terminal.clone().unwrap();let scope=exercise.workspace_scope("user:course:vim:full");
         let student=store.open(&scope,exercise.clone()).unwrap();
         if let Some(path)=&previous_root{assert_eq!(student.root(),path);}

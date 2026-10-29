@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_5dcde321-f446-425b-970b-b46839c2ca0c",
-  "revision": "java-files-7",
+  "revision": "java-files-8",
   "title": "글을 파일에 남기고 실패도 처리해요",
   "description": "같은 짧은 글에서 저장·실패·정리를 하나씩 확인해요.",
   "objectives": [
@@ -109,6 +109,22 @@
               "id": "stp_1673f0d6-395a-46a3-9d92-0fe10f7d0950",
               "objectives": [
                 "추가 저장을 실제 파일 내용으로 검증해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_2c9f4b85-7d16-4e3a-9f50-1b8a6d27e3c9",
+          "title": "마지막 도전",
+          "objectives": [
+            "저장·읽기·실패 처리를 한 프로그램에서 함께 써요."
+          ],
+          "premise": "방문 기록 파일이 준비돼 있어요. 출력 두 줄은 준비돼 있어요.",
+          "steps": [
+            {
+              "id": "stp_7a5d3e18-6f92-4c4b-a0d7-2b8e1c96f43d",
+              "objectives": [
+                "기존 파일을 보존하며 저장하고, 잘못된 줄이 있어도 나머지를 계속 처리해요."
               ]
             }
           ]
@@ -1038,6 +1054,141 @@
       "expected_files": {
         "quotes.txt": "시작\n다음\n"
       }
+    },
+    {
+      "id": "stp_7a5d3e18-6f92-4c4b-a0d7-2b8e1c96f43d",
+      "title": "방문 기록을 덧붙이고 잘못된 줄을 건너뛰며 합계를 내세요",
+      "language": "java",
+      "goal": "자, 마지막 도전이에요. 방문 기록 파일 visits.txt에 오늘의 방문 수 today를 한 줄로 덧붙여요. 지난 기록은 그대로 남아야 해요.\n\n그다음 파일의 모든 줄을 읽어 숫자인 줄은 더하고, 숫자가 아닌 줄은 세요. 준비 파일에는 100, 오류, 30 세 줄이 있어요. 그래서 `합계: 250`과 `잘못된 줄: 1`이 나와야 하고, 실행 뒤 파일 끝에는 120 줄이 더해져 있어야 해요. 채점은 다른 기록 파일과 다른 today로도 실행하고, 실행 뒤 파일 내용도 확인해요.\n\n**할 일**\n\n1. visits.txt를 UTF-8로 모든 줄 읽어 숫자인 줄은 total에 더하고 아닌 줄은 invalid로 세는 코드를 쓰세요.\n2. 코드 실행 버튼을 눌러 지금 파일의 합계를 확인하세요.\n3. 지난 기록을 남긴 채 today를 한 줄로 덧붙이는 코드를 읽기 코드 앞에 쓰세요.\n4. 코드 실행 버튼을 눌러 두 줄이 요구와 같은지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "starter_code": "import java.nio.file.*;\nimport java.nio.charset.StandardCharsets;\n\npublic class Main {\n    public static void main(String[] args) throws Exception {\n        Path path = Path.of(\"visits.txt\");\n        // 오늘의 방문 수예요. 기록 파일에 한 줄로 남겨야 해요.\n        String today = \"120\";\n        int total = 0;\n        int invalid = 0;\n        // 여기에 기존 기록을 남긴 채 today를 한 줄로 덧붙이세요.\n        // 여기에 파일의 모든 줄을 읽어 숫자인 줄은 total에 더하고, 숫자가 아닌 줄은 invalid로 세세요.\n        System.out.println(\"합계: \" + total);\n        System.out.println(\"잘못된 줄: \" + invalid);\n    }\n}\n",
+      "solution": "import java.nio.file.*;\nimport java.nio.charset.StandardCharsets;\n\npublic class Main {\n    public static void main(String[] args) throws Exception {\n        Path path = Path.of(\"visits.txt\");\n        // 오늘의 방문 수예요. 기록 파일에 한 줄로 남겨야 해요.\n        String today = \"120\";\n        int total = 0;\n        int invalid = 0;\n        // APPEND는 기존 내용 뒤에 이어 써요. 없으면 파일 전체를 바꿔요.\n        Files.writeString(path, today + \"\\n\", StandardCharsets.UTF_8, StandardOpenOption.APPEND);\n        for (String line : Files.readAllLines(path, StandardCharsets.UTF_8)) {\n            // 한 줄의 실패가 다음 줄의 계산을 막지 않도록 줄마다 처리해요.\n            try {\n                total += Integer.parseInt(line.strip());\n            } catch (NumberFormatException error) {\n                invalid++;\n            }\n        }\n        System.out.println(\"합계: \" + total);\n        System.out.println(\"잘못된 줄: \" + invalid);\n    }\n}\n",
+      "required": true,
+      "tests": [
+        {
+          "input": "",
+          "expected": "합계: 250\n잘못된 줄: 1"
+        }
+      ],
+      "files": {
+        "visits.txt": "100\n오류\n30\n"
+      },
+      "expected_files": {
+        "visits.txt": "100\n오류\n30\n120\n"
+      },
+      "variations": [
+        {
+          "values": {
+            "today": "\"5\""
+          },
+          "expected": "합계: 135\n잘못된 줄: 1",
+          "expected_files": {
+            "visits.txt": "100\n오류\n30\n5\n"
+          }
+        },
+        {
+          "files": {
+            "visits.txt": ""
+          },
+          "expected": "합계: 120\n잘못된 줄: 0",
+          "expected_files": {
+            "visits.txt": "120\n"
+          }
+        },
+        {
+          "files": {
+            "visits.txt": "x\n7\ny\n"
+          },
+          "expected": "합계: 127\n잘못된 줄: 2",
+          "expected_files": {
+            "visits.txt": "x\n7\ny\n120\n"
+          }
+        },
+        {
+          "values": {
+            "today": "\"없음\""
+          },
+          "expected": "합계: 130\n잘못된 줄: 2",
+          "expected_files": {
+            "visits.txt": "100\n오류\n30\n없음\n"
+          }
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "방문 기록을 덧붙이고 잘못된 줄을 건너뛰며 합계를 내는 문제예요.",
+          "target": "text:방문 기록을 덧붙이고 잘못된 줄을 건너뛰며 합계를 내세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 방문 기록 파일에 오늘 줄을 덧붙이고, 파일 전체로 합계를 내요.",
+          "target": "text:지난 기록은 그대로 남아야 해요."
+        },
+        {
+          "action": "say",
+          "text": "준비된 visits.txt에는 100, 오류, 30 세 줄이 있어요. 오류 줄은 숫자가 아니에요.",
+          "target": "text:100, 오류, 30"
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 여기에 파일의 모든 줄을 읽어 숫자인 줄은 total에 더하고, 숫자가 아닌 줄은 invalid로 세세요.",
+          "after": "        for (String line : Files.readAllLines(path, StandardCharsets.UTF_8)) {\n            // 한 줄의 실패가 다음 줄의 계산을 막지 않도록 줄마다 처리해요.\n            try {\n                total += Integer.parseInt(line.strip());\n            } catch (NumberFormatException error) {\n                invalid++;\n            }\n        }",
+          "say": "먼저 읽는 부분이에요. 줄마다 try를 두어 잘못된 줄을 세고 다음 줄로 가요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            20,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "합계: 130, 잘못된 줄: 1이에요. 아직 오늘 줄을 쓰지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 여기에 기존 기록을 남긴 채 today를 한 줄로 덧붙이세요.",
+          "after": "        // APPEND는 기존 내용 뒤에 이어 써요. 없으면 파일 전체를 바꿔요.\n        Files.writeString(path, today + \"\\n\", StandardCharsets.UTF_8);",
+          "say": "오늘 줄을 써 볼게요. 먼저 옵션 없이 써 봐요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            21,
+            22
+          ]
+        },
+        {
+          "action": "say",
+          "text": "합계: 120, 잘못된 줄: 0이에요. 지난 기록이 지워지고 오늘 줄만 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        // APPEND는 기존 내용 뒤에 이어 써요. 없으면 파일 전체를 바꿔요.\n        Files.writeString(path, today + \"\\n\", StandardCharsets.UTF_8);",
+          "after": "        // APPEND는 기존 내용 뒤에 이어 써요. 없으면 파일 전체를 바꿔요.\n        Files.writeString(path, today + \"\\n\", StandardCharsets.UTF_8, StandardOpenOption.APPEND);",
+          "say": "기존 내용 뒤에 이어 쓰도록 APPEND 옵션을 더해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            21,
+            22
+          ]
+        },
+        {
+          "action": "say",
+          "text": "합계: 250, 잘못된 줄: 1이에요. 100, 30, 120을 더했고 오류 줄만 셌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. try를 반복 바깥에 두면 오류 줄에서 반복이 끝나 뒤의 30과 120을 더하지 못해요.",
+          "target": "code:total += Integer.parseInt(line.strip());"
+        }
+      ]
     }
   ],
   "learning_strategy": "각 스텝에 제공된 코드를 먼저 읽어요. 바꾸거나 실행할 부분을 하나씩 확인해요. 실행 결과를 예상과 비교한 뒤 제출해요. 해설은 내 답안을 보존한 채 별도로 진행해요."

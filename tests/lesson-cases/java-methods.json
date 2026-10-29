@@ -38,6 +38,13 @@
    "0",
    "2500",
    "0"
+  ],
+  [
+   "결제 금액: 2500",
+   "결제 금액: 9500",
+   "결제 금액: 12500",
+   "결제 금액: 10000",
+   "결제 금액: 9500"
   ]
  ],
  "reject": [
@@ -174,6 +181,46 @@
     ]
    ],
    "reason": "The free-from amount itself must be free"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "            result = result + price;\n        }",
+     "            result = result + price;\n            return result;\n        }"
+    ]
+   ],
+   "reason": "Returning inside the loop sums only the first price"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "amount >= freeFrom",
+     "amount > freeFrom"
+    ]
+   ],
+   "reason": "A total equal to the limit is free"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "(amount + shipping(amount, freeFrom))",
+     "(amount + 2500)"
+    ]
+   ],
+   "reason": "main must use shipping"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "int amount = sum(prices);",
+     "int amount = 7000;"
+    ]
+   ],
+   "reason": "main must use sum"
   }
  ],
  "accept": [
@@ -236,6 +283,16 @@
     ]
    ],
    "reason": "Compound addition"
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "        if (amount >= freeFrom) {\n            return 0;\n        }\n        return 2500;",
+     "        return amount >= freeFrom ? 0 : 2500;"
+    ]
+   ],
+   "reason": "A conditional expression returns the same fees"
   }
  ]
 }

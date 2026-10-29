@@ -612,6 +612,86 @@
         "delivery.csv": "order_id,distance,zone,minutes\n101,1,north,10\n102,2,north,20\n103,3,south,30\n104,4,south,40\n105,5,north,50\n106,6,south,60\n",
         "new.csv": "order_id,distance,zone\n201,2,north\n202,,west\n203,8,south\n"
       }
+    },
+    {
+      "id": "stp_86d1f031-ffaa-4e3d-8aef-d112f66496fd",
+      "title": "처음 보는 지역도 예측하고 주문번호와 함께 내보내세요",
+      "language": "python",
+      "goal": "훈련 기준의 전처리·추론과 원래 주문번호를 지킨 결과 CSV를 연결해요.\n\ndelivery.csv로 전처리와 회귀를 함께 학습해요. new.csv에는 처음 보는 지역도 있어요. 그 지역의 표시 열은 0으로 두고 실행을 이어가요. 결과 CSV의 id는 새 배송의 원래 id를 보존해야 해요. 번호를 새로 0부터 만들지 마세요. 다른 배송 파일로도 검사해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 처음 보는 지역도 변환을 이어가도록 범주 처리 정책을 고치세요.\n3. 예측 결과를 새 배송의 원래 주문번호와 연결하세요.\n4. 다시 실행해 요구한 결과를 확인한 뒤 작성한 코드를 제출하세요.",
+      "starter_code": "import pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n# 제공된 두 파일을 읽어요. 주문번호는 예측 뒤 원래 배송과 연결할 때 써요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ntrain = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\npreprocess = ColumnTransformer([\n    (\"num\",Pipeline([(\"fill\",SimpleImputer()),(\"scale\",StandardScaler())]),[\"distance\"]),\n    (\"cat\",OneHotEncoder(handle_unknown=\"error\",sparse_output=False),[\"zone\"])])\npipeline = Pipeline([(\"prep\",preprocess),(\"model\",LinearRegression())])\npipeline.fit(train[[\"distance\",\"zone\"]],train[\"minutes\"])\npredictions = pipeline.predict(new[[\"distance\",\"zone\"]])\nresult = pd.DataFrame({\"id\":range(len(new)),\"minutes\":predictions.round(6)})\nprint(result.to_csv(index=False,lineterminator=\"\\n\").strip())\n",
+      "solution": "import pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n# 제공된 두 파일을 읽어요. 주문번호는 예측 뒤 원래 배송과 연결할 때 써요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ntrain = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\npreprocess = ColumnTransformer([\n    (\"num\",Pipeline([(\"fill\",SimpleImputer()),(\"scale\",StandardScaler())]),[\"distance\"]),\n    (\"cat\",OneHotEncoder(handle_unknown=\"ignore\",sparse_output=False),[\"zone\"])])\npipeline = Pipeline([(\"prep\",preprocess),(\"model\",LinearRegression())])\npipeline.fit(train[[\"distance\",\"zone\"]],train[\"minutes\"])\npredictions = pipeline.predict(new[[\"distance\",\"zone\"]])\nresult = pd.DataFrame({\"id\":new[\"id\"],\"minutes\":predictions.round(6)})\nprint(result.to_csv(index=False,lineterminator=\"\\n\").strip())\n",
+      "required": true,
+      "tests": [
+        {
+          "input": "",
+          "expected": "id,minutes\n501,30.0\n502,35.0"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 훈련 기준의 전처리·추론과 원래 주문번호를 지킨 결과 CSV를 연결해요.",
+          "target": "text:훈련 기준의 전처리·추론과 원래 주문번호를 지킨 결과 CSV를 연결해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            19
+          ],
+          "expect_error": "ValueError"
+        },
+        {
+          "action": "say",
+          "text": "새 지역 c가 훈련에 없어 변환을 중단했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "handle_unknown=\"error\"",
+          "after": "handle_unknown=\"ignore\"",
+          "say": "처음 보는 지역도 변환을 이어가도록 범주 처리 정책을 고치세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "새 지역도 예측했지만 결과의 주문번호가 0, 1로 바뀌었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "\"id\":range(len(new))",
+          "after": "\"id\":new[\"id\"]",
+          "say": "예측 결과를 새 배송의 원래 주문번호와 연결하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "예측을 원래 주문 501, 502와 연결한 CSV가 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 결과에 새 번호를 붙이면 어느 주문의 예측인지 원래 파일과 연결하기 어려워요.",
+          "target": "code:\"id\":new[\"id\"]"
+        }
+      ],
+      "files": {
+        "delivery.csv": "id,distance,zone,minutes\n1,1,a,10\n2,2,a,20\n3,1,b,20\n4,2,b,30\n",
+        "new.csv": "id,distance,zone\n501,3,a\n502,3,c\n"
+      }
     }
   ],
   "presentation": {
@@ -640,6 +720,12 @@
           "예측과 원래 관측·전처리 기준을 함께 보존해요."
         ],
         "premise": "같은 두 파일로 설정을 비교하고 신경망도 연결해요. 마지막에는 새 예측을 전달하고 전체 추론 기준을 보관해요."
+      },
+      "unt_f5d62d61-f2eb-4112-8b9f-e873f9f7aa99": {
+        "objectives": [
+          "훈련 기준의 전처리·추론과 원래 주문번호를 지킨 결과 CSV를 연결해요."
+        ],
+        "premise": "delivery.csv로 전처리와 회귀를 함께 학습해요. new.csv에는 처음 보는 지역도 있어요. 그 지역의 표시 열은 0으로 두고 실행을 이어가요. 결과 CSV의 id는 새 배송의 원래 id를 보존해야 해요. 번호를 새로 0부터 만들지 마세요. 다른 배송 파일로도 검사해요."
       }
     }
   },
@@ -733,9 +819,69 @@
         },
         "expected": "[70.0]"
       }
+    ],
+    "stp_86d1f031-ffaa-4e3d-8aef-d112f66496fd": [
+      {
+        "values": {
+          "new_rows": {
+            "id": [
+              501,
+              502
+            ],
+            "distance": [
+              3,
+              3
+            ],
+            "zone": [
+              "a",
+              "c"
+            ]
+          }
+        },
+        "expected": "id,minutes\n501,30.0\n502,35.0"
+      },
+      {
+        "values": {
+          "new_rows": {
+            "id": [
+              10,
+              11
+            ],
+            "distance": [
+              4,
+              5
+            ],
+            "zone": [
+              "b",
+              "a"
+            ]
+          }
+        },
+        "expected": "id,minutes\n10,50.0\n11,50.0"
+      },
+      {
+        "values": {
+          "new_rows": {
+            "id": [
+              900
+            ],
+            "distance": [
+              null
+            ],
+            "zone": [
+              "a"
+            ]
+          }
+        },
+        "expected": "id,minutes\n900,15.0"
+      }
     ]
   },
   "prepared_probes": {
-    "stp_1cab4402-8429-4516-858b-3f01a74c1133": "assert np.isclose(pipeline.named_steps[\"prep\"].named_transformers_[\"num\"].named_steps[\"fill\"].statistics_[0], df[\"distance\"].mean()), \"훈련 자료의 전처리 기준을 보존하세요.\""
+    "stp_1cab4402-8429-4516-858b-3f01a74c1133": "assert np.isclose(pipeline.named_steps[\"prep\"].named_transformers_[\"num\"].named_steps[\"fill\"].statistics_[0], df[\"distance\"].mean()), \"훈련 자료의 전처리 기준을 보존하세요.\"",
+    "stp_86d1f031-ffaa-4e3d-8aef-d112f66496fd": "assert result[\"id\"].tolist() == new[\"id\"].tolist()\nassert pipeline.named_steps[\"prep\"].named_transformers_[\"cat\"].categories_[0].tolist() == sorted(train[\"zone\"].unique())"
+  },
+  "prepared_task_timeout_seconds": {
+    "stp_86d1f031-ffaa-4e3d-8aef-d112f66496fd": 30
   }
 }

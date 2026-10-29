@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_e75780e4-158a-4f26-9ccf-1802cf796674",
-  "revision": "java-calculator-6",
+  "revision": "java-calculator-7",
   "title": "계산기 · 연산 순서와 괄호를 해석해요",
   "description": "정수와 덧셈·곱셈·괄호를 지원하는 작은 계산기예요. 같은 식에 조건 하나씩 더하고 잘못된 식을 거절해요.",
   "objectives": [
@@ -98,6 +98,22 @@
               "id": "stp_15cab80a-cf4c-4343-92a8-2d80d300912d",
               "objectives": [
                 "남은 입력을 거절하는 검사를 직접 넣어 전체 입력을 검증해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_6e3b9d27-5a14-4c8f-b2e6-8d7f1a03c495",
+          "title": "마지막 도전",
+          "objectives": [
+            "새 연산자를 알맞은 단계에 더해 우선순위와 계산 방향을 지켜요."
+          ],
+          "premise": "앞에서 완성한 계산기예요. 이번에는 바꿀 줄을 직접 찾아 고쳐요.",
+          "steps": [
+            {
+              "id": "stp_8f1a6c34-7e29-4d5b-a3c8-0b9d2e64f71a",
+              "objectives": [
+                "연산자의 우선순위 단계와 결합 방향을 코드 구조로 구현해요."
               ]
             }
           ]
@@ -923,6 +939,151 @@
         },
         {
           "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_8f1a6c34-7e29-4d5b-a3c8-0b9d2e64f71a",
+      "title": "뺄셈을 덧셈과 같은 단계에서 왼쪽부터 계산하세요",
+      "language": "java",
+      "goal": "자, 마지막 도전이에요. 계산기에 뺄셈 -를 더해요. 뺄셈은 덧셈과 같은 우선순위예요. 곱셈은 먼저 계산하고, 덧셈·뺄셈은 왼쪽부터 차례로 계산해요.\n\n준비 입력 `10-2*3`은 `4`예요. `10-2-3`은 `5`, `(10-2)*3`은 `24`, `5-10`은 `-5`예요. `2-`처럼 끝나지 않은 식과 `2+3x`처럼 남은 입력이 있는 식은 지금처럼 `invalid`예요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 지금 결과를 확인하세요.\n2. 덧셈 단계가 + 와 - 를 만나는 순서대로 계산하도록 반복을 고치세요.\n3. 실행 입력을 `10-2-3`으로 바꿔 실행하고 5가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "starter_code": "import java.util.Scanner;\n\nclass Calculator {\n    private final String text;\n    private int position;\n    Calculator(String text) { this.text = text; }\n    // 전체 입력을 다 읽었는지도 마지막에 확인해요.\n    int evaluate() {\n        int value = expression();\n        if (position != text.length()) throw new IllegalArgumentException(\"trailing\");\n        return value;\n    }\n    // 덧셈 단계는 먼저 완성된 곱셈 항끼리 계산해요.\n    private int expression() {\n        int value = term();\n        while (accept('+')) value += term(); // 뺄셈도 같은 단계에서 왼쪽부터 계산하도록 고치세요.\n        return value;\n    }\n    // 곱셈 항의 책임은 숫자나 괄호 결과를 곱하는 거예요.\n    private int term() {\n        int value = factor();\n        while (accept('*')) value *= factor();\n        return value;\n    }\n    private int factor() {\n        // 괄호 안에서는 같은 표현식 규칙을 다시 호출해요.\n        if (accept('(')) {\n            int value = expression();\n            if (!accept(')')) throw new IllegalArgumentException(\"close\");\n            return value;\n        }\n        int start = position;\n        // 이번 작은 문법의 숫자는 ASCII 정수예요.\n        while (position < text.length() && text.charAt(position) >= '0' && text.charAt(position) <= '9') position++;\n        if (start == position) throw new IllegalArgumentException(\"number\");\n        return Integer.parseInt(text.substring(start, position));\n    }\n    // 원하는 기호가 있을 때만 읽기 위치를 한 칸 옮겨요.\n    private boolean accept(char symbol) {\n        if (position < text.length() && text.charAt(position) == symbol) {\n            position++;\n            return true;\n        }\n        return false;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        // 계산기의 입력은 공백 없는 정수·덧셈·뺄셈·곱셈·괄호예요.\n        try {\n            String expression = new Scanner(System.in).nextLine();\n            System.out.println(new Calculator(expression).evaluate());\n        } catch (IllegalArgumentException error) {\n            System.out.println(\"invalid\");\n        }\n    }\n}\n",
+      "solution": "import java.util.Scanner;\n\nclass Calculator {\n    private final String text;\n    private int position;\n    Calculator(String text) { this.text = text; }\n    // 전체 입력을 다 읽었는지도 마지막에 확인해요.\n    int evaluate() {\n        int value = expression();\n        if (position != text.length()) throw new IllegalArgumentException(\"trailing\");\n        return value;\n    }\n    // 덧셈 단계는 먼저 완성된 곱셈 항끼리 계산해요.\n    private int expression() {\n        int value = term();\n        while (true) {\n            // 덧셈과 뺄셈은 같은 우선순위라 만나는 순서대로, 왼쪽부터 계산해요.\n            if (accept('+')) value += term();\n            else if (accept('-')) value -= term();\n            else return value;\n        }\n    }\n    // 곱셈 항의 책임은 숫자나 괄호 결과를 곱하는 거예요.\n    private int term() {\n        int value = factor();\n        while (accept('*')) value *= factor();\n        return value;\n    }\n    private int factor() {\n        // 괄호 안에서는 같은 표현식 규칙을 다시 호출해요.\n        if (accept('(')) {\n            int value = expression();\n            if (!accept(')')) throw new IllegalArgumentException(\"close\");\n            return value;\n        }\n        int start = position;\n        // 이번 작은 문법의 숫자는 ASCII 정수예요.\n        while (position < text.length() && text.charAt(position) >= '0' && text.charAt(position) <= '9') position++;\n        if (start == position) throw new IllegalArgumentException(\"number\");\n        return Integer.parseInt(text.substring(start, position));\n    }\n    // 원하는 기호가 있을 때만 읽기 위치를 한 칸 옮겨요.\n    private boolean accept(char symbol) {\n        if (position < text.length() && text.charAt(position) == symbol) {\n            position++;\n            return true;\n        }\n        return false;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        // 계산기의 입력은 공백 없는 정수·덧셈·뺄셈·곱셈·괄호예요.\n        try {\n            String expression = new Scanner(System.in).nextLine();\n            System.out.println(new Calculator(expression).evaluate());\n        } catch (IllegalArgumentException error) {\n            System.out.println(\"invalid\");\n        }\n    }\n}\n",
+      "required": true,
+      "tests": [
+        {
+          "input": "10-2*3",
+          "expected": "4"
+        },
+        {
+          "input": "10-2-3",
+          "expected": "5"
+        },
+        {
+          "input": "(10-2)*3",
+          "expected": "24"
+        },
+        {
+          "input": "5-10",
+          "expected": "-5"
+        },
+        {
+          "input": "8-(3+1)",
+          "expected": "4"
+        },
+        {
+          "input": "2-",
+          "expected": "invalid"
+        },
+        {
+          "input": "2+3x",
+          "expected": "invalid"
+        },
+        {
+          "input": "1+2*3-4",
+          "expected": "3"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "뺄셈을 덧셈과 같은 단계에서 왼쪽부터 계산하는 문제예요.",
+          "target": "text:뺄셈을 덧셈과 같은 단계에서 왼쪽부터 계산하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 계산기에 뺄셈을 더해요. 곱셈보다 늦게, 덧셈과 같은 순서로 계산해야 해요.",
+          "target": "text:뺄셈은 덧셈과 같은 우선순위"
+        },
+        {
+          "action": "say",
+          "text": "지금 덧셈 단계는 + 기호만 받아요. 준비 입력은 10-2*3이에요.",
+          "target": "code:while (accept('+')) value += term();"
+        },
+        {
+          "action": "run",
+          "lines": [
+            53,
+            53
+          ]
+        },
+        {
+          "action": "say",
+          "text": "invalid가 나와요. - 기호를 읽지 못해 10 뒤가 남은 입력이 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        while (accept('+')) value += term(); // 뺄셈도 같은 단계에서 왼쪽부터 계산하도록 고치세요.\n        return value;",
+          "after": "        while (true) {\n            if (accept('+')) value += term();\n            // 기호 뒤를 전체 식으로 읽으면 오른쪽부터 묶여요.\n            else if (accept('-')) value -= expression();\n            else return value;\n        }",
+          "say": "- 뒤를 다시 식 전체로 읽어 볼게요. 쉽게 떠올리는 방식이에요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            57,
+            57
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4가 나와요. 곱셈 2*3을 먼저 하고 10에서 뺐어요.",
+          "target": "output"
+        },
+        {
+          "action": "set_input",
+          "value": "10-2-3"
+        },
+        {
+          "action": "run",
+          "lines": [
+            57,
+            57
+          ]
+        },
+        {
+          "action": "say",
+          "text": "11이 나와요. 2-3을 먼저 묶어 10-(2-3)으로 계산했어요. 답은 5여야 해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        while (true) {\n            if (accept('+')) value += term();\n            // 기호 뒤를 전체 식으로 읽으면 오른쪽부터 묶여요.\n            else if (accept('-')) value -= expression();\n            else return value;\n        }",
+          "after": "        while (true) {\n            // 덧셈과 뺄셈은 같은 우선순위라 만나는 순서대로, 왼쪽부터 계산해요.\n            if (accept('+')) value += term();\n            else if (accept('-')) value -= term();\n            else return value;\n        }",
+          "say": "- 뒤도 곱셈 항 하나만 읽고 바로 빼요. 반복이 왼쪽부터 차례로 계산해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            57,
+            57
+          ]
+        },
+        {
+          "action": "say",
+          "text": "5가 나와요. 10-2를 먼저 하고 3을 뺐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 뺄셈을 곱셈 단계에 넣으면 10-2*3을 (10-2)*3처럼 계산해요.",
+          "target": "code:while (accept('*')) value *= factor();"
+        },
+        {
+          "action": "set_input",
+          "value": "10-2*3"
+        },
+        {
+          "action": "run",
+          "lines": [
+            57,
+            57
+          ]
+        },
+        {
+          "action": "say",
+          "text": "다시 4예요. 채점은 괄호·음수 결과·잘못된 식으로도 실행해요.",
+          "target": "output"
         }
       ]
     }

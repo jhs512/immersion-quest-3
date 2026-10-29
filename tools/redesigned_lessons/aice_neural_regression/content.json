@@ -566,6 +566,81 @@
           "target": "code:kernel_initializer=keras.initializers.Constant(weight)"
         }
       ]
+    },
+    {
+      "id": "stp_1e68bc14-fc5b-4c8d-b02f-50f1b0a61b82",
+      "title": "음수가 없는 시간 예측과 회귀 오차를 맞추세요",
+      "language": "python",
+      "goal": "수치 목표의 범위에 맞는 출력과 회귀 손실을 함께 선택해요.\n\n시간은 음수가 될 수 없어요. 음수 출력을 0으로 막는 출력 활성화를 고르고 오차는 mse로 평가해요. 고정 가중치는 동작 비교용이에요. 현재 예측은 0분과 3분이고 MSE는 0이에요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 시간이 음수가 되지 않도록 출력 활성화를 고치세요.\n3. 회귀의 평균 제곱 오차로 평가하세요.\n4. 다시 실행해 요구한 결과를 확인한 뒤 작성한 코드를 제출하세요.",
+      "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"3\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nrows = [[1.0], [4.0]]\ntargets = [[0.0], [3.0]]\nweight = 2.0\nbias = -5.0\n# 고정 가중치의 동작 비교예요. 이 실험은 학습 성능을 증명하지 않아요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, activation=\"linear\",\n    kernel_initializer=keras.initializers.Constant(weight), bias_initializer=keras.initializers.Constant(bias))])\nmodel.compile(optimizer=\"sgd\", loss=\"binary_crossentropy\")\npredictions = model(np.array(rows, dtype=\"float32\"), training=False).numpy()\nerror = model.evaluate(np.array(rows, dtype=\"float32\"), np.array(targets, dtype=\"float32\"), verbose=0)\nprint(predictions.round(6).tolist())\nprint(model.loss)\nprint(round(float(error), 6))\n",
+      "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"3\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nrows = [[1.0], [4.0]]\ntargets = [[0.0], [3.0]]\nweight = 2.0\nbias = -5.0\n# 고정 가중치의 동작 비교예요. 이 실험은 학습 성능을 증명하지 않아요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, activation=\"relu\",\n    kernel_initializer=keras.initializers.Constant(weight), bias_initializer=keras.initializers.Constant(bias))])\nmodel.compile(optimizer=\"sgd\", loss=\"mse\")\npredictions = model(np.array(rows, dtype=\"float32\"), training=False).numpy()\nerror = model.evaluate(np.array(rows, dtype=\"float32\"), np.array(targets, dtype=\"float32\"), verbose=0)\nprint(predictions.round(6).tolist())\nprint(model.loss)\nprint(round(float(error), 6))\n",
+      "required": true,
+      "tests": [
+        {
+          "input": "",
+          "expected": "[[0.0], [3.0]]\nmse\n0.0"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 수치 목표의 범위에 맞는 출력과 회귀 손실을 함께 선택해요.",
+          "target": "text:수치 목표의 범위에 맞는 출력과 회귀 손실을 함께 선택해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            20
+          ]
+        },
+        {
+          "action": "say",
+          "text": "음수 시간이 나오고 평가 손실도 이진 분류용으로 잡혀 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "activation=\"linear\"",
+          "after": "activation=\"relu\"",
+          "say": "시간이 음수가 되지 않도록 출력 활성화를 고치세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            20
+          ]
+        },
+        {
+          "action": "say",
+          "text": "음수는 0이 됐어요. 시간 오차를 세는 회귀 손실도 맞춰야 해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "loss=\"binary_crossentropy\"",
+          "after": "loss=\"mse\"",
+          "say": "회귀의 평균 제곱 오차로 평가하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            20
+          ]
+        },
+        {
+          "action": "say",
+          "text": "목표 범위에 맞는 출력과 MSE를 같은 배송에서 확인했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. sigmoid로 시간을 막으면 1분보다 큰 목표도 0과 1 사이로 눌려요.",
+          "target": "code:loss=\"mse\""
+        }
+      ]
     }
   ],
   "presentation": {
@@ -594,6 +669,12 @@
           "실행 성공과 올바른 보고를 구별해요."
         ],
         "premise": "같은 모델을 새 배송에 사용하고 보고서로 정리해요. 결과 대응과 보관을 확인한 뒤 출력 규칙을 고쳐요."
+      },
+      "unt_b164196a-3609-473e-a6b1-ecf7b9b2427f": {
+        "objectives": [
+          "수치 목표의 범위에 맞는 출력과 회귀 손실을 함께 선택해요."
+        ],
+        "premise": "시간은 음수가 될 수 없어요. 음수 출력을 0으로 막는 출력 활성화를 고르고 오차는 mse로 평가해요. 고정 가중치는 동작 비교용이에요. 현재 예측은 0분과 3분이고 MSE는 0이에요."
       }
     }
   },
@@ -642,10 +723,71 @@
         },
         "expected": "[[2.0]]"
       }
+    ],
+    "stp_1e68bc14-fc5b-4c8d-b02f-50f1b0a61b82": [
+      {
+        "values": {
+          "rows": [
+            [
+              1.0
+            ],
+            [
+              4.0
+            ]
+          ]
+        },
+        "expected": "[[0.0], [3.0]]\nmse\n0.0"
+      },
+      {
+        "values": {
+          "rows": [
+            [
+              1.0
+            ],
+            [
+              5.0
+            ]
+          ],
+          "targets": [
+            [
+              0.0
+            ],
+            [
+              5.0
+            ]
+          ]
+        },
+        "expected": "[[0.0], [5.0]]\nmse\n0.0"
+      },
+      {
+        "values": {
+          "rows": [
+            [
+              1.0
+            ],
+            [
+              4.0
+            ]
+          ],
+          "targets": [
+            [
+              1.0
+            ],
+            [
+              5.0
+            ]
+          ]
+        },
+        "expected": "[[0.0], [3.0]]\nmse\n2.5"
+      }
     ]
   },
   "prepared_probes": {
-    "stp_f3e0997f-f7c2-4083-ae5c-585b47205ff4": "assert model.layers[-1].activation.__name__ == \"relu\", \"목표 범위에 맞는 실제 출력 활성화를 확인하세요.\""
+    "stp_f3e0997f-f7c2-4083-ae5c-585b47205ff4": "assert model.layers[-1].activation.__name__ == \"relu\", \"목표 범위에 맞는 실제 출력 활성화를 확인하세요.\"",
+    "stp_1e68bc14-fc5b-4c8d-b02f-50f1b0a61b82": "assert np.all(predictions >= 0)\nassert abs(float(error)-float(np.mean((predictions-np.array(targets))**2))) < 1e-5"
   },
-  "prepared_timeout_seconds": 45
+  "prepared_timeout_seconds": 45,
+  "prepared_task_timeout_seconds": {
+    "stp_1e68bc14-fc5b-4c8d-b02f-50f1b0a61b82": 45
+  }
 }

@@ -30,7 +30,8 @@ fn bash_nine_restores_only_its_prerequisites_and_keeps_a_recovery_copy(){
 fn git_middle_step_restores_index_worktree_and_commits_without_resetting_to_step_one(){
     let lesson=lesson(include_str!("../courses/redesigned/git-first.json"));
     let root=tempfile::tempdir().unwrap();let store=GitPracticeStore::new(root.path()).unwrap();
-    for index in 1..lesson.tasks.len(){
+    // The last git-first step is the separately started final challenge.
+    for index in 1..lesson.tasks.len()-1{
         let task=&lesson.tasks[index];let exercise=task.git_terminal.clone().unwrap();
         let old=store.open("git",exercise.clone()).unwrap();let previous=old.root().to_path_buf();
         std::fs::write(old.work().join("my-work.txt"),"recoverable").unwrap();

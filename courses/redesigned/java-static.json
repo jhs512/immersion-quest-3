@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_f7020701-289b-408c-832a-baf0da83f17d",
-  "revision": "java-static-8",
+  "revision": "java-static-9",
   "title": "자바 · 객체의 값과 static을 나눠요",
   "description": "같은 주문의 개별 상태와 클래스 공유 상태·초기화를 비교해요.",
   "objectives": [
@@ -98,6 +98,22 @@
               "id": "stp_91de61a6-4837-46c2-be53-128eefa78b82",
               "objectives": [
                 "공유 필드의 누적과 매번 덮어쓰기를 구별해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_1e9c5a27-3f84-4b6d-a0e2-7c4d8b15f39a",
+          "title": "마지막 도전",
+          "objectives": [
+            "객체별 값과 공유 값을 한 클래스에서 직접 나눠요."
+          ],
+          "premise": "주문 클래스의 필드와 생성자가 비어 있어요. main은 준비돼 있어요.",
+          "steps": [
+            {
+              "id": "stp_6c2f8e15-9a47-4b3d-b8e0-5d1a3f72c94e",
+              "objectives": [
+                "인스턴스 필드와 static 필드를 목적에 맞게 고르고, 인스턴스 메서드에서 공유 기준을 읽어요."
               ]
             }
           ]
@@ -804,6 +820,161 @@
             "count": "4"
           },
           "expected": "4"
+        }
+      ]
+    },
+    {
+      "id": "stp_6c2f8e15-9a47-4b3d-b8e0-5d1a3f72c94e",
+      "title": "주문별 금액과 공유 주문 수를 직접 나누세요",
+      "language": "java",
+      "goal": "자, 마지막 도전이에요. Order의 필드와 생성자, isFree를 직접 완성해요. 금액은 주문마다 따로 남고, 만든 주문 수와 무료배송 기준은 모든 주문이 함께 써요.\n\n지금 준비 값이면 `25000 true`, `9000 false`, `주문 수: 3`이 나와야 해요. 채점은 두 금액과 추가 주문 수를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 주문마다 남는 금액 필드와 만든 주문 수를 세는 공유 필드를 쓰세요.\n2. 생성자에서 금액을 저장하고 만든 주문 수를 1 늘리세요.\n3. isFree가 이 주문의 금액을 공유 기준과 비교하도록 고치세요.\n4. 코드 실행 버튼을 눌러 세 줄이 요구와 같은지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "starter_code": "// 주문 하나의 금액과, 모든 주문이 함께 쓰는 값이 있어요.\nclass Order {\n    // 무료배송 기준은 모든 주문이 같이 써요.\n    static int freeFrom = 20000;\n    // 여기에 주문마다 따로 남는 금액 필드와, 만든 주문 수를 세는 공유 필드를 쓰세요.\n    Order(int initial) {\n        // 여기에 금액을 저장하고 만든 주문 수를 1 늘리세요.\n    }\n    boolean isFree() {\n        return false; // 이 주문의 금액을 공유 기준과 비교하도록 고치세요.\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // 금액이 다른 두 주문과, 추가로 만드는 주문 수예요.\n        int first = 25000;\n        int second = 9000;\n        int extra = 1;\n        Order a = new Order(first);\n        Order b = new Order(second);\n        for (int i = 0; i < extra; i++) {\n            new Order(1000);\n        }\n        System.out.println(a.amount + \" \" + a.isFree());\n        System.out.println(b.amount + \" \" + b.isFree());\n        System.out.println(\"주문 수: \" + Order.created);\n    }\n}\n",
+      "solution": "// 주문 하나의 금액과, 모든 주문이 함께 쓰는 값이 있어요.\nclass Order {\n    // 무료배송 기준은 모든 주문이 같이 써요.\n    static int freeFrom = 20000;\n    // amount는 주문마다, created는 클래스에 하나만 있어요.\n    int amount;\n    static int created = 0;\n    Order(int initial) {\n        amount = initial;\n        // 새 주문을 만들 때마다 공유 카운터를 하나 늘려요.\n        created = created + 1;\n    }\n    boolean isFree() {\n        // 이 주문의 금액을 모든 주문이 쓰는 기준과 비교해요.\n        return amount >= freeFrom;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // 금액이 다른 두 주문과, 추가로 만드는 주문 수예요.\n        int first = 25000;\n        int second = 9000;\n        int extra = 1;\n        Order a = new Order(first);\n        Order b = new Order(second);\n        for (int i = 0; i < extra; i++) {\n            new Order(1000);\n        }\n        System.out.println(a.amount + \" \" + a.isFree());\n        System.out.println(b.amount + \" \" + b.isFree());\n        System.out.println(\"주문 수: \" + Order.created);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "25000 true\n9000 false\n주문 수: 3"
+        }
+      ],
+      "required": true,
+      "variations": [
+        {
+          "values": {
+            "first": "20000",
+            "second": "19999"
+          },
+          "expected": "20000 true\n19999 false\n주문 수: 3"
+        },
+        {
+          "values": {
+            "extra": "0"
+          },
+          "expected": "25000 true\n9000 false\n주문 수: 2"
+        },
+        {
+          "values": {
+            "extra": "4",
+            "first": "100"
+          },
+          "expected": "100 false\n9000 false\n주문 수: 6"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "주문별 금액과 공유 주문 수를 직접 나누는 문제예요.",
+          "target": "text:주문별 금액과 공유 주문 수를 직접 나누세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 주문마다 다른 값과 모든 주문이 나누는 값을 직접 나눠요.",
+          "target": "text:금액은 주문마다 따로"
+        },
+        {
+          "action": "say",
+          "text": "main은 두 주문을 만들고, extra만큼 주문을 더 만든 뒤 세 줄을 출력해요.",
+          "target": "code:new Order(1000);"
+        },
+        {
+          "action": "patch_code",
+          "before": "    // 여기에 주문마다 따로 남는 금액 필드와, 만든 주문 수를 세는 공유 필드를 쓰세요.",
+          "after": "    // 금액 필드를 static으로 두면 어떻게 되는지 먼저 볼게요.\n    static int amount;\n    static int created = 0;",
+          "say": "금액도 static으로 두면 어떻게 될지 먼저 써 볼게요."
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 여기에 금액을 저장하고 만든 주문 수를 1 늘리세요.",
+          "after": "        amount = initial;\n        // 새 주문을 만들 때마다 공유 카운터를 하나 늘려요.\n        created = created + 1;",
+          "say": "생성자에서 금액을 저장하고 공유 카운터를 늘려요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            29,
+            31
+          ]
+        },
+        {
+          "action": "say",
+          "text": "두 주문이 모두 1000으로 보여요. 클래스에 금액이 하나라 마지막 주문이 덮어썼어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    // 금액 필드를 static으로 두면 어떻게 되는지 먼저 볼게요.\n    static int amount;\n    static int created = 0;",
+          "after": "    // amount는 주문마다, created는 클래스에 하나만 있어요.\n    int amount;\n    static int created = 0;",
+          "say": "금액은 주문마다 남도록 static을 빼요. 카운터만 공유해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            29,
+            31
+          ]
+        },
+        {
+          "action": "say",
+          "text": "25000, 9000이 따로 남고 주문 수: 3이에요. isFree는 아직 늘 false예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        return false; // 이 주문의 금액을 공유 기준과 비교하도록 고치세요.",
+          "after": "        // 이 주문의 금액을 모든 주문이 쓰는 기준과 비교해요.\n        return amount >= freeFrom;",
+          "say": "isFree는 이 주문의 금액을 공유 기준 freeFrom과 비교해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            30,
+            32
+          ]
+        },
+        {
+          "action": "say",
+          "text": "25000 true, 9000 false, 주문 수: 3이에요. 요구한 세 줄이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 생성자에서 created = 1로 쓰면 주문을 몇 개 만들어도 1이에요.",
+          "target": "code:created = created + 1;"
+        },
+        {
+          "action": "patch_code",
+          "before": "int extra = 1;",
+          "after": "int extra = 3;",
+          "say": "추가 주문 수를 3으로 바꿔 카운터를 확인해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            30,
+            32
+          ]
+        },
+        {
+          "action": "say",
+          "text": "주문 수: 5예요. 두 주문과 추가 세 주문을 모두 셌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "int extra = 3;",
+          "after": "int extra = 1;",
+          "say": "준비된 수로 되돌려요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            30,
+            32
+          ]
+        },
+        {
+          "action": "say",
+          "text": "다시 주문 수: 3이에요. 채점은 금액과 추가 수를 바꿔서도 실행해요.",
+          "target": "output"
         }
       ]
     }

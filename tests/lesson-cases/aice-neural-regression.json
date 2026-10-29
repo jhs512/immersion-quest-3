@@ -32,6 +32,11 @@
     ],
     [
       "[[-3.0], [3.0]]"
+    ],
+    [
+      "[[-3.0], [3.0]]\nbinary_crossentropy\n-15.942385",
+      "[[0.0], [3.0]]\nbinary_crossentropy\n-15.942385",
+      "[[0.0], [3.0]]\nmse\n0.0"
     ]
   ],
   "reject": [
@@ -44,6 +49,38 @@
         ]
       ],
       "reason": "Fixed outputs do not preserve the model rule for other inputs"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "activation=\"relu\"",
+          "activation=\"linear\""
+        ]
+      ],
+      "reason": "Negative times must be clipped"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "loss=\"mse\"",
+          "loss=\"mae\""
+        ]
+      ],
+      "reason": "The specified loss is squared, not absolute error"
+    }
+  ],
+  "accept": [
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "activation=\"relu\"",
+          "activation=keras.activations.relu"
+        ]
+      ],
+      "reason": "The activation callable is equivalent"
     }
   ]
 }

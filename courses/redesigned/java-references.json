@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_adb48fbe-fca5-40fc-a019-3e8a194630cb",
-  "revision": "java-references-9",
+  "revision": "java-references-10",
   "title": "자바 · 객체와 참조를 나눠 봐요",
   "description": "같은 재고 상자의 생성·별칭·전달·비교를 짧은 코드로 살펴봐요.",
   "objectives": [
@@ -130,6 +130,22 @@
               "id": "stp_2bfb0e34-3506-4da5-8bb9-84f1bd8015f8",
               "objectives": [
                 "같은 이름의 매개변수와 this의 필드를 구별해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_4d7a1e93-6b28-4f05-8c3d-91e5f2a06b7c",
+          "title": "마지막 도전",
+          "objectives": [
+            "별칭과 복사를 같은 프로그램에서 구별해요."
+          ],
+          "premise": "재고 상자 하나와 그것을 가리키는 변수 셋이에요. 복사 메서드는 직접 고쳐요.",
+          "steps": [
+            {
+              "id": "stp_8b3e5a19-4c72-4d06-a9f1-2e6c7b04d38f",
+              "objectives": [
+                "참조 대입과 새 객체 생성의 차이를 변경 결과와 == 비교로 증명해요."
               ]
             }
           ]
@@ -928,6 +944,129 @@
             "initial": "9"
           },
           "expected": "9"
+        }
+      ]
+    },
+    {
+      "id": "stp_8b3e5a19-4c72-4d06-a9f1-2e6c7b04d38f",
+      "title": "별칭으로 바꾸고 복사본은 지키세요",
+      "language": "java",
+      "goal": "자, 마지막 도전이에요. b는 a와 같은 상자, c는 a를 복사한 새 상자예요. b를 통해 재고를 2 늘린 뒤 네 줄을 출력해요.\n\n지금 상자면 `7`, `5`, `true`, `false`가 차례로 나와야 해요. a의 재고는 b의 변경을 함께 보여 주고, c는 복사한 순간의 5를 지켜야 해요. 채점은 처음 재고를 다른 값으로 바꿔서도 실행해요.\n\n**할 일**\n\n1. b를 통해 상자의 재고를 2 늘리는 줄을 쓰세요.\n2. 코드 실행 버튼을 눌러 c도 함께 바뀌는지 확인하세요.\n3. copy가 같은 재고 수를 가진 새 상자를 돌려주도록 고치세요.\n4. 코드 실행 버튼을 눌러 네 줄이 요구와 같은지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "starter_code": "// 재고 상자예요. 생성자에서 처음 재고를 받아요.\nclass Box {\n    int count;\n    Box(int count) {\n        this.count = count;\n    }\n}\n\nclass Main {\n    // 원래 상자와 같은 재고 수를 가진 새 상자를 만들어 돌려줘요.\n    static Box copy(Box original) {\n        return original; // 같은 재고 수를 가진 새 상자를 돌려주도록 고치세요.\n    }\n\n    public static void main(String[] args) {\n        Box a = new Box(5);\n        // b는 a와 같은 상자, c는 a를 복사한 새 상자예요.\n        Box b = a;\n        Box c = copy(a);\n        // 여기에 b를 통해 상자의 재고를 2 늘리는 줄을 쓰세요.\n        System.out.println(a.count);\n        System.out.println(c.count);\n        System.out.println(a == b);\n        System.out.println(a == c);\n    }\n}\n",
+      "solution": "// 재고 상자예요. 생성자에서 처음 재고를 받아요.\nclass Box {\n    int count;\n    Box(int count) {\n        this.count = count;\n    }\n}\n\nclass Main {\n    // 원래 상자와 같은 재고 수를 가진 새 상자를 만들어 돌려줘요.\n    static Box copy(Box original) {\n        // 새 객체를 만들어야 원래 상자와 따로 바뀌어요.\n        return new Box(original.count);\n    }\n\n    public static void main(String[] args) {\n        Box a = new Box(5);\n        // b는 a와 같은 상자, c는 a를 복사한 새 상자예요.\n        Box b = a;\n        Box c = copy(a);\n        // b는 a와 같은 상자를 가리키므로 a에서도 바뀐 값이 보여요.\n        b.count = b.count + 2;\n        System.out.println(a.count);\n        System.out.println(c.count);\n        System.out.println(a == b);\n        System.out.println(a == c);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "7\n5\ntrue\nfalse"
+        }
+      ],
+      "required": true,
+      "variations": [
+        {
+          "values": {
+            "a": "new Box(1)"
+          },
+          "expected": "3\n1\ntrue\nfalse"
+        },
+        {
+          "values": {
+            "a": "new Box(0)"
+          },
+          "expected": "2\n0\ntrue\nfalse"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "별칭으로 바꾸고 복사본은 지키는 문제예요.",
+          "target": "text:별칭으로 바꾸고 복사본은 지키세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 같은 상자를 가리키는 b와 복사한 새 상자 c를 구별해요.",
+          "target": "text:b는 a와 같은 상자, c는 a를 복사한 새 상자예요."
+        },
+        {
+          "action": "say",
+          "text": "copy는 지금 받은 상자를 그대로 돌려줘요. 그러면 c도 a와 같은 상자예요.",
+          "target": "code:return original;"
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 여기에 b를 통해 상자의 재고를 2 늘리는 줄을 쓰세요.",
+          "after": "        // b는 a와 같은 상자를 가리키므로 a에서도 바뀐 값이 보여요.\n        b.count = b.count + 2;",
+          "say": "먼저 b를 통해 재고를 2 늘려요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            22,
+            25
+          ]
+        },
+        {
+          "action": "say",
+          "text": "7, 7, true, true예요. c까지 바뀌었고 a == c도 true라 복사가 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        return original; // 같은 재고 수를 가진 새 상자를 돌려주도록 고치세요.",
+          "after": "        // 새 객체를 만들어야 원래 상자와 따로 바뀌어요.\n        return new Box(original.count);",
+          "say": "copy가 원래 재고 수로 새 Box를 만들어 돌려주게 고쳐요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            23,
+            26
+          ]
+        },
+        {
+          "action": "say",
+          "text": "7, 5, true, false예요. b로 바꾼 값은 a에 보이고, 새 상자 c는 5 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 상자를 대입만 하면 복사가 아니라 같은 상자를 하나 더 가리킬 뿐이에요.",
+          "target": "code:Box b = a;"
+        },
+        {
+          "action": "patch_code",
+          "before": "Box a = new Box(5);",
+          "after": "Box a = new Box(1);",
+          "say": "처음 재고를 1로 바꿔도 같은 관계인지 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            23,
+            26
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3, 1, true, false예요. 처음 값이 달라도 별칭과 복사의 관계는 같아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "Box a = new Box(1);",
+          "after": "Box a = new Box(5);",
+          "say": "준비된 재고 5로 되돌려요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            23,
+            26
+          ]
+        },
+        {
+          "action": "say",
+          "text": "다시 7, 5, true, false예요. 요구한 네 줄이에요.",
+          "target": "output"
         }
       ]
     }

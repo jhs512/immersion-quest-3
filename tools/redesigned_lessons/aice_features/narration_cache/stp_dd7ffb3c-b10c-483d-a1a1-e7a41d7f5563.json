@@ -1,0 +1,70 @@
+{
+  "by": "hand",
+  "source_sha256": "50927570bc01e2e9de54c284681157f670fd5a86881442678cb472f6ec3c727d",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 계획일을 요일 번호로 바꾸되 실패를 숨기지 않고, 접수할 때 아는 열만 입력으로 만들어요.",
+      "target": "text:바꾸지 못한 날짜는 -1로 표시해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        14,
+        17
+      ]
+    },
+    {
+      "action": "say",
+      "text": "입력에 id와 정답 minutes가 들어 있어요. 요일은 모두 0이라 바꾸지 못한 날짜도 보이지 않아요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "df[\"weekday\"] = 0  # 1) 계획일을 날짜로 바꿔 요일 번호를 넣으세요. 바꿀 수 없는 날짜는 -1이에요.",
+      "after": "parsed = pd.to_datetime(df[\"planned\"], format=\"%Y-%m-%d\", errors=\"coerce\")\ndf[\"weekday\"] = parsed.dt.dayofweek",
+      "say": "먼저 errors=\"coerce\"로 날짜를 바꾸고 요일을 꺼내 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        18
+      ]
+    },
+    {
+      "action": "say",
+      "text": "요일이 0.0, 5.0, nan, 2.0처럼 소수와 nan으로 나왔어요. 실패 건수도 0이라고 잘못 세요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "parsed = pd.to_datetime(df[\"planned\"], format=\"%Y-%m-%d\", errors=\"coerce\")\ndf[\"weekday\"] = parsed.dt.dayofweek",
+      "after": "# 형식에 맞지 않는 글자는 오류 대신 빈 날짜(NaT)로 남겨요.\nparsed = pd.to_datetime(df[\"planned\"], format=\"%Y-%m-%d\", errors=\"coerce\")\n# 월요일이 0이에요. 빈 날짜는 -1로 표시해 정수 열로 만들어요.\ndf[\"weekday\"] = parsed.dt.dayofweek.fillna(-1).astype(\"int64\")",
+      "say": "빈 날짜를 -1로 채우고 정수로 바꿔요."
+    },
+    {
+      "action": "patch_code",
+      "before": "X = df[[\"id\", \"distance\", \"weekday\", \"region\", \"minutes\"]]  # 2) 접수할 때 아는 열만 남기세요.",
+      "after": "# 식별자 id와 정답 minutes는 입력에서 빼요.\nX = df[[\"distance\", \"weekday\", \"region\"]]",
+      "say": "입력에서 id와 정답을 빼요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        18,
+        21
+      ]
+    },
+    {
+      "action": "say",
+      "text": "입력은 거리, 요일, 지역 표시 열 셋이에요. soon인 103은 요일 -1로 남고 실패 건수는 1이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 정답 minutes를 입력에 남기면 모델이 답을 보고 맞히는 셈이라 평가 점수가 거짓으로 좋아져요.",
+      "target": "code:X = df[[\"distance\", \"weekday\", \"region\"]]"
+    }
+  ]
+}

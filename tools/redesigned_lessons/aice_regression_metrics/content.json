@@ -487,6 +487,81 @@
           "target": "code:score ="
         }
       ]
+    },
+    {
+      "id": "stp_8c2d0bff-a5ed-444e-9b9d-811d3b88f5b2",
+      "title": "배송 번호를 맞추고 세 오차를 보고하세요",
+      "language": "python",
+      "goal": "같은 배송끼리 비교하고 MAE·RMSE·R²의 의미에 맞게 보고해요.\n\n예측을 actual의 배송 번호 순서로 맞춘 뒤 MAE, RMSE, R²를 출력해요. RMSE는 MSE의 제곱근이라 시간과 같은 분 단위예요. 지금 결과는 2.666667, 3.265986, 0.84예요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 실제 값의 배송 번호 순서로 예측을 맞추세요.\n3. 분 단위 RMSE가 나오도록 제곱근을 구하세요.\n4. 다시 실행해 요구한 결과를 확인한 뒤 작성한 코드를 제출하세요.",
+      "starter_code": "import pandas as pd\nfrom sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score\n# 번호별 실제 시간과 예측이에요. 저장된 순서가 달라요.\ntruth = {101: 10, 102: 20, 103: 30}\nguesses = {103: 34, 101: 10, 102: 16}\nactual = pd.Series(truth)\npredicted = pd.Series(guesses)\naligned = predicted\nmae = mean_absolute_error(actual, aligned)\nrmse = mean_squared_error(actual, aligned)\nr2 = r2_score(actual, aligned)\nprint(round(float(mae), 6))\nprint(round(float(rmse), 6))\nprint(round(float(r2), 6))\n",
+      "solution": "import pandas as pd\nfrom sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score\n# 번호별 실제 시간과 예측이에요. 저장된 순서가 달라요.\ntruth = {101: 10, 102: 20, 103: 30}\nguesses = {103: 34, 101: 10, 102: 16}\nactual = pd.Series(truth)\npredicted = pd.Series(guesses)\naligned = predicted.reindex(actual.index)\nmae = mean_absolute_error(actual, aligned)\nrmse = mean_squared_error(actual, aligned) ** 0.5\nr2 = r2_score(actual, aligned)\nprint(round(float(mae), 6))\nprint(round(float(rmse), 6))\nprint(round(float(r2), 6))\n",
+      "required": true,
+      "tests": [
+        {
+          "input": "",
+          "expected": "2.666667\n3.265986\n0.84"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 같은 배송끼리 비교하고 MAE·RMSE·R²의 의미에 맞게 보고해요.",
+          "target": "text:같은 배송끼리 비교하고 MAE·RMSE·R²의 의미에 맞게 보고해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "저장 순서가 다른 배송을 비교했고 RMSE 자리에는 제곱 오차가 들어갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "aligned = predicted",
+          "after": "aligned = predicted.reindex(actual.index)",
+          "say": "실제 값의 배송 번호 순서로 예측을 맞추세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "배송 번호는 맞췄어요. RMSE도 원래 시간 단위로 바꿔야 해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "rmse = mean_squared_error(actual, aligned)",
+          "after": "rmse = mean_squared_error(actual, aligned) ** 0.5",
+          "say": "분 단위 RMSE가 나오도록 제곱근을 구하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "같은 배송끼리 비교한 세 지표가 각각 출력됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 두 목록을 값순으로 따로 정렬하면 번호가 같은 배송의 오차를 잃어요.",
+          "target": "code:rmse = mean_squared_error(actual, aligned) ** 0.5"
+        }
+      ]
     }
   ],
   "presentation": {
@@ -515,6 +590,12 @@
           "수치가나와도평가조건이맞는지검토해요."
         ],
         "premise": "같은 보고서에 정답이 일정하거나 관측이 적은 경우가 있어요. 마지막에는 필요한 단위의 지표를 직접 고쳐요."
+      },
+      "unt_93f7609e-9f83-47f6-b4d4-c3f9ce8d4ca4": {
+        "objectives": [
+          "같은 배송끼리 비교하고 MAE·RMSE·R²의 의미에 맞게 보고해요."
+        ],
+        "premise": "예측을 actual의 배송 번호 순서로 맞춘 뒤 MAE, RMSE, R²를 출력해요. RMSE는 MSE의 제곱근이라 시간과 같은 분 단위예요. 지금 결과는 2.666667, 3.265986, 0.84예요."
       }
     }
   },
@@ -557,6 +638,57 @@
         },
         "expected": "3.0"
       }
+    ],
+    "stp_8c2d0bff-a5ed-444e-9b9d-811d3b88f5b2": [
+      {
+        "values": {
+          "truth": {
+            "101": 10,
+            "102": 20,
+            "103": 30
+          },
+          "guesses": {
+            "103": 34,
+            "101": 10,
+            "102": 16
+          }
+        },
+        "expected": "2.666667\n3.265986\n0.84"
+      },
+      {
+        "values": {
+          "truth": {
+            "1": 2,
+            "2": 4,
+            "3": 6
+          },
+          "guesses": {
+            "3": 5,
+            "1": 1,
+            "2": 5
+          }
+        },
+        "expected": "1.0\n1.0\n0.625"
+      },
+      {
+        "values": {
+          "truth": {
+            "7": 0,
+            "8": 10
+          },
+          "guesses": {
+            "8": 10,
+            "7": 0
+          }
+        },
+        "expected": "0.0\n0.0\n1.0"
+      }
     ]
+  },
+  "prepared_probes": {
+    "stp_8c2d0bff-a5ed-444e-9b9d-811d3b88f5b2": "assert aligned.index.equals(actual.index)\nassert abs(rmse * rmse - mean_squared_error(actual, aligned)) < 1e-8"
+  },
+  "prepared_task_timeout_seconds": {
+    "stp_8c2d0bff-a5ed-444e-9b9d-811d3b88f5b2": 30
   }
 }

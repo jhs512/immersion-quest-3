@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_59fa3b5d-5f39-43aa-b585-3ba21a33558a",
-  "revision": "aice-split-5",
+  "revision": "aice-split-6",
   "title": "입력과 정답을 함께 나눠요",
   "description": "같은 배송의 입력·정답을 함께 나누며 분할 조건과 평가 목적을 확인해요.",
   "objectives": [
@@ -129,6 +129,22 @@
               "id": "stp_58dfc422-9961-4f4d-82bf-f6e250e4503c",
               "objectives": [
                 "입력마다 훈련·테스트가 나오는 반환 순서를 이해해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_093ad903-723b-4609-b142-4a36684d114c",
+          "title": "마지막 도전",
+          "objectives": [
+            "평가 크기와 범주 비율을 지키며 입력과 정답의 짝을 보존해요."
+          ],
+          "premise": "새 배송 자료를 훈련과 평가로 나눠요. 평가 건수는 test_count를 따라요. 지연과 정상의 비율을 지키고 같은 번호와 정답은 함께 움직여야 해요. 지금 자료는 훈련 4건, 평가 4건이고 평가 중 지연은 2건이에요.",
+          "steps": [
+            {
+              "id": "stp_4664135d-7073-47a2-9c52-b0081fafd1f9",
+              "objectives": [
+                "평가 크기와 범주 비율을 지키며 입력과 정답의 짝을 보존해요."
               ]
             }
           ]
@@ -884,6 +900,87 @@
         }
       ],
       "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"X\": [2, 4, 6, 8], \"y\": [20, 40, 60, 80], \"test_count\": 1}, \"expected\": \"3 3 1 1\\\\n[(8, 80)]\"}, {\"values\": {\"X\": [4, 8, 2, 6], \"y\": [99, 3, 7, 11], \"test_count\": 2}, \"expected\": \"2 2 2 2\\\\n[(2, 7), (6, 11)]\"}, {\"values\": {\"X\": [9, 1, 7, 3, 5], \"y\": [18, 2, 14, 6, 10], \"test_count\": 2}, \"expected\": \"3 3 2 2\\\\n[(3, 6), (5, 10)]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_4664135d-7073-47a2-9c52-b0081fafd1f9",
+      "title": "배송 번호와 정답을 층화해 함께 나누세요",
+      "language": "python",
+      "goal": "평가 크기와 범주 비율을 지키며 입력과 정답의 짝을 보존해요.\n\n새 배송 자료를 훈련과 평가로 나눠요. 평가 건수는 test_count를 따라요. 지연과 정상의 비율을 지키고 같은 번호와 정답은 함께 움직여야 해요. 지금 자료는 훈련 4건, 평가 4건이고 평가 중 지연은 2건이에요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 평가 크기를 test_count로 정하세요.\n3. 정답 labels의 비율을 지키도록 층화하세요.\n4. 다시 실행해 요구한 결과를 확인한 뒤 작성한 코드를 제출하세요.",
+      "starter_code": "from sklearn.model_selection import train_test_split\n# 배송 번호와 지연 여부예요. 두 목록의 같은 자리가 같은 배송이에요.\nids = [101, 102, 103, 104, 105, 106, 107, 108]\nlabels = [0, 0, 0, 0, 1, 1, 1, 1]\ntest_count = 4\n# 두 목록은 반드시 한 번에 나눠요.\nX_train, X_test, y_train, y_test = train_test_split(ids, labels, test_size=2, random_state=4)\n# 확인용 출력: 평가 자료의 크기, 지연 건수, 번호와 정답의 원래 대응이에요.\nprint(len(X_train), len(X_test))\nprint(sum(y_test))\nprint(all(labels[ids.index(i)] == y for i, y in zip(X_test, y_test)))\n",
+      "solution": "from sklearn.model_selection import train_test_split\n# 배송 번호와 지연 여부예요. 두 목록의 같은 자리가 같은 배송이에요.\nids = [101, 102, 103, 104, 105, 106, 107, 108]\nlabels = [0, 0, 0, 0, 1, 1, 1, 1]\ntest_count = 4\n# 두 목록은 반드시 한 번에 나눠요.\nX_train, X_test, y_train, y_test = train_test_split(ids, labels, test_size=test_count, random_state=4, stratify=labels)\n# 확인용 출력: 평가 자료의 크기, 지연 건수, 번호와 정답의 원래 대응이에요.\nprint(len(X_train), len(X_test))\nprint(sum(y_test))\nprint(all(labels[ids.index(i)] == y for i, y in zip(X_test, y_test)))\n",
+      "required": true,
+      "tests": [
+        {
+          "input": "",
+          "expected": "4 4\n2\nTrue"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "배송 번호와 정답을 층화해 함께 나누는 문제예요.",
+          "target": "text:배송 번호와 정답을 층화해 함께 나누세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 평가 크기와 범주 비율을 지키며 입력과 정답의 짝을 보존해요.",
+          "target": "text:평가 크기와 범주 비율을 지키며 입력과 정답의 짝을 보존해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "평가 크기가 2건이라 요구한 4건과 달라요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "test_size=2",
+          "after": "test_size=test_count",
+          "say": "평가 크기를 test_count로 정하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "크기는 맞췄어요. 아직 범주별 비율은 고정하지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "random_state=4)",
+          "after": "random_state=4, stratify=labels)",
+          "say": "정답 labels의 비율을 지키도록 층화하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "평가 4건 중 지연 2건이고 번호와 정답의 짝도 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 입력과 정답을 따로 섞으면 같은 위치가 다른 배송을 가리킬 수 있어요.",
+          "target": "code:random_state=4, stratify=labels)"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nimport uuid\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"ids\": [101, 102, 103, 104, 105, 106, 107, 108]}, \"expected\": \"4 4\\\\n2\\\\nTrue\"}, {\"values\": {\"ids\": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], \"labels\": [0, 0, 0, 0, 0, 1, 1, 1, 1, 1], \"test_count\": 6}, \"expected\": \"4 6\\\\n3\\\\nTrue\"}, {\"values\": {\"ids\": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], \"labels\": [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1], \"test_count\": 4}, \"expected\": \"8 4\\\\n2\\\\nTrue\"}, {\"values\": {\"ids\": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], \"labels\": [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1], \"test_count\": 4}, \"expected\": \"12 4\\\\n2\\\\nTrue\"}]')\nprobe = 'assert len(X_test) == test_count\\nassert len(y_test) == test_count\\nassert sum(y_test) * len(labels) == sum(labels) * test_count'\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    witness = uuid.uuid4().hex\n    tree.body.extend(ast.parse(probe).body)\n    tree.body.extend(ast.parse('print(' + repr(witness) + ')').body)\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=30)\n    lines = result.stdout.strip().splitlines()\n    if not lines or lines[-1] != witness:\n        raise AssertionError('실제 실행 상태의 검사까지 끝나야 해요.')\n    output = '\\n'.join(lines[:-1]).strip()\n    if result.returncode != 0 or output != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     }
   ]
 }

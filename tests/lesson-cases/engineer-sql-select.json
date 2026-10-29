@@ -49,6 +49,10 @@
     ],
     [
       "id\n4"
+    ],
+    [
+      "id | supplier\n1 | north",
+      "id | supplier\n1 | north\n2 | south\n5 | NULL"
     ]
   ],
   "reject": [
@@ -71,6 +75,38 @@
         ]
       ],
       "reason": "모르는 재고만 찾으면 재고 0인 물건이 빠져요."
+    },
+    {
+      "step": 11,
+      "replacements": [
+        [
+          "i.stock IS NULL",
+          "i.stock = NULL"
+        ]
+      ],
+      "reason": "NULL은 등호로 고를 수 없어요."
+    },
+    {
+      "step": 11,
+      "replacements": [
+        [
+          "LEFT JOIN",
+          "JOIN"
+        ]
+      ],
+      "reason": "공급처가 없는 물건도 재주문 대상이에요."
+    }
+  ],
+  "accept": [
+    {
+      "step": 11,
+      "replacements": [
+        [
+          "LEFT JOIN",
+          "LEFT OUTER JOIN"
+        ]
+      ],
+      "reason": "OUTER를 명시해도 같은 조인이에요."
     }
   ]
 }

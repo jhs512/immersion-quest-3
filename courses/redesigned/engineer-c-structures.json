@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_e6dd4cd2-76fd-478a-9949-e2d47510286a",
-  "revision": "engineer-c-structures-5",
+  "revision": "engineer-c-structures-6",
   "title": "C · 구조체와 계산 규칙을 골라요",
   "description": "재고를 구조체로 묶고 함수 포인터로 계산 규칙을 골라요.",
   "objectives": [
@@ -202,6 +202,22 @@
               "id": "stp_d867bd24-fc5a-4133-9f9d-0f1825167574",
               "objectives": [
                 "해제 뒤 한 포인터만 NULL로 바꾸면 별칭은 그대로 남음을 판단해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_5c9d4b47-a302-410e-aa05-7618a668b947",
+          "title": "마지막 도전",
+          "objectives": [
+            "구조체 값과 함수 포인터를 연결해 각 항목의 계산을 합쳐요."
+          ],
+          "premise": "sale이 1이면 half, 0이면 normal 규칙으로 모든 상품의 금액을 합하세요. 수량과 가격은 양수이고 할인 전 금액은 짝수예요. 지금 출력은 220이에요.",
+          "steps": [
+            {
+              "id": "stp_9be10228-3f66-4600-876e-589546f4a886",
+              "objectives": [
+                "구조체 값과 함수 포인터를 연결해 각 항목의 계산을 합쳐요."
               ]
             }
           ]
@@ -1749,6 +1765,88 @@
           "value": "0"
         }
       ]
+    },
+    {
+      "language": "c",
+      "starter_code": "#include <stdio.h>\ntypedef struct { int price; int qty; } Item;\nint normal(Item item) { return item.price * item.qty; }\nint half(Item item) { return item.price * item.qty / 2; }\nint main(void) {\n    Item items[] = {{100, 2}, {80, 3}};\n    int count = 2;\n    int sale = 1;\n    int (*rule)(Item) = normal;\n    int total = 0;\n    for (int i = 0; i < count; i++) {\n        total = rule(items[i]);\n    }\n    printf(\"%d\", total);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\ntypedef struct { int price; int qty; } Item;\nint normal(Item item) { return item.price * item.qty; }\nint half(Item item) { return item.price * item.qty / 2; }\nint main(void) {\n    Item items[] = {{100, 2}, {80, 3}};\n    int count = 2;\n    int sale = 1;\n    int (*rule)(Item) = sale ? half : normal;\n    int total = 0;\n    for (int i = 0; i < count; i++) {\n        total += rule(items[i]);\n    }\n    printf(\"%d\", total);\n    return 0;\n}\n",
+      "goal": "구조체 값과 함수 포인터를 연결해 각 항목의 계산을 합쳐요.\n\nsale이 1이면 half, 0이면 normal 규칙으로 모든 상품의 금액을 합하세요. 수량과 가격은 양수이고 할인 전 금액은 짝수예요. 지금 출력은 220이에요.\n\n**할 일**\n\n1. 코드 실행을 눌러 수정 전 결과를 확인하세요.\n2. sale 값에 맞춰 계산 함수의 주소를 고르세요.\n3. 각 구조체를 규칙 함수에 전달하고 반환 금액을 누적하세요.\n4. 다시 실행해 결과를 확인하고 작성한 코드를 제출하세요.",
+      "tests": [
+        {
+          "input": "",
+          "expected": "220"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "구조체 배열에 선택한 가격 규칙을 적용하는 문제예요.",
+          "target": "text:구조체 배열에 선택한 가격 규칙을 적용하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 구조체 값과 함수 포인터를 연결해 각 항목의 계산을 합쳐요.",
+          "target": "text:구조체 값과 함수 포인터를 연결해 각 항목의 계산을 합쳐요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "정상 가격의 마지막 상품 240만 남아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "int (*rule)(Item) = normal;",
+          "after": "int (*rule)(Item) = sale ? half : normal;",
+          "say": "sale 값에 맞춰 계산 함수의 주소를 고르세요."
+        },
+        {
+          "action": "patch_code",
+          "before": "total = rule(items[i]);",
+          "after": "total += rule(items[i]);",
+          "say": "각 구조체를 규칙 함수에 전달하고 반환 금액을 누적하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "할인 가격 100과 120을 더해 220이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 함수 포인터를 선언해도 선택한 함수를 항목마다 호출하지 않으면 계산되지 않아요.",
+          "target": "code:total += rule(items[i]);"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "sale": "0"
+          },
+          "expected": "440"
+        },
+        {
+          "values": {
+            "items": "{{20, 4}, {10, 2}}"
+          },
+          "expected": "50"
+        }
+      ],
+      "id": "stp_9be10228-3f66-4600-876e-589546f4a886",
+      "title": "구조체 배열에 선택한 가격 규칙을 적용하세요",
+      "required": true
     }
   ]
 }

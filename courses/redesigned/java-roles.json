@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_ed4321cf-8e23-420a-92ff-1903f4138183",
-  "revision": "java-roles-6",
+  "revision": "java-roles-7",
   "title": "상태를 지키고 객체의 역할을 나눠요",
   "description": "같은 주문 결제의 상태·역할·위임·실패를 작은 실행으로 이해해요.",
   "objectives": [
@@ -98,6 +98,22 @@
               "id": "stp_73547f31-6306-4319-8d04-a08301ff0ce5",
               "objectives": [
                 "양수·잔액 경계를 검사해 잘못된 출금을 거절해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_7f3a9c52-1b64-4e8d-a2f7-6d0b3e91c845",
+          "title": "마지막 도전",
+          "objectives": [
+            "정책 객체를 끼우고 상태 규칙을 지키는 객체를 함께 완성해요."
+          ],
+          "premise": "결제 화면의 배송비 정책과 지갑이에요. Checkout과 main은 준비돼 있어요.",
+          "steps": [
+            {
+              "id": "stp_2d8b4f61-7e39-4a52-9c16-b0e3d5a8f7c2",
+              "objectives": [
+                "인터페이스 계약을 구현하고, 생성과 변경 시점에 잘못된 상태를 막아요."
               ]
             }
           ]
@@ -790,6 +806,190 @@
             "amount": "1"
           },
           "expected": "false\n0"
+        }
+      ]
+    },
+    {
+      "id": "stp_2d8b4f61-7e39-4a52-9c16-b0e3d5a8f7c2",
+      "title": "회원 배송비 정책을 끼우고 지갑의 규칙을 지키세요",
+      "language": "java",
+      "goal": "자, 마지막 도전이에요. 회원 배송비 정책 MemberFee를 FeePolicy로 구현해 Checkout에 끼우고, Wallet이 잘못된 상태를 막게 해요.\n\nMemberFee는 1만 원 이상 주문은 0원, 그 밖은 1,500원을 돌려줘요. Wallet은 음수 잔액으로 만들 수 없고, 양수이면서 잔액 이하인 결제만 허용해요. 거절한 결제는 잔액을 바꾸지 않아요. 지금 준비 값이면 `10500 true 9500`과 `closed`가 나와야 해요. Checkout과 main은 고치지 않아요. 채점은 주문 금액과 처음 잔액을 바꿔서도 실행해요.\n\n**할 일**\n\n1. FeePolicy를 구현하는 MemberFee 클래스를 쓰세요.\n2. Wallet 생성자가 음수 잔액이면 IllegalArgumentException을 던지게 하세요.\n3. pay가 양수이고 잔액 이하인 결제만 허용하게 하세요.\n4. 코드 실행 버튼을 눌러 두 줄이 요구와 같은지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "starter_code": "interface FeePolicy {\n    // 주문 금액을 받아 배송비를 돌려줘요.\n    int fee(int amount);\n}\n\nclass Checkout {\n    private final FeePolicy policy;\n    Checkout(FeePolicy policy) { this.policy = policy; }\n    // 정책이 정한 배송비를 주문 금액에 더해요.\n    int total(int amount) { return amount + policy.fee(amount); }\n}\n\n// 여기에 FeePolicy를 구현하는 MemberFee 클래스를 쓰세요. 1만 원 이상은 0원, 그 밖은 1,500원이에요.\n\nclass Wallet {\n    private int balance;\n    Wallet(int opening) {\n        // 음수 잔액으로 만들려고 하면 IllegalArgumentException을 던지세요.\n        balance = opening;\n    }\n    boolean pay(int price) {\n        // 양수이고 잔액 이하인 결제만 허용하세요.\n        balance -= price;\n        return true;\n    }\n    int balance() { return balance; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        // 지갑의 처음 잔액과 주문 금액은 준비 값이에요.\n        int opening = 20000;\n        int amount = 9000;\n        try {\n            Wallet wallet = new Wallet(opening);\n            int total = new Checkout(new MemberFee()).total(amount);\n            System.out.println(total + \" \" + wallet.pay(total) + \" \" + wallet.balance());\n        } catch (IllegalArgumentException error) {\n            System.out.println(\"거절\");\n        } finally {\n            System.out.println(\"closed\");\n        }\n    }\n}\n",
+      "solution": "interface FeePolicy {\n    // 주문 금액을 받아 배송비를 돌려줘요.\n    int fee(int amount);\n}\n\nclass Checkout {\n    private final FeePolicy policy;\n    Checkout(FeePolicy policy) { this.policy = policy; }\n    // 정책이 정한 배송비를 주문 금액에 더해요.\n    int total(int amount) { return amount + policy.fee(amount); }\n}\n\n// 회원 배송비 정책이에요. Checkout은 이 클래스의 이름을 몰라도 돼요.\nclass MemberFee implements FeePolicy {\n    public int fee(int amount) {\n        return amount >= 10000 ? 0 : 1500;\n    }\n}\n\nclass Wallet {\n    private int balance;\n    Wallet(int opening) {\n        // 잘못된 처음 상태로는 객체를 만들지 않아요.\n        if (opening < 0) throw new IllegalArgumentException(\"opening\");\n        balance = opening;\n    }\n    boolean pay(int price) {\n        // 잘못된 결제는 상태를 바꾸기 전에 거절해요.\n        if (price <= 0 || price > balance) return false;\n        balance -= price;\n        return true;\n    }\n    int balance() { return balance; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        // 지갑의 처음 잔액과 주문 금액은 준비 값이에요.\n        int opening = 20000;\n        int amount = 9000;\n        try {\n            Wallet wallet = new Wallet(opening);\n            int total = new Checkout(new MemberFee()).total(amount);\n            System.out.println(total + \" \" + wallet.pay(total) + \" \" + wallet.balance());\n        } catch (IllegalArgumentException error) {\n            System.out.println(\"거절\");\n        } finally {\n            System.out.println(\"closed\");\n        }\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "10500 true 9500\nclosed"
+        }
+      ],
+      "required": true,
+      "variations": [
+        {
+          "values": {
+            "amount": "10000"
+          },
+          "expected": "10000 true 10000\nclosed"
+        },
+        {
+          "values": {
+            "opening": "5000"
+          },
+          "expected": "10500 false 5000\nclosed"
+        },
+        {
+          "values": {
+            "opening": "10500"
+          },
+          "expected": "10500 true 0\nclosed"
+        },
+        {
+          "values": {
+            "opening": "-1"
+          },
+          "expected": "거절\nclosed"
+        },
+        {
+          "values": {
+            "opening": "0",
+            "amount": "-1500"
+          },
+          "expected": "0 false 0\nclosed"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "회원 배송비 정책을 끼우고 지갑의 규칙을 지키는 문제예요.",
+          "target": "text:회원 배송비 정책을 끼우고 지갑의 규칙을 지키세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 배송비 정책을 끼우고, 지갑이 잘못된 상태를 막게 해요.",
+          "target": "text:회원 배송비 정책 MemberFee"
+        },
+        {
+          "action": "say",
+          "text": "Checkout은 FeePolicy만 알아요. 어떤 정책이 오든 fee를 불러 더해요.",
+          "target": "code:int total(int amount) { return amount + policy.fee(amount); }"
+        },
+        {
+          "action": "patch_code",
+          "before": "// 여기에 FeePolicy를 구현하는 MemberFee 클래스를 쓰세요. 1만 원 이상은 0원, 그 밖은 1,500원이에요.",
+          "after": "// 회원 배송비 정책이에요. Checkout은 이 클래스의 이름을 몰라도 돼요.\nclass MemberFee implements FeePolicy {\n    public int fee(int amount) {\n        return 0;\n    }\n}",
+          "say": "먼저 FeePolicy를 구현하는 MemberFee를 만들어 컴파일되게 해요. 본문은 잠시 0이에요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            42,
+            46
+          ]
+        },
+        {
+          "action": "say",
+          "text": "9000 true 11000이 나오고 closed도 나와요. 배송비가 빠져서 아직 틀렸어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "// 회원 배송비 정책이에요. Checkout은 이 클래스의 이름을 몰라도 돼요.\nclass MemberFee implements FeePolicy {\n    public int fee(int amount) {\n        return 0;\n    }\n}",
+          "after": "// 회원 배송비 정책이에요. Checkout은 이 클래스의 이름을 몰라도 돼요.\nclass MemberFee implements FeePolicy {\n    public int fee(int amount) {\n        return amount >= 10000 ? 0 : 1500;\n    }\n}",
+          "say": "1만 원 이상이면 0, 아니면 1,500원을 돌려주게 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            42,
+            46
+          ]
+        },
+        {
+          "action": "say",
+          "text": "10500 true 9500이에요. 9,000원 주문에 배송비 1,500원이 붙었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "int opening = 20000;",
+          "after": "int opening = 5000;",
+          "say": "잔액이 모자란 지갑으로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            42,
+            46
+          ]
+        },
+        {
+          "action": "say",
+          "text": "10500 true -5500이에요. 잔액보다 큰 결제를 허용해 음수가 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 양수이고 잔액 이하인 결제만 허용하세요.",
+          "after": "        // 잘못된 결제는 상태를 바꾸기 전에 거절해요.\n        if (price <= 0 || price > balance) return false;",
+          "say": "양수이고 잔액 이하가 아니면 상태를 바꾸기 전에 false를 돌려줘요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            43,
+            47
+          ]
+        },
+        {
+          "action": "say",
+          "text": "10500 false 5000이에요. 거절했고 잔액은 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "int opening = 5000;",
+          "after": "int opening = -1;",
+          "say": "처음 잔액이 음수인 지갑도 확인해요."
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 음수 잔액으로 만들려고 하면 IllegalArgumentException을 던지세요.",
+          "after": "        // 잘못된 처음 상태로는 객체를 만들지 않아요.\n        if (opening < 0) throw new IllegalArgumentException(\"opening\");",
+          "say": "생성자에서 음수 잔액이면 예외를 던져 객체를 만들지 않아요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            44,
+            48
+          ]
+        },
+        {
+          "action": "say",
+          "text": "거절 다음에 closed가 나와요. 예외가 나도 finally는 꼭 실행돼요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 잔액을 먼저 빼고 나중에 검사하면 거절된 결제도 잔액을 바꿔요.",
+          "target": "code:if (price <= 0 || price > balance) return false;"
+        },
+        {
+          "action": "patch_code",
+          "before": "int opening = -1;",
+          "after": "int opening = 20000;",
+          "say": "준비된 잔액으로 되돌려요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            44,
+            48
+          ]
+        },
+        {
+          "action": "say",
+          "text": "다시 10500 true 9500과 closed예요. 채점은 경계 금액과 잔액으로도 실행해요.",
+          "target": "output"
         }
       ]
     }

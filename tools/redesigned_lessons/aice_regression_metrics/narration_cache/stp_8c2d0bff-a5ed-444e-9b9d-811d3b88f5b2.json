@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "0bdb5c048c70ab06e6d576a285d162922eb3c473e1a945449b587ba9b7c45d91",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 같은 배송끼리 비교하고 MAE·RMSE·R²의 의미에 맞게 보고해요.",
+      "target": "text:같은 배송끼리 비교하고 MAE·RMSE·R²의 의미에 맞게 보고해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        14
+      ]
+    },
+    {
+      "action": "say",
+      "text": "저장 순서가 다른 배송을 비교했고 RMSE 자리에는 제곱 오차가 들어갔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "aligned = predicted",
+      "after": "aligned = predicted.reindex(actual.index)",
+      "say": "실제 값의 배송 번호 순서로 예측을 맞추세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        14
+      ]
+    },
+    {
+      "action": "say",
+      "text": "배송 번호는 맞췄어요. RMSE도 원래 시간 단위로 바꿔야 해요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "rmse = mean_squared_error(actual, aligned)",
+      "after": "rmse = mean_squared_error(actual, aligned) ** 0.5",
+      "say": "분 단위 RMSE가 나오도록 제곱근을 구하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        14
+      ]
+    },
+    {
+      "action": "say",
+      "text": "같은 배송끼리 비교한 세 지표가 각각 출력됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 두 목록을 값순으로 따로 정렬하면 번호가 같은 배송의 오차를 잃어요.",
+      "target": "code:rmse = mean_squared_error(actual, aligned) ** 0.5"
+    }
+  ]
+}

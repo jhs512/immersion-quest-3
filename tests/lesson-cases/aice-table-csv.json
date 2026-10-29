@@ -1,0 +1,55 @@
+{
+  "course": "tests/fixtures/player-pilot/q/course.json",
+  "lesson": "courses/redesigned/aice-table-csv.json",
+  "only_last": true,
+  "expected_outputs": [
+    [
+      "(2, 3)\n   order_id  minutes region\n0       101       12     서울\n1       102       18     부산",
+      "(5, 3)\n   order_id  minutes\n0       101       12\n1       102       18"
+    ]
+  ],
+  "reject": [
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "print(df.shape)",
+          "print(df.head(2).shape)"
+        ]
+      ],
+      "reason": "The size of head is not the size of the table"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "print(df.shape)",
+          "print((5, 3))"
+        ]
+      ],
+      "reason": "A fixed size fails other files"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "small = df[[\"order_id\", \"minutes\"]]",
+          "small = df[[\"minutes\"]]"
+        ]
+      ],
+      "reason": "Both columns are needed"
+    }
+  ],
+  "accept": [
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "small = df[[\"order_id\", \"minutes\"]]",
+          "small = df.loc[:, [\"order_id\", \"minutes\"]]"
+        ]
+      ],
+      "reason": "loc with a column list keeps the same two columns"
+    }
+  ]
+}

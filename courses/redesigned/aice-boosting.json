@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_73e088d3-cb59-4242-b970-5b576abded2b",
-  "revision": "aice-boosting-4",
+  "revision": "aice-boosting-5",
   "title": "부스팅의 학습 설정과 예측을 읽어요",
   "description": "같은 배송 표에서 부스팅의 보정 크기·반복·목표·평가를 비교해요.",
   "objectives": [
@@ -98,6 +98,22 @@
               "id": "stp_62892202-cfb6-4c58-b80a-98faa84cd239",
               "objectives": [
                 "정한 반영 크기 변수를 실제 부스팅 학습률 설정에 연결해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_8b8b508d-3c76-4914-b6ba-175032044f65",
+          "title": "마지막 도전",
+          "objectives": [
+            "학습률과 반복 수를 실제 학습된 부스팅 모델에서 확인해요."
+          ],
+          "premise": "정해 둔 rounds번만 학습하고 매 반복의 반영 비율은 rate를 따라요. 실제 반복 횟수, 학습률, 두 배송의 예측을 출력해요. 현재 두 번·0.5 비율이면 예측은 1.625와 6.125예요.",
+          "steps": [
+            {
+              "id": "stp_a5d75177-1ef8-4bf6-a518-1e1a0697176d",
+              "objectives": [
+                "학습률과 반복 수를 실제 학습된 부스팅 모델에서 확인해요."
               ]
             }
           ]
@@ -673,6 +689,87 @@
         }
       ],
       "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nimport uuid\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"rate\": 0.25, \"test_rows\": [[3.0], [0.0], [2.0]]}, \"expected\": \"0.25\\\\n[2.375, 0.875, 2.375]\"}, {\"values\": {\"rate\": 1.0, \"test_rows\": [[0.0]]}, \"expected\": \"1.0\\\\n[2.0]\"}, {\"values\": {\"rate\": 0.75, \"test_rows\": [[3.0], [0.0]]}, \"expected\": \"0.75\\\\n[6.125, 1.625]\"}]')\nprobe = 'assert model.get_params()[\"learning_rate\"] == rate, \"모델의 실제 학습률을 rate와 맞추세요.\"'\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    witness = uuid.uuid4().hex\n    tree.body.extend(ast.parse(probe).body)\n    tree.body.extend(ast.parse('print(' + repr(witness) + ')').body)\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    lines = result.stdout.strip().splitlines()\n    if not lines or lines[-1] != witness:\n        raise AssertionError('실제 실행 상태의 검사까지 끝나야 해요.')\n    output = '\\n'.join(lines[:-1]).strip()\n    if result.returncode != 0 or output != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_a5d75177-1ef8-4bf6-a518-1e1a0697176d",
+      "title": "반영 비율과 반복 횟수를 학습에 연결하세요",
+      "language": "python",
+      "goal": "학습률과 반복 수를 실제 학습된 부스팅 모델에서 확인해요.\n\n정해 둔 rounds번만 학습하고 매 반복의 반영 비율은 rate를 따라요. 실제 반복 횟수, 학습률, 두 배송의 예측을 출력해요. 현재 두 번·0.5 비율이면 예측은 1.625와 6.125예요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 학습 반복 횟수를 rounds에 연결하세요.\n3. 학습 반영 비율을 rate에 연결하세요.\n4. 다시 실행해 요구한 결과를 확인한 뒤 작성한 코드를 제출하세요.",
+      "starter_code": "import numpy as np\nfrom xgboost import XGBRegressor\n# 같은 값 두 묶음으로 반영 비율과 반복 횟수만 관찰해요.\nX_train = np.array([[0.0], [1.0], [8.0], [9.0]], dtype=\"float32\")\ny_train = np.array([2.0, 2.0, 8.0, 8.0], dtype=\"float32\")\nrate = 0.5\nrounds = 2\nX_test = np.array([[0.0], [9.0]], dtype=\"float32\")\nmodel = XGBRegressor(n_estimators=1, learning_rate=1.0, max_depth=1,\n    min_child_weight=0, reg_lambda=0, random_state=0, n_jobs=1,\n    base_score=0.5, objective=\"reg:squarederror\", verbosity=0)\nmodel.fit(X_train, y_train)\nprint(model.get_booster().num_boosted_rounds())\nprint(model.get_params()[\"learning_rate\"])\nprint(model.predict(X_test).round(6).tolist())\n",
+      "solution": "import numpy as np\nfrom xgboost import XGBRegressor\n# 같은 값 두 묶음으로 반영 비율과 반복 횟수만 관찰해요.\nX_train = np.array([[0.0], [1.0], [8.0], [9.0]], dtype=\"float32\")\ny_train = np.array([2.0, 2.0, 8.0, 8.0], dtype=\"float32\")\nrate = 0.5\nrounds = 2\nX_test = np.array([[0.0], [9.0]], dtype=\"float32\")\nmodel = XGBRegressor(n_estimators=rounds, learning_rate=rate, max_depth=1,\n    min_child_weight=0, reg_lambda=0, random_state=0, n_jobs=1,\n    base_score=0.5, objective=\"reg:squarederror\", verbosity=0)\nmodel.fit(X_train, y_train)\nprint(model.get_booster().num_boosted_rounds())\nprint(model.get_params()[\"learning_rate\"])\nprint(model.predict(X_test).round(6).tolist())\n",
+      "required": true,
+      "tests": [
+        {
+          "input": "",
+          "expected": "2\n0.5\n[1.625, 6.125]"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "반영 비율과 반복 횟수를 학습에 연결하는 문제예요.",
+          "target": "text:반영 비율과 반복 횟수를 학습에 연결하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 학습률과 반복 수를 실제 학습된 부스팅 모델에서 확인해요.",
+          "target": "text:학습률과 반복 수를 실제 학습된 부스팅 모델에서 확인해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "학습은 한 번, 반영 비율은 1로 고정돼 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "n_estimators=1",
+          "after": "n_estimators=rounds",
+          "say": "학습 반복 횟수를 rounds에 연결하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "반복 횟수는 맞췄어요. 비율이 1이면 한 번에 각 묶음의 정답까지 반영해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "learning_rate=1.0",
+          "after": "learning_rate=rate",
+          "say": "학습 반영 비율을 rate에 연결하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "두 번에 나눠 정해 둔 비율만큼 반영한 예측이 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 변수 rate만 바꾸고 모델 설정에 연결하지 않으면 학습 결과는 그대로예요.",
+          "target": "code:learning_rate=rate"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nimport uuid\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"rate\": 0.5}, \"expected\": \"2\\\\n0.5\\\\n[1.625, 6.125]\"}, {\"values\": {\"rounds\": 1, \"rate\": 0.5}, \"expected\": \"1\\\\n0.5\\\\n[1.25, 4.25]\"}, {\"values\": {\"rounds\": 2, \"rate\": 0.25}, \"expected\": \"2\\\\n0.25\\\\n[1.15625, 3.78125]\"}]')\nprobe = 'assert model.get_booster().num_boosted_rounds() == rounds\\nassert model.get_params()[\"learning_rate\"] == rate'\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    witness = uuid.uuid4().hex\n    tree.body.extend(ast.parse(probe).body)\n    tree.body.extend(ast.parse('print(' + repr(witness) + ')').body)\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=30)\n    lines = result.stdout.strip().splitlines()\n    if not lines or lines[-1] != witness:\n        raise AssertionError('실제 실행 상태의 검사까지 끝나야 해요.')\n    output = '\\n'.join(lines[:-1]).strip()\n    if result.returncode != 0 or output != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     }
   ]
 }

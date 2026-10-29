@@ -28,6 +28,11 @@
     [
       "['late', 'on-time']\n[1.0, 0.0]",
       "['early', 'late']\n[0.0, 1.0]"
+    ],
+    [
+      "[1.0, 0.0]\n[False, False]",
+      "[0.0, 1.0]\n[False, False]",
+      "[0.0, 1.0]\n[False, True]"
     ]
   ],
   "reject": [
@@ -50,6 +55,38 @@
         ]
       ],
       "reason": "A memorized column number breaks when the class names change"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "list(model.classes_).index(\"late\")",
+          "0"
+        ]
+      ],
+      "reason": "The positive class is not a fixed column"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "float(p) >= threshold",
+          "float(p) > threshold"
+        ]
+      ],
+      "reason": "The decision threshold is inclusive"
+    }
+  ],
+  "accept": [
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "list(model.classes_).index(\"late\")",
+          "model.classes_.tolist().index(\"late\")"
+        ]
+      ],
+      "reason": "Equivalent lookup by class name"
     }
   ]
 }

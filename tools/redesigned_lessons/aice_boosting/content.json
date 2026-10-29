@@ -519,6 +519,81 @@
           "target": "code:rate = 0.5"
         }
       ]
+    },
+    {
+      "id": "stp_a5d75177-1ef8-4bf6-a518-1e1a0697176d",
+      "title": "반영 비율과 반복 횟수를 학습에 연결하세요",
+      "language": "python",
+      "goal": "학습률과 반복 수를 실제 학습된 부스팅 모델에서 확인해요.\n\n정해 둔 rounds번만 학습하고 매 반복의 반영 비율은 rate를 따라요. 실제 반복 횟수, 학습률, 두 배송의 예측을 출력해요. 현재 두 번·0.5 비율이면 예측은 1.625와 6.125예요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 학습 반복 횟수를 rounds에 연결하세요.\n3. 학습 반영 비율을 rate에 연결하세요.\n4. 다시 실행해 요구한 결과를 확인한 뒤 작성한 코드를 제출하세요.",
+      "starter_code": "import numpy as np\nfrom xgboost import XGBRegressor\n# 같은 값 두 묶음으로 반영 비율과 반복 횟수만 관찰해요.\nX_train = np.array([[0.0], [1.0], [8.0], [9.0]], dtype=\"float32\")\ny_train = np.array([2.0, 2.0, 8.0, 8.0], dtype=\"float32\")\nrate = 0.5\nrounds = 2\nX_test = np.array([[0.0], [9.0]], dtype=\"float32\")\nmodel = XGBRegressor(n_estimators=1, learning_rate=1.0, max_depth=1,\n    min_child_weight=0, reg_lambda=0, random_state=0, n_jobs=1,\n    base_score=0.5, objective=\"reg:squarederror\", verbosity=0)\nmodel.fit(X_train, y_train)\nprint(model.get_booster().num_boosted_rounds())\nprint(model.get_params()[\"learning_rate\"])\nprint(model.predict(X_test).round(6).tolist())\n",
+      "solution": "import numpy as np\nfrom xgboost import XGBRegressor\n# 같은 값 두 묶음으로 반영 비율과 반복 횟수만 관찰해요.\nX_train = np.array([[0.0], [1.0], [8.0], [9.0]], dtype=\"float32\")\ny_train = np.array([2.0, 2.0, 8.0, 8.0], dtype=\"float32\")\nrate = 0.5\nrounds = 2\nX_test = np.array([[0.0], [9.0]], dtype=\"float32\")\nmodel = XGBRegressor(n_estimators=rounds, learning_rate=rate, max_depth=1,\n    min_child_weight=0, reg_lambda=0, random_state=0, n_jobs=1,\n    base_score=0.5, objective=\"reg:squarederror\", verbosity=0)\nmodel.fit(X_train, y_train)\nprint(model.get_booster().num_boosted_rounds())\nprint(model.get_params()[\"learning_rate\"])\nprint(model.predict(X_test).round(6).tolist())\n",
+      "required": true,
+      "tests": [
+        {
+          "input": "",
+          "expected": "2\n0.5\n[1.625, 6.125]"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 학습률과 반복 수를 실제 학습된 부스팅 모델에서 확인해요.",
+          "target": "text:학습률과 반복 수를 실제 학습된 부스팅 모델에서 확인해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "학습은 한 번, 반영 비율은 1로 고정돼 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "n_estimators=1",
+          "after": "n_estimators=rounds",
+          "say": "학습 반복 횟수를 rounds에 연결하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "반복 횟수는 맞췄어요. 비율이 1이면 한 번에 각 묶음의 정답까지 반영해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "learning_rate=1.0",
+          "after": "learning_rate=rate",
+          "say": "학습 반영 비율을 rate에 연결하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "두 번에 나눠 정해 둔 비율만큼 반영한 예측이 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 변수 rate만 바꾸고 모델 설정에 연결하지 않으면 학습 결과는 그대로예요.",
+          "target": "code:learning_rate=rate"
+        }
+      ]
     }
   ],
   "presentation": {
@@ -547,6 +622,12 @@
           "이름과 출력 숫자보다 실제 학습을 확인해요."
         ],
         "premise": "같은 배송에 정상·지연·취소 종류가 추가돼요. 범주와 평가 기록을 읽고 마지막에는 요청 반복 수를 맞춰요."
+      },
+      "unt_8b8b508d-3c76-4914-b6ba-175032044f65": {
+        "objectives": [
+          "학습률과 반복 수를 실제 학습된 부스팅 모델에서 확인해요."
+        ],
+        "premise": "정해 둔 rounds번만 학습하고 매 반복의 반영 비율은 rate를 따라요. 실제 반복 횟수, 학습률, 두 배송의 예측을 출력해요. 현재 두 번·0.5 비율이면 예측은 1.625와 6.125예요."
       }
     }
   },
@@ -594,9 +675,35 @@
         },
         "expected": "0.75\n[6.125, 1.625]"
       }
+    ],
+    "stp_a5d75177-1ef8-4bf6-a518-1e1a0697176d": [
+      {
+        "values": {
+          "rate": 0.5
+        },
+        "expected": "2\n0.5\n[1.625, 6.125]"
+      },
+      {
+        "values": {
+          "rounds": 1,
+          "rate": 0.5
+        },
+        "expected": "1\n0.5\n[1.25, 4.25]"
+      },
+      {
+        "values": {
+          "rounds": 2,
+          "rate": 0.25
+        },
+        "expected": "2\n0.25\n[1.15625, 3.78125]"
+      }
     ]
   },
   "prepared_probes": {
-    "stp_62892202-cfb6-4c58-b80a-98faa84cd239": "assert model.get_params()[\"learning_rate\"] == rate, \"모델의 실제 학습률을 rate와 맞추세요.\""
+    "stp_62892202-cfb6-4c58-b80a-98faa84cd239": "assert model.get_params()[\"learning_rate\"] == rate, \"모델의 실제 학습률을 rate와 맞추세요.\"",
+    "stp_a5d75177-1ef8-4bf6-a518-1e1a0697176d": "assert model.get_booster().num_boosted_rounds() == rounds\nassert model.get_params()[\"learning_rate\"] == rate"
+  },
+  "prepared_task_timeout_seconds": {
+    "stp_a5d75177-1ef8-4bf6-a518-1e1a0697176d": 30
   }
 }

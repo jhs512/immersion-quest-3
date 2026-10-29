@@ -43,6 +43,12 @@
    "2",
    "5",
    "2"
+  ],
+  [
+   "7\n7\ntrue\ntrue",
+   "7\n5\ntrue\nfalse",
+   "3\n1\ntrue\nfalse",
+   "7\n5\ntrue\nfalse"
   ]
  ],
  "reject": [
@@ -185,6 +191,36 @@
     ]
    ],
    "reason": "Assigning the parameter to itself"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "return new Box(original.count);",
+     "return original;"
+    ]
+   ],
+   "reason": "Returning the same reference is not a copy"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "return new Box(original.count);",
+     "return new Box(5);"
+    ]
+   ],
+   "reason": "A fixed copy fails other starting counts"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "b.count = b.count + 2;",
+     "c.count = c.count + 2;"
+    ]
+   ],
+   "reason": "Changing the copy leaves the shared box"
   }
  ],
  "accept": [
@@ -247,6 +283,26 @@
     ]
    ],
    "reason": "Literal-first equals"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "b.count = b.count + 2;",
+     "a.count += 2;"
+    ]
+   ],
+   "reason": "a and b are the same box"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "return new Box(original.count);",
+     "Box fresh = new Box(0);\n        fresh.count = original.count;\n        return fresh;"
+    ]
+   ],
+   "reason": "Copying the field after creating the box"
   }
  ]
 }

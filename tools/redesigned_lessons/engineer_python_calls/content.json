@@ -831,6 +831,81 @@
           "value": "5"
         }
       ]
+    },
+    {
+      "id": "stp_a474fa8a-a0c0-4eaa-99c8-31d2a5b908cf",
+      "title": "생략한 기록 목록은 호출마다 새로 만드세요",
+      "language": "python",
+      "goal": "가변 기본 인수의 공유를 없애면서 명시적으로 전달한 목록의 참조는 유지해요.\n\nhistory를 생략한 두 호출은 별도 목록이어야 해요. 명시적으로 넘긴 given은 그대로 수정하고 반환하세요. prefix는 키워드 인수예요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 기본값을 None으로 바꾸고 None일 때만 새 목록을 만든 뒤 항목을 추가하세요.\n3. 복사본 대신 항목을 추가한 바로 그 목록을 반환하세요.\n4. 다시 실행해 요구한 결과를 확인한 뒤 작성한 코드를 제출하세요.",
+      "starter_code": "def add(value, *, prefix, history=[]):\n    history.append(prefix + str(value))\n    return history[:]\n\nfirst = add(1, prefix=\"A\")\nsecond = add(2, prefix=\"B\")\ngiven = [\"start\"]\nthird = add(3, prefix=\"C\", history=given)\nprint(first)\nprint(second)\nprint(third, given is third)\n",
+      "solution": "def add(value, *, prefix, history=None):\n    if history is None:\n        history = []\n    history.append(prefix + str(value))\n    return history\n\nfirst = add(1, prefix=\"A\")\nsecond = add(2, prefix=\"B\")\ngiven = [\"start\"]\nthird = add(3, prefix=\"C\", history=given)\nprint(first)\nprint(second)\nprint(third, given is third)\n",
+      "required": true,
+      "tests": [
+        {
+          "input": "",
+          "expected": "['A1']\n['B2']\n['start', 'C3'] True"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 가변 기본 인수의 공유를 없애면서 명시적으로 전달한 목록의 참조는 유지해요.",
+          "target": "text:가변 기본 인수의 공유를 없애면서 명시적으로 전달한 목록의 참조는 유지해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "두 번째 결과에 앞 호출의 A1이 섞이고 반환 목록도 given과 다른 객체예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "def add(value, *, prefix, history=[]):\n    history.append",
+          "after": "def add(value, *, prefix, history=None):\n    if history is None:\n        history = []\n    history.append",
+          "say": "기본값을 None으로 바꾸고 None일 때만 새 목록을 만든 뒤 항목을 추가하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            11,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "생략한 목록은 독립적이에요. 아직 세 번째 반환값은 given의 복사본이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "return history[:]",
+          "after": "return history",
+          "say": "복사본 대신 항목을 추가한 바로 그 목록을 반환하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            11,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "첫 두 호출은 독립적이고 세 번째 호출은 넘겨준 given에 C3를 붙였어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 매번 새 목록으로 덮어쓰면 호출자가 넘긴 given을 수정할 수 없어요.",
+          "target": "code:return history"
+        }
+      ]
     }
   ],
   "presentation": {
@@ -859,7 +934,31 @@
           "이름 범위·예외 흐름·재귀·키워드와 가변 인수의 결과를 직접 답해요."
         ],
         "premise": "이번에는 함수 안팎의 이름, 예외가 난 뒤의 흐름, 작아지는 호출, 이름으로 넘기는 인수와 개수가 정해지지 않은 인수를 따라가요."
+      },
+      "unt_305d3ef2-d46f-4f71-a229-9f39f4bbd513": {
+        "objectives": [
+          "가변 기본 인수의 공유를 없애면서 명시적으로 전달한 목록의 참조는 유지해요."
+        ],
+        "premise": "history를 생략한 두 호출은 별도 목록이어야 해요. 명시적으로 넘긴 given은 그대로 수정하고 반환하세요. prefix는 키워드 인수예요."
       }
     }
+  },
+  "prepared_cases": {
+    "stp_a474fa8a-a0c0-4eaa-99c8-31d2a5b908cf": [
+      {
+        "values": {
+          "given": [
+            "start"
+          ]
+        },
+        "expected": "['A1']\n['B2']\n['start', 'C3'] True"
+      }
+    ]
+  },
+  "prepared_probes": {
+    "stp_a474fa8a-a0c0-4eaa-99c8-31d2a5b908cf": "assert first is not second\nassert third is given\nassert len(first) == 1 and len(second) == 1"
+  },
+  "prepared_task_timeout_seconds": {
+    "stp_a474fa8a-a0c0-4eaa-99c8-31d2a5b908cf": 30
   }
 }

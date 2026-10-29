@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_2b40c3f3-1def-4007-9410-7acd20c196a6",
-  "revision": "java-inheritance-composition-2",
+  "revision": "java-inheritance-composition-3",
   "title": "상속과 컴포지션 · 호출할 메서드는 실제 객체가 정해요",
   "description": "배송 방법과 집합 예제로 동적 디스패치, 상속이 깨지는 경우, 컴포지션과 확장용 상속을 차례로 고쳐요.",
   "objectives": [
@@ -111,6 +111,22 @@
               "id": "stp_14a4e98b-aa13-4b1c-8664-eee2a13e0568",
               "objectives": [
                 "abstract로 비워 둔 자리를 채우면 상위 클래스가 정한 순서는 그대로 지켜진다는 것을 확인해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_8e2c6a41-9d73-4b5f-a1e8-3c7f0b29d614",
+          "title": "마지막 도전",
+          "objectives": [
+            "하위 클래스를 더해도 공통 코드가 실제 객체의 동작을 쓰게 해요."
+          ],
+          "premise": "배송 영수증이에요. 공통 영수증 코드와 main은 준비돼 있어요.",
+          "steps": [
+            {
+              "id": "stp_4f9d2b67-8c31-4e5a-b7d0-1a6e3c94f825",
+              "objectives": [
+                "재정의와 super 호출로 새 종류의 배송비를 바로잡고, 동적 디스패치로 같은 코드가 다르게 동작하는 것을 확인해요."
               ]
             }
           ]
@@ -667,6 +683,117 @@
         },
         {
           "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_4f9d2b67-8c31-4e5a-b7d0-1a6e3c94f825",
+      "title": "새 배송 두 종류의 배송비가 영수증에 반영되게 하세요",
+      "language": "java",
+      "goal": "자, 마지막 도전이에요. 배송 종류 Pickup과 Express를 Delivery의 하위 클래스로 더해요. Delivery와 receipt는 고치지 않아요.\n\n픽업은 이름이 픽업이고 배송비가 0원이에요. 특급은 이름이 특급이고 기본 배송비에 2,000원을 더해요. 준비 입력 `standard 10000 pickup 8000 express 12000`이면 `일반 10000원 + 배송비 3000원`, `픽업 8000원 + 배송비 0원`, `특급 12000원 + 배송비 5000원`이 나와야 해요. 채점은 다른 입력으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 세 영수증의 배송비를 확인하세요.\n2. Pickup에 배송비 0원을 돌려주는 fee 재정의를 쓰세요.\n3. Express의 fee가 Delivery의 fee를 재정의하고 기본 배송비에 2,000원을 더하도록 고치세요.\n4. 코드 실행 버튼을 눌러 세 영수증이 요구와 같은지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "starter_code": "import java.util.Scanner;\n\n// 모든 배송이 같은 영수증 모양을 써요. 이름과 배송비만 종류마다 달라요.\nabstract class Delivery {\n    abstract String name();\n    // 기본 배송비예요.\n    int fee(int amount) { return 3000; }\n    // 영수증 순서는 바꿀 수 없어요. 실제 객체의 name과 fee가 불려요.\n    final String receipt(int amount) {\n        return name() + \" \" + amount + \"원 + 배송비 \" + fee(amount) + \"원\";\n    }\n}\n\nclass Standard extends Delivery {\n    String name() { return \"일반\"; }\n}\n\n// 픽업은 배송비가 없어요.\nclass Pickup extends Delivery {\n    @Override String name() { return \"픽업\"; }\n    // 여기에 배송비가 0원이 되도록 fee를 재정의하세요.\n}\n\n// 특급은 기본 배송비에 2,000원을 더해요.\nclass Express extends Delivery {\n    @Override String name() { return \"특급\"; }\n    int fee(long amount) { return 2000; } // 기본 배송비에 2,000원을 더하도록 고치세요.\n}\n\nclass Main {\n    // 입력한 종류에 맞는 객체를 만들어요. 변수 타입은 늘 Delivery예요.\n    static Delivery of(String kind) {\n        if (kind.equals(\"pickup\")) return new Pickup();\n        if (kind.equals(\"express\")) return new Express();\n        return new Standard();\n    }\n\n    public static void main(String[] args) {\n        Scanner in = new Scanner(System.in);\n        while (in.hasNext()) {\n            Delivery delivery = of(in.next());\n            System.out.println(delivery.receipt(in.nextInt()));\n        }\n    }\n}\n",
+      "solution": "import java.util.Scanner;\n\n// 모든 배송이 같은 영수증 모양을 써요. 이름과 배송비만 종류마다 달라요.\nabstract class Delivery {\n    abstract String name();\n    // 기본 배송비예요.\n    int fee(int amount) { return 3000; }\n    // 영수증 순서는 바꿀 수 없어요. 실제 객체의 name과 fee가 불려요.\n    final String receipt(int amount) {\n        return name() + \" \" + amount + \"원 + 배송비 \" + fee(amount) + \"원\";\n    }\n}\n\nclass Standard extends Delivery {\n    String name() { return \"일반\"; }\n}\n\n// 픽업은 배송비가 없어요.\nclass Pickup extends Delivery {\n    @Override String name() { return \"픽업\"; }\n    @Override int fee(int amount) { return 0; }\n}\n\n// 특급은 기본 배송비에 2,000원을 더해요.\nclass Express extends Delivery {\n    @Override String name() { return \"특급\"; }\n    @Override int fee(int amount) { return super.fee(amount) + 2000; }\n}\n\nclass Main {\n    // 입력한 종류에 맞는 객체를 만들어요. 변수 타입은 늘 Delivery예요.\n    static Delivery of(String kind) {\n        if (kind.equals(\"pickup\")) return new Pickup();\n        if (kind.equals(\"express\")) return new Express();\n        return new Standard();\n    }\n\n    public static void main(String[] args) {\n        Scanner in = new Scanner(System.in);\n        while (in.hasNext()) {\n            Delivery delivery = of(in.next());\n            System.out.println(delivery.receipt(in.nextInt()));\n        }\n    }\n}\n",
+      "required": true,
+      "tests": [
+        {
+          "input": "standard 10000 pickup 8000 express 12000",
+          "expected": "일반 10000원 + 배송비 3000원\n픽업 8000원 + 배송비 0원\n특급 12000원 + 배송비 5000원"
+        },
+        {
+          "input": "express 0",
+          "expected": "특급 0원 + 배송비 5000원"
+        },
+        {
+          "input": "pickup 1 pickup 2 standard 3",
+          "expected": "픽업 1원 + 배송비 0원\n픽업 2원 + 배송비 0원\n일반 3원 + 배송비 3000원"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "새 배송 두 종류의 배송비가 영수증에 반영되게 하는 문제예요.",
+          "target": "text:새 배송 두 종류의 배송비가 영수증에 반영되게 하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 새 배송 두 종류의 배송비를 하위 클래스에서 바로잡아요. 영수증 코드는 그대로예요.",
+          "target": "text:Delivery와 receipt는 고치지 않아요."
+        },
+        {
+          "action": "say",
+          "text": "main은 변수 타입이 늘 Delivery예요. 실제 객체가 어떤 클래스인지에 따라 fee가 달라져야 해요.",
+          "target": "code:Delivery delivery = of(in.next());"
+        },
+        {
+          "action": "run",
+          "lines": [
+            42,
+            42
+          ]
+        },
+        {
+          "action": "say",
+          "text": "세 영수증 모두 배송비 3000원이에요. 픽업과 특급의 fee가 한 번도 불리지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    // 여기에 배송비가 0원이 되도록 fee를 재정의하세요.",
+          "after": "    @Override int fee(int amount) { return 0; }",
+          "say": "픽업은 같은 모양의 fee를 재정의해 0원을 돌려줘요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            42,
+            42
+          ]
+        },
+        {
+          "action": "say",
+          "text": "픽업 8000원 + 배송비 0원이에요. receipt가 실제 객체 Pickup의 fee를 불렀어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    int fee(long amount) { return 2000; } // 기본 배송비에 2,000원을 더하도록 고치세요.",
+          "after": "    int fee(long amount) { return super.fee((int) amount) + 2000; }",
+          "say": "특급의 본문만 기본 배송비에 2,000원을 더하게 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            42,
+            42
+          ]
+        },
+        {
+          "action": "say",
+          "text": "특급은 여전히 3000원이에요. fee(long)은 매개변수 타입이 달라 재정의가 아니라 새 메서드예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    int fee(long amount) { return super.fee((int) amount) + 2000; }",
+          "after": "    @Override int fee(int amount) { return super.fee(amount) + 2000; }",
+          "say": "@Override를 붙이고 매개변수를 int로 맞춰요. super.fee에 2,000원을 더해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            42,
+            42
+          ]
+        },
+        {
+          "action": "say",
+          "text": "특급 12000원 + 배송비 5000원이에요. 세 영수증이 요구와 같아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. @Override 없이 매개변수 타입을 바꾸면 컴파일은 되지만 재정의가 아니에요.",
+          "target": "code:@Override int fee(int amount) { return super.fee(amount) + 2000; }"
         }
       ]
     }

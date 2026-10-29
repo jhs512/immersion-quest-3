@@ -17,9 +17,9 @@ fn grade(p:&GitPractice,t:&Task)->bool{if let Some(checks)=&t.git_checks{p.check
 async fn remote_team_story_uses_real_learner_edits_and_independent_resettable_demonstrations(){
     let course=CourseManifest::parse(include_str!("fixtures/player-pilot/어/course.json")).unwrap();
     let lesson=Lesson::parse(include_str!("../courses/redesigned/git-remote.json"),&course.lessons[0]).unwrap();
-    assert_eq!(lesson.tasks.len(),22);
+    assert_eq!(lesson.tasks.len(),23);// The last step is the separately started final challenge (tests/final_terminal_challenges.rs).
     let root=tempfile::tempdir().unwrap();let store=GitPracticeStore::new(root.path()).unwrap();
-    for (i,t) in lesson.tasks.iter().enumerate(){
+    for (i,t) in lesson.tasks[..22].iter().enumerate(){
         let exercise=t.git_terminal.clone().unwrap();assert!(exercise.setup.is_empty()&&exercise.files.is_empty());
         let student=store.open("team",exercise.clone()).unwrap();
         let before=std::fs::read(student.work().join("guide.txt")).ok();
@@ -30,7 +30,7 @@ async fn remote_team_story_uses_real_learner_edits_and_independent_resettable_de
         play(&student,t);assert!(t.interaction.is_some()||grade(&student,t),"student step {}: {:?}",i+1,serde_json::to_string(&student.check_exercise().unwrap()).unwrap());
         if t.interaction.is_some(){assert!(molip_quest::lesson_runner::check(t,&t.solution).await.unwrap().passed);assert!(!molip_quest::lesson_runner::check(t,"").await.unwrap().passed);}
     }
-    for (i,t) in lesson.tasks.iter().enumerate(){
+    for (i,t) in lesson.tasks[..22].iter().enumerate(){
         let reset=store.reset_step("team",t.git_terminal.clone().unwrap(),&t.id).unwrap();
         if t.interaction.is_none(){assert!(!grade(&reset,t),"reset solved step {}",i+1);}
         play(&reset,t);assert!(t.interaction.is_some()||grade(&reset,t),"reset step {}",i+1);

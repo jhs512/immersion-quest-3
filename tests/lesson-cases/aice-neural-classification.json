@@ -28,6 +28,11 @@
     [
       "",
       "[2, 3]\nTrue"
+    ],
+    [
+      "",
+      "[2, 3]\n[1.880797028541565, 1.880797028541565]\n['normal', 'normal']",
+      "[2, 3]\n[1.0, 1.0]\n['late', 'late']"
     ]
   ],
   "reject": [
@@ -40,6 +45,38 @@
         ]
       ],
       "reason": "A fixed output shape ignores different class and observation counts"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "activation=\"softmax\"",
+          "activation=\"sigmoid\""
+        ]
+      ],
+      "reason": "Independent sigmoid outputs do not sum to one"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "names[int(i)] for i",
+          "names[0] for i"
+        ]
+      ],
+      "reason": "Prediction names must follow predicted indices"
+    }
+  ],
+  "accept": [
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "names[int(i)] for i",
+          "names[i] for i"
+        ]
+      ],
+      "reason": "Numpy integer indices can index a list"
     }
   ]
 }

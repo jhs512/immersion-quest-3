@@ -1,0 +1,77 @@
+{
+  "by": "hand",
+  "source_sha256": "8f7ee461c922d89b9a671bf99bbcbcadca532626b61edc7f47d77a63dbebfda5",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 배송 기록 딕셔너리에서 시간 목록을 항목 이름으로 꺼내 건수, 평균, 정렬한 새 목록을 출력해요.",
+      "target": "text:원래 시간 목록은 그대로 둬야 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "첫 줄이 3이에요. 딕셔너리 항목이 세 개라서 나온 값이지 배송 건수가 아니에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "print(len(record))  # 1) 배송 건수를 출력하세요.",
+      "after": "# 항목 수가 아니라 시간 목록의 길이예요.\nprint(len(record[\"minutes\"]))",
+      "say": "시간 목록을 항목 이름으로 꺼내 길이를 세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "print(0)  # 2) 배송 시간의 평균을 출력하세요.",
+      "after": "print(statistics.mean(record[\"minutes\"]))",
+      "say": "평균은 statistics.mean으로 구해 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        10
+      ],
+      "expect_error": "NameError"
+    },
+    {
+      "action": "say",
+      "text": "NameError예요. 이 코드에서는 모듈을 st라는 이름으로 불러왔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "print(statistics.mean(record[\"minutes\"]))",
+      "after": "# 위에서 붙인 이름 st로 불러요.\nprint(st.mean(record[\"minutes\"]))",
+      "say": "붙인 이름 st로 불러요."
+    },
+    {
+      "action": "patch_code",
+      "before": "print(record)  # 3) 짧은 시간부터 정렬한 새 목록을 출력하세요.",
+      "after": "# sorted는 정렬한 새 목록을 돌려주고 원래 목록은 두어요.\nprint(sorted(record[\"minutes\"]))",
+      "say": "정렬은 sorted로 새 목록을 만들어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "4, 20, [12, 18, 20, 30]이 나오고 원래 목록 [30, 12, 18, 20]도 그대로예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. record[\"minutes\"].sort()를 출력하면 None이 나오고 원래 목록이 바뀌어요.",
+      "target": "code:print(sorted(record[\"minutes\"]))"
+    }
+  ]
+}

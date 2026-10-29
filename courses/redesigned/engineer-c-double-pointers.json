@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_f176fef6-0c01-45d9-8497-41c416bfb855",
-  "revision": "engineer-c-double-pointers-5",
+  "revision": "engineer-c-double-pointers-6",
   "title": "C · 다중 포인터의 층을 따라가요",
   "description": "같은 재고의 주소 관계를 두 층으로 넓혀 함수와 배열에서 판단해요.",
   "objectives": [
@@ -97,6 +97,22 @@
               "id": "stp_05ca33c2-5eda-4302-a452-cd2653916a10",
               "objectives": [
                 "이중 포인터가 가리킨 최종 대상에 계산 결과를 저장해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_9aca0cb4-e076-4bee-8198-d333f6808c6a",
+          "title": "마지막 도전",
+          "objectives": [
+            "이중 포인터의 어느 층에 써야 주소가 바뀌는지 판단해요."
+          ],
+          "premise": "배열은 바꾸지 말고 chosen이 가장 작은 재고의 첫 칸을 가리키게 하세요. count는 1 이상이에요. 출력은 선택 위치·선택 값·첫 칸 원래 값 순서로 지금 1 2 8이에요.",
+          "steps": [
+            {
+              "id": "stp_91b12cbe-e1be-4225-a7da-ff05510ff2a4",
+              "objectives": [
+                "이중 포인터의 어느 층에 써야 주소가 바뀌는지 판단해요."
               ]
             }
           ]
@@ -935,6 +951,84 @@
           "expected": "10"
         }
       ]
+    },
+    {
+      "language": "c",
+      "starter_code": "#include <stdio.h>\nvoid select_min(int **selected, int *bins, int count) {\n    int *best = bins;\n    for (int i = 1; i < count; i++) {\n        if (bins[i] < *best) best = &bins[i];\n    }\n    // 호출자가 가진 포인터를 최소 재고 칸으로 옮기세요.\n    **selected = *best;\n}\nint main(void) {\n    int bins[] = {8, 2, 5};\n    int count = 3;\n    int *chosen = &bins[0];\n    select_min(&chosen, bins, count);\n    printf(\"%d %d %d\", (int)(chosen - bins), *chosen, bins[0]);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\nvoid select_min(int **selected, int *bins, int count) {\n    int *best = bins;\n    for (int i = 1; i < count; i++) {\n        if (bins[i] < *best) best = &bins[i];\n    }\n    // 호출자가 가진 포인터를 최소 재고 칸으로 옮기세요.\n    *selected = best;\n}\nint main(void) {\n    int bins[] = {8, 2, 5};\n    int count = 3;\n    int *chosen = &bins[0];\n    select_min(&chosen, bins, count);\n    printf(\"%d %d %d\", (int)(chosen - bins), *chosen, bins[0]);\n    return 0;\n}\n",
+      "goal": "이중 포인터의 어느 층에 써야 주소가 바뀌는지 판단해요.\n\n배열은 바꾸지 말고 chosen이 가장 작은 재고의 첫 칸을 가리키게 하세요. count는 1 이상이에요. 출력은 선택 위치·선택 값·첫 칸 원래 값 순서로 지금 1 2 8이에요.\n\n**할 일**\n\n1. 코드 실행을 눌러 수정 전 결과를 확인하세요.\n2. 두 번 따라가 정수를 고치지 말고 한 번 따라가 포인터에 best 주소를 쓰세요.\n3. 다시 실행해 결과를 확인하고 작성한 코드를 제출하세요.",
+      "tests": [
+        {
+          "input": "",
+          "expected": "1 2 8"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "최소 재고를 가리키도록 호출자의 포인터를 바꾸는 문제예요.",
+          "target": "text:최소 재고를 가리키도록 호출자의 포인터를 바꾸세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 이중 포인터의 어느 층에 써야 주소가 바뀌는지 판단해요.",
+          "target": "text:이중 포인터의 어느 층에 써야 주소가 바뀌는지 판단해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "첫 칸이 2로 훼손됐고 선택 위치는 여전히 0이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "**selected = *best;",
+          "after": "*selected = best;",
+          "say": "두 번 따라가 정수를 고치지 말고 한 번 따라가 포인터에 best 주소를 쓰세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "위치 1의 값 2를 가리키며 원래 첫 칸 8은 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 별 하나는 포인터를, 별 둘은 그 포인터가 가리킨 정수를 바꿔요.",
+          "target": "code:*selected = best;"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "bins": "{1, 4, 1}",
+            "count": "3"
+          },
+          "expected": "0 1 1"
+        },
+        {
+          "values": {
+            "bins": "{7, 5, -1}",
+            "count": "3"
+          },
+          "expected": "2 -1 7"
+        }
+      ],
+      "id": "stp_91b12cbe-e1be-4225-a7da-ff05510ff2a4",
+      "title": "최소 재고를 가리키도록 호출자의 포인터를 바꾸세요",
+      "required": true
     }
   ]
 }

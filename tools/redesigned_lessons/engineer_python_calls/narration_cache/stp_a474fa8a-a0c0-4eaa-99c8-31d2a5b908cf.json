@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "7612705feaf5a54b421779b6899f9ae9c9fb590fff3b7cf1791fee858ee2b17e",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 가변 기본 인수의 공유를 없애면서 명시적으로 전달한 목록의 참조는 유지해요.",
+      "target": "text:가변 기본 인수의 공유를 없애면서 명시적으로 전달한 목록의 참조는 유지해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "두 번째 결과에 앞 호출의 A1이 섞이고 반환 목록도 given과 다른 객체예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "def add(value, *, prefix, history=[]):\n    history.append",
+      "after": "def add(value, *, prefix, history=None):\n    if history is None:\n        history = []\n    history.append",
+      "say": "기본값을 None으로 바꾸고 None일 때만 새 목록을 만든 뒤 항목을 추가하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "생략한 목록은 독립적이에요. 아직 세 번째 반환값은 given의 복사본이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "return history[:]",
+      "after": "return history",
+      "say": "복사본 대신 항목을 추가한 바로 그 목록을 반환하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "첫 두 호출은 독립적이고 세 번째 호출은 넘겨준 given에 C3를 붙였어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 매번 새 목록으로 덮어쓰면 호출자가 넘긴 given을 수정할 수 없어요.",
+      "target": "code:return history"
+    }
+  ]
+}

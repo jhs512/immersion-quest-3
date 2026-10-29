@@ -1,0 +1,91 @@
+{
+  "step": "stp_04bd4e0f-f236-4bc2-9b1d-5d6c13f74eac",
+  "sources": {},
+  "accept": [
+    {
+      "steps": [
+        "mkdir backup",
+        "cp notes/todo.txt backup/",
+        "mv draft.txt notes/",
+        "rm -r tmp",
+        "cd notes",
+        "echo \"정리 끝\" > done.txt",
+        "ls"
+      ],
+      "reason": "teacher order"
+    },
+    {
+      "steps": [
+        "cd notes",
+        "mkdir ../backup",
+        "cp todo.txt ../backup/todo.txt",
+        "mv ../draft.txt .",
+        "rm -rf ../tmp",
+        "echo 정리 끝 > done.txt",
+        "ls"
+      ],
+      "reason": "relative paths from inside notes"
+    }
+  ],
+  "reject": [
+    {
+      "steps": [
+        "mkdir backup",
+        "mv notes/todo.txt backup/",
+        "mv draft.txt notes/",
+        "rm -r tmp",
+        "cd notes",
+        "echo \"정리 끝\" > done.txt",
+        "ls"
+      ],
+      "reason": "moving the list loses the original"
+    },
+    {
+      "steps": [
+        "mkdir backup",
+        "cp notes/todo.txt backup/",
+        "mv draft.txt notes/",
+        "rmdir tmp",
+        "cd notes",
+        "echo \"정리 끝\" > done.txt",
+        "ls"
+      ],
+      "reason": "rmdir leaves tmp"
+    },
+    {
+      "steps": [
+        "mkdir backup",
+        "cp notes/todo.txt backup/",
+        "mv draft.txt notes/",
+        "rm -r tmp",
+        "echo \"정리 끝\" > done.txt",
+        "cd notes",
+        "ls"
+      ],
+      "reason": "memo written outside notes"
+    },
+    {
+      "steps": [
+        "mkdir backup",
+        "cp notes/todo.txt backup/",
+        "cp draft.txt notes/",
+        "rm -r tmp",
+        "cd notes",
+        "echo \"정리 끝\" > done.txt",
+        "ls"
+      ],
+      "reason": "copying the draft leaves it outside"
+    },
+    {
+      "steps": [
+        "mkdir backup",
+        "cp notes/todo.txt backup/",
+        "mv draft.txt notes/",
+        "rm -r tmp",
+        "echo \"정리 끝\" > notes/done.txt",
+        "ls"
+      ],
+      "reason": "ending outside notes"
+    }
+  ]
+}

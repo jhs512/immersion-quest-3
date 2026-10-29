@@ -1,0 +1,66 @@
+{
+  "course": "tests/fixtures/player-pilot/v/course.json",
+  "lesson": "courses/redesigned/aice-selection.json",
+  "only_last": true,
+  "expected_outputs": [
+    [
+      "[101, 102, 103, 104, 105, 106]\n0 0",
+      "[101, 103, 104, 105, 106]\n0 0",
+      "[103, 106, 104, 101]\n37.25 37.0"
+    ]
+  ],
+  "reject": [
+    {
+      "step": 11,
+      "replacements": [
+        [
+          "(df[\"minutes\"] >= limit)",
+          "(df[\"minutes\"] > limit)"
+        ]
+      ],
+      "reason": "The limit itself is selected"
+    },
+    {
+      "step": 11,
+      "replacements": [
+        [
+          "sort_values(\"minutes\", ascending=False)",
+          "sort_values(\"minutes\", ascending=True)"
+        ]
+      ],
+      "reason": "Longest first means descending"
+    },
+    {
+      "step": 11,
+      "replacements": [
+        [
+          "print(selected[\"minutes\"].mean(), selected[\"minutes\"].median())",
+          "print(df[\"minutes\"].mean(), df[\"minutes\"].median())"
+        ]
+      ],
+      "reason": "Summarize only the selection"
+    },
+    {
+      "step": 11,
+      "replacements": [
+        [
+          "selected = df.loc[(df[\"minutes\"] >= limit) & (df[\"region\"] == \"north\")]",
+          "selected = df.loc[df[\"minutes\"] >= limit]"
+        ]
+      ],
+      "reason": "Both conditions are required"
+    }
+  ],
+  "accept": [
+    {
+      "step": 11,
+      "replacements": [
+        [
+          "selected = df.loc[(df[\"minutes\"] >= limit) & (df[\"region\"] == \"north\")]",
+          "selected = df[(df[\"region\"] == \"north\") & (df[\"minutes\"] >= limit)]"
+        ]
+      ],
+      "reason": "Boolean indexing without loc, conditions swapped"
+    }
+  ]
+}

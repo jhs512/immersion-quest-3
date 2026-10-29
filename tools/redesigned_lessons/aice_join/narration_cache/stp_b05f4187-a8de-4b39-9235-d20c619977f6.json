@@ -1,0 +1,76 @@
+{
+  "by": "hand",
+  "source_sha256": "98314d5d7d724e8993bd8888b6a909b5760506d95ec8f6f3f3f038df8108dd76",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 두 달 배송을 이어 붙이고, 모든 배송을 남기며 지역을 연결한 뒤 지역별 건수를 세요.",
+      "target": "text:조회에 없는 회원의 배송도 모두 남겨야 해요."
+    },
+    {
+      "action": "patch_code",
+      "before": "joined = orders  # 2) 모든 배송을 남기며 회원 지역을 연결하세요.",
+      "after": "joined = orders.merge(regions, on=\"member_id\", how=\"inner\")",
+      "say": "먼저 5월 배송만으로 지역을 inner로 연결해 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "201 한 건만 남고 north 1이에요. 6월이 빠졌고 회원 4의 202도 사라졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "orders = pd.DataFrame(may)  # 1) 두 달 배송을 행으로 이어 붙이세요. 번호는 새로 매겨요.",
+      "after": "# 같은 열의 두 표를 위아래로 이어요.\norders = pd.concat([pd.DataFrame(may), pd.DataFrame(june)], ignore_index=True)",
+      "say": "두 달을 concat으로 이어 붙여요."
+    },
+    {
+      "action": "patch_code",
+      "before": "joined = orders.merge(regions, on=\"member_id\", how=\"inner\")",
+      "after": "# 왼쪽 배송은 조회가 없어도 모두 남겨요.\njoined = orders.merge(regions, on=\"member_id\", how=\"left\")",
+      "say": "조회가 없어도 남기도록 left로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "다섯 배송이 모두 남았어요. 그런데 건수는 north 2, south 1뿐이에요. 지역이 빈 두 건은 세지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "# 3) 지역이 없는 배송은 unknown으로 표시하세요.",
+      "after": "joined[\"zone\"] = joined[\"zone\"].fillna(\"unknown\")",
+      "say": "빈 지역을 unknown으로 채워요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "north 2, south 1, unknown 2예요. 다섯 건이 다 세어졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. ignore_index 없이 이어 붙이면 행 번호 0과 1이 두 번씩 생겨 위치로 고를 때 헷갈려요.",
+      "target": "code:ignore_index=True"
+    }
+  ]
+}

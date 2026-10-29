@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_e7b7100f-1c5d-41fb-9683-ab89fcd6e851",
-  "revision": "engineer-python-values-5",
+  "revision": "engineer-python-values-6",
   "title": "Python · 같은 창고 자료를 골라 읽어요",
   "description": "창고 재고와 물건 이름을 정리해요. 같은 자료의 선택·복사 조건을 한 곳씩 바꿔요.",
   "objectives": [
@@ -99,6 +99,22 @@
               "id": "stp_e3dbf632-4a34-4c0b-818e-c4251dbd20a4",
               "objectives": [
                 "split과 join의 역할을 읽어요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_d68a52e7-8f18-4a29-82c3-d18ca06bd07c",
+          "title": "마지막 도전",
+          "objectives": [
+            "얕은 복사의 내부 공유와 사전 기본값 조회를 함께 판단해요."
+          ],
+          "premise": "copied의 첫 칸만 9로 고치고 rows는 보존하세요. pending 키가 없으면 default를 읽되 counts에 새 키를 만들지 마세요. 지금 출력은 1 9와 0 False예요.",
+          "steps": [
+            {
+              "id": "stp_db97db2a-0c84-44da-947f-0cce41a180db",
+              "objectives": [
+                "얕은 복사의 내부 공유와 사전 기본값 조회를 함께 판단해요."
               ]
             }
           ]
@@ -795,6 +811,87 @@
           "value": "pen/book/bag"
         }
       ]
+    },
+    {
+      "id": "stp_db97db2a-0c84-44da-947f-0cce41a180db",
+      "title": "중첩 목록을 독립적으로 고치고 없는 키를 읽으세요",
+      "language": "python",
+      "goal": "얕은 복사의 내부 공유와 사전 기본값 조회를 함께 판단해요.\n\ncopied의 첫 칸만 9로 고치고 rows는 보존하세요. pending 키가 없으면 default를 읽되 counts에 새 키를 만들지 마세요. 지금 출력은 1 9와 0 False예요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 각 안쪽 목록도 복사해 copied를 만드세요.\n3. 없는 키의 기본값으로 default를 사용하세요.\n4. 다시 실행해 요구한 결과를 확인한 뒤 작성한 코드를 제출하세요.",
+      "starter_code": "rows = [[1, 2], [3, 4]]\ndefault = 0\n# 안쪽 목록까지 독립적으로 복사하세요.\ncopied = rows[:]\ncopied[0][0] = 9\ncounts = {\"done\": 2}\n# 없는 키는 default로 읽고 사전에는 추가하지 마세요.\npending = counts.get(\"pending\", 1)\nprint(rows[0][0], copied[0][0])\nprint(pending, \"pending\" in counts)\n",
+      "solution": "rows = [[1, 2], [3, 4]]\ndefault = 0\n# 안쪽 목록까지 독립적으로 복사하세요.\ncopied = [row[:] for row in rows]\ncopied[0][0] = 9\ncounts = {\"done\": 2}\n# 없는 키는 default로 읽고 사전에는 추가하지 마세요.\npending = counts.get(\"pending\", default)\nprint(rows[0][0], copied[0][0])\nprint(pending, \"pending\" in counts)\n",
+      "required": true,
+      "tests": [
+        {
+          "input": "",
+          "expected": "1 9\n0 False"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "중첩 목록을 독립적으로 고치고 없는 키를 읽는 문제예요.",
+          "target": "text:중첩 목록을 독립적으로 고치고 없는 키를 읽으세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 얕은 복사의 내부 공유와 사전 기본값 조회를 함께 판단해요.",
+          "target": "text:얕은 복사의 내부 공유와 사전 기본값 조회를 함께 판단해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "copied를 바꿨는데 원본도 9가 됐고 기본값도 1로 잘못 읽었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "copied = rows[:]",
+          "after": "copied = [row[:] for row in rows]",
+          "say": "각 안쪽 목록도 복사해 copied를 만드세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "내부 목록을 복사해 원본을 보존했어요. 기본값 조회는 아직 고쳐야 해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "counts.get(\"pending\", 1)",
+          "after": "counts.get(\"pending\", default)",
+          "say": "없는 키의 기본값으로 default를 사용하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "원본은 1이고 복사본만 9예요. 없는 키는 0으로 읽었고 새 키는 생기지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. get과 setdefault는 없는 키를 사전에 추가하는지에서 달라요.",
+          "target": "code:counts.get(\"pending\", default)"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nimport uuid\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"rows\": [[1, 2], [3, 4]]}, \"expected\": \"1 9\\\\n0 False\"}, {\"values\": {\"rows\": [[5, 6], [7, 8]], \"default\": 4}, \"expected\": \"5 9\\\\n4 False\"}]')\nprobe = 'assert rows[0][0] != copied[0][0]\\nassert \"pending\" not in counts'\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    witness = uuid.uuid4().hex\n    tree.body.extend(ast.parse(probe).body)\n    tree.body.extend(ast.parse('print(' + repr(witness) + ')').body)\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=30)\n    lines = result.stdout.strip().splitlines()\n    if not lines or lines[-1] != witness:\n        raise AssertionError('실제 실행 상태의 검사까지 끝나야 해요.')\n    output = '\\n'.join(lines[:-1]).strip()\n    if result.returncode != 0 or output != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     }
   ]
 }

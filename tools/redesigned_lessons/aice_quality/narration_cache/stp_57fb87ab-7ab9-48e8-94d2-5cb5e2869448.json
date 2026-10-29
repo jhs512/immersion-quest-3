@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "971c666e1d6e95fbe3f32eef8245aea14e0bf4f5033b32a3fcc62fde0184ff85",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 시간을 측정하지 못한 배송만 빼고, 같은 주문은 마지막 수정본만 남긴 뒤 건수와 평균을 보고해요.",
+      "target": "text:0분은 실제 시간이라 남겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "여섯 행이 그대로예요. 빈 시간과 같은 주문 103이 두 번 있어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "clean = df  # 시간이 있는 배송에서 주문별 마지막 수정본만 남기세요.",
+      "after": "clean = df.dropna().drop_duplicates(subset=[\"order_id\"], keep=\"last\")",
+      "say": "빈값을 dropna로 빼고 중복을 지워 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "103과 104만 남았어요. 메모가 빈 101과 105까지 사라졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "clean = df.dropna().drop_duplicates(subset=[\"order_id\"], keep=\"last\")",
+      "after": "# 빈 메모는 허용해요. 시간 열의 빈값만 기준으로 빼요.\nclean = df.dropna(subset=[\"minutes\"])\n# 같은 주문은 마지막 수정본만 남겨요.\nclean = clean.drop_duplicates(subset=[\"order_id\"], keep=\"last\")",
+      "say": "빈값 검사를 시간 열로 좁혀요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "101, 103, 104, 105가 남고 103은 42분이에요. 0분인 104도 남아 4건, 평균 19.75예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 0분을 빈값처럼 빼면 실제로 바로 끝난 배송이 사라져 평균이 커져요.",
+      "target": "code:clean = df.dropna(subset=[\"minutes\"])"
+    }
+  ]
+}

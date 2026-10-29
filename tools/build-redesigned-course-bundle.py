@@ -63,6 +63,22 @@ def classification(catalog, path=CLASSIFICATION):
     if not path.exists():
         return {}
     source = json.loads(path.read_text(encoding='utf-8'))
+    decisions_path = ROOT / 'tools/redesigned_courses/cross-course-decisions.json'
+    if decisions_path.exists():
+        decision = json.loads(decisions_path.read_text(encoding='utf-8'))
+        if decision['status'] != 'approved' or not all(decision.get(f) for f in ('decided_by', 'decided_on', 'quote', 'scope')):
+            raise ValueError('Cross-course category decision needs recorded authorization')
+        for course_key, groups in decision['categories'].items():
+            proposed = source['courses'][course_key]
+            seen = set()
+            for category, keys in groups.items():
+                for key in keys:
+                    if key in seen or proposed['lessons'][key]['category'] != category:
+                        raise ValueError(f'Cross-course category differs from the reviewed proposal: {key}')
+                    seen.add(key)
+                    proposed['lessons'][key].update(status='approved', decided_by=decision['decided_by'], decided_on=decision['decided_on'])
+            if seen != set(proposed['lessons']):
+                raise ValueError(f'Cross-course category decision must cover the exact reviewed course: {course_key}')
     courses = {course['key']: [lesson['key'] for lesson in course['lessons']] for course in catalog['courses']}
     result = {}
     for key, entry in source.get('courses', {}).items():
@@ -106,7 +122,8 @@ def classification(catalog, path=CLASSIFICATION):
     return result
 
 
-CHALLENGES = ROOT / 'tools/redesigned_courses/java/lesson-challenges.json'
+def challenges_source(course_key):
+    return ROOT / f'tools/redesigned_courses/{course_key}/lesson-challenges.json'
 
 
 def challenge_designations(course_key, lessons):
@@ -115,9 +132,10 @@ def challenge_designations(course_key, lessons):
     Each designation must be the last task of the registered lesson revision and required. The app
     additionally ignores a designation without a real grader (src/challenges.rs `designated`), and
     tests/challenges.rs checks every published one against that grader."""
-    if course_key != 'java' or not CHALLENGES.exists():
+    path = challenges_source(course_key)
+    if not path.exists():
         return {}
-    source = json.loads(CHALLENGES.read_text(encoding='utf-8'))
+    source = json.loads(path.read_text(encoding='utf-8'))
     registered = set(lessons)
     if set(source['lessons']) & set(source.get('not_designated', {})):
         raise ValueError('A lesson is both designated and not designated')
@@ -186,6 +204,9 @@ def build(check=False):
         if key == 'java':
             from redesigned_courses.backend_previews import for_course
             manifest['lesson_previews'] = for_course(ordered_items)
+        else:
+            from redesigned_courses.cross_course_previews import for_course
+            manifest['lesson_previews'] = for_course(key, ordered_items)
         write(ROOT / 'courses/redesigned-courses' / f'{slug}.json', encoded(manifest), check)
         spec = dict(schema_version=1, id=course['id'], title=course['title'],
             objectives=course['objectives'], presentation=course['presentation'], policy_snapshot=course['policy_snapshot'],

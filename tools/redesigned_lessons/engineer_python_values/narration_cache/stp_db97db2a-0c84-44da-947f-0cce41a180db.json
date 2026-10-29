@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "c064ba00c52620cc0fd8998011a27a96ee530980beecf4603ff4031bf7282e22",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 얕은 복사의 내부 공유와 사전 기본값 조회를 함께 판단해요.",
+      "target": "text:얕은 복사의 내부 공유와 사전 기본값 조회를 함께 판단해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "copied를 바꿨는데 원본도 9가 됐고 기본값도 1로 잘못 읽었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "copied = rows[:]",
+      "after": "copied = [row[:] for row in rows]",
+      "say": "각 안쪽 목록도 복사해 copied를 만드세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "내부 목록을 복사해 원본을 보존했어요. 기본값 조회는 아직 고쳐야 해요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "counts.get(\"pending\", 1)",
+      "after": "counts.get(\"pending\", default)",
+      "say": "없는 키의 기본값으로 default를 사용하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "원본은 1이고 복사본만 9예요. 없는 키는 0으로 읽었고 새 키는 생기지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. get과 setdefault는 없는 키를 사전에 추가하는지에서 달라요.",
+      "target": "code:counts.get(\"pending\", default)"
+    }
+  ]
+}

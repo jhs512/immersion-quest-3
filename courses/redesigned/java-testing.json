@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_4084edc3-e4ef-4157-b29a-4d553973a12e",
-  "revision": "java-testing-7",
+  "revision": "java-testing-8",
   "title": "배송비 변경을 작은 테스트로 검증해요",
   "description": "같은 배송비에서 반례를 찾고 실제 JUnit·AssertJ 검사를 고쳐요.",
   "objectives": [
@@ -96,6 +96,22 @@
               "id": "stp_286e8c84-4d18-4a83-aa38-63e15884165e",
               "objectives": [
                 "읽기 쉬운 기대값과 결함 탐지를 연결해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_9d6a2f71-4c38-4b05-8e9a-3f1b7c50d286",
+          "title": "마지막 도전",
+          "objectives": [
+            "새 규칙의 테스트 사례를 직접 골라 결함을 잡아요."
+          ],
+          "premise": "새 적립 규칙이 생겼어요. 구현은 준비돼 있고 테스트 메서드는 비어 있어요.",
+          "steps": [
+            {
+              "id": "stp_5b0e8c43-1d76-4a29-b3f8-9c2d6e75a1f0",
+              "objectives": [
+                "요구에서 정상·경계·거절 사례를 고르고 독립적으로 계산한 기대값으로 결함 구현을 잡아요."
               ]
             }
           ]
@@ -690,6 +706,113 @@
         },
         {
           "Fees.java": "class Fees {\n    // 만 원 이상은 무료이고 음수 금액은 거절해요.\n    static int shipping(int amount) {\n        if (amount < 0) return 0;\n        return amount >= 10000 ? 0 : 2000;\n    }\n}\n"
+        }
+      ]
+    },
+    {
+      "id": "stp_5b0e8c43-1d76-4a29-b3f8-9c2d6e75a1f0",
+      "title": "새 적립 규칙의 테스트를 직접 쓰세요",
+      "language": "junit",
+      "goal": "자, 마지막 도전이에요. 적립 규칙 Points.of를 검사하는 JUnit 테스트를 써요. Points.java는 준비돼 있고 고치지 않아요.\n\n규칙은 만 원 이상 주문은 금액의 1%를 적립하고, 그 아래는 0점, 음수 금액은 IllegalArgumentException으로 거절하는 거예요. 제출하면 맞는 Points와 잘못 만든 Points 다섯 개로 테스트를 실행해요. 맞는 구현에서는 통과하고, 잘못된 구현에서는 모두 실패해야 해요. 기대값은 규칙에서 직접 계산해 적어요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 빈 테스트가 아무것도 검사하지 않고 통과하는 것을 확인하세요.\n2. 기준 바로 아래 금액과 기준 금액의 적립 점수를 검사하는 줄을 쓰세요.\n3. 기준보다 큰 금액의 적립 점수를 검사하는 줄을 쓰세요.\n4. 음수 금액이 IllegalArgumentException으로 거절되는지 검사하는 줄을 쓰세요.\n5. 코드 실행 버튼을 눌러 맞는 구현에서 테스트가 통과하는지 확인하세요.\n6. 작성한 테스트를 제출하세요.",
+      "starter_code": "import org.junit.jupiter.api.Test;\nimport static org.assertj.core.api.Assertions.*;\nclass MainTest {\n    @Test void pointRules() {\n        // 여기에 정상·경계·거절 사례를 검사하는 줄을 쓰세요.\n    }\n}\n",
+      "solution": "import org.junit.jupiter.api.Test;\nimport static org.assertj.core.api.Assertions.*;\nclass MainTest {\n    @Test void pointRules() {\n        // 기준 바로 아래 금액은 적립이 없어요.\n        assertThat(Points.of(9999)).isEqualTo(0);\n        // 기준 금액부터 1%를 적립해요.\n        assertThat(Points.of(10000)).isEqualTo(100);\n        // 기준보다 큰 금액도 그 금액의 1%예요.\n        assertThat(Points.of(25000)).isEqualTo(250);\n        // 음수 금액은 약속한 예외로 거절해요.\n        assertThatThrownBy(() -> Points.of(-1)).isInstanceOf(IllegalArgumentException.class);\n    }\n}\n",
+      "required": true,
+      "tests": [],
+      "entry_file": "MainTest.java",
+      "files": {
+        "Points.java": "class Points {\n    // 만 원 이상 주문은 금액의 1%를 적립해요. 그 아래는 0점, 음수 금액은 거절해요.\n    static int of(int amount) {\n        if (amount < 0) throw new IllegalArgumentException(\"negative\");\n        return amount >= 10000 ? amount / 100 : 0;\n    }\n}\n"
+      },
+      "mutations": [
+        {
+          "Points.java": "class Points {\n    // 만 원 이상 주문은 금액의 1%를 적립해요. 그 아래는 0점, 음수 금액은 거절해요.\n    static int of(int amount) {\n        if (amount < 0) throw new IllegalArgumentException(\"negative\");\n        return amount > 10000 ? amount / 100 : 0;\n    }\n}\n"
+        },
+        {
+          "Points.java": "class Points {\n    // 만 원 이상 주문은 금액의 1%를 적립해요. 그 아래는 0점, 음수 금액은 거절해요.\n    static int of(int amount) {\n        if (amount < 0) throw new IllegalArgumentException(\"negative\");\n        return amount / 100;\n    }\n}\n"
+        },
+        {
+          "Points.java": "class Points {\n    // 만 원 이상 주문은 금액의 1%를 적립해요. 그 아래는 0점, 음수 금액은 거절해요.\n    static int of(int amount) {\n        if (amount < 0) return 0;\n        return amount >= 10000 ? amount / 100 : 0;\n    }\n}\n"
+        },
+        {
+          "Points.java": "class Points {\n    // 만 원 이상 주문은 금액의 1%를 적립해요. 그 아래는 0점, 음수 금액은 거절해요.\n    static int of(int amount) {\n        if (amount < 0) throw new IllegalArgumentException(\"negative\");\n        return amount >= 10000 ? amount / 10 : 0;\n    }\n}\n"
+        },
+        {
+          "Points.java": "class Points {\n    // 만 원 이상 주문은 금액의 1%를 적립해요. 그 아래는 0점, 음수 금액은 거절해요.\n    static int of(int amount) {\n        if (amount < 0) throw new IllegalArgumentException(\"negative\");\n        return amount >= 10000 ? 100 : 0;\n    }\n}\n"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "새 적립 규칙의 테스트를 직접 쓰는 문제예요.",
+          "target": "text:새 적립 규칙의 테스트를 직접 쓰세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 새 적립 규칙을 지키는지 확인하는 테스트를 직접 써요.",
+          "target": "text:만 원 이상 주문은 금액의 1%"
+        },
+        {
+          "action": "say",
+          "text": "제출하면 이 테스트를 맞는 Points와 잘못 만든 Points 다섯 개로 실행해요.",
+          "target": "text:잘못 만든 Points 다섯 개"
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "테스트 1개가 통과해요. 그런데 아무것도 검사하지 않으니 어떤 구현이든 통과해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 여기에 정상·경계·거절 사례를 검사하는 줄을 쓰세요.",
+          "after": "        // 기준 바로 아래 금액은 적립이 없어요.\n        assertThat(Points.of(9999)).isEqualTo(0);\n        // 기준 금액부터 1%를 적립해요.\n        assertThat(Points.of(10000)).isEqualTo(100);\n        // 여기에 정상·경계·거절 사례를 검사하는 줄을 쓰세요.",
+          "say": "경계 양쪽 9999원과 10000원을 기대값으로 적어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "통과예요. 맞는 구현은 9999원에 0, 10000원에 100을 돌려줘요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 기대값을 Points.of로 계산해 적으면 구현이 틀려도 같이 틀려서 잡지 못해요.",
+          "target": "code:isEqualTo(100)"
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 여기에 정상·경계·거절 사례를 검사하는 줄을 쓰세요.",
+          "after": "        // 기준보다 큰 금액도 그 금액의 1%예요.\n        assertThat(Points.of(25000)).isEqualTo(250);\n        // 여기에 정상·경계·거절 사례를 검사하는 줄을 쓰세요.",
+          "say": "1%를 정말 계산하는지 큰 금액도 하나 확인해요."
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 여기에 정상·경계·거절 사례를 검사하는 줄을 쓰세요.",
+          "after": "        // 음수 금액은 약속한 예외로 거절해요.\n        assertThatThrownBy(() -> Points.of(-1)).isInstanceOf(IllegalArgumentException.class);",
+          "say": "음수 금액이 약속한 예외로 거절되는지도 검사해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "네 가지 검사가 모두 통과했어요. 정상·경계·거절을 각각 다른 줄로 확인해요.",
+          "target": "output"
         }
       ]
     }

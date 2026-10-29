@@ -32,6 +32,11 @@
     [
       "[43.333333333333336, 100.0]",
       "[15.0, 100.0]"
+    ],
+    [
+      "6.0\n['distance', 'minutes', 'actual_end']\n[2.0, 6.0, 6.0]\n[6.0, 10.0]",
+      "4.0\n['distance', 'minutes', 'actual_end']\n[2.0, 4.0, 6.0]\n[4.0, 10.0]",
+      "4.0\n['distance']\n[2.0, 4.0, 6.0]\n[4.0, 10.0]"
     ]
   ],
   "reject": [
@@ -54,6 +59,38 @@
         ]
       ],
       "reason": "Copying the median line from step 4 ignores this step's mean policy"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "reference = train[\"distance\"].mean()",
+          "reference = test[\"distance\"].mean()"
+        ]
+      ],
+      "reason": "Evaluation statistics must not define preprocessing"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "train[[\"distance\"]].copy()",
+          "train[[\"distance\", \"minutes\"]].copy()"
+        ]
+      ],
+      "reason": "The target must not become an input"
+    }
+  ],
+  "accept": [
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "train[\"distance\"].mean()",
+          "train.distance.mean()"
+        ]
+      ],
+      "reason": "Equivalent access to the training column"
     }
   ]
 }

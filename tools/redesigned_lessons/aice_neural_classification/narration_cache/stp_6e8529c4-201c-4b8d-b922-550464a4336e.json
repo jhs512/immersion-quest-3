@@ -1,0 +1,71 @@
+{
+  "by": "hand",
+  "source_sha256": "3a8003ab5638124d2bdd6d45ee8d68e912f485c04ed0fb528f51b15438a5b449",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 정수 정답의 손실과 softmax 확률, 종류 이름 연결을 함께 맞춰요.",
+      "target": "text:정수 정답의 손실과 softmax 확률, 종류 이름 연결을 함께 맞춰요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        21
+      ],
+      "expect_error": "ValueError"
+    },
+    {
+      "action": "say",
+      "text": "정수 정답에 원핫 정답용 손실을 써서 모양 오류가 나요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "loss=\"categorical_crossentropy\"",
+      "after": "loss=\"sparse_categorical_crossentropy\"",
+      "say": "정수 인덱스 정답에 맞는 손실로 바꾸세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        21
+      ]
+    },
+    {
+      "action": "say",
+      "text": "정답 손실은 맞췄어요. 확률 합과 예측 이름도 고쳐야 해요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "activation=\"sigmoid\"",
+      "after": "activation=\"softmax\"",
+      "say": "한 배송의 종류 확률 합이 1이 되게 바꾸세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "names[0] for i",
+      "after": "names[int(i)] for i",
+      "say": "각 예측 위치가 가리키는 실제 종류 이름을 꺼내세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        21
+      ]
+    },
+    {
+      "action": "say",
+      "text": "각 행의 확률 합이 1이고 가장 큰 위치의 종류 이름이 나왔어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. argmax의 위치를 종류 이름으로 바꾸지 않으면 화면의 범주를 잘못 해석해요.",
+      "target": "code:names[int(i)] for i"
+    }
+  ]
+}

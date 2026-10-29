@@ -7,7 +7,7 @@ async fn six_first_git_steps_grade_real_work_and_replay_teacher_commands_without
     let course=molip_quest::repository_course::CourseManifest::parse(include_str!("fixtures/player-pilot/k/course.json")).unwrap();
     let lesson=Lesson::parse(&raw,&course.lessons[0]).unwrap();
     lesson.validate().unwrap();
-    assert_eq!(lesson.tasks.len(),6);
+    assert_eq!(lesson.tasks.len(),7);// The last step is the separately started final challenge (tests/final_terminal_challenges.rs).
     let root=tempfile::tempdir().unwrap();
     let store=molip_quest::git_practice::GitPracticeStore::new(root.path()).unwrap();
     let solutions=vec![
@@ -20,7 +20,7 @@ async fn six_first_git_steps_grade_real_work_and_replay_teacher_commands_without
     ];
     let mut previous_root=None;
     let mut previous_file=None;
-    for (index,task) in lesson.tasks.iter().enumerate() {
+    for (index,task) in lesson.tasks[..6].iter().enumerate() {
         let exercise=task.git_terminal.clone().unwrap();
         assert_eq!(exercise.workspace_group,"first-git-repository");
         let scope=exercise.workspace_scope(&exercise.workspace_group);

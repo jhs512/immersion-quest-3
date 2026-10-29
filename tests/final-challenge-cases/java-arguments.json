@@ -1,0 +1,66 @@
+{
+  "step": "stp_86e157bf-bbb1-4709-8ddf-7032baca1f96",
+  "sources": {
+    "goal": "public class Main {\n    public static void main(String[] args) {\n        // 첫 인자는 메모, 둘째 인자는 주문 코드예요.\n        System.out.println(\"인자 수: \" + args.length);\n        System.out.println(\"메모: \" + args[0]);\n        System.out.println(\"코드: \" + args[1]);\n    }\n}\n",
+    "start": "public class Main {\n    public static void main(String[] args) {\n        // 첫 인자는 메모, 둘째 인자는 주문 코드예요.\n        System.out.println(\"인자 수: \" + args.length);\n        System.out.println(\"메모: \" + args[0]);\n        System.out.println(\"코드: \" + args[0]);\n    }\n}\n",
+    "third": "public class Main {\n    public static void main(String[] args) {\n        // 첫 인자는 메모, 둘째 인자는 주문 코드예요.\n        System.out.println(\"인자 수: \" + args.length);\n        System.out.println(\"메모: \" + args[0]);\n        System.out.println(\"코드: \" + args[2]);\n    }\n}\n"
+  },
+  "accept": [
+    {
+      "steps": [
+        "cat Main.java",
+        "SAVE:goal",
+        "java Main.java \"buy milk\" 007"
+      ],
+      "reason": "double quotes"
+    },
+    {
+      "steps": [
+        "SAVE:goal",
+        "cat Main.java",
+        "java Main.java 'buy milk' 007"
+      ],
+      "reason": "single quotes"
+    },
+    {
+      "steps": [
+        "cat Main.java",
+        "SAVE:goal",
+        "java Main.java buy\\ milk 007"
+      ],
+      "reason": "escaped space"
+    }
+  ],
+  "reject": [
+    {
+      "steps": [
+        "cat Main.java",
+        "SAVE:goal",
+        "java Main.java buy milk 007"
+      ],
+      "reason": "unquoted memo becomes two arguments"
+    },
+    {
+      "steps": [
+        "cat Main.java",
+        "java Main.java \"buy milk\" 007"
+      ],
+      "reason": "code line still reads the first argument"
+    },
+    {
+      "steps": [
+        "cat Main.java",
+        "SAVE:third",
+        "java Main.java \"buy milk\" 007"
+      ],
+      "reason": "reading a third argument that does not exist"
+    },
+    {
+      "steps": [
+        "SAVE:goal",
+        "java Main.java \"buy milk\" 007"
+      ],
+      "reason": "the required first look at the source was skipped"
+    }
+  ]
+}

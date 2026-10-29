@@ -17,10 +17,10 @@ fn play(practice:&GitPractice,task:&Task){
 fn imported_guide_and_two_features_are_one_real_continuous_repository(){
     let course=CourseManifest::parse(include_str!("fixtures/player-pilot/l/course.json")).unwrap();
     let lesson=Lesson::parse(include_str!("../courses/redesigned/git-branch.json"),&course.lessons[0]).unwrap();
-    assert_eq!(lesson.tasks.len(),14);
+    assert_eq!(lesson.tasks.len(),15);// The last step is the separately started final challenge (tests/final_terminal_challenges.rs).
     let root=tempfile::tempdir().unwrap();let store=GitPracticeStore::new(root.path()).unwrap();
     let scope="guide-story";let mut prior=None;
-    for (index,task) in lesson.tasks.iter().enumerate(){
+    for (index,task) in lesson.tasks[..14].iter().enumerate(){
         let exercise=task.git_terminal.clone().unwrap();
         assert!(exercise.files.is_empty()&&exercise.setup.is_empty(),"learner state was secretly prepared");
         let student=store.open(scope,exercise.clone()).unwrap();
@@ -45,10 +45,10 @@ fn imported_guide_and_two_features_are_one_real_continuous_repository(){
         if index==11{assert_eq!(student.git(&["show","HEAD:guide.txt"]).unwrap().stdout,"안내: 메모 기능\n");}
         prior=Some(student.root().to_path_buf());
     }
-    let last=store.open(scope,lesson.tasks.iter().rev().find(|t|t.interaction.is_none()).unwrap().git_terminal.clone().unwrap()).unwrap();
+    let last=store.open(scope,lesson.tasks[..14].iter().rev().find(|t|t.interaction.is_none()).unwrap().git_terminal.clone().unwrap()).unwrap();
     assert_eq!(last.git(&["show","HEAD:guide.txt"]).unwrap().stdout,"안내: 메모 기능\n문의: 상담 창구\n");
     let graph=last.graph_snapshot().unwrap();assert_eq!(graph.commits.len(),3);
-    for (index,task) in lesson.tasks.iter().enumerate(){
+    for (index,task) in lesson.tasks[..14].iter().enumerate(){
         if task.interaction.is_some(){continue;}
         let reset=store.reset_step(scope,task.git_terminal.clone().unwrap(),&task.id).unwrap();
         assert!(!reset.check_exercise().unwrap().passed,"reset solved step {}",index+1);

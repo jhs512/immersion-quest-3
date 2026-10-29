@@ -31,6 +31,11 @@
     [
       "[202, 204]\n['south', 'north']",
       "[201, 202, 203, 204]\n['unknown', 'south', 'unknown', 'north']"
+    ],
+    [
+      "[201]\n{'north': 1}",
+      "[201, 202, 203, 204, 205]\n{'north': 2, 'south': 1}",
+      "[201, 202, 203, 204, 205]\n{'north': 2, 'south': 1, 'unknown': 2}"
     ]
   ],
   "reject": [
@@ -43,6 +48,48 @@
         ]
       ],
       "reason": "Printing fixed order IDs does not preserve different source deliveries"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "how=\"left\"",
+          "how=\"inner\""
+        ]
+      ],
+      "reason": "Every delivery must stay"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "orders = pd.concat([pd.DataFrame(may), pd.DataFrame(june)], ignore_index=True)",
+          "orders = pd.DataFrame(may)"
+        ]
+      ],
+      "reason": "Both months are needed"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "joined[\"zone\"] = joined[\"zone\"].fillna(\"unknown\")",
+          "pass"
+        ]
+      ],
+      "reason": "Missing zones must be counted as unknown"
+    }
+  ],
+  "accept": [
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "joined = orders.merge(regions, on=\"member_id\", how=\"left\")",
+          "joined = pd.merge(orders, regions, how=\"left\", on=\"member_id\")"
+        ]
+      ],
+      "reason": "pd.merge with the same keys"
     }
   ]
 }

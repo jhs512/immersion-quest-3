@@ -44,7 +44,27 @@ fn store() -> Result<&'static Mutex<Store>,String> {
 fn user() -> Value { json!({"id":987654321,"login":"mq3-validation"}) }
 
 const LEGACY_VERSIONS: &[char] = &['a','b','c','d','e','f','g','h','i','j','m'];
-pub fn versions()->Vec<char> { LEGACY_VERSIONS.iter().copied().chain(crate::lesson_registry::LESSONS.iter().map(|row|row.pilot)).chain([AUTO_CHAIN_VERSION,MAIN_COURSE_VERSION,CATEGORY_PREVIEW_VERSION]).collect() }
+pub fn versions()->Vec<char> { LEGACY_VERSIONS.iter().copied().chain(crate::lesson_registry::LESSONS.iter().map(|row|row.pilot)).chain([AUTO_CHAIN_VERSION,MAIN_COURSE_VERSION,CATEGORY_PREVIEW_VERSION,AICE_COURSE_VERSION,ENGINEER_COURSE_VERSION]).collect() }
+/// Whole-course UI checks for both certification courses, still using only the isolated transport.
+pub const AICE_COURSE_VERSION: char = '에';
+pub const ENGINEER_COURSE_VERSION: char = '정';
+fn certification_course_source(version: char) -> Result<&'static str, String> {
+    static AICE: OnceLock<Result<String, String>> = OnceLock::new();
+    static ENGINEER: OnceLock<Result<String, String>> = OnceLock::new();
+    let (cache, raw) = if version == AICE_COURSE_VERSION {
+        (&AICE, include_str!("../courses/redesigned-courses/aice-associate.json"))
+    } else if version == ENGINEER_COURSE_VERSION {
+        (&ENGINEER, include_str!("../courses/redesigned-courses/engineer-practical.json"))
+    } else {return Err("검증 과정 버전을 확인하세요.".into())};
+    cache.get_or_init(|| {
+        let mut course: Value = serde_json::from_str(raw).map_err(|e|e.to_string())?;
+        course["repository"] = REPOSITORY.into();
+        for reference in course["lessons"].as_array_mut().ok_or("검증 과정 형식 오류")? {
+            reference["repository"] = "mq3-validation/lesson".into();
+        }
+        serde_json::to_string(&course).map_err(|e|e.to_string())
+    }).as_ref().map(String::as_str).map_err(Clone::clone)
+}
 /// Design validation: the bundled 자바 백엔드 과정 (all its lessons, labels and order) served through
 /// this isolated transport, so the real course screens can be inspected without an account.
 pub const MAIN_COURSE_VERSION: char = '본';
@@ -91,6 +111,7 @@ pub fn corrupt_update()->Result<(),String> {
     commit(&mut state,|next|{next.version='b';next.corrupted=true;Ok(())})
 }
 fn snapshot(version: char, file: &str) -> Result<&'static str, String> {
+    if matches!(version, AICE_COURSE_VERSION | ENGINEER_COURSE_VERSION) && file == "course.json" { return certification_course_source(version); }
     if version == AUTO_CHAIN_VERSION && file == "course.json" { return auto_chain_course(); }
     if matches!(version, MAIN_COURSE_VERSION | CATEGORY_PREVIEW_VERSION) && file == "course.json" { return main_course_source(version == CATEGORY_PREVIEW_VERSION); }
     if let Some(lesson)=crate::lesson_registry::by_version(version) {

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_2a4d9041-b87a-401c-a0e8-6128415e6b2f",
-  "revision": "java-launch-6",
+  "revision": "java-launch-7",
   "title": "자바 · 파일 하나를 실행하고 다시 빌드해요",
   "description": "같은 Main.java를 조금 바꾸며 소스 실행·컴파일·클래스 실행의 차이를 직접 확인해요.",
   "objectives": [
@@ -95,6 +95,22 @@
               "id": "stp_c74be521-0e3e-4382-b50b-b308f927c313",
               "objectives": [
                 "소스 수정·컴파일·실행 순서로 새 문구가 반영됨을 확인해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_87ae3d47-c57f-498f-ac31-97c7f3d81d80",
+          "title": "마지막 도전",
+          "objectives": [
+            "소스·클래스·실행 결과를 스스로 일치시켜요."
+          ],
+          "premise": "새 실습 폴더의 Main.java예요. 클래스 파일은 없어요. 앞 단계와 상관없이 바로 풀 수 있어요.",
+          "steps": [
+            {
+              "id": "stp_6367375b-819a-4934-8cc8-2214882a9b50",
+              "objectives": [
+                "수정·컴파일·클래스 실행 순서를 스스로 정해 셋을 일치시켜요."
               ]
             }
           ]
@@ -757,6 +773,118 @@
           "action": "say",
           "text": "이제 셋째 메모가 나와요. 소스 수정, 컴파일, 실행을 차례로 해야 새 문구가 보여요.",
           "target": "#git-demo-terminal"
+        }
+      ]
+    },
+    {
+      "id": "stp_6367375b-819a-4934-8cc8-2214882a9b50",
+      "title": "바꾼 문구를 클래스 파일로 배포하세요",
+      "goal": "자, 마지막 도전이에요. 가게 안내 프로그램의 문구를 `점검 중`에서 `영업 중`으로 바꿔 클래스 파일로 배포해요. 배포는 `java Main`으로 클래스를 실행하는 방식이에요.\n\n소스와 클래스와 실행 결과가 모두 영업 중이어야 해요. 어떤 순서로 무엇을 실행할지는 이 수업에서 배운 대로 직접 정해요.\n\n**할 일**\n\n1. 코드 편집기에서 출력 문구를 `영업 중`으로 바꾸세요.\n2. 바꾼 소스가 클래스 파일에 들어가게 하세요.\n3. `java Main`으로 실행해 `영업 중`이 나오는지 확인하세요.\n4. 파일을 그대로 둔 채 제출하세요.",
+      "language": "java",
+      "starter_code": "",
+      "required": true,
+      "tests": [],
+      "solution": "javac Main.java\njava Main",
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "shell": {
+          "step_id": "stp_6367375b-819a-4934-8cc8-2214882a9b50",
+          "goal": {
+            "files": {
+              "Main.java": "public class Main {\n    public static void main(String[] args) {\n        // 가게 문에 붙일 안내 문구예요.\n        System.out.println(\"영업 중\");\n    }\n}\n"
+            }
+          },
+          "demo": {
+            "files": {
+              "Main.java": "public class Main {\n    public static void main(String[] args) {\n        // 가게 문에 붙일 안내 문구예요.\n        System.out.println(\"점검 중\");\n    }\n}\n"
+            }
+          },
+          "start": {
+            "files": {
+              "Main.java": "public class Main {\n    public static void main(String[] args) {\n        // 가게 문에 붙일 안내 문구예요.\n        System.out.println(\"점검 중\");\n    }\n}\n"
+            }
+          },
+          "commands": [
+            "javac Main.java",
+            "java Main"
+          ]
+        },
+        "java_build": {
+          "command": [
+            "java",
+            "Main"
+          ],
+          "stdout": "영업 중\n",
+          "class_output": "영업 중\n",
+          "class_relation": "",
+          "demo_class_source": null
+        }
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "바꾼 문구를 클래스 파일로 배포하는 문제예요.",
+          "target": "text:바꾼 문구를 클래스 파일로 배포하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 안내 문구를 바꿔 클래스 파일로 배포해요. 소스, 클래스, 실행 결과가 모두 같은 문구여야 해요.",
+          "target": "text:소스와 클래스와 실행 결과가 모두 영업 중이어야 해요."
+        },
+        {
+          "action": "say",
+          "text": "지금 소스는 점검 중을 출력해요. 폴더에는 아직 Main.class가 없어요.",
+          "target": "code:System.out.println(\"점검 중\");"
+        },
+        {
+          "action": "patch_code",
+          "before": "점검 중",
+          "after": "영업 중",
+          "say": "출력 문구를 영업 중으로 바꿀게요."
+        },
+        {
+          "action": "say",
+          "text": "바꾼 소스는 같은 폴더에 저장됐어요.",
+          "target": "code:System.out.println(\"영업 중\");"
+        },
+        {
+          "action": "bash_command",
+          "command": "java Main",
+          "say": "클래스로 바로 실행해 볼게요.",
+          "target": "#git-demo-terminal",
+          "fails": true
+        },
+        {
+          "action": "say",
+          "text": "Main 클래스를 찾지 못한다는 오류가 나요. 소스만 있고 클래스 파일은 아직 없어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "javac Main.java",
+          "say": "javac로 지금 소스를 컴파일해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "출력 없이 끝났어요. 지금 소스로 Main.class가 생겼어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "java Main",
+          "say": "다시 클래스로 실행해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "영업 중이 나와요. 소스, 클래스, 실행 결과가 같아졌어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 컴파일한 뒤 소스를 다시 고치면 Main.class는 옛 문구 그대로라서 소스와 어긋나요.",
+          "target": "code:System.out.println(\"영업 중\");"
         }
       ]
     }

@@ -1,0 +1,75 @@
+{
+  "by": "hand",
+  "source_sha256": "90523971d7d2b239979e945f730ac03b5faf6e99a4bb369dc26e1333280667e2",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 방문 기록 파일에 오늘 줄을 덧붙이고, 파일 전체로 합계를 내요.",
+      "target": "text:지난 기록은 그대로 남아야 해요."
+    },
+    {
+      "action": "say",
+      "text": "준비된 visits.txt에는 100, 오류, 30 세 줄이 있어요. 오류 줄은 숫자가 아니에요.",
+      "target": "text:100, 오류, 30"
+    },
+    {
+      "action": "patch_code",
+      "before": "        // 여기에 파일의 모든 줄을 읽어 숫자인 줄은 total에 더하고, 숫자가 아닌 줄은 invalid로 세세요.",
+      "after": "        for (String line : Files.readAllLines(path, StandardCharsets.UTF_8)) {\n            // 한 줄의 실패가 다음 줄의 계산을 막지 않도록 줄마다 처리해요.\n            try {\n                total += Integer.parseInt(line.strip());\n            } catch (NumberFormatException error) {\n                invalid++;\n            }\n        }",
+      "say": "먼저 읽는 부분이에요. 줄마다 try를 두어 잘못된 줄을 세고 다음 줄로 가요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        20,
+        21
+      ]
+    },
+    {
+      "action": "say",
+      "text": "합계: 130, 잘못된 줄: 1이에요. 아직 오늘 줄을 쓰지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        // 여기에 기존 기록을 남긴 채 today를 한 줄로 덧붙이세요.",
+      "after": "        // APPEND는 기존 내용 뒤에 이어 써요. 없으면 파일 전체를 바꿔요.\n        Files.writeString(path, today + \"\\n\", StandardCharsets.UTF_8);",
+      "say": "오늘 줄을 써 볼게요. 먼저 옵션 없이 써 봐요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        21,
+        22
+      ]
+    },
+    {
+      "action": "say",
+      "text": "합계: 120, 잘못된 줄: 0이에요. 지난 기록이 지워지고 오늘 줄만 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        // APPEND는 기존 내용 뒤에 이어 써요. 없으면 파일 전체를 바꿔요.\n        Files.writeString(path, today + \"\\n\", StandardCharsets.UTF_8);",
+      "after": "        // APPEND는 기존 내용 뒤에 이어 써요. 없으면 파일 전체를 바꿔요.\n        Files.writeString(path, today + \"\\n\", StandardCharsets.UTF_8, StandardOpenOption.APPEND);",
+      "say": "기존 내용 뒤에 이어 쓰도록 APPEND 옵션을 더해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        21,
+        22
+      ]
+    },
+    {
+      "action": "say",
+      "text": "합계: 250, 잘못된 줄: 1이에요. 100, 30, 120을 더했고 오류 줄만 셌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. try를 반복 바깥에 두면 오류 줄에서 반복이 끝나 뒤의 30과 120을 더하지 못해요.",
+      "target": "code:total += Integer.parseInt(line.strip());"
+    }
+  ]
+}
