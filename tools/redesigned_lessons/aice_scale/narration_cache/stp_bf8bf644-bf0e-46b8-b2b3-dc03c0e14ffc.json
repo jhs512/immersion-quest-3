@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "6bab9302874ebc4f86e4c42c759408507ed22479af8f8f938c3281a7999ba176",
+  "entry": [
+    {
+      "action": "say",
+      "text": "훈련 표에 100이 있어요. 중앙값과 사분위 범위로 기준을 정하도록 스케일러를 고쳐야 해요.",
+      "target": "text:scaler 줄을 고쳐 평균·표준편차 대신 중앙값과 사분위 범위로 기준을 정하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[[-0.436], [1.999]]과 5예요. 100이 평균을 21.2로 끌어올려 4가 평균보다 작게 나왔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "scaler = StandardScaler()",
+      "after": "scaler = RobustScaler()",
+      "say": "RobustScaler()로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[[1.0], [49.0]]과 5예요. 중앙값 2와 IQR 2로 바꿨고 100도 지워지지 않고 49로 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. RobustScaler는 기준만 극단값에 덜 흔들려요. 극단값 행을 빼 주지 않아요.",
+      "target": "code:RobustScaler()"
+    }
+  ]
+}

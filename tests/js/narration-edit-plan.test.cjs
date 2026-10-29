@@ -134,6 +134,9 @@ test('every narrated code edit of every course keeps unchanged lines whole and e
    }
   });
  }
- assert.ok(counts.patch_code>600&&counts.patch_code+counts.synthetic>1100&&counts.set_code>200&&counts.type_code>400,JSON.stringify(counts));
+ // 2026-10-29: answer-picking steps became coding steps. Their old example patches could only be
+ // checked out of context (synthetic, 465 -> 150); the new ones replay exactly on the real starter
+ // code (650 -> 850). The floor follows that: more exact replays, fewer synthetic ones.
+ assert.ok(counts.patch_code>800&&counts.patch_code+counts.synthetic>950&&counts.set_code>200&&counts.type_code>400,JSON.stringify(counts));
  console.log('replayed narrated edits',JSON.stringify(counts));
 });

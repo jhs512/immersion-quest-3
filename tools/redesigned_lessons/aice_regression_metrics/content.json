@@ -2,423 +2,403 @@
   "description": "같은 배송 예측의 오차·단위·평가 조건을 작은 비교로 읽어요.",
   "tasks": [
     {
-      "id": "stp_a58d4015-0279-4269-97a6-46124844215f",
-      "title": "반대 방향 오차가 지워지지 않게 봐요",
-      "goal": "한 예측은2분 크고 하나는2분 작아요.\n평균 오차0이면 모두 맞은 걸까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_fd8637f1-9832-45fc-b1e3-38245112035e",
+      "title": "mean_absolute_error로 오차 크기의 평균을 구하세요",
+      "goal": "한 예측은 2분 크고 하나는 2분 작아요. 예측 − 실제를 그대로 평균내면 반대 방향 오차가 서로 지워져요. `mean_absolute_error(y_true, y_pred)`는 오차의 절댓값을 평균낸 MAE예요.\n\nreport 줄을 고쳐 부호를 버린 오차 크기의 평균(MAE)을 report에 담으세요. 채점은 다른 예측으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 오차 목록과 report를 확인하세요.\n2. `sum(errors) / len(errors)`를 `mean_absolute_error(y_true, y_pred)`로 고치세요.\n3. 코드 실행을 눌러 report를 다시 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "cancel",
-      "tests": [],
+      "starter_code": "from sklearn.metrics import mean_absolute_error\n\n# 두 배송의 실제 시간과 같은 순서의 예측이에요.\ny_true = [10, 20]\ny_pred = [12, 18]\n# 확인용 계산: 배송마다 예측 − 실제를 구해 목록으로 모아요.\nerrors = [pred - actual for actual, pred in zip(y_true, y_pred)]\nprint(errors)\n# 이 줄을 고쳐 부호를 버린 오차 크기의 평균(MAE)을 report에 담으세요.\nreport = sum(errors) / len(errors)\nprint(float(report))\n",
+      "solution": "from sklearn.metrics import mean_absolute_error\n\n# 두 배송의 실제 시간과 같은 순서의 예측이에요.\ny_true = [10, 20]\ny_pred = [12, 18]\n# 확인용 계산: 배송마다 예측 − 실제를 구해 목록으로 모아요.\nerrors = [pred - actual for actual, pred in zip(y_true, y_pred)]\nprint(errors)\n# 이 줄을 고쳐 부호를 버린 오차 크기의 평균(MAE)을 report에 담으세요.\n# 절댓값을 쓰면 위아래로 빗나간 오차가 서로 지워지지 않아요.\nreport = mean_absolute_error(y_true, y_pred)\nprint(float(report))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[2, -2]\n2.0"
+        }
+      ],
       "required": true,
-      "example_code": "from sklearn.metrics import mean_absolute_error, mean_squared_error\n\n# 두 배송의 실제 시간과 같은 순서의 예측이에요.\ny_true = [10, 20]\ny_pred = [12, 18]\n# 부호가 있는 평균은 반대 방향 오차가 지워질 수 있어요.\n# 확인용 계산: 배송마다 예측 − 실제를 구해 목록으로 모아요. 이 줄의 문법은 몰라도 돼요.\nerrors = [pred - actual for actual, pred in zip(y_true, y_pred)]\nprint(sum(errors) / len(errors))\nprint(float(mean_absolute_error(y_true, y_pred)))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "cancel",
-            "text": "아니요. 반대 방향 오차가 상쇄됐어요"
-          },
-          {
-            "id": "perfect",
-            "text": "네. 각 배송도 모두 정확해요"
-          }
-        ],
-        "answer": "cancel"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "한 배송은 2분 늦게, 다른 배송은 2분 일찍 예측했어요. 부호 있는 오차의 평균이 0이면 정확하다고 할 수 있는지가 질문이에요.",
-          "target": "text:한 예측은2분 크고 하나는2분 작아요."
+          "text": "한 예측은 2분 크고 하나는 2분 작아요. report 줄을 고쳐 오차 크기의 평균을 구해야 해요.",
+          "target": "text:report 줄을 고쳐 부호를 버린 오차 크기의 평균(MAE)을 report에 담으세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[2, -2]와 0.0이에요. 반대 방향 오차가 서로 지워졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "report = sum(errors) / len(errors)\n",
+          "after": "report = mean_absolute_error(y_true, y_pred)\n",
+          "say": "mean_absolute_error(y_true, y_pred)로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2.0이에요. 두 배송 모두 2분씩 빗나갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 부호 있는 평균 0은 모두 맞았다는 뜻이 아니에요. 치우침만 없다는 뜻이에요.",
+          "target": "code:report = mean_absolute_error"
+        }
+      ]
+    },
+    {
+      "id": "stp_86d4e40b-d08d-4b77-bcd6-2bacab0fd28c",
+      "title": "** 0.5로 RMSE를 분 단위로 보고하세요",
+      "goal": "실제 시간은 분 단위예요. `mean_squared_error`(MSE)는 오차를 제곱해 평균내서 단위가 분의 제곱이에요. 제곱근을 씌운 RMSE가 다시 분 단위예요.\n\nreport 줄을 고쳐 MSE에 제곱근을 씌워 실제 시간과 같은 분 단위로 보고하세요. 채점은 다른 예측으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 report를 확인하세요.\n2. report 줄 끝에 `** 0.5`를 붙이세요.\n3. 코드 실행을 눌러 분 단위 값을 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "from sklearn.metrics import mean_squared_error\n\n# 두 배송의 실제 시간과 같은 순서의 예측이에요.\ny_true = [10, 20]\ny_pred = [12, 18]\n# 이 줄을 고쳐 MSE에 제곱근을 씌워 실제 시간과 같은 분 단위로 보고하세요.\nreport = mean_squared_error(y_true, y_pred)\nprint(float(report))\n",
+      "solution": "from sklearn.metrics import mean_squared_error\n\n# 두 배송의 실제 시간과 같은 순서의 예측이에요.\ny_true = [10, 20]\ny_pred = [12, 18]\n# 이 줄을 고쳐 MSE에 제곱근을 씌워 실제 시간과 같은 분 단위로 보고하세요.\n# MSE는 분을 제곱한 단위예요. 제곱근(** 0.5)을 씌운 RMSE가 다시 분 단위예요.\nreport = mean_squared_error(y_true, y_pred) ** 0.5\nprint(float(report))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "2.0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "실제 시간은 분 단위예요. report 줄을 고쳐 MSE에 제곱근을 씌워야 해요.",
+          "target": "text:report 줄을 고쳐 MSE에 제곱근을 씌워 실제 시간과 같은 분 단위로 보고하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4.0이에요. 2분 오차를 제곱한 분제곱 단위예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "report = mean_squared_error(y_true, y_pred)\n",
+          "after": "report = mean_squared_error(y_true, y_pred) ** 0.5\n",
+          "say": "뒤에 ** 0.5를 붙여요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2.0이에요. 다시 분 단위인 RMSE예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. MSE 4를 4분 오차라고 보고하지 않아요. 단위가 분제곱이에요.",
+          "target": "code:** 0.5"
+        }
+      ]
+    },
+    {
+      "id": "stp_a47e998f-0261-466e-a692-11dbcbbaebf7",
+      "title": "mean_squared_error로 MSE가 작은 후보를 고르세요",
+      "goal": "이번 요구는 큰 오차를 제곱해 더 벌주는 MSE가 가장 작은 후보예요. a는 6분 오차 하나, b는 3분 오차 세 개예요.\n\nchosen 줄을 고쳐 MAE가 아니라 MSE가 더 작은 후보를 고르세요. 채점은 다른 후보로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 두 지표와 고른 후보를 확인하세요.\n2. chosen 줄의 두 `mean_absolute_error`를 `mean_squared_error`로 고치세요.\n3. 코드 실행을 눌러 고른 후보를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "from sklearn.metrics import mean_absolute_error, mean_squared_error\n\n# 같은 정답에 두 후보 모델의 예측을 비교해요.\ny_true = [10, 20, 30]\na = [10, 20, 36]\nb = [13, 23, 33]\nprint(float(mean_absolute_error(y_true, a)), float(mean_absolute_error(y_true, b)))\nprint(float(mean_squared_error(y_true, a)), float(mean_squared_error(y_true, b)))\n# 이 줄을 고쳐 MAE가 아니라 MSE가 더 작은 후보를 고르세요.\nchosen = \"a\" if mean_absolute_error(y_true, a) <= mean_absolute_error(y_true, b) else \"b\"\nprint(chosen)\n",
+      "solution": "from sklearn.metrics import mean_absolute_error, mean_squared_error\n\n# 같은 정답에 두 후보 모델의 예측을 비교해요.\ny_true = [10, 20, 30]\na = [10, 20, 36]\nb = [13, 23, 33]\nprint(float(mean_absolute_error(y_true, a)), float(mean_absolute_error(y_true, b)))\nprint(float(mean_squared_error(y_true, a)), float(mean_squared_error(y_true, b)))\n# 이 줄을 고쳐 MAE가 아니라 MSE가 더 작은 후보를 고르세요.\n# 이번 요구는 큰 오차를 제곱해 더 벌주는 MSE가 작은 후보예요.\nchosen = \"a\" if mean_squared_error(y_true, a) <= mean_squared_error(y_true, b) else \"b\"\nprint(chosen)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "2.0 3.0\n12.0 9.0\nb"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "이번 요구는 큰 오차를 더 벌주는 MSE 최소예요. chosen 줄의 비교 지표를 MSE로 고쳐야 해요.",
+          "target": "text:chosen 줄을 고쳐 MAE가 아니라 MSE가 더 작은 후보를 고르세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "MAE는 2.0과 3.0, MSE는 12.0과 9.0이고 a를 골랐어요. MAE로 골랐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "chosen = \"a\" if mean_absolute_error(y_true, a) <= mean_absolute_error(y_true, b) else \"b\"\n",
+          "after": "chosen = \"a\" if mean_squared_error(y_true, a) <= mean_squared_error(y_true, b) else \"b\"\n",
+          "say": "두 mean_absolute_error를 mean_squared_error로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "b예요. 6분 오차 하나가 있는 a는 제곱하면 크게 벌을 받아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 같은 예측도 지표에 따라 고르는 후보가 달라져요. 보고 전에 지표를 먼저 정해요.",
+          "target": "code:mean_squared_error(y_true, a) <="
+        }
+      ]
+    },
+    {
+      "id": "stp_1d5be83b-7226-47ed-ac36-b5e748c20709",
+      "title": "평균에서 잰 sst로 R제곱을 직접 계산하세요",
+      "goal": "R제곱은 1 − (예측의 제곱 오차 합 `sse`) ÷ (평균만 낸 예측의 제곱 오차 합 `sst`)예요. 그래서 평균 예측과 같으면 0, 완벽하면 1, 평균보다 나쁘면 음수예요.\n\nsst 줄을 고쳐 0이 아니라 평균 mean에서 잰 제곱 차이의 합을 sst에 담으세요. 채점은 다른 예측으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 직접 계산과 r2_score를 비교하세요.\n2. sst 줄의 `t - 0`을 `t - mean`으로 고치세요.\n3. 코드 실행을 눌러 두 값이 같은지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "from sklearn.metrics import r2_score\n\n# 같은 평가 정답에 크게 빗나간 예측이에요.\ny_true = [10, 20, 30]\ny_pred = [100, 100, 100]\nmean = sum(y_true) / len(y_true)\nsse = sum((t - p) ** 2 for t, p in zip(y_true, y_pred))\n# 이 줄을 고쳐 0이 아니라 평균 mean에서 잰 제곱 차이의 합을 sst에 담으세요.\nsst = sum((t - 0) ** 2 for t in y_true)\nprint(round(1 - sse / sst, 6))\nprint(round(float(r2_score(y_true, y_pred)), 6))\n",
+      "solution": "from sklearn.metrics import r2_score\n\n# 같은 평가 정답에 크게 빗나간 예측이에요.\ny_true = [10, 20, 30]\ny_pred = [100, 100, 100]\nmean = sum(y_true) / len(y_true)\nsse = sum((t - p) ** 2 for t, p in zip(y_true, y_pred))\n# 이 줄을 고쳐 0이 아니라 평균 mean에서 잰 제곱 차이의 합을 sst에 담으세요.\n# R제곱의 비교 기준은 언제나 평균만 내는 예측이에요.\nsst = sum((t - mean) ** 2 for t in y_true)\nprint(round(1 - sse / sst, 6))\nprint(round(float(r2_score(y_true, y_pred)), 6))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "-96.0\n-96.0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "R제곱은 평균만 내는 예측과 비교해요. sst 줄을 고쳐 평균에서 잰 제곱 차이의 합을 구해야 해요.",
+          "target": "text:sst 줄을 고쳐 0이 아니라 평균 mean에서 잰 제곱 차이의 합을 sst에 담으세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "-12.857143과 -96.0이에요. 0을 기준으로 삼아 r2_score와 달라요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "(t - 0) ** 2",
+          "after": "(t - mean) ** 2",
+          "say": "t - 0을 t - mean으로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "둘 다 -96.0이에요. 평균 예측보다 훨씬 나빠 음수가 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. R제곱은 0에서 멈추지 않아요. 평균 예측보다 나쁘면 음수예요.",
+          "target": "code:(t - mean) ** 2"
+        }
+      ]
+    },
+    {
+      "id": "stp_aa77cd65-70ea-463c-8e36-5c76242683f0",
+      "title": "len(set(y_true))로 정답이 모두 같은지 확인하세요",
+      "goal": "정답이 모두 같으면 R제곱의 분모(평균에서의 퍼짐)가 0이에요. `force_finite=True`는 이때 나눗셈 대신 정해진 보정값(0 또는 완벽하면 1)을 줘요. 그래서 R제곱 0만 보고 판단할 수 없어요.\n\nconstant 줄을 고쳐 y_true의 값이 모두 같은지를 constant에 담으세요. 채점은 정답이 다양한 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 R제곱과 constant를 확인하세요.\n2. `constant = False`를 `constant = len(set(y_true)) == 1`로 고치세요.\n3. 코드 실행을 눌러 constant와 MAE를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "from sklearn.metrics import r2_score, mean_absolute_error\n\n# 실제 정답이 모두 같은 특수한 평가 표예요.\ny_true = [5, 5, 5]\ny_pred = [6, 6, 6]\nr2 = float(r2_score(y_true, y_pred, force_finite=True))\n# 이 줄을 고쳐 y_true의 값이 모두 같은지를 constant에 담으세요.\nconstant = False\nprint(r2, constant)\nprint(float(mean_absolute_error(y_true, y_pred)))\n",
+      "solution": "from sklearn.metrics import r2_score, mean_absolute_error\n\n# 실제 정답이 모두 같은 특수한 평가 표예요.\ny_true = [5, 5, 5]\ny_pred = [6, 6, 6]\nr2 = float(r2_score(y_true, y_pred, force_finite=True))\n# 이 줄을 고쳐 y_true의 값이 모두 같은지를 constant에 담으세요.\n# 서로 다른 값이 하나뿐이면 정답이 모두 같아요. 이때 R제곱은 비교할 퍼짐이 없어 보정값이에요.\nconstant = len(set(y_true)) == 1\nprint(r2, constant)\nprint(float(mean_absolute_error(y_true, y_pred)))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "0.0 True\n1.0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "정답이 모두 5예요. constant 줄을 고쳐 y_true의 값이 모두 같은지 직접 확인해야 해요.",
+          "target": "text:constant 줄을 고쳐 y_true의 값이 모두 같은지를 constant에 담으세요."
         },
         {
           "action": "run",
           "lines": [
             9,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0.0 False와 1.0이에요. R제곱 0이 보정값인지 모르고 지나쳐요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "constant = False\n",
+          "after": "constant = len(set(y_true)) == 1\n",
+          "say": "len(set(y_true)) == 1로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0.0 True예요. R제곱 0은 보정값이고 MAE로 보면 1분 오차가 남아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 정답이 모두 같으면 R제곱은 비교할 퍼짐이 없어요. 이때는 MAE 같은 오차로 판단해요.",
+          "target": "code:len(set(y_true)) == 1"
+        }
+      ]
+    },
+    {
+      "id": "stp_51c8e8eb-f2e7-4395-ac31-d4a3ef9d1565",
+      "title": "len(y_true) >= 2일 때만 R제곱을 계산하세요",
+      "goal": "평가 관측이 하나뿐이면 평균에서의 퍼짐이 없어 R제곱을 정의할 수 없어요. `r2_score`는 이때 nan을 내요. MAE는 한 관측에서도 계산돼요.\n\nr2 줄을 고쳐 평가 관측이 두 개 이상일 때만 R제곱을 계산하고, 아니면 None으로 두세요. 채점은 여러 관측 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 R제곱과 MAE를 확인하세요.\n2. r2 줄 끝에 `if len(y_true) >= 2 else None`을 붙이세요.\n3. 코드 실행을 눌러 두 값을 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "from sklearn.metrics import r2_score, mean_absolute_error\n\n# 평가 관측이 하나뿐일 수 있어요.\ny_true = [5]\ny_pred = [6]\n# 이 줄을 고쳐 평가 관측이 두 개 이상일 때만 R제곱을 계산하고, 아니면 None으로 두세요.\nr2 = float(r2_score(y_true, y_pred))\nprint(r2)\nprint(float(mean_absolute_error(y_true, y_pred)))\n",
+      "solution": "from sklearn.metrics import r2_score, mean_absolute_error\n\n# 평가 관측이 하나뿐일 수 있어요.\ny_true = [5]\ny_pred = [6]\n# 이 줄을 고쳐 평가 관측이 두 개 이상일 때만 R제곱을 계산하고, 아니면 None으로 두세요.\n# 한 관측에는 퍼짐이 없어 R제곱을 정의할 수 없어요. MAE는 한 행도 계산돼요.\nr2 = float(r2_score(y_true, y_pred)) if len(y_true) >= 2 else None\nprint(r2)\nprint(float(mean_absolute_error(y_true, y_pred)))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "None\n1.0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "평가 관측이 하나뿐이에요. r2 줄을 고쳐 두 개 이상일 때만 R제곱을 계산해야 해요.",
+          "target": "text:r2 줄을 고쳐 평가 관측이 두 개 이상일 때만 R제곱을 계산하고, 아니면 None으로 두세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
             9
           ]
         },
         {
           "action": "say",
-          "text": "부호 평균은 0.0이지만 절대오차 평균은 2.0이에요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 반대 오차를 더해 없앤 것과 정확함은 달라요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "cancel"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_4c614280-b039-46d2-9de3-b1f9a2edcfc9",
-      "title": "제곱 오차의 단위를 구별해요",
-      "goal": "실제 시간은 분 단위예요.\n같은 분 단위로 보고할 지표를 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "rmse",
-      "tests": [],
-      "required": true,
-      "example_code": "from sklearn.metrics import mean_absolute_error, mean_squared_error\n\n# 두 배송의 실제 시간과 같은 순서의 예측이에요.\ny_true = [10, 20]\ny_pred = [12, 18]\n# 제곱 오차와 제곱근을 취한 오차의 단위를 나눠요.\nprint(float(mean_squared_error(y_true, y_pred)))\nprint(float(mean_squared_error(y_true, y_pred) ** 0.5))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "rmse",
-            "text": "제곱근을취한RMSE2예요"
-          },
-          {
-            "id": "mse",
-            "text": "분제곱인MSE4예요"
-          }
-        ],
-        "answer": "rmse"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "MSE는 오차를 제곱해 평균 내서 단위가 분 제곱이 돼요. 분 단위로 보고하려면 어떤 지표를 쓸지 골라요.",
-          "target": "text:실제 시간은 분 단위예요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            8,
-            8
-          ]
-        },
-        {
-          "action": "say",
-          "text": "MSE는 4.0, 제곱근을 취한 RMSE는 2.0이에요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. MSE는 제곱한 단위라서 분 단위인 RMSE와 크기를 바로 비교하지 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "rmse"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_5145836d-ef50-4155-aafc-1818867327cf",
-      "title": "지표에 따라 선택이 달라져요",
-      "goal": "이번 요구는큰 오차를 제곱해 더 벌주는MSE 최소예요.\n이 기준에서 후보를 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "b",
-      "tests": [],
-      "required": true,
-      "example_code": "from sklearn.metrics import mean_absolute_error, mean_squared_error\n\n# 같은 정답에 두 후보 모델의 예측을 비교해요.\ny_true = [10, 20, 30]\na = [10, 20, 36]\nb = [13, 23, 33]\nprint(float(mean_absolute_error(y_true, a)), float(mean_absolute_error(y_true, b)))\nprint(float(mean_squared_error(y_true, a)), float(mean_squared_error(y_true, b)))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "a",
-            "text": "MAE가2인A예요"
-          },
-          {
-            "id": "b",
-            "text": "MSE가9인B예요"
-          }
-        ],
-        "answer": "b"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "A는 한 배송에서 크게 틀리고, B는 모든 배송에서 조금씩 틀려요. 큰 오차를 더 벌주는 MSE 기준에서 어느 후보가 나은지 봐요.",
-          "target": "text:이번 요구는큰 오차를 제곱해 더 벌주는MSE 최소예요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            8,
-            8
-          ]
-        },
-        {
-          "action": "say",
-          "text": "MAE는 A가 작지만 MSE는 B의 9.0이 작아요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 지표를 바꾸면 두 후보의 순위도 달라질 수 있어요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "b"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_d0fb9983-3f54-4e66-a754-3d7c1bdd6afa",
-      "title": "평균 예측보다 나은지 봐요",
-      "goal": "R제곱은 언제나 평균만 내는 예측과 비교해 얼마나 나은지를 나타내요. 평균 예측, 완벽한 예측, 크게 빗나간 예측 세 가지를 같은 정답에 비교해요.\n형편없는 예측은 음수가 될 수 있을까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "negative",
-      "tests": [],
-      "required": true,
-      "example_code": "from sklearn.metrics import r2_score\n\n# 같은 평가 정답에 세 예측을 비교해요.\ny_true = [10, 20, 30]\nprint(float(r2_score(y_true, [20, 20, 20])))\nprint(float(r2_score(y_true, [10, 20, 30])))\nprint(float(r2_score(y_true, [100, 100, 100])))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "negative",
-            "text": "네. 평균 기준보다 나쁘면 음수도 가능해요"
-          },
-          {
-            "id": "bounded",
-            "text": "아니요. 가장 나빠도 0에서 멈춰요"
-          }
-        ],
-        "answer": "negative"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "평균 예측보다 못한 예측이면 R제곱은 0보다 작아질 수 있는지 예상하는 문제예요.",
-          "target": "text:R제곱은 언제나 평균만 내는 예측과 비교해 얼마나 나은지를 나타내요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            7,
-            7
-          ]
-        },
-        {
-          "action": "say",
-          "text": "0.0과 1.0 다음, 나쁜 예측은 -96.0이에요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. R제곱을 맞힌 문제 비율로 읽으면 안 돼요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "negative"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_853b4d2b-830a-41ba-9f1d-a27ce46850fd",
-      "title": "정답이 모두 같을 때를 확인해요",
-      "goal": "정답이 모두 5일 때 기본 보정으로 R제곱 0이 나왔어요.\n그 수치만으로 오차도 0이라고 할까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "mae",
-      "tests": [],
-      "required": true,
-      "example_code": "from sklearn.metrics import r2_score, mean_absolute_error\n\n# 실제 정답이 모두 같은 특수한 평가 표예요.\ny_true = [5, 5, 5]\nprint(float(r2_score(y_true, [5, 5, 5], force_finite=True)))\nprint(float(r2_score(y_true, [6, 6, 6], force_finite=True)))\nprint(float(mean_absolute_error(y_true, [6, 6, 6])))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "zero",
-            "text": "네. R제곱 0이면 모두 맞았어요"
-          },
-          {
-            "id": "mae",
-            "text": "아니요. MAE로 보면 오차 1이 남아요"
-          }
-        ],
-        "answer": "mae"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "정답이 모두 같으면 R제곱의 분모가 0이 돼요. sklearn은 이때 0으로 보정한 값을 내놓아요. 그 0이 오차 0이라는 뜻인지 판단해요.",
-          "target": "text:그 수치만으로 오차도 0이라고 할까요?"
-        },
-        {
-          "action": "run",
-          "lines": [
-            7,
-            7
-          ]
-        },
-        {
-          "action": "say",
-          "text": "기본 보정은 1.0과 0.0이지만 틀린 예측의 MAE는 1.0이에요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "정답이 일정하면 통상 R제곱 계산의 분모가 0이에요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 이 R제곱 0은 분모가 0일 때 API가 정한 기본값이에요. 오차가 0이라는 뜻이 아니에요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "mae"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_3308b7b4-beee-4241-955a-e97399178eed",
-      "title": "평가 한 행으로 판단할 수 있을까요",
-      "goal": "평가 관측이 하나뿐이에요.\nR제곱도 항상 정상 숫자로 나올까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "nan",
-      "tests": [],
-      "required": true,
-      "example_code": "import math\nfrom sklearn.metrics import r2_score, mean_absolute_error\n\n# 한 관측만으로는 R제곱을 정의할 수 없어요.\ny_true = [5]\ny_pred = [6]\nprint(math.isnan(float(r2_score(y_true, y_pred))))\nprint(float(mean_absolute_error(y_true, y_pred)))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "nan",
-            "text": "아니요. 이 경우 NaN이 되고 MAE는 계산돼요"
-          },
-          {
-            "id": "always",
-            "text": "네. 예측이 1분 틀렸으니 R제곱도 계산돼요"
-          }
-        ],
-        "answer": "nan"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "관측이 하나뿐이면 정답들의 퍼짐을 잴 수 없어 R제곱을 정의할 수 없어요. 같은 경우 MAE는 계산되는지 비교해요.",
-          "target": "text:평가 관측이 하나뿐이에요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            8,
-            8
-          ]
-        },
-        {
-          "action": "say",
-          "text": "R제곱은 숫자가 아닌 NaN, 절대오차는 1.0이에요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 한 관측의 오차로 모델 전체 실력을 입증하진 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "nan"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_0cf0390a-d3df-4414-95b2-679d6c1008dd",
-      "title": "실제와 예측의 같은 줄을 맞춰요",
-      "goal": "실제와 예측의 길이는 같지만 관측 순서가 달라요.\n무엇을 먼저 확인할까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "pairs",
-      "tests": [],
-      "required": true,
-      "example_code": "from sklearn.metrics import mean_absolute_error\n\n# 예측 순서가 실제 관측과 뒤집힌 상황이에요.\ny_true = [10, 20, 30]\ny_pred = [30, 20, 10]\nprint(round(float(mean_absolute_error(y_true, y_pred)), 6))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "pairs",
-            "text": "같은 배송끼리 대응하는 순서를 확인해요"
-          },
-          {
-            "id": "length",
-            "text": "길이만 같으면 이미 평가 조건이 맞아요"
-          }
-        ],
-        "answer": "pairs"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "예측 목록의 순서가 실제와 뒤집혀 있어요. 길이가 같으면 그대로 평가해도 되는지, 무엇을 먼저 확인할지 고르는 문제예요.",
-          "target": "text:실제와 예측의 길이는 같지만 관측 순서가 달라요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            6,
-            6
-          ]
-        },
-        {
-          "action": "say",
-          "text": "잘못된 쌍으로 비교해 오차 약 13.33이 나왔어요.",
+          "text": "nan과 1.0이에요. R제곱은 정의되지 않아 nan이에요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "y_pred = [30, 20, 10]",
-          "after": "y_pred = [10, 20, 30]",
-          "say": "같은 관측에 대응하는 예측 순서로 맞춰요."
+          "before": "r2 = float(r2_score(y_true, y_pred))\n",
+          "after": "r2 = float(r2_score(y_true, y_pred)) if len(y_true) >= 2 else None\n",
+          "say": "뒤에 if len(y_true) >= 2 else None을 붙여요."
         },
         {
           "action": "run",
           "lines": [
-            6,
-            6
+            8,
+            9
           ]
         },
         {
           "action": "say",
-          "text": "이번 올바른 쌍에서는 오차가 0.0이에요.",
+          "text": "None과 1.0이에요. 계산할 수 없는 R제곱은 없다고 두고 MAE로 1분 오차를 봐요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 입력·정답·예측이 같은 관측을 따라가야 해요.",
+          "text": "조심하세요. nan을 점수처럼 보고서에 옮기지 않아요. 평가 행 수부터 확인해요.",
+          "target": "code:len(y_true) >= 2"
+        }
+      ]
+    },
+    {
+      "id": "stp_c1326c0e-df1a-46bd-a213-e88aee3060c7",
+      "title": "pred_ids로 같은 배송의 예측을 맞추세요",
+      "goal": "실제와 예측의 길이는 같지만 예측은 다른 배송 순서로 왔어요. 지표는 같은 자리끼리 비교하므로 먼저 배송 번호로 짝을 맞춰야 해요. `목록.index(값)`은 그 값이 있는 자리를 돌려줘요.\n\naligned 줄을 고쳐 같은 배송 번호의 예측을 true_ids 순서로 맞추세요. 채점은 다른 순서로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 aligned와 MAE를 확인하세요.\n2. `aligned = y_pred`를 `aligned = [y_pred[pred_ids.index(i)] for i in true_ids]`로 고치세요.\n3. 코드 실행을 눌러 순서와 MAE를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "from sklearn.metrics import mean_absolute_error\n\n# 실제 시간은 true_ids 순서, 예측은 pred_ids 순서로 왔어요.\ntrue_ids = [101, 102, 103]\ny_true = [10, 20, 30]\npred_ids = [103, 102, 101]\ny_pred = [30, 20, 10]\n# 이 줄을 고쳐 같은 배송 번호의 예측을 true_ids 순서로 맞추세요.\naligned = y_pred\nprint(aligned)\nprint(round(float(mean_absolute_error(y_true, aligned)), 6))\n",
+      "solution": "from sklearn.metrics import mean_absolute_error\n\n# 실제 시간은 true_ids 순서, 예측은 pred_ids 순서로 왔어요.\ntrue_ids = [101, 102, 103]\ny_true = [10, 20, 30]\npred_ids = [103, 102, 101]\ny_pred = [30, 20, 10]\n# 이 줄을 고쳐 같은 배송 번호의 예측을 true_ids 순서로 맞추세요.\n# 위치가 아니라 배송 번호로 짝을 찾아요. 각 실제 배송 번호의 예측을 꺼내요.\naligned = [y_pred[pred_ids.index(i)] for i in true_ids]\nprint(aligned)\nprint(round(float(mean_absolute_error(y_true, aligned)), 6))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[10, 20, 30]\n0.0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "길이는 같지만 예측의 배송 순서가 달라요. aligned 줄을 고쳐 배송 번호로 예측을 맞춰야 해요.",
+          "target": "text:aligned 줄을 고쳐 같은 배송 번호의 예측을 true_ids 순서로 맞추세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[30, 20, 10]과 13.333333이에요. 다른 배송끼리 비교했어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "y_pred = [10, 20, 30]",
-          "after": "y_pred = [30, 20, 10]",
-          "say": "문제에서 주어진 잘못된 순서로 돌아와요."
+          "before": "aligned = y_pred\n",
+          "after": "aligned = [y_pred[pred_ids.index(i)] for i in true_ids]\n",
+          "say": "true_ids의 번호마다 pred_ids에서 자리를 찾아 예측을 꺼내요."
         },
         {
           "action": "run",
           "lines": [
-            6,
-            6
+            10,
+            11
           ]
         },
         {
           "action": "say",
-          "text": "원래 순서의 평가가 왜 틀렸는지 구별해요.",
+          "text": "[10, 20, 30]과 0.0이에요. 같은 배송끼리 맞추니 오차가 없어요.",
           "target": "output"
         },
         {
-          "action": "choose_answer",
-          "id": "pairs"
+          "action": "say",
+          "text": "조심하세요. 길이가 같다고 짝이 맞는 건 아니에요. 지표를 내기 전에 번호로 대응을 확인해요.",
+          "target": "code:pred_ids.index(i)"
         }
-      ],
-      "predict_before_run": true
+      ]
     },
     {
       "id": "stp_08c238c2-b05f-4141-b396-b50dbb66d9c9",
@@ -682,6 +662,254 @@
           }
         },
         "expected": "0.0\n0.0\n1.0"
+      }
+    ],
+    "stp_fd8637f1-9832-45fc-b1e3-38245112035e": [
+      {
+        "values": {
+          "y_true": [
+            3,
+            8,
+            1
+          ],
+          "y_pred": [
+            5,
+            4,
+            4
+          ]
+        },
+        "expected": "[2, -4, 3]\n3.0"
+      },
+      {
+        "values": {
+          "y_true": [
+            7,
+            7
+          ],
+          "y_pred": [
+            7,
+            9
+          ]
+        },
+        "expected": "[0, 2]\n1.0"
+      }
+    ],
+    "stp_86d4e40b-d08d-4b77-bcd6-2bacab0fd28c": [
+      {
+        "values": {
+          "y_true": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "y_pred": [
+            3,
+            3,
+            3,
+            3
+          ]
+        },
+        "expected": "3.0"
+      },
+      {
+        "values": {
+          "y_true": [
+            10,
+            20,
+            30
+          ],
+          "y_pred": [
+            10,
+            20,
+            36
+          ]
+        },
+        "expected": "3.4641016151377544"
+      }
+    ],
+    "stp_a47e998f-0261-466e-a692-11dbcbbaebf7": [
+      {
+        "values": {
+          "y_true": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "a": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "b": [
+            0,
+            0,
+            0,
+            5
+          ]
+        },
+        "expected": "1.0 1.25\n1.0 6.25\na"
+      },
+      {
+        "values": {
+          "y_true": [
+            5,
+            5
+          ],
+          "a": [
+            5,
+            9
+          ],
+          "b": [
+            7,
+            7
+          ]
+        },
+        "expected": "2.0 2.0\n8.0 4.0\nb"
+      }
+    ],
+    "stp_1d5be83b-7226-47ed-ac36-b5e748c20709": [
+      {
+        "values": {
+          "y_true": [
+            2,
+            4,
+            9
+          ],
+          "y_pred": [
+            3,
+            4,
+            8
+          ]
+        },
+        "expected": "0.923077\n0.923077"
+      },
+      {
+        "values": {
+          "y_true": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "y_pred": [
+            2.5,
+            2.5,
+            2.5,
+            2.5
+          ]
+        },
+        "expected": "0.0\n0.0"
+      }
+    ],
+    "stp_aa77cd65-70ea-463c-8e36-5c76242683f0": [
+      {
+        "values": {
+          "y_true": [
+            5,
+            5,
+            5
+          ],
+          "y_pred": [
+            5,
+            5,
+            5
+          ]
+        },
+        "expected": "1.0 True\n0.0"
+      },
+      {
+        "values": {
+          "y_true": [
+            10,
+            20,
+            30
+          ],
+          "y_pred": [
+            20,
+            20,
+            20
+          ]
+        },
+        "expected": "0.0 False\n6.666666666666667"
+      }
+    ],
+    "stp_51c8e8eb-f2e7-4395-ac31-d4a3ef9d1565": [
+      {
+        "values": {
+          "y_true": [
+            10,
+            20,
+            30
+          ],
+          "y_pred": [
+            12,
+            18,
+            30
+          ]
+        },
+        "expected": "0.96\n1.3333333333333333"
+      },
+      {
+        "values": {
+          "y_true": [
+            8
+          ],
+          "y_pred": [
+            3
+          ]
+        },
+        "expected": "None\n5.0"
+      }
+    ],
+    "stp_c1326c0e-df1a-46bd-a213-e88aee3060c7": [
+      {
+        "values": {
+          "true_ids": [
+            7,
+            3,
+            5
+          ],
+          "y_true": [
+            11,
+            40,
+            25
+          ],
+          "pred_ids": [
+            3,
+            5,
+            7
+          ],
+          "y_pred": [
+            42,
+            25,
+            10
+          ]
+        },
+        "expected": "[10, 42, 25]\n1.0"
+      },
+      {
+        "values": {
+          "true_ids": [
+            1,
+            2
+          ],
+          "y_true": [
+            9,
+            4
+          ],
+          "pred_ids": [
+            1,
+            2
+          ],
+          "y_pred": [
+            8,
+            6
+          ]
+        },
+        "expected": "[8, 6]\n1.5"
       }
     ]
   },

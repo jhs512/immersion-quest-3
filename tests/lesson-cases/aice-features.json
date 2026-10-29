@@ -3,32 +3,31 @@
   "lesson": "courses/redesigned/aice-features.json",
   "expected_outputs": [
     [
-      "[1000, 2000, 3000, 4000]\n[1, 2, 3, 4]",
-      "[100, 200, 300, 400]\n[1, 2, 3, 4]",
+      "",
       "[1000, 2000, 3000, 4000]\n[1, 2, 3, 4]"
     ],
     [
+      "",
       "[11, 21, 31, 41]\n['10', '20', '30', '40']"
     ],
     [
-      "str\n['10', '20', 'bad', '40']",
-      "",
-      "str\n['10', '20', 'bad', '40']"
+      "str\n['10', '20', 'bad', '40']\n0",
+      "float64\n[10.0, 20.0, nan, 40.0]\n1"
     ],
     [
-      "[False, False, True, False]\n4",
-      "[False, False, False, False]\n4",
+      "[False, False, False]\n3",
       "[False, False, True, False]\n4"
     ],
     [
+      "['region']\n[['north'], ['south'], ['north'], ['south']]",
       "['north', 'south']\n[[1, 0], [0, 1], [1, 0], [0, 1]]"
     ],
     [
-      "[[0], [1], [0], [0]]",
-      "[[0, 0], [1, 0], [0, 1], [0, 0]]",
-      "[[0], [1], [0], [0]]"
+      "['south']\n[[0], [1], [0], [0]]",
+      "['south', nan]\n[[0, 0], [1, 0], [0, 1], [0, 0]]"
     ],
     [
+      "",
       "[0, 1, -1, 6]\n4"
     ],
     [
@@ -42,6 +41,136 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "df[\"distance_m\"] = df[\"distance\"] * 1000\n",
+          "df[\"distance\"] = df[\"distance\"] * 1000\ndf[\"distance_m\"] = df[\"distance\"]\n"
+        ]
+      ],
+      "reason": "Overwriting the original"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "df[\"distance_m\"] = df[\"distance\"] * 1000\n",
+          "df[\"distance_m\"] = [1000, 2000, 3000, 4000]\n"
+        ]
+      ],
+      "reason": "Typing the meters"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "converted = df[\"minute_text\"].astype(\"int64\")\n",
+          "converted = pd.Series([10, 20, 30, 40])\n"
+        ]
+      ],
+      "reason": "Typing the numbers"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "converted = pd.to_numeric(df[\"minute_text\"], errors=\"coerce\")",
+          "converted = df[\"minute_text\"].astype(\"int64\", errors=\"ignore\")"
+        ]
+      ],
+      "reason": "Hidden failure"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "converted = pd.to_numeric(df[\"minute_text\"], errors=\"coerce\")",
+          "converted = pd.to_numeric(df[\"minute_text\"], errors=\"coerce\").dropna()"
+        ]
+      ],
+      "reason": "Dropping the failures"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "encoded = df[\"region\"].map(mapping)",
+          "encoded = df[\"region\"].map(mapping).dropna()"
+        ]
+      ],
+      "reason": "Dropping unknown names"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "encoded = df[\"region\"].map(mapping)",
+          "encoded = df[\"region\"].map(mapping).fillna(0)"
+        ]
+      ],
+      "reason": "Unknown as north"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "encoded = pd.get_dummies(df[\"region\"], dtype=int)",
+          "encoded = df[[\"region\"]].replace({\"north\": 0, \"south\": 1})"
+        ]
+      ],
+      "reason": "One column of codes"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "encoded = pd.get_dummies(df[\"region\"], dtype=int)",
+          "encoded = pd.get_dummies(df[\"region\"], drop_first=True, dtype=int)"
+        ]
+      ],
+      "reason": "Dropping the first region"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "dummy_na=True, dtype=int)",
+          "dummy_na=False, dtype=int)"
+        ]
+      ],
+      "reason": "Missing looks like north"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "encoded = pd.get_dummies(df[\"region\"], drop_first=True, dummy_na=True, dtype=int)",
+          "encoded = pd.get_dummies(df[\"region\"].fillna(\"north\"), drop_first=True, dtype=int)"
+        ]
+      ],
+      "reason": "Filling missing as north"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "print(parsed.dt.dayofweek.fillna(-1).astype(\"int64\").tolist())",
+          "print([0, 1, -1, 6])"
+        ]
+      ],
+      "reason": "Typing the weekdays"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "parsed = pd.to_datetime(df[\"planned\"], format=\"%Y-%m-%d\", errors=\"coerce\")",
+          "parsed = pd.to_datetime(df[\"planned\"], format=\"%Y-%m-%d\", errors=\"coerce\").dropna()"
+        ]
+      ],
+      "reason": "Dropping failed dates"
+    },
     {
       "step": 8,
       "replacements": [
@@ -94,6 +223,76 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "df[\"distance_m\"] = df[\"distance\"] * 1000\n",
+          "df = df.assign(distance_m=df[\"distance\"] * 1000)\n"
+        ]
+      ],
+      "reason": "assign"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "converted = df[\"minute_text\"].astype(\"int64\")\n",
+          "converted = pd.to_numeric(df[\"minute_text\"])\n"
+        ]
+      ],
+      "reason": "to_numeric"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "converted = pd.to_numeric(df[\"minute_text\"], errors=\"coerce\")",
+          "converted = pd.to_numeric(df[\"minute_text\"].where(df[\"minute_text\"].str.isdigit()))"
+        ]
+      ],
+      "reason": "Keeping only digit text"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "encoded = df[\"region\"].map(mapping)",
+          "encoded = df[\"region\"].map(lambda name: mapping.get(name))"
+        ]
+      ],
+      "reason": "dict.get per name"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "encoded = pd.get_dummies(df[\"region\"], dtype=int)",
+          "encoded = pd.crosstab(df.index, df[\"region\"])"
+        ]
+      ],
+      "reason": "crosstab of row and region"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "encoded = pd.get_dummies(df[\"region\"], drop_first=True, dummy_na=True, dtype=int)",
+          "encoded = pd.get_dummies(df[\"region\"], dummy_na=True, dtype=int).iloc[:, 1:]"
+        ]
+      ],
+      "reason": "Dropping the first column afterwards"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "parsed = pd.to_datetime(df[\"planned\"], format=\"%Y-%m-%d\", errors=\"coerce\")",
+          "parsed = pd.to_datetime(df[\"planned\"].where(df[\"planned\"].str.match(r\"\\d{4}-\\d{2}-\\d{2}$\")), format=\"%Y-%m-%d\")"
+        ]
+      ],
+      "reason": "Blanking non-dates first"
+    },
     {
       "step": 9,
       "replacements": [

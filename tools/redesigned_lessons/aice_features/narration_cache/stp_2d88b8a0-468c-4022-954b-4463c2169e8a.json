@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "1e69ae38fc3cfdb5183d382b52af14bf455b9b64cb15ebe1de6fd516b3d0dd73",
+  "entry": [
+    {
+      "action": "say",
+      "text": "글자 시간에 1을 더하려 해요. 먼저 글자 열을 정수로 바꿔 converted에 담아야 해요.",
+      "target": "text:converted 줄을 고쳐 글자 열을 정수로 바꾼 뒤 converted에 담으세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        12
+      ],
+      "expect_error": "TypeError"
+    },
+    {
+      "action": "say",
+      "text": "TypeError예요. 글자에 정수 1을 더할 수 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "converted = df[\"minute_text\"]\n",
+      "after": "converted = df[\"minute_text\"].astype(\"int64\")\n",
+      "say": "뒤에 .astype(\"int64\")를 붙여요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[11, 21, 31, 41]이에요. 원래 열은 글자 ['10', '20', '30', '40'] 그대로예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 글자끼리 더하면 \"10\" + \"1\"처럼 이어 붙여 \"101\"이 돼요. 계산 전에 자료형을 확인해요.",
+      "target": "code:.astype(\"int64\")"
+    }
+  ]
+}

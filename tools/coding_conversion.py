@@ -199,6 +199,9 @@ def take_outputs(key):
     for index, step in enumerate(evidence['steps']):
         if step['id'] in converted or cases['expected_outputs'][index] == []:
             cases['expected_outputs'][index] = step['teacher_outputs']
+            # A lesson that pins figures pins them per narrated run too; the converted narration runs twice.
+            if 'expected_images' in cases:
+                cases['expected_images'][index] = step['teacher_images']
             print(f"  step {index + 1}: {step['teacher_outputs']}")
     dump(cases_path, cases)
 

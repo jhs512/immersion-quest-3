@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "ffc7c9101ee62f9ee7c05e44f8e5a039cd0684f5790102abb6e716c89de750e1",
+  "entry": [
+    {
+      "action": "say",
+      "text": "같은 열의 다음 달 배송을 아래에 이어 붙이려 해요. 키로 연결하는 merge 줄을 행을 쌓는 concat으로 고쳐야 해요.",
+      "target": "text:combined 줄을 고쳐 다음 달 배송을 아래에 이어 붙이고 행 번호를 새로 매기세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[101, 102]와 [0, 1]이에요. merge는 첫 달 행에 맞는 키를 찾았을 뿐 103을 붙이지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "combined = first.merge(second, on=\"order_id\", how=\"left\")",
+      "after": "combined = pd.concat([first, second], ignore_index=True)",
+      "say": "pd.concat([first, second], ignore_index=True)로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[101, 102, 103]과 [0, 1, 2]예요. 두 달 배송이 한 표에 쌓였어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. ignore_index를 빼면 둘째 표의 행 번호 0이 그대로 남아 번호가 겹쳐요.",
+      "target": "code:ignore_index=True"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "9b50d2e93dbe2eb9a39acfd3ff9b709a6f3d9d1a5175f4bde6d5ee060b7cea72",
+  "entry": [
+    {
+      "action": "say",
+      "text": "regions.json은 회원 객체 두 개의 목록이에요. CSV 읽기 줄을 JSON 읽기로 고쳐야 해요.",
+      "target": "text:regions 줄을 고쳐 JSON 파일을 JSON 읽기 기능으로 읽으세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        7
+      ],
+      "expect_error": "KeyError"
+    },
+    {
+      "action": "say",
+      "text": "열 이름이 JSON 글자 조각으로 잘렸고 zone 열이 없어 KeyError예요. 쉼표로 나눠 읽었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "regions = pd.read_csv(\"regions.json\")",
+      "after": "regions = pd.read_json(\"regions.json\", orient=\"records\")",
+      "say": "pd.read_json으로 바꾸고 orient=\"records\"를 줘요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "['member_id', 'zone']과 ['north', 'south']예요. 두 열과 회원 두 행이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 파일 이름의 확장자보다 내용의 형식에 맞는 읽기 기능을 골라요.",
+      "target": "code:pd.read_json"
+    }
+  ]
+}

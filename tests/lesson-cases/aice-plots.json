@@ -3,42 +3,40 @@
   "lesson": "courses/redesigned/aice-plots.json",
   "expected_outputs": [
     [
+      "[15.0, 40.0]",
       "[2.0, 2.0]"
     ],
     [
+      "[2.0, 2.0]",
       "[15.0, 40.0]"
     ],
     [
-      "[1.0, 3.0]",
-      "[2.0, 2.0]",
-      "[1.0, 3.0]"
+      "[1.0, 3.0]\n[2, 2]",
+      "[1.0, 3.0]\n[1, 3]"
     ],
     [
-      "[0.0125, 0.01875]\n1.0",
-      "[1.0, 3.0]\n140.0",
-      "[0.0125, 0.01875]\n1.0"
+      "[0.0125, 0.01875]\n0.0125",
+      "[0.0125, 0.01875]\n0.25"
     ],
     [
-      "[0.5, 0.5]",
-      "[1.0, 1.0]",
-      "[0.5, 0.5]"
+      "[0.0, 0.25, 0.25, 0.5]",
+      "[0.0, 0.5, 0.5, 1.0]"
     ],
     [
-      "4\n3"
+      "3\n3",
+      "3\n4"
     ],
     [
-      "5 100",
-      "5 100",
-      "5 100"
+      "4 13\n1",
+      "5 100\n0"
     ],
     [
-      "(4, 2)",
-      "(2, 2)",
-      "(4, 2)"
+      "(4, 2)\n[[1, 10], [2, 20], [3, 30], [4, 50]]",
+      "(2, 2)\n[[1.0, 0.983], [0.983, 1.0]]"
     ],
     [
       "Orders\n[15.0, 40.0]",
-      "Minutes\n[15.0, 40.0]"
+      "Mean minutes\n[15.0, 40.0]"
     ],
     [
       "[2.0, 2.0]",
@@ -52,36 +50,34 @@
   ],
   "expected_images": [
     [
-      1
-    ],
-    [
-      1
-    ],
-    [
-      1,
       1,
       1
     ],
     [
       1,
+      1
+    ],
+    [
       1,
       1
     ],
     [
       1,
-      1,
       1
     ],
     [
-      1
-    ],
-    [
-      1,
       1,
       1
     ],
     [
       1,
+      1
+    ],
+    [
+      1,
+      1
+    ],
+    [
       1,
       1
     ],
@@ -100,6 +96,186 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "ax = sns.countplot(data=df, x=\"region\", order=[\"north\", \"south\"])",
+          "ax = sns.barplot(data=df, x=\"region\", y=\"minutes\", order=[\"north\", \"south\"], errorbar=None, estimator=\"sum\")"
+        ]
+      ],
+      "reason": "Sum of minutes"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "print([round(float(p.get_height()), 5) for p in ax.patches])",
+          "print([2.0, 2.0])"
+        ]
+      ],
+      "reason": "Typing the heights"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "errorbar=None)",
+          "errorbar=None, estimator=\"sum\")"
+        ]
+      ],
+      "reason": "Sum instead of mean"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "print([round(float(p.get_height()), 5) for p in ax.patches])",
+          "print([15.0, 40.0])"
+        ]
+      ],
+      "reason": "Typing the heights"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "right=False)",
+          "right=True)"
+        ]
+      ],
+      "reason": "Right edge included"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "print(groups.value_counts(sort=False).tolist())",
+          "print([1, 3])"
+        ]
+      ],
+      "reason": "Typing the counts"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "share = heights[0] * widths[0]\n",
+          "share = heights[0]\n"
+        ]
+      ],
+      "reason": "Height only"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "share = heights[0] * widths[0]\n",
+          "share = 0.25\n"
+        ]
+      ],
+      "reason": "Typing the share"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "common_norm=False)",
+          "common_norm=True)"
+        ]
+      ],
+      "reason": "Shared denominator"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "print(sorted(round(float(p.get_height()), 5) for p in ax.patches))",
+          "print([0.0, 0.5, 0.5, 1.0])"
+        ]
+      ],
+      "reason": "Typing the heights"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "count = len(df)",
+          "count = len(df.drop_duplicates(subset=[\"distance\", \"minutes\"]))"
+        ]
+      ],
+      "reason": "Distinct positions"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "count = len(df)",
+          "count = 4"
+        ]
+      ],
+      "reason": "Typing the count"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "parts = plt.boxplot(minutes, showfliers=False)\n",
+          "minutes = [m for m in minutes if m < 100]\nparts = plt.boxplot(minutes, showfliers=False)\n"
+        ]
+      ],
+      "reason": "Still deleting 100"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "parts = plt.boxplot(minutes, showfliers=False)\n",
+          "parts = plt.boxplot(minutes)\n"
+        ]
+      ],
+      "reason": "Showing the candidates"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "matrix = df[[\"distance\", \"minutes\"]].corr()\n",
+          "matrix = df[[\"distance\", \"minutes\"]].cov()\n"
+        ]
+      ],
+      "reason": "Covariance"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "matrix = df[[\"distance\", \"minutes\"]].corr()\n",
+          "matrix = df[[\"distance\", \"minutes\"]]\n"
+        ]
+      ],
+      "reason": "Raw values"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "ax.set_ylabel(\"Mean minutes\")",
+          "ax.set_ylabel(\"Orders\")"
+        ]
+      ],
+      "reason": "Wrong label"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "ax = sns.barplot(data=df, x=\"region\", y=\"minutes\", order=[\"north\", \"south\"], errorbar=None)",
+          "ax = sns.countplot(data=df, x=\"region\", order=[\"north\", \"south\"])"
+        ]
+      ],
+      "reason": "Relabeling a count plot"
+    },
     {
       "step": 10,
       "replacements": [
@@ -166,6 +342,96 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "ax = sns.countplot(data=df, x=\"region\", order=[\"north\", \"south\"])",
+          "ax = sns.countplot(x=df[\"region\"], order=[\"north\", \"south\"])"
+        ]
+      ],
+      "reason": "Passing the column itself"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "errorbar=None)",
+          "errorbar=None, estimator=\"mean\")"
+        ]
+      ],
+      "reason": "Explicit mean"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "groups = pd.cut(df[\"minutes\"], bins=[0, 20, 60], right=False)",
+          "groups = pd.cut(df[\"minutes\"], [0, 20, 60], right=False)"
+        ]
+      ],
+      "reason": "Positional bins"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "share = heights[0] * widths[0]\n",
+          "share = (df[\"minutes\"] < 20).mean()\n"
+        ]
+      ],
+      "reason": "Counting the share directly"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "stat=\"probability\"",
+          "stat=\"proportion\""
+        ]
+      ],
+      "reason": "proportion is the same statistic"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "count = len(df)",
+          "count = len(ax.collections[0].get_offsets())"
+        ]
+      ],
+      "reason": "Points actually drawn"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "parts = plt.boxplot(minutes, showfliers=False)\n",
+          "parts = plt.gca().boxplot(list(minutes), showfliers=False)\n"
+        ]
+      ],
+      "reason": "Axes method on a copy"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "matrix = df[[\"distance\", \"minutes\"]].corr()\n",
+          "matrix = df[[\"distance\", \"minutes\"]].corr(method=\"pearson\")\n"
+        ]
+      ],
+      "reason": "Explicit Pearson"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "ax.set_ylabel(\"Mean minutes\")",
+          "ax.set(ylabel=\"Mean minutes\")"
+        ]
+      ],
+      "reason": "Axes.set"
+    },
     {
       "step": 11,
       "replacements": [

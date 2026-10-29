@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "20d59599459da2dc06d597bed699575fba1b69472b0a15059453cf3cabc9ddf9",
+  "entry": [
+    {
+      "action": "say",
+      "text": "정답이 모두 5예요. constant 줄을 고쳐 y_true의 값이 모두 같은지 직접 확인해야 해요.",
+      "target": "text:constant 줄을 고쳐 y_true의 값이 모두 같은지를 constant에 담으세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0.0 False와 1.0이에요. R제곱 0이 보정값인지 모르고 지나쳐요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "constant = False\n",
+      "after": "constant = len(set(y_true)) == 1\n",
+      "say": "len(set(y_true)) == 1로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0.0 True예요. R제곱 0은 보정값이고 MAE로 보면 1분 오차가 남아요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 정답이 모두 같으면 R제곱은 비교할 퍼짐이 없어요. 이때는 MAE 같은 오차로 판단해요.",
+      "target": "code:len(set(y_true)) == 1"
+    }
+  ]
+}

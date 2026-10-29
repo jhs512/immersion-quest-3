@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_7f566eb4-fb00-4b5a-9ab4-1753e8c96b91",
-  "revision": "aice-join-6",
+  "revision": "aice-join-7",
   "title": "여러 배송 파일을 같은 키로 연결해요",
   "description": "같은 배송의 월별 자료와 회원 지역을 관측·키를 지키며 연결해요.",
   "objectives": [
@@ -33,27 +33,27 @@
           "premise": "같은 배송에 다음 달 자료와 회원 지역 파일이 추가돼요. 행을 쌓는 일과 같은 회원의 지역을 찾는 일을 나눠요.",
           "steps": [
             {
-              "id": "stp_b015b8bc-0755-4719-a9e6-1c0a3a8f93b0",
+              "id": "stp_04c4cef9-6049-4f01-91bc-82767eeea816",
               "objectives": [
-                "records 형식 JSON 파일의 행·열을 읽어요."
+                "JSON 객체 목록을 행과 열이 있는 표로 읽어요."
               ]
             },
             {
-              "id": "stp_1591fd5e-cdc1-4f7b-bfa5-6e6a6d43504f",
+              "id": "stp_cf3096d8-f8fe-4aaf-89d0-4f53a51226ce",
               "objectives": [
-                "concat의 행 추가와 새 인덱스를 이해해요."
+                "같은 열의 표를 행 방향으로 쌓아요."
               ]
             },
             {
-              "id": "stp_d49ec054-3c11-4d99-bb8a-0bcf4479901a",
+              "id": "stp_d568adc8-c7fa-4d71-8c1b-8e0bf0abf6d5",
               "objectives": [
-                "키 결합과 원래 행 순서를 구별해요."
+                "행 위치가 아니라 키 값이 같은 행끼리 연결해요."
               ]
             },
             {
-              "id": "stp_7a3fb796-be6a-4a62-b9b6-354d2d8d8a53",
+              "id": "stp_6e0f592a-2b03-43e9-a25f-bbfbcd4e638e",
               "objectives": [
-                "left와 inner가 보존하는 행을 비교해요."
+                "how에 따라 짝이 없는 행이 남는지 빠지는지 확인해요."
               ]
             }
           ]
@@ -76,21 +76,21 @@
           "premise": "같은 회원 조회에서 중복·문자형 키·빈 키가 나타나요. 마지막에는 조회 실패 배송도 보존하도록 고쳐요.",
           "steps": [
             {
-              "id": "stp_c1a9c678-bb7c-402e-a934-c0fddc3169fc",
+              "id": "stp_644fdedb-5398-4e74-9566-af0f1ea53f5d",
               "objectives": [
-                "다대일 결합 검증과 중복 조회 키를 이해해요."
+                "조회의 중복 키가 결합 행을 늘릴 수 있음을 세어 확인해요."
               ]
             },
             {
-              "id": "stp_7b18e674-b85c-4a9e-881d-b0f2f3015164",
+              "id": "stp_16761765-b32d-44a3-b247-6df7fdfb9999",
               "objectives": [
-                "키의 의미와 자료형을 함께 확인해요."
+                "키의 뜻을 확인한 뒤 두 표의 키 자료형을 같게 맞춰요."
               ]
             },
             {
-              "id": "stp_614ada92-b83f-4718-90ec-e1d815dcdab9",
+              "id": "stp_f86bcd8f-c137-444b-be41-878725562bb2",
               "objectives": [
-                "pandas가 빈 키끼리도 짝짓는 규칙과 실제 회원 확인을 구별해요."
+                "결측 키끼리 붙는 것과 같은 회원 확인을 구별해요."
               ]
             },
             {
@@ -122,520 +122,458 @@
   ],
   "tasks": [
     {
-      "id": "stp_b015b8bc-0755-4719-a9e6-1c0a3a8f93b0",
-      "title": "JSON 자료도 표로 읽어요",
-      "goal": "regions.json은 회원 객체 두 개의 목록이에요.\n이 파일을 표로 읽은 결과를 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_04c4cef9-6049-4f01-91bc-82767eeea816",
+      "title": "read_json으로 JSON 회원 파일을 표로 읽으세요",
+      "goal": "regions.json은 회원 객체의 목록이에요. 객체 하나가 회원 한 행이고 객체의 키가 열 이름이에요. `pd.read_json(파일, orient=\"records\")`가 이런 목록을 표로 읽어요.\n\nregions 줄을 고쳐 JSON 파일을 JSON 읽기 기능으로 읽으세요. 채점은 regions.json의 내용을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 KeyError가 나오는지 확인하세요.\n2. `pd.read_csv(\"regions.json\")`을 `pd.read_json(\"regions.json\", orient=\"records\")`로 고치세요.\n3. 코드 실행을 눌러 두 열과 지역 목록을 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "rows",
-      "tests": [],
-      "required": true,
-      "example_code": "import pandas as pd\n\n# 제공된 파일의 객체 한 개가 회원 한 행이에요.\nregions = pd.read_json(\"regions.json\", orient=\"records\")\nprint(regions.columns.tolist())\nprint(regions[\"zone\"].tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "csv",
-            "text": "regions.json 전체가 글자 한 칸에 담긴 한 행이에요"
-          },
-          {
-            "id": "rows",
-            "text": "member_id·zone 두 열과 회원 두 행이에요"
-          }
-        ],
-        "answer": "rows"
+      "starter_code": "import pandas as pd\n\n# 제공된 파일의 객체 한 개가 회원 한 행이에요.\n# 이 줄을 고쳐 JSON 파일을 JSON 읽기 기능으로 읽으세요.\nregions = pd.read_csv(\"regions.json\")\nprint(regions.columns.tolist())\nprint(regions[\"zone\"].tolist())\n",
+      "solution": "import pandas as pd\n\n# 제공된 파일의 객체 한 개가 회원 한 행이에요.\n# 이 줄을 고쳐 JSON 파일을 JSON 읽기 기능으로 읽으세요.\n# read_json은 객체 목록의 키를 열로, 객체 하나를 행 하나로 읽어요.\nregions = pd.read_json(\"regions.json\", orient=\"records\")\nprint(regions.columns.tolist())\nprint(regions[\"zone\"].tolist())\n",
+      "files": {
+        "regions.json": "[{\"member_id\":1,\"zone\":\"north\"},{\"member_id\":2,\"zone\":\"south\"}]\n"
       },
+      "tests": [
+        {
+          "input": "",
+          "expected": "['member_id', 'zone']\n['north', 'south']"
+        }
+      ],
+      "checker": "import json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nREFERENCE = 'import pandas as pd\\n\\n# 제공된 파일의 객체 한 개가 회원 한 행이에요.\\n# 이 줄을 고쳐 JSON 파일을 JSON 읽기 기능으로 읽으세요.\\n# read_json은 객체 목록의 키를 열로, 객체 하나를 행 하나로 읽어요.\\nregions = pd.read_json(\"regions.json\", orient=\"records\")\\nprint(regions.columns.tolist())\\nprint(regions[\"zone\"].tolist())\\n'\nVARIANTS = json.loads('[{\"regions.json\": \"[{\\\\\"member_id\\\\\":7,\\\\\"zone\\\\\":\\\\\"west\\\\\"}]\\\\n\"}, {\"regions.json\": \"[{\\\\\"zone\\\\\":\\\\\"east\\\\\",\\\\\"member_id\\\\\":3},{\\\\\"zone\\\\\":\\\\\"north\\\\\",\\\\\"member_id\\\\\":9},{\\\\\"zone\\\\\":\\\\\"south\\\\\",\\\\\"member_id\\\\\":4}]\\\\n\"}]')\nnames = sorted({name for variant in VARIANTS for name in variant})\noriginal = {name: Path(name).read_text(encoding=\"utf-8\") if Path(name).exists() else None for name in names}\nPath(\"_reference.py\").write_text(REFERENCE, encoding=\"utf-8\")\ndef run(script):\n    return subprocess.run([sys.executable, \"-I\", \"-X\", \"utf8\", script], stdin=subprocess.DEVNULL, capture_output=True,\n                          text=True, encoding=\"utf-8\", timeout=60)\ntry:\n    for variant in VARIANTS:\n        for name, text in variant.items():\n            Path(name).write_text(text, encoding=\"utf-8\")\n        expected = run(\"_reference.py\")\n        if expected.returncode != 0:\n            raise RuntimeError(\"준비한 검사 자료를 읽지 못했어요: \" + expected.stderr[-300:])\n        actual = run(\"main.py\")\n        if actual.returncode != 0 or actual.stdout.strip() != expected.stdout.strip():\n            raise AssertionError('다른 JSON 파일에서도 같은 원리로 맞는 결과가 나와야 해요.')\nfinally:\n    for name, text in original.items():\n        if text is None:\n            Path(name).unlink(missing_ok=True)\n        else:\n            Path(name).write_text(text, encoding=\"utf-8\")\n    Path(\"_reference.py\").unlink(missing_ok=True)\nprint(f\"바꾼 자료 {len(VARIANTS)}개에서도 통과했어요.\")\n",
+      "required": true,
       "narration": [
         {
           "action": "say",
-          "text": "이 수업에서는 표를 이어 붙이는 일과 키로 연결하는 일을 구별해요. 원본 행이 어떻게 남는지도 확인해요."
+          "text": "이 수업에서는 표를 이어 붙이는 일과 키로 연결하는 일을 직접 코드로 구별해요. 원본 행이 어떻게 남는지도 확인해요."
         },
         {
           "action": "say",
-          "text": "JSON과 월별 배송 표를 읽고 합쳐요. 중복 키와 자료형, 결측 키도 점검해요."
+          "text": "JSON과 월별 배송 표를 읽고 합쳐요. 중복 키와 자료형, 결측 키도 직접 고쳐 점검해요."
         },
         {
           "action": "say",
-          "text": "객체 하나가 한 행, 객체의 이름들이 열이 되는지 예상하는 문제예요.",
-          "target": "text:JSON 자료도 표로 읽어요#1"
+          "text": "read_json으로 JSON 회원 파일을 표로 읽는 문제예요.",
+          "target": "text:read_json으로 JSON 회원 파일을 표로 읽으세요#1"
         },
         {
           "action": "say",
-          "text": "read_json은 JSON 파일을 표로 읽어요.",
-          "target": "text:regions.json은 회원 객체 두 개의 목록이에요."
+          "text": "regions.json은 회원 객체 두 개의 목록이에요. CSV 읽기 줄을 JSON 읽기로 고쳐야 해요.",
+          "target": "text:regions 줄을 고쳐 JSON 파일을 JSON 읽기 기능으로 읽으세요."
         },
         {
           "action": "run",
           "lines": [
             6,
-            6
-          ]
+            7
+          ],
+          "expect_error": "KeyError"
         },
         {
           "action": "say",
-          "text": "회원번호와 지역 두 열, north와 south 두 회원이 있어요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 실제 제공 파일의 이름과 형식에 맞는 읽기 함수를 사용해요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "rows"
-        }
-      ],
-      "predict_before_run": true,
-      "files": {
-        "regions.json": "[{\"member_id\":1,\"zone\":\"north\"},{\"member_id\":2,\"zone\":\"south\"}]\n"
-      }
-    },
-    {
-      "id": "stp_1591fd5e-cdc1-4f7b-bfa5-6e6a6d43504f",
-      "title": "같은 열의 다음 달을 붙여요",
-      "goal": "같은 열의 다음 달 배송을 아래에 이어 붙여요.\n어떤 작업일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "concat",
-      "tests": [],
-      "required": true,
-      "example_code": "import pandas as pd\n\n# 같은 열의 다음 달 배송을 아래에 쌓아요.\nfirst = pd.DataFrame({\"order_id\": [101, 102]})\nsecond = pd.DataFrame({\"order_id\": [103]})\ncombined = pd.concat([first, second], ignore_index=True)\nprint(combined[\"order_id\"].tolist())\nprint(combined.index.tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "concat",
-            "text": "concat으로 행을 쌓아요"
-          },
-          {
-            "id": "lookup",
-            "text": "회원 키로 지역 열을 조회하는 merge예요"
-          }
-        ],
-        "answer": "concat"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "같은 열의 다음 달을 붙이는 문제예요.",
-          "target": "text:같은 열의 다음 달을 붙여요#1"
-        },
-        {
-          "action": "say",
-          "text": "열이 같은 두 달의 배송을 아래로 이어 붙이는 상황이에요. 행을 쌓는 일인지, 다른 표에서 값을 찾아 붙이는 일인지 구별해요.",
-          "target": "text:같은 열의 다음 달 배송을 아래에 이어 붙여요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            8,
-            8
-          ]
-        },
-        {
-          "action": "say",
-          "text": "배송은 세 건으로 늘고 새 행 번호는 0, 1, 2예요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 행을 쌓는 것과 다른 표에서 키를 찾아 열을 붙이는 것은 달라요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "concat"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_d49ec054-3c11-4d99-bb8a-0bcf4479901a",
-      "title": "행 위치 대신 같은 회원을 찾아요",
-      "goal": "조회 표는 회원1부터지만 첫 배송은 회원2예요. merge는 on에 적은 열의 값이 같은 행끼리 짝지어 열을 붙여요.\n첫 배송의 지역은 무엇일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "south",
-      "tests": [],
-      "required": true,
-      "example_code": "import pandas as pd\n\n# 배송과 회원 조회는 행 순서가 서로 달라요.\norder_data = {\"order_id\": [101, 102, 103], \"member_id\": [2, 1, 3]}\nregion_data = {\"member_id\": [1, 2], \"zone\": [\"north\", \"south\"]}\norders = pd.DataFrame(order_data)\nregions = pd.DataFrame(region_data)\n# member_id 값이 같은 행끼리 짝지어 지역을 옆에 붙여요.\njoined = orders.merge(regions, on=\"member_id\", how=\"left\")\nprint(joined[\"order_id\"].tolist())\n# 표시용: 지역을 찾지 못한 칸은 unknown으로 보여요.\nprint(joined[\"zone\"].fillna(\"unknown\").tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "south",
-            "text": "회원2의 south예요"
-          },
-          {
-            "id": "north",
-            "text": "조회 표 첫 행인 north를 그대로 붙여요"
-          }
-        ],
-        "answer": "south"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "행 위치 대신 같은 회원을 찾는 문제예요.",
-          "target": "text:행 위치 대신 같은 회원을 찾아요#1"
-        },
-        {
-          "action": "say",
-          "text": "조회 표의 첫 행은 회원1이지만 첫 배송은 회원2예요. merge가 행 위치로 붙이는지, 회원 번호로 짝을 찾는지가 질문이에요.",
-          "target": "text:merge는 on에 적은 열의 값이 같은 행끼리 짝지어 열을 붙여요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            10,
-            10
-          ]
-        },
-        {
-          "action": "say",
-          "text": "회원 키로 찾아 south, north, unknown 순서가 됐어요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 행 위치가 같다는 이유로 같은 회원이라고 보지 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "south"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_7a3fb796-be6a-4a62-b9b6-354d2d8d8a53",
-      "title": "없는 회원도 배송은 남겨요",
-      "goal": "조회에 회원3이 없어요. how는 짝을 못 찾은 행을 어떻게 할지 정해요. left는 왼쪽 표(orders)의 행을 모두 남기고, inner는 양쪽에 다 있는 키의 행만 남겨요.\ninner는 배송103도 남길까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "drop",
-      "tests": [],
-      "required": true,
-      "example_code": "import pandas as pd\n\n# 배송과 회원 조회는 행 순서가 서로 달라요.\norder_data = {\"order_id\": [101, 102, 103], \"member_id\": [2, 1, 3]}\nregion_data = {\"member_id\": [1, 2], \"zone\": [\"north\", \"south\"]}\norders = pd.DataFrame(order_data)\nregions = pd.DataFrame(region_data)\njoined = orders.merge(regions, on=\"member_id\", how=\"inner\")\nprint(joined[\"order_id\"].tolist())\nprint(joined[\"zone\"].fillna(\"unknown\").tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "drop",
-            "text": "아니요.조회에 맞는 키가 있는 배송만 남아요"
-          },
-          {
-            "id": "keep",
-            "text": "네. inner도 왼쪽 배송을 모두 보존해요"
-          }
-        ],
-        "answer": "drop"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "how를 inner와 left로 바꿔 가며 배송103이 남는지 비교하는 문제예요.",
-          "target": "text:없는 회원도 배송은 남겨요#1"
-        },
-        {
-          "action": "say",
-          "text": "회원3은 조회 표에 없어요.",
-          "target": "text:left는 왼쪽 표(orders)의 행을 모두 남기고, inner는 양쪽에 다 있는 키의 행만 남겨요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            10,
-            10
-          ]
-        },
-        {
-          "action": "say",
-          "text": "inner에서는 배송 101과 102만 남았어요.",
+          "text": "열 이름이 JSON 글자 조각으로 잘렸고 zone 열이 없어 KeyError예요. 쉼표로 나눠 읽었어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "how=\"inner\"",
-          "after": "how=\"left\"",
-          "say": "조회가 없어도 원본 배송을 남겨 봐요."
+          "before": "regions = pd.read_csv(\"regions.json\")",
+          "after": "regions = pd.read_json(\"regions.json\", orient=\"records\")",
+          "say": "pd.read_json으로 바꾸고 orient=\"records\"를 줘요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "['member_id', 'zone']과 ['north', 'south']예요. 두 열과 회원 두 행이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 파일 이름의 확장자보다 내용의 형식에 맞는 읽기 기능을 골라요.",
+          "target": "code:pd.read_json"
+        }
+      ]
+    },
+    {
+      "id": "stp_cf3096d8-f8fe-4aaf-89d0-4f53a51226ce",
+      "title": "concat으로 다음 달 배송을 아래에 이어 붙이세요",
+      "goal": "같은 열의 다음 달 배송을 아래에 이어 붙여요. `pd.concat([표1, 표2])`는 같은 열의 표를 아래로 쌓고, `merge`는 키 값으로 다른 표의 열을 옆에 붙여요. `ignore_index=True`는 행 번호를 새로 매겨요.\n\ncombined 줄을 고쳐 다음 달 배송을 아래에 이어 붙이고 행 번호를 새로 매기세요. 채점은 다른 두 달 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 103이 빠졌는지 확인하세요.\n2. `first.merge(...)`를 `pd.concat([first, second], ignore_index=True)`로 고치세요.\n3. 코드 실행을 눌러 세 건과 새 행 번호를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import pandas as pd\n\n# 같은 열의 다음 달 배송이에요.\nfirst_ids = [101, 102]\nsecond_ids = [103]\nfirst = pd.DataFrame({\"order_id\": first_ids})\nsecond = pd.DataFrame({\"order_id\": second_ids})\n# 이 줄을 고쳐 다음 달 배송을 아래에 이어 붙이고 행 번호를 새로 매기세요.\ncombined = first.merge(second, on=\"order_id\", how=\"left\")\nprint(combined[\"order_id\"].tolist())\nprint(combined.index.tolist())\n",
+      "solution": "import pandas as pd\n\n# 같은 열의 다음 달 배송이에요.\nfirst_ids = [101, 102]\nsecond_ids = [103]\nfirst = pd.DataFrame({\"order_id\": first_ids})\nsecond = pd.DataFrame({\"order_id\": second_ids})\n# 이 줄을 고쳐 다음 달 배송을 아래에 이어 붙이고 행 번호를 새로 매기세요.\n# concat은 같은 열의 표를 아래로 쌓아요. ignore_index=True는 행 번호를 0부터 새로 매겨요.\ncombined = pd.concat([first, second], ignore_index=True)\nprint(combined[\"order_id\"].tolist())\nprint(combined.index.tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[101, 102, 103]\n[0, 1, 2]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "concat으로 다음 달 배송을 아래에 이어 붙이는 문제예요.",
+          "target": "text:concat으로 다음 달 배송을 아래에 이어 붙이세요#1"
+        },
+        {
+          "action": "say",
+          "text": "같은 열의 다음 달 배송을 아래에 이어 붙이려 해요. 키로 연결하는 merge 줄을 행을 쌓는 concat으로 고쳐야 해요.",
+          "target": "text:combined 줄을 고쳐 다음 달 배송을 아래에 이어 붙이고 행 번호를 새로 매기세요."
         },
         {
           "action": "run",
           "lines": [
             10,
-            10
+            11
           ]
         },
         {
           "action": "say",
-          "text": "left는 103도 남기고 지역을 unknown으로 보여 줘요.",
+          "text": "[101, 102]와 [0, 1]이에요. merge는 첫 달 행에 맞는 키를 찾았을 뿐 103을 붙이지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "combined = first.merge(second, on=\"order_id\", how=\"left\")",
+          "after": "combined = pd.concat([first, second], ignore_index=True)",
+          "say": "pd.concat([first, second], ignore_index=True)로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[101, 102, 103]과 [0, 1, 2]예요. 두 달 배송이 한 표에 쌓였어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 결측 지역을 남기는 것과 배송 자체를 버리는 것은 달라요.",
+          "text": "조심하세요. ignore_index를 빼면 둘째 표의 행 번호 0이 그대로 남아 번호가 겹쳐요.",
+          "target": "code:ignore_index=True"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"first_ids\": [201], \"second_ids\": [202, 203, 204]}, \"expected\": \"[201, 202, 203, 204]\\\\n[0, 1, 2, 3]\"}, {\"values\": {\"first_ids\": [5, 6, 7], \"second_ids\": [8, 9]}, \"expected\": \"[5, 6, 7, 8, 9]\\\\n[0, 1, 2, 3, 4]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_d568adc8-c7fa-4d71-8c1b-8e0bf0abf6d5",
+      "title": "merge(on=\"member_id\")로 같은 회원의 지역을 붙이세요",
+      "goal": "조회 표는 회원 1부터지만 첫 배송은 회원 2예요. `merge(조회, on=\"member_id\")`는 member_id 값이 같은 행끼리 짝지어 열을 붙이고, `how=\"left\"`는 왼쪽 배송을 모두 남겨요.\n\njoined 줄을 고쳐 행 위치가 아니라 member_id가 같은 회원의 지역을 붙이세요. 배송은 모두 남겨요. 채점은 행 순서가 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 첫 배송의 지역을 확인하세요.\n2. `orders.assign(zone=regions[\"zone\"])`를 `orders.merge(regions, on=\"member_id\", how=\"left\")`로 고치세요.\n3. 코드 실행을 눌러 회원별 지역이 맞는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import pandas as pd\n\n# 배송과 회원 조회는 행 순서가 서로 달라요.\norder_data = {\"order_id\": [101, 102, 103], \"member_id\": [2, 1, 3]}\nregion_data = {\"member_id\": [1, 2], \"zone\": [\"north\", \"south\"]}\norders = pd.DataFrame(order_data)\nregions = pd.DataFrame(region_data)\n# 이 줄을 고쳐 행 위치가 아니라 member_id가 같은 회원의 지역을 붙이세요. 배송은 모두 남겨요.\njoined = orders.assign(zone=regions[\"zone\"])\nprint(joined[\"order_id\"].tolist())\n# 표시용: 지역을 찾지 못한 칸은 unknown으로 보여요.\nprint(joined[\"zone\"].fillna(\"unknown\").tolist())\n",
+      "solution": "import pandas as pd\n\n# 배송과 회원 조회는 행 순서가 서로 달라요.\norder_data = {\"order_id\": [101, 102, 103], \"member_id\": [2, 1, 3]}\nregion_data = {\"member_id\": [1, 2], \"zone\": [\"north\", \"south\"]}\norders = pd.DataFrame(order_data)\nregions = pd.DataFrame(region_data)\n# 이 줄을 고쳐 행 위치가 아니라 member_id가 같은 회원의 지역을 붙이세요. 배송은 모두 남겨요.\n# merge는 on에 적은 열의 값이 같은 행끼리 짝지어요. how=\"left\"는 배송을 모두 남겨요.\njoined = orders.merge(regions, on=\"member_id\", how=\"left\")\nprint(joined[\"order_id\"].tolist())\n# 표시용: 지역을 찾지 못한 칸은 unknown으로 보여요.\nprint(joined[\"zone\"].fillna(\"unknown\").tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[101, 102, 103]\n['south', 'north', 'unknown']"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "merge(on=\"member_id\")로 같은 회원의 지역을 붙이는 문제예요.",
+          "target": "text:merge(on=\"member_id\")로 같은 회원의 지역을 붙이세요#1"
+        },
+        {
+          "action": "say",
+          "text": "조회 표는 회원 1부터지만 첫 배송은 회원 2예요. 행 위치로 붙이는 줄을 같은 회원끼리 짝짓도록 고쳐야 해요.",
+          "target": "text:joined 줄을 고쳐 행 위치가 아니라 member_id가 같은 회원의 지역을 붙이세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "지역이 north, south, unknown이에요. 회원 2의 첫 배송에 조회 첫 행 north가 붙었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "joined = orders.assign(zone=regions[\"zone\"])",
+          "after": "joined = orders.merge(regions, on=\"member_id\", how=\"left\")",
+          "say": "orders.merge(regions, on=\"member_id\", how=\"left\")로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "south, north, unknown이에요. 회원 2는 south, 회원 1은 north이고 회원 3은 조회에 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 두 표의 행 순서는 보통 달라요. 같은 줄에 있다고 같은 회원이 아니에요.",
+          "target": "code:on=\"member_id\""
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"order_data\": {\"order_id\": [301, 302, 303, 304], \"member_id\": [5, 5, 4, 6]}, \"region_data\": {\"member_id\": [6, 4], \"zone\": [\"west\", \"east\"]}}, \"expected\": \"[301, 302, 303, 304]\\\\n[\\'unknown\\', \\'unknown\\', \\'east\\', \\'west\\']\"}, {\"values\": {\"order_data\": {\"order_id\": [401, 402], \"member_id\": [1, 2]}, \"region_data\": {\"member_id\": [2, 1, 3], \"zone\": [\"south\", \"north\", \"west\"]}}, \"expected\": \"[401, 402]\\\\n[\\'north\\', \\'south\\']\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_6e0f592a-2b03-43e9-a25f-bbfbcd4e638e",
+      "title": "how=\"inner\"로 조회에 있는 회원의 배송만 남기세요",
+      "goal": "조회에 회원 3이 없어요. `how`는 짝을 못 찾은 행을 어떻게 할지 정해요. `left`는 왼쪽 표(orders)의 행을 모두 남기고, `inner`는 양쪽에 다 있는 키의 행만 남겨요.\n\njoined 줄의 how를 고쳐 조회에 회원이 있는 배송만 남기세요. 채점은 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 배송 세 건이 남는지 확인하세요.\n2. `how=\"left\"`를 `how=\"inner\"`로 고치세요.\n3. 코드 실행을 눌러 103이 빠졌는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import pandas as pd\n\n# 배송과 회원 조회는 행 순서가 서로 달라요.\norder_data = {\"order_id\": [101, 102, 103], \"member_id\": [2, 1, 3]}\nregion_data = {\"member_id\": [1, 2], \"zone\": [\"north\", \"south\"]}\norders = pd.DataFrame(order_data)\nregions = pd.DataFrame(region_data)\n# 이 줄의 how를 고쳐 조회에 회원이 있는 배송만 남기세요.\njoined = orders.merge(regions, on=\"member_id\", how=\"left\")\nprint(joined[\"order_id\"].tolist())\n# 표시용: 지역을 찾지 못한 칸은 unknown으로 보여요.\nprint(joined[\"zone\"].fillna(\"unknown\").tolist())\n",
+      "solution": "import pandas as pd\n\n# 배송과 회원 조회는 행 순서가 서로 달라요.\norder_data = {\"order_id\": [101, 102, 103], \"member_id\": [2, 1, 3]}\nregion_data = {\"member_id\": [1, 2], \"zone\": [\"north\", \"south\"]}\norders = pd.DataFrame(order_data)\nregions = pd.DataFrame(region_data)\n# 이 줄의 how를 고쳐 조회에 회원이 있는 배송만 남기세요.\n# inner는 양쪽에 다 있는 키의 행만 남겨요.\njoined = orders.merge(regions, on=\"member_id\", how=\"inner\")\nprint(joined[\"order_id\"].tolist())\n# 표시용: 지역을 찾지 못한 칸은 unknown으로 보여요.\nprint(joined[\"zone\"].fillna(\"unknown\").tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[101, 102]\n['south', 'north']"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "how=\"inner\"로 조회에 있는 회원의 배송만 남기는 문제예요.",
+          "target": "text:how=\"inner\"로 조회에 있는 회원의 배송만 남기세요#1"
+        },
+        {
+          "action": "say",
+          "text": "조회에 회원 3이 없어요. 조회에 있는 회원의 배송만 남기도록 how를 고쳐야 해요.",
+          "target": "text:joined 줄의 how를 고쳐 조회에 회원이 있는 배송만 남기세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "배송 세 건이 남고 103의 지역은 unknown이에요. left는 왼쪽 배송을 모두 남겨요.",
           "target": "output"
         },
         {
           "action": "patch_code",
           "before": "how=\"left\"",
           "after": "how=\"inner\"",
-          "say": "문제의 원래 inner로 돌아와요."
+          "say": "how를 \"inner\"로 바꿔요."
         },
         {
           "action": "run",
           "lines": [
             10,
-            10
-          ]
-        },
-        {
-          "action": "say",
-          "text": "원래 inner에서는 103이 사라져요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "drop"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_c1a9c678-bb7c-402e-a934-c0fddc3169fc",
-      "title": "중복 키가 행을 늘릴 수 있어요",
-      "goal": "회원1이 조회 표에 두 번 있어요. sort=False는 결과를 키 순서로 다시 정렬하지 않고 배송 순서대로 둬요. validate=\"many_to_one\"은 조회 쪽 키가 한 번씩만 있는지 검사해요.\n원본 배송보다 결합 행이 늘어날 수 있을까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "many",
-      "tests": [],
-      "required": true,
-      "example_code": "import pandas as pd\n\n# 배송과 회원 조회는 행 순서가 서로 달라요.\norder_data = {\"order_id\": [101, 102, 103], \"member_id\": [2, 1, 3]}\nregion_data = {\"member_id\": [1, 1, 2], \"zone\": [\"north\", \"west\", \"south\"]}\norders = pd.DataFrame(order_data)\nregions = pd.DataFrame(region_data)\n# 조회의 중복 키가 배송 행을 늘릴 수 있어요.\njoined = orders.merge(regions, on=\"member_id\", how=\"left\", sort=False)\nprint(len(joined))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "many",
-            "text": "네.키 하나가 조회 두 행과 붙을 수 있어요"
-          },
-          {
-            "id": "never",
-            "text": "아니요.left는 항상 행 수가 같아요"
-          }
-        ],
-        "answer": "many"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "중복된 회원 번호를 가진 표와 결합하면 행 수가 어떻게 될지 판단하는 문제예요.",
-          "target": "text:중복 키가 행을 늘릴 수 있어요#1"
-        },
-        {
-          "action": "say",
-          "text": "조회 표에 회원1이 두 번 있으면 배송 하나가 두 행과 짝지어질 수 있어요. 결합 행 수가 원본보다 늘어나는지 봐요.",
-          "target": "text:회원1이 조회 표에 두 번 있어요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            10,
-            10
-          ]
-        },
-        {
-          "action": "say",
-          "text": "원본은 세 건인데 결합은 네 행이 됐어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "how=\"left\", sort=False",
-          "after": "how=\"left\", sort=False, validate=\"many_to_one\"",
-          "say": "조회 키 하나가 한 행이어야 한다는 관계를 검사해요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            10,
-            10
-          ],
-          "expect_error": "MergeError"
-        },
-        {
-          "action": "say",
-          "text": "중복 조회 키가 있어 MergeError로 알려줘요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 중복을 임의 제거하기 전에 실제 자료 관계와 올바른 원본을 확인해요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "how=\"left\", sort=False, validate=\"many_to_one\"",
-          "after": "how=\"left\", sort=False",
-          "say": "검증 없는 원래 결합으로 돌아와요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            10,
-            10
-          ]
-        },
-        {
-          "action": "say",
-          "text": "원래 결합은 실제로 네 행을 만들어요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "many"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_7b18e674-b85c-4a9e-881d-b0f2f3015164",
-      "title": "문자 키와 숫자 키를 맞춰요",
-      "goal": "배송 키는 정수, 조회 키는 문자예요.\n같은 번호라는 약속을 확인한 뒤 어떻게 할까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "align",
-      "tests": [],
-      "required": true,
-      "example_code": "import pandas as pd\n\n# 배송과 회원 조회는 행 순서가 서로 달라요.\norder_data = {\"order_id\": [101, 102, 103], \"member_id\": [2, 1, 3]}\nregion_data = {\"member_id\": [\"1\", \"2\"], \"zone\": [\"north\", \"south\"]}\norders = pd.DataFrame(order_data)\nregions = pd.DataFrame(region_data)\n# 이 실습의 회원번호는 앞자리 영 없이 같은 정수를 뜻해요.\n# 형식을 확인할 자리예요.\njoined = orders.merge(regions, on=\"member_id\", how=\"left\", validate=\"many_to_one\", sort=False)\nprint(joined[\"order_id\"].tolist())\nprint(joined[\"zone\"].fillna(\"unknown\").tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "force",
-            "text": "그대로 merge해요. 1과 \"1\"은 알아서 같은 키로 맞춰져요"
-          },
-          {
-            "id": "align",
-            "text": "키의 의미를 확인하고 같은 자료형으로 맞춰요"
-          }
-        ],
-        "answer": "align"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "문자 키와 숫자 키를 맞추는 문제예요.",
-          "target": "text:문자 키와 숫자 키를 맞춰요#1"
-        },
-        {
-          "action": "say",
-          "text": "같은 번호라도 한쪽은 정수 1, 다른 쪽은 글자 \"1\"이에요. 이대로 merge하면 어떻게 되고, 무엇을 확인한 뒤 맞춰야 하는지가 질문이에요.",
-          "target": "text:배송 키는 정수, 조회 키는 문자예요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            12,
             12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[101, 102]와 south, north예요. 회원 3의 배송 103은 빠졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. inner는 짝이 없는 배송을 조용히 버려요. 결과 행 수를 원본과 비교해요.",
+          "target": "code:how=\"inner\""
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"order_data\": {\"order_id\": [301, 302, 303, 304], \"member_id\": [5, 5, 4, 6]}, \"region_data\": {\"member_id\": [6, 4], \"zone\": [\"west\", \"east\"]}}, \"expected\": \"[303, 304]\\\\n[\\'east\\', \\'west\\']\"}, {\"values\": {\"order_data\": {\"order_id\": [401, 402], \"member_id\": [1, 2]}, \"region_data\": {\"member_id\": [2, 1, 3], \"zone\": [\"south\", \"north\", \"west\"]}}, \"expected\": \"[401, 402]\\\\n[\\'north\\', \\'south\\']\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_644fdedb-5398-4e74-9566-af0f1ea53f5d",
+      "title": "len(joined)로 결합 뒤 늘어난 행을 세세요",
+      "goal": "회원 1이 조회 표에 두 번 있어요. 배송 한 건의 키가 조회 두 행과 맞으면 두 행으로 붙어요. `sort=False`는 결과를 배송 순서대로 둬요.\n\nrows 줄을 고쳐 원본 배송 수가 아니라 결합한 표의 행 수를 rows에 담으세요. 채점은 중복이 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 두 수가 같은지 확인하세요.\n2. `rows = len(orders)`를 `rows = len(joined)`로 고치세요.\n3. 코드 실행을 눌러 원본과 결합 행 수를 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import pandas as pd\n\n# 회원 1이 조회 표에 두 번 있어요.\norder_data = {\"order_id\": [101, 102, 103], \"member_id\": [2, 1, 3]}\nregion_data = {\"member_id\": [1, 1, 2], \"zone\": [\"north\", \"west\", \"south\"]}\norders = pd.DataFrame(order_data)\nregions = pd.DataFrame(region_data)\njoined = orders.merge(regions, on=\"member_id\", how=\"left\", sort=False)\nprint(len(orders))\n# 이 줄을 고쳐 원본 배송 수가 아니라 결합한 표의 행 수를 rows에 담으세요.\nrows = len(orders)\nprint(rows)\n",
+      "solution": "import pandas as pd\n\n# 회원 1이 조회 표에 두 번 있어요.\norder_data = {\"order_id\": [101, 102, 103], \"member_id\": [2, 1, 3]}\nregion_data = {\"member_id\": [1, 1, 2], \"zone\": [\"north\", \"west\", \"south\"]}\norders = pd.DataFrame(order_data)\nregions = pd.DataFrame(region_data)\njoined = orders.merge(regions, on=\"member_id\", how=\"left\", sort=False)\nprint(len(orders))\n# 이 줄을 고쳐 원본 배송 수가 아니라 결합한 표의 행 수를 rows에 담으세요.\n# 조회 키가 겹치면 배송 한 건이 조회 두 행과 붙어 행이 늘 수 있어요.\nrows = len(joined)\nprint(rows)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "3\n4"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "len(joined)로 결합 뒤 늘어난 행을 세는 문제예요.",
+          "target": "text:len(joined)로 결합 뒤 늘어난 행을 세세요#1"
+        },
+        {
+          "action": "say",
+          "text": "회원 1이 조회 표에 두 번 있어요. 결합한 표의 행 수를 rows에 담아 원본과 비교해야 해요.",
+          "target": "text:rows 줄을 고쳐 원본 배송 수가 아니라 결합한 표의 행 수를 rows에 담으세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "두 줄 모두 3이에요. 아직 원본 배송 수를 두 번 셌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "rows = len(orders)\n",
+          "after": "rows = len(joined)\n",
+          "say": "len(joined)로 결합한 표를 세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3과 4예요. 회원 1의 배송 102가 north와 west 두 행에 붙어 한 행이 늘었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. left도 행 수가 같다고 보장하지 않아요. 조회 키가 한 번씩인지 validate=\"many_to_one\"으로 검사할 수 있어요.",
+          "target": "code:rows = len(joined)"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"order_data\": {\"order_id\": [301, 302], \"member_id\": [4, 4]}, \"region_data\": {\"member_id\": [4, 4, 4], \"zone\": [\"a\", \"b\", \"c\"]}}, \"expected\": \"2\\\\n6\"}, {\"values\": {\"order_data\": {\"order_id\": [401, 402, 403], \"member_id\": [1, 2, 3]}, \"region_data\": {\"member_id\": [1, 2, 3], \"zone\": [\"n\", \"s\", \"w\"]}}, \"expected\": \"3\\\\n3\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_16761765-b32d-44a3-b247-6df7fdfb9999",
+      "title": "astype(int)로 조회 키의 자료형을 맞추세요",
+      "goal": "배송 키는 정수, 조회 키는 문자예요. 이 실습의 회원번호는 앞자리 영 없이 같은 정수를 뜻해요. 판다스는 1과 \"1\"을 같은 키로 맞춰 주지 않아요. `astype(int)`는 열을 정수로 바꿔요.\n\nregions[\"member_id\"] 줄을 고쳐 조회 키를 배송 키와 같은 정수로 바꾸세요. 채점은 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 ValueError가 나오는지 확인하세요.\n2. 오른쪽의 `regions[\"member_id\"]` 뒤에 `.astype(int)`를 붙이세요.\n3. 코드 실행을 눌러 회원별 지역을 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import pandas as pd\n\n# 배송 키는 정수, 조회 키는 문자예요. 이 실습의 회원번호는 앞자리 영 없이 같은 정수를 뜻해요.\norder_data = {\"order_id\": [101, 102, 103], \"member_id\": [2, 1, 3]}\nregion_data = {\"member_id\": [\"1\", \"2\"], \"zone\": [\"north\", \"south\"]}\norders = pd.DataFrame(order_data)\nregions = pd.DataFrame(region_data)\n# 이 줄을 고쳐 조회 키를 배송 키와 같은 정수로 바꾸세요.\nregions[\"member_id\"] = regions[\"member_id\"]\njoined = orders.merge(regions, on=\"member_id\", how=\"left\", validate=\"many_to_one\", sort=False)\nprint(joined[\"order_id\"].tolist())\n# 표시용: 지역을 찾지 못한 칸은 unknown으로 보여요.\nprint(joined[\"zone\"].fillna(\"unknown\").tolist())\n",
+      "solution": "import pandas as pd\n\n# 배송 키는 정수, 조회 키는 문자예요. 이 실습의 회원번호는 앞자리 영 없이 같은 정수를 뜻해요.\norder_data = {\"order_id\": [101, 102, 103], \"member_id\": [2, 1, 3]}\nregion_data = {\"member_id\": [\"1\", \"2\"], \"zone\": [\"north\", \"south\"]}\norders = pd.DataFrame(order_data)\nregions = pd.DataFrame(region_data)\n# 이 줄을 고쳐 조회 키를 배송 키와 같은 정수로 바꾸세요.\n# 같은 번호라는 약속을 확인했으니 astype(int)로 자료형을 맞춰요.\nregions[\"member_id\"] = regions[\"member_id\"].astype(int)\njoined = orders.merge(regions, on=\"member_id\", how=\"left\", validate=\"many_to_one\", sort=False)\nprint(joined[\"order_id\"].tolist())\n# 표시용: 지역을 찾지 못한 칸은 unknown으로 보여요.\nprint(joined[\"zone\"].fillna(\"unknown\").tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[101, 102, 103]\n['south', 'north', 'unknown']"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "astype(int)로 조회 키의 자료형을 맞추는 문제예요.",
+          "target": "text:astype(int)로 조회 키의 자료형을 맞추세요#1"
+        },
+        {
+          "action": "say",
+          "text": "배송 키는 정수, 조회 키는 문자예요. 같은 번호라는 약속을 확인했으니 조회 키를 정수로 맞춰야 해요.",
+          "target": "text:regions[\"member_id\"] 줄을 고쳐 조회 키를 배송 키와 같은 정수로 바꾸세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            11,
+            13
           ],
           "expect_error": "ValueError"
         },
         {
           "action": "say",
-          "text": "숫자와 문자 키가 달라 결합 오류가 나요.",
+          "text": "ValueError예요. 정수 열과 문자 열은 merge 키로 맞추지 않아요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "# 형식을 확인할 자리예요.",
-          "after": "regions[\"member_id\"] = regions[\"member_id\"].astype(int)",
-          "say": "이번 숫자 회원번호 약속에 맞춰 자료형을 통일해요."
+          "before": "regions[\"member_id\"] = regions[\"member_id\"]\n",
+          "after": "regions[\"member_id\"] = regions[\"member_id\"].astype(int)\n",
+          "say": "뒤에 .astype(int)를 붙여요."
         },
         {
           "action": "run",
           "lines": [
-            12,
+            11,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "south, north, unknown이에요. 문자 \"2\"가 정수 2로 바뀌어 회원 2와 짝지어졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. \"01\"처럼 앞자리 영이 뜻을 가진 번호라면 정수로 바꾸면 안 돼요. 키의 약속을 먼저 확인해요.",
+          "target": "code:.astype(int)"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"order_data\": {\"order_id\": [301, 302, 303], \"member_id\": [7, 8, 7]}, \"region_data\": {\"member_id\": [\"8\", \"7\"], \"zone\": [\"east\", \"west\"]}}, \"expected\": \"[301, 302, 303]\\\\n[\\'west\\', \\'east\\', \\'west\\']\"}, {\"values\": {\"order_data\": {\"order_id\": [401], \"member_id\": [5]}, \"region_data\": {\"member_id\": [\"6\"], \"zone\": [\"south\"]}}, \"expected\": \"[401]\\\\n[\\'unknown\\']\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_f86bcd8f-c137-444b-be41-878725562bb2",
+      "title": "dropna로 빈 회원 키는 빼고 연결하세요",
+      "goal": "양쪽에 회원을 알 수 없는 빈 키가 있어요. 판다스 merge는 양쪽의 빈 키도 서로 붙여요. `dropna(subset=[\"member_id\"])`는 그 열이 비어 있는 행을 빼요.\n\nlookup 줄을 고쳐 회원 키가 비어 있는 조회 행은 빼고 연결하세요. 배송은 모두 남겨요. 채점은 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 배송 101의 지역을 확인하세요.\n2. `lookup = regions`를 `lookup = regions.dropna(subset=[\"member_id\"])`로 고치세요.\n3. 코드 실행을 눌러 101이 unknown인지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import pandas as pd\n\n# 양쪽에서 회원을 알 수 없는 키가 나타났어요.\norder_data = {\"member_id\": [None, 2], \"order_id\": [101, 102]}\nregion_data = {\"member_id\": [None, 2], \"zone\": [\"unverified\", \"south\"]}\norders = pd.DataFrame(order_data)\nregions = pd.DataFrame(region_data)\n# 이 줄을 고쳐 회원 키가 비어 있는 조회 행은 빼고 연결하세요.\nlookup = regions\njoined = orders.merge(lookup, on=\"member_id\", how=\"left\")\nprint(joined[\"order_id\"].tolist())\nprint(joined[\"zone\"].fillna(\"unknown\").tolist())\n",
+      "solution": "import pandas as pd\n\n# 양쪽에서 회원을 알 수 없는 키가 나타났어요.\norder_data = {\"member_id\": [None, 2], \"order_id\": [101, 102]}\nregion_data = {\"member_id\": [None, 2], \"zone\": [\"unverified\", \"south\"]}\norders = pd.DataFrame(order_data)\nregions = pd.DataFrame(region_data)\n# 이 줄을 고쳐 회원 키가 비어 있는 조회 행은 빼고 연결하세요.\n# 빈 키끼리 붙은 것은 같은 회원이라는 확인이 아니에요. 빈 키 행은 조회에서 빼요.\nlookup = regions.dropna(subset=[\"member_id\"])\njoined = orders.merge(lookup, on=\"member_id\", how=\"left\")\nprint(joined[\"order_id\"].tolist())\nprint(joined[\"zone\"].fillna(\"unknown\").tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[101, 102]\n['unknown', 'south']"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "dropna로 빈 회원 키는 빼고 연결하는 문제예요.",
+          "target": "text:dropna로 빈 회원 키는 빼고 연결하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "판다스는 양쪽의 빈 회원 키를 서로 붙여요. 빈 키 조회 행은 빼고 연결하도록 lookup 줄을 고쳐야 해요.",
+          "target": "text:lookup 줄을 고쳐 회원 키가 비어 있는 조회 행은 빼고 연결하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            11,
             12
           ]
         },
         {
           "action": "say",
-          "text": "같은 번호끼리 지역을 찾아 연결했어요.",
+          "text": "배송 101의 지역이 unverified예요. 빈 키끼리 짝지어졌어요.",
           "target": "output"
         },
         {
-          "action": "say",
-          "text": "조심하세요. 앞자리 0이 의미 있는 식별자는 숫자로 바꾸면 다른 뜻이 될 수 있어요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "align"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_614ada92-b83f-4718-90ec-e1d815dcdab9",
-      "title": "빈 키도 서로 붙을 수 있어요",
-      "goal": "pandas에서 양쪽의 빈 회원 키가 붙었어요.\n유효한 같은 회원임이 확인된 걸까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "unknown",
-      "tests": [],
-      "required": true,
-      "example_code": "import pandas as pd\n\n# 양쪽에서 회원을 알 수 없는 키가 나타났어요.\norders = pd.DataFrame({\"member_id\": [None], \"order_id\": [101]})\nregions = pd.DataFrame({\"member_id\": [None], \"zone\": [\"unverified\"]})\njoined = orders.merge(regions, on=\"member_id\", how=\"left\")\nprint(joined[\"zone\"].tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "unknown",
-            "text": "아니요.결측 키 매칭과 회원 확인은 달라요"
-          },
-          {
-            "id": "verified",
-            "text": "네. 키 값이 같아 붙었으니 같은 회원이에요"
-          }
-        ],
-        "answer": "unknown"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "빈 키끼리 붙었다고 같은 회원이 확인된 것인지 판단하는 문제예요.",
-          "target": "text:빈 키도 서로 붙을 수 있어요#1"
-        },
-        {
-          "action": "say",
-          "text": "양쪽 모두 회원 키가 비어 있어요.",
-          "target": "text:유효한 같은 회원임이 확인된 걸까요?"
+          "action": "patch_code",
+          "before": "lookup = regions\n",
+          "after": "lookup = regions.dropna(subset=[\"member_id\"])\n",
+          "say": "regions.dropna(subset=[\"member_id\"])로 빈 키 행을 빼요."
         },
         {
           "action": "run",
           "lines": [
-            7,
-            7
+            11,
+            12
           ]
         },
         {
           "action": "say",
-          "text": "빈 키끼리도 붙어 unverified라는 지역 값이 나왔어요.",
+          "text": "101은 unknown, 102는 south예요. 배송은 모두 남고 확인된 회원만 지역이 붙었어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. pandas merge는 빈 키끼리도 같은 값처럼 짝지어요. 붙었다는 사실은 회원을 확인했다는 뜻이 아니에요.",
-          "target": "code:on=\"member_id\""
-        },
-        {
-          "action": "choose_answer",
-          "id": "unknown"
+          "text": "조심하세요. 빈 키가 붙었다고 같은 회원임이 확인된 게 아니에요. 결측 키는 따로 검토해요.",
+          "target": "code:dropna(subset=[\"member_id\"])"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"order_data\": {\"member_id\": [3, null, null], \"order_id\": [201, 202, 203]}, \"region_data\": {\"member_id\": [null, 3], \"zone\": [\"guess\", \"west\"]}}, \"expected\": \"[201, 202, 203]\\\\n[\\'west\\', \\'unknown\\', \\'unknown\\']\"}, {\"values\": {\"order_data\": {\"member_id\": [null], \"order_id\": [301]}, \"region_data\": {\"member_id\": [null, null], \"zone\": [\"a\", \"b\"]}}, \"expected\": \"[301]\\\\n[\\'unknown\\']\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
       "id": "stp_19a6791c-7c1a-426e-aedf-8f01dcbe45e4",

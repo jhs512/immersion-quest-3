@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "7f8af4ea8ea0ca03fe679a61f6770765b318121e998b5f6ef9084579c418c160",
+  "entry": [
+    {
+      "action": "say",
+      "text": "판다스는 양쪽의 빈 회원 키를 서로 붙여요. 빈 키 조회 행은 빼고 연결하도록 lookup 줄을 고쳐야 해요.",
+      "target": "text:lookup 줄을 고쳐 회원 키가 비어 있는 조회 행은 빼고 연결하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "배송 101의 지역이 unverified예요. 빈 키끼리 짝지어졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "lookup = regions\n",
+      "after": "lookup = regions.dropna(subset=[\"member_id\"])\n",
+      "say": "regions.dropna(subset=[\"member_id\"])로 빈 키 행을 빼요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "101은 unknown, 102는 south예요. 배송은 모두 남고 확인된 회원만 지역이 붙었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 빈 키가 붙었다고 같은 회원임이 확인된 게 아니에요. 결측 키는 따로 검토해요.",
+      "target": "code:dropna(subset=[\"member_id\"])"
+    }
+  ]
+}

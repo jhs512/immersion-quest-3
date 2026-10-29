@@ -3,30 +3,32 @@
   "lesson": "courses/redesigned/aice-join.json",
   "expected_outputs": [
     [
+      "['[{\"member_id\":1', 'zone:\"north\"}', '{\"member_id\":2', 'zone:\"south\"}]']",
       "['member_id', 'zone']\n['north', 'south']"
     ],
     [
+      "[101, 102]\n[0, 1]",
       "[101, 102, 103]\n[0, 1, 2]"
     ],
     [
+      "[101, 102, 103]\n['north', 'south', 'unknown']",
       "[101, 102, 103]\n['south', 'north', 'unknown']"
     ],
     [
-      "[101, 102]\n['south', 'north']",
       "[101, 102, 103]\n['south', 'north', 'unknown']",
       "[101, 102]\n['south', 'north']"
     ],
     [
-      "4",
-      "",
-      "4"
+      "3\n3",
+      "3\n4"
     ],
     [
       "",
       "[101, 102, 103]\n['south', 'north', 'unknown']"
     ],
     [
-      "['unverified']"
+      "[101, 102]\n['unverified', 'south']",
+      "[101, 102]\n['unknown', 'south']"
     ],
     [
       "[202, 204]\n['south', 'north']",
@@ -39,6 +41,136 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "print(regions[\"zone\"].tolist())",
+          "print(['north', 'south'])"
+        ]
+      ],
+      "reason": "Typing the zones"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "combined = pd.concat([first, second], ignore_index=True)",
+          "combined = pd.concat([first, second])"
+        ]
+      ],
+      "reason": "Overlapping row numbers"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "combined = pd.concat([first, second], ignore_index=True)",
+          "combined = pd.concat([second, first], ignore_index=True)"
+        ]
+      ],
+      "reason": "Next month on top"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "joined = orders.merge(regions, on=\"member_id\", how=\"left\")",
+          "joined = orders.assign(zone=regions[\"zone\"])"
+        ]
+      ],
+      "reason": "By row position"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "how=\"left\")",
+          "how=\"inner\")"
+        ]
+      ],
+      "reason": "Dropping orders without a member"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "how=\"inner\")",
+          "how=\"left\")"
+        ]
+      ],
+      "reason": "Keeping every order"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "print(joined[\"order_id\"].tolist())",
+          "print([101, 102])"
+        ]
+      ],
+      "reason": "Typing the orders"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "rows = len(joined)\n",
+          "rows = len(orders)\n"
+        ]
+      ],
+      "reason": "Original order count"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "rows = len(joined)\n",
+          "rows = 4\n"
+        ]
+      ],
+      "reason": "Typing the count"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "regions[\"member_id\"] = regions[\"member_id\"].astype(int)\n",
+          "regions[\"member_id\"] = regions[\"member_id\"]\norders[\"member_id\"] = orders[\"member_id\"].astype(str).str.zfill(2)\n"
+        ]
+      ],
+      "reason": "Padding the other side so nothing matches"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "print(joined[\"zone\"].fillna(\"unknown\").tolist())",
+          "print(['south', 'north', 'unknown'])"
+        ]
+      ],
+      "reason": "Typing the zones"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "lookup = regions.dropna(subset=[\"member_id\"])\n",
+          "lookup = regions\n"
+        ]
+      ],
+      "reason": "Empty keys still match"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "joined = orders.merge(lookup, on=\"member_id\", how=\"left\")",
+          "joined = orders.dropna(subset=[\"member_id\"]).merge(lookup, on=\"member_id\", how=\"left\")"
+        ]
+      ],
+      "reason": "Dropping the orders too"
+    },
     {
       "step": 8,
       "replacements": [
@@ -81,6 +213,76 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "regions = pd.read_json(\"regions.json\", orient=\"records\")",
+          "import json\nregions = pd.DataFrame(json.load(open(\"regions.json\", encoding=\"utf-8\")))"
+        ]
+      ],
+      "reason": "json module and DataFrame"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "combined = pd.concat([first, second], ignore_index=True)",
+          "combined = pd.concat([first, second]).reset_index(drop=True)"
+        ]
+      ],
+      "reason": "reset_index after concat"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "joined = orders.merge(regions, on=\"member_id\", how=\"left\")",
+          "joined = orders.assign(zone=orders[\"member_id\"].map(regions.set_index(\"member_id\")[\"zone\"]))"
+        ]
+      ],
+      "reason": "map through a lookup Series"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "joined = orders.merge(regions, on=\"member_id\", how=\"inner\")",
+          "joined = orders.merge(regions, on=\"member_id\")"
+        ]
+      ],
+      "reason": "inner is the default"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "rows = len(joined)\n",
+          "rows = joined.shape[0]\n"
+        ]
+      ],
+      "reason": "shape[0]"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "regions[\"member_id\"] = regions[\"member_id\"].astype(int)\n",
+          "regions[\"member_id\"] = pd.to_numeric(regions[\"member_id\"])\n"
+        ]
+      ],
+      "reason": "to_numeric"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "lookup = regions.dropna(subset=[\"member_id\"])\n",
+          "lookup = regions[regions[\"member_id\"].notna()]\n"
+        ]
+      ],
+      "reason": "notna filter"
+    },
     {
       "step": 9,
       "replacements": [

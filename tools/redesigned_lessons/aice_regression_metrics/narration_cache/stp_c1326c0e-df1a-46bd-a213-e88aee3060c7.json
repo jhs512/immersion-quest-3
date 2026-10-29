@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "336a72cc93d68a53a6c6444b063d82dea295082ad34ffdb6b9e60708efa648cd",
+  "entry": [
+    {
+      "action": "say",
+      "text": "길이는 같지만 예측의 배송 순서가 달라요. aligned 줄을 고쳐 배송 번호로 예측을 맞춰야 해요.",
+      "target": "text:aligned 줄을 고쳐 같은 배송 번호의 예측을 true_ids 순서로 맞추세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[30, 20, 10]과 13.333333이에요. 다른 배송끼리 비교했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "aligned = y_pred\n",
+      "after": "aligned = [y_pred[pred_ids.index(i)] for i in true_ids]\n",
+      "say": "true_ids의 번호마다 pred_ids에서 자리를 찾아 예측을 꺼내요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[10, 20, 30]과 0.0이에요. 같은 배송끼리 맞추니 오차가 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 길이가 같다고 짝이 맞는 건 아니에요. 지표를 내기 전에 번호로 대응을 확인해요.",
+      "target": "code:pred_ids.index(i)"
+    }
+  ]
+}

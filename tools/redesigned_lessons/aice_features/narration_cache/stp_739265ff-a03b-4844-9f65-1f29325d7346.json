@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "765f5368076148d02d9aeca576c8553f2e29438ba18ac89c409736bb6725f89b",
+  "entry": [
+    {
+      "action": "say",
+      "text": "거리 km를 m로 바꾼 새 열이 필요해요. 원래 열을 덮어쓰는 줄을 새 열에 담도록 고쳐야 해요.",
+      "target": "text:df[\"distance\"] 줄을 고쳐 원래 km 열은 두고 m 단위의 새 열 distance_m을 만드세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        9
+      ],
+      "expect_error": "KeyError"
+    },
+    {
+      "action": "say",
+      "text": "KeyError예요. distance_m 열이 없고 원래 distance 열을 1000배로 덮어썼어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "df[\"distance\"] = df[\"distance\"] * 1000\n",
+      "after": "df[\"distance_m\"] = df[\"distance\"] * 1000\n",
+      "say": "왼쪽 열 이름을 \"distance_m\"으로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[1000, 2000, 3000, 4000]과 [1, 2, 3, 4]예요. 새 m 열과 원래 km 열이 따로 있어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 같은 이름에 대입하면 원래 값이 사라져요. 변환한 값은 새 열에 담아 비교해요.",
+      "target": "code:df[\"distance_m\"] = "
+    }
+  ]
+}

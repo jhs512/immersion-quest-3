@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "a78d8fbb5e3d56b00d0ec68f1d8849b2e8df4545ee3d4782010c360bb2d49e3c",
+  "entry": [
+    {
+      "action": "say",
+      "text": "bad는 숫자가 될 수 없어요. 오류를 숨기는 줄을 실패한 값이 결측으로 보이게 고쳐야 해요.",
+      "target": "text:converted 줄을 고쳐 바뀌지 않는 값은 결측으로 표시하며 숫자로 바꾸세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "str과 ['10', '20', 'bad', '40'], 결측 0이에요. 오류는 안 났지만 글자 원본이 그대로 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "converted = df[\"minute_text\"].astype(\"int64\", errors=\"ignore\")",
+      "after": "converted = pd.to_numeric(df[\"minute_text\"], errors=\"coerce\")",
+      "say": "pd.to_numeric(..., errors=\"coerce\")로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "float64와 [10.0, 20.0, nan, 40.0], 결측 1이에요. bad 자리가 결측으로 드러났어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 오류가 안 났다고 변환이 성공한 건 아니에요. 결측 수로 실패를 확인해요.",
+      "target": "code:errors=\"coerce\""
+    }
+  ]
+}

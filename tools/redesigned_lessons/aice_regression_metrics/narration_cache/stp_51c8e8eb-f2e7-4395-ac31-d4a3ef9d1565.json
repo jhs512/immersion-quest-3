@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "5aa924014454136b43c0074b2ada4f544f8e9eea2a1ee047b39b813c824114a2",
+  "entry": [
+    {
+      "action": "say",
+      "text": "평가 관측이 하나뿐이에요. r2 줄을 고쳐 두 개 이상일 때만 R제곱을 계산해야 해요.",
+      "target": "text:r2 줄을 고쳐 평가 관측이 두 개 이상일 때만 R제곱을 계산하고, 아니면 None으로 두세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "nan과 1.0이에요. R제곱은 정의되지 않아 nan이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "r2 = float(r2_score(y_true, y_pred))\n",
+      "after": "r2 = float(r2_score(y_true, y_pred)) if len(y_true) >= 2 else None\n",
+      "say": "뒤에 if len(y_true) >= 2 else None을 붙여요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "None과 1.0이에요. 계산할 수 없는 R제곱은 없다고 두고 MAE로 1분 오차를 봐요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. nan을 점수처럼 보고서에 옮기지 않아요. 평가 행 수부터 확인해요.",
+      "target": "code:len(y_true) >= 2"
+    }
+  ]
+}

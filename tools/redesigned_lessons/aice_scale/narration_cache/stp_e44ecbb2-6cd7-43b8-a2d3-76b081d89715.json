@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "400e51d3345ce1b3692d041622d8d90b56d2f611bd318e02497ec29f8fdcbf72",
+  "entry": [
+    {
+      "action": "say",
+      "text": "평가의 첫 값은 결측이에요. 스케일한 결과에 결측이 몇 개 남았는지 세도록 고쳐야 해요.",
+      "target": "text:missing 줄을 고쳐 변환 결과에 남은 결측 개수를 세세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[[nan], [9.0]]과 0이에요. 결측이 남았는데 0이라고 적혀 있어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "missing = 0\n",
+      "after": "missing = int(pd.isna(result).sum())\n",
+      "say": "pd.isna(result).sum()으로 세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1이에요. 결측은 그대로 남고 10만 9로 바뀌었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 스케일은 결측을 채우지 않아요. 채움은 SimpleImputer 같은 단계로 따로 해요.",
+      "target": "code:pd.isna(result)"
+    }
+  ]
+}

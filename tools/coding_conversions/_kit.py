@@ -178,14 +178,14 @@ def file_variants_checker(reference, variants, message):
     reference solution on each variant, comparing their real output. `variants` is a list of
     {file name: text}; the original files are restored afterwards."""
     import json as _json
-    return ('import json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\n'
+    return ('import json\nimport os\nimport subprocess\nimport sys\nfrom pathlib import Path\n\n'
             f'REFERENCE = {reference!r}\nVARIANTS = json.loads({_json.dumps(variants, ensure_ascii=False)!r})\n'
             'names = sorted({name for variant in VARIANTS for name in variant})\n'
             'original = {name: Path(name).read_text(encoding="utf-8") if Path(name).exists() else None for name in names}\n'
             'Path("_reference.py").write_text(REFERENCE, encoding="utf-8")\n'
             'def run(script):\n'
             '    return subprocess.run([sys.executable, "-I", "-X", "utf8", script], stdin=subprocess.DEVNULL, capture_output=True,\n'
-            '                          text=True, encoding="utf-8", timeout=60)\n'
+            '                          text=True, encoding="utf-8", timeout=60, env=dict(os.environ, MPLBACKEND="Agg"))\n'
             'try:\n'
             '    for variant in VARIANTS:\n'
             '        for name, text in variant.items():\n'

@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "943e1a076a114d89167281cb7ea886871d43fa2eaf6fbae3a3317c0e62b2da4a",
+  "entry": [
+    {
+      "action": "say",
+      "text": "시간이 15·25·35로 바뀌었어요. manual 줄을 고쳐 기울기×거리에 절편을 더해 직접 계산해야 해요.",
+      "target": "text:manual 줄을 고쳐 기울기×거리에 절편을 더해 새 거리의 시간을 직접 계산하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "40.0과 [45.0]이에요. 기울기 10만 곱해서 모델의 예측과 5가 달라요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "manual = model.coef_[0] * X_test[0][0]\n",
+      "after": "manual = model.coef_[0] * X_test[0][0] + model.intercept_\n",
+      "say": "뒤에 + model.intercept_를 더해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "45.0과 [45.0]이에요. 같은 기울기 10에 시작 위치 5가 더해졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 기울기가 같아도 절편이 다르면 예측이 달라요. 계수만 보고 예측값을 말하지 않아요.",
+      "target": "code:model.intercept_"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "140714fe9a44656438504987a04abcdebefc13b2ff24b413b9fc48fa8304af77",
+  "entry": [
+    {
+      "action": "say",
+      "text": "훈련 값이 모두 5였어요. 배운 평균과 스케일로 새 값 7을 직접 계산해 transform과 비교해야 해요.",
+      "target": "text:manual 줄을 고쳐 배운 평균과 스케일로 새 값을 직접 계산하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "스케일 [1.0], 변환 [[2.0]], manual 0이에요. 새 값이 0이 된다고 미리 적었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "manual = 0\n",
+      "after": "manual = (test_values[0][0] - scaler.mean_[0]) / scaler.scale_[0]\n",
+      "say": "(새 값 − mean_[0]) ÷ scale_[0]으로 계산해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "manual도 2.0이에요. 평균 5를 빼고 스케일 1로 나눴어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 훈련 값이 모두 같아도 새 값까지 0이 되지는 않아요. 0은 훈련 평균과 같은 값뿐이에요.",
+      "target": "code:scaler.scale_[0]"
+    }
+  ]
+}

@@ -50,6 +50,23 @@ print(tree_count)
             with self.assertRaises(ValueError):
                 checker(cases, timeout_seconds=invalid)
 
+    def test_only_figure_steps_render_their_cases_off_screen(self):
+        cases = [{'values': {'tree_count': 1}, 'expected': '1'}]
+        plain = checker(cases)
+        self.assertNotIn('MPLBACKEND', plain)
+        self.assertEqual(checker(cases, headless_figures=False), plain)
+        for probe in (None, 'assert tree_count == 1'):
+            script = checker(cases, probe, headless_figures=True)
+            self.assertIn("timeout=10, env=dict(os.environ, MPLBACKEND='Agg'))", script)
+            self.assertIn('import os\n', script)
+        source = 'import os\ntree_count = 1\nprint(tree_count)\nprint(os.environ.get("MPLBACKEND"))\n'
+        cases = [{'values': {'tree_count': 1}, 'expected': '1\nAgg'}]
+        with tempfile.TemporaryDirectory() as folder:
+            Path(folder, 'main.py').write_text(source, encoding='utf-8')
+            result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', checker(cases, headless_figures=True)],
+                                    cwd=folder, capture_output=True, text=True, encoding='utf-8')
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_timeout_template_does_not_rewrite_literal_prepared_values(self):
         with tempfile.TemporaryDirectory() as folder:
             Path(folder, 'main.py').write_text('tree_count = 1\nprint(tree_count)\n', encoding='utf-8')

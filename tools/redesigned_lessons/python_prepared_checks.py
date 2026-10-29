@@ -2,7 +2,7 @@
 import json
 
 
-def _output_checker(cases, timeout_seconds=10):
+def _output_checker(cases, timeout_seconds=10, headless_figures=False):
     if type(timeout_seconds) is not int or not 1 <= timeout_seconds <= 45:
         raise ValueError("독립 검사 시간은 1~45초로 정하세요.")
     if not isinstance(cases,list) or not 1 <= len(cases) <= 50:
@@ -14,7 +14,7 @@ def _output_checker(cases, timeout_seconds=10):
         if not isinstance(values,dict) or not 1 <= len(values) <= 20 or any(not name.isascii() or not name.isidentifier() for name in values):
             raise ValueError('준비 자료 이름을 확인하세요.')
     payload = json.dumps(cases, ensure_ascii=False)
-    return """import ast
+    script = """import ast
 import copy
 import json
 import subprocess
@@ -44,10 +44,25 @@ for case in cases:
         raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')
 print('준비 값을 바꾼 검사도 통과했어요.')
 """.replace('CASE_TIMEOUT', str(timeout_seconds)).replace('PAYLOAD', repr(payload))
+    if headless_figures:
+        # The app hands MPLBACKEND=Agg only to the learner's own run, not to this checker, so a case
+        # calling plt.show() would wait for a window. Render its figures off-screen like that run does.
+        script = script.replace('import json\n', 'import json\nimport os\n', 1)
+        script = script.replace('    result = subprocess.run(',
+                                "    # Figures render off-screen as in the player's own run, so plt.show() never waits for a window.\n"
+                                '    result = subprocess.run(', 1)
+        script = script.replace(f"encoding='utf-8', timeout={timeout_seconds})\n",
+                                f"encoding='utf-8', timeout={timeout_seconds}, env=dict(os.environ, MPLBACKEND='Agg'))\n", 1)
+    return script
 
 
-def checker(cases, probe=None, *, timeout_seconds=10):
-    script = _output_checker(cases, timeout_seconds)
+def uses_figures(*sources):
+    """Whether task code draws with matplotlib/seaborn, so its prepared cases need a headless backend."""
+    return any(word in (source or '') for source in sources for word in ('matplotlib', 'seaborn'))
+
+
+def checker(cases, probe=None, *, timeout_seconds=10, headless_figures=False):
+    script = _output_checker(cases, timeout_seconds, headless_figures)
     if probe is None:
         return script
     if not isinstance(probe, str) or not probe.strip():

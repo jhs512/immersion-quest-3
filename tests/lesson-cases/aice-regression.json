@@ -4,32 +4,30 @@
   "expected_outputs": [
     [
       "[20.0, 20.0]",
-      "[30.0, 30.0]",
-      "[20.0, 20.0]"
+      "[30.0, 30.0]"
     ],
     [
-      "[10.0]\nTrue\n[40.0]"
-    ],
-    [
-      "",
-      "[40.0]",
-      ""
+      "[20.0]",
+      "[40.0]"
     ],
     [
       "",
-      "[40.0]",
-      ""
+      "[40.0]"
     ],
     [
-      "[10.0]\n5.0\n[45.0]",
-      "[10.0]\n-5.0\n[35.0]",
-      "[10.0]\n5.0\n[45.0]"
+      "",
+      "[40.0]"
+    ],
+    [
+      "40.0\n[45.0]",
+      "45.0\n[45.0]"
     ],
     [
       "[-10.0]"
     ],
     [
-      "[10.0, 20.0]\n[30.0]\n[100]"
+      "[30.0]\n0.0",
+      "[30.0]\n70.0"
     ],
     [
       "[10.0, 20.0, 30.0]",
@@ -42,6 +40,126 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "strategy=\"mean\"",
+          "strategy=\"median\""
+        ]
+      ],
+      "reason": "Median"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "print(model.predict([[4], [5]]).round(6).tolist())",
+          "print([30.0, 30.0])"
+        ]
+      ],
+      "reason": "Typing the predictions"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "model = LinearRegression()",
+          "model = DummyRegressor(strategy=\"mean\")"
+        ]
+      ],
+      "reason": "Mean baseline"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "print(model.predict(X_test).round(6).tolist())",
+          "print([40.0])"
+        ]
+      ],
+      "reason": "Typing the prediction"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "model.fit(X_train, y_train)\n",
+          "model.fit(X_train, [10, 20, 30])\n"
+        ]
+      ],
+      "reason": "Typing the targets"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "model.fit(X_train, y_train)\n",
+          "model.fit(X_test, [40])\n"
+        ]
+      ],
+      "reason": "Fitting on the question"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "X_test = [[distance]]\n",
+          "X_test = [[4]]\n"
+        ]
+      ],
+      "reason": "Typing the distance"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "X_test = [[distance]]\n",
+          "X_test = [distance]\n"
+        ]
+      ],
+      "reason": "One-dimensional"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "manual = model.coef_[0] * X_test[0][0] + model.intercept_\n",
+          "manual = model.coef_[0] * X_test[0][0]\n"
+        ]
+      ],
+      "reason": "Slope only"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "manual = model.coef_[0] * X_test[0][0] + model.intercept_\n",
+          "manual = 45\n"
+        ]
+      ],
+      "reason": "Typing the prediction"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "error = abs(model.predict(X_test) - y_test).max()\n",
+          "error = abs(model.predict(X_train) - y_train).max()\n"
+        ]
+      ],
+      "reason": "Training error"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "error = abs(model.predict(X_test) - y_test).max()\n",
+          "error = 70\n"
+        ]
+      ],
+      "reason": "Typing the error"
+    },
     {
       "step": 8,
       "replacements": [
@@ -74,6 +192,70 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "model = DummyRegressor(strategy=\"mean\")",
+          "model = DummyRegressor()"
+        ]
+      ],
+      "reason": "mean is the default"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "model = LinearRegression()",
+          "model = LinearRegression(fit_intercept=True)"
+        ]
+      ],
+      "reason": "Explicit intercept"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "model = LinearRegression()",
+          "model = LinearRegression().fit(X_train, y_train)"
+        ],
+        [
+          "model.fit(X_train, y_train)\n",
+          ""
+        ]
+      ],
+      "reason": "Chained fit"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "X_test = [[distance]]\n",
+          "import numpy as np\nX_test = np.array([distance]).reshape(1, -1)\n"
+        ]
+      ],
+      "reason": "reshape(1, -1)"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "manual = model.coef_[0] * X_test[0][0] + model.intercept_\n",
+          "manual = model.intercept_ + X_test[0][0] * model.coef_[0]\n"
+        ]
+      ],
+      "reason": "Intercept first"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "error = abs(model.predict(X_test) - y_test).max()\n",
+          "from sklearn.metrics import max_error\nerror = max_error(y_test, model.predict(X_test))\n"
+        ]
+      ],
+      "reason": "max_error"
+    },
     {
       "step": 9,
       "replacements": [

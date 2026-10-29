@@ -3,27 +3,32 @@
   "lesson": "courses/redesigned/aice-regression-metrics.json",
   "expected_outputs": [
     [
-      "0.0\n2.0"
+      "[2, -2]\n0.0",
+      "[2, -2]\n2.0"
     ],
     [
-      "4.0\n2.0"
+      "4.0",
+      "2.0"
     ],
     [
-      "2.0 3.0\n12.0 9.0"
+      "2.0 3.0\n12.0 9.0\na",
+      "2.0 3.0\n12.0 9.0\nb"
     ],
     [
-      "0.0\n1.0\n-96.0"
+      "-12.857143\n-96.0",
+      "-96.0\n-96.0"
     ],
     [
-      "1.0\n0.0\n1.0"
+      "0.0 False\n1.0",
+      "0.0 True\n1.0"
     ],
     [
-      "True\n1.0"
+      "nan\n1.0",
+      "None\n1.0"
     ],
     [
-      "13.333333",
-      "0.0",
-      "13.333333"
+      "[30, 20, 10]\n13.333333",
+      "[10, 20, 30]\n0.0"
     ],
     [
       "2.0",
@@ -36,6 +41,146 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "report = mean_absolute_error(y_true, y_pred)\n",
+          "report = sum(errors) / len(errors)\n"
+        ]
+      ],
+      "reason": "Signed mean"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "report = mean_absolute_error(y_true, y_pred)\n",
+          "report = 2\n"
+        ]
+      ],
+      "reason": "Typing the error"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "report = mean_squared_error(y_true, y_pred) ** 0.5\n",
+          "report = mean_squared_error(y_true, y_pred)\n"
+        ]
+      ],
+      "reason": "MSE in squared minutes"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "report = mean_squared_error(y_true, y_pred) ** 0.5\n",
+          "report = 2\n"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "chosen = \"a\" if mean_squared_error(y_true, a) <= mean_squared_error(y_true, b) else \"b\"\n",
+          "chosen = \"a\" if mean_absolute_error(y_true, a) <= mean_absolute_error(y_true, b) else \"b\"\n"
+        ]
+      ],
+      "reason": "MAE rule"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "chosen = \"a\" if mean_squared_error(y_true, a) <= mean_squared_error(y_true, b) else \"b\"\n",
+          "chosen = \"b\"\n"
+        ]
+      ],
+      "reason": "Typing the name"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "sst = sum((t - mean) ** 2 for t in y_true)\n",
+          "sst = sum((t - 0) ** 2 for t in y_true)\n"
+        ]
+      ],
+      "reason": "Zero baseline"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "print(round(1 - sse / sst, 6))",
+          "print(-96.0)"
+        ]
+      ],
+      "reason": "Typing the score"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "constant = len(set(y_true)) == 1\n",
+          "constant = r2 == 0\n"
+        ]
+      ],
+      "reason": "Reading R² zero as constant"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "constant = len(set(y_true)) == 1\n",
+          "constant = True\n"
+        ]
+      ],
+      "reason": "Typing True"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "r2 = float(r2_score(y_true, y_pred)) if len(y_true) >= 2 else None\n",
+          "r2 = float(r2_score(y_true, y_pred))\n"
+        ]
+      ],
+      "reason": "nan as a score"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "r2 = float(r2_score(y_true, y_pred)) if len(y_true) >= 2 else None\n",
+          "r2 = None\n"
+        ]
+      ],
+      "reason": "Never computing"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "aligned = [y_pred[pred_ids.index(i)] for i in true_ids]\n",
+          "aligned = y_pred[::-1]\n"
+        ]
+      ],
+      "reason": "Reversing"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "aligned = [y_pred[pred_ids.index(i)] for i in true_ids]\n",
+          "aligned = sorted(y_pred)\n"
+        ]
+      ],
+      "reason": "Sorting the values"
+    },
     {
       "step": 8,
       "replacements": [
@@ -88,6 +233,76 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "report = mean_absolute_error(y_true, y_pred)\n",
+          "report = sum(abs(e) for e in errors) / len(errors)\n"
+        ]
+      ],
+      "reason": "Absolute values by hand"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "report = mean_squared_error(y_true, y_pred) ** 0.5\n",
+          "import math\nreport = math.sqrt(mean_squared_error(y_true, y_pred))\n"
+        ]
+      ],
+      "reason": "math.sqrt"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "chosen = \"a\" if mean_squared_error(y_true, a) <= mean_squared_error(y_true, b) else \"b\"\n",
+          "scores = {\"a\": mean_squared_error(y_true, a), \"b\": mean_squared_error(y_true, b)}\nchosen = min(scores, key=scores.get)\n"
+        ]
+      ],
+      "reason": "min over a dict"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "sst = sum((t - mean) ** 2 for t in y_true)\n",
+          "import numpy as np\nsst = float(np.var(y_true)) * len(y_true)\n"
+        ]
+      ],
+      "reason": "Variance times count"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "constant = len(set(y_true)) == 1\n",
+          "constant = min(y_true) == max(y_true)\n"
+        ]
+      ],
+      "reason": "min equals max"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "r2 = float(r2_score(y_true, y_pred)) if len(y_true) >= 2 else None\n",
+          "if len(y_true) < 2:\n    r2 = None\nelse:\n    r2 = float(r2_score(y_true, y_pred))\n"
+        ]
+      ],
+      "reason": "if block"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "aligned = [y_pred[pred_ids.index(i)] for i in true_ids]\n",
+          "lookup = dict(zip(pred_ids, y_pred))\naligned = [lookup[i] for i in true_ids]\n"
+        ]
+      ],
+      "reason": "A dict by id"
+    },
     {
       "step": 9,
       "replacements": [

@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "25d51e9e953328e5a9acd325fc4dbb2fb28b99e8cb33da27eea0c222a2a5faa8",
+  "entry": [
+    {
+      "action": "say",
+      "text": "모델 객체만 만들고 바로 예측했어요. 예측 전에 fit 줄을 더해 훈련 입력과 정답으로 학습해야 해요.",
+      "target": "text:print 줄 앞에 model.fit(X_train, y_train) 줄을 더해 훈련 입력과 정답으로 학습하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ],
+      "expect_error": "NotFittedError"
+    },
+    {
+      "action": "say",
+      "text": "NotFittedError예요. 아직 배운 기울기와 절편이 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "print(model.predict",
+      "after": "model.fit(X_train, y_train)\nprint(model.predict",
+      "say": "print 줄 앞에 model.fit(X_train, y_train)을 써요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[40.0]이에요. 학습한 뒤에 새 거리 4를 예측했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. LinearRegression()에 자료를 넣지 않아요. 자료는 fit에 넘겨요.",
+      "target": "code:model.fit(X_train, y_train)"
+    }
+  ]
+}

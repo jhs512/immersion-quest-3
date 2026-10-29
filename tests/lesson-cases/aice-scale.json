@@ -3,35 +3,35 @@
   "lesson": "courses/redesigned/aice-scale.json",
   "expected_outputs": [
     [
+      "",
       "[1.0] [1.0]\n[[-1.0], [1.0]]\n[[9.0]]"
     ],
     [
-      "[[9.0]]\n[1.0]",
       "[[0.0]]\n[10.0]",
       "[[9.0]]\n[1.0]"
     ],
     [
-      "[1.0]\n[[0.0], [0.0]]\n[[2.0]]"
+      "[1.0]\n[[2.0]]\n0",
+      "[1.0]\n[[2.0]]\n2.0"
     ],
     [
-      "True\n9.0"
+      "[[nan], [9.0]]\n0",
+      "[[nan], [9.0]]\n1"
     ],
     [
-      "[[5.0]]",
       "[[1.0]]",
       "[[5.0]]"
     ],
     [
-      "[2.0] [2.0]\n[[1.0], [49.0]]",
-      "[2.0] [2.0]\n[[1.0], [49.0]]",
-      "[2.0] [2.0]\n[[1.0], [49.0]]"
+      "[[-0.436], [1.999]]\n5",
+      "[[1.0], [49.0]]\n5"
     ],
     [
       "['north', 'south']",
-      "['north', 'south']\n[[0.0, 0.0]]",
-      "['north', 'south']"
+      "['north', 'south']\n[[0.0, 0.0]]"
     ],
     [
+      "[10.0]\n[10.0]\n[[0.0], [0.0]]",
       "[1.0]\n[1.0]\n[[11.023], [0.0]]"
     ],
     [
@@ -44,6 +44,166 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "scaler.fit(train_values)\n",
+          "scaler.fit(test_values)\n"
+        ]
+      ],
+      "reason": "Fitting on the test data"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "scaler.fit(train_values)\n",
+          "scaler.fit(train_values + test_values)\n"
+        ]
+      ],
+      "reason": "Fitting on both"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "print(scaler.transform(test_values).tolist())",
+          "print(scaler.fit_transform(test_values).tolist())"
+        ]
+      ],
+      "reason": "Refitting on the test data"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "print(scaler.transform(test_values).tolist())",
+          "print([[9.0]])"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "manual = (test_values[0][0] - scaler.mean_[0]) / scaler.scale_[0]\n",
+          "manual = 2.0\n"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "manual = (test_values[0][0] - scaler.mean_[0]) / scaler.scale_[0]\n",
+          "manual = test_values[0][0] - scaler.mean_[0]\n"
+        ]
+      ],
+      "reason": "Forgetting the scale"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "missing = int(pd.isna(result).sum())\n",
+          "missing = 1\n"
+        ]
+      ],
+      "reason": "Typing the count"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "missing = int(pd.isna(result).sum())\n",
+          "missing = int(pd.isna(train_values).sum())\n"
+        ]
+      ],
+      "reason": "Counting the training data"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "scaler = MinMaxScaler(clip=False)",
+          "scaler = MinMaxScaler(clip=True)"
+        ]
+      ],
+      "reason": "Clipping"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "print(scaler.transform(test).tolist())",
+          "print([[5.0]])"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "scaler = RobustScaler()",
+          "scaler = StandardScaler()"
+        ]
+      ],
+      "reason": "Mean and standard deviation"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "print(scaler.transform([[4], [100]]).round(3).tolist())",
+          "print([[1.0], [49.0]])"
+        ]
+      ],
+      "reason": "Typing the values"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "encoder.fit(train)\n",
+          "encoder.fit(train + test)\n"
+        ]
+      ],
+      "reason": "Learning the test categories"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "print(encoder.transform(test).tolist())",
+          "print([[0.0, 0.0]])"
+        ]
+      ],
+      "reason": "Typing the row"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "result = prep.transform(test)",
+          "result = prep.fit_transform(test)"
+        ]
+      ],
+      "reason": "Refitting on the test data"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "result = prep.transform(test)",
+          "result = StandardScaler().fit(train).transform(test)"
+        ]
+      ],
+      "reason": "Skipping the fill step"
+    },
     {
       "step": 9,
       "replacements": [
@@ -86,6 +246,86 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "scaler.fit(train_values)\n",
+          "scaler = scaler.fit(train_values)\n"
+        ]
+      ],
+      "reason": "Keeping the returned scaler"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "print(scaler.transform(test_values).tolist())",
+          "print(((__import__(\"numpy\").array(test_values) - scaler.mean_) / scaler.scale_).tolist())"
+        ]
+      ],
+      "reason": "Applying the learned basis by hand"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "manual = (test_values[0][0] - scaler.mean_[0]) / scaler.scale_[0]\n",
+          "manual = float(scaler.transform(test_values)[0][0])\n"
+        ]
+      ],
+      "reason": "Reading the transform"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "missing = int(pd.isna(result).sum())\n",
+          "missing = int(sum(1 for row in result for value in row if value != value))\n"
+        ]
+      ],
+      "reason": "NaN is not equal to itself"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "scaler = MinMaxScaler(clip=False)",
+          "scaler = MinMaxScaler()"
+        ]
+      ],
+      "reason": "Default setting"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "scaler = RobustScaler()",
+          "scaler = RobustScaler(quantile_range=(25.0, 75.0))"
+        ]
+      ],
+      "reason": "Explicit quartiles"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "handle_unknown=\"ignore\")",
+          "handle_unknown=\"infrequent_if_exist\")"
+        ]
+      ],
+      "reason": "infrequent_if_exist without infrequent categories ignores too"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "result = prep.transform(test)",
+          "result = prep.named_steps[\"scale\"].transform(prep.named_steps[\"fill\"].transform(test))"
+        ]
+      ],
+      "reason": "Applying each fitted step"
+    },
     {
       "step": 10,
       "replacements": [

@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "fa15918e295e8f1e69af8a5ee492169fef99701cb732de85791592ca73f18b77",
+  "entry": [
+    {
+      "action": "say",
+      "text": "훈련 자료는 직선이 다 맞혀요. error 줄을 고쳐 남겨 둔 배송의 예측과 실제의 차이를 구해야 해요.",
+      "target": "text:error 줄을 고쳐 훈련이 아니라 남겨 둔 X_test의 예측과 y_test의 차이를 구하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        14
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[30.0]과 0.0이에요. 훈련 오차는 0이지만 남겨 둔 배송의 예측은 30이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "error = abs(model.predict(X_train) - y_train).max()\n",
+      "after": "error = abs(model.predict(X_test) - y_test).max()\n",
+      "say": "X_train, y_train을 X_test, y_test로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        14
+      ]
+    },
+    {
+      "action": "say",
+      "text": "70.0이에요. 새 예측 30과 실제 100이 70 차이 나요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 훈련 자료를 잘 맞혀도 남겨 둔 자료는 다를 수 있어요. 평가는 학습에 안 쓴 자료로 해요.",
+      "target": "code:model.predict(X_test) - y_test"
+    }
+  ]
+}

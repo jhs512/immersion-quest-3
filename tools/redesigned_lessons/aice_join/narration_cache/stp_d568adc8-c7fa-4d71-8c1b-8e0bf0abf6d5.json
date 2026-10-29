@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "0c271161b91950190e95bb1f1f58fb2aea93104eb944ef2b8570c039888da8ee",
+  "entry": [
+    {
+      "action": "say",
+      "text": "조회 표는 회원 1부터지만 첫 배송은 회원 2예요. 행 위치로 붙이는 줄을 같은 회원끼리 짝짓도록 고쳐야 해요.",
+      "target": "text:joined 줄을 고쳐 행 위치가 아니라 member_id가 같은 회원의 지역을 붙이세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "지역이 north, south, unknown이에요. 회원 2의 첫 배송에 조회 첫 행 north가 붙었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "joined = orders.assign(zone=regions[\"zone\"])",
+      "after": "joined = orders.merge(regions, on=\"member_id\", how=\"left\")",
+      "say": "orders.merge(regions, on=\"member_id\", how=\"left\")로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "south, north, unknown이에요. 회원 2는 south, 회원 1은 north이고 회원 3은 조회에 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 두 표의 행 순서는 보통 달라요. 같은 줄에 있다고 같은 회원이 아니에요.",
+      "target": "code:on=\"member_id\""
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_9ae3f3ab-c026-4bdb-a1f6-e203dd37689d",
-  "revision": "aice-regression-5",
+  "revision": "aice-regression-6",
   "title": "거리에서 배송 시간을 예측해요",
   "description": "같은 배송 자료로 기준 모델과 선형 모델의 학습·예측을 비교해요.",
   "objectives": [
@@ -33,27 +33,27 @@
           "premise": "훈련 거리1,2,3에 배송시간10,20,30이 있어요. 새 거리4의 시간을 예측하며 이 단순 표는 원리 확인용이에요.",
           "steps": [
             {
-              "id": "stp_0b6a63f4-0ec1-4e1b-bc32-754f3a22ff69",
+              "id": "stp_086a54a7-4b25-49df-af55-1de8a3dd6481",
               "objectives": [
-                "회귀의 수치 목표와 평균 기준 모델을 이해해요."
+                "입력을 보지 않고 훈련 정답의 평균을 내는 비교 기준을 만들어요."
               ]
             },
             {
-              "id": "stp_159f4ebf-a230-454e-bf2d-afde5a20eb71",
+              "id": "stp_1957de0a-b838-4502-a62d-390d21285043",
               "objectives": [
-                "선형 회귀의 fit과 predict를 연결해요."
+                "입력과 정답의 직선 관계를 배우는 모델로 새 입력을 예측해요."
               ]
             },
             {
-              "id": "stp_b5504e23-5059-4cd5-982a-7bd111334ddd",
+              "id": "stp_6387f297-e80b-4f5c-9cd1-d72049ca7f50",
               "objectives": [
-                "새 모델 객체 생성과 학습 완료를 구별해요."
+                "모델 객체 만들기와 훈련 자료로 학습하기를 구별해요."
               ]
             },
             {
-              "id": "stp_90fdca82-9335-4dc0-830f-bc26f72bbe8c",
+              "id": "stp_cedb6bf5-45dc-43d3-acad-1ea1856235d9",
               "objectives": [
-                "예측 입력의2차원 자료 모양을 이해해요."
+                "특성이 하나여도 예측 입력은 행과 열의 2차원임을 지켜요."
               ]
             }
           ]
@@ -76,9 +76,9 @@
           "premise": "같은 관계에서 시작점·범위 밖 입력·남겨둔 정답을 살펴봐요. 마지막에는 평가할 입력을 직접 고쳐요.",
           "steps": [
             {
-              "id": "stp_d43879ba-684e-4a8b-90b2-d43e5cbffa5c",
+              "id": "stp_c506900c-a9d0-4b64-927f-e379dab0f0fd",
               "objectives": [
-                "기울기와 절편의 서로 다른 의미를 구별해요."
+                "기울기가 같아도 절편이 예측을 바꾸는 것을 계산해 확인해요."
               ]
             },
             {
@@ -88,9 +88,9 @@
               ]
             },
             {
-              "id": "stp_592e9505-8588-475f-9584-2504f18fc201",
+              "id": "stp_5882472b-fb3a-4f15-aab9-631e9b17e9af",
               "objectives": [
-                "훈련 적합과 평가 오차를 구별해요."
+                "훈련 오차와 남겨 둔 자료의 오차를 구별해요."
               ]
             },
             {
@@ -122,33 +122,23 @@
   ],
   "tasks": [
     {
-      "id": "stp_0b6a63f4-0ec1-4e1b-bc32-754f3a22ff69",
-      "title": "먼저 단순한 기준을 만들어요",
-      "goal": "평균을 쓰는 기준 모델이에요.\n거리4와5의 예측을 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_086a54a7-4b25-49df-af55-1de8a3dd6481",
+      "title": "strategy=\"mean\"으로 평균 기준 모델을 만드세요",
+      "goal": "`DummyRegressor`는 입력을 보지 않는 단순한 비교 기준이에요. `strategy=\"mean\"`은 훈련 정답의 평균을, `strategy=\"median\"`은 가운데 값을 모든 입력에 똑같이 예측해요.\n\nmodel 줄의 strategy를 고쳐 훈련 정답의 평균을 예측하는 기준 모델을 만드세요. 채점은 다른 시간으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 거리 4와 5의 예측을 확인하세요.\n2. `strategy=\"median\"`을 `strategy=\"mean\"`으로 고치세요.\n3. 코드 실행을 눌러 예측이 평균인지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "mean",
-      "tests": [],
+      "starter_code": "from sklearn.dummy import DummyRegressor\n\n# 같은 관측의 거리와 실제 시간을 함께 준비해요.\nX_train = [[1], [2], [3]]\ny_train = [10, 20, 60]\n# 이 줄의 strategy를 고쳐 훈련 정답의 평균을 예측하는 기준 모델을 만드세요.\nmodel = DummyRegressor(strategy=\"median\")\nmodel.fit(X_train, y_train)\nprint(model.predict([[4], [5]]).round(6).tolist())\n",
+      "solution": "from sklearn.dummy import DummyRegressor\n\n# 같은 관측의 거리와 실제 시간을 함께 준비해요.\nX_train = [[1], [2], [3]]\ny_train = [10, 20, 60]\n# 이 줄의 strategy를 고쳐 훈련 정답의 평균을 예측하는 기준 모델을 만드세요.\n# 기준 모델은 입력을 보지 않고 훈련 정답의 평균 하나만 기억해요.\nmodel = DummyRegressor(strategy=\"mean\")\nmodel.fit(X_train, y_train)\nprint(model.predict([[4], [5]]).round(6).tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[30.0, 30.0]"
+        }
+      ],
       "required": true,
-      "example_code": "from sklearn.dummy import DummyRegressor\n\n# 같은 관측의 거리와 실제 시간을 함께 준비해요.\nX_train = [[1], [2], [3]]\ny_train = [10, 20, 30]\nX_test = [[4]]\n# 평균을 내는 단순한 비교 기준이에요.\nmodel = DummyRegressor(strategy=\"mean\")\nmodel.fit(X_train, y_train)\nprint(model.predict([[4], [5]]).round(6).tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "linear",
-            "text": "거리에 따라 40과 50이에요"
-          },
-          {
-            "id": "mean",
-            "text": "둘 다훈련정답평균20이에요"
-          }
-        ],
-        "answer": "mean"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "이 수업에서는 숫자를 예측하는 회귀의 흐름을 배워요. 모델 생성·학습·예측을 구별해요."
+          "text": "이 수업에서는 숫자를 예측하는 회귀의 흐름을 직접 코드로 써요. 모델 생성·학습·예측을 구별해요."
         },
         {
           "action": "say",
@@ -156,167 +146,139 @@
         },
         {
           "action": "say",
-          "text": "먼저 단순한 기준을 만드는 문제예요.",
-          "target": "text:먼저 단순한 기준을 만들어요#1"
+          "text": "strategy=\"mean\"으로 평균 기준 모델을 만드는 문제예요.",
+          "target": "text:strategy=\"mean\"으로 평균 기준 모델을 만드세요#1"
         },
         {
           "action": "say",
-          "text": "DummyRegressor(strategy=\"mean\")은 입력을 보지 않고 훈련 정답의 평균만 내놓는 기준 모델이에요. 거리 4와 5에 무엇을 예측할지 예상해요.",
-          "target": "text:평균을 쓰는 기준 모델이에요."
+          "text": "비교 기준으로 쓸 단순한 모델이에요. strategy를 고쳐 훈련 정답의 평균을 예측하게 해야 해요.",
+          "target": "text:model 줄의 strategy를 고쳐 훈련 정답의 평균을 예측하는 기준 모델을 만드세요."
         },
         {
           "action": "run",
           "lines": [
-            10,
-            10
+            9,
+            9
           ]
         },
         {
           "action": "say",
-          "text": "단순 기준은 두 거리 모두 20.0으로 예측해요.",
+          "text": "[20.0, 20.0]이에요. 가운데 값인 중앙값 20을 두 거리에 똑같이 냈어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "y_train = [10, 20, 30]",
-          "after": "y_train = [10, 20, 60]",
-          "say": "훈련 정답 한 개만 바꿔 평균을 비교해요."
+          "before": "strategy=\"median\"",
+          "after": "strategy=\"mean\"",
+          "say": "strategy를 \"mean\"으로 바꿔요."
         },
         {
           "action": "run",
           "lines": [
-            10,
-            10
+            9,
+            9
           ]
         },
         {
           "action": "say",
-          "text": "새 평균 30.0을 두 입력에 똑같이 예측해요.",
+          "text": "[30.0, 30.0]이에요. 10·20·60의 평균 30이에요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 단순 기준도 훈련 정답에서만 배워요.",
+          "text": "조심하세요. 기준 모델은 거리를 보지 않아요. 거리 4와 5의 예측이 같은 이유예요.",
+          "target": "code:strategy=\"mean\""
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"X_train\": [[1], [2], [3], [4]], \"y_train\": [4, 4, 8, 100]}, \"expected\": \"[29.0, 29.0]\"}, {\"values\": {\"X_train\": [[5], [9]], \"y_train\": [7, 12]}, \"expected\": \"[9.5, 9.5]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_1957de0a-b838-4502-a62d-390d21285043",
+      "title": "LinearRegression으로 거리에 따른 시간을 배우세요",
+      "goal": "이번 작은 표는 거리마다 시간이 10씩 늘어요. `LinearRegression`은 훈련 짝에서 기울기와 절편을 배워 새 거리의 시간을 직선 위의 값으로 예측해요.\n\nmodel 줄을 고쳐 거리에 따른 직선 관계를 배우는 LinearRegression을 쓰세요. 채점은 다른 관계로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 거리 4의 예측을 확인하세요.\n2. `DummyRegressor(strategy=\"mean\")`을 `LinearRegression()`으로 고치세요.\n3. 코드 실행을 눌러 예측이 바뀌는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "from sklearn.dummy import DummyRegressor\nfrom sklearn.linear_model import LinearRegression\n\n# 같은 관측의 거리와 실제 시간을 함께 준비해요.\nX_train = [[1], [2], [3]]\ny_train = [10, 20, 30]\nX_test = [[4]]\n# 이 줄을 고쳐 거리에 따른 직선 관계를 배우는 LinearRegression을 쓰세요.\nmodel = DummyRegressor(strategy=\"mean\")\nmodel.fit(X_train, y_train)\nprint(model.predict(X_test).round(6).tolist())\n",
+      "solution": "from sklearn.dummy import DummyRegressor\nfrom sklearn.linear_model import LinearRegression\n\n# 같은 관측의 거리와 실제 시간을 함께 준비해요.\nX_train = [[1], [2], [3]]\ny_train = [10, 20, 30]\nX_test = [[4]]\n# 이 줄을 고쳐 거리에 따른 직선 관계를 배우는 LinearRegression을 쓰세요.\n# 선형 회귀는 거리가 1 늘 때 시간이 얼마나 느는지(기울기)를 배워요.\nmodel = LinearRegression()\nmodel.fit(X_train, y_train)\nprint(model.predict(X_test).round(6).tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[40.0]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "LinearRegression으로 거리에 따른 시간을 배우는 문제예요.",
+          "target": "text:LinearRegression으로 거리에 따른 시간을 배우세요#1"
+        },
+        {
+          "action": "say",
+          "text": "거리마다 시간이 10씩 늘어요. 이 관계를 배우도록 model 줄을 LinearRegression으로 고쳐야 해요.",
+          "target": "text:model 줄을 고쳐 거리에 따른 직선 관계를 배우는 LinearRegression을 쓰세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[20.0]이에요. 기준 모델은 거리 4에도 평균 20을 냈어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "y_train = [10, 20, 60]",
-          "after": "y_train = [10, 20, 30]",
-          "say": "처음 훈련 정답으로 돌아와요."
+          "before": "model = DummyRegressor(strategy=\"mean\")",
+          "after": "model = LinearRegression()",
+          "say": "LinearRegression()으로 바꿔요."
         },
         {
           "action": "run",
           "lines": [
-            10,
-            10
+            11,
+            11
           ]
         },
         {
           "action": "say",
-          "text": "다시 평균 기준 20.0이에요.",
+          "text": "[40.0]이에요. 거리마다 10씩 느는 직선을 거리 4까지 이었어요.",
           "target": "output"
         },
         {
-          "action": "choose_answer",
-          "id": "mean"
+          "action": "say",
+          "text": "조심하세요. 직선은 배운 범위 밖으로도 계속 이어져요. 훈련에 없던 먼 거리는 결과를 따로 검토해요.",
+          "target": "code:LinearRegression()"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"y_train\": [5, 7, 9], \"X_test\": [[10]]}, \"expected\": \"[23.0]\"}, {\"values\": {\"X_train\": [[0], [2], [4]], \"y_train\": [3, 2, 1], \"X_test\": [[1], [6]]}, \"expected\": \"[2.5, 0.0]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_159f4ebf-a230-454e-bf2d-afde5a20eb71",
-      "title": "입력에 따른 관계를 배워요",
-      "goal": "이번 작은 표는 거리마다 시간이10씩 늘어요.\n선형 모델이 거리4에 예측한 값을 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_6387f297-e80b-4f5c-9cd1-d72049ca7f50",
+      "title": "model.fit으로 학습한 뒤 예측하세요",
+      "goal": "`LinearRegression()`은 빈 모델 객체를 만들 뿐이에요. `model.fit(입력, 정답)`이 훈련 짝에서 기울기와 절편을 배우고, 그 뒤에야 `predict`로 새 입력을 예측할 수 있어요.\n\nprint 줄 앞에 model.fit(X_train, y_train) 줄을 더해 훈련 입력과 정답으로 학습하세요. 채점은 다른 훈련 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 NotFittedError가 나오는지 확인하세요.\n2. print 줄 앞에 `model.fit(X_train, y_train)`을 쓰세요.\n3. 코드 실행을 눌러 예측을 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "line",
-      "tests": [],
+      "starter_code": "from sklearn.linear_model import LinearRegression\n\n# 같은 관측의 거리와 실제 시간을 함께 준비해요.\nX_train = [[1], [2], [3]]\ny_train = [10, 20, 30]\nX_test = [[4]]\n# 새 객체를 만든 것과 학습한 것은 달라요.\nmodel = LinearRegression()\n# 이 자리에 fit 줄을 더해 훈련 입력과 정답으로 학습하세요.\nprint(model.predict(X_test).round(6).tolist())\n",
+      "solution": "from sklearn.linear_model import LinearRegression\n\n# 같은 관측의 거리와 실제 시간을 함께 준비해요.\nX_train = [[1], [2], [3]]\ny_train = [10, 20, 30]\nX_test = [[4]]\n# 새 객체를 만든 것과 학습한 것은 달라요.\nmodel = LinearRegression()\n# 이 자리에 fit 줄을 더해 훈련 입력과 정답으로 학습하세요.\n# fit이 훈련 짝에서 기울기와 절편을 배워요. 그 뒤에야 predict를 쓸 수 있어요.\nmodel.fit(X_train, y_train)\nprint(model.predict(X_test).round(6).tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[40.0]"
+        }
+      ],
       "required": true,
-      "example_code": "from sklearn.linear_model import LinearRegression\n\n# 같은 관측의 거리와 실제 시간을 함께 준비해요.\nX_train = [[1], [2], [3]]\ny_train = [10, 20, 30]\nX_test = [[4]]\nmodel = LinearRegression()\nmodel.fit(X_train, y_train)\n# 계수와 실제 새 입력의 예측을 따로 읽어요.\nprint(model.coef_.round(6).tolist())\nprint(abs(float(model.intercept_)) < 0.000001)\nprint(model.predict(X_test).round(6).tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "line",
-            "text": "40"
-          },
-          {
-            "id": "mean",
-            "text": "20"
-          }
-        ],
-        "answer": "line"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "입력에 따른 관계를 배우는 문제예요.",
-          "target": "text:입력에 따른 관계를 배워요#1"
+          "text": "model.fit으로 학습한 뒤 예측하는 문제예요.",
+          "target": "text:model.fit으로 학습한 뒤 예측하세요#1"
         },
         {
           "action": "say",
-          "text": "LinearRegression은 입력과 정답 사이의 직선(기울기와 절편)을 배워요. 이 표에서 배운 직선이 거리 4에 내놓을 값을 예상해요.",
-          "target": "text:이번 작은 표는 거리마다 시간이10씩 늘어요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            12,
-            12
-          ]
-        },
-        {
-          "action": "say",
-          "text": "기울기는 10.0, 절편은 0에 가깝고 새 예측은 40.0이에요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 실제 배송이 언제나 이 직선과 같다는 뜻은 아니에요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "line"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_b5504e23-5059-4cd5-982a-7bd111334ddd",
-      "title": "학습하기 전에 예측하면 어떨까요",
-      "goal": "모델 객체만 만들고 바로 예측했어요.\n먼저 필요한 것은 무엇일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "fit",
-      "tests": [],
-      "required": true,
-      "example_code": "from sklearn.linear_model import LinearRegression\n\n# 같은 관측의 거리와 실제 시간을 함께 준비해요.\nX_train = [[1], [2], [3]]\ny_train = [10, 20, 30]\nX_test = [[4]]\n# 새 객체를 만든 것과 학습한 것은 달라요.\nmodel = LinearRegression()\n# 학습 호출을 비교할 자리예요.\nprint(model.predict(X_test).round(6).tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "fit",
-            "text": "훈련 입력과 정답으로 fit해야 해요"
-          },
-          {
-            "id": "name",
-            "text": "LinearRegression()을 만들 때 X_train을 넣어야 해요"
-          }
-        ],
-        "answer": "fit"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "학습 없이 predict를 부르면 무엇이 빠졌는지 고르는 문제예요.",
-          "target": "text:학습하기 전에 예측하면 어떨까요#1"
-        },
-        {
-          "action": "say",
-          "text": "모델 객체를 만든 것과 자료로 학습시킨 것은 다른 단계예요.",
-          "target": "text:모델 객체만 만들고 바로 예측했어요."
+          "text": "모델 객체만 만들고 바로 예측했어요. 예측 전에 fit 줄을 더해 훈련 입력과 정답으로 학습해야 해요.",
+          "target": "text:print 줄 앞에 model.fit(X_train, y_train) 줄을 더해 훈련 입력과 정답으로 학습하세요."
         },
         {
           "action": "run",
@@ -328,249 +290,161 @@
         },
         {
           "action": "say",
-          "text": "아직 학습하지 않아 예측 오류가 났어요.",
+          "text": "NotFittedError예요. 아직 배운 기울기와 절편이 없어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "# 학습 호출을 비교할 자리예요.",
-          "after": "model.fit(X_train, y_train)",
-          "say": "훈련 자료로 관계를 먼저 배워요."
+          "before": "print(model.predict",
+          "after": "model.fit(X_train, y_train)\nprint(model.predict",
+          "say": "print 줄 앞에 model.fit(X_train, y_train)을 써요."
         },
         {
           "action": "run",
           "lines": [
-            10,
-            10
+            11,
+            11
           ]
         },
         {
           "action": "say",
-          "text": "학습한 뒤 새 입력에 40.0을 예측했어요.",
+          "text": "[40.0]이에요. 학습한 뒤에 새 거리 4를 예측했어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 객체 생성만으로 학습이 끝나진 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "model.fit(X_train, y_train)",
-          "after": "# 학습 호출을 비교할 자리예요.",
-          "say": "처음의 미학습 객체로 돌아와요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            10,
-            10
-          ],
-          "expect_error": "NotFittedError"
-        },
-        {
-          "action": "say",
-          "text": "원래 학습 없는 코드는 예측 오류가 나요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "fit"
+          "text": "조심하세요. LinearRegression()에 자료를 넣지 않아요. 자료는 fit에 넘겨요.",
+          "target": "code:model.fit(X_train, y_train)"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"X_train\": [[0], [1]], \"y_train\": [2, 5], \"X_test\": [[3]]}, \"expected\": \"[11.0]\"}, {\"values\": {\"y_train\": [9, 6, 3], \"X_test\": [[0], [5]]}, \"expected\": \"[12.0, -3.0]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_90fdca82-9335-4dc0-830f-bc26f72bbe8c",
-      "title": "한 열도 행과 열의 모양이 있어요",
-      "goal": "한 행 한 열인 새 거리를 넘기려 해요.\n어떤 입력 모양이 맞을까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_cedb6bf5-45dc-43d3-acad-1ea1856235d9",
+      "title": "[[distance]]로 한 행 한 열의 입력을 넘기세요",
+      "goal": "scikit-learn의 입력은 행(관측)과 열(특성)의 2차원이에요. 바깥 목록이 행, 안쪽 목록이 그 행의 특성 값이에요. 거리 하나뿐인 새 배송도 한 행 한 열이에요.\n\nX_test 줄을 고쳐 distance를 한 행 한 열의 2차원 입력으로 만드세요. 채점은 다른 거리로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 ValueError가 나오는지 확인하세요.\n2. `X_test = [distance]`를 `X_test = [[distance]]`로 고치세요.\n3. 코드 실행을 눌러 예측을 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "matrix",
-      "tests": [],
+      "starter_code": "from sklearn.linear_model import LinearRegression\n\n# 같은 관측의 거리와 실제 시간을 함께 준비해요.\nX_train = [[1], [2], [3]]\ny_train = [10, 20, 30]\n# 예측할 새 배송 하나의 거리예요.\ndistance = 4\n# 이 줄을 고쳐 distance를 한 행 한 열의 2차원 입력으로 만드세요.\nX_test = [distance]\nmodel = LinearRegression()\nmodel.fit(X_train, y_train)\nprint(model.predict(X_test).round(6).tolist())\n",
+      "solution": "from sklearn.linear_model import LinearRegression\n\n# 같은 관측의 거리와 실제 시간을 함께 준비해요.\nX_train = [[1], [2], [3]]\ny_train = [10, 20, 30]\n# 예측할 새 배송 하나의 거리예요.\ndistance = 4\n# 이 줄을 고쳐 distance를 한 행 한 열의 2차원 입력으로 만드세요.\n# 바깥 목록은 행(배송), 안쪽 목록은 특성 열이에요. 특성이 하나여도 2차원이에요.\nX_test = [[distance]]\nmodel = LinearRegression()\nmodel.fit(X_train, y_train)\nprint(model.predict(X_test).round(6).tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[40.0]"
+        }
+      ],
       "required": true,
-      "example_code": "from sklearn.linear_model import LinearRegression\n\n# 같은 관측의 거리와 실제 시간을 함께 준비해요.\nX_train = [[1], [2], [3]]\ny_train = [10, 20, 30]\nX_test = [4]\nmodel = LinearRegression()\nmodel.fit(X_train, y_train)\n# 예측 입력도 행과 특성 열로 표현해요.\nprint(model.predict(X_test).round(6).tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "flat",
-            "text": "[4]예요"
-          },
-          {
-            "id": "matrix",
-            "text": "[[4]]예요"
-          }
-        ],
-        "answer": "matrix"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "새 거리 하나를 예측기에 전달할 때 필요한 입력 모양을 고르는 문제예요.",
-          "target": "text:한 열도 행과 열의 모양이 있어요#1"
+          "text": "[[distance]]로 한 행 한 열의 입력을 넘기는 문제예요.",
+          "target": "text:[[distance]]로 한 행 한 열의 입력을 넘기세요#1"
         },
         {
           "action": "say",
-          "text": "scikit-learn의 입력은 행마다 특성 목록이 있는 2차원 모양이에요. 배송 한 건, 특성 하나를 어떤 모양으로 넘기는지 골라요.",
-          "target": "text:한 행 한 열인 새 거리를 넘기려 해요."
+          "text": "새 배송 하나를 넘겨요. X_test 줄을 고쳐 한 행 한 열의 2차원 입력으로 만들어야 해요.",
+          "target": "text:X_test 줄을 고쳐 distance를 한 행 한 열의 2차원 입력으로 만드세요."
         },
         {
           "action": "run",
           "lines": [
-            10,
-            10
+            12,
+            12
           ],
           "expect_error": "ValueError"
         },
         {
           "action": "say",
-          "text": "1차원 입력이라 모양 오류가 났어요.",
+          "text": "ValueError예요. [4]는 행과 열이 없는 1차원이라 몇 행인지 알 수 없어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "X_test = [4]",
-          "after": "X_test = [[4]]",
-          "say": "한 행 안에 한 특성을 담아요."
+          "before": "X_test = [distance]\n",
+          "after": "X_test = [[distance]]\n",
+          "say": "[distance]를 한 번 더 감싸 [[distance]]로 바꿔요."
         },
         {
           "action": "run",
           "lines": [
-            10,
-            10
+            12,
+            12
           ]
         },
         {
           "action": "say",
-          "text": "한 행 한 열을 받아 40.0을 예측해요.",
+          "text": "[40.0]이에요. 한 행의 예측 하나가 나왔어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 한 특성이어도 행과 열의 축은 구별해요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "X_test = [[4]]",
-          "after": "X_test = [4]",
-          "say": "문제의 원래 입력으로 돌아와요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            10,
-            10
-          ],
-          "expect_error": "ValueError"
-        },
-        {
-          "action": "say",
-          "text": "원래 일차원 입력은 여전히 오류예요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "matrix"
+          "text": "조심하세요. 훈련 입력과 예측 입력은 같은 열 구성의 2차원이어야 해요.",
+          "target": "code:X_test = [[distance]]"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"distance\": 7}, \"expected\": \"[70.0]\"}, {\"values\": {\"distance\": 0.5, \"y_train\": [3, 1, -1]}, \"expected\": \"[4.0]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_d43879ba-684e-4a8b-90b2-d43e5cbffa5c",
-      "title": "같은 기울기도 시작점이 달라요",
-      "goal": "시간이15·25·35로 바뀌었어요.\n새 거리4의 예측을 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_c506900c-a9d0-4b64-927f-e379dab0f0fd",
+      "title": "intercept_를 더해 직선의 예측을 직접 계산하세요",
+      "goal": "시간이 15·25·35로 바뀌었어요. 학습된 직선은 `model.coef_[0]`(기울기)과 `model.intercept_`(거리 0일 때의 절편)로 정해지고, 예측은 기울기×거리 + 절편이에요.\n\nmanual 줄을 고쳐 기울기×거리에 절편을 더해 새 거리의 시간을 직접 계산하세요. 채점은 다른 관계로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 manual과 모델 예측을 비교하세요.\n2. manual 줄 끝에 `+ model.intercept_`를 더하세요.\n3. 코드 실행을 눌러 두 값이 같은지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "offset",
-      "tests": [],
+      "starter_code": "from sklearn.linear_model import LinearRegression\n\n# 같은 관측의 거리와 실제 시간을 함께 준비해요.\nX_train = [[1], [2], [3]]\ny_train = [15, 25, 35]\nX_test = [[4]]\nmodel = LinearRegression()\nmodel.fit(X_train, y_train)\n# 이 줄을 고쳐 기울기×거리에 절편을 더해 새 거리의 시간을 직접 계산하세요.\nmanual = model.coef_[0] * X_test[0][0]\nprint(round(float(manual), 6))\nprint(model.predict(X_test).round(6).tolist())\n",
+      "solution": "from sklearn.linear_model import LinearRegression\n\n# 같은 관측의 거리와 실제 시간을 함께 준비해요.\nX_train = [[1], [2], [3]]\ny_train = [15, 25, 35]\nX_test = [[4]]\nmodel = LinearRegression()\nmodel.fit(X_train, y_train)\n# 이 줄을 고쳐 기울기×거리에 절편을 더해 새 거리의 시간을 직접 계산하세요.\n# 직선의 값은 기울기×거리 + 절편이에요. 절편은 거리가 0일 때의 시작 위치예요.\nmanual = model.coef_[0] * X_test[0][0] + model.intercept_\nprint(round(float(manual), 6))\nprint(model.predict(X_test).round(6).tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "45.0\n[45.0]"
+        }
+      ],
       "required": true,
-      "example_code": "from sklearn.linear_model import LinearRegression\n\n# 같은 관측의 거리와 실제 시간을 함께 준비해요.\nX_train = [[1], [2], [3]]\ny_train = [15, 25, 35]\nX_test = [[4]]\nmodel = LinearRegression()\nmodel.fit(X_train, y_train)\n# 시작 위치가 다른 직선의 결과를 봐요.\nprint(model.coef_.round(6).tolist())\nprint(round(float(model.intercept_), 6))\nprint(model.predict(X_test).round(6).tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "offset",
-            "text": "45"
-          },
-          {
-            "id": "same",
-            "text": "40"
-          }
-        ],
-        "answer": "offset"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "학습 자료의 시간이 바뀌었을 때 새 거리의 예측값을 구하는 문제예요.",
-          "target": "text:같은 기울기도 시작점이 달라요#1"
+          "text": "intercept_를 더해 직선의 예측을 직접 계산하는 문제예요.",
+          "target": "text:intercept_를 더해 직선의 예측을 직접 계산하세요#1"
         },
         {
           "action": "say",
-          "text": "기울기는 그대로 10이지만 모든 시간이 5분씩 늘었어요. 절편이 바뀐 직선이 거리 4에 내놓을 값을 예상해요.",
-          "target": "text:시간이15·25·35로 바뀌었어요."
+          "text": "시간이 15·25·35로 바뀌었어요. manual 줄을 고쳐 기울기×거리에 절편을 더해 직접 계산해야 해요.",
+          "target": "text:manual 줄을 고쳐 기울기×거리에 절편을 더해 새 거리의 시간을 직접 계산하세요."
         },
         {
           "action": "run",
           "lines": [
-            12,
+            11,
             12
           ]
         },
         {
           "action": "say",
-          "text": "기울기 10.0, 절편 5.0이라 새 예측은 45.0이에요.",
+          "text": "40.0과 [45.0]이에요. 기울기 10만 곱해서 모델의 예측과 5가 달라요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "y_train = [15, 25, 35]",
-          "after": "y_train = [5, 15, 25]",
-          "say": "같은 기울기에서 시작 위치만 낮춰요."
+          "before": "manual = model.coef_[0] * X_test[0][0]\n",
+          "after": "manual = model.coef_[0] * X_test[0][0] + model.intercept_\n",
+          "say": "뒤에 + model.intercept_를 더해요."
         },
         {
           "action": "run",
           "lines": [
-            12,
+            11,
             12
           ]
         },
         {
           "action": "say",
-          "text": "절편이 -5.0이 되어 예측은 35.0이에요.",
+          "text": "45.0과 [45.0]이에요. 같은 기울기 10에 시작 위치 5가 더해졌어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 계수만으로 실제 원인이라고 단정하지 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "y_train = [5, 15, 25]",
-          "after": "y_train = [15, 25, 35]",
-          "say": "처음 관계로 돌아와요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            12,
-            12
-          ]
-        },
-        {
-          "action": "say",
-          "text": "기울기와 시작 위치를 나눠 읽어요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "offset"
+          "text": "조심하세요. 기울기가 같아도 절편이 다르면 예측이 달라요. 계수만 보고 예측값을 말하지 않아요.",
+          "target": "code:model.intercept_"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"y_train\": [-2, 1, 4], \"X_test\": [[10]]}, \"expected\": \"25.0\\\\n[25.0]\"}, {\"values\": {\"X_train\": [[0], [5]], \"y_train\": [8, 3], \"X_test\": [[2]]}, \"expected\": \"6.0\\\\n[6.0]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
       "id": "stp_1e92ac56-0934-4765-9f5c-cae45eec313a",
@@ -637,64 +511,67 @@
       "predict_before_run": true
     },
     {
-      "id": "stp_592e9505-8588-475f-9584-2504f18fc201",
-      "title": "학습에서 잘 맞아도 남겨둔 값은 달라요",
-      "goal": "남겨둔 배송의 실제 시간은 100이에요. 훈련 입력의 예측과 남겨둔 입력의 예측을 따로 출력해요.\n평가도 정확히 맞혔다고 할까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_5882472b-fb3a-4f15-aab9-631e9b17e9af",
+      "title": "X_test와 y_test로 남겨 둔 배송의 오차를 구하세요",
+      "goal": "남겨 둔 배송의 실제 시간은 100이에요. 학습에 쓴 자료의 오차는 그 자료를 얼마나 따라 했는지만 말해요. 새 배송에서의 오차는 학습에 쓰지 않은 `X_test`·`y_test`로 재요.\n\nerror 줄을 고쳐 훈련이 아니라 남겨 둔 X_test의 예측과 y_test의 차이를 구하세요. 채점은 다른 평가 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 예측과 오차를 확인하세요.\n2. error 줄의 `X_train`·`y_train`을 `X_test`·`y_test`로 고치세요.\n3. 코드 실행을 눌러 남겨 둔 배송의 오차를 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "heldout",
-      "tests": [],
+      "starter_code": "from sklearn.linear_model import LinearRegression\n\n# 같은 관측의 거리와 실제 시간을 함께 준비해요.\nX_train = [[1], [2]]\ny_train = [10, 20]\nX_test = [[3]]\n# 평가 정답은 학습에 넣지 않고 비교할 때만 사용해요.\ny_test = [100]\nmodel = LinearRegression()\nmodel.fit(X_train, y_train)\n# 이 줄을 고쳐 훈련이 아니라 남겨 둔 X_test의 예측과 y_test의 차이를 구하세요.\nerror = abs(model.predict(X_train) - y_train).max()\nprint(model.predict(X_test).round(6).tolist())\nprint(round(float(error), 6))\n",
+      "solution": "from sklearn.linear_model import LinearRegression\n\n# 같은 관측의 거리와 실제 시간을 함께 준비해요.\nX_train = [[1], [2]]\ny_train = [10, 20]\nX_test = [[3]]\n# 평가 정답은 학습에 넣지 않고 비교할 때만 사용해요.\ny_test = [100]\nmodel = LinearRegression()\nmodel.fit(X_train, y_train)\n# 이 줄을 고쳐 훈련이 아니라 남겨 둔 X_test의 예측과 y_test의 차이를 구하세요.\n# 학습에 쓰지 않은 남겨 둔 배송에서 재야 새 배송에서의 오차를 알 수 있어요.\nerror = abs(model.predict(X_test) - y_test).max()\nprint(model.predict(X_test).round(6).tolist())\nprint(round(float(error), 6))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[30.0]\n70.0"
+        }
+      ],
       "required": true,
-      "example_code": "from sklearn.linear_model import LinearRegression\n\n# 같은 관측의 거리와 실제 시간을 함께 준비해요.\nX_train = [[1], [2]]\ny_train = [10, 20]\nX_test = [[3]]\nmodel = LinearRegression()\nmodel.fit(X_train, y_train)\n# 평가 정답은 학습에 넣지 않고 비교할 때만 사용해요.\ny_test = [100]\nprint(model.predict(X_train).round(6).tolist())\nprint(model.predict(X_test).round(6).tolist())\nprint(y_test)\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "heldout",
-            "text": "아니요. 새 예측 30과 실제 100은 달라요"
-          },
-          {
-            "id": "training",
-            "text": "네. 훈련을 맞혔으니 평가도 맞아요"
-          }
-        ],
-        "answer": "heldout"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "평가도 정확히 맞혔다고 할까요?",
-          "target": "text:학습에서 잘 맞아도 남겨둔 값은 달라요#1"
+          "text": "X_test와 y_test로 남겨 둔 배송의 오차를 구하는 문제예요.",
+          "target": "text:X_test와 y_test로 남겨 둔 배송의 오차를 구하세요#1"
         },
         {
           "action": "say",
-          "text": "훈련 두 건으로 직선을 배우고, 학습에 넣지 않은 세 번째 배송을 예측해요. 훈련에서 맞은 것과 남겨둔 배송을 맞힌 것을 구별해요.",
-          "target": "text:남겨둔 배송의 실제 시간은 100이에요."
+          "text": "훈련 자료는 직선이 다 맞혀요. error 줄을 고쳐 남겨 둔 배송의 예측과 실제의 차이를 구해야 해요.",
+          "target": "text:error 줄을 고쳐 훈련이 아니라 남겨 둔 X_test의 예측과 y_test의 차이를 구하세요."
         },
         {
           "action": "run",
           "lines": [
             13,
-            13
+            14
           ]
         },
         {
           "action": "say",
-          "text": "훈련은 맞아도 새 예측 30.0과 실제 100은 달라요.",
+          "text": "[30.0]과 0.0이에요. 훈련 오차는 0이지만 남겨 둔 배송의 예측은 30이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "error = abs(model.predict(X_train) - y_train).max()\n",
+          "after": "error = abs(model.predict(X_test) - y_test).max()\n",
+          "say": "X_train, y_train을 X_test, y_test로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "70.0이에요. 새 예측 30과 실제 100이 70 차이 나요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 학습에서 맞은 것과 새 자료를 맞힌 것은 달라요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "heldout"
+          "text": "조심하세요. 훈련 자료를 잘 맞혀도 남겨 둔 자료는 다를 수 있어요. 평가는 학습에 안 쓴 자료로 해요.",
+          "target": "code:model.predict(X_test) - y_test"
         }
       ],
-      "predict_before_run": true,
-      "question": "평가도 정확히 맞혔다고 할까요?"
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"X_test\": [[3], [5]], \"y_test\": [31, 44]}, \"expected\": \"[30.0, 50.0]\\\\n6.0\"}, {\"values\": {\"X_train\": [[0], [4]], \"y_train\": [1, 9], \"X_test\": [[2]], \"y_test\": [8]}, \"expected\": \"[5.0]\\\\n3.0\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
       "id": "stp_f34a161e-950a-455b-b4c3-ec7a894790e8",

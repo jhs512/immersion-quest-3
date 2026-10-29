@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "397fecc2e03d75d6f7da75e43008acfe46ac08446f0997f02e91bb40186cee5f",
+  "entry": [
+    {
+      "action": "say",
+      "text": "날짜로 바꿀 수 없는 bad가 있어요. 변환을 멈추지 않고 결측으로 남기도록 옵션을 고쳐야 해요.",
+      "target": "text:parsed 줄의 옵션을 고쳐 날짜가 아닌 값은 결측으로 남기며 변환하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        13
+      ],
+      "expect_error": "ValueError"
+    },
+    {
+      "action": "say",
+      "text": "ValueError예요. errors=\"raise\"는 bad에서 변환을 멈춰요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "errors=\"raise\"",
+      "after": "errors=\"coerce\"",
+      "say": "errors를 \"coerce\"로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[0, 1, -1, 6]과 4예요. 월요일, 화요일, 결측, 일요일이고 네 행이 그대로예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. coerce는 실패를 지우지 않고 결측으로 남겨요. 결측 수를 세어 실패를 확인해요.",
+      "target": "code:errors=\"coerce\""
+    }
+  ]
+}
