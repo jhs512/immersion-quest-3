@@ -1,0 +1,111 @@
+{
+  "by": "hand",
+  "source_sha256": "116544b2d211ddae2b038e59a3b7e8d648e5a9a73b3a477ce4233880088515cb",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 결제 금액은 가격 합계에 배송비를 더한 값이에요.",
+      "target": "text:결제 금액은 상품 합계에 배송비를 더한 값이에요."
+    },
+    {
+      "action": "say",
+      "text": "sum과 shipping은 지금 고정값만 돌려줘요. 둘 다 고쳐 main에서 불러요.",
+      "target": "code:static int shipping(int amount, int freeFrom)"
+    },
+    {
+      "action": "patch_code",
+      "before": "        // 여기에 두 메서드를 불러 결제 금액을 출력하세요.",
+      "after": "        // 합계를 먼저 구하고, 그 합계로 배송비를 구해 더해요.\n        int amount = sum(prices);\n        System.out.println(\"결제 금액: \" + (amount + shipping(amount, freeFrom)));",
+      "say": "main에서 sum으로 합계를 받고, 그 합계를 shipping에 넘겨 더해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        18,
+        18
+      ]
+    },
+    {
+      "action": "say",
+      "text": "결제 금액: 2500이에요. sum이 아직 0을 돌려주거든요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        return 0; // 모든 가격을 더한 합을 돌려주도록 고치세요.",
+      "after": "        int result = 0;\n        // 모든 가격을 다 더한 뒤에 돌려줘요.\n        for (int price : prices) {\n            result = result + price;\n        }\n        return result;",
+      "say": "sum은 반복이 끝난 뒤에 합을 돌려주게 써요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        23,
+        23
+      ]
+    },
+    {
+      "action": "say",
+      "text": "결제 금액: 9500이에요. 7000에 배송비 2500이 붙었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "int[] prices = {4000, 3000};",
+      "after": "int[] prices = {6000, 4000};",
+      "say": "합계가 기준 10,000원과 같은 주문으로 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        23,
+        23
+      ]
+    },
+    {
+      "action": "say",
+      "text": "결제 금액: 12500이에요. 기준 이상인데 shipping이 아직 늘 2500이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        return 2500; // 기준 이상이면 0을 돌려주도록 고치세요.",
+      "after": "        // 기준 이상이면 그 자리에서 0을 돌려줘요.\n        if (amount >= freeFrom) {\n            return 0;\n        }\n        return 2500;",
+      "say": "shipping은 기준 이상이면 바로 0을 돌려주고, 아니면 2500을 돌려줘요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        27,
+        27
+      ]
+    },
+    {
+      "action": "say",
+      "text": "결제 금액: 10000이에요. 기준과 같은 합계는 배송비가 0이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. return을 반복 안에 두면 첫 가격만 더한 값이 돌아와요. 채점은 sum을 직접 불러 확인해요.",
+      "target": "code:return result;"
+    },
+    {
+      "action": "patch_code",
+      "before": "int[] prices = {6000, 4000};",
+      "after": "int[] prices = {4000, 3000};",
+      "say": "준비된 가격으로 되돌려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        27,
+        27
+      ]
+    },
+    {
+      "action": "say",
+      "text": "결제 금액: 9500이에요. 두 메서드의 반환값을 main이 조합했어요.",
+      "target": "output"
+    }
+  ]
+}

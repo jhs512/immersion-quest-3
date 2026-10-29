@@ -1,0 +1,105 @@
+{
+  "by": "hand",
+  "source_sha256": "82044cb97f4ca9697fd7816c7cc81015a5376bde8382c2e7d0b01895adefc49a",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 기준 이상 가격의 합계와 개수를 함께 구해요.",
+      "target": "text:2,000원 이상인 가격만 골라"
+    },
+    {
+      "action": "say",
+      "text": "total과 count는 0에서 시작하고, 마지막 두 줄이 결과를 출력해요.",
+      "target": "code:int count = 0;"
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "합계: 0, 개수: 0이에요. 아직 배열을 읽는 반복이 없거든요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    // 여기에 모든 가격을 읽으며 합계와 개수를 늘리는 반복문을 쓰세요.",
+      "after": "    // 처음부터 배열 길이 직전 위치까지 차례로 읽어요.\n    for (int index = 0; index < prices.length; index++) {\n        total = total + prices[index];\n    }",
+      "say": "먼저 배열 길이만큼 돌며 모든 가격을 더해 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "합계: 7500이에요. 네 가격을 다 더했고 개수는 아직 그대로예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    // 처음부터 배열 길이 직전 위치까지 차례로 읽어요.\n    for (int index = 0; index < prices.length; index++) {\n        total = total + prices[index];\n    }",
+      "after": "    // 처음부터 배열 길이 직전 위치까지 차례로 읽어요.\n    for (int index = 0; index < prices.length; index++) {\n        // 기준 이상인 가격만 합계와 개수에 넣어요.\n        if (prices[index] >= 2000) {\n            total = total + prices[index];\n            count = count + 1;\n        }\n    }",
+      "say": "더하는 줄을 2,000원 이상일 때만 실행하고, 같은 자리에서 개수도 하나 늘려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "합계: 5500, 개수: 2예요. 3000과 2500만 골라 더했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 반복 조건을 prices.length - 1로 쓰면 마지막 가격을 건너뛰어요. 지금 배열은 마지막이 800이라 티가 안 나요.",
+      "target": "code:index < prices.length"
+    },
+    {
+      "action": "patch_code",
+      "before": "int[] prices = {1200, 3000, 2500, 800};",
+      "after": "int[] prices = {2000, 1999, 2001};",
+      "say": "경계 가격으로 끝나는 다른 배열로 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "합계: 4001, 개수: 2예요. 기준과 같은 2000과 마지막 2001까지 셌어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "int[] prices = {2000, 1999, 2001};",
+      "after": "int[] prices = {1200, 3000, 2500, 800};",
+      "say": "준비된 가격으로 되돌려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "다시 합계: 5500, 개수: 2예요. 채점은 빈 배열과 더 긴 배열로도 실행해요.",
+      "target": "output"
+    }
+  ]
+}

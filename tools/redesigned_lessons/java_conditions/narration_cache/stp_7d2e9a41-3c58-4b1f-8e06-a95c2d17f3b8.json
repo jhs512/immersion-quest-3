@@ -1,0 +1,116 @@
+{
+  "by": "hand",
+  "source_sha256": "c92fd48b92afe820a8c5bd468b759954c68005046226d3b0775707dd036d10a6",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 배송비 구간 셋과 안내 문구를 직접 정해요.",
+      "target": "text:3만 원 이상은 무료배송"
+    },
+    {
+      "action": "say",
+      "text": "fee는 3,000원으로 시작해요. 조건이 맞으면 값을 바꿔요.",
+      "target": "code:int fee = 3000;"
+    },
+    {
+      "action": "say",
+      "text": "먼저 안내 문구부터 써서 지금 fee가 어떻게 보이는지 볼게요.",
+      "target": "text:fee가 0이면 무료배송을, 아니면"
+    },
+    {
+      "action": "patch_code",
+      "before": "    // 여기에 fee가 0이면 무료배송, 아니면 배송비를 출력하는 조건문을 쓰세요.",
+      "after": "    // 정해진 배송비로 안내 문구를 골라요.\n    if (fee == 0) {\n        System.out.println(\"무료배송\");\n    } else {\n        System.out.println(\"배송비 \" + fee + \"원\");\n    }",
+      "say": "fee가 0인지 비교해 두 문구 중 하나만 출력해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "배송비 3000원이 나와요. 아직 구간 조건이 없어 기본값 그대로예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    // 여기에 구간에 맞게 fee를 정하는 조건문을 쓰세요.",
+      "after": "    // 높은 구간부터 검사해 한 갈래만 실행해요.\n    if (amount >= 30000) {\n        fee = 0;\n    } else if (amount >= 15000) {\n        fee = 1500;\n    }",
+      "say": "높은 구간부터 if와 else if로 이어 써요. 한 갈래만 실행돼요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        14,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "32,000원은 무료배송이에요. 첫 조건이 참이라 뒤 조건은 건너뛰었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. else 없이 if를 따로 쓰면 32,000원도 둘째 조건에서 1,500원으로 덮어써요.",
+      "target": "code:} else if (amount >= 15000) {"
+    },
+    {
+      "action": "patch_code",
+      "before": "int amount = 32000;",
+      "after": "int amount = 30000;",
+      "say": "경계 금액 30,000원으로 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        14,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "30,000원도 무료배송이에요. 이상을 뜻하는 >=라 기준 금액을 포함해요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "int amount = 30000;",
+      "after": "int amount = 29999;",
+      "say": "1원 모자란 29,999원도 확인해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        14,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "배송비 1500원이에요. 첫 조건은 거짓, 둘째 조건이 참이었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "int amount = 29999;",
+      "after": "int amount = 32000;",
+      "say": "준비된 금액 32,000원으로 되돌려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        14,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "다시 무료배송이에요. 채점은 경계 금액들로도 실행해요.",
+      "target": "output"
+    }
+  ]
+}
