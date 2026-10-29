@@ -121,6 +121,21 @@ def sql_output(files, source):
     return '\n'.join(out).rstrip('\n')
 
 
+def lesson_python():
+    """The interpreter the debug player grades with (src/runner.rs python_executable): MOLIP_PYTHON, then
+    the repository's target/ml-env with the course packages."""
+    import os
+    import sys
+    from pathlib import Path
+    if os.environ.get('MOLIP_PYTHON'):
+        return os.environ['MOLIP_PYTHON']
+    root = Path(__file__).resolve().parents[2]
+    for local in (root / 'target/ml-env/Scripts/python.exe', root / 'target/ml-env/bin/python'):
+        if local.is_file():
+            return str(local)
+    return sys.executable
+
+
 def py_run(source, values=None, timeout=60):
     """Run Python `source` with top-level assignments replaced as the prepared checker does (ast).
     Authoring aid: the expected output of the solution for each prepared case."""
@@ -138,7 +153,7 @@ def py_run(source, values=None, timeout=60):
     if remaining:
         raise ValueError(f'prepared names not assigned at top level: {remaining}')
     ast.fix_missing_locations(tree)
-    run = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)], capture_output=True, text=True,
+    run = subprocess.run([lesson_python(), '-I', '-X', 'utf8', '-c', ast.unparse(tree)], capture_output=True, text=True,
                          encoding='utf-8', timeout=timeout)
     if run.returncode != 0:
         raise ValueError(f'solution failed for {values}: {run.stderr[-800:]}')
@@ -148,3 +163,36 @@ def py_run(source, values=None, timeout=60):
 def py_cases(solution, *value_sets):
     """Prepared cases whose expected output is the solution's real output for each set of values."""
     return [{'values': v, 'expected': py_run(solution, v)} for v in value_sets]
+
+
+def file_variants_checker(reference, variants, message):
+    """A lesson checker that rewrites the prepared data files and runs both the learner's main.py and the
+    reference solution on each variant, comparing their real output. `variants` is a list of
+    {file name: text}; the original files are restored afterwards."""
+    import json as _json
+    return ('import json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\n'
+            f'REFERENCE = {reference!r}\nVARIANTS = json.loads({_json.dumps(variants, ensure_ascii=False)!r})\n'
+            'names = sorted({name for variant in VARIANTS for name in variant})\n'
+            'original = {name: Path(name).read_text(encoding="utf-8") if Path(name).exists() else None for name in names}\n'
+            'Path("_reference.py").write_text(REFERENCE, encoding="utf-8")\n'
+            'def run(script):\n'
+            '    return subprocess.run([sys.executable, "-I", "-X", "utf8", script], stdin=subprocess.DEVNULL, capture_output=True,\n'
+            '                          text=True, encoding="utf-8", timeout=60)\n'
+            'try:\n'
+            '    for variant in VARIANTS:\n'
+            '        for name, text in variant.items():\n'
+            '            Path(name).write_text(text, encoding="utf-8")\n'
+            '        expected = run("_reference.py")\n'
+            '        if expected.returncode != 0:\n'
+            '            raise RuntimeError("준비한 검사 자료를 읽지 못했어요: " + expected.stderr[-300:])\n'
+            '        actual = run("main.py")\n'
+            '        if actual.returncode != 0 or actual.stdout.strip() != expected.stdout.strip():\n'
+            f'            raise AssertionError({message!r})\n'
+            'finally:\n'
+            '    for name, text in original.items():\n'
+            '        if text is None:\n'
+            '            Path(name).unlink(missing_ok=True)\n'
+            '        else:\n'
+            '            Path(name).write_text(text, encoding="utf-8")\n'
+            '    Path("_reference.py").unlink(missing_ok=True)\n'
+            'print(f"바꾼 자료 {len(VARIANTS)}개에서도 통과했어요.")\n')

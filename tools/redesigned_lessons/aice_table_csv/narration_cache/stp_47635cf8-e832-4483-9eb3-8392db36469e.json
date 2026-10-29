@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "e18b47a5b8059a1752e798c9dcc225cd0f023ef7755e6c5d728e88dce338b0cf",
+  "entry": [
+    {
+      "action": "say",
+      "text": "제공된 파일은 delivery.csv예요. read_csv가 찾을 파일 이름을 고쳐야 해요.",
+      "target": "text:read_csv 줄의 파일 이름을 고쳐 제공된 배송 파일을 읽으세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ],
+      "expect_error": "FileNotFoundError"
+    },
+    {
+      "action": "say",
+      "text": "FileNotFoundError예요. 실행 폴더에 minutes.csv가 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "pd.read_csv(\"minutes.csv\")",
+      "after": "pd.read_csv(\"delivery.csv\")",
+      "say": "파일 이름을 delivery.csv로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "(4, 3)이에요. 파일의 첫 행은 열 이름이 되고 나머지 네 줄이 행이 됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 열 이름 minutes는 파일 이름이 아니에요. 괄호 안에는 실제 파일 이름을 써요.",
+      "target": "code:pd.read_csv(\"delivery.csv\")"
+    }
+  ]
+}

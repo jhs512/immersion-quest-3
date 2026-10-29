@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_2026e9e9-084e-4070-bb20-ae9ab546fe5b",
-  "revision": "aice-table-csv-6",
+  "revision": "aice-table-csv-7",
   "title": "배송 표를 보고 CSV로 읽어요",
   "description": "같은 배송 자료를 표와 CSV로 읽으며 필요한 부분을 골라요.",
   "objectives": [
@@ -35,9 +35,9 @@
           "premise": "배송 네 건의 주문번호·소요시간·지역을 확인해요. 준비 코드를 조금씩 바꿔 봐요.",
           "steps": [
             {
-              "id": "stp_f7b0188e-642a-48bd-8538-e99f9aed0247",
+              "id": "stp_e79c2e4f-fb2d-402a-b532-da263d778c5c",
               "objectives": [
-                "표의 행과 열 이름을 구별해요."
+                "표의 열 이름과 인덱스를 구별해요."
               ]
             },
             {
@@ -47,15 +47,15 @@
               ]
             },
             {
-              "id": "stp_b2770a40-abcf-4130-a60f-65d8214ba3b1",
+              "id": "stp_25ef3794-4485-4f8f-9bce-0edf59c22a8f",
               "objectives": [
-                "shape의 두 숫자는 행 수와 열 수임을 이해해요."
+                "앞부분 보기와 원래 표의 크기를 구별해요."
               ]
             },
             {
-              "id": "stp_8bef9af7-84ab-4006-9836-85dda69def1d",
+              "id": "stp_d605904e-bd97-4602-8d7e-dedd67e31444",
               "objectives": [
-                "한 열을 선택하는 것과 행 하나를 고르는 것을 구별해요."
+                "열 이름 하나로 그 열의 값들을 골라요."
               ]
             }
           ]
@@ -78,27 +78,27 @@
           "premise": "delivery.csv 하나에 같은 네 건이 들어 있어요. 맨 위 행은 열 이름이에요.",
           "steps": [
             {
-              "id": "stp_1103f3b5-48c1-44fe-9b28-198c3ad26f10",
+              "id": "stp_47635cf8-e832-4483-9eb3-8392db36469e",
               "objectives": [
-                "파일 경로와 읽은 표 객체를 구별해요."
+                "read_csv가 실행 폴더의 실제 파일을 읽어 표로 만드는 것을 확인해요."
               ]
             },
             {
-              "id": "stp_5e5384be-4ac4-4cd2-a5a3-ef57320adaf6",
+              "id": "stp_c0f636c6-c83e-4e09-89de-fe18267801f7",
               "objectives": [
-                "iloc0은 위치상 첫 항목을 고름을 이해해요."
+                "iloc의 위치가 0부터 시작함을 써서 확인해요."
               ]
             },
             {
-              "id": "stp_7644b2c6-aeb1-47da-a776-94ac3feb410f",
+              "id": "stp_7c333872-8c6b-45d3-b3f6-df104902be4a",
               "objectives": [
-                "열 이름 목록을 선택하면 여러 열의 표를 얻음을 이해해요."
+                "열 이름 목록으로 필요한 열들만 남긴 표를 만들어요."
               ]
             },
             {
-              "id": "stp_44f23f0c-39aa-4135-9a56-af6901ab9e8b",
+              "id": "stp_85396d4d-7992-4447-8c6b-3a176ad1142c",
               "objectives": [
-                "자료 행이 늘면 전체 행 수가 바뀜을 이해해요."
+                "앞부분을 본 뒤에도 원래 표가 그대로임을 확인해요."
               ]
             }
           ]
@@ -124,56 +124,37 @@
   ],
   "tasks": [
     {
-      "id": "stp_f7b0188e-642a-48bd-8538-e99f9aed0247",
-      "title": "준비된 표를 실행해요",
-      "goal": "코드를 그대로 실행하세요.\n배송시간을 담은 열 이름을 고르세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 출력을 근거로 질문에 맞는 보기를 고르세요.\n3. 선택한 보기를 제출하세요.",
+      "id": "stp_e79c2e4f-fb2d-402a-b532-da263d778c5c",
+      "title": "df.columns로 열 이름 목록을 출력하세요",
+      "goal": "판다스의 표(DataFrame)는 맨 위에 열 이름, 왼쪽에 행을 가리키는 인덱스가 있어요. `df.columns`는 표가 가진 열 이름들이에요.\n\nprint 줄을 고쳐 표 전체 대신 열 이름 목록을 출력하세요. `list(df.columns)`로 써요. 채점은 열 구성이 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 표 전체가 나오는지 확인하세요.\n2. `print(df)`를 `print(list(df.columns))`로 고치세요.\n3. 코드 실행을 눌러 열 이름 세 개가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "minutes",
-      "tests": [],
+      "starter_code": "# 판다스(pandas)를 pd라는 짧은 이름으로 불러와요.\nimport pandas as pd\n# 같은 열의 값들을 목록으로 모아요. 목록의 길이는 같아요.\ndelivery = {\"order_id\": [101, 102, 103, 104],\n            \"minutes\": [12, 18, 30, 42],\n            \"region\": [\"서울\", \"부산\", \"서울\", \"부산\"]}\n# 열 이름과 값 목록을 표(DataFrame)로 만들어요.\ndf = pd.DataFrame(delivery)\n# 이 줄을 고쳐 표 전체 대신 열 이름 목록을 출력하세요.\nprint(df)\n",
+      "solution": "# 판다스(pandas)를 pd라는 짧은 이름으로 불러와요.\nimport pandas as pd\n# 같은 열의 값들을 목록으로 모아요. 목록의 길이는 같아요.\ndelivery = {\"order_id\": [101, 102, 103, 104],\n            \"minutes\": [12, 18, 30, 42],\n            \"region\": [\"서울\", \"부산\", \"서울\", \"부산\"]}\n# 열 이름과 값 목록을 표(DataFrame)로 만들어요.\ndf = pd.DataFrame(delivery)\n# 이 줄을 고쳐 표 전체 대신 열 이름 목록을 출력하세요.\n# columns는 표가 가진 열 이름들이에요. list로 바꾸면 이름만 보기 쉬워요.\nprint(list(df.columns))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "['order_id', 'minutes', 'region']"
+        }
+      ],
       "required": true,
-      "example_code": "# 판다스(pandas)를 pd라는 짧은 이름으로 불러와요.\nimport pandas as pd\n# 같은 열의 값들을 목록으로 모아요. 목록의 길이는 같아요.\ndelivery = {\"order_id\": [101, 102, 103, 104],\n            \"minutes\": [12, 18, 30, 42],\n            \"region\": [\"서울\", \"부산\", \"서울\", \"부산\"]}\n# 열 이름과 값 목록을 표(DataFrame)로 만들어요.\ndf = pd.DataFrame(delivery)\n# 표의 행과 열 이름을 확인해요.\nprint(df)\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "twelve",
-            "text": "12"
-          },
-          {
-            "id": "index",
-            "text": "왼쪽의 0, 1, 2, 3"
-          },
-          {
-            "id": "minutes",
-            "text": "minutes"
-          }
-        ],
-        "answer": "minutes"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "이 수업에서는 표의 행·열·인덱스를 구별해요. 일부를 보는 일과 전체 크기 확인도 나눠요."
+          "text": "이 수업에서는 표의 행·열·인덱스를 구별해요. 일부를 보는 일과 전체 크기 확인도 직접 코드로 나눠 봐요."
         },
         {
           "action": "say",
-          "text": "CSV에서 읽은 배송 표를 살펴봐요. 필요한 열과 항목을 선택하며 표를 익혀요."
+          "text": "CSV에서 읽은 배송 표를 살펴봐요. 필요한 열과 항목을 직접 골라 꺼내며 표를 익혀요."
         },
         {
           "action": "say",
-          "text": "출력된 표에서 배송시간이 든 열의 이름을 찾는 문제예요.",
-          "target": "text:준비된 표를 실행해요#1"
+          "text": "df.columns로 열 이름 목록을 출력하는 문제예요.",
+          "target": "text:df.columns로 열 이름 목록을 출력하세요#1"
         },
         {
           "action": "say",
-          "text": "딕셔너리의 키가 표의 열 이름이 되고 값 목록이 각 열의 칸이 돼요.",
-          "target": "text:배송시간을 담은 열 이름을 고르세요."
-        },
-        {
-          "action": "say",
-          "text": "맨 위의 이름이 열 이름이에요.",
-          "target": "lines:4:6"
+          "text": "표의 맨 위에 열 이름이, 왼쪽에 인덱스가 보여요. 열 이름만 목록으로 출력해야 해요.",
+          "target": "text:print 줄을 고쳐 표 전체 대신 열 이름 목록을 출력하세요."
         },
         {
           "action": "run",
@@ -184,24 +165,34 @@
         },
         {
           "action": "say",
-          "text": "네 행에 주문번호·시간·지역이 보이죠?",
+          "text": "표 전체가 나와요. 맨 위 order_id, minutes, region이 열 이름이고 왼쪽 0부터 3은 인덱스예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "print(df)\n",
+          "after": "print(list(df.columns))\n",
+          "say": "df.columns를 list로 바꿔 출력해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "['order_id', 'minutes', 'region']이에요. 배송 시간은 minutes 열에 있어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 왼쪽 번호는 행을 구별하는 표시예요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "12는 첫 배송시간이에요. 열 이름은 minutes예요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "minutes"
+          "text": "조심하세요. 왼쪽의 0, 1, 2, 3은 열 이름이 아니라 행을 가리키는 인덱스예요.",
+          "target": "code:df.columns"
         }
-      ]
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"delivery\": {\"order_id\": [201], \"minutes\": [7], \"region\": [\"부산\"]}}, \"expected\": \"[\\'order_id\\', \\'minutes\\', \\'region\\']\"}, {\"values\": {\"delivery\": {\"order_id\": [301, 302, 303, 304, 305], \"minutes\": [15, 9, 40, 11, 22], \"region\": [\"서울\", \"부산\", \"서울\", \"부산\", \"서울\"], \"distance\": [2, 1, 5, 1, 3]}}, \"expected\": \"[\\'order_id\\', \\'minutes\\', \\'region\\', \\'distance\\']\"}, {\"values\": {\"delivery\": {\"minutes\": [50, 45], \"region\": [\"서울\", \"부산\"], \"order_id\": [401, 402]}}, \"expected\": \"[\\'minutes\\', \\'region\\', \\'order_id\\']\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
       "id": "stp_315f010b-288f-4462-8f2f-c7fe6d1dad23",
@@ -267,123 +258,92 @@
       "checker": "import json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\nfor count in [4, 7, 1]:\n    delivery = {'order_id': list(range(101, 101 + count)),\n                'minutes': [12 + offset * 6 for offset in range(count)],\n                'region': ['서울' if offset % 2 == 0 else '부산' for offset in range(count)]}\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', \"import ast\\nimport copy\\nimport json\\nimport sys\\nimport pandas as pd\\n\\npayload = json.loads(sys.stdin.read())\\ntree = ast.parse(payload['source'], filename='main.py')\\nfound = False\\nfor statement in tree.body:\\n    if isinstance(statement, ast.Assign) and any(isinstance(target, ast.Name) and target.id == 'delivery' for target in statement.targets):\\n        if not found:\\n            statement.value = ast.parse(repr(payload['delivery']), mode='eval').body\\n            found = True\\nif not found:\\n    raise AssertionError('준비 자료의 이름을 그대로 두세요.')\\nast.fix_missing_locations(tree)\\nshown = []\\nvisible_output = sys.stdout\\noriginal_print = print\\ndef capture(*args, **kwargs):\\n    destination = kwargs.get('file')\\n    if destination is None:\\n        destination = sys.stdout\\n    if destination is visible_output:\\n        shown.append([value.copy(deep=True) if isinstance(value, pd.DataFrame) else value for value in args])\\n    else:\\n        original_print(*args, **kwargs)\\nnamespace = {'__name__': '__main__', 'print': capture}\\nexec(compile(tree, 'main.py', 'exec'), namespace)\\noriginal = pd.DataFrame(payload['delivery'])\\nif len(shown) != 1 or len(shown[0]) != 1 or not isinstance(shown[0][0], pd.DataFrame):\\n    raise AssertionError('앞부분의 표 하나를 출력해 보세요.')\\nif not shown[0][0].equals(original.head(3)):\\n    raise AssertionError('앞의 세 건을 확인하는지 살펴보세요.')\\nif not isinstance(namespace.get('df'), pd.DataFrame) or not namespace['df'].equals(original):\\n    raise AssertionError('원래 표는 그대로 두고 앞부분만 살펴보세요.')\\nprint('HEAD_CHECK_COMPLETE')\\n\"],\n                            input=json.dumps({'source': source, 'delivery': delivery}),\n                            capture_output=True, text=True, encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != 'HEAD_CHECK_COMPLETE':\n        raise AssertionError('앞의 세 건과 원래 표를 다른 자료에서도 확인해 보세요.')\nprint('표의 행과 값이 맞아요. 원래 자료도 유지했어요.')\n"
     },
     {
-      "id": "stp_b2770a40-abcf-4130-a60f-65d8214ba3b1",
-      "title": "전체 크기를 확인해요",
-      "goal": "앞의 두 건만 봤어요. head(2)처럼 괄호가 붙은 것은 일을 시키는 호출이고, shape처럼 괄호 없이 점 뒤에 이름만 쓰는 것은 표가 이미 가진 정보(속성)를 읽는 거예요.\n원래 표 df의 크기를 고르세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 출력을 근거로 질문에 맞는 보기를 고르세요.\n3. 선택한 보기를 제출하세요.",
+      "id": "stp_25ef3794-4485-4f8f-9bce-0edf59c22a8f",
+      "title": "df.shape으로 원래 표의 크기를 출력하세요",
+      "goal": "앞의 두 건만 봤어요. `head(2)`처럼 괄호가 붙은 것은 일을 시키는 호출이고, `shape`처럼 괄호 없이 점 뒤에 이름만 쓰는 것은 표가 이미 가진 정보(속성)를 읽는 거예요. shape은 (행 수, 열 수)예요.\n\n마지막 print 줄을 고쳐 앞부분이 아니라 원래 표 df의 크기를 출력하세요. 채점은 행·열 수가 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 (2, 3)이 나오는지 확인하세요.\n2. `df.head(2).shape`을 `df.shape`으로 고치세요.\n3. 코드 실행을 눌러 (4, 3)이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "four-three",
-      "tests": [],
+      "starter_code": "# 판다스(pandas)를 pd라는 짧은 이름으로 불러와요.\nimport pandas as pd\n# 같은 열의 값들을 목록으로 모아요. 목록의 길이는 같아요.\ndelivery = {\"order_id\": [101, 102, 103, 104],\n            \"minutes\": [12, 18, 30, 42],\n            \"region\": [\"서울\", \"부산\", \"서울\", \"부산\"]}\n# 열 이름과 값 목록을 표(DataFrame)로 만들어요.\ndf = pd.DataFrame(delivery)\n# 두 건만 본 뒤 원래 표의 크기를 확인해요.\nprint(df.head(2))\n# 이 줄을 고쳐 앞부분이 아니라 원래 표 df의 크기를 출력하세요.\nprint(df.head(2).shape)\n",
+      "solution": "# 판다스(pandas)를 pd라는 짧은 이름으로 불러와요.\nimport pandas as pd\n# 같은 열의 값들을 목록으로 모아요. 목록의 길이는 같아요.\ndelivery = {\"order_id\": [101, 102, 103, 104],\n            \"minutes\": [12, 18, 30, 42],\n            \"region\": [\"서울\", \"부산\", \"서울\", \"부산\"]}\n# 열 이름과 값 목록을 표(DataFrame)로 만들어요.\ndf = pd.DataFrame(delivery)\n# 두 건만 본 뒤 원래 표의 크기를 확인해요.\nprint(df.head(2))\n# 이 줄을 고쳐 앞부분이 아니라 원래 표 df의 크기를 출력하세요.\n# shape은 괄호 없이 읽는 속성이에요. head 결과가 아니라 df에서 읽어요.\nprint(df.shape)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "order_id  minutes region\n0       101       12     서울\n1       102       18     부산\n(4, 3)"
+        }
+      ],
       "required": true,
-      "example_code": "# 판다스(pandas)를 pd라는 짧은 이름으로 불러와요.\nimport pandas as pd\n# 같은 열의 값들을 목록으로 모아요. 목록의 길이는 같아요.\ndelivery = {\"order_id\": [101, 102, 103, 104],\n            \"minutes\": [12, 18, 30, 42],\n            \"region\": [\"서울\", \"부산\", \"서울\", \"부산\"]}\n# 열 이름과 값 목록을 표(DataFrame)로 만들어요.\ndf = pd.DataFrame(delivery)\n# 두 건만 본 뒤 원래 표의 크기를 확인해요.\nprint(df.head(2))\nprint(df.shape)\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "two-three",
-            "text": "2행 · 3열"
-          },
-          {
-            "id": "four-three",
-            "text": "4행 · 3열"
-          },
-          {
-            "id": "five-three",
-            "text": "5행 · 3열"
-          }
-        ],
-        "answer": "four-three"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "head(2)로 일부만 본 뒤에도 원래 표 df의 크기가 그대로인지 묻는 문제예요.",
-          "target": "text:전체 크기를 확인해요#1"
+          "text": "df.shape으로 원래 표의 크기를 출력하는 문제예요.",
+          "target": "text:df.shape으로 원래 표의 크기를 출력하세요#1"
         },
         {
           "action": "say",
-          "text": "마지막 줄의 shape에는 괄호가 없어요. 계산을 시키는 게 아니라 표가 가진 크기 정보를 읽어요.",
-          "target": "code:df.shape"
+          "text": "head(2)처럼 괄호가 붙은 것은 호출이고, shape은 표가 가진 정보예요. 원래 표의 크기를 출력해야 해요.",
+          "target": "text:마지막 print 줄을 고쳐 앞부분이 아니라 원래 표 df의 크기를 출력하세요."
         },
         {
           "action": "run",
           "lines": [
-            11,
-            11
+            10,
+            12
           ]
         },
         {
           "action": "say",
-          "text": "일부는 두 건이지만 전체 크기는 (4, 3)이에요.",
+          "text": "앞 두 건과 (2, 3)이에요. head(2)로 자른 표의 크기를 읽었어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "head(2)",
-          "after": "head(3)",
-          "say": "살펴보는 행만 세 건으로 늘려요."
+          "before": "print(df.head(2).shape)",
+          "after": "print(df.shape)",
+          "say": ".head(2)를 지우고 df.shape을 읽어요."
         },
         {
           "action": "run",
           "lines": [
-            11,
-            11
+            10,
+            12
           ]
         },
         {
           "action": "say",
-          "text": "세 건을 봐도 전체 크기는 (4, 3)이에요.",
+          "text": "(4, 3)이에요. 원래 표는 4행 3열이에요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "shape는 행 수, 열 수를 차례로 알려 줘요. 열 이름 줄은 행 수에 들어가지 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "four-three"
+          "text": "조심하세요. head는 보여 주기만 해요. 원래 df의 행을 줄이지 않아요.",
+          "target": "code:print(df.shape)"
         }
-      ]
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"delivery\": {\"order_id\": [201], \"minutes\": [7], \"region\": [\"부산\"]}}, \"expected\": \"order_id  minutes region\\\\n0       201        7     부산\\\\n(1, 3)\"}, {\"values\": {\"delivery\": {\"order_id\": [301, 302, 303, 304, 305], \"minutes\": [15, 9, 40, 11, 22], \"region\": [\"서울\", \"부산\", \"서울\", \"부산\", \"서울\"], \"distance\": [2, 1, 5, 1, 3]}}, \"expected\": \"order_id  minutes region  distance\\\\n0       301       15     서울         2\\\\n1       302        9     부산         1\\\\n(5, 4)\"}, {\"values\": {\"delivery\": {\"minutes\": [50, 45], \"region\": [\"서울\", \"부산\"], \"order_id\": [401, 402]}}, \"expected\": \"minutes region  order_id\\\\n0       50     서울       401\\\\n1       45     부산       402\\\\n(2, 3)\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_8bef9af7-84ab-4006-9836-85dda69def1d",
-      "title": "배송시간 열을 골라요",
-      "goal": "배송시간 네 개만 확인하려 해요.\n필요한 열을 고르는 코드를 선택하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 출력을 근거로 질문에 맞는 보기를 고르세요.\n3. 선택한 보기를 제출하세요.",
+      "id": "stp_d605904e-bd97-4602-8d7e-dedd67e31444",
+      "title": "df[\"minutes\"]로 배송시간 열을 꺼내세요",
+      "goal": "배송시간 네 개만 확인하려 해요. `df[\"열 이름\"]`은 그 열의 값들을 골라요. `.tolist()`는 고른 값을 목록으로 보여 줘요.\n\nprint 줄의 열 이름을 고쳐 배송시간 값들을 꺼내세요. 채점은 열 순서와 값이 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지역 값이 나오는지 확인하세요.\n2. 열 이름 `\"region\"`을 `\"minutes\"`로 고치세요.\n3. 코드 실행을 눌러 [12, 18, 30, 42]가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "minutes",
-      "tests": [],
+      "starter_code": "# 판다스(pandas)를 pd라는 짧은 이름으로 불러와요.\nimport pandas as pd\n# 같은 열의 값들을 목록으로 모아요. 목록의 길이는 같아요.\ndelivery = {\"order_id\": [101, 102, 103, 104],\n            \"minutes\": [12, 18, 30, 42],\n            \"region\": [\"서울\", \"부산\", \"서울\", \"부산\"]}\n# 열 이름과 값 목록을 표(DataFrame)로 만들어요.\ndf = pd.DataFrame(delivery)\n# 이 줄의 열 이름을 고쳐 배송시간 값들을 꺼내세요.\nprint(df[\"region\"].tolist())\n",
+      "solution": "# 판다스(pandas)를 pd라는 짧은 이름으로 불러와요.\nimport pandas as pd\n# 같은 열의 값들을 목록으로 모아요. 목록의 길이는 같아요.\ndelivery = {\"order_id\": [101, 102, 103, 104],\n            \"minutes\": [12, 18, 30, 42],\n            \"region\": [\"서울\", \"부산\", \"서울\", \"부산\"]}\n# 열 이름과 값 목록을 표(DataFrame)로 만들어요.\ndf = pd.DataFrame(delivery)\n# 이 줄의 열 이름을 고쳐 배송시간 값들을 꺼내세요.\n# 대괄호에 열 이름 하나를 주면 그 열의 값들을 골라요.\nprint(df[\"minutes\"].tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[12, 18, 30, 42]"
+        }
+      ],
       "required": true,
-      "example_code": "# 판다스(pandas)를 pd라는 짧은 이름으로 불러와요.\nimport pandas as pd\n# 같은 열의 값들을 목록으로 모아요. 목록의 길이는 같아요.\ndelivery = {\"order_id\": [101, 102, 103, 104],\n            \"minutes\": [12, 18, 30, 42],\n            \"region\": [\"서울\", \"부산\", \"서울\", \"부산\"]}\n# 열 이름과 값 목록을 표(DataFrame)로 만들어요.\ndf = pd.DataFrame(delivery)\n# 이름을 하나 주면 그 열의 값들을 골라요.\nprint(df[\"minutes\"])\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "region",
-            "text": "df[\"region\"]"
-          },
-          {
-            "id": "minutes",
-            "text": "df[\"minutes\"]"
-          },
-          {
-            "id": "first",
-            "text": "df.head(1)"
-          }
-        ],
-        "answer": "minutes"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "배송시간 열을 고르는 문제예요.",
-          "target": "text:배송시간 열을 골라요#1"
+          "text": "df[\"minutes\"]로 배송시간 열을 꺼내는 문제예요.",
+          "target": "text:df[\"minutes\"]로 배송시간 열을 꺼내세요#1"
         },
         {
           "action": "say",
-          "text": "대괄호에 열 이름 하나를 넣으면 그 열의 값들만 나와요. 배송시간 네 개를 보려면 어떤 이름을 넣어야 하는지 골라요.",
-          "target": "text:필요한 열을 고르는 코드를 선택하세요."
+          "text": "배송시간 네 개만 확인하려 해요. 열 이름을 고쳐 minutes 열을 골라야 해요.",
+          "target": "text:print 줄의 열 이름을 고쳐 배송시간 값들을 꺼내세요."
         },
         {
           "action": "run",
@@ -394,37 +354,14 @@
         },
         {
           "action": "say",
-          "text": "시간 12, 18, 30, 42가 나와요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "df[\"minutes\"]",
-          "after": "df[\"region\"]",
-          "say": "열 이름만 region으로 바꿔 볼게요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            10,
-            10
-          ]
-        },
-        {
-          "action": "say",
-          "text": "이제 같은 네 건의 지역이 나와요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "열 하나에도 여러 배송의 값이 들어 있어요.",
+          "text": "서울, 부산 같은 지역이 나와요. region 열을 골랐어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
           "before": "df[\"region\"]",
           "after": "df[\"minutes\"]",
-          "say": "원하는 배송시간 열로 돌아와요."
+          "say": "열 이름을 \"minutes\"로 바꿔요."
         },
         {
           "action": "run",
@@ -435,76 +372,45 @@
         },
         {
           "action": "say",
-          "text": "다시 네 배송시간이 보여요.",
+          "text": "[12, 18, 30, 42]예요. 배송시간 열의 값 네 개예요.",
           "target": "output"
         },
         {
-          "action": "choose_answer",
-          "id": "minutes"
+          "action": "say",
+          "text": "조심하세요. df.head(1)은 첫 행 하나예요. 한 열의 값들을 고르는 것과 달라요.",
+          "target": "code:df[\"minutes\"]"
         }
-      ]
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"delivery\": {\"order_id\": [201], \"minutes\": [7], \"region\": [\"부산\"]}}, \"expected\": \"[7]\"}, {\"values\": {\"delivery\": {\"order_id\": [301, 302, 303, 304, 305], \"minutes\": [15, 9, 40, 11, 22], \"region\": [\"서울\", \"부산\", \"서울\", \"부산\", \"서울\"], \"distance\": [2, 1, 5, 1, 3]}}, \"expected\": \"[15, 9, 40, 11, 22]\"}, {\"values\": {\"delivery\": {\"minutes\": [50, 45], \"region\": [\"서울\", \"부산\"], \"order_id\": [401, 402]}}, \"expected\": \"[50, 45]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_1103f3b5-48c1-44fe-9b28-198c3ad26f10",
-      "title": "같은 자료를 CSV에서 읽어요",
-      "goal": "같은 자료를 파일로 받았어요. read_csv는 괄호 안 파일명을 실행 폴더에서 찾아 표로 읽어요.\n이 코드를 실행하려면 실행 폴더에 꼭 있어야 하는 파일은 무엇일까요?\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 출력을 근거로 질문에 맞는 보기를 고르세요.\n3. 선택한 보기를 제출하세요.",
+      "id": "stp_47635cf8-e832-4483-9eb3-8392db36469e",
+      "title": "read_csv의 파일 이름을 delivery.csv로 고치세요",
+      "goal": "같은 자료를 파일로 받았어요. `read_csv`는 괄호 안 파일명을 실행 폴더에서 찾아 표로 읽어요. 제공된 파일 이름은 delivery.csv이고 첫 행은 열 이름이에요.\n\nread_csv 줄의 파일 이름을 고쳐 제공된 배송 파일을 읽으세요. 채점은 delivery.csv의 내용을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 FileNotFoundError가 나오는지 확인하세요.\n2. `\"minutes.csv\"`를 `\"delivery.csv\"`로 고치세요.\n3. 코드 실행을 눌러 (4, 3)이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "delivery",
-      "tests": [],
-      "required": true,
-      "example_code": "# 판다스를 pd라는 이름으로 불러와요.\nimport pandas as pd\n# 제공 파일은 실행 폴더에 있어요. 첫 행은 열 이름이에요.\ndf = pd.read_csv(\"delivery.csv\")\n# 읽어 온 표를 확인해요.\nprint(df)\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "df",
-            "text": "파일은 없어도 돼요. read_csv가 표를 새로 만들어요"
-          },
-          {
-            "id": "delivery",
-            "text": "delivery.csv"
-          },
-          {
-            "id": "minutes",
-            "text": "minutes.csv (배송시간 열 이름의 파일)"
-          }
-        ],
-        "answer": "delivery"
+      "starter_code": "# 판다스를 pd라는 이름으로 불러와요.\nimport pandas as pd\n# 제공 파일은 실행 폴더에 있어요. 첫 행은 열 이름이에요.\n# 이 줄의 파일 이름을 고쳐 제공된 배송 파일을 읽으세요.\ndf = pd.read_csv(\"minutes.csv\")\nprint(df.shape)\n",
+      "solution": "# 판다스를 pd라는 이름으로 불러와요.\nimport pandas as pd\n# 제공 파일은 실행 폴더에 있어요. 첫 행은 열 이름이에요.\n# 이 줄의 파일 이름을 고쳐 제공된 배송 파일을 읽으세요.\n# read_csv는 실행 폴더에서 이 이름의 파일을 찾아 표로 읽어요.\ndf = pd.read_csv(\"delivery.csv\")\nprint(df.shape)\n",
+      "files": {
+        "delivery.csv": "order_id,minutes,region\n101,12,서울\n102,18,부산\n103,30,서울\n104,42,부산\n"
       },
+      "tests": [
+        {
+          "input": "",
+          "expected": "(4, 3)"
+        }
+      ],
+      "checker": "import json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nREFERENCE = '# 판다스를 pd라는 이름으로 불러와요.\\nimport pandas as pd\\n# 제공 파일은 실행 폴더에 있어요. 첫 행은 열 이름이에요.\\n# 이 줄의 파일 이름을 고쳐 제공된 배송 파일을 읽으세요.\\n# read_csv는 실행 폴더에서 이 이름의 파일을 찾아 표로 읽어요.\\ndf = pd.read_csv(\"delivery.csv\")\\nprint(df.shape)\\n'\nVARIANTS = json.loads('[{\"delivery.csv\": \"order_id,minutes,region\\\\n201,7,부산\\\\n\"}, {\"delivery.csv\": \"order_id,minutes,region,distance\\\\n301,15,서울,2\\\\n302,9,부산,1\\\\n303,40,서울,5\\\\n304,11,부산,1\\\\n305,22,서울,3\\\\n\"}, {\"delivery.csv\": \"region,minutes,order_id\\\\n서울,50,401\\\\n부산,45,402\\\\n부산,8,403\\\\n\"}]')\nnames = sorted({name for variant in VARIANTS for name in variant})\noriginal = {name: Path(name).read_text(encoding=\"utf-8\") if Path(name).exists() else None for name in names}\nPath(\"_reference.py\").write_text(REFERENCE, encoding=\"utf-8\")\ndef run(script):\n    return subprocess.run([sys.executable, \"-I\", \"-X\", \"utf8\", script], stdin=subprocess.DEVNULL, capture_output=True,\n                          text=True, encoding=\"utf-8\", timeout=60)\ntry:\n    for variant in VARIANTS:\n        for name, text in variant.items():\n            Path(name).write_text(text, encoding=\"utf-8\")\n        expected = run(\"_reference.py\")\n        if expected.returncode != 0:\n            raise RuntimeError(\"준비한 검사 자료를 읽지 못했어요: \" + expected.stderr[-300:])\n        actual = run(\"main.py\")\n        if actual.returncode != 0 or actual.stdout.strip() != expected.stdout.strip():\n            raise AssertionError('다른 배송 파일에서도 같은 원리로 맞는 결과가 나와야 해요.')\nfinally:\n    for name, text in original.items():\n        if text is None:\n            Path(name).unlink(missing_ok=True)\n        else:\n            Path(name).write_text(text, encoding=\"utf-8\")\n    Path(\"_reference.py\").unlink(missing_ok=True)\nprint(f\"바꾼 자료 {len(VARIANTS)}개에서도 통과했어요.\")\n",
+      "required": true,
       "narration": [
         {
           "action": "say",
-          "text": "read_csv가 무엇을 어디서 찾는지가 이 문제예요.",
-          "target": "text:같은 자료를 CSV에서 읽어요#1"
+          "text": "read_csv의 파일 이름을 delivery.csv로 고치는 문제예요.",
+          "target": "text:read_csv의 파일 이름을 delivery.csv로 고치세요#1"
         },
         {
           "action": "say",
-          "text": "괄호 안 이름의 파일이 실행 폴더에 있어야 표를 읽을 수 있어요.",
-          "target": "text:read_csv는 괄호 안 파일명을 실행 폴더에서 찾아 표로 읽어요."
-        },
-        {
-          "action": "say",
-          "text": "넷째 줄이 delivery.csv를 읽어 df라는 이름에 담아요.",
-          "target": "code:pd.read_csv(\"delivery.csv\")"
-        },
-        {
-          "action": "run",
-          "lines": [
-            6,
-            6
-          ]
-        },
-        {
-          "action": "say",
-          "text": "파일에서 앞 문제와 같은 네 건이 표로 읽혔어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "\"delivery.csv\"",
-          "after": "\"minutes.csv\"",
-          "say": "실행 폴더에 없는 파일 이름으로 바꿔 볼게요."
+          "text": "제공된 파일은 delivery.csv예요. read_csv가 찾을 파일 이름을 고쳐야 해요.",
+          "target": "text:read_csv 줄의 파일 이름을 고쳐 제공된 배송 파일을 읽으세요."
         },
         {
           "action": "run",
@@ -516,14 +422,14 @@
         },
         {
           "action": "say",
-          "text": "FileNotFoundError예요. 실행 폴더에 minutes.csv가 없어서 읽을 수 없어요. minutes는 파일 안의 열 이름일 뿐이에요.",
+          "text": "FileNotFoundError예요. 실행 폴더에 minutes.csv가 없어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "\"minutes.csv\"",
-          "after": "\"delivery.csv\"",
-          "say": "제공된 파일 이름으로 되돌려요."
+          "before": "pd.read_csv(\"minutes.csv\")",
+          "after": "pd.read_csv(\"delivery.csv\")",
+          "say": "파일 이름을 delivery.csv로 바꿔요."
         },
         {
           "action": "run",
@@ -534,155 +440,44 @@
         },
         {
           "action": "say",
-          "text": "다시 네 건이 읽혔어요.",
+          "text": "(4, 3)이에요. 파일의 첫 행은 열 이름이 되고 나머지 네 줄이 행이 됐어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. df는 읽어 온 표에 붙인 이름이라 파일이 아니에요. 파일이 없으면 df도 만들어지지 않아요.",
-          "target": "code:df ="
-        },
-        {
-          "action": "choose_answer",
-          "id": "delivery"
+          "text": "조심하세요. 열 이름 minutes는 파일 이름이 아니에요. 괄호 안에는 실제 파일 이름을 써요.",
+          "target": "code:pd.read_csv(\"delivery.csv\")"
         }
-      ],
+      ]
+    },
+    {
+      "id": "stp_c0f636c6-c83e-4e09-89de-fe18267801f7",
+      "title": "iloc[0]으로 첫 배송시간을 출력하세요",
+      "goal": "`iloc[위치]`는 위치로 항목을 골라요. 위치는 0부터 세어서 첫 항목은 `iloc[0]`이에요.\n\nprint 줄의 위치를 고쳐 minutes 열의 첫 항목을 출력하세요. 채점은 delivery.csv의 내용을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 18이 나오는지 확인하세요.\n2. `.iloc[1]`을 `.iloc[0]`으로 고치세요.\n3. 코드 실행을 눌러 12가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "# 판다스를 pd라는 이름으로 불러와요.\nimport pandas as pd\n# 제공 파일은 실행 폴더에 있어요. 첫 행은 열 이름이에요.\ndf = pd.read_csv(\"delivery.csv\")\n# 이 줄의 위치를 고쳐 minutes 열의 첫 항목을 출력하세요.\nprint(df[\"minutes\"].iloc[1])\n",
+      "solution": "# 판다스를 pd라는 이름으로 불러와요.\nimport pandas as pd\n# 제공 파일은 실행 폴더에 있어요. 첫 행은 열 이름이에요.\ndf = pd.read_csv(\"delivery.csv\")\n# 이 줄의 위치를 고쳐 minutes 열의 첫 항목을 출력하세요.\n# iloc의 위치도 0부터 세어요. 첫 항목은 0이에요.\nprint(df[\"minutes\"].iloc[0])\n",
       "files": {
         "delivery.csv": "order_id,minutes,region\n101,12,서울\n102,18,부산\n103,30,서울\n104,42,부산\n"
       },
-      "question": "이 코드를 실행하려면 실행 폴더에 꼭 있어야 하는 파일은 무엇일까요?"
-    },
-    {
-      "id": "stp_5e5384be-4ac4-4cd2-a5a3-ef57320adaf6",
-      "title": "첫 배송시간을 골라요",
-      "goal": "첫 배송시간은 12예요.\n첫 항목을 고르는 코드를 선택하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 출력을 근거로 질문에 맞는 보기를 고르세요.\n3. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "first",
-      "tests": [],
-      "required": true,
-      "example_code": "# 판다스를 pd라는 이름으로 불러와요.\nimport pandas as pd\n# 제공 파일은 실행 폴더에 있어요. 첫 행은 열 이름이에요.\ndf = pd.read_csv(\"delivery.csv\")\n# minutes 열에서 위치가 0인 첫 항목을 골라요.\nprint(df[\"minutes\"].iloc[0])\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "first",
-            "text": "df[\"minutes\"].iloc[0]"
-          },
-          {
-            "id": "second",
-            "text": "df[\"minutes\"].iloc[1]"
-          }
-        ],
-        "answer": "first"
-      },
-      "narration": [
+      "tests": [
         {
-          "action": "say",
-          "text": "첫 배송시간을 고르는 문제예요.",
-          "target": "text:첫 배송시간을 골라요#1"
-        },
-        {
-          "action": "say",
-          "text": "iloc[위치]는 열 안에서 몇 번째 항목인지로 값을 골라요. 위치는 0부터 세니 첫 배송시간 12를 고르는 위치를 찾아요.",
-          "target": "text:첫 항목을 고르는 코드를 선택하세요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            6,
-            6
-          ]
-        },
-        {
-          "action": "say",
-          "text": "위치 0에서 첫 배송시간 12가 나와요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "iloc[0]",
-          "after": "iloc[1]",
-          "say": "위치만 1로 바꿔 비교해요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            6,
-            6
-          ]
-        },
-        {
-          "action": "say",
-          "text": "두 번째 배송시간 18이 나와요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 위치는 0부터 세어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "iloc[1]",
-          "after": "iloc[0]",
-          "say": "첫 항목을 확인하는 코드로 돌아와요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            6,
-            6
-          ]
-        },
-        {
-          "action": "say",
-          "text": "첫 항목 12가 다시 나와요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "first"
+          "input": "",
+          "expected": "12"
         }
       ],
-      "files": {
-        "delivery.csv": "order_id,minutes,region\n101,12,서울\n102,18,부산\n103,30,서울\n104,42,부산\n"
-      }
-    },
-    {
-      "id": "stp_7644b2c6-aeb1-47da-a776-94ac3feb410f",
-      "title": "두 열을 표로 남겨요",
-      "goal": "주문번호와 배송시간만 전달하려 해요.\n두 열이 남는 코드를 고르세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 출력을 근거로 질문에 맞는 보기를 고르세요.\n3. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "two",
-      "tests": [],
+      "checker": "import json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nREFERENCE = '# 판다스를 pd라는 이름으로 불러와요.\\nimport pandas as pd\\n# 제공 파일은 실행 폴더에 있어요. 첫 행은 열 이름이에요.\\ndf = pd.read_csv(\"delivery.csv\")\\n# 이 줄의 위치를 고쳐 minutes 열의 첫 항목을 출력하세요.\\n# iloc의 위치도 0부터 세어요. 첫 항목은 0이에요.\\nprint(df[\"minutes\"].iloc[0])\\n'\nVARIANTS = json.loads('[{\"delivery.csv\": \"order_id,minutes,region\\\\n201,7,부산\\\\n\"}, {\"delivery.csv\": \"order_id,minutes,region,distance\\\\n301,15,서울,2\\\\n302,9,부산,1\\\\n303,40,서울,5\\\\n304,11,부산,1\\\\n305,22,서울,3\\\\n\"}, {\"delivery.csv\": \"region,minutes,order_id\\\\n서울,50,401\\\\n부산,45,402\\\\n부산,8,403\\\\n\"}]')\nnames = sorted({name for variant in VARIANTS for name in variant})\noriginal = {name: Path(name).read_text(encoding=\"utf-8\") if Path(name).exists() else None for name in names}\nPath(\"_reference.py\").write_text(REFERENCE, encoding=\"utf-8\")\ndef run(script):\n    return subprocess.run([sys.executable, \"-I\", \"-X\", \"utf8\", script], stdin=subprocess.DEVNULL, capture_output=True,\n                          text=True, encoding=\"utf-8\", timeout=60)\ntry:\n    for variant in VARIANTS:\n        for name, text in variant.items():\n            Path(name).write_text(text, encoding=\"utf-8\")\n        expected = run(\"_reference.py\")\n        if expected.returncode != 0:\n            raise RuntimeError(\"준비한 검사 자료를 읽지 못했어요: \" + expected.stderr[-300:])\n        actual = run(\"main.py\")\n        if actual.returncode != 0 or actual.stdout.strip() != expected.stdout.strip():\n            raise AssertionError('다른 배송 파일에서도 같은 원리로 맞는 결과가 나와야 해요.')\nfinally:\n    for name, text in original.items():\n        if text is None:\n            Path(name).unlink(missing_ok=True)\n        else:\n            Path(name).write_text(text, encoding=\"utf-8\")\n    Path(\"_reference.py\").unlink(missing_ok=True)\nprint(f\"바꾼 자료 {len(VARIANTS)}개에서도 통과했어요.\")\n",
       "required": true,
-      "example_code": "# 판다스를 pd라는 이름으로 불러와요.\nimport pandas as pd\n# 제공 파일은 실행 폴더에 있어요. 첫 행은 열 이름이에요.\ndf = pd.read_csv(\"delivery.csv\")\n# 열 이름 목록을 주면 필요한 열들로 표를 만들어요.\nprint(df[[\"order_id\", \"minutes\"]])\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "two",
-            "text": "df[[\"order_id\", \"minutes\"]]"
-          },
-          {
-            "id": "one",
-            "text": "df[\"minutes\"]"
-          }
-        ],
-        "answer": "two"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "두 열을 표로 남기는 문제예요.",
-          "target": "text:두 열을 표로 남겨요#1"
+          "text": "iloc[0]으로 첫 배송시간을 출력하는 문제예요.",
+          "target": "text:iloc[0]으로 첫 배송시간을 출력하세요#1"
         },
         {
           "action": "say",
-          "text": "대괄호 안에 열 이름 목록을 넣으면 그 열들만 남은 표가 돼요. 주문번호와 배송시간이 함께 남는 코드를 골라요.",
-          "target": "text:두 열이 남는 코드를 고르세요."
+          "text": "첫 배송시간을 꺼내야 해요. iloc의 위치를 확인해요.",
+          "target": "text:print 줄의 위치를 고쳐 minutes 열의 첫 항목을 출력하세요."
         },
         {
           "action": "run",
@@ -693,14 +488,14 @@
         },
         {
           "action": "say",
-          "text": "주문번호와 배송시간 두 열이 남았어요.",
+          "text": "18이에요. 위치 1은 두 번째 항목이에요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "df[[\"order_id\", \"minutes\"]]",
-          "after": "df[\"minutes\"]",
-          "say": "시간 열 하나만 골라 비교해요."
+          "before": ".iloc[1]",
+          "after": ".iloc[0]",
+          "say": "위치를 0으로 바꿔요."
         },
         {
           "action": "run",
@@ -711,79 +506,44 @@
         },
         {
           "action": "say",
-          "text": "시간만 보여서 주문번호를 전달할 수 없어요.",
+          "text": "12예요. 위치 0의 첫 항목이에요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 필요한 열 이름을 모두 목록에 넣어요.",
-          "target": "output"
-        },
+          "text": "조심하세요. iloc은 위치로, 인덱스 이름과 상관없이 고르는 방법이에요. 첫 위치는 0이에요.",
+          "target": "code:.iloc[0]"
+        }
+      ]
+    },
+    {
+      "id": "stp_7c333872-8c6b-45d3-b3f6-df104902be4a",
+      "title": "df[[\"order_id\", \"minutes\"]]로 두 열만 남기세요",
+      "goal": "주문번호와 배송시간만 전달하려 해요. 대괄호 안에 열 이름 하나를 주면 한 열, 열 이름 목록을 주면 그 열들로 된 표가 돼요.\n\nsmall 줄을 고쳐 주문번호와 배송시간 두 열이 남은 표를 만드세요. 채점은 열 순서가 다른 파일로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 한 열만 나오는지 확인하세요.\n2. `df[\"minutes\"]`를 `df[[\"order_id\", \"minutes\"]]`로 고치세요.\n3. 코드 실행을 눌러 두 열이 남은 표를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "# 판다스를 pd라는 이름으로 불러와요.\nimport pandas as pd\n# 제공 파일은 실행 폴더에 있어요. 첫 행은 열 이름이에요.\ndf = pd.read_csv(\"delivery.csv\")\n# 이 줄을 고쳐 주문번호와 배송시간 두 열이 남은 표를 만드세요.\nsmall = df[\"minutes\"]\nprint(small)\n",
+      "solution": "# 판다스를 pd라는 이름으로 불러와요.\nimport pandas as pd\n# 제공 파일은 실행 폴더에 있어요. 첫 행은 열 이름이에요.\ndf = pd.read_csv(\"delivery.csv\")\n# 이 줄을 고쳐 주문번호와 배송시간 두 열이 남은 표를 만드세요.\n# 열 이름 목록을 대괄호 안에 넣으면 그 열들만 남은 표가 돼요.\nsmall = df[[\"order_id\", \"minutes\"]]\nprint(small)\n",
+      "files": {
+        "delivery.csv": "order_id,minutes,region\n101,12,서울\n102,18,부산\n103,30,서울\n104,42,부산\n"
+      },
+      "tests": [
         {
-          "action": "patch_code",
-          "before": "df[\"minutes\"]",
-          "after": "df[[\"order_id\", \"minutes\"]]",
-          "say": "필요한 두 열을 다시 함께 골라요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            6,
-            6
-          ]
-        },
-        {
-          "action": "say",
-          "text": "두 열로 된 표가 다시 나왔어요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "two"
+          "input": "",
+          "expected": "   order_id  minutes\n0       101       12\n1       102       18\n2       103       30\n3       104       42"
         }
       ],
-      "files": {
-        "delivery.csv": "order_id,minutes,region\n101,12,서울\n102,18,부산\n103,30,서울\n104,42,부산\n"
-      }
-    },
-    {
-      "id": "stp_44f23f0c-39aa-4135-9a56-af6901ab9e8b",
-      "title": "새 배송이 추가됐어요",
-      "goal": "배송 한 건이 더 들어왔어요.\nhead(2)를 본 뒤 원래 표의 크기는 무엇일까요?\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 출력을 근거로 질문에 맞는 보기를 고르세요.\n3. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "five",
-      "tests": [],
+      "checker": "import json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nREFERENCE = '# 판다스를 pd라는 이름으로 불러와요.\\nimport pandas as pd\\n# 제공 파일은 실행 폴더에 있어요. 첫 행은 열 이름이에요.\\ndf = pd.read_csv(\"delivery.csv\")\\n# 이 줄을 고쳐 주문번호와 배송시간 두 열이 남은 표를 만드세요.\\n# 열 이름 목록을 대괄호 안에 넣으면 그 열들만 남은 표가 돼요.\\nsmall = df[[\"order_id\", \"minutes\"]]\\nprint(small)\\n'\nVARIANTS = json.loads('[{\"delivery.csv\": \"order_id,minutes,region\\\\n201,7,부산\\\\n\"}, {\"delivery.csv\": \"order_id,minutes,region,distance\\\\n301,15,서울,2\\\\n302,9,부산,1\\\\n303,40,서울,5\\\\n304,11,부산,1\\\\n305,22,서울,3\\\\n\"}, {\"delivery.csv\": \"region,minutes,order_id\\\\n서울,50,401\\\\n부산,45,402\\\\n부산,8,403\\\\n\"}]')\nnames = sorted({name for variant in VARIANTS for name in variant})\noriginal = {name: Path(name).read_text(encoding=\"utf-8\") if Path(name).exists() else None for name in names}\nPath(\"_reference.py\").write_text(REFERENCE, encoding=\"utf-8\")\ndef run(script):\n    return subprocess.run([sys.executable, \"-I\", \"-X\", \"utf8\", script], stdin=subprocess.DEVNULL, capture_output=True,\n                          text=True, encoding=\"utf-8\", timeout=60)\ntry:\n    for variant in VARIANTS:\n        for name, text in variant.items():\n            Path(name).write_text(text, encoding=\"utf-8\")\n        expected = run(\"_reference.py\")\n        if expected.returncode != 0:\n            raise RuntimeError(\"준비한 검사 자료를 읽지 못했어요: \" + expected.stderr[-300:])\n        actual = run(\"main.py\")\n        if actual.returncode != 0 or actual.stdout.strip() != expected.stdout.strip():\n            raise AssertionError('다른 배송 파일에서도 같은 원리로 맞는 결과가 나와야 해요.')\nfinally:\n    for name, text in original.items():\n        if text is None:\n            Path(name).unlink(missing_ok=True)\n        else:\n            Path(name).write_text(text, encoding=\"utf-8\")\n    Path(\"_reference.py\").unlink(missing_ok=True)\nprint(f\"바꾼 자료 {len(VARIANTS)}개에서도 통과했어요.\")\n",
       "required": true,
-      "example_code": "# 판다스를 pd라는 이름으로 불러와요.\nimport pandas as pd\n# 제공 파일은 실행 폴더에 있어요. 첫 행은 열 이름이에요.\ndf = pd.read_csv(\"delivery.csv\")\n# 앞부분과 원래 표의 전체 크기를 비교해요.\nprint(df.head(2))\nprint(df.shape)\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "five",
-            "text": "5행 · 3열"
-          },
-          {
-            "id": "four",
-            "text": "4행 · 3열"
-          },
-          {
-            "id": "two",
-            "text": "2행 · 3열"
-          }
-        ],
-        "answer": "five"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "새 배송을 추가하고 head로 조회한 뒤 원래 표의 크기를 구하는 문제예요.",
-          "target": "text:새 배송이 추가됐어요#1"
+          "text": "df[[\"order_id\", \"minutes\"]]로 두 열만 남기는 문제예요.",
+          "target": "text:df[[\"order_id\", \"minutes\"]]로 두 열만 남기세요#1"
         },
         {
           "action": "say",
-          "text": "파일에 배송 한 건이 더해졌어요. head(2)로 일부만 봐도 shape가 원래 표 전체의 크기를 보여 주는지 판단해요.",
-          "target": "text:배송 한 건이 더 들어왔어요."
+          "text": "주문번호와 배송시간 두 열만 전달하려 해요. 열 이름 목록으로 골라야 해요.",
+          "target": "text:small 줄을 고쳐 주문번호와 배송시간 두 열이 남은 표를 만드세요."
         },
         {
           "action": "run",
@@ -794,14 +554,14 @@
         },
         {
           "action": "say",
-          "text": "앞의 두 건 뒤에 전체 크기 (5, 3)이 보여요.",
+          "text": "배송시간 한 열만 나와요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "head(2)",
-          "after": "head(5)",
-          "say": "다섯 건을 모두 꺼내 확인해 볼게요."
+          "before": "small = df[\"minutes\"]",
+          "after": "small = df[[\"order_id\", \"minutes\"]]",
+          "say": "대괄호 안에 [\"order_id\", \"minutes\"] 목록을 넣어요."
         },
         {
           "action": "run",
@@ -812,22 +572,81 @@
         },
         {
           "action": "say",
-          "text": "105번까지 다섯 건이 있어요. 열은 여전히 세 개예요.",
+          "text": "order_id와 minutes 두 열이 남은 표예요. region은 빠졌어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 앞의 두 건만 봐도 원래 표는 줄지 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "five"
+          "text": "조심하세요. 대괄호가 두 겹이에요. 바깥은 고르기, 안쪽은 열 이름 목록이에요.",
+          "target": "code:df[[\"order_id\", \"minutes\"]]"
         }
-      ],
+      ]
+    },
+    {
+      "id": "stp_85396d4d-7992-4447-8c6b-3a176ad1142c",
+      "title": "len(df)로 원래 표의 행 수를 세세요",
+      "goal": "배송 한 건이 더 들어왔어요. `head(2)`로 앞부분을 본 뒤에도 원래 표 df는 그대로예요. `len(표)`는 행 수예요.\n\nrows 줄을 고쳐 앞부분이 아니라 원래 표의 행 수를 담으세요. 채점은 행 수가 다른 파일로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 2가 나오는지 확인하세요.\n2. `len(df.head(2))`를 `len(df)`로 고치세요.\n3. 코드 실행을 눌러 5가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "# 판다스를 pd라는 이름으로 불러와요.\nimport pandas as pd\n# 제공 파일은 실행 폴더에 있어요. 첫 행은 열 이름이에요.\ndf = pd.read_csv(\"delivery.csv\")\n# 앞부분과 원래 표의 행 수를 비교해요.\nprint(df.head(2))\n# 이 줄을 고쳐 앞부분이 아니라 원래 표의 행 수를 담으세요.\nrows = len(df.head(2))\nprint(rows)\n",
+      "solution": "# 판다스를 pd라는 이름으로 불러와요.\nimport pandas as pd\n# 제공 파일은 실행 폴더에 있어요. 첫 행은 열 이름이에요.\ndf = pd.read_csv(\"delivery.csv\")\n# 앞부분과 원래 표의 행 수를 비교해요.\nprint(df.head(2))\n# 이 줄을 고쳐 앞부분이 아니라 원래 표의 행 수를 담으세요.\n# head를 본 뒤에도 df는 그대로예요. 행 수는 df에서 세요.\nrows = len(df)\nprint(rows)\n",
       "files": {
         "delivery.csv": "order_id,minutes,region\n101,12,서울\n102,18,부산\n103,30,서울\n104,42,부산\n105,24,서울\n"
-      }
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "   order_id  minutes region\n0       101       12     서울\n1       102       18     부산\n5"
+        }
+      ],
+      "checker": "import json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nREFERENCE = '# 판다스를 pd라는 이름으로 불러와요.\\nimport pandas as pd\\n# 제공 파일은 실행 폴더에 있어요. 첫 행은 열 이름이에요.\\ndf = pd.read_csv(\"delivery.csv\")\\n# 앞부분과 원래 표의 행 수를 비교해요.\\nprint(df.head(2))\\n# 이 줄을 고쳐 앞부분이 아니라 원래 표의 행 수를 담으세요.\\n# head를 본 뒤에도 df는 그대로예요. 행 수는 df에서 세요.\\nrows = len(df)\\nprint(rows)\\n'\nVARIANTS = json.loads('[{\"delivery.csv\": \"order_id,minutes,region\\\\n201,7,부산\\\\n\"}, {\"delivery.csv\": \"order_id,minutes,region,distance\\\\n301,15,서울,2\\\\n302,9,부산,1\\\\n303,40,서울,5\\\\n304,11,부산,1\\\\n305,22,서울,3\\\\n\"}, {\"delivery.csv\": \"region,minutes,order_id\\\\n서울,50,401\\\\n부산,45,402\\\\n부산,8,403\\\\n\"}]')\nnames = sorted({name for variant in VARIANTS for name in variant})\noriginal = {name: Path(name).read_text(encoding=\"utf-8\") if Path(name).exists() else None for name in names}\nPath(\"_reference.py\").write_text(REFERENCE, encoding=\"utf-8\")\ndef run(script):\n    return subprocess.run([sys.executable, \"-I\", \"-X\", \"utf8\", script], stdin=subprocess.DEVNULL, capture_output=True,\n                          text=True, encoding=\"utf-8\", timeout=60)\ntry:\n    for variant in VARIANTS:\n        for name, text in variant.items():\n            Path(name).write_text(text, encoding=\"utf-8\")\n        expected = run(\"_reference.py\")\n        if expected.returncode != 0:\n            raise RuntimeError(\"준비한 검사 자료를 읽지 못했어요: \" + expected.stderr[-300:])\n        actual = run(\"main.py\")\n        if actual.returncode != 0 or actual.stdout.strip() != expected.stdout.strip():\n            raise AssertionError('다른 배송 파일에서도 같은 원리로 맞는 결과가 나와야 해요.')\nfinally:\n    for name, text in original.items():\n        if text is None:\n            Path(name).unlink(missing_ok=True)\n        else:\n            Path(name).write_text(text, encoding=\"utf-8\")\n    Path(\"_reference.py\").unlink(missing_ok=True)\nprint(f\"바꾼 자료 {len(VARIANTS)}개에서도 통과했어요.\")\n",
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "len(df)로 원래 표의 행 수를 세는 문제예요.",
+          "target": "text:len(df)로 원래 표의 행 수를 세세요#1"
+        },
+        {
+          "action": "say",
+          "text": "배송 한 건이 더 들어왔어요. 앞부분을 본 뒤 원래 표의 행 수를 담아야 해요.",
+          "target": "text:rows 줄을 고쳐 앞부분이 아니라 원래 표의 행 수를 담으세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "앞 두 건과 2예요. head(2)의 행 수를 셌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "rows = len(df.head(2))",
+          "after": "rows = len(df)",
+          "say": ".head(2)를 지우고 df의 행 수를 세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "5예요. 새 배송까지 다섯 건이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 파일이 바뀌면 행 수도 바뀌어요. 숫자를 적지 말고 표에서 세요.",
+          "target": "code:rows = len(df)"
+        }
+      ]
     },
     {
       "id": "stp_85c153cc-a269-4604-a699-06c7cd6342dc",
