@@ -132,7 +132,7 @@ def apply(spec):
             content[field].pop(step_id, None)
     # Heavy imports (seaborn, TensorFlow) need a longer per-case limit than the default 10 seconds.
     if spec.get('prepared_timeout_seconds'):
-        content['prepared_timeout_seconds'] = max(content.get('prepared_timeout_seconds', 10), spec['prepared_timeout_seconds'])
+        content.setdefault('prepared_task_timeout_seconds', {})[step_id] = spec['prepared_timeout_seconds']
     content['presentation']['units'][unit_id] = dict(objectives=spec['unit']['objectives'], premise=spec['unit']['premise'])
     order = [s['id'] for ch in prd['chapters'] for u in ch['units'] for s in u['steps']]
     if order != [t['id'] for t in content['tasks']]:

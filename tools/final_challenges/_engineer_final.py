@@ -52,6 +52,13 @@ def code(key, title, objective, goal, language, starter, patches, expected, outp
 
 def fields(key, title, objective, scenario, questions, explanations, example=None, output=None):
     """Questions are applications of an explicit scenario, not multiple choice or copied labels."""
+    def aliases(accepted):
+        forms = []
+        for answer in accepted:
+            for value in (answer, answer.lower(), answer.upper(), answer.replace(' ', '')):
+                if value not in forms:
+                    forms.append(value)
+        return forms
     answers = {q[0]: q[2][0] for q in questions}
     solution = json.dumps(answers, ensure_ascii=False)
     actions = [dict(action='say', text='마지막 도전이에요. ' + objective, target='text:' + objective)]
@@ -64,7 +71,7 @@ def fields(key, title, objective, scenario, questions, explanations, example=Non
         '\n'.join(f'**{q[1]}**' for q in questions) + '\n\n' +
         todo('주어진 자료와 조건을 먼저 읽으세요.', '각 답안 칸의 질문에 맞춰 값이나 용어를 적으세요.', '세 답안을 모두 확인하고 제출하세요.'),
         starter_code='', solution=solution, tests=[], interaction=dict(kind='fill_fields',
-        fields=[dict(id=q[0], label=q[1], accepted=q[2]) for q in questions]), narration=actions)
+        fields=[dict(id=q[0], label=q[1], accepted=aliases(q[2])) for q in questions]), narration=actions)
     if example:
         task['example_code'] = example
     # A single wrong component must invalidate the whole challenge.

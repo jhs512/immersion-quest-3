@@ -43,6 +43,11 @@
     [
       "[2.0, 2.0]",
       "[15.0, 40.0]"
+    ],
+    [
+      "['north', 'south', 'west']\n[2.0, 3.0, 1.0]\ncount",
+      "['south', 'west', 'north']\n[120.0, 35.0, 60.0]\ncount",
+      "['south', 'west', 'north']\n[60.0, 35.0, 30.0]\n평균 배송 시간(분)"
     ]
   ],
   "expected_images": [
@@ -87,6 +92,11 @@
     [
       1,
       1
+    ],
+    [
+      1,
+      1,
+      1
     ]
   ],
   "reject": [
@@ -113,6 +123,58 @@
         ]
       ],
       "reason": "A successful early exit must not skip actual graph assertions"
+    },
+    {
+      "step": 11,
+      "replacements": [
+        [
+          "ax = sns.barplot(data=done, x=\"region\", y=\"minutes\", order=order, errorbar=None)",
+          "ax = sns.countplot(data=done, x=\"region\", order=order)"
+        ]
+      ],
+      "reason": "Bars are mean minutes, not counts"
+    },
+    {
+      "step": 11,
+      "replacements": [
+        [
+          "errorbar=None)",
+          "estimator=\"sum\", errorbar=None)"
+        ]
+      ],
+      "reason": "Bars are means, not sums"
+    },
+    {
+      "step": 11,
+      "replacements": [
+        [
+          "done = df[df[\"status\"] == \"done\"]",
+          "done = df"
+        ]
+      ],
+      "reason": "Cancelled rows are excluded"
+    },
+    {
+      "step": 11,
+      "replacements": [
+        [
+          "sort_values(ascending=False)",
+          "sort_values()"
+        ]
+      ],
+      "reason": "Longest mean first"
+    }
+  ],
+  "accept": [
+    {
+      "step": 11,
+      "replacements": [
+        [
+          "order = done.groupby(\"region\")[\"minutes\"].mean().sort_values(ascending=False).index.tolist()",
+          "means = done.groupby(\"region\")[\"minutes\"].mean()\norder = means.sort_values(ascending=False).index.tolist()"
+        ]
+      ],
+      "reason": "The same order through a named Series"
     }
   ]
 }

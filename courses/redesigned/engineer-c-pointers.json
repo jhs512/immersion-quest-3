@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_ecdcead6-85ab-4301-acf9-3bd8f406c8d0",
-  "revision": "engineer-c-pointers-5",
+  "revision": "engineer-c-pointers-6",
   "title": "C · 주소와 가리키는 값을 나눠 봐요",
   "description": "같은 재고의 주소·대상·함수 전달을 나눠 읽고 짧게 고쳐요.",
   "objectives": [
@@ -110,6 +110,22 @@
               "id": "stp_9b906680-829b-43b8-93de-566d7a0bc84b",
               "objectives": [
                 "포인터가 가리키는 원래 값에 계산 결과를 저장해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_47b3d0bc-5634-4fef-9a3c-3c8a31c82fa4",
+          "title": "마지막 도전",
+          "objectives": [
+            "주소 복사와 역참조 쓰기를 구별해 호출자의 두 값을 바꿔요."
+          ],
+          "premise": "swap이 받은 두 주소의 정수를 교환해야 해요. main의 출력문이나 준비값은 바꾸지 마세요. 지금 결과는 8 3이에요.",
+          "steps": [
+            {
+              "id": "stp_72d91c6d-4814-4b28-90c8-92f78ba9f667",
+              "objectives": [
+                "주소 복사와 역참조 쓰기를 구별해 호출자의 두 값을 바꿔요."
               ]
             }
           ]
@@ -1111,6 +1127,84 @@
           "expected": "10"
         }
       ]
+    },
+    {
+      "language": "c",
+      "starter_code": "#include <stdio.h>\nvoid swap(int *a, int *b) {\n    int temp = *a;\n    a = b;\n    *b = temp;\n}\nint main(void) {\n    int left = 3, right = 8;\n    swap(&left, &right);\n    printf(\"%d %d\", left, right);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\nvoid swap(int *a, int *b) {\n    int temp = *a;\n    *a = *b;\n    *b = temp;\n}\nint main(void) {\n    int left = 3, right = 8;\n    swap(&left, &right);\n    printf(\"%d %d\", left, right);\n    return 0;\n}\n",
+      "goal": "주소 복사와 역참조 쓰기를 구별해 호출자의 두 값을 바꿔요.\n\nswap이 받은 두 주소의 정수를 교환해야 해요. main의 출력문이나 준비값은 바꾸지 마세요. 지금 결과는 8 3이에요.\n\n**할 일**\n\n1. 코드 실행을 눌러 수정 전 결과를 확인하세요.\n2. 지역 포인터 a를 옮기지 말고 a가 가리킨 정수에 b의 값을 쓰세요.\n3. 다시 실행해 결과를 확인하고 작성한 코드를 제출하세요.",
+      "tests": [
+        {
+          "input": "",
+          "expected": "8 3"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "두 원래 재고를 포인터로 교환하는 문제예요.",
+          "target": "text:두 원래 재고를 포인터로 교환하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 주소 복사와 역참조 쓰기를 구별해 호출자의 두 값을 바꿔요.",
+          "target": "text:주소 복사와 역참조 쓰기를 구별해 호출자의 두 값을 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "주소 복사만 한 뒤 right를 덮어써 두 값이 3 3이 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "a = b;",
+          "after": "*a = *b;",
+          "say": "지역 포인터 a를 옮기지 말고 a가 가리킨 정수에 b의 값을 쓰세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "호출자의 left와 right에 각각 8과 3을 썼어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 임시 저장 없이 첫 값을 덮어쓰면 두 번째에 돌려줄 값이 사라져요.",
+          "target": "code:*a = *b;"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "left": "-2",
+            "right": "7"
+          },
+          "expected": "7 -2"
+        },
+        {
+          "values": {
+            "left": "5",
+            "right": "5"
+          },
+          "expected": "5 5"
+        }
+      ],
+      "id": "stp_72d91c6d-4814-4b28-90c8-92f78ba9f667",
+      "title": "두 원래 재고를 포인터로 교환하세요",
+      "required": true
     }
   ]
 }

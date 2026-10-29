@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_b49b7cce-7355-4126-8d1a-a5ecaf15ee0f",
-  "revision": "engineer-sql-group-5",
+  "revision": "engineer-sql-group-6",
   "title": "SQL · 같은 재고의 그룹과 순서를 읽어요",
   "description": "같은 재고에서 그룹의 기준과 순위·창의 범위를 비교해요.",
   "objectives": [
@@ -111,6 +111,22 @@
               "id": "stp_e9558bc9-71cf-4b2c-8c02-49866fe04f73",
               "objectives": [
                 "행 조건과 그룹 조건을 구별해 WHERE의 조건을 HAVING으로 옮겨요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_69d2cb95-ebb3-4ff4-85b7-9f8408c7f9ce",
+          "title": "마지막 도전",
+          "objectives": [
+            "집계 전 행 조건과 집계 후 그룹 조건을 구별하고 결과 순서를 정해요."
+          ],
+          "premise": "qty가 양수인 행만 모으세요. 그 행이 2개 이상이고 합계가 6 이상인 분류만 남기세요. 합계 내림차순, 동점이면 분류 오름차순으로 출력하세요. 지금 C 8 2 다음 A 6 2예요.",
+          "steps": [
+            {
+              "id": "stp_5c00ddd4-5de1-497b-85d6-15f8c7989885",
+              "objectives": [
+                "집계 전 행 조건과 집계 후 그룹 조건을 구별하고 결과 순서를 정해요."
               ]
             }
           ]
@@ -1029,6 +1045,91 @@
           "expected": "category | n\nA | 4"
         }
       ]
+    },
+    {
+      "language": "sql",
+      "starter_code": "SELECT category, SUM(qty) AS total, COUNT(*) AS n\nFROM stocks\nGROUP BY category\nHAVING COUNT(*) >= 1\nORDER BY category;",
+      "solution": "SELECT category, SUM(qty) AS total, COUNT(*) AS n\nFROM stocks\nWHERE qty > 0\nGROUP BY category\nHAVING COUNT(*) >= 2 AND SUM(qty) >= 6\nORDER BY total DESC, category ASC;",
+      "goal": "집계 전 행 조건과 집계 후 그룹 조건을 구별하고 결과 순서를 정해요.\n\nqty가 양수인 행만 모으세요. 그 행이 2개 이상이고 합계가 6 이상인 분류만 남기세요. 합계 내림차순, 동점이면 분류 오름차순으로 출력하세요. 지금 C 8 2 다음 A 6 2예요.\n\n**할 일**\n\n1. 코드 실행을 눌러 수정 전 결과를 확인하세요.\n2. 양수 행만 먼저 거르세요.\n3. 그룹의 행 수와 합계가 모두 기준을 만족하게 하세요.\n4. 합계 내림차순 뒤 분류 오름차순으로 정렬하세요.\n5. 다시 실행해 결과를 확인하고 작성한 코드를 제출하세요.",
+      "tests": [
+        {
+          "input": "",
+          "expected": "category | total | n\nC | 8 | 2\nA | 6 | 2"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "양수 재고만 모아 기준을 넘는 분류를 보고하는 문제예요.",
+          "target": "text:양수 재고만 모아 기준을 넘는 분류를 보고하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 집계 전 행 조건과 집계 후 그룹 조건을 구별하고 결과 순서를 정해요.",
+          "target": "text:집계 전 행 조건과 집계 후 그룹 조건을 구별하고 결과 순서를 정해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0이나 NULL 행도 행 수에 들어가고 B까지 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "FROM stocks\nGROUP BY",
+          "after": "FROM stocks\nWHERE qty > 0\nGROUP BY",
+          "say": "양수 행만 먼저 거르세요."
+        },
+        {
+          "action": "patch_code",
+          "before": "HAVING COUNT(*) >= 1",
+          "after": "HAVING COUNT(*) >= 2 AND SUM(qty) >= 6",
+          "say": "그룹의 행 수와 합계가 모두 기준을 만족하게 하세요."
+        },
+        {
+          "action": "patch_code",
+          "before": "ORDER BY category;",
+          "after": "ORDER BY total DESC, category ASC;",
+          "say": "합계 내림차순 뒤 분류 오름차순으로 정렬하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "양수만 집계해 C와 A를 남기고 합계가 큰 C부터 출력했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. WHERE는 합치기 전 행을, HAVING은 합친 뒤 그룹을 거릅니다.",
+          "target": "code:ORDER BY total DESC, category ASC;"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, category TEXT, qty INTEGER);\nINSERT INTO stocks VALUES(1,'A',2),(2,'A',4),(3,'A',0),(4,'B',3),(5,'B',NULL),(6,'C',5),(7,'C',1);\n"
+          },
+          "expected": "category | total | n\nA | 6 | 2\nC | 6 | 2"
+        }
+      ],
+      "files": {
+        "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, category TEXT, qty INTEGER);\nINSERT INTO stocks VALUES(1,'A',2),(2,'A',4),(3,'A',0),(4,'B',3),(5,'B',NULL),(6,'C',7),(7,'C',1);\n"
+      },
+      "id": "stp_5c00ddd4-5de1-497b-85d6-15f8c7989885",
+      "title": "양수 재고만 모아 기준을 넘는 분류를 보고하세요",
+      "required": true
     }
   ]
 }

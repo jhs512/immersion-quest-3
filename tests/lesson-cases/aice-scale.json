@@ -36,6 +36,11 @@
     ],
     [
       "[[0.0]]"
+    ],
+    [
+      "[0.0]\n[4.0]\n[[-1.0], [1.0]]",
+      "[8.0]\n[8.0]\n[[0.0], [0.0]]",
+      "[2.0]\n[2.0]\n[[0.0], [3.674235]]"
     ]
   ],
   "reject": [
@@ -58,6 +63,38 @@
         ]
       ],
       "reason": "A second fit on held-out values overwrites the trained reference"
+    },
+    {
+      "step": 10,
+      "replacements": [
+        [
+          "prep.transform(test_rows)",
+          "prep.fit_transform(test_rows)"
+        ]
+      ],
+      "reason": "Evaluation data must not refit the pipeline"
+    },
+    {
+      "step": 10,
+      "replacements": [
+        [
+          "SimpleImputer(strategy=\"mean\")",
+          "SimpleImputer(strategy=\"median\")"
+        ]
+      ],
+      "reason": "The requested statistic is the training mean"
+    }
+  ],
+  "accept": [
+    {
+      "step": 10,
+      "replacements": [
+        [
+          "prep.fit(train_rows)",
+          "prep.fit_transform(train_rows)"
+        ]
+      ],
+      "reason": "Training may fit and transform once"
     }
   ]
 }

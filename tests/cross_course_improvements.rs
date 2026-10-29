@@ -19,6 +19,19 @@ fn every_cross_course_lesson_has_a_graded_final_category_and_entry_brief() {
             assert_eq!(position + 1, lesson.tasks.len());
             assert!(task.required && challenges::is_graded(task));
             assert!(ids.insert(task.id.clone()));
+            if let Some(molip_quest::task_interaction::Interaction::FillFields { fields }) = &task.interaction {
+                let original: std::collections::BTreeMap<String, String> = serde_json::from_str(&task.solution).unwrap();
+                for field in fields {
+                    for alias in &field.accepted {
+                        let mut answers = original.clone();
+                        answers.insert(field.id.clone(), alias.clone());
+                        assert!(task.interaction.as_ref().unwrap().check(&serde_json::to_string(&answers).unwrap()).unwrap().passed);
+                    }
+                    let mut wrong = original.clone();
+                    wrong.insert(field.id.clone(), "__오답__".into());
+                    assert!(!task.interaction.as_ref().unwrap().check(&serde_json::to_string(&wrong).unwrap()).unwrap().passed);
+                }
+            }
             let row = data["lessons"].as_array().unwrap().iter().find(|r| r["id"] == reference.id).unwrap();
             assert!(categories.contains(row["category"].as_str().unwrap()));
             let brief = &data["lesson_previews"][&reference.id];

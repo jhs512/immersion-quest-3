@@ -41,6 +41,45 @@
       "pen/book/bag",
       "pen-book-bag",
       "pen/book/bag"
+    ],
+    [
+      "9 9\n1 False",
+      "1 9\n1 False",
+      "1 9\n0 False"
     ]
+  ],
+  "reject": [
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "[row[:] for row in rows]",
+          "rows[:]"
+        ]
+      ],
+      "reason": "바깥 목록만 복사하면 내부 자료를 공유해요."
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "counts.get(\"pending\", default)",
+          "counts.setdefault(\"pending\", default)"
+        ]
+      ],
+      "reason": "조회가 사전에 새 키를 만들면 안 돼요."
+    }
+  ],
+  "accept": [
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "[row[:] for row in rows]",
+          "[list(row) for row in rows]"
+        ]
+      ],
+      "reason": "각 내부 목록을 새 list로 만들어도 돼요."
+    }
   ]
 }

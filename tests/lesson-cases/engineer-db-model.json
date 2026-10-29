@@ -41,6 +41,45 @@
       "",
       "n\n4",
       ""
+    ],
+    [
+      "False\nFalse\nFalse",
+      "True\nFalse\nFalse",
+      "True\nTrue\nTrue"
     ]
+  ],
+  "reject": [
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "qty INTEGER NOT NULL",
+          "qty INTEGER"
+        ]
+      ],
+      "reason": "필수 수량 규칙도 독립적으로 필요해요."
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "REFERENCES items(id)",
+          ""
+        ]
+      ],
+      "reason": "열 이름만 같아서는 참조 규칙이 생기지 않아요."
+    }
+  ],
+  "accept": [
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "item_id INTEGER REFERENCES items(id),\n    qty INTEGER NOT NULL",
+          "item_id INTEGER,\n    qty INTEGER NOT NULL,\n    FOREIGN KEY (item_id) REFERENCES items(id)"
+        ]
+      ],
+      "reason": "표 수준 외래 키도 같은 무결성 규칙이에요."
+    }
   ]
 }

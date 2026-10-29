@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_e4c42aec-3d84-4fb3-b9b1-a229b027bd5a",
-  "revision": "engineer-java-flow-5",
+  "revision": "engineer-java-flow-6",
   "title": "Java · 재고 계산의 실행 순서를 읽어요",
   "description": "재고 계산에 조건과 호출을 하나씩 더해 Java 실행 결과를 읽어요.",
   "objectives": [
@@ -97,6 +97,22 @@
               "id": "stp_539dc525-7521-4428-ad57-f386fc8f7110",
               "objectives": [
                 "배열·조건·호출을 결합한 결과를 읽어요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_d7273d1d-9a37-41a9-ac03-89df08f4784b",
+          "title": "마지막 도전",
+          "objectives": [
+            "continue·break·정수 나눗셈의 순서를 함께 판단해요."
+          ],
+          "premise": "0은 건너뛰고 -1을 만나면 입력 처리를 끝내세요. 그전 양수 금액 각각을 정수로 2로 나눈 몫만 더하세요. 준비 배열에는 0 이상 금액과 -1만 있어요. 지금 답은 6이에요.",
+          "steps": [
+            {
+              "id": "stp_81d6934e-8cf9-47b5-bf45-4ae4beb83506",
+              "objectives": [
+                "continue·break·정수 나눗셈의 순서를 함께 판단해요."
               ]
             }
           ]
@@ -838,6 +854,94 @@
           "say": "마지막 합계 숫자만 답안에 적어요."
         }
       ]
+    },
+    {
+      "language": "java",
+      "starter_code": "public class Main {\n    public static void main(String[] args) {\n        int[] amounts = {0, 5, 8, -1, 20};\n        int total = 0;\n        for (int amount : amounts) {\n            if (amount == -1) continue;\n            if (amount == 0) break;\n            total += amount / 2;\n        }\n        System.out.print(total);\n    }\n}\n",
+      "solution": "public class Main {\n    public static void main(String[] args) {\n        int[] amounts = {0, 5, 8, -1, 20};\n        int total = 0;\n        for (int amount : amounts) {\n            if (amount == -1) break;\n            if (amount == 0) continue;\n            total += amount / 2;\n        }\n        System.out.print(total);\n    }\n}\n",
+      "goal": "continue·break·정수 나눗셈의 순서를 함께 판단해요.\n\n0은 건너뛰고 -1을 만나면 입력 처리를 끝내세요. 그전 양수 금액 각각을 정수로 2로 나눈 몫만 더하세요. 준비 배열에는 0 이상 금액과 -1만 있어요. 지금 답은 6이에요.\n\n**할 일**\n\n1. 코드 실행을 눌러 수정 전 결과를 확인하세요.\n2. -1에서 반복을 끝내세요.\n3. 0이면 다음 금액으로 건너뛰세요.\n4. 다시 실행해 결과를 확인하고 작성한 코드를 제출하세요.",
+      "tests": [
+        {
+          "input": "",
+          "expected": "6"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "건너뛸 값과 종료 표시를 구별해 합산하는 문제예요.",
+          "target": "text:건너뛸 값과 종료 표시를 구별해 합산하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. continue·break·정수 나눗셈의 순서를 함께 판단해요.",
+          "target": "text:continue·break·정수 나눗셈의 순서를 함께 판단해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "첫 값 0에서 종료해 뒤 금액을 전혀 읽지 못해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "if (amount == -1) continue;",
+          "after": "if (amount == -1) break;",
+          "say": "-1에서 반복을 끝내세요."
+        },
+        {
+          "action": "patch_code",
+          "before": "if (amount == 0) break;",
+          "after": "if (amount == 0) continue;",
+          "say": "0이면 다음 금액으로 건너뛰세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "5의 몫 2와 8의 몫 4만 합해 6이에요. -1 뒤 20은 제외해요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 각 금액의 정수 몫을 합하는 것과 금액을 모두 합한 뒤 나누는 것은 다를 수 있어요.",
+          "target": "code:if (amount == 0) continue;"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "amounts": "{3, 3, -1, 8}"
+          },
+          "expected": "2"
+        },
+        {
+          "values": {
+            "amounts": "{-1, 10}"
+          },
+          "expected": "0"
+        },
+        {
+          "values": {
+            "amounts": "{0, 2, 0, 6}"
+          },
+          "expected": "4"
+        }
+      ],
+      "id": "stp_81d6934e-8cf9-47b5-bf45-4ae4beb83506",
+      "title": "건너뛸 값과 종료 표시를 구별해 합산하세요",
+      "required": true
     }
   ]
 }

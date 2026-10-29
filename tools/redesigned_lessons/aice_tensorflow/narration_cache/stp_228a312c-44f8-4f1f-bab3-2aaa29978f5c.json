@@ -1,0 +1,65 @@
+{
+  "by": "hand",
+  "source_sha256": "c56a4169481b11ccab1c65a6dc4a8ee417d8f78e06d201ed5bd1aa9c9bed3b47",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 관측 수와 특성 수를 구분하고 실제 학습·예측의 입출력 모양을 맞춰요.",
+      "target": "text:관측 수와 특성 수를 구분하고 실제 학습·예측의 입출력 모양을 맞춰요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        19
+      ],
+      "expect_error": "ValueError"
+    },
+    {
+      "action": "say",
+      "text": "입력은 세 특성을 기다리는데 한 배송에는 두 값만 있어 오류가 나요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "shape=(len(rows),)",
+      "after": "shape=(features,)",
+      "say": "입력 모양에 행 수가 아닌 특성 수를 넣으세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "입력 모양은 맞았어요. 예측 표의 두 칸도 한 칸으로 줄여야 해요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "keras.layers.Dense(2,",
+      "after": "keras.layers.Dense(1,",
+      "say": "시간을 한 값으로 예측하도록 출력 칸을 하나로 바꾸세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "세 배송마다 시간 한 값을 예측했고 실제 학습 손실도 유한해요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 배송 건수를 입력 특성 수로 쓰면 자료의 행 수만 바뀌어도 실행이 깨져요.",
+      "target": "code:keras.layers.Dense(1,"
+    }
+  ]
+}

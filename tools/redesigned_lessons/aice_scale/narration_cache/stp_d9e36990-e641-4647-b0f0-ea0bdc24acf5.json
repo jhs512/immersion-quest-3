@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "6192df3e939c5fca017f02289ddce47ee4d49322f95b16d55c705884cb231b1e",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 빈칸 처리와 표준화를 훈련에서 학습하고 평가에는 변환만 적용해요.",
+      "target": "text:빈칸 처리와 표준화를 훈련에서 학습하고 평가에는 변환만 적용해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        17
+      ]
+    },
+    {
+      "action": "say",
+      "text": "평가에서 다시 학습해 중심이 바뀌었어요. 빈칸 기준도 0으로 고정돼 있어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "SimpleImputer(strategy=\"constant\", fill_value=0)",
+      "after": "SimpleImputer(strategy=\"mean\")",
+      "say": "훈련 평균으로 빈칸을 채우도록 바꾸세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        17
+      ]
+    },
+    {
+      "action": "say",
+      "text": "빈칸 기준은 평균으로 바꿨어요. 평가에서 다시 fit하면 여전히 평가 기준이 돼요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "result = prep.fit_transform(test_rows)",
+      "after": "result = prep.transform(test_rows)",
+      "say": "평가 자료에서는 fit 없이 transform만 사용하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        17
+      ]
+    },
+    {
+      "action": "say",
+      "text": "훈련의 빈칸 기준과 중심이 2로 유지되고 새 거리만 변환됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. fit_transform을 평가 자료에 쓰면 훈련 기준을 지운 뒤 새 기준을 배워요.",
+      "target": "code:result = prep.transform(test_rows)"
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "by": "hand",
+  "source_sha256": "c04200d3e713fb4f9039f0a53f72d082aa56f570f58a5dd97efea9b58744b1d9",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 집계 전 행 조건과 집계 후 그룹 조건을 구별하고 결과 순서를 정해요.",
+      "target": "text:집계 전 행 조건과 집계 후 그룹 조건을 구별하고 결과 순서를 정해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        1,
+        1
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0이나 NULL 행도 행 수에 들어가고 B까지 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "FROM stocks\nGROUP BY",
+      "after": "FROM stocks\nWHERE qty > 0\nGROUP BY",
+      "say": "양수 행만 먼저 거르세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "HAVING COUNT(*) >= 1",
+      "after": "HAVING COUNT(*) >= 2 AND SUM(qty) >= 6",
+      "say": "그룹의 행 수와 합계가 모두 기준을 만족하게 하세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "ORDER BY category;",
+      "after": "ORDER BY total DESC, category ASC;",
+      "say": "합계 내림차순 뒤 분류 오름차순으로 정렬하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        1,
+        1
+      ]
+    },
+    {
+      "action": "say",
+      "text": "양수만 집계해 C와 A를 남기고 합계가 큰 C부터 출력했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. WHERE는 합치기 전 행을, HAVING은 합친 뒤 그룹을 거릅니다.",
+      "target": "code:ORDER BY total DESC, category ASC;"
+    }
+  ]
+}

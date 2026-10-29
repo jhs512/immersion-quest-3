@@ -27,6 +27,11 @@
     [
       "",
       "2\n[0, 1]"
+    ],
+    [
+      "",
+      "1\nTrue\nFalse",
+      "2\nTrue\nTrue"
     ]
   ],
   "reject": [
@@ -39,6 +44,38 @@
         ]
       ],
       "reason": "Printing a fixed candidate count ignores the actual search grid"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "\"model__max_depth\": depths",
+          "\"model__max_depth\": [1]"
+        ]
+      ],
+      "reason": "All configured candidates must be compared"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "reported_error = -search.best_score_",
+          "reported_error = search.best_score_"
+        ]
+      ],
+      "reason": "The score is negative MSE, not reportable MSE"
+    }
+  ],
+  "accept": [
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "-search.best_score_",
+          "abs(search.best_score_)"
+        ]
+      ],
+      "reason": "The known nonpositive score has the same magnitude"
     }
   ]
 }

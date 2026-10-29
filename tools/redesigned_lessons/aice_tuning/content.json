@@ -466,6 +466,88 @@
           "target": "output"
         }
       ]
+    },
+    {
+      "id": "stp_d425c897-1d63-4d4d-b506-2a6226b835eb",
+      "title": "파이프라인 후보를 연결하고 오차 방향을 맞추세요",
+      "language": "python",
+      "goal": "파이프라인 내부 설정 경로와 음수 오차 점수의 방향을 함께 맞춰요.\n\n파이프라인 model 단계의 깊이를 depths의 모든 값으로 비교해요. 교차검증 점수는 음수 MSE예요. 보고할 오차는 원래 부호로 돌려 양수 또는 0으로 표시해요. 후보 수, 고른 깊이가 후보에 있는지, 오차가 음수가 아닌지를 출력해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 단계 이름 model을 붙여 깊이 설정의 경로를 고치세요.\n3. depths의 모든 후보를 비교하세요.\n4. 음수 점수를 원래 MSE의 부호로 돌려 보고하세요.\n5. 다시 실행해 요구한 결과를 확인한 뒤 작성한 코드를 제출하세요.",
+      "starter_code": "from sklearn.model_selection import GridSearchCV\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.tree import DecisionTreeRegressor\nX_train = [[0], [1], [2], [3], [8], [9], [10], [11]]\ny_train = [0, 0, 0, 0, 10, 10, 10, 10]\ndepths = [1, 2]\npipeline = Pipeline([(\"scale\", StandardScaler()), (\"model\", DecisionTreeRegressor(random_state=0))])\nsearch = GridSearchCV(pipeline, {\"max_depth\": [1]}, cv=2, scoring=\"neg_mean_squared_error\", n_jobs=1, error_score=\"raise\")\nsearch.fit(X_train, y_train)\nreported_error = search.best_score_\nprint(len(search.cv_results_[\"params\"]))\nprint(search.best_params_[\"model__max_depth\"] in depths)\nprint(reported_error >= 0)\n",
+      "solution": "from sklearn.model_selection import GridSearchCV\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.tree import DecisionTreeRegressor\nX_train = [[0], [1], [2], [3], [8], [9], [10], [11]]\ny_train = [0, 0, 0, 0, 10, 10, 10, 10]\ndepths = [1, 2]\npipeline = Pipeline([(\"scale\", StandardScaler()), (\"model\", DecisionTreeRegressor(random_state=0))])\nsearch = GridSearchCV(pipeline, {\"model__max_depth\": depths}, cv=2, scoring=\"neg_mean_squared_error\", n_jobs=1, error_score=\"raise\")\nsearch.fit(X_train, y_train)\nreported_error = -search.best_score_\nprint(len(search.cv_results_[\"params\"]))\nprint(search.best_params_[\"model__max_depth\"] in depths)\nprint(reported_error >= 0)\n",
+      "required": true,
+      "tests": [
+        {
+          "input": "",
+          "expected": "2\nTrue\nTrue"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 파이프라인 내부 설정 경로와 음수 오차 점수의 방향을 함께 맞춰요.",
+          "target": "text:파이프라인 내부 설정 경로와 음수 오차 점수의 방향을 함께 맞춰요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            14
+          ],
+          "expect_error": "ValueError"
+        },
+        {
+          "action": "say",
+          "text": "Pipeline에는 max_depth라는 직접 설정이 없어 오류가 나요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "\"max_depth\": [1]",
+          "after": "\"model__max_depth\": [1]",
+          "say": "단계 이름 model을 붙여 깊이 설정의 경로를 고치세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "단계 경로는 맞았지만 후보 하나만 비교하고 오차 부호도 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "\"model__max_depth\": [1]",
+          "after": "\"model__max_depth\": depths",
+          "say": "depths의 모든 후보를 비교하세요."
+        },
+        {
+          "action": "patch_code",
+          "before": "reported_error = search.best_score_",
+          "after": "reported_error = -search.best_score_",
+          "say": "음수 점수를 원래 MSE의 부호로 돌려 보고하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "모든 후보를 비교하고 선택된 음수 점수를 원래 오차 방향으로 돌렸어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 음수 MSE에서 가장 작은 수를 고르면 실제 오차가 큰 모델을 고르게 돼요.",
+          "target": "code:reported_error = -search.best_score_"
+        }
+      ]
     }
   ],
   "presentation": {
@@ -494,6 +576,12 @@
           "높은 숫자보다 올바른 비교 절차를 판단해요."
         ],
         "premise": "같은 설정 비교에 전처리와 최종 평가 표가 추가돼요. 마지막에는 파이프라인 안의 모델 설정 이름을 고쳐요."
+      },
+      "unt_a515ec35-b40d-4559-a6b5-b48d48ccdb9f": {
+        "objectives": [
+          "파이프라인 내부 설정 경로와 음수 오차 점수의 방향을 함께 맞춰요."
+        ],
+        "premise": "파이프라인 model 단계의 깊이를 depths의 모든 값으로 비교해요. 교차검증 점수는 음수 MSE예요. 보고할 오차는 원래 부호로 돌려 양수 또는 0으로 표시해요. 후보 수, 고른 깊이가 후보에 있는지, 오차가 음수가 아닌지를 출력해요."
       }
     }
   },
@@ -550,6 +638,63 @@
         },
         "expected": "2\n[1, 0, 1]"
       }
+    ],
+    "stp_d425c897-1d63-4d4d-b506-2a6226b835eb": [
+      {
+        "values": {
+          "X_train": [
+            [
+              0
+            ],
+            [
+              1
+            ],
+            [
+              2
+            ],
+            [
+              3
+            ],
+            [
+              8
+            ],
+            [
+              9
+            ],
+            [
+              10
+            ],
+            [
+              11
+            ]
+          ]
+        },
+        "expected": "2\nTrue\nTrue"
+      },
+      {
+        "values": {
+          "depths": [
+            1
+          ]
+        },
+        "expected": "1\nTrue\nTrue"
+      },
+      {
+        "values": {
+          "depths": [
+            1,
+            2,
+            3
+          ]
+        },
+        "expected": "3\nTrue\nTrue"
+      }
     ]
+  },
+  "prepared_probes": {
+    "stp_d425c897-1d63-4d4d-b506-2a6226b835eb": "assert len(search.cv_results_[\"params\"]) == len(depths)\nassert abs(reported_error + search.best_score_) < 1e-8"
+  },
+  "prepared_task_timeout_seconds": {
+    "stp_d425c897-1d63-4d4d-b506-2a6226b835eb": 30
   }
 }

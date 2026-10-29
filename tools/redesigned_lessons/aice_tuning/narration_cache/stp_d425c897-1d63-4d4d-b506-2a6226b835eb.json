@@ -1,0 +1,71 @@
+{
+  "by": "hand",
+  "source_sha256": "a620cc587be2bd53aa3b395ab936533770251a033a605f27b56daee529168eaa",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 파이프라인 내부 설정 경로와 음수 오차 점수의 방향을 함께 맞춰요.",
+      "target": "text:파이프라인 내부 설정 경로와 음수 오차 점수의 방향을 함께 맞춰요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        14
+      ],
+      "expect_error": "ValueError"
+    },
+    {
+      "action": "say",
+      "text": "Pipeline에는 max_depth라는 직접 설정이 없어 오류가 나요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "\"max_depth\": [1]",
+      "after": "\"model__max_depth\": [1]",
+      "say": "단계 이름 model을 붙여 깊이 설정의 경로를 고치세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        14
+      ]
+    },
+    {
+      "action": "say",
+      "text": "단계 경로는 맞았지만 후보 하나만 비교하고 오차 부호도 그대로예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "\"model__max_depth\": [1]",
+      "after": "\"model__max_depth\": depths",
+      "say": "depths의 모든 후보를 비교하세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "reported_error = search.best_score_",
+      "after": "reported_error = -search.best_score_",
+      "say": "음수 점수를 원래 MSE의 부호로 돌려 보고하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        14
+      ]
+    },
+    {
+      "action": "say",
+      "text": "모든 후보를 비교하고 선택된 음수 점수를 원래 오차 방향으로 돌렸어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 음수 MSE에서 가장 작은 수를 고르면 실제 오차가 큰 모델을 고르게 돼요.",
+      "target": "code:reported_error = -search.best_score_"
+    }
+  ]
+}

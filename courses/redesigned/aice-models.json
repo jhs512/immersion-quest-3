@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_da828202-9355-4f82-a82e-5aac1fcc5acf",
-  "revision": "aice-models-4",
+  "revision": "aice-models-5",
   "title": "같은 배송 자료로 여러 모델을 비교해요",
   "description": "같은 배송 표에서 모델의 설정·목표·입력·평가를 비교해요.",
   "objectives": [
@@ -99,6 +99,22 @@
               "id": "stp_0964bcb0-dfcd-4882-835c-f6500bdc1b37",
               "objectives": [
                 "변수로 주어진 설정을 모델 생성 인수에 반영해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_71f2b704-5ed3-49e9-88fb-ab8300287d5b",
+          "title": "마지막 도전",
+          "objectives": [
+            "같은 검증 자료와 오차 방향으로 후보 모델을 비교해요."
+          ],
+          "premise": "평균 기준 모델과 트리가 같은 검증 배송을 예측해요. 검증 정답 y_valid와 비교한 MSE를 구하고 작은 후보 이름을 출력해요. 현재 mean의 MSE는 25, tree는 0이므로 tree를 골라야 해요.",
+          "steps": [
+            {
+              "id": "stp_8f1aa06f-612a-433b-986b-d09b20cc2c46",
+              "objectives": [
+                "같은 검증 자료와 오차 방향으로 후보 모델을 비교해요."
               ]
             }
           ]
@@ -657,6 +673,87 @@
         }
       ],
       "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nimport uuid\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"tree_count\": 1, \"X_test\": [[9], [1]]}, \"expected\": \"1\\\\n[1, 0]\"}, {\"values\": {\"tree_count\": 5, \"X_test\": [[1], [9], [8]]}, \"expected\": \"5\\\\n[0, 1, 1]\"}, {\"values\": {\"tree_count\": 7, \"X_test\": [[9]]}, \"expected\": \"7\\\\n[1]\"}]')\nprobe = 'assert len(model.estimators_) == tree_count, \"실제 학습된 나무 수를 요청과 맞추세요.\"'\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    witness = uuid.uuid4().hex\n    tree.body.extend(ast.parse(probe).body)\n    tree.body.extend(ast.parse('print(' + repr(witness) + ')').body)\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    lines = result.stdout.strip().splitlines()\n    if not lines or lines[-1] != witness:\n        raise AssertionError('실제 실행 상태의 검사까지 끝나야 해요.')\n    output = '\\n'.join(lines[:-1]).strip()\n    if result.returncode != 0 or output != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_8f1aa06f-612a-433b-986b-d09b20cc2c46",
+      "title": "같은 검증 오차로 두 후보 중 하나를 고르세요",
+      "language": "python",
+      "goal": "같은 검증 자료와 오차 방향으로 후보 모델을 비교해요.\n\n평균 기준 모델과 트리가 같은 검증 배송을 예측해요. 검증 정답 y_valid와 비교한 MSE를 구하고 작은 후보 이름을 출력해요. 현재 mean의 MSE는 25, tree는 0이므로 tree를 골라야 해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 훈련 정답 일부 대신 검증 배송의 정답을 사용하세요.\n3. 오차가 가장 작은 후보를 고르세요.\n4. 다시 실행해 요구한 결과를 확인한 뒤 작성한 코드를 제출하세요.",
+      "starter_code": "from sklearn.tree import DecisionTreeRegressor\nfrom sklearn.dummy import DummyRegressor\nfrom sklearn.metrics import mean_squared_error\n# 두 후보는 같은 훈련 자료로 배우고 같은 검증 자료로 비교해요.\nX_train = [[0], [1], [8], [9]]\ny_train = [0, 0, 10, 10]\nX_valid = [[0], [9]]\ny_valid = [0, 10]\nmodels = {\"mean\": DummyRegressor(strategy=\"mean\"), \"tree\": DecisionTreeRegressor(max_depth=1, random_state=0)}\nfor model in models.values():\n    model.fit(X_train, y_train)\ntruth = y_train[:len(X_valid)]\nscores = {name: round(float(mean_squared_error(truth, model.predict(X_valid))), 6) for name, model in models.items()}\nwinner = max(scores, key=scores.get)\nprint(scores)\nprint(winner)\n",
+      "solution": "from sklearn.tree import DecisionTreeRegressor\nfrom sklearn.dummy import DummyRegressor\nfrom sklearn.metrics import mean_squared_error\n# 두 후보는 같은 훈련 자료로 배우고 같은 검증 자료로 비교해요.\nX_train = [[0], [1], [8], [9]]\ny_train = [0, 0, 10, 10]\nX_valid = [[0], [9]]\ny_valid = [0, 10]\nmodels = {\"mean\": DummyRegressor(strategy=\"mean\"), \"tree\": DecisionTreeRegressor(max_depth=1, random_state=0)}\nfor model in models.values():\n    model.fit(X_train, y_train)\ntruth = y_valid\nscores = {name: round(float(mean_squared_error(truth, model.predict(X_valid))), 6) for name, model in models.items()}\nwinner = min(scores, key=scores.get)\nprint(scores)\nprint(winner)\n",
+      "required": true,
+      "tests": [
+        {
+          "input": "",
+          "expected": "{'mean': 25.0, 'tree': 0.0}\ntree"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "같은 검증 오차로 두 후보 중 하나를 고르는 문제예요.",
+          "target": "text:같은 검증 오차로 두 후보 중 하나를 고르세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 같은 검증 자료와 오차 방향으로 후보 모델을 비교해요.",
+          "target": "text:같은 검증 자료와 오차 방향으로 후보 모델을 비교해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "검증 입력에 훈련 정답 일부를 붙이고 큰 오차를 고르고 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "truth = y_train[:len(X_valid)]",
+          "after": "truth = y_valid",
+          "say": "훈련 정답 일부 대신 검증 배송의 정답을 사용하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "검증 배송의 정답으로 비교했어요. 작은 오차를 선택해야 해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "winner = max(scores, key=scores.get)",
+          "after": "winner = min(scores, key=scores.get)",
+          "say": "오차가 가장 작은 후보를 고르세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "같은 검증 배송에서 오차가 작은 후보를 골랐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 훈련 점수가 좋은 후보를 고르면 새 배송에서의 성능 비교가 빠져요.",
+          "target": "code:winner = min(scores, key=scores.get)"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nimport uuid\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"X_train\": [[0], [1], [8], [9]]}, \"expected\": \"{\\'mean\\': 25.0, \\'tree\\': 0.0}\\\\ntree\"}, {\"values\": {\"y_train\": [2, 2, 8, 8], \"y_valid\": [2, 8]}, \"expected\": \"{\\'mean\\': 9.0, \\'tree\\': 0.0}\\\\ntree\"}, {\"values\": {\"y_train\": [0, 0, 10, 10], \"y_valid\": [5, 5]}, \"expected\": \"{\\'mean\\': 0.0, \\'tree\\': 25.0}\\\\nmean\"}]')\nprobe = 'assert truth == y_valid\\nassert scores[winner] == min(scores.values())'\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    witness = uuid.uuid4().hex\n    tree.body.extend(ast.parse(probe).body)\n    tree.body.extend(ast.parse('print(' + repr(witness) + ')').body)\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=30)\n    lines = result.stdout.strip().splitlines()\n    if not lines or lines[-1] != witness:\n        raise AssertionError('실제 실행 상태의 검사까지 끝나야 해요.')\n    output = '\\n'.join(lines[:-1]).strip()\n    if result.returncode != 0 or output != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     }
   ]
 }

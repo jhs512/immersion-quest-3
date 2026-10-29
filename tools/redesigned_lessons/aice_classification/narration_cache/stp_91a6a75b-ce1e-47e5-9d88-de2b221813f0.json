@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "6f20b2a3f4768fb40363f82ab9d5e20b3e9bd1a8ba003960ed9604db52316eea",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 범주 이름으로 확률 열을 찾고 경계값을 포함해 경보를 정해요.",
+      "target": "text:범주 이름으로 확률 열을 찾고 경계값을 포함해 경보를 정해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "다른 종류의 확률을 읽고 기준과 같은 값도 경보에서 빠졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "model.predict_proba(X_test)[:, 1]",
+      "after": "model.predict_proba(X_test)[:, list(model.classes_).index(\"late\")]",
+      "say": "classes_에서 late 열의 위치를 찾아 확률을 읽으세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "지연 확률 열은 맞아요. 확률이 기준과 같은 배송도 포함해야 해요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "float(p) > threshold",
+      "after": "float(p) >= threshold",
+      "say": "기준과 같은 확률도 경보에 포함하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "지연 확률이 0인 배송은 False, 기준 1에 닿은 배송은 True예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 두 번째 열을 지연이라고 고정하면 범주 이름 순서가 바뀔 때 반대로 읽어요.",
+      "target": "code:float(p) >= threshold"
+    }
+  ]
+}

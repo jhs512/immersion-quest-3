@@ -128,7 +128,16 @@ def merge(remote, prepared, rows, course):
         brief = prepared.get('lesson_previews', {}).get(row['id'])
         if brief and row['id'] in merged.get('lesson_previews', {}):
             merged['lesson_previews'][row['id']]['challenge'] = brief['challenge']
-    text = TEXT[course]
+    text = copy.deepcopy(TEXT[course])
+    designated = sum(bool(r.get('challenge_task')) for r in merged['lessons'])
+    previous_count = sum(bool(r.get('challenge_task')) for r in remote['lessons'])
+    total = len(merged['lessons'])
+    # A partial publish must never advertise that every lesson is already covered.
+    for entry in merged.get('change_history', []):
+        if previous_count < total and entry.get('summary') == text['summary'] and entry.get('reason') == text['reason']:
+            entry['summary'] = f'마지막 도전을 {previous_count}/{total}수업에 게시했어요.'
+    if designated < total:
+        text['summary'] = f'마지막 도전을 {designated}/{total}수업에 게시했어요.'
     if not any(entry.get('summary') == text['summary'] for entry in merged.get('change_history', [])):
         merged.setdefault('change_history', []).insert(0, dict(
             at=datetime.now(timezone.utc).isoformat(timespec='seconds').replace('+00:00', 'Z'), summary=text['summary'],

@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "032af474b022659f7b879b68e70a6365ee68af0213416606586d3b13b4ac4be1",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 예측 시점의 입력 열을 고르고 훈련에서 구한 기준을 평가에도 적용해요.",
+      "target": "text:예측 시점의 입력 열을 고르고 훈련에서 구한 기준을 평가에도 적용해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "평가의 큰 거리까지 평균에 섞이고 입력에는 정답과 완료 정보도 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "reference = pd.concat([train, test])[\"distance\"].mean()",
+      "after": "reference = train[\"distance\"].mean()",
+      "say": "빈칸을 채울 평균은 훈련 자료에서만 구하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "평균은 훈련 거리만으로 정했어요. 입력 열도 접수 시점에 맞춰야 해요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "X_train = train.copy()\nX_test = test.copy()",
+      "after": "X_train = train[[\"distance\"]].copy()\nX_test = test[[\"distance\"]].copy()",
+      "say": "두 입력 표에서 정답과 미래 정보를 빼고 distance만 남기세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "입력 열은 distance 하나이고 평가의 빈칸도 훈련 평균으로 채워졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 정답이나 완료 정보를 입력에 남기면 접수할 때 할 수 없는 예측이 돼요.",
+      "target": "code:X_test = test[[\"distance\"]].copy()"
+    }
+  ]
+}

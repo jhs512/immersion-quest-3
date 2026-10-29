@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_0c7e0b0d-7e3e-472e-9665-7e03c40d67e0",
-  "revision": "aice-tensorflow-4",
+  "revision": "aice-tensorflow-5",
   "title": "TensorFlow의 구성·학습·예측을 구별해요",
   "description": "같은 거리 입력에서 모델 구성과 실제 학습·검증·예측을 구별해요.",
   "objectives": [
@@ -98,6 +98,22 @@
               "id": "stp_dba81c77-2882-44ae-9733-caec1a9d9f9f",
               "objectives": [
                 "실제 특성 수를 Input shape에 연결해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_13deac53-1523-48b5-8ee3-a17209813f11",
+          "title": "마지막 도전",
+          "objectives": [
+            "관측 수와 특성 수를 구분하고 실제 학습·예측의 입출력 모양을 맞춰요."
+          ],
+          "premise": "입력에는 배송 한 건의 특성 수 features를 써요. 배송 시간 예측은 한 칸이에요. 실제 한 묶음 학습과 예측 뒤 입력 모양, 예측 표 모양, 손실이 유한한지 출력해요. 현재 입력은 [2], 예측은 [3, 1]이에요.",
+          "steps": [
+            {
+              "id": "stp_228a312c-44f8-4f1f-bab3-2aaa29978f5c",
+              "objectives": [
+                "관측 수와 특성 수를 구분하고 실제 학습·예측의 입출력 모양을 맞춰요."
               ]
             }
           ]
@@ -651,6 +667,88 @@
         }
       ],
       "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nimport uuid\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"features\": 2, \"rows\": [[2.0, 3.0], [1.0, 4.0]]}, \"expected\": \"[[5.0], [5.0]]\"}, {\"values\": {\"features\": 3, \"rows\": [[1.0, 2.0, 3.0]]}, \"expected\": \"[[6.0]]\"}, {\"values\": {\"features\": 1, \"rows\": [[-1.0], [4.0], [0.0]]}, \"expected\": \"[[-1.0], [4.0], [0.0]]\"}]')\nprobe = 'assert model.input_shape[-1] == features, \"실제 모델 입력의 특성 수를 맞추세요.\"\\nactual = model.predict(np.array(rows, dtype=\"float32\"), verbose=0)\\nassert predictions.shape == actual.shape and np.allclose(predictions, actual), \"실제 모델의 계산과 모양을 확인하세요.\"'\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    witness = uuid.uuid4().hex\n    tree.body.extend(ast.parse(probe).body)\n    tree.body.extend(ast.parse('print(' + repr(witness) + ')').body)\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=45)\n    lines = result.stdout.strip().splitlines()\n    if not lines or lines[-1] != witness:\n        raise AssertionError('실제 실행 상태의 검사까지 끝나야 해요.')\n    output = '\\n'.join(lines[:-1]).strip()\n    if result.returncode != 0 or output != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_228a312c-44f8-4f1f-bab3-2aaa29978f5c",
+      "title": "배송 특성 수와 예측 한 칸을 연결하세요",
+      "language": "python",
+      "goal": "관측 수와 특성 수를 구분하고 실제 학습·예측의 입출력 모양을 맞춰요.\n\n입력에는 배송 한 건의 특성 수 features를 써요. 배송 시간 예측은 한 칸이에요. 실제 한 묶음 학습과 예측 뒤 입력 모양, 예측 표 모양, 손실이 유한한지 출력해요. 현재 입력은 [2], 예측은 [3, 1]이에요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 입력 모양에 행 수가 아닌 특성 수를 넣으세요.\n3. 시간을 한 값으로 예측하도록 출력 칸을 하나로 바꾸세요.\n4. 다시 실행해 요구한 결과를 확인한 뒤 작성한 코드를 제출하세요.",
+      "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"3\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 행 수와 한 배송의 특성 수는 서로 달라요.\nrows = [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]\ntargets = [[1.0], [2.0], [3.0]]\nfeatures = 2\nmodel = keras.Sequential([keras.Input(shape=(len(rows),)), keras.layers.Dense(2, kernel_initializer=\"zeros\")])\nmodel.compile(optimizer=\"sgd\", loss=\"mse\")\nloss = model.train_on_batch(np.array(rows, dtype=\"float32\"), np.array(targets, dtype=\"float32\"))\npredictions = model(np.array(rows, dtype=\"float32\"), training=False).numpy()\nprint(list(model.input_shape[1:]))\nprint(list(predictions.shape))\nprint(bool(np.isfinite(loss)))\n",
+      "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"3\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 행 수와 한 배송의 특성 수는 서로 달라요.\nrows = [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]\ntargets = [[1.0], [2.0], [3.0]]\nfeatures = 2\nmodel = keras.Sequential([keras.Input(shape=(features,)), keras.layers.Dense(1, kernel_initializer=\"zeros\")])\nmodel.compile(optimizer=\"sgd\", loss=\"mse\")\nloss = model.train_on_batch(np.array(rows, dtype=\"float32\"), np.array(targets, dtype=\"float32\"))\npredictions = model(np.array(rows, dtype=\"float32\"), training=False).numpy()\nprint(list(model.input_shape[1:]))\nprint(list(predictions.shape))\nprint(bool(np.isfinite(loss)))\n",
+      "required": true,
+      "tests": [
+        {
+          "input": "",
+          "expected": "[2]\n[3, 1]\nTrue"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "배송 특성 수와 예측 한 칸을 연결하는 문제예요.",
+          "target": "text:배송 특성 수와 예측 한 칸을 연결하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 관측 수와 특성 수를 구분하고 실제 학습·예측의 입출력 모양을 맞춰요.",
+          "target": "text:관측 수와 특성 수를 구분하고 실제 학습·예측의 입출력 모양을 맞춰요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            19
+          ],
+          "expect_error": "ValueError"
+        },
+        {
+          "action": "say",
+          "text": "입력은 세 특성을 기다리는데 한 배송에는 두 값만 있어 오류가 나요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "shape=(len(rows),)",
+          "after": "shape=(features,)",
+          "say": "입력 모양에 행 수가 아닌 특성 수를 넣으세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "입력 모양은 맞았어요. 예측 표의 두 칸도 한 칸으로 줄여야 해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "keras.layers.Dense(2,",
+          "after": "keras.layers.Dense(1,",
+          "say": "시간을 한 값으로 예측하도록 출력 칸을 하나로 바꾸세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "세 배송마다 시간 한 값을 예측했고 실제 학습 손실도 유한해요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 배송 건수를 입력 특성 수로 쓰면 자료의 행 수만 바뀌어도 실행이 깨져요.",
+          "target": "code:keras.layers.Dense(1,"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nimport uuid\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"rows\": [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]}, \"expected\": \"[2]\\\\n[3, 1]\\\\nTrue\"}, {\"values\": {\"rows\": [[1.0], [2.0]], \"targets\": [[3.0], [4.0]], \"features\": 1}, \"expected\": \"[1]\\\\n[2, 1]\\\\nTrue\"}, {\"values\": {\"rows\": [[1.0, 2.0, 3.0]], \"targets\": [[2.0]], \"features\": 3}, \"expected\": \"[3]\\\\n[1, 1]\\\\nTrue\"}]')\nprobe = 'assert model.input_shape[-1] == features\\nassert predictions.shape == (len(rows), 1)'\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    witness = uuid.uuid4().hex\n    tree.body.extend(ast.parse(probe).body)\n    tree.body.extend(ast.parse('print(' + repr(witness) + ')').body)\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=45)\n    lines = result.stdout.strip().splitlines()\n    if not lines or lines[-1] != witness:\n        raise AssertionError('실제 실행 상태의 검사까지 끝나야 해요.')\n    output = '\\n'.join(lines[:-1]).strip()\n    if result.returncode != 0 or output != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     }
   ]
 }

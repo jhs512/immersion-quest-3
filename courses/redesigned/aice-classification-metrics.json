@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_ccd71a72-acc9-4675-b620-c49df1c1c8df",
-  "revision": "aice-classification-metrics-5",
+  "revision": "aice-classification-metrics-6",
   "title": "지연 경보의 성능을 판단해요",
   "description": "같은 지연 경보에서 무엇을 맞히고 놓쳤는지 작은 수로 판단해요.",
   "objectives": [
@@ -109,6 +109,22 @@
               "id": "stp_992c4142-a502-4477-bf22-ab70b8e559a4",
               "objectives": [
                 "pos_label을 업무상 관심 범주에 연결해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_9e0e1eab-06d8-4f56-a612-bf13c47ffae6",
+          "title": "마지막 도전",
+          "objectives": [
+            "같은 경보 기준을 적용하고 관심 종류의 정밀도·재현율·F1을 구해요."
+          ],
+          "premise": "확률이 threshold 이상이면 late로 판정해요. 관심 종류 late의 정밀도, 재현율, F1을 차례로 출력해요. 지연으로 예측한 건이 없으면 지표를 0으로 두세요. 현재 결과는 0.666667, 1.0, 0.8이에요.",
+          "steps": [
+            {
+              "id": "stp_208e0760-9120-4546-a215-6633fba1ea5a",
+              "objectives": [
+                "같은 경보 기준을 적용하고 관심 종류의 정밀도·재현율·F1을 구해요."
               ]
             }
           ]
@@ -850,6 +866,87 @@
         }
       ],
       "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"y_true\": [\"late\", \"late\", \"late\", \"ok\"], \"y_pred\": [\"late\", \"ok\", \"ok\", \"ok\"]}, \"expected\": \"0.333333\"}, {\"values\": {\"y_true\": [\"late\", \"ok\"], \"y_pred\": [\"late\", \"ok\"]}, \"expected\": \"1.0\"}, {\"values\": {\"y_true\": [\"late\", \"late\", \"ok\"], \"y_pred\": [\"ok\", \"ok\", \"ok\"]}, \"expected\": \"0.0\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_208e0760-9120-4546-a215-6633fba1ea5a",
+      "title": "기준 경보의 지연 정밀도와 재현율을 구하세요",
+      "language": "python",
+      "goal": "같은 경보 기준을 적용하고 관심 종류의 정밀도·재현율·F1을 구해요.\n\n확률이 threshold 이상이면 late로 판정해요. 관심 종류 late의 정밀도, 재현율, F1을 차례로 출력해요. 지연으로 예측한 건이 없으면 지표를 0으로 두세요. 현재 결과는 0.666667, 1.0, 0.8이에요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 기준과 같은 확률을 포함해 late 경보를 만드세요.\n3. 관심 종류 late를 기준으로 세 지표를 계산하세요.\n4. 다시 실행해 요구한 결과를 확인한 뒤 작성한 코드를 제출하세요.",
+      "starter_code": "from sklearn.metrics import precision_score, recall_score, f1_score\n# 관심 대상은 late예요. 같은 자리의 실제 종류와 확률이 같은 배송이에요.\nactual = [\"late\", \"late\", \"ok\", \"ok\"]\nprobabilities = [0.8, 0.5, 0.7, 0.1]\nthreshold = 0.5\npredicted = [\"late\" if p > threshold else \"ok\" for p in probabilities]\npositive = \"ok\"\nprint(round(float(precision_score(actual, predicted, pos_label=positive, zero_division=0)), 6))\nprint(round(float(recall_score(actual, predicted, pos_label=positive, zero_division=0)), 6))\nprint(round(float(f1_score(actual, predicted, pos_label=positive, zero_division=0)), 6))\n",
+      "solution": "from sklearn.metrics import precision_score, recall_score, f1_score\n# 관심 대상은 late예요. 같은 자리의 실제 종류와 확률이 같은 배송이에요.\nactual = [\"late\", \"late\", \"ok\", \"ok\"]\nprobabilities = [0.8, 0.5, 0.7, 0.1]\nthreshold = 0.5\npredicted = [\"late\" if p >= threshold else \"ok\" for p in probabilities]\npositive = \"late\"\nprint(round(float(precision_score(actual, predicted, pos_label=positive, zero_division=0)), 6))\nprint(round(float(recall_score(actual, predicted, pos_label=positive, zero_division=0)), 6))\nprint(round(float(f1_score(actual, predicted, pos_label=positive, zero_division=0)), 6))\n",
+      "required": true,
+      "tests": [
+        {
+          "input": "",
+          "expected": "0.666667\n1.0\n0.8"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "기준 경보의 지연 정밀도와 재현율을 구하는 문제예요.",
+          "target": "text:기준 경보의 지연 정밀도와 재현율을 구하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 같은 경보 기준을 적용하고 관심 종류의 정밀도·재현율·F1을 구해요.",
+          "target": "text:같은 경보 기준을 적용하고 관심 종류의 정밀도·재현율·F1을 구해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "경계 확률이 빠지고 관심 대상도 정상 ok로 잡혀 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "p > threshold",
+          "after": "p >= threshold",
+          "say": "기준과 같은 확률을 포함해 late 경보를 만드세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "같은 경보 기준으로 바꿨어요. 지표는 지연 late 기준으로 읽어야 해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "positive = \"ok\"",
+          "after": "positive = \"late\"",
+          "say": "관심 종류 late를 기준으로 세 지표를 계산하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "경보 셋 중 실제 지연은 둘이고 실제 지연 둘을 모두 찾았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. pos_label을 바꾸면 같은 예측도 다른 종류의 성능을 보고하게 돼요.",
+          "target": "code:positive = \"late\""
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"actual\": [\"late\", \"late\", \"ok\", \"ok\"]}, \"expected\": \"0.666667\\\\n1.0\\\\n0.8\"}, {\"values\": {\"actual\": [\"late\", \"late\", \"ok\"], \"probabilities\": [0.2, 0.3, 0.1], \"threshold\": 0.5}, \"expected\": \"0.0\\\\n0.0\\\\n0.0\"}, {\"values\": {\"actual\": [\"late\", \"ok\", \"ok\", \"ok\"], \"probabilities\": [0.6, 0.5, 0.2, 0.1], \"threshold\": 0.5}, \"expected\": \"0.5\\\\n1.0\\\\n0.666667\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=30)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     }
   ]
 }

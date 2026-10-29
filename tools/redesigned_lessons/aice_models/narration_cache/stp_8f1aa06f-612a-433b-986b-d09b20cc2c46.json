@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "53f2a8d4501fe4a4cf31ae4c5e7e8ed239d2b7962ef48989d04ab6a923ad737b",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 같은 검증 자료와 오차 방향으로 후보 모델을 비교해요.",
+      "target": "text:같은 검증 자료와 오차 방향으로 후보 모델을 비교해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "검증 입력에 훈련 정답 일부를 붙이고 큰 오차를 고르고 있어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "truth = y_train[:len(X_valid)]",
+      "after": "truth = y_valid",
+      "say": "훈련 정답 일부 대신 검증 배송의 정답을 사용하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "검증 배송의 정답으로 비교했어요. 작은 오차를 선택해야 해요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "winner = max(scores, key=scores.get)",
+      "after": "winner = min(scores, key=scores.get)",
+      "say": "오차가 가장 작은 후보를 고르세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "같은 검증 배송에서 오차가 작은 후보를 골랐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 훈련 점수가 좋은 후보를 고르면 새 배송에서의 성능 비교가 빠져요.",
+      "target": "code:winner = min(scores, key=scores.get)"
+    }
+  ]
+}

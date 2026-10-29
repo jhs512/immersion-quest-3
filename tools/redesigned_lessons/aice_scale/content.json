@@ -635,6 +635,81 @@
           "target": "code:result = scaler.transform(test_values)"
         }
       ]
+    },
+    {
+      "id": "stp_d9e36990-e641-4647-b0f0-ea0bdc24acf5",
+      "title": "훈련 평균으로 채운 뒤 같은 척도로 바꾸세요",
+      "language": "python",
+      "goal": "빈칸 처리와 표준화를 훈련에서 학습하고 평가에는 변환만 적용해요.\n\n훈련 자료에서 거리 평균을 배워 빈칸을 채우고 표준화해요. 평가 자료는 기준을 다시 배우지 않고 변환만 해요. 현재 훈련 거리의 평균은 2예요. 평가의 빈칸은 중심으로, 8은 중심보다 큰 값으로 바뀌어야 해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 훈련 평균으로 빈칸을 채우도록 바꾸세요.\n3. 평가 자료에서는 fit 없이 transform만 사용하세요.\n4. 다시 실행해 요구한 결과를 확인한 뒤 작성한 코드를 제출하세요.",
+      "starter_code": "import numpy as np\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler\n# 훈련과 평가는 이미 분리했어요. 한 열에 빈 값이 있어요.\ntrain_rows = [[0.0], [None], [4.0]]\ntest_rows = [[None], [8.0]]\n# 실제 숫자 배열로 바꿔 None을 빈 숫자 NaN으로 통일해요.\ntrain_rows = np.asarray(train_rows, dtype=float)\ntest_rows = np.asarray(test_rows, dtype=float)\nprep = Pipeline([(\"fill\", SimpleImputer(strategy=\"constant\", fill_value=0)), (\"scale\", StandardScaler())])\nprep.fit(train_rows)\nresult = prep.fit_transform(test_rows)\n# 확인용 출력: 학습한 빈칸 기준, 중심, 새 자료 변환 값이에요.\nprint(prep.named_steps[\"fill\"].statistics_.astype(float).round(6).tolist())\nprint(prep.named_steps[\"scale\"].mean_.round(6).tolist())\nprint(result.round(6).tolist())\n",
+      "solution": "import numpy as np\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler\n# 훈련과 평가는 이미 분리했어요. 한 열에 빈 값이 있어요.\ntrain_rows = [[0.0], [None], [4.0]]\ntest_rows = [[None], [8.0]]\n# 실제 숫자 배열로 바꿔 None을 빈 숫자 NaN으로 통일해요.\ntrain_rows = np.asarray(train_rows, dtype=float)\ntest_rows = np.asarray(test_rows, dtype=float)\nprep = Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())])\nprep.fit(train_rows)\nresult = prep.transform(test_rows)\n# 확인용 출력: 학습한 빈칸 기준, 중심, 새 자료 변환 값이에요.\nprint(prep.named_steps[\"fill\"].statistics_.astype(float).round(6).tolist())\nprint(prep.named_steps[\"scale\"].mean_.round(6).tolist())\nprint(result.round(6).tolist())\n",
+      "required": true,
+      "tests": [
+        {
+          "input": "",
+          "expected": "[2.0]\n[2.0]\n[[0.0], [3.674235]]"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 빈칸 처리와 표준화를 훈련에서 학습하고 평가에는 변환만 적용해요.",
+          "target": "text:빈칸 처리와 표준화를 훈련에서 학습하고 평가에는 변환만 적용해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "평가에서 다시 학습해 중심이 바뀌었어요. 빈칸 기준도 0으로 고정돼 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "SimpleImputer(strategy=\"constant\", fill_value=0)",
+          "after": "SimpleImputer(strategy=\"mean\")",
+          "say": "훈련 평균으로 빈칸을 채우도록 바꾸세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "빈칸 기준은 평균으로 바꿨어요. 평가에서 다시 fit하면 여전히 평가 기준이 돼요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "result = prep.fit_transform(test_rows)",
+          "after": "result = prep.transform(test_rows)",
+          "say": "평가 자료에서는 fit 없이 transform만 사용하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "훈련의 빈칸 기준과 중심이 2로 유지되고 새 거리만 변환됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. fit_transform을 평가 자료에 쓰면 훈련 기준을 지운 뒤 새 기준을 배워요.",
+          "target": "code:result = prep.transform(test_rows)"
+        }
+      ]
     }
   ],
   "presentation": {
@@ -663,6 +738,12 @@
           "자동으로 해결되지 않는 조건을 검증해요."
         ],
         "premise": "같은 배송에 범위 밖 거리와 처음 보는 지역이 들어와요. 빈값도 남길 수 있어 처리 정책과 순서를 확인해요."
+      },
+      "unt_06c8dac5-6b37-468b-9e65-61ff8ef9b80f": {
+        "objectives": [
+          "빈칸 처리와 표준화를 훈련에서 학습하고 평가에는 변환만 적용해요."
+        ],
+        "premise": "훈련 자료에서 거리 평균을 배워 빈칸을 채우고 표준화해요. 평가 자료는 기준을 다시 배우지 않고 변환만 해요. 현재 훈련 거리의 평균은 2예요. 평가의 빈칸은 중심으로, 8은 중심보다 큰 값으로 바뀌어야 해요."
       }
     }
   },
@@ -728,6 +809,105 @@
         },
         "expected": "[[9.0, 4.0]]"
       }
+    ],
+    "stp_d9e36990-e641-4647-b0f0-ea0bdc24acf5": [
+      {
+        "values": {
+          "train_rows": [
+            [
+              0.0
+            ],
+            [
+              null
+            ],
+            [
+              4.0
+            ]
+          ]
+        },
+        "expected": "[2.0]\n[2.0]\n[[0.0], [3.674235]]"
+      },
+      {
+        "values": {
+          "train_rows": [
+            [
+              0.0
+            ],
+            [
+              null
+            ],
+            [
+              2.0
+            ]
+          ],
+          "test_rows": [
+            [
+              null
+            ],
+            [
+              3.0
+            ]
+          ]
+        },
+        "expected": "[1.0]\n[1.0]\n[[0.0], [2.44949]]"
+      },
+      {
+        "values": {
+          "train_rows": [
+            [
+              2.0
+            ],
+            [
+              null
+            ],
+            [
+              6.0
+            ]
+          ],
+          "test_rows": [
+            [
+              4.0
+            ],
+            [
+              null
+            ]
+          ]
+        },
+        "expected": "[4.0]\n[4.0]\n[[0.0], [0.0]]"
+      },
+      {
+        "values": {
+          "train_rows": [
+            [
+              0.0
+            ],
+            [
+              null
+            ],
+            [
+              2.0
+            ],
+            [
+              10.0
+            ]
+          ],
+          "test_rows": [
+            [
+              null
+            ],
+            [
+              8.0
+            ]
+          ]
+        },
+        "expected": "[4.0]\n[4.0]\n[[0.0], [1.069045]]"
+      }
     ]
+  },
+  "prepared_probes": {
+    "stp_d9e36990-e641-4647-b0f0-ea0bdc24acf5": "import numpy as np\nassert np.allclose(prep.named_steps[\"fill\"].statistics_.astype(float), np.nanmean(np.asarray(train_rows,dtype=float),axis=0))"
+  },
+  "prepared_task_timeout_seconds": {
+    "stp_d9e36990-e641-4647-b0f0-ea0bdc24acf5": 30
   }
 }

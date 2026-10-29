@@ -702,6 +702,71 @@
           "say": "두 번호와 마지막 공유 값을 콜론으로 이어 적어요."
         }
       ]
+    },
+    {
+      "language": "java",
+      "starter_code": "public class Main {\n    static class Ticket {\n        static int issued = 0;\n        int number;\n        Ticket() { number = issued; }\n    }\n    public static void main(String[] args) {\n        Ticket a = new Ticket();\n        Ticket alias = a;\n        Ticket b = new Ticket();\n        System.out.print(a.number + \" \" + alias.number + \" \" + b.number + \" \" + Ticket.issued);\n    }\n}\n",
+      "solution": "public class Main {\n    static class Ticket {\n        static int issued = 0;\n        int number;\n        Ticket() { issued++; number = issued; }\n    }\n    public static void main(String[] args) {\n        Ticket a = new Ticket();\n        Ticket alias = a;\n        Ticket b = new Ticket();\n        System.out.print(a.number + \" \" + alias.number + \" \" + b.number + \" \" + Ticket.issued);\n    }\n}\n",
+      "goal": "클래스 공유 카운터와 객체별 번호를 나누고 참조 대입을 새 생성과 구별해요.\n\n새 Ticket을 만들 때 issued를 하나 늘린 뒤 그 값을 number에 저장하세요. alias는 a와 같은 객체예요. 지금 출력은 1 1 2 2예요.\n\n**할 일**\n\n1. 코드 실행을 눌러 수정 전 결과를 확인하세요.\n2. 생성자에서 공유 카운터를 먼저 늘리고 객체 번호에 복사하세요.\n3. 다시 실행해 결과를 확인하고 작성한 코드를 제출하세요.",
+      "tests": [
+        {
+          "input": "",
+          "expected": "1 1 2 2"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 클래스 공유 카운터와 객체별 번호를 나누고 참조 대입을 새 생성과 구별해요.",
+          "target": "text:클래스 공유 카운터와 객체별 번호를 나누고 참조 대입을 새 생성과 구별해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "발급 수를 늘리지 않아 모든 번호가 0이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "Ticket() { number = issued; }",
+          "after": "Ticket() { issued++; number = issued; }",
+          "say": "생성자에서 공유 카운터를 먼저 늘리고 객체 번호에 복사하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "a와 alias는 번호 1 하나를 공유하고 새 b는 번호 2예요. 실제 발급 수는 2예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. alias = a는 새 객체 생성이 아니므로 발급 수를 늘리지 않아요.",
+          "target": "code:Ticket() { issued++; number = issued; }"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "issued": "10"
+          },
+          "expected": "11 11 12 12"
+        }
+      ],
+      "id": "stp_1b79ae00-24ed-4ce1-bc83-5ee7121d3a93",
+      "title": "생성된 객체에만 다음 발급 번호를 부여하세요",
+      "required": true
     }
   ],
   "presentation": {
@@ -730,6 +795,12 @@
           "상위 초기화와 번호 증가를 연결해요."
         ],
         "premise": "같은 창구에 준비 블록과 상위 창구가 생겨요. 매번 실행 순서를 한 관계씩 더해요."
+      },
+      "unt_edc4db02-64f9-4194-bcaf-f2834a1b7599": {
+        "objectives": [
+          "클래스 공유 카운터와 객체별 번호를 나누고 참조 대입을 새 생성과 구별해요."
+        ],
+        "premise": "새 Ticket을 만들 때 issued를 하나 늘린 뒤 그 값을 number에 저장하세요. alias는 a와 같은 객체예요. 지금 출력은 1 1 2 2예요."
       }
     }
   }

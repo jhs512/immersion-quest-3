@@ -187,7 +187,7 @@ def build(name, check=False):
             if task['language'] != 'python' or task.get('interaction'):
                 raise ValueError('준비 자료 검사는 파이썬 코드 문제에만 넣어요.')
             task['checker'] = python_prepared_checker(cases, authored.get('prepared_probes', {}).get(task['id']),
-                timeout_seconds=authored.get('prepared_timeout_seconds', 10))
+                timeout_seconds=authored.get('prepared_task_timeout_seconds', {}).get(task['id'], authored.get('prepared_timeout_seconds', 10)))
     if [task['id'] for task in tasks] != [step['id'] for step in steps]:
         raise ValueError('제작한 스텝이 승인된 PRD 구성과 달라요.')
     stale = []

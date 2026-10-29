@@ -39,7 +39,11 @@
       "id\n2"
     ],
     [],
-    []
+    [],
+    [
+      "id | qty\n1 | 2\n2 | NULL\n4 | 5",
+      "id | qty\n1 | 2\n4 | 5"
+    ]
   ],
   "reject": [
     {
@@ -61,6 +65,28 @@
         ]
       ],
       "reason": "다른 자료의 2 이하 재고도 같은 조건으로 지워야 해요."
+    },
+    {
+      "step": 11,
+      "replacements": [
+        [
+          "UPDATE stocks SET qty = 0 WHERE qty IS NULL;\nDELETE FROM stocks WHERE qty = 0;",
+          "DELETE FROM stocks WHERE qty = 0;\nUPDATE stocks SET qty = 0 WHERE qty IS NULL;"
+        ]
+      ],
+      "reason": "삭제 후 정정하면 새 0 행이 남아요."
+    }
+  ],
+  "accept": [
+    {
+      "step": 11,
+      "replacements": [
+        [
+          "qty IS NULL",
+          "qty ISNULL"
+        ]
+      ],
+      "reason": "SQLite의 ISNULL도 같은 NULL 조건이에요."
     }
   ]
 }

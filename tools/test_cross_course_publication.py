@@ -36,6 +36,16 @@ class PublicationBoundaries(unittest.TestCase):
             with self.assertRaises(ValueError):
                 module.prepare('aice', self.remote, local)
 
+    def test_partial_publication_does_not_claim_every_lesson_is_done(self):
+        remote = dict(lessons=[dict(id='one', repository='repo/one', revision='v1', sha256='a'),
+                               dict(id='two', repository='repo/two', revision='v1', sha256='b')], change_history=[])
+        prepared = copy.deepcopy(remote)
+        prepared['lessons'][0].update(revision='v2', sha256='c', challenge_task='step')
+        rows = [('one', remote['lessons'][0], prepared['lessons'][0], b'')]
+        partial = module.module.merge(remote, prepared, rows, 'aice')
+        self.assertIn('1/2', partial['change_history'][0]['summary'])
+        self.assertNotIn('모든', partial['change_history'][0]['summary'])
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,0 +1,52 @@
+{
+  "by": "hand",
+  "source_sha256": "7389818ea6bf6f553684ab7d34ecbeedfd8642e20c940a3a1ca25b99355cd39d",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 구조체 값과 함수 포인터를 연결해 각 항목의 계산을 합쳐요.",
+      "target": "text:구조체 값과 함수 포인터를 연결해 각 항목의 계산을 합쳐요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        14,
+        14
+      ]
+    },
+    {
+      "action": "say",
+      "text": "정상 가격의 마지막 상품 240만 남아요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "int (*rule)(Item) = normal;",
+      "after": "int (*rule)(Item) = sale ? half : normal;",
+      "say": "sale 값에 맞춰 계산 함수의 주소를 고르세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "total = rule(items[i]);",
+      "after": "total += rule(items[i]);",
+      "say": "각 구조체를 규칙 함수에 전달하고 반환 금액을 누적하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        14,
+        14
+      ]
+    },
+    {
+      "action": "say",
+      "text": "할인 가격 100과 120을 더해 220이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 함수 포인터를 선언해도 선택한 함수를 항목마다 호출하지 않으면 계산되지 않아요.",
+      "target": "code:total += rule(items[i]);"
+    }
+  ]
+}

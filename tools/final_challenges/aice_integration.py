@@ -18,7 +18,7 @@ pipeline = Pipeline([("prep",preprocess),("model",LinearRegression())])
 pipeline.fit(train[["distance","zone"]],train["minutes"])
 predictions = pipeline.predict(new[["distance","zone"]])
 result = pd.DataFrame({"id":range(len(new)),"minutes":predictions.round(6)})
-print(result.to_csv(index=False).strip())
+print(result.to_csv(index=False,lineterminator="\\n").strip())
 '''
 SPEC = make('aice-integration', '처음 보는 지역도 예측하고 주문번호와 함께 내보내세요',
     'delivery.csv로 전처리와 회귀를 함께 학습해요. new.csv에는 처음 보는 지역도 있어요. '

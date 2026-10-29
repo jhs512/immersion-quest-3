@@ -49,6 +49,10 @@
     ],
     [
       "category | n\nA | 4"
+    ],
+    [
+      "category | total | n\nA | 6 | 3\nB | 3 | 2\nC | 8 | 2",
+      "category | total | n\nC | 8 | 2\nA | 6 | 2"
     ]
   ],
   "reject": [
@@ -61,6 +65,38 @@
         ]
       ],
       "reason": "분류 이름을 고정하면 다른 자료의 집계 기준을 놓쳐요."
+    },
+    {
+      "step": 11,
+      "replacements": [
+        [
+          "WHERE qty > 0",
+          "WHERE qty >= 0"
+        ]
+      ],
+      "reason": "0 재고 행은 집계 수에서도 빠져야 해요."
+    },
+    {
+      "step": 11,
+      "replacements": [
+        [
+          "ORDER BY total DESC, category ASC;",
+          "ORDER BY total DESC, category DESC;"
+        ]
+      ],
+      "reason": "동점 분류 순서도 검사해요."
+    }
+  ],
+  "accept": [
+    {
+      "step": 11,
+      "replacements": [
+        [
+          "SUM(qty) >= 6",
+          "6 <= SUM(qty)"
+        ]
+      ],
+      "reason": "비교 방향을 바꿔도 같은 합계 조건이에요."
     }
   ]
 }

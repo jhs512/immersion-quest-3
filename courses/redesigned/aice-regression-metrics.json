@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_6e1e6282-a4d8-4bb5-9db2-e248e9f8a94e",
-  "revision": "aice-regression-metrics-5",
+  "revision": "aice-regression-metrics-6",
   "title": "예측 오차를 목적에 맞게 읽어요",
   "description": "같은 배송 예측의 오차·단위·평가 조건을 작은 비교로 읽어요.",
   "objectives": [
@@ -98,6 +98,22 @@
               "id": "stp_08c238c2-b05f-4141-b396-b50dbb66d9c9",
               "objectives": [
                 "MSE의 제곱근으로 보고 단위에 맞는 RMSE를 구해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_93f7609e-9f83-47f6-b4d4-c3f9ce8d4ca4",
+          "title": "마지막 도전",
+          "objectives": [
+            "같은 배송끼리 비교하고 MAE·RMSE·R²의 의미에 맞게 보고해요."
+          ],
+          "premise": "예측을 actual의 배송 번호 순서로 맞춘 뒤 MAE, RMSE, R²를 출력해요. RMSE는 MSE의 제곱근이라 시간과 같은 분 단위예요. 지금 결과는 2.666667, 3.265986, 0.84예요.",
+          "steps": [
+            {
+              "id": "stp_8c2d0bff-a5ed-444e-9b9d-811d3b88f5b2",
+              "objectives": [
+                "같은 배송끼리 비교하고 MAE·RMSE·R²의 의미에 맞게 보고해요."
               ]
             }
           ]
@@ -636,6 +652,87 @@
         }
       ],
       "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"y_true\": [10, 20], \"y_pred\": [11, 23]}, \"expected\": \"2.236068\"}, {\"values\": {\"y_true\": [5, 7], \"y_pred\": [5, 7]}, \"expected\": \"0.0\"}, {\"values\": {\"y_true\": [10], \"y_pred\": [7]}, \"expected\": \"3.0\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_8c2d0bff-a5ed-444e-9b9d-811d3b88f5b2",
+      "title": "배송 번호를 맞추고 세 오차를 보고하세요",
+      "language": "python",
+      "goal": "같은 배송끼리 비교하고 MAE·RMSE·R²의 의미에 맞게 보고해요.\n\n예측을 actual의 배송 번호 순서로 맞춘 뒤 MAE, RMSE, R²를 출력해요. RMSE는 MSE의 제곱근이라 시간과 같은 분 단위예요. 지금 결과는 2.666667, 3.265986, 0.84예요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 실제 값의 배송 번호 순서로 예측을 맞추세요.\n3. 분 단위 RMSE가 나오도록 제곱근을 구하세요.\n4. 다시 실행해 요구한 결과를 확인한 뒤 작성한 코드를 제출하세요.",
+      "starter_code": "import pandas as pd\nfrom sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score\n# 번호별 실제 시간과 예측이에요. 저장된 순서가 달라요.\ntruth = {101: 10, 102: 20, 103: 30}\nguesses = {103: 34, 101: 10, 102: 16}\nactual = pd.Series(truth)\npredicted = pd.Series(guesses)\naligned = predicted\nmae = mean_absolute_error(actual, aligned)\nrmse = mean_squared_error(actual, aligned)\nr2 = r2_score(actual, aligned)\nprint(round(float(mae), 6))\nprint(round(float(rmse), 6))\nprint(round(float(r2), 6))\n",
+      "solution": "import pandas as pd\nfrom sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score\n# 번호별 실제 시간과 예측이에요. 저장된 순서가 달라요.\ntruth = {101: 10, 102: 20, 103: 30}\nguesses = {103: 34, 101: 10, 102: 16}\nactual = pd.Series(truth)\npredicted = pd.Series(guesses)\naligned = predicted.reindex(actual.index)\nmae = mean_absolute_error(actual, aligned)\nrmse = mean_squared_error(actual, aligned) ** 0.5\nr2 = r2_score(actual, aligned)\nprint(round(float(mae), 6))\nprint(round(float(rmse), 6))\nprint(round(float(r2), 6))\n",
+      "required": true,
+      "tests": [
+        {
+          "input": "",
+          "expected": "2.666667\n3.265986\n0.84"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "배송 번호를 맞추고 세 오차를 보고하는 문제예요.",
+          "target": "text:배송 번호를 맞추고 세 오차를 보고하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 같은 배송끼리 비교하고 MAE·RMSE·R²의 의미에 맞게 보고해요.",
+          "target": "text:같은 배송끼리 비교하고 MAE·RMSE·R²의 의미에 맞게 보고해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "저장 순서가 다른 배송을 비교했고 RMSE 자리에는 제곱 오차가 들어갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "aligned = predicted",
+          "after": "aligned = predicted.reindex(actual.index)",
+          "say": "실제 값의 배송 번호 순서로 예측을 맞추세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "배송 번호는 맞췄어요. RMSE도 원래 시간 단위로 바꿔야 해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "rmse = mean_squared_error(actual, aligned)",
+          "after": "rmse = mean_squared_error(actual, aligned) ** 0.5",
+          "say": "분 단위 RMSE가 나오도록 제곱근을 구하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "같은 배송끼리 비교한 세 지표가 각각 출력됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 두 목록을 값순으로 따로 정렬하면 번호가 같은 배송의 오차를 잃어요.",
+          "target": "code:rmse = mean_squared_error(actual, aligned) ** 0.5"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nimport uuid\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"truth\": {\"101\": 10, \"102\": 20, \"103\": 30}, \"guesses\": {\"103\": 34, \"101\": 10, \"102\": 16}}, \"expected\": \"2.666667\\\\n3.265986\\\\n0.84\"}, {\"values\": {\"truth\": {\"1\": 2, \"2\": 4, \"3\": 6}, \"guesses\": {\"3\": 5, \"1\": 1, \"2\": 5}}, \"expected\": \"1.0\\\\n1.0\\\\n0.625\"}, {\"values\": {\"truth\": {\"7\": 0, \"8\": 10}, \"guesses\": {\"8\": 10, \"7\": 0}}, \"expected\": \"0.0\\\\n0.0\\\\n1.0\"}]')\nprobe = 'assert aligned.index.equals(actual.index)\\nassert abs(rmse * rmse - mean_squared_error(actual, aligned)) < 1e-8'\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    witness = uuid.uuid4().hex\n    tree.body.extend(ast.parse(probe).body)\n    tree.body.extend(ast.parse('print(' + repr(witness) + ')').body)\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=30)\n    lines = result.stdout.strip().splitlines()\n    if not lines or lines[-1] != witness:\n        raise AssertionError('실제 실행 상태의 검사까지 끝나야 해요.')\n    output = '\\n'.join(lines[:-1]).strip()\n    if result.returncode != 0 or output != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     }
   ]
 }

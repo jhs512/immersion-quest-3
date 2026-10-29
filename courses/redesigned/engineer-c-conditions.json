@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_91e07ae3-8a11-4227-976c-d55f9f77b56b",
-  "revision": "engineer-c-conditions-5",
+  "revision": "engineer-c-conditions-6",
   "title": "C 연산과 조건을 읽어요",
   "description": "같은 재고를 포장하며 몫·나머지·조건을 차례로 연결해요.",
   "objectives": [
@@ -98,6 +98,22 @@
               "id": "stp_855eb259-cf79-4e88-a396-c239b00608db",
               "objectives": [
                 "몫·나머지와 결과가 다른 두 분기를 조합해 출력을 답해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_e34ac695-2a85-42bb-887c-6eb41685b0b4",
+          "title": "마지막 도전",
+          "objectives": [
+            "몫·나머지·조건식으로 포장 수와 정확한 경계를 처리해요."
+          ],
+          "premise": "재고는 0 이상, 상자 크기는 1 이상이에요. 완성 상자 수와 다음 상자에 모자란 수량을 출력하세요. 남은 낱개가 0이면 모자란 수도 0으로 정해요. 지금 답은 2 1이에요.",
+          "steps": [
+            {
+              "id": "stp_dc7e47b4-96cc-49e9-9865-af75a871cc94",
+              "objectives": [
+                "몫·나머지·조건식으로 포장 수와 정확한 경계를 처리해요."
               ]
             }
           ]
@@ -987,6 +1003,97 @@
           "id": "packs-need"
         }
       ]
+    },
+    {
+      "language": "c",
+      "starter_code": "#include <stdio.h>\nint main(void) {\n    int stock = 11;\n    int size = 4;\n    // 완성한 상자 수와 다음 상자에 부족한 낱개 수를 계산하세요.\n    int boxes = stock % size;\n    int missing = size - stock % size;\n    printf(\"%d %d\", boxes, missing);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\nint main(void) {\n    int stock = 11;\n    int size = 4;\n    // 완성한 상자 수와 다음 상자에 부족한 낱개 수를 계산하세요.\n    int boxes = stock / size;\n    int missing = stock % size == 0 ? 0 : size - stock % size;\n    printf(\"%d %d\", boxes, missing);\n    return 0;\n}\n",
+      "goal": "몫·나머지·조건식으로 포장 수와 정확한 경계를 처리해요.\n\n재고는 0 이상, 상자 크기는 1 이상이에요. 완성 상자 수와 다음 상자에 모자란 수량을 출력하세요. 남은 낱개가 0이면 모자란 수도 0으로 정해요. 지금 답은 2 1이에요.\n\n**할 일**\n\n1. 코드 실행을 눌러 수정 전 결과를 확인하세요.\n2. boxes에는 나눗셈의 몫을 저장하세요.\n3. 나머지가 0이면 missing도 0, 아니면 상자 크기에서 나머지를 빼세요.\n4. 다시 실행해 결과를 확인하고 작성한 코드를 제출하세요.",
+      "tests": [
+        {
+          "input": "",
+          "expected": "2 1"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "완성 상자와 추가로 필요한 낱개를 계산하는 문제예요.",
+          "target": "text:완성 상자와 추가로 필요한 낱개를 계산하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 몫·나머지·조건식으로 포장 수와 정확한 경계를 처리해요.",
+          "target": "text:몫·나머지·조건식으로 포장 수와 정확한 경계를 처리해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "완성 상자 대신 나머지 3을 출력해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "int boxes = stock % size;",
+          "after": "int boxes = stock / size;",
+          "say": "boxes에는 나눗셈의 몫을 저장하세요."
+        },
+        {
+          "action": "patch_code",
+          "before": "int missing = size - stock % size;",
+          "after": "int missing = stock % size == 0 ? 0 : size - stock % size;",
+          "say": "나머지가 0이면 missing도 0, 아니면 상자 크기에서 나머지를 빼세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "11개로 상자 2개를 만들고 낱개 3개가 남아 다음 상자에는 1개가 모자라요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 나머지가 0일 때 상자 크기만큼 부족하다고 계산하면 틀려요.",
+          "target": "code:int missing = stock % size == 0 ? 0 : size - stock % size;"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "stock": "8",
+            "size": "4"
+          },
+          "expected": "2 0"
+        },
+        {
+          "values": {
+            "stock": "0",
+            "size": "3"
+          },
+          "expected": "0 0"
+        },
+        {
+          "values": {
+            "stock": "2",
+            "size": "5"
+          },
+          "expected": "0 3"
+        }
+      ],
+      "id": "stp_dc7e47b4-96cc-49e9-9865-af75a871cc94",
+      "title": "완성 상자와 추가로 필요한 낱개를 계산하세요",
+      "required": true
     }
   ]
 }

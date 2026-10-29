@@ -554,6 +554,81 @@
           "target": "code:.mean()"
         }
       ]
+    },
+    {
+      "id": "stp_aea6a5c7-61a8-48bd-b46f-891d15963afb",
+      "title": "접수 시점의 열과 훈련 기준만 남기세요",
+      "language": "python",
+      "goal": "예측 시점의 입력 열을 고르고 훈련에서 구한 기준을 평가에도 적용해요.\n\n접수한 거리로 시간을 예측하려 해요. 거리의 빈칸은 훈련 거리의 평균으로 채워요. 입력에는 distance만 남겨요. 평가 자료와 정답, 배송 완료 뒤 정보가 기준에 섞이면 안 돼요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 빈칸을 채울 평균은 훈련 자료에서만 구하세요.\n3. 두 입력 표에서 정답과 미래 정보를 빼고 distance만 남기세요.\n4. 다시 실행해 요구한 결과를 확인한 뒤 작성한 코드를 제출하세요.",
+      "starter_code": "import pandas as pd\n# 정답 minutes와 배송이 끝난 뒤에만 아는 actual_end는 예측 시점에 몰라요.\ntrain_rows = {\"distance\": [2, None, 6], \"minutes\": [20, 30, 40], \"actual_end\": [8, 9, 10]}\ntest_rows = {\"distance\": [None, 10], \"minutes\": [50, 60], \"actual_end\": [11, 12]}\ntrain = pd.DataFrame(train_rows)\ntest = pd.DataFrame(test_rows)\nreference = pd.concat([train, test])[\"distance\"].mean()\nX_train = train.copy()\nX_test = test.copy()\nX_train = X_train.fillna(reference)\nX_test = X_test.fillna(reference)\nprint(round(float(reference), 6))\nprint(X_train.columns.tolist())\nprint(X_train[\"distance\"].tolist())\nprint(X_test[\"distance\"].tolist())\n",
+      "solution": "import pandas as pd\n# 정답 minutes와 배송이 끝난 뒤에만 아는 actual_end는 예측 시점에 몰라요.\ntrain_rows = {\"distance\": [2, None, 6], \"minutes\": [20, 30, 40], \"actual_end\": [8, 9, 10]}\ntest_rows = {\"distance\": [None, 10], \"minutes\": [50, 60], \"actual_end\": [11, 12]}\ntrain = pd.DataFrame(train_rows)\ntest = pd.DataFrame(test_rows)\nreference = train[\"distance\"].mean()\nX_train = train[[\"distance\"]].copy()\nX_test = test[[\"distance\"]].copy()\nX_train = X_train.fillna(reference)\nX_test = X_test.fillna(reference)\nprint(round(float(reference), 6))\nprint(X_train.columns.tolist())\nprint(X_train[\"distance\"].tolist())\nprint(X_test[\"distance\"].tolist())\n",
+      "required": true,
+      "tests": [
+        {
+          "input": "",
+          "expected": "4.0\n['distance']\n[2.0, 4.0, 6.0]\n[4.0, 10.0]"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 예측 시점의 입력 열을 고르고 훈련에서 구한 기준을 평가에도 적용해요.",
+          "target": "text:예측 시점의 입력 열을 고르고 훈련에서 구한 기준을 평가에도 적용해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "평가의 큰 거리까지 평균에 섞이고 입력에는 정답과 완료 정보도 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "reference = pd.concat([train, test])[\"distance\"].mean()",
+          "after": "reference = train[\"distance\"].mean()",
+          "say": "빈칸을 채울 평균은 훈련 자료에서만 구하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "평균은 훈련 거리만으로 정했어요. 입력 열도 접수 시점에 맞춰야 해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "X_train = train.copy()\nX_test = test.copy()",
+          "after": "X_train = train[[\"distance\"]].copy()\nX_test = test[[\"distance\"]].copy()",
+          "say": "두 입력 표에서 정답과 미래 정보를 빼고 distance만 남기세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "입력 열은 distance 하나이고 평가의 빈칸도 훈련 평균으로 채워졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 정답이나 완료 정보를 입력에 남기면 접수할 때 할 수 없는 예측이 돼요.",
+          "target": "code:X_test = test[[\"distance\"]].copy()"
+        }
+      ]
     }
   ],
   "presentation": {
@@ -582,6 +657,12 @@
           "같은 행이 아니어도 평가가 섞이는지 확인해요."
         ],
         "premise": "같은 배송에 고객과 날짜가 있어요. 새 고객·미래 배송을 평가하려는 목적에 맞게 나누고 훈련 기준으로 채워요."
+      },
+      "unt_a752667a-1834-42aa-8ec7-62e27423f70e": {
+        "objectives": [
+          "예측 시점의 입력 열을 고르고 훈련에서 구한 기준을 평가에도 적용해요."
+        ],
+        "premise": "접수한 거리로 시간을 예측하려 해요. 거리의 빈칸은 훈련 거리의 평균으로 채워요. 입력에는 distance만 남겨요. 평가 자료와 정답, 배송 완료 뒤 정보가 기준에 섞이면 안 돼요."
       }
     }
   },
@@ -628,6 +709,72 @@
         },
         "expected": "[2.0, 90.0]"
       }
+    ],
+    "stp_aea6a5c7-61a8-48bd-b46f-891d15963afb": [
+      {
+        "values": {
+          "train_rows": {
+            "distance": [
+              2,
+              null,
+              6
+            ],
+            "minutes": [
+              20,
+              30,
+              40
+            ],
+            "actual_end": [
+              8,
+              9,
+              10
+            ]
+          }
+        },
+        "expected": "4.0\n['distance']\n[2.0, 4.0, 6.0]\n[4.0, 10.0]"
+      },
+      {
+        "values": {
+          "train_rows": {
+            "distance": [
+              1,
+              null,
+              9
+            ],
+            "minutes": [
+              10,
+              20,
+              30
+            ],
+            "actual_end": [
+              1,
+              2,
+              3
+            ]
+          },
+          "test_rows": {
+            "distance": [
+              null,
+              100
+            ],
+            "minutes": [
+              90,
+              80
+            ],
+            "actual_end": [
+              4,
+              5
+            ]
+          }
+        },
+        "expected": "5.0\n['distance']\n[1.0, 5.0, 9.0]\n[5.0, 100.0]"
+      }
     ]
+  },
+  "prepared_probes": {
+    "stp_aea6a5c7-61a8-48bd-b46f-891d15963afb": "assert X_train.columns.tolist() == [\"distance\"]\nassert X_test.columns.tolist() == [\"distance\"]\nassert reference == train.distance.mean()"
+  },
+  "prepared_task_timeout_seconds": {
+    "stp_aea6a5c7-61a8-48bd-b46f-891d15963afb": 30
   }
 }

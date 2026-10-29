@@ -19,7 +19,7 @@ callback = keras.callbacks.EarlyStopping(monitor="val_loss",mode="min",patience=
 history = model.fit(rows,targets,validation_data=(rows,np.zeros_like(targets)),epochs=8,batch_size=2,
     shuffle=False,callbacks=[callback],verbose=0)
 print(len(history.history["loss"]))
-print(model(rows,training=False).numpy().round(6).tolist())
+print(model(rows,training=False).numpy().astype(float).round(6).tolist())
 '''
 SPEC = make('aice-training', '정한 횟수만 기다리고 가장 좋던 가중치를 복원하세요',
     '검증 손실이 나빠져도 wait번까지 기다려요. 멈춘 뒤에는 검증이 가장 좋던 가중치를 복원해요. '

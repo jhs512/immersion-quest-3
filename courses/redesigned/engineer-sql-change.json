@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_76478536-3007-4c4f-a29a-6cec4d6fe922",
-  "revision": "engineer-sql-change-5",
+  "revision": "engineer-sql-change-6",
   "title": "SQL · 같은 재고의 변경과 권한을 구별해요",
   "description": "실제 표를 바꾸고 취소해요. 권한은 제품 문법 자료로 별도 판단해요.",
   "objectives": [
@@ -131,6 +131,22 @@
               "id": "stp_32951eb6-54ba-4646-840e-e0ac17330e59",
               "objectives": [
                 "REVOKE와 DELETE의 대상을 구별해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_21ec8d19-622c-48d8-88cc-4a7ef7318bf6",
+          "title": "마지막 도전",
+          "objectives": [
+            "NULL 조건과 여러 변경문의 실행 순서로 최종 표를 만들어요."
+          ],
+          "premise": "먼저 qty를 모르는 행을 0으로 정정하고, 그다음 qty가 0인 모든 행을 삭제하세요. 양수 재고는 보존하세요. 실행 뒤 최종 표가 자동으로 조회돼요. 지금 1번 2개와 4번 5개만 남아야 해요.",
+          "steps": [
+            {
+              "id": "stp_c373e085-db0d-4fab-8d0a-a8e7258d7699",
+              "objectives": [
+                "NULL 조건과 여러 변경문의 실행 순서로 최종 표를 만들어요."
               ]
             }
           ]
@@ -964,6 +980,80 @@
         }
       ],
       "question": "어떤 PostgreSQL 18 명령을 읽어야 할까요?"
+    },
+    {
+      "language": "sql",
+      "starter_code": "UPDATE stocks SET qty = 0 WHERE qty = NULL;\nDELETE FROM stocks WHERE qty = 0;",
+      "solution": "UPDATE stocks SET qty = 0 WHERE qty IS NULL;\nDELETE FROM stocks WHERE qty = 0;",
+      "goal": "NULL 조건과 여러 변경문의 실행 순서로 최종 표를 만들어요.\n\n먼저 qty를 모르는 행을 0으로 정정하고, 그다음 qty가 0인 모든 행을 삭제하세요. 양수 재고는 보존하세요. 실행 뒤 최종 표가 자동으로 조회돼요. 지금 1번 2개와 4번 5개만 남아야 해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 수정 전 결과를 확인하세요.\n2. 먼저 UPDATE의 NULL 비교를 IS NULL로 고치세요.\n3. 다시 실행해 결과를 확인하고 작성한 코드를 제출하세요.",
+      "tests": [
+        {
+          "input": "",
+          "expected": "id | qty\n1 | 2\n4 | 5"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "확인 안 된 재고를 정정한 다음 빈 재고 행을 지우는 문제예요.",
+          "target": "text:확인 안 된 재고를 정정한 다음 빈 재고 행을 지우세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. NULL 조건과 여러 변경문의 실행 순서로 최종 표를 만들어요.",
+          "target": "text:NULL 조건과 여러 변경문의 실행 순서로 최종 표를 만들어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "NULL 행은 정정되지 않아 2번이 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "WHERE qty = NULL;",
+          "after": "WHERE qty IS NULL;",
+          "say": "먼저 UPDATE의 NULL 비교를 IS NULL로 고치세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "모르는 재고도 먼저 0이 돼 함께 삭제되고 양수 두 행은 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. DELETE를 먼저 하면 나중에 0으로 정정한 행은 삭제되지 않아요.",
+          "target": "code:WHERE qty IS NULL;"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, qty INTEGER);\nINSERT INTO stocks VALUES(1,NULL),(2,6),(3,0),(4,NULL);"
+          },
+          "expected": "id | qty\n2 | 6"
+        }
+      ],
+      "files": {
+        "setup.sql": "CREATE TABLE stocks(id INTEGER PRIMARY KEY, qty INTEGER);\nINSERT INTO stocks VALUES(1,2),(2,NULL),(3,0),(4,5);",
+        "after.sql": "SELECT id, qty FROM stocks ORDER BY id;"
+      },
+      "id": "stp_c373e085-db0d-4fab-8d0a-a8e7258d7699",
+      "title": "확인 안 된 재고를 정정한 다음 빈 재고 행을 지우세요",
+      "required": true
     }
   ]
 }

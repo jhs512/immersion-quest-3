@@ -1,0 +1,65 @@
+{
+  "by": "hand",
+  "source_sha256": "237a6a931e22b5fa85beaa52c3354f266546492d4a78564faee9c509a9a68159",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 훈련 기준의 전처리·추론과 원래 주문번호를 지킨 결과 CSV를 연결해요.",
+      "target": "text:훈련 기준의 전처리·추론과 원래 주문번호를 지킨 결과 CSV를 연결해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        19
+      ],
+      "expect_error": "ValueError"
+    },
+    {
+      "action": "say",
+      "text": "새 지역 c가 훈련에 없어 변환을 중단했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "handle_unknown=\"error\"",
+      "after": "handle_unknown=\"ignore\"",
+      "say": "처음 보는 지역도 변환을 이어가도록 범주 처리 정책을 고치세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "새 지역도 예측했지만 결과의 주문번호가 0, 1로 바뀌었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "\"id\":range(len(new))",
+      "after": "\"id\":new[\"id\"]",
+      "say": "예측 결과를 새 배송의 원래 주문번호와 연결하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "예측을 원래 주문 501, 502와 연결한 CSV가 나왔어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 결과에 새 번호를 붙이면 어느 주문의 예측인지 원래 파일과 연결하기 어려워요.",
+      "target": "code:\"id\":new[\"id\"]"
+    }
+  ]
+}

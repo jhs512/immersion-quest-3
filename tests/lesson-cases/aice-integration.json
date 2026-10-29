@@ -32,6 +32,11 @@
     ],
     [
       ""
+    ],
+    [
+      "",
+      "id,minutes\n0,30.0\n1,35.0",
+      "id,minutes\n501,30.0\n502,35.0"
     ]
   ],
   "reject": [
@@ -44,6 +49,38 @@
         ]
       ],
       "reason": "Fixed output does not predict different files and training relations"
+    },
+    {
+      "step": 11,
+      "replacements": [
+        [
+          "\"id\":new[\"id\"]",
+          "\"id\":range(len(new))"
+        ]
+      ],
+      "reason": "Predictions retain original order identifiers"
+    },
+    {
+      "step": 11,
+      "replacements": [
+        [
+          "handle_unknown=\"ignore\"",
+          "handle_unknown=\"error\""
+        ]
+      ],
+      "reason": "A new category must not abort inference"
+    }
+  ],
+  "accept": [
+    {
+      "step": 11,
+      "replacements": [
+        [
+          "\"id\":new[\"id\"]",
+          "\"id\":new[\"id\"].to_numpy()"
+        ]
+      ],
+      "reason": "An equivalent ordered identifier array"
     }
   ]
 }

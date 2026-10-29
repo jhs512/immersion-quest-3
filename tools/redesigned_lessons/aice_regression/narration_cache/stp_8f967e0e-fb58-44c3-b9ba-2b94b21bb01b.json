@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "144e197bd856357a4f1d55082415ba9d1a83b8eda2b331edabdbb934abaf920d",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 훈련에서 배운 회귀를 평가 자료에 적용하고 같은 기준으로 오차를 비교해요.",
+      "target": "text:훈련에서 배운 회귀를 평가 자료에 적용하고 같은 기준으로 오차를 비교해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "후보도 평균 기준 모델이라 거리 변화가 예측에 반영되지 않아요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "model = DummyRegressor(strategy=\"mean\")",
+      "after": "model = LinearRegression()",
+      "say": "학습할 후보를 선형 회귀로 바꾸세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "직선은 배웠지만 훈련 거리 일부를 예측하고 있어요. 평가 거리로 바꿔야 해요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "model.predict(X_train[:len(X_test)])",
+      "after": "model.predict(X_test)",
+      "say": "남겨둔 평가 입력의 시간을 예측하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "같은 평가 배송에서 평균 기준과 회귀의 오차를 비교했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 훈련 자료 예측을 평가 정답과 비교하면 서로 다른 배송을 채점해요.",
+      "target": "code:model.predict(X_test)"
+    }
+  ]
+}

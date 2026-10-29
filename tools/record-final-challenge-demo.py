@@ -33,7 +33,9 @@ for key in sys.argv[1:]:
         if result.returncode:
             error = run.get('expect_error')
             assert error and error in result.stderr, (key, result.stderr[-2000:])
-            expected = dict(pattern=error)
+            # The validator checks the declared error against stderr independently. Its output
+            # timeline records stdout only, so never invent an exception string in that channel.
+            expected = result.stdout.strip()
         else:
             assert not run.get('expect_error'), key
             expected = result.stdout.strip()
