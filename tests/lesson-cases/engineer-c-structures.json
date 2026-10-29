@@ -3,37 +3,33 @@
   "lesson": "courses/redesigned/engineer-c-structures.json",
   "expected_outputs": [
     [
-      "2\n7",
-      "5\n7",
+      "2\n2",
       "2\n7"
     ],
     [
-      "2\n5",
-      "2\n9",
+      "2\n2",
       "2\n5"
     ],
     [
-      "5",
-      "5",
-      "5"
+      "2\n4",
+      "5\n4"
     ],
     [
-      "5",
       "2",
       "5"
     ],
     [
+      "ready\nready",
       "ready\nReady"
     ],
     [
-      "3",
+      "2",
       "4",
       "3"
     ],
     [
-      "3",
-      "4",
-      "3"
+      "4\n4",
+      "3\n4"
     ],
     [
       "4",
@@ -88,6 +84,126 @@
   ],
   "reject": [
     {
+      "step": 1,
+      "replacements": [
+        [
+          "    printf(\"%d\", item.code);\n",
+          "    printf(\"7\");\n"
+        ]
+      ],
+      "reason": "Printing typed text"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "    b.count = fresh;\n",
+          "    a.count = fresh;\n"
+        ]
+      ],
+      "reason": "Changing a instead"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "    b.count = fresh;\n",
+          "    b.count = 5;\n"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "    p->count = fresh;\n",
+          "    item.count = fresh;\n"
+        ]
+      ],
+      "reason": "Writing item by name"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "    int second = items[1].count;\n",
+          "    int second = items[1].code;\n"
+        ]
+      ],
+      "reason": "Wrong field"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "    int second = items[1].count;\n",
+          "    int second = 5;\n"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "    b.text[0] = first;\n",
+          "    a.text[0] = first;\n"
+        ]
+      ],
+      "reason": "Changing a instead"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "    b.text[0] = first;\n",
+          "    b.text[0] = 'R';\n"
+        ]
+      ],
+      "reason": "Typing the letter"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "    int (*rule)(int) = add_one;\n",
+          "    int (*rule)(int) = twice;\n"
+        ]
+      ],
+      "reason": "rule still points at twice"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "    printf(\"%d\", rule(value));\n",
+          "    printf(\"3\");\n"
+        ]
+      ],
+      "reason": "Printing typed text"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "    return rule(value);\n}\n\nint main",
+          "    return add_one(value);\n}\n\nint main"
+        ]
+      ],
+      "reason": "Always add_one"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "    return rule(value);\n}\n\nint main",
+          "    return value + 1;\n}\n\nint main"
+        ]
+      ],
+      "reason": "Ignoring the rule"
+    },
+    {
       "step": 8,
       "replacements": [
         [
@@ -109,6 +225,76 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "    printf(\"%d\", item.code);\n",
+          "    printf(\"%d\", (&item)->code);\n"
+        ]
+      ],
+      "reason": "Through its address"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "    b.count = fresh;\n",
+          "    Stock *q = &b;\n    q->count = fresh;\n"
+        ]
+      ],
+      "reason": "Through a pointer to b"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "    p->count = fresh;\n",
+          "    (*p).count = fresh;\n"
+        ]
+      ],
+      "reason": "Dereference then dot"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "    int second = items[1].count;\n",
+          "    int second = (items + 1)->count;\n"
+        ]
+      ],
+      "reason": "Pointer arithmetic on the array"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "    b.text[0] = first;\n",
+          "    *b.text = first;\n"
+        ]
+      ],
+      "reason": "Dereferencing the array"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "    printf(\"%d\", rule(value));\n",
+          "    printf(\"%d\", (*rule)(value));\n"
+        ]
+      ],
+      "reason": "Explicit dereference call"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "    return rule(value);\n}\n\nint main",
+          "    int result = (*rule)(value);\n    return result;\n}\n\nint main"
+        ]
+      ],
+      "reason": "Explicit dereference call"
+    },
     {
       "step": 19,
       "replacements": [

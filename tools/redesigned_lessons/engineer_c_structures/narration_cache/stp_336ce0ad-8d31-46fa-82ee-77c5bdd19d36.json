@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "af8c6c5c7fd9bc177ccd9147d43a1244516d7e8d83f8e2e3e68cf8fec52d74d9",
+  "entry": [
+    {
+      "action": "say",
+      "text": "rule이 add_one을 가리키게 하고, rule로 value를 계산해 출력해야 해요.",
+      "target": "text:rule이 하나 더하는 함수를 가리키게 고친 뒤 rule로 value를 계산해 출력하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        17
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2예요. 아직 rule을 부르지 않고 value를 그대로 출력해요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    printf(\"%d\", value);\n",
+      "after": "    printf(\"%d\", rule(value));\n",
+      "say": "printf 안에서 rule(value)를 불러요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        17
+      ]
+    },
+    {
+      "action": "say",
+      "text": "4예요. rule이 아직 twice를 가리켜 두 배를 계산했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    int (*rule)(int) = twice;\n",
+      "after": "    int (*rule)(int) = add_one;\n",
+      "say": "rule에 add_one을 담아요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        17
+      ]
+    },
+    {
+      "action": "say",
+      "text": "3이에요. 같은 rule(value) 호출이 이번에는 add_one을 실행했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. rule = add_one(value)처럼 괄호를 붙이면 함수가 아니라 계산 결과를 담으려는 잘못된 코드예요.",
+      "target": "code:int (*rule)(int) = add_one;"
+    }
+  ]
+}
