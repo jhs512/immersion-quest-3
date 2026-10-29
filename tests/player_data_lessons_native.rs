@@ -25,7 +25,7 @@ fn verify(mode:&str,count:usize) {
     let passed:std::collections::HashSet<_>=events.iter().filter(|event|event.kind==EventKind::Attempt&&event.passed).filter_map(|event|event.task_id.as_ref()).collect();
     assert_eq!(passed.len(),count);
     assert_eq!(events.iter().filter(|event|event.kind==EventKind::Completed).count(),1);
-    assert_eq!(events.iter().filter(|event|event.kind==EventKind::ExampleRun).count(),if matches!(mode,"java-react"|"java-tailwind") {1}else{0});
+    assert_eq!(events.iter().filter(|event|event.kind==EventKind::ExampleRun).count(),if matches!(mode,"aice-plots"|"java-react"|"java-tailwind") {1}else{0});
 }
 
 #[test]

@@ -45,7 +45,8 @@ conversion = load('coding_conversion', 'coding_conversion.py')
 gh = content.gh
 APP = 'jhs512/immersion-quest-3'
 PREFIX = 'jhs512/mq3-lesson-redesigned-'
-BASELINE = 'origin/main'
+# The catalog this work started from (public build 154); origin/main now carries the new pins.
+BASELINE = 'c593fb7604150c2b607d403fedc49e312b7dbb61'
 LESSONS = {
     'engineer-practical': ['engineer-c-start', 'engineer-c-conditions', 'engineer-c-arrays', 'engineer-c-functions',
                            'engineer-c-pointers', 'engineer-c-double-pointers', 'engineer-c-structures',

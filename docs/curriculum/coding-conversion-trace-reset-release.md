@@ -105,3 +105,24 @@
 - 브라우저: `code-flow-narration`(새), 해설·편집·자막·속도·개요 시험. 설치되지 않은 Playwright Chromium 대신 설치된 Edge로
   실행한 것이 있다.
 - 이번 변경과 무관하게 기준 커밋에서도 실패하는 `tools/test_redesigned_highlights.py`의 bash-basics 문장 하나는 그대로다(워크플로 밖).
+
+## Publication result (2026-10-29 UTC)
+
+- Runtime: run 155 (a79d9697) failed on macOS `player_loading_native`: the loading self-test still measured the
+  plots lesson's answer-choice panel, which the conversion removed. Fixed in 846504af (checks task/editor/result panes
+  and that no choices remain). Run 156 https://github.com/jhs512/immersion-quest-3/actions/runs/40897443218 passed
+  windows, macOS arm64, principles/actual-engines and release.
+- Public Latest `v0.1.0-build.156` → 846504afb5d1f52e1231bf5d3df89cb366cd4f3d (contains a79d9697 and d66c2e6f).
+  `molip-quest-3-windows-x64-setup.exe` 156a4a710cfe827126001a86e26f6ac3e92b1f599ae5faeb8dfa969173d99d42,
+  `molip-quest-3-macos-arm64.dmg` 0f008668ac77f329095fa052f460a3dbfb619b545b67d10eaa95b859bed45965; both match SHA256SUMS.
+- Publisher baseline: `BASELINE` was `origin/main`, which after a79d9697 already names the new revisions; it is now pinned
+  to c593fb76 (public build 154, where this work started). Run with
+  `--runtime-release v0.1.0-build.156 --runtime-commit a79d9697…`.
+- Courses: engineer-practical main 10fd4f817a398737541ee5b64a52b090dfd33fcf (course.json sha256 744e8ce2…),
+  aice-associate main 462a953c46ea7350018930facc734b77dd35f8a4 (edb51d30…). Independent readback
+  (`target/readback156/check.py`, GitHub API only): order, top-level fields and every non-target row equal the parent
+  commit; only revision/sha256 changed on 17 + 12 rows; each tagged lesson.json hashes to its pin; old choice ids gone,
+  new ids are coding steps: 112 + 76 = 188. code_flow buttons 16; narrated code_flow 4
+  (references#1, references#3, static#3, polymorphism#5). java-backend course untouched (main c10097db, 09:33Z).
+- Native `aice_plots_restore_student_state` (not in release CI) now passes locally (544 s) after counting 11 coding
+  steps and allowing long narrations up to 180 s per wait (step 11 has 14 actions with 6 typed patches).

@@ -3,7 +3,7 @@
  const frameLoads=new WeakMap(),observedFrames=new WeakSet();
  const watchFrames=()=>{for(const frame of document.querySelectorAll('iframe'))if(!observedFrames.has(frame)){observedFrames.add(frame);frameLoads.set(frame,0);frame.addEventListener('load',()=>frameLoads.set(frame,(frameLoads.get(frame)||0)+1));}};
  const frameObserver=new MutationObserver(watchFrames);frameObserver.observe(document.body,{childList:true,subtree:true});watchFrames();
- const wait=async(predicate,label)=>{const until=Date.now()+60000;while(Date.now()<until){if(predicate())return;await new Promise(r=>setTimeout(r,40));}throw Error(`Timed out: ${label}`);};
+ const wait=async(predicate,label,ms=60000)=>{const until=Date.now()+ms;while(Date.now()<until){if(predicate())return;await new Promise(r=>setTimeout(r,40));}throw Error(`Timed out: ${label}`);};
  const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===text);
  const click=async text=>{await wait(()=>button(text)&&!button(text).disabled,text);button(text).click();await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));};
  const bridge=()=>document.querySelector('.answer-state-bridge');
@@ -111,7 +111,7 @@
     await wait(()=>molipCodeEditors.getValue()===initialCode,'restore starter after grading-only check');
    }
    await click('해설 재생');await wait(()=>molipAgent.running,'teacher starts');
-   await wait(()=>!molipAgent.running&&document.querySelector('.repository-task').dataset.narrating==='false','teacher ends');
+   await wait(()=>!molipAgent.running&&document.querySelector('.repository-task').dataset.narrating==='false','teacher ends',180000);
    await wait(()=>molipCodeEditors.getValue()===initialCode&&bridge()?.value===initialAnswer,'student state restored');
    const narratedFlow=verifyTeacher(task);
    if(narratedFlow)checked.push(`${pilot.label} step ${index+1}: narration opened 코드 흐름 보기 on the teacher code and showed ${narratedFlow}, then closed it and restored the learner code`);
@@ -122,7 +122,7 @@
     else await answer(task);
     const editedCode=molipCodeEditors.getValue(),editedAnswer=bridge()?.value;
     await click('해설 재생');await wait(()=>molipAgent.running,'teacher after edit starts');
-    await wait(()=>!molipAgent.running&&document.querySelector('.repository-task').dataset.narrating==='false','teacher after edit ends');
+    await wait(()=>!molipAgent.running&&document.querySelector('.repository-task').dataset.narrating==='false','teacher after edit ends',180000);
     await wait(()=>molipCodeEditors.getValue()===editedCode&&bridge()?.value===editedAnswer,'modified learner state restored');verifyTeacher(task);
     checked.push(`${pilot.label} step ${index+1}: canonical teacher baseline restores an edited or reordered learner answer`);
    }
