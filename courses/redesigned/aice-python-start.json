@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_12b44615-2d06-46b2-a2ac-3987ebaa06b9",
-  "revision": "aice-python-start-5",
+  "revision": "aice-python-start-6",
   "title": "표를 다루기 위한 파이썬 첫 걸음",
   "description": "배송 시간 하나에서 목록까지 작은 문제로 익혀요.",
   "objectives": [
@@ -92,6 +92,22 @@
               "id": "stp_12d1bd54-56af-4280-a0be-36b5f0f70bd1",
               "objectives": [
                 "리스트 길이와 항목의 위치를 구별해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_8c3f1e92-4b7d-4a05-9e61-2d7a5c0b4f83",
+          "title": "마지막 도전",
+          "objectives": [
+            "건수와 위치를 함께 써서 바뀌는 목록을 읽어요."
+          ],
+          "premise": "오늘의 배송 시간 목록이에요. 앞 스텝과 상관없이 바로 풀 수 있어요.",
+          "steps": [
+            {
+              "id": "stp_5b8e2c47-1d93-4f6a-a2e0-7c4b9d31f8e6",
+              "objectives": [
+                "len과 위치를 함께 써서 첫 값과 마지막 값을 꺼내요."
               ]
             }
           ]
@@ -703,6 +719,100 @@
           "target": "answer:count"
         }
       ]
+    },
+    {
+      "id": "stp_5b8e2c47-1d93-4f6a-a2e0-7c4b9d31f8e6",
+      "title": "건수가 바뀌는 목록의 처음과 끝을 읽으세요",
+      "language": "python",
+      "goal": "자, 마지막 도전이에요. 오늘 들어온 배송 시간 목록 minutes가 있어요. 건수는 날마다 달라요.\n\n세 줄을 차례로 출력해요. 배송 건수, 첫 배송 시간, 마지막 배송 시간이에요. 지금 목록이면 `5`, `15`, `18`이에요. 건수가 바뀌어도 같은 코드로 맞아야 해요. 채점은 다른 목록으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력을 확인하세요.\n2. 첫 줄이 배송 건수를 출력하도록 고치세요.\n3. 둘째 줄이 첫 배송 시간을 출력하도록 고치세요.\n4. 셋째 줄이 마지막 배송 시간을 출력하도록 고치세요.\n5. 다시 실행해 세 줄을 확인한 뒤 제출하세요.",
+      "starter_code": "# 오늘 들어온 배송 시간 목록이에요. 건수는 날마다 달라요.\nminutes = [15, 22, 9, 31, 18]\nprint(0)  # 1) 배송 건수를 출력하세요.\nprint(0)  # 2) 첫 배송 시간을 출력하세요.\nprint(0)  # 3) 마지막 배송 시간을 출력하세요.\n",
+      "solution": "# 오늘 들어온 배송 시간 목록이에요. 건수는 날마다 달라요.\nminutes = [15, 22, 9, 31, 18]\n# 목록에 든 항목의 개수예요.\nprint(len(minutes))\n# 위치는 0부터 세요.\nprint(minutes[0])\n# 마지막 위치는 건수보다 1 작아요.\nprint(minutes[len(minutes) - 1])\n",
+      "required": true,
+      "tests": [
+        {
+          "input": "",
+          "expected": "5\n15\n18"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "건수가 바뀌는 목록의 처음과 끝을 읽는 문제예요.",
+          "target": "text:건수가 바뀌는 목록의 처음과 끝을 읽으세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 날마다 건수가 다른 배송 목록에서 건수, 첫 배송, 마지막 배송을 차례로 출력해요.",
+          "target": "text:건수가 바뀌어도 같은 코드로 맞아야 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            3,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "세 줄 모두 0이에요. 아직 목록을 읽지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "print(0)  # 1) 배송 건수를 출력하세요.",
+          "after": "# 목록에 든 항목의 개수예요.\nprint(len(minutes))",
+          "say": "len으로 항목 수를 세요."
+        },
+        {
+          "action": "patch_code",
+          "before": "print(0)  # 2) 첫 배송 시간을 출력하세요.",
+          "after": "# 위치는 0부터 세요.\nprint(minutes[0])",
+          "say": "첫 배송은 위치 0이에요."
+        },
+        {
+          "action": "patch_code",
+          "before": "print(0)  # 3) 마지막 배송 시간을 출력하세요.",
+          "after": "print(minutes[len(minutes)])",
+          "say": "마지막은 건수 위치일까요? 건수를 위치로 넣어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            7
+          ],
+          "expect_error": "IndexError"
+        },
+        {
+          "action": "say",
+          "text": "IndexError예요. 다섯 건이면 위치는 0부터 4까지라서 5번 위치는 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "print(minutes[len(minutes)])",
+          "after": "# 마지막 위치는 건수보다 1 작아요.\nprint(minutes[len(minutes) - 1])",
+          "say": "마지막 위치는 건수에서 1을 빼요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "5, 15, 18이 나와요. 건수와 위치를 구분했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 지금 목록만 보고 minutes[4]라고 적으면 건수가 바뀐 날에는 다른 값을 읽어요.",
+          "target": "code:print(minutes[len(minutes) - 1])"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"minutes\": [7]}, \"expected\": \"1\\\\n7\\\\n7\"}, {\"values\": {\"minutes\": [3, 8, 12]}, \"expected\": \"3\\\\n3\\\\n12\"}, {\"values\": {\"minutes\": [40, 2, 2, 9, 1, 6, 30]}, \"expected\": \"7\\\\n40\\\\n30\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     }
   ]
 }

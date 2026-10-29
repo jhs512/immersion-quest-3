@@ -715,6 +715,81 @@
           "target": "output"
         }
       ]
+    },
+    {
+      "id": "stp_57fb87ab-7ab9-48e8-94d2-5cb5e2869448",
+      "title": "측정 못한 시간과 옛 수정본을 정리하세요",
+      "language": "python",
+      "goal": "자, 마지막 도전이에요. 배송 표 df에 측정하지 못한 시간(None)과 같은 주문의 수정본이 섞여 있어요.\n\n시간이 빈 배송만 빼요. 메모가 빈 것은 괜찮아요. 0분은 실제 시간이라 남겨요. 같은 주문은 파일 아래쪽의 마지막 수정본만 남겨요. 그 결과를 clean으로 두면 주문 번호, 시간, 건수와 평균이 출력돼요. 지금 자료이면 `[101, 103, 104, 105]`, `[12.0, 42.0, 0.0, 25.0]`, `4 19.75`예요. 채점은 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력을 확인하세요.\n2. 시간이 빈 배송만 빼세요.\n3. 같은 주문은 마지막 수정본만 남기세요.\n4. 다시 실행해 0분과 메모 없는 배송이 남았는지 확인한 뒤 제출하세요.",
+      "starter_code": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# None은 측정하지 못한 시간이에요. 0은 실제 0분이에요. 같은 주문은 파일 아래쪽이 나중 수정본이에요.\ndata = {\"order_id\": [101, 102, 103, 103, 104, 105], \"minutes\": [12, None, 30, 42, 0, 25], \"note\": [None, \"ok\", \"ok\", \"ok\", \"ok\", None]}\ndf = pd.DataFrame(data)\nclean = df  # 시간이 있는 배송에서 주문별 마지막 수정본만 남기세요.\nprint(clean[\"order_id\"].tolist())\nprint(clean[\"minutes\"].tolist())\n# 남긴 건수와 평균 시간이에요.\nprint(len(clean), clean[\"minutes\"].mean())\n",
+      "solution": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# None은 측정하지 못한 시간이에요. 0은 실제 0분이에요. 같은 주문은 파일 아래쪽이 나중 수정본이에요.\ndata = {\"order_id\": [101, 102, 103, 103, 104, 105], \"minutes\": [12, None, 30, 42, 0, 25], \"note\": [None, \"ok\", \"ok\", \"ok\", \"ok\", None]}\ndf = pd.DataFrame(data)\n# 빈 메모는 허용해요. 시간 열의 빈값만 기준으로 빼요.\nclean = df.dropna(subset=[\"minutes\"])\n# 같은 주문은 마지막 수정본만 남겨요.\nclean = clean.drop_duplicates(subset=[\"order_id\"], keep=\"last\")\nprint(clean[\"order_id\"].tolist())\nprint(clean[\"minutes\"].tolist())\n# 남긴 건수와 평균 시간이에요.\nprint(len(clean), clean[\"minutes\"].mean())\n",
+      "required": true,
+      "tests": [
+        {
+          "input": "",
+          "expected": "[101, 103, 104, 105]\n[12.0, 42.0, 0.0, 25.0]\n4 19.75"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 시간을 측정하지 못한 배송만 빼고, 같은 주문은 마지막 수정본만 남긴 뒤 건수와 평균을 보고해요.",
+          "target": "text:0분은 실제 시간이라 남겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "여섯 행이 그대로예요. 빈 시간과 같은 주문 103이 두 번 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "clean = df  # 시간이 있는 배송에서 주문별 마지막 수정본만 남기세요.",
+          "after": "clean = df.dropna().drop_duplicates(subset=[\"order_id\"], keep=\"last\")",
+          "say": "빈값을 dropna로 빼고 중복을 지워 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "103과 104만 남았어요. 메모가 빈 101과 105까지 사라졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "clean = df.dropna().drop_duplicates(subset=[\"order_id\"], keep=\"last\")",
+          "after": "# 빈 메모는 허용해요. 시간 열의 빈값만 기준으로 빼요.\nclean = df.dropna(subset=[\"minutes\"])\n# 같은 주문은 마지막 수정본만 남겨요.\nclean = clean.drop_duplicates(subset=[\"order_id\"], keep=\"last\")",
+          "say": "빈값 검사를 시간 열로 좁혀요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "101, 103, 104, 105가 남고 103은 42분이에요. 0분인 104도 남아 4건, 평균 19.75예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 0분을 빈값처럼 빼면 실제로 바로 끝난 배송이 사라져 평균이 커져요.",
+          "target": "code:clean = df.dropna(subset=[\"minutes\"])"
+        }
+      ]
     }
   ],
   "presentation": {
@@ -752,6 +827,12 @@
           "경계와 처리 조건을 실제 결과로 확인해요."
         ],
         "premise": "같은 배송 자료에서 늦은 기록을 검토해요. 후보 표시와 실제 삭제는 서로 다른 결정이에요."
+      },
+      "unt_f4998891-91d1-4fbe-b123-91be6ace7763": {
+        "objectives": [
+          "빈값·0·중복을 각각 맞게 처리해요."
+        ],
+        "premise": "빈 시간과 수정본이 섞인 배송 표예요. 앞 스텝과 상관없이 바로 풀 수 있어요."
       }
     }
   },
@@ -1118,6 +1199,71 @@
           }
         },
         "expected": "[5, 6]\n[2.0, 4.0]"
+      }
+    ],
+    "stp_57fb87ab-7ab9-48e8-94d2-5cb5e2869448": [
+      {
+        "values": {
+          "data": {
+            "order_id": [
+              1,
+              2
+            ],
+            "minutes": [
+              0,
+              null
+            ],
+            "note": [
+              null,
+              null
+            ]
+          }
+        },
+        "expected": "[1]\n[0.0]\n1 0.0"
+      },
+      {
+        "values": {
+          "data": {
+            "order_id": [
+              7,
+              7,
+              7
+            ],
+            "minutes": [
+              10,
+              20,
+              35
+            ],
+            "note": [
+              "a",
+              null,
+              "c"
+            ]
+          }
+        },
+        "expected": "[7]\n[35]\n1 35.0"
+      },
+      {
+        "values": {
+          "data": {
+            "order_id": [
+              3,
+              4,
+              3
+            ],
+            "minutes": [
+              5,
+              15,
+              null
+            ],
+            "note": [
+              null,
+              "x",
+              "y"
+            ]
+          }
+        },
+        "expected": "[3, 4]\n[5.0, 15.0]\n2 10.0"
       }
     ]
   }

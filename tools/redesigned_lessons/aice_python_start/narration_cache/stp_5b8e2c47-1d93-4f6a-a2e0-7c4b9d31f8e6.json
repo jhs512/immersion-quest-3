@@ -1,0 +1,77 @@
+{
+  "by": "hand",
+  "source_sha256": "cf17ad5613736ed2fa6fa23816b2df801f6b245659f154d5a388a9a0c84a5cdd",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 날마다 건수가 다른 배송 목록에서 건수, 첫 배송, 마지막 배송을 차례로 출력해요.",
+      "target": "text:건수가 바뀌어도 같은 코드로 맞아야 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        3,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "세 줄 모두 0이에요. 아직 목록을 읽지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "print(0)  # 1) 배송 건수를 출력하세요.",
+      "after": "# 목록에 든 항목의 개수예요.\nprint(len(minutes))",
+      "say": "len으로 항목 수를 세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "print(0)  # 2) 첫 배송 시간을 출력하세요.",
+      "after": "# 위치는 0부터 세요.\nprint(minutes[0])",
+      "say": "첫 배송은 위치 0이에요."
+    },
+    {
+      "action": "patch_code",
+      "before": "print(0)  # 3) 마지막 배송 시간을 출력하세요.",
+      "after": "print(minutes[len(minutes)])",
+      "say": "마지막은 건수 위치일까요? 건수를 위치로 넣어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        7
+      ],
+      "expect_error": "IndexError"
+    },
+    {
+      "action": "say",
+      "text": "IndexError예요. 다섯 건이면 위치는 0부터 4까지라서 5번 위치는 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "print(minutes[len(minutes)])",
+      "after": "# 마지막 위치는 건수보다 1 작아요.\nprint(minutes[len(minutes) - 1])",
+      "say": "마지막 위치는 건수에서 1을 빼요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "5, 15, 18이 나와요. 건수와 위치를 구분했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 지금 목록만 보고 minutes[4]라고 적으면 건수가 바뀐 날에는 다른 값을 읽어요.",
+      "target": "code:print(minutes[len(minutes) - 1])"
+    }
+  ]
+}

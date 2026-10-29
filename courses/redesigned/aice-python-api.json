@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_3538cb93-edfa-4fa3-a0cf-16eb4906c7d4",
-  "revision": "aice-python-api-5",
+  "revision": "aice-python-api-6",
   "title": "묶은 자료와 라이브러리 기능을 읽어요",
   "description": "같은 배송 자료를 이름으로 고르고 기능에 전달하며 파이썬 표기를 익혀요.",
   "objectives": [
@@ -99,6 +99,22 @@
               "id": "stp_8b12ce97-dad9-4b9d-966a-56f30b4661c9",
               "objectives": [
                 "import 별칭과 뒤에서 사용하는 이름의 연결을 이해해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_be1a3413-7bb6-4b41-823d-4f811e85080a",
+          "title": "마지막 도전",
+          "objectives": [
+            "기록에서 목록을 꺼내 세고 평균 내고 정렬해요."
+          ],
+          "premise": "지역 하나의 배송 기록이에요. 앞 스텝과 상관없이 바로 풀 수 있어요.",
+          "steps": [
+            {
+              "id": "stp_3ec1a5c3-b2a2-46e2-83c1-6d6ad7ebf28a",
+              "objectives": [
+                "항목 이름으로 목록을 꺼내 별칭 모듈과 sorted에 전달해요."
               ]
             }
           ]
@@ -853,6 +869,100 @@
         }
       ],
       "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"minutes\": [12, 18, 24]}, \"expected\": \"18\"}, {\"values\": {\"minutes\": [5, 7, 9, 11]}, \"expected\": \"8\"}, {\"values\": {\"minutes\": [18]}, \"expected\": \"18\"}, {\"values\": {\"minutes\": [1, 2]}, \"expected\": \"1.5\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_3ec1a5c3-b2a2-46e2-83c1-6d6ad7ebf28a",
+      "title": "배송 기록에서 건수·평균·정렬 목록을 꺼내세요",
+      "language": "python",
+      "goal": "자, 마지막 도전이에요. 지역 하나의 배송 기록 record가 딕셔너리로 있어요. 시간은 \"minutes\" 항목의 목록이에요.\n\n세 줄을 차례로 출력해요. 배송 건수, 배송 시간 평균, 짧은 시간부터 정렬한 새 목록이에요. 마지막 줄은 원래 시간 목록이에요. 원래 시간 목록은 그대로 둬야 해요. 지금 자료이면 `4`, `20`, `[12, 18, 20, 30]`, `[30, 12, 18, 20]`이에요. 채점은 다른 기록으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력을 확인하세요.\n2. 첫 줄이 시간 목록의 건수를 출력하도록 고치세요.\n3. 둘째 줄이 st 모듈로 평균을 출력하도록 고치세요.\n4. 셋째 줄이 정렬한 새 목록을 출력하도록 고치세요.\n5. 다시 실행해 네 줄을 확인한 뒤 제출하세요.",
+      "starter_code": "# 평균 기능이 든 모듈을 st라는 이름으로 불러와요.\nimport statistics as st\n# 지역 하나의 배송 기록이에요. 항목 이름으로 값을 꺼내요.\nrecord = {\"region\": \"north\", \"minutes\": [30, 12, 18, 20], \"distance\": [4, 1, 2, 3]}\nprint(len(record))  # 1) 배송 건수를 출력하세요.\nprint(0)  # 2) 배송 시간의 평균을 출력하세요.\nprint(record)  # 3) 짧은 시간부터 정렬한 새 목록을 출력하세요.\n# 원래 시간 목록은 그대로여야 해요.\nprint(record[\"minutes\"])\n",
+      "solution": "# 평균 기능이 든 모듈을 st라는 이름으로 불러와요.\nimport statistics as st\n# 지역 하나의 배송 기록이에요. 항목 이름으로 값을 꺼내요.\nrecord = {\"region\": \"north\", \"minutes\": [30, 12, 18, 20], \"distance\": [4, 1, 2, 3]}\n# 항목 수가 아니라 시간 목록의 길이예요.\nprint(len(record[\"minutes\"]))\n# 위에서 붙인 이름 st로 불러요.\nprint(st.mean(record[\"minutes\"]))\n# sorted는 정렬한 새 목록을 돌려주고 원래 목록은 두어요.\nprint(sorted(record[\"minutes\"]))\n# 원래 시간 목록은 그대로여야 해요.\nprint(record[\"minutes\"])\n",
+      "required": true,
+      "tests": [
+        {
+          "input": "",
+          "expected": "4\n20\n[12, 18, 20, 30]\n[30, 12, 18, 20]"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "배송 기록에서 건수·평균·정렬 목록을 꺼내는 문제예요.",
+          "target": "text:배송 기록에서 건수·평균·정렬 목록을 꺼내세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 배송 기록 딕셔너리에서 시간 목록을 항목 이름으로 꺼내 건수, 평균, 정렬한 새 목록을 출력해요.",
+          "target": "text:원래 시간 목록은 그대로 둬야 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "첫 줄이 3이에요. 딕셔너리 항목이 세 개라서 나온 값이지 배송 건수가 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "print(len(record))  # 1) 배송 건수를 출력하세요.",
+          "after": "# 항목 수가 아니라 시간 목록의 길이예요.\nprint(len(record[\"minutes\"]))",
+          "say": "시간 목록을 항목 이름으로 꺼내 길이를 세요."
+        },
+        {
+          "action": "patch_code",
+          "before": "print(0)  # 2) 배송 시간의 평균을 출력하세요.",
+          "after": "print(statistics.mean(record[\"minutes\"]))",
+          "say": "평균은 statistics.mean으로 구해 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            10
+          ],
+          "expect_error": "NameError"
+        },
+        {
+          "action": "say",
+          "text": "NameError예요. 이 코드에서는 모듈을 st라는 이름으로 불러왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "print(statistics.mean(record[\"minutes\"]))",
+          "after": "# 위에서 붙인 이름 st로 불러요.\nprint(st.mean(record[\"minutes\"]))",
+          "say": "붙인 이름 st로 불러요."
+        },
+        {
+          "action": "patch_code",
+          "before": "print(record)  # 3) 짧은 시간부터 정렬한 새 목록을 출력하세요.",
+          "after": "# sorted는 정렬한 새 목록을 돌려주고 원래 목록은 두어요.\nprint(sorted(record[\"minutes\"]))",
+          "say": "정렬은 sorted로 새 목록을 만들어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4, 20, [12, 18, 20, 30]이 나오고 원래 목록 [30, 12, 18, 20]도 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. record[\"minutes\"].sort()를 출력하면 None이 나오고 원래 목록이 바뀌어요.",
+          "target": "code:print(sorted(record[\"minutes\"]))"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"record\": {\"region\": \"south\", \"minutes\": [9], \"distance\": [1]}}, \"expected\": \"1\\\\n9\\\\n[9]\\\\n[9]\"}, {\"values\": {\"record\": {\"region\": \"x\", \"minutes\": [5, 1, 3], \"distance\": [1, 1, 1]}}, \"expected\": \"3\\\\n3\\\\n[1, 3, 5]\\\\n[5, 1, 3]\"}, {\"values\": {\"record\": {\"region\": \"y\", \"minutes\": [15, 10], \"distance\": [2, 1]}}, \"expected\": \"2\\\\n12.5\\\\n[10, 15]\\\\n[15, 10]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     }
   ]
 }

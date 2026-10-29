@@ -52,3 +52,20 @@ class Script:
 
 def todo(*items):
     return '**할 일**\n\n' + '\n'.join(f'{i}. {item}' for i, item in enumerate(items, 1))
+
+
+_ROOT = Path(__file__).resolve().parents[2]
+
+
+def ids(key):
+    """The (unit, step) ids reserved for this lesson's challenge in _ids.json (generated once with uuid4)."""
+    import json
+    return tuple(json.loads((Path(__file__).parent / '_ids.json').read_text(encoding='utf-8'))[key])
+
+
+def next_revision(key, published):
+    """`published` is the lesson revision this challenge builds on; the new immutable revision is one higher."""
+    prefix, number = published.rsplit('-', 1)
+    if prefix != key:
+        raise ValueError(f'{key}: unexpected revision {published}')
+    return f'{key}-{int(number) + 1}'

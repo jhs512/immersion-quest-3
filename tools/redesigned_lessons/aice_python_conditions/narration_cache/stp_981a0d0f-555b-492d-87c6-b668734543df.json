@@ -1,0 +1,70 @@
+{
+  "by": "hand",
+  "source_sha256": "ba755a604104cf7fdb08b2ad60038932732ed12feef16d126608563c5f0d76c4",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 기준 이상인 배송만 새 목록에 모으고, 모은 목록과 건수를 출력해요.",
+      "target": "text:기준과 같은 시간도 지연이에요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "빈 목록과 0이 나와요. 아직 고르지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "print(0)  # 2) 모은 건수를 출력하세요.",
+      "after": "print(len(delayed))",
+      "say": "건수는 모은 목록의 len이에요."
+    },
+    {
+      "action": "patch_code",
+      "before": "# 1) 기준 이상인 배송만 delayed에 모으세요.",
+      "after": "for minute in minutes:\n    if minute > limit:\n        delayed.append(minute)",
+      "say": "한 건씩 보며 기준보다 큰 배송을 모아 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "55 한 건뿐이에요. 기준과 같은 40 두 건이 빠졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "for minute in minutes:\n    if minute > limit:\n        delayed.append(minute)",
+      "after": "for minute in minutes:\n    # 기준과 같은 시간도 지연이라서 >= 를 써요.\n    if minute >= limit:\n        delayed.append(minute)",
+      "say": "같은 값도 넣도록 >= 로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "40, 40, 55와 3이 나와요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. delayed = []를 반복 안으로 옮기면 매번 비워져서 마지막 한 건만 남아요.",
+      "target": "code:delayed = []"
+    }
+  ]
+}

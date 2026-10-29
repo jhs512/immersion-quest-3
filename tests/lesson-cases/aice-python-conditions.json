@@ -1,0 +1,56 @@
+{
+  "course": "tests/fixtures/player-pilot/p/course.json",
+  "lesson": "courses/redesigned/aice-python-conditions.json",
+  "only_last": true,
+  "expected_outputs": [
+    [
+      "[]\n0",
+      "[55]\n1",
+      "[40, 40, 55]\n3"
+    ]
+  ],
+  "reject": [
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "    if minute >= limit:",
+          "    if minute > limit:"
+        ]
+      ],
+      "reason": "The limit itself is a delay"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "print(len(delayed))",
+          "print(3)"
+        ]
+      ],
+      "reason": "A fixed count fails other lists"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "for minute in minutes:\n",
+          "for minute in minutes:\n    delayed = []\n"
+        ]
+      ],
+      "reason": "Resetting inside the loop keeps only the last one"
+    }
+  ],
+  "accept": [
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "    if minute >= limit:",
+          "    if not minute < limit:"
+        ]
+      ],
+      "reason": "The same condition written as not <"
+    }
+  ]
+}

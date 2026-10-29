@@ -42,6 +42,11 @@
       "[103]\n[30.0]",
       "[101, 103]\n[12.0, 30.0]",
       "[101, 103]\n[12.0, 42.0]"
+    ],
+    [
+      "[101, 102, 103, 103, 104, 105]\n[12.0, nan, 30.0, 42.0, 0.0, 25.0]\n6 21.8",
+      "[103, 104]\n[42.0, 0.0]\n2 21.0",
+      "[101, 103, 104, 105]\n[12.0, 42.0, 0.0, 25.0]\n4 19.75"
     ]
   ],
   "reject": [
@@ -64,6 +69,48 @@
         ]
       ],
       "reason": "Zero is not the median required by this problem"
+    },
+    {
+      "step": 11,
+      "replacements": [
+        [
+          "clean = df.dropna(subset=[\"minutes\"])",
+          "clean = df.dropna()"
+        ]
+      ],
+      "reason": "An empty note is allowed"
+    },
+    {
+      "step": 11,
+      "replacements": [
+        [
+          "keep=\"last\"",
+          "keep=\"first\""
+        ]
+      ],
+      "reason": "The last revision is the one to keep"
+    },
+    {
+      "step": 11,
+      "replacements": [
+        [
+          "clean = df.dropna(subset=[\"minutes\"])",
+          "clean = df.dropna(subset=[\"minutes\"])\nclean = clean[clean[\"minutes\"] > 0]"
+        ]
+      ],
+      "reason": "Zero minutes is a real time"
+    }
+  ],
+  "accept": [
+    {
+      "step": 11,
+      "replacements": [
+        [
+          "clean = df.dropna(subset=[\"minutes\"])",
+          "clean = df[df[\"minutes\"].notna()]"
+        ]
+      ],
+      "reason": "notna selects the same rows"
     }
   ]
 }

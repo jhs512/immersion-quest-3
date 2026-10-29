@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_7f566eb4-fb00-4b5a-9ab4-1753e8c96b91",
-  "revision": "aice-join-5",
+  "revision": "aice-join-6",
   "title": "여러 배송 파일을 같은 키로 연결해요",
   "description": "같은 배송의 월별 자료와 회원 지역을 관측·키를 지키며 연결해요.",
   "objectives": [
@@ -97,6 +97,22 @@
               "id": "stp_19a6791c-7c1a-426e-aedf-8f01dcbe45e4",
               "objectives": [
                 "조회 실패 행을 남기는 결합 방식으로 고쳐요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_df24a8aa-5286-41eb-8350-0e0e25f26630",
+          "title": "마지막 도전",
+          "objectives": [
+            "붙이기와 연결을 구별해 모든 배송을 지역별로 세요."
+          ],
+          "premise": "두 달 배송과 회원 지역 조회예요. 앞 스텝과 상관없이 바로 풀 수 있어요.",
+          "steps": [
+            {
+              "id": "stp_b05f4187-a8de-4b39-9235-d20c619977f6",
+              "objectives": [
+                "concat과 left merge로 모든 배송을 남겨 지역별로 세요."
               ]
             }
           ]
@@ -688,6 +704,99 @@
         }
       ],
       "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nimport uuid\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"order_data\": {\"order_id\": [5, 4], \"member_id\": [8, 2]}}, \"expected\": \"[5, 4]\\\\n[\\'unknown\\', \\'south\\']\"}, {\"values\": {\"region_data\": {\"member_id\": [9], \"zone\": [\"west\"]}}, \"expected\": \"[201, 202, 203, 204]\\\\n[\\'unknown\\', \\'unknown\\', \\'unknown\\', \\'unknown\\']\"}, {\"values\": {\"order_data\": {\"order_id\": [7], \"member_id\": [1]}}, \"expected\": \"[7]\\\\n[\\'north\\']\"}]')\nprobe = 'assert joined[\"order_id\"].tolist() == orders[\"order_id\"].tolist(), \"원본 배송의 행과 순서를 보존하세요.\"'\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    witness = uuid.uuid4().hex\n    tree.body.extend(ast.parse(probe).body)\n    tree.body.extend(ast.parse('print(' + repr(witness) + ')').body)\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    lines = result.stdout.strip().splitlines()\n    if not lines or lines[-1] != witness:\n        raise AssertionError('실제 실행 상태의 검사까지 끝나야 해요.')\n    output = '\\n'.join(lines[:-1]).strip()\n    if result.returncode != 0 or output != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_b05f4187-a8de-4b39-9235-d20c619977f6",
+      "title": "두 달 배송을 붙이고 지역별로 세세요",
+      "language": "python",
+      "goal": "자, 마지막 도전이에요. 5월 배송 may와 6월 배송 june, 회원 지역 조회 regions가 있어요.\n\n두 달 배송을 행으로 이어 붙이고 회원 지역을 연결해요. 조회에 없는 회원의 배송도 모두 남겨야 해요. 지역이 없는 배송은 unknown으로 표시해요. 그러면 주문 번호 목록과 지역별 건수가 출력돼요. 지금 자료이면 `[201, 202, 203, 204, 205]`, `{'north': 2, 'south': 1, 'unknown': 2}`예요. 채점은 다른 배송과 조회 자료로도 실행해요.\n\n**할 일**\n\n1. 두 달 배송을 행으로 이어 붙이세요.\n2. 모든 배송을 남기며 회원 지역을 연결하세요.\n3. 지역이 없는 배송을 unknown으로 표시하세요.\n4. 코드 실행을 눌러 다섯 배송과 지역별 건수를 확인한 뒤 제출하세요.",
+      "starter_code": "import pandas as pd\n\n# 5월과 6월 배송이에요. 회원 4와 5는 아직 지역 조회에 없어요.\nmay = {\"order_id\": [201, 202], \"member_id\": [1, 4]}\njune = {\"order_id\": [203, 204, 205], \"member_id\": [2, 5, 1]}\nregion_data = {\"member_id\": [1, 2], \"zone\": [\"north\", \"south\"]}\nregions = pd.DataFrame(region_data)\norders = pd.DataFrame(may)  # 1) 두 달 배송을 행으로 이어 붙이세요. 번호는 새로 매겨요.\njoined = orders  # 2) 모든 배송을 남기며 회원 지역을 연결하세요.\n# 3) 지역이 없는 배송은 unknown으로 표시하세요.\nprint(joined[\"order_id\"].tolist())\n# 지역별 배송 건수예요.\nprint(joined[\"zone\"].value_counts().sort_index().to_dict())\n",
+      "solution": "import pandas as pd\n\n# 5월과 6월 배송이에요. 회원 4와 5는 아직 지역 조회에 없어요.\nmay = {\"order_id\": [201, 202], \"member_id\": [1, 4]}\njune = {\"order_id\": [203, 204, 205], \"member_id\": [2, 5, 1]}\nregion_data = {\"member_id\": [1, 2], \"zone\": [\"north\", \"south\"]}\nregions = pd.DataFrame(region_data)\n# 같은 열의 두 표를 위아래로 이어요.\norders = pd.concat([pd.DataFrame(may), pd.DataFrame(june)], ignore_index=True)\n# 왼쪽 배송은 조회가 없어도 모두 남겨요.\njoined = orders.merge(regions, on=\"member_id\", how=\"left\")\njoined[\"zone\"] = joined[\"zone\"].fillna(\"unknown\")\nprint(joined[\"order_id\"].tolist())\n# 지역별 배송 건수예요.\nprint(joined[\"zone\"].value_counts().sort_index().to_dict())\n",
+      "required": true,
+      "tests": [
+        {
+          "input": "",
+          "expected": "[201, 202, 203, 204, 205]\n{'north': 2, 'south': 1, 'unknown': 2}"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "두 달 배송을 붙이고 지역별로 세는 문제예요.",
+          "target": "text:두 달 배송을 붙이고 지역별로 세세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 두 달 배송을 이어 붙이고, 모든 배송을 남기며 지역을 연결한 뒤 지역별 건수를 세요.",
+          "target": "text:조회에 없는 회원의 배송도 모두 남겨야 해요."
+        },
+        {
+          "action": "patch_code",
+          "before": "joined = orders  # 2) 모든 배송을 남기며 회원 지역을 연결하세요.",
+          "after": "joined = orders.merge(regions, on=\"member_id\", how=\"inner\")",
+          "say": "먼저 5월 배송만으로 지역을 inner로 연결해 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            11,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "201 한 건만 남고 north 1이에요. 6월이 빠졌고 회원 4의 202도 사라졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "orders = pd.DataFrame(may)  # 1) 두 달 배송을 행으로 이어 붙이세요. 번호는 새로 매겨요.",
+          "after": "# 같은 열의 두 표를 위아래로 이어요.\norders = pd.concat([pd.DataFrame(may), pd.DataFrame(june)], ignore_index=True)",
+          "say": "두 달을 concat으로 이어 붙여요."
+        },
+        {
+          "action": "patch_code",
+          "before": "joined = orders.merge(regions, on=\"member_id\", how=\"inner\")",
+          "after": "# 왼쪽 배송은 조회가 없어도 모두 남겨요.\njoined = orders.merge(regions, on=\"member_id\", how=\"left\")",
+          "say": "조회가 없어도 남기도록 left로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "다섯 배송이 모두 남았어요. 그런데 건수는 north 2, south 1뿐이에요. 지역이 빈 두 건은 세지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "# 3) 지역이 없는 배송은 unknown으로 표시하세요.",
+          "after": "joined[\"zone\"] = joined[\"zone\"].fillna(\"unknown\")",
+          "say": "빈 지역을 unknown으로 채워요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "north 2, south 1, unknown 2예요. 다섯 건이 다 세어졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. ignore_index 없이 이어 붙이면 행 번호 0과 1이 두 번씩 생겨 위치로 고를 때 헷갈려요.",
+          "target": "code:ignore_index=True"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"may\": {\"order_id\": [1], \"member_id\": [2]}, \"june\": {\"order_id\": [2], \"member_id\": [1]}}, \"expected\": \"[1, 2]\\\\n{\\'north\\': 1, \\'south\\': 1}\"}, {\"values\": {\"region_data\": {\"member_id\": [9], \"zone\": [\"west\"]}}, \"expected\": \"[201, 202, 203, 204, 205]\\\\n{\\'unknown\\': 5}\"}, {\"values\": {\"june\": {\"order_id\": [210], \"member_id\": [2]}, \"region_data\": {\"member_id\": [1, 2], \"zone\": [\"east\", \"east\"]}}, \"expected\": \"[201, 202, 210]\\\\n{\\'east\\': 2, \\'unknown\\': 1}\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     }
   ]
 }
