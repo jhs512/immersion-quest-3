@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "3ba297675db8490aa6188b9ea202d1e8e8efb9afe526a28c04974b7c059d55e2",
+  "entry": [
+    {
+      "action": "say",
+      "text": "stock이 0인데 먼저 나눠요. 조건 순서를 바꿔 0일 때 나눗셈을 막아야 해요.",
+      "target": "text:두 조건의 순서를 바꿔 stock이 0이면 나눗셈을 하지 않게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        7
+      ],
+      "expect_error": "ArithmeticException"
+    },
+    {
+      "action": "say",
+      "text": "ArithmeticException이에요. 왼쪽의 boxes / stock이 0으로 나누기를 했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        boolean enough = boxes / stock > 1 && stock > 0;\n",
+      "after": "        boolean enough = stock > 0 && boxes / stock > 1;\n",
+      "say": "stock > 0을 && 왼쪽으로 옮겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "false예요. 왼쪽 stock > 0이 거짓이라 오른쪽 나눗셈은 계산하지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. & 하나를 쓰면 왼쪽이 거짓이어도 오른쪽을 계산해 다시 0으로 나눠요.",
+      "target": "code:stock > 0 && boxes / stock > 1"
+    }
+  ]
+}

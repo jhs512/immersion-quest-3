@@ -192,7 +192,7 @@ fn java_tailwind_restore_student_state() {verify("java-tailwind",6)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn engineer_java_flow_restore_student_state() {verify("engineer-java-flow",8)}
+fn engineer_java_flow_restore_student_state() {verify("engineer-java-flow",9)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]

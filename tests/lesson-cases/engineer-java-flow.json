@@ -4,38 +4,31 @@
   "expected_outputs": [
     [
       "2.0",
-      "2.5",
-      "2.0"
+      "2.5"
     ],
     [
       "sum=23",
-      "sum=5",
-      "sum=23"
+      "sum=5"
     ],
     [
       "3:4",
-      "4:4",
-      "3:4"
+      "4:4"
     ],
     [
-      "false:0",
-      "true:1",
-      "false:0"
+      "",
+      "false"
     ],
     [
       "BC",
-      "B",
-      "BC"
+      "B"
     ],
     [
-      "12",
-      "3",
+      "15",
       "12"
     ],
     [
       "3",
-      "4",
-      "3"
+      "4"
     ],
     [
       "10"
@@ -46,6 +39,146 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "        double average = (double) total / bundles;\n",
+          "        double average = (double) (total / bundles);\n"
+        ]
+      ],
+      "reason": "Casting after the integer division"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "        double average = (double) total / bundles;\n",
+          "        double average = 2.5;\n"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "        System.out.println(\"sum=\" + (first + second));\n",
+          "        System.out.println(\"sum=5\");\n"
+        ]
+      ],
+      "reason": "Printing typed text"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "        System.out.println(\"sum=\" + (first + second));\n",
+          "        System.out.println(\"sum=\" + first + second);\n"
+        ]
+      ],
+      "reason": "No parentheses"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "        int saved = ++stock;\n",
+          "        int saved = 4;\n        stock++;\n"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "        int saved = ++stock;\n",
+          "        int saved = stock + 1;\n"
+        ]
+      ],
+      "reason": "stock itself does not change"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "        boolean enough = stock > 0 && boxes / stock > 1;\n",
+          "        boolean enough = stock > 0 & boxes / stock > 1;\n"
+        ]
+      ],
+      "reason": "Non-short-circuit & still divides"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "        boolean enough = stock > 0 && boxes / stock > 1;\n",
+          "        boolean enough = false;\n"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "            case 2: System.out.print(\"B\"); break;\n            case 3: System.out.print(\"C\"); break;\n",
+          "            case 2: System.out.print(\"B\");\n            case 3: break;\n"
+        ]
+      ],
+      "reason": "Removing C from case 3"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "        switch (grade) {\n",
+          "        System.out.print(\"B\");\n        if (false) switch (grade) {\n"
+        ]
+      ],
+      "reason": "Printing typed text"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "            if (item == skip) continue;\n",
+          "            if (item == skip) break;\n"
+        ]
+      ],
+      "reason": "break ends the loop"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "            if (item == skip) continue;\n",
+          "            if (item == 3) continue;\n"
+        ]
+      ],
+      "reason": "Typing 3 instead of skip"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "        stock = Counter.add(stock);\n",
+          "        Counter.add(stock);\n        stock = 4;\n"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "        stock = Counter.add(stock);\n",
+          "        Counter.add(stock);\n"
+        ]
+      ],
+      "reason": "Discarding the return value"
+    },
     {
       "step": 9,
       "replacements": [
@@ -58,6 +191,86 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "        double average = (double) total / bundles;\n",
+          "        double average = total / (double) bundles;\n"
+        ]
+      ],
+      "reason": "Casting the divisor"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "        double average = (double) total / bundles;\n",
+          "        double average = total * 1.0 / bundles;\n"
+        ]
+      ],
+      "reason": "Multiplying by 1.0 first"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "        System.out.println(\"sum=\" + (first + second));\n",
+          "        int sum = first + second;\n        System.out.println(\"sum=\" + sum);\n"
+        ]
+      ],
+      "reason": "Adding into a variable first"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "        int saved = ++stock;\n",
+          "        stock += 1;\n        int saved = stock;\n"
+        ]
+      ],
+      "reason": "Increasing first in its own line"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "        boolean enough = stock > 0 && boxes / stock > 1;\n",
+          "        boolean enough = stock != 0 && boxes / stock > 1;\n"
+        ]
+      ],
+      "reason": "Checking not zero"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "            case 2: System.out.print(\"B\"); break;\n",
+          "            case 2: {\n                System.out.print(\"B\");\n                break;\n            }\n"
+        ]
+      ],
+      "reason": "A block with break"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "            if (item == skip) continue;\n            total += item;\n",
+          "            if (item != skip) {\n                total += item;\n            }\n"
+        ]
+      ],
+      "reason": "Adding only when different"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "        stock = Counter.add(stock);\n",
+          "        int next = Counter.add(stock);\n        stock = next;\n"
+        ]
+      ],
+      "reason": "Through another variable"
+    },
     {
       "step": 9,
       "replacements": [

@@ -169,6 +169,37 @@ mod tests {
         }
     }
 
+    /// Every lesson step that offers 코드 흐름 보기: the starter and the solution trace on the real path,
+    /// the trace's output is the graded run's output, and the step reaches a written method or constructor.
+    #[tokio::test]
+    #[ignore="Needs JDK 25 and the pinned ASM download on first use"]
+    async fn every_code_flow_step_traces_its_starter_and_solution_like_the_grader() {
+        let mut traced=0;
+        for key in ["engineer-java-references","engineer-java-static","engineer-java-polymorphism","engineer-java-flow"] {
+            let lesson:serde_json::Value=serde_json::from_str(crate::lesson_registry::find(key).unwrap().lesson).unwrap();
+            for task in lesson["tasks"].as_array().unwrap().iter().filter(|t|t["code_flow"]==true) {
+                for field in ["starter_code","solution"] {
+                    let source=task[field].as_str().unwrap();
+                    let doc:serde_json::Value=serde_json::from_str(&super::trace(source,"").await.unwrap()).unwrap();
+                    let graded=crate::java::run(source,"").await.unwrap();
+                    let label=format!("{key} {} {field}",task["id"]);
+                    if graded.success {
+                        assert_eq!(doc["status"],"ok","{label}: {doc}");
+                        assert_eq!(doc["stdout"].as_str().unwrap().replace("\r\n","\n"),graded.stdout,"{label}");
+                    } else {
+                        assert_ne!(doc["status"],"ok","{label}");
+                    }
+                    let steps=doc["trace"].as_array().unwrap();
+                    assert!(!steps.is_empty(),"{label}");
+                    assert!(steps.iter().all(|s|s["line"].as_i64().is_some_and(|l|l>=1&&l as usize<=source.lines().count())),"{label}: lines stay in the editor's code");
+                    traced+=1;
+                }
+            }
+        }
+        // references 4, static 7, polymorphism 4, flow 1 steps; starter and solution each.
+        assert_eq!(traced,32);
+    }
+
     fn frames(step:&serde_json::Value)->Vec<serde_json::Value> {step["stack_to_render"].as_array().cloned().unwrap_or_default()}
     fn local(step:&serde_json::Value,name:&str)->Option<serde_json::Value> {frames(step).first().and_then(|f|f["encoded_locals"].get(name).cloned())}
 
