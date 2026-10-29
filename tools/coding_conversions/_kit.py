@@ -119,3 +119,32 @@ def sql_output(files, source):
             text += ''.join(' | '.join(value(v) for v in row) + '\n' for row in rows) if rows else '(행 없음)\n'
             out.append(text)
     return '\n'.join(out).rstrip('\n')
+
+
+def py_run(source, values=None, timeout=60):
+    """Run Python `source` with top-level assignments replaced as the prepared checker does (ast).
+    Authoring aid: the expected output of the solution for each prepared case."""
+    import ast
+    import subprocess
+    import sys
+    tree = ast.parse(source)
+    remaining = set(values or {})
+    for statement in tree.body:
+        if isinstance(statement, ast.Assign):
+            for target in statement.targets:
+                if isinstance(target, ast.Name) and target.id in remaining:
+                    statement.value = ast.parse(repr(values[target.id]), mode='eval').body
+                    remaining.remove(target.id)
+    if remaining:
+        raise ValueError(f'prepared names not assigned at top level: {remaining}')
+    ast.fix_missing_locations(tree)
+    run = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)], capture_output=True, text=True,
+                         encoding='utf-8', timeout=timeout)
+    if run.returncode != 0:
+        raise ValueError(f'solution failed for {values}: {run.stderr[-800:]}')
+    return run.stdout.strip()
+
+
+def py_cases(solution, *value_sets):
+    """Prepared cases whose expected output is the solution's real output for each set of values."""
+    return [{'values': v, 'expected': py_run(solution, v)} for v in value_sets]

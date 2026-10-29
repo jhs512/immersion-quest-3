@@ -1,8 +1,34 @@
 {
   "course": "tests/fixtures/player-pilot/o/course.json",
   "lesson": "courses/redesigned/aice-python-start.json",
-  "only_last": true,
   "expected_outputs": [
+    [
+      "12"
+    ],
+    [
+      "12",
+      "18"
+    ],
+    [
+      "minutes",
+      "18"
+    ],
+    [
+      "18",
+      "24"
+    ],
+    [
+      "12",
+      "[12, 18, 24]"
+    ],
+    [
+      "18",
+      "12"
+    ],
+    [
+      "12\n0",
+      "12\n4"
+    ],
     [
       "0\n0\n0",
       "5\n15",
@@ -10,6 +36,86 @@
     ]
   ],
   "reject": [
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "print(minutes)",
+          "print(18)"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "minutes = corrected\n",
+          "minutes = 24\n"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "minutes = [first, second, third]\n",
+          "minutes = [12, 18, 24]\n"
+        ]
+      ],
+      "reason": "Typing the numbers"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "minutes = [first, second, third]\n",
+          "minutes = [third, second, first]\n"
+        ]
+      ],
+      "reason": "Wrong order"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "print(minutes[0])",
+          "print(minutes[1])"
+        ]
+      ],
+      "reason": "Second item"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "print(minutes[0])",
+          "print(12)"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "count = len(minutes)\n",
+          "count = 4\n"
+        ]
+      ],
+      "reason": "Typing the count"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "count = len(minutes)\n",
+          "count = len(minutes) - 1\n"
+        ]
+      ],
+      "reason": "Last position instead of count"
+    },
     {
       "step": 8,
       "replacements": [
@@ -42,6 +148,56 @@
     }
   ],
   "accept": [
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "print(minutes)",
+          "value = minutes\nprint(value)"
+        ]
+      ],
+      "reason": "Through another name"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "minutes = corrected\n",
+          "minutes = corrected + 0\n"
+        ]
+      ],
+      "reason": "Same value through an expression"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "minutes = [first, second, third]\n",
+          "minutes = []\nminutes.append(first)\nminutes.append(second)\nminutes.append(third)\n"
+        ]
+      ],
+      "reason": "Appending in order"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "print(minutes[0])",
+          "print(minutes[-len(minutes)])"
+        ]
+      ],
+      "reason": "Negative index of the first item"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "count = len(minutes)\n",
+          "count = sum(1 for _ in minutes)\n"
+        ]
+      ],
+      "reason": "Counting by iterating"
+    },
     {
       "step": 8,
       "replacements": [
