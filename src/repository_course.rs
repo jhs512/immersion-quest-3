@@ -129,6 +129,10 @@ pub struct Task {
     pub example_order_marker:Option<String>,
     #[serde(default,skip_serializing_if="std::ops::Not::not")]
     pub predict_before_run:bool,
+    /// Java: offer 코드 흐름 보기 (crate::java_trace) for the editor's current code. Older players
+    /// ignore the field; grading never depends on it.
+    #[serde(default,skip_serializing_if="std::ops::Not::not")]
+    pub code_flow:bool,
     #[serde(default, skip_serializing_if="Vec::is_empty")]
     pub supporting_materials: Vec<crate::supporting_materials::SupportingMaterial>,
     #[serde(default,skip_serializing_if="Option::is_none")]

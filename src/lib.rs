@@ -30,6 +30,8 @@ pub mod lesson_registry;
 pub mod lesson_categories;
 pub mod lesson_runner;
 pub mod library_sets;
+pub mod java_trace;
+pub mod progress_reset;
 pub mod docker_lab;
 pub mod task_interaction;
 pub mod auto_review;

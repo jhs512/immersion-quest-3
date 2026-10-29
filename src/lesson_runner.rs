@@ -3,13 +3,13 @@ use crate::{repository_course::{Task,TaskLanguage},runner::{Execution,TestReport
 use std::{path::{Path,PathBuf},process::Stdio,time::Duration};
 use tokio::{process::Command,io::{AsyncReadExt,AsyncWriteExt}};
 
-fn command(executable:impl AsRef<std::ffi::OsStr>)->Command {
+pub(crate) fn command(executable:impl AsRef<std::ffi::OsStr>)->Command {
     let mut command=Command::new(executable);
     command.kill_on_drop(true).env_remove("JAVA_TOOL_OPTIONS").env_remove("JDK_JAVA_OPTIONS").env_remove("_JAVA_OPTIONS");
     #[cfg(windows)] command.creation_flags(0x08000000);
     command
 }
-async fn process(mut cmd:Command,dir:&Path,input:&str,seconds:u64)->Result<Execution,String> {
+pub(crate) async fn process(mut cmd:Command,dir:&Path,input:&str,seconds:u64)->Result<Execution,String> {
     cmd.current_dir(dir).stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped());
     let mut child=cmd.spawn().map_err(|e|format!("실행 도구를 찾지 못했어요. 설치 경로를 확인하세요: {e}"))?;
     let mut stdin=child.stdin.take().ok_or("입력 연결 실패")?;

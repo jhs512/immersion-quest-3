@@ -80,7 +80,10 @@ async fn validate_with_session(spec: Validation,session:Option<&molip_quest::doc
         return Err("SQL session validation requires SQL fixture tasks".into())
     }
     let first=if spec.only_last {lesson.tasks.len()-1} else {0};
-    if lesson.tasks.len()-first != spec.expected_outputs.len() {return Err("Expected outputs do not cover every step".into())}
+    // MQ3_VALIDATE_RECORD: report the real narration outputs instead of comparing them, for authoring.
+    // Every other check still runs, and the evidence is marked as not passed so it can never be proof.
+    let record=std::env::var_os("MQ3_VALIDATE_RECORD").is_some();
+    if !record && lesson.tasks.len()-first != spec.expected_outputs.len() {return Err("Expected outputs do not cover every step".into())}
     if spec.expected_images.as_ref().is_some_and(|images| images.len()!=lesson.tasks.len()-first) {return Err("Expected images do not cover every step".into())}
     let started = Instant::now();
     let mut steps = Vec::new();
@@ -149,9 +152,11 @@ async fn validate_with_session(spec: Validation,session:Option<&molip_quest::doc
                 action=>return Err(format!("{label}: this validator cannot replay {action}")),
             }
         }
+        if !record {
         let expected=&spec.expected_outputs[case_index];
         if outputs.len()!=expected.len()||!expected.iter().zip(&outputs).all(|(expected,actual)|expected.matches(actual)) {return Err(format!("{label}: expected {:?}, got {outputs:?}",expected))}
-        if let Some(expected)=&spec.expected_images {
+        }
+        if let Some(expected)=spec.expected_images.as_ref().filter(|_|!record) {
             if images!=expected[case_index] {return Err(format!("{label}: expected image counts {:?}, got {images:?}",expected[case_index]))}
         }
         steps.push(json!({"id":task.id,"teacher_outputs":outputs,"teacher_images":images,"grading_cases":report.cases.len()}));
@@ -180,7 +185,7 @@ async fn validate_with_session(spec: Validation,session:Option<&molip_quest::doc
         if !report.passed {return Err(format!("Valid answer rejected: {}: {}",accepted.reason,serde_json::to_string(&report).unwrap()))}
     }
     if let Some((session,_))=&terminals {session.close();session.wait_closed().await;}
-    Ok(json!({"passed":true,"lesson":lesson.id,"revision":lesson.revision,"lesson_sha256":source_hash,"steps":steps,"rejected_answers":spec.reject.len(),"accepted_answers":spec.accept.len(),"seconds":started.elapsed().as_secs_f64(),"native_ui_verified":false,"voice_listened":false}))
+    Ok(json!({"passed":!record,"recorded_only":record,"lesson":lesson.id,"revision":lesson.revision,"lesson_sha256":source_hash,"steps":steps,"rejected_answers":spec.reject.len(),"accepted_answers":spec.accept.len(),"seconds":started.elapsed().as_secs_f64(),"native_ui_verified":false,"voice_listened":false}))
 }
 
 #[cfg(test)]

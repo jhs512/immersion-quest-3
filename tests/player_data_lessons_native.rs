@@ -13,7 +13,10 @@ fn verify(mode:&str,count:usize) {
     let result:serde_json::Value=serde_json::from_str(&raw).unwrap();
     assert!(status.success()&&result["passed"]==true,"{result}");
     let edited_examples=if matches!(mode,"java-regex"|"java-rq"|"java-calculator") {2}else{3};
-    assert_eq!(result["checked"].as_array().unwrap().len(),count+edited_examples);
+    // Each 코드 흐름 보기 step adds one checked item (trace, stepping, output, close).
+    let lesson:serde_json::Value=serde_json::from_str(molip_quest::lesson_registry::find(mode).unwrap().lesson).unwrap();
+    let code_flow=lesson["tasks"].as_array().unwrap().iter().filter(|task|task["code_flow"]==true).count();
+    assert_eq!(result["checked"].as_array().unwrap().len(),count+edited_examples+code_flow,"{result}");
     let store:serde_json::Value=serde_json::from_slice(&std::fs::read(session.directory().join("pilot-remote.json")).unwrap()).unwrap();
     let events:Vec<_>=store["comments"].as_array().unwrap().iter().flat_map(|comment|molip_quest::issue_progress::parse_events(comment["body"].as_str().unwrap())).collect();
     use molip_quest::issue_progress::EventKind;
@@ -193,7 +196,7 @@ fn engineer_java_flow_restore_student_state() {verify("engineer-java-flow",8)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn engineer_java_references_restore_student_state() {verify("engineer-java-references",8)}
+fn engineer_java_references_restore_student_state() {verify("engineer-java-references",9)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]

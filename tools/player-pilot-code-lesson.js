@@ -104,6 +104,30 @@
     checked.push(`${pilot.label} step ${index+1}: canonical teacher baseline restores an edited or reordered learner answer`);
    }
    if(!modification?.correct)await answer(task);
+   // 코드 흐름 보기: only on the steps that offer it; traces the code now in the editor and leaves it as it was.
+   if(!task.code_flow&&button('코드 흐름 보기'))throw Error('Code flow is offered on a step that does not use it');
+   if(task.code_flow){
+    const before=molipCodeEditors.getValue(),dialog=()=>document.getElementById('code-flow-dialog');
+    await click('코드 흐름 보기');
+    await wait(()=>dialog()?.open,'code flow dialog opens');
+    const until=Date.now()+180000;while(Date.now()<until&&!window.mqCodeFlow.position()&&!dialog().querySelector('.code-flow-status.is-error'))await new Promise(r=>setTimeout(r,100));
+    if(!window.mqCodeFlow.position())throw Error('Code flow did not trace: '+dialog().querySelector('.code-flow-status')?.textContent);
+    // The core view draws an empty line as one space; compare the lines without trailing blanks.
+    const lines=text=>text.split('\n').map(line=>line.replace(/\s+$/,'')).join('\n').replace(/\n+$/,'');
+    const shown=lines([...dialog().querySelectorAll('.tv-line .tv-src')].map(node=>node.textContent).join('\n'));
+    if(shown!==lines(before))throw Error('Code flow shows a different program than the editor');
+    const at=()=>window.mqCodeFlow.position(),active=()=>Number(dialog().querySelector('.tv-line.is-next')?.dataset.line);
+    const step=async(go,expected)=>{dialog().querySelector(`[data-go="${go}"]`).click();await wait(()=>at().step===expected&&active()===at().line,`code flow ${go}`);};
+    if(at().step!==1||active()!==at().line)throw Error('Code flow does not start at its first step on the traced line');
+    await step('next',2);await step('prev',1);await step('last',at().steps);
+    const printed=dialog().querySelector('.tv-stdout').textContent.replace(/\r\n?/g,'\n').trim();
+    if(printed!==task.tests[0].expected.trim())throw Error(`Code flow output ${JSON.stringify(printed)} differs from the graded output`);
+    if(!dialog().querySelector('.tv-frames .tv-frame-title')&&at().steps>1)throw Error('Code flow shows no call stack');
+    if(/\bnew\b/.test(before)&&!dialog().querySelector('.tv-heap .tv-object, .tv-heap .tv-note'))throw Error('Code flow shows no object panel');
+    dialog().querySelector('.code-flow-close').click();await wait(()=>!dialog().open,'code flow closes');
+    if(molipCodeEditors.getValue()!==before)throw Error('Code flow changed the learner code');
+    checked.push(`${pilot.label} step ${index+1}: code flow traces the editor code, steps forward/back in line sync, ends with the graded output and closes without changes`);
+   }
    if(pilot.requirePlot&&index===0){
     await click('코드 실행');
     await wait(()=>status('실행을 마쳤어요')&&[...document.querySelectorAll('.plot-result img')].some(image=>image.complete&&image.naturalWidth>0),'student plot is visible');

@@ -5,6 +5,7 @@ mod emergency_report;
 mod practice;
 mod ui;
 mod player_ui;
+mod account_reset_ui;
 mod sql_browser_ui;
 mod challenge_ui;
 mod explanation_session;
@@ -238,6 +239,8 @@ window.molipVoice && molipVoice.setName({});",
         document::eval(include_str!("../assets/layout/shortcuts.js"));
         document::eval(include_str!("../assets/layout/toast.js"));
         document::eval(include_str!("../assets/layout/focus.js"));
+        // 코드 흐름 보기: the java-memory-visualizer TraceView and its MQ dialog (src/java_trace.rs).
+        document::eval(&molip_quest::java_trace::viewer_script());
         document::eval(include_str!("../assets/layout/victory.js"));
         // Reward effects on or off, as saved from the home screen.
         document::eval(&molip_quest::prefs::Prefs::load().script());
@@ -276,6 +279,7 @@ window.molipVoice && molipVoice.setName({});",
         style {{include_str!("../assets/compact-toolbar.css")}}
         style {{include_str!("../assets/product-ui.css")}}
         style {{include_str!("../assets/station.css")}}
+        style {{include_str!("../assets/java-trace/code-flow.css")}}
         style {{include_str!("../assets/terminal/terminal.bundle.css")}}
         if cfg!(debug_assertions) && std::env::var_os("MOLIP_PILOT").is_some() { pilot_ui::PilotPlayer {window_controls:rsx!{div {class:"app-window-controls",AppReportButton {}{fullscreen_toggle}UpdateGate {}}}} }
         else if cfg!(debug_assertions) && std::env::var_os("MOLIP_LEGACY").is_some() { div {class:"app-window-controls",AppReportButton {}{fullscreen_toggle}UpdateGate {}} Workspace {} } else if !login_verification { player_ui::RepositoryPlayer {window_controls:rsx!{div {class:"app-window-controls",AppReportButton {}{fullscreen_toggle}UpdateGate {}}}} }

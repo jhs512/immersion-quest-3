@@ -357,7 +357,8 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
         div {class:if session().is_none(){"repository-player needs-gh"}else{"repository-player"},style:"{line}",
             header {class:"repository-header",h1 {"MQ"}
                 div {class:"repository-tools",
-                    if let Some(s)=session() {div {class:"repository-account",span {"gh · @{s.user.login}"}button {class:"account-recheck",title:"GitHub 계정 다시 확인",aria_label:"GitHub 계정 다시 확인",disabled:busy(),onclick:move |_|connect(),"계정 확인"}}}
+                    if let Some(s)=session() {div {class:"repository-account",span {"gh · @{s.user.login}"}button {class:"account-recheck",title:"GitHub 계정 다시 확인",aria_label:"GitHub 계정 다시 확인",disabled:busy(),onclick:move |_|connect(),"계정 확인"}
+                        crate::account_reset_ui::AccountProgressReset {github:s.github.clone(),user:s.user.clone(),repositories:repositories(),disabled:busy(),onreset:move |_|refresh+=1}}}
                     button {class:"shortcut-sheet-open","data-shortcut-action":"help",onclick:move |_|{document::eval("window.molipShortcuts?.toggleSheet()");},"단축키"}{updates}{window_controls}
                 }
             }
@@ -854,7 +855,7 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
                             button {r#type:"button",onmounted:move |event|async move{let _=event.data().set_focus(true).await;},onclick:move |_|confirm_reset.set(false),"취소"}
                         }
                     } else {
-                        p {"이 수업만 처음부터 다시 풀 때 써요. 이 계정의 이 코스 진도만 바뀌어요."}
+                        p {"이 수업만 처음부터 다시 풀 때 써요. 이 계정의 이 코스 진도만 바뀌어요. 모든 과정을 한 번에 다시 세려면 과정 목록 위 계정 옆의 「진도 초기화」를 쓰세요."}
                         button {r#type:"button",class:"lesson-reset-open",disabled:running_here,onclick:move |_|{reset_message.set(String::new());confirm_reset.set(true);},"이 수업 진도 초기화"}
                     }
                     if !reset_message().is_empty() {p {class:"lesson-reset-status",role:"status","{reset_message}"}}
@@ -1221,6 +1222,23 @@ if let Some(start)=autostart {
                             history_saves-=1;
                         });
                     }}},"코드 실행"}
+                    }
+                    // 코드 흐름 보기 (crate::java_trace): the steps of the code now in the editor. It never
+                    // grades, records progress or changes the editor; closing returns to the same screen.
+                    if task.code_flow&&task.language==repository_course::TaskLanguage::Java&&task.git_terminal.is_none() {
+                    button {class:"code-flow-open",title:"지금 편집기의 코드를 한 줄씩 실행하며 호출 스택·변수·객체를 봐요. 채점과는 별개예요.",disabled:busy()||narrating(),onclick:move |_|{
+                        let source=if has_example{example_source()}else{code()};let input=input();
+                        spawn(async move {
+                            let mut opened=document::eval("dioxus.send(window.mqCodeFlow?window.mqCodeFlow.loading():-1);");
+                            let token=opened.recv::<i64>().await.unwrap_or(-1);
+                            if token<0 {message.set("코드 흐름 보기를 열지 못했어요. 앱을 다시 열어 보세요.".into());return;}
+                            let script=match molip_quest::java_trace::trace(&source,&input).await {
+                                Ok(document)=>format!("window.mqCodeFlow.show({token},{document});"),
+                                Err(error)=>format!("window.mqCodeFlow.fail({token},{});",serde_json::to_string(&error).unwrap_or_default()),
+                            };
+                            document::eval(&script);
+                        });
+                    },"코드 흐름 보기"}
                     }
                     button {class:"primary","data-shortcut-action":"submit","data-enter-submit":"true",disabled:busy()||narrating()||(task.git_terminal.is_some()&&git_practice().is_none()),onclick:{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();let docker_session=docker_session.clone();let challenge_task=challenge_task.clone();move |_|{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();let docker_session=docker_session.clone();let challenge_task=challenge_task.clone();async move {
                         submitting.set(true);busy.set(true);feedback.set("checking");execution_state.set("idle");output.set(String::new());message.set("검사하고 있어요.".into());
