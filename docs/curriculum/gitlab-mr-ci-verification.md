@@ -72,3 +72,12 @@
 - macOS Docker에서의 실제 실행은 확인하지 않았다(코드 검토만).
 - GitHub 테스트 저장소·실제 GitHub PR 실험은 보류 지시대로 하지 않았다.
 - 한 테스트 환경에서 두 개의 도우미 사본 경로를 썼기 때문에, 나중에 시작한 사본의 `stop`은 앞 사본의 게이트웨이를 끄지 않았다(경로로 소유를 확인하는 안전장치). 앱은 한 경로만 쓰므로 해당하지 않으며, 남은 테스트 게이트웨이는 명령줄을 확인해 수동으로 멈췄다.
+
+## 배포 결과 (2026-10-29)
+
+- 앱: GitHub Actions 실행 40847002546(build 154) 네 작업(windows·macOS arm64·principles/actual-engines·release) 모두 success. 공개 릴리스 `v0.1.0-build.154`(https://github.com/jhs512/immersion-quest-3/releases/tag/v0.1.0-build.154), 태그 = main = `c593fb7604150c2b607d403fedc49e312b7dbb61`. 내려받은 자산이 `SHA256SUMS`와 일치: windows-x64-setup.exe `ff300e98b77150d960ee75d48161f11e27173b72bfd90e1347eab26e55f3b851`, macos-arm64.dmg `2bb9dd85734c97fc35968256b2ae647d8bd06aebdf0510814215eb7aa9f46d38`.
+- 수업: `python tools/publish-gitlab-courses.py --runtime-release v0.1.0-build.154 --runtime-commit c593fb76… --publish`. course.json 커밋 `c10097db4a8cf1a24f630869c115877bfce5ee80`(부모 `d2347737`), sha256 `2588ce2ea37dea2905f5b9ab311ea7502f8a0e3656b64ab4a07c48027d6f9020`, 43→44 수업.
+  - `mq3-lesson-redesigned-github-pr@gitlab-mr-1` 스키마 3, 과제 9, `645c6e9835fd2b4d6647456fc174a9c28ed491bdc1ab7e5ea286144aaaa5047c`
+  - `mq3-lesson-redesigned-git-remote@git-remote-13` 스키마 2, 과제 23, `67b5559012082f36365a7f8dbc69549751fcd16ea38f952dd21b3add8565f749`(github.com 0회)
+  - `mq3-lesson-redesigned-gitlab-ci@gitlab-ci-1` 스키마 3, 과제 10, `0260002ec98eaf2b30de90bc840f7f4820b7b093d4c5859a12aa0f53f17694f0`, docker-image-container 바로 뒤
+- 독립 확인: raw.githubusercontent.com의 main course.json과 세 태그 lesson.json을 따로 내려받아 해시 일치. 부모 커밋과 비교해 바뀐 수업 항목은 위 셋뿐(github-pr은 revision·sha256·title·challenge_task, git-remote는 revision·sha256), 삭제 없음, 기존 순서 유지, 최상위 변경은 `lesson_previews`·`change_history`만.
