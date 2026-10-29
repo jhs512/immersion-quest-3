@@ -16,7 +16,7 @@ fn fixture(course: &CourseManifest) -> FutureChallengeFile {
 #[test]
 fn every_backend_lesson_offers_its_last_graded_problem_by_reference() {
     let (course, lessons) = backend();
-    assert_eq!(course.lessons.len(), 40);
+    assert_eq!(course.lessons.len(), 43);
     for (index, (reference, lesson)) in course.lessons.iter().zip(&lessons).enumerate() {
         let challenge = challenges::lesson_challenge(index, reference, lesson).unwrap_or_else(|| panic!("{} has no graded problem", reference.title));
         let position = lesson.tasks.iter().position(|task| task.id == challenge.task_id).unwrap();
@@ -107,4 +107,42 @@ async fn a_future_problem_runs_on_the_existing_grader() {
     // A memorized answer fails the prepared-value variation.
     let memorized = task.solution.replace("count * price", "3600");
     assert!(!lesson_runner::check(task, &memorized).await.unwrap().passed);
+}
+
+/// Every designated final challenge in the packaged backend course resolves, through the app's own
+/// rule, to a required problem of the pinned revision that has a real grader; the lessons without a
+/// designation fall back to the unreviewed last problem and never clear a lesson by challenge.
+#[test]
+fn packaged_backend_course_designates_only_real_graded_final_challenges() {
+    use molip_quest::{bundled_courses, challenges, repository_course::{CourseManifest, Lesson}};
+    let course = CourseManifest::parse(bundled_courses::course_source("jhs512/mq3-course-redesigned-java-backend").unwrap()).unwrap();
+    let mut designated = 0;
+    for (index, reference) in course.lessons.iter().enumerate() {
+        let lesson = Lesson::parse(bundled_courses::lesson_source(reference).unwrap(), reference).unwrap();
+        let resolved = challenges::designated(reference, &lesson);
+        let card = challenges::lesson_challenge(index, reference, &lesson).unwrap();
+        if reference.challenge_task.is_empty() {
+            assert!(resolved.is_none() && !card.designated, "{}", reference.title);
+            continue;
+        }
+        designated += 1;
+        let (position, task) = resolved.unwrap_or_else(|| panic!("designation must resolve: {}", reference.title));
+        assert!(task.required && challenges::is_graded(task), "{}", reference.title);
+        assert_eq!(position + 1, lesson.tasks.len(), "the final problem: {}", reference.title);
+        assert!(card.designated && card.task_id == reference.challenge_task);
+    }
+    assert_eq!(designated, 19);
+    // A designation that is not a required graded problem of this revision is ignored.
+    let mut reference = course.lessons.iter().find(|l| !l.challenge_task.is_empty()).unwrap().clone();
+    let lesson = Lesson::parse(bundled_courses::lesson_source(&reference).unwrap(), &reference).unwrap();
+    reference.challenge_task = "stp_3f59e7bd-70c1-4e81-9cb0-000000000099".into();
+    assert!(challenges::designated(&reference, &lesson).is_none());
+    let mut wrong_revision = course.lessons.iter().find(|l| !l.challenge_task.is_empty()).unwrap().clone();
+    wrong_revision.revision.push_str("-other");
+    assert!(challenges::designated(&wrong_revision, &lesson).is_none());
+    // A malformed designation is refused with the course.
+    let raw = bundled_courses::course_source("jhs512/mq3-course-redesigned-java-backend").unwrap();
+    let mut value: serde_json::Value = serde_json::from_str(raw).unwrap();
+    value["lessons"][0]["challenge_task"] = "last".into();
+    assert!(CourseManifest::parse(&value.to_string()).is_err());
 }

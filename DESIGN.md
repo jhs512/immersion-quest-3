@@ -27,6 +27,10 @@ colors:
   admin-amber-soft: "#fff3d6"
   voice-violet: "#6b46c1"
   voice-violet-soft: "#efe9fb"
+  challenge-purple-ink: "#7b1fa2"
+  challenge-purple-soft: "#f6e7fa"
+  night-challenge-ink: "#e2a8f2"
+  night-challenge-fill: "#a64ccc"
   well: "#111a27"
   well-raised: "#18233a"
   well-rule: "#33445c"
@@ -189,7 +193,7 @@ A course is a metro line and each lesson a station on it. A learner reads the co
 
 The tool comes first. The editor, terminal and results sit in dark wells set into the wall, because that is how learners already see code; the brief, the course and the settings are paper on the wall. Density is commuter density: a 34-lesson course fits in compact 60px station rows on one route, and the next station is the one filled action on the page.
 
-State is carried by shape before colour: a hollow ring is not started, a half-filled ring is in progress, a filled ring is complete, a dashed ring is still loading, a smaller ring is optional. Admin tools are amber and the narrator is violet, so a teacher action is never mistaken for a learner action.
+State is carried by shape before colour: a hollow ring is not started, a half-filled ring is in progress, a filled ring is complete, a filled ring with an inner paper ring is cleared by the final challenge, a dashed ring is still loading, a smaller ring is optional. Admin tools are amber and the narrator is violet, so a teacher action is never mistaken for a learner action.
 
 **Key Characteristics:**
 - Light station-wall ground, navy signage band on every screen (50px catalog, 42px lesson).
@@ -210,6 +214,7 @@ Restrained paper and navy with one committed line colour per course and three st
 - **Signage Navy** (signage-navy): the header band, selected segmented controls, the floating status line and toasts.
 - **Voice Violet** (voice-violet): narration only, the 해설 재생 button, the narrator's caption border and the spoken-target ring.
 - **Admin Amber** (admin-amber, admin-amber-ink, admin-amber-soft): 관리자 자동 풀이 only; while a run is active the band underline turns amber.
+- **Challenge Purple** (challenge-purple-ink, challenge-purple-soft; night: night-challenge-ink, night-challenge-fill): a magenta-leaning purple, kept apart from the narrator's blue violet. It marks only a lesson cleared by its designated final challenge: the station ring (filled, with an inner paper ring), the 「도전 통과」 chip with a drawn diamond, and the 「수업 클리어」 headline. The practice gauge beside it keeps the line colour and the true count.
 
 ### Neutral
 - **Station Wall** (station-wall): page ground behind everything.
@@ -224,7 +229,7 @@ The same roles, re-lit: night-wall ground, night-paper panels, a signage band da
 ### Named Rules
 **The Same Station Rule.** Light and dark are one world: every role keeps its job, only the lighting changes; nothing is inverted with a filter.
 **The One Line Rule.** A screen shows one course line colour, and only on the route, rings, the band underline and primary actions; never as decoration.
-**The Voices Rule.** Violet speaks for the narrator and amber for the admin; neither colour is used for anything else.
+**The Voices Rule.** Violet speaks for the narrator and amber for the admin; neither colour is used for anything else. Challenge purple belongs to one state (cleared by the final challenge) and always comes with its words and diamond.
 
 ## Typography
 

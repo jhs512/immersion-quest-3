@@ -1,0 +1,745 @@
+{
+  "schema_version": 2,
+  "id": "lsn_bc84f39d-b4d3-4863-8203-6b1866be8f75",
+  "revision": "bash-environment-1",
+  "title": "Bash · export로 자식 프로세스에 값을 전해요",
+  "description": "부모 셸의 변수가 자식 프로세스에 언제, 어떻게 전해지는지 실제 Bash 두 개로 확인해요.",
+  "objectives": [
+    "셸 변수와 환경 변수를 구별하고 export로 자식 프로세스에 값을 넘겨요.",
+    "자식은 시작할 때 부모의 환경을 복사하고, 자식의 변경은 부모로 돌아오지 않는다는 것을 확인해요.",
+    "export는 지금 셸에만 영향을 주는 설정이며 영구 저장이 아니라는 것을 설명해요."
+  ],
+  "sources": [
+    "https://www.gnu.org/software/bash/manual/bash.html#Environment"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_1d198f23-3c13-41dc-b1ec-7eebdfdd54d9",
+      "title": "부모에서 자식으로",
+      "objectives": [
+        "export한 환경 변수만 자식에게 복사되는 것을 확인해요."
+      ],
+      "units": [
+        {
+          "id": "unt_35f33bc9-01b1-4006-8cf8-7d41311a5d1c",
+          "title": "셸 변수와 환경 변수",
+          "objectives": [
+            "셸 변수는 자식에게 가지 않고 export한 변수만 간다는 것을 확인해요."
+          ],
+          "premise": "스텝마다 새 Bash가 열려요. 앞 스텝에서 만든 변수는 이 셸에 없으니 필요한 값은 다시 담아요.",
+          "steps": [
+            {
+              "id": "stp_794d7e40-161d-41b4-b5ce-54dfb6e64c8a",
+              "objectives": [
+                "부모 셸 변수가 자식 Bash에 보이지 않는 것을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_e2fe0af1-d5ea-4e83-9eb5-3e5de57685ef",
+              "objectives": [
+                "export한 변수만 환경에 들어가 자식에게 복사되는 것을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_eb7d3b34-7d82-4ce9-a03b-b88204355156",
+              "objectives": [
+                "자식은 시작할 때의 부모 값을 받는다는 것을 확인해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_00453aac-a495-4444-b0d6-7836aa1176c1",
+      "title": "복사본의 경계",
+      "objectives": [
+        "자식의 변경과 끝난 셸의 export가 남지 않는 것을 확인해요."
+      ],
+      "units": [
+        {
+          "id": "unt_bdb071d5-1b03-4616-bdfc-731419bcfc85",
+          "title": "돌아오지 않는 변경과 사라지는 설정",
+          "objectives": [
+            "자식의 변경은 부모로 돌아오지 않고 export는 영구 저장이 아니라는 것을 확인해요."
+          ],
+          "premise": "스텝마다 새 Bash가 열려요. 앞 스텝에서 만든 변수는 이 셸에 없으니 필요한 값은 다시 담아요.",
+          "steps": [
+            {
+              "id": "stp_e6706886-ed8d-49ac-891f-32ce6a49eec9",
+              "objectives": [
+                "자식이 바꾼 값이 부모에 반영되지 않는 것을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_223e1c88-fc0a-484e-ad46-17ba42edff31",
+              "objectives": [
+                "새 셸에는 이전 export가 없고 unset이 환경에서도 지운다는 것을 확인해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_f7ea4445-582c-483e-b6f0-80c7cea76089",
+          "title": "마지막 도전",
+          "objectives": [
+            "명령 순서를 스스로 정해 부모·자식의 값 흐름을 기록으로 증명해요."
+          ],
+          "premise": "스텝마다 새 Bash가 열려요. 앞 스텝에서 만든 변수는 이 셸에 없으니 필요한 값은 다시 담아요.",
+          "steps": [
+            {
+              "id": "stp_5ba6fb6b-fdb8-425d-a43b-59168873bd3e",
+              "objectives": [
+                "export 시점과 자식 변경의 범위를 조합해 정해진 기록을 만들어요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_794d7e40-161d-41b4-b5ce-54dfb6e64c8a",
+      "title": "자식 Bash에서 같은 이름을 읽어 보세요",
+      "goal": "새 Bash와 제공된 show.sh가 있어요. `bash show.sh`는 Bash 프로세스를 하나 더 띄워 show.sh를 실행해요. 지금 셸이 부모, 새로 뜬 Bash가 자식이에요.\n\n**할 일**\n\n1. `cat show.sh`를 실행해 스크립트가 무엇을 출력하는지 읽으세요.\n2. `COLOR=blue`를 실행해 현재 셸에 값을 담으세요.\n3. `echo \"[$COLOR]\"`를 실행해 현재 셸의 값을 확인하세요.\n4. `bash show.sh`를 실행해 자식이 받은 값을 보세요.\n5. 부모와 자식의 출력을 비교한 뒤 제출하세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "bash show.sh",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "shell": {
+          "step_id": "stp_794d7e40-161d-41b4-b5ce-54dfb6e64c8a",
+          "goal": {
+            "files": {
+              "show.sh": "# 자식 Bash에서 실행돼요. 받은 COLOR 값을 대괄호 안에 보여 줘요.\necho \"자식이 받은 COLOR: [$COLOR]\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "show.sh": "# 자식 Bash에서 실행돼요. 받은 COLOR 값을 대괄호 안에 보여 줘요.\necho \"자식이 받은 COLOR: [$COLOR]\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "start": {
+            "files": {
+              "show.sh": "# 자식 Bash에서 실행돼요. 받은 COLOR 값을 대괄호 안에 보여 줘요.\necho \"자식이 받은 COLOR: [$COLOR]\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": [
+            "cat show.sh",
+            "COLOR=blue",
+            "echo \"[$COLOR]\"",
+            "bash show.sh"
+          ]
+        }
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "이 수업에서는 부모 셸의 값이 자식 프로세스에 언제 전해지는지 배워요. export가 그 열쇠예요."
+        },
+        {
+          "action": "say",
+          "text": "부모 셸과 bash로 띄운 자식의 출력을 나란히 비교해요. 마지막엔 기록 다섯 줄을 직접 만들어요."
+        },
+        {
+          "action": "say",
+          "text": "부모 셸에 담은 값을 자식 Bash도 볼 수 있는지 확인하는 문제예요.",
+          "target": "text:자식 Bash에서 같은 이름을 읽어 보세요#1"
+        },
+        {
+          "action": "bash_command",
+          "command": "cat show.sh",
+          "say": "먼저 자식이 실행할 스크립트를 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "자식은 자기가 받은 COLOR를 대괄호 안에 보여 줘요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "COLOR=blue",
+          "say": "부모 셸에 blue를 담아요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "부모 셸의 COLOR는 이제 blue예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "echo \"[$COLOR]\"",
+          "say": "부모에서 꺼내 볼게요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "[blue]가 나왔어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash show.sh",
+          "say": "자식 Bash를 띄워요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "자식은 빈 대괄호를 보여 줬어요. COLOR=blue는 부모 셸의 변수일 뿐, 자식에게 넘어가지 않았어요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    },
+    {
+      "id": "stp_e2fe0af1-d5ea-4e83-9eb5-3e5de57685ef",
+      "title": "export로 자식에게 값을 넘기세요",
+      "goal": "새 Bash예요. 앞 스텝의 COLOR는 이 셸에 없어요.\n\n`export COLOR`는 셸 변수 COLOR를 환경 변수로 표시해요. 환경 변수는 이 셸이 앞으로 띄우는 자식에게 복사돼요. `printenv COLOR`는 환경 변수일 때만 값을 보여 줘요.\n\n**할 일**\n\n1. `COLOR=blue`를 실행하세요.\n2. `printenv COLOR`를 실행해 출력이 있는지 보세요.\n3. `export COLOR`를 실행하세요.\n4. `printenv COLOR`를 다시 실행하세요.\n5. `bash show.sh`를 실행해 자식이 받은 값을 확인한 뒤 제출하세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "bash show.sh",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "shell": {
+          "step_id": "stp_e2fe0af1-d5ea-4e83-9eb5-3e5de57685ef",
+          "goal": {
+            "files": {
+              "show.sh": "# 자식 Bash에서 실행돼요. 받은 COLOR 값을 대괄호 안에 보여 줘요.\necho \"자식이 받은 COLOR: [$COLOR]\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "show.sh": "# 자식 Bash에서 실행돼요. 받은 COLOR 값을 대괄호 안에 보여 줘요.\necho \"자식이 받은 COLOR: [$COLOR]\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "start": {
+            "files": {
+              "show.sh": "# 자식 Bash에서 실행돼요. 받은 COLOR 값을 대괄호 안에 보여 줘요.\necho \"자식이 받은 COLOR: [$COLOR]\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": [
+            "COLOR=blue",
+            "export COLOR",
+            "printenv COLOR",
+            "bash show.sh"
+          ]
+        }
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "셸 변수를 환경 변수로 바꾸면 자식이 받는 값이 달라지는지 보는 문제예요.",
+          "target": "text:export로 자식에게 값을 넘기세요#1"
+        },
+        {
+          "action": "bash_command",
+          "command": "COLOR=blue",
+          "say": "셸 변수 COLOR에 blue를 담아요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "아직은 이 셸 안의 변수예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "printenv COLOR",
+          "say": "환경 변수 목록에서 찾아볼게요.",
+          "target": "#git-demo-terminal",
+          "fails": true
+        },
+        {
+          "action": "say",
+          "text": "아무것도 나오지 않았어요. 셸 변수는 환경에 들어 있지 않아요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "export COLOR",
+          "say": "이제 COLOR를 내보내요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "출력은 없지만 COLOR에 내보내기 표시가 붙었어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "printenv COLOR",
+          "say": "다시 환경에서 찾아요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "blue가 나왔어요. 이제 환경 변수예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash show.sh",
+          "say": "자식을 띄워 볼게요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "자식이 [blue]를 받았어요. 자식은 시작할 때 부모의 환경 변수를 복사해 가요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    },
+    {
+      "id": "stp_eb7d3b34-7d82-4ce9-a03b-b88204355156",
+      "title": "값을 바꾼 뒤 자식을 다시 띄우세요",
+      "goal": "새 Bash예요.\n\n`export COLOR=blue`는 담기와 내보내기를 한 번에 해요. 한 번 내보낸 변수는 값을 바꿔도 환경 변수로 남아요. 자식이 언제 값을 복사해 가는지 확인해요.\n\n**할 일**\n\n1. `export COLOR=blue`를 실행하세요.\n2. `bash show.sh`를 실행하세요.\n3. `COLOR=red`를 실행해 부모의 값을 바꾸세요.\n4. `bash show.sh`를 다시 실행하세요.\n5. 두 자식이 받은 값을 비교한 뒤 제출하세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "bash show.sh",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "shell": {
+          "step_id": "stp_eb7d3b34-7d82-4ce9-a03b-b88204355156",
+          "goal": {
+            "files": {
+              "show.sh": "# 자식 Bash에서 실행돼요. 받은 COLOR 값을 대괄호 안에 보여 줘요.\necho \"자식이 받은 COLOR: [$COLOR]\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "show.sh": "# 자식 Bash에서 실행돼요. 받은 COLOR 값을 대괄호 안에 보여 줘요.\necho \"자식이 받은 COLOR: [$COLOR]\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "start": {
+            "files": {
+              "show.sh": "# 자식 Bash에서 실행돼요. 받은 COLOR 값을 대괄호 안에 보여 줘요.\necho \"자식이 받은 COLOR: [$COLOR]\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": [
+            "export COLOR=blue",
+            "bash show.sh",
+            "COLOR=red",
+            "bash show.sh"
+          ]
+        }
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "부모의 값을 바꾼 뒤 새로 띄운 자식이 어느 값을 받는지 비교하는 문제예요.",
+          "target": "text:값을 바꾼 뒤 자식을 다시 띄우세요#1"
+        },
+        {
+          "action": "bash_command",
+          "command": "export COLOR=blue",
+          "say": "담고 내보내기를 한 번에 해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "COLOR는 blue인 환경 변수예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash show.sh",
+          "say": "첫 번째 자식을 띄워요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "첫 자식은 [blue]를 받았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "COLOR=red",
+          "say": "부모의 값을 red로 바꿔요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "export를 다시 쓰지 않았지만 COLOR는 여전히 환경 변수예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash show.sh",
+          "say": "두 번째 자식을 띄워요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "이번 자식은 [red]를 받았어요. 자식은 시작하는 순간의 부모 값을 복사해요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    },
+    {
+      "id": "stp_e6706886-ed8d-49ac-891f-32ce6a49eec9",
+      "title": "자식이 값을 바꾼 뒤 부모의 값을 확인하세요",
+      "goal": "새 Bash와 제공된 change.sh가 있어요. change.sh는 받은 COLOR를 보여 준 뒤 자기 COLOR를 green으로 바꿔요.\n\n**할 일**\n\n1. `cat change.sh`를 실행해 스크립트를 읽으세요.\n2. `export COLOR=blue`를 실행하세요.\n3. `bash change.sh`를 실행해 자식 안의 값 변화를 보세요.\n4. `echo \"[$COLOR]\"`를 실행해 부모의 값을 확인하세요.\n5. 자식과 부모의 값을 비교한 뒤 제출하세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "echo \"[$COLOR]\"",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "shell": {
+          "step_id": "stp_e6706886-ed8d-49ac-891f-32ce6a49eec9",
+          "goal": {
+            "files": {
+              "change.sh": "# 자식 Bash에서 실행돼요. 받은 값을 보여 준 뒤 자기 COLOR만 green으로 바꿔요.\necho \"자식이 받은 COLOR: [$COLOR]\"\nCOLOR=green\necho \"자식이 바꾼 COLOR: [$COLOR]\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "change.sh": "# 자식 Bash에서 실행돼요. 받은 값을 보여 준 뒤 자기 COLOR만 green으로 바꿔요.\necho \"자식이 받은 COLOR: [$COLOR]\"\nCOLOR=green\necho \"자식이 바꾼 COLOR: [$COLOR]\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "start": {
+            "files": {
+              "change.sh": "# 자식 Bash에서 실행돼요. 받은 값을 보여 준 뒤 자기 COLOR만 green으로 바꿔요.\necho \"자식이 받은 COLOR: [$COLOR]\"\nCOLOR=green\necho \"자식이 바꾼 COLOR: [$COLOR]\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": [
+            "cat change.sh",
+            "export COLOR=blue",
+            "bash change.sh",
+            "echo \"[$COLOR]\""
+          ]
+        }
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "자식이 바꾼 값이 부모에게 돌아오는지 확인하는 문제예요.",
+          "target": "text:자식이 값을 바꾼 뒤 부모의 값을 확인하세요#1"
+        },
+        {
+          "action": "bash_command",
+          "command": "cat change.sh",
+          "say": "스크립트부터 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "받은 값을 보여 주고, green으로 바꾼 뒤 다시 보여 줘요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "export COLOR=blue",
+          "say": "부모에서 blue를 내보내요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "자식은 blue를 복사해 갈 거예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash change.sh",
+          "say": "change.sh를 자식으로 실행해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "자식 안에서는 blue를 받아 green으로 바꿨어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "echo \"[$COLOR]\"",
+          "say": "부모의 값을 확인해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "부모는 여전히 [blue]예요. 자식은 복사본을 바꿨을 뿐, 부모의 값은 그대로예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 값을 바꾸는 스크립트를 bash로 실행해도 지금 셸의 값은 그대로예요. 바뀐 값은 자식과 함께 사라져요.",
+          "target": "text:bash change.sh를 실행해 자식 안의 값 변화를 보세요."
+        }
+      ]
+    },
+    {
+      "id": "stp_223e1c88-fc0a-484e-ad46-17ba42edff31",
+      "title": "새 셸과 unset 뒤에 자식을 띄우세요",
+      "goal": "새 Bash예요. 앞 스텝들에서 export했던 셸은 이미 끝났어요.\n\nexport는 지금 셸과 그 뒤에 띄울 자식에만 영향을 줘요. 파일이나 운영체제 설정에 저장하지 않아요. `unset COLOR`는 셸 변수와 환경 변수를 함께 지워요.\n\n**할 일**\n\n1. `bash show.sh`를 실행해 이 새 셸의 자식이 받은 값을 보세요.\n2. `export COLOR=blue`를 실행하세요.\n3. `bash show.sh`를 실행하세요.\n4. `unset COLOR`를 실행하세요.\n5. `bash show.sh`를 다시 실행해 결과를 비교한 뒤 제출하세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "bash show.sh",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "shell": {
+          "step_id": "stp_223e1c88-fc0a-484e-ad46-17ba42edff31",
+          "goal": {
+            "files": {
+              "show.sh": "# 자식 Bash에서 실행돼요. 받은 COLOR 값을 대괄호 안에 보여 줘요.\necho \"자식이 받은 COLOR: [$COLOR]\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "show.sh": "# 자식 Bash에서 실행돼요. 받은 COLOR 값을 대괄호 안에 보여 줘요.\necho \"자식이 받은 COLOR: [$COLOR]\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "start": {
+            "files": {
+              "show.sh": "# 자식 Bash에서 실행돼요. 받은 COLOR 값을 대괄호 안에 보여 줘요.\necho \"자식이 받은 COLOR: [$COLOR]\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": [
+            "bash show.sh",
+            "export COLOR=blue",
+            "bash show.sh",
+            "unset COLOR",
+            "bash show.sh"
+          ]
+        }
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "export한 값이 어디까지 남는지 확인하는 문제예요.",
+          "target": "text:새 셸과 unset 뒤에 자식을 띄우세요#1"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash show.sh",
+          "say": "새 셸에서 바로 자식을 띄워요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "빈 대괄호예요. 앞 스텝의 export는 끝난 셸과 함께 사라졌어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "export COLOR=blue",
+          "say": "이 셸에서 다시 내보내요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "지금부터 띄우는 자식은 blue를 받아요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash show.sh",
+          "say": "자식을 띄워 확인해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "[blue]를 받았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "unset COLOR",
+          "say": "COLOR를 지워요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "셸 변수와 내보내기 표시가 함께 사라졌어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash show.sh",
+          "say": "다시 자식을 띄워요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "빈 대괄호로 돌아왔어요. 계속 쓰려면 셸을 열 때마다 다시 설정해야 해요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    },
+    {
+      "id": "stp_5ba6fb6b-fdb8-425d-a43b-59168873bd3e",
+      "title": "부모와 자식의 값을 순서대로 기록하세요",
+      "goal": "새 Bash와 show.sh, change.sh가 있어요. 두 스크립트는 화면에 보여 준 줄을 log.txt에도 덧붙여요. 이번에는 실행할 명령을 알려 주지 않아요.\n\nlog.txt가 정확히 아래 다섯 줄이 되게 하세요. 순서도 같아야 해요.\n\n```\nshow: []\nshow: [blue]\nchange 받음: [blue]\nchange 바꿈: [green]\nshow: [blue]\n```\n\n**할 일**\n\n1. `cat show.sh`를 실행해 show.sh가 남기는 줄을 읽으세요.\n2. `cat change.sh`를 실행해 change.sh가 남기는 줄을 읽으세요.\n3. 다섯 줄이 순서대로 남도록 COLOR를 다루며 두 스크립트를 실행하세요.\n4. `cat log.txt`를 실행해 다섯 줄을 확인하세요.\n5. 잘못 남았으면 `rm log.txt`로 지우고 3번부터 다시 하세요.\n6. 다섯 줄이 같으면 제출하세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "cat log.txt",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "shell": {
+          "step_id": "stp_5ba6fb6b-fdb8-425d-a43b-59168873bd3e",
+          "goal": {
+            "files": {
+              "show.sh": "# 받은 COLOR를 화면과 log.txt에 남겨요.\necho \"show: [$COLOR]\"\necho \"show: [$COLOR]\" >> log.txt\n",
+              "change.sh": "# 받은 COLOR를 남긴 뒤 자기 COLOR를 green으로 바꿔 다시 남겨요.\necho \"change 받음: [$COLOR]\"\necho \"change 받음: [$COLOR]\" >> log.txt\nCOLOR=green\necho \"change 바꿈: [$COLOR]\"\necho \"change 바꿈: [$COLOR]\" >> log.txt\n",
+              "log.txt": "show: []\nshow: [blue]\nchange 받음: [blue]\nchange 바꿈: [green]\nshow: [blue]\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "show.sh": "# 받은 COLOR를 화면과 log.txt에 남겨요.\necho \"show: [$COLOR]\"\necho \"show: [$COLOR]\" >> log.txt\n",
+              "change.sh": "# 받은 COLOR를 남긴 뒤 자기 COLOR를 green으로 바꿔 다시 남겨요.\necho \"change 받음: [$COLOR]\"\necho \"change 받음: [$COLOR]\" >> log.txt\nCOLOR=green\necho \"change 바꿈: [$COLOR]\"\necho \"change 바꿈: [$COLOR]\" >> log.txt\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "start": {
+            "files": {
+              "show.sh": "# 받은 COLOR를 화면과 log.txt에 남겨요.\necho \"show: [$COLOR]\"\necho \"show: [$COLOR]\" >> log.txt\n",
+              "change.sh": "# 받은 COLOR를 남긴 뒤 자기 COLOR를 green으로 바꿔 다시 남겨요.\necho \"change 받음: [$COLOR]\"\necho \"change 받음: [$COLOR]\" >> log.txt\nCOLOR=green\necho \"change 바꿈: [$COLOR]\"\necho \"change 바꿈: [$COLOR]\" >> log.txt\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": [
+            "cat log.txt"
+          ]
+        }
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "부모와 자식의 값을 순서대로 기록하는 문제예요.",
+          "target": "text:부모와 자식의 값을 순서대로 기록하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "명령 순서를 직접 정해 기록 다섯 줄을 만드는 마지막 도전이에요.",
+          "target": "text:log.txt가 정확히 아래 다섯 줄이 되게 하세요."
+        },
+        {
+          "action": "say",
+          "text": "첫 줄은 빈 값이에요. 그래서 내보내기 전에 show.sh를 먼저 실행해요.",
+          "target": "text:show: []"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash show.sh",
+          "say": "아무것도 내보내지 않은 채 자식을 띄워요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "show: []가 남았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "export COLOR=blue",
+          "say": "이제 blue를 내보내요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "다음 자식부터 blue를 받아요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash show.sh",
+          "say": "둘째 줄을 남겨요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "show: [blue]가 남았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash change.sh",
+          "say": "change.sh로 자식 안에서 값을 바꿔요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "받은 blue와 바꾼 green이 두 줄로 남았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash show.sh",
+          "say": "부모의 값을 다시 자식으로 확인해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "show: [blue]예요. 자식이 바꾼 green은 부모에게 돌아오지 않았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "cat log.txt",
+          "say": "기록 전체를 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "요구한 다섯 줄과 순서가 같아요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 처음부터 export하면 첫 줄이 [blue]가 돼요. 그때는 log.txt를 지우고 새로 남겨요.",
+          "target": "text:잘못 남았으면 rm log.txt로 지우고 3번부터 다시 하세요."
+        }
+      ]
+    }
+  ],
+  "learning_strategy": "부모 셸과 bash로 띄운 자식의 출력을 나란히 비교해요."
+}

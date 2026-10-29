@@ -1,0 +1,586 @@
+{
+  "schema_version": 2,
+  "id": "lsn_c85c5c54-a0b4-4773-8859-7786679bc22a",
+  "revision": "bash-command-env-args-1",
+  "title": "Bash · 명령 한 번의 환경 값과 실행 인자",
+  "description": "명령 한 번에만 주는 환경 값과 실행 인자를 구별해요. 같은 값을 두 통로로 넘겨 Bash와 자바에서 비교해요.",
+  "objectives": [
+    "명령 앞의 할당이 그 명령과 자식에만 들어가고 부모 셸은 그대로라는 것을 확인해요.",
+    "같은 값을 환경 변수와 실행 인자로 넘겼을 때 받는 자리를 구별해요.",
+    "자바에서 System.getenv와 args가 두 통로를 따로 읽는 것을 확인해요."
+  ],
+  "sources": [
+    "https://www.gnu.org/software/bash/manual/bash.html#Environment",
+    "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/System.html#getenv(java.lang.String)"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_f3b992b3-7410-4374-a039-7a1e26db3b58",
+      "title": "한 번만 주는 환경 값",
+      "objectives": [
+        "명령 앞 할당의 범위를 부모 값과 비교해요."
+      ],
+      "units": [
+        {
+          "id": "unt_aa4047ae-ba64-4013-af3b-e3ba327b96e6",
+          "title": "명령 앞 할당과 실행 인자",
+          "objectives": [
+            "명령 앞 할당과 실행 인자가 서로 다른 통로라는 것을 확인해요."
+          ],
+          "premise": "스텝마다 새 Bash가 열려요. 앞 스텝에서 만든 변수는 이 셸에 없으니 필요한 값은 다시 담아요.",
+          "steps": [
+            {
+              "id": "stp_9f683bd3-e378-4661-adbe-ba9bbde3b204",
+              "objectives": [
+                "명령 앞에 붙인 값은 그 명령에만 들어가고 현재 셸에는 남지 않는다는 것을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_ef868ebd-7e49-476d-ab01-3c51667d3533",
+              "objectives": [
+                "부모가 내보낸 값 위에 한 번만 다른 값을 주고 부모가 그대로인지 확인해요."
+              ]
+            },
+            {
+              "id": "stp_3fe4b1c6-30a3-44f7-9326-45f928052765",
+              "objectives": [
+                "스크립트 뒤의 값은 환경이 아닌 $1로 들어가는 것을 확인해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_0f86bc1f-be39-4e1c-a730-67adfe132871",
+      "title": "자바와 마지막 도전",
+      "objectives": [
+        "자바의 두 통로를 확인하고 두 통로를 조합해 정해진 기록을 만들어요."
+      ],
+      "units": [
+        {
+          "id": "unt_8c08719b-9b1b-4239-ad76-4392f1848ea7",
+          "title": "자바의 두 통로와 마지막 도전",
+          "objectives": [
+            "자바에서 두 통로를 확인하고 두 통로를 조합해 정해진 기록을 만들어요."
+          ],
+          "premise": "스텝마다 새 Bash가 열려요. 앞 스텝에서 만든 변수는 이 셸에 없으니 필요한 값은 다시 담아요.",
+          "steps": [
+            {
+              "id": "stp_81a4d948-9111-44cc-8e02-0366ebff1cc4",
+              "objectives": [
+                "자바 프로그램에서 System.getenv와 args가 서로 다른 통로를 읽는 것을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_d3ccdb50-30f9-4117-80ba-af83400198d8",
+              "objectives": [
+                "환경 값과 실행 인자를 조합하고 한 번만 준 값이 남지 않게 정해진 기록을 만들어요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_9f683bd3-e378-4661-adbe-ba9bbde3b204",
+      "title": "명령 하나에만 APP_MODE를 붙이세요",
+      "goal": "새 Bash와 제공된 show.sh가 있어요.\n\n`APP_MODE=dev bash show.sh`처럼 명령 앞에 할당을 붙이면, 그 값은 그 명령과 그 명령이 띄운 자식의 환경에만 들어가요.\n\n**할 일**\n\n1. `cat show.sh`를 실행해 무엇을 출력하는지 읽으세요.\n2. `APP_MODE=dev bash show.sh`를 실행하세요.\n3. `echo \"[$APP_MODE]\"`를 실행해 현재 셸의 값을 확인하세요.\n4. `bash show.sh`를 실행해 다음 자식이 받은 값을 보세요.\n5. 세 출력을 비교한 뒤 제출하세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "bash show.sh",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "shell": {
+          "step_id": "stp_9f683bd3-e378-4661-adbe-ba9bbde3b204",
+          "goal": {
+            "files": {
+              "show.sh": "# 받은 환경 변수 APP_MODE와 첫 실행 인자를 보여 줘요.\necho \"APP_MODE=[$APP_MODE] 첫 인자=[$1]\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "show.sh": "# 받은 환경 변수 APP_MODE와 첫 실행 인자를 보여 줘요.\necho \"APP_MODE=[$APP_MODE] 첫 인자=[$1]\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "start": {
+            "files": {
+              "show.sh": "# 받은 환경 변수 APP_MODE와 첫 실행 인자를 보여 줘요.\necho \"APP_MODE=[$APP_MODE] 첫 인자=[$1]\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": [
+            "cat show.sh",
+            "APP_MODE=dev bash show.sh",
+            "echo \"[$APP_MODE]\"",
+            "bash show.sh"
+          ]
+        }
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "이 수업에서는 명령 한 번에만 주는 환경 값과 실행 인자를 구별해요."
+        },
+        {
+          "action": "say",
+          "text": "같은 값을 두 통로로 넘겨 Bash와 자바에서 받는 자리를 비교해요. 마지막엔 인사 기록 세 줄을 만들어요."
+        },
+        {
+          "action": "say",
+          "text": "명령 앞에 붙인 할당이 어디까지 영향을 주는지 확인하는 문제예요.",
+          "target": "text:명령 하나에만 APP_MODE를 붙이세요#1"
+        },
+        {
+          "action": "bash_command",
+          "command": "cat show.sh",
+          "say": "스크립트부터 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "환경 변수 APP_MODE와 첫 실행 인자를 각각 대괄호 안에 보여 줘요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "APP_MODE=dev bash show.sh",
+          "say": "명령 앞에 APP_MODE=dev를 붙여 실행해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "APP_MODE=[dev]가 나왔어요. 이 자식의 환경에는 dev가 들어갔어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "echo \"[$APP_MODE]\"",
+          "say": "현재 셸의 값을 확인해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "빈 대괄호예요. 현재 셸에는 APP_MODE가 생기지 않았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash show.sh",
+          "say": "앞에 아무것도 붙이지 않고 다시 띄워요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "이번 자식은 빈 값을 받았어요. 앞의 dev는 그 한 번의 실행에만 쓰였어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. APP_MODE=dev echo \"$APP_MODE\"는 빈 값을 보여 줘요. $APP_MODE는 echo가 실행되기 전에 현재 셸이 먼저 바꾸거든요.",
+          "target": "text:APP_MODE=dev bash show.sh를 실행하세요."
+        }
+      ]
+    },
+    {
+      "id": "stp_ef868ebd-7e49-476d-ab01-3c51667d3533",
+      "title": "부모의 값 위에 한 번만 다른 값을 주세요",
+      "goal": "새 Bash예요. 이번엔 부모 셸에 APP_MODE=prod를 먼저 내보낸 뒤 시작해요.\n\n명령 앞의 할당은 그 명령에서만 부모의 값을 덮어써요. 실행이 끝난 뒤 부모의 값이 어떻게 되는지 확인해요.\n\n**할 일**\n\n1. `export APP_MODE=prod`를 실행하세요.\n2. `APP_MODE=dev bash show.sh`를 실행하세요.\n3. `bash show.sh`를 실행하세요.\n4. `echo \"[$APP_MODE]\"`를 실행해 부모의 값을 확인하세요.\n5. 세 결과를 비교한 뒤 제출하세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "echo \"[$APP_MODE]\"",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "shell": {
+          "step_id": "stp_ef868ebd-7e49-476d-ab01-3c51667d3533",
+          "goal": {
+            "files": {
+              "show.sh": "# 받은 환경 변수 APP_MODE와 첫 실행 인자를 보여 줘요.\necho \"APP_MODE=[$APP_MODE] 첫 인자=[$1]\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "show.sh": "# 받은 환경 변수 APP_MODE와 첫 실행 인자를 보여 줘요.\necho \"APP_MODE=[$APP_MODE] 첫 인자=[$1]\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "start": {
+            "files": {
+              "show.sh": "# 받은 환경 변수 APP_MODE와 첫 실행 인자를 보여 줘요.\necho \"APP_MODE=[$APP_MODE] 첫 인자=[$1]\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": [
+            "export APP_MODE=prod",
+            "APP_MODE=dev bash show.sh",
+            "bash show.sh",
+            "echo \"[$APP_MODE]\""
+          ]
+        }
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "부모가 이미 내보낸 값을 한 번의 실행에서만 바꾸는 문제예요.",
+          "target": "text:부모의 값 위에 한 번만 다른 값을 주세요#1"
+        },
+        {
+          "action": "bash_command",
+          "command": "export APP_MODE=prod",
+          "say": "부모에 prod를 내보내요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "이제 자식들은 기본으로 prod를 받아요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "APP_MODE=dev bash show.sh",
+          "say": "이번 한 번만 dev를 붙여 실행해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "이 자식은 [dev]를 받았어요. 앞에 붙인 값이 이겼어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash show.sh",
+          "say": "아무것도 붙이지 않고 실행해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "다시 [prod]예요. dev는 앞 명령에서 끝났어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "echo \"[$APP_MODE]\"",
+          "say": "부모의 값을 직접 봐요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "[prod] 그대로예요. 명령 앞의 할당은 부모를 바꾸지 않아요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    },
+    {
+      "id": "stp_3fe4b1c6-30a3-44f7-9326-45f928052765",
+      "title": "값을 환경 대신 실행 인자로 넘기세요",
+      "goal": "새 Bash예요.\n\n`bash show.sh dev`의 dev는 환경 변수가 아니라 실행 인자예요. 스크립트는 첫 실행 인자를 `$1`로 읽어요. 자바 수업에서 본 `args[0]`과 같은 자리예요.\n\n**할 일**\n\n1. `bash show.sh dev`를 실행하세요.\n2. `APP_MODE=prod bash show.sh dev`를 실행하세요.\n3. `bash show.sh`를 실행하세요.\n4. 세 결과에서 APP_MODE 자리와 첫 인자 자리를 비교한 뒤 제출하세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "bash show.sh",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "shell": {
+          "step_id": "stp_3fe4b1c6-30a3-44f7-9326-45f928052765",
+          "goal": {
+            "files": {
+              "show.sh": "# 받은 환경 변수 APP_MODE와 첫 실행 인자를 보여 줘요.\necho \"APP_MODE=[$APP_MODE] 첫 인자=[$1]\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "show.sh": "# 받은 환경 변수 APP_MODE와 첫 실행 인자를 보여 줘요.\necho \"APP_MODE=[$APP_MODE] 첫 인자=[$1]\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "start": {
+            "files": {
+              "show.sh": "# 받은 환경 변수 APP_MODE와 첫 실행 인자를 보여 줘요.\necho \"APP_MODE=[$APP_MODE] 첫 인자=[$1]\"\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": [
+            "bash show.sh dev",
+            "APP_MODE=prod bash show.sh dev",
+            "bash show.sh"
+          ]
+        }
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "같은 dev를 환경이 아닌 실행 인자로 넘겼을 때 어디에 나타나는지 보는 문제예요.",
+          "target": "text:값을 환경 대신 실행 인자로 넘기세요#1"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash show.sh dev",
+          "say": "스크립트 이름 뒤에 dev를 붙여요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "첫 인자=[dev]가 나왔고 APP_MODE는 비었어요. 뒤에 붙인 값은 $1로 들어가요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "APP_MODE=prod bash show.sh dev",
+          "say": "이번엔 환경과 인자를 함께 줘요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "APP_MODE는 prod, 첫 인자는 dev예요. 두 값은 서로 다른 통로로 들어가요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash show.sh",
+          "say": "둘 다 없이 실행해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "두 자리가 모두 비었어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "java Main.java Hello의 Hello가 args[0]에 들어간 것처럼, 여기서는 $1에 들어가요.",
+          "target": "text:자바 수업에서 본 args[0]과 같은 자리예요."
+        }
+      ]
+    },
+    {
+      "id": "stp_81a4d948-9111-44cc-8e02-0366ebff1cc4",
+      "title": "자바에서 환경 변수와 실행 인자를 따로 읽으세요",
+      "goal": "새 Bash와 제공된 Main.java가 있어요. 코드는 고치지 않아요.\n\n자바도 두 통로를 따로 읽어요. 환경 변수는 `System.getenv(\"APP_MODE\")`로, 실행 인자는 `args`로 받아요. 환경 변수가 없으면 null이 나와요.\n\n**할 일**\n\n1. `java Main.java dev`를 실행하세요.\n2. `APP_MODE=dev java Main.java`를 실행하세요.\n3. 두 결과에서 dev가 어느 줄에 나타났는지 비교한 뒤 제출하세요.",
+      "language": "java",
+      "starter_code": "",
+      "solution": "APP_MODE=dev java Main.java",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "shell": {
+          "step_id": "stp_81a4d948-9111-44cc-8e02-0366ebff1cc4",
+          "goal": {
+            "files": {
+              "Main.java": "public class Main {\n    public static void main(String[] args) {\n        // 환경 변수는 System.getenv로, 실행 인자는 args로 읽어요.\n        System.out.println(\"APP_MODE=[\" + System.getenv(\"APP_MODE\") + \"]\");\n        System.out.println(\"인자 수=\" + args.length);\n    }\n}\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "Main.java": "public class Main {\n    public static void main(String[] args) {\n        // 환경 변수는 System.getenv로, 실행 인자는 args로 읽어요.\n        System.out.println(\"APP_MODE=[\" + System.getenv(\"APP_MODE\") + \"]\");\n        System.out.println(\"인자 수=\" + args.length);\n    }\n}\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "start": {
+            "files": {
+              "Main.java": "public class Main {\n    public static void main(String[] args) {\n        // 환경 변수는 System.getenv로, 실행 인자는 args로 읽어요.\n        System.out.println(\"APP_MODE=[\" + System.getenv(\"APP_MODE\") + \"]\");\n        System.out.println(\"인자 수=\" + args.length);\n    }\n}\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": [
+            "java Main.java dev",
+            "APP_MODE=dev java Main.java"
+          ]
+        },
+        "java_build": {
+          "command": [
+            "java",
+            "Main.java"
+          ],
+          "stdout": "APP_MODE=[dev]\n인자 수=0\n",
+          "class_output": null
+        }
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "같은 dev를 자바 프로그램에 두 통로로 넘겨 비교하는 문제예요.",
+          "target": "text:자바에서 환경 변수와 실행 인자를 따로 읽으세요#1"
+        },
+        {
+          "action": "say",
+          "text": "System.getenv는 이 프로세스의 환경에서 APP_MODE를 찾아요.",
+          "target": "code:System.getenv(\"APP_MODE\")"
+        },
+        {
+          "action": "say",
+          "text": "args.length는 실행 인자가 몇 개인지 보여 줘요.",
+          "target": "code:args.length"
+        },
+        {
+          "action": "bash_command",
+          "command": "java Main.java dev",
+          "say": "dev를 실행 인자로 넘겨 실행해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "APP_MODE=[null], 인자 수=1이에요. dev는 args로만 들어갔어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "APP_MODE=dev java Main.java",
+          "say": "이번엔 명령 앞에 APP_MODE=dev를 붙여요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "APP_MODE=[dev], 인자 수=0이에요. 이번엔 환경으로만 들어갔어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 환경 변수가 없으면 자바는 빈 글자가 아니라 null을 돌려줘요. 그 값에 바로 length()를 부르면 NullPointerException이 나요.",
+          "target": "text:환경 변수가 없으면 null이 나와요."
+        }
+      ]
+    },
+    {
+      "id": "stp_d3ccdb50-30f9-4117-80ba-af83400198d8",
+      "title": "인사 기록 세 줄을 만드세요",
+      "goal": "새 Bash와 제공된 greet.sh가 있어요. greet.sh는 인사 한 줄을 화면과 log.txt에 남겨요. 이번에는 실행할 명령을 알려 주지 않아요.\n\nlog.txt가 정확히 아래 세 줄이 되게 하세요. 가운데 줄의 Hello는 그 한 번에만 써야 해요.\n\n```\n안녕 Minsu\nHello Jisu\n안녕 Minsu\n```\n\n**할 일**\n\n1. `cat greet.sh`를 실행해 인사말과 이름을 어디서 받는지 읽으세요.\n2. 세 줄이 순서대로 남도록 greet.sh를 세 번 실행하세요.\n3. `cat log.txt`를 실행해 세 줄을 확인하세요.\n4. 잘못 남았으면 `rm log.txt`로 지우고 2번부터 다시 하세요.\n5. 세 줄이 같으면 제출하세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "cat log.txt",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "shell": {
+          "step_id": "stp_d3ccdb50-30f9-4117-80ba-af83400198d8",
+          "goal": {
+            "files": {
+              "greet.sh": "# 인사말은 GREETING 환경 변수에서, 이름은 첫 실행 인자에서 받아요.\n# GREETING이 비어 있으면 안녕을 써요.\nword=\"${GREETING:-안녕}\"\necho \"$word $1\"\necho \"$word $1\" >> log.txt\n",
+              "log.txt": "안녕 Minsu\nHello Jisu\n안녕 Minsu\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "greet.sh": "# 인사말은 GREETING 환경 변수에서, 이름은 첫 실행 인자에서 받아요.\n# GREETING이 비어 있으면 안녕을 써요.\nword=\"${GREETING:-안녕}\"\necho \"$word $1\"\necho \"$word $1\" >> log.txt\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "start": {
+            "files": {
+              "greet.sh": "# 인사말은 GREETING 환경 변수에서, 이름은 첫 실행 인자에서 받아요.\n# GREETING이 비어 있으면 안녕을 써요.\nword=\"${GREETING:-안녕}\"\necho \"$word $1\"\necho \"$word $1\" >> log.txt\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": [
+            "cat greet.sh",
+            "cat log.txt"
+          ]
+        }
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "인사 기록 세 줄을 만드는 문제예요.",
+          "target": "text:인사 기록 세 줄을 만드세요#1"
+        },
+        {
+          "action": "say",
+          "text": "인사말은 환경으로, 이름은 실행 인자로 넘겨 기록 세 줄을 만드는 마지막 도전이에요.",
+          "target": "text:log.txt가 정확히 아래 세 줄이 되게 하세요."
+        },
+        {
+          "action": "bash_command",
+          "command": "cat greet.sh",
+          "say": "스크립트부터 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "인사말은 GREETING에서, 이름은 $1에서 와요. GREETING이 비면 안녕을 써요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash greet.sh Minsu",
+          "say": "아무 환경도 주지 않고 Minsu를 넘겨요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "안녕 Minsu가 남았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "GREETING=Hello bash greet.sh Jisu",
+          "say": "이번 한 번만 GREETING=Hello를 붙여요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "Hello Jisu가 남았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "bash greet.sh Minsu",
+          "say": "다시 아무것도 붙이지 않고 실행해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "안녕 Minsu예요. Hello는 앞 명령에서 끝났어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "cat log.txt",
+          "say": "기록 전체를 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "요구한 세 줄과 순서가 같아요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. export GREETING=Hello로 풀면 셋째 줄도 Hello가 돼요. 그 한 번에만 붙이세요.",
+          "target": "text:가운데 줄의 Hello는 그 한 번에만 써야 해요."
+        }
+      ]
+    }
+  ],
+  "learning_strategy": "같은 값을 환경과 실행 인자로 바꿔 넘기며 출력의 자리를 비교해요."
+}

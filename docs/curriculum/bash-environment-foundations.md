@@ -30,3 +30,7 @@
 `python tools/verify-bash-environment-prototype.py`는 실제 Bash 한 프로세스에서 8단계를 수행한다. Blue/Green과 Amber/Purple 두 사례를 검사한다. 새 Bash를 다시 열었을 때 기존 변수 없이 export만 실행하면 값이 생기지 않는 반례도 확인했다. 결과는 `target/bash-environment-prototype/evidence.json`에 기록한다.
 
 후속 앱 검사는 단계 이동 뒤 같은 셸 상태, 두 실습 간 격리, 해설 중단/완료 뒤 부모 상태, 새 셸 표시, 오류 뒤 재시도, 초기화 후 자식 종료, 실제 Windows·Mac을 포함한다. 이 경계를 통과하기 전에는 해당 수업을 제공 중이라고 표시하지 않는다.
+
+## 2026-10-29 정식 수업으로 분리·등록
+
+이 초안의 8단계를 세 수업으로 나눠 등록했다: `bash-variables`(셸 변수), `bash-environment`(export와 자식 프로세스), `bash-command-env-args`(명령 한 번의 환경 값과 실행 인자, 자바 `System.getenv`). 위의 "같은 Bash를 단계 사이에 유지하는 계약"은 만들지 않았다. 대신 각 스텝이 새 Bash에서 시작하는 짧은 실험이 되도록 설계했고, 새 셸에 이전 export가 없다는 사실 자체를 `bash-environment`의 관찰 대상으로 쓴다. 단계 사이에 변수를 몰래 다시 만들지 않는다. 계획과 근거: `docs/plans/2026-10-29-shell-env-lessons-reset-challenge.md`. 실제 PTY 검증: `tests/shell_environment_lessons.rs`. 이 파일의 prototype.json과 검증 스크립트는 이전 기록으로 남긴다.

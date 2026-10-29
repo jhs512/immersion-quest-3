@@ -106,6 +106,32 @@ def classification(catalog, path=CLASSIFICATION):
     return result
 
 
+CHALLENGES = ROOT / 'tools/redesigned_courses/java/lesson-challenges.json'
+
+
+def challenge_designations(course_key, lessons):
+    """Designated final challenges for one course: lesson key -> step code.
+
+    Each designation must be the last task of the registered lesson revision and required. The app
+    additionally ignores a designation without a real grader (src/challenges.rs `designated`), and
+    tests/challenges.rs checks every published one against that grader."""
+    if course_key != 'java' or not CHALLENGES.exists():
+        return {}
+    source = json.loads(CHALLENGES.read_text(encoding='utf-8'))
+    registered = set(lessons)
+    if set(source['lessons']) & set(source.get('not_designated', {})):
+        raise ValueError('A lesson is both designated and not designated')
+    if set(source['lessons']) | set(source.get('not_designated', {})) != registered:
+        raise ValueError('Every course lesson needs a reviewed challenge decision')
+    result = {}
+    for key, item in source['lessons'].items():
+        tasks = lessons[key]['tasks']
+        if tasks[-1]['id'] != item['task_id'] or not tasks[-1].get('required', True) or not item.get('reason', '').strip():
+            raise ValueError(f'Challenge designation must be the reviewed last required task: {key}')
+        result[key] = item['task_id']
+    return result
+
+
 def build(check=False):
     catalog = json.loads((ROOT / 'tools/redesigned_courses/catalog.json').read_text(encoding='utf-8'))
     load_registry(catalog)
@@ -118,6 +144,7 @@ def build(check=False):
         references, lesson_specs = [], []
         ordered_items, prerequisites = learning_sequence(course)
         lesson_ids = {item['key']: item['id'] for item in ordered_items}
+        designations = challenge_designations(key, {item['key']: json.loads((ROOT / 'courses/redesigned' / f"{item['key']}.json").read_text(encoding='utf-8')) for item in ordered_items})
         for item in ordered_items:
             lesson_key = item['key']
             source = ROOT / item['authoring_prd']
@@ -138,7 +165,8 @@ def build(check=False):
                 revision=lesson['revision'], sha256=digest,
                 prerequisites=[lesson_ids[k] for k in prerequisites.get(lesson_key, [])],
                 required=item.get('required', True), review_enabled=lesson['review_enabled'],
-                **classes.get(key, {}).get('lessons', {}).get(lesson_key, {})))
+                **classes.get(key, {}).get('lessons', {}).get(lesson_key, {}),
+                **({'challenge_task': designations[lesson_key]} if lesson_key in designations else {})))
             lesson_specs.append(dict(key=lesson_key, id=lesson['id'], title=lesson['title'],
                 objectives=lesson['objectives'], approved_prd_sha256=content_hash(prd),
                 lesson_sha256=digest, chapters=len(lesson['chapters']),

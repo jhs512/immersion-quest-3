@@ -13,6 +13,10 @@ BASE = '8520082be886e97490f8f2b57b8dcfd1d4b873ca'
 
 
 def baseline(path):
+    """The lesson before orientations were added, or None for a lesson created after that commit."""
+    listed = subprocess.run(['git', 'cat-file', '-e', f'{BASE}:{path}'], cwd=ROOT, capture_output=True)
+    if listed.returncode != 0:
+        return None
     return json.loads(subprocess.check_output(['git', 'show', f'{BASE}:{path}'], cwd=ROOT))
 
 
@@ -36,7 +40,9 @@ class OpeningTests(unittest.TestCase):
                 path = f'courses/redesigned/{key}.json'
                 lesson = json.loads((ROOT / path).read_text(encoding='utf-8'))
                 source = json.loads((ROOT / 'tools/redesigned_lessons' / row['folder'] / 'content.json').read_text(encoding='utf-8'))
-                self.assertEqual(behavior(lesson), behavior(baseline(path)), 'Grading, IDs, actions and task content must not change')
+                before = baseline(path)
+                if before is not None:
+                    self.assertEqual(behavior(lesson), behavior(before), 'Grading, IDs, actions and task content must not change')
                 expected = copy.deepcopy(source['tasks'])
                 compile_openings(key, expected)
                 for index, (task, authored, compiled) in enumerate(zip(lesson['tasks'], source['tasks'], expected)):
