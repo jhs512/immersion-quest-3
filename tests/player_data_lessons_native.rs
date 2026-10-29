@@ -204,7 +204,7 @@ fn engineer_java_static_restore_student_state() {verify("engineer-java-static",9
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn engineer_java_polymorphism_restore_student_state() {verify("engineer-java-polymorphism",8)}
+fn engineer_java_polymorphism_restore_student_state() {verify("engineer-java-polymorphism",9)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]

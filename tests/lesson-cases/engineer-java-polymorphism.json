@@ -3,39 +3,32 @@
   "lesson": "courses/redesigned/engineer-java-polymorphism.json",
   "expected_outputs": [
     [
-      "7",
       "2",
       "7"
     ],
     [
       "2:7",
-      "7:7",
-      "2:7"
+      "2:7\n7"
     ],
     [
       "P",
-      "C",
-      "P"
+      "P\nC"
     ],
     [
       "O",
-      "S",
-      "O"
+      "S6"
     ],
     [
       "0",
-      "0:7",
-      "0"
+      "07"
     ],
     [
-      "ACFD",
-      "ABFD",
+      "AF",
       "ACFD"
     ],
     [
       "F2",
-      "F3",
-      "F2"
+      "F9"
     ],
     [
       "7"
@@ -45,6 +38,150 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "    @Override int value() { return extra; }\n",
+          "    @Override int value() { return 7; }\n"
+        ]
+      ],
+      "reason": "Returning a typed number"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "        System.out.println(rule.value());\n",
+          "        System.out.println(7);\n"
+        ]
+      ],
+      "reason": "Printing a typed value"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "        System.out.println(((Bonus) rule).count);\n",
+          "        System.out.println(rule.count);\n"
+        ]
+      ],
+      "reason": "Reading through the Rule type"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "        System.out.println(((Bonus) rule).count);\n",
+          "        System.out.println(7);\n"
+        ]
+      ],
+      "reason": "Printing a typed value"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "        System.out.println(Bonus.name());\n",
+          "        System.out.println(rule.name());\n"
+        ]
+      ],
+      "reason": "Calling through the Rule variable again"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "        System.out.println(Bonus.name());\n",
+          "        System.out.println(\"C\");\n"
+        ]
+      ],
+      "reason": "Printing typed text"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "        String text = \"ticket\";\n",
+          "        Object text = \"ticket\";\n"
+        ]
+      ],
+      "reason": "Keeping the Object type"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "        System.out.println(View.show(text));\n",
+          "        System.out.println(\"S6\");\n"
+        ]
+      ],
+      "reason": "Printing typed text"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "        rule.show();\n",
+          "        System.out.print(7);\n"
+        ]
+      ],
+      "reason": "Printing a typed value"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "        rule.show();\n",
+          "        new Bonus();\n"
+        ]
+      ],
+      "reason": "Creating another object prints 0 again"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "        } catch (IllegalArgumentException error) {\n",
+          "        } catch (ArithmeticException error) {\n"
+        ]
+      ],
+      "reason": "Catching an exception that is not thrown"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "            if (stock == 0) throw new IllegalArgumentException(\"bad\");\n",
+          "            if (stock == 0) System.out.print(\"C\");\n"
+        ]
+      ],
+      "reason": "Removing the exception"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "        return value;\n    }\n}\n",
+          "        return 9;\n    }\n}\n"
+        ]
+      ],
+      "reason": "Returning a typed number"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "        try { System.out.print(\"\"); }\n",
+          "        try { return value; }\n"
+        ],
+        [
+          "        return value;\n    }\n}\n",
+          "    }\n}\n"
+        ]
+      ],
+      "reason": "Keeping the early return"
+    },
     {
       "step": 9,
       "replacements": [
@@ -74,6 +211,78 @@
         ]
       ],
       "reason": "result() 호출로 나오는 마지막 두 줄을 공백으로 이어 적으세요.도 독립적으로 맞아야 해요."
+    }
+  ],
+  "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "    @Override int value() { return extra; }\n",
+          "    int value() {\n        return this.extra;\n    }\n"
+        ]
+      ],
+      "reason": "Override without the annotation"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "        System.out.println(((Bonus) rule).count);\n",
+          "        Bonus bonus = (Bonus) rule;\n        System.out.println(bonus.count);\n"
+        ]
+      ],
+      "reason": "Casting into a Bonus variable first"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "        System.out.println(Bonus.name());\n",
+          "        Bonus bonus = new Bonus();\n        System.out.println(bonus.name());\n"
+        ]
+      ],
+      "reason": "A Bonus-typed variable picks Bonus.name() too"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "        String text = \"ticket\";\n",
+          "        var text = \"ticket\";\n"
+        ]
+      ],
+      "reason": "var infers String"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "        rule.show();\n",
+          "        System.out.print(rule.value);\n"
+        ]
+      ],
+      "reason": "Reading the field after construction"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "        } catch (IllegalArgumentException error) {\n",
+          "        } catch (RuntimeException error) {\n"
+        ]
+      ],
+      "reason": "Catching a parent exception type"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "        try { System.out.print(\"\"); }\n        finally {\n            value += bonus;\n            System.out.print(\"F\");\n        }\n        return value;\n",
+          "        value += bonus;\n        System.out.print(\"F\");\n        return value;\n"
+        ]
+      ],
+      "reason": "Without try and finally"
     }
   ]
 }
