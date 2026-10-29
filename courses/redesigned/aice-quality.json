@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_3230e6c8-44ba-4cb2-8d23-7dcbb54ea519",
-  "revision": "aice-quality-6",
+  "revision": "aice-quality-7",
   "title": "비거나 중복된 배송 자료를 살펴봐요",
   "description": "같은 배송 파일에서 빈 값·수정본·늦은 기록의 뜻을 구별해요.",
   "objectives": [
@@ -36,15 +36,15 @@
           "premise": "같은 배송 네 건에 측정하지 못한 시간과 빈 메모가 있어요. 0분은 실제 측정값이에요.",
           "steps": [
             {
-              "id": "stp_70f3948e-7301-4e32-9e06-49251673f030",
+              "id": "stp_4d069ee5-693f-4177-8fcb-edc47fedd91a",
               "objectives": [
-                "결측과 실제 숫자0을 구별해요."
+                "비어 있는 값과 실제 값 0을 구별해요."
               ]
             },
             {
-              "id": "stp_4ff1e472-cd71-4821-9033-6e07a78d3fb0",
+              "id": "stp_6e9d9d6b-df04-40fc-8dfc-7e8493e9a10a",
               "objectives": [
-                "행수와 결측을 제외한 개수를 구별해요."
+                "행 수와 값이 있는 건수를 구별해요."
               ]
             },
             {
@@ -85,9 +85,9 @@
           "premise": "같은 배송 파일에 주문103 수정본을 뒤에 덧붙였어요. 이 파일은 수정본이 뒤에 오는 순서예요.",
           "steps": [
             {
-              "id": "stp_8535b868-816a-4180-9e73-eb7d3cf160ff",
+              "id": "stp_e64a2273-23d5-4d42-8258-f69b25638b5c",
               "objectives": [
-                "전체 행 중복과 주문 번호 중복을 구별해요."
+                "중복을 어떤 열로 판단할지 정해 세어요."
               ]
             },
             {
@@ -116,9 +116,9 @@
           "premise": "같은 배송 자료에서 늦은 기록을 검토해요. 후보 표시와 실제 삭제는 서로 다른 결정이에요.",
           "steps": [
             {
-              "id": "stp_608a399d-d732-487f-afcb-3e97586839f3",
+              "id": "stp_ef317a57-999f-4517-b6b0-8f523fdc91f0",
               "objectives": [
-                "IQR 검토 규칙의 경계를 판단해요."
+                "IQR 검토 범위의 끝 값을 범위 안으로 다뤄요."
               ]
             },
             {
@@ -156,47 +156,37 @@
   ],
   "tasks": [
     {
-      "id": "stp_70f3948e-7301-4e32-9e06-49251673f030",
-      "title": "빈 시간과 0분을 구별해요",
-      "goal": "측정하지 못한 시간만 찾으려 해요.\n결측을 표시하는 코드를 고르세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 출력을 근거로 질문에 맞는 보기를 고르세요.\n3. 선택한 보기를 제출하세요.",
+      "id": "stp_4d069ee5-693f-4177-8fcb-edc47fedd91a",
+      "title": "isna()로 측정하지 못한 시간을 표시하세요",
+      "goal": "측정하지 못한 시간만 찾으려 해요. 표에서 비어 있는 값은 None이나 NaN이고, `isna()`는 그런 값만 True로 표시해요. 0은 실제로 잰 시간이에요.\n\nmissing 줄을 고쳐 0분이 아니라 측정하지 못한 시간을 True로 표시하세요. 채점은 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 첫 배송이 True인지 확인하세요.\n2. `df[\"minutes\"] == 0`을 `df[\"minutes\"].isna()`로 고치세요.\n3. 코드 실행을 눌러 두 번째 배송만 True인지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "missing",
-      "tests": [],
+      "starter_code": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# None은 측정하지 못한 값이에요. 0은 실제 시간이에요.\ndata = {'order_id': [101, 102, 103, 104], 'minutes': [0, None, 30, 42], 'region': ['서울', '부산', '서울', '부산'], 'note': [None, 'ok', 'ok', 'ok']}\n# 같은 배송 파일을 표로 확인해요.\ndf = pd.DataFrame(data)\n# 이 줄을 고쳐 0분이 아니라 측정하지 못한 시간을 True로 표시하세요.\nmissing = df[\"minutes\"] == 0\nprint(missing.tolist())\n",
+      "solution": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# None은 측정하지 못한 값이에요. 0은 실제 시간이에요.\ndata = {'order_id': [101, 102, 103, 104], 'minutes': [0, None, 30, 42], 'region': ['서울', '부산', '서울', '부산'], 'note': [None, 'ok', 'ok', 'ok']}\n# 같은 배송 파일을 표로 확인해요.\ndf = pd.DataFrame(data)\n# 이 줄을 고쳐 0분이 아니라 측정하지 못한 시간을 True로 표시하세요.\n# isna()는 비어 있는 값(None·NaN)만 True로 표시해요. 0은 실제 값이라 False예요.\nmissing = df[\"minutes\"].isna()\nprint(missing.tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[False, True, False, False]"
+        }
+      ],
       "required": true,
-      "example_code": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# None은 측정하지 못한 값이에요. 0은 실제 시간이에요.\ndata = {'order_id': [101, 102, 103, 104], 'minutes': [0, None, 30, 42], 'region': ['서울', '부산', '서울', '부산'], 'note': [None, 'ok', 'ok', 'ok']}\n# 같은 배송 파일을 표로 확인해요.\ndf = pd.DataFrame(data)\n# 결측 표시와 실제 숫자 0의 위치를 비교해요.\nprint(df[\"minutes\"].isna().tolist())\nprint((df[\"minutes\"] == 0).tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "zero",
-            "text": "df[\"minutes\"] == 0"
-          },
-          {
-            "id": "missing",
-            "text": "df[\"minutes\"].isna()"
-          }
-        ],
-        "answer": "missing"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "이 수업에서는 결측과 중복을 다루는 기준을 배워요. 정상 값과 검토할 값을 구별하는 게 목표예요."
+          "text": "이 수업에서는 결측과 중복을 다루는 기준을 직접 코드로 써 봐요. 정상 값과 검토할 값을 구별하는 게 목표예요."
         },
         {
           "action": "say",
-          "text": "자료를 검사하고 처리 조건을 바꿔요. 어떤 행과 값이 남는지 직접 확인해요."
+          "text": "자료를 검사하고 처리 조건을 바꿔요. 어떤 행과 값이 남는지 실행 결과로 확인해요."
         },
         {
           "action": "say",
-          "text": "isna와 == 0이 각각 어느 칸을 True로 표시하는지 비교하는 문제예요.",
-          "target": "text:빈 시간과 0분을 구별해요#1"
+          "text": "isna()로 측정하지 못한 시간을 표시하는 문제예요.",
+          "target": "text:isna()로 측정하지 못한 시간을 표시하세요#1"
         },
         {
           "action": "say",
-          "text": "None은 측정하지 못한 칸이고 0은 실제로 잰 0분이에요.",
-          "target": "text:측정하지 못한 시간만 찾으려 해요."
+          "text": "측정하지 못한 시간만 찾으려 해요. 0분을 찾는 비교를 결측 표시로 고쳐야 해요.",
+          "target": "text:missing 줄을 고쳐 0분이 아니라 측정하지 못한 시간을 True로 표시하세요."
         },
         {
           "action": "run",
@@ -207,87 +197,97 @@
         },
         {
           "action": "say",
-          "text": "빈 시간과 0분은 True인 위치가 서로 달라요.",
+          "text": "[True, False, False, False]예요. 실제로 0분 걸린 첫 배송을 골랐어요.",
           "target": "output"
         },
         {
-          "action": "say",
-          "text": "None인 시간은 미측정, 0분은 실제 기록이에요.",
-          "target": "lines:4"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 숫자 0을 모두 결측으로 보면 안 돼요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "missing"
-        }
-      ]
-    },
-    {
-      "id": "stp_4ff1e472-cd71-4821-9033-6e07a78d3fb0",
-      "title": "건수와 측정 건수를 비교해요",
-      "goal": "부산 배송은 두 건인데 시간 count는 하나예요.\n그 이유를 고르세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 출력을 근거로 질문에 맞는 보기를 고르세요.\n3. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "missing",
-      "tests": [],
-      "required": true,
-      "example_code": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# None은 측정하지 못한 값이에요. 0은 실제 시간이에요.\ndata = {'order_id': [101, 102, 103, 104], 'minutes': [0, None, 30, 42], 'region': ['서울', '부산', '서울', '부산'], 'note': [None, 'ok', 'ok', 'ok']}\n# 같은 배송 파일을 표로 확인해요.\ndf = pd.DataFrame(data)\n# 전체 건수와 실제 시간이 있는 건수를 비교해요.\nprint(len(df))\nprint(df[\"minutes\"].count())\n# 지역별로도 행수와 측정 건수는 다를 수 있어요.\nprint(df.groupby(\"region\").size().to_dict())\nprint(df.groupby(\"region\")[\"minutes\"].count().to_dict())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "missing",
-            "text": "한 건의 시간이 비어 있어요"
-          },
-          {
-            "id": "deleted",
-            "text": "한 건의 배송 행을 삭제했어요"
-          }
-        ],
-        "answer": "missing"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "부산의 두 수가 다른 이유를 고르는 문제예요.",
-          "target": "text:건수와 측정 건수를 비교해요#1"
-        },
-        {
-          "action": "say",
-          "text": "len은 행 수를, count는 비어 있지 않은 값의 수를 세요.",
-          "target": "text:부산 배송은 두 건인데 시간 count는 하나예요."
+          "action": "patch_code",
+          "before": "missing = df[\"minutes\"] == 0\n",
+          "after": "missing = df[\"minutes\"].isna()\n",
+          "say": "== 0 비교를 isna()로 바꿔요."
         },
         {
           "action": "run",
           "lines": [
-            12,
-            12
+            9,
+            9
           ]
         },
         {
           "action": "say",
-          "text": "전체는 네 건, 시간 측정은 세 건이에요.",
+          "text": "[False, True, False, False]예요. 비어 있는 두 번째 시간만 True예요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "부산은 두 행이지만 측정한 시간은 하나예요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. count가 작아도 원래 행이 지워진 건 아니에요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "missing"
+          "text": "조심하세요. 0은 측정된 값이에요. 빈 값과 같은 뜻으로 섞으면 실제 기록을 잃어요.",
+          "target": "code:isna()"
         }
-      ]
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"data\": {\"order_id\": [201, 202, 203, 204, 205], \"minutes\": [null, 0, null, 15, 0], \"region\": [\"부산\", \"서울\", \"서울\", \"부산\", \"부산\"], \"note\": [\"ok\", null, \"ok\", \"ok\", \"ok\"]}}, \"expected\": \"[True, False, True, False, False]\"}, {\"values\": {\"data\": {\"order_id\": [301, 302, 303], \"minutes\": [7, 9, null], \"region\": [\"서울\", \"서울\", \"서울\"], \"note\": [\"ok\", \"ok\", \"ok\"]}}, \"expected\": \"[False, False, True]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_6e9d9d6b-df04-40fc-8dfc-7e8493e9a10a",
+      "title": "count()로 지역별 측정 건수를 세세요",
+      "goal": "부산 배송은 두 건인데 시간이 있는 기록은 몇 건일까요? `size()`는 묶음의 행 수이고, `[\"minutes\"].count()`는 그 열에서 비어 있지 않은 값의 수예요.\n\n마지막 print 줄을 고쳐 행 수가 아니라 시간이 실제로 있는 건수를 지역별로 세세요. 채점은 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지역별 행 수를 확인하세요.\n2. `df.groupby(\"region\").size()`를 `df.groupby(\"region\")[\"minutes\"].count()`로 고치세요.\n3. 코드 실행을 눌러 부산의 측정 건수를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# None은 측정하지 못한 값이에요. 0은 실제 시간이에요.\ndata = {'order_id': [101, 102, 103, 104], 'minutes': [0, None, 30, 42], 'region': ['서울', '부산', '서울', '부산'], 'note': [None, 'ok', 'ok', 'ok']}\n# 같은 배송 파일을 표로 확인해요.\ndf = pd.DataFrame(data)\n# 전체 행 수를 먼저 확인해요.\nprint(len(df))\n# 이 줄을 고쳐 행 수가 아니라 시간이 실제로 있는 건수를 지역별로 세세요.\nprint(df.groupby(\"region\").size().to_dict())\n",
+      "solution": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# None은 측정하지 못한 값이에요. 0은 실제 시간이에요.\ndata = {'order_id': [101, 102, 103, 104], 'minutes': [0, None, 30, 42], 'region': ['서울', '부산', '서울', '부산'], 'note': [None, 'ok', 'ok', 'ok']}\n# 같은 배송 파일을 표로 확인해요.\ndf = pd.DataFrame(data)\n# 전체 행 수를 먼저 확인해요.\nprint(len(df))\n# 이 줄을 고쳐 행 수가 아니라 시간이 실제로 있는 건수를 지역별로 세세요.\n# count()는 비어 있지 않은 값만 세요. size()는 빈 값도 포함한 행 수예요.\nprint(df.groupby(\"region\")[\"minutes\"].count().to_dict())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "4\n{'부산': 1, '서울': 2}"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "count()로 지역별 측정 건수를 세는 문제예요.",
+          "target": "text:count()로 지역별 측정 건수를 세세요#1"
+        },
+        {
+          "action": "say",
+          "text": "부산 배송은 두 건이에요. 시간이 실제로 있는 건수를 지역별로 세도록 고쳐야 해요.",
+          "target": "text:마지막 print 줄을 고쳐 행 수가 아니라 시간이 실제로 있는 건수를 지역별로 세세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4와 {'부산': 2, '서울': 2}예요. size는 시간이 비어 있는 행도 세요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "df.groupby(\"region\").size()",
+          "after": "df.groupby(\"region\")[\"minutes\"].count()",
+          "say": "size() 대신 minutes 열의 count()를 써요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "{'부산': 1, '서울': 2}예요. 부산 두 건 중 한 건의 시간이 비어 있어요. 행을 지운 게 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 서울의 0분도 실제 값이라 셌어요. count는 빈 값만 빼요.",
+          "target": "code:[\"minutes\"].count()"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"data\": {\"order_id\": [201, 202, 203, 204, 205], \"minutes\": [null, 0, null, 15, 0], \"region\": [\"부산\", \"서울\", \"서울\", \"부산\", \"부산\"], \"note\": [\"ok\", null, \"ok\", \"ok\", \"ok\"]}}, \"expected\": \"5\\\\n{\\'부산\\': 2, \\'서울\\': 1}\"}, {\"values\": {\"data\": {\"order_id\": [301, 302, 303], \"minutes\": [7, 9, null], \"region\": [\"서울\", \"서울\", \"서울\"], \"note\": [\"ok\", \"ok\", \"ok\"]}}, \"expected\": \"3\\\\n{\\'서울\\': 2}\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
       "id": "stp_94585445-6cde-4783-b6b6-bba5a7349b59",
@@ -484,99 +484,67 @@
       ]
     },
     {
-      "id": "stp_8535b868-816a-4180-9e73-eb7d3cf160ff",
-      "title": "무엇이 같아야 중복인가요",
-      "goal": "처음 자료에서는 주문 103 두 기록의 모든 항목이 같아요. duplicated()는 앞에 같은 행이 있으면 True로 세고, subset을 주면 그 열만 비교해요.\n마지막 기록의 시간만 42로 바꾸면, 주문 번호가 같으면 전체 행도 중복일까요?\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 출력을 근거로 질문에 맞는 보기를 고르세요.\n3. 선택한 보기를 제출하세요.",
+      "id": "stp_e64a2273-23d5-4d42-8258-f69b25638b5c",
+      "title": "duplicated()로 모든 항목이 같은 행을 세세요",
+      "goal": "주문 103이 두 번 기록됐는데 마지막 기록의 시간만 42예요. `duplicated()`는 앞에 같은 행이 있으면 True로 세고, `subset`을 주면 그 열만 비교해요.\n\nsame_rows 줄을 고쳐 주문 번호만이 아니라 모든 항목이 같은 행을 세세요. 채점은 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 두 줄이 같은지 확인하세요.\n2. `df.duplicated(subset=[\"order_id\"])`에서 subset을 지워 `df.duplicated()`로 고치세요.\n3. 코드 실행을 눌러 두 수를 비교하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "values",
-      "tests": [],
+      "starter_code": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# 주문 103이 두 번 기록됐고 마지막 기록의 시간만 42예요.\ndata = {'order_id': [101, 102, 103, 103], 'minutes': [12, 18, 30, 42], 'region': ['서울', '부산', '서울', '서울'], 'note': ['ok', 'ok', 'ok', 'ok']}\n# 같은 배송 파일을 표로 확인해요.\ndf = pd.DataFrame(data)\n# 주문 번호가 같은 기록을 세요.\nprint(df.duplicated(subset=[\"order_id\"]).sum())\n# 이 줄을 고쳐 주문 번호만이 아니라 모든 항목이 같은 행을 세세요.\nsame_rows = df.duplicated(subset=[\"order_id\"]).sum()\nprint(same_rows)\n",
+      "solution": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# 주문 103이 두 번 기록됐고 마지막 기록의 시간만 42예요.\ndata = {'order_id': [101, 102, 103, 103], 'minutes': [12, 18, 30, 42], 'region': ['서울', '부산', '서울', '서울'], 'note': ['ok', 'ok', 'ok', 'ok']}\n# 같은 배송 파일을 표로 확인해요.\ndf = pd.DataFrame(data)\n# 주문 번호가 같은 기록을 세요.\nprint(df.duplicated(subset=[\"order_id\"]).sum())\n# 이 줄을 고쳐 주문 번호만이 아니라 모든 항목이 같은 행을 세세요.\n# subset 없이 쓰면 모든 열이 같아야 앞 행의 중복이에요.\nsame_rows = df.duplicated().sum()\nprint(same_rows)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "1\n0"
+        }
+      ],
       "required": true,
-      "example_code": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# None은 측정하지 못한 값이에요. 0은 실제 시간이에요.\ndata = {'order_id': [101, 102, 103, 103], 'minutes': [12, 18, 30, 30], 'region': ['서울', '부산', '서울', '서울'], 'note': ['ok', 'ok', 'ok', 'ok']}\n# 같은 배송 파일을 표로 확인해요.\ndf = pd.DataFrame(data)\n# 전체 행과 주문 번호만 같을 때를 비교해요.\nprint(df.duplicated().sum())\nprint(df.duplicated(subset=[\"order_id\"]).sum())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "id",
-            "text": "주문 번호만 같으면 모든 항목도 같아요"
-          },
-          {
-            "id": "values",
-            "text": "다른 항목 값도 같아야 전체 행이 중복이에요"
-          }
-        ],
-        "answer": "values"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "주문 번호가 같으면 전체 행도 중복일까요?",
-          "target": "text:무엇이 같아야 중복인가요#1"
+          "text": "duplicated()로 모든 항목이 같은 행을 세는 문제예요.",
+          "target": "text:duplicated()로 모든 항목이 같은 행을 세세요#1"
         },
         {
           "action": "say",
-          "text": "중복을 판단할 때 어느 열까지 비교하느냐에 따라 결과가 달라져요. 주문 번호만 볼 때와 모든 열을 볼 때를 비교해요.",
-          "target": "text:duplicated()는 앞에 같은 행이 있으면 True로 세고, subset을 주면 그 열만 비교해요."
+          "text": "주문 103이 두 번 기록됐지만 시간이 달라요. 모든 항목이 같은 행만 세도록 고쳐야 해요.",
+          "target": "text:same_rows 줄을 고쳐 주문 번호만이 아니라 모든 항목이 같은 행을 세세요."
         },
         {
           "action": "run",
           "lines": [
-            9,
-            9
+            8,
+            11
           ]
         },
         {
           "action": "say",
-          "text": "지금은 전체 행과 주문 번호의 뒤 중복이 각각 하나예요.",
+          "text": "두 줄 모두 1이에요. 둘 다 주문 번호만 비교했어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "[12, 18, 30, 30]",
-          "after": "[12, 18, 30, 42]",
-          "say": "마지막 수정본의 시간만 바꿔요."
+          "before": "same_rows = df.duplicated(subset=[\"order_id\"]).sum()",
+          "after": "same_rows = df.duplicated().sum()",
+          "say": "subset을 지워 모든 열을 비교해요."
         },
         {
           "action": "run",
           "lines": [
-            9,
-            9
+            8,
+            11
           ]
         },
         {
           "action": "say",
-          "text": "전체 행 중복은 0, 주문 번호 중복은 1이에요.",
+          "text": "1과 0이에요. 주문 번호는 겹치지만 시간 30과 42가 달라서 전체 행 중복은 없어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 무엇을 같다고 볼지는 검사할 열에 달렸어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "[12, 18, 30, 42]",
-          "after": "[12, 18, 30, 30]",
-          "say": "처음의 같은 기록으로 돌아와요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            9,
-            9
-          ]
-        },
-        {
-          "action": "say",
-          "text": "전체 행과 업무 키는 다른 중복 기준이에요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "values"
+          "text": "조심하세요. 주문 번호가 같다고 같은 기록은 아니에요. 어떤 열이 같아야 중복인지 정하고 세요.",
+          "target": "code:df.duplicated().sum()"
         }
       ],
-      "question": "주문 번호가 같으면 전체 행도 중복일까요?"
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"data\": {\"order_id\": [7, 7, 8, 9, 9], \"minutes\": [5, 5, 6, 9, 10], \"region\": [\"서울\", \"서울\", \"부산\", \"부산\", \"부산\"], \"note\": [\"ok\", \"ok\", \"ok\", \"ok\", \"ok\"]}}, \"expected\": \"2\\\\n1\"}, {\"values\": {\"data\": {\"order_id\": [1, 2, 1, 2], \"minutes\": [3, 4, 3, 4], \"region\": [\"서울\", \"부산\", \"서울\", \"부산\"], \"note\": [\"ok\", \"ok\", \"ok\", \"ok\"]}}, \"expected\": \"2\\\\n2\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
       "id": "stp_29d05539-0f90-4c43-a2ed-c811e8c74404",
@@ -685,103 +653,67 @@
       "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"data\": {\"order_id\": [101, 102, 103, 103], \"minutes\": [12, 18, 30, 42], \"region\": [\"서울\", \"부산\", \"서울\", \"서울\"], \"note\": [\"ok\", \"ok\", \"ok\", \"ok\"]}}, \"expected\": \"[12, 18, 42]\"}, {\"values\": {\"data\": {\"order_id\": [105, 105, 106], \"minutes\": [8, 12, 15], \"region\": [\"서울\", \"서울\", \"서울\"], \"note\": [\"ok\", \"ok\", \"ok\"]}}, \"expected\": \"[12, 15]\"}, {\"values\": {\"data\": {\"order_id\": [3, 2, 3, 1], \"minutes\": [7, 9, 11, 13], \"region\": [\"서울\", \"서울\", \"서울\", \"서울\"], \"note\": [\"ok\", \"ok\", \"ok\", \"ok\"]}}, \"expected\": \"[9, 11, 13]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_608a399d-d732-487f-afcb-3e97586839f3",
-      "title": "기준 바로 위를 확인해요",
-      "goal": "이번 검토 범위는 6분부터 22분까지예요.\n경계값 22분도 범위 밖의 후보일까요?\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 출력을 근거로 질문에 맞는 보기를 고르세요.\n3. 선택한 보기를 제출하세요.",
+      "id": "stp_ef317a57-999f-4517-b6b0-8f523fdc91f0",
+      "title": "< 와 >로 범위 끝 값은 후보에서 빼세요",
+      "goal": "이번 검토 범위는 기준 자료의 사분위수로 정한 lower부터 upper까지예요. 범위의 끝 값은 범위 안이고, 그 바깥만 검토 후보예요.\n\nflag 줄의 비교 기호를 고쳐 범위 끝 값은 후보에서 빼세요. 채점은 다른 기준 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 네 값이 모두 True인지 확인하세요.\n2. `<=`를 `<`로, `>=`를 `>`로 고치세요.\n3. 코드 실행을 눌러 끝 값 6과 22가 False인지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "inside",
-      "tests": [],
+      "starter_code": "# 기준 자료로 사분위수와 가운데 범위를 구해요.\nimport pandas as pd\nbase = [10, 12, 14, 16, 18]\nreference = pd.Series(base)\nq1 = reference.quantile(0.25)\nq3 = reference.quantile(0.75)\niqr = q3 - q1\n# 이번 검토 규칙은 이 범위의 바깥만 후보로 표시해요. 끝 값은 범위 안이에요.\nlower = q1 - 1.5 * iqr\nupper = q3 + 1.5 * iqr\nvalues = [5, 6, 22, 23]\nminutes = pd.Series(values)\nprint(lower, upper)\n# 이 줄의 비교 기호를 고쳐 범위 끝 값은 후보에서 빼세요.\nflag = (minutes <= lower) | (minutes >= upper)\nprint(flag.tolist())\n",
+      "solution": "# 기준 자료로 사분위수와 가운데 범위를 구해요.\nimport pandas as pd\nbase = [10, 12, 14, 16, 18]\nreference = pd.Series(base)\nq1 = reference.quantile(0.25)\nq3 = reference.quantile(0.75)\niqr = q3 - q1\n# 이번 검토 규칙은 이 범위의 바깥만 후보로 표시해요. 끝 값은 범위 안이에요.\nlower = q1 - 1.5 * iqr\nupper = q3 + 1.5 * iqr\nvalues = [5, 6, 22, 23]\nminutes = pd.Series(values)\nprint(lower, upper)\n# 이 줄의 비교 기호를 고쳐 범위 끝 값은 후보에서 빼세요.\n# <와 >는 끝 값을 포함하지 않아요. 6과 22는 범위 안이에요.\nflag = (minutes < lower) | (minutes > upper)\nprint(flag.tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "6.0 22.0\n[True, False, False, True]"
+        }
+      ],
       "required": true,
-      "example_code": "# 기준 자료로 사분위수와 가운데 범위를 구해요.\nimport pandas as pd\nreference = pd.Series([10, 12, 14, 16, 18])\nq1 = reference.quantile(0.25)\nq3 = reference.quantile(0.75)\niqr = q3 - q1\n# 이번 검토 규칙은 이 범위의 바깥을 후보로 표시해요.\nlower = q1 - 1.5 * iqr\nupper = q3 + 1.5 * iqr\nminutes = pd.Series([5, 6, 22, 23])\nprint(lower, upper)\nprint(((minutes < lower) | (minutes > upper)).tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "outside",
-            "text": "22분은 범위의 끝 값이라 범위 밖 후보예요"
-          },
-          {
-            "id": "inside",
-            "text": "경계 안이므로 후보가 아니에요"
-          }
-        ],
-        "answer": "inside"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "기준 바로 위를 확인하는 문제예요.",
-          "target": "text:기준 바로 위를 확인해요#1"
+          "text": "< 와 >로 범위 끝 값은 후보에서 빼는 문제예요.",
+          "target": "text:< 와 >로 범위 끝 값은 후보에서 빼세요#1"
         },
         {
           "action": "say",
-          "text": "사분위 범위로 계산한 검토 범위의 바깥만 후보로 표시해요. 22분이 범위 끝에 딱 걸릴 때 후보인지가 질문이에요.",
-          "target": "text:경계값 22분도 범위 밖의 후보일까요?"
+          "text": "이번 검토 범위는 6분부터 22분까지예요. 끝 값이 후보가 되지 않게 비교 기호를 고쳐야 해요.",
+          "target": "text:flag 줄의 비교 기호를 고쳐 범위 끝 값은 후보에서 빼세요."
         },
         {
           "action": "run",
           "lines": [
-            12,
-            12
+            13,
+            16
           ]
         },
         {
           "action": "say",
-          "text": "범위는 6.0에서 22.0이에요. 경계 두 값은 False예요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "가운데 범위 IQR은 4예요. 양쪽으로 1.5배를 더했죠.",
-          "target": "lines:4:9"
-        },
-        {
-          "action": "patch_code",
-          "before": "minutes > upper",
-          "after": "minutes >= upper",
-          "say": "오른쪽 비교에 같음까지 넣어 볼게요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            12,
-            12
-          ]
-        },
-        {
-          "action": "say",
-          "text": "이번에는 경계 22도 True로 표시돼요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 경계 22까지 범위 밖으로 표시하면, 22를 범위 안에 두는 문제의 규칙과 달라요.",
+          "text": "6.0 22.0과 [True, True, True, True]예요. <=와 >=라서 끝 값 6과 22도 후보가 됐어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "minutes >= upper",
-          "after": "minutes > upper",
-          "say": "경계는 포함하는 원래 검토 규칙으로 돌아와요."
+          "before": "(minutes <= lower) | (minutes >= upper)",
+          "after": "(minutes < lower) | (minutes > upper)",
+          "say": "<=를 <로, >=를 >로 바꿔요."
         },
         {
           "action": "run",
           "lines": [
-            12,
-            12
+            13,
+            16
           ]
         },
         {
           "action": "say",
-          "text": "검토 자료와 기준을 만든 자료도 서로 구별해요.",
+          "text": "[True, False, False, True]예요. 범위 밖인 5와 23만 후보예요.",
           "target": "output"
         },
         {
-          "action": "choose_answer",
-          "id": "inside"
+          "action": "say",
+          "text": "조심하세요. 후보로 표시된 값도 바로 지우지 않아요. 기록의 뜻을 확인한 뒤 처리 기준을 정해요.",
+          "target": "code:(minutes < lower) | (minutes > upper)"
         }
-      ]
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"base\": [20, 22, 24, 26, 28], \"values\": [4, 13, 14, 32, 33, 25]}, \"expected\": \"16.0 32.0\\\\n[True, True, True, False, True, False]\"}, {\"values\": {\"base\": [1, 2, 3, 4, 5], \"values\": [-2, -1, 7, 8]}, \"expected\": \"-1.0 7.0\\\\n[True, False, False, True]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
       "id": "stp_4b962eb4-6b0c-4043-8bdd-f180125f9c8d",

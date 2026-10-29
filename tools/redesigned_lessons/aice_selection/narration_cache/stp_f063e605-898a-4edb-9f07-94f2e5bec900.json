@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "e282ad7b85390dbb5c716feeb64fd438cdae5ce1b4995dc0749aa6c6162bc723",
+  "entry": [
+    {
+      "action": "say",
+      "text": "지역별 평균을 나눠 보려 해요. 전체 평균 줄을 지역으로 묶어 평균 내도록 고쳐야 해요.",
+      "target": "text:print 줄을 고쳐 전체 평균 대신 지역별 평균을 사전으로 출력하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "40.5예요. 지역을 가리지 않은 전체 평균이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "print(df[\"minutes\"].mean())",
+      "after": "print(df.groupby(\"region\")[\"minutes\"].mean().to_dict())",
+      "say": "groupby(\"region\")으로 묶고 minutes의 평균을 사전으로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "{'부산': 60.0, '서울': 21.0}이에요. 서울은 12와 30의 평균 그대로고, 102분이 된 배송은 부산 평균만 바꿨어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. groupby 뒤에 sum을 쓰면 평균이 아니라 합계예요. 요약 함수를 질문에 맞게 골라요.",
+      "target": "code:.mean().to_dict()"
+    }
+  ]
+}

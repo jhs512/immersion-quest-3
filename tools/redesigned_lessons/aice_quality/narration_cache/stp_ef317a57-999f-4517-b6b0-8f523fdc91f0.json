@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "b4af8050e05e9a5328f865a33b4732a70fd47f81e528fe8a865d7e3379959c55",
+  "entry": [
+    {
+      "action": "say",
+      "text": "이번 검토 범위는 6분부터 22분까지예요. 끝 값이 후보가 되지 않게 비교 기호를 고쳐야 해요.",
+      "target": "text:flag 줄의 비교 기호를 고쳐 범위 끝 값은 후보에서 빼세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "6.0 22.0과 [True, True, True, True]예요. <=와 >=라서 끝 값 6과 22도 후보가 됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "(minutes <= lower) | (minutes >= upper)",
+      "after": "(minutes < lower) | (minutes > upper)",
+      "say": "<=를 <로, >=를 >로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[True, False, False, True]예요. 범위 밖인 5와 23만 후보예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 후보로 표시된 값도 바로 지우지 않아요. 기록의 뜻을 확인한 뒤 처리 기준을 정해요.",
+      "target": "code:(minutes < lower) | (minutes > upper)"
+    }
+  ]
+}

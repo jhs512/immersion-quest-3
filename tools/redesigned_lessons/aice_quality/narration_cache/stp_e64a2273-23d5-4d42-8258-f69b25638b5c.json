@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "e0d6aa5d3faaed2830ca4e47f62a06708ef1788a3549fcb87cda27115b9ea387",
+  "entry": [
+    {
+      "action": "say",
+      "text": "주문 103이 두 번 기록됐지만 시간이 달라요. 모든 항목이 같은 행만 세도록 고쳐야 해요.",
+      "target": "text:same_rows 줄을 고쳐 주문 번호만이 아니라 모든 항목이 같은 행을 세세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "두 줄 모두 1이에요. 둘 다 주문 번호만 비교했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "same_rows = df.duplicated(subset=[\"order_id\"]).sum()",
+      "after": "same_rows = df.duplicated().sum()",
+      "say": "subset을 지워 모든 열을 비교해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1과 0이에요. 주문 번호는 겹치지만 시간 30과 42가 달라서 전체 행 중복은 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 주문 번호가 같다고 같은 기록은 아니에요. 어떤 열이 같아야 중복인지 정하고 세요.",
+      "target": "code:df.duplicated().sum()"
+    }
+  ]
+}

@@ -3,10 +3,12 @@
   "lesson": "courses/redesigned/aice-quality.json",
   "expected_outputs": [
     [
-      "[False, True, False, False]\n[True, False, False, False]"
+      "[True, False, False, False]",
+      "[False, True, False, False]"
     ],
     [
-      "4\n3\n{'부산': 2, '서울': 2}\n{'부산': 1, '서울': 2}"
+      "4\n{'부산': 2, '서울': 2}",
+      "4\n{'부산': 1, '서울': 2}"
     ],
     [
       "[103, 104]",
@@ -21,8 +23,7 @@
     ],
     [
       "1\n1",
-      "0\n1",
-      "1\n1"
+      "1\n0"
     ],
     [
       "[12, 18, 30]",
@@ -31,8 +32,7 @@
       "[12, 18, 42]"
     ],
     [
-      "6.0 22.0\n[True, False, False, True]",
-      "6.0 22.0\n[True, False, True, True]",
+      "6.0 22.0\n[True, True, True, True]",
       "6.0 22.0\n[True, False, False, True]"
     ],
     [
@@ -51,14 +51,64 @@
   ],
   "reject": [
     {
-      "step": 7,
+      "step": 1,
       "replacements": [
         [
-          "keep=\"last\"",
-          "keep=False"
+          "missing = df[\"minutes\"].isna()\n",
+          "missing = df[\"minutes\"] == 0\n"
         ]
       ],
-      "reason": "Removing every duplicate group loses the required latest record"
+      "reason": "Zero minutes"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "missing = df[\"minutes\"].isna()\n",
+          "missing = df[\"note\"].isna()\n"
+        ]
+      ],
+      "reason": "Another column"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "print(missing.tolist())",
+          "print([False, True, False, False])"
+        ]
+      ],
+      "reason": "Typing the list"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "df.groupby(\"region\")[\"minutes\"].count()",
+          "df.groupby(\"region\").size()"
+        ]
+      ],
+      "reason": "Rows including empty times"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "df.groupby(\"region\")[\"minutes\"].count()",
+          "df[df[\"minutes\"] != 0].groupby(\"region\").size()"
+        ]
+      ],
+      "reason": "Dropping zero minutes instead of empty ones"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "print(df.groupby(\"region\")[\"minutes\"].count().to_dict())",
+          "print({'부산': 1, '서울': 2})"
+        ]
+      ],
+      "reason": "Typing the dict"
     },
     {
       "step": 4,
@@ -69,6 +119,66 @@
         ]
       ],
       "reason": "Zero is not the median required by this problem"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "same_rows = df.duplicated().sum()",
+          "same_rows = df.duplicated(subset=[\"order_id\"]).sum()"
+        ]
+      ],
+      "reason": "Order number only"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "same_rows = df.duplicated().sum()",
+          "same_rows = 0"
+        ]
+      ],
+      "reason": "Typing the count"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "keep=\"last\"",
+          "keep=False"
+        ]
+      ],
+      "reason": "Removing every duplicate group loses the required latest record"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "(minutes < lower) | (minutes > upper)",
+          "(minutes <= lower) | (minutes >= upper)"
+        ]
+      ],
+      "reason": "Boundaries included"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "(minutes < lower) | (minutes > upper)",
+          "(minutes < 6) | (minutes > 22)"
+        ]
+      ],
+      "reason": "Typing this data's bounds"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "print(flag.tolist())",
+          "print([True, False, False, True])"
+        ]
+      ],
+      "reason": "Typing the list"
     },
     {
       "step": 11,
@@ -102,6 +212,46 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "missing = df[\"minutes\"].isna()\n",
+          "missing = ~df[\"minutes\"].notna()\n"
+        ]
+      ],
+      "reason": "Not notna"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "print(df.groupby(\"region\")[\"minutes\"].count().to_dict())",
+          "print(df[\"minutes\"].notna().groupby(df[\"region\"]).sum().to_dict())"
+        ]
+      ],
+      "reason": "Summing notna by region"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "same_rows = df.duplicated().sum()",
+          "same_rows = len(df) - len(df.drop_duplicates())"
+        ]
+      ],
+      "reason": "Rows removed by drop_duplicates"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "flag = (minutes < lower) | (minutes > upper)",
+          "flag = ~minutes.between(lower, upper)"
+        ]
+      ],
+      "reason": "Not between (inclusive)"
+    },
     {
       "step": 11,
       "replacements": [

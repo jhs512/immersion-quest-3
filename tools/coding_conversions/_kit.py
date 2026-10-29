@@ -136,12 +136,13 @@ def lesson_python():
     return sys.executable
 
 
-def py_run(source, values=None, timeout=60):
+def py_run(source, values=None, timeout=120, files=None, error_ok=False):
     """Run Python `source` with top-level assignments replaced as the prepared checker does (ast).
-    Authoring aid: the expected output of the solution for each prepared case."""
+    Authoring aid: the expected output of the solution for each prepared case. `files` are written to a
+    fresh working folder first, as the player does with a step's prepared files."""
     import ast
     import subprocess
-    import sys
+    import tempfile
     tree = ast.parse(source)
     remaining = set(values or {})
     for statement in tree.body:
@@ -153,8 +154,15 @@ def py_run(source, values=None, timeout=60):
     if remaining:
         raise ValueError(f'prepared names not assigned at top level: {remaining}')
     ast.fix_missing_locations(tree)
-    run = subprocess.run([lesson_python(), '-I', '-X', 'utf8', '-c', ast.unparse(tree)], capture_output=True, text=True,
-                         encoding='utf-8', timeout=timeout)
+    from pathlib import Path
+    with tempfile.TemporaryDirectory() as folder:
+        for name, text in (files or {}).items():
+            Path(folder, name).write_text(text, encoding='utf-8')
+        run = subprocess.run([lesson_python(), '-I', '-X', 'utf8', '-c', ast.unparse(tree)], capture_output=True, text=True,
+                             encoding='utf-8', timeout=timeout, cwd=folder,
+                             env={**__import__('os').environ, 'TF_CPP_MIN_LOG_LEVEL': '3', 'MPLBACKEND': 'Agg'})
+    if error_ok:
+        return run.stdout.strip() + ('\n' + run.stderr.strip().splitlines()[-1] if run.returncode and run.stderr.strip() else '')
     if run.returncode != 0:
         raise ValueError(f'solution failed for {values}: {run.stderr[-800:]}')
     return run.stdout.strip()
@@ -196,3 +204,24 @@ def file_variants_checker(reference, variants, message):
             '            Path(name).write_text(text, encoding="utf-8")\n'
             '    Path("_reference.py").unlink(missing_ok=True)\n'
             'print(f"바꾼 자료 {len(VARIANTS)}개에서도 통과했어요.")\n')
+
+
+def code_step(old, title, objective, core_flow, intro, instruction, todos, starter, solution, script, warning_review,
+              reject=(), accept=(), cases=None, files=None, checker=None, probe=None, timeout=None):
+    """One converted Python step. `tests` is the reference solution's real output (never typed)."""
+    spec = dict(old=old, title=title, objectives=[objective], core_flow=core_flow,
+                goal=intro + '\n\n' + instruction + '\n\n' + todo(*todos), starter_code=starter, solution=solution,
+                tests=[{'input': '', 'expected': py_run(solution, files=files)}], narration=script.actions,
+                review=warning_review, reject=list(reject), accept=list(accept))
+    if files:
+        spec['files'] = files
+    if cases:
+        spec['prepared_cases'] = py_cases(solution, *cases) if not files else [
+            {'values': v, 'expected': py_run(solution, v, files=files)} for v in cases]
+    if probe:
+        spec['prepared_probes'] = probe
+    if timeout:
+        spec['prepared_task_timeout_seconds'] = timeout
+    if checker:
+        spec['checker'] = checker
+    return spec

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_76b49518-8a41-4c4a-8967-9a1ccc3a8fa3",
-  "revision": "aice-selection-6",
+  "revision": "aice-selection-7",
   "title": "필요한 배송을 고르고 요약해요",
   "description": "같은 배송 표를 이름·조건·순서로 고르고 요약의 뜻을 비교해요.",
   "objectives": [
@@ -34,21 +34,21 @@
           "premise": "같은 배송 표에는 시간·지역·거리가 있어요. 주문 번호는 101부터 104예요.",
           "steps": [
             {
-              "id": "stp_9419d079-d5ee-464a-8514-b461383aadee",
+              "id": "stp_77a1d24b-4ebe-42c8-803d-7ca944e99ce4",
               "objectives": [
-                "열 이름으로 한 항목의 목록을 골라요."
+                "열 이름으로 필요한 열 하나를 골라요."
               ]
             },
             {
-              "id": "stp_10e6578a-7824-4147-a3c1-7436c6caebcf",
+              "id": "stp_4d81fbbb-a303-4014-ba14-17424259b3df",
               "objectives": [
-                "행 이름과 열 이름을 함께 사용해요."
+                "행 이름과 열 이름으로 값 하나를 찾아요."
               ]
             },
             {
-              "id": "stp_59a7388c-c92c-4572-895b-0c412f2aaa53",
+              "id": "stp_0038fd19-57c4-489a-819d-c195ec4fd8b2",
               "objectives": [
-                "행 이름과 영부터 세는 위치를 구별해요."
+                "0부터 세는 위치로 값 하나를 찾아요."
               ]
             }
           ]
@@ -77,15 +77,15 @@
               ]
             },
             {
-              "id": "stp_34063150-4732-45c4-8209-6ab8cbe91df5",
+              "id": "stp_5f29edf5-e883-4c5f-b656-86c97fa5989a",
               "objectives": [
-                "두 열의 조건을 괄호와 &로 함께 적용해요."
+                "두 조건을 &로 이어 모두 만족하는 행을 골라요."
               ]
             },
             {
-              "id": "stp_189893c9-eb2a-4aec-83c6-3bdcd96a0a0e",
+              "id": "stp_6f7187a9-a293-4de0-b993-dbaf5a46dc3e",
               "objectives": [
-                "정렬 방향과 원래 표의 보존을 구별해요."
+                "정렬 방향 옵션으로 큰 값부터 정렬해요."
               ]
             }
           ]
@@ -108,15 +108,15 @@
           "premise": "같은 네 건의 시간·지역·거리로 전체와 그룹의 요약을 비교해요.",
           "steps": [
             {
-              "id": "stp_6684b395-b2a5-42e2-be66-6def5ef18576",
+              "id": "stp_2d204e9c-9ae7-4f35-a124-d1e2e26308a6",
               "objectives": [
-                "평균과 중앙값이 극단값에 다르게 반응함을 이해해요."
+                "튀는 값 하나에 평균과 중앙값이 다르게 움직이는 것을 비교해요."
               ]
             },
             {
-              "id": "stp_fcd1377b-9ab4-437d-9c53-ab5d60bcc59b",
+              "id": "stp_f063e605-898a-4edb-9f07-94f2e5bec900",
               "objectives": [
-                "전체 평균과 그룹별 평균의 대상을 구별해요."
+                "지역으로 묶어 각 묶음을 따로 요약해요."
               ]
             },
             {
@@ -154,302 +154,203 @@
   ],
   "tasks": [
     {
-      "id": "stp_9419d079-d5ee-464a-8514-b461383aadee",
-      "title": "필요한 열을 꺼내요",
-      "goal": "시간 열만 골라 보려 해요.\n시간 목록을 꺼내는 코드를 고르세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 출력을 근거로 질문에 맞는 보기를 고르세요.\n3. 선택한 보기를 제출하세요.",
+      "id": "stp_77a1d24b-4ebe-42c8-803d-7ca944e99ce4",
+      "title": "df[\"minutes\"]로 배송시간 목록을 꺼내세요",
+      "goal": "시간 열만 골라 보려 해요. `df[\"열 이름\"]`은 그 열 하나를 골라요. `.tolist()`는 고른 값을 목록으로 보여 줘요.\n\nprint 줄을 고쳐 표 전체 대신 배송시간 목록만 출력하세요. 채점은 값이 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력을 확인하세요.\n2. `print(df)`를 `print(df[\"minutes\"].tolist())`로 고치세요.\n3. 코드 실행을 눌러 시간 네 개만 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "time",
-      "tests": [],
+      "starter_code": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# 같은 네 배송의 시간·지역·거리예요.\ndata = {'minutes': [12, 18, 30, 42], 'region': ['서울', '부산', '서울', '부산'], 'distance': [1, 2, 3, 4]}\n# 각 행에는 주문 번호를 이름으로 붙여요.\norders = [101, 102, 103, 104]\ndf = pd.DataFrame(data, index=orders)\n# 이 줄을 고쳐 표 전체 대신 배송시간 목록만 출력하세요.\nprint(df)\n",
+      "solution": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# 같은 네 배송의 시간·지역·거리예요.\ndata = {'minutes': [12, 18, 30, 42], 'region': ['서울', '부산', '서울', '부산'], 'distance': [1, 2, 3, 4]}\n# 각 행에는 주문 번호를 이름으로 붙여요.\norders = [101, 102, 103, 104]\ndf = pd.DataFrame(data, index=orders)\n# 이 줄을 고쳐 표 전체 대신 배송시간 목록만 출력하세요.\n# 대괄호에 열 이름을 주면 그 열만 골라요. tolist()는 값 목록으로 보여 줘요.\nprint(df[\"minutes\"].tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[12, 18, 30, 42]"
+        }
+      ],
       "required": true,
-      "example_code": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# 같은 네 배송의 시간·지역·거리예요.\ndata = {'minutes': [12, 18, 30, 42], 'region': ['서울', '부산', '서울', '부산'], 'distance': [1, 2, 3, 4]}\n# 각 행에는 주문 번호를 이름으로 붙여요.\ndf = pd.DataFrame(data, index=[101, 102, 103, 104])\n# 한 열을 고른 뒤 tolist()로 값 목록을 확인해요.\nprint(df[\"minutes\"].tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "time",
-            "text": "df[\"minutes\"]"
-          },
-          {
-            "id": "all",
-            "text": "df"
-          },
-          {
-            "id": "region",
-            "text": "df[\"region\"]"
-          }
-        ],
-        "answer": "time"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "이 수업에서는 질문에 맞는 행과 열을 고르는 법을 배워요. 선택·정렬·요약의 차이를 이해해요."
+          "text": "이 수업에서는 질문에 맞는 행과 열을 직접 코드로 골라요. 선택·정렬·요약의 차이를 실행 결과로 비교해요."
         },
         {
           "action": "say",
-          "text": "배송 표의 이름과 위치로 자료를 골라요. 평균·중앙값·상관도 의미를 비교해요."
+          "text": "배송 표의 이름과 위치로 자료를 꺼내요. 평균·중앙값·그룹 평균을 직접 계산하고 상관의 의미도 짚어요."
         },
         {
           "action": "say",
-          "text": "시간 목록이 나오는 코드를 고르는 문제예요.",
-          "target": "text:필요한 열을 꺼내요#1"
+          "text": "df[\"minutes\"]로 배송시간 목록을 꺼내는 문제예요.",
+          "target": "text:df[\"minutes\"]로 배송시간 목록을 꺼내세요#1"
         },
         {
           "action": "say",
-          "text": "대괄호에 열 이름 하나를 넣으면 그 열만 꺼내요.",
-          "target": "text:시간 목록을 꺼내는 코드를 고르세요."
+          "text": "시간 열만 골라 보려 해요. 표 전체를 출력하는 줄을 고쳐야 해요.",
+          "target": "text:print 줄을 고쳐 표 전체 대신 배송시간 목록만 출력하세요."
         },
         {
           "action": "run",
           "lines": [
-            8,
-            8
+            9,
+            9
           ]
         },
         {
           "action": "say",
-          "text": "시간 12, 18, 30, 42가 나왔어요.",
+          "text": "왼쪽에 주문 번호 101부터 104, 위에 minutes·region·distance 세 열이 있는 표 전체예요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "df[\"minutes\"]",
-          "after": "df[\"region\"]",
-          "say": "열 이름만 지역으로 바꿔 볼게요."
+          "before": "print(df)\n",
+          "after": "print(df[\"minutes\"].tolist())\n",
+          "say": "df[\"minutes\"]로 시간 열을 고르고 tolist()로 목록을 만들어요."
         },
         {
           "action": "run",
           "lines": [
-            8,
-            8
+            9,
+            9
           ]
         },
         {
           "action": "say",
-          "text": "같은 네 배송이지만 이번에는 지역 값이에요.",
+          "text": "[12, 18, 30, 42]예요. 시간 열의 값 네 개만 나왔어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 열 선택은 원래 표를 지우지 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "df[\"region\"]",
-          "after": "df[\"minutes\"]",
-          "say": "필요한 시간 열로 돌아와요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            8,
-            8
-          ]
-        },
-        {
-          "action": "say",
-          "text": "열 이름으로 필요한 항목만 골랐어요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "time"
+          "text": "조심하세요. df[\"region\"]처럼 다른 열 이름을 쓰면 지역이 나와요. 질문에 맞는 열 이름을 골라요.",
+          "target": "code:df[\"minutes\"]"
         }
-      ]
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"data\": {\"minutes\": [25, 9, 41, 33, 16], \"region\": [\"부산\", \"서울\", \"서울\", \"부산\", \"서울\"], \"distance\": [3, 1, 5, 4, 2]}, \"orders\": [105, 101, 103, 102, 104]}, \"expected\": \"[25, 9, 41, 33, 16]\"}, {\"values\": {\"data\": {\"minutes\": [50, 31, 7], \"region\": [\"서울\", \"서울\", \"부산\"], \"distance\": [6, 4, 1]}, \"orders\": [103, 102, 101]}, \"expected\": \"[50, 31, 7]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_10e6578a-7824-4147-a3c1-7436c6caebcf",
-      "title": "행의 이름으로 찾아요",
-      "goal": "행 이름을 주문 번호로 붙였어요.\n주문 101의 시간을 읽는 코드를 고르세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 출력을 근거로 질문에 맞는 보기를 고르세요.\n3. 선택한 보기를 제출하세요.",
+      "id": "stp_4d81fbbb-a303-4014-ba14-17424259b3df",
+      "title": "df.loc[101, \"minutes\"]로 주문 101의 시간을 읽으세요",
+      "goal": "행 이름을 주문 번호로 붙였어요. `df.loc[행 이름, 열 이름]`은 이름으로 값을 찾아요.\n\nprint 줄을 고쳐 주문 101의 시간을 출력하세요. 채점은 주문 순서가 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 KeyError가 나오는지 확인하세요.\n2. `df.loc[0, \"minutes\"]`의 0을 `101`로 고치세요.\n3. 코드 실행을 눌러 12가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "label",
-      "tests": [],
+      "starter_code": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# 같은 네 배송의 시간·지역·거리예요.\ndata = {'minutes': [12, 18, 30, 42], 'region': ['서울', '부산', '서울', '부산'], 'distance': [1, 2, 3, 4]}\n# 각 행에는 주문 번호를 이름으로 붙여요.\norders = [101, 102, 103, 104]\ndf = pd.DataFrame(data, index=orders)\n# 이 줄을 고쳐 주문 101의 시간을 출력하세요.\nprint(df.loc[0, \"minutes\"])\n",
+      "solution": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# 같은 네 배송의 시간·지역·거리예요.\ndata = {'minutes': [12, 18, 30, 42], 'region': ['서울', '부산', '서울', '부산'], 'distance': [1, 2, 3, 4]}\n# 각 행에는 주문 번호를 이름으로 붙여요.\norders = [101, 102, 103, 104]\ndf = pd.DataFrame(data, index=orders)\n# 이 줄을 고쳐 주문 101의 시간을 출력하세요.\n# loc는 행 이름과 열 이름으로 찾아요. 행 이름은 주문 번호예요.\nprint(df.loc[101, \"minutes\"])\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "12"
+        }
+      ],
       "required": true,
-      "example_code": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# 같은 네 배송의 시간·지역·거리예요.\ndata = {'minutes': [12, 18, 30, 42], 'region': ['서울', '부산', '서울', '부산'], 'distance': [1, 2, 3, 4]}\n# 각 행에는 주문 번호를 이름으로 붙여요.\ndf = pd.DataFrame(data, index=[101, 102, 103, 104])\n# loc는 행 이름과 열 이름으로 값을 찾아요.\nprint(df.loc[101, \"minutes\"])\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "label",
-            "text": "df.loc[101, \"minutes\"]"
-          },
-          {
-            "id": "position",
-            "text": "df.loc[0, \"minutes\"]"
-          }
-        ],
-        "answer": "label"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "행의 이름으로 찾는 문제예요.",
-          "target": "text:행의 이름으로 찾아요#1"
+          "text": "df.loc[101, \"minutes\"]로 주문 101의 시간을 읽는 문제예요.",
+          "target": "text:df.loc[101, \"minutes\"]로 주문 101의 시간을 읽으세요#1"
         },
         {
           "action": "say",
-          "text": "행 이름을 0부터가 아니라 주문 번호 101~104로 붙였어요. loc는 이 이름으로 찾으니 주문 101을 가리키는 숫자를 골라요.",
-          "target": "text:행 이름을 주문 번호로 붙였어요."
+          "text": "행 이름을 주문 번호로 붙였어요. loc의 행 자리에 주문 번호를 써야 해요.",
+          "target": "text:print 줄을 고쳐 주문 101의 시간을 출력하세요."
         },
         {
           "action": "run",
           "lines": [
-            8,
-            8
-          ]
+            9,
+            9
+          ],
+          "expect_error": "KeyError"
         },
         {
           "action": "say",
-          "text": "행 이름 101과 시간 열이 만난 값은 12예요.",
+          "text": "KeyError: 0이에요. 행 이름에 0이 없어요. 이름은 101부터 104예요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "loc[101,",
-          "after": "loc[102,",
-          "say": "행 이름만 다음 주문 번호로 바꿔요."
+          "before": "df.loc[0, \"minutes\"]",
+          "after": "df.loc[101, \"minutes\"]",
+          "say": "행 자리에 주문 번호 101을 써요."
         },
         {
           "action": "run",
           "lines": [
-            8,
-            8
+            9,
+            9
           ]
         },
         {
           "action": "say",
-          "text": "주문 102의 시간 18이 나왔어요.",
+          "text": "12예요. 이름이 101인 행의 minutes 값이에요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. loc의 숫자는 여기서 위치가 아닌 이름이에요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "loc[102,",
-          "after": "loc[101,",
-          "say": "처음 주문 이름으로 돌아와요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            8,
-            8
-          ]
-        },
-        {
-          "action": "say",
-          "text": "101이라는 행 이름으로 첫 주문을 찾았어요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "label"
+          "text": "조심하세요. 지금은 101이 첫 행이라 위치로 골라도 같아 보여요. 행 순서가 바뀌면 위치로 고른 답은 틀려요.",
+          "target": "code:df.loc[101, \"minutes\"]"
         }
-      ]
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"data\": {\"minutes\": [25, 9, 41, 33, 16], \"region\": [\"부산\", \"서울\", \"서울\", \"부산\", \"서울\"], \"distance\": [3, 1, 5, 4, 2]}, \"orders\": [105, 101, 103, 102, 104]}, \"expected\": \"9\"}, {\"values\": {\"data\": {\"minutes\": [50, 31, 7], \"region\": [\"서울\", \"서울\", \"부산\"], \"distance\": [6, 4, 1]}, \"orders\": [103, 102, 101]}, \"expected\": \"7\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_59a7388c-c92c-4572-895b-0c412f2aaa53",
-      "title": "행의 위치로 찾아요",
-      "goal": "이번에는 이름 대신 위치로 찾아요.\n첫 행의 첫 열을 고르는 식을 선택하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 출력을 근거로 질문에 맞는 보기를 고르세요.\n3. 선택한 보기를 제출하세요.",
+      "id": "stp_0038fd19-57c4-489a-819d-c195ec4fd8b2",
+      "title": "df.iloc[0, 0]으로 첫 행의 첫 열을 읽으세요",
+      "goal": "이번에는 이름 대신 위치로 찾아요. `df.iloc[행 위치, 열 위치]`는 0부터 세는 위치예요.\n\nprint 줄의 행 위치를 고쳐 첫 행의 첫 열을 출력하세요. 채점은 주문 순서가 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 IndexError가 나오는지 확인하세요.\n2. `df.iloc[101, 0]`의 101을 `0`으로 고치세요.\n3. 코드 실행을 눌러 12가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "zero",
-      "tests": [],
+      "starter_code": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# 같은 네 배송의 시간·지역·거리예요.\ndata = {'minutes': [12, 18, 30, 42], 'region': ['서울', '부산', '서울', '부산'], 'distance': [1, 2, 3, 4]}\n# 각 행에는 주문 번호를 이름으로 붙여요.\norders = [101, 102, 103, 104]\ndf = pd.DataFrame(data, index=orders)\n# 이 줄의 행 위치를 고쳐 첫 행의 첫 열을 출력하세요.\nprint(df.iloc[101, 0])\n",
+      "solution": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# 같은 네 배송의 시간·지역·거리예요.\ndata = {'minutes': [12, 18, 30, 42], 'region': ['서울', '부산', '서울', '부산'], 'distance': [1, 2, 3, 4]}\n# 각 행에는 주문 번호를 이름으로 붙여요.\norders = [101, 102, 103, 104]\ndf = pd.DataFrame(data, index=orders)\n# 이 줄의 행 위치를 고쳐 첫 행의 첫 열을 출력하세요.\n# iloc는 0부터 세는 위치로 찾아요. 첫 행은 위치 0이에요.\nprint(df.iloc[0, 0])\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "12"
+        }
+      ],
       "required": true,
-      "example_code": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# 같은 네 배송의 시간·지역·거리예요.\ndata = {'minutes': [12, 18, 30, 42], 'region': ['서울', '부산', '서울', '부산'], 'distance': [1, 2, 3, 4]}\n# 각 행에는 주문 번호를 이름으로 붙여요.\ndf = pd.DataFrame(data, index=[101, 102, 103, 104])\n# iloc는 0부터 세는 행 위치와 열 위치로 찾아요.\nprint(df.iloc[0, 0])\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "name",
-            "text": "df.iloc[101, 0]"
-          },
-          {
-            "id": "next",
-            "text": "df.iloc[1, 0]"
-          },
-          {
-            "id": "zero",
-            "text": "df.iloc[0, 0]"
-          }
-        ],
-        "answer": "zero"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "행의 위치로 찾는 문제예요.",
-          "target": "text:행의 위치로 찾아요#1"
+          "text": "df.iloc[0, 0]으로 첫 행의 첫 열을 읽는 문제예요.",
+          "target": "text:df.iloc[0, 0]으로 첫 행의 첫 열을 읽으세요#1"
         },
         {
           "action": "say",
-          "text": "iloc는 이름을 무시하고 0부터 센 위치로 찾아요. 첫 행 첫 열의 위치가 무엇인지 골라요.",
-          "target": "text:이번에는 이름 대신 위치로 찾아요."
+          "text": "이번에는 이름 대신 위치로 찾아요. iloc의 행 위치를 고쳐야 해요.",
+          "target": "text:print 줄의 행 위치를 고쳐 첫 행의 첫 열을 출력하세요."
         },
         {
           "action": "run",
           "lines": [
-            8,
-            8
-          ]
+            9,
+            9
+          ],
+          "expect_error": "IndexError"
         },
         {
           "action": "say",
-          "text": "0부터 세니 첫 행 첫 열의 12가 나왔어요.",
+          "text": "IndexError예요. iloc의 101은 이름이 아니라 위치라서 네 행의 범위를 벗어나요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "iloc[0, 0]",
-          "after": "iloc[1, 0]",
-          "say": "행 위치만 하나 다음으로 옮겨요."
+          "before": "df.iloc[101, 0]",
+          "after": "df.iloc[0, 0]",
+          "say": "행 위치를 0으로 바꿔요."
         },
         {
           "action": "run",
           "lines": [
-            8,
-            8
+            9,
+            9
           ]
         },
         {
           "action": "say",
-          "text": "다음 배송의 시간 18이 나왔어요.",
+          "text": "12예요. 첫 행의 첫 열 minutes 값이에요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. loc는 이름, iloc는 0부터 세는 위치예요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "iloc[1, 0]",
-          "after": "iloc[0, 0]",
-          "say": "첫 위치로 돌아와요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            8,
-            8
-          ]
-        },
-        {
-          "action": "say",
-          "text": "주문 이름 101과 위치 0을 구별해요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "zero"
+          "text": "조심하세요. iloc는 행 이름과 상관없이 위치만 봐요. 위치는 0부터 세어요.",
+          "target": "code:df.iloc[0, 0]"
         }
-      ]
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"data\": {\"minutes\": [25, 9, 41, 33, 16], \"region\": [\"부산\", \"서울\", \"서울\", \"부산\", \"서울\"], \"distance\": [3, 1, 5, 4, 2]}, \"orders\": [105, 101, 103, 102, 104]}, \"expected\": \"25\"}, {\"values\": {\"data\": {\"minutes\": [50, 31, 7], \"region\": [\"서울\", \"서울\", \"부산\"], \"distance\": [6, 4, 1]}, \"orders\": [103, 102, 101]}, \"expected\": \"50\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
       "id": "stp_01126512-1dff-40a6-8d8b-1ccec3593bd1",
@@ -546,133 +447,29 @@
       "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"data\": {\"minutes\": [12, 18, 30, 42], \"region\": [\"서울\", \"부산\", \"서울\", \"부산\"], \"distance\": [1, 2, 3, 4]}, \"limit\": 30}, \"expected\": \"[False, False, True, True]\\\\n[30, 42]\"}, {\"values\": {\"data\": {\"minutes\": [50, 10, 20, 40], \"region\": [\"서울\", \"부산\", \"서울\", \"부산\"], \"distance\": [1, 2, 3, 4]}, \"limit\": 20}, \"expected\": \"[True, False, True, True]\\\\n[50, 20, 40]\"}, {\"values\": {\"data\": {\"minutes\": [2, 4, 6, 8], \"region\": [\"서울\", \"부산\", \"서울\", \"부산\"], \"distance\": [1, 2, 3, 4]}, \"limit\": 9}, \"expected\": \"[False, False, False, False]\\\\n[]\"}, {\"values\": {\"data\": {\"minutes\": [8, 3, 6, 2], \"region\": [\"서울\", \"부산\", \"서울\", \"부산\"], \"distance\": [1, 2, 3, 4]}, \"limit\": 3}, \"expected\": \"[True, True, True, False]\\\\n[8, 3, 6]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_34063150-4732-45c4-8209-6ab8cbe91df5",
-      "title": "지역 조건을 더해요",
-      "goal": "30분 이상 중 서울 배송만 보고 싶어요.\n준비 코드의 두 조건은 어떻게 연결됐나요?\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 출력을 근거로 질문에 맞는 보기를 고르세요.\n3. 선택한 보기를 제출하세요.",
+      "id": "stp_5f29edf5-e883-4c5f-b656-86c97fa5989a",
+      "title": "&로 두 조건을 모두 만족하는 배송을 고르세요",
+      "goal": "30분 이상 중 서울 배송만 보고 싶어요. 판다스 조건은 각각 괄호로 묶고 `&`(모두 만족) 또는 `|`(하나라도 만족)로 이어요.\n\nprint 줄의 연결 기호를 고쳐 30분 이상이면서 서울인 배송만 고르세요. 채점은 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 세 건이 나오는지 확인하세요.\n2. 두 조건 사이의 `|`를 `&`로 고치세요.\n3. 코드 실행을 눌러 [30]이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "both",
-      "tests": [],
-      "required": true,
-      "example_code": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# 같은 네 배송의 시간·지역·거리예요.\ndata = {'minutes': [12, 18, 30, 42], 'region': ['서울', '부산', '서울', '부산'], 'distance': [1, 2, 3, 4]}\n# 각 행에는 주문 번호를 이름으로 붙여요.\ndf = pd.DataFrame(data, index=[101, 102, 103, 104])\n# 두 조건은 각각 괄호로 묶고 &로 연결해요.\nprint(df.loc[(df[\"minutes\"] >= 30) & (df[\"region\"] == \"서울\"), \"minutes\"].tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "either",
-            "text": "둘 중 한 조건만 맞으면 골라요"
-          },
-          {
-            "id": "both",
-            "text": "두 조건을 모두 만족하는 행을 골라요"
-          }
-        ],
-        "answer": "both"
-      },
-      "narration": [
+      "starter_code": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# 같은 네 배송의 시간·지역·거리예요.\ndata = {'minutes': [12, 18, 30, 42], 'region': ['서울', '부산', '서울', '부산'], 'distance': [1, 2, 3, 4]}\n# 각 행에는 주문 번호를 이름으로 붙여요.\norders = [101, 102, 103, 104]\ndf = pd.DataFrame(data, index=orders)\n# 이 줄의 연결 기호를 고쳐 30분 이상이면서 서울인 배송만 고르세요.\nprint(df.loc[(df[\"minutes\"] >= 30) | (df[\"region\"] == \"서울\"), \"minutes\"].tolist())\n",
+      "solution": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# 같은 네 배송의 시간·지역·거리예요.\ndata = {'minutes': [12, 18, 30, 42], 'region': ['서울', '부산', '서울', '부산'], 'distance': [1, 2, 3, 4]}\n# 각 행에는 주문 번호를 이름으로 붙여요.\norders = [101, 102, 103, 104]\ndf = pd.DataFrame(data, index=orders)\n# 이 줄의 연결 기호를 고쳐 30분 이상이면서 서울인 배송만 고르세요.\n# 두 조건은 각각 괄호로 묶고 &로 연결해요. &는 두 조건을 모두 만족하는 행이에요.\nprint(df.loc[(df[\"minutes\"] >= 30) & (df[\"region\"] == \"서울\"), \"minutes\"].tolist())\n",
+      "tests": [
         {
-          "action": "say",
-          "text": "지역 조건을 더하는 문제예요.",
-          "target": "text:지역 조건을 더해요#1"
-        },
-        {
-          "action": "say",
-          "text": "조건 두 개를 &로 연결했어요. 30분 이상이면서 서울인지, 둘 중 하나만 맞아도 되는지가 질문이에요.",
-          "target": "text:준비 코드의 두 조건은 어떻게 연결됐나요?"
-        },
-        {
-          "action": "run",
-          "lines": [
-            8,
-            8
-          ]
-        },
-        {
-          "action": "say",
-          "text": "시간도 맞고 서울인 배송 30만 나왔어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "(df[\"minutes\"] >= 30) & (df[\"region\"] == \"서울\")",
-          "after": "df[\"minutes\"] >= 30",
-          "say": "지역 조건을 잠시 빼고 시간만 비교해요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            8,
-            8
-          ]
-        },
-        {
-          "action": "say",
-          "text": "지역을 빼니 부산의 42도 함께 나왔어요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 표의 행별 조건은 괄호와 &로 묶어요.",
-          "target": "lines:8"
-        },
-        {
-          "action": "patch_code",
-          "before": "df.loc[df[\"minutes\"] >= 30,",
-          "after": "df.loc[(df[\"minutes\"] >= 30) & (df[\"region\"] == \"서울\"),",
-          "say": "서울 조건을 다시 연결해요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            8,
-            8
-          ]
-        },
-        {
-          "action": "say",
-          "text": "두 조건을 모두 만족한 배송만 남았어요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "both"
+          "input": "",
+          "expected": "[30]"
         }
-      ]
-    },
-    {
-      "id": "stp_189893c9-eb2a-4aec-83c6-3bdcd96a0a0e",
-      "title": "오래 걸린 순서로 봐요",
-      "goal": "오래 걸린 배송부터 보려 해요.\n내림차순을 지정하는 옵션을 고르세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 출력을 근거로 질문에 맞는 보기를 고르세요.\n3. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "desc",
-      "tests": [],
+      ],
       "required": true,
-      "example_code": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# 같은 네 배송의 시간·지역·거리예요.\ndata = {'minutes': [12, 18, 30, 42], 'region': ['서울', '부산', '서울', '부산'], 'distance': [1, 2, 3, 4]}\n# 각 행에는 주문 번호를 이름으로 붙여요.\ndf = pd.DataFrame(data, index=[101, 102, 103, 104])\n# 새 결과를 정렬하되 원래 표는 유지해요.\nprint(df.sort_values(\"minutes\", ascending=True)[\"minutes\"].tolist())\nprint(df[\"minutes\"].tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "asc",
-            "text": "ascending=True"
-          },
-          {
-            "id": "desc",
-            "text": "ascending=False"
-          }
-        ],
-        "answer": "desc"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "오래 걸린 순서로 보는 문제예요.",
-          "target": "text:오래 걸린 순서로 봐요#1"
+          "text": "&로 두 조건을 모두 만족하는 배송을 고르는 문제예요.",
+          "target": "text:&로 두 조건을 모두 만족하는 배송을 고르세요#1"
         },
         {
           "action": "say",
-          "text": "sort_values는 정렬한 새 표를 돌려줘요. ascending은 오름차순 여부라서 큰 값부터 보려면 어떤 값을 줄지 골라요.",
-          "target": "text:내림차순을 지정하는 옵션을 고르세요."
+          "text": "30분 이상 중 서울 배송만 보고 싶어요. 두 조건을 잇는 기호를 고쳐야 해요.",
+          "target": "text:print 줄의 연결 기호를 고쳐 30분 이상이면서 서울인 배송만 고르세요."
         },
         {
           "action": "run",
@@ -683,246 +480,223 @@
         },
         {
           "action": "say",
-          "text": "기본 방향은 짧은 시간부터예요. 원래 목록도 같아요.",
+          "text": "[12, 30, 42]예요. |는 둘 중 하나만 맞아도 골라서 서울의 12분과 부산의 42분도 들어왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": ") | (",
+          "after": ") & (",
+          "say": "|를 &로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[30]이에요. 30분 이상이면서 서울인 배송은 한 건이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 판다스 조건은 and가 아니라 &로 잇고, 각 조건을 괄호로 묶어요.",
+          "target": "code:) & ("
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"data\": {\"minutes\": [25, 9, 41, 33, 16], \"region\": [\"부산\", \"서울\", \"서울\", \"부산\", \"서울\"], \"distance\": [3, 1, 5, 4, 2]}, \"orders\": [105, 101, 103, 102, 104]}, \"expected\": \"[41]\"}, {\"values\": {\"data\": {\"minutes\": [50, 31, 7], \"region\": [\"서울\", \"서울\", \"부산\"], \"distance\": [6, 4, 1]}, \"orders\": [103, 102, 101]}, \"expected\": \"[50, 31]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_6f7187a9-a293-4de0-b993-dbaf5a46dc3e",
+      "title": "ascending=False로 오래 걸린 순서로 정렬하세요",
+      "goal": "오래 걸린 배송부터 보려 해요. `sort_values(열, ascending=...)`의 ascending이 True면 작은 값부터, False면 큰 값부터예요.\n\n첫 print 줄의 옵션을 고쳐 오래 걸린 배송부터 정렬하세요. 채점은 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 두 줄이 같은지 확인하세요.\n2. `ascending=True`를 `ascending=False`로 고치세요.\n3. 코드 실행을 눌러 정렬 결과와 원래 순서를 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# 같은 네 배송의 시간·지역·거리예요.\ndata = {'minutes': [12, 18, 30, 42], 'region': ['서울', '부산', '서울', '부산'], 'distance': [1, 2, 3, 4]}\n# 각 행에는 주문 번호를 이름으로 붙여요.\norders = [101, 102, 103, 104]\ndf = pd.DataFrame(data, index=orders)\n# 이 줄의 옵션을 고쳐 오래 걸린 배송부터 정렬하세요.\nprint(df.sort_values(\"minutes\", ascending=True)[\"minutes\"].tolist())\n# 원래 표의 순서도 확인해요.\nprint(df[\"minutes\"].tolist())\n",
+      "solution": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# 같은 네 배송의 시간·지역·거리예요.\ndata = {'minutes': [12, 18, 30, 42], 'region': ['서울', '부산', '서울', '부산'], 'distance': [1, 2, 3, 4]}\n# 각 행에는 주문 번호를 이름으로 붙여요.\norders = [101, 102, 103, 104]\ndf = pd.DataFrame(data, index=orders)\n# 이 줄의 옵션을 고쳐 오래 걸린 배송부터 정렬하세요.\n# ascending=False는 큰 값부터예요. sort_values는 정렬한 새 표를 돌려주고 원래 표는 그대로예요.\nprint(df.sort_values(\"minutes\", ascending=False)[\"minutes\"].tolist())\n# 원래 표의 순서도 확인해요.\nprint(df[\"minutes\"].tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[42, 30, 18, 12]\n[12, 18, 30, 42]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "ascending=False로 오래 걸린 순서로 정렬하는 문제예요.",
+          "target": "text:ascending=False로 오래 걸린 순서로 정렬하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "오래 걸린 배송부터 보려 해요. 정렬 방향 옵션을 고쳐야 해요.",
+          "target": "text:첫 print 줄의 옵션을 고쳐 오래 걸린 배송부터 정렬하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "두 줄 모두 [12, 18, 30, 42]예요. ascending=True는 작은 값부터예요.",
           "target": "output"
         },
         {
           "action": "patch_code",
           "before": "ascending=True",
           "after": "ascending=False",
-          "say": "방향만 반대로 바꿔 볼게요."
+          "say": "ascending을 False로 바꿔요."
         },
         {
           "action": "run",
           "lines": [
             9,
-            9
+            11
           ]
         },
         {
           "action": "say",
-          "text": "결과는 42부터지만 원래 표는 12부터예요.",
+          "text": "첫 줄은 [42, 30, 18, 12], 둘째 줄은 원래 순서 [12, 18, 30, 42]예요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 새 정렬 결과와 원래 표를 구별해요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "원래 표까지 바꾸라는 요청은 하지 않았어요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "desc"
-        }
-      ]
-    },
-    {
-      "id": "stp_6684b395-b2a5-42e2-be66-6def5ef18576",
-      "title": "평균과 가운데 값을 비교해요",
-      "goal": "가장 늦은 배송 한 건만 더 늦어졌어요. 중앙값은 시간을 크기순으로 놓았을 때 가운데 값이에요. 개수가 짝수면 가운데 두 값의 평균이에요.\n중앙값도 바뀔까요?\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 출력을 근거로 질문에 맞는 보기를 고르세요.\n3. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "same",
-      "tests": [],
-      "required": true,
-      "example_code": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# 같은 네 배송의 시간·지역·거리예요.\ndata = {'minutes': [12, 18, 30, 42], 'region': ['서울', '부산', '서울', '부산'], 'distance': [1, 2, 3, 4]}\n# 각 행에는 주문 번호를 이름으로 붙여요.\ndf = pd.DataFrame(data, index=[101, 102, 103, 104])\n# 평균과 정렬한 가운데 값의 의미를 비교해요.\nprint(df[\"minutes\"].mean())\nprint(df[\"minutes\"].median())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "same",
-            "text": "가운데의 18과 30이 그대로라서 24로 남아요"
-          },
-          {
-            "id": "rise",
-            "text": "가장 큰 값이 커졌으니 중앙값도 평균처럼 커져요"
-          }
-        ],
-        "answer": "same"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "가운데 값인 중앙값도 같은지 비교하는 문제예요.",
-          "target": "text:평균과 가운데 값을 비교해요#1"
-        },
-        {
-          "action": "say",
-          "text": "평균은 모든 값의 합을 개수로 나눠서 큰 값 하나에도 움직여요.",
-          "target": "text:중앙값은 시간을 크기순으로 놓았을 때 가운데 값이에요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            9,
-            9
-          ]
-        },
-        {
-          "action": "say",
-          "text": "평균은 25.5, 중앙값은 24.0이에요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "정렬한 가운데 두 값은 18과 30이에요.",
-          "target": "lines:9"
-        },
-        {
-          "action": "say",
-          "text": "둘을 더한 48을 2로 나누면 24예요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "[12, 18, 30, 42]",
-          "after": "[12, 18, 30, 102]",
-          "say": "늦은 배송 하나만 102분으로 바꿔요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            9,
-            9
-          ]
-        },
-        {
-          "action": "say",
-          "text": "평균은 40.5로 커졌지만 중앙값은 24.0 그대로예요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "중앙값은 정렬한 자료의 가운데 값이라, 가장 큰 값 하나가 커져도 그대로예요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "[12, 18, 30, 102]",
-          "after": "[12, 18, 30, 42]",
-          "say": "원래 배송 자료로 돌아와요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            9,
-            9
-          ]
-        },
-        {
-          "action": "say",
-          "text": "평균과 중앙값은 서로 다른 요약이에요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "same"
+          "text": "조심하세요. sort_values는 원래 표를 바꾸지 않아요. 정렬 결과를 쓰려면 그 결과를 받아 써요.",
+          "target": "code:ascending=False"
         }
       ],
-      "question": "중앙값도 바뀔까요?"
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"data\": {\"minutes\": [25, 9, 41, 33, 16], \"region\": [\"부산\", \"서울\", \"서울\", \"부산\", \"서울\"], \"distance\": [3, 1, 5, 4, 2]}, \"orders\": [105, 101, 103, 102, 104]}, \"expected\": \"[41, 33, 25, 16, 9]\\\\n[25, 9, 41, 33, 16]\"}, {\"values\": {\"data\": {\"minutes\": [50, 31, 7], \"region\": [\"서울\", \"서울\", \"부산\"], \"distance\": [6, 4, 1]}, \"orders\": [103, 102, 101]}, \"expected\": \"[50, 31, 7]\\\\n[50, 31, 7]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_fcd1377b-9ab4-437d-9c53-ab5d60bcc59b",
-      "title": "지역별로 묶어 요약해요",
-      "goal": "지역별 평균을 나눠 보려 해요.\n부산의 42분 배송만 102분이 되면 어떻게 될까요?\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 출력을 근거로 질문에 맞는 보기를 고르세요.\n3. 선택한 보기를 제출하세요.",
+      "id": "stp_2d204e9c-9ae7-4f35-a124-d1e2e26308a6",
+      "title": "median()으로 가운데 값을 middle에 담으세요",
+      "goal": "가장 늦은 배송 한 건만 102분으로 더 늦어졌어요. 중앙값은 시간을 크기순으로 놓았을 때 가운데 값이에요. 개수가 짝수면 가운데 두 값의 평균이에요.\n\nmiddle 줄을 고쳐 평균 대신 가운데 값(중앙값)을 middle에 담으세요. 채점은 개수가 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 두 줄이 같은지 확인하세요.\n2. `df[\"minutes\"].mean()`을 `df[\"minutes\"].median()`으로 고치세요.\n3. 코드 실행을 눌러 평균과 중앙값을 비교하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "busan",
-      "tests": [],
+      "starter_code": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# 부산의 마지막 배송이 102분으로 늦어졌어요.\ndata = {'minutes': [12, 18, 30, 102], 'region': ['서울', '부산', '서울', '부산'], 'distance': [1, 2, 3, 4]}\n# 각 행에는 주문 번호를 이름으로 붙여요.\norders = [101, 102, 103, 104]\ndf = pd.DataFrame(data, index=orders)\n# 평균을 먼저 확인해요.\nprint(df[\"minutes\"].mean())\n# 이 줄을 고쳐 평균 대신 가운데 값(중앙값)을 middle에 담으세요.\nmiddle = df[\"minutes\"].mean()\nprint(middle)\n",
+      "solution": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# 부산의 마지막 배송이 102분으로 늦어졌어요.\ndata = {'minutes': [12, 18, 30, 102], 'region': ['서울', '부산', '서울', '부산'], 'distance': [1, 2, 3, 4]}\n# 각 행에는 주문 번호를 이름으로 붙여요.\norders = [101, 102, 103, 104]\ndf = pd.DataFrame(data, index=orders)\n# 평균을 먼저 확인해요.\nprint(df[\"minutes\"].mean())\n# 이 줄을 고쳐 평균 대신 가운데 값(중앙값)을 middle에 담으세요.\n# median은 크기순으로 놓았을 때 가운데 값이에요. 개수가 짝수면 가운데 두 값의 평균이에요.\nmiddle = df[\"minutes\"].median()\nprint(middle)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "40.5\n24.0"
+        }
+      ],
       "required": true,
-      "example_code": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# 같은 네 배송의 시간·지역·거리예요.\ndata = {'minutes': [12, 18, 30, 42], 'region': ['서울', '부산', '서울', '부산'], 'distance': [1, 2, 3, 4]}\n# 각 행에는 주문 번호를 이름으로 붙여요.\ndf = pd.DataFrame(data, index=[101, 102, 103, 104])\n# 지역으로 묶은 뒤 각 그룹의 시간을 평균 내요.\nprint(df.groupby(\"region\")[\"minutes\"].mean().to_dict())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "busan",
-            "text": "부산 평균만 바뀌어요"
-          },
-          {
-            "id": "all",
-            "text": "서울과 부산 평균이 모두 바뀌어요"
-          }
-        ],
-        "answer": "busan"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "지역별로 묶어 요약하는 문제예요.",
-          "target": "text:지역별로 묶어 요약해요#1"
+          "text": "median()으로 가운데 값을 middle에 담는 문제예요.",
+          "target": "text:median()으로 가운데 값을 middle에 담으세요#1"
         },
         {
           "action": "say",
-          "text": "groupby는 지역별로 행을 나눈 뒤 묶음마다 평균을 내요. 부산 배송 하나가 바뀌면 어느 묶음의 평균이 바뀌는지 봐요.",
-          "target": "text:지역별 평균을 나눠 보려 해요."
+          "text": "가장 늦은 배송 한 건만 더 늦어졌어요. 평균 대신 가운데 값을 middle에 담아 비교해야 해요.",
+          "target": "text:middle 줄을 고쳐 평균 대신 가운데 값(중앙값)을 middle에 담으세요."
         },
         {
           "action": "run",
           "lines": [
-            8,
-            8
+            9,
+            12
           ]
         },
         {
           "action": "say",
-          "text": "서울 평균은 21.0, 부산 평균은 30.0이에요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "그룹별로 각자 속한 행만 평균 낸 값이에요.",
-          "target": "lines:8"
-        },
-        {
-          "action": "patch_code",
-          "before": "[12, 18, 30, 42]",
-          "after": "[12, 18, 30, 102]",
-          "say": "부산 배송 하나만 늦춰 봐요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            8,
-            8
-          ]
-        },
-        {
-          "action": "say",
-          "text": "서울은 21.0 그대로고 부산은 60.0이에요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 전체 평균 한 개를 두 번 표시한 게 아니에요.",
+          "text": "두 줄 모두 40.5예요. 102분 한 건이 평균을 끌어올렸어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "[12, 18, 30, 102]",
-          "after": "[12, 18, 30, 42]",
-          "say": "원래 부산 배송 시간으로 돌아와요."
+          "before": "middle = df[\"minutes\"].mean()",
+          "after": "middle = df[\"minutes\"].median()",
+          "say": "mean을 median으로 바꿔요."
         },
         {
           "action": "run",
           "lines": [
-            8,
-            8
+            9,
+            12
           ]
         },
         {
           "action": "say",
-          "text": "그룹마다 평균을 낼 대상이 달라요.",
+          "text": "40.5와 24.0이에요. 가운데 두 값 18과 30의 평균이라 늦어진 한 건에 흔들리지 않았어요.",
           "target": "output"
         },
         {
-          "action": "choose_answer",
-          "id": "busan"
+          "action": "say",
+          "text": "조심하세요. 개수가 짝수면 가운데 한 값만 고르면 안 돼요. 가운데 두 값의 평균이에요.",
+          "target": "code:median()"
         }
-      ]
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"data\": {\"minutes\": [25, 9, 41, 33, 16], \"region\": [\"부산\", \"서울\", \"서울\", \"부산\", \"서울\"], \"distance\": [3, 1, 5, 4, 2]}, \"orders\": [105, 101, 103, 102, 104]}, \"expected\": \"24.8\\\\n25.0\"}, {\"values\": {\"data\": {\"minutes\": [50, 31, 7], \"region\": [\"서울\", \"서울\", \"부산\"], \"distance\": [6, 4, 1]}, \"orders\": [103, 102, 101]}, \"expected\": \"29.333333333333332\\\\n31.0\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_f063e605-898a-4edb-9f07-94f2e5bec900",
+      "title": "groupby로 지역별 평균을 출력하세요",
+      "goal": "부산의 42분 배송이 102분으로 늦어졌어요. `df.groupby(\"region\")`은 지역마다 행을 묶고, 뒤의 `[\"minutes\"].mean()`은 묶음마다 시간 평균을 내요.\n\nprint 줄을 고쳐 전체 평균 대신 지역별 평균을 사전으로 출력하세요. 채점은 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력을 확인하세요.\n2. `df[\"minutes\"].mean()`을 `df.groupby(\"region\")[\"minutes\"].mean().to_dict()`로 고치세요.\n3. 코드 실행을 눌러 어느 지역 평균이 바뀌었는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# 부산의 마지막 배송이 102분으로 늦어졌어요.\ndata = {'minutes': [12, 18, 30, 102], 'region': ['서울', '부산', '서울', '부산'], 'distance': [1, 2, 3, 4]}\n# 각 행에는 주문 번호를 이름으로 붙여요.\norders = [101, 102, 103, 104]\ndf = pd.DataFrame(data, index=orders)\n# 이 줄을 고쳐 전체 평균 대신 지역별 평균을 사전으로 출력하세요.\nprint(df[\"minutes\"].mean())\n",
+      "solution": "# 표를 다룰 판다스를 불러와요.\nimport pandas as pd\n# 부산의 마지막 배송이 102분으로 늦어졌어요.\ndata = {'minutes': [12, 18, 30, 102], 'region': ['서울', '부산', '서울', '부산'], 'distance': [1, 2, 3, 4]}\n# 각 행에는 주문 번호를 이름으로 붙여요.\norders = [101, 102, 103, 104]\ndf = pd.DataFrame(data, index=orders)\n# 이 줄을 고쳐 전체 평균 대신 지역별 평균을 사전으로 출력하세요.\n# groupby로 지역마다 묶은 뒤 각 묶음의 시간을 평균 내요.\nprint(df.groupby(\"region\")[\"minutes\"].mean().to_dict())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "{'부산': 60.0, '서울': 21.0}"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "groupby로 지역별 평균을 출력하는 문제예요.",
+          "target": "text:groupby로 지역별 평균을 출력하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "지역별 평균을 나눠 보려 해요. 전체 평균 줄을 지역으로 묶어 평균 내도록 고쳐야 해요.",
+          "target": "text:print 줄을 고쳐 전체 평균 대신 지역별 평균을 사전으로 출력하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "40.5예요. 지역을 가리지 않은 전체 평균이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "print(df[\"minutes\"].mean())",
+          "after": "print(df.groupby(\"region\")[\"minutes\"].mean().to_dict())",
+          "say": "groupby(\"region\")으로 묶고 minutes의 평균을 사전으로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "{'부산': 60.0, '서울': 21.0}이에요. 서울은 12와 30의 평균 그대로고, 102분이 된 배송은 부산 평균만 바꿨어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. groupby 뒤에 sum을 쓰면 평균이 아니라 합계예요. 요약 함수를 질문에 맞게 골라요.",
+          "target": "code:.mean().to_dict()"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"data\": {\"minutes\": [25, 9, 41, 33, 16], \"region\": [\"부산\", \"서울\", \"서울\", \"부산\", \"서울\"], \"distance\": [3, 1, 5, 4, 2]}, \"orders\": [105, 101, 103, 102, 104]}, \"expected\": \"{\\'부산\\': 29.0, \\'서울\\': 22.0}\"}, {\"values\": {\"data\": {\"minutes\": [50, 31, 7], \"region\": [\"서울\", \"서울\", \"부산\"], \"distance\": [6, 4, 1]}, \"orders\": [103, 102, 101]}, \"expected\": \"{\\'부산\\': 7.0, \\'서울\\': 40.5}\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
       "id": "stp_9ba83bdc-8090-499b-851c-f74e752954c3",
