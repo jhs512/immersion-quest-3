@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "103873cb594294b548cc7ff3d6dcbf120f26f9713dfae8c1d5a3d58494a75e92",
+  "entry": [
+    {
+      "action": "say",
+      "text": "묶은 뒤의 합계로 분류를 골라야 해요. GROUP BY 뒤에 HAVING을 써요.",
+      "target": "text:질의에 HAVING을 더해 분류 합계가 5 이상인 분류만 남기세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "A는 6, B는 0이에요. 아직 두 분류가 모두 남아요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "GROUP BY category ORDER BY",
+      "after": "GROUP BY category HAVING SUM(qty) >= 5 ORDER BY",
+      "say": "GROUP BY 뒤에 HAVING SUM(qty) >= 5를 써요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "A만 남았어요. 합계 6만 5 이상이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. WHERE qty >= 5는 묶기 전 행마다 걸러서 재고 5 이상인 행이 없는 이 표에서는 아무것도 남지 않아요.",
+      "target": "code:HAVING SUM(qty) >= 5"
+    }
+  ]
+}

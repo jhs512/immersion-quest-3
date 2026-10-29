@@ -3,47 +3,38 @@
   "lesson": "courses/redesigned/engineer-sql-group.json",
   "expected_outputs": [
     [
-      "n\n4",
       "n\n3",
       "n\n4"
     ],
     [
-      "amount\n6",
       "amount\n2.0",
       "amount\n6"
     ],
     [
-      "category | n\nA | 6\nB | 0",
-      "category | n\nA | 2\nB | 2",
+      "category | n\nA | 6",
       "category | n\nA | 6\nB | 0"
     ],
     [
-      "category | n\nA | 6",
       "category | n\nA | 6\nB | 0",
       "category | n\nA | 6"
     ],
     [
-      "category | n\nA | 4",
       "category | n\nA | 6\nB | 0",
       "category | n\nA | 4"
     ],
     [
-      "n\n2",
       "n\n4",
       "n\n2"
     ],
     [
-      "id | r\n1 | 1\n2 | 1\n3 | 3\n4 | 4",
-      "id | r\n1 | 1\n2 | 1\n3 | 2\n4 | 3",
+      "id | r\n1 | 1\n2 | 2\n3 | 3\n4 | 4",
       "id | r\n1 | 1\n2 | 1\n3 | 3\n4 | 4"
     ],
     [
-      "id | r\n1 | 1\n2 | 2\n3 | 1\n4 | 2",
       "id | r\n1 | 1\n2 | 2\n3 | 3\n4 | 4",
       "id | r\n1 | 1\n2 | 2\n3 | 1\n4 | 2"
     ],
     [
-      "id | n\n1 | 2\n2 | 6\n3 | 6\n4 | 6",
       "id | n\n1 | 6\n2 | 6\n3 | 6\n4 | 6",
       "id | n\n1 | 2\n2 | 6\n3 | 6\n4 | 6"
     ],
@@ -56,6 +47,166 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "SELECT COUNT(*) AS n",
+          "SELECT COUNT(qty) AS n"
+        ]
+      ],
+      "reason": "Only known values"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "SELECT COUNT(*) AS n FROM stocks;",
+          "SELECT 4 AS n;"
+        ]
+      ],
+      "reason": "Typing the count"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "SUM(qty)",
+          "AVG(qty)"
+        ]
+      ],
+      "reason": "Average instead of sum"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "SELECT SUM(qty) AS amount FROM stocks;",
+          "SELECT 6 AS amount;"
+        ]
+      ],
+      "reason": "Typing the sum"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "SELECT category, SUM(qty) AS n FROM stocks GROUP BY category ORDER BY category;",
+          "SELECT 'A' AS category, 6 AS n UNION ALL SELECT 'B', 0;"
+        ]
+      ],
+      "reason": "Typing the rows"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "FROM stocks GROUP BY category HAVING SUM(qty) >= 5",
+          "FROM stocks WHERE qty >= 5 GROUP BY category"
+        ]
+      ],
+      "reason": "Row filter instead of group filter"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "HAVING SUM(qty) >= 5",
+          "HAVING category = 'A'"
+        ]
+      ],
+      "reason": "Picking the category by hand"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "FROM stocks WHERE qty >= 3 GROUP BY category",
+          "FROM stocks GROUP BY category HAVING SUM(qty) >= 3"
+        ]
+      ],
+      "reason": "Group filter instead of row filter"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "SELECT COUNT(DISTINCT category) AS n",
+          "SELECT DISTINCT COUNT(category) AS n"
+        ]
+      ],
+      "reason": "DISTINCT outside the aggregate"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "SELECT COUNT(DISTINCT category) AS n FROM stocks;",
+          "SELECT 2 AS n;"
+        ]
+      ],
+      "reason": "Typing the count"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "RANK()",
+          "DENSE_RANK()"
+        ]
+      ],
+      "reason": "No gap after ties"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "RANK()",
+          "ROW_NUMBER()"
+        ]
+      ],
+      "reason": "Separate numbers for ties"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "OVER(PARTITION BY category ORDER BY id)",
+          "OVER(PARTITION BY category ORDER BY id DESC)"
+        ]
+      ],
+      "reason": "Numbering from the wrong end"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "OVER(PARTITION BY category ORDER BY id)",
+          "OVER(ORDER BY id)"
+        ]
+      ],
+      "reason": "One window"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "OVER(ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)",
+          "OVER()"
+        ]
+      ],
+      "reason": "Whole-table total"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "OVER(ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)",
+          "OVER(ORDER BY id DESC ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)"
+        ]
+      ],
+      "reason": "Accumulating from the last row"
+    },
     {
       "step": 10,
       "replacements": [
@@ -88,6 +239,96 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "SELECT COUNT(*) AS n",
+          "SELECT COUNT(id) AS n"
+        ]
+      ],
+      "reason": "Counting the never-NULL key"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "SELECT SUM(qty) AS amount FROM stocks;",
+          "SELECT SUM(coalesce(qty, 0)) AS amount FROM stocks;"
+        ]
+      ],
+      "reason": "NULL as zero gives the same sum"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "GROUP BY category ORDER BY",
+          "GROUP BY 1 ORDER BY"
+        ]
+      ],
+      "reason": "Group by the first column"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "HAVING SUM(qty) >= 5",
+          "HAVING n >= 5"
+        ]
+      ],
+      "reason": "Using the alias"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "WHERE qty >= 3",
+          "WHERE NOT qty < 3"
+        ]
+      ],
+      "reason": "Negated comparison"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "SELECT COUNT(DISTINCT category) AS n FROM stocks;",
+          "SELECT COUNT(*) AS n FROM (SELECT DISTINCT category FROM stocks);"
+        ]
+      ],
+      "reason": "Counting a DISTINCT subquery"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "RANK() OVER(ORDER BY price DESC)",
+          "(SELECT COUNT(*) FROM stocks t WHERE t.price > stocks.price) + 1"
+        ]
+      ],
+      "reason": "Counting higher prices"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "ROW_NUMBER() OVER(PARTITION BY category ORDER BY id)",
+          "(SELECT COUNT(*) FROM stocks t WHERE t.category = stocks.category AND t.id <= stocks.id)"
+        ]
+      ],
+      "reason": "Counting earlier rows of the same category"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "OVER(ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)",
+          "OVER(ORDER BY id)"
+        ]
+      ],
+      "reason": "Default frame with a unique order"
+    },
     {
       "step": 11,
       "replacements": [

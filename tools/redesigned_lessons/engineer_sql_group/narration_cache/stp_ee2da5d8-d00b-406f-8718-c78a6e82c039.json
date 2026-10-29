@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "82133adf318f83a5bb95e7798076542e479d797dcb867ad5673c1f0ebf531558",
+  "entry": [
+    {
+      "action": "say",
+      "text": "ID 1과 2는 가격이 같은 10이에요. 동점에 같은 순위를 주는 함수로 바꿔야 해요.",
+      "target": "text:순위 함수를 고쳐 같은 가격은 같은 순위, 그다음은 동점 수만큼 건너뛰게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1, 2, 3, 4예요. ROW_NUMBER는 동점이어도 번호를 따로 매겨요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "ROW_NUMBER()",
+      "after": "RANK()",
+      "say": "ROW_NUMBER를 RANK로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1, 1, 3, 4예요. 1등이 둘이라 다음은 3등이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. DENSE_RANK였다면 동점 다음이 2등이에요.",
+      "target": "code:RANK() OVER(ORDER BY price DESC)"
+    }
+  ]
+}

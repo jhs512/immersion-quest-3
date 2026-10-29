@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "692ae492422d5d10c6ee81016d0ddeb9c257a774623bf7b26345b7c61da20020",
+  "entry": [
+    {
+      "action": "say",
+      "text": "분류가 바뀌면 번호가 1부터 다시 시작해야 해요. OVER 안에 PARTITION BY를 더해요.",
+      "target": "text:창에 PARTITION BY를 더해 분류마다 번호를 1부터 다시 매기세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1, 2, 3, 4예요. 전체를 한 창으로 번호를 매겼어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "OVER(ORDER BY id)",
+      "after": "OVER(PARTITION BY category ORDER BY id)",
+      "say": "OVER 괄호 맨 앞에 PARTITION BY category를 써요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1, 2, 1, 2예요. B 분류의 ID 3에서 번호가 1로 다시 시작했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 윈도우 함수는 GROUP BY와 달리 행을 줄이지 않아요. 네 행이 그대로 남아요.",
+      "target": "code:PARTITION BY category"
+    }
+  ]
+}

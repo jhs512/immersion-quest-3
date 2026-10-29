@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "7776cb2ff08b74d56bbf87103167f219a51027f7f71b71aa7d145dde48f8bbb5",
+  "entry": [
+    {
+      "action": "say",
+      "text": "묶기 전에 qty가 3 이상인 행만 남겨야 해요. WHERE는 FROM 바로 뒤에 와요.",
+      "target": "text:질의에 WHERE를 더해 qty가 3 이상인 행만 남긴 뒤 분류별로 더하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "A는 6, B는 0이에요. 모든 행을 묶었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "FROM stocks GROUP BY",
+      "after": "FROM stocks WHERE qty >= 3 GROUP BY",
+      "say": "FROM stocks 뒤에 WHERE qty >= 3을 써요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "A의 4만 남았어요. 재고 4인 행만 걸러진 뒤 묶였고, B는 남은 행이 없어 사라졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. HAVING SUM(qty) >= 3은 묶은 뒤 합계로 고르므로 A의 합계 6이 그대로 나와요.",
+      "target": "code:WHERE qty >= 3"
+    }
+  ]
+}

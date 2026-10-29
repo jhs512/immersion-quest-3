@@ -214,6 +214,19 @@ if __name__ == '__main__':
             for prompt in narration_review.prompts({'narration': spec['narration']}):
                 mark = 'ok ' if prompt['text'] in spec.get('review', {}) else 'TODO'
                 print(f"{mark} {spec['title']}: {prompt['text']}")
+            for kind in ('reject', 'accept'):
+                for replacements, reason in spec.get(kind, []):
+                    code = spec['solution']
+                    for before, after in replacements:
+                        if code.count(before) != 1:
+                            print(f"TODO {kind} patch not unique ({code.count(before)}): {spec['title']}: {reason}: {before!r}")
+                            break
+                        code = code.replace(before, after, 1)
+            import narration_openings
+            try:
+                narration_openings.overview_text({'id': 'new', 'title': spec['title'], 'narration': spec['narration']})
+            except ValueError as error:
+                print(f"TODO overview: {error}")
         raise SystemExit
     if args.command in ('apply', 'all'):
         apply(args.key)

@@ -15,7 +15,7 @@
   ],
   "scope": [
     "SQLite 실제 실행과 방언 차이 안내를 함께 제공해요.",
-    "같은 재고 표에서 조건 한 곳씩 더해요."
+    "같은 재고 표에서 집계 함수·GROUP BY·HAVING·WHERE·COUNT(DISTINCT)·RANK·PARTITION BY·누적 창을 질의 한 곳씩 직접 고쳐 써요."
   ],
   "out_of_scope": [
     "공식 시험 DBMS·버전·문항 비중을 확정했다고 주장하지 않아요.",
@@ -90,44 +90,44 @@
           "premise": "stocks에는 ID1/A/재고2/가격10, ID2/A/4/10, ID3/B/미정/5, ID4/B/0/2가 있어요. 같은 자료를 분류하거나 순서대로 읽어요.",
           "steps": [
             {
-              "id": "stp_5bd0f589-2a7b-474b-b2bf-736f896921ff",
-              "title": "전체 행과 알려진 값을 세어요",
+              "id": "stp_d50c150f-99f6-4758-8ab5-e443c7eed37d",
+              "title": "COUNT(*)로 NULL 행까지 모든 행을 세세요",
               "objectives": [
-                "COUNT의 대상에 따른 NULL 제외를 구별해요."
+                "COUNT(*)와 COUNT(열)이 세는 대상을 구별해요."
               ],
-              "core_flow": "## 준비 상태\nstocks에는 ID1/A/재고2/가격10, ID2/A/4/10, ID3/B/미정/5, ID4/B/0/2가 있어요. 같은 자료를 분류하거나 순서대로 읽어요.\nSQLite에서 스텝마다 setup.sql을 새 인메모리 DB에 적용한다. 실제 시험 DBMS를 단정하지 않는다.\n\n## 코드와 결과\n```sql\nSELECT COUNT(*) AS n FROM stocks;\n```\n첫 결과는 `n\n4`다. 별표는 재고가 NULL인 행도 세어요.\n\n## 비교 경험\n`COUNT(*)`를 `COUNT(qty)`로 바꾸면 `n\n3`다. 열을 지정하면 그 열의 NULL은 빼요.\n\n## 복귀와 완료\n처음 코드로 복귀한다. COUNT(*)와 COUNT(열)의 대상이 다를 수 있어요. 선택·짧은 답안 또는 코드 수정을 학생이 직접 제출해야 완료다. 해설만으로 완료하지 않는다."
+              "core_flow": "COUNT(qty)는 NULL을 빼 3이다. COUNT(*)로 고쳐 4를 확인한다. 채점은 NULL 수가 다른 표로도 실행한다."
             },
             {
-              "id": "stp_7bf866e4-1440-4cec-b230-17d32c9b6b4f",
-              "title": "합계와 평균의 분모를 읽어요",
+              "id": "stp_91048228-5603-400f-8c5b-fe188682132f",
+              "title": "SUM으로 알려진 재고의 합계를 구하세요",
               "objectives": [
-                "SUM과 AVG의 NULL 제외를 이해해요."
+                "SUM과 AVG가 NULL을 빼고 계산함을 확인해요."
               ],
-              "core_flow": "## 준비 상태\nstocks에는 ID1/A/재고2/가격10, ID2/A/4/10, ID3/B/미정/5, ID4/B/0/2가 있어요. 같은 자료를 분류하거나 순서대로 읽어요.\nSQLite에서 스텝마다 setup.sql을 새 인메모리 DB에 적용한다. 실제 시험 DBMS를 단정하지 않는다.\n\n## 코드와 결과\n```sql\nSELECT SUM(qty) AS amount FROM stocks;\n```\n첫 결과는 `amount\n6`다. 알려진 값의 합은 육이에요.\n\n## 비교 경험\n`SUM(qty)`를 `AVG(qty)`로 바꾸면 `amount\n2.0`다. 평균은 NULL을 뺀 세 값으로 나누어 이예요.\n\n## 복귀와 완료\n처음 코드로 복귀한다. NULL을 자동으로 영으로 세면 평균의 분모가 달라져요. 선택·짧은 답안 또는 코드 수정을 학생이 직접 제출해야 완료다. 해설만으로 완료하지 않는다."
+              "core_flow": "AVG(qty)는 NULL을 뺀 세 값의 평균 2.0이다. SUM(qty)로 고쳐 6을 확인한다. 채점은 값이 다른 표로도 실행한다."
             },
             {
-              "id": "stp_84cef749-ba19-4d41-9d67-b81cc742a8ce",
-              "title": "같은 분류끼리 모아요",
+              "id": "stp_fb9ab787-743d-41e5-93c1-65b76058fb70",
+              "title": "GROUP BY category로 분류별 합계를 내세요",
               "objectives": [
-                "GROUP BY의 그룹별 집계를 이해해요."
+                "GROUP BY가 같은 값끼리 묶어 묶음마다 한 행을 냄을 확인해요."
               ],
-              "core_flow": "## 준비 상태\nstocks에는 ID1/A/재고2/가격10, ID2/A/4/10, ID3/B/미정/5, ID4/B/0/2가 있어요. 같은 자료를 분류하거나 순서대로 읽어요.\nSQLite에서 스텝마다 setup.sql을 새 인메모리 DB에 적용한다. 실제 시험 DBMS를 단정하지 않는다.\n\n## 코드와 결과\n```sql\nSELECT category, SUM(qty) AS n FROM stocks GROUP BY category ORDER BY category;\n```\n첫 결과는 `category | n\nA | 6\nB | 0`다. 분류별 합계는 에이 육, 비 영이에요.\n\n## 비교 경험\n`SUM(qty)`를 `COUNT(*)`로 바꾸면 `category | n\nA | 2\nB | 2`다. 그룹별 전체 행 수를 세면 둘씩이에요.\n\n## 복귀와 완료\n처음 코드로 복귀한다. 그룹을 만든 뒤 어떤 집계 함수를 쓰는지도 따로 봐요. 선택·짧은 답안 또는 코드 수정을 학생이 직접 제출해야 완료다. 해설만으로 완료하지 않는다."
+              "core_flow": "GROUP BY 없이 SUM하면 전체 한 행이다. GROUP BY category를 더해 A 6, B 0을 확인한다. 채점은 분류가 다른 표로도 실행한다."
             },
             {
-              "id": "stp_2d84191f-6af1-4b64-a8af-fe7c9f28607f",
-              "title": "그룹의 조건으로 고르세요",
+              "id": "stp_e88a60aa-7cb2-4edc-a751-0d31d5f15a32",
+              "title": "HAVING으로 합계가 5 이상인 분류만 남기세요",
               "objectives": [
-                "HAVING의 집계 뒤 조건을 구별해요."
+                "그룹 집계값에 거는 HAVING과 행 조건 WHERE를 구별해요."
               ],
-              "core_flow": "## 준비 상태\nstocks에는 ID1/A/재고2/가격10, ID2/A/4/10, ID3/B/미정/5, ID4/B/0/2가 있어요. 같은 자료를 분류하거나 순서대로 읽어요.\nSQLite에서 스텝마다 setup.sql을 새 인메모리 DB에 적용한다. 실제 시험 DBMS를 단정하지 않는다.\n\n## 코드와 결과\n```sql\nSELECT category, SUM(qty) AS n FROM stocks GROUP BY category HAVING SUM(qty)>=5 ORDER BY category;\n```\n첫 결과는 `category | n\nA | 6`다. 그룹 합계를 본 뒤 에이만 남겼어요.\n\n## 비교 경험\n`HAVING SUM(qty)>=5`를 `HAVING COUNT(*)>=2`로 바꾸면 `category | n\nA | 6\nB | 0`다. 행 개수가 둘 이상인 그룹은 에이와 비 모두예요.\n\n## 복귀와 완료\n처음 코드로 복귀한다. 행 조건은 WHERE, 그룹을 만든 뒤 집계 조건은 HAVING으로 나눠요. 선택·짧은 답안 또는 코드 수정을 학생이 직접 제출해야 완료다. 해설만으로 완료하지 않는다."
+              "core_flow": "GROUP BY category 뒤에 HAVING SUM(qty) >= 5를 더해 A만 남는 것을 확인한다. WHERE qty >= 5는 묶기 전 행을 걸러 결과가 비어 버린다. 채점은 값이 다른 표로도 실행한다."
             },
             {
-              "id": "stp_7155b2a4-71c0-4f85-baf8-3c33bb06ac6d",
-              "title": "행을 거른 뒤 모으세요",
+              "id": "stp_383fb8ad-eca6-4f9c-85f8-89d33a039942",
+              "title": "WHERE로 행을 먼저 거른 뒤 분류별로 더하세요",
               "objectives": [
-                "WHERE가 집계 입력을 바꿈을 이해해요."
+                "WHERE가 묶기 전에 행을 거르는 순서를 확인해요."
               ],
-              "core_flow": "## 준비 상태\nstocks에는 ID1/A/재고2/가격10, ID2/A/4/10, ID3/B/미정/5, ID4/B/0/2가 있어요. 같은 자료를 분류하거나 순서대로 읽어요.\nSQLite에서 스텝마다 setup.sql을 새 인메모리 DB에 적용한다. 실제 시험 DBMS를 단정하지 않는다.\n\n## 코드와 결과\n```sql\nSELECT category, SUM(qty) AS n FROM stocks WHERE qty>=3 GROUP BY category ORDER BY category;\n```\n첫 결과는 `category | n\nA | 4`다. 집계 전에 사가 있는 행만 남아 합계도 사예요.\n\n## 비교 경험\n`WHERE qty>=3`를 `WHERE 1=1`로 바꾸면 `category | n\nA | 6\nB | 0`다. 행 조건을 없애면 전체 자료로 그룹을 만들어요.\n\n## 복귀와 완료\n처음 코드로 복귀한다. 조건을 처리하는 단계가 다르면 같은 숫자를 써도 결과가 달라져요. 선택·짧은 답안 또는 코드 수정을 학생이 직접 제출해야 완료다. 해설만으로 완료하지 않는다."
+              "core_flow": "GROUP BY 앞에 WHERE qty >= 3을 더해 A 합계 4만 남는 것을 확인한다. HAVING으로 쓰면 묶은 뒤 합계로 걸러 A 6이 된다. 채점은 값이 다른 표로도 실행한다."
             }
           ]
         }
@@ -151,36 +151,36 @@
           "premise": "stocks에는 ID1/A/재고2/가격10, ID2/A/4/10, ID3/B/미정/5, ID4/B/0/2가 있어요. 같은 자료를 분류하거나 순서대로 읽어요.",
           "steps": [
             {
-              "id": "stp_48327545-cfb5-4bc0-ac9e-fba78f15aefe",
-              "title": "집계 안의 중복을 구별해요",
+              "id": "stp_f1e5dd63-da05-40de-80ff-d395138e1c5a",
+              "title": "COUNT(DISTINCT category)로 분류 종류 수를 세세요",
               "objectives": [
-                "COUNT DISTINCT와 전체 값 개수를 구별해요."
+                "집계 안의 DISTINCT로 중복 값을 빼고 세요."
               ],
-              "core_flow": "## 준비 상태\nstocks에는 ID1/A/재고2/가격10, ID2/A/4/10, ID3/B/미정/5, ID4/B/0/2가 있어요. 같은 자료를 분류하거나 순서대로 읽어요.\nSQLite에서 스텝마다 setup.sql을 새 인메모리 DB에 적용한다. 실제 시험 DBMS를 단정하지 않는다.\n\n## 코드와 결과\n```sql\nSELECT COUNT(DISTINCT category) AS n FROM stocks;\n```\n첫 결과는 `n\n2`다. 중복을 없애면 에이와 비 두 종류예요.\n\n## 비교 경험\n`COUNT(DISTINCT category)`를 `COUNT(category)`로 바꾸면 `n\n4`다. 중복을 유지하면 분류 값이 있는 네 행이에요.\n\n## 복귀와 완료\n처음 코드로 복귀한다. DISTINCT가 결과 전체에 붙었는지 집계 인수 안에 붙었는지 확인해요. 선택·짧은 답안 또는 코드 수정을 학생이 직접 제출해야 완료다. 해설만으로 완료하지 않는다."
+              "core_flow": "COUNT(category)는 4다. COUNT(DISTINCT category)로 고쳐 2를 확인한다. 채점은 분류 종류가 다른 표로도 실행한다."
             },
             {
-              "id": "stp_f84c654f-64d7-420e-8b96-83f3f8eec1d0",
-              "title": "같은 순위 뒤의 빈 번호를 읽어요",
+              "id": "stp_ee2da5d8-d00b-406f-8718-c78a6e82c039",
+              "title": "RANK로 같은 가격에 같은 순위를 주세요",
               "objectives": [
-                "RANK와 DENSE_RANK의 동점을 구별해요."
+                "RANK·ROW_NUMBER·DENSE_RANK의 동점 처리를 구별해요."
               ],
-              "core_flow": "## 준비 상태\nstocks에는 ID1/A/재고2/가격10, ID2/A/4/10, ID3/B/미정/5, ID4/B/0/2가 있어요. 같은 자료를 분류하거나 순서대로 읽어요.\nSQLite에서 스텝마다 setup.sql을 새 인메모리 DB에 적용한다. 실제 시험 DBMS를 단정하지 않는다.\n\n## 코드와 결과\n```sql\nSELECT id, RANK() OVER(ORDER BY price DESC) AS r FROM stocks ORDER BY id;\n```\n첫 결과는 `id | r\n1 | 1\n2 | 1\n3 | 3\n4 | 4`다. 동점 두 행이 일등이라 다음 순위가 삼이에요.\n\n## 비교 경험\n`RANK()`를 `DENSE_RANK()`로 바꾸면 `id | r\n1 | 1\n2 | 1\n3 | 2\n4 | 3`다. 밀집 순위는 동점 뒤의 번호를 비우지 않아요.\n\n## 복귀와 완료\n처음 코드로 복귀한다. 순위 기준인 price와 결과 표시 순서인 ID 정렬은 별개예요. 선택·짧은 답안 또는 코드 수정을 학생이 직접 제출해야 완료다. 해설만으로 완료하지 않는다."
+              "core_flow": "ROW_NUMBER는 동점에도 1,2,3,4다. RANK()로 고쳐 1,1,3,4를 확인한다. DENSE_RANK는 1,1,2,3이다. 채점은 가격이 다른 표로도 실행한다."
             },
             {
-              "id": "stp_e910888c-b30f-47d7-bdb9-2d0ef1eb83ae",
-              "title": "분류마다 번호를 다시 매겨요",
+              "id": "stp_e87c8362-88d2-4ecf-9abe-2b490028c26b",
+              "title": "PARTITION BY로 분류마다 번호를 다시 매기세요",
               "objectives": [
-                "PARTITION BY의 창 분할을 이해해요."
+                "PARTITION BY가 행을 줄이지 않고 창만 나눔을 확인해요."
               ],
-              "core_flow": "## 준비 상태\nstocks에는 ID1/A/재고2/가격10, ID2/A/4/10, ID3/B/미정/5, ID4/B/0/2가 있어요. 같은 자료를 분류하거나 순서대로 읽어요.\nSQLite에서 스텝마다 setup.sql을 새 인메모리 DB에 적용한다. 실제 시험 DBMS를 단정하지 않는다.\n\n## 코드와 결과\n```sql\nSELECT id, ROW_NUMBER() OVER(PARTITION BY category ORDER BY id) AS r FROM stocks ORDER BY id;\n```\n첫 결과는 `id | r\n1 | 1\n2 | 2\n3 | 1\n4 | 2`다. 에이 안에서 일·이, 비 안에서도 일·이예요.\n\n## 비교 경험\n`PARTITION BY category ORDER BY id`를 `ORDER BY id`로 바꾸면 `id | r\n1 | 1\n2 | 2\n3 | 3\n4 | 4`다. 분할을 빼면 네 행에 이어서 번호를 붙여요.\n\n## 복귀와 완료\n처음 코드로 복귀한다. 윈도우 함수는 GROUP BY처럼 행을 그룹당 한 행으로 줄이는 것이 아니에요. 선택·짧은 답안 또는 코드 수정을 학생이 직접 제출해야 완료다. 해설만으로 완료하지 않는다."
+              "core_flow": "ROW_NUMBER() OVER(ORDER BY id)는 1,2,3,4다. PARTITION BY category를 더해 1,2,1,2를 확인한다. 행 수는 그대로다. 채점은 분류가 다른 표로도 실행한다."
             },
             {
-              "id": "stp_9ff15bee-38b5-458e-9b34-dec3d1467076",
-              "title": "지금 행까지의 합계를 읽어요",
+              "id": "stp_7ee5fdc3-0606-4537-acab-3d5b07fb571f",
+              "title": "창을 고쳐 지금 행까지의 누적 합을 보이세요",
               "objectives": [
-                "누적 창과 전체 창의 범위를 구별해요."
+                "누적 창의 순서와 범위가 각 행의 합계를 정함을 확인해요."
               ],
-              "core_flow": "## 준비 상태\nstocks에는 ID1/A/재고2/가격10, ID2/A/4/10, ID3/B/미정/5, ID4/B/0/2가 있어요. 같은 자료를 분류하거나 순서대로 읽어요.\nSQLite에서 스텝마다 setup.sql을 새 인메모리 DB에 적용한다. 실제 시험 DBMS를 단정하지 않는다.\n\n## 코드와 결과\n```sql\nSELECT id, SUM(qty) OVER(ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS n FROM stocks ORDER BY id;\n```\n첫 결과는 `id | n\n1 | 2\n2 | 6\n3 | 6\n4 | 6`다. 첫 이 다음 육이고 NULL과 영 뒤에도 육이에요.\n\n## 비교 경험\n`AND CURRENT ROW`를 `AND UNBOUNDED FOLLOWING`로 바꾸면 `id | n\n1 | 6\n2 | 6\n3 | 6\n4 | 6`다. 창의 끝을 마지막 행까지 늘리면 모든 행에 전체 합 육이 보여요.\n\n## 복귀와 완료\n처음 코드로 복귀한다. ROWS의 범위와 동점 묶음을 다루는 다른 프레임 규칙을 섞지 않아요. 선택·짧은 답안 또는 코드 수정을 학생이 직접 제출해야 완료다. 해설만으로 완료하지 않는다."
+              "core_flow": "SUM(qty) OVER()는 모든 행에 6이다. OVER(ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)로 고쳐 2,6,6,6을 확인한다. 채점은 값이 다른 표로도 실행한다."
             },
             {
               "id": "stp_e9558bc9-71cf-4b2c-8c02-49866fe04f73",
@@ -214,8 +214,8 @@
     }
   ],
   "grading": [
-    "실제 SQLite 질의·독립 상태·변형 자료로 확인해요.",
-    "표시한 오류도 실제 제약 검사에서 나온 것인지 확인해요.",
+    "직접 쓴 질의를 실제 SQLite로 실행하고, 값·NULL·분류를 바꾼 준비 표 두 개에서도 확인해요.",
+    "결과를 글자로 적거나 비슷한 다른 집계·순위 함수를 쓴 답은 거절해요.",
     "마지막 도전(stp_5c00ddd4-5de1-497b-85d6-15f8c7989885): 시작 답안은 실패해야 해요. 실제 실행 결과 또는 각 서술형 답안 칸을 검사하고 오답과 동등한 정답도 대조해요."
   ],
   "reset": [
@@ -224,7 +224,7 @@
   ],
   "narration": [
     "작은 수정·실행·결과 읽기를 반복해요.",
-    "원래 문제의 코드로 돌아온 뒤 답안을 골라요."
+    "준비 질의의 결과를 먼저 읽고, 한 곳을 고친 뒤 다시 실행해 차이를 짚어요."
   ],
   "verification": [
     "고유 코드·계층·목표·정책·위임 근거와 정확한 해시를 확인해요.",
@@ -243,7 +243,7 @@
   "approval": {
     "status": "approved",
     "by": "사용자의 전체 과정 설계·구현 위임 / user · Codex 경유 MQ3 후속 지시 2026-10-29",
-    "evidence": "2026-10-19 전체 범위 위임. 교육 목표와 고유 코드는 유지하고 수업 제목에 잘못 들어간 마지막 스텝 제목을 올바른 수업 제목으로 바로잡았다. 2026-10-24 사용자: 세 과정 빌드업 감사의 근거 있는 교정(문제 설명 해설, 정밀 강조, 상투 경고 제거, 선수 개념 다리, 점진 예제, 평가 결함)을 계획하고 실행하도록 Claude Code에 위임했어요(Codex 경유). 교육 목표와 교수법은 유지하고 이 문서를 직접 검토했다고 주장하지 않아요. 2026-10-29 사용자(Codex 경유): 「나머지 24개 수업도 제대로 된 도전과제 만들어서, 모든 수업에서 도전과제만 풀어도 클리어되게 해. 클로드가 계획 세우고 배포까지 마무리해.」 그리고 다른 두 과정에도 백엔드의 개선을 적용하라고 했어요. 계획: docs/plans/2026-10-29-final-challenges-all-courses.md. 이 수업에는 새 고유 코드의 마지막 도전 스텝 하나만 더했고 기존 스텝·목표는 그대로예요. 사용자가 이 PRD 파일 자체를 열람했다고 주장하지 않아요.",
-    "content_sha256": "8bca2d37f9a38c193acfe58c45fabed2b6d58acb5488a90c30e078f7402aec65"
+    "evidence": "2026-10-19 전체 범위 위임. 교육 목표와 고유 코드는 유지하고 수업 제목에 잘못 들어간 마지막 스텝 제목을 올바른 수업 제목으로 바로잡았다. 2026-10-24 사용자: 세 과정 빌드업 감사의 근거 있는 교정(문제 설명 해설, 정밀 강조, 상투 경고 제거, 선수 개념 다리, 점진 예제, 평가 결함)을 계획하고 실행하도록 Claude Code에 위임했어요(Codex 경유). 교육 목표와 교수법은 유지하고 이 문서를 직접 검토했다고 주장하지 않아요. 2026-10-29 사용자(Codex 경유): 「나머지 24개 수업도 제대로 된 도전과제 만들어서, 모든 수업에서 도전과제만 풀어도 클리어되게 해. 클로드가 계획 세우고 배포까지 마무리해.」 그리고 다른 두 과정에도 백엔드의 개선을 적용하라고 했어요. 계획: docs/plans/2026-10-29-final-challenges-all-courses.md. 이 수업에는 새 고유 코드의 마지막 도전 스텝 하나만 더했고 기존 스텝·목표는 그대로예요. 사용자가 이 PRD 파일 자체를 열람했다고 주장하지 않아요. 2026-10-29 사용자(Codex 경유): 「정처기 에서도 코딩문제에서는 객관식 다 지우자 에이쓰에서도」 「지우는게 아니라 바꾸자 객관식에서 순수 코딩 문제로」. 코드의 값·식·설정을 고르던 스텝을 직접 코드를 쓰고 실행해 채점하는 스텝으로 바꾸고 새 스텝 코드를 부여했어요(Claude Code, Codex 경유). 순수 이론 문항과 수업·챕터·단원 목표는 그대로예요. 분류: .scratch/coding-conversion-trace-reset/classification.json. 사용자가 이 PRD 파일 자체를 열람했다고 주장하지 않아요.",
+    "content_sha256": "95809d5dcf278995cc0f462072a373ec86982b47c240e6ba407029377f3347d8"
   }
 }

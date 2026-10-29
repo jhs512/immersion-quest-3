@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "5fb24b3ace6b7f15a3562576d66bbe236e0bf8d488d2d7d211757bfc00e146b1",
+  "entry": [
+    {
+      "action": "say",
+      "text": "지금은 모든 행에 전체 합계가 보여요. ID 순서로 지금 행까지의 합만 보이게 창을 고쳐야 해요.",
+      "target": "text:창을 고쳐 ID 순서로 첫 행부터 지금 행까지의 누적 합을 보이세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "모든 행이 6이에요. 빈 OVER()는 전체를 한 창으로 더해요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "OVER()",
+      "after": "OVER(ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)",
+      "say": "OVER 안에 ORDER BY id와 처음부터 지금 행까지의 범위를 써요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2, 6, 6, 6이에요. NULL인 ID 3과 재고 0인 ID 4에서는 누적 합이 그대로예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 창의 ORDER BY는 누적 순서를, 맨 끝 ORDER BY는 결과를 보여 줄 순서만 정해요.",
+      "target": "code:OVER(ORDER BY id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)"
+    }
+  ]
+}
