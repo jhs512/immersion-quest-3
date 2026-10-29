@@ -3,38 +3,31 @@
   "lesson": "courses/redesigned/engineer-c-double-pointers.json",
   "expected_outputs": [
     [
-      "2",
-      "5",
+      "0",
       "2"
     ],
     [
-      "5",
-      "8",
-      "5"
+      "2\n9",
+      "5\n9"
     ],
     [
-      "7\n2",
-      "9\n2",
-      "7\n2"
+      "9\n9",
+      "9\n2"
     ],
     [
-      "7\n2",
+      "9\n9",
+      "9\n2"
+    ],
+    [
       "2\n2",
       "7\n2"
     ],
     [
-      "7",
       "2",
       "7"
     ],
     [
       "2",
-      "7",
-      "2"
-    ],
-    [
-      "5",
-      "7",
       "5"
     ],
     [
@@ -49,6 +42,116 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "    int value = **pp;\n",
+          "    int value = stock;\n"
+        ]
+      ],
+      "reason": "Reading the name directly"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "    int value = **pp;\n",
+          "    int value = 2;\n"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "    **pp = fresh;\n",
+          "    stock = fresh;\n"
+        ]
+      ],
+      "reason": "Writing the name directly"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "    **pp = fresh;\n",
+          "    **pp = 5;\n"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "    *pp = &other;\n",
+          "    **pp = other;\n"
+        ]
+      ],
+      "reason": "Overwriting stock"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "    pp = &q;\n",
+          "    *pp = q;\n"
+        ]
+      ],
+      "reason": "Changing p"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "    *target = other;\n",
+          "    **target = *other;\n"
+        ]
+      ],
+      "reason": "Overwriting stock instead of redirecting"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "    int value = **(pp + 1);\n",
+          "    int value = **pp + 1;\n"
+        ]
+      ],
+      "reason": "Adding to the value"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "    int value = **(pp + 1);\n",
+          "    int value = other;\n"
+        ]
+      ],
+      "reason": "Reading the name directly"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "    int next = *(*pp + 1);\n",
+          "    int next = **pp + 1;\n"
+        ]
+      ],
+      "reason": "Adding to the value"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "    int next = *(*pp + 1);\n",
+          "    int next = bins[1];\n"
+        ]
+      ],
+      "reason": "Ignoring where p starts"
+    },
     {
       "step": 8,
       "replacements": [
@@ -71,6 +174,76 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "    int value = **pp;\n",
+          "    int value = *p;\n"
+        ]
+      ],
+      "reason": "p is *pp"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "    **pp = fresh;\n",
+          "    *p = fresh;\n"
+        ]
+      ],
+      "reason": "p is *pp"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "    *pp = &other;\n",
+          "    p = &other;\n"
+        ]
+      ],
+      "reason": "Writing p directly"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "    pp = &q;\n",
+          "    int **moved = &q;\n    pp = moved;\n"
+        ]
+      ],
+      "reason": "Through another double pointer"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "    *target = other;\n",
+          "    int *next = other;\n    *target = next;\n"
+        ]
+      ],
+      "reason": "Through a local pointer"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "    int value = **(pp + 1);\n",
+          "    int value = *pp[1];\n"
+        ]
+      ],
+      "reason": "Index then dereference"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "    int next = *(*pp + 1);\n",
+          "    int next = (*pp)[1];\n"
+        ]
+      ],
+      "reason": "Index on *pp"
+    },
     {
       "step": 9,
       "replacements": [
