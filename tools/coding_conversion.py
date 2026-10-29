@@ -93,6 +93,10 @@ def apply(key):
     content, prd = load_json(content_path), load_json(prd_path)
     cases_path = ROOT / 'tests/lesson-cases' / f'{key}.json'
     cases = load_json(cases_path)
+    if cases.pop('only_last', False):
+        # A converted lesson is validated step by step: every starter fails, every solution passes and
+        # every narration's real outputs are pinned. Empty entries are filled by `record`.
+        cases['expected_outputs'] = [[] for _ in content['tasks'][:-1]] + cases['expected_outputs']
     ledger = narration_review.load_ledger()
     exceptions_path = ROOT / 'tools/redesigned_lessons/narration-target-exceptions.json'
     exceptions = load_json(exceptions_path)
@@ -193,7 +197,7 @@ def take_outputs(key):
     cases = load_json(cases_path)
     converted = {new_step_id(s['old']) for s in specs_for(key).SPECS}
     for index, step in enumerate(evidence['steps']):
-        if step['id'] in converted:
+        if step['id'] in converted or cases['expected_outputs'][index] == []:
             cases['expected_outputs'][index] = step['teacher_outputs']
             print(f"  step {index + 1}: {step['teacher_outputs']}")
     dump(cases_path, cases)

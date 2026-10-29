@@ -1,14 +1,198 @@
 {
   "course": "tests/fixtures/player-pilot/u/course.json",
   "lesson": "courses/redesigned/engineer-c-conditions.json",
-  "only_last": true,
   "expected_outputs": [
+    [
+      "0",
+      "2"
+    ],
+    [
+      "0",
+      "1"
+    ],
+    [
+      "0\n3",
+      "1\n3"
+    ],
+    [
+      "0",
+      "1",
+      "0"
+    ],
+    [
+      "-1",
+      "0"
+    ],
+    [
+      "0",
+      "1",
+      "2",
+      "1"
+    ],
+    [
+      "0",
+      "1"
+    ],
+    [
+      "2\n1",
+      "2\n2"
+    ],
     [
       "3 1",
       "2 1"
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "    int packs = stock / group;\n",
+          "    int packs = 2;\n"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "    int packs = stock / group;\n",
+          "    int packs = stock % group;\n"
+        ]
+      ],
+      "reason": "Remainder instead of quotient"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "    int left = stock % group;\n",
+          "    int left = 1;\n"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "    int left = stock % group;\n",
+          "    int left = stock - group;\n"
+        ]
+      ],
+      "reason": "Subtracting one group"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "    int can = stock >= group;\n",
+          "    int can = stock == group;\n"
+        ]
+      ],
+      "reason": "Only equal counts"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "    int can = stock >= group;\n",
+          "    int can = 1;\n"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "    int can = stock >= group;\n",
+          "    int can = stock > group;\n"
+        ]
+      ],
+      "reason": "Excluding the boundary"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "    if (stock >= group) {\n        ready = 1;\n    }\n",
+          "    ready = 1;\n"
+        ]
+      ],
+      "reason": "Always on"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "    if (stock >= group) {\n",
+          "    if (stock > group) {\n"
+        ]
+      ],
+      "reason": "Excluding the boundary"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "    } else {\n        packs = 0;\n    }\n",
+          "    }\n    packs = 0;\n"
+        ]
+      ],
+      "reason": "Overwriting after the if"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "    } else {\n        packs = 0;\n    }\n",
+          "    }\n    printf(\"0\");\n    return 0;\n"
+        ]
+      ],
+      "reason": "Printing a typed zero"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "    if (stock) {\n        ready = 1;\n    }\n",
+          "    ready = stock;\n"
+        ]
+      ],
+      "reason": "Copying the stock"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "    if (stock) {\n        ready = 1;\n    }\n",
+          "    ready = 1;\n"
+        ]
+      ],
+      "reason": "Always on"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "        display = group - left;\n",
+          "        display = 2;\n"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "        display = group - left;\n",
+          "        display = left;\n"
+        ]
+      ],
+      "reason": "Showing the leftover"
+    },
     {
       "step": 9,
       "replacements": [
@@ -21,6 +205,76 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "    int packs = stock / group;\n",
+          "    int packs = (stock - stock % group) / group;\n"
+        ]
+      ],
+      "reason": "Removing the remainder first"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "    int left = stock % group;\n",
+          "    int left = stock - stock / group * group;\n"
+        ]
+      ],
+      "reason": "Subtracting the full groups"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "    int can = stock >= group;\n",
+          "    int can = !(stock < group);\n"
+        ]
+      ],
+      "reason": "Negating less-than"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "    if (stock >= group) {\n        ready = 1;\n    }\n",
+          "    if (group <= stock) ready = 1;\n"
+        ]
+      ],
+      "reason": "Without braces, operands swapped"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "    } else {\n        packs = 0;\n    }\n",
+          "    }\n    if (stock < group) {\n        packs = 0;\n    }\n"
+        ]
+      ],
+      "reason": "A second if with the opposite condition"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "    if (stock) {\n",
+          "    if (stock != 0) {\n"
+        ]
+      ],
+      "reason": "Explicit not-zero comparison"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "        display = group - left;\n",
+          "        display = (packs + 1) * group - stock;\n"
+        ]
+      ],
+      "reason": "Next full count minus stock"
+    },
     {
       "step": 9,
       "replacements": [
