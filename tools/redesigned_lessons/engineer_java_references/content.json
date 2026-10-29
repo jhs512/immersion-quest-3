@@ -2,316 +2,194 @@
   "description": "하나의 재고를 함께 보는 이름과 새 대상에 연결한 이름을 구별해요.",
   "tasks": [
     {
-      "id": "stp_68769bbd-f702-41a1-a19b-5880bd011556",
-      "title": "같은 배열을 가리켜요",
-      "goal": "b의 첫 값을7로 바꿨어요.\na의 첫 값은 무엇일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_21b527b4-17cd-46f5-b2c7-a0cb87a49d85",
+      "title": "b를 a와 따로 쓰는 배열로 만드세요",
+      "goal": "재고 배열 a를 b에 대입했어요. 지금은 b[0]을 7로 바꾸면 a[0]도 7이 돼요. 배열 변수에는 배열 자체가 아니라 배열을 가리키는 참조값이 들어 있어서, `b = a`는 같은 배열을 함께 가리키게 해요.\n\nb를 만드는 줄 한 곳을 고쳐 b가 a의 복사본을 갖게 하세요. `a.clone()`은 같은 내용의 새 배열을 만들어요. 채점은 a의 처음 값을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 a[0]과 b[0]이 모두 7로 나오는지 확인하세요.\n2. 코드 흐름 보기를 눌러 a와 b의 화살표가 같은 배열을 가리키는지 보세요.\n3. `int[] b = a;`를 a의 복사본을 담는 줄로 고치세요.\n4. 코드 실행을 눌러 a는 처음 값 2, b는 7과 3으로 나오는지 확인하세요.\n5. 수정한 코드를 제출하세요.",
       "language": "java",
-      "starter_code": "",
-      "solution": "shared",
-      "tests": [],
-      "required": true,
-      "example_code": "public class Main {\n    public static void main(String[] args) {\n        int[] a = {2, 3};\n        // 배열 자체가 아니라 참조값을 복사해요.\n        int[] b = a;\n        b[0] = 7;\n        System.out.println(a[0]);\n    }\n}\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "copied",
-            "text": "2예요"
-          },
-          {
-            "id": "shared",
-            "text": "7이에요"
-          }
-        ],
-        "answer": "shared"
-      },
-      "narration": [
+      "starter_code": "public class Main {\n    public static void main(String[] args) {\n        int[] a = {2, 3};\n        // 이 줄을 고쳐 b가 a의 복사본을 갖게 하세요.\n        int[] b = a;\n        b[0] = 7;\n        System.out.println(a[0]);\n        System.out.println(b[0] + \" \" + b[1]);\n    }\n}\n",
+      "solution": "public class Main {\n    public static void main(String[] args) {\n        int[] a = {2, 3};\n        // 이 줄을 고쳐 b가 a의 복사본을 갖게 하세요.\n        // clone()은 같은 내용의 새 배열을 만들어요. 이제 b를 바꿔도 a는 그대로예요.\n        int[] b = a.clone();\n        b[0] = 7;\n        System.out.println(a[0]);\n        System.out.println(b[0] + \" \" + b[1]);\n    }\n}\n",
+      "tests": [
         {
-          "action": "say",
-          "text": "Java 배열 변수에는 배열이 있는 곳의 참조값이 담겨요. b = a는 그 참조값을 복사해요. b로 바꾼 값이 a에서도 보이는지 고르는 문제예요.",
-          "target": "text:b의 첫 값을7로 바꿨어요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            7,
-            7
-          ]
-        },
-        {
-          "action": "say",
-          "text": "둘이 같은 배열을 보므로 a에서도 7이에요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "int[] b = a;",
-          "after": "int[] b = a.clone();",
-          "say": "이번엔 a.clone()으로 배열 내용을 새 배열에 복사해 볼게요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            7,
-            7
-          ]
-        },
-        {
-          "action": "say",
-          "text": "새 배열을 복사하면 b만 바뀌고 a는 2예요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. int[] b = a;는 배열을 하나 더 만들지 않아요. 같은 배열을 가리키는 이름이 하나 늘었을 뿐이에요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "어떤 이름이 어느 대상을 보는지 그림으로 나눠 봐요.",
-          "target": "output",
-          "diagram": {
-            "title": "같은 배열을 보는 두 이름",
-            "rows": [
-              "a → 배열1 [7, 3]",
-              "b → 배열1 [7, 3]"
-            ]
-          }
-        },
-        {
-          "action": "patch_code",
-          "before": "int[] b = a.clone();",
-          "after": "int[] b = a;",
-          "say": "처음처럼 a의 참조값만 복사하는 줄로 되돌려요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            7,
-            7
-          ]
-        },
-        {
-          "action": "say",
-          "text": "처음 코드에서는 b와 a가 같은 배열이라 a의 첫 값도 7이에요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "shared"
+          "input": "",
+          "expected": "2\n7 3"
         }
       ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_21399b21-7735-4294-bb08-9699cf3dc676",
-      "title": "중첩 배열의 안쪽을 확인해요",
-      "goal": "바깥 배열을 복사했어요.\n안쪽 첫 배열을 바꾸면 원본에서도 보일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "java",
-      "starter_code": "",
-      "solution": "inner",
-      "tests": [],
-      "required": true,
-      "example_code": "public class Main {\n    public static void main(String[] args) {\n        int[][] a = {{2}, {3}};\n        // 바깥 배열만 새로 만들어요.\n        int[][] b = a.clone();\n        b[0][0] = 7;\n        System.out.println(a[0][0]);\n    }\n}\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "inner",
-            "text": "네.7이에요"
+      "variations": [
+        {
+          "values": {
+            "a": "{5, 9}"
           },
-          {
-            "id": "deep",
-            "text": "아니요.언제나2예요"
-          }
-        ],
-        "answer": "inner"
-      },
+          "expected": "5\n7 9"
+        },
+        {
+          "values": {
+            "a": "{0, 8, 1}"
+          },
+          "expected": "0\n7 8"
+        }
+      ],
+      "required": true,
+      "code_flow": true,
       "narration": [
         {
           "action": "say",
-          "text": "2차원 배열은 안쪽 배열들의 참조값을 담은 바깥 배열이에요. 바깥만 복사했을 때 안쪽 배열까지 따로 생기는지가 질문이에요.",
-          "target": "text:바깥 배열을 복사했어요."
+          "text": "재고 배열 a를 b에 대입했어요. b의 첫 칸만 7로 바꿔야 해요.",
+          "target": "text:b를 만드는 줄 한 곳을 고쳐 b가 a의 복사본을 갖게 하세요."
         },
         {
           "action": "run",
           "lines": [
             7,
-            7
-          ]
-        },
-        {
-          "action": "say",
-          "text": "안쪽 첫 배열은 공유해서 원본에서도 7이에요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "b[0][0] = 7;",
-          "after": "b[0] = a[0].clone();\n        b[0][0] = 7;",
-          "say": "b[0]에도 a[0].clone()으로 안쪽 배열을 새로 만들어 넣어 볼게요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            8,
             8
           ]
         },
         {
           "action": "say",
-          "text": "안쪽 배열도 따로 복사하면 원본 2는 그대로예요.",
+          "text": "a[0]도 7이에요. b = a는 배열 자체가 아니라 그 배열의 참조값만 복사했거든요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 바깥 배열의 clone은 안쪽 배열의 참조값만 복사해요. 안쪽까지 나누려면 안쪽도 따로 복사해야 해요.",
-          "target": "output"
+          "text": "코드 흐름 보기에서는 a와 b의 화살표가 배열 하나로 모여요.",
+          "target": "text:코드 흐름 보기를 눌러 a와 b의 화살표가 같은 배열을 가리키는지 보세요."
         },
         {
           "action": "patch_code",
-          "before": "b[0] = a[0].clone();\n        b[0][0] = 7;",
-          "after": "b[0][0] = 7;",
-          "say": "안쪽 복사 줄을 빼고 되돌려요."
+          "before": "        int[] b = a;\n",
+          "after": "        int[] b = a.clone();\n",
+          "say": "a.clone()으로 같은 내용의 새 배열을 만들어 b에 담아요."
         },
         {
           "action": "run",
           "lines": [
             7,
-            7
+            8
           ]
         },
         {
           "action": "say",
-          "text": "처음 코드는 안쪽 배열을 공유해서 원본에서도 7이 보여요.",
+          "text": "a는 처음 값 2 그대로이고 b는 7과 3이에요. b가 a의 내용을 담은 다른 배열이에요.",
           "target": "output"
         },
         {
-          "action": "choose_answer",
-          "id": "inner"
+          "action": "say",
+          "text": "조심하세요. {2, 3}을 b에 직접 적으면 지금은 같아 보여요. 하지만 a가 다른 값이면 복사본이 아니라서 틀려요.",
+          "target": "code:a.clone()"
         }
-      ],
-      "predict_before_run": true
+      ]
     },
     {
-      "id": "stp_3629b57c-f0d1-4afa-86b0-3a15a59ab359",
-      "title": "인수로 받은 대상의 필드를 바꿔요",
-      "goal": "메서드가 전달받은 대상의 count를 바꿔요.\na.count는 무엇일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_aa09eac8-d08a-4f15-9ae4-aa090e8c6274",
+      "title": "안쪽 배열까지 복사해 원본을 지키세요",
+      "goal": "바깥 배열은 새로 만들었지만 그 칸에는 안쪽 배열의 참조값이 그대로 복사돼요. 그래서 지금은 b[0][0]을 7로 바꾸면 a[0][0]도 7이 돼요.\n\n주석 아래 줄에 b의 첫 안쪽 배열을 a[0]의 복사본으로 바꾸는 줄을 쓰세요. 채점은 a의 안쪽 값을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 a[0][0]과 b[0][0]이 모두 7로 나오는지 확인하세요.\n2. 코드 흐름 보기를 눌러 a와 b의 첫 칸이 어느 안쪽 배열을 가리키는지 보세요.\n3. 주석 아래 줄에 `b[0]`에 a의 첫 안쪽 배열 복사본을 담는 줄을 쓰세요.\n4. 코드 실행을 눌러 a는 2, b는 7과 4로 나오는지 확인하세요.\n5. 수정한 코드를 제출하세요.",
       "language": "java",
-      "starter_code": "",
-      "solution": "field",
-      "tests": [],
-      "required": true,
-      "example_code": "class Stock {\n    int count;\n    // 각 객체의 재고 값을 따로 준비해요.\n    Stock(int count) { this.count = count; }\n}\nclass Changes {\n    static void change(Stock value) {\n        // 복사된 참조값으로 같은 객체의 필드를 바꿔요.\n        value.count = 7;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Stock a = new Stock(2);\n        Changes.change(a);\n        System.out.println(a.count);\n    }\n}\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "none",
-            "text": "2예요"
+      "starter_code": "public class Main {\n    public static void main(String[] args) {\n        int[][] a = {{2, 4}, {3}};\n        // 바깥 배열만 새로 만들어요. 안쪽 배열은 아직 a와 함께 써요.\n        int[][] b = a.clone();\n        // 이 주석 아래 줄에 b의 첫 안쪽 배열을 따로 복사하세요.\n        b[0][0] = 7;\n        System.out.println(a[0][0]);\n        System.out.println(b[0][0] + \" \" + b[0][1]);\n    }\n}\n",
+      "solution": "public class Main {\n    public static void main(String[] args) {\n        int[][] a = {{2, 4}, {3}};\n        // 바깥 배열만 새로 만들어요. 안쪽 배열은 아직 a와 함께 써요.\n        int[][] b = a.clone();\n        // 이 주석 아래 줄에 b의 첫 안쪽 배열을 따로 복사하세요.\n        // 안쪽 배열도 clone()해야 b[0]이 a[0]과 다른 배열을 가리켜요.\n        b[0] = a[0].clone();\n        b[0][0] = 7;\n        System.out.println(a[0][0]);\n        System.out.println(b[0][0] + \" \" + b[0][1]);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "2\n7 4"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "a": "{{5, 6}, {3}}"
           },
-          {
-            "id": "field",
-            "text": "7이에요"
-          }
-        ],
-        "answer": "field"
-      },
+          "expected": "5\n7 6"
+        },
+        {
+          "values": {
+            "a": "{{1, 8, 2}, {6}}"
+          },
+          "expected": "1\n7 8"
+        }
+      ],
+      "required": true,
+      "code_flow": true,
       "narration": [
         {
           "action": "say",
-          "text": "메서드에 객체를 넘기면 참조값이 복사돼요. 복사된 참조값으로도 같은 객체의 필드를 고칠 수 있는지 봐요.",
-          "target": "text:메서드가 전달받은 대상의 count를 바꿔요."
+          "text": "바깥 배열은 clone()으로 새로 만들었어요. 그래도 b[0][0]을 바꾸면 a가 바뀌는지 봐요.",
+          "target": "text:바깥 배열은 새로 만들었지만"
         },
         {
           "action": "run",
           "lines": [
-            17,
-            17
+            8,
+            9
           ]
         },
         {
           "action": "say",
-          "text": "같은 객체의 필드를 바꾸어 7이에요.",
+          "text": "a[0][0]도 7이에요. 새 바깥 배열 칸에 같은 안쪽 배열의 참조값이 복사됐거든요.",
           "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "코드 흐름 보기에서 바깥 배열은 둘이지만 첫 칸의 화살표는 같은 안쪽 배열로 가요.",
+          "target": "text:코드 흐름 보기를 눌러 a와 b의 첫 칸이 어느 안쪽 배열을 가리키는지 보세요."
         },
         {
           "action": "patch_code",
-          "before": "value.count = 7;",
-          "after": "value = new Stock(7);",
-          "say": "필드를 고치는 대신 매개변수에 새 객체를 대입해 볼게요."
+          "before": "        // 이 주석 아래 줄에 b의 첫 안쪽 배열을 따로 복사하세요.\n",
+          "after": "        // 이 주석 아래 줄에 b의 첫 안쪽 배열을 따로 복사하세요.\n        b[0] = a[0].clone();\n",
+          "say": "b[0]에 a[0]의 복사본을 담아요. 이 줄은 b[0][0] = 7보다 먼저 와야 해요."
         },
         {
           "action": "run",
           "lines": [
-            17,
-            17
+            9,
+            10
           ]
         },
         {
           "action": "say",
-          "text": "매개변수 이름만 새 객체로 연결하면 호출자는 2를 유지해요.",
+          "text": "a는 2, b는 7과 4예요. 첫 안쪽 배열도 내용을 복사한 별도 배열이에요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 메서드 안에서 new로 만든 객체는 매개변수 이름에만 연결돼요. 호출자의 a는 여전히 처음 객체예요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "value = new Stock(7);",
-          "after": "value.count = 7;",
-          "say": "필드를 고치는 줄로 되돌려요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            17,
-            17
-          ]
-        },
-        {
-          "action": "say",
-          "text": "처음 코드는 a와 같은 객체의 필드를 바꿔 7이에요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "field"
+          "text": "조심하세요. 복사 줄을 b[0][0] = 7 아래에 두면 이미 a까지 바뀐 뒤라 2를 되찾지 못해요.",
+          "target": "code:b[0] = a[0].clone();"
         }
-      ],
-      "predict_before_run": true
+      ]
     },
     {
-      "id": "stp_d3cb6832-b8de-40be-8a87-cebc11821878",
-      "title": "인수 이름만 다시 연결해요",
-      "goal": "새 객체를 반환했지만 받지 않았어요.\na.count는 무엇일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_1099335a-c865-4e92-9d72-d524d1cc39cd",
+      "title": "change가 받은 재고 객체의 count를 바꾸게 하세요",
+      "goal": "Java는 메서드에 인수의 값을 복사해서 넘겨요. 객체를 넘기면 그 객체를 가리키는 참조값이 복사돼서, change 안의 value와 main의 a는 같은 Stock을 가리켜요.\n\nchange 메서드의 한 줄을 고쳐 a가 가리키는 재고의 count를 next로 바꾸세요. 채점은 next를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 a.count가 처음 값 2로 남는지 확인하세요.\n2. 코드 흐름 보기를 눌러 change 안의 value와 main의 a가 처음에 같은 Stock을 가리키는지 보세요.\n3. `value = new Stock(next);`를 value가 가리키는 객체의 count를 바꾸는 줄로 고치세요.\n4. 코드 실행을 눌러 7이 나오는지 확인하세요.\n5. 수정한 코드를 제출하세요.",
       "language": "java",
-      "starter_code": "",
-      "solution": "old",
-      "tests": [],
-      "required": true,
-      "example_code": "class Stock {\n    int count;\n    // 각 객체의 재고 값을 따로 준비해요.\n    Stock(int count) { this.count = count; }\n}\nclass Changes {\n    static Stock replace(Stock value) {\n        // 인수 이름만 새 객체로 연결하고 그 참조값을 반환해요.\n        value = new Stock(9);\n        return value;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Stock a = new Stock(2);\n        Changes.replace(a);\n        System.out.println(a.count);\n    }\n}\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "new",
-            "text": "9예요"
+      "starter_code": "class Stock {\n    int count;\n    // 각 객체의 재고 값을 따로 준비해요.\n    Stock(int count) { this.count = count; }\n}\nclass Changes {\n    static void change(Stock value, int next) {\n        // 이 줄을 고쳐 전달받은 객체의 count를 next로 바꾸세요.\n        value = new Stock(next);\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int next = 7;\n        Stock a = new Stock(2);\n        Changes.change(a, next);\n        System.out.println(a.count);\n    }\n}\n",
+      "solution": "class Stock {\n    int count;\n    // 각 객체의 재고 값을 따로 준비해요.\n    Stock(int count) { this.count = count; }\n}\nclass Changes {\n    static void change(Stock value, int next) {\n        // 이 줄을 고쳐 전달받은 객체의 count를 next로 바꾸세요.\n        // value에는 a와 같은 객체의 참조값이 복사돼 있어요. 그 객체의 필드를 바꿔요.\n        value.count = next;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int next = 7;\n        Stock a = new Stock(2);\n        Changes.change(a, next);\n        System.out.println(a.count);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "7"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "next": "4"
           },
-          {
-            "id": "old",
-            "text": "2예요"
-          }
-        ],
-        "answer": "old"
-      },
+          "expected": "4"
+        },
+        {
+          "values": {
+            "next": "0",
+            "a": "new Stock(9)"
+          },
+          "expected": "0"
+        }
+      ],
+      "required": true,
+      "code_flow": true,
       "narration": [
         {
           "action": "say",
-          "text": "메서드가 새 객체를 만들어 돌려줬지만, 호출하는 줄이 그 값을 받지 않아요. 호출 뒤 a가 무엇을 가리키는지 고르는 문제예요.",
-          "target": "text:새 객체를 반환했지만 받지 않았어요."
+          "text": "change가 a가 가리키는 재고를 next로 바꿔야 해요. 지금은 새 객체를 만들어요.",
+          "target": "text:change 메서드의 한 줄을 고쳐 a가 가리키는 재고의 count를 next로 바꾸세요."
         },
         {
           "action": "run",
@@ -322,14 +200,19 @@
         },
         {
           "action": "say",
-          "text": "호출자의 이름은 아직 처음 객체를 보므로 2예요.",
+          "text": "2가 나와요. value에 새 객체를 연결해도 호출한 쪽의 a는 그대로예요.",
           "target": "output"
         },
         {
+          "action": "say",
+          "text": "코드 흐름 보기에서 change가 시작될 때 value와 a는 같은 Stock을 가리켜요.",
+          "target": "text:코드 흐름 보기를 눌러 change 안의 value와 main의 a가 처음에 같은 Stock을 가리키는지 보세요."
+        },
+        {
           "action": "patch_code",
-          "before": "Changes.replace(a);",
-          "after": "a = Changes.replace(a);",
-          "say": "반환된 참조값을 a에 받아 볼게요."
+          "before": "        value = new Stock(next);\n",
+          "after": "        value.count = next;\n",
+          "say": "value가 가리키는 객체의 count에 next를 넣어요."
         },
         {
           "action": "run",
@@ -340,86 +223,127 @@
         },
         {
           "action": "say",
-          "text": "반환된 참조값을 a에 대입해야 9를 읽어요.",
+          "text": "7이 나와요. value와 a가 같은 객체를 가리키니 a.count도 7이에요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 메서드가 새 객체를 돌려줘도, 그 값을 a에 대입하지 않으면 a는 바뀌지 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "a = Changes.replace(a);",
-          "after": "Changes.replace(a);",
-          "say": "반환값을 받지 않는 처음 호출로 되돌려요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            18,
-            18
-          ]
-        },
-        {
-          "action": "say",
-          "text": "처음 코드는 반환값을 버려서 a는 2예요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "old"
+          "text": "조심하세요. value.count = 7로 숫자를 적으면 next가 바뀐 채점에서 틀려요.",
+          "target": "code:value.count = next;"
         }
-      ],
-      "predict_before_run": true
+      ]
     },
     {
-      "id": "stp_aeb1564a-08f6-4c14-82d8-2da837bde352",
-      "title": "문자열은 새 값을 만들어요",
-      "goal": "b에 느낌표를 붙였어요.\na도 바뀔까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_b793900b-eac0-4930-ba60-130cb78f85b1",
+      "title": "replace가 돌려준 새 객체를 a에 다시 담으세요",
+      "goal": "replace는 매개변수 value에 새 Stock을 연결하고 그 참조값을 반환해요. 매개변수는 호출한 쪽 변수의 복사본이라, 반환값을 받지 않으면 main의 a는 처음 객체를 그대로 가리켜요.\n\nmain의 호출 줄을 고쳐 replace가 돌려준 새 객체를 a에 담으세요. 채점은 fresh를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 a.count가 처음 값 2로 남는지 확인하세요.\n2. 코드 흐름 보기를 눌러 replace가 끝난 뒤 a가 어느 Stock을 가리키는지 보세요.\n3. `Changes.replace(a, fresh);`를 반환값을 a에 대입하는 줄로 고치세요.\n4. 코드 실행을 눌러 9가 나오는지 확인하세요.\n5. 수정한 코드를 제출하세요.",
       "language": "java",
-      "starter_code": "",
-      "solution": "immutable",
-      "tests": [],
-      "required": true,
-      "example_code": "public class Main {\n    public static void main(String[] args) {\n        String a = \"go\";\n        String b = a;\n        // 새 글을 b에만 연결해요.\n        b = b + \"!\";\n        System.out.println(a + \":\" + b);\n    }\n}\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "immutable",
-            "text": "아니요.go:go!예요"
+      "starter_code": "class Stock {\n    int count;\n    // 각 객체의 재고 값을 따로 준비해요.\n    Stock(int count) { this.count = count; }\n}\nclass Changes {\n    static Stock replace(Stock value, int fresh) {\n        // 인수 이름만 새 객체로 연결하고 그 참조값을 반환해요.\n        value = new Stock(fresh);\n        return value;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int fresh = 9;\n        Stock a = new Stock(2);\n        // 이 줄을 고쳐 돌려받은 새 객체를 a에 담으세요.\n        Changes.replace(a, fresh);\n        System.out.println(a.count);\n    }\n}\n",
+      "solution": "class Stock {\n    int count;\n    // 각 객체의 재고 값을 따로 준비해요.\n    Stock(int count) { this.count = count; }\n}\nclass Changes {\n    static Stock replace(Stock value, int fresh) {\n        // 인수 이름만 새 객체로 연결하고 그 참조값을 반환해요.\n        value = new Stock(fresh);\n        return value;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int fresh = 9;\n        Stock a = new Stock(2);\n        // 이 줄을 고쳐 돌려받은 새 객체를 a에 담으세요.\n        // 반환된 새 객체의 참조값을 a에 대입해야 a가 그 객체를 가리켜요.\n        a = Changes.replace(a, fresh);\n        System.out.println(a.count);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "9"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "fresh": "4"
           },
-          {
-            "id": "mutate",
-            "text": "네.go!:go!예요"
-          }
-        ],
-        "answer": "immutable"
-      },
+          "expected": "4"
+        },
+        {
+          "values": {
+            "fresh": "12",
+            "a": "new Stock(1)"
+          },
+          "expected": "12"
+        }
+      ],
+      "required": true,
+      "code_flow": true,
       "narration": [
         {
           "action": "say",
-          "text": "String은 한번 만들면 내용이 바뀌지 않아요. b에 느낌표를 붙이는 것이 같은 글을 고치는지 새 글을 만드는지가 질문이에요.",
-          "target": "text:b에 느낌표를 붙였어요."
+          "text": "replace는 새 재고 객체를 만들어 돌려줘요. a가 그 새 객체를 가리키게 해야 해요.",
+          "target": "text:main의 호출 줄을 고쳐 replace가 돌려준 새 객체를 a에 담으세요."
         },
         {
           "action": "run",
           "lines": [
-            7,
-            7
+            20,
+            20
           ]
         },
         {
           "action": "say",
-          "text": "a는 원래 글, b는 느낌표가 붙은 새 글을 봐요.",
+          "text": "2가 나와요. replace 안의 value만 새 객체로 옮겨 갔고 a는 그대로예요.",
           "target": "output"
         },
         {
+          "action": "say",
+          "text": "코드 흐름 보기에서 replace가 반환한 뒤에도 a의 화살표는 처음 Stock에 남아 있어요.",
+          "target": "text:코드 흐름 보기를 눌러 replace가 끝난 뒤 a가 어느 Stock을 가리키는지 보세요."
+        },
+        {
           "action": "patch_code",
-          "before": "b = b + \"!\";",
-          "after": "b = b + \"!\";\n        a = b;",
-          "say": "b를 만든 뒤 a에도 b의 참조값을 대입해 볼게요."
+          "before": "        Changes.replace(a, fresh);\n",
+          "after": "        a = Changes.replace(a, fresh);\n",
+          "say": "돌려받은 참조값을 a에 대입해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            20,
+            20
+          ]
+        },
+        {
+          "action": "say",
+          "text": "9가 나와요. 이제 a가 replace가 만든 새 객체를 가리켜요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. a.count = 9로 고치면 출력은 같아도 처음 객체를 바꾼 거예요. fresh가 바뀌면 틀려요.",
+          "target": "code:a = Changes.replace(a, fresh);"
+        }
+      ]
+    },
+    {
+      "id": "stp_34f5e742-9fe1-4c44-85a3-337c1f00f950",
+      "title": "a에도 느낌표를 붙인 새 글을 담으세요",
+      "goal": "String은 한 번 만든 글자를 바꾸지 않아요. `b + \"!\"`는 b의 글을 고치지 않고 느낌표가 붙은 새 글을 만들어요. 그래서 b에만 새 글이 담기고 a는 go 그대로예요.\n\n주석 아래 줄에 a에도 느낌표를 붙인 새 글을 담으세요. 채점은 a의 처음 글을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 a는 go, b는 go!로 나오는지 확인하세요.\n2. 주석 아래 줄에 a에 느낌표를 붙인 새 글을 대입하는 줄을 쓰세요.\n3. 코드 실행을 눌러 go!:go!가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "public class Main {\n    public static void main(String[] args) {\n        String a = \"go\";\n        String b = a;\n        // 새 글을 b에만 연결해요.\n        b = b + \"!\";\n        // 이 주석 아래 줄에 a에도 느낌표를 붙인 새 글을 담으세요.\n        System.out.println(a + \":\" + b);\n    }\n}\n",
+      "solution": "public class Main {\n    public static void main(String[] args) {\n        String a = \"go\";\n        String b = a;\n        // 새 글을 b에만 연결해요.\n        b = b + \"!\";\n        // 이 주석 아래 줄에 a에도 느낌표를 붙인 새 글을 담으세요.\n        // String은 바뀌지 않아요. a + \"!\"로 만든 새 글을 a에 다시 대입해요.\n        a = a + \"!\";\n        System.out.println(a + \":\" + b);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "go!:go!"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "a": "\"hi\""
+          },
+          "expected": "hi!:hi!"
+        },
+        {
+          "values": {
+            "a": "\"stock\""
+          },
+          "expected": "stock!:stock!"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "b에 느낌표를 붙였어요. 이번에는 a에도 느낌표가 붙은 글이 담겨야 해요.",
+          "target": "text:주석 아래 줄에 a에도 느낌표를 붙인 새 글을 담으세요."
         },
         {
           "action": "run",
@@ -430,68 +354,68 @@
         },
         {
           "action": "say",
-          "text": "a에도 b의 참조값을 담으면 둘이 새 글을 봐요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. b + \"!\"는 기존 글을 고치지 않고 새 String을 만들어요. b만 새 글을 가리키게 될 뿐이에요.",
+          "text": "go:go!가 나와요. b + \"!\"는 원래 글을 고치지 않고 새 글을 만들어 b에만 담았어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "b = b + \"!\";\n        a = b;",
-          "after": "b = b + \"!\";",
-          "say": "a = b; 줄을 빼고 되돌려요."
+          "before": "        // 이 주석 아래 줄에 a에도 느낌표를 붙인 새 글을 담으세요.\n",
+          "after": "        // 이 주석 아래 줄에 a에도 느낌표를 붙인 새 글을 담으세요.\n        a = a + \"!\";\n",
+          "say": "a + \"!\"로 새 글을 만들어 a에 다시 대입해요."
         },
         {
           "action": "run",
           "lines": [
-            7,
-            7
+            9,
+            9
           ]
         },
         {
           "action": "say",
-          "text": "처음 코드에서 a는 go, b는 go!예요.",
+          "text": "go!:go!예요. a도 새 글을 가리키게 됐어요.",
           "target": "output"
         },
         {
-          "action": "choose_answer",
-          "id": "immutable"
+          "action": "say",
+          "text": "조심하세요. a + \"!\"만 쓰고 a에 대입하지 않으면 새 글은 버려지고 a는 그대로예요.",
+          "target": "code:a = a + \"!\";"
         }
-      ],
-      "predict_before_run": true
+      ]
     },
     {
-      "id": "stp_9c4b39dc-6f37-429b-b730-cb387879d7da",
-      "title": "내용과 같은 대상을 구별해요",
-      "goal": "같은 글로 서로 다른 객체를 만들었어요.\n두 비교의 결과는 무엇일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_eeed5ba0-65f8-4f14-af7e-ee4a8622b32c",
+      "title": "두 글의 내용이 같은지 equals로 출력하세요",
+      "goal": "`new String(\"go\")`를 두 번 써서 같은 글 go를 담은 객체를 두 개 만들었어요. `==`는 두 변수가 같은 객체를 가리키는지 비교하고, `equals`는 글자 내용이 같은지 비교해요.\n\n주석 아래 줄에 두 글의 내용이 같은지 출력하세요. 채점은 b의 글을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 `a == b`의 결과를 확인하세요.\n2. 주석 아래 줄에 equals로 a와 b의 내용을 비교해 출력하는 줄을 쓰세요.\n3. 코드 실행을 눌러 false 다음에 true가 나오는지 확인하세요.\n4. 작성한 코드를 제출하세요.",
       "language": "java",
-      "starter_code": "",
-      "solution": "different",
-      "tests": [],
-      "required": true,
-      "example_code": "public class Main {\n    public static void main(String[] args) {\n        String a = new String(\"go\");\n        String b = new String(\"go\");\n        // 동일한 대상인지와 내용이 같은지 따로 봐요.\n        System.out.println((a == b) + \":\" + a.equals(b));\n    }\n}\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "different",
-            "text": "false:true예요"
+      "starter_code": "public class Main {\n    public static void main(String[] args) {\n        String a = new String(\"go\");\n        String b = new String(\"go\");\n        // 같은 대상인지 비교해요.\n        System.out.println(a == b);\n        // 이 주석 아래 줄에 두 글의 내용이 같은지 출력하세요.\n    }\n}\n",
+      "solution": "public class Main {\n    public static void main(String[] args) {\n        String a = new String(\"go\");\n        String b = new String(\"go\");\n        // 같은 대상인지 비교해요.\n        System.out.println(a == b);\n        // 이 주석 아래 줄에 두 글의 내용이 같은지 출력하세요.\n        // equals는 글자 내용을 비교해요. ==는 같은 객체인지를 봐요.\n        System.out.println(a.equals(b));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "false\ntrue"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "b": "new String(\"no\")"
           },
-          {
-            "id": "equal",
-            "text": "true:true예요"
-          }
-        ],
-        "answer": "different"
-      },
+          "expected": "false\nfalse"
+        },
+        {
+          "values": {
+            "a": "new String(\"ok\")",
+            "b": "new String(\"ok\")"
+          },
+          "expected": "false\ntrue"
+        }
+      ],
+      "required": true,
       "narration": [
         {
           "action": "say",
-          "text": "같은 글 \"go\"로 객체 두 개를 만들었어요. ==와 equals가 각각 무엇을 비교하는지 두 결과로 구별하는 문제예요.",
-          "target": "text:같은 글로 서로 다른 객체를 만들었어요."
+          "text": "같은 글 go로 객체를 두 개 만들었어요. 내용이 같은지도 출력해야 해요.",
+          "target": "text:주석 아래 줄에 두 글의 내용이 같은지 출력하세요."
         },
         {
           "action": "run",
@@ -502,146 +426,104 @@
         },
         {
           "action": "say",
-          "text": "다른 객체라 동일성은 거짓이지만 내용은 같아요.",
+          "text": "false가 나와요. ==는 두 변수가 같은 객체인지 비교하는데 new로 따로 만들었거든요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "String b = new String(\"go\");",
-          "after": "String b = a;",
-          "say": "b가 a와 같은 객체를 가리키게 바꿔 볼게요."
+          "before": "        // 이 주석 아래 줄에 두 글의 내용이 같은지 출력하세요.\n",
+          "after": "        // 이 주석 아래 줄에 두 글의 내용이 같은지 출력하세요.\n        System.out.println(a.equals(b));\n",
+          "say": "a.equals(b)로 글자 내용을 비교해 출력해요."
         },
         {
           "action": "run",
           "lines": [
             6,
-            6
-          ]
-        },
-        {
-          "action": "say",
-          "text": "같은 객체를 가리키게 하면 두 비교 모두 참이에요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. ==는 같은 객체인지, equals는 글 내용이 같은지 봐요. 내용이 같아도 new로 만들면 ==는 false예요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "String b = a;",
-          "after": "String b = new String(\"go\");",
-          "say": "new String으로 따로 만드는 줄로 되돌려요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            6,
-            6
-          ]
-        },
-        {
-          "action": "say",
-          "text": "처음 코드는 다른 객체라 false, 내용은 같아 true예요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "different"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_b2531f88-d023-46a0-9b49-d606db2ad97b",
-      "title": "없는 대상을 먼저 확인해요",
-      "goal": "이름표가 아직 없어요.\n처음 코드에서 길이를 물을까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "java",
-      "starter_code": "",
-      "solution": "skip",
-      "tests": [],
-      "required": true,
-      "example_code": "public class Main {\n    public static void main(String[] args) {\n        String text = null;\n        try {\n            // 값이 없으면 길이를 묻지 않아요.\n            System.out.println(text != null && text.length() > 0);\n        } catch (NullPointerException error) {\n            System.out.println(\"missing\");\n        }\n    }\n}\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "skip",
-            "text": "건너뛰어 false예요"
-          },
-          {
-            "id": "call",
-            "text": "길이를 물어 missing이에요"
-          }
-        ],
-        "answer": "skip"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "text가 null이면 text.length()를 부를 수 없어요. 조건식이 길이를 묻기 전에 멈추는지 판단하는 문제예요.",
-          "target": "text:이름표가 아직 없어요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            8,
             8
           ]
         },
         {
           "action": "say",
-          "text": "왼쪽이 거짓이라 길이를 묻지 않고 false예요.",
+          "text": "false 다음에 true예요. 다른 객체지만 내용은 같아요.",
           "target": "output"
         },
         {
-          "action": "patch_code",
-          "before": "text != null && text.length() > 0",
-          "after": "text != null & text.length() > 0",
-          "say": "&&를 앰퍼샌드 하나짜리 &로 바꿔 볼게요."
+          "action": "say",
+          "text": "조심하세요. 글이 같은지 물을 때 ==를 쓰면 다른 객체라서 false가 나올 수 있어요.",
+          "target": "code:a.equals(b)"
+        }
+      ]
+    },
+    {
+      "id": "stp_9004bf81-6ad3-49fb-8ae9-821dba6eee44",
+      "title": "text가 null이면 길이를 묻지 않게 조건을 고치세요",
+      "goal": "`text`는 아직 어떤 글도 가리키지 않는 null이에요. null에서 `length()`를 부르면 NullPointerException이 나요. `&`는 양쪽을 모두 계산하지만, `&&`는 왼쪽이 false면 오른쪽을 계산하지 않아요.\n\n조건의 연산자 한 곳을 고쳐 text가 null이면 길이를 묻지 않고 false가 나오게 하세요. 채점은 text를 다른 글로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 missing이 나오는지 확인하세요.\n2. 조건의 `&`를 왼쪽이 false면 오른쪽을 건너뛰는 연산자로 고치세요.\n3. 코드 실행을 눌러 false가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "public class Main {\n    public static void main(String[] args) {\n        String text = null;\n        try {\n            // 이 조건을 고쳐 text가 null이면 길이를 묻지 않게 하세요.\n            System.out.println(text != null & text.length() > 0);\n        } catch (NullPointerException error) {\n            System.out.println(\"missing\");\n        }\n    }\n}\n",
+      "solution": "public class Main {\n    public static void main(String[] args) {\n        String text = null;\n        try {\n            // 이 조건을 고쳐 text가 null이면 길이를 묻지 않게 하세요.\n            // &&는 왼쪽이 false면 오른쪽을 실행하지 않아요. null이면 length()를 부르지 않아요.\n            System.out.println(text != null && text.length() > 0);\n        } catch (NullPointerException error) {\n            System.out.println(\"missing\");\n        }\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "false"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "text": "\"go\""
+          },
+          "expected": "true"
+        },
+        {
+          "values": {
+            "text": "\"\""
+          },
+          "expected": "false"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "text가 아직 null이에요. null이면 길이를 묻지 말고 false가 나와야 해요.",
+          "target": "text:조건의 연산자 한 곳을 고쳐 text가 null이면 길이를 묻지 않고 false가 나오게 하세요."
         },
         {
           "action": "run",
           "lines": [
-            8,
+            6,
             8
           ]
         },
         {
           "action": "say",
-          "text": "한 개의 앰퍼샌드는 오른쪽도 계산해서 없는 대상 호출을 잡았어요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. &&는 왼쪽이 false면 오른쪽을 계산하지 않아요. 그래서 null 확인을 왼쪽에 둬야 길이를 묻지 않아요.",
+          "text": "missing이 나와요. &는 왼쪽이 false여도 오른쪽 text.length()까지 실행해서 예외가 났어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
           "before": "text != null & text.length() > 0",
           "after": "text != null && text.length() > 0",
-          "say": "&&로 되돌려요."
+          "say": "&를 &&로 바꿔요."
         },
         {
           "action": "run",
           "lines": [
-            8,
+            6,
             8
           ]
         },
         {
           "action": "say",
-          "text": "처음 코드는 왼쪽에서 멈춰 길이를 묻지 않고 false예요.",
+          "text": "false가 나와요. 왼쪽이 false라서 &&가 오른쪽을 건너뛰었어요.",
           "target": "output"
         },
         {
-          "action": "choose_answer",
-          "id": "skip"
+          "action": "say",
+          "text": "조심하세요. 두 조건의 순서를 바꿔 text.length()를 앞에 두면 &&여도 먼저 예외가 나요.",
+          "target": "code:text != null && text.length() > 0"
         }
-      ],
-      "predict_before_run": true
+      ]
     },
     {
       "id": "stp_1615d484-b23a-4557-ada9-fcf5da81a21c",

@@ -3,37 +3,30 @@
   "lesson": "courses/redesigned/engineer-java-references.json",
   "expected_outputs": [
     [
-      "7",
+      "7\n7 3",
+      "2\n7 3"
+    ],
+    [
+      "7\n7 4",
+      "2\n7 4"
+    ],
+    [
       "2",
       "7"
     ],
     [
-      "7",
       "2",
-      "7"
-    ],
-    [
-      "7",
-      "2",
-      "7"
-    ],
-    [
-      "2",
-      "9",
-      "2"
+      "9"
     ],
     [
       "go:go!",
-      "go!:go!",
-      "go:go!"
-    ],
-    [
-      "false:true",
-      "true:true",
-      "false:true"
+      "go!:go!"
     ],
     [
       "false",
+      "false\ntrue"
+    ],
+    [
       "missing",
       "false"
     ],
@@ -49,6 +42,176 @@
   ],
   "reject": [
     {
+      "step": 1,
+      "replacements": [
+        [
+          "        int[] b = a.clone();\n",
+          "        int[] b = {2, 3};\n"
+        ]
+      ],
+      "reason": "Writing the same values instead of copying a"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "        int[] b = a.clone();\n",
+          "        int[] b = a;\n"
+        ]
+      ],
+      "reason": "Still sharing the array"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "        System.out.println(a[0]);\n",
+          "        System.out.println(2);\n"
+        ]
+      ],
+      "reason": "Printing a typed value"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "        b[0] = a[0].clone();\n",
+          "        b[0] = new int[]{2, 4};\n"
+        ]
+      ],
+      "reason": "Typed inner values instead of a copy"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "        b[0] = a[0].clone();\n",
+          "        b = a;\n"
+        ]
+      ],
+      "reason": "Sharing everything again"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "        value.count = next;\n",
+          "        value.count = 7;\n"
+        ]
+      ],
+      "reason": "Typed 7 instead of next"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "        System.out.println(a.count);\n",
+          "        System.out.println(7);\n"
+        ]
+      ],
+      "reason": "Printing a typed value"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "        value.count = next;\n",
+          "        value = new Stock(next);\n"
+        ]
+      ],
+      "reason": "Rebinding the parameter only"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "        a = Changes.replace(a, fresh);\n",
+          "        a.count = 9;\n"
+        ]
+      ],
+      "reason": "Changing the first object with a typed value"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "        a = Changes.replace(a, fresh);\n",
+          "        a = new Stock(9);\n"
+        ]
+      ],
+      "reason": "A new object with a typed value"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "        a = Changes.replace(a, fresh);\n",
+          "        Changes.replace(a, fresh);\n"
+        ]
+      ],
+      "reason": "Ignoring the return value"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "        a = a + \"!\";\n",
+          "        a = \"go!\";\n"
+        ]
+      ],
+      "reason": "Typed text instead of building from a"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "        System.out.println(a + \":\" + b);\n",
+          "        System.out.println(\"go!:go!\");\n"
+        ]
+      ],
+      "reason": "Printing typed text"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "        System.out.println(a.equals(b));\n",
+          "        System.out.println(true);\n"
+        ]
+      ],
+      "reason": "Printing a typed true"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "        System.out.println(a.equals(b));\n",
+          "        System.out.println(a.length() == b.length());\n"
+        ]
+      ],
+      "reason": "Comparing only the length"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "            System.out.println(text != null && text.length() > 0);\n",
+          "            System.out.println(false);\n"
+        ]
+      ],
+      "reason": "Printing a typed false"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "text != null && text.length() > 0",
+          "text.length() > 0 && text != null"
+        ]
+      ],
+      "reason": "Wrong order still calls length() on null"
+    },
+    {
       "step": 9,
       "replacements": [
         [
@@ -60,6 +223,96 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "        int[] b = a.clone();\n",
+          "        int[] b = java.util.Arrays.copyOf(a, a.length);\n"
+        ]
+      ],
+      "reason": "Arrays.copyOf is also a copy"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "        b[0] = a[0].clone();\n",
+          "        b[0] = java.util.Arrays.copyOf(a[0], a[0].length);\n"
+        ]
+      ],
+      "reason": "Arrays.copyOf of the inner array"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "        value.count = next;\n",
+          "        value.count = value.count - value.count + next;\n"
+        ]
+      ],
+      "reason": "Same field update written differently"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "        a = Changes.replace(a, fresh);\n",
+          "        Stock replaced = Changes.replace(a, fresh);\n        a = replaced;\n"
+        ]
+      ],
+      "reason": "Through a local variable"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "        a = a + \"!\";\n",
+          "        a = b;\n"
+        ]
+      ],
+      "reason": "a may point to the same new text as b"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "        a = a + \"!\";\n",
+          "        a = a.concat(\"!\");\n"
+        ]
+      ],
+      "reason": "concat also returns a new String"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "        System.out.println(a.equals(b));\n",
+          "        System.out.println(b.equals(a));\n"
+        ]
+      ],
+      "reason": "equals is symmetric here"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "        System.out.println(a.equals(b));\n",
+          "        System.out.println(java.util.Objects.equals(a, b));\n"
+        ]
+      ],
+      "reason": "Objects.equals compares content"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "text != null && text.length() > 0",
+          "text != null && !text.isEmpty()"
+        ]
+      ],
+      "reason": "isEmpty after the null guard"
+    },
     {
       "step": 9,
       "replacements": [
