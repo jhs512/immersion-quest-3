@@ -65,7 +65,8 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
         } else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("interaction-example") {include_str!("../tools/player-pilot-example.js").to_owned()} else {format!("window.mq3FirstGitOnly={};window.mq3IncludeGitBranch={};{}",matches!(std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref(),Some("git-first"|"git-lessons")),std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()!=Some("git-first"),include_str!("../tools/player-pilot-native.js"))};
         let mut bridge = document::eval(&script);
         let mut progress_lock:Option<rusqlite::Connection>=None;
-        let budget=if matches!(std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref(),Some("auto-review"|"auto-state")){1500}else{480};
+        // aice-plots: eleven matplotlib coding steps, each run by the teacher and graded several times.
+        let budget=if matches!(std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref(),Some("auto-review"|"auto-state")){1500}else if std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref()==Some("aice-plots"){1200}else{480};
         let result = match tokio::time::timeout(std::time::Duration::from_secs(budget), async {
             loop {
                 let message=bridge.recv::<serde_json::Value>().await?;

@@ -7,7 +7,7 @@ fn verify(mode:&str,count:usize) {
     let mut command=std::process::Command::new(env!("CARGO_BIN_EXE_molip-quest"));
     native_player::configure(&session,&mut command,mode);
     command.env("MOLIP_PILOT_SELF_TEST",mode);
-    let status=native_player::wait(&mut command.spawn().unwrap(),480,mode);
+    let status=native_player::wait(&mut command.spawn().unwrap(),if mode=="aice-plots"{1260}else{480},mode);
     let raw=std::fs::read_to_string("target/pilot-native-result.json").unwrap();
     std::fs::write(format!("target/pilot-{mode}-result.json"),&raw).unwrap();
     let result:serde_json::Value=serde_json::from_str(&raw).unwrap();
@@ -25,7 +25,7 @@ fn verify(mode:&str,count:usize) {
     let passed:std::collections::HashSet<_>=events.iter().filter(|event|event.kind==EventKind::Attempt&&event.passed).filter_map(|event|event.task_id.as_ref()).collect();
     assert_eq!(passed.len(),count);
     assert_eq!(events.iter().filter(|event|event.kind==EventKind::Completed).count(),1);
-    assert_eq!(events.iter().filter(|event|event.kind==EventKind::ExampleRun).count(),if matches!(mode,"aice-plots"|"java-react"|"java-tailwind") {1}else{0});
+    assert_eq!(events.iter().filter(|event|event.kind==EventKind::ExampleRun).count(),if matches!(mode,"java-react"|"java-tailwind") {1}else{0});
 }
 
 #[test]
@@ -58,7 +58,7 @@ fn engineer_c_pointers_restore_student_state() {verify("engineer-c-pointers",10)
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn aice_plots_restore_student_state() {verify("aice-plots",10)}
+fn aice_plots_restore_student_state() {verify("aice-plots",11)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]

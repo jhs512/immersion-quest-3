@@ -13,11 +13,13 @@
   await click('학습 시작');
   await wait(()=>document.querySelector('.cm-content')&&document.querySelectorAll('.study-navigation button').length===11,'plots lesson opened');
   await new Promise(r=>setTimeout(r,200));
-  for(const selector of ['.repository-header','.cm-editor','.answer-interaction']){
+  // The plots lesson is now all coding steps: header, task, code editor and its run/grading pane.
+  if(document.querySelector('.answer-interaction'))throw Error('The converted coding step still shows answer choices');
+  for(const selector of ['.repository-header','.problem-pane','.cm-editor','.result-pane']){
    const r=document.querySelector(selector).getBoundingClientRect();
    if(r.width<=0||r.height<=0||r.right>innerWidth+1||r.left<0)throw Error(`${selector}: ${JSON.stringify(r.toJSON())}`);
   }
-  checked.push(`${mq3LoadingLesson.revision} renders header, code and choices within viewport`);
+  checked.push(`${mq3LoadingLesson.revision} renders header, task, code and result pane within viewport`);
   if(!document.querySelector('.repository-header .app-window-controls')||!document.querySelector('.repository-header .content-update-controls'))throw Error('Settings are outside the shared row');
   await wait(()=>document.getElementById('lesson-info-dialog'),'information dialog mounted');
   document.querySelector('.lesson-info-trigger').click();
