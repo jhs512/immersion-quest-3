@@ -44,6 +44,33 @@ class TeacherHighlightTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, '없는 보기'):
             compiler.validate_highlights(task)
 
+    def test_a_code_flow_step_names_a_line_of_the_code_at_that_moment(self):
+        code = 'public class Main {\n    public static void main(String[] args) {\n        int a = 1;\n    }\n}\n'
+        flow = {'action': 'code_flow', 'line': 3, 'event': 'step_line', 'target': 'flow_memory', 'say': 'a가 생겨요.'}
+        task = {'language': 'java', 'code_flow': True, 'starter_code': code,
+                'narration': [flow, {'action': 'code_flow', 'close': True}]}
+        compiler.validate_highlights(task)
+        for broken, message in [({'line': 4}, '없는 줄'), ({'line': 9}, '없는 줄'), ({'event': 'jump'}, '단계 종류'),
+                                ({'nth': 0}, '1 이상'), ({'say': ' '}, '문장'), ({'target': 'output'}, '화면의 한 곳'),
+                                ({'lines': [3, 3]}, '항목')]:
+            task['narration'][0] = flow | broken
+            with self.assertRaisesRegex(ValueError, message):
+                compiler.validate_highlights(task)
+        task['narration'][0] = flow
+        for step in ({'code_flow': False}, {'language': 'python'}):
+            with self.assertRaisesRegex(ValueError, '코드 흐름 보기가 없는'):
+                compiler.validate_highlights(task | step)
+        task['narration'][1] = {'action': 'code_flow', 'close': True, 'line': 3}
+        with self.assertRaisesRegex(ValueError, '닫기'):
+            compiler.validate_highlights(task)
+
+    def test_a_code_flow_step_follows_the_teacher_patch(self):
+        code = 'public class Main {\n    public static void main(String[] args) {\n        int a = 1;\n    }\n}\n'
+        task = {'language': 'java', 'code_flow': True, 'starter_code': code, 'narration': [
+            {'action': 'patch_code', 'before': '        int a = 1;\n', 'after': '        int a = 1;\n        int b = a;\n'},
+            {'action': 'code_flow', 'line': 4, 'say': 'b가 생기기 직전이에요.'}]}
+        compiler.validate_highlights(task)
+
     def test_a_caption_only_sentence_needs_a_reviewed_record_that_is_not_stale(self):
         tasks = [{'id': 'stp_a', 'narration': [{'action': 'say', 'text': '일반 주의예요.'}]}]
         with self.assertRaisesRegex(ValueError, '강조 대상이 없는'):

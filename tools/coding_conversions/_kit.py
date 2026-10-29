@@ -79,6 +79,20 @@ class Script:
         self.actions.append(set_input(value))
         return self
 
+    def flow(self, needle, spoken, event=None, nth=1, target='flow_memory', occurrence=1):
+        """Open 코드 흐름 보기 on the code as it is now (a real JDK 25 trace in the app) and show the nth
+        recorded step on the line holding `needle`, then say what that step shows. The validator replays
+        the trace and fails when the step does not exist; the next non-flow action closes the view."""
+        action = {'action': 'code_flow', 'line': line_of(self.code, needle, occurrence)}
+        if event:
+            action['event'] = event
+        if nth != 1:
+            action['nth'] = nth
+        action['target'] = target
+        action['say'] = spoken
+        self.actions.append(action)
+        return self
+
 
 def _sql_statements(sql):
     import sqlite3

@@ -1225,8 +1225,10 @@ if let Some(start)=autostart {
                     }
                     // 코드 흐름 보기 (crate::java_trace): the steps of the code now in the editor. It never
                     // grades, records progress or changes the editor; closing returns to the same screen.
+                    // A narration's `code_flow` action presses it too (the teacher's code, as its 코드 실행
+                    // runs it); the explanation session already blocks the learner's own clicks meanwhile.
                     if task.code_flow&&task.language==repository_course::TaskLanguage::Java&&task.git_terminal.is_none() {
-                    button {class:"code-flow-open",title:"지금 편집기의 코드를 한 줄씩 실행하며 호출 스택·변수·객체를 봐요. 채점과는 별개예요.",disabled:busy()||narrating(),onclick:move |_|{
+                    button {class:"code-flow-open",title:"지금 편집기의 코드를 한 줄씩 실행하며 호출 스택·변수·객체를 봐요. 채점과는 별개예요.",disabled:busy(),onclick:move |_|{
                         let source=if has_example{example_source()}else{code()};let input=input();
                         spawn(async move {
                             let mut opened=document::eval("dioxus.send(window.mqCodeFlow?window.mqCodeFlow.loading():-1);");

@@ -173,7 +173,9 @@ n5 = (Script(s5)
              'new Bonus() 다음 줄에서 rule.show()를 불러요.')
       .run('println()')
       .say('07이에요. 생성 중에는 0, 생성이 끝난 뒤에는 7이 나왔어요.', 'output')
-      .say('코드 흐름 보기에서 Rule() 안의 show() 호출이 Bonus.show()로 들어가고 그때 value는 0이에요.', 'text:코드 흐름 보기를 눌러 Rule() 안에서 불린 show()가 value를 몇으로 읽는지 보세요.')
+      .flow('@Override void show()', '코드 흐름 보기로 Rule() 생성자 안의 show() 호출을 열었어요. Bonus의 show()로 들어갔고, 이때 객체의 value는 아직 0이에요.', event='call')
+      .flow('int value = 7;', 'Rule() 생성자가 끝난 뒤에야 Bonus의 필드 초기화 value = 7을 실행해요.', event='step_line', target='flow_line')
+      .flow('rule.show();', 'main에서 rule.show()를 부르기 직전이에요. 이제 객체의 value는 7이에요.', event='step_line')
       .say('조심하세요. 필드 초기화 value = 7은 상위 생성자 Rule()이 끝난 뒤에 실행돼요.', 'code:int value = 7;'))
 
 # ---- 6. 예외를 받는 catch 쓰기 --------------------------------------------------------

@@ -36,8 +36,17 @@
   let teacherResult='',teacherStatus='',requestedRanges=[],shownDiagrams=[],shownPlots=[],shownWeb=false;const originalExplanation=molipAgent.runExplanation.bind(molipAgent);
   const originalHighlight=molipCodeEditors.highlightLines.bind(molipCodeEditors);
   molipCodeEditors.highlightLines=(from,to,...rest)=>{if(Number.isInteger(from))requestedRanges.push([from,to??from]);return originalHighlight(from,to,...rest);};
+  // A narration's code_flow actions: what the trace view really showed when the narration moved it.
+  let flowSeeks=[];
+  const flowLines=text=>String(text).split('\n').map(line=>line.replace(/\s+$/,'')).join('\n').replace(/\n+$/,'');
+  if(window.mqCodeFlow){const seek=window.mqCodeFlow.seek.bind(window.mqCodeFlow);window.mqCodeFlow.seek=target=>{
+   const at=seek(target),dialog=document.getElementById('code-flow-dialog');
+   flowSeeks.push({target,at,narrated:window.mqCodeFlow.state().narrated,modal:!!dialog?.matches(':modal'),domLine:Number(dialog?.querySelector('.tv-line.is-next')?.dataset.line),
+    shown:flowLines([...(dialog?.querySelectorAll('.tv-line .tv-src')??[])].map(node=>node.textContent).join('\n')),editor:flowLines(molipCodeEditors.getValue()),
+    stack:[...(dialog?.querySelectorAll('.tv-frames .tv-frame-title')??[])].map(node=>node.textContent.trim())});
+   return at;};}
   molipAgent.runExplanation=async (actions,options)=>{
-   teacherResult='';teacherStatus='';requestedRanges=[];shownDiagrams=[];shownPlots=[];shownWeb=false;
+   teacherResult='';teacherStatus='';requestedRanges=[];shownDiagrams=[];shownPlots=[];shownWeb=false;flowSeeks=[];
    const observer=new MutationObserver(()=>{const panel=document.querySelector('.narration-memory');if(panel)shownDiagrams.push({title:panel.querySelector('figcaption')?.textContent,rows:[...panel.querySelectorAll('.narration-memory-row')].map(row=>row.textContent.replace(/\s/g,''))});for(const image of document.querySelectorAll('.plot-result img'))if(image.src.startsWith('data:image/png;base64,'))shownPlots.push(image.src);});
    const webObserver=new MutationObserver(()=>{if(document.querySelector('iframe[title="해설 웹 미리보기"]')?.getAttribute('srcdoc'))shownWeb=true;if(document.querySelector('.repository-task')?.dataset.narrating==='true')teacherStatus=document.querySelector('.execution-status')?.textContent+': '+document.querySelector('.output')?.textContent;});
    webObserver.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['srcdoc']});
@@ -54,6 +63,18 @@
     if(wanted&&!requestedRanges.some(actual=>actual[0]===wanted[0]&&actual[1]===wanted[1]))throw Error(`Teacher line highlight was not applied: ${wanted}`);
     if(action.diagram&&!shownDiagrams.some(actual=>actual.title===action.diagram.title&&action.diagram.rows.every((row,index)=>actual.rows[index]===row.replace(/\s/g,''))))throw Error(`Teacher memory diagram was not shown: ${action.diagram.title}`);
    }
+   // Narrated 코드 흐름 보기: each step opened on the teacher's own code, without a modal, on the authored line.
+   const flows=task.narration.filter(action=>action.action==='code_flow'&&!action.close);
+   if(flowSeeks.length!==flows.length)throw Error(`Narration moved the code flow ${flowSeeks.length} times, authored ${flows.length}: ${teacherResult}`);
+   flows.forEach((action,i)=>{
+    const seen=flowSeeks[i];
+    if(!seen.at||seen.at.line!==action.line||seen.domLine!==action.line)throw Error(`Narrated code flow is not on line ${action.line}: ${JSON.stringify(seen)}`);
+    if(!seen.narrated||seen.modal)throw Error('Narrated code flow opened as the modal learner view');
+    if(seen.shown!==seen.editor)throw Error('Narrated code flow shows a different program than the teacher editor');
+    if(!seen.stack.length)throw Error('Narrated code flow shows no call stack');
+   });
+   if(document.getElementById('code-flow-dialog')?.open)throw Error('The narrated code flow stayed open after the narration');
+   return flows.length?`${flows.length} traced steps on lines ${flowSeeks.map(seen=>`${seen.at.line} (${seen.at.step}/${seen.at.steps}, ${seen.stack.join(' > ')})`).join(', ')}`:'';
   };
   for(const [index,task] of pilot.tasks.entries()){
    await wait(()=>document.querySelector('.repository-task')?.dataset.taskId===task.id&&window.molipCodeEditors?.getValue()===prepared(task,task.starter_code)&&(!task.interaction||bridge()?.value===task.starter_code),`step ${index+1}`);
@@ -91,7 +112,9 @@
    }
    await click('해설 재생');await wait(()=>molipAgent.running,'teacher starts');
    await wait(()=>!molipAgent.running&&document.querySelector('.repository-task').dataset.narrating==='false','teacher ends');
-   await wait(()=>molipCodeEditors.getValue()===initialCode&&bridge()?.value===initialAnswer,'student state restored');verifyTeacher(task);
+   await wait(()=>molipCodeEditors.getValue()===initialCode&&bridge()?.value===initialAnswer,'student state restored');
+   const narratedFlow=verifyTeacher(task);
+   if(narratedFlow)checked.push(`${pilot.label} step ${index+1}: narration opened 코드 흐름 보기 on the teacher code and showed ${narratedFlow}, then closed it and restored the learner code`);
    await click('제출');await wait(()=>status('다시 풀어보세요'),'teacher did not solve learner task');
    const modification=pilot.modifications[index];
    if(modification){

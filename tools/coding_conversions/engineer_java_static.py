@@ -96,7 +96,8 @@ n3 = (Script(s3)
       .patch('        Ticket b = a;\n', '        Ticket b = new Ticket();\n', 'new Ticket()으로 두 번째 표를 만들어요.')
       .run('println(Ticket.total)', 'println(a == b)')
       .say('2와 false예요. 생성자가 두 번 실행됐고 a와 b는 다른 객체예요.', 'output')
-      .say('코드 흐름 보기에서 Ticket() 호출이 두 번 지나가며 total이 1, 2로 늘어요.', 'text:코드 흐름 보기를 눌러 Ticket() 생성자가 몇 번 불리는지 세어 보세요.')
+      .flow('Ticket() { total++; }', '코드 흐름 보기로 첫 new Ticket()이 생성자 Ticket()을 부른 단계를 열었어요. static 변수 total은 아직 0이에요.', event='call', target='flow_statics')
+      .flow('Ticket() { total++; }', '두 번째 new Ticket()의 생성자가 끝나는 단계예요. total은 2이고 객체 칸에는 Ticket이 두 개예요.', event='return', nth=2)
       .say('조심하세요. 변수 이름의 개수가 객체 수는 아니에요. 생성자는 new를 쓸 때만 실행돼요.', 'code:Ticket b = new Ticket();'))
 
 # ---- 4. static 초기화 순서 ------------------------------------------------------------

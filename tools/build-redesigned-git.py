@@ -106,6 +106,30 @@ def validate_highlights(task):
     screen = ' '.join([plain(task.get('title', '')), plain(task.get('question', '')), goal, *map(plain, task.get('hints', []))])
     options = {option['id'] for option in (task.get('interaction') or {}).get('options', [])}
     for action in task['narration']:
+        if action['action'] == 'code_flow':
+            # The narration opens 코드 흐름 보기 on the code as it is now and shows the nth recorded step
+            # on `line` (assets/layout/agent.js); the validator replays it on the real trace.
+            if not task.get('code_flow') or task.get('language') != 'java':
+                raise ValueError('코드 흐름 보기가 없는 스텝에서 코드 흐름 해설을 써요.')
+            if action.get('close') is True:
+                if set(action) != {'action', 'close'}:
+                    raise ValueError('코드 흐름 닫기에는 다른 값을 붙이지 않아요.')
+                continue
+            if set(action) - {'action', 'line', 'event', 'nth', 'say', 'target'}:
+                raise ValueError(f'코드 흐름 해설의 항목을 확인하세요: {sorted(action)}')
+            code_lines = source.splitlines()
+            line = action.get('line')
+            if type(line) is not int or not 1 <= line <= len(code_lines) or code_lines[line - 1].strip() in ('', '{', '}', '};'):
+                raise ValueError(f'코드 흐름 해설이 현재 코드에 없는 줄을 가리켜요: {line}')
+            if action.get('event') not in (None, 'call', 'step_line', 'return', 'exception'):
+                raise ValueError(f"코드 흐름 단계 종류를 확인하세요: {action.get('event')}")
+            if 'nth' in action and (type(action['nth']) is not int or action['nth'] < 1):
+                raise ValueError('코드 흐름의 몇 번째 단계인지 1 이상으로 적어요.')
+            if not str(action.get('say', '')).strip():
+                raise ValueError('코드 흐름 해설은 보여 주는 단계를 설명하는 문장이 있어야 해요.')
+            if action.get('target', 'flow_line') not in ('flow_line', 'flow_stack', 'flow_objects', 'flow_memory', 'flow_statics'):
+                raise ValueError(f"코드 흐름 해설은 코드 흐름 화면의 한 곳을 가리켜요: {action.get('target')}")
+            continue
         if action['action']=='patch_code' and files is not None:
             if action.get('file') not in files:raise ValueError('해설에서 편집할 파일을 확인하세요.')
             current=action['file'];source=files[current]

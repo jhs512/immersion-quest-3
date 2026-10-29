@@ -128,6 +128,7 @@ async fn validate_with_session(spec: Validation,session:Option<&molip_quest::doc
         let mut input=task.tests.first().map(|case|case.input.clone()).unwrap_or_default();
         let mut outputs=Vec::new();
         let mut images=Vec::new();
+        let mut flow_points=Vec::new();
         for action in &task.narration {
             match action["action"].as_str().ok_or("Narration action is missing")? {
                 "patch_code"=>{
@@ -148,6 +149,23 @@ async fn validate_with_session(spec: Validation,session:Option<&molip_quest::doc
                 "set_input"=>input=action["value"].as_str().ok_or("Missing input value")?.to_owned(),
                 // A demonstration never submits: the player's runExplanation filters submit out.
                 // web_action acts on the live preview; web_checks in the grader cover clicks and input.
+                // 코드 흐름 보기 during the narration: trace the teacher's code as it is now with the app's own
+                // tracer, and require the step the narration moves to (agent.js code_flow, code-flow.js seek).
+                "code_flow" if action["close"]==true=>{},
+                "code_flow"=>{
+                    if !task.code_flow||task.language!=molip_quest::repository_course::TaskLanguage::Java {return Err(format!("{label}: code_flow narration on a step without 코드 흐름 보기"))}
+                    let line=action["line"].as_u64().ok_or("code_flow needs a line")?;
+                    let event=action["event"].as_str();
+                    let nth=action["nth"].as_u64().unwrap_or(1) as usize;
+                    let document:serde_json::Value=serde_json::from_str(&molip_quest::java_trace::trace(&source,&input).await?).map_err(|e|e.to_string())?;
+                    if document["status"]!="ok" {return Err(format!("{label}: code flow of the teacher code ended with {}: {}",document["status"],document["message"]))}
+                    let trace=document["trace"].as_array().cloned().unwrap_or_default();
+                    let index=trace.iter().enumerate().filter(|(_,step)|step["line"].as_u64()==Some(line)&&event.is_none_or(|event|step["event"]==event)).nth(nth.saturating_sub(1)).map(|(index,_)|index)
+                        .ok_or_else(||format!("{label}: the code flow has no step {nth} on line {line} ({event:?})"))?;
+                    let step=&trace[index];
+                    let frames:Vec<_>=step["stack_to_render"].as_array().into_iter().flatten().map(|frame|frame["func_name"].clone()).collect();
+                    flow_points.push(json!({"line":line,"event":step["event"],"step":index+1,"steps":trace.len(),"frames":frames,"locals":step["stack_to_render"].as_array().and_then(|f|f.last()).map(|f|f["encoded_locals"].clone()),"heap":step["heap"].as_object().map(|h|h.len())}));
+                },
                 "say"|"choose_answer"|"fill_answer"|"fill_fields"|"order_answer"|"submit"|"web_action"=>{},
                 action=>return Err(format!("{label}: this validator cannot replay {action}")),
             }
@@ -159,7 +177,9 @@ async fn validate_with_session(spec: Validation,session:Option<&molip_quest::doc
         if let Some(expected)=spec.expected_images.as_ref().filter(|_|!record) {
             if images!=expected[case_index] {return Err(format!("{label}: expected image counts {:?}, got {images:?}",expected[case_index]))}
         }
-        steps.push(json!({"id":task.id,"teacher_outputs":outputs,"teacher_images":images,"grading_cases":report.cases.len()}));
+        let mut evidence=json!({"id":task.id,"teacher_outputs":outputs,"teacher_images":images,"grading_cases":report.cases.len()});
+        if !flow_points.is_empty() {evidence["code_flow"]=json!(flow_points);}
+        steps.push(evidence);
         eprintln!("{label}: passed");
     }
     for rejected in &spec.reject {

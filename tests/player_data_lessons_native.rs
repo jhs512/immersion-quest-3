@@ -16,7 +16,9 @@ fn verify(mode:&str,count:usize) {
     // Each 코드 흐름 보기 step adds one checked item (trace, stepping, output, close).
     let lesson:serde_json::Value=serde_json::from_str(molip_quest::lesson_registry::find(mode).unwrap().lesson).unwrap();
     let code_flow=lesson["tasks"].as_array().unwrap().iter().filter(|task|task["code_flow"]==true).count();
-    assert_eq!(result["checked"].as_array().unwrap().len(),count+edited_examples+code_flow,"{result}");
+    // A step whose narration itself opens 코드 흐름 보기 adds one more (traced lines, closed, learner code restored).
+    let narrated_flow=lesson["tasks"].as_array().unwrap().iter().filter(|task|task["narration"].as_array().into_iter().flatten().any(|action|action["action"]=="code_flow")).count();
+    assert_eq!(result["checked"].as_array().unwrap().len(),count+edited_examples+code_flow+narrated_flow,"{result}");
     let store:serde_json::Value=serde_json::from_slice(&std::fs::read(session.directory().join("pilot-remote.json")).unwrap()).unwrap();
     let events:Vec<_>=store["comments"].as_array().unwrap().iter().flat_map(|comment|molip_quest::issue_progress::parse_events(comment["body"].as_str().unwrap())).collect();
     use molip_quest::issue_progress::EventKind;

@@ -228,6 +228,12 @@
     slides: ['.slides-stage', '.slides-host'],
     xp: ['.learning-xp'],
     title: ['.reading-mission h2', '.problem-pane h2', '.slides-mission h2'],
+    // 코드 흐름 보기 opened by a `code_flow` action: the line about to run, the stack and objects.
+    flow_line: ['#code-flow-dialog .tv-line.is-next', '#code-flow-dialog .tv-code'],
+    flow_stack: ['#code-flow-dialog .tv-frames', '#code-flow-dialog .tv-memory'],
+    flow_objects: ['#code-flow-dialog .tv-heap', '#code-flow-dialog .tv-memory'],
+    flow_memory: ['#code-flow-dialog .tv-memory'],
+    flow_statics: ['#code-flow-dialog .tv-globals', '#code-flow-dialog .tv-frames'],
   };
   const normalize = value => String(value || '').replace(/[`*]/g, '').replace(/\s+/g, ' ').trim();
   // The question numbered N (data-question, set by the Rust side), or the N-th on screen.
@@ -1000,6 +1006,34 @@
       await waitIdle(button,180000,previous,active);
       return '실행 결과:\n' + (workspaceReport() || '(출력 없음)');
     },
+    // 코드 흐름 보기 of the code now in the editor (the teacher's code during a narration), traced by
+    // the app with the lesson's JDK 25 (src/java_trace.rs), then moved to the step the sentence explains:
+    // the nth recorded step on `line` (of `event` if given). {"close":true} closes it. The lesson
+    // validator replays the same rule on the real trace, so a missing step is an authoring error.
+    async code_flow(a, active) {
+      const flow = globalThis.mqCodeFlow;
+      if (!flow) throw new Error('코드 흐름 보기를 쓸 수 없습니다');
+      if (a.close) { flow.closeNarrated(); return '코드 흐름 보기를 닫았습니다.'; }
+      const editor = globalThis.molipCodeEditors?.getValue() ?? null;
+      if (!flow.isOpen() || !flow.state().narrated || flowSource !== editor) {
+        const button = document.querySelector('.repository-task .code-flow-open');
+        if (!button) throw new Error('이 미션에는 코드 흐름 보기가 없습니다');
+        const started = Date.now();
+        while (button.disabled && active() && Date.now() - started < 180000) await sleep(40);
+        if (!active()) return '해설이 멈춰 코드 흐름 보기를 열지 않았습니다.';
+        flow.narrate();
+        button.click();
+        flowSource = editor;
+        await sleep(40);
+        while (active() && flow.state().state === 'loading' && Date.now() - started < 180000) await sleep(60);
+        if (!active()) return '해설이 멈췄습니다.';
+        if (flow.state().state !== 'shown') { flowSource = null; throw new Error('코드 흐름을 기록하지 못했습니다: ' + flow.state().message); }
+      }
+      const at = flow.seek({line: Number(a.line), event: a.event || null, nth: Number(a.nth || 1)});
+      if (!at) throw new Error(`코드 흐름에 ${a.line}행${a.event ? ' ' + a.event : ''} ${a.nth || 1}번째 단계가 없습니다`);
+      await sleep(120);
+      return `코드 흐름 ${at.step}/${at.steps}단계 · ${at.line}행`;
+    },
     async submit(a, active) {
       const button = byText('.pane-actions button', '제출');
       if (!button) throw new Error('제출 버튼이 없습니다 (코딩 미션에서만 됩니다)');
@@ -1086,11 +1120,14 @@
     git_graph: () => '#git-demo-terminal + .git-graph-panel',
     choose_answer: a => `answer:${a.id}`, order_answer: () => '.answer-order', fill_answer: () => '[aria-label="빈칸 답안"]',
     web_action: a => `web:${a.read || a.selector}`,
+    code_flow: a => a.close ? null : 'flow_line',
     say: a => a.target || null, set_code: () => 'editor', patch_code: () => 'editor', fill_blanks: () => 'blanks', run: () => 'run', submit: () => 'submit',
     answer_quiz: () => 'quiz', next: () => 'nav', prev: () => 'nav', goto: () => 'missions', next_slide: () => 'slides', finish_slides: () => 'slides',
   };
   let narrationRun = 0;
   let webFocus = '';
+  // The editor text that the narrated 코드 흐름 보기 now shows; another text means a new trace.
+  let flowSource = null;
   // A session owns both its restoration snapshot and its DOM/Git targets.
   class ExplanationSession {
     constructor(root, owner) {
@@ -1119,6 +1156,8 @@
     restore() {
       for (const name of ['click','keydown','beforeinput','paste','drop']) this.root.removeEventListener(name, this.blockInput, true);
       if (!this.current()) return;
+      // A trace the narration opened goes with it; one the learner opened later is theirs.
+      globalThis.mqCodeFlow?.closeNarrated?.();
       if (this.code !== null) globalThis.molipCodeEditors?.setValue(this.code);
       for (const [field, value, checked] of this.fields) {
         if (!field.isConnected) continue;
@@ -1148,7 +1187,7 @@
     const session=new ExplanationSession(root,options.owner);
     explanationSession=session;
     // A demonstration can execute examples, but never submit, advance or grant completion.
-    const allowed = new Set(['vim_wait', 'bash_command', 'vim_open', 'vim_keys', 'write_memo', 'inspect_folder', 'read_memo', 'git_command', 'git_graph', 'say', 'set_code', 'patch_code', 'type_code', 'set_input', 'run', 'web_action', 'choose_answer', 'order_answer', 'fill_answer']);
+    const allowed = new Set(['vim_wait', 'bash_command', 'vim_open', 'vim_keys', 'write_memo', 'inspect_folder', 'read_memo', 'git_command', 'git_graph', 'say', 'set_code', 'patch_code', 'type_code', 'set_input', 'run', 'web_action', 'choose_answer', 'order_answer', 'fill_answer', 'code_flow']);
     try { return await run(Array.isArray(actions) ? actions.filter(action => allowed.has(action?.action)) : [], true); }
     finally { if (explanationSession === session) restoreExplanation(); }
   }
@@ -1185,6 +1224,14 @@
         const handler = handlers[name];
         if (!handler) { lines.push(`${i + 1}. ${name}: 모르는 동작입니다 (가능: ${Object.keys(handlers).join(', ')})`); continue; }
         try {
+          // A narrated trace covers the editor: any other action (an edit, a run, a sentence about the
+          // screen) closes it first. A code_flow action shows its step first and then explains it.
+          if (name !== 'code_flow') globalThis.mqCodeFlow?.closeNarrated?.();
+          const shownFirst = name === 'code_flow' && !action.close;
+          if (shownFirst) {
+            lines.push(`${i + 1}. ${name}: ${await handler(action, active)}`);
+            if (!active()) break;
+          }
           if(name==='web_action')webFocus=action.read || action.selector || '';
           // CSS explanations often name the selector in the highlighted code.
           // Follow that exact selector when the next sentence describes its result.
@@ -1206,7 +1253,7 @@
             await speak(sentence);
           }
           if (!active()) break;
-          lines.push(`${i + 1}. ${name}: ${await handler(action, active)}`);
+          if (!shownFirst) lines.push(`${i + 1}. ${name}: ${await handler(action, active)}`);
           if (sentence) await sleep(350);
         } catch (error) {
           lines.push(`${i + 1}. ${name}: 오류 - ${error && error.message ? error.message : error}`);
@@ -1215,6 +1262,8 @@
       }
     } finally {
       if (runId === narrationRun) {
+      if (!explanation) globalThis.mqCodeFlow?.closeNarrated?.();
+      flowSource = null;
       running = false; paused = false;
       if(forcedVoiceRun===runId)forcedVoiceRun=0;
       stopSpeech();
