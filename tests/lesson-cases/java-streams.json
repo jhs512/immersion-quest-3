@@ -43,6 +43,12 @@
   [
    "3000",
    "5000"
+  ],
+  [
+   "개수: 2\n할인 합계: 0\n최고가: 없음",
+   "개수: 2\n할인 합계: 5300\n최고가: 없음",
+   "개수: 2\n할인 합계: 5300\n최고가: 3000",
+   "개수: 0\n할인 합계: 0\n최고가: 없음"
   ]
  ],
  "reject": [
@@ -205,6 +211,46 @@
     ]
    ],
    "reason": "Overwriting instead of merging"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "long count = prices.stream().filter(price -> price >= minimum).count();",
+     "long count = prices.stream().filter(price -> price > minimum).count();"
+    ]
+   ],
+   "reason": "A price equal to the minimum counts"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     ".max(Integer::compare).map(String::valueOf).orElse(\"없음\");",
+     ".max(Integer::compare).get().toString();"
+    ]
+   ],
+   "reason": "An empty result must not throw"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     ".max(Integer::compare).map(String::valueOf).orElse(\"없음\");",
+     ".max(Integer::compare).map(String::valueOf).orElse(\"0\");"
+    ]
+   ],
+   "reason": "None is not the price 0"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     ".mapToInt(price -> price - 100).sum();",
+     ".mapToInt(price -> price).sum();"
+    ]
+   ],
+   "reason": "Each chosen price is discounted"
   }
  ],
  "accept": [
@@ -287,6 +333,26 @@
     ]
    ],
    "reason": "Explicit merge lambda"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     ".max(Integer::compare).map(String::valueOf).orElse(\"없음\");",
+     ".mapToInt(Integer::intValue).max().stream().mapToObj(String::valueOf).findFirst().orElse(\"없음\");"
+    ]
+   ],
+   "reason": "An OptionalInt route to the same result"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     ".mapToInt(price -> price - 100).sum();",
+     ".map(price -> price - 100).reduce(0, Integer::sum);"
+    ]
+   ],
+   "reason": "reduce with identity 0 sums the same"
   }
  ]
 }

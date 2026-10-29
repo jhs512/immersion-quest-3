@@ -1,0 +1,87 @@
+{
+  "by": "hand",
+  "source_sha256": "747d4fb97878d190678334b8c748d301325a97bac77ebe1d7405389b47b747a3",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 새 배송 두 종류의 배송비를 하위 클래스에서 바로잡아요. 영수증 코드는 그대로예요.",
+      "target": "text:Delivery와 receipt는 고치지 않아요."
+    },
+    {
+      "action": "say",
+      "text": "main은 변수 타입이 늘 Delivery예요. 실제 객체가 어떤 클래스인지에 따라 fee가 달라져야 해요.",
+      "target": "code:Delivery delivery = of(in.next());"
+    },
+    {
+      "action": "run",
+      "lines": [
+        42,
+        42
+      ]
+    },
+    {
+      "action": "say",
+      "text": "세 영수증 모두 배송비 3000원이에요. 픽업과 특급의 fee가 한 번도 불리지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    // 여기에 배송비가 0원이 되도록 fee를 재정의하세요.",
+      "after": "    @Override int fee(int amount) { return 0; }",
+      "say": "픽업은 같은 모양의 fee를 재정의해 0원을 돌려줘요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        42,
+        42
+      ]
+    },
+    {
+      "action": "say",
+      "text": "픽업 8000원 + 배송비 0원이에요. receipt가 실제 객체 Pickup의 fee를 불렀어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    int fee(long amount) { return 2000; } // 기본 배송비에 2,000원을 더하도록 고치세요.",
+      "after": "    int fee(long amount) { return super.fee((int) amount) + 2000; }",
+      "say": "특급의 본문만 기본 배송비에 2,000원을 더하게 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        42,
+        42
+      ]
+    },
+    {
+      "action": "say",
+      "text": "특급은 여전히 3000원이에요. fee(long)은 매개변수 타입이 달라 재정의가 아니라 새 메서드예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    int fee(long amount) { return super.fee((int) amount) + 2000; }",
+      "after": "    @Override int fee(int amount) { return super.fee(amount) + 2000; }",
+      "say": "@Override를 붙이고 매개변수를 int로 맞춰요. super.fee에 2,000원을 더해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        42,
+        42
+      ]
+    },
+    {
+      "action": "say",
+      "text": "특급 12000원 + 배송비 5000원이에요. 세 영수증이 요구와 같아요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. @Override 없이 매개변수 타입을 바꾸면 컴파일은 되지만 재정의가 아니에요.",
+      "target": "code:@Override int fee(int amount) { return super.fee(amount) + 2000; }"
+    }
+  ]
+}

@@ -47,6 +47,11 @@
   [
    "다음",
    "시작\n다음"
+  ],
+  [
+   "합계: 130\n잘못된 줄: 1",
+   "합계: 120\n잘못된 줄: 0",
+   "합계: 250\n잘못된 줄: 1"
   ]
  ],
  "reject": [
@@ -223,6 +228,36 @@
     ]
    ],
    "reason": "try around the whole loop"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     ", StandardOpenOption.APPEND",
+     ""
+    ]
+   ],
+   "reason": "Overwriting loses the earlier visits"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "today + \"\\n\"",
+     "today"
+    ]
+   ],
+   "reason": "Without a line break the next visit joins this line"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "        for (String line : Files.readAllLines(path, StandardCharsets.UTF_8)) {\n            // 한 줄의 실패가 다음 줄의 계산을 막지 않도록 줄마다 처리해요.\n            try {\n                total += Integer.parseInt(line.strip());\n            } catch (NumberFormatException error) {\n                invalid++;\n            }\n        }",
+     "        try {\n            for (String line : Files.readAllLines(path, StandardCharsets.UTF_8)) {\n                total += Integer.parseInt(line.strip());\n            }\n        } catch (NumberFormatException error) {\n            invalid++;\n        }"
+    ]
+   ],
+   "reason": "One try around the loop stops at the first bad line"
   }
  ],
  "accept": [
@@ -285,6 +320,16 @@
     ]
    ],
    "reason": "IOException also covers the missing file"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "Files.writeString(path, today + \"\\n\", StandardCharsets.UTF_8, StandardOpenOption.APPEND);",
+     "try (var writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8, StandardOpenOption.APPEND)) {\n            writer.write(today + \"\\n\");\n        }"
+    ]
+   ],
+   "reason": "A writer with APPEND keeps the same file"
   }
  ]
 }
