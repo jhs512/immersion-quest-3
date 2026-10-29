@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "0e7dd6267866e25b9db897a2c6cd8a1738832f2f46e89b7eb0be3bcd4da8f33f",
+  "entry": [
+    {
+      "action": "say",
+      "text": "BEGIN으로 시작한 묶음은 COMMIT하면 확정되고 ROLLBACK하면 되돌아가요. COMMIT을 ROLLBACK으로 고쳐야 해요.",
+      "target": "text:마지막 COMMIT을 고쳐 이 변경 묶음을 BEGIN 전으로 되돌리세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "묶음 안에서 9가 보였고, COMMIT 뒤의 표에도 ID 1이 9로 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "COMMIT;\n",
+      "after": "ROLLBACK;\n",
+      "say": "COMMIT을 ROLLBACK으로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "묶음 안에서는 9였지만, ROLLBACK 뒤의 표에서 ID 1은 원래 2예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 묶음 안에서 바뀐 값이 보여도 COMMIT 전까지는 확정된 것이 아니에요.",
+      "target": "code:ROLLBACK;"
+    }
+  ]
+}

@@ -3,34 +3,28 @@
   "lesson": "courses/redesigned/engineer-sql-change.json",
   "expected_outputs": [
     [
-      "n\n5",
-      "n\n4",
-      "n\n5"
+      "id | qty\n1 | 7\n2 | 4\n3 | NULL\n4 | 0",
+      "id | qty\n1 | 2\n2 | 4\n3 | NULL\n4 | 0\n5 | 7"
     ],
     [
-      "id | qty\n1 | 3\n2 | 4\n3 | NULL\n4 | 0",
       "id | qty\n1 | 3\n2 | 5\n3 | NULL\n4 | 1",
       "id | qty\n1 | 3\n2 | 4\n3 | NULL\n4 | 0"
     ],
     [
-      "id\n1\n2\n3",
-      "id\n1\n2\n4",
-      "id\n1\n2\n3"
+      "id | qty\n(행 없음)",
+      "id | qty\n1 | 2\n2 | 4\n3 | NULL"
     ],
     [
-      "qty\n2",
-      "qty\n9",
-      "qty\n2"
+      "qty\n9\n\nid | qty\n1 | 9\n2 | 4\n3 | NULL\n4 | 0",
+      "qty\n9\n\nid | qty\n1 | 2\n2 | 4\n3 | NULL\n4 | 0"
     ],
     [
-      "qty\n3",
-      "qty\n9",
-      "qty\n3"
+      "qty\n9\n\nid | qty\n1 | 2\n2 | 4\n3 | NULL\n4 | 0",
+      "qty\n9\n\nid | qty\n1 | 3\n2 | 4\n3 | NULL\n4 | 0"
     ],
     [
-      "id\n11\n12",
-      "id\n11\n12\n14",
-      "id\n11\n12"
+      "id | qty\n1 | 2\n2 | 4\n3 | NULL\n4 | 0\n11 | 2\n12 | 4\n13 | NULL\n14 | 0",
+      "id | qty\n1 | 2\n2 | 4\n3 | NULL\n4 | 0\n11 | 2\n12 | 4"
     ],
     [
       "id | qty\n1 | 2\n2 | 4\n3 | NULL\n4 | 0"
@@ -46,6 +40,134 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "INSERT INTO stocks VALUES(5, 7);",
+          "INSERT INTO stocks VALUES(5, 7);\nUPDATE stocks SET qty = 7 WHERE id = 1;"
+        ]
+      ],
+      "reason": "Also changing ID 1"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "INSERT INTO stocks VALUES(5, 7);",
+          "INSERT INTO stocks VALUES(5, 2);"
+        ]
+      ],
+      "reason": "Wrong stock"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "WHERE id = 1;",
+          ";"
+        ]
+      ],
+      "reason": "No WHERE"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "SET qty = qty + 1 WHERE id = 1;",
+          "SET qty = 3 WHERE id = 1;"
+        ]
+      ],
+      "reason": "Typing the new value"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "DELETE FROM stocks WHERE qty = 0;",
+          "DELETE FROM stocks WHERE id = 4;"
+        ]
+      ],
+      "reason": "Deleting the id by hand"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "DELETE FROM stocks WHERE qty = 0;",
+          "DELETE FROM stocks WHERE qty = 0 OR qty IS NULL;"
+        ]
+      ],
+      "reason": "Deleting the unknown stock too"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "UPDATE stocks SET qty = 9 WHERE id = 1;\n",
+          ""
+        ],
+        [
+          "ROLLBACK;\n",
+          "COMMIT;\n"
+        ]
+      ],
+      "reason": "Removing the change instead of rolling back"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "ROLLBACK;\n",
+          "COMMIT;\nUPDATE stocks SET qty = 2 WHERE id = 1;\n"
+        ]
+      ],
+      "reason": "Writing the old value back by hand"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "ROLLBACK TO middle;\nCOMMIT;\n",
+          "COMMIT;\n"
+        ]
+      ],
+      "reason": "Committing the 9"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "UPDATE stocks SET qty = 9 WHERE id = 1;\n",
+          ""
+        ],
+        [
+          "ROLLBACK TO middle;\nCOMMIT;\n",
+          "COMMIT;\n"
+        ]
+      ],
+      "reason": "Removing the change instead of rolling back"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "FROM stocks WHERE qty > 0;",
+          "FROM stocks WHERE qty >= 0;"
+        ]
+      ],
+      "reason": "Copying zero stock too"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "INSERT INTO stocks(id, qty) SELECT id + 10, qty FROM stocks WHERE qty > 0;",
+          "INSERT INTO stocks VALUES(11, 2), (12, 4);"
+        ]
+      ],
+      "reason": "Typing the rows"
+    },
     {
       "step": 7,
       "replacements": [
@@ -78,6 +200,66 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "INSERT INTO stocks VALUES(5, 7);",
+          "INSERT INTO stocks(qty, id) VALUES(7, 5);"
+        ]
+      ],
+      "reason": "Named columns in another order"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "SET qty = qty + 1 WHERE id = 1;",
+          "SET qty = 1 + qty WHERE 1 = id;"
+        ]
+      ],
+      "reason": "Operands swapped"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "DELETE FROM stocks WHERE qty = 0;",
+          "DELETE FROM stocks WHERE NOT qty <> 0;"
+        ]
+      ],
+      "reason": "Negated inequality"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "ROLLBACK;\n",
+          "ROLLBACK TRANSACTION;\n"
+        ]
+      ],
+      "reason": "ROLLBACK TRANSACTION"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "ROLLBACK TO middle;\nCOMMIT;\n",
+          "ROLLBACK TO SAVEPOINT middle;\nRELEASE middle;\nCOMMIT;\n"
+        ]
+      ],
+      "reason": "With SAVEPOINT keyword and RELEASE"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "FROM stocks WHERE qty > 0;",
+          "FROM stocks WHERE qty IS NOT NULL AND qty <> 0 AND qty > 0;"
+        ]
+      ],
+      "reason": "Extra but harmless conditions"
+    },
     {
       "step": 11,
       "replacements": [

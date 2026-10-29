@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "dd67120a0657c75a80ef00df2bdac230960c3b0acdb9c1529f99c25ca84816c8",
+  "entry": [
+    {
+      "action": "say",
+      "text": "저장 지점 middle 뒤의 9만 취소하고 3은 확정해야 해요.",
+      "target": "text:ROLLBACK 줄을 고쳐 저장 지점 middle 뒤의 변경만 취소하고, 그 아래에 COMMIT을 써서 확정하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "묶음 안에서는 9였지만, 전체 ROLLBACK이 BEGIN 전으로 되돌려 ID 1은 2예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "ROLLBACK;\n",
+      "after": "ROLLBACK TO middle;\nCOMMIT;\n",
+      "say": "ROLLBACK을 ROLLBACK TO middle로 고치고 아래에 COMMIT을 써요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "ID 1이 3이에요. 저장 지점 뒤의 9만 취소되고 그 앞의 3은 확정됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. ROLLBACK TO 뒤에도 묶음은 끝나지 않아요. COMMIT을 해야 확정돼요.",
+      "target": "code:ROLLBACK TO middle;"
+    }
+  ]
+}
