@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "5827ffb7b19eccad229327d3464e038c41be17279404a6c663abb1256f3e4fc6",
+  "entry": [
+    {
+      "action": "say",
+      "text": "lots의 item_id가 items의 id를 참조하게 선언해야 해요. 그러면 없는 물건의 로트를 거절해요.",
+      "target": "text:schema 문자열의 lots.item_id가 items(id)를 참조하게 선언하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        30,
+        31
+      ]
+    },
+    {
+      "action": "say",
+      "text": "False와 False예요. ID 9인 물건이 없어도 로트를 받아들였어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "\n    item_id INTEGER,",
+      "after": "\n    item_id INTEGER REFERENCES items(id),",
+      "say": "item_id INTEGER 뒤에 REFERENCES items(id)를 써요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        30,
+        31
+      ]
+    },
+    {
+      "action": "say",
+      "text": "True와 False예요. 없는 물건의 로트만 거절했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. SQLite는 PRAGMA foreign_keys=ON일 때만 참조를 검사해요. 준비 코드가 처음에 켜 두었어요.",
+      "target": "code:db.execute(\"PRAGMA foreign_keys=ON\")"
+    }
+  ]
+}

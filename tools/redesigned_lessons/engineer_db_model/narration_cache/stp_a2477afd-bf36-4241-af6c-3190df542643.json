@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "e2878f4f9ea9eeda8495c1e314aa245f792650bd7bec1ba4e6a2472700b35af1",
+  "entry": [
+    {
+      "action": "say",
+      "text": "lots에는 물건 이름 없이 item_id 번호만 있어요. items와 이어 이름을 보여야 해요.",
+      "target": "text:질의에 JOIN을 더해 로트마다 물건 이름을 보이세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "번호와 로트만 나와요. 어떤 물건인지는 items에 있어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "SELECT lots.item_id, lots.batch FROM lots ORDER BY",
+      "after": "SELECT lots.item_id, lots.batch, items.name FROM lots JOIN items ON lots.item_id = items.id ORDER BY",
+      "say": "items.name을 고르고 lots.item_id = items.id로 items를 이어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "로트 1과 2는 pen, 물건 2의 로트도 pen이에요. 이름은 같아도 item_id로 서로 다른 물건이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 이름 글자로 이으면 이름이 같은 pen 두 개가 서로 섞여요.",
+      "target": "code:lots.item_id = items.id"
+    }
+  ]
+}

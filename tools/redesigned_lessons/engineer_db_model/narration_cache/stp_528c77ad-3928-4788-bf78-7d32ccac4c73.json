@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "b21a48c8d796e324a2a55acec886a70c486683c3804a32298b26937197a3e26b",
+  "entry": [
+    {
+      "action": "say",
+      "text": "로트는 물건 번호와 로트 번호의 쌍으로 구별해요. 기본 키를 두 열의 쌍으로 고쳐야 해요.",
+      "target": "text:schema 문자열의 PRIMARY KEY(item_id)를 item_id와 batch의 쌍으로 고치세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        31,
+        32
+      ]
+    },
+    {
+      "action": "say",
+      "text": "True와 True예요. 기본 키가 item_id 하나라 같은 물건의 새 로트도 거절했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "\n    PRIMARY KEY(item_id)\n",
+      "after": "\n    PRIMARY KEY(item_id, batch)\n",
+      "say": "PRIMARY KEY 괄호에 batch를 더해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        31,
+        32
+      ]
+    },
+    {
+      "action": "say",
+      "text": "True와 False예요. 같은 쌍만 거절하고 같은 물건의 새 로트는 받아들여요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. PRIMARY KEY를 열마다 따로 두 번 쓸 수는 없어요. 복합 키는 괄호 하나에 열을 함께 써요.",
+      "target": "code:PRIMARY KEY(item_id, batch)"
+    }
+  ]
+}

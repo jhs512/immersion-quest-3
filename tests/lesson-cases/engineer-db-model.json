@@ -3,44 +3,36 @@
   "lesson": "courses/redesigned/engineer-db-model.json",
   "expected_outputs": [
     [
-      "id | name\n1 | pen\n2 | pen\n3 | book",
-      "name\nbook\npen\npen",
+      "id\n1\n2\n3",
       "id | name\n1 | pen\n2 | pen\n3 | book"
     ],
     [
-      "n\n3",
-      "n\n2",
-      "n\n3"
+      "names\n2",
+      "names | ids\n2 | 3"
     ],
     [
-      "n\n3",
-      "n\n2",
-      "n\n3"
+      "known\n2",
+      "known | rows\n2 | 3"
     ],
     [
       "item_id | batch\n1 | 1\n1 | 2\n2 | 1",
-      "item_id | name\n1 | pen\n1 | pen\n2 | pen"
+      "item_id | batch | name\n1 | 1 | pen\n1 | 2 | pen\n2 | 1 | pen"
     ],
     [
-      "",
-      "n\n4",
-      ""
+      "False\nFalse",
+      "True\nFalse"
     ],
     [
-      "",
-      "n\n4",
-      "",
-      ""
+      "False\nFalse",
+      "True\nFalse"
     ],
     [
-      "",
-      "n\n4",
-      ""
+      "False\nFalse",
+      "True\nFalse"
     ],
     [
-      "",
-      "n\n4",
-      ""
+      "True\nTrue",
+      "True\nFalse"
     ],
     [
       "False\nFalse\nFalse",
@@ -49,6 +41,186 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "SELECT id, name FROM items ORDER BY id;",
+          "SELECT name, id FROM items ORDER BY id;"
+        ]
+      ],
+      "reason": "Columns in another order"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "SELECT id, name FROM items ORDER BY id;",
+          "SELECT 1 AS id, 'pen' AS name;"
+        ]
+      ],
+      "reason": "Typing a row"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "COUNT(DISTINCT id) AS ids",
+          "COUNT(DISTINCT name) AS ids"
+        ]
+      ],
+      "reason": "Counting names twice"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "COUNT(DISTINCT id) AS ids",
+          "3 AS ids"
+        ]
+      ],
+      "reason": "Typing the count"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "COUNT(*) AS rows",
+          "COUNT(stock) AS rows"
+        ]
+      ],
+      "reason": "Only known values"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "COUNT(*) AS rows",
+          "3 AS rows"
+        ]
+      ],
+      "reason": "Typing the count"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "JOIN items ON lots.item_id = items.id",
+          "JOIN items ON lots.batch = items.id"
+        ]
+      ],
+      "reason": "Joining the wrong column"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "FROM lots JOIN items ON lots.item_id = items.id",
+          "FROM lots, items"
+        ]
+      ],
+      "reason": "Every pair without a condition"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "print(rejected(\"INSERT INTO items VALUES(?, 'bag', 1)\", (existing_id,)))\n",
+          "print(True)\n"
+        ],
+        [
+          "\n    id INTEGER PRIMARY KEY,",
+          "\n    id INTEGER,"
+        ]
+      ],
+      "reason": "Printing True without the key"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "\n    id INTEGER PRIMARY KEY,",
+          "\n    id INTEGER UNIQUE,"
+        ],
+        [
+          "    name TEXT NOT NULL,",
+          "    name TEXT NOT NULL UNIQUE,"
+        ]
+      ],
+      "reason": "Unique names reject the new id too"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "print(rejected(\"INSERT INTO items VALUES(?, NULL, 1)\", (new_id,)))\n",
+          "print(True)\n"
+        ],
+        [
+          "\n    name TEXT NOT NULL,",
+          "\n    name TEXT,"
+        ]
+      ],
+      "reason": "Printing True without the constraint"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "\n    name TEXT NOT NULL,",
+          "\n    name TEXT CHECK(name <> ''),"
+        ]
+      ],
+      "reason": "A CHECK that NULL passes"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "print(rejected(\"INSERT INTO lots VALUES(?, 1)\", (missing_id,)))\n",
+          "print(True)\n"
+        ],
+        [
+          "\n    item_id INTEGER REFERENCES items(id),",
+          "\n    item_id INTEGER,"
+        ]
+      ],
+      "reason": "Printing True without the reference"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "\n    item_id INTEGER REFERENCES items(id),",
+          "\n    item_id INTEGER CHECK(item_id < 5),"
+        ]
+      ],
+      "reason": "A range check instead of a reference"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "print(rejected(\"INSERT INTO lots VALUES(?, ?)\", (item, batch + 1)))\n",
+          "print(False)\n"
+        ],
+        [
+          "\n    PRIMARY KEY(item_id, batch)\n",
+          "\n    PRIMARY KEY(item_id)\n"
+        ]
+      ],
+      "reason": "Printing False without the pair key"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "\n    PRIMARY KEY(item_id, batch)\n",
+          "\n    PRIMARY KEY(batch)\n"
+        ]
+      ],
+      "reason": "Only the batch"
+    },
     {
       "step": 9,
       "replacements": [
@@ -71,6 +243,94 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "SELECT id, name FROM items ORDER BY id;",
+          "SELECT items.id, items.name FROM items ORDER BY items.id;"
+        ]
+      ],
+      "reason": "Table-qualified columns"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "COUNT(DISTINCT id) AS ids",
+          "COUNT(*) AS ids"
+        ]
+      ],
+      "reason": "Rows equal ids because id is the primary key"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "COUNT(*) AS rows",
+          "COUNT(id) AS rows"
+        ]
+      ],
+      "reason": "Counting the never-NULL key"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "FROM lots JOIN items ON lots.item_id = items.id",
+          "FROM lots INNER JOIN items ON items.id = lots.item_id"
+        ]
+      ],
+      "reason": "INNER JOIN with operands swapped"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "\n    id INTEGER PRIMARY KEY,",
+          "\n    id INTEGER,"
+        ],
+        [
+          "    stock INTEGER CHECK(stock >= 0)\n);",
+          "    stock INTEGER CHECK(stock >= 0),\n    PRIMARY KEY(id)\n);"
+        ]
+      ],
+      "reason": "Table-level primary key"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "\n    name TEXT NOT NULL,",
+          "\n    name TEXT CHECK(name IS NOT NULL) NOT NULL,"
+        ]
+      ],
+      "reason": "NOT NULL with an extra CHECK"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "\n    item_id INTEGER REFERENCES items(id),",
+          "\n    item_id INTEGER,"
+        ],
+        [
+          "    PRIMARY KEY(item_id, batch)\n);",
+          "    PRIMARY KEY(item_id, batch),\n    FOREIGN KEY(item_id) REFERENCES items(id)\n);"
+        ]
+      ],
+      "reason": "Table-level foreign key"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "\n    PRIMARY KEY(item_id, batch)\n",
+          "\n    PRIMARY KEY(item_id, batch) ON CONFLICT ABORT\n"
+        ]
+      ],
+      "reason": "Explicit default conflict clause"
+    },
     {
       "step": 9,
       "replacements": [

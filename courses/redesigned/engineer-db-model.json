@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_c84b0351-bae9-4d7c-8842-d19c0ee17ad3",
-  "revision": "engineer-db-model-6",
+  "revision": "engineer-db-model-7",
   "title": "DB · 같은 물건을 표와 키로 구별해요",
   "description": "SQLite로 같은 준비 표를 독립 실행해요. 실제 시험 DBMS의 제품 문법은 별도로 구별해요.",
   "objectives": [
@@ -32,27 +32,27 @@
           "premise": "물건 items에는 ID1/2의 pen과 ID3의 book이 있어요. lots는 같은 물건의 로트 번호를 따로 기록해요.",
           "steps": [
             {
-              "id": "stp_b8e2b0df-b86c-4377-b758-bad85d831756",
+              "id": "stp_e303b302-0710-4b9b-93bf-85d08ee40455",
               "objectives": [
-                "행과 열·정렬 기준을 구별해요."
+                "한 행의 열들이 같은 물건의 값임을 확인해요."
               ]
             },
             {
-              "id": "stp_10120cb0-f8e8-40b9-b7ee-f6d40905335f",
+              "id": "stp_1a403d07-272e-41de-9ef5-49bb482e9e4f",
               "objectives": [
-                "후보 식별자의 유일성을 읽어요."
+                "겹칠 수 있는 이름과 물건을 구별하는 ID를 비교해요."
               ]
             },
             {
-              "id": "stp_d5a9be0f-aa9c-4da6-a907-0d1136434970",
+              "id": "stp_3642fa04-6854-4e67-88b4-1b3f5314d122",
               "objectives": [
-                "NULL과 행·열 개수의 차이를 구별해요."
+                "NULL 값이 있어도 행은 있음을 행 수로 확인해요."
               ]
             },
             {
-              "id": "stp_6febadfa-0994-46f4-a8d5-92f32767c21a",
+              "id": "stp_a2477afd-bf36-4241-af6c-3190df542643",
               "objectives": [
-                "외래 키와 참조 대상의 관계를 읽어요."
+                "외래 키 번호로 다른 표의 행을 이어 읽어요."
               ]
             }
           ]
@@ -77,27 +77,27 @@
           "premise": "물건 items에는 ID1/2의 pen과 ID3의 book이 있어요. lots는 같은 물건의 로트 번호를 따로 기록해요.",
           "steps": [
             {
-              "id": "stp_408577f8-70ac-4673-ab29-c637d16c04ec",
+              "id": "stp_9e30e583-de08-4d26-bc0d-1f1f65394612",
               "objectives": [
-                "기본 키가 같은 두 행을 거절함을 이해해요."
+                "기본 키가 같은 ID의 두 번째 행을 실제로 거절함을 확인해요."
               ]
             },
             {
-              "id": "stp_ac2732a0-6c29-4b2f-b2cd-bddb338fa894",
+              "id": "stp_72861f0a-2b2b-4995-9205-7439e0e5a40c",
               "objectives": [
-                "NOT NULL 제약과 빈 문자열을 구별해요."
+                "필수값 제약이 NULL 저장을 실제로 거절함을 확인해요."
               ]
             },
             {
-              "id": "stp_9b281cb9-6312-43d5-a022-e61bee8a8e6f",
+              "id": "stp_e675cf0f-b807-4907-bc03-273ee0f46edf",
               "objectives": [
-                "참조 무결성이 없는 부모 키를 거절함을 이해해요."
+                "외래 키가 없는 부모를 가리키는 행을 실제로 거절함을 확인해요."
               ]
             },
             {
-              "id": "stp_1b02a8fc-876f-422a-849d-ab9f20da3971",
+              "id": "stp_528c77ad-3928-4788-bf78-7d32ccac4c73",
               "objectives": [
-                "복합 키의 유일성 범위를 이해해요."
+                "두 열을 묶은 복합 키가 쌍의 중복만 거절함을 확인해요."
               ]
             }
           ]
@@ -123,804 +123,580 @@
   ],
   "tasks": [
     {
-      "id": "stp_b8e2b0df-b86c-4377-b758-bad85d831756",
-      "title": "같은 표의 행을 읽어요",
-      "goal": "items 표는 물건마다 한 행이고 id·name·stock 열이 있어요. SELECT id, name은 두 열을 고르고 ORDER BY id는 id 순서로 결과를 정렬해요.\n한 행의 ID와 이름은 어떤 관계일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_e303b302-0710-4b9b-93bf-85d08ee40455",
+      "title": "같은 행의 id와 name을 함께 조회하세요",
+      "goal": "items 표는 물건마다 한 행이고 id·name·stock 열이 있어요. SELECT 뒤에 쉼표로 열을 이어 쓰면 같은 행의 여러 열을 함께 보여 줘요.\n\n질의를 고쳐 같은 행의 id와 name을 함께 보이세요. 채점은 행을 바꾼 표로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 id만 나오는지 확인하세요.\n2. `SELECT id`를 `SELECT id, name`으로 고치세요.\n3. 코드 실행을 눌러 각 ID 옆에 이름이 나오는지 확인하세요.\n4. 수정한 질의를 제출하세요.",
       "language": "sql",
-      "starter_code": "",
-      "solution": "rows",
-      "tests": [],
-      "required": true,
-      "example_code": "SELECT id, name FROM items ORDER BY id;",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "rows",
-            "text": "한 물건의 ID와 이름을 같은 행에서 읽어요"
-          },
-          {
-            "id": "mix",
-            "text": "열마다 서로 다른 물건을 임의로 섞어도 돼요"
-          }
-        ],
-        "answer": "rows"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "이 수업에서는 DB의 행·열·키·NULL을 구별해요. 자료 구조와 업무 규칙의 관계를 배워요."
-        },
-        {
-          "action": "say",
-          "text": "기본 키와 복합 키, 참조 관계를 확인해요. DDL이 실제로 막아 주는 저장을 비교해요."
-        },
-        {
-          "action": "say",
-          "text": "행 하나가 물건 하나라는 표의 기본 구조와, 정렬이 행의 짝을 바꾸지 않는다는 점을 묻는 문제예요.",
-          "target": "text:같은 표의 행을 읽어요#1"
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            1
-          ]
-        },
-        {
-          "action": "say",
-          "text": "ID와 이름이 함께 한 행의 물건을 나타내요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "id, name FROM items ORDER BY id",
-          "after": "name FROM items ORDER BY name",
-          "say": "name 열만 고르고 이름순으로 정렬해 볼게요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            1
-          ]
-        },
-        {
-          "action": "say",
-          "text": "이름 열만 고르면 ID는 결과에 없고 이름 기준으로 정렬했어요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. SELECT는 열을 고르고 ORDER BY는 결과 순서를 정해요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "name FROM items ORDER BY name",
-          "after": "id, name FROM items ORDER BY id",
-          "say": "처음 SQL로 되돌려요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            1
-          ]
-        },
-        {
-          "action": "say",
-          "text": "처음 SQL은 각 행에서 같은 물건의 ID와 이름을 함께 보여 줘요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "rows"
-        }
-      ],
-      "predict_before_run": true,
+      "starter_code": "-- 이 질의를 고쳐 같은 행의 id와 name을 함께 보이세요.\nSELECT id FROM items ORDER BY id;\n",
+      "solution": "-- 이 질의를 고쳐 같은 행의 id와 name을 함께 보이세요.\n-- 한 행은 한 물건이에요. 같은 행의 열끼리 그 물건의 정보예요.\nSELECT id, name FROM items ORDER BY id;\n",
       "files": {
         "setup.sql": "-- ID는 물건을 구별하고 이름은 겹칠 수 있어요.\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL, stock INTEGER CHECK(stock>=0));\nINSERT INTO items VALUES(1,'pen',2),(2,'pen',3),(3,'book',NULL);\nCREATE TABLE lots(item_id INTEGER REFERENCES items(id), batch INTEGER, PRIMARY KEY(item_id,batch));\nINSERT INTO lots VALUES(1,1),(1,2),(2,1);\n"
       },
-      "question": "한 행의 ID와 이름은 어떤 관계일까요?"
+      "tests": [
+        {
+          "input": "",
+          "expected": "id | name\n1 | pen\n2 | pen\n3 | book"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "-- ID는 물건을 구별하고 이름은 겹칠 수 있어요.\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL, stock INTEGER CHECK(stock>=0));\nINSERT INTO items VALUES(1,'cup',NULL),(4,'cup',1),(5,'cup',NULL),(7,'map',0);\nCREATE TABLE lots(item_id INTEGER REFERENCES items(id), batch INTEGER, PRIMARY KEY(item_id,batch));\nINSERT INTO lots VALUES(4,1),(7,3);\n"
+          },
+          "expected": "id | name\n1 | cup\n4 | cup\n5 | cup\n7 | map"
+        },
+        {
+          "files": {
+            "setup.sql": "-- ID는 물건을 구별하고 이름은 겹칠 수 있어요.\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL, stock INTEGER CHECK(stock>=0));\nINSERT INTO items VALUES(2,'bag',5),(3,'box',6);\nCREATE TABLE lots(item_id INTEGER REFERENCES items(id), batch INTEGER, PRIMARY KEY(item_id,batch));\nINSERT INTO lots VALUES(3,1),(3,2),(2,9);\n"
+          },
+          "expected": "id | name\n2 | bag\n3 | box"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "이 수업에서는 DB의 행·열·키·NULL을 구별해요. 질의와 스키마를 직접 고쳐 자료 구조와 업무 규칙의 관계를 배워요."
+        },
+        {
+          "action": "say",
+          "text": "기본 키·필수값·참조·복합 키를 하나씩 선언하고, DDL이 실제로 막아 주는 저장을 실행으로 확인해요."
+        },
+        {
+          "action": "say",
+          "text": "같은 행의 id와 name을 함께 조회하는 문제예요.",
+          "target": "text:같은 행의 id와 name을 함께 조회하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "items는 물건마다 한 행이에요. 같은 행의 id와 name을 함께 보여야 해요.",
+          "target": "text:질의를 고쳐 같은 행의 id와 name을 함께 보이세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1, 2, 3이에요. 아직 id 열만 골랐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "SELECT id FROM",
+          "after": "SELECT id, name FROM",
+          "say": "id 뒤에 쉼표와 name을 써요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1 pen, 2 pen, 3 book이에요. 같은 행에서 한 물건의 ID와 이름을 읽어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 열을 따로 조회해 순서로 맞추면 다른 물건의 값이 섞일 수 있어요. 한 행에서 함께 읽어요.",
+          "target": "code:SELECT id, name FROM items"
+        }
+      ]
     },
     {
-      "id": "stp_10120cb0-f8e8-40b9-b7ee-f6d40905335f",
-      "title": "이름이 겹쳐도 ID로 구별해요",
-      "goal": "items에는 이름이 pen인 물건이 둘 있어요. COUNT(DISTINCT 열)은 그 열의 서로 다른 값 개수를 세요.\n지금 세 물건을 각각 구별하는 열은 무엇일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_1a403d07-272e-41de-9ef5-49bb482e9e4f",
+      "title": "이름 종류 수 옆에 ID 종류 수를 세세요",
+      "goal": "items에는 이름이 pen인 물건이 둘 있어요. `COUNT(DISTINCT 열)`은 그 열의 서로 다른 값 개수를 세요.\n\n질의에 열을 더해 이름 종류 수 옆에 ID 종류 수도 보이세요. 열 이름은 ids로 해요. 채점은 이름이 더 겹치는 표로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 이름 종류 수 2가 나오는지 확인하세요.\n2. `AS names` 뒤에 `, COUNT(DISTINCT id) AS ids`를 쓰세요.\n3. 코드 실행을 눌러 이름 2, ID 3이 나오는지 확인하세요.\n4. 수정한 질의를 제출하세요.",
       "language": "sql",
-      "starter_code": "",
-      "solution": "id",
-      "tests": [],
-      "required": true,
-      "example_code": "SELECT COUNT(DISTINCT id) AS n FROM items;",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "name",
-            "text": "이름도 ID처럼 세 물건을 하나씩 구별해요"
-          },
-          {
-            "id": "id",
-            "text": "현재 세 물건은 ID로 각각 구별돼요"
-          }
-        ],
-        "answer": "id"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "이름과 ID 가운데 지금 자료에서 겹치지 않는 열을 찾는 문제예요.",
-          "target": "text:이름이 겹쳐도 ID로 구별해요#1"
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            1
-          ]
-        },
-        {
-          "action": "say",
-          "text": "ID는 세 값이고 모든 물건을 구별해요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "DISTINCT id",
-          "after": "DISTINCT name",
-          "say": "DISTINCT의 대상을 name으로 바꿔 볼게요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            1
-          ]
-        },
-        {
-          "action": "say",
-          "text": "이름 pen이 겹쳐 서로 다른 이름은 두 개뿐이에요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 지금 표에서 유일해 보인다는 것만으로 모든 미래 데이터의 키가 보장되지는 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "키는 업무 규칙과 제약으로 정해요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "DISTINCT name",
-          "after": "DISTINCT id",
-          "say": "DISTINCT id로 되돌려요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            1
-          ]
-        },
-        {
-          "action": "say",
-          "text": "처음 SQL은 서로 다른 ID 세 개로 세 물건을 구별해요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "id"
-        }
-      ],
-      "predict_before_run": true,
+      "starter_code": "-- 이 질의에 열을 더해 이름 종류 수 옆에 ID 종류 수도 보이세요.\nSELECT COUNT(DISTINCT name) AS names FROM items;\n",
+      "solution": "-- 이 질의에 열을 더해 이름 종류 수 옆에 ID 종류 수도 보이세요.\n-- 이름은 겹칠 수 있지만 ID는 물건마다 달라 물건 수와 같아요.\nSELECT COUNT(DISTINCT name) AS names, COUNT(DISTINCT id) AS ids FROM items;\n",
       "files": {
         "setup.sql": "-- ID는 물건을 구별하고 이름은 겹칠 수 있어요.\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL, stock INTEGER CHECK(stock>=0));\nINSERT INTO items VALUES(1,'pen',2),(2,'pen',3),(3,'book',NULL);\nCREATE TABLE lots(item_id INTEGER REFERENCES items(id), batch INTEGER, PRIMARY KEY(item_id,batch));\nINSERT INTO lots VALUES(1,1),(1,2),(2,1);\n"
       },
-      "question": "지금 세 물건을 각각 구별하는 열은 무엇일까요?"
+      "tests": [
+        {
+          "input": "",
+          "expected": "names | ids\n2 | 3"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "-- ID는 물건을 구별하고 이름은 겹칠 수 있어요.\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL, stock INTEGER CHECK(stock>=0));\nINSERT INTO items VALUES(1,'cup',NULL),(4,'cup',1),(5,'cup',NULL),(7,'map',0);\nCREATE TABLE lots(item_id INTEGER REFERENCES items(id), batch INTEGER, PRIMARY KEY(item_id,batch));\nINSERT INTO lots VALUES(4,1),(7,3);\n"
+          },
+          "expected": "names | ids\n2 | 4"
+        },
+        {
+          "files": {
+            "setup.sql": "-- ID는 물건을 구별하고 이름은 겹칠 수 있어요.\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL, stock INTEGER CHECK(stock>=0));\nINSERT INTO items VALUES(2,'bag',5),(3,'box',6);\nCREATE TABLE lots(item_id INTEGER REFERENCES items(id), batch INTEGER, PRIMARY KEY(item_id,batch));\nINSERT INTO lots VALUES(3,1),(3,2),(2,9);\n"
+          },
+          "expected": "names | ids\n2 | 2"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "이름 종류 수 옆에 ID 종류 수를 세는 문제예요.",
+          "target": "text:이름 종류 수 옆에 ID 종류 수를 세세요#1"
+        },
+        {
+          "action": "say",
+          "text": "이름이 pen인 물건이 둘이에요. 이름 종류 수 옆에 ID 종류 수도 세어 비교해야 해요.",
+          "target": "text:질의에 열을 더해 이름 종류 수 옆에 ID 종류 수도 보이세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2예요. 세 물건인데 이름은 pen과 book 두 종류예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "AS names FROM",
+          "after": "AS names, COUNT(DISTINCT id) AS ids FROM",
+          "say": "COUNT(DISTINCT id) AS ids 열을 더해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이름은 2, ID는 3이에요. 세 물건을 하나씩 구별하는 열은 ID예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 지금 이름이 겹치지 않는다고 이름을 식별자로 쓰면 같은 이름의 새 물건을 구별하지 못해요.",
+          "target": "code:COUNT(DISTINCT id)"
+        }
+      ]
     },
     {
-      "id": "stp_d5a9be0f-aa9c-4da6-a907-0d1136434970",
-      "title": "모르는 값과 행 수를 나눠요",
-      "goal": "세 번째 물건 book은 재고를 아직 몰라 stock이 NULL이에요. COUNT(*)는 행 수를 세요.\n재고가 NULL인 물건의 행은 어떻게 될까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_3642fa04-6854-4e67-88b4-1b3f5314d122",
+      "title": "재고를 아는 수 옆에 전체 행 수를 세세요",
+      "goal": "세 번째 물건 book은 재고를 아직 몰라 stock이 NULL이에요. `COUNT(stock)`은 재고 값이 있는 행만, `COUNT(*)`는 행 자체를 세요.\n\n질의에 열을 더해 재고를 아는 물건 수 옆에 전체 행 수도 보이세요. 열 이름은 rows로 해요. 채점은 NULL이 더 많은 표로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 2가 나오는지 확인하세요.\n2. `AS known` 뒤에 `, COUNT(*) AS rows`를 쓰세요.\n3. 코드 실행을 눌러 2와 3이 나오는지 확인하세요.\n4. 수정한 질의를 제출하세요.",
       "language": "sql",
-      "starter_code": "",
-      "solution": "rows",
-      "tests": [],
-      "required": true,
-      "example_code": "SELECT COUNT(*) AS n FROM items;",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "absent",
-            "text": "재고가 NULL이면 행 자체가 사라져요"
-          },
-          {
-            "id": "rows",
-            "text": "재고가 NULL이어도 그 물건 행은 있어요"
-          }
-        ],
-        "answer": "rows"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "값을 모르는 칸이 있어도 행이 사라지지 않는다는 점을 행 수로 확인하는 문제예요.",
-          "target": "text:모르는 값과 행 수를 나눠요#1"
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            1
-          ]
-        },
-        {
-          "action": "say",
-          "text": "전체 행은 세 개예요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "COUNT(*)",
-          "after": "COUNT(stock)",
-          "say": "COUNT(*)를 COUNT(stock)으로 바꿔 볼게요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            1
-          ]
-        },
-        {
-          "action": "say",
-          "text": "재고 값이 있는 행만 세면 두 개예요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. NULL은 모르는 값의 표시이고 행이 없다는 뜻은 아니에요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "COUNT(stock)",
-          "after": "COUNT(*)",
-          "say": "COUNT(*)로 되돌려요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            1
-          ]
-        },
-        {
-          "action": "say",
-          "text": "처음 SQL은 NULL인 행도 세서 3이에요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "rows"
-        }
-      ],
-      "predict_before_run": true,
+      "starter_code": "-- 이 질의에 열을 더해 재고를 아는 물건 수 옆에 전체 행 수도 보이세요.\nSELECT COUNT(stock) AS known FROM items;\n",
+      "solution": "-- 이 질의에 열을 더해 재고를 아는 물건 수 옆에 전체 행 수도 보이세요.\n-- 재고가 NULL이어도 그 물건 행은 있어요. COUNT(*)는 그 행도 세요.\nSELECT COUNT(stock) AS known, COUNT(*) AS rows FROM items;\n",
       "files": {
         "setup.sql": "-- ID는 물건을 구별하고 이름은 겹칠 수 있어요.\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL, stock INTEGER CHECK(stock>=0));\nINSERT INTO items VALUES(1,'pen',2),(2,'pen',3),(3,'book',NULL);\nCREATE TABLE lots(item_id INTEGER REFERENCES items(id), batch INTEGER, PRIMARY KEY(item_id,batch));\nINSERT INTO lots VALUES(1,1),(1,2),(2,1);\n"
       },
-      "question": "재고가 NULL인 물건의 행은 어떻게 될까요?"
+      "tests": [
+        {
+          "input": "",
+          "expected": "known | rows\n2 | 3"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "-- ID는 물건을 구별하고 이름은 겹칠 수 있어요.\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL, stock INTEGER CHECK(stock>=0));\nINSERT INTO items VALUES(1,'cup',NULL),(4,'cup',1),(5,'cup',NULL),(7,'map',0);\nCREATE TABLE lots(item_id INTEGER REFERENCES items(id), batch INTEGER, PRIMARY KEY(item_id,batch));\nINSERT INTO lots VALUES(4,1),(7,3);\n"
+          },
+          "expected": "known | rows\n2 | 4"
+        },
+        {
+          "files": {
+            "setup.sql": "-- ID는 물건을 구별하고 이름은 겹칠 수 있어요.\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL, stock INTEGER CHECK(stock>=0));\nINSERT INTO items VALUES(2,'bag',5),(3,'box',6);\nCREATE TABLE lots(item_id INTEGER REFERENCES items(id), batch INTEGER, PRIMARY KEY(item_id,batch));\nINSERT INTO lots VALUES(3,1),(3,2),(2,9);\n"
+          },
+          "expected": "known | rows\n2 | 2"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "재고를 아는 수 옆에 전체 행 수를 세는 문제예요.",
+          "target": "text:재고를 아는 수 옆에 전체 행 수를 세세요#1"
+        },
+        {
+          "action": "say",
+          "text": "book의 재고는 NULL이에요. 재고를 아는 수 옆에 전체 행 수도 세어야 해요.",
+          "target": "text:질의에 열을 더해 재고를 아는 물건 수 옆에 전체 행 수도 보이세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2예요. 재고 값이 있는 두 행만 세었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "AS known FROM",
+          "after": "AS known, COUNT(*) AS rows FROM",
+          "say": "COUNT(*) AS rows 열을 더해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2와 3이에요. 재고를 모르는 book도 행으로는 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. NULL은 「값을 모른다」는 표시예요. 행이 없다는 뜻이 아니에요.",
+          "target": "code:COUNT(*) AS rows"
+        }
+      ]
     },
     {
-      "id": "stp_6febadfa-0994-46f4-a8d5-92f32767c21a",
-      "title": "다른 표의 물건을 연결해요",
-      "goal": "lots 표는 물건 이름 없이 item_id 번호만 가져요. setup.sql은 item_id INTEGER REFERENCES items(id)로 만들었어요. JOIN items ON lots.item_id=items.id는 lots의 각 행을 같은 번호의 items 행과 이어 붙여요.\nlot의 item_id는 무엇을 가리킬까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_a2477afd-bf36-4241-af6c-3190df542643",
+      "title": "JOIN으로 로트마다 물건 이름을 보이세요",
+      "goal": "lots 표는 물건 이름 없이 item_id 번호만 가져요. setup.sql은 item_id를 `REFERENCES items(id)`로 만들었어요. `JOIN items ON lots.item_id = items.id`는 lots의 각 행을 같은 번호의 items 행과 이어 붙여요.\n\n질의에 JOIN을 더해 로트마다 물건 이름을 보이세요. 이름 열은 lots.batch 뒤에 둬요. 채점은 행을 바꾼 표로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 번호와 로트만 나오는지 확인하세요.\n2. SELECT에 `items.name`을 더하고 `FROM lots` 뒤에 `JOIN items ON lots.item_id = items.id`를 쓰세요.\n3. 코드 실행을 눌러 로트마다 이름이 나오는지 확인하세요.\n4. 수정한 질의를 제출하세요.",
       "language": "sql",
-      "starter_code": "",
-      "solution": "key",
-      "tests": [],
-      "required": true,
-      "example_code": "SELECT lots.item_id, items.name FROM lots JOIN items ON lots.item_id=items.id ORDER BY lots.item_id, lots.batch;",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "key",
-            "text": "lot의 item_id가 items의 ID를 가리켜요"
-          },
-          {
-            "id": "text",
-            "text": "lot는 물건 이름 글자로 items와 이어져요"
-          }
-        ],
-        "answer": "key"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "번호 item_id가 items의 어느 행을 가리키는지 확인하는 문제예요.",
-          "target": "text:다른 표의 물건을 연결해요#1"
-        },
-        {
-          "action": "say",
-          "text": "lots에는 물건 이름이 없어요.",
-          "target": "text:lots 표는 물건 이름 없이 item_id 번호만 가져요."
-        },
-        {
-          "action": "patch_code",
-          "before": "SELECT lots.item_id, items.name FROM lots JOIN items ON lots.item_id=items.id ORDER BY lots.item_id, lots.batch;",
-          "after": "SELECT item_id, batch FROM lots ORDER BY item_id, batch;",
-          "say": "먼저 lots 표만 따로 읽어 볼게요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            1
-          ]
-        },
-        {
-          "action": "say",
-          "text": "item_id 1이 두 행, 2가 한 행이에요. 번호뿐이라 어떤 물건인지는 items의 id를 봐야 알아요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "SELECT item_id, batch FROM lots ORDER BY item_id, batch;",
-          "after": "SELECT lots.item_id, items.name FROM lots JOIN items ON lots.item_id=items.id ORDER BY lots.item_id, lots.batch;",
-          "say": "JOIN으로 같은 번호의 items 행을 이어 붙여요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            1
-          ]
-        },
-        {
-          "action": "say",
-          "text": "item_id 1은 items의 id 1인 pen, 2는 id 2인 pen에 이어졌어요. 이름이 같은 두 pen도 번호로 정확히 갈려요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 이름 pen은 두 물건에 겹쳐서 연결 기준이 될 수 없어요. 외래 키 item_id의 값이 items의 id와 맞아야 해요.",
-          "target": "code:ON lots.item_id=items.id"
-        },
-        {
-          "action": "choose_answer",
-          "id": "key"
-        }
-      ],
-      "predict_before_run": true,
+      "starter_code": "-- 이 질의에 JOIN을 더해 로트마다 물건 이름을 보이세요.\nSELECT lots.item_id, lots.batch FROM lots ORDER BY lots.item_id, lots.batch;\n",
+      "solution": "-- 이 질의에 JOIN을 더해 로트마다 물건 이름을 보이세요.\n-- lots.item_id는 items.id를 가리키는 번호예요. 같은 번호의 items 행과 이어 이름을 읽어요.\nSELECT lots.item_id, lots.batch, items.name FROM lots JOIN items ON lots.item_id = items.id ORDER BY lots.item_id, lots.batch;\n",
       "files": {
         "setup.sql": "-- ID는 물건을 구별하고 이름은 겹칠 수 있어요.\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL, stock INTEGER CHECK(stock>=0));\nINSERT INTO items VALUES(1,'pen',2),(2,'pen',3),(3,'book',NULL);\nCREATE TABLE lots(item_id INTEGER REFERENCES items(id), batch INTEGER, PRIMARY KEY(item_id,batch));\nINSERT INTO lots VALUES(1,1),(1,2),(2,1);\n"
       },
-      "question": "lot의 item_id는 무엇을 가리킬까요?"
+      "tests": [
+        {
+          "input": "",
+          "expected": "item_id | batch | name\n1 | 1 | pen\n1 | 2 | pen\n2 | 1 | pen"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "-- ID는 물건을 구별하고 이름은 겹칠 수 있어요.\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL, stock INTEGER CHECK(stock>=0));\nINSERT INTO items VALUES(1,'cup',NULL),(4,'cup',1),(5,'cup',NULL),(7,'map',0);\nCREATE TABLE lots(item_id INTEGER REFERENCES items(id), batch INTEGER, PRIMARY KEY(item_id,batch));\nINSERT INTO lots VALUES(4,1),(7,3);\n"
+          },
+          "expected": "item_id | batch | name\n4 | 1 | cup\n7 | 3 | map"
+        },
+        {
+          "files": {
+            "setup.sql": "-- ID는 물건을 구별하고 이름은 겹칠 수 있어요.\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL, stock INTEGER CHECK(stock>=0));\nINSERT INTO items VALUES(2,'bag',5),(3,'box',6);\nCREATE TABLE lots(item_id INTEGER REFERENCES items(id), batch INTEGER, PRIMARY KEY(item_id,batch));\nINSERT INTO lots VALUES(3,1),(3,2),(2,9);\n"
+          },
+          "expected": "item_id | batch | name\n2 | 9 | bag\n3 | 1 | box\n3 | 2 | box"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "JOIN으로 로트마다 물건 이름을 보이는 문제예요.",
+          "target": "text:JOIN으로 로트마다 물건 이름을 보이세요#1"
+        },
+        {
+          "action": "say",
+          "text": "lots에는 물건 이름 없이 item_id 번호만 있어요. items와 이어 이름을 보여야 해요.",
+          "target": "text:질의에 JOIN을 더해 로트마다 물건 이름을 보이세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "번호와 로트만 나와요. 어떤 물건인지는 items에 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "SELECT lots.item_id, lots.batch FROM lots ORDER BY",
+          "after": "SELECT lots.item_id, lots.batch, items.name FROM lots JOIN items ON lots.item_id = items.id ORDER BY",
+          "say": "items.name을 고르고 lots.item_id = items.id로 items를 이어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "로트 1과 2는 pen, 물건 2의 로트도 pen이에요. 이름은 같아도 item_id로 서로 다른 물건이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 이름 글자로 이으면 이름이 같은 pen 두 개가 서로 섞여요.",
+          "target": "code:lots.item_id = items.id"
+        }
+      ]
     },
     {
-      "id": "stp_408577f8-70ac-4673-ab29-c637d16c04ec",
-      "title": "기본 키의 중복을 확인해요",
-      "goal": "setup.sql은 items를 id INTEGER PRIMARY KEY로 만들었어요. 이미 있는 ID 1로 bag을 하나 더 넣으려 해요.\n이 INSERT는 어떻게 될까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "sql",
-      "starter_code": "",
-      "solution": "reject",
-      "tests": [],
+      "id": "stp_9e30e583-de08-4d26-bc0d-1f1f65394612",
+      "title": "schema의 id에 PRIMARY KEY를 선언하세요",
+      "goal": "실제 SQLite를 실행하는 Python 준비 코드예요. schema 문자열 안의 SQL만 고쳐요. 준비된 검사는 이미 있는 ID와 새 ID로 각각 물건을 넣어 보고, DB가 거절하면 True를 출력해요.\n\nschema 문자열의 id에 PRIMARY KEY를 선언하세요. 같은 ID는 True, 새 ID는 False가 되어야 해요. 채점은 준비 ID를 바꾸고 실제 스키마도 확인해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 False와 False가 나오는지 확인하세요.\n2. schema의 `id INTEGER` 뒤에 `PRIMARY KEY`를 쓰세요.\n3. 코드 실행을 눌러 True와 False가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import sqlite3\nexisting_id = 1\ndb = sqlite3.connect(\":memory:\")\ndb.execute(\"PRAGMA foreign_keys=ON\")\n# 이 문자열 안의 SQL만 고치세요. 실행과 검사 코드는 준비돼 있어요.\nschema = \"\"\"CREATE TABLE items(\n    id INTEGER,\n    name TEXT NOT NULL,\n    stock INTEGER CHECK(stock >= 0)\n);\"\"\"\ndb.executescript(schema)\ndb.execute(\"INSERT INTO items VALUES(?, 'pen', 2)\", (existing_id,))\ndb.commit()\n\n\ndef rejected(sql, values):\n    # DB가 IntegrityError로 거절하면 True, 받아들이면 False예요.\n    try:\n        db.execute(sql, values)\n        db.rollback()\n        return False\n    except sqlite3.IntegrityError:\n        db.rollback()\n        return True\n\n\n# 이미 있는 ID와 새 ID로 각각 넣어 봐요.\nprint(rejected(\"INSERT INTO items VALUES(?, 'bag', 1)\", (existing_id,)))\nprint(rejected(\"INSERT INTO items VALUES(?, 'bag', 1)\", (existing_id + 1,)))\n",
+      "solution": "import sqlite3\nexisting_id = 1\ndb = sqlite3.connect(\":memory:\")\ndb.execute(\"PRAGMA foreign_keys=ON\")\n# 이 문자열 안의 SQL만 고치세요. 실행과 검사 코드는 준비돼 있어요.\nschema = \"\"\"CREATE TABLE items(\n    id INTEGER PRIMARY KEY,\n    name TEXT NOT NULL,\n    stock INTEGER CHECK(stock >= 0)\n);\"\"\"\ndb.executescript(schema)\ndb.execute(\"INSERT INTO items VALUES(?, 'pen', 2)\", (existing_id,))\ndb.commit()\n\n\ndef rejected(sql, values):\n    # DB가 IntegrityError로 거절하면 True, 받아들이면 False예요.\n    try:\n        db.execute(sql, values)\n        db.rollback()\n        return False\n    except sqlite3.IntegrityError:\n        db.rollback()\n        return True\n\n\n# 이미 있는 ID와 새 ID로 각각 넣어 봐요.\nprint(rejected(\"INSERT INTO items VALUES(?, 'bag', 1)\", (existing_id,)))\nprint(rejected(\"INSERT INTO items VALUES(?, 'bag', 1)\", (existing_id + 1,)))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "True\nFalse"
+        }
+      ],
       "required": true,
-      "example_code": "INSERT INTO items VALUES(1,'bag',1);\nSELECT COUNT(*) AS n FROM items;",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "reject",
-            "text": "ID1은 이미 있어서 새 행을 거절해요"
-          },
-          {
-            "id": "replace",
-            "text": "같은 ID면 기존 행을 새 값으로 바꿔 넣어요"
-          }
-        ],
-        "answer": "reject"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "기본 키가 같은 행을 두 번 넣을 수 있는지 판단하는 문제예요.",
-          "target": "text:기본 키의 중복을 확인해요#1"
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            2
-          ],
-          "expect_error": "UNIQUE constraint failed"
+          "text": "schema의 id에 PRIMARY KEY를 선언하는 문제예요.",
+          "target": "text:schema의 id에 PRIMARY KEY를 선언하세요#1"
         },
         {
           "action": "say",
-          "text": "실제 기본 키 제약이 중복 ID를 거절했어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "VALUES(1,",
-          "after": "VALUES(4,",
-          "say": "새 ID 4로 바꿔 볼게요."
+          "text": "schema의 id에 기본 키를 선언해야 해요. 그러면 같은 ID의 두 번째 물건을 DB가 거절해요.",
+          "target": "text:schema 문자열의 id에 PRIMARY KEY를 선언하세요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            2
+            28,
+            29
           ]
         },
         {
           "action": "say",
-          "text": "새 ID 4를 주면 네 번째 행이 들어가요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. INSERT는 새 행을 넣기만 해요. 같은 키의 행을 고치려면 UPDATE를 써요.",
+          "text": "False와 False예요. 아직 기본 키가 없어 같은 ID도 받아들였어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "VALUES(4,",
-          "after": "VALUES(1,",
-          "say": "ID 1로 되돌려요."
+          "before": "\n    id INTEGER,",
+          "after": "\n    id INTEGER PRIMARY KEY,",
+          "say": "id INTEGER 뒤에 PRIMARY KEY를 써요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            2
-          ],
-          "expect_error": "UNIQUE constraint failed"
+            28,
+            29
+          ]
         },
         {
           "action": "say",
-          "text": "처음 SQL은 ID 1이 이미 있어 기본 키 제약이 거절해요.",
+          "text": "True와 False예요. 같은 ID는 거절하고 새 ID는 받아들여요.",
           "target": "output"
         },
         {
-          "action": "choose_answer",
-          "id": "reject"
+          "action": "say",
+          "text": "조심하세요. INSERT OR REPLACE를 쓰면 같은 ID의 기존 행을 지우고 새 행으로 바꿔 넣어요. 기본 키가 거절하는 것은 보통 INSERT예요.",
+          "target": "code:id INTEGER PRIMARY KEY"
         }
       ],
-      "predict_before_run": true,
-      "files": {
-        "setup.sql": "-- ID는 물건을 구별하고 이름은 겹칠 수 있어요.\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL, stock INTEGER CHECK(stock>=0));\nINSERT INTO items VALUES(1,'pen',2),(2,'pen',3),(3,'book',NULL);\nCREATE TABLE lots(item_id INTEGER REFERENCES items(id), batch INTEGER, PRIMARY KEY(item_id,batch));\nINSERT INTO lots VALUES(1,1),(1,2),(2,1);\n"
-      },
-      "question": "이 INSERT는 어떻게 될까요?"
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nimport uuid\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"existing_id\": 1}, \"expected\": \"True\\\\nFalse\"}, {\"values\": {\"existing_id\": 42}, \"expected\": \"True\\\\nFalse\"}]')\nprobe = 'assert next(r for r in db.execute(\"PRAGMA table_info(items)\") if r[1] == \"id\")[5] == 1'\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    witness = uuid.uuid4().hex\n    tree.body.extend(ast.parse(probe).body)\n    tree.body.extend(ast.parse('print(' + repr(witness) + ')').body)\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    lines = result.stdout.strip().splitlines()\n    if not lines or lines[-1] != witness:\n        raise AssertionError('실제 실행 상태의 검사까지 끝나야 해요.')\n    output = '\\n'.join(lines[:-1]).strip()\n    if result.returncode != 0 or output != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_ac2732a0-6c29-4b2f-b2cd-bddb338fa894",
-      "title": "반드시 있어야 하는 값을 확인해요",
-      "goal": "setup.sql은 name TEXT NOT NULL, stock INTEGER CHECK(stock>=0)으로 만들었어요. 이름 없이(NULL) 새 물건을 넣으려 해요.\n이 INSERT는 어떻게 될까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "sql",
-      "starter_code": "",
-      "solution": "missing",
-      "tests": [],
+      "id": "stp_72861f0a-2b2b-4995-9205-7439e0e5a40c",
+      "title": "schema의 name에 NOT NULL을 선언하세요",
+      "goal": "이름 없는 물건은 저장하면 안 돼요. `NOT NULL`을 선언한 열에는 NULL을 넣을 수 없어요. 준비된 검사는 같은 새 ID로 이름이 NULL인 물건과 이름이 있는 물건을 각각 넣어 보고, DB가 거절하면 True를 출력해요.\n\nschema 문자열의 name에 NOT NULL을 선언하세요. 이름 없는 물건은 True, 이름 있는 물건은 False가 되어야 해요. 채점은 준비 ID를 바꾸고 실제 스키마도 확인해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 False와 False가 나오는지 확인하세요.\n2. schema의 `name TEXT` 뒤에 `NOT NULL`을 쓰세요.\n3. 코드 실행을 눌러 True와 False가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import sqlite3\nnew_id = 4\ndb = sqlite3.connect(\":memory:\")\ndb.execute(\"PRAGMA foreign_keys=ON\")\n# 이 문자열 안의 SQL만 고치세요. 실행과 검사 코드는 준비돼 있어요.\nschema = \"\"\"CREATE TABLE items(\n    id INTEGER PRIMARY KEY,\n    name TEXT,\n    stock INTEGER CHECK(stock >= 0)\n);\"\"\"\ndb.executescript(schema)\ndb.execute(\"INSERT INTO items VALUES(1, 'pen', 2)\")\ndb.commit()\n\n\ndef rejected(sql, values):\n    # DB가 IntegrityError로 거절하면 True, 받아들이면 False예요.\n    try:\n        db.execute(sql, values)\n        db.rollback()\n        return False\n    except sqlite3.IntegrityError:\n        db.rollback()\n        return True\n\n\n# 이름 없이(NULL) 넣을 때와 이름이 있을 때를 비교해요.\nprint(rejected(\"INSERT INTO items VALUES(?, NULL, 1)\", (new_id,)))\nprint(rejected(\"INSERT INTO items VALUES(?, 'cap', 1)\", (new_id,)))\n",
+      "solution": "import sqlite3\nnew_id = 4\ndb = sqlite3.connect(\":memory:\")\ndb.execute(\"PRAGMA foreign_keys=ON\")\n# 이 문자열 안의 SQL만 고치세요. 실행과 검사 코드는 준비돼 있어요.\nschema = \"\"\"CREATE TABLE items(\n    id INTEGER PRIMARY KEY,\n    name TEXT NOT NULL,\n    stock INTEGER CHECK(stock >= 0)\n);\"\"\"\ndb.executescript(schema)\ndb.execute(\"INSERT INTO items VALUES(1, 'pen', 2)\")\ndb.commit()\n\n\ndef rejected(sql, values):\n    # DB가 IntegrityError로 거절하면 True, 받아들이면 False예요.\n    try:\n        db.execute(sql, values)\n        db.rollback()\n        return False\n    except sqlite3.IntegrityError:\n        db.rollback()\n        return True\n\n\n# 이름 없이(NULL) 넣을 때와 이름이 있을 때를 비교해요.\nprint(rejected(\"INSERT INTO items VALUES(?, NULL, 1)\", (new_id,)))\nprint(rejected(\"INSERT INTO items VALUES(?, 'cap', 1)\", (new_id,)))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "True\nFalse"
+        }
+      ],
       "required": true,
-      "example_code": "INSERT INTO items VALUES(4,NULL,1);\nSELECT COUNT(*) AS n FROM items;",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "empty",
-            "text": "NULL은 빈 이름으로 바뀌어 들어가요"
-          },
-          {
-            "id": "missing",
-            "text": "이름은 NOT NULL이라 NULL을 거절해요"
-          }
-        ],
-        "answer": "missing"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "반드시 있어야 하는 열에 NULL을 넣을 때를 판단하는 문제예요.",
-          "target": "text:반드시 있어야 하는 값을 확인해요#1"
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            2
-          ],
-          "expect_error": "NOT NULL constraint failed"
+          "text": "schema의 name에 NOT NULL을 선언하는 문제예요.",
+          "target": "text:schema의 name에 NOT NULL을 선언하세요#1"
         },
         {
           "action": "say",
-          "text": "이름이 빠져 실제 NOT NULL 제약에서 거절했어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "VALUES(4,NULL,1)",
-          "after": "VALUES(4,'bag',1)",
-          "say": "이름 bag을 넣어 볼게요."
+          "text": "name에 NOT NULL을 선언해야 해요. 그러면 이름 없는 물건을 DB가 거절해요.",
+          "target": "text:schema 문자열의 name에 NOT NULL을 선언하세요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            2
+            28,
+            29
           ]
         },
         {
           "action": "say",
-          "text": "이름 bag을 주면 네 번째 물건이 들어가요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 빈 글자와 NULL은 달라요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "이름에 빈 글자도 금지할지는 추가 업무 규칙이에요.",
+          "text": "False와 False예요. 이름이 NULL이어도 받아들였어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "VALUES(4,'bag',1)",
-          "after": "VALUES(4,'bag',-1)",
-          "say": "이름은 두고 재고를 -1로 바꿔 볼게요."
+          "before": "\n    name TEXT,",
+          "after": "\n    name TEXT NOT NULL,",
+          "say": "name TEXT 뒤에 NOT NULL을 써요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            2
-          ],
-          "expect_error": "CHECK constraint failed"
+            28,
+            29
+          ]
         },
         {
           "action": "say",
-          "text": "CHECK(stock>=0) 제약이 음수 재고를 거절했어요. NOT NULL과 다른 줄의 규칙이에요.",
-          "target": "code:INSERT INTO items"
-        },
-        {
-          "action": "patch_code",
-          "before": "VALUES(4,'bag',-1)",
-          "after": "VALUES(4,NULL,1)",
-          "say": "이름 없는 처음 SQL로 되돌려요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            2
-          ],
-          "expect_error": "NOT NULL constraint failed"
-        },
-        {
-          "action": "say",
-          "text": "처음 SQL은 이름이 NULL이라 NOT NULL 제약이 거절해요.",
+          "text": "True와 False예요. 이름 없는 물건만 거절했어요.",
           "target": "output"
         },
         {
-          "action": "choose_answer",
-          "id": "missing"
+          "action": "say",
+          "text": "조심하세요. NOT NULL은 빈 글자 ''를 막지 않아요. ''는 NULL이 아니라 길이 0인 값이에요.",
+          "target": "code:name TEXT NOT NULL"
         }
       ],
-      "predict_before_run": true,
-      "files": {
-        "setup.sql": "-- ID는 물건을 구별하고 이름은 겹칠 수 있어요.\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL, stock INTEGER CHECK(stock>=0));\nINSERT INTO items VALUES(1,'pen',2),(2,'pen',3),(3,'book',NULL);\nCREATE TABLE lots(item_id INTEGER REFERENCES items(id), batch INTEGER, PRIMARY KEY(item_id,batch));\nINSERT INTO lots VALUES(1,1),(1,2),(2,1);\n"
-      },
-      "question": "이 INSERT는 어떻게 될까요?"
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nimport uuid\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"new_id\": 4}, \"expected\": \"True\\\\nFalse\"}, {\"values\": {\"new_id\": 77}, \"expected\": \"True\\\\nFalse\"}]')\nprobe = 'assert next(r for r in db.execute(\"PRAGMA table_info(items)\") if r[1] == \"name\")[3] == 1'\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    witness = uuid.uuid4().hex\n    tree.body.extend(ast.parse(probe).body)\n    tree.body.extend(ast.parse('print(' + repr(witness) + ')').body)\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    lines = result.stdout.strip().splitlines()\n    if not lines or lines[-1] != witness:\n        raise AssertionError('실제 실행 상태의 검사까지 끝나야 해요.')\n    output = '\\n'.join(lines[:-1]).strip()\n    if result.returncode != 0 or output != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_9b281cb9-6312-43d5-a022-e61bee8a8e6f",
-      "title": "없는 물건의 참조를 확인해요",
-      "goal": "lots의 item_id는 items(id)를 참조해요. items에는 ID 9인 물건이 없는데 ID 9의 로트를 넣으려 해요.\n이 INSERT는 어떻게 될까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "sql",
-      "starter_code": "",
-      "solution": "parent",
-      "tests": [],
+      "id": "stp_e675cf0f-b807-4907-bc03-273ee0f46edf",
+      "title": "lots.item_id가 items(id)를 참조하게 선언하세요",
+      "goal": "lots의 item_id는 items의 id를 가리켜야 해요. `REFERENCES items(id)`로 선언하면 items에 없는 번호를 가진 로트를 DB가 거절해요. 준비된 검사는 없는 물건과 있는 물건의 로트를 각각 넣어 보고, 거절하면 True를 출력해요.\n\nschema 문자열의 lots.item_id가 items(id)를 참조하게 선언하세요. 없는 물건은 True, 있는 물건은 False가 되어야 해요. 채점은 준비 ID를 바꾸고 실제 스키마도 확인해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 False와 False가 나오는지 확인하세요.\n2. lots의 `item_id INTEGER` 뒤에 `REFERENCES items(id)`를 쓰세요.\n3. 코드 실행을 눌러 True와 False가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import sqlite3\nparent_id = 1\nmissing_id = 9\ndb = sqlite3.connect(\":memory:\")\ndb.execute(\"PRAGMA foreign_keys=ON\")\n# 이 문자열 안의 SQL만 고치세요. 실행과 검사 코드는 준비돼 있어요.\nschema = \"\"\"CREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nCREATE TABLE lots(\n    item_id INTEGER,\n    batch INTEGER,\n    PRIMARY KEY(item_id, batch)\n);\"\"\"\ndb.executescript(schema)\ndb.execute(\"INSERT INTO items VALUES(?, 'pen')\", (parent_id,))\ndb.commit()\n\n\ndef rejected(sql, values):\n    # DB가 IntegrityError로 거절하면 True, 받아들이면 False예요.\n    try:\n        db.execute(sql, values)\n        db.rollback()\n        return False\n    except sqlite3.IntegrityError:\n        db.rollback()\n        return True\n\n\n# 없는 물건과 있는 물건의 로트를 각각 넣어 봐요.\nprint(rejected(\"INSERT INTO lots VALUES(?, 1)\", (missing_id,)))\nprint(rejected(\"INSERT INTO lots VALUES(?, 1)\", (parent_id,)))\n",
+      "solution": "import sqlite3\nparent_id = 1\nmissing_id = 9\ndb = sqlite3.connect(\":memory:\")\ndb.execute(\"PRAGMA foreign_keys=ON\")\n# 이 문자열 안의 SQL만 고치세요. 실행과 검사 코드는 준비돼 있어요.\nschema = \"\"\"CREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nCREATE TABLE lots(\n    item_id INTEGER REFERENCES items(id),\n    batch INTEGER,\n    PRIMARY KEY(item_id, batch)\n);\"\"\"\ndb.executescript(schema)\ndb.execute(\"INSERT INTO items VALUES(?, 'pen')\", (parent_id,))\ndb.commit()\n\n\ndef rejected(sql, values):\n    # DB가 IntegrityError로 거절하면 True, 받아들이면 False예요.\n    try:\n        db.execute(sql, values)\n        db.rollback()\n        return False\n    except sqlite3.IntegrityError:\n        db.rollback()\n        return True\n\n\n# 없는 물건과 있는 물건의 로트를 각각 넣어 봐요.\nprint(rejected(\"INSERT INTO lots VALUES(?, 1)\", (missing_id,)))\nprint(rejected(\"INSERT INTO lots VALUES(?, 1)\", (parent_id,)))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "True\nFalse"
+        }
+      ],
       "required": true,
-      "example_code": "INSERT INTO lots VALUES(9,1);\nSELECT COUNT(*) AS n FROM lots;",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "parent",
-            "text": "ID9 물건이 없어서 로트를 거절해요"
-          },
-          {
-            "id": "auto",
-            "text": "로트 번호만 있으면 없는 물건이어도 들어가요"
-          }
-        ],
-        "answer": "parent"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "참조하는 부모 행이 없을 때 자식 행을 넣을 수 있는지 판단하는 문제예요.",
-          "target": "text:없는 물건의 참조를 확인해요#1"
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            2
-          ],
-          "expect_error": "FOREIGN KEY constraint failed"
+          "text": "lots.item_id가 items(id)를 참조하게 선언하는 문제예요.",
+          "target": "text:lots.item_id가 items(id)를 참조하게 선언하세요#1"
         },
         {
           "action": "say",
-          "text": "실제 외래 키 제약이 없는 물건 연결을 거절했어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "VALUES(9,1)",
-          "after": "VALUES(3,1)",
-          "say": "존재하는 ID 3으로 바꿔 볼게요."
+          "text": "lots의 item_id가 items의 id를 참조하게 선언해야 해요. 그러면 없는 물건의 로트를 거절해요.",
+          "target": "text:schema 문자열의 lots.item_id가 items(id)를 참조하게 선언하세요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            2
+            30,
+            31
           ]
         },
         {
           "action": "say",
-          "text": "존재하는 ID 3의 새 로트는 들어가요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "이번 실행기는 SQLite의 외래 키 검사를 켜 두었어요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "SQLite 연결의 기본 설정만으로 항상 켜져 있다고 가정하지 않아요.",
+          "text": "False와 False예요. ID 9인 물건이 없어도 로트를 받아들였어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "VALUES(3,1)",
-          "after": "VALUES(9,1)",
-          "say": "ID 9로 되돌려요."
+          "before": "\n    item_id INTEGER,",
+          "after": "\n    item_id INTEGER REFERENCES items(id),",
+          "say": "item_id INTEGER 뒤에 REFERENCES items(id)를 써요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            2
-          ],
-          "expect_error": "FOREIGN KEY constraint failed"
+            30,
+            31
+          ]
         },
         {
           "action": "say",
-          "text": "처음 SQL은 참조할 ID 9 물건이 없어 거절돼요.",
+          "text": "True와 False예요. 없는 물건의 로트만 거절했어요.",
           "target": "output"
         },
         {
-          "action": "choose_answer",
-          "id": "parent"
+          "action": "say",
+          "text": "조심하세요. SQLite는 PRAGMA foreign_keys=ON일 때만 참조를 검사해요. 준비 코드가 처음에 켜 두었어요.",
+          "target": "code:db.execute(\"PRAGMA foreign_keys=ON\")"
         }
       ],
-      "predict_before_run": true,
-      "files": {
-        "setup.sql": "-- ID는 물건을 구별하고 이름은 겹칠 수 있어요.\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL, stock INTEGER CHECK(stock>=0));\nINSERT INTO items VALUES(1,'pen',2),(2,'pen',3),(3,'book',NULL);\nCREATE TABLE lots(item_id INTEGER REFERENCES items(id), batch INTEGER, PRIMARY KEY(item_id,batch));\nINSERT INTO lots VALUES(1,1),(1,2),(2,1);\n"
-      },
-      "question": "이 INSERT는 어떻게 될까요?"
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nimport uuid\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"parent_id\": 1, \"missing_id\": 9}, \"expected\": \"True\\\\nFalse\"}, {\"values\": {\"parent_id\": 3, \"missing_id\": 2}, \"expected\": \"True\\\\nFalse\"}]')\nprobe = 'assert any(r[2] == \"items\" and r[3] == \"item_id\" and r[4] == \"id\" for r in db.execute(\"PRAGMA foreign_key_list(lots)\"))'\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    witness = uuid.uuid4().hex\n    tree.body.extend(ast.parse(probe).body)\n    tree.body.extend(ast.parse('print(' + repr(witness) + ')').body)\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    lines = result.stdout.strip().splitlines()\n    if not lines or lines[-1] != witness:\n        raise AssertionError('실제 실행 상태의 검사까지 끝나야 해요.')\n    output = '\\n'.join(lines[:-1]).strip()\n    if result.returncode != 0 or output != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_1b02a8fc-876f-422a-849d-ab9f20da3971",
-      "title": "두 열을 묶은 키를 읽어요",
-      "goal": "setup.sql은 lots를 PRIMARY KEY(item_id,batch)로 만들었어요. 물건 1의 로트 1이 이미 있는데 같은 쌍을 또 넣으려 해요.\n이 INSERT는 어떻게 될까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "sql",
-      "starter_code": "",
-      "solution": "pair",
-      "tests": [],
+      "id": "stp_528c77ad-3928-4788-bf78-7d32ccac4c73",
+      "title": "기본 키를 item_id와 batch의 쌍으로 고치세요",
+      "goal": "로트는 물건 번호와 로트 번호의 쌍으로 구별해요. 기본 키를 `PRIMARY KEY(item_id, batch)`처럼 두 열로 묶으면 쌍이 겹칠 때만 거절해요. 지금은 item_id 하나만 기본 키예요.\n\nschema 문자열의 PRIMARY KEY(item_id)를 item_id와 batch의 쌍으로 고치세요. 같은 쌍은 True, 같은 물건의 새 로트는 False가 되어야 해요. 채점은 준비 번호를 바꾸고 실제 스키마도 확인해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 True와 True가 나오는지 확인하세요.\n2. `PRIMARY KEY(item_id)`를 `PRIMARY KEY(item_id, batch)`로 고치세요.\n3. 코드 실행을 눌러 True와 False가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import sqlite3\nitem = 1\nbatch = 1\ndb = sqlite3.connect(\":memory:\")\ndb.execute(\"PRAGMA foreign_keys=ON\")\n# 이 문자열 안의 SQL만 고치세요. 실행과 검사 코드는 준비돼 있어요.\nschema = \"\"\"CREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nCREATE TABLE lots(\n    item_id INTEGER REFERENCES items(id),\n    batch INTEGER,\n    PRIMARY KEY(item_id)\n);\"\"\"\ndb.executescript(schema)\ndb.execute(\"INSERT INTO items VALUES(?, 'pen')\", (item,))\ndb.execute(\"INSERT INTO lots VALUES(?, ?)\", (item, batch))\ndb.commit()\n\n\ndef rejected(sql, values):\n    # DB가 IntegrityError로 거절하면 True, 받아들이면 False예요.\n    try:\n        db.execute(sql, values)\n        db.rollback()\n        return False\n    except sqlite3.IntegrityError:\n        db.rollback()\n        return True\n\n\n# 같은 쌍과, 같은 물건의 새 로트를 각각 넣어 봐요.\nprint(rejected(\"INSERT INTO lots VALUES(?, ?)\", (item, batch)))\nprint(rejected(\"INSERT INTO lots VALUES(?, ?)\", (item, batch + 1)))\n",
+      "solution": "import sqlite3\nitem = 1\nbatch = 1\ndb = sqlite3.connect(\":memory:\")\ndb.execute(\"PRAGMA foreign_keys=ON\")\n# 이 문자열 안의 SQL만 고치세요. 실행과 검사 코드는 준비돼 있어요.\nschema = \"\"\"CREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nCREATE TABLE lots(\n    item_id INTEGER REFERENCES items(id),\n    batch INTEGER,\n    PRIMARY KEY(item_id, batch)\n);\"\"\"\ndb.executescript(schema)\ndb.execute(\"INSERT INTO items VALUES(?, 'pen')\", (item,))\ndb.execute(\"INSERT INTO lots VALUES(?, ?)\", (item, batch))\ndb.commit()\n\n\ndef rejected(sql, values):\n    # DB가 IntegrityError로 거절하면 True, 받아들이면 False예요.\n    try:\n        db.execute(sql, values)\n        db.rollback()\n        return False\n    except sqlite3.IntegrityError:\n        db.rollback()\n        return True\n\n\n# 같은 쌍과, 같은 물건의 새 로트를 각각 넣어 봐요.\nprint(rejected(\"INSERT INTO lots VALUES(?, ?)\", (item, batch)))\nprint(rejected(\"INSERT INTO lots VALUES(?, ?)\", (item, batch + 1)))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "True\nFalse"
+        }
+      ],
       "required": true,
-      "example_code": "INSERT INTO lots VALUES(1,1);\nSELECT COUNT(*) AS n FROM lots;",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "pair",
-            "text": "item_id와 batch의 쌍이 겹치면 거절해요"
-          },
-          {
-            "id": "single",
-            "text": "item_id는 어떤 로트에서도 한 번만 쓸 수 있어요"
-          }
-        ],
-        "answer": "pair"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "두 열을 묶은 키에서 무엇이 겹치면 거절되는지 판단하는 문제예요.",
-          "target": "text:두 열을 묶은 키를 읽어요#1"
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            2
-          ],
-          "expect_error": "UNIQUE constraint failed"
+          "text": "기본 키를 item_id와 batch의 쌍으로 고치는 문제예요.",
+          "target": "text:기본 키를 item_id와 batch의 쌍으로 고치세요#1"
         },
         {
           "action": "say",
-          "text": "같은 물건과 같은 로트 번호의 쌍이 이미 있어서 거절했어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "VALUES(1,1)",
-          "after": "VALUES(1,3)",
-          "say": "로트 번호를 3으로 바꿔 볼게요."
+          "text": "로트는 물건 번호와 로트 번호의 쌍으로 구별해요. 기본 키를 두 열의 쌍으로 고쳐야 해요.",
+          "target": "text:schema 문자열의 PRIMARY KEY(item_id)를 item_id와 batch의 쌍으로 고치세요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            2
+            31,
+            32
           ]
         },
         {
           "action": "say",
-          "text": "같은 물건이라도 새 로트 3이면 네 번째 행을 만들어요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 복합 키는 묶음이 유일해야 해요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "각 열을 따로 모두 유일하게 만드는 뜻은 아니에요.",
+          "text": "True와 True예요. 기본 키가 item_id 하나라 같은 물건의 새 로트도 거절했어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "VALUES(1,3)",
-          "after": "VALUES(1,1)",
-          "say": "로트 1로 되돌려요."
+          "before": "\n    PRIMARY KEY(item_id)\n",
+          "after": "\n    PRIMARY KEY(item_id, batch)\n",
+          "say": "PRIMARY KEY 괄호에 batch를 더해요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            2
-          ],
-          "expect_error": "UNIQUE constraint failed"
+            31,
+            32
+          ]
         },
         {
           "action": "say",
-          "text": "처음 SQL은 물건 1·로트 1 쌍이 이미 있어 거절돼요.",
+          "text": "True와 False예요. 같은 쌍만 거절하고 같은 물건의 새 로트는 받아들여요.",
           "target": "output"
         },
         {
-          "action": "choose_answer",
-          "id": "pair"
+          "action": "say",
+          "text": "조심하세요. PRIMARY KEY를 열마다 따로 두 번 쓸 수는 없어요. 복합 키는 괄호 하나에 열을 함께 써요.",
+          "target": "code:PRIMARY KEY(item_id, batch)"
         }
       ],
-      "predict_before_run": true,
-      "files": {
-        "setup.sql": "-- ID는 물건을 구별하고 이름은 겹칠 수 있어요.\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT NOT NULL, stock INTEGER CHECK(stock>=0));\nINSERT INTO items VALUES(1,'pen',2),(2,'pen',3),(3,'book',NULL);\nCREATE TABLE lots(item_id INTEGER REFERENCES items(id), batch INTEGER, PRIMARY KEY(item_id,batch));\nINSERT INTO lots VALUES(1,1),(1,2),(2,1);\n"
-      },
-      "question": "이 INSERT는 어떻게 될까요?"
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nimport uuid\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"item\": 1, \"batch\": 1}, \"expected\": \"True\\\\nFalse\"}, {\"values\": {\"item\": 5, \"batch\": 3}, \"expected\": \"True\\\\nFalse\"}]')\nprobe = 'cols = {r[1]: r[5] for r in db.execute(\"PRAGMA table_info(lots)\")}\\nassert cols[\"item_id\"] == 1 and cols[\"batch\"] == 2'\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    witness = uuid.uuid4().hex\n    tree.body.extend(ast.parse(probe).body)\n    tree.body.extend(ast.parse('print(' + repr(witness) + ')').body)\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    lines = result.stdout.strip().splitlines()\n    if not lines or lines[-1] != witness:\n        raise AssertionError('실제 실행 상태의 검사까지 끝나야 해요.')\n    output = '\\n'.join(lines[:-1]).strip()\n    if result.returncode != 0 or output != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
       "id": "stp_73e5ef52-9e58-4426-9b17-b8437b6262ca",
