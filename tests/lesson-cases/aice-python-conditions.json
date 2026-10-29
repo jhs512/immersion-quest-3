@@ -1,8 +1,42 @@
 {
   "course": "tests/fixtures/player-pilot/p/course.json",
   "lesson": "courses/redesigned/aice-python-conditions.json",
-  "only_last": true,
   "expected_outputs": [
+    [
+      "False",
+      "True"
+    ],
+    [
+      "False",
+      "True"
+    ],
+    [
+      "True",
+      "False"
+    ],
+    [
+      "",
+      "정상"
+    ],
+    [
+      "12\n30\n42",
+      "[12, 30, 42]",
+      "12\n30\n42"
+    ],
+    [
+      "42",
+      "30\n42"
+    ],
+    [
+      "[]",
+      "[30, 42]"
+    ],
+    [
+      "2",
+      "1",
+      "2",
+      "1"
+    ],
     [
       "[]\n0",
       "[55]\n1",
@@ -10,6 +44,86 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "late = minutes >= limit\n",
+          "late = True\n"
+        ]
+      ],
+      "reason": "Typing True"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "late = minutes >= limit\n",
+          "late = minutes > limit\n"
+        ]
+      ],
+      "reason": "Excluding the boundary"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "print(minutes >= limit)",
+          "print(True)"
+        ]
+      ],
+      "reason": "Typing True"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "print(minutes >= limit)",
+          "print(minutes == limit)"
+        ]
+      ],
+      "reason": "Only the boundary"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "else:\n    print(\"정상\")\n",
+          "print(\"정상\")\n"
+        ]
+      ],
+      "reason": "Always printing normal"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "if minutes >= limit:\n    print(\"지연\")\n",
+          "if False:\n    print(\"지연\")\n"
+        ]
+      ],
+      "reason": "Never delayed"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "        delayed.append(minute)\n",
+          "        delayed = [minute]\n"
+        ]
+      ],
+      "reason": "Replacing the list each time"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "print(delayed)",
+          "print([30, 42])"
+        ]
+      ],
+      "reason": "Typing the list"
+    },
     {
       "step": 9,
       "replacements": [
@@ -42,6 +156,46 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "late = minutes >= limit\n",
+          "late = not minutes < limit\n"
+        ]
+      ],
+      "reason": "Negated less-than"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "print(minutes >= limit)",
+          "print(limit <= minutes)"
+        ]
+      ],
+      "reason": "Operands swapped"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "else:\n    print(\"정상\")\n",
+          "if minutes < limit:\n    print(\"정상\")\n"
+        ]
+      ],
+      "reason": "A second if with the opposite condition"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "        delayed.append(minute)\n",
+          "        delayed += [minute]\n"
+        ]
+      ],
+      "reason": "Extending with a one-item list"
+    },
     {
       "step": 9,
       "replacements": [
