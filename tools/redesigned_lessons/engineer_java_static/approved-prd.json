@@ -14,8 +14,8 @@
     "초기화 블록은 실행 순서가 보이는 문자 출력으로 소개해요."
   ],
   "scope": [
-    "두 챕터·두 단원·여덟 스텝으로 같은 발급 번호를 발전시켜요.",
-    "공유·생성·초기화 결과를 선택하고 마지막에는 짧은 답안을 적어요."
+    "두 챕터·두 단원·여덟 스텝으로 표 발급 창구의 클래스 값과 객체 값을 나눠요.",
+    "클래스 변수·객체 변수·생성자·초기화 순서를 실행으로 확인하고 한두 줄을 직접 고쳐요. 마지막 생성 순서만 짧게 직접 적어요."
   ],
   "out_of_scope": [
     "클래스로더의 내부 구현·멀티스레드 초기화 경쟁은 다루지 않아요.",
@@ -84,36 +84,36 @@
           "premise": "발급 창구 전체 횟수와 표마다 다른 값을 나눠요. 변수 이름을 늘리는 것과 실제 생성을 비교해요.",
           "steps": [
             {
-              "id": "stp_14f1574d-6b8e-4d73-a6e9-e01f3f9d64df",
-              "title": "생성 전의 클래스 값을 읽어요",
+              "id": "stp_40d8b456-d4b9-41a4-a25a-5d7242f48f42",
+              "title": "표를 만들지 않고 Ticket.total을 출력하세요",
               "objectives": [
-                "static 필드는 객체 생성 전에도 클래스에 속함을 이해해요."
+                "객체 없이 클래스 이름으로 static 변수를 읽어요."
               ],
-              "core_flow": "Ticket.total=4를 new 없이 읽어4를 확인한다. 초기값5로 한 곳을 바꿔5를 비교한다. static 접근을 위해 객체가 반드시 필요하다는 오개념을 피한다."
+              "core_flow": "Ticket.total=4를 new 없이 클래스 이름으로 읽어 4를 확인한다. 생성자가 new ticket을 출력하므로 객체를 만드는 우회가 출력에 드러난다. 코드 흐름 보기에서 static 변수 칸과 Ticket 생성자 호출 없음이 보인다. 채점은 total의 처음 값을 바꿔 실행한다."
             },
             {
-              "id": "stp_20d58796-0ca6-4ff8-aa05-72ed1210a56b",
-              "title": "각 객체와 공유 값을 나눠요",
+              "id": "stp_a16c0c2d-ea76-40f7-876d-f413ce3df540",
+              "title": "b의 local과 공유 total을 하나씩 늘리세요",
               "objectives": [
-                "인스턴스별 필드와 공유 static 필드를 구별해요."
+                "각 객체의 필드와 공유 static 필드를 나눠 바꿔요."
               ],
-              "core_flow": "두 Ticket을 만든 뒤 a.local++와 Ticket.total++를 수행한다. a.local1/b.local0/total1이다. a.local++를 b.local++로 바꿔0:1:1을 비교한다."
+              "core_flow": "두 Ticket을 만든 뒤 a.local++와 Ticket.total++가 준비돼 1:0:1이다. b.local++와 Ticket.total++를 차례로 더해 1:1:1, 1:1:2를 비교한다. 코드 흐름 보기에서 local은 객체마다, total은 static 칸에 하나 있다. 채점은 처음 값을 바꿔 실행한다."
             },
             {
-              "id": "stp_23dfa767-4f28-4677-be2e-78ada16be33c",
-              "title": "생성 때만 횟수를 올려요",
+              "id": "stp_409eef97-90aa-45e5-a366-21ba1e1a5c0a",
+              "title": "b를 새 표로 만들어 생성자가 두 번 실행되게 하세요",
               "objectives": [
-                "new와 단순 참조 대입이 다름을 이해해요."
+                "참조 대입과 new로 만든 새 객체를 생성자 실행 횟수로 구별해요."
               ],
-              "core_flow": "생성자에서total++한다. Ticket a=new Ticket,b=a면total1, b=new Ticket이면2다. 변수 이름 개수와 생성자 실행 횟수는 다르다."
+              "core_flow": "생성자에서 total++한다. Ticket a=new Ticket, b=a면 total1, a==b true다. b=new Ticket()으로 고쳐 total2, a==b false를 확인한다. 코드 흐름 보기에서 Ticket() 호출이 두 번 지나간다. 채점은 total의 처음 값을 바꿔 실행한다."
             },
             {
-              "id": "stp_c69f0ad6-4fc0-415c-a31d-0647e10db4dd",
-              "title": "정적 필드의 기본값을 읽어요",
+              "id": "stp_bd170958-c022-45fe-bbf6-4404ab3f3dbc",
+              "title": "a가 b의 7을 읽도록 static 선언 순서를 바꾸세요",
               "objectives": [
-                "명시적 초기화 전 기본값과 순서를 구별해요."
+                "static 필드의 기본값과 선언 순서대로 실행되는 초기화를 구별해요."
               ],
-              "core_flow": "static int a=read(); static int b=7; read는b반환으로a0/b7이다. 준비 단계의0을 필드 선언 순서 실행에서읽은 것이다. a의초기화를7로바꾸면7:7을비교한다."
+              "core_flow": "static int a=read(); static int b=7; read는 b 반환으로 0:7이다. 준비 단계의 기본값 0을 선언 순서 실행에서 읽은 것이다. 두 선언의 순서를 바꿔 7:7을 확인한다. 코드 흐름 보기에서 Ticket static 초기화의 줄 순서를 본다. 채점은 b의 값을 바꿔 a가 실제로 b를 읽는지 확인한다."
             }
           ]
         }
@@ -135,28 +135,28 @@
           "premise": "같은 창구에 준비 블록과 상위 창구가 생겨요. 매번 실행 순서를 한 관계씩 더해요.",
           "steps": [
             {
-              "id": "stp_4c2c4b7d-5e31-4145-a7db-af2778f04224",
-              "title": "정적 초기화는 한 번만 해요",
+              "id": "stp_528a1183-68ec-412a-b15b-0618802ab8aa",
+              "title": "count장만큼 표를 만들어 static 블록이 몇 번 실행되는지 보세요",
               "objectives": [
-                "클래스 초기화와 각 객체 초기화를 구별해요."
+                "클래스 초기화 블록은 한 번, 인스턴스 초기화와 생성자는 new마다 실행됨을 구별해요."
               ],
-              "core_flow": "Ticket static블록S,인스턴스블록I,생성자C를두번new해SICIC다. 두번째new를참조대입으로바꾸면SIC다. 클래스단위한번과new마다의실행을나눈다."
+              "core_flow": "Ticket static 블록S, 인스턴스 블록I, 생성자C가 있다. 준비 코드는 표를 만들지 않아 빈 줄이고 static 블록도 실행되지 않는다. count장을 for로 만들어 SICIC를 확인한다. 코드 흐름 보기에서 static 초기화 한 번, Ticket() 두 번을 본다. 채점은 count를 3, 1, 0으로 바꿔 실행한다."
             },
             {
-              "id": "stp_ebefb8d5-1f0d-4ac3-8bdf-9315fcb49434",
-              "title": "상위 클래스부터 준비해요",
+              "id": "stp_022ebbd5-b27b-4480-98c3-50e8d619f4e1",
+              "title": "Ticket이 Parent를 상속하게 해 준비 순서를 확인하세요",
               "objectives": [
-                "상위와 하위 초기화의 선후 관계를 읽어요."
+                "상위 클래스의 클래스 준비와 객체 준비가 먼저 실행됨을 이해해요."
               ],
-              "core_flow": "Parent staticP/instancep/ctor1,Child staticC/instancec/ctor2에서new Child는PCp1c2다. Child두번이면PCp1c2p1c2다. static은한번,객체필드초기화/생성자는상위부터반복한다."
+              "core_flow": "Parent staticP/instancep/ctor1, Ticket staticC/instancec/ctor2가 있고 준비 코드는 상속이 없어 Cc2다. extends Parent를 붙여 PCp1c2를 확인한다. 코드 흐름 보기에서 Parent()가 Ticket()보다 먼저 끝난다. 채점은 count를 2로 바꿔 PCp1c2p1c2인지 확인한다."
             },
             {
-              "id": "stp_b01a729c-a939-454c-a4d3-c63defef2630",
-              "title": "인스턴스에서 공유 값을 읽어요",
+              "id": "stp_bb472c67-46cb-4eb6-9bab-b6fc416cef5b",
+              "title": "total을 static으로 바꿔 두 표가 함께 쓰게 하세요",
               "objectives": [
-                "필드 소속과 접근 표현을 구별해요."
+                "인스턴스 필드와 static 필드의 차이를 선언으로 구별해요."
               ],
-              "core_flow": "Ticket a/b의static total을a.total+=2하면b.total도2다. b.local은0으로남는다. 소속을명확히Ticket.total로고쳐도결과동일함을보인다."
+              "core_flow": "Ticket의 total이 인스턴스 필드라 a.total+=step 뒤 b.total은 0이다. static을 붙여 b.total도 2가 되는 것을 확인한다. b.local은 0으로 남는다. 코드 흐름 보기에서 total이 객체 상자에서 static 칸으로 옮겨 간다. 채점은 step을 바꿔 실행한다."
             },
             {
               "id": "stp_3e1bfdc6-f723-432e-975f-008b07d17ee3",
@@ -190,8 +190,9 @@
     }
   ],
   "grading": [
-    "직접 선택·짧은 결과를 제출해 판정해요.",
-    "실제 실행은 매번 새 Java 프로세스에서 초기화를 재현해요.",
+    "직접 고친 코드를 실제 JDK 25로 실행해 판정해요. 준비 값(처음 값·장수·더할 수)을 바꾼 실행도 맞아야 해요.",
+    "고정 출력, 객체를 만들어 우회한 답, 같은 객체를 두 이름으로 센 답은 거절해요.",
+    "마지막 생성 순서(stp_3e1bfdc6-f723-432e-975f-008b07d17ee3)는 짧은 답안을 판정해요.",
     "마지막 도전(stp_1b79ae00-24ed-4ce1-bc83-5ee7121d3a93): 시작 답안은 실패해야 해요. 실제 실행 결과 또는 각 서술형 답안 칸을 검사하고 오답과 동등한 정답도 대조해요."
   ],
   "reset": [
@@ -199,8 +200,9 @@
     "해설은 학생 상태를 따로 보관하고 종료·중단 뒤 되돌려요."
   ],
   "narration": [
-    "한 생성 또는 필드 한 곳을 바꾸고 실제 출력과 비교해요.",
-    "이름 대입과new·기본값과초기값·클래스한번과객체마다를 조심할 지점으로 짚어요."
+    "먼저 준비 코드를 실행해 클래스 값과 객체 값의 실제 출력을 읽어요. 한 곳을 고친 뒤 다시 실행해 차이를 짚어요.",
+    "코드 흐름 보기로 static 초기화가 한 번인지, 생성자가 new마다 불리는지, 값이 클래스와 객체 중 어디에 있는지 확인하게 해요.",
+    "전체 답을 한 번에 갈아 끼우지 않아요. 음성은 준비한 뒤 화면과 맞춰요."
   ],
   "verification": [
     "고유 코드·계층·목표·정책·위임 근거와 정확한 해시를 확인해요.",
@@ -219,7 +221,7 @@
   "approval": {
     "status": "approved",
     "by": "사용자의 전체 과정 설계·구현 위임 / user · Codex 경유 MQ3 후속 지시 2026-10-29",
-    "evidence": "2026-10-19: “끝까지 다해, 정처기 코스, 에이스 어쏘씨에이트 코스, 자바 백엔드 코스의 모든 부분 재설계(새로운 지침 기반으로)해서 해”. .scratch/player-content-redesign/authorization-2026-10-19.md. 개별 PRD 직접 검토를 주장하지 않는 범위 위임이다. 2026-10-24 사용자: 세 과정 빌드업 감사의 근거 있는 교정(문제 설명 해설, 정밀 강조, 상투 경고 제거, 선수 개념 다리, 점진 예제, 평가 결함)을 계획하고 실행하도록 Claude Code에 위임했어요(Codex 경유). 교육 목표와 교수법은 유지하고 이 문서를 직접 검토했다고 주장하지 않아요. 2026-10-29 사용자(Codex 경유): 「나머지 24개 수업도 제대로 된 도전과제 만들어서, 모든 수업에서 도전과제만 풀어도 클리어되게 해. 클로드가 계획 세우고 배포까지 마무리해.」 그리고 다른 두 과정에도 백엔드의 개선을 적용하라고 했어요. 계획: docs/plans/2026-10-29-final-challenges-all-courses.md. 이 수업에는 새 고유 코드의 마지막 도전 스텝 하나만 더했고 기존 스텝·목표는 그대로예요. 사용자가 이 PRD 파일 자체를 열람했다고 주장하지 않아요.",
-    "content_sha256": "228d01794b24c333c2d5ebcfe62ce2d3db6e600c8c9852535f95652e3b09f86c"
+    "evidence": "2026-10-19: “끝까지 다해, 정처기 코스, 에이스 어쏘씨에이트 코스, 자바 백엔드 코스의 모든 부분 재설계(새로운 지침 기반으로)해서 해”. .scratch/player-content-redesign/authorization-2026-10-19.md. 개별 PRD 직접 검토를 주장하지 않는 범위 위임이다. 2026-10-24 사용자: 세 과정 빌드업 감사의 근거 있는 교정(문제 설명 해설, 정밀 강조, 상투 경고 제거, 선수 개념 다리, 점진 예제, 평가 결함)을 계획하고 실행하도록 Claude Code에 위임했어요(Codex 경유). 교육 목표와 교수법은 유지하고 이 문서를 직접 검토했다고 주장하지 않아요. 2026-10-29 사용자(Codex 경유): 「나머지 24개 수업도 제대로 된 도전과제 만들어서, 모든 수업에서 도전과제만 풀어도 클리어되게 해. 클로드가 계획 세우고 배포까지 마무리해.」 그리고 다른 두 과정에도 백엔드의 개선을 적용하라고 했어요. 계획: docs/plans/2026-10-29-final-challenges-all-courses.md. 이 수업에는 새 고유 코드의 마지막 도전 스텝 하나만 더했고 기존 스텝·목표는 그대로예요. 사용자가 이 PRD 파일 자체를 열람했다고 주장하지 않아요. 2026-10-29 사용자(Codex 경유): 「정처기 에서도 코딩문제에서는 객관식 다 지우자 에이쓰에서도」 「지우는게 아니라 바꾸자 객관식에서 순수 코딩 문제로」. 코드의 값·식·설정을 고르던 스텝을 직접 코드를 쓰고 실행해 채점하는 스텝으로 바꾸고 새 스텝 코드를 부여했어요(Claude Code, Codex 경유). 순수 이론 문항과 수업·챕터·단원 목표는 그대로예요. 분류: .scratch/coding-conversion-trace-reset/classification.json. 사용자가 이 PRD 파일 자체를 열람했다고 주장하지 않아요.",
+    "content_sha256": "8e4d9dd8bb02ff9495be891234edcdcb8ea191b03c4a4ad8526ca9ebcc019635"
   }
 }

@@ -3,38 +3,31 @@
   "lesson": "courses/redesigned/engineer-java-static.json",
   "expected_outputs": [
     [
-      "4",
-      "5",
       "4"
     ],
     [
       "1:0:1",
-      "0:1:1",
-      "1:0:1"
+      "1:1:1",
+      "1:1:2"
     ],
     [
-      "1",
-      "2",
-      "1"
+      "1\ntrue",
+      "2\nfalse"
     ],
     [
       "0:7",
-      "7:7",
-      "0:7"
+      "7:7"
     ],
     [
-      "SICIC",
-      "SIC",
+      "",
       "SICIC"
     ],
     [
-      "PCp1c2",
-      "PCp1c2p1c2",
+      "Cc2",
       "PCp1c2"
     ],
     [
-      "2:0",
-      "2:0",
+      "0:0",
       "2:0"
     ],
     [
@@ -47,6 +40,160 @@
   ],
   "reject": [
     {
+      "step": 1,
+      "replacements": [
+        [
+          "        System.out.println(Ticket.total);\n",
+          "        System.out.println(4);\n"
+        ]
+      ],
+      "reason": "Printing a typed value"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "        System.out.println(Ticket.total);\n",
+          "        System.out.println(new Ticket().total);\n"
+        ]
+      ],
+      "reason": "Creating a ticket to read the class value"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "        b.local++;\n",
+          "        a.local++;\n"
+        ]
+      ],
+      "reason": "Changing a again instead of b"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "        System.out.println(a.local + \":\" + b.local + \":\" + Ticket.total);\n",
+          "        System.out.println(\"1:1:2\");\n"
+        ]
+      ],
+      "reason": "Printing typed text"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "        Ticket.total++;\n        System.out.println",
+          "        System.out.println"
+        ]
+      ],
+      "reason": "Forgetting the shared total"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "        Ticket b = new Ticket();\n",
+          "        Ticket b = a;\n        Ticket.total++;\n"
+        ]
+      ],
+      "reason": "Counting by hand while sharing one object"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "        System.out.println(Ticket.total);\n",
+          "        System.out.println(2);\n"
+        ]
+      ],
+      "reason": "Printing a typed count"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "    static int a = read();\n",
+          "    static int a = 7;\n"
+        ]
+      ],
+      "reason": "Typing 7 instead of reading b"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "        System.out.println(Ticket.a + \":\" + Ticket.b);\n",
+          "        System.out.println(\"7:7\");\n"
+        ]
+      ],
+      "reason": "Printing typed text"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "        for (int i = 0; i < count; i++) {\n            new Ticket();\n        }\n",
+          "        new Ticket();\n        new Ticket();\n"
+        ]
+      ],
+      "reason": "Two fixed tickets ignore count"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "        System.out.println();\n",
+          "        System.out.println(\"SICIC\");\n"
+        ]
+      ],
+      "reason": "Printing typed text"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "        System.out.println();\n",
+          "        System.out.println(\"PCp1c2\");\n"
+        ]
+      ],
+      "reason": "Printing typed text"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "class Ticket extends Parent {\n",
+          "class Ticket {\n"
+        ]
+      ],
+      "reason": "No inheritance"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "    static int total;\n",
+          "    int total;\n"
+        ],
+        [
+          "        a.total += step;\n",
+          "        a.total += step;\n        b.total += 2;\n"
+        ]
+      ],
+      "reason": "Adding to b separately with a typed 2"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "        System.out.println(b.total + \":\" + b.local);\n",
+          "        System.out.println(\"2:0\");\n"
+        ]
+      ],
+      "reason": "Printing typed text"
+    },
+    {
       "step": 9,
       "replacements": [
         [
@@ -58,6 +205,56 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "        System.out.println(Ticket.total);\n",
+          "        int current = Ticket.total;\n        System.out.println(current);\n"
+        ]
+      ],
+      "reason": "Reading into a local first"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "        b.local++;\n        Ticket.total++;\n",
+          "        b.local += 1;\n        b.total++;\n"
+        ]
+      ],
+      "reason": "b.total is the same class variable"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "        Ticket b = new Ticket();\n",
+          "        Ticket b;\n        b = new Ticket();\n"
+        ]
+      ],
+      "reason": "Declaring first, then creating"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "    static int a = read();\n",
+          "    static int a = b;\n"
+        ]
+      ],
+      "reason": "Reading b directly after it is ready"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "        for (int i = 0; i < count; i++) {\n            new Ticket();\n        }\n",
+          "        int made = 0;\n        while (made < count) {\n            new Ticket();\n            made++;\n        }\n"
+        ]
+      ],
+      "reason": "A while loop"
+    },
     {
       "step": 9,
       "replacements": [

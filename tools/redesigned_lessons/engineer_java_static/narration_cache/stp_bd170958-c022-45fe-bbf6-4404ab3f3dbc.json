@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "fbf9ff253f2d9ca0566be928d89afa1e090d7473a20196b48c1ade92edfe46ce",
+  "entry": [
+    {
+      "action": "say",
+      "text": "a는 read()로 b를 읽어요. a가 7을 갖게 선언 순서를 바꿔야 해요.",
+      "target": "text:두 static 선언의 순서를 바꿔 a가 b의 7을 읽게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0:7이에요. a를 준비할 때 b는 아직 기본값 0이었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "코드 흐름 보기에서 Ticket static 초기화가 a 줄을 먼저 실행하는 걸 볼 수 있어요.",
+      "target": "text:코드 흐름 보기를 눌러 static 초기화가 어느 줄부터 실행되는지 보세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "    static int a = read();\n    static int b = 7;\n",
+      "after": "    static int b = 7;\n    static int a = read();\n",
+      "say": "b 선언을 a 선언 위로 올려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "7:7이에요. b가 먼저 7이 된 뒤 a가 read()로 그 값을 읽었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. a = 7처럼 숫자를 적으면 지금은 맞아도 b가 바뀌면 a와 달라져요.",
+      "target": "code:static int a = read();"
+    }
+  ]
+}

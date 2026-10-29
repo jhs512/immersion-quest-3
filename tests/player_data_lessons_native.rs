@@ -200,7 +200,7 @@ fn engineer_java_references_restore_student_state() {verify("engineer-java-refer
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn engineer_java_static_restore_student_state() {verify("engineer-java-static",8)}
+fn engineer_java_static_restore_student_state() {verify("engineer-java-static",9)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
