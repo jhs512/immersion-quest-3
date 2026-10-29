@@ -3,49 +3,41 @@
   "lesson": "courses/redesigned/engineer-sql-select.json",
   "expected_outputs": [
     [
-      "id\n1\n3",
-      "id\n1\n3\n4",
+      "id\n1\n2\n3\n4",
       "id\n1\n3"
     ],
     [
-      "id\n2",
+      "id\n1\n2\n3\n4",
       "id\n(행 없음)",
       "id\n2"
     ],
     [
       "id\n1\n2\n3\n4",
-      "id\n1\n3",
-      "id\n1\n2\n3\n4"
+      "id\n1\n3"
     ],
     [
-      "id\n2\n3",
-      "id\n2",
+      "id\n(행 없음)",
       "id\n2\n3"
     ],
     [
-      "id\n1\n3",
       "id\n(행 없음)",
       "id\n1\n3"
     ],
     [
-      "category\nA\nB",
       "category\nA\nA\nB\nB",
       "category\nA\nB"
     ],
     [
       "id | name\n1 | north\n2 | south\n4 | north",
-      "id | name\n1 | north\n2 | south\n3 | NULL\n4 | north",
-      "id | name\n1 | north\n2 | south\n4 | north"
+      "id | name\n1 | north\n2 | south\n3 | NULL\n4 | north"
     ],
     [
-      "id\n10",
-      "id\n10",
-      "id\n10\n20"
+      "id\n10\n20\n30",
+      "id\n10"
     ],
     [
       "id\n(행 없음)",
-      "id\n30",
-      "id\n(행 없음)"
+      "id\n30"
     ],
     [
       "id\n4"
@@ -56,6 +48,190 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "WHERE stock > 0",
+          "WHERE stock >= 0"
+        ]
+      ],
+      "reason": "Including zero"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "WHERE stock > 0",
+          "WHERE id IN (1, 3)"
+        ]
+      ],
+      "reason": "Picking ids by hand"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "WHERE stock IS NULL",
+          "WHERE stock = NULL"
+        ]
+      ],
+      "reason": "= NULL is never true"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "WHERE stock IS NULL",
+          "WHERE stock = 0"
+        ]
+      ],
+      "reason": "Zero is not unknown"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "WHERE stock IS NULL",
+          "WHERE id = 2"
+        ]
+      ],
+      "reason": "Picking the id by hand"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "(category = 'A' OR category = 'B')",
+          "category = 'A' OR category = 'B'"
+        ]
+      ],
+      "reason": "No parentheses"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "stock > 0 AND (category = 'A' OR category = 'B')",
+          "id IN (1, 3)"
+        ]
+      ],
+      "reason": "Picking ids by hand"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "LIKE 'b%'",
+          "LIKE '%b%'"
+        ]
+      ],
+      "reason": "b anywhere"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "name LIKE 'b%'",
+          "id IN (2, 3)"
+        ]
+      ],
+      "reason": "Picking ids by hand"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "stock BETWEEN 2 AND 5",
+          "stock > 2 AND stock < 5"
+        ]
+      ],
+      "reason": "Excluding the ends"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "stock BETWEEN 2 AND 5",
+          "stock BETWEEN 5 AND 2"
+        ]
+      ],
+      "reason": "Reversed bounds"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "SELECT DISTINCT category FROM items",
+          "SELECT 'A' AS category UNION ALL SELECT 'B'"
+        ],
+        [
+          "ORDER BY category;\n",
+          ";\n"
+        ]
+      ],
+      "reason": "Typing the categories"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "LEFT JOIN suppliers s ON i.supplier = s.id ORDER BY",
+          "LEFT JOIN suppliers s ON i.supplier = s.id WHERE s.name IS NOT NULL ORDER BY"
+        ]
+      ],
+      "reason": "Filtering the NULL rows away"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "FROM items i LEFT JOIN",
+          "FROM items i JOIN"
+        ]
+      ],
+      "reason": "Inner join"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "WHERE i.supplier = s.id AND i.stock > 0",
+          "WHERE i.stock > 0"
+        ]
+      ],
+      "reason": "Missing the correlation"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "WHERE i.supplier = s.id AND i.stock > 0",
+          "WHERE i.supplier = s.id"
+        ]
+      ],
+      "reason": "Any stock"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "WHERE NOT EXISTS (SELECT 1 FROM items i WHERE i.supplier = s.id)",
+          "WHERE s.id NOT IN (SELECT supplier FROM items)"
+        ]
+      ],
+      "reason": "NOT IN with a NULL"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "WHERE NOT EXISTS (SELECT 1 FROM items i WHERE i.supplier = s.id)",
+          "WHERE s.id = 30"
+        ]
+      ],
+      "reason": "Picking the id by hand"
+    },
     {
       "step": 10,
       "replacements": [
@@ -98,6 +274,96 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "WHERE stock > 0",
+          "WHERE NOT stock <= 0"
+        ]
+      ],
+      "reason": "Negated comparison"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "WHERE stock IS NULL",
+          "WHERE coalesce(stock, -1) = -1"
+        ]
+      ],
+      "reason": "coalesce to a marker"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "(category = 'A' OR category = 'B')",
+          "category IN ('A', 'B')"
+        ]
+      ],
+      "reason": "IN list"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "name LIKE 'b%'",
+          "substr(name, 1, 1) = 'b'"
+        ]
+      ],
+      "reason": "First letter with substr"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "stock BETWEEN 2 AND 5",
+          "stock >= 2 AND stock <= 5"
+        ]
+      ],
+      "reason": "Inclusive comparisons"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "SELECT DISTINCT category FROM items ORDER BY category;",
+          "SELECT category FROM items GROUP BY category ORDER BY category;"
+        ]
+      ],
+      "reason": "GROUP BY also gives one row per value"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "FROM items i LEFT JOIN suppliers s ON i.supplier = s.id",
+          "FROM items i LEFT OUTER JOIN suppliers s ON s.id = i.supplier"
+        ]
+      ],
+      "reason": "LEFT OUTER JOIN"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "WHERE EXISTS (SELECT 1 FROM items i WHERE i.supplier = s.id AND i.stock > 0)",
+          "WHERE s.id IN (SELECT supplier FROM items WHERE stock > 0)"
+        ]
+      ],
+      "reason": "IN with a non-NULL list"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "WHERE NOT EXISTS (SELECT 1 FROM items i WHERE i.supplier = s.id)",
+          "WHERE s.id NOT IN (SELECT supplier FROM items WHERE supplier IS NOT NULL)"
+        ]
+      ],
+      "reason": "NOT IN without NULLs"
+    },
     {
       "step": 11,
       "replacements": [

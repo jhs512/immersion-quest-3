@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "af55665a7178a1cfc4cac8719a8efec789fd30046ab8f36a3ad58af9a66128c9",
+  "entry": [
+    {
+      "action": "say",
+      "text": "공급처가 없는 bag도 남아야 해요. 왼쪽 표의 행을 모두 남기는 조인으로 고쳐야 해요.",
+      "target": "text:조인을 고쳐 공급처가 없는 물건도 결과에 남기세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1, 2, 4만 나와요. 내부 조인은 짝이 없는 bag, ID 3을 뺐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "FROM items i JOIN",
+      "after": "FROM items i LEFT JOIN",
+      "say": "JOIN 앞에 LEFT를 붙여요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "3도 NULL 공급처와 함께 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. LEFT JOIN 뒤에 WHERE s.name IS NOT NULL을 쓰면 다시 내부 조인처럼 bag이 빠져요.",
+      "target": "code:LEFT JOIN suppliers s"
+    }
+  ]
+}

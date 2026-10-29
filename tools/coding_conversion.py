@@ -158,9 +158,9 @@ def apply(key):
         openings = load_json(openings_path)
         openings[key] = module.OPENING
         dump(openings_path, openings)
-    # Revision: one step up from what is committed, once.
+    # Revision: one step up from what is published (origin/main), once, however often this lesson is re-applied.
     catalog = load_json(CATALOG)
-    committed = json.loads(subprocess.check_output(['git', 'show', 'HEAD:tools/redesigned_courses/catalog.json'], cwd=ROOT))
+    committed = json.loads(subprocess.check_output(['git', 'show', 'origin/main:tools/redesigned_courses/catalog.json'], cwd=ROOT))
     for course, base in zip(catalog['courses'], committed['courses']):
         for item, was in zip(course['lessons'], base['lessons']):
             if item['key'] == key and item['revision'] == was['revision']:

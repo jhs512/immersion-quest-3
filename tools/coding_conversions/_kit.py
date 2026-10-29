@@ -78,3 +78,44 @@ class Script:
     def input(self, value):
         self.actions.append(set_input(value))
         return self
+
+
+def _sql_statements(sql):
+    import sqlite3
+    pending = ''
+    for char in sql:
+        pending += char
+        if char == ';' and sqlite3.complete_statement(pending):
+            yield pending
+            pending = ''
+    if pending.strip() and not all(l.strip().startswith('--') or not l.strip() for l in pending.splitlines()):
+        yield pending
+
+
+def sql_output(files, source):
+    """What the player's SQL runner prints for `source` on these files (setup.sql, after.sql), computed by
+    running SQLite. Authoring aid only: the lesson validator still runs the real grader on every case."""
+    import sqlite3
+
+    def value(v):
+        if v is None:
+            return 'NULL'
+        if isinstance(v, float):
+            return f'{v:.1f}' if v == int(v) and abs(v) < 1e15 else repr(v)
+        return str(v)
+
+    db = sqlite3.connect(':memory:', isolation_level=None)
+    db.execute('PRAGMA foreign_keys=ON')
+    out = []
+    for name, show in (('setup.sql', False), (None, True), ('after.sql', True)):
+        sql = source if name is None else files.get(name, '')
+        for statement in _sql_statements(sql):
+            cursor = db.execute(statement)
+            if not (show and cursor.description):
+                cursor.fetchall()
+                continue
+            text = ' | '.join(c[0] for c in cursor.description) + '\n'
+            rows = cursor.fetchall()
+            text += ''.join(' | '.join(value(v) for v in row) + '\n' for row in rows) if rows else '(행 없음)\n'
+            out.append(text)
+    return '\n'.join(out).rstrip('\n')

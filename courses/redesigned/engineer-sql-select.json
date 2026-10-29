@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_a142c683-a7ac-4a2b-bdd7-5bba73025d25",
-  "revision": "engineer-sql-select-6",
+  "revision": "engineer-sql-select-7",
   "title": "SQL · 같은 재고의 조건과 연결을 읽어요",
   "description": "같은 재고 표의 조건과 연결을 읽고 NULL 조회 한 곳을 직접 고쳐요.",
   "objectives": [
@@ -32,33 +32,33 @@
           "premise": "items에는 ID1 pen/재고2/A/공급처10, ID2 book/미정/B/20, ID3 bag/5/A/공급처 없음, ID4 pen/0/B/10이 있어요. 공급처30에는 물건이 없어요.",
           "steps": [
             {
-              "id": "stp_e2114356-fc80-4ae9-b1f2-7b0ed97850d3",
+              "id": "stp_d87ebf3b-30e3-4501-a994-324955a36a76",
               "objectives": [
-                "SELECT의 열 선택과 WHERE의 행 선택을 구별해요."
+                "SELECT의 열과 WHERE의 행 조건을 구별해 써요."
               ]
             },
             {
-              "id": "stp_1dc3a31a-949e-4939-9f93-154e00ac62d9",
+              "id": "stp_26c3d962-e621-4e99-afae-2c2879dc5d6d",
               "objectives": [
-                "IS NULL과 일반 비교의 차이를 이해해요."
+                "NULL은 = 대신 IS NULL로 확인해요."
               ]
             },
             {
-              "id": "stp_aeb660c1-9763-4b34-a253-04fb6b2e61cb",
+              "id": "stp_117c76c1-455b-4c6b-a955-f4e0356af7d2",
               "objectives": [
-                "AND/OR 우선순위와 괄호를 구별해요."
+                "AND가 OR보다 먼저 묶이는 우선순위를 괄호로 바꿔요."
               ]
             },
             {
-              "id": "stp_caea3553-3477-459b-8797-b9d3ae1f4338",
+              "id": "stp_990c8c5c-d93d-49b6-b4aa-cab1fdcc1ffb",
               "objectives": [
-                "LIKE의 부분 일치 조건을 이해해요."
+                "LIKE 무늬의 %로 시작 글자 조건을 써요."
               ]
             },
             {
-              "id": "stp_662bc322-6d1b-4ccd-9776-23398ffc796c",
+              "id": "stp_b8307e07-24ff-4fac-acf6-444a53b7ddcc",
               "objectives": [
-                "BETWEEN의 양 끝 포함을 이해해요."
+                "BETWEEN이 양 끝을 포함하는 범위임을 써서 확인해요."
               ]
             }
           ]
@@ -83,27 +83,27 @@
           "premise": "items에는 ID1 pen/재고2/A/공급처10, ID2 book/미정/B/20, ID3 bag/5/A/공급처 없음, ID4 pen/0/B/10이 있어요. 공급처30에는 물건이 없어요.",
           "steps": [
             {
-              "id": "stp_916dfe17-bddb-4481-9db2-91076141350d",
+              "id": "stp_b775bc43-e651-4275-aa92-0fb652327116",
               "objectives": [
-                "DISTINCT의 적용 대상을 이해해요."
+                "DISTINCT가 조회 결과의 중복만 줄임을 확인해요."
               ]
             },
             {
-              "id": "stp_b6294710-885b-4292-91bc-e113c224821e",
+              "id": "stp_4a22a5cf-93be-4275-a08d-e2ff6552a4f5",
               "objectives": [
-                "내부 조인과 왼쪽 외부 조인을 구별해요."
+                "내부 조인과 왼쪽 외부 조인이 남기는 행을 구별해요."
               ]
             },
             {
-              "id": "stp_fdeb9075-80bc-444b-8695-e1e7501f645f",
+              "id": "stp_1157e6fe-81a2-4cf2-a5bf-dedc054c5a38",
               "objectives": [
-                "상관 하위 질의의 참조와 EXISTS를 이해해요."
+                "바깥 행과 이어지는 상관 하위 질의의 존재 여부를 EXISTS로 물어요."
               ]
             },
             {
-              "id": "stp_a479e334-6bf7-420d-a963-b221c0f8a425",
+              "id": "stp_9824044e-4bc6-442b-84aa-3eabbd3f5899",
               "objectives": [
-                "NOT IN과 NOT EXISTS에서 NULL의 영향을 구별해요."
+                "NOT IN 목록의 NULL이 결과를 비우는 이유를 알고 NOT EXISTS로 고쳐요."
               ]
             },
             {
@@ -135,900 +135,741 @@
   ],
   "tasks": [
     {
-      "id": "stp_e2114356-fc80-4ae9-b1f2-7b0ed97850d3",
-      "title": "열과 양수 조건을 고르세요",
-      "goal": "items에서 재고가 0보다 큰 물건의 id만 보려 해요. SELECT 뒤는 보여 줄 열, WHERE 뒤는 남길 행의 조건이에요.\n어떤 물건이 나올까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_d87ebf3b-30e3-4501-a994-324955a36a76",
+      "title": "WHERE stock > 0으로 재고가 있는 물건만 남기세요",
+      "goal": "items에서 재고가 0보다 큰 물건의 id만 보려 해요. SELECT 뒤는 보여 줄 열, WHERE 뒤는 남길 행의 조건이에요.\n\nFROM items 뒤에 WHERE를 더해 재고가 0보다 큰 물건만 남기세요. 채점은 행을 바꾼 표로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 모든 id가 나오는지 확인하세요.\n2. `FROM items` 뒤에 `WHERE stock > 0`을 쓰세요.\n3. 코드 실행을 눌러 1과 3만 나오는지 확인하세요.\n4. 수정한 질의를 제출하세요.",
       "language": "sql",
-      "starter_code": "",
-      "solution": "positive",
-      "tests": [],
-      "required": true,
-      "example_code": "SELECT id FROM items WHERE stock > 0 ORDER BY id;",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "positive",
-            "text": "재고가 양수인 ID1과3이에요"
-          },
-          {
-            "id": "all",
-            "text": "재고가 0인 ID 4도 함께 나와요"
-          }
-        ],
-        "answer": "positive"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "이 수업에서는 SQL이 어떤 행과 열을 고르는지 배워요. 조건과 NULL의 의미를 구별해요."
-        },
-        {
-          "action": "say",
-          "text": "작은 조회에서 범위·중복·조인으로 넓혀요. 하위 질의도 다른 자료로 확인해요."
-        },
-        {
-          "action": "say",
-          "text": "WHERE가 행을 고르고 SELECT가 열을 고른다는 점으로 결과를 고르는 문제예요.",
-          "target": "text:열과 양수 조건을 고르세요#1"
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            1
-          ]
-        },
-        {
-          "action": "say",
-          "text": "양수 재고 2와 5인 두 행을 골랐어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "stock > 0",
-          "after": "stock >= 0",
-          "say": "0도 포함하도록 >=로 바꿔 볼게요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            1
-          ]
-        },
-        {
-          "action": "say",
-          "text": "0도 포함하도록 바꾸면 ID 4도 남아요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. NULL은 0이 아니에요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "비교 결과가 참인 행만 남아요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "stock >= 0",
-          "after": "stock > 0",
-          "say": "> 0으로 되돌려요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            1
-          ]
-        },
-        {
-          "action": "say",
-          "text": "처음 조건은 0보다 큰 2와 5만 남겨 ID 1과 3이에요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "positive"
-        }
-      ],
-      "predict_before_run": true,
+      "starter_code": "-- 이 질의에 WHERE를 더해 재고가 0보다 큰 물건만 남기세요.\nSELECT id FROM items ORDER BY id;\n",
+      "solution": "-- 이 질의에 WHERE를 더해 재고가 0보다 큰 물건만 남기세요.\n-- WHERE는 조건이 참인 행만 남겨요. NULL과 0은 0보다 크지 않아요.\nSELECT id FROM items WHERE stock > 0 ORDER BY id;\n",
       "files": {
         "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'pen',2,'A',10),(2,'book',NULL,'B',20),(3,'bag',5,'A',NULL),(4,'pen',0,'B',10);\n"
       },
-      "question": "어떤 물건이 나올까요?"
-    },
-    {
-      "id": "stp_1dc3a31a-949e-4939-9f93-154e00ac62d9",
-      "title": "모르는 재고를 찾으세요",
-      "goal": "book은 재고를 아직 몰라 stock이 NULL이에요. IS NULL은 값이 NULL인지 묻는 조건이에요.\n이 조회는 어떤 물건을 찾을까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "sql",
-      "starter_code": "",
-      "solution": "unknown",
-      "tests": [],
-      "required": true,
-      "example_code": "SELECT id FROM items WHERE stock IS NULL ORDER BY id;",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "zero",
-            "text": "재고0인 ID4만 찾아요"
+      "tests": [
+        {
+          "input": "",
+          "expected": "id\n1\n3"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'pen',0,'A',10),(2,'bag',3,'B',NULL),(3,'box',NULL,'A',20),(4,'bolt',5,'C',30);\n"
           },
-          {
-            "id": "unknown",
-            "text": "모르는 재고인 ID2를 찾아요"
-          }
-        ],
-        "answer": "unknown"
-      },
+          "expected": "id\n2\n4"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'cab',7,'B',20),(2,'ball',2,'A',10),(3,'bin',6,'A',10),(4,'map',NULL,'B',NULL);\n"
+          },
+          "expected": "id\n1\n2\n3"
+        }
+      ],
+      "required": true,
       "narration": [
         {
           "action": "say",
-          "text": "NULL을 찾는 비교와 0을 찾는 비교를 구별하는 문제예요.",
-          "target": "text:모르는 재고를 찾으세요#1"
+          "text": "이 수업에서는 SQL이 어떤 행과 열을 남기는지 질의를 직접 고쳐 가며 배워요. 조건과 NULL의 의미를 구별해요."
+        },
+        {
+          "action": "say",
+          "text": "작은 조회에서 범위·중복·조인으로 넓혀요. 하위 질의까지 직접 쓰고, 행을 바꾼 표로도 확인해요."
+        },
+        {
+          "action": "say",
+          "text": "WHERE stock > 0으로 재고가 있는 물건만 남기는 문제예요.",
+          "target": "text:WHERE stock > 0으로 재고가 있는 물건만 남기세요#1"
+        },
+        {
+          "action": "say",
+          "text": "SELECT는 보여 줄 열, WHERE는 남길 행이에요. 재고가 0보다 큰 행만 남겨야 해요.",
+          "target": "text:FROM items 뒤에 WHERE를 더해 재고가 0보다 큰 물건만 남기세요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            1
+            2,
+            2
           ]
         },
         {
           "action": "say",
-          "text": "IS NULL은 재고가 비어 있는 행을 찾아요.",
+          "text": "1부터 4까지 모두 나와요. 아직 조건이 없어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "stock IS NULL",
-          "after": "stock = NULL",
-          "say": "IS NULL을 등호 = NULL로 바꿔 볼게요."
+          "before": "FROM items ORDER BY",
+          "after": "FROM items WHERE stock > 0 ORDER BY",
+          "say": "FROM items 뒤에 WHERE stock > 0을 써요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            1
+            2,
+            2
           ]
         },
         {
           "action": "say",
-          "text": "등호와 NULL의 비교는 참이 되지 않아 아무 행도 남지 않아요.",
+          "text": "1과 3이에요. 재고 2와 5인 행만 남았어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. NULL 비교에는 IS NULL이나 IS NOT NULL을 사용해요.",
+          "text": "조심하세요. stock >= 0이면 재고 0인 ID 4도 남아요. NULL인 ID 2는 어느 쪽에서도 남지 않아요.",
+          "target": "code:stock > 0"
+        }
+      ]
+    },
+    {
+      "id": "stp_26c3d962-e621-4e99-afae-2c2879dc5d6d",
+      "title": "IS NULL로 재고를 모르는 물건을 찾으세요",
+      "goal": "book은 재고를 아직 몰라 stock이 NULL이에요. NULL은 값이 아니라 모른다는 표시라서 `=`로 비교하면 참이 되지 않아요. `IS NULL`은 값이 NULL인지 묻는 조건이에요.\n\nFROM items 뒤에 WHERE를 더해 재고를 모르는(NULL) 물건만 남기세요. 채점은 행을 바꾼 표로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 모든 id가 나오는지 확인하세요.\n2. `FROM items` 뒤에 `WHERE stock IS NULL`을 쓰세요.\n3. 코드 실행을 눌러 2만 나오는지 확인하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 이 질의에 WHERE를 더해 재고를 모르는(NULL) 물건만 남기세요.\nSELECT id FROM items ORDER BY id;\n",
+      "solution": "-- 이 질의에 WHERE를 더해 재고를 모르는(NULL) 물건만 남기세요.\n-- NULL은 = 로 비교할 수 없어요. IS NULL로 물어요.\nSELECT id FROM items WHERE stock IS NULL ORDER BY id;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'pen',2,'A',10),(2,'book',NULL,'B',20),(3,'bag',5,'A',NULL),(4,'pen',0,'B',10);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "id\n2"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'pen',0,'A',10),(2,'bag',3,'B',NULL),(3,'box',NULL,'A',20),(4,'bolt',5,'C',30);\n"
+          },
+          "expected": "id\n3"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'cab',7,'B',20),(2,'ball',2,'A',10),(3,'bin',6,'A',10),(4,'map',NULL,'B',NULL);\n"
+          },
+          "expected": "id\n4"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "IS NULL로 재고를 모르는 물건을 찾는 문제예요.",
+          "target": "text:IS NULL로 재고를 모르는 물건을 찾으세요#1"
+        },
+        {
+          "action": "say",
+          "text": "재고를 아직 모르는 물건은 stock이 NULL이에요. IS NULL로 그 행만 남겨야 해요.",
+          "target": "text:FROM items 뒤에 WHERE를 더해 재고를 모르는(NULL) 물건만 남기세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "네 행이 모두 나와요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "FROM items ORDER BY",
+          "after": "FROM items WHERE stock = NULL ORDER BY",
+          "say": "먼저 stock = NULL로 써 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "행 없음이에요. = NULL은 어떤 행에서도 참이 되지 않아요.",
           "target": "output"
         },
         {
           "action": "patch_code",
           "before": "stock = NULL",
           "after": "stock IS NULL",
-          "say": "IS NULL로 되돌려요."
+          "say": "= NULL을 IS NULL로 고쳐요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            1
+            2,
+            2
           ]
         },
         {
           "action": "say",
-          "text": "처음 조건은 NULL인 book, ID 2를 찾아요.",
+          "text": "2예요. 재고를 모르는 book만 남았어요.",
           "target": "output"
         },
         {
-          "action": "choose_answer",
-          "id": "unknown"
+          "action": "say",
+          "text": "조심하세요. 재고 0은 NULL이 아니에요. stock = 0은 ID 4를 찾아요.",
+          "target": "code:stock IS NULL"
         }
-      ],
-      "predict_before_run": true,
+      ]
+    },
+    {
+      "id": "stp_117c76c1-455b-4c6b-a955-f4e0356af7d2",
+      "title": "괄호로 OR을 먼저 묶어 재고 조건을 모든 분류에 적용하세요",
+      "goal": "괄호가 없으면 AND가 OR보다 먼저 묶여요. 지금 조건은 「A이면서 재고 양수」 또는 「B」라서 B 분류는 재고와 상관없이 남아요. 원하는 것은 재고가 양수이면서 분류가 A 또는 B인 물건이에요.\n\n괄호를 더해 category = 'A' OR category = 'B'를 먼저 묶으세요. 채점은 행을 바꾼 표로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 1, 2, 3, 4가 나오는지 확인하세요.\n2. `category = 'A' OR category = 'B'`를 괄호로 묶으세요.\n3. 코드 실행을 눌러 1과 3이 나오는지 확인하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 재고가 양수이면서 분류가 A 또는 B인 물건이에요. 괄호를 더해 OR을 먼저 묶으세요.\nSELECT id FROM items WHERE stock > 0 AND category = 'A' OR category = 'B' ORDER BY id;\n",
+      "solution": "-- 재고가 양수이면서 분류가 A 또는 B인 물건이에요. 괄호를 더해 OR을 먼저 묶으세요.\n-- 괄호가 없으면 AND가 먼저 묶여 B 분류는 재고와 상관없이 남아요.\nSELECT id FROM items WHERE stock > 0 AND (category = 'A' OR category = 'B') ORDER BY id;\n",
       "files": {
         "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'pen',2,'A',10),(2,'book',NULL,'B',20),(3,'bag',5,'A',NULL),(4,'pen',0,'B',10);\n"
       },
-      "question": "이 조회는 어떤 물건을 찾을까요?"
-    },
-    {
-      "id": "stp_aeb660c1-9763-4b34-a253-04fb6b2e61cb",
-      "title": "두 조건의 묶음을 읽으세요",
-      "goal": "A분류이면서 재고가 양수인 물건, 또는 B분류 물건을 고르는 조건이에요. 괄호가 없으면 AND가 OR보다 먼저 묶여요.\nB분류 물건은 어떻게 될까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "sql",
-      "starter_code": "",
-      "solution": "or",
-      "tests": [],
-      "required": true,
-      "example_code": "SELECT id FROM items WHERE stock>0 AND category='A' OR category='B' ORDER BY id;",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "both",
-            "text": "모든 행에서 양수 조건이 필수예요"
+      "tests": [
+        {
+          "input": "",
+          "expected": "id\n1\n3"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'pen',0,'A',10),(2,'bag',3,'B',NULL),(3,'box',NULL,'A',20),(4,'bolt',5,'C',30);\n"
           },
-          {
-            "id": "or",
-            "text": "B분류는 양수 조건과 상관없이 포함돼요"
-          }
-        ],
-        "answer": "or"
-      },
+          "expected": "id\n2"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'cab',7,'B',20),(2,'ball',2,'A',10),(3,'bin',6,'A',10),(4,'map',NULL,'B',NULL);\n"
+          },
+          "expected": "id\n1\n2\n3"
+        }
+      ],
+      "required": true,
       "narration": [
         {
           "action": "say",
-          "text": "괄호 없는 AND·OR가 어떻게 묶이는지 따지는 문제예요.",
-          "target": "text:두 조건의 묶음을 읽으세요#1"
+          "text": "괄호로 OR을 먼저 묶어 재고 조건을 모든 분류에 적용하는 문제예요.",
+          "target": "text:괄호로 OR을 먼저 묶어 재고 조건을 모든 분류에 적용하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "재고가 양수이면서 분류가 A 또는 B여야 해요. OR 쪽을 괄호로 묶어야 해요.",
+          "target": "text:괄호를 더해 category = 'A' OR category = 'B'를 먼저 묶으세요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            1
+            2,
+            2
           ]
         },
         {
           "action": "say",
-          "text": "AND가 먼저 묶여 B 분류 행들은 양수 조건 없이도 남아요.",
+          "text": "1, 2, 3, 4가 모두 나와요. 재고를 모르는 2와 재고 0인 4도 B라서 남았어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "stock>0 AND category='A' OR category='B'",
-          "after": "stock>0 AND (category='A' OR category='B')",
-          "say": "OR 부분을 괄호로 묶어 볼게요."
+          "before": "AND category = 'A' OR category = 'B'",
+          "after": "AND (category = 'A' OR category = 'B')",
+          "say": "OR로 이은 두 분류 조건을 괄호로 묶어요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            1
+            2,
+            2
           ]
         },
         {
           "action": "say",
-          "text": "괄호를 넣으면 어느 분류든 양수 조건을 통과해야 해요.",
+          "text": "1과 3이에요. 이제 모든 행에서 재고 양수 조건이 필요해요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 문장으로 의도한 조건과 SQL의 괄호 묶음이 같은지 확인해요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "stock>0 AND (category='A' OR category='B')",
-          "after": "stock>0 AND category='A' OR category='B'",
-          "say": "괄호를 빼고 되돌려요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            1
-          ]
-        },
-        {
-          "action": "say",
-          "text": "처음 조건은 AND가 먼저 묶여 B분류는 재고와 상관없이 남아요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "or"
+          "text": "조심하세요. 괄호가 없으면 AND가 OR보다 먼저 묶여요.",
+          "target": "code:(category = 'A' OR category = 'B')"
         }
-      ],
-      "predict_before_run": true,
+      ]
+    },
+    {
+      "id": "stp_990c8c5c-d93d-49b6-b4aa-cab1fdcc1ffb",
+      "title": "LIKE 'b%'로 b로 시작하는 이름을 고르세요",
+      "goal": "LIKE 무늬에서 `%`는 몇 글자든 아무 글자를 뜻해요. 그래서 `'b%'`는 b로 시작하는 모든 이름이에요. 지금 조건은 이름이 정확히 b인 행만 찾아요.\n\n조건을 고쳐 이름이 b로 시작하는 물건을 고르세요. 채점은 이름을 바꾼 표로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 행 없음이 나오는지 확인하세요.\n2. `name = 'b'`를 `name LIKE 'b%'`로 고치세요.\n3. 코드 실행을 눌러 2와 3이 나오는지 확인하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 이 조건을 고쳐 이름이 b로 시작하는 물건을 고르세요.\nSELECT id FROM items WHERE name = 'b' ORDER BY id;\n",
+      "solution": "-- 이 조건을 고쳐 이름이 b로 시작하는 물건을 고르세요.\n-- %는 몇 글자든 아무 글자예요. 'b%'는 b로 시작하는 모든 이름이에요.\nSELECT id FROM items WHERE name LIKE 'b%' ORDER BY id;\n",
       "files": {
         "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'pen',2,'A',10),(2,'book',NULL,'B',20),(3,'bag',5,'A',NULL),(4,'pen',0,'B',10);\n"
       },
-      "question": "B분류 물건은 어떻게 될까요?"
-    },
-    {
-      "id": "stp_caea3553-3477-459b-8797-b9d3ae1f4338",
-      "title": "글자 무늬로 고르세요",
-      "goal": "LIKE 'b%'에서 %는 몇 글자든 아무 글자를 뜻해요. 이름의 시작 글자로 물건을 고르려 해요.\n어떤 이름이 남을까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "sql",
-      "starter_code": "",
-      "solution": "start",
-      "tests": [],
-      "required": true,
-      "example_code": "SELECT id FROM items WHERE name LIKE 'b%' ORDER BY id;",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "start",
-            "text": "b로 시작하는 book과bag예요"
+      "tests": [
+        {
+          "input": "",
+          "expected": "id\n2\n3"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'pen',0,'A',10),(2,'bag',3,'B',NULL),(3,'box',NULL,'A',20),(4,'bolt',5,'C',30);\n"
           },
-          {
-            "id": "contains",
-            "text": "b가 끝에 있는 이름만 골라요"
-          }
-        ],
-        "answer": "start"
-      },
+          "expected": "id\n2\n3\n4"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'cab',7,'B',20),(2,'ball',2,'A',10),(3,'bin',6,'A',10),(4,'map',NULL,'B',NULL);\n"
+          },
+          "expected": "id\n2\n3"
+        }
+      ],
+      "required": true,
       "narration": [
         {
           "action": "say",
-          "text": "무늬 기호 %가 어디에 있는지로 남는 이름을 고르는 문제예요.",
-          "target": "text:글자 무늬로 고르세요#1"
+          "text": "LIKE 'b%'로 b로 시작하는 이름을 고르는 문제예요.",
+          "target": "text:LIKE 'b%'로 b로 시작하는 이름을 고르세요#1"
+        },
+        {
+          "action": "say",
+          "text": "name = 'b'는 이름이 정확히 b인 행만 찾아요. LIKE 무늬로 b로 시작하는 이름을 골라야 해요.",
+          "target": "text:조건을 고쳐 이름이 b로 시작하는 물건을 고르세요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            1
+            2,
+            2
           ]
         },
         {
           "action": "say",
-          "text": "b로 시작하는 두 이름이 남아요.",
+          "text": "행 없음이에요. 이름이 b 한 글자인 물건은 없어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "LIKE 'b%'",
-          "after": "LIKE '%o%'",
-          "say": "무늬를 '%o%'로 바꿔 볼게요."
+          "before": "name = 'b'",
+          "after": "name LIKE 'b%'",
+          "say": "= 'b'를 LIKE 'b%'로 고쳐요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            1
+            2,
+            2
           ]
         },
         {
           "action": "say",
-          "text": "o가 들어 있는 이름을 고르면 book만 남아요.",
+          "text": "2와 3이에요. b로 시작하는 book과 bag이에요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 퍼센트는 길이가 다양한 글자들을 나타내요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "한 글자는 밑줄 기호와 구별해요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "LIKE '%o%'",
-          "after": "LIKE 'b%'",
-          "say": "'b%'로 되돌려요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            1
-          ]
-        },
-        {
-          "action": "say",
-          "text": "처음 조건은 b로 시작하는 book과 bag이에요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "start"
+          "text": "조심하세요. '%b%'는 b가 어디에 있든 남겨서 시작 글자 조건이 아니에요.",
+          "target": "code:LIKE 'b%'"
         }
-      ],
-      "predict_before_run": true,
+      ]
+    },
+    {
+      "id": "stp_b8307e07-24ff-4fac-acf6-444a53b7ddcc",
+      "title": "BETWEEN 2 AND 5로 양 끝을 포함한 범위를 고르세요",
+      "goal": "`BETWEEN 2 AND 5`는 2 이상 5 이하, 곧 양 끝을 포함하는 범위예요. 지금 조건은 `>`와 `<`라서 경계값 2와 5를 빼요.\n\n조건을 BETWEEN으로 고쳐 재고가 2 이상 5 이하인 물건을 고르세요. 채점은 행을 바꾼 표로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 행 없음이 나오는지 확인하세요.\n2. `stock > 2 AND stock < 5`를 `stock BETWEEN 2 AND 5`로 고치세요.\n3. 코드 실행을 눌러 1과 3이 나오는지 확인하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 이 조건을 BETWEEN으로 고쳐 재고가 2 이상 5 이하인 물건을 고르세요.\nSELECT id FROM items WHERE stock > 2 AND stock < 5 ORDER BY id;\n",
+      "solution": "-- 이 조건을 BETWEEN으로 고쳐 재고가 2 이상 5 이하인 물건을 고르세요.\n-- BETWEEN 2 AND 5는 양 끝 2와 5를 포함해요.\nSELECT id FROM items WHERE stock BETWEEN 2 AND 5 ORDER BY id;\n",
       "files": {
         "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'pen',2,'A',10),(2,'book',NULL,'B',20),(3,'bag',5,'A',NULL),(4,'pen',0,'B',10);\n"
       },
-      "question": "어떤 이름이 남을까요?"
-    },
-    {
-      "id": "stp_662bc322-6d1b-4ccd-9776-23398ffc796c",
-      "title": "범위의 양 끝을 읽으세요",
-      "goal": "BETWEEN 2 AND 5는 2 이상 5 이하의 범위예요. 재고가 이 범위인 물건을 고르려 해요.\n경계값 2와 5는 어떻게 될까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "sql",
-      "starter_code": "",
-      "solution": "ends",
-      "tests": [],
-      "required": true,
-      "example_code": "SELECT id FROM items WHERE stock BETWEEN 2 AND 5 ORDER BY id;",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "inside",
-            "text": "양 끝을 빼고 사이만 포함해요"
+      "tests": [
+        {
+          "input": "",
+          "expected": "id\n1\n3"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'pen',0,'A',10),(2,'bag',3,'B',NULL),(3,'box',NULL,'A',20),(4,'bolt',5,'C',30);\n"
           },
-          {
-            "id": "ends",
-            "text": "2와5인 양 끝도 포함돼요"
-          }
-        ],
-        "answer": "ends"
-      },
+          "expected": "id\n2\n4"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'cab',7,'B',20),(2,'ball',2,'A',10),(3,'bin',6,'A',10),(4,'map',NULL,'B',NULL);\n"
+          },
+          "expected": "id\n2"
+        }
+      ],
+      "required": true,
       "narration": [
         {
           "action": "say",
-          "text": "BETWEEN이 양 끝을 포함하는지 판단하는 문제예요.",
-          "target": "text:범위의 양 끝을 읽으세요#1"
+          "text": "BETWEEN 2 AND 5로 양 끝을 포함한 범위를 고르는 문제예요.",
+          "target": "text:BETWEEN 2 AND 5로 양 끝을 포함한 범위를 고르세요#1"
+        },
+        {
+          "action": "say",
+          "text": "2 이상 5 이하는 양 끝을 포함하는 범위예요. BETWEEN으로 고쳐야 해요.",
+          "target": "text:조건을 BETWEEN으로 고쳐 재고가 2 이상 5 이하인 물건을 고르세요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            1
+            2,
+            2
           ]
         },
         {
           "action": "say",
-          "text": "재고 2와 5도 범위에 포함돼요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "stock BETWEEN 2 AND 5",
-          "after": "stock > 2 AND stock < 5",
-          "say": "양 끝을 빼는 > 2 AND < 5로 바꿔 볼게요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            1
-          ]
-        },
-        {
-          "action": "say",
-          "text": "양 끝을 뺀 엄격한 비교로 바꾸면 이번 자료에는 행이 없어요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. BETWEEN의 양 끝은 포함돼요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "경계값을 꼭 확인해요.",
+          "text": "행 없음이에요. 재고 2와 5는 > 2, < 5에서 모두 빠졌어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
           "before": "stock > 2 AND stock < 5",
           "after": "stock BETWEEN 2 AND 5",
-          "say": "BETWEEN으로 되돌려요."
+          "say": "stock BETWEEN 2 AND 5로 고쳐요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            1
+            2,
+            2
           ]
         },
         {
           "action": "say",
-          "text": "처음 조건은 양 끝을 포함해 재고 2와 5가 남아요.",
+          "text": "1과 3이에요. 경계값 2와 5도 범위에 들어가요.",
           "target": "output"
         },
         {
-          "action": "choose_answer",
-          "id": "ends"
+          "action": "say",
+          "text": "조심하세요. BETWEEN은 작은 값을 앞에 써요. BETWEEN 5 AND 2는 아무 행도 남기지 않아요.",
+          "target": "code:BETWEEN 2 AND 5"
         }
-      ],
-      "predict_before_run": true,
+      ]
+    },
+    {
+      "id": "stp_b775bc43-e651-4275-aa92-0fb652327116",
+      "title": "DISTINCT로 분류의 중복을 없애세요",
+      "goal": "네 물건의 분류는 A, B, A, B예요. `DISTINCT`는 조회 결과에서 같은 값을 하나로 줄여요. 표의 행을 지우지는 않아요.\n\n질의를 고쳐 분류를 중복 없이 한 번씩만 보이세요. 채점은 분류를 바꾼 표로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 A, A, B, B가 나오는지 확인하세요.\n2. `SELECT` 뒤에 `DISTINCT`를 쓰세요.\n3. 코드 실행을 눌러 A와 B가 나오는지 확인하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 이 질의를 고쳐 분류를 중복 없이 한 번씩만 보이세요.\nSELECT category FROM items ORDER BY category;\n",
+      "solution": "-- 이 질의를 고쳐 분류를 중복 없이 한 번씩만 보이세요.\n-- DISTINCT는 조회 결과에서 같은 값을 하나로 줄여요. 표의 행은 그대로예요.\nSELECT DISTINCT category FROM items ORDER BY category;\n",
       "files": {
         "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'pen',2,'A',10),(2,'book',NULL,'B',20),(3,'bag',5,'A',NULL),(4,'pen',0,'B',10);\n"
       },
-      "question": "경계값 2와 5는 어떻게 될까요?"
-    },
-    {
-      "id": "stp_916dfe17-bddb-4481-9db2-91076141350d",
-      "title": "중복 결과를 하나로 모으세요",
-      "goal": "네 물건의 분류는 A, B, A, B예요. DISTINCT는 조회 결과에서 같은 값을 하나로 줄여요.\n결과는 어떻게 될까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "sql",
-      "starter_code": "",
-      "solution": "distinct",
-      "tests": [],
-      "required": true,
-      "example_code": "SELECT DISTINCT category FROM items ORDER BY category;",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "delete",
-            "text": "원본 물건 행 두 개를 삭제해요"
+      "tests": [
+        {
+          "input": "",
+          "expected": "category\nA\nB"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'pen',0,'A',10),(2,'bag',3,'B',NULL),(3,'box',NULL,'A',20),(4,'bolt',5,'C',30);\n"
           },
-          {
-            "id": "distinct",
-            "text": "분류 결과의 중복을 없애 A와B예요"
-          }
-        ],
-        "answer": "distinct"
-      },
+          "expected": "category\nA\nB\nC"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'cab',7,'B',20),(2,'ball',2,'A',10),(3,'bin',6,'A',10),(4,'map',NULL,'B',NULL);\n"
+          },
+          "expected": "category\nA\nB"
+        }
+      ],
+      "required": true,
       "narration": [
         {
           "action": "say",
-          "text": "DISTINCT가 원본이 아니라 결과의 중복만 줄인다는 점을 보는 문제예요.",
-          "target": "text:중복 결과를 하나로 모으세요#1"
+          "text": "DISTINCT로 분류의 중복을 없애는 문제예요.",
+          "target": "text:DISTINCT로 분류의 중복을 없애세요#1"
+        },
+        {
+          "action": "say",
+          "text": "분류가 A, B, A, B로 겹쳐요. 조회 결과에서 같은 값을 하나로 줄여야 해요.",
+          "target": "text:질의를 고쳐 분류를 중복 없이 한 번씩만 보이세요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            1
+            2,
+            2
           ]
         },
         {
           "action": "say",
-          "text": "선택한 분류 값의 중복만 결과에서 없앴어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "SELECT DISTINCT category",
-          "after": "SELECT category",
-          "say": "DISTINCT를 빼 볼게요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            1
-          ]
-        },
-        {
-          "action": "say",
-          "text": "DISTINCT를 빼면 네 행의 분류가 각각 나와요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 조회 결과의 중복 제거는 원본 행 삭제가 아니에요.",
+          "text": "A, A, B, B예요. 물건마다 한 줄씩 나와요.",
           "target": "output"
         },
         {
           "action": "patch_code",
           "before": "SELECT category",
           "after": "SELECT DISTINCT category",
-          "say": "DISTINCT로 되돌려요."
+          "say": "SELECT 뒤에 DISTINCT를 써요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            1
+            2,
+            2
           ]
         },
         {
           "action": "say",
-          "text": "처음 조회는 분류 A와 B를 한 번씩만 보여 줘요.",
+          "text": "A와 B예요. 결과의 중복만 줄었고 items 표의 행은 그대로예요.",
           "target": "output"
         },
         {
-          "action": "choose_answer",
-          "id": "distinct"
+          "action": "say",
+          "text": "조심하세요. DISTINCT는 표에서 행을 지우지 않아요. 보여 주는 결과만 줄여요.",
+          "target": "code:SELECT DISTINCT category"
         }
-      ],
-      "predict_before_run": true,
+      ]
+    },
+    {
+      "id": "stp_4a22a5cf-93be-4275-a08d-e2ff6552a4f5",
+      "title": "LEFT JOIN으로 공급처가 없는 물건도 남기세요",
+      "goal": "`JOIN … ON i.supplier = s.id`는 ON 조건이 맞는 물건과 공급처 행끼리만 이어 붙이는 내부 조인이에요. bag은 공급처가 없어 결과에서 빠져요. `LEFT JOIN`은 왼쪽 표 items의 행을 모두 남기고 짝이 없으면 NULL로 채워요.\n\n조인을 고쳐 공급처가 없는 물건도 결과에 남기세요. 채점은 공급처를 바꾼 표로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 1, 2, 4만 나오는지 확인하세요.\n2. `JOIN` 앞에 `LEFT`를 붙이세요.\n3. 코드 실행을 눌러 3이 NULL 공급처와 함께 나오는지 확인하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 이 조인을 고쳐 공급처가 없는 물건도 결과에 남기세요.\nSELECT i.id, s.name FROM items i JOIN suppliers s ON i.supplier = s.id ORDER BY i.id;\n",
+      "solution": "-- 이 조인을 고쳐 공급처가 없는 물건도 결과에 남기세요.\n-- LEFT JOIN은 왼쪽 items의 행을 모두 남기고, 맞는 공급처가 없으면 NULL로 채워요.\nSELECT i.id, s.name FROM items i LEFT JOIN suppliers s ON i.supplier = s.id ORDER BY i.id;\n",
       "files": {
         "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'pen',2,'A',10),(2,'book',NULL,'B',20),(3,'bag',5,'A',NULL),(4,'pen',0,'B',10);\n"
       },
-      "question": "결과는 어떻게 될까요?"
-    },
-    {
-      "id": "stp_b6294710-885b-4292-91bc-e113c224821e",
-      "title": "연결이 없는 물건도 남기세요",
-      "goal": "JOIN suppliers s ON i.supplier=s.id는 ON 조건이 맞는 물건과 공급처 행끼리만 이어 붙이는 내부 조인이에요. bag은 공급처가 없어요.\n결과에 어떤 물건이 남을까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "sql",
-      "starter_code": "",
-      "solution": "matched",
-      "tests": [],
-      "required": true,
-      "example_code": "SELECT i.id, s.name FROM items i JOIN suppliers s ON i.supplier=s.id ORDER BY i.id;",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "matched",
-            "text": "연결된 공급처가 있는 물건만 남아요"
+      "tests": [
+        {
+          "input": "",
+          "expected": "id | name\n1 | north\n2 | south\n3 | NULL\n4 | north"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'pen',0,'A',10),(2,'bag',3,'B',NULL),(3,'box',NULL,'A',20),(4,'bolt',5,'C',30);\n"
           },
-          {
-            "id": "all",
-            "text": "JOIN도 공급처 없는 bag을 NULL과 함께 남겨요"
-          }
-        ],
-        "answer": "matched"
-      },
+          "expected": "id | name\n1 | north\n2 | NULL\n3 | south\n4 | empty"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'cab',7,'B',20),(2,'ball',2,'A',10),(3,'bin',6,'A',10),(4,'map',NULL,'B',NULL);\n"
+          },
+          "expected": "id | name\n1 | south\n2 | north\n3 | north\n4 | NULL"
+        }
+      ],
+      "required": true,
       "narration": [
         {
           "action": "say",
-          "text": "내부 조인이 짝이 없는 행을 남기는지 판단하는 문제예요.",
-          "target": "text:연결이 없는 물건도 남기세요#1"
+          "text": "LEFT JOIN으로 공급처가 없는 물건도 남기는 문제예요.",
+          "target": "text:LEFT JOIN으로 공급처가 없는 물건도 남기세요#1"
+        },
+        {
+          "action": "say",
+          "text": "공급처가 없는 bag도 남아야 해요. 왼쪽 표의 행을 모두 남기는 조인으로 고쳐야 해요.",
+          "target": "text:조인을 고쳐 공급처가 없는 물건도 결과에 남기세요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            1
+            2,
+            2
           ]
         },
         {
           "action": "say",
-          "text": "공급처가 없는 bag은 내부 조인 결과에서 빠져요.",
+          "text": "1, 2, 4만 나와요. 내부 조인은 짝이 없는 bag, ID 3을 뺐어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "items i JOIN suppliers",
-          "after": "items i LEFT JOIN suppliers",
-          "say": "JOIN을 LEFT JOIN으로 바꿔 볼게요."
+          "before": "FROM items i JOIN",
+          "after": "FROM items i LEFT JOIN",
+          "say": "JOIN 앞에 LEFT를 붙여요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            1
+            2,
+            2
           ]
         },
         {
           "action": "say",
-          "text": "LEFT JOIN이면 왼쪽 물건을 남기고 없는 공급처는 NULL로 보여요.",
+          "text": "3도 NULL 공급처와 함께 남았어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 바깥 조인 뒤 오른쪽 열의 WHERE 조건을 봐요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "보존하려던 행을 다시 잃을 수 있어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "items i LEFT JOIN suppliers",
-          "after": "items i JOIN suppliers",
-          "say": "내부 JOIN으로 되돌려요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            1
-          ]
-        },
-        {
-          "action": "say",
-          "text": "처음 조회는 내부 조인이라 공급처가 없는 bag이 빠져요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "matched"
+          "text": "조심하세요. LEFT JOIN 뒤에 WHERE s.name IS NOT NULL을 쓰면 다시 내부 조인처럼 bag이 빠져요.",
+          "target": "code:LEFT JOIN suppliers s"
         }
-      ],
-      "predict_before_run": true,
+      ]
+    },
+    {
+      "id": "stp_1157e6fe-81a2-4cf2-a5bf-dedc054c5a38",
+      "title": "EXISTS 하위 질의로 양수 재고 물건이 있는 공급처를 찾으세요",
+      "goal": "괄호 안 SELECT는 바깥 질의가 쓰는 하위 질의예요. `EXISTS (하위 질의)`는 그 하위 질의가 행을 하나라도 돌려주면 참이에요. 하위 질의 안에서 `s.id`를 쓰면 바깥에서 지금 보는 공급처를 가리켜요.\n\nWHERE에 EXISTS 하위 질의를 써서 양수 재고 물건이 있는 공급처만 남기세요. 채점은 공급처와 재고를 바꾼 표로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 10, 20, 30이 모두 나오는지 확인하세요.\n2. `FROM suppliers s` 다음 줄에 `WHERE EXISTS (SELECT 1 FROM items i WHERE i.supplier = s.id AND i.stock > 0)`를 쓰세요.\n3. 코드 실행을 눌러 10만 나오는지 확인하세요.\n4. 작성한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 이 주석 아래 WHERE에 EXISTS 하위 질의를 써서 양수 재고 물건이 있는 공급처만 남기세요.\nSELECT s.id FROM suppliers s\nORDER BY s.id;\n",
+      "solution": "-- 이 주석 아래 WHERE에 EXISTS 하위 질의를 써서 양수 재고 물건이 있는 공급처만 남기세요.\n-- 하위 질의가 행을 하나라도 돌려주면 EXISTS가 참이에요. i.supplier = s.id가 바깥 공급처와 이어요.\nSELECT s.id FROM suppliers s\nWHERE EXISTS (SELECT 1 FROM items i WHERE i.supplier = s.id AND i.stock > 0)\nORDER BY s.id;\n",
       "files": {
         "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'pen',2,'A',10),(2,'book',NULL,'B',20),(3,'bag',5,'A',NULL),(4,'pen',0,'B',10);\n"
       },
-      "question": "결과에 어떤 물건이 남을까요?"
-    },
-    {
-      "id": "stp_fdeb9075-80bc-444b-8695-e1e7501f645f",
-      "title": "일치하는 행의 존재를 물어요",
-      "goal": "괄호 안 SELECT는 바깥 질의가 쓰는 하위 질의예요. EXISTS (하위 질의)는 그 하위 질의가 행을 하나라도 돌려주면 참이에요. 안쪽의 s.id는 바깥 공급처를 가리켜요.\n양수 재고 물건이 있는 공급처는 어디일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "sql",
-      "starter_code": "",
-      "solution": "positive",
-      "tests": [],
-      "required": true,
-      "example_code": "SELECT s.id FROM suppliers s WHERE EXISTS (SELECT 1 FROM items i WHERE i.supplier=s.id AND i.stock>0) ORDER BY s.id;",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "any",
-            "text": "어떤 재고든 연결만 있으면 모두 나와요"
+      "tests": [
+        {
+          "input": "",
+          "expected": "id\n10"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'pen',0,'A',10),(2,'bag',3,'B',NULL),(3,'box',NULL,'A',20),(4,'bolt',5,'C',30);\n"
           },
-          {
-            "id": "positive",
-            "text": "양수 재고가 연결된 공급처10이에요"
-          }
-        ],
-        "answer": "positive"
-      },
+          "expected": "id\n30"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'cab',7,'B',20),(2,'ball',2,'A',10),(3,'bin',6,'A',10),(4,'map',NULL,'B',NULL);\n"
+          },
+          "expected": "id\n10\n20"
+        }
+      ],
+      "required": true,
       "narration": [
         {
           "action": "say",
-          "text": "하위 질의와 EXISTS로 공급처를 고르는 문제예요.",
-          "target": "text:일치하는 행의 존재를 물어요#1"
+          "text": "EXISTS 하위 질의로 양수 재고 물건이 있는 공급처를 찾는 문제예요.",
+          "target": "text:EXISTS 하위 질의로 양수 재고 물건이 있는 공급처를 찾으세요#1"
         },
         {
           "action": "say",
-          "text": "공급처마다 양수 재고 물건이 있는지 묻는 문제예요. 먼저 하위 질의가 무엇을 돌려주는지 보면 이해가 쉬워요.",
-          "target": "text:괄호 안 SELECT는 바깥 질의가 쓰는 하위 질의예요."
-        },
-        {
-          "action": "patch_code",
-          "before": "EXISTS (SELECT 1 FROM items i WHERE i.supplier=s.id AND i.stock>0)",
-          "after": "s.id IN (SELECT supplier FROM items WHERE stock>0)",
-          "say": "같은 뜻을 IN 하위 질의로 먼저 써 볼게요. 안쪽은 양수 재고 물건의 공급처 목록이에요."
+          "text": "공급처마다 양수 재고 물건이 하나라도 있는지 EXISTS로 물어야 해요.",
+          "target": "text:WHERE에 EXISTS 하위 질의를 써서 양수 재고 물건이 있는 공급처만 남기세요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            1
+            2,
+            2
           ]
         },
         {
           "action": "say",
-          "text": "목록은 10과 공급처 없는 bag의 NULL이라, 그 안에 있는 공급처는 10이에요.",
+          "text": "10, 20, 30이 모두 나와요. 아직 조건이 없어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "s.id IN (SELECT supplier FROM items WHERE stock>0)",
-          "after": "EXISTS (SELECT 1 FROM items i WHERE i.supplier=s.id AND i.stock>0)",
-          "say": "이제 공급처마다 안쪽 행이 있는지 묻는 EXISTS로 되돌려요."
+          "before": "SELECT s.id FROM suppliers s\n",
+          "after": "SELECT s.id FROM suppliers s\nWHERE EXISTS (SELECT 1 FROM items i WHERE i.supplier = s.id AND i.stock > 0)\n",
+          "say": "하위 질의에서 바깥 공급처 s.id와 이어지고 재고가 양수인 물건을 찾아요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            1
+            2,
+            4
           ]
         },
         {
           "action": "say",
-          "text": "결과는 같은 10이에요. EXISTS는 바깥 공급처 하나마다 안쪽 조건에 맞는 물건 행이 있는지만 봐요.",
+          "text": "10이에요. 20의 book은 재고를 모르고, 30은 물건이 없어요.",
           "target": "output"
         },
         {
-          "action": "patch_code",
-          "before": " AND i.stock>0",
-          "after": " AND 1=1",
-          "say": "양수 조건을 빼 볼게요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            1
-          ]
-        },
-        {
           "action": "say",
-          "text": "재고를 모르는 book의 공급처 20도 행이 있어 나와요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": " AND 1=1",
-          "after": " AND i.stock>0",
-          "say": "양수 조건으로 되돌려요."
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. EXISTS는 안쪽이 무엇을 출력하는지가 아니라 행이 있는지를 봐요. 그래서 SELECT 1이라고 써도 돼요.",
-          "target": "code:SELECT 1"
-        },
-        {
-          "action": "choose_answer",
-          "id": "positive"
+          "text": "조심하세요. 하위 질의에 i.supplier = s.id가 없으면 어느 공급처든 물건이 하나만 있어도 참이 돼요.",
+          "target": "code:i.supplier = s.id"
         }
-      ],
-      "predict_before_run": true,
+      ]
+    },
+    {
+      "id": "stp_9824044e-4bc6-442b-84aa-3eabbd3f5899",
+      "title": "NOT EXISTS로 물건이 없는 공급처를 찾으세요",
+      "goal": "`NOT IN (하위 질의)`는 하위 질의가 돌려준 목록에 없을 때 참이에요. 그런데 bag의 supplier가 NULL이라 목록에 NULL이 섞여요. NULL과 비교하면 결과를 알 수 없어서, 물건이 없는 공급처 30도 참이 되지 않아요.\n\n질의를 NOT EXISTS로 고쳐 물건이 하나도 없는 공급처를 찾으세요. 채점은 공급처를 바꾼 표로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 행 없음이 나오는지 확인하세요.\n2. WHERE 줄을 `WHERE NOT EXISTS (SELECT 1 FROM items i WHERE i.supplier = s.id)`로 고치세요.\n3. 코드 실행을 눌러 30이 나오는지 확인하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 이 질의를 NOT EXISTS로 고쳐 물건이 하나도 없는 공급처를 찾으세요.\nSELECT s.id FROM suppliers s\nWHERE s.id NOT IN (SELECT supplier FROM items)\nORDER BY s.id;\n",
+      "solution": "-- 이 질의를 NOT EXISTS로 고쳐 물건이 하나도 없는 공급처를 찾으세요.\n-- NOT IN 목록에 NULL이 섞이면 결과가 비어요. NOT EXISTS는 이어지는 물건 행이 없는지만 물어요.\nSELECT s.id FROM suppliers s\nWHERE NOT EXISTS (SELECT 1 FROM items i WHERE i.supplier = s.id)\nORDER BY s.id;\n",
       "files": {
         "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'pen',2,'A',10),(2,'book',NULL,'B',20),(3,'bag',5,'A',NULL),(4,'pen',0,'B',10);\n"
       },
-      "question": "양수 재고 물건이 있는 공급처는 어디일까요?"
-    },
-    {
-      "id": "stp_a479e334-6bf7-420d-a963-b221c0f8a425",
-      "title": "NULL이 섞인 제외 조건을 읽으세요",
-      "goal": "NOT IN (하위 질의)는 하위 질의가 돌려준 목록에 없을 때 참이에요. 그런데 bag의 supplier는 NULL이라 목록에 NULL이 섞여요.\n물건이 하나도 없는 공급처 30이 결과에 남을까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "sql",
-      "starter_code": "",
-      "solution": "unknown",
-      "tests": [],
-      "required": true,
-      "example_code": "SELECT s.id FROM suppliers s WHERE s.id NOT IN (SELECT supplier FROM items) ORDER BY s.id;",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "unknown",
-            "text": "안쪽 NULL 때문에30도 참으로 남지 않아요"
+      "tests": [
+        {
+          "input": "",
+          "expected": "id\n30"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'pen',0,'A',10),(2,'bag',3,'B',NULL),(3,'box',NULL,'A',20),(4,'bolt',5,'C',30);\n"
           },
-          {
-            "id": "empty",
-            "text": "물건이 없는 공급처 30이 남아요"
-          }
-        ],
-        "answer": "unknown"
-      },
+          "expected": "id\n(행 없음)"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'cab',7,'B',20),(2,'ball',2,'A',10),(3,'bin',6,'A',10),(4,'map',NULL,'B',NULL);\n"
+          },
+          "expected": "id\n30"
+        }
+      ],
+      "required": true,
       "narration": [
         {
           "action": "say",
-          "text": "하위 질의 목록에 NULL이 섞일 때 NOT IN이 어떻게 되는지 판단하는 문제예요.",
-          "target": "text:NULL이 섞인 제외 조건을 읽으세요#1"
+          "text": "NOT EXISTS로 물건이 없는 공급처를 찾는 문제예요.",
+          "target": "text:NOT EXISTS로 물건이 없는 공급처를 찾으세요#1"
+        },
+        {
+          "action": "say",
+          "text": "물건이 없는 공급처를 찾아야 해요. NOT IN 대신 NOT EXISTS로 고쳐야 해요.",
+          "target": "text:질의를 NOT EXISTS로 고쳐 물건이 하나도 없는 공급처를 찾으세요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            1
+            2,
+            4
           ]
         },
         {
           "action": "say",
-          "text": "안쪽 목록에 NULL이 있어 없는 값과 비교해도 참이 되지 않아요.",
+          "text": "행 없음이에요. bag의 supplier가 NULL이라 NOT IN 목록에 NULL이 섞였어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "s.id NOT IN (SELECT supplier FROM items)",
-          "after": "NOT EXISTS (SELECT 1 FROM items i WHERE i.supplier=s.id)",
-          "say": "NOT IN을 상관 NOT EXISTS로 바꿔 볼게요."
+          "before": "WHERE s.id NOT IN (SELECT supplier FROM items)\n",
+          "after": "WHERE NOT EXISTS (SELECT 1 FROM items i WHERE i.supplier = s.id)\n",
+          "say": "NOT EXISTS 하위 질의로 이 공급처와 이어지는 물건 행이 있는지 물어요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            1
+            2,
+            4
           ]
         },
         {
           "action": "say",
-          "text": "같은 ID의 행이 없는지를 NOT EXISTS로 물으면 30을 찾아요.",
+          "text": "30이에요. 이어지는 물건이 없는 공급처만 남았어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 하위 질의에 NULL이 있는지 확인해요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "NOT IN의 제외 결과가 달라질 수 있어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "NOT EXISTS (SELECT 1 FROM items i WHERE i.supplier=s.id)",
-          "after": "s.id NOT IN (SELECT supplier FROM items)",
-          "say": "NOT IN으로 되돌려요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            1,
-            1
-          ]
-        },
-        {
-          "action": "say",
-          "text": "처음 조회는 목록의 NULL 때문에 30도 참이 되지 않아 결과가 없어요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "unknown"
+          "text": "조심하세요. x NOT IN (…, NULL)은 참이 될 수 없어요. NULL과의 비교는 알 수 없음이에요.",
+          "target": "code:WHERE NOT EXISTS (SELECT 1"
         }
-      ],
-      "predict_before_run": true,
-      "files": {
-        "setup.sql": "CREATE TABLE suppliers(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO suppliers VALUES(10,'north'),(20,'south'),(30,'empty');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, category TEXT, supplier INTEGER REFERENCES suppliers(id));\nINSERT INTO items VALUES(1,'pen',2,'A',10),(2,'book',NULL,'B',20),(3,'bag',5,'A',NULL),(4,'pen',0,'B',10);\n"
-      },
-      "question": "물건이 하나도 없는 공급처 30이 결과에 남을까요?"
+      ]
     },
     {
       "id": "stp_f12a9656-60a0-4b06-899d-920b5bb625b6",

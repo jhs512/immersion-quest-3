@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "063a8741764549be5533557abc81048c8009cf713b367e3bde695e9527d65ab8",
+  "entry": [
+    {
+      "action": "say",
+      "text": "물건이 없는 공급처를 찾아야 해요. NOT IN 대신 NOT EXISTS로 고쳐야 해요.",
+      "target": "text:질의를 NOT EXISTS로 고쳐 물건이 하나도 없는 공급처를 찾으세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "행 없음이에요. bag의 supplier가 NULL이라 NOT IN 목록에 NULL이 섞였어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "WHERE s.id NOT IN (SELECT supplier FROM items)\n",
+      "after": "WHERE NOT EXISTS (SELECT 1 FROM items i WHERE i.supplier = s.id)\n",
+      "say": "NOT EXISTS 하위 질의로 이 공급처와 이어지는 물건 행이 있는지 물어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "30이에요. 이어지는 물건이 없는 공급처만 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. x NOT IN (…, NULL)은 참이 될 수 없어요. NULL과의 비교는 알 수 없음이에요.",
+      "target": "code:WHERE NOT EXISTS (SELECT 1"
+    }
+  ]
+}

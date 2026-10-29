@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "71aa96a1cd74b7d7546dc7f575cea97966f61874024ea8838a18285f76e552eb",
+  "entry": [
+    {
+      "action": "say",
+      "text": "재고를 아직 모르는 물건은 stock이 NULL이에요. IS NULL로 그 행만 남겨야 해요.",
+      "target": "text:FROM items 뒤에 WHERE를 더해 재고를 모르는(NULL) 물건만 남기세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "네 행이 모두 나와요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "FROM items ORDER BY",
+      "after": "FROM items WHERE stock = NULL ORDER BY",
+      "say": "먼저 stock = NULL로 써 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "행 없음이에요. = NULL은 어떤 행에서도 참이 되지 않아요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "stock = NULL",
+      "after": "stock IS NULL",
+      "say": "= NULL을 IS NULL로 고쳐요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2예요. 재고를 모르는 book만 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 재고 0은 NULL이 아니에요. stock = 0은 ID 4를 찾아요.",
+      "target": "code:stock IS NULL"
+    }
+  ]
+}
