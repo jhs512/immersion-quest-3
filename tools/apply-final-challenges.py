@@ -18,6 +18,7 @@ import argparse
 import copy
 import datetime
 import importlib.util
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -59,6 +60,13 @@ def spec_for(key):
     module = importlib.util.module_from_spec(module_spec)
     module_spec.loader.exec_module(module)
     spec = dict(module.SPEC)
+    if any(value is None for value in spec.get('cases', {}).get('expected_outputs', [])):
+        recorded = load(SPECS / 'recorded' / f'{key}.json')
+        snapshots = spec.get('_snapshots') or module.s.snapshots
+        if len(recorded) != len(snapshots) or any(row['source_sha256'] != hashlib.sha256(source.encode()).hexdigest()
+                                                    for row, source in zip(recorded, snapshots)):
+            raise ValueError(f'{key}: rerun record-final-challenge-demo.py for current demo source')
+        spec['cases']['expected_outputs'] = [row['expected'] for row in recorded]
     # Terminal challenges (Bash, Vim, Java launcher, Git) carry real-runtime cases for
     # examples/validate_final_terminal_challenges.rs instead of lesson-cases.
     if getattr(module, 'CASES', None) is not None:
@@ -122,6 +130,9 @@ def apply(spec):
             content.setdefault(field, {})[step_id] = value
         elif field in content:
             content[field].pop(step_id, None)
+    # Heavy imports (seaborn, TensorFlow) need a longer per-case limit than the default 10 seconds.
+    if spec.get('prepared_timeout_seconds'):
+        content['prepared_timeout_seconds'] = max(content.get('prepared_timeout_seconds', 10), spec['prepared_timeout_seconds'])
     content['presentation']['units'][unit_id] = dict(objectives=spec['unit']['objectives'], premise=spec['unit']['premise'])
     order = [s['id'] for ch in prd['chapters'] for u in ch['units'] for s in u['steps']]
     if order != [t['id'] for t in content['tasks']]:
@@ -157,6 +168,11 @@ def apply(spec):
             if len(outputs) != number - 1:
                 raise ValueError(f'{key}: lesson cases do not cover the earlier steps')
             cases['expected_outputs'] = outputs + [spec['cases']['expected_outputs']]
+            # Plot lessons also record how many images each narration run draws.
+            if 'expected_images' in cases:
+                if 'expected_images' not in spec['cases']:
+                    raise ValueError(f'{key}: this lesson checks drawn images; give expected_images for the challenge runs')
+                cases['expected_images'] = cases['expected_images'][:number - 1] + [spec['cases']['expected_images']]
         for field in ('reject', 'accept'):
             kept = [row for row in cases.get(field, []) if row['step'] != number]
             added = [dict(step=number, replacements=row[0], reason=row[1]) for row in spec['cases'].get(field, [])]
