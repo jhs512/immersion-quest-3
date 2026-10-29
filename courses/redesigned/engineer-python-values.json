@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_e7b7100f-1c5d-41fb-9683-ab89fcd6e851",
-  "revision": "engineer-python-values-6",
+  "revision": "engineer-python-values-7",
   "title": "Python · 같은 창고 자료를 골라 읽어요",
   "description": "창고 재고와 물건 이름을 정리해요. 같은 자료의 선택·복사 조건을 한 곳씩 바꿔요.",
   "objectives": [
@@ -35,15 +35,15 @@
           "premise": "창고 재고 목록에서 위치를 골라요. 슬라이스의 숫자 하나씩, 그리고 이름 대입과 복사를 바꿔 비교해요.",
           "steps": [
             {
-              "id": "stp_1cf728cd-3be4-458f-8502-6a862e608209",
+              "id": "stp_99c72099-6fe2-4492-8885-09d360a89590",
               "objectives": [
-                "슬라이스의 끝 제외를 이해해요."
+                "슬라이스의 끝 위치가 포함되지 않음을 써서 확인해요."
               ]
             },
             {
-              "id": "stp_8a204e20-04c8-4a7c-acfa-c59875ccda75",
+              "id": "stp_4967f38f-448f-4113-b563-788f4d64f844",
               "objectives": [
-                "슬라이스의 간격을 읽어요."
+                "슬라이스의 간격으로 위치를 건너뛰어 골라요."
               ]
             },
             {
@@ -124,29 +124,19 @@
   ],
   "tasks": [
     {
-      "id": "stp_1cf728cd-3be4-458f-8502-6a862e608209",
-      "title": "끝 위치 앞까지 골라요",
-      "goal": "stocks[1:3]은 위치 1부터 3 앞까지 골라요. 끝 위치의 값도 들어가는지가 단서예요.\n출력될 목록을 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_99c72099-6fe2-4492-8885-09d360a89590",
+      "title": "stocks[start:end]로 끝 위치 앞까지 고르세요",
+      "goal": "`stocks[시작:끝]`은 시작 위치부터 끝 위치 앞까지 골라요. 끝 위치의 값은 들어가지 않아요.\n\nprint 줄을 고쳐 위치 start부터 end 앞까지 고르세요. 채점은 목록과 start·end를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 목록 전체가 나오는지 확인하세요.\n2. `print(stocks)`를 `print(stocks[start:end])`로 고치세요.\n3. 코드 실행을 눌러 [4, 6]이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "initial",
-      "tests": [],
+      "starter_code": "stocks = [2, 4, 6, 8]\nstart = 1\nend = 3\n# 이 줄을 고쳐 위치 start부터 end 앞까지 고르세요.\nprint(stocks)\n",
+      "solution": "stocks = [2, 4, 6, 8]\nstart = 1\nend = 3\n# 이 줄을 고쳐 위치 start부터 end 앞까지 고르세요.\n# 슬라이스의 끝 위치 값은 포함하지 않아요.\nprint(stocks[start:end])\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[4, 6]"
+        }
+      ],
       "required": true,
-      "example_code": "stocks = [2, 4, 6, 8]\n# 끝 위치3의 값은 포함하지 않아요.\nprint(stocks[1:3])\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "initial",
-            "text": "[4, 6]"
-          },
-          {
-            "id": "changed",
-            "text": "[4, 6, 8]"
-          }
-        ],
-        "answer": "initial"
-      },
       "narration": [
         {
           "action": "say",
@@ -158,168 +148,114 @@
         },
         {
           "action": "say",
-          "text": "위치 1부터 고른 목록을 고르는 문제예요.",
-          "target": "text:끝 위치 앞까지 골라요#1"
+          "text": "stocks[start:end]로 끝 위치 앞까지 고르는 문제예요.",
+          "target": "text:stocks[start:end]로 끝 위치 앞까지 고르세요#1"
         },
         {
           "action": "say",
-          "text": "슬라이스의 끝 숫자는 그 위치 앞에서 멈춘다는 뜻이에요.",
-          "target": "text:출력될 목록을 고르세요."
+          "text": "위치 start부터 end 앞까지 골라야 해요. 끝 위치의 값은 들어가지 않아요.",
+          "target": "text:print 줄을 고쳐 위치 start부터 end 앞까지 고르세요."
         },
         {
           "action": "run",
           "lines": [
-            3,
-            3
+            5,
+            5
           ]
         },
         {
           "action": "say",
-          "text": "위치 1과 2의 4, 6을 읽었어요.",
+          "text": "목록 전체가 나와요. 아직 슬라이스가 없어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "[1:3]",
-          "after": "[1:4]",
-          "say": "끝을 4로 늘려 볼게요."
+          "before": "print(stocks)",
+          "after": "print(stocks[start:end])",
+          "say": "대괄호 안에 start:end를 써요."
         },
         {
           "action": "run",
           "lines": [
-            3,
-            3
+            5,
+            5
           ]
         },
         {
           "action": "say",
-          "text": "끝을 4로 늘리면 위치 3의 8도 포함해요.",
+          "text": "[4, 6]이에요. 위치 1과 2만 골랐고 위치 3의 8은 빠졌어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 끝의 숫자는 마지막 포함 위치가 아니에요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "[1:4]",
-          "after": "[1:3]",
-          "say": "[1:3]으로 되돌려요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            3,
-            3
-          ]
-        },
-        {
-          "action": "say",
-          "text": "처음 코드는 위치 1과 2만 골라 [4, 6]이에요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "initial"
+          "text": "조심하세요. 끝 위치까지 넣으려고 end + 1을 쓰면 [4, 6, 8]이 돼요.",
+          "target": "code:stocks[start:end]"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"stocks\": [2, 4, 6, 8]}, \"expected\": \"[4, 6]\"}, {\"values\": {\"stocks\": [9, 8, 7, 6, 5], \"start\": 0, \"end\": 4}, \"expected\": \"[9, 8, 7, 6]\"}, {\"values\": {\"stocks\": [1, 2, 3], \"start\": 2, \"end\": 2}, \"expected\": \"[]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_8a204e20-04c8-4a7c-acfa-c59875ccda75",
-      "title": "간격으로 위치를 건너뛰어요",
-      "goal": "stocks[::2]는 시작과 끝을 비우고 간격 2로 위치를 건너뛰어요.\n출력될 목록을 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_4967f38f-448f-4113-b563-788f4d64f844",
+      "title": "stocks[::step]으로 간격을 두고 고르세요",
+      "goal": "`stocks[::간격]`은 시작과 끝을 비워 처음부터 끝까지, 간격만큼 위치를 건너뛰며 골라요.\n\nprint 줄을 고쳐 처음부터 step 칸씩 건너뛰며 고르세요. 채점은 목록과 step을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 목록 전체가 나오는지 확인하세요.\n2. `print(stocks)`를 `print(stocks[::step])`으로 고치세요.\n3. 코드 실행을 눌러 [2, 6, 10]이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "initial",
-      "tests": [],
+      "starter_code": "stocks = [2, 4, 6, 8, 10]\nstep = 2\n# 이 줄을 고쳐 처음부터 step 칸씩 건너뛰며 고르세요.\nprint(stocks)\n",
+      "solution": "stocks = [2, 4, 6, 8, 10]\nstep = 2\n# 이 줄을 고쳐 처음부터 step 칸씩 건너뛰며 고르세요.\n# 시작과 끝을 비우면 처음부터 끝까지예요. 세 번째 자리가 간격이에요.\nprint(stocks[::step])\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[2, 6, 10]"
+        }
+      ],
       "required": true,
-      "example_code": "stocks = [2, 4, 6, 8, 10]\n# 처음부터 두 칸씩 골라요.\nprint(stocks[::2])\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "changed",
-            "text": "[4, 8]"
-          },
-          {
-            "id": "initial",
-            "text": "[2, 6, 10]"
-          }
-        ],
-        "answer": "initial"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "위치 0부터 두 칸씩 고른 목록을 고르는 문제예요.",
-          "target": "text:간격으로 위치를 건너뛰어요#1"
+          "text": "stocks[::step]으로 간격을 두고 고르는 문제예요.",
+          "target": "text:stocks[::step]으로 간격을 두고 고르세요#1"
         },
         {
           "action": "say",
-          "text": "간격 2는 값이 아니라 위치를 두 칸씩 옮긴다는 뜻이에요.",
-          "target": "text:출력될 목록을 고르세요."
+          "text": "시작과 끝을 비우고 간격 step으로 건너뛰며 골라야 해요.",
+          "target": "text:print 줄을 고쳐 처음부터 step 칸씩 건너뛰며 고르세요."
         },
         {
           "action": "run",
           "lines": [
-            3,
-            3
+            4,
+            4
           ]
         },
         {
           "action": "say",
-          "text": "위치 0, 2, 4를 골라 2, 6, 10이에요.",
+          "text": "목록 전체가 나와요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "[::2]",
-          "after": "[1::2]",
-          "say": "시작 위치를 1로 바꿔 볼게요."
+          "before": "print(stocks)",
+          "after": "print(stocks[::step])",
+          "say": "대괄호 안에 콜론 두 개와 step을 써요."
         },
         {
           "action": "run",
           "lines": [
-            3,
-            3
+            4,
+            4
           ]
         },
         {
           "action": "say",
-          "text": "시작 위치를 1로 바꾸면 4, 8이에요.",
+          "text": "[2, 6, 10]이에요. 위치 0, 2, 4를 골랐어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 간격은 숫자 값을 더하는 규칙이 아니라 위치를 옮기는 규칙이에요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "[1::2]",
-          "after": "[::2]",
-          "say": "시작을 비운 [::2]로 되돌려요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            3,
-            3
-          ]
-        },
-        {
-          "action": "say",
-          "text": "처음 코드는 위치 0, 2, 4를 골라 [2, 6, 10]이에요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "initial"
+          "text": "조심하세요. stocks[1::2]처럼 시작을 1로 두면 [4, 8]이 돼요. 간격은 첫 칸부터 세요.",
+          "target": "code:stocks[::step]"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"stocks\": [2, 4, 6, 8, 10]}, \"expected\": \"[2, 6, 10]\"}, {\"values\": {\"stocks\": [1, 2, 3, 4, 5, 6, 7], \"step\": 3}, \"expected\": \"[1, 4, 7]\"}, {\"values\": {\"stocks\": [5, 6], \"step\": 1}, \"expected\": \"[5, 6]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
       "id": "stp_a1998754-ef4e-4953-8b34-0560e93bd108",

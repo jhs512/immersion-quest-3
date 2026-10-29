@@ -3,14 +3,12 @@
   "lesson": "courses/redesigned/engineer-python-calls.json",
   "expected_outputs": [
     [
-      "6",
-      "12",
-      "6"
+      "",
+      "6\n12"
     ],
     [
-      "[2]\n[2, 4]",
-      "[2]\n[4]",
-      "[2]\n[2, 4]"
+      "",
+      "True\n[2, 4]"
     ],
     [
       "[2, 4]",
@@ -59,6 +57,46 @@
   ],
   "reject": [
     {
+      "step": 1,
+      "replacements": [
+        [
+          "def packs(stock, size=2):",
+          "def packs(stock, size=4):"
+        ]
+      ],
+      "reason": "Wrong default"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "print(packs(stock))\nprint(packs(stock, 4))\n",
+          "print(6)\nprint(12)\n"
+        ]
+      ],
+      "reason": "Typing the results"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "first = record(a)\nsecond = record(b)\n",
+          "first = [a, b]\nsecond = first\n"
+        ]
+      ],
+      "reason": "Building the list by hand"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "first = record(a)\nsecond = record(b)\n",
+          "first = record(a)\nsecond = record(b, [])\n"
+        ]
+      ],
+      "reason": "Passing a new list for the second call"
+    },
+    {
       "step": 11,
       "replacements": [
         [
@@ -70,6 +108,26 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "def packs(stock, size=2):",
+          "def packs(stock, size=None):\n    if size is None:\n        size = 2"
+        ]
+      ],
+      "reason": "None sentinel"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "first = record(a)\nsecond = record(b)\n",
+          "first, second = record(a), record(b)\n"
+        ]
+      ],
+      "reason": "Tuple assignment"
+    },
     {
       "step": 11,
       "replacements": [

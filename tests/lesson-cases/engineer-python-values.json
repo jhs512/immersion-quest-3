@@ -3,13 +3,11 @@
   "lesson": "courses/redesigned/engineer-python-values.json",
   "expected_outputs": [
     [
-      "[4, 6]",
-      "[4, 6, 8]",
+      "[2, 4, 6, 8]",
       "[4, 6]"
     ],
     [
-      "[2, 6, 10]",
-      "[4, 8]",
+      "[2, 4, 6, 8, 10]",
       "[2, 6, 10]"
     ],
     [
@@ -50,6 +48,46 @@
   ],
   "reject": [
     {
+      "step": 1,
+      "replacements": [
+        [
+          "print(stocks[start:end])",
+          "print(stocks[start:end + 1])"
+        ]
+      ],
+      "reason": "Including the end"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "print(stocks[start:end])",
+          "print([4, 6])"
+        ]
+      ],
+      "reason": "Typing the list"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "print(stocks[::step])",
+          "print(stocks[1::step])"
+        ]
+      ],
+      "reason": "Starting at position 1"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "print(stocks[::step])",
+          "print(stocks[::2])"
+        ]
+      ],
+      "reason": "Typing the step"
+    },
+    {
       "step": 9,
       "replacements": [
         [
@@ -71,6 +109,26 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "print(stocks[start:end])",
+          "print([stocks[i] for i in range(start, end)])"
+        ]
+      ],
+      "reason": "Comprehension over the positions"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "print(stocks[::step])",
+          "print(stocks[0:len(stocks):step])"
+        ]
+      ],
+      "reason": "Explicit start and end"
+    },
     {
       "step": 9,
       "replacements": [
