@@ -41,6 +41,13 @@
   [
    "5",
    "invalid"
+  ],
+  [
+   "invalid",
+   "4",
+   "11",
+   "5",
+   "4"
   ]
  ],
  "reject": [
@@ -153,6 +160,40 @@
     ]
    ],
    "reason": "x 하나만 막는 고정 검사는 다른 잘못된 입력을 놓쳐요"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "else if (accept('-')) value -= term();",
+     "else if (accept('-')) value -= expression();"
+    ]
+   ],
+   "reason": "Right-associative subtraction gives 10-2-3 = 11"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "            else if (accept('-')) value -= term();\n",
+     ""
+    ],
+    [
+     "while (accept('*')) value *= factor();",
+     "while (true) {\n            if (accept('*')) value *= factor();\n            else if (accept('-')) value -= factor();\n            else break;\n        }"
+    ]
+   ],
+   "reason": "Subtraction at the multiplication level"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "        if (position != text.length()) throw new IllegalArgumentException(\"trailing\");\n",
+     ""
+    ]
+   ],
+   "reason": "Trailing input must still be rejected"
   }
  ],
  "accept": [
@@ -205,6 +246,16 @@
     ]
    ],
    "reason": "비교의좌우순서는상관없어요"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "        while (true) {\n            // 덧셈과 뺄셈은 같은 우선순위라 만나는 순서대로, 왼쪽부터 계산해요.\n            if (accept('+')) value += term();\n            else if (accept('-')) value -= term();\n            else return value;\n        }",
+     "        while (position < text.length() && (text.charAt(position) == '+' || text.charAt(position) == '-')) {\n            // 기호를 확인한 뒤 같은 단계에서 왼쪽부터 계산해요.\n            char symbol = text.charAt(position++);\n            int next = term();\n            value = symbol == '+' ? value + next : value - next;\n        }\n        return value;"
+    ]
+   ],
+   "reason": "Reading the operator character directly"
   }
  ]
 }

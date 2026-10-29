@@ -98,3 +98,27 @@ java-inheritance-composition, vim-basics, java-files, java-testing은 스텝 원
 ## 6. 진행 기록
 
 - 2026-10-29: 계획 저장(0단계).
+- 2026-10-29: 자바 15수업 도전 작성·실제 JDK 검증 완료(아래 원장). java-rq는 main이 세 값을 다 읽은 뒤 출력하도록 바꿔 `list?page=two`가 `invalid`만 내게 했고, java-crud 채점 넷째 사례 입력을 `add 다시`로(명령 줄은 공백으로 세 조각까지 나눔), 동등 풀이를 `TreeMap` 사본으로 바꿨어요(수정 불가 Map은 clear에서 다른 예외).
+
+### 진행 원장 (증거: `target/final-challenges/<키>.json`, 수업 해시 = `courses/redesigned/<키>.json`)
+
+| 수업 | 버전 | 상태 | 거절/동등 |
+| --- | --- | --- | --- |
+| java-values | 8 | 실제 JDK 통과·해시 일치 | 22/11 |
+| java-conditions | 9 | 통과·일치 | 20/9 |
+| java-arrays | 9 | 통과·일치 | 20/9 |
+| java-methods | 8 | 통과·일치 | 17/7 |
+| java-references | 10 | 통과·일치 | 17/8 |
+| java-static | 9 | 통과·일치 | 16/7 |
+| java-roles | 7 | 통과·일치 | 15/5 |
+| java-collections | 8 | 통과·일치 | 13/8 |
+| java-inheritance-composition | 3 | 통과·일치 | 10/5 |
+| java-streams | 8 | 통과·일치 | 20/10 |
+| java-files | 8 | 통과·일치 | 20/7 |
+| java-testing | 8 | 통과·일치 | 14/7 |
+| java-calculator | 7 | 통과·일치 | 14/6 |
+| java-rq | 7 | 통과·일치 | 17/8 |
+| java-crud | 9 | 통과·일치 | 15/9 |
+| bash-basics, vim-basics, java-launch, java-arguments, git-first, git-branch, git-remote, git-branch-advanced, github-pr | — | 남음 | — |
+
+(거절/동등은 수업 전체 사례 수예요. 게시 전이에요.)

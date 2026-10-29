@@ -1,0 +1,113 @@
+{
+  "by": "hand",
+  "source_sha256": "7761c7d355d43f3836283fd288a59a175b7b82c1e6f4b95b64c7c49fee40a5b3",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 빈 Rq를 처음부터 완성해 목록 요청을 해석해요.",
+      "target": "text:Rq의 생성자와 두 조회 메서드를 완성해요."
+    },
+    {
+      "action": "say",
+      "text": "main은 작업 이름, 검색어, 쪽 번호를 차례로 출력해요. 준비 입력은 list?page=2&keyword=java예요.",
+      "target": "code:String keyword = rq.getParam(\"keyword\", \"전체\");"
+    },
+    {
+      "action": "run",
+      "lines": [
+        27,
+        27
+      ]
+    },
+    {
+      "action": "say",
+      "text": "요청 전체가 이름으로 나오고, 검색어와 쪽은 기본값이에요. 아직 나누지 않았거든요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        // 여기에 ? 앞의 작업 이름과 ? 뒤의 조건들을 나눠 저장하세요.\n        actionName = request;\n        params = Map.of();",
+      "after": "        String[] parts = request.split(\"\\\\?\", 2);\n        actionName = parts[0];\n        // 조건이 없으면 빈 Map이에요.\n        if (parts.length == 1 || parts[1].isEmpty()) { params = Map.of(); return; }\n        params = Arrays.stream(parts[1].split(\"&\", -1))\n            .map(part -> part.split(\"=\", -1))\n            .collect(Collectors.toMap(pair -> pair[0], pair -> pair[1]));",
+      "say": "?로 이름과 조건을 나누고, &와 =로 조건을 Map에 모아요."
+    },
+    {
+      "action": "patch_code",
+      "before": "    String getParam(String name, String fallback) { return fallback; } // 조건 값을 돌려주도록 고치세요.",
+      "after": "    String getParam(String name, String fallback) { return params.getOrDefault(name, fallback); }",
+      "say": "검색어는 Map에서 읽고 없으면 기본값을 돌려줘요."
+    },
+    {
+      "action": "patch_code",
+      "before": "    int getIntParam(String name, int fallback) { return fallback; } // 조건 값을 정수로 돌려주도록 고치세요.",
+      "after": "    // 없으면 기본값, 있으면 정수로 바꿔요. 숫자가 아니면 parseInt가 거절해요.\n    int getIntParam(String name, int fallback) {\n        String value = params.get(name);\n        return value == null ? fallback : Integer.parseInt(value);\n    }",
+      "say": "쪽 번호는 문자열을 정수로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        35,
+        35
+      ]
+    },
+    {
+      "action": "say",
+      "text": "list, java, 2가 나와요. 이름으로 조회해서 조건 순서와 상관없어요.",
+      "target": "output"
+    },
+    {
+      "action": "set_input",
+      "value": "list?keyword=a=b"
+    },
+    {
+      "action": "run",
+      "lines": [
+        35,
+        35
+      ]
+    },
+    {
+      "action": "say",
+      "text": "list, a, 1이에요. = 로 전부 나누면 a=b가 세 조각이 돼 b를 잃어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        String[] parts = request.split(\"\\\\?\", 2);\n        actionName = parts[0];\n        // 조건이 없으면 빈 Map이에요.\n        if (parts.length == 1 || parts[1].isEmpty()) { params = Map.of(); return; }\n        params = Arrays.stream(parts[1].split(\"&\", -1))\n            .map(part -> part.split(\"=\", -1))\n            .collect(Collectors.toMap(pair -> pair[0], pair -> pair[1]));",
+      "after": "        String[] parts = request.split(\"\\\\?\", 2);\n        actionName = parts[0];\n        // 조건이 없으면 빈 Map이에요.\n        if (parts.length == 1 || parts[1].isEmpty()) { params = Map.of(); return; }\n        params = Arrays.stream(parts[1].split(\"&\", -1))\n            .map(Rq::pair)\n            .collect(Collectors.toMap(pair -> pair[0], pair -> pair[1], Rq::duplicate));\n    }\n    private static String[] pair(String part) {\n        // 값 안의 등호와 빈 값은 보존하고, 등호 없는 조각은 거절해요.\n        String[] pair = part.split(\"=\", 2);\n        if (pair.length != 2 || pair[0].isBlank()) throw new IllegalArgumentException(\"parameter\");\n        return pair;\n    }\n    // 같은 이름이 두 번 오면 하나를 몰래 고르지 않고 거절해요.\n    private static String duplicate(String oldValue, String newValue) {\n        throw new IllegalArgumentException(\"duplicate\");",
+      "say": "= 는 처음 한 번만 나누고, 등호 없는 조각과 같은 이름의 반복은 거절해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        45,
+        45
+      ]
+    },
+    {
+      "action": "say",
+      "text": "list, a=b, 1이에요. 값 안의 등호가 남았고 쪽은 기본값이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 같은 이름이 두 번 와도 뒤의 값으로 덮으면 어떤 값을 썼는지 숨겨요. 그래서 거절해요.",
+      "target": "code:throw new IllegalArgumentException(\"duplicate\");"
+    },
+    {
+      "action": "set_input",
+      "value": "list?page=2&keyword=java"
+    },
+    {
+      "action": "run",
+      "lines": [
+        45,
+        45
+      ]
+    },
+    {
+      "action": "say",
+      "text": "다시 list, java, 2예요. 채점은 빈 값·잘못된 숫자·중복 이름으로도 실행해요.",
+      "target": "output"
+    }
+  ]
+}

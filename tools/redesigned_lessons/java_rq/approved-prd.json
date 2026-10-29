@@ -185,13 +185,32 @@
               "core_flow": "시작 상태: 제공된 준비 코드를 사용한다.\n입력은 update?id=12예요. 지금 getIntParam은 id가 있어도 0을 돌려줘요. 7번에서 main이 하던 숫자 변환을 Rq가 맡도록 getIntParam의 변환 부분 한 곳만 고치세요.\n\n알아두세요: 조건 ? A : B는 조건이 참이면 A, 거짓이면 B예요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. getIntParam이 문자열 값을 정수로 바꾸도록 고치세요.\n3. 다시 실행해 바뀐 결과를 확인하세요.\n4. 수정한 코드를 제출하세요.\n\n완료 기준: 서로 다른 입력의 모든 실행 검사를 통과한다.\n\n해설은 준비 코드 실행 → 결과 확인 → 조건이나 코드 한 곳 변경 → 재실행 비교 → 주의점으로 진행한다. 실행 관측 기준: [\"0\", \"12\"]\n\n```java\nimport java.util.Arrays;\nimport java.util.Map;\nimport java.util.stream.Collectors;\nimport java.util.Scanner;\n\nclass Rq {\n    private final String actionName;\n    private final Map<String, String> params;\n    Rq(String request) {\n        String[] parts = request.split(\"\\\\?\", 2);\n        actionName = parts[0];\n        // 조건이 없으면 빈 Map을 유지해요.\n        if (parts.length == 1 || parts[1].isEmpty()) { params = Map.of(); return; }\n        // 조각마다 pair로 나눈 뒤 키와 값의 Map으로 모아요.\n        params = Arrays.stream(parts[1].split(\"&\", -1))\n            .map(Rq::pair)\n            .collect(Collectors.toMap(pair -> pair[0], pair -> pair[1], Rq::duplicate));\n    }\n    private static String[] pair(String part) {\n        // 값 안의 등호와 빈 값은 보존해요. 빈 키나 등호 없는 조각은 거절해요.\n        String[] pair = part.split(\"=\", 2);\n        if (pair.length != 2 || pair[0].isBlank()) throw new IllegalArgumentException(\"parameter\");\n        return pair;\n    }\n    // 같은 키가 두 번 오면 어느 값을 쓸지 몰래 고르지 않고 거절해요.\n    private static String duplicate(String oldValue, String newValue) {\n        throw new IllegalArgumentException(\"duplicate\");\n    }\n    String getActionName() { return actionName; }\n    String getParam(String name, String fallback) { return params.getOrDefault(name, fallback); }\n    // 키가 없으면 기본값, 있으면 그 값을 정수로 돌려줘요.\n    int getIntParam(String name, int fallback) {\n        String value = params.get(name);\n        return value == null ? fallback : 0;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        // 서로 다른 요청에서도 Rq가 숫자 변환을 맡는지 확인해요.\n        try {\n            Rq rq = new Rq(new Scanner(System.in).nextLine());\n            System.out.println(rq.getIntParam(\"id\", -1));\n        } catch (IllegalArgumentException error) {\n            System.out.println(\"invalid\");\n        }\n    }\n}\n```\n"
             }
           ]
+        },
+        {
+          "id": "unt_0a7d4e96-3b52-4f81-a6c9-5e2b8f13d740",
+          "title": "마지막 도전",
+          "objectives": [
+            "요청 해석 규칙 전체를 빈 Rq에 직접 구현해요."
+          ],
+          "premise": "목록 요청을 해석하는 빈 Rq예요. main은 준비돼 있어요.",
+          "steps": [
+            {
+              "id": "stp_3d6b9f52-8a17-4e4c-b9a5-1c0e7d82f36b",
+              "title": "빈 Rq를 완성해 목록 요청을 해석하세요",
+              "objectives": [
+                "요청 해석 책임을 Rq에 모으고 이 수업의 모든 경계 규칙을 지켜요."
+              ],
+              "core_flow": "Rq는 요청 전체를 이름으로 두고 기본값만 돌려준다. 학생은 ? 분리, & 분리, = 한 번 분리, 중복·등호 없음 거절, getOrDefault, parseInt를 쓴다. 채점: 요청 여덟 개. split(\"=\")는 a=b를 잃고 merge 없는 toMap은 다른 예외로 실패한다."
+            }
+          ]
         }
       ]
     }
   ],
   "grading": [
     "직접선택·수정·제출만성공으로기록해요.",
-    "다른식과요청값을실제로실행해고정출력을거절해요."
+    "다른식과요청값을실제로실행해고정출력을거절해요.",
+    "마지막 도전(stp_3d6b9f52-8a17-4e4c-b9a5-1c0e7d82f36b): 실제 JDK에 요청 여덟 개를 넣어 채점해요. = 를 전부 나누기, 중복 허용, 등호 없는 조각 허용, 빈 값을 기본값으로 바꾸기는 실패해요."
   ],
   "reset": [
     "스텝별 원래 자료·준비 코드·입력·빈 답안을 독립 복원해요.",
@@ -217,9 +236,8 @@
   },
   "approval": {
     "status": "approved",
-    "mode": "delegated_scope",
-    "by": "사용자의 실제 분리·반영 지시",
-    "evidence": "2026-10-22 현재 채팅: 세 수업으로 나눈 상태인지 확인한 뒤 “실제로 나누고 반영하고 업데이트 해”. 정규식·스트림을 활용하는 Rq·계산기의 세 수업 제작과 코스 반영을 승인한 지시다. PRD 개별 직접 검토를 주장하지 않는다. 2026-10-24 사용자: 세 과정 빌드업 감사의 근거 있는 교정(문제 설명 해설, 정밀 강조, 상투 경고 제거, 선수 개념 다리, 점진 예제, 평가 결함)을 계획하고 실행하도록 Claude Code에 위임했어요(Codex 경유). 교육 목표와 교수법은 유지하고 이 문서를 직접 검토했다고 주장하지 않아요. 2026-10-26 사용자: 「전체적으로 객관식 다 빼 특히 자바 수업에서 무조건 뭐뭐 하세요~라고 지시하고 훈련생이 코딩 해서 문제 풀게 가자 그게 맞는거 같아」. 객관식·출력 예측 보기·선택과 같은 효과의 순서/빈칸 스텝을 직접 코딩 과제로 바꾸고 새 스텝 코드를 부여했어요(Codex가 Claude 사용 한도 종료 후 이어받음). 수업·챕터·단원 목표는 유지하고 이 문서를 사용자가 직접 검토했다고 주장하지 않아요.",
-    "content_sha256": "6dc281f35d7e59d2a424866c0f8d4512209655439cb9f9f10321326ae71fa2da"
+    "by": "사용자의 실제 분리·반영 지시 / user · Codex 경유 MQ3 후속 지시 2026-10-29",
+    "evidence": "2026-10-22 현재 채팅: 세 수업으로 나눈 상태인지 확인한 뒤 “실제로 나누고 반영하고 업데이트 해”. 정규식·스트림을 활용하는 Rq·계산기의 세 수업 제작과 코스 반영을 승인한 지시다. PRD 개별 직접 검토를 주장하지 않는다. 2026-10-24 사용자: 세 과정 빌드업 감사의 근거 있는 교정(문제 설명 해설, 정밀 강조, 상투 경고 제거, 선수 개념 다리, 점진 예제, 평가 결함)을 계획하고 실행하도록 Claude Code에 위임했어요(Codex 경유). 교육 목표와 교수법은 유지하고 이 문서를 직접 검토했다고 주장하지 않아요. 2026-10-26 사용자: 「전체적으로 객관식 다 빼 특히 자바 수업에서 무조건 뭐뭐 하세요~라고 지시하고 훈련생이 코딩 해서 문제 풀게 가자 그게 맞는거 같아」. 객관식·출력 예측 보기·선택과 같은 효과의 순서/빈칸 스텝을 직접 코딩 과제로 바꾸고 새 스텝 코드를 부여했어요(Codex가 Claude 사용 한도 종료 후 이어받음). 수업·챕터·단원 목표는 유지하고 이 문서를 사용자가 직접 검토했다고 주장하지 않아요. 2026-10-29 사용자(Codex 경유): 「나머지 24개 수업도 제대로 된 도전과제 만들어서, 모든 수업에서 도전과제만 풀어도 클리어되게 해. 클로드가 계획 세우고 배포까지 마무리해.」 그리고 다른 두 과정에도 백엔드의 개선을 적용하라고 했어요. 계획: docs/plans/2026-10-29-final-challenges-all-courses.md. 이 수업에는 새 고유 코드의 마지막 도전 스텝 하나만 더했고 기존 스텝·목표는 그대로예요. 사용자가 이 PRD 파일 자체를 열람했다고 주장하지 않아요.",
+    "content_sha256": "e41076721cea17d1a0b0721a959b81edafe66f12e942102e431b4b3b72552e31"
   }
 }

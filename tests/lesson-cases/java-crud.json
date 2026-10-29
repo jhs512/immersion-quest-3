@@ -41,6 +41,11 @@
   [
    "{1=수정, 2=다음}",
    "{1=시작, 2=수정}"
+  ],
+  [
+   "1\n2\ntrue\n2\n{2=셋째}",
+   "1\n2\ntrue\n3\n{2=다음, 3=셋째}",
+   "1\nfalse\ninvalid\ncleared\n{1=남김}"
   ]
  ],
  "reject": [
@@ -153,6 +158,46 @@
     ]
    ],
    "reason": "Fixed text does not implement a different target or missing ID"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "        // 잘못된 입력은 저장하기 전에 거절해요.\n        if (text.isBlank()) throw new IllegalArgumentException(\"blank\");\n        // 지운 번호를 다시 쓰지 않도록 마지막 번호 다음을 발급해요.\n        lastId++;\n        quotes.put(lastId, text);\n        return lastId;",
+     "        // 잘못된 입력은 저장하기 전에 거절해요.\n        if (text.isBlank()) throw new IllegalArgumentException(\"blank\");\n        int id = quotes.size() + 1;\n        quotes.put(id, text);\n        return id;"
+    ]
+   ],
+   "reason": "Numbering by size reuses an id after delete"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "        if (!quotes.containsKey(id)) return false;\n",
+     ""
+    ]
+   ],
+   "reason": "Updating a missing id must be refused"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "return new LinkedHashMap<>(quotes);",
+     "return quotes;"
+    ]
+   ],
+   "reason": "Returning the stored map lets clear delete the quotes"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "        if (text.isBlank()) throw new IllegalArgumentException(\"blank\");\n        // 지운",
+     "        // 지운"
+    ]
+   ],
+   "reason": "A blank quote must be refused"
   }
  ],
  "accept": [
@@ -225,6 +270,26 @@
     ]
    ],
    "reason": "후위증가를분리한같은발급정책이에요"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "return new LinkedHashMap<>(quotes);",
+     "return new TreeMap<>(quotes);"
+    ]
+   ],
+   "reason": "A sorted copy keeps the same order because ids only grow"
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "        return quotes.remove(id) != null;",
+     "        if (!quotes.containsKey(id)) return false;\n        quotes.remove(id);\n        return true;"
+    ]
+   ],
+   "reason": "Checking before removing"
   }
  ]
 }
