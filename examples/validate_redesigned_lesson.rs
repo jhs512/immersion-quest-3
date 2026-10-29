@@ -18,6 +18,11 @@ struct Validation {
     /// Other correct answers (a different but valid edit) that the grader must accept.
     #[serde(default)]
     accept: Vec<RejectedAnswer>,
+    /// Replay only the lesson's last step (a final challenge appended to a lesson whose earlier steps
+    /// have no lesson-case file). expected_outputs then holds that one step; reject/accept still use
+    /// lesson step numbers.
+    #[serde(default)]
+    only_last: bool,
 }
 
 #[derive(Deserialize,Debug)]
@@ -74,19 +79,21 @@ async fn validate_with_session(spec: Validation,session:Option<&molip_quest::doc
     if session.is_some() && !lesson.tasks.iter().all(|task|task.entry_file.ends_with(".sql")&&task.files.contains_key("before.sql")) {
         return Err("SQL session validation requires SQL fixture tasks".into())
     }
-    if lesson.tasks.len() != spec.expected_outputs.len() {return Err("Expected outputs do not cover every step".into())}
-    if spec.expected_images.as_ref().is_some_and(|images| images.len()!=lesson.tasks.len()) {return Err("Expected images do not cover every step".into())}
+    let first=if spec.only_last {lesson.tasks.len()-1} else {0};
+    if lesson.tasks.len()-first != spec.expected_outputs.len() {return Err("Expected outputs do not cover every step".into())}
+    if spec.expected_images.as_ref().is_some_and(|images| images.len()!=lesson.tasks.len()-first) {return Err("Expected images do not cover every step".into())}
     let started = Instant::now();
     let mut steps = Vec::new();
     // Docker CLI steps are typed in the real practice terminal, in lesson order, in one lesson session.
     let terminals=lesson.tasks.iter().any(|t|t.git_terminal.as_ref().is_some_and(|e|e.docker.is_some()))
         .then(||Ok::<_,String>((molip_quest::docker_lab::LessonSession::new(),tempfile::tempdir().map_err(|e|e.to_string())?))).transpose()?;
-    for (index, task) in lesson.tasks.iter().enumerate() {
+    for (index, task) in lesson.tasks.iter().enumerate().skip(first) {
         let label = format!("Step {} ({})",index+1,task.title);
+        let case_index=index-first;
         if let (Some((session,folder)),true)=(terminals.as_ref(),task.git_terminal.as_ref().is_some_and(|e|e.docker.is_some())) {
             let (task,session,folder)=(task.clone(),session.clone(),folder.path().to_path_buf());
             let (outputs,report)=tokio::task::spawn_blocking(move||docker_terminal::replay(&session,&molip_quest::git_practice::GitPracticeStore::new(&folder)?,"validate:docker-cli",&task)).await.map_err(|e|e.to_string())?.map_err(|e|format!("{label}: {e}"))?;
-            let expected=&spec.expected_outputs[index];
+            let expected=&spec.expected_outputs[case_index];
             if outputs.len()!=expected.len()||!expected.iter().zip(&outputs).all(|(expected,actual)|expected.matches(actual)) {return Err(format!("{label}: expected {:?}, got {outputs:?}",expected))}
             let task=&lesson.tasks[index];
             let mut counterexamples=0;
@@ -142,10 +149,10 @@ async fn validate_with_session(spec: Validation,session:Option<&molip_quest::doc
                 action=>return Err(format!("{label}: this validator cannot replay {action}")),
             }
         }
-        let expected=&spec.expected_outputs[index];
+        let expected=&spec.expected_outputs[case_index];
         if outputs.len()!=expected.len()||!expected.iter().zip(&outputs).all(|(expected,actual)|expected.matches(actual)) {return Err(format!("{label}: expected {:?}, got {outputs:?}",expected))}
         if let Some(expected)=&spec.expected_images {
-            if images!=expected[index] {return Err(format!("{label}: expected image counts {:?}, got {images:?}",expected[index]))}
+            if images!=expected[case_index] {return Err(format!("{label}: expected image counts {:?}, got {images:?}",expected[case_index]))}
         }
         steps.push(json!({"id":task.id,"teacher_outputs":outputs,"teacher_images":images,"grading_cases":report.cases.len()}));
         eprintln!("{label}: passed");

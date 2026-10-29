@@ -116,6 +116,12 @@ def apply(spec):
     prd = approve(prd, by if BY in by else (f'{by} / {BY}' if by else BY), evidence)
     # Content: the task appended last; presentation for the new unit.
     content['tasks'] = [t for t in content['tasks'] if t['id'] != step_id] + [task]
+    # Python tasks graded with other prepared values (tools/redesigned_lessons/python_prepared_checks.py).
+    for field, value in (('prepared_cases', spec.get('prepared_cases')), ('prepared_probes', spec.get('prepared_probe'))):
+        if value is not None:
+            content.setdefault(field, {})[step_id] = value
+        elif field in content:
+            content[field].pop(step_id, None)
     content['presentation']['units'][unit_id] = dict(objectives=spec['unit']['objectives'], premise=spec['unit']['premise'])
     order = [s['id'] for ch in prd['chapters'] for u in ch['units'] for s in u['steps']]
     if order != [t['id'] for t in content['tasks']]:
@@ -136,12 +142,21 @@ def apply(spec):
     # Real-execution cases for code lessons.
     if spec.get('cases'):
         cases_path = ROOT / 'tests/lesson-cases' / f'{key}.json'
-        cases = load(cases_path)
         number = len(content['tasks'])
-        outputs = cases['expected_outputs'][:number - 1]
-        if len(outputs) != number - 1:
-            raise ValueError(f'{key}: lesson cases do not cover the earlier steps')
-        cases['expected_outputs'] = outputs + [spec['cases']['expected_outputs']]
+        if not cases_path.exists():
+            # Earlier steps of this lesson have no lesson-case file: validate only the new last step.
+            pilot = item['validation']['pilot']
+            cases = dict(course=f'tests/fixtures/player-pilot/{pilot}/course.json', lesson=f'courses/redesigned/{key}.json',
+                         only_last=True, expected_outputs=[])
+        else:
+            cases = load(cases_path)
+        if cases.get('only_last'):
+            cases['expected_outputs'] = [spec['cases']['expected_outputs']]
+        else:
+            outputs = cases['expected_outputs'][:number - 1]
+            if len(outputs) != number - 1:
+                raise ValueError(f'{key}: lesson cases do not cover the earlier steps')
+            cases['expected_outputs'] = outputs + [spec['cases']['expected_outputs']]
         for field in ('reject', 'accept'):
             kept = [row for row in cases.get(field, []) if row['step'] != number]
             added = [dict(step=number, replacements=row[0], reason=row[1]) for row in spec['cases'].get(field, [])]

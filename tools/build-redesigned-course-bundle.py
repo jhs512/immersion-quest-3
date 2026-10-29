@@ -106,7 +106,8 @@ def classification(catalog, path=CLASSIFICATION):
     return result
 
 
-CHALLENGES = ROOT / 'tools/redesigned_courses/java/lesson-challenges.json'
+def challenges_source(course_key):
+    return ROOT / f'tools/redesigned_courses/{course_key}/lesson-challenges.json'
 
 
 def challenge_designations(course_key, lessons):
@@ -115,9 +116,10 @@ def challenge_designations(course_key, lessons):
     Each designation must be the last task of the registered lesson revision and required. The app
     additionally ignores a designation without a real grader (src/challenges.rs `designated`), and
     tests/challenges.rs checks every published one against that grader."""
-    if course_key != 'java' or not CHALLENGES.exists():
+    path = challenges_source(course_key)
+    if not path.exists():
         return {}
-    source = json.loads(CHALLENGES.read_text(encoding='utf-8'))
+    source = json.loads(path.read_text(encoding='utf-8'))
     registered = set(lessons)
     if set(source['lessons']) & set(source.get('not_designated', {})):
         raise ValueError('A lesson is both designated and not designated')
