@@ -3,13 +3,11 @@
   "lesson": "courses/redesigned/engineer-c-functions.json",
   "expected_outputs": [
     [
-      "3",
-      "6",
+      "0",
       "3"
     ],
     [
-      "3\n2",
-      "6\n5",
+      "2",
       "3\n2"
     ],
     [
@@ -17,31 +15,27 @@
       "3"
     ],
     [
-      "12\n2",
-      "22\n2",
+      "2\n2",
       "12\n2"
     ],
     [
-      "1\n2",
       "1\n1",
       "1\n2"
     ],
     [
-      "3",
       "2",
       "3"
     ],
     [
       "0",
-      "1",
-      "0"
+      "10"
     ],
     [
-      "6",
       "3",
       "6"
     ],
     [
+      "210",
       "210012"
     ],
     [
@@ -56,6 +50,190 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "    return value + 1;\n}\n\nint main",
+          "    return 3;\n}\n\nint main"
+        ]
+      ],
+      "reason": "Returning a typed number"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "    return value + 1;\n}\n\nint main",
+          "    return value;\n}\n\nint main"
+        ]
+      ],
+      "reason": "Returning the same value"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "    printf(\"%d\\n\", value);\n",
+          "    printf(\"3\\n\");\n"
+        ]
+      ],
+      "reason": "Printing typed text"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "    value = value + 1;\n    printf(\"%d\\n\", value);\n",
+          "    printf(\"%d\\n\", value);\n    value = value + 1;\n"
+        ]
+      ],
+      "reason": "Printing before increasing"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "    stock = next_stock(stock);\n",
+          "    next_stock(stock);\n    stock = 3;\n"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "    stock = next_stock(stock);\n",
+          "    next_stock(stock);\n"
+        ]
+      ],
+      "reason": "Discarding the return value"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "    int stock = 10;\n    return stock + value;\n",
+          "    return 12;\n"
+        ]
+      ],
+      "reason": "Returning a typed number"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "    int stock = 10;\n    return stock + value;\n",
+          "    return 10 + 2;\n"
+        ]
+      ],
+      "reason": "Ignoring value"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "    static int calls = 0;\n    calls = calls + 1;\n    return calls;\n",
+          "    static int calls = 0;\n    calls = calls + 1;\n    return calls > 1 ? 2 : 1;\n"
+        ]
+      ],
+      "reason": "Capping at two"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "    static int calls = 0;\n",
+          "    int calls = 1;\n"
+        ]
+      ],
+      "reason": "Starting at one"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "    stock = stock + 1;\n",
+          "    int stock = 3;\n"
+        ]
+      ],
+      "reason": "A new local hides the global"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "    stock = stock + 1;\n",
+          "    stock = 3;\n"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "        return 0;\n",
+          "        return 1;\n"
+        ]
+      ],
+      "reason": "Wrong value at the base case"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "    printf(\"%d\", sum_to(count));\n",
+          "    printf(\"0\");\n"
+        ]
+      ],
+      "reason": "Printing typed text"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "    return n + sum_to(n - 1);\n",
+          "    return 6;\n"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "    return n + sum_to(n - 1);\n",
+          "    return sum_to(n - 1);\n"
+        ]
+      ],
+      "reason": "Dropping the current number"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "    printf(\"\\n\");\n",
+          "    printf(\"012\\n\");\n"
+        ],
+        [
+          "    // 안쪽 호출이 모두 끝난 뒤 이 줄로 돌아와요. 그래서 작은 값부터 거꾸로 출력돼요.\n    printf(\"%d\", n);\n",
+          ""
+        ]
+      ],
+      "reason": "Printing typed text"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "    printf(\"%d\", n);\n    if (n > 0) {\n",
+          "    if (n > 0) {\n"
+        ]
+      ],
+      "reason": "Only printing on the way back"
+    },
     {
       "step": 10,
       "replacements": [
@@ -78,6 +256,86 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "    return value + 1;\n}\n\nint main",
+          "    value++;\n    return value;\n}\n\nint main"
+        ]
+      ],
+      "reason": "Increasing the copy, then returning it"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "    value = value + 1;\n    printf(\"%d\\n\", value);\n",
+          "    printf(\"%d\\n\", ++value);\n"
+        ]
+      ],
+      "reason": "Prefix increment inside printf"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "    stock = next_stock(stock);\n",
+          "    int next = next_stock(stock);\n    stock = next;\n"
+        ]
+      ],
+      "reason": "Through another variable"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "    int stock = 10;\n    return stock + value;\n",
+          "    int stock = 10;\n    stock = stock + value;\n    return stock;\n"
+        ]
+      ],
+      "reason": "Adding into the local first"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "    static int calls = 0;\n    calls = calls + 1;\n    return calls;\n",
+          "    static int calls;\n    return ++calls;\n"
+        ]
+      ],
+      "reason": "Static storage starts at zero"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "    stock = stock + 1;\n",
+          "    stock++;\n"
+        ]
+      ],
+      "reason": "Increment operator"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "    if (n == 0) {\n",
+          "    if (n <= 0) {\n"
+        ]
+      ],
+      "reason": "Stopping at zero or below"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "    return n + sum_to(n - 1);\n",
+          "    return n * (n + 1) / 2;\n"
+        ]
+      ],
+      "reason": "Closed form gives the same sums"
+    },
     {
       "step": 11,
       "replacements": [
