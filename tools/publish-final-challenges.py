@@ -79,6 +79,11 @@ def plan_lessons(course, keys):
         digest = hashlib.sha256(raw).hexdigest()
         if digest != new['sha256'] or json.loads(raw)['revision'] != new['revision']:
             raise ValueError(f'{key}: prepared pin does not match the lesson file')
+        if (old['revision'], old['sha256'], old.get('challenge_task')) == (new['revision'], new['sha256'], new.get('challenge_task')):
+            # Already published: only the entry brief may still follow (see merge).
+            print(f'ALREADY {key}@{new["revision"]} pinned and designated', flush=True)
+            rows.append((key, None, new, raw))
+            continue
         publisher.check_transition(key, old, new)
         before = base64.b64decode(gh(f'repos/{repo}/contents/lesson.json?ref={old["revision"]}')['content'])
         if hashlib.sha256(before).hexdigest() != old['sha256']:
@@ -112,6 +117,10 @@ def merge(remote, prepared, rows, course):
                 print(f'KEPT remote pin {row["repository"]}@{row["revision"]} (prepared {mine["revision"]} not requested)', flush=True)
             continue
         row.update(revision=new['revision'], sha256=new['sha256'], challenge_task=new['challenge_task'])
+        # The entry brief names the final challenge: only its `challenge` sentence follows the new step.
+        brief = prepared.get('lesson_previews', {}).get(row['id'])
+        if brief and row['id'] in merged.get('lesson_previews', {}):
+            merged['lesson_previews'][row['id']]['challenge'] = brief['challenge']
     text = TEXT[course]
     if not any(entry.get('summary') == text['summary'] for entry in merged.get('change_history', [])):
         merged.setdefault('change_history', []).insert(0, dict(
@@ -120,7 +129,12 @@ def merge(remote, prepared, rows, course):
     strip = lambda row: {k: v for k, v in row.items() if k not in ('revision', 'sha256', 'challenge_task')}
     if [strip(r) for r in merged['lessons']] != [strip(r) for r in remote['lessons']]:
         raise ValueError('Lesson order or other pinned fields would change')
-    for field in set(remote) - {'lessons', 'change_history'}:
+    ids = {new['id'] for _, _, new, _ in rows}
+    for lesson_id, brief in remote.get('lesson_previews', {}).items():
+        after = merged['lesson_previews'][lesson_id]
+        if {k: v for k, v in after.items() if k != 'challenge'} != {k: v for k, v in brief.items() if k != 'challenge'} or (lesson_id not in ids and after != brief):
+            raise ValueError(f'Entry brief would change beyond the challenge sentence: {lesson_id}')
+    for field in set(remote) - {'lessons', 'change_history', 'lesson_previews'}:
         if merged[field] != remote[field]:
             raise ValueError(f'Course field would change: {field}')
     return merged
@@ -142,7 +156,11 @@ def main():
     if (user['login'], user['id']) != ('jhs512', 4741844):
         raise ValueError('Unexpected publishing account')
     for key, old, new, raw in rows:
-        publisher.publish_lesson(old, new, raw, 'Add the final challenge step')
+        if old is not None:
+            publisher.publish_lesson(old, new, raw, 'Add the final challenge step')
+    if plan == remote:
+        print('Course already up to date', flush=True)
+        return
     current, latest = read_course(args.course)
     if latest != remote:
         raise ValueError('The remote course changed during publication; rerun to merge the newer course')
