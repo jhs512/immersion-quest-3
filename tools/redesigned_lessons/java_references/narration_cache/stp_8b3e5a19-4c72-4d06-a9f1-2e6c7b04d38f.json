@@ -1,0 +1,93 @@
+{
+  "by": "hand",
+  "source_sha256": "18fe31c39e94735465f7b0c7ef3073d5d725cac6d571003df2e09ee8ccbba4ef",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 같은 상자를 가리키는 b와 복사한 새 상자 c를 구별해요.",
+      "target": "text:b는 a와 같은 상자, c는 a를 복사한 새 상자예요."
+    },
+    {
+      "action": "say",
+      "text": "copy는 지금 받은 상자를 그대로 돌려줘요. 그러면 c도 a와 같은 상자예요.",
+      "target": "code:return original;"
+    },
+    {
+      "action": "patch_code",
+      "before": "        // 여기에 b를 통해 상자의 재고를 2 늘리는 줄을 쓰세요.",
+      "after": "        // b는 a와 같은 상자를 가리키므로 a에서도 바뀐 값이 보여요.\n        b.count = b.count + 2;",
+      "say": "먼저 b를 통해 재고를 2 늘려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        22,
+        25
+      ]
+    },
+    {
+      "action": "say",
+      "text": "7, 7, true, true예요. c까지 바뀌었고 a == c도 true라 복사가 아니에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        return original; // 같은 재고 수를 가진 새 상자를 돌려주도록 고치세요.",
+      "after": "        // 새 객체를 만들어야 원래 상자와 따로 바뀌어요.\n        return new Box(original.count);",
+      "say": "copy가 원래 재고 수로 새 Box를 만들어 돌려주게 고쳐요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        23,
+        26
+      ]
+    },
+    {
+      "action": "say",
+      "text": "7, 5, true, false예요. b로 바꾼 값은 a에 보이고, 새 상자 c는 5 그대로예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 상자를 대입만 하면 복사가 아니라 같은 상자를 하나 더 가리킬 뿐이에요.",
+      "target": "code:Box b = a;"
+    },
+    {
+      "action": "patch_code",
+      "before": "Box a = new Box(5);",
+      "after": "Box a = new Box(1);",
+      "say": "처음 재고를 1로 바꿔도 같은 관계인지 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        23,
+        26
+      ]
+    },
+    {
+      "action": "say",
+      "text": "3, 1, true, false예요. 처음 값이 달라도 별칭과 복사의 관계는 같아요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "Box a = new Box(1);",
+      "after": "Box a = new Box(5);",
+      "say": "준비된 재고 5로 되돌려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        23,
+        26
+      ]
+    },
+    {
+      "action": "say",
+      "text": "다시 7, 5, true, false예요. 요구한 네 줄이에요.",
+      "target": "output"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_d6c4905a-8ebd-4d48-b1db-c3dc00451f82",
-  "revision": "java-collections-7",
+  "revision": "java-collections-8",
   "title": "주문 목록·태그·상품 수를 다뤄요",
   "description": "같은 장바구니에서 순서·중복·키·빈값·복사를 실제로 비교해요.",
   "objectives": [
@@ -109,6 +109,22 @@
               "id": "stp_2e425f6a-7ee2-4d2c-b8f7-334ff86a6c4c",
               "objectives": [
                 "Map의 이전 값과 기본값으로 빈도 집계를 고쳐요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_3b8e6d14-5c27-4a9f-b1e0-8f2c7a43d956",
+          "title": "마지막 도전",
+          "objectives": [
+            "Set과 Map을 한 문제에서 목적에 맞게 함께 써요."
+          ],
+          "premise": "주문 상품 이름이 한 줄로 들어와요. 출력 부분은 준비돼 있어요.",
+          "steps": [
+            {
+              "id": "stp_9e4c7a83-2b15-4f6d-8a39-c5d0e6b21f74",
+              "objectives": [
+                "중복 없는 종류와 키별 누적, 없는 키의 기본값을 구별해 써요."
               ]
             }
           ]
@@ -872,6 +888,117 @@
             "items": "{\"z\", \"a\", \"z\", \"a\", \"x\"}"
           },
           "expected": "{a=2, x=1, z=2}"
+        }
+      ]
+    },
+    {
+      "id": "stp_9e4c7a83-2b15-4f6d-8a39-c5d0e6b21f74",
+      "title": "상품 종류 수와 상품별 개수를 함께 구하세요",
+      "language": "java",
+      "goal": "자, 마지막 도전이에요. 첫 줄의 주문 상품 이름들로 종류 수와 상품별 개수를 구해요. 같은 상품이 여러 번 나올 수 있어요.\n\n준비 입력은 첫 줄 `pen book pen cup book pen`, 둘째 줄 `pen bag`이에요. 출력은 `종류: 3`, `pen: 3`, `bag: 0`이어야 해요. 주문하지 않은 상품은 0으로 보여요. 채점은 다른 입력으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행 버튼을 눌러 지금 출력을 확인하세요.\n2. items를 하나씩 읽어 상품 이름을 kinds에 담는 반복문을 쓰세요.\n3. 같은 반복에서 counts의 그 상품 개수를 1 늘리세요.\n4. 주문하지 않은 상품이 0으로 나오도록 개수를 읽는 줄을 고치세요.\n5. 코드 실행 버튼을 눌러 세 줄이 요구와 같은지 확인하세요.\n6. 수정한 코드를 제출하세요.",
+      "starter_code": "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner in = new Scanner(System.in);\n        // 첫 줄은 주문한 상품 이름들, 둘째 줄은 개수를 물어볼 상품 이름들이에요.\n        String[] items = in.nextLine().split(\" \");\n        String[] queries = in.nextLine().split(\" \");\n        Set<String> kinds = new HashSet<>();\n        Map<String, Integer> counts = new HashMap<>();\n        // 여기에 items를 하나씩 읽어 kinds와 counts를 채우세요.\n        System.out.println(\"종류: \" + kinds.size());\n        for (String query : queries) {\n            // 주문하지 않은 상품은 0으로 보여야 해요.\n            System.out.println(query + \": \" + counts.get(query));\n        }\n    }\n}\n",
+      "solution": "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner in = new Scanner(System.in);\n        // 첫 줄은 주문한 상품 이름들, 둘째 줄은 개수를 물어볼 상품 이름들이에요.\n        String[] items = in.nextLine().split(\" \");\n        String[] queries = in.nextLine().split(\" \");\n        Set<String> kinds = new HashSet<>();\n        Map<String, Integer> counts = new HashMap<>();\n        for (String item : items) {\n            // 집합은 같은 이름을 한 번만 남겨요.\n            kinds.add(item);\n            // 이미 있던 개수에 1을 더하고, 처음이면 1로 시작해요.\n            counts.put(item, counts.getOrDefault(item, 0) + 1);\n        }\n        System.out.println(\"종류: \" + kinds.size());\n        for (String query : queries) {\n            // 주문하지 않은 상품은 0으로 보여야 해요.\n            System.out.println(query + \": \" + counts.getOrDefault(query, 0));\n        }\n    }\n}\n",
+      "required": true,
+      "tests": [
+        {
+          "input": "pen book pen cup book pen\npen bag",
+          "expected": "종류: 3\npen: 3\nbag: 0"
+        },
+        {
+          "input": "cup\ncup cup",
+          "expected": "종류: 1\ncup: 1\ncup: 1"
+        },
+        {
+          "input": "a b c d a\nd a z",
+          "expected": "종류: 4\nd: 1\na: 2\nz: 0"
+        }
+      ],
+      "narration": [
+        {
+          "action": "say",
+          "text": "상품 종류 수와 상품별 개수를 함께 구하는 문제예요.",
+          "target": "text:상품 종류 수와 상품별 개수를 함께 구하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 주문 목록에서 종류 수와 상품별 개수를 함께 구해요.",
+          "target": "text:같은 상품이 여러 번 나올 수 있어요."
+        },
+        {
+          "action": "say",
+          "text": "준비 입력의 첫 줄은 pen book pen cup book pen, 둘째 줄은 pen bag이에요.",
+          "target": "text:pen book pen cup book pen"
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "종류: 0, pen: null, bag: null이에요. 아직 아무것도 담지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 여기에 items를 하나씩 읽어 kinds와 counts를 채우세요.",
+          "after": "        for (String item : items) {\n            // 집합은 같은 이름을 한 번만 남겨요.\n            kinds.add(item);\n        }",
+          "say": "먼저 상품 이름을 집합에 담아요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "종류: 3이에요. 여섯 번 담았지만 pen, book, cup 세 이름만 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        for (String item : items) {\n            // 집합은 같은 이름을 한 번만 남겨요.\n            kinds.add(item);\n        }",
+          "after": "        for (String item : items) {\n            // 집합은 같은 이름을 한 번만 남겨요.\n            kinds.add(item);\n            // 이미 있던 개수에 1을 더하고, 처음이면 1로 시작해요.\n            counts.put(item, counts.getOrDefault(item, 0) + 1);\n        }",
+          "say": "같은 반복에서 Map의 개수를 하나씩 늘려요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            20
+          ]
+        },
+        {
+          "action": "say",
+          "text": "pen: 3이 나와요. 그런데 bag: null이에요. 없는 키를 get으로 읽었거든요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "counts.get(query)",
+          "after": "counts.getOrDefault(query, 0)",
+          "say": "없는 상품은 기본값 0으로 읽어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            20
+          ]
+        },
+        {
+          "action": "say",
+          "text": "종류: 3, pen: 3, bag: 0이에요. 요구한 세 줄이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. counts.put(item, 1)로 쓰면 같은 상품이 다시 나올 때 개수를 덮어써요.",
+          "target": "code:counts.getOrDefault(item, 0) + 1"
         }
       ]
     }

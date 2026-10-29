@@ -1,0 +1,87 @@
+{
+  "by": "hand",
+  "source_sha256": "962942325db61ece6b3deb832640f98af6d81301493ba32eb632498256a8b16a",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 주문 목록에서 종류 수와 상품별 개수를 함께 구해요.",
+      "target": "text:같은 상품이 여러 번 나올 수 있어요."
+    },
+    {
+      "action": "say",
+      "text": "준비 입력의 첫 줄은 pen book pen cup book pen, 둘째 줄은 pen bag이에요.",
+      "target": "text:pen book pen cup book pen"
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "종류: 0, pen: null, bag: null이에요. 아직 아무것도 담지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        // 여기에 items를 하나씩 읽어 kinds와 counts를 채우세요.",
+      "after": "        for (String item : items) {\n            // 집합은 같은 이름을 한 번만 남겨요.\n            kinds.add(item);\n        }",
+      "say": "먼저 상품 이름을 집합에 담아요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        18
+      ]
+    },
+    {
+      "action": "say",
+      "text": "종류: 3이에요. 여섯 번 담았지만 pen, book, cup 세 이름만 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        for (String item : items) {\n            // 집합은 같은 이름을 한 번만 남겨요.\n            kinds.add(item);\n        }",
+      "after": "        for (String item : items) {\n            // 집합은 같은 이름을 한 번만 남겨요.\n            kinds.add(item);\n            // 이미 있던 개수에 1을 더하고, 처음이면 1로 시작해요.\n            counts.put(item, counts.getOrDefault(item, 0) + 1);\n        }",
+      "say": "같은 반복에서 Map의 개수를 하나씩 늘려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        20
+      ]
+    },
+    {
+      "action": "say",
+      "text": "pen: 3이 나와요. 그런데 bag: null이에요. 없는 키를 get으로 읽었거든요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "counts.get(query)",
+      "after": "counts.getOrDefault(query, 0)",
+      "say": "없는 상품은 기본값 0으로 읽어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        20
+      ]
+    },
+    {
+      "action": "say",
+      "text": "종류: 3, pen: 3, bag: 0이에요. 요구한 세 줄이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. counts.put(item, 1)로 쓰면 같은 상품이 다시 나올 때 개수를 덮어써요.",
+      "target": "code:counts.getOrDefault(item, 0) + 1"
+    }
+  ]
+}
