@@ -1,8 +1,42 @@
 {
   "course": "tests/fixtures/player-pilot/s/course.json",
   "lesson": "courses/redesigned/aice-python-api.json",
-  "only_last": true,
   "expected_outputs": [
+    [
+      "서쪽",
+      "18"
+    ],
+    [
+      "12",
+      "[12, 18, 24]"
+    ],
+    [
+      "2",
+      "3"
+    ],
+    [
+      "",
+      "",
+      "[12, 18, 24]"
+    ],
+    [
+      "[24, 12, 18]\n[24, 12, 18]",
+      "[12, 18, 24]\n[24, 12, 18]"
+    ],
+    [
+      "[12, 18, 24]\n[24, 12, 18]",
+      "[24, 18, 12]\n[24, 12, 18]"
+    ],
+    [
+      "",
+      "18"
+    ],
+    [
+      "",
+      "18",
+      "18",
+      "18"
+    ],
     [
       "3\n0\n{'region': 'north', 'minutes': [30, 12, 18, 20], 'distance': [4, 1, 2, 3]}\n[30, 12, 18, 20]",
       "4",
@@ -10,6 +44,96 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "print(record[\"minutes\"])",
+          "print(18)"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "print(data[\"minutes\"])",
+          "print(data[\"region\"])"
+        ]
+      ],
+      "reason": "Wrong key"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "print(data[\"minutes\"])",
+          "print([12, 18, 24])"
+        ]
+      ],
+      "reason": "Typing the list"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "count = len(data[\"minutes\"])\n",
+          "count = 3\n"
+        ]
+      ],
+      "reason": "Typing the count"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "count = len(data[\"minutes\"])\n",
+          "count = len(data)\n"
+        ]
+      ],
+      "reason": "Number of keys"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "ordered = sorted(minutes)\n",
+          "minutes.sort()\nordered = minutes\n"
+        ]
+      ],
+      "reason": "Sorting the original in place"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "ordered = sorted(minutes)\n",
+          "ordered = [12, 18, 24]\n"
+        ]
+      ],
+      "reason": "Typing the list"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "print(statistics.mean(minutes))",
+          "print(18)"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "print(statistics.mean(minutes))",
+          "print(statistics.median(minutes))"
+        ]
+      ],
+      "reason": "Median instead of mean"
+    },
     {
       "step": 9,
       "replacements": [
@@ -42,6 +166,56 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "print(record[\"minutes\"])",
+          "print(record.get(\"minutes\"))"
+        ]
+      ],
+      "reason": "dict.get"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "print(data[\"minutes\"])",
+          "print(list(data[\"minutes\"]))"
+        ]
+      ],
+      "reason": "Copy of the list"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "count = len(data[\"minutes\"])\n",
+          "count = len(data[\"region\"])\n"
+        ]
+      ],
+      "reason": "Any column of the same records has the same length"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "ordered = sorted(minutes)\n",
+          "ordered = list(minutes)\nordered.sort()\n"
+        ]
+      ],
+      "reason": "Sorting a copy"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "print(statistics.mean(minutes))",
+          "from statistics import mean\nprint(mean(minutes))"
+        ]
+      ],
+      "reason": "Importing the function itself"
+    },
     {
       "step": 9,
       "replacements": [
