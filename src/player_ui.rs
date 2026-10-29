@@ -106,7 +106,7 @@ fn next_station(course:&CourseManifest,progress:&HashMap<String,Vec<LearningEven
     for (index,lesson) in course.lessons.iter().enumerate() {
         let Some(required)=requirements.get(&lesson.id) else{return NextStation::Loading};
         let records=progress.get(&lesson.id).map(Vec::as_slice).unwrap_or(&[]);
-        if issue_progress::status(records,&lesson.revision,required).current {continue;}
+        if issue_progress::lesson_clear(records,&lesson.revision,required,&lesson.challenge_task).cleared() {continue;}
         unfinished.push((index,lesson,records,required));
     }
     let recent=unfinished.iter().filter_map(|(index,_,records,_)|records.iter().map(|e|e.at).max().map(|at|(at,*index))).max_by_key(|(at,index)|(*at,std::cmp::Reverse(*index))).map(|(_,index)|index);
@@ -123,6 +123,15 @@ fn next_station(course:&CourseManifest,progress:&HashMap<String,Vec<LearningEven
 pub(crate) fn course_line(_course_title:&str,_repository:&str)->&'static str {
     // Course and topic names do not select a different theme (owner decision, 2026-10-26).
     "--line:#009b4c;--line-ink:#00703a;--line-soft:#e3f4ea;--line-bright:#3ccf7e"
+}
+
+/// The designated final challenge passed: a drawn mark and words, never colour alone.
+#[component]
+pub(crate) fn ChallengeBadge()->Element {
+    rsx!{span {class:"lesson-challenge-badge",title:"마지막 도전 과제를 실제 채점으로 통과했어요. 통과한 문제 수는 그대로 세요.",
+        svg {class:"challenge-mark",view_box:"0 0 12 12",width:"10",height:"10","aria-hidden":"true",path {d:"M6 .8 11.2 6 6 11.2.8 6z",fill:"currentColor"}}
+        "도전 통과"
+    }}
 }
 
 #[component]
@@ -381,7 +390,7 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                         h2 {"{manifest.title}"}
                         p {class:"course-description","{manifest.description}"}
                         div {class:"course-facts",
-                            {let records=&progress;let total=manifest.lessons.iter().filter(|l|l.required).count();let complete=manifest.lessons.iter().filter(|l|l.required&&records.get(&l.id).is_some_and(|e|issue_progress::status(e,&l.revision,progress_requirements.get(&l.id).map(Vec::as_slice).unwrap_or(&[])).current)).count();rsx!{p {class:"study-progress","최신 버전 완료: 필수 수업 {complete} / {total}"}}}
+                            {let records=&progress;let total=manifest.lessons.iter().filter(|l|l.required).count();let complete=manifest.lessons.iter().filter(|l|l.required&&records.get(&l.id).is_some_and(|e|issue_progress::lesson_clear(e,&l.revision,progress_requirements.get(&l.id).map(Vec::as_slice).unwrap_or(&[]),&l.challenge_task).cleared())).count();rsx!{p {class:"study-progress",title:"모든 필수 문제를 통과했거나 마지막 도전 과제를 통과한 수업이에요.","수업 클리어: 필수 수업 {complete} / {total}"}}}
                             crate::course_guide_ui::CourseGuideButton {key:"{manifest:?}",course:manifest.clone()}
                             a {href:format!("https://jhs512.github.io/immersion-quest-3/dashboard/{}/",manifest.repository),target:"_blank",rel:"noopener noreferrer","대시보드 보기"}
                         }
@@ -471,11 +480,12 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                     ol {class:"repository-lessons",aria_label:group.title.clone().unwrap_or_else(||"수업 목록".into()),
                         for (index,reference) in group.lessons.into_iter() {
                             {let records=progress.get(&reference.id).cloned().unwrap_or_default();let requirements=progress_requirements.get(&reference.id).cloned();
-                            let state=match &requirements {None=>"loading",Some(required)=>{let summary=issue_progress::learning_progress(&records,&reference.revision,required);if issue_progress::status(&records,&reference.revision,required).current{"done"}else if summary.solved>0{"progress"}else{"todo"}}};
+                            let clear=requirements.as_ref().map(|required|issue_progress::lesson_clear(&records,&reference.revision,required,&reference.challenge_task)).unwrap_or_default();
+                            let state=match &requirements {None=>"loading",Some(required)=>{let summary=issue_progress::learning_progress(&records,&reference.revision,required);if clear.full{"done"}else if clear.challenge{"challenge"}else if summary.solved>0{"progress"}else{"todo"}}};
                             let is_next=next_index==Some(index);
                             rsx!{
-                            li {class:"card lesson-card",key:"{reference.id}","data-state":state,"data-next":is_next.to_string(),"data-required":reference.required.to_string(),
-                                span {class:"lesson-number",span {class:"visually-hidden","수업 "}"{index+1}"}
+                            li {class:"card lesson-card",key:"{reference.id}","data-state":state,"data-challenge":if clear.challenge{"passed"}else{"none"},"data-next":is_next.to_string(),"data-required":reference.required.to_string(),
+                                span {class:"lesson-number",span {class:"visually-hidden","수업 "}"{index+1}"{if clear.challenge&&!clear.full{rsx!{span {class:"visually-hidden",", 도전 과제 통과로 클리어"}}}else{rsx!{}}}}
                                 div {class:"lesson-card-heading",
                                     h3 {button {r#type:"button",class:"lesson-title",disabled:busy()||!ready,
                                         onclick:{let manifest=manifest.clone();let reference=reference.clone();move |_|start_lesson(manifest.clone(),reference.clone())},"{reference.title}"}}
@@ -483,6 +493,7 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                                         if let Some(track)=reference.track() {span {class:track.class(),aria_label:format!("학습 분류: {}",track.label()),"{track.label()}"}}
                                         if !reference.required {span {class:"lesson-optional",title:"과정 완료에 세지 않는 선택 수업이에요.","선택"}}
                                         if is_next {span {class:"lesson-next-label","다음"}}
+                                        if clear.challenge {ChallengeBadge {}}
                                         span {class:"lesson-revision","버전 {reference.revision}"}
                                     }
                                     if !reference.prerequisites.is_empty() {p {class:"prerequisite",{format!("선수 학습: {}",reference.prerequisites.iter().filter_map(|id|manifest.lessons.iter().find(|l|l.id==*id)).map(|l|l.title.clone()).collect::<Vec<_>>().join(", "))}}}
@@ -490,7 +501,8 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                                 if let Some(required)=requirements {
                                     {let summary=issue_progress::learning_progress(&records,&reference.revision,&required);rsx!{
                                         div {class:"lesson-progress",aria_label:"수업 진도",
-                                            strong {"{summary.percent}% 완료"}
+                                            // The gauge stays the problems actually passed; a challenge clear only changes the headline.
+                                            if clear.challenge&&!clear.full {strong {class:"lesson-cleared","수업 클리어"}} else {strong {"{summary.percent}% 완료"}}
                                             span {"필수 문제 {summary.solved} / {summary.total}"}
                                             progress {max:"100",value:summary.percent.to_string(),aria_label:format!("수업 진도 {}%",summary.percent)}
                                         }
@@ -637,6 +649,27 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
         }}
     }}});
     let state=issue_progress::status(&events(),&selected.lesson.revision,&selected.lesson.required_tasks());
+    // The course's designated final challenge of this lesson, when it really is one.
+    let challenge=selected.course.lessons.iter().find(|l|l.id==selected.lesson.id).and_then(|reference|molip_quest::challenges::designated(reference,&selected.lesson)).map(|(index,task)|(index,task.id.clone(),task.title.clone()));
+    let challenge_passed=challenge.as_ref().is_some_and(|(_,id,_)|issue_progress::challenge_cleared(&events(),&selected.lesson.revision,id));
+    let mut confirm_reset=use_signal(||false);
+    let mut reset_message=use_signal(String::new);
+    // Resetting this lesson appends one event: it voids this account's progress of this lesson in this
+    // course. Drafts, practice folders, other lessons and settings stay as they are.
+    let reset_progress={let session=session.clone();let selected=selected.clone();move||{
+        let key=ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()};
+        let event=issue_progress::reset_event(key,&selected.lesson.revision,selected.mode,&selected.round,&events.peek());
+        merge_local_events(events,&selected.course.repository,vec![event.clone()]);
+        confirm_reset.set(false);
+        reset_message.set("이 수업의 진도를 초기화했어요. 작성한 코드와 다른 수업은 그대로예요.".into());
+        let (github,user,repo,title)=(session.github.clone(),session.user.clone(),selected.course.repository.clone(),selected.lesson.title.clone());
+        let recording=molip_quest::progress_sync::record_guard();
+        spawn(async move {
+            if let Err(error)=github_player::background(move||{let _recording=recording;github.record(&repo,&user,&title,&event,&[])}).await {
+                reset_message.set(format!("초기화를 이 기기에 저장하지 못했어요. 앱을 다시 열면 이전 진도가 보일 수 있어요. {error}"));
+            }
+        });
+    }};
     let passed=issue_progress::learned_tasks(&events(),&selected.lesson.revision);
     let required=selected.lesson.required_tasks();
     let count=required.iter().filter(|id|passed.contains(*id)).count();
@@ -801,8 +834,27 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
             section {class:"study-progress",span {"필수 문제 {count} / {required.len()}"}
                 strong {{format!("{}% 완료",if required.is_empty(){0}else{count*100/required.len()})}}
                 if state.current {strong {"✓ 최신 버전 완료"}} else if state.completed {strong {"✓ 이전 완료 보존 · 추가 학습 있음"}}
+                if challenge_passed {span {class:"lesson-challenge-state",ChallengeBadge {}if !state.current{" 수업 클리어"}}}
+                else if let Some((index,_,title))=&challenge {span {class:"lesson-challenge-pending","마지막 도전: 문제 {index+1} · {title}"}}
                 span {"수업 완료 {state.full_completions+state.review_completions}회"}
                 a {href:format!("https://jhs512.github.io/immersion-quest-3/dashboard/{}/",selected.course.repository),target:"_blank",rel:"noopener noreferrer","대시보드 보기"}
+            }
+            if !selected.practice_only {
+                section {class:"lesson-reset",aria_labelledby:"lesson-reset-title","data-confirming":confirm_reset().to_string(),
+                    h3 {id:"lesson-reset-title","진도 초기화"}
+                    if confirm_reset() {
+                        p {class:"lesson-reset-question",strong {"「{selected.lesson.title}」"}" 진도를 처음부터 다시 셀까요?"}
+                        p {"통과한 문제 {count}개와 완료·도전 기록을 더 이상 세지 않아요. 원본 기록은 진도 이슈에 남아요. 작성한 코드, 실습 폴더, 다른 수업은 그대로예요."}
+                        div {class:"lesson-reset-actions",
+                            button {r#type:"button",class:"danger lesson-reset-confirm",disabled:running_here,onclick:{let mut reset_progress=reset_progress.clone();move |_|reset_progress()},"진도 초기화"}
+                            button {r#type:"button",onmounted:move |event|async move{let _=event.data().set_focus(true).await;},onclick:move |_|confirm_reset.set(false),"취소"}
+                        }
+                    } else {
+                        p {"이 수업만 처음부터 다시 풀 때 써요. 이 계정의 이 코스 진도만 바뀌어요."}
+                        button {r#type:"button",class:"lesson-reset-open",disabled:running_here,onclick:move |_|{reset_message.set(String::new());confirm_reset.set(true);},"이 수업 진도 초기화"}
+                    }
+                    if !reset_message().is_empty() {p {class:"lesson-reset-status",role:"status","{reset_message}"}}
+                }
             }
             if let Some(task)=&view {crate::lesson_outline::LessonOutline {lesson:selected.lesson.clone(),task_id:task.id.clone()}}
             crate::lesson_outline::LessonOverview {key:"{selected.lesson.id}",lesson:selected.lesson.clone()}
@@ -899,6 +951,9 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     use_effect(move||{if ordered_task.example_order_marker.is_some(){match ordered_task.example_for_answer(&ordered_answer()){Ok(source)=>{if *example_source.peek()!=source{example_source.set(source);reset.with_mut(|version|*version+=1);}},Err(error)=>{if *message.peek()!=error{message.set(error);}}}}});
 
     let mut passed_dialog=use_signal(||false);
+    // This submission passed the lesson's designated final challenge (and the lesson is cleared).
+    let mut challenge_cleared_now=use_signal(||false);
+    let challenge_task=selected.course.lessons.iter().find(|l|l.id==selected.lesson.id).and_then(|reference|molip_quest::challenges::designated(reference,&selected.lesson)).map(|(_,t)|t.id.clone());
     let mut submitting=use_signal(||false);
     use_drop(||{document::eval("window.molipAgent?.stop()");});
     let mut history_saves=use_signal(||0usize);
@@ -1163,7 +1218,7 @@ if let Some(start)=autostart {
                         });
                     }}},"코드 실행"}
                     }
-                    button {class:"primary","data-shortcut-action":"submit","data-enter-submit":"true",disabled:busy()||narrating()||(task.git_terminal.is_some()&&git_practice().is_none()),onclick:{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();let docker_session=docker_session.clone();move |_|{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();let docker_session=docker_session.clone();async move {
+                    button {class:"primary","data-shortcut-action":"submit","data-enter-submit":"true",disabled:busy()||narrating()||(task.git_terminal.is_some()&&git_practice().is_none()),onclick:{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();let docker_session=docker_session.clone();let challenge_task=challenge_task.clone();move |_|{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();let docker_session=docker_session.clone();let challenge_task=challenge_task.clone();async move {
                         submitting.set(true);busy.set(true);feedback.set("checking");execution_state.set("idle");output.set(String::new());message.set("검사하고 있어요.".into());
                         match molip_quest::telemetry::observe("task.submit",vec![opentelemetry::KeyValue::new("course.id",selected.course.id.clone()),opentelemetry::KeyValue::new("lesson.id",selected.lesson.id.clone()),opentelemetry::KeyValue::new("task.id",task.id.clone())],async {if task.git_terminal.as_ref().is_some_and(|e|e.java_build.is_some()) {
                                 let practice=git_practice();let answer=code();let interaction=task.interaction.clone();
@@ -1196,7 +1251,10 @@ if let Some(start)=autostart {
                                         passed_dialog.set(report.passed);
                                         busy.set(false);submitting.set(false);return;
                                     }
+                                    let challenge_now=report.passed&&challenge_task.as_deref()==Some(task.id.as_str());
                                     if report.passed&&complete{message.set("수업 완료!".into());}
+                                    else if challenge_now{message.set("도전 과제 통과! 수업을 클리어했어요.".into());}
+                                    challenge_cleared_now.set(challenge_now);
                                     passed_dialog.set(report.passed);
                                     // Persistence belongs to the process, so navigation cannot cancel it.
                                     let recording=molip_quest::progress_sync::record_guard();
@@ -1282,7 +1340,7 @@ if let Some(start)=autostart {
         }
         if submitting() {SubmissionProgress {}}
         if passed_dialog() && !submitting() && !auto_owned {
-            TaskPassedDialog {has_next,to_challenges:selected.from_challenges,
+            TaskPassedDialog {has_next,to_challenges:selected.from_challenges,challenge_cleared:challenge_cleared_now(),
                 onnext:move |_|{passed_dialog.set(false);onnext.call(());},
                 onstay:move |_|{passed_dialog.set(false);document::eval("document.querySelector('.repository-task .primary')?.focus()");}}
         }
@@ -1338,7 +1396,7 @@ fn SubmissionProgress()->Element {
 }
 
 #[component]
-fn TaskPassedDialog(has_next:bool,#[props(default)] to_challenges:bool,onnext:EventHandler<()>,onstay:EventHandler<()>)->Element {
+fn TaskPassedDialog(has_next:bool,#[props(default)] to_challenges:bool,#[props(default)] challenge_cleared:bool,onnext:EventHandler<()>,onstay:EventHandler<()>)->Element {
     let mut advancing=use_signal(||false);
     rsx! {
         div {class:"task-passed-backdrop",
@@ -1357,6 +1415,7 @@ fn TaskPassedDialog(has_next:bool,#[props(default)] to_challenges:bool,onnext:Ev
                     }
                 }
                 h2 {"통과했어요!"}
+                if challenge_cleared {p {class:"task-passed-challenge",ChallengeBadge {}" 마지막 도전 과제를 통과해 이 수업을 클리어했어요. 건너뛴 문제는 통과로 바뀌지 않아요."}}
                 p {if has_next{"다음 문제로 이어서 풀어보세요."}else if to_challenges{"도전 과제 목록에서 다른 문제를 골라 보세요."}else{"마지막 문제까지 풀었어요. 수업 목록에서 다음 학습을 선택하세요."}}
                 div {class:"task-passed-actions",
                     button {class:"primary",disabled:advancing(),

@@ -20,13 +20,16 @@ pub fn apply_result(
     required: &[String],
 ) -> Vec<LearningEvent> {
     latest.push(event.clone());
+    // Only the history that counts now: a completion from before a lesson reset neither satisfies
+    // nor blocks a new one in the same round.
+    let counted = issue_progress::effective(&latest);
     if event.kind == EventKind::Attempt
         && event.passed
         && !required.is_empty()
         && required
             .iter()
-            .all(|id| issue_progress::learned_tasks(&latest, &event.revision).contains(id))
-        && !latest.iter().any(|e| {
+            .all(|id| issue_progress::learned_tasks(&counted, &event.revision).contains(id))
+        && !counted.iter().any(|e| {
             e.kind == EventKind::Completed
                 && e.round == event.round
                 && e.revision == event.revision
@@ -50,6 +53,10 @@ pub fn apply_result(
             event.mode,
             event.round
         );
+        // Deterministic per reset, so replays and other devices still store one completion.
+        if let Some(reset) = issue_progress::latest_reset(&latest) {
+            done.id = format!("{}:after-reset:{}", done.id, reset.id);
+        }
         latest.push(done);
     }
     issue_progress::merge(latest, &event.key)

@@ -19,7 +19,7 @@ pub fn reference(github:&Github,text:&str)->Result<LessonRef,String> {
     let raw=github.content(repo,revision,"lesson.json")?;
     let lesson:Lesson=serde_json::from_str(&raw).map_err(|e|e.to_string())?;lesson.validate()?;
     if lesson.revision!=revision {return Err("수업 파일과 선택한 버전이 달라요.".into())}
-    Ok(LessonRef{id:lesson.id,title:lesson.title,repository:repo.into(),revision:revision.into(),sha256:format!("{:x}",Sha256::digest(raw.as_bytes())),prerequisites:vec![],required:true,review_enabled:lesson.review_enabled,category:String::new(),track:String::new()})
+    Ok(LessonRef{id:lesson.id,title:lesson.title,repository:repo.into(),revision:revision.into(),sha256:format!("{:x}",Sha256::digest(raw.as_bytes())),prerequisites:vec![],required:true,review_enabled:lesson.review_enabled,category:String::new(),track:String::new(),challenge_task:String::new()})
 }
 pub(crate) fn gh(args:&[&str],body:Option<Value>)->Result<Value,String> {
     if crate::pilot_source::enabled() { return crate::pilot_source::request(args,body); }

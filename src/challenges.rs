@@ -31,6 +31,14 @@ pub fn final_task(lesson: &Lesson) -> Option<(usize, &Task)> {
     lesson.tasks.iter().enumerate().rev().find(|(_, task)| is_graded(task))
 }
 
+/// The course's designated final challenge of this pinned lesson, when it really is one: a task of
+/// this revision that is required and has a real grader. Anything else is ignored, and the lesson
+/// is then cleared only by passing every required problem.
+pub fn designated<'a>(reference: &LessonRef, lesson: &'a Lesson) -> Option<(usize, &'a Task)> {
+    if reference.challenge_task.is_empty() || lesson.id != reference.id || lesson.revision != reference.revision { return None }
+    lesson.tasks.iter().enumerate().find(|(_, task)| task.id == reference.challenge_task && task.required && is_graded(task))
+}
+
 /// How the learner answers, in a few words.
 pub fn answer_kind(task: &Task) -> &'static str {
     match &task.interaction {
@@ -62,11 +70,15 @@ pub struct LessonChallenge {
     pub kind: &'static str,
     /// 1-based position of the task in its lesson, and the lesson's task count.
     pub position: (usize, usize),
+    /// The course designates this task as the lesson's final challenge: passing it clears the lesson.
+    /// Otherwise it is only the lesson's last graded problem.
+    pub designated: bool,
 }
 
 pub fn lesson_challenge(lesson_index: usize, reference: &LessonRef, lesson: &Lesson) -> Option<LessonChallenge> {
     if lesson.id != reference.id || lesson.revision != reference.revision { return None }
-    let (index, task) = final_task(lesson)?;
+    let chosen = designated(reference, lesson);
+    let (index, task) = chosen.or_else(|| final_task(lesson))?;
     Some(LessonChallenge {
         lesson_index,
         lesson_id: lesson.id.clone(),
@@ -77,6 +89,7 @@ pub fn lesson_challenge(lesson_index: usize, reference: &LessonRef, lesson: &Les
         prompt: if task.question.trim().is_empty() { task.goal.clone() } else { task.question.clone() },
         kind: answer_kind(task),
         position: (index + 1, lesson.tasks.len()),
+        designated: chosen.is_some(),
     })
 }
 

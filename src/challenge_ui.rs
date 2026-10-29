@@ -38,7 +38,7 @@ pub(crate) fn ChallengeBoard(github:Github,course:CourseManifest,progress:HashMa
         section {class:"challenge-board",aria_labelledby:"challenge-board-title",
             h3 {id:"challenge-board-title","도전 과제"}
             p {"수업마다 마지막으로 채점하는 문제를 모았어요. 원래 수업 화면에서 풀고, 통과하면 그 수업 진도에 기록돼요."}
-            p {class:"challenge-review-note",role:"note","수업의 마지막 문제를 모은 목록이에요. 종합 문제로 따로 검토를 마친 것은 아니에요."}
+            p {class:"challenge-review-note",role:"note","「수업 클리어 도전」 문제는 수업의 마지막 종합 문제로 지정됐어요. 통과하면 앞 문제를 건너뛰었어도 그 수업을 클리어해요. 나머지는 수업의 마지막 문제일 뿐 종합 문제로 검토하지 않았어요."}
             match state {
                 None=>rsx!{p {class:"lesson-status",role:"status","수업의 마지막 문제를 찾고 있어요…"}},
                 Some(Err(error))=>rsx!{p {class:"challenge-error",role:"alert","도전 과제를 불러오지 못했어요. {error}"}},
@@ -56,15 +56,16 @@ pub(crate) fn ChallengeBoard(github:Github,course:CourseManifest,progress:HashMa
                                         }},
                                         Ok(challenge)=>{
                                             let passed=progress.get(&challenge.lesson_id).is_some_and(|events|issue_progress::learned_tasks(events,&challenge.revision).contains(&challenge.task_id));
-                                            rsx!{article {class:"card challenge-card","data-state":"published","data-lesson-id":challenge.lesson_id.clone(),"data-task-id":challenge.task_id.clone(),"data-revision":challenge.revision.clone(),"data-passed":passed.to_string(),
+                                            rsx!{article {class:"card challenge-card","data-state":"published","data-designated":challenge.designated.to_string(),"data-lesson-id":challenge.lesson_id.clone(),"data-task-id":challenge.task_id.clone(),"data-revision":challenge.revision.clone(),"data-passed":passed.to_string(),
                                                 div {class:"challenge-card-heading",span {class:"lesson-number","수업 {index+1}"}h5 {"{challenge.lesson_title}"}}
                                                 p {class:"challenge-task",strong {"문제 {challenge.position.0} / {challenge.position.1} · {challenge.task_title}"}}
                                                 p {class:"challenge-prompt",{short(&challenge.prompt,140)}}
                                                 ul {class:"challenge-tags",aria_label:"문제 상태",
                                                     li {"공개 수업 · 버전 {challenge.revision}"}
                                                     li {"{challenge.kind}"}
-                                                    li {"종합 문제 검토 전"}
-                                                    li {class:if passed{"challenge-passed"}else{""},if passed{"✓ 통과"}else{"아직 풀지 않음"}}
+                                                    if challenge.designated {li {class:"challenge-designated","수업 클리어 도전"}} else {li {"종합 문제 검토 전"}}
+                                                    if passed&&challenge.designated {li {class:"challenge-cleared",crate::player_ui::ChallengeBadge {}}}
+                                                    else {li {class:if passed{"challenge-passed"}else{""},if passed{"✓ 통과"}else{"아직 풀지 않음"}}}
                                                 }
                                                 button {class:"primary",disabled:busy||!ready,title:if ready{"원래 수업에서 이 문제를 열어요"}else{"이 코스에서 쓸 이름을 먼저 입력하세요"},onclick:{let reference=reference.clone();let task_id=challenge.task_id.clone();move |_|onopen.call(ChallengeOpen::Lesson{reference:reference.clone(),task_id:task_id.clone()})},"수업에서 풀기"}
                                             }}

@@ -80,3 +80,14 @@ test('shared snapshot groups comments in one request and rejects private reposit
  assert.equal(calls.length,3);assert.equal(data.repository,'owner/course');
  await assert.rejects(()=>snapshot('owner/private',async()=>({private:true}),async()=>{}),/public/);
 });
+test('a lesson reset stops counting earlier events; a designated challenge clears without inventing passes',()=>{
+  const lessons=new Map([['lesson-a',{tasks:[{id:stable,title:'첫 값',required:true},{id:'stp_1fdc2de8-0712-4723-8cc5-5db33a8a0419',title:'도전',required:true}]}]]);
+  const challengeId='stp_1fdc2de8-0712-4723-8cc5-5db33a8a0419';
+  const withChallenge={...course,lessons:[{...course.lessons[0],challenge_task:challengeId}]};
+  const cleared=summarize(withChallenge,lessons,[{issue,events:[event('c1',{task_id:challengeId})]}])[0];
+  assert.equal(cleared.details[0].challenge,true);assert.equal(cleared.details[0].complete,false);assert.equal(cleared.solved,1);assert.equal(cleared.total,2);
+  const reset={id:'r',key,at:150,kind:'reset',revision:'v2',voids:['same-second']};
+  const after=summarize(withChallenge,lessons,[{issue,events:[event('c1',{task_id:challengeId}),event('same-second',{at:150}),reset,event('new',{at:151})]}])[0];
+  assert.equal(after.details[0].challenge,false);assert.equal(after.solved,1);assert.match(after.last,/첫 값/);
+  assert.equal(summarize(withChallenge,lessons,[{issue,events:[event('c1',{task_id:challengeId}),reset]}])[0].last,'아직 통과 기록이 없어요');
+});

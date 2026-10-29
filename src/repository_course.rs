@@ -59,6 +59,9 @@ pub struct LessonRef {
     #[serde(default,skip_serializing_if="String::is_empty")] pub category: String,
     /// "basic" (기본) | "essential" (필수) | "advanced" (고급); other values are ignored. Not the same as `required`.
     #[serde(default,skip_serializing_if="String::is_empty")] pub track: String,
+    /// The lesson's designated final challenge (a step code of the pinned revision). Passing it in
+    /// real grading clears the lesson even with problems left; see `challenges::designated`.
+    #[serde(default,skip_serializing_if="String::is_empty")] pub challenge_task: String,
 }
 fn yes() -> bool { true }
 
@@ -300,6 +303,7 @@ impl CourseManifest {
             if !ids.insert(l.id.clone()) || l.id.is_empty() || l.title.is_empty() || !valid_repository(&l.repository) || l.revision.is_empty() || l.revision.contains(['/', '\\', '?','#']) || l.sha256.len()!=64 || !l.sha256.bytes().all(|c|c.is_ascii_hexdigit()) { return Err("수업 참조와 버전·해시를 확인하세요.".into()); }
         }
         if course.lessons.iter().any(|l| l.prerequisites.iter().any(|p| !ids.contains(p) || *p==l.id)) { return Err("선수 수업 ID를 확인하세요.".into()); }
+        if course.lessons.iter().any(|l| !l.challenge_task.is_empty() && !resource_code(&l.challenge_task,"stp")) { return Err("수업의 도전 과제 문제 코드를 확인하세요.".into()); }
         if course.lesson_previews.iter().any(|(id,preview)| !ids.contains(id) || !preview.valid()) {
             return Err("수업 예고의 대상과 내용을 확인하세요.".into());
         }

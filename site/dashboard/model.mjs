@@ -32,6 +32,14 @@ export function verifiedEvents(comments, key) {
     seen.add(e.id); return true;
   }).sort((a,b) => a.at - b.at || a.id.localeCompare(b.id));
 }
+// A lesson reset (kind "reset") voids that lesson's earlier events and the ones it lists in `voids`.
+// The original comments stay; the player and this page simply stop counting them.
+export function effective(events) {
+  const resets = events.filter(e => e.kind === 'reset');
+  if (!resets.length) return events;
+  return events.filter(e => e.kind !== 'reset' && !resets.some(r => r.key?.lesson_id === e.key?.lesson_id
+    && (e.at < r.at || (Array.isArray(r.voids) && r.voids.includes(e.id)))));
+}
 export function enrollments(issues,course){
   const names=new Map();
   for(const issue of [...issues].sort((a,b)=>a.number-b.number)){
@@ -60,7 +68,7 @@ export function summarize(course, lessons, records, registrations=[]) {
       const lesson = lessons.get(ref.id);
       if (!lesson) { unavailable++; return {title:ref.title, unavailable:true}; }
       const required = (lesson.tasks ?? []).filter(t => t.required);
-      const events = all.filter(e => e.key.lesson_id === ref.id);
+      const events = effective(all.filter(e => e.key.lesson_id === ref.id));
       const passed = new Set(events.filter(e => e.kind === 'attempt' && e.passed === true && (e.revision === ref.revision || /^stp_[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/.test(e.task_id))).map(e => e.task_id));
       const count = required.filter(t => passed.has(t.id)).length;
       total += required.length; solved += count;
@@ -75,9 +83,12 @@ export function summarize(course, lessons, records, registrations=[]) {
         return {id:task.id, title:task.title, required:task.required, started, finished, attempts,
           status:finished !== undefined ? '완료' : history.length ? '학습 중' : '시작 전'};
       });
-      return {title:ref.title, tasks, solved:count, total:required.length, complete:required.length>0 && count===required.length};
+      // The course's designated final challenge, passed in real grading, also clears the lesson.
+      const challenge = typeof ref.challenge_task === 'string' && required.some(t => t.id === ref.challenge_task) && passed.has(ref.challenge_task);
+      return {title:ref.title, tasks, solved:count, total:required.length, complete:required.length>0 && count===required.length, challenge};
     });
-    const last = [...all].reverse().find(e => e.kind==='attempt' && e.passed === true && course.lessons.some(l => l.id===e.key.lesson_id));
+    const counted = course.lessons.flatMap(ref => effective(all.filter(e => e.key.lesson_id === ref.id))).sort((a,b) => a.at-b.at || a.id.localeCompare(b.id));
+    const last = [...counted].reverse().find(e => e.kind==='attempt' && e.passed === true && course.lessons.some(l => l.id===e.key.lesson_id));
     const ref = course.lessons.find(l => l.id === last?.key.lesson_id);
     const task = lessons.get(ref?.id)?.tasks?.find(t => t.id===last.task_id);
     return {...student, details, total, solved, unavailable, percent:unavailable || !total ? null : Math.floor(100*solved/total), latest:all.at(-1)?.at, last: last ? `${ref.title} · ${task?.title ?? last.task_id}` : '아직 통과 기록이 없어요'};

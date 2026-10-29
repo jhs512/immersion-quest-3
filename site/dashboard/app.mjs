@@ -59,7 +59,7 @@ function render(){
         }
         const scroll=node('div',null,'table-scroll');scroll.append(taskTable);lesson.append(scroll);cell.append(lesson);
       }
-      row.append(cell,node('td',l.unavailable?'수업 자료 확인 필요':`${l.complete?'✓ 완료 · ':''}${l.solved} / ${l.total}`));table.append(row);
+      row.append(cell,node('td',l.unavailable?'수업 자료 확인 필요':`${l.complete?'✓ 완료 · ':l.challenge?'◆ 도전 통과 · ':''}${l.solved} / ${l.total}`));table.append(row);
     }detail.append(table);
     const link=node('a','GitHub 원본 기록 보기 ↗');link.href=s.issues[0];link.target='_blank';link.rel='noopener noreferrer';detail.append(link);$('students').append(detail);
   }

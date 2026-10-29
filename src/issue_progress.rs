@@ -17,22 +17,64 @@ pub struct LearningEvent {
     #[serde(default)] pub required:Vec<String>,
     #[serde(default)] pub success_before_view:bool,
     #[serde(default,skip_serializing_if="Option::is_none")] pub prediction:Option<String>,
+    /// A `Reset` also voids these events, which it knew and which carry its own second or a later
+    /// (clock-skewed) time. Everything earlier than the reset is void by time alone.
+    #[serde(default,skip_serializing_if="Vec::is_empty")] pub voids:Vec<String>,
 }
 #[derive(Clone,Copy,Debug,Deserialize,Serialize,PartialEq)]
 #[serde(rename_all="snake_case")]
-pub enum EventKind { Started, Attempt, Viewed, ExampleRun, Completed, ExplanationViewed }
+/// `Reset` starts this lesson's progress over for one account in one course. It is appended like any
+/// other event, so a union of histories (other devices, GitHub, a late upload) cannot undo it.
+pub enum EventKind { Started, Attempt, Viewed, ExampleRun, Completed, ExplanationViewed, Reset }
 impl LearningEvent {
     pub fn new(key:ProgressKey, revision:&str, mode:StudyMode, round:&str, kind:EventKind)->Self {
-        Self {id:new_id(),key,revision:revision.into(),mode,round:round.into(),at:now(),kind,task_id:None,passed:false,required:vec![],success_before_view:false,prediction:None}
+        Self {id:new_id(),key,revision:revision.into(),mode,round:round.into(),at:now(),kind,task_id:None,passed:false,required:vec![],success_before_view:false,prediction:None,voids:vec![]}
     }
-    pub fn comment(&self)->String { format!("{} · {} · {}\n\n<!-- mq3-event:{} -->","학습",self.revision,match self.kind {EventKind::Started=>"학습 시작",EventKind::Attempt=>if self.passed {"문제 통과"}else{"문제 다시 풀기"},EventKind::Viewed=>"개념 확인",EventKind::ExampleRun=>"예제 실행",EventKind::Completed=>"수업 완료",EventKind::ExplanationViewed=>"해설 확인"},serde_json::to_string(self).expect("event")) }
+    pub fn comment(&self)->String { format!("{} · {} · {}\n\n<!-- mq3-event:{} -->","학습",self.revision,match self.kind {EventKind::Started=>"학습 시작",EventKind::Attempt=>if self.passed {"문제 통과"}else{"문제 다시 풀기"},EventKind::Viewed=>"개념 확인",EventKind::ExampleRun=>"예제 실행",EventKind::Completed=>"수업 완료",EventKind::ExplanationViewed=>"해설 확인",EventKind::Reset=>"진도 초기화"},serde_json::to_string(self).expect("event")) }
+}
+
+/// The history that counts now: every event a lesson reset voided is left out, and so are the
+/// resets themselves. The stored and synced history keeps all of them.
+pub fn effective(events:&[LearningEvent])->Vec<LearningEvent> {
+    let resets:Vec<&LearningEvent>=events.iter().filter(|e|e.kind==EventKind::Reset).collect();
+    if resets.is_empty() {return events.to_vec()}
+    events.iter().filter(|e|e.kind!=EventKind::Reset&&!resets.iter().any(|r|r.key==e.key&&(e.at<r.at||r.voids.contains(&e.id)))).cloned().collect()
+}
+/// The latest reset of this history, used to give a completion earned after it its own identity.
+pub fn latest_reset(events:&[LearningEvent])->Option<&LearningEvent> {
+    events.iter().filter(|e|e.kind==EventKind::Reset).max_by(|a,b|(a.at,&a.id).cmp(&(b.at,&b.id)))
+}
+/// A reset of one lesson for one account in one course. It voids what is known now, including
+/// events stamped in its own second or later by a skewed clock.
+pub fn reset_event(key:ProgressKey,revision:&str,mode:StudyMode,round:&str,known:&[LearningEvent])->LearningEvent {
+    let mut event=LearningEvent::new(key,revision,mode,round,EventKind::Reset);
+    event.voids=known.iter().filter(|e|e.key==event.key&&e.at>=event.at).map(|e|e.id.clone()).collect();
+    event
+}
+/// The lesson's designated final challenge passed in real grading, in the history that counts now.
+/// A stable problem code is the same problem across revisions; a legacy id only in its revision.
+pub fn challenge_cleared(events:&[LearningEvent],revision:&str,task_id:&str)->bool {
+    effective(events).iter().any(|e|e.kind==EventKind::Attempt&&e.passed&&e.task_id.as_deref()==Some(task_id)
+        &&(e.revision==revision||crate::repository_course::resource_code(task_id,"stp")))
+}
+
+/// How a lesson counts as cleared. `full` is the existing completion of every required problem in
+/// the current revision; `challenge` is the designated final challenge passed. Either clears the
+/// lesson; the practice gauge (`learning_progress`) stays the count of problems actually passed.
+#[derive(Clone,Copy,Debug,Default,PartialEq)]
+pub struct LessonClear {pub full:bool,pub challenge:bool}
+impl LessonClear {pub fn cleared(self)->bool {self.full||self.challenge}}
+/// `challenge_task` counts only when it is one of this revision's required problems.
+pub fn lesson_clear(events:&[LearningEvent],revision:&str,required:&[String],challenge_task:&str)->LessonClear {
+    let challenge=!challenge_task.is_empty()&&required.iter().any(|id|id==challenge_task)&&challenge_cleared(events,revision,challenge_task);
+    LessonClear {full:status(events,revision,required).current,challenge}
 }
 
 #[derive(Default,PartialEq,Debug)]
 pub struct ExplanationInfo {pub before_success:bool,pub after_success:bool}
 pub fn explanation_info(events:&[LearningEvent],task_id:&str)->ExplanationInfo {
     let mut info=ExplanationInfo::default();
-    for event in events.iter().filter(|e|e.kind==EventKind::ExplanationViewed && e.task_id.as_deref()==Some(task_id)) {
+    for event in effective(events).iter().filter(|e|e.kind==EventKind::ExplanationViewed && e.task_id.as_deref()==Some(task_id)) {
         if event.success_before_view {info.after_success=true;} else {info.before_success=true;}
     }
     info
@@ -58,13 +100,13 @@ pub fn merge(events:impl IntoIterator<Item=LearningEvent>, key:&ProgressKey)->Ve
     result.sort_by(|a,b|(a.at,&a.id).cmp(&(b.at,&b.id))); result
 }
 pub fn passed_in_round(events:&[LearningEvent], revision:&str, mode:StudyMode, round:&str)->HashSet<String> {
-    events.iter().filter(|e| e.revision==revision && e.mode==mode && e.round==round && e.kind==EventKind::Attempt && e.passed).filter_map(|e|e.task_id.clone()).collect()
+    effective(events).iter().filter(|e| e.revision==revision && e.mode==mode && e.round==round && e.kind==EventKind::Attempt && e.passed).filter_map(|e|e.task_id.clone()).collect()
 }
 
 /// One learning view combines successful answers from historical modes/rounds.
 /// Stable problem identities survive wording revisions; legacy IDs need the same revision.
 pub fn learned_tasks(events:&[LearningEvent], revision:&str)->HashSet<String> {
-    events.iter().filter(|event|event.kind==EventKind::Attempt&&event.passed)
+    effective(events).iter().filter(|event|event.kind==EventKind::Attempt&&event.passed)
         .filter_map(|event|event.task_id.as_ref().filter(|id|event.revision==revision||crate::repository_course::resource_code(id,"stp")))
         .cloned().collect()
 }
@@ -81,7 +123,7 @@ pub fn learning_progress(events:&[LearningEvent],revision:&str,required:&[String
 pub fn passed_for_study(events:&[LearningEvent], revision:&str, mode:StudyMode, round:&str)->HashSet<String> {
     let mut passed=passed_in_round(events,revision,mode,round);
     if mode==StudyMode::Full {
-        passed.extend(events.iter().filter(|e|e.kind==EventKind::Attempt && e.passed)
+        passed.extend(effective(events).iter().filter(|e|e.kind==EventKind::Attempt && e.passed)
             .filter_map(|e|e.task_id.as_ref()).filter(|id|crate::repository_course::resource_code(id,"stp")).cloned());
     }
     passed
@@ -89,6 +131,7 @@ pub fn passed_for_study(events:&[LearningEvent], revision:&str, mode:StudyMode, 
 #[derive(Clone,Debug,Default,PartialEq)]
 pub struct LessonStatus { pub completed:bool,pub current:bool,pub full_completions:usize,pub review_completions:usize }
 pub fn status(events:&[LearningEvent], revision:&str, required:&[String])->LessonStatus {
+    let events=&effective(events);
     let mut rounds:BTreeMap<(String,String,u8),(&LearningEvent,bool)>=BTreeMap::new();
     for e in events.iter().filter(|e|e.kind==EventKind::Completed) {
         let same_key:Vec<_>=events.iter().filter(|other|other.key==e.key).cloned().collect();
@@ -102,11 +145,14 @@ pub fn status(events:&[LearningEvent], revision:&str, required:&[String])->Lesso
     LessonStatus {completed:!rounds.is_empty(),current:rounds.values().any(|(_,c)|*c),full_completions:rounds.values().filter(|(e,_)|e.mode==StudyMode::Full).count(),review_completions:rounds.values().filter(|(e,_)|e.mode==StudyMode::Review).count()}
 }
 pub fn summary(key:&ProgressKey,title:&str,events:&[LearningEvent])->String {
+    let reset=latest_reset(events).is_some();
+    let events=&effective(events);
     let latest=events.iter().max_by_key(|e|e.at);
     let revision=latest.map(|e|e.revision.as_str()).unwrap_or("");
     let state=status(events,revision,&[]);
     let mut attempts:BTreeMap<&str,usize>=BTreeMap::new();
     for e in events.iter().filter(|e|e.kind==EventKind::Attempt) {if let Some(id)=e.task_id.as_deref(){*attempts.entry(id).or_default()+=1}}
     let tasks=attempts.into_iter().map(|(id,count)|format!("- `{id}`: {} · 시도 {count}회",if events.iter().any(|e|e.kind==EventKind::Attempt&&e.passed&&e.task_id.as_deref()==Some(id)){"통과"}else{"학습 중"})).collect::<Vec<_>>().join("\n");
-    format!("# {title}\n\n학습자 ID: {}\n코스: {}\n수업: {}\n\n수업 완료: {}회\n최근 버전: {revision}\n\n{tasks}\n\n학습의 원본 기록은 아래 댓글에 있어요.\n\n{}",key.user_id,key.course_id,key.lesson_id,state.full_completions+state.review_completions,marker(key))
+    let note=if reset {"\n진도 초기화: 초기화 전 기록은 세지 않아요. 원본은 아래 댓글에 그대로 있어요."} else {""};
+    format!("# {title}\n\n학습자 ID: {}\n코스: {}\n수업: {}\n\n수업 완료: {}회\n최근 버전: {revision}{note}\n\n{tasks}\n\n학습의 원본 기록은 아래 댓글에 있어요.\n\n{}",key.user_id,key.course_id,key.lesson_id,state.full_completions+state.review_completions,marker(key))
 }
