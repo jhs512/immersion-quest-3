@@ -1,0 +1,928 @@
+{
+  "description": "내 터미널의 검사 명령을 GitLab CI/CD로 옮겨요. 실패를 고치고 작업 사이에 파일을 전달하며 커밋·설정·실행 결과를 연결해요.",
+  "tasks": [
+    {
+      "id": "stp_ea6533cc-bdd0-4bb4-9caf-dd702a393532",
+      "title": "먼저 내 터미널에서 검사 파일을 실행하세요",
+      "goal": "준비한 check.sh는 값이 5인지 검사하는 작은 프로그램이에요. 먼저 자동화 없이 실행해 보세요.\n\n**할 일**\n\n1. `cat check.sh`로 검사 내용을 읽으세요.\n2. `sh check.sh`를 실행해 CHECK_OK가 나오는지 확인하세요.\n3. 확인한 결과를 제출하세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "cat check.sh\nsh check.sh",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "workspace_group": "ci-manual",
+        "workspace_revision": "gitlab-ci-1",
+        "shell": {
+          "step_id": "stp_ea6533cc-bdd0-4bb4-9caf-dd702a393532",
+          "start": {
+            "files": {
+              "check.sh": "actual=5\nif test \"$actual\" -eq 5; then\n  echo CHECK_OK\nelse\n  echo CHECK_FAILED\n  exit 1\nfi\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {
+              "check.sh": "actual=5\nif test \"$actual\" -eq 5; then\n  echo CHECK_OK\nelse\n  echo CHECK_FAILED\n  exit 1\nfi\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "goal": {
+            "files": {
+              "check.sh": "actual=5\nif test \"$actual\" -eq 5; then\n  echo CHECK_OK\nelse\n  echo CHECK_FAILED\n  exit 1\nfi\n"
+            },
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": [
+            "cat check.sh",
+            "sh check.sh"
+          ],
+          "requires_vim": false
+        }
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "준비한 check.sh는 값이 5인지 검사하는 작은 프로그램이에요.",
+          "target": "text:준비한 check.sh는 값이 5인지 검사하는 작은 프로그램이에요."
+        },
+        {
+          "action": "bash_command",
+          "command": "cat check.sh",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "실제 값과 기준값이 같아야 CHECK_OK를 출력하는 검사예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "sh check.sh",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "CHECK_OK가 보이면 이 컴퓨터에서 검사에 통과한 거예요. 다음에는 이 명령을 자동으로 실행하게 해요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    },
+    {
+      "id": "stp_e93b3984-a9a1-4379-859f-5d38448c9116",
+      "title": "검사 명령을 CI 작업에서 실행하세요",
+      "goal": "직접 실행하던 sh check.sh를 GitLab Runner가 실행하게 하세요.\nscript는 작업 컨테이너에서 실행할 명령이에요. 같은 검사 파일과 Alpine 이미지를 준비했어요.\n이번 문제는 제공한 파일과 별도의 새 프로젝트에서 시작해요. 프로젝트 생성과 첫 커밋 전송은 준비해 뒀어요.\n\n**할 일**\n\n1. 위 `.gitlab-ci.yml`에서 `echo 준비`를 `sh check.sh`로 고치세요.\n2. `git add .`를 실행하세요.\n3. `git commit -m \"CI 설정 변경\"`를 실행하세요.\n4. `git push`를 실행하세요.\n5. `glab ci status --wait`로 이 커밋의 파이프라인이 끝날 때까지 기다려 결과를 확인하세요.\n6. 원하는 작업 상태와 산출물을 확인하고 제출하세요.",
+      "language": "git",
+      "starter_code": "image: alpine:3.22\ncheck:\n  script:\n    - echo 준비\n",
+      "example_files": {
+        ".gitlab-ci.yml": "image: alpine:3.22\ncheck:\n  script:\n    - echo 준비\n",
+        "check.sh": "actual=5\nif test \"$actual\" -eq 5; then\n  echo CHECK_OK\nelse\n  echo CHECK_FAILED\n  exit 1\nfi\n"
+      },
+      "solution": "image: alpine:3.22\ncheck:\n  script:\n    - sh check.sh\n",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "gitlab": {
+          "stage": "pipeline",
+          "editable": [
+            ".gitlab-ci.yml",
+            "check.sh"
+          ],
+          "pipeline_status": "success",
+          "jobs": {
+            "check": "success"
+          },
+          "logs": {
+            "check": "CHECK_OK"
+          }
+        },
+        "files": {
+          ".gitlab-ci.yml": "image: alpine:3.22\ncheck:\n  script:\n    - echo 준비\n",
+          "check.sh": "actual=5\nif test \"$actual\" -eq 5; then\n  echo CHECK_OK\nelse\n  echo CHECK_FAILED\n  exit 1\nfi\n"
+        },
+        "workspace_group": "ci-job",
+        "workspace_revision": "gitlab-ci-1"
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "직접 실행하던 sh check.sh를 GitLab Runner가 실행하게 하세요.",
+          "target": "text:직접 실행하던 sh check.sh를 GitLab Runner가 실행하게 하세요."
+        },
+        {
+          "action": "patch_code",
+          "file": ".gitlab-ci.yml",
+          "before": "echo 준비",
+          "after": "sh check.sh",
+          "say": ".gitlab-ci.yml의 echo 준비 부분을 sh check.sh로 바꿔요.",
+          "target": "lines:4"
+        },
+        {
+          "action": "bash_command",
+          "command": "git add .",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "Runner가 실행할 명령을 설정 파일에 담았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "git commit -m \"CI 설정 변경\"",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "검사 명령을 자동화 설정에 기록한 커밋이에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "git push",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "이 커밋을 받은 GitLab이 check 작업을 예약해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "실행 주체가 내 터미널에서 Runner의 작업 컨테이너로 바뀌어요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    },
+    {
+      "id": "stp_5f504167-55eb-4aec-b406-54af0e104e8f",
+      "title": "실패하는 검사를 보내고 실패 상태를 확인하세요",
+      "goal": "검사 결과가 틀리면 파이프라인이 멈추는지 확인하세요.\nactual을 4로 바꿔 보내세요. 이 문제는 실패한 파이프라인을 관찰하는 게 목표예요.\n이번 문제는 제공한 파일과 별도의 새 프로젝트에서 시작해요. 프로젝트 생성과 첫 커밋 전송은 준비해 뒀어요.\n\n**할 일**\n\n1. 위 `check.sh`에서 `actual=5`를 `actual=4`로 고치세요.\n2. `git add .`를 실행하세요.\n3. `git commit -m \"CI 설정 변경\"`를 실행하세요.\n4. `git push`를 실행하세요.\n5. `glab ci status --wait`로 이 커밋의 파이프라인이 끝날 때까지 기다려 결과를 확인하세요.\n6. 원하는 작업 상태와 산출물을 확인하고 제출하세요.",
+      "language": "git",
+      "starter_code": "image: alpine:3.22\ncheck:\n  script:\n    - sh check.sh\n",
+      "example_files": {
+        ".gitlab-ci.yml": "image: alpine:3.22\ncheck:\n  script:\n    - sh check.sh\n",
+        "check.sh": "actual=5\nif test \"$actual\" -eq 5; then\n  echo CHECK_OK\nelse\n  echo CHECK_FAILED\n  exit 1\nfi\n"
+      },
+      "solution": "image: alpine:3.22\ncheck:\n  script:\n    - sh check.sh\n",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "gitlab": {
+          "stage": "pipeline",
+          "editable": [
+            ".gitlab-ci.yml",
+            "check.sh"
+          ],
+          "pipeline_status": "failed",
+          "jobs": {
+            "check": "failed"
+          },
+          "logs": {
+            "check": "CHECK_FAILED"
+          }
+        },
+        "files": {
+          ".gitlab-ci.yml": "image: alpine:3.22\ncheck:\n  script:\n    - sh check.sh\n",
+          "check.sh": "actual=5\nif test \"$actual\" -eq 5; then\n  echo CHECK_OK\nelse\n  echo CHECK_FAILED\n  exit 1\nfi\n"
+        },
+        "workspace_group": "ci-failure",
+        "workspace_revision": "gitlab-ci-1"
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "검사 결과가 틀리면 파이프라인이 멈추는지 확인하세요.",
+          "target": "text:검사 결과가 틀리면 파이프라인이 멈추는지 확인하세요."
+        },
+        {
+          "action": "patch_code",
+          "file": "check.sh",
+          "before": "actual=5",
+          "after": "actual=4",
+          "say": "check.sh의 actual=5 부분을 actual=4로 바꿔요.",
+          "target": "lines:1"
+        },
+        {
+          "action": "bash_command",
+          "command": "git add .",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "일부러 틀린 값 4를 검사 파일에 담았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "git commit -m \"CI 설정 변경\"",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "실패를 확인하기 위한 새 커밋을 만들었어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "git push",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "Runner도 이 틀린 값으로 검사하므로 실패해야 해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "종료 코드가 실패이면 화면의 파이프라인도 failed가 돼요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    },
+    {
+      "id": "stp_0a508892-4d6b-411a-ae09-c8e57f159f8b",
+      "title": "실패한 검사를 고쳐 새 파이프라인을 통과하세요",
+      "goal": "앞 문제와 같은 검사를 이번에는 올바른 값으로 고치세요.\n처음 준비한 actual은 4예요. 5로 고친 커밋을 보내세요. 이전 실패 기록과 새 성공 기록은 별개예요.\n이번 문제는 제공한 파일과 별도의 새 프로젝트에서 시작해요. 프로젝트 생성과 첫 커밋 전송은 준비해 뒀어요.\n\n**할 일**\n\n1. 위 `check.sh`에서 `actual=4`를 `actual=5`로 고치세요.\n2. `git add .`를 실행하세요.\n3. `git commit -m \"CI 설정 변경\"`를 실행하세요.\n4. `git push`를 실행하세요.\n5. `glab ci status --wait`로 이 커밋의 파이프라인이 끝날 때까지 기다려 결과를 확인하세요.\n6. 원하는 작업 상태와 산출물을 확인하고 제출하세요.",
+      "language": "git",
+      "starter_code": "image: alpine:3.22\ncheck:\n  script:\n    - sh check.sh\n",
+      "example_files": {
+        ".gitlab-ci.yml": "image: alpine:3.22\ncheck:\n  script:\n    - sh check.sh\n",
+        "check.sh": "actual=4\nif test \"$actual\" -eq 5; then\n  echo CHECK_OK\nelse\n  echo CHECK_FAILED\n  exit 1\nfi\n"
+      },
+      "solution": "image: alpine:3.22\ncheck:\n  script:\n    - sh check.sh\n",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "gitlab": {
+          "stage": "pipeline",
+          "editable": [
+            ".gitlab-ci.yml",
+            "check.sh"
+          ],
+          "pipeline_status": "success",
+          "jobs": {
+            "check": "success"
+          },
+          "logs": {
+            "check": "CHECK_OK"
+          }
+        },
+        "files": {
+          ".gitlab-ci.yml": "image: alpine:3.22\ncheck:\n  script:\n    - sh check.sh\n",
+          "check.sh": "actual=4\nif test \"$actual\" -eq 5; then\n  echo CHECK_OK\nelse\n  echo CHECK_FAILED\n  exit 1\nfi\n"
+        },
+        "workspace_group": "ci-repair",
+        "workspace_revision": "gitlab-ci-1"
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "앞 문제와 같은 검사를 이번에는 올바른 값으로 고치세요.",
+          "target": "text:앞 문제와 같은 검사를 이번에는 올바른 값으로 고치세요."
+        },
+        {
+          "action": "patch_code",
+          "file": "check.sh",
+          "before": "actual=4",
+          "after": "actual=5",
+          "say": "check.sh의 actual=4 부분을 actual=5로 바꿔요.",
+          "target": "lines:1"
+        },
+        {
+          "action": "bash_command",
+          "command": "git add .",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "actual을 5로 복구한 내용을 담았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "git commit -m \"CI 설정 변경\"",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "실패 원인을 고친 기록이 새 커밋으로 남았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "git push",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "이전 실패와 별개로 수정한 커밋을 검사해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "옛 실패를 지우지 않고 새 커밋의 파이프라인이 성공해요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    },
+    {
+      "id": "stp_907ac630-74ae-482e-8484-84fea62beba2",
+      "title": "검사가 끝난 뒤 포장 작업을 실행하세요",
+      "goal": "두 작업은 있지만 지금은 포장이 검사보다 먼저 실행돼요.\nstages의 순서를 test, build로 고치세요. 같은 단계의 작업과 다른 단계의 작업 순서는 달라요.\n이번 문제는 제공한 파일과 별도의 새 프로젝트에서 시작해요. 프로젝트 생성과 첫 커밋 전송은 준비해 뒀어요.\n\n**할 일**\n\n1. 위 `.gitlab-ci.yml`에서 `[build, test]`를 `[test, build]`로 고치세요.\n2. `git add .`를 실행하세요.\n3. `git commit -m \"CI 설정 변경\"`를 실행하세요.\n4. `git push`를 실행하세요.\n5. `glab ci status --wait`로 이 커밋의 파이프라인이 끝날 때까지 기다려 결과를 확인하세요.\n6. 원하는 작업 상태와 산출물을 확인하고 제출하세요.",
+      "language": "git",
+      "starter_code": "image: alpine:3.22\nstages: [build, test]\ncheck:\n  stage: test\n  script: sh check.sh\npackage:\n  stage: build\n  script: echo PACKAGE_DONE\n",
+      "example_files": {
+        ".gitlab-ci.yml": "image: alpine:3.22\nstages: [build, test]\ncheck:\n  stage: test\n  script: sh check.sh\npackage:\n  stage: build\n  script: echo PACKAGE_DONE\n",
+        "check.sh": "actual=5\nif test \"$actual\" -eq 5; then\n  echo CHECK_OK\nelse\n  echo CHECK_FAILED\n  exit 1\nfi\n"
+      },
+      "solution": "image: alpine:3.22\nstages: [test, build]\ncheck:\n  stage: test\n  script: sh check.sh\npackage:\n  stage: build\n  script: echo PACKAGE_DONE\n",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "gitlab": {
+          "stage": "pipeline",
+          "editable": [
+            ".gitlab-ci.yml",
+            "check.sh"
+          ],
+          "pipeline_status": "success",
+          "jobs": {
+            "check": "success",
+            "package": "success"
+          },
+          "job_order": [
+            "check",
+            "package"
+          ]
+        },
+        "files": {
+          ".gitlab-ci.yml": "image: alpine:3.22\nstages: [build, test]\ncheck:\n  stage: test\n  script: sh check.sh\npackage:\n  stage: build\n  script: echo PACKAGE_DONE\n",
+          "check.sh": "actual=5\nif test \"$actual\" -eq 5; then\n  echo CHECK_OK\nelse\n  echo CHECK_FAILED\n  exit 1\nfi\n"
+        },
+        "workspace_group": "ci-stages",
+        "workspace_revision": "gitlab-ci-1"
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "두 작업은 있지만 지금은 포장이 검사보다 먼저 실행돼요.",
+          "target": "text:두 작업은 있지만 지금은 포장이 검사보다 먼저 실행돼요."
+        },
+        {
+          "action": "patch_code",
+          "file": ".gitlab-ci.yml",
+          "before": "[build, test]",
+          "after": "[test, build]",
+          "say": ".gitlab-ci.yml의 [build, test] 부분을 [test, build]로 바꿔요.",
+          "target": "lines:2"
+        },
+        {
+          "action": "bash_command",
+          "command": "git add .",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "test를 build 앞에 둔 단계 순서를 담았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "git commit -m \"CI 설정 변경\"",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "파일 내용 대신 작업의 실행 순서를 바꾼 커밋이에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "git push",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "이번에는 check가 끝난 뒤 package를 시작해야 해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "두 작업의 실제 시작·종료 시각으로 검사 후 포장 순서를 확인해요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    },
+    {
+      "id": "stp_6bb461d1-d627-46be-95ff-411cbce20ace",
+      "title": "작업에서 만든 파일을 산출물로 남기세요",
+      "goal": "작업 컨테이너에서 report.txt를 만들었어요. 컨테이너가 끝난 뒤에도 GitLab에서 받아야 해요.\nartifacts의 경로를 실제 만든 report.txt로 고치세요.\n이번 문제는 제공한 파일과 별도의 새 프로젝트에서 시작해요. 프로젝트 생성과 첫 커밋 전송은 준비해 뒀어요.\n\n**할 일**\n\n1. 위 `.gitlab-ci.yml`에서 `paths: [missing.txt]`를 `paths: [report.txt]`로 고치세요.\n2. `git add .`를 실행하세요.\n3. `git commit -m \"CI 설정 변경\"`를 실행하세요.\n4. `git push`를 실행하세요.\n5. `glab ci status --wait`로 이 커밋의 파이프라인이 끝날 때까지 기다려 결과를 확인하세요.\n6. 원하는 작업 상태와 산출물을 확인하고 제출하세요.",
+      "language": "git",
+      "starter_code": "image: alpine:3.22\npackage:\n  script: printf \"release-ready\\n\" > report.txt\n  artifacts:\n    paths: [missing.txt]\n",
+      "example_files": {
+        ".gitlab-ci.yml": "image: alpine:3.22\npackage:\n  script: printf \"release-ready\\n\" > report.txt\n  artifacts:\n    paths: [missing.txt]\n",
+        "check.sh": "actual=5\nif test \"$actual\" -eq 5; then\n  echo CHECK_OK\nelse\n  echo CHECK_FAILED\n  exit 1\nfi\n"
+      },
+      "solution": "image: alpine:3.22\npackage:\n  script: printf \"release-ready\\n\" > report.txt\n  artifacts:\n    paths: [report.txt]\n",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "gitlab": {
+          "stage": "pipeline",
+          "editable": [
+            ".gitlab-ci.yml",
+            "check.sh"
+          ],
+          "pipeline_status": "success",
+          "jobs": {
+            "package": "success"
+          },
+          "artifacts": {
+            "report.txt": "release-ready"
+          }
+        },
+        "files": {
+          ".gitlab-ci.yml": "image: alpine:3.22\npackage:\n  script: printf \"release-ready\\n\" > report.txt\n  artifacts:\n    paths: [missing.txt]\n",
+          "check.sh": "actual=5\nif test \"$actual\" -eq 5; then\n  echo CHECK_OK\nelse\n  echo CHECK_FAILED\n  exit 1\nfi\n"
+        },
+        "workspace_group": "ci-artifact",
+        "workspace_revision": "gitlab-ci-1"
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "작업 컨테이너에서 report.txt를 만들었어요. 컨테이너가 끝난 뒤에도 GitLab에서 받아야 해요.",
+          "target": "text:작업 컨테이너에서 report.txt를 만들었어요. 컨테이너가 끝난 뒤에도 GitLab에서 받아야 해요."
+        },
+        {
+          "action": "patch_code",
+          "file": ".gitlab-ci.yml",
+          "before": "paths: [missing.txt]",
+          "after": "paths: [report.txt]",
+          "say": ".gitlab-ci.yml의 paths: [missing.txt] 부분을 paths: [report.txt]로 바꿔요.",
+          "target": "lines:5"
+        },
+        {
+          "action": "bash_command",
+          "command": "git add .",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "실제 만들어지는 report.txt 경로를 등록했어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "git commit -m \"CI 설정 변경\"",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "컨테이너 밖에 보관할 파일 경로를 커밋했어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "git push",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "package가 끝나면 GitLab에서 report.txt를 내려받을 수 있어야 해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "작업 로그의 글자가 아니라 GitLab에 업로드된 실제 파일을 읽어요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    },
+    {
+      "id": "stp_82a97838-c64d-43aa-9dd8-d68cce3f64cc",
+      "title": "다음 작업이 앞 작업의 파일을 받게 하세요",
+      "goal": "작업마다 파일 시스템이 새로 생겨요. verify가 package의 report.txt를 받도록 설정하세요.\nneeds의 artifacts를 false에서 true로 바꾸세요.\n이번 문제는 제공한 파일과 별도의 새 프로젝트에서 시작해요. 프로젝트 생성과 첫 커밋 전송은 준비해 뒀어요.\n\n**할 일**\n\n1. 위 `.gitlab-ci.yml`에서 `artifacts: false`를 `artifacts: true`로 고치세요.\n2. `git add .`를 실행하세요.\n3. `git commit -m \"CI 설정 변경\"`를 실행하세요.\n4. `git push`를 실행하세요.\n5. `glab ci status --wait`로 이 커밋의 파이프라인이 끝날 때까지 기다려 결과를 확인하세요.\n6. 원하는 작업 상태와 산출물을 확인하고 제출하세요.",
+      "language": "git",
+      "starter_code": "image: alpine:3.22\nstages: [build, test]\npackage:\n  stage: build\n  script: printf \"release-ready\\n\" > report.txt\n  artifacts:\n    paths: [report.txt]\nverify:\n  stage: test\n  needs:\n    - job: package\n      artifacts: false\n  script: test \"$(cat report.txt)\" = release-ready && echo ARTIFACT_OK\n",
+      "example_files": {
+        ".gitlab-ci.yml": "image: alpine:3.22\nstages: [build, test]\npackage:\n  stage: build\n  script: printf \"release-ready\\n\" > report.txt\n  artifacts:\n    paths: [report.txt]\nverify:\n  stage: test\n  needs:\n    - job: package\n      artifacts: false\n  script: test \"$(cat report.txt)\" = release-ready && echo ARTIFACT_OK\n",
+        "check.sh": "actual=5\nif test \"$actual\" -eq 5; then\n  echo CHECK_OK\nelse\n  echo CHECK_FAILED\n  exit 1\nfi\n"
+      },
+      "solution": "image: alpine:3.22\nstages: [build, test]\npackage:\n  stage: build\n  script: printf \"release-ready\\n\" > report.txt\n  artifacts:\n    paths: [report.txt]\nverify:\n  stage: test\n  needs:\n    - job: package\n      artifacts: true\n  script: test \"$(cat report.txt)\" = release-ready && echo ARTIFACT_OK\n",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "gitlab": {
+          "stage": "pipeline",
+          "editable": [
+            ".gitlab-ci.yml",
+            "check.sh"
+          ],
+          "pipeline_status": "success",
+          "jobs": {
+            "package": "success",
+            "verify": "success"
+          },
+          "logs": {
+            "verify": "ARTIFACT_OK"
+          },
+          "artifacts": {
+            "report.txt": "release-ready"
+          },
+          "job_order": [
+            "package",
+            "verify"
+          ]
+        },
+        "files": {
+          ".gitlab-ci.yml": "image: alpine:3.22\nstages: [build, test]\npackage:\n  stage: build\n  script: printf \"release-ready\\n\" > report.txt\n  artifacts:\n    paths: [report.txt]\nverify:\n  stage: test\n  needs:\n    - job: package\n      artifacts: false\n  script: test \"$(cat report.txt)\" = release-ready && echo ARTIFACT_OK\n",
+          "check.sh": "actual=5\nif test \"$actual\" -eq 5; then\n  echo CHECK_OK\nelse\n  echo CHECK_FAILED\n  exit 1\nfi\n"
+        },
+        "workspace_group": "ci-needs",
+        "workspace_revision": "gitlab-ci-1"
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "작업마다 파일 시스템이 새로 생겨요. verify가 package의 report.txt를 받도록 설정하세요.",
+          "target": "text:작업마다 파일 시스템이 새로 생겨요. verify가 package의 report.txt를 받도록 설정하세요."
+        },
+        {
+          "action": "patch_code",
+          "file": ".gitlab-ci.yml",
+          "before": "artifacts: false",
+          "after": "artifacts: true",
+          "say": ".gitlab-ci.yml의 artifacts: false 부분을 artifacts: true로 바꿔요.",
+          "target": "lines:12"
+        },
+        {
+          "action": "bash_command",
+          "command": "git add .",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "앞 작업의 파일을 받겠다는 설정을 담았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "git commit -m \"CI 설정 변경\"",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "verify의 입력이 어디에서 오는지 기록했어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "git push",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "서로 다른 컨테이너 사이에 산출물이 전달되는지 검사해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "별도 컨테이너의 verify가 파일 내용을 검사해 통과해요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    },
+    {
+      "id": "stp_b8d18bba-d10c-4a0e-8d78-0a039b926b47",
+      "title": "feature에서는 게시 작업을 만들지 마세요",
+      "goal": "검사는 모든 브랜치에서 하고 게시 작업은 main에서만 하세요.\npublish의 rules를 main 조건으로 바꾸세요. feature로 새 커밋을 보내 결과를 비교해요.\n이번 문제는 제공한 파일과 별도의 새 프로젝트에서 시작해요. 프로젝트 생성과 첫 커밋 전송은 준비해 뒀어요.\n\n**할 일**\n\n1. 위 `.gitlab-ci.yml`에서 `when: always`를 `if: '$CI_COMMIT_BRANCH == \"main\"'`로 고치세요.\n2. `git switch -c feature`를 실행하세요.\n3. `git add .`를 실행하세요.\n4. `git commit -m \"CI 설정 변경\"`를 실행하세요.\n5. `git push -u origin feature`를 실행하세요.\n6. `glab ci status --wait`로 이 커밋의 파이프라인이 끝날 때까지 기다려 결과를 확인하세요.\n7. 원하는 작업 상태와 산출물을 확인하고 제출하세요.",
+      "language": "git",
+      "starter_code": "image: alpine:3.22\ncheck:\n  script: sh check.sh\npublish:\n  script: echo PUBLISH_MAIN\n  rules:\n    - when: always\n",
+      "example_files": {
+        ".gitlab-ci.yml": "image: alpine:3.22\ncheck:\n  script: sh check.sh\npublish:\n  script: echo PUBLISH_MAIN\n  rules:\n    - when: always\n",
+        "check.sh": "actual=5\nif test \"$actual\" -eq 5; then\n  echo CHECK_OK\nelse\n  echo CHECK_FAILED\n  exit 1\nfi\n"
+      },
+      "solution": "image: alpine:3.22\ncheck:\n  script: sh check.sh\npublish:\n  script: echo PUBLISH_MAIN\n  rules:\n    - if: '$CI_COMMIT_BRANCH == \"main\"'\n",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "gitlab": {
+          "stage": "pipeline",
+          "editable": [
+            ".gitlab-ci.yml",
+            "check.sh"
+          ],
+          "pipeline_status": "success",
+          "jobs": {
+            "check": "success"
+          },
+          "absent_jobs": [
+            "publish"
+          ],
+          "pipeline_ref": "feature"
+        },
+        "files": {
+          ".gitlab-ci.yml": "image: alpine:3.22\ncheck:\n  script: sh check.sh\npublish:\n  script: echo PUBLISH_MAIN\n  rules:\n    - when: always\n",
+          "check.sh": "actual=5\nif test \"$actual\" -eq 5; then\n  echo CHECK_OK\nelse\n  echo CHECK_FAILED\n  exit 1\nfi\n"
+        },
+        "workspace_group": "ci-rules",
+        "workspace_revision": "gitlab-ci-1"
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "검사는 모든 브랜치에서 하고 게시 작업은 main에서만 하세요.",
+          "target": "text:검사는 모든 브랜치에서 하고 게시 작업은 main에서만 하세요."
+        },
+        {
+          "action": "patch_code",
+          "file": ".gitlab-ci.yml",
+          "before": "when: always",
+          "after": "if: '$CI_COMMIT_BRANCH == \"main\"'",
+          "say": ".gitlab-ci.yml의 when: always 부분을 if: '$CI_COMMIT_BRANCH == \"main\"'로 바꿔요.",
+          "target": "lines:7"
+        },
+        {
+          "action": "bash_command",
+          "command": "git switch -c feature",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "main은 보존하고 feature에서 확인해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "git add .",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "main에서만 게시하는 조건을 담았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "git commit -m \"CI 설정 변경\"",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "게시 조건을 바꾼 커밋은 feature에만 있어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "git push -u origin feature",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "feature에서는 check만 만들고 publish는 제외해야 해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "feature의 파이프라인에는 검사만 있고 publish 작업은 생성되지 않아요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    },
+    {
+      "id": "stp_93e1260c-1bac-4f08-93ad-8086f29fb745",
+      "title": "작업 컨테이너에 전달할 값을 바꾸세요",
+      "goal": "파이프라인도 프로세스 환경 변수로 값을 전달해요.\nMESSAGE를 MQ_READY로 고쳐 작업 로그에서 그 값을 확인하세요.\n이번 문제는 제공한 파일과 별도의 새 프로젝트에서 시작해요. 프로젝트 생성과 첫 커밋 전송은 준비해 뒀어요.\n\n**할 일**\n\n1. 위 `.gitlab-ci.yml`에서 `WAITING`를 `MQ_READY`로 고치세요.\n2. `git add .`를 실행하세요.\n3. `git commit -m \"CI 설정 변경\"`를 실행하세요.\n4. `git push`를 실행하세요.\n5. `glab ci status --wait`로 이 커밋의 파이프라인이 끝날 때까지 기다려 결과를 확인하세요.\n6. 원하는 작업 상태와 산출물을 확인하고 제출하세요.",
+      "language": "git",
+      "starter_code": "image: alpine:3.22\nvariables:\n  MESSAGE: WAITING\ncheck:\n  script: echo \"$MESSAGE\"\n",
+      "example_files": {
+        ".gitlab-ci.yml": "image: alpine:3.22\nvariables:\n  MESSAGE: WAITING\ncheck:\n  script: echo \"$MESSAGE\"\n",
+        "check.sh": "actual=5\nif test \"$actual\" -eq 5; then\n  echo CHECK_OK\nelse\n  echo CHECK_FAILED\n  exit 1\nfi\n"
+      },
+      "solution": "image: alpine:3.22\nvariables:\n  MESSAGE: MQ_READY\ncheck:\n  script: echo \"$MESSAGE\"\n",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "gitlab": {
+          "stage": "pipeline",
+          "editable": [
+            ".gitlab-ci.yml",
+            "check.sh"
+          ],
+          "pipeline_status": "success",
+          "jobs": {
+            "check": "success"
+          },
+          "logs": {
+            "check": "MQ_READY"
+          }
+        },
+        "files": {
+          ".gitlab-ci.yml": "image: alpine:3.22\nvariables:\n  MESSAGE: WAITING\ncheck:\n  script: echo \"$MESSAGE\"\n",
+          "check.sh": "actual=5\nif test \"$actual\" -eq 5; then\n  echo CHECK_OK\nelse\n  echo CHECK_FAILED\n  exit 1\nfi\n"
+        },
+        "workspace_group": "ci-variables",
+        "workspace_revision": "gitlab-ci-1"
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "파이프라인도 프로세스 환경 변수로 값을 전달해요.",
+          "target": "text:파이프라인도 프로세스 환경 변수로 값을 전달해요."
+        },
+        {
+          "action": "patch_code",
+          "file": ".gitlab-ci.yml",
+          "before": "WAITING",
+          "after": "MQ_READY",
+          "say": ".gitlab-ci.yml의 WAITING 부분을 MQ_READY로 바꿔요.",
+          "target": "lines:3"
+        },
+        {
+          "action": "bash_command",
+          "command": "git add .",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "작업 프로세스에 전달할 MESSAGE 값을 담았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "git commit -m \"CI 설정 변경\"",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "환경 변수의 새 값을 설정 커밋에 기록했어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "git push",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "작업 컨테이너에서 MESSAGE를 읽으면 MQ_READY가 나와야 해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "설정의 값이 작업 프로세스 환경에 들어가 script에서 읽혀요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    },
+    {
+      "id": "stp_d0856698-a260-45d2-aac3-ffbabd26bc2d",
+      "title": "실패한 검사를 고치고 결과 파일까지 남기세요",
+      "goal": "새 프로젝트에서 검사가 실패하고 산출물 경로도 틀려요.\n검사를 통과시키고 검사 다음에 포장을 실행하세요. GitLab에 남은 result.txt의 내용은 5여야 해요.\n이번 문제는 제공한 파일과 별도의 새 프로젝트에서 시작해요. 프로젝트 생성과 첫 커밋 전송은 준비해 뒀어요.\n\n**할 일**\n\n1. 위 `check.sh`에서 `actual=4`를 `actual=5`로 고치세요.\n2. 위 `.gitlab-ci.yml`에서 `paths: [missing.txt]`를 `paths: [result.txt]`로 고치세요.\n3. `git add .`를 실행하세요.\n4. `git commit -m \"CI 설정 변경\"`를 실행하세요.\n5. `git push`를 실행하세요.\n6. `glab ci status --wait`로 이 커밋의 파이프라인이 끝날 때까지 기다려 결과를 확인하세요.\n7. 원하는 작업 상태와 산출물을 확인하고 제출하세요.",
+      "language": "git",
+      "starter_code": "image: alpine:3.22\nstages: [test, build]\ncheck:\n  stage: test\n  script: sh check.sh\npackage:\n  stage: build\n  script: printf \"5\\n\" > result.txt\n  artifacts:\n    paths: [missing.txt]\n",
+      "example_files": {
+        ".gitlab-ci.yml": "image: alpine:3.22\nstages: [test, build]\ncheck:\n  stage: test\n  script: sh check.sh\npackage:\n  stage: build\n  script: printf \"5\\n\" > result.txt\n  artifacts:\n    paths: [missing.txt]\n",
+        "check.sh": "actual=4\nif test \"$actual\" -eq 5; then\n  echo CHECK_OK\nelse\n  echo CHECK_FAILED\n  exit 1\nfi\n"
+      },
+      "solution": "image: alpine:3.22\nstages: [test, build]\ncheck:\n  stage: test\n  script: sh check.sh\npackage:\n  stage: build\n  script: printf \"5\\n\" > result.txt\n  artifacts:\n    paths: [result.txt]\n",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "gitlab": {
+          "stage": "pipeline",
+          "editable": [
+            ".gitlab-ci.yml",
+            "check.sh"
+          ],
+          "pipeline_status": "success",
+          "jobs": {
+            "check": "success",
+            "package": "success"
+          },
+          "logs": {
+            "check": "CHECK_OK"
+          },
+          "artifacts": {
+            "result.txt": "5"
+          },
+          "job_order": [
+            "check",
+            "package"
+          ]
+        },
+        "files": {
+          ".gitlab-ci.yml": "image: alpine:3.22\nstages: [test, build]\ncheck:\n  stage: test\n  script: sh check.sh\npackage:\n  stage: build\n  script: printf \"5\\n\" > result.txt\n  artifacts:\n    paths: [missing.txt]\n",
+          "check.sh": "actual=4\nif test \"$actual\" -eq 5; then\n  echo CHECK_OK\nelse\n  echo CHECK_FAILED\n  exit 1\nfi\n"
+        },
+        "workspace_group": "ci-final",
+        "workspace_revision": "gitlab-ci-1"
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "새 프로젝트에서 검사가 실패하고 산출물 경로도 틀려요.",
+          "target": "text:새 프로젝트에서 검사가 실패하고 산출물 경로도 틀려요."
+        },
+        {
+          "action": "patch_code",
+          "file": "check.sh",
+          "before": "actual=4",
+          "after": "actual=5",
+          "say": "check.sh의 actual=4 부분을 actual=5로 바꿔요.",
+          "target": "lines:1"
+        },
+        {
+          "action": "patch_code",
+          "file": ".gitlab-ci.yml",
+          "before": "paths: [missing.txt]",
+          "after": "paths: [result.txt]",
+          "say": ".gitlab-ci.yml의 paths: [missing.txt] 부분을 paths: [result.txt]로 바꿔요.",
+          "target": "lines:10"
+        },
+        {
+          "action": "bash_command",
+          "command": "git add .",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "검사 값과 실제 산출물 경로를 함께 담았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "git commit -m \"CI 설정 변경\"",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "두 결함을 고친 변경을 한 커밋으로 기록했어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "git push",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "실제 검사 통과 뒤 만들어진 result.txt까지 확인해야 도전이 끝나요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "현재 커밋의 성공·작업 순서·실제 산출물이 모두 맞아야 도전 통과예요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "직접 실행하던 검사를 커밋마다 자동으로 실행해요.",
+      "실패한 로그와 설정을 연결해 고쳐요.",
+      "작업 순서·산출물 전달·실행 조건을 구분해요."
+    ],
+    "chapters": {
+      "chp_0b93c02b-2615-4a96-8bcd-7bbcacdacdd9": [
+        "직접 실행하던 검사를 커밋마다 자동으로 실행해요.",
+        "실패한 로그와 설정을 연결해 고쳐요.",
+        "작업 순서·산출물 전달·실행 조건을 구분해요."
+      ]
+    },
+    "units": {
+      "unt_b8766d36-964e-4818-84ce-7624836b065b": {
+        "objectives": [
+          "먼저 내 터미널에서 검사 파일을 실행하세요",
+          "검사 명령을 CI 작업에서 실행하세요",
+          "실패하는 검사를 보내고 실패 상태를 확인하세요",
+          "실패한 검사를 고쳐 새 파이프라인을 통과하세요"
+        ],
+        "premise": "작은 검사 파일을 같은 의미로 실행해요. 각 문제의 준비 파일에서 바뀐 조건 하나를 해결해요."
+      },
+      "unt_691f6900-4890-4019-aed0-f91c8baabc43": {
+        "objectives": [
+          "검사가 끝난 뒤 포장 작업을 실행하세요",
+          "작업에서 만든 파일을 산출물로 남기세요",
+          "다음 작업이 앞 작업의 파일을 받게 하세요"
+        ],
+        "premise": "작은 검사 파일을 같은 의미로 실행해요. 각 문제의 준비 파일에서 바뀐 조건 하나를 해결해요."
+      },
+      "unt_141e00c8-d822-4a3b-b398-554a2ce54399": {
+        "objectives": [
+          "feature에서는 게시 작업을 만들지 마세요",
+          "작업 컨테이너에 전달할 값을 바꾸세요",
+          "실패한 검사를 고치고 결과 파일까지 남기세요"
+        ],
+        "premise": "작은 검사 파일을 같은 의미로 실행해요. 각 문제의 준비 파일에서 바뀐 조건 하나를 해결해요."
+      }
+    }
+  }
+}

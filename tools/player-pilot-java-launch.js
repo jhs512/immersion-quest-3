@@ -5,6 +5,10 @@
  const click=async text=>{await wait(()=>button(text)&&!button(text).disabled,text);button(text).click();};
  const ready=async()=>{await wait(()=>document.querySelector('.repository-task')?.dataset.gitReady==='true'&&document.querySelector('.java-build-source .cm-editor'),'source and PTY ready');await new Promise(r=>setTimeout(r,300));};
  const run=async command=>{const before=mq3GitTerminal.text();mq3GitTerminal.command(command);await wait(()=>mq3GitTerminal.text()!==before&&/\$\s*$/.test(mq3GitTerminal.text()),command);};
+ // A final challenge may leave the run command to the learner (its shell commands only inspect files);
+ // then also run the step's real java_build command, quoting arguments that contain spaces.
+ const commandsFor=task=>{const commands=[...task.git_terminal.shell.commands];const java=task.git_terminal.java_build?.command;
+  if(java&&!commands.some(c=>/^java\b/.test(c.trim())))commands.push(java.map(a=>/^[\w.\/-]+$/.test(a)?a:`'${a.replace(/'/g,"'\\''")}'`).join(' '));return commands;};
  const submit=async passed=>{await click('제출');await wait(()=>document.querySelector('.repository-task')?.dataset.busy==='false'&&document.querySelector('.result-pane')?.dataset.feedback===(passed?'passed':'incorrect'),'submission result');};
  try{
   await wait(()=>button('학습 시작')&&!button('학습 시작').disabled,'initial catalog');await click('버전 '+mq3JavaPilot.pilot);
@@ -30,12 +34,12 @@
     clearInterval(sample);if(i===5&&(!demoText.includes(task.git_terminal.shell.commands[0])||!demoText.includes(task.git_terminal.java_build.stdout.trim())))throw Error('Demonstration did not show real JDK output');
     await ready();if(molipCodeEditors.getValue()!==student)throw Error('Demo overwrote learner source');checked.push(i===2?'stopping demonstration preserves editor and terminal':'full demonstration preserves editor and terminal');
    }
-   for(const command of task.git_terminal.shell.commands)await run(command);
+   for(const command of commandsFor(task))await run(command);
    if(i===4){
     const wrong=source.replace(/System\.out\.println\([^\n]*\);/,'System.out.println("wrong learner output");');
     if(wrong===source)throw Error('Wrong-source probe did not change Main.java');
     molipCodeEditors.setValue(wrong);await submit(false);
-    molipCodeEditors.setValue(source);for(const command of task.git_terminal.shell.commands)await run(command);
+    molipCodeEditors.setValue(source);for(const command of commandsFor(task))await run(command);
     checked.push('valid prior JDK output cannot pass with incorrect learner source');
    }
    await submit(true);checked.push(`step ${i+1} passes with source, artifact and real execution without answer choices`);

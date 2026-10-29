@@ -10,7 +10,7 @@ fn tokens(text: &str) -> String {
 async fn table_lesson_reads_its_own_files_and_teaches_partial_versus_whole() {
     let course=CourseManifest::parse(include_str!("fixtures/player-pilot/q/course.json")).unwrap();
     let lesson=Lesson::parse(include_str!("../courses/redesigned/aice-table-csv.json"),&course.lessons[0]).unwrap();
-    assert_eq!(lesson.tasks.len(),8);
+    assert_eq!(lesson.tasks.len(),9); // 8 teaching steps + the appended final challenge (92b37e2a)
     let full="order_id minutes region 0 101 12 서울 1 102 18 부산 2 103 30 서울 3 104 42 부산";
     let two="order_id minutes region 0 101 12 서울 1 102 18 부산";
     let three="order_id minutes region 0 101 12 서울 1 102 18 부산 2 103 30 서울";
@@ -22,7 +22,9 @@ async fn table_lesson_reads_its_own_files_and_teaches_partial_versus_whole() {
         vec![minutes.into(),region.into(),minutes.into()],vec![full.into(),String::new(),full.into()],
         vec!["12".into(),"18".into(),"12".into()],vec![columns.into(),minutes.into(),columns.into()],
         vec![format!("{two} (5, 3)"),format!("{full} 4 105 24 서울 (5, 3)")]];
-    for (index,task) in lesson.tasks.iter().enumerate() {
+    // The teacher-run table covers the teaching steps; the appended final challenge is graded against
+    // equivalent and wrong answers in docs/curriculum/final-challenges-evidence.md.
+    for (index,task) in lesson.tasks[..lesson.tasks.len()-1].iter().enumerate() {
         assert!(!lesson_runner::check(task,&task.starter_code).await.unwrap().passed,"Step {} starts unsolved",index+1);
         assert!(lesson_runner::check(task,&task.solution).await.unwrap().passed,"Step {} solution",index+1);
         if index>=4 {

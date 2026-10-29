@@ -96,12 +96,19 @@ def validate_highlights(task):
     compose = ((task.get('git_terminal') or {}).get('docker') or {}).get('compose')
     files = {name: task['git_terminal']['shell']['demo']['files'][name] for name in compose['editable']} if compose else None
     current = compose['editable'][0] if compose else None
+    gitlab=(task.get('git_terminal') or {}).get('gitlab') or {}
+    if gitlab.get('editable'):
+        files={name:task['git_terminal']['files'][name] for name in gitlab['editable']}
+        current=gitlab['editable'][0]
     if files is not None:
         source = files[current]
     goal = plain(task.get('goal', ''))
     screen = ' '.join([plain(task.get('title', '')), plain(task.get('question', '')), goal, *map(plain, task.get('hints', []))])
     options = {option['id'] for option in (task.get('interaction') or {}).get('options', [])}
     for action in task['narration']:
+        if action['action']=='patch_code' and files is not None:
+            if action.get('file') not in files:raise ValueError('해설에서 편집할 파일을 확인하세요.')
+            current=action['file'];source=files[current]
         target = action.get('target', '')
         # A spoken sentence is anchored to the exact words, option or code it explains; a frame
         # around the whole problem panel is not an explanation of any one sentence.
@@ -272,7 +279,7 @@ def build(name, check=False):
             unit['objectives'] = display['objectives']
             unit['premise'] = display['premise']
             unit['steps'] = [{'id': step['id'], 'objectives': step['objectives']} for step in unit['steps']]
-    lesson = {'schema_version': 2, 'id': prd['id'], 'revision': revision,
+    lesson = {'schema_version': 3 if any((t.get('git_terminal') or {}).get('gitlab') for t in tasks) else 2, 'id': prd['id'], 'revision': revision,
               'title': prd['title'], 'description': authored['description'],
               'objectives': presentation['objectives'], 'sources': [source['url'] for source in prd['sources']],
               'review_enabled': False, 'sections': [], 'chapters': chapters, 'tasks': tasks}

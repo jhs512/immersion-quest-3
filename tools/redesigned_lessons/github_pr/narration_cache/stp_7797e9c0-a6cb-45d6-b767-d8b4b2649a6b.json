@@ -1,36 +1,41 @@
 {
   "by": "hand",
-  "source_sha256": "f3a82470a8afbbfaa43daea10196afa024b576fca7b65007d4b37accf06a2a27",
+  "source_sha256": "fee44625cb40ad3e03ca1adcfcf2925780c582ca8b9e01b5255040dafe723fa8",
   "entry": [
     {
       "action": "say",
-      "text": "민수와 지수 두 역할을 한 계정으로 번갈아 맡아요. 이 스텝은 실습용 비공개 저장소를 GitHub에 실제로 만드는 일이에요.",
-      "target": "text:메모 서비스 팀의 개발자 민수와 검토자 지수 역할을 번갈아 맡아요."
+      "text": "메모 파일의 기본 커밋을 준비했어요. 이번에는 이 컴퓨터의 GitLab에 공유할 프로젝트를 만들어요.",
+      "target": "text:메모 파일의 기본 커밋을 준비했어요. 이번에는 이 컴퓨터의 GitLab에 공유할 프로젝트를 만들어요."
     },
     {
-      "action": "say",
-      "text": "이 수업의 해설은 GitHub에 아무것도 만들지 않아요. 명령은 여러분이 학습 터미널에서 직접 실행하고, 해설은 무엇을 확인할지 짚어 드려요.",
+      "action": "bash_command",
+      "command": "glab repo create \"$MQ3_REPO\" --private --defaultBranch main --skipGitInit",
       "target": "#git-demo-terminal"
     },
     {
       "action": "say",
-      "text": "main에는 기본 메모 커밋이 있고 origin은 아직 없어요. MQ3_REPO에 이번 실습의 저장소 이름이 들어 있어요.",
-      "target": "text:origin은 아직 없어요."
+      "text": "GitLab 프로젝트만 생겼어요. 아직 로컬 커밋은 전송하지 않았어요.",
+      "target": "#git-demo-terminal"
     },
     {
-      "action": "say",
-      "text": "echo로 저장소 이름을 확인한 뒤, gh repo create가 그 이름의 비공개 저장소를 만들고 지금 폴더에 origin으로 연결해요.",
-      "target": "text:MQ3_REPO에는 이번 실습의 고유한 저장소 이름이 들어 있어요."
-    },
-    {
-      "action": "say",
-      "text": "git remote -v에 github.com 주소가 보이면 연결된 거예요. 아직 커밋은 GitHub로 가지 않았어요.",
+      "action": "bash_command",
+      "command": "git remote add origin \"$MQ3_GITLAB/$MQ3_NAMESPACE/$MQ3_REPO.git\"",
       "target": "#git-demo-terminal"
     },
     {
       "action": "say",
-      "text": "조심하세요. 생성 명령은 실행할 때마다 실제 새 저장소를 만들어요. 중간 초기화가 없으니 한 번만 실행해요.",
-      "target": "text:생성 명령을 실행하면 실제 새 비공개 저장소가 생겨요."
+      "text": "origin을 이 프로젝트의 HTTP 주소에 연결했어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "git remote -v",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "origin에 로컬 GitLab 주소가 보이면 연결된 거예요.",
+      "target": "#git-demo-terminal"
     }
   ]
 }

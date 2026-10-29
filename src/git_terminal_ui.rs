@@ -44,6 +44,8 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
     let is_docker=exercise.docker.is_some();
     // A Compose step: the files of the terminal's folder in an editor above the terminal.
     let is_compose=exercise.docker.as_ref().is_some_and(|d|d.compose.is_some());
+    let is_gitlab=exercise.gitlab.is_some();
+    let has_editors=is_compose||exercise.gitlab.as_ref().is_some_and(|g|!g.editable.is_empty());
     let mut editor_files=use_signal(Vec::<(String,String)>::new);
     let mut editor_tab=use_signal(||0usize);
     let mut editor_version=use_signal(||0u64);
@@ -51,9 +53,10 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
     let save_known=disk_known.clone();
     // Docker CLI steps reach the lesson's own Docker project, which outlives this terminal.
     let docker_session=try_use_context::<molip_quest::docker_lab::LessonSession>();
+    let gitlab_session=try_use_context::<molip_quest::git_practice::GitlabLessonSession>();
     let mut docker_note=use_signal(||None::<String>);
     // Starting Docker Desktop or pulling a prepared image can take a while before the prompt.
-    let mut docker_preparing=use_signal(move||is_docker);
+    let mut docker_preparing=use_signal(move||is_docker||is_gitlab);
     let graph_enabled=!is_shell&&!is_java&&!is_vim;
     let graph_requested=use_hook(||Arc::new(std::sync::atomic::AtomicBool::new(true)));
     let graph_request=graph_requested.clone();
@@ -67,7 +70,8 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
         cleanup.lock().unwrap_or_else(|e|e.into_inner()).take();
         document::eval(&format!("window.{bridge_name}?.dispose('{cleanup_owner}');window.mq3GitGraphs?.dispose('{cleanup_owner}');window.molipAgent?.retireGitTutor('{cleanup_owner}');"));
     });
-    use_future(move||{let exercise=exercise.clone();let scope=scope.clone();let step_id=step_id.clone();let owned=owned.clone();let owner=owner.clone();let graph_requested=graph_requested.clone();let docker_session=docker_session.clone();let disk_known=disk_known.clone();async move {
+    use_future(move||{let exercise=exercise.clone();let scope=scope.clone();let step_id=step_id.clone();let owned=owned.clone();let owner=owner.clone();let graph_requested=graph_requested.clone();let docker_session=docker_session.clone();let disk_known=disk_known.clone();let gitlab_session=gitlab_session.clone();async move {
+        if is_gitlab {if let Some(session)=gitlab_session{session.activate();}}
         let docker_step=exercise.shell.as_ref().map(|s|s.step_id.clone()).unwrap_or_default();
         let opened=tokio::task::spawn_blocking(move||{
             let practice=if !demo {
@@ -97,7 +101,7 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
         let practice=session.practice.clone();
         restored_start.set(!demo&&practice.lock().unwrap_or_else(|e|e.into_inner()).restored_step_start());
         if is_java {let source=practice.lock().unwrap_or_else(|e|e.into_inner()).java_source();match source{Ok(source)=>java_source.set(Some(source)),Err(e)=>error.set(e)}}
-        if is_compose {
+        if has_editors {
             let files={let p=practice.lock().unwrap_or_else(|e|e.into_inner());p.editable_files().into_iter().map(|name|{let text=p.read_editable(&name).unwrap_or_default();(name,text)}).collect::<Vec<_>>()};
             *disk_known.lock().unwrap_or_else(|e|e.into_inner())=files.iter().cloned().collect();
             editor_files.set(files);
@@ -230,7 +234,8 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
         if !is_vim{error.set("터미널이 종료됐어요. 초기화해 다시 여세요.".into());}
     }});
     let selected=editor_files().get(editor_tab()).cloned();
-    rsx!{div {class:if is_java{"git-terminal-shell java-build-workspace"}else if is_compose{"git-terminal-shell java-build-workspace compose-workspace"}else{"git-terminal-shell"},
+    rsx!{div {class:if is_java{"git-terminal-shell java-build-workspace"}else if has_editors{"git-terminal-shell java-build-workspace compose-workspace"}else{"git-terminal-shell"},
+        if is_gitlab&&!demo {p {class:"practice-start-notice",role:"status",if docker_preparing(){"로컬 GitLab을 준비하고 있어요. 최초 실행에는 몇 분 걸릴 수 있어요."}else{"로컬 GitLab · 실습 계정 자동 연결"}}}
         if restored_start() {p {class:"practice-start-notice",role:"status","앞 단계의 파일과 Git 상태를 준비했어요. 현재 문제의 작업은 직접 진행하세요."}}
         if is_docker {div {class:"docker-notes",
             if docker_preparing()&&!demo {p {class:"practice-start-notice",role:"status","Docker를 준비하고 있어요. 꺼져 있으면 자동으로 켜요."}}

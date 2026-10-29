@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "db9e32f78d2a85aec18c7e6c513b9a089be90f0bc1d143b25feefec9d8f239d2",
+  "entry": [
+    {
+      "action": "say",
+      "text": "검사는 모든 브랜치에서 하고 게시 작업은 main에서만 하세요.",
+      "target": "text:검사는 모든 브랜치에서 하고 게시 작업은 main에서만 하세요."
+    },
+    {
+      "action": "patch_code",
+      "file": ".gitlab-ci.yml",
+      "before": "when: always",
+      "after": "if: '$CI_COMMIT_BRANCH == \"main\"'",
+      "say": ".gitlab-ci.yml의 when: always 부분을 if: '$CI_COMMIT_BRANCH == \"main\"'로 바꿔요.",
+      "target": "lines:7"
+    },
+    {
+      "action": "bash_command",
+      "command": "git switch -c feature",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "main은 보존하고 feature에서 확인해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "git add .",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "main에서만 게시하는 조건을 담았어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "git commit -m \"CI 설정 변경\"",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "게시 조건을 바꾼 커밋은 feature에만 있어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "git push -u origin feature",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "feature에서는 check만 만들고 publish는 제외해야 해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "feature의 파이프라인에는 검사만 있고 publish 작업은 생성되지 않아요.",
+      "target": "#git-demo-terminal"
+    }
+  ]
+}

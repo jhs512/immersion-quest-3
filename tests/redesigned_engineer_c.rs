@@ -4,10 +4,12 @@ use molip_quest::{lesson_runner,repository_course::{CourseManifest,Lesson}};
 async fn c_reading_steps_compile_prepared_code_and_grade_the_separate_output_answer() {
     let course=CourseManifest::parse(include_str!("fixtures/player-pilot/r/course.json")).unwrap();
     let lesson=Lesson::parse(include_str!("../courses/redesigned/engineer-c-start.json"),&course.lessons[0]).unwrap();
-    assert_eq!(lesson.tasks.len(),6);
+    assert_eq!(lesson.tasks.len(),7); // 6 teaching steps + the appended final challenge (92b37e2a)
     let expected:Vec<Vec<&str>>=vec![vec!["2"],vec!["2","5","2"],vec!["2","5"],
         vec!["5 2","9 2","5 2"],vec!["2 3","5 3"],vec!["5 3","5 6"]];
-    for (index,task) in lesson.tasks.iter().enumerate() {
+    // The teacher-run table covers the teaching steps; the appended final challenge is graded against
+    // equivalent and wrong answers in docs/curriculum/final-challenges-evidence.md.
+    for (index,task) in lesson.tasks[..lesson.tasks.len()-1].iter().enumerate() {
         assert!(task.has_runnable_example());
         assert!(!lesson_runner::check(task,&task.starter_code).await.unwrap().passed);
         assert!(lesson_runner::check(task,&task.solution).await.unwrap().passed);

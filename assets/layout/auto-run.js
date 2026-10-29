@@ -100,7 +100,8 @@
         const source = editors?.getValue();
         if (source == null) throw new Error(`${name} 편집기를 찾지 못했어요.`);
         if (source.split(action.before).length !== 2) throw new Error(`${name}에서 고칠 부분을 하나로 찾지 못했어요.`);
-        editors.setValue(source.replace(action.before, action.after));
+        // split/join, not String.replace: an authored `$&` or `$1` must stay literal text.
+        editors.setValue(source.split(action.before).join(action.after));
         return pace(250, generation);
       }
       default: throw new Error(`자동 풀이가 모르는 동작이에요: ${action.action}`);

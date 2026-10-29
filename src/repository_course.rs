@@ -324,8 +324,10 @@ impl Lesson {
     pub fn validate(&self)->Result<(),String> {
         crate::change_history::validate(&self.change_history)?;
         let mut ids=HashSet::new();
-        if !matches!(self.schema_version,1|2) || self.id.is_empty() || self.title.is_empty() || self.tasks.is_empty() || !self.tasks.iter().any(|t| t.required) || self.tasks.len()>200 { return Err("수업 구성과 필수 문제를 확인하세요.".into()); }
-        if self.schema_version==2 {self.validate_hierarchy()?;}
+        if !matches!(self.schema_version,1|2|3) || self.id.is_empty() || self.title.is_empty() || self.tasks.is_empty() || !self.tasks.iter().any(|t| t.required) || self.tasks.len()>200 { return Err("수업 구성과 필수 문제를 확인하세요.".into()); }
+        let gitlab=self.tasks.iter().any(|t|t.git_terminal.as_ref().is_some_and(|e|e.gitlab.is_some()));
+        if (self.schema_version==3)!=gitlab {return Err("GitLab 실습은 새 실행 형식이 필요해요. 앱 업데이트와 수업 형식을 확인하세요.".into())}
+        if self.schema_version>=2 {self.validate_hierarchy()?;}
         for t in &self.tasks {
             crate::supporting_materials::validate(&t.supporting_materials)?;
             if t.example_code.is_some()&&!t.has_runnable_example(){return Err("예제 코드와 답안 구성을 확인하세요.".into())}

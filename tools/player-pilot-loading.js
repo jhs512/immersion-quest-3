@@ -11,7 +11,7 @@
   if(button('복습모드 시작')||button('풀모드 시작'))throw Error('Old mode entry remains');
   checked.push('one learning entry and visible percentage');
   await click('학습 시작');
-  await wait(()=>document.querySelector('.cm-content')&&document.querySelectorAll('.study-navigation button').length===10,'plots lesson opened');
+  await wait(()=>document.querySelector('.cm-content')&&document.querySelectorAll('.study-navigation button').length===11,'plots lesson opened');
   await new Promise(r=>setTimeout(r,200));
   for(const selector of ['.repository-header','.cm-editor','.answer-interaction']){
    const r=document.querySelector(selector).getBoundingClientRect();
@@ -42,7 +42,7 @@
    nav.click();await new Promise(r=>setTimeout(r,120));
    if(!document.querySelector('.problem-pane h2')?.textContent.trim())throw Error('Empty task');
   }
-  checked.push('all ten tasks open');
+  checked.push('all eleven tasks open');
   await click('← 코스 수업 목록');await click('버전 a');
   await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('pilot-a'),'progress fixture');
   await click('학습 시작');
@@ -68,7 +68,7 @@
   await click('버전 k');
   await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('git-first-'),'Git lesson installed');
   await click('학습 시작');
-  await wait(()=>document.querySelectorAll('.study-navigation button').length===6,'Git navigation');
+  await wait(()=>document.querySelectorAll('.study-navigation button').length===7,'Git navigation');
   // This lesson shares one real workspace: complete initialization and staging
   // through the same PTY before navigating to the commit step.
   await wait(()=>document.querySelector('.repository-task')?.dataset.gitReady==='true'&&window.mq3GitTerminal,'Git initialization ready');

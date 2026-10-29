@@ -8,6 +8,8 @@ pub use docker_practice::{DockerExercise,DockerStart,DockerState,DockerGoal,Dock
 pub use java_build_practice::JavaBuildGoal;
 #[path="github_pr_practice.rs"] mod github_pr_practice;
 pub use github_pr_practice::GithubPrStage;
+#[path="gitlab_practice.rs"] mod gitlab_practice;
+pub use gitlab_practice::{GitlabExercise,GitlabStage,GitlabLessonSession};
 #[path="vim_practice.rs"] mod vim_practice;
 pub use vim_practice::{VimExercise,VimCheck,VimPredicate,VimSnapshot,VimState,VimProgress};
 mod graph;
@@ -20,6 +22,7 @@ pub struct GitExercise {
     #[serde(skip)] pub java_demonstration:bool,
     #[serde(skip)] pub github_demonstration:bool,
     #[serde(default,skip_serializing_if="Option::is_none")] pub github_pr:Option<GithubPrStage>,
+    #[serde(default,skip_serializing_if="Option::is_none")] pub gitlab:Option<GitlabExercise>,
     #[serde(default,skip_serializing_if="Option::is_none")] pub java_build:Option<JavaBuildGoal>,
     #[serde(default,skip_serializing_if="Option::is_none")] pub vim:Option<VimExercise>,
     #[serde(default,skip_serializing_if="Option::is_none")] pub shell:Option<ShellExercise>,
@@ -128,6 +131,10 @@ impl GitPracticeStore {
         self.reset_locked(scope,exercise)
     }
     pub fn reset_step(&self,scope:&str,exercise:GitExercise,_step_id:&str)->Result<GitPractice,String> {
+        if let Some(goal)=&exercise.gitlab {
+            if !matches!(goal.stage,GitlabStage::Repository|GitlabStage::Final|GitlabStage::Pipeline){return Err("이 GitLab 수업은 첫 단계에서 새 회차를 시작하세요. 앞 단계의 저장소를 이어서 사용해요.".into())}
+            return self.reset(scope,exercise);
+        }
         if let Some(stage)=exercise.github_pr {
             if stage!=GithubPrStage::Repository{return Err("실제 GitHub 실습은 중간에 초기화할 수 없어요. 첫 단계에서 새 회차를 시작하세요.".into())}
             // A new round gets a new local directory and therefore a new hosted
@@ -168,11 +175,14 @@ impl GitPracticeStore {
     }
 }
 impl GitExercise {
+    pub fn hosted_reset_allowed(&self)->bool {
+        self.github_pr.is_none_or(|s|s==GithubPrStage::Repository)&&self.gitlab.as_ref().is_none_or(|g|matches!(g.stage,GitlabStage::Repository|GitlabStage::Final|GitlabStage::Pipeline))
+    }
     /// Recreate only the previous step's starting state in an isolated teacher directory.
     pub fn demonstration(&self)->Self {
         let mut exercise=self.clone();
         exercise.java_demonstration=exercise.java_build.is_some();
-        exercise.github_demonstration=exercise.github_pr.is_some();
+        exercise.github_demonstration=exercise.github_pr.is_some()||exercise.gitlab.is_some();
         if let Some(vim)=exercise.vim.as_mut(){vim.start=Some(vim.demo.clone());}
         if let Some(shell)=exercise.shell.as_mut(){shell.start=Some(shell.demo.clone());}
         if let Some(setup)=exercise.demo_setup.take() {
@@ -194,8 +204,12 @@ impl GitExercise {
         if self.workspace_revision.is_empty(){base.into()}else{format!("{base}:workspace:{}",self.workspace_revision)}
     }
 
-    pub fn has_goal(&self)->bool {self.github_pr.is_some()||self.vim.is_some()||self.shell.is_some()||self.state_goal.is_some()||!self.commands.is_empty()}
+    pub fn has_goal(&self)->bool {self.gitlab.is_some()||self.github_pr.is_some()||self.vim.is_some()||self.shell.is_some()||self.state_goal.is_some()||!self.commands.is_empty()}
     pub fn validate(&self)->Result<(),String> {
+        if let Some(goal)=&self.gitlab {
+            goal.validate()?;
+            if self.github_pr.is_some()||self.shell.is_some()||self.vim.is_some()||self.java_build.is_some()||self.docker.is_some()||self.state_goal.is_some()||!self.setup.is_empty()||self.initial_history!=GitInitialHistory::Recorded {return Err("GitLab 실습의 시작 구성을 확인하세요.".into())}
+        }
         if self.workspace_group.len()>64||!self.workspace_group.bytes().all(|c|c.is_ascii_alphanumeric()||b"_-".contains(&c)){return Err("실습 연결 이름을 확인하세요.".into())}
         if self.workspace_revision.len()>64||!self.workspace_revision.bytes().all(|c|c.is_ascii_alphanumeric()||b"_-".contains(&c)){return Err("실습 시작 상태 버전을 확인하세요.".into())}
 
@@ -279,7 +293,7 @@ impl GitPractice {
     }
     fn step_checkpoint(&self,step_id:&str)->PathBuf {self.root().join("step-starts").join(GitPracticeStore::key(step_id))}
     pub fn remember_step_start(&self,step_id:&str)->Result<(),String> {
-        if self.exercise.github_pr.is_none(){return Ok(())}
+        if !self.hosted(){return Ok(())}
         let destination=self.step_checkpoint(step_id);
         if destination.exists(){return Ok(())}
         let directory=destination.parent().unwrap();std::fs::create_dir_all(directory).map_err(|e|e.to_string())?;
@@ -307,16 +321,16 @@ impl GitPractice {
             practice.prepare_vim_start()?;
             return Ok(practice);
         }
-        if practice.exercise.github_pr.is_none(){practice.checked_at(practice.root(),&["init","--bare","--initial-branch=main","remote.git"])?;}
+        if !practice.hosted(){practice.checked_at(practice.root(),&["init","--bare","--initial-branch=main","remote.git"])?;}
         practice.checked_at(practice.work().as_path(),&["init","--initial-branch=main"])?;
         let remote=practice.root().join("remote.git");
-        if practice.exercise.github_pr.is_none(){practice.checked_at(practice.work().as_path(),&["remote","add","origin",remote.to_str().ok_or("Git 경로 오류")?])?;}
-        if practice.exercise.initial_history==GitInitialHistory::Recorded && practice.exercise.github_pr.is_none(){practice.write("tracked.txt","initial\n")?;}
+        if !practice.hosted(){practice.checked_at(practice.work().as_path(),&["remote","add","origin",remote.to_str().ok_or("Git 경로 오류")?])?;}
+        if practice.exercise.initial_history==GitInitialHistory::Recorded && !practice.hosted(){practice.write("tracked.txt","initial\n")?;}
         for (path,content) in &practice.exercise.files {practice.write(path,content)?;}
         if practice.exercise.initial_history==GitInitialHistory::Recorded {
             practice.checked_at(practice.work().as_path(),&["add","."])?;
             practice.checked_at(practice.work().as_path(),&["commit","-m","Start"])?;
-            if practice.exercise.github_pr.is_none(){practice.checked_at(practice.work().as_path(),&["push","-u","origin","main"])?;}
+            if !practice.hosted(){practice.checked_at(practice.work().as_path(),&["push","-u","origin","main"])?;}
         }
         for action in &practice.exercise.setup {match action {
             GitSetup::RemoteCommit{files,message}=>{
@@ -373,6 +387,7 @@ impl GitPractice {
             ("GIT_AUTHOR_NAME".into(),"Learner".into()),("GIT_AUTHOR_EMAIL".into(),"learner@example.invalid".into()),("GIT_COMMITTER_NAME".into(),"Learner".into()),("GIT_COMMITTER_EMAIL".into(),"learner@example.invalid".into()),
             ("GIT_AUTHOR_DATE".into(),"2026-01-01T00:00:00+0000".into()),("GIT_COMMITTER_DATE".into(),"2026-01-01T00:00:00+0000".into()),("GIT_ALLOW_PROTOCOL".into(),"file".into()),("GIT_TERMINAL_PROMPT".into(),"0".into()),("GIT_PAGER".into(),"cat".into()),("GIT_EDITOR".into(),"true".into()),("GIT_SEQUENCE_EDITOR".into(),"true".into())];
         if self.exercise.github_pr.is_some()&&!self.exercise.github_demonstration {environment.extend(self.github_environment());}
+        if self.exercise.gitlab.is_some() {environment.extend(self.gitlab_environment());}
         environment
     }
     fn execute(&self,dir:&Path,args:&[&str],trace:bool)->Result<Output,String> {
@@ -404,8 +419,9 @@ impl GitPractice {
     pub fn open_terminal_with_player(&self,player:&Path)->Result<(crate::setup_terminal::SetupTerminal,tokio::sync::mpsc::Receiver<Vec<u8>>),String> {
         if self.exercise.vim.is_some(){return self.open_vim_terminal();}
         if self.exercise.docker.is_some(){return Err("Docker 실습 터미널은 수업 화면의 Docker 세션과 함께 열어요.".into())}
+        self.prepare_gitlab()?;
         let mut environment=self.environment();
-        if self.exercise.github_pr.is_some(){environment.extend(self.shell_environment());}
+        if self.hosted(){environment.extend(self.shell_environment());}
         environment.push(("GIT_TRACE2_EVENT".into(),self.root().join("commands.jsonl").to_string_lossy().into_owned()));
         if self.exercise.shell.is_some() {
             self.prepare_shell_checkpoint()?;
@@ -449,6 +465,7 @@ impl GitPractice {
     pub fn check_exercise(&self)->Result<crate::runner::TestReport,String> {
         use crate::runner::{TestReport,TestCaseResult};
         use std::collections::BTreeSet;
+        if self.exercise.gitlab.is_some(){return self.check_gitlab();}
         if self.exercise.github_pr.is_some(){return self.check_github_pr();}
         if self.exercise.vim.is_some(){return self.check_vim();}
         if self.exercise.java_build.is_some(){return self.check_java_build();}

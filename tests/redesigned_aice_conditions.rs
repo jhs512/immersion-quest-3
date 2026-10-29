@@ -4,9 +4,11 @@ use molip_quest::{lesson_runner,repository_course::{CourseManifest,Lesson}};
 async fn eight_condition_steps_match_boundary_values_and_teacher_outputs() {
     let course=CourseManifest::parse(include_str!("fixtures/player-pilot/p/course.json")).unwrap();
     let lesson=Lesson::parse(include_str!("../courses/redesigned/aice-python-conditions.json"),&course.lessons[0]).unwrap();
-    assert_eq!(lesson.tasks.len(),8);
+    assert_eq!(lesson.tasks.len(),9); // 8 teaching steps + the appended final challenge (92b37e2a)
     let expected:Vec<Vec<&str>>=vec![vec!["True"],vec!["False\nFalse","True\nTrue","True\nFalse","True\nTrue"],vec!["True","False"],vec!["지연","정상"],vec!["12\n30\n42","[12, 30, 42]","12\n30\n42"],vec!["42","30\n42"],vec!["[30, 42]","[42]","[30, 42]"],vec!["2","1","2","1"]];
-    for (index,task) in lesson.tasks.iter().enumerate() {
+    // The teacher-run table covers the teaching steps; the appended final challenge is graded against
+    // equivalent and wrong answers in docs/curriculum/final-challenges-evidence.md.
+    for (index,task) in lesson.tasks[..lesson.tasks.len()-1].iter().enumerate() {
         assert!(!lesson_runner::check(task,&task.starter_code).await.unwrap().passed,"Step {} starts unsolved",index+1);
         assert!(lesson_runner::check(task,&task.solution).await.unwrap().passed,"Step {} solution",index+1);
         let mut source=if task.has_runnable_example(){task.example_for_answer(&task.starter_code).unwrap()}else{task.starter_code.clone()};

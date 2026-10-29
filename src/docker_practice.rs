@@ -236,7 +236,7 @@ impl GitPractice {
         Ok(self.root().join("docker-checkpoints").join(format!("{}.json",shell.step_id)))
     }
     /// The files a Compose step shows in its editor (empty for other steps).
-    pub fn editable_files(&self)->Vec<String> {self.exercise.docker.as_ref().and_then(|d|d.compose.as_ref()).map(|c|c.editable.clone()).unwrap_or_default()}
+    pub fn editable_files(&self)->Vec<String> {self.exercise.gitlab.as_ref().map(|g|g.editable.clone()).or_else(||self.exercise.docker.as_ref().and_then(|d|d.compose.as_ref()).map(|c|c.editable.clone())).unwrap_or_default()}
     fn editable(&self,name:&str)->Result<PathBuf,String> {
         if !self.editable_files().iter().any(|f|f==name){return Err("이 문제에서 고칠 파일이 아니에요.".into())}
         Ok(self.work().join(name))

@@ -4,11 +4,13 @@ use molip_quest::{lesson_runner,repository_course::{CourseManifest,Lesson}};
 async fn valid_c_array_and_string_cases_match_each_teacher_run_and_varied_inputs() {
     let course=CourseManifest::parse(include_str!("fixtures/player-pilot/x/course.json")).unwrap();
     let lesson=Lesson::parse(include_str!("../courses/redesigned/engineer-c-arrays.json"),&course.lessons[0]).unwrap();
-    assert_eq!(lesson.tasks.len(),10);
+    assert_eq!(lesson.tasks.len(),11); // 10 teaching steps + the appended final challenge (92b37e2a)
     let expected=vec![vec!["2","4","2"],vec!["3\n2","2\n1","3\n2"],vec!["2\n4"],vec!["12","14","12"],
         vec!["12","6","12"],vec!["6","12"],vec!["0","12","0"],vec!["4\n3","6\n5","4\n3"],
         vec!["BOX","FOX","FAG","FOX"],vec!["6","12","0","12"]];
-    for (index,task) in lesson.tasks.iter().enumerate() {
+    // The teacher-run table covers the teaching steps; the appended final challenge is graded against
+    // equivalent and wrong answers in docs/curriculum/final-challenges-evidence.md.
+    for (index,task) in lesson.tasks[..lesson.tasks.len()-1].iter().enumerate() {
         assert!(!lesson_runner::check(task,&task.starter_code).await.unwrap().passed,"Step {} starts unsolved",index+1);
         assert!(lesson_runner::check(task,&task.solution).await.unwrap().passed,"Step {} solution",index+1);
         let mut source=task.example_code.clone().unwrap_or_else(||task.starter_code.clone());

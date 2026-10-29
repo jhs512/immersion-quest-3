@@ -10,5 +10,5 @@ fn argument_lesson_preserves_editor_terminal_demonstrations_and_progress(){
     let status=native_player::wait(&mut command.spawn().unwrap(),220,"java-arguments");
     let result:serde_json::Value=serde_json::from_str(&std::fs::read_to_string("target/pilot-native-result.json").unwrap()).unwrap();
     std::fs::copy("target/pilot-native-result.json","target/pilot-java-arguments-native-result.json").unwrap();
-    assert!(status.success()&&result["passed"]==true,"{result}");assert_eq!(result["checked"].as_array().unwrap().len(),12);
+    assert!(status.success()&&result["passed"]==true,"{result}");assert_eq!(result["checked"].as_array().unwrap().len(),13); // 9 steps incl. the final challenge + 4 behaviour checks
 }

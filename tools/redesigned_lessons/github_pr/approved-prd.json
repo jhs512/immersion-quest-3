@@ -1,25 +1,24 @@
 {
   "schema_version": 1,
   "id": "lsn_9367a2b2-ad65-4842-8208-bf0fe5f40e1b",
-  "title": "GitHub · 실제 PR을 만들고 변경을 합쳐요",
+  "title": "GitLab · MR로 변경을 검토하고 합쳐요",
   "course": "자바 백엔드 과정",
-  "audience": "브랜치·병합·리모트를 익히고 gh로 GitHub에 로그인한 학습자",
+  "audience": "Git 브랜치·병합·리모트를 익힌 학습자",
   "objectives": [
-    "본인 GitHub에 비공개 실습 저장소를 만들어요.",
-    "브랜치를 올려 실제 PR을 만들고 변경을 검토해요.",
-    "PR 병합 결과를 로컬 main으로 받아요."
+    "로컬 GitLab 프로젝트와 내 저장소를 연결해요.",
+    "작업 브랜치를 MR로 제안하고 실제 변경을 읽어요.",
+    "원격의 병합 결과를 로컬 main에도 받아요."
   ],
   "prerequisites": [
-    "Git 기본·브랜치 기본·리모트·브랜치 심화를 먼저 익혀요.",
-    "앱에 연결한 본인 GitHub 계정을 사용해요."
+    "Git 기초·브랜치·리모트를 익혔어요.",
+    "Docker Desktop을 실행할 수 있어요. GitLab 로그인 입력은 필요 없어요."
   ],
   "scope": [
-    "실제 개인 비공개 저장소 한 개와 PR 한 개를 만들어 여덟 단계로 진행해요."
+    "기존 여덟 개념 단계와 새 독립 종합 도전을 로컬 GitLab에서 실행해요."
   ],
   "out_of_scope": [
-    "다른 사람의 저장소나 조직 저장소는 사용하지 않아요.",
-    "본인 PR에 본인이 승인 리뷰를 남기는 실습은 하지 않아요.",
-    "저장소 삭제·인증 권한 확대·자동 PR 생성이나 병합은 앱이 실행하지 않아요."
+    "외부 개인 저장소·조직 저장소·GitHub 계정을 사용하지 않아요.",
+    "한 계정의 자기 승인 리뷰를 다른 검토자의 승인으로 표현하지 않아요."
   ],
   "policy_snapshot": {
     "revision": "sha256:72d5c7a3063abd2ea8f5451da17562fbbc0297fc60b72a505247b1601e3adbcf",
@@ -54,79 +53,67 @@
   },
   "sources": [
     {
-      "url": "https://cli.github.com/manual/gh_repo_create",
-      "checked_at": "2026-10-20",
-      "finding": "--private --source . --remote origin으로 본인 저장소와 origin을 연결해요.",
-      "certainty": "공식 GitHub CLI 문서를 확인했어요."
+      "url": "https://docs.gitlab.com/cli/repo/create/",
+      "checked_at": "2026-10-29",
+      "finding": "공식 glab으로 프로젝트를 만들고 skipGitInit로 로컬 폴더 생성 질문을 생략해요.",
+      "certainty": "공식 문서와 실제 CLI를 확인해요."
     },
     {
-      "url": "https://cli.github.com/manual/gh_pr_create",
-      "checked_at": "2026-10-20",
-      "finding": "base와 head를 지정해 PR을 만들어요.",
-      "certainty": "공식 GitHub CLI 문서를 확인했어요."
-    },
-    {
-      "url": "https://cli.github.com/manual/gh_pr_diff",
-      "checked_at": "2026-10-20",
-      "finding": "실제 PR의 변경 내용을 읽어요.",
-      "certainty": "공식 GitHub CLI 문서를 확인했어요."
-    },
-    {
-      "url": "https://cli.github.com/manual/gh_pr_merge",
-      "checked_at": "2026-10-20",
-      "finding": "--merge로 병합한 뒤 로컬에서 pull해요.",
-      "certainty": "공식 GitHub CLI 문서를 확인했어요."
+      "url": "https://docs.gitlab.com/api/merge_requests/",
+      "checked_at": "2026-10-29",
+      "finding": "MR의 브랜치·커밋·상태를 실제 API로 판정해요.",
+      "certainty": "공식 API 명세를 사용해요."
     }
   ],
   "chapters": [
     {
       "id": "chp_fa14affa-d557-4158-92a3-0b98b8f03b9f",
-      "title": "실제 GitHub에서 변경을 제안해요",
+      "title": "GitLab에서 변경을 제안하고 받아요",
       "objectives": [
-        "본인 GitHub에 비공개 실습 저장소를 만들어요.",
-        "브랜치를 올려 실제 PR을 만들고 변경을 검토해요.",
-        "PR 병합 결과를 로컬 main으로 받아요."
+        "로컬 GitLab 프로젝트와 내 저장소를 연결해요.",
+        "작업 브랜치를 MR로 제안하고 실제 변경을 읽어요.",
+        "원격의 병합 결과를 로컬 main에도 받아요."
       ],
       "units": [
         {
           "id": "unt_973606bb-4876-4ec9-8550-a7d55a12f388",
           "title": "본인 저장소와 작업 브랜치를 준비해요",
           "objectives": [
-            "본인 GitHub에 main과 feature를 각각 보내요."
+            "본인 GitLab에 main과 feature를 각각 보내요."
           ],
-          "premise": "메모 서비스 팀의 개발자 민수와 검토자 지수 역할을 번갈아 맡아요. 실제 계정은 하나예요. GitHub Flow로 브랜치를 보내고 변경을 검토해 main에 합쳐요. main에 기본 메모 커밋을 준비했어요. 실제 개인 GitHub 저장소를 직접 만들어요. 이후 단계는 같은 폴더에서 이어가요.",
+          "premise": "메모 커밋을 같은 로컬 GitLab 프로젝트에 보내요. 실습 계정은 자동 연결돼요.",
           "steps": [
             {
               "id": "stp_7797e9c0-a6cb-45d6-b767-d8b4b2649a6b",
-              "title": "GitHub에 비공개 저장소를 만들어요",
+              "title": "GitLab에 비공개 프로젝트를 만드세요",
               "objectives": [
-                "내 GitHub 계정에 실습용 비공개 저장소를 만들고 origin으로 연결해요."
+                "GitLab에 비공개 프로젝트를 만드는 이유와 결과를 확인해요."
               ],
-              "core_flow": "메모 서비스 팀의 개발자 민수와 검토자 지수 역할을 번갈아 맡아요. 실제 계정은 하나예요. GitHub Flow로 브랜치를 보내고 변경을 검토해 main에 합쳐요.\n\nmain에는 memo.txt의 기본 메모를 커밋해 뒀어요. origin은 아직 없어요. MQ3_REPO에는 이번 실습의 고유한 저장소 이름이 들어 있어요. 이 명령은 본인 GitHub에 실제 비공개 저장소를 만들어요.\n\n실제 GitHub 실습이라 중간 초기화는 지원하지 않아요. 첫 단계의 새 회차 시작만 가능해요. 생성 명령을 실행하면 실제 새 비공개 저장소가 생겨요. 기존 저장소와 PR은 남아요. main에는 memo.txt의 기본 메모를 커밋해 뒀어요. origin은 아직 없어요. MQ3_REPO에는 이번 실습의 고유한 저장소 이름이 들어 있어요. 이 명령은 본인 GitHub에 실제 비공개 저장소를 만들어요. 실행 순서: printf '%s\\n' \"$MQ3_REPO\" → gh repo create \"$MQ3_REPO\" --private --source . --remote origin → git remote -v. 저장소 이름과 origin의 GitHub 주소를 확인해요. 저장소를 만들기만 해서는 커밋이 전송되지 않아요. 학생은 git branch의 별표와 git status의 일반 안내를 읽는다. 조회용 복잡한 형식 옵션을 외우게 하지 않고 옆 커밋 그래프와 파일 내용을 비교한다. 내부 채점 쿼리는 학습 명령과 구분한다.",
+              "core_flow": "메모 파일의 기본 커밋을 준비했어요. 이번에는 이 컴퓨터의 GitLab에 공유할 프로젝트를 만들어요.\n회원가입과 로그인은 앱이 실습 계정으로 연결해요. MQ3_REPO는 이번 회차의 고유한 이름이에요. --skipGitInit는 이미 있는 로컬 저장소를 다시 만들지 않는 옵션이에요.\n\n**할 일**\n\n1. `glab repo create \"$MQ3_REPO\" --private --defaultBranch main --skipGitInit`를 실행하세요.\n2. `git remote add origin \"$MQ3_GITLAB/$MQ3_NAMESPACE/$MQ3_REPO.git\"`를 실행하세요.\n3. `git remote -v`를 실행하세요.\n4. 결과를 확인하고 제출하세요.\n실제 명령: glab repo create \"$MQ3_REPO\" --private --defaultBranch main --skipGitInit\ngit remote add origin \"$MQ3_GITLAB/$MQ3_NAMESPACE/$MQ3_REPO.git\"\ngit remote -v",
               "complexity": {
                 "new_concepts": [
-                  "실제 GitHub 저장소 생성"
+                  "실제 GitLab 저장소 생성"
                 ],
                 "prerequisite_experience": "앞 수업의 브랜치·push·fetch·병합을 익혔어요.",
-                "changed_condition": "실제 GitHub 저장소 생성을 한 단계만 추가해요.",
-                "observable_evidence": "저장소 이름과 origin의 GitHub 주소를 확인해요. 저장소를 만들기만 해서는 커밋이 전송되지 않아요.",
+                "changed_condition": "실제 GitLab 저장소 생성을 한 단계만 추가해요.",
+                "observable_evidence": "저장소 이름과 origin의 GitLab 주소를 확인해요. 저장소를 만들기만 해서는 커밋이 전송되지 않아요.",
                 "learner_edited_lines": 0,
                 "new_external_services": 1
               }
             },
             {
               "id": "stp_22a79f9a-8f3d-47fe-a2d8-bca07ec6b086",
-              "title": "main의 기록을 GitHub에 보내요",
+              "title": "main의 기록을 GitLab에 보내세요",
               "objectives": [
-                "push -u로 main을 GitHub에 보내고 저장소 정보로 확인해요."
+                "main의 기록을 GitLab에 보내는 이유와 결과를 확인해요."
               ],
-              "core_flow": "민수 역할이에요. 팀이 받을 기본 main을 먼저 올려요.\n\n앞 단계에서 만든 실제 GitHub 저장소와 같은 폴더를 사용해요. 아직 GitHub에 main을 보내지 않았어요.\n\n알아두세요: `-u`는 내 main을 origin의 main과 짝지어 둬요. 다음부터는 `git push`, `git pull`만 써도 같은 곳을 써요. 앞 단계에서 만든 실제 GitHub 저장소와 같은 폴더를 사용해요. 아직 GitHub에 main을 보내지 않았어요. 실행 순서: git push -u origin main → gh repo view. main을 전송한 뒤 저장소 정보를 읽어요. push와 저장소 생성은 서로 다른 행동이에요.",
+              "core_flow": "GitLab 프로젝트는 아직 비어 있어요. 팀이 받을 기본 main의 커밋을 보내세요.\n앞 단계에서 연결한 origin을 그대로 써요. -u는 main이 주고받을 원격 브랜치를 기억하게 해요.\n\n**할 일**\n\n1. `git push -u origin main`를 실행하세요.\n2. `glab repo view`를 실행하세요.\n3. 결과를 확인하고 제출하세요.\n실제 명령: git push -u origin main\nglab repo view",
               "complexity": {
                 "new_concepts": [
-                  "실제 GitHub 전송"
+                  "실제 GitLab 전송"
                 ],
                 "prerequisite_experience": "앞 수업의 브랜치·push·fetch·병합을 익혔어요.",
-                "changed_condition": "실제 GitHub 전송을 한 단계만 추가해요.",
+                "changed_condition": "실제 GitLab 전송을 한 단계만 추가해요.",
                 "observable_evidence": "main을 전송한 뒤 저장소 정보를 읽어요. push와 저장소 생성은 서로 다른 행동이에요.",
                 "learner_edited_lines": 0,
                 "new_external_services": 0
@@ -134,17 +121,17 @@
             },
             {
               "id": "stp_bd4e19c1-a228-498b-95c0-0e3c5924956b",
-              "title": "변경할 브랜치를 따로 만들어요",
+              "title": "feature 브랜치로 옮기세요",
               "objectives": [
-                "switch -c로 작업 브랜치를 만들고 옮겨 main을 그대로 둬요."
+                "feature 브랜치로 옮기는 이유와 결과를 확인해요."
               ],
-              "core_flow": "팀장이 메모 안내 개선을 맡겼어요. main에서 직접 고치지 않고 feature에서 작업해요.\n\n앞 단계에서 main을 GitHub로 보냈어요. 이제 main은 그대로 두고 변경할 브랜치를 만들어요.\n\n알아두세요: `git switch -c feature`는 앞 수업의 `git branch feature`와 `git switch feature`를 한 번에 해요. 앞 단계에서 main을 GitHub로 보냈어요. 이제 main은 그대로 두고 변경할 브랜치를 만들어요. 실행 순서: git switch -c feature → git branch. feature가 현재 브랜치예요. 이 시점에는 파일과 커밋 내용이 main과 같아요. 학생은 git branch의 별표와 git status의 일반 안내를 읽는다. 조회용 복잡한 형식 옵션을 외우게 하지 않고 옆 커밋 그래프와 파일 내용을 비교한다. 내부 채점 쿼리는 학습 명령과 구분한다.",
+              "core_flow": "main을 보존한 채 메모를 고칠 작업 공간이 필요해요. feature 브랜치를 만드세요.\n\n**할 일**\n\n1. `git switch -c feature`를 실행하세요.\n2. `git branch`를 실행하세요.\n3. 결과를 확인하고 제출하세요.\n실제 명령: git switch -c feature\ngit branch",
               "complexity": {
                 "new_concepts": [
-                  "PR의 작업 브랜치"
+                  "MR의 작업 브랜치"
                 ],
                 "prerequisite_experience": "앞 수업의 브랜치·push·fetch·병합을 익혔어요.",
-                "changed_condition": "PR의 작업 브랜치을 한 단계만 추가해요.",
+                "changed_condition": "MR의 작업 브랜치을 한 단계만 추가해요.",
                 "observable_evidence": "feature가 현재 브랜치예요. 이 시점에는 파일과 커밋 내용이 main과 같아요.",
                 "learner_edited_lines": 0,
                 "new_external_services": 0
@@ -152,36 +139,36 @@
             },
             {
               "id": "stp_99298f3c-34a9-45fc-82d3-b137e80eaa1e",
-              "title": "메모 한 줄을 바꾸고 기록해요",
+              "title": "feature에 메모 변경을 기록하세요",
               "objectives": [
-                "작업 브랜치에서 한 줄을 고쳐 커밋하고 main과의 차이를 읽어요."
+                "feature에 메모 변경을 기록하는 이유와 결과를 확인해요."
               ],
-              "core_flow": "민수 역할로 팀이 함께 읽을 메모를 한 줄 수정해요.\n\n현재 브랜치는 feature예요. memo.txt의 기본 메모를 함께 읽는 메모로 바꿔요. 현재 브랜치는 feature예요. memo.txt의 기본 메모를 함께 읽는 메모로 바꿔요. 실행 순서: printf '함께 읽는 메모\\n' > memo.txt → git add memo.txt → git commit -m \"메모 안내 개선\" → git diff main. 차이에서 한 줄이 바뀐 것을 확인해요. 이 커밋은 아직 GitHub에 전송하지 않았어요. 학생은 git branch의 별표와 git status의 일반 안내를 읽는다. 조회용 복잡한 형식 옵션을 외우게 하지 않고 옆 커밋 그래프와 파일 내용을 비교한다. 내부 채점 쿼리는 학습 명령과 구분한다.",
+              "core_flow": "팀원이 함께 볼 문구로 바꾸세요. main의 메모는 아직 바꾸지 않아요.\n\n**할 일**\n\n1. `printf '함께 읽는 메모\\n' > memo.txt`를 실행하세요.\n2. `git add memo.txt`를 실행하세요.\n3. `git commit -m \"메모 안내 개선\"`를 실행하세요.\n4. 결과를 확인하고 제출하세요.\n실제 명령: printf '함께 읽는 메모\\n' > memo.txt\ngit add memo.txt\ngit commit -m \"메모 안내 개선\"",
               "complexity": {
                 "new_concepts": [
-                  "PR에 담을 변경"
+                  "MR에 담을 변경"
                 ],
                 "prerequisite_experience": "앞 수업의 브랜치·push·fetch·병합을 익혔어요.",
-                "changed_condition": "PR에 담을 변경을 한 단계만 추가해요.",
-                "observable_evidence": "차이에서 한 줄이 바뀐 것을 확인해요. 이 커밋은 아직 GitHub에 전송하지 않았어요.",
+                "changed_condition": "MR에 담을 변경을 한 단계만 추가해요.",
+                "observable_evidence": "차이에서 한 줄이 바뀐 것을 확인해요. 이 커밋은 아직 GitLab에 전송하지 않았어요.",
                 "learner_edited_lines": 1,
                 "new_external_services": 0
               }
             },
             {
               "id": "stp_d9838dab-49ff-4c6c-9b84-88e6069a672e",
-              "title": "feature도 GitHub에 보내요",
+              "title": "feature도 GitLab에 보내세요",
               "objectives": [
-                "작업 브랜치를 GitHub에 보내 PR을 만들 준비를 해요."
+                "feature도 GitLab에 보내는 이유와 결과를 확인해요."
               ],
-              "core_flow": "검토받을 작업 브랜치를 GitHub로 보내요. 아직 main에는 합치지 않아요.\n\n새 메모는 로컬 feature에만 커밋했어요. 실제 PR이 비교하려면 GitHub에도 feature가 있어야 해요.\n\n알아두세요: `git branch -r`은 GitHub 쪽 브랜치를 내 저장소가 기억하는 목록(origin/…)을 보여 줘요. 새 메모는 로컬 feature에만 커밋했어요. 실제 PR이 비교하려면 GitHub에도 feature가 있어야 해요. 실행 순서: git push -u origin feature → git branch -r. origin/feature가 보여요. 브랜치를 보냈다고 main이 바뀌거나 PR이 자동으로 생기지는 않아요.",
+              "core_flow": "수정한 feature는 아직 내 컴퓨터에만 있어요. GitLab이 두 브랜치를 비교할 수 있게 보내세요.\n\n**할 일**\n\n1. `git push -u origin feature`를 실행하세요.\n2. `git branch -r`를 실행하세요.\n3. 결과를 확인하고 제출하세요.\n실제 명령: git push -u origin feature\ngit branch -r",
               "complexity": {
                 "new_concepts": [
-                  "PR을 만들 준비"
+                  "MR을 만들 준비"
                 ],
                 "prerequisite_experience": "앞 수업의 브랜치·push·fetch·병합을 익혔어요.",
-                "changed_condition": "PR을 만들 준비을 한 단계만 추가해요.",
-                "observable_evidence": "origin/feature가 보여요. 브랜치를 보냈다고 main이 바뀌거나 PR이 자동으로 생기지는 않아요.",
+                "changed_condition": "MR을 만들 준비을 한 단계만 추가해요.",
+                "observable_evidence": "origin/feature가 보여요. 브랜치를 보냈다고 main이 바뀌거나 MR이 자동으로 생기지는 않아요.",
                 "learner_edited_lines": 0,
                 "new_external_services": 0
               }
@@ -190,62 +177,78 @@
         },
         {
           "id": "unt_cbc26917-75b6-4856-9850-649544bb07ad",
-          "title": "PR을 만들고 읽고 병합해요",
+          "title": "MR을 만들고 읽고 병합해요",
           "objectives": [
-            "PR 요청·변경 검토·병합을 구분해요."
+            "MR 요청·변경 검토·병합을 구분해요."
           ],
-          "premise": "GitHub에 main과 feature를 보낸 상태예요. 그 차이로 실제 PR을 만들어요.",
+          "premise": "GitLab의 두 브랜치를 비교해 MR을 열고 병합한 뒤 로컬에 받아요.",
           "steps": [
             {
               "id": "stp_be813452-8488-487c-bb9f-26e7ba0ebc5f",
-              "title": "실제 PR로 변경을 제안해요",
+              "title": "MR로 main에 변경을 제안하세요",
               "objectives": [
-                "base와 head를 정해 실제 PR을 열어요."
+                "MR로 main에 변경을 제안하는 이유와 결과를 확인해요."
               ],
-              "core_flow": "민수가 지수에게 변경 검토를 요청하는 PR을 만들어요.\n\nGitHub에는 main과 feature가 있어요. PR은 feature의 변경을 main에 합치자는 요청이에요. base는 받을 쪽, head는 변경을 보낼 쪽이에요. GitHub에는 main과 feature가 있어요. PR은 feature의 변경을 main에 합치자는 요청이에요. base는 받을 쪽, head는 변경을 보낼 쪽이에요. 실행 순서: gh pr create --base main --head feature --title \"메모 안내 개선\" --body \"메모 문구를 바꿨어요.\" → gh pr view. 실제 PR 주소와 OPEN 상태를 확인해요. 요청을 열었을 뿐 main에 병합한 것은 아니에요.",
+              "core_flow": "MR은 작업 브랜치의 변경을 다른 브랜치에 합치자는 요청이에요. feature에서 main으로 요청하세요.\nsource는 보낼 브랜치, target은 받을 브랜치예요. 요청을 만드는 것과 병합하는 것은 달라요.\n\n**할 일**\n\n1. `glab mr create --source-branch feature --target-branch main --title \"메모 안내 개선\" --description \"메모 문구를 바꿨어요.\" --yes`를 실행하세요.\n2. `glab mr view`를 실행하세요.\n3. 결과를 확인하고 제출하세요.\n실제 명령: glab mr create --source-branch feature --target-branch main --title \"메모 안내 개선\" --description \"메모 문구를 바꿨어요.\" --yes\nglab mr view",
               "complexity": {
                 "new_concepts": [
-                  "PR 생성"
+                  "MR 생성"
                 ],
                 "prerequisite_experience": "앞 수업의 브랜치·push·fetch·병합을 익혔어요.",
-                "changed_condition": "PR 생성을 한 단계만 추가해요.",
-                "observable_evidence": "실제 PR 주소와 OPEN 상태를 확인해요. 요청을 열었을 뿐 main에 병합한 것은 아니에요.",
+                "changed_condition": "MR 생성을 한 단계만 추가해요.",
+                "observable_evidence": "실제 MR 주소와 OPEN 상태를 확인해요. 요청을 열었을 뿐 main에 병합한 것은 아니에요.",
                 "learner_edited_lines": 0,
                 "new_external_services": 0
               }
             },
             {
               "id": "stp_05e4ccdb-648e-4daf-80a0-46c1b0f72d9d",
-              "title": "PR의 실제 변경 내용을 읽어요",
+              "title": "MR의 바뀐 줄을 확인하세요",
               "objectives": [
-                "PR의 변경 줄을 읽어 병합 전에 검토해요."
+                "MR의 바뀐 줄을 확인하는 이유와 결과를 확인해요."
               ],
-              "core_flow": "지수 역할로 실제 PR의 변경 줄을 확인해요. 같은 계정이므로 정식 승인 리뷰를 흉내 내지 않아요. gh pr diff로 직접 검토해요.\n\n앞 단계에서 만든 PR이 열려 있어요. 합치기 전에 바뀐 줄을 직접 읽어요. 혼자 하는 실습이라 본인 PR에 승인 리뷰를 남기지는 않아요. 앞 단계에서 만든 PR이 열려 있어요. 합치기 전에 바뀐 줄을 직접 읽어요. 혼자 하는 실습이라 본인 PR에 승인 리뷰를 남기지는 않아요. 실행 순서: gh pr diff → gh pr view. 빼는 줄과 더하는 줄을 비교해요. 검토는 PR 생성이나 병합과 별개예요.",
+              "core_flow": "합치기 전에 무엇이 빠지고 들어가는지 읽으세요. 한 실습 계정으로 개발자와 검토자 역할을 번갈아 맡아요.\n자기 MR의 정식 승인 리뷰를 흉내 내지 않고 변경 내용을 직접 확인해요.\n\n**할 일**\n\n1. `glab mr diff`를 실행하세요.\n2. `glab mr view`를 실행하세요.\n3. 결과를 확인하고 제출하세요.\n실제 명령: glab mr diff\nglab mr view",
               "complexity": {
                 "new_concepts": [
-                  "PR 검토"
+                  "MR 검토"
                 ],
                 "prerequisite_experience": "앞 수업의 브랜치·push·fetch·병합을 익혔어요.",
-                "changed_condition": "PR 검토을 한 단계만 추가해요.",
-                "observable_evidence": "빼는 줄과 더하는 줄을 비교해요. 검토는 PR 생성이나 병합과 별개예요.",
+                "changed_condition": "MR 검토을 한 단계만 추가해요.",
+                "observable_evidence": "빼는 줄과 더하는 줄을 비교해요. 검토는 MR 생성이나 병합과 별개예요.",
                 "learner_edited_lines": 0,
                 "new_external_services": 0
               }
             },
             {
               "id": "stp_76ee28d7-32ff-4aac-8aa3-425945c6cd4a",
-              "title": "PR을 병합하고 main으로 받아요",
+              "title": "MR을 병합하고 로컬 main에도 받으세요",
               "objectives": [
-                "PR을 병합하고 git pull로 로컬 main에 받아요."
+                "MR을 병합하고 로컬 main에도 받으는 이유와 결과를 확인해요."
               ],
-              "core_flow": "지수의 검토가 끝났다고 가정해요. PR을 병합하고 민수의 로컬 main에도 받아요.\n\n열린 PR의 변경 내용을 확인했어요. 이제 실제 GitHub에서 병합하고 그 기록을 로컬 main으로 받아요. 실습이 끝나면 GitHub 저장소의 Settings → General → Danger Zone에서 본인이 직접 삭제할 수 있어요. 앱은 저장소를 삭제하지 않아요. 로컬 초기화도 GitHub 저장소는 남겨 둬요.\n\n알아두세요: `git pull`은 앞 수업의 `git fetch`와 `git merge`를 한 번에 해요. GitHub에서 병합한 기록을 받아 현재 브랜치에 합쳐요. 열린 PR의 변경 내용을 확인했어요. 이제 실제 GitHub에서 병합하고 그 기록을 로컬 main으로 받아요. 실습이 끝나면 GitHub 저장소의 Settings → General → Danger Zone에서 본인이 직접 삭제할 수 있어요. 앱은 저장소를 삭제하지 않아요. 로컬 초기화도 GitHub 저장소는 남겨 둬요. 실행 순서: gh pr merge --merge → git switch main → git pull → cat memo.txt. main에서도 함께 읽는 메모를 확인해요. GitHub에서 병합하는 것과 로컬에 받는 것은 서로 다른 행동이에요. 학생은 git branch의 별표와 git status의 일반 안내를 읽는다. 조회용 복잡한 형식 옵션을 외우게 하지 않고 옆 커밋 그래프와 파일 내용을 비교한다. 내부 채점 쿼리는 학습 명령과 구분한다.",
+              "core_flow": "검토한 변경을 GitLab의 main에 합치세요. 그다음 내 컴퓨터의 main에도 받아야 해요.\n\n**할 일**\n\n1. `glab mr merge --yes`를 실행하세요.\n2. `git switch main`를 실행하세요.\n3. `git pull`를 실행하세요.\n4. `cat memo.txt`를 실행하세요.\n5. 결과를 확인하고 제출하세요.\n실제 명령: glab mr merge --yes\ngit switch main\ngit pull\ncat memo.txt",
               "complexity": {
                 "new_concepts": [
-                  "PR 병합"
+                  "MR 병합"
                 ],
                 "prerequisite_experience": "앞 수업의 브랜치·push·fetch·병합을 익혔어요.",
-                "changed_condition": "PR 병합을 한 단계만 추가해요.",
-                "observable_evidence": "main에서도 함께 읽는 메모를 확인해요. GitHub에서 병합하는 것과 로컬에 받는 것은 서로 다른 행동이에요.",
+                "changed_condition": "MR 병합을 한 단계만 추가해요.",
+                "observable_evidence": "main에서도 함께 읽는 메모를 확인해요. GitLab에서 병합하는 것과 로컬에 받는 것은 서로 다른 행동이에요.",
+                "learner_edited_lines": 0,
+                "new_external_services": 0
+              }
+            },
+            {
+              "id": "stp_86073c2d-f28d-4079-9864-cb7e0ed96159",
+              "title": "새 프로젝트에서 변경 제안부터 병합까지 마치세요",
+              "objectives": [
+                "새 프로젝트에서 MR 생성·검토·병합과 로컬 반영을 스스로 연결해요."
+              ],
+              "core_flow": "새 메모 프로젝트에서 혼자 전체 흐름을 완성하세요.\n비공개 프로젝트를 만들고 main을 보내세요. feature에 함께 읽는 메모를 커밋해 보내고 MR의 변경을 확인한 뒤 병합하세요. 로컬 main에도 병합 결과를 받아야 해요.\n\n**할 일**\n\n1. 고유한 비공개 프로젝트에 main과 feature를 보내세요.\n2. feature의 메모를 함께 읽는 메모로 커밋하고 MR을 만드세요.\n3. MR의 변경을 직접 확인한 뒤 병합하세요.\n4. 로컬 main으로 결과를 받아 내용을 확인하고 제출하세요.\nglab repo create \"$MQ3_REPO\" --private --defaultBranch main --skipGitInit\ngit remote add origin \"$MQ3_GITLAB/$MQ3_NAMESPACE/$MQ3_REPO.git\"\ngit push -u origin main\ngit switch -c feature\nprintf '함께 읽는 메모\\n' > memo.txt\ngit add memo.txt\ngit commit -m \"메모 안내 개선\"\ngit push -u origin feature\nglab mr create --source-branch feature --target-branch main --title \"메모 안내 개선\" --description \"메모 문구를 바꿨어요.\" --yes\nglab mr diff\nglab mr merge --yes\ngit switch main\ngit pull",
+              "complexity": {
+                "new_concepts": [],
+                "prerequisite_experience": "앞선 여덟 단계의 MR 흐름",
+                "changed_condition": "새 프로젝트에서 명령 순서를 직접 구성해요.",
+                "observable_evidence": "병합된 MR과 같은 커밋을 로컬 main에서 확인해요.",
                 "learner_edited_lines": 0,
                 "new_external_services": 0
               }
@@ -255,38 +258,34 @@
       ]
     }
   ],
-  "strategy": "한 계정으로 개발·검토 역할을 나눠 GitHub Flow를 경험해요. 본인 PR의 정식 승인을 가장하지 않고 diff를 읽어 판단해요.",
+  "strategy": "한 계정으로 개발·검토 역할을 나눠 GitLab 흐름를 경험해요. 본인 MR의 정식 승인을 가장하지 않고 diff를 읽어 판단해요.",
   "grading": [
-    "실제 GitHub API의 저장소 소유자·비공개 여부·커밋·PR 상태를 읽어 검사해요.",
-    "PR 검토는 실제 gh pr diff 성공도 확인해요.",
-    "열린 PR은 main을 바꾸지 않으며 병합 뒤에만 새 main을 인정해요."
+    "프로젝트·브랜치 SHA·MR 상태·실제 diff 명령·로컬 main의 결과를 함께 검사해요."
   ],
   "reset": [
-    "실제 GitHub 실습은 중간 단계 초기화를 금지해요.",
-    "첫 단계에서 경고에 동의하면 새 로컬 실습과 고유한 새 저장소 이름을 준비해요.",
-    "저장소 생성 명령은 학생이 직접 실행해요. 기존 저장소·PR·커밋은 삭제하거나 강제 갱신하지 않아요."
+    "첫 단계와 독립 종합 도전에서 새 고유 프로젝트 이름으로 시작해요. 기존 프로젝트 기록은 보존해요."
   ],
   "narration": [
-    "명령은 직접 입력하도록 설명해요. 해설 재생은 GitHub에 저장소나 PR을 만들거나 병합하지 않아요."
+    "학생 저장소와 다른 회차에서 로컬 GitLab 명령을 실행하고 관찰해요."
   ],
   "verification": [
     "로컬 오답·초기화·해설 격리를 검사해요.",
-    "명시적으로 허용한 별도 실습 저장소에서 실제 생성·push·PR·검토·병합을 끝까지 검사해요.",
+    "명시적으로 허용한 별도 실습 저장소에서 실제 생성·push·MR·검토·병합을 끝까지 검사해요.",
     "중간 초기화 거절과 첫 단계 취소·승인 뒤 새 저장소 이름을 검증해요."
   ],
   "representative": {
-    "step_id": "stp_be813452-8488-487c-bb9f-26e7ba0ebc5f",
-    "prompt": "feature에서 main으로 실제 PR을 만드세요.",
-    "starter_state": "개인 GitHub 저장소의 main과 feature가 서로 다른 커밋을 가리켜요.",
-    "expected_action": "gh pr create --base main --head feature --title \"메모 안내 개선\" --body \"메모 문구를 바꿨어요.\"",
-    "acceptance": "본인 저장소의 열린 PR이 main←feature와 실제 feature 커밋을 가리켜요.",
-    "reset": "첫 단계에서만 경고 후 새 회차를 시작해요. 기존 GitHub 기록은 유지해요.",
-    "narration": "base와 head를 구분하고 실제 결과는 직접 실행해 확인하게 해요."
+    "step_id": "stp_86073c2d-f28d-4079-9864-cb7e0ed96159",
+    "prompt": "새 메모 프로젝트에서 혼자 전체 흐름을 완성하세요.\n비공개 프로젝트를 만들고 main을 보내세요. feature에 함께 읽는 메모를 커밋해 보내고 MR의 변경을 확인한 뒤 병합하세요. 로컬 main에도 병합 결과를 받아야 해요.\n\n**할 일**\n\n1. 고유한 비공개 프로젝트에 main과 feature를 보내세요.\n2. feature의 메모를 함께 읽는 메모로 커밋하고 MR을 만드세요.\n3. MR의 변경을 직접 확인한 뒤 병합하세요.\n4. 로컬 main으로 결과를 받아 내용을 확인하고 제출하세요.",
+    "starter_state": "새 로컬 저장소에 기본 메모 커밋만 있어요.",
+    "expected_action": "glab repo create \"$MQ3_REPO\" --private --defaultBranch main --skipGitInit\ngit remote add origin \"$MQ3_GITLAB/$MQ3_NAMESPACE/$MQ3_REPO.git\"\ngit push -u origin main\ngit switch -c feature\nprintf '함께 읽는 메모\\n' > memo.txt\ngit add memo.txt\ngit commit -m \"메모 안내 개선\"\ngit push -u origin feature\nglab mr create --source-branch feature --target-branch main --title \"메모 안내 개선\" --description \"메모 문구를 바꿨어요.\" --yes\nglab mr diff\nglab mr merge --yes\ngit switch main\ngit pull",
+    "acceptance": "실제 GitLab MR이 병합됐고 로컬 main에서 변경 내용을 읽어요.",
+    "reset": "새 회차에서는 새 프로젝트 이름을 써요.",
+    "narration": "만든 기록·보낸 기록·병합한 기록을 구분해요."
   },
   "approval": {
     "status": "approved",
-    "by": "사용자 지시에 따른 범위 위임",
-    "evidence": "2026-10-20 사용자: “그 순서로 개편하고, PR은 실제 GitHub로 실습하게 하자. 쭉 진행해”. 기본→브랜치 기본→리모트→브랜치 심화→실제 PR 구성과 구현 위임. 2026-10-21 사용자: 전체 Git 수업의 명령을 실전적인 쉬운 명령의 조합으로 재검수하도록 지시. 2026-10-22 사용자: 모든 Git 수업에 상황과 역할에 맞는 명령 사용 이유를 명확히 하도록 요청했어요. 실제 GitHub Flow는 별도 수업으로 두고 첫 단계에서만 경고 후 새 회차를 허용하도록 지시했어요. 2026-10-24 사용자: 세 과정 빌드업 감사의 근거 있는 교정(문제 설명 해설, 정밀 강조, 상투 경고 제거, 선수 개념 다리, 점진 예제, 평가 결함)을 계획하고 실행하도록 Claude Code에 위임했어요(Codex 경유). 교육 목표와 교수법은 유지하고 이 문서를 직접 검토했다고 주장하지 않아요.",
-    "content_sha256": "3d984450122b65ef7a5f51e041be3d5087ea0ba8a013a64759bad8a7426d371b"
+    "by": "사용자 지시에 따른 범위 위임 / 사용자의 GitLab 전환·제작 지시",
+    "evidence": "2026-10-20 사용자: “그 순서로 개편하고, PR은 실제 GitHub로 실습하게 하자. 쭉 진행해”. 기본→브랜치 기본→리모트→브랜치 심화→실제 PR 구성과 구현 위임. 2026-10-21 사용자: 전체 Git 수업의 명령을 실전적인 쉬운 명령의 조합으로 재검수하도록 지시. 2026-10-22 사용자: 모든 Git 수업에 상황과 역할에 맞는 명령 사용 이유를 명확히 하도록 요청했어요. 실제 GitHub Flow는 별도 수업으로 두고 첫 단계에서만 경고 후 새 회차를 허용하도록 지시했어요. 2026-10-24 사용자: 세 과정 빌드업 감사의 근거 있는 교정(문제 설명 해설, 정밀 강조, 상투 경고 제거, 선수 개념 다리, 점진 예제, 평가 결함)을 계획하고 실행하도록 Claude Code에 위임했어요(Codex 경유). 교육 목표와 교수법은 유지하고 이 문서를 직접 검토했다고 주장하지 않아요. 2026-10-29 사용자: 기본 GitHub를 쓰는 수업을 모두 GitLab 기반으로 바꾸고 워크플로 수업도 기획해서 추가하라고 직접 지시했어요. 로그인 입력 없는 로컬 실습과 제작·검증·게시 범위의 위임이에요. 개별 문장을 사용자가 검수했다고 주장하지 않아요.",
+    "content_sha256": "795347ca0384d95c19011d16b1e2e99daad127cdd50e30cab07e955a77f3a2dd"
   }
 }

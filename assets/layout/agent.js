@@ -17,6 +17,167 @@
 // narration (the sidebar's 멈춤 button), molipAgent.setVoice(false) keeps the captions but mutes.
 (function () {
   'use strict';
+  // ---- Narration code edits as keystrokes (pure; tests/js/narration-edit-plan.test.cjs). ----
+  // steps(source, from, to, insert) yields {from, to, insert} replacements of one character each
+  // that turn source into source[0,from) + insert + source[to,…) exactly. Only the parts that
+  // differ are deleted and typed: the edit is diffed by words, spaces and line breaks, so text
+  // both sides share (a line's own newline, the `}` below it) is never deleted and retyped.
+  // A pure insertion or deletion that could equally sit one line higher is moved there when that
+  // keeps the following line whole: inserting `    return 0;\n` above `    }` is typed as
+  // `\n    return 0;` at the end of the line before, so `}` never trails the half-typed code.
+  // Sliding only picks between equivalent positions, so the final text, the indentation of
+  // Python and the contents of strings and comments are exactly what the lesson authored.
+  const editPlan = (() => {
+    const segmenter = globalThis.Intl?.Segmenter ? new Intl.Segmenter(undefined, {granularity: 'grapheme'}) : null;
+    const graphemes = text => segmenter ? Array.from(segmenter.segment(text), part => part.segment) : Array.from(text);
+    const isBreak = g => g === '\n' || g === '\r\n' || g === '\r';
+    const wordLike = g => /^[\p{L}\p{N}_$]/u.test(g);
+    const blankLike = g => g === ' ' || g === '\t';
+    // Words, runs of spaces/tabs, line breaks and single other characters; joined they are `text`.
+    function tokens(text) {
+      const out = [];
+      for (const g of graphemes(text)) {
+        const last = out.length ? out[out.length - 1] : '';
+        if (last && ((wordLike(g) && wordLike(last)) || (blankLike(g) && blankLike(last[0])))) out[out.length - 1] = last + g;
+        else out.push(g);
+      }
+      return out;
+    }
+    // Myers' diff of two token lists: [{a0, a1, b0, b1}] in token indices, or null when too large.
+    function changes(a, b) {
+      const n = a.length, m = b.length, max = n + m, offset = max + 1;
+      const v = new Int32Array(2 * max + 3), trace = [];
+      let budget = 4e6;
+      for (let d = 0; d <= max; d++) {
+        if ((budget -= v.length) < 0) return null;
+        trace.push(v.slice());
+        for (let k = -d; k <= d; k += 2) {
+          let x = (k === -d || (k !== d && v[offset + k - 1] < v[offset + k + 1])) ? v[offset + k + 1] : v[offset + k - 1] + 1;
+          let y = x - k;
+          while (x < n && y < m && a[x] === b[y]) { x++; y++; }
+          v[offset + k] = x;
+          if (x >= n && y >= m) {
+            const ops = [];
+            for (let e = d; e > 0; e--) {
+              const w = trace[e], kk = x - y;
+              // down: b[py] was inserted before a[px]; otherwise a[px] was deleted.
+              const down = kk === -e || (kk !== e && w[offset + kk - 1] < w[offset + kk + 1]);
+              const pk = down ? kk + 1 : kk - 1, px = w[offset + pk], py = px - pk;
+              const mx = down ? px : px + 1, my = down ? py + 1 : py;
+              while (x > mx && y > my) { x--; y--; }
+              ops.push({a: px, b: py, insert: down});
+              x = px; y = py;
+            }
+            ops.reverse();
+            const hunks = [];
+            for (const op of ops) {
+              const last = hunks[hunks.length - 1];
+              const a0 = op.a, b0 = op.b, a1 = op.insert ? op.a : op.a + 1, b1 = op.insert ? op.b + 1 : op.b;
+              if (last && last.a1 === a0 && last.b1 === b0) { last.a1 = a1; last.b1 = b1; }
+              else hunks.push({a0, a1, b0, b1});
+            }
+            return hunks;
+          }
+        }
+      }
+      return null;
+    }
+    // Changed regions of old → next as character offsets, in order.
+    function hunks(old, next) {
+      if (old === next) return [];
+      const a = tokens(old), b = tokens(next);
+      const at = list => { const sums = [0]; for (const t of list) sums.push(sums[sums.length - 1] + t.length); return sums; };
+      const sa = at(a), sb = at(b);
+      let found = changes(a, b);
+      if (!found) {
+        let p = 0, s = 0;
+        while (p < a.length && p < b.length && a[p] === b[p]) p++;
+        while (s < a.length - p && s < b.length - p && a[a.length - 1 - s] === b[b.length - 1 - s]) s++;
+        found = [{a0: p, a1: a.length - s, b0: p, b1: b.length - s}];
+      }
+      // A single shared space or symbol between two changes reads better replaced with them.
+      const merged = [];
+      for (const h of found) {
+        const last = merged[merged.length - 1];
+        if (last && h.a0 - last.a1 === 1 && h.b0 - last.b1 === 1 && a[last.a1].length === 1 && !isBreak(a[last.a1])) { last.a1 = h.a1; last.b1 = h.b1; }
+        else merged.push({...h});
+      }
+      return merged.map(h => ({oldFrom: sa[h.a0], oldTo: sa[h.a1], text: next.slice(sb[h.b0], sb[h.b1]), removed: old.slice(sa[h.a0], sa[h.a1])}));
+    }
+    const before = (doc, p) => { if (p <= 0) return ''; const g = graphemes(doc.slice(Math.max(0, p - 32), p)); return g[g.length - 1] || ''; };
+    const after = (doc, p) => (p >= doc.length ? '' : graphemes(doc.slice(p, p + 32))[0] || '');
+    // Among the positions where inserting (or deleting) `span` gives the same text, prefer one
+    // that ends right before a line break without itself ending in one.
+    function slide(doc, p, span, deleting) {
+      const good = (q, text) => { const next = after(doc, deleting ? q + text.length : q), parts = graphemes(text); return (!next || isBreak(next)) && !isBreak(parts[parts.length - 1]); };
+      if (!span || good(p, span)) return [p, span];
+      const candidates = [];
+      for (const direction of [-1, 1]) {
+        let q = p, text = span;
+        for (let i = 0; i < 4000; i++) {
+          const parts = graphemes(text);
+          if (direction < 0) {
+            const g = before(doc, q), last = deleting ? before(doc, q + text.length) : parts[parts.length - 1];
+            if (!g || g !== last) break;
+            q -= g.length; text = deleting ? doc.slice(q, q + text.length) : g + parts.slice(0, -1).join('');
+          } else {
+            const first = deleting ? after(doc, q) : parts[0], g = after(doc, deleting ? q + text.length : q);
+            if (!g || g !== first) break;
+            q += g.length; text = deleting ? doc.slice(q, q + text.length) : parts.slice(1).join('') + g;
+          }
+          if (good(q, text)) { candidates.push([Math.abs(q - p), direction, q, text]); break; }
+        }
+      }
+      candidates.sort((x, y) => x[0] - y[0] || x[1] - y[1]);
+      return candidates.length ? [candidates[0][2], candidates[0][3]] : [p, span];
+    }
+    function* steps(source, from, to, insert) {
+      let doc = source, shift = 0;
+      for (const h of hunks(source.slice(from, to), insert)) {
+        const at = from + h.oldFrom + shift;
+        if (h.removed) {
+          const [p, text] = slide(doc, at, h.removed, true);
+          const parts = graphemes(text);
+          if (isBreak(parts[parts.length - 1])) {
+            // Still ends with a line break (a whole first line of the file): delete it from the
+            // front, so the line below never joins the half-deleted one.
+            for (const g of parts) {
+              const step = {from: p, to: p + g.length, insert: ''};
+              doc = doc.slice(0, step.from) + doc.slice(step.to);
+              yield step;
+            }
+          } else {
+            let end = p + text.length;
+            for (const g of parts.reverse()) {
+              const step = {from: end - g.length, to: end, insert: ''};
+              doc = doc.slice(0, step.from) + doc.slice(step.to); end = step.from;
+              yield step;
+            }
+          }
+        }
+        if (h.text) {
+          const [p, text] = slide(doc, at, h.text, false);
+          const parts = graphemes(text);
+          let q = p;
+          // Ending with a line break: press it first, then type the line above it, as a person
+          // opening a new line does.
+          if (isBreak(parts[parts.length - 1])) {
+            const g = parts.pop();
+            doc = doc.slice(0, q) + g + doc.slice(q);
+            yield {from: q, to: q, insert: g};
+          }
+          for (const g of parts) {
+            const step = {from: q, to: q, insert: g};
+            doc = doc.slice(0, q) + g + doc.slice(q); q += g.length;
+            yield step;
+          }
+        }
+        shift += h.text.length - h.removed.length;
+      }
+    }
+    return {steps, hunks, tokens};
+  })();
+  globalThis.molipEditPlan = editPlan;
   if (globalThis.molipAgent || typeof document === 'undefined') return;
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
   const byText = (selector, text) => [...document.querySelectorAll(selector)].find(b => b.textContent.trim() === text);
@@ -587,7 +748,10 @@
       if (!document.querySelector('.cm-narration-line')) api.highlightLines(1);
     } else if (!/^(?:lines|editor|code):/.test(String(action.target || ''))) api.highlightLines(null);
   }
-  // Retain unchanged code and type only the changed fragment, including replacements in place.
+  // Retain unchanged code and type only the changed fragments, including replacements in place.
+  // The keystrokes come from molipEditPlan.steps (below), which never removes a line break that
+  // the edit keeps: `return fee;\n    }` → `return fee + 1000;\n    }` types " + 1000" only, so
+  // the `}` line stays on its own line throughout the animation.
   async function animateEdit(from, to, insert, active = () => !cancelled) {
     const api = globalThis.molipCodeEditors;
     const source = api.getValue();
@@ -600,34 +764,28 @@
         throw new Error(message);
       }
     };
-    const startLine = lineAt(source, from);
     const replace = (from,to,text) => {
       ensureUnchanged();
       expected = expected.slice(0,from) + text + expected.slice(to);
       return api.replaceRange ? api.replaceRange(from,to,text) : api.setValue(expected);
     };
-    const characters = text => globalThis.Intl?.Segmenter
-      ? [...new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(text)].map(part=>part.segment)
-      : Array.from(text);
     const delay = ms => sleep(ms * 1.5 / (globalThis.molipVoice?.rate || 1.5));
-    let offset = to;
+    const target = source.slice(0, from) + insert + source.slice(to);
+    let startLine = lineAt(source, from);
     api.highlightLines?.(startLine, lineAt(source, Math.max(from, to - 1)));
-    for (const point of characters(source.slice(from,to)).reverse()) {
+    for (const step of editPlan.steps(source, from, to, insert)) {
       await waitWhilePaused(); if (!active()) return;
-      replace(offset-point.length,offset,''); offset-=point.length;
-      const end=lineAt(api.getValue(),Math.max(from,offset-1));
-      api.highlightLines?.(startLine,Math.max(startLine,end));
+      replace(step.from, step.to, step.insert);
+      const offset = step.from + step.insert.length, current = api.getValue();
+      startLine = Math.min(startLine, lineAt(current, step.from));
+      api.highlightLines?.(startLine, Math.max(startLine, lineAt(current, Math.max(step.from, offset - 1))));
       spotlight('editor',caption?.textContent || '');
-      await delay(35);
+      await delay(step.insert ? 45 : 35);
     }
-    for (const point of characters(insert)) {
-      await waitWhilePaused(); if (!active()) return;
-      replace(offset,offset,point); offset+=point.length;
-      api.highlightLines?.(startLine,lineAt(api.getValue(),Math.max(from,offset-1)));
-      spotlight('editor',caption?.textContent || '');
-      await delay(45);
+    if (active()) {
+      ensureUnchanged();
+      if (expected !== target) throw new Error('해설 편집 결과가 준비한 코드와 달라요.');
     }
-    if (active()) ensureUnchanged();
   }
 
   async function demonstrateAnswer(value) {

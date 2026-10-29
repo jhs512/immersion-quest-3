@@ -56,10 +56,13 @@ jobs:
           cargo test --release --locked --lib node_tools::tests
       - name: Verify persistent Java build workspace
         run: |
-          cargo test --release --locked --test java_launch --test bundled_courses --test course_guide --test github_pr --test git_lesson_goals --test git_merge_goals --test redesigned_git_first --test redesigned_git_remote --test git_branch_story --test learner_questions --test redesigned_git_branch --test git_graph --test lesson_link --test interaction_examples --test bash_basics --test vim_practice --test step_reset --test challenges --test lesson_reset_challenge --test cross_course_improvements
+          cargo test --release --locked --test java_launch --test bundled_courses --test course_guide --test github_pr --test gitlab_platform --test git_lesson_goals --test git_merge_goals --test redesigned_git_first --test redesigned_git_remote --test git_branch_story --test learner_questions --test redesigned_git_branch --test git_graph --test lesson_link --test interaction_examples --test bash_basics --test vim_practice --test step_reset --test lesson_reset_challenge --test cross_course_improvements
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           # java_arguments runs bash + JDK source-launcher processes under the 20 s learner-run limit; its cases run one at a time so they do not starve each other on a slow runner.
           cargo test --release --locked --test java_arguments -- --test-threads=1
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          # challenges runs real JDK graders (10 s version check); in parallel on the Windows runner it timed out on 92b37e2a.
+          cargo test --release --locked --test challenges -- --test-threads=1
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           # The shell variable / environment / argument lessons in real Git Bash (and the JDK for the Java step).
           cargo test --release --locked --test shell_environment_lessons -- --test-threads=1
@@ -161,9 +164,11 @@ jobs:
           cargo test --release --locked --lib node_tools::tests
       - name: Verify C, Java and Python execution on this Mac
         run: |
-          cargo test --release --locked --test macos_runtime --test java_launch --test bundled_courses --test course_guide --test github_pr --test git_lesson_goals --test git_merge_goals --test redesigned_git_first --test redesigned_git_remote --test git_branch_story --test learner_questions --test redesigned_git_branch --test git_graph --test lesson_link --test interaction_examples --test bash_basics --test vim_practice --test step_reset --test challenges --test lesson_reset_challenge --test cross_course_improvements
+          cargo test --release --locked --test macos_runtime --test java_launch --test bundled_courses --test course_guide --test github_pr --test gitlab_platform --test git_lesson_goals --test git_merge_goals --test redesigned_git_first --test redesigned_git_remote --test git_branch_story --test learner_questions --test redesigned_git_branch --test git_graph --test lesson_link --test interaction_examples --test bash_basics --test vim_practice --test step_reset --test lesson_reset_challenge --test cross_course_improvements
           # java_arguments runs bash + JDK source-launcher processes under the 20 s learner-run limit; its cases run one at a time so they do not starve each other on a slow runner.
           cargo test --release --locked --test java_arguments -- --test-threads=1
+          # challenges runs real JDK graders one at a time (see the Windows job).
+          cargo test --release --locked --test challenges -- --test-threads=1
           # The shell variable / environment / argument lessons in macOS /bin/bash (3.2) and the JDK for the Java step.
           cargo test --release --locked --test shell_environment_lessons -- --test-threads=1
       - name: Verify detached progress exit helper

@@ -16,7 +16,7 @@ fn fixture(course: &CourseManifest) -> FutureChallengeFile {
 #[test]
 fn every_backend_lesson_offers_its_last_graded_problem_by_reference() {
     let (course, lessons) = backend();
-    assert_eq!(course.lessons.len(), 43);
+    assert_eq!(course.lessons.len(), 44);
     for (index, (reference, lesson)) in course.lessons.iter().zip(&lessons).enumerate() {
         let challenge = challenges::lesson_challenge(index, reference, lesson).unwrap_or_else(|| panic!("{} has no graded problem", reference.title));
         let position = lesson.tasks.iter().position(|task| task.id == challenge.task_id).unwrap();
@@ -109,8 +109,7 @@ async fn a_future_problem_runs_on_the_existing_grader() {
     assert!(!lesson_runner::check(task, &memorized).await.unwrap().passed);
 }
 
-/// The 42 released designations resolve to graded finals. The user explicitly withheld the new
-/// GitHub PR challenge; that lesson stays at its existing published revision without a designation.
+/// Every current lesson has an actual final, including the replacement local GitLab MR and CI lessons.
 /// Each released designation resolves through the app's own rule to the last required graded
 /// problem. The sole deferred lesson must never gain a challenge clear from an old pass.
 #[test]
@@ -123,11 +122,9 @@ fn packaged_backend_course_designates_only_real_graded_final_challenges() {
         let resolved = challenges::designated(reference, &lesson);
         let card = challenges::lesson_challenge(index, reference, &lesson).unwrap();
         if reference.repository == "jhs512/mq3-lesson-redesigned-github-pr" {
-            assert_eq!(reference.revision, "github-pr-5");
-            assert!(reference.challenge_task.is_empty());
-            assert!(resolved.is_none() && !card.designated);
+            assert_eq!(reference.revision, "gitlab-mr-1");
             assert!(!lesson.tasks.iter().any(|t| t.id == "stp_2d42bbda-b942-4f8a-ba7a-beeceb7e8086"));
-            continue;
+            assert!(lesson.tasks.iter().all(|t|t.git_terminal.as_ref().is_some_and(|g|g.gitlab.is_some()&&g.github_pr.is_none())));
         }
         assert!(!reference.challenge_task.is_empty(), "every lesson needs a final challenge: {}", reference.title);
         designated += 1;
@@ -136,11 +133,11 @@ fn packaged_backend_course_designates_only_real_graded_final_challenges() {
         assert_eq!(position + 1, lesson.tasks.len(), "the final problem: {}", reference.title);
         assert!(card.designated && card.task_id == reference.challenge_task);
     }
-    assert_eq!(course.lessons.len(), 43);
-    assert_eq!(designated, 42);
+    assert_eq!(course.lessons.len(), 44);
+    assert_eq!(designated, 44);
     // Every challenge is a distinct problem.
     let ids: std::collections::BTreeSet<_> = course.lessons.iter().filter(|l| !l.challenge_task.is_empty()).map(|l| l.challenge_task.as_str()).collect();
-    assert_eq!(ids.len(), 42);
+    assert_eq!(ids.len(), 44);
     // A designation that is not a required graded problem of this revision is ignored.
     let mut reference = course.lessons.iter().find(|l| !l.challenge_task.is_empty()).unwrap().clone();
     let lesson = Lesson::parse(bundled_courses::lesson_source(&reference).unwrap(), &reference).unwrap();
@@ -157,14 +154,14 @@ fn packaged_backend_course_designates_only_real_graded_final_challenges() {
 }
 
 #[test]
-fn deferred_github_challenge_keeps_the_exact_old_lesson_and_normal_completion() {
+fn gitlab_migration_preserves_old_problem_ids_without_awarding_the_new_final() {
     use molip_quest::{bundled_courses, issue_progress::*, repository_course::{CourseManifest, Lesson}};
-    use sha2::{Digest, Sha256};
     let course = CourseManifest::parse(bundled_courses::course_source("jhs512/mq3-course-redesigned-java-backend").unwrap()).unwrap();
     let reference = course.lessons.iter().find(|r| r.repository == "jhs512/mq3-lesson-redesigned-github-pr").unwrap();
     let raw = bundled_courses::lesson_source(reference).unwrap();
-    assert_eq!(format!("{:x}", Sha256::digest(raw.as_bytes())), "f8cdc11d868b3727ea591f6e6e5596f7af04688f51e323d680c3245bf0bdb8e6");
     let lesson = Lesson::parse(raw, reference).unwrap();
+    let legacy:serde_json::Value=serde_json::from_str(include_str!("fixtures/github-pr-legacy.json")).unwrap();
+    for (old,new) in legacy["tasks"].as_array().unwrap().iter().zip(&lesson.tasks){assert_eq!(old["id"],new.id);}
     let required = lesson.required_tasks();
     let key = ProgressKey { user_id: 7, course_id: course.id.clone(), lesson_id: reference.id.clone() };
     let pass = |task: &str| {
@@ -173,14 +170,14 @@ fn deferred_github_challenge_keeps_the_exact_old_lesson_and_normal_completion() 
         event.passed = true;
         event
     };
-    let old_final_only = vec![pass(required.last().unwrap())];
+    let old_final_only = vec![pass(&lesson.tasks[7].id)];
     assert!(!lesson_clear(&old_final_only, &reference.revision, &required, &reference.challenge_task).cleared());
     let mut completed = Vec::new();
-    for task in &required {
+    for task in &required[..8] {
         completed = molip_quest::progress_sync::apply_result(completed, &pass(task), &required);
     }
     let clear = lesson_clear(&completed, &reference.revision, &required, &reference.challenge_task);
-    assert!(clear.full && !clear.challenge && clear.cleared());
+    assert!(!clear.challenge && !clear.cleared(),"the old eight passes cannot award a new independent final");
 }
 
 /// For each of the 42 released backend challenges, with the lesson's real required problems and its
@@ -196,7 +193,7 @@ fn every_packaged_backend_lesson_clears_by_its_challenge_alone_and_resets_durabl
     let path = directory.path().join("progress.sqlite3");
     let user = GithubUser { id: 7, login: "learner".into() };
     let lessons: Vec<_> = course.lessons.iter().filter(|r| !r.challenge_task.is_empty()).map(|r| (r.clone(), Lesson::parse(bundled_courses::lesson_source(r).unwrap(), r).unwrap())).collect();
-    assert_eq!(lessons.len(), 42);
+    assert_eq!(lessons.len(), 44);
     let key = |lesson: &str| ProgressKey { user_id: 7, course_id: course.id.clone(), lesson_id: lesson.into() };
     let pass = |reference: &molip_quest::repository_course::LessonRef, at: u64| {
         let mut event = LearningEvent::new(key(&reference.id), &reference.revision, StudyMode::Full, "direct", EventKind::Attempt);

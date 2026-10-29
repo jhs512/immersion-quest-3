@@ -620,6 +620,8 @@ fn CourseProgressLoader(session:Session,course:CourseManifest,onloaded:EventHand
 fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,updates:Element,auto:Signal<Option<AutoRun>>,admin:Option<Result<bool,String>>,onautolessonend:EventHandler<u64>,onback:EventHandler<()>)->Element {
     let docker_session=use_context_provider(molip_quest::docker_lab::LessonSession::new);
     use_drop(move||docker_session.close());
+    let gitlab_session=use_context_provider(molip_quest::git_practice::GitlabLessonSession::new);
+    use_drop(move||gitlab_session.close());
     use_hook({let course=selected.course.id.clone();let lesson=selected.lesson.id.clone();move||{let mut span=molip_quest::telemetry::operation("lesson.open",vec![opentelemetry::KeyValue::new("course.id",course),opentelemetry::KeyValue::new("lesson.id",lesson)]);span.finish("ok");}});
     let mut events=use_signal(||selected.events.clone());
     let mut activity_message=use_signal(String::new);
@@ -1151,7 +1153,7 @@ if let Some(start)=autostart {
                 div {class:"pane-heading",strong {"{filename}"}
                 if feedback()=="incorrect"||feedback()=="error"||feedback()=="run-error" {span {class:"submission-indicator",if feedback()=="incorrect"{"제출 실패"}else{"오류 발생"}}}
                 div {class:"pane-actions",
-                    button {disabled:busy()||narrating()||task.git_terminal.as_ref().and_then(|e|e.github_pr).is_some_and(|stage|stage!=molip_quest::git_practice::GithubPrStage::Repository),title:if task.git_terminal.as_ref().is_some_and(|e|e.github_pr.is_some()){"실제 GitHub 실습은 첫 단계에서만 새 회차를 시작할 수 있어요."}else{"현재 문제의 시작 상태로 돌아가요. 완료 기록은 유지해요."},onclick:{let starter=task.starter_code.clone();let example=task.example_for_answer(&task.starter_code).unwrap_or_default();let hosted=task.git_terminal.as_ref().is_some_and(|e|e.github_pr.is_some());let key=key.clone();let task=task.clone();let docker_session=docker_session.clone();move |_|{
+                    button {disabled:busy()||narrating()||task.git_terminal.as_ref().is_some_and(|e|!e.hosted_reset_allowed()),title:if task.git_terminal.as_ref().is_some_and(|e|!e.hosted_reset_allowed()){"이 수업은 첫 단계에서 새 회차를 시작하세요."}else{"현재 문제의 시작 상태로 돌아가요. 완료 기록은 유지해요."},onclick:{let starter=task.starter_code.clone();let example=task.example_for_answer(&task.starter_code).unwrap_or_default();let hosted=task.git_terminal.as_ref().is_some_and(|e|e.github_pr.is_some());let key=key.clone();let task=task.clone();let docker_session=docker_session.clone();move |_|{
                         if narrating(){return;}
                         let starter=starter.clone();let example=example.clone();let key=key.clone();let task=task.clone();let docker_session=docker_session.clone();
                         spawn(async move {

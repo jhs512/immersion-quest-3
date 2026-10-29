@@ -10,5 +10,5 @@ fn restructured_git_lessons_render_and_pr_explanation_preserves_the_student_work
     let status=native_player::wait(&mut command.spawn().unwrap(),180,"git-course");
     let result:serde_json::Value=serde_json::from_str(&std::fs::read_to_string("target/pilot-native-result.json").unwrap()).unwrap();
     std::fs::copy("target/pilot-native-result.json","target/pilot-git-course-native-result.json").unwrap();
-    assert!(status.success()&&result["passed"]==true,"{result}");assert_eq!(result["checked"].as_array().unwrap().len(),7);
+    assert!(status.success()&&result["passed"]==true,"{result}");assert_eq!(result["checked"].as_array().unwrap().len(),5); // the former GitHub PR pilot section was removed; the GitLab MR lesson is covered by tests/gitlab_platform.rs
 }

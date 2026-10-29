@@ -89,7 +89,13 @@ fn hosted_git_reset_is_only_allowed_at_first_stage_and_creates_a_new_identity(){
     let first=&lesson.tasks[0];let old=store.open("pr",first.git_terminal.clone().unwrap()).unwrap();
     let repository=old.github_repository_name();let previous=old.root().to_path_buf();
     std::fs::write(old.work().join("personal.txt"),"keep").unwrap();
-    for task in &lesson.tasks[1..]{assert!(store.reset_step("pr",task.git_terminal.clone().unwrap(),&task.id).err().unwrap().contains("첫 단계"));}
+    // Steps 2-8 continue the first step's project; the independent final (own workspace group and
+    // project) starts its own round and may be reset.
+    let (continued,last)=lesson.tasks[1..].split_at(lesson.tasks.len()-2);
+    for task in continued{assert!(store.reset_step("pr",task.git_terminal.clone().unwrap(),&task.id).err().unwrap().contains("첫 단계"),"{}",task.id);}
+    let final_step=last[0].git_terminal.clone().unwrap();
+    assert!(final_step.hosted_reset_allowed());
+    assert_ne!(final_step.workspace_group,first.git_terminal.as_ref().unwrap().workspace_group);
     assert_eq!(store.open("pr",first.git_terminal.clone().unwrap()).unwrap().root(),previous);
     let fresh=store.reset_step("pr",first.git_terminal.clone().unwrap(),&first.id).unwrap();
     assert_ne!(fresh.github_repository_name(),repository);assert_ne!(fresh.root(),previous);

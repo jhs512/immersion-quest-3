@@ -1,0 +1,54 @@
+{
+  "by": "hand",
+  "source_sha256": "ac715ba789f7cfabae75a38a4a24d9ee6cc1a230e060ec0120c5ecc99699d50b",
+  "entry": [
+    {
+      "action": "say",
+      "text": "검사 결과가 틀리면 파이프라인이 멈추는지 확인하세요.",
+      "target": "text:검사 결과가 틀리면 파이프라인이 멈추는지 확인하세요."
+    },
+    {
+      "action": "patch_code",
+      "file": "check.sh",
+      "before": "actual=5",
+      "after": "actual=4",
+      "say": "check.sh의 actual=5 부분을 actual=4로 바꿔요.",
+      "target": "lines:1"
+    },
+    {
+      "action": "bash_command",
+      "command": "git add .",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "일부러 틀린 값 4를 검사 파일에 담았어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "git commit -m \"CI 설정 변경\"",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "실패를 확인하기 위한 새 커밋을 만들었어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "git push",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "Runner도 이 틀린 값으로 검사하므로 실패해야 해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "종료 코드가 실패이면 화면의 파이프라인도 failed가 돼요.",
+      "target": "#git-demo-terminal"
+    }
+  ]
+}

@@ -1,7 +1,11 @@
 use molip_quest::{git_practice::{GitPractice,GitPracticeStore},repository_course::{CourseManifest,Lesson}};
 fn lesson()->Lesson {
-    let course=CourseManifest::parse(include_str!("fixtures/player-pilot/풀/course.json")).unwrap();
-    Lesson::parse(include_str!("../courses/redesigned/github-pr.json"),&course.lessons[0]).unwrap()
+    // Cached older releases must remain readable; the active course uses GitLab now.
+    use sha2::{Digest,Sha256};
+    let mut reference=CourseManifest::parse(include_str!("fixtures/player-pilot/풀/course.json")).unwrap().lessons.remove(0);
+    let raw=include_str!("fixtures/github-pr-legacy.json");
+    reference.revision="github-pr-5".into();reference.sha256=format!("{:x}",Sha256::digest(raw.as_bytes()));
+    Lesson::parse(raw,&reference).unwrap()
 }
 #[test]
 fn opening_or_explaining_pr_practice_does_not_create_a_hosted_repository(){

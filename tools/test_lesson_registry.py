@@ -7,7 +7,7 @@ class RegistryTests(unittest.TestCase):
     def test_all_published_lessons_resolve_from_the_same_registry(self):
         catalog=json.loads((ROOT/'tools/redesigned_courses/catalog.json').read_text(encoding='utf-8'))
         rows=load_registry(catalog)
-        self.assertEqual(len(rows),97)  # 80 retained lessons + 14 principle lessons + 3 shell environment lessons (2026-10-29).
+        self.assertEqual(len(rows),98)  # 80 retained lessons + 14 principle lessons + 3 shell environment lessons + GitLab CI/CD (2026-10-29).
         self.assertEqual(len({row['pilot'] for row in rows}),len(rows))
         for row in rows:
             published=json.loads((ROOT/'courses/redesigned'/f"{row['key']}.json").read_text(encoding='utf-8'))

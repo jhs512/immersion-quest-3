@@ -17,7 +17,10 @@
   if(!mq3GitTerminal.text().split('\n').some(line=>line.trim()==='첫 메모'))throw Error('Missing memo in resumed step three');
   checked.push('Opening step three from an empty workspace restores its memo and index and explains the prepared state');
   await click('← 코스 수업 목록');
-  for(const [version,revision,count] of [['l','git-branch-',14],['굳','git-branch-advanced-',5],['풀','github-pr-',8]]){
+  // Counts include each lesson's appended final challenge (92b37e2a). The former GitHub PR lesson (풀) is now the
+  // local GitLab MR lesson: its terminal starts the Docker GitLab lab, which release runners do not have, so it is
+  // verified by tests/gitlab_platform.rs (structure and, with the local lab, real MR runs) instead of here.
+  for(const [version,revision,count] of [['l','git-branch-',15],['굳','git-branch-advanced-',6]]){
    await click(`버전 ${version}`);
    await wait(()=>document.querySelector('.lesson-card')?.textContent.includes(revision),revision);
    await click('학습 시작');await ready();
