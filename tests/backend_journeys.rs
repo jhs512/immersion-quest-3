@@ -16,7 +16,7 @@ const WITHDRAWN: [&str; 8] = ["lsn_0783b508-0383-49ec-85d8-ee33a68eafef", "lsn_c
 #[test]
 fn withdrawn_lessons_leave_no_listing_preview_or_empty_topic() {
     let course = course();
-    assert_eq!(course.lessons.len(), 40);
+    assert_eq!(course.lessons.len(), 43);
     // The 26 lessons of 2026-10-25 keep 필수 and 기본; lessons added on 2026-10-26 are optional with no track.
     let catalog:serde_json::Value=serde_json::from_str(include_str!("../tools/redesigned_courses/catalog.json")).unwrap();
     let legacy:std::collections::BTreeSet<_>=catalog["courses"][0]["lessons"].as_array().unwrap().iter()
@@ -39,7 +39,7 @@ fn withdrawn_lessons_leave_no_listing_preview_or_empty_topic() {
 #[test]
 fn previews_are_ungraded_metadata_and_old_courses_still_open() {
     let course = course();
-    assert_eq!(course.lesson_previews.len(), 40);
+    assert_eq!(course.lesson_previews.len(), 43);
     let mut old = serde_json::to_value(&course).unwrap();
     old.as_object_mut().unwrap().remove("lesson_previews");
     assert!(CourseManifest::parse(&old.to_string()).unwrap().lesson_previews.is_empty());

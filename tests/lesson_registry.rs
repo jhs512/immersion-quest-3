@@ -5,7 +5,7 @@ fn every_registered_lesson_opens_through_the_real_isolated_transport() {
     std::env::set_var("MOLIP_PILOT","1");
     let github=Github::new();let mut steps=0;
     let mut versions=std::collections::HashSet::new();
-    assert_eq!(lesson_registry::LESSONS.len(),94);
+    assert_eq!(lesson_registry::LESSONS.len(),97);
     for row in lesson_registry::LESSONS {
         assert!(versions.insert(row.pilot));
         pilot_source::set_version(row.pilot).unwrap();

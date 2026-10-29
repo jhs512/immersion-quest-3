@@ -72,7 +72,9 @@ fn prepare_open_lesson_checked(session:Session,manifest:CourseManifest,reference
     if let Some(tx)=&stage{let _=tx.send(1);}
     let key=ProgressKey{user_id:user.id,course_id:manifest.id.clone(),lesson_id:lesson.id.clone()};
     let issue=gh.find_issue(&manifest.repository,user,&key)?;
-    let mut events=if let Some(issue)=&issue{gh.events(&manifest.repository,issue,&key)?}else{vec![]};
+    // Before the first upload creates the progress issue, this device's recorded history (the same
+    // one the course list shows) is still the learner's progress, resets included.
+    let mut events=if let Some(issue)=&issue{gh.events(&manifest.repository,issue,&key)?}else{molip_quest::progress_sync::ProgressStore::installed()?.events(&manifest.repository,&key)?};
     let unfinished=events.iter().rev().find(|e|e.kind==EventKind::Started&&e.mode==mode&&e.revision==lesson.revision&&!events.iter().any(|done|done.kind==EventKind::Completed&&done.round==e.round)).map(|e|e.round.clone());
     let round=unfinished.unwrap_or_else(issue_progress::new_id);
     if let Some(tx)=&stage{let _=tx.send(2);}

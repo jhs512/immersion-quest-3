@@ -50,7 +50,7 @@ fn redesigned_defaults_open_complete_independent_snapshots_and_preserve_added_co
     store.apply(&old).unwrap();
     let old_fingerprint = old.fingerprint();
     let mut all_steps = std::collections::HashSet::new();
-    for (name, count) in [("java-backend",40),("aice-associate",24),("engineer-practical",30)] {
+    for (name, count) in [("java-backend",43),("aice-associate",24),("engineer-practical",30)] {
         let raw = std::fs::read_to_string(root.join(format!("courses/redesigned-courses/{name}.json"))).unwrap();
         let course = CourseManifest::parse(&raw).unwrap();
         assert_eq!(course.lessons.len(),count);
