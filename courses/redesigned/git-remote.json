@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_533917ea-656d-4fd5-b188-948363ec9b37",
-  "revision": "git-remote-11",
+  "revision": "git-remote-12",
   "title": "공유 기록을 받고 비교하고 되돌려요",
   "description": "GitHub 없이 두 팀원의 실제 Git 복제본으로 협업해요. 정상 공유, push 거절, 충돌과 합의, 복구를 직접 경험해요.",
   "objectives": [
@@ -188,6 +188,22 @@
               "id": "stp_30450fdf-e29d-4fcd-a813-c3f8b0f44c3a",
               "objectives": [
                 "revert는 이미 남긴 기록에 취소 기록을 더해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_dbfb371d-eedf-440d-914d-228fcdacba5b",
+          "title": "마지막 도전",
+          "objectives": [
+            "거절·받기·충돌 해결·공유를 스스로 이어요."
+          ],
+          "premise": "내 커밋 하나를 아직 보내지 않았고 동료가 같은 줄을 먼저 보낸 새 저장소예요. 앞 단계와 상관없이 바로 풀 수 있어요.",
+          "steps": [
+            {
+              "id": "stp_94d0da62-e0db-47a2-aaef-8ad0cf722e8a",
+              "objectives": [
+                "거절된 push를 받기·병합·충돌 해결로 풀어 공유해요."
               ]
             }
           ]
@@ -3824,6 +3840,231 @@
         {
           "action": "say",
           "text": "조심하세요. restore는 아직 커밋하지 않은 파일을 되돌려요. 공유한 커밋을 취소하는 revert와 역할이 달라요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    },
+    {
+      "id": "stp_94d0da62-e0db-47a2-aaef-8ad0cf722e8a",
+      "title": "동료의 변경과 합쳐 내 운영 시간 커밋을 공유하세요",
+      "goal": "자, 마지막 도전이에요. 팀 공유 저장소에 운영 시간 안내 guide.txt가 있어요. 나는 닫는 시간을 오후 7시로 바꿔 커밋했지만 아직 보내지 않았어요. 동료는 여는 시간을 오전 10시로 바꿔 먼저 보냈어요.\n\n팀이 합의한 첫 줄은 `운영: 오전 10시부터 오후 7시`예요. 둘째 줄 `문의: 상담 창구`는 그대로 둬요. 두 변경을 합쳐 이 내용을 팀 공유 저장소에 보내요. 동료의 커밋과 내 커밋은 둘 다 기록에 남아야 해요. 보내는 명령은 이 수업처럼 `git push origin main`을 써요.\n\n**할 일**\n\n1. 내 커밋을 보내 보고 거절된 이유를 확인하세요.\n2. 동료의 커밋을 받아 내 main에 합치세요.\n3. 충돌한 파일을 합의한 내용으로 고쳐 병합을 마치세요.\n4. `git push origin main`으로 공유하세요.\n5. 공유한 뒤 제출하세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "initial_history": "empty",
+        "files": {
+          "guide.txt": "운영: 오전 9시부터 오후 6시\n문의: 상담 창구\n"
+        },
+        "setup": [
+          {
+            "kind": "git",
+            "args": [
+              "add",
+              "guide.txt"
+            ]
+          },
+          {
+            "kind": "git",
+            "args": [
+              "commit",
+              "-m",
+              "운영 시간"
+            ]
+          },
+          {
+            "kind": "git",
+            "args": [
+              "push",
+              "origin",
+              "main"
+            ]
+          },
+          {
+            "kind": "remote_commit",
+            "files": {
+              "guide.txt": "운영: 오전 10시부터 오후 6시\n문의: 상담 창구\n"
+            },
+            "message": "여는 시간 변경"
+          },
+          {
+            "kind": "file",
+            "path": "guide.txt",
+            "content": "운영: 오전 9시부터 오후 7시\n문의: 상담 창구\n"
+          },
+          {
+            "kind": "git",
+            "args": [
+              "add",
+              "guide.txt"
+            ]
+          },
+          {
+            "kind": "git",
+            "args": [
+              "commit",
+              "-m",
+              "닫는 시간 변경"
+            ]
+          }
+        ],
+        "state_goal": {
+          "current_branch": "main",
+          "commit_count": 4,
+          "parent_count": 2,
+          "merge_in_progress": false,
+          "unmerged_paths": [],
+          "clean": true,
+          "head_files": {
+            "guide.txt": "운영: 오전 10시부터 오후 7시\n문의: 상담 창구\n"
+          },
+          "parent_files": {
+            "guide.txt": "운영: 오전 9시부터 오후 7시\n문의: 상담 창구\n"
+          },
+          "working_files": {
+            "guide.txt": "운영: 오전 10시부터 오후 7시\n문의: 상담 창구\n"
+          },
+          "remote_tracking_current": true
+        },
+        "commands": [
+          [
+            "push",
+            "origin",
+            "main"
+          ]
+        ]
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "동료의 변경과 합쳐 내 운영 시간 커밋을 공유하는 문제예요.",
+          "target": "text:동료의 변경과 합쳐 내 운영 시간 커밋을 공유하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 내 운영 시간 커밋을 공유해야 하는데, 동료가 같은 줄을 고쳐 먼저 보냈어요.",
+          "target": "text:동료는 여는 시간을 오전 10시로 바꿔 먼저 보냈어요."
+        },
+        {
+          "action": "bash_command",
+          "command": "git push origin main",
+          "expected_exit": 1,
+          "say": "먼저 그대로 보내 볼게요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "rejected가 나와요. 원격에 내가 받지 않은 커밋이 있어서 거절됐어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "fetch",
+            "origin"
+          ],
+          "say": "fetch로 동료의 커밋을 받아요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "origin/main이 동료의 커밋으로 옮겨 갔어요. 내 main은 그대로예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "git merge origin/main",
+          "expected_exit": 1,
+          "say": "받은 기록을 내 main에 합쳐요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "CONFLICT가 나요. 같은 운영 줄을 둘이 다르게 고쳤어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "cat guide.txt",
+          "say": "충돌한 파일을 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "충돌 표시 사이에 내 오후 7시와 동료의 오전 10시가 따로 보여요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "echo \"운영: 오전 10시부터 오후 7시\" > guide.txt",
+          "say": "팀이 합의한 운영 줄로 파일을 다시 써요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "첫 줄이 합의한 문구가 됐어요. 문의 줄은 아직 없어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "echo \"문의: 상담 창구\" >> guide.txt",
+          "say": "문의 줄도 다시 붙여요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "충돌 표시 없이 두 줄이 됐어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "add",
+            "guide.txt"
+          ],
+          "say": "해결한 파일을 준비 영역에 담아요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "충돌이 해결된 것으로 표시돼요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "commit",
+            "-m",
+            "운영 시간 병합"
+          ],
+          "say": "병합 커밋으로 마쳐요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "부모가 둘인 병합 커밋이 생겼어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "push",
+            "origin",
+            "main"
+          ],
+          "say": "이제 다시 보내요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "이번엔 main -> main으로 올라갔어요. 동료의 커밋 위에 내 병합이 쌓였거든요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 충돌 표시를 지우지 않고 add하면 그 표시까지 팀에 공유돼요.",
           "target": "#git-demo-terminal"
         }
       ]

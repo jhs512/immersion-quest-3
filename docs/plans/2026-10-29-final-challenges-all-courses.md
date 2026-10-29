@@ -119,6 +119,18 @@ java-inheritance-composition, vim-basics, java-files, java-testing은 스텝 원
 | java-calculator | 7 | 통과·일치 | 14/6 |
 | java-rq | 7 | 통과·일치 | 17/8 |
 | java-crud | 9 | 통과·일치 | 15/9 |
-| bash-basics, vim-basics, java-launch, java-arguments, git-first, git-branch, git-remote, git-branch-advanced, github-pr | — | 남음 | — |
+| bash-basics | 7 | 실제 Bash 통과·해시 일치 | 5/2 (도전만) |
+| vim-basics | 5 | 실제 Vim 통과·일치 | 3/2 |
+| java-launch | 7 | 실제 Bash+JDK 통과·일치 | 4/3 |
+| java-arguments | 8 | 실제 Bash+JDK 통과·일치 | 4/3 |
+| git-first | 9 | 실제 Git 통과·일치 | 4/2 |
+| git-branch | 11 | 실제 Git 통과·일치 | 4/2 |
+| git-remote | 12 | 실제 Git(로컬 원격) 통과·일치 | 4/2 |
+| git-branch-advanced | 10 | 실제 Git 통과·일치 | 5/2 |
+| github-pr | 6 | 로컬 검사만(해설은 말하기만·시작 상태 실패). 실제 GitHub 실행은 권한 거부로 미실행 — 남은 일 | — |
 
 (거절/동등은 수업 전체 사례 수예요. 게시 전이에요.)
+
+- 2026-10-29: 터미널 9수업 도전 작성. 증거 표는 `docs/curriculum/final-challenges-evidence.md`(`python tools/final_challenges/_evidence_summary.py`). 실제 채점 회귀 `tests/final_terminal_challenges.rs`(사례 원본 `tests/final-challenge-cases/<키>.json`), 과정 회귀 `tests/challenges.rs`(43/43 지정, 43수업 각각 도전만 통과→클리어·부분 게이지·재시작·초기화·동기화 재수신). 기존 연속 실습 테스트는 원래 스텝까지만 돌고 마지막 도전은 새 테스트가 맡아요.
+- 판단 기록: java-arguments는 Bash 명령 일치가 철자 그대로라 따옴표 종류를 자유롭게 하려고 필수 명령을 `cat Main.java`(첫 확인)로 두고 실행은 JDK 인자 배열로 채점해요. git-remote는 공유 확인을 원격 추적 일치 + `push origin main` 성공으로 봐요(갈라진 상태라 병합 커밋 전에는 push가 성공할 수 없어 「먼저 push 후 커밋」 우회가 생기지 않아요). github-pr 도전은 앱 규칙상 중간 초기화가 안 돼요(실제 GitHub 단계는 첫 단계만 새 회차). 이 제한은 앱 코드 변경 없이 목표 글에 적었어요.
+- 알려진 기준선 실패(이번 변경과 무관, 73c7e7d에도 있음): `tests/java_code_guide.rs` 두 테스트(h2-memory-file 비자바 안내, java-arrays에 없는 고정 스텝 id).

@@ -38,10 +38,10 @@ fn play(practice:&GitPractice,shell:&mut SetupTerminal,output:&mut tokio::sync::
 fn all_twenty_three_steps_run_in_real_bash_and_vim_without_hidden_student_changes() {
     let manifest=CourseManifest::parse(include_str!("fixtures/player-pilot/부/course.json")).unwrap();
     let lesson=Lesson::parse(include_str!("../courses/redesigned/bash-basics.json"),&manifest.lessons[0]).unwrap();
-    assert_eq!(lesson.tasks.len(),23);
+    assert_eq!(lesson.tasks.len(),24);// The last step is the separately started final challenge (tests/final_terminal_challenges.rs).
     let directory=tempfile::tempdir().unwrap();let store=GitPracticeStore::new(directory.path()).unwrap();
     let mut prior_root=None;let mut saved=None;
-    for (index,task) in lesson.tasks.iter().enumerate() {
+    for (index,task) in lesson.tasks[..23].iter().enumerate() {
         let exercise=task.git_terminal.clone().unwrap();let config=exercise.shell.as_ref().unwrap();let scope=exercise.workspace_scope("user:course:lesson:full:bash-practice");
         let practice=store.open(&scope,exercise.clone()).unwrap();
         if let Some(path)=&prior_root{assert_eq!(practice.root(),path);}

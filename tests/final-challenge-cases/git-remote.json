@@ -1,0 +1,70 @@
+{
+  "step": "stp_94d0da62-e0db-47a2-aaef-8ad0cf722e8a",
+  "sources": {},
+  "accept": [
+    {
+      "steps": [
+        "git push origin main",
+        "git fetch origin",
+        "git merge origin/main",
+        "echo \"운영: 오전 10시부터 오후 7시\" > guide.txt",
+        "echo \"문의: 상담 창구\" >> guide.txt",
+        "git add guide.txt",
+        "git commit -m \"운영 시간 병합\"",
+        "git push origin main"
+      ],
+      "reason": "teacher commands"
+    },
+    {
+      "steps": [
+        "git fetch origin",
+        "git merge --no-edit origin/main",
+        "printf '운영: 오전 10시부터 오후 7시\\n문의: 상담 창구\\n' > guide.txt",
+        "git add .",
+        "git commit --no-edit",
+        "git push origin main"
+      ],
+      "reason": "no first push, printf resolution and the default message"
+    }
+  ],
+  "reject": [
+    {
+      "steps": [
+        "git fetch origin",
+        "git merge origin/main",
+        "git add guide.txt",
+        "git commit --no-edit",
+        "git push origin main"
+      ],
+      "reason": "conflict markers committed and shared"
+    },
+    {
+      "steps": [
+        "git fetch origin",
+        "git merge origin/main",
+        "echo \"운영: 오전 10시부터 오후 7시\" > guide.txt",
+        "echo \"문의: 상담 창구\" >> guide.txt",
+        "git add guide.txt",
+        "git commit -m merge"
+      ],
+      "reason": "resolved but never pushed"
+    },
+    {
+      "steps": [
+        "git fetch origin",
+        "git merge origin/main",
+        "git checkout --theirs guide.txt",
+        "git add guide.txt",
+        "git commit --no-edit",
+        "git push origin main"
+      ],
+      "reason": "only the colleague's line kept"
+    },
+    {
+      "steps": [
+        "git push -f origin main"
+      ],
+      "reason": "force push overwrites the colleague"
+    }
+  ]
+}

@@ -16,9 +16,9 @@ fn command(p:&GitPractice,terminal:&mut SetupTerminal,out:&mut tokio::sync::mpsc
 }
 #[test]
 fn eight_steps_use_real_jdk_preserve_source_class_and_isolate_demonstrations(){
-    let lesson=lesson();assert_eq!(lesson.tasks.len(),8);
+    let lesson=lesson();assert_eq!(lesson.tasks.len(),9);// The last step is the separately started final challenge (tests/final_terminal_challenges.rs).
     let dir=tempfile::tempdir().unwrap();let store=GitPracticeStore::new(dir.path()).unwrap();let mut root=None;
-    for (i,task) in lesson.tasks.iter().enumerate(){
+    for (i,task) in lesson.tasks[..8].iter().enumerate(){
         let exercise=task.git_terminal.clone().unwrap();let config=exercise.shell.as_ref().unwrap();
         let scope=exercise.workspace_scope("java-launch-integration");let p=store.open(&scope,exercise.clone()).unwrap();
         if let Some(root)=&root{assert_eq!(p.root(),root);}root=Some(p.root().to_path_buf());

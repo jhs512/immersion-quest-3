@@ -5,7 +5,7 @@ fn lesson()->Lesson {
 }
 #[test]
 fn opening_or_explaining_pr_practice_does_not_create_a_hosted_repository(){
-    let lesson=lesson();assert_eq!(lesson.tasks.len(),8);
+    let lesson=lesson();assert_eq!(lesson.tasks.len(),9);// The last step is the separately started final challenge (tests/final_terminal_challenges.rs).
     let student=GitPractice::new(lesson.tasks[0].git_terminal.clone().unwrap()).unwrap();
     assert!(!student.root().join("remote.git").exists());
     assert!(!student.git(&["remote","get-url","origin"]).unwrap().success);
@@ -68,7 +68,7 @@ async fn real_github_pr_lifecycle_uses_the_actual_practice_terminal_and_grader()
     let lesson=lesson();let directory=tempfile::tempdir().unwrap();let store=GitPracticeStore::new(directory.path()).unwrap();
     let mut repository_name=String::new();
     let owner=molip_quest::github_player::Github::new().user().unwrap().login;
-    for (index,task) in lesson.tasks.iter().enumerate(){
+    for (index,task) in lesson.tasks[..8].iter().enumerate(){
         let practice=store.open("github-pr-authorized-verification",task.git_terminal.clone().unwrap()).unwrap();
         if index==0 {repository_name=practice.github_repository_name();assert!(practice.check_exercise().is_err());}
         let (mut terminal,mut output)=practice.open_terminal().unwrap();
@@ -102,4 +102,52 @@ async fn real_github_pr_lifecycle_uses_the_actual_practice_terminal_and_grader()
     std::fs::create_dir_all("target").unwrap();
     std::fs::write("target/github-pr-live-result.json",serde_json::json!({"passed":true,"stages":8,"repository":format!("{owner}/{repository_name}"),"pull_request":url,"automatic_deletion":false}).to_string()).unwrap();
     eprintln!("Real PR verified and retained for manual cleanup: {url}");
+}
+
+#[tokio::test]
+#[ignore="Creates one real private repository and PR with the current gh account for the final challenge; leaves both for manual cleanup"]
+async fn real_github_final_challenge_passes_only_after_merge_and_pull(){
+    use std::time::Duration;
+    use sha2::{Digest,Sha256};
+    let lesson=lesson();let task=lesson.tasks.last().unwrap().clone();
+    assert!(task.git_terminal.as_ref().unwrap().workspace_group.is_empty(),"the challenge starts its own round");
+    let directory=tempfile::tempdir().unwrap();let store=GitPracticeStore::new(directory.path()).unwrap();
+    let practice=store.open("github-pr-final-challenge",task.git_terminal.clone().unwrap()).unwrap();
+    assert!(practice.check_exercise().is_err()||!practice.check_exercise().unwrap().passed,"start state must not pass");
+    let owner=molip_quest::github_player::Github::new().user().unwrap().login;let repository=practice.github_repository_name();
+    let (mut terminal,mut output)=practice.open_terminal().unwrap();
+    let mut buffer=String::new();let mut dsr=0;
+    tokio::time::timeout(Duration::from_secs(30),async {
+        while !buffer.contains("$ "){
+            buffer.push_str(&String::from_utf8_lossy(&output.recv().await.unwrap()));
+            let count=buffer.matches("\x1b[6n").count();if count>dsr{terminal.input("\x1b[1;1R").unwrap();dsr=count;}
+        }
+    }).await.unwrap();
+    let mut observations=vec![];
+    for command in task.solution.lines().filter(|line|!line.trim().is_empty()&&!line.starts_with('#')) {
+        terminal.input(&(command.to_owned()+"\r")).unwrap();
+        let ok=tokio::time::timeout(Duration::from_secs(120),async {
+            loop {
+                if let Some(last)=practice.shell_completions().unwrap().last(){if last.command.trim()==command {break last.success}}
+                if let Ok(Some(bytes))=tokio::time::timeout(Duration::from_millis(100),output.recv()).await{buffer.push_str(&String::from_utf8_lossy(&bytes));let count=buffer.matches("\x1b[6n").count();if count>dsr{terminal.input("\x1b[1;1R").unwrap();dsr=count;}}
+            }
+        }).await.expect("real GitHub command timed out");
+        assert!(ok,"challenge command {command} failed: {buffer}");
+        // Grade at the moments a learner could stop too early: PR open, merged but not pulled.
+        if command.starts_with("gh pr create")||command.starts_with("gh pr merge")||command=="git switch main" {
+            let report=practice.check_exercise().unwrap();
+            assert!(!report.passed,"stopping after {command} must not pass");
+            observations.push(serde_json::json!({"after":command,"passed":false,"failed":report.cases.iter().filter(|c|!c.passed).map(|c|c.input.clone()).collect::<Vec<_>>()}));
+        }
+    }
+    let report=practice.check_exercise().unwrap();
+    assert!(report.passed,"final: {}",serde_json::to_string(&report.cases).unwrap());
+    terminal.shutdown().unwrap();
+    let raw=std::fs::read(concat!(env!("CARGO_MANIFEST_DIR"),"/courses/redesigned/github-pr.json")).unwrap();
+    std::fs::create_dir_all(concat!(env!("CARGO_MANIFEST_DIR"),"/target/final-challenges")).unwrap();
+    std::fs::write(concat!(env!("CARGO_MANIFEST_DIR"),"/target/final-challenges/github-pr.json"),serde_json::to_vec_pretty(&serde_json::json!({
+        "passed":true,"lesson":lesson.id,"revision":lesson.revision,"lesson_sha256":format!("{:x}",Sha256::digest(&raw)),"challenge_task":task.id,
+        "runtime":"real GitHub (gh) + git + bash","start_state_fails":true,"early_stops_rejected":observations,
+        "repository":format!("{owner}/{repository}"),"automatic_deletion":false,"native_ui_verified":false,"voice_listened":false})).unwrap()).unwrap();
+    eprintln!("Final challenge verified; repository retained for manual cleanup: https://github.com/{owner}/{repository}");
 }

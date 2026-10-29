@@ -1,0 +1,69 @@
+{
+  "step": "stp_6367375b-819a-4934-8cc8-2214882a9b50",
+  "sources": {
+    "goal": "public class Main {\n    public static void main(String[] args) {\n        // 가게 문에 붙일 안내 문구예요.\n        System.out.println(\"영업 중\");\n    }\n}\n",
+    "start": "public class Main {\n    public static void main(String[] args) {\n        // 가게 문에 붙일 안내 문구예요.\n        System.out.println(\"점검 중\");\n    }\n}\n",
+    "later": "public class Main {\n    public static void main(String[] args) {\n        // 가게 문에 붙일 안내 문구예요.\n        System.out.println(\"영업 종료\");\n    }\n}\n"
+  },
+  "accept": [
+    {
+      "steps": [
+        "SAVE:goal",
+        "javac Main.java",
+        "java Main"
+      ],
+      "reason": "edit, compile, run the class"
+    },
+    {
+      "steps": [
+        "SAVE:goal",
+        "java Main.java",
+        "javac Main.java",
+        "java Main"
+      ],
+      "reason": "check with the source launcher first"
+    },
+    {
+      "steps": [
+        "javac Main.java",
+        "SAVE:goal",
+        "javac Main.java",
+        "java Main"
+      ],
+      "reason": "an early compile followed by a recompile"
+    }
+  ],
+  "reject": [
+    {
+      "steps": [
+        "SAVE:goal",
+        "java Main.java"
+      ],
+      "reason": "only the source launcher, no class"
+    },
+    {
+      "steps": [
+        "javac Main.java",
+        "SAVE:goal",
+        "java Main"
+      ],
+      "reason": "compiled before editing: the class prints the old text"
+    },
+    {
+      "steps": [
+        "SAVE:goal",
+        "javac Main.java",
+        "java Main",
+        "SAVE:later"
+      ],
+      "reason": "source edited again after compiling"
+    },
+    {
+      "steps": [
+        "javac Main.java",
+        "java Main"
+      ],
+      "reason": "text never changed"
+    }
+  ]
+}

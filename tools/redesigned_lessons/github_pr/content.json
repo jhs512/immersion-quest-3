@@ -308,6 +308,50 @@
           "target": "text:Settings → General → Danger Zone에서 본인이 직접 삭제할 수 있어요."
         }
       ]
+    },
+    {
+      "id": "stp_2d42bbda-b942-4f8a-ba7a-beeceb7e8086",
+      "title": "새 저장소에서 GitHub Flow 전체를 혼자 마치세요",
+      "goal": "자, 마지막 도전이에요. 새 폴더에서 GitHub Flow 전체를 처음부터 혼자 해요. main에는 memo.txt `기본 메모`가 커밋돼 있고, GitHub 저장소와 origin은 아직 없어요. `MQ3_REPO`에는 이번 도전의 새 저장소 이름이 들어 있어요.\n\n끝났을 때 이래야 해요. 본인 계정에 `MQ3_REPO` 이름의 비공개 저장소가 있고 origin이 그곳을 가리켜요. main은 직접 고치지 않고 feature 브랜치에서 바꿔요. feature에서 memo.txt를 `함께 읽는 메모`로 바꿔 커밋하고, feature를 main에 합치는 PR을 만들어 GitHub에서 병합해요. 병합한 기록을 내 컴퓨터의 main으로 받아 끝내요. 명령은 앞 단계에서 쓴 것을 직접 골라 써요.\n\n이 도전은 실제 GitHub에 새 비공개 저장소와 PR을 만들어요. 실제 GitHub 실습이라 중간 초기화는 지원하지 않아요. 앱은 저장소를 지우지 않아요. 끝나면 Settings → General → Danger Zone에서 직접 지울 수 있어요.\n\n**할 일**\n\n1. `MQ3_REPO` 이름으로 비공개 저장소를 만들어 origin으로 연결하고 main을 보내세요.\n2. feature 브랜치에서 memo.txt를 `함께 읽는 메모`로 바꿔 커밋하고 GitHub에 보내세요.\n3. feature를 main에 합치는 PR을 만들고 GitHub에서 병합하세요.\n4. main으로 옮겨 병합한 기록을 받으세요.\n5. `cat memo.txt`로 확인한 뒤 제출하세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "# 저장소를 만들고 main을 보내요.\ngh repo create \"$MQ3_REPO\" --private --source . --remote origin\ngit push -u origin main\n# 변경은 feature에서 해요.\ngit switch -c feature\necho \"함께 읽는 메모\" > memo.txt\ngit add memo.txt\ngit commit -m \"메모 안내 개선\"\ngit push -u origin feature\n# PR을 만들고 병합한 뒤 main으로 받아요.\ngh pr create --base main --head feature --title \"메모 안내 개선\" --body \"메모 문구를 바꿨어요.\"\ngh pr merge --merge\ngit switch main\ngit pull\ncat memo.txt",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "github_pr": "merged",
+        "files": {
+          "memo.txt": "기본 메모\n"
+        },
+        "setup": []
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 새 실습 폴더에서 GitHub Flow 전체를 혼자 처음부터 끝까지 해요.",
+          "target": "text:새 폴더에서 GitHub Flow 전체를 처음부터 혼자 해요."
+        },
+        {
+          "action": "say",
+          "text": "먼저 MQ3_REPO 이름으로 본인 계정에 비공개 저장소를 만들고 origin으로 연결해요. 그다음 main을 보내야 PR이 비교할 기준이 생겨요.",
+          "target": "text:main은 직접 고치지 않고 feature 브랜치에서 바꿔요."
+        },
+        {
+          "action": "say",
+          "text": "변경은 feature 브랜치에서 커밋하고 feature도 GitHub에 보내요. PR은 feature를 main에 합치자는 요청이에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "PR을 병합하면 GitHub의 main만 바뀌어요. 내 main으로 받아야 끝나요.",
+          "target": "text:병합한 기록을 내 컴퓨터의 main으로 받아 끝내요."
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. main에서 바로 고쳐 push하면 PR이 없어서 검토 기록이 남지 않아요.",
+          "target": "text:main은 직접 고치지 않고 feature 브랜치에서 바꿔요."
+        }
+      ]
     }
   ],
   "presentation": {
@@ -335,6 +379,12 @@
           "PR 요청·변경 검토·병합을 구분해요."
         ],
         "premise": "GitHub에 main과 feature를 보낸 상태예요. 그 차이로 실제 PR을 만들어요."
+      },
+      "unt_6baf8f39-2642-4cdb-ad45-bef5d3797b7d": {
+        "objectives": [
+          "GitHub Flow 전체를 새 저장소에서 혼자 마쳐요."
+        ],
+        "premise": "기본 메모만 커밋된 새 실습 폴더예요. 앞 단계의 저장소와 상관없이 새 GitHub 저장소로 바로 풀 수 있어요."
       }
     },
     "learning_strategy": "Git 원리는 앞 수업에서 익혀요. 이 수업에서는 본인 비공개 저장소와 PR 하나로 생성·전송·비교·병합을 하나씩 확인해요."

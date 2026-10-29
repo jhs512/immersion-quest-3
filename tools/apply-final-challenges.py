@@ -58,7 +58,13 @@ def spec_for(key):
     module_spec = importlib.util.spec_from_file_location('final_' + key.replace('-', '_'), path)
     module = importlib.util.module_from_spec(module_spec)
     module_spec.loader.exec_module(module)
-    spec = module.SPEC
+    spec = dict(module.SPEC)
+    # Terminal challenges (Bash, Vim, Java launcher, Git) carry real-runtime cases for
+    # examples/validate_final_terminal_challenges.rs instead of lesson-cases.
+    if getattr(module, 'CASES', None) is not None:
+        spec['terminal_cases'] = dict(step=spec['step']['id'], sources=getattr(module, 'SOURCES', {}),
+                                      accept=[dict(steps=s, reason=r) for s, r in module.CASES['accept']],
+                                      reject=[dict(steps=s, reason=r) for s, r in module.CASES['reject']])
     if spec['key'] != key:
         raise ValueError(f'{path}: key mismatch')
     return spec
@@ -142,6 +148,10 @@ def apply(spec):
             if kept or added:
                 cases[field] = kept + added
         dump(cases_path, cases)
+    if spec.get('terminal_cases'):
+        path = ROOT / 'tests/final-challenge-cases' / f'{key}.json'
+        path.parent.mkdir(parents=True, exist_ok=True)
+        dump(path, spec['terminal_cases'])
     return folder, prd, content
 
 

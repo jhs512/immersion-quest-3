@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_f08c6a95-6c9a-4b79-b7d6-d8c87d056f9c",
-  "revision": "git-branch-10",
+  "revision": "git-branch-11",
   "title": "Git · 브랜치 기본: 작업을 나누고 합쳐요",
   "description": "여러분은 메모 서비스 팀의 새 팀원이에요. 팀의 안내문을 맡았어요. 메모 안내와 문의 안내를 차례로 완성해요.",
   "objectives": [
@@ -118,6 +118,22 @@
               "id": "stp_3bf9f258-fb11-44a1-a6a8-a5cf6cbf1293",
               "objectives": [
                 "병합은 지금 서 있는 브랜치를 바꿔요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_c094c36e-651f-4558-b2cd-d57d5cdb1ff6",
+          "title": "마지막 도전",
+          "objectives": [
+            "두 기능의 브랜치 흐름을 스스로 이어 가요."
+          ],
+          "premise": "main에 기본 안내 한 줄만 기록된 새 저장소예요. 앞 단계와 상관없이 바로 풀 수 있어요.",
+          "steps": [
+            {
+              "id": "stp_2083b3dd-20f1-4b1c-9937-d2f70bfb6a1b",
+              "objectives": [
+                "병합된 main에서 다음 작업을 시작하는 흐름을 스스로 만들어요."
               ]
             }
           ]
@@ -2399,6 +2415,254 @@
         {
           "action": "say",
           "text": "조심하세요. merge 뒤에 적은 브랜치가 바뀌는 게 아니에요. 지금 있는 브랜치가 바뀌어요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    },
+    {
+      "id": "stp_2083b3dd-20f1-4b1c-9937-d2f70bfb6a1b",
+      "title": "두 기능을 브랜치로 차례로 개발하세요",
+      "goal": "자, 마지막 도전이에요. 기능 두 개를 차례로 개발해요. 지금은 main에 guide.txt `안내: 기본 안내` 한 줄만 기록돼 있어요.\n\n메모 기능은 memo 브랜치에서 `메모: 메모를 남겨요` 줄을 더해 커밋하고 main에 합쳐요. 검색 기능은 메모 기능이 반영된 main에서 시작해야 해요. search 브랜치에서 `검색: 메모를 찾아요` 줄을 더해 커밋하고, main에는 아직 합치지 않아요. 끝났을 때 서 있는 브랜치는 search예요. 명령과 커밋 설명은 직접 정해요.\n\n**할 일**\n\n1. memo 브랜치를 만들어 메모 줄을 커밋하세요.\n2. main에서 memo를 합치세요.\n3. 합쳐진 main에서 search 브랜치를 만들어 검색 줄을 커밋하세요.\n4. search에 서 있는 채로 제출하세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "initial_history": "empty",
+        "files": {
+          "guide.txt": "안내: 기본 안내\n"
+        },
+        "setup": [
+          {
+            "kind": "git",
+            "args": [
+              "add",
+              "guide.txt"
+            ]
+          },
+          {
+            "kind": "git",
+            "args": [
+              "commit",
+              "-m",
+              "기본 안내"
+            ]
+          }
+        ],
+        "state_goal": {
+          "current_branch": "search",
+          "commit_count": 3,
+          "parent_count": 1,
+          "clean": true,
+          "merge_in_progress": false,
+          "references": {
+            "refs/heads/main": "HEAD^",
+            "refs/heads/memo": "HEAD^",
+            "refs/heads/search": "HEAD"
+          },
+          "head_files": {
+            "guide.txt": "안내: 기본 안내\n메모: 메모를 남겨요\n검색: 메모를 찾아요\n"
+          },
+          "parent_files": {
+            "guide.txt": "안내: 기본 안내\n메모: 메모를 남겨요\n"
+          },
+          "working_files": {
+            "guide.txt": "안내: 기본 안내\n메모: 메모를 남겨요\n검색: 메모를 찾아요\n"
+          }
+        }
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "두 기능을 브랜치로 차례로 개발하는 문제예요.",
+          "target": "text:두 기능을 브랜치로 차례로 개발하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "마지막 도전이에요. 메모 기능은 memo 브랜치에서 만들어 main에 반영하고, 검색 기능은 반영된 main에서 search 브랜치로 시작해요.",
+          "target": "text:검색 기능은 메모 기능이 반영된 main에서 시작해야 해요."
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "branch",
+            "memo"
+          ],
+          "say": "memo 브랜치를 만들어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "출력은 없어요. memo가 지금 main과 같은 커밋을 가리켜요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "switch",
+            "memo"
+          ],
+          "say": "memo로 옮겨 가요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "Switched to branch 'memo'가 나와요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "echo \"메모: 메모를 남겨요\" >> guide.txt",
+          "say": "메모 안내 한 줄을 더해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "출력 없이 guide.txt가 두 줄이 됐어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "add",
+            "guide.txt"
+          ],
+          "say": "두 줄을 준비 영역에 담아요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "출력은 없어요. 메모 줄이 준비됐어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "commit",
+            "-m",
+            "메모 기능"
+          ],
+          "say": "memo 브랜치에 커밋해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "memo 브랜치에만 새 기록이 생겼어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "switch",
+            "main"
+          ],
+          "say": "main으로 돌아가요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "main의 guide.txt는 아직 한 줄이에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "merge",
+            "memo"
+          ],
+          "say": "memo를 main에 합쳐요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "Fast-forward예요. main이 메모 기능 커밋으로 옮겨 갔어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "branch",
+            "search"
+          ],
+          "say": "합쳐진 main에서 search 브랜치를 만들어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "search는 지금 main과 같은 커밋에서 출발해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "switch",
+            "search"
+          ],
+          "say": "search로 옮겨 가요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "Switched to branch 'search'가 나와요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "echo \"검색: 메모를 찾아요\" >> guide.txt",
+          "say": "검색 안내 한 줄을 더해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "guide.txt가 세 줄이 됐어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "add",
+            "guide.txt"
+          ],
+          "say": "세 줄을 담아요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "출력은 없어요. 검색 줄이 준비됐어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "commit",
+            "-m",
+            "검색 기능"
+          ],
+          "say": "search에 커밋해요. main에는 아직 합치지 않아요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "search만 한 커밋 앞서 있어요. main과 memo는 메모 기능 커밋에 있어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "git_command",
+          "args": [
+            "branch"
+          ],
+          "say": "브랜치 목록을 봐요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "별표가 search에 있어요. memo, main도 함께 보여요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 병합하기 전에 search를 만들면 메모 안내가 없는 옛 main에서 출발해요.",
           "target": "#git-demo-terminal"
         }
       ]

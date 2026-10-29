@@ -8,8 +8,8 @@ fn snapshot(practice:&GitPractice)->Vec<String> {
 async fn advanced_branch_steps_preserve_history_resolve_real_conflicts_and_reset_independently() {
     let advanced_course=CourseManifest::parse(include_str!("fixtures/player-pilot/굳/course.json")).unwrap();
     let advanced=Lesson::parse(include_str!("../courses/redesigned/git-branch-advanced.json"),&advanced_course.lessons[0]).unwrap();
-    assert_eq!(advanced.tasks.len(),5);
-    let tasks=advanced.tasks.iter().collect::<Vec<_>>();
+    assert_eq!(advanced.tasks.len(),6);// The last step is the separately started final challenge (tests/final_terminal_challenges.rs).
+    let tasks=advanced.tasks[..5].iter().collect::<Vec<_>>();
     let solutions:Vec<Vec<Vec<&str>>>=vec![
         vec![vec!["merge","--no-edit","feature"]],vec![vec!["merge","--no-edit","feature"]],vec![],
         vec![vec!["restore","--source=feature","--worktree","--","guide.txt"],vec!["add","guide.txt"]],vec![vec!["commit","--no-edit"]],
