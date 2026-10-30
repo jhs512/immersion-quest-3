@@ -359,3 +359,12 @@ test('owner readings: the parent folder .. is 점점 and the option -a is 대시
     ['`cd ../practice`', '씨디 ../practice'], ['`ls -al`', '엘에스 -al'], ['`ls --all`', '엘에스 --all'], ['1..10', '1..10'], ['그리고...', '그리고...'], ['5 - 3', '5 빼기 3'],
   ]);
 });
+
+test('a container image with a version tag names the image as the word, in prose as in code; host:port stays', () => {
+  cases([
+    ['nginx:1.28-alpine에서 콜론 뒤는 태그예요.', '엔진엑스 콜론 1.28-alpine에서 콜론 뒤는 태그예요.'],
+    ['`docker pull nginx:1.28-alpine`', '도커 pull 엔진엑스 콜론 1.28-alpine'],
+    ['python:3.12-slim 이미지', '파이썬 콜론 3.12-slim 이미지'],
+    ['localhost:8080', 'localhost 콜론 8080'], ['redis:7', 'redis 콜론 7'],
+  ]);
+});

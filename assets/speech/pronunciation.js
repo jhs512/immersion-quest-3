@@ -530,6 +530,10 @@
   // ../memo.txt stays as written, like every path) and the option `-a` is said "대시에이" (ls -a,
   // git commit -a). Only the standalone tokens: a range such as 1..10, an ellipsis ... and longer
   // options (-al, --all) keep their other readings. Runs before the symbol rules.
+  // A container image with a version tag (nginx:1.28-alpine, python:3.12-slim) names the image like the word on its
+  // own, as the same reference does in a code span; host:port (localhost:8080) and other name:value pairs stay.
+  const imageNameText = text => text.replace(/(?<![\w./:@-])([a-z][a-z0-9-]*):(?=\d+(?:\.\d+)*[.-][a-z0-9.-]+)/g,
+    (match, word) => (has(strictTable, word) ? strictTable[word] + ' 콜론 ' : match));
   const ownerTokenText = text => text
     .replace(/(?<![.\w\/])\.\.(?![.\w\/\\])/g, '점점' + JOSA_MARK)
     .replace(/(?<![\w-])-a(?![\w-])/g, '대시에이' + JOSA_MARK);
@@ -558,7 +562,7 @@
   }
   function proseSpeechText(text, shellHint) {
     return outsideUrls(unescapeMarkdown(decodeEntities(text)), part => {
-      const words = strictText(subcommandText(javaClassText(vimText(ownerTokenText(part)))));
+      const words = strictText(subcommandText(javaClassText(vimText(ownerTokenText(imageNameText(part))))));
       return termText(fileSpeechText(brandText(mathSpeechText(words, { shellHint }))));
     });
   }

@@ -92,32 +92,34 @@ html:has(.repository-player,.repository-study)::-webkit-scrollbar-corner,.reposi
 .repository-player pre,.repository-study .problem-pane pre,.repository-study .repository-reading pre {background:var(--panel-2);color:var(--ink);border:1px solid var(--rule);border-radius:var(--radius)}
 .repository-player .card,.repository-study .card {background:var(--panel);border:1px solid var(--rule);border-radius:var(--radius);box-shadow:none}
 
-/* Signage band: the header row becomes a full-bleed navy band, same height as before */
+/* Signage band: the header row is a full-bleed band with the course line under it, same height as before.
+   밝게 draws it as paper (owner, 2026-10-30: 「전반적으로 다 라이트여야 되는 거야. 라이트 모드는」); 어둡게 keeps the navy
+   band. Its colours come from the --band-* tokens set per look at the end of this file. */
 .repository-player>.repository-header,.repository-study>.repository-header {
- background:var(--navy);color:var(--navy-ink);border:0;border-bottom:3px solid var(--route);
- --ui-text:var(--navy-ink);--ui-muted:var(--navy-muted);--ui-border:#3c5175;--ui-hover:var(--navy-2);--ui-focus:var(--focus-on-navy);
+ background:var(--band);color:var(--band-ink);border:0;border-bottom:3px solid var(--route);
+ --ui-text:var(--band-ink);--ui-muted:var(--band-muted);--ui-border:var(--band-rule);--ui-hover:var(--band-hover);--ui-focus:var(--band-focus);
 }
 .repository-player>.repository-header {margin:-24px -24px 24px;padding:10px 24px;min-height:52px;box-sizing:border-box}
-.repository-player>.repository-header>h1 {display:flex;align-items:center;gap:10px;margin:0;font-size:17px;font-weight:750;letter-spacing:0;color:#fff}
-.repository-player>.repository-header>h1::before {content:"";width:14px;height:14px;border-radius:50%;border:3px solid var(--route);background:#fff;box-sizing:border-box}
+.repository-player>.repository-header>h1 {display:flex;align-items:center;gap:10px;margin:0;font-size:17px;font-weight:750;letter-spacing:0;color:var(--band-strong)}
+.repository-player>.repository-header>h1::before {content:"";width:14px;height:14px;border-radius:50%;border:3px solid var(--route);background:var(--band-ring);box-sizing:border-box}
 .repository-study>.repository-header {padding-top:5px;padding-bottom:5px}
 .repository-study.is-task>.repository-header {margin:-12px -16px 0;padding:4px 16px 3px;min-height:42px;box-sizing:border-box}
 .repository-study:not(.is-task)>.repository-header {margin:-16px -24px 12px;padding:5px 24px}
-.repository-study>.repository-header>h1 {color:#fff;font-weight:700}
+.repository-study>.repository-header>h1 {color:var(--band-strong);font-weight:700}
 .repository-player>.repository-header :is(button,summary,.window-fullscreen-control),
 .repository-study>.repository-header :is(button,summary,.window-fullscreen-control) {
- background:transparent;color:var(--navy-muted);border-color:#3c5175}
+ background:transparent;color:var(--band-muted);border-color:var(--band-rule)}
 .repository-player>.repository-header :is(button,summary,.window-fullscreen-control):hover:not(:disabled),
-.repository-study>.repository-header :is(button,summary,.window-fullscreen-control):hover:not(:disabled) {background:var(--navy-2);color:#fff;border-color:#5a6f93}
+.repository-study>.repository-header :is(button,summary,.window-fullscreen-control):hover:not(:disabled) {background:var(--band-hover);color:var(--band-strong);border-color:var(--band-hover-rule)}
 .repository-player>.repository-header :is(button,summary,a,input):focus-visible,
-.repository-study>.repository-header :is(button,summary,a,input):focus-visible {outline-color:var(--focus-on-navy)}
-.repository-study>.repository-header>.course-back {color:#fff;border-color:transparent;padding-inline:8px}
-.repository-study>.repository-header>.lesson-info-trigger {font-feature-settings:"tnum" 1;display:inline-flex;align-items:center;gap:6px;color:#fff;border-color:#3c5175;font-variant-numeric:tabular-nums}
-.lesson-info-trigger .info-icon {color:var(--navy-muted)}
-.repository-tools .repository-account>span,.repository-tools .lesson-account {color:var(--navy-muted);font-size:12px}
-.repository-player>.repository-header .lesson-share,.repository-study>.repository-header .lesson-share {color:var(--navy-muted)}
-.repository-player>.repository-header .app-update-settings.has-update>summary {color:#fff;border-color:var(--admin-fill)}
-.course-refresh-status {color:var(--navy-muted)}
+.repository-study>.repository-header :is(button,summary,a,input):focus-visible {outline-color:var(--band-focus)}
+.repository-study>.repository-header>.course-back {color:var(--band-strong);border-color:transparent;padding-inline:8px}
+.repository-study>.repository-header>.lesson-info-trigger {font-feature-settings:"tnum" 1;display:inline-flex;align-items:center;gap:6px;color:var(--band-strong);border-color:var(--band-rule);font-variant-numeric:tabular-nums}
+.lesson-info-trigger .info-icon {color:var(--band-muted)}
+.repository-tools .repository-account>span,.repository-tools .lesson-account {color:var(--band-muted);font-size:12px}
+.repository-player>.repository-header .lesson-share,.repository-study>.repository-header .lesson-share {color:var(--band-muted)}
+.repository-player>.repository-header .app-update-settings.has-update>summary {color:var(--band-strong);border-color:var(--admin-fill)}
+.course-refresh-status {color:var(--band-muted)}
 
 /* Menus and popovers drop from the band onto light paper */
 .repository-tools .content-update-menu,.repository-tools .app-update-menu,.repository-tools .auto-run-menu {
@@ -372,7 +374,7 @@ html:has(.repository-player,.repository-study)::-webkit-scrollbar-corner,.reposi
 .repository-study .auto-run-control .auto-run-chip>span {flex:none}
 .repository-study .auto-run-state {width:8px;height:8px;border-radius:50%;background:#2b1a00}
 .repository-study .auto-run-state.paused {border-radius:1px;width:8px;height:8px;background:linear-gradient(90deg,#2b1a00 0 35%,transparent 35% 65%,#2b1a00 65%)}
-.repository-study .repository-header .auto-run-icon {display:inline-grid;place-items:center;color:#fff;border-color:#5a6f93}
+.repository-study .repository-header .auto-run-icon {display:inline-grid;place-items:center;color:var(--band-strong);border-color:var(--band-hover-rule)}
 .repository-study .repository-header .auto-run-icon.danger {background:#b42318;border-color:#b42318;color:#fff}
 .repository-study .repository-header .auto-run-icon.danger:hover:not(:disabled) {background:#912018}
 .repository-study .auto-run-details>summary.auto-run-chip {gap:6px;padding:0 10px;background:var(--admin-soft);color:var(--admin)}
@@ -669,8 +671,8 @@ html[data-theme-choice="dark"] {--challenge-ink:#e2a8f2;--challenge-fill:#a64ccc
 .account-reset-dialog .account-reset button.account-reset-confirm {border-color:#b42318;background:#b42318;color:#fff}
 .account-reset-dialog .account-reset button.account-reset-confirm:hover:not(:disabled) {background:#912018}
 .account-reset-dialog .account-reset .account-reset-error {color:var(--err)!important}
-/* On the navy band the destructive opener keeps its red, in a tone readable on navy (>=6:1). */
-:is(.repository-player,.repository-study)>.repository-header .repository-tools .repository-account>button.account-reset-open {border-color:var(--err-on-navy);color:var(--err-on-navy)}
+/* On the band the destructive opener keeps its red, in a tone readable on the band of each look. */
+:is(.repository-player,.repository-study)>.repository-header .repository-tools .repository-account>button.account-reset-open {border-color:var(--err-on-band);color:var(--err-on-band)}
 
 /* === Code wells per theme ===
    Editor (CodeMirror reads these through var()), terminal (terminal.js reads them on mount and
@@ -742,9 +744,9 @@ html[data-theme-choice="dark"] {--well-inset:#0c131e;--well-edge:#0c131e;--well-
    controls keep the band's readable look; only the check or the setup card is centred in the space below
    (2026-10-30 user report: the whole column, header included, sat mid-screen with faint buttons). */
 .repository-player.needs-gh {justify-content:flex-start;align-items:stretch;padding:0 24px 24px;gap:0}
-.repository-player.needs-gh>.repository-header {background:var(--navy);margin:0 -24px;padding:0 24px;height:50px;min-height:0;
+.repository-player.needs-gh>.repository-header {background:var(--band);margin:0 -24px;padding:0 24px;height:50px;min-height:0;
  border-bottom:3px solid var(--route);justify-content:space-between;align-items:center;text-align:start;width:auto;box-sizing:border-box}
-.repository-player.needs-gh>.repository-header>h1 {color:#fff;font-size:17px}
+.repository-player.needs-gh>.repository-header>h1 {color:var(--band-strong);font-size:17px}
 .repository-player.needs-gh>:is(.gh-checking,.gh-setup-card) {margin:auto;align-self:center}
 .repository-player.needs-gh>.gh-checking {text-align:center;padding:24px 0}
 .repository-player.needs-gh>.gh-checking h2 {color:var(--ink)}
@@ -787,3 +789,31 @@ html[data-theme-choice="dark"] {--well-inset:#0c131e;--well-edge:#0c131e;--well-
 .repository-study .coding-pane .code-flow-hint {display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:6px 0 8px;font-size:13px;line-height:1.6;color:var(--well-muted)}
 .repository-study .coding-pane .code-flow-hint .code-flow-hint-open {min-height:30px;padding:3px 10px;font-size:13px}
 .repository-study .coding-pane .code-flow-hint kbd {font:600 12px/1.4 'JetBrains Mono',Consolas,monospace;padding:1px 6px;border:1px solid var(--well-rule);border-radius:4px;background:var(--well-inset);color:var(--well-ink)}
+
+/* Band tokens: 밝게 paper band (the course line under it stays), 어둡게 the navy band it always had. */
+:root {--band:#ffffff;--band-ink:#152233;--band-strong:#152233;--band-muted:#4b5b6d;--band-rule:#c3ccd7;--band-hover:#e9eef4;--band-hover-rule:#7d8a9c;--band-focus:#1f5fd6;--band-ring:#ffffff;--err-on-band:#b42318;}
+html[data-theme-choice="dark"] {--band:var(--navy);--band-ink:#ffffff;--band-strong:#ffffff;--band-muted:#b6c3da;--band-rule:#3c5175;--band-hover:var(--navy-2);--band-hover-rule:#5a6f93;--band-focus:#8fb8ff;--band-ring:#ffffff;--err-on-band:#ff9d94;}
+@media (prefers-color-scheme:dark) {
+ html:not([data-theme-choice="light"]):not([data-theme-choice="dark"]) {--band:var(--navy);--band-ink:#ffffff;--band-strong:#ffffff;--band-muted:#b6c3da;--band-rule:#3c5175;--band-hover:var(--navy-2);--band-hover-rule:#5a6f93;--band-focus:#8fb8ff;--band-ring:#ffffff;--err-on-band:#ff9d94;}
+}
+/* Floating notices take the band surface too: paper in 밝게, navy in 어둡게 (the same 「전반적으로 라이트」 request). */
+.molip-toast {background:var(--band);color:var(--band-strong);border-color:var(--band-rule);box-shadow:var(--shadow-menu)}
+.molip-toast[data-kind="success"] {background:var(--band);color:var(--band-strong);border-color:var(--route)}
+.molip-toast[data-kind="error"] {background:var(--err-soft);color:var(--ink);border-color:var(--err)}
+.update-banner {background:var(--band)!important;color:var(--band-strong)!important;border:1px solid var(--band-rule)!important;box-shadow:var(--shadow-menu)}
+.update-banner button {background:var(--panel);color:var(--ink);border:1px solid var(--rule-strong)}
+.update-banner button:hover:not(:disabled) {background:var(--hover)}
+.agent-caption {background:var(--band)!important;color:var(--band-strong)!important;border:1px solid var(--voice)!important;box-shadow:var(--shadow-menu)!important}
+.repository-player>.repository-status:not(:empty) {background:var(--band);color:var(--band-strong);border-color:var(--band-rule)}
+
+/* Legacy fills behind header controls (app settings box, auto-run strip) were dark on purpose for the navy band;
+   on the 밝게 paper band they follow the band tokens. 어둡게 keeps the old values exactly. */
+:root {--band-box:transparent;--band-box-rule:transparent;--band-auto:var(--admin-soft);--band-auto-stopped:var(--err-soft);--band-auto-finished:var(--ok-soft)}
+html[data-theme-choice="dark"] {--band-box:#1c3346;--band-box-rule:#456;--band-auto:#3a2c0c;--band-auto-stopped:#3a1a14;--band-auto-finished:#123224}
+@media (prefers-color-scheme:dark) {
+ html:not([data-theme-choice="light"]):not([data-theme-choice="dark"]) {--band-box:#1c3346;--band-box-rule:#456;--band-auto:#3a2c0c;--band-auto-stopped:#3a1a14;--band-auto-finished:#123224}
+}
+.repository-tools .app-update-settings {background:var(--band-box);border-color:var(--band-box-rule)}
+.repository-study .auto-run-control {background:var(--band-auto)}
+.repository-study .auto-run-control[data-state="stopped"] {background:var(--band-auto-stopped)}
+.repository-study .auto-run-control[data-state="finished"] {background:var(--band-auto-finished)}
