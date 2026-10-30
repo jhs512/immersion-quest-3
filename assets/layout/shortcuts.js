@@ -11,6 +11,7 @@
     previous: {label: `${MOD}+←`, aria: `${mac ? 'Meta' : 'Control'}+ArrowLeft`, title: '이전 스텝'},
     next: {label: `${MOD}+→`, aria: `${mac ? 'Meta' : 'Control'}+ArrowRight`, title: '다음 스텝'},
     help: {label: `${MOD}+/`, aria: `${mac ? 'Meta' : 'Control'}+/`, title: '단축키 안내'},
+    codeFlow: {label: `${MOD}+Shift+F`, aria: `${mac ? 'Meta' : 'Control'}+Shift+F`, title: '코드 흐름 보기 · 지금 편집기 코드를 한 줄씩 실행하며 변수·호출을 봐요'},
     voiceSlower: {label: `${MOD}+${mac ? 'Option' : 'Alt'}+↓`, title: 'AI 음성 느리게'},
     voiceFaster: {label: `${MOD}+${mac ? 'Option' : 'Alt'}+↑`, title: 'AI 음성 빠르게'},
   };
@@ -48,7 +49,7 @@
     return true;
   }
   const SHEET = [
-    ['실행과 제출', [[bindings.run.label, '코드를 실행해 결과 확인'], [bindings.submit.label, '현재 답안 제출'], ['Enter', '문제 영역에서 제출 · 통과 창에서 다음으로 이동'], ['터미널의 Enter', '현재 명령 실행 · Vim 명령 입력']]],
+    ['실행과 제출', [[bindings.run.label, '코드를 실행해 결과 확인'], [bindings.submit.label, '현재 답안 제출'], [bindings.codeFlow.label, '코드 흐름 보기: 지금 편집기 코드를 한 줄씩 실행하며 변수·호출 보기 (버튼이 있는 문제에서만)'], ['Enter', '문제 영역에서 제출 · 통과 창에서 다음으로 이동'], ['터미널의 Enter', '현재 명령 실행 · Vim 명령 입력']]],
     ['스텝 이동', [[`${bindings.previous.label}  ${bindings.next.label}`, '이전 · 다음 스텝'], [`${MOD}+↑  ${MOD}+↓`, '이전 · 다음 단원 (단원 이동 화면)'], [`${MOD}+K`, '수업 목차 (목차가 있는 화면)'], [`${MOD}+I`, 'AI 패널 (조교가 있는 화면)']]],
     ['해설과 화면', [[bindings.voiceSlower.label, 'AI 음성 느리게 (입력 중·팝업에서도 사용)'], [bindings.voiceFaster.label, `AI 음성 빠르게 (${globalThis.molipVoice ? molipVoice.RATES[0] + '~' + molipVoice.RATES[molipVoice.RATES.length - 1] : '0.75~3'}배, 설정 유지)`], ['Space', '해설 일시정지 · 재개'], ['Esc', '해설 정지 · 열린 안내 닫기'], [mac ? '⌃⌘F' : 'F11', '전체 화면'], [bindings.help.label, '이 안내 열기 · 닫기']]],
     ['신고', [['Ctrl+Alt+Shift+B', '앱 오류 신고 · 별도 네이티브 창'], ['Ctrl+Alt+Shift+P', '현재 수업의 문제 신고 (Mac: Alt는 Option)']]],
@@ -158,6 +159,12 @@
       event.preventDefault(); event.stopPropagation(); toggleFullscreen(); return;
     }
     const mod = mac ? event.metaKey : event.ctrlKey;
+    // 코드 흐름 보기: works from the editor like run/submit; only where the step offers the button. While a run or
+    // narration keeps it disabled the key does nothing (and is still consumed so the editor does not act on it).
+    if (mod && event.shiftKey && !event.altKey && event.code === 'KeyF' && !(mac && event.ctrlKey)) {
+      const flow = document.querySelector('[data-shortcut-action="codeFlow"]');
+      if (flow) { event.preventDefault(); event.stopPropagation(); if (!flow.disabled) flow.click(); return; }
+    }
     if (event.key === 'Enter' && mod && !event.altKey) {
       // No retries, waiting queue or run-then-submit shortcut: disabled means no action.
       const label = event.shiftKey ? '제출' : '코드 실행';

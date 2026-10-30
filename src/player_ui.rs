@@ -929,6 +929,10 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     let review_key=molip_quest::drafts::repository_scope(&ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},StudyMode::Review,&task.id);
     let initial=use_hook(||molip_quest::drafts::load(&key).ok().flatten().or_else(||molip_quest::drafts::load(&review_key).ok().flatten()).or_else(||molip_quest::drafts::load(&previous_key).ok().flatten()).map(|d|d.code).unwrap_or_else(||task.starter_code.clone()));
     let has_example=task.has_runnable_example();
+    // 코드 흐름 보기 is offered only where this app can trace the step (Java, Python; C on Windows).
+    let code_flow_ready=task.code_flow&&(matches!(task.language,repository_course::TaskLanguage::Java|repository_course::TaskLanguage::Python)||(cfg!(windows)&&task.language==repository_course::TaskLanguage::C))&&task.git_terminal.is_none();
+    // The shortcut as the shared policy shows it (assets/layout/shortcuts.js: Mod = ⌘ on macOS, Ctrl elsewhere).
+    let code_flow_key=if cfg!(target_os="macos"){"⌘+Shift+F"}else{"Ctrl+Shift+F"};
     let initial_workspace=crate::explanation_session::TaskWorkspace::new(initial.clone(),task.example_for_answer(&initial).unwrap_or_default(),task.tests.first().map(|case|case.input.clone()).unwrap_or_default());
     let (workspace,mut explanation_session)=crate::explanation_session::use_workspace(initial_workspace);
     let mut code=workspace.map_mut(|state|&state.code,|state|&mut state.code);
@@ -1227,8 +1231,8 @@ if let Some(start)=autostart {
                     // grades, records progress or changes the editor; closing returns to the same screen.
                     // A narration's `code_flow` action presses it too (the teacher's code, as its 코드 실행
                     // runs it); the explanation session already blocks the learner's own clicks meanwhile.
-                    if task.code_flow&&(matches!(task.language,repository_course::TaskLanguage::Java|repository_course::TaskLanguage::Python)||(cfg!(windows)&&task.language==repository_course::TaskLanguage::C))&&task.git_terminal.is_none() {
-                    button {class:"code-flow-open",title:"지금 편집기의 코드를 한 줄씩 실행하며 호출 스택·변수·객체를 봐요. 채점과는 별개예요.",disabled:busy(),onclick:{let python=task.language==repository_course::TaskLanguage::Python;let c=task.language==repository_course::TaskLanguage::C;let files=task.files.clone();move |_|{
+                    if code_flow_ready {
+                    button {class:"code-flow-open","data-shortcut-action":"codeFlow",title:"지금 편집기의 코드를 한 줄씩 실행하며 호출 스택·변수·객체를 봐요. 채점과는 별개예요.",disabled:busy(),onclick:{let python=task.language==repository_course::TaskLanguage::Python;let c=task.language==repository_course::TaskLanguage::C;let files=task.files.clone();move |_|{
                         let source=if has_example{example_source()}else{code()};let input=input();let files=files.clone();
                         spawn(async move {
                             let mut opened=document::eval("dioxus.send(window.mqCodeFlow?window.mqCodeFlow.loading():-1);");
@@ -1341,6 +1345,16 @@ if let Some(start)=autostart {
                         div {strong {if feedback()=="incorrect"{"제출 실패 · 다시 풀어보세요"}else if feedback()=="passed"{"검사를 통과했어요"}else if feedback()=="run-error"{"코드 실행에 실패했어요"}else{"검사를 마치지 못했어요"}}
                             p {if feedback()=="incorrect" {if task.interaction.is_some(){"선택한 답과 문제의 조건을 비교한 뒤 다시 제출하세요."}else if task.git_terminal.is_some(){"아래 검사에서 아직 충족하지 못한 조건을 확인하세요."}else{"아래 검사에서 예상값과 실제 결과를 비교한 뒤 코드를 수정하세요."}}else if feedback()=="passed"{"현재 답안이 검사 조건을 만족해요."}else{"아래 오류 내용을 확인한 뒤 다시 시도하세요."}}
                         }
+                    }
+                }
+                // After a run, the same entry right where the learner reads the result: the button above is easy
+                // to miss once the eyes are on the output. It traces the code now in the editor, not a stored run.
+                if code_flow_ready&&matches!(execution_state(),"finished"|"failed")&&!narrating() {
+                    p {class:"code-flow-hint",
+                        "지금 편집기의 코드가 한 줄씩 어떻게 실행되는지, 변수와 호출이 어떻게 바뀌는지 볼 수 있어요. "
+                        button {r#type:"button",class:"code-flow-hint-open",disabled:busy(),onclick:move |_|{document::eval("document.querySelector('.code-flow-open:not(:disabled)')?.click()");},"코드 흐름 보기"}
+                        " "
+                        kbd {"{code_flow_key}"}
                     }
                 }
                 p {class:"execution-status",role:"status",aria_live:"polite",
