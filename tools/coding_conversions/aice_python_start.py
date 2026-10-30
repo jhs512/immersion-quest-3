@@ -135,3 +135,30 @@ SPECS = [
          reject=[([['count = len(minutes)\n', 'count = 4\n']], 'Typing the count'), ([['count = len(minutes)\n', 'count = len(minutes) - 1\n']], 'Last position instead of count')],
          accept=[([['count = len(minutes)\n', 'count = sum(1 for _ in minutes)\n']], 'Counting by iterating')]),
 ]
+
+
+# ---- 2026-10-30: the first output field becomes a coding step (user decision) --------------------------
+from _kit import code_step
+
+s1 = ('# print는 괄호 안의 값을 화면에 표시해요.\nprint(12)\n# 오늘 둘째 배송 시간이에요. minutes라는 이름을 붙였어요.\nminutes = 30\n'
+      '# 이 주석 아래에 print로 minutes의 값을 화면에 표시하세요.\n')
+s1_solution = s1 + '# 이름 minutes에 연결된 값을 괄호 안에 넣어 표시해요.\nprint(minutes)\n'
+n1 = (Script(s1)
+      .say('print는 괄호 안의 값을 결과 창에 보여 줘요. 둘째 배송 시간도 print로 표시해야 해요.', 'text:주석 아래에 print로 minutes의 값을 화면에 표시하세요.')
+      .run('print(12)')
+      .say('12만 나와요. 아직 minutes를 표시하는 줄이 없어요.', 'output')
+      .patch('# 이 주석 아래에 print로 minutes의 값을 화면에 표시하세요.\n', '# 이 주석 아래에 print로 minutes의 값을 화면에 표시하세요.\nprint(minutes)\n', '주석 아래에 print(minutes)를 써요.')
+      .run('print(12)', 'print(minutes)')
+      .say('12 다음 줄에 30이 나와요. print 한 줄마다 결과가 한 줄씩 나와요.', 'output')
+      .say('조심하세요. print 없이 minutes만 적으면 결과 창에 아무것도 나오지 않아요. 보여 주려면 print로 감싸요.', 'code:print(minutes)'))
+
+SPECS += [
+    code_step('stp_25ab6ac1-c2dc-4dd6-838f-9d28ffaa9aa1', 'print(minutes)로 배송 시간을 화면에 표시하세요', 'print가 괄호 안의 값을 결과 창에 한 줄씩 보여 주는 것을 직접 써서 확인해요.',
+              'print(12)만 있으면 12 한 줄이다. 주석 아래에 print(minutes)를 써서 12와 30을 확인한다. 채점은 다른 배송 시간으로 실행한다.',
+              '`print(값)`은 괄호 안의 값을 결과 창에 한 줄로 보여 줘요. 이름을 붙인 값도 괄호 안에 이름을 쓰면 그 값을 보여 줘요.',
+              '주석 아래에 print로 minutes의 값을 화면에 표시하세요. 채점은 minutes의 값을 바꿔서도 실행해요.',
+              ['코드 실행을 눌러 결과를 확인하세요.', '주석 아래에 `print(minutes)`를 쓰세요.', '코드 실행을 눌러 12 다음에 30이 나오는지 확인하세요.', '수정한 코드를 제출하세요.'],
+              s1, s1_solution, n1, {n1.actions[-1]['text']: '실제 파이썬 동작을 정확히 말해요.'}, cases=[{'minutes': 45}, {'minutes': 7}],
+              reject=[([['print(minutes)\n', 'print(30)\n']], 'Typing the value'), ([['print(minutes)\n', 'minutes\n']], 'No print')],
+              accept=[([['print(minutes)\n', 'print(str(minutes))\n']], 'Printing the text of the value')]),
+]

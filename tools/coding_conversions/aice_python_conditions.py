@@ -112,3 +112,30 @@ SPECS = [
                  ([['print(delayed)', 'print([30, 42])']], 'Typing the list')],
          accept=[([['        delayed.append(minute)\n', '        delayed += [minute]\n']], 'Extending with a one-item list')]),
 ]
+
+
+# ---- 2026-10-30: the line-count field becomes a coding step (user decision) ----------------------------
+from _kit import code_step
+
+s5 = '# 배송 시간 목록이에요.\nminutes = [12, 30, 42]\n# 이 줄을 고쳐 for로 minutes의 시간을 한 건씩 한 줄에 출력하세요.\nprint(minutes)\n'
+s5_solution = s5.replace('print(minutes)\n', '# for는 목록의 항목을 하나씩 minute에 담아 아래 줄을 되풀이해요.\nfor minute in minutes:\n    print(minute)\n')
+n5 = (Script(s5)
+      .say('for는 목록의 항목을 하나씩 minute에 담아 같은 줄을 되풀이해요. 한 건씩 한 줄에 출력하게 고쳐야 해요.', 'text:for로 minutes의 시간을 한 건씩 한 줄에 출력하세요.')
+      .run('print(minutes)')
+      .say('[12, 30, 42]예요. 목록 전체가 한 줄에 나왔어요.', 'output')
+      .patch('print(minutes)\n', 'for minute in minutes:\n    print(minute)\n', 'for minute in minutes: 아래에 print(minute)를 들여 써요.')
+      .run('print(minute)')
+      .say('12, 30, 42가 각각 한 줄씩 나왔어요. 배송 세 건이라 세 번 되풀이했어요.', 'output')
+      .say('조심하세요. 반복 안에서 print(minutes)를 쓰면 목록 전체가 세 번 나와요. 한 건은 minute이에요.', 'code:print(minute)'))
+
+SPECS += [
+    code_step('stp_1f28d9ac-43b5-44aa-926a-f98048c71ac5', 'for minute in minutes로 한 건씩 출력하세요', 'for가 목록의 항목마다 같은 줄을 되풀이하는 것을 직접 써서 출력 줄로 확인해요.',
+              'print(minutes)는 목록 전체를 한 줄에 낸다. for minute in minutes:와 print(minute)로 고쳐 세 줄을 확인한다. 채점은 길이가 다른 목록으로 실행한다.',
+              '`for 이름 in 목록:`은 목록의 항목을 앞에서부터 하나씩 이름에 담고, 그 아래 들여 쓴 줄을 항목마다 한 번씩 실행해요.',
+              'print 줄을 고쳐 for로 minutes의 시간을 한 건씩 한 줄에 출력하세요. 채점은 길이가 다른 목록으로도 실행해요.',
+              ['코드 실행을 눌러 출력을 확인하세요.', '`print(minutes)`를 `for minute in minutes:`와 그 아래 들여 쓴 `print(minute)`로 고치세요.', '코드 실행을 눌러 세 줄이 나오는지 확인하세요.', '수정한 코드를 제출하세요.'],
+              s5, s5_solution, n5, {n5.actions[-1]['text']: '실제 파이썬 동작을 정확히 말해요.'}, cases=[{'minutes': [5]}, {'minutes': [1, 2, 3, 4]}],
+              reject=[([['    print(minute)\n', '    print(minutes)\n']], 'Printing the whole list each time'),
+                      ([['for minute in minutes:\n    print(minute)\n', 'print(12)\nprint(30)\nprint(42)\n']], 'Typing the three lines')],
+              accept=[([['for minute in minutes:\n    print(minute)\n', 'for i in range(len(minutes)):\n    print(minutes[i])\n']], 'Index loop')]),
+]
