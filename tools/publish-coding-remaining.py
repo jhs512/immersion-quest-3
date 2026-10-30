@@ -55,7 +55,7 @@ LESSONS = {
     'engineer-practical': ['engineer-c-start', 'engineer-c-structures', 'engineer-java-flow', 'engineer-java-references',
                            'engineer-java-static', 'engineer-java-polymorphism', 'engineer-python-values',
                            'engineer-python-calls', 'engineer-mixed', 'engineer-os', 'engineer-network'],
-    'engineer-python-flow': ['engineer-python-calls'],
+    'engineer-python-flow': ['engineer-python-calls', 'engineer-c-functions', 'engineer-c-pointers'],
     'aice-associate': ['aice-python-start', 'aice-python-conditions', 'aice-split', 'aice-leakage', 'aice-classification',
                        'aice-classification-metrics', 'aice-models', 'aice-tuning', 'aice-boosting', 'aice-tensorflow',
                        'aice-neural-regression', 'aice-neural-classification', 'aice-training', 'aice-integration'],
@@ -64,14 +64,16 @@ LESSONS = {
 COURSE = {'engineer-python-flow': 'engineer-practical'}
 # Revisions published after the 846504af baseline by this same work (verified course commit 514ebeb2):
 # a group may move a lesson on from these as well as from the baseline.
-PUBLISHED = {'engineer-python-calls': 'engineer-python-calls-7'}
+PUBLISHED = {'engineer-python-calls': 'engineer-python-calls-7', 'engineer-c-functions': 'engineer-c-functions-7',
+             'engineer-c-pointers': 'engineer-c-pointers-7'}
 SUMMARY = {
-    'engineer-python-flow': 'Python 함수·객체 문제에서도 코드 흐름 보기로 실행을 한 줄씩 따라가요.',
+    'engineer-python-flow': 'Python·C 함수와 포인터 문제에서도 코드 흐름 보기로 실행을 한 줄씩 따라가요.',
     'engineer-practical': '코드를 읽고 출력값만 적던 문제도 직접 코드를 고쳐 실행하는 문제로 바꿨어요.',
     'aice-associate': '남은 AICE 수업의 고르던 문제를 직접 코드를 고쳐 실행하는 문제로 바꿨어요.',
 }
 DETAILS = {
     'engineer-python-flow': ['Python 함수 호출 수업의 여섯 문제에서 코드 흐름 보기를 열 수 있어요. 기본값 목록 공유·함수에 넘긴 목록·클래스 속성·super()·재귀·새 기본값 목록을 채점과 같은 실행으로 따라가요.',
+                             'C 함수·포인터 수업의 열 문제에서도 코드 흐름 보기를 열 수 있어요. 채점과 같은 TinyCC 프로그램을 그대로 실행하며 값과 포인터를 따라가요. C는 Windows 앱에서 열려요.',
                              '문제와 채점은 그대로예요. 이 버튼은 새 앱 버전부터 보여요.'],
     'engineer-practical': ['C·Java·Python 수업과 복합 문제·운영체제·네트워크 도전에서 코드를 읽고 출력값을 적던 46문제를 직접 코드를 고쳐 실행하고 제출하는 문제로 바꿨어요. 채점은 실제 실행 결과와 바꾼 준비 값·표로 해요.',
                            '코드 없이 손으로 계산하거나 용어를 적는 문제와 설계·테스트·보안 같은 개념 문제는 그대로예요.',
