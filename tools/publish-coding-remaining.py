@@ -17,6 +17,12 @@ probes, SQL and C/Java value variations), so no desktop build is needed. The run
 public build 156 release with both installers contains its runtime commit.
 
     python tools/publish-coding-remaining.py engineer-practical [--publish]
+
+engineer-python-flow publishes engineer-python-calls-8 (코드 흐름 보기 on six Python steps) into the
+engineer-practical course. Its remote pin is the already published engineer-python-calls-7 (course commit
+514ebeb2), and since the button needs the Python trace engine, it requires the public release that
+contains it:
+    python tools/publish-coding-remaining.py engineer-python-flow --runtime-release v0.1.0-build.N --runtime-commit <sha> [--publish]
 """
 import argparse
 import base64
@@ -49,15 +55,24 @@ LESSONS = {
     'engineer-practical': ['engineer-c-start', 'engineer-c-structures', 'engineer-java-flow', 'engineer-java-references',
                            'engineer-java-static', 'engineer-java-polymorphism', 'engineer-python-values',
                            'engineer-python-calls', 'engineer-mixed', 'engineer-os', 'engineer-network'],
+    'engineer-python-flow': ['engineer-python-calls'],
     'aice-associate': ['aice-python-start', 'aice-python-conditions', 'aice-split', 'aice-leakage', 'aice-classification',
                        'aice-classification-metrics', 'aice-models', 'aice-tuning', 'aice-boosting', 'aice-tensorflow',
                        'aice-neural-regression', 'aice-neural-classification', 'aice-training', 'aice-integration'],
 }
+# Lesson group -> the course repository it is published into (default: the group name itself).
+COURSE = {'engineer-python-flow': 'engineer-practical'}
+# Revisions published after the 846504af baseline by this same work (verified course commit 514ebeb2):
+# a group may move a lesson on from these as well as from the baseline.
+PUBLISHED = {'engineer-python-calls': 'engineer-python-calls-7'}
 SUMMARY = {
+    'engineer-python-flow': 'Python 함수·객체 문제에서도 코드 흐름 보기로 실행을 한 줄씩 따라가요.',
     'engineer-practical': '코드를 읽고 출력값만 적던 문제도 직접 코드를 고쳐 실행하는 문제로 바꿨어요.',
     'aice-associate': '남은 AICE 수업의 고르던 문제를 직접 코드를 고쳐 실행하는 문제로 바꿨어요.',
 }
 DETAILS = {
+    'engineer-python-flow': ['Python 함수 호출 수업의 여섯 문제에서 코드 흐름 보기를 열 수 있어요. 기본값 목록 공유·함수에 넘긴 목록·클래스 속성·super()·재귀·새 기본값 목록을 채점과 같은 실행으로 따라가요.',
+                             '문제와 채점은 그대로예요. 이 버튼은 새 앱 버전부터 보여요.'],
     'engineer-practical': ['C·Java·Python 수업과 복합 문제·운영체제·네트워크 도전에서 코드를 읽고 출력값을 적던 46문제를 직접 코드를 고쳐 실행하고 제출하는 문제로 바꿨어요. 채점은 실제 실행 결과와 바꾼 준비 값·표로 해요.',
                            '코드 없이 손으로 계산하거나 용어를 적는 문제와 설계·테스트·보안 같은 개념 문제는 그대로예요.',
                            '운영체제·네트워크·복합·다형성 수업의 마지막 도전은 바뀐 문제로 지정했어요.',
@@ -83,8 +98,9 @@ def prepare(name):
         raise ValueError(f'No verified lessons listed for {name}')
     subprocess.run([sys.executable, str(ROOT / 'tools/build-redesigned-course-bundle.py'), '--check'], cwd=ROOT / 'tools', check=True)
     base = baseline_revisions()
-    prepared = json.loads((ROOT / 'courses/redesigned-courses' / f'{name}.json').read_text(encoding='utf-8'))
-    repository, file, remote = trace.read_course(name)
+    course = COURSE.get(name, name)
+    prepared = json.loads((ROOT / 'courses/redesigned-courses' / f'{course}.json').read_text(encoding='utf-8'))
+    repository, file, remote = trace.read_course(course)
     if remote['id'] != prepared['id'] or remote['repository'] != repository:
         raise ValueError(f'Unexpected course identity: {name}')
     mine = {row['repository']: row for row in prepared['lessons']}
@@ -106,7 +122,7 @@ def prepare(name):
             raise ValueError(f'Missing passing validator evidence for the current bytes: {key}')
         if digest != new['sha256'] or lesson['revision'] != new['revision'] or lesson['id'] != old['id']:
             raise ValueError(f'Prepared pin does not match the lesson file: {key}')
-        if old['revision'] not in (base[key], new['revision']):
+        if old['revision'] not in (base[key], new['revision'], PUBLISHED.get(key)):
             raise ValueError(f'Remote {key} is at {old["revision"]}, not the baseline {base[key]}')
         if old['revision'] == new['revision'] and old['sha256'] != digest:
             raise ValueError(f'Published immutable revision has different bytes: {key}')
@@ -190,9 +206,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('course', choices=sorted(LESSONS))
     parser.add_argument('--publish', action='store_true')
+    parser.add_argument('--runtime-release', help='public release with the app runtime these lessons need')
+    parser.add_argument('--runtime-commit', help='commit that release must contain')
     args = parser.parse_args()
+    if args.course in COURSE and not (args.runtime_release and args.runtime_commit):
+        parser.error(f'{args.course} needs --runtime-release and --runtime-commit (the app that opens its new feature)')
     repository, remote, rows = prepare(args.course)
-    trace.check_release(RELEASE, RUNTIME)
+    trace.check_release(args.runtime_release or RELEASE, args.runtime_commit or RUNTIME)
     merge(args.course, remote, rows)
     print(f'Plan {args.course}: {len(rows)} lessons, {sum(r[3] for r in rows)} newly converted steps; '
           f'{len(remote["lessons"])} lessons kept in order', flush=True)
@@ -202,8 +222,8 @@ def main():
     if (user['login'], user['id']) != ('jhs512', 4741844):
         raise ValueError('Unexpected GitHub account')
     for old, new, raw, _ in rows:
-        coding.publish_lesson(old, new, raw, 'Turn code-reading answers into real coding exercises')
-    current, latest = trace.read_course(args.course)[1:]
+        coding.publish_lesson(old, new, raw, 'Offer 코드 흐름 보기 on Python steps' if args.course in COURSE else 'Turn code-reading answers into real coding exercises')
+    current, latest = trace.read_course(COURSE.get(args.course, args.course))[1:]
     if latest != remote:
         raise ValueError(f'The remote course changed during publication; rerun to merge the newer course: {args.course}')
     body = (json.dumps(merge(args.course, latest, rows), ensure_ascii=False, indent=2) + '\n').encode()
