@@ -1,3 +1,9 @@
+## 2026-10-30 · Every popup is paper of the current look; every disabled button shares one legible look
+- Decided by: owner report (screenshots: 진도 초기화 with an invisible title, a faint 닫기, a literal @{user.login}, a clipped sentence; the GitHub check screen with faint band buttons mid-screen) and the follow-up 「라이트 모드 전체 버튼이랑 팝업 다 점검」.
+- Why: Dialogs and the 환경 진단 panel live inside the navy band in the DOM and inherited its light ink, one-line layout and transparent band buttons; the code-flow dialog lives on <body> outside every button rule; a disabled primary drew white text on a pale tint. Popups now take the paper tokens (dialog and [role=dialog] inside the band, the code-flow dialog, 환경 진단 checks by surface tint with a 1px rule), the band stays on top on the GitHub screens, and every disabled button is paper-2 / rule / ink-3 (≥5:1). Modal state follows the native cancel (Esc with focus anywhere), and the first focus is inside the dialog.
+- Rejected: Recolouring only the reported dialog; a thick coloured side stripe for check states.
+- Rests on: tools/design-scenarios/ui-inventory.cjs, account-reset-dialog.cjs, modal-cycle.cjs, doctor-check.cjs, git-graph-themes.cjs captures.
+
 ## 2026-10-30 · 밝게 lights the code wells too: editor, terminal, output and Git graph follow the theme
 - Decided by: owner (reported that choosing 밝게 still showed a dark editor and terminal; asked that the whole screen match light mode)
 - Why: A light choice that leaves the largest surface dark reads as broken. The well, editor (CodeMirror via CSS variables plus its dark flag), terminal (xterm palette swapped live on mq-theme) and Git graph now take per-theme tokens; 어둡게 keeps the night well unchanged.

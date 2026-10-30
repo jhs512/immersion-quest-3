@@ -834,7 +834,7 @@ fn LessonPlayer(session:Session,selected:OpenLesson,window_controls:Element,upda
                 }
                 div {class:"repository-tools",span {class:"lesson-account","@{session.user.login}"}button {class:"shortcut-sheet-open","data-shortcut-action":"help",onclick:move |_|{document::eval("window.molipShortcuts?.toggleSheet()");},"단축키"}{updates}{window_controls}}
             }
-            dialog {id:"lesson-info-dialog",class:"lesson-info-dialog",aria_labelledby:"lesson-info-title",onkeydown:move |event|{if event.key()==Key::Escape {show_info.set(false);}},
+            dialog {id:"lesson-info-dialog",class:"lesson-info-dialog",aria_labelledby:"lesson-info-title",onkeydown:move |event|{if event.key()==Key::Escape {show_info.set(false);}},oncancel:move |_|show_info.set(false),
                 header {h2 {id:"lesson-info-title","학습 정보"}button {autofocus:true,onclick:move |_|show_info.set(false),"닫기"}}
             section {class:"study-progress",span {"필수 문제 {count} / {required.len()}"}
                 strong {{format!("{}% 완료",if required.is_empty(){0}else{count*100/required.len()})}}

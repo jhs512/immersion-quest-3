@@ -35,7 +35,7 @@ pub fn CourseGuideButton(course:CourseManifest)->Element {
             });
         },"코스 목표와 전체 흐름"}
         dialog {id:"course-guide-dialog",class:"course-guide-dialog",aria_labelledby:"course-guide-title",
-            onkeydown:move |event|{if event.key()==Key::Escape{open.set(false);}},
+            onkeydown:move |event|{if event.key()==Key::Escape{open.set(false);}},oncancel:move |_|open.set(false),
             header {h2 {id:"course-guide-title","코스 목표와 전체 흐름"}
                 button {autofocus:true,onclick:move |_|open.set(false),"닫기"}}
             if loading(){p {role:"status","설치된 코스 자료를 읽고 있어요."}}

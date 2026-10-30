@@ -660,13 +660,17 @@ html[data-theme-choice="dark"] {--challenge-ink:#e2a8f2;--challenge-fill:#a64ccc
 .lesson-info-dialog .lesson-reset-status {margin:8px 0 0!important;color:var(--ink)!important;font-weight:600}
 /* 내 전체 학습 진도 초기화: the same section look, opened from the account in the header */
 .account-reset-dialog {width:min(640px,calc(100vw - 32px))}
-.account-reset-dialog .account-reset {border-color:var(--err);background:var(--err-soft)}
+.account-reset-dialog .account-reset-intro {margin:0 0 12px;font-size:14px;line-height:1.6;color:var(--ink-2)}
+.account-reset-dialog .account-reset-intro strong {color:var(--ink);overflow-wrap:anywhere}
+/* Only the confirmation of a real plan is drawn as danger; loading, empty, done and errors are status. */
+.account-reset-dialog .account-reset[data-danger="true"] {border-color:var(--err);background:var(--err-soft)}
 .account-reset-dialog .account-reset ul {margin:0 0 10px;padding-left:20px;font-size:13px;line-height:1.6;color:var(--ink-2)}
 .account-reset-dialog .account-reset .account-reset-scope {color:var(--ink)}
 .account-reset-dialog .account-reset button.account-reset-confirm {border-color:#b42318;background:#b42318;color:#fff}
 .account-reset-dialog .account-reset button.account-reset-confirm:hover:not(:disabled) {background:#912018}
 .account-reset-dialog .account-reset .account-reset-error {color:var(--err)!important}
-.repository-tools .repository-account>button.account-reset-open {border-color:var(--err);color:var(--err)}
+/* On the navy band the destructive opener keeps its red, in a tone readable on navy (>=6:1). */
+:is(.repository-player,.repository-study)>.repository-header .repository-tools .repository-account>button.account-reset-open {border-color:var(--err-on-navy);color:var(--err-on-navy)}
 
 /* === Code wells per theme ===
    Editor (CodeMirror reads these through var()), terminal (terminal.js reads them on mount and
@@ -721,3 +725,51 @@ html[data-theme-choice="dark"] {--well-inset:#0c131e;--well-edge:#0c131e;--well-
 .repository-task .explanation-info {color:var(--ink-2)}
 .practice-start-notice {background:var(--notice-bg);color:var(--notice-ink);border-bottom-color:var(--notice-rule)}
 .docker-terminal-note {background:var(--note-bg);color:var(--note-ink);border-bottom-color:var(--note-rule)}
+
+/* Dialogs that live inside the signage band in the DOM are paper: they must not inherit the band's
+   light ink, its one-line layout or its transparent band buttons (2026-10-30 user report: an invisible
+   title, a faint 닫기 and a clipped sentence in 진도 초기화). */
+:root {--err-on-navy:#ff9d94}
+:is(.repository-player,.repository-study)>.repository-header :is(dialog,[role=dialog]) {white-space:normal;text-align:start;color:var(--ink);font-weight:400;
+ --ui-surface:var(--panel);--ui-inset:var(--panel-2);--ui-border:var(--rule);--ui-text:var(--ink);--ui-muted:var(--ink-2);--ui-accent:var(--line-text);--ui-hover:var(--hover);--ui-focus:var(--focus)}
+:is(.repository-player,.repository-study)>.repository-header :is(dialog,[role=dialog]) :is(h2,h3,strong) {color:var(--ink)}
+:is(.repository-player,.repository-study)>.repository-header :is(dialog,[role=dialog]) button:not(.danger) {background:var(--panel);color:var(--ink);border:1px solid var(--rule-strong)}
+:is(.repository-player,.repository-study)>.repository-header :is(dialog,[role=dialog]) button:not(.danger):hover:not(:disabled) {background:var(--hover);color:var(--ink);border-color:var(--ink-3)}
+:is(.repository-player,.repository-study)>.repository-header :is(dialog,[role=dialog]) button:not(.danger):disabled {background:var(--panel-2);color:var(--ink-3);border-color:var(--rule)}
+:is(.repository-player,.repository-study)>.repository-header :is(dialog,[role=dialog]) :is(button,a,input,summary):focus-visible {outline-color:var(--focus)}
+
+/* GitHub 확인·로그인 화면 (needs-gh): the navy band stays at the top like on every other screen, so its
+   controls keep the band's readable look; only the check or the setup card is centred in the space below
+   (2026-10-30 user report: the whole column, header included, sat mid-screen with faint buttons). */
+.repository-player.needs-gh {justify-content:flex-start;align-items:stretch;padding:0 24px 24px;gap:0}
+.repository-player.needs-gh>.repository-header {background:var(--navy);margin:0 -24px;padding:0 24px;height:50px;min-height:0;
+ border-bottom:3px solid var(--route);justify-content:space-between;align-items:center;text-align:start;width:auto;box-sizing:border-box}
+.repository-player.needs-gh>.repository-header>h1 {color:#fff;font-size:17px}
+.repository-player.needs-gh>:is(.gh-checking,.gh-setup-card) {margin:auto;align-self:center}
+.repository-player.needs-gh>.gh-checking {text-align:center;padding:24px 0}
+.repository-player.needs-gh>.gh-checking h2 {color:var(--ink)}
+.repository-player.needs-gh>.gh-checking p {color:var(--ink-2)}
+@media (max-width:699px) {.repository-player.needs-gh>.repository-header {height:auto;padding-block:6px 5px}}
+
+/* Disabled actions read as disabled but stay legible (2026-10-30 audit: a disabled primary drew white text on a
+   pale line tint, 1.0-1.2:1, and looked blank). Every disabled button shares one look: paper-2, rule, ink-3. */
+:is(.repository-player,.repository-study) button.primary:disabled {background:var(--panel-2);border-color:var(--rule);color:var(--ink-3)}
+.repository-study .coding-pane button.primary:disabled {background:var(--well-control-disabled);border-color:var(--well-control-disabled-rule);color:var(--well-control-disabled-ink)}
+/* GitHub 준비 카드: the intro lines share the title's centre (a 65ch measure without auto margins sat left). */
+.gh-setup-card .gh-setup-intro p {margin-inline:auto}
+
+/* A primary keeps its fill on hover inside the well too (2026-10-30 audit: the well's hover rule painted 제출
+   light grey under white text, 1.17:1). */
+.repository-study .coding-pane button.primary:hover:not(:disabled) {background:var(--line-ink);border-color:var(--route);color:#fff;box-shadow:inset 0 0 0 1px #fff6}
+/* 환경 진단 popup: paper of the current look like every dialog (2026-10-30 audit: a fixed #f7fafc panel under
+   the dark theme's light ink read 1.11:1), over the same navy scrim. */
+.doctor-backdrop {background:#1c2b4ab3}
+.doctor-backdrop .doctor-panel {background:var(--panel);color:var(--ink);border:1px solid var(--rule);box-shadow:var(--shadow-dialog)}
+.doctor-backdrop .doctor-panel :is(h2,h3,strong) {color:var(--ink)}
+.doctor-backdrop .doctor-panel :is(p,li,small,.muted) {color:var(--ink-2)}
+/* 환경 진단 results: state by surface tint and words, one 1px rule (no thick side stripe), in both looks
+   (2026-10-30 audit: fixed light tints under the dark theme's light ink hid every check title). */
+.doctor-backdrop .doctor-check {border:1px solid var(--rule);border-radius:var(--radius);background:var(--ok-soft);color:var(--ink)}
+.doctor-backdrop .doctor-check.missing {border-color:var(--admin-rule);background:var(--admin-soft)}
+.doctor-backdrop .doctor-check :is(strong,b) {color:var(--ink)}
+.doctor-backdrop .doctor-check p {color:var(--ink-2)}

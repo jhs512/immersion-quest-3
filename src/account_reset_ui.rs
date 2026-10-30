@@ -73,16 +73,24 @@ pub fn AccountProgressReset(github: Github, user: GithubUser, repositories: Vec<
             });
         }
     };
+    // The account name, read once: the dialog sentence names whose progress this is.
+    // A formatted text node here rendered "@{user.login}" literally (rsx left it uninterpolated), so the name is an expression child.
+    let login = format!("@{}", user.login);
+    // Only the confirmation of a real plan is the destructive moment; loading, empty, done and errors are status.
+    let danger = matches!(phase(), Phase::Ready(ref plan) if !plan.is_empty());
     rsx! {
         button {r#type:"button",class:"account-reset-open",title:"이 계정의 모든 과정 진도를 처음부터 다시 세요. 수업 하나는 수업의 학습 정보에서 초기화해요.",disabled:disabled||open,
             onclick:{let mut load=load.clone();move |_|load()},"진도 초기화"}
         if open {
         dialog {id:"account-reset-dialog",class:"lesson-info-dialog account-reset-dialog",aria_labelledby:"account-reset-title",
             onkeydown:move |event|{if event.key()==Key::Escape && !matches!(phase(),Phase::Saving){phase.set(Phase::Closed);}},
+            // Esc closes a modal dialog even when focus is outside it: the state follows, and a reset in
+            // progress keeps its dialog (otherwise the opener stayed disabled with no dialog on screen).
+            oncancel:move |event|{if matches!(phase(),Phase::Saving){event.prevent_default();}else{phase.set(Phase::Closed);}},
             header {h2 {id:"account-reset-title","내 전체 학습 진도 초기화"}
-                button {r#type:"button",disabled:matches!(phase(),Phase::Saving),onclick:move |_|phase.set(Phase::Closed),"닫기"}}
-            section {class:"lesson-reset account-reset",
-                p {"계정 "strong {"@{user.login}"}"이 이 플레이어에 설치한 모든 과정의 진도를 처음부터 다시 세요. 수업 하나만 다시 세려면 수업의 학습 정보에서 「이 수업 진도 초기화」를 쓰세요."}
+                button {r#type:"button",autofocus:true,disabled:matches!(phase(),Phase::Saving),onclick:move |_|phase.set(Phase::Closed),"닫기"}}
+            p {class:"account-reset-intro","계정 "strong {{login.clone()}}"이 이 플레이어에 설치한 모든 과정의 진도를 처음부터 다시 세요. 수업 하나만 다시 세려면 수업의 학습 정보에서 「이 수업 진도 초기화」를 쓰세요."}
+            section {class:"lesson-reset account-reset","data-danger":"{danger}",
                 match phase() {
                     Phase::Loading => rsx!{p {role:"status","설치한 과정과 진도 기록을 확인하고 있어요."}},
                     Phase::Saving => rsx!{p {role:"status","진도를 초기화하고 있어요. 창을 닫지 마세요."}},
