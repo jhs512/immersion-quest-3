@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "fd589d3679bdc0082a5dae9bf8851e0e5a746f24c3cf92591ed2ed304c7e1576",
+  "entry": [
+    {
+      "action": "say",
+      "text": "정상과 지연을 맞히는 분류의 비교 기준이 필요해요. model 줄을 가장 흔한 범주를 고르는 모델로 고쳐야 해요.",
+      "target": "text:model 줄을 고쳐 평균 숫자가 아니라 가장 흔한 범주를 고르는 기준 모델을 쓰세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[0.25, 0.25]예요. 범주 0과 1의 평균이라 어느 범주도 아니에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "model = DummyRegressor(strategy=\"mean\")",
+      "after": "model = DummyClassifier(strategy=\"most_frequent\")",
+      "say": "DummyClassifier(strategy=\"most_frequent\")로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[0, 0]이에요. 훈련에서 가장 흔한 정상 0을 두 배송 모두에 골랐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 범주 0과 1은 크기가 아니라 이름이에요. 평균 0.25는 어떤 배송의 상태도 아니에요.",
+      "target": "code:strategy=\"most_frequent\""
+    }
+  ]
+}

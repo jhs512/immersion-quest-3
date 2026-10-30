@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "1ba0b2efb23781641221c5cbf90a1919b716fab5a28503f72165103bd055cf0e",
+  "entry": [
+    {
+      "action": "say",
+      "text": "남겨 둔 평가 값이 기준에 섞였어요. 훈련 값만으로 평균을 구하도록 고쳐야 해요.",
+      "target": "text:reference 줄을 고쳐 평가 값을 빼고 훈련 값만으로 기준 평균을 구하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "43.333이에요. 평가의 100이 기준 평균을 끌어올렸어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "pd.concat([train, test]).mean()",
+      "after": "train.mean()",
+      "say": "train.mean()으로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "15.0이에요. 평가 값이 1000으로 바뀌어도 훈련 기준은 그대로예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 전체로 만든 기준은 평가 자료가 바뀔 때마다 함께 바뀌어요.",
+      "target": "code:train.mean()"
+    }
+  ]
+}

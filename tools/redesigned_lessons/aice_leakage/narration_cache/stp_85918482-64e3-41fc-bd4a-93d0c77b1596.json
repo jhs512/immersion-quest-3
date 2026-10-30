@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "4547d5e4c1f8df9b0f0f6d798e8ea006c3c683fae6b54f7675860d213e574483",
+  "entry": [
+    {
+      "action": "say",
+      "text": "행은 겹치지 않지만 고객 A와 B가 양쪽에 있어요. 고객 단위로 나누도록 두 줄을 고쳐야 해요.",
+      "target": "text:두 줄을 고쳐 test_customers의 고객 행은 모두 평가로, 나머지 고객 행은 훈련으로 나누세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "True예요. 행을 번갈아 나눠 두 고객이 훈련과 평가에 모두 있어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "train = df.iloc[0::2]\ntest = df.iloc[1::2]\n",
+      "after": "train = df[~df[\"customer\"].isin(test_customers)]\ntest = df[df[\"customer\"].isin(test_customers)]\n",
+      "say": "isin으로 평가 고객과 나머지 고객을 나눠요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "False와 [10, 12] [20, 22]예요. 고객 A는 훈련, 고객 B는 평가에만 있어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 행이 겹치지 않아도 같은 고객이 양쪽에 있으면 새 고객 평가가 아니에요.",
+      "target": "code:~df[\"customer\"].isin(test_customers)"
+    }
+  ]
+}

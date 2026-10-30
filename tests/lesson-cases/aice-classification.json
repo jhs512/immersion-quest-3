@@ -3,27 +3,32 @@
   "lesson": "courses/redesigned/aice-classification.json",
   "expected_outputs": [
     [
+      "[0.25, 0.25]",
       "[0, 0]"
     ],
     [
+      "[0, 0]",
       "[0, 1]"
     ],
     [
-      "['late', 'on-time']\n[[0.0, 1.0], [1.0, 0.0]]"
+      "['late', 'on-time']\n[1.0, 0.0]",
+      "['late', 'on-time']\n[0.0, 1.0]"
     ],
     [
-      "[[0.5, 0.5]]\n[0]"
+      "[0]\n1.0",
+      "[0]\n0.5"
     ],
     [
-      "[0, 1]\n[2, 2]\n[1.0, 1.0]"
+      "[-0.06, 1.06]",
+      "[0, 1]\n[2, 2]"
     ],
     [
       "",
-      "[0, 1]",
-      ""
+      "범주가 하나뿐이라 학습하지 않아요"
     ],
     [
-      "[0, 0, 1, 1]\n[0, 1]\n[1, 0]"
+      "[0, 1]\n1.0",
+      "[0, 1]\n0.0"
     ],
     [
       "['late', 'on-time']\n[1.0, 0.0]",
@@ -36,6 +41,146 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "model = DummyClassifier(strategy=\"most_frequent\")",
+          "model = DummyRegressor(strategy=\"mean\")"
+        ]
+      ],
+      "reason": "Mean of the labels"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "print(model.predict(X_test).tolist())",
+          "print([0, 0])"
+        ]
+      ],
+      "reason": "Typing the labels"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "model = DecisionTreeClassifier(max_depth=1, random_state=0)",
+          "model = DummyClassifier(strategy=\"most_frequent\")"
+        ]
+      ],
+      "reason": "Baseline"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "print(model.predict(X_test).tolist())",
+          "print([0, 1])"
+        ]
+      ],
+      "reason": "Typing the labels"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "[:, list(model.classes_).index(\"late\")]",
+          "[:, 1]"
+        ]
+      ],
+      "reason": "Second column"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "[:, list(model.classes_).index(\"late\")]",
+          "[:, 0]"
+        ]
+      ],
+      "reason": "First column"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "confidence = float(model.predict_proba([[1]]).max())\n",
+          "confidence = float(model.predict_proba([[1]])[0][0])\n"
+        ]
+      ],
+      "reason": "Probability of class 0 always"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "confidence = float(model.predict_proba([[1]]).max())\n",
+          "confidence = 0.5\n"
+        ]
+      ],
+      "reason": "Typing the probability"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "model = LogisticRegression(random_state=0)",
+          "model = LinearRegression()"
+        ]
+      ],
+      "reason": "Linear regression"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "print(list(model.predict_proba(X_test).shape))",
+          "print([2, 2])"
+        ]
+      ],
+      "reason": "Typing the shape"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "if len(set(y_train)) >= 2:\n",
+          "if len(y_train) >= 2:\n"
+        ]
+      ],
+      "reason": "Counting rows"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "if len(set(y_train)) >= 2:\n",
+          "if False:\n"
+        ]
+      ],
+      "reason": "Never fitting"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "accuracy = model.score(X_test, y_test)\n",
+          "accuracy = model.score(X_train, y_train)\n"
+        ]
+      ],
+      "reason": "Training accuracy"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "accuracy = model.score(X_test, y_test)\n",
+          "accuracy = 0.0\n"
+        ]
+      ],
+      "reason": "Typing the accuracy"
+    },
     {
       "step": 8,
       "replacements": [
@@ -78,6 +223,76 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "model = DummyClassifier(strategy=\"most_frequent\")",
+          "model = DummyClassifier(strategy=\"prior\")"
+        ]
+      ],
+      "reason": "prior predicts the most frequent class"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "model = DecisionTreeClassifier(max_depth=1, random_state=0)",
+          "model = DecisionTreeClassifier(max_depth=1, criterion=\"entropy\", random_state=0)"
+        ]
+      ],
+      "reason": "Entropy split"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "late = model.predict_proba(X_test)[:, list(model.classes_).index(\"late\")]\n",
+          "column = model.classes_.tolist().index(\"late\")\nlate = model.predict_proba(X_test)[:, column]\n"
+        ]
+      ],
+      "reason": "Column first"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "confidence = float(model.predict_proba([[1]]).max())\n",
+          "predicted = model.predict([[1]])[0]\nconfidence = float(model.predict_proba([[1]])[0][list(model.classes_).index(predicted)])\n"
+        ]
+      ],
+      "reason": "Column of the predicted class"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "model = LogisticRegression(random_state=0)",
+          "model = LogisticRegression()"
+        ]
+      ],
+      "reason": "Default random_state"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "if len(set(y_train)) >= 2:\n",
+          "if min(y_train) != max(y_train):\n"
+        ]
+      ],
+      "reason": "min differs from max"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "accuracy = model.score(X_test, y_test)\n",
+          "from sklearn.metrics import accuracy_score\naccuracy = accuracy_score(y_test, model.predict(X_test))\n"
+        ]
+      ],
+      "reason": "accuracy_score"
+    },
     {
       "step": 9,
       "replacements": [

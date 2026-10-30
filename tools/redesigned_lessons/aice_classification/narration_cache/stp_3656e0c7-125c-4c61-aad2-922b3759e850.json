@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "1522969a654790cb69a9c4761249a5f9d80b40d1d8b56e4ecb834faf48f84378",
+  "entry": [
+    {
+      "action": "say",
+      "text": "예측했다고 확실한 건 아니에요. confidence 줄을 고쳐 예측한 범주의 확률을 꺼내야 해요.",
+      "target": "text:confidence 줄을 고쳐 예측한 범주의 확률을 predict_proba에서 꺼내 confidence에 담으세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[0]과 1.0이에요. 예측이 0이니 확실하다고 적어 두었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "confidence = 1.0\n",
+      "after": "confidence = float(model.predict_proba([[1]]).max())\n",
+      "say": "predict_proba([[1]])의 가장 큰 확률을 꺼내요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0.5예요. 잎에 정상과 지연이 하나씩이라 반반이고, 동점은 앞의 범주 0으로 정했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 예측 범주만 보면 반반인 판단도 확실해 보여요. 확률을 함께 봐요.",
+      "target": "code:predict_proba([[1]]).max()"
+    }
+  ]
+}

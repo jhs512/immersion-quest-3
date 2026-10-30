@@ -3,7 +3,8 @@
   "lesson": "courses/redesigned/engineer-c-start.json",
   "expected_outputs": [
     [
-      "2"
+      "2",
+      "4"
     ],
     [
       "2"
@@ -13,12 +14,11 @@
       "5"
     ],
     [
-      "5 2",
-      "9 2",
+      "5 0",
       "5 2"
     ],
     [
-      "2 3",
+      "5 2",
       "5 3"
     ],
     [
@@ -31,6 +31,26 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "    printf(\"%d\", count);\n",
+          "    printf(\"4\");\n"
+        ]
+      ],
+      "reason": "Typing the number"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "    printf(\"%d\", count);\n",
+          "    printf(\"%d\", 4);\n"
+        ]
+      ],
+      "reason": "Literal 4"
+    },
     {
       "step": 2,
       "replacements": [
@@ -52,6 +72,86 @@
       "reason": "Printing the name"
     },
     {
+      "step": 3,
+      "replacements": [
+        [
+          "    stock = counted;\n",
+          "    stock = 5;\n"
+        ]
+      ],
+      "reason": "Typing the number"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "    stock = counted;\n",
+          "    counted = stock;\n"
+        ]
+      ],
+      "reason": "Assigning the other way"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "    int shown = stock;\n",
+          "    int shown = 2;\n"
+        ]
+      ],
+      "reason": "Typing the old value"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "    int shown = stock;\n    stock = counted;\n",
+          "    stock = counted;\n    int shown = stock;\n"
+        ]
+      ],
+      "reason": "Copying after the correction"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "    int shown = stock + 1;\n",
+          "    int shown = 3;\n"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "    int shown = stock + 1;\n",
+          "    int shown = counted + 1;\n"
+        ]
+      ],
+      "reason": "Using the corrected stock"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "    stock = counted;\n    int shown = stock + 1;\n",
+          "    int shown = stock + 1;\n    stock = counted;\n"
+        ]
+      ],
+      "reason": "Original order"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "    int shown = stock + 1;\n",
+          "    int shown = 6;\n"
+        ]
+      ],
+      "reason": "Typing the value"
+    },
+    {
       "step": 7,
       "replacements": [
         [
@@ -64,6 +164,16 @@
   ],
   "accept": [
     {
+      "step": 1,
+      "replacements": [
+        [
+          "    printf(\"%d\", count);\n",
+          "    printf(\"%i\", count);\n"
+        ]
+      ],
+      "reason": "%i also prints an int"
+    },
+    {
       "step": 2,
       "replacements": [
         [
@@ -72,6 +182,46 @@
         ]
       ],
       "reason": "%i also prints an int"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "    stock = counted;\n",
+          "    stock = 0 + counted;\n"
+        ]
+      ],
+      "reason": "Same value through an expression"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "    int shown = stock;\n",
+          "    int shown;\n    shown = stock;\n"
+        ]
+      ],
+      "reason": "Declare, then assign"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "    int shown = stock + 1;\n",
+          "    int shown = 1 + stock;\n"
+        ]
+      ],
+      "reason": "Operands swapped"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "    int shown = stock + 1;\n",
+          "    int shown = counted + 1;\n"
+        ]
+      ],
+      "reason": "Same value from counted after the correction"
     },
     {
       "step": 7,

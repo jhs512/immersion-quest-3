@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "a4d7a9a65cb82af028c69fc0f488091cb4a018c344c2cd4f08c68a2244732432",
+  "entry": [
+    {
+      "action": "say",
+      "text": "범주가 문자 이름이에요. late 줄을 고쳐 classes_에서 late의 자리를 찾아 그 열을 꺼내야 해요.",
+      "target": "text:late 줄을 고쳐 classes_에서 \"late\"가 있는 자리의 확률 열을 꺼내세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "['late', 'on-time']과 [1.0, 0.0]이에요. 둘째 열은 on-time의 확률이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "[:, 1]",
+      "after": "[:, list(model.classes_).index(\"late\")]",
+      "say": "1 대신 list(model.classes_).index(\"late\")를 써요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[0.0, 1.0]이에요. 가까운 배송은 지연 확률 0, 먼 배송은 1이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. classes_는 정렬된 순서라 late가 먼저 와요. 열 번호를 짐작하지 않아요.",
+      "target": "code:list(model.classes_).index(\"late\")"
+    }
+  ]
+}

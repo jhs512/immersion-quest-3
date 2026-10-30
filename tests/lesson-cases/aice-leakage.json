@@ -3,31 +3,32 @@
   "lesson": "courses/redesigned/aice-leakage.json",
   "expected_outputs": [
     [
-      "['distance', 'minutes']",
-      "['distance', 'region']",
-      "['distance', 'minutes']"
+      "['distance', 'region', 'minutes']\n(3, 3)",
+      "['distance', 'region']\n(3, 2)"
     ],
     [
-      "['distance', 'delivered_at']"
+      "['distance', 'region', 'delivered_at']",
+      "['distance', 'region']"
     ],
     [
-      "43.333\n15.0",
-      "343.333\n15.0",
-      "43.333\n15.0"
+      "43.333",
+      "15.0"
     ],
     [
-      "[15.0, 100.0]",
-      "[100.0, 100.0]",
-      "[15.0, 100.0]"
+      "100.0\n[100.0, 100.0]",
+      "15.0\n[15.0, 100.0]"
     ],
     [
-      "False\nTrue"
+      "True\n[10, 20] [12, 22]",
+      "False\n[10, 12] [20, 22]"
     ],
     [
-      "4 2\nFalse"
+      "2 2\nTrue",
+      "2 1\nFalse"
     ],
     [
-      "15.0\n43.333"
+      "43.333",
+      "15.0"
     ],
     [
       "[43.333333333333336, 100.0]",
@@ -40,6 +41,150 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "X = df.drop(columns=[\"minutes\"])\n",
+          "X = df[[\"distance\", \"region\"]]\n"
+        ]
+      ],
+      "reason": "Typing this table's columns"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "X = df.drop(columns=[\"minutes\"])\n",
+          "X = df.drop(columns=[\"distance\"])\n"
+        ]
+      ],
+      "reason": "Dropping another column"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "X = df.drop(columns=[\"minutes\", \"delivered_at\"])",
+          "X = df.drop(columns=[\"minutes\"])"
+        ]
+      ],
+      "reason": "Keeping the delivery time"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "X = df.drop(columns=[\"minutes\", \"delivered_at\"])",
+          "X = df[[\"distance\", \"region\"]]"
+        ]
+      ],
+      "reason": "Typing this table's columns"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "reference = train.mean()",
+          "reference = pd.concat([train, test]).mean()"
+        ]
+      ],
+      "reason": "Mean with the test values"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "reference = train.mean()",
+          "reference = 15.0"
+        ]
+      ],
+      "reason": "Typing the mean"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "reference = train.median()",
+          "reference = test.median()"
+        ]
+      ],
+      "reason": "Median of the test"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "reference = train.median()",
+          "reference = pd.concat([train, test]).median()"
+        ]
+      ],
+      "reason": "Median of everything"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "test = df[df[\"customer\"].isin(test_customers)]\n",
+          "test = df.iloc[1::2]\n"
+        ]
+      ],
+      "reason": "Rows still alternate"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "train = df[~df[\"customer\"].isin(test_customers)]\ntest = df[df[\"customer\"].isin(test_customers)]\n",
+          "train = df[df[\"customer\"] == \"A\"]\ntest = df[df[\"customer\"] == \"B\"]\n"
+        ]
+      ],
+      "reason": "Typing this data's customers"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "split(rows, groups=groups))",
+          "split(rows, groups=list(range(len(groups)))))"
+        ]
+      ],
+      "reason": "Every row its own group"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "GroupShuffleSplit(n_splits=1, test_size=1, random_state=0)",
+          "ShuffleSplit(n_splits=1, test_size=2, random_state=0)"
+        ],
+        [
+          "split(rows, groups=groups)",
+          "split(rows)"
+        ]
+      ],
+      "reason": "Rows again"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "reference = train[\"minutes\"].mean()",
+          "reference = df[\"minutes\"].mean()"
+        ]
+      ],
+      "reason": "Mean with the future"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "reference = train[\"minutes\"].mean()",
+          "reference = df[\"minutes\"].head(2).mean()"
+        ]
+      ],
+      "reason": "First two rows regardless of day"
+    },
     {
       "step": 8,
       "replacements": [
@@ -82,6 +227,76 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "X = df.drop(columns=[\"minutes\"])\n",
+          "X = df.loc[:, df.columns != \"minutes\"]\n"
+        ]
+      ],
+      "reason": "Boolean column mask"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "X = df.drop(columns=[\"minutes\", \"delivered_at\"])",
+          "X = df.drop(columns=\"minutes\").drop(columns=\"delivered_at\")"
+        ]
+      ],
+      "reason": "Two drops"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "reference = train.mean()",
+          "reference = sum(train_values) / len(train_values)"
+        ]
+      ],
+      "reason": "Mean by hand"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "reference = train.median()",
+          "reference = train.quantile(0.5)"
+        ]
+      ],
+      "reason": "Half quantile"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "train = df[~df[\"customer\"].isin(test_customers)]\n",
+          "train = df.drop(index=df[df[\"customer\"].isin(test_customers)].index)\n"
+        ]
+      ],
+      "reason": "Dropping the test rows"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "test_size=1, random_state=0)",
+          "test_size=1, random_state=0, train_size=None)"
+        ]
+      ],
+      "reason": "Explicit train_size"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "reference = train[\"minutes\"].mean()",
+          "reference = df.loc[df[\"day\"] <= 2, \"minutes\"].mean()"
+        ]
+      ],
+      "reason": "loc with the day condition"
+    },
     {
       "step": 9,
       "replacements": [

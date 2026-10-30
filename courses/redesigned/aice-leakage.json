@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_1bc1b5ea-12b5-45d9-a951-f2a8329f309b",
-  "revision": "aice-leakage-5",
+  "revision": "aice-leakage-6",
   "title": "남겨둔 정보가 새어 들어오는지 봐요",
   "description": "같은 배송 평가의 입력·통계·고객·날짜 경계를 확인해요.",
   "objectives": [
@@ -33,27 +33,27 @@
           "premise": "접수할 때 배송 시간을 예측해요. 완료 시간과 실제 걸린 시간은 나중에만 알며 테스트 자료는 평가용으로 남겨요.",
           "steps": [
             {
-              "id": "stp_db7b18b4-f9b6-43ab-8866-6020301a260e",
+              "id": "stp_b120ab2e-0e39-4d5c-80c1-f94d81d259ec",
               "objectives": [
-                "예측 대상 자체와 입력을 구별해요."
+                "맞힐 정답을 입력에 섞지 않아요."
               ]
             },
             {
-              "id": "stp_09e61173-47f5-4a23-963b-fc1cd186e2df",
+              "id": "stp_e9432c56-7c78-42ae-b891-5bb1c4f0e438",
               "objectives": [
-                "결과가 나온 뒤의 정보와 예측 시점의 정보를 구별해요."
+                "예측 시점에 모르는 미래 열을 입력에서 빼요."
               ]
             },
             {
-              "id": "stp_83c77f58-dc74-4c7f-9c57-784b41ce0cd9",
+              "id": "stp_a5aebc2b-832d-4a50-98f2-dc7ed6a68f2c",
               "objectives": [
-                "전체 평균과 훈련 평균의 추정 범위 차이를 이해해요."
+                "남겨 둔 평가 값이 기준 통계를 바꾸지 않게 해요."
               ]
             },
             {
-              "id": "stp_e6057b0b-85f5-4ad8-b36e-cf4c957e51ff",
+              "id": "stp_ddedb308-53a1-49c1-aeab-e4107f6b0951",
               "objectives": [
-                "훈련 기준을 평가 자료에 적용하는 의미를 이해해요."
+                "빈값을 채우는 기준도 훈련에서 배워 평가에 적용해요."
               ]
             }
           ]
@@ -76,21 +76,21 @@
           "premise": "같은 배송에 고객과 날짜가 있어요. 새 고객·미래 배송을 평가하려는 목적에 맞게 나누고 훈련 기준으로 채워요.",
           "steps": [
             {
-              "id": "stp_f9bcb716-4fa1-4b04-b068-1857c58aa38a",
+              "id": "stp_85918482-64e3-41fc-bd4a-93d0c77b1596",
               "objectives": [
-                "행이 달라도 같은 개체가 훈련과 평가에 걸칠 수 있음을 이해해요."
+                "같은 고객의 자료가 훈련과 평가 양쪽에 걸치지 않게 나눠요."
               ]
             },
             {
-              "id": "stp_c3deb2cf-dc1b-4dcd-81cf-641100d3fa05",
+              "id": "stp_4dd87189-03b3-459f-a8b2-2f418a0650f1",
               "objectives": [
-                "그룹 단위 분리의 목적과 행수 변동을 구별해요."
+                "그룹 분리에서 test_size가 그룹 수임을 확인해요."
               ]
             },
             {
-              "id": "stp_1bac5ff3-c7cc-4257-8ded-2d005be9e5ac",
+              "id": "stp_fdfa09bb-7e51-4eb2-9d6a-3345a60ec7e8",
               "objectives": [
-                "시간 경계 안에서만 추정 기준을 만드는 원리를 이해해요."
+                "미래 관측으로 과거 기준을 만들지 않아요."
               ]
             },
             {
@@ -122,296 +122,163 @@
   ],
   "tasks": [
     {
-      "id": "stp_db7b18b4-f9b6-43ab-8866-6020301a260e",
-      "title": "맞힐 답을 입력에 섞지 않아요",
-      "goal": "접수 때 minutes는 아직 모르는 정답이에요.\n지금 입력X의 문제를 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_b120ab2e-0e39-4d5c-80c1-f94d81d259ec",
+      "title": "drop으로 정답 열 minutes를 입력에서 빼세요",
+      "goal": "접수 때 minutes는 아직 모르는 정답이에요. 정답은 y로 따로 두고 입력 X에는 넣지 않아요. `df.drop(columns=[열])`은 그 열만 뺀 새 표를 돌려줘요.\n\nX 줄을 고쳐 정답 열 minutes를 뺀 나머지 열을 입력으로 쓰세요. 채점은 열 구성이 다른 표로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 입력 열을 확인하세요.\n2. `X = df`를 `X = df.drop(columns=[\"minutes\"])`로 고치세요.\n3. 코드 실행을 눌러 정답 열이 빠졌는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "target",
-      "tests": [],
-      "required": true,
-      "example_code": "import pandas as pd\n\n# 같은 배송을 접수 시점에서 예측하려 해요.\ndf = pd.DataFrame({\"distance\": [1, 2, 3], \"region\": [\"north\", \"south\", \"north\"], \"minutes\": [10, 20, 100]})\n# 지금은 예측할 정답 열까지 입력에 들어 있어요.\nX = df[[\"distance\", \"minutes\"]]\nprint(X.columns.tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "fine",
-            "text": "숫자 열이라 입력으로 써도 돼요"
-          },
-          {
-            "id": "target",
-            "text": "맞힐 정답이 입력에 섞였어요"
-          }
-        ],
-        "answer": "target"
-      },
-      "narration": [
+      "starter_code": "import pandas as pd\n\n# 같은 배송을 접수 시점에서 예측하려 해요. minutes는 아직 모르는 정답이에요.\ndata = {\"distance\": [1, 2, 3], \"region\": [\"north\", \"south\", \"north\"], \"minutes\": [10, 20, 100]}\ndf = pd.DataFrame(data)\n# 이 줄을 고쳐 정답 열 minutes를 뺀 나머지 열을 입력으로 쓰세요.\nX = df\nprint(X.columns.tolist())\nprint(X.shape)\n",
+      "solution": "import pandas as pd\n\n# 같은 배송을 접수 시점에서 예측하려 해요. minutes는 아직 모르는 정답이에요.\ndata = {\"distance\": [1, 2, 3], \"region\": [\"north\", \"south\", \"north\"], \"minutes\": [10, 20, 100]}\ndf = pd.DataFrame(data)\n# 이 줄을 고쳐 정답 열 minutes를 뺀 나머지 열을 입력으로 쓰세요.\n# drop(columns=...)은 그 열만 뺀 새 표를 돌려줘요. 맞힐 정답은 입력에 넣지 않아요.\nX = df.drop(columns=[\"minutes\"])\nprint(X.columns.tolist())\nprint(X.shape)\n",
+      "tests": [
         {
-          "action": "say",
-          "text": "이 수업에서는 평가에 쓰면 안 되는 정보가 섞이는 문제를 배워요. 예측 시점과 훈련 경계를 지켜요."
-        },
-        {
-          "action": "say",
-          "text": "정답·미래 정보·평가 통계가 섞인 예를 살펴봐요. 그룹과 시간을 고려해 분리 기준을 고쳐요."
-        },
-        {
-          "action": "say",
-          "text": "맞혀야 할 배송 시간이 입력에 섞이면 무엇이 문제인지 고르는 문제예요.",
-          "target": "text:맞힐 답을 입력에 섞지 않아요#1"
-        },
-        {
-          "action": "say",
-          "text": "접수할 때는 걸린 시간을 아직 몰라요. 그 시간이 입력 X에 들어 있으면 무엇이 문제인지 고르는 문제예요.",
-          "target": "text:접수 때 minutes는 아직 모르는 정답이에요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            7,
-            7
-          ]
-        },
-        {
-          "action": "say",
-          "text": "맞힐 실제 시간 minutes가 입력에 들어 있어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "df[[\"distance\", \"minutes\"]]",
-          "after": "df[[\"distance\", \"region\"]]",
-          "say": "접수 때 아는 거리와 지역으로 바꿔요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            7,
-            7
-          ]
-        },
-        {
-          "action": "say",
-          "text": "실제 정답 열이 입력에서 빠졌어요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 답을 보고 맞힌 결과는 새 예측 실력이 아니에요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "df[[\"distance\", \"region\"]]",
-          "after": "df[[\"distance\", \"minutes\"]]",
-          "say": "문제에서 주어진 처음 입력 선택으로 돌아와요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            7,
-            7
-          ]
-        },
-        {
-          "action": "say",
-          "text": "원래 입력에는 실제 정답 minutes가 섞여 있어요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "target"
+          "input": "",
+          "expected": "['distance', 'region']\n(3, 2)"
         }
       ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_09e61173-47f5-4a23-963b-fc1cd186e2df",
-      "title": "예측 시점에 모르는 값도 빼요",
-      "goal": "minutes는 뺐지만 완료 시각을 넣었어요.\n접수 시점의 예측 입력으로 맞을까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "future",
-      "tests": [],
       "required": true,
-      "example_code": "import pandas as pd\n\n# 같은 배송을 접수 시점에서 예측하려 해요.\ndf = pd.DataFrame({\"distance\": [1, 2, 3], \"region\": [\"north\", \"south\", \"north\"], \"minutes\": [10, 20, 100]})\n# 완료 시각은 배송이 끝난 뒤에만 알 수 있어요.\ndf[\"delivered_at\"] = [\"10:10\", \"10:20\", \"11:40\"]\nX = df[[\"distance\", \"delivered_at\"]]\nprint(X.columns.tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "different",
-            "text": "네. 정답과 열 이름이 다르면 괜찮아요"
-          },
-          {
-            "id": "future",
-            "text": "아니요.아직 모르는 미래 정보예요"
-          }
-        ],
-        "answer": "future"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "예측 시점에 모르는 값도 빼는 문제예요.",
-          "target": "text:예측 시점에 모르는 값도 빼요#1"
+          "text": "이 수업에서는 평가에 쓰면 안 되는 정보가 섞이는 문제를 직접 코드로 고쳐요. 예측 시점과 훈련 경계를 지켜요."
         },
         {
           "action": "say",
-          "text": "정답 열은 뺐지만 완료 시각은 배송이 끝나야 알 수 있어요. 열 이름이 다르면 입력으로 써도 되는지 판단해요.",
-          "target": "text:minutes는 뺐지만 완료 시각을 넣었어요."
+          "text": "정답·미래 정보·평가 통계가 섞인 예를 살펴봐요. 그룹과 시간을 고려해 분리 기준을 직접 고쳐요."
+        },
+        {
+          "action": "say",
+          "text": "drop으로 정답 열 minutes를 입력에서 빼는 문제예요.",
+          "target": "text:drop으로 정답 열 minutes를 입력에서 빼세요#1"
+        },
+        {
+          "action": "say",
+          "text": "접수 때 minutes는 아직 모르는 정답이에요. 입력 X에서 정답 열을 빼도록 고쳐야 해요.",
+          "target": "text:X 줄을 고쳐 정답 열 minutes를 뺀 나머지 열을 입력으로 쓰세요."
         },
         {
           "action": "run",
           "lines": [
             8,
-            8
+            9
           ]
         },
         {
           "action": "say",
-          "text": "완료 후에 알 수 있는 시각이 입력에 남았어요.",
+          "text": "['distance', 'region', 'minutes']과 (3, 3)이에요. 맞힐 정답이 입력에 섞였어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "X = df\n",
+          "after": "X = df.drop(columns=[\"minutes\"])\n",
+          "say": "df.drop(columns=[\"minutes\"])로 정답 열을 빼요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "['distance', 'region']과 (3, 2)예요. 접수 때 아는 두 열만 남았어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 정답 열만 빼도 미래 정보가 남을 수 있어요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "future"
+          "text": "조심하세요. 정답이 입력에 있으면 평가 점수가 아주 좋아 보여도 실제 예측에는 쓸 수 없어요.",
+          "target": "code:drop(columns=[\"minutes\"])"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"data\": {\"distance\": [4, 1], \"weight\": [2.5, 0.5], \"region\": [\"east\", \"west\"], \"minutes\": [30, 8]}}, \"expected\": \"[\\'distance\\', \\'weight\\', \\'region\\']\\\\n(2, 3)\"}, {\"values\": {\"data\": {\"minutes\": [12, 15, 9, 40], \"distance\": [2, 2, 1, 6], \"floor\": [1, 3, 2, 5]}}, \"expected\": \"[\\'distance\\', \\'floor\\']\\\\n(4, 2)\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_83c77f58-dc74-4c7f-9c57-784b41ce0cd9",
-      "title": "남겨둔 자료가 기준을 바꿔요",
-      "goal": "남겨둔 테스트 값만1000으로 바꿔요.\n훈련만의 평균도 달라질까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_e9432c56-7c78-42ae-b891-5bb1c4f0e438",
+      "title": "완료 시각 delivered_at도 입력에서 빼세요",
+      "goal": "minutes는 뺐지만 완료 시각을 넣었어요. 완료 시각은 배송이 끝난 뒤에만 알 수 있어요. 정답과 열 이름이 달라도 예측 시점에 모르는 값은 입력에 넣지 않아요.\n\nX 줄을 고쳐 정답과 완료 시각을 모두 뺀 열을 입력으로 쓰세요. 채점은 열 구성이 다른 표로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 남은 입력 열을 확인하세요.\n2. `[\"minutes\"]`를 `[\"minutes\", \"delivered_at\"]`로 고치세요.\n3. 코드 실행을 눌러 미래 열이 빠졌는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "stable",
-      "tests": [],
+      "starter_code": "import pandas as pd\n\n# 같은 배송을 접수 시점에서 예측하려 해요. minutes는 아직 모르는 정답이에요.\ndata = {\"distance\": [1, 2, 3], \"region\": [\"north\", \"south\", \"north\"], \"minutes\": [10, 20, 100]}\ndf = pd.DataFrame(data)\n# 완료 시각은 배송이 끝난 뒤에만 알 수 있어요.\ndelivered = [\"10:10\", \"10:20\", \"11:40\"]\ndf[\"delivered_at\"] = delivered\n# 이 줄을 고쳐 정답과 완료 시각을 모두 뺀 열을 입력으로 쓰세요.\nX = df.drop(columns=[\"minutes\"])\nprint(X.columns.tolist())\n",
+      "solution": "import pandas as pd\n\n# 같은 배송을 접수 시점에서 예측하려 해요. minutes는 아직 모르는 정답이에요.\ndata = {\"distance\": [1, 2, 3], \"region\": [\"north\", \"south\", \"north\"], \"minutes\": [10, 20, 100]}\ndf = pd.DataFrame(data)\n# 완료 시각은 배송이 끝난 뒤에만 알 수 있어요.\ndelivered = [\"10:10\", \"10:20\", \"11:40\"]\ndf[\"delivered_at\"] = delivered\n# 이 줄을 고쳐 정답과 완료 시각을 모두 뺀 열을 입력으로 쓰세요.\n# 열 이름이 정답과 달라도 예측 시점에 모르는 미래 정보면 함께 빼요.\nX = df.drop(columns=[\"minutes\", \"delivered_at\"])\nprint(X.columns.tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "['distance', 'region']"
+        }
+      ],
       "required": true,
-      "example_code": "import pandas as pd\n\n# 앞의 두 관측은 훈련, 마지막 값은 평가용이에요.\ntrain_values = [10, 20]\ntest_values = [100]\ntrain = pd.Series(train_values)\ntest = pd.Series(test_values)\n# 전체에서 만든 기준과 훈련만의 기준을 나눠 읽어요.\nprint(round(pd.concat([train, test]).mean(), 3))\nprint(float(train.mean()))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "stable",
-            "text": "아니요.훈련 평균15는 같아요"
-          },
-          {
-            "id": "changes",
-            "text": "네.훈련 평균도함께커져요"
-          }
-        ],
-        "answer": "stable"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "남겨둔 자료가 기준을 바꾸는 문제예요.",
-          "target": "text:남겨둔 자료가 기준을 바꿔요#1"
+          "text": "완료 시각 delivered_at도 입력에서 빼는 문제예요.",
+          "target": "text:완료 시각 delivered_at도 입력에서 빼세요#1"
         },
         {
           "action": "say",
-          "text": "기준을 전체 자료로 구하면 평가 값이 기준에 섞여요. 평가 값만 바꿨을 때 두 평균 중 어느 쪽이 움직이는지 예상해요.",
-          "target": "text:남겨둔 테스트 값만1000으로 바꿔요."
+          "text": "minutes는 뺐지만 완료 시각이 남았어요. 완료 시각도 빼도록 고쳐야 해요.",
+          "target": "text:X 줄을 고쳐 정답과 완료 시각을 모두 뺀 열을 입력으로 쓰세요."
         },
         {
           "action": "run",
           "lines": [
-            10,
-            10
+            11,
+            11
           ]
         },
         {
           "action": "say",
-          "text": "전체 평균 43.333과 훈련 평균 15.0이 다르게 나왔어요.",
+          "text": "['distance', 'region', 'delivered_at']이에요. 배송이 끝난 뒤에야 아는 열이 남았어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "test_values = [100]",
-          "after": "test_values = [1000]",
-          "say": "남겨둔 평가 관측만 크게 바꿔요."
+          "before": "df.drop(columns=[\"minutes\"])",
+          "after": "df.drop(columns=[\"minutes\", \"delivered_at\"])",
+          "say": "빼는 목록에 \"delivered_at\"을 더해요."
         },
         {
           "action": "run",
           "lines": [
-            10,
-            10
+            11,
+            11
           ]
         },
         {
           "action": "say",
-          "text": "전체 기준만 343.333으로 바뀌고 훈련 평균 15.0은 같아요.",
+          "text": "['distance', 'region']이에요. 접수 시점에 아는 열만 남았어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 평가 값이 기준을 바꾸면 이미 정보가 섞인 거예요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "test_values = [1000]",
-          "after": "test_values = [100]",
-          "say": "처음 평가 관측으로 돌아와요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            10,
-            10
-          ]
-        },
-        {
-          "action": "say",
-          "text": "평가를 남겨둔다는 뜻을 기준 계산에도 적용해요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "stable"
+          "text": "조심하세요. 정답과 이름이 달라도 정답을 거의 알려 주는 미래 정보예요. 언제 아는 값인지로 판단해요.",
+          "target": "code:[\"minutes\", \"delivered_at\"]"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"data\": {\"distance\": [4, 1], \"weight\": [2.5, 0.5], \"region\": [\"east\", \"west\"], \"minutes\": [30, 8]}, \"delivered\": [\"09:00\", \"09:30\"]}, \"expected\": \"[\\'distance\\', \\'weight\\', \\'region\\']\"}, {\"values\": {\"data\": {\"minutes\": [12, 15, 9, 40], \"distance\": [2, 2, 1, 6], \"floor\": [1, 3, 2, 5]}, \"delivered\": [\"1\", \"2\", \"3\", \"4\"]}, \"expected\": \"[\\'distance\\', \\'floor\\']\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_e6057b0b-85f5-4ad8-b36e-cf4c957e51ff",
-      "title": "빈값을 채우는 기준도 학습해요",
-      "goal": "평가 자료의 빈값을 채우려 해요.\n같은 기준을 적용하는 방법을 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_a5aebc2b-832d-4a50-98f2-dc7ed6a68f2c",
+      "title": "train.mean()으로 훈련만의 기준을 구하세요",
+      "goal": "앞의 두 관측은 훈련, 마지막 값은 평가용이에요. 전처리 기준은 훈련에서만 배워요. 평가 값이 섞인 기준은 평가 자료가 바뀌면 함께 바뀌어요.\n\nreference 줄을 고쳐 평가 값을 빼고 훈련 값만으로 기준 평균을 구하세요. 채점은 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 기준 평균을 확인하세요.\n2. `pd.concat([train, test]).mean()`을 `train.mean()`으로 고치세요.\n3. 코드 실행을 눌러 훈련 평균을 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "train",
-      "tests": [],
+      "starter_code": "import pandas as pd\n\n# 앞의 관측은 훈련, 뒤의 값은 평가용이에요.\ntrain_values = [10, 20]\ntest_values = [100]\ntrain = pd.Series(train_values)\ntest = pd.Series(test_values)\n# 이 줄을 고쳐 평가 값을 빼고 훈련 값만으로 기준 평균을 구하세요.\nreference = pd.concat([train, test]).mean()\nprint(round(float(reference), 3))\n",
+      "solution": "import pandas as pd\n\n# 앞의 관측은 훈련, 뒤의 값은 평가용이에요.\ntrain_values = [10, 20]\ntest_values = [100]\ntrain = pd.Series(train_values)\ntest = pd.Series(test_values)\n# 이 줄을 고쳐 평가 값을 빼고 훈련 값만으로 기준 평균을 구하세요.\n# 기준은 훈련에서만 배워요. 남겨 둔 평가 값이 기준을 바꾸면 안 돼요.\nreference = train.mean()\nprint(round(float(reference), 3))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "15.0"
+        }
+      ],
       "required": true,
-      "example_code": "import pandas as pd\n\n# 앞의 두 관측은 훈련, 마지막 값은 평가용이에요.\ntrain_values = [10, 20]\ntest_values = [None, 100]\ntrain = pd.Series(train_values)\ntest = pd.Series(test_values)\n# 훈련에서 정한 기준을 평가의 빈값에 적용해요.\nreference = train.median()\nprint(test.fillna(reference).tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "test",
-            "text": "평가에서 기준 100을 다시 학습해요"
-          },
-          {
-            "id": "train",
-            "text": "훈련에서 정한 15로 채워요"
-          }
-        ],
-        "answer": "train"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "평가 자료를 채울 때 그 기준을 어느 자료에서 구해야 하는지 고르는 문제예요.",
-          "target": "text:빈값을 채우는 기준도 학습해요#1"
+          "text": "train.mean()으로 훈련만의 기준을 구하는 문제예요.",
+          "target": "text:train.mean()으로 훈련만의 기준을 구하세요#1"
         },
         {
           "action": "say",
-          "text": "빈값을 채울 값도 자료에서 배운 기준이에요.",
-          "target": "text:같은 기준을 적용하는 방법을 고르세요."
+          "text": "남겨 둔 평가 값이 기준에 섞였어요. 훈련 값만으로 평균을 구하도록 고쳐야 해요.",
+          "target": "text:reference 줄을 고쳐 평가 값을 빼고 훈련 값만으로 기준 평균을 구하세요."
         },
         {
           "action": "run",
@@ -422,14 +289,14 @@
         },
         {
           "action": "say",
-          "text": "훈련의 15.0으로 빈값만 채우고 100.0은 남겼어요.",
+          "text": "43.333이에요. 평가의 100이 기준 평균을 끌어올렸어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "reference = train.median()",
-          "after": "reference = test.median()",
-          "say": "평가 자료에서 기준을 다시 구한 경우와 비교해요."
+          "before": "pd.concat([train, test]).mean()",
+          "after": "train.mean()",
+          "say": "train.mean()으로 바꿔요."
         },
         {
           "action": "run",
@@ -440,215 +307,268 @@
         },
         {
           "action": "say",
-          "text": "이번에는 빈값까지 100.0이 되어 기준이 달라졌어요.",
+          "text": "15.0이에요. 평가 값이 1000으로 바뀌어도 훈련 기준은 그대로예요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 변환 기준도 어디서 정했는지 확인해요.",
+          "text": "조심하세요. 전체로 만든 기준은 평가 자료가 바뀔 때마다 함께 바뀌어요.",
+          "target": "code:train.mean()"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"train_values\": [4, 8, 6], \"test_values\": [1000, 2]}, \"expected\": \"6.0\"}, {\"values\": {\"train_values\": [30], \"test_values\": [5]}, \"expected\": \"30.0\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_ddedb308-53a1-49c1-aeab-e4107f6b0951",
+      "title": "train.median()으로 채움 기준을 정하세요",
+      "goal": "평가 자료의 빈값을 채우려 해요. 채움 값도 훈련에서 배운 기준이에요. `fillna(값)`은 빈값을 그 값으로 채워요.\n\nreference 줄을 고쳐 평가가 아니라 훈련에서 채움 기준을 정하세요. 채점은 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 채움 값을 확인하세요.\n2. `test.median()`을 `train.median()`으로 고치세요.\n3. 코드 실행을 눌러 훈련 기준으로 채웠는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import pandas as pd\n\n# 앞의 관측은 훈련, 뒤의 값은 평가용이에요.\ntrain_values = [10, 20]\ntest_values = [None, 100]\ntrain = pd.Series(train_values)\ntest = pd.Series(test_values)\n# 이 줄을 고쳐 평가가 아니라 훈련에서 채움 기준을 정하세요.\nreference = test.median()\nprint(float(reference))\nprint(test.fillna(reference).tolist())\n",
+      "solution": "import pandas as pd\n\n# 앞의 관측은 훈련, 뒤의 값은 평가용이에요.\ntrain_values = [10, 20]\ntest_values = [None, 100]\ntrain = pd.Series(train_values)\ntest = pd.Series(test_values)\n# 이 줄을 고쳐 평가가 아니라 훈련에서 채움 기준을 정하세요.\n# 채움 값도 훈련에서 배운 기준이에요. 평가에는 그 값을 적용만 해요.\nreference = train.median()\nprint(float(reference))\nprint(test.fillna(reference).tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "15.0\n[15.0, 100.0]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "train.median()으로 채움 기준을 정하는 문제예요.",
+          "target": "text:train.median()으로 채움 기준을 정하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "평가 자료의 빈값을 채우려 해요. 채움 기준을 훈련에서 정하도록 고쳐야 해요.",
+          "target": "text:reference 줄을 고쳐 평가가 아니라 훈련에서 채움 기준을 정하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "100.0과 [100.0, 100.0]이에요. 평가에서 기준을 다시 배웠어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
           "before": "reference = test.median()",
           "after": "reference = train.median()",
-          "say": "훈련에서 정한 기준으로 돌아와요."
+          "say": "test를 train으로 바꿔요."
         },
         {
           "action": "run",
           "lines": [
             10,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "15.0과 [15.0, 100.0]이에요. 훈련에서 정한 15로 채웠어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 평가의 중앙값으로 채우면 평가 정보가 기준에 섞여요.",
+          "target": "code:train.median()"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"train_values\": [4, 8, 6], \"test_values\": [null, 1000, null]}, \"expected\": \"6.0\\\\n[6.0, 1000.0, 6.0]\"}, {\"values\": {\"train_values\": [30], \"test_values\": [5, null]}, \"expected\": \"30.0\\\\n[5.0, 30.0]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_85918482-64e3-41fc-bd4a-93d0c77b1596",
+      "title": "isin으로 고객 단위로 훈련과 평가를 나누세요",
+      "goal": "새 고객의 배송을 평가하는 게 목표예요. 행이 겹치지 않아도 같은 고객이 양쪽에 있으면 그 고객을 이미 본 셈이에요. `df[\"customer\"].isin(목록)`은 고객이 목록에 있으면 True예요.\n\n두 줄을 고쳐 test_customers의 고객 행은 모두 평가로, 나머지 고객 행은 훈련으로 나누세요. 채점은 다른 고객 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 True가 나오는지 확인하세요.\n2. train 줄을 `df[~df[\"customer\"].isin(test_customers)]`로 고치세요.\n3. test 줄을 `df[df[\"customer\"].isin(test_customers)]`로 고치세요.\n4. 코드 실행을 눌러 False와 고객별 시간을 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import pandas as pd\n\n# 새 고객의 배송을 평가하는 게 목표예요.\ndata = {\"customer\": [\"A\", \"A\", \"B\", \"B\"], \"minutes\": [10, 12, 20, 22]}\ndf = pd.DataFrame(data)\ntest_customers = [\"B\"]\n# 이 두 줄을 고쳐 test_customers의 고객 행은 모두 평가로, 나머지 고객 행은 훈련으로 나누세요.\ntrain = df.iloc[0::2]\ntest = df.iloc[1::2]\n# 확인용 출력: 두 쪽에 같은 고객이 있으면 True예요.\nprint(bool(set(train[\"customer\"]) & set(test[\"customer\"])))\nprint(train[\"minutes\"].tolist(), test[\"minutes\"].tolist())\n",
+      "solution": "import pandas as pd\n\n# 새 고객의 배송을 평가하는 게 목표예요.\ndata = {\"customer\": [\"A\", \"A\", \"B\", \"B\"], \"minutes\": [10, 12, 20, 22]}\ndf = pd.DataFrame(data)\ntest_customers = [\"B\"]\n# 이 두 줄을 고쳐 test_customers의 고객 행은 모두 평가로, 나머지 고객 행은 훈련으로 나누세요.\n# isin은 고객이 목록에 있는지 확인해요. 같은 고객의 행은 모두 한쪽으로 가요.\ntrain = df[~df[\"customer\"].isin(test_customers)]\ntest = df[df[\"customer\"].isin(test_customers)]\n# 확인용 출력: 두 쪽에 같은 고객이 있으면 True예요.\nprint(bool(set(train[\"customer\"]) & set(test[\"customer\"])))\nprint(train[\"minutes\"].tolist(), test[\"minutes\"].tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "False\n[10, 12] [20, 22]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "isin으로 고객 단위로 훈련과 평가를 나누는 문제예요.",
+          "target": "text:isin으로 고객 단위로 훈련과 평가를 나누세요#1"
+        },
+        {
+          "action": "say",
+          "text": "행은 겹치지 않지만 고객 A와 B가 양쪽에 있어요. 고객 단위로 나누도록 두 줄을 고쳐야 해요.",
+          "target": "text:두 줄을 고쳐 test_customers의 고객 행은 모두 평가로, 나머지 고객 행은 훈련으로 나누세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            11,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "True예요. 행을 번갈아 나눠 두 고객이 훈련과 평가에 모두 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "train = df.iloc[0::2]\ntest = df.iloc[1::2]\n",
+          "after": "train = df[~df[\"customer\"].isin(test_customers)]\ntest = df[df[\"customer\"].isin(test_customers)]\n",
+          "say": "isin으로 평가 고객과 나머지 고객을 나눠요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            11,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "False와 [10, 12] [20, 22]예요. 고객 A는 훈련, 고객 B는 평가에만 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 행이 겹치지 않아도 같은 고객이 양쪽에 있으면 새 고객 평가가 아니에요.",
+          "target": "code:~df[\"customer\"].isin(test_customers)"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"data\": {\"customer\": [\"B\", \"C\", \"B\", \"A\", \"C\"], \"minutes\": [5, 6, 7, 8, 9]}, \"test_customers\": [\"C\"]}, \"expected\": \"False\\\\n[5, 7, 8] [6, 9]\"}, {\"values\": {\"data\": {\"customer\": [\"A\", \"B\", \"C\", \"A\"], \"minutes\": [1, 2, 3, 4]}, \"test_customers\": [\"A\", \"C\"]}, \"expected\": \"False\\\\n[2] [1, 3, 4]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_4dd87189-03b3-459f-a8b2-2f418a0650f1",
+      "title": "GroupShuffleSplit으로 고객 그룹 하나를 평가로 남기세요",
+      "goal": "고객마다 관측이 두 개씩 있고 고객 하나를 평가에 남겨요. `GroupShuffleSplit(test_size=1)`의 1은 그룹 하나이고, `split(rows, groups=groups)`로 같은 고객의 행을 함께 옮겨요.\n\ntrain 줄을 고쳐 행이 아니라 고객 그룹 하나를 평가로 남기세요. 채점은 다른 그룹 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 평가 고객 수와 겹침을 확인하세요.\n2. `ShuffleSplit(n_splits=1, test_size=2, random_state=0).split(rows)`를 `GroupShuffleSplit(n_splits=1, test_size=1, random_state=0).split(rows, groups=groups)`로 고치세요.\n3. 코드 실행을 눌러 고객 하나가 평가로 갔는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "from sklearn.model_selection import ShuffleSplit, GroupShuffleSplit\n\n# 고객마다 두 관측씩 있고 고객 하나를 평가에 남겨요.\ngroups = [\"A\", \"A\", \"B\", \"B\", \"C\", \"C\"]\nrows = list(range(len(groups)))\n# 이 줄을 고쳐 행이 아니라 고객 그룹 하나를 평가로 남기세요.\ntrain, test = next(ShuffleSplit(n_splits=1, test_size=2, random_state=0).split(rows))\n# 확인용 출력: 평가 행 수, 평가 고객 수, 양쪽에 같은 고객이 있는지예요.\nprint(len(test), len({groups[i] for i in test}))\nprint(bool({groups[i] for i in train} & {groups[i] for i in test}))\n",
+      "solution": "from sklearn.model_selection import ShuffleSplit, GroupShuffleSplit\n\n# 고객마다 두 관측씩 있고 고객 하나를 평가에 남겨요.\ngroups = [\"A\", \"A\", \"B\", \"B\", \"C\", \"C\"]\nrows = list(range(len(groups)))\n# 이 줄을 고쳐 행이 아니라 고객 그룹 하나를 평가로 남기세요.\n# GroupShuffleSplit의 test_size=1은 그룹 하나예요. groups로 같은 고객의 행을 함께 옮겨요.\ntrain, test = next(GroupShuffleSplit(n_splits=1, test_size=1, random_state=0).split(rows, groups=groups))\n# 확인용 출력: 평가 행 수, 평가 고객 수, 양쪽에 같은 고객이 있는지예요.\nprint(len(test), len({groups[i] for i in test}))\nprint(bool({groups[i] for i in train} & {groups[i] for i in test}))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "2 1\nFalse"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "GroupShuffleSplit으로 고객 그룹 하나를 평가로 남기는 문제예요.",
+          "target": "text:GroupShuffleSplit으로 고객 그룹 하나를 평가로 남기세요#1"
+        },
+        {
+          "action": "say",
+          "text": "새 고객 평가는 고객 그룹을 나눠요. 행을 섞는 줄을 그룹 단위 분리로 고쳐야 해요.",
+          "target": "text:train 줄을 고쳐 행이 아니라 고객 그룹 하나를 평가로 남기세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
             10
           ]
         },
         {
           "action": "say",
-          "text": "같은 훈련 기준을 남겨둔 자료에 적용해요.",
+          "text": "2 2와 True예요. 평가 두 행이 서로 다른 고객이고 그 고객들이 훈련에도 있어요.",
           "target": "output"
         },
         {
-          "action": "choose_answer",
-          "id": "train"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_f9bcb716-4fa1-4b04-b068-1857c58aa38a",
-      "title": "같은 사람의 자료가 양쪽에 있나요",
-      "goal": "행은 겹치지 않지만 고객A와B가 양쪽에 있어요.\n새 고객 평가라는 목표에 맞을까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "group",
-      "tests": [],
-      "required": true,
-      "example_code": "import pandas as pd\n\n# 새 고객의 배송을 평가하는 게 목표예요.\ndf = pd.DataFrame({\"customer\": [\"A\", \"A\", \"B\", \"B\"], \"minutes\": [10, 12, 20, 22]})\ntrain = df.iloc[[0, 2]]\ntest = df.iloc[[1, 3]]\n# 행과 고객이 겹치는지는 서로 다른 조건이에요.\n# 확인용 출력: 두 쪽에 같은 행 번호가 있으면 True예요.\nprint(bool(set(train.index) & set(test.index)))\n# 확인용 출력: 두 쪽에 같은 고객이 있으면 True예요.\nprint(bool(set(train[\"customer\"]) & set(test[\"customer\"])))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "group",
-            "text": "아니요. 같은 고객 정보가 양쪽에 걸쳐요"
-          },
-          {
-            "id": "rows",
-            "text": "네. 겹치는 행이 없으니 새 고객 평가예요"
-          }
-        ],
-        "answer": "group"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "같은 사람의 자료가 양쪽에 있나요?",
-          "target": "text:같은 사람의 자료가 양쪽에 있나요#1"
-        },
-        {
-          "action": "say",
-          "text": "행은 겹치지 않아도 같은 고객의 배송이 훈련과 평가에 나뉘어 있어요. 새 고객을 평가한다는 목표에 맞는지 판단해요.",
-          "target": "text:행은 겹치지 않지만 고객A와B가 양쪽에 있어요."
+          "action": "patch_code",
+          "before": "next(ShuffleSplit(n_splits=1, test_size=2, random_state=0).split(rows))",
+          "after": "next(GroupShuffleSplit(n_splits=1, test_size=1, random_state=0).split(rows, groups=groups))",
+          "say": "GroupShuffleSplit에 test_size=1을 주고 split에 groups를 넘겨요."
         },
         {
           "action": "run",
           "lines": [
             9,
-            9
+            10
           ]
         },
         {
           "action": "say",
-          "text": "행 교집합은 없지만 고객 교집합은 있어요.",
+          "text": "2 1과 False예요. 고객 하나의 두 행이 모두 평가로 갔어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 평가하려는 새 대상이 무엇인지 먼저 정해요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "group"
+          "text": "조심하세요. 그룹 분리의 test_size=1은 행 하나가 아니라 그룹 하나예요.",
+          "target": "code:test_size=1"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"groups\": [\"x\", \"y\", \"x\", \"z\", \"z\", \"z\", \"y\"]}, \"expected\": \"3 1\\\\nFalse\"}, {\"values\": {\"groups\": [\"p\", \"p\", \"p\", \"q\"]}, \"expected\": \"1 1\\\\nFalse\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_c3deb2cf-dc1b-4dcd-81cf-641100d3fa05",
-      "title": "새 고객 평가는 그룹을 나눠요",
-      "goal": "test_size=1로 그룹을 나눴어요.\n이번1은 무엇을 뜻할까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_fdfa09bb-7e51-4eb2-9d6a-3345a60ec7e8",
+      "title": "train[\"minutes\"].mean()으로 과거만의 기준을 쓰세요",
+      "goal": "날짜 3은 미래 평가 관측이에요. 날짜 2까지 알 수 있는 자료로 기준을 정해요. `train`은 날짜 2 이하의 행만 남긴 표예요.\n\nreference 줄을 고쳐 미래 관측을 빼고 과거 훈련 자료의 평균 시간을 기준으로 쓰세요. 채점은 다른 날짜 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 기준 평균을 확인하세요.\n2. `df[\"minutes\"].mean()`을 `train[\"minutes\"].mean()`으로 고치세요.\n3. 코드 실행을 눌러 과거 평균을 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "groups",
-      "tests": [],
+      "starter_code": "import pandas as pd\n\n# 같은 배송을 접수 시점에서 예측하려 해요. minutes는 아직 모르는 정답이에요.\ndata = {\"distance\": [1, 2, 3], \"region\": [\"north\", \"south\", \"north\"], \"minutes\": [10, 20, 100]}\ndf = pd.DataFrame(data)\n# 날짜 2까지 알 수 있는 자료로 기준을 정해요. 날짜 3은 미래 평가 관측이에요.\ndays = [1, 2, 3]\ndf[\"day\"] = days\ntrain = df[df[\"day\"] <= 2]\n# 이 줄을 고쳐 미래 관측을 빼고 과거 훈련 자료의 평균 시간을 기준으로 쓰세요.\nreference = df[\"minutes\"].mean()\nprint(round(float(reference), 3))\n",
+      "solution": "import pandas as pd\n\n# 같은 배송을 접수 시점에서 예측하려 해요. minutes는 아직 모르는 정답이에요.\ndata = {\"distance\": [1, 2, 3], \"region\": [\"north\", \"south\", \"north\"], \"minutes\": [10, 20, 100]}\ndf = pd.DataFrame(data)\n# 날짜 2까지 알 수 있는 자료로 기준을 정해요. 날짜 3은 미래 평가 관측이에요.\ndays = [1, 2, 3]\ndf[\"day\"] = days\ntrain = df[df[\"day\"] <= 2]\n# 이 줄을 고쳐 미래 관측을 빼고 과거 훈련 자료의 평균 시간을 기준으로 쓰세요.\n# 기준은 그 시점까지 알 수 있는 훈련 행에서만 계산해요.\nreference = train[\"minutes\"].mean()\nprint(round(float(reference), 3))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "15.0"
+        }
+      ],
       "required": true,
-      "example_code": "from sklearn.model_selection import GroupShuffleSplit\n\n# 고객마다 두 관측씩 있고 고객 하나를 평가에 남겨요.\nrows = list(range(6))\ngroups = [\"A\", \"A\", \"B\", \"B\", \"C\", \"C\"]\ntrain, test = next(GroupShuffleSplit(n_splits=1, test_size=1, random_state=42).split(rows, groups=groups))\nprint(len(train), len(test))\n# 확인용 출력: 훈련과 테스트에 같은 고객 그룹이 있으면 True예요. 이 줄의 문법은 몰라도 돼요.\nprint(bool({groups[i] for i in train} & {groups[i] for i in test}))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "groups",
-            "text": "테스트 고객 그룹1개예요"
-          },
-          {
-            "id": "rows",
-            "text": "테스트 행 1개예요"
-          }
-        ],
-        "answer": "groups"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "새 고객 평가는 그룹을 나누는 문제예요.",
-          "target": "text:새 고객 평가는 그룹을 나눠요#1"
+          "text": "train[\"minutes\"].mean()으로 과거만의 기준을 쓰는 문제예요.",
+          "target": "text:train[\"minutes\"].mean()으로 과거만의 기준을 쓰세요#1"
         },
         {
           "action": "say",
-          "text": "GroupShuffleSplit은 groups로 준 고객 단위로 나눠요. test_size=1의 1이 행 하나인지 고객 하나인지가 질문이에요.",
-          "target": "text:이번1은 무엇을 뜻할까요?"
+          "text": "날짜 3은 미래 평가 관측이에요. 날짜 2까지의 훈련 자료로만 평균을 내도록 고쳐야 해요.",
+          "target": "text:reference 줄을 고쳐 미래 관측을 빼고 과거 훈련 자료의 평균 시간을 기준으로 쓰세요."
         },
         {
           "action": "run",
           "lines": [
-            9,
-            9
+            12,
+            12
           ]
         },
         {
           "action": "say",
-          "text": "한 고객의 두 행이 남고 고객 교집합은 없어요.",
+          "text": "43.333이에요. 미래 관측 100이 기준에 섞였어요.",
           "target": "output"
         },
         {
-          "action": "say",
-          "text": "조심하세요. 그룹 개수와 행 개수는 같지 않을 수 있어요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "groups"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_1bac5ff3-c7cc-4257-8ded-2d005be9e5ac",
-      "title": "미래 자료로 과거 기준을 만들지 않아요",
-      "goal": "날짜3은 미래 평가 관측이에요.\n과거 기준으로 쓸 평균을 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "past",
-      "tests": [],
-      "required": true,
-      "example_code": "import pandas as pd\n\n# 같은 배송을 접수 시점에서 예측하려 해요.\ndf = pd.DataFrame({\"distance\": [1, 2, 3], \"region\": [\"north\", \"south\", \"north\"], \"minutes\": [10, 20, 100]})\n# 날짜2까지 알 수 있는 자료로 기준을 정해요.\ndf[\"day\"] = [1, 2, 3]\ntrain = df[df[\"day\"] <= 2]\nprint(float(train[\"minutes\"].mean()))\nprint(round(df[\"minutes\"].mean(), 3))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "all",
-            "text": "정렬했으니 전체 평균도 괜찮아요"
-          },
-          {
-            "id": "past",
-            "text": "날짜 2까지의 훈련 평균 15예요"
-          }
-        ],
-        "answer": "past"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "과거 기준으로 쓸 평균이 어느 범위의 평균인지 고르는 문제예요.",
-          "target": "text:미래 자료로 과거 기준을 만들지 않아요#1"
-        },
-        {
-          "action": "say",
-          "text": "날짜 3은 기준을 만들 때 아직 오지 않은 미래예요.",
-          "target": "text:날짜3은 미래 평가 관측이에요."
+          "action": "patch_code",
+          "before": "df[\"minutes\"].mean()",
+          "after": "train[\"minutes\"].mean()",
+          "say": "df를 train으로 바꿔요."
         },
         {
           "action": "run",
           "lines": [
-            9,
-            9
+            12,
+            12
           ]
         },
         {
           "action": "say",
-          "text": "과거만의 15.0과 미래까지 섞은 43.333은 달라요.",
+          "text": "15.0이에요. 날짜 1과 2의 10과 20만 평균 냈어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 날짜 정렬만으로 전체 통계의 미래 누수가 사라지진 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "past"
+          "text": "조심하세요. 날짜순으로 정렬했다고 미래 값이 기준에서 빠지지는 않아요. 시점으로 행을 걸러요.",
+          "target": "code:train[\"minutes\"].mean()"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"data\": {\"distance\": [1, 2, 3, 4], \"region\": [\"a\", \"b\", \"a\", \"b\"], \"minutes\": [50, 7, 9, 60]}, \"days\": [3, 1, 2, 4]}, \"expected\": \"8.0\"}, {\"values\": {\"data\": {\"distance\": [5, 6, 7, 8], \"region\": [\"a\", \"b\", \"a\", \"b\"], \"minutes\": [10, 20, 30, 99]}, \"days\": [1, 2, 2, 3]}, \"expected\": \"20.0\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
       "id": "stp_0fa722a5-ecf3-4387-83b2-886df3e96fa7",

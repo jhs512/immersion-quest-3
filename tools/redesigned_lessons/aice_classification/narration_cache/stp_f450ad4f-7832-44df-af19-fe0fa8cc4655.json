@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "604882b55bc48de1927ee15ef0169cd454c323cca220f786b73482c8b6bcebec",
+  "entry": [
+    {
+      "action": "say",
+      "text": "정답이 정상0·지연1인 범주예요. model 줄을 로지스틱 분류 모델로 고쳐야 해요.",
+      "target": "text:model 줄을 고쳐 범주 0·1을 예측하는 로지스틱 분류 모델을 쓰세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        11
+      ],
+      "expect_error": "AttributeError"
+    },
+    {
+      "action": "say",
+      "text": "[-0.06, 1.06] 뒤에 AttributeError예요. 직선 회귀는 범주가 아닌 숫자를 내고 확률도 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "model = LinearRegression()",
+      "after": "model = LogisticRegression(random_state=0)",
+      "say": "LogisticRegression(random_state=0)으로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[0, 1]과 [2, 2]예요. 두 배송마다 범주 두 개의 확률이 나왔어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 이름의 Regression만 보고 시간 예측 모델로 쓰지 않아요. 무엇을 내는지 확인해요.",
+      "target": "code:LogisticRegression(random_state=0)"
+    }
+  ]
+}

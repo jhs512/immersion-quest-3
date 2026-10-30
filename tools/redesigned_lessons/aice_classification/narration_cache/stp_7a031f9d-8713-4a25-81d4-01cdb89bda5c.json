@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "00db3326e5a6c96b08d69536d8efb964f203955914dd246c24a3e8fea18ece52",
+  "entry": [
+    {
+      "action": "say",
+      "text": "훈련 정답에 정상 0만 남았어요. if 조건을 고쳐 서로 다른 범주가 두 개 이상일 때만 학습해야 해요.",
+      "target": "text:if 조건을 고쳐 훈련 정답에 서로 다른 범주가 두 개 이상일 때만 학습하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        13
+      ],
+      "expect_error": "ValueError"
+    },
+    {
+      "action": "say",
+      "text": "ValueError예요. 행은 네 개지만 범주가 하나뿐이라 학습할 수 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "if len(y_train) >= 2:\n",
+      "after": "if len(set(y_train)) >= 2:\n",
+      "say": "len(y_train)을 len(set(y_train))으로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "범주가 하나뿐이라 학습하지 않는다고 알렸어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 행이 많아도 범주가 하나면 분류를 배울 수 없어요. 행 수가 아니라 범주 수를 세요.",
+      "target": "code:len(set(y_train))"
+    }
+  ]
+}
