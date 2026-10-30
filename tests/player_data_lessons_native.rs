@@ -70,7 +70,7 @@ fn engineer_c_double_pointers_restore_student_state() {verify("engineer-c-double
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn engineer_c_structures_restore_student_state() {verify("engineer-c-structures",18)}
+fn engineer_c_structures_restore_student_state() {verify("engineer-c-structures",19)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
@@ -210,11 +210,11 @@ fn engineer_java_polymorphism_restore_student_state() {verify("engineer-java-pol
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn engineer_python_values_restore_student_state() {verify("engineer-python-values",8)}
+fn engineer_python_values_restore_student_state() {verify("engineer-python-values",9)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn engineer_python_calls_restore_student_state() {verify("engineer-python-calls",10)}
+fn engineer_python_calls_restore_student_state() {verify("engineer-python-calls",11)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
@@ -270,11 +270,11 @@ fn engineer_security_restore_student_state() {verify("engineer-security",14)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn engineer_os_restore_student_state() {verify("engineer-os",14)}
+fn engineer_os_restore_student_state() {verify("engineer-os",15)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn engineer_network_restore_student_state() {verify("engineer-network",14)}
+fn engineer_network_restore_student_state() {verify("engineer-network",15)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
@@ -282,4 +282,4 @@ fn engineer_build_restore_student_state() {verify("engineer-build",10)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn engineer_mixed_restore_student_state() {verify("engineer-mixed",14)}
+fn engineer_mixed_restore_student_state() {verify("engineer-mixed",15)}

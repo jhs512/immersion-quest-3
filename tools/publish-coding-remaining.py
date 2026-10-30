@@ -8,6 +8,8 @@ Same guarantees as tools/publish-coding-trace-reset.py, against the courses that
     build 156 publication), or already the new one; otherwise the run stops instead of rolling back.
   - Every lesson needs passing validator evidence for its exact bytes (target/mcq/<key>.json), and every
     converted step must be a coding step under its new code with the old code gone.
+  - A moved challenge also renames that lesson's `lesson_previews[...].challenge` to the new step title
+    (the only preview field allowed to change).
   - Lesson tags are immutable; the course write is a compare-and-swap on the course.json blob sha, then
     every written byte is read back.
 Lesson content only: these lessons use features build 156 already runs (prepared Python checks with
@@ -109,6 +111,12 @@ def prepare(name):
             raise ValueError(f'Challenge designation would change beyond the converted step: {key}')
         if new.get('challenge_task') and new['challenge_task'] not in {task['id'] for task in lesson['tasks']}:
             raise ValueError(f'Challenge step is missing from the lesson: {key}')
+        if old.get('challenge_task') != new.get('challenge_task'):
+            # The course preview names the final challenge by title; it follows the moved designation.
+            title = next(task['title'] for task in lesson['tasks'] if task['id'] == new['challenge_task'])
+            if prepared['lesson_previews'][old['id']]['challenge'] != title:
+                raise ValueError(f'Prepared preview does not name the new challenge: {key}')
+            CHALLENGE_TITLES[old['id']] = title
         tag = gh(f'repos/{new["repository"]}/git/ref/tags/{new["revision"]}', optional=True)
         if tag is not None:
             tagged = base64.b64decode(gh(f'repos/{new["repository"]}/contents/lesson.json?ref={new["revision"]}')['content'])
@@ -125,6 +133,8 @@ def prepare(name):
 
 
 _published = {}
+# Lesson id -> new challenge title, for lessons whose final challenge was itself converted.
+CHALLENGE_TITLES = {}
 
 
 def old_ids(old):
@@ -150,14 +160,23 @@ def merge(name, remote, rows, at=None):
         merged.setdefault('change_history', []).insert(0, dict(
             at=at or datetime.now(timezone.utc).isoformat(timespec='seconds').replace('+00:00', 'Z'),
             summary=SUMMARY[name], reason=REASON, details=DETAILS[name]))
+    for lesson_id, title in CHALLENGE_TITLES.items():
+        merged['lesson_previews'][lesson_id]['challenge'] = title
     if [row['repository'] for row in merged['lessons']] != [row['repository'] for row in remote['lessons']]:
         raise ValueError('Lessons would be reordered')
     strip = lambda row: {k: v for k, v in row.items() if k not in UPDATED}
     for row, before in zip(merged['lessons'], remote['lessons']):
         if strip(row) != strip(before) or (row['repository'] not in changed and row != before):
             raise ValueError(f'A lesson field outside the scope would change: {row["repository"]}')
+    for lesson_id, preview in remote.get('lesson_previews', {}).items():
+        allowed = {'challenge'} if lesson_id in CHALLENGE_TITLES else set()
+        after = merged['lesson_previews'][lesson_id]
+        if set(after) != set(preview) or any(after[k] != v for k, v in preview.items() if k not in allowed):
+            raise ValueError(f'A lesson preview outside the moved challenge would change: {lesson_id}')
+    if set(merged.get('lesson_previews', {})) != set(remote.get('lesson_previews', {})):
+        raise ValueError('Lesson previews would be added or removed')
     for field in set(remote) | set(merged):
-        if field not in ('lessons', 'change_history') and merged.get(field) != remote.get(field):
+        if field not in ('lessons', 'change_history', 'lesson_previews') and merged.get(field) != remote.get(field):
             raise ValueError(f'Course field would change: {field}')
     return merged
 

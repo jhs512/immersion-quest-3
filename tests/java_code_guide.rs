@@ -74,7 +74,7 @@ fn retired(id:&str)->Task {
 fn representative_tasks_read_naturally() {
     let code=find("courses/redesigned/java-arrays.json","stp_bfae17a1-f80f-4540-b4e9-36c1c723d98f").code_guide().unwrap();
     assert_eq!((code.access,code.label,code.answer),(CodeAccess::Editable,"코드 수정 가능","코드를 고친 뒤 제출하세요."));
-    let predict_task=find("courses/redesigned/engineer-java-flow.json","stp_e89108e7-6f81-4a7f-984b-320d809b411b");
+    let predict_task=retired("stp_e89108e7-6f81-4a7f-984b-320d809b411b");
     // No shipped Java lesson currently asks a plain (non-prediction) choice over readonly code
     // (java-arrays replaced it with a coding task); keep the wording checked on the same real task.
     let mut plain_choice=predict_task.clone();plain_choice.predict_before_run=false;
@@ -89,6 +89,6 @@ fn representative_tasks_read_naturally() {
     assert_eq!((both.access,both.label,both.answer),(CodeAccess::Editable,"코드 수정 가능","터미널에서 실행하고 보기를 골라 제출하세요."));
     let ordered=retired("stp_450a8eec-4dfc-4082-bc19-f6c42f0218e4").code_guide().unwrap();
     assert_eq!((ordered.access,ordered.label),(CodeAccess::Assembled,"코드 직접 수정 불가"));
-    let fill=find("courses/redesigned/engineer-java-flow.json","stp_539dc525-7521-4428-ad57-f386fc8f7110").code_guide().unwrap();
+    let fill=retired("stp_539dc525-7521-4428-ad57-f386fc8f7110").code_guide().unwrap();
     assert_eq!((fill.access,fill.answer),(CodeAccess::ReadOnly,"빈칸에 답을 적어 제출하세요."));
 }
