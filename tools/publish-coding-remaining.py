@@ -56,22 +56,30 @@ LESSONS = {
                            'engineer-java-static', 'engineer-java-polymorphism', 'engineer-python-values',
                            'engineer-python-calls', 'engineer-mixed', 'engineer-os', 'engineer-network'],
     'engineer-python-flow': ['engineer-python-calls', 'engineer-c-functions', 'engineer-c-pointers'],
+    'java-values-challenge': ['java-values'],
     'aice-associate': ['aice-python-start', 'aice-python-conditions', 'aice-split', 'aice-leakage', 'aice-classification',
                        'aice-classification-metrics', 'aice-models', 'aice-tuning', 'aice-boosting', 'aice-tensorflow',
                        'aice-neural-regression', 'aice-neural-classification', 'aice-training', 'aice-integration'],
 }
 # Lesson group -> the course repository it is published into (default: the group name itself).
-COURSE = {'engineer-python-flow': 'engineer-practical'}
+COURSE = {'engineer-python-flow': 'engineer-practical', 'java-values-challenge': 'java-backend'}
+# A redesigned final challenge (not a coding conversion): the lesson's designation moves exactly from the old
+# step code to the new one (tools/final_challenges/<key>.py); the old step and its passes stay in the old revision.
+CHALLENGE_MOVES = {'java-values': ('stp_4c1b8f0e-6d2a-4f57-9a3e-0b7c5d81e2a4', 'stp_a802a18d-6f68-41cf-8655-f0e62134c57b')}
 # Revisions published after the 846504af baseline by this same work (verified course commit 514ebeb2):
 # a group may move a lesson on from these as well as from the baseline.
-PUBLISHED = {'engineer-python-calls': 'engineer-python-calls-7', 'engineer-c-functions': 'engineer-c-functions-7',
+PUBLISHED = {'java-values': 'java-values-8', 'engineer-python-calls': 'engineer-python-calls-7', 'engineer-c-functions': 'engineer-c-functions-7',
              'engineer-c-pointers': 'engineer-c-pointers-7'}
 SUMMARY = {
+    'java-values-challenge': '자바 · 값 수업의 마지막 도전을 무엇을 출력할지 바로 보이는 문제로 바꿨어요.',
     'engineer-python-flow': 'Python·C 함수와 포인터 문제에서도 코드 흐름 보기로 실행을 한 줄씩 따라가요.',
     'engineer-practical': '코드를 읽고 출력값만 적던 문제도 직접 코드를 고쳐 실행하는 문제로 바꿨어요.',
     'aice-associate': '남은 AICE 수업의 고르던 문제를 직접 코드를 고쳐 실행하는 문제로 바꿨어요.',
 }
 DETAILS = {
+    'java-values-challenge': ['자바 · 값이 계산되고 표시되는 과정의 마지막 도전이 「우유·빵 수량과 합계를 세 줄로 출력하세요」로 바뀌었어요. 나와야 할 세 줄을 문제에 그대로 보여 줘요.',
+                              '앞 단계에서 배운 변수·출력·글자 붙이기·괄호만 써요. 채점은 두 수량을 바꿔서도 실행해요.',
+                              '새 문제로 열려요. 이전 마지막 문제의 완료 기록은 이전 버전에 남아요.'],
     'engineer-python-flow': ['Python 함수 호출 수업의 여섯 문제에서 코드 흐름 보기를 열 수 있어요. 기본값 목록 공유·함수에 넘긴 목록·클래스 속성·super()·재귀·새 기본값 목록을 채점과 같은 실행으로 따라가요.',
                              'C 함수·포인터 수업의 열 문제에서도 코드 흐름 보기를 열 수 있어요. 채점과 같은 TinyCC 프로그램을 그대로 실행하며 값과 포인터를 따라가요. C는 Windows 앱에서 열려요.',
                              '문제와 채점은 그대로예요. 이 버튼은 새 앱 버전부터 보여요.'],
@@ -129,7 +137,8 @@ def prepare(name):
         if old['revision'] == new['revision'] and old['sha256'] != digest:
             raise ValueError(f'Published immutable revision has different bytes: {key}')
         coding.check_transition(key, {'id': old['id'], 'revision': base[key]}, new)
-        moved = {spec['old']: conversion.new_step_id(spec['old']) for spec in conversion.specs_for(key).SPECS}
+        moved = ({CHALLENGE_MOVES[key][0]: CHALLENGE_MOVES[key][1]} if key in CHALLENGE_MOVES else
+                 {spec['old']: conversion.new_step_id(spec['old']) for spec in conversion.specs_for(key).SPECS})
         if old.get('challenge_task') != new.get('challenge_task') and moved.get(old.get('challenge_task')) != new.get('challenge_task'):
             raise ValueError(f'Challenge designation would change beyond the converted step: {key}')
         if new.get('challenge_task') and new['challenge_task'] not in {task['id'] for task in lesson['tasks']}:
@@ -137,6 +146,9 @@ def prepare(name):
         if old.get('challenge_task') != new.get('challenge_task'):
             # The course preview names the final challenge by title; it follows the moved designation.
             title = next(task['title'] for task in lesson['tasks'] if task['id'] == new['challenge_task'])
+            if key in CHALLENGE_MOVES:
+                # The backend course previews describe the challenge in a sentence (backend_previews.py), not its title.
+                title = prepared['lesson_previews'][old['id']]['challenge']
             if prepared['lesson_previews'][old['id']]['challenge'] != title:
                 raise ValueError(f'Prepared preview does not name the new challenge: {key}')
             CHALLENGE_TITLES[old['id']] = title
@@ -145,8 +157,12 @@ def prepare(name):
             tagged = base64.b64decode(gh(f'repos/{new["repository"]}/contents/lesson.json?ref={new["revision"]}')['content'])
             if tagged != raw:
                 raise ValueError(f'Tag {new["revision"]} already exists with other bytes: {key}')
-        steps = trace.converted_steps(key, lesson)
-        before = sum(1 for s in conversion.specs_for(key).SPECS if s['old'] not in old_ids(old))
+        if key in CHALLENGE_MOVES:
+            # No coding conversion: report the redesigned challenge instead of conversion counts.
+            steps = before = 0
+        else:
+            steps = trace.converted_steps(key, lesson)
+            before = sum(1 for s in conversion.specs_for(key).SPECS if s['old'] not in old_ids(old))
         print(f'Prepared {key}: {old["revision"]} -> {new["revision"]} {digest[:12]}, {steps - before} newly converted '
               f'({steps} converted in total; {proof["rejected_answers"]} rejected / {proof["accepted_answers"]} accepted answers)'
               + (f', challenge {old.get("challenge_task")} -> {new.get("challenge_task")}' if old.get('challenge_task') != new.get('challenge_task') else ''),
@@ -224,7 +240,10 @@ def main():
     if (user['login'], user['id']) != ('jhs512', 4741844):
         raise ValueError('Unexpected GitHub account')
     for old, new, raw, _ in rows:
-        coding.publish_lesson(old, new, raw, 'Offer 코드 흐름 보기 on Python steps' if args.course in COURSE else 'Turn code-reading answers into real coding exercises')
+        message = {'engineer-python-flow': 'Offer 코드 흐름 보기 on Python steps',
+                   'java-values-challenge': 'Replace the final challenge with a clearer three-line output task'}.get(args.course,
+                   'Turn code-reading answers into real coding exercises')
+        coding.publish_lesson(old, new, raw, message)
     current, latest = trace.read_course(COURSE.get(args.course, args.course))[1:]
     if latest != remote:
         raise ValueError(f'The remote course changed during publication; rerun to merge the newer course: {args.course}')
