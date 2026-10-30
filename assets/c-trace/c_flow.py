@@ -211,6 +211,7 @@ def main(case):
         except OSError: pass
     text = '\n'.join(records)
     layout_lines = [l for l in open(os.path.join(case, 'mq_trace.txt'), encoding='utf-8').read().split('\n') if l.startswith('L ')]
+    ins.code_names = {f['start']: f['name'] for f in funcs}    # a function pointer is shown by its target
     steps = decode(ins, '\n'.join(layout_lines) + '\n' + text, b'', src)
     final = open(stdout_file, 'rb').read().decode('utf-8', 'replace').replace('\r\n', '\n')
     # each step's output must be a prefix of the program's final output; otherwise no step shows any

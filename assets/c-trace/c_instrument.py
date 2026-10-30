@@ -355,7 +355,11 @@ def decode(ins, trace_text, stdout_bytes, source):
                 v = struct.unpack('<f' if t['size'] == 4 else '<d', data[:t['size']])[0]
                 return v if v == v and abs(v) != float('inf') else ['SPECIAL_FLOAT', repr(v)]
             if t['k'] == 'ptr' and t['to']['k'] == 'func':
-                return ['C_NOTE', '함수 포인터']
+                # the original program's function table (STABS starts), set by c_flow.py
+                p = int.from_bytes(data[:8], 'little')
+                if p == 0: return None
+                name = getattr(ins, 'code_names', {}).get(p)
+                return ['C_PTR', f'함수 {name}'] if name else ['C_NOTE', f'0x{p:x} · 함수 포인터(대상 이름 모름)']
             if t['k'] == 'ptr':
                 p = int.from_bytes(data[:8], 'little')
                 if p == 0: return None
