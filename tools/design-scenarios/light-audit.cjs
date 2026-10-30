@@ -165,11 +165,16 @@ module.exports = async ({page, shot, dataDir, output}) => {
     await look('L11-editor');
   });
   await step('run result', async () => {
+    // A step with 코드 실행 (the first lesson's first step is a Bash terminal without it).
+    await openLesson(4); await openTask(1);
+    await page.waitForSelector('.cm-editor', {timeout: 30000});
     await page.locator('.repository-task [data-shortcut-action="run"]').click();
     await page.waitForFunction(() => ['finished', 'failed'].includes(document.querySelector('.result-pane')?.dataset.executionState), null, {timeout: 90000});
     await look('L12-run-result');
   });
   await step('submit feedback', async () => {
+    await openLesson(1); await openTask(1);
+    await page.waitForSelector('.cm-editor', {timeout: 30000});
     await page.locator('.repository-task [data-shortcut-action="submit"]').click();
     await page.waitForFunction(() => ['passed', 'incorrect', 'error'].includes(document.querySelector('.result-pane')?.dataset.feedback), null, {timeout: 90000});
     await look('L13-submit-feedback');
