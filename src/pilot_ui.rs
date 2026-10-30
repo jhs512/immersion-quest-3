@@ -67,7 +67,7 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
         let mut progress_lock:Option<rusqlite::Connection>=None;
         // aice-plots: eleven matplotlib coding steps, each run by the teacher and graded several times.
         // The TensorFlow lessons start TensorFlow for every teacher run and graded case of their coding steps.
-        let budget=if matches!(std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref(),Some("auto-review"|"auto-state")){1500}else if matches!(std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref(),Some("aice-plots"|"aice-tensorflow"|"aice-neural-regression"|"aice-neural-classification"|"aice-training")){1200}else{480};
+        let budget=if matches!(std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref(),Some("auto-review"|"auto-state")){1500}else if matches!(std::env::var("MOLIP_PILOT_SELF_TEST").ok().as_deref(),Some("aice-plots"|"aice-tensorflow"|"aice-neural-regression"|"aice-neural-classification"|"aice-training"|"aice-integration")){1200}else{480};
         let result = match tokio::time::timeout(std::time::Duration::from_secs(budget), async {
             loop {
                 let message=bridge.recv::<serde_json::Value>().await?;
