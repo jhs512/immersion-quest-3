@@ -82,14 +82,19 @@ class TeacherHighlightTest(unittest.TestCase):
     def test_shipped_lessons_never_frame_the_whole_problem_for_a_sentence(self):
         root = Path(__file__).resolve().parents[1]
         record = compiler.caption_only_record()
+        # Since 9f066ad3 the first step opens with the lesson-wide goal passages (narration-openings.json),
+        # spoken without a spotlight on purpose (narration_openings.compile_openings). Exactly those
+        # passages on exactly the first step are allowed; every other target-less sentence needs a record.
+        openings = json.loads((root / 'tools/redesigned_lessons/narration-openings.json').read_text(encoding='utf-8'))
         for name in compiler.LESSONS:
             lesson = json.loads((root / 'courses/redesigned' / f'{name}.json').read_text(encoding='utf-8'))
-            for task in lesson['tasks']:
+            for index, task in enumerate(lesson['tasks']):
+                intro = set(openings.get(name, [])) if index == 0 else set()
                 for action in task['narration']:
                     if action['action'] != 'say':
                         continue
                     self.assertNotIn(action.get('target'), compiler.COARSE_TARGETS, (name, action.get('text')))
-                    if not action.get('target'):
+                    if not action.get('target') and action.get('text', '') not in intro:
                         self.assertIn((name, task['id'], action.get('text', '')), record, name)
 
 

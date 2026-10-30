@@ -30,7 +30,7 @@ fn verify(mode:&str,count:usize) {
 
 #[test]
 #[ignore="Requires an interactive desktop, pandas and the built player"]
-fn pandas_selection_and_summaries_restore_student_state() {verify("aice-selection",10)}
+fn pandas_selection_and_summaries_restore_student_state() {verify("aice-selection",11)}
 
 #[test]
 #[ignore="Requires an interactive desktop, JDK25 and the built player"]
@@ -42,7 +42,7 @@ fn c_array_loops_and_strings_restore_student_state() {verify("engineer-c-arrays"
 
 #[test]
 #[ignore="Requires an interactive desktop, pandas and the built player"]
-fn pandas_quality_cases_restore_student_state() {verify("aice-quality",10)}
+fn pandas_quality_cases_restore_student_state() {verify("aice-quality",11)}
 
 #[test]
 #[ignore="Requires an interactive desktop, a C compiler and the built player"]
@@ -78,71 +78,71 @@ fn java_static_restore_student_state() {verify("java-static",8)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn aice_features_restore_student_state() {verify("aice-features",8)}
+fn aice_features_restore_student_state() {verify("aice-features",9)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn aice_split_restore_student_state() {verify("aice-split",10)}
+fn aice_split_restore_student_state() {verify("aice-split",11)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn aice_leakage_restore_student_state() {verify("aice-leakage",8)}
+fn aice_leakage_restore_student_state() {verify("aice-leakage",9)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn aice_scale_restore_student_state() {verify("aice-scale",9)}
+fn aice_scale_restore_student_state() {verify("aice-scale",10)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn aice_regression_restore_student_state() {verify("aice-regression",8)}
+fn aice_regression_restore_student_state() {verify("aice-regression",9)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn aice_regression_metrics_restore_student_state() {verify("aice-regression-metrics",8)}
+fn aice_regression_metrics_restore_student_state() {verify("aice-regression-metrics",9)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn aice_classification_restore_student_state() {verify("aice-classification",8)}
+fn aice_classification_restore_student_state() {verify("aice-classification",9)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn aice_classification_metrics_restore_student_state() {verify("aice-classification-metrics",10)}
+fn aice_classification_metrics_restore_student_state() {verify("aice-classification-metrics",11)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn aice_models_restore_student_state() {verify("aice-models",8)}
+fn aice_models_restore_student_state() {verify("aice-models",9)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn aice_tuning_restore_student_state() {verify("aice-tuning",8)}
+fn aice_tuning_restore_student_state() {verify("aice-tuning",9)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn aice_tensorflow_restore_student_state() {verify("aice-tensorflow",8)}
+fn aice_tensorflow_restore_student_state() {verify("aice-tensorflow",9)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn aice_neural_regression_restore_student_state() {verify("aice-neural-regression",8)}
+fn aice_neural_regression_restore_student_state() {verify("aice-neural-regression",9)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn aice_neural_classification_restore_student_state() {verify("aice-neural-classification",8)}
+fn aice_neural_classification_restore_student_state() {verify("aice-neural-classification",9)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn aice_training_restore_student_state() {verify("aice-training",8)}
+fn aice_training_restore_student_state() {verify("aice-training",9)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn aice_join_restore_student_state() {verify("aice-join",8)}
+fn aice_join_restore_student_state() {verify("aice-join",9)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn aice_boosting_restore_student_state() {verify("aice-boosting",8)}
+fn aice_boosting_restore_student_state() {verify("aice-boosting",9)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn aice_integration_restore_student_state() {verify("aice-integration",10)}
+fn aice_integration_restore_student_state() {verify("aice-integration",11)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
