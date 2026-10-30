@@ -20,7 +20,7 @@
     dialog.className = 'code-flow-dialog';
     dialog.setAttribute('aria-labelledby', 'code-flow-title');
     dialog.innerHTML = `<header><div><h2 id="code-flow-title">코드 흐름 보기</h2>
-      <p class="code-flow-note">지금 편집기의 코드를 수업과 같은 JDK 25로 실행하며 한 단계씩 기록했어요. 채점과 진도에는 영향이 없어요. ←·→ 키로도 움직여요.</p></div>
+      <p class="code-flow-note">지금 편집기의 코드를 수업 채점과 같은 실행 환경으로 실행하며 한 단계씩 기록했어요. 채점과 진도에는 영향이 없어요. ←·→ 키로도 움직여요.</p></div>
       <button type="button" class="code-flow-close">닫기</button></header>
       <div class="code-flow-status" role="status" aria-live="polite"></div>
       <div class="code-flow-view"></div>`;
@@ -69,8 +69,8 @@
         narrated = forNarration;
         d.classList.toggle('is-narrated', narrated);
         d.querySelector('.code-flow-note').textContent = narrated
-          ? '해설이 지금 편집기의 코드를 수업과 같은 JDK 25로 실행해 기록한 단계를 차례로 보여 줘요. 채점과 진도에는 영향이 없어요. 닫으면 해설도 멈춰요.'
-          : '지금 편집기의 코드를 수업과 같은 JDK 25로 실행하며 한 단계씩 기록했어요. 채점과 진도에는 영향이 없어요. ←·→ 키로도 움직여요.';
+          ? '해설이 지금 편집기의 코드를 수업 채점과 같은 실행 환경으로 실행해 기록한 단계를 차례로 보여 줘요. 채점과 진도에는 영향이 없어요. 닫으면 해설도 멈춰요.'
+          : '지금 편집기의 코드를 수업 채점과 같은 실행 환경으로 실행하며 한 단계씩 기록했어요. 채점과 진도에는 영향이 없어요. ←·→ 키로도 움직여요.';
         if (narrated) d.show(); else d.showModal();
       }
       state = 'loading';
@@ -90,6 +90,10 @@
         return true;
       }
       status(STATUS[doc.status] || '', doc.status === 'internal_error');
+      // Which real runtime recorded it (JDK 25 for Java, the course Python for Python).
+      const runtime = doc.language === 'python' ? `수업과 같은 Python ${doc.runtime || ''}`.trim() : '수업과 같은 JDK 25';
+      const note = dialog.querySelector('.code-flow-note');
+      if (note) note.textContent = note.textContent.replace('수업 채점과 같은 실행 환경', runtime);
       const root = dialog.querySelector('.code-flow-view');
       view = new window.MqTraceView(root, doc);
       state = 'shown';

@@ -11,6 +11,8 @@ const EVENT_LABELS = {
   uncaught_exception: '처리되지 않은 예외',
   instruction_limit_reached: '단계 제한 도달',
 };
+// MQ: a Python trace (src/python_trace.rs) has functions, not methods, and a module-level frame.
+const PYTHON_EVENT_LABELS = { ...EVENT_LABELS, call: '함수 호출', exception: '예외 발생' };
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const h = (tag, cls, html) => { const el = document.createElement(tag); if (cls) el.className = cls; if (html != null) el.innerHTML = html; return el; };
@@ -150,7 +152,7 @@ export class TraceView {
 
   renderNav(step) {
     this.nav.querySelector('.tv-slider').value = this.index;
-    const label = EVENT_LABELS[step.event] || step.event;
+    const label = (this.doc.language === 'python' ? PYTHON_EVENT_LABELS : EVENT_LABELS)[step.event] || step.event;
     this.nav.querySelector('.tv-position').innerHTML =
       `<strong>${this.index + 1} / ${this.trace.length}</strong> 단계 · ${esc(label)}` +
       (step.func_name ? ` · <code>${esc(this.frameTitle(step.stack_to_render.at(-1)))}</code>` : '');
@@ -177,6 +179,7 @@ export class TraceView {
   frameTitle(frame) {
     if (!frame) return '';
     let name = frame.func_name;
+    if (name === '<module>' && this.doc.language === 'python') return '전역 코드';
     if (name === '<init>') name = `${frame.class}()`;
     else if (name === '<clinit>') name = `${frame.class} static 초기화`;
     else if (name.startsWith('lambda$')) name = `${frame.class} 람다`;

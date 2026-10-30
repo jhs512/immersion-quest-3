@@ -235,15 +235,12 @@ async fn execute_python(
     execute_python_files(code,input,checker,&std::collections::BTreeMap::new()).await
 }
 
-pub(crate) async fn execute_python_files(
+/// The grader's Python workspace: the bundled data files under `data/`, the task's own files and
+/// `main.py`. 코드 흐름 보기 (crate::python_trace) runs in the same workspace as grading.
+pub(crate) fn python_workspace(
     code: &str,
-    input: &str,
-    checker: Option<&str>,
     files: &std::collections::BTreeMap<String,String>,
-) -> Result<Execution, String> {
-    if code.len() > 65536 || input.len() > 65536 || checker.is_some_and(|c| c.len() > 65536) {
-        return Err("코드와 입력은 각각 64KB 이하여야 합니다.".into());
-    }
+) -> Result<tempfile::TempDir, String> {
     let directory = tempfile::tempdir().map_err(|e| e.to_string())?;
     let data = directory.path().join("data");
     std::fs::create_dir(&data).map_err(|e| e.to_string())?;
@@ -282,6 +279,19 @@ pub(crate) async fn execute_python_files(
         std::fs::write(path,content).map_err(|e|e.to_string())?;
     }
     std::fs::write(directory.path().join("main.py"), code).map_err(|e| e.to_string())?;
+    Ok(directory)
+}
+
+pub(crate) async fn execute_python_files(
+    code: &str,
+    input: &str,
+    checker: Option<&str>,
+    files: &std::collections::BTreeMap<String,String>,
+) -> Result<Execution, String> {
+    if code.len() > 65536 || input.len() > 65536 || checker.is_some_and(|c| c.len() > 65536) {
+        return Err("코드와 입력은 각각 64KB 이하여야 합니다.".into());
+    }
+    let directory = python_workspace(code, files)?;
     let executable = python_executable();
     let mut command = Command::new(executable);
     if let Some(path)=crate::runtime_setup::library_path(){command.env("DYLD_LIBRARY_PATH",path);}
