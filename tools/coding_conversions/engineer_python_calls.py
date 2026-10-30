@@ -251,3 +251,16 @@ SPECS += [
               accept=[([['    result = 0\n    for stock in stocks:\n        # 양수인 재고만 합계에 포함해요.\n        if stock > 0:\n            result += stock\n    return result\n',
                          '    return sum(stock for stock in stocks if stock > 0)\n']], 'sum over the positive values')]),
 ]
+
+# 코드 흐름 보기 (src/python_trace.rs): steps about references, the call stack, objects and recursion.
+CODE_FLOW_TITLES = {
+    'record를 두 번 불러 기본 목록이 공유되는지 확인하세요',
+    'items.append(value)로 받은 목록 자체를 바꾸세요',
+    'Counter.total로 클래스 속성을 늘리세요',
+    'super().value()로 상위 규칙의 결과를 이어 쓰세요',
+    'n * multiply(n - 1)로 작아지는 호출을 곱하세요',
+    '생략한 기록 목록은 호출마다 새로 만드세요',
+}
+for _spec in SPECS:
+    if _spec['title'] in CODE_FLOW_TITLES:
+        _spec['code_flow'] = True
