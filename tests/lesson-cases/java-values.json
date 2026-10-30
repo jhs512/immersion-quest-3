@@ -51,11 +51,12 @@
   ],
   [
    "",
-   "합계: 5개",
-   "합계: 23개",
-   "합계: 5개\n저장한 수량: 5",
-   "합계: 10개\n저장한 수량: 10",
-   "합계: 5개\n저장한 수량: 5"
+   "우유: 2개",
+   "우유: 2개\n빵: 3개",
+   "우유: 2개\n빵: 3개\n합계: 5개",
+   "우유: 2개\n빵: 3개\n합계: 23개",
+   "우유: 7개\n빵: 3개\n합계: 10개",
+   "우유: 2개\n빵: 3개\n합계: 5개"
   ]
  ],
  "reject": [
@@ -247,8 +248,8 @@
    "step": 10,
    "replacements": [
     [
-     "(quantity + added)",
-     "quantity + added"
+     "(milk + bread)",
+     "milk + bread"
     ]
    ],
    "reason": "Without parentheses the text joins 2 and 3 into 23"
@@ -257,7 +258,7 @@
    "step": 10,
    "replacements": [
     [
-     "(quantity + added)",
+     "(milk + bread)",
      "5"
     ]
    ],
@@ -267,21 +268,21 @@
    "step": 10,
    "replacements": [
     [
-     "    quantity = quantity + added;\n",
-     ""
+     "\"우유: \" + milk + \"개\"",
+     "\"우유: 2개\""
     ]
    ],
-   "reason": "Without the assignment the second line still reads 2"
+   "reason": "A memorized first line fails the changed quantities"
   },
   {
    "step": 10,
    "replacements": [
     [
-     "quantity = quantity + added;",
-     "quantity = added;"
+     "\"빵: \" + bread + \"개\"",
+     "\"빵: \" + bread"
     ]
    ],
-   "reason": "Storing only the added amount loses the cart"
+   "reason": "The unit 개 is part of the required line"
   }
  ],
  "accept": [
@@ -379,21 +380,21 @@
    "step": 10,
    "replacements": [
     [
-     "quantity = quantity + added;",
-     "quantity += added;"
+     "(milk + bread)",
+     "(bread + milk)"
     ]
    ],
-   "reason": "A compound assignment stores the same total"
+   "reason": "Addition order does not matter"
   },
   {
    "step": 10,
    "replacements": [
     [
-     "(quantity + added)",
-     "(added + quantity)"
+     "System.out.println(\"합계: \" + (milk + bread) + \"개\");",
+     "int total = milk + bread;\n    System.out.println(\"합계: \" + total + \"개\");"
     ]
    ],
-   "reason": "Addition order does not matter"
+   "reason": "Storing the total in a variable first prints the same line"
   }
  ]
 }
