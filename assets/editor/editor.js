@@ -1,6 +1,6 @@
 import { EditorView, lineNumbers, highlightActiveLineGutter, highlightSpecialChars, drawSelection,
   dropCursor, rectangularSelection, crosshairCursor, highlightActiveLine, keymap, Decoration } from '@codemirror/view';
-import { EditorState, StateEffect, StateField } from '@codemirror/state';
+import { EditorState, StateEffect, StateField, Compartment } from '@codemirror/state';
 import { python } from '@codemirror/lang-python';
 import { java } from '@codemirror/lang-java';
 import { javascript } from '@codemirror/lang-javascript';
@@ -49,14 +49,19 @@ if (!window.molipCodeEditors) {
     },
     provide: field => EditorView.decorations.from(field),
   });
+  // Colours come from the theme tokens in station.css (--editor-*, --syn-*), so 밝게 and 어둡게
+  // repaint the editor through CSS alone; only CodeMirror's own light/dark base flag is
+  // reconfigured when the effective look changes (mq-theme event from layout/theme.js).
   const colors = syntaxHighlighting(HighlightStyle.define([
-    { tag: tags.keyword, color: '#c792ea' },
-    { tag: tags.string, color: '#a8d99c' },
-    { tag: tags.comment, color: '#92abc0' },
-    { tag: tags.number, color: '#f6c177' },
-    { tag: tags.function(tags.variableName), color: '#82cfff' },
-    { tag: tags.operator, color: '#89dceb' },
+    { tag: tags.keyword, color: 'var(--syn-keyword, #c792ea)' },
+    { tag: tags.string, color: 'var(--syn-string, #a8d99c)' },
+    { tag: tags.comment, color: 'var(--syn-comment, #92abc0)' },
+    { tag: tags.number, color: 'var(--syn-number, #f6c177)' },
+    { tag: tags.function(tags.variableName), color: 'var(--syn-function, #82cfff)' },
+    { tag: tags.operator, color: 'var(--syn-operator, #89dceb)' },
   ]));
+  const isDark = () => (window.mqTheme ? window.mqTheme.effective() : document.documentElement.dataset.theme) === 'dark';
+  const darkness = new Compartment();
   // codemirror's basicSetup minus autocompletion and auto-closing brackets: learners type
   // every character themselves, and a popup over "pr" only distracts beginners.
   const setup = [
@@ -67,17 +72,17 @@ if (!window.molipCodeEditors) {
     keymap.of([...defaultKeymap, ...searchKeymap, ...historyKeymap, ...foldKeymap]),
   ];
   const theme = EditorView.theme({
-    '&': { height: '100%', backgroundColor: '#202d3e', color: '#e3edf6' },
+    '&': { height: '100%', backgroundColor: 'var(--editor-bg, #202d3e)', color: 'var(--editor-ink, #e3edf6)' },
     '.cm-scroller': { overflow: 'auto', fontFamily: 'Consolas, monospace', fontSize: '15px' },
-    '.cm-content': { padding: '16px 0', caretColor: '#fff' },
-    '.cm-gutters': { backgroundColor: '#202d3e', color: '#8299ae', border: 'none' },
+    '.cm-content': { padding: '16px 0', caretColor: 'var(--editor-cursor, #fff)' },
+    '.cm-gutters': { backgroundColor: 'var(--editor-bg, #202d3e)', color: 'var(--editor-gutter-ink, #8299ae)', border: 'none' },
     // Selection is drawn behind the text; keep the active line translucent.
-    '.cm-activeLine': { backgroundColor: '#2b405555' },
-    '.cm-activeLineGutter': { backgroundColor: '#2b4055' },
-    '.cm-cursor': { borderLeftColor: '#fff' },
-    '.cm-selectionBackground': { backgroundColor: '#426385 !important' },
-    '.cm-panels, .cm-tooltip': { backgroundColor: '#192b3c', color: '#e3edf6' },
-  }, { dark: true });
+    '.cm-activeLine': { backgroundColor: 'var(--editor-active-line, #2b405555)' },
+    '.cm-activeLineGutter': { backgroundColor: 'var(--editor-active-gutter, #2b4055)' },
+    '.cm-cursor': { borderLeftColor: 'var(--editor-cursor, #fff)' },
+    '.cm-selectionBackground': { backgroundColor: 'var(--editor-selection, #426385) !important' },
+    '.cm-panels, .cm-tooltip': { backgroundColor: 'var(--editor-panel, #192b3c)', color: 'var(--editor-ink, #e3edf6)' },
+  });
 
   function sync() {
     document.querySelectorAll('.markdown pre code.language-python, .markdown pre code.language-java').forEach(code => {
@@ -107,7 +112,7 @@ if (!window.molipCodeEditors) {
         view = new EditorView({
           doc: source,
           parent: host,
-          extensions: [setup, narrationLines, narrationSpan, element.dataset.codeEditor === 'java' ? java() : element.dataset.codeEditor === 'javascript' ? javascript({jsx:true}) : element.dataset.codeEditor === 'html' ? html() : python(), indentUnit.of('    '), keymap.of([indentWithTab]), theme, colors,
+          extensions: [setup, narrationLines, narrationSpan, element.dataset.codeEditor === 'java' ? java() : element.dataset.codeEditor === 'javascript' ? javascript({jsx:true}) : element.dataset.codeEditor === 'html' ? html() : python(), indentUnit.of('    '), keymap.of([indentWithTab]), theme, darkness.of(EditorView.darkTheme.of(isDark())), colors,
             EditorState.readOnly.of(element.readOnly),
             EditorView.editable.of(!element.readOnly),
             EditorView.contentAttributes.of({ 'aria-label': ({java:'Java',javascript:'JavaScript',html:'HTML',shell:'Shell',python:'Python'}[element.dataset.codeEditor] || '코드') + ' 코드 편집기' }),
@@ -187,6 +192,11 @@ if (!window.molipCodeEditors) {
     return false;
   }
   window.molipCodeEditors = { sync, setValue, getValue, appendValue, highlightLines, highlightRange, replaceRange };
+  // The look changed (choice in 앱 설정 or the OS while 시스템): CodeMirror's base styles follow.
+  document.addEventListener('mq-theme', () => {
+    const dark = isDark();
+    for (const view of editors.values()) view.dispatch({ effects: darkness.reconfigure(EditorView.darkTheme.of(dark)) });
+  });
   new MutationObserver(sync).observe(document.body, {
     subtree: true, childList: true, attributes: true,
     attributeFilter: ['data-editor-value', 'data-editor-reset'],

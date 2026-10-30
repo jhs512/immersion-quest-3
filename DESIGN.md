@@ -191,7 +191,7 @@ components:
 
 A course is a metro line and each lesson a station on it. A learner reads the course the way a commuter reads a line map: where they are, where they last got off, which stops are optional, and the next stop, all at a glance. The world lends the product four things only: a station-wall light ground with deep navy signage bands, one saturated line colour per course, tabular station numbers in rings, and the route line itself. Navigation, controls and dialogs stay standard.
 
-The tool comes first. The editor, terminal and results sit in dark wells set into the wall, because that is how learners already see code; the brief, the course and the settings are paper on the wall. Density is commuter density: a 34-lesson course fits in compact 60px station rows on one route, and the next station is the one filled action on the page.
+The tool comes first. The editor, terminal and results sit in wells set into the wall, lit like the rest of the station (light in 밝게, dark in 어둡게); the brief, the course and the settings are paper on the wall. Density is commuter density: a 34-lesson course fits in compact 60px station rows on one route, and the next station is the one filled action on the page.
 
 State is carried by shape before colour: a hollow ring is not started, a half-filled ring is in progress, a filled ring is complete, a filled ring with an inner paper ring is cleared by the final challenge, a dashed ring is still loading, a smaller ring is optional. Admin tools are amber and the narrator is violet, so a teacher action is never mistaken for a learner action.
 
@@ -199,7 +199,7 @@ State is carried by shape before colour: a hollow ring is not started, a half-fi
 - Light station-wall ground, navy signage band on every screen (50px catalog, 42px lesson).
 - One line colour per course, carried by the band's underline, route line, rings and primary actions.
 - Route line through compact station rows; next station panel above the list.
-- Dark code wells for editor, terminal, answers and results.
+- Code wells for editor, terminal, answers and results that follow the chosen look.
 - Shape-coded state; amber admin, violet narration.
 - Two looks of one world, chosen in 앱 설정 (시스템, 밝게, 어둡게): the day station and the night station.
 
@@ -221,7 +221,7 @@ Restrained paper and navy with one committed line colour per course and three st
 - **Paper** (paper) and **Paper Inset** (paper-inset): problem brief, dialogs, menus, the next-station panel, sticky narration bar.
 - **Ink** (ink, ink-secondary, ink-tertiary): text at 14:1, 6.2:1 and 4.6:1.
 - **Rule** (rule, rule-strong): 1px dividers; rule-strong for control borders (≥3:1).
-- **Well** (well, well-raised, well-rule, well-ink, well-muted): the dark code surfaces.
+- **Well** (well, well-raised, well-rule, well-ink, well-muted, plus editor-*, syn-* and the terminal palette): the code surfaces; light in 밝게, dark in 어둡게.
 
 ### Night station (dark theme)
 The same roles, re-lit: night-wall ground, night-paper panels, a signage band darker than the ground, night-ink text (12.8:1 on paper), and each course line drawn in its bright tone (java-line-bright, engineer-line-bright, aice-line-bright, ≥6:1 on paper) for the route, rings and labels. Filled actions keep the darker line ink with white text. Wells are darker than the ground so the tool still reads as set into the wall. Admin amber and narrator violet keep their jobs.
@@ -253,7 +253,7 @@ The same roles, re-lit: night-wall ground, night-paper panels, a signage band da
 
 Catalog: navy band (50px), then a 260px course legend column beside the course column (max 1200px). The course column stacks the course head (name, description, facts on one line), the folded course-name line, the next-station panel, one toolbar row (lesson/challenge view, 전체 순서/분류별, track filter when two tracks exist), then the route. Station rows use a four-column grid: ring (44px), title and meta, progress (150–200px), actions. Below 900px progress drops under the title; below 640px the legend stacks above.
 
-Lesson: navy band (42px, never a second row at ≥700px), the step strip, then the split workspace: paper brief on the left, dark well on the right, both resizable. Spacing steps are 4, 8, 16 and 24px.
+Lesson: navy band (42px, never a second row at ≥700px), the step strip, then the split workspace: paper brief on the left, the code well on the right, both resizable. Spacing steps are 4, 8, 16 and 24px.
 
 ## Elevation & Depth
 
@@ -307,7 +307,7 @@ Controls and panels share one gentle corner (6px); chips are nearly square (3px)
 
 ### Do:
 - **Do** derive every station state from recorded progress only, and show unknown (dashed ring, 진도를 확인하고 있어요) instead of a guess.
-- **Do** keep the editor, terminal, answers and results inside the dark well.
+- **Do** keep the editor, terminal, answers and results inside the well, in the same look as the rest of the screen.
 - **Do** keep the lesson band at 42px and the catalog band at 50px on windows 700px and wider.
 - **Do** give every icon-only control its full Korean name as its accessible name.
 

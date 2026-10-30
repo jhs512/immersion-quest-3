@@ -4,6 +4,22 @@ import '@xterm/xterm/css/xterm.css';
 import {gitGraphs} from './git-graph';
 window.mq3GitGraphs = gitGraphs;
 
+// Terminal colours per screen theme (layout/theme.js mirrors the effective look on <html data-theme>).
+// 어둡게 keeps the night palette the terminal always had (xterm's default ANSI colours); 밝게 is paper
+// with an ANSI palette whose every colour stays readable on white (white/bright white become greys),
+// so coloured lesson output (git, ls, prompts, Vim) keeps its meaning in both looks.
+const TERMINAL_THEMES = {
+  dark: {background: '#0c1722', foreground: '#dce9f5', cursor: '#9be0c8', cursorAccent: '#0c1722', selectionBackground: '#3a536d'},
+  light: {background: '#ffffff', foreground: '#152233', cursor: '#152233', cursorAccent: '#ffffff', selectionBackground: '#b9d3f5',
+    black: '#152233', red: '#b42318', green: '#116329', yellow: '#7a5200', blue: '#0550ae', magenta: '#8b2fb0', cyan: '#0e6b78', white: '#4b5b6d',
+    brightBlack: '#5c6b7e', brightRed: '#c4321f', brightGreen: '#14803c', brightYellow: '#8a5d00', brightBlue: '#1f5fd6', brightMagenta: '#a626a4', brightCyan: '#0b7c8c', brightWhite: '#3d4b5c'},
+};
+const terminalLook = () => ((window.mqTheme ? window.mqTheme.effective() : document.documentElement.dataset.theme) === 'dark' ? 'dark' : 'light');
+const terminalTheme = () => TERMINAL_THEMES[terminalLook()];
+// Every open terminal follows a theme change at once (the choice in 앱 설정 or the OS while 시스템).
+const openTerminals = new Set();
+document.addEventListener('mq-theme', () => { const theme = terminalTheme(); for (const term of openTerminals) term.options.theme = theme; });
+
 // The bridge exists only while the local gh setup component is mounted.
 function terminalBridge(hostId,inputLabel) {
 let session;
@@ -14,7 +30,8 @@ return {
     if (!host) { done(); return; }
     const term = new Terminal({cursorBlink: true, fontFamily: 'Consolas, monospace', fontSize: 14,
       scrollback: 1500, convertEol: false, allowProposedApi: false,
-      theme: {background: '#0c1722', foreground: '#dce9f5', cursor: '#9be0c8', selectionBackground: '#3a536d'}});
+      theme: terminalTheme()});
+    openTerminals.add(term);
     const fit = new FitAddon(); term.loadAddon(fit); term.open(host);
     term.textarea?.setAttribute('aria-label', host.dataset.vim === 'true' ? 'Vim 편집기 입력' : host.dataset.shell === 'true' ? 'Bash 실습 터미널 입력' : inputLabel);
     let nativeKorean = false, nativeEditable = 0, composing = false, replacement;
@@ -101,6 +118,7 @@ return {
   dispose(owner) {
     if (!session || (owner!==undefined && session.owner!==owner)) return;
     const old = session; session = null;
+    openTerminals.delete(old.term);
     old.events.abort(); old.observer.disconnect(); old.data.dispose(); old.resize.dispose(); old.term.dispose(); old.done();
   },
 };
