@@ -26,6 +26,35 @@
   // assets/speech/pronunciation-review.test.mjs check every command and file name the lessons speak.
   const LEXICON = Object.freeze([
     {
+      id: 'heard-spelling-misreads', scope: 'strict', caseSensitive: true,
+      rationale: 'Words the Edge voice (ko-KR-SunHiNeural) read by their spelling. Each was synthesized through the app path '
+        + 'and transcribed twice in two carrier sentences (faster-whisper small) with the same wrong sound; the reading is '
+        + 'the standard Korean loanword form. storage was named by the owner (2026-10-30: 「스토레이지가 아니라 스토리지」). '
+        + 'chosen: the owner asked whether it is 추즌; the vowel is /oʊ/ (/ˈtʃoʊzən/), so the standard form is 초즌.',
+      evidence: '2026-10-30 audit (mq-light-work/stt_check.py, stt1/stt-second): storage→스토레이지, chosen→초우진·초진, '
+        + 'average→에버레지, case→카세, epoch→에퍼기, schema→스키머, cleanup→클리너프, lookup→로커프, patience→페이션트, '
+        + 'paginate→패전의, matrix→멜릭스, sizeof→사이저브, region→에이스트라, molip→몰러프, marp→마오프.',
+      example: 'mkdir storage → 엠케이디알 스토리지',
+      entries: [
+        ['storage', '스토리지', '`mkdir storage`: 보관할 storage 폴더를 만드세요.'],
+        ['chosen', '초즌', 'chosen 줄을 고쳐 검증 정확도로 후보를 고르세요.'],
+        ['average', '애버리지', 'count가 0보다 클 때만 average에 total / count를 담아요.'],
+        ['case', '케이스', 'switch에서 break가 없을 때 다음 case로 이어져요.'],
+        ['epochs', '에포크스', '기록은 epochs만큼 열 개예요.'],
+        ['epoch', '에포크', '작은 이진 분류를 세 epoch 학습했어요.'],
+        ['schema', '스키마', 'schema 문자열 안의 SQL만 고치세요.'],
+        ['cleanup', '클린업', 'finally의 cleanup이 먼저 출력돼요.'],
+        ['lookup', '룩업', 'lookup 줄을 고쳐 조회 행을 연결하세요.'],
+        ['patience', '페이션스', '몇 번까지 기다릴지 patience로 정해요.'],
+        ['paginate', '페이지네이트', 'paginate: true'],
+        ['matrix', '매트릭스', 'matrix[0][1]로 잘못된 경보를 세세요.'],
+        ['sizeof', '사이즈오브', 'sizeof로 칸 수를 구해요.'],
+        ['region', '리전', '`pd.get_dummies(df["region"], dtype=int)`'],
+        ['molip', '몰입', 'theme: molip'],
+        ['marp', '마프', 'marp: true'],
+      ],
+    },
+    {
       id: 'course-terms', scope: 'term', caseSensitive: true,
       rationale: 'Course vocabulary the Edge voice spells or mangles; readings already used in class.',
       evidence: 'kpc-finance, AICE and Git courses (narration and lesson bodies).',
