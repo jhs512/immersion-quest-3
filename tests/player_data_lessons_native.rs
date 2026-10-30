@@ -46,7 +46,7 @@ fn pandas_quality_cases_restore_student_state() {verify("aice-quality",11)}
 
 #[test]
 #[ignore="Requires an interactive desktop, a C compiler and the built player"]
-fn c_functions_and_recursion_restore_student_state() {verify("engineer-c-functions",10)}
+fn c_functions_and_recursion_restore_student_state() {verify("engineer-c-functions",11)}
 
 #[test]
 #[ignore="Requires an interactive desktop, JDK25 and the built player"]
@@ -54,7 +54,7 @@ fn java_method_calls_and_returns_restore_student_state() {verify("java-methods",
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
-fn engineer_c_pointers_restore_student_state() {verify("engineer-c-pointers",10)}
+fn engineer_c_pointers_restore_student_state() {verify("engineer-c-pointers",11)}
 
 #[test]
 #[ignore="Requires an interactive desktop and the built player"]
