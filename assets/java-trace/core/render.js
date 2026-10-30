@@ -27,6 +27,10 @@ export function valueHtml(v) {
     if (v[0] === 'CHAR') return `<span class="v-char">'${esc(v[1])}'</span>`;
     if (v[0] === 'LONG') return `<span class="v-num">${esc(v[1])}L</span>`;
     if (v[0] === 'SPECIAL_FLOAT') return `<span class="v-num">${esc(v[1])}</span>`;
+    // MQ (C traces, src/c_trace.rs): a pointer to a named stack/global cell, and a value the tracer could
+    // not observe or will not follow (freed memory, unknown address, unsupported type) — shown as text.
+    if (v[0] === 'C_PTR') return `<span class="v-ptr">→ ${esc(v[1])}</span>`;
+    if (v[0] === 'C_NOTE') return `<span class="v-note">${esc(v[1])}</span>`;
     if (v[0] === 'PRESENT') return '<span class="v-null" title="HashSet이 모든 값 자리에 넣는 공용 표식 객체">PRESENT</span>';
     return `<span class="v-num">${esc(JSON.stringify(v))}</span>`;
   }
@@ -152,10 +156,12 @@ export class TraceView {
 
   renderNav(step) {
     this.nav.querySelector('.tv-slider').value = this.index;
-    const label = (this.doc.language === 'python' ? PYTHON_EVENT_LABELS : EVENT_LABELS)[step.event] || step.event;
+    const label = (this.doc.language === 'python' || this.doc.language === 'c' ? PYTHON_EVENT_LABELS : EVENT_LABELS)[step.event] || step.event;
     this.nav.querySelector('.tv-position').innerHTML =
       `<strong>${this.index + 1} / ${this.trace.length}</strong> 단계 · ${esc(label)}` +
-      (step.func_name ? ` · <code>${esc(this.frameTitle(step.stack_to_render.at(-1)))}</code>` : '');
+      (step.func_name ? ` · <code>${esc(this.frameTitle(step.stack_to_render.at(-1)))}</code>` : '') +
+      // C: declarations have no stop of their own in the compiler's line table; say they ran before this one.
+      (step.also_ran_lines?.length ? ` · <span class="tv-also">선언 ${step.also_ran_lines.join(', ')}행도 이 단계 전에 실행됨</span>` : '');
     this.nav.querySelector('[data-go="first"]').disabled = this.nav.querySelector('[data-go="prev"]').disabled = this.index === 0;
     this.nav.querySelector('[data-go="last"]').disabled = this.nav.querySelector('[data-go="next"]').disabled = this.index === this.trace.length - 1;
     if (step.exception_msg) {
@@ -194,7 +200,7 @@ export class TraceView {
 
     if (step.ordered_globals?.length) {
       const box = h('div', 'tv-frame tv-globals');
-      box.innerHTML = '<div class="tv-frame-title">static 변수</div>';
+      box.innerHTML = `<div class="tv-frame-title">${this.doc.language === 'c' ? '전역 변수' : 'static 변수'}</div>`;
       const table = h('table');
       for (const key of step.ordered_globals) {
         const changed = prev && !same(prev.globals?.[key], step.globals[key]);
@@ -215,7 +221,8 @@ export class TraceView {
         if (this.options.hideMainArgs && i === 0 && name === 'args' && frame.func_name === 'main') continue;
         const value = frame.encoded_locals[name];
         const changed = before ? !same(before.encoded_locals[name], value) : !!prev;
-        table.append(this.row(name === '__return__' ? '반환값' : name, value, changed, name === '__return__'));
+        const badges = [frame.static_names?.includes(name) ? 'static' : '', frame.declared_without_initializer?.includes(name) ? '선언 때 초기값 없음' : ''].filter(Boolean);
+        table.append(this.row(name === '__return__' ? '반환값' : name, value, changed, name === '__return__', badges));
       }
       if (!table.children.length) table.append(h('tr', 'tv-empty', '<td colspan="2">지역 변수 없음</td>'));
       box.append(table);
@@ -224,9 +231,9 @@ export class TraceView {
     if (!frames.length) col.append(h('div', 'tv-note', '실행이 끝났습니다.'));
   }
 
-  row(name, value, changed, isReturn = false) {
+  row(name, value, changed, isReturn = false, badges = []) {
     const tr = h('tr', (changed ? 'is-changed' : '') + (isReturn ? ' is-return' : ''));
-    tr.innerHTML = `<td class="tv-name">${esc(name)}</td><td class="tv-value">${valueHtml(value)}</td>`;
+    tr.innerHTML = `<td class="tv-name">${esc(name)}${badges.map((b) => ` <span class="tv-badge">${esc(b)}</span>`).join('')}</td><td class="tv-value">${valueHtml(value)}</td>`;
     return tr;
   }
 

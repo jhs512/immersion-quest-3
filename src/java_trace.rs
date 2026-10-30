@@ -153,8 +153,8 @@ mod tests {
             ("jmv/Instrumenter.java", "332ad452513da7dbe2f0f96bf2a71f515ca0bf0cbf7276b517866416c4a64cbf"),
             ("jmv/Tracer.java", "bc213569cd2bf335da08f2b24dcc7b799af1f56a642f60321dd3937b03317e20"),
             ("core/highlight.js", "092f3fc7f041231d8cf8367115c64f5167ea94e412374bec287c826b7e70e1e4"),
-            // MQ change for Python labels only (PROVENANCE.md); upstream b4fcc7e0…a7.
-            ("core/render.js", "d981310239f9d5528846ef71aa73d26527c717ef462fd41f4b496e80ba68192c"),
+            // MQ changes for Python and C traces (PROVENANCE.md); upstream b4fcc7e0…a7.
+            ("core/render.js", "8f465761ca11e25acfe912f18ba493e15c4b995da9f0dae6fe15abf3ac702d45"),
         ] {
             let bytes = std::fs::read(root.join(file)).unwrap();
             assert_eq!(format!("{:x}", Sha256::digest(&bytes)), expected, "{file}");

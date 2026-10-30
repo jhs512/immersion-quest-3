@@ -1223,18 +1223,18 @@ if let Some(start)=autostart {
                         });
                     }}},"코드 실행"}
                     }
-                    // 코드 흐름 보기 (crate::java_trace, crate::python_trace): the steps of the code now in the editor. It never
+                    // 코드 흐름 보기 (crate::java_trace, crate::python_trace, crate::c_trace on Windows): the steps of the code now in the editor. It never
                     // grades, records progress or changes the editor; closing returns to the same screen.
                     // A narration's `code_flow` action presses it too (the teacher's code, as its 코드 실행
                     // runs it); the explanation session already blocks the learner's own clicks meanwhile.
-                    if task.code_flow&&matches!(task.language,repository_course::TaskLanguage::Java|repository_course::TaskLanguage::Python)&&task.git_terminal.is_none() {
-                    button {class:"code-flow-open",title:"지금 편집기의 코드를 한 줄씩 실행하며 호출 스택·변수·객체를 봐요. 채점과는 별개예요.",disabled:busy(),onclick:{let python=task.language==repository_course::TaskLanguage::Python;let files=task.files.clone();move |_|{
+                    if task.code_flow&&(matches!(task.language,repository_course::TaskLanguage::Java|repository_course::TaskLanguage::Python)||(cfg!(windows)&&task.language==repository_course::TaskLanguage::C))&&task.git_terminal.is_none() {
+                    button {class:"code-flow-open",title:"지금 편집기의 코드를 한 줄씩 실행하며 호출 스택·변수·객체를 봐요. 채점과는 별개예요.",disabled:busy(),onclick:{let python=task.language==repository_course::TaskLanguage::Python;let c=task.language==repository_course::TaskLanguage::C;let files=task.files.clone();move |_|{
                         let source=if has_example{example_source()}else{code()};let input=input();let files=files.clone();
                         spawn(async move {
                             let mut opened=document::eval("dioxus.send(window.mqCodeFlow?window.mqCodeFlow.loading():-1);");
                             let token=opened.recv::<i64>().await.unwrap_or(-1);
                             if token<0 {message.set("코드 흐름 보기를 열지 못했어요. 앱을 다시 열어 보세요.".into());return;}
-                            let traced=if python {molip_quest::python_trace::trace(&source,&input,&files).await} else {molip_quest::java_trace::trace(&source,&input).await};
+                            let traced=if python {molip_quest::python_trace::trace(&source,&input,&files).await} else if c {molip_quest::c_trace::trace(&source,&input).await} else {molip_quest::java_trace::trace(&source,&input).await};
                             let script=match traced {
                                 Ok(document)=>format!("window.mqCodeFlow.show({token},{document});"),
                                 Err(error)=>format!("window.mqCodeFlow.fail({token},{});",serde_json::to_string(&error).unwrap_or_default()),

@@ -32,6 +32,7 @@ pub mod lesson_runner;
 pub mod library_sets;
 pub mod java_trace;
 pub mod python_trace;
+pub mod c_trace;
 pub mod progress_reset;
 pub mod docker_lab;
 pub mod task_interaction;

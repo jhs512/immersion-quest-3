@@ -104,7 +104,7 @@ pub(crate) async fn inspect_c()->Result<String,String> {
     if result.success&&result.stdout=="MQ3_C_READY"{Ok("C · 컴파일과 실행을 확인했어요.".into())}else{Err(format!("C 실행을 확인하지 못했어요. {}",result.stderr))}
 }
 pub(crate) async fn prepare_c()->Result<String,String> {c_compiler().await?;inspect_c().await}
-async fn c_compiler()->Result<PathBuf,String> {
+pub(crate) async fn c_compiler()->Result<PathBuf,String> {
     if !cfg!(windows) {return Ok(PathBuf::from(std::env::var("MOLIP_CC").unwrap_or_else(|_|"cc".into())))}
     if let Ok(path)=std::env::var("MOLIP_TCC") {return Ok(PathBuf::from(path))}
     let root=crate::data_dir()?.join("course-tools");

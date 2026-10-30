@@ -12,6 +12,7 @@
     internal_error: '코드 흐름 도구에서 문제가 생겼어요.',
     uncaught_exception: '처리되지 않은 예외로 실행이 멈췄어요. 멈춘 단계까지 따라가 볼 수 있어요.',
     step_limit: '실행 단계가 많아 앞부분만 기록했어요.',
+    unsupported: '이 코드는 코드 흐름 보기로 정확히 보여 줄 수 없어서 기록을 보여 주지 않아요. 코드 실행과 채점은 그대로 쓸 수 있어요.',
   };
   const build = () => {
     if (dialog) return dialog;
@@ -91,7 +92,8 @@
       }
       status(STATUS[doc.status] || '', doc.status === 'internal_error');
       // Which real runtime recorded it (JDK 25 for Java, the course Python for Python).
-      const runtime = doc.language === 'python' ? `수업과 같은 Python ${doc.runtime || ''}`.trim() : '수업과 같은 JDK 25';
+      const runtime = doc.language === 'python' ? `수업과 같은 Python ${doc.runtime || ''}`.trim()
+        : doc.language === 'c' ? '수업 채점과 같은 TinyCC 0.9.27(코드를 고치지 않은 원본)' : '수업과 같은 JDK 25';
       const note = dialog.querySelector('.code-flow-note');
       if (note) note.textContent = note.textContent.replace('수업 채점과 같은 실행 환경', runtime);
       const root = dialog.querySelector('.code-flow-view');
