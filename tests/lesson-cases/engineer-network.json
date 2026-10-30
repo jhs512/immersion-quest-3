@@ -17,6 +17,8 @@
     [],
     [],
     [
+      "0.0.0.0\n0.0.0.0\n-1",
+      "192.168.10.64\n192.168.10.64\n-1",
       "192.168.10.64\n192.168.10.95\n30"
     ]
   ],
@@ -25,31 +27,33 @@
       "step": 15,
       "replacements": [
         [
-          "\"192.168.10.64\"",
-          "\"__오답__\""
+          "broadcast = network | (~mask & 0xFFFFFFFF)\n",
+          "broadcast = network + 2 ** (32 - prefix)\n"
         ]
       ],
-      "reason": "네트워크 주소는?도 독립적으로 맞아야 해요."
+      "reason": "Next block instead of the last address"
     },
     {
       "step": 15,
       "replacements": [
         [
-          "\"192.168.10.95\"",
-          "\"__오답__\""
+          "mask = (0xFFFFFFFF << (32 - prefix)) & 0xFFFFFFFF\n",
+          "mask = 0xFFFFFFFF >> prefix\n"
         ]
       ],
-      "reason": "브로드캐스트 주소는?도 독립적으로 맞아야 해요."
-    },
+      "reason": "Mask in the wrong direction"
+    }
+  ],
+  "accept": [
     {
       "step": 15,
       "replacements": [
         [
-          "\"30\"",
-          "\"__오답__\""
+          "broadcast = network | (~mask & 0xFFFFFFFF)\n",
+          "broadcast = network + 2 ** (32 - prefix) - 1\n"
         ]
       ],
-      "reason": "일반 호스트에 배정할 수 있는 주소 수는?도 독립적으로 맞아야 해요."
+      "reason": "Block size minus one"
     }
   ]
 }

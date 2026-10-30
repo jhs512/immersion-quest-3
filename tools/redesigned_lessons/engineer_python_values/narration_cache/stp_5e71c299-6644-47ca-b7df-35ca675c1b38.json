@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "5b3a49e0795c793437d78ff9a2e5a74edcf3037e7f2a17173b681517e580938a",
+  "entry": [
+    {
+      "action": "say",
+      "text": "복사본의 안쪽 목록을 바꿔도 rows는 그대로여야 해요. 안쪽 목록까지 새로 만드는 깊은 복사를 써요.",
+      "target": "text:backup 줄을 고쳐 안쪽 목록까지 새로 만드는 복사본을 backup에 담으세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[[2, 6], [4]]와 [[2, 6], [4]]예요. 바깥만 복사해서 안쪽 첫 목록을 함께 써요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "backup = rows.copy()\n",
+      "after": "backup = copy.deepcopy(rows)\n",
+      "say": "rows.copy()를 copy.deepcopy(rows)로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[[2], [4]]와 [[2, 6], [4]]예요. 안쪽 목록도 새로 만들어 rows는 그대로예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. list(rows)나 rows[:]도 바깥만 복사해요. 안쪽 목록은 여전히 함께 써요.",
+      "target": "code:copy.deepcopy(rows)"
+    }
+  ]
+}

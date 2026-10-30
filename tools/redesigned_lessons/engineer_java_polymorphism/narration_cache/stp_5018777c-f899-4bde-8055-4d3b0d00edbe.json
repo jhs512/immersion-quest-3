@@ -1,0 +1,70 @@
+{
+  "by": "hand",
+  "source_sha256": "894186584a5ad736db841ea702da5a7c2d64b99d09eeef5daaf55a7099d31a63",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 필드는 선언형, 메서드는 실제 객체를 따르고, finally는 반환이나 예외 뒤에도 실행되는 것을 한 코드에 써요.",
+      "target": "text:선언형의 필드 선택과 실제 객체의 메서드 선택, 반환 전 finally 실행을 함께 써요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        18,
+        22
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2, 1, checked, 4예요. 셋 다 아직 요구와 달라요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        System.out.println(((Child) item).n);\n",
+      "after": "        System.out.println(item.n);\n",
+      "say": "형 변환을 빼고 item.n을 출력해요."
+    },
+    {
+      "action": "patch_code",
+      "before": "        System.out.println(new Parent().value());\n",
+      "after": "        System.out.println(item.value());\n",
+      "say": "new Parent() 대신 item의 value()를 불러요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        18,
+        22
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1, 2, checked, 4예요. 필드는 Parent의 1, 메서드는 Child의 2예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        return check(base);\n",
+      "after": "        try {\n            return check(base);\n        } finally {\n            System.out.println(\"cleanup\");\n        }\n",
+      "say": "return을 try로 감싸고 finally에서 cleanup을 출력해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        22,
+        26
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1, 2, checked, cleanup, 4예요. check가 끝난 뒤 반환값 4를 전달하기 전에 finally가 실행됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. cleanup을 return 앞에 그냥 출력하면 check가 예외를 던질 때는 실행되지 않아요. 끝에 꼭 실행할 일은 finally에 둬요.",
+      "target": "code:} finally {"
+    }
+  ]
+}

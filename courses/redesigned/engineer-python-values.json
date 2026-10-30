@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_e7b7100f-1c5d-41fb-9683-ab89fcd6e851",
-  "revision": "engineer-python-values-7",
+  "revision": "engineer-python-values-8",
   "title": "Python · 같은 창고 자료를 골라 읽어요",
   "description": "창고 재고와 물건 이름을 정리해요. 같은 자료의 선택·복사 조건을 한 곳씩 바꿔요.",
   "objectives": [
@@ -47,15 +47,15 @@
               ]
             },
             {
-              "id": "stp_a1998754-ef4e-4953-8b34-0560e93bd108",
+              "id": "stp_ae009251-f813-45a8-a3a5-b37a6bd5ed2a",
               "objectives": [
-                "음수 간격과 끝 제외를 읽어요."
+                "슬라이스의 간격 -1로 목록을 끝에서부터 거꾸로 읽어요."
               ]
             },
             {
-              "id": "stp_aa3b0e18-d06c-433d-822f-0455415054b0",
+              "id": "stp_a36a1a3b-964d-4ef9-ba7d-18f6cb02f5d5",
               "objectives": [
-                "이름 대입과 얕은 목록 복사를 구별해요."
+                "대입은 같은 목록에 이름을 더할 뿐이고 copy()가 새 목록을 만드는 것을 구별해요."
               ]
             }
           ]
@@ -78,27 +78,27 @@
           "premise": "이번에는 안쪽 목록이 있는 재고표, 오늘·내일 재고 번호 집합, 물건 개수 사전, 쉼표로 이은 물건 이름을 다뤄요.",
           "steps": [
             {
-              "id": "stp_4074b59c-c331-4d4d-b21e-94e813495d93",
+              "id": "stp_5e71c299-6644-47ca-b7df-35ca675c1b38",
               "objectives": [
-                "중첩 목록의 얕은 복사와 깊은 복사를 구별해요."
+                "바깥만 복사한 목록은 안쪽 목록을 함께 쓰는 것을 확인하고 깊은 복사로 나눠요."
               ]
             },
             {
-              "id": "stp_827dd588-04d5-41ea-aaa5-70c0c1c89ee5",
+              "id": "stp_b8d0761a-3ba9-47e6-987e-2a1a69054e9b",
               "objectives": [
-                "중복 제거와 집합 연산을 구별해요."
+                "집합의 교집합과 합집합을 직접 써서 구별해요."
               ]
             },
             {
-              "id": "stp_abac6677-eb8c-44e9-a954-c698fd21a228",
+              "id": "stp_4d6e97c8-03a2-4374-a122-e891dbeb8053",
               "objectives": [
-                "딕셔너리 get과 키 추가를 구별해요."
+                "없는 키를 기본값으로 읽되 사전을 바꾸지 않는 get을 구별해요."
               ]
             },
             {
-              "id": "stp_e3dbf632-4a34-4c0b-818e-c4251dbd20a4",
+              "id": "stp_7014a5c2-b592-42bb-9227-91a22119b176",
               "objectives": [
-                "split과 join의 역할을 읽어요."
+                "글을 구분자로 나눈 목록과 다른 구분자로 잇는 과정을 직접 써요."
               ]
             }
           ]
@@ -258,31 +258,29 @@
       "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"stocks\": [2, 4, 6, 8, 10]}, \"expected\": \"[2, 6, 10]\"}, {\"values\": {\"stocks\": [1, 2, 3, 4, 5, 6, 7], \"step\": 3}, \"expected\": \"[1, 4, 7]\"}, {\"values\": {\"stocks\": [5, 6], \"step\": 1}, \"expected\": \"[5, 6]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_a1998754-ef4e-4953-8b34-0560e93bd108",
-      "title": "뒤에서부터 읽어요",
-      "goal": "간격이 -1이면 뒤에서부터 거꾸로 읽어요. 시작과 끝을 비우면 목록 전체예요.\n출력될 목록을 그대로 적으세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 질문이 묻는 값을 답안 칸에 적으세요.\n3. 적은 답안을 제출하세요.",
+      "id": "stp_ae009251-f813-45a8-a3a5-b37a6bd5ed2a",
+      "title": "stocks[::-1]로 뒤에서부터 읽으세요",
+      "goal": "간격이 -1이면 끝에서부터 한 칸씩 거꾸로 읽어요. 시작과 끝을 비우면 목록 전체예요.\n\nprint 줄을 고쳐 stocks를 마지막부터 처음 방향으로 읽으세요. 채점은 다른 목록으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 결과를 확인하세요.\n2. `print(stocks)`를 `print(stocks[::-1])`로 고치세요.\n3. 코드 실행을 눌러 [8, 6, 4, 2]가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "[8, 6, 4, 2]",
-      "tests": [],
+      "starter_code": "stocks = [2, 4, 6, 8]\n# 이 줄을 고쳐 stocks를 마지막부터 처음 방향으로 읽으세요.\nprint(stocks)\n",
+      "solution": "stocks = [2, 4, 6, 8]\n# 이 줄을 고쳐 stocks를 마지막부터 처음 방향으로 읽으세요.\n# 간격이 -1이면 끝에서부터 한 칸씩 거꾸로 읽어요. 시작과 끝을 비우면 전체예요.\nprint(stocks[::-1])\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[8, 6, 4, 2]"
+        }
+      ],
       "required": true,
-      "example_code": "stocks = [2, 4, 6, 8]\n# 마지막부터 처음 방향으로 읽어요.\nprint(stocks[::-1])\n",
-      "interaction": {
-        "kind": "fill",
-        "accepted": [
-          "[8, 6, 4, 2]"
-        ]
-      },
       "narration": [
         {
           "action": "say",
-          "text": "끝을 비웠을 때 어디까지 읽는지 적는 문제예요.",
-          "target": "text:뒤에서부터 읽어요#1"
+          "text": "stocks[::-1]로 뒤에서부터 읽는 문제예요.",
+          "target": "text:stocks[::-1]로 뒤에서부터 읽으세요#1"
         },
         {
           "action": "say",
-          "text": "음수 간격은 오른쪽 끝에서 왼쪽으로 읽어요.",
-          "target": "text:출력될 목록을 그대로 적으세요."
+          "text": "목록을 마지막부터 처음 방향으로 읽어야 해요. 슬라이스의 간격을 -1로 써요.",
+          "target": "text:print 줄을 고쳐 stocks를 마지막부터 처음 방향으로 읽으세요."
         },
         {
           "action": "run",
@@ -293,14 +291,14 @@
         },
         {
           "action": "say",
-          "text": "음수 간격으로 마지막부터 모두 읽어요.",
+          "text": "[2, 4, 6, 8]이에요. 아직 처음부터 읽어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "[::-1]",
-          "after": "[3:0:-1]",
-          "say": "끝 위치를 0으로 적어 볼게요."
+          "before": "print(stocks)",
+          "after": "print(stocks[::-1])",
+          "say": "대괄호 안에 ::-1을 써요."
         },
         {
           "action": "run",
@@ -311,19 +309,300 @@
         },
         {
           "action": "say",
-          "text": "끝 위치 0을 명시하면 그 위치는 빼요.",
+          "text": "[8, 6, 4, 2]예요. 끝에서부터 한 칸씩 거꾸로 읽었어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 끝 생략과 끝 위치 0은 역방향에서 같지 않아요.",
+          "text": "조심하세요. 지금은 정렬해 뒤집어도 같아 보이지만, [5, 1, 9]라면 역순은 [9, 1, 5]이고 큰 순서는 [9, 5, 1]이에요.",
+          "target": "code:stocks[::-1]"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"stocks\": [5, 1, 9]}, \"expected\": \"[9, 1, 5]\"}, {\"values\": {\"stocks\": []}, \"expected\": \"[]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_a36a1a3b-964d-4ef9-ba7d-18f6cb02f5d5",
+      "title": "stocks.copy()로 따로 쓰는 복사본을 만드세요",
+      "goal": "`backup = stocks`는 목록을 복사하지 않고 같은 목록에 이름을 하나 더 붙여요. `stocks.copy()`는 같은 값을 담은 새 목록을 만들어요.\n\nbackup 줄을 고쳐 backup을 stocks와 따로 쓰는 복사본으로 만드세요. 채점은 다른 목록으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 결과를 확인하세요.\n2. `backup = stocks`를 `backup = stocks.copy()`로 고치세요.\n3. 코드 실행을 눌러 stocks가 그대로인지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "stocks = [2, 4]\nadded = 6\n# 이 줄을 고쳐 backup을 stocks와 따로 쓰는 복사본으로 만드세요.\nbackup = stocks\nbackup.append(added)\nprint(stocks)\nprint(backup)\n",
+      "solution": "stocks = [2, 4]\nadded = 6\n# 이 줄을 고쳐 backup을 stocks와 따로 쓰는 복사본으로 만드세요.\n# copy()는 같은 값을 담은 새 목록을 만들어요. backup을 바꿔도 stocks는 그대로예요.\nbackup = stocks.copy()\nbackup.append(added)\nprint(stocks)\nprint(backup)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[2, 4]\n[2, 4, 6]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "stocks.copy()로 따로 쓰는 복사본을 만드는 문제예요.",
+          "target": "text:stocks.copy()로 따로 쓰는 복사본을 만드세요#1"
+        },
+        {
+          "action": "say",
+          "text": "backup에 덧붙여도 stocks는 그대로여야 해요. 이름만 하나 더 붙이지 말고 새 목록으로 복사해야 해요.",
+          "target": "text:backup 줄을 고쳐 backup을 stocks와 따로 쓰는 복사본으로 만드세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[2, 4, 6]과 [2, 4, 6]이에요. 같은 목록에 이름이 둘이라 stocks도 바뀌었어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "[3:0:-1]",
-          "after": "[::-1]",
-          "say": "시작과 끝을 비운 [::-1]로 되돌려요."
+          "before": "backup = stocks\n",
+          "after": "backup = stocks.copy()\n",
+          "say": "stocks 뒤에 .copy()를 붙여요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[2, 4]와 [2, 4, 6]이에요. backup만 새 목록이라 6이 backup에만 붙었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. backup = stocks는 복사가 아니에요. 같은 목록에 이름을 하나 더 붙일 뿐이에요.",
+          "target": "code:stocks.copy()"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"stocks\": [1], \"added\": 9}, \"expected\": \"[1]\\\\n[1, 9]\"}, {\"values\": {\"stocks\": [], \"added\": 3}, \"expected\": \"[]\\\\n[3]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_5e71c299-6644-47ca-b7df-35ca675c1b38",
+      "title": "copy.deepcopy로 안쪽 목록까지 복사하세요",
+      "goal": "`rows.copy()`는 바깥 목록만 새로 만들고 안쪽 목록은 함께 써요. `copy.deepcopy(rows)`는 안쪽 목록까지 모두 새로 만들어요.\n\nbackup 줄을 고쳐 안쪽 목록까지 새로 만드는 복사본을 backup에 담으세요. 채점은 다른 중첩 목록으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 결과를 확인하세요.\n2. `rows.copy()`를 `copy.deepcopy(rows)`로 고치세요.\n3. 코드 실행을 눌러 rows가 그대로인지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import copy\nrows = [[2], [4]]\nadded = 6\n# 이 줄을 고쳐 안쪽 목록까지 새로 만드는 복사본을 backup에 담으세요.\nbackup = rows.copy()\n# 복사본의 안쪽 첫 목록을 바꿔요.\nbackup[0].append(added)\nprint(rows)\nprint(backup)\n",
+      "solution": "import copy\nrows = [[2], [4]]\nadded = 6\n# 이 줄을 고쳐 안쪽 목록까지 새로 만드는 복사본을 backup에 담으세요.\n# deepcopy는 안쪽 목록까지 모두 새로 만들어요. copy()는 바깥 목록만 새로 만들어요.\nbackup = copy.deepcopy(rows)\n# 복사본의 안쪽 첫 목록을 바꿔요.\nbackup[0].append(added)\nprint(rows)\nprint(backup)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[[2], [4]]\n[[2, 6], [4]]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "copy.deepcopy로 안쪽 목록까지 복사하는 문제예요.",
+          "target": "text:copy.deepcopy로 안쪽 목록까지 복사하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "복사본의 안쪽 목록을 바꿔도 rows는 그대로여야 해요. 안쪽 목록까지 새로 만드는 깊은 복사를 써요.",
+          "target": "text:backup 줄을 고쳐 안쪽 목록까지 새로 만드는 복사본을 backup에 담으세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[[2, 6], [4]]와 [[2, 6], [4]]예요. 바깥만 복사해서 안쪽 첫 목록을 함께 써요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "backup = rows.copy()\n",
+          "after": "backup = copy.deepcopy(rows)\n",
+          "say": "rows.copy()를 copy.deepcopy(rows)로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[[2], [4]]와 [[2, 6], [4]]예요. 안쪽 목록도 새로 만들어 rows는 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. list(rows)나 rows[:]도 바깥만 복사해요. 안쪽 목록은 여전히 함께 써요.",
+          "target": "code:copy.deepcopy(rows)"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"rows\": [[1, 2], [3]], \"added\": 0}, \"expected\": \"[[1, 2], [3]]\\\\n[[1, 2, 0], [3]]\"}, {\"values\": {\"rows\": [[], [5]], \"added\": 7}, \"expected\": \"[[], [5]]\\\\n[[7], [5]]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_b8d0761a-3ba9-47e6-987e-2a1a69054e9b",
+      "title": "&와 |로 공통 번호와 전체 번호를 구하세요",
+      "goal": "집합은 중복 없이 값을 모아요. `&`는 양쪽에 모두 있는 값, `|`는 어느 한쪽에라도 있는 값이에요. 오늘과 내일의 재고 번호를 비교해요.\n\n두 줄을 고쳐 common에는 양쪽에 모두 있는 번호, either에는 어느 한쪽에라도 있는 번호를 담으세요. 채점은 다른 번호로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 결과를 확인하세요.\n2. `common = today`를 `common = today & tomorrow`로 고치세요.\n3. `either = today`를 `either = today | tomorrow`로 고치세요.\n4. 코드 실행을 눌러 두 결과를 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "today_ids = [2, 4, 4]\ntomorrow_ids = [4, 6]\n# set은 목록의 번호를 중복 없이 모은 집합을 만들어요.\ntoday = set(today_ids)\ntomorrow = set(tomorrow_ids)\n# 이 두 줄을 고쳐 common에는 양쪽에 모두 있는 번호, either에는 어느 한쪽에라도 있는 번호를 담으세요.\ncommon = today\neither = today\n# 순서와 무관한 집합을 정렬해 표시해요.\nprint(sorted(common))\nprint(sorted(either))\n",
+      "solution": "today_ids = [2, 4, 4]\ntomorrow_ids = [4, 6]\n# set은 목록의 번호를 중복 없이 모은 집합을 만들어요.\ntoday = set(today_ids)\ntomorrow = set(tomorrow_ids)\n# 이 두 줄을 고쳐 common에는 양쪽에 모두 있는 번호, either에는 어느 한쪽에라도 있는 번호를 담으세요.\n# &는 양쪽에 모두 있는 값, |는 어느 한쪽에라도 있는 값이에요. 중복은 하나로 모여요.\ncommon = today & tomorrow\neither = today | tomorrow\n# 순서와 무관한 집합을 정렬해 표시해요.\nprint(sorted(common))\nprint(sorted(either))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[4]\n[2, 4, 6]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "&와 |로 공통 번호와 전체 번호를 구하는 문제예요.",
+          "target": "text:&와 |로 공통 번호와 전체 번호를 구하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "오늘과 내일 재고 번호를 비교해요. 공통 번호는 &, 둘 중 하나라도 있는 번호는 |로 구해요.",
+          "target": "text:두 줄을 고쳐 common에는 양쪽에 모두 있는 번호, either에는 어느 한쪽에라도 있는 번호를 담으세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[2, 4]와 [2, 4]예요. 둘 다 아직 오늘 집합 그대로이고, 중복된 4는 하나로 모였어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "common = today\n",
+          "after": "common = today & tomorrow\n",
+          "say": "common 줄에 & tomorrow를 더해요."
+        },
+        {
+          "action": "patch_code",
+          "before": "either = today\n",
+          "after": "either = today | tomorrow\n",
+          "say": "either 줄에 | tomorrow를 더해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[4]와 [2, 4, 6]이에요. 공통은 4 하나, 합치면 세 번호예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. &와 |를 바꿔 쓰면 공통과 전체가 뒤바뀌어요.",
+          "target": "code:today & tomorrow"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"today_ids\": [1, 3, 5], \"tomorrow_ids\": [3, 5, 7]}, \"expected\": \"[3, 5]\\\\n[1, 3, 5, 7]\"}, {\"values\": {\"today_ids\": [9], \"tomorrow_ids\": []}, \"expected\": \"[]\\\\n[9]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_4d6e97c8-03a2-4374-a122-e891dbeb8053",
+      "title": "counts.get(item, 0)으로 없는 키를 읽으세요",
+      "goal": "`counts[키]`는 없는 키를 읽으면 KeyError로 멈춰요. `counts.get(키, 기본값)`은 키가 없으면 기본값을 돌려주지만 사전에 키를 넣지는 않아요.\n\nvalue 줄을 고쳐 item이 없으면 0을 읽고, 사전에는 키를 넣지 마세요. 채점은 다른 사전과 키로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 KeyError가 나오는지 확인하세요.\n2. `counts[item]`을 `counts.get(item, 0)`으로 고치세요.\n3. 코드 실행을 눌러 0:1이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "counts = {\"pen\": 2}\nitem = \"book\"\n# 이 줄을 고쳐 item이 없으면 0을 읽고, 사전에는 키를 넣지 마세요.\nvalue = counts[item]\nprint(str(value) + \":\" + str(len(counts)))\n",
+      "solution": "counts = {\"pen\": 2}\nitem = \"book\"\n# 이 줄을 고쳐 item이 없으면 0을 읽고, 사전에는 키를 넣지 마세요.\n# get은 키가 없으면 기본값을 돌려줘요. 읽기만 하고 사전은 바꾸지 않아요.\nvalue = counts.get(item, 0)\nprint(str(value) + \":\" + str(len(counts)))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "0:1"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "counts.get(item, 0)으로 없는 키를 읽는 문제예요.",
+          "target": "text:counts.get(item, 0)으로 없는 키를 읽으세요#1"
+        },
+        {
+          "action": "say",
+          "text": "없는 item을 읽어도 멈추지 않고 0을 써야 해요. 사전에 키를 넣지 않는 get을 써요.",
+          "target": "text:value 줄을 고쳐 item이 없으면 0을 읽고, 사전에는 키를 넣지 마세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ],
+          "expect_error": "KeyError"
+        },
+        {
+          "action": "say",
+          "text": "KeyError: 'book'이에요. 대괄호로 없는 키를 읽으면 멈춰요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "value = counts[item]\n",
+          "after": "value = counts.get(item, 0)\n",
+          "say": "counts[item]을 counts.get(item, 0)으로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0:1이에요. 기본값 0을 읽었고 사전의 키는 여전히 하나예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. setdefault(item, 0)도 0을 돌려주지만 사전에 book을 넣어 키가 둘이 돼요.",
+          "target": "code:counts.get(item, 0)"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"counts\": {\"book\": 3}}, \"expected\": \"3:1\"}, {\"values\": {\"counts\": {}, \"item\": \"x\"}, \"expected\": \"0:0\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_7014a5c2-b592-42bb-9227-91a22119b176",
+      "title": "split과 join으로 조각을 슬래시로 이어 출력하세요",
+      "goal": "`split(\",\")`은 쉼표마다 글을 나눠 목록을 만들고, `\"/\".join(목록)`은 목록의 글 사이에 슬래시를 넣어 이어요.\n\nprint 줄을 고쳐 쉼표로 나눈 조각들을 슬래시로 이어 출력하세요. 채점은 다른 글로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 결과를 확인하세요.\n2. `print(text)`를 `print(\"/\".join(text.split(\",\")))`로 고치세요.\n3. 코드 실행을 눌러 pen/book/bag이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "text = \"pen,book,bag\"\n# 이 줄을 고쳐 쉼표로 나눈 조각들을 슬래시로 이어 출력하세요.\nprint(text)\n",
+      "solution": "text = \"pen,book,bag\"\n# 이 줄을 고쳐 쉼표로 나눈 조각들을 슬래시로 이어 출력하세요.\n# split(\",\")이 쉼표마다 나눈 목록을 만들고, \"/\".join이 조각 사이에 슬래시를 넣어 이어요.\nprint(\"/\".join(text.split(\",\")))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "pen/book/bag"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "split과 join으로 조각을 슬래시로 이어 출력하는 문제예요.",
+          "target": "text:split과 join으로 조각을 슬래시로 이어 출력하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "쉼표로 나눈 조각을 슬래시로 다시 이어야 해요. split으로 나눈 뒤 join으로 이어요.",
+          "target": "text:print 줄을 고쳐 쉼표로 나눈 조각들을 슬래시로 이어 출력하세요."
         },
         {
           "action": "run",
@@ -334,419 +613,34 @@
         },
         {
           "action": "say",
-          "text": "처음 코드는 전체를 거꾸로 읽어 [8, 6, 4, 2]예요.",
+          "text": "pen,book,bag이에요. 아직 원래 글 그대로예요.",
           "target": "output"
         },
         {
-          "action": "fill_answer",
-          "value": "[8, 6, 4, 2]"
+          "action": "patch_code",
+          "before": "print(text)\n",
+          "after": "print(\"/\".join(text.split(\",\")))\n",
+          "say": "text.split(\",\")를 \"/\".join으로 감싸요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            3,
+            3
+          ]
+        },
+        {
+          "action": "say",
+          "text": "pen/book/bag이에요. 세 조각 사이에 슬래시가 들어갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. \"/\".join(text)처럼 나누지 않고 이으면 글자 하나하나 사이에 슬래시가 들어가요.",
+          "target": "code:text.split(\",\")"
         }
-      ]
-    },
-    {
-      "id": "stp_aa3b0e18-d06c-433d-822f-0455415054b0",
-      "title": "같은 목록과 복사본을 구별해요",
-      "goal": "backup = stocks는 목록을 복사하지 않고 같은 목록에 이름을 하나 더 붙여요. backup에 6을 덧붙였어요.\n출력될 stocks를 그대로 적으세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 질문이 묻는 값을 답안 칸에 적으세요.\n3. 적은 답안을 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "[2, 4, 6]",
-      "tests": [],
-      "required": true,
-      "example_code": "stocks = [2, 4]\n# 지금은 같은 목록의 다른 이름이에요.\nbackup = stocks\nbackup.append(6)\nprint(stocks)\n",
-      "interaction": {
-        "kind": "fill",
-        "accepted": [
-          "[2, 4, 6]"
-        ]
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "이름 둘이 같은 목록을 가리킬 때, 한 이름으로 바꾼 내용이 다른 이름에도 보이는지 적는 문제예요.",
-          "target": "text:같은 목록과 복사본을 구별해요#1"
-        },
-        {
-          "action": "run",
-          "lines": [
-            5,
-            5
-          ]
-        },
-        {
-          "action": "say",
-          "text": "같은 목록에 6을 덧붙여 원래 이름에서도 보여요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "backup = stocks",
-          "after": "backup = stocks[:]",
-          "say": "stocks[:]로 목록을 복사해 볼게요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            5,
-            5
-          ]
-        },
-        {
-          "action": "say",
-          "text": "목록을 복사하면 원래 목록은 그대로예요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 변수 이름이 둘이라고 목록도 반드시 둘인 것은 아니에요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "backup = stocks[:]",
-          "after": "backup = stocks",
-          "say": "이름만 붙이는 처음 줄로 되돌려요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            5,
-            5
-          ]
-        },
-        {
-          "action": "say",
-          "text": "처음 코드는 같은 목록이라 stocks에도 6이 보여요.",
-          "target": "output"
-        },
-        {
-          "action": "fill_answer",
-          "value": "[2, 4, 6]"
-        }
-      ]
-    },
-    {
-      "id": "stp_4074b59c-c331-4d4d-b21e-94e813495d93",
-      "title": "안쪽 목록의 공유를 확인해요",
-      "goal": "rows.copy()는 바깥 목록만 복사하고 안쪽 목록은 함께 써요. 복사본의 안쪽 첫 목록에 6을 덧붙였어요.\n출력될 rows를 그대로 적으세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 질문이 묻는 값을 답안 칸에 적으세요.\n3. 적은 답안을 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "[[2, 6], [4]]",
-      "tests": [],
-      "required": true,
-      "example_code": "import copy\nrows = [[2], [4]]\nbackup = rows.copy()\n# 안쪽 첫 목록을 바꿔요.\nbackup[0].append(6)\nprint(rows)\n",
-      "interaction": {
-        "kind": "fill",
-        "accepted": [
-          "[[2, 6], [4]]"
-        ]
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "목록 안에 목록이 있을 때 얕은 복사가 안쪽까지 나누는지 따지는 문제예요.",
-          "target": "text:안쪽 목록의 공유를 확인해요#1"
-        },
-        {
-          "action": "run",
-          "lines": [
-            6,
-            6
-          ]
-        },
-        {
-          "action": "say",
-          "text": "바깥만 복사해 안쪽 첫 목록은 공유해요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "backup = rows.copy()",
-          "after": "backup = copy.deepcopy(rows)",
-          "say": "copy.deepcopy로 안쪽까지 복사해 볼게요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            6,
-            6
-          ]
-        },
-        {
-          "action": "say",
-          "text": "안쪽까지 복사하면 원본 안쪽도 따로 남아요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 얕은 복사로 모든 안쪽 대상이 분리되지는 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "backup = copy.deepcopy(rows)",
-          "after": "backup = rows.copy()",
-          "say": "바깥만 복사하는 copy()로 되돌려요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            6,
-            6
-          ]
-        },
-        {
-          "action": "say",
-          "text": "처음 코드는 안쪽 첫 목록을 공유해 원본에도 6이 보여요.",
-          "target": "output"
-        },
-        {
-          "action": "fill_answer",
-          "value": "[[2, 6], [4]]"
-        }
-      ]
-    },
-    {
-      "id": "stp_827dd588-04d5-41ea-aaa5-70c0c1c89ee5",
-      "title": "집합의 공통과 합집합을 읽어요",
-      "goal": "집합은 중복 없이 값을 모아요. &는 양쪽에 모두 있는 값, |는 어느 한쪽에라도 있는 값이에요. 오늘과 내일의 재고 번호를 비교해요.\n출력될 목록을 그대로 적으세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 질문이 묻는 값을 답안 칸에 적으세요.\n3. 적은 답안을 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "[4]",
-      "tests": [],
-      "required": true,
-      "example_code": "today = {2, 4, 4}\ntomorrow = {4, 6}\n# 순서와 무관한 집합을 정렬해 표시해요.\nprint(sorted(today & tomorrow))\n",
-      "interaction": {
-        "kind": "fill",
-        "accepted": [
-          "[4]"
-        ]
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "두 집합의 공통 부분을 구해 정렬한 목록을 적는 문제예요.",
-          "target": "text:집합의 공통과 합집합을 읽어요#1"
-        },
-        {
-          "action": "run",
-          "lines": [
-            4,
-            4
-          ]
-        },
-        {
-          "action": "say",
-          "text": "양쪽에 모두 있는 4만 남아요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "today & tomorrow",
-          "after": "today | tomorrow",
-          "say": "&를 |로 바꿔 볼게요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            4,
-            4
-          ]
-        },
-        {
-          "action": "say",
-          "text": "합집합은 중복 없이 2, 4, 6을 모아요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 집합의 출력 순서를 암기하지 않고 여기서는 정렬 결과를 읽어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "today | tomorrow",
-          "after": "today & tomorrow",
-          "say": "&로 되돌려요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            4,
-            4
-          ]
-        },
-        {
-          "action": "say",
-          "text": "처음 코드는 양쪽에 다 있는 4만 남아요.",
-          "target": "output"
-        },
-        {
-          "action": "fill_answer",
-          "value": "[4]"
-        }
-      ]
-    },
-    {
-      "id": "stp_abac6677-eb8c-44e9-a954-c698fd21a228",
-      "title": "없는 키의 기본값을 읽어요",
-      "goal": "counts.get(키, 기본값)은 키가 없으면 기본값을 돌려주지만 사전에 키를 넣지는 않아요. 없는 book을 읽은 뒤 키 개수를 출력해요.\n출력될 결과를 그대로 적으세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 질문이 묻는 값을 답안 칸에 적으세요.\n3. 적은 답안을 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "0:1",
-      "tests": [],
-      "required": true,
-      "example_code": "counts = {\"pen\": 2}\n# 없는 키에는 기본값0을 읽지만 추가하지 않아요.\nvalue = counts.get(\"book\", 0)\nprint(str(value) + \":\" + str(len(counts)))\n",
-      "interaction": {
-        "kind": "fill",
-        "accepted": [
-          "0:1"
-        ]
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "없는 키를 읽는 것과 키를 넣는 것을 구별해, 읽은 값과 키 개수를 적는 문제예요.",
-          "target": "text:없는 키의 기본값을 읽어요#1"
-        },
-        {
-          "action": "run",
-          "lines": [
-            4,
-            4
-          ]
-        },
-        {
-          "action": "say",
-          "text": "0을 읽어도 딕셔너리에 새 키가 생기지는 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "counts.get(\"book\", 0)",
-          "after": "counts.setdefault(\"book\", 0)",
-          "say": "get을 setdefault로 바꿔 볼게요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            4,
-            4
-          ]
-        },
-        {
-          "action": "say",
-          "text": "setdefault는 없는 키를 실제로 추가해 키 수가 둘이에요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 값을 읽는 것과 자료를 바꾸는 메서드를 구별해요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "counts.setdefault(\"book\", 0)",
-          "after": "counts.get(\"book\", 0)",
-          "say": "get으로 되돌려요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            4,
-            4
-          ]
-        },
-        {
-          "action": "say",
-          "text": "처음 코드는 0을 읽고 키는 여전히 하나라 0:1이에요.",
-          "target": "output"
-        },
-        {
-          "action": "fill_answer",
-          "value": "0:1"
-        }
-      ]
-    },
-    {
-      "id": "stp_e3dbf632-4a34-4c0b-818e-c4251dbd20a4",
-      "title": "나눈 글을 다른 구분자로 이어요",
-      "goal": "split(\",\")는 쉼표마다 글을 나눠 목록을 만들고, \"/\".join은 목록의 글 사이에 슬래시를 넣어 이어요.\n출력될 글을 그대로 적으세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 질문이 묻는 값을 답안 칸에 적으세요.\n3. 적은 답안을 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "pen/book/bag",
-      "tests": [],
-      "required": true,
-      "example_code": "text = \"pen,book,bag\"\nitems = text.split(\",\")\n# 세 조각 사이를 새 기호로 이어요.\nprint(\"/\".join(items))\n",
-      "interaction": {
-        "kind": "fill",
-        "accepted": [
-          "pen/book/bag"
-        ]
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "나눈 조각을 다른 기호로 다시 이은 글을 적는 문제예요.",
-          "target": "text:나눈 글을 다른 구분자로 이어요#1"
-        },
-        {
-          "action": "run",
-          "lines": [
-            4,
-            4
-          ]
-        },
-        {
-          "action": "say",
-          "text": "쉼표로 나눈 세 조각을 슬래시로 이어 붙여요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "\"/\".join(items)",
-          "after": "\"-\".join(items)",
-          "say": "연결 기호를 하이픈으로 바꿔 볼게요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            4,
-            4
-          ]
-        },
-        {
-          "action": "say",
-          "text": "조각은 같고 연결 기호만 바뀌어요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. join은 원래 목록의 각 문자열 사이에 구분자를 넣어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "\"-\".join(items)",
-          "after": "\"/\".join(items)",
-          "say": "슬래시로 되돌려요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            4,
-            4
-          ]
-        },
-        {
-          "action": "say",
-          "text": "처음 코드는 세 조각을 슬래시로 이어 pen/book/bag이에요.",
-          "target": "output"
-        },
-        {
-          "action": "fill_answer",
-          "value": "pen/book/bag"
-        }
-      ]
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"text\": \"a,b\"}, \"expected\": \"a/b\"}, {\"values\": {\"text\": \"solo\"}, \"expected\": \"solo\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
       "id": "stp_db97db2a-0c84-44da-947f-0cce41a180db",

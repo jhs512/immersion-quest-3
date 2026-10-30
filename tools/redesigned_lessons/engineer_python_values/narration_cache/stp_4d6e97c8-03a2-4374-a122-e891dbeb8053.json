@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "80ff20aeff60e2d5a6fd99a99ba881e091eccc1517248d23b1dbf0d00e34626f",
+  "entry": [
+    {
+      "action": "say",
+      "text": "없는 item을 읽어도 멈추지 않고 0을 써야 해요. 사전에 키를 넣지 않는 get을 써요.",
+      "target": "text:value 줄을 고쳐 item이 없으면 0을 읽고, 사전에는 키를 넣지 마세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ],
+      "expect_error": "KeyError"
+    },
+    {
+      "action": "say",
+      "text": "KeyError: 'book'이에요. 대괄호로 없는 키를 읽으면 멈춰요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "value = counts[item]\n",
+      "after": "value = counts.get(item, 0)\n",
+      "say": "counts[item]을 counts.get(item, 0)으로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0:1이에요. 기본값 0을 읽었고 사전의 키는 여전히 하나예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. setdefault(item, 0)도 0을 돌려주지만 사전에 book을 넣어 키가 둘이 돼요.",
+      "target": "code:counts.get(item, 0)"
+    }
+  ]
+}

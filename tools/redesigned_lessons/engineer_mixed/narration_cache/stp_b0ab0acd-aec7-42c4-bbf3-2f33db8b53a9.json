@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "27ed21907b2fd94d46e90538717c92672c2450c167b41640d89ad41498141e7f",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 참조 공유와 NULL 집계를 서로 다른 근거로 코드에 써요.",
+      "target": "text:참조 공유와 NULL 집계를 서로 다른 근거로 코드에 써요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "5 5와 3이에요. rows도 바뀌었고, None까지 세었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "copy = rows[:]\n",
+      "after": "copy = [row[:] for row in rows]\n",
+      "say": "rows[:]를 [row[:] for row in rows]로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2 5예요. 안쪽 목록까지 복사해 rows는 그대로예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "count = len(qty)\n",
+      "after": "count = sum(1 for value in qty if value is not None)\n",
+      "say": "None이 아닌 값만 세는 식으로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2예요. None 하나를 빼고 2와 0을 세었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. if value처럼 참 거짓으로 거르면 0까지 빠져 1이 돼요. None인지 직접 비교해요.",
+      "target": "code:value is not None"
+    }
+  ]
+}

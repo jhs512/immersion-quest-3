@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_31f4e5ad-a83b-4709-a955-7a6c324963db",
-  "revision": "engineer-network-6",
+  "revision": "engineer-network-7",
   "title": "네트워크 · 같은 창고의 주소와 전송을 읽어요",
   "description": "같은 업무 상황의 조건과 대안을 비교해 원리를 판단해요.",
   "objectives": [
@@ -149,9 +149,9 @@
           "premise": "주소는 192.168.10.77/27이에요. 일반적인 브로드캐스트 IPv4 서브넷으로 보고 네트워크 주소와 브로드캐스트 주소를 호스트에 배정하지 않아요. /31·/32 예외는 이번 문제의 범위가 아니에요. 주소는 점으로 구분한 IPv4 형식, 호스트 수는 숫자만 적으세요.",
           "steps": [
             {
-              "id": "stp_8514f6bd-9f51-4c34-872d-b69b2be1b559",
+              "id": "stp_a6cb0296-f5a9-41e5-942f-06ce98981b58",
               "objectives": [
-                "IPv4 프리픽스로 주소 블록을 찾고 네트워크·브로드캐스트를 구분해요."
+                "프리픽스로 마스크를 만들고 네트워크와 브로드캐스트 주소를 비트 연산으로 구해요."
               ]
             }
           ]
@@ -806,79 +806,85 @@
       ]
     },
     {
+      "id": "stp_a6cb0296-f5a9-41e5-942f-06ce98981b58",
+      "title": "마스크와 브로드캐스트를 비트 연산으로 계산하세요",
+      "goal": "프리픽스로 마스크를 만들고 네트워크와 브로드캐스트 주소를 비트 연산으로 구해요.\n\n주소 192.168.10.77/27은 앞 27비트가 네트워크, 뒤 5비트가 호스트예요. 마스크는 네트워크 비트만 1이고, `value & mask`가 네트워크 주소예요. 호스트 비트를 모두 1로 채우면 브로드캐스트 주소이고, 두 주소를 뺀 나머지가 일반 호스트 수예요. Python의 정수는 32비트에서 끊기지 않아서 `& 0xFFFFFFFF`로 32비트만 남겨요.\n\n두 주석의 지시대로 고치세요. 채점은 다른 주소와 프리픽스로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 수정 전 결과를 확인하세요.\n2. `mask = 0`을 `mask = (0xFFFFFFFF << (32 - prefix)) & 0xFFFFFFFF`로 고치세요.\n3. `broadcast = network`를 `broadcast = network | (~mask & 0xFFFFFFFF)`로 고치세요.\n4. 다시 실행해 결과를 확인하고 작성한 코드를 제출하세요.",
       "language": "python",
-      "goal": "IPv4 프리픽스로 주소 블록을 찾고 네트워크·브로드캐스트를 구분해요.\n\n주소는 192.168.10.77/27이에요. 일반적인 브로드캐스트 IPv4 서브넷으로 보고 네트워크 주소와 브로드캐스트 주소를 호스트에 배정하지 않아요. /31·/32 예외는 이번 문제의 범위가 아니에요. 주소는 점으로 구분한 IPv4 형식, 호스트 수는 숫자만 적으세요.\n\n**네트워크 주소는?**\n**브로드캐스트 주소는?**\n**일반 호스트에 배정할 수 있는 주소 수는?**\n\n**할 일**\n\n1. 주어진 자료와 조건을 먼저 읽으세요.\n2. 각 답안 칸의 질문에 맞춰 값이나 용어를 적으세요.\n3. 세 답안을 모두 확인하고 제출하세요.",
-      "starter_code": "",
-      "solution": "{\"network\": \"192.168.10.64\", \"broadcast\": \"192.168.10.95\", \"hosts\": \"30\"}",
-      "tests": [],
-      "interaction": {
-        "kind": "fill_fields",
-        "fields": [
-          {
-            "id": "network",
-            "label": "네트워크 주소는?",
-            "accepted": [
-              "192.168.10.64"
-            ]
-          },
-          {
-            "id": "broadcast",
-            "label": "브로드캐스트 주소는?",
-            "accepted": [
-              "192.168.10.95"
-            ]
-          },
-          {
-            "id": "hosts",
-            "label": "일반 호스트에 배정할 수 있는 주소 수는?",
-            "accepted": [
-              "30"
-            ]
-          }
-        ]
-      },
+      "starter_code": "address = \"192.168.10.77\"\nprefix = 27\nparts = [int(part) for part in address.split(\".\")]\n# 주소 네 칸을 32비트 정수 하나로 이어요.\nvalue = (parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3]\n# 1) 이 줄을 고쳐 앞 prefix비트는 1, 나머지 호스트 비트는 0인 32비트 마스크를 만드세요.\nmask = 0\nnetwork = value & mask\n# 2) 이 줄을 고쳐 network의 호스트 비트를 모두 1로 채운 브로드캐스트 주소를 구하세요.\nbroadcast = network\nhosts = broadcast - network + 1 - 2\n\n\ndef text(number):\n    return \".\".join(str((number >> shift) & 255) for shift in (24, 16, 8, 0))\n\n\nprint(text(network))\nprint(text(broadcast))\nprint(hosts)\n",
+      "solution": "address = \"192.168.10.77\"\nprefix = 27\nparts = [int(part) for part in address.split(\".\")]\n# 주소 네 칸을 32비트 정수 하나로 이어요.\nvalue = (parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3]\n# 1) 이 줄을 고쳐 앞 prefix비트는 1, 나머지 호스트 비트는 0인 32비트 마스크를 만드세요.\n# 1을 32개 채운 뒤 호스트 비트 수만큼 왼쪽으로 밀고, 32비트를 넘는 자리는 & 0xFFFFFFFF로 잘라요.\nmask = (0xFFFFFFFF << (32 - prefix)) & 0xFFFFFFFF\nnetwork = value & mask\n# 2) 이 줄을 고쳐 network의 호스트 비트를 모두 1로 채운 브로드캐스트 주소를 구하세요.\n# 마스크를 뒤집으면 호스트 비트만 1이에요. network에 |로 켜면 블록의 마지막 주소예요.\nbroadcast = network | (~mask & 0xFFFFFFFF)\nhosts = broadcast - network + 1 - 2\n\n\ndef text(number):\n    return \".\".join(str((number >> shift) & 255) for shift in (24, 16, 8, 0))\n\n\nprint(text(network))\nprint(text(broadcast))\nprint(hosts)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "192.168.10.64\n192.168.10.95\n30"
+        }
+      ],
+      "required": true,
       "narration": [
         {
           "action": "say",
-          "text": "서브넷의 시작·끝·일반 호스트 수를 계산하는 문제예요.",
-          "target": "text:서브넷의 시작·끝·일반 호스트 수를 계산하세요#1"
+          "text": "마스크와 브로드캐스트를 비트 연산으로 계산하는 문제예요.",
+          "target": "text:마스크와 브로드캐스트를 비트 연산으로 계산하세요#1"
         },
         {
           "action": "say",
-          "text": "마지막 도전이에요. IPv4 프리픽스로 주소 블록을 찾고 네트워크·브로드캐스트를 구분해요.",
-          "target": "text:IPv4 프리픽스로 주소 블록을 찾고 네트워크·브로드캐스트를 구분해요."
+          "text": "마지막 도전이에요. 프리픽스로 마스크를 만들고 네트워크와 브로드캐스트 주소를 비트 연산으로 구해요.",
+          "target": "text:프리픽스로 마스크를 만들고 네트워크와 브로드캐스트 주소를 비트 연산으로 구해요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            5
+            18,
+            20
           ]
         },
         {
           "action": "say",
-          "text": "호스트 비트는 5개라 블록 크기는 32예요. 77이 속한 블록은 마지막 옥텟 64에서 시작해요.",
-          "target": "text:네트워크 주소는?"
+          "text": "0.0.0.0, 0.0.0.0, -1이에요. 마스크가 0이라 모든 비트가 지워졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "mask = 0\n",
+          "after": "mask = (0xFFFFFFFF << (32 - prefix)) & 0xFFFFFFFF\n",
+          "say": "1이 32개인 수를 32 - prefix만큼 왼쪽으로 밀고 32비트로 잘라요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            20
+          ]
         },
         {
           "action": "say",
-          "text": "64부터 32개이므로 마지막 주소는 95예요. 전체 주소는 192.168.10.95예요.",
-          "target": "text:브로드캐스트 주소는?"
+          "text": "네트워크가 192.168.10.64예요. 호스트 비트 5개가 지워져 77이 속한 블록의 첫 주소가 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "broadcast = network\n",
+          "after": "broadcast = network | (~mask & 0xFFFFFFFF)\n",
+          "say": "뒤집은 마스크로 호스트 비트를 모두 켜요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            20
+          ]
         },
         {
           "action": "say",
-          "text": "전체 32개에서 네트워크와 브로드캐스트 두 주소를 제외해 일반 호스트는 30개예요.",
-          "target": "text:일반 호스트에 배정할 수 있는 주소 수는?"
+          "text": "192.168.10.64, 192.168.10.95, 30이에요. 블록 32개 중 네트워크와 브로드캐스트를 뺀 30개가 호스트용이에요.",
+          "target": "output"
         },
         {
-          "action": "fill_answer",
-          "value": "{\"network\": \"192.168.10.64\", \"broadcast\": \"192.168.10.95\", \"hosts\": \"30\"}"
+          "action": "say",
+          "text": "조심하세요. 네트워크 주소에 32를 더하면 다음 블록의 첫 주소 96이에요. 마지막 주소는 하나 앞인 95예요.",
+          "target": "code:~mask & 0xFFFFFFFF"
         }
       ],
-      "example_code": "import ipaddress\nnetwork = ipaddress.ip_interface(\"192.168.10.77/27\").network\nprint(network.network_address)\nprint(network.broadcast_address)\nprint(network.num_addresses - 2)\n",
-      "id": "stp_8514f6bd-9f51-4c34-872d-b69b2be1b559",
-      "title": "서브넷의 시작·끝·일반 호스트 수를 계산하세요",
-      "required": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"address\": \"10.0.5.200\", \"prefix\": 24}, \"expected\": \"10.0.5.0\\\\n10.0.5.255\\\\n254\"}, {\"values\": {\"address\": \"172.16.33.9\", \"prefix\": 20}, \"expected\": \"172.16.32.0\\\\n172.16.47.255\\\\n4094\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     }
   ]
 }

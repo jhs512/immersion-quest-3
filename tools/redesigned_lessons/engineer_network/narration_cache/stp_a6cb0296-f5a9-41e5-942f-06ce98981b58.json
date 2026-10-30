@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "d57b2fbb3296520620bd05fa253561fe266ac3f1ae002e527a7942053c0c5b9d",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. 프리픽스로 마스크를 만들고 네트워크와 브로드캐스트 주소를 비트 연산으로 구해요.",
+      "target": "text:프리픽스로 마스크를 만들고 네트워크와 브로드캐스트 주소를 비트 연산으로 구해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        18,
+        20
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0.0.0.0, 0.0.0.0, -1이에요. 마스크가 0이라 모든 비트가 지워졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "mask = 0\n",
+      "after": "mask = (0xFFFFFFFF << (32 - prefix)) & 0xFFFFFFFF\n",
+      "say": "1이 32개인 수를 32 - prefix만큼 왼쪽으로 밀고 32비트로 잘라요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        18,
+        20
+      ]
+    },
+    {
+      "action": "say",
+      "text": "네트워크가 192.168.10.64예요. 호스트 비트 5개가 지워져 77이 속한 블록의 첫 주소가 됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "broadcast = network\n",
+      "after": "broadcast = network | (~mask & 0xFFFFFFFF)\n",
+      "say": "뒤집은 마스크로 호스트 비트를 모두 켜요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        18,
+        20
+      ]
+    },
+    {
+      "action": "say",
+      "text": "192.168.10.64, 192.168.10.95, 30이에요. 블록 32개 중 네트워크와 브로드캐스트를 뺀 30개가 호스트용이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 네트워크 주소에 32를 더하면 다음 블록의 첫 주소 96이에요. 마지막 주소는 하나 앞인 95예요.",
+      "target": "code:~mask & 0xFFFFFFFF"
+    }
+  ]
+}

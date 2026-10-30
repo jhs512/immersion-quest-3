@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "84db0715cf48055cccf158d1f885c3611349fda156a1ce9f55b8902ed856a3da",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마지막 도전이에요. SJF 순서와 FIFO 교체를 코드로 직접 써서 대기시간과 페이지 부재를 구해요.",
+      "target": "text:SJF 순서와 FIFO 페이지 교체를 코드로 직접 써서 대기시간과 페이지 부재를 구해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        22
+      ]
+    },
+    {
+      "action": "say",
+      "text": "P1 P2 P3, 4.666667, 4예요. 도착 순서로 실행했고, 새 페이지가 올 때 가장 최근 페이지를 뺐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "order = list(jobs)\n",
+      "after": "order = sorted(jobs, key=jobs.get)\n",
+      "say": "jobs를 실행시간 기준으로 정렬해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        22
+      ]
+    },
+    {
+      "action": "say",
+      "text": "P2 P3 P1과 2.666667이에요. 대기시간 0, 2, 6의 평균 8/3이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "            memory.pop()\n",
+      "after": "            memory.pop(0)\n",
+      "say": "pop()을 pop(0)으로 바꿔 맨 앞 페이지를 빼요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        22
+      ]
+    },
+    {
+      "action": "say",
+      "text": "페이지 부재는 6이에요. 4가 1을, 1이 2를, 2가 3을 차례로 밀어내 참조마다 부재가 났어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 들어온 순서는 목록 앞부터예요. pop()은 방금 넣은 페이지를 빼서 FIFO가 아니에요.",
+      "target": "code:memory.pop(0)"
+    }
+  ]
+}

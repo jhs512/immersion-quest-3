@@ -344,3 +344,125 @@ SPECS = [
          accept=[([['        try { System.out.print(""); }\n        finally {\n            value += bonus;\n            System.out.print("F");\n        }\n        return value;\n',
                     '        value += bonus;\n        System.out.print("F");\n        return value;\n']], 'Without try and finally')]),
 ]
+
+
+# ---- 2026-10-30: the last-answer field and the field/override/finally challenge become coding steps --------
+PRD_SCOPE = ['두 챕터·두 단원·아홉 스텝으로 같은 발급 규칙의 호출을 읽어요.',
+             '재정의·동적 바인딩·super 호출·필드 선택·finally를 한두 줄씩 직접 고쳐 실행하고, 마지막 도전은 세 규칙을 한 코드에 함께 써요.']
+PRD_GRADING = ['직접 고친 코드를 실제 JDK 25로 실행해 판정해요. 준비 값(추가 값·문자열·재고·더할 수)을 바꾼 실행도 맞아야 해요.',
+               '고정 출력과 숫자를 적어 넣은 답, super 대신 자기 자신을 부르는 답은 거절해요.',
+               '마지막 도전: 시작 답안은 실패해야 해요. 필드 값·처음 값을 바꾼 실행과 예외가 나는 실행에서도 맞아야 해서 finally 대신 출력 위치만 맞춘 답을 구별해요.']
+
+p8 = """class Rule {
+    static int base = 2;
+    int value() { return base; }
+}
+class Bonus extends Rule {
+    static int extra = 3;
+    // 이 메서드를 고쳐 상위 규칙의 결과에 extra를 더해 돌려주세요.
+    @Override int value() { return extra; }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Rule[] rules = {new Rule(), new Bonus()};
+        int total = 0;
+        for (Rule rule : rules) total += rule.value();
+        System.out.println(total);
+    }
+}
+"""
+p8_solution = p8.replace('    @Override int value() { return extra; }\n',
+                         '    // super.value()는 재정의하기 전 Rule의 value를 불러요. 그 결과에 extra를 더해요.\n'
+                         '    @Override int value() { return super.value() + extra; }\n')
+v8 = (Script(p8)
+      .say('Bonus의 value는 상위 규칙의 결과에 extra를 더해야 해요. super.value()로 Rule의 value를 불러요.', 'text:메서드를 고쳐 상위 규칙의 결과에 extra를 더해 돌려주세요.')
+      .run('System.out.println(total);')
+      .say('5예요. Rule의 2와 Bonus의 3을 더했어요. Bonus가 상위 결과를 쓰지 않았어요.', 'output')
+      .patch('return extra; }', 'return super.value() + extra; }', 'return 뒤를 super.value() + extra로 바꿔요.')
+      .run('System.out.println(total);')
+      .say('7이에요. Rule의 2와 Bonus의 2 + 3을 더했어요.', 'output')
+      .say('조심하세요. super 없이 value()만 쓰면 Bonus가 자기 자신을 계속 불러 StackOverflowError가 나요.', 'code:super.value()'))
+
+p9 = """class Parent { int n = 1; int value() { return n; } }
+class Child extends Parent { int n = 2; int value() { return n; } }
+
+public class Main {
+    static int base = 4;
+    static int check(int v) {
+        if (v < 0) throw new IllegalArgumentException("음수");
+        System.out.println("checked");
+        return v;
+    }
+    // 1) 이 메서드를 고쳐, check 결과를 반환하기 전에 finally에서 cleanup을 출력하세요. 예외가 나도 출력해야 해요.
+    static int result() {
+        return check(base);
+    }
+    public static void main(String[] args) {
+        Parent item = new Child();
+        // 2) 이 줄을 고쳐 선언형 Parent를 따르는 item의 필드 n을 출력하세요.
+        System.out.println(((Child) item).n);
+        // 3) 이 줄을 고쳐 실제 객체 Child를 따르는 item의 value()를 출력하세요.
+        System.out.println(new Parent().value());
+        try {
+            System.out.println(result());
+        } catch (IllegalArgumentException e) {
+            System.out.println("rejected");
+        }
+    }
+}
+"""
+p9_solution = (p9.replace('    static int result() {\n        return check(base);\n    }\n',
+                          '    static int result() {\n'
+                          '        // finally는 try가 값을 돌려주거나 예외로 끝나도 반드시 실행돼요. 반환값은 try에서 이미 정해져요.\n'
+                          '        try {\n            return check(base);\n        } finally {\n            System.out.println("cleanup");\n        }\n    }\n')
+               .replace('        System.out.println(((Child) item).n);\n', '        // 필드는 재정의되지 않아요. 선언형 Parent의 n을 읽어요.\n        System.out.println(item.n);\n')
+               .replace('        System.out.println(new Parent().value());\n', '        // 메서드는 실제 객체 Child의 재정의한 value가 실행돼요.\n        System.out.println(item.value());\n'))
+v9 = (Script(p9)
+      .say('마지막 도전이에요. 필드는 선언형, 메서드는 실제 객체를 따르고, finally는 반환이나 예외 뒤에도 실행되는 것을 한 코드에 써요.', 'text:선언형의 필드 선택과 실제 객체의 메서드 선택, 반환 전 finally 실행을 함께 써요.')
+      .run('System.out.println(((Child) item).n);', 'System.out.println(result());')
+      .say('2, 1, checked, 4예요. 셋 다 아직 요구와 달라요.', 'output')
+      .patch('        System.out.println(((Child) item).n);\n', '        System.out.println(item.n);\n', '형 변환을 빼고 item.n을 출력해요.')
+      .patch('        System.out.println(new Parent().value());\n', '        System.out.println(item.value());\n', 'new Parent() 대신 item의 value()를 불러요.')
+      .run('System.out.println(item.n);', 'System.out.println(result());')
+      .say('1, 2, checked, 4예요. 필드는 Parent의 1, 메서드는 Child의 2예요.', 'output')
+      .patch('        return check(base);\n', '        try {\n            return check(base);\n        } finally {\n            System.out.println("cleanup");\n        }\n',
+             'return을 try로 감싸고 finally에서 cleanup을 출력해요.')
+      .run('System.out.println(item.n);', 'System.out.println(result());')
+      .say('1, 2, checked, cleanup, 4예요. check가 끝난 뒤 반환값 4를 전달하기 전에 finally가 실행됐어요.', 'output')
+      .say('조심하세요. cleanup을 return 앞에 그냥 출력하면 check가 예외를 던질 때는 실행되지 않아요. 끝에 꼭 실행할 일은 finally에 둬요.', 'code:} finally {'))
+
+SPECS += [
+    dict(old='stp_2b7fe0cf-5e2f-4581-8af6-52b7db75b50a', title='super.value()로 상위 규칙의 결과에 extra를 더하세요',
+         objectives=['재정의한 메서드 안에서 super로 상위 클래스의 원래 메서드를 불러 결과를 확장해요.'],
+         core_flow='Bonus가 extra만 돌려주면 합계 5다. return super.value() + extra로 고쳐 7을 확인한다. 채점은 base와 extra를 바꿔 실행한다.',
+         goal='`super.value()`는 재정의한 하위 메서드 안에서 상위 클래스의 원래 value를 불러요. 배열의 두 규칙에서 같은 이름의 value를 불러 더해요.\n\n'
+              '메서드를 고쳐 상위 규칙의 결과에 extra를 더해 돌려주세요. 채점은 base와 extra를 바꿔서도 실행해요.\n\n'
+              + todo('코드 실행을 눌러 지금 합계를 확인하세요.', 'Bonus의 `return extra;`를 `return super.value() + extra;`로 고치세요.',
+                     '코드 실행을 눌러 7이 나오는지 확인하세요.', '수정한 코드를 제출하세요.'),
+         starter_code=p8, solution=p8_solution, tests=[{'input': '', 'expected': '7'}],
+         variations=[{'values': {'base': '4', 'extra': '1'}, 'expected': '9'}, {'values': {'extra': '0'}, 'expected': '4'}],
+         narration=v8.actions,
+         review={v8.actions[-1]['text']: '실제 무한 재귀 오류를 정확히 말해요.'},
+         reject=[([['return super.value() + extra; }', 'return value() + extra; }']], 'Calling itself'),
+                 ([['        System.out.println(total);\n', '        System.out.println(7);\n']], 'Typing the total')],
+         accept=[([['return super.value() + extra; }', 'return extra + super.value(); }']], 'Operands swapped')]),
+    dict(old='stp_045de1e3-6968-4517-b056-6ef2e6b13549', title='필드·재정의·finally의 규칙을 한 코드에 맞추세요',
+         objectives=['선언형의 필드 선택과 실제 객체의 메서드 선택, 반환이나 예외 뒤 finally 실행을 함께 써요.'],
+         core_flow='처음 코드는 2, 1, checked, 4다. item.n과 item.value()로 고치고 return을 try·finally로 감싸 1, 2, checked, cleanup, 4를 확인한다. 채점은 필드 값·base와 음수 base(예외)로도 실행한다.',
+         goal='선언형의 필드 선택과 실제 객체의 메서드 선택, 반환 전 finally 실행을 함께 써요.\n\n'
+              '`Parent item = new Child();`예요. 필드는 재정의되지 않아 선언형을 따르고, 재정의한 메서드는 실제 객체를 따라요. finally는 try가 값을 돌려주거나 예외로 끝나도 반드시 실행돼요. '
+              '세 주석의 지시대로 고치세요. 채점은 필드 값과 base를 바꾸고, check가 예외를 던지는 음수 base로도 실행해요.\n\n'
+              + todo('코드 실행을 눌러 수정 전 결과를 확인하세요.', '`((Child) item).n`을 `item.n`으로 고치세요.', '`new Parent().value()`를 `item.value()`로 고치세요.',
+                     'result의 `return check(base);`를 try로 감싸고, finally에서 `System.out.println("cleanup");`을 실행하세요.',
+                     '다시 실행해 결과를 확인하고 작성한 코드를 제출하세요.'),
+         starter_code=p9, solution=p9_solution, tests=[{'input': '', 'expected': '1\n2\nchecked\ncleanup\n4'}],
+         variations=[{'values': {'n': '5', 'base': '7'}, 'expected': '5\n2\nchecked\ncleanup\n7'}, {'values': {'base': '-1'}, 'expected': '1\n2\ncleanup\nrejected'}],
+         narration=v9.actions,
+         review={v9.actions[-1]['text']: '음수 base 검사로 확인하는 실제 차이를 말해요.'},
+         reject=[([['        try {\n            return check(base);\n        } finally {\n            System.out.println("cleanup");\n        }\n',
+                    '        int value = check(base);\n        System.out.println("cleanup");\n        return value;\n']], 'Printing cleanup without finally'),
+                 ([['        System.out.println(item.n);\n', '        System.out.println(1);\n']], 'Typing the field value'),
+                 ([['        System.out.println(item.value());\n', '        System.out.println(((Parent) item).n + 1);\n']], 'Arithmetic instead of the call')],
+         accept=[([['        System.out.println(item.n);\n', '        System.out.println(((Parent) item).n);\n']], 'Explicit cast to the declared type')]),
+]

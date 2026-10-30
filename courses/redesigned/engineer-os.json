@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_bf5902ce-aa73-4267-a9d7-7aed3f1db5e2",
-  "revision": "engineer-os-6",
+  "revision": "engineer-os-7",
   "title": "운영체제 · 같은 작업의 시간과 자원을 읽어요",
   "description": "같은 업무 상황의 조건과 대안을 비교해 원리를 판단해요.",
   "objectives": [
@@ -167,9 +167,9 @@
           "premise": "P1·P2·P3은 모두 시각 0에 도착하고 실행시간은 6·2·4예요. 비선점 SJF로 실행하며 문맥 교환 비용은 0이에요. 별도 메모리는 빈 프레임 3개에서 참조열 1,2,3,1,4,2를 FIFO로 처리해요. 또 모든 작업이 자원을 같은 전역 순서로만 요청하게 바꿨어요.",
           "steps": [
             {
-              "id": "stp_7890e0b4-4fbe-4227-8b8b-16a903154e97",
+              "id": "stp_eaa93200-abf3-4618-8652-301943b18e21",
               "objectives": [
-                "SJF 대기시간과 FIFO 페이지 부재를 계산하고 교착 예방 조건을 연결해요."
+                "SJF 순서와 FIFO 페이지 교체를 코드로 직접 써서 대기시간과 페이지 부재를 구해요."
               ]
             }
           ]
@@ -871,85 +871,85 @@
       ]
     },
     {
+      "id": "stp_eaa93200-abf3-4618-8652-301943b18e21",
+      "title": "SJF 순서와 FIFO 교체를 코드로 끝까지 추적하세요",
+      "goal": "SJF 순서와 FIFO 페이지 교체를 코드로 직접 써서 대기시간과 페이지 부재를 구해요.\n\nP1·P2·P3은 모두 시각 0에 도착하고 실행시간은 jobs의 값이에요. 비선점 SJF는 실행시간이 짧은 작업부터 끝까지 실행해요. 별도 메모리는 빈 프레임 frames개에서 참조열 refs를 처리해요. FIFO는 프레임이 가득 찼을 때 가장 먼저 들어온 페이지를 빼요. `sorted(jobs, key=jobs.get)`는 값이 작은 키부터 정렬하고, `memory.pop(0)`은 목록 맨 앞을 빼요.\n\n두 주석의 지시대로 고치세요. 채점은 다른 작업·참조열·프레임 수로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 수정 전 결과를 확인하세요.\n2. `order = list(jobs)`를 `order = sorted(jobs, key=jobs.get)`로 고치세요.\n3. `memory.pop()`을 `memory.pop(0)`으로 고치세요.\n4. 다시 실행해 결과를 확인하고 작성한 코드를 제출하세요.",
       "language": "python",
-      "goal": "SJF 대기시간과 FIFO 페이지 부재를 계산하고 교착 예방 조건을 연결해요.\n\nP1·P2·P3은 모두 시각 0에 도착하고 실행시간은 6·2·4예요. 비선점 SJF로 실행하며 문맥 교환 비용은 0이에요. 별도 메모리는 빈 프레임 3개에서 참조열 1,2,3,1,4,2를 FIFO로 처리해요. 또 모든 작업이 자원을 같은 전역 순서로만 요청하게 바꿨어요.\n\n**SJF의 평균 대기시간(소수 여섯째 자리로 반올림하거나 분수로)은?**\n**주어진 FIFO 참조열의 페이지 부재 횟수는?**\n**자원 요청 순서를 통일해 끊으려는 교착 상태 조건은?**\n\n**할 일**\n\n1. 주어진 자료와 조건을 먼저 읽으세요.\n2. 각 답안 칸의 질문에 맞춰 값이나 용어를 적으세요.\n3. 세 답안을 모두 확인하고 제출하세요.",
-      "starter_code": "",
-      "solution": "{\"wait\": \"2.666667\", \"faults\": \"4\", \"deadlock\": \"순환 대기\"}",
-      "tests": [],
-      "interaction": {
-        "kind": "fill_fields",
-        "fields": [
-          {
-            "id": "wait",
-            "label": "SJF의 평균 대기시간(소수 여섯째 자리로 반올림하거나 분수로)은?",
-            "accepted": [
-              "2.666667",
-              "8/3",
-              "2.6666666666666665"
-            ]
-          },
-          {
-            "id": "faults",
-            "label": "주어진 FIFO 참조열의 페이지 부재 횟수는?",
-            "accepted": [
-              "4"
-            ]
-          },
-          {
-            "id": "deadlock",
-            "label": "자원 요청 순서를 통일해 끊으려는 교착 상태 조건은?",
-            "accepted": [
-              "순환 대기",
-              "순환대기",
-              "circular wait",
-              "CIRCULAR WAIT",
-              "circularwait"
-            ]
-          }
-        ]
-      },
+      "starter_code": "jobs = {\"P1\": 6, \"P2\": 2, \"P3\": 4}\nrefs = [1, 2, 3, 4, 1, 2]\nframes = 3\n# 1) 이 줄을 고쳐 실행시간이 짧은 작업부터 순서를 정하세요. 모두 시각 0에 도착하는 비선점 SJF예요.\norder = list(jobs)\ntime = 0\nwaits = []\nfor name in order:\n    waits.append(time)\n    time += jobs[name]\nprint(\" \".join(order))\nprint(round(sum(waits) / len(waits), 6))\nmemory = []\nfaults = 0\nfor page in refs:\n    if page not in memory:\n        faults += 1\n        if len(memory) == frames:\n            # 2) 이 줄을 고쳐 가장 먼저 들어온 페이지를 빼세요(FIFO).\n            memory.pop()\n        memory.append(page)\nprint(faults)\n",
+      "solution": "jobs = {\"P1\": 6, \"P2\": 2, \"P3\": 4}\nrefs = [1, 2, 3, 4, 1, 2]\nframes = 3\n# 1) 이 줄을 고쳐 실행시간이 짧은 작업부터 순서를 정하세요. 모두 시각 0에 도착하는 비선점 SJF예요.\n# 실행시간(jobs의 값)이 짧은 작업부터 정렬해요. 앞 작업의 실행시간이 뒤 작업의 대기가 돼요.\norder = sorted(jobs, key=jobs.get)\ntime = 0\nwaits = []\nfor name in order:\n    waits.append(time)\n    time += jobs[name]\nprint(\" \".join(order))\nprint(round(sum(waits) / len(waits), 6))\nmemory = []\nfaults = 0\nfor page in refs:\n    if page not in memory:\n        faults += 1\n        if len(memory) == frames:\n            # 2) 이 줄을 고쳐 가장 먼저 들어온 페이지를 빼세요(FIFO).\n            # 목록 앞이 가장 먼저 들어온 페이지예요. pop()은 맨 뒤, 가장 최근 페이지를 빼요.\n            memory.pop(0)\n        memory.append(page)\nprint(faults)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "P2 P3 P1\n2.666667\n6"
+        }
+      ],
+      "required": true,
       "narration": [
         {
           "action": "say",
-          "text": "작업 대기와 페이지 교체를 끝까지 추적하는 문제예요.",
-          "target": "text:작업 대기와 페이지 교체를 끝까지 추적하세요#1"
+          "text": "SJF 순서와 FIFO 교체를 코드로 끝까지 추적하는 문제예요.",
+          "target": "text:SJF 순서와 FIFO 교체를 코드로 끝까지 추적하세요#1"
         },
         {
           "action": "say",
-          "text": "마지막 도전이에요. SJF 대기시간과 FIFO 페이지 부재를 계산하고 교착 예방 조건을 연결해요.",
-          "target": "text:SJF 대기시간과 FIFO 페이지 부재를 계산하고 교착 예방 조건을 연결해요."
+          "text": "마지막 도전이에요. SJF 순서와 FIFO 교체를 코드로 직접 써서 대기시간과 페이지 부재를 구해요.",
+          "target": "text:SJF 순서와 FIFO 페이지 교체를 코드로 직접 써서 대기시간과 페이지 부재를 구해요."
         },
         {
           "action": "run",
           "lines": [
-            1,
-            9
+            11,
+            22
           ]
         },
         {
           "action": "say",
-          "text": "SJF 순서는 P2·P3·P1이고 대기시간은 0·2·6이에요. 평균은 8 나누기 3이에요.",
-          "target": "text:SJF의 평균 대기시간(소수 여섯째 자리로 반올림하거나 분수로)은?"
+          "text": "P1 P2 P3, 4.666667, 4예요. 도착 순서로 실행했고, 새 페이지가 올 때 가장 최근 페이지를 뺐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "order = list(jobs)\n",
+          "after": "order = sorted(jobs, key=jobs.get)\n",
+          "say": "jobs를 실행시간 기준으로 정렬해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            11,
+            22
+          ]
         },
         {
           "action": "say",
-          "text": "1·2·3에서 부재가 세 번, 다시 1은 적중해요. 4가 들어올 때 가장 먼저 들어온 1을 교체해 네 번째 부재예요. 마지막 2는 남아 있어 적중해요.",
-          "target": "text:주어진 FIFO 참조열의 페이지 부재 횟수는?"
+          "text": "P2 P3 P1과 2.666667이에요. 대기시간 0, 2, 6의 평균 8/3이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "            memory.pop()\n",
+          "after": "            memory.pop(0)\n",
+          "say": "pop()을 pop(0)으로 바꿔 맨 앞 페이지를 빼요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            11,
+            22
+          ]
         },
         {
           "action": "say",
-          "text": "모든 작업이 같은 순서로 자원을 요청하면 서로의 자원을 원으로 기다리는 순환 대기를 끊을 수 있어요.",
-          "target": "text:자원 요청 순서를 통일해 끊으려는 교착 상태 조건은?"
+          "text": "페이지 부재는 6이에요. 4가 1을, 1이 2를, 2가 3을 차례로 밀어내 참조마다 부재가 났어요.",
+          "target": "output"
         },
         {
-          "action": "fill_answer",
-          "value": "{\"wait\": \"2.666667\", \"faults\": \"4\", \"deadlock\": \"순환 대기\"}"
+          "action": "say",
+          "text": "조심하세요. 들어온 순서는 목록 앞부터예요. pop()은 방금 넣은 페이지를 빼서 FIFO가 아니에요.",
+          "target": "code:memory.pop(0)"
         }
       ],
-      "example_code": "jobs = {\"P1\": 6, \"P2\": 2, \"P3\": 4}\norder = sorted(jobs, key=jobs.get)\ntime = 0\nwaits = []\nfor name in order:\n    waits.append(time)\n    time += jobs[name]\nprint(\" \".join(order))\nprint(waits)\n",
-      "id": "stp_7890e0b4-4fbe-4227-8b8b-16a903154e97",
-      "title": "작업 대기와 페이지 교체를 끝까지 추적하세요",
-      "required": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"jobs\": {\"A\": 3, \"B\": 1, \"C\": 2, \"D\": 5}, \"refs\": [7, 0, 1, 2, 0, 3, 0, 4], \"frames\": 3}, \"expected\": \"B C A D\\\\n2.5\\\\n7\"}, {\"values\": {\"jobs\": {\"X\": 4, \"Y\": 4}, \"refs\": [1, 2, 1, 3, 1], \"frames\": 2}, \"expected\": \"X Y\\\\n2.0\\\\n4\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     }
   ]
 }

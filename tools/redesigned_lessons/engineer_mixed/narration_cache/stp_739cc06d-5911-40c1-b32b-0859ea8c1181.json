@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "20ba74e8c3ccca41b62ece8b74502b7d3f2232ebb650a44c342f6aa45afa848d",
+  "entry": [
+    {
+      "action": "say",
+      "text": "FROM 뒤 괄호 안의 질의 결과를 표처럼 써요. 안쪽 질의에 HAVING을 더해 합계가 3을 넘는 분류만 남겨야 해요.",
+      "target": "text:안쪽 질의에 HAVING을 더해 수량 합계가 3을 넘는 분류만 남기세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2예요. 분류 A와 B를 모두 세었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": " GROUP BY category\n",
+      "after": " GROUP BY category HAVING SUM(qty) > 3\n",
+      "say": "GROUP BY category 뒤에 HAVING SUM(qty) > 3을 써요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1이에요. 합계 4인 A만 남았고 합계 1인 B는 빠졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. WHERE qty > 3은 묶기 전에 행 하나씩 걸러요. 합계 조건은 HAVING에 써요.",
+      "target": "code:HAVING SUM(qty) > 3"
+    }
+  ]
+}

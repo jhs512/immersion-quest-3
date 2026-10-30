@@ -31,10 +31,13 @@
       "F9"
     ],
     [
+      "5",
       "7"
     ],
     [
-      "1\n2\ncleanup\n4"
+      "2\n1\nchecked\n4",
+      "1\n2\nchecked\n4",
+      "1\n2\nchecked\ncleanup\n4"
     ]
   ],
   "reject": [
@@ -183,34 +186,54 @@
       "reason": "Keeping the early return"
     },
     {
-      "step": 9,
+      "step": 8,
       "replacements": [
         [
-          "\"1\"",
-          "\"__오답__\""
+          "return super.value() + extra; }",
+          "return value() + extra; }"
         ]
       ],
-      "reason": "item.n의 출력도 독립적으로 맞아야 해요."
+      "reason": "Calling itself"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "        System.out.println(total);\n",
+          "        System.out.println(7);\n"
+        ]
+      ],
+      "reason": "Typing the total"
     },
     {
       "step": 9,
       "replacements": [
         [
-          "\"2\"",
-          "\"__오답__\""
+          "        try {\n            return check(base);\n        } finally {\n            System.out.println(\"cleanup\");\n        }\n",
+          "        int value = check(base);\n        System.out.println(\"cleanup\");\n        return value;\n"
         ]
       ],
-      "reason": "item.value()의 출력도 독립적으로 맞아야 해요."
+      "reason": "Printing cleanup without finally"
     },
     {
       "step": 9,
       "replacements": [
         [
-          "\"cleanup 4\"",
-          "\"__오답__\""
+          "        System.out.println(item.n);\n",
+          "        System.out.println(1);\n"
         ]
       ],
-      "reason": "result() 호출로 나오는 마지막 두 줄을 공백으로 이어 적으세요.도 독립적으로 맞아야 해요."
+      "reason": "Typing the field value"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "        System.out.println(item.value());\n",
+          "        System.out.println(((Parent) item).n + 1);\n"
+        ]
+      ],
+      "reason": "Arithmetic instead of the call"
     }
   ],
   "accept": [
@@ -283,6 +306,26 @@
         ]
       ],
       "reason": "Without try and finally"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "return super.value() + extra; }",
+          "return extra + super.value(); }"
+        ]
+      ],
+      "reason": "Operands swapped"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "        System.out.println(item.n);\n",
+          "        System.out.println(((Parent) item).n);\n"
+        ]
+      ],
+      "reason": "Explicit cast to the declared type"
     }
   ]
 }

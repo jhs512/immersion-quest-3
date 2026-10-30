@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "e1c22eba39731702707dd69d6d1361475cd3288b9f48d77a9f48138394a2eeaf",
+  "entry": [
+    {
+      "action": "say",
+      "text": "F는 예외가 나도, 중간에 return해도 꼭 출력돼야 해요. try 끝의 F 출력을 finally 블록으로 옮겨요.",
+      "target": "text:F 출력을 finally 블록으로 옮겨 예외나 return이 있어도 실행되게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "ACD예요. A 다음 예외가 나서 try의 나머지 B와 F를 건너뛰었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        print(\"F\", end=\"\")\n    except ValueError:\n        print(\"C\", end=\"\")\n",
+      "after": "    except ValueError:\n        print(\"C\", end=\"\")\n    finally:\n        print(\"F\", end=\"\")\n",
+      "say": "F 출력을 지우고 except 뒤에 finally 블록을 만들어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "ACFD예요. except 다음에 finally의 F가 실행됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. F를 try 블록 바깥 아래에 그냥 두면 value가 0일 때처럼 return하면 실행되지 않아요.",
+      "target": "code:finally:"
+    }
+  ]
+}

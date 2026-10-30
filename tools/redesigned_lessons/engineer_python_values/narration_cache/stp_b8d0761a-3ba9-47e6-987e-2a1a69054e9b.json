@@ -1,0 +1,52 @@
+{
+  "by": "hand",
+  "source_sha256": "da346010dc5a5e859742b5e27bec53819d9c4901edc4d0dd66bbd9bab002469b",
+  "entry": [
+    {
+      "action": "say",
+      "text": "오늘과 내일 재고 번호를 비교해요. 공통 번호는 &, 둘 중 하나라도 있는 번호는 |로 구해요.",
+      "target": "text:두 줄을 고쳐 common에는 양쪽에 모두 있는 번호, either에는 어느 한쪽에라도 있는 번호를 담으세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[2, 4]와 [2, 4]예요. 둘 다 아직 오늘 집합 그대로이고, 중복된 4는 하나로 모였어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "common = today\n",
+      "after": "common = today & tomorrow\n",
+      "say": "common 줄에 & tomorrow를 더해요."
+    },
+    {
+      "action": "patch_code",
+      "before": "either = today\n",
+      "after": "either = today | tomorrow\n",
+      "say": "either 줄에 | tomorrow를 더해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[4]와 [2, 4, 6]이에요. 공통은 4 하나, 합치면 세 번호예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. &와 |를 바꿔 쓰면 공통과 전체가 뒤바뀌어요.",
+      "target": "code:today & tomorrow"
+    }
+  ]
+}
