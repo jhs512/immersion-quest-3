@@ -80,7 +80,7 @@ module.exports = async ({page, shot, dataDir, output}) => {
       '.narration-play', '.lesson-card[data-state="done"]>.lesson-number', '.lesson-card[data-state="challenge"]>.lesson-number',
       '.study-navigation .step-dot', '.lesson-reset-confirm', '.account-reset-confirm', '.auto-run-chip', '.auto-run-icon',
       '.content-update-menu>button:first-child', '.course-identity button[type=submit]', '.task-passed-backdrop', '.submission-progress-backdrop',
-      '.cm-narration-span', '.git-graph-panel.is-expanded', '.pilot-toolbox',
+      '.cm-narration-span', '.git-graph-panel.is-expanded', '.pilot-toolbox', '.xterm-cursor',
     ].join(','));
     const visible = (element) => {
       const rect = element.getBoundingClientRect();
@@ -212,9 +212,9 @@ module.exports = async ({page, shot, dataDir, output}) => {
     await page.locator('.auto-run-dismiss').click();
   });
   await step('terminal lesson', async () => {
-    await openLesson(0); await openTask(1);
-    await page.waitForFunction(() => document.querySelector('.repository-task')?.dataset.gitReady === 'true', null, {timeout: 90000});
-    await page.waitForTimeout(1200);
+    await openLesson(1); await openTask(1);
+    await page.waitForSelector('.xterm-helper-textarea', {timeout: 90000});
+    await page.waitForTimeout(1500);
     await page.locator('.xterm-helper-textarea').first().focus();
     await page.keyboard.type('ls --color=always -la; printf "\\033[31mred \\033[32mgreen \\033[33myellow \\033[34mblue \\033[35mmagenta \\033[36mcyan \\033[37mwhite \\033[97mbright\\033[0m\\n"\r');
     await page.waitForTimeout(1500);
@@ -239,9 +239,9 @@ module.exports = async ({page, shot, dataDir, output}) => {
     notes.push(`dark editor=${JSON.stringify(dark.editor)} theme=${dark.theme}`);
     if (!dark.editor.length || dark.editor.some(c => !/rgb\(32, 45, 62\)/.test(c))) throw Error('editor is not the night well in 어둡게: ' + JSON.stringify(dark.editor));
     await shot('D11-editor');
-    await openLesson(0); await openTask(1);
-    await page.waitForFunction(() => document.querySelector('.repository-task')?.dataset.gitReady === 'true', null, {timeout: 90000});
-    await page.waitForTimeout(1200);
+    await openLesson(1); await openTask(1);
+    await page.waitForSelector('.xterm-helper-textarea', {timeout: 90000});
+    await page.waitForTimeout(1500);
     const term = await scan('dark-terminal');
     notes.push(`dark terminal=${JSON.stringify(term.terminal)}`);
     await shot('D20-terminal');
