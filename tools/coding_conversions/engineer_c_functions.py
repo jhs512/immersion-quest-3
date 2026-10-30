@@ -386,3 +386,15 @@ SPECS = [
                  ([['    printf("%d", n);\n    if (n > 0) {\n', '    if (n > 0) {\n']], 'Only printing on the way back')],
          accept=[]),
 ]
+
+# 코드 흐름 보기 (src/c_trace.rs): steps on copies, returns, static/global, recursion and pointers.
+CODE_FLOW_TITLES = {
+    '함수 안에서 복사본 value를 1 올려 출력하세요',
+    'next_stock의 반환값을 stock에 저장하세요',
+    'calls에 static을 붙여 호출 사이에도 값이 남게 하세요',
+    'increase가 함수 밖의 stock을 1 늘리게 하세요',
+    '현재 수에 더 작은 sum_to의 결과를 더해 반환하세요',
+}
+for _spec in SPECS:
+    if _spec['title'] in CODE_FLOW_TITLES:
+        _spec['code_flow'] = True

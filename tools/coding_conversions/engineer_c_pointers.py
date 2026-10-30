@@ -349,3 +349,15 @@ SPECS = [
                  ([['        return 0;\n    }\n', '        return 1;\n    }\n']], 'Wrong value without a target')],
          accept=[([['    if (p == NULL) {\n', '    if (!p) {\n']], 'Negated pointer test')]),
 ]
+
+# 코드 흐름 보기 (src/c_trace.rs): steps on copies, returns, static/global, recursion and pointers.
+CODE_FLOW_TITLES = {
+    '*p에 fresh를 써서 가리킨 변수를 바꾸세요',
+    'q가 p와 같은 대상을 가리키게 하세요',
+    '*(p + 1)로 한 칸 뒤의 값을 읽으세요',
+    'add에서 *p를 1 올려 main의 stock을 바꾸세요',
+    '두 원래 재고를 포인터로 교환하세요',
+}
+for _spec in SPECS:
+    if _spec['title'] in CODE_FLOW_TITLES:
+        _spec['code_flow'] = True
