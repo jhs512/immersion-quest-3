@@ -497,6 +497,13 @@
   const strictText = text => text.replace(strictPattern, (_, term) => strictTable[term] + JOSA_MARK);
 
   const has = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
+  // Owner's readings (2026-10-30): the parent folder `..` on its own is said "점점" (cd ..; a path such as
+  // ../memo.txt stays as written, like every path) and the option `-a` is said "대시에이" (ls -a,
+  // git commit -a). Only the standalone tokens: a range such as 1..10, an ellipsis ... and longer
+  // options (-al, --all) keep their other readings. Runs before the symbol rules.
+  const ownerTokenText = text => text
+    .replace(/(?<![.\w\/])\.\.(?![.\w\/\\])/g, '점점' + JOSA_MARK)
+    .replace(/(?<![\w-])-a(?![\w-])/g, '대시에이' + JOSA_MARK);
   const termText = text => text.replace(termPattern, (_, term) => termTable[term] + JOSA_MARK);
   // Numbers in code, with dates, versions and times kept as in prose.
   const codeNumberText = text => text.split(protectedSpans).map((part, index) => (index % 2 ? part : numberSpeechText(part))).join('');
@@ -508,7 +515,7 @@
     if (has(javaClasses, code)) return javaClasses[code] + JOSA_MARK;
     // Code-specific readings first: command words where a command starts, subcommands, Java class
     // arguments, and symbols read with code context (shell redirection, options).
-    const commands = vimText(javaClassText(subcommandText(code)))
+    const commands = vimText(javaClassText(subcommandText(ownerTokenText(code))))
       .replace(commandPattern, (_, lead, command) => lead + commandWords[command] + JOSA_MARK)
       .replace(/^(\s*(?:\$\s+)?)git(?=\s|$)/i, (_, space) => space + brandPronunciations.git);
     const shell = SHELL_START.test(code);
@@ -522,7 +529,7 @@
   }
   function proseSpeechText(text, shellHint) {
     return outsideUrls(unescapeMarkdown(decodeEntities(text)), part => {
-      const words = strictText(subcommandText(javaClassText(vimText(part))));
+      const words = strictText(subcommandText(javaClassText(vimText(ownerTokenText(part)))));
       return termText(fileSpeechText(brandText(mathSpeechText(words, { shellHint }))));
     });
   }

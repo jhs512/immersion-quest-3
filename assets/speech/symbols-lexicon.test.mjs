@@ -18,7 +18,7 @@ test('mkdir and other shell commands are spoken in Korean in code spans and pros
     ['`mkdir notes`: notes 폴더를 만드세요.', '엠케이디아이알 notes: notes 폴더를 만드세요.'],
     ['mkdir 결과를 ls로 봐요.', '엠케이디아이알 결과를 엘에스로 봐요.'],
     ['`mkdir`', '엠케이디아이알'],
-    ['`cd ..`: 한 단계 위로', '씨디 ..: 한 단계 위로'],
+    ['`cd ..`: 한 단계 위로', '씨디 점점: 한 단계 위로'],
     ['`pwd`로 위치를 봐요', '피더블유디로 위치를 봐요'],
     ['`rmdir empty`', '알엠디아이알 empty'],
     ['`cp memo.txt memo-copy.txt`', '씨피 memo 점 텍스트 memo-copy 점 텍스트'],
@@ -347,5 +347,15 @@ test('SQL words the voice spells letter by letter, C names and dot-files', () =>
     ['`ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW`', '로우스 BETWEEN 언바운디드 프리시딩 AND CURRENT ROW'], ['id INTEGER PRIMARY KEY', 'id 인티저 PRIMARY KEY'],
     ['rollback_count와 DESCRIPTION', 'rollback_count와 DESCRIPTION'], ['printf는', '프린트에프는'], ['`jupyter notebook`', '주피터 노트북'],
     ['.practice 파일을 만들어요.', '점 practice 파일을 만들어요.'], ['종목 코드 뒤의 `.KS`는', '종목 코드 뒤의 점 KS는'], ['끝.Next', '끝.Next'],
+  ]);
+});
+
+test('owner readings: the parent folder .. is 점점 and the option -a is 대시에이 (2026-10-30)', () => {
+  cases([
+    ['cd ..로 올라가요', '씨디 점점으로 올라가요'], ['`cd ..`를 실행하세요', '씨디 점점을 실행하세요'],
+    ['git commit -a -m 메모', '깃 커밋 대시에이 -m 메모'], ['`ls -a`로 숨김 파일까지 봐요', '엘에스 대시에이로 숨김 파일까지 봐요'],
+    ['-a 옵션은 모든 파일', '대시에이 옵션은 모든 파일'],
+    // Other tokens keep their readings: longer options, a range, an ellipsis and arithmetic.
+    ['`cd ../practice`', '씨디 ../practice'], ['`ls -al`', '엘에스 -al'], ['`ls --all`', '엘에스 --all'], ['1..10', '1..10'], ['그리고...', '그리고...'], ['5 - 3', '5 빼기 3'],
   ]);
 });
