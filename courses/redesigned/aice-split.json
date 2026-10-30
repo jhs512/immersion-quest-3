@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_59fa3b5d-5f39-43aa-b585-3ba21a33558a",
-  "revision": "aice-split-6",
+  "revision": "aice-split-7",
   "title": "입력과 정답을 함께 나눠요",
   "description": "같은 배송의 입력·정답을 함께 나누며 분할 조건과 평가 목적을 확인해요.",
   "objectives": [
@@ -34,27 +34,27 @@
           "premise": "거리1~6인 여섯 배송과 시간10~60이 같은 위치로 대응해요. 일부는 학습용, 나머지는 나중 평가용으로 남겨요.",
           "steps": [
             {
-              "id": "stp_fb7e690b-c690-48ff-856d-b6330792e82e",
+              "id": "stp_a030d467-7eb8-4c54-9e7f-34efd8d4f919",
               "objectives": [
-                "X와 y의 같은 위치가 같은 관측을 나타냄을 이해해요."
+                "입력과 정답이 같은 자리끼리 한 관측임을 써서 확인해요."
               ]
             },
             {
-              "id": "stp_1fb9323e-edb1-4dd7-a24b-42f57d45a0cc",
+              "id": "stp_c849475b-3a24-4139-a740-f375077a3b77",
               "objectives": [
-                "한 호출에서 입력과 정답을 함께 분리해요."
+                "입력과 정답을 함께 나눠 같은 관측끼리 테스트에 남겨요."
               ]
             },
             {
-              "id": "stp_27e5b09a-d74d-4f79-8a2a-bccb60f48a53",
+              "id": "stp_dec76d8e-3cb8-4c7f-9623-d780b24eed7c",
               "objectives": [
-                "정수 개수와 실수 비율·행수 반올림을 구별해요."
+                "비율 test_size가 만드는 테스트 개수를 직접 계산해 맞춰요."
               ]
             },
             {
-              "id": "stp_8fcb0a62-f16c-4f70-b5a3-5bcd25ecf93e",
+              "id": "stp_125d3f0b-92b6-48d6-9566-310ae43bb305",
               "objectives": [
-                "고정 시드 재현성과 훈련/테스트 분리를 구별해요."
+                "같은 자료·시드·조건으로 분할을 재현해요."
               ]
             }
           ]
@@ -77,21 +77,21 @@
           "premise": "같은 배송의 입력과 정답을 계속 써요. 서로 다른 섞기와 분류 라벨의 개수 조건을 하나씩 바꿔요.",
           "steps": [
             {
-              "id": "stp_da58a8f7-2c3a-4c2f-9fc0-084f4633e584",
+              "id": "stp_7d85ed0d-71c3-44c8-8884-641f6f21a3cb",
               "objectives": [
-                "서로 다른 분할로 입력과 정답의 대응이 깨짐을 판단해요."
+                "입력과 정답을 한 호출로 함께 나눠 짝을 지켜요."
               ]
             },
             {
-              "id": "stp_b6d77818-18de-447a-9b5b-583827b59bbe",
+              "id": "stp_8fca0f0f-0f1e-4117-bfbb-fe2a2ba28a91",
               "objectives": [
-                "층화 분할의 목적과 표본 제약을 이해해요."
+                "분류 정답의 비율을 훈련과 테스트에 비슷하게 나눠요."
               ]
             },
             {
-              "id": "stp_fa54de92-25c4-46aa-b5a1-bcd7f4de3964",
+              "id": "stp_2863adfd-3550-4479-974e-686c434aea9f",
               "objectives": [
-                "층화 분할의 최소 표본 조건과 실패를 이해해요."
+                "한 분류의 관측이 하나뿐이면 층화할 수 없음을 확인해 처리해요."
               ]
             }
           ]
@@ -114,15 +114,15 @@
           "premise": "같은 배송에 날짜를 붙이고 최종 평가를 남겨요. 마지막에는 입력과 정답 반환 순서를 직접 고쳐요.",
           "steps": [
             {
-              "id": "stp_de190aec-5129-4fea-a670-f441d780e9f3",
+              "id": "stp_c1e90236-8227-4d30-b86b-8052f89086e8",
               "objectives": [
-                "shuffle=False가 입력 순서 보존일 뿐 날짜 정렬이 아님을 이해해요."
+                "shuffle=False와 시간순서 정렬을 구별해요."
               ]
             },
             {
-              "id": "stp_3b5d9768-c2d2-45cd-b705-f2cb81ba6688",
+              "id": "stp_53e1abb6-6a0d-4994-8a53-1adfae3f35df",
               "objectives": [
-                "훈련·검증·테스트의 구별과 서로 겹치지 않는 분리를 이해해요."
+                "조정용 검증과 마지막 평가 테스트의 역할을 나눠요."
               ]
             },
             {
@@ -154,47 +154,37 @@
   ],
   "tasks": [
     {
-      "id": "stp_fb7e690b-c690-48ff-856d-b6330792e82e",
-      "title": "입력과 정답을 같은 줄로 봐요",
-      "goal": "같은 위치의 거리와 시간이 한 배송이에요.\n거리5와 짝인 정답을 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_a030d467-7eb8-4c54-9e7f-34efd8d4f919",
+      "title": "X.index로 입력 5와 짝인 정답을 꺼내세요",
+      "goal": "같은 위치의 거리와 시간이 한 배송이에요. `X.index(값)`은 그 값이 있는 자리를 돌려주고, `y[자리]`는 같은 자리의 정답이에요.\n\nanswer 줄을 고쳐 입력 5가 있는 자리의 정답을 꺼내세요. 채점은 순서가 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 40이 나오는지 확인하세요.\n2. `y[5]`를 `y[X.index(5)]`로 고치세요.\n3. 코드 실행을 눌러 50이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "paired",
-      "tests": [],
+      "starter_code": "from sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [3, 5, 1, 6, 2, 4]\ny = [30, 50, 10, 60, 20, 40]\n# 이 줄을 고쳐 입력 5가 있는 자리의 정답을 꺼내세요.\nanswer = y[5]\nprint(answer)\n",
+      "solution": "from sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [3, 5, 1, 6, 2, 4]\ny = [30, 50, 10, 60, 20, 40]\n# 이 줄을 고쳐 입력 5가 있는 자리의 정답을 꺼내세요.\n# 값 5의 자리를 X.index로 찾고 y의 같은 자리를 읽어요.\nanswer = y[X.index(5)]\nprint(answer)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "50"
+        }
+      ],
       "required": true,
-      "example_code": "from sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [1, 2, 3, 4, 5, 6]\ny = [10, 20, 30, 40, 50, 60]\n# 짝을 나란히 읽어 관측 대응을 확인해요.\n# 확인용 출력: 같은 자리의 입력과 정답을 (입력, 정답) 쌍으로 묶어 보여 줘요.\nprint(list(zip(X, y)))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "next",
-            "text": "60"
-          },
-          {
-            "id": "paired",
-            "text": "50"
-          }
-        ],
-        "answer": "paired"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "이 수업에서는 훈련·검증·테스트의 역할을 나눠요. 입력과 정답의 짝을 지키는 게 목표예요."
+          "text": "이 수업에서는 훈련·검증·테스트의 역할을 직접 코드로 나눠요. 입력과 정답의 짝을 지키는 게 목표예요."
         },
         {
           "action": "say",
-          "text": "배송 자료를 여러 조건으로 나눠요. 크기·재현성·범주 비율·시간순서를 비교해요."
+          "text": "배송 자료를 여러 조건으로 나눠요. 크기·재현성·범주 비율·시간순서를 실행 결과로 비교해요."
         },
         {
           "action": "say",
-          "text": "거리 5와 짝인 시간을 위치로 찾는 문제예요.",
-          "target": "text:입력과 정답을 같은 줄로 봐요#1"
+          "text": "X.index로 입력 5와 짝인 정답을 꺼내는 문제예요.",
+          "target": "text:X.index로 입력 5와 짝인 정답을 꺼내세요#1"
         },
         {
           "action": "say",
-          "text": "X는 거리, y는 시간이고 같은 자리에 있는 둘이 한 배송이에요.",
-          "target": "text:같은 위치의 거리와 시간이 한 배송이에요."
+          "text": "같은 위치의 입력과 정답이 한 배송이에요. 입력 5가 있는 자리를 찾아 그 자리의 정답을 꺼내야 해요.",
+          "target": "text:answer 줄을 고쳐 입력 5가 있는 자리의 정답을 꺼내세요."
         },
         {
           "action": "run",
@@ -205,638 +195,539 @@
         },
         {
           "action": "say",
-          "text": "거리와 시간이 같은 관측의 짝으로 나왔어요.",
+          "text": "40이에요. y[5]는 여섯째 자리, 입력 4의 정답이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "answer = y[5]\n",
+          "after": "answer = y[X.index(5)]\n",
+          "say": "X.index(5)로 5의 자리를 찾아 y의 같은 자리를 읽어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "50이에요. 입력 5는 둘째 자리이고 같은 자리의 정답이 50이에요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 따로 순서를 바꾸면 이 대응이 깨질 수 있어요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "paired"
+          "text": "조심하세요. 값 5와 자리 5는 달라요. 자리는 0부터 세요.",
+          "target": "code:X.index(5)"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"X\": [5, 1, 2], \"y\": [15, 11, 12]}, \"expected\": \"15\"}, {\"values\": {\"X\": [9, 8, 7, 6, 5], \"y\": [1, 2, 3, 4, 5]}, \"expected\": \"5\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_1fb9323e-edb1-4dd7-a24b-42f57d45a0cc",
-      "title": "같은 관측끼리 나눠요",
-      "goal": "마지막 두 배송을 평가용으로 남겼어요.\n테스트의 입력과 정답 쌍을 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_c849475b-3a24-4139-a740-f375077a3b77",
+      "title": "shuffle=False로 마지막 두 배송을 평가용으로 남기세요",
+      "goal": "마지막 두 배송을 평가용으로 남기려 해요. `train_test_split(X, y, ...)`에 X와 y를 함께 넣으면 같은 관측끼리 나뉘고, `shuffle=False`면 섞지 않고 뒤의 관측을 테스트로 남겨요.\n\ntrain_test_split 줄의 옵션을 고쳐 섞지 말고 마지막 두 배송을 평가용으로 남기세요. 채점은 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 테스트 쌍을 확인하세요.\n2. `random_state=1`을 `shuffle=False`로 고치세요.\n3. 코드 실행을 눌러 마지막 두 배송이 테스트인지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "tail",
-      "tests": [],
+      "starter_code": "from sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [1, 2, 3, 4, 5, 6]\ny = [10, 20, 30, 40, 50, 60]\n# 이 줄의 옵션을 고쳐 섞지 말고 마지막 두 배송을 평가용으로 남기세요.\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=2, random_state=1)\n# 확인용 출력: 같은 자리의 입력과 정답을 (입력, 정답) 쌍으로 묶어 보여 줘요.\nprint(list(zip(X_train, y_train)))\n# 확인용 출력: 같은 자리의 입력과 정답을 (입력, 정답) 쌍으로 묶어 보여 줘요.\nprint(list(zip(X_test, y_test)))\n",
+      "solution": "from sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [1, 2, 3, 4, 5, 6]\ny = [10, 20, 30, 40, 50, 60]\n# 이 줄의 옵션을 고쳐 섞지 말고 마지막 두 배송을 평가용으로 남기세요.\n# shuffle=False면 섞지 않고 뒤의 두 관측을 테스트로 남겨요. X와 y를 함께 넣어 짝이 유지돼요.\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=2, shuffle=False)\n# 확인용 출력: 같은 자리의 입력과 정답을 (입력, 정답) 쌍으로 묶어 보여 줘요.\nprint(list(zip(X_train, y_train)))\n# 확인용 출력: 같은 자리의 입력과 정답을 (입력, 정답) 쌍으로 묶어 보여 줘요.\nprint(list(zip(X_test, y_test)))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[(1, 10), (2, 20), (3, 30), (4, 40)]\n[(5, 50), (6, 60)]"
+        }
+      ],
       "required": true,
-      "example_code": "from sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [1, 2, 3, 4, 5, 6]\ny = [10, 20, 30, 40, 50, 60]\n# 함께 넣어 같은 관측끼리 분리해요.\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=2, shuffle=False)\n# 확인용 출력: 같은 자리의 입력과 정답을 (입력, 정답) 쌍으로 묶어 보여 줘요.\nprint(list(zip(X_train, y_train)))\n# 확인용 출력: 같은 자리의 입력과 정답을 (입력, 정답) 쌍으로 묶어 보여 줘요.\nprint(list(zip(X_test, y_test)))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "head",
-            "text": "(1,10)과(2,20)이에요"
-          },
-          {
-            "id": "tail",
-            "text": "(5,50)과(6,60)이에요"
-          }
-        ],
-        "answer": "tail"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "shuffle=False와 test_size=2로 남긴 테스트 쌍을 고르는 문제예요.",
-          "target": "text:같은 관측끼리 나눠요#1"
+          "text": "shuffle=False로 마지막 두 배송을 평가용으로 남기는 문제예요.",
+          "target": "text:shuffle=False로 마지막 두 배송을 평가용으로 남기세요#1"
         },
         {
           "action": "say",
-          "text": "train_test_split에 X와 y를 함께 넣으면 같은 자리끼리 묶은 채로 나눠요.",
-          "target": "text:마지막 두 배송을 평가용으로 남겼어요."
+          "text": "마지막 두 배송을 평가용으로 남기려 해요. 섞는 옵션을 고쳐야 해요.",
+          "target": "text:train_test_split 줄의 옵션을 고쳐 섞지 말고 마지막 두 배송을 평가용으로 남기세요."
         },
         {
           "action": "run",
           "lines": [
             9,
-            9
-          ]
-        },
-        {
-          "action": "say",
-          "text": "앞 네 쌍은 훈련, 뒤 두 쌍은 테스트예요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 테스트 자료를 모델 학습에 함께 넣지 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "tail"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_27e5b09a-d74d-4f79-8a2a-bccb60f48a53",
-      "title": "비율과 개수는 달라요",
-      "goal": "일곱 행의25%를 테스트로 남겨요.\n나뉜 훈련·테스트 개수를 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "round",
-      "tests": [],
-      "required": true,
-      "example_code": "from sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [1, 2, 3, 4, 5, 6, 7]\ny = [10, 20, 30, 40, 50, 60, 70]\n# 실수는 비율이고 정수는 개수예요.\na, b = train_test_split(X, test_size=0.25, shuffle=False)\nprint(len(a), len(b))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "floor",
-            "text": "6과1이에요"
-          },
-          {
-            "id": "round",
-            "text": "5와2예요"
-          }
-        ],
-        "answer": "round"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "일곱 행을 나눴을 때 훈련 자료와 평가 자료의 개수를 구하는 문제예요.",
-          "target": "text:비율과 개수는 달라요#1"
-        },
-        {
-          "action": "say",
-          "text": "test_size에 0.25 같은 실수를 주면 비율, 정수를 주면 개수예요. 일곱 행의 25%가 1.75행일 때 몇 개로 나뉘는지 예상해요.",
-          "target": "text:일곱 행의25%를 테스트로 남겨요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            8,
-            8
-          ]
-        },
-        {
-          "action": "say",
-          "text": "남길 개수는 올림해 둘, 훈련은 다섯이에요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "test_size=0.25",
-          "after": "test_size=1",
-          "say": "비율 대신 정수 개수 하나를 지정해요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            8,
-            8
-          ]
-        },
-        {
-          "action": "say",
-          "text": "정수 1은 한 행이라 훈련 여섯, 테스트 하나예요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 정수 개수와 실수 비율은 다르게 읽어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "test_size=1",
-          "after": "test_size=0.25",
-          "say": "처음 비율로 돌아와요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            8,
-            8
-          ]
-        },
-        {
-          "action": "say",
-          "text": "소수 행을 만들 수 없어 테스트 둘로 나눴어요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "round"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_8fcb0a62-f16c-4f70-b5a3-5bcd25ecf93e",
-      "title": "같은 조건을 다시 재현해요",
-      "goal": "같은 자료·시드·조건으로 두 번 나눴어요.\n같은 테스트 자료가 나올까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "repeat",
-      "tests": [],
-      "required": true,
-      "example_code": "from sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [1, 2, 3, 4, 5, 6]\ny = [10, 20, 30, 40, 50, 60]\n# 같은 자료와 설정에서 같은 분할인지 봐요.\na_train, a_test = train_test_split(X, test_size=2, random_state=42)\nb_train, b_test = train_test_split(X, test_size=2, random_state=42)\nprint(a_test == b_test)\n# 확인용 출력: 훈련과 테스트에 겹치는 값이 없으면 True예요.\nprint(set(a_train).isdisjoint(a_test))\nprint(len(a_train) + len(a_test))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "safe",
-            "text": "아니요. 나눌 때마다 무작위라 테스트가 달라져요"
-          },
-          {
-            "id": "repeat",
-            "text": "네.같은 호출 조건을 재현해요"
-          }
-        ],
-        "answer": "repeat"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "같은 조건을 다시 재현하는 문제예요.",
-          "target": "text:같은 조건을 다시 재현해요#1"
-        },
-        {
-          "action": "say",
-          "text": "random_state는 섞는 순서를 정하는 시드예요. 같은 자료와 같은 시드로 두 번 나누면 결과가 같은지가 질문이에요.",
-          "target": "text:같은 자료·시드·조건으로 두 번 나눴어요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            11,
             11
           ]
         },
         {
           "action": "say",
-          "text": "같은 테스트, 겹치지 않는 분할, 전체 여섯을 확인했어요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 재현성과 누수 없는 평가는 다른 조건이에요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "repeat"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_da58a8f7-2c3a-4c2f-9fc0-084f4633e584",
-      "title": "따로 섞으면 정답이 어긋나요",
-      "goal": "X와y를 서로 다른 시드로 나눴어요.\n이 표의 같은 배송 대응이 유지됐을까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "mismatch",
-      "tests": [],
-      "required": true,
-      "example_code": "from sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [1, 2, 3, 4, 5, 6]\ny = [10, 20, 30, 40, 50, 60]\n# 서로 다른 섞기로 나눠 대응이 깨진 상태예요.\nX_train, X_test = train_test_split(X, test_size=2, random_state=42)\ny_train, y_test = train_test_split(y, test_size=2, random_state=7)\n# 확인용 출력: 테스트의 모든 쌍이 원래 짝(정답 = 입력 × 10)이면 True예요. 이 줄의 문법은 몰라도 돼요.\nprint(all(target == distance * 10 for distance, target in zip(X_test, y_test)))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "mismatch",
-            "text": "아니요.짝을 확인하고 함께 나눠야 해요"
-          },
-          {
-            "id": "separate",
-            "text": "네.길이만 같으면 같은 관측이에요"
-          }
-        ],
-        "answer": "mismatch"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "테스트에서도 같은 배송끼리 짝이 맞는지 확인하는 문제예요.",
-          "target": "text:따로 섞으면 정답이 어긋나요#1"
-        },
-        {
-          "action": "say",
-          "text": "X와 y를 따로 다른 시드로 나누면 각각 다르게 섞여요.",
-          "target": "text:X와y를 서로 다른 시드로 나눴어요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            10,
-            10
-          ]
-        },
-        {
-          "action": "say",
-          "text": "같은 배송의 거리와 시간이 맞지 않아 거짓이에요.",
+          "text": "테스트가 (3, 30)과 (2, 20)이에요. 섞어서 마지막 두 배송이 아니에요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "X_train, X_test = train_test_split(X, test_size=2, random_state=42)\ny_train, y_test = train_test_split(y, test_size=2, random_state=7)",
-          "after": "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=2, random_state=42)",
-          "say": "두 자료를 같은 호출에 넣어 함께 나눠요."
+          "before": "test_size=2, random_state=1)",
+          "after": "test_size=2, shuffle=False)",
+          "say": "random_state=1을 shuffle=False로 바꿔요."
         },
         {
           "action": "run",
           "lines": [
             9,
-            9
+            11
           ]
         },
         {
           "action": "say",
-          "text": "이번에는 같은 배송 대응이 유지돼 참이에요.",
+          "text": "테스트가 (5, 50)과 (6, 60)이에요. 섞어도 안 섞어도 X와 y를 함께 넣어 짝은 그대로예요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 길이가 같다고 같은 관측끼리 짝지어졌다는 보장은 없어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=2, random_state=42)",
-          "after": "X_train, X_test = train_test_split(X, test_size=2, random_state=42)\ny_train, y_test = train_test_split(y, test_size=2, random_state=7)",
-          "say": "문제의 잘못된 분리로 돌아와 비교해요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            10,
-            10
-          ]
-        },
-        {
-          "action": "say",
-          "text": "원래 코드는 같은 배송의 짝을 깨뜨려요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "mismatch"
+          "text": "조심하세요. 반환값은 X_train, X_test, y_train, y_test 순서예요. 이름의 자리를 바꾸면 짝이 엉켜요.",
+          "target": "code:shuffle=False"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"X\": [7, 3, 9, 1, 5, 2, 8], \"y\": [70, 30, 90, 10, 50, 20, 80]}, \"expected\": \"[(7, 70), (3, 30), (9, 90), (1, 10), (5, 50)]\\\\n[(2, 20), (8, 80)]\"}, {\"values\": {\"X\": [4, 6, 5, 2], \"y\": [40, 60, 50, 20]}, \"expected\": \"[(4, 40), (6, 60)]\\\\n[(5, 50), (2, 20)]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_b6d77818-18de-447a-9b5b-583827b59bbe",
-      "title": "분류 비율을 가깝게 나눠요",
-      "goal": "stratify에 분류 정답y를 넣었어요.\n이번 절반 분리의 라벨 개수를 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_dec76d8e-3cb8-4c7f-9623-d780b24eed7c",
+      "title": "math.ceil로 비율 테스트 개수를 계산하세요",
+      "goal": "일곱 행의 25%를 테스트로 남겨요. 실수 test_size는 비율이고, 테스트 개수는 전체 × 비율을 올린 값이에요. `math.ceil`은 소수를 올리고, `int`는 버려요.\n\nexpected 줄을 고쳐 테스트 개수를 비율로 직접 계산하세요. 소수는 올려요. 채점은 길이가 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 실제 개수와 expected를 비교하세요.\n2. `int(len(X) * 0.25)`를 `math.ceil(len(X) * 0.25)`로 고치세요.\n3. 코드 실행을 눌러 두 값이 같은지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "ratio",
-      "tests": [],
+      "starter_code": "import math\nfrom sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [1, 2, 3, 4, 5, 6, 7]\n# 실수 test_size는 비율이에요.\na, b = train_test_split(X, test_size=0.25, shuffle=False)\nprint(len(a), len(b))\n# 이 줄을 고쳐 테스트 개수를 비율로 직접 계산하세요. 소수는 올려요.\nexpected = int(len(X) * 0.25)\nprint(expected)\n",
+      "solution": "import math\nfrom sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [1, 2, 3, 4, 5, 6, 7]\n# 실수 test_size는 비율이에요.\na, b = train_test_split(X, test_size=0.25, shuffle=False)\nprint(len(a), len(b))\n# 이 줄을 고쳐 테스트 개수를 비율로 직접 계산하세요. 소수는 올려요.\n# 테스트 개수는 전체 × 비율을 올린 값이에요. int는 버려서 1이 돼요.\nexpected = math.ceil(len(X) * 0.25)\nprint(expected)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "5 2\n2"
+        }
+      ],
       "required": true,
-      "example_code": "from sklearn.model_selection import train_test_split\n\n# 두 분류의 개수는 여섯 개와 두 개예요.\nX = list(range(8))\ny = [0, 0, 0, 0, 0, 0, 1, 1]\na, b, ya, yb = train_test_split(X, y, test_size=0.5, random_state=42, stratify=y)\nprint(ya.count(0), ya.count(1))\nprint(yb.count(0), yb.count(1))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "ratio",
-            "text": "양쪽에 0은 3개, 1은 1개예요"
-          },
-          {
-            "id": "equal",
-            "text": "양쪽에 0과 1을 같은 개수로 만들어요"
-          }
-        ],
-        "answer": "ratio"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "분류 비율을 가깝게 나누는 문제예요.",
-          "target": "text:분류 비율을 가깝게 나눠요#1"
+          "text": "math.ceil로 비율 테스트 개수를 계산하는 문제예요.",
+          "target": "text:math.ceil로 비율 테스트 개수를 계산하세요#1"
         },
         {
           "action": "say",
-          "text": "stratify=y는 정답 분류의 비율이 양쪽에서 비슷하도록 나눠요. 0이 여섯, 1이 둘일 때 절반씩 나누면 각 쪽이 어떻게 되는지 봐요.",
-          "target": "text:stratify에 분류 정답y를 넣었어요."
+          "text": "일곱 행의 25%를 테스트로 남겨요. 실제 나뉜 개수와 같도록 테스트 개수 계산을 고쳐야 해요.",
+          "target": "text:expected 줄을 고쳐 테스트 개수를 비율로 직접 계산하세요."
         },
         {
           "action": "run",
           "lines": [
             8,
-            8
+            11
           ]
         },
         {
           "action": "say",
-          "text": "두 분할 모두 원래 분류 비율에 맞는 3 대 1이에요.",
+          "text": "5 2와 1이에요. 실제 테스트는 2개인데 int가 1.75를 1로 버렸어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "int(len(X) * 0.25)",
+          "after": "math.ceil(len(X) * 0.25)",
+          "say": "int를 math.ceil로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2예요. 1.75를 올린 2가 실제 테스트 개수와 같아요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 작은 표본에서는 같은 비율을 보장할 수 없어요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "ratio"
+          "text": "조심하세요. 실수는 비율, 정수는 개수예요. test_size=2는 두 행이에요.",
+          "target": "code:math.ceil"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"X\": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}, \"expected\": \"7 3\\\\n3\"}, {\"values\": {\"X\": [0, 1, 2, 3, 4, 5, 6, 7]}, \"expected\": \"6 2\\\\n2\"}, {\"values\": {\"X\": [0, 1, 2, 3, 4]}, \"expected\": \"3 2\\\\n2\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_fa54de92-25c4-46aa-b5a1-bcd7f4de3964",
-      "title": "한 개뿐인 범주도 나눌 수 있을까요",
-      "goal": "한 분류의 관측이 하나뿐이에요.\n이 조건의 층화 분할이 될까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_125d3f0b-92b6-48d6-9566-310ae43bb305",
+      "title": "random_state를 맞춰 같은 분할을 재현하세요",
+      "goal": "같은 자료·같은 random_state·같은 조건으로 나누면 같은 분할이 다시 나와요. 시드가 다르면 다르게 섞어요.\n\n두 줄의 시드를 맞춰 같은 조건으로 두 번 나누세요. 채점은 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 False가 나오는지 확인하세요.\n2. 둘째 줄의 `random_state=7`을 `random_state=42`로 고치세요.\n3. 코드 실행을 눌러 True가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "error",
-      "tests": [],
+      "starter_code": "from sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [1, 2, 3, 4, 5, 6]\ny = [10, 20, 30, 40, 50, 60]\n# 이 두 줄의 시드를 맞춰 같은 조건으로 두 번 나누세요.\na_train, a_test = train_test_split(X, test_size=2, random_state=42)\nb_train, b_test = train_test_split(X, test_size=2, random_state=7)\nprint(a_test == b_test)\nprint(a_test, b_test)\n",
+      "solution": "from sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [1, 2, 3, 4, 5, 6]\ny = [10, 20, 30, 40, 50, 60]\n# 이 두 줄의 시드를 맞춰 같은 조건으로 두 번 나누세요.\n# 같은 자료·같은 random_state·같은 조건이면 같은 분할이 다시 나와요.\na_train, a_test = train_test_split(X, test_size=2, random_state=42)\nb_train, b_test = train_test_split(X, test_size=2, random_state=42)\nprint(a_test == b_test)\nprint(a_test, b_test)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "True\n[1, 2] [1, 2]"
+        }
+      ],
       "required": true,
-      "example_code": "from sklearn.model_selection import train_test_split\n\n# 한 분류에는 관측이 하나뿐이에요.\nX = list(range(6))\ny = [0, 0, 0, 0, 0, 1]\na, b, ya, yb = train_test_split(X, y, test_size=2, random_state=42, stratify=y)\nprint(yb.count(0), yb.count(1))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "works",
-            "text": "네. 하나뿐인 1은 테스트 쪽에 넣어 나눠요"
-          },
-          {
-            "id": "error",
-            "text": "아니요.최소 표본 조건에서 오류가 나요"
-          }
-        ],
-        "answer": "error"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "한 개뿐인 범주도 나눌 수 있을까요?",
-          "target": "text:한 개뿐인 범주도 나눌 수 있을까요#1"
+          "text": "random_state를 맞춰 같은 분할을 재현하는 문제예요.",
+          "target": "text:random_state를 맞춰 같은 분할을 재현하세요#1"
         },
         {
           "action": "say",
-          "text": "층화는 분류마다 양쪽에 적어도 하나씩 나눠야 해요. 1이 하나뿐이면 그 조건을 채울 수 있는지가 질문이에요.",
-          "target": "text:한 분류의 관측이 하나뿐이에요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            7,
-            7
-          ],
-          "expect_error": "ValueError"
-        },
-        {
-          "action": "say",
-          "text": "한 개뿐인 분류 때문에 분할 오류가 났어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "[0, 0, 0, 0, 0, 1]",
-          "after": "[0, 0, 0, 0, 1, 1]",
-          "say": "이번 비교에서는 두 분류 모두 두 개 이상인 표를 써요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            7,
-            7
-          ]
-        },
-        {
-          "action": "say",
-          "text": "이 표의 테스트 두 행에는 두 분류가 하나씩이에요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 방금은 비교하려고 다른 표를 썼어요. 실제 자료에서 드문 분류를 복제해 오류만 없애면 안 돼요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "[0, 0, 0, 0, 1, 1]",
-          "after": "[0, 0, 0, 0, 0, 1]",
-          "say": "문제의 원래 희소 분류로 돌아와요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            7,
-            7
-          ],
-          "expect_error": "ValueError"
-        },
-        {
-          "action": "say",
-          "text": "원래 한 개뿐인 조건은 여전히 오류예요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "error"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_de190aec-5129-4fea-a670-f441d780e9f3",
-      "title": "섞지 않아도 시간순서는 아니에요",
-      "goal": "섞지 않으면 날짜가 자동 정렬될까요?\n지금 코드의 의미를 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "order",
-      "tests": [],
-      "required": true,
-      "example_code": "from sklearn.model_selection import train_test_split\n\n# 숫자는 같은 달의 날짜예요. 아직 정렬하지 않았어요.\ndates = [3, 1, 4, 2]\ntrain, test = train_test_split(dates, test_size=2, shuffle=False)\nprint(train, test)\nprint(min(test) > max(train))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "order",
-            "text": "아니요.입력 순서를 유지할 뿐이에요"
-          },
-          {
-            "id": "time",
-            "text": "네. shuffle=False면 작은 날짜부터 정렬돼요"
-          }
-        ],
-        "answer": "order"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "자료를 섞지 않는 설정이 날짜순 정렬까지 해 주는지 판단하는 문제예요.",
-          "target": "text:섞지 않아도 시간순서는 아니에요#1"
-        },
-        {
-          "action": "say",
-          "text": "shuffle=False는 섞지 않을 뿐 받은 순서를 그대로 잘라요. 날짜가 뒤섞인 목록에서 테스트가 미래 날짜가 되는지 판단해요.",
-          "target": "text:섞지 않으면 날짜가 자동 정렬될까요?"
-        },
-        {
-          "action": "run",
-          "lines": [
-            7,
-            7
-          ]
-        },
-        {
-          "action": "say",
-          "text": "테스트에 2가 있어 모두 훈련 뒤인 것은 아니에요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "train_test_split(dates,",
-          "after": "train_test_split(sorted(dates),",
-          "say": "날짜를 먼저 정렬한 작은 비교예요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            7,
-            7
-          ]
-        },
-        {
-          "action": "say",
-          "text": "훈련 1과 2, 테스트 3과 4로 나뉘었어요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 실제 시간 자료는 예측 시점과 그룹 경계도 정해야 해요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "train_test_split(sorted(dates),",
-          "after": "train_test_split(dates,",
-          "say": "원래 입력 순서로 돌아와요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            7,
-            7
-          ]
-        },
-        {
-          "action": "say",
-          "text": "섞지 않는 설정만으로 날짜 순서는 생기지 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "order"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_3b5d9768-c2d2-45cd-b705-f2cb81ba6688",
-      "title": "조정용과 마지막 평가를 나눠요",
-      "goal": "검증과 마지막 테스트를 따로 남겼어요.\n어느 자료로 모델 선택을 조정할까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "validation",
-      "tests": [],
-      "required": true,
-      "example_code": "from sklearn.model_selection import train_test_split\n\n# 단순한 순서 예로 세 역할이 겹치지 않게 나눠요.\nrows = list(range(1, 9))\nremaining, test = train_test_split(rows, test_size=2, shuffle=False)\ntrain, valid = train_test_split(remaining, test_size=2, shuffle=False)\nprint(train)\nprint(valid)\nprint(test)\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "test",
-            "text": "테스트 점수를 보며 계속 조정해요"
-          },
-          {
-            "id": "validation",
-            "text": "검증 자료로 조정하고 마지막 테스트는 남겨요"
-          }
-        ],
-        "answer": "validation"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "조정용과 마지막 평가를 나누는 문제예요.",
-          "target": "text:조정용과 마지막 평가를 나눠요#1"
-        },
-        {
-          "action": "say",
-          "text": "나누기를 두 번 해서 훈련·검증·테스트 세 덩어리를 만들었어요. 모델을 고르며 여러 번 확인할 자료와 마지막에 한 번 볼 자료를 구별해요.",
-          "target": "text:검증과 마지막 테스트를 따로 남겼어요."
+          "text": "같은 분할을 다시 만들려 해요. 두 호출의 시드를 같게 고쳐야 해요.",
+          "target": "text:두 줄의 시드를 맞춰 같은 조건으로 두 번 나누세요."
         },
         {
           "action": "run",
           "lines": [
             9,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "False예요. 시드 42와 7은 다르게 섞어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "random_state=7)",
+          "after": "random_state=42)",
+          "say": "둘째 줄의 random_state를 42로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "True이고 두 테스트가 [1, 2]로 같아요. 같은 호출 조건을 재현했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 자료의 순서나 test_size가 바뀌면 같은 시드라도 다른 분할이에요.",
+          "target": "code:random_state=42)#2"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"X\": [7, 3, 9, 1, 5, 2, 8], \"y\": [70, 30, 90, 10, 50, 20, 80]}, \"expected\": \"True\\\\n[7, 3] [7, 3]\"}, {\"values\": {\"X\": [4, 6, 5, 2], \"y\": [40, 60, 50, 20]}, \"expected\": \"True\\\\n[6, 2] [6, 2]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_7d85ed0d-71c3-44c8-8884-641f6f21a3cb",
+      "title": "train_test_split(X, y)로 함께 나누세요",
+      "goal": "X와 y를 서로 다른 시드로 나눴어요. 길이가 같아도 섞기가 다르면 다른 배송끼리 짝지어져요. 한 호출에 X와 y를 함께 넣으면 같은 섞기로 나눠요.\n\n두 줄을 고쳐 X와 y를 한 번에 함께 나누세요. 반환값은 X_train, X_test, y_train, y_test 순서예요. 채점은 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 False가 나오는지 확인하세요.\n2. 두 줄을 `X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=2, random_state=42)` 한 줄로 고치세요.\n3. 코드 실행을 눌러 True가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "from sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [1, 2, 3, 4, 5, 6]\ny = [10, 20, 30, 40, 50, 60]\n# 이 두 줄을 고쳐 X와 y를 한 번에 함께 나누세요.\nX_train, X_test = train_test_split(X, test_size=2, random_state=42)\ny_train, y_test = train_test_split(y, test_size=2, random_state=7)\n# 확인용 출력: 테스트의 모든 쌍이 원래 짝(정답 = 입력 × 10)이면 True예요. 이 줄의 문법은 몰라도 돼요.\nprint(all(target == distance * 10 for distance, target in zip(X_test, y_test)))\nprint(len(X_test), len(y_test))\n",
+      "solution": "from sklearn.model_selection import train_test_split\n\n# 각 위치의 입력과 정답은 같은 배송을 나타내요.\nX = [1, 2, 3, 4, 5, 6]\ny = [10, 20, 30, 40, 50, 60]\n# 이 두 줄을 고쳐 X와 y를 한 번에 함께 나누세요.\n# 한 호출에 X와 y를 함께 넣으면 같은 섞기로 나눠 짝이 유지돼요.\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=2, random_state=42)\n# 확인용 출력: 테스트의 모든 쌍이 원래 짝(정답 = 입력 × 10)이면 True예요. 이 줄의 문법은 몰라도 돼요.\nprint(all(target == distance * 10 for distance, target in zip(X_test, y_test)))\nprint(len(X_test), len(y_test))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "True\n2 2"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "train_test_split(X, y)로 함께 나누는 문제예요.",
+          "target": "text:train_test_split(X, y)로 함께 나누세요#1"
+        },
+        {
+          "action": "say",
+          "text": "X와 y를 서로 다른 시드로 따로 나눴어요. 한 호출로 함께 나누도록 두 줄을 고쳐야 해요.",
+          "target": "text:두 줄을 고쳐 X와 y를 한 번에 함께 나누세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "False와 2 2예요. 길이는 같지만 테스트의 입력과 정답이 다른 배송끼리 짝지어졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "X_train, X_test = train_test_split(X, test_size=2, random_state=42)\ny_train, y_test = train_test_split(y, test_size=2, random_state=7)\n",
+          "after": "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=2, random_state=42)\n",
+          "say": "두 줄을 X와 y를 함께 넣는 한 줄로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "True와 2 2예요. 같은 섞기로 나눠 모든 쌍이 원래 짝이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 길이가 같다고 같은 관측끼리인 건 아니에요. 짝을 확인해요.",
+          "target": "code:train_test_split(X, y,"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"X\": [7, 3, 9, 1, 5, 2, 8], \"y\": [70, 30, 90, 10, 50, 20, 80]}, \"expected\": \"True\\\\n2 2\"}, {\"values\": {\"X\": [4, 6, 5, 2], \"y\": [40, 60, 50, 20]}, \"expected\": \"True\\\\n2 2\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_8fca0f0f-0f1e-4117-bfbb-fe2a2ba28a91",
+      "title": "stratify=y로 분류 비율을 유지하세요",
+      "goal": "두 분류의 개수는 여섯 개와 두 개예요. `stratify=y`는 분류 정답 y의 비율을 훈련과 테스트에 비슷하게 나눠요.\n\ntrain_test_split 줄에 옵션을 더해 양쪽의 분류 비율을 원래 비율에 가깝게 나누세요. 채점은 다른 정답 목록으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 양쪽의 분류 개수를 확인하세요.\n2. 끝에 `stratify=y`를 더하세요.\n3. 코드 실행을 눌러 양쪽이 3 1인지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "from sklearn.model_selection import train_test_split\n\n# 두 분류의 개수는 여섯 개와 두 개예요.\ny = [0, 0, 0, 0, 0, 0, 1, 1]\nX = list(range(len(y)))\n# 이 줄에 옵션을 더해 양쪽의 분류 비율을 원래 비율에 가깝게 나누세요.\na, b, ya, yb = train_test_split(X, y, test_size=0.5, random_state=25)\nprint(ya.count(0), ya.count(1))\nprint(yb.count(0), yb.count(1))\n",
+      "solution": "from sklearn.model_selection import train_test_split\n\n# 두 분류의 개수는 여섯 개와 두 개예요.\ny = [0, 0, 0, 0, 0, 0, 1, 1]\nX = list(range(len(y)))\n# 이 줄에 옵션을 더해 양쪽의 분류 비율을 원래 비율에 가깝게 나누세요.\n# stratify=y는 분류 정답의 비율을 훈련과 테스트에 비슷하게 나눠요.\na, b, ya, yb = train_test_split(X, y, test_size=0.5, random_state=25, stratify=y)\nprint(ya.count(0), ya.count(1))\nprint(yb.count(0), yb.count(1))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "3 1\n3 1"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "stratify=y로 분류 비율을 유지하는 문제예요.",
+          "target": "text:stratify=y로 분류 비율을 유지하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "분류 1은 두 개뿐이에요. 양쪽에 비율이 비슷하게 가도록 옵션을 더해야 해요.",
+          "target": "text:train_test_split 줄에 옵션을 더해 양쪽의 분류 비율을 원래 비율에 가깝게 나누세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
             9
           ]
         },
         {
           "action": "say",
-          "text": "훈련 네 행, 검증 두 행, 마지막 테스트 두 행이에요.",
+          "text": "훈련 2 2, 테스트 4 0이에요. 분류 1 두 개가 모두 훈련으로 가서 테스트에는 하나도 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "random_state=25)",
+          "after": "random_state=25, stratify=y)",
+          "say": "끝에 stratify=y를 더해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "양쪽 모두 3 1이에요. 0과 1의 비율 6:2를 절반씩 나눴어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "이 행 개수는 작은 예시의 값이에요. 실제 문제에서는 자료 크기에 맞게 나눠요.",
+          "text": "조심하세요. 층화는 개수를 같게 만들지 않아요. 원래 비율을 유지해요.",
+          "target": "code:stratify=y"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"y\": [1, 1, 1, 1, 0, 0, 0, 0, 0, 0]}, \"expected\": \"3 2\\\\n3 2\"}, {\"values\": {\"y\": [0, 1, 0, 1, 0, 1, 0, 0]}, \"expected\": \"2 2\\\\n3 1\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_2863adfd-3550-4479-974e-686c434aea9f",
+      "title": "층화할 수 있는지 확인하는 조건을 쓰세요",
+      "goal": "한 분류의 관측이 하나뿐이에요. 층화는 각 분류를 훈련과 테스트 양쪽에 나눠야 해서 분류마다 관측이 둘 이상 필요해요. `stratify=None`은 층화하지 않아요.\n\nuse 줄을 고쳐 모든 분류에 관측이 둘 이상일 때만 y로 층화하고, 아니면 None으로 두세요. 채점은 층화할 수 있는 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 ValueError가 나오는지 확인하세요.\n2. `use = y`를 `use = y if min(y.count(label) for label in set(y)) >= 2 else None`으로 고치세요.\n3. 코드 실행을 눌러 층화 여부와 테스트 개수를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "from sklearn.model_selection import train_test_split\n\n# 한 분류에는 관측이 하나뿐일 수 있어요.\ny = [0, 0, 0, 0, 0, 1]\nX = list(range(len(y)))\n# 이 줄을 고쳐 모든 분류에 관측이 둘 이상일 때만 y로 층화하고, 아니면 None으로 두세요.\nuse = y\na, b, ya, yb = train_test_split(X, y, test_size=2, random_state=42, stratify=use)\nprint(use is None)\nprint(yb.count(0), yb.count(1))\n",
+      "solution": "from sklearn.model_selection import train_test_split\n\n# 한 분류에는 관측이 하나뿐일 수 있어요.\ny = [0, 0, 0, 0, 0, 1]\nX = list(range(len(y)))\n# 이 줄을 고쳐 모든 분류에 관측이 둘 이상일 때만 y로 층화하고, 아니면 None으로 두세요.\n# 층화하려면 각 분류에 관측이 둘 이상 있어야 해요. 가장 적은 분류의 개수를 확인해요.\nuse = y if min(y.count(label) for label in set(y)) >= 2 else None\na, b, ya, yb = train_test_split(X, y, test_size=2, random_state=42, stratify=use)\nprint(use is None)\nprint(yb.count(0), yb.count(1))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "True\n2 0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "층화할 수 있는지 확인하는 조건을 쓰는 문제예요.",
+          "target": "text:층화할 수 있는지 확인하는 조건을 쓰세요#1"
+        },
+        {
+          "action": "say",
+          "text": "한 분류의 관측이 하나뿐이에요. 층화할 수 있는지 확인하는 조건으로 use 줄을 고쳐야 해요.",
+          "target": "text:use 줄을 고쳐 모든 분류에 관측이 둘 이상일 때만 y로 층화하고, 아니면 None으로 두세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            10
+          ],
+          "expect_error": "ValueError"
+        },
+        {
+          "action": "say",
+          "text": "ValueError예요. 관측이 하나뿐인 분류는 양쪽에 나눌 수 없어요.",
           "target": "output"
         },
         {
-          "action": "choose_answer",
-          "id": "validation"
+          "action": "patch_code",
+          "before": "use = y\n",
+          "after": "use = y if min(y.count(label) for label in set(y)) >= 2 else None\n",
+          "say": "가장 적은 분류가 둘 이상일 때만 y를 써요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "True와 2 0이에요. 이번 자료는 층화하지 않고 나눠 분류 1이 훈련에만 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 층화 없이 나누면 하나뿐인 분류가 한쪽에만 있어요. 결과의 분류 개수를 확인해요.",
+          "target": "code:min(y.count(label)"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"y\": [0, 0, 0, 1, 1, 1]}, \"expected\": \"False\\\\n1 1\"}, {\"values\": {\"y\": [2, 0, 0, 1, 1, 0, 0]}, \"expected\": \"True\\\\n1 0\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_c1e90236-8227-4d30-b86b-8052f89086e8",
+      "title": "sorted로 날짜를 정렬한 뒤 나누세요",
+      "goal": "섞지 않으면 날짜가 정렬될까요? `shuffle=False`는 받은 순서를 지킬 뿐이에요. 앞 날짜로 훈련하고 뒤 날짜로 평가하려면 `sorted`로 먼저 정렬해요.\n\nordered 줄을 고쳐 날짜를 작은 순서로 정렬한 뒤 나누세요. 채점은 다른 날짜로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 False가 나오는지 확인하세요.\n2. `ordered = dates`를 `ordered = sorted(dates)`로 고치세요.\n3. 코드 실행을 눌러 True가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "from sklearn.model_selection import train_test_split\n\n# 숫자는 같은 달의 날짜예요. 아직 정렬하지 않았어요.\ndates = [3, 1, 4, 2]\n# 이 줄을 고쳐 날짜를 작은 순서로 정렬한 뒤 나누세요.\nordered = dates\ntrain, test = train_test_split(ordered, test_size=2, shuffle=False)\nprint(train, test)\nprint(min(test) > max(train))\n",
+      "solution": "from sklearn.model_selection import train_test_split\n\n# 숫자는 같은 달의 날짜예요. 아직 정렬하지 않았어요.\ndates = [3, 1, 4, 2]\n# 이 줄을 고쳐 날짜를 작은 순서로 정렬한 뒤 나누세요.\n# shuffle=False는 받은 순서를 지킬 뿐이에요. 시간순서는 sorted로 먼저 만들어요.\nordered = sorted(dates)\ntrain, test = train_test_split(ordered, test_size=2, shuffle=False)\nprint(train, test)\nprint(min(test) > max(train))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[1, 2] [3, 4]\nTrue"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "sorted로 날짜를 정렬한 뒤 나누는 문제예요.",
+          "target": "text:sorted로 날짜를 정렬한 뒤 나누세요#1"
+        },
+        {
+          "action": "say",
+          "text": "섞지 않아도 날짜가 정렬되지는 않아요. 날짜를 먼저 정렬하도록 ordered 줄을 고쳐야 해요.",
+          "target": "text:ordered 줄을 고쳐 날짜를 작은 순서로 정렬한 뒤 나누세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[3, 1] [4, 2]와 False예요. 입력 순서를 그대로 지켜 날짜 2가 평가 쪽에, 날짜 3이 훈련 쪽에 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "ordered = dates\n",
+          "after": "ordered = sorted(dates)\n",
+          "say": "sorted(dates)로 정렬해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[1, 2] [3, 4]와 True예요. 앞 날짜로 훈련하고 뒤 날짜로 평가해요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. shuffle=False는 입력 순서를 유지할 뿐이에요. 시간순서는 정렬해서 만들어요.",
+          "target": "code:sorted(dates)"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"dates\": [9, 2, 7, 5, 1, 8]}, \"expected\": \"[1, 2, 5, 7] [8, 9]\\\\nTrue\"}, {\"values\": {\"dates\": [20, 11, 30, 4]}, \"expected\": \"[4, 11] [20, 30]\\\\nTrue\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_53e1abb6-6a0d-4994-8a53-1adfae3f35df",
+      "title": "검증 점수로 설정을 고르세요",
+      "goal": "검증과 마지막 테스트를 따로 남겼어요. 설정은 검증 점수로 고르고, 고른 설정의 테스트 점수는 마지막에 한 번만 보고해요. `max(사전, key=사전.get)`은 값이 가장 큰 키를 돌려줘요.\n\nbest 줄을 고쳐 마지막 테스트가 아니라 검증 점수로 설정을 고르세요. 채점은 다른 점수로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 고른 설정을 확인하세요.\n2. `max(test_scores, key=test_scores.get)`을 `max(valid_scores, key=valid_scores.get)`으로 고치세요.\n3. 코드 실행을 눌러 검증으로 고른 설정과 테스트 점수를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "# 세 역할이 겹치지 않게 나눈 뒤 두 설정의 점수를 쟀어요.\nvalid_scores = {\"small\": 0.81, \"large\": 0.74}\ntest_scores = {\"small\": 0.70, \"large\": 0.79}\n# 이 줄을 고쳐 마지막 테스트가 아니라 검증 점수로 설정을 고르세요.\nbest = max(test_scores, key=test_scores.get)\nprint(best)\n# 고른 설정의 마지막 테스트 점수는 한 번만 보고해요.\nprint(test_scores[best])\n",
+      "solution": "# 세 역할이 겹치지 않게 나눈 뒤 두 설정의 점수를 쟀어요.\nvalid_scores = {\"small\": 0.81, \"large\": 0.74}\ntest_scores = {\"small\": 0.70, \"large\": 0.79}\n# 이 줄을 고쳐 마지막 테스트가 아니라 검증 점수로 설정을 고르세요.\n# 모델 선택은 검증 점수로 해요. 테스트는 고른 뒤 마지막에 한 번만 봐요.\nbest = max(valid_scores, key=valid_scores.get)\nprint(best)\n# 고른 설정의 마지막 테스트 점수는 한 번만 보고해요.\nprint(test_scores[best])\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "small\n0.7"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "검증 점수로 설정을 고르는 문제예요.",
+          "target": "text:검증 점수로 설정을 고르세요#1"
+        },
+        {
+          "action": "say",
+          "text": "검증과 마지막 테스트를 따로 남겼어요. 설정은 검증 점수로 고르도록 best 줄을 고쳐야 해요.",
+          "target": "text:best 줄을 고쳐 마지막 테스트가 아니라 검증 점수로 설정을 고르세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "large와 0.79예요. 테스트 점수를 보고 골라 마지막 평가가 고르는 데 쓰였어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "max(test_scores, key=test_scores.get)",
+          "after": "max(valid_scores, key=valid_scores.get)",
+          "say": "test_scores를 valid_scores로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "small과 0.7이에요. 검증에서 고른 설정의 테스트 점수를 그대로 보고해요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 테스트 점수가 낮게 나왔다고 다시 고르면 테스트도 조정용이 돼요.",
+          "target": "code:max(valid_scores"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"valid_scores\": {\"a\": 0.5, \"b\": 0.9, \"c\": 0.6}, \"test_scores\": {\"a\": 0.95, \"b\": 0.8, \"c\": 0.7}}, \"expected\": \"b\\\\n0.8\"}, {\"values\": {\"valid_scores\": {\"x\": 0.7, \"y\": 0.6}, \"test_scores\": {\"x\": 0.6, \"y\": 0.9}}, \"expected\": \"x\\\\n0.6\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
       "id": "stp_58dfc422-9961-4f4d-82bf-f6e250e4503c",

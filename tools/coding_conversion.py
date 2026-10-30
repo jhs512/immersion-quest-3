@@ -106,8 +106,9 @@ def apply(key):
         spec['new'] = new_step_id(spec['old'])
         index = next(i for i, t in enumerate(content['tasks']) if t['id'] in (spec['old'], spec['new']))
         old_task = content['tasks'][index]
-        if old_task['id'] == spec['old'] and (old_task.get('interaction') or {}).get('kind') != 'choice':
-            raise ValueError(f"{key}: {spec['old']} is not a choice step")
+        # Choice steps, and (2026-10-30 user decision) code-reading answer fields: typing what given code prints.
+        if old_task['id'] == spec['old'] and (old_task.get('interaction') or {}).get('kind') not in ('choice', 'fill', 'fill_fields'):
+            raise ValueError(f"{key}: {spec['old']} is not an answer-picking or answer-typing step")
         content['tasks'][index] = build_task(old_task, spec)
         if 'prepared_cases' in spec:
             content.setdefault('prepared_cases', {}).pop(spec['old'], None)
@@ -148,6 +149,16 @@ def apply(key):
         if extra:
             prd[field] = extra
     prd = approve({k: v for k, v in prd.items() if k != 'approval'} | {'approval': {'status': 'draft'}}, prd['approval']['by'], evidence)
+    # A converted final challenge stays the lesson's challenge under its new step code.
+    for course_dir in (ROOT / 'tools/redesigned_courses').iterdir():
+        challenges_path = course_dir / 'lesson-challenges.json'
+        if challenges_path.exists():
+            challenges = load_json(challenges_path)
+            item = challenges['lessons'].get(key)
+            moved = {s['old']: s['new'] for s in specs}
+            if item and item['task_id'] in moved:
+                item['task_id'] = moved[item['task_id']]
+                dump(challenges_path, challenges)
     dump(content_path, content)
     dump(prd_path, prd)
     dump(cases_path, cases)

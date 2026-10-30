@@ -3,39 +3,40 @@
   "lesson": "courses/redesigned/aice-split.json",
   "expected_outputs": [
     [
-      "[(1, 10), (2, 20), (3, 30), (4, 40), (5, 50), (6, 60)]"
+      "40",
+      "50"
     ],
     [
+      "[(5, 50), (1, 10), (4, 40), (6, 60)]\n[(3, 30), (2, 20)]",
       "[(1, 10), (2, 20), (3, 30), (4, 40)]\n[(5, 50), (6, 60)]"
     ],
     [
-      "5 2",
-      "6 1",
-      "5 2"
+      "5 2\n1",
+      "5 2\n2"
     ],
     [
-      "True\nTrue\n6"
+      "False\n[1, 2] [4, 6]",
+      "True\n[1, 2] [1, 2]"
     ],
     [
-      "False",
-      "True",
-      "False"
+      "False\n2 2",
+      "True\n2 2"
     ],
     [
+      "2 2\n4 0",
       "3 1\n3 1"
     ],
     [
       "",
-      "1 1",
-      ""
+      "True\n2 0"
     ],
     [
       "[3, 1] [4, 2]\nFalse",
-      "[1, 2] [3, 4]\nTrue",
-      "[3, 1] [4, 2]\nFalse"
+      "[1, 2] [3, 4]\nTrue"
     ],
     [
-      "[1, 2, 3, 4]\n[5, 6]\n[7, 8]"
+      "large\n0.79",
+      "small\n0.7"
     ],
     [
       "4 2 2 4\n[(5, 10), (6, 20)]",
@@ -48,6 +49,190 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "answer = y[X.index(5)]\n",
+          "answer = y[5]\n"
+        ]
+      ],
+      "reason": "Position 5"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "answer = y[X.index(5)]\n",
+          "answer = 50\n"
+        ]
+      ],
+      "reason": "Typing the answer"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "test_size=2, shuffle=False)",
+          "test_size=2, random_state=1)"
+        ]
+      ],
+      "reason": "Shuffled"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=2, shuffle=False)",
+          "X_train, X_test, y_train, y_test = X[:2], X[-2:], y[:2], y[-2:]"
+        ]
+      ],
+      "reason": "Wrong training slice"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "expected = math.ceil(len(X) * 0.25)\n",
+          "expected = int(len(X) * 0.25)\n"
+        ]
+      ],
+      "reason": "Rounding down"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "expected = math.ceil(len(X) * 0.25)\n",
+          "expected = 2\n"
+        ]
+      ],
+      "reason": "Typing the count"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "b_train, b_test = train_test_split(X, test_size=2, random_state=42)",
+          "b_train, b_test = train_test_split(X, test_size=3, random_state=42)"
+        ]
+      ],
+      "reason": "Another test size"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "b_train, b_test = train_test_split(X, test_size=2, random_state=42)",
+          "b_train, b_test = train_test_split(X, test_size=2, random_state=7)"
+        ],
+        [
+          "print(a_test == b_test)",
+          "print(True)"
+        ]
+      ],
+      "reason": "Different seeds, typing True"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=2, random_state=42)\n",
+          "X_train, X_test = train_test_split(X, test_size=2, random_state=42)\ny_train, y_test = train_test_split(y, test_size=2, random_state=7)\n"
+        ]
+      ],
+      "reason": "Separate shuffles"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=2, random_state=42)\n",
+          "X_train, y_train, X_test, y_test = train_test_split(X, y, test_size=2, random_state=42)\n"
+        ]
+      ],
+      "reason": "Return values in the wrong places"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "random_state=25, stratify=y)",
+          "random_state=25)"
+        ]
+      ],
+      "reason": "No stratify"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "print(ya.count(0), ya.count(1))",
+          "print(3, 1)"
+        ]
+      ],
+      "reason": "Typing the counts"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "use = y if min(y.count(label) for label in set(y)) >= 2 else None\n",
+          "use = None\n"
+        ]
+      ],
+      "reason": "Never stratifying"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "use = y if min(y.count(label) for label in set(y)) >= 2 else None\n",
+          "use = y\n"
+        ]
+      ],
+      "reason": "Always stratifying"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "ordered = sorted(dates)\n",
+          "ordered = dates\n"
+        ]
+      ],
+      "reason": "Input order"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "ordered = sorted(dates)\n",
+          "ordered = sorted(dates, reverse=True)\n"
+        ]
+      ],
+      "reason": "Newest first"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "best = max(valid_scores, key=valid_scores.get)",
+          "best = max(test_scores, key=test_scores.get)"
+        ]
+      ],
+      "reason": "Tuning on the test"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "best = max(valid_scores, key=valid_scores.get)",
+          "best = \"small\""
+        ]
+      ],
+      "reason": "Typing the name"
+    },
     {
       "step": 10,
       "replacements": [
@@ -80,6 +265,96 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "answer = y[X.index(5)]\n",
+          "answer = dict(zip(X, y))[5]\n"
+        ]
+      ],
+      "reason": "Pairing with zip"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=2, shuffle=False)",
+          "X_train, X_test, y_train, y_test = X[:-2], X[-2:], y[:-2], y[-2:]"
+        ]
+      ],
+      "reason": "Slicing the last two"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "expected = math.ceil(len(X) * 0.25)\n",
+          "expected = len(b)\n"
+        ]
+      ],
+      "reason": "Reading the real split"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "b_train, b_test = train_test_split(X, test_size=2, random_state=42)",
+          "seed = 42\nb_train, b_test = train_test_split(X, test_size=2, random_state=seed)"
+        ]
+      ],
+      "reason": "Seed in a name"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=2, random_state=42)\n",
+          "X_train, X_test = train_test_split(X, test_size=2, random_state=42)\ny_train, y_test = train_test_split(y, test_size=2, random_state=42)\n"
+        ]
+      ],
+      "reason": "Same seed and size on equal lengths"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "random_state=25, stratify=y)",
+          "random_state=25, stratify=list(y))"
+        ]
+      ],
+      "reason": "A copy of y"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "use = y if min(y.count(label) for label in set(y)) >= 2 else None\n",
+          "from collections import Counter\nuse = None if min(Counter(y).values()) < 2 else y\n"
+        ]
+      ],
+      "reason": "Counter"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "ordered = sorted(dates)\n",
+          "ordered = list(dates)\nordered.sort()\n"
+        ]
+      ],
+      "reason": "Sorting a copy"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "best = max(valid_scores, key=valid_scores.get)",
+          "best = sorted(valid_scores, key=lambda name: valid_scores[name])[-1]"
+        ]
+      ],
+      "reason": "Sorting by validation score"
+    },
     {
       "step": 11,
       "replacements": [
