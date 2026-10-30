@@ -3,6 +3,12 @@ module.exports = async ({page, shot}) => {
   const notes = [];
   await page.emulateMedia({colorScheme: 'dark'});
   await page.waitForFunction(() => document.documentElement.dataset.themeChoice !== undefined, null, {timeout: 60000});
+  const early = await page.evaluate(() => ({choice: document.documentElement.dataset.themeChoice, bg: getComputedStyle(document.documentElement).backgroundColor}));
+  notes.push('first paint: ' + JSON.stringify(early));
+  if (early.choice !== 'light' || early.bg !== 'rgb(238, 241, 245)') notes.push('FAIL 첫 화면이 밝게가 아님');
+  // 앱이 붙은 뒤의 실제 토큰(편집기·터미널 바탕).
+  await page.waitForSelector('.repository-player, .repository-study', {timeout: 60000});
+  await page.waitForFunction(() => document.documentElement.dataset.theme, null, {timeout: 30000});
   const s = await page.evaluate(() => ({choice: document.documentElement.dataset.themeChoice, effective: document.documentElement.dataset.theme,
     bg: getComputedStyle(document.documentElement).backgroundColor, editor: getComputedStyle(document.documentElement).getPropertyValue('--editor-bg').trim(),
     term: getComputedStyle(document.documentElement).getPropertyValue('--term-bg').trim()}));

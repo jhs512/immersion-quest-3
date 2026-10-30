@@ -73,7 +73,10 @@ module.exports = async ({page, shot, dataDir}) => {
   await button('도전 과제').click(); await page.waitForTimeout(1200); await shot('t07-challenges-dark'); await button('수업 목록').click();
   await page.locator('.course-search input').fill('없는과정'); await shot('t08-search-empty-dark'); await page.locator('.course-search input').fill('');
   // lesson in dark
-  await page.locator('.lesson-card').nth(1).locator('button.primary').click();
+  await page.locator('.lesson-card').nth(4).locator('button.primary').click();
+  // 수업은 수업 예고로 열려요: 문제 1로 들어가요.
+  await page.waitForSelector('.study-navigation', {timeout: 60000});
+  await page.locator('.study-navigation button', {hasText: '문제 1 ·'}).first().click();
   await page.waitForSelector('.cm-editor', {timeout: 60000});
   await expect('lesson keeps 어둡게', 'dark', 'dark');
   await shot('t10-problem-dark');
@@ -108,8 +111,8 @@ module.exports = async ({page, shot, dataDir}) => {
   await page.waitForSelector('.course-catalog');
   await expect('back on the course list', 'dark', 'dark');
   await shot('t18-catalog-after-study-dark');
-  await page.locator('.lesson-card').nth(2).locator('button.primary').click();
-  await page.locator('.study-navigation button', {hasText: '문제 2 ·'}).first().click();
+  await page.locator('.lesson-card').filter({hasText: 'Git · 브랜치 기본'}).first().locator('button.primary').click();
+  await page.locator('.study-navigation button', {hasText: '문제 3 ·'}).first().click();
   await page.waitForFunction(() => document.querySelector('.repository-task')?.dataset.gitReady === 'true', null, {timeout: 120000});
   await page.waitForTimeout(1200);
   await shot('t19-git-terminal-dark');
@@ -120,7 +123,10 @@ module.exports = async ({page, shot, dataDir}) => {
   await choose('light'); await settings(false);
   await expect('back to 밝게', 'light', 'light');
   await shot('t21-catalog-light');
-  await page.locator('.lesson-card').nth(1).locator('button.primary').click();
+  await page.locator('.lesson-card').nth(4).locator('button.primary').click();
+  // 수업은 수업 예고로 열려요: 문제 1로 들어가요.
+  await page.waitForSelector('.study-navigation', {timeout: 60000});
+  await page.locator('.study-navigation button', {hasText: '문제 1 ·'}).first().click();
   await page.waitForSelector('.cm-editor', {timeout: 60000});
   await shot('t22-problem-light');
   await button('← 코스 수업 목록').click();
