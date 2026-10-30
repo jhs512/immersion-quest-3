@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "9436bb495f7fd889fe818f882e194713663c6cc1c28d94d467a65e72062256d5",
+  "entry": [
+    {
+      "action": "say",
+      "text": "AUC는 기준을 정하지 않고 확률의 순위를 평가해요. auc 줄을 roc_auc_score로 고쳐야 해요.",
+      "target": "text:auc 줄을 고쳐 0.5 기준 정확도가 아니라 확률의 순위로 AUC를 구하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0.5예요. 0.5 기준으로 자른 범주의 정확도예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "auc = accuracy_score(y_true, [int(s >= 0.5) for s in scores])\n",
+      "after": "auc = roc_auc_score(y_true, scores)\n",
+      "say": "roc_auc_score(y_true, scores)로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0.75예요. 지연·정상 짝 네 개 중 세 개에서 지연 쪽 확률이 더 높았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. AUC 0.75는 정답률 75%가 아니에요. 확률 순위의 평가예요.",
+      "target": "code:roc_auc_score(y_true, scores)"
+    }
+  ]
+}

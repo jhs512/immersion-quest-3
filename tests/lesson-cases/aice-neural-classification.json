@@ -3,26 +3,31 @@
   "lesson": "courses/redesigned/aice-neural-classification.json",
   "expected_outputs": [
     [
+      "[0.5, 0.731059]\n[0.5, 0.7310585975646973]",
       "[0.5, 0.731059]\n[1, 1]"
     ],
     [
-      "[None, 1]\nFalse"
+      "0.6835\nFalse",
+      "0.5032\nTrue"
     ],
     [
-      "[0, 0, 1, 1]\n[0, 0, 1, 1]\n0.75",
-      "[0, 0, 1, 1]\n[0, 0, 1, 1]\n1.0"
+      "[0, 0, 1, 1]\n[0, 0, 1, 1]\n1.0",
+      "[0, 0, 1, 1]\n[0, 0, 1, 1]\n0.75"
     ],
     [
+      "[2, 1]\n[0.5, 0.5]",
       "[2, 3]\n[1.0, 1.0]"
     ],
     [
       "",
-      "True"
+      "0.9076\nTrue"
     ],
     [
+      "",
       "[[1, 0, 0], [0, 0, 1]]\nTrue"
     ],
     [
+      "[1, 2]\n[1, 2]",
       "[1, 2]\n['late', 'cancelled']"
     ],
     [
@@ -36,6 +41,146 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "(probabilities >= threshold)",
+          "(probabilities > threshold)"
+        ]
+      ],
+      "reason": "Leaving out the boundary"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "labels = (probabilities >= threshold).astype(int)\n",
+          "labels = np.array([1, 1])\n"
+        ]
+      ],
+      "reason": "Typing the labels"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "print(round(value, 4))\nprint(bool(np.isclose(value, manual, atol=1e-4)))\n",
+          "print(0.5032)\nprint(True)\n"
+        ]
+      ],
+      "reason": "Typing the result"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "loss = keras.losses.BinaryCrossentropy(from_logits=False)\n",
+          "loss = keras.losses.MeanSquaredError()\n"
+        ]
+      ],
+      "reason": "A regression loss"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "(new_pred == np.array(y_new))",
+          "(new_pred == train_pred)"
+        ]
+      ],
+      "reason": "Comparing with the training predictions"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "accuracy = float((new_pred == np.array(y_new)).mean())\n",
+          "accuracy = 0.75\n"
+        ]
+      ],
+      "reason": "Typing the accuracy"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "keras.layers.Dense(len(classes), activation=\"softmax\",",
+          "keras.layers.Dense(len(classes), activation=\"sigmoid\","
+        ]
+      ],
+      "reason": "Sigmoid per column"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "keras.layers.Dense(len(classes), activation=\"softmax\",",
+          "keras.layers.Dense(3, activation=\"softmax\","
+        ]
+      ],
+      "reason": "Typing three classes"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "loss = keras.losses.SparseCategoricalCrossentropy()\n",
+          "loss = keras.losses.SparseCategoricalCrossentropy(from_logits=True)\n"
+        ]
+      ],
+      "reason": "Probabilities as logits"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "print(round(value, 4))\nprint(bool(np.isclose(value, manual, atol=1e-4)))\n",
+          "print(1.4076)\nprint(True)\n"
+        ]
+      ],
+      "reason": "Typing the result"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "keras.utils.to_categorical(y, num_classes=len(classes))",
+          "keras.utils.to_categorical(y)"
+        ]
+      ],
+      "reason": "No num_classes"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "one_hot = keras.utils.to_categorical(y, num_classes=len(classes))\n",
+          "one_hot = np.array([[1, 0, 0], [0, 0, 1]])\n"
+        ]
+      ],
+      "reason": "Typing the one-hot rows"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "names = np.array(classes)[indices]\n",
+          "names = np.array(sorted(classes))[indices]\n"
+        ]
+      ],
+      "reason": "Sorted names"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "names = np.array(classes)[indices]\n",
+          "names = np.array([\"late\", \"cancelled\"])\n"
+        ]
+      ],
+      "reason": "Typing the names"
+    },
     {
       "step": 8,
       "replacements": [
@@ -68,6 +213,76 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "labels = (probabilities >= threshold).astype(int)\n",
+          "labels = np.where(probabilities >= threshold, 1, 0)\n"
+        ]
+      ],
+      "reason": "np.where"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "loss = keras.losses.BinaryCrossentropy(from_logits=False)\n",
+          "loss = keras.losses.BinaryCrossentropy()\n"
+        ]
+      ],
+      "reason": "Default is False"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "accuracy = float((new_pred == np.array(y_new)).mean())\n",
+          "from sklearn.metrics import accuracy_score\naccuracy = float(accuracy_score(y_new, new_pred))\n"
+        ]
+      ],
+      "reason": "accuracy_score"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "keras.layers.Dense(len(classes), activation=\"softmax\",",
+          "keras.layers.Dense(units=len(classes), activation=\"softmax\","
+        ]
+      ],
+      "reason": "units keyword"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "loss = keras.losses.SparseCategoricalCrossentropy()\n",
+          "loss = keras.losses.SparseCategoricalCrossentropy(from_logits=False)\n"
+        ]
+      ],
+      "reason": "Explicit from_logits=False"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "one_hot = keras.utils.to_categorical(y, num_classes=len(classes))\n",
+          "one_hot = np.eye(len(classes))[y]\n"
+        ]
+      ],
+      "reason": "Identity rows"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "names = np.array(classes)[indices]\n",
+          "names = np.array([classes[i] for i in indices])\n"
+        ]
+      ],
+      "reason": "One name per position"
+    },
     {
       "step": 9,
       "replacements": [

@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "9e2420b5e63a5b6defc96e8f021401f345362643d51da6b2781282f29f396549",
+  "entry": [
+    {
+      "action": "say",
+      "text": "ModelCheckpoint는 최고 모델을 파일에 저장해요. 그 파일에서 모델을 불러와야 해요.",
+      "target": "text:검증 손실이 가장 작았을 때 저장한 파일에서 모델을 불러오세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        29,
+        30
+      ]
+    },
+    {
+      "action": "say",
+      "text": "True와 False예요. 파일은 있지만 restored가 메모리의 마지막 모델 그 자체라 더 나을 수 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "restored = model\n",
+      "after": "restored = keras.models.load_model(\"best.keras\")\n",
+      "say": "keras.models.load_model(\"best.keras\")로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        29,
+        30
+      ]
+    },
+    {
+      "action": "say",
+      "text": "True와 True예요. 불러온 최고 모델의 검증 오차가 마지막 모델보다 작아요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 최고 모델을 저장해도 메모리의 모델이 바뀌지는 않아요. 쓰려면 파일을 직접 불러와요.",
+      "target": "code:keras.models.load_model(\"best.keras\")"
+    }
+  ]
+}

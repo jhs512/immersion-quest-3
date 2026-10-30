@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "efa38ccd40094f2ea66a890435c445b6521a3b5f2e29537c143dcc4a5c02774e",
+  "entry": [
+    {
+      "action": "say",
+      "text": "모델이 한 배송에 특성 몇 개를 받을지 정해야 해요. 맨 앞에 Input 층을 더해요.",
+      "target": "text:model 줄을 고쳐 맨 앞에 한 행의 특성 수 features를 받는 Input 층을 더하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        15
+      ],
+      "expect_error": "AttributeError"
+    },
+    {
+      "action": "say",
+      "text": "AttributeError예요. 입력 모양을 모르는 모델은 아직 만들어지지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "keras.Sequential([keras.layers.Dense(1)])",
+      "after": "keras.Sequential([keras.Input(shape=(features,)), keras.layers.Dense(1)])",
+      "say": "목록 맨 앞에 keras.Input(shape=(features,))를 넣어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[None, 1]이에요. 행 수는 정하지 않았고 한 행에 특성 1개예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. shape의 1은 배송 한 건만 받는다는 뜻이 아니에요. 배송 하나에 든 특성 수예요.",
+      "target": "code:shape=(features,)"
+    }
+  ]
+}

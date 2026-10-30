@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "6089f3e94b4d106ff529ec2159e658b9c514b08f36991ea5cffc681a107d2dbf",
+  "entry": [
+    {
+      "action": "say",
+      "text": "새 배송의 점수는 그 배송의 실제 정답과 비교해야 정해져요. accuracy 줄을 y_new와 비교하게 고쳐요.",
+      "target": "text:새 배송의 예측을 그 실제 정답 y_new와 비교한 정확도를 구하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        22,
+        26
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[0, 0, 1, 1], [0, 0, 1, 1], 1.0이에요. 예측을 예측끼리 비교해 늘 1.0이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "(new_pred == new_pred)",
+      "after": "(new_pred == np.array(y_new))",
+      "say": "비교 대상을 np.array(y_new)로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        22,
+        26
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0.75예요. 거리 -0.5인 배송은 가까운데도 실제로는 지연이라 네 건 중 세 건만 맞았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 훈련 배송을 모두 맞혔다고 새 배송도 모두 맞히는 게 아니에요. 새 자료의 점수는 그 자료의 실제 정답으로 계산해요.",
+      "target": "code:np.array(y_new)"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "b4399f3542cd10b52233f96a69d1096d68657a2294317be084fdb5decd9c8d68",
+  "entry": [
+    {
+      "action": "say",
+      "text": "둘째 나무는 남은 차이를 배워요. residuals 줄을 고쳐 첫 단계의 예측이 남긴 차이를 구해야 해요.",
+      "target": "text:residuals 줄을 고쳐 기준값 0.5가 아니라 첫 단계의 예측 predicted가 남긴 차이를 잔차로 구하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        28,
+        31
+      ]
+    },
+    {
+      "action": "say",
+      "text": "잔차 [1.5, 1.5, 7.5, 7.5]로 더하면 [2.0, 2.0, 8.0, 8.0]인데 두 단계 모델은 [1.625, 1.625, 6.125, 6.125]예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "residuals = y_train - 0.5\n",
+      "after": "residuals = y_train - predicted\n",
+      "say": "0.5를 predicted로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        28,
+        31
+      ]
+    },
+    {
+      "action": "say",
+      "text": "잔차 [0.75, 0.75, 3.75, 3.75]로 더하니 두 단계 모델과 같아요. 예측이 2와 8에 더 가까워졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 다음 나무는 처음 목표가 아니라 지금까지의 예측이 남긴 잔차를 배워요.",
+      "target": "code:y_train - predicted"
+    }
+  ]
+}

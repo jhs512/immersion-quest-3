@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "406ef8afdb45bcd9263a52f492eff63201a367d65d74dc840fb2a90b33ebc30f",
+  "entry": [
+    {
+      "action": "say",
+      "text": "재현율은 실제 지연 중 찾은 비율이에요. recall 줄을 고쳐 실제 지연의 수로 나눠야 해요.",
+      "target": "text:recall 줄을 고쳐 지연 경보의 수가 아니라 실제 지연의 수로 나눠 재현율을 구하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0.5와 1.0이에요. 경보 수로 나누면 정밀도가 돼요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "recall = hits / sum(y_pred)\n",
+      "after": "recall = hits / sum(y_true)\n",
+      "say": "sum(y_pred)를 sum(y_true)로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1.0과 1.0이에요. 실제 지연 한 건을 찾았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 정밀도와 재현율은 분자는 같고 분모만 달라요. 경보 수인지 실제 수인지 확인해요.",
+      "target": "code:hits / sum(y_true)"
+    }
+  ]
+}

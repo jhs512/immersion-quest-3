@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "4769418caaf21c304d984e952617ab0282d01baf3d1854b55dbc8d8762a470fd",
+  "entry": [
+    {
+      "action": "say",
+      "text": "모델만 저장하면 전처리 기준이 빠져요. 다시 열어도 같은 예측이 나오게 pipeline 전체를 저장해야 해요.",
+      "target": "text:전처리 기준까지 든 pipeline 전체를 저장하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        32,
+        32
+      ],
+      "expect_error": "ValueError"
+    },
+    {
+      "action": "say",
+      "text": "ValueError예요. 모델만 불러와 지역 글자가 든 새 표를 받을 수 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "joblib.dump(pipeline.named_steps[\"model\"],",
+      "after": "joblib.dump(pipeline,",
+      "say": "pipeline.named_steps[\"model\"]을 pipeline으로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        32,
+        33
+      ]
+    },
+    {
+      "action": "say",
+      "text": "True와 3.5예요. 다시 연 파이프라인이 같은 예측을 하고 거리 대체 평균 3.5도 함께 돌아왔어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 같은 환경에서 직접 저장한 파일만 열어요. 믿을 수 없는 joblib 파일은 열 때 코드가 실행될 수 있어요.",
+      "target": "code:joblib.dump(pipeline,"
+    }
+  ]
+}

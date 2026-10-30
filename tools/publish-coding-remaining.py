@@ -49,7 +49,9 @@ LESSONS = {
     'engineer-practical': ['engineer-c-start', 'engineer-c-structures', 'engineer-java-flow', 'engineer-java-references',
                            'engineer-java-static', 'engineer-java-polymorphism', 'engineer-python-values',
                            'engineer-python-calls', 'engineer-mixed', 'engineer-os', 'engineer-network'],
-    'aice-associate': [],
+    'aice-associate': ['aice-python-start', 'aice-python-conditions', 'aice-split', 'aice-leakage', 'aice-classification',
+                       'aice-classification-metrics', 'aice-models', 'aice-tuning', 'aice-boosting', 'aice-tensorflow',
+                       'aice-neural-regression', 'aice-neural-classification', 'aice-training', 'aice-integration'],
 }
 SUMMARY = {
     'engineer-practical': '코드를 읽고 출력값만 적던 문제도 직접 코드를 고쳐 실행하는 문제로 바꿨어요.',
@@ -60,7 +62,10 @@ DETAILS = {
                            '코드 없이 손으로 계산하거나 용어를 적는 문제와 설계·테스트·보안 같은 개념 문제는 그대로예요.',
                            '운영체제·네트워크·복합·다형성 수업의 마지막 도전은 바뀐 문제로 지정했어요.',
                            '본질이 바뀐 문제는 새 문제로 열려요. 이전 문제의 완료 기록은 이전 버전에 남아요.'],
-    'aice-associate': [],
+    'aice-associate': ['파이썬 기초·데이터 나누기·누수·분류·평가 지표·모델·튜닝·부스팅·신경망·학습·종합 수업에서 보기를 고르던 89문제를 직접 코드를 고쳐 실행하고 제출하는 문제로 바꿨어요.',
+                       '채점은 실제 파이썬·scikit-learn·TensorFlow 실행 결과로 해요. 다른 준비 자료로도 다시 실행해 결과를 글자로 적은 답은 통과하지 못해요.',
+                       '결과를 해석하거나 판단하는 문제는 그대로예요.',
+                       '본질이 바뀐 문제는 새 문제로 열려요. 이전 문제의 완료 기록은 이전 버전에 남아요.'],
 }
 REASON = ('사용자 요청: 「객관식에서 순수 코딩 문제로」 바꾸고, 2026-10-30 확인에 따라 코드를 읽고 출력값만 적는 빈칸도 '
           '직접 코드를 작성·수정·실행하는 문제로 바꿔요. 실제 개념·이론 문제는 그대로 둬요.')

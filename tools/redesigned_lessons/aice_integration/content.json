@@ -2,283 +2,273 @@
   "description": "같은 두 CSV로 혼합 전처리·모델·새 예측·결과 전달을 연결해요.",
   "tasks": [
     {
-      "id": "stp_7824a8e7-ed48-4ffb-a642-bc7db40ce978",
-      "title": "예측할 입력과 보관할 번호를 나눠요",
-      "goal": "시간을 아직 모르는 새 배송을 예측하려 해요.\n이 실습의 입력 열은 무엇일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_14110477-6327-47ed-903d-cde2c9ac9e35",
+      "title": "df[[\"distance\", \"zone\"]]로 예측할 입력만 고르세요",
+      "goal": "delivery.csv에는 주문번호·거리·지역·걸린 시간이 있고, new.csv의 새 배송은 걸린 시간을 아직 몰라요. 입력은 예측할 때 이미 아는 열, 정답은 맞힐 열이에요.\n\nX_train 줄을 고쳐 X_train에 새 배송에도 있는 입력 distance와 zone만 남기세요. 채점은 다른 배송 표로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 입력 열을 확인하세요.\n2. `df.drop(columns=[\"order_id\"])`를 `df[[\"distance\", \"zone\"]]`로 고치세요.\n3. 코드 실행을 눌러 True가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "features",
-      "tests": [],
-      "required": true,
-      "example_code": "import numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 실제 제공 파일에서 원래 관측의 역할을 나눠요.\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\nprint(X_train.columns.tolist())\nprint(y_train.tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "features",
-            "text": "예측 시점에 있는 distance·zone이에요"
-          },
-          {
-            "id": "target",
-            "text": "맞혀야 할 minutes도 함께 넣으면 더 정확해요"
-          }
-        ],
-        "answer": "features"
+      "starter_code": "import numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\n# 이 줄을 고쳐 X_train에 새 배송에도 있는 입력 distance와 zone만 남기세요.\nX_train = df.drop(columns=[\"order_id\"])\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\nprint(X_train.columns.tolist())\nprint(y_train.tolist())\n# 훈련 입력과 새 입력의 열이 같아야 같은 모델에 넣을 수 있어요.\nprint(X_train.columns.tolist() == X_new.columns.tolist())\n",
+      "solution": "import numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\n# 이 줄을 고쳐 X_train에 새 배송에도 있는 입력 distance와 zone만 남기세요.\n# 정답 minutes와 단순 번호 order_id는 입력이 아니에요. 새 배송이 가진 열만 입력이에요.\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\nprint(X_train.columns.tolist())\nprint(y_train.tolist())\n# 훈련 입력과 새 입력의 열이 같아야 같은 모델에 넣을 수 있어요.\nprint(X_train.columns.tolist() == X_new.columns.tolist())\n",
+      "files": {
+        "delivery.csv": "order_id,distance,zone,minutes\n101,1,north,10\n102,2,north,20\n103,3,south,30\n104,4,south,40\n105,5,north,50\n106,6,south,60\n",
+        "new.csv": "order_id,distance,zone\n201,2,north\n202,,west\n203,8,south\n"
       },
+      "tests": [
+        {
+          "input": "",
+          "expected": "['distance', 'zone']\n[10, 20, 30, 40, 50, 60]\nTrue"
+        }
+      ],
+      "required": true,
       "narration": [
         {
           "action": "say",
-          "text": "새 배송은 아직 걸린 시간을 몰라요. 예측할 때 넣을 열과 맞혀야 할 열, 그냥 보관할 번호를 나누는 문제예요.",
-          "target": "text:시간을 아직 모르는 새 배송을 예측하려 해요."
+          "text": "새 배송은 아직 걸린 시간을 몰라요. 예측할 때 넣을 수 있는 열만 입력으로 남겨야 해요.",
+          "target": "text:X_train에 새 배송에도 있는 입력 distance와 zone만 남기세요."
         },
         {
           "action": "run",
           "lines": [
             18,
-            19
+            21
           ]
         },
         {
           "action": "say",
-          "text": "입력은 거리와 지역, 실제 시간은 따로 둔 정답이에요.",
+          "text": "['distance', 'zone', 'minutes']와 False예요. 맞혀야 할 minutes가 입력에 섞여 새 입력과 열이 달라요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "X_train = df.drop(columns=[\"order_id\"])\n",
+          "after": "X_train = df[[\"distance\", \"zone\"]]\n",
+          "say": "df[[\"distance\", \"zone\"]]로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "['distance', 'zone']과 True예요. 정답 열은 y_train에 따로 있어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 정답과 단순 주문번호를 의미 없이 입력에 섞지 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "features"
+          "text": "조심하세요. 정답 열을 입력에 넣으면 훈련 점수는 좋아 보여도 새 배송에는 그 열이 없어 쓸 수 없어요. 주문번호도 의미 없는 입력이에요.",
+          "target": "code:df[[\"distance\", \"zone\"]]"
         }
-      ],
-      "predict_before_run": true,
+      ]
+    },
+    {
+      "id": "stp_e3c2ea13-cbc9-4ee3-a019-c5c816e6d042",
+      "title": "\"cat\" 갈래로 zone을 원핫 열로 바꾸세요",
+      "goal": "`ColumnTransformer`는 열마다 다른 전처리를 적용해 한 행렬로 묶고, 적지 않은 열은 버려요. 범주 열은 빈칸을 가장 흔한 값으로 채운 뒤 `OneHotEncoder`로 지역마다 0·1 열을 만들어요.\n\n주석 자리를 고쳐 zone 열을 가장 흔한 값으로 채운 뒤 원핫 열로 바꾸는 \"cat\" 갈래를 더하세요. 채점은 지역이 셋인 표로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력 열을 확인하세요.\n2. 주석 아래에 `(\"cat\", Pipeline([(\"fill\", SimpleImputer(strategy=\"most_frequent\")), (\"encode\", OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False))]), [\"zone\"])`를 쓰세요.\n3. 코드 실행을 눌러 [6, 3]이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\n# 숫자와 범주 열을 각자 처리하고, ColumnTransformer가 둘을 열별로 묶어요.\npreprocess = ColumnTransformer([\n    # 1) 숫자 열: 빈칸을 평균으로 채운 뒤 표준화해요.\n    (\"num\", Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())]), [\"distance\"]),\n    # 이 자리에 zone 열을 가장 흔한 값으로 채운 뒤 원핫 열로 바꾸는 \"cat\" 갈래를 더하세요.\n])\nmatrix = preprocess.fit_transform(X_train)\nprint(list(matrix.shape))\nprint(preprocess.get_feature_names_out().tolist())\n",
+      "solution": "import numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\n# 숫자와 범주 열을 각자 처리하고, ColumnTransformer가 둘을 열별로 묶어요.\npreprocess = ColumnTransformer([\n    # 1) 숫자 열: 빈칸을 평균으로 채운 뒤 표준화해요.\n    (\"num\", Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())]), [\"distance\"]),\n    # 이 자리에 zone 열을 가장 흔한 값으로 채운 뒤 원핫 열로 바꾸는 \"cat\" 갈래를 더하세요.\n    # 범주 열은 숫자 크기가 없어요. 지역마다 0과 1의 열 하나씩을 만들어요.\n    (\"cat\", Pipeline([(\"fill\", SimpleImputer(strategy=\"most_frequent\")), (\"encode\", OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False))]), [\"zone\"])\n])\nmatrix = preprocess.fit_transform(X_train)\nprint(list(matrix.shape))\nprint(preprocess.get_feature_names_out().tolist())\n",
       "files": {
         "delivery.csv": "order_id,distance,zone,minutes\n101,1,north,10\n102,2,north,20\n103,3,south,30\n104,4,south,40\n105,5,north,50\n106,6,south,60\n",
         "new.csv": "order_id,distance,zone\n201,2,north\n202,,west\n203,8,south\n"
-      }
-    },
-    {
-      "id": "stp_04e49b70-d4bd-4228-be8d-600ca82ba5a0",
-      "title": "열 종류마다 전처리를 묶어요",
-      "goal": "ColumnTransformer는 열마다 다른 전처리를 적용한 뒤 결과 열을 옆으로 이어 붙여요. 원래 두 입력 열이 몇 개의 숫자 열이 되는지 출력해요.\n어떤 구성이 됐을까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "three",
-      "tests": [],
-      "required": true,
-      "example_code": "import numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 실제 제공 파일에서 원래 관측의 역할을 나눠요.\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\n# 숫자와 범주 열을 각자 처리하고 명시적으로 dense 원핫을 만들어요.\n# 1) 숫자 열 처리 → 2) 범주 열 처리 → 3) ColumnTransformer가 둘을 열별로 묶어요.\npreprocess = ColumnTransformer([\n    # 1) 숫자 열: 빈칸을 평균으로 채운 뒤 표준화해요.\n    (\"num\", Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())]), [\"distance\"]),\n    # 2) 범주 열: 빈칸을 가장 흔한 값으로 채운 뒤 원핫 열로 바꿔요.\n    (\"cat\", Pipeline([(\"fill\", SimpleImputer(strategy=\"most_frequent\")), (\"encode\", OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False))]), [\"zone\"])\n])\nmatrix = preprocess.fit_transform(X_train)\nprint(list(matrix.shape))\nprint(preprocess.get_feature_names_out().tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "three",
-            "text": "거리 한 열과 훈련 지역 두 원핫 열이에요"
-          },
-          {
-            "id": "rows",
-            "text": "배송 관측이 세 개로 줄었다는 뜻이에요"
-          }
-        ],
-        "answer": "three"
       },
+      "tests": [
+        {
+          "input": "",
+          "expected": "[6, 3]\n['num__distance', 'cat__zone_north', 'cat__zone_south']"
+        }
+      ],
+      "required": true,
       "narration": [
         {
           "action": "say",
-          "text": "거리는 숫자 처리, 지역은 원핫 처리를 받아요. 출력의 열 이름으로 세 열이 각각 무엇인지 읽는 문제예요.",
-          "target": "text:ColumnTransformer는 열마다 다른 전처리를 적용한 뒤 결과 열을 옆으로 이어 붙여요."
+          "text": "지금은 거리만 처리해요. 지역 zone을 원핫 열로 바꾸는 갈래를 더해야 해요.",
+          "target": "text:zone 열을 가장 흔한 값으로 채운 뒤 원핫 열로 바꾸는 \"cat\" 갈래를 더하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            24,
+            25
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[6, 1]과 ['num__distance']예요. 지역 열은 버려졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    # 이 자리에 zone 열을 가장 흔한 값으로 채운 뒤 원핫 열로 바꾸는 \"cat\" 갈래를 더하세요.\n",
+          "after": "    # 이 자리에 zone 열을 가장 흔한 값으로 채운 뒤 원핫 열로 바꾸는 \"cat\" 갈래를 더하세요.\n    (\"cat\", Pipeline([(\"fill\", SimpleImputer(strategy=\"most_frequent\")), (\"encode\", OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False))]), [\"zone\"])\n",
+          "say": "주석 아래에 \"cat\" 갈래를 써요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            25,
+            26
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[6, 3]이에요. 숫자 열 하나와 north·south 원핫 열 두 개예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. ColumnTransformer에 적지 않은 열은 기본으로 버려져요. 출력 열 이름으로 무엇이 남았는지 확인해요.",
+          "target": "code:[\"zone\"])"
+        }
+      ]
+    },
+    {
+      "id": "stp_b8f8c07c-6444-498e-ac2b-0e97d1777b1f",
+      "title": "preprocess.transform(X_new)로 훈련 기준만 적용하세요",
+      "goal": "새 표에는 빈 거리와 훈련에 없던 지역 west가 있어요. `fit`은 기준을 배우고 `transform`은 배운 기준을 적용해요. 출력은 새 행렬의 모양, 훈련에서 배운 거리 평균, 둘째 새 배송의 지역 칸이에요.\n\nnew_matrix 줄을 고쳐 새 표에는 훈련에서 배운 기준을 transform으로만 적용하세요. 채점은 다른 표로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 세 줄을 확인하세요.\n2. `preprocess.fit_transform(X_new)`를 `preprocess.transform(X_new)`로 고치세요.\n3. 코드 실행을 눌러 3.5가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\n# 숫자와 범주 열을 각자 처리하고, ColumnTransformer가 둘을 열별로 묶어요.\npreprocess = ColumnTransformer([\n    # 1) 숫자 열: 빈칸을 평균으로 채운 뒤 표준화해요.\n    (\"num\", Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())]), [\"distance\"]),\n    # 2) 범주 열: 빈칸을 가장 흔한 값으로 채운 뒤 원핫 열로 바꿔요.\n    (\"cat\", Pipeline([(\"fill\", SimpleImputer(strategy=\"most_frequent\")), (\"encode\", OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False))]), [\"zone\"])\n])\npreprocess.fit(X_train)\n# 이 줄을 고쳐 새 표에는 훈련에서 배운 기준을 transform으로만 적용하세요.\nnew_matrix = preprocess.fit_transform(X_new)\nprint(list(new_matrix.shape))\nprint(float(preprocess.named_transformers_[\"num\"].named_steps[\"fill\"].statistics_[0]))\nprint(new_matrix[1, 1:].tolist())\n",
+      "solution": "import numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\n# 숫자와 범주 열을 각자 처리하고, ColumnTransformer가 둘을 열별로 묶어요.\npreprocess = ColumnTransformer([\n    # 1) 숫자 열: 빈칸을 평균으로 채운 뒤 표준화해요.\n    (\"num\", Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())]), [\"distance\"]),\n    # 2) 범주 열: 빈칸을 가장 흔한 값으로 채운 뒤 원핫 열로 바꿔요.\n    (\"cat\", Pipeline([(\"fill\", SimpleImputer(strategy=\"most_frequent\")), (\"encode\", OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False))]), [\"zone\"])\n])\npreprocess.fit(X_train)\n# 이 줄을 고쳐 새 표에는 훈련에서 배운 기준을 transform으로만 적용하세요.\n# transform은 훈련에서 배운 평균·표준편차·지역 목록을 그대로 써요. 새 표로 다시 배우지 않아요.\nnew_matrix = preprocess.transform(X_new)\nprint(list(new_matrix.shape))\nprint(float(preprocess.named_transformers_[\"num\"].named_steps[\"fill\"].statistics_[0]))\nprint(new_matrix[1, 1:].tolist())\n",
+      "files": {
+        "delivery.csv": "order_id,distance,zone,minutes\n101,1,north,10\n102,2,north,20\n103,3,south,30\n104,4,south,40\n105,5,north,50\n106,6,south,60\n",
+        "new.csv": "order_id,distance,zone\n201,2,north\n202,,west\n203,8,south\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "[3, 3]\n3.5\n[0.0, 0.0]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "새 표에는 빈 거리와 훈련에 없던 지역 west가 있어요. 훈련 기준을 그대로 적용해야 해요.",
+          "target": "text:새 표에는 훈련에서 배운 기준을 transform으로만 적용하세요."
         },
         {
           "action": "run",
           "lines": [
             27,
-            28
+            29
           ]
         },
         {
           "action": "say",
-          "text": "여섯 배송에 숫자 세 열이며, 원핫 열은 north와 south 두 개예요.",
+          "text": "[3, 4], 5.0, [0.0, 0.0, 1.0]이에요. 새 표로 다시 배워 평균이 5.0이 되고 west 열까지 생겼어요.",
           "target": "output"
         },
         {
-          "action": "say",
-          "text": "지금 설정은 출력을 dense 배열로 지정했어요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "모든 혼합 전처리가 항상 dense인 것은 아니에요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "three"
-        }
-      ],
-      "predict_before_run": true,
-      "files": {
-        "delivery.csv": "order_id,distance,zone,minutes\n101,1,north,10\n102,2,north,20\n103,3,south,30\n104,4,south,40\n105,5,north,50\n106,6,south,60\n",
-        "new.csv": "order_id,distance,zone\n201,2,north\n202,,west\n203,8,south\n"
-      },
-      "question": "어떤 구성이 됐을까요?"
-    },
-    {
-      "id": "stp_cf760835-2939-47bb-8d48-fe23da31864b",
-      "title": "새 파일에는 같은 기준만 적용해요",
-      "goal": "새 지역 west와 빈 거리가 있어요.\n새 표에 다시 fit할까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "reuse",
-      "tests": [],
-      "required": true,
-      "example_code": "import numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 실제 제공 파일에서 원래 관측의 역할을 나눠요.\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\n# 숫자와 범주 열을 각자 처리하고 명시적으로 dense 원핫을 만들어요.\n# 1) 숫자 열 처리 → 2) 범주 열 처리 → 3) ColumnTransformer가 둘을 열별로 묶어요.\npreprocess = ColumnTransformer([\n    # 1) 숫자 열: 빈칸을 평균으로 채운 뒤 표준화해요.\n    (\"num\", Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())]), [\"distance\"]),\n    # 2) 범주 열: 빈칸을 가장 흔한 값으로 채운 뒤 원핫 열로 바꿔요.\n    (\"cat\", Pipeline([(\"fill\", SimpleImputer(strategy=\"most_frequent\")), (\"encode\", OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False))]), [\"zone\"])\n])\npreprocess.fit(X_train)\nnew_matrix = preprocess.transform(X_new)\nprint(list(new_matrix.shape))\nprint(float(preprocess.named_transformers_[\"num\"].named_steps[\"fill\"].statistics_[0]))\nprint(new_matrix[1, 1:].tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "newfit",
-            "text": "네.새 자료의 기준과 열을 따로 학습해요"
-          },
-          {
-            "id": "reuse",
-            "text": "아니요.훈련 기준으로 transform만 해요"
-          }
-        ],
-        "answer": "reuse"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "새 표에는 빈 거리와 훈련에 없던 지역 west가 있어요. 새 표에 다시 fit할지, 훈련 기준으로 transform만 할지 판단하는 문제예요.",
-          "target": "text:새 지역 west와 빈 거리가 있어요."
+          "action": "patch_code",
+          "before": "new_matrix = preprocess.fit_transform(X_new)\n",
+          "after": "new_matrix = preprocess.transform(X_new)\n",
+          "say": "fit_transform을 transform으로 바꿔요."
         },
         {
           "action": "run",
           "lines": [
-            28,
-            30
+            27,
+            29
           ]
         },
         {
           "action": "say",
-          "text": "세 배송과 세 열을 유지해요. 빈 거리는 훈련 평균 3.5로 채워요.",
+          "text": "[3, 3], 3.5, [0.0, 0.0]이에요. 빈 거리는 훈련 평균 3.5로 채우고 처음 보는 west는 두 칸 모두 0이에요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "미지 지역의 두 칸은 0.0이에요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 새 표에 fit하면 기준과 범주 열이 달라질 수 있어요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "reuse"
+          "text": "조심하세요. 새 표에 fit하면 기준과 열 수가 바뀌어 훈련한 모델과 맞지 않아요. 새 자료에는 transform만 해요.",
+          "target": "code:preprocess.transform(X_new)"
         }
-      ],
-      "predict_before_run": true,
+      ]
+    },
+    {
+      "id": "stp_cc3e3728-113d-4864-88dd-7fe0be51211b",
+      "title": "Pipeline에 (\"prep\", preprocess)를 앞세우세요",
+      "goal": "`Pipeline([(이름, 단계), ...])`은 단계를 차례로 이어요. fit은 앞 단계의 기준을 배우며 다음 단계로 넘기고, predict는 배운 기준으로 바꾼 뒤 마지막 모델로 예측해요.\n\npipeline 줄을 고쳐 전처리 preprocess 다음에 LinearRegression이 오는 Pipeline을 만드세요. 채점은 다른 표로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 ValueError가 나오는지 확인하세요.\n2. 목록 맨 앞에 `(\"prep\", preprocess)`를 넣으세요.\n3. 코드 실행을 눌러 [20.0, 35.0, 80.0]이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\n# 숫자와 범주 열을 각자 처리하고, ColumnTransformer가 둘을 열별로 묶어요.\npreprocess = ColumnTransformer([\n    # 1) 숫자 열: 빈칸을 평균으로 채운 뒤 표준화해요.\n    (\"num\", Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())]), [\"distance\"]),\n    # 2) 범주 열: 빈칸을 가장 흔한 값으로 채운 뒤 원핫 열로 바꿔요.\n    (\"cat\", Pipeline([(\"fill\", SimpleImputer(strategy=\"most_frequent\")), (\"encode\", OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False))]), [\"zone\"])\n])\n# 이 줄을 고쳐 전처리 preprocess 다음에 LinearRegression이 오는 Pipeline을 만드세요.\npipeline = Pipeline([(\"model\", LinearRegression())])\npipeline.fit(X_train, y_train)\nprint(pipeline.predict(X_new).round(6).tolist())\n",
+      "solution": "import numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\n# 숫자와 범주 열을 각자 처리하고, ColumnTransformer가 둘을 열별로 묶어요.\npreprocess = ColumnTransformer([\n    # 1) 숫자 열: 빈칸을 평균으로 채운 뒤 표준화해요.\n    (\"num\", Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())]), [\"distance\"]),\n    # 2) 범주 열: 빈칸을 가장 흔한 값으로 채운 뒤 원핫 열로 바꿔요.\n    (\"cat\", Pipeline([(\"fill\", SimpleImputer(strategy=\"most_frequent\")), (\"encode\", OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False))]), [\"zone\"])\n])\n# 이 줄을 고쳐 전처리 preprocess 다음에 LinearRegression이 오는 Pipeline을 만드세요.\n# fit은 전처리 기준을 배운 뒤 모델을 학습하고, predict는 배운 기준으로 바꾼 뒤 예측만 해요.\npipeline = Pipeline([(\"prep\", preprocess), (\"model\", LinearRegression())])\npipeline.fit(X_train, y_train)\nprint(pipeline.predict(X_new).round(6).tolist())\n",
       "files": {
         "delivery.csv": "order_id,distance,zone,minutes\n101,1,north,10\n102,2,north,20\n103,3,south,30\n104,4,south,40\n105,5,north,50\n106,6,south,60\n",
         "new.csv": "order_id,distance,zone\n201,2,north\n202,,west\n203,8,south\n"
-      }
-    },
-    {
-      "id": "stp_1300dfb3-6b1d-40a8-b531-7c350058d033",
-      "title": "전처리와 예측을 한 호출로 연결해요",
-      "goal": "Pipeline은 전처리(prep)와 모델(model)을 한 줄로 묶어요. fit은 두 단계를 차례로 훈련 자료에 학습하고, predict는 두 단계를 차례로 적용해요. 새 표에는 빈 거리와 처음 보는 지역 west가 있어요.\npipeline.predict(X_new) 한 호출 안에서 새 배송에 무슨 일이 일어날까요?\n\n**할 일**\n\n1. pipeline.predict(X_new) 한 호출 안에서 새 배송에 무슨 일이 일어날까요? 코드에서 근거를 찾아 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "trained",
-      "tests": [],
-      "required": true,
-      "example_code": "import numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 실제 제공 파일에서 원래 관측의 역할을 나눠요.\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\n# 숫자와 범주 열을 각자 처리하고 명시적으로 dense 원핫을 만들어요.\n# 1) 숫자 열 처리 → 2) 범주 열 처리 → 3) ColumnTransformer가 둘을 열별로 묶어요.\npreprocess = ColumnTransformer([\n    # 1) 숫자 열: 빈칸을 평균으로 채운 뒤 표준화해요.\n    (\"num\", Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())]), [\"distance\"]),\n    # 2) 범주 열: 빈칸을 가장 흔한 값으로 채운 뒤 원핫 열로 바꿔요.\n    (\"cat\", Pipeline([(\"fill\", SimpleImputer(strategy=\"most_frequent\")), (\"encode\", OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False))]), [\"zone\"])\n])\npipeline = Pipeline([(\"prep\", preprocess), (\"model\", LinearRegression())])\npipeline.fit(X_train, y_train)\nprint(pipeline.predict(X_new).round(6).tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "answer": "trained",
-        "options": [
-          {
-            "id": "refit",
-            "text": "새 배송으로 전처리 기준을 다시 배운 뒤 예측해요"
-          },
-          {
-            "id": "trained",
-            "text": "훈련에서 배운 전처리 기준으로 바꾼 뒤 모델이 예측해요"
-          }
-        ]
       },
+      "tests": [
+        {
+          "input": "",
+          "expected": "[20.0, 35.0, 80.0]"
+        }
+      ],
+      "required": true,
       "narration": [
         {
           "action": "say",
-          "text": "fit과 predict가 묶인 두 단계에 각각 무엇을 하는지 구별하는 문제예요. 특히 새 표의 빈 거리를 무엇으로 채우는지가 단서예요.",
-          "target": "text:fit은 두 단계를 차례로 훈련 자료에 학습하고, predict는 두 단계를 차례로 적용해요."
-        },
-        {
-          "action": "say",
-          "text": "fit은 훈련 표로 한 번만 불러요.",
-          "target": "code:pipeline.fit(X_train, y_train)"
+          "text": "모델은 숫자만 받아요. 전처리를 모델 앞에 묶어 한 번의 fit과 predict로 이어야 해요.",
+          "target": "text:전처리 preprocess 다음에 LinearRegression이 오는 Pipeline을 만드세요."
         },
         {
           "action": "run",
           "lines": [
-            28,
-            28
+            27,
+            27
+          ],
+          "expect_error": "ValueError"
+        },
+        {
+          "action": "say",
+          "text": "ValueError예요. 전처리 없이 지역 글자 'north'를 숫자로 바꿀 수 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "Pipeline([(\"model\", LinearRegression())])",
+          "after": "Pipeline([(\"prep\", preprocess), (\"model\", LinearRegression())])",
+          "say": "목록 맨 앞에 (\"prep\", preprocess)를 넣어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            27,
+            27
           ]
         },
         {
           "action": "say",
-          "text": "새 배송 세 건이 20.0, 35.0, 80.0이에요. 빈 거리는 훈련 평균 3.5로 채워져 35.0이 됐어요.",
+          "text": "[20.0, 35.0, 80.0]이에요. 빈 거리는 훈련 평균 3.5로 채워져 35.0이 됐어요.",
           "target": "output"
         },
         {
           "action": "say",
           "text": "조심하세요. predict는 아무것도 다시 배우지 않아요. 새 표로 fit하면 기준이 새 자료에 맞춰져 다른 예측이 나와요.",
-          "target": "code:pipeline.predict(X_new)"
-        },
-        {
-          "action": "choose_answer",
-          "id": "trained"
+          "target": "code:(\"prep\", preprocess)"
         }
-      ],
-      "predict_before_run": true,
+      ]
+    },
+    {
+      "id": "stp_c637844f-a340-45d4-8a5c-82f4201f859c",
+      "title": "cross_validate에 pipeline 전체를 넘기세요",
+      "goal": "`cross_validate`는 표를 fold로 나눠 번갈아 평가해요. `return_estimator=True`면 fold마다 학습한 모델을 돌려줘요. 전처리를 밖에서 전체 표로 fit하면 평가 몫의 거리도 평균에 들어가요.\n\nresult 줄을 고쳐 미리 fit한 행렬 대신 pipeline 전체와 원래 표 X_train을 교차검증에 넘기세요. 채점은 다른 훈련 표로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 fold별 평균을 확인하세요.\n2. `LinearRegression(), preprocess.fit_transform(X_train)`을 `pipeline, X_train`으로 고치세요.\n3. 코드 실행을 눌러 평균이 fold마다 다른지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\n# 숫자와 범주 열을 각자 처리하고, ColumnTransformer가 둘을 열별로 묶어요.\npreprocess = ColumnTransformer([\n    # 1) 숫자 열: 빈칸을 평균으로 채운 뒤 표준화해요.\n    (\"num\", Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())]), [\"distance\"]),\n    # 2) 범주 열: 빈칸을 가장 흔한 값으로 채운 뒤 원핫 열로 바꿔요.\n    (\"cat\", Pipeline([(\"fill\", SimpleImputer(strategy=\"most_frequent\")), (\"encode\", OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False))]), [\"zone\"])\n])\nfrom sklearn.model_selection import KFold, cross_validate\n\npipeline = Pipeline([(\"prep\", preprocess), (\"model\", LinearRegression())])\n# 이 줄을 고쳐 미리 fit한 행렬 대신 pipeline 전체와 원래 표 X_train을 교차검증에 넘기세요.\nresult = cross_validate(LinearRegression(), preprocess.fit_transform(X_train), y_train, cv=KFold(n_splits=3), return_estimator=True)\n# 확인용 출력: fold마다 거리 빈칸을 채운 평균이에요. 미리 fit했다면 모두 전체 평균이에요. 이 줄의 문법은 몰라도 돼요.\nprint([float(getattr(m, \"named_steps\", {\"prep\": preprocess})[\"prep\"].named_transformers_[\"num\"].named_steps[\"fill\"].statistics_[0]) for m in result[\"estimator\"]])\n",
+      "solution": "import numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\n# 숫자와 범주 열을 각자 처리하고, ColumnTransformer가 둘을 열별로 묶어요.\npreprocess = ColumnTransformer([\n    # 1) 숫자 열: 빈칸을 평균으로 채운 뒤 표준화해요.\n    (\"num\", Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())]), [\"distance\"]),\n    # 2) 범주 열: 빈칸을 가장 흔한 값으로 채운 뒤 원핫 열로 바꿔요.\n    (\"cat\", Pipeline([(\"fill\", SimpleImputer(strategy=\"most_frequent\")), (\"encode\", OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False))]), [\"zone\"])\n])\nfrom sklearn.model_selection import KFold, cross_validate\n\npipeline = Pipeline([(\"prep\", preprocess), (\"model\", LinearRegression())])\n# 이 줄을 고쳐 미리 fit한 행렬 대신 pipeline 전체와 원래 표 X_train을 교차검증에 넘기세요.\n# Pipeline 전체를 넘기면 fold마다 그 훈련 몫으로만 전처리 기준을 다시 배워요.\nresult = cross_validate(pipeline, X_train, y_train, cv=KFold(n_splits=3), return_estimator=True)\n# 확인용 출력: fold마다 거리 빈칸을 채운 평균이에요. 미리 fit했다면 모두 전체 평균이에요. 이 줄의 문법은 몰라도 돼요.\nprint([float(getattr(m, \"named_steps\", {\"prep\": preprocess})[\"prep\"].named_transformers_[\"num\"].named_steps[\"fill\"].statistics_[0]) for m in result[\"estimator\"]])\n",
       "files": {
         "delivery.csv": "order_id,distance,zone,minutes\n101,1,north,10\n102,2,north,20\n103,3,south,30\n104,4,south,40\n105,5,north,50\n106,6,south,60\n",
         "new.csv": "order_id,distance,zone\n201,2,north\n202,,west\n203,8,south\n"
       },
-      "question": "pipeline.predict(X_new) 한 호출 안에서 새 배송에 무슨 일이 일어날까요?"
-    },
-    {
-      "id": "stp_1042f95e-0b9a-49ca-986c-ac76492213d6",
-      "title": "교차검증에서도 전체 흐름을 학습해요",
-      "goal": "Pipeline 전체를 교차검증하면 fold마다 전처리도 그 fold의 훈련 몫으로 다시 배워요. 세 fold의 거리 대체 평균을 출력해요.\n왜 하나의 평균을 공유하지 않을까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "fold",
-      "tests": [],
+      "tests": [
+        {
+          "input": "",
+          "expected": "[4.5, 3.5, 2.5]"
+        }
+      ],
       "required": true,
-      "example_code": "import numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 실제 제공 파일에서 원래 관측의 역할을 나눠요.\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\n# 숫자와 범주 열을 각자 처리하고 명시적으로 dense 원핫을 만들어요.\n# 1) 숫자 열 처리 → 2) 범주 열 처리 → 3) ColumnTransformer가 둘을 열별로 묶어요.\npreprocess = ColumnTransformer([\n    # 1) 숫자 열: 빈칸을 평균으로 채운 뒤 표준화해요.\n    (\"num\", Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())]), [\"distance\"]),\n    # 2) 범주 열: 빈칸을 가장 흔한 값으로 채운 뒤 원핫 열로 바꿔요.\n    (\"cat\", Pipeline([(\"fill\", SimpleImputer(strategy=\"most_frequent\")), (\"encode\", OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False))]), [\"zone\"])\n])\nfrom sklearn.model_selection import KFold, cross_validate\n\npipeline = Pipeline([(\"prep\", preprocess), (\"model\", LinearRegression())])\nresult = cross_validate(pipeline, X_train, y_train, cv=KFold(n_splits=3), return_estimator=True)\nprint([float(model.named_steps[\"prep\"].named_transformers_[\"num\"].named_steps[\"fill\"].statistics_[0]) for model in result[\"estimator\"]])\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "error",
-            "text": "전체 평균 3.5를 모든 fold가 함께 써야 하니 오류예요"
-          },
-          {
-            "id": "fold",
-            "text": "각 훈련 몫 안에서 전체 전처리를 학습해요"
-          }
-        ],
-        "answer": "fold"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "cross_val_score에 Pipeline 전체를 넘겼어요. fold마다 거리 빈칸을 채우는 평균이 같을지 다를지 예상해요.",
-          "target": "text:세 fold의 거리 대체 평균을 출력해요."
+          "text": "전처리를 전체 표로 미리 fit하면 평가 몫의 정보가 기준에 섞여요. pipeline 전체를 교차검증에 넘겨야 해요.",
+          "target": "text:미리 fit한 행렬 대신 pipeline 전체와 원래 표 X_train을 교차검증에 넘기세요."
         },
         {
           "action": "run",
@@ -289,280 +279,280 @@
         },
         {
           "action": "say",
-          "text": "각 훈련 몫에서만 거리 기준을 배웠기에 평균이 달라요.",
+          "text": "[3.5, 3.5, 3.5]예요. 세 fold가 모두 전체 표의 평균을 함께 썼어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "cross_validate(LinearRegression(), preprocess.fit_transform(X_train), y_train,",
+          "after": "cross_validate(pipeline, X_train, y_train,",
+          "say": "pipeline과 X_train을 넘겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            30,
+            30
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[4.5, 3.5, 2.5]예요. fold마다 자기 훈련 몫의 거리로만 평균을 배웠어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 교차검증 밖에서 전체 표로 전처리를 먼저 fit해 공유하지 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "fold"
+          "text": "조심하세요. 교차검증 밖에서 전체 표로 전처리를 먼저 fit해 공유하지 않아요. 평가 몫이 기준에 들어가요.",
+          "target": "code:cross_validate(pipeline, X_train, y_train,"
         }
-      ],
-      "predict_before_run": true,
+      ]
+    },
+    {
+      "id": "stp_2c840b11-9e31-46c5-ad93-ca6405b8ab26",
+      "title": "model__alpha로 Pipeline 안 Ridge의 설정을 탐색하세요",
+      "goal": "`GridSearchCV`는 설정 후보를 교차검증으로 비교해 가장 좋은 설정으로 다시 학습해요. Pipeline 안의 설정은 `단계이름__설정이름`으로 적어요. 여기서 Ridge 단계의 이름은 model이에요.\n\nsearch 줄을 고쳐 Pipeline 안 model 단계의 alpha 후보를 탐색하세요. 채점은 다른 후보와 표로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 ValueError가 나오는지 확인하세요.\n2. `\"prep__alpha\"`를 `\"model__alpha\"`로 고치세요.\n3. 코드 실행을 눌러 RMSE가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\n# 숫자와 범주 열을 각자 처리하고, ColumnTransformer가 둘을 열별로 묶어요.\npreprocess = ColumnTransformer([\n    # 1) 숫자 열: 빈칸을 평균으로 채운 뒤 표준화해요.\n    (\"num\", Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())]), [\"distance\"]),\n    # 2) 범주 열: 빈칸을 가장 흔한 값으로 채운 뒤 원핫 열로 바꿔요.\n    (\"cat\", Pipeline([(\"fill\", SimpleImputer(strategy=\"most_frequent\")), (\"encode\", OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False))]), [\"zone\"])\n])\nfrom sklearn.linear_model import Ridge\nfrom sklearn.model_selection import GridSearchCV, KFold\n\n# Ridge는 계수가 너무 커지지 않게 벌점을 주는 선형 회귀이고, alpha가 그 세기예요.\nalphas = [0.1, 1.0]\npipeline = Pipeline([(\"prep\", preprocess), (\"model\", Ridge())])\n# 이 줄을 고쳐 Pipeline 안 model 단계의 alpha 후보를 탐색하세요.\nsearch = GridSearchCV(pipeline, {\"prep__alpha\": alphas}, scoring=\"neg_mean_squared_error\", cv=KFold(n_splits=3), n_jobs=1)\nsearch.fit(X_train, y_train)\nprint(len(search.cv_results_[\"params\"]))\nprint(list(search.predict(X_new).shape))\n# 교차검증 RMSE: negMSE 점수의 부호를 바꿔 제곱근을 구하면 분 단위 예상 오차예요.\nprint(round(float((-search.best_score_) ** 0.5), 3))\n",
+      "solution": "import numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\n# 숫자와 범주 열을 각자 처리하고, ColumnTransformer가 둘을 열별로 묶어요.\npreprocess = ColumnTransformer([\n    # 1) 숫자 열: 빈칸을 평균으로 채운 뒤 표준화해요.\n    (\"num\", Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())]), [\"distance\"]),\n    # 2) 범주 열: 빈칸을 가장 흔한 값으로 채운 뒤 원핫 열로 바꿔요.\n    (\"cat\", Pipeline([(\"fill\", SimpleImputer(strategy=\"most_frequent\")), (\"encode\", OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False))]), [\"zone\"])\n])\nfrom sklearn.linear_model import Ridge\nfrom sklearn.model_selection import GridSearchCV, KFold\n\n# Ridge는 계수가 너무 커지지 않게 벌점을 주는 선형 회귀이고, alpha가 그 세기예요.\nalphas = [0.1, 1.0]\npipeline = Pipeline([(\"prep\", preprocess), (\"model\", Ridge())])\n# 이 줄을 고쳐 Pipeline 안 model 단계의 alpha 후보를 탐색하세요.\n# 단계 이름 model과 설정 이름 alpha를 밑줄 두 개로 이어요.\nsearch = GridSearchCV(pipeline, {\"model__alpha\": alphas}, scoring=\"neg_mean_squared_error\", cv=KFold(n_splits=3), n_jobs=1)\nsearch.fit(X_train, y_train)\nprint(len(search.cv_results_[\"params\"]))\nprint(list(search.predict(X_new).shape))\n# 교차검증 RMSE: negMSE 점수의 부호를 바꿔 제곱근을 구하면 분 단위 예상 오차예요.\nprint(round(float((-search.best_score_) ** 0.5), 3))\n",
       "files": {
         "delivery.csv": "order_id,distance,zone,minutes\n101,1,north,10\n102,2,north,20\n103,3,south,30\n104,4,south,40\n105,5,north,50\n106,6,south,60\n",
         "new.csv": "order_id,distance,zone\n201,2,north\n202,,west\n203,8,south\n"
-      }
-    },
-    {
-      "id": "stp_fc59b750-a4d9-4feb-8db8-8314d41c7fb0",
-      "title": "설정 경로와 탐색 기준을 연결해요",
-      "goal": "Ridge는 계수가 너무 커지지 않게 벌점을 더하는 선형 회귀이고, alpha는 그 벌점의 세기예요. 혼합 전처리 뒤 Ridge의 alpha 후보를 교차검증으로 비교하고, 마지막 줄에 최선 후보의 교차검증 RMSE를 출력해요.\n설정 경로는 무엇일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "path",
-      "tests": [],
-      "required": true,
-      "example_code": "import numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 실제 제공 파일에서 원래 관측의 역할을 나눠요.\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\n# 숫자와 범주 열을 각자 처리하고 명시적으로 dense 원핫을 만들어요.\n# 1) 숫자 열 처리 → 2) 범주 열 처리 → 3) ColumnTransformer가 둘을 열별로 묶어요.\npreprocess = ColumnTransformer([\n    # 1) 숫자 열: 빈칸을 평균으로 채운 뒤 표준화해요.\n    (\"num\", Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())]), [\"distance\"]),\n    # 2) 범주 열: 빈칸을 가장 흔한 값으로 채운 뒤 원핫 열로 바꿔요.\n    (\"cat\", Pipeline([(\"fill\", SimpleImputer(strategy=\"most_frequent\")), (\"encode\", OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False))]), [\"zone\"])\n])\nfrom sklearn.linear_model import Ridge\nfrom sklearn.model_selection import GridSearchCV, KFold\n\npipeline = Pipeline([(\"prep\", preprocess), (\"model\", Ridge())])\nsearch = GridSearchCV(pipeline, {\"model__alpha\": [0.1, 1.0]}, scoring=\"neg_mean_squared_error\", cv=KFold(n_splits=3), n_jobs=1)\nsearch.fit(X_train, y_train)\npredictions = search.predict(X_new)\nprint(len(search.cv_results_[\"params\"]))\nprint(list(predictions.shape))\nprint(bool(np.isfinite(predictions).all()))\n# 교차검증 RMSE: negMSE 점수의 부호를 바꿔 제곱근을 구하면 분 단위 예상 오차예요.\nprint(round(float((-search.best_score_) ** 0.5), 3))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "prep",
-            "text": "prep__alpha로 전처리 단계에 줘요"
-          },
-          {
-            "id": "path",
-            "text": "model__alpha예요"
-          }
-        ],
-        "answer": "path"
       },
+      "tests": [
+        {
+          "input": "",
+          "expected": "2\n[3]\n1.85"
+        }
+      ],
+      "required": true,
       "narration": [
         {
           "action": "say",
-          "text": "Pipeline 안 Ridge의 설정은 단계 이름과 설정 이름을 밑줄 두 개로 이어 적어요. 마지막 줄의 RMSE는 보고서에 적을 예상 오차예요.",
-          "target": "text:Ridge는 계수가 너무 커지지 않게 벌점을 더하는 선형 회귀이고, alpha는 그 벌점의 세기예요."
+          "text": "alpha는 Ridge의 설정이에요. Pipeline 안에서는 단계 이름과 설정 이름을 밑줄 두 개로 이어 적어야 해요.",
+          "target": "text:Pipeline 안 model 단계의 alpha 후보를 탐색하세요."
         },
         {
           "action": "run",
           "lines": [
             33,
-            37
-          ]
+            33
+          ],
+          "expect_error": "ValueError"
         },
         {
           "action": "say",
-          "text": "후보 두 개를 비교했고 새 예측 세 개가 나왔어요. 마지막 줄의 교차검증 RMSE는 1.85분이에요. 보고서에는 새 배송에서 대략 이만큼 빗나갈 수 있다고 적어요.",
+          "text": "ValueError예요. 전처리 단계 prep에는 alpha라는 설정이 없어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "[0.1, 1.0]",
-          "after": "[1.0]",
-          "say": "alpha 후보를 1.0 하나로 줄여 볼게요."
+          "before": "{\"prep__alpha\": alphas}",
+          "after": "{\"model__alpha\": alphas}",
+          "say": "prep__alpha를 model__alpha로 바꿔요."
         },
         {
           "action": "run",
           "lines": [
             33,
-            37
+            36
           ]
         },
         {
           "action": "say",
-          "text": "후보가 하나라 비교 수가 1이고, 예상 오차는 7.627분으로 커졌어요. 벌점이 강하면 이 작은 표의 관계를 덜 따라가요.",
+          "text": "2, [3], 1.85예요. 후보 두 개를 비교했고 새 예측 세 개가 나왔어요. 교차검증 RMSE는 1.85분이에요.",
           "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "[1.0]",
-          "after": "[0.1, 1.0]",
-          "say": "두 후보로 되돌려요."
         },
         {
           "action": "say",
-          "text": "조심하세요. 후보 비교는 교차검증이고 실제 정답 없는 새 표의 정확도는 아직 몰라요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "path"
+          "text": "조심하세요. 후보 비교는 교차검증 점수예요. 실제 정답이 없는 새 표의 정확도는 아직 몰라요.",
+          "target": "code:{\"model__alpha\": alphas}"
         }
-      ],
-      "predict_before_run": true,
+      ]
+    },
+    {
+      "id": "stp_2c9a7d60-ec5d-41ba-b3c3-6a27794cce2d",
+      "title": "preprocess.fit_transform(X_train)로 신경망에 숫자 행렬을 넘기세요",
+      "goal": "Keras의 Dense 층은 숫자만 계산해요. 그래서 지역 글자는 전처리로 원핫 숫자 열로 바꾼 뒤 넘겨요. 훈련 표로 기준을 배운 뒤 새 표에는 같은 기준을 적용해요. 학습한 실수 값은 비교하지 않아요.\n\ntrain_matrix 줄을 고쳐 훈련 표를 전처리로 바꾼 숫자 행렬로 만드세요. 채점은 다른 표로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 NotFittedError가 나오는지 확인하세요.\n2. `train_matrix = X_train`을 `train_matrix = preprocess.fit_transform(X_train).astype(\"float32\")`로 고치세요.\n3. 코드 실행을 눌러 [3, 1]이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport tensorflow as tf\nfrom tensorflow import keras\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nimport numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\n# 숫자와 범주 열을 각자 처리하고, ColumnTransformer가 둘을 열별로 묶어요.\npreprocess = ColumnTransformer([\n    # 1) 숫자 열: 빈칸을 평균으로 채운 뒤 표준화해요.\n    (\"num\", Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())]), [\"distance\"]),\n    # 2) 범주 열: 빈칸을 가장 흔한 값으로 채운 뒤 원핫 열로 바꿔요.\n    (\"cat\", Pipeline([(\"fill\", SimpleImputer(strategy=\"most_frequent\")), (\"encode\", OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False))]), [\"zone\"])\n])\n# 이 줄을 고쳐 훈련 표를 전처리로 바꾼 숫자 행렬로 만드세요. 전처리 기준도 여기서 배워요.\ntrain_matrix = X_train\nnew_matrix = preprocess.transform(X_new).astype(\"float32\")\nmodel = keras.Sequential([keras.Input(shape=(train_matrix.shape[1],)), keras.layers.Dense(4, activation=\"relu\"), keras.layers.Dense(1)])\nmodel.compile(optimizer=\"adam\", loss=\"mse\")\nmodel.fit(train_matrix, y_train.to_numpy(dtype=\"float32\"), epochs=2, batch_size=3, shuffle=False, verbose=0)\npredictions = model.predict(new_matrix, verbose=0)\nprint(list(predictions.shape))\nprint(bool(np.isfinite(predictions).all()))\n",
+      "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport tensorflow as tf\nfrom tensorflow import keras\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nimport numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\n# 숫자와 범주 열을 각자 처리하고, ColumnTransformer가 둘을 열별로 묶어요.\npreprocess = ColumnTransformer([\n    # 1) 숫자 열: 빈칸을 평균으로 채운 뒤 표준화해요.\n    (\"num\", Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())]), [\"distance\"]),\n    # 2) 범주 열: 빈칸을 가장 흔한 값으로 채운 뒤 원핫 열로 바꿔요.\n    (\"cat\", Pipeline([(\"fill\", SimpleImputer(strategy=\"most_frequent\")), (\"encode\", OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False))]), [\"zone\"])\n])\n# 이 줄을 고쳐 훈련 표를 전처리로 바꾼 숫자 행렬로 만드세요. 전처리 기준도 여기서 배워요.\n# Dense는 숫자만 계산해요. 훈련 표로 기준을 배우고 같은 전처리로 바꾼 행렬을 넘겨요.\ntrain_matrix = preprocess.fit_transform(X_train).astype(\"float32\")\nnew_matrix = preprocess.transform(X_new).astype(\"float32\")\nmodel = keras.Sequential([keras.Input(shape=(train_matrix.shape[1],)), keras.layers.Dense(4, activation=\"relu\"), keras.layers.Dense(1)])\nmodel.compile(optimizer=\"adam\", loss=\"mse\")\nmodel.fit(train_matrix, y_train.to_numpy(dtype=\"float32\"), epochs=2, batch_size=3, shuffle=False, verbose=0)\npredictions = model.predict(new_matrix, verbose=0)\nprint(list(predictions.shape))\nprint(bool(np.isfinite(predictions).all()))\n",
       "files": {
         "delivery.csv": "order_id,distance,zone,minutes\n101,1,north,10\n102,2,north,20\n103,3,south,30\n104,4,south,40\n105,5,north,50\n106,6,south,60\n",
         "new.csv": "order_id,distance,zone\n201,2,north\n202,,west\n203,8,south\n"
-      }
-    },
-    {
-      "id": "stp_ee0ebbeb-e420-422d-af9d-d2aaba66f930",
-      "title": "신경망에는 숫자 행렬을 전달해요",
-      "goal": "신경망 입력은 전처리된 숫자 세 열이에요.\n원래 지역 문자열을 그대로 Dense에 넣을까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "numeric",
-      "tests": [],
-      "required": true,
-      "example_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nimport numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 실제 제공 파일에서 원래 관측의 역할을 나눠요.\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\n# 숫자와 범주 열을 각자 처리하고 명시적으로 dense 원핫을 만들어요.\n# 1) 숫자 열 처리 → 2) 범주 열 처리 → 3) ColumnTransformer가 둘을 열별로 묶어요.\npreprocess = ColumnTransformer([\n    # 1) 숫자 열: 빈칸을 평균으로 채운 뒤 표준화해요.\n    (\"num\", Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())]), [\"distance\"]),\n    # 2) 범주 열: 빈칸을 가장 흔한 값으로 채운 뒤 원핫 열로 바꿔요.\n    (\"cat\", Pipeline([(\"fill\", SimpleImputer(strategy=\"most_frequent\")), (\"encode\", OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False))]), [\"zone\"])\n])\n# 문자열을 전처리한 숫자 행렬로 바꾼 뒤 신경망에 전달해요.\ntrain_matrix = preprocess.fit_transform(X_train).astype(\"float32\")\nnew_matrix = preprocess.transform(X_new).astype(\"float32\")\nmodel = keras.Sequential([keras.Input(shape=(train_matrix.shape[1],)), keras.layers.Dense(4, activation=\"relu\"), keras.layers.Dense(1)])\nmodel.compile(optimizer=\"adam\", loss=\"mse\")\nmodel.fit(train_matrix, y_train.to_numpy(dtype=\"float32\"), epochs=2, batch_size=3, shuffle=False, verbose=0)\npredictions = model.predict(new_matrix, verbose=0)\nprint(list(predictions.shape))\nprint(bool(np.isfinite(predictions).all()))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "numeric",
-            "text": "아니요.같은 훈련 전처리로 만든 숫자 행렬을 넣어요"
-          },
-          {
-            "id": "raw",
-            "text": "네.문자열 지역을 그대로 수치 Dense에 넘겨요"
-          }
-        ],
-        "answer": "numeric"
       },
+      "tests": [
+        {
+          "input": "",
+          "expected": "[3, 1]\nTrue"
+        }
+      ],
+      "required": true,
       "narration": [
         {
           "action": "say",
-          "text": "Dense 층은 숫자만 계산해요. 문자열 지역을 그대로 넣을지, 같은 전처리로 만든 숫자 행렬을 넣을지 고르는 문제예요.",
-          "target": "text:신경망 입력은 전처리된 숫자 세 열이에요."
+          "text": "Dense 층은 숫자만 계산해요. 지역 글자 대신 전처리로 바꾼 숫자 행렬을 넘겨야 해요.",
+          "target": "text:훈련 표를 전처리로 바꾼 숫자 행렬로 만드세요."
         },
         {
           "action": "run",
           "lines": [
-            43,
-            44
+            38,
+            38
+          ],
+          "expect_error": "NotFittedError"
+        },
+        {
+          "action": "say",
+          "text": "NotFittedError예요. 전처리 기준을 아직 배우지 않아 새 표를 바꿀 수 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "train_matrix = X_train\n",
+          "after": "train_matrix = preprocess.fit_transform(X_train).astype(\"float32\")\n",
+          "say": "preprocess.fit_transform(X_train).astype(\"float32\")로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            38,
+            39
           ]
         },
         {
           "action": "say",
-          "text": "실제로 짧게 학습한 뒤 새 배송 세 행 한 출력이 나왔어요.",
+          "text": "[3, 1]과 True예요. 짧게 학습한 뒤 새 배송 세 건에 출력 하나씩 나왔어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 숫자 모양이 맞아 실행된 것만으로 새 예측 성능을 보장하지 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "numeric"
+          "text": "조심하세요. 모양이 맞아 실행된 것만으로 새 예측의 성능까지 보장하지는 않아요.",
+          "target": "code:preprocess.fit_transform(X_train)"
         }
-      ],
-      "predict_before_run": true,
+      ]
+    },
+    {
+      "id": "stp_3257f998-f422-4811-b6a9-8f514ecb9bb6",
+      "title": "index=False로 주문번호와 예측만 파일에 쓰세요",
+      "goal": "`to_csv`는 표를 파일로 내보내요. 기본으로는 판다스의 행 번호도 첫 열로 써서, 다시 읽으면 이름 없는 열이 생겨요. 주문번호는 원래 순서 그대로 예측과 짝을 이뤄요.\n\nto_csv 줄을 고쳐 판다스의 행 번호는 빼고 두 열만 파일에 쓰세요. 채점은 다른 새 표로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 열 이름을 확인하세요.\n2. `answer.to_csv(\"answer.csv\")`에 `index=False`를 더하세요.\n3. 코드 실행을 눌러 두 열만 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\n# 숫자와 범주 열을 각자 처리하고, ColumnTransformer가 둘을 열별로 묶어요.\npreprocess = ColumnTransformer([\n    # 1) 숫자 열: 빈칸을 평균으로 채운 뒤 표준화해요.\n    (\"num\", Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())]), [\"distance\"]),\n    # 2) 범주 열: 빈칸을 가장 흔한 값으로 채운 뒤 원핫 열로 바꿔요.\n    (\"cat\", Pipeline([(\"fill\", SimpleImputer(strategy=\"most_frequent\")), (\"encode\", OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False))]), [\"zone\"])\n])\npipeline = Pipeline([(\"prep\", preprocess), (\"model\", LinearRegression())])\npipeline.fit(X_train, y_train)\n# 새 입력 순서와 원래 주문번호의 대응을 그대로 보존해요.\nanswer = pd.DataFrame({\"order_id\": new[\"order_id\"], \"minutes\": pipeline.predict(X_new).round(6)})\n# 이 줄을 고쳐 판다스의 행 번호는 빼고 두 열만 파일에 쓰세요.\nanswer.to_csv(\"answer.csv\")\nrestored = pd.read_csv(\"answer.csv\")\nprint(restored.columns.tolist())\nprint(restored[\"order_id\"].tolist())\nprint(restored[\"minutes\"].tolist())\n",
+      "solution": "import numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\n# 숫자와 범주 열을 각자 처리하고, ColumnTransformer가 둘을 열별로 묶어요.\npreprocess = ColumnTransformer([\n    # 1) 숫자 열: 빈칸을 평균으로 채운 뒤 표준화해요.\n    (\"num\", Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())]), [\"distance\"]),\n    # 2) 범주 열: 빈칸을 가장 흔한 값으로 채운 뒤 원핫 열로 바꿔요.\n    (\"cat\", Pipeline([(\"fill\", SimpleImputer(strategy=\"most_frequent\")), (\"encode\", OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False))]), [\"zone\"])\n])\npipeline = Pipeline([(\"prep\", preprocess), (\"model\", LinearRegression())])\npipeline.fit(X_train, y_train)\n# 새 입력 순서와 원래 주문번호의 대응을 그대로 보존해요.\nanswer = pd.DataFrame({\"order_id\": new[\"order_id\"], \"minutes\": pipeline.predict(X_new).round(6)})\n# 이 줄을 고쳐 판다스의 행 번호는 빼고 두 열만 파일에 쓰세요.\n# index=False면 판다스의 행 번호를 열로 쓰지 않아요.\nanswer.to_csv(\"answer.csv\", index=False)\nrestored = pd.read_csv(\"answer.csv\")\nprint(restored.columns.tolist())\nprint(restored[\"order_id\"].tolist())\nprint(restored[\"minutes\"].tolist())\n",
       "files": {
         "delivery.csv": "order_id,distance,zone,minutes\n101,1,north,10\n102,2,north,20\n103,3,south,30\n104,4,south,40\n105,5,north,50\n106,6,south,60\n",
         "new.csv": "order_id,distance,zone\n201,2,north\n202,,west\n203,8,south\n"
-      }
-    },
-    {
-      "id": "stp_c9ec6bf7-8d92-4182-8519-3deb715aed81",
-      "title": "예측과 원래 주문번호를 함께 내보내요",
-      "goal": "결과 파일에 판다스 행 번호까지 새 열로 내보내고 싶진 않아요.\n맞는 옵션은 무엇일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "false",
-      "tests": [],
-      "required": true,
-      "example_code": "import numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 실제 제공 파일에서 원래 관측의 역할을 나눠요.\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\n# 숫자와 범주 열을 각자 처리하고 명시적으로 dense 원핫을 만들어요.\n# 1) 숫자 열 처리 → 2) 범주 열 처리 → 3) ColumnTransformer가 둘을 열별로 묶어요.\npreprocess = ColumnTransformer([\n    # 1) 숫자 열: 빈칸을 평균으로 채운 뒤 표준화해요.\n    (\"num\", Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())]), [\"distance\"]),\n    # 2) 범주 열: 빈칸을 가장 흔한 값으로 채운 뒤 원핫 열로 바꿔요.\n    (\"cat\", Pipeline([(\"fill\", SimpleImputer(strategy=\"most_frequent\")), (\"encode\", OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False))]), [\"zone\"])\n])\npipeline = Pipeline([(\"prep\", preprocess), (\"model\", LinearRegression())])\npipeline.fit(X_train, y_train)\n# 새 입력 순서와 원래 주문번호의 대응을 그대로 보존해요.\nanswer = pd.DataFrame({\"order_id\": new[\"order_id\"], \"minutes\": pipeline.predict(X_new).round(6)})\nanswer.to_csv(\"answer.csv\", index=False)\nrestored = pd.read_csv(\"answer.csv\")\nprint(restored.columns.tolist())\nprint(restored[\"order_id\"].tolist())\nprint(restored[\"minutes\"].tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "false",
-            "text": "index=False예요"
-          },
-          {
-            "id": "true",
-            "text": "index=True로 행 번호도 열에 넣어요"
-          }
-        ],
-        "answer": "false"
       },
+      "tests": [
+        {
+          "input": "",
+          "expected": "['order_id', 'minutes']\n[201, 202, 203]\n[20.0, 35.0, 80.0]"
+        }
+      ],
+      "required": true,
       "narration": [
         {
           "action": "say",
-          "text": "to_csv는 표를 파일로 내보내요. index 옵션은 판다스의 행 번호를 열로 넣을지 정해요. 주문번호와 예측만 남기는 옵션을 고르는 문제예요.",
-          "target": "text:결과 파일에 판다스 행 번호까지 새 열로 내보내고 싶진 않아요."
+          "text": "제출 파일에는 주문번호와 예측만 있어야 해요. 판다스의 행 번호를 쓰지 않게 옵션을 더해요.",
+          "target": "text:판다스의 행 번호는 빼고 두 열만 파일에 쓰세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            31,
+            33
+          ]
+        },
+        {
+          "action": "say",
+          "text": "['Unnamed: 0', 'order_id', 'minutes']예요. 행 번호가 이름 없는 열로 들어갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "answer.to_csv(\"answer.csv\")\n",
+          "after": "answer.to_csv(\"answer.csv\", index=False)\n",
+          "say": "괄호 안에 index=False를 더해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            31,
+            33
+          ]
+        },
+        {
+          "action": "say",
+          "text": "['order_id', 'minutes'], [201, 202, 203], [20.0, 35.0, 80.0]이에요. 두 열이고 새 배송 순서를 유지했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 결과를 예측값 순으로 정렬해 쓰면 행 순서가 바뀌어요. 주문번호와 예측의 짝은 그대로 지켜요.",
+          "target": "code:index=False"
+        }
+      ]
+    },
+    {
+      "id": "stp_623ed9ff-12bd-41ce-8a33-a44c77869f01",
+      "title": "joblib.dump(pipeline, ...)로 전처리까지 저장하세요",
+      "goal": "`joblib.dump`는 파이썬 객체를 파일에 저장하고 `joblib.load`가 다시 열어요. 모델 단계만 저장하면 전처리 기준이 빠지고, Pipeline 전체를 저장하면 둘이 함께 들어가요.\n\njoblib.dump 줄을 고쳐 전처리 기준까지 든 pipeline 전체를 저장하세요. 채점은 다른 표로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 ValueError가 나오는지 확인하세요.\n2. `pipeline.named_steps[\"model\"]`을 `pipeline`으로 고치세요.\n3. 코드 실행을 눌러 True와 3.5가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\n# 숫자와 범주 열을 각자 처리하고, ColumnTransformer가 둘을 열별로 묶어요.\npreprocess = ColumnTransformer([\n    # 1) 숫자 열: 빈칸을 평균으로 채운 뒤 표준화해요.\n    (\"num\", Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())]), [\"distance\"]),\n    # 2) 범주 열: 빈칸을 가장 흔한 값으로 채운 뒤 원핫 열로 바꿔요.\n    (\"cat\", Pipeline([(\"fill\", SimpleImputer(strategy=\"most_frequent\")), (\"encode\", OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False))]), [\"zone\"])\n])\npipeline = Pipeline([(\"prep\", preprocess), (\"model\", LinearRegression())])\npipeline.fit(X_train, y_train)\nimport joblib\n\nbefore = pipeline.predict(X_new)\n# 이 줄을 고쳐 전처리 기준까지 든 pipeline 전체를 저장하세요.\njoblib.dump(pipeline.named_steps[\"model\"], \"delivery-pipeline.joblib\")\nrestored = joblib.load(\"delivery-pipeline.joblib\")\nprint(bool(np.allclose(before, restored.predict(X_new))))\nprint(float(restored.named_steps[\"prep\"].named_transformers_[\"num\"].named_steps[\"fill\"].statistics_[0]))\n",
+      "solution": "import numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\n# 숫자와 범주 열을 각자 처리하고, ColumnTransformer가 둘을 열별로 묶어요.\npreprocess = ColumnTransformer([\n    # 1) 숫자 열: 빈칸을 평균으로 채운 뒤 표준화해요.\n    (\"num\", Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())]), [\"distance\"]),\n    # 2) 범주 열: 빈칸을 가장 흔한 값으로 채운 뒤 원핫 열로 바꿔요.\n    (\"cat\", Pipeline([(\"fill\", SimpleImputer(strategy=\"most_frequent\")), (\"encode\", OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False))]), [\"zone\"])\n])\npipeline = Pipeline([(\"prep\", preprocess), (\"model\", LinearRegression())])\npipeline.fit(X_train, y_train)\nimport joblib\n\nbefore = pipeline.predict(X_new)\n# 이 줄을 고쳐 전처리 기준까지 든 pipeline 전체를 저장하세요.\n# Pipeline 전체를 저장하면 학습한 전처리 기준과 모델이 함께 파일에 들어가요.\njoblib.dump(pipeline, \"delivery-pipeline.joblib\")\nrestored = joblib.load(\"delivery-pipeline.joblib\")\nprint(bool(np.allclose(before, restored.predict(X_new))))\nprint(float(restored.named_steps[\"prep\"].named_transformers_[\"num\"].named_steps[\"fill\"].statistics_[0]))\n",
+      "files": {
+        "delivery.csv": "order_id,distance,zone,minutes\n101,1,north,10\n102,2,north,20\n103,3,south,30\n104,4,south,40\n105,5,north,50\n106,6,south,60\n",
+        "new.csv": "order_id,distance,zone\n201,2,north\n202,,west\n203,8,south\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "True\n3.5"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "모델만 저장하면 전처리 기준이 빠져요. 다시 열어도 같은 예측이 나오게 pipeline 전체를 저장해야 해요.",
+          "target": "text:전처리 기준까지 든 pipeline 전체를 저장하세요."
         },
         {
           "action": "run",
           "lines": [
             32,
-            34
-          ]
+            32
+          ],
+          "expect_error": "ValueError"
         },
         {
           "action": "say",
-          "text": "주문번호와 시간 두 열이며 새 배송 순서 201, 202, 203을 유지했어요.",
+          "text": "ValueError예요. 모델만 불러와 지역 글자가 든 새 표를 받을 수 없어요.",
           "target": "output"
         },
         {
-          "action": "say",
-          "text": "조심하세요. 결과를 정렬해 예측과 원래 주문번호의 대응을 바꾸지 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "false"
-        }
-      ],
-      "predict_before_run": true,
-      "files": {
-        "delivery.csv": "order_id,distance,zone,minutes\n101,1,north,10\n102,2,north,20\n103,3,south,30\n104,4,south,40\n105,5,north,50\n106,6,south,60\n",
-        "new.csv": "order_id,distance,zone\n201,2,north\n202,,west\n203,8,south\n"
-      }
-    },
-    {
-      "id": "stp_126392df-cd64-4c73-88d1-a266183d1bf9",
-      "title": "전처리 기준까지 같이 복원해요",
-      "goal": "전체 Pipeline을 저장하고 다시 열었어요.\n함께 복원된 것은 무엇일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "all",
-      "tests": [],
-      "required": true,
-      "example_code": "import numpy as np\nimport pandas as pd\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.linear_model import LinearRegression\n\n# 실제 제공 파일에서 원래 관측의 역할을 나눠요.\n# 파일을 열 이름별 목록으로 읽어 두고 그 목록으로 표를 만들어요. 그래서 다른 자료 목록을 넣어도 같은 코드가 돌아요.\ntrain_rows = pd.read_csv(\"delivery.csv\").to_dict(orient=\"list\")\nnew_rows = pd.read_csv(\"new.csv\").to_dict(orient=\"list\")\ndf = pd.DataFrame(train_rows)\nnew = pd.DataFrame(new_rows)\nX_train = df[[\"distance\", \"zone\"]]\ny_train = df[\"minutes\"]\nX_new = new[[\"distance\", \"zone\"]]\n# 숫자와 범주 열을 각자 처리하고 명시적으로 dense 원핫을 만들어요.\n# 1) 숫자 열 처리 → 2) 범주 열 처리 → 3) ColumnTransformer가 둘을 열별로 묶어요.\npreprocess = ColumnTransformer([\n    # 1) 숫자 열: 빈칸을 평균으로 채운 뒤 표준화해요.\n    (\"num\", Pipeline([(\"fill\", SimpleImputer(strategy=\"mean\")), (\"scale\", StandardScaler())]), [\"distance\"]),\n    # 2) 범주 열: 빈칸을 가장 흔한 값으로 채운 뒤 원핫 열로 바꿔요.\n    (\"cat\", Pipeline([(\"fill\", SimpleImputer(strategy=\"most_frequent\")), (\"encode\", OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False))]), [\"zone\"])\n])\npipeline = Pipeline([(\"prep\", preprocess), (\"model\", LinearRegression())])\npipeline.fit(X_train, y_train)\nimport joblib\n\n# 직접 만든 전체 파이프라인을 저장하고 같은 환경에서 다시 열어요.\nbefore = pipeline.predict(X_new)\njoblib.dump(pipeline, \"delivery-pipeline.joblib\")\nrestored = joblib.load(\"delivery-pipeline.joblib\")\nprint(bool(np.allclose(before, restored.predict(X_new))))\nprint(float(restored.named_steps[\"prep\"].named_transformers_[\"num\"].named_steps[\"fill\"].statistics_[0]))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "all",
-            "text": "학습한 전처리 기준과 예측 모델이에요"
-          },
-          {
-            "id": "only",
-            "text": "예측 모델만 돌아오고 전처리는 다시 fit해야 해요"
-          }
-        ],
-        "answer": "all"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "Pipeline 전체를 저장하면 학습한 전처리 기준과 모델이 함께 파일에 들어가요. 다시 연 뒤 무엇이 함께 돌아오는지 판단해요.",
-          "target": "text:전체 Pipeline을 저장하고 다시 열었어요."
+          "action": "patch_code",
+          "before": "joblib.dump(pipeline.named_steps[\"model\"],",
+          "after": "joblib.dump(pipeline,",
+          "say": "pipeline.named_steps[\"model\"]을 pipeline으로 바꿔요."
         },
         {
           "action": "run",
           "lines": [
-            34,
-            35
+            32,
+            33
           ]
         },
         {
           "action": "say",
-          "text": "새 예측은 같고 거리 대체 평균 3.5도 보존됐어요.",
+          "text": "True와 3.5예요. 다시 연 파이프라인이 같은 예측을 하고 거리 대체 평균 3.5도 함께 돌아왔어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 모델 부분만 저장하는 것과 전체 파이프라인 저장은 범위가 달라요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "all"
+          "text": "조심하세요. 같은 환경에서 직접 저장한 파일만 열어요. 믿을 수 없는 joblib 파일은 열 때 코드가 실행될 수 있어요.",
+          "target": "code:joblib.dump(pipeline,"
         }
-      ],
-      "predict_before_run": true,
-      "files": {
-        "delivery.csv": "order_id,distance,zone,minutes\n101,1,north,10\n102,2,north,20\n103,3,south,30\n104,4,south,40\n105,5,north,50\n106,6,south,60\n",
-        "new.csv": "order_id,distance,zone\n201,2,north\n202,,west\n203,8,south\n"
-      }
+      ]
     },
     {
       "id": "stp_1cab4402-8429-4516-858b-3f01a74c1133",
@@ -875,6 +865,756 @@
         },
         "expected": "id,minutes\n900,15.0"
       }
+    ],
+    "stp_14110477-6327-47ed-903d-cde2c9ac9e35": [
+      {
+        "values": {
+          "train_rows": {
+            "order_id": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "distance": [
+              1.0,
+              2.0,
+              3.0,
+              4.0,
+              5.0,
+              6.0
+            ],
+            "zone": [
+              "north",
+              "north",
+              "south",
+              "south",
+              "north",
+              "south"
+            ],
+            "minutes": [
+              5.0,
+              10.0,
+              15.0,
+              20.0,
+              25.0,
+              30.0
+            ]
+          },
+          "new_rows": {
+            "order_id": [
+              7,
+              8
+            ],
+            "distance": [
+              1.0,
+              3.0
+            ],
+            "zone": [
+              "north",
+              "south"
+            ]
+          }
+        },
+        "expected": "['distance', 'zone']\n[5.0, 10.0, 15.0, 20.0, 25.0, 30.0]\nTrue"
+      },
+      {
+        "values": {
+          "train_rows": {
+            "order_id": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "distance": [
+              1.0,
+              2.0,
+              null,
+              4.0,
+              5.0,
+              6.0
+            ],
+            "zone": [
+              "north",
+              "east",
+              "south",
+              "east",
+              "north",
+              "south"
+            ],
+            "minutes": [
+              11.0,
+              19.0,
+              32.0,
+              41.0,
+              48.0,
+              62.0
+            ]
+          }
+        },
+        "expected": "['distance', 'zone']\n[11.0, 19.0, 32.0, 41.0, 48.0, 62.0]\nTrue"
+      }
+    ],
+    "stp_e3c2ea13-cbc9-4ee3-a019-c5c816e6d042": [
+      {
+        "values": {
+          "train_rows": {
+            "order_id": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "distance": [
+              1.0,
+              2.0,
+              3.0,
+              4.0,
+              5.0,
+              6.0
+            ],
+            "zone": [
+              "north",
+              "north",
+              "south",
+              "south",
+              "north",
+              "south"
+            ],
+            "minutes": [
+              5.0,
+              10.0,
+              15.0,
+              20.0,
+              25.0,
+              30.0
+            ]
+          },
+          "new_rows": {
+            "order_id": [
+              7,
+              8
+            ],
+            "distance": [
+              1.0,
+              3.0
+            ],
+            "zone": [
+              "north",
+              "south"
+            ]
+          }
+        },
+        "expected": "[6, 3]\n['num__distance', 'cat__zone_north', 'cat__zone_south']"
+      },
+      {
+        "values": {
+          "train_rows": {
+            "order_id": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "distance": [
+              1.0,
+              2.0,
+              null,
+              4.0,
+              5.0,
+              6.0
+            ],
+            "zone": [
+              "north",
+              "east",
+              "south",
+              "east",
+              "north",
+              "south"
+            ],
+            "minutes": [
+              11.0,
+              19.0,
+              32.0,
+              41.0,
+              48.0,
+              62.0
+            ]
+          }
+        },
+        "expected": "[6, 4]\n['num__distance', 'cat__zone_east', 'cat__zone_north', 'cat__zone_south']"
+      }
+    ],
+    "stp_b8f8c07c-6444-498e-ac2b-0e97d1777b1f": [
+      {
+        "values": {
+          "train_rows": {
+            "order_id": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "distance": [
+              1.0,
+              2.0,
+              null,
+              4.0,
+              5.0,
+              6.0
+            ],
+            "zone": [
+              "north",
+              "east",
+              "south",
+              "east",
+              "north",
+              "south"
+            ],
+            "minutes": [
+              11.0,
+              19.0,
+              32.0,
+              41.0,
+              48.0,
+              62.0
+            ]
+          }
+        },
+        "expected": "[3, 4]\n3.6\n[0.0, 0.0, 0.0]"
+      },
+      {
+        "values": {
+          "train_rows": {
+            "order_id": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "distance": [
+              1.0,
+              2.0,
+              3.0,
+              4.0,
+              5.0,
+              6.0
+            ],
+            "zone": [
+              "north",
+              "north",
+              "south",
+              "south",
+              "north",
+              "south"
+            ],
+            "minutes": [
+              5.0,
+              10.0,
+              15.0,
+              20.0,
+              25.0,
+              30.0
+            ]
+          },
+          "new_rows": {
+            "order_id": [
+              9,
+              8,
+              7
+            ],
+            "distance": [
+              8.0,
+              2.0,
+              null
+            ],
+            "zone": [
+              "south",
+              "north",
+              "west"
+            ]
+          }
+        },
+        "expected": "[3, 3]\n3.5\n[1.0, 0.0]"
+      }
+    ],
+    "stp_cc3e3728-113d-4864-88dd-7fe0be51211b": [
+      {
+        "values": {
+          "train_rows": {
+            "order_id": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "distance": [
+              1.0,
+              2.0,
+              3.0,
+              4.0,
+              5.0,
+              6.0
+            ],
+            "zone": [
+              "north",
+              "north",
+              "south",
+              "south",
+              "north",
+              "south"
+            ],
+            "minutes": [
+              5.0,
+              10.0,
+              15.0,
+              20.0,
+              25.0,
+              30.0
+            ]
+          },
+          "new_rows": {
+            "order_id": [
+              9,
+              8,
+              7
+            ],
+            "distance": [
+              8.0,
+              2.0,
+              null
+            ],
+            "zone": [
+              "south",
+              "north",
+              "west"
+            ]
+          }
+        },
+        "expected": "[40.0, 10.0, 17.5]"
+      },
+      {
+        "values": {
+          "train_rows": {
+            "order_id": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "distance": [
+              1.0,
+              2.0,
+              null,
+              4.0,
+              5.0,
+              6.0
+            ],
+            "zone": [
+              "north",
+              "east",
+              "south",
+              "east",
+              "north",
+              "south"
+            ],
+            "minutes": [
+              11.0,
+              19.0,
+              32.0,
+              41.0,
+              48.0,
+              62.0
+            ]
+          }
+        },
+        "expected": "[19.251553, 35.5, 79.795031]"
+      }
+    ],
+    "stp_c637844f-a340-45d4-8a5c-82f4201f859c": [
+      {
+        "values": {
+          "train_rows": {
+            "order_id": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "distance": [
+              1.0,
+              2.0,
+              null,
+              4.0,
+              5.0,
+              6.0
+            ],
+            "zone": [
+              "north",
+              "east",
+              "south",
+              "east",
+              "north",
+              "south"
+            ],
+            "minutes": [
+              11.0,
+              19.0,
+              32.0,
+              41.0,
+              48.0,
+              62.0
+            ]
+          }
+        },
+        "expected": "[5.0, 3.5, 2.3333333333333335]"
+      },
+      {
+        "values": {
+          "train_rows": {
+            "order_id": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "distance": [
+              1.0,
+              2.0,
+              3.0,
+              4.0,
+              5.0,
+              6.0
+            ],
+            "zone": [
+              "north",
+              "north",
+              "south",
+              "south",
+              "north",
+              "south"
+            ],
+            "minutes": [
+              5.0,
+              10.0,
+              15.0,
+              20.0,
+              25.0,
+              30.0
+            ]
+          }
+        },
+        "expected": "[4.5, 3.5, 2.5]"
+      }
+    ],
+    "stp_2c840b11-9e31-46c5-ad93-ca6405b8ab26": [
+      {
+        "values": {
+          "alphas": [
+            10.0
+          ]
+        },
+        "expected": "1\n[3]\n18.401"
+      },
+      {
+        "values": {
+          "train_rows": {
+            "order_id": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "distance": [
+              1.0,
+              2.0,
+              null,
+              4.0,
+              5.0,
+              6.0
+            ],
+            "zone": [
+              "north",
+              "east",
+              "south",
+              "east",
+              "north",
+              "south"
+            ],
+            "minutes": [
+              11.0,
+              19.0,
+              32.0,
+              41.0,
+              48.0,
+              62.0
+            ]
+          },
+          "alphas": [
+            0.01,
+            0.1,
+            1.0
+          ]
+        },
+        "expected": "3\n[3]\n5.225"
+      }
+    ],
+    "stp_2c9a7d60-ec5d-41ba-b3c3-6a27794cce2d": [
+      {
+        "values": {
+          "new_rows": {
+            "order_id": [
+              7,
+              8
+            ],
+            "distance": [
+              1.0,
+              3.0
+            ],
+            "zone": [
+              "north",
+              "south"
+            ]
+          }
+        },
+        "expected": "[2, 1]\nTrue"
+      },
+      {
+        "values": {
+          "train_rows": {
+            "order_id": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "distance": [
+              1.0,
+              2.0,
+              null,
+              4.0,
+              5.0,
+              6.0
+            ],
+            "zone": [
+              "north",
+              "east",
+              "south",
+              "east",
+              "north",
+              "south"
+            ],
+            "minutes": [
+              11.0,
+              19.0,
+              32.0,
+              41.0,
+              48.0,
+              62.0
+            ]
+          }
+        },
+        "expected": "[3, 1]\nTrue"
+      }
+    ],
+    "stp_3257f998-f422-4811-b6a9-8f514ecb9bb6": [
+      {
+        "values": {
+          "new_rows": {
+            "order_id": [
+              9,
+              8,
+              7
+            ],
+            "distance": [
+              8.0,
+              2.0,
+              null
+            ],
+            "zone": [
+              "south",
+              "north",
+              "west"
+            ]
+          }
+        },
+        "expected": "['order_id', 'minutes']\n[9, 8, 7]\n[80.0, 20.0, 35.0]"
+      },
+      {
+        "values": {
+          "train_rows": {
+            "order_id": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "distance": [
+              1.0,
+              2.0,
+              null,
+              4.0,
+              5.0,
+              6.0
+            ],
+            "zone": [
+              "north",
+              "east",
+              "south",
+              "east",
+              "north",
+              "south"
+            ],
+            "minutes": [
+              11.0,
+              19.0,
+              32.0,
+              41.0,
+              48.0,
+              62.0
+            ]
+          },
+          "new_rows": {
+            "order_id": [
+              7,
+              8
+            ],
+            "distance": [
+              1.0,
+              3.0
+            ],
+            "zone": [
+              "north",
+              "south"
+            ]
+          }
+        },
+        "expected": "['order_id', 'minutes']\n[7, 8]\n[9.003106, 28.552795]"
+      }
+    ],
+    "stp_623ed9ff-12bd-41ce-8a33-a44c77869f01": [
+      {
+        "values": {
+          "train_rows": {
+            "order_id": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "distance": [
+              1.0,
+              2.0,
+              null,
+              4.0,
+              5.0,
+              6.0
+            ],
+            "zone": [
+              "north",
+              "east",
+              "south",
+              "east",
+              "north",
+              "south"
+            ],
+            "minutes": [
+              11.0,
+              19.0,
+              32.0,
+              41.0,
+              48.0,
+              62.0
+            ]
+          }
+        },
+        "expected": "True\n3.6"
+      },
+      {
+        "values": {
+          "train_rows": {
+            "order_id": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "distance": [
+              1.0,
+              2.0,
+              3.0,
+              4.0,
+              5.0,
+              6.0
+            ],
+            "zone": [
+              "north",
+              "north",
+              "south",
+              "south",
+              "north",
+              "south"
+            ],
+            "minutes": [
+              5.0,
+              10.0,
+              15.0,
+              20.0,
+              25.0,
+              30.0
+            ]
+          },
+          "new_rows": {
+            "order_id": [
+              9,
+              8,
+              7
+            ],
+            "distance": [
+              8.0,
+              2.0,
+              null
+            ],
+            "zone": [
+              "south",
+              "north",
+              "west"
+            ]
+          }
+        },
+        "expected": "True\n3.5"
+      }
     ]
   },
   "prepared_probes": {
@@ -882,6 +1622,15 @@
     "stp_86d1f031-ffaa-4e3d-8aef-d112f66496fd": "assert result[\"id\"].tolist() == new[\"id\"].tolist()\nassert pipeline.named_steps[\"prep\"].named_transformers_[\"cat\"].categories_[0].tolist() == sorted(train[\"zone\"].unique())"
   },
   "prepared_task_timeout_seconds": {
-    "stp_86d1f031-ffaa-4e3d-8aef-d112f66496fd": 30
+    "stp_86d1f031-ffaa-4e3d-8aef-d112f66496fd": 30,
+    "stp_14110477-6327-47ed-903d-cde2c9ac9e35": 30,
+    "stp_e3c2ea13-cbc9-4ee3-a019-c5c816e6d042": 30,
+    "stp_b8f8c07c-6444-498e-ac2b-0e97d1777b1f": 30,
+    "stp_cc3e3728-113d-4864-88dd-7fe0be51211b": 30,
+    "stp_c637844f-a340-45d4-8a5c-82f4201f859c": 30,
+    "stp_2c840b11-9e31-46c5-ad93-ca6405b8ab26": 30,
+    "stp_2c9a7d60-ec5d-41ba-b3c3-6a27794cce2d": 45,
+    "stp_3257f998-f422-4811-b6a9-8f514ecb9bb6": 30,
+    "stp_623ed9ff-12bd-41ce-8a33-a44c77869f01": 30
   }
 }

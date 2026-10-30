@@ -3,28 +3,32 @@
   "lesson": "courses/redesigned/aice-tensorflow.json",
   "expected_outputs": [
     [
-      "[None, 1]\n[None, 1]"
+      "",
+      "[None, 1]"
     ],
     [
-      "[None, 4]",
       "[None, 1]",
       "[None, 4]"
     ],
     [
-      "[[2.0], [3.0]]"
+      "[[0.0], [0.0]]\n[[2.0], [3.0]]",
+      "[[2.0], [3.0]]\n[[2.0], [3.0]]"
     ],
     [
-      "SGD\nmse\nTrue"
+      "",
+      "SGD\n0.1\nTrue"
     ],
     [
-      "1\nTrue\n[2, 1]"
+      "0\nFalse",
+      "1\nTrue"
     ],
     [
-      "['loss', 'val_loss']\n[3, 3]"
+      "['loss']\n0\nFalse",
+      "['loss', 'val_loss']\n3\nTrue"
     ],
     [
-      "[2, 1]\nTrue",
-      "[3, 1]\nTrue"
+      "",
+      "[2, 1]"
     ],
     [
       "",
@@ -37,6 +41,146 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "keras.Input(shape=(features,))",
+          "keras.Input(shape=(1,))"
+        ]
+      ],
+      "reason": "Typing one feature"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "keras.Input(shape=(features,))",
+          "keras.Input(shape=(features, 1))"
+        ]
+      ],
+      "reason": "An extra dimension"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "keras.layers.Dense(outputs)])",
+          "keras.layers.Dense(4)])"
+        ]
+      ],
+      "reason": "Typing four"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "keras.layers.Dense(outputs)])",
+          "keras.layers.Dense(1)])"
+        ]
+      ],
+      "reason": "One output"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "manual = X_test @ weights + bias\n",
+          "manual = X_test * 0\n"
+        ]
+      ],
+      "reason": "Zeros"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "manual = X_test @ weights + bias\n",
+          "manual = np.array([[2.0], [3.0]])\n"
+        ]
+      ],
+      "reason": "Typing this input's predictions"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "keras.optimizers.SGD(learning_rate=rate)",
+          "keras.optimizers.Adam(learning_rate=rate)"
+        ]
+      ],
+      "reason": "Adam instead of SGD"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "keras.optimizers.SGD(learning_rate=rate)",
+          "keras.optimizers.SGD(learning_rate=0.1)"
+        ]
+      ],
+      "reason": "Typing the rate"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "epochs=rounds,",
+          "epochs=1,"
+        ]
+      ],
+      "reason": "Typing one epoch"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "epochs=rounds,",
+          "epochs=0,"
+        ]
+      ],
+      "reason": "No training"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "verbose=0,\n                    validation_data=(X_valid, y_valid))",
+          "verbose=0,\n                    validation_split=0.5)"
+        ]
+      ],
+      "reason": "validation_split from the training rows"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "verbose=0,\n                    validation_data=(X_valid, y_valid))",
+          "verbose=0,\n                    validation_data=(X_train, y_train))"
+        ]
+      ],
+      "reason": "Validating on the training table"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "X_test = np.array([[d] for d in distances], dtype=\"float32\")\n",
+          "X_test = np.array([distances], dtype=\"float32\")\n"
+        ]
+      ],
+      "reason": "One row"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "print(list(predictions.shape))\n",
+          "print([2, 1])\n"
+        ]
+      ],
+      "reason": "Typing the shape"
+    },
     {
       "step": 8,
       "replacements": [
@@ -83,6 +227,76 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "keras.Input(shape=(features,))",
+          "keras.Input((features,))"
+        ]
+      ],
+      "reason": "Positional shape"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "keras.layers.Dense(outputs)])",
+          "keras.layers.Dense(units=outputs)])"
+        ]
+      ],
+      "reason": "units keyword"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "manual = X_test @ weights + bias\n",
+          "manual = np.dot(X_test, weights) + bias\n"
+        ]
+      ],
+      "reason": "np.dot"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "model.compile(optimizer=keras.optimizers.SGD(learning_rate=rate), loss=\"mse\")\n",
+          "model.compile(loss=keras.losses.MeanSquaredError(), optimizer=keras.optimizers.SGD(learning_rate=rate))\n"
+        ]
+      ],
+      "reason": "Loss object first"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "epochs=rounds,",
+          "epochs=int(rounds),"
+        ]
+      ],
+      "reason": "int(rounds)"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "verbose=0,\n                    validation_data=(X_valid, y_valid))",
+          "verbose=0,\n                    validation_data=[X_valid, y_valid])"
+        ]
+      ],
+      "reason": "A list instead of a tuple"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "X_test = np.array([[d] for d in distances], dtype=\"float32\")\n",
+          "X_test = np.array(distances, dtype=\"float32\").reshape(-1, 1)\n"
+        ]
+      ],
+      "reason": "reshape(-1, 1)"
+    },
     {
       "step": 9,
       "replacements": [

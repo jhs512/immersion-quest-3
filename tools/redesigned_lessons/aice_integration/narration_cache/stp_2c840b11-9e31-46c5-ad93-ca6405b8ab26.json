@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "21059521b70327e6d4cf91cf951ff5c04f4de808fd673c0bedf1b8d095f7249d",
+  "entry": [
+    {
+      "action": "say",
+      "text": "alpha는 Ridge의 설정이에요. Pipeline 안에서는 단계 이름과 설정 이름을 밑줄 두 개로 이어 적어야 해요.",
+      "target": "text:Pipeline 안 model 단계의 alpha 후보를 탐색하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        33,
+        33
+      ],
+      "expect_error": "ValueError"
+    },
+    {
+      "action": "say",
+      "text": "ValueError예요. 전처리 단계 prep에는 alpha라는 설정이 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "{\"prep__alpha\": alphas}",
+      "after": "{\"model__alpha\": alphas}",
+      "say": "prep__alpha를 model__alpha로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        33,
+        36
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2, [3], 1.85예요. 후보 두 개를 비교했고 새 예측 세 개가 나왔어요. 교차검증 RMSE는 1.85분이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 후보 비교는 교차검증 점수예요. 실제 정답이 없는 새 표의 정확도는 아직 몰라요.",
+      "target": "code:{\"model__alpha\": alphas}"
+    }
+  ]
+}

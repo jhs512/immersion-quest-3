@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "4ff8e8be56e3a8713eb4e15bbc884f853ac3b3471fc8d11d5f8125374e23e062",
+  "entry": [
+    {
+      "action": "say",
+      "text": "eval_set으로 검증 점수를 기록했어요. best_round 줄을 고쳐 rmse가 가장 낮은 round를 찾아야 해요.",
+      "target": "text:best_round 줄을 고쳐 마지막 round가 아니라 검증 rmse가 가장 낮은 round(1부터 셈)를 best_round에 담으세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        21,
+        25
+      ]
+    },
+    {
+      "action": "say",
+      "text": "rmse는 둘째 round에서 가장 낮고 셋째에 다시 올랐어요. 그래도 best_round는 3이고 나무도 3개예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "best_round = len(rmse)\n",
+      "after": "best_round = rmse.index(min(rmse)) + 1\n",
+      "say": "rmse.index(min(rmse)) + 1로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        21,
+        25
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2예요. 나무는 여전히 3개라 평가가 나빠져도 학습은 멈추지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 평가 표를 준 것만으로 자동 중단되지 않아요. 기록과 조기중단 설정은 별개예요.",
+      "target": "code:rmse.index(min(rmse))"
+    }
+  ]
+}

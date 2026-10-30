@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "f655de4056082bcd33efdc7fb11af8a6c8f6fe013ffe0249d5008a7d62a4d697",
+  "entry": [
+    {
+      "action": "say",
+      "text": "모델을 만들고 설정만 정했어요. print 줄 앞에 fit 줄을 더해 자료로 학습해야 해요.",
+      "target": "text:print 줄 앞에 model.fit(X_train, y_train) 줄을 더해 학습하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        17
+      ],
+      "expect_error": "NotFittedError"
+    },
+    {
+      "action": "say",
+      "text": "설정 1은 읽히지만 예측에서 NotFittedError예요. 아직 학습한 나무가 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "print(model.get_params",
+      "after": "model.fit(X_train, y_train)\nprint(model.get_params",
+      "say": "print 줄 앞에 model.fit(X_train, y_train)을 써요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        18
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1과 [2.0, 2.0, 8.0, 8.0]이에요. 나무 하나가 거리 1과 2 사이를 나눠 배웠어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. get_params로 설정을 읽을 수 있다고 학습된 건 아니에요.",
+      "target": "code:model.fit(X_train, y_train)"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "1f264b25ad53cfda5cf9c0d1919e60554a2c924ab92e6961ad3189139d2c61fb",
+  "entry": [
+    {
+      "action": "say",
+      "text": "모델은 숫자만 받아요. 전처리를 모델 앞에 묶어 한 번의 fit과 predict로 이어야 해요.",
+      "target": "text:전처리 preprocess 다음에 LinearRegression이 오는 Pipeline을 만드세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        27,
+        27
+      ],
+      "expect_error": "ValueError"
+    },
+    {
+      "action": "say",
+      "text": "ValueError예요. 전처리 없이 지역 글자 'north'를 숫자로 바꿀 수 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "Pipeline([(\"model\", LinearRegression())])",
+      "after": "Pipeline([(\"prep\", preprocess), (\"model\", LinearRegression())])",
+      "say": "목록 맨 앞에 (\"prep\", preprocess)를 넣어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        27,
+        27
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[20.0, 35.0, 80.0]이에요. 빈 거리는 훈련 평균 3.5로 채워져 35.0이 됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. predict는 아무것도 다시 배우지 않아요. 새 표로 fit하면 기준이 새 자료에 맞춰져 다른 예측이 나와요.",
+      "target": "code:(\"prep\", preprocess)"
+    }
+  ]
+}

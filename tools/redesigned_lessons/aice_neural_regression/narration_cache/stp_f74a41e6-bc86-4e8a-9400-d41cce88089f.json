@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "34323938b5827bbaa788dd691ceed2b5d8c3373ad3a3c20f5796e69bf189dd5b",
+  "entry": [
+    {
+      "action": "say",
+      "text": "모델 파일에는 모델 밖에서 계산한 기준이 없어요. 함께 저장한 scale.json의 기준으로 새 입력을 바꿔야 해요.",
+      "target": "text:저장한 기준 saved로 새 입력을 바꾸세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        35,
+        36
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[-1.0, 3.0]과 False예요. 새 입력으로 기준을 다시 구해 저장 전 예측과 달라졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "scaled = (new - new.mean()) / new.std()\n",
+      "after": "scaled = (new - saved[\"mean\"]) / saved[\"std\"]\n",
+      "say": "new.mean()과 new.std()를 saved[\"mean\"]과 saved[\"std\"]로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        35,
+        36
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[1.0, 7.0]과 True예요. 훈련 기준 평균 2와 표준편차 1을 그대로 써서 저장 전과 같아요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 모델 파일이 모델 밖의 전처리 기준까지 자동으로 보존하지는 않아요. 기준도 함께 저장하고 불러와요.",
+      "target": "code:saved[\"mean\"]"
+    }
+  ]
+}

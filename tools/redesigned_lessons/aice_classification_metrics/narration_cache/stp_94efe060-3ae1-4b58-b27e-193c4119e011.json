@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "72fe841249f89a03a1d9830882150d6a4ed5b167896059191420127353e05aac",
+  "entry": [
+    {
+      "action": "say",
+      "text": "기준을 0.3으로 낮추려 해요. predictions 줄을 고쳐 0.5 대신 threshold를 써야 해요.",
+      "target": "text:predictions 줄을 고쳐 0.5 대신 threshold 이상인 확률을 경보 1로 바꾸세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[0, 1, 0, 1]과 정밀도 0.5·재현율 0.5예요. 0.4인 지연을 놓쳤어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "p >= 0.5",
+      "after": "p >= threshold",
+      "say": "0.5를 threshold로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[0, 1, 1, 1]과 정밀도 0.666667·재현율 1.0이에요. 경보가 하나 늘고 놓친 지연을 찾았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 기준을 낮추면 놓침은 줄지만 잘못된 경보가 늘 수 있어요. 두 지표를 함께 봐요.",
+      "target": "code:p >= threshold"
+    }
+  ]
+}

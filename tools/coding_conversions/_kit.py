@@ -157,6 +157,9 @@ def py_run(source, values=None, timeout=120, files=None, error_ok=False):
     import ast
     import subprocess
     import tempfile
+    import json
+    # The lesson checker receives case values as JSON (python_prepared_checks): dict keys become strings.
+    values = json.loads(json.dumps(values)) if values else values
     tree = ast.parse(source)
     remaining = set(values or {})
     for statement in tree.body:
@@ -172,13 +175,19 @@ def py_run(source, values=None, timeout=120, files=None, error_ok=False):
     with tempfile.TemporaryDirectory() as folder:
         for name, text in (files or {}).items():
             Path(folder, name).write_text(text, encoding='utf-8')
-        run = subprocess.run([lesson_python(), '-I', '-X', 'utf8', '-c', ast.unparse(tree)], capture_output=True, text=True,
-                             encoding='utf-8', timeout=timeout, cwd=folder,
-                             env={**__import__('os').environ, 'TF_CPP_MIN_LOG_LEVEL': '3', 'MPLBACKEND': 'Agg'})
+        # A process crash leaves no Python traceback (stderr empty); seen twice right after the validator exits,
+        # when the first TensorFlow start died. Retry such a crash once; any real Python error still fails.
+        for attempt in range(2):
+            run = subprocess.run([lesson_python(), '-I', '-X', 'utf8', '-c', ast.unparse(tree)], capture_output=True, text=True,
+                                 encoding='utf-8', timeout=timeout, cwd=folder,
+                                 env={**__import__('os').environ, 'TF_CPP_MIN_LOG_LEVEL': '3', 'MPLBACKEND': 'Agg'})
+            if run.returncode == 0 or run.stderr.strip():
+                break
+            print(f'py_run: process crashed without output (exit {run.returncode:#x}); retrying once', flush=True)
     if error_ok:
         return run.stdout.strip() + ('\n' + run.stderr.strip().splitlines()[-1] if run.returncode and run.stderr.strip() else '')
     if run.returncode != 0:
-        raise ValueError(f'solution failed for {values}: {run.stderr[-800:]}')
+        raise ValueError(f'solution failed for {values} (exit {run.returncode:#x}): {run.stderr[-800:]}')
     return run.stdout.strip()
 
 

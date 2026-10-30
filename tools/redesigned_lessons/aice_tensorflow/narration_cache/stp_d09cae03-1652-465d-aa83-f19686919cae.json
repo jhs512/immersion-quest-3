@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "9357bca1452b8b3d680658a90bc32952d1fad7274e3ce0457c5762018ac0e678",
+  "entry": [
+    {
+      "action": "say",
+      "text": "훈련 손실과 따로 검증 표의 손실도 보고 싶어요. fit에 validation_data를 더해야 해요.",
+      "target": "text:fit 줄에 validation_data를 더해 epoch마다 검증 표의 손실도 기록하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        23,
+        26
+      ]
+    },
+    {
+      "action": "say",
+      "text": "['loss'], 0, False예요. 훈련 손실만 기록됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "batch_size=2, shuffle=False, verbose=0)\nprint(sorted",
+      "after": "batch_size=2, shuffle=False, verbose=0,\n                    validation_data=(X_valid, y_valid))\nprint(sorted",
+      "say": "괄호 안 끝에 validation_data=(X_valid, y_valid)를 더해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        24,
+        27
+      ]
+    },
+    {
+      "action": "say",
+      "text": "['loss', 'val_loss'], 3, True예요. epoch마다 검증 손실이 쌓였고 마지막 값은 검증 표를 평가한 값과 같아요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. validation_split은 훈련 표의 일부를 떼어 써요. 따로 준비한 검증 표를 쓰려면 validation_data예요.",
+      "target": "code:validation_data=(X_valid, y_valid)"
+    }
+  ]
+}

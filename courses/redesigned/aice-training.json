@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_2ae29e07-b4ca-43c3-8759-84c613dfbe24",
-  "revision": "aice-training-6",
+  "revision": "aice-training-7",
   "title": "학습 기록을 보고 개선 방법을 판단해요",
   "description": "같은 작은 학습에서 반복·검증·규제·최고 상태 보존을 비교해요.",
   "objectives": [
@@ -35,9 +35,9 @@
           "premise": "같은 작은 배송 모델을 학습해요. 비교를 위해 일부 실험은 훈련과 검증의 정답 관계를 의도적으로 다르게 둬요.",
           "steps": [
             {
-              "id": "stp_f079304d-1221-4ace-b5aa-d6b707cedd80",
+              "id": "stp_6571abdd-e0df-4b46-a00a-bd6821d53165",
               "objectives": [
-                "전체 반복 수와 가중치 갱신 횟수를 나눠요."
+                "epoch와 batch를 구별해 가중치 갱신 횟수를 직접 계산하고 실제 횟수와 비교해요."
               ]
             },
             {
@@ -47,15 +47,15 @@
               ]
             },
             {
-              "id": "stp_2e7defee-f547-45a1-b05d-d9ea109c05f2",
+              "id": "stp_cad01238-8af8-42ea-befb-628c85865af0",
               "objectives": [
-                "EarlyStopping의 monitor·patience·restore_best_weights가 남기는 가중치를 판단해요."
+                "조기 중단이 멈춘 순간과 가장 좋았던 순간을 구별해 최고 가중치를 되돌려요."
               ]
             },
             {
-              "id": "stp_ae460898-4f86-4d24-9859-f9c1d8124ec4",
+              "id": "stp_cf213a56-27a5-49e1-b894-393548c9679b",
               "objectives": [
-                "Dropout의 학습·추론 차이와 재스케일을 관찰해요."
+                "Dropout이 학습 때만 일부 입력을 쉬게 하고 추론 때는 그대로 넘기는 것을 써서 확인해요."
               ]
             }
           ]
@@ -78,21 +78,21 @@
           "premise": "같은 모델에 규제를 더하거나 가장 좋았던 상태를 저장해요. 마지막에는 멈출 감시 지표를 고쳐요.",
           "steps": [
             {
-              "id": "stp_b9326c99-7b82-4c59-9eea-97a24ee5dea9",
+              "id": "stp_c41e053b-040b-4d00-bb1d-dd3389bb5762",
               "objectives": [
-                "L2 규제와 자료 오차 지표를 구별해요."
+                "총 loss가 자료 오차에 규제 벌점을 더한 값임을 직접 계산해 확인해요."
               ]
             },
             {
-              "id": "stp_c2b23086-5c99-45d9-8db0-2fdd3163f44e",
+              "id": "stp_3493a788-7230-4c10-900e-9fcc203d1874",
               "objectives": [
-                "ModelCheckpoint의 감시값과 best-only 저장을 검증해요."
+                "최고 모델을 파일로 저장하는 것과 메모리의 모델을 바꾸는 것을 구별해 직접 불러와요."
               ]
             },
             {
-              "id": "stp_b0aebfbb-fe0e-46f8-a732-ed82ff789c6a",
+              "id": "stp_3a6d96d0-106f-4a86-8734-d376f8fe852d",
               "objectives": [
-                "learning_rate가 한 업데이트의 크기를 바꿈을 이해해요."
+                "학습률이 반복 횟수가 아니라 한 번 갱신하는 크기임을 직접 계산해 실제 가중치와 비교해요."
               ]
             },
             {
@@ -124,107 +124,75 @@
   ],
   "tasks": [
     {
-      "id": "stp_f079304d-1221-4ace-b5aa-d6b707cedd80",
-      "title": "epoch와 batch를 구별해요",
-      "goal": "네 관측·두 epoch·batch2예요.\n가중치 갱신은 몇 번일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_6571abdd-e0df-4b46-a00a-bd6821d53165",
+      "title": "epochs × batch 수로 갱신 횟수를 계산하세요",
+      "goal": "epoch는 훈련 표 전체를 한 번 도는 단위, batch는 한 번에 가중치를 고칠 때 쓰는 관측 묶음이에요. `model.optimizer.iterations`는 실제로 가중치를 고친 횟수예요. `math.ceil`은 올림이에요.\n\nupdates 줄을 고쳐 epoch마다 batch 수만큼 갱신하는 횟수를 계산하세요. 채점은 다른 batch 크기와 epoch로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 두 수를 비교하세요.\n2. `updates = epochs`를 `updates = epochs * math.ceil(len(X_train) / batch_size)`로 고치세요.\n3. 코드 실행을 눌러 4 4가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "four",
-      "tests": [],
+      "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nimport math\n\ndef make_model(rate=0.1):\n    # 매 비교마다 같은 영 가중치에서 시작해요.\n    model = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\n    model.compile(optimizer=keras.optimizers.SGD(learning_rate=rate), loss=\"mse\")\n    return model\n# 네 관측을 batch_size개씩 묶어 epochs번 반복해요.\nrows = [0.0, 1.0, 2.0, 3.0]\nepochs = 2\nbatch_size = 2\nX_train = np.array([[x] for x in rows], dtype=\"float32\")\ny_train = 2 * X_train\nmodel = make_model()\nmodel.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, shuffle=False, verbose=0)\n# 이 줄을 고쳐 epoch마다 batch 수만큼 갱신하는 횟수를 계산하세요. 남는 관측도 한 batch예요.\nupdates = epochs\nprint(updates, int(model.optimizer.iterations.numpy()))\n",
+      "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nimport math\n\ndef make_model(rate=0.1):\n    # 매 비교마다 같은 영 가중치에서 시작해요.\n    model = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\n    model.compile(optimizer=keras.optimizers.SGD(learning_rate=rate), loss=\"mse\")\n    return model\n# 네 관측을 batch_size개씩 묶어 epochs번 반복해요.\nrows = [0.0, 1.0, 2.0, 3.0]\nepochs = 2\nbatch_size = 2\nX_train = np.array([[x] for x in rows], dtype=\"float32\")\ny_train = 2 * X_train\nmodel = make_model()\nmodel.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, shuffle=False, verbose=0)\n# 이 줄을 고쳐 epoch마다 batch 수만큼 갱신하는 횟수를 계산하세요. 남는 관측도 한 batch예요.\n# epoch 한 번에 batch 수만큼 가중치를 고쳐요. 나누어떨어지지 않으면 올림해 남은 관측도 한 번 더 세요.\nupdates = epochs * math.ceil(len(X_train) / batch_size)\nprint(updates, int(model.optimizer.iterations.numpy()))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "4 4"
+        }
+      ],
       "required": true,
-      "example_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\ndef make_model(rate=0.1):\n    # 매 비교마다 같은 영 가중치에서 시작해요.\n    model = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\n    model.compile(optimizer=keras.optimizers.SGD(learning_rate=rate), loss=\"mse\")\n    return model\n# 네 관측에 대해 전체를 두 번 반복해요.\nX_train = np.array([[0.0], [1.0], [2.0], [3.0]], dtype=\"float32\")\ny_train = np.array([[0.0], [2.0], [4.0], [6.0]], dtype=\"float32\")\nmodel = make_model()\nmodel.fit(X_train, y_train, epochs=2, batch_size=2, shuffle=False, verbose=0)\nprint(int(model.optimizer.iterations.numpy()))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "four",
-            "text": "epoch마다 두 batch라 총 네 번이에요"
-          },
-          {
-            "id": "two",
-            "text": "epoch마다 한 번이라 두 번이에요"
-          }
-        ],
-        "answer": "four"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "이 수업에서는 학습을 얼마나, 어떻게 진행할지 배워요. 훈련과 검증의 변화를 구별해요."
+          "text": "이 수업에서는 학습을 얼마나, 어떻게 진행할지 직접 코드로 정해요. 훈련과 검증의 변화를 구별해요."
         },
         {
           "action": "say",
-          "text": "epoch·batch·학습률을 바꿔요. 조기 중단과 최고 모델 복원, 규제도 확인해요."
+          "text": "epoch·batch·학습률을 바꿔 갱신을 세고, 조기 중단과 최고 모델 복원, Dropout과 규제를 실행 결과로 확인해요."
         },
         {
           "action": "say",
-          "text": "네 관측을 둘씩 묶어 두 epoch 돌 때 갱신 횟수를 세는 문제예요.",
-          "target": "text:epoch와 batch를 구별해요#1"
+          "text": "epochs × batch 수로 갱신 횟수를 계산하는 문제예요.",
+          "target": "text:epochs × batch 수로 갱신 횟수를 계산하세요#1"
         },
         {
           "action": "say",
-          "text": "epoch는 훈련 표 전체를 한 번 도는 단위, batch는 한 번에 가중치를 고칠 때 쓰는 관측 묶음이에요.",
-          "target": "text:네 관측·두 epoch·batch2예요."
+          "text": "가중치는 batch마다 한 번씩 고쳐져요. 계산한 횟수를 실제 갱신 횟수와 비교해야 해요.",
+          "target": "text:epoch마다 batch 수만큼 갱신하는 횟수를 계산하세요."
         },
         {
           "action": "run",
           "lines": [
-            21,
-            21
+            28,
+            28
           ]
         },
         {
           "action": "say",
-          "text": "실제 갱신 횟수는 네 번이에요.",
+          "text": "2 4예요. epoch 수만 셌는데 실제로는 네 번 갱신했어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "batch_size=2",
-          "after": "batch_size=4",
-          "say": "한번에 네 관측을 묶어 봐요."
+          "before": "updates = epochs\n",
+          "after": "updates = epochs * math.ceil(len(X_train) / batch_size)\n",
+          "say": "epochs에 math.ceil(len(X_train) / batch_size)를 곱해요."
         },
         {
           "action": "run",
           "lines": [
-            21,
-            21
+            28,
+            28
           ]
         },
         {
           "action": "say",
-          "text": "각 epoch에 한 batch라 총 두 번으로 바뀌어요.",
+          "text": "4 4예요. epoch마다 batch 둘, 두 epoch라 네 번이에요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. epoch와 가중치 갱신 횟수는 같은 수가 아닐 수 있어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "batch_size=4",
-          "after": "batch_size=2",
-          "say": "처음 두 관측씩 묶는 설정으로 돌아와요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            21,
-            21
-          ]
-        },
-        {
-          "action": "say",
-          "text": "원래 설정에서는 네 번 갱신해요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "four"
+          "text": "조심하세요. 관측 수가 batch_size로 나누어떨어지지 않으면 남은 관측도 한 batch라 한 번 더 갱신해요. 그래서 올림해요.",
+          "target": "code:math.ceil(len(X_train) / batch_size)"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"batch_size\": 3}, \"expected\": \"4 4\"}, {\"values\": {\"epochs\": 3, \"batch_size\": 1}, \"expected\": \"12 12\"}, {\"values\": {\"batch_size\": 4}, \"expected\": \"2 2\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=45)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
       "id": "stp_51083364-c37c-4e24-be83-b87b70f94698",
@@ -286,325 +254,319 @@
       "predict_before_run": true
     },
     {
-      "id": "stp_2e7defee-f547-45a1-b05d-d9ea109c05f2",
-      "title": "멈춘 뒤 남는 가중치를 골라요",
-      "goal": "EarlyStopping은 monitor로 정한 기록을 epoch마다 봐요. patience는 개선이 없는 epoch가 몇 번 이어지면 멈출지, restore_best_weights=True는 멈출 때 가장 좋았던 epoch의 가중치로 되돌릴지를 정해요. 출력은 차례로 학습한 epoch 수, 한 epoch만 학습한 비교 모델과 예측이 같은지, optimizer의 갱신 횟수예요.\npatience=0으로 처음 나빠진 epoch에서 멈추면, 어느 epoch의 가중치가 남을까요?\n\n**할 일**\n\n1. patience=0으로 처음 나빠진 epoch에서 멈추면, 어느 epoch의 가중치가 남을까요? 코드에서 근거를 찾아 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_cad01238-8af8-42ea-befb-628c85865af0",
+      "title": "restore_best_weights=True로 가장 좋았던 가중치로 되돌리세요",
+      "goal": "`EarlyStopping`은 검증 손실이 patience번 연속 좋아지지 않으면 학습을 멈춰요. 이 자료에서는 첫 epoch 뒤부터 검증 손실이 나빠져요. 비교 모델 control은 같은 시작에서 한 epoch만 학습해요.\n\ncallback 줄을 고쳐 멈출 때 검증 손실이 가장 작았던 epoch의 가중치로 되돌리세요. 채점은 다른 patience로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 세 줄을 확인하세요.\n2. EarlyStopping 괄호 안에 `restore_best_weights=True`를 더하세요.\n3. 코드 실행을 눌러 둘째 줄이 True인지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "best",
-      "tests": [],
+      "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\ndef make_model(rate=0.1):\n    # 매 비교마다 같은 영 가중치에서 시작해요.\n    model = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\n    model.compile(optimizer=keras.optimizers.SGD(learning_rate=rate), loss=\"mse\")\n    return model\n# 동작 비교용으로 훈련과 검증의 정답 관계를 다르게 둬요.\nX_train = np.array([[1.0], [2.0]], dtype=\"float32\")\ny_train = np.array([[2.0], [4.0]], dtype=\"float32\")\nX_valid = np.array([[1.0], [2.0]], dtype=\"float32\")\ny_valid = np.array([[0.0], [0.0]], dtype=\"float32\")\npatience = 0\nmodel = make_model()\n# 이 줄을 고쳐 멈출 때 검증 손실이 가장 작았던 epoch의 가중치로 되돌리세요.\ncallback = keras.callbacks.EarlyStopping(monitor=\"val_loss\", mode=\"min\", patience=patience)\nhistory = model.fit(X_train, y_train, validation_data=(X_valid, y_valid), epochs=6, batch_size=2, shuffle=False, callbacks=[callback], verbose=0)\n# 비교 모델: 같은 시작에서 딱 한 epoch만 학습해요. 이 자료에서는 첫 epoch의 검증 손실이 가장 작아요.\ncontrol = make_model()\ncontrol.fit(X_train, y_train, epochs=1, batch_size=2, shuffle=False, verbose=0)\nprint(len(history.history[\"loss\"]))\nprint(bool(np.allclose(model.predict(X_valid, verbose=0), control.predict(X_valid, verbose=0))))\nprint(int(model.optimizer.iterations.numpy()))\n",
+      "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\ndef make_model(rate=0.1):\n    # 매 비교마다 같은 영 가중치에서 시작해요.\n    model = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\n    model.compile(optimizer=keras.optimizers.SGD(learning_rate=rate), loss=\"mse\")\n    return model\n# 동작 비교용으로 훈련과 검증의 정답 관계를 다르게 둬요.\nX_train = np.array([[1.0], [2.0]], dtype=\"float32\")\ny_train = np.array([[2.0], [4.0]], dtype=\"float32\")\nX_valid = np.array([[1.0], [2.0]], dtype=\"float32\")\ny_valid = np.array([[0.0], [0.0]], dtype=\"float32\")\npatience = 0\nmodel = make_model()\n# 이 줄을 고쳐 멈출 때 검증 손실이 가장 작았던 epoch의 가중치로 되돌리세요.\ncallback = keras.callbacks.EarlyStopping(monitor=\"val_loss\", mode=\"min\", patience=patience,\n                                         # 멈출 때 가장 좋았던 epoch의 가중치로 돌아가요. 없으면 마지막 가중치가 남아요.\n                                         restore_best_weights=True)\nhistory = model.fit(X_train, y_train, validation_data=(X_valid, y_valid), epochs=6, batch_size=2, shuffle=False, callbacks=[callback], verbose=0)\n# 비교 모델: 같은 시작에서 딱 한 epoch만 학습해요. 이 자료에서는 첫 epoch의 검증 손실이 가장 작아요.\ncontrol = make_model()\ncontrol.fit(X_train, y_train, epochs=1, batch_size=2, shuffle=False, verbose=0)\nprint(len(history.history[\"loss\"]))\nprint(bool(np.allclose(model.predict(X_valid, verbose=0), control.predict(X_valid, verbose=0))))\nprint(int(model.optimizer.iterations.numpy()))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "2\nTrue\n2"
+        }
+      ],
       "required": true,
-      "example_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\ndef make_model(rate=0.1):\n    # 매 비교마다 같은 영 가중치에서 시작해요.\n    model = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\n    model.compile(optimizer=keras.optimizers.SGD(learning_rate=rate), loss=\"mse\")\n    return model\n# 동작 비교용으로 훈련과 검증의 정답 관계를 다르게 둬요.\nX_train = np.array([[1.0], [2.0]], dtype=\"float32\")\ny_train = np.array([[2.0], [4.0]], dtype=\"float32\")\nX_valid = np.array([[1.0], [2.0]], dtype=\"float32\")\ny_valid = np.array([[0.0], [0.0]], dtype=\"float32\")\nmodel = make_model()\ncallback = keras.callbacks.EarlyStopping(monitor=\"val_loss\", mode=\"min\", patience=0, restore_best_weights=True)\nhistory = model.fit(X_train, y_train, validation_data=(X_valid, y_valid), epochs=6, batch_size=2, shuffle=False, callbacks=[callback], verbose=0)\n# 비교 모델: 같은 시작에서 딱 한 epoch만 학습해요.\ncontrol = make_model()\ncontrol.fit(X_train, y_train, epochs=1, batch_size=2, shuffle=False, verbose=0)\nprint(len(history.history[\"loss\"]))\nprint(bool(np.allclose(model.predict(X_valid, verbose=0), control.predict(X_valid, verbose=0))))\nprint(int(model.optimizer.iterations.numpy()))\n",
-      "interaction": {
-        "kind": "choice",
-        "answer": "best",
-        "options": [
-          {
-            "id": "last",
-            "text": "멈춘 2번째 epoch가 끝난 마지막 가중치예요"
-          },
-          {
-            "id": "best",
-            "text": "검증 오차가 가장 작았던 1번째 epoch의 가중치예요"
-          }
-        ]
-      },
       "narration": [
         {
           "action": "say",
-          "text": "멈춘 순간의 가중치가 남는지, 가장 좋았던 순간의 가중치로 돌아가는지 고르는 문제예요.",
-          "target": "text:멈춘 뒤 남는 가중치를 골라요#1"
+          "text": "restore_best_weights=True로 가장 좋았던 가중치로 되돌리는 문제예요.",
+          "target": "text:restore_best_weights=True로 가장 좋았던 가중치로 되돌리세요#1"
         },
         {
           "action": "say",
-          "text": "검증 오차는 첫 epoch 뒤부터 나빠져요.",
-          "target": "text:restore_best_weights=True는 멈출 때 가장 좋았던 epoch의 가중치로 되돌릴지를 정해요."
-        },
-        {
-          "action": "say",
-          "text": "patience=0이라 한 번 나빠지면 바로 멈춰요.",
-          "target": "code:patience=0"
+          "text": "검증 손실은 첫 epoch 뒤부터 나빠져요. 멈출 때 가장 좋았던 가중치로 되돌리게 설정해야 해요.",
+          "target": "text:멈출 때 검증 손실이 가장 작았던 epoch의 가중치로 되돌리세요."
         },
         {
           "action": "run",
           "lines": [
-            27,
-            29
+            29,
+            31
           ]
         },
         {
           "action": "say",
-          "text": "두 epoch에서 멈췄고, 예측이 한 epoch만 학습한 모델과 같아요. 첫 epoch의 가중치로 되돌아갔어요.",
+          "text": "2, False, 2예요. 두 번째 epoch에서 멈췄지만 나빠진 마지막 가중치가 남아 한 epoch 모델과 달라요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "restore_best_weights=True",
-          "after": "restore_best_weights=False",
-          "say": "되돌리기를 꺼 볼게요."
+          "before": "patience=patience)",
+          "after": "patience=patience, restore_best_weights=True)",
+          "say": "괄호 안에 restore_best_weights=True를 더해요."
         },
         {
           "action": "run",
           "lines": [
-            27,
-            29
+            29,
+            31
           ]
         },
         {
           "action": "say",
-          "text": "이번엔 False예요. 되돌리지 않으면 나빠진 두 번째 epoch의 가중치가 남아요.",
+          "text": "2, True, 2예요. 첫 epoch의 가중치로 돌아가 한 epoch만 학습한 모델과 예측이 같아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 마지막 줄의 갱신 횟수는 2 그대로예요. 되돌리는 것은 모델 가중치뿐이고 optimizer의 갱신 횟수는 돌아가지 않아요.",
+          "target": "code:restore_best_weights=True"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"patience\": 1}, \"expected\": \"2\\\\nTrue\\\\n2\"}, {\"values\": {\"patience\": 2}, \"expected\": \"3\\\\nTrue\\\\n3\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=45)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_cf213a56-27a5-49e1-b894-393548c9679b",
+      "title": "training=False로 추론 때는 Dropout을 끄세요",
+      "goal": "`Dropout(rate)`은 학습할 때 입력의 일부를 0으로 쉬게 하고, 남은 값을 1 / (1 - rate)배로 키워 합을 맞춰요. 층을 부를 때 `training=False`면 추론처럼 아무것도 끄지 않아요.\n\ninference 줄을 고쳐 추론 때처럼 Dropout을 적용하지 않게 부르세요. 채점은 다른 비율과 입력 폭으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 추론 쪽에 0이 있는지 확인하세요.\n2. 첫 호출의 `training=True`를 `training=False`로 고치세요.\n3. 코드 실행을 눌러 모두 1.0인지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 무작위 위치를 외우지 않고 학습·추론의 규칙을 봐요.\nrate = 0.5\nwidth = 4\nlayer = keras.layers.Dropout(rate, seed=7)\ninputs = tf.ones((1, width))\n# 이 줄을 고쳐 추론 때처럼 Dropout을 적용하지 않게 부르세요.\ninference = layer(inputs, training=True).numpy()\ntraining = layer(inputs, training=True).numpy()\nprint(inference.tolist())\n# 확인용: 학습 때는 0이거나 1 / (1 - rate)로 키운 값만 나와요.\nkept = 1 / (1 - rate)\nprint(bool(np.all(np.isclose(training, 0.0) | np.isclose(training, kept))))\n",
+      "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 무작위 위치를 외우지 않고 학습·추론의 규칙을 봐요.\nrate = 0.5\nwidth = 4\nlayer = keras.layers.Dropout(rate, seed=7)\ninputs = tf.ones((1, width))\n# 이 줄을 고쳐 추론 때처럼 Dropout을 적용하지 않게 부르세요.\n# training=False면 Dropout은 아무것도 끄지 않고 입력을 그대로 넘겨요.\ninference = layer(inputs, training=False).numpy()\ntraining = layer(inputs, training=True).numpy()\nprint(inference.tolist())\n# 확인용: 학습 때는 0이거나 1 / (1 - rate)로 키운 값만 나와요.\nkept = 1 / (1 - rate)\nprint(bool(np.all(np.isclose(training, 0.0) | np.isclose(training, kept))))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[[1.0, 1.0, 1.0, 1.0]]\nTrue"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "training=False로 추론 때는 Dropout을 끄는 문제예요.",
+          "target": "text:training=False로 추론 때는 Dropout을 끄세요#1"
+        },
+        {
+          "action": "say",
+          "text": "Dropout은 학습할 때만 일부 입력을 쉬게 해요. 추론 때처럼 부르도록 training을 고쳐야 해요.",
+          "target": "text:추론 때처럼 Dropout을 적용하지 않게 부르세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            22
+          ]
+        },
+        {
+          "action": "say",
+          "text": "일부가 0.0이고 남은 값이 2.0이에요. 추론 쪽도 학습처럼 불러 입력을 지웠어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "restore_best_weights=False",
-          "after": "restore_best_weights=True",
-          "say": "되돌리기를 다시 켜요."
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 마지막 줄의 갱신 횟수는 두 번 그대로예요. 되돌리는 것은 모델 가중치뿐이고 optimizer의 갱신 횟수는 과거로 돌아가지 않아요.",
-          "target": "code:model.optimizer.iterations"
-        },
-        {
-          "action": "choose_answer",
-          "id": "best"
-        }
-      ],
-      "predict_before_run": true,
-      "question": "patience=0으로 처음 나빠진 epoch에서 멈추면, 어느 epoch의 가중치가 남을까요?"
-    },
-    {
-      "id": "stp_ae460898-4f86-4d24-9859-f9c1d8124ec4",
-      "title": "학습할 때만 일부 연결을 쉬게 해요",
-      "goal": "Dropout0.5가 추론 때 원본 특성을 영구 삭제할까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "train",
-      "tests": [],
-      "required": true,
-      "example_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 무작위 위치를 외우지 않고 학습·추론의 규칙을 봐요.\nlayer = keras.layers.Dropout(0.5, seed=7)\ninputs = tf.ones((1, 4))\ninference = layer(inputs, training=False).numpy()\ntraining = layer(inputs, training=True).numpy()\nprint(inference.tolist())\nprint(bool(np.isin(training, [0.0, 2.0]).all()))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "train",
-            "text": "아니요.학습 때만 일부를 쉬게 하고 나머지를 재스케일해요"
-          },
-          {
-            "id": "delete",
-            "text": "네.자료에서 특성 절반을 영구 삭제해요"
-          }
-        ],
-        "answer": "train"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "학습할 때만 일부 연결을 쉬게 하는 문제예요.",
-          "target": "text:학습할 때만 일부 연결을 쉬게 해요#1"
-        },
-        {
-          "action": "say",
-          "text": "Dropout은 학습할 때만 입력 일부를 0으로 쉬게 하고 남은 값을 키워 합을 맞춰요. 추론 때도 특성이 사라지는지 예상해요.",
-          "target": "text:Dropout0.5가 추론 때 원본 특성을 영구 삭제할까요?"
+          "before": "inference = layer(inputs, training=True)",
+          "after": "inference = layer(inputs, training=False)",
+          "say": "첫 줄의 training을 False로 바꿔요."
         },
         {
           "action": "run",
           "lines": [
-            17,
-            17
+            19,
+            22
           ]
         },
         {
           "action": "say",
-          "text": "추론은 1.0 네 개 그대로예요. 학습 때는 0.0 또는 재스케일된 2.0이 돼요.",
+          "text": "[[1.0, 1.0, 1.0, 1.0]]과 True예요. 추론은 그대로이고, 학습 때는 0 또는 2.0만 나와요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 매번 지워지는 정확한 위치나 개수는 무작위라 정답으로 외우지 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "train"
+          "text": "조심하세요. Dropout은 자료에서 특성을 지우는 게 아니에요. 그리고 학습 때 지워지는 위치나 개수는 무작위라 외우지 않아요.",
+          "target": "code:training=False"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"rate\": 0.25}, \"expected\": \"[[1.0, 1.0, 1.0, 1.0]]\\\\nTrue\"}, {\"values\": {\"width\": 6}, \"expected\": \"[[1.0, 1.0, 1.0, 1.0, 1.0, 1.0]]\\\\nTrue\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=45)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_b9326c99-7b82-4c59-9eea-97a24ee5dea9",
-      "title": "규제 항이 총 손실에 더해져요",
-      "goal": "L2 규제는 가중치가 클수록 손실에 벌점을 더해요. 예측은 정답과 같아요. 총 loss와 자료 MSE를 함께 출력해요.\n이유를 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_c41e053b-040b-4d00-bb1d-dd3389bb5762",
+      "title": "l2 × 가중치 제곱합으로 규제 항을 구하세요",
+      "goal": "L2 규제는 가중치가 너무 커지지 않게 벌점을 더해요. 벌점은 l2 × (가중치 제곱의 합)이고, 학습은 자료 오차와 이 벌점을 더한 총 loss를 줄여요. `model.get_weights()[0]`은 Dense의 가중치예요.\n\npenalty 줄을 고쳐 규제 항, 곧 l2 × 가중치 제곱의 합을 계산하세요. 채점은 다른 규제 세기와 정답으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 세 값을 확인하세요.\n2. `penalty = 0.0`을 `penalty = l2 * np.sum(np.square(model.get_weights()[0]))`로 고치세요.\n3. 코드 실행을 눌러 True가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "penalty",
-      "tests": [],
+      "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 가중치 1 두 개에 L2 규제를 걸어요.\nl2 = 0.1\nrows = [[1.0, 2.0]]\ntargets = [[3.0]]\nmodel = keras.Sequential([keras.Input(shape=(2,)), keras.layers.Dense(1, use_bias=False, kernel_initializer=\"ones\", kernel_regularizer=keras.regularizers.l2(l2))])\nmodel.compile(optimizer=\"sgd\", loss=\"mse\", metrics=[\"mse\"])\nresult = model.evaluate(np.array(rows, dtype=\"float32\"), np.array(targets, dtype=\"float32\"), return_dict=True, verbose=0)\n# 이 줄을 고쳐 규제 항, 곧 l2 × 가중치 제곱의 합을 계산하세요.\npenalty = 0.0\nprint(round(float(result[\"mse\"]), 6), round(float(penalty), 6))\n# 확인용: 총 loss가 자료 오차와 규제 항의 합인지 비교해요.\nprint(bool(np.isclose(float(result[\"loss\"]), float(result[\"mse\"]) + float(penalty), atol=1e-5)))\n",
+      "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 가중치 1 두 개에 L2 규제를 걸어요.\nl2 = 0.1\nrows = [[1.0, 2.0]]\ntargets = [[3.0]]\nmodel = keras.Sequential([keras.Input(shape=(2,)), keras.layers.Dense(1, use_bias=False, kernel_initializer=\"ones\", kernel_regularizer=keras.regularizers.l2(l2))])\nmodel.compile(optimizer=\"sgd\", loss=\"mse\", metrics=[\"mse\"])\nresult = model.evaluate(np.array(rows, dtype=\"float32\"), np.array(targets, dtype=\"float32\"), return_dict=True, verbose=0)\n# 이 줄을 고쳐 규제 항, 곧 l2 × 가중치 제곱의 합을 계산하세요.\n# L2 규제는 가중치를 제곱해 더한 값에 l2를 곱해요. 학습은 이 벌점까지 더한 loss를 줄여요.\npenalty = l2 * np.sum(np.square(model.get_weights()[0]))\nprint(round(float(result[\"mse\"]), 6), round(float(penalty), 6))\n# 확인용: 총 loss가 자료 오차와 규제 항의 합인지 비교해요.\nprint(bool(np.isclose(float(result[\"loss\"]), float(result[\"mse\"]) + float(penalty), atol=1e-5)))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "0.0 0.2\nTrue"
+        }
+      ],
       "required": true,
-      "example_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 가중치1 두 개의 L2 규제 항을 실제로 확인해요.\nmodel = keras.Sequential([keras.Input(shape=(2,)), keras.layers.Dense(1, use_bias=False, kernel_initializer=\"ones\", kernel_regularizer=keras.regularizers.l2(0.1))])\nmodel.compile(optimizer=\"sgd\", loss=\"mse\", metrics=[\"mse\"])\nresult = model.evaluate(np.array([[1.0, 2.0]], dtype=\"float32\"), np.array([[3.0]], dtype=\"float32\"), return_dict=True, verbose=0)\nprint(round(float(result[\"loss\"]), 6))\nprint(float(result[\"mse\"]))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "penalty",
-            "text": "자료 MSE0에 가중치 규제 항이 더해졌어요"
-          },
-          {
-            "id": "wrong",
-            "text": "정답을0.2만큼 틀렸다는 뜻이에요"
-          }
-        ],
-        "answer": "penalty"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "총 손실과 자료의 평균제곱오차가 다른 이유를 고르는 문제예요.",
-          "target": "text:규제 항이 총 손실에 더해져요#1"
+          "text": "l2 × 가중치 제곱합으로 규제 항을 구하는 문제예요.",
+          "target": "text:l2 × 가중치 제곱합으로 규제 항을 구하세요#1"
         },
         {
           "action": "say",
-          "text": "예측이 정답과 같으면 자료 MSE는 0이에요. 그런데 총 loss에는 규제 벌점이 더해져요. 두 값이 다를 이유를 고르는 문제예요.",
-          "target": "text:L2 규제는 가중치가 클수록 손실에 벌점을 더해요."
+          "text": "예측 3.0이 정답과 같아 자료 오차는 0이에요. 총 loss에 더해지는 규제 항을 직접 계산해야 해요.",
+          "target": "text:규제 항, 곧 l2 × 가중치 제곱의 합을 계산하세요."
         },
         {
           "action": "run",
           "lines": [
-            16,
-            16
+            20,
+            22
           ]
         },
         {
           "action": "say",
-          "text": "자료 오차는 0.0이지만 규제 항을 더한 총 손실은 0.2예요.",
+          "text": "0.0 0.0과 False예요. 총 loss는 0이 아니라서 자료 오차만으로는 맞지 않아요.",
           "target": "output"
         },
         {
-          "action": "say",
-          "text": "조심하세요. 총 손실과 자료 오차 지표를 같은 값이라고 단정하지 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "penalty"
-        }
-      ],
-      "predict_before_run": true,
-      "question": "총 loss와 자료 MSE가 다르면 이유는 무엇일까요?"
-    },
-    {
-      "id": "stp_c2b23086-5c99-45d9-8db0-2fdd3163f44e",
-      "title": "가장 좋았던 모델을 저장해요",
-      "goal": "ModelCheckpoint로 검증 오차가 가장 작았던 epoch의 모델을 파일에 저장했어요. 파일에서 불러온 모델과 메모리의 마지막 모델을 비교해요.\n메모리의 마지막 모델도 자동으로 바뀐 걸까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "file",
-      "tests": [],
-      "required": true,
-      "example_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\ndef make_model(rate=0.1):\n    # 매 비교마다 같은 영 가중치에서 시작해요.\n    model = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\n    model.compile(optimizer=keras.optimizers.SGD(learning_rate=rate), loss=\"mse\")\n    return model\n# 동작 비교용으로 훈련과 검증의 정답 관계를 다르게 둬요.\nX_train = np.array([[1.0], [2.0]], dtype=\"float32\")\ny_train = np.array([[2.0], [4.0]], dtype=\"float32\")\nX_valid = np.array([[1.0], [2.0]], dtype=\"float32\")\ny_valid = np.array([[0.0], [0.0]], dtype=\"float32\")\nfrom pathlib import Path\n\nmodel = make_model()\ncheckpoint = keras.callbacks.ModelCheckpoint(\"best.keras\", monitor=\"val_loss\", mode=\"min\", save_best_only=True)\nmodel.fit(X_train, y_train, validation_data=(X_valid, y_valid), epochs=3, batch_size=2, shuffle=False, callbacks=[checkpoint], verbose=0)\nrestored = keras.models.load_model(\"best.keras\")\nprint(Path(\"best.keras\").is_file())\nprint(float(restored.evaluate(X_valid, y_valid, verbose=0)) < float(model.evaluate(X_valid, y_valid, verbose=0)))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "auto",
-            "text": "네. 최고 파일을 저장할 때 현재 모델도 그 상태로 바뀌어요"
-          },
-          {
-            "id": "file",
-            "text": "아니요.최고 파일 저장과 현재 모델 교체는 별개예요"
-          }
-        ],
-        "answer": "file"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "최고 모델을 파일로 저장하는 것과 지금 메모리에 있는 모델을 바꾸는 것이 같은 일인지 구별하는 문제예요.",
-          "target": "text:가장 좋았던 모델을 저장해요#1"
+          "action": "patch_code",
+          "before": "penalty = 0.0\n",
+          "after": "penalty = l2 * np.sum(np.square(model.get_weights()[0]))\n",
+          "say": "l2 * np.sum(np.square(model.get_weights()[0]))로 바꿔요."
         },
         {
           "action": "run",
           "lines": [
-            28,
-            28
+            20,
+            22
           ]
         },
         {
           "action": "say",
-          "text": "최고 모델 파일이 있고 불러온 모델의 검증 오차가 더 작아요.",
+          "text": "0.0 0.2와 True예요. 가중치 1 두 개의 제곱합 2에 0.1을 곱한 0.2가 총 loss예요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 저장한 모델을 쓰려면 직접 불러오거나 필요한 상태를 복원해야 해요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "file"
+          "text": "조심하세요. 총 loss와 자료 오차 지표는 같은 값이 아니에요. 규제를 걸면 정답을 맞혀도 loss가 0이 아닐 수 있어요.",
+          "target": "code:np.square(model.get_weights()[0])"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"l2\": 0.05}, \"expected\": \"0.0 0.1\\\\nTrue\"}, {\"values\": {\"targets\": [[1.0]]}, \"expected\": \"4.0 0.2\\\\nTrue\"}, {\"values\": {\"rows\": [[1.0, 1.0], [0.0, 2.0]], \"targets\": [[2.0], [0.0]], \"l2\": 0.3}, \"expected\": \"2.0 0.6\\\\nTrue\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=45)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_b0aebfbb-fe0e-46f8-a732-ed82ff789c6a",
-      "title": "학습률과 반복 횟수를 구별해요",
-      "goal": "두 모델을 같은 batch로 한 번씩 갱신하되 학습률만 달리했어요.\n학습률은 무엇에 영향을 줄까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_3493a788-7230-4c10-900e-9fcc203d1874",
+      "title": "load_model(\"best.keras\")로 저장한 최고 모델을 불러오세요",
+      "goal": "`ModelCheckpoint(save_best_only=True)`는 검증 손실이 가장 작았던 epoch의 모델을 파일 best.keras에 저장해요. 이 자료에서는 첫 epoch가 가장 좋아요. 메모리의 model은 마지막 epoch 상태 그대로예요.\n\nrestored 줄을 고쳐 검증 손실이 가장 작았을 때 저장한 파일에서 모델을 불러오세요. 채점은 다른 epoch로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 두 줄을 확인하세요.\n2. `restored = model`을 `restored = keras.models.load_model(\"best.keras\")`로 고치세요.\n3. 코드 실행을 눌러 True와 True가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "step",
-      "tests": [],
+      "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nfrom pathlib import Path\n\ndef make_model(rate=0.1):\n    # 매 비교마다 같은 영 가중치에서 시작해요.\n    model = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\n    model.compile(optimizer=keras.optimizers.SGD(learning_rate=rate), loss=\"mse\")\n    return model\n# 동작 비교용으로 훈련과 검증의 정답 관계를 다르게 둬요.\nX_train = np.array([[1.0], [2.0]], dtype=\"float32\")\ny_train = np.array([[2.0], [4.0]], dtype=\"float32\")\nX_valid = np.array([[1.0], [2.0]], dtype=\"float32\")\ny_valid = np.array([[0.0], [0.0]], dtype=\"float32\")\nepochs = 3\nmodel = make_model()\ncheckpoint = keras.callbacks.ModelCheckpoint(\"best.keras\", monitor=\"val_loss\", mode=\"min\", save_best_only=True)\nmodel.fit(X_train, y_train, validation_data=(X_valid, y_valid), epochs=epochs, batch_size=2, shuffle=False, callbacks=[checkpoint], verbose=0)\n# 이 줄을 고쳐 검증 손실이 가장 작았을 때 저장한 파일에서 모델을 불러오세요.\nrestored = model\nprint(Path(\"best.keras\").is_file())\nprint(float(restored.evaluate(X_valid, y_valid, verbose=0)) < float(model.evaluate(X_valid, y_valid, verbose=0)))\n",
+      "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nfrom pathlib import Path\n\ndef make_model(rate=0.1):\n    # 매 비교마다 같은 영 가중치에서 시작해요.\n    model = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\n    model.compile(optimizer=keras.optimizers.SGD(learning_rate=rate), loss=\"mse\")\n    return model\n# 동작 비교용으로 훈련과 검증의 정답 관계를 다르게 둬요.\nX_train = np.array([[1.0], [2.0]], dtype=\"float32\")\ny_train = np.array([[2.0], [4.0]], dtype=\"float32\")\nX_valid = np.array([[1.0], [2.0]], dtype=\"float32\")\ny_valid = np.array([[0.0], [0.0]], dtype=\"float32\")\nepochs = 3\nmodel = make_model()\ncheckpoint = keras.callbacks.ModelCheckpoint(\"best.keras\", monitor=\"val_loss\", mode=\"min\", save_best_only=True)\nmodel.fit(X_train, y_train, validation_data=(X_valid, y_valid), epochs=epochs, batch_size=2, shuffle=False, callbacks=[checkpoint], verbose=0)\n# 이 줄을 고쳐 검증 손실이 가장 작았을 때 저장한 파일에서 모델을 불러오세요.\n# 최고 모델은 파일에만 있어요. 메모리의 model은 마지막 epoch 상태 그대로라 직접 불러와요.\nrestored = keras.models.load_model(\"best.keras\")\nprint(Path(\"best.keras\").is_file())\nprint(float(restored.evaluate(X_valid, y_valid, verbose=0)) < float(model.evaluate(X_valid, y_valid, verbose=0)))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "True\nTrue"
+        }
+      ],
       "required": true,
-      "example_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\ndef make_model(rate=0.1):\n    # 매 비교마다 같은 영 가중치에서 시작해요.\n    model = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\n    model.compile(optimizer=keras.optimizers.SGD(learning_rate=rate), loss=\"mse\")\n    return model\n# 동작 비교용으로 훈련과 검증의 정답 관계를 다르게 둬요.\nX_train = np.array([[1.0], [2.0]], dtype=\"float32\")\ny_train = np.array([[2.0], [4.0]], dtype=\"float32\")\nX_valid = np.array([[1.0], [2.0]], dtype=\"float32\")\ny_valid = np.array([[0.0], [0.0]], dtype=\"float32\")\n# 같은 한 batch에서 학습률만 다르게 비교해요.\nfast = make_model(0.1)\nslow = make_model(0.01)\nfor model in [fast, slow]:\n    model.fit(X_train, y_train, epochs=1, batch_size=2, shuffle=False, verbose=0)\nprint([round(float(model.get_weights()[0][0, 0]), 6) for model in [fast, slow]])\nprint([int(model.optimizer.iterations.numpy()) for model in [fast, slow]])\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "step",
-            "text": "한 업데이트에서 움직이는 크기에 영향을 줘요"
-          },
-          {
-            "id": "epochs",
-            "text": "학습률은 몇 epoch 학습할지를 정해요"
-          }
-        ],
-        "answer": "step"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "갱신 횟수가 같을 때 학습률만 다르면 무엇이 달라지는지 보는 문제예요.",
-          "target": "text:학습률과 반복 횟수를 구별해요#1"
+          "text": "load_model(\"best.keras\")로 저장한 최고 모델을 불러오는 문제예요.",
+          "target": "text:load_model(\"best.keras\")로 저장한 최고 모델을 불러오세요#1"
         },
         {
           "action": "say",
-          "text": "학습률은 한 번 갱신할 때 가중치를 얼마나 움직일지 정해요.",
-          "target": "text:두 모델을 같은 batch로 한 번씩 갱신하되 학습률만 달리했어요."
+          "text": "ModelCheckpoint는 최고 모델을 파일에 저장해요. 그 파일에서 모델을 불러와야 해요.",
+          "target": "text:검증 손실이 가장 작았을 때 저장한 파일에서 모델을 불러오세요."
         },
         {
           "action": "run",
           "lines": [
-            27,
-            27
+            29,
+            30
           ]
         },
         {
           "action": "say",
-          "text": "가중치는 1.0과 0.1로 다르지만 둘 다 한 번씩 갱신했어요.",
+          "text": "True와 False예요. 파일은 있지만 restored가 메모리의 마지막 모델 그 자체라 더 나을 수 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "restored = model\n",
+          "after": "restored = keras.models.load_model(\"best.keras\")\n",
+          "say": "keras.models.load_model(\"best.keras\")로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            29,
+            30
+          ]
+        },
+        {
+          "action": "say",
+          "text": "True와 True예요. 불러온 최고 모델의 검증 오차가 마지막 모델보다 작아요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 이 예에서 크게 움직였다고 항상 더 좋은 학습률인 것은 아니에요.",
+          "text": "조심하세요. 최고 모델을 저장해도 메모리의 모델이 바뀌지는 않아요. 쓰려면 파일을 직접 불러와요.",
+          "target": "code:keras.models.load_model(\"best.keras\")"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nimport uuid\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"epochs\": 1}, \"expected\": \"True\\\\nFalse\"}, {\"values\": {\"epochs\": 2}, \"expected\": \"True\\\\nTrue\"}, {\"values\": {\"epochs\": 4}, \"expected\": \"True\\\\nTrue\"}]')\nprobe = 'assert restored is not model, \"파일에서 불러온 모델을 쓰세요.\"\\ncontrol = make_model()\\ncontrol.fit(X_train, y_train, epochs=1, batch_size=2, shuffle=False, verbose=0)\\nassert np.allclose(restored.predict(X_valid, verbose=0), control.predict(X_valid, verbose=0)), \"검증 손실이 가장 작았던 epoch의 모델인지 확인하세요.\"'\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    witness = uuid.uuid4().hex\n    tree.body.extend(ast.parse(probe).body)\n    tree.body.extend(ast.parse('print(' + repr(witness) + ')').body)\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=45)\n    lines = result.stdout.strip().splitlines()\n    if not lines or lines[-1] != witness:\n        raise AssertionError('실제 실행 상태의 검사까지 끝나야 해요.')\n    output = '\\n'.join(lines[:-1]).strip()\n    if result.returncode != 0 or output != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_3a6d96d0-106f-4a86-8734-d376f8fe852d",
+      "title": "학습률 × 기울기만큼 한 번 옮긴 가중치를 계산하세요",
+      "goal": "학습률은 한 번 갱신할 때 가중치를 얼마나 움직일지 정해요. SGD는 가중치에서 학습률 × 기울기를 빼요. 두 모델은 같은 한 batch로 한 번씩만 갱신하고 학습률만 달라요.\n\nupdated의 return 줄을 고쳐 가중치 0에서 기울기 반대 방향으로 rate × grad만큼 한 번 옮긴 값을 돌려주세요. 채점은 다른 학습률과 정답으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 계산과 실제 가중치를 비교하세요.\n2. `return 0.0`을 `return 0.0 - rate * grad`로 고치세요.\n3. 코드 실행을 눌러 두 목록이 같은지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\ndef make_model(rate=0.1):\n    # 매 비교마다 같은 영 가중치에서 시작해요.\n    model = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\n    model.compile(optimizer=keras.optimizers.SGD(learning_rate=rate), loss=\"mse\")\n    return model\n# 같은 한 batch에서 학습률만 다르게 비교해요.\nrates = [0.1, 0.01]\ntargets = [[2.0], [4.0]]\nX_train = np.array([[1.0], [2.0]], dtype=\"float32\")\ny_train = np.array(targets, dtype=\"float32\")\n# 시작 가중치 0에서 mse 손실의 기울기예요. 확인용 계산이라 식은 몰라도 돼요.\ngrad = float(np.mean(2 * (0 - y_train) * X_train))\n\ndef updated(rate):\n    # 이 줄을 고쳐 가중치 0에서 기울기 반대 방향으로 rate × grad만큼 한 번 옮긴 값을 돌려주세요.\n    return 0.0\n\nmodels = [make_model(rate) for rate in rates]\nfor model in models:\n    model.fit(X_train, y_train, epochs=1, batch_size=2, shuffle=False, verbose=0)\nprint([round(updated(rate), 6) for rate in rates])\nprint([round(float(model.get_weights()[0][0, 0]), 6) for model in models])\nprint([int(model.optimizer.iterations.numpy()) for model in models])\n",
+      "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\ndef make_model(rate=0.1):\n    # 매 비교마다 같은 영 가중치에서 시작해요.\n    model = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\n    model.compile(optimizer=keras.optimizers.SGD(learning_rate=rate), loss=\"mse\")\n    return model\n# 같은 한 batch에서 학습률만 다르게 비교해요.\nrates = [0.1, 0.01]\ntargets = [[2.0], [4.0]]\nX_train = np.array([[1.0], [2.0]], dtype=\"float32\")\ny_train = np.array(targets, dtype=\"float32\")\n# 시작 가중치 0에서 mse 손실의 기울기예요. 확인용 계산이라 식은 몰라도 돼요.\ngrad = float(np.mean(2 * (0 - y_train) * X_train))\n\ndef updated(rate):\n    # 이 줄을 고쳐 가중치 0에서 기울기 반대 방향으로 rate × grad만큼 한 번 옮긴 값을 돌려주세요.\n    # SGD는 가중치에서 학습률 × 기울기를 빼요. 학습률이 한 번에 움직이는 크기를 정해요.\n    return 0.0 - rate * grad\n\nmodels = [make_model(rate) for rate in rates]\nfor model in models:\n    model.fit(X_train, y_train, epochs=1, batch_size=2, shuffle=False, verbose=0)\nprint([round(updated(rate), 6) for rate in rates])\nprint([round(float(model.get_weights()[0][0, 0]), 6) for model in models])\nprint([int(model.optimizer.iterations.numpy()) for model in models])\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[1.0, 0.1]\n[1.0, 0.1]\n[1, 1]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "학습률 × 기울기만큼 한 번 옮긴 가중치를 계산하는 문제예요.",
+          "target": "text:학습률 × 기울기만큼 한 번 옮긴 가중치를 계산하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "두 모델은 똑같이 한 번 갱신해요. 학습률이 한 번에 얼마나 옮기는지 직접 계산해 실제 가중치와 비교해야 해요.",
+          "target": "text:가중치 0에서 기울기 반대 방향으로 rate × grad만큼 한 번 옮긴 값을 돌려주세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            31,
+            33
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[0.0, 0.0], [1.0, 0.1], [1, 1]이에요. 실제 가중치는 학습률마다 다르게 움직였어요.",
           "target": "output"
         },
         {
-          "action": "choose_answer",
-          "id": "step"
+          "action": "patch_code",
+          "before": "    return 0.0\n",
+          "after": "    return 0.0 - rate * grad\n",
+          "say": "0.0 - rate * grad를 돌려줘요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            31,
+            33
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[1.0, 0.1]로 실제 가중치와 같아요. 기울기 -10에 학습률을 곱한 만큼 옮겼고 둘 다 한 번 갱신했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 학습률은 반복 횟수가 아니라 한 번의 크기예요. 크게 움직였다고 항상 더 좋은 학습률인 것도 아니에요.",
+          "target": "code:0.0 - rate * grad"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"rates\": [0.2, 0.05]}, \"expected\": \"[2.0, 0.5]\\\\n[2.0, 0.5]\\\\n[1, 1]\"}, {\"values\": {\"targets\": [[1.0], [0.0]]}, \"expected\": \"[0.1, 0.01]\\\\n[0.1, 0.01]\\\\n[1, 1]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=45)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
       "id": "stp_322608d1-7d2b-474e-8e58-2fbf159af3a3",

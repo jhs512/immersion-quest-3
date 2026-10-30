@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "4ddd9edb96edbe11f76449b63578c58ba2eeee8a7c6ddf1f3e05401cf8299387",
+  "entry": [
+    {
+      "action": "say",
+      "text": "두 모델은 똑같이 한 번 갱신해요. 학습률이 한 번에 얼마나 옮기는지 직접 계산해 실제 가중치와 비교해야 해요.",
+      "target": "text:가중치 0에서 기울기 반대 방향으로 rate × grad만큼 한 번 옮긴 값을 돌려주세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        31,
+        33
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[0.0, 0.0], [1.0, 0.1], [1, 1]이에요. 실제 가중치는 학습률마다 다르게 움직였어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    return 0.0\n",
+      "after": "    return 0.0 - rate * grad\n",
+      "say": "0.0 - rate * grad를 돌려줘요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        31,
+        33
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[1.0, 0.1]로 실제 가중치와 같아요. 기울기 -10에 학습률을 곱한 만큼 옮겼고 둘 다 한 번 갱신했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 학습률은 반복 횟수가 아니라 한 번의 크기예요. 크게 움직였다고 항상 더 좋은 학습률인 것도 아니에요.",
+      "target": "code:0.0 - rate * grad"
+    }
+  ]
+}

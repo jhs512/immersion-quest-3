@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "6e493092277c99a18ee3d67ac82c4b2c8e22dfd0363af37ace822972010446c4",
+  "entry": [
+    {
+      "action": "say",
+      "text": "Dropout은 학습할 때만 일부 입력을 쉬게 해요. 추론 때처럼 부르도록 training을 고쳐야 해요.",
+      "target": "text:추론 때처럼 Dropout을 적용하지 않게 부르세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        22
+      ]
+    },
+    {
+      "action": "say",
+      "text": "일부가 0.0이고 남은 값이 2.0이에요. 추론 쪽도 학습처럼 불러 입력을 지웠어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "inference = layer(inputs, training=True)",
+      "after": "inference = layer(inputs, training=False)",
+      "say": "첫 줄의 training을 False로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        22
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[[1.0, 1.0, 1.0, 1.0]]과 True예요. 추론은 그대로이고, 학습 때는 0 또는 2.0만 나와요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. Dropout은 자료에서 특성을 지우는 게 아니에요. 그리고 학습 때 지워지는 위치나 개수는 무작위라 외우지 않아요.",
+      "target": "code:training=False"
+    }
+  ]
+}

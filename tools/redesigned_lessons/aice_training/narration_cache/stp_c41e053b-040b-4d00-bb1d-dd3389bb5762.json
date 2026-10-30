@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "80aeff36a628dcf47ff70bcf9b7f416b81838f707ca38bf9e56a3b2d609b04aa",
+  "entry": [
+    {
+      "action": "say",
+      "text": "예측 3.0이 정답과 같아 자료 오차는 0이에요. 총 loss에 더해지는 규제 항을 직접 계산해야 해요.",
+      "target": "text:규제 항, 곧 l2 × 가중치 제곱의 합을 계산하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        20,
+        22
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0.0 0.0과 False예요. 총 loss는 0이 아니라서 자료 오차만으로는 맞지 않아요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "penalty = 0.0\n",
+      "after": "penalty = l2 * np.sum(np.square(model.get_weights()[0]))\n",
+      "say": "l2 * np.sum(np.square(model.get_weights()[0]))로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        20,
+        22
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0.0 0.2와 True예요. 가중치 1 두 개의 제곱합 2에 0.1을 곱한 0.2가 총 loss예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 총 loss와 자료 오차 지표는 같은 값이 아니에요. 규제를 걸면 정답을 맞혀도 loss가 0이 아닐 수 있어요.",
+      "target": "code:np.square(model.get_weights()[0])"
+    }
+  ]
+}

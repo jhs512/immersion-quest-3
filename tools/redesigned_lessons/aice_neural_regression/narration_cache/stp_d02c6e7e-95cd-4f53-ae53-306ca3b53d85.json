@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "7021b15060e5ddd5ed11af2fa61f5250600b0228f34a9bb215813c7a8523f7bc",
+  "entry": [
+    {
+      "action": "say",
+      "text": "fit이 남긴 기록을 읽어요. history에서 훈련 손실 목록을 꺼내야 해요.",
+      "target": "text:fit이 남긴 history에서 훈련 손실 기록 목록을 꺼내세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        20,
+        20
+      ],
+      "expect_error": "IndexError"
+    },
+    {
+      "action": "say",
+      "text": "0과 IndexError예요. 빈 목록이라 첫 기록이 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "losses = []\n",
+      "after": "losses = history.history[\"loss\"]\n",
+      "say": "빈 목록을 history.history[\"loss\"]로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        20,
+        22
+      ]
+    },
+    {
+      "action": "say",
+      "text": "10과 True예요. 훈련 배송은 네 건인데 기록은 epochs만큼 열 개이고, 학습하며 오차가 줄었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 이 기록은 훈련 표에서 잰 오차예요. 줄었다는 것만으로 새 배송의 성능까지 말하지는 않아요.",
+      "target": "code:history.history[\"loss\"]"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "1196dbfdc3c8e96783691a3f8574d2a560d715fd5fcca1f1e307de2593d4f87a",
+  "entry": [
+    {
+      "action": "say",
+      "text": "목표가 0.5분과 1.5분인 연속 시간이에요. 종류를 고르는 Classifier를 Regressor로 고쳐야 해요.",
+      "target": "text:model 줄을 고쳐 연속적인 시간을 예측하는 포레스트를 쓰세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ],
+      "expect_error": "ValueError"
+    },
+    {
+      "action": "say",
+      "text": "ValueError예요. Classifier는 0.5 같은 연속 값을 종류로 다룰 수 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "model = RandomForestClassifier(",
+      "after": "model = RandomForestRegressor(",
+      "say": "RandomForestRegressor로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[0.5, 1.5]예요. 시간 크기 자체를 예측했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 정답이 숫자라고 모두 회귀는 아니에요. 0과 1처럼 종류를 뜻하면 분류예요.",
+      "target": "code:RandomForestRegressor("
+    }
+  ]
+}

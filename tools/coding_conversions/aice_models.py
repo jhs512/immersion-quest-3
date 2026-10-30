@@ -48,14 +48,14 @@ n2 = (Script(s2)
       .say('조심하세요. max_depth는 나무 하나의 깊이고, 나무의 개수는 n_estimators예요.', 'code:len(model.estimators_)'))
 
 s3 = ('from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier\n\n# 이번 목표는 종류가 아니라 연속적인 배송 시간이에요.\nX_train = [[0], [1]]\ny_train = [0.5, 1.5]\n'
-      '# 이 줄을 고쳐 연속적인 시간을 예측하는 포레스트를 쓰세요.\nmodel = RandomForestClassifier(n_estimators=3, bootstrap=False, random_state=0, n_jobs=1)\nmodel.fit(X_train, y_train)\nprint(model.predict(X_train).tolist())\n')
+      '# 이 줄을 고쳐 연속적인 시간을 예측하는 포레스트를 쓰세요.\nmodel = RandomForestClassifier(n_estimators=3, bootstrap=False, random_state=0, n_jobs=1)\nmodel.fit(X_train, y_train)\n# 소수 표현 차이 없이 비교하도록 넷째 자리까지 반올림해 보여 줘요.\nprint([round(float(p), 4) for p in model.predict(X_train)])\n')
 s3_sol = s3.replace('model = RandomForestClassifier(', '# 숫자 크기 자체를 맞히는 목표는 Regressor예요. Classifier는 정해진 종류를 골라요.\nmodel = RandomForestRegressor(')
 n3 = (Script(s3)
       .say('목표가 0.5분과 1.5분인 연속 시간이에요. 종류를 고르는 Classifier를 Regressor로 고쳐야 해요.', 'text:model 줄을 고쳐 연속적인 시간을 예측하는 포레스트를 쓰세요.')
-      .run('print(model.predict', error='ValueError')
+      .run('print([round(float(p), 4)', error='ValueError')
       .say('ValueError예요. Classifier는 0.5 같은 연속 값을 종류로 다룰 수 없어요.', 'output')
       .patch('model = RandomForestClassifier(', 'model = RandomForestRegressor(', 'RandomForestRegressor로 바꿔요.')
-      .run('print(model.predict')
+      .run('print([round(float(p), 4)')
       .say('[0.5, 1.5]예요. 시간 크기 자체를 예측했어요.', 'output')
       .say('조심하세요. 정답이 숫자라고 모두 회귀는 아니에요. 0과 1처럼 종류를 뜻하면 분류예요.', 'code:RandomForestRegressor('))
 
@@ -74,14 +74,14 @@ n4 = (Script(s4)
 
 s5 = ('from sklearn.svm import SVC\n\n# 같은 배송 거리와 정상0·지연1을 준비해요.\nX_train = [[1], [2], [8], [9]]\ny_train = [0, 0, 1, 1]\nX_test = [[1], [9]]\n'
       'model = SVC(kernel="linear")\nmodel.fit(X_train, y_train)\nprint(model.predict(X_test).tolist())\n'
-      '# 이 줄을 고쳐 확률 대신 경계선까지의 결정 점수를 scores에 담으세요.\nscores = model.predict_proba(X_test)\nprint(scores.round(3).tolist())\n')
+      '# 이 줄을 고쳐 확률 대신 경계선까지의 결정 점수를 scores에 담으세요.\nscores = model.predict_proba(X_test)\n# + 0.0은 -0.0을 0.0으로 맞춰요.\nprint((scores.round(3) + 0.0).tolist())\n')
 s5_sol = s5.replace('scores = model.predict_proba(X_test)', '# 기본 SVC는 확률을 주지 않아요. decision_function은 경계선의 어느 쪽에 얼마나 떨어졌는지예요.\nscores = model.decision_function(X_test)')
 n5 = (Script(s5)
       .say('SVC는 두 종류 사이에 경계선을 그어요. 확률 대신 결정 점수를 담도록 scores 줄을 고쳐야 해요.', 'text:scores 줄을 고쳐 확률 대신 경계선까지의 결정 점수를 scores에 담으세요.')
-      .run('print(model.predict', 'print(scores', error='AttributeError')
+      .run('print(model.predict', 'print((scores', error='AttributeError')
       .say('[0, 1] 뒤에 AttributeError예요. 기본 SVC에는 확률을 주는 predict_proba가 없어요.', 'output')
       .patch('scores = model.predict_proba(X_test)', 'scores = model.decision_function(X_test)', 'decision_function으로 바꿔요.')
-      .run('print(model.predict', 'print(scores')
+      .run('print(model.predict', 'print((scores')
       .say('[-1.333, 1.333]이에요. 음수는 정상 쪽, 양수는 지연 쪽으로 경계선에서 떨어진 정도예요.', 'output')
       .say('조심하세요. 결정 점수는 0에서 1 사이의 확률이 아니에요. 크기를 확률로 읽지 않아요.', 'code:decision_function'))
 
@@ -126,8 +126,8 @@ SPECS = [
               'model 줄을 고쳐 연속적인 시간을 예측하는 포레스트를 쓰세요. 채점은 다른 시간으로도 실행해요.',
               ['코드 실행을 눌러 ValueError가 나오는지 확인하세요.', '`RandomForestClassifier(`를 `RandomForestRegressor(`로 고치세요.', '코드 실행을 눌러 예측한 시간을 확인하세요.', SUBMIT],
               s3, s3_sol, n3, {n3.actions[-1]['text']: W},
-              cases=[{'X_train': [[0], [1], [2]], 'y_train': [2.25, 7.5, 3.0]}, {'X_train': [[4], [9]], 'y_train': [0.1, 0.9]}],
-              reject=[([['print(model.predict(X_train).tolist())', 'print(y_train)']], 'Printing the targets'),
+              cases=[{'X_train': [[0], [1], [2]], 'y_train': [2.25, 7.5, 3.0]}, {'X_train': [[0], [0], [1]], 'y_train': [1.0, 2.0, 5.0]}, {'X_train': [[4], [9]], 'y_train': [0.1, 0.9]}],
+              reject=[([['print([round(float(p), 4) for p in model.predict(X_train)])', 'print(y_train)']], 'Printing the targets'),
                       ([['model = RandomForestRegressor(', 'model = RandomForestClassifier(']], 'Classifier')],
               accept=[([['n_estimators=3, bootstrap=False', 'n_estimators=5, bootstrap=False']], 'More trees without bootstrap')]),
     code_step('stp_754801ed-fb91-4f97-afc2-fcc5dd7a2805', 'StandardScaler와 KNN을 make_pipeline으로 이으세요', '거리 모델 앞에 훈련 기준 표준화를 둬 단위의 영향을 맞춰요.',
@@ -135,7 +135,7 @@ SPECS = [
               'KNN(K-최근접 이웃)은 새 배송과 가장 가까운 훈련 배송 K개의 종류를 따라가요. `n_neighbors=1`이면 가장 가까운 하나만 봐요. 가까움은 특성 값의 거리로 재서 단위가 큰 특성이 거리를 좌우해요.',
               'model 줄을 고쳐 훈련 기준으로 표준화한 뒤 가장 가까운 이웃 하나를 따르게 하세요. 채점은 다른 평가 입력으로도 실행해요.',
               ['코드 실행을 눌러 예측을 확인하세요.', '`KNeighborsClassifier(n_neighbors=1)`을 `make_pipeline(StandardScaler(), KNeighborsClassifier(n_neighbors=1))`으로 고치세요.', '코드 실행을 눌러 예측이 바뀌는지 확인하세요.', SUBMIT],
-              s4, s4_sol, n4, {n4.actions[-1]['text']: W}, cases=[{'X_test': [[0.2, 900], [0.95, 50]]}, {'X_test': [[0.4, 450], [0.6, 600]]}],
+              s4, s4_sol, n4, {n4.actions[-1]['text']: W}, cases=[{'X_test': [[0.9, 400], [0.1, 600]]}, {'X_test': [[0.8, 300], [0.2, 700], [0.0, 100]]}],
               reject=[([['model = make_pipeline(StandardScaler(), KNeighborsClassifier(n_neighbors=1))', 'model = KNeighborsClassifier(n_neighbors=1)']], 'Raw distance'),
                       ([['print(model.predict(X_test).tolist())', 'print([1])']], 'Typing the class')],
               accept=[([['model = make_pipeline(StandardScaler(), KNeighborsClassifier(n_neighbors=1))', 'from sklearn.pipeline import Pipeline\nmodel = Pipeline([("scale", StandardScaler()), ("knn", KNeighborsClassifier(n_neighbors=1))])']], 'Pipeline with names')]),
@@ -155,8 +155,8 @@ SPECS = [
               'chosen 줄을 고쳐 훈련이 아니라 같은 검증 자료의 정확도로 후보를 고르세요. 채점은 다른 자료로도 실행해요.',
               ['코드 실행을 눌러 점수와 고른 후보를 확인하세요.', 'chosen 줄의 `X_train, y_train`을 `X_valid, y_valid`로 고치세요.', '코드 실행을 눌러 고른 후보를 확인하세요.', SUBMIT],
               s6, s6_sol, n6, {n6.actions[-1]['text']: W, n6.actions[2]['text']: '실제 출력 점수를 정확히 말해요.'},
-              cases=[{'X_train': [[1], [2], [3], [4], [5], [6]], 'y_train': [0, 0, 0, 1, 1, 1], 'X_valid': [[1.5], [5.5]], 'y_valid': [0, 1]},
-                     {'X_train': [[1], [2], [6], [7], [8], [9]], 'y_train': [0, 1, 0, 1, 1, 1], 'X_valid': [[1.9], [6.1]], 'y_valid': [1, 0]}],
+              cases=[{'X_train': [[1], [2], [3], [4], [5], [6], [7], [8]], 'y_train': [0, 0, 0, 0, 1, 0, 1, 1], 'X_valid': [[5.8], [6.2], [2], [7.5]], 'y_valid': [1, 1, 0, 1]},
+                     {'X_train': [[1], [2], [3], [4], [5], [6]], 'y_train': [0, 0, 1, 1, 0, 0], 'X_valid': [[2.6], [3.4], [1], [6]], 'y_valid': [1, 1, 0, 0]}],
               reject=[([['deep.score(X_valid, y_valid) >= shallow.score(X_valid, y_valid)', 'deep.score(X_train, y_train) >= shallow.score(X_train, y_train)']], 'Training accuracy'),
                       ([['chosen = "deep" if deep.score(X_valid, y_valid) >= shallow.score(X_valid, y_valid) else "shallow"', 'chosen = "shallow"']], 'Typing the name')],
               accept=[([['chosen = "deep" if deep.score(X_valid, y_valid) >= shallow.score(X_valid, y_valid) else "shallow"',

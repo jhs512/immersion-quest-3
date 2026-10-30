@@ -130,15 +130,15 @@ n8 = (Script(s8)
 
 s9 = ('from sklearn.metrics import accuracy_score, roc_auc_score\n\n# 지연1에 해당하는 확률이에요.\ny_true = [0, 0, 1, 1]\nscores = [0.1, 0.6, 0.4, 0.8]\n'
       '# 두 범주가 있어야 순위를 비교할 수 있어요.\nif len(set(y_true)) != 2:\n    print("AUC 정의 불가")\nelse:\n'
-      '    # 이 줄을 고쳐 0.5 기준 정확도가 아니라 확률의 순위로 AUC를 구하세요.\n    auc = accuracy_score(y_true, [int(s >= 0.5) for s in scores])\n    print(float(auc))\n')
+      '    # 이 줄을 고쳐 0.5 기준 정확도가 아니라 확률의 순위로 AUC를 구하세요.\n    auc = accuracy_score(y_true, [int(s >= 0.5) for s in scores])\n    print(round(float(auc), 4))\n')
 s9_sol = s9.replace('    auc = accuracy_score(y_true, [int(s >= 0.5) for s in scores])\n',
                     '    # AUC는 기준 없이 확률 그대로, 지연 쪽 점수가 정상보다 높은 짝의 비율이에요.\n    auc = roc_auc_score(y_true, scores)\n')
 n9 = (Script(s9)
       .say('AUC는 기준을 정하지 않고 확률의 순위를 평가해요. auc 줄을 roc_auc_score로 고쳐야 해요.', 'text:auc 줄을 고쳐 0.5 기준 정확도가 아니라 확률의 순위로 AUC를 구하세요.')
-      .run('print(float(auc')
+      .run('print(round(float(auc')
       .say('0.5예요. 0.5 기준으로 자른 범주의 정확도예요.', 'output')
       .patch('auc = accuracy_score(y_true, [int(s >= 0.5) for s in scores])\n', 'auc = roc_auc_score(y_true, scores)\n', 'roc_auc_score(y_true, scores)로 바꿔요.')
-      .run('print(float(auc')
+      .run('print(round(float(auc')
       .say('0.75예요. 지연·정상 짝 네 개 중 세 개에서 지연 쪽 확률이 더 높았어요.', 'output')
       .say('조심하세요. AUC 0.75는 정답률 75%가 아니에요. 확률 순위의 평가예요.', 'code:roc_auc_score(y_true, scores)'))
 

@@ -117,7 +117,7 @@ q5 = (Script(r5)
 
 # 6. Compare each prediction with the same delivery's actual value.
 r6 = (HEAD + 'from sklearn.metrics import mean_absolute_error\n\n'
-      '# 예측할 배송 번호 순서와, 번호별 실제 시간이에요.\norders = [101, 102]\nX_test = [[1.0], [2.0]]\nactual_by_order = {102: 5.0, 101: 3.0}\n'
+      '# 예측할 배송 번호 순서와, 번호별 실제 시간이에요.\norders = ["A101", "A102"]\nX_test = [[1.0], [2.0]]\nactual_by_order = {"A102": 5.0, "A101": 3.0}\n'
       'weight = 2.0\nbias = 1.0\n' + FIXED + dense('linear')
       + 'predictions = model.predict(np.array(X_test, dtype="float32"), verbose=0).ravel()\n'
       '# 이 줄을 고쳐 orders 순서대로 같은 배송의 실제 시간을 꺼내세요.\ny_true = list(actual_by_order.values())\n'
@@ -201,12 +201,12 @@ SPECS = [
               accept=[([['result = model.evaluate(X, y, return_dict=True, verbose=0)\n', 'result = dict(zip(["loss", "mae"], model.evaluate(X, y, verbose=0)))\n']], 'List result zipped with names')], timeout=T),
     code_step('stp_66008cb7-3573-4a2b-9186-d7fd08a95a0e', '배송 번호로 같은 배송의 실제 시간을 꺼내세요', '예측과 실제를 같은 관측끼리 짝지어야 평가가 의미 있음을 직접 맞춰 확인해요.',
               '사전 값 순서대로 꺼내면 다른 배송끼리 비교해 오차 2.0이다. [actual_by_order[order] for order in orders]로 고쳐 오차 0.0을 확인한다. 채점은 다른 주문 순서와 시간으로 실행한다.',
-              '예측은 orders 순서(101, 102)로 나와요. 실제 시간은 배송 번호별 사전 actual_by_order에 다른 순서로 저장돼 있어요. `ravel()`은 한 열 예측을 일렬로 펼쳐요.',
+              '예측은 orders 순서(A101, A102)로 나와요. 실제 시간은 배송 번호별 사전 actual_by_order에 다른 순서로 저장돼 있어요. `ravel()`은 한 열 예측을 일렬로 펼쳐요.',
               'y_true 줄을 고쳐 orders 순서대로 같은 배송의 실제 시간을 꺼내세요. 채점은 다른 주문 순서로도 실행해요.',
               ['코드 실행을 눌러 오차를 확인하세요.', '`list(actual_by_order.values())`를 `[actual_by_order[order] for order in orders]`로 고치세요.', '코드 실행을 눌러 오차 0.0이 나오는지 확인하세요.', SUB],
               r6, r6_sol, q6, {q6.actions[-1]['text']: W},
-              cases=[{'orders': [7, 3, 5], 'X_test': [[0.0], [1.0], [2.0]], 'actual_by_order': {3: 4.0, 5: 3.0, 7: 1.0}},
-                     {'orders': [2, 1], 'actual_by_order': {1: 4.0, 2: 5.0}}],
+              cases=[{'orders': ['A7', 'A3', 'A5'], 'X_test': [[0.0], [1.0], [2.0]], 'actual_by_order': {'A3': 4.0, 'A5': 3.0, 'A7': 1.0}},
+                     {'orders': ['A2', 'A1'], 'actual_by_order': {'A1': 4.0, 'A2': 5.0}}],
               reject=[([['y_true = [actual_by_order[order] for order in orders]\n', 'y_true = sorted(actual_by_order.values())\n']], 'Sorting the actual values'),
                       ([['y_true = [actual_by_order[order] for order in orders]\n', 'y_true = [3.0, 5.0]\n']], 'Typing the actual values')],
               accept=[([['y_true = [actual_by_order[order] for order in orders]\n', 'y_true = list(map(actual_by_order.get, orders))\n']], 'map with get')], timeout=T),

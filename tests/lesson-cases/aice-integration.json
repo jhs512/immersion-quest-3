@@ -3,31 +3,39 @@
   "lesson": "courses/redesigned/aice-integration.json",
   "expected_outputs": [
     [
-      "['distance', 'zone']\n[10, 20, 30, 40, 50, 60]"
+      "['distance', 'zone', 'minutes']\n[10, 20, 30, 40, 50, 60]\nFalse",
+      "['distance', 'zone']\n[10, 20, 30, 40, 50, 60]\nTrue"
     ],
     [
+      "[6, 1]\n['num__distance']",
       "[6, 3]\n['num__distance', 'cat__zone_north', 'cat__zone_south']"
     ],
     [
+      "[3, 4]\n5.0\n[0.0, 0.0, 1.0]",
       "[3, 3]\n3.5\n[0.0, 0.0]"
     ],
     [
+      "",
       "[20.0, 35.0, 80.0]"
     ],
     [
+      "[3.5, 3.5, 3.5]",
       "[4.5, 3.5, 2.5]"
     ],
     [
-      "2\n[3]\nTrue\n1.85",
-      "1\n[3]\nTrue\n7.627"
+      "",
+      "2\n[3]\n1.85"
     ],
     [
+      "",
       "[3, 1]\nTrue"
     ],
     [
+      "['Unnamed: 0', 'order_id', 'minutes']\n[201, 202, 203]\n[20.0, 35.0, 80.0]",
       "['order_id', 'minutes']\n[201, 202, 203]\n[20.0, 35.0, 80.0]"
     ],
     [
+      "",
       "True\n3.5"
     ],
     [
@@ -40,6 +48,190 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "X_train = df[[\"distance\", \"zone\"]]\n",
+          "X_train = df.drop(columns=[\"minutes\"])\n"
+        ]
+      ],
+      "reason": "Keeping the order number"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "print(y_train.tolist())\n",
+          "print([10, 20, 30, 40, 50, 60])\n"
+        ]
+      ],
+      "reason": "Typing the answers"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          ", sparse_output=False))]), [\"zone\"])\n",
+          ", sparse_output=False))]), [\"distance\"])\n"
+        ]
+      ],
+      "reason": "One-hot of the distance"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "print(list(matrix.shape))\n",
+          "print([6, 3])\n"
+        ]
+      ],
+      "reason": "Typing the shape"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "new_matrix = preprocess.transform(X_new)\n",
+          "new_matrix = preprocess.fit(X_new).transform(X_new)\n"
+        ]
+      ],
+      "reason": "Refitting on the new table"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "print(float(preprocess.named_transformers_[\"num\"].named_steps[\"fill\"].statistics_[0]))\n",
+          "print(3.5)\n"
+        ]
+      ],
+      "reason": "Typing the mean"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "Pipeline([(\"prep\", preprocess), (\"model\", LinearRegression())])",
+          "Pipeline([(\"model\", LinearRegression()), (\"prep\", preprocess)])"
+        ]
+      ],
+      "reason": "Model before preprocessing"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "print(pipeline.predict(X_new).round(6).tolist())\n",
+          "print([20.0, 35.0, 80.0])\n"
+        ]
+      ],
+      "reason": "Typing the predictions"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "result = cross_validate(pipeline, X_train, y_train,",
+          "result = cross_validate(pipeline, preprocess.fit_transform(X_train), y_train,"
+        ]
+      ],
+      "reason": "Pipeline on the prefitted matrix"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "print([float(getattr(m, \"named_steps\", {\"prep\": preprocess})[\"prep\"].named_transformers_[\"num\"].named_steps[\"fill\"].statistics_[0]) for m in result[\"estimator\"]])\n",
+          "print([4.5, 3.5, 2.5])\n"
+        ]
+      ],
+      "reason": "Typing the means"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "{\"model__alpha\": alphas}",
+          "{\"alpha\": alphas}"
+        ]
+      ],
+      "reason": "Missing the step name"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "print(round(float((-search.best_score_) ** 0.5), 3))\n",
+          "print(1.85)\n"
+        ]
+      ],
+      "reason": "Typing the RMSE"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "train_matrix = preprocess.fit_transform(X_train).astype(\"float32\")\n",
+          "train_matrix = X_train.to_numpy()\n"
+        ]
+      ],
+      "reason": "Strings into Dense"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "print(list(predictions.shape))\n",
+          "print([3, 1])\n"
+        ]
+      ],
+      "reason": "Typing the shape"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "answer.to_csv(\"answer.csv\", index=False)\n",
+          "answer.sort_values(\"minutes\").to_csv(\"answer.csv\", index=False)\n"
+        ]
+      ],
+      "reason": "Sorting breaks the original order"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "print(restored[\"order_id\"].tolist())\n",
+          "print([201, 202, 203])\n"
+        ]
+      ],
+      "reason": "Typing the ids"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "joblib.dump(pipeline, \"delivery-pipeline.joblib\")\n",
+          "joblib.dump(preprocess, \"delivery-pipeline.joblib\")\n"
+        ]
+      ],
+      "reason": "Saving only the preprocessing"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "print(bool(np.allclose(before, restored.predict(X_new))))\n",
+          "print(True)\n"
+        ],
+        [
+          "print(float(restored.named_steps[\"prep\"].named_transformers_[\"num\"].named_steps[\"fill\"].statistics_[0]))\n",
+          "print(3.5)\n"
+        ]
+      ],
+      "reason": "Typing the result"
+    },
     {
       "step": 10,
       "replacements": [
@@ -72,6 +264,96 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "X_train = df[[\"distance\", \"zone\"]]\n",
+          "X_train = df.drop(columns=[\"order_id\", \"minutes\"])\n"
+        ]
+      ],
+      "reason": "Dropping both"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "OneHotEncoder(handle_unknown=\"ignore\", sparse_output=False)",
+          "OneHotEncoder(sparse_output=False, handle_unknown=\"ignore\")"
+        ]
+      ],
+      "reason": "Keyword order"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "new_matrix = preprocess.transform(X_new)\n",
+          "new_matrix = preprocess.fit(X_train).transform(X_new)\n"
+        ]
+      ],
+      "reason": "Refitting on the training table"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "pipeline = Pipeline([(\"prep\", preprocess), (\"model\", LinearRegression())])\n",
+          "from sklearn.pipeline import make_pipeline\npipeline = make_pipeline(preprocess, LinearRegression())\n"
+        ]
+      ],
+      "reason": "make_pipeline"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "result = cross_validate(pipeline, X_train, y_train,",
+          "result = cross_validate(estimator=pipeline, X=X_train, y=y_train,"
+        ]
+      ],
+      "reason": "Keyword arguments"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "{\"model__alpha\": alphas}",
+          "dict(model__alpha=list(alphas))"
+        ]
+      ],
+      "reason": "dict keyword"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "train_matrix = preprocess.fit_transform(X_train).astype(\"float32\")\n",
+          "train_matrix = np.asarray(preprocess.fit_transform(X_train), dtype=\"float32\")\n"
+        ]
+      ],
+      "reason": "np.asarray"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "answer.to_csv(\"answer.csv\", index=False)\n",
+          "answer.to_csv(\"answer.csv\", index=False, header=True)\n"
+        ]
+      ],
+      "reason": "Explicit header"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "joblib.dump(pipeline, \"delivery-pipeline.joblib\")\n",
+          "joblib.dump(pipeline, filename=\"delivery-pipeline.joblib\")\n"
+        ]
+      ],
+      "reason": "filename keyword"
+    },
     {
       "step": 11,
       "replacements": [

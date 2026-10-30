@@ -3,28 +3,31 @@
   "lesson": "courses/redesigned/aice-training.json",
   "expected_outputs": [
     [
-      "4",
-      "2",
-      "4"
+      "2 4",
+      "4 4"
     ],
     [
       "True\nTrue"
     ],
     [
-      "2\nTrue\n2",
-      "2\nFalse\n2"
+      "2\nFalse\n2",
+      "2\nTrue\n2"
     ],
     [
+      "[[2.0, 2.0, 0.0, 2.0]]\nTrue",
       "[[1.0, 1.0, 1.0, 1.0]]\nTrue"
     ],
     [
-      "0.2\n0.0"
+      "0.0 0.0\nFalse",
+      "0.0 0.2\nTrue"
     ],
     [
+      "True\nFalse",
       "True\nTrue"
     ],
     [
-      "[1.0, 0.1]\n[1, 1]"
+      "[0.0, 0.0]\n[1.0, 0.1]\n[1, 1]",
+      "[1.0, 0.1]\n[1.0, 0.1]\n[1, 1]"
     ],
     [
       "2"
@@ -36,6 +39,126 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "updates = epochs * math.ceil(len(X_train) / batch_size)\n",
+          "updates = epochs * len(X_train) // batch_size\n"
+        ]
+      ],
+      "reason": "Dropping the last partial batch"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "updates = epochs * math.ceil(len(X_train) / batch_size)\n",
+          "updates = 4\n"
+        ]
+      ],
+      "reason": "Typing four"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "mode=\"min\", patience=patience,",
+          "mode=\"max\", patience=patience,"
+        ]
+      ],
+      "reason": "Watching for the largest loss"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "print(len(history.history[\"loss\"]))\nprint(bool(np.allclose(model.predict(X_valid, verbose=0), control.predict(X_valid, verbose=0))))\nprint(int(model.optimizer.iterations.numpy()))\n",
+          "print(2)\nprint(True)\nprint(2)\n"
+        ]
+      ],
+      "reason": "Typing the result"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "inference = layer(inputs, training=False).numpy()\n",
+          "inference = (inputs * (1 - rate)).numpy()\n"
+        ]
+      ],
+      "reason": "Scaling down at inference"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "inference = layer(inputs, training=False).numpy()\n",
+          "inference = np.ones((1, 4))\n"
+        ]
+      ],
+      "reason": "Typing four ones"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "penalty = l2 * np.sum(np.square(model.get_weights()[0]))\n",
+          "penalty = l2\n"
+        ]
+      ],
+      "reason": "The strength without the weights"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "penalty = l2 * np.sum(np.square(model.get_weights()[0]))\n",
+          "penalty = 0.2\n"
+        ]
+      ],
+      "reason": "Typing the penalty"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "print(Path(\"best.keras\").is_file())\nprint(float(restored.evaluate(X_valid, y_valid, verbose=0)) < float(model.evaluate(X_valid, y_valid, verbose=0)))\n",
+          "print(True)\nprint(True)\n"
+        ]
+      ],
+      "reason": "Typing the result"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "restored = keras.models.load_model(\"best.keras\")\n",
+          "restored = make_model()\n"
+        ]
+      ],
+      "reason": "A fresh untrained model"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "    return 0.0 - rate * grad\n",
+          "    return -grad\n"
+        ]
+      ],
+      "reason": "Leaving out the rate"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "    return 0.0 - rate * grad\n",
+          "    return rate * grad\n"
+        ]
+      ],
+      "reason": "Moving along the gradient"
+    },
     {
       "step": 8,
       "replacements": [
@@ -82,6 +205,66 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "updates = epochs * math.ceil(len(X_train) / batch_size)\n",
+          "updates = epochs * -(-len(X_train) // batch_size)\n"
+        ]
+      ],
+      "reason": "Ceiling by negative floor division"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "callback = keras.callbacks.EarlyStopping(monitor=\"val_loss\", mode=\"min\", patience=patience,",
+          "callback = keras.callbacks.EarlyStopping(patience=patience,"
+        ]
+      ],
+      "reason": "Default monitor val_loss"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "inference = layer(inputs, training=False).numpy()\n",
+          "inference = layer(inputs).numpy()\n"
+        ]
+      ],
+      "reason": "Direct call defaults to inference"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "penalty = l2 * np.sum(np.square(model.get_weights()[0]))\n",
+          "penalty = l2 * float((model.get_weights()[0] ** 2).sum())\n"
+        ]
+      ],
+      "reason": "Power and sum"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "restored = keras.models.load_model(\"best.keras\")\n",
+          "restored = keras.models.load_model(Path(\"best.keras\"))\n"
+        ]
+      ],
+      "reason": "A pathlib path to the saved file"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "    return 0.0 - rate * grad\n",
+          "    return -rate * grad\n"
+        ]
+      ],
+      "reason": "Negated product"
+    },
     {
       "step": 9,
       "replacements": [

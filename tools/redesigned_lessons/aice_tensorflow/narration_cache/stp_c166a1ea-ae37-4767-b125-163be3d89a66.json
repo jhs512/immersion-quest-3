@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "684afa2b0b3e5e256ede400cd8a0c18f3e5583b6e2e84493f01f615b66daca7c",
+  "entry": [
+    {
+      "action": "say",
+      "text": "새 배송 두 건을 한 번에 예측해요. 배송마다 한 행, 특성 한 열로 입력을 만들어야 해요.",
+      "target": "text:X_test 줄을 고쳐 새 배송마다 한 행, 특성 한 열인 2차원 입력을 만드세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        21,
+        21
+      ],
+      "expect_error": "ValueError"
+    },
+    {
+      "action": "say",
+      "text": "ValueError예요. 한 행에 거리 두 개를 넣어 특성 1개짜리 입력과 맞지 않아요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "X_test = np.array([distances], dtype=\"float32\")\n",
+      "after": "X_test = np.array([[d] for d in distances], dtype=\"float32\")\n",
+      "say": "거리마다 [d]로 감싸 한 행씩 만들어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        21,
+        21
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[2, 1]이에요. 앞은 새 배송 수, 뒤는 배송마다 나온 예측값 수예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. [distances]는 행이 하나예요. 배송 수만큼 행을 만들어야 해요.",
+      "target": "code:[[d] for d in distances]"
+    }
+  ]
+}

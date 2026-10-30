@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_0c7e0b0d-7e3e-472e-9665-7e03c40d67e0",
-  "revision": "aice-tensorflow-5",
+  "revision": "aice-tensorflow-6",
   "title": "TensorFlow의 구성·학습·예측을 구별해요",
   "description": "같은 거리 입력에서 모델 구성과 실제 학습·검증·예측을 구별해요.",
   "objectives": [
@@ -34,27 +34,27 @@
           "premise": "거리에서 시간을 예측할 작은 신경망을 준비해요. 먼저 입력과 출력의 모양을 확인하고 학습을 준비해요.",
           "steps": [
             {
-              "id": "stp_7c799198-5712-48f1-8def-b6a2f5c726ca",
+              "id": "stp_9959d907-1929-40f0-833f-512aa8a9d32a",
               "objectives": [
-                "Input의 특성 수와 관측 수를 구별해요."
+                "Input의 shape는 행 수가 아니라 한 행의 특성 수임을 써서 확인해요."
               ]
             },
             {
-              "id": "stp_88881a17-200b-4d8e-8e4b-ceb0c583ca64",
+              "id": "stp_5a1d3d07-88cf-4c46-8e92-bc419ea3d4ea",
               "objectives": [
-                "Dense units와 출력 열 수를 연결해요."
+                "Dense의 units가 배송마다의 출력 수임을 써서 확인해요."
               ]
             },
             {
-              "id": "stp_f6f4f1b8-055f-4426-b368-3ba57037145f",
+              "id": "stp_5a2c68d7-3563-4f3d-8d40-d3d3e963b846",
               "objectives": [
-                "초기 가중치의 계산과 학습된 관계를 구별해요."
+                "fit 전 predict는 초기 가중치의 계산일 뿐임을 직접 계산해 확인해요."
               ]
             },
             {
-              "id": "stp_eb667050-c744-4915-9c64-41dc71423fc8",
+              "id": "stp_c4267d4b-9fa2-412f-8f3e-068233cd53de",
               "objectives": [
-                "compile과 실제 fit의 역할을 구별해요."
+                "compile은 학습 규칙만 정하고 가중치를 바꾸지 않는 것을 써서 확인해요."
               ]
             }
           ]
@@ -77,21 +77,21 @@
           "premise": "같은 표를 한두 번이 아닌 짧은 epoch로 학습해요. 기록과 새 입력 모양을 확인하고 마지막에는 특성 수를 고쳐요.",
           "steps": [
             {
-              "id": "stp_b7bee97e-9f29-4439-abc6-40eaae2641aa",
+              "id": "stp_9aec3667-89cc-43e2-b890-162148fb1b13",
               "objectives": [
-                "실제 학습 호출과 epoch 기록을 이해해요."
+                "fit이 가중치를 바꾸고 epoch마다 loss 기록을 남기는 것을 써서 확인해요."
               ]
             },
             {
-              "id": "stp_4278f468-bffc-4c1b-bdfc-595f0c50ae26",
+              "id": "stp_d09cae03-1652-465d-aa83-f19686919cae",
               "objectives": [
-                "History의 loss와 val_loss를 구별해요."
+                "훈련 손실과 따로 준 검증 표의 손실을 구별해 기록해요."
               ]
             },
             {
-              "id": "stp_417ce7a7-0874-4d19-946a-327a20effbd3",
+              "id": "stp_c166a1ea-ae37-4767-b125-163be3d89a66",
               "objectives": [
-                "predict 결과의 행은 새 관측 수, 열은 마지막 Dense의 출력 수임을 읽어요."
+                "예측 입력과 결과의 모양이 (배송 수, 특성 수)·(배송 수, 출력 수)임을 써서 확인해요."
               ]
             },
             {
@@ -123,201 +123,56 @@
   ],
   "tasks": [
     {
-      "id": "stp_7c799198-5712-48f1-8def-b6a2f5c726ca",
-      "title": "한 행의 입력 크기를 정해요",
-      "goal": "Input(shape=(1,))의1은 무엇일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_9959d907-1929-40f0-833f-512aa8a9d32a",
+      "title": "Input(shape=(features,))로 한 행의 특성 수를 정하세요",
+      "goal": "`keras.Input(shape=(특성 수,))`는 모델이 한 행(배송 하나)에 받을 특성 수를 정해요. 행 수는 정하지 않아서 input_shape의 앞자리는 None이에요.\n\nmodel 줄을 고쳐 맨 앞에 한 행의 특성 수 features를 받는 Input 층을 더하세요. 채점은 다른 특성 수로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 AttributeError가 나오는지 확인하세요.\n2. 목록 맨 앞에 `keras.Input(shape=(features,))`를 넣으세요.\n3. 코드 실행을 눌러 [None, 1]이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "feature",
-      "tests": [],
-      "required": true,
-      "example_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습이 다른 작업의 자원을 지나치게 쓰지 않게 해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 초기화는 동작 관찰용이며 아직 자료로 학습한 값이 아니에요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\nprint(list(model.input_shape))\nprint(list(model.output_shape))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "row",
-            "text": "관측을 딱 한 개만 받을 수 있다는 뜻이에요"
-          },
-          {
-            "id": "feature",
-            "text": "각 관측에 들어오는 특성 한 개예요"
-          }
-        ],
-        "answer": "feature"
-      },
-      "narration": [
+      "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습이 다른 작업의 자원을 지나치게 쓰지 않게 해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 한 배송의 특성 수예요.\nfeatures = 1\n# 이 줄을 고쳐 맨 앞에 한 행의 특성 수 features를 받는 Input 층을 더하세요.\nmodel = keras.Sequential([keras.layers.Dense(1)])\nprint(list(model.input_shape))\n",
+      "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습이 다른 작업의 자원을 지나치게 쓰지 않게 해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 한 배송의 특성 수예요.\nfeatures = 1\n# 이 줄을 고쳐 맨 앞에 한 행의 특성 수 features를 받는 Input 층을 더하세요.\n# Input의 shape는 한 행(배송 하나)의 모양이에요. 행 수는 정하지 않아 None으로 보여요.\nmodel = keras.Sequential([keras.Input(shape=(features,)), keras.layers.Dense(1)])\nprint(list(model.input_shape))\n",
+      "tests": [
         {
-          "action": "say",
-          "text": "이 수업에서는 신경망의 입력과 출력 모양을 읽어요. 구성·compile·fit·predict를 구별해요."
-        },
-        {
-          "action": "say",
-          "text": "작은 Dense 모델을 만들고 실행해요. 학습 전 계산과 학습 기록의 의미를 비교해요."
-        },
-        {
-          "action": "say",
-          "text": "1이 무엇인지 고르는 문제예요.",
-          "target": "text:한 행의 입력 크기를 정해요#1"
-        },
-        {
-          "action": "say",
-          "text": "Input의 shape는 관측 한 개가 가진 특성 수를 적어요. 모델 모양 출력의 None은 배송 수가 정해지지 않았다는 뜻이에요.",
-          "target": "text:Input(shape=(1,))의1은 무엇일까요?"
-        },
-        {
-          "action": "run",
-          "lines": [
-            14,
-            14
-          ]
-        },
-        {
-          "action": "say",
-          "text": "관측 수 자리는 None이고 각 행의 특성은 하나예요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 관측 개수와 한 관측의 특성 개수는 다른 축이에요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "feature"
+          "input": "",
+          "expected": "[None, 1]"
         }
       ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_88881a17-200b-4d8e-8e4b-ceb0c583ca64",
-      "title": "Dense의 출력 수를 확인해요",
-      "goal": "Dense 층은 출력마다 입력 × 가중치 + 편향을 계산해요. 회귀 수업의 기울기와 절편이 가중치와 편향에 해당해요. Dense(4)는 이 계산을 서로 다른 가중치로 네 번 해요.\nDense(4)는 각 관측에 출력 몇 개를 만들까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "four",
-      "tests": [],
       "required": true,
-      "example_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습이 다른 작업의 자원을 지나치게 쓰지 않게 해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# Dense의 units는 그 층의 출력 크기예요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(4)])\nprint(list(model.output_shape))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "rows",
-            "text": "관측을 네 개만 받는다는 뜻이에요"
-          },
-          {
-            "id": "four",
-            "text": "출력 네 개예요"
-          }
-        ],
-        "answer": "four"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "Dense의 출력 수를 확인하는 문제예요.",
-          "target": "text:Dense의 출력 수를 확인해요#1"
+          "text": "이 수업에서는 Keras로 아주 작은 신경망을 직접 만들어요. 입력 모양·층·학습 규칙·학습·예측을 한 곳씩 써요."
         },
         {
           "action": "say",
-          "text": "Dense의 숫자는 그 층이 내놓는 출력 수예요. 4로 두면 관측마다 몇 개가 나오는지 예상해요.",
-          "target": "text:Dense 층은 출력마다 입력 × 가중치 + 편향을 계산해요."
+          "text": "모델 만들기, compile, fit, predict가 각각 무엇을 바꾸는지 실행 결과로 구별해요."
+        },
+        {
+          "action": "say",
+          "text": "Input(shape=(features,))로 한 행의 특성 수를 정하는 문제예요.",
+          "target": "text:Input(shape=(features,))로 한 행의 특성 수를 정하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "모델이 한 배송에 특성 몇 개를 받을지 정해야 해요. 맨 앞에 Input 층을 더해요.",
+          "target": "text:model 줄을 고쳐 맨 앞에 한 행의 특성 수 features를 받는 Input 층을 더하세요."
         },
         {
           "action": "run",
           "lines": [
-            13,
-            13
-          ]
+            15,
+            15
+          ],
+          "expect_error": "AttributeError"
         },
         {
           "action": "say",
-          "text": "관측마다 네 출력이 있어요.",
+          "text": "AttributeError예요. 입력 모양을 모르는 모델은 아직 만들어지지 않았어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "keras.layers.Dense(4)",
-          "after": "keras.layers.Dense(1)",
-          "say": "출력 크기만 하나로 줄여 봐요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            13,
-            13
-          ]
-        },
-        {
-          "action": "say",
-          "text": "이번에는 관측마다 출력 하나예요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. units는 자료 행 수가 아니라 층의 출력 크기예요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "keras.layers.Dense(1)",
-          "after": "keras.layers.Dense(4)",
-          "say": "문제의 네 출력으로 돌아와요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            13,
-            13
-          ]
-        },
-        {
-          "action": "say",
-          "text": "원래 출력 크기는 네 개예요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "four"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_f6f4f1b8-055f-4426-b368-3ba57037145f",
-      "title": "실행된 예측이 학습을 뜻하진 않아요",
-      "goal": "가중치를 1(ones), 편향을 0(zeros)으로 시작하게 했어요. 그래서 Dense(1)은 입력 × 1 + 0을 계산해요. fit 없이도 예측 숫자가 나왔어요.\n이미 자료의 관계를 학습했다는 뜻일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "initial",
-      "tests": [],
-      "required": true,
-      "example_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습이 다른 작업의 자원을 지나치게 쓰지 않게 해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 초기화는 동작 관찰용이며 아직 자료로 학습한 값이 아니에요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"ones\", bias_initializer=\"zeros\")])\n# ones 초기 가중치의 계산만 보며 아직 fit하지 않았어요.\nX_test = np.array([[2.0], [3.0]], dtype=\"float32\")\nprint(model.predict(X_test, verbose=0).tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "initial",
-            "text": "아니요.지금은 초기 가중치로 계산했어요"
-          },
-          {
-            "id": "learned",
-            "text": "네. predict가 숫자를 냈으니 학습된 상태예요"
-          }
-        ],
-        "answer": "initial"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "학습 전에 나온 예측값으로 무엇을 확인할 수 있는지 판단하는 문제예요.",
-          "target": "text:실행된 예측이 학습을 뜻하진 않아요#1"
-        },
-        {
-          "action": "say",
-          "text": "가중치를 1로 시작했으니 예측은 입력과 같아요. 이 숫자가 자료로 학습한 결과인지, 시작값으로 계산한 결과인지 구별해요.",
-          "target": "text:가중치를 1(ones), 편향을 0(zeros)으로 시작하게 했어요."
+          "before": "keras.Sequential([keras.layers.Dense(1)])",
+          "after": "keras.Sequential([keras.Input(shape=(features,)), keras.layers.Dense(1)])",
+          "say": "목록 맨 앞에 keras.Input(shape=(features,))를 넣어요."
         },
         {
           "action": "run",
@@ -328,114 +183,376 @@
         },
         {
           "action": "say",
-          "text": "초기 가중치 1이 입력을 그대로 계산해 2.0과 3.0을 냈어요.",
+          "text": "[None, 1]이에요. 행 수는 정하지 않았고 한 행에 특성 1개예요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 이 신경망의 계산 가능 상태와 자료로 학습한 상태는 달라요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "initial"
+          "text": "조심하세요. shape의 1은 배송 한 건만 받는다는 뜻이 아니에요. 배송 하나에 든 특성 수예요.",
+          "target": "code:shape=(features,)"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"features\": 3}, \"expected\": \"[None, 3]\"}, {\"values\": {\"features\": 7}, \"expected\": \"[None, 7]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=45)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_eb667050-c744-4915-9c64-41dc71423fc8",
-      "title": "학습 규칙을 준비해요",
-      "goal": "compile 뒤 가중치가 그대로예요.\ncompile의 역할을 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_5a1d3d07-88cf-4c46-8e92-bc419ea3d4ea",
+      "title": "Dense(outputs)로 출력 수를 정하세요",
+      "goal": "Dense 층은 출력마다 입력 × 가중치 + 편향을 계산해요. 회귀 수업의 기울기와 절편이 가중치와 편향에 해당해요. `Dense(4)`는 이 계산을 서로 다른 가중치로 네 번 해요.\n\nDense를 고쳐 배송마다 출력 outputs개를 만드세요. 채점은 다른 출력 수로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력 모양을 확인하세요.\n2. `Dense(1)`을 `Dense(outputs)`로 고치세요.\n3. 코드 실행을 눌러 [None, 4]가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "setup",
-      "tests": [],
+      "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습이 다른 작업의 자원을 지나치게 쓰지 않게 해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 배송마다 만들 출력 수예요.\noutputs = 4\n# 이 줄의 Dense를 고쳐 배송마다 출력 outputs개를 만드세요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1)])\nprint(list(model.output_shape))\n",
+      "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습이 다른 작업의 자원을 지나치게 쓰지 않게 해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 배송마다 만들 출력 수예요.\noutputs = 4\n# 이 줄의 Dense를 고쳐 배송마다 출력 outputs개를 만드세요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), # Dense의 첫 인수 units가 그 층의 출력 수예요. 출력마다 다른 가중치로 입력 × 가중치 + 편향을 계산해요.\n                          keras.layers.Dense(outputs)])\nprint(list(model.output_shape))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[None, 4]"
+        }
+      ],
       "required": true,
-      "example_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습이 다른 작업의 자원을 지나치게 쓰지 않게 해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 초기화는 동작 관찰용이며 아직 자료로 학습한 값이 아니에요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\n# 확인용: compile 전 가중치를 복사해 둬요.\nbefore = [w.copy() for w in model.get_weights()]\nmodel.compile(optimizer=keras.optimizers.SGD(learning_rate=0.1), loss=\"mse\")\nprint(model.optimizer.__class__.__name__)\nprint(model.loss)\n# 확인용 출력: 가중치가 복사본과 모두 같으면 True예요. 이 줄의 문법은 몰라도 돼요.\nprint(all(np.array_equal(a, b) for a, b in zip(before, model.get_weights())))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "setup",
-            "text": "학습 규칙을 설정하는 단계예요"
-          },
-          {
-            "id": "fit",
-            "text": "전달한 자료로 이미 가중치를 학습했어요"
-          }
-        ],
-        "answer": "setup"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "학습 규칙을 준비하는 문제예요.",
-          "target": "text:학습 규칙을 준비해요#1"
+          "text": "Dense(outputs)로 출력 수를 정하는 문제예요.",
+          "target": "text:Dense(outputs)로 출력 수를 정하세요#1"
         },
         {
           "action": "say",
-          "text": "compile은 학습에 쓸 방법(optimizer)과 오차 기준(loss)을 정해요. compile 전후로 가중치가 바뀌는지 봐요.",
-          "target": "text:compile 뒤 가중치가 그대로예요."
+          "text": "Dense는 출력마다 입력 × 가중치 + 편향을 계산해요. 출력 수를 outputs로 정해야 해요.",
+          "target": "text:Dense를 고쳐 배송마다 출력 outputs개를 만드세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[None, 1]이에요. 배송마다 출력이 하나예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "keras.layers.Dense(1)])",
+          "after": "keras.layers.Dense(outputs)])",
+          "say": "Dense(1)을 Dense(outputs)로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[None, 4]예요. 배송마다 출력 네 개를 만들어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. Dense(4)의 4는 받을 배송 수가 아니라 배송마다의 출력 수예요.",
+          "target": "code:Dense(outputs)"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"outputs\": 2}, \"expected\": \"[None, 2]\"}, {\"values\": {\"outputs\": 9}, \"expected\": \"[None, 9]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=45)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_5a2c68d7-3563-4f3d-8d40-d3d3e963b846",
+      "title": "X_test @ weights + bias로 학습 전 예측을 직접 계산하세요",
+      "goal": "가중치를 1(ones), 편향을 0(zeros)으로 시작하게 했어요. 아직 fit하지 않았어요. `model.get_weights()`는 지금의 가중치와 편향을 돌려주고, `@`는 행렬 곱이에요.\n\nmanual 줄을 고쳐 지금 가중치로 입력 × 가중치 + 편향을 직접 계산하세요. 채점은 다른 입력으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 manual과 predict를 비교하세요.\n2. `X_test * 0`을 `X_test @ weights + bias`로 고치세요.\n3. 코드 실행을 눌러 두 결과가 같은지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습이 다른 작업의 자원을 지나치게 쓰지 않게 해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 가중치 1, 편향 0으로 시작하게 했어요. 아직 fit하지 않았어요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"ones\", bias_initializer=\"zeros\")])\nrows = [[2.0], [3.0]]\nX_test = np.array(rows, dtype=\"float32\")\nweights, bias = model.get_weights()\n# 이 줄을 고쳐 지금 가중치로 입력 × 가중치 + 편향을 직접 계산하세요.\nmanual = X_test * 0\nprint(manual.tolist())\nprint(model.predict(X_test, verbose=0).tolist())\n",
+      "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습이 다른 작업의 자원을 지나치게 쓰지 않게 해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 가중치 1, 편향 0으로 시작하게 했어요. 아직 fit하지 않았어요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"ones\", bias_initializer=\"zeros\")])\nrows = [[2.0], [3.0]]\nX_test = np.array(rows, dtype=\"float32\")\nweights, bias = model.get_weights()\n# 이 줄을 고쳐 지금 가중치로 입력 × 가중치 + 편향을 직접 계산하세요.\n# 행렬 곱 @로 입력 × 가중치를 하고 편향을 더해요. fit 전이라 초기 가중치 그대로예요.\nmanual = X_test @ weights + bias\nprint(manual.tolist())\nprint(model.predict(X_test, verbose=0).tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[[2.0], [3.0]]\n[[2.0], [3.0]]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "X_test @ weights + bias로 학습 전 예측을 직접 계산하는 문제예요.",
+          "target": "text:X_test @ weights + bias로 학습 전 예측을 직접 계산하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "fit 없이도 예측 숫자가 나와요. 지금 가중치로 같은 계산을 직접 해서 비교해야 해요.",
+          "target": "text:manual 줄을 고쳐 지금 가중치로 입력 × 가중치 + 편향을 직접 계산하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[[0.0], [0.0]]과 [[2.0], [3.0]]이에요. 직접 계산이 아직 0이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "manual = X_test * 0\n",
+          "after": "manual = X_test @ weights + bias\n",
+          "say": "X_test @ weights + bias로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[[2.0], [3.0]]으로 같아요. predict는 초기 가중치 1과 편향 0으로 계산했을 뿐이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. predict가 숫자를 냈다고 자료의 관계를 배운 게 아니에요. 아직 학습 전이에요.",
+          "target": "code:X_test @ weights + bias"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"rows\": [[5.0], [-1.0], [0.5]]}, \"expected\": \"[[5.0], [-1.0], [0.5]]\\\\n[[5.0], [-1.0], [0.5]]\"}, {\"values\": {\"rows\": [[10.0]]}, \"expected\": \"[[10.0]]\\\\n[[10.0]]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=45)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_c4267d4b-9fa2-412f-8f3e-068233cd53de",
+      "title": "compile로 SGD와 mse 학습 규칙을 정하세요",
+      "goal": "`model.compile`은 학습 규칙을 정해요. optimizer는 가중치를 고치는 방법, loss는 오차를 재는 방법이에요. SGD는 기울기 방향으로 학습률만큼 고쳐요.\n\n주석 아래에 학습률 rate의 SGD와 mse 손실로 학습 규칙을 정하는 compile 줄을 쓰세요. 채점은 다른 학습률로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 AttributeError가 나오는지 확인하세요.\n2. 주석 아래에 `model.compile(optimizer=keras.optimizers.SGD(learning_rate=rate), loss=\"mse\")`를 쓰세요.\n3. 코드 실행을 눌러 SGD와 학습률을 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습이 다른 작업의 자원을 지나치게 쓰지 않게 해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\nrate = 0.1\n# 확인용: compile 전 가중치를 복사해 둬요.\nbefore = [w.copy() for w in model.get_weights()]\n# 이 주석 아래에 학습률 rate의 SGD와 mse 손실로 학습 규칙을 정하는 compile 줄을 쓰세요.\nprint(model.optimizer.__class__.__name__)\nprint(round(float(model.optimizer.learning_rate.numpy()), 4))\n# 확인용 출력: 가중치가 복사본과 모두 같으면 True예요. 이 줄의 문법은 몰라도 돼요.\nprint(all(np.array_equal(a, b) for a, b in zip(before, model.get_weights())))\n",
+      "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습이 다른 작업의 자원을 지나치게 쓰지 않게 해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\nrate = 0.1\n# 확인용: compile 전 가중치를 복사해 둬요.\nbefore = [w.copy() for w in model.get_weights()]\n# 이 주석 아래에 학습률 rate의 SGD와 mse 손실로 학습 규칙을 정하는 compile 줄을 쓰세요.\n# compile은 학습 규칙(최적화 방법·손실)만 정해요. 가중치는 아직 그대로예요.\nmodel.compile(optimizer=keras.optimizers.SGD(learning_rate=rate), loss=\"mse\")\nprint(model.optimizer.__class__.__name__)\nprint(round(float(model.optimizer.learning_rate.numpy()), 4))\n# 확인용 출력: 가중치가 복사본과 모두 같으면 True예요. 이 줄의 문법은 몰라도 돼요.\nprint(all(np.array_equal(a, b) for a, b in zip(before, model.get_weights())))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "SGD\n0.1\nTrue"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "compile로 SGD와 mse 학습 규칙을 정하는 문제예요.",
+          "target": "text:compile로 SGD와 mse 학습 규칙을 정하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "학습하기 전에 학습 규칙을 정해야 해요. compile 줄에 SGD와 mse를 써요.",
+          "target": "text:주석 아래에 학습률 rate의 SGD와 mse 손실로 학습 규칙을 정하는 compile 줄을 쓰세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ],
+          "expect_error": "AttributeError"
+        },
+        {
+          "action": "say",
+          "text": "NoneType 뒤에 AttributeError예요. compile 전이라 최적화기가 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "print(model.optimizer.__class__.__name__)\n",
+          "after": "model.compile(optimizer=keras.optimizers.SGD(learning_rate=rate), loss=\"mse\")\nprint(model.optimizer.__class__.__name__)\n",
+          "say": "print 앞에 compile 줄을 써요."
         },
         {
           "action": "run",
           "lines": [
             17,
-            17
+            20
           ]
         },
         {
           "action": "say",
-          "text": "학습 규칙은 SGD와 mse로 설정됐지만 가중치는 그대로예요.",
+          "text": "SGD, 0.1, True예요. 규칙이 정해졌고 가중치는 그대로예요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 학습 준비와 실제 자료로 학습하는 fit을 구별해요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "setup"
+          "text": "조심하세요. compile에 자료를 넘기지 않아요. 가중치를 바꾸는 건 다음의 fit이에요.",
+          "target": "code:model.compile("
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"rate\": 0.05}, \"expected\": \"SGD\\\\n0.05\\\\nTrue\"}, {\"values\": {\"rate\": 0.5}, \"expected\": \"SGD\\\\n0.5\\\\nTrue\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=45)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_b7bee97e-9f29-4439-abc6-40eaae2641aa",
-      "title": "fit이 가중치를 바꾸는지 봐요",
-      "goal": "fit을 한 epoch 실행했어요.\n가중치와 기록을 어떻게 읽을까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_9aec3667-89cc-43e2-b890-162148fb1b13",
+      "title": "fit의 epochs=rounds로 실제로 학습하세요",
+      "goal": "compile로 학습 규칙을 정했어요. `fit`은 훈련 표로 실제 학습해 가중치를 바꿔요. epochs는 훈련 표 전체를 몇 번 학습할지이고, history.history[\"loss\"]에는 epoch마다 손실이 하나씩 쌓여요.\n\nfit 줄을 고쳐 훈련 표 전체를 rounds번 학습하세요. 채점은 다른 epoch 수로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 기록 수와 가중치 변화를 확인하세요.\n2. `epochs=0`을 `epochs=rounds`로 고치세요.\n3. 코드 실행을 눌러 기록 수와 True를 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "changed",
-      "tests": [],
+      "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습이 다른 작업의 자원을 지나치게 쓰지 않게 해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\nX_train = np.array([[1.0], [2.0]], dtype=\"float32\")\ny_train = np.array([[2.0], [4.0]], dtype=\"float32\")\nmodel.compile(optimizer=keras.optimizers.SGD(learning_rate=0.1), loss=\"mse\")\n# 훈련 표 전체를 학습할 횟수예요.\nrounds = 1\n# 확인용: fit 전 가중치를 복사해 둬요.\nbefore = [w.copy() for w in model.get_weights()]\n# 이 줄을 고쳐 훈련 표 전체를 rounds번 학습하세요.\nhistory = model.fit(X_train, y_train, epochs=0, batch_size=2, shuffle=False, verbose=0)\nprint(len(history.history.get(\"loss\", [])))\n# 확인용 출력: 가중치가 하나라도 바뀌었으면 True예요. 이 줄의 문법은 몰라도 돼요.\nprint(any(not np.array_equal(a, b) for a, b in zip(before, model.get_weights())))\n",
+      "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습이 다른 작업의 자원을 지나치게 쓰지 않게 해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\nX_train = np.array([[1.0], [2.0]], dtype=\"float32\")\ny_train = np.array([[2.0], [4.0]], dtype=\"float32\")\nmodel.compile(optimizer=keras.optimizers.SGD(learning_rate=0.1), loss=\"mse\")\n# 훈련 표 전체를 학습할 횟수예요.\nrounds = 1\n# 확인용: fit 전 가중치를 복사해 둬요.\nbefore = [w.copy() for w in model.get_weights()]\n# 이 줄을 고쳐 훈련 표 전체를 rounds번 학습하세요.\n# epochs는 훈련 표 전체를 몇 번 학습할지예요. fit이 실제로 가중치를 바꿔요.\nhistory = model.fit(X_train, y_train, epochs=rounds, batch_size=2, shuffle=False, verbose=0)\nprint(len(history.history.get(\"loss\", [])))\n# 확인용 출력: 가중치가 하나라도 바뀌었으면 True예요. 이 줄의 문법은 몰라도 돼요.\nprint(any(not np.array_equal(a, b) for a, b in zip(before, model.get_weights())))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "1\nTrue"
+        }
+      ],
       "required": true,
-      "example_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습이 다른 작업의 자원을 지나치게 쓰지 않게 해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 초기화는 동작 관찰용이며 아직 자료로 학습한 값이 아니에요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\nX_train = np.array([[1.0], [2.0]], dtype=\"float32\")\ny_train = np.array([[2.0], [4.0]], dtype=\"float32\")\nmodel.compile(optimizer=keras.optimizers.SGD(learning_rate=0.1), loss=\"mse\")\n# 확인용: fit 전 가중치를 복사해 둬요.\nbefore = [w.copy() for w in model.get_weights()]\nhistory = model.fit(X_train, y_train, epochs=1, batch_size=2, shuffle=False, verbose=0)\nprint(len(history.history[\"loss\"]))\n# 확인용 출력: 가중치가 하나라도 바뀌었으면 True예요. 이 줄의 문법은 몰라도 돼요.\nprint(any(not np.array_equal(a, b) for a, b in zip(before, model.get_weights())))\nprint(list(model.predict(X_train, verbose=0).shape))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "fixed",
-            "text": "fit도 compile처럼 준비만 해서 가중치는 그대로예요"
-          },
-          {
-            "id": "changed",
-            "text": "학습 전후 가중치가 바뀌고 loss 기록 한 개가 생겨요"
-          }
-        ],
-        "answer": "changed"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "fit이 가중치를 바꾸는지 보는 문제예요.",
-          "target": "text:fit이 가중치를 바꾸는지 봐요#1"
+          "text": "fit의 epochs=rounds로 실제로 학습하는 문제예요.",
+          "target": "text:fit의 epochs=rounds로 실제로 학습하세요#1"
         },
         {
           "action": "say",
-          "text": "fit은 자료로 가중치를 실제로 고치고 epoch마다 loss를 기록해요. 한 epoch 뒤 가중치와 기록이 어떻게 되는지 예상해요.",
-          "target": "text:fit을 한 epoch 실행했어요."
+          "text": "fit이 훈련 표를 학습하게 해야 해요. epochs를 rounds로 고쳐요.",
+          "target": "text:fit 줄을 고쳐 훈련 표 전체를 rounds번 학습하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            21,
+            23
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0과 False예요. epochs=0이라 한 번도 학습하지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "epochs=0,",
+          "after": "epochs=rounds,",
+          "say": "epochs=0을 epochs=rounds로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            21,
+            23
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1과 True예요. 한 epoch 학습해 loss 기록이 하나 생기고 가중치가 바뀌었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. loss 기록은 배송 한 건마다가 아니라 epoch마다 하나씩 쌓여요.",
+          "target": "code:epochs=rounds"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"rounds\": 3}, \"expected\": \"3\\\\nTrue\"}, {\"values\": {\"rounds\": 2}, \"expected\": \"2\\\\nTrue\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=45)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_d09cae03-1652-465d-aa83-f19686919cae",
+      "title": "validation_data로 검증 손실을 따로 기록하세요",
+      "goal": "epochs마다 history.history에 기록이 쌓여요. `validation_data=(입력, 정답)`을 주면 epoch가 끝날 때마다 그 검증 표의 손실을 val_loss로 기록해요. 검증 표는 가중치 학습에 쓰지 않아요.\n\nfit 줄에 validation_data를 더해 epoch마다 검증 표의 손실도 기록하세요. 채점은 다른 검증 표로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 기록 이름을 확인하세요.\n2. fit 괄호 끝에 `validation_data=(X_valid, y_valid)`를 더하세요.\n3. 코드 실행을 눌러 val_loss와 True를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습이 다른 작업의 자원을 지나치게 쓰지 않게 해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\nX_train = np.array([[1.0], [2.0]], dtype=\"float32\")\ny_train = np.array([[2.0], [4.0]], dtype=\"float32\")\nmodel.compile(optimizer=keras.optimizers.SGD(learning_rate=0.1), loss=\"mse\")\n# 검증 표는 이 fit의 가중치 학습에 직접 넣지 않아요.\nvalid_rows = [[3.0]]\nvalid_targets = [[6.0]]\nX_valid = np.array(valid_rows, dtype=\"float32\")\ny_valid = np.array(valid_targets, dtype=\"float32\")\nrounds = 3\n# 이 줄에 validation_data를 더해 epoch마다 검증 표의 손실도 기록하세요.\nhistory = model.fit(X_train, y_train, epochs=rounds, batch_size=2, shuffle=False, verbose=0)\nprint(sorted(history.history))\nprint(len(history.history.get(\"val_loss\", [])))\n# 확인용 출력: 마지막 val_loss가 검증 표를 따로 평가한 값과 같으면 True예요. 이 줄의 문법은 몰라도 돼요.\nprint(bool(np.isclose(history.history.get(\"val_loss\", [np.nan])[-1], model.evaluate(X_valid, y_valid, verbose=0))))\n",
+      "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습이 다른 작업의 자원을 지나치게 쓰지 않게 해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\nX_train = np.array([[1.0], [2.0]], dtype=\"float32\")\ny_train = np.array([[2.0], [4.0]], dtype=\"float32\")\nmodel.compile(optimizer=keras.optimizers.SGD(learning_rate=0.1), loss=\"mse\")\n# 검증 표는 이 fit의 가중치 학습에 직접 넣지 않아요.\nvalid_rows = [[3.0]]\nvalid_targets = [[6.0]]\nX_valid = np.array(valid_rows, dtype=\"float32\")\ny_valid = np.array(valid_targets, dtype=\"float32\")\nrounds = 3\n# 이 줄에 validation_data를 더해 epoch마다 검증 표의 손실도 기록하세요.\n# validation_data의 표로 epoch가 끝날 때마다 손실을 재요. 가중치 학습에는 쓰지 않아요.\nhistory = model.fit(X_train, y_train, epochs=rounds, batch_size=2, shuffle=False, verbose=0,\n                    validation_data=(X_valid, y_valid))\nprint(sorted(history.history))\nprint(len(history.history.get(\"val_loss\", [])))\n# 확인용 출력: 마지막 val_loss가 검증 표를 따로 평가한 값과 같으면 True예요. 이 줄의 문법은 몰라도 돼요.\nprint(bool(np.isclose(history.history.get(\"val_loss\", [np.nan])[-1], model.evaluate(X_valid, y_valid, verbose=0))))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "['loss', 'val_loss']\n3\nTrue"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "validation_data로 검증 손실을 따로 기록하는 문제예요.",
+          "target": "text:validation_data로 검증 손실을 따로 기록하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "훈련 손실과 따로 검증 표의 손실도 보고 싶어요. fit에 validation_data를 더해야 해요.",
+          "target": "text:fit 줄에 validation_data를 더해 epoch마다 검증 표의 손실도 기록하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            23,
+            26
+          ]
+        },
+        {
+          "action": "say",
+          "text": "['loss'], 0, False예요. 훈련 손실만 기록됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "batch_size=2, shuffle=False, verbose=0)\nprint(sorted",
+          "after": "batch_size=2, shuffle=False, verbose=0,\n                    validation_data=(X_valid, y_valid))\nprint(sorted",
+          "say": "괄호 안 끝에 validation_data=(X_valid, y_valid)를 더해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            24,
+            27
+          ]
+        },
+        {
+          "action": "say",
+          "text": "['loss', 'val_loss'], 3, True예요. epoch마다 검증 손실이 쌓였고 마지막 값은 검증 표를 평가한 값과 같아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. validation_split은 훈련 표의 일부를 떼어 써요. 따로 준비한 검증 표를 쓰려면 validation_data예요.",
+          "target": "code:validation_data=(X_valid, y_valid)"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"valid_rows\": [[0.0], [5.0]], \"valid_targets\": [[1.0], [9.0]], \"rounds\": 2}, \"expected\": \"[\\'loss\\', \\'val_loss\\']\\\\n2\\\\nTrue\"}, {\"values\": {\"rounds\": 4}, \"expected\": \"[\\'loss\\', \\'val_loss\\']\\\\n4\\\\nTrue\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=45)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_c166a1ea-ae37-4767-b125-163be3d89a66",
+      "title": "[[d] for d in distances]로 새 배송을 행으로 넘기세요",
+      "goal": "학습한 모델로 새 배송을 예측해요. 입력은 배송마다 한 행, 특성 수만큼의 열이에요. 이 모델은 특성이 거리 하나예요.\n\nX_test 줄을 고쳐 새 배송마다 한 행, 특성 한 열인 2차원 입력을 만드세요. 채점은 다른 거리 수로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 ValueError가 나오는지 확인하세요.\n2. `np.array([distances], ...)`를 `np.array([[d] for d in distances], ...)`로 고치세요.\n3. 코드 실행을 눌러 [2, 1]이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습이 다른 작업의 자원을 지나치게 쓰지 않게 해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\nX_train = np.array([[1.0], [2.0]], dtype=\"float32\")\ny_train = np.array([[2.0], [4.0]], dtype=\"float32\")\nmodel.compile(optimizer=keras.optimizers.SGD(learning_rate=0.1), loss=\"mse\")\nmodel.fit(X_train, y_train, epochs=1, batch_size=2, shuffle=False, verbose=0)\n# 예측할 새 배송들의 거리예요.\ndistances = [3.0, 4.0]\n# 이 줄을 고쳐 새 배송마다 한 행, 특성 한 열인 2차원 입력을 만드세요.\nX_test = np.array([distances], dtype=\"float32\")\npredictions = model.predict(X_test, verbose=0)\nprint(list(predictions.shape))\n",
+      "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습이 다른 작업의 자원을 지나치게 쓰지 않게 해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\nX_train = np.array([[1.0], [2.0]], dtype=\"float32\")\ny_train = np.array([[2.0], [4.0]], dtype=\"float32\")\nmodel.compile(optimizer=keras.optimizers.SGD(learning_rate=0.1), loss=\"mse\")\nmodel.fit(X_train, y_train, epochs=1, batch_size=2, shuffle=False, verbose=0)\n# 예측할 새 배송들의 거리예요.\ndistances = [3.0, 4.0]\n# 이 줄을 고쳐 새 배송마다 한 행, 특성 한 열인 2차원 입력을 만드세요.\n# 바깥 목록이 행(배송), 안쪽 목록이 그 배송의 특성이에요. 배송마다 [거리] 한 칸이에요.\nX_test = np.array([[d] for d in distances], dtype=\"float32\")\npredictions = model.predict(X_test, verbose=0)\nprint(list(predictions.shape))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[2, 1]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "[[d] for d in distances]로 새 배송을 행으로 넘기는 문제예요.",
+          "target": "text:[[d] for d in distances]로 새 배송을 행으로 넘기세요#1"
+        },
+        {
+          "action": "say",
+          "text": "새 배송 두 건을 한 번에 예측해요. 배송마다 한 행, 특성 한 열로 입력을 만들어야 해요.",
+          "target": "text:X_test 줄을 고쳐 새 배송마다 한 행, 특성 한 열인 2차원 입력을 만드세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            21,
+            21
+          ],
+          "expect_error": "ValueError"
+        },
+        {
+          "action": "say",
+          "text": "ValueError예요. 한 행에 거리 두 개를 넣어 특성 1개짜리 입력과 맞지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "X_test = np.array([distances], dtype=\"float32\")\n",
+          "after": "X_test = np.array([[d] for d in distances], dtype=\"float32\")\n",
+          "say": "거리마다 [d]로 감싸 한 행씩 만들어요."
         },
         {
           "action": "run",
@@ -446,163 +563,16 @@
         },
         {
           "action": "say",
-          "text": "기록 한 개와 가중치 변화, 두 행 한 출력 모양을 확인했어요.",
+          "text": "[2, 1]이에요. 앞은 새 배송 수, 뒤는 배송마다 나온 예측값 수예요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 한 번 학습했다고 좋은 새 자료 성능이 보장되지는 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "changed"
+          "text": "조심하세요. [distances]는 행이 하나예요. 배송 수만큼 행을 만들어야 해요.",
+          "target": "code:[[d] for d in distances]"
         }
       ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_4278f468-bffc-4c1b-bdfc-595f0c50ae26",
-      "title": "훈련과 검증 기록을 나눠요",
-      "goal": "epochs=3으로 학습하면서 validation_data로 검증 표를 따로 줬어요. history.history에는 epoch마다 기록이 쌓여요.\nval_loss는 어떤 자료의 값일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "valid",
-      "tests": [],
-      "required": true,
-      "example_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습이 다른 작업의 자원을 지나치게 쓰지 않게 해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 초기화는 동작 관찰용이며 아직 자료로 학습한 값이 아니에요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\nX_train = np.array([[1.0], [2.0]], dtype=\"float32\")\ny_train = np.array([[2.0], [4.0]], dtype=\"float32\")\nmodel.compile(optimizer=keras.optimizers.SGD(learning_rate=0.1), loss=\"mse\")\n# 검증 표는 이 fit의 가중치 학습에 직접 넣지 않아요.\nX_valid = np.array([[3.0]], dtype=\"float32\")\ny_valid = np.array([[6.0]], dtype=\"float32\")\nhistory = model.fit(X_train, y_train, validation_data=(X_valid, y_valid), epochs=3, batch_size=2, shuffle=False, verbose=0)\nprint(sorted(history.history))\n# 확인용 출력: 기록 이름마다 쌓인 값의 개수예요. 이 줄의 문법은 몰라도 돼요.\nprint([len(history.history[name]) for name in [\"loss\", \"val_loss\"]])\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "train",
-            "text": "이름만 다르고 훈련 표의 같은 값이에요"
-          },
-          {
-            "id": "valid",
-            "text": "따로 준 검증 표에서 평가한 값이에요"
-          }
-        ],
-        "answer": "valid"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "val_loss가 어떤 자료의 값인지 고르는 문제예요.",
-          "target": "text:훈련과 검증 기록을 나눠요#1"
-        },
-        {
-          "action": "say",
-          "text": "validation_data로 준 표는 가중치를 고치는 데 쓰지 않고 epoch마다 평가만 해요.",
-          "target": "text:epochs=3으로 학습하면서 validation_data로 검증 표를 따로 줬어요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            22,
-            22
-          ]
-        },
-        {
-          "action": "say",
-          "text": "훈련과 검증 기록이 따로 있고 세 epoch씩 남았어요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 검증 결과를 보며 조절해도 최종 테스트는 별도로 남겨야 해요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "valid"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_417ce7a7-0874-4d19-946a-327a20effbd3",
-      "title": "새 입력의 예측 모양을 읽어요",
-      "goal": "학습한 모델로 새 거리 두 개를 predict했어요. 출력 첫 줄은 predictions의 모양이에요.\npredictions 모양의 두 숫자는 각각 무엇일까요?\n\n**할 일**\n\n1. predictions 모양의 두 숫자는 각각 무엇일까요? 코드에서 근거를 찾아 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "rows",
-      "tests": [],
-      "required": true,
-      "example_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습이 다른 작업의 자원을 지나치게 쓰지 않게 해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 초기화는 동작 관찰용이며 아직 자료로 학습한 값이 아니에요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\nX_train = np.array([[1.0], [2.0]], dtype=\"float32\")\ny_train = np.array([[2.0], [4.0]], dtype=\"float32\")\nmodel.compile(optimizer=keras.optimizers.SGD(learning_rate=0.1), loss=\"mse\")\nmodel.fit(X_train, y_train, epochs=1, batch_size=2, shuffle=False, verbose=0)\n# 새 입력의 예측은 실제 정답 없이도 구할 수 있어요.\nX_test = np.array([[3.0], [4.0]], dtype=\"float32\")\npredictions = model.predict(X_test, verbose=0)\nprint(list(predictions.shape))\n# 확인용 출력: 예측값이 모두 정상 숫자면 True예요.\nprint(bool(np.isfinite(predictions).all()))\n",
-      "interaction": {
-        "kind": "choice",
-        "answer": "rows",
-        "options": [
-          {
-            "id": "features",
-            "text": "앞은 특성 수, 뒤는 새 배송 수예요"
-          },
-          {
-            "id": "rows",
-            "text": "앞은 새 배송 수, 뒤는 배송마다 나온 예측값 수예요"
-          }
-        ]
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "predict가 돌려준 표의 모양에서 행과 열이 무엇을 뜻하는지 읽는 문제예요.",
-          "target": "text:새 입력의 예측 모양을 읽어요#1"
-        },
-        {
-          "action": "say",
-          "text": "새 입력은 거리 3과 4, 두 배송이에요. 마지막 층은 Dense(1)이에요.",
-          "target": "code:X_test = np.array([[3.0], [4.0]], dtype=\"float32\")"
-        },
-        {
-          "action": "run",
-          "lines": [
-            20,
-            22
-          ]
-        },
-        {
-          "action": "say",
-          "text": "모양은 [2, 1]이에요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "np.array([[3.0], [4.0]], dtype=\"float32\")",
-          "after": "np.array([[3.0], [4.0], [5.0]], dtype=\"float32\")",
-          "say": "새 배송을 하나 더 넣어 볼게요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            20,
-            22
-          ]
-        },
-        {
-          "action": "say",
-          "text": "앞 숫자만 3으로 늘었어요. 행은 배송 수를 따라가고, 열은 Dense(1)의 출력 수라 그대로예요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "np.array([[3.0], [4.0], [5.0]], dtype=\"float32\")",
-          "after": "np.array([[3.0], [4.0]], dtype=\"float32\")",
-          "say": "두 배송으로 되돌려요."
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 열 1은 입력 특성 수가 아니라 마지막 Dense의 출력 수예요. 입력 특성 수는 Input의 shape가 정해요.",
-          "target": "code:keras.layers.Dense(1, kernel_initializer=\"zeros\", bias_initializer=\"zeros\")"
-        },
-        {
-          "action": "choose_answer",
-          "id": "rows"
-        }
-      ],
-      "predict_before_run": true,
-      "question": "predictions 모양의 두 숫자는 각각 무엇일까요?"
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"distances\": [1.0, 2.0, 5.0]}, \"expected\": \"[3, 1]\"}, {\"values\": {\"distances\": [7.0]}, \"expected\": \"[1, 1]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=45)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
       "id": "stp_dba81c77-2882-44ae-9733-caec1a9d9f9f",

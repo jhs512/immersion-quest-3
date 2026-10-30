@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "92773a39f407fc544894ffd61cecc0eae3066b354085837a2c3a94b940d4d6ef",
+  "entry": [
+    {
+      "action": "say",
+      "text": "Dense 층은 숫자만 계산해요. 지역 글자 대신 전처리로 바꾼 숫자 행렬을 넘겨야 해요.",
+      "target": "text:훈련 표를 전처리로 바꾼 숫자 행렬로 만드세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        38,
+        38
+      ],
+      "expect_error": "NotFittedError"
+    },
+    {
+      "action": "say",
+      "text": "NotFittedError예요. 전처리 기준을 아직 배우지 않아 새 표를 바꿀 수 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "train_matrix = X_train\n",
+      "after": "train_matrix = preprocess.fit_transform(X_train).astype(\"float32\")\n",
+      "say": "preprocess.fit_transform(X_train).astype(\"float32\")로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        38,
+        39
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[3, 1]과 True예요. 짧게 학습한 뒤 새 배송 세 건에 출력 하나씩 나왔어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 모양이 맞아 실행된 것만으로 새 예측의 성능까지 보장하지는 않아요.",
+      "target": "code:preprocess.fit_transform(X_train)"
+    }
+  ]
+}

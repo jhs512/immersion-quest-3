@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "b78fa922a2462d579b1abd97327ea19b19551b67f1281994697664715c8921b4",
+  "entry": [
+    {
+      "action": "say",
+      "text": "실제 시간은 배송 번호별로 저장돼 있어요. 예측과 같은 배송끼리 비교하도록 orders 순서로 꺼내야 해요.",
+      "target": "text:orders 순서대로 같은 배송의 실제 시간을 꺼내세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        24,
+        26
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[3.0, 5.0]과 [5.0, 3.0], 오차 2.0이에요. 길이는 같지만 다른 배송끼리 비교했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "y_true = list(actual_by_order.values())\n",
+      "after": "y_true = [actual_by_order[order] for order in orders]\n",
+      "say": "orders의 번호마다 actual_by_order[order]를 꺼내요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        24,
+        26
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[3.0, 5.0]과 [3.0, 5.0], 오차 0.0이에요. 같은 배송의 실제와 예측을 짝지었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 길이만 같다고 바른 평가가 아니에요. 정렬도 짝을 바꿀 수 있어요. 같은 관측끼리 맞췄는지 먼저 확인해요.",
+      "target": "code:actual_by_order[order]"
+    }
+  ]
+}

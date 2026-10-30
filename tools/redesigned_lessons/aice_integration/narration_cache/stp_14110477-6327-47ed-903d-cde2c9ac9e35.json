@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "67d3eefaf79cb56da671861983c5d55f4e444908317736571890263a1f29da78",
+  "entry": [
+    {
+      "action": "say",
+      "text": "새 배송은 아직 걸린 시간을 몰라요. 예측할 때 넣을 수 있는 열만 입력으로 남겨야 해요.",
+      "target": "text:X_train에 새 배송에도 있는 입력 distance와 zone만 남기세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        18,
+        21
+      ]
+    },
+    {
+      "action": "say",
+      "text": "['distance', 'zone', 'minutes']와 False예요. 맞혀야 할 minutes가 입력에 섞여 새 입력과 열이 달라요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "X_train = df.drop(columns=[\"order_id\"])\n",
+      "after": "X_train = df[[\"distance\", \"zone\"]]\n",
+      "say": "df[[\"distance\", \"zone\"]]로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        18,
+        21
+      ]
+    },
+    {
+      "action": "say",
+      "text": "['distance', 'zone']과 True예요. 정답 열은 y_train에 따로 있어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 정답 열을 입력에 넣으면 훈련 점수는 좋아 보여도 새 배송에는 그 열이 없어 쓸 수 없어요. 주문번호도 의미 없는 입력이에요.",
+      "target": "code:df[[\"distance\", \"zone\"]]"
+    }
+  ]
+}

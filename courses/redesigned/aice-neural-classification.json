@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_82da94e8-1854-4530-82cf-5bf5b0224cc5",
-  "revision": "aice-neural-classification-6",
+  "revision": "aice-neural-classification-7",
   "title": "신경망 분류의 출력과 정답을 맞춰요",
   "description": "같은 배송의 이진·다중 분류에서 출력과 정답 형식을 맞춰요.",
   "objectives": [
@@ -33,27 +33,27 @@
           "premise": "같은 배송을 정상과 지연으로 나누다가 취소 종류도 추가해요. 먼저 출력 모양과 실제 학습을 살펴봐요.",
           "steps": [
             {
-              "id": "stp_5beb9fe5-4691-4022-9d24-9820dd6e2c49",
+              "id": "stp_5895a5fa-4661-4e22-a06a-2b7e21e9ded5",
               "objectives": [
-                "단일 sigmoid 출력과 범주 판단을 구별해요."
+                "sigmoid 확률과 규칙을 적용해 고른 범주를 구별해 직접 써요."
               ]
             },
             {
-              "id": "stp_4ab1ddd7-24a0-46aa-bb53-fc03d115890b",
+              "id": "stp_a926ba50-dd69-452c-b63e-ff47a3a7dd37",
               "objectives": [
-                "sigmoid 확률과 from_logits 옵션을 연결해요."
+                "출력이 확률인지 logit인지에 맞춰 손실 옵션을 직접 정해요."
               ]
             },
             {
-              "id": "stp_bec54e30-2b92-459b-9c3e-9453778a1997",
+              "id": "stp_89dc92b4-69e6-4b8a-973f-97685a74417e",
               "objectives": [
-                "학습에 넣지 않은 새 배송의 실제 정답과 비교해 정확도를 직접 계산해요."
+                "새 자료의 정확도는 그 자료의 실제 정답과 짝지어 계산하는 것을 직접 써요."
               ]
             },
             {
-              "id": "stp_0092328f-5a3c-4511-ad6b-c74391c88cf8",
+              "id": "stp_996a2079-7fb2-49e2-8482-a362324cb53a",
               "objectives": [
-                "배타적 다중 분류의 softmax 출력 크기와 합을 읽어요."
+                "배타적인 여러 범주에는 범주마다 한 칸, 합이 1인 softmax 출력을 써요."
               ]
             }
           ]
@@ -76,21 +76,21 @@
           "premise": "같은 세 종류를 정수나 원핫으로 표현할 수 있어요. 대응을 확인하고 실제 학습 손실을 고쳐요.",
           "steps": [
             {
-              "id": "stp_a2b9df5d-19ef-46b7-a445-3646926ab552",
+              "id": "stp_e4f42523-852a-4b2f-b4df-5edb4cb32630",
               "objectives": [
-                "정수 인덱스와 SparseCategoricalCrossentropy를 연결해요."
+                "정답이 범주 번호일 때 그 표현에 맞는 손실을 직접 골라 써요."
               ]
             },
             {
-              "id": "stp_8bb8b9d8-b04e-42d8-9581-68e4df72181e",
+              "id": "stp_acd9b297-076d-461d-8848-dda9e325a494",
               "objectives": [
-                "원핫과 정수 정답의 대응을 검증해요."
+                "범주 번호와 원핫은 같은 정답의 다른 표현이며 칸 수를 범주 수에 맞춰야 함을 써서 확인해요."
               ]
             },
             {
-              "id": "stp_ee524730-dffa-42d4-bf7a-a4dd2f4c7fa0",
+              "id": "stp_384c2fae-b3a8-4596-8b5d-ef20702820a5",
               "objectives": [
-                "argmax 위치와 범주 이름 매핑을 이해해요."
+                "argmax의 위치 번호를 학습 때의 범주 순서로 실제 이름에 연결해 써요."
               ]
             },
             {
@@ -122,469 +122,455 @@
   ],
   "tasks": [
     {
-      "id": "stp_5beb9fe5-4691-4022-9d24-9820dd6e2c49",
-      "title": "두 종류의 확률을 출력해요",
-      "goal": "출력은 확률이고 이번 규칙은0.5이상이 지연이에요.\n확률과 예측 종류는 같은 것일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_5895a5fa-4661-4e22-a06a-2b7e21e9ded5",
+      "title": "확률 >= threshold로 지연 여부를 고르세요",
+      "goal": "sigmoid는 계산값을 0과 1 사이 확률로 바꿔요. 범주는 확률에 규칙을 적용해 골라요. `astype(int)`는 True·False를 1·0으로 바꿔요.\n\nlabels 줄을 고쳐 확률에 규칙을 적용해 정상 0·지연 1을 고르세요. 채점은 다른 입력과 경계값으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 두 줄을 비교하세요.\n2. `labels = probabilities`를 `labels = (probabilities >= threshold).astype(int)`로 고치세요.\n3. 코드 실행을 눌러 [1, 1]이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "different",
-      "tests": [],
+      "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nrows = [[0.0], [1.0]]\n# 이번 경보 규칙은 확률이 threshold 이상이면 지연 1이에요. 경계값도 지연이에요.\nthreshold = 0.5\n# 초기 가중치는 학습 결과가 아닌 출력 동작 확인용이에요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, activation=\"sigmoid\", kernel_initializer=\"ones\", bias_initializer=\"zeros\")])\nprobabilities = model.predict(np.array(rows, dtype=\"float32\"), verbose=0).ravel()\nprint([round(float(p), 6) for p in probabilities])\n# 이 줄을 고쳐 확률에 규칙을 적용해 정상 0·지연 1을 고르세요.\nlabels = probabilities\nprint(labels.tolist())\n",
+      "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nrows = [[0.0], [1.0]]\n# 이번 경보 규칙은 확률이 threshold 이상이면 지연 1이에요. 경계값도 지연이에요.\nthreshold = 0.5\n# 초기 가중치는 학습 결과가 아닌 출력 동작 확인용이에요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, activation=\"sigmoid\", kernel_initializer=\"ones\", bias_initializer=\"zeros\")])\nprobabilities = model.predict(np.array(rows, dtype=\"float32\"), verbose=0).ravel()\nprint([round(float(p), 6) for p in probabilities])\n# 이 줄을 고쳐 확률에 규칙을 적용해 정상 0·지연 1을 고르세요.\n# 비교 결과 True·False를 astype(int)로 1·0으로 바꿔요. 경계값도 지연이라 >=예요.\nlabels = (probabilities >= threshold).astype(int)\nprint(labels.tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[0.5, 0.731059]\n[1, 1]"
+        }
+      ],
       "required": true,
-      "example_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 초기 가중치는 학습 결과가 아닌 출력 동작 확인용이에요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, activation=\"sigmoid\", kernel_initializer=\"ones\", bias_initializer=\"zeros\")])\nprobabilities = model.predict(np.array([[0.0], [1.0]], dtype=\"float32\"), verbose=0).ravel()\n# 확인용 출력: 확률을 소수 여섯째 자리까지 보여 줘요.\nprint([round(float(p), 6) for p in probabilities])\n# 이번 경보 규칙은 경계값0.5도 지연으로 포함해요.\nprint((probabilities >= 0.5).astype(int).tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "different",
-            "text": "아니요.확률에 규칙을 적용해 종류를 골라요"
-          },
-          {
-            "id": "same",
-            "text": "네. 0.731은 그대로 지연이라는 뜻이에요"
-          }
-        ],
-        "answer": "different"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "이 수업에서는 신경망의 분류 출력과 정답 모양을 맞춰요. 이진 분류와 다중 분류를 구별해요."
+          "text": "이 수업에서는 신경망의 분류 출력과 정답 모양을 직접 코드로 맞춰요. 이진 분류와 다중 분류를 구별해요."
         },
         {
           "action": "say",
-          "text": "sigmoid와 softmax 결과를 읽어요. 정수·원핫 정답과 손실을 실제 학습으로 연결해요."
+          "text": "sigmoid와 softmax 결과를 읽고, 정수·원핫 정답과 손실, 출력 위치와 이름의 연결을 실행 결과로 확인해요."
         },
         {
           "action": "say",
-          "text": "확률 숫자와, 규칙을 적용해 고른 종류가 같은 것인지 구별하는 문제예요.",
-          "target": "text:두 종류의 확률을 출력해요#1"
+          "text": "확률 >= threshold로 지연 여부를 고르는 문제예요.",
+          "target": "text:확률 >= threshold로 지연 여부를 고르세요#1"
         },
         {
           "action": "say",
-          "text": "sigmoid는 계산값을 0과 1 사이 확률로 바꿔요.",
-          "target": "text:출력은 확률이고 이번 규칙은0.5이상이 지연이에요."
+          "text": "sigmoid는 확률을 내요. 확률에 이번 규칙을 적용해야 정상과 지연이 정해져요.",
+          "target": "text:확률에 규칙을 적용해 정상 0·지연 1을 고르세요."
         },
         {
           "action": "run",
           "lines": [
             17,
-            17
+            20
           ]
         },
         {
           "action": "say",
-          "text": "확률 0.5와 약 0.73에 규칙을 적용해 둘 다 지연으로 골랐어요.",
+          "text": "두 줄 모두 [0.5, 0.731059]예요. 아직 확률을 그대로 범주 자리에 두었어요.",
           "target": "output"
         },
         {
-          "action": "say",
-          "text": "조심하세요. 0.5 이상을 지연으로 보는 것은 이번에 정한 규칙이에요. 확률 0.73도 실제 지연 빈도로 검증된 값은 아니에요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "different"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_4ab1ddd7-24a0-46aa-bb53-fc03d115890b",
-      "title": "출력 형식과 손실 옵션을 맞춰요",
-      "goal": "logit은 sigmoid에 넣기 전의 값, 곧 입력 × 가중치 + 편향이에요. from_logits=True는 \"모델 출력이 아직 logit이에요\"라고 손실에 알리는 설정이에요. 이 모델은 sigmoid가 이미 확률을 냈어요.\n이 손실의 from_logits는 어떻게 맞출까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "false",
-      "tests": [],
-      "required": true,
-      "example_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 초기 가중치는 학습 결과가 아닌 출력 동작 확인용이에요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, activation=\"sigmoid\", kernel_initializer=\"ones\", bias_initializer=\"zeros\")])\nloss = keras.losses.BinaryCrossentropy(from_logits=False)\nmodel.compile(optimizer=\"sgd\", loss=loss)\nprint(list(model.output_shape))\nprint(loss.get_config()[\"from_logits\"])\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "true",
-            "text": "True로 이미 확률인 값을 logit이라고 알려요"
-          },
-          {
-            "id": "false",
-            "text": "False로 확률 입력임을 알려요"
-          }
-        ],
-        "answer": "false"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "sigmoid 뒤의 확률 출력에 맞는 from_logits를 고르는 문제예요.",
-          "target": "text:출력 형식과 손실 옵션을 맞춰요#1"
-        },
-        {
-          "action": "say",
-          "text": "손실은 모델 출력이 확률인지 logit인지 알아야 바르게 계산해요.",
-          "target": "text:logit은 sigmoid에 넣기 전의 값, 곧 입력 × 가중치 + 편향이에요."
+          "action": "patch_code",
+          "before": "labels = probabilities\n",
+          "after": "labels = (probabilities >= threshold).astype(int)\n",
+          "say": "probabilities >= threshold를 astype(int)로 바꿔요."
         },
         {
           "action": "run",
           "lines": [
-            16,
-            16
+            17,
+            20
           ]
         },
         {
           "action": "say",
-          "text": "출력 한 칸이고 손실은 logit이 아닌 확률을 받도록 설정했어요.",
+          "text": "[1, 1]이에요. 경계값 0.5도 지연이라 두 배송 모두 지연이에요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 선형 logit을 쓰는 다른 설계와 지금 확률 출력의 옵션을 구별해요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "false"
+          "text": "조심하세요. >로 쓰면 확률 0.5인 첫 배송은 정상이 돼요. 그리고 0.73은 학습 전 가중치의 값이라 실제 지연 빈도로 검증된 확률이 아니에요.",
+          "target": "code:probabilities >= threshold"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"threshold\": 0.8}, \"expected\": \"[0.5, 0.731059]\\\\n[0, 0]\"}, {\"values\": {\"rows\": [[-2.0], [0.0], [3.0]]}, \"expected\": \"[0.119203, 0.5, 0.952574]\\\\n[0, 1, 1]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=45)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_bec54e30-2b92-459b-9c3e-9453778a1997",
-      "title": "새 배송의 정답으로 실제 정확도를 구해요",
-      "goal": "작은 이진 분류를 세 epoch 학습했어요. 학습에 넣지 않은 새 배송 네 건과 그 실제 정답 y_new가 있어요. 출력은 차례로 훈련 예측, 새 예측, 새 배송의 정확도예요.\n새 배송 네 건의 정확도는 얼마일까요?\n\n**할 일**\n\n1. 새 배송 네 건의 정확도는 얼마일까요? 코드에서 근거를 찾아 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_a926ba50-dd69-452c-b63e-ff47a3a7dd37",
+      "title": "from_logits=False로 확률 출력을 알리세요",
+      "goal": "logit은 sigmoid에 넣기 전의 값, 곧 입력 × 가중치 + 편향이에요. `from_logits=True`는 \"모델 출력이 아직 logit이에요\"라고 손실에 알리는 설정이에요. 이 모델은 sigmoid가 이미 확률을 냈어요.\n\nloss 줄을 고쳐 모델 출력이 이미 확률이라고 손실에 알리세요. 채점은 다른 입력과 정답으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 직접 계산과 같은지 확인하세요.\n2. `from_logits=True`를 `from_logits=False`로 고치세요.\n3. 코드 실행을 눌러 True가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "three",
-      "tests": [],
+      "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nrows = [[0.0], [1.0]]\ny = [0.0, 1.0]\n# 초기 가중치는 학습 결과가 아닌 출력 동작 확인용이에요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, activation=\"sigmoid\", kernel_initializer=\"ones\", bias_initializer=\"zeros\")])\n# 이 줄을 고쳐 모델 출력이 이미 확률이라고 손실에 알리세요.\nloss = keras.losses.BinaryCrossentropy(from_logits=True)\np = model.predict(np.array(rows, dtype=\"float32\"), verbose=0)\ntarget = np.array(y, dtype=\"float32\").reshape(-1, 1)\nvalue = float(loss(target, p))\n# 확인용: 확률로 직접 계산한 교차 엔트로피예요.\nmanual = float(-np.mean(target * np.log(p) + (1 - target) * np.log(1 - p)))\nprint(round(value, 4))\nprint(bool(np.isclose(value, manual, atol=1e-4)))\n",
+      "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nrows = [[0.0], [1.0]]\ny = [0.0, 1.0]\n# 초기 가중치는 학습 결과가 아닌 출력 동작 확인용이에요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, activation=\"sigmoid\", kernel_initializer=\"ones\", bias_initializer=\"zeros\")])\n# 이 줄을 고쳐 모델 출력이 이미 확률이라고 손실에 알리세요.\n# sigmoid가 이미 확률을 냈어요. from_logits=False는 \"확률을 받아요\"라는 뜻이에요.\nloss = keras.losses.BinaryCrossentropy(from_logits=False)\np = model.predict(np.array(rows, dtype=\"float32\"), verbose=0)\ntarget = np.array(y, dtype=\"float32\").reshape(-1, 1)\nvalue = float(loss(target, p))\n# 확인용: 확률로 직접 계산한 교차 엔트로피예요.\nmanual = float(-np.mean(target * np.log(p) + (1 - target) * np.log(1 - p)))\nprint(round(value, 4))\nprint(bool(np.isclose(value, manual, atol=1e-4)))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "0.5032\nTrue"
+        }
+      ],
       "required": true,
-      "example_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 초기 가중치는 학습 결과가 아닌 출력 동작 확인용이에요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, activation=\"sigmoid\", kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\nmodel.compile(optimizer=keras.optimizers.SGD(learning_rate=0.5), loss=\"binary_crossentropy\")\nX_train = np.array([[-2.0], [-1.0], [1.0], [2.0]], dtype=\"float32\")\ny_train = np.array([[0.0], [0.0], [1.0], [1.0]], dtype=\"float32\")\nhistory = model.fit(X_train, y_train, epochs=3, batch_size=4, shuffle=False, verbose=0)\n# 학습에 넣지 않은 새 배송과 그 실제 정답이에요.\nX_new = np.array([[-3.0], [-0.5], [0.5], [3.0]], dtype=\"float32\")\ny_new = np.array([0, 1, 1, 1])\n# 확률 0.5 이상을 지연 1로 읽어요.\ntrain_pred = (model.predict(X_train, verbose=0).ravel() >= 0.5).astype(int)\nnew_pred = (model.predict(X_new, verbose=0).ravel() >= 0.5).astype(int)\nprint(train_pred.tolist())\nprint(new_pred.tolist())\n# 정확도는 예측과 실제가 같은 배송의 비율이에요.\nprint(float((new_pred == y_new).mean()))\n",
-      "interaction": {
-        "kind": "choice",
-        "answer": "three",
-        "options": [
-          {
-            "id": "all",
-            "text": "1.0이에요. 훈련 배송을 모두 맞혔으니 새 배송도 모두 맞혀요"
-          },
-          {
-            "id": "three",
-            "text": "0.75예요. 거리 -0.5인 지연 배송 하나를 놓쳐요"
-          }
-        ]
-      },
       "narration": [
         {
           "action": "say",
-          "text": "훈련 결과로 짐작하지 않고 새 배송의 실제 정답과 비교해 점수를 직접 계산하는 문제예요.",
-          "target": "text:새 배송의 정답으로 실제 정확도를 구해요#1"
+          "text": "from_logits=False로 확률 출력을 알리는 문제예요.",
+          "target": "text:from_logits=False로 확률 출력을 알리세요#1"
         },
         {
           "action": "say",
-          "text": "새 배송 중 거리 -0.5는 가까운데도 실제로는 지연이에요.",
-          "target": "code:y_new = np.array([0, 1, 1, 1])"
+          "text": "이 모델은 sigmoid가 이미 확률을 냈어요. 손실에 확률을 받는다고 알려야 해요.",
+          "target": "text:모델 출력이 이미 확률이라고 손실에 알리세요."
         },
         {
           "action": "run",
           "lines": [
-            23,
+            22,
+            23
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0.6436과 False예요. 확률을 logit으로 보고 sigmoid를 한 번 더 적용해 직접 계산과 달라요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "from_logits=True",
+          "after": "from_logits=False",
+          "say": "True를 False로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            22,
+            23
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0.5032와 True예요. 확률로 직접 계산한 값과 같아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 출력층에 활성화 없이 logit을 내는 다른 설계라면 그때 from_logits=True를 써요. 출력 형식과 옵션을 함께 맞춰요.",
+          "target": "code:from_logits=False"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"y\": [1.0, 1.0]}, \"expected\": \"0.5032\\\\nTrue\"}, {\"values\": {\"rows\": [[-1.0], [2.0], [0.5]], \"y\": [0.0, 1.0, 0.0]}, \"expected\": \"0.4714\\\\nTrue\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=45)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_89dc92b4-69e6-4b8a-973f-97685a74417e",
+      "title": "새 배송의 실제 정답 y_new로 정확도를 구하세요",
+      "goal": "작은 이진 분류를 세 epoch 학습했어요. 학습에 넣지 않은 새 배송 네 건과 그 실제 정답 y_new가 있어요. 정확도는 예측과 실제 정답이 같은 배송의 비율이에요.\n\naccuracy 줄을 고쳐 새 배송의 예측을 그 실제 정답 y_new와 비교한 정확도를 구하세요. 채점은 다른 실제 정답으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 정확도를 확인하세요.\n2. `(new_pred == new_pred)`를 `(new_pred == np.array(y_new))`로 고치세요.\n3. 코드 실행을 눌러 0.75가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, activation=\"sigmoid\", kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\nmodel.compile(optimizer=keras.optimizers.SGD(learning_rate=0.5), loss=\"binary_crossentropy\")\nX_train = np.array([[-2.0], [-1.0], [1.0], [2.0]], dtype=\"float32\")\ny_train = np.array([[0.0], [0.0], [1.0], [1.0]], dtype=\"float32\")\nmodel.fit(X_train, y_train, epochs=3, batch_size=4, shuffle=False, verbose=0)\n# 학습에 넣지 않은 새 배송과 그 실제 정답이에요.\nX_new = np.array([[-3.0], [-0.5], [0.5], [3.0]], dtype=\"float32\")\ny_new = [0, 1, 1, 1]\n# 확률 0.5 이상을 지연 1로 읽어요.\ntrain_pred = (model.predict(X_train, verbose=0).ravel() >= 0.5).astype(int)\nnew_pred = (model.predict(X_new, verbose=0).ravel() >= 0.5).astype(int)\nprint(train_pred.tolist())\nprint(new_pred.tolist())\n# 이 줄을 고쳐 새 배송의 예측을 그 실제 정답 y_new와 비교한 정확도를 구하세요.\naccuracy = float((new_pred == new_pred).mean())\nprint(accuracy)\n",
+      "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, activation=\"sigmoid\", kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\nmodel.compile(optimizer=keras.optimizers.SGD(learning_rate=0.5), loss=\"binary_crossentropy\")\nX_train = np.array([[-2.0], [-1.0], [1.0], [2.0]], dtype=\"float32\")\ny_train = np.array([[0.0], [0.0], [1.0], [1.0]], dtype=\"float32\")\nmodel.fit(X_train, y_train, epochs=3, batch_size=4, shuffle=False, verbose=0)\n# 학습에 넣지 않은 새 배송과 그 실제 정답이에요.\nX_new = np.array([[-3.0], [-0.5], [0.5], [3.0]], dtype=\"float32\")\ny_new = [0, 1, 1, 1]\n# 확률 0.5 이상을 지연 1로 읽어요.\ntrain_pred = (model.predict(X_train, verbose=0).ravel() >= 0.5).astype(int)\nnew_pred = (model.predict(X_new, verbose=0).ravel() >= 0.5).astype(int)\nprint(train_pred.tolist())\nprint(new_pred.tolist())\n# 이 줄을 고쳐 새 배송의 예측을 그 실제 정답 y_new와 비교한 정확도를 구하세요.\n# 정확도는 같은 배송의 예측과 실제 정답이 같은 비율이에요.\naccuracy = float((new_pred == np.array(y_new)).mean())\nprint(accuracy)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[0, 0, 1, 1]\n[0, 0, 1, 1]\n0.75"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "새 배송의 실제 정답 y_new로 정확도를 구하는 문제예요.",
+          "target": "text:새 배송의 실제 정답 y_new로 정확도를 구하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "새 배송의 점수는 그 배송의 실제 정답과 비교해야 정해져요. accuracy 줄을 y_new와 비교하게 고쳐요.",
+          "target": "text:새 배송의 예측을 그 실제 정답 y_new와 비교한 정확도를 구하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            22,
             26
           ]
         },
         {
           "action": "say",
-          "text": "훈련 예측은 [0, 0, 1, 1]로 모두 맞았어요. 새 예측도 [0, 0, 1, 1]인데 실제는 [0, 1, 1, 1]이라, 네 건 중 세 건만 맞아 0.75예요.",
+          "text": "[0, 0, 1, 1], [0, 0, 1, 1], 1.0이에요. 예측을 예측끼리 비교해 늘 1.0이에요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "y_new = np.array([0, 1, 1, 1])",
-          "after": "y_new = np.array([0, 0, 1, 1])",
-          "say": "새 배송의 실제 정답만 바꿔 볼게요."
+          "before": "(new_pred == new_pred)",
+          "after": "(new_pred == np.array(y_new))",
+          "say": "비교 대상을 np.array(y_new)로 바꿔요."
         },
         {
           "action": "run",
           "lines": [
-            23,
+            22,
             26
           ]
         },
         {
           "action": "say",
-          "text": "모델과 예측은 그대로인데 정확도가 1.0이 됐어요. 새 자료의 점수는 그 자료의 실제 정답을 넣어야 정해져요.",
+          "text": "0.75예요. 거리 -0.5인 배송은 가까운데도 실제로는 지연이라 네 건 중 세 건만 맞았어요.",
           "target": "output"
         },
         {
-          "action": "patch_code",
-          "before": "y_new = np.array([0, 0, 1, 1])",
-          "after": "y_new = np.array([0, 1, 1, 1])",
-          "say": "원래 정답으로 되돌려요."
-        },
-        {
           "action": "say",
-          "text": "조심하세요. 정확도는 예측끼리가 아니라 같은 배송의 예측과 실제 정답을 짝지어 계산해요.",
-          "target": "code:(new_pred == y_new).mean()"
-        },
-        {
-          "action": "choose_answer",
-          "id": "three"
+          "text": "조심하세요. 훈련 배송을 모두 맞혔다고 새 배송도 모두 맞히는 게 아니에요. 새 자료의 점수는 그 자료의 실제 정답으로 계산해요.",
+          "target": "code:np.array(y_new)"
         }
       ],
-      "predict_before_run": true,
-      "question": "새 배송 네 건의 정확도는 얼마일까요?"
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"y_new\": [0, 0, 1, 1]}, \"expected\": \"[0, 0, 1, 1]\\\\n[0, 0, 1, 1]\\\\n1.0\"}, {\"values\": {\"y_new\": [1, 1, 0, 0]}, \"expected\": \"[0, 0, 1, 1]\\\\n[0, 0, 1, 1]\\\\n0.0\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=45)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_0092328f-5a3c-4511-ad6b-c74391c88cf8",
-      "title": "여러 종류의 출력 칸을 만들어요",
-      "goal": "정상·지연·취소 세 종류를 배타적으로 구별해요.\n출력2행3열은 무엇일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_996a2079-7fb2-49e2-8482-a362324cb53a",
+      "title": "Dense(len(classes), activation=\"softmax\")로 범주 칸을 만드세요",
+      "goal": "정상·지연·취소 세 종류 중 하나를 골라요. softmax는 출력 칸들을 확률 합이 1이 되게 바꿔요. 출력 모양 [배송 수, 범주 수]의 둘째 숫자가 범주 칸이에요.\n\nmodel 줄의 Dense를 고쳐 classes마다 한 칸씩, 확률 합이 1인 출력을 만드세요. 채점은 다른 범주 수로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력 모양과 합을 확인하세요.\n2. `Dense(1, activation=\"sigmoid\", ...)`를 `Dense(len(classes), activation=\"softmax\", ...)`로 고치세요.\n3. 코드 실행을 눌러 [2, 3]과 [1.0, 1.0]이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "classes",
-      "tests": [],
+      "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nclasses = [\"normal\", \"late\", \"cancelled\"]\nrows = [[1.0], [2.0]]\n# 가중치를 영으로 정해 출력 형식만 확인해요.\n# 이 줄의 Dense를 고쳐 classes마다 한 칸씩, 확률 합이 1인 출력을 만드세요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(1, activation=\"sigmoid\", kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\nprobabilities = model.predict(np.array(rows, dtype=\"float32\"), verbose=0)\nprint(list(probabilities.shape))\nprint(probabilities.sum(axis=1).round(4).tolist())\n",
+      "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nclasses = [\"normal\", \"late\", \"cancelled\"]\nrows = [[1.0], [2.0]]\n# 가중치를 영으로 정해 출력 형식만 확인해요.\n# 이 줄의 Dense를 고쳐 classes마다 한 칸씩, 확률 합이 1인 출력을 만드세요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), # 범주 수만큼 칸을 만들고 softmax로 각 행의 확률 합을 1로 맞춰요.\n                          keras.layers.Dense(len(classes), activation=\"softmax\", kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\nprobabilities = model.predict(np.array(rows, dtype=\"float32\"), verbose=0)\nprint(list(probabilities.shape))\nprint(probabilities.sum(axis=1).round(4).tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[2, 3]\n[1.0, 1.0]"
+        }
+      ],
       "required": true,
-      "example_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 가중치를 영으로 정해 출력 형식만 확인하는 예예요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(3, activation=\"softmax\", kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\nprobabilities = model.predict(np.array([[1.0], [2.0]], dtype=\"float32\"), verbose=0)\nprint(list(probabilities.shape))\nprint(probabilities.sum(axis=1).tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "rows",
-            "text": "세 배송마다 두 종류의 확률이 있어요"
-          },
-          {
-            "id": "classes",
-            "text": "두 배송마다 세 종류의 확률이 있어요"
-          }
-        ],
-        "answer": "classes"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "출력 모양 [2, 3]의 두 숫자가 무엇인지 읽는 문제예요.",
-          "target": "text:여러 종류의 출력 칸을 만들어요#1"
+          "text": "Dense(len(classes), activation=\"softmax\")로 범주 칸을 만드는 문제예요.",
+          "target": "text:Dense(len(classes), activation=\"softmax\")로 범주 칸을 만드세요#1"
         },
         {
           "action": "say",
-          "text": "softmax는 출력 칸들의 확률 합이 1이 되게 바꿔요.",
-          "target": "text:정상·지연·취소 세 종류를 배타적으로 구별해요."
+          "text": "정상·지연·취소 중 하나를 고르는 분류예요. 범주마다 한 칸, 행마다 확률 합이 1인 출력이 필요해요.",
+          "target": "text:Dense를 고쳐 classes마다 한 칸씩, 확률 합이 1인 출력을 만드세요."
         },
         {
           "action": "run",
           "lines": [
-            15,
-            15
+            17,
+            18
           ]
         },
         {
           "action": "say",
-          "text": "두 배송에 종류 세 개씩이고 각 행 확률의 합은 1.0이에요.",
+          "text": "[2, 1]과 [0.5, 0.5]예요. 배송마다 한 칸뿐이라 세 범주를 나눌 수 없어요.",
           "target": "output"
         },
         {
-          "action": "say",
-          "text": "조심하세요. 지금은 초기화 동작 확인이며 학습 성능을 보여주는 확률이 아니에요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "classes"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_a2b9df5d-19ef-46b7-a445-3646926ab552",
-      "title": "정수 정답과 손실을 맞춰요",
-      "goal": "정답은0·2라는 정수 인덱스예요.\n어떤 손실 형식이 맞을까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "sparse",
-      "tests": [],
-      "required": true,
-      "example_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 가중치를 영으로 정해 출력 형식만 확인하는 예예요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(3, activation=\"softmax\", kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\nprobabilities = model.predict(np.array([[1.0], [2.0]], dtype=\"float32\"), verbose=0)\nlabels = np.array([0, 2], dtype=\"int32\")\nloss = keras.losses.CategoricalCrossentropy()\nprint(bool(np.isclose(float(loss(labels, probabilities)), np.log(3))))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "sparse",
-            "text": "SparseCategoricalCrossentropy예요"
-          },
-          {
-            "id": "onehot",
-            "text": "원핫용 CategoricalCrossentropy에 그대로 넣어요"
-          }
-        ],
-        "answer": "sparse"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "원핫용 손실에 그대로 넣으면 어떻게 되는지, 맞는 손실이 무엇인지 고르는 문제예요.",
-          "target": "text:정수 정답과 손실을 맞춰요#1"
-        },
-        {
-          "action": "say",
-          "text": "정답이 0, 2처럼 종류 번호 하나로 적혀 있어요.",
-          "target": "text:정답은0·2라는 정수 인덱스예요."
+          "action": "patch_code",
+          "before": "keras.layers.Dense(1, activation=\"sigmoid\",",
+          "after": "keras.layers.Dense(len(classes), activation=\"softmax\",",
+          "say": "Dense(len(classes), activation=\"softmax\")로 바꿔요."
         },
         {
           "action": "run",
           "lines": [
-            16,
-            16
+            17,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[2, 3]과 [1.0, 1.0]이에요. 두 배송에 범주 세 칸씩이고 각 행의 합이 1이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 칸을 셋으로 늘려도 sigmoid면 칸마다 따로 확률이라 합이 1이 아니에요. 하나만 고르는 분류는 softmax예요.",
+          "target": "code:activation=\"softmax\""
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"classes\": [\"a\", \"b\", \"c\", \"d\"]}, \"expected\": \"[2, 4]\\\\n[1.0, 1.0]\"}, {\"values\": {\"rows\": [[0.0], [1.0], [5.0]]}, \"expected\": \"[3, 3]\\\\n[1.0, 1.0, 1.0]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=45)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_e4f42523-852a-4b2f-b4df-5edb4cb32630",
+      "title": "SparseCategoricalCrossentropy로 범주 번호 정답을 받으세요",
+      "goal": "정답이 0, 2처럼 범주 번호 하나씩이에요. `CategoricalCrossentropy`는 원핫 정답을, `SparseCategoricalCrossentropy`는 범주 번호 정답을 받아요. 교차 엔트로피는 정답 칸 확률의 -log 평균이에요.\n\nloss 줄을 고쳐 범주 번호 정답을 받는 교차 엔트로피 손실을 쓰세요. 채점은 다른 입력과 정답으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 ValueError가 나오는지 확인하세요.\n2. `CategoricalCrossentropy()`를 `SparseCategoricalCrossentropy()`로 고치세요.\n3. 코드 실행을 눌러 True가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nclasses = [\"normal\", \"late\", \"cancelled\"]\nrows = [[1.0], [-1.0]]\n# 정답은 범주 번호 하나씩이에요.\nlabels = [0, 2]\n# 가중치는 위치를 확인하기 위한 직접 지정 값이에요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(3, activation=\"softmax\", kernel_initializer=keras.initializers.Constant([[0.0, 1.0, -1.0]]), bias_initializer=\"zeros\")])\nprobabilities = model.predict(np.array(rows, dtype=\"float32\"), verbose=0)\ny = np.array(labels, dtype=\"int32\")\n# 이 줄을 고쳐 범주 번호 정답을 받는 교차 엔트로피 손실을 쓰세요.\nloss = keras.losses.CategoricalCrossentropy()\nvalue = float(loss(y, probabilities))\n# 확인용: 각 배송의 정답 칸 확률로 직접 계산한 값이에요.\nmanual = float(-np.mean(np.log(probabilities[np.arange(len(y)), y])))\nprint(round(value, 4))\nprint(bool(np.isclose(value, manual, atol=1e-4)))\n",
+      "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nclasses = [\"normal\", \"late\", \"cancelled\"]\nrows = [[1.0], [-1.0]]\n# 정답은 범주 번호 하나씩이에요.\nlabels = [0, 2]\n# 가중치는 위치를 확인하기 위한 직접 지정 값이에요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(3, activation=\"softmax\", kernel_initializer=keras.initializers.Constant([[0.0, 1.0, -1.0]]), bias_initializer=\"zeros\")])\nprobabilities = model.predict(np.array(rows, dtype=\"float32\"), verbose=0)\ny = np.array(labels, dtype=\"int32\")\n# 이 줄을 고쳐 범주 번호 정답을 받는 교차 엔트로피 손실을 쓰세요.\n# Sparse가 붙은 손실은 0, 2 같은 범주 번호를 그대로 받아요.\nloss = keras.losses.SparseCategoricalCrossentropy()\nvalue = float(loss(y, probabilities))\n# 확인용: 각 배송의 정답 칸 확률로 직접 계산한 값이에요.\nmanual = float(-np.mean(np.log(probabilities[np.arange(len(y)), y])))\nprint(round(value, 4))\nprint(bool(np.isclose(value, manual, atol=1e-4)))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "0.9076\nTrue"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "SparseCategoricalCrossentropy로 범주 번호 정답을 받는 문제예요.",
+          "target": "text:SparseCategoricalCrossentropy로 범주 번호 정답을 받으세요#1"
+        },
+        {
+          "action": "say",
+          "text": "정답이 0, 2처럼 범주 번호 하나씩이에요. 번호를 그대로 받는 손실로 고쳐야 해요.",
+          "target": "text:범주 번호 정답을 받는 교차 엔트로피 손실을 쓰세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            24,
+            24
           ],
           "expect_error": "ValueError"
         },
         {
           "action": "say",
-          "text": "원핫이 아닌 정수 정답이라 형식 오류가 났어요.",
+          "text": "ValueError예요. CategoricalCrossentropy는 원핫 정답을 기대해 번호 하나와 세 칸 확률의 모양이 안 맞아요.",
           "target": "output"
         },
         {
           "action": "patch_code",
           "before": "keras.losses.CategoricalCrossentropy()",
           "after": "keras.losses.SparseCategoricalCrossentropy()",
-          "say": "정수 인덱스를 받는 손실로 맞춰요."
+          "say": "앞에 Sparse를 붙여요."
         },
         {
           "action": "run",
           "lines": [
-            16,
-            16
+            24,
+            25
           ]
         },
         {
           "action": "say",
-          "text": "이 균등 확률의 손실이 log 3과 같음을 확인했어요.",
+          "text": "1.4076과 True예요. 각 배송의 정답 칸 확률로 직접 계산한 값과 같아요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 원핫과 정수 정답은 표현이 달라 손실도 맞춰야 해요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "sparse"
+          "text": "조심하세요. 원핫 정답과 범주 번호 정답은 표현이 달라요. 정답 모양에 맞는 손실을 골라요.",
+          "target": "code:SparseCategoricalCrossentropy()"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"labels\": [1, 1]}, \"expected\": \"1.4076\\\\nTrue\"}, {\"values\": {\"rows\": [[2.0], [0.0], [-2.0]], \"labels\": [1, 0, 2]}, \"expected\": \"0.4615\\\\nTrue\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=45)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_8bb8b9d8-b04e-42d8-9581-68e4df72181e",
-      "title": "원핫 정답도 같은 의미일까요",
-      "goal": "같은 정답0·2를 세 칸 원핫으로 바꿨어요.\n형식에 맞는 두 손실의 의미는 같을까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_acd9b297-076d-461d-8848-dda9e325a494",
+      "title": "to_categorical(y, num_classes=len(classes))로 원핫 정답을 만드세요",
+      "goal": "`keras.utils.to_categorical(번호, num_classes=범주 수)`는 각 번호의 자리만 1인 목록으로 바꿔요. 같은 정답을 원핫으로 바꿔 원핫용 손실과 번호용 손실을 비교해요.\n\none_hot 줄을 고쳐 범주 번호를 범주 수만큼의 칸을 가진 원핫 정답으로 바꾸세요. 채점은 다른 정답으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 ValueError가 나오는지 확인하세요.\n2. `one_hot = y`를 `one_hot = keras.utils.to_categorical(y, num_classes=len(classes))`로 고치세요.\n3. 코드 실행을 눌러 True가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "same",
-      "tests": [],
+      "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nclasses = [\"normal\", \"late\", \"cancelled\"]\nrows = [[1.0], [-1.0]]\nlabels = [0, 2]\n# 가중치는 위치를 확인하기 위한 직접 지정 값이에요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(3, activation=\"softmax\", kernel_initializer=keras.initializers.Constant([[0.0, 1.0, -1.0]]), bias_initializer=\"zeros\")])\nprobabilities = model.predict(np.array(rows, dtype=\"float32\"), verbose=0)\ny = np.array(labels, dtype=\"int32\")\n# 이 줄을 고쳐 범주 번호를 범주 수만큼의 칸을 가진 원핫 정답으로 바꾸세요.\none_hot = y\nsparse_loss = keras.losses.SparseCategoricalCrossentropy()(y, probabilities)\ncategorical_loss = keras.losses.CategoricalCrossentropy()(one_hot, probabilities)\nprint(np.array(one_hot).astype(int).tolist())\nprint(bool(np.isclose(float(sparse_loss), float(categorical_loss))))\n",
+      "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nclasses = [\"normal\", \"late\", \"cancelled\"]\nrows = [[1.0], [-1.0]]\nlabels = [0, 2]\n# 가중치는 위치를 확인하기 위한 직접 지정 값이에요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(3, activation=\"softmax\", kernel_initializer=keras.initializers.Constant([[0.0, 1.0, -1.0]]), bias_initializer=\"zeros\")])\nprobabilities = model.predict(np.array(rows, dtype=\"float32\"), verbose=0)\ny = np.array(labels, dtype=\"int32\")\n# 이 줄을 고쳐 범주 번호를 범주 수만큼의 칸을 가진 원핫 정답으로 바꾸세요.\n# to_categorical은 범주 번호의 자리만 1인 목록으로 바꿔요. num_classes로 칸 수를 범주 수에 맞춰요.\none_hot = keras.utils.to_categorical(y, num_classes=len(classes))\nsparse_loss = keras.losses.SparseCategoricalCrossentropy()(y, probabilities)\ncategorical_loss = keras.losses.CategoricalCrossentropy()(one_hot, probabilities)\nprint(np.array(one_hot).astype(int).tolist())\nprint(bool(np.isclose(float(sparse_loss), float(categorical_loss))))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[[1, 0, 0], [0, 0, 1]]\nTrue"
+        }
+      ],
       "required": true,
-      "example_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 가중치를 영으로 정해 출력 형식만 확인하는 예예요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(3, activation=\"softmax\", kernel_initializer=\"zeros\", bias_initializer=\"zeros\")])\nprobabilities = model.predict(np.array([[1.0], [2.0]], dtype=\"float32\"), verbose=0)\nlabels = np.array([0, 2], dtype=\"int32\")\none_hot = keras.utils.to_categorical(labels, num_classes=3)\nsparse_loss = keras.losses.SparseCategoricalCrossentropy()(labels, probabilities)\ncategorical_loss = keras.losses.CategoricalCrossentropy()(one_hot, probabilities)\nprint(one_hot.astype(int).tolist())\nprint(bool(np.isclose(float(sparse_loss), float(categorical_loss))))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "different",
-            "text": "아니요.표현이 바뀌면 정답 종류도 달라져요"
-          },
-          {
-            "id": "same",
-            "text": "네.같은 정답을 각 형식에 맞게 계산했어요"
-          }
-        ],
-        "answer": "same"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "원핫 정답도 같은 의미일까요?",
-          "target": "text:원핫 정답도 같은 의미일까요#1"
+          "text": "to_categorical(y, num_classes=len(classes))로 원핫 정답을 만드는 문제예요.",
+          "target": "text:to_categorical(y, num_classes=len(classes))로 원핫 정답을 만드세요#1"
         },
         {
           "action": "say",
-          "text": "to_categorical은 종류 번호를 그 칸만 1인 원핫 목록으로 바꿔요. 표현이 달라져도 정답의 뜻이 같은지 판단해요.",
-          "target": "text:같은 정답0·2를 세 칸 원핫으로 바꿨어요."
+          "text": "같은 정답을 원핫으로 바꿔 원핫용 손실과 비교해요. 범주 번호를 범주 수만큼의 칸으로 바꿔야 해요.",
+          "target": "text:범주 번호를 범주 수만큼의 칸을 가진 원핫 정답으로 바꾸세요."
         },
         {
           "action": "run",
           "lines": [
-            19,
-            19
+            22,
+            22
+          ],
+          "expect_error": "ValueError"
+        },
+        {
+          "action": "say",
+          "text": "ValueError예요. 번호 그대로는 세 칸 확률과 모양이 안 맞아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "one_hot = y\n",
+          "after": "one_hot = keras.utils.to_categorical(y, num_classes=len(classes))\n",
+          "say": "keras.utils.to_categorical(y, num_classes=len(classes))로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            22,
+            23
           ]
         },
         {
           "action": "say",
-          "text": "원핫은 첫 칸과 셋째 칸이 1이며 두 손실은 같아요.",
+          "text": "[[1, 0, 0], [0, 0, 1]]과 True예요. 첫 칸과 셋째 칸이 1이고 두 손실이 같아요. 표현만 다르고 정답의 뜻은 같아요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 입력 특성의 원핫과 목표 정답의 원핫은 역할이 달라요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "same"
+          "text": "조심하세요. num_classes를 빼면 정답에 나온 가장 큰 번호까지만 칸을 만들어요. 정답이 0과 1뿐이면 두 칸이 돼 모양이 어긋나요.",
+          "target": "code:num_classes=len(classes)"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"labels\": [0, 1]}, \"expected\": \"[[1, 0, 0], [0, 1, 0]]\\\\nTrue\"}, {\"values\": {\"rows\": [[2.0], [0.0], [-2.0]], \"labels\": [1, 1, 2]}, \"expected\": \"[[0, 1, 0], [0, 1, 0], [0, 0, 1]]\\\\nTrue\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=45)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_ee524730-dffa-42d4-bf7a-a4dd2f4c7fa0",
-      "title": "출력 위치를 실제 이름과 맞춰요",
-      "goal": "argmax 위치가1·2이고 classes 순서가 정해져 있어요.\n실제 이름은 무엇일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_384c2fae-b3a8-4596-8b5d-ef20702820a5",
+      "title": "np.array(classes)[indices]로 위치를 이름에 연결하세요",
+      "goal": "`argmax(axis=1)`은 행마다 확률이 가장 큰 칸의 위치 번호를 줘요. 출력 칸의 순서는 학습 때 정한 classes 순서예요. 이름 목록을 `np.array`로 바꾸면 위치 번호 배열로 같은 자리의 이름을 꺼낼 수 있어요.\n\nnames 줄을 고쳐 위치 번호마다 classes에서 같은 자리의 이름을 꺼내세요. 채점은 다른 이름과 입력으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 두 줄을 비교하세요.\n2. `names = indices`를 `names = np.array(classes)[indices]`로 고치세요.\n3. 코드 실행을 눌러 ['late', 'cancelled']가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "names",
-      "tests": [],
+      "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nclasses = [\"normal\", \"late\", \"cancelled\"]\nrows = [[1.0], [-1.0]]\n# 가중치는 위치와 이름을 확인하기 위한 직접 지정 값이에요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(3, activation=\"softmax\", kernel_initializer=keras.initializers.Constant([[0.0, 1.0, -1.0]]), bias_initializer=\"zeros\")])\nprobabilities = model.predict(np.array(rows, dtype=\"float32\"), verbose=0)\nindices = probabilities.argmax(axis=1)\nprint(indices.tolist())\n# 이 줄을 고쳐 위치 번호마다 classes에서 같은 자리의 이름을 꺼내세요.\nnames = indices\nprint(names.tolist())\n",
+      "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\nclasses = [\"normal\", \"late\", \"cancelled\"]\nrows = [[1.0], [-1.0]]\n# 가중치는 위치와 이름을 확인하기 위한 직접 지정 값이에요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(3, activation=\"softmax\", kernel_initializer=keras.initializers.Constant([[0.0, 1.0, -1.0]]), bias_initializer=\"zeros\")])\nprobabilities = model.predict(np.array(rows, dtype=\"float32\"), verbose=0)\nindices = probabilities.argmax(axis=1)\nprint(indices.tolist())\n# 이 줄을 고쳐 위치 번호마다 classes에서 같은 자리의 이름을 꺼내세요.\n# 이름 목록을 배열로 바꾸면 위치 번호 배열로 같은 자리의 이름을 한 번에 꺼내요.\nnames = np.array(classes)[indices]\nprint(names.tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[1, 2]\n['late', 'cancelled']"
+        }
+      ],
       "required": true,
-      "example_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"2\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\n\n# 작은 CPU 실습의 실행 자원을 제한해요.\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 가중치는 위치와 이름을 확인하기 위한 직접 지정 값이에요.\nclasses = [\"normal\", \"late\", \"cancelled\"]\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(3, activation=\"softmax\", kernel_initializer=keras.initializers.Constant([[0.0, 1.0, -1.0]]), bias_initializer=\"zeros\")])\nprobabilities = model.predict(np.array([[1.0], [-1.0]], dtype=\"float32\"), verbose=0)\nindices = probabilities.argmax(axis=1)\nprint(indices.tolist())\n# 확인용 출력: 위치 번호마다 classes에서 같은 위치의 이름을 꺼내요. 이 줄의 문법은 몰라도 돼요.\nprint([classes[i] for i in indices])\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "names",
-            "text": "late와 cancelled예요"
-          },
-          {
-            "id": "numbers",
-            "text": "1과 2 자체가 종류 이름이에요"
-          }
-        ],
-        "answer": "names"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "신경망 출력의 위치를 실제 범주 이름과 연결하는 문제예요.",
-          "target": "text:출력 위치를 실제 이름과 맞춰요#1"
+          "text": "np.array(classes)[indices]로 위치를 이름에 연결하는 문제예요.",
+          "target": "text:np.array(classes)[indices]로 위치를 이름에 연결하세요#1"
         },
         {
           "action": "say",
-          "text": "argmax는 확률이 가장 큰 칸의 위치 번호를 줘요. 그 번호를 classes 순서로 실제 이름에 연결하는 문제예요.",
-          "target": "text:argmax 위치가1·2이고 classes 순서가 정해져 있어요."
+          "text": "argmax는 확률이 가장 큰 칸의 위치 번호를 줘요. 그 번호를 학습 때의 classes 순서로 이름에 연결해야 해요.",
+          "target": "text:위치 번호마다 classes에서 같은 자리의 이름을 꺼내세요."
         },
         {
           "action": "run",
           "lines": [
-            18,
-            18
+            17,
+            20
           ]
         },
         {
           "action": "say",
-          "text": "출력 위치 1과 2를 범주 순서에 연결해 late와 cancelled를 얻어요.",
+          "text": "[1, 2]가 두 번이에요. 번호 자체는 이름이 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "names = indices\n",
+          "after": "names = np.array(classes)[indices]\n",
+          "say": "np.array(classes)[indices]로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            20
+          ]
+        },
+        {
+          "action": "say",
+          "text": "['late', 'cancelled']예요. 위치 1과 2를 classes의 같은 자리 이름에 연결했어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 출력 위치와 실제 이름의 매핑은 학습 때 정한 순서로 보존해요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "names"
+          "text": "조심하세요. 이름을 정렬하면 순서가 바뀌어 다른 범주가 나와요. 학습 때 정한 순서 그대로 보존해요.",
+          "target": "code:np.array(classes)[indices]"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"classes\": [\"ok\", \"slow\", \"lost\"]}, \"expected\": \"[1, 2]\\\\n[\\'slow\\', \\'lost\\']\"}, {\"values\": {\"rows\": [[0.0], [2.0], [-3.0]]}, \"expected\": \"[0, 1, 2]\\\\n[\\'normal\\', \\'late\\', \\'cancelled\\']\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=45)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
       "id": "stp_361718b1-007d-40aa-8ee4-fb2f020ee700",

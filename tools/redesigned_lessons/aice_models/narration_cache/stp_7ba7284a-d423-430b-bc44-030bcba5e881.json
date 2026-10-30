@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "506e309f1878f3b933d3eda2330952f3139e954a35eab6efe198d12745499448",
+  "entry": [
+    {
+      "action": "say",
+      "text": "KNN은 특성 값의 거리로 가까운 이웃을 찾아요. 표준화한 뒤 이웃을 찾도록 model 줄을 고쳐야 해요.",
+      "target": "text:model 줄을 고쳐 훈련 기준으로 표준화한 뒤 가장 가까운 이웃 하나를 따르게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[0]이에요. 둘째 특성의 큰 단위 때문에 400이 1000보다 0에 가깝다고 판단했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "model = KNeighborsClassifier(n_neighbors=1)",
+      "after": "model = make_pipeline(StandardScaler(), KNeighborsClassifier(n_neighbors=1))",
+      "say": "make_pipeline으로 StandardScaler 다음에 KNN을 둬요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[1]이에요. 단위를 맞추니 첫 특성 0.9가 1에 가까운 것이 반영됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 거리 모델은 단위가 큰 특성이 거리를 거의 다 정해요. 스케일 기준은 훈련에서 배워요.",
+      "target": "code:StandardScaler()"
+    }
+  ]
+}

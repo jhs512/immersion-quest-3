@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "af4dce60b593fd159656e50110a838b7c131e77e63d358750407a37f448417fc",
+  "entry": [
+    {
+      "action": "say",
+      "text": "정밀도는 경보 중 맞은 비율이에요. precision 줄을 고쳐 지연 경보의 수로 나눠야 해요.",
+      "target": "text:precision 줄을 고쳐 전체 행 수가 아니라 지연 경보의 수로 나눠 정밀도를 구하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0.25와 0.5예요. 네 행 전체로 나눠 precision_score와 달라요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "precision = hits / len(y_true)\n",
+      "after": "precision = hits / sum(y_pred)\n",
+      "say": "len(y_true)를 sum(y_pred)로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0.5와 0.5예요. 경보 두 건 중 한 건이 실제 지연이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 정밀도의 분모는 전체 행이 아니라 경보한 건수예요.",
+      "target": "code:hits / sum(y_pred)"
+    }
+  ]
+}

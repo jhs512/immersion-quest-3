@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "661d1d585ca274f41d1a615e6bb4e192a1b00b59b7aefdc48cb3df7fcc3a594f",
+  "entry": [
+    {
+      "action": "say",
+      "text": "두 fold의 점수가 나왔어요. cv_score 줄을 고쳐 모든 fold 점수의 평균을 구해야 해요.",
+      "target": "text:cv_score 줄을 고쳐 첫 fold 하나가 아니라 모든 fold 점수의 평균을 cv_score에 담으세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[0.5, 0.75]와 0.5예요. 한 번의 분리만 보면 다른 몫의 결과를 놓쳐요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "cv_score = float(scores[0])\n",
+      "after": "cv_score = float(scores.mean())\n",
+      "say": "scores[0]을 scores.mean()으로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0.625예요. 두 몫의 평가를 모은 교차검증 평균이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 교차검증 평균은 훈련 안에서 나눈 추정이에요. 봉인한 최종 테스트 점수가 아니에요.",
+      "target": "code:scores.mean()"
+    }
+  ]
+}

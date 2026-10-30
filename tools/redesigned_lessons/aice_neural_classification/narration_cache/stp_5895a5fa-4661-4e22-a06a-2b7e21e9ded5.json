@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "6bd8c96f2c78d205131a9c831c3d5aa5dc89c7e60f406efcd15d17de37866f1e",
+  "entry": [
+    {
+      "action": "say",
+      "text": "sigmoid는 확률을 내요. 확률에 이번 규칙을 적용해야 정상과 지연이 정해져요.",
+      "target": "text:확률에 규칙을 적용해 정상 0·지연 1을 고르세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        20
+      ]
+    },
+    {
+      "action": "say",
+      "text": "두 줄 모두 [0.5, 0.731059]예요. 아직 확률을 그대로 범주 자리에 두었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "labels = probabilities\n",
+      "after": "labels = (probabilities >= threshold).astype(int)\n",
+      "say": "probabilities >= threshold를 astype(int)로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        20
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[1, 1]이에요. 경계값 0.5도 지연이라 두 배송 모두 지연이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. >로 쓰면 확률 0.5인 첫 배송은 정상이 돼요. 그리고 0.73은 학습 전 가중치의 값이라 실제 지연 빈도로 검증된 확률이 아니에요.",
+      "target": "code:probabilities >= threshold"
+    }
+  ]
+}

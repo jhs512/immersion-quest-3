@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "c8c22c6c5fca92461cc9e82221de57e1204a578a03cc29279cecf60ec00401ff",
+  "entry": [
+    {
+      "action": "say",
+      "text": "범주의 크기가 3·1·1로 달라요. weighted 줄을 고쳐 실제 건수 support로 가중 평균해야 해요.",
+      "target": "text:weighted 줄을 고쳐 범주마다 같은 무게가 아니라 실제 건수 support로 가중 평균하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "같은 무게의 평균은 0.333333, weighted는 0.6이에요. 지금 식은 macro예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "weighted = sum(per_class) / len(per_class)\n",
+      "after": "weighted = sum(r * s for r, s in zip(per_class, support)) / sum(support)\n",
+      "say": "재현율마다 support를 곱해 더하고 sum(support)로 나눠요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0.6과 0.6이에요. 큰 범주 0의 재현율 1이 무게 3을 받았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. weighted는 큰 범주가 결과를 끌어요. 작은 범주를 놓친 것은 macro로 드러나요.",
+      "target": "code:zip(per_class, support)"
+    }
+  ]
+}

@@ -14,8 +14,8 @@
     "TensorFlow와 Keras의 호출은 준비 코드로 소개해요."
   ],
   "scope": [
-    "두 챕터·두 단원·여덟 스텝에서 같은 배송 수치 모델을 구성하고 실행해요.",
-    "매번 작은 CPU 학습으로 역할·모양을 확인하며 긴 학습을 요구하지 않아요."
+    "두 챕터·두 단원·아홉 스텝에서 같은 거리-시간 예측을 작은 Keras 모델로 다뤄요.",
+    "Input의 특성 수·Dense의 출력 수·초기 가중치로 직접 계산한 예측·compile·fit의 epoch·검증 자료·새 입력의 2차원 모양을 한 곳씩 직접 고쳐 써요."
   ],
   "out_of_scope": [
     "초기화된 선형 동작을 실제 배송 예측 성능으로 주장하지 않아요.",
@@ -96,36 +96,36 @@
           "premise": "거리에서 시간을 예측할 작은 신경망을 준비해요. 먼저 입력과 출력의 모양을 확인하고 학습을 준비해요.",
           "steps": [
             {
-              "id": "stp_7c799198-5712-48f1-8def-b6a2f5c726ca",
-              "title": "한 행의 입력 크기를 정해요",
+              "id": "stp_9959d907-1929-40f0-833f-512aa8a9d32a",
+              "title": "Input(shape=(features,))로 한 행의 특성 수를 정하세요",
               "objectives": [
-                "Input의 특성 수와 관측 수를 구별해요."
+                "Input의 shape는 행 수가 아니라 한 행의 특성 수임을 써서 확인해요."
               ],
-              "core_flow": "거리 한 열인 Input(shape=(1,))과Dense1로Sequential을구성한다. input_shape/output_shape None,1을출력해None은바뀔수있는관측수이고1은각행의특성수임을읽는다."
+              "core_flow": "Input 없이 만든 모델은 input_shape가 없어 AttributeError다. keras.Input(shape=(features,))를 맨 앞에 더해 [None, 1]을 확인한다. 채점은 다른 특성 수로 실행한다."
             },
             {
-              "id": "stp_88881a17-200b-4d8e-8e4b-ceb0c583ca64",
-              "title": "Dense의 출력 수를 확인해요",
+              "id": "stp_5a1d3d07-88cf-4c46-8e92-bc419ea3d4ea",
+              "title": "Dense(outputs)로 출력 수를 정하세요",
               "objectives": [
-                "Dense units와 출력 열 수를 연결해요."
+                "Dense의 units가 배송마다의 출력 수임을 써서 확인해요."
               ],
-              "core_flow": "같은입력한열에서Dense4의출력모양None,4를본다. units1로바꾸어None,1을보고다시4로돌린다. units는관측수아니고층의출력크기다."
+              "core_flow": "Dense(1)은 출력이 하나다. Dense(outputs)로 고쳐 [None, 4]를 확인한다. 채점은 다른 출력 수로 실행한다."
             },
             {
-              "id": "stp_f6f4f1b8-055f-4426-b368-3ba57037145f",
-              "title": "실행된 예측이 학습을 뜻하진 않아요",
+              "id": "stp_5a2c68d7-3563-4f3d-8d40-d3d3e963b846",
+              "title": "X_test @ weights + bias로 학습 전 예측을 직접 계산하세요",
               "objectives": [
-                "초기 가중치의 계산과 학습된 관계를 구별해요."
+                "fit 전 predict는 초기 가중치의 계산일 뿐임을 직접 계산해 확인해요."
               ],
-              "core_flow": "가중치ones,편향zeros인Dense1을만들어fit없이거리2/3을넣으면2/3을출력함을본다. 동작확인용초기화를명시하고이출력을자료로배운관계로포장하지않는다. sklearn의미학습오류와모든신경망의동작을동일시하지않는다."
+              "core_flow": "직접 계산이 0이면 predict와 다르다. X_test @ weights + bias로 고쳐 predict와 같은 [[2.0], [3.0]]을 확인한다. 채점은 다른 입력으로 실행한다."
             },
             {
-              "id": "stp_eb667050-c744-4915-9c64-41dc71423fc8",
-              "title": "학습 규칙을 준비해요",
+              "id": "stp_c4267d4b-9fa2-412f-8f3e-068233cd53de",
+              "title": "compile로 SGD와 mse 학습 규칙을 정하세요",
               "objectives": [
-                "compile과 실제 fit의 역할을 구별해요."
+                "compile은 학습 규칙만 정하고 가중치를 바꾸지 않는 것을 써서 확인해요."
               ],
-              "core_flow": "모델가중치를복사한뒤SGD·mse로compile한다. optimizer이름SGD,lossmse와가중치동일True를출력한다. compile은학습규칙설정이고자료로가중치를바꾸는fit은아직하지않았다."
+              "core_flow": "compile 전에는 최적화기가 없어 AttributeError다. compile(optimizer=SGD(learning_rate=rate), loss=\"mse\")를 써서 SGD, 학습률, 가중치 그대로(True)를 확인한다. 채점은 다른 학습률로 실행한다."
             }
           ]
         }
@@ -147,28 +147,28 @@
           "premise": "같은 표를 한두 번이 아닌 짧은 epoch로 학습해요. 기록과 새 입력 모양을 확인하고 마지막에는 특성 수를 고쳐요.",
           "steps": [
             {
-              "id": "stp_b7bee97e-9f29-4439-abc6-40eaae2641aa",
-              "title": "fit이 가중치를 바꾸는지 봐요",
+              "id": "stp_9aec3667-89cc-43e2-b890-162148fb1b13",
+              "title": "fit의 epochs=rounds로 실제로 학습하세요",
               "objectives": [
-                "실제 학습 호출과 epoch 기록을 이해해요."
+                "fit이 가중치를 바꾸고 epoch마다 loss 기록을 남기는 것을 써서 확인해요."
               ],
-              "core_flow": "가중치0인Dense1에거리1/2와정답2/4를SGD0.1로1epoch·한batch학습한다. history길이1,학습전후가중치다름True,예측모양2,1을본다. 한번학습이좋은일반화성능을보장하지않음을짚는다."
+              "core_flow": "epochs=0은 기록 0개, 가중치 그대로다. epochs=rounds로 고쳐 기록 1개와 바뀐 가중치(True)를 확인한다. 채점은 다른 epoch 수로 실행한다."
             },
             {
-              "id": "stp_4278f468-bffc-4c1b-bdfc-595f0c50ae26",
-              "title": "훈련과 검증 기록을 나눠요",
+              "id": "stp_d09cae03-1652-465d-aa83-f19686919cae",
+              "title": "validation_data로 검증 손실을 따로 기록하세요",
               "objectives": [
-                "History의 loss와 val_loss를 구별해요."
+                "훈련 손실과 따로 준 검증 표의 손실을 구별해 기록해요."
               ],
-              "core_flow": "같은작은모델을훈련1/2·정답2/4와별도검증3·정답6으로3epoch학습한다. 기록키loss,val_loss와각길이3을확인한다. validation_data는이fit의가중치최적화에직접사용하는정답이아니고평가용이다."
+              "core_flow": "validation_data가 없으면 loss만 있다. validation_data=(X_valid, y_valid)를 더해 val_loss 3개와 평가 일치(True)를 확인한다. 채점은 다른 검증 표와 epoch로 실행해 validation_split과 구별한다."
             },
             {
-              "id": "stp_417ce7a7-0874-4d19-946a-327a20effbd3",
-              "title": "새 입력의 예측 모양을 읽어요",
+              "id": "stp_c166a1ea-ae37-4767-b125-163be3d89a66",
+              "title": "[[d] for d in distances]로 새 배송을 행으로 넘기세요",
               "objectives": [
-                "predict 결과의 행은 새 관측 수, 열은 마지막 Dense의 출력 수임을 읽어요."
+                "예측 입력과 결과의 모양이 (배송 수, 특성 수)·(배송 수, 출력 수)임을 써서 확인해요."
               ],
-              "core_flow": "같은 학습 뒤 새 거리 3/4를 predict해 모양 [2, 1]과 예측값이 모두 유한한지 True를 확인한다. 질문은 모양의 두 숫자가 무엇인지 묻는다. 해설은 새 배송을 하나 더 넣어 [3, 1]이 됨을 보이고 되돌린다. 열 1을 입력 특성 수로 읽는 오해를 거절한다. 이전 revision의 같은 스텝(stp_7c05b277…)은 \"숫자 예측의 정확도 판정에는 실제 정답이 필요하다\"를 물어 회귀·분류 수업의 결론을 되풀이했다. 그 스텝은 이번 revision에서 빠지며 완료 기록은 이전 revision에 남는다."
+              "core_flow": "[distances]는 한 행에 거리 두 개라 ValueError다. [[d] for d in distances]로 고쳐 예측 모양 [2, 1]을 확인한다. 채점은 다른 거리 수로 실행한다."
             },
             {
               "id": "stp_dba81c77-2882-44ae-9733-caec1a9d9f9f",
@@ -202,8 +202,9 @@
     }
   ],
   "grading": [
-    "직접 선택·제출만 성공으로 판정해요.",
-    "다른 모양·값에서 실제 TensorFlow predict를 수행해 고정 출력을 거절해요.",
+    "직접 고친 코드를 실제 파이썬·TensorFlow로 실행해 판정해요. 실행·해설만으로 성공시키지 않아요.",
+    "학습한 실수 값은 기계마다 조금 다를 수 있어 비교하지 않아요. 모양·기록 수·설정 이름·가중치 변화 여부·검증 손실과 평가의 일치 같은 결정적인 결과로 채점해요.",
+    "다른 특성 수·출력 수·입력·학습률·epoch로 다시 실행해 기준 풀이와 비교하고, 결과를 글자로 적은 답·다른 최적화기·validation_split은 거절해요.",
     "마지막 도전(stp_228a312c-44f8-4f1f-bab3-2aaa29978f5c): 실제 Python 실행과 다른 준비 자료의 결과를 검사해요. 시작 코드는 실패하고 동등한 풀이도 통과해야 해요."
   ],
   "reset": [
@@ -211,8 +212,8 @@
     "해설은 학생 상태를 따로 보관하고 종료·중단 뒤 되돌려요."
   ],
   "narration": [
-    "최소 CPU 모델과 학습으로 모양·호출 역할을 관찰해요.",
-    "관측과특성·초기화와학습·compile과fit·훈련과검증을 조심할 지점으로 짚어요."
+    "층·설정·호출 한 곳씩 고치고 실제 모양·기록·출력을 읽어요.",
+    "행 수와 특성 수·units·초기 가중치와 학습·compile과 fit·검증 자료·1차원 입력을 조심할 지점으로 짚어요."
   ],
   "verification": [
     "고유 코드·계층·목표·정책·위임 근거와 정확한 해시를 확인해요.",
@@ -232,7 +233,7 @@
   "approval": {
     "status": "approved",
     "by": "사용자의 전체 과정 설계·구현 위임 / user · Codex 경유 MQ3 후속 지시 2026-10-29",
-    "evidence": "2026-10-19: “끝까지 다해, 정처기 코스, 에이스 어쏘씨에이트 코스, 자바 백엔드 코스의 모든 부분 재설계(새로운 지침 기반으로)해서 해”. .scratch/player-content-redesign/authorization-2026-10-19.md. 개별 PRD 직접 검토를 주장하지 않는 범위 위임이다. 2026-10-24 사용자: 세 과정 빌드업 감사의 근거 있는 교정(문제 설명 해설, 정밀 강조, 상투 경고 제거, 선수 개념 다리, 점진 예제, 평가 결함)을 계획하고 실행하도록 Claude Code에 위임했어요(Codex 경유). 교육 목표와 교수법은 유지하고 이 문서를 직접 검토했다고 주장하지 않아요. 2026-10-29 사용자(Codex 경유): 「나머지 24개 수업도 제대로 된 도전과제 만들어서, 모든 수업에서 도전과제만 풀어도 클리어되게 해. 클로드가 계획 세우고 배포까지 마무리해.」 그리고 다른 두 과정에도 백엔드의 개선을 적용하라고 했어요. 계획: docs/plans/2026-10-29-final-challenges-all-courses.md. 이 수업에는 새 고유 코드의 마지막 도전 스텝 하나만 더했고 기존 스텝·목표는 그대로예요. 사용자가 이 PRD 파일 자체를 열람했다고 주장하지 않아요.",
-    "content_sha256": "6cf492a4bfe788424cd7ea4c48216c3f1d3429f37634f276e6cc6998fb8563d0"
+    "evidence": "2026-10-19: “끝까지 다해, 정처기 코스, 에이스 어쏘씨에이트 코스, 자바 백엔드 코스의 모든 부분 재설계(새로운 지침 기반으로)해서 해”. .scratch/player-content-redesign/authorization-2026-10-19.md. 개별 PRD 직접 검토를 주장하지 않는 범위 위임이다. 2026-10-24 사용자: 세 과정 빌드업 감사의 근거 있는 교정(문제 설명 해설, 정밀 강조, 상투 경고 제거, 선수 개념 다리, 점진 예제, 평가 결함)을 계획하고 실행하도록 Claude Code에 위임했어요(Codex 경유). 교육 목표와 교수법은 유지하고 이 문서를 직접 검토했다고 주장하지 않아요. 2026-10-29 사용자(Codex 경유): 「나머지 24개 수업도 제대로 된 도전과제 만들어서, 모든 수업에서 도전과제만 풀어도 클리어되게 해. 클로드가 계획 세우고 배포까지 마무리해.」 그리고 다른 두 과정에도 백엔드의 개선을 적용하라고 했어요. 계획: docs/plans/2026-10-29-final-challenges-all-courses.md. 이 수업에는 새 고유 코드의 마지막 도전 스텝 하나만 더했고 기존 스텝·목표는 그대로예요. 사용자가 이 PRD 파일 자체를 열람했다고 주장하지 않아요. 2026-10-29 사용자(Codex 경유): 「정처기 에서도 코딩문제에서는 객관식 다 지우자 에이쓰에서도」 「지우는게 아니라 바꾸자 객관식에서 순수 코딩 문제로」. 코드의 값·식·설정을 고르던 스텝을 직접 코드를 쓰고 실행해 채점하는 스텝으로 바꾸고 새 스텝 코드를 부여했어요(Claude Code, Codex 경유). 순수 이론 문항과 수업·챕터·단원 목표는 그대로예요. 분류: .scratch/coding-conversion-trace-reset/classification.json. 사용자가 이 PRD 파일 자체를 열람했다고 주장하지 않아요.",
+    "content_sha256": "39b8862e725cb6b7fe5dba4cbb0a2e61bd5bfdb132eba64b5a40a730f56453ec"
   }
 }

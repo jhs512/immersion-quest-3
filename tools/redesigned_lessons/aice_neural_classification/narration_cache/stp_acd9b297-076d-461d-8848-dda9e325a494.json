@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "3c6a84660432438b5fc56dc112f3c776fae1f4e037aa7a9d9a0fcfd2ed4920f7",
+  "entry": [
+    {
+      "action": "say",
+      "text": "같은 정답을 원핫으로 바꿔 원핫용 손실과 비교해요. 범주 번호를 범주 수만큼의 칸으로 바꿔야 해요.",
+      "target": "text:범주 번호를 범주 수만큼의 칸을 가진 원핫 정답으로 바꾸세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        22,
+        22
+      ],
+      "expect_error": "ValueError"
+    },
+    {
+      "action": "say",
+      "text": "ValueError예요. 번호 그대로는 세 칸 확률과 모양이 안 맞아요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "one_hot = y\n",
+      "after": "one_hot = keras.utils.to_categorical(y, num_classes=len(classes))\n",
+      "say": "keras.utils.to_categorical(y, num_classes=len(classes))로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        22,
+        23
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[[1, 0, 0], [0, 0, 1]]과 True예요. 첫 칸과 셋째 칸이 1이고 두 손실이 같아요. 표현만 다르고 정답의 뜻은 같아요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. num_classes를 빼면 정답에 나온 가장 큰 번호까지만 칸을 만들어요. 정답이 0과 1뿐이면 두 칸이 돼 모양이 어긋나요.",
+      "target": "code:num_classes=len(classes)"
+    }
+  ]
+}

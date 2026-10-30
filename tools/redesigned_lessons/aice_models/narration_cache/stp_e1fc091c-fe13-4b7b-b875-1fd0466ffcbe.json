@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "d5a8824987d092acd09cc7e53329e399b28678bd58d9c5036e485dc4457d4be0",
+  "entry": [
+    {
+      "action": "say",
+      "text": "두 후보를 같은 검증 자료로 비교해 고르려 해요. 훈련 정확도로 고르는 chosen 줄을 고쳐야 해요.",
+      "target": "text:chosen 줄을 고쳐 훈련이 아니라 같은 검증 자료의 정확도로 후보를 고르세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        17
+      ]
+    },
+    {
+      "action": "say",
+      "text": "훈련은 1.0과 0.875, 검증은 0.5와 1.0이고 deep을 골랐어요. 튀는 정답까지 외운 훈련 점수로 골랐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "deep.score(X_train, y_train) >= shallow.score(X_train, y_train) else",
+      "after": "deep.score(X_valid, y_valid) >= shallow.score(X_valid, y_valid) else",
+      "say": "X_train, y_train을 X_valid, y_valid로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        17
+      ]
+    },
+    {
+      "action": "say",
+      "text": "shallow예요. 학습에 쓰지 않은 검증 자료에서 더 잘 맞았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 훈련 점수가 높다고 새 배송도 잘 맞히는 건 아니에요.",
+      "target": "code:deep.score(X_valid, y_valid) >="
+    }
+  ]
+}

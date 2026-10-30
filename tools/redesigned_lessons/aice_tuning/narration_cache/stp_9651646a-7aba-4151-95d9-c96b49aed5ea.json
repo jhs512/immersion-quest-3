@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "1680829626b541ca5855ceb6977b1afad43b84e4eab214a9daf0278a7b5d0f01",
+  "entry": [
+    {
+      "action": "say",
+      "text": "전체 표로 미리 스케일하면 검증 몫의 값도 기준에 섞여요. result 줄에 원래 X_train을 넘겨야 해요.",
+      "target": "text:result 줄을 고쳐 X_scaled 대신 원래 X_train을 넘겨 fold마다 훈련 몫에서 스케일 기준을 배우게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        18
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[0.436, -0.436]과 3.5예요. 이미 전체 기준으로 바뀐 값을 다시 배웠어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "cross_validate(model, X_scaled,",
+      "after": "cross_validate(model, X_train,",
+      "say": "X_scaled를 X_train으로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        18
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[4.5, 2.5]와 3.5예요. fold마다 그 fold의 훈련 몫 평균만 배웠어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 교차검증 전에 전체 표로 스케일하면 검증 몫의 정보가 기준에 새어 들어가요.",
+      "target": "code:cross_validate(model, X_train,"
+    }
+  ]
+}

@@ -3,29 +3,32 @@
   "lesson": "courses/redesigned/aice-boosting.json",
   "expected_outputs": [
     [
-      "reg:squarederror\n1"
+      "1",
+      "1\n[2.0, 2.0, 8.0, 8.0]"
     ],
     [
+      "",
       "[2.0, 2.0, 8.0, 8.0]"
     ],
     [
-      "[2.0, 2.0, 8.0, 8.0]",
-      "[1.25, 1.25, 4.25, 4.25]",
-      "[2.0, 2.0, 8.0, 8.0]"
+      "[2.0, 8.0]\n[1.25, 4.25]",
+      "[1.25, 4.25]\n[1.25, 4.25]"
     ],
     [
-      "[1.25, 1.25, 4.25, 4.25]\n1",
-      "[1.8125, 1.8125, 7.0625, 7.0625]\n3",
-      "[1.25, 1.25, 4.25, 4.25]\n1"
+      "[1.5, 1.5, 7.5, 7.5]\n[2.0, 2.0, 8.0, 8.0]\n[1.625, 1.625, 6.125, 6.125]",
+      "[0.75, 0.75, 3.75, 3.75]\n[1.625, 1.625, 6.125, 6.125]\n[1.625, 1.625, 6.125, 6.125]"
     ],
     [
-      "[0, 0, 1, 1]\n[0, 1]\n[4, 2]\nTrue"
+      "['late', 'on-time']\n[0.985, 0.985, 0.015, 0.015]",
+      "['late', 'on-time']\n[0.015, 0.015, 0.985, 0.985]"
     ],
     [
-      "['cancelled', 'late', 'normal']\n[2, 2, 1, 1, 0, 0]\n[6, 3]\n9"
+      "['cancelled', 'late', 'normal']\n3\n9",
+      "['cancelled', 'late', 'normal']\n9\n9"
     ],
     [
-      "3\n3"
+      "[1.346, 0.28, 0.763]\n3\n3",
+      "[1.346, 0.28, 0.763]\n2\n3"
     ],
     [
       "1.0\n[2.0, 8.0]",
@@ -38,6 +41,146 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "model.fit(X_train, y_train)\n",
+          "model.fit(X_train, np.array([2.0, 2.0, 8.0, 8.0], dtype=\"float32\"))\n"
+        ]
+      ],
+      "reason": "Typing the targets"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "print(model.predict(X_train).tolist())",
+          "print([2.0, 2.0, 8.0, 8.0])"
+        ]
+      ],
+      "reason": "Typing the predictions"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "model = xgb.XGBRegressor(",
+          "model = xgb.XGBClassifier("
+        ]
+      ],
+      "reason": "Classifier"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "print(model.predict(X_train).tolist())",
+          "print(y_train.tolist())"
+        ]
+      ],
+      "reason": "Printing the targets"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "0.5 + rate * (m - 0.5)",
+          "0.5 + (m - 0.5)"
+        ]
+      ],
+      "reason": "Whole difference"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "0.5 + rate * (m - 0.5)",
+          "0.5 + 0.5 * (m - 0.5)"
+        ]
+      ],
+      "reason": "Typing 0.5 as the rate"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "residuals = y_train - predicted\n",
+          "residuals = y_train - 0.5\n"
+        ]
+      ],
+      "reason": "Residuals from the base score"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "residuals = y_train - predicted\n",
+          "residuals = y_train - y_train.mean()\n"
+        ]
+      ],
+      "reason": "Residuals from the mean"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "column = list(encoder.classes_).index(\"late\")\n",
+          "column = 1\n"
+        ]
+      ],
+      "reason": "Second column"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "column = list(encoder.classes_).index(\"late\")\n",
+          "column = 0\n"
+        ]
+      ],
+      "reason": "First column"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "trees = rounds * len(encoder.classes_)\n",
+          "trees = rounds\n"
+        ]
+      ],
+      "reason": "Rounds only"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "trees = rounds * len(encoder.classes_)\n",
+          "trees = rounds * 3\n"
+        ]
+      ],
+      "reason": "Typing three classes"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "best_round = rmse.index(min(rmse)) + 1\n",
+          "best_round = len(rmse)\n"
+        ]
+      ],
+      "reason": "Last round"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "best_round = rmse.index(min(rmse)) + 1\n",
+          "best_round = 2\n"
+        ]
+      ],
+      "reason": "Typing the round"
+    },
     {
       "step": 8,
       "replacements": [
@@ -74,6 +217,76 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "model.fit(X_train, y_train)\n",
+          "model = model.fit(X_train, y_train)\n"
+        ]
+      ],
+      "reason": "fit returns the model"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "model = xgb.XGBRegressor(",
+          "model = xgb.XGBRegressor(objective=\"reg:squarederror\","
+        ]
+      ],
+      "reason": "Explicit squared error"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "expected = [0.5 + rate * (m - 0.5) for m in leaf_means]\n",
+          "expected = [(1 - rate) * 0.5 + rate * m for m in leaf_means]\n"
+        ]
+      ],
+      "reason": "Weighted form"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "residuals = y_train - predicted\n",
+          "residuals = np.subtract(y_train, first.predict(X_train))\n"
+        ]
+      ],
+      "reason": "np.subtract"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "column = list(encoder.classes_).index(\"late\")\n",
+          "column = int(encoder.transform([\"late\"])[0])\n"
+        ]
+      ],
+      "reason": "encoder.transform"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "trees = rounds * len(encoder.classes_)\n",
+          "trees = rounds * len(set(labels))\n"
+        ]
+      ],
+      "reason": "Distinct labels"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "best_round = rmse.index(min(rmse)) + 1\n",
+          "best_round = min(range(1, len(rmse) + 1), key=lambda r: rmse[r - 1])\n"
+        ]
+      ],
+      "reason": "min over rounds"
+    },
     {
       "step": 9,
       "replacements": [

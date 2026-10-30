@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_ccd71a72-acc9-4675-b620-c49df1c1c8df",
-  "revision": "aice-classification-metrics-6",
+  "revision": "aice-classification-metrics-7",
   "title": "지연 경보의 성능을 판단해요",
   "description": "같은 지연 경보에서 무엇을 맞히고 놓쳤는지 작은 수로 판단해요.",
   "objectives": [
@@ -33,33 +33,33 @@
           "premise": "지연을 찾아 안내하려고 해요. 같은 실제 배송과 경보를 보며 맞힘·오탐·누락을 나누어 읽어요.",
           "steps": [
             {
-              "id": "stp_32e5ad72-73aa-4cb3-8e04-7950edb27f38",
+              "id": "stp_5b329bfe-0726-4d4f-9108-a41cf01617b2",
               "objectives": [
-                "불균형 자료에서 정확도와 관심 범주 탐지를 구별해요."
+                "높은 정확도와 관심 범주의 재현율을 구별해요."
               ]
             },
             {
-              "id": "stp_e89aec00-5536-4f2b-b5c6-52c6f961ec4f",
+              "id": "stp_2ffbd6d9-fb69-40d9-a061-afcb37978629",
               "objectives": [
-                "혼동행렬의 축·범주 순서와 오탐 수를 읽어요."
+                "혼동행렬의 실제 행과 예측 열을 읽어 잘못된 경보를 찾아요."
               ]
             },
             {
-              "id": "stp_922fb8db-9496-46fe-8061-8d571ebb7f07",
+              "id": "stp_2e612a83-683f-4ef4-9898-d4243550111d",
               "objectives": [
-                "정밀도의 분모가 양성 예측 수임을 이해해요."
+                "정밀도의 분모가 지연 경보의 수임을 계산해 확인해요."
               ]
             },
             {
-              "id": "stp_4848ba0b-2efb-4226-a61c-21ae32231f99",
+              "id": "stp_b27cca7c-a9bc-4805-9894-a8f231cdfe91",
               "objectives": [
-                "재현율의 분모가 실제 양성 수임을 이해해요."
+                "재현율의 분모가 실제 지연의 수임을 계산해 확인해요."
               ]
             },
             {
-              "id": "stp_6b339386-deb4-4076-a0fd-bd1fa4d4c96e",
+              "id": "stp_eed7aac5-a65d-4565-9187-7933e3643e6d",
               "objectives": [
-                "F1이 정밀도·재현율의 조화평균임을 구별해요."
+                "F1이 정밀도와 재현율의 조화평균임을 계산해 확인해요."
               ]
             }
           ]
@@ -82,27 +82,27 @@
           "premise": "같은 보고서에 범주 불균형과 경보 기준이 추가돼요. 마지막에는 실제 관심 범주를 코드에 맞춰요.",
           "steps": [
             {
-              "id": "stp_388c1239-87b9-4423-a434-61ad24e377c7",
+              "id": "stp_aa3381bd-1076-4412-a12d-458207b16899",
               "objectives": [
-                "zero_division 반환 정책과 실제 탐지 성능을 구별해요."
+                "분모가 없는 정밀도의 약속값과 실제 성능을 구별해요."
               ]
             },
             {
-              "id": "stp_42d6681d-b5bb-4ef3-bd4f-14ac71094689",
+              "id": "stp_99dd345c-6dcf-4561-b8f4-03113b7987c6",
               "objectives": [
-                "macro와 weighted의 범주 가중치를 구별해요."
+                "macro와 weighted 평균의 무게 차이를 계산해 확인해요."
               ]
             },
             {
-              "id": "stp_433c9dc6-3b49-4b6b-8982-4ae6c839fd73",
+              "id": "stp_94efe060-3ae1-4b58-b27e-193c4119e011",
               "objectives": [
-                "임계값과 예측·오탐·누락의 변화를 비교해요."
+                "같은 확률에 다른 경보 기준을 적용해 경보와 지표의 변화를 확인해요."
               ]
             },
             {
-              "id": "stp_b36bfae9-1b3e-4c1b-9fbd-66eaadac180b",
+              "id": "stp_404f7997-8830-4144-bb22-f3f9cb53362f",
               "objectives": [
-                "이진 ROC AUC의 점수 방향과 한 범주 평가 제한을 이해해요."
+                "기준을 정한 정확도와 확률 순위의 AUC를 구별해요."
               ]
             },
             {
@@ -134,675 +134,579 @@
   ],
   "tasks": [
     {
-      "id": "stp_32e5ad72-73aa-4cb3-8e04-7950edb27f38",
-      "title": "정확도가 높아도 놓친 지연이 있어요",
-      "goal": "재현율은 실제 지연 중 모델이 지연으로 찾아낸 비율이에요. 정확도는 90%지만 실제 지연을 하나도 못 찾았어요.\n지연 탐지 목적도 달성했을까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_5b329bfe-0726-4d4f-9108-a41cf01617b2",
+      "title": "recall_score로 지연을 찾은 비율을 보고하세요",
+      "goal": "재현율은 실제 지연 중 모델이 지연으로 찾아낸 비율이에요. 정상 아홉 건과 지연 한 건을 모두 정상으로 예측했어요. `recall_score(y_true, y_pred, pos_label=1)`은 지연(1)의 재현율이에요.\n\nreport 줄을 고쳐 정확도 대신 실제 지연 중 찾아낸 비율(지연 재현율)을 report에 담으세요. 채점은 다른 경보로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 정확도와 report를 확인하세요.\n2. `accuracy_score(y_true, y_pred)`를 `recall_score(y_true, y_pred, pos_label=1)`로 고치세요.\n3. 코드 실행을 눌러 지연 재현율을 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "miss",
-      "tests": [],
-      "required": true,
-      "example_code": "from sklearn.metrics import accuracy_score, recall_score\n\n# 정상 아홉 건과 지연 한 건을 모두 정상으로 예측했어요.\ny_true = [0] * 9 + [1]\ny_pred = [0] * 10\nprint(float(accuracy_score(y_true, y_pred)))\nprint(float(recall_score(y_true, y_pred, pos_label=1)))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "miss",
-            "text": "아니요.지연 재현율은0이에요"
-          },
-          {
-            "id": "done",
-            "text": "네.정확도90%면 지연도90% 찾아요"
-          }
-        ],
-        "answer": "miss"
-      },
-      "narration": [
+      "starter_code": "from sklearn.metrics import accuracy_score, recall_score\n\n# 정상 아홉 건과 지연 한 건을 모두 정상으로 예측했어요.\ny_true = [0] * 9 + [1]\ny_pred = [0] * 10\nprint(float(accuracy_score(y_true, y_pred)))\n# 이 줄을 고쳐 정확도 대신 실제 지연 중 찾아낸 비율(지연 재현율)을 report에 담으세요.\nreport = accuracy_score(y_true, y_pred)\nprint(float(report))\n",
+      "solution": "from sklearn.metrics import accuracy_score, recall_score\n\n# 정상 아홉 건과 지연 한 건을 모두 정상으로 예측했어요.\ny_true = [0] * 9 + [1]\ny_pred = [0] * 10\nprint(float(accuracy_score(y_true, y_pred)))\n# 이 줄을 고쳐 정확도 대신 실제 지연 중 찾아낸 비율(지연 재현율)을 report에 담으세요.\n# 지연 탐지의 목적은 실제 지연(1)을 얼마나 찾았는지예요.\nreport = recall_score(y_true, y_pred, pos_label=1)\nprint(float(report))\n",
+      "tests": [
         {
-          "action": "say",
-          "text": "이 수업에서는 분류 결과를 업무 목적에 맞게 평가해요. 놓친 경우와 잘못 알린 경우를 구별해요."
-        },
-        {
-          "action": "say",
-          "text": "혼동행렬에서 정밀도·재현율·F1을 읽어요. 임계값과 ROC AUC의 역할도 비교해요."
-        },
-        {
-          "action": "say",
-          "text": "정확도와 재현율이 각각 무엇을 세는지 구별하는 문제예요.",
-          "target": "text:정확도가 높아도 놓친 지연이 있어요#1"
-        },
-        {
-          "action": "say",
-          "text": "정상 아홉, 지연 하나인 자료에서 모두 정상이라고 예측했어요.",
-          "target": "text:재현율은 실제 지연 중 모델이 지연으로 찾아낸 비율이에요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            7,
-            7
-          ]
-        },
-        {
-          "action": "say",
-          "text": "전체 맞힘은 0.9지만 지연을 찾은 비율은 0.0이에요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 많은 정상 배송만 맞혀도 정확도는 높을 수 있어요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "miss"
+          "input": "",
+          "expected": "0.9\n0.0"
         }
       ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_e89aec00-5536-4f2b-b5c6-52c6f961ec4f",
-      "title": "실제 행과 예측 열을 읽어요",
-      "goal": "실제 정상0인데 지연1로 경보한 건은 몇 개일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "one",
-      "tests": [],
       "required": true,
-      "example_code": "from sklearn.metrics import confusion_matrix\n\n# 같은 순서의 실제 종류와 예측 경보예요. 정상0·지연1이에요.\ny_true = [0, 0, 0, 1]\ny_pred = [0, 1, 0, 1]\n# 실제 행, 예측 열을 같은 범주 순서로 배치해요.\nprint(confusion_matrix(y_true, y_pred, labels=[0, 1]).tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "one",
-            "text": "행0·열1의 한 건이에요"
-          },
-          {
-            "id": "zero",
-            "text": "행1·열0의 영 건이에요"
-          }
-        ],
-        "answer": "one"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "실제 정상인데 지연으로 경보한 칸이 어디인지 찾는 문제예요.",
-          "target": "text:실제 행과 예측 열을 읽어요#1"
+          "text": "이 수업에서는 분류 결과를 업무 목적에 맞게 직접 코드로 평가해요. 놓친 경우와 잘못 알린 경우를 구별해요."
         },
         {
           "action": "say",
-          "text": "혼동행렬은 실제 종류를 행, 예측 종류를 열로 놓고 개수를 세요.",
-          "target": "text:실제 정상0인데 지연1로 경보한 건은 몇 개일까요?"
+          "text": "혼동행렬에서 정밀도·재현율·F1을 계산해요. 임계값과 ROC AUC의 역할도 코드로 비교해요."
+        },
+        {
+          "action": "say",
+          "text": "recall_score로 지연을 찾은 비율을 보고하는 문제예요.",
+          "target": "text:recall_score로 지연을 찾은 비율을 보고하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "목적은 지연을 찾는 거예요. report 줄을 고쳐 실제 지연 중 찾아낸 비율을 구해야 해요.",
+          "target": "text:report 줄을 고쳐 정확도 대신 실제 지연 중 찾아낸 비율(지연 재현율)을 report에 담으세요."
         },
         {
           "action": "run",
           "lines": [
-            7,
-            7
-          ]
-        },
-        {
-          "action": "say",
-          "text": "첫 행 두 칸은 정상 예측 두 건과 잘못 울린 경보 한 건이에요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "labels=[0, 1]",
-          "after": "labels=[1, 0]",
-          "say": "범주 순서를 뒤집어 위치가 바뀌는지 봐요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            7,
-            7
-          ]
-        },
-        {
-          "action": "say",
-          "text": "범주 순서가 바뀌면 같은 사건의 칸 위치도 바뀌어요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 행과 열의 이름을 확인하고 개수를 읽어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "labels=[1, 0]",
-          "after": "labels=[0, 1]",
-          "say": "처음 정상·지연 순서로 돌아와요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            7,
-            7
-          ]
-        },
-        {
-          "action": "say",
-          "text": "원래 순서에서 잘못 울린 경보는 한 건이에요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "one"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_922fb8db-9496-46fe-8061-8d571ebb7f07",
-      "title": "지연 경보 중 맞은 비율을 봐요",
-      "goal": "지연 경보 두 건 중 실제 지연은 한 건이에요.\n정밀도를 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "half",
-      "tests": [],
-      "required": true,
-      "example_code": "from sklearn.metrics import precision_score\n\n# 같은 순서의 실제 종류와 예측 경보예요. 정상0·지연1이에요.\ny_true = [0, 0, 0, 1]\ny_pred = [0, 1, 0, 1]\n# 업무상 관심 범주인 지연1을 평가해요.\nprint(round(float(precision_score(y_true, y_pred, pos_label=1, zero_division=0)), 6))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "half",
-            "text": "1/2인0.5예요"
-          },
-          {
-            "id": "quarter",
-            "text": "전체 네 건으로 나눈0.25예요"
-          }
-        ],
-        "answer": "half"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "지연 경보 중 맞은 비율을 보는 문제예요.",
-          "target": "text:지연 경보 중 맞은 비율을 봐요#1"
-        },
-        {
-          "action": "say",
-          "text": "정밀도는 지연이라고 경보한 것 중 실제 지연의 비율이에요. 분모가 경보 수인지 전체 수인지가 질문이에요.",
-          "target": "text:지연 경보 두 건 중 실제 지연은 한 건이에요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            7,
-            7
-          ]
-        },
-        {
-          "action": "say",
-          "text": "경보한 두 건을 분모로 나눠 0.5예요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 정밀도의 분모는 실제 지연 수가 아니라 지연이라고 경보한 수예요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "half"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_4848ba0b-2efb-4226-a61c-21ae32231f99",
-      "title": "실제 지연을 얼마나 찾았을까요",
-      "goal": "실제 지연 한 건을 찾았어요.\n지연 재현율을 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "all",
-      "tests": [],
-      "required": true,
-      "example_code": "from sklearn.metrics import recall_score\n\n# 같은 순서의 실제 종류와 예측 경보예요. 정상0·지연1이에요.\ny_true = [0, 0, 0, 1]\ny_pred = [0, 1, 0, 1]\n# 업무상 관심 범주인 지연1을 평가해요.\nprint(round(float(recall_score(y_true, y_pred, pos_label=1, zero_division=0)), 6))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "half",
-            "text": "경보 두 건으로 나눈0.5예요"
-          },
-          {
-            "id": "all",
-            "text": "1/1인1이에요"
-          }
-        ],
-        "answer": "all"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "실제 지연을 얼마나 찾았을까요?",
-          "target": "text:실제 지연을 얼마나 찾았을까요#1"
-        },
-        {
-          "action": "say",
-          "text": "재현율의 분모는 실제 지연의 수예요. 같은 예측에서 정밀도와 분모가 어떻게 다른지 비교해요.",
-          "target": "text:실제 지연 한 건을 찾았어요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            7,
-            7
-          ]
-        },
-        {
-          "action": "say",
-          "text": "실제 지연 한 건 중 한 건을 찾았으므로 1.0이에요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 정밀도와 재현율은 다른 분모라 서로 달라도 모순이 아니에요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "all"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_6b339386-deb4-4076-a0fd-bd1fa4d4c96e",
-      "title": "두 지표를 함께 읽어요",
-      "goal": "정밀도0.5·재현율1이에요.\nF1을 단순 평균0.75로 보고할까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "harmonic",
-      "tests": [],
-      "required": true,
-      "example_code": "from sklearn.metrics import f1_score\n\n# 같은 순서의 실제 종류와 예측 경보예요. 정상0·지연1이에요.\ny_true = [0, 0, 0, 1]\ny_pred = [0, 1, 0, 1]\n# 업무상 관심 범주인 지연1을 평가해요.\nprint(round(float(f1_score(y_true, y_pred, pos_label=1, zero_division=0)), 6))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "mean",
-            "text": "네.두 수의 산술평균0.75예요"
-          },
-          {
-            "id": "harmonic",
-            "text": "아니요.조화평균 약0.666667이에요"
-          }
-        ],
-        "answer": "harmonic"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "두 지표를 함께 읽는 문제예요.",
-          "target": "text:두 지표를 함께 읽어요#1"
-        },
-        {
-          "action": "say",
-          "text": "F1은 정밀도와 재현율을 하나로 합친 점수인데, 산술평균이 아니라 조화평균이에요. 0.5와 1이면 얼마가 되는지 예상해요.",
-          "target": "text:정밀도0.5·재현율1이에요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            7,
-            7
-          ]
-        },
-        {
-          "action": "say",
-          "text": "F1은 약 0.67이에요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. F1은 두 지표의 조화평균이며 업무 목적에 항상 최선인 지표는 아니에요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "harmonic"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_388c1239-87b9-4423-a434-61ad24e377c7",
-      "title": "분모가 없는 점수를 구별해요",
-      "goal": "zero_division=1로 정밀도1이 반환됐어요.\n실제 지연을 잘 찾았다는 뜻일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "policy",
-      "tests": [],
-      "required": true,
-      "example_code": "from sklearn.metrics import precision_score, recall_score\n\n# 지연 경보가 아예 없어 정밀도의 분모가 영이에요.\ny_true = [0, 1]\ny_pred = [0, 0]\nprint(float(precision_score(y_true, y_pred, zero_division=0)))\nprint(float(precision_score(y_true, y_pred, zero_division=1)))\nprint(float(recall_score(y_true, y_pred)))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "perfect",
-            "text": "네. 정밀도가 1이니 경보가 모두 맞았어요"
-          },
-          {
-            "id": "policy",
-            "text": "아니요.분모0의 반환 정책이고 재현율은0이에요"
-          }
-        ],
-        "answer": "policy"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "분모가 없는 점수를 구별하는 문제예요.",
-          "target": "text:분모가 없는 점수를 구별해요#1"
-        },
-        {
-          "action": "say",
-          "text": "지연 경보가 하나도 없어 정밀도의 분모가 0이에요. zero_division은 이때 돌려줄 값을 정하는 설정일 뿐인지 판단해요.",
-          "target": "text:zero_division=1로 정밀도1이 반환됐어요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            8,
-            8
-          ]
-        },
-        {
-          "action": "say",
-          "text": "정책에 따라 0.0 또는 1.0이지만 실제 지연은 못 찾았어요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 나눌 대상이 없는 점수의 보정을 실제 성능으로 읽지 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "policy"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_42d6681d-b5bb-4ef3-bd4f-14ac71094689",
-      "title": "범주별 평균의 무게를 확인해요",
-      "goal": "범주별 재현율은1·0·0이에요.\nmacro와 weighted가 다른 이유를 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "weights",
-      "tests": [],
-      "required": true,
-      "example_code": "from sklearn.metrics import recall_score, classification_report\n\n# 세 범주의 크기가 세 건·한 건·한 건으로 달라요.\ny_true = [0, 0, 0, 1, 2]\ny_pred = [0, 0, 0, 0, 0]\nreport = classification_report(y_true, y_pred, output_dict=True, zero_division=0)\n# 확인용 출력: 범주 0, 1, 2의 실제 건수(support)예요. 이 줄의 문법은 몰라도 돼요.\nprint([int(report[str(label)][\"support\"]) for label in [0, 1, 2]])\nprint(round(float(recall_score(y_true, y_pred, average=\"macro\")), 6))\nprint(round(float(recall_score(y_true, y_pred, average=\"weighted\")), 6))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "weights",
-            "text": "weighted는 실제 범주 수3·1·1로 가중해요"
-          },
-          {
-            "id": "wrong",
-            "text": "같은 지표이므로 한쪽 계산 오류예요"
-          }
-        ],
-        "answer": "weights"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "범주별 지표의 평균을 내는 방식에 따라 결과가 다른 이유를 고르는 문제예요.",
-          "target": "text:범주별 평균의 무게를 확인해요#1"
-        },
-        {
-          "action": "say",
-          "text": "macro는 범주별 점수를 똑같은 무게로, weighted는 범주의 실제 건수만큼 무게를 줘 평균 내요. 두 값이 다른 이유를 고르는 문제예요.",
-          "target": "text:범주별 재현율은1·0·0이에요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            9,
+            6,
             9
           ]
         },
         {
           "action": "say",
-          "text": "각 범주를 똑같이 세면 약 0.33, 실제 수로 가중하면 0.6이에요.",
+          "text": "0.9와 0.9예요. 정확도로는 지연을 찾았는지 알 수 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "report = accuracy_score(y_true, y_pred)\n",
+          "after": "report = recall_score(y_true, y_pred, pos_label=1)\n",
+          "say": "recall_score(y_true, y_pred, pos_label=1)로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0.0이에요. 실제 지연 한 건을 하나도 못 찾았어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 가중평균이 커도 작은 두 범주를 찾은 것은 아니에요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "weights"
+          "text": "조심하세요. 정상이 대부분이면 모두 정상이라고만 해도 정확도가 높아요. 관심 범주의 재현율을 함께 봐요.",
+          "target": "code:report = recall_score"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"y_true\": [0, 0, 1, 1], \"y_pred\": [0, 0, 1, 0]}, \"expected\": \"0.75\\\\n0.5\"}, {\"values\": {\"y_true\": [1, 0, 1], \"y_pred\": [1, 1, 1]}, \"expected\": \"0.6666666666666666\\\\n1.0\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_433c9dc6-3b49-4b6b-8982-4ae6c839fd73",
-      "title": "경보 기준을 바꿔 봐요",
-      "goal": "기준0.5에서0.3으로 낮추면 이 표의 경보는 어떻게 될까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_2ffbd6d9-fb69-40d9-a061-afcb37978629",
+      "title": "matrix[0][1]로 잘못된 경보를 세세요",
+      "goal": "`confusion_matrix(y_true, y_pred, labels=[0, 1])`는 행이 실제, 열이 예측인 표예요. `matrix[행][열]`로 칸을 읽어요. 실제 정상0인데 지연1로 알린 것이 잘못된 경보예요.\n\nfalse_alarms 줄을 고쳐 실제 정상0인데 지연1로 경보한 칸을 false_alarms에 담으세요. 채점은 다른 경보로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 표와 false_alarms를 확인하세요.\n2. `matrix[1][0]`을 `matrix[0][1]`로 고치세요.\n3. 코드 실행을 눌러 잘못된 경보 수를 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "more",
-      "tests": [],
+      "starter_code": "from sklearn.metrics import confusion_matrix\n\n# 같은 순서의 실제 종류와 예측 경보예요. 정상0·지연1이에요.\ny_true = [0, 0, 0, 1]\ny_pred = [0, 1, 0, 1]\n# 행은 실제, 열은 예측이에요. 범주 순서는 0, 1이에요.\nmatrix = confusion_matrix(y_true, y_pred, labels=[0, 1]).tolist()\nprint(matrix)\n# 이 줄을 고쳐 실제 정상0인데 지연1로 경보한 칸을 false_alarms에 담으세요.\nfalse_alarms = matrix[1][0]\nprint(false_alarms)\n",
+      "solution": "from sklearn.metrics import confusion_matrix\n\n# 같은 순서의 실제 종류와 예측 경보예요. 정상0·지연1이에요.\ny_true = [0, 0, 0, 1]\ny_pred = [0, 1, 0, 1]\n# 행은 실제, 열은 예측이에요. 범주 순서는 0, 1이에요.\nmatrix = confusion_matrix(y_true, y_pred, labels=[0, 1]).tolist()\nprint(matrix)\n# 이 줄을 고쳐 실제 정상0인데 지연1로 경보한 칸을 false_alarms에 담으세요.\n# 실제 0의 행(0번)에서 예측 1의 열(1번)이에요.\nfalse_alarms = matrix[0][1]\nprint(false_alarms)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[[2, 1], [0, 1]]\n1"
+        }
+      ],
       "required": true,
-      "example_code": "from sklearn.metrics import precision_score, recall_score\n\n# 같은 지연 확률을 어떤 기준에서 경보로 바꿀지 정해요.\ny_true = [0, 0, 1, 1]\nprobabilities = [0.1, 0.6, 0.4, 0.8]\nthreshold = 0.5\n# 확률마다 기준 이상이면 1(경보), 아니면 0으로 바꿔요. 이 줄의 문법은 몰라도 돼요.\npredictions = [int(p >= threshold) for p in probabilities]\nprint(predictions)\nprint(round(float(precision_score(y_true, predictions)), 6))\nprint(round(float(recall_score(y_true, predictions)), 6))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "more",
-            "text": "경보가 하나 늘고 놓친 지연도 찾아요"
-          },
-          {
-            "id": "same",
-            "text": "확률은 그대로라 경보 수도 그대로예요"
-          }
-        ],
-        "answer": "more"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "경보 기준을 바꿔 보는 문제예요.",
-          "target": "text:경보 기준을 바꿔 봐요#1"
+          "text": "matrix[0][1]로 잘못된 경보를 세는 문제예요.",
+          "target": "text:matrix[0][1]로 잘못된 경보를 세세요#1"
         },
         {
           "action": "say",
-          "text": "확률을 경보로 바꾸는 기준을 낮추면 더 많은 배송이 경보가 돼요. 0.4였던 실제 지연이 어떻게 되는지 예상해요.",
-          "target": "text:기준0.5에서0.3으로 낮추면 이 표의 경보는 어떻게 될까요?"
+          "text": "혼동행렬은 실제가 행, 예측이 열이에요. false_alarms 줄을 고쳐 실제 정상·예측 지연 칸을 꺼내야 해요.",
+          "target": "text:false_alarms 줄을 고쳐 실제 정상0인데 지연1로 경보한 칸을 false_alarms에 담으세요."
         },
         {
           "action": "run",
           "lines": [
-            10,
-            10
+            8,
+            11
           ]
         },
         {
           "action": "say",
-          "text": "기준 0.5에서는 경보 두 건이고 정밀도·재현율 모두 0.5예요.",
+          "text": "[[2, 1], [0, 1]]과 0이에요. 0은 실제 지연을 정상으로 놓친 칸이에요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "threshold = 0.5",
-          "after": "threshold = 0.3",
-          "say": "같은 확률에서 경보 기준만 낮춰요."
+          "before": "false_alarms = matrix[1][0]\n",
+          "after": "false_alarms = matrix[0][1]\n",
+          "say": "matrix[1][0]을 matrix[0][1]로 바꿔요."
         },
         {
           "action": "run",
           "lines": [
-            10,
-            10
+            8,
+            11
           ]
         },
         {
           "action": "say",
-          "text": "경보 세 건, 정밀도 약 0.67, 재현율 1.0이에요.",
+          "text": "1이에요. 실제 정상인데 지연으로 알린 경보가 한 건이에요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 이 표의 정밀도 증가를 모든 자료의 법칙으로 외우지 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "threshold = 0.3",
-          "after": "threshold = 0.5",
-          "say": "처음 기준으로 돌아와요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            10,
-            10
-          ]
-        },
-        {
-          "action": "say",
-          "text": "원래 기준과 다른 경보 결과를 구별해요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "more"
+          "text": "조심하세요. 행과 열을 바꿔 읽으면 놓친 지연과 잘못된 경보가 뒤바뀌어요.",
+          "target": "code:matrix[0][1]"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"y_true\": [0, 0, 1, 1, 0], \"y_pred\": [1, 1, 0, 1, 1]}, \"expected\": \"[[0, 3], [1, 1]]\\\\n3\"}, {\"values\": {\"y_true\": [1, 1, 0], \"y_pred\": [0, 0, 0]}, \"expected\": \"[[1, 0], [2, 0]]\\\\n0\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_b36bfae9-1b3e-4c1b-9fbd-66eaadac180b",
-      "title": "확률의 순위도 평가해요",
-      "goal": "AUC는 실제 지연 하나와 실제 정상 하나를 짝지었을 때 지연 쪽 점수가 더 높은 짝의 비율이에요. 지연1의 확률로 AUC를 구해요.\n이 점수의 뜻과 조건을 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_2e612a83-683f-4ef4-9898-d4243550111d",
+      "title": "sum(y_pred)로 나눠 정밀도를 구하세요",
+      "goal": "정밀도는 지연이라고 경보한 것 중 실제 지연의 비율이에요. `hits`는 실제 지연을 지연으로 경보한 건수예요. 경보 1은 `y_pred`에서 1인 자리이므로 `sum(y_pred)`가 경보 수예요.\n\nprecision 줄을 고쳐 전체 행 수가 아니라 지연 경보의 수로 나눠 정밀도를 구하세요. 채점은 다른 경보로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 직접 계산과 precision_score를 비교하세요.\n2. `len(y_true)`를 `sum(y_pred)`로 고치세요.\n3. 코드 실행을 눌러 두 값이 같은지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "rank",
-      "tests": [],
+      "starter_code": "from sklearn.metrics import precision_score\n\n# 같은 순서의 실제 종류와 예측 경보예요. 정상0·지연1이에요.\ny_true = [0, 0, 0, 1]\ny_pred = [0, 1, 0, 1]\n# 확인용 계산: 실제 지연을 지연으로 경보한 건수예요.\nhits = sum(1 for t, p in zip(y_true, y_pred) if t == 1 and p == 1)\n# 이 줄을 고쳐 전체 행 수가 아니라 지연 경보의 수로 나눠 정밀도를 구하세요.\nprecision = hits / len(y_true)\nprint(round(precision, 6))\nprint(round(float(precision_score(y_true, y_pred, pos_label=1, zero_division=0)), 6))\n",
+      "solution": "from sklearn.metrics import precision_score\n\n# 같은 순서의 실제 종류와 예측 경보예요. 정상0·지연1이에요.\ny_true = [0, 0, 0, 1]\ny_pred = [0, 1, 0, 1]\n# 확인용 계산: 실제 지연을 지연으로 경보한 건수예요.\nhits = sum(1 for t, p in zip(y_true, y_pred) if t == 1 and p == 1)\n# 이 줄을 고쳐 전체 행 수가 아니라 지연 경보의 수로 나눠 정밀도를 구하세요.\n# 정밀도는 지연 경보(예측 1) 중 실제 지연의 비율이에요.\nprecision = hits / sum(y_pred)\nprint(round(precision, 6))\nprint(round(float(precision_score(y_true, y_pred, pos_label=1, zero_division=0)), 6))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "0.5\n0.5"
+        }
+      ],
       "required": true,
-      "example_code": "from sklearn.metrics import roc_auc_score\n\n# 큰 범주1인 지연에 해당하는 확률을 사용해요.\ny_true = [0, 0, 1, 1]\nscores = [0.1, 0.6, 0.4, 0.8]\n# 두 범주가 있어야 순위를 비교할 수 있어요.\nif len(set(y_true)) != 2:\n    print(\"AUC 정의 불가\")\nelse:\n    print(float(roc_auc_score(y_true, scores)))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "accuracy",
-            "text": "범주 예측을 75% 맞혔다는 뜻이에요"
-          },
-          {
-            "id": "rank",
-            "text": "확률의 순위 평가이며 정답률 75%라는 뜻은 아니에요"
-          }
-        ],
-        "answer": "rank"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "0.75가 정답률인지, 순서가 맞은 짝의 비율인지 구별하는 문제예요.",
-          "target": "text:확률의 순위도 평가해요#1"
+          "text": "sum(y_pred)로 나눠 정밀도를 구하는 문제예요.",
+          "target": "text:sum(y_pred)로 나눠 정밀도를 구하세요#1"
         },
         {
           "action": "say",
-          "text": "AUC는 기준 하나를 정하지 않고 점수의 순서만 봐요.",
-          "target": "text:AUC는 실제 지연 하나와 실제 정상 하나를 짝지었을 때 지연 쪽 점수가 더 높은 짝의 비율이에요."
+          "text": "정밀도는 경보 중 맞은 비율이에요. precision 줄을 고쳐 지연 경보의 수로 나눠야 해요.",
+          "target": "text:precision 줄을 고쳐 전체 행 수가 아니라 지연 경보의 수로 나눠 정밀도를 구하세요."
         },
         {
           "action": "run",
           "lines": [
-            7,
-            10
+            10,
+            11
           ]
         },
         {
           "action": "say",
-          "text": "지연 확률의 순위 점수는 0.75예요.",
+          "text": "0.25와 0.5예요. 네 행 전체로 나눠 precision_score와 달라요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "scores = [0.1, 0.6, 0.4, 0.8]",
-          "after": "scores = [0.9, 0.4, 0.6, 0.2]",
-          "say": "반대 종류의 확률을 넣어 비교해요."
+          "before": "precision = hits / len(y_true)\n",
+          "after": "precision = hits / sum(y_pred)\n",
+          "say": "len(y_true)를 sum(y_pred)로 바꿔요."
         },
         {
           "action": "run",
           "lines": [
-            7,
-            10
+            10,
+            11
           ]
         },
         {
           "action": "say",
-          "text": "방향이 반대라 0.25로 바뀌어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "scores = [0.9, 0.4, 0.6, 0.2]",
-          "after": "scores = [0.1, 0.6, 0.4, 0.8]",
-          "say": "지연 확률로 돌려요."
-        },
-        {
-          "action": "patch_code",
-          "before": "y_true = [0, 0, 1, 1]",
-          "after": "y_true = [0, 0, 0, 0]",
-          "say": "정답에 정상만 남은 평가도 비교해요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            7,
-            10
-          ]
-        },
-        {
-          "action": "say",
-          "text": "두 범주가 없어서 순위 비교를 멈췄어요.",
+          "text": "0.5와 0.5예요. 경보 두 건 중 한 건이 실제 지연이에요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. AUC는 실제 정답에 두 범주가 모두 있어야 계산돼요. 점수도 관심 범주인 지연의 확률이어야 해요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "y_true = [0, 0, 0, 0]",
-          "after": "y_true = [0, 0, 1, 1]",
-          "say": "처음 두 범주 평가로 돌아와요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            7,
-            10
-          ]
-        },
-        {
-          "action": "say",
-          "text": "다시 원래 지연 확률의 AUC 0.75예요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "rank"
+          "text": "조심하세요. 정밀도의 분모는 전체 행이 아니라 경보한 건수예요.",
+          "target": "code:hits / sum(y_pred)"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"y_true\": [1, 1, 0, 1, 0], \"y_pred\": [1, 1, 1, 1, 0]}, \"expected\": \"0.75\\\\n0.75\"}, {\"values\": {\"y_true\": [1, 0], \"y_pred\": [1, 1]}, \"expected\": \"0.5\\\\n0.5\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_b27cca7c-a9bc-4805-9894-a8f231cdfe91",
+      "title": "sum(y_true)로 나눠 재현율을 구하세요",
+      "goal": "재현율은 실제 지연 중 찾아낸 비율이에요. 분자 `hits`는 정밀도와 같고, 분모가 실제 지연의 수 `sum(y_true)`예요.\n\nrecall 줄을 고쳐 지연 경보의 수가 아니라 실제 지연의 수로 나눠 재현율을 구하세요. 채점은 다른 경보로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 직접 계산과 recall_score를 비교하세요.\n2. `sum(y_pred)`를 `sum(y_true)`로 고치세요.\n3. 코드 실행을 눌러 두 값이 같은지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "from sklearn.metrics import recall_score\n\n# 같은 순서의 실제 종류와 예측 경보예요. 정상0·지연1이에요.\ny_true = [0, 0, 0, 1]\ny_pred = [0, 1, 0, 1]\n# 확인용 계산: 실제 지연을 지연으로 경보한 건수예요.\nhits = sum(1 for t, p in zip(y_true, y_pred) if t == 1 and p == 1)\n# 이 줄을 고쳐 지연 경보의 수가 아니라 실제 지연의 수로 나눠 재현율을 구하세요.\nrecall = hits / sum(y_pred)\nprint(round(recall, 6))\nprint(round(float(recall_score(y_true, y_pred, pos_label=1, zero_division=0)), 6))\n",
+      "solution": "from sklearn.metrics import recall_score\n\n# 같은 순서의 실제 종류와 예측 경보예요. 정상0·지연1이에요.\ny_true = [0, 0, 0, 1]\ny_pred = [0, 1, 0, 1]\n# 확인용 계산: 실제 지연을 지연으로 경보한 건수예요.\nhits = sum(1 for t, p in zip(y_true, y_pred) if t == 1 and p == 1)\n# 이 줄을 고쳐 지연 경보의 수가 아니라 실제 지연의 수로 나눠 재현율을 구하세요.\n# 재현율은 실제 지연(정답 1) 중 찾아낸 비율이에요.\nrecall = hits / sum(y_true)\nprint(round(recall, 6))\nprint(round(float(recall_score(y_true, y_pred, pos_label=1, zero_division=0)), 6))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "1.0\n1.0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "sum(y_true)로 나눠 재현율을 구하는 문제예요.",
+          "target": "text:sum(y_true)로 나눠 재현율을 구하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "재현율은 실제 지연 중 찾은 비율이에요. recall 줄을 고쳐 실제 지연의 수로 나눠야 해요.",
+          "target": "text:recall 줄을 고쳐 지연 경보의 수가 아니라 실제 지연의 수로 나눠 재현율을 구하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0.5와 1.0이에요. 경보 수로 나누면 정밀도가 돼요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "recall = hits / sum(y_pred)\n",
+          "after": "recall = hits / sum(y_true)\n",
+          "say": "sum(y_pred)를 sum(y_true)로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1.0과 1.0이에요. 실제 지연 한 건을 찾았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 정밀도와 재현율은 분자는 같고 분모만 달라요. 경보 수인지 실제 수인지 확인해요.",
+          "target": "code:hits / sum(y_true)"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"y_true\": [1, 1, 0, 1, 0], \"y_pred\": [1, 0, 1, 0, 1]}, \"expected\": \"0.333333\\\\n0.333333\"}, {\"values\": {\"y_true\": [1, 1, 1, 0], \"y_pred\": [1, 1, 1, 1]}, \"expected\": \"1.0\\\\n1.0\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_eed7aac5-a65d-4565-9187-7933e3643e6d",
+      "title": "조화평균으로 F1을 직접 계산하세요",
+      "goal": "정밀도 0.5·재현율 1이에요. F1은 두 지표의 조화평균 2 × 정밀도 × 재현율 ÷ (정밀도 + 재현율)이에요. 조화평균은 둘 중 낮은 쪽에 더 끌려요.\n\nf1 줄을 고쳐 산술평균이 아니라 정밀도와 재현율의 조화평균(F1)을 구하세요. 채점은 다른 경보로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 직접 계산과 f1_score를 비교하세요.\n2. `(precision + recall) / 2`를 `2 * precision * recall / (precision + recall)`로 고치세요.\n3. 코드 실행을 눌러 두 값이 같은지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "from sklearn.metrics import f1_score, precision_score, recall_score\n\n# 같은 순서의 실제 종류와 예측 경보예요. 정상0·지연1이에요.\ny_true = [0, 0, 0, 1]\ny_pred = [0, 1, 0, 1]\nprecision = float(precision_score(y_true, y_pred, pos_label=1))\nrecall = float(recall_score(y_true, y_pred, pos_label=1))\nprint(precision, recall)\n# 이 줄을 고쳐 산술평균이 아니라 정밀도와 재현율의 조화평균(F1)을 구하세요.\nf1 = (precision + recall) / 2\nprint(round(f1, 6))\nprint(round(float(f1_score(y_true, y_pred, pos_label=1)), 6))\n",
+      "solution": "from sklearn.metrics import f1_score, precision_score, recall_score\n\n# 같은 순서의 실제 종류와 예측 경보예요. 정상0·지연1이에요.\ny_true = [0, 0, 0, 1]\ny_pred = [0, 1, 0, 1]\nprecision = float(precision_score(y_true, y_pred, pos_label=1))\nrecall = float(recall_score(y_true, y_pred, pos_label=1))\nprint(precision, recall)\n# 이 줄을 고쳐 산술평균이 아니라 정밀도와 재현율의 조화평균(F1)을 구하세요.\n# 조화평균은 둘 중 낮은 쪽에 더 끌려요. 한쪽만 높아서는 F1이 높지 않아요.\nf1 = 2 * precision * recall / (precision + recall)\nprint(round(f1, 6))\nprint(round(float(f1_score(y_true, y_pred, pos_label=1)), 6))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "0.5 1.0\n0.666667\n0.666667"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "조화평균으로 F1을 직접 계산하는 문제예요.",
+          "target": "text:조화평균으로 F1을 직접 계산하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "정밀도 0.5·재현율 1이에요. f1 줄을 고쳐 산술평균이 아니라 조화평균을 구해야 해요.",
+          "target": "text:f1 줄을 고쳐 산술평균이 아니라 정밀도와 재현율의 조화평균(F1)을 구하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0.75와 0.666667이에요. 산술평균은 f1_score와 달라요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "f1 = (precision + recall) / 2\n",
+          "after": "f1 = 2 * precision * recall / (precision + recall)\n",
+          "say": "2 × 정밀도 × 재현율 ÷ (정밀도 + 재현율)로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0.666667과 0.666667이에요. 낮은 정밀도 쪽으로 끌렸어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. F1을 두 수의 단순 평균으로 보고하지 않아요. 한쪽이 낮으면 F1도 낮아요.",
+          "target": "code:2 * precision * recall"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"y_true\": [1, 1, 1, 1, 0], \"y_pred\": [1, 0, 0, 0, 0]}, \"expected\": \"1.0 0.25\\\\n0.4\\\\n0.4\"}, {\"values\": {\"y_true\": [1, 0, 1, 0], \"y_pred\": [1, 1, 1, 0]}, \"expected\": \"0.6666666666666666 1.0\\\\n0.8\\\\n0.8\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_aa3381bd-1076-4412-a12d-458207b16899",
+      "title": "sum(y_pred) > 0일 때만 정밀도를 계산하세요",
+      "goal": "지연 경보가 아예 없으면 정밀도의 분모(경보 수)가 0이에요. `zero_division=1`은 그때 1을 돌려주라는 약속일 뿐, 경보가 맞았다는 뜻이 아니에요.\n\nprecision 줄을 고쳐 지연 경보가 하나 이상일 때만 정밀도를 계산하고, 아니면 None으로 두세요. 채점은 경보가 있는 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 정밀도와 재현율을 확인하세요.\n2. precision 줄 끝에 `if sum(y_pred) > 0 else None`을 붙이세요.\n3. 코드 실행을 눌러 두 값을 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "from sklearn.metrics import precision_score, recall_score\n\n# 지연 경보가 아예 없을 수 있어요.\ny_true = [0, 1]\ny_pred = [0, 0]\n# 이 줄을 고쳐 지연 경보가 하나 이상일 때만 정밀도를 계산하고, 아니면 None으로 두세요.\nprecision = float(precision_score(y_true, y_pred, zero_division=1))\nprint(precision)\nprint(float(recall_score(y_true, y_pred, zero_division=0)))\n",
+      "solution": "from sklearn.metrics import precision_score, recall_score\n\n# 지연 경보가 아예 없을 수 있어요.\ny_true = [0, 1]\ny_pred = [0, 0]\n# 이 줄을 고쳐 지연 경보가 하나 이상일 때만 정밀도를 계산하고, 아니면 None으로 두세요.\n# 경보가 없으면 정밀도의 분모가 0이에요. zero_division 값은 그때 돌려줄 약속일 뿐이에요.\nprecision = float(precision_score(y_true, y_pred, zero_division=1)) if sum(y_pred) > 0 else None\nprint(precision)\nprint(float(recall_score(y_true, y_pred, zero_division=0)))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "None\n0.0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "sum(y_pred) > 0일 때만 정밀도를 계산하는 문제예요.",
+          "target": "text:sum(y_pred) > 0일 때만 정밀도를 계산하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "지연 경보가 하나도 없어요. precision 줄을 고쳐 경보가 있을 때만 정밀도를 계산해야 해요.",
+          "target": "text:precision 줄을 고쳐 지연 경보가 하나 이상일 때만 정밀도를 계산하고, 아니면 None으로 두세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1.0과 0.0이에요. 정밀도 1은 분모가 0일 때 돌려준 약속값이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "zero_division=1))\n",
+          "after": "zero_division=1)) if sum(y_pred) > 0 else None\n",
+          "say": "뒤에 if sum(y_pred) > 0 else None을 붙여요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "None과 0.0이에요. 정밀도는 정할 수 없고 실제 지연은 하나도 못 찾았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 분모가 0일 때의 1을 경보가 모두 맞았다고 읽지 않아요. 재현율을 함께 봐요.",
+          "target": "code:sum(y_pred) > 0"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"y_true\": [0, 1, 1], \"y_pred\": [1, 1, 0]}, \"expected\": \"0.5\\\\n0.5\"}, {\"values\": {\"y_true\": [1, 1, 0, 0], \"y_pred\": [0, 0, 0, 0]}, \"expected\": \"None\\\\n0.0\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_99dd345c-6dcf-4561-b8f4-03113b7987c6",
+      "title": "support로 가중 평균한 재현율을 구하세요",
+      "goal": "범주별 재현율은 1·0·0이고, 실제 건수(support)는 3·1·1이에요. macro는 범주마다 같은 무게로, weighted는 support만큼 무게를 줘 평균내요.\n\nweighted 줄을 고쳐 범주마다 같은 무게가 아니라 실제 건수 support로 가중 평균하세요. 채점은 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 범주별 재현율과 두 평균을 확인하세요.\n2. weighted 줄을 `sum(r * s for r, s in zip(per_class, support)) / sum(support)`로 고치세요.\n3. 코드 실행을 눌러 두 값이 같은지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "from sklearn.metrics import recall_score\n\n# 세 범주의 크기가 세 건·한 건·한 건으로 달라요.\ny_true = [0, 0, 0, 1, 2]\ny_pred = [0, 0, 0, 0, 0]\nlabels = [0, 1, 2]\nper_class = recall_score(y_true, y_pred, labels=labels, average=None, zero_division=0).tolist()\nsupport = [y_true.count(label) for label in labels]\nprint(per_class, support)\n# 이 줄을 고쳐 범주마다 같은 무게가 아니라 실제 건수 support로 가중 평균하세요.\nweighted = sum(per_class) / len(per_class)\nprint(round(weighted, 6))\nprint(round(float(recall_score(y_true, y_pred, labels=labels, average=\"weighted\", zero_division=0)), 6))\n",
+      "solution": "from sklearn.metrics import recall_score\n\n# 세 범주의 크기가 세 건·한 건·한 건으로 달라요.\ny_true = [0, 0, 0, 1, 2]\ny_pred = [0, 0, 0, 0, 0]\nlabels = [0, 1, 2]\nper_class = recall_score(y_true, y_pred, labels=labels, average=None, zero_division=0).tolist()\nsupport = [y_true.count(label) for label in labels]\nprint(per_class, support)\n# 이 줄을 고쳐 범주마다 같은 무게가 아니라 실제 건수 support로 가중 평균하세요.\n# weighted는 범주마다 실제 건수만큼 무게를 줘요. 같은 무게로 나누는 평균은 macro예요.\nweighted = sum(r * s for r, s in zip(per_class, support)) / sum(support)\nprint(round(weighted, 6))\nprint(round(float(recall_score(y_true, y_pred, labels=labels, average=\"weighted\", zero_division=0)), 6))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[1.0, 0.0, 0.0] [3, 1, 1]\n0.6\n0.6"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "support로 가중 평균한 재현율을 구하는 문제예요.",
+          "target": "text:support로 가중 평균한 재현율을 구하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "범주의 크기가 3·1·1로 달라요. weighted 줄을 고쳐 실제 건수 support로 가중 평균해야 해요.",
+          "target": "text:weighted 줄을 고쳐 범주마다 같은 무게가 아니라 실제 건수 support로 가중 평균하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "같은 무게의 평균은 0.333333, weighted는 0.6이에요. 지금 식은 macro예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "weighted = sum(per_class) / len(per_class)\n",
+          "after": "weighted = sum(r * s for r, s in zip(per_class, support)) / sum(support)\n",
+          "say": "재현율마다 support를 곱해 더하고 sum(support)로 나눠요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0.6과 0.6이에요. 큰 범주 0의 재현율 1이 무게 3을 받았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. weighted는 큰 범주가 결과를 끌어요. 작은 범주를 놓친 것은 macro로 드러나요.",
+          "target": "code:zip(per_class, support)"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"y_true\": [0, 1, 1, 1, 2, 2], \"y_pred\": [0, 1, 0, 0, 2, 2]}, \"expected\": \"[1.0, 0.3333333333333333, 1.0] [1, 3, 2]\\\\n0.666667\\\\n0.666667\"}, {\"values\": {\"y_true\": [2, 2, 2, 2, 0, 1], \"y_pred\": [2, 2, 0, 0, 0, 1]}, \"expected\": \"[1.0, 1.0, 0.5] [1, 1, 4]\\\\n0.666667\\\\n0.666667\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_94efe060-3ae1-4b58-b27e-193c4119e011",
+      "title": "threshold로 경보 기준을 바꾸세요",
+      "goal": "확률마다 기준 이상이면 1(경보), 아니면 0으로 바꿔요. `threshold`에 이번 기준 0.3이 들어 있어요. 확률은 그대로이고 기준만 바뀌어요.\n\npredictions 줄을 고쳐 0.5 대신 threshold 이상인 확률을 경보 1로 바꾸세요. 채점은 다른 기준으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 경보와 두 지표를 확인하세요.\n2. `p >= 0.5`를 `p >= threshold`로 고치세요.\n3. 코드 실행을 눌러 경보와 지표의 변화를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "from sklearn.metrics import precision_score, recall_score\n\n# 같은 지연 확률을 어떤 기준에서 경보로 바꿀지 정해요.\ny_true = [0, 0, 1, 1]\nprobabilities = [0.1, 0.6, 0.4, 0.8]\nthreshold = 0.3\n# 이 줄을 고쳐 0.5 대신 threshold 이상인 확률을 경보 1로 바꾸세요.\npredictions = [int(p >= 0.5) for p in probabilities]\nprint(predictions)\nprint(round(float(precision_score(y_true, predictions, zero_division=0)), 6))\nprint(round(float(recall_score(y_true, predictions, zero_division=0)), 6))\n",
+      "solution": "from sklearn.metrics import precision_score, recall_score\n\n# 같은 지연 확률을 어떤 기준에서 경보로 바꿀지 정해요.\ny_true = [0, 0, 1, 1]\nprobabilities = [0.1, 0.6, 0.4, 0.8]\nthreshold = 0.3\n# 이 줄을 고쳐 0.5 대신 threshold 이상인 확률을 경보 1로 바꾸세요.\n# 확률은 그대로이고, 기준이 낮아지면 기준 이상인 확률이 늘어 경보가 늘어요.\npredictions = [int(p >= threshold) for p in probabilities]\nprint(predictions)\nprint(round(float(precision_score(y_true, predictions, zero_division=0)), 6))\nprint(round(float(recall_score(y_true, predictions, zero_division=0)), 6))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[0, 1, 1, 1]\n0.666667\n1.0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "threshold로 경보 기준을 바꾸는 문제예요.",
+          "target": "text:threshold로 경보 기준을 바꾸세요#1"
+        },
+        {
+          "action": "say",
+          "text": "기준을 0.3으로 낮추려 해요. predictions 줄을 고쳐 0.5 대신 threshold를 써야 해요.",
+          "target": "text:predictions 줄을 고쳐 0.5 대신 threshold 이상인 확률을 경보 1로 바꾸세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[0, 1, 0, 1]과 정밀도 0.5·재현율 0.5예요. 0.4인 지연을 놓쳤어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "p >= 0.5",
+          "after": "p >= threshold",
+          "say": "0.5를 threshold로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[0, 1, 1, 1]과 정밀도 0.666667·재현율 1.0이에요. 경보가 하나 늘고 놓친 지연을 찾았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 기준을 낮추면 놓침은 줄지만 잘못된 경보가 늘 수 있어요. 두 지표를 함께 봐요.",
+          "target": "code:p >= threshold"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"threshold\": 0.7, \"probabilities\": [0.65, 0.9, 0.7, 0.2]}, \"expected\": \"[0, 1, 1, 0]\\\\n0.5\\\\n0.5\"}, {\"values\": {\"threshold\": 0.4, \"y_true\": [1, 0, 1], \"probabilities\": [0.4, 0.45, 0.1]}, \"expected\": \"[1, 1, 0]\\\\n0.5\\\\n0.5\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_404f7997-8830-4144-bb22-f3f9cb53362f",
+      "title": "roc_auc_score로 확률의 순위를 평가하세요",
+      "goal": "AUC는 실제 지연 하나와 실제 정상 하나를 짝지었을 때 지연 쪽 점수가 더 높은 짝의 비율이에요. 기준을 정하지 않고 확률 그대로 `roc_auc_score(y_true, scores)`로 구해요.\n\nauc 줄을 고쳐 0.5 기준 정확도가 아니라 확률의 순위로 AUC를 구하세요. 채점은 다른 확률로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 auc를 확인하세요.\n2. auc 줄을 `auc = roc_auc_score(y_true, scores)`로 고치세요.\n3. 코드 실행을 눌러 AUC를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "from sklearn.metrics import accuracy_score, roc_auc_score\n\n# 지연1에 해당하는 확률이에요.\ny_true = [0, 0, 1, 1]\nscores = [0.1, 0.6, 0.4, 0.8]\n# 두 범주가 있어야 순위를 비교할 수 있어요.\nif len(set(y_true)) != 2:\n    print(\"AUC 정의 불가\")\nelse:\n    # 이 줄을 고쳐 0.5 기준 정확도가 아니라 확률의 순위로 AUC를 구하세요.\n    auc = accuracy_score(y_true, [int(s >= 0.5) for s in scores])\n    print(round(float(auc), 4))\n",
+      "solution": "from sklearn.metrics import accuracy_score, roc_auc_score\n\n# 지연1에 해당하는 확률이에요.\ny_true = [0, 0, 1, 1]\nscores = [0.1, 0.6, 0.4, 0.8]\n# 두 범주가 있어야 순위를 비교할 수 있어요.\nif len(set(y_true)) != 2:\n    print(\"AUC 정의 불가\")\nelse:\n    # 이 줄을 고쳐 0.5 기준 정확도가 아니라 확률의 순위로 AUC를 구하세요.\n    # AUC는 기준 없이 확률 그대로, 지연 쪽 점수가 정상보다 높은 짝의 비율이에요.\n    auc = roc_auc_score(y_true, scores)\n    print(round(float(auc), 4))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "0.75"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "roc_auc_score로 확률의 순위를 평가하는 문제예요.",
+          "target": "text:roc_auc_score로 확률의 순위를 평가하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "AUC는 기준을 정하지 않고 확률의 순위를 평가해요. auc 줄을 roc_auc_score로 고쳐야 해요.",
+          "target": "text:auc 줄을 고쳐 0.5 기준 정확도가 아니라 확률의 순위로 AUC를 구하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0.5예요. 0.5 기준으로 자른 범주의 정확도예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "auc = accuracy_score(y_true, [int(s >= 0.5) for s in scores])\n",
+          "after": "auc = roc_auc_score(y_true, scores)\n",
+          "say": "roc_auc_score(y_true, scores)로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0.75예요. 지연·정상 짝 네 개 중 세 개에서 지연 쪽 확률이 더 높았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. AUC 0.75는 정답률 75%가 아니에요. 확률 순위의 평가예요.",
+          "target": "code:roc_auc_score(y_true, scores)"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"y_true\": [1, 0, 1, 0, 0], \"scores\": [0.3, 0.2, 0.9, 0.45, 0.35]}, \"expected\": \"0.6667\"}, {\"values\": {\"y_true\": [1, 1], \"scores\": [0.2, 0.7]}, \"expected\": \"AUC 정의 불가\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
       "id": "stp_992c4142-a502-4477-bf22-ab70b8e559a4",

@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "34462e646959d9c92b5b536b49badb6dd8737a416d07c0ed19f631d270a9074c",
+  "entry": [
+    {
+      "action": "say",
+      "text": "전처리를 전체 표로 미리 fit하면 평가 몫의 정보가 기준에 섞여요. pipeline 전체를 교차검증에 넘겨야 해요.",
+      "target": "text:미리 fit한 행렬 대신 pipeline 전체와 원래 표 X_train을 교차검증에 넘기세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        30,
+        30
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[3.5, 3.5, 3.5]예요. 세 fold가 모두 전체 표의 평균을 함께 썼어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "cross_validate(LinearRegression(), preprocess.fit_transform(X_train), y_train,",
+      "after": "cross_validate(pipeline, X_train, y_train,",
+      "say": "pipeline과 X_train을 넘겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        30,
+        30
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[4.5, 3.5, 2.5]예요. fold마다 자기 훈련 몫의 거리로만 평균을 배웠어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 교차검증 밖에서 전체 표로 전처리를 먼저 fit해 공유하지 않아요. 평가 몫이 기준에 들어가요.",
+      "target": "code:cross_validate(pipeline, X_train, y_train,"
+    }
+  ]
+}

@@ -3,32 +3,32 @@
   "lesson": "courses/redesigned/aice-neural-regression.json",
   "expected_outputs": [
     [
-      "[[-3.0], [3.0]]",
       "[[0.0], [3.0]]",
       "[[-3.0], [3.0]]"
     ],
     [
-      "mse\n['loss', 'mae']"
+      "2.0 2.0",
+      "4.0 2.0"
     ],
     [
-      "10\nTrue",
-      "3\nTrue"
+      "0",
+      "10\nTrue"
     ],
     [
-      "[2, 2]",
-      "[2, 1]",
-      "[2, 2]"
+      "[2, 2]\n4",
+      "[2, 1]\n2"
     ],
     [
+      "[[3.0], [5.0]]\n0.0 0.0",
       "[[3.0], [5.0]]\n1.0 1.0"
     ],
     [
-      "[3.0, 5.0]\n0.0",
-      "[3.0, 5.0]\n2.0",
-      "[3.0, 5.0]\n0.0"
+      "[3.0, 5.0]\n[5.0, 3.0]\n2.0",
+      "[3.0, 5.0]\n[3.0, 5.0]\n0.0"
     ],
     [
-      "True"
+      "[-1.0, 3.0]\nFalse",
+      "[1.0, 7.0]\nTrue"
     ],
     [
       "[[-3.0], [3.0]]"
@@ -40,6 +40,146 @@
     ]
   ],
   "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "activation=\"linear\"",
+          "activation=\"sigmoid\""
+        ]
+      ],
+      "reason": "Sigmoid squeezes into 0..1"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "print(model.predict(np.array(rows, dtype=\"float32\"), verbose=0).tolist())",
+          "print([[-3.0], [3.0]])"
+        ]
+      ],
+      "reason": "Typing the predictions"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "loss=\"mse\", metrics=[\"mae\"]",
+          "loss=\"mae\", metrics=[\"mse\"]"
+        ]
+      ],
+      "reason": "Swapping loss and metric"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "print(round(float(result[\"loss\"]), 4), round(float(result[\"mae\"]), 4))",
+          "print(4.0, 2.0)"
+        ]
+      ],
+      "reason": "Typing the numbers"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "losses = history.history[\"loss\"]\n",
+          "losses = [10.0] * 10\n"
+        ]
+      ],
+      "reason": "Typing ten records"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "losses = history.history[\"loss\"]\n",
+          "losses = list(range(len(X_train), 0, -1))\n"
+        ]
+      ],
+      "reason": "One record per delivery"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "keras.layers.Dense(1)])",
+          "keras.layers.Dense(len(rows))])"
+        ]
+      ],
+      "reason": "One output per delivery row"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "print(list(predictions.shape))",
+          "print([2, 1])"
+        ]
+      ],
+      "reason": "Typing the shape"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "result = model.evaluate(X, y, return_dict=True, verbose=0)\n",
+          "result = {\"loss\": 1.0, \"mae\": 1.0}\n"
+        ]
+      ],
+      "reason": "Typing the summary"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "result = model.evaluate(X, y, return_dict=True, verbose=0)\n",
+          "result = model.evaluate(X, X, return_dict=True, verbose=0)\n"
+        ]
+      ],
+      "reason": "Inputs as the answers"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "y_true = [actual_by_order[order] for order in orders]\n",
+          "y_true = sorted(actual_by_order.values())\n"
+        ]
+      ],
+      "reason": "Sorting the actual values"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "y_true = [actual_by_order[order] for order in orders]\n",
+          "y_true = [3.0, 5.0]\n"
+        ]
+      ],
+      "reason": "Typing the actual values"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "scaled = (new - saved[\"mean\"]) / saved[\"std\"]\n",
+          "scaled = new\n"
+        ]
+      ],
+      "reason": "No scaling"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "print(after.round(4).ravel().tolist())\nprint(bool(np.allclose(before, after)))\n",
+          "print([1.0, 7.0])\nprint(True)\n"
+        ]
+      ],
+      "reason": "Typing the result"
+    },
     {
       "step": 8,
       "replacements": [
@@ -72,6 +212,76 @@
     }
   ],
   "accept": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "activation=\"linear\", ",
+          ""
+        ]
+      ],
+      "reason": "Dense default is linear"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "loss=\"mse\"",
+          "loss=\"mean_squared_error\""
+        ]
+      ],
+      "reason": "Full loss name"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "losses = history.history[\"loss\"]\n",
+          "losses = list(history.history.get(\"loss\"))\n"
+        ]
+      ],
+      "reason": "get and list"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "keras.layers.Dense(1)])",
+          "keras.layers.Dense(units=1)])"
+        ]
+      ],
+      "reason": "units keyword"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "result = model.evaluate(X, y, return_dict=True, verbose=0)\n",
+          "result = dict(zip([\"loss\", \"mae\"], model.evaluate(X, y, verbose=0)))\n"
+        ]
+      ],
+      "reason": "List result zipped with names"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "y_true = [actual_by_order[order] for order in orders]\n",
+          "y_true = list(map(actual_by_order.get, orders))\n"
+        ]
+      ],
+      "reason": "map with get"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "scaled = (new - saved[\"mean\"]) / saved[\"std\"]\n",
+          "scaled = np.divide(new - saved[\"mean\"], saved[\"std\"])\n"
+        ]
+      ],
+      "reason": "np.divide"
+    },
     {
       "step": 9,
       "replacements": [

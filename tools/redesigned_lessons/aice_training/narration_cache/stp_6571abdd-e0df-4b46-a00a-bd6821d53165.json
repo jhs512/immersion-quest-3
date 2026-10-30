@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "eb2c91bd2ecf72ac34f45a18be0623a528bb07c36aa1f09834c4c31976ba7515",
+  "entry": [
+    {
+      "action": "say",
+      "text": "가중치는 batch마다 한 번씩 고쳐져요. 계산한 횟수를 실제 갱신 횟수와 비교해야 해요.",
+      "target": "text:epoch마다 batch 수만큼 갱신하는 횟수를 계산하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        28,
+        28
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2 4예요. epoch 수만 셌는데 실제로는 네 번 갱신했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "updates = epochs\n",
+      "after": "updates = epochs * math.ceil(len(X_train) / batch_size)\n",
+      "say": "epochs에 math.ceil(len(X_train) / batch_size)를 곱해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        28,
+        28
+      ]
+    },
+    {
+      "action": "say",
+      "text": "4 4예요. epoch마다 batch 둘, 두 epoch라 네 번이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 관측 수가 batch_size로 나누어떨어지지 않으면 남은 관측도 한 batch라 한 번 더 갱신해요. 그래서 올림해요.",
+      "target": "code:math.ceil(len(X_train) / batch_size)"
+    }
+  ]
+}

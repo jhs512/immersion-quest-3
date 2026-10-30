@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "673d135521a5302634e80cb7306f8e6e762887327ebee4b61f310151b5b7a46a",
+  "entry": [
+    {
+      "action": "say",
+      "text": "검증 손실은 첫 epoch 뒤부터 나빠져요. 멈출 때 가장 좋았던 가중치로 되돌리게 설정해야 해요.",
+      "target": "text:멈출 때 검증 손실이 가장 작았던 epoch의 가중치로 되돌리세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        29,
+        31
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2, False, 2예요. 두 번째 epoch에서 멈췄지만 나빠진 마지막 가중치가 남아 한 epoch 모델과 달라요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "patience=patience)",
+      "after": "patience=patience, restore_best_weights=True)",
+      "say": "괄호 안에 restore_best_weights=True를 더해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        29,
+        31
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2, True, 2예요. 첫 epoch의 가중치로 돌아가 한 epoch만 학습한 모델과 예측이 같아요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 마지막 줄의 갱신 횟수는 2 그대로예요. 되돌리는 것은 모델 가중치뿐이고 optimizer의 갱신 횟수는 돌아가지 않아요.",
+      "target": "code:restore_best_weights=True"
+    }
+  ]
+}

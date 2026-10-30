@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "c52a2e3966a60d72ce19b6a2f82cdec6b940f0ca97500da6666101134e2e6f52",
+  "entry": [
+    {
+      "action": "say",
+      "text": "학습하기 전에 학습 규칙을 정해야 해요. compile 줄에 SGD와 mse를 써요.",
+      "target": "text:주석 아래에 학습률 rate의 SGD와 mse 손실로 학습 규칙을 정하는 compile 줄을 쓰세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        16
+      ],
+      "expect_error": "AttributeError"
+    },
+    {
+      "action": "say",
+      "text": "NoneType 뒤에 AttributeError예요. compile 전이라 최적화기가 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "print(model.optimizer.__class__.__name__)\n",
+      "after": "model.compile(optimizer=keras.optimizers.SGD(learning_rate=rate), loss=\"mse\")\nprint(model.optimizer.__class__.__name__)\n",
+      "say": "print 앞에 compile 줄을 써요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        20
+      ]
+    },
+    {
+      "action": "say",
+      "text": "SGD, 0.1, True예요. 규칙이 정해졌고 가중치는 그대로예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. compile에 자료를 넘기지 않아요. 가중치를 바꾸는 건 다음의 fit이에요.",
+      "target": "code:model.compile("
+    }
+  ]
+}

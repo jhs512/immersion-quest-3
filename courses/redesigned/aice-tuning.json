@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_27fe4e86-0aa4-45e2-9267-d2785a18f263",
-  "revision": "aice-tuning-5",
+  "revision": "aice-tuning-6",
   "title": "검증 자료를 지키며 설정을 비교해요",
   "description": "같은 배송 표에서 후보·fold·전처리·최종 평가의 경계를 읽어요.",
   "objectives": [
@@ -35,27 +35,27 @@
           "premise": "같은 배송 훈련 표로 모델 설정을 고르려고 해요. 먼저 후보 수를 세고 학습·검증의 역할을 바꾸며 비교해요.",
           "steps": [
             {
-              "id": "stp_d5b4f4b3-8eb5-4754-801c-1b94b9d5a777",
+              "id": "stp_f9407ed7-f32a-4a96-b87b-475013d19d89",
               "objectives": [
-                "파라미터 그리드의 후보 수와 비용을 이해해요."
+                "설정 후보의 조합이 곱으로 늘어나는 것을 계산해 확인해요."
               ]
             },
             {
-              "id": "stp_0814f53d-977d-4785-8811-764348a7d5ac",
+              "id": "stp_3151ed86-9db2-4764-bffa-90bf2e66b693",
               "objectives": [
-                "교차검증의 fold와 학습·검증 분리를 이해해요."
+                "fold마다 학습과 검증을 나누고 검증 몫의 범주 비율을 지켜요."
               ]
             },
             {
-              "id": "stp_49835fc1-36eb-4889-9ddb-1d9202724d2f",
+              "id": "stp_5aecea73-b912-46c2-918a-7c077f924b8f",
               "objectives": [
-                "cross_val_score의 fold 점수와 평균을 읽어요."
+                "한 번의 분리보다 여러 fold 평가의 평균을 써요."
               ]
             },
             {
-              "id": "stp_f5fb6ed5-cb74-48b4-91fd-65117126f41c",
+              "id": "stp_60ac6a4e-aeb7-47ea-9df9-2572ae94433d",
               "objectives": [
-                "GridSearchCV의 후보·점수·재학습을 이해해요."
+                "설정을 고른 뒤 최종 모델을 훈련 표 전체로 다시 학습해요."
               ]
             }
           ]
@@ -78,15 +78,15 @@
           "premise": "같은 설정 비교에 전처리와 최종 평가 표가 추가돼요. 마지막에는 파이프라인 안의 모델 설정 이름을 고쳐요.",
           "steps": [
             {
-              "id": "stp_a465ce45-1868-4214-9e2a-57ecd936e928",
+              "id": "stp_e1171e0a-d778-4980-b85e-a34701a1c35c",
               "objectives": [
-                "neg_mean_squared_error의 최대화 규약을 구별해요."
+                "neg 오차 점수의 방향을 읽어 오차가 작은 후보를 골라요."
               ]
             },
             {
-              "id": "stp_2ae67437-08c2-4fe0-a939-681c7c5b564b",
+              "id": "stp_9651646a-7aba-4151-95d9-c96b49aed5ea",
               "objectives": [
-                "Pipeline이 각 훈련 fold 안에서 전처리를 학습함을 확인해요."
+                "전처리 기준도 fold마다 훈련 몫에서만 배우게 해요."
               ]
             },
             {
@@ -124,396 +124,391 @@
   ],
   "tasks": [
     {
-      "id": "stp_d5b4f4b3-8eb5-4754-801c-1b94b9d5a777",
-      "title": "후보 조합이 얼마나 늘어날까요",
-      "goal": "깊이3가지·잎 최소 수2가지예요.\n설정 후보 조합은 몇 개일까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_f9407ed7-f32a-4a96-b87b-475013d19d89",
+      "title": "ParameterGrid로 설정 조합의 수를 세세요",
+      "goal": "`ParameterGrid(grid)`는 설정마다 후보를 하나씩 골라 만든 모든 조합을 만들어요. GridSearchCV도 이 조합을 하나씩 학습해 비교해요.\n\ncount 줄을 고쳐 후보 수를 더하지 말고 모든 조합의 수를 count에 담으세요. 채점은 다른 후보 목록으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 count와 실제 조합 수를 비교하세요.\n2. count 줄을 `count = len(list(ParameterGrid(grid)))`로 고치세요.\n3. 코드 실행을 눌러 두 값이 같은지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "six",
-      "tests": [],
-      "required": true,
-      "example_code": "from sklearn.model_selection import ParameterGrid\n\n# 깊이 세 후보와 잎 최소 수 두 후보의 모든 조합이에요.\ngrid = {\"max_depth\": [1, 2, 3], \"min_samples_leaf\": [1, 2]}\nprint(len(list(ParameterGrid(grid))))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "five",
-            "text": "3+2인5개예요"
-          },
-          {
-            "id": "six",
-            "text": "3×2인6개예요"
-          }
-        ],
-        "answer": "six"
-      },
-      "narration": [
+      "starter_code": "from sklearn.model_selection import ParameterGrid\n\n# 깊이 세 후보와 잎 최소 수 두 후보예요.\ngrid = {\"max_depth\": [1, 2, 3], \"min_samples_leaf\": [1, 2]}\n# 이 줄을 고쳐 후보 수를 더하지 말고 모든 조합의 수를 count에 담으세요.\ncount = len(grid[\"max_depth\"]) + len(grid[\"min_samples_leaf\"])\nprint(count)\nprint(len(list(ParameterGrid(grid))))\n",
+      "solution": "from sklearn.model_selection import ParameterGrid\n\n# 깊이 세 후보와 잎 최소 수 두 후보예요.\ngrid = {\"max_depth\": [1, 2, 3], \"min_samples_leaf\": [1, 2]}\n# 이 줄을 고쳐 후보 수를 더하지 말고 모든 조합의 수를 count에 담으세요.\n# 설정마다 후보를 하나씩 고르는 모든 조합이라 후보 수를 곱해요. ParameterGrid가 그 조합을 실제로 만들어요.\ncount = len(list(ParameterGrid(grid)))\nprint(count)\nprint(len(list(ParameterGrid(grid))))\n",
+      "tests": [
         {
-          "action": "say",
-          "text": "이 수업에서는 모델 설정을 비교하고 선택하는 흐름을 배워요. 최종 평가 자료는 따로 남겨 둬요."
-        },
-        {
-          "action": "say",
-          "text": "후보 조합과 교차검증 점수를 확인해요. Pipeline의 전처리와 최종 재학습까지 연결해요."
-        },
-        {
-          "action": "say",
-          "text": "후보 조합이 얼마나 늘어날까요?",
-          "target": "text:후보 조합이 얼마나 늘어날까요#1"
-        },
-        {
-          "action": "say",
-          "text": "ParameterGrid는 각 설정의 후보를 하나씩 골라 만든 모든 조합을 돌려줘요. 깊이 셋과 잎 최소 수 둘을 더하는지 곱하는지 예상해요.",
-          "target": "text:깊이3가지·잎 최소 수2가지예요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            5,
-            5
-          ]
-        },
-        {
-          "action": "say",
-          "text": "모든 설정 조합은 여섯 개예요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 후보 모델 여섯 개와 포레스트 안의 나무 여섯 개는 다른 뜻이에요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "six"
+          "input": "",
+          "expected": "6\n6"
         }
       ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_0814f53d-977d-4785-8811-764348a7d5ac",
-      "title": "평가 몫을 바꿔 가며 확인해요",
-      "goal": "두 fold에서 학습·검증 역할을 바꿔요. 출력 첫 줄은 fold마다 [학습 수, 검증 수, 겹친 수], 둘째 줄은 검증 몫의 [정상 수, 지연 수], 셋째 줄은 관측마다 검증에 들어간 횟수예요.\n한 fold의 학습과 검증은 겹칠까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "apart",
-      "tests": [],
       "required": true,
-      "example_code": "from sklearn.model_selection import StratifiedKFold\n\n# 범주마다 네 관측이 있어 두 몫으로 나눌 수 있어요.\nX_train = [[0], [1], [2], [3], [4], [5], [6], [7]]\ny_train = [0, 0, 0, 0, 1, 1, 1, 1]\ncv = StratifiedKFold(n_splits=2, shuffle=False)\n# 확인용 계산: 아래 블록은 출력할 세 목록을 모아요. 이 블록의 문법은 몰라도 돼요.\nchecks = []\nseen = [0] * len(y_train)\ncounts = []\nfor train, valid in cv.split(X_train, y_train):\n    checks.append([len(train), len(valid), len(set(train) & set(valid))])\n    labels = [y_train[i] for i in valid]\n    counts.append([labels.count(0), labels.count(1)])\n    for i in valid:\n        seen[i] += 1\nprint(checks)\nprint(counts)\nprint(seen)\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "apart",
-            "text": "아니요.그 fold에서는 분리되고 다음 fold에서 역할이 바뀌어요"
-          },
-          {
-            "id": "same",
-            "text": "네. 모든 관측이 학습과 검증에 다 쓰이니 겹쳐요"
-          }
-        ],
-        "answer": "apart"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "평가 몫을 바꿔 가며 확인하는 문제예요.",
-          "target": "text:평가 몫을 바꿔 가며 확인해요#1"
+          "text": "이 수업에서는 모델 설정을 비교하고 선택하는 흐름을 직접 코드로 써요. 최종 평가 자료는 따로 남겨 둬요."
         },
         {
           "action": "say",
-          "text": "StratifiedKFold(n_splits=2)는 훈련 표를 두 몫으로 나눠 한 번씩 검증 몫으로 써요. 한 fold 안에서 학습과 검증이 겹치는지 예상해요.",
-          "target": "text:두 fold에서 학습·검증 역할을 바꿔요."
+          "text": "후보 조합과 교차검증 점수를 계산해요. Pipeline의 전처리와 최종 재학습까지 코드로 연결해요."
+        },
+        {
+          "action": "say",
+          "text": "ParameterGrid로 설정 조합의 수를 세는 문제예요.",
+          "target": "text:ParameterGrid로 설정 조합의 수를 세세요#1"
+        },
+        {
+          "action": "say",
+          "text": "깊이 세 후보와 잎 최소 수 두 후보예요. count 줄을 고쳐 모든 조합의 수를 세야 해요.",
+          "target": "text:count 줄을 고쳐 후보 수를 더하지 말고 모든 조합의 수를 count에 담으세요."
         },
         {
           "action": "run",
           "lines": [
-            19,
-            19
+            7,
+            8
           ]
         },
         {
           "action": "say",
-          "text": "각 몫은 학습 네 개·검증 네 개·겹침 0이며 검증에 관측마다 한 번씩 들어가요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "각 검증 표에는 정상과 지연이 두 개씩 있어요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 다른 fold에서 다시 쓰는 것과 한 fold 안의 누수는 구별해요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "apart"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_49835fc1-36eb-4889-9ddb-1d9202724d2f",
-      "title": "한 번의 분리보다 여러 평가를 봐요",
-      "goal": "cross_val_score는 fold마다 새로 학습하고 남겨둔 몫으로 점수를 매겨요. 두 fold 점수와 그 평균을 출력해요.\n봉인한 최종 테스트 점수도 이미 구한 걸까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "cv",
-      "tests": [],
-      "required": true,
-      "example_code": "from sklearn.model_selection import cross_val_score, StratifiedKFold\nfrom sklearn.tree import DecisionTreeClassifier\n\n# 범주마다 네 관측이 있어 두 몫으로 나눌 수 있어요.\nX_train = [[0], [1], [2], [3], [4], [5], [6], [7]]\ny_train = [0, 0, 0, 0, 1, 1, 1, 1]\ncv = StratifiedKFold(n_splits=2, shuffle=False)\n# 매 fold에서 새로 학습한 뒤 남겨둔 몫을 평가해요.\nscores = cross_val_score(DecisionTreeClassifier(max_depth=1, random_state=0), X_train, y_train, cv=cv, scoring=\"accuracy\")\nprint(scores.tolist())\nprint(float(scores.mean()))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "final",
-            "text": "네. 교차검증 평균이 곧 최종 테스트 점수예요"
-          },
-          {
-            "id": "cv",
-            "text": "아니요.훈련 안에서 나눈 교차검증 평균이에요"
-          }
-        ],
-        "answer": "cv"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "교차 검증의 평균과 따로 남긴 최종 테스트 점수를 구별하는 문제예요.",
-          "target": "text:한 번의 분리보다 여러 평가를 봐요#1"
-        },
-        {
-          "action": "say",
-          "text": "교차검증은 훈련 표 안에서 나눈 몫으로 점수를 매겨요. 그 평균이 따로 봉인한 최종 테스트 점수인지 구별하는 문제예요.",
-          "target": "text:cross_val_score는 fold마다 새로 학습하고 남겨둔 몫으로 점수를 매겨요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            11,
-            11
-          ]
-        },
-        {
-          "action": "say",
-          "text": "두 점수는 0.75씩이고 평균도 0.75예요.",
+          "text": "5와 6이에요. 더하기는 실제로 만들어지는 조합의 수와 달라요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "n_splits=2",
-          "after": "n_splits=4",
-          "say": "fold를 네 개로 늘려 볼게요."
+          "before": "count = len(grid[\"max_depth\"]) + len(grid[\"min_samples_leaf\"])\n",
+          "after": "count = len(list(ParameterGrid(grid)))\n",
+          "say": "len(list(ParameterGrid(grid)))로 바꿔요."
         },
         {
           "action": "run",
           "lines": [
-            11,
-            11
+            7,
+            8
           ]
         },
         {
           "action": "say",
-          "text": "네 점수는 0.5, 1, 1, 1로 fold마다 달라요. 평균도 0.875로 바뀌었어요. 교차검증 평균은 나누는 방법에 따라 흔들리는 추정값이에요.",
+          "text": "6과 6이에요. 깊이 셋마다 잎 최소 수 둘을 짝지은 3×2개예요.",
           "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "n_splits=4",
-          "after": "n_splits=2",
-          "say": "두 fold로 되돌려요."
         },
         {
           "action": "say",
-          "text": "조심하세요. 교차검증 평균은 따로 남겨 둔 최종 테스트의 결과가 아니에요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "cv"
+          "text": "조심하세요. 설정 후보를 하나 더할 때마다 조합은 곱으로 늘어요. 학습 횟수도 그만큼 늘어요.",
+          "target": "code:count = len(list(ParameterGrid"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"grid\": {\"max_depth\": [1, 2, 3, 4], \"min_samples_leaf\": [1, 2, 5]}}, \"expected\": \"12\\\\n12\"}, {\"values\": {\"grid\": {\"max_depth\": [2], \"min_samples_leaf\": [1, 3]}}, \"expected\": \"2\\\\n2\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_f5fb6ed5-cb74-48b4-91fd-65117126f41c",
-      "title": "후보를 같은 기준으로 비교해요",
-      "goal": "기본 refit=True로 최선 설정을 골랐어요.\n그 뒤 최종 모델은 무엇으로 학습할까요?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_3151ed86-9db2-4764-bffa-90bf2e66b693",
+      "title": "StratifiedKFold로 범주 비율을 지켜 나누세요",
+      "goal": "교차검증은 훈련 표를 몫(fold)으로 나눠 한 몫씩 검증에 쓰고 나머지로 학습해요. `KFold`는 순서대로 자르고, `StratifiedKFold`는 범주마다 나눠 몫마다 범주 비율을 비슷하게 맞춰요.\n\ncv 줄을 고쳐 순서대로 자르는 KFold 대신 범주 비율을 지키는 StratifiedKFold로 두 몫을 나누세요. 채점은 다른 정답 순서로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 fold마다의 수와 범주를 확인하세요.\n2. `KFold(`를 `StratifiedKFold(`로 고치세요.\n3. 코드 실행을 눌러 검증 몫의 범주를 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "whole",
-      "tests": [],
+      "starter_code": "from sklearn.model_selection import KFold, StratifiedKFold\n\n# 범주마다 네 관측이 있어 두 몫으로 나눌 수 있어요.\nX_train = [[0], [1], [2], [3], [4], [5], [6], [7]]\ny_train = [0, 0, 0, 0, 1, 1, 1, 1]\n# 이 줄을 고쳐 순서대로 자르는 KFold 대신 범주 비율을 지키는 StratifiedKFold로 두 몫을 나누세요.\ncv = KFold(n_splits=2, shuffle=False)\n# 확인용 계산: fold마다 [학습 수, 검증 수, 겹친 수]와 검증 몫의 [정상 수, 지연 수]를 모아요. 이 블록의 문법은 몰라도 돼요.\nchecks = []\ncounts = []\nfor train, valid in cv.split(X_train, y_train):\n    checks.append([len(train), len(valid), len(set(train) & set(valid))])\n    labels = [y_train[i] for i in valid]\n    counts.append([labels.count(0), labels.count(1)])\nprint(checks)\nprint(counts)\n",
+      "solution": "from sklearn.model_selection import KFold, StratifiedKFold\n\n# 범주마다 네 관측이 있어 두 몫으로 나눌 수 있어요.\nX_train = [[0], [1], [2], [3], [4], [5], [6], [7]]\ny_train = [0, 0, 0, 0, 1, 1, 1, 1]\n# 이 줄을 고쳐 순서대로 자르는 KFold 대신 범주 비율을 지키는 StratifiedKFold로 두 몫을 나누세요.\n# 범주마다 따로 나눠 검증 몫마다 정상과 지연이 같은 비율로 들어가요.\ncv = StratifiedKFold(n_splits=2, shuffle=False)\n# 확인용 계산: fold마다 [학습 수, 검증 수, 겹친 수]와 검증 몫의 [정상 수, 지연 수]를 모아요. 이 블록의 문법은 몰라도 돼요.\nchecks = []\ncounts = []\nfor train, valid in cv.split(X_train, y_train):\n    checks.append([len(train), len(valid), len(set(train) & set(valid))])\n    labels = [y_train[i] for i in valid]\n    counts.append([labels.count(0), labels.count(1)])\nprint(checks)\nprint(counts)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[[4, 4, 0], [4, 4, 0]]\n[[2, 2], [2, 2]]"
+        }
+      ],
       "required": true,
-      "example_code": "from sklearn.model_selection import GridSearchCV, StratifiedKFold\nfrom sklearn.tree import DecisionTreeClassifier\n\n# 범주마다 네 관측이 있어 두 몫으로 나눌 수 있어요.\nX_train = [[0], [1], [2], [3], [4], [5], [6], [7]]\ny_train = [0, 0, 0, 0, 1, 1, 1, 1]\ncv = StratifiedKFold(n_splits=2, shuffle=False)\n# 같은 분리와 같은 정확도에서 네 후보를 비교해요.\nsearch = GridSearchCV(DecisionTreeClassifier(random_state=0), {\"max_depth\": [1, 2], \"min_samples_leaf\": [1, 2]}, scoring=\"accuracy\", cv=cv, n_jobs=1, error_score=\"raise\")\nsearch.fit(X_train, y_train)\n# 결과 행 하나가 설정 후보 하나예요.\nprint(len(search.cv_results_[\"params\"]))\nprint(search.n_splits_)\nprint(search.best_params_)\nprint(search.predict([[0], [7]]).tolist())\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "test",
-            "text": "아직 안 본 최종 테스트 정답까지 넣어요"
-          },
-          {
-            "id": "whole",
-            "text": "선택한 설정으로 전달한 훈련 표 전체를 다시 학습해요"
-          }
-        ],
-        "answer": "whole"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "다시 학습할 때 쓰는 자료를 고르는 문제예요.",
-          "target": "text:후보를 같은 기준으로 비교해요#1"
+          "text": "StratifiedKFold로 범주 비율을 지켜 나누는 문제예요.",
+          "target": "text:StratifiedKFold로 범주 비율을 지켜 나누세요#1"
         },
         {
           "action": "say",
-          "text": "GridSearchCV는 후보마다 교차검증 점수를 매겨 최선을 고르고, refit=True면 그 설정으로 다시 학습해요.",
-          "target": "text:기본 refit=True로 최선 설정을 골랐어요."
+          "text": "정답이 정상 넷, 지연 넷 순서로 놓였어요. cv 줄을 고쳐 범주 비율을 지키며 나눠야 해요.",
+          "target": "text:cv 줄을 고쳐 순서대로 자르는 KFold 대신 범주 비율을 지키는 StratifiedKFold로 두 몫을 나누세요."
         },
         {
           "action": "run",
           "lines": [
             15,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "겹친 수는 0이지만 검증 몫이 [4, 0]과 [0, 4]예요. 한 몫에 한 범주만 들어갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "cv = KFold(n_splits=2, shuffle=False)\n",
+          "after": "cv = StratifiedKFold(n_splits=2, shuffle=False)\n",
+          "say": "KFold를 StratifiedKFold로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "검증 몫마다 [2, 2]예요. 한 fold 안에서 학습과 검증은 겹치지 않고, 다음 fold에서 역할이 바뀌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 정렬된 표를 순서대로 자르면 검증 몫에 한 범주만 남을 수 있어요.",
+          "target": "code:StratifiedKFold(n_splits=2"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"y_train\": [1, 1, 1, 1, 0, 0, 0, 0]}, \"expected\": \"[[4, 4, 0], [4, 4, 0]]\\\\n[[2, 2], [2, 2]]\"}, {\"values\": {\"X_train\": [[0], [1], [2], [3], [4], [5]], \"y_train\": [0, 0, 1, 1, 1, 1]}, \"expected\": \"[[3, 3, 0], [3, 3, 0]]\\\\n[[1, 2], [1, 2]]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_5aecea73-b912-46c2-918a-7c077f924b8f",
+      "title": "scores.mean()으로 교차검증 평균을 구하세요",
+      "goal": "`cross_val_score`는 fold마다 새로 학습하고 남겨 둔 몫으로 점수를 매겨 fold 수만큼 점수를 돌려줘요. 한 번의 분리는 운에 따라 달라서 모든 fold 점수의 평균을 써요.\n\ncv_score 줄을 고쳐 첫 fold 하나가 아니라 모든 fold 점수의 평균을 cv_score에 담으세요. 채점은 다른 정답으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 fold 점수와 cv_score를 확인하세요.\n2. `scores[0]`을 `scores.mean()`으로 고치세요.\n3. 코드 실행을 눌러 평균을 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "from sklearn.model_selection import cross_val_score, StratifiedKFold\nfrom sklearn.tree import DecisionTreeClassifier\n\n# 범주마다 네 관측이 있어 두 몫으로 나눌 수 있어요.\nX_train = [[0], [1], [2], [3], [4], [5], [6], [7]]\ny_train = [0, 0, 0, 1, 0, 1, 1, 1]\ncv = StratifiedKFold(n_splits=2, shuffle=False)\n# 매 fold에서 새로 학습한 뒤 남겨 둔 몫을 평가해요.\nscores = cross_val_score(DecisionTreeClassifier(max_depth=1, random_state=0), X_train, y_train, cv=cv, scoring=\"accuracy\")\nprint(scores.tolist())\n# 이 줄을 고쳐 첫 fold 하나가 아니라 모든 fold 점수의 평균을 cv_score에 담으세요.\ncv_score = float(scores[0])\nprint(cv_score)\n",
+      "solution": "from sklearn.model_selection import cross_val_score, StratifiedKFold\nfrom sklearn.tree import DecisionTreeClassifier\n\n# 범주마다 네 관측이 있어 두 몫으로 나눌 수 있어요.\nX_train = [[0], [1], [2], [3], [4], [5], [6], [7]]\ny_train = [0, 0, 0, 1, 0, 1, 1, 1]\ncv = StratifiedKFold(n_splits=2, shuffle=False)\n# 매 fold에서 새로 학습한 뒤 남겨 둔 몫을 평가해요.\nscores = cross_val_score(DecisionTreeClassifier(max_depth=1, random_state=0), X_train, y_train, cv=cv, scoring=\"accuracy\")\nprint(scores.tolist())\n# 이 줄을 고쳐 첫 fold 하나가 아니라 모든 fold 점수의 평균을 cv_score에 담으세요.\n# 여러 몫의 평가를 모은 평균이에요. 봉인한 최종 테스트 점수가 아니라 훈련 안에서 나눈 추정이에요.\ncv_score = float(scores.mean())\nprint(cv_score)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[0.5, 0.75]\n0.625"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "scores.mean()으로 교차검증 평균을 구하는 문제예요.",
+          "target": "text:scores.mean()으로 교차검증 평균을 구하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "두 fold의 점수가 나왔어요. cv_score 줄을 고쳐 모든 fold 점수의 평균을 구해야 해요.",
+          "target": "text:cv_score 줄을 고쳐 첫 fold 하나가 아니라 모든 fold 점수의 평균을 cv_score에 담으세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[0.5, 0.75]와 0.5예요. 한 번의 분리만 보면 다른 몫의 결과를 놓쳐요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "cv_score = float(scores[0])\n",
+          "after": "cv_score = float(scores.mean())\n",
+          "say": "scores[0]을 scores.mean()으로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0.625예요. 두 몫의 평가를 모은 교차검증 평균이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 교차검증 평균은 훈련 안에서 나눈 추정이에요. 봉인한 최종 테스트 점수가 아니에요.",
+          "target": "code:scores.mean()"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"y_train\": [0, 0, 0, 0, 1, 1, 1, 1]}, \"expected\": \"[0.75, 0.75]\\\\n0.75\"}, {\"values\": {\"y_train\": [1, 1, 1, 0, 1, 0, 0, 0]}, \"expected\": \"[0.5, 0.75]\\\\n0.625\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_60ac6a4e-aeb7-47ea-9df9-2572ae94433d",
+      "title": "refit=True로 고른 설정을 훈련 표 전체로 다시 학습하세요",
+      "goal": "`GridSearchCV`는 같은 분리와 같은 기준으로 후보를 비교해 `best_params_`를 골라요. `refit=True`(기본값)는 그 설정으로 `fit`에 넘긴 훈련 표 전체를 다시 학습해 `best_estimator_`와 `predict`를 만들어요.\n\nsearch 줄의 refit을 고쳐 고른 설정으로 전달한 훈련 표 전체를 다시 학습하게 하세요. 채점은 다른 훈련 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 AttributeError가 나오는지 확인하세요.\n2. `refit=False`를 `refit=True`로 고치세요.\n3. 코드 실행을 눌러 최종 모델의 학습 행 수와 예측을 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "from sklearn.model_selection import GridSearchCV, StratifiedKFold\nfrom sklearn.tree import DecisionTreeClassifier\n\n# 범주마다 네 관측이 있어 두 몫으로 나눌 수 있어요.\nX_train = [[0], [1], [2], [3], [4], [5], [6], [7]]\ny_train = [0, 0, 0, 0, 1, 1, 1, 1]\ncv = StratifiedKFold(n_splits=2, shuffle=False)\n# 같은 분리와 같은 정확도에서 네 후보를 비교해요.\n# 이 줄의 refit을 고쳐 고른 설정으로 전달한 훈련 표 전체를 다시 학습하게 하세요.\nsearch = GridSearchCV(DecisionTreeClassifier(random_state=0), {\"max_depth\": [1, 2], \"min_samples_leaf\": [1, 2]}, scoring=\"accuracy\", cv=cv, refit=False, n_jobs=1, error_score=\"raise\")\nsearch.fit(X_train, y_train)\nprint(search.best_params_)\n# 확인용 출력: 최종 모델이 학습한 행 수와 새 배송 두 건의 예측이에요.\nprint(int(search.best_estimator_.tree_.n_node_samples[0]))\nprint(search.predict([[0], [7]]).tolist())\n",
+      "solution": "from sklearn.model_selection import GridSearchCV, StratifiedKFold\nfrom sklearn.tree import DecisionTreeClassifier\n\n# 범주마다 네 관측이 있어 두 몫으로 나눌 수 있어요.\nX_train = [[0], [1], [2], [3], [4], [5], [6], [7]]\ny_train = [0, 0, 0, 0, 1, 1, 1, 1]\ncv = StratifiedKFold(n_splits=2, shuffle=False)\n# 같은 분리와 같은 정확도에서 네 후보를 비교해요.\n# 이 줄의 refit을 고쳐 고른 설정으로 전달한 훈련 표 전체를 다시 학습하게 하세요.\n# refit=True는 최선 설정을 고른 뒤 그 설정으로 fit에 준 훈련 표 전체를 다시 학습해요.\nsearch = GridSearchCV(DecisionTreeClassifier(random_state=0), {\"max_depth\": [1, 2], \"min_samples_leaf\": [1, 2]}, scoring=\"accuracy\", cv=cv, refit=True, n_jobs=1, error_score=\"raise\")\nsearch.fit(X_train, y_train)\nprint(search.best_params_)\n# 확인용 출력: 최종 모델이 학습한 행 수와 새 배송 두 건의 예측이에요.\nprint(int(search.best_estimator_.tree_.n_node_samples[0]))\nprint(search.predict([[0], [7]]).tolist())\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "{'max_depth': 1, 'min_samples_leaf': 1}\n8\n[0, 1]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "refit=True로 고른 설정을 훈련 표 전체로 다시 학습하는 문제예요.",
+          "target": "text:refit=True로 고른 설정을 훈련 표 전체로 다시 학습하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "최선 설정을 골랐어요. refit을 고쳐 그 설정으로 훈련 표 전체를 다시 학습하게 해야 해요.",
+          "target": "text:search 줄의 refit을 고쳐 고른 설정으로 전달한 훈련 표 전체를 다시 학습하게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            14
+          ],
+          "expect_error": "AttributeError"
+        },
+        {
+          "action": "say",
+          "text": "최선 설정은 나오지만 AttributeError예요. refit=False라 최종 모델이 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "refit=False, ",
+          "after": "refit=True, ",
+          "say": "refit=False를 refit=True로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
             15
           ]
         },
         {
           "action": "say",
-          "text": "네 후보를 두 fold로 비교하고 고른 설정으로 새 예측을 해요.",
+          "text": "8과 [0, 1]이에요. 고른 설정으로 훈련 표 여덟 행 전체를 다시 학습했어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 여기서 전체는 전달한 훈련 표 전체이며 별도 최종 테스트를 뜻하지 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "whole"
+          "text": "조심하세요. refit은 최종 테스트 정답을 쓰지 않아요. fit에 넘긴 훈련 표만 써요.",
+          "target": "code:refit=True"
         }
       ],
-      "predict_before_run": true
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"X_train\": [[0], [1], [2], [3], [4], [5], [6], [7], [8], [9]], \"y_train\": [1, 1, 1, 1, 1, 0, 0, 0, 0, 0]}, \"expected\": \"{\\'max_depth\\': 1, \\'min_samples_leaf\\': 1}\\\\n10\\\\n[1, 0]\"}, {\"values\": {\"y_train\": [0, 0, 0, 1, 0, 1, 1, 1]}, \"expected\": \"{\\'max_depth\\': 1, \\'min_samples_leaf\\': 1}\\\\n8\\\\n[0, 1]\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
-      "id": "stp_a465ce45-1868-4214-9e2a-57ecd936e928",
-      "title": "음수 오차 점수의 방향을 읽어요",
-      "goal": "negMSE가-17인 후보와-25인 후보가 있어요.\n이 오차 기준에서 더 나은 쪽은?\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
+      "id": "stp_e1171e0a-d778-4980-b85e-a34701a1c35c",
+      "title": "음수 오차 점수가 더 큰 후보를 고르세요",
+      "goal": "scikit-learn의 점수는 언제나 클수록 좋게 맞춰요. 그래서 오차 지표는 `neg_mean_squared_error`처럼 −를 붙여 돌려줘요. −17은 MSE 17, −25는 MSE 25라서 −17이 더 나아요.\n\nbest 줄을 고쳐 음수 오차 점수가 더 큰(0에 가까운) 후보를 best에 담으세요. 채점은 다른 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 두 점수와 고른 후보를 확인하세요.\n2. `dummy < linear`를 `dummy > linear`로 고치세요.\n3. 코드 실행을 눌러 고른 후보를 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "python",
-      "starter_code": "",
-      "solution": "minus17",
-      "tests": [],
+      "starter_code": "from sklearn.dummy import DummyRegressor\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn.model_selection import KFold, cross_val_score\n\n# 거리와 시간이에요. 두 후보를 같은 분리로 비교해요.\nX_train = [[0], [1], [2], [3]]\ny_train = [0, 2, 4, 6]\ncv = KFold(n_splits=2)\ndummy = cross_val_score(DummyRegressor(strategy=\"mean\"), X_train, y_train, cv=cv, scoring=\"neg_mean_squared_error\").mean()\nlinear = cross_val_score(LinearRegression(), X_train, y_train, cv=cv, scoring=\"neg_mean_squared_error\").mean()\nprint(round(float(dummy), 3), round(float(linear), 3))\n# 이 줄을 고쳐 음수 오차 점수가 더 큰(0에 가까운) 후보를 best에 담으세요.\nbest = \"dummy\" if dummy < linear else \"linear\"\nprint(best)\n",
+      "solution": "from sklearn.dummy import DummyRegressor\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn.model_selection import KFold, cross_val_score\n\n# 거리와 시간이에요. 두 후보를 같은 분리로 비교해요.\nX_train = [[0], [1], [2], [3]]\ny_train = [0, 2, 4, 6]\ncv = KFold(n_splits=2)\ndummy = cross_val_score(DummyRegressor(strategy=\"mean\"), X_train, y_train, cv=cv, scoring=\"neg_mean_squared_error\").mean()\nlinear = cross_val_score(LinearRegression(), X_train, y_train, cv=cv, scoring=\"neg_mean_squared_error\").mean()\nprint(round(float(dummy), 3), round(float(linear), 3))\n# 이 줄을 고쳐 음수 오차 점수가 더 큰(0에 가까운) 후보를 best에 담으세요.\n# scikit-learn 점수는 클수록 좋게 맞춰요. 오차에 −를 붙였으니 0에 가까울수록 오차가 작아요.\nbest = \"dummy\" if dummy > linear else \"linear\"\nprint(best)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "-17.0 -0.0\nlinear"
+        }
+      ],
       "required": true,
-      "example_code": "from sklearn.dummy import DummyRegressor\nfrom sklearn.model_selection import KFold, cross_val_score\n\n# 평균 기준으로 수치 오차 점수의 부호를 살펴봐요.\nX_train = [[0], [1], [2], [3]]\ny_train = [0, 2, 4, 6]\nscores = cross_val_score(DummyRegressor(strategy=\"mean\"), X_train, y_train, cv=KFold(n_splits=2), scoring=\"neg_mean_squared_error\")\nprint(scores.tolist())\nprint(float(-scores.mean()))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "minus25",
-            "text": "숫자가 더 작은-25, 즉 MSE25예요"
-          },
-          {
-            "id": "minus17",
-            "text": "점수가 더 큰-17, 즉 MSE17이에요"
-          }
-        ],
-        "answer": "minus17"
-      },
       "narration": [
         {
           "action": "say",
-          "text": "-17과 -25 중 오차가 작은 쪽을 고르는 문제예요.",
-          "target": "text:음수 오차 점수의 방향을 읽어요#1"
+          "text": "음수 오차 점수가 더 큰 후보를 고르는 문제예요.",
+          "target": "text:음수 오차 점수가 더 큰 후보를 고르세요#1"
         },
         {
           "action": "say",
-          "text": "scikit-learn은 점수가 클수록 좋게 통일하려고 오차에 마이너스를 붙여요.",
-          "target": "text:negMSE가-17인 후보와-25인 후보가 있어요."
+          "text": "scoring이 neg_mean_squared_error예요. best 줄을 고쳐 점수가 더 큰 후보를 골라야 해요.",
+          "target": "text:best 줄을 고쳐 음수 오차 점수가 더 큰(0에 가까운) 후보를 best에 담으세요."
         },
         {
           "action": "run",
           "lines": [
-            9,
-            9
-          ]
-        },
-        {
-          "action": "say",
-          "text": "각 fold 점수는 -17.0이고 MSE로 돌리면 17.0이에요.",
-          "target": "output"
-        },
-        {
-          "action": "say",
-          "text": "조심하세요. 점수는 크게, 오차는 작게 고르도록 부호를 바꾼 API예요.",
-          "target": "output"
-        },
-        {
-          "action": "choose_answer",
-          "id": "minus17"
-        }
-      ],
-      "predict_before_run": true
-    },
-    {
-      "id": "stp_2ae67437-08c2-4fe0-a939-681c7c5b564b",
-      "title": "전처리도 fold 안에서 배워요",
-      "goal": "Pipeline으로 스케일과 트리를 묶어 교차검증했어요. 전체 훈련 표의 평균은 3.5예요. 첫 줄은 fold마다 스케일러가 배운 평균이에요.\n두 fold 스케일러가 배운 평균은 어떨까요? 이유를 고르세요.\n\n**할 일**\n\n1. 코드에서 근거를 찾아 결과를 먼저 예상하세요.\n2. 예상에 맞는 보기를 고르세요.\n3. 코드 실행을 눌러 예상과 실제 출력을 비교하세요.\n4. 선택한 보기를 제출하세요.",
-      "language": "python",
-      "starter_code": "",
-      "solution": "fold",
-      "tests": [],
-      "required": true,
-      "example_code": "from sklearn.model_selection import cross_validate, StratifiedKFold\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.tree import DecisionTreeClassifier\n\n# 범주마다 네 관측이 있어 두 몫으로 나눌 수 있어요.\nX_train = [[0], [1], [2], [3], [4], [5], [6], [7]]\ny_train = [0, 0, 0, 0, 1, 1, 1, 1]\ncv = StratifiedKFold(n_splits=2, shuffle=False)\n# 스케일 학습도 각 fold 안의 훈련 몫에서만 이뤄져요.\nmodel = Pipeline([(\"scale\", StandardScaler()), (\"model\", DecisionTreeClassifier(max_depth=1, random_state=0))])\nresult = cross_validate(model, X_train, y_train, cv=cv, return_estimator=True)\n# 확인용 출력: fold마다 스케일러가 배운 평균이에요. 이 줄의 문법은 몰라도 돼요.\nprint([float(fold.named_steps[\"scale\"].mean_[0]) for fold in result[\"estimator\"]])\nprint(sum(row[0] for row in X_train) / len(X_train))\n",
-      "interaction": {
-        "kind": "choice",
-        "options": [
-          {
-            "id": "wrong",
-            "text": "두 fold 모두 전체 평균 3.5를 배워요"
-          },
-          {
-            "id": "fold",
-            "text": "각 fold의 훈련 몫에서만 기준을 배웠어요"
-          }
-        ],
-        "answer": "fold"
-      },
-      "narration": [
-        {
-          "action": "say",
-          "text": "두 fold 스케일러가 배운 평균은 어떨까요? 이유를 고르는 문제예요.",
-          "target": "text:전처리도 fold 안에서 배워요#1"
-        },
-        {
-          "action": "say",
-          "text": "Pipeline으로 묶으면 스케일러도 fold마다 그 fold의 훈련 몫으로 다시 배워요. 두 fold의 평균이 전체 평균과 같을지 예상해요.",
-          "target": "text:전체 훈련 표의 평균은 3.5예요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            14,
+            11,
             14
           ]
         },
         {
           "action": "say",
-          "text": "서로 다른 훈련 몫의 평균은 4.5와 2.5예요.",
+          "text": "-17.0과 -0.0인데 dummy를 골랐어요. 더 음수인 쪽, 즉 MSE 17을 골랐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "dummy < linear",
+          "after": "dummy > linear",
+          "say": "<를 >로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            11,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "linear예요. 점수 -0.0은 MSE가 0에 가까운 쪽이에요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 교차검증 전에 전체 표로 전처리를 학습하면 검증 몫의 정보가 섞일 수 있어요.",
+          "text": "조심하세요. neg 점수는 숫자가 작을수록 오차가 커요. 부호를 떼어 MSE로 읽어요.",
+          "target": "code:dummy > linear"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"y_train\": [5, 1, 4, 2]}, \"expected\": \"-2.5 -41.0\\\\ndummy\"}, {\"values\": {\"y_train\": [3, 9, 1, 7]}, \"expected\": \"-13.0 -196.0\\\\ndummy\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_9651646a-7aba-4151-95d9-c96b49aed5ea",
+      "title": "Pipeline에 원래 X_train을 넘겨 fold 안에서 스케일하세요",
+      "goal": "`Pipeline`으로 스케일과 트리를 묶었어요. 교차검증에 원래 표를 넘기면 fold마다 훈련 몫에서만 스케일 기준을 배워 검증 몫에 적용해요. 전체 훈련 표의 평균은 3.5예요.\n\nresult 줄을 고쳐 X_scaled 대신 원래 X_train을 넘겨 fold마다 훈련 몫에서 스케일 기준을 배우게 하세요. 채점은 다른 행으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 fold마다 배운 평균을 확인하세요.\n2. result 줄의 `X_scaled`를 `X_train`으로 고치세요.\n3. 코드 실행을 눌러 fold마다 배운 평균을 다시 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "from sklearn.model_selection import cross_validate, StratifiedKFold\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.tree import DecisionTreeClassifier\n\n# 범주마다 네 관측이 있어 두 몫으로 나눌 수 있어요.\nX_train = [[0], [1], [2], [3], [4], [5], [6], [7]]\ny_train = [0, 0, 0, 0, 1, 1, 1, 1]\ncv = StratifiedKFold(n_splits=2, shuffle=False)\n# 스케일러와 트리를 한 모델로 묶었어요.\nmodel = Pipeline([(\"scale\", StandardScaler()), (\"model\", DecisionTreeClassifier(max_depth=1, random_state=0))])\n# 전체 훈련 표로 미리 스케일한 표예요.\nX_scaled = StandardScaler().fit_transform(X_train).tolist()\n# 이 줄을 고쳐 X_scaled 대신 원래 X_train을 넘겨 fold마다 훈련 몫에서 스케일 기준을 배우게 하세요.\nresult = cross_validate(model, X_scaled, y_train, cv=cv, return_estimator=True)\n# 확인용 출력: fold마다 스케일러가 배운 평균과 전체 표의 평균이에요. 이 줄의 문법은 몰라도 돼요.\nprint([round(float(fold.named_steps[\"scale\"].mean_[0]), 3) for fold in result[\"estimator\"]])\nprint(sum(row[0] for row in X_train) / len(X_train))\n",
+      "solution": "from sklearn.model_selection import cross_validate, StratifiedKFold\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.tree import DecisionTreeClassifier\n\n# 범주마다 네 관측이 있어 두 몫으로 나눌 수 있어요.\nX_train = [[0], [1], [2], [3], [4], [5], [6], [7]]\ny_train = [0, 0, 0, 0, 1, 1, 1, 1]\ncv = StratifiedKFold(n_splits=2, shuffle=False)\n# 스케일러와 트리를 한 모델로 묶었어요.\nmodel = Pipeline([(\"scale\", StandardScaler()), (\"model\", DecisionTreeClassifier(max_depth=1, random_state=0))])\n# 전체 훈련 표로 미리 스케일한 표예요.\nX_scaled = StandardScaler().fit_transform(X_train).tolist()\n# 이 줄을 고쳐 X_scaled 대신 원래 X_train을 넘겨 fold마다 훈련 몫에서 스케일 기준을 배우게 하세요.\n# 원래 표를 넘기면 Pipeline이 fold마다 훈련 몫에서만 스케일 기준을 배워 검증 몫에 적용해요.\nresult = cross_validate(model, X_train, y_train, cv=cv, return_estimator=True)\n# 확인용 출력: fold마다 스케일러가 배운 평균과 전체 표의 평균이에요. 이 줄의 문법은 몰라도 돼요.\nprint([round(float(fold.named_steps[\"scale\"].mean_[0]), 3) for fold in result[\"estimator\"]])\nprint(sum(row[0] for row in X_train) / len(X_train))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[4.5, 2.5]\n3.5"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "Pipeline에 원래 X_train을 넘겨 fold 안에서 스케일하는 문제예요.",
+          "target": "text:Pipeline에 원래 X_train을 넘겨 fold 안에서 스케일하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "전체 표로 미리 스케일하면 검증 몫의 값도 기준에 섞여요. result 줄에 원래 X_train을 넘겨야 해요.",
+          "target": "text:result 줄을 고쳐 X_scaled 대신 원래 X_train을 넘겨 fold마다 훈련 몫에서 스케일 기준을 배우게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[0.436, -0.436]과 3.5예요. 이미 전체 기준으로 바뀐 값을 다시 배웠어요.",
           "target": "output"
         },
         {
-          "action": "choose_answer",
-          "id": "fold"
+          "action": "patch_code",
+          "before": "cross_validate(model, X_scaled,",
+          "after": "cross_validate(model, X_train,",
+          "say": "X_scaled를 X_train으로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[4.5, 2.5]와 3.5예요. fold마다 그 fold의 훈련 몫 평균만 배웠어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 교차검증 전에 전체 표로 스케일하면 검증 몫의 정보가 기준에 새어 들어가요.",
+          "target": "code:cross_validate(model, X_train,"
         }
       ],
-      "predict_before_run": true,
-      "question": "두 fold 스케일러가 배운 평균은 어떨까요? 이유를 고르세요."
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"X_train\": [[10], [20], [30], [40], [50], [60], [70], [80]]}, \"expected\": \"[55.0, 35.0]\\\\n45.0\"}, {\"values\": {\"X_train\": [[1], [1], [2], [9], [3], [5], [8], [13]]}, \"expected\": \"[8.0, 2.5]\\\\n5.25\"}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    statement.value = ast.parse(repr(case['values'][name]), mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
     },
     {
       "id": "stp_128934cb-29fd-4513-a801-9e632cf08e2b",
