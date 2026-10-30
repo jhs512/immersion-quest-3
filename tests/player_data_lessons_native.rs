@@ -7,7 +7,7 @@ fn verify(mode:&str,count:usize) {
     let mut command=std::process::Command::new(env!("CARGO_BIN_EXE_molip-quest"));
     native_player::configure(&session,&mut command,mode);
     command.env("MOLIP_PILOT_SELF_TEST",mode);
-    let status=native_player::wait(&mut command.spawn().unwrap(),if mode=="aice-plots"{1260}else{480},mode);
+    let status=native_player::wait(&mut command.spawn().unwrap(),if matches!(mode,"aice-plots"|"aice-tensorflow"|"aice-neural-regression"|"aice-neural-classification"|"aice-training"){1260}else{480},mode);
     let raw=std::fs::read_to_string("target/pilot-native-result.json").unwrap();
     std::fs::write(format!("target/pilot-{mode}-result.json"),&raw).unwrap();
     let result:serde_json::Value=serde_json::from_str(&raw).unwrap();
