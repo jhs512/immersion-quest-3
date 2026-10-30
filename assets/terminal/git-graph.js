@@ -26,6 +26,24 @@ function elements(snapshot) {
 function panel(owner) {
   return [...document.querySelectorAll('[data-git-graph-owner]')].find(node => node.dataset.gitGraphOwner === owner);
 }
+// Graph colours per screen theme: the canvas draws on the well of the current look.
+const GRAPH_COLORS = {
+  dark: {node: '#82b9ee', label: '#dce9f5', current: '#66d7ab', currentRing: '#d2ffef', selected: '#ffd98e', edge: '#6586a8'},
+  light: {node: '#1f5fd6', label: '#152233', current: '#11753f', currentRing: '#7fd8a6', selected: '#b26a00', edge: '#7d8a9c'},
+};
+const graphLook = () => ((window.mqTheme ? window.mqTheme.effective() : document.documentElement.dataset.theme) === 'dark' ? 'dark' : 'light');
+function graphStyle() {
+  const c = GRAPH_COLORS[graphLook()];
+  return [
+    {selector: 'node', style: {'background-color': c.node, width: 15, height: 15, label: 'data(label)',
+      color: c.label, 'font-size': 14, 'font-family': 'sans-serif', 'text-valign': 'center',
+      'text-halign': 'right', 'text-margin-x': 10, 'text-wrap': 'wrap', 'text-max-width': 190}},
+    {selector: 'node.current', style: {'background-color': c.current, 'border-width': 3, 'border-color': c.currentRing}},
+    {selector: 'node:selected', style: {'border-width': 3, 'border-color': c.selected}},
+    {selector: 'edge', style: {width: 2, 'line-color': c.edge, 'curve-style': 'bezier', 'target-arrow-shape': 'triangle', 'target-arrow-color': c.edge}},
+  ];
+}
+
 export const gitGraphs = {
   update(owner, snapshot, error = '') {
     const root = panel(owner); if (!root) return;
@@ -38,14 +56,7 @@ export const gitGraphs = {
       const canvas = root.querySelector('.git-graph-canvas');
       const cy = cytoscape({container: canvas, elements: [], layout: {name: 'preset'}, minZoom: 0.8, maxZoom: 2,
         wheelSensitivity: 0.2, boxSelectionEnabled: false,
-        style: [
-          {selector: 'node', style: {'background-color': '#82b9ee', width: 15, height: 15, label: 'data(label)',
-            color: '#dce9f5', 'font-size': 14, 'font-family': 'sans-serif', 'text-valign': 'center',
-            'text-halign': 'right', 'text-margin-x': 10, 'text-wrap': 'wrap', 'text-max-width': 190}},
-          {selector: 'node.current', style: {'background-color': '#66d7ab', 'border-width': 3, 'border-color': '#d2ffef'}},
-          {selector: 'node:selected', style: {'border-width': 3, 'border-color': '#ffd98e'}},
-          {selector: 'edge', style: {width: 2, 'line-color': '#6586a8', 'curve-style': 'bezier', 'target-arrow-shape': 'triangle', 'target-arrow-color': '#6586a8'}}
-        ]});
+        style: graphStyle()});
       view = {root, cy, snapshot: null}; views.set(owner, view);
       cy.on('tap', 'node', event => { root.querySelector('.git-graph-detail').textContent = event.target.data('detail'); });
       view.focus = (announce = false) => {
@@ -106,3 +117,5 @@ export const gitGraphs = {
     view.cy.destroy(); views.delete(owner);
   }
 };
+// A theme change repaints every open graph in place (no relayout, selection kept).
+document.addEventListener('mq-theme', () => { for (const view of views.values()) view.cy.style().fromJson(graphStyle()).update(); });

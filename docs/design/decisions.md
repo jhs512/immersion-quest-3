@@ -1,3 +1,10 @@
+## 2026-10-30 · 밝게 lights the code wells too: editor, terminal, output and Git graph follow the theme
+- Decided by: owner (reported that choosing 밝게 still showed a dark editor and terminal; asked that the whole screen match light mode)
+- Why: A light choice that leaves the largest surface dark reads as broken. The well, editor (CodeMirror via CSS variables plus its dark flag), terminal (xterm palette swapped live on mq-theme) and Git graph now take per-theme tokens; 어둡게 keeps the night well unchanged.
+- Rejected: Keeping dark wells in both looks (the 2026-10-25 decisions below, now superseded); an invert filter (breaks syntax and status colours).
+- Supersedes: "The editor and terminal stay dark wells in both themes" and the "code wells stay dark" half of the station-wall decision.
+- Rests on: assets/station.css "Code wells per theme"; tools/design-scenarios/light-audit.cjs captures.
+
 ## 2026-10-25 · PRODUCT.md is written from repository evidence without an interview
 - Decided by: Claude (default; owner delegated judgment)
 - Why: The brief asked for no unneeded interviews; README, CONTEXT.md, voice.md, course manifests and student reports answer users, purpose, constraints and voice.

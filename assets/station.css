@@ -1,6 +1,6 @@
 /* MQ station world: the course is a metro line, each lesson a station.
    Station-wall ground, navy signage bands, one line colour per course (set on the
-   player root as --line / --line-ink / --line-soft), dark wells for editor and terminal.
+   player root as --line / --line-ink / --line-soft), wells for editor and terminal that follow the theme.
    Loaded last; it overrides the earlier dark shell without changing any behaviour. */
 
 :root {
@@ -27,11 +27,11 @@
  --admin-soft:#fff3d6;
  --voice:#6b46c1;
  --voice-soft:#efe9fb;
- --well:#111a27;
- --well-2:#18233a;
- --well-rule:#33445c;
- --well-ink:#e3ebf5;
- --well-muted:#a9b8ca;
+ --well:#ffffff;
+ --well-2:#f3f6f9;
+ --well-rule:#d3dae3;
+ --well-ink:#152233;
+ --well-muted:#4b5b6d;
  --line:#009b4c;
  --line-ink:#00703a;
  --line-soft:#e3f4ea;
@@ -274,7 +274,7 @@ html:has(.repository-player,.repository-study)::-webkit-scrollbar-corner,.reposi
 /* Status line that floats while something is reported */
 .repository-player>.repository-status:not(:empty) {background:var(--navy);color:#fff;border-color:var(--navy)}
 
-/* gh setup keeps the real terminal dark inside a light page */
+/* gh setup: the real terminal sits in the well of the current theme */
 .repository-player.needs-gh>.repository-header {background:transparent;margin:0;border:0}
 .repository-player.needs-gh>.repository-header>h1 {color:var(--ink)}
 .gh-setup-card {background:var(--panel);border:1px solid var(--rule);box-shadow:0 12px 32px #1522331f;color:var(--ink)}
@@ -333,31 +333,32 @@ html:has(.repository-player,.repository-study)::-webkit-scrollbar-corner,.reposi
 .repository-study .repository-reading {background:var(--panel);border:1px solid var(--rule);color:var(--ink)}
 .repository-study .repository-reading h2 {color:var(--ink)}
 
-/* The well: editor, answers, terminal and results keep the dark tool surface */
+/* The well: editor, answers, terminal and results. It follows the theme like the rest of the
+   station (light well in 밝게, dark well in 어둡게); the well tokens are set per theme below. */
 .repository-study .repository-task .coding-pane {
- --ui-surface:var(--well);--ui-inset:#0c131e;--ui-border:var(--well-rule);--ui-hover:#22314a;--ui-text:var(--well-ink);--ui-muted:var(--well-muted);
- --ui-accent:#7fd8a6;--ui-focus:var(--focus-on-navy);
- background:var(--well);border:1px solid #0c131e;border-radius:var(--radius);color:var(--well-ink);color-scheme:dark}
-.repository-study .coding-pane ::selection {background:#2f4a6e;color:#fff}
+ --ui-surface:var(--well);--ui-inset:var(--well-inset);--ui-border:var(--well-rule);--ui-hover:var(--well-control-hover);--ui-text:var(--well-ink);--ui-muted:var(--well-muted);
+ --ui-accent:var(--well-accent);--ui-focus:var(--well-focus);
+ background:var(--well);border:1px solid var(--well-edge);border-radius:var(--radius);color:var(--well-ink);color-scheme:var(--well-scheme)}
+.repository-study .coding-pane ::selection {background:var(--well-selection);color:var(--well-selection-ink)}
 .repository-study .coding-pane .pane-heading {background:var(--well-2);border-bottom:1px solid var(--well-rule);border-radius:var(--radius) var(--radius) 0 0}
 .repository-study .coding-pane .pane-heading>strong {color:var(--well-muted);font-family:'JetBrains Mono',Consolas,monospace;font-size:12px;font-weight:500}
-.repository-study .coding-pane button {background:#22314a;border-color:#3d5170;color:var(--well-ink)}
-.repository-study .coding-pane button:hover:not(:disabled) {background:#2b3d5b;border-color:#5a6f93}
-.repository-study .coding-pane button:disabled {background:#1a2436;border-color:#26354c;color:#7f8ea3}
+.repository-study .coding-pane button {background:var(--well-control);border-color:var(--well-control-rule);color:var(--well-ink)}
+.repository-study .coding-pane button:hover:not(:disabled) {background:var(--well-control-hover);border-color:var(--well-control-hover-rule)}
+.repository-study .coding-pane button:disabled {background:var(--well-control-disabled);border-color:var(--well-control-disabled-rule);color:var(--well-control-disabled-ink)}
 .repository-study .coding-pane button.primary {background:var(--line-ink);border-color:var(--route);color:#fff}
 .repository-study .coding-pane button.primary:hover:not(:disabled) {box-shadow:inset 0 0 0 1px #fff6}
-.repository-study .coding-pane button.primary:disabled {background:#1f3a2c;background:color-mix(in srgb,var(--line-ink) 35%,var(--well));border-color:transparent;color:#c6d3cc}
-.repository-study .coding-pane :is(button,summary,input,textarea,select,[tabindex]):focus-visible {outline-color:var(--focus-on-navy)}
-.repository-study .coding-pane :is(input,textarea,select) {background:#0c131e;color:var(--well-ink);border-color:#3d5170}
-.repository-study .coding-pane pre,.repository-study .coding-pane .output {background:#0c131e;color:var(--well-ink);border:1px solid var(--well-rule)}
+.repository-study .coding-pane button.primary:disabled {background:color-mix(in srgb,var(--line-ink) var(--well-primary-disabled-mix),var(--well));border-color:transparent;color:var(--well-primary-disabled-ink)}
+.repository-study .coding-pane :is(button,summary,input,textarea,select,[tabindex]):focus-visible {outline-color:var(--well-focus)}
+.repository-study .coding-pane :is(input,textarea,select) {background:var(--well-inset);color:var(--well-ink);border-color:var(--well-control-rule)}
+.repository-study .coding-pane pre,.repository-study .coding-pane .output {background:var(--well-inset);color:var(--well-ink);border:1px solid var(--well-rule)}
 .repository-study .coding-pane .result-pane h3 {color:var(--well-muted);font-size:12px;font-weight:700}
 .repository-study .result-pane[data-feedback="incorrect"] .execution-status {display:none}
-.repository-study .coding-pane .submission-indicator {background:#3a1716;color:#ffb4a8;border:1px solid #7a2b26}
+.repository-study .coding-pane .submission-indicator {background:var(--well-err-soft);color:var(--well-err);border:1px solid var(--well-err-rule)}
 .repository-study .coding-pane .submission-feedback {border-radius:var(--radius)}
 .repository-study .coding-pane .code-mode-guide {color:var(--well-muted)}
-.repository-study .coding-pane .code-mode-label {color:var(--well-ink);border-color:#4a5d7c}
+.repository-study .coding-pane .code-mode-label {color:var(--well-ink);border-color:var(--well-handle)}
 .repository-study .split-handle::after {background:var(--handle)}
-.repository-study .coding-pane .split-handle::after {background:#4a5d7c}
+.repository-study .coding-pane .split-handle::after {background:var(--well-handle)}
 .repository-study .split-handle:hover::after,.repository-study .split-handle:focus-visible::after,.repository-study .split-handle.dragging::after {background:var(--focus)}
 
 /* Practice-only and activity notes */
@@ -455,7 +456,7 @@ html:has(.repository-player,.repository-study)::-webkit-scrollbar-corner,.reposi
 .repository-player .markdown :is(h1,h2,h3,h4),.repository-study .markdown :is(h1,h2,h3,h4) {color:var(--ink)}
 .repository-player .markdown strong,.repository-study .markdown strong {color:var(--ink)}
 .repository-player .markdown code,.repository-study .markdown code {color:var(--code-chip-ink);background:var(--code-chip-bg);border:1px solid var(--rule)}
-.repository-player .markdown pre,.repository-study .markdown pre {background:var(--well);color:var(--well-ink);border:1px solid #0c131e}
+.repository-player .markdown pre,.repository-study .markdown pre {background:var(--well-inset);color:var(--well-ink);border:1px solid var(--well-rule)}
 .repository-player .markdown pre code,.repository-study .markdown pre code {color:inherit;background:transparent;border:0}
 .repository-study .problem-pane .markdown li::marker {color:var(--ink-3)}
 .repository-study .coding-pane .markdown {color:var(--well-ink)}
@@ -514,7 +515,7 @@ html:has(.repository-player,.repository-study)::-webkit-scrollbar-corner,.reposi
 
 /* --- Asides in lesson text: a quiet panel, no thick side stripe --- */
 .repository-player .markdown blockquote,.repository-study .markdown blockquote {margin:14px 0;padding:10px 14px;border:1px solid var(--rule);border-radius:var(--radius);background:var(--panel-2);color:var(--ink)}
-.repository-study .coding-pane .markdown blockquote {background:#0c131e;border-color:var(--well-rule);color:var(--well-ink)}
+.repository-study .coding-pane .markdown blockquote {background:var(--well-inset);border-color:var(--well-rule);color:var(--well-ink)}
 
 /* --- The lesson band keeps the one-row height the workspace was built around --- */
 @media (min-width:700px) {.repository-study.is-task>.repository-header {height:42px;overflow:visible}}
@@ -527,14 +528,14 @@ html:has(.repository-player,.repository-study)::-webkit-scrollbar-corner,.reposi
 /* === Themes: 시스템 (default), 밝게, 어둡게 ===
    The stored choice sits on <html data-theme-choice> from the page head before the first paint.
    No attribute or an unknown value is 시스템. The night station keeps the same world: wall,
-   paper, navy band and the course line (drawn in a brighter tone of the same line); the code
-   wells stay dark in both looks. */
+   paper, navy band and the course line (drawn in a brighter tone of the same line). The code
+   wells (editor, terminal, output) follow the look too: light in 밝게, dark in 어둡게. */
 .repository-player,.repository-study {--route:var(--line);--line-text:var(--line-ink);--line-tint:var(--line-soft);--line-progress:color-mix(in srgb,var(--line) 38%,#fff)}
 html[data-theme-choice="dark"] {--wall:#161f2e;--panel:#1d2738;--panel-2:#232f42;--rule:#334258;--rule-strong:#71829a;
  --ink:#e7eef7;--ink-2:#b4c2d4;--ink-3:#97a7bc;--navy:#0d1524;--navy-2:#1c2c48;
  --focus:#8fb8ff;--ok:#5fd394;--ok-soft:#173627;--err:#ff9d94;--err-soft:#3a1716;
  --admin:#ffc04d;--admin-soft:#3a2a0b;--voice:#6d4bd0;--voice-soft:#2b2347;
- --well:#0b111a;--well-2:#121b2b;--well-rule:#2e3c51;
+ --well:#0b111a;--well-2:#121b2b;--well-rule:#2e3c51;--well-ink:#e3ebf5;--well-muted:#a9b8ca;
  --scrollbar:#56677e;--link-hover:#c0d7ff;--hover:#243146;--pressed:#2b3a52;
  --code-chip-bg:#0f1622;--code-chip-ink:#ffcf99;--voice-deep:#5e3fc0;--voice-disabled-ink:#a99ccc;
  --admin-hover:#4a360f;--admin-rule:#8a6420;--handle:#5b6b80;
@@ -545,7 +546,7 @@ html[data-theme-choice="dark"] :is(.repository-player,.repository-study) {--rout
  --ink:#e7eef7;--ink-2:#b4c2d4;--ink-3:#97a7bc;--navy:#0d1524;--navy-2:#1c2c48;
  --focus:#8fb8ff;--ok:#5fd394;--ok-soft:#173627;--err:#ff9d94;--err-soft:#3a1716;
  --admin:#ffc04d;--admin-soft:#3a2a0b;--voice:#6d4bd0;--voice-soft:#2b2347;
- --well:#0b111a;--well-2:#121b2b;--well-rule:#2e3c51;
+ --well:#0b111a;--well-2:#121b2b;--well-rule:#2e3c51;--well-ink:#e3ebf5;--well-muted:#a9b8ca;
  --scrollbar:#56677e;--link-hover:#c0d7ff;--hover:#243146;--pressed:#2b3a52;
  --code-chip-bg:#0f1622;--code-chip-ink:#ffcf99;--voice-deep:#5e3fc0;--voice-disabled-ink:#a99ccc;
  --admin-hover:#4a360f;--admin-rule:#8a6420;--handle:#5b6b80;
@@ -666,3 +667,40 @@ html[data-theme-choice="dark"] {--challenge-ink:#e2a8f2;--challenge-fill:#a64ccc
 .account-reset-dialog .account-reset button.account-reset-confirm:hover:not(:disabled) {background:#912018}
 .account-reset-dialog .account-reset .account-reset-error {color:var(--err)!important}
 .repository-tools .repository-account>button.account-reset-open {border-color:var(--err);color:var(--err)}
+
+/* === Code wells per theme ===
+   Editor (CodeMirror reads these through var()), terminal (terminal.js reads them on mount and
+   on every theme change), output and answer surfaces. 밝게 is paper-light with syntax colours at
+   >=4.5:1 on white; 어둡게 keeps the night well the station always had. */
+:root {--well-inset:#f6f8fa;--well-edge:#c3ccd7;--well-accent:#00703a;--well-focus:#1f5fd6;--well-scheme:light;
+ --well-control:#ffffff;--well-control-rule:#7d8a9c;--well-control-hover:#e9eef4;--well-control-hover-rule:#5c6b7e;
+ --well-control-disabled:#f6f8fa;--well-control-disabled-rule:#d3dae3;--well-control-disabled-ink:#5c6b7e;
+ --well-primary-disabled-mix:28%;--well-primary-disabled-ink:#ffffff;--well-selection:#b9d3f5;--well-selection-ink:#152233;--well-handle:#8d9aab;
+ --well-err:#b42318;--well-err-soft:#fbe9e7;--well-err-rule:#e8a49c;
+ --editor-bg:#ffffff;--editor-ink:#152233;--editor-gutter-ink:#5c6b7e;--editor-active-line:#1f5fd60f;--editor-active-gutter:#e9eef4;
+ --editor-cursor:#152233;--editor-selection:#b9d3f5;--editor-panel:#f3f6f9;
+ --syn-keyword:#7c3aad;--syn-string:#116329;--syn-comment:#5c6b7e;--syn-number:#9a4f00;--syn-function:#0550ae;--syn-operator:#0e6b78;}
+html[data-theme-choice="dark"] {--well-inset:#0c131e;--well-edge:#0c131e;--well-accent:#7fd8a6;--well-focus:#8fb8ff;--well-scheme:dark;
+ --well-control:#22314a;--well-control-rule:#3d5170;--well-control-hover:#2b3d5b;--well-control-hover-rule:#5a6f93;
+ --well-control-disabled:#1a2436;--well-control-disabled-rule:#26354c;--well-control-disabled-ink:#7f8ea3;
+ --well-primary-disabled-mix:35%;--well-primary-disabled-ink:#c6d3cc;--well-selection:#2f4a6e;--well-selection-ink:#ffffff;--well-handle:#4a5d7c;
+ --well-err:#ffb4a8;--well-err-soft:#3a1716;--well-err-rule:#7a2b26;
+ --editor-bg:#202d3e;--editor-ink:#e3edf6;--editor-gutter-ink:#8299ae;--editor-active-line:#2b405555;--editor-active-gutter:#2b4055;
+ --editor-cursor:#ffffff;--editor-selection:#426385;--editor-panel:#192b3c;
+ --syn-keyword:#c792ea;--syn-string:#a8d99c;--syn-comment:#92abc0;--syn-number:#f6c177;--syn-function:#82cfff;--syn-operator:#89dceb;}
+@media (prefers-color-scheme:dark) {
+ html:not([data-theme-choice="light"]):not([data-theme-choice="dark"]) {--well-inset:#0c131e;--well-edge:#0c131e;--well-accent:#7fd8a6;--well-focus:#8fb8ff;--well-scheme:dark;
+ --well-control:#22314a;--well-control-rule:#3d5170;--well-control-hover:#2b3d5b;--well-control-hover-rule:#5a6f93;
+ --well-control-disabled:#1a2436;--well-control-disabled-rule:#26354c;--well-control-disabled-ink:#7f8ea3;
+ --well-primary-disabled-mix:35%;--well-primary-disabled-ink:#c6d3cc;--well-selection:#2f4a6e;--well-selection-ink:#ffffff;--well-handle:#4a5d7c;
+ --well-err:#ffb4a8;--well-err-soft:#3a1716;--well-err-rule:#7a2b26;
+ --editor-bg:#202d3e;--editor-ink:#e3edf6;--editor-gutter-ink:#8299ae;--editor-active-line:#2b405555;--editor-active-gutter:#2b4055;
+ --editor-cursor:#ffffff;--editor-selection:#426385;--editor-panel:#192b3c;
+ --syn-keyword:#c792ea;--syn-string:#a8d99c;--syn-comment:#92abc0;--syn-number:#f6c177;--syn-function:#82cfff;--syn-operator:#89dceb;}
+}
+.markdown .tok-keyword {color:var(--syn-keyword)}
+.markdown .tok-string {color:var(--syn-string)}
+.markdown .tok-comment {color:var(--syn-comment)}
+.markdown .tok-number {color:var(--syn-number)}
+.markdown :is(.tok-variableName,.tok-definition) {color:var(--syn-function)}
+.markdown .tok-operator {color:var(--syn-operator)}
