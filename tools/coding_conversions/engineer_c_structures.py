@@ -290,3 +290,338 @@ SPECS = [
                  ([['    return rule(value);\n}\n\nint main', '    return value + 1;\n}\n\nint main']], 'Ignoring the rule')],
          accept=[([['    return rule(value);\n}\n\nint main', '    int result = (*rule)(value);\n    return result;\n}\n\nint main']], 'Explicit dereference call')]),
 ]
+
+
+# ---- 2026-10-30: the ten code-reading answer fields (bits, dynamic storage) become coding steps ----------
+PRD_SCOPE = ['4챕터·4단원·19스텝으로 같은 상황을 점진적으로 바꿔요.',
+             '구조체 필드·복사·포인터 접근·배열·안의 문자 배열과 같은 타입의 함수 포인터를 한 줄씩 직접 써서 실행해요.',
+             '비트 연산(&·&&·|·^·<<·~와 마스크)과 동적 할당(malloc 뒤 저장·calloc·같은 할당의 별칭·해제 뒤 별칭 비우기)도 한 줄씩 직접 써서 실행해요.']
+PRD_GRADING = ['직접 쓴 코드는 실제 C 컴파일러로 실행해 판정해요. 실행·해설만으로 성공시키지 않아요.',
+               '구조체의 어느 대상이 바뀌는지와 다른 준비 값·다른 함수 입력을 검사해요. 숫자를 적어 넣은 출력은 거절해요.',
+               '비트 스텝은 다른 비트 값으로, 동적 할당 스텝은 다른 저장 값·개수로 다시 실행해 연산자를 바꾼 답(&와 &&, |와 +)과 처음 값을 적은 답을 구별해요.',
+               '마지막 도전(stp_9be10228-3f66-4600-876e-589546f4a886): 시작 답안은 실패해야 해요. 실제 실행 결과 또는 각 서술형 답안 칸을 검사하고 오답과 동등한 정답도 대조해요.']
+PRD_NARRATION = ['필드·대상·함수 선택·연산자·할당 한 곳씩 고치고 실제 출력으로 비교해요.',
+                 '값 복사와 별칭·문자 배열과 리터럴·함수 선택과 호출·비트와 논리 연산·초기화하지 않은 저장소·해제 뒤 별칭을 조심할 지점으로 짚어요.']
+
+C_HEAD = '#include <stdio.h>\n\nint main(void) {\n'
+C_HEAP = '#include <stdio.h>\n#include <stdlib.h>\n\nint main(void) {\n'
+C_END = '    return 0;\n}\n'
+RUN_C = '코드 실행을 눌러 지금 출력을 확인하세요.'
+SUB_C = '수정한 코드를 제출하세요.'
+
+
+def bit_step(old, title, objective, core_flow, intro, instruction, edit_todo, starter, solution_line, starter_line, comment,
+             script, expected, variations, review, reject, accept):
+    solution = starter.replace(starter_line, comment + solution_line, 1)
+    return dict(old=old, title=title, objectives=[objective], core_flow=core_flow,
+                goal=intro + '\n\n' + instruction + '\n\n' + todo(RUN_C, edit_todo, '코드 실행을 눌러 결과가 바뀌었는지 확인하세요.', SUB_C),
+                starter_code=starter, solution=solution, tests=[{'input': '', 'expected': expected}], variations=variations,
+                narration=script.actions, review=review, reject=reject, accept=accept)
+
+
+b9 = C_HEAD + '''    // 두 표시 값이에요. 5는 2진수 101, 3은 011이에요.
+    unsigned int flags = 5u;
+    unsigned int mask = 3u;
+    // 이 줄을 고쳐 flags와 mask의 같은 자리가 모두 1인 비트만 남기세요.
+    unsigned int value = 0u;
+    printf("%u\\n", value);
+''' + C_END
+n9 = (Script(b9)
+      .say('두 값의 같은 자리가 모두 1인 비트만 남겨야 해요. 비트 AND 연산자 &를 써요.', 'text:value 줄을 고쳐 flags와 mask의 같은 자리가 모두 1인 비트만 남기세요.')
+      .run('printf("%u\\n", value);')
+      .say('0이에요. 아직 연산 없이 0을 넣었어요.', 'output')
+      .patch('    unsigned int value = 0u;\n', '    unsigned int value = flags & mask;\n', '0u를 flags & mask로 바꿔요.')
+      .run('printf("%u\\n", value);')
+      .say('1이에요. 101과 011에서 둘 다 1인 자리는 맨 오른쪽 하나라 1이에요.', 'output')
+      .say('조심하세요. &&를 쓰면 자리마다 비교하지 않고 참 거짓만 봐요. 12와 10이면 & 결과는 8인데 &&는 1이에요.', 'code:flags & mask'))
+
+b10 = C_HEAD + '''    // 두 재고 값이에요. 둘 다 0이 아니면 포장할 수 있어요.
+    int a = 2;
+    int b = 1;
+    // 이 줄을 고쳐 두 값이 모두 0이 아닌지 논리 AND로 판단하세요.
+    int both = a & b;
+    printf("%d\\n", both);
+''' + C_END
+n10 = (Script(b10)
+       .say('두 값이 모두 0이 아닌지 판단해야 해요. 자리별 & 대신 논리 AND &&를 써요.', 'text:both 줄을 고쳐 두 값이 모두 0이 아닌지 논리 AND로 판단하세요.')
+       .run('printf("%d\\n", both);')
+       .say('0이에요. 2는 10, 1은 01이라 같은 자리에 함께 켜진 1이 없어요.', 'output')
+       .patch('    int both = a & b;\n', '    int both = a && b;\n', '&를 &&로 바꿔요.')
+       .run('printf("%d\\n", both);')
+       .say('1이에요. 두 값이 모두 0이 아니라서 참 1이에요.', 'output')
+       .say('조심하세요. 둘 다 0이 아닌데 &는 0이 될 수 있어요. 조건 판단에는 &&를 써요.', 'code:a && b'))
+
+b11 = C_HEAD + '''    // 켜진 표시 5(101)에 새 표시 2(010)를 더 켜요.
+    unsigned int flags = 5u;
+    unsigned int extra = 2u;
+    // 이 줄을 고쳐 두 값 중 하나라도 1인 자리를 모두 켜세요.
+    unsigned int value = flags;
+    printf("%u\\n", value);
+''' + C_END
+n11 = (Script(b11)
+       .say('두 값의 켜진 자리를 합쳐야 해요. 비트 OR 연산자 |를 써요.', 'text:value 줄을 고쳐 두 값 중 하나라도 1인 자리를 모두 켜세요.')
+       .run('printf("%u\\n", value);')
+       .say('5예요. 아직 새 표시를 합치지 않았어요.', 'output')
+       .patch('    unsigned int value = flags;\n', '    unsigned int value = flags | extra;\n', 'flags 뒤에 | extra를 더해요.')
+       .run('printf("%u\\n", value);')
+       .say('7이에요. 101과 010을 합쳐 111이 됐어요.', 'output')
+       .say('조심하세요. 지금은 +로 더해도 7이지만, 6과 3처럼 겹치는 자리가 있으면 +는 9, |는 7이에요.', 'code:flags | extra'))
+
+b12 = C_HEAD + '''    // 어제 표시 5(101)와 오늘 표시 3(011)이에요.
+    unsigned int before = 5u;
+    unsigned int after = 3u;
+    // 이 줄을 고쳐 두 값의 서로 다른 자리만 1로 남기세요.
+    unsigned int changed = before | after;
+    printf("%u\\n", changed);
+''' + C_END
+n12 = (Script(b12)
+       .say('어제와 오늘 표시 중 바뀐 자리만 남겨야 해요. 비트 XOR 연산자 ^를 써요.', 'text:changed 줄을 고쳐 두 값의 서로 다른 자리만 1로 남기세요.')
+       .run('printf("%u\\n", changed);')
+       .say('7이에요. |는 같은 자리의 1도 남겨서 바뀌지 않은 자리까지 켜졌어요.', 'output')
+       .patch('before | after', 'before ^ after', '|를 ^로 바꿔요.')
+       .run('printf("%u\\n", changed);')
+       .say('6이에요. 101과 011이 다른 자리는 왼쪽 두 자리라 110, 6이에요.', 'output')
+       .say('조심하세요. 두 값이 같으면 XOR은 0이에요. 바뀐 자리가 없다는 뜻이에요.', 'code:before ^ after'))
+
+b13 = C_HEAD + '''    // 표시 1을 왼쪽으로 places 자리만큼 옮기려 해요.
+    unsigned int base = 1u;
+    int places = 3;
+    // 이 줄을 고쳐 base의 비트를 왼쪽으로 places 자리 옮기세요.
+    unsigned int value = base * places;
+    printf("%u\\n", value);
+''' + C_END
+n13 = (Script(b13)
+       .say('비트를 왼쪽으로 places 자리 옮겨야 해요. 왼쪽 시프트 <<를 써요.', 'text:value 줄을 고쳐 base의 비트를 왼쪽으로 places 자리 옮기세요.')
+       .run('printf("%u\\n", value);')
+       .say('3이에요. 곱하기는 자리를 옮기지 않아요.', 'output')
+       .patch('base * places', 'base << places', '*를 <<로 바꿔요.')
+       .run('printf("%u\\n", value);')
+       .say('8이에요. 1이 세 자리 옮겨 1000이 됐어요. 한 자리마다 2배예요.', 'output')
+       .say('조심하세요. 세 자리 옮기면 3배가 아니라 2를 세 번 곱한 8배예요.', 'code:base << places'))
+
+b14 = C_HEAD + '''    // 네 개의 표시 중 5(0101)가 켜져 있어요. mask 15는 아래 네 비트(1111)예요.
+    unsigned int flags = 5u;
+    unsigned int mask = 15u;
+    // 이 줄을 고쳐 flags를 반전한 뒤 mask로 아래 네 비트만 남기세요.
+    unsigned int value = ~flags;
+    printf("%u\\n", value);
+''' + C_END
+n14 = (Script(b14)
+       .say('꺼진 표시를 찾으려 반전해요. 반전한 뒤 아래 네 비트만 남기도록 mask를 &로 걸어야 해요.', 'text:value 줄을 고쳐 flags를 반전한 뒤 mask로 아래 네 비트만 남기세요.')
+       .run('printf("%u\\n", value);')
+       .say('4294967290이에요. unsigned 32비트의 앞자리까지 모두 1로 뒤집혔어요.', 'output')
+       .patch('    unsigned int value = ~flags;\n', '    unsigned int value = (~flags) & mask;\n', '~flags를 괄호로 묶고 & mask를 더해요.')
+       .run('printf("%u\\n", value);')
+       .say('10이에요. 0101을 뒤집은 1010만 남았어요.', 'output')
+       .say('조심하세요. 마스크 없이 반전하면 앞의 28비트도 1이 돼 엄청 큰 수가 나와요.', 'code:(~flags) & mask'))
+
+b15 = C_HEAP + '''    // 저장할 재고예요.
+    int stock = 7;
+    // 정수 한 개의 공간을 확보해요. 확보만 할 뿐 값은 채우지 않아요.
+    int *p = malloc(sizeof *p);
+    if (p == NULL) return 1;
+    // 이 줄을 고쳐 p가 가리키는 저장소에 stock을 저장하세요.
+    *p = 0;
+    printf("%d\\n", *p);
+    free(p);
+''' + C_END
+n15 = (Script(b15)
+       .say('malloc은 공간만 확보해요. 읽기 전에 p가 가리키는 저장소에 stock을 저장해야 해요.', 'text:*p 줄을 고쳐 p가 가리키는 저장소에 stock을 저장하세요.')
+       .run('printf("%d\\n", *p);')
+       .say('0이에요. 지금은 자리 표시로 0을 저장했어요.', 'output')
+       .patch('    *p = 0;\n', '    *p = stock;\n', '0을 stock으로 바꿔요.')
+       .run('printf("%d\\n", *p);')
+       .say('7이에요. 확보한 저장소에 재고 7을 저장한 뒤 읽었어요.', 'output')
+       .say('조심하세요. *p = stock; 없이 바로 읽으면 malloc이 채우지 않은 값을 읽어요. 실행할 때마다 다를 수 있어요.', 'code:*p = stock;'))
+
+b16 = C_HEAP + '''    // 정수 칸 count개를 확보하고 둘째 칸에만 bonus를 더해요.
+    int count = 3;
+    int bonus = 4;
+    // 이 줄을 고쳐 count개의 정수 칸을 모두 0으로 채워 확보하세요.
+    int *p = NULL;
+    if (p == NULL) {
+        printf("확보하지 못했어요\\n");
+        return 0;
+    }
+    p[1] += bonus;
+    // 모든 칸을 더해요. 다른 칸이 0이면 합계는 bonus예요.
+    int total = 0;
+    for (int i = 0; i < count; i++) total += p[i];
+    printf("%d %d\\n", p[1], total);
+    free(p);
+''' + C_END
+n16 = (Script(b16)
+       .say('count개의 칸을 0으로 채워 확보해야 해요. calloc(개수, 크기)를 써요.', 'text:p 줄을 고쳐 count개의 정수 칸을 모두 0으로 채워 확보하세요.')
+       .run('printf("%d %d\\n", p[1], total);')
+       .say('확보하지 못했어요가 나와요. p가 NULL이라 칸을 쓰기 전에 멈췄어요.', 'output')
+       .patch('    int *p = NULL;\n', '    int *p = calloc(count, sizeof *p);\n', 'NULL을 calloc(count, sizeof *p)로 바꿔요.')
+       .run('printf("%d %d\\n", p[1], total);')
+       .say('4 4예요. 둘째 칸만 4가 됐고 나머지 칸은 0이라 합계도 4예요.', 'output')
+       .say('조심하세요. malloc으로 바꾸면 칸이 0으로 시작한다는 보장이 없어요. p[1] += bonus도 모르는 값에 더해요.', 'code:calloc(count, sizeof *p)'))
+
+b17 = C_HEAP + '''    int value = 9;
+    int *p = malloc(sizeof *p);
+    if (p == NULL) return 1;
+    *p = 0;
+    int other = 0;
+    // 이 줄을 고쳐 q가 p와 같은 저장소를 가리키게 하세요.
+    int *q = &other;
+    // q로 쓴 값을 p로 읽어요.
+    *q = value;
+    printf("%d\\n", *p);
+    free(p);
+''' + C_END
+n17 = (Script(b17)
+       .say('q로 쓴 값을 p로 읽으려 해요. q가 p와 같은 저장소를 가리키도록 주소를 복사해야 해요.', 'text:q 줄을 고쳐 q가 p와 같은 저장소를 가리키게 하세요.')
+       .run('printf("%d\\n", *p);')
+       .say('0이에요. q는 other를 가리켜서 9가 other에 저장됐어요.', 'output')
+       .patch('    int *q = &other;\n', '    int *q = p;\n', '&other를 p로 바꿔요.')
+       .run('printf("%d\\n", *p);')
+       .say('9예요. q와 p가 같은 저장소를 가리켜 q로 쓴 값을 p로 읽었어요.', 'output')
+       .say('조심하세요. 별칭이 둘이어도 저장소는 하나예요. free는 한 번만 해요.', 'code:int *q = p;'))
+
+b18 = C_HEAP + '''    // 같은 할당을 가리키는 별칭을 count개 만들어요.
+    int count = 3;
+    int *p = malloc(sizeof *p);
+    if (p == NULL) return 1;
+    *p = 3;
+    int *alias[4];
+    for (int i = 0; i < count; i++) alias[i] = p;
+    // 저장소의 수명은 여기서 끝나요.
+    free(p);
+    p = NULL;
+    // 이 줄을 고쳐 별칭 count개를 모두 NULL로 비우세요.
+    alias[0] = NULL;
+    // NULL로 비운 별칭의 수를 세요.
+    int cleared = 0;
+    for (int i = 0; i < count; i++) cleared += alias[i] == NULL;
+    printf("%d %d\\n", p == NULL, cleared);
+''' + C_END
+n18 = (Script(b18)
+       .say('free 뒤에는 그 할당을 가리키는 모든 별칭이 쓸 수 없는 주소를 갖고 있어요. 별칭 count개를 모두 비워야 해요.', 'text:alias[0] 줄을 고쳐 별칭 count개를 모두 NULL로 비우세요.')
+       .run('printf("%d %d\\n", p == NULL, cleared);')
+       .say('1 1이에요. p와 첫 별칭만 비웠고 나머지 두 별칭은 해제된 주소를 그대로 갖고 있어요.', 'output')
+       .patch('    alias[0] = NULL;\n', '    for (int i = 0; i < count; i++) alias[i] = NULL;\n', '반복문으로 별칭 count개를 모두 NULL로 바꿔요.')
+       .run('printf("%d %d\\n", p == NULL, cleared);')
+       .say('1 3이에요. 별칭 세 개를 모두 비웠어요.', 'output')
+       .say('조심하세요. p = NULL은 p만 바꿔요. 같은 주소를 복사한 다른 포인터는 따로 비워야 해요.', 'code:alias[i] = NULL;'))
+
+SPECS += [
+    bit_step('stp_da803331-6926-4d74-a1d9-8f8500674931', 'flags & mask로 같은 자리의 공통 비트를 남기세요',
+             '비트 AND가 두 값의 같은 자리가 모두 1인 비트만 남기는 것을 써서 확인해요.',
+             'value = 0u를 flags & mask로 고쳐 101과 011의 공통 비트 1을 확인한다. 채점은 다른 비트 값으로 실행해 &&와 구별한다.',
+             '2진수는 오른쪽 자리부터 1, 2, 4, 8을 나타내요. 5는 101, 3은 011이에요. 비트 AND(&)는 두 값의 같은 자리가 모두 1인 자리만 1로 남겨요.',
+             'value 줄을 고쳐 flags와 mask의 같은 자리가 모두 1인 비트만 남기세요. 채점은 다른 비트 값으로도 실행해요.',
+             '`0u`를 `flags & mask`로 고치세요.', b9, 'unsigned int value = flags & mask;\n', 'unsigned int value = 0u;\n',
+             '// &는 자리마다 비교해 둘 다 1인 비트만 남겨요.\n    ', n9, '1',
+             [{'values': {'flags': '12u', 'mask': '10u'}, 'expected': '8'}, {'values': {'flags': '7u', 'mask': '2u'}, 'expected': '2'}],
+             {n9.actions[-1]['text']: '실제 연산 결과로 흔한 실수를 짚어요.'},
+             [([['flags & mask;', 'flags && mask;']], 'Logical AND'), ([['flags & mask;', '1u;']], 'Typing the result')],
+             [([['flags & mask;', 'mask & flags;']], 'Operands swapped')]),
+    bit_step('stp_0abc1f21-07ab-4694-bd02-223bae8e6977', 'a && b로 두 값이 모두 0이 아닌지 판단하세요',
+             '논리 AND는 자리별 비교 없이 두 값이 모두 0이 아닌지만 판단함을 써서 확인해요.',
+             'a & b는 2와 1의 공통 비트가 없어 0이다. a && b로 고쳐 참 1을 확인한다. 채점은 0이 섞인 값과 공통 비트 없는 값으로 실행한다.',
+             '이번에는 두 재고가 모두 있는지 판단해요. 논리 AND(&&)는 두 값이 모두 0이 아니면 참 1, 하나라도 0이면 거짓 0을 돌려줘요. 자리마다 비교하지 않아요.',
+             'both 줄을 고쳐 두 값이 모두 0이 아닌지 논리 AND로 판단하세요. 채점은 다른 값으로도 실행해요.',
+             '`a & b`를 `a && b`로 고치세요.', b10, 'int both = a && b;\n', 'int both = a & b;\n',
+             '// &&는 두 값이 모두 0이 아니면 1, 아니면 0이에요.\n    ', n10, '1',
+             [{'values': {'a': '0', 'b': '5'}, 'expected': '0'}, {'values': {'a': '4', 'b': '8'}, 'expected': '1'}],
+             {n10.actions[-1]['text']: '실제 출력으로 확인한 흔한 실수예요.'},
+             [([['a && b;', 'a & b;']], 'Bitwise AND'), ([['a && b;', '1;']], 'Typing true')],
+             [([['a && b;', '(a != 0) && (b != 0);']], 'Explicit comparisons')]),
+    bit_step('stp_dbdc3cbb-64aa-4b43-9616-d245f5a8aa75', 'flags | extra로 켜진 자리를 합치세요',
+             '비트 OR가 두 값의 같은 자리 중 하나라도 1이면 켜는 것을 써서 확인해요.',
+             'value = flags는 5다. flags | extra로 고쳐 101과 010을 합친 7을 확인한다. 채점은 겹치는 자리가 있는 값으로 실행해 +와 구별한다.',
+             '켜진 표시 5(101)에 새 표시 2(010)를 더 켜요. 비트 OR(|)는 같은 자리 중 하나라도 1이면 1로 남겨요.',
+             'value 줄을 고쳐 두 값 중 하나라도 1인 자리를 모두 켜세요. 채점은 다른 비트 값으로도 실행해요.',
+             '`flags`를 `flags | extra`로 고치세요.', b11, 'unsigned int value = flags | extra;\n', 'unsigned int value = flags;\n',
+             '// |는 같은 자리 중 하나라도 1이면 1이에요. 이미 켜진 자리는 그대로예요.\n    ', n11, '7',
+             [{'values': {'flags': '6u', 'extra': '3u'}, 'expected': '7'}, {'values': {'flags': '8u', 'extra': '1u'}, 'expected': '9'}],
+             {n11.actions[-1]['text']: '실제 출력이 같아 보이는 경우와 달라지는 경우를 짚어요.'},
+             [([['flags | extra;', 'flags + extra;']], 'Adding instead'), ([['flags | extra;', '7u;']], 'Typing the result')],
+             [([['flags | extra;', 'extra | flags;']], 'Operands swapped')]),
+    bit_step('stp_f37704d1-d8e1-40fe-93e8-96c481c22983', 'before ^ after로 바뀐 자리만 남기세요',
+             '비트 XOR가 두 값의 같은 자리가 다를 때만 1을 남기는 것을 써서 확인해요.',
+             'before | after는 같은 자리의 1도 남겨 7이다. before ^ after로 고쳐 바뀐 자리 110, 6을 확인한다. 채점은 다른 값과 같은 두 값으로 실행한다.',
+             '어제 표시 5(101)와 오늘 표시 3(011)에서 바뀐 자리를 찾아요. 비트 XOR(^)는 같은 자리가 서로 다르면 1, 같으면 0으로 남겨요.',
+             'changed 줄을 고쳐 두 값의 서로 다른 자리만 1로 남기세요. 채점은 다른 값으로도 실행해요.',
+             '`before | after`를 `before ^ after`로 고치세요.', b12, 'unsigned int changed = before ^ after;\n', 'unsigned int changed = before | after;\n',
+             '// ^는 같은 자리의 비트가 다를 때만 1이에요. 바뀐 자리만 남아요.\n    ', n12, '6',
+             [{'values': {'before': '12u', 'after': '10u'}, 'expected': '6'}, {'values': {'before': '7u', 'after': '7u'}, 'expected': '0'}],
+             {n12.actions[-1]['text']: '실제 XOR 결과의 의미를 말해요.'},
+             [([['before ^ after;', 'before | after;']], 'OR keeps unchanged bits'), ([['before ^ after;', 'before - after;']], 'Subtracting')],
+             [([['before ^ after;', '(before | after) & ~(before & after);']], 'OR without the common bits')]),
+    bit_step('stp_b282ba4d-5049-43f9-ae77-7ed91635acaf', 'base << places로 비트를 왼쪽으로 옮기세요',
+             '왼쪽 시프트가 한 자리마다 값을 2배로 만드는 것을 써서 확인해요.',
+             'base * places는 3이다. base << places로 고쳐 1을 세 자리 옮긴 8을 확인한다. 채점은 다른 값과 자리 수로 실행한다.',
+             '왼쪽 시프트(<<)는 비트를 왼쪽으로 옮기고 오른쪽을 0으로 채워요. 한 자리 옮길 때마다 값이 2배가 돼요.',
+             'value 줄을 고쳐 base의 비트를 왼쪽으로 places 자리 옮기세요. 채점은 다른 값으로도 실행해요.',
+             '`base * places`를 `base << places`로 고치세요.', b13, 'unsigned int value = base << places;\n', 'unsigned int value = base * places;\n',
+             '// <<는 비트를 places 자리 왼쪽으로 옮겨요. 한 자리마다 2배예요.\n    ', n13, '8',
+             [{'values': {'base': '3u', 'places': '2'}, 'expected': '12'}, {'values': {'base': '5u', 'places': '0'}, 'expected': '5'}],
+             {n13.actions[-1]['text']: '실제 시프트 결과로 흔한 오해를 짚어요.'},
+             [([['base << places;', 'base * places;']], 'Multiplying by places'), ([['base << places;', 'base << 3;']], 'Typing the places')],
+             [([['base << places;', 'base * (1u << places);']], 'Multiplying by two to the places')]),
+    bit_step('stp_73085838-4fe3-46ae-8f5a-db60b66a6cff', '(~flags) & mask로 꺼진 아래 네 비트를 읽으세요',
+             '반전은 모든 비트를 뒤집으므로 필요한 자리만 마스크로 남겨야 함을 써서 확인해요.',
+             '~flags는 32비트 전체가 뒤집혀 4294967290이다. (~flags) & mask로 고쳐 아래 네 비트 1010, 10을 확인한다. 채점은 다른 표시와 마스크로 실행한다.',
+             '반전(~)은 모든 비트를 뒤집어요. unsigned 정수는 32비트라 앞자리도 모두 1이 돼요. mask 15(1111)를 &로 걸면 아래 네 비트만 남아요.',
+             'value 줄을 고쳐 flags를 반전한 뒤 mask로 아래 네 비트만 남기세요. 채점은 다른 값으로도 실행해요.',
+             '`~flags`를 `(~flags) & mask`로 고치세요.', b14, 'unsigned int value = (~flags) & mask;\n', 'unsigned int value = ~flags;\n',
+             '// 반전하면 앞의 비트까지 1이 돼요. mask로 필요한 아래 비트만 남겨요.\n    ', n14, '10',
+             [{'values': {'flags': '0u'}, 'expected': '15'}, {'values': {'flags': '9u', 'mask': '7u'}, 'expected': '6'}],
+             {n14.actions[-1]['text']: '실제 출력으로 확인한 마스크의 필요성이에요.'},
+             [([['(~flags) & mask;', '~flags;']], 'No mask'), ([['(~flags) & mask;', 'mask - flags;']], 'Subtracting from the mask'),
+              ([['(~flags) & mask;', 'flags ^ mask;']], 'XOR with the mask differs once flags has bits outside the mask (9u, 7u)')],
+             [([['(~flags) & mask;', 'mask & ~flags;']], 'Mask first, without parentheses')]),
+    dict(old='stp_aec61cad-840d-4ef4-82b2-0dfdcd538eca', title='*p = stock으로 확보한 저장소에 값을 저장하세요',
+         objectives=['malloc은 저장소를 확보만 하므로 읽기 전에 값을 저장해야 함을 써서 확인해요.'],
+         core_flow='*p = 0 자리를 *p = stock으로 고쳐 확보한 저장소에 7을 저장하고 읽는다. 채점은 다른 재고 값으로 실행한다.',
+         goal='malloc은 저장소를 확보만 하고 값은 채우지 않아요. 실패하면 NULL을 돌려주니 먼저 확인하고, 값을 저장한 뒤에 읽어요.\n\n'
+              '*p 줄을 고쳐 p가 가리키는 저장소에 stock을 저장하세요. 채점은 다른 재고 값으로도 실행해요.\n\n'
+              + todo(RUN_C, '`*p = 0;`을 `*p = stock;`으로 고치세요.', '코드 실행을 눌러 7이 나오는지 확인하세요.', SUB_C),
+         starter_code=b15, solution=b15.replace('    *p = 0;\n', '    // 확보한 저장소에 값을 먼저 저장해요. 그 뒤에야 *p를 읽을 수 있어요.\n    *p = stock;\n'),
+         tests=[{'input': '', 'expected': '7'}],
+         variations=[{'values': {'stock': '12'}, 'expected': '12'}, {'values': {'stock': '-3'}, 'expected': '-3'}],
+         narration=n15.actions, review={n15.actions[-1]['text']: '초기화하지 않은 저장소를 읽는 실제 위험을 말해요.'},
+         reject=[([['    *p = stock;\n', '    *p = 7;\n']], 'Typing the value'), ([['    *p = stock;\n', '    stock = *p;\n']], 'Assigning the other way')],
+         accept=[([['    *p = stock;\n', '    p[0] = stock;\n']], 'Index form')]),
+    dict(old='stp_ed61deb4-523d-40be-8f31-41e520fe9fb2', title='calloc(count, sizeof *p)로 0으로 채운 칸을 확보하세요',
+         objectives=['calloc이 저장소를 확보하면서 모든 칸을 0으로 채우는 것을 써서 확인해요.'],
+         core_flow='p = NULL이면 확보하지 못했다는 안내만 나온다. calloc(count, sizeof *p)로 고쳐 둘째 칸만 bonus인 4 4를 확인한다. 채점은 다른 개수와 bonus로 실행한다.',
+         goal='calloc(개수, 크기)은 저장소를 확보하면서 모든 바이트를 0으로 채워요. 그래서 정수 칸은 0으로 시작해요. 이번 코드는 둘째 칸에만 bonus를 더한 뒤 모든 칸을 더해요.\n\n'
+              'p 줄을 고쳐 count개의 정수 칸을 모두 0으로 채워 확보하세요. 채점은 다른 개수와 bonus로도 실행해요.\n\n'
+              + todo('코드 실행을 눌러 확보하지 못했다는 안내가 나오는지 확인하세요.', '`int *p = NULL;`을 `int *p = calloc(count, sizeof *p);`로 고치세요.', '코드 실행을 눌러 4 4가 나오는지 확인하세요.', SUB_C),
+         starter_code=b16, solution=b16.replace('    int *p = NULL;\n', '    // calloc은 count개의 칸을 확보하고 모두 0으로 채워요.\n    int *p = calloc(count, sizeof *p);\n'),
+         tests=[{'input': '', 'expected': '4 4'}],
+         variations=[{'values': {'count': '5', 'bonus': '9'}, 'expected': '9 9'}, {'values': {'count': '2', 'bonus': '-1'}, 'expected': '-1 -1'}],
+         narration=n16.actions, review={n16.actions[-1]['text']: 'malloc과 calloc의 실제 차이를 말해요.'},
+         reject=[([['    int *p = calloc(count, sizeof *p);\n', '    int *p = NULL;\n']], 'Never allocating'),
+                 ([['    printf("%d %d\\n", p[1], total);\n', '    printf("4 4\\n");\n']], 'Typing the output')],
+         accept=[([['    int *p = calloc(count, sizeof *p);\n', '    int *p = calloc(count, sizeof(int));\n']], 'sizeof(int)')]),
+    dict(old='stp_0fc0aa15-ca6d-4174-bfce-f7b510c386c6', title='int *q = p로 같은 할당의 별칭을 만드세요',
+         objectives=['포인터를 복사하면 새 저장소가 아니라 같은 주소를 가리키는 별칭이 됨을 써서 확인해요.'],
+         core_flow='q가 other를 가리키면 *p는 0이다. int *q = p로 고쳐 q로 쓴 9를 p로 읽는다. 채점은 다른 값으로 실행한다.',
+         goal='`int *q = p;`는 새 저장소를 만들지 않고 p의 주소를 복사해요. 그래서 q로 쓴 값을 p로 읽어요.\n\n'
+              'q 줄을 고쳐 q가 p와 같은 저장소를 가리키게 하세요. 채점은 다른 값으로도 실행해요.\n\n'
+              + todo(RUN_C, '`int *q = &other;`를 `int *q = p;`로 고치세요.', '코드 실행을 눌러 9가 나오는지 확인하세요.', SUB_C),
+         starter_code=b17, solution=b17.replace('    int *q = &other;\n', '    // 포인터를 복사하면 같은 주소를 가리켜요. q와 p는 같은 저장소의 두 이름이에요.\n    int *q = p;\n'),
+         tests=[{'input': '', 'expected': '9'}],
+         variations=[{'values': {'value': '4'}, 'expected': '4'}, {'values': {'value': '-8'}, 'expected': '-8'}],
+         narration=n17.actions, review={n17.actions[-1]['text']: '별칭과 해제 횟수의 실제 관계를 말해요.'},
+         reject=[([['    int *q = p;\n', '    int *q = &other;\n']], 'Another variable'), ([['    printf("%d\\n", *p);\n', '    printf("9\\n");\n']], 'Typing the value')],
+         accept=[([['    int *q = p;\n', '    int *q = &*p;\n']], 'Address of the pointed storage')]),
+    dict(old='stp_d867bd24-fc5a-4133-9f9d-0f1825167574', title='free 뒤 같은 할당의 별칭을 모두 NULL로 바꾸세요',
+         objectives=['p = NULL은 p만 바꾸므로 같은 주소를 복사한 별칭도 따로 비워야 함을 써서 확인해요.'],
+         core_flow='alias[0]만 비우면 1 1이다. 반복문으로 별칭 count개를 모두 NULL로 바꿔 1 3을 확인한다. 채점은 다른 별칭 개수로 실행한다.',
+         goal='free(p) 뒤에 p = NULL;로 p만 비웠어요. 해제 전에 같은 주소를 복사한 별칭들은 여전히 해제된 주소를 갖고 있어요. ==는 같으면 1, 다르면 0이에요.\n\n'
+              'alias[0] 줄을 고쳐 별칭 count개를 모두 NULL로 비우세요. 채점은 다른 별칭 개수로도 실행해요.\n\n'
+              + todo(RUN_C, '`alias[0] = NULL;`을 `for (int i = 0; i < count; i++) alias[i] = NULL;`로 고치세요.', '코드 실행을 눌러 1 3이 나오는지 확인하세요.', SUB_C),
+         starter_code=b18, solution=b18.replace('    alias[0] = NULL;\n', '    // 같은 주소를 복사한 별칭마다 따로 NULL을 넣어야 해요.\n    for (int i = 0; i < count; i++) alias[i] = NULL;\n'),
+         tests=[{'input': '', 'expected': '1 3'}],
+         variations=[{'values': {'count': '2'}, 'expected': '1 2'}, {'values': {'count': '4'}, 'expected': '1 4'}],
+         narration=n18.actions, review={n18.actions[-1]['text']: '해제 뒤 별칭의 실제 상태를 말해요.'},
+         reject=[([['    for (int i = 0; i < count; i++) alias[i] = NULL;\n', '    alias[0] = NULL;\n']], 'Only the first alias'),
+                 ([['    for (int i = 0; i < count; i++) alias[i] = NULL;\n', '    for (int i = 0; i < 3; i++) alias[i] = NULL;\n']], 'Typing three aliases')],
+         accept=[([['    for (int i = 0; i < count; i++) alias[i] = NULL;\n', '    int i = 0;\n    while (i < count) {\n        alias[i] = NULL;\n        i++;\n    }\n']], 'while loop')]),
+]

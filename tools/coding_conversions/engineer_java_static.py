@@ -317,3 +317,60 @@ SPECS = [
                  ([['        System.out.println(b.total + ":" + b.local);\n', '        System.out.println("2:0");\n']], 'Printing typed text')],
          accept=[]),
 ]
+
+
+# ---- 2026-10-30: the last-answer field becomes a coding step (user decision) ---------------------------
+PRD_GRADING = ['직접 고친 코드를 실제 JDK 25로 실행해 판정해요. 준비 값(처음 값·장수·더할 수·건너뛸 간격)을 바꾼 실행도 맞아야 해요.',
+               '고정 출력과 숫자를 적어 넣은 답, 건너뛴 뒤에 번호를 받는 답은 거절해요.',
+               '마지막 도전: 시작 답안은 실패해야 해요. 실제 실행 결과를 검사하고 오답과 동등한 정답도 대조해요.']
+
+t8 = """class Ticket {
+    static int next = 1;
+    static int gap = 10;
+    int id;
+    // 이 생성자를 고쳐, 먼저 현재 next를 id로 받고 next를 하나 늘린 뒤 gap만큼 건너뛰게 하세요.
+    Ticket() {
+        next += gap;
+        id = next++;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Ticket a = new Ticket();
+        Ticket b = new Ticket();
+        System.out.println(a.id + ":" + b.id + ":" + Ticket.next);
+    }
+}
+"""
+t8_solution = t8.replace('        next += gap;\n        id = next++;\n',
+                         '        // 후위 증가는 지금 값을 id에 준 다음에 next를 하나 늘려요.\n'
+                         '        id = next++;\n'
+                         '        // 번호를 받은 뒤에 다음 창구 간격만큼 건너뛰어요. next는 모든 표가 함께 써요.\n'
+                         '        next += gap;\n')
+u8 = (Script(t8)
+      .say('표마다 먼저 지금 번호를 받고, 그 뒤에 간격만큼 건너뛰어야 해요. 생성자 두 줄의 순서를 바꿔요.', 'text:생성자를 고쳐, 먼저 현재 next를 id로 받고 next를 하나 늘린 뒤 gap만큼 건너뛰게 하세요.')
+      .run('System.out.println(a.id')
+      .say('11:22:23이에요. 먼저 10을 건너뛰고 번호를 받아 첫 표가 11이에요.', 'output')
+      .patch('        next += gap;\n        id = next++;\n', '        id = next++;\n        next += gap;\n', '번호를 받는 줄을 위로 올려요.')
+      .run('System.out.println(a.id')
+      .say('1:12:23이에요. 첫 표가 1을 받고 2에서 10을 건너뛰어 둘째 표는 12예요.', 'output')
+      .say('조심하세요. next는 static이라 두 표가 같은 값을 이어 써요. 첫 표가 바꾼 값에서 둘째 표가 시작해요.', 'code:id = next++;'))
+
+SPECS += [
+    dict(old='stp_3e1bfdc6-f723-432e-975f-008b07d17ee3', title='번호를 먼저 받고 gap만큼 건너뛰게 생성자를 고치세요',
+         objectives=['공유하는 static 값과 후위 증가의 순서가 객체마다 받는 번호를 정하는 것을 써서 확인해요.'],
+         core_flow='건너뛴 뒤 번호를 받으면 11:22:23이다. id = next++를 위로 올려 1:12:23을 확인한다. 채점은 처음 번호와 간격을 바꿔 실행한다.',
+         goal='같은 창구에서 표를 두 장 만들어요. static next는 모든 표가 함께 쓰는 번호이고, `id = next++`는 지금 번호를 id에 준 다음에 next를 하나 늘려요.\n\n'
+              '생성자를 고쳐, 먼저 현재 next를 id로 받고 next를 하나 늘린 뒤 gap만큼 건너뛰게 하세요. 채점은 처음 번호와 간격을 바꿔서도 실행해요.\n\n'
+              + todo('코드 실행을 눌러 지금 결과를 확인하세요.', '생성자에서 `id = next++;` 줄을 `next += gap;` 줄 위로 옮기세요.',
+                     '코드 실행을 눌러 1:12:23이 나오는지 확인하세요.', '수정한 코드를 제출하세요.'),
+         starter_code=t8, solution=t8_solution, tests=[{'input': '', 'expected': '1:12:23'}],
+         variations=[{'values': {'next': '5'}, 'expected': '5:16:27'}, {'values': {'gap': '3'}, 'expected': '1:5:9'}],
+         narration=u8.actions,
+         review={u8.actions[-1]['text']: 'static 공유와 실행 순서의 실제 결과를 말해요.'},
+         reject=[([['        id = next++;\n        // 번호를 받은 뒤에 다음 창구 간격만큼 건너뛰어요. next는 모든 표가 함께 써요.\n        next += gap;\n',
+                    '        next += gap;\n        id = next++;\n']], 'Skipping before numbering'),
+                 ([['        System.out.println(a.id + ":" + b.id + ":" + Ticket.next);\n', '        System.out.println("1:12:23");\n']], 'Typing the result')],
+         accept=[([['        id = next++;\n', '        id = next;\n        next = next + 1;\n']], 'Two separate statements')]),
+]

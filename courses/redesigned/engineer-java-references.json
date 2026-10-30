@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_fc70c0c4-6f29-4f25-aed8-9af6dc4a68ea",
-  "revision": "engineer-java-references-6",
+  "revision": "engineer-java-references-7",
   "title": "Java · 같은 객체와 다른 이름을 구별해요",
   "description": "하나의 재고를 함께 보는 이름과 새 대상에 연결한 이름을 구별해요.",
   "objectives": [
@@ -94,9 +94,9 @@
               ]
             },
             {
-              "id": "stp_1615d484-b23a-4557-ada9-fcf5da81a21c",
+              "id": "stp_5958f642-9952-42e0-98eb-3ee2ea27eb1c",
               "objectives": [
-                "객체 공유와 변수 재대입을 결합한 출력값을 읽어요."
+                "같은 객체를 가리킬 때의 변경과 참조 재대입의 순서가 결과를 바꾸는 것을 써서 확인해요."
               ]
             }
           ]
@@ -714,88 +714,80 @@
       ]
     },
     {
-      "id": "stp_1615d484-b23a-4557-ada9-fcf5da81a21c",
-      "title": "마지막 두 참조의 결과를 적어요",
-      "goal": "공유 재고를 바꾼 뒤 b만 새 대상으로 옮겼어요.\na.count:b.count 형식으로 결과를 적으세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 질문이 묻는 값을 답안 칸에 적으세요.\n3. 적은 답안을 제출하세요.",
+      "id": "stp_5958f642-9952-42e0-98eb-3ee2ea27eb1c",
+      "title": "두 줄의 순서를 바꿔 공유 객체를 늘린 뒤 b를 옮기세요",
+      "goal": "`Stock b = a;`로 b와 a는 같은 객체를 가리켜요. `b = new Stock(fresh);`는 b만 새 객체로 옮기고 a는 그대로 둬요.\n\n아래 두 줄의 순서를 바꿔, b가 a와 같은 객체를 가리킬 때 재고를 늘린 뒤 b를 새 객체로 옮기세요. 채점은 처음 재고·더할 수·새 값을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 결과를 확인하세요.\n2. `b.count += added;` 줄을 `b = new Stock(fresh);` 줄 위로 옮기세요.\n3. 코드 실행을 눌러 5:9가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "java",
-      "starter_code": "",
-      "solution": "5:9",
-      "tests": [],
+      "starter_code": "class Stock {\n    int count;\n    // 각 객체의 재고 값을 따로 준비해요.\n    Stock(int count) { this.count = count; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int start = 2;\n        int added = 3;\n        int fresh = 9;\n        Stock a = new Stock(start);\n        Stock b = a;\n        // 아래 두 줄의 순서를 바꿔, b가 a와 같은 객체를 가리킬 때 재고를 늘린 뒤 b를 새 객체로 옮기세요.\n        b = new Stock(fresh);\n        b.count += added;\n        System.out.println(a.count + \":\" + b.count);\n    }\n}\n",
+      "solution": "class Stock {\n    int count;\n    // 각 객체의 재고 값을 따로 준비해요.\n    Stock(int count) { this.count = count; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int start = 2;\n        int added = 3;\n        int fresh = 9;\n        Stock a = new Stock(start);\n        Stock b = a;\n        // 아래 두 줄의 순서를 바꿔, b가 a와 같은 객체를 가리킬 때 재고를 늘린 뒤 b를 새 객체로 옮기세요.\n        // 아직 b와 a가 같은 객체예요. b로 늘리면 a로도 보여요.\n        b.count += added;\n        // 이제 b만 새 객체를 가리켜요. a는 원래 객체를 그대로 가리켜요.\n        b = new Stock(fresh);\n        System.out.println(a.count + \":\" + b.count);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "5:9"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "start": "4",
+            "added": "1",
+            "fresh": "0"
+          },
+          "expected": "5:0"
+        },
+        {
+          "values": {
+            "added": "10"
+          },
+          "expected": "12:9"
+        }
+      ],
       "required": true,
-      "example_code": "class Stock {\n    int count;\n    // 각 객체의 재고 값을 따로 준비해요.\n    Stock(int count) { this.count = count; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Stock a = new Stock(2);\n        Stock b = a;\n        b.count += 3;\n        // b만 새 대상으로 옮겨요.\n        b = new Stock(9);\n        System.out.println(a.count + \":\" + b.count);\n    }\n}\n",
-      "interaction": {
-        "kind": "fill",
-        "accepted": [
-          "5:9"
-        ]
-      },
       "narration": [
         {
           "action": "say",
-          "text": "어느 시점에 무엇을 공유했는지 나눠 두 값을 적는 문제예요.",
-          "target": "text:마지막 두 참조의 결과를 적어요#1"
+          "text": "두 줄의 순서를 바꿔 공유 객체를 늘린 뒤 b를 옮기는 문제예요.",
+          "target": "text:두 줄의 순서를 바꿔 공유 객체를 늘린 뒤 b를 옮기세요#1"
         },
         {
           "action": "say",
-          "text": "a와 b가 같은 재고를 가리키다가 b만 새 객체로 옮겼어요.",
-          "target": "text:공유 재고를 바꾼 뒤 b만 새 대상으로 옮겼어요."
+          "text": "b가 a와 같은 객체를 가리킬 때 재고를 늘려야 해요. 그 뒤에 b만 새 객체로 옮겨요.",
+          "target": "text:아래 두 줄의 순서를 바꿔, b가 a와 같은 객체를 가리킬 때 재고를 늘린 뒤 b를 새 객체로 옮기세요."
         },
         {
           "action": "run",
           "lines": [
-            14,
-            14
+            17,
+            17
           ]
         },
         {
           "action": "say",
-          "text": "공유하던 재고는 5이고 b만 새 재고 9를 봐요.",
+          "text": "2:12예요. b를 먼저 새 객체로 옮겨서 3이 새 객체에 더해졌어요.",
           "target": "output"
         },
         {
           "action": "patch_code",
-          "before": "System.out.println(a.count",
-          "after": "a.count += 1;\n        System.out.println(a.count"
+          "before": "        b = new Stock(fresh);\n        b.count += added;\n",
+          "after": "        b.count += added;\n        b = new Stock(fresh);\n",
+          "say": "늘리는 줄을 위로 올려요."
         },
         {
           "action": "run",
           "lines": [
-            15,
-            15
+            17,
+            17
           ]
         },
         {
           "action": "say",
-          "text": "서로 다른 객체라 a만 6이고 b는 9예요.",
+          "text": "5:9예요. 공유하던 객체가 5가 됐고, b는 그 뒤 새 객체 9를 가리켜요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "조심하세요. 같은 객체였던 시간과 재대입한 뒤를 나눠 읽어요.",
-          "target": "output"
-        },
-        {
-          "action": "patch_code",
-          "before": "a.count += 1;\n        System.out.println(a.count",
-          "after": "System.out.println(a.count",
-          "say": "늘리는 줄을 빼고 되돌려요."
-        },
-        {
-          "action": "run",
-          "lines": [
-            14,
-            14
-          ]
-        },
-        {
-          "action": "say",
-          "text": "처음 코드의 결과는 a가 5, b가 9예요.",
-          "target": "output"
-        },
-        {
-          "action": "fill_answer",
-          "value": "5:9",
-          "say": "콜론을 포함해 마지막 두 값을 적어요."
+          "text": "조심하세요. b에 새 객체를 대입해도 a는 따라가지 않아요. 바뀌는 건 b가 가리키는 대상뿐이에요.",
+          "target": "code:b = new Stock(fresh);"
         }
       ]
     },

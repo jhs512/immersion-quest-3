@@ -278,3 +278,57 @@ SPECS = [
                  ([['        stock = Counter.add(stock);\n', '        Counter.add(stock);\n']], 'Discarding the return value')],
          accept=[([['        stock = Counter.add(stock);\n', '        int next = Counter.add(stock);\n        stock = next;\n']], 'Through another variable')]),
 ]
+
+
+# ---- 2026-10-30: the last-answer field becomes a coding step (user decision) ---------------------------
+PRD_SCOPE = ['두 챕터·두 단원·아홉 스텝으로 재고 계산 코드의 값과 흐름을 읽어요.',
+             '나눗셈·문자열 덧셈·증가·단락 평가·switch·continue·반환값·향상된 for의 조건 누적을 한두 줄씩 직접 고쳐 실행해요.']
+PRD_GRADING = ['직접 고친 코드를 실제 JDK 25로 실행해 판정해요. 준비 값(개수·재고·등급·건너뛸 값·배열)을 바꾼 실행도 맞아야 해요.',
+               '고정 출력과 숫자를 적어 넣은 답, 조건 없이 모두 더한 답은 거절해요.',
+               '마지막 도전(stp_81d6934e-8cf9-47b5-bf45-4ae4beb83506): 시작 답안은 실패해야 해요. 실제 실행 결과를 검사하고 오답과 동등한 정답도 대조해요.']
+
+j8 = """class Counter {
+    // 재고를 묶음 두 개로 계산해요.
+    static int twice(int value) { return value * 2; }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        int[] stocks = {2, 0, 3};
+        int total = 0;
+        for (int stock : stocks) {
+            // 이 줄을 고쳐 양수 재고만 Counter.twice로 두 배 해 total에 더하세요.
+            total += stock;
+        }
+        System.out.println(total);
+    }
+}
+"""
+j8_solution = j8.replace('            total += stock;\n',
+                         '            // 양수일 때만 메서드의 반환값을 더해요. 0이나 음수는 건너뛰어요.\n'
+                         '            if (stock > 0) total += Counter.twice(stock);\n')
+k8 = (Script(j8)
+      .say('배열의 값을 하나씩 꺼내 양수만 두 배로 세어 더해야 해요.', 'text:반복문 안의 줄을 고쳐 양수 재고만 Counter.twice로 두 배 해 total에 더하세요.')
+      .run('System.out.println(total);')
+      .say('5예요. 2, 0, 3을 그대로 더했어요.', 'output')
+      .patch('            total += stock;\n', '            if (stock > 0) total += Counter.twice(stock);\n', 'stock > 0일 때만 Counter.twice(stock)의 반환값을 더해요.')
+      .run('System.out.println(total);')
+      .say('10이에요. 2와 3을 두 배 한 4와 6을 더했고 0은 건너뛰었어요.', 'output')
+      .say('조심하세요. 조건을 빼도 지금은 0이 0을 더해 같은 10이에요. 음수 재고가 있으면 결과가 달라져요.', 'code:if (stock > 0)'))
+
+SPECS += [
+    dict(old='stp_539dc525-7521-4428-ad57-f386fc8f7110', title='양수 재고만 Counter.twice로 두 배 해 더하세요',
+         objectives=['향상된 for에서 조건에 맞는 값만 메서드의 반환값으로 누적해요.'],
+         core_flow='total += stock은 5다. if (stock > 0) total += Counter.twice(stock)로 고쳐 10을 확인한다. 채점은 음수가 섞인 배열로 실행한다.',
+         goal='`for (int stock : stocks)`는 배열의 값을 앞에서부터 하나씩 stock에 담아 반복해요. `Counter.twice(stock)`는 재고를 두 배로 계산해 돌려줘요.\n\n'
+              '반복문 안의 줄을 고쳐 양수 재고만 Counter.twice로 두 배 해 total에 더하세요. 채점은 다른 배열로도 실행해요.\n\n'
+              + todo('코드 실행을 눌러 지금 합계를 확인하세요.', '`total += stock;`을 `if (stock > 0) total += Counter.twice(stock);`으로 고치세요.',
+                     '코드 실행을 눌러 10이 나오는지 확인하세요.', '수정한 코드를 제출하세요.'),
+         starter_code=j8, solution=j8_solution, tests=[{'input': '', 'expected': '10'}],
+         variations=[{'values': {'stocks': '{-1, 4}'}, 'expected': '8'}, {'values': {'stocks': '{0, 0, 5, -2, 1}'}, 'expected': '12'}],
+         narration=k8.actions,
+         review={k8.actions[-1]['text']: '지금 자료에서는 같고 다른 자료에서 달라지는 실제 차이를 말해요.'},
+         reject=[([['            if (stock > 0) total += Counter.twice(stock);\n', '            total += Counter.twice(stock);\n']], 'No positive check'),
+                 ([['        System.out.println(total);\n', '        System.out.println(10);\n']], 'Typing the total')],
+         accept=[([['            if (stock > 0) total += Counter.twice(stock);\n', '            if (stock <= 0) continue;\n            total += stock * 2;\n']], 'continue and multiply')]),
+]

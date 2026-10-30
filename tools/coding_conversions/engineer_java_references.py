@@ -314,3 +314,61 @@ SPECS = [
                  ([['text != null && text.length() > 0', 'text.length() > 0 && text != null']], 'Wrong order still calls length() on null')],
          accept=[([['text != null && text.length() > 0', 'text != null && !text.isEmpty()']], 'isEmpty after the null guard')]),
 ]
+
+
+# ---- 2026-10-30: the last-answer field becomes a coding step (user decision) ---------------------------
+PRD_GRADING = ['직접 고친 코드를 실제 JDK 25로 실행해 판정해요. 준비 값(배열 내용·새 값·글·처음 재고)을 바꾼 실행도 맞아야 해요.',
+               '고정 출력과 숫자를 적어 넣은 답, 재대입한 뒤에 바꾼 답은 거절해요.',
+               '마지막 도전: 시작 답안은 실패해야 해요. 실제 실행 결과를 검사하고 오답과 동등한 정답도 대조해요.']
+
+r8 = """class Stock {
+    int count;
+    // 각 객체의 재고 값을 따로 준비해요.
+    Stock(int count) { this.count = count; }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        int start = 2;
+        int added = 3;
+        int fresh = 9;
+        Stock a = new Stock(start);
+        Stock b = a;
+        // 아래 두 줄의 순서를 바꿔, b가 a와 같은 객체를 가리킬 때 재고를 늘린 뒤 b를 새 객체로 옮기세요.
+        b = new Stock(fresh);
+        b.count += added;
+        System.out.println(a.count + ":" + b.count);
+    }
+}
+"""
+r8_solution = r8.replace('        b = new Stock(fresh);\n        b.count += added;\n',
+                         '        // 아직 b와 a가 같은 객체예요. b로 늘리면 a로도 보여요.\n'
+                         '        b.count += added;\n'
+                         '        // 이제 b만 새 객체를 가리켜요. a는 원래 객체를 그대로 가리켜요.\n'
+                         '        b = new Stock(fresh);\n')
+q8 = (Script(r8)
+      .say('b가 a와 같은 객체를 가리킬 때 재고를 늘려야 해요. 그 뒤에 b만 새 객체로 옮겨요.', 'text:아래 두 줄의 순서를 바꿔, b가 a와 같은 객체를 가리킬 때 재고를 늘린 뒤 b를 새 객체로 옮기세요.')
+      .run('System.out.println(a.count')
+      .say('2:12예요. b를 먼저 새 객체로 옮겨서 3이 새 객체에 더해졌어요.', 'output')
+      .patch('        b = new Stock(fresh);\n        b.count += added;\n', '        b.count += added;\n        b = new Stock(fresh);\n', '늘리는 줄을 위로 올려요.')
+      .run('System.out.println(a.count')
+      .say('5:9예요. 공유하던 객체가 5가 됐고, b는 그 뒤 새 객체 9를 가리켜요.', 'output')
+      .say('조심하세요. b에 새 객체를 대입해도 a는 따라가지 않아요. 바뀌는 건 b가 가리키는 대상뿐이에요.', 'code:b = new Stock(fresh);'))
+
+SPECS += [
+    dict(old='stp_1615d484-b23a-4557-ada9-fcf5da81a21c', title='두 줄의 순서를 바꿔 공유 객체를 늘린 뒤 b를 옮기세요',
+         objectives=['같은 객체를 가리킬 때의 변경과 참조 재대입의 순서가 결과를 바꾸는 것을 써서 확인해요.'],
+         core_flow='b를 먼저 새 객체로 옮기면 2:12다. 늘리는 줄을 위로 올려 공유 객체가 5가 된 5:9를 확인한다. 채점은 처음 재고·더할 수·새 값을 바꿔 실행한다.',
+         goal='`Stock b = a;`로 b와 a는 같은 객체를 가리켜요. `b = new Stock(fresh);`는 b만 새 객체로 옮기고 a는 그대로 둬요.\n\n'
+              '아래 두 줄의 순서를 바꿔, b가 a와 같은 객체를 가리킬 때 재고를 늘린 뒤 b를 새 객체로 옮기세요. 채점은 처음 재고·더할 수·새 값을 바꿔서도 실행해요.\n\n'
+              + todo('코드 실행을 눌러 지금 결과를 확인하세요.', '`b.count += added;` 줄을 `b = new Stock(fresh);` 줄 위로 옮기세요.',
+                     '코드 실행을 눌러 5:9가 나오는지 확인하세요.', '수정한 코드를 제출하세요.'),
+         starter_code=r8, solution=r8_solution, tests=[{'input': '', 'expected': '5:9'}],
+         variations=[{'values': {'start': '4', 'added': '1', 'fresh': '0'}, 'expected': '5:0'}, {'values': {'added': '10'}, 'expected': '12:9'}],
+         narration=q8.actions,
+         review={q8.actions[-1]['text']: '참조 재대입의 실제 동작을 말해요.'},
+         reject=[([['        b.count += added;\n        // 이제 b만 새 객체를 가리켜요. a는 원래 객체를 그대로 가리켜요.\n        b = new Stock(fresh);\n',
+                    '        // 이제 b만 새 객체를 가리켜요. a는 원래 객체를 그대로 가리켜요.\n        b = new Stock(fresh);\n        b.count += added;\n']], 'Original order'),
+                 ([['        System.out.println(a.count + ":" + b.count);\n', '        System.out.println("5:9");\n']], 'Typing the result')],
+         accept=[([['        b.count += added;\n', '        a.count += added;\n']], 'Changing through a before b moves')]),
+]

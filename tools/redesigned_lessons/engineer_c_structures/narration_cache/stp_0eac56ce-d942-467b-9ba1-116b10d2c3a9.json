@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "53ee9ea218af0620c38124ba626208497865e9330d87ebe01600db6267390b85",
+  "entry": [
+    {
+      "action": "say",
+      "text": "count개의 칸을 0으로 채워 확보해야 해요. calloc(개수, 크기)를 써요.",
+      "target": "text:p 줄을 고쳐 count개의 정수 칸을 모두 0으로 채워 확보하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        18,
+        18
+      ]
+    },
+    {
+      "action": "say",
+      "text": "확보하지 못했어요가 나와요. p가 NULL이라 칸을 쓰기 전에 멈췄어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    int *p = NULL;\n",
+      "after": "    int *p = calloc(count, sizeof *p);\n",
+      "say": "NULL을 calloc(count, sizeof *p)로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        18,
+        18
+      ]
+    },
+    {
+      "action": "say",
+      "text": "4 4예요. 둘째 칸만 4가 됐고 나머지 칸은 0이라 합계도 4예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. malloc으로 바꾸면 칸이 0으로 시작한다는 보장이 없어요. p[1] += bonus도 모르는 값에 더해요.",
+      "target": "code:calloc(count, sizeof *p)"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_e4c42aec-3d84-4fb3-b9b1-a229b027bd5a",
-  "revision": "engineer-java-flow-7",
+  "revision": "engineer-java-flow-8",
   "title": "Java · 재고 계산의 실행 순서를 읽어요",
   "description": "재고 계산에 조건과 호출을 하나씩 더해 Java 실행 결과를 읽어요.",
   "objectives": [
@@ -94,9 +94,9 @@
               ]
             },
             {
-              "id": "stp_539dc525-7521-4428-ad57-f386fc8f7110",
+              "id": "stp_d0429e65-d898-48f1-b459-a9e063be8a58",
               "objectives": [
-                "배열·조건·호출을 결합한 결과를 읽어요."
+                "향상된 for에서 조건에 맞는 값만 메서드의 반환값으로 누적해요."
               ]
             }
           ]
@@ -683,36 +683,43 @@
       ]
     },
     {
-      "id": "stp_539dc525-7521-4428-ad57-f386fc8f7110",
-      "title": "마지막 합계를 답안으로 적어요",
-      "goal": "int[] stocks = {2, 0, 3};은 정수 세 개를 담은 배열이에요. for (int stock : stocks)는 배열의 값을 앞에서부터 하나씩 stock에 담아 반복하는 향상된 for예요. 같은 재고를 두 배로 세어요.\n출력될 합계 숫자만 적으세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력을 확인하세요.\n2. 질문이 묻는 값을 답안 칸에 적으세요.\n3. 적은 답안을 제출하세요.",
+      "id": "stp_d0429e65-d898-48f1-b459-a9e063be8a58",
+      "title": "양수 재고만 Counter.twice로 두 배 해 더하세요",
+      "goal": "`for (int stock : stocks)`는 배열의 값을 앞에서부터 하나씩 stock에 담아 반복해요. `Counter.twice(stock)`는 재고를 두 배로 계산해 돌려줘요.\n\n반복문 안의 줄을 고쳐 양수 재고만 Counter.twice로 두 배 해 total에 더하세요. 채점은 다른 배열로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 합계를 확인하세요.\n2. `total += stock;`을 `if (stock > 0) total += Counter.twice(stock);`으로 고치세요.\n3. 코드 실행을 눌러 10이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
       "language": "java",
-      "starter_code": "",
-      "solution": "10",
-      "tests": [],
+      "starter_code": "class Counter {\n    // 재고를 묶음 두 개로 계산해요.\n    static int twice(int value) { return value * 2; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int[] stocks = {2, 0, 3};\n        int total = 0;\n        for (int stock : stocks) {\n            // 이 줄을 고쳐 양수 재고만 Counter.twice로 두 배 해 total에 더하세요.\n            total += stock;\n        }\n        System.out.println(total);\n    }\n}\n",
+      "solution": "class Counter {\n    // 재고를 묶음 두 개로 계산해요.\n    static int twice(int value) { return value * 2; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int[] stocks = {2, 0, 3};\n        int total = 0;\n        for (int stock : stocks) {\n            // 이 줄을 고쳐 양수 재고만 Counter.twice로 두 배 해 total에 더하세요.\n            // 양수일 때만 메서드의 반환값을 더해요. 0이나 음수는 건너뛰어요.\n            if (stock > 0) total += Counter.twice(stock);\n        }\n        System.out.println(total);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "10"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "stocks": "{-1, 4}"
+          },
+          "expected": "8"
+        },
+        {
+          "values": {
+            "stocks": "{0, 0, 5, -2, 1}"
+          },
+          "expected": "12"
+        }
+      ],
       "required": true,
-      "example_code": "class Counter {\n    // 양수 재고를 묶음 두 개로 계산해요.\n    static int twice(int value) { return value * 2; }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int[] stocks = {2, 0, 3};\n        int total = 0;\n        for (int stock : stocks) {\n            // 양수만 두 배로 세어요.\n            if (stock > 0) total += Counter.twice(stock);\n        }\n        System.out.println(total);\n    }\n}\n",
-      "interaction": {
-        "kind": "fill",
-        "accepted": [
-          "10"
-        ]
-      },
       "narration": [
         {
           "action": "say",
-          "text": "마지막 합계를 적는 문제예요.",
-          "target": "text:마지막 합계를 답안으로 적어요#1"
+          "text": "양수 재고만 Counter.twice로 두 배 해 더하는 문제예요.",
+          "target": "text:양수 재고만 Counter.twice로 두 배 해 더하세요#1"
         },
         {
           "action": "say",
-          "text": "배열을 하나씩 돌며 양수만 메서드로 두 배 한 값을 더해요. 0은 조건에서 빠져요.",
-          "target": "text:for (int stock : stocks)는 배열의 값을 앞에서부터 하나씩 stock에 담아 반복하는 향상된 for예요."
-        },
-        {
-          "action": "say",
-          "text": "각 양수를 메서드에 전달한 결과를 더해요.",
-          "target": "lines:12:14"
+          "text": "배열의 값을 하나씩 꺼내 양수만 두 배로 세어 더해야 해요.",
+          "target": "text:반복문 안의 줄을 고쳐 양수 재고만 Counter.twice로 두 배 해 total에 더하세요."
         },
         {
           "action": "run",
@@ -723,18 +730,31 @@
         },
         {
           "action": "say",
-          "text": "2는 4가 되고 3은 6이 돼서, 더하면 10이에요.",
+          "text": "5예요. 2, 0, 3을 그대로 더했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "            total += stock;\n",
+          "after": "            if (stock > 0) total += Counter.twice(stock);\n",
+          "say": "stock > 0일 때만 Counter.twice(stock)의 반환값을 더해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "10이에요. 2와 3을 두 배 한 4와 6을 더했고 0은 건너뛰었어요.",
           "target": "output"
         },
         {
           "action": "say",
-          "text": "반환값만 더하고 원래 배열을 바꾸지는 않아요.",
-          "target": "output"
-        },
-        {
-          "action": "fill_answer",
-          "value": "10",
-          "say": "마지막 합계 숫자만 답안에 적어요."
+          "text": "조심하세요. 조건을 빼도 지금은 0이 0을 더해 같은 10이에요. 음수 재고가 있으면 결과가 달라져요.",
+          "target": "code:if (stock > 0)"
         }
       ]
     },

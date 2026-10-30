@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "1f79d943e4951681b991644667f63ba64079ecacdf43d036af7a86f5ca27b4e5",
+  "entry": [
+    {
+      "action": "say",
+      "text": "꺼진 표시를 찾으려 반전해요. 반전한 뒤 아래 네 비트만 남기도록 mask를 &로 걸어야 해요.",
+      "target": "text:value 줄을 고쳐 flags를 반전한 뒤 mask로 아래 네 비트만 남기세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "4294967290이에요. unsigned 32비트의 앞자리까지 모두 1로 뒤집혔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    unsigned int value = ~flags;\n",
+      "after": "    unsigned int value = (~flags) & mask;\n",
+      "say": "~flags를 괄호로 묶고 & mask를 더해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "10이에요. 0101을 뒤집은 1010만 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 마스크 없이 반전하면 앞의 28비트도 1이 돼 엄청 큰 수가 나와요.",
+      "target": "code:(~flags) & mask"
+    }
+  ]
+}
