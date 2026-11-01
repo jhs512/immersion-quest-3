@@ -26,6 +26,48 @@
   // assets/speech/pronunciation-review.test.mjs check every command and file name the lessons speak.
   const LEXICON = Object.freeze([
     {
+      id: 'html-tag-names', scope: 'html-tag', caseSensitive: false,
+      rationale: 'Name HTML elements clearly. Short abbreviations use letter names, not invented words such as 얼 or 리.',
+      evidence: 'Owner report (2026-11-01): UL and LI were misread in MQ frontend lessons. Applies only to tag syntax and names in tag context.',
+      example: '<ul> 안의 LI 태그 → 유 엘 태그 안의 엘 아이 태그',
+      entries: [
+        ['html', '에이치 티 엠 엘', '<html>'], ['head', '헤드', '<head>'], ['body', '바디', '<body>'],
+        ['title', '타이틀', '<title>'], ['meta', '메타', '<meta>'], ['link', '링크', '<link>'],
+        ['script', '스크립트', '<script>'], ['style', '스타일', '<style>'], ['div', '디브', '<div>'],
+        ['span', '스팬', '<span>'], ['p', '피', '<p>'], ['a', '에이', '<a>'],
+        ['ul', '유 엘', '<ul>'], ['ol', '오 엘', '<ol>'], ['li', '엘 아이', '<li>'],
+        ['dl', '디 엘', '<dl>'], ['dt', '디 티', '<dt>'], ['dd', '디 디', '<dd>'],
+        ['table', '테이블', '<table>'], ['thead', '티 헤드', '<thead>'], ['tbody', '티 바디', '<tbody>'],
+        ['tfoot', '티 풋', '<tfoot>'], ['tr', '티 알', '<tr>'], ['td', '티 디', '<td>'], ['th', '티 에이치', '<th>'],
+        ['h1', '에이치 원', '<h1>'], ['h2', '에이치 투', '<h2>'], ['h3', '에이치 쓰리', '<h3>'],
+        ['h4', '에이치 포', '<h4>'], ['h5', '에이치 파이브', '<h5>'], ['h6', '에이치 식스', '<h6>'],
+        ['img', '아이 엠 지', '<img>'], ['br', '비 알', '<br>'], ['hr', '에이치 알', '<hr>'],
+        ['form', '폼', '<form>'], ['input', '인풋', '<input>'], ['button', '버튼', '<button>'],
+        ['label', '레이블', '<label>'], ['select', '셀렉트', '<select>'], ['option', '옵션', '<option>'],
+        ['textarea', '텍스트에어리어', '<textarea>'], ['pre', '프리', '<pre>'], ['code', '코드', '<code>'],
+        ['strong', '스트롱', '<strong>'], ['em', '이 엠', '<em>'], ['b', '비', '<b>'],
+        ['i', '아이', '<i>'], ['u', '유', '<u>'], ['small', '스몰', '<small>'],
+        ['sub', '서브', '<sub>'], ['sup', '섭', '<sup>'], ['section', '섹션', '<section>'],
+        ['article', '아티클', '<article>'], ['header', '헤더', '<header>'], ['footer', '푸터', '<footer>'],
+        ['nav', '내브', '<nav>'], ['main', '메인', '<main>'], ['aside', '어사이드', '<aside>'],
+        ['figure', '피겨', '<figure>'], ['figcaption', '피그캡션', '<figcaption>'], ['template', '템플릿', '<template>'],
+        ['iframe', '아이프레임', '<iframe>'], ['canvas', '캔버스', '<canvas>'], ['svg', '에스 브이 지', '<svg>'],
+        ['video', '비디오', '<video>'], ['audio', '오디오', '<audio>'], ['source', '소스', '<source>'],
+        ['caption', '캡션', '<caption>'], ['col', '콜', '<col>'], ['colgroup', '콜그룹', '<colgroup>'],
+        ['fieldset', '필드셋', '<fieldset>'], ['legend', '레전드', '<legend>'], ['datalist', '데이터리스트', '<datalist>'],
+        ['optgroup', '옵트그룹', '<optgroup>'], ['progress', '프로그레스', '<progress>'], ['meter', '미터', '<meter>'],
+        ['details', '디테일스', '<details>'], ['summary', '서머리', '<summary>'], ['time', '타임', '<time>'],
+        ['mark', '마크', '<mark>'], ['wbr', '더블유 비 알', '<wbr>'], ['cite', '사이트', '<cite>'],
+        ['q', '큐', '<q>'], ['s', '에스', '<s>'], ['kbd', '케이 비 디', '<kbd>'], ['samp', '샘프', '<samp>'],
+        ['var', '바', '<var>'], ['address', '어드레스', '<address>'], ['abbr', '에이 비 비 알', '<abbr>'],
+        ['bdi', '비 디 아이', '<bdi>'], ['bdo', '비 디 오', '<bdo>'], ['del', '델', '<del>'], ['ins', '인스', '<ins>'],
+        ['map', '맵', '<map>'], ['area', '에어리어', '<area>'], ['picture', '픽처', '<picture>'],
+        ['track', '트랙', '<track>'], ['embed', '임베드', '<embed>'], ['object', '오브젝트', '<object>'],
+        ['param', '패럼', '<param>'], ['dialog', '다이얼로그', '<dialog>'], ['slot', '슬롯', '<slot>'],
+        ['noscript', '노스크립트', '<noscript>'],
+      ],
+    },
+    {
       id: 'heard-spelling-misreads', scope: 'strict', caseSensitive: true,
       rationale: 'Words the Edge voice (ko-KR-SunHiNeural) read by their spelling. Each was synthesized through the app path '
         + 'and transcribed twice in two carrier sentences (faster-whisper small) with the same wrong sound; the reading is '
@@ -346,9 +388,32 @@
     new RegExp('(' + names.map(escapeRegExp).join('|') + ')(?:\\s*\\(\\s*(`?)' + escapeRegExp(token) + '\\2\\s*\\)|\\s+(`?)' + escapeRegExp(token) + '\\3(?![^\\s.,?!가-힣]))', 'g'), '$1' + JOSA_MARK]);
   const suppressAliases = text => aliasPatterns.reduce((result, [pattern, replacement]) => result.replace(pattern, replacement), text);
   const COUNT = { 4: '네', 5: '다섯', 6: '여섯', 7: '일곱', 8: '여덟', 9: '아홉', 10: '열' };
-  const HTML_TAGS = new Set(('html head body title meta link script style div span p a ul ol li dl dt dd table thead tbody tfoot tr td th '
-    + 'h1 h2 h3 h4 h5 h6 img br hr form input button label select option textarea pre code strong em b i u small sub sup '
-    + 'section article header footer nav main aside figure figcaption template iframe canvas svg video audio source').split(' '));
+  const htmlTags = table('html-tag');
+  const tagNames = alternation(Object.keys(htmlTags));
+  const tagListPattern = new RegExp(STRICT_BEFORE + '(' + tagNames + ')' + STRICT_AFTER
+    + '(?=(?:[은는이가을를와과의])?(?:\\s*[,·와과]\\s*(?:' + tagNames + '))*\\s*(?:태그|요소|엘리먼트))', 'gi');
+  const tagPrefixPattern = new RegExp('((?:태그|요소|엘리먼트)\\s+)(' + tagNames + ')' + STRICT_AFTER, 'gi');
+  const shortTag = /^(?:ul|ol|li|dl|dt|dd|tr|td|th|br|hr|h[1-6])$/i;
+  function tagNameText(text, code) {
+    const nameText = name => name.length === 1 && name !== name.toLowerCase() ? name : htmlTags[name.toLowerCase()] + JOSA_MARK;
+    const named = text.replace(tagListPattern, (_, name) => nameText(name))
+      .replace(tagPrefixPattern, (_, lead, name) => lead + nameText(name));
+    return code ? named : named.replace(/(?<![A-Za-z0-9_./\\@-])(UL|OL|LI)(?![A-Za-z0-9_./\\@-])/g,
+      (_, name) => htmlTags[name.toLowerCase()] + JOSA_MARK);
+  }
+  function htmlTagText(text, code) {
+    let result = '', last = 0;
+    const pattern = /(?<![\w<])<(\/?)([a-z][a-z0-9-]*)((?:\s+[\w:-]+(?:=(?:"[^"]*"|'[^']*'|[^\s"'<>]+))?)*)\s*\/?>/gi;
+    for (const match of text.matchAll(pattern)) {
+      const [tag, close, name, attrs] = match;
+      if (!has(htmlTags, name.toLowerCase())) continue;
+      result += tagNameText(text.slice(last, match.index), code) + ' ' + (close ? '닫는 ' : '')
+        + htmlTags[name.toLowerCase()] + ' 태그' + attrs
+        + (!text.slice(match.index + tag.length) || PARTICLE.test(text.slice(match.index + tag.length)) ? JOSA_MARK : ' ');
+      last = match.index + tag.length;
+    }
+    return result + tagNameText(text.slice(last), code);
+  }
   const RUN_NAMES = { '<': '왼쪽 꺾쇠', '>': '꺾쇠', '=': '등호' };
   // Spaces around a spoken symbol; a noun keeps its particle attached ("크다 기호는").
   const pad = (name, before, after, kind) => (before && !/[\s(\[「『]$/.test(before) ? ' ' : '') + name
@@ -443,10 +508,8 @@
     const shell = !!options.shell || (code ? SHELL_START.test(input) || !!options.shellHint && /^\s*(?:>>?|<)\s*$/.test(input) : !!options.shellHint);
     const alone = code && /^[^\w가-힣\s]+$/.test(input.trim());
     const convert = segment => {
-      let text = segment
+      let text = htmlTagText(segment, code)
         .replace(/([<>=])\1{3,}/g, run => ' ' + RUN_NAMES[run[0]] + ' ' + (COUNT[run.length] || String(run.length)) + ' 개 ')
-        .replace(/(?<![\w<])<(\/?)([a-z][a-z0-9-]*)((?:\s+[\w:-]+(?:=(?:"[^"]*"|'[^']*'|[^\s"'<>]+))?)*)\s*\/?>/g, (tag, close, name, attrs, offset, s) => !HTML_TAGS.has(name) ? tag
-          : ' ' + (close ? '닫는 ' : '') + name + attrs + ' 태그' + (PARTICLE.test(s.slice(offset + tag.length)) ? '' : ' '))
         // A placeholder in angle brackets (<값>, <unset>, <branch>) is read as its word; HTML tags are named above.
         .replace(/(?<![\w<])<([가-힣][\w가-힣 -]*|[a-z][\w-]*)>(?![=>])/g, '$1')
         .replace(/<([\w/]+\.h(?:pp)?)>/g, '$1');
@@ -543,6 +606,7 @@
   function codeSpeechText(text, shellHint) {
     const fence = text.startsWith('``') ? 2 : 1;
     const code = fence === 2 ? text.slice(2, -2).trim() : text.slice(1, -1);
+    if (shortTag.test(code)) return htmlTags[code.toLowerCase()] + JOSA_MARK;
     if (/^git(?:hub)?$/i.test(code)) return brandPronunciations[code.toLowerCase()] + JOSA_MARK;
     if (has(strictTable, code)) return strictTable[code] + JOSA_MARK;
     if (has(javaClasses, code)) return javaClasses[code] + JOSA_MARK;
@@ -598,7 +662,7 @@
       return String.fromCharCode(SPAN_BASE + spans.length - 1);
     }).join('');
     const spoken = unquote(proseSpeechText(prose, shellHint)).replace(SPAN_MARKS, mark => spans[mark.charCodeAt(0) - SPAN_BASE] ?? mark);
-    return agreeParticles(spoken).replace(/[ \t]{2,}/g, ' ')
+    return agreeParticles(tagNameText(spoken, true)).replace(/[ \t]{2,}/g, ' ')
       // Padding added around a spoken symbol never adds space at the very start or end.
       .replace(/^ (?=\S)/, /^\s/.test(text) ? ' ' : '').replace(/(?<=\S) $/, /\s$/.test(text) ? ' ' : '');
   }

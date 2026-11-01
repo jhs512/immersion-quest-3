@@ -7,6 +7,18 @@ CodeMirror; delayed `data-editor-value` echoes never replace its document.
 Explicit code reset updates increment `data-editor-reset` and supply the new
 `data-editor-value`, so resetting still works without interrupting IME input.
 
+Indentation follows the loaded document. Existing spaces or tabs determine
+`indentUnit` and `tabSize`; a blank HTML or JavaScript document defaults to two
+spaces and other languages to four. Explicit resets, file changes and tutor
+`setValue` calls infer again. Ordinary typing and incremental narration keep
+the chosen unit stable and never reformat the existing source.
+
+Run the indentation behavior checks with:
+
+```powershell
+node --test assets/editor/indentation.test.mjs
+```
+
 To rebuild after changing `editor.js`, run from the repository root:
 
 ```powershell

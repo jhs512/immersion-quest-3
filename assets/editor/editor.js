@@ -6,15 +6,16 @@ import { java } from '@codemirror/lang-java';
 import { javascript } from '@codemirror/lang-javascript';
 import { html } from '@codemirror/lang-html';
 import { history, defaultKeymap, historyKeymap, indentWithTab } from '@codemirror/commands';
-import { syntaxHighlighting, HighlightStyle, indentUnit, defaultHighlightStyle, indentOnInput, bracketMatching, foldGutter, foldKeymap } from '@codemirror/language';
+import { syntaxHighlighting, HighlightStyle, defaultHighlightStyle, indentOnInput, bracketMatching, foldGutter, foldKeymap } from '@codemirror/language';
+import { documentIndentationExtensions } from './indentation.mjs';
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import { tags, highlightCode, classHighlighter } from '@lezer/highlight';
 
 // The textarea stays as the Dioxus event bridge and accessible fallback.
-// Indentation is four spaces, as the course text and every example teach.
 if (!window.molipCodeEditors) {
   const editors = new Map();
   const resetVersions = new Map();
+  const indentation = new WeakMap();
   const narrationFocus = StateEffect.define();
   const narrationLines = StateField.define({
     create: () => Decoration.none,
@@ -106,13 +107,14 @@ if (!window.molipCodeEditors) {
       const resetVersion = element.getAttribute('data-editor-reset');
       let view = editors.get(element);
       if (!view) {
+        const indent = new Compartment();
         const host = document.createElement('div');
         host.className = 'python-editor-host';
         element.after(host);
         view = new EditorView({
           doc: source,
           parent: host,
-          extensions: [setup, narrationLines, narrationSpan, element.dataset.codeEditor === 'java' ? java() : element.dataset.codeEditor === 'javascript' ? javascript({jsx:true}) : element.dataset.codeEditor === 'html' ? html() : python(), indentUnit.of('    '), keymap.of([indentWithTab]), theme, darkness.of(EditorView.darkTheme.of(isDark())), colors,
+          extensions: [setup, narrationLines, narrationSpan, element.dataset.codeEditor === 'java' ? java() : element.dataset.codeEditor === 'javascript' ? javascript({jsx:true}) : element.dataset.codeEditor === 'html' ? html() : python(), indent.of(documentIndentationExtensions(source, element.dataset.codeEditor)), keymap.of([indentWithTab]), theme, darkness.of(EditorView.darkTheme.of(isDark())), colors,
             EditorState.readOnly.of(element.readOnly),
             EditorView.editable.of(!element.readOnly),
             EditorView.contentAttributes.of({ 'aria-label': ({java:'Java',javascript:'JavaScript',html:'HTML',shell:'Shell',python:'Python'}[element.dataset.codeEditor] || '코드') + ' 코드 편집기' }),
@@ -123,6 +125,7 @@ if (!window.molipCodeEditors) {
             })],
         });
         editors.set(element, view);
+        indentation.set(view, indent);
         resetVersions.set(element, resetVersion);
         element.hidden = true;
       } else if (resetVersions.get(element) !== resetVersion) {
@@ -130,9 +133,10 @@ if (!window.molipCodeEditors) {
         // by CodeMirror: delayed backend echoes must not interrupt IME input.
         resetVersions.set(element, resetVersion);
         element.value = source;
-        if (view.state.doc.toString() !== source) {
-          view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: source } });
-        }
+        view.dispatch({
+          ...(view.state.doc.toString() === source ? {} : { changes: { from: 0, to: view.state.doc.length, insert: source } }),
+          effects: indentation.get(view).reconfigure(documentIndentationExtensions(source, element.dataset.codeEditor)),
+        });
       }
     });
   }
@@ -142,7 +146,8 @@ if (!window.molipCodeEditors) {
     let done = false;
     for (const [element, view] of editors) {
       if (!element.isConnected || !view.dom.getClientRects().length) continue;
-      view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: source } });
+      view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: source },
+        effects: indentation.get(view).reconfigure(documentIndentationExtensions(source, element.dataset.codeEditor)) });
       done = true;
     }
     return done;

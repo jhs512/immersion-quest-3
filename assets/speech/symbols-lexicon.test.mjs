@@ -155,12 +155,39 @@ test('percentages, ratios, generics, HTML tags and conflict markers', () => {
     ['50%와 100%', '50 퍼센트와 100 퍼센트'],
     ['「8:2로」 나눠요', '「8 대 2로」 나눠요'],
     ['List<String>과 Map<String, List<Integer>>', 'List String과 Map String, List Integer'],
-    ['<li data-code="A">처럼', 'li data-code 이퀄 A 태그처럼'],
-    ['`</ul>`', '닫는 ul 태그'],
+    ['<li data-code="A">처럼', '엘 아이 태그 data-code 이퀄 A처럼'],
+    ['`</ul>`', '닫는 유 엘 태그'],
     ['#include <stdio.h>', '#include stdio.h'],
     ['<<<<<<< HEAD 아래, ======= 아래, >>>>>>> 줄까지', '왼쪽 꺾쇠 일곱 개 HEAD 아래, 등호 일곱 개 아래, 꺾쇠 일곱 개 줄까지'],
     ['/29를 /30으로 나누면', '슬래시 29를 슬래시 30으로 나누면'],
   ]);
+});
+
+test('HTML names are clear in tag syntax, lists and standalone short tag code spans', () => {
+  cases([
+    ['UL을 LI와 함께 써요.', '유 엘을 엘 아이와 함께 써요.'],
+    ['ul과 li 태그', '유 엘과 엘 아이 태그'],
+    ['ol, ul, li 요소', '오 엘, 유 엘, 엘 아이 요소'],
+    ['태그 LI를 닫아요.', '태그 엘 아이를 닫아요.'],
+    ['`UL`과 `li`를 써요.', '유 엘과 엘 아이를 써요.'],
+    ['<ul>과 </li>를 확인해요.', '유 엘 태그와 닫는 엘 아이 태그를 확인해요.'],
+    ['`<UL class="LI">`', '유 엘 태그 class 이퀄 LI'],
+    ['`<BR />`', '비 알 태그'],
+    ['`<h1>`과 `<TD>`', '에이치 원 태그와 티 디 태그'],
+    ['div 태그와 span 요소', '디브 태그와 스팬 요소'],
+    ['`const LI = 1; let ul_count = 2;`', 'const LI 이퀄 1; let ul_count 이퀄 2;'],
+    ['`UL.txt`와 https://example.com/LI', 'UL 점 텍스트와 https://example.com/LI'],
+    ['li_count, tr_value, public, build, slide', 'li_count, tr_value, public, build, slide'],
+  ]);
+  const tags = LEXICON.find(group => group.scope === 'html-tag').entries;
+  assert.ok(tags.length > 90);
+  for (const [name, spoken] of tags) {
+    for (const source of [`<${name}>`, `<${name.toUpperCase()}/>`, `</${name}>`, `${name} 태그`]) {
+      const said = say(source);
+      assert.ok(said.includes(spoken), `${source}: ${said}`);
+      assert.equal(say(said), said, source);
+    }
+  }
 });
 
 test('natural punctuation stays silent and prose that names a symbol is not doubled', () => {
@@ -230,7 +257,7 @@ test('lexicon entries are unique, Korean, documented and ordered longest first',
     assert.ok(group.id && group.scope && group.rationale && group.evidence && group.example, group.id);
     for (const entry of group.entries) {
       const [token, spoken, example] = entry;
-      const key = group.scope.startsWith('after:') || ['extension', 'java-class', 'vim-ex'].includes(group.scope) ? group.scope + ' ' + token : (group.caseSensitive ? token : token.toLowerCase());
+      const key = group.scope.startsWith('after:') || ['extension', 'java-class', 'vim-ex', 'html-tag'].includes(group.scope) ? group.scope + ' ' + token : (group.caseSensitive ? token : token.toLowerCase());
       assert.ok(!seen.has(key), `duplicate ${token} in ${group.id} and ${seen.get(key)}`);
       seen.set(key, group.id);
       assert.ok(spoken && spoken !== token, token);
@@ -303,8 +330,12 @@ test('Main is changed only where it names a Java class; other names, identifiers
   ]);
 });
 
-test('Java examples reach the device and neural voices as the same text; the caption source is unchanged', async () => {
-  const source = '`javac Main.java` 다음 `java Main`이면 Main.class를 실행해요.';
+test('Java and HTML examples reach both voice engines without changing captions', async () => {
+  for (const [source, expected] of [
+    ['`javac Main.java` 다음 `java Main`이면 Main.class를 실행해요.', '자바 씨 메인 점 자바 다음 자바 메인이면 메인 점 클래스를 실행해요.'],
+    ['UL과 LI 태그를 확인해요.', '유 엘과 엘 아이 태그를 확인해요.'],
+    ['`<ul>`과 `</li>`를 확인해요.', '유 엘 태그와 닫는 엘 아이 태그를 확인해요.'],
+  ]) {
   const copy = source.slice();
   const device = [];
   const synth = { getVoices: () => [{ lang: 'ko-KR' }], cancel() {}, resume() {}, speak(u) { device.push(u.text); } };
@@ -318,10 +349,10 @@ test('Java examples reach the device and neural voices as the same text; the cap
     fetch: (_url, init) => { bodies.push(JSON.parse(init.body)); return Promise.resolve({ ok: true, headers: { get: () => '' }, blob: async () => new Blob(['mp3']) }); } };
   vm.runInNewContext(readFileSync(new URL('../layout/voice.js', import.meta.url), 'utf8'), voiceContext);
   URL.revokeObjectURL(await voiceContext.molipVoice.synthesize(source));
-  const expected = '자바 씨 메인 점 자바 다음 자바 메인이면 메인 점 클래스를 실행해요.';
   assert.equal(device[0], expected);
   assert.deepEqual(bodies, [{ text: expected, voice: 'ko-KR-SunHiNeural' }]);
   assert.equal(source, copy);
+  }
   // Narration (agent.js) speaks with the device voice through the same function.
   assert.match(readFileSync(new URL('../layout/agent.js', import.meta.url), 'utf8'), /molipPronunciation\.pronunciationText\(sentence\)/);
 });
@@ -332,7 +363,7 @@ test('code spans next to prose: the sentence is converted in one piece', () => {
     ['`a` > `b`이면', 'a 크다 b이면'], ["조심하세요. accept(')')는 닫는 괄호가 없어도", '조심하세요. accept(닫는 괄호)는 닫는 괄호가 없어도'],
     ["`price_text.replace(',', '')`가 쉼표를 빈 글자로 바꿔요. 그다음 `int('10,000')`", 'price_text.replace(,, 빈 문자열)가 쉼표를 빈 글자로 바꿔요. 그다음 인트(만)'],
     ['`"stream":false`면', 'stream 콜론 false면'], ['구간은 `60+`예요.', '구간은 60 플러스예요.'], ['`<값>`으로 출력하고 없으면 `<unset>`', '값으로 출력하고 없으면 unset'],
-    ['`<li>`', 'li 태그'], ['`new ArrayList<>()`', 'new ArrayList()'], ["`WHERE status <> 'done'`", 'WHERE status 같지 않다 done'],
+    ['`<li>`', '엘 아이 태그'], ['`new ArrayList<>()`', 'new ArrayList()'], ["`WHERE status <> 'done'`", 'WHERE status 같지 않다 done'],
     ['`LRANGE mq:list:jobs 0 -1`', 'LRANGE mq 콜론 리스트 콜론 jobs 0 마이너스 1'], ['`SETBIT attend:2026-10 1 1`', 'SETBIT attend 콜론 2026-10 1 1'],
     ['`server_name app2-127-0-0-1.nip.io;`', 'server_name app2-127-0-0-1.nip.io;'], ['`nginx:1.27-alpine`', '엔진엑스 콜론 1.27-alpine'],
     ['`plt.ylim(0,100)`', 'plt.ylim(0,100)'], ['생존(0/1) 열', '생존(0 또는 1) 열'], ['5 - 3', '5 빼기 3'],
