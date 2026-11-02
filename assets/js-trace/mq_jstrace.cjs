@@ -27,7 +27,7 @@ const DOCUMENT_LIMIT = 24 * 1024 * 1024;
 const CJS_WRAPPER_NAMES = new Set(['exports', 'require', 'module', '__filename', '__dirname']);
 const DEBUGGER_LINES = [
   /^Debugger listening on ws:\/\/\S+$/,
-  /^For help, see: https:\/\/nodejs\.org\/\S*inspector\S*$/,
+  /^For help, see: https:\/\/nodejs\.org\/\S+$/,
   /^Debugger attached\.$/,
   /^Waiting for the debugger to disconnect\.\.\.$/,
   /^Debugger ending on ws:\/\/\S+$/,
@@ -224,9 +224,10 @@ async function start() {
   await send('Runtime.runIfWaitingForDebugger');
 }
 // Node names the entry by its real path (a macOS temp dir sits behind /var -> /private/var, a Windows
-// temp dir can be a junction), so each spelling of this file's path is a name it may report.
+// temp dir can be a junction) and leaves `~` unescaped where pathToFileURL writes %7E (an 8.3 name such
+// as C:\Users\RUNNER~1), so each spelling of this file's path is a name it may report.
 const mainUrls = new Set([mainFile, fs.realpathSync(mainFile), fs.realpathSync.native(mainFile)]
-  .flatMap((file) => [file, pathToFileURL(file).href]));
+  .flatMap((file) => { const href = pathToFileURL(file).href; return [file, href, href.replace(/%7E/gi, '~')]; }));
 const otherMainUrls = [];
 
 const resume = () => send('Debugger.resume').catch(() => {});
@@ -371,7 +372,7 @@ async function guardErrors(values) {
       const bound = NATIVE_FUNCTION.test(d.get.description)
         && (await send('Runtime.getProperties', { objectId: d.get.objectId, ownProperties: true })).internalProperties?.some((p) => p.name === '[[TargetFunction]]');
       if (!NATIVE_FUNCTION.test(d.get.description) || bound) {
-        doc.message = `오류 객체의 ${d.name}을(를) 읽는 getter가 코드에 있어요. 코드 흐름을 그리려면 그 getter가 실행돼서 그리지 않았어요. 코드 실행과 채점은 그대로 쓸 수 있어요.`;
+        doc.message = `오류 객체의 ${d.name}을(를) 읽는 getter가 코드에 있어요. 흐름을 그리면 그 getter가 실행돼요.`;
         stop('unsupported');
         return;
       }
