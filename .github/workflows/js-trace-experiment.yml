@@ -1,0 +1,59 @@
+name: JavaScript code flow experiment
+
+on:
+  push:
+    branches: [feat/js-code-flow]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: js-trace-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-15]
+        node: ['22', '24']
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Use exactly this Node.js inside the player
+        shell: bash
+        run: |
+          node --version
+          echo "MOLIP_NODE=$(node -p process.execPath)" >> "$GITHUB_ENV"
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+      - name: Trace the real lessons and fixtures with the real Node.js
+        run: cargo test --locked --no-default-features --lib js_trace -- --ignored --test-threads=1
+
+  older-node:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Refuse with the reason on a Node.js without WebSocket
+        shell: bash
+        run: |
+          root=$(mktemp -d); mkdir -p "$root/ws" "$root/cap"
+          echo "console.log(1)" > "$root/ws/main.js"; : > "$root/stdin.txt"
+          node assets/js-trace/mq_jstrace.cjs "$root/ws" "$root/stdin.txt" "$root/cap" "$root/out.json" 1000 20000
+          node -e "const d=require(process.argv[1]); console.log(d.status, d.message); if (d.status !== 'runtime_unavailable' || !d.message.includes(process.version)) process.exit(1)" "$root/out.json"
