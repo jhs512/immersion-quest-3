@@ -1,12 +1,22 @@
 # Rust 기초 네 수업 인계
 
-상태(2026-11-02): PRD와 대표 문제는 승인됐다([승인 기록](README.md#승인-기록)). 네 수업의 정식 콘텐츠와 자바 백엔드 코스 연결은 이 브랜치(`feat/rust-course-draft`)에 있다. 앱에는 아직 `rust` 언어가 없어서 수업을 열거나 채점할 수 없다. 이 문서는 런타임 통합 담당자가 지켜야 할 콘텐츠 계약과 통합 순서다.
+상태(2026-11-02): PRD와 대표 문제는 승인됐다([승인 기록](README.md#승인-기록)). 네 수업 40스텝의 정식 콘텐츠와 자바 백엔드 코스 연결이 이 브랜치(`feat/rust-course-draft`)에 커밋돼 있다. 모든 스텝은 Windows의 실제 rustc로 검증했다([검증 기록](verification.md)). 이 checkout의 런타임에는 `rust` 언어가 없다. Rust enum·실행·채점·준비 값 바꾸기는 root 통합 checkout(`mq-code-flow-default`)에 들어갔다고 전달받았다. 이 문서는 root가 이 브랜치를 합칠 때 지킬 콘텐츠 계약과 통합 순서다.
 
 ## 이 브랜치가 바꾼 것과 바꾸지 않은 것
 
-바꾼 것: Rust 수업 네 개의 원본(`tools/redesigned_lessons/rust_*`), 빌드 산출물(`courses/redesigned/rust-*.json`), 검증 사례(`tests/lesson-cases/rust-*.json`), 검증 코스(`tests/fixtures/player-pilot/{룬,렌,롤,륵}/course.json`), 코스 등록(`catalog.json`, `backend-sequence.json`, `lesson-challenges.json`, `backend_previews.py`, `release.json`), 해설 소개·검토 기록, 수업 수를 세는 테스트의 숫자.
+root가 가져갈 파일:
 
-바꾸지 않은 것: `src/`, `examples/`, `build.rs`, Cargo 파일, 설치·배포 스크립트, 공통 빌드 도구(`tools/*.py`), 다른 수업. 런타임과 공통 dispatch는 다른 checkout에서 통합한다.
+| 묶음 | 파일 |
+| --- | --- |
+| 수업 원본 | `tools/redesigned_lessons/rust_{values,flow_functions,ownership_borrowing,data_results}/` (승인 PRD·렌더 문서·`content.json`·검토 결정·`narration_cache/`) |
+| 빌드 산출물 | `courses/redesigned/rust-*.json`, `courses/redesigned-courses/java-backend.json`, `tools/redesigned_courses/java/course-prd.json` |
+| 검증 | `tests/lesson-cases/rust-*.json`, `tests/fixtures/player-pilot/{룬,렌,롤,륵}/course.json`, `docs/curriculum/rust-foundations/evidence/*.json` |
+| 코스 등록 | `tools/redesigned_courses/{catalog.json,backend-sequence.json,backend_previews.py,lesson-classification.json,release.json}`, `tools/redesigned_courses/java/lesson-challenges.json` |
+| 해설 공통 기록 | `tools/redesigned_lessons/narration-openings.json`, `tools/redesigned_lessons/narration-review.json` (Rust 항목만 추가) |
+| 수업 수 테스트 | `tools/test_lesson_registry.py`(102), `tests/lesson_registry.rs`(102·1071스텝), `tests/bundled_courses.rs`·`tests/backend_journeys.rs`(자바 백엔드 48) |
+| Rust 전용 도구·문서 | `docs/curriculum/rust-foundations/` |
+
+바꾸지 않은 것: `src/`, `examples/`, `build.rs`, Cargo 파일, 설치·배포 스크립트, 공통 빌드 도구(`tools/*.py`, 수 테스트 한 줄 제외), 다른 수업의 내용·식별자·진도. 자바 백엔드 코스 파일은 Rust 네 수업의 줄만 추가됐고 기존 수업 참조는 그대로다(`git diff --numstat`: 추가 117줄, 삭제 0줄).
 
 ## Rust 콘텐츠 계약
 
@@ -39,19 +49,23 @@ python tools/build-redesigned-course-bundle.py --check
 
 첫 명령은 실제 rustc로 스텝마다 아래를 확인한다. 준비 코드는 채점에서 실패한다. 정답은 테스트와 준비 값 바꾸기를 모두 통과한다. 해설을 재생한 출력이 기록과 같다. 기록한 오답은 실패하고 다른 정답은 통과한다. 결과는 `evidence/<key>-<os>.json`에 남는다.
 
-## 런타임 통합 순서
+## 통합 순서
 
-1. `TaskLanguage::Rust`, `filename()`의 `main.rs`, `editor()`, `lesson_runner`의 `run`·`check` 분기, Rust용 준비 값 바꾸기를 더한다. 이 브랜치의 콘텐츠 파일은 그대로 둔다.
-2. `tools/build-redesigned-git.py`의 실행 강조 검사 언어 목록(`('java', 'python', 'c')`)에 `rust`를 더한다. 지금은 `validate_rust_lessons.py`가 같은 검사를 한다.
-3. 이 브랜치를 합친 뒤 `cargo run --example validate_redesigned_lesson -- tests/lesson-cases/rust-values.json target/rust-values.json`을 네 수업에 대해 실행한다. 이 검증기와 `validate_rust_lessons.py`의 결과가 같아야 한다.
-4. `cargo test --test lesson_registry --test bundled_courses --test backend_journeys`를 실행한다. 이 테스트의 수업 수는 이미 Rust 네 수업을 포함하도록 바꿨다.
-5. 앱에서 네 수업을 열어 정답·오답·실행·해설 재생·초기화를 직접 확인한다. 실제 음성과 강조가 맞는지는 들어 보고 확인한다.
-6. macOS에서 1과 3을 실제로 실행하거나 CI 증거를 남긴다. 그전까지 macOS는 미검증이다.
-7. 실제 채점을 확인한 뒤 마지막 도전 지정(`lesson-challenges.json`)과 주제 분류를 따로 검토한다.
+root는 엔진을 먼저 배포한다. 콘텐츠는 그 뒤에 합친다. 엔진 없이 이 콘텐츠만 배포하면 자바 백엔드 코스의 `Lesson::parse`가 `rust`를 몰라 실패한다.
+
+1. root 엔진(`TaskLanguage::Rust`, 실행·채점, Rust 준비 값 바꾸기)이 위 계약을 따르는지 확인한다. 특히 타입 표기가 있는 `let index: usize = 2;`, `vec![…]`, `String::from("…")`, `Product { … }` 초기식 바꾸기가 `mutate_rust`와 같아야 한다(R1 4번, R4 6~8·12번, R3·R4 여러 스텝이 쓴다).
+2. 이 브랜치의 Rust 커밋(`52b21277`부터 끝까지)을 root에 합친다. 공통 기록 두 파일(`narration-openings.json`, `narration-review.json`)은 Rust 항목만 추가했으니 다른 변경과 키 단위로 합친다. 수업 수 테스트의 숫자는 그 시점의 다른 수업 추가와 함께 다시 센다.
+3. `tools/build-redesigned-git.py`의 실행 강조 검사 언어 목록(`('java', 'python', 'c')`)에 `rust`를 더한다. 지금은 `validate_rust_lessons.py`가 같은 검사를 한다. 네 수업의 실행 강조는 이미 출력 줄을 가리키므로 콘텐츠 변경 없이 통과해야 한다.
+4. `python tools/build-redesigned-git.py --check`와 `python tools/build-redesigned-course-bundle.py --check`를 실행한다.
+5. 네 수업에 `cargo run --example validate_redesigned_lesson -- tests/lesson-cases/<key>.json target/<key>.json`을 실행한다. 결과가 `validate_rust_lessons.py`와 같아야 한다(준비 코드 실패, 정답 통과, 해설 출력 일치, 오답 거절, 동등 정답 통과).
+6. `cargo test --test lesson_registry --test bundled_courses --test backend_journeys`를 실행한다.
+7. macOS에서 5를 실행하거나 CI 증거를 남긴다. 그전까지 macOS는 미검증이다.
+8. 앱에서 네 수업을 열어 정답·오답·실행·해설 재생·초기화를 직접 확인한다. 실제 음성과 강조가 맞는지는 들어 보고 확인한다.
+9. 실제 채점을 확인한 뒤 마지막 도전 지정(`lesson-challenges.json`)을 검토한다. 주제 분류 `rust`는 조정자가 기존 분류 규칙을 적용한 것이라 사용자 확인 대상이다(`lesson-classification.json`의 `decided_by`).
 
 ## 남은 일
 
-- 런타임 통합(위 1~4). 이 브랜치에서는 하지 않는다.
+- 엔진 통합 뒤의 실제 앱·`validate_redesigned_lesson` 검증(위 5·6·8). 이 checkout에는 Rust 런타임이 없다.
 - macOS 검증. 지금 증거는 Windows뿐이다.
-- 앱 안의 실제 재생·음성 확인. 정적 검사와 rustc 재생만 했다.
+- 실제 음성 확인. 해설은 정적 검사와 rustc 재생만 했다.
 - 게시. `tools/publish-*.py`는 실행하지 않았다. main에 push하거나 배포하지 않았다.

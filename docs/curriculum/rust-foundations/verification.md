@@ -1,37 +1,64 @@
-# 대표 문제 검증 기록
+# Rust 기초 네 수업 검증 기록
 
-검증일: 2026-11-02. 상태: 초안 검증 완료, 제작 승인 전.
+검증일: 2026-11-02. 환경: Windows 11 `10.0.26300`, `rustc 1.95.0 (59807616e 2026-04-14)`, 호스트 `x86_64-pc-windows-msvc`. macOS는 실행하지 않았다.
 
-Windows 11 (`10.0.26300`)에서 `rustc 1.95.0 (59807616e 2026-04-14)`를 사용했다. 각 사례는 별도 임시 폴더에 소스를 놓고 `rustc --edition=2024`로 컴파일한 뒤 실행했다. 외부 크레이트와 네트워크는 사용하지 않았다. 실행 결과의 UTF-8 문자열과 종료 코드를 비교했다.
-
-재실행 명령:
+## 정식 수업 40스텝
 
 ```powershell
-python docs/curriculum/rust-foundations/verify_representatives.py
+python docs/curriculum/rust-foundations/validate_rust_lessons.py --evidence
 ```
 
-결과: **18건 통과**. 초기 코드 4건, 정답·입력 변형 11건, 잘못된 풀이 대조군 3건이다.
+스텝마다 별도 임시 폴더에서 `rustc --edition=2024`로 컴파일·실행했다. 외부 크레이트와 네트워크는 쓰지 않았다. 확인한 것:
 
-| 수업 | 확인한 동작 | 결과 |
-|---|---|---|
-| R1 값 | 초기 코드의 불변 바인딩 재할당 | 예상한 `E0384` 컴파일 오류 |
-| R1 값 | `mut` 추가 후 판매 수량 차감 | 초기 수량 5 → 남은 수량 3, 초기 수량 8 → 남은 수량 6 |
-| R2 흐름 | 초기 경계 조건과 수정 후 경계 | 초기 30,000원 배송비 3,000원. 수정 후 29,999원 → 3,000원, 30,000원·30,001원 → 0원 |
-| R3 소유권 | 초기 코드에서 이동한 문자열 재사용 | 예상한 `E0382` 컴파일 오류 |
-| R3 소유권 | 공유 참조로 전달 후 원래 문자열 사용 | `MQ`와 `Rust` 각각 함수 안·밖에서 두 번 출력 |
-| R4 데이터 | 없는 상품과 실제 가격 | 초기 잘못된 출력 `가격: 0`. 수정 후 인덱스 0·1은 1200·1800, 인덱스 2는 `상품 없음` |
-| R4 데이터 | 존재하는 0원 상품 | `가격: 0`을 출력하며 `None`과 구분 |
-| 대조군 | 남은 수량 3 하드코딩 | 초기 수량 8 변형에서 거부 |
-| 대조군 | 모든 금액 무료 배송 | 29,999원 변형에서 거부 |
-| 대조군 | 유효한 인덱스도 상품 없음 처리 | 인덱스 0 변형에서 거부 |
+1. 준비 코드는 채점에서 실패한다(컴파일 실패 또는 다른 출력).
+2. 정답은 경고 없이 컴파일되고, 테스트와 준비 값 바꾸기를 모두 통과한다.
+3. 정답 코드 줄 세 개마다 주석이 하나 이상이다.
+4. 해설을 처음부터 재생하면 각 실행의 출력이 기록과 같다. `expect_error` 실행은 그 진단 코드로 실패한다. 해설이 끝난 코드는 정답의 코드 줄과 같다.
+5. 기록한 오답은 실패하고, 기록한 다른 정답은 통과한다. 오답은 스텝마다 하나 이상이다.
 
-대조군 통과는 잘못된 풀이가 정답이라는 뜻이 아니다. 해당 구현의 출력이 올바른 기대값과 다르다는 것을 검사했다. 이는 실제 MQ 채점기를 검증한 결과가 아니라 초안의 판별 기준을 확인한 결과다.
+| 수업 | 스텝 | 오답·동등 정답 | 결과 | 증거 |
+| --- | ---: | ---: | --- | --- |
+| `rust-values` | 8 | 24 | 통과 | `evidence/rust-values-windows.json` |
+| `rust-flow-functions` | 10 | 14 | 통과 | `evidence/rust-flow-functions-windows.json` |
+| `rust-ownership-borrowing` | 10 | 19 | 통과 | `evidence/rust-ownership-borrowing-windows.json` |
+| `rust-data-results` | 12 | 22 | 통과 | `evidence/rust-data-results-windows.json` |
 
-확인하지 않은 범위:
+## 빌드와 기록 검사
 
-- macOS 컴파일·실행과 설치 안내
-- Rust 실행기와 LLDB 연동, 이동한 변수·참조·Vec·String의 실제 시각화
-- 앱에서 초기 코드 복원, 정답 보기, 실행·중지, 운영체제별 단축키
-- 41개 계획 스텝 전체, 음성 해설, 신규 수업 등록과 배포
+| 명령 | 결과 |
+| --- | --- |
+| `python tools/lesson_prd.py check <PRD> --require-approval` (네 수업) | 통과 |
+| `python tools/build-redesigned-git.py --check` (전체 수업) | 통과 |
+| `python tools/build-redesigned-course-bundle.py --check` | 통과. 자바 백엔드 48수업·478스텝 |
+| `python tools/narration_review.py status` | 검토 안 된 문장 0 |
+| `python tools/test_lesson_registry.py` | 통과(102수업) |
+| `python tools/test_narration_review.py` | 통과 |
+| `python tools/test_narration_openings.py` | 90건 실패. 이 작업 전 커밋 `83e96b45`에서도 같은 90건이 실패한다. 2026-10월의 고정 기준 커밋과 기존 수업을 비교하는 검사라 Rust 수업과 무관하다. Rust 수업은 기준 커밋에 없어 그 비교를 건너뛴다. |
+| `python docs/curriculum/rust-foundations/verify_representatives.py` | 18건 통과(승인 때의 대표 문제 초안) |
 
-위 범위는 정식 제작과 통합 검증에서 별도로 확인한다. 컴파일 오류만 있는 단계에서 실행 화면을 꾸며 만들지 않는다. 비주얼라이저가 도움을 주는 단계에만 해설을 연결하고, 현재 지원하지 않는 데이터나 큰 데이터를 강제로 시각화하지 않는다.
+## 런타임에 막힌 것
+
+이 checkout의 `TaskLanguage`에는 `rust`가 없다. `cargo test --test backend_journeys --test bundled_courses --test lesson_registry --no-fail-fast`의 실제 결과:
+
+| 테스트 | 결과 | 원인 |
+| --- | --- | --- |
+| `backend_journeys` (2건) | 통과 | 코스 48수업, 미리보기 48개, 모든 수업의 분류, 빈 주제 없음 |
+| `bundled_courses` | 실패 | `unknown variant 'rust'` (수업 JSON 137줄의 `"language": "rust"`) |
+| `lesson_registry` | 실패 | 같은 `unknown variant 'rust'` |
+
+두 실패는 콘텐츠 오류가 아니라 엔진 미통합이다. 콘텐츠 자체의 판정은 위의 rustc 검증과 Python 빌더가 했다. 엔진 통합 뒤 실행할 검증은 [인계](handoff.md#통합-순서)에 있다.
+
+## 확인하지 않은 범위
+
+- macOS 컴파일·실행.
+- 앱 안의 열기·제출·초기화·해설 재생, 음성과 강조의 동기.
+- `cargo run --example validate_redesigned_lesson`(이 checkout에는 Rust 실행기가 없다).
+- 코드 흐름 보기. Rust 스텝은 쓰지 않는다.
+
+## 채점의 알려진 한계
+
+채점은 출력과 준비 값 바꾸기만 본다. 출력이 같은 다른 풀이는 막지 못한다.
+
+- R3 6번(대표 문제)의 `show(title.clone())`은 출력이 같아 통과한다. 해설이 불필요한 복사라고 짚는다. PRD 채점 항목에도 적었다.
+- R4 3번은 준비 값 바꾸기가 없다. 목록 문자열을 직접 출력하는 답을 막지 못한다. 바로 다음 4번이 목록을 바꿔 같은 우회를 거절한다.
+- R2 5번은 `1..=boxes` 같은 동등한 범위를 정답으로 받아들인다(기록한 동등 정답).
