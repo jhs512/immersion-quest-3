@@ -29,6 +29,7 @@ pub mod pilot_source;
 pub mod lesson_registry;
 pub mod lesson_categories;
 pub mod lesson_runner;
+pub mod rust_prepared;
 pub mod library_sets;
 pub mod java_trace;
 pub mod python_trace;
