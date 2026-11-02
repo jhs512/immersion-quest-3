@@ -12,6 +12,8 @@ checked notes and findings of sentences that are still spoken are carried; the n
 Then: build-redesigned-git.py --lesson <key>, build-redesigned-course-bundle.py, and the lesson validator.
 """
 import json
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -23,10 +25,14 @@ CATALOG = ROOT / 'tools/redesigned_courses/catalog.json'
 MANIFESTS = ROOT / 'courses/redesigned-courses'
 
 
-def published_revisions():
+def published_revisions(base=os.environ.get('MQ_AUDIT_BASE', '0090f482')):
+    """Lesson revisions the course manifests reference at `base`, the commit this audit branch started from (its
+    revisions may already be tagged). The working manifests are rebuilt after every lesson build, so comparing
+    against them would bump an unpublished revision twice; `main` can be older than the branch start."""
     revisions = {}
     for path in MANIFESTS.glob('*.json'):
-        for ref in json.loads(path.read_text(encoding='utf-8'))['lessons']:
+        raw = subprocess.check_output(['git', 'show', f'{base}:{path.relative_to(ROOT).as_posix()}'], cwd=ROOT)
+        for ref in json.loads(raw)['lessons']:
             revisions[ref['id']] = ref['revision']
     return revisions
 
