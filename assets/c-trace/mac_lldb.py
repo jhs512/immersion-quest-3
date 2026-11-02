@@ -34,6 +34,11 @@ class Recorder:
         self.next_frame = 1
         self.live_frames = set()
         self.seen_types = set()
+        self.truncated = False
+        self.view_ids = {}
+        self.next_view = 1
+        declarations = os.path.join(case, 'declarations.json')
+        self.declarations = json.loads(_read(declarations)) if os.path.isfile(declarations) else {}
         self.arm = target.GetTriple().startswith(('arm64', 'aarch64'))
         for name in ('malloc', 'calloc', 'realloc', 'free'):
             breakpoint = target.BreakpointCreateByName(name)
@@ -111,16 +116,24 @@ class Recorder:
                     width = pointee.GetByteSize()
                     if not width or pointee.GetTypeClass() & lldb.eTypeClassFunction:
                         return ['C_NOTE', '주소만 확인할 수 있는 포인터예요']
-                    hid = str(serial)
+                    offset = address - start
+                    key = (serial, offset, pointee.GetName())
+                    if key not in self.view_ids:
+                        self.view_ids[key] = self.next_view
+                        self.next_view += 1
+                    hid = str(self.view_ids[key])
                     if hid not in heap:
                         heap[hid] = ['LIST']
-                        count = min((size - (address - start)) // width, MAX_CHILDREN)
+                        available = (size - offset) // width
+                        count = min(available, MAX_CHILDREN)
+                        self.truncated |= available > MAX_CHILDREN
                         values = []
                         for index in range(count):
                             child = self.target.CreateValueFromAddress(
                                 'item', lldb.SBAddress(address + index * width, self.target), pointee)
                             values.append(self.encode(child, heap, names, depth + 1))
-                        heap[hid] = ['LIST', *values]
+                        heap[hid] = ['INSTANCE', f'동적 할당 · {pointee.GetName()} · +{offset}바이트',
+                                     *[[f'[{index}]', child] for index, child in enumerate(values)]]
                     return ['REF', int(hid)]
             if any(start <= address < start + size for start, (size, _) in self.freed.items()):
                 return ['C_NOTE', f'0x{address:x} · 해제된 동적 메모리']
@@ -132,6 +145,7 @@ class Recorder:
             if hid not in heap:
                 heap[hid] = ['LIST']
                 children = [value.GetChildAtIndex(i) for i in range(min(value.GetNumChildren(), MAX_CHILDREN))]
+                self.truncated |= value.GetNumChildren() > MAX_CHILDREN
                 if type_class & lldb.eTypeClassArray:
                     heap[hid] = ['LIST', *[self.encode(child, heap, names, depth + 1) for child in children]]
                 else:
@@ -151,7 +165,7 @@ class Recorder:
             number = value.GetValueAsUnsigned() & 255
             return ['CHAR', chr(number)]
         if type_class & (lldb.eTypeClassBuiltin | lldb.eTypeClassEnumeration):
-            signed = not (typ.GetTypeFlags() & lldb.eTypeIsSigned) == 0
+            signed = bool(typ.GetTypeFlags() & lldb.eTypeIsSigned)
             number = value.GetValueAsSigned() if signed else value.GetValueAsUnsigned()
             return ['LONG', str(number)] if abs(number) > (1 << 53) - 1 else number
         return ['C_NOTE', f'{value.GetTypeName()} 형식은 아직 그리지 않아요']
@@ -163,16 +177,20 @@ class Recorder:
         frames.reverse()
         collected = [(frame, self.values(frame)) for frame in frames]
         names = {}
+        def named_cells(value, name, depth=0):
+            address = value.GetLoadAddress()
+            if address != lldb.LLDB_INVALID_ADDRESS:
+                names[address] = name
+            typ = value.GetType().GetCanonicalType()
+            if depth >= 5 or not typ.GetTypeClass() & (lldb.eTypeClassArray | lldb.eTypeClassStruct):
+                return
+            for index in range(min(value.GetNumChildren(), MAX_CHILDREN)):
+                child = value.GetChildAtIndex(index)
+                suffix = f'[{index}]' if typ.GetTypeClass() & lldb.eTypeClassArray else '.' + child.GetName()
+                named_cells(child, name + suffix, depth + 1)
         for frame, values in collected:
             for value in values:
-                address = value.GetLoadAddress()
-                if address != lldb.LLDB_INVALID_ADDRESS:
-                    names[address] = value.GetName()
-                typ = value.GetType().GetCanonicalType()
-                if typ.GetTypeClass() & lldb.eTypeClassArray:
-                    for index in range(min(value.GetNumChildren(), MAX_CHILDREN)):
-                        child = value.GetChildAtIndex(index)
-                        names[child.GetLoadAddress()] = f'{value.GetName()}[{index}]'
+                named_cells(value, value.GetName())
         heap, stack, live = {}, [], set()
         for frame, values in collected:
             key = (frame.GetFunctionName(), frame.GetCFA())
@@ -186,7 +204,7 @@ class Recorder:
                 declaration = value.GetDeclaration()
                 if declaration.IsValid() and value.GetValueType() != lldb.eValueTypeVariableArgument:
                     line = declaration.GetLine()
-                    if 0 < line <= len(self.lines) and '=' not in self.lines[line - 1]:
+                    if self.declarations.get(f'{line}:{value.GetName()}') is False:
                         uninitialized.append(value.GetName())
             stack.append({'func_name': frame.GetFunctionName(), 'frame_id': self.frame_ids[key],
                           'line': frame.GetLineEntry().GetLine(), 'is_highlighted': False,
@@ -227,6 +245,9 @@ def trace(debugger, command, result, internal_dict):
             hits = 0
             while process.GetState() == lldb.eStateStopped:
                 hits += 1
+                if process.GetNumThreads() > 1:
+                    doc.update(status='unsupported', message='여러 스레드의 실행 흐름은 아직 그리지 않아요', trace=[])
+                    break
                 thread = process.GetSelectedThread()
                 if thread.GetStopReason() in (lldb.eStopReasonException, lldb.eStopReasonSignal):
                     doc.update(status='uncaught_exception', message=thread.GetStopDescription(512))
@@ -243,6 +264,7 @@ def trace(debugger, command, result, internal_dict):
                 doc['status'] = 'ok' if process.GetExitStatus() == 0 else 'uncaught_exception'
             doc['exit_code'] = process.GetExitStatus() if process.GetState() == lldb.eStateExited else None
         doc['stdout'] = _read(os.path.join(case, 'trace-stdout.txt'))
+        doc['heapTruncated'] = recorder.truncated
         if doc['trace']:
             doc['trace'][-1]['stdout'] = doc['stdout']
         with open(os.path.join(case, 'c_flow.json'), 'w', encoding='utf-8') as out:

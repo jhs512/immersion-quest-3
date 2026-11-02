@@ -1,4 +1,5 @@
-//! 코드 흐름 보기 for C (Windows): the steps of the learner's `main.c` as the grader's compiler builds it.
+//! 코드 흐름 보기 for C: original-program debugger stops using the grader's compiler.
+//! macOS uses native cc debug information and LLDB. The Windows backend below remains separate.
 //!
 //! The grader runs `tcc -run main.c` with TinyCC 0.9.27 (crate::lesson_runner). TinyCC 0.9.27's debug
 //! information has function and statement lines but no variables, so `assets/c-trace/` does this:
@@ -25,18 +26,23 @@ const TOOL: &[(&str, &str)] = &[
     ("mq_rt.c", include_str!("../assets/c-trace/mq_rt.c")),
 ];
 const SECONDS: u64 = 90;
+const MAC_TOOL: &[(&str, &str)] = &[
+    ("mac_c_flow.py", include_str!("../assets/c-trace/mac_c_flow.py")),
+    ("mac_lldb.py", include_str!("../assets/c-trace/mac_lldb.py")),
+];
 
 /// Trace `source` with `input` as standard input. Returns the trace document (`status` ok, compile_error,
 /// uncaught_exception, step_limit or unsupported); an Err only when the tool itself cannot run.
 pub async fn trace(source: &str, input: &str) -> Result<String, String> {
-    if !cfg!(windows) { return Err("C 코드 흐름 보기는 지금 Windows에서만 쓸 수 있어요. 코드 실행과 채점은 그대로 쓸 수 있어요.".into()); }
+    if !cfg!(any(windows, target_os="macos")) { return Err("이 운영체제에서는 C 코드 흐름 보기를 아직 지원하지 않아요. 코드 실행과 채점은 그대로 쓸 수 있어요.".into()); }
     if source.len() > 65536 || input.len() > 65536 { return Err("코드와 입력은 각각 64KB 이하여야 해요.".into()); }
     let tcc = crate::lesson_runner::c_compiler().await?;
     let dir = tempfile::tempdir().map_err(|e| e.to_string())?;
     let tool = dir.path().join("tool");
     let case = dir.path().join("case");
     for d in [&tool, &case] { std::fs::create_dir_all(d).map_err(|e| e.to_string())?; }
-    for (name, text) in TOOL { std::fs::write(tool.join(name), text).map_err(|e| e.to_string())?; }
+    let files = if cfg!(target_os="macos") { MAC_TOOL } else { TOOL };
+    for (name, text) in files { std::fs::write(tool.join(name), text).map_err(|e| e.to_string())?; }
     std::fs::write(case.join("src.c"), source).map_err(|e| e.to_string())?;
     std::fs::write(case.join("stdin.txt"), input).map_err(|e| e.to_string())?;
     run_tool(&tool, &case, &tcc).await
@@ -44,7 +50,8 @@ pub async fn trace(source: &str, input: &str) -> Result<String, String> {
 
 async fn run_tool(tool: &Path, case: &Path, tcc: &Path) -> Result<String, String> {
     let mut cmd = crate::lesson_runner::command(crate::runner::python_executable());
-    cmd.args(["-I", "-X", "utf8"]).arg(tool.join("c_flow.py")).arg(case).env("MQ_TCC", tcc);
+    let (script, compiler_key) = if cfg!(target_os="macos") { ("mac_c_flow.py", "MQ_CC") } else { ("c_flow.py", "MQ_TCC") };
+    cmd.args(["-I", "-X", "utf8"]).arg(tool.join(script)).arg(case).env(compiler_key, tcc);
     let run = crate::lesson_runner::process(cmd, case, "", SECONDS).await?;
     if run.state == "timeout" {
         return Err(format!("코드 흐름을 {SECONDS}초 안에 기록하지 못했어요. 반복이 끝나는지 확인하세요."));
@@ -56,6 +63,25 @@ async fn run_tool(tool: &Path, case: &Path, tcc: &Path) -> Result<String, String
         .map_err(|_| format!("코드 흐름을 기록하지 못했어요. {}", run.stderr.lines().last().unwrap_or("").trim()))?;
     serde_json::from_str::<serde_json::Value>(&document).map_err(|e| format!("코드 흐름 기록을 읽지 못했어요: {e}"))?;
     Ok(document)
+}
+
+#[cfg(all(test, target_os="macos"))]
+mod mac_tests {
+    #[tokio::test]
+    #[ignore = "Needs native macOS cc, LLDB and the course Python"]
+    async fn traces_original_mac_c_pointers_heap_and_native_long() {
+        let source = "#include <stdio.h>\n#include <stdlib.h>\nint main(void) {\n    long wide = 4294967297L;\n    int stock = 2;\n    int *alias = &stock;\n    int *box = malloc(sizeof *box);\n    *box = *alias + 4;\n    printf(\"%ld %d\\n\", wide, *box);\n    free(box);\n    return 0;\n}\n";
+        let doc: serde_json::Value = serde_json::from_str(&super::trace(source, "").await.unwrap()).unwrap();
+        assert_eq!(doc["status"], "ok", "{doc}");
+        assert_eq!(doc["stdout"], "4294967297 6\n");
+        assert_eq!(doc["verification"]["grader_output_and_exit_match"], true);
+        let steps = doc["trace"].as_array().unwrap();
+        assert!(steps.iter().any(|step| step["stack_to_render"].as_array().unwrap().iter().any(|frame| frame["encoded_locals"]["alias"] == serde_json::json!(["C_PTR", "stock"]))));
+        assert!(steps.iter().any(|step| step["stack_to_render"].as_array().unwrap().iter().any(|frame| frame["encoded_locals"]["box"][0] == "C_NOTE" && frame["encoded_locals"]["box"][1].as_str().unwrap_or("").contains("해제된"))));
+        let broken: serde_json::Value = serde_json::from_str(&super::trace("int main(void) {\n int value = ;\n}\n", "").await.unwrap()).unwrap();
+        assert_eq!(broken["status"], "compile_error");
+        assert!(broken["trace"].as_array().unwrap().is_empty());
+    }
 }
 
 #[cfg(all(test, windows))]

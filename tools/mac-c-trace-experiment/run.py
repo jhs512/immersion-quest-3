@@ -60,5 +60,40 @@ assert any(frame['encoded_locals'].get('stock') == 4 for frame in frames), flow
 assert any(frame['encoded_locals'].get('alias') == ['C_PTR', 'stock'] for frame in frames), flow
 assert any(any(isinstance(v, list) and v[0] == 'REF' for name, v in frame['encoded_locals'].items() if name == 'box') for frame in frames), flow
 assert any(any(isinstance(v, list) and v[0] == 'C_NOTE' and '해제된' in v[1] for name, v in frame['encoded_locals'].items() if name == 'box') for frame in frames), flow
-assert any(any(obj == ['LIST', 6] for obj in step['heap'].values()) for step in flow['trace']), flow
+assert any(any(isinstance(obj, list) and obj[0] == 'INSTANCE' and ['[0]', 6] in obj for obj in step['heap'].values()) for step in flow['trace']), flow
 print(json.dumps({'native_flow_steps': len(flow['trace']), 'aliases_heap_free': 'passed'}, ensure_ascii=False))
+
+offset_case = case / 'offset'
+offset_case.mkdir(exist_ok=True)
+(offset_case / 'src.c').write_text('''#include <stdlib.h>
+struct Box { int count; };
+int main(void) {
+    struct Box item = {7};
+    int *field = &item.count;
+    int *base = malloc(3 * sizeof *base);
+    base[0] = 10;
+    base[1] = 20;
+    base[2] = 30;
+    int *next = base + 1;
+    *field += 1;
+    free(base);
+    return 0;
+}
+''', encoding='utf-8')
+(offset_case / 'stdin.txt').write_text('', encoding='utf-8')
+subprocess.run([sys.executable, str(HERE.parent.parent / 'assets/c-trace/mac_c_flow.py'), str(offset_case)], check=True, timeout=110)
+offset_doc = json.loads((offset_case / 'c_flow.json').read_text(encoding='utf-8'))
+assert offset_doc['status'] == 'ok', offset_doc
+observed = False
+for step in offset_doc['trace']:
+    for frame in step['stack_to_render']:
+        local = frame['encoded_locals']
+        base, nxt = local.get('base'), local.get('next')
+        if isinstance(base, list) and base[0] == 'REF' and isinstance(nxt, list) and nxt[0] == 'REF':
+            assert base != nxt, step
+            assert ['[0]', 10] in step['heap'][str(base[1])], step
+            assert ['[0]', 20] in step['heap'][str(nxt[1])], step
+            assert local['field'] == ['C_PTR', 'item.count'], step
+            observed = True
+assert observed, offset_doc
+print('allocation offset views and struct field pointers passed')
