@@ -1,0 +1,64 @@
+name: Course release validation (macOS)
+on:
+  push:
+    branches: [feat/course-audit-rust-release]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: course-release-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  macos-lessons:
+    runs-on: macos-15
+    timeout-minutes: 90
+    env:
+      MQ3_VALIDATE_TRACE_ALL: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: course-release-macos
+          cache-on-failure: true
+      - name: Use a fresh MQ data folder and the runner's Python
+        run: |
+          echo "MOLIP_DATA_DIR=$RUNNER_TEMP/mq-data" >> "$GITHUB_ENV"
+          echo "MOLIP_PYTHON=$(command -v python3)" >> "$GITHUB_ENV"
+          { uname -a; sw_vers; xcrun clang --version; xcrun lldb --version; java -version; python3 --version; } 2>&1 | tee "$RUNNER_TEMP/toolchain.txt"
+      - name: Install MQ's pinned rustc and trace Rust and C++ through LLDB
+        run: cargo test --locked --lib --no-default-features native_trace -- --ignored --nocapture --test-threads=1
+      - name: Cap large Python collections in code flow
+        run: cargo test --locked --lib --no-default-features python_trace::tests::large_collections -- --ignored --test-threads=1
+      - name: Replay the Rust, C code flow and Java file lessons with every step traced
+        shell: python3 {0}
+        run: |
+          import pathlib, subprocess, sys
+          subprocess.run(['cargo', 'build', '--locked', '--example', 'validate_redesigned_lesson'], check=True)
+          out = pathlib.Path('target/mac-evidence')
+          out.mkdir(parents=True, exist_ok=True)
+          keys = ['rust-values', 'rust-flow-functions', 'rust-ownership-borrowing', 'rust-data-results',
+                  'engineer-c-pointers', 'engineer-c-double-pointers', 'engineer-c-functions', 'java-crud', 'java-files']
+          failed = []
+          for key in keys:
+              with open(out / f'{key}.log', 'w') as log:
+                  done = subprocess.run(['target/debug/examples/validate_redesigned_lesson', f'tests/lesson-cases/{key}.json', str(out / f'{key}.json')],
+                                        stdout=log, stderr=subprocess.STDOUT)
+              last = (out / f'{key}.log').read_text(errors='replace').strip().splitlines()[-1:]
+              print('PASS' if done.returncode == 0 else 'FAIL', key, *last, flush=True)
+              if done.returncode:
+                  failed.append(key)
+          sys.exit(1 if failed else 0)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: course-release-macos
+          path: |
+            target/mac-evidence/
+            ${{ runner.temp }}/toolchain.txt
