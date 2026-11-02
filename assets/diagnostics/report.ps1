@@ -6,6 +6,7 @@ Add-Type -AssemblyName System.Drawing
 $draft = Get-Content -LiteralPath $DraftPath -Raw -Encoding UTF8 | ConvertFrom-Json
 $folder = Split-Path -LiteralPath $DraftPath
 $screen = Join-Path $folder 'screen.png'
+$captureStatus = Join-Path $folder 'capture-status.json'
 $result = Join-Path $folder 'response.json'
 $outcome = Join-Path $folder 'outcome.json'
 $script:issueUrl = $null
@@ -69,8 +70,14 @@ $timer.Add_Tick({
             $picture.Image=New-Object System.Drawing.Bitmap($image)
             $image.Dispose(); $stream.Dispose(); $timer.Stop(); $send.Enabled=$true
         } catch { }
-    } elseif (([DateTime]::UtcNow-$started).TotalSeconds -gt 4) {
-        $include.Checked=$false; $include.Enabled=$false; $include.Text='캡처를 준비하지 못했어요. 기록과 설명은 보낼 수 있어요.'; $timer.Stop(); $send.Enabled=$true
+    } elseif ((Test-Path -LiteralPath $captureStatus) -or (([DateTime]::UtcNow-$started).TotalSeconds -gt 4)) {
+        $reason='failed'
+        if (Test-Path -LiteralPath $captureStatus) {
+            try { $reason=(Get-Content -LiteralPath $captureStatus -Raw -Encoding UTF8 | ConvertFrom-Json).reason } catch { }
+        }
+        $include.Checked=$false; $include.Enabled=$false
+        $include.Text=if ($reason -eq 'timeout') {'캡처 응답이 늦어 중단했어요. 기록과 설명은 보낼 수 있어요.'} else {'MQ 창을 캡처하지 못했어요. 기록과 설명은 보낼 수 있어요.'}
+        $timer.Stop(); $send.Enabled=$true
     }
 })
 $statusTimer=New-Object System.Windows.Forms.Timer

@@ -978,7 +978,6 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
         (name.clone(),body.clone(),used)
     }).collect::<Vec<_>>();
     provided_files.sort_by(|a,b|b.2.cmp(&a.2).then_with(||a.0.cmp(&b.0)));
-    let explanation=issue_progress::explanation_info(&events(),&task.id);
     let record_explanation={let session=session.clone();let selected=selected.clone();let task_id=task.id.clone();move ||{
         let mut event=LearningEvent::new(ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},&selected.lesson.revision,selected.mode,&selected.round,EventKind::ExplanationViewed);
         event.task_id=Some(task_id.clone());
@@ -1144,10 +1143,6 @@ if let Some(start)=autostart {
                     }
                 }
                 }
-                if explanation.before_success||explanation.after_success {details {class:"explanation-info",summary {"학습 정보"}
-                    if explanation.before_success {p {title:"풀이 전에 해설을 함께 봤어요.",aria_label:"풀이 전 해설 확인","💡 풀이 전에 해설을 확인했어요."}}
-                    if explanation.after_success {p {title:"성공 후 해설을 다시 봤어요.",aria_label:"성공 후 해설 확인","↺ 성공 후 해설을 다시 확인했어요."}}
-                }}
                 if !provided_files.is_empty() {details {class:"provided-files",summary {"함께 제공한 파일"}
                     for (name,body,used) in &provided_files {details {class:"provided-file",key:"{name}",summary {{format!("{name}{}",if *used {" · 이 문제에서 사용"}else{""})}}crate::ui::Markdown{text:format!("```\n{body}\n```")}}}
                 }}

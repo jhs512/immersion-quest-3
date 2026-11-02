@@ -119,7 +119,11 @@ pub fn cli(args: &[String]) -> bool {
         {
             #[cfg(any(target_os = "windows", target_os = "macos"))]
             if let Some(path) = args.get(3) {
-                let _ = molip_quest::bug_report::capture(parent, Path::new(path));
+                if let Err(error) = molip_quest::bug_report::capture(parent, Path::new(path)) {
+                    let reason = if error.to_lowercase().contains("permission") { "permission" } else { "failed" };
+                    let status = serde_json::json!({"reason": reason});
+                    let _ = std::fs::write(Path::new(path).with_file_name("capture-status.json"), status.to_string());
+                }
             }
         }
         _ => {}
@@ -292,6 +296,7 @@ fn notify(message: &str) {
 fn dialog(parent: u32, kind: &str) -> Result<(), String> {
     let path = molip_quest::bug_report::prepare(parent, kind)?;
     let folder = path.parent().ok_or("report path")?;
+    let capture_status = folder.join("capture-status.json");
     let mut capture = command()?
         .args(["--capture-report", &parent.to_string()])
         .arg(folder.join("screen.png"))
@@ -319,6 +324,9 @@ fn dialog(parent: u32, kind: &str) -> Result<(), String> {
                 }
                 let _ = child.kill();
                 let _ = child.wait();
+                if !capture_status.exists() {
+                    let _ = std::fs::write(&capture_status, r#"{"reason":"timeout"}"#);
+                }
             }
         })),
     };
