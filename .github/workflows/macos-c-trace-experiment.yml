@@ -12,7 +12,11 @@ permissions:
   contents: read
 jobs:
   native-lldb:
-    runs-on: macos-15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-15-intel]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -23,5 +27,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: mac-c-trace-probe
+          name: mac-c-trace-probe-${{ matrix.os }}
           path: ${{ runner.temp }}/mac-c-trace/
