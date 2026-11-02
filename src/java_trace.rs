@@ -101,12 +101,27 @@ async fn tracer(javac: &Path, asm: &[PathBuf]) -> Result<PathBuf, String> {
 /// document (docs/trace-format.md of the core) with `status` ok, compile_error, uncaught_exception,
 /// step_limit, no_main or internal_error; an Err only when the tool itself cannot start.
 pub async fn trace(source: &str, input: &str) -> Result<String, String> {
+    trace_files(source, input, &std::collections::BTreeMap::new()).await
+}
+
+pub async fn trace_files(source: &str, input: &str, files: &std::collections::BTreeMap<String, String>) -> Result<String, String> {
     if source.len() > 65536 || input.len() > 65536 { return Err("코드와 입력은 각각 64KB 이하여야 해요.".into()); }
+    if files.len() > 80 || files.iter().any(|(path, text)| !crate::repository_course::safe_file(path) || text.len() > 200_000) {
+        return Err("준비 파일의 경로와 크기를 확인하세요.".into());
+    }
     let (java, javac) = tokio::task::spawn_blocking(crate::git_practice::java_build_practice::jdk_tools).await
         .map_err(|e| e.to_string())?.map_err(|e| format!("코드 흐름 보기는 수업과 같은 JDK 25가 필요해요. {e}"))?;
     let asm = asm().await?;
     let classes = tracer(&javac, &asm).await?;
     let dir = tempfile::tempdir().map_err(|e| e.to_string())?;
+    for (path, text) in files {
+        if ["main.java", "stdin.txt", "trace.json"].contains(&path.to_ascii_lowercase().as_str()) {
+            return Err("준비 파일 이름이 코드 흐름 도구의 파일과 겹쳐요.".into());
+        }
+        let target = dir.path().join(path);
+        if let Some(parent) = target.parent() { std::fs::create_dir_all(parent).map_err(|e| e.to_string())?; }
+        std::fs::write(target, text).map_err(|e| e.to_string())?;
+    }
     std::fs::write(dir.path().join("Main.java"), source).map_err(|e| e.to_string())?;
     std::fs::write(dir.path().join("stdin.txt"), input).map_err(|e| e.to_string())?;
     let mut paths = vec![classes];
@@ -128,6 +143,20 @@ pub async fn trace(source: &str, input: &str) -> Result<String, String> {
 
 #[cfg(test)]
 mod tests {
+    #[tokio::test]
+    #[ignore = "Needs JDK 25 and the pinned ASM artifacts"]
+    async fn traces_with_the_same_prepared_data_files_as_execution() {
+        let files = std::collections::BTreeMap::from([("data/quotes.txt".into(), "hello MQ".into())]);
+        let source = "import java.nio.file.*;\nclass Main {\n public static void main(String[] args) throws Exception {\n  String text = Files.readString(Path.of(\"data/quotes.txt\"));\n  System.out.println(text);\n }\n}\n";
+        let plain = crate::java::run_files(source, "", &files).await.unwrap();
+        assert!(plain.success, "{}", plain.stderr);
+        let traced = super::trace_files(source, "", &files).await.unwrap();
+        let document: serde_json::Value = serde_json::from_str(&traced).unwrap();
+        assert_eq!(document["status"], "ok", "{document}");
+        let last = document["trace"].as_array().unwrap().last().unwrap();
+        assert_eq!(last["stdout"].as_str().unwrap().replace("\r\n", "\n"), plain.stdout);
+    }
+
     #[test]
     fn verbatim_windows_paths_become_ordinary_class_path_entries() {
         use std::path::PathBuf;

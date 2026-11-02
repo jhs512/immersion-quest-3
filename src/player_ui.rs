@@ -1233,7 +1233,7 @@ if let Some(start)=autostart {
                             let mut opened=document::eval("dioxus.send(window.mqCodeFlow?window.mqCodeFlow.loading():-1);");
                             let token=opened.recv::<i64>().await.unwrap_or(-1);
                             if token<0 {message.set("코드 흐름 보기를 열지 못했어요. 앱을 다시 열어 보세요.".into());return;}
-                            let traced=if python {molip_quest::python_trace::trace(&source,&input,&files).await} else if c {molip_quest::c_trace::trace(&source,&input).await} else if javascript {molip_quest::js_trace::trace(&source,&input,&files).await} else {molip_quest::java_trace::trace(&source,&input).await};
+                            let traced=if python {molip_quest::python_trace::trace(&source,&input,&files).await} else if c {molip_quest::c_trace::trace(&source,&input).await} else if javascript {molip_quest::js_trace::trace(&source,&input,&files).await} else {molip_quest::java_trace::trace_files(&source,&input,&files).await};
                             let script=match traced {
                                 Ok(document)=>format!("window.mqCodeFlow.show({token},{document});"),
                                 Err(error)=>format!("window.mqCodeFlow.fail({token},{});",serde_json::to_string(&error).unwrap_or_default()),
