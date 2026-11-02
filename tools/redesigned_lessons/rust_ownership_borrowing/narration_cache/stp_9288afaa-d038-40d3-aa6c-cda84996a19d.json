@@ -1,0 +1,80 @@
+{
+  "by": "hand",
+  "source_sha256": "de8fc5870b0712dfe73c9ceeffa7f5cf81b359afb8187b7fd18684e61741bba3",
+  "entry": [
+    {
+      "action": "say",
+      "text": "판매 뒤 재고가 원래 stock에 남아야 해요. 표시는 그 재고를 읽기만 하고요.",
+      "target": "text:sell의 매개변수·본문·호출 세 곳을 고쳐 원래 재고에서 1을 빼세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ],
+      "expect_error": "E0368"
+    },
+    {
+      "action": "say",
+      "text": "E0368이에요. & 참조에는 -=를 쓸 수 없다는 오류죠.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "fn sell(stock: &i32) {",
+      "after": "fn sell(stock: &mut i32) {",
+      "say": "sell은 재고를 바꾸니 &mut i32로 받아요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ],
+      "expect_error": "E0368"
+    },
+    {
+      "action": "say",
+      "text": "여전히 E0368이에요. 이번엔 &mut 참조 자체에서 1을 빼려 했거든요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    stock -= 1;\n",
+      "after": "    *stock -= 1;\n",
+      "say": "*stock으로 가리키는 재고에서 1을 빼요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        16
+      ],
+      "expect_error": "E0308"
+    },
+    {
+      "action": "say",
+      "text": "E0308이에요. sell은 &mut를 기다리는데 호출은 & 빌림을 넘겨요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "sell(&stock);",
+      "after": "sell(&mut stock);",
+      "say": "호출에서도 &mut로 빌려줘요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "러스트 입문 재고: 2예요. sell이 원래 stock을 줄였고 show는 읽기만 했어요.",
+      "target": "output"
+    }
+  ]
+}

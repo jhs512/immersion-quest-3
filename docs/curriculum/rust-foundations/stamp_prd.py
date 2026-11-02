@@ -35,7 +35,7 @@ def course_rules():
 def stamp(folder):
     path = ROOT / 'tools/redesigned_lessons' / folder / 'approved-prd.json'
     document = json.loads(path.read_text(encoding='utf-8'))
-    document.pop('approval', None)
+    document['approval'] = {'status': 'draft'}
     artifacts = [{'path': name, 'text': (ROOT / name).read_text(encoding='utf-8').replace('\r\n', '\n')} for name in POLICY_FILES]
     document['policy_snapshot'] = {'revision': policy_revision(artifacts), 'artifacts': artifacts,
                                    'rules': course_rules() + RUST_RULES}

@@ -1,0 +1,61 @@
+{
+  "by": "hand",
+  "source_sha256": "1796f0eb98154ffdc875d064fa1d413242b8e5e717d3a127ed5b5c2a6255d25d",
+  "entry": [
+    {
+      "action": "say",
+      "text": "title 끝에 판 정보를 붙여야 해요. 그러려면 늘릴 수 있는 String이 필요하죠.",
+      "target": "text:title을 String::from으로 만들어 push_str로 판 정보를 붙이세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ],
+      "expect_error": "E0599"
+    },
+    {
+      "action": "say",
+      "text": "E0599예요. 따옴표 글자인 &str에는 push_str이 없다는 오류죠.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    let mut title = \"러스트 입문\";\n",
+      "after": "    let title = String::from(\"러스트 입문\");\n",
+      "say": "String::from으로 바꾸면서 mut를 빼 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ],
+      "expect_error": "E0596"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. String이어도 mut가 없으면 E0596이 나요. 끝에 붙이는 것도 값을 바꾸는 일이거든요.",
+      "target": "code:let title = String::from(\"러스트 입문\");"
+    },
+    {
+      "action": "patch_code",
+      "before": "    let title = String::from(\"러스트 입문\");\n",
+      "after": "    let mut title = String::from(\"러스트 입문\");\n",
+      "say": "let mut로 되돌려 바꿀 수 있게 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "러스트 입문 2판이 나왔어요. String 끝에 2판이 붙었죠.",
+      "target": "output"
+    }
+  ]
+}

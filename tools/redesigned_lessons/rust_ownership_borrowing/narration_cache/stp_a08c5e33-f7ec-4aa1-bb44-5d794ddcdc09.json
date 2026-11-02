@@ -1,0 +1,67 @@
+{
+  "by": "hand",
+  "source_sha256": "a912365f02dc042e22077f3188a66c3127af78658a68a1eb466c1884173c9449",
+  "entry": [
+    {
+      "action": "say",
+      "text": "title을 바꾸는 참조가 두 개예요. 두 빌림이 겹치는지 실행해서 볼게요.",
+      "target": "text:first.push_str 줄을 second를 만드는 줄 위로 옮기세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ],
+      "expect_error": "E0499"
+    },
+    {
+      "action": "say",
+      "text": "E0499예요. title을 바꾸는 빌림이 동시에 두 개 생겼다는 오류죠.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    first.push_str(\" 2판\");\n    second.push_str(\" 개정\");\n",
+      "after": "    second.push_str(\" 개정\");\n    first.push_str(\" 2판\");\n",
+      "say": "두 push_str의 순서를 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ],
+      "expect_error": "E0499"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. push_str 두 줄의 순서만 바꾸면 여전히 E0499예요. first를 second보다 뒤에서 또 쓰거든요.",
+      "target": "code:let second = &mut title;"
+    },
+    {
+      "action": "patch_code",
+      "before": "    second.push_str(\" 개정\");\n    first.push_str(\" 2판\");\n",
+      "after": "    first.push_str(\" 2판\");\n    second.push_str(\" 개정\");\n",
+      "say": "순서를 원래대로 돌려놔요."
+    },
+    {
+      "action": "patch_code",
+      "before": "    let second = &mut title;\n    first.push_str(\" 2판\");\n",
+      "after": "    first.push_str(\" 2판\");\n    let second = &mut title;\n",
+      "say": "first 사용 줄을 second를 만들기 전으로 옮겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "러스트 입문 2판 개정이에요. first가 끝난 뒤에 second가 개정을 붙였어요.",
+      "target": "output"
+    }
+  ]
+}

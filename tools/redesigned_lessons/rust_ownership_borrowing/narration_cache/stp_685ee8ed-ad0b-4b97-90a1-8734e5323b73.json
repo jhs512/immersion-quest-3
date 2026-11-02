@@ -1,0 +1,66 @@
+{
+  "by": "hand",
+  "source_sha256": "36122a169ed2d8c862c615f14fc35c923dc4212d844ba96296b7671e6fd99498",
+  "entry": [
+    {
+      "action": "say",
+      "text": "show는 제목을 읽기만 해요. 그런데 지금은 제목의 소유권까지 넘기고 있죠.",
+      "target": "text:show의 매개변수와 호출을 고쳐 제목을 빌려주세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        12
+      ],
+      "expect_error": "E0382"
+    },
+    {
+      "action": "say",
+      "text": "E0382예요. show(title)에서 제목이 옮겨 가 마지막 출력 줄이 막혔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "fn show(title: String) {",
+      "after": "fn show(title: &String) {",
+      "say": "받는 쪽을 &String으로 바꿔 빌려 받게 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ],
+      "expect_error": "E0308"
+    },
+    {
+      "action": "say",
+      "text": "E0308이에요. 함수는 참조를 기다리는데 호출은 아직 String을 넘기거든요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "show(title);",
+      "after": "show(&title);",
+      "say": "호출에도 &를 붙여 빌려줘요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "MQ가 두 번 나왔어요. 함수 안에서 한 번, 호출 뒤에 한 번이죠.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. show(title.clone())로 고쳐도 출력은 같아요. 하지만 읽기만 하는 함수에 복사본까지 만들 필요는 없어요.",
+      "target": "code:show(&title);"
+    }
+  ]
+}

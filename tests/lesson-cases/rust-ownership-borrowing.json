@@ -1,0 +1,252 @@
+{
+  "course": "tests/fixtures/player-pilot/롤/course.json",
+  "lesson": "courses/redesigned/rust-ownership-borrowing.json",
+  "expected_outputs": [
+    [
+      "",
+      "",
+      "러스트 입문 2판"
+    ],
+    [
+      "stock: 5",
+      "stock: 5, copied: 5"
+    ],
+    [
+      "",
+      "러스트 입문"
+    ],
+    [
+      "",
+      "러스트 입문 (사본)",
+      "러스트 입문\n러스트 입문 (사본)"
+    ],
+    [
+      "",
+      "",
+      "러스트 입문 2판"
+    ],
+    [
+      "",
+      "",
+      "MQ\nMQ"
+    ],
+    [
+      "",
+      "부족: true"
+    ],
+    [
+      "",
+      "",
+      "러스트 입문 2판"
+    ],
+    [
+      "",
+      "",
+      "러스트 입문 2판 개정"
+    ],
+    [
+      "",
+      "",
+      "",
+      "러스트 입문 재고: 2"
+    ]
+  ],
+  "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "println!(\"{title}\");",
+          "println!(\"러스트 입문 2판\");"
+        ]
+      ],
+      "reason": "Edited title typed as text"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "println!(\"stock: {stock}, copied: {copied}\");",
+          "println!(\"stock: 5, copied: 5\");"
+        ]
+      ],
+      "reason": "Stock numbers typed as text"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "println!(\"{owner}\");",
+          "println!(\"러스트 입문\");"
+        ]
+      ],
+      "reason": "Title typed as text"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "let mut copy = title.clone();",
+          "let mut copy = String::from(\"러스트 입문\");"
+        ]
+      ],
+      "reason": "Copy rebuilt from a constant"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "    println!(\"{title}\");\n    println!(\"{copy}\");\n",
+          "    println!(\"{copy}\");\n"
+        ]
+      ],
+      "reason": "Original line deleted to dodge E0382"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "let edited = add_edition(title);",
+          "let edited = add_edition(String::from(\"러스트 입문\"));"
+        ]
+      ],
+      "reason": "Constant title passed instead of title"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "println!(\"{edited}\");",
+          "println!(\"러스트 입문 2판\");"
+        ]
+      ],
+      "reason": "Edited title typed as text"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "    // 함수를 부른 뒤에도 원래 제목이 필요해요.\n    println!(\"{title}\");\n",
+          "    // 함수를 부른 뒤에도 원래 제목이 필요해요.\n"
+        ]
+      ],
+      "reason": "Later print deleted to dodge E0382"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "    // 함수를 부른 뒤에도 원래 제목이 필요해요.\n    println!(\"{title}\");\n",
+          "    // 함수를 부른 뒤에도 원래 제목이 필요해요.\n    println!(\"MQ\");\n"
+        ]
+      ],
+      "reason": "Title typed as text after the call"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "    *stock < 3\n",
+          "    true\n"
+        ]
+      ],
+      "reason": "Always reports low stock"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "add_edition(&mut title);",
+          "add_edition(&mut title.clone());"
+        ]
+      ],
+      "reason": "A copy is changed, the original stays"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "    println!(\"{title}\");\n}",
+          "    println!(\"러스트 입문 2판\");\n}"
+        ]
+      ],
+      "reason": "Edited title typed as text"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "    first.push_str(\" 2판\");\n",
+          ""
+        ]
+      ],
+      "reason": "First edit deleted to dodge E0499"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "    println!(\"{title}\");\n",
+          "    println!(\"러스트 입문 2판 개정\");\n"
+        ]
+      ],
+      "reason": "Final title typed as text"
+    },
+    {
+      "step": 10,
+      "replacements": [
+        [
+          "sell(&mut stock);",
+          "sell(&mut stock.clone());"
+        ]
+      ],
+      "reason": "A copy of the stock is sold"
+    },
+    {
+      "step": 10,
+      "replacements": [
+        [
+          "println!(\"{title} 재고: {stock}\");",
+          "println!(\"{title} 재고: 2\");"
+        ]
+      ],
+      "reason": "Remaining stock typed as text"
+    }
+  ],
+  "accept": [
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "fn show(title: &String) {",
+          "fn show(title: &str) {"
+        ]
+      ],
+      "reason": "A &str parameter is also a read borrow"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "fn show(title: &String) {",
+          "fn show(title: String) {"
+        ],
+        [
+          "show(&title);",
+          "show(title.clone());"
+        ]
+      ],
+      "reason": "Output-only grading cannot reject a clone; the narration calls it unnecessary"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "    *stock < 3\n",
+          "    stock < &3\n"
+        ]
+      ],
+      "reason": "Comparing two references is also correct"
+    }
+  ]
+}

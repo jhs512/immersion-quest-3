@@ -1,0 +1,42 @@
+{
+  "by": "hand",
+  "source_sha256": "9e906ea51ef276c31c35582edda20b3e06070a647f4f06b3710118ec1c0d1bda",
+  "entry": [
+    {
+      "action": "say",
+      "text": "재고가 3개보다 적은지 판단해야 해요. 그런데 함수가 받은 건 정수가 아니라 참조예요.",
+      "target": "text:비교 줄을 고쳐 stock이 가리키는 정수를 3과 비교하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ],
+      "expect_error": "E0308"
+    },
+    {
+      "action": "say",
+      "text": "E0308이에요. 참조 &i32와 정수 3을 비교하려 해서 타입이 맞지 않아요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    stock < 3\n",
+      "after": "    *stock < 3\n",
+      "say": "*stock으로 참조가 가리키는 정수를 꺼내 비교해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "부족: true예요. 가리키는 재고 2가 3보다 적거든요.",
+      "target": "output"
+    }
+  ]
+}

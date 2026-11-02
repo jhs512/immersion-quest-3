@@ -1,0 +1,66 @@
+{
+  "by": "hand",
+  "source_sha256": "b580ff8c3d32bd77ad2e746eeaf21b7d3eef13284844356c021c20b42aae9ae6",
+  "entry": [
+    {
+      "action": "say",
+      "text": "함수가 판 정보를 붙여 돌려줘요. 그 결과를 받아서 출력해야 해요.",
+      "target": "text:호출 결과를 edited에 담고 edited를 출력하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        12
+      ],
+      "expect_error": "E0382"
+    },
+    {
+      "action": "say",
+      "text": "E0382예요. title은 add_edition을 부를 때 함수로 옮겨 갔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    add_edition(title);\n",
+      "after": "    let edited = add_edition(title);\n",
+      "say": "돌려준 String을 edited에 받아요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        12
+      ],
+      "expect_error": "E0382"
+    },
+    {
+      "action": "say",
+      "text": "아직 E0382예요. 출력 줄이 옮겨 간 title을 쓰고 있거든요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "println!(\"{title}\");",
+      "after": "println!(\"{edited}\");",
+      "say": "출력도 지금 소유자인 edited로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "러스트 입문 2판이 나왔어요. 돌려받은 edited가 이제 제목의 소유자예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 돌려준 값을 받지 않으면 2판이 붙은 제목을 쓸 방법이 없어요. 넘긴 title도 다시 못 쓰고요.",
+      "target": "code:let edited = add_edition(title);"
+    }
+  ]
+}

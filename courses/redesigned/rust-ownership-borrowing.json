@@ -1,0 +1,1002 @@
+{
+  "schema_version": 2,
+  "id": "lsn_99d9d92b-e2a8-424b-ac90-7a80a72b021a",
+  "revision": "rust-ownership-borrowing-1",
+  "title": "Rust · 소유권과 빌림을 구분해요",
+  "description": "작은 서점의 책 제목과 재고를 넘기며, 복사·이동·빌림 뒤 어떤 이름을 쓸 수 있는지 컴파일러로 확인해요.",
+  "objectives": [
+    "복사·이동·clone 뒤 사용할 수 있는 이름을 구분해요.",
+    "읽기 빌림과 변경 빌림을 목적에 맞게 골라요."
+  ],
+  "sources": [
+    "https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html",
+    "https://doc.rust-lang.org/book/ch04-02-references-and-borrowing.html",
+    "https://doc.rust-lang.org/book/ch15-02-deref.html"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_6ac48154-3837-4f49-8c1c-44a49611cb94",
+      "title": "값 전달",
+      "objectives": [
+        "값을 넘긴 뒤 복사와 이동의 결과를 구분해요."
+      ],
+      "units": [
+        {
+          "id": "unt_5e075e43-31f0-4f0e-88c9-80b78866b949",
+          "title": "소유한 문자열",
+          "objectives": [
+            "String을 만들고 늘려요."
+          ],
+          "premise": "작은 서점의 책 제목을 String으로 다뤄요. 각 스텝은 준비된 main.rs에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_03132086-eee4-46c9-8e08-19a6c3bc2d27",
+              "objectives": [
+                "String::from으로 늘릴 수 있는 소유 문자열을 만들고 push_str로 끝에 글자를 붙여요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_87ff8f23-1966-4264-b837-1ab196527ac3",
+          "title": "복사와 이동",
+          "objectives": [
+            "값을 넘긴 뒤 원래 이름을 쓸 수 있는지 컴파일러로 확인해요."
+          ],
+          "premise": "재고 정수와 책 제목 String을 다른 이름이나 함수에 넘겨요. 판정은 rustc의 진단과 출력이에요.",
+          "steps": [
+            {
+              "id": "stp_344432f8-8b2e-4d73-95c1-24ea44c70b53",
+              "objectives": [
+                "정수를 다른 이름에 넣은 뒤에도 두 이름을 모두 쓸 수 있음을 출력으로 확인해요."
+              ]
+            },
+            {
+              "id": "stp_ac87ba40-5ab9-44a8-b438-847718bd535a",
+              "objectives": [
+                "String을 다른 이름에 넣으면 소유권이 옮겨 가고, 원래 이름은 쓸 수 없음을 E0382로 확인해요."
+              ]
+            },
+            {
+              "id": "stp_c3d98145-52f7-4295-a069-561c98bac004",
+              "objectives": [
+                "clone으로 따로 소유되는 String 복사본을 만들어 원본과 복사본을 모두 써요."
+              ]
+            },
+            {
+              "id": "stp_0e6a456d-1b05-4937-a5b0-fe11485bd385",
+              "objectives": [
+                "함수에 String을 넘기면 소유권이 함수로 옮겨 가고, 돌려받은 값을 새 이름에 담아야 다시 쓸 수 있음을 확인해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_6fb199ab-b1be-46aa-a235-44c0c082635b",
+      "title": "빌려 쓰기",
+      "objectives": [
+        "소유권을 넘기지 않고 함수에 값을 빌려줘요."
+      ],
+      "units": [
+        {
+          "id": "unt_5942ebb0-c58b-4947-87ff-f346ced47561",
+          "title": "읽기 빌림",
+          "objectives": [
+            "&로 빌려 읽고 호출 뒤에도 원래 값을 써요."
+          ],
+          "premise": "읽기만 하는 함수에 제목과 재고를 빌려줘요. 함수를 부른 뒤에도 원래 이름이 필요해요.",
+          "steps": [
+            {
+              "id": "stp_685ee8ed-ad0b-4b97-90a1-8734e5323b73",
+              "objectives": [
+                "읽기만 하는 함수에는 &String으로 값을 빌려주고, 호출 뒤에도 원래 이름을 써요."
+              ]
+            },
+            {
+              "id": "stp_c54f7425-60ec-4b0f-bd62-9445c3a0ddc8",
+              "objectives": [
+                "&i32로 빌린 정수를 *로 역참조해 비교해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_e3a06d15-c6a2-440b-8eb0-f4a43335bd0f",
+          "title": "변경 빌림",
+          "objectives": [
+            "&mut의 변경 권한과 겹침 제한을 구분해요."
+          ],
+          "premise": "빌린 제목과 재고를 바꿔요. 바꾸는 빌림은 한 번에 하나만 살아 있어요.",
+          "steps": [
+            {
+              "id": "stp_d6874e87-0613-42b9-98df-549bd6600040",
+              "objectives": [
+                "빌린 값을 바꾸려면 매개변수와 호출 모두 &mut로 빌려야 함을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_a08c5e33-f7ec-4aa1-bb44-5d794ddcdc09",
+              "objectives": [
+                "변경 빌림은 동시에 하나만 살아 있을 수 있고, 마지막 사용 뒤에 다음 빌림을 만들 수 있음을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_9288afaa-d038-40d3-aa6c-cda84996a19d",
+              "objectives": [
+                "바꾸는 함수에는 &mut, 읽는 함수에는 &로 빌려주고 *로 빌린 정수를 바꿔요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_03132086-eee4-46c9-8e08-19a6c3bc2d27",
+      "title": "title을 String::from으로 만들어 늘리세요",
+      "goal": "따옴표로 쓴 \"러스트 입문\"은 &str이라는 고정된 글자예요. 끝에 글자를 더 붙일 수 없어요. `String::from(\"러스트 입문\")`은 같은 내용으로 늘릴 수 있는 String을 만들어요. String은 그 글자를 소유해요.\n\n제공된 코드는 아직 컴파일되지 않아요. title을 String::from으로 만들어 push_str로 판 정보를 붙이세요. 채점은 title의 처음 제목을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 컴파일 오류의 코드를 확인하세요.\n2. `\"러스트 입문\"`을 `String::from(\"러스트 입문\")`으로 고치세요.\n3. 코드 실행을 눌러 늘어난 제목을 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn main() {\n    // 책 제목 끝에 판 정보를 붙여 늘려요.\n    // 이 줄을 고쳐 title을 String::from으로 만드세요.\n    let mut title = \"러스트 입문\";\n    title.push_str(\" 2판\");\n    println!(\"{title}\");\n}\n",
+      "solution": "fn main() {\n    // 책 제목 끝에 판 정보를 붙여 늘려요.\n    // 이 줄을 고쳐 title을 String::from으로 만드세요.\n    // String::from은 따옴표 글자와 같은 내용의 String을 새로 만들어요.\n    // 따옴표 글자만 쓰면 &str이라 push_str이 없어요.\n    let mut title = String::from(\"러스트 입문\");\n    // push_str은 String 끝에 글자를 붙여요. 값을 바꾸는 일이라 let mut가 필요해요.\n    title.push_str(\" 2판\");\n    println!(\"{title}\");\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "러스트 입문 2판"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "title": "String::from(\"MQ\")"
+          },
+          "expected": "MQ 2판"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "이 수업에서는 값을 넘긴 뒤 어떤 이름을 쓸 수 있는지 확인해요. 판정은 컴파일러가 해요."
+        },
+        {
+          "action": "say",
+          "text": "정수 복사와 String 이동을 먼저 비교해요. 그다음 읽기 빌림과 변경 빌림을 목적에 맞게 골라요."
+        },
+        {
+          "action": "say",
+          "text": "title을 String::from으로 만들어 늘리는 문제예요.",
+          "target": "text:title을 String::from으로 만들어 늘리세요#1"
+        },
+        {
+          "action": "say",
+          "text": "title 끝에 판 정보를 붙여야 해요. 그러려면 늘릴 수 있는 String이 필요하죠.",
+          "target": "text:title을 String::from으로 만들어 push_str로 판 정보를 붙이세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ],
+          "expect_error": "E0599"
+        },
+        {
+          "action": "say",
+          "text": "E0599예요. 따옴표 글자인 &str에는 push_str이 없다는 오류죠.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    let mut title = \"러스트 입문\";\n",
+          "after": "    let title = String::from(\"러스트 입문\");\n",
+          "say": "String::from으로 바꾸면서 mut를 빼 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ],
+          "expect_error": "E0596"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. String이어도 mut가 없으면 E0596이 나요. 끝에 붙이는 것도 값을 바꾸는 일이거든요.",
+          "target": "code:let title = String::from(\"러스트 입문\");"
+        },
+        {
+          "action": "patch_code",
+          "before": "    let title = String::from(\"러스트 입문\");\n",
+          "after": "    let mut title = String::from(\"러스트 입문\");\n",
+          "say": "let mut로 되돌려 바꿀 수 있게 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "러스트 입문 2판이 나왔어요. String 끝에 2판이 붙었죠.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_344432f8-8b2e-4d73-95c1-24ea44c70b53",
+      "title": "stock과 copied를 함께 출력하세요",
+      "goal": "`let copied = stock;`은 stock의 값을 copied에도 넣어요. i32 같은 정수는 넣을 때 값이 그대로 복사돼요. 이런 타입을 Copy 타입이라고 해요.\n\n출력 줄을 고쳐 stock과 copied를 한 줄에 함께 출력하세요. 채점은 stock의 처음 값을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력을 확인하세요.\n2. `println!(\"stock: {stock}\");`을 `println!(\"stock: {stock}, copied: {copied}\");`로 고치세요.\n3. 코드 실행을 눌러 두 이름의 값을 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn main() {\n    // 정수 재고를 다른 이름에도 넣어요.\n    let stock = 5;\n    let copied = stock;\n    // 이 줄을 고쳐 stock과 copied를 함께 출력하세요.\n    println!(\"stock: {stock}\");\n}\n",
+      "solution": "fn main() {\n    // 정수 재고를 다른 이름에도 넣어요.\n    let stock = 5;\n    // i32는 넣을 때 값이 복사돼요. 그래서 stock도 계속 쓸 수 있어요.\n    let copied = stock;\n    // 이 줄을 고쳐 stock과 copied를 함께 출력하세요.\n    // 두 이름이 각자 같은 값을 갖고 있는지 한 줄에서 봐요.\n    println!(\"stock: {stock}, copied: {copied}\");\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "stock: 5, copied: 5"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "stock": "8"
+          },
+          "expected": "stock: 8, copied: 8"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "stock과 copied를 함께 출력하는 문제예요.",
+          "target": "text:stock과 copied를 함께 출력하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "stock을 copied에 넣은 뒤에도 두 이름을 다 쓸 수 있는지 볼 거예요.",
+          "target": "text:출력 줄을 고쳐 stock과 copied를 한 줄에 함께 출력하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "stock: 5만 나왔어요. 아직 copied는 출력하지 않았거든요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "println!(\"stock: {stock}\");",
+          "after": "println!(\"stock: {stock}, copied: {copied}\");",
+          "say": "출력 줄에 copied 자리를 붙여요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "stock: 5, copied: 5예요. 넣은 뒤에도 stock을 그대로 썼어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "정수는 복사돼서 원래 이름이 남아요. 다음 스텝의 String은 다르게 움직여요.",
+          "target": "code:let copied = stock;"
+        }
+      ]
+    },
+    {
+      "id": "stp_ac87ba40-5ab9-44a8-b438-847718bd535a",
+      "title": "새 소유자 owner로 제목을 출력하세요",
+      "goal": "String을 다른 이름에 넣으면 값이 복사되지 않아요. 소유권(ownership)이 owner로 옮겨 가요. 이것을 이동(move)이라고 해요. 이동한 뒤에는 원래 이름 title을 쓸 수 없어요.\n\n제공된 코드는 아직 컴파일되지 않아요. 출력 줄을 고쳐 새 소유자 owner로 제목을 출력하세요. 채점은 title의 처음 제목을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 오류의 코드와 가리키는 이름을 확인하세요.\n2. `println!(\"{title}\");`의 title을 `owner`로 고치세요.\n3. 코드 실행을 눌러 제목을 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn main() {\n    let title = String::from(\"러스트 입문\");\n    // String을 다른 이름에 넣으면 소유권이 옮겨 가요.\n    let owner = title;\n    // 이 줄을 고쳐 새 소유자 owner로 제목을 출력하세요.\n    println!(\"{title}\");\n}\n",
+      "solution": "fn main() {\n    // 제목 String의 첫 소유자는 title이에요.\n    let title = String::from(\"러스트 입문\");\n    // String을 다른 이름에 넣으면 소유권이 옮겨 가요.\n    // 정수와 달리 복사되지 않아요. 이 줄 뒤로 title은 쓸 수 없어요.\n    let owner = title;\n    // 이 줄을 고쳐 새 소유자 owner로 제목을 출력하세요.\n    println!(\"{owner}\");\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "러스트 입문"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "title": "String::from(\"MQ\")"
+          },
+          "expected": "MQ"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "새 소유자 owner로 제목을 출력하는 문제예요.",
+          "target": "text:새 소유자 owner로 제목을 출력하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "owner에 넣은 뒤 title을 출력하려 해요. 정수였던 앞 스텝과 결과가 같을지 볼게요.",
+          "target": "text:출력 줄을 고쳐 새 소유자 owner로 제목을 출력하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ],
+          "expect_error": "E0382"
+        },
+        {
+          "action": "say",
+          "text": "E0382예요. 이동한 값 title을 다시 쓰려 했다는 오류죠. 출력 줄의 title을 가리켜요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "println!(\"{title}\");",
+          "after": "println!(\"{owner}\");",
+          "say": "지금 소유자인 owner로 출력해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "러스트 입문이 나왔어요. 이제 제목의 소유자는 owner예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 이동은 화면에 아무 표시가 없어요. let owner = title; 아래에서 title을 쓰는 줄은 모두 E0382가 나요.",
+          "target": "code:let owner = title;"
+        }
+      ]
+    },
+    {
+      "id": "stp_c3d98145-52f7-4295-a069-561c98bac004",
+      "title": "title.clone()으로 별도 복사본을 만드세요",
+      "goal": "`title.clone()`은 title과 같은 내용의 String을 새로 만들어요. 복사본은 따로 소유돼서 원본 title도 계속 쓸 수 있어요.\n\n제공된 코드는 아직 컴파일되지 않아요. copy에 title 대신 title.clone()을 넣어 원본과 복사본을 모두 출력하세요. 채점은 title의 처음 제목을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 오류의 코드를 확인하세요.\n2. `let mut copy = title;`을 `let mut copy = title.clone();`으로 고치세요.\n3. 코드 실행을 눌러 원본과 사본 두 줄을 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn main() {\n    let title = String::from(\"러스트 입문\");\n    // 원본 제목도 계속 써야 해요. 이 줄을 고쳐 별도 복사본을 넣으세요.\n    let mut copy = title;\n    copy.push_str(\" (사본)\");\n    println!(\"{title}\");\n    println!(\"{copy}\");\n}\n",
+      "solution": "fn main() {\n    let title = String::from(\"러스트 입문\");\n    // 원본 제목도 계속 써야 해요. 이 줄을 고쳐 별도 복사본을 넣으세요.\n    // clone은 같은 내용의 String을 새로 만들어요. title의 소유권은 그대로예요.\n    let mut copy = title.clone();\n    // 사본에만 글자를 붙여요. 원본은 바뀌지 않아요.\n    copy.push_str(\" (사본)\");\n    // 원본과 사본을 차례로 출력해 서로 다른 값인지 봐요.\n    println!(\"{title}\");\n    println!(\"{copy}\");\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "러스트 입문\n러스트 입문 (사본)"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "title": "String::from(\"MQ\")"
+          },
+          "expected": "MQ\nMQ (사본)"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "title.clone()으로 별도 복사본을 만드는 문제예요.",
+          "target": "text:title.clone()으로 별도 복사본을 만드세요#1"
+        },
+        {
+          "action": "say",
+          "text": "원본 제목과 사본 제목을 둘 다 출력해야 해요. 그런데 copy에 title을 넣으면 소유권이 옮겨 가죠.",
+          "target": "text:copy에 title 대신 title.clone()을 넣어 원본과 복사본을 모두 출력하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ],
+          "expect_error": "E0382"
+        },
+        {
+          "action": "say",
+          "text": "E0382예요. title이 copy로 이동해서 원본 출력 줄에서 막혔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    println!(\"{title}\");\n",
+          "after": "",
+          "say": "막힌 원본 출력 줄을 지워 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 막힌 줄을 지우면 컴파일은 돼요. 하지만 원본 제목이 출력에서 빠져 버려요.",
+          "target": "code:println!(\"{copy}\");"
+        },
+        {
+          "action": "patch_code",
+          "before": "    println!(\"{copy}\");\n",
+          "after": "    println!(\"{title}\");\n    println!(\"{copy}\");\n",
+          "say": "원본 출력 줄을 되살려요."
+        },
+        {
+          "action": "patch_code",
+          "before": "let mut copy = title;",
+          "after": "let mut copy = title.clone();",
+          "say": "title.clone()으로 새 String을 만들어 넣어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "원본은 러스트 입문 그대로예요. 사본에만 (사본)이 붙었어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_0e6a456d-1b05-4937-a5b0-fe11485bd385",
+      "title": "돌려받은 제목을 edited에 담으세요",
+      "goal": "함수에 String을 넘기는 것도 이동이에요. add_edition(title)을 부르면 title의 소유권이 함수로 옮겨 가요. 함수가 돌려준 String을 새 이름에 담아야 다시 쓸 수 있어요.\n\n제공된 코드는 아직 컴파일되지 않아요. 호출 결과를 edited에 담고 edited를 출력하세요. 채점은 title의 처음 제목을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 오류의 코드를 확인하세요.\n2. `add_edition(title);`을 `let edited = add_edition(title);`로 고치세요.\n3. `println!(\"{title}\");`을 `println!(\"{edited}\");`로 고치세요.\n4. 코드 실행을 눌러 판 정보가 붙은 제목을 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn add_edition(title: String) -> String {\n    // 넘겨받은 제목에 판 정보를 붙여 돌려줘요.\n    let mut result = title;\n    result.push_str(\" 2판\");\n    result\n}\n\nfn main() {\n    let title = String::from(\"러스트 입문\");\n    // 이 두 줄을 고쳐 돌려받은 제목을 edited에 담아 출력하세요.\n    add_edition(title);\n    println!(\"{title}\");\n}\n",
+      "solution": "fn add_edition(title: String) -> String {\n    // 넘겨받은 제목에 판 정보를 붙여 돌려줘요.\n    // 매개변수 title이 소유권을 받았으니 함수 안에서 마음대로 옮기고 바꿀 수 있어요.\n    let mut result = title;\n    result.push_str(\" 2판\");\n    // 끝 식 result를 돌려주면 소유권이 호출한 쪽으로 다시 옮겨 가요.\n    result\n}\n\nfn main() {\n    let title = String::from(\"러스트 입문\");\n    // 이 두 줄을 고쳐 돌려받은 제목을 edited에 담아 출력하세요.\n    // title은 이 호출에서 함수로 옮겨 가요. 돌려받은 값은 edited가 소유해요.\n    let edited = add_edition(title);\n    // 옮겨 간 title이 아니라 지금 소유자 edited를 출력해요.\n    println!(\"{edited}\");\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "러스트 입문 2판"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "title": "String::from(\"MQ\")"
+          },
+          "expected": "MQ 2판"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "돌려받은 제목을 edited에 담는 문제예요.",
+          "target": "text:돌려받은 제목을 edited에 담으세요#1"
+        },
+        {
+          "action": "say",
+          "text": "함수가 판 정보를 붙여 돌려줘요. 그 결과를 받아서 출력해야 해요.",
+          "target": "text:호출 결과를 edited에 담고 edited를 출력하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ],
+          "expect_error": "E0382"
+        },
+        {
+          "action": "say",
+          "text": "E0382예요. title은 add_edition을 부를 때 함수로 옮겨 갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    add_edition(title);\n",
+          "after": "    let edited = add_edition(title);\n",
+          "say": "돌려준 String을 edited에 받아요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ],
+          "expect_error": "E0382"
+        },
+        {
+          "action": "say",
+          "text": "아직 E0382예요. 출력 줄이 옮겨 간 title을 쓰고 있거든요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "println!(\"{title}\");",
+          "after": "println!(\"{edited}\");",
+          "say": "출력도 지금 소유자인 edited로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "러스트 입문 2판이 나왔어요. 돌려받은 edited가 이제 제목의 소유자예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 돌려준 값을 받지 않으면 2판이 붙은 제목을 쓸 방법이 없어요. 넘긴 title도 다시 못 쓰고요.",
+          "target": "code:let edited = add_edition(title);"
+        }
+      ]
+    },
+    {
+      "id": "stp_685ee8ed-ad0b-4b97-90a1-8734e5323b73",
+      "title": "show에 제목을 빌려주세요",
+      "goal": "앞 스텝처럼 함수에 String을 넘기면 소유권이 옮겨 가요. show는 제목을 읽기만 하니 소유권까지 받을 필요가 없어요. `&title`은 title을 가리키는 참조(reference)예요. 받는 쪽 타입은 `&String`이라고 써요. 이렇게 넘기는 것을 빌림(borrowing)이라고 해요.\n\n제공된 코드는 아직 컴파일되지 않아요. 함수를 부른 뒤에도 원래 제목을 써야 하거든요. show의 매개변수와 호출을 고쳐 제목을 빌려주세요. 채점은 title의 처음 제목을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 제공된 코드를 실행하세요.\n2. 제목이 함수로 이동했다는 오류를 확인하세요.\n3. 함수가 `String`을 빌리도록 매개변수 타입을 `&String`으로 바꾸세요.\n4. 호출할 때도 `show(&title)`로 제목을 빌려주세요.\n5. 다시 실행해 함수 안과 호출 뒤의 출력을 확인하세요.\n6. 현재 답안을 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn show(title: String) {\n    // 전달받은 제목을 보여줘요.\n    // 매개변수 타입을 고쳐 String을 빌려 받게 하세요.\n    println!(\"{title}\");\n}\n\nfn main() {\n    let title = String::from(\"MQ\");\n    // 이 줄을 고쳐 제목을 빌려주세요.\n    show(title);\n    // 함수를 부른 뒤에도 원래 제목이 필요해요.\n    println!(\"{title}\");\n}\n",
+      "solution": "fn show(title: &String) {\n    // 전달받은 제목을 보여줘요.\n    // 매개변수 타입을 고쳐 String을 빌려 받게 하세요.\n    // &String은 빌린 참조예요. 읽을 수는 있지만 소유권은 main에 남아요.\n    println!(\"{title}\");\n}\n\nfn main() {\n    let title = String::from(\"MQ\");\n    // 이 줄을 고쳐 제목을 빌려주세요.\n    // &title로 빌려주면 호출 뒤에도 title이 소유자 그대로예요.\n    show(&title);\n    // 함수를 부른 뒤에도 원래 제목이 필요해요.\n    println!(\"{title}\");\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "MQ\nMQ"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "title": "String::from(\"Rust\")"
+          },
+          "expected": "Rust\nRust"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "show에 제목을 빌려주는 문제예요.",
+          "target": "text:show에 제목을 빌려주세요#1"
+        },
+        {
+          "action": "say",
+          "text": "show는 제목을 읽기만 해요. 그런데 지금은 제목의 소유권까지 넘기고 있죠.",
+          "target": "text:show의 매개변수와 호출을 고쳐 제목을 빌려주세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ],
+          "expect_error": "E0382"
+        },
+        {
+          "action": "say",
+          "text": "E0382예요. show(title)에서 제목이 옮겨 가 마지막 출력 줄이 막혔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "fn show(title: String) {",
+          "after": "fn show(title: &String) {",
+          "say": "받는 쪽을 &String으로 바꿔 빌려 받게 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ],
+          "expect_error": "E0308"
+        },
+        {
+          "action": "say",
+          "text": "E0308이에요. 함수는 참조를 기다리는데 호출은 아직 String을 넘기거든요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "show(title);",
+          "after": "show(&title);",
+          "say": "호출에도 &를 붙여 빌려줘요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "MQ가 두 번 나왔어요. 함수 안에서 한 번, 호출 뒤에 한 번이죠.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. show(title.clone())로 고쳐도 출력은 같아요. 하지만 읽기만 하는 함수에 복사본까지 만들 필요는 없어요.",
+          "target": "code:show(&title);"
+        }
+      ]
+    },
+    {
+      "id": "stp_c54f7425-60ec-4b0f-bd62-9445c3a0ddc8",
+      "title": "*로 참조가 가리키는 재고를 비교하세요",
+      "goal": "is_low는 재고를 빌려 받아요. 그래서 stock의 타입은 정수가 아니라 정수를 가리키는 참조 &i32예요. 참조 앞에 *를 붙이면 참조가 가리키는 값을 읽어요. 이것을 역참조(dereference)라고 해요.\n\n제공된 코드는 아직 컴파일되지 않아요. 비교 줄을 고쳐 stock이 가리키는 정수를 3과 비교하세요. 채점은 main의 stock 값을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 오류의 코드를 확인하세요.\n2. `stock < 3`을 `*stock < 3`으로 고치세요.\n3. 코드 실행을 눌러 부족 여부를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn is_low(stock: &i32) -> bool {\n    // stock은 정수를 빌린 참조예요.\n    // 이 줄을 고쳐 참조가 가리키는 정수를 3과 비교하세요.\n    stock < 3\n}\n\nfn main() {\n    let stock = 2;\n    let low = is_low(&stock);\n    println!(\"부족: {low}\");\n}\n",
+      "solution": "fn is_low(stock: &i32) -> bool {\n    // stock은 정수를 빌린 참조예요.\n    // 이 줄을 고쳐 참조가 가리키는 정수를 3과 비교하세요.\n    // *stock은 참조가 가리키는 정수예요. 그 정수를 3과 비교해요.\n    *stock < 3\n}\n\nfn main() {\n    // main의 stock은 참조가 아니라 정수 그대로예요.\n    let stock = 2;\n    // &stock으로 빌려주고 비교 결과 bool을 돌려받아요.\n    let low = is_low(&stock);\n    println!(\"부족: {low}\");\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "부족: true"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "stock": "5"
+          },
+          "expected": "부족: false"
+        },
+        {
+          "values": {
+            "stock": "3"
+          },
+          "expected": "부족: false"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "로 참조가 가리키는 재고를 비교하는 문제예요.",
+          "target": "text:로 참조가 가리키는 재고를 비교하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "재고가 3개보다 적은지 판단해야 해요. 그런데 함수가 받은 건 정수가 아니라 참조예요.",
+          "target": "text:비교 줄을 고쳐 stock이 가리키는 정수를 3과 비교하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ],
+          "expect_error": "E0308"
+        },
+        {
+          "action": "say",
+          "text": "E0308이에요. 참조 &i32와 정수 3을 비교하려 해서 타입이 맞지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    stock < 3\n",
+          "after": "    *stock < 3\n",
+          "say": "*stock으로 참조가 가리키는 정수를 꺼내 비교해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "부족: true예요. 가리키는 재고 2가 3보다 적거든요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_d6874e87-0613-42b9-98df-549bd6600040",
+      "title": "&mut로 빌려 원래 제목을 바꾸세요",
+      "goal": "&String은 읽기만 하는 빌림이에요. 빌린 값을 바꾸려면 `&mut String`으로 받아야 해요. 이것을 변경 빌림(mutable borrow)이라고 해요. 넘기는 쪽도 `&mut title`로 빌려주고, title은 `let mut`로 선언돼 있어야 해요.\n\n제공된 코드는 아직 컴파일되지 않아요. 매개변수와 호출을 &mut로 고쳐 원래 제목에 판 정보를 붙이세요. 채점은 title의 처음 제목을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 오류의 코드를 확인하세요.\n2. `title: &String`을 `title: &mut String`으로 고치세요.\n3. 코드 실행을 눌러 바뀐 오류를 확인하세요.\n4. `add_edition(&title);`을 `add_edition(&mut title);`로 고치세요.\n5. 코드 실행을 눌러 바뀐 제목을 확인하세요.\n6. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn add_edition(title: &String) {\n    // 빌린 제목 끝에 판 정보를 붙여요.\n    // 매개변수 타입을 고쳐 바꿀 수 있게 빌려 받으세요.\n    title.push_str(\" 2판\");\n}\n\nfn main() {\n    let mut title = String::from(\"러스트 입문\");\n    // 이 줄을 고쳐 바꿀 수 있게 빌려주세요.\n    add_edition(&title);\n    println!(\"{title}\");\n}\n",
+      "solution": "fn add_edition(title: &mut String) {\n    // 빌린 제목 끝에 판 정보를 붙여요.\n    // 매개변수 타입을 고쳐 바꿀 수 있게 빌려 받으세요.\n    // &mut String은 바꿀 수 있는 빌림이에요. 소유권은 여전히 main의 title에 있어요.\n    title.push_str(\" 2판\");\n}\n\nfn main() {\n    // 바꿀 수 있게 빌려주려면 원래 이름도 let mut여야 해요.\n    let mut title = String::from(\"러스트 입문\");\n    // 이 줄을 고쳐 바꿀 수 있게 빌려주세요.\n    // &mut title로 빌려주면 함수가 붙인 글자가 원래 title에 남아요.\n    add_edition(&mut title);\n    println!(\"{title}\");\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "러스트 입문 2판"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "title": "String::from(\"MQ\")"
+          },
+          "expected": "MQ 2판"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "&mut로 빌려 원래 제목을 바꾸는 문제예요.",
+          "target": "text:&mut로 빌려 원래 제목을 바꾸세요#1"
+        },
+        {
+          "action": "say",
+          "text": "함수 안에서 붙인 판 정보가 main의 title에 남아야 해요.",
+          "target": "text:매개변수와 호출을 &mut로 고쳐 원래 제목에 판 정보를 붙이세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ],
+          "expect_error": "E0596"
+        },
+        {
+          "action": "say",
+          "text": "E0596이에요. & 참조 뒤에 있는 값은 바꿀 수 없다는 오류죠.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "fn add_edition(title: &String) {",
+          "after": "fn add_edition(title: &mut String) {",
+          "say": "받는 쪽을 &mut String으로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ],
+          "expect_error": "E0308"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 매개변수만 고치면 E0308이 나요. 호출이 아직 읽기 빌림 &title을 넘기거든요.",
+          "target": "code:add_edition(&title);"
+        },
+        {
+          "action": "patch_code",
+          "before": "add_edition(&title);",
+          "after": "add_edition(&mut title);",
+          "say": "호출에서도 &mut로 빌려줘요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "러스트 입문 2판이 나왔어요. 함수가 빌려서 붙인 판 정보가 원래 title에 남았어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_a08c5e33-f7ec-4aa1-bb44-5d794ddcdc09",
+      "title": "first를 다 쓴 뒤에 second를 만드세요",
+      "goal": "변경 빌림은 한 번에 하나만 살아 있을 수 있어요. 빌림은 그 참조를 마지막으로 쓴 줄까지 이어져요. first를 다 쓴 뒤에 second를 만들면 두 빌림이 겹치지 않아요.\n\n제공된 코드는 아직 컴파일되지 않아요. first.push_str 줄을 second를 만드는 줄 위로 옮기세요. 채점은 title의 처음 제목을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 오류의 코드를 확인하세요.\n2. `first.push_str(\" 2판\");` 줄을 `let second = &mut title;` 위로 옮기세요.\n3. 코드 실행을 눌러 두 판 정보가 붙은 제목을 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn main() {\n    let mut title = String::from(\"러스트 입문\");\n    let first = &mut title;\n    // 아래 first.push_str 줄을 이 second 줄 위로 옮기세요.\n    let second = &mut title;\n    first.push_str(\" 2판\");\n    second.push_str(\" 개정\");\n    println!(\"{title}\");\n}\n",
+      "solution": "fn main() {\n    let mut title = String::from(\"러스트 입문\");\n    // first의 빌림은 first를 마지막으로 쓰는 다음 줄에서 끝나요.\n    let first = &mut title;\n    // 아래 first.push_str 줄을 이 second 줄 위로 옮기세요.\n    first.push_str(\" 2판\");\n    // first를 다 쓴 뒤라 두 번째 변경 빌림을 만들 수 있어요.\n    let second = &mut title;\n    second.push_str(\" 개정\");\n    // 두 빌림이 모두 끝났으니 title을 다시 직접 읽어요.\n    println!(\"{title}\");\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "러스트 입문 2판 개정"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "title": "String::from(\"MQ\")"
+          },
+          "expected": "MQ 2판 개정"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "first를 다 쓴 뒤에 second를 만드는 문제예요.",
+          "target": "text:first를 다 쓴 뒤에 second를 만드세요#1"
+        },
+        {
+          "action": "say",
+          "text": "title을 바꾸는 참조가 두 개예요. 두 빌림이 겹치는지 실행해서 볼게요.",
+          "target": "text:first.push_str 줄을 second를 만드는 줄 위로 옮기세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ],
+          "expect_error": "E0499"
+        },
+        {
+          "action": "say",
+          "text": "E0499예요. title을 바꾸는 빌림이 동시에 두 개 생겼다는 오류죠.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    first.push_str(\" 2판\");\n    second.push_str(\" 개정\");\n",
+          "after": "    second.push_str(\" 개정\");\n    first.push_str(\" 2판\");\n",
+          "say": "두 push_str의 순서를 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ],
+          "expect_error": "E0499"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. push_str 두 줄의 순서만 바꾸면 여전히 E0499예요. first를 second보다 뒤에서 또 쓰거든요.",
+          "target": "code:let second = &mut title;"
+        },
+        {
+          "action": "patch_code",
+          "before": "    second.push_str(\" 개정\");\n    first.push_str(\" 2판\");\n",
+          "after": "    first.push_str(\" 2판\");\n    second.push_str(\" 개정\");\n",
+          "say": "순서를 원래대로 돌려놔요."
+        },
+        {
+          "action": "patch_code",
+          "before": "    let second = &mut title;\n    first.push_str(\" 2판\");\n",
+          "after": "    first.push_str(\" 2판\");\n    let second = &mut title;\n",
+          "say": "first 사용 줄을 second를 만들기 전으로 옮겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "러스트 입문 2판 개정이에요. first가 끝난 뒤에 second가 개정을 붙였어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_9288afaa-d038-40d3-aa6c-cda84996a19d",
+      "title": "sell에는 &mut, show에는 &로 빌려주세요",
+      "goal": "판매는 재고를 바꾸고 표시는 읽기만 해요. 바꾸는 함수에는 &mut, 읽는 함수에는 &로 빌려줘요. &mut i32로 받은 재고를 바꿀 때는 `*stock -= 1`처럼 *를 붙여요.\n\n제공된 코드는 아직 컴파일되지 않아요. sell의 매개변수·본문·호출 세 곳을 고쳐 원래 재고에서 1을 빼세요. show는 고치지 마세요. 채점은 stock과 title의 처음 값을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 오류의 코드를 확인하세요.\n2. `fn sell(stock: &i32)`를 `fn sell(stock: &mut i32)`로 고치세요.\n3. `stock -= 1;`을 `*stock -= 1;`로 고치세요.\n4. 코드 실행을 눌러 남은 오류를 확인하세요.\n5. `sell(&stock);`을 `sell(&mut stock);`으로 고치세요.\n6. 코드 실행을 눌러 판매 뒤 재고를 확인하세요.\n7. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn sell(stock: &i32) {\n    // 판매 한 건마다 재고를 1 줄여요.\n    // 매개변수와 이 줄을 고쳐 원래 재고를 바꾸세요.\n    stock -= 1;\n}\n\nfn show(title: &String, stock: &i32) {\n    // 읽기만 하는 함수라 & 빌림으로 충분해요.\n    println!(\"{title} 재고: {stock}\");\n}\n\nfn main() {\n    let title = String::from(\"러스트 입문\");\n    let mut stock = 3;\n    // 이 줄을 고쳐 sell이 바꿀 수 있게 빌려주세요.\n    sell(&stock);\n    show(&title, &stock);\n}\n",
+      "solution": "fn sell(stock: &mut i32) {\n    // 판매 한 건마다 재고를 1 줄여요.\n    // 매개변수와 이 줄을 고쳐 원래 재고를 바꾸세요.\n    // stock은 참조라서 *stock이 가리키는 재고 정수예요. 그 정수에서 1을 빼요.\n    *stock -= 1;\n}\n\nfn show(title: &String, stock: &i32) {\n    // 읽기만 하는 함수라 & 빌림으로 충분해요.\n    println!(\"{title} 재고: {stock}\");\n}\n\nfn main() {\n    let title = String::from(\"러스트 입문\");\n    // sell이 바꿀 재고라 let mut로 선언돼 있어요.\n    let mut stock = 3;\n    // 이 줄을 고쳐 sell이 바꿀 수 있게 빌려주세요.\n    // &mut로 빌려준 동안 sell이 바꾼 값이 원래 stock에 남아요.\n    sell(&mut stock);\n    // 변경 빌림은 sell 호출에서 끝났으니 다시 &로 읽을 수 있어요.\n    show(&title, &stock);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "러스트 입문 재고: 2"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "stock": "10"
+          },
+          "expected": "러스트 입문 재고: 9"
+        },
+        {
+          "values": {
+            "title": "String::from(\"MQ\")"
+          },
+          "expected": "MQ 재고: 2"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "sell에는 &mut, show에는 &로 빌려주는 문제예요.",
+          "target": "text:sell에는 &mut, show에는 &로 빌려주세요#1"
+        },
+        {
+          "action": "say",
+          "text": "판매 뒤 재고가 원래 stock에 남아야 해요. 표시는 그 재고를 읽기만 하고요.",
+          "target": "text:sell의 매개변수·본문·호출 세 곳을 고쳐 원래 재고에서 1을 빼세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ],
+          "expect_error": "E0368"
+        },
+        {
+          "action": "say",
+          "text": "E0368이에요. & 참조에는 -=를 쓸 수 없다는 오류죠.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "fn sell(stock: &i32) {",
+          "after": "fn sell(stock: &mut i32) {",
+          "say": "sell은 재고를 바꾸니 &mut i32로 받아요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ],
+          "expect_error": "E0368"
+        },
+        {
+          "action": "say",
+          "text": "여전히 E0368이에요. 이번엔 &mut 참조 자체에서 1을 빼려 했거든요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    stock -= 1;\n",
+          "after": "    *stock -= 1;\n",
+          "say": "*stock으로 가리키는 재고에서 1을 빼요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ],
+          "expect_error": "E0308"
+        },
+        {
+          "action": "say",
+          "text": "E0308이에요. sell은 &mut를 기다리는데 호출은 & 빌림을 넘겨요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "sell(&stock);",
+          "after": "sell(&mut stock);",
+          "say": "호출에서도 &mut로 빌려줘요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "러스트 입문 재고: 2예요. sell이 원래 stock을 줄였고 show는 읽기만 했어요.",
+          "target": "output"
+        }
+      ]
+    }
+  ]
+}
