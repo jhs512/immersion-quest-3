@@ -1,0 +1,71 @@
+{
+  "by": "hand",
+  "source_sha256": "c86e3497186609e376e1832845bd25dabfb609fd5c941e1e3160ebd92db64a1b",
+  "entry": [
+    {
+      "action": "say",
+      "text": "show_total은 받은 금액을 출력하는 함수예요. 지금은 total 대신 0을 넘기고 있어요.",
+      "target": "text:main의 total을 넘겨 함수가 주문 금액을 출력하게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "함수가 받은 금액: 0이에요. main이 show_total(0)을 불러서 0이 amount에 담겼어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "{amount}",
+      "after": "{total}",
+      "say": "함수 안에서 main의 total을 바로 써 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        3,
+        3
+      ],
+      "expect_error": "E0425"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 함수 안에서는 main의 total이 보이지 않아요. 이름을 찾지 못했다는 E0425가 났어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "{total}",
+      "after": "{amount}",
+      "say": "함수 안은 매개변수 amount로 되돌려요."
+    },
+    {
+      "action": "patch_code",
+      "before": "show_total(0);",
+      "after": "show_total(total);",
+      "say": "부르는 쪽에서 total을 인자로 넘겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "함수가 받은 금액: 32000이에요. total의 값이 amount에 담겨 함수 안에서 출력됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "값은 부를 때 괄호 안에 넣어 넘기고, 함수 쪽에서는 매개변수 이름으로 받아요.",
+      "target": "code:show_total(total);"
+    }
+  ]
+}

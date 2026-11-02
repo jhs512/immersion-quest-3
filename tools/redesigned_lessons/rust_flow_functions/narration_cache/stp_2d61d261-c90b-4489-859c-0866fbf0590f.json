@@ -1,0 +1,95 @@
+{
+  "by": "hand",
+  "source_sha256": "01f24b7ad09dc6ee49d2aaab0afd9ea17bb0338e96e62c00bcf68c3705d9b91c",
+  "entry": [
+    {
+      "action": "say",
+      "text": "금액에 따라 두 문구 중 하나만 나와야 해요. 지금은 많을 때의 갈래만 있어요.",
+      "target": "text:그렇지 않을 때 배송비 3000원이 나오게 else 갈래를 붙이세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "주문 금액: 20000만 나왔어요. 조건이 false라 건너뛰었는데 대신 실행할 줄이 없죠.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    }\n    // 위 if 블록의",
+      "after": "    }\n    println!(\"배송비 3000원\");\n    // 위 if 블록의",
+      "say": "if 블록 아래에 배송비 줄을 그냥 써 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "배송비 3000원과 주문 금액이 나왔어요. 20,000원에서는 원하던 출력이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "let total = 20_000;",
+      "after": "let total = 32_000;",
+      "say": "금액을 32,000원으로 올려 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        3,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. if 밖에 쓴 줄은 조건과 상관없이 실행돼요. 32,000원에 무료 배송과 배송비가 함께 나왔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    }\n    println!(\"배송비 3000원\");\n",
+      "after": "    } else {\n        println!(\"배송비 3000원\");\n    }\n",
+      "say": "닫는 중괄호 뒤에 else를 붙이고 배송비 줄을 그 안으로 옮겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "이제 무료 배송만 나와요. 조건이 true라 else 갈래를 건너뛰었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "let total = 32_000;",
+      "after": "let total = 20_000;",
+      "say": "처음 금액 20,000원으로 되돌려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        3,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "이번엔 else 갈래만 실행돼 배송비 3000원이 나왔어요.",
+      "target": "code:} else {"
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "by": "hand",
+  "source_sha256": "500ec2cb1d6e5cd506bcc7b5a980bf5fa9e240cef1aa765d8fda8e6caa07c086",
+  "entry": [
+    {
+      "action": "say",
+      "text": "배송비를 고르는 규칙을 shipping 함수 안에 둬요. main은 돌려받은 값을 출력만 해요.",
+      "target": "text:끝 표현식을 조건으로 고른 배송비로 바꾸세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "32,000원인데 배송비: 3000이에요. shipping이 늘 3000을 돌려주거든요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    3000\n",
+      "after": "    if total > 30_000 { 0 } else { 3000 };\n",
+      "say": "조건식을 쓰고 끝에 습관처럼 세미콜론을 붙여 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ],
+      "expect_error": "E0308"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 끝에 세미콜론을 붙이면 식이 문장이 돼 돌려줄 값이 사라져요. 그래서 i32가 아니라는 E0308이 나요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    if total > 30_000 { 0 } else { 3000 };\n",
+      "after": "    if total > 30_000 { 0 } else { 3000 }\n",
+      "say": "세미콜론을 지워 끝 표현식으로 만들어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "배송비: 0이에요. 함수가 고른 0이 돌아와 fee에 담겼어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "let total = 32_000;",
+      "after": "let total = 20_000;",
+      "say": "main의 금액을 20,000원으로 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "이번엔 배송비: 3000이 돌아왔어요. 같은 함수가 넘겨받은 금액에 따라 다른 값을 돌려줘요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "let total = 20_000;",
+      "after": "let total = 32_000;",
+      "say": "main의 금액을 32,000원으로 되돌려요."
+    },
+    {
+      "action": "say",
+      "text": "-> i32라고 밝혔으니 끝 표현식도 i32여야 해요. 0과 3000 모두 정수라 맞아요.",
+      "target": "code:fn shipping(total: i32) -> i32 {"
+    }
+  ]
+}

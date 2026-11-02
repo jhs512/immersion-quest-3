@@ -1,0 +1,89 @@
+{
+  "by": "hand",
+  "source_sha256": "0ca5ba27e274cda14c901587cbd01932dbc9576217eb024b779222bab227ab56",
+  "entry": [
+    {
+      "action": "say",
+      "text": "이번엔 문구를 고르지 않고 배송비 값을 골라 fee에 담아요. 그래야 결제 금액 계산에 쓸 수 있어요.",
+      "target": "text:fee에 조건으로 고른 배송비를 담으세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "32,000원인데 배송비: 3000, 결제 금액: 35000이에요. fee가 늘 3000이거든요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "let fee = 3000;",
+      "after": "let fee = if total > 30_000 { 0 };",
+      "say": "true일 때의 0만 적어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ],
+      "expect_error": "E0317"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 값을 담는 if에서 else를 빼면 E0317이 나요. 조건이 false일 때 fee에 담을 값이 없거든요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "let fee = if total > 30_000 { 0 };",
+      "after": "let fee = if total > 30_000 { 0 } else { 3000 };",
+      "say": "else 갈래에 3000을 넣어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "배송비: 0, 결제 금액: 32000이에요. 조건이 true라 0을 골랐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "let total = 32_000;",
+      "after": "let total = 20_000;",
+      "say": "금액을 20,000원으로 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        3,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "이번엔 else의 3000을 골라 결제 금액이 23000이 됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "let total = 20_000;",
+      "after": "let total = 32_000;",
+      "say": "금액을 다시 32,000원으로 돌려놓아요."
+    },
+    {
+      "action": "say",
+      "text": "fee는 if 식이 고른 값 하나를 담아요. 그래서 다음 줄 덧셈에 바로 쓰여요.",
+      "target": "code:let fee = if total > 30_000 { 0 } else { 3000 };"
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "by": "hand",
+  "source_sha256": "0c22095a3c8aae1a9c053d04157a6f72161ec659da6be814e92af795b27f8ff9",
+  "entry": [
+    {
+      "action": "say",
+      "text": "회원에게만 쿠폰 안내를 보여 줘야 해요. 지금은 안내 줄에 조건이 없어요.",
+      "target": "text:쿠폰 안내 줄을 if member { } 안으로 옮겨 회원일 때만 나오게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "주문 접수와 회원 쿠폰이 있어요, 두 줄이 나왔어요. 아직 member를 보는 줄이 없죠.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    println!(\"회원 쿠폰이 있어요\");\n",
+      "after": "    if member println!(\"회원 쿠폰이 있어요\");\n",
+      "say": "중괄호 없이 if member 뒤에 바로 이어 써 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ],
+      "expect_error": "expected `{`, found `println`"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. Rust의 if는 중괄호를 생략할 수 없어요. 빠뜨리면 컴파일이 멈춰 아무것도 출력되지 않아요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    if member println!(\"회원 쿠폰이 있어요\");\n",
+      "after": "    if member {\n        println!(\"회원 쿠폰이 있어요\");\n    }\n",
+      "say": "안내 줄을 중괄호로 감싸요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "두 줄이 그대로 나와요. member가 true라 중괄호 안이 실행됐거든요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "let member = true;",
+      "after": "let member = false;",
+      "say": "member를 false로 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        3,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "주문 접수 한 줄만 나왔어요. 조건이 false라 중괄호 안을 건너뛰었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "let member = false;",
+      "after": "let member = true;",
+      "say": "member를 처음 값 true로 되돌려요."
+    },
+    {
+      "action": "say",
+      "text": "if 밖의 주문 접수는 늘 나오고, 안의 쿠폰 안내는 회원일 때만 나와요.",
+      "target": "code:if member {"
+    }
+  ]
+}

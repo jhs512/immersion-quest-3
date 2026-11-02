@@ -1,0 +1,118 @@
+{
+  "by": "hand",
+  "source_sha256": "362a4828670a0bcd40ad990192a5d2c1c22a4969e66eb6347387f28b86782d30",
+  "entry": [
+    {
+      "action": "say",
+      "text": "규칙은 30,000원부터 무료예요. 기준값인 30,000원 자체도 무료여야 한다는 뜻이죠.",
+      "target": "text:비교 연산자 한 곳만 바꿔 30,000원도 무료가 되게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "30,000원인데 배송비: 3000이 나왔어요. 30000은 30000보다 크지 않아 else로 갔거든요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "기준값 30_000은 맞게 적혀 있어요. 같은 값을 어느 쪽에 넣을지 정하는 연산자가 문제예요.",
+      "target": "code:total > 30_000"
+    },
+    {
+      "action": "patch_code",
+      "before": "if total > 30_000",
+      "after": "if total => 30_000",
+      "say": "크거나 같다는 뜻으로 =>를 적어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        3,
+        3
+      ],
+      "expect_error": "found `=>`"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. =>는 비교 연산자가 아니에요. 부호 순서를 바꾸면 컴파일이 멈추고 아무것도 실행되지 않아요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "if total => 30_000",
+      "after": "if total >= 30_000",
+      "say": "부등호를 앞에 둔 >=로 고쳐요."
+    },
+    {
+      "action": "patch_code",
+      "before": "let total = 30_000;",
+      "after": "let total = 29_999;",
+      "say": "먼저 기준 바로 앞인 29,999원을 넣어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "29,999원은 배송비: 3000이에요. 기준보다 작아서 여전히 유료예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "let total = 29_999;",
+      "after": "let total = 30_000;",
+      "say": "이번엔 기준값 30,000원이에요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "30,000원은 배송비: 0이에요. >=가 같은 값도 true로 봤어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "let total = 30_000;",
+      "after": "let total = 30_001;",
+      "say": "기준 바로 뒤인 30,001원도 넣어 봐요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "30,001원도 배송비: 0이에요. 기준 앞, 기준, 기준 뒤를 모두 확인했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "let total = 30_001;",
+      "after": "let total = 30_000;",
+      "say": "제출할 금액 30,000원으로 되돌려요."
+    },
+    {
+      "action": "say",
+      "text": "바꾼 곳은 비교 연산자 하나예요. 29,999원은 그대로 3000이라 항상 0인 답과도 구별돼요.",
+      "target": "code:if total >= 30_000 { 0 } else { 3000 }"
+    }
+  ]
+}

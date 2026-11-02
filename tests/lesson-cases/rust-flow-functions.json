@@ -1,0 +1,212 @@
+{
+  "course": "tests/fixtures/player-pilot/렌/course.json",
+  "lesson": "courses/redesigned/rust-flow-functions.json",
+  "expected_outputs": [
+    [
+      "주문 접수\n회원 쿠폰이 있어요",
+      "",
+      "주문 접수\n회원 쿠폰이 있어요",
+      "주문 접수"
+    ],
+    [
+      "무료 배송\n주문 금액: 32000",
+      "무료 배송\n주문 금액: 20000",
+      "",
+      "주문 금액: 20000",
+      "무료 배송\n주문 금액: 32000"
+    ],
+    [
+      "주문 금액: 20000",
+      "배송비 3000원\n주문 금액: 20000",
+      "무료 배송\n배송비 3000원\n주문 금액: 32000",
+      "무료 배송\n주문 금액: 32000",
+      "배송비 3000원\n주문 금액: 20000"
+    ],
+    [
+      "배송비: 3000\n결제 금액: 35000",
+      "",
+      "배송비: 0\n결제 금액: 32000",
+      "배송비: 3000\n결제 금액: 23000"
+    ],
+    [
+      "상자 0\n상자 1\n상자 2",
+      "상자 1\n상자 2",
+      "상자 1\n상자 2\n상자 3",
+      "상자 1\n상자 2\n상자 3\n상자 4\n상자 5"
+    ],
+    [
+      "상자 1까지 배송비: 0\n상자 2까지 배송비: 0\n상자 3까지 배송비: 0",
+      "상자 1까지 배송비: 3000\n상자 2까지 배송비: 6000\n상자 3까지 배송비: 9000",
+      "상자 1까지 배송비: 3000\n상자 2까지 배송비: 3000\n상자 3까지 배송비: 3000",
+      "상자 1까지 배송비: 3000\n상자 2까지 배송비: 6000\n상자 3까지 배송비: 9000"
+    ],
+    [
+      "함수가 받은 금액: 0",
+      "",
+      "함수가 받은 금액: 32000"
+    ],
+    [
+      "배송비: 3000",
+      "",
+      "배송비: 0",
+      "배송비: 3000"
+    ],
+    [
+      "배송비: 3000",
+      "",
+      "배송비: 3000",
+      "배송비: 0",
+      "배송비: 0"
+    ],
+    [
+      "29999원 배송비: 0\n30000원 배송비: 0\n30001원 배송비: 0",
+      "29999원 배송비: 3000\n30000원 배송비: 3000\n30001원 배송비: 3000",
+      "29999원 배송비: 3000\n30000원 배송비: 0\n30001원 배송비: 0",
+      "29998원 배송비: 3000\n29999원 배송비: 3000\n30000원 배송비: 0"
+    ]
+  ],
+  "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "if member {",
+          "if true {"
+        ]
+      ],
+      "reason": "Coupon line printed for every order"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "if total > 30_000 {",
+          "if true {"
+        ]
+      ],
+      "reason": "Condition left as true"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "    } else {\n",
+          "    }\n    {\n"
+        ]
+      ],
+      "reason": "Both messages printed outside the else branch"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "let fee = if total > 30_000 { 0 } else { 3000 };",
+          "let fee = 0;"
+        ]
+      ],
+      "reason": "Fee written as a number"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "1..boxes + 1",
+          "1..boxes"
+        ]
+      ],
+      "reason": "Exclusive end left out the last box"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "sum += fee;",
+          "sum += 3000;"
+        ]
+      ],
+      "reason": "Fee amount typed as a number"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "show_total(total);",
+          "show_total(32_000);"
+        ]
+      ],
+      "reason": "Constant argument instead of total"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "    if total > 30_000 { 0 } else { 3000 }\n",
+          "    if total > 30_000 { 0 } else { 3000 };\n"
+        ]
+      ],
+      "reason": "Trailing semicolon drops the return value"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "    if total > 30_000 { 0 } else { 3000 }\n",
+          "    0\n"
+        ]
+      ],
+      "reason": "Always free shipping"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "if total >= 30_000 { 0 } else { 3000 }",
+          "0"
+        ]
+      ],
+      "reason": "Always free shipping"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "if total >= 30_000 { 0 } else { 3000 }",
+          "if total > 30_000 { 0 } else { 3000 }"
+        ]
+      ],
+      "reason": "Boundary excluded"
+    },
+    {
+      "step": 10,
+      "replacements": [
+        [
+          "let fee = shipping(total);",
+          "let fee = shipping(start);"
+        ]
+      ],
+      "reason": "Every row uses the first amount"
+    }
+  ],
+  "accept": [
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "1..boxes + 1",
+          "1..=boxes"
+        ]
+      ],
+      "reason": "Inclusive range is also correct"
+    },
+    {
+      "step": 9,
+      "replacements": [
+        [
+          "if total >= 30_000 { 0 } else { 3000 }",
+          "if total < 30_000 { 3000 } else { 0 }"
+        ]
+      ],
+      "reason": "Reversed comparison with swapped branches"
+    }
+  ]
+}

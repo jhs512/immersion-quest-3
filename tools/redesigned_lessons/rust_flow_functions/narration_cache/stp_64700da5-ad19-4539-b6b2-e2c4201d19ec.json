@@ -1,0 +1,77 @@
+{
+  "by": "hand",
+  "source_sha256": "ec3790f04055a71ecde286051296e1377f46612b8bc9056bcb53a60dfc7fb8da",
+  "entry": [
+    {
+      "action": "say",
+      "text": "상자 세 개를 따로 보내면 배송비가 상자마다 붙어요. 줄마다 그 상자까지의 합계가 나와야 해요.",
+      "target": "text:반복마다 fee를 sum에 더해 그 상자까지의 배송비 합계를 출력하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "세 줄 모두 배송비: 0이에요. 반복마다 0을 더했으니 sum이 그대로죠.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        sum += 0;\n",
+      "after": "        sum += fee;\n",
+      "say": "더할 값을 fee로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "3000, 6000, 9000으로 늘어나요. 반복마다 sum에 fee가 한 번씩 더해졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    let mut sum = 0;\n    for number in 1..4 {\n",
+      "after": "    for number in 1..4 {\n        let mut sum = 0;\n",
+      "say": "합계를 만드는 줄을 반복 안으로 옮겨 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. sum을 반복 안에서 만들면 돌 때마다 0으로 다시 시작해요. 그래서 세 줄 모두 3000이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    for number in 1..4 {\n        let mut sum = 0;\n",
+      "after": "    let mut sum = 0;\n    for number in 1..4 {\n",
+      "say": "합계 줄을 반복 밖으로 되돌려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "다시 9000까지 쌓였어요. 합계는 반복 밖에서 한 번만 만들어요.",
+      "target": "code:sum += fee;"
+    }
+  ]
+}

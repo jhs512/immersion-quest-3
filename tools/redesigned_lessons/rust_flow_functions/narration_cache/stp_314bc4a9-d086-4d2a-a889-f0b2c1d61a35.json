@@ -1,0 +1,96 @@
+{
+  "by": "hand",
+  "source_sha256": "0ec8d59985f573b4ce3e018bc7fe74646b9ad750bc96212cbe86cabb2e783b23",
+  "entry": [
+    {
+      "action": "say",
+      "text": "무료 배송 문구는 금액이 30,000원보다 많을 때만 나와야 해요. 지금 조건은 true로 고정돼 있어요.",
+      "target": "text:주문 금액이 30,000원보다 많을 때만 무료 배송이 나오게 조건을 바꾸세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "무료 배송과 주문 금액: 32000이 나왔어요. 코드에 쓴 밑줄은 출력에 없네요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "let total = 32_000;",
+      "after": "let total = 20_000;",
+      "say": "금액을 20,000원으로 낮춰 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        3,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "20,000원인데 무료 배송이 또 나왔어요. 조건이 true라 금액을 보지 않거든요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    if true {\n",
+      "after": "    if total > 30,000 {\n",
+      "say": "평소 금액 쓰듯 쉼표를 넣어 비교해 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ],
+      "expect_error": "expected `{`, found `,`"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 코드 안 숫자에 쉼표를 넣으면 컴파일이 멈춰요. rustc는 쉼표를 숫자의 일부로 읽지 않아요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    if total > 30,000 {\n",
+      "after": "    if total > 30_000 {\n",
+      "say": "쉼표 대신 밑줄로 끊어 써요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "이제 주문 금액: 20000만 나와요. 20000이 30000보다 크지 않아 무료 배송 줄을 건너뛰었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "let total = 20_000;",
+      "after": "let total = 32_000;",
+      "say": "처음 금액 32,000원으로 되돌려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        3,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "32,000원은 기준보다 많아서 무료 배송이 다시 나왔어요.",
+      "target": "code:if total > 30_000 {"
+    }
+  ]
+}
