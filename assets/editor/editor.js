@@ -5,11 +5,25 @@ import { python } from '@codemirror/lang-python';
 import { java } from '@codemirror/lang-java';
 import { javascript } from '@codemirror/lang-javascript';
 import { html } from '@codemirror/lang-html';
+import { cpp } from '@codemirror/lang-cpp';
+import { rust } from '@codemirror/lang-rust';
 import { history, defaultKeymap, historyKeymap, indentWithTab } from '@codemirror/commands';
 import { syntaxHighlighting, HighlightStyle, defaultHighlightStyle, indentOnInput, bracketMatching, foldGutter, foldKeymap } from '@codemirror/language';
 import { documentIndentationExtensions } from './indentation.mjs';
 import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
 import { tags, highlightCode, classHighlighter } from '@lezer/highlight';
+
+function languageSupport(language) {
+  switch (language) {
+    case 'java': return java();
+    case 'javascript': return javascript({jsx: true});
+    case 'html': return html();
+    case 'c':
+    case 'cpp': return cpp();
+    case 'rust': return rust();
+    default: return python();
+  }
+}
 
 // The textarea stays as the Dioxus event bridge and accessible fallback.
 if (!window.molipCodeEditors) {
@@ -86,12 +100,13 @@ if (!window.molipCodeEditors) {
   });
 
   function sync() {
-    document.querySelectorAll('.markdown pre code.language-python, .markdown pre code.language-java').forEach(code => {
+    document.querySelectorAll('.markdown pre code.language-python, .markdown pre code.language-java, .markdown pre code.language-c, .markdown pre code.language-cpp, .markdown pre code.language-rust, .markdown pre code.language-javascript, .markdown pre code.language-html').forEach(code => {
       const source = code.textContent;
       if (code.dataset.highlighted === source) return;
       code.dataset.highlighted = source;
       const fragment = document.createDocumentFragment();
-      highlightCode(source, (code.classList.contains('language-java') ? java() : python()).language.parser.parse(source), classHighlighter, (text, classes) => {
+      const language = Array.from(code.classList).find(name => name.startsWith('language-')).slice(9);
+      highlightCode(source, languageSupport(language).language.parser.parse(source), classHighlighter, (text, classes) => {
         const span = document.createElement('span');
         span.textContent = text;
         span.className = classes;
@@ -114,10 +129,10 @@ if (!window.molipCodeEditors) {
         view = new EditorView({
           doc: source,
           parent: host,
-          extensions: [setup, narrationLines, narrationSpan, element.dataset.codeEditor === 'java' ? java() : element.dataset.codeEditor === 'javascript' ? javascript({jsx:true}) : element.dataset.codeEditor === 'html' ? html() : python(), indent.of(documentIndentationExtensions(source, element.dataset.codeEditor)), keymap.of([indentWithTab]), theme, darkness.of(EditorView.darkTheme.of(isDark())), colors,
+          extensions: [setup, narrationLines, narrationSpan, languageSupport(element.dataset.codeEditor), indent.of(documentIndentationExtensions(source, element.dataset.codeEditor)), keymap.of([indentWithTab]), theme, darkness.of(EditorView.darkTheme.of(isDark())), colors,
             EditorState.readOnly.of(element.readOnly),
             EditorView.editable.of(!element.readOnly),
-            EditorView.contentAttributes.of({ 'aria-label': ({java:'Java',javascript:'JavaScript',html:'HTML',shell:'Shell',python:'Python'}[element.dataset.codeEditor] || '코드') + ' 코드 편집기' }),
+            EditorView.contentAttributes.of({ 'aria-label': ({java:'Java',javascript:'JavaScript',html:'HTML',shell:'Shell',python:'Python',c:'C',cpp:'C++',rust:'Rust'}[element.dataset.codeEditor] || '코드') + ' 코드 편집기' }),
             EditorView.updateListener.of(update => {
               if (!update.docChanged || element.value === update.state.doc.toString()) return;
               element.value = update.state.doc.toString();
