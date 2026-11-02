@@ -1,0 +1,55 @@
+name: C++ and Rust trace experiment
+on:
+  push:
+    branches: [feat/cpp-rust-code-flow]
+    paths:
+      - 'assets/native-trace/**'
+      - 'tools/native-trace-experiment/**'
+      - 'src/native_trace.rs'
+      - '.github/workflows/native-trace-experiment.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: native-trace-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  macos-native:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Record the toolchain and whether Docker exists here
+        run: |
+          mkdir -p "$RUNNER_TEMP/native/evidence"
+          {
+            uname -a; sw_vers
+            xcrun clang++ --version; xcrun lldb --version
+            command -v docker && docker version || echo "docker: not available on this runner"
+          } > "$RUNNER_TEMP/native/evidence/toolchain.txt" 2>&1
+          cat "$RUNNER_TEMP/native/evidence/toolchain.txt"
+      - name: Install the pinned official Rust toolchain
+        run: |
+          rustup toolchain install 1.95.0 --profile minimal
+          rustc +1.95.0 --version --verbose | tee -a "$RUNNER_TEMP/native/evidence/toolchain.txt"
+      - name: Run, grade and trace every fixture natively
+        env:
+          MQ_CXX: xcrun clang++
+          MQ_LLDB: xcrun lldb
+          MQ_RUSTC: rustc +1.95.0
+        run: python3 tools/native-trace-experiment/check_fixtures.py "$RUNNER_TEMP/native/check"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-trace-${{ matrix.os }}
+          path: |
+            ${{ runner.temp }}/native/evidence/
+            ${{ runner.temp }}/native/check/report.json
+            ${{ runner.temp }}/native/check/*/native_flow.json
+            ${{ runner.temp }}/native/check/*/compile.json
