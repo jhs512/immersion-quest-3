@@ -58,9 +58,9 @@ class TeacherHighlightTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, message):
                 compiler.validate_highlights(task)
         task['narration'][0] = flow
-        compiler.validate_highlights(task | {'language': 'python'})
-        compiler.validate_highlights(task | {'language': 'c'})
-        for step in ({'code_flow': False}, {'language': 'sql'}, {'language': 'javascript'}, {'git_terminal': {'shell': {}}},
+        for language in ('python', 'c', 'javascript', 'cpp', 'rust'):
+            compiler.validate_highlights(task | {'language': language})
+        for step in ({'code_flow': False}, {'language': 'sql'}, {'git_terminal': {'shell': {}}},
                      {'interaction': {'kind': 'choice'}}):
             with self.assertRaisesRegex(ValueError, '코드 흐름 보기가 없는'):
                 compiler.validate_highlights(task | step)
