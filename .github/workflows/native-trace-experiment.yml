@@ -53,3 +53,20 @@ jobs:
             ${{ runner.temp }}/native/check/report.json
             ${{ runner.temp }}/native/check/*/native_flow.json
             ${{ runner.temp }}/native/check/*/compile.json
+  macos-engine:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Install rustc through MQ's pinned rustup and run, grade and trace through src/native_trace.rs
+        run: |
+          export MOLIP_PYTHON="$(command -v python3)"
+          cargo test --locked --lib --no-default-features native_trace -- --ignored --nocapture --test-threads=1
