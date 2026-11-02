@@ -1,0 +1,1092 @@
+{
+  "description": "작은 빵집의 상품과 가격 목록을 묶고, 조회 없음과 변환 실패를 진짜 값과 구분해 match로 처리해요.",
+  "presentation": {
+    "objectives": [
+      "구조체와 Vec로 여러 값을 묶어 읽고 바꿔요.",
+      "Option의 없음과 Result의 실패를 실제 값과 구분해 처리해요."
+    ],
+    "chapters": {
+      "chp_4738ec52-75bc-4381-801f-cab833e73212": [
+        "값의 이름 묶음과 순서 있는 목록을 구분해요."
+      ],
+      "chp_ffc6ab1c-1d44-480b-ae25-cd90f24ed023": [
+        "값이 없는 경우와 실패한 경우를 진짜 값과 구분해요."
+      ]
+    },
+    "units": {
+      "unt_b958bc56-2abc-449d-ae80-5127be05e5b1": {
+        "objectives": [
+          "관련 값을 필드 이름으로 묶어 읽고 바꿔요."
+        ],
+        "premise": "작은 빵집의 상품 하나를 이름과 가격으로 묶어요. 각 스텝은 준비된 main.rs에서 새로 시작해요."
+      },
+      "unt_78f29bf2-0d96-4be6-a4cc-f3e0ceea77f1": {
+        "objectives": [
+          "목록에 값을 담고 더하고 빌려서 읽어요."
+        ],
+        "premise": "오늘 파는 빵의 가격을 목록 prices에 담아요. 각 스텝에서 바뀐 조건만 확인해요."
+      },
+      "unt_16f93b51-0705-4a73-a01f-761b14221e4c": {
+        "objectives": [
+          "조회의 Some·None을 match로 나눠 처리해요."
+        ],
+        "premise": "가격 목록에서 위치로 가격을 조회해요. 위치는 0부터 세요."
+      },
+      "unt_91373293-c181-432b-bfa2-fe7c90216518": {
+        "objectives": [
+          "변환·검사의 Ok·Err를 match로 나눠 처리해요."
+        ],
+        "premise": "주문서의 수량을 검사하고 문구에서 정수로 바꿔요. 실패를 숨기지 않아요."
+      }
+    }
+  },
+  "tasks": [
+    {
+      "id": "stp_b7e8dee8-e52b-48d7-9222-b0af178aa379",
+      "title": "item의 name과 price 필드를 출력하세요",
+      "goal": "`struct Product`는 상품 이름 name과 가격 price를 한 값으로 묶는 구조체(struct)예요. item.name처럼 점 뒤에 필드 이름을 쓰면 그 필드를 읽어요. 필드는 문자열 안의 {} 자리에 쉼표 뒤 순서대로 넣어요.\n\n출력 줄을 고쳐 item의 name과 price 필드를 출력하세요. 채점은 item의 처음 값을 다른 상품으로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력을 확인하세요.\n2. `println!(\"상품 정보\");`를 `println!(\"{}: {}원\", item.name, item.price);`로 고치세요.\n3. 코드 실행을 눌러 상품 이름과 가격을 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "struct Product {\n    name: String,\n    price: i32,\n}\n\nfn main() {\n    let item = Product { name: String::from(\"소금빵\"), price: 1200 };\n    // 이 줄을 고쳐 item의 name과 price 필드를 출력하세요.\n    println!(\"상품 정보\");\n}\n",
+      "solution": "// 상품 하나의 이름과 가격을 한 값으로 묶어요.\nstruct Product {\n    name: String,\n    price: i32,\n}\n\nfn main() {\n    // 필드 이름마다 값을 넣어 Product 값 하나를 만들어요.\n    let item = Product { name: String::from(\"소금빵\"), price: 1200 };\n    // 이 줄을 고쳐 item의 name과 price 필드를 출력하세요.\n    // {} 자리에는 쉼표 뒤 값이 순서대로 들어가요. 필드 읽기는 문자열 밖에 써요.\n    println!(\"{}: {}원\", item.name, item.price);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "소금빵: 1200원"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "item": "Product { name: String::from(\"크루아상\"), price: 2500 }"
+          },
+          "expected": "크루아상: 2500원"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "item에 묶인 이름과 가격을 꺼내 한 줄로 보여 줘야 해요.",
+          "target": "text:출력 줄을 고쳐 item의 name과 price 필드를 출력하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "상품 정보만 나왔어요. 아직 필드를 하나도 읽지 않았거든요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "println!(\"상품 정보\");",
+          "after": "println!(\"{item.name}\");",
+          "say": "문자열 안에 item.name을 바로 써 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ],
+          "expect_error": "field access isn't supported"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. {item.name}처럼 점을 문자열 안에 쓰면 컴파일이 멈춰요. 필드 읽기는 쉼표 뒤에 따로 써야 해요.",
+          "target": "code:println!(\"{item.name}\");"
+        },
+        {
+          "action": "patch_code",
+          "before": "println!(\"{item.name}\");",
+          "after": "println!(\"{}: {}원\", item.name, item.price);",
+          "say": "{} 두 자리를 두고 쉼표 뒤에 두 필드를 넘겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "소금빵: 1200원이에요. 첫 자리에 name, 둘째 자리에 price가 들어갔어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_5a47b52a-c85d-4cd2-b1ef-f9373027bf5c",
+      "title": "item을 let mut로 선언해 가격을 바꾸세요",
+      "goal": "필드에 다시 값을 넣으려면 구조체 값 전체가 바꿀 수 있는 이름이어야 해요. Rust에는 필드 하나만 mut로 여는 표기가 없어요. 그래서 `let mut item`으로 선언해요.\n\n제공된 코드는 아직 컴파일되지 않아요. item 선언에 mut를 붙여 가격을 200원 내리세요. 채점은 item의 처음 값을 다른 상품으로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 오류의 코드를 확인하세요.\n2. `let item`을 `let mut item`으로 고치세요.\n3. 코드 실행을 눌러 바뀐 가격과 그대로인 이름을 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "struct Product {\n    name: String,\n    price: i32,\n}\n\nfn main() {\n    // 이 선언을 고쳐 가격 필드를 바꿀 수 있게 하세요.\n    let item = Product { name: String::from(\"소금빵\"), price: 1200 };\n    // 할인으로 가격을 200원 내려요.\n    item.price -= 200;\n    println!(\"{}: {}원\", item.name, item.price);\n}\n",
+      "solution": "// 상품 하나의 이름과 가격을 한 값으로 묶어요.\nstruct Product {\n    name: String,\n    price: i32,\n}\n\nfn main() {\n    // 이 선언을 고쳐 가격 필드를 바꿀 수 있게 하세요.\n    // 필드 하나만 바꿔도 값 전체를 let mut로 선언해야 해요.\n    let mut item = Product { name: String::from(\"소금빵\"), price: 1200 };\n    // 할인으로 가격을 200원 내려요.\n    // price 필드만 바뀌고 name 필드는 그대로예요.\n    item.price -= 200;\n    println!(\"{}: {}원\", item.name, item.price);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "소금빵: 1000원"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "item": "Product { name: String::from(\"크루아상\"), price: 2500 }"
+          },
+          "expected": "크루아상: 2300원"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "할인한 가격이 item에 남아야 해요. 상품 이름은 그대로고요.",
+          "target": "text:item 선언에 mut를 붙여 가격을 200원 내리세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ],
+          "expect_error": "E0594"
+        },
+        {
+          "action": "say",
+          "text": "E0594예요. mut로 선언하지 않은 item의 price에 값을 넣으려 했다는 오류죠.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    let item = Product",
+          "after": "    let mut item = Product",
+          "say": "item 선언에 mut를 붙여요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "소금빵: 1000원이에요. 가격만 200원 내려가고 이름은 소금빵 그대로예요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_c0e0a351-2efe-4d95-bcf2-40149146a046",
+      "title": "prices 목록에 가격 900을 더 담으세요",
+      "goal": "`vec![1200, 1800]`은 같은 타입의 값을 순서대로 담은 목록 Vec을 만들어요. `{:?}`는 목록을 대괄호 모양 그대로 보여 주는 자리예요. `prices.len()`은 원소 개수예요.\n\nvec! 안의 끝에 900을 더해 prices 목록에 가격 세 개를 담으세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 목록과 개수를 확인하세요.\n2. `vec![1200, 1800]`을 `vec![1200, 1800, 900]`으로 고치세요.\n3. 코드 실행을 눌러 목록과 개수를 다시 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn main() {\n    // 오늘 파는 빵 가격 목록이에요.\n    // 이 줄을 고쳐 목록 끝에 900을 더 담으세요.\n    let prices = vec![1200, 1800];\n    println!(\"{:?}\", prices);\n    println!(\"개수: {}\", prices.len());\n}\n",
+      "solution": "fn main() {\n    // 오늘 파는 빵 가격 목록이에요.\n    // 이 줄을 고쳐 목록 끝에 900을 더 담으세요.\n    // vec! 안에 쉼표로 적은 순서가 목록의 순서예요. 원소는 모두 같은 정수 타입이에요.\n    let prices = vec![1200, 1800, 900];\n    // {:?}는 목록 전체를 대괄호 모양으로 보여 줘요.\n    println!(\"{:?}\", prices);\n    // len()은 지금 목록에 든 원소 개수예요.\n    println!(\"개수: {}\", prices.len());\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[1200, 1800, 900]\n개수: 3"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "목록에 가격 세 개를 담아야 해요. 지금은 두 개뿐이죠.",
+          "target": "text:vec! 안의 끝에 900을 더해 prices 목록에 가격 세 개를 담으세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[1200, 1800]과 개수: 2가 나왔어요. 적은 순서대로 담겼죠.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "vec![1200, 1800]",
+          "after": "vec![1200, 1800, \"900\"]",
+          "say": "900을 따옴표로 감싸 넣어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ],
+          "expect_error": "E0308"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 한 Vec에는 한 타입만 담겨요. 정수 목록에 글자 \"900\"을 넣으면 E0308이 나요.",
+          "target": "code:vec![1200, 1800, \"900\"]"
+        },
+        {
+          "action": "patch_code",
+          "before": "vec![1200, 1800, \"900\"]",
+          "after": "vec![1200, 1800, 900]",
+          "say": "따옴표를 지워 정수 900을 담아요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[1200, 1800, 900]과 개수: 3이에요. 끝에 적은 900이 마지막 원소가 됐어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_d0d6bb40-ed56-47c4-a489-d060500e6254",
+      "title": "prices를 let mut로 선언해 push가 되게 하세요",
+      "goal": "`prices.push(900)`은 목록 끝에 900을 더해요. 목록 자체가 바뀌니 prices는 `let mut`로 선언해야 해요.\n\n제공된 코드는 아직 컴파일되지 않아요. prices 선언에 mut를 붙여 push로 900이 더해지게 하세요. 채점은 prices의 처음 목록을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 오류의 코드를 확인하세요.\n2. `let prices`를 `let mut prices`로 고치세요.\n3. 코드 실행을 눌러 목록과 개수를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn main() {\n    // 이 선언을 고쳐 목록에 원소를 더할 수 있게 하세요.\n    let prices = vec![1200, 1800];\n    // 새로 들어온 빵 가격을 끝에 더해요.\n    prices.push(900);\n    println!(\"{:?}\", prices);\n    println!(\"개수: {}\", prices.len());\n}\n",
+      "solution": "fn main() {\n    // 이 선언을 고쳐 목록에 원소를 더할 수 있게 하세요.\n    // push는 목록 자체를 바꾸니 prices는 let mut여야 해요.\n    let mut prices = vec![1200, 1800];\n    // 새로 들어온 빵 가격을 끝에 더해요.\n    // push는 항상 맨 끝에 더해요. 원소 개수도 하나 늘어요.\n    prices.push(900);\n    println!(\"{:?}\", prices);\n    println!(\"개수: {}\", prices.len());\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[1200, 1800, 900]\n개수: 3"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "prices": "vec![500]"
+          },
+          "expected": "[500, 900]\n개수: 2"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "선언한 목록에 실행 중에 가격 하나를 더해야 해요.",
+          "target": "text:prices 선언에 mut를 붙여 push로 900이 더해지게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ],
+          "expect_error": "E0596"
+        },
+        {
+          "action": "say",
+          "text": "E0596이에요. mut가 없는 prices를 바꾸려고 빌렸다는 오류죠.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    let prices = vec![1200, 1800];\n",
+          "after": "    let mut prices = vec![1200, 1800];\n",
+          "say": "prices 선언에 mut를 붙여요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[1200, 1800, 900]과 개수: 3이에요. push가 끝에 900을 더했어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_3fac642a-3992-4e49-90fe-24fc6e71f6f9",
+      "title": "for 반복에 목록을 &prices로 빌려주세요",
+      "goal": "`for price in prices`처럼 목록을 그대로 넘기면 목록의 소유권이 반복으로 옮겨 가요. `for price in &prices`로 빌려주면 반복이 끝난 뒤에도 prices를 쓸 수 있어요.\n\n제공된 코드는 아직 컴파일되지 않아요. for 줄을 고쳐 목록을 빌려서 합계를 구하세요. 채점은 prices의 처음 목록을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 오류의 코드를 확인하세요.\n2. `for price in prices`를 `for price in &prices`로 고치세요.\n3. 코드 실행을 눌러 합계와 상품 수를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn main() {\n    let prices = vec![1200, 1800, 900];\n    let mut total = 0;\n    // 이 줄을 고쳐 prices를 빌려서 반복하세요.\n    for price in prices {\n        total += price;\n    }\n    println!(\"합계: {total}\");\n    println!(\"상품 수: {}\", prices.len());\n}\n",
+      "solution": "fn main() {\n    let prices = vec![1200, 1800, 900];\n    // 반복마다 가격을 더해 갈 합계예요.\n    let mut total = 0;\n    // 이 줄을 고쳐 prices를 빌려서 반복하세요.\n    // &prices로 빌리면 price는 원소를 가리키는 참조예요. 목록은 prices가 계속 소유해요.\n    for price in &prices {\n        total += price;\n    }\n    println!(\"합계: {total}\");\n    // 반복 뒤에도 빌려준 목록을 그대로 쓸 수 있어요.\n    println!(\"상품 수: {}\", prices.len());\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "합계: 3900\n상품 수: 3"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "prices": "vec![1000, 2000]"
+          },
+          "expected": "합계: 3000\n상품 수: 2"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "가격을 모두 더한 뒤에도 목록의 상품 수를 출력해야 해요.",
+          "target": "text:for 줄을 고쳐 목록을 빌려서 합계를 구하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ],
+          "expect_error": "E0382"
+        },
+        {
+          "action": "say",
+          "text": "E0382예요. for가 prices를 가져가서 마지막 줄의 prices.len()이 막혔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "for price in prices {",
+          "after": "for price in &prices {",
+          "say": "for에 &prices를 넘겨 목록을 빌려줘요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "합계: 3900, 상품 수: 3이에요. 반복 뒤에도 목록이 그대로 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 오류를 피하려고 상품 수 줄을 지우면 요구한 출력이 빠져요. 목록을 넘기지 말고 빌려줘야 해요.",
+          "target": "code:for price in &prices {"
+        }
+      ]
+    },
+    {
+      "id": "stp_d4bc6ea4-53b3-48ac-b3b6-325152d4f8dc",
+      "title": "prices.get(index)의 결과를 {:?}로 출력하세요",
+      "goal": "`prices.get(index)`는 index 위치의 값을 꺼내 보는 메서드예요. 위치가 목록 안이면 `Some(값)`, 목록 밖이면 `None`을 돌려줘요. 이렇게 값이 있거나 없는 결과의 타입이 Option이에요. index의 타입 usize는 0 이상의 위치를 나타내는 정수예요.\n\n출력 줄을 고쳐 prices.get(index)의 결과를 {:?}로 출력하세요. 채점은 index를 목록 밖의 위치로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력을 확인하세요.\n2. `prices[index]`를 `prices.get(index)`로 고치세요.\n3. 코드 실행을 눌러 Some으로 감싼 값을 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn main() {\n    let prices = vec![1200, 1800];\n    // 위치는 0부터 세요. 1은 두 번째 가격이에요.\n    let index: usize = 1;\n    // 이 줄을 고쳐 prices.get(index)의 결과를 출력하세요.\n    println!(\"{:?}\", prices[index]);\n}\n",
+      "solution": "fn main() {\n    let prices = vec![1200, 1800];\n    // 위치는 0부터 세요. 1은 두 번째 가격이에요.\n    let index: usize = 1;\n    // 이 줄을 고쳐 prices.get(index)의 결과를 출력하세요.\n    // get은 값이 있으면 Some으로 감싸고, 위치가 목록 밖이면 None을 돌려줘요.\n    // 대괄호 prices[index]와 달리 목록 밖이어도 프로그램이 멈추지 않아요.\n    println!(\"{:?}\", prices.get(index));\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "Some(1800)"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "index": "5"
+          },
+          "expected": "None"
+        },
+        {
+          "values": {
+            "index": "0"
+          },
+          "expected": "Some(1200)"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "위치 index의 가격을 꺼내 보는데, 그 결과가 어떤 모양인지 출력해야 해요.",
+          "target": "text:출력 줄을 고쳐 prices.get(index)의 결과를 {:?}로 출력하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1800이에요. 대괄호는 두 번째 가격을 바로 꺼냈어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "prices[index]",
+          "after": "prices.get(index)",
+          "say": "get으로 바꿔 결과 모양을 봐요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "Some(1800)이에요. 값이 있어서 Some으로 감싸 돌려줬어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "let index: usize = 1;",
+          "after": "let index: usize = 5;",
+          "say": "목록 밖 위치 5로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "None이에요. 위치 5에는 가격이 없거든요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 목록 밖 위치를 prices[5]처럼 대괄호로 읽으면 실행 중에 프로그램이 멈춰요. 없을 수 있는 위치는 get으로 꺼내요.",
+          "target": "code:println!(\"{:?}\", prices.get(index));"
+        },
+        {
+          "action": "patch_code",
+          "before": "let index: usize = 5;",
+          "after": "let index: usize = 1;",
+          "say": "위치를 처음 값 1로 돌려놔요."
+        }
+      ]
+    },
+    {
+      "id": "stp_b8ee136e-de83-44ef-858c-c79e8acd215f",
+      "title": "match로 Some과 None 갈래를 나누세요",
+      "goal": "`match`는 값의 모양에 따라 갈래를 고르는 문법이에요. `Some(price) =>` 갈래는 값이 있을 때 실행되고, 감싼 값을 price라는 이름으로 꺼내요. `None =>` 갈래는 값이 없을 때 실행돼요. match는 가능한 모든 경우를 다뤄야 해요.\n\n두 갈래의 출력을 고쳐 Some이면 가격: {price}를, None이면 상품 없음을 출력하세요. 채점은 index를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력을 확인하세요.\n2. Some 갈래의 `println!(\"?\")`를 `println!(\"가격: {price}\")`로 고치세요.\n3. None 갈래의 `println!(\"?\")`를 `println!(\"상품 없음\")`으로 고치세요.\n4. 코드 실행을 눌러 가격이 나오는지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn main() {\n    let prices = vec![1200, 1800];\n    let index: usize = 1;\n    // 두 갈래의 출력을 고쳐 Some이면 가격을, None이면 상품 없음을 출력하세요.\n    match prices.get(index) {\n        Some(price) => println!(\"?\"),\n        None => println!(\"?\"),\n    }\n}\n",
+      "solution": "fn main() {\n    let prices = vec![1200, 1800];\n    let index: usize = 1;\n    // 두 갈래의 출력을 고쳐 Some이면 가격을, None이면 상품 없음을 출력하세요.\n    // get의 결과 모양에 따라 두 갈래 중 하나만 실행돼요.\n    match prices.get(index) {\n        // 값이 있으면 Some 안의 값을 price라는 이름으로 꺼내요.\n        Some(price) => println!(\"가격: {price}\"),\n        // 값이 없을 때의 갈래예요. 이 갈래를 빼면 match가 컴파일되지 않아요.\n        None => println!(\"상품 없음\"),\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "가격: 1800"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "index": "3"
+          },
+          "expected": "상품 없음"
+        },
+        {
+          "values": {
+            "index": "0"
+          },
+          "expected": "가격: 1200"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "값이 있을 때와 없을 때 서로 다른 문구가 나와야 해요.",
+          "target": "text:두 갈래의 출력을 고쳐 Some이면 가격: {price}를, None이면 상품 없음을 출력하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "?가 나왔어요. 두 갈래 모두 아직 물음표만 출력하거든요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "Some(price) => println!(\"?\"),",
+          "after": "Some(price) => println!(\"가격: {price}\"),",
+          "say": "Some 갈래에서 꺼낸 price를 출력해요."
+        },
+        {
+          "action": "patch_code",
+          "before": "        None => println!(\"?\"),\n",
+          "after": "",
+          "say": "None 갈래가 꼭 필요한지 지워 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ],
+          "expect_error": "E0004"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. None 갈래를 빼면 E0004가 나요. match는 값이 없는 경우까지 모두 다뤄야 하거든요.",
+          "target": "code:match prices.get(index) {"
+        },
+        {
+          "action": "patch_code",
+          "before": "        Some(price) => println!(\"가격: {price}\"),\n",
+          "after": "        Some(price) => println!(\"가격: {price}\"),\n        None => println!(\"상품 없음\"),\n",
+          "say": "None 갈래를 되살려 상품 없음을 출력해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "가격: 1800이에요. 위치 1에 값이 있어서 Some 갈래가 실행됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "let index: usize = 1;",
+          "after": "let index: usize = 3;",
+          "say": "목록 밖 위치 3으로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "상품 없음이에요. 이번엔 None 갈래가 실행됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "let index: usize = 3;",
+          "after": "let index: usize = 1;",
+          "say": "위치를 처음 값 1로 돌려놔요."
+        }
+      ]
+    },
+    {
+      "id": "stp_b12fc330-33d6-47fe-9e3e-0a3701ef37cf",
+      "title": "None 갈래를 상품 없음으로 고치세요",
+      "goal": "목록 밖을 조회하면 None이에요. 그런데 지금 None 갈래는 가격: 0을 출력해요. 그러면 정말 0원인 상품과 없는 상품이 똑같이 보여요.\n\n제공된 코드는 실행되지만 없는 상품을 가격 0으로 표시해요. None 갈래의 출력 한 줄만 상품 없음으로 고치세요. 채점은 조회 위치와 가격 목록을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 제공된 조회 위치로 코드를 실행하세요.\n2. 목록 밖 조회의 결과가 `None`인지 확인하세요.\n3. `None` 갈래를 \"상품 없음\"으로 바꾸세요.\n4. 목록 안·밖의 위치를 각각 실행하세요.\n5. 첫 가격을 0으로 바꿔 없는 상품과 다른지 확인하세요.\n6. 현재 답안을 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn main() {\n    let prices = vec![1200, 1800];\n    let index: usize = 2;\n    // 가격이 0원인 것과 상품이 없는 것은 달라요.\n    // None 갈래의 출력을 고쳐 없는 상품을 상품 없음으로 표시하세요.\n    match prices.get(index) {\n        Some(price) => println!(\"가격: {price}\"),\n        None => println!(\"가격: 0\"),\n    }\n}\n",
+      "solution": "fn main() {\n    let prices = vec![1200, 1800];\n    // 위치 2는 세 번째 자리라 이 목록 밖이에요.\n    let index: usize = 2;\n    // 가격이 0원인 것과 상품이 없는 것은 달라요.\n    // None 갈래의 출력을 고쳐 없는 상품을 상품 없음으로 표시하세요.\n    match prices.get(index) {\n        // 0원짜리 상품도 값이 있으니 이 갈래로 와요.\n        Some(price) => println!(\"가격: {price}\"),\n        // 값 자체가 없을 때예요. 0이라는 가격으로 바꿔 말하지 않아요.\n        None => println!(\"상품 없음\"),\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "상품 없음"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "index": "0"
+          },
+          "expected": "가격: 1200"
+        },
+        {
+          "values": {
+            "index": "1"
+          },
+          "expected": "가격: 1800"
+        },
+        {
+          "values": {
+            "prices": "vec![0, 1800]",
+            "index": "0"
+          },
+          "expected": "가격: 0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "목록 밖을 조회한 결과가 가격 0처럼 보이면 안 돼요. 없는 상품은 상품 없음이라고 알려야 해요.",
+          "target": "text:None 갈래의 출력 한 줄만 상품 없음으로 고치세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "가격: 0이 나왔어요. 위치 2는 목록 밖이라 None 갈래가 실행됐거든요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "None => println!(\"가격: 0\"),",
+          "after": "None => println!(\"상품 없음\"),",
+          "say": "None 갈래를 상품 없음으로 고쳐요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "상품 없음이에요. 없는 상품이 이제 가격처럼 보이지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "let index: usize = 2;",
+          "after": "let index: usize = 0;",
+          "say": "목록 안 위치 0을 읽어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "가격: 1200이에요. 첫 가격이 Some 갈래로 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "let index: usize = 0;",
+          "after": "let index: usize = 1;",
+          "say": "위치 1도 읽어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "가격: 1800이에요. 두 번째 가격이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "vec![1200, 1800];\n    let index: usize = 1;",
+          "after": "vec![0, 1800];\n    let index: usize = 0;",
+          "say": "첫 가격을 0으로 바꾸고 위치 0을 읽어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "가격: 0이에요. 이번 0은 정말 0원인 상품이라 Some 갈래에서 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. None 갈래에 가격: 0을 쓰면 이 0원 상품과 없는 상품을 구별할 수 없어요.",
+          "target": "code:None => println!(\"상품 없음\"),"
+        },
+        {
+          "action": "patch_code",
+          "before": "vec![0, 1800];\n    let index: usize = 0;",
+          "after": "vec![1200, 1800];\n    let index: usize = 2;",
+          "say": "목록과 위치를 준비 값으로 돌려놔요."
+        }
+      ]
+    },
+    {
+      "id": "stp_b778440e-0a3f-40f6-8e78-4b759474a65c",
+      "title": "check_qty의 Ok와 Err 갈래를 나누세요",
+      "goal": "`check_qty`는 수량을 검사해 `Result`를 돌려줘요. 통과하면 `Ok(수량)`, 실패하면 `Err(이유)`예요. Option이 값의 있음·없음이라면 Result는 성공·실패와 그 이유예요. Err 안의 이유도 match에서 이름으로 꺼낼 수 있어요.\n\n두 갈래의 출력을 고쳐 Ok면 주문 수량: {n}을, Err면 주문 거절: {message}를 출력하세요. 채점은 qty를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력을 확인하세요.\n2. Ok 갈래의 `println!(\"?\")`를 `println!(\"주문 수량: {n}\")`으로 고치세요.\n3. Err 갈래의 `println!(\"?\")`를 `println!(\"주문 거절: {message}\")`로 고치세요.\n4. 코드 실행을 눌러 주문 수량을 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn check_qty(qty: i32) -> Result<i32, String> {\n    // 주문 수량은 1개 이상이어야 해요.\n    if qty > 0 { Ok(qty) } else { Err(String::from(\"수량은 1개 이상이어야 해요\")) }\n}\n\nfn main() {\n    let qty = 3;\n    // 두 갈래의 출력을 고쳐 Ok면 수량을, Err면 거절 이유를 출력하세요.\n    match check_qty(qty) {\n        Ok(n) => println!(\"?\"),\n        Err(message) => println!(\"?\"),\n    }\n}\n",
+      "solution": "// 검사를 통과하면 Ok(수량), 실패하면 Err(이유)를 돌려줘요.\nfn check_qty(qty: i32) -> Result<i32, String> {\n    // 주문 수량은 1개 이상이어야 해요.\n    if qty > 0 { Ok(qty) } else { Err(String::from(\"수량은 1개 이상이어야 해요\")) }\n}\n\nfn main() {\n    let qty = 3;\n    // 두 갈래의 출력을 고쳐 Ok면 수량을, Err면 거절 이유를 출력하세요.\n    match check_qty(qty) {\n        // 성공이면 Ok 안의 수량을 n으로 꺼내요.\n        Ok(n) => println!(\"주문 수량: {n}\"),\n        // 실패면 Err 안의 이유 String을 message로 꺼내 그대로 보여 줘요.\n        Err(message) => println!(\"주문 거절: {message}\"),\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "주문 수량: 3"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "qty": "5"
+          },
+          "expected": "주문 수량: 5"
+        },
+        {
+          "values": {
+            "qty": "0"
+          },
+          "expected": "주문 거절: 수량은 1개 이상이어야 해요"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "검사에 통과한 주문과 거절된 주문을 서로 다르게 알려야 해요.",
+          "target": "text:두 갈래의 출력을 고쳐 Ok면 주문 수량: {n}을, Err면 주문 거절: {message}를 출력하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "?가 나왔어요. 아직 두 갈래 모두 물음표뿐이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "Ok(n) => println!(\"?\"),",
+          "after": "Ok(n) => println!(\"주문 수량: {n}\"),",
+          "say": "Ok 갈래에서 꺼낸 수량 n을 출력해요."
+        },
+        {
+          "action": "patch_code",
+          "before": "Err(message) => println!(\"?\"),",
+          "after": "Err(message) => println!(\"주문 거절: {message}\"),",
+          "say": "Err 갈래에서는 거절 이유 message를 출력해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "주문 수량: 3이에요. 3은 1 이상이라 Ok 갈래가 실행됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "let qty = 3;",
+          "after": "let qty = 0;",
+          "say": "수량을 0으로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "주문 거절: 수량은 1개 이상이어야 해요. Err 안의 이유가 그대로 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "let qty = 0;",
+          "after": "let qty = 3;",
+          "say": "수량을 처음 값 3으로 돌려놔요."
+        }
+      ]
+    },
+    {
+      "id": "stp_2abc1751-94b2-4209-bdb5-7304fe71f65a",
+      "title": "text.parse::<i32>()의 결과로 갈래를 나누세요",
+      "goal": "`text.parse::<i32>()`는 문구를 i32 정수로 바꿔 보는 메서드예요. 바꿀 수 있으면 `Ok(정수)`, 숫자가 아닌 글자가 섞이면 `Err`를 돌려줘요. `Err(_)`의 _는 안의 오류 값을 쓰지 않는다는 뜻이에요.\n\n제공된 코드는 아직 컴파일되지 않아요. match 줄을 고쳐 text.parse::<i32>()의 결과로 갈래를 나누세요. 채점은 text의 처음 문구를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 오류의 코드를 확인하세요.\n2. `match text {`를 `match text.parse::<i32>() {`로 고치세요.\n3. 코드 실행을 눌러 바꾼 수량을 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn main() {\n    // 주문서에 적힌 수량 문구예요.\n    let text = \"12\";\n    // 이 줄을 고쳐 text.parse::<i32>()의 결과로 나누세요.\n    match text {\n        Ok(qty) => println!(\"수량: {qty}\"),\n        Err(_) => println!(\"숫자가 아니에요\"),\n    }\n}\n",
+      "solution": "fn main() {\n    // 주문서에 적힌 수량 문구예요.\n    let text = \"12\";\n    // 이 줄을 고쳐 text.parse::<i32>()의 결과로 나누세요.\n    // text는 글자라 바로 Ok·Err로 나눌 수 없어요. parse가 돌려준 Result를 나눠요.\n    match text.parse::<i32>() {\n        // 바꾸기에 성공하면 Ok 안의 정수를 qty로 꺼내요.\n        Ok(qty) => println!(\"수량: {qty}\"),\n        // 숫자가 아닌 글자가 섞이면 이 갈래예요. 안의 오류 값은 쓰지 않아요.\n        Err(_) => println!(\"숫자가 아니에요\"),\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "수량: 12"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "text": "\"7\""
+          },
+          "expected": "수량: 7"
+        },
+        {
+          "values": {
+            "text": "\"abc\""
+          },
+          "expected": "숫자가 아니에요"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "주문서의 수량 문구를 정수로 바꿔 보고, 성공과 실패를 나눠야 해요.",
+          "target": "text:match 줄을 고쳐 text.parse::<i32>()의 결과로 갈래를 나누세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ],
+          "expect_error": "E0308"
+        },
+        {
+          "action": "say",
+          "text": "E0308이에요. text는 글자인데 갈래는 Ok·Err 모양을 기다려서 타입이 맞지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "match text {",
+          "after": "match text.parse::<i32>() {",
+          "say": "text.parse::<i32>()로 바꾼 결과를 나눠요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "수량: 12예요. 문구 12가 정수 12로 바뀌어 Ok 갈래로 왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "let text = \"12\";",
+          "after": "let text = \"12개\";",
+          "say": "숫자 뒤에 개를 붙여 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 12개처럼 숫자 뒤에 단위가 붙으면 parse는 Err를 돌려줘요. 주문서 문구를 그대로 넘기기 전에 확인해요.",
+          "target": "code:let text = \"12개\";"
+        },
+        {
+          "action": "patch_code",
+          "before": "let text = \"12개\";",
+          "after": "let text = \"12\";",
+          "say": "문구를 처음 값 12로 돌려놔요."
+        }
+      ]
+    },
+    {
+      "id": "stp_3886e947-9f72-4b84-bdaf-ff460c27a164",
+      "title": "Err 갈래가 수량 0으로 숨기지 않게 고치세요",
+      "goal": "변환에 실패했다고 수량을 0으로 정하면 안 돼요. 정말 0을 적은 주문과 읽지 못한 주문이 똑같아 보이거든요. 실패는 실패라고 알려야 해요.\n\nErr 갈래의 출력을 고쳐 변환 실패를 수량을 읽지 못했어요로 알리세요. 채점은 text의 처음 문구를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 abc의 출력을 확인하세요.\n2. Err 갈래의 `println!(\"수량: 0\")`을 `println!(\"수량을 읽지 못했어요\")`로 고치세요.\n3. 코드 실행을 눌러 실패 문구를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn main() {\n    let text = \"abc\";\n    match text.parse::<i32>() {\n        Ok(qty) => println!(\"수량: {qty}\"),\n        // 이 줄을 고쳐 변환 실패를 수량 0이 아니라 실패로 알리세요.\n        Err(_) => println!(\"수량: 0\"),\n    }\n}\n",
+      "solution": "fn main() {\n    let text = \"abc\";\n    // 바꾸기에 성공했는지 실패했는지를 갈래로 나눠요.\n    match text.parse::<i32>() {\n        // 정말 0을 적었으면 이 갈래에서 수량: 0이 나와요.\n        Ok(qty) => println!(\"수량: {qty}\"),\n        // 이 줄을 고쳐 변환 실패를 수량 0이 아니라 실패로 알리세요.\n        // 실패를 0으로 바꿔 말하면 진짜 0과 구별되지 않아요.\n        Err(_) => println!(\"수량을 읽지 못했어요\"),\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "수량을 읽지 못했어요"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "text": "\"0\""
+          },
+          "expected": "수량: 0"
+        },
+        {
+          "values": {
+            "text": "\"5\""
+          },
+          "expected": "수량: 5"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "읽지 못한 수량을 0으로 바꿔 말하고 있어요. 실패는 실패로 알려야 해요.",
+          "target": "text:Err 갈래의 출력을 고쳐 변환 실패를 수량을 읽지 못했어요로 알리세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "수량: 0이에요. abc는 숫자가 아니라 Err 갈래가 0이라고 말했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "let text = \"abc\";",
+          "after": "let text = \"0\";",
+          "say": "정말 0을 적은 주문으로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 이것도 수량: 0이에요. 실패를 0으로 숨기면 진짜 0과 읽지 못한 주문을 구별할 수 없어요.",
+          "target": "code:Err(_) => println!(\"수량: 0\"),"
+        },
+        {
+          "action": "patch_code",
+          "before": "Err(_) => println!(\"수량: 0\"),",
+          "after": "Err(_) => println!(\"수량을 읽지 못했어요\"),",
+          "say": "Err 갈래를 실패 문구로 고쳐요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0을 적은 주문은 여전히 수량: 0이에요. 그 0은 Ok 갈래의 진짜 수량이죠.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "let text = \"0\";",
+          "after": "let text = \"abc\";",
+          "say": "문구를 처음 값 abc로 돌려놔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "수량을 읽지 못했어요가 나왔어요. 이제 실패와 0이 다르게 보여요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_0cc9948f-2a10-4a94-8f64-f10dfa346176",
+      "title": "조회 없음과 변환 실패를 다른 문구로 알리세요",
+      "goal": "조회 결과가 없는 것과 변환에 실패한 것은 다른 일이에요. None은 찾는 상품이 없다는 뜻이고, Err는 적힌 수량을 읽지 못했다는 뜻이에요. 두 경우를 같은 문구로 알리면 무엇을 고쳐야 할지 알 수 없어요.\n\nNone 갈래는 상품 없음, Err 갈래는 수량을 읽지 못했어요로 각각 고치세요. 채점은 index와 text의 처음 값을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 두 줄의 출력을 확인하세요.\n2. None 갈래의 `println!(\"문제가 있어요\")`를 `println!(\"상품 없음\")`으로 고치세요.\n3. Err 갈래의 `println!(\"문제가 있어요\")`를 `println!(\"수량을 읽지 못했어요\")`로 고치세요.\n4. 코드 실행을 눌러 두 줄이 서로 다른지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn main() {\n    let prices = vec![1200, 1800];\n    let index: usize = 5;\n    match prices.get(index) {\n        Some(price) => println!(\"가격: {price}\"),\n        // 이 줄을 고쳐 찾는 상품이 없다고 알리세요.\n        None => println!(\"문제가 있어요\"),\n    }\n\n    let text = \"두 개\";\n    match text.parse::<i32>() {\n        Ok(qty) => println!(\"수량: {qty}\"),\n        // 이 줄을 고쳐 수량을 읽지 못했다고 알리세요.\n        Err(_) => println!(\"문제가 있어요\"),\n    }\n}\n",
+      "solution": "fn main() {\n    // 가격 조회는 값이 있거나 없는 Option으로 끝나요.\n    let prices = vec![1200, 1800];\n    let index: usize = 5;\n    match prices.get(index) {\n        Some(price) => println!(\"가격: {price}\"),\n        // 이 줄을 고쳐 찾는 상품이 없다고 알리세요.\n        // None은 조회한 위치에 상품이 없다는 뜻이에요.\n        None => println!(\"상품 없음\"),\n    }\n\n    // 수량 변환은 성공하거나 실패하는 Result로 끝나요.\n    let text = \"두 개\";\n    match text.parse::<i32>() {\n        Ok(qty) => println!(\"수량: {qty}\"),\n        // 이 줄을 고쳐 수량을 읽지 못했다고 알리세요.\n        // Err는 적힌 글자를 정수로 읽지 못했다는 뜻이에요. 상품이 없는 것과 달라요.\n        Err(_) => println!(\"수량을 읽지 못했어요\"),\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "상품 없음\n수량을 읽지 못했어요"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "index": "0"
+          },
+          "expected": "가격: 1200\n수량을 읽지 못했어요"
+        },
+        {
+          "values": {
+            "text": "\"2\""
+          },
+          "expected": "상품 없음\n수량: 2"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "두 예제가 모두 문제가 있어요라고만 말해요. 무엇이 문제인지 따로 알려야 해요.",
+          "target": "text:None 갈래는 상품 없음, Err 갈래는 수량을 읽지 못했어요로 각각 고치세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "문제가 있어요가 두 줄이에요. 위치 5는 목록 밖이고 두 개는 숫자가 아니거든요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "None => println!(\"문제가 있어요\"),",
+          "after": "None => println!(\"상품 없음\"),",
+          "say": "조회 쪽 None 갈래는 상품 없음으로 고쳐요."
+        },
+        {
+          "action": "patch_code",
+          "before": "Err(_) => println!(\"문제가 있어요\"),",
+          "after": "Err(_) => println!(\"수량을 읽지 못했어요\"),",
+          "say": "변환 쪽 Err 갈래는 수량을 읽지 못했어요로 고쳐요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "상품 없음과 수량을 읽지 못했어요가 나왔어요. 두 실패가 각자의 뜻으로 보여요.",
+          "target": "output"
+        }
+      ]
+    }
+  ]
+}

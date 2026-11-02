@@ -1,0 +1,77 @@
+{
+  "by": "hand",
+  "source_sha256": "b4bac36c1f25b18e31fdc6d0588406b5de3a059d6f84e74d875af520c0fbc6d5",
+  "entry": [
+    {
+      "action": "say",
+      "text": "읽지 못한 수량을 0으로 바꿔 말하고 있어요. 실패는 실패로 알려야 해요.",
+      "target": "text:Err 갈래의 출력을 고쳐 변환 실패를 수량을 읽지 못했어요로 알리세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "수량: 0이에요. abc는 숫자가 아니라 Err 갈래가 0이라고 말했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "let text = \"abc\";",
+      "after": "let text = \"0\";",
+      "say": "정말 0을 적은 주문으로 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 이것도 수량: 0이에요. 실패를 0으로 숨기면 진짜 0과 읽지 못한 주문을 구별할 수 없어요.",
+      "target": "code:Err(_) => println!(\"수량: 0\"),"
+    },
+    {
+      "action": "patch_code",
+      "before": "Err(_) => println!(\"수량: 0\"),",
+      "after": "Err(_) => println!(\"수량을 읽지 못했어요\"),",
+      "say": "Err 갈래를 실패 문구로 고쳐요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0을 적은 주문은 여전히 수량: 0이에요. 그 0은 Ok 갈래의 진짜 수량이죠.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "let text = \"0\";",
+      "after": "let text = \"abc\";",
+      "say": "문구를 처음 값 abc로 돌려놔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "수량을 읽지 못했어요가 나왔어요. 이제 실패와 0이 다르게 보여요.",
+      "target": "output"
+    }
+  ]
+}

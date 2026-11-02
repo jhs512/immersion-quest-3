@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "34e810915b583e43442f1f9558418650da7cbc8aa1440b13bef2a2de7ba94e57",
+  "entry": [
+    {
+      "action": "say",
+      "text": "가격을 모두 더한 뒤에도 목록의 상품 수를 출력해야 해요.",
+      "target": "text:for 줄을 고쳐 목록을 빌려서 합계를 구하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        9
+      ],
+      "expect_error": "E0382"
+    },
+    {
+      "action": "say",
+      "text": "E0382예요. for가 prices를 가져가서 마지막 줄의 prices.len()이 막혔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "for price in prices {",
+      "after": "for price in &prices {",
+      "say": "for에 &prices를 넘겨 목록을 빌려줘요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "합계: 3900, 상품 수: 3이에요. 반복 뒤에도 목록이 그대로 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 오류를 피하려고 상품 수 줄을 지우면 요구한 출력이 빠져요. 목록을 넘기지 말고 빌려줘야 해요.",
+      "target": "code:for price in &prices {"
+    }
+  ]
+}

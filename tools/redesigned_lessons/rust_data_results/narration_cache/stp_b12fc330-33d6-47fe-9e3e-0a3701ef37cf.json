@@ -1,0 +1,106 @@
+{
+  "by": "hand",
+  "source_sha256": "bc6c6af045cc0378659d3b984ee8ccfe471aa90960d45cae5769a6607b62b2b9",
+  "entry": [
+    {
+      "action": "say",
+      "text": "목록 밖을 조회한 결과가 가격 0처럼 보이면 안 돼요. 없는 상품은 상품 없음이라고 알려야 해요.",
+      "target": "text:None 갈래의 출력 한 줄만 상품 없음으로 고치세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "가격: 0이 나왔어요. 위치 2는 목록 밖이라 None 갈래가 실행됐거든요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "None => println!(\"가격: 0\"),",
+      "after": "None => println!(\"상품 없음\"),",
+      "say": "None 갈래를 상품 없음으로 고쳐요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "상품 없음이에요. 없는 상품이 이제 가격처럼 보이지 않아요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "let index: usize = 2;",
+      "after": "let index: usize = 0;",
+      "say": "목록 안 위치 0을 읽어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "가격: 1200이에요. 첫 가격이 Some 갈래로 나왔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "let index: usize = 0;",
+      "after": "let index: usize = 1;",
+      "say": "위치 1도 읽어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "가격: 1800이에요. 두 번째 가격이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "vec![1200, 1800];\n    let index: usize = 1;",
+      "after": "vec![0, 1800];\n    let index: usize = 0;",
+      "say": "첫 가격을 0으로 바꾸고 위치 0을 읽어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "가격: 0이에요. 이번 0은 정말 0원인 상품이라 Some 갈래에서 나왔어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. None 갈래에 가격: 0을 쓰면 이 0원 상품과 없는 상품을 구별할 수 없어요.",
+      "target": "code:None => println!(\"상품 없음\"),"
+    },
+    {
+      "action": "patch_code",
+      "before": "vec![0, 1800];\n    let index: usize = 0;",
+      "after": "vec![1200, 1800];\n    let index: usize = 2;",
+      "say": "목록과 위치를 준비 값으로 돌려놔요."
+    }
+  ]
+}

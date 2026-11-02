@@ -1,0 +1,90 @@
+{
+  "by": "hand",
+  "source_sha256": "cb6f93445162f38d5ee269b79ae70bc4f6cc0695a922ce35e15e7a403394a15c",
+  "entry": [
+    {
+      "action": "say",
+      "text": "값이 있을 때와 없을 때 서로 다른 문구가 나와야 해요.",
+      "target": "text:두 갈래의 출력을 고쳐 Some이면 가격: {price}를, None이면 상품 없음을 출력하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "?가 나왔어요. 두 갈래 모두 아직 물음표만 출력하거든요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "Some(price) => println!(\"?\"),",
+      "after": "Some(price) => println!(\"가격: {price}\"),",
+      "say": "Some 갈래에서 꺼낸 price를 출력해요."
+    },
+    {
+      "action": "patch_code",
+      "before": "        None => println!(\"?\"),\n",
+      "after": "",
+      "say": "None 갈래가 꼭 필요한지 지워 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ],
+      "expect_error": "E0004"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. None 갈래를 빼면 E0004가 나요. match는 값이 없는 경우까지 모두 다뤄야 하거든요.",
+      "target": "code:match prices.get(index) {"
+    },
+    {
+      "action": "patch_code",
+      "before": "        Some(price) => println!(\"가격: {price}\"),\n",
+      "after": "        Some(price) => println!(\"가격: {price}\"),\n        None => println!(\"상품 없음\"),\n",
+      "say": "None 갈래를 되살려 상품 없음을 출력해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "가격: 1800이에요. 위치 1에 값이 있어서 Some 갈래가 실행됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "let index: usize = 1;",
+      "after": "let index: usize = 3;",
+      "say": "목록 밖 위치 3으로 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "상품 없음이에요. 이번엔 None 갈래가 실행됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "let index: usize = 3;",
+      "after": "let index: usize = 1;",
+      "say": "위치를 처음 값 1로 돌려놔요."
+    }
+  ]
+}

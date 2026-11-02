@@ -1,0 +1,60 @@
+{
+  "by": "hand",
+  "source_sha256": "2ce564753c94c94e9dc7cc3e9210e01980f8fdc2c15376d2e8f91b0dc93b3141",
+  "entry": [
+    {
+      "action": "say",
+      "text": "item에 묶인 이름과 가격을 꺼내 한 줄로 보여 줘야 해요.",
+      "target": "text:출력 줄을 고쳐 item의 name과 price 필드를 출력하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "상품 정보만 나왔어요. 아직 필드를 하나도 읽지 않았거든요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "println!(\"상품 정보\");",
+      "after": "println!(\"{item.name}\");",
+      "say": "문자열 안에 item.name을 바로 써 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        9
+      ],
+      "expect_error": "field access isn't supported"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. {item.name}처럼 점을 문자열 안에 쓰면 컴파일이 멈춰요. 필드 읽기는 쉼표 뒤에 따로 써야 해요.",
+      "target": "code:println!(\"{item.name}\");"
+    },
+    {
+      "action": "patch_code",
+      "before": "println!(\"{item.name}\");",
+      "after": "println!(\"{}: {}원\", item.name, item.price);",
+      "say": "{} 두 자리를 두고 쉼표 뒤에 두 필드를 넘겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "소금빵: 1200원이에요. 첫 자리에 name, 둘째 자리에 price가 들어갔어요.",
+      "target": "output"
+    }
+  ]
+}

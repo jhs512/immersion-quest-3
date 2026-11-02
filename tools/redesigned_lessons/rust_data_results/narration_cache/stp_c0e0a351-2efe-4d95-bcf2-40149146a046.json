@@ -1,0 +1,60 @@
+{
+  "by": "hand",
+  "source_sha256": "ae405ff74c090cb3f037e03c3c4fa9cd9142b1585af3c45f122930c8e048314d",
+  "entry": [
+    {
+      "action": "say",
+      "text": "목록에 가격 세 개를 담아야 해요. 지금은 두 개뿐이죠.",
+      "target": "text:vec! 안의 끝에 900을 더해 prices 목록에 가격 세 개를 담으세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[1200, 1800]과 개수: 2가 나왔어요. 적은 순서대로 담겼죠.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "vec![1200, 1800]",
+      "after": "vec![1200, 1800, \"900\"]",
+      "say": "900을 따옴표로 감싸 넣어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ],
+      "expect_error": "E0308"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 한 Vec에는 한 타입만 담겨요. 정수 목록에 글자 \"900\"을 넣으면 E0308이 나요.",
+      "target": "code:vec![1200, 1800, \"900\"]"
+    },
+    {
+      "action": "patch_code",
+      "before": "vec![1200, 1800, \"900\"]",
+      "after": "vec![1200, 1800, 900]",
+      "say": "따옴표를 지워 정수 900을 담아요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[1200, 1800, 900]과 개수: 3이에요. 끝에 적은 900이 마지막 원소가 됐어요.",
+      "target": "output"
+    }
+  ]
+}
