@@ -109,7 +109,9 @@ def validate_highlights(task):
         if action['action'] == 'code_flow':
             # The narration opens 코드 흐름 보기 on the code as it is now and shows the nth recorded step
             # on `line` (assets/layout/agent.js); the validator replays it on the real trace.
-            if task.get('code_flow') is False or task.get('language') != 'java':
+            # Java, Python and C traces are drawn on both shipped platforms (Windows, macOS); Task::code_flow_availability.
+            if task.get('code_flow') is False or task.get('language') not in ('java', 'python', 'c') or task.get('git_terminal') \
+                    or (task.get('interaction') and not (task.get('example_code') or '').strip()):
                 raise ValueError('코드 흐름 보기가 없는 스텝에서 코드 흐름 해설을 써요.')
             if action.get('close') is True:
                 if set(action) != {'action', 'close'}:

@@ -153,11 +153,18 @@ async fn validate_with_session(spec: Validation,session:Option<&molip_quest::doc
                 // tracer, and require the step the narration moves to (agent.js code_flow, code-flow.js seek).
                 "code_flow" if action["close"]==true=>{},
                 "code_flow"=>{
-                    if !task.code_flow||task.language!=molip_quest::repository_course::TaskLanguage::Java {return Err(format!("{label}: code_flow narration on a step without 코드 흐름 보기"))}
+                    use molip_quest::repository_course::{CodeFlowAvailability, TaskLanguage};
+                    if task.code_flow_availability()!=CodeFlowAvailability::Ready {return Err(format!("{label}: code_flow narration on a step without 코드 흐름 보기"))}
                     let line=action["line"].as_u64().ok_or("code_flow needs a line")?;
                     let event=action["event"].as_str();
                     let nth=action["nth"].as_u64().unwrap_or(1) as usize;
-                    let document:serde_json::Value=serde_json::from_str(&molip_quest::java_trace::trace(&source,&input).await?).map_err(|e|e.to_string())?;
+                    let traced=match task.language {
+                        TaskLanguage::Java=>molip_quest::java_trace::trace(&source,&input).await?,
+                        TaskLanguage::Python=>molip_quest::python_trace::trace(&source,&input,&task.files).await?,
+                        TaskLanguage::C=>molip_quest::c_trace::trace(&source,&input).await?,
+                        language=>return Err(format!("{label}: no tracer for {language:?}")),
+                    };
+                    let document:serde_json::Value=serde_json::from_str(&traced).map_err(|e|e.to_string())?;
                     if document["status"]!="ok" {return Err(format!("{label}: code flow of the teacher code ended with {}: {}",document["status"],document["message"]))}
                     let trace=document["trace"].as_array().cloned().unwrap_or_default();
                     let index=trace.iter().enumerate().filter(|(_,step)|step["line"].as_u64()==Some(line)&&event.is_none_or(|event|step["event"]==event)).nth(nth.saturating_sub(1)).map(|(index,_)|index)
