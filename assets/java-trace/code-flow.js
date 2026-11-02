@@ -10,6 +10,8 @@
     compile_error: '컴파일 오류가 있어 실행 흐름을 기록하지 못했어요. 아래 줄을 고친 뒤 다시 열어 보세요.',
     no_main: '실행을 시작할 main 메서드를 찾지 못했어요.',
     internal_error: '코드 흐름 도구에서 문제가 생겼어요.',
+    tool_error: '코드 흐름 도구가 실행 단계를 확인하지 못했어요.',
+    runtime_error: '실행 중 오류가 발생했어요. 기록된 단계까지만 보여 줘요.',
     uncaught_exception: '처리되지 않은 예외로 실행이 멈췄어요. 멈춘 단계까지 따라가 볼 수 있어요.',
     step_limit: '실행 단계가 많아 앞부분만 기록했어요.',
     unsupported: '이 코드는 코드 흐름 보기로 정확히 보여 줄 수 없어서 기록을 보여 주지 않아요. 코드 실행과 채점은 그대로 쓸 수 있어요.',
@@ -90,10 +92,15 @@
         state = 'error';
         return true;
       }
-      status(STATUS[doc.status] || '', doc.status === 'internal_error');
-      // Which real runtime recorded it (JDK 25 for Java, the course Python for Python).
-      const runtime = doc.language === 'python' ? `수업과 같은 Python ${doc.runtime || ''}`.trim()
-        : doc.language === 'c' ? '수업 채점과 같은 TinyCC 0.9.27(코드를 고치지 않은 원본)' : '수업과 같은 JDK 25';
+      const notes = Array.isArray(doc.notes) ? doc.notes.filter(note => typeof note === 'string') : [];
+      status([STATUS[doc.status] || '', ...notes].filter(Boolean).join(' '), doc.status === 'internal_error' || doc.status === 'tool_error');
+      const runtime = {
+        python: `수업과 같은 Python ${doc.runtime || ''}`.trim(),
+        javascript: `수업과 같은 Node.js ${doc.runtime || ''}`.trim(),
+        c: '수업 채점과 같은 C 컴파일러(원본 코드)',
+        cpp: '수업 채점과 같은 clang++(원본 코드)',
+        rust: '수업 채점과 같은 rustc 1.95.0(원본 코드)',
+      }[doc.language] || '수업과 같은 JDK 25';
       const note = dialog.querySelector('.code-flow-note');
       if (note) note.textContent = note.textContent.replace('수업 채점과 같은 실행 환경', runtime);
       const root = dialog.querySelector('.code-flow-view');
