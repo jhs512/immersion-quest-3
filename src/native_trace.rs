@@ -182,7 +182,8 @@ async fn rust_toolchain()->Result<(),String> {
     let expected=RUSTUP_SHA256.iter().find(|(t,_)|*t==target).map(|(_,h)|*h).ok_or("이 Mac의 Rust 설치 파일을 찾지 못했어요.")?;
     let url=format!("https://static.rust-lang.org/rustup/archive/{RUSTUP_VERSION}/{target}/rustup-init");
     let bytes=crate::github_player::background(move ||{
-        let agent:ureq::Agent=ureq::Agent::config_builder().timeout_global(Some(std::time::Duration::from_secs(300))).build().into();
+        let agent:ureq::Agent=ureq::Agent::config_builder().tls_config(ureq::tls::TlsConfig::builder().provider(ureq::tls::TlsProvider::NativeTls).build())
+            .timeout_global(Some(std::time::Duration::from_secs(300))).build().into();
         let bytes=agent.get(&url).call().map_err(|e|e.to_string())?.body_mut().with_config().limit(40_000_000).read_to_vec().map_err(|e|e.to_string())?;
         if format!("{:x}",Sha256::digest(&bytes))!=expected {return Err("Rust 설치 파일의 해시가 맞지 않아요.".into())}
         Ok(bytes)
