@@ -65,7 +65,10 @@ async fn record(source: &str, input: &str, files: &BTreeMap<String, String>) -> 
 }
 
 /// The program the controller started. The controller ends it itself; this covers the controller being
-/// ended first (the outer timeout, or the request dropped): it ends exactly that process and what it started.
+/// ended first (the outer timeout, or the request dropped). On Windows libuv already put the program in the
+/// controller's kill-on-close job, so it ends with the controller (checked: its child process too) and a
+/// second kill could only hit a reused PID. On Unix the controller made it the leader of its own process
+/// group, which outlives the controller: end exactly that group.
 struct Debuggee { capture: PathBuf, done: bool }
 impl Debuggee {
     fn finished(mut self) { self.done = true; }
@@ -73,20 +76,13 @@ impl Debuggee {
 impl Drop for Debuggee {
     fn drop(&mut self) { if !self.done { end_debuggee(&self.capture); } }
 }
+#[cfg(unix)]
 fn end_debuggee(capture: &Path) {
-    let Some(pid) = std::fs::read_to_string(capture.join("debuggee.pid")).ok().and_then(|p| p.trim().parse::<u32>().ok()) else { return };
-    #[cfg(windows)]
-    {
-        use std::os::windows::process::CommandExt;
-        let taskkill = std::env::var_os("SystemRoot").map(|r| PathBuf::from(r).join("System32").join("taskkill.exe")).unwrap_or_else(|| "taskkill".into());
-        let _ = std::process::Command::new(taskkill).args(["/PID", &pid.to_string(), "/T", "/F"]).creation_flags(0x08000000)
-            .stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null()).status();
-    }
-    // The controller starts it as the leader of its own process group.
-    #[cfg(unix)]
-    let _ = std::process::Command::new("kill").args(["-KILL", "--", &format!("-{pid}")])
-        .stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null()).status();
+    let Some(pid) = std::fs::read_to_string(capture.join("debuggee.pid")).ok().and_then(|p| p.trim().parse::<libc::pid_t>().ok()) else { return };
+    if pid > 1 { unsafe { libc::killpg(pid, libc::SIGKILL); } }
 }
+#[cfg(not(unix))]
+fn end_debuggee(_: &Path) {}
 
 #[cfg(test)]
 mod tests {
@@ -201,15 +197,48 @@ mod tests {
         assert_eq!(doc["stdout"].as_str().unwrap().trim(), "effects 0");
         let last = doc["trace"].as_array().unwrap().iter().rev().find(|s| local(s, "watched").is_some_and(|v| v[0] == "REF")).unwrap();
         assert!(last["heap"].as_object().unwrap().values().any(|o| o.as_array().unwrap().contains(&json!(["spy", ["C_NOTE", "getter · 실행하지 않음"]]))));
+        // An ES module's import runs before main.js's first line; the identity map still uses the builtins
+        // as Node made them.
+        let patched = traced("import 'data:text/javascript,globalThis.n=0;const g=WeakMap.prototype.get;WeakMap.prototype.get=function(k){globalThis.n++;return g.call(this,k)}';\nconst a = [1];\nconst b = { a };\nconsole.log('n ' + globalThis.n);\n", "").await;
+        assert_eq!(patched["status"], "ok", "{patched}");
+        assert_eq!(patched["stdout"].as_str().unwrap().trim(), "n 0");
         for code in [
             "class E extends Error { get message() { console.log('ran'); return 'm'; } }\nconst e = new E();\nconsole.log('end');\n",
             "const e = new Error('x');\nObject.defineProperty(e, 'stack', { get() { console.log('ran'); return 's'; } });\nconsole.log('end');\n",
+            // a caught engine error is described too (pause on every exception), through the stack hook
+            "Error.prepareStackTrace = () => { console.log('ran'); return 's'; };\ntry { null.x; } catch {}\nconsole.log('end');\n",
+            "const e = new Error('x');\nObject.defineProperty(e, Symbol.toStringTag, { get() { console.log('ran'); return 'T'; } });\nconsole.log('end');\n",
+            "const e = new Error('x');\nObject.setPrototypeOf(e, new Proxy(Error.prototype, { get(t, k, r) { console.log('ran'); return Reflect.get(t, k, r); } }));\nconsole.log('end');\n",
+            "const inner = new Error('i');\nObject.defineProperty(inner, 'message', { get() { console.log('ran'); return 'm'; } });\nconst outer = new Error('o', { cause: inner });\nconsole.log('end');\n",
         ] {
             let refused = traced(code, "").await;
             assert_eq!(refused["status"], "unsupported", "{refused}");
             assert!(refused["trace"].as_array().unwrap().is_empty());
-            assert!(refused["message"].as_str().unwrap().contains("getter"));
+            assert!(refused["message"].as_str().unwrap().contains("오류 객체"), "{refused}");
         }
+    }
+
+    /// Each call is its own frame; a process main.js forks runs (untraced, noted) instead of waiting for a
+    /// debugger; a rejection handled later is not reported as the uncaught end; a Set is drawn as a Set.
+    #[tokio::test]
+    #[ignore = "Needs Node.js 22 or newer"]
+    async fn keeps_activations_children_and_endings_as_node_runs_them() {
+        let doc = traced("function f(x) { return x; }\nf(1); f(2);\nconst ys = [1, 2].map((v) => v * 2);\nconst s = new Set(ys);\nconsole.log(s.size);\n", "").await;
+        let steps = doc["trace"].as_array().unwrap();
+        let calls: Vec<_> = steps.iter().filter(|s| s["event"] == "call" && frames(s).len() == 2).map(|s| frames(s)[1]["frame_id"].clone()).collect();
+        assert_eq!(calls.len(), 4, "{doc}");
+        assert!(calls.windows(2).all(|w| w[0] != w[1]), "{calls:?}");
+        let end = steps.last().unwrap();
+        assert_eq!(end["heap"][local(end, "s").unwrap()[1].to_string()], json!(["COLLECTION", "Set", [2, 4]]));
+
+        let forked = traced("const { fork } = require('node:child_process');\nif (process.argv[2] === 'child') { console.log('child'); process.exit(0); }\nconst c = fork(__filename, ['child']);\nc.on('exit', (code) => console.log('done ' + code));\n", "").await;
+        assert_eq!(forked["status"], "ok", "{forked}");
+        assert_eq!(forked["stdout"].as_str().unwrap().replace("\r\n", "\n"), "child\ndone 0\n");
+        assert!(forked["notes"].as_array().unwrap().iter().any(|n| n.as_str().unwrap().contains("Node 프로세스 1개")));
+
+        let later = traced("const p = Promise.reject(new Error('handled later'));\np.catch(() => {});\nprocess.exitCode = 2;\n", "").await;
+        assert_eq!(later["status"], "runtime_error", "{later}");
+        assert_eq!(later["exitCode"], 2);
     }
 
     /// Syntax errors are reported with their line; a loop that never ends and a flood of output are

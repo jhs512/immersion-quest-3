@@ -51,7 +51,7 @@ function write(status, message) {
 }
 
 if (typeof WebSocket !== 'function') {
-  write('runtime_unavailable', `JavaScript 코드 흐름 보기에는 Node.js 22 이상이 필요해요. 지금 Node.js는 ${process.version}이에요.`);
+  write('runtime_unavailable', `JavaScript 코드 흐름 보기에는 WebSocket이 있는 Node.js(22 이상의 LTS)가 필요해요. 지금 Node.js ${process.version}에는 없어요.`);
   process.exit(0);
 }
 
@@ -120,16 +120,27 @@ function stop(status) {
   killTree();
 }
 const watchdog = setTimeout(() => stop('timeout'), DEADLINE_MS);
+const inspectors = new Set();
+let children = 0;
 const poller = setInterval(() => {
-  const err = readText(errFile);
-  if (!ws) {
-    const url = err.match(/^Debugger listening on (ws:\/\/127\.0\.0\.1:\d+\/[\w-]+)/m);
-    if (url) connect(url[1]);
+  for (const [, url] of readText(errFile).matchAll(/^Debugger listening on (ws:\/\/127\.0\.0\.1:\d+\/[\w-]+)/gm)) {
+    if (inspectors.has(url)) continue;
+    inspectors.add(url);
+    if (inspectors.size === 1) connect(url); else release(url);
   }
   // Node keeps a finished program alive while a debugger is attached; detaching lets it exit.
-  if (err.includes('Waiting for the debugger to disconnect...')) ws?.close();
+  if (readText(errFile).includes('Waiting for the debugger to disconnect...')) ws?.close();
   try { if (fs.statSync(outFile).size > OUTPUT_LIMIT) stop('output_limit'); } catch {}
 }, 15);
+// A Node process main.js starts with its execArgv (child_process.fork, cluster) inherits --inspect-brk and
+// would wait for a debugger forever: let it run untraced, as `node main.js` would have.
+function release(url) {
+  children++;
+  const socket = new WebSocket(url);
+  socket.onopen = () => socket.send(JSON.stringify({ id: 1, method: 'Runtime.runIfWaitingForDebugger' }));
+  socket.onmessage = () => socket.close();
+  socket.onerror = () => {};
+}
 exitedPromise.then(() => { if (!ws) finish(); else ws.close(); });
 
 function fail(error) {
@@ -169,12 +180,16 @@ async function finish() {
     if (problem) { doc.status = 'compile_error'; doc.problems.push(problem); }
     else doc.status = 'runtime_error';
   } else if (doc.exitCode !== 0) {
-    if (lastException && doc.trace.length) {
-      doc.trace.push({ ...doc.trace.at(-1), event: 'uncaught_exception', exception_msg: lastException, stdout: doc.stdout });
+    // V8 marks a rejection `uncaught` when no handler exists yet; one added later handles it. Node prints
+    // the error that actually ended it, so an Error must appear there to be the cause.
+    const ended = lastException && (!lastException.isError || doc.stderr.includes(lastException.text));
+    if (ended && doc.trace.length) {
+      doc.trace.push({ ...doc.trace.at(-1), event: 'uncaught_exception', exception_msg: lastException.text, stdout: doc.stdout });
       doc.status = 'uncaught_exception';
     } else doc.status = 'runtime_error';
   }
   if (workers) doc.notes.push(`worker 스레드 ${workers}개의 코드는 단계로 기록하지 않았어요. 기록한 것은 main 스레드예요.`);
+  if (children) doc.notes.push(`main.js가 시작한 Node 프로세스 ${children}개는 기록하지 않고 그대로 실행했어요.`);
   write();
   process.exit(0);
 }
@@ -189,6 +204,9 @@ function compileProblem(stderr) {
 
 let mainScriptId = null;
 let registry = null; // objectId of the identity function in the program's realm
+let intrinsicAccessor = null; // objectId of: is this function one the realm had for Error (accessors, prepareStackTrace)?
+let errorConstructor = null;
+let mainContext = null;
 let armed = false;
 let sawUserCode = false;
 let rawPauses = 0;
@@ -201,6 +219,8 @@ let nextFrameId = 1;
 let queue = Promise.resolve();
 
 async function start() {
+  listeners['Runtime.executionContextCreated'] = (p) => { if (p.context.auxData?.isDefault) mainContext ??= p.context.id; };
+  listeners['Runtime.executionContextDestroyed'] = (p) => { if (p.executionContextId === mainContext) ws?.close(); };
   listeners['Debugger.scriptParsed'] = (p) => {
     if (mainUrls.has(p.url)) mainScriptId = p.scriptId;
     else if (/[\\/]main\.js$/.test(p.url)) otherMainUrls.push(p.url);
@@ -238,6 +258,7 @@ async function paused(p) {
   const exception = p.reason === 'exception' || p.reason === 'promiseRejection';
   const userFrames = p.callFrames.filter(isUser);
   const top = p.callFrames[0];
+  if (!registry) await prepareRealm(top);
   await guardErrors([p.data, ...p.callFrames.flatMap((f) => [f.this, f.returnValue])]);
   if (stopReason) return;
   // Node's own code (module loading, timers) and exceptions it throws and catches itself.
@@ -264,7 +285,7 @@ async function paused(p) {
   if (!step || stopReason) return;
   if (exception) {
     step.exception_msg = exceptionText(p.data);
-    if (p.data?.uncaught) lastException = step.exception_msg;
+    if (p.data?.uncaught) lastException = { text: step.exception_msg, isError: p.data.subtype === 'error' };
   }
   documentBytes += JSON.stringify(step).length;
   doc.trace.push(step);
@@ -273,8 +294,7 @@ async function paused(p) {
   return resume();
 }
 
-// At the first stop in main.js nothing of it has run yet: place a breakpoint on every breakable location,
-// and create the identity WeakMap with the builtins as they are now (main.js may replace them later).
+// At the first stop in main.js nothing of it has run yet: place a breakpoint on every breakable location.
 async function arm(top) {
   armed = true;
   const { locations } = await send('Debugger.getPossibleBreakpoints', { start: { scriptId: mainScriptId, lineNumber: 0, columnNumber: 0 } });
@@ -282,14 +302,27 @@ async function arm(top) {
   // keeps a tight one-line loop from costing a round trip per call.
   const kept = locations.filter((l, i) => l.type !== 'call' || locations[i - 1]?.lineNumber !== l.lineNumber);
   await Promise.all(kept.map((location) => send('Debugger.setBreakpoint', { location }).catch(() => {})));
+}
+
+// The first stop is --inspect-brk's, inside Node's loader before any of the learner's modules (an ES
+// module's imports included) has run. Builtins are captured here, as the realm made them.
+async function prepareRealm(top) {
   const made = await send('Debugger.evaluateOnCallFrame', {
     callFrameId: top.callFrameId, objectGroup: 'mq-registry', silent: true,
     expression: `(() => { const ids = new WeakMap(), get = WeakMap.prototype.get, set = WeakMap.prototype.set,
-      apply = Reflect.apply, global = globalThis; let next = 1;
-      return function (value) { if (value === global) return 0; let id = apply(get, ids, [value]);
-        if (id === undefined) { id = next++; apply(set, ids, [value, id]); } return id; }; })()`,
+      has = Set.prototype.has, add = Set.prototype.add, describe = Object.getOwnPropertyDescriptor,
+      apply = Reflect.apply, global = globalThis, own = new Set(); let next = 1;
+      for (const holder of [new Error('x'), Error.prototype, Object.prototype]) for (const key of ['stack', 'message', 'name']) {
+        const d = describe(holder, key); if (d && d.get) apply(add, own, [d.get]); if (d && d.set) apply(add, own, [d.set]); }
+      const prepare = describe(Error, 'prepareStackTrace') || {};
+      for (const fn of [prepare.get, prepare.set, prepare.value]) if (typeof fn === 'function') apply(add, own, [fn]);
+      const identity = function (value) { if (value === global) return 0; let id = apply(get, ids, [value]);
+        if (id === undefined) { id = next++; apply(set, ids, [value, id]); } return id; };
+      return [identity, function (fn) { return apply(has, own, [fn]); }, Error]; })()`,
   });
-  registry = made.result.objectId;
+  const { result } = await send('Runtime.getProperties', { objectId: made.result.objectId, ownProperties: true });
+  const at = (index) => result.find((d) => d.name === String(index)).value.objectId;
+  [registry, intrinsicAccessor, errorConstructor] = [at(0), at(1), at(2)];
 }
 
 const SYNTHETIC_NAMES = { '<instance_members_initializer>': '필드 초기화', '<static_initializer>': 'static 초기화' };
@@ -302,11 +335,14 @@ const isModuleFrame = (f) => f.scopeChain.some((s) => s.type === 'module')
 // are the same function as at the last recorded step; anything else is a new activation.
 function identify(userFrames) {
   const bottomFirst = [...userFrames].reverse();
+  // A recorded `return` is that activation's last stop: the same function on the same depth after it
+  // (`f(1); f(2);`, each `.map` callback) is the next call.
+  const before = doc.trace.at(-1)?.event === 'return' ? previousFrames.slice(0, -1) : previousFrames;
   let same = true;
   return bottomFirst.map((f, i) => {
     const key = `${f.functionName}@${f.functionLocation?.scriptId}:${f.functionLocation?.lineNumber}:${f.functionLocation?.columnNumber}`;
-    same = same && previousFrames[i]?.key === key;
-    const id = same ? previousFrames[i].id : nextFrameId++;
+    same = same && before[i]?.key === key;
+    const id = same ? before[i].id : nextFrameId++;
     return { key, id, fresh: !same, frame: f, line: f.location.lineNumber + 1, module: isModuleFrame(f) };
   });
 }
@@ -359,23 +395,49 @@ async function snapshot(event, frames, userFrames, returnValue) {
 }
 
 // Every value CDP hands back comes with a description V8 has already made. For an Error, V8 makes it by
-// reading `stack`, `message` and `name` with ordinary [[Get]], so a getter the program defined for one of
-// them has just run inside the program. Nothing in CDP prevents that; what can be done is to notice it
-// and refuse the trace, because the program it shows is no longer the program that would have run.
-const NATIVE_FUNCTION = /\{\s*\[native code\]\s*\}$/;
+// reading `stack`, `message` and `name` with ordinary [[Get]] (and formatting `stack` calls
+// Error.prepareStackTrace), so learner code there has just run inside the program. Nothing in CDP prevents
+// that; what can be done is to notice it and refuse the trace, because the program it shows is no longer
+// the program that would have run. Accessors are compared with the realm's own, captured before any learner
+// code ran; a Proxy on the prototype chain could answer anything.
+// What V8 reads from an Error to describe it: its class tag (Object.prototype.toString) and these.
+const DESCRIBED_BY = ['stack', 'message', 'name', 'Symbol(Symbol.toStringTag)'];
+async function intrinsic(objectId) {
+  const { result } = await send('Runtime.callFunctionOn', { objectId: intrinsicAccessor, functionDeclaration: 'function (fn) { return this(fn); }', arguments: [{ objectId }], returnByValue: true, silent: true });
+  return result.value === true;
+}
+async function errorRunsCode(objectId, nested = 0) {
+  const constructor = await send('Runtime.getProperties', { objectId: errorConstructor, ownProperties: true, accessorPropertiesOnly: false, generatePreview: false });
+  const prepare = constructor.result.find((d) => d.name === 'prepareStackTrace');
+  for (const fn of [prepare?.get, prepare?.set, prepare?.value].filter((f) => f?.type === 'function')) {
+    if (!(await intrinsic(fn.objectId))) return 'Error.prepareStackTrace';
+  }
+  let current = objectId;
+  for (let depth = 0; current && depth < 64; depth++) {
+    // Not accessorPropertiesOnly: with it V8 leaves out `stack`'s getter and the [[Prototype]].
+    const { result, internalProperties = [] } = await send('Runtime.getProperties', { objectId: current, ownProperties: true, generatePreview: false });
+    for (const d of result.filter((d) => DESCRIBED_BY.includes(d.name))) {
+      for (const fn of [d.get, d.set].filter((f) => f?.type === 'function')) if (!(await intrinsic(fn.objectId))) return d.name;
+    }
+    // Reading these fields described the Errors among them (a `cause`, say) too.
+    for (const d of result.filter((d) => d.value?.subtype === 'error' && nested < 4)) {
+      const runs = await errorRunsCode(d.value.objectId, nested + 1);
+      if (runs) return runs;
+    }
+    const proto = internalProperties.find((p) => p.name === '[[Prototype]]')?.value;
+    if (proto?.subtype === 'proxy') return '프로토타입의 Proxy';
+    current = proto?.type === 'object' && proto.subtype !== 'null' ? proto.objectId : null;
+  }
+  return null;
+}
 async function guardErrors(values) {
   for (const v of values) {
     if (v?.type !== 'object' || v.subtype !== 'error' || stopReason) continue;
-    const { result } = await send('Runtime.getProperties', { objectId: v.objectId, ownProperties: false, accessorPropertiesOnly: true, generatePreview: false });
-    for (const d of result) {
-      if (!['stack', 'message', 'name'].includes(d.name) || d.get?.type !== 'function') continue;
-      const bound = NATIVE_FUNCTION.test(d.get.description)
-        && (await send('Runtime.getProperties', { objectId: d.get.objectId, ownProperties: true })).internalProperties?.some((p) => p.name === '[[TargetFunction]]');
-      if (!NATIVE_FUNCTION.test(d.get.description) || bound) {
-        doc.message = `오류 객체의 ${d.name}을(를) 읽는 getter가 코드에 있어요. 흐름을 그리면 그 getter가 실행돼요.`;
-        stop('unsupported');
-        return;
-      }
+    const runs = await errorRunsCode(v.objectId);
+    if (runs) {
+      doc.message = `오류 객체를 설명하려면 코드의 ${runs}이(가) 실행돼서 흐름을 그리지 않았어요.`;
+      stop('unsupported');
+      return;
     }
   }
 }
@@ -448,7 +510,9 @@ async function objectEntry(v, heap) {
       const fields = Object.fromEntries((await props(e.value.objectId)).result.map((d) => [d.name, d.value]));
       rows.push(v.subtype === 'map' ? [await encodeValue(fields.key, heap), await encodeValue(fields.value, heap)] : await encodeValue(fields.value, heap));
     }
-    return v.subtype === 'map' ? ['MAP', v.description, rows] : ['COLLECTION', v.description, rows];
+    // render.js titles it `<type> · size <rows>` and draws a type ending in "Set" as a bag.
+    const type = `${entries.length > MAX_ITEMS ? `앞 ${MAX_ITEMS}개만 · ` : ''}${v.subtype === 'map' ? 'Map' : 'Set'}`;
+    return v.subtype === 'map' ? ['MAP', type, rows] : ['COLLECTION', type, rows];
   }
   const fields = [];
   if (v.subtype === 'promise') {
