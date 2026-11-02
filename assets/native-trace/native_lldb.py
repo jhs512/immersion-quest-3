@@ -18,7 +18,8 @@ HITS = 20000
 MAX_CHILDREN = 64
 DEPTH = 64
 ALLOCATORS = {'malloc': 'alloc', 'calloc': 'calloc', 'realloc': 'realloc', 'free': 'free',
-              '_Znwm': 'alloc', '_Znam': 'alloc', '_ZdlPv': 'free', '_ZdlPvm': 'free', '_ZdaPv': 'free', '_ZdaPvm': 'free'}
+              'malloc_type_malloc': 'alloc', 'malloc_type_calloc': 'calloc', 'malloc_type_realloc': 'realloc',
+              '_Znwm': 'alloc', '_ZnwmSt19__type_descriptor_t': 'alloc', '_ZnamSt19__type_descriptor_t': 'alloc', '_Znam': 'alloc', '_ZdlPv': 'free', '_ZdlPvm': 'free', '_ZdaPv': 'free', '_ZdaPvm': 'free'}
 RUST_NAMES = [('unsigned char', 'u8'), ('signed char', 'i8'), ('unsigned short', 'u16'), ('short', 'i16'),
               ('unsigned int', 'u32'), ('int', 'i32'), ('unsigned long', 'u64'), ('long', 'i64'),
               ('unsigned __int128', 'u128'), ('__int128', 'i128'), ('float', 'f32'), ('double', 'f64')]
@@ -453,6 +454,9 @@ class Recorder:
         if not frames or self.in_prologue(thread.GetFrameAtIndex(0)) or self.early(frames[0]):
             return None
         frames.reverse()
+        grouped = self.grouped(frames)
+        frames = [frame for frame, _ in grouped]
+        keys = [key for _, key in grouped]
         collected = [(frame, self.values(frame)) for frame in frames]
         names = {}
 
@@ -475,7 +479,7 @@ class Recorder:
                     named_cells(value, value.GetName())
         heap, stack, live, globals_ = {}, [], set(), {}
         for position, (frame, values) in enumerate(collected):
-            key = (frame.GetFunctionName(), frame.GetCFA())
+            key = keys[position]
             line = frame.GetLineEntry().GetLine()
             live.add(key)
             if key not in self.live_frames:
@@ -538,12 +542,12 @@ class Recorder:
                          ['주소', f'0x{address:x}'], ['바이트 수', size],
                          ['상태', ['C_NOTE', '현재 포인터에서 자료형을 확인하지 못했어요']]]
         top = frames[-1]
-        event = 'call' if (top.GetFunctionName(), top.GetCFA()) not in self.live_frames else 'step_line'
+        event = 'call' if keys[-1] not in self.live_frames else 'step_line'
         caller = thread.GetFrameAtIndex(1)
         if event == 'call' and self.user_frame(caller):
             at = caller.GetPC()
             key = (thread.GetThreadID(), at, caller.GetCFA())
-            self.returning.setdefault(key, set()).add((top.GetFunctionName(), top.GetCFA()))
+            self.returning.setdefault(key, set()).add(keys[-1])
             if at not in self.return_addresses:
                 self.target.BreakpointCreateByAddress(at)
                 self.return_addresses.add(at)
@@ -551,6 +555,19 @@ class Recorder:
         return {'event': event, 'line': top.GetLineEntry().GetLine(), 'func_name': self.short_name(top),
                 'stdout': _read(os.path.join(self.case, 'trace-stdout.txt')), 'globals': globals_,
                 'ordered_globals': list(globals_), 'stack_to_render': stack, 'heap': heap}
+
+    def grouped(self, frames):
+        """(frame, key) outermost first. Apple clang's complete-object constructor/destructor calls the base-object
+        variant on the same line; the pair is one source-level call, kept under the outer frame's identity."""
+        out = []
+        for frame in frames:
+            name = self.short_name(frame)
+            if (out and not self.rust and self.short_name(out[-1][0]) == name
+                    and re.fullmatch(r'(?:.*::)?(\w+)::~?\1', name)):
+                out[-1] = (frame, out[-1][1])
+            else:
+                out.append((frame, (frame.GetFunctionName(), frame.GetCFA())))
+        return out
 
     def early(self, frame):
         """rustc can attribute a frame's first instruction to a later line; that stop is before the body starts."""
@@ -632,6 +649,9 @@ def trace(debugger, command, result, internal_dict):
             doc['exit_code'] = process.GetExitStatus() if process.GetState() == lldb.eStateExited else None
         doc['stdout'] = _read(os.path.join(case, 'trace-stdout.txt'))
         doc['heapTruncated'] = recorder.truncated
+        doc['allocator_breakpoints'] = {
+            name: [target.FindBreakpointByID(bid).GetNumLocations(), target.FindBreakpointByID(bid).GetHitCount()]
+            for bid, name in recorder.allocator_ids.items()}
         if doc['trace']:
             doc['trace'][-1]['stdout'] = doc['stdout']
         with open(os.path.join(case, 'native_flow.json'), 'w', encoding='utf-8') as out:

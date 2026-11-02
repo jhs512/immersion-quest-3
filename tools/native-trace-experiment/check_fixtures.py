@@ -69,7 +69,7 @@ def checks_edge_rs(doc):
     yield 'i128 is exact', any(v == ['LONG', '-170141183460469231731687303715884105728'] for _, v in local(doc, 'huge'))
     yield 'reference to a field names it', any(v == ['C_PTR', 'order.counts'] for _, v in local(doc, 'counts'))
     yield 'moved in loop body, then reassigned', (any(moved(v) for _, v in local(doc, 'name', 32))
-                                                 and any(resolve(s, v) == ['STRING', 'a0'] for s, v in local(doc, 'name', 30)))
+                                                 and any(resolve(s, v) == ['STRING', 'a0'] for s, v in local(doc, 'name') if s['line'] in (30, 31)))
     yield 'partial move marks only the field', any(
         resolve(s, v)[0] == 'INSTANCE' and moved(dict(resolve(s, v)[2:])['label']) for s, v in local(doc, 'order', 25))
     yield 'compiler-made iter is hidden', not local(doc, 'iter')
