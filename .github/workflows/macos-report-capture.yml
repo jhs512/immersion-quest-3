@@ -35,3 +35,31 @@ jobs:
         with:
           name: mac-report-capture-probe-${{ matrix.os }}
           path: ${{ runner.temp }}/probe/*.json
+  app:
+    runs-on: macos-15
+    timeout-minutes: 45
+    env:
+      MACOSX_DEPLOYMENT_TARGET: '12.0'
+      MQ3_MAC_ARCH: arm64
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: macos-arm64
+          save-if: false
+      - name: Build and bundle MQ.app as the release does
+        run: |
+          cargo build --release --locked --bin molip-quest
+          bash packaging/macos/bundle.sh
+      - name: Capture the real MQ window without a Screen Recording grant, then after an update
+        run: python3 tools/mac_report_capture_check.py target/bundle/MQ.app "$RUNNER_TEMP/capture"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mac-report-capture-app
+          path: |
+            ${{ runner.temp }}/capture/result.json
+            ${{ runner.temp }}/capture/*/bug-reports/*/
