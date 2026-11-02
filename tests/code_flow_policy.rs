@@ -10,7 +10,7 @@ fn task(language:&str)->Task {
 
 #[test]
 fn an_omitted_setting_offers_supported_code_flow() {
-    for language in ["java","python"] {
+    for language in ["java","python","javascript"] {
         let task=task(language);
         assert!(task.code_flow);
         assert_eq!(task.code_flow_availability(),CodeFlowAvailability::Ready);
@@ -29,7 +29,7 @@ fn explicit_opt_out_survives_serialization() {
 
 #[test]
 fn unsupported_execution_remains_visible_with_a_reason() {
-    for language in ["javascript","web","sql","java_project","junit","java_libraries","docker"] {
+    for language in ["web","sql","java_project","junit","java_libraries","docker"] {
         let availability=task(language).code_flow_availability();
         let CodeFlowAvailability::Unsupported(reason)=availability else {panic!("{language}: {availability:?}")};
         assert!(!reason.is_empty());

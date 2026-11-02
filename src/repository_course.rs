@@ -171,11 +171,11 @@ impl Task {
             return CodeFlowAvailability::Hidden;
         }
         match self.language {
-            TaskLanguage::Java|TaskLanguage::Python=>CodeFlowAvailability::Ready,
+            TaskLanguage::Java|TaskLanguage::Python|TaskLanguage::Javascript=>CodeFlowAvailability::Ready,
             TaskLanguage::C if cfg!(any(windows,target_os="macos"))=>CodeFlowAvailability::Ready,
             TaskLanguage::C=>CodeFlowAvailability::Unsupported("이 운영체제의 C 코드 흐름 보기는 아직 지원하지 않아요."),
             TaskLanguage::JavaProject|TaskLanguage::Junit|TaskLanguage::JavaLibraries=>CodeFlowAvailability::Unsupported("프로젝트와 라이브러리 실행의 코드 흐름 보기는 아직 지원하지 않아요."),
-            TaskLanguage::Javascript|TaskLanguage::Web=>CodeFlowAvailability::Unsupported("JavaScript와 웹 실행의 코드 흐름 보기는 아직 지원하지 않아요."),
+            TaskLanguage::Web=>CodeFlowAvailability::Unsupported("웹 실행의 코드 흐름 보기는 아직 지원하지 않아요."),
             TaskLanguage::Sql=>CodeFlowAvailability::Unsupported("SQL 실행의 코드 흐름 보기는 아직 지원하지 않아요."),
             TaskLanguage::Git|TaskLanguage::Docker=>CodeFlowAvailability::Unsupported("터미널과 Docker 실행의 코드 흐름 보기는 아직 지원하지 않아요."),
         }
@@ -283,9 +283,8 @@ pub struct Variation { #[serde(default)] pub values: BTreeMap<String,String>, #[
 #[serde(rename_all="snake_case")]
 pub enum TaskLanguage { Java, JavaProject, Junit, Git, Javascript, Web, Python, C, Sql, JavaLibraries, Docker }
 impl TaskLanguage {
-    // The editor bundle has no C grammar; Java's is the closest C-family highlighting.
     pub fn editor(self) -> &'static str { match self {
-        Self::Java|Self::JavaProject|Self::Junit|Self::C|Self::JavaLibraries => "java", Self::Javascript => "javascript", Self::Web => "html", Self::Git|Self::Docker => "shell", Self::Python=>"python", Self::Sql=>"sql",
+        Self::Java|Self::JavaProject|Self::Junit|Self::JavaLibraries => "java", Self::C=>"c", Self::Javascript => "javascript", Self::Web => "html", Self::Git|Self::Docker => "shell", Self::Python=>"python", Self::Sql=>"sql",
     }}
     pub fn filename(self) -> &'static str { match self {
         Self::Java|Self::JavaProject|Self::Junit|Self::JavaLibraries => "Main.java", Self::Javascript=>"main.js", Self::Web=>"index.html", Self::Git=>"practice.sh", Self::Python=>"main.py", Self::C=>"main.c", Self::Sql=>"main.sql", Self::Docker=>"compose.yaml",
