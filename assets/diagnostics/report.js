@@ -37,11 +37,7 @@ function run(args) {
     const captureMessage = exists ? '화면 캡처는 확인 후 포함하거나 제외할 수 있어요.'
       : failure.reason === 'timeout' ? 'MQ가 화면 캡처에 3초 안에 답하지 않아 중단했어요. 다시 캡처하거나 기록과 설명만 보낼 수 있어요.'
       : 'MQ 창을 캡처하지 못했어요' + (failure.detail ? ' (' + failure.detail + ')' : '') + '. 다시 캡처하거나 기록과 설명만 보낼 수 있어요.';
-    const message = '보낼 저장소: ' + draft.repository + (location ? '
-위치: ' + location : '') + '
-' + captureMessage + '
-
-최근 한 시간의 상세 기록과 이동 이력을 보내요. 진단 파일은 링크로 접근할 수 있는 GitHub Gist에 저장해요. 아래에 추가 설명을 적어주세요.';
+    const message = '보낼 저장소: ' + draft.repository + (location ? '\n위치: ' + location : '') + '\n' + captureMessage + '\n\n최근 한 시간의 상세 기록과 이동 이력을 보내요. 진단 파일은 링크로 접근할 수 있는 GitHub Gist에 저장해요. 아래에 추가 설명을 적어주세요.';
     const answer = app.displayDialog(message, {withTitle: draft.kind === 'content' ? 'MQ · 문제 신고' : 'MQ · 앱 오류 신고',
       defaultAnswer: description, buttons: exists ? ['취소', '캡처 확인', '보내기'] : ['취소', '다시 캡처', '보내기'], defaultButton: '보내기', cancelButton: '취소'});
     description = answer.textReturned;
