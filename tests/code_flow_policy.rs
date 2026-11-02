@@ -34,7 +34,7 @@ fn unsupported_execution_remains_visible_with_a_reason() {
         let CodeFlowAvailability::Unsupported(reason)=availability else {panic!("{language}: {availability:?}")};
         assert!(!reason.is_empty());
     }
-    assert_eq!(task("c").code_flow_availability()==CodeFlowAvailability::Ready,cfg!(windows));
+    assert_eq!(task("c").code_flow_availability()==CodeFlowAvailability::Ready,cfg!(any(windows,target_os="macos")));
 }
 
 #[test]

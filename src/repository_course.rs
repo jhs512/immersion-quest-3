@@ -172,7 +172,7 @@ impl Task {
         }
         match self.language {
             TaskLanguage::Java|TaskLanguage::Python=>CodeFlowAvailability::Ready,
-            TaskLanguage::C if cfg!(windows)=>CodeFlowAvailability::Ready,
+            TaskLanguage::C if cfg!(any(windows,target_os="macos"))=>CodeFlowAvailability::Ready,
             TaskLanguage::C=>CodeFlowAvailability::Unsupported("이 운영체제의 C 코드 흐름 보기는 아직 지원하지 않아요."),
             TaskLanguage::JavaProject|TaskLanguage::Junit|TaskLanguage::JavaLibraries=>CodeFlowAvailability::Unsupported("프로젝트와 라이브러리 실행의 코드 흐름 보기는 아직 지원하지 않아요."),
             TaskLanguage::Javascript|TaskLanguage::Web=>CodeFlowAvailability::Unsupported("JavaScript와 웹 실행의 코드 흐름 보기는 아직 지원하지 않아요."),
