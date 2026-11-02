@@ -17,13 +17,15 @@ jobs:
       matrix:
         os: [macos-15, macos-15-intel]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
       - name: Trace an unmodified C program through LLDB
         run: python3 tools/mac-c-trace-experiment/run.py "$RUNNER_TEMP/mac-c-trace"
+      - name: Trace real course starters and solutions
+        run: python3 tools/mac-c-trace-experiment/cases.py "$RUNNER_TEMP/mac-c-trace/courses"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
