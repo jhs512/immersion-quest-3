@@ -104,7 +104,9 @@ async fn invoke(mode:&str,language:NativeLanguage,dir:&Path,input:&str,seconds:u
         .env("MQ_CXX","xcrun clang++").env("MQ_LLDB","xcrun lldb").env("MQ_TRACE_SECONDS",(seconds-15).to_string());
     if language==NativeLanguage::Rust {
         let (rustup,cargo)=rust_homes()?;
-        cmd.env("MQ_RUSTC",rustc_path()?).env("RUSTUP_HOME",rustup).env("CARGO_HOME",cargo).env("RUSTUP_TOOLCHAIN",RUST_TOOLCHAIN);
+        // native_flow.py splits MQ_* like a shell; MQ's data folder is under "Application Support".
+        let quoted=format!("'{}'",rustc_path()?.display().to_string().replace('\'',"'\\''"));
+        cmd.env("MQ_RUSTC",quoted).env("RUSTUP_HOME",rustup).env("CARGO_HOME",cargo).env("RUSTUP_TOOLCHAIN",RUST_TOOLCHAIN);
     }
     crate::lesson_runner::process(cmd,&dir.join("case"),input,seconds).await
 }
