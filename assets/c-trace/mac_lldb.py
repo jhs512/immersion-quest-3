@@ -53,7 +53,16 @@ class Recorder:
 
     def user_frame(self, frame):
         entry = frame.GetLineEntry()
-        return entry.IsValid() and entry.GetFileSpec().GetFilename() == 'src.c'
+        return entry.IsValid() and entry.GetFileSpec().GetFilename() == 'main.c'
+
+    def type_key(self, typ):
+        return typ.GetCanonicalType().GetUnqualifiedType().GetName()
+
+    def object_id(self, key):
+        if key not in self.view_ids:
+            self.view_ids[key] = self.next_view
+            self.next_view += 1
+        return str(self.view_ids[key])
 
     def allocator_stop(self, process, thread):
         frame = thread.GetFrameAtIndex(0)
@@ -108,8 +117,9 @@ class Recorder:
             address = value.GetValueAsUnsigned()
             if not address:
                 return None
-            if address in names:
-                return ['C_PTR', names[address]]
+            named = names.get((address, self.type_key(typ.GetPointeeType())))
+            if named:
+                return ['C_PTR', named]
             for start, (size, serial) in self.blocks.items():
                 if start <= address < start + size:
                     pointee = typ.GetPointeeType()
@@ -117,11 +127,7 @@ class Recorder:
                     if not width or pointee.GetTypeClass() & lldb.eTypeClassFunction:
                         return ['C_NOTE', '주소만 확인할 수 있는 포인터예요']
                     offset = address - start
-                    key = (serial, offset, pointee.GetName())
-                    if key not in self.view_ids:
-                        self.view_ids[key] = self.next_view
-                        self.next_view += 1
-                    hid = str(self.view_ids[key])
+                    hid = self.object_id(('allocation', serial, offset, self.type_key(pointee)))
                     if hid not in heap:
                         heap[hid] = ['ARRAY', pointee.GetName()]
                         available = (size - offset) // width
@@ -141,7 +147,7 @@ class Recorder:
         if type_class & (lldb.eTypeClassArray | lldb.eTypeClassStruct | lldb.eTypeClassUnion):
             if type_class & lldb.eTypeClassUnion:
                 return ['C_NOTE', 'union은 어느 필드가 활성인지 알 수 없어요']
-            hid = str(1000000000000 + value.GetLoadAddress())
+            hid = self.object_id(('object', value.GetLoadAddress(), self.type_key(typ)))
             if hid not in heap:
                 heap[hid] = ['ARRAY', value.GetTypeName()]
                 children = [value.GetChildAtIndex(i) for i in range(min(value.GetNumChildren(), MAX_CHILDREN))]
@@ -180,7 +186,7 @@ class Recorder:
         def named_cells(value, name, depth=0):
             address = value.GetLoadAddress()
             if address != lldb.LLDB_INVALID_ADDRESS:
-                names[address] = name
+                names[(address, self.type_key(value.GetType()))] = name
             typ = value.GetType().GetCanonicalType()
             if depth >= 5 or not typ.GetTypeClass() & (lldb.eTypeClassArray | lldb.eTypeClassStruct):
                 return
@@ -191,16 +197,22 @@ class Recorder:
         for frame, values in collected:
             for value in values:
                 named_cells(value, value.GetName())
-        heap, stack, live = {}, [], set()
+        heap, stack, live, globals_ = {}, [], set(), {}
         for frame, values in collected:
             key = (frame.GetFunctionName(), frame.GetCFA())
             live.add(key)
             if key not in self.live_frames:
                 self.frame_ids[key] = self.next_frame
                 self.next_frame += 1
-            encoded = {value.GetName(): self.encode(value, heap, names) for value in values}
-            uninitialized = []
+            locals_ = []
             for value in values:
+                if value.GetValueType() == lldb.eValueTypeVariableGlobal:
+                    globals_[value.GetName()] = self.encode(value, heap, names)
+                else:
+                    locals_.append(value)
+            encoded = {value.GetName(): self.encode(value, heap, names) for value in locals_}
+            uninitialized = []
+            for value in locals_:
                 declaration = value.GetDeclaration()
                 if declaration.IsValid() and value.GetValueType() != lldb.eValueTypeVariableArgument:
                     line = declaration.GetLine()
@@ -209,24 +221,25 @@ class Recorder:
             stack.append({'func_name': frame.GetFunctionName(), 'frame_id': self.frame_ids[key],
                           'line': frame.GetLineEntry().GetLine(), 'is_highlighted': False,
                           'encoded_locals': encoded, 'ordered_varnames': list(encoded),
-                          'declared_without_initializer': uninitialized, 'static_names': []})
+                          'declared_without_initializer': uninitialized,
+                          'static_names': [value.GetName() for value in locals_ if value.GetValueType() == lldb.eValueTypeVariableStatic]})
         stack[-1]['is_highlighted'] = True
         top = frames[-1]
         event = 'call' if (top.GetFunctionName(), top.GetCFA()) not in self.live_frames else 'step_line'
         self.live_frames = live
         return {'event': event, 'line': top.GetLineEntry().GetLine(), 'func_name': top.GetFunctionName(),
-                'stdout': _read(os.path.join(self.case, 'trace-stdout.txt')), 'globals': {},
-                'ordered_globals': [], 'stack_to_render': stack, 'heap': heap}
+                'stdout': _read(os.path.join(self.case, 'trace-stdout.txt')), 'globals': globals_,
+                'ordered_globals': list(globals_), 'stack_to_render': stack, 'heap': heap}
 
 
 def trace(debugger, command, result, internal_dict):
     case = os.path.abspath(shlex.split(command)[0])
-    source = _read(os.path.join(case, 'src.c'))
+    source = _read(os.path.join(case, 'main.c'))
     target = debugger.CreateTarget(os.path.join(case, 'trace-main'))
     debugger.SetAsync(False)
     recorder = Recorder(target, case, source)
     for line in range(1, len(source.splitlines()) + 1):
-        target.BreakpointCreateByLocation(os.path.join(case, 'src.c'), line)
+        target.BreakpointCreateByLocation(os.path.join(case, 'main.c'), line)
     info = target.GetLaunchInfo()
     info.SetWorkingDirectory(case)
     info.SetLaunchFlags(info.GetLaunchFlags() & ~lldb.eLaunchFlagDisableASLR)
@@ -247,6 +260,9 @@ def trace(debugger, command, result, internal_dict):
                 hits += 1
                 if process.GetNumThreads() > 1:
                     doc.update(status='unsupported', message='여러 스레드의 실행 흐름은 아직 그리지 않아요', trace=[])
+                    break
+                if sum(1 for frame in process.GetSelectedThread() if recorder.user_frame(frame)) > 64:
+                    doc.update(status='step_limit', message='함수 호출이 64단계보다 깊어 기록을 멈췄어요')
                     break
                 thread = process.GetSelectedThread()
                 if thread.GetStopReason() in (lldb.eStopReasonException, lldb.eStopReasonSignal):
