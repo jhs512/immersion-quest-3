@@ -19,7 +19,7 @@ int main(void) {
 '''
 SPEC = code('engineer-c-structures', '구조체 배열에 선택한 가격 규칙을 적용하세요',
     '구조체 값과 함수 포인터를 연결해 각 항목의 계산을 합쳐요.',
-    'sale이 1이면 half, 0이면 normal 규칙으로 모든 상품의 금액을 합하세요. 수량과 가격은 양수이고 할인 전 금액은 짝수예요. 지금 출력은 220이에요.', 'c', START,
+    'sale이 1이면 half, 0이면 normal 규칙으로 모든 상품의 금액을 합하세요. 수량과 가격은 양수이고 할인 전 금액은 짝수예요. 완성하면 220이 나와요.', 'c', START,
     [('int (*rule)(Item) = normal;', 'int (*rule)(Item) = sale ? half : normal;', 'sale 값에 맞춰 계산 함수의 주소를 고르세요.'),
      ('total = rule(items[i]);', 'total += rule(items[i]);', '각 구조체를 규칙 함수에 전달하고 반환 금액을 누적하세요.')],
     '220', ['240', '220'],

@@ -17,7 +17,7 @@ print(round(float(r2), 6))
 '''
 SPEC = make('aice-regression-metrics', '배송 번호를 맞추고 세 오차를 보고하세요',
     '예측을 actual의 배송 번호 순서로 맞춘 뒤 MAE, RMSE, R²를 출력해요. '
-    'RMSE는 MSE의 제곱근이라 시간과 같은 분 단위예요. 지금 결과는 2.666667, 3.265986, 0.84예요.',
+    'RMSE는 MSE의 제곱근이라 시간과 같은 분 단위예요. 완성하면 2.666667, 3.265986, 0.84가 나와요.',
     '같은 배송끼리 비교하고 MAE·RMSE·R²의 의미에 맞게 보고해요.', START,
     [('aligned = predicted', 'aligned = predicted.reindex(actual.index)', '실제 값의 배송 번호 순서로 예측을 맞추세요.'),
      ('rmse = mean_squared_error(actual, aligned)', 'rmse = mean_squared_error(actual, aligned) ** 0.5', '분 단위 RMSE가 나오도록 제곱근을 구하세요.')],

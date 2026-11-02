@@ -19,7 +19,7 @@ print(winner)
 '''
 SPEC = make('aice-models', '같은 검증 오차로 두 후보 중 하나를 고르세요',
     '평균 기준 모델과 트리가 같은 검증 배송을 예측해요. 검증 정답 y_valid와 비교한 MSE를 구하고 작은 후보 이름을 출력해요. '
-    '현재 mean의 MSE는 25, tree는 0이므로 tree를 골라야 해요.',
+    '완성하면 mean의 MSE는 25, tree는 0이 나와 tree를 골라요.',
     '같은 검증 자료와 오차 방향으로 후보 모델을 비교해요.', START,
     [('truth = y_train[:len(X_valid)]', 'truth = y_valid', '훈련 정답 일부 대신 검증 배송의 정답을 사용하세요.'),
      ('winner = max(scores, key=scores.get)', 'winner = min(scores, key=scores.get)', '오차가 가장 작은 후보를 고르세요.')],

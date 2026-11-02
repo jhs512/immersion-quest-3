@@ -15,7 +15,7 @@ print(all(labels[ids.index(i)] == y for i, y in zip(X_test, y_test)))
 SPEC = make('aice-split', '배송 번호와 정답을 층화해 함께 나누세요',
     '새 배송 자료를 훈련과 평가로 나눠요. 평가 건수는 test_count를 따라요. '
     '지연과 정상의 비율을 지키고 같은 번호와 정답은 함께 움직여야 해요. '
-    '지금 자료는 훈련 4건, 평가 4건이고 평가 중 지연은 2건이에요.',
+    '완성하면 훈련 4건, 평가 4건이고 평가 중 지연은 2건이 나와요.',
     '평가 크기와 범주 비율을 지키며 입력과 정답의 짝을 보존해요.', START,
     [('test_size=2', 'test_size=test_count', '평가 크기를 test_count로 정하세요.'),
      ('random_state=4)', 'random_state=4, stratify=labels)', '정답 labels의 비율을 지키도록 층화하세요.')],

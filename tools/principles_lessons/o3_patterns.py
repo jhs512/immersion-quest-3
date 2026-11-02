@@ -463,7 +463,7 @@ LESSON = java_lesson(
                                objectives=['알리는 쪽은 듣는 쪽의 인터페이스만 알고 목록을 돌며 알린다는 것을 확인해요.'],
                                start=START_NEW,
                                intro=['재고(Stock)와 포인트(Points)가 주문을 구독했어요. 입력 `12000 500`의 두 주문 뒤에 각각 재고와 포인트 줄이 나와야 해요. 그런데 주문 완료 줄만 나와요.'],
-                               know='주문은 OrderListener라는 약속만 알아요. 새 구독자(예: 메일)를 더할 때 Order를 고치지 않고 main에서 subscribe만 하면 돼요. 이런 구조를 Observer라고 불러요. 구독자가 하나뿐이고 늘 계획이 없으면 직접 호출해도 충분해요.',
+                               know='주문은 OrderListener라는 약속만 알아요. 새 구독자(예: 메일)를 더할 때 Order를 고치지 않고 main에서 subscribe만 하면 돼요. 이런 구조를 Observer라고 불러요. 구독자가 하나뿐이고 늘릴 계획이 없으면 직접 호출해도 충분해요.',
                                todo=[TODO_RUN_BEFORE, 'Order.complete의 `고칠 곳` 자리에 구독 목록을 돌며 `onCompleted(amount)`를 부르는 반복문을 쓰세요.', TODO_RUN_AFTER, TODO_SUBMIT],
                                starter=S5_START, solution=S5_SOLUTION,
                                tests=[('12000 500', '주문 완료 12000원\n  재고: 1개 줄임\n  포인트: 120점 적립\n주문 완료 500원\n  재고: 1개 줄임\n  포인트: 5점 적립'),

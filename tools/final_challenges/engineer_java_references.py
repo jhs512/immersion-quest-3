@@ -18,7 +18,7 @@ START = '''public class Main {
 '''
 SPEC = code('engineer-java-references', '주문별 수량 배열을 독립적으로 보관하세요',
     '참조 대입과 배열 복사를 구별해 한 객체의 변경이 다른 객체로 번지지 않게 해요.',
-    '두 Order는 source의 초기 내용을 받아요. first에만 added를 더했을 때 source와 second는 그대로여야 해요. 지금 출력은 2 5 2예요. add와 출력문은 바꾸지 마세요.', 'java', START,
+    '두 Order는 source의 초기 내용을 받아요. first에만 added를 더했을 때 source와 second는 그대로여야 해요. 완성하면 2 5 2가 나와요. add와 출력문은 바꾸지 마세요.', 'java', START,
     [('quantities = source;', 'quantities = source.clone();', '생성자에서 받은 배열의 복사본을 필드에 저장하세요.')],
     '2 5 2', ['5 5 5', '2 5 2'],
     [dict(values=dict(source='{7, 9}', added='2'), expected='7 9 7'), dict(values=dict(source='{0}', added='5'), expected='0 5 0')],

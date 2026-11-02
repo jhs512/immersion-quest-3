@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_0c7e0b0d-7e3e-472e-9665-7e03c40d67e0",
-  "revision": "aice-tensorflow-6",
+  "revision": "aice-tensorflow-7",
   "title": "TensorFlow의 구성·학습·예측을 구별해요",
   "description": "같은 거리 입력에서 모델 구성과 실제 학습·검증·예측을 구별해요.",
   "objectives": [
@@ -108,7 +108,7 @@
           "objectives": [
             "관측 수와 특성 수를 구분하고 실제 학습·예측의 입출력 모양을 맞춰요."
           ],
-          "premise": "입력에는 배송 한 건의 특성 수 features를 써요. 배송 시간 예측은 한 칸이에요. 실제 한 묶음 학습과 예측 뒤 입력 모양, 예측 표 모양, 손실이 유한한지 출력해요. 현재 입력은 [2], 예측은 [3, 1]이에요.",
+          "premise": "입력에는 배송 한 건의 특성 수 features를 써요. 배송 시간 예측은 한 칸이에요. 실제 한 묶음 학습과 예측 뒤 입력 모양, 예측 표 모양, 손실이 유한한지 출력해요. 완성하면 입력 모양은 [2], 예측 표 모양은 [3, 1]이 나와요.",
           "steps": [
             {
               "id": "stp_228a312c-44f8-4f1f-bab3-2aaa29978f5c",
@@ -642,7 +642,7 @@
       "id": "stp_228a312c-44f8-4f1f-bab3-2aaa29978f5c",
       "title": "배송 특성 수와 예측 한 칸을 연결하세요",
       "language": "python",
-      "goal": "관측 수와 특성 수를 구분하고 실제 학습·예측의 입출력 모양을 맞춰요.\n\n입력에는 배송 한 건의 특성 수 features를 써요. 배송 시간 예측은 한 칸이에요. 실제 한 묶음 학습과 예측 뒤 입력 모양, 예측 표 모양, 손실이 유한한지 출력해요. 현재 입력은 [2], 예측은 [3, 1]이에요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 입력 모양에 행 수가 아닌 특성 수를 넣으세요.\n3. 시간을 한 값으로 예측하도록 출력 칸을 하나로 바꾸세요.\n4. 다시 실행해 요구한 결과를 확인한 뒤 작성한 코드를 제출하세요.",
+      "goal": "관측 수와 특성 수를 구분하고 실제 학습·예측의 입출력 모양을 맞춰요.\n\n입력에는 배송 한 건의 특성 수 features를 써요. 배송 시간 예측은 한 칸이에요. 실제 한 묶음 학습과 예측 뒤 입력 모양, 예측 표 모양, 손실이 유한한지 출력해요. 완성하면 입력 모양은 [2], 예측 표 모양은 [3, 1]이 나와요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 입력 모양에 행 수가 아닌 특성 수를 넣으세요.\n3. 시간을 한 값으로 예측하도록 출력 칸을 하나로 바꾸세요.\n4. 다시 실행해 요구한 결과를 확인한 뒤 작성한 코드를 제출하세요.",
       "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"3\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 행 수와 한 배송의 특성 수는 서로 달라요.\nrows = [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]\ntargets = [[1.0], [2.0], [3.0]]\nfeatures = 2\nmodel = keras.Sequential([keras.Input(shape=(len(rows),)), keras.layers.Dense(2, kernel_initializer=\"zeros\")])\nmodel.compile(optimizer=\"sgd\", loss=\"mse\")\nloss = model.train_on_batch(np.array(rows, dtype=\"float32\"), np.array(targets, dtype=\"float32\"))\npredictions = model(np.array(rows, dtype=\"float32\"), training=False).numpy()\nprint(list(model.input_shape[1:]))\nprint(list(predictions.shape))\nprint(bool(np.isfinite(loss)))\n",
       "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"3\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nkeras.utils.set_random_seed(7)\n# 행 수와 한 배송의 특성 수는 서로 달라요.\nrows = [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]\ntargets = [[1.0], [2.0], [3.0]]\nfeatures = 2\nmodel = keras.Sequential([keras.Input(shape=(features,)), keras.layers.Dense(1, kernel_initializer=\"zeros\")])\nmodel.compile(optimizer=\"sgd\", loss=\"mse\")\nloss = model.train_on_batch(np.array(rows, dtype=\"float32\"), np.array(targets, dtype=\"float32\"))\npredictions = model(np.array(rows, dtype=\"float32\"), training=False).numpy()\nprint(list(model.input_shape[1:]))\nprint(list(predictions.shape))\nprint(bool(np.isfinite(loss)))\n",
       "required": true,

@@ -87,7 +87,7 @@
         },
         {
           "action": "say",
-          "text": "0.6436과 False예요. 확률을 logit으로 보고 sigmoid를 한 번 더 적용해 직접 계산과 달라요.",
+          "text": "0.6835와 False예요. 확률을 logit으로 보고 sigmoid를 한 번 더 적용해 직접 계산과 달라요.",
           "target": "output"
         },
         {
@@ -277,7 +277,7 @@
         },
         {
           "action": "say",
-          "text": "1.4076과 True예요. 각 배송의 정답 칸 확률로 직접 계산한 값과 같아요.",
+          "text": "0.9076과 True예요. 각 배송의 정답 칸 확률로 직접 계산한 값과 같아요.",
           "target": "output"
         },
         {
@@ -464,7 +464,7 @@
       "id": "stp_6e8529c4-201c-4b8d-b922-550464a4336e",
       "title": "정수 정답과 다중 확률을 종류 이름에 연결하세요",
       "language": "python",
-      "goal": "정수 정답의 손실과 softmax 확률, 종류 이름 연결을 함께 맞춰요.\n\n정답 labels는 정수 인덱스예요. 알맞은 손실로 평가하고 각 행의 종류 확률 합을 1로 만들어요. 가장 큰 확률의 위치를 names에 연결해 이름을 출력해요. 현재 두 배송의 예측 이름은 모두 late예요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 정수 인덱스 정답에 맞는 손실로 바꾸세요.\n3. 한 배송의 종류 확률 합이 1이 되게 바꾸세요.\n4. 각 예측 위치가 가리키는 실제 종류 이름을 꺼내세요.\n5. 다시 실행해 요구한 결과를 확인한 뒤 작성한 코드를 제출하세요.",
+      "goal": "정수 정답의 손실과 softmax 확률, 종류 이름 연결을 함께 맞춰요.\n\n정답 labels는 정수 인덱스예요. 알맞은 손실로 평가하고 각 행의 종류 확률 합을 1로 만들어요. 가장 큰 확률의 위치를 names에 연결해 이름을 출력해요. 완성하면 두 배송의 예측 이름은 모두 late가 나와요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 정수 인덱스 정답에 맞는 손실로 바꾸세요.\n3. 한 배송의 종류 확률 합이 1이 되게 바꾸세요.\n4. 각 예측 위치가 가리키는 실제 종류 이름을 꺼내세요.\n5. 다시 실행해 요구한 결과를 확인한 뒤 작성한 코드를 제출하세요.",
       "starter_code": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"3\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nnames = [\"normal\", \"early\", \"late\"]\nrows = [[1.0], [2.0]]\nlabels = [0, 2]\nbiases = [0.0, 0.0, 2.0]\n# 고정 가중치로 확률 모양과 이름 연결을 확인해요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(len(names), activation=\"sigmoid\",\n    kernel_initializer=\"zeros\", bias_initializer=keras.initializers.Constant(biases))])\nmodel.compile(optimizer=\"sgd\", loss=\"categorical_crossentropy\")\nerror = model.evaluate(np.array(rows,dtype=\"float32\"), np.array(labels,dtype=\"int32\"), verbose=0)\nprobabilities = model(np.array(rows,dtype=\"float32\"), training=False).numpy()\npredicted = [names[0] for i in probabilities.argmax(axis=1)]\nprint(list(probabilities.shape))\nprint(probabilities.sum(axis=1).round(6).tolist())\nprint(predicted)\n",
       "solution": "import os\nos.environ.setdefault(\"TF_CPP_MIN_LOG_LEVEL\", \"3\")\nimport numpy as np\nimport tensorflow as tf\nfrom tensorflow import keras\ntf.config.threading.set_intra_op_parallelism_threads(1)\ntf.config.threading.set_inter_op_parallelism_threads(1)\nnames = [\"normal\", \"early\", \"late\"]\nrows = [[1.0], [2.0]]\nlabels = [0, 2]\nbiases = [0.0, 0.0, 2.0]\n# 고정 가중치로 확률 모양과 이름 연결을 확인해요.\nmodel = keras.Sequential([keras.Input(shape=(1,)), keras.layers.Dense(len(names), activation=\"softmax\",\n    kernel_initializer=\"zeros\", bias_initializer=keras.initializers.Constant(biases))])\nmodel.compile(optimizer=\"sgd\", loss=\"sparse_categorical_crossentropy\")\nerror = model.evaluate(np.array(rows,dtype=\"float32\"), np.array(labels,dtype=\"int32\"), verbose=0)\nprobabilities = model(np.array(rows,dtype=\"float32\"), training=False).numpy()\npredicted = [names[int(i)] for i in probabilities.argmax(axis=1)]\nprint(list(probabilities.shape))\nprint(probabilities.sum(axis=1).round(6).tolist())\nprint(predicted)\n",
       "required": true,
@@ -574,7 +574,7 @@
         "objectives": [
           "정수 정답의 손실과 softmax 확률, 종류 이름 연결을 함께 맞춰요."
         ],
-        "premise": "정답 labels는 정수 인덱스예요. 알맞은 손실로 평가하고 각 행의 종류 확률 합을 1로 만들어요. 가장 큰 확률의 위치를 names에 연결해 이름을 출력해요. 현재 두 배송의 예측 이름은 모두 late예요."
+        "premise": "정답 labels는 정수 인덱스예요. 알맞은 손실로 평가하고 각 행의 종류 확률 합을 1로 만들어요. 가장 큰 확률의 위치를 names에 연결해 이름을 출력해요. 완성하면 두 배송의 예측 이름은 모두 late가 나와요."
       }
     }
   },

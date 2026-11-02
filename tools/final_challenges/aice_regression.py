@@ -18,7 +18,7 @@ print(round(float(mean_absolute_error(y_test, predictions)), 6))
 '''
 SPEC = make('aice-regression', '남겨둔 배송으로 기준 모델과 회귀를 비교하세요',
     '훈련 자료로 선형 회귀를 학습해요. 평가 배송의 시간을 예측하고 평균 예측 기준 모델과 같은 평가 자료에서 MAE를 비교해요. '
-    '지금 자료의 평가 예측은 7분과 9분이고 회귀의 MAE는 0이에요.',
+    '완성하면 평가 예측은 7분과 9분, 회귀의 MAE는 0이 나와요.',
     '훈련에서 배운 회귀를 평가 자료에 적용하고 같은 기준으로 오차를 비교해요.', START,
     [('model = DummyRegressor(strategy="mean")', 'model = LinearRegression()', '학습할 후보를 선형 회귀로 바꾸세요.'),
      ('model.predict(X_train[:len(X_test)])', 'model.predict(X_test)', '남겨둔 평가 입력의 시간을 예측하세요.')],

@@ -18,7 +18,7 @@ print(model.predict(X_test).round(6).tolist())
 '''
 SPEC = make('aice-boosting', '반영 비율과 반복 횟수를 학습에 연결하세요',
     '정해 둔 rounds번만 학습하고 매 반복의 반영 비율은 rate를 따라요. 실제 반복 횟수, 학습률, 두 배송의 예측을 출력해요. '
-    '현재 두 번·0.5 비율이면 예측은 1.625와 6.125예요.',
+    '완성해서 두 번·0.5 비율로 학습하면 예측은 1.625와 6.125가 나와요.',
     '학습률과 반복 수를 실제 학습된 부스팅 모델에서 확인해요.', START,
     [('n_estimators=1', 'n_estimators=rounds', '학습 반복 횟수를 rounds에 연결하세요.'),
      ('learning_rate=1.0', 'learning_rate=rate', '학습 반영 비율을 rate에 연결하세요.')],

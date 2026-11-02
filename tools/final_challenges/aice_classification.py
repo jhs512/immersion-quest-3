@@ -14,7 +14,7 @@ print(alarms)
 '''
 SPEC = make('aice-classification', '지연 확률의 열을 찾아 기준 이상을 알리세요',
     'classes_에서 late가 있는 열을 찾아 지연 확률을 읽어요. 확률이 threshold 이상인 배송에만 True를 출력해요. '
-    '기준과 같은 확률도 경보 대상이에요. 지금 확률은 0과 1이고 경보는 False, True예요.',
+    '기준과 같은 확률도 경보 대상이에요. 완성하면 확률은 0과 1, 경보는 False, True가 나와요.',
     '범주 이름으로 확률 열을 찾고 경계값을 포함해 경보를 정해요.', START,
     [('model.predict_proba(X_test)[:, 1]', 'model.predict_proba(X_test)[:, list(model.classes_).index("late")]', 'classes_에서 late 열의 위치를 찾아 확률을 읽으세요.'),
      ('float(p) > threshold', 'float(p) >= threshold', '기준과 같은 확률도 경보에 포함하세요.')],

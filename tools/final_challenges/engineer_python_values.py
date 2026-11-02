@@ -12,7 +12,7 @@ print(rows[0][0], copied[0][0])
 print(pending, "pending" in counts)
 '''
 SPEC = make('engineer-python-values', '중첩 목록을 독립적으로 고치고 없는 키를 읽으세요',
-    'copied의 첫 칸만 9로 고치고 rows는 보존하세요. pending 키가 없으면 default를 읽되 counts에 새 키를 만들지 마세요. 지금 출력은 1 9와 0 False예요.',
+    'copied의 첫 칸만 9로 고치고 rows는 보존하세요. pending 키가 없으면 default를 읽되 counts에 새 키를 만들지 마세요. 완성하면 1 9와 0 False가 나와요.',
     '얕은 복사의 내부 공유와 사전 기본값 조회를 함께 판단해요.', START,
     [('copied = rows[:]', 'copied = [row[:] for row in rows]', '각 안쪽 목록도 복사해 copied를 만드세요.'),
      ('counts.get("pending", 1)', 'counts.get("pending", default)', '없는 키의 기본값으로 default를 사용하세요.')],

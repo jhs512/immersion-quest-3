@@ -10,7 +10,7 @@ HAVING COUNT(*) >= 1
 ORDER BY category;'''
 SPEC = code('engineer-sql-group', '양수 재고만 모아 기준을 넘는 분류를 보고하세요',
     '집계 전 행 조건과 집계 후 그룹 조건을 구별하고 결과 순서를 정해요.',
-    'qty가 양수인 행만 모으세요. 그 행이 2개 이상이고 합계가 6 이상인 분류만 남기세요. 합계 내림차순, 동점이면 분류 오름차순으로 출력하세요. 지금 C 8 2 다음 A 6 2예요.', 'sql', START,
+    'qty가 양수인 행만 모으세요. 그 행이 2개 이상이고 합계가 6 이상인 분류만 남기세요. 합계 내림차순, 동점이면 분류 오름차순으로 출력하세요. 완성하면 C 8 2 다음 A 6 2가 나와요.', 'sql', START,
     [('FROM stocks\nGROUP BY', 'FROM stocks\nWHERE qty > 0\nGROUP BY', '양수 행만 먼저 거르세요.'),
      ('HAVING COUNT(*) >= 1', 'HAVING COUNT(*) >= 2 AND SUM(qty) >= 6', '그룹의 행 수와 합계가 모두 기준을 만족하게 하세요.'),
      ('ORDER BY category;', 'ORDER BY total DESC, category ASC;', '합계 내림차순 뒤 분류 오름차순으로 정렬하세요.')],

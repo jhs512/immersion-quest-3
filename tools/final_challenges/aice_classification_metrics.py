@@ -13,7 +13,7 @@ print(round(float(f1_score(actual, predicted, pos_label=positive, zero_division=
 '''
 SPEC = make('aice-classification-metrics', '기준 경보의 지연 정밀도와 재현율을 구하세요',
     '확률이 threshold 이상이면 late로 판정해요. 관심 종류 late의 정밀도, 재현율, F1을 차례로 출력해요. '
-    '지연으로 예측한 건이 없으면 지표를 0으로 두세요. 현재 결과는 0.666667, 1.0, 0.8이에요.',
+    '지연으로 예측한 건이 없으면 지표를 0으로 두세요. 완성하면 0.666667, 1.0, 0.8이 나와요.',
     '같은 경보 기준을 적용하고 관심 종류의 정밀도·재현율·F1을 구해요.', START,
     [('p > threshold', 'p >= threshold', '기준과 같은 확률을 포함해 late 경보를 만드세요.'),
      ('positive = "ok"', 'positive = "late"', '관심 종류 late를 기준으로 세 지표를 계산하세요.')],

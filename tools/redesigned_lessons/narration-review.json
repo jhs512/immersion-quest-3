@@ -55,8 +55,8 @@
   "stp_a5d75177-1ef8-4bf6-a518-1e1a0697176d": {
    "lesson": "aice-boosting",
    "state": "reviewed",
-   "context_sha256": "d8d9b005b2a88f5a6bb4bf36c4189b8587659a6433ff9ccd59f1bd350a692083",
-   "reviewed": "2026-10-29",
+   "context_sha256": "32cd32d56f921c8ca3ba08d5fc35f0497509f3df099a14f8fcac9cbaf45dc703",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. 변수 rate만 바꾸고 모델 설정에 연결하지 않으면 학습 결과는 그대로예요.": "이 문제의 잘못된 코드와 준비 자료 교체 검사로 확인하는 구체적 오류예요."
    },
@@ -135,8 +135,8 @@
   "stp_91a6a75b-ce1e-47e5-9d88-de2b221813f0": {
    "lesson": "aice-classification",
    "state": "reviewed",
-   "context_sha256": "9d5c1fce25d1f6dd95a375aa7de846063ea17d41c600bc0832dd24fbbc4ffcd9",
-   "reviewed": "2026-10-29",
+   "context_sha256": "9385470674b5fca8aba82c32ebcb376749bd9b37e78de1af8c146a54aed60d1b",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. 두 번째 열을 지연이라고 고정하면 범주 이름 순서가 바뀔 때 반대로 읽어요.": "이 문제의 잘못된 코드와 준비 자료 교체 검사로 확인하는 구체적 오류예요."
    },
@@ -193,8 +193,8 @@
   "stp_208e0760-9120-4546-a215-6633fba1ea5a": {
    "lesson": "aice-classification-metrics",
    "state": "reviewed",
-   "context_sha256": "a264e1ddb59ee52c594e4cbcfb4e274a5b01786c8d4fccf4feff17ec5136cabf",
-   "reviewed": "2026-10-29",
+   "context_sha256": "282f9afe0ab07430a0e463eb4a44204516238fc586c07f8abf48ed069b7dd1f2",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. pos_label을 바꾸면 같은 예측도 다른 종류의 성능을 보고하게 돼요.": "이 문제의 잘못된 코드와 준비 자료 교체 검사로 확인하는 구체적 오류예요."
    },
@@ -761,8 +761,8 @@
   "stp_8f1aa06f-612a-433b-986b-d09b20cc2c46": {
    "lesson": "aice-models",
    "state": "reviewed",
-   "context_sha256": "47d1b151950327fdd90e222af5626b14873728f67da3065de5e242e4fa02cf41",
-   "reviewed": "2026-10-29",
+   "context_sha256": "96407ec0b5a5b96f21f36a6263cdf57a8494d0e90883b44d68fbe5da33806e2f",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. 훈련 점수가 좋은 후보를 고르면 새 배송에서의 성능 비교가 빠져요.": "이 문제의 잘못된 코드와 준비 자료 교체 검사로 확인하는 구체적 오류예요."
    },
@@ -851,8 +851,8 @@
   "stp_6e8529c4-201c-4b8d-b922-550464a4336e": {
    "lesson": "aice-neural-classification",
    "state": "reviewed",
-   "context_sha256": "6cb533c1907a975e29d444144c3e851841ba56f940ec9cc1cf7b826a41cffad5",
-   "reviewed": "2026-10-29",
+   "context_sha256": "d48e3c8e6d226cd245731e5038e51f8711270f384f8deafeae43a956b420bb32",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. argmax의 위치를 종류 이름으로 바꾸지 않으면 화면의 범주를 잘못 해석해요.": "이 문제의 잘못된 코드와 준비 자료 교체 검사로 확인하는 구체적 오류예요."
    },
@@ -881,12 +881,20 @@
   "stp_a926ba50-dd69-452c-b63e-ff47a3a7dd37": {
    "lesson": "aice-neural-classification",
    "state": "reviewed",
-   "context_sha256": "d2d2b9689eb7b8d9f41b3362b7319485ae9e320ec9325ff9b518f416c5d2476f",
-   "reviewed": "2026-10-30",
+   "context_sha256": "a081ca65be985e5f1306362bd7e6a19cdd62e096323b23742c3d6354a4ce7203",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. 출력층에 활성화 없이 logit을 내는 다른 설계라면 그때 from_logits=True를 써요. 출력 형식과 옵션을 함께 맞춰요.": "실제 Keras 동작을 정확히 말해요."
    },
-   "findings": []
+   "findings": [
+    {
+     "sentence": "0.6436과 False예요. 확률을 logit으로 보고 sigmoid를 한 번 더 적용해 직접 계산과 달라요.",
+     "fix": "0.6835와 False예요. 확률을 logit으로 보고 sigmoid를 한 번 더 적용해 직접 계산과 달라요.",
+     "issue": "해설이 말한 값 0.6436이 실제 첫 실행 출력과 달라요.",
+     "reason": "tests/lesson-cases/aice-neural-classification.json 2번 첫 출력 0.6835. 손으로 계산: p=[0.5, 0.7311]을 logit으로 본 BCE 평균 (0.9741+0.3929)/2=0.6835. 2026-11-02 감사.",
+     "status": "fixed"
+    }
+   ]
   },
   "stp_acd9b297-076d-461d-8848-dda9e325a494": {
    "lesson": "aice-neural-classification",
@@ -901,18 +909,26 @@
   "stp_e4f42523-852a-4b2f-b4df-5edb4cb32630": {
    "lesson": "aice-neural-classification",
    "state": "reviewed",
-   "context_sha256": "a31843539298c458849b196ce72b483619963a25b61d0889bee5cde17f1f0518",
-   "reviewed": "2026-10-30",
+   "context_sha256": "6e554d06f7eb7dcd97f4970d66cde9a8939951715dc74ba490cbc19d248cab78",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. 원핫 정답과 범주 번호 정답은 표현이 달라요. 정답 모양에 맞는 손실을 골라요.": "실제 Keras 동작을 정확히 말해요."
    },
-   "findings": []
+   "findings": [
+    {
+     "sentence": "1.4076과 True예요. 각 배송의 정답 칸 확률로 직접 계산한 값과 같아요.",
+     "fix": "0.9076과 True예요. 각 배송의 정답 칸 확률로 직접 계산한 값과 같아요.",
+     "issue": "해설이 말한 값 1.4076은 첫 배송 하나의 손실이고, 실제 출력은 두 배송의 평균이에요.",
+     "reason": "tests/lesson-cases/aice-neural-classification.json 5번 둘째 출력 0.9076. 손으로 계산: softmax([0,1,-1])의 0번 0.2447, softmax([0,-1,1])의 2번 0.6652, -(ln0.2447+ln0.6652)/2=0.9076. 2026-11-02 감사.",
+     "status": "fixed"
+    }
+   ]
   },
   "stp_1e68bc14-fc5b-4c8d-b02f-50f1b0a61b82": {
    "lesson": "aice-neural-regression",
    "state": "reviewed",
-   "context_sha256": "ebbeb1b2028fe1e29c4c25e46991d0c05d078da61468bb1fff7acda6bea01e53",
-   "reviewed": "2026-10-29",
+   "context_sha256": "0b3d5a3549b242fa71053794d221fba9de1e182c1d0be8168157242f642a5ad8",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. sigmoid로 시간을 막으면 1분보다 큰 목표도 0과 1 사이로 눌려요.": "이 문제의 잘못된 코드와 준비 자료 교체 검사로 확인하는 구체적 오류예요."
    },
@@ -1163,10 +1179,12 @@
   "stp_464ed6a6-18af-4e68-b2f1-cec9039f0b70": {
    "lesson": "aice-python-api",
    "state": "reviewed",
-   "context_sha256": "54bba734a278d3e2b3875cd98f2934e33dd618ffda436810062fe306d5f7e4ce",
-   "reviewed": "2026-10-29",
+   "context_sha256": "1c05209eeb9ff8510394019e11a0ad6b9e6f9b64b17c1f42da848ffa5245ea62",
+   "reviewed": "2026-11-02",
    "checked": {
-    "조심하세요. minutes.sort()는 원래 목록을 바꾸고 None을 돌려줘요.": "실제 파이썬 동작을 정확히 말해요."
+    "조심하세요. minutes.sort()는 원래 목록을 바꾸고 None을 돌려줘요.": "실제 파이썬 동작을 정확히 말해요.",
+    "코드 흐름 보기로 print(ordered) 직전을 열었어요. ordered와 minutes가 같은 목록 하나를 가리켜요.": "2026-11-02 감사: 시작 코드 5행 첫 기록 단계에서 두 이름이 같은 list 객체를 가리키는 것을 화면으로 보여요. 출력은 값만 같아 보여 구별하지 못해요.",
+    "고친 뒤 같은 자리를 다시 열었어요. ordered는 새 목록을 가리키고 minutes의 목록은 그대로예요.": "2026-11-02 감사: sorted가 만든 새 list와 원래 list가 서로 다른 객체임을 보여 「원래 목록은 그대로」를 확인해요."
    },
    "findings": []
   },
@@ -1337,10 +1355,11 @@
   "stp_5f9dd3bf-c8b2-44a1-9f9a-011fcdc274a7": {
    "lesson": "aice-python-conditions",
    "state": "reviewed",
-   "context_sha256": "e9693be3850754ad566125f31e98b7f4dd4fc6a69c59abaa55544ce06f9b29e9",
-   "reviewed": "2026-10-30",
+   "context_sha256": "50e21837cef80f688d8078cd99f94467af742038dae7084a53a095ae43958b00",
+   "reviewed": "2026-11-02",
    "checked": {
-    "조심하세요. delayed = []를 반복 안에 두면 매번 비워져 마지막 한 건만 남아요.": "실제 흔한 실수와 그 결과를 정확히 말해요."
+    "조심하세요. delayed = []를 반복 안에 두면 매번 비워져 마지막 한 건만 남아요.": "실제 흔한 실수와 그 결과를 정확히 말해요.",
+    "코드 흐름 보기로 두 번째 append 직전을 열었어요. delayed에는 30 하나가 있고 minute은 42예요.": "2026-11-02 감사: 고친 코드 9행 두 번째 정지에서 목록이 한 건씩 자라는 중간 상태를 보여요. 출력은 마지막 목록만 보여요."
    },
    "findings": []
   },
@@ -1841,8 +1860,8 @@
   "stp_8f967e0e-fb58-44c3-b9ba-2b94b21bb01b": {
    "lesson": "aice-regression",
    "state": "reviewed",
-   "context_sha256": "59b422acb4c21ddf9054a6337c1c0dd5fb451379560142fa69a3704101d9ccfb",
-   "reviewed": "2026-10-29",
+   "context_sha256": "09dccd095f3971b2d9b0c690a28ab2f16b03c5010d5ecf46d55f777a9f2caa80",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. 훈련 자료 예측을 평가 정답과 비교하면 서로 다른 배송을 채점해요.": "이 문제의 잘못된 코드와 준비 자료 교체 검사로 확인하는 구체적 오류예요."
    },
@@ -1944,8 +1963,8 @@
   "stp_8c2d0bff-a5ed-444e-9b9d-811d3b88f5b2": {
    "lesson": "aice-regression-metrics",
    "state": "reviewed",
-   "context_sha256": "d2918b7062a6ea06b1b27fe876268a49971952c201d8fd6736328f2496f0cfbd",
-   "reviewed": "2026-10-29",
+   "context_sha256": "4edc95434662cd9414636d7d2aa9a5234e90a2824571a9c246e1bb8d02608b5e",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. 두 목록을 값순으로 따로 정렬하면 번호가 같은 배송의 오차를 잃어요.": "이 문제의 잘못된 코드와 준비 자료 교체 검사로 확인하는 구체적 오류예요."
    },
@@ -2293,8 +2312,8 @@
   "stp_4664135d-7073-47a2-9c52-b0081fafd1f9": {
    "lesson": "aice-split",
    "state": "reviewed",
-   "context_sha256": "b4b4847d6d165486978740757daa8c07ac276b4993594ed1e2ae515b0a1347e1",
-   "reviewed": "2026-10-29",
+   "context_sha256": "c060e9d53de6662a9df00cdb1325d5dd166c2e619d431fe0dceec65233c8b785",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. 입력과 정답을 따로 섞으면 같은 위치가 다른 배송을 가리킬 수 있어요.": "이 문제의 잘못된 코드와 준비 자료 교체 검사로 확인하는 구체적 오류예요."
    },
@@ -2505,8 +2524,8 @@
   "stp_228a312c-44f8-4f1f-bab3-2aaa29978f5c": {
    "lesson": "aice-tensorflow",
    "state": "reviewed",
-   "context_sha256": "0144a0f023ea6019db1e62eee2dbf728be99daec56d420d76cbd782ee3a48ab7",
-   "reviewed": "2026-10-29",
+   "context_sha256": "651d094f08b7245425aac486f2b4c067e3d9133374b162771658b857ba5ceba5",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. 배송 건수를 입력 특성 수로 쓰면 자료의 행 수만 바뀌어도 실행이 깨져요.": "이 문제의 잘못된 코드와 준비 자료 교체 검사로 확인하는 구체적 오류예요."
    },
@@ -3599,8 +3618,8 @@
   "stp_23473fd3-7d92-4ed4-bcb7-382927ce49c1": {
    "lesson": "engineer-c-arrays",
    "state": "reviewed",
-   "context_sha256": "a40a4de6d30df68e17080888757e7d5cc971b2555ec5b5919a1a343e3beaa053",
-   "reviewed": "2026-10-29",
+   "context_sha256": "06d0d16fbcfa4bca58c8bf585e1b668ed2615856ce48bdab2c40312a981923e5",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. 동점에서도 위치를 바꾸면 첫 번째 최대 위치가 사라져요.": "이 도전의 잘못된 코드와 다른 준비 자료 검사로 확인하는 실수예요."
    },
@@ -3629,10 +3648,10 @@
   "stp_7a1ad1f7-95f7-4cb4-804c-ed451ccbf103": {
    "lesson": "engineer-c-arrays",
    "state": "reviewed",
-   "context_sha256": "b4aeb21d3e4b153b7d02c1c133b189821e7bb32271f1be9b8809ca15370ffb49",
-   "reviewed": "2026-10-28",
+   "context_sha256": "b34ea9270c812d7946c2bd2ebeeb62d3109fc14e1408fa7bb75680fce1b50b01",
+   "reviewed": "2026-11-02",
    "checked": {
-    "조심하세요. 작은따옴표의 F는 문자 하나예요.": "전수 검토 2026-10-28: B → F로 FOX, BAG → FAG → 되돌림. 글자를 읽는 소리(비, 에프)로 적은 2문장 수정."
+    "조심하세요. 작은따옴표의 F는 문자 하나예요.": "2026-11-02 감사: B → F로 FOX, 다른 라벨 BIG → FIG → 되돌림. 작은따옴표 문자 하나와 큰따옴표 문자열을 구별하는 실제 실수를 짚어요."
    },
    "findings": [
     {
@@ -3647,6 +3666,13 @@
      "fix": "첫 위치에 넣을 문자만 F로 바꿔요.",
      "issue": "출력된 숫자·글자를 읽는 소리(한글)로 적었다. docs/voice.md: 글자는 화면 그대로 쓰고 읽기는 음성 계층이 맡는다. 개수를 세는 말은 유지했다.",
      "reason": "patch_code: label[0] = 'F';",
+     "status": "fixed"
+    },
+    {
+     "sentence": "이번에도 첫 글자만 바뀌어 FAG가 나왔어요.",
+     "fix": "이번에도 첫 글자만 바뀌어 FIG가 나왔어요.",
+     "issue": "다른 라벨 BAG의 첫 글자를 F로 바꾼 결과가 영어 비하어(FAG)였어요. 화면과 음성에 그대로 나와요.",
+     "reason": "같은 원리(첫 칸만 바뀜)를 보이는 무해한 라벨 BIG → FIG로 바꿨어요. 문제·정답·채점 기준은 그대로이고 채점 변형과 해설 시연의 라벨만 바꿨어요.",
      "status": "fixed"
     }
    ]
@@ -3841,8 +3867,8 @@
   "stp_dc7e47b4-96cc-49e9-9865-af75a871cc94": {
    "lesson": "engineer-c-conditions",
    "state": "reviewed",
-   "context_sha256": "131b328037765456f00130e465cf8c6a771f72cfeb66c44ebb138c2f21c48bf2",
-   "reviewed": "2026-10-29",
+   "context_sha256": "444cef96344d90c70f17ec6ea6831a937e9474f50b66c74639fe2df87c8ec0c8",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. 나머지가 0일 때 상자 크기만큼 부족하다고 계산하면 틀려요.": "이 도전의 잘못된 코드와 다른 준비 자료 검사로 확인하는 실수예요."
    },
@@ -3928,20 +3954,22 @@
   "stp_227841ff-01d4-476a-86ef-9d20f776f31d": {
    "lesson": "engineer-c-double-pointers",
    "state": "reviewed",
-   "context_sha256": "1895e25e68ced716e575580eee3f8cb2675a29e2ae4d7e0816ddb259c0539a6c",
-   "reviewed": "2026-10-29",
+   "context_sha256": "718802e36f4ca19be147f6c8dc0cb0a0e30a44e521494cd5890522868a8d160f",
+   "reviewed": "2026-11-02",
    "checked": {
-    "조심하세요. *pp = &other와 **pp = other는 출력 첫 줄이 같아도 stock에 하는 일이 달라요.": "실제 두 실행 결과(9,2와 9,9)로 확인되는 대조예요."
+    "조심하세요. *pp = &other와 **pp = other는 출력 첫 줄이 같아도 stock에 하는 일이 달라요.": "실제 두 실행 결과(9,2와 9,9)로 확인되는 대조예요.",
+    "코드 흐름 보기로 printf 직전을 열었어요. pp는 p를, p는 other를 가리키고 stock은 2예요.": "2026-11-02 감사: 고친 코드의 printf 직전 정지에서 pp → p → other 두 단계 화살표와 그대로인 stock을 보여요. 출력 9와 2는 결과만 보여 줘요."
    },
    "findings": []
   },
   "stp_34b7c3f3-7559-415d-83c1-9db050fb38df": {
    "lesson": "engineer-c-double-pointers",
    "state": "reviewed",
-   "context_sha256": "b04c29df613a8318ade0dc6dcf4dda4bc8631bfaf425ad42b1ebf1f929c7afbb",
-   "reviewed": "2026-10-29",
+   "context_sha256": "601fd847d2e789a5bae2681e5d638c1942caa69a4b845d6fdf85a235db36bfd0",
+   "reviewed": "2026-11-02",
    "checked": {
-    "조심하세요. pp를 옮겨도 p가 따라 바뀌지 않아요. 각 포인터는 따로 있는 변수예요.": "실제 C 의미와 실제 출력 *p=2를 정확히 말해요."
+    "조심하세요. pp를 옮겨도 p가 따라 바뀌지 않아요. 각 포인터는 따로 있는 변수예요.": "실제 C 의미와 실제 출력 *p=2를 정확히 말해요.",
+    "코드 흐름 보기로 printf 직전을 열었어요. pp는 q를 거쳐 other로 가고, p의 화살표는 stock 그대로예요.": "2026-11-02 감사: 3번과 출력이 같은 9와 2지만 바뀐 층이 달라요. pp → q → other와 p → stock을 함께 보여 차이를 화면으로 확인해요."
    },
    "findings": []
   },
@@ -3958,8 +3986,8 @@
   "stp_91b12cbe-e1be-4225-a7da-ff05510ff2a4": {
    "lesson": "engineer-c-double-pointers",
    "state": "reviewed",
-   "context_sha256": "e4902591cebcd3907b8fc103f72ee4aee09e30f81a2df76cea6ad014c81cd0cc",
-   "reviewed": "2026-10-29",
+   "context_sha256": "5e2102639c7ad4b116d087f439f700c156ef98c678a9db2f56bd01b33e8f6b38",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. 별 하나는 포인터를, 별 둘은 그 포인터가 가리킨 정수를 바꿔요.": "이 도전의 잘못된 코드와 다른 준비 자료 검사로 확인하는 실수예요."
    },
@@ -4112,8 +4140,8 @@
   "stp_dba636c3-ea11-4e6d-9eca-5d3006fb7b12": {
    "lesson": "engineer-c-functions",
    "state": "reviewed",
-   "context_sha256": "1b5cc18f6d89a2ef60aba1f9e2da0143648fcbb249a3b12448237e4664bc1b2f",
-   "reviewed": "2026-10-29",
+   "context_sha256": "43f7e23469e18c77eb328705bf3e32115805e81b572192db3522b911c4bad375",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. static 호출 횟수를 합에 더하면 이전 호출의 기록이 다음 계산에 섞여요.": "이 도전의 잘못된 코드와 다른 준비 자료 검사로 확인하는 실수예요."
    },
@@ -4132,10 +4160,11 @@
   "stp_ecfefe67-b584-4ce9-a241-ca96c3929a79": {
    "lesson": "engineer-c-functions",
    "state": "reviewed",
-   "context_sha256": "1a9d3e057ae56de13ac005f42a969ae2d1acf0496588aaade1e5fec7db12791c",
-   "reviewed": "2026-10-30",
+   "context_sha256": "ce68af09a922e04e9cc05f022d41198fc84cf68a4ef503024d6bfc40b9785ac4",
+   "reviewed": "2026-11-02",
    "checked": {
-    "조심하세요. 마지막 결과는 맨 안쪽 호출의 0이 아니라 돌아오며 쌓인 합이에요.": "실제 흔한 혼동(끝 조건 값 = 결과)을 정확히 말해요."
+    "조심하세요. 마지막 결과는 맨 안쪽 호출의 0이 아니라 돌아오며 쌓인 합이에요.": "실제 흔한 혼동(끝 조건 값 = 결과)을 정확히 말해요.",
+    "코드 흐름 보기로 가장 깊은 순간을 열었어요. n이 3, 2, 1, 0인 sum_to 네 칸이 main 위에 쌓였어요.": "2026-11-02 감사: 고친 코드 6행 정지에서 재귀 호출 프레임 넷이 동시에 살아 있어요. 출력 6은 돌아온 합만 보여요."
    },
    "findings": []
   },
@@ -4163,18 +4192,19 @@
   "stp_5e9bf6ba-e978-49db-ac0d-ca494df17bf1": {
    "lesson": "engineer-c-pointers",
    "state": "reviewed",
-   "context_sha256": "39788b4680453762e6a69a8bed5ce963dbc6ab5f5d2fab49254e80bea4169f8f",
-   "reviewed": "2026-10-30",
+   "context_sha256": "1a2eb3fe063d689d3eadc08c8be3f1c271f2ca6a7185fa6e2eb6692eef4d20a0",
+   "reviewed": "2026-11-02",
    "checked": {
-    "조심하세요. int *q = &stock으로 고정하면 지금은 같아도 p가 다른 곳을 가리키면 달라져요.": "실제 우회와 그 한계(대상 바꾼 채점)를 말해요."
+    "조심하세요. int *q = &stock으로 고정하면 지금은 같아도 p가 다른 곳을 가리키면 달라져요.": "실제 우회와 그 한계(대상 바꾼 채점)를 말해요.",
+    "코드 흐름 보기로 printf 직전을 열었어요. p와 q의 화살표가 모두 stock으로 가요.": "2026-11-02 감사: 고친 코드 11행 정지에서 p와 q가 같은 대상을 가리켜요. 출력 7 7 9는 결과만 보여 줘요."
    },
    "findings": []
   },
   "stp_72d91c6d-4814-4b28-90c8-92f78ba9f667": {
    "lesson": "engineer-c-pointers",
    "state": "reviewed",
-   "context_sha256": "037abe5947c57456c3697f353b281d430fe9178e22b494e0715678f6bd384b7e",
-   "reviewed": "2026-10-30",
+   "context_sha256": "fdf9fa2d907a7c72084242b4bf0cc19ddf4f796d5c4863a8e4c16426edee0119",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. 임시 저장 없이 첫 값을 덮어쓰면 두 번째에 돌려줄 값이 사라져요.": "이 도전의 잘못된 코드와 다른 준비 자료 검사로 확인하는 실수예요."
    },
@@ -4515,8 +4545,8 @@
   "stp_9be10228-3f66-4600-876e-589546f4a886": {
    "lesson": "engineer-c-structures",
    "state": "reviewed",
-   "context_sha256": "49bf8b23da1c329d31761e929c7fcb95cddefe2c831f96827bf42577bde6eeca",
-   "reviewed": "2026-10-29",
+   "context_sha256": "e9f031e2d0795b6cf43107fa7ddc3cbaaf5b7e61228d1e2387b2256ad478d8da",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. 함수 포인터를 선언해도 선택한 함수를 항목마다 호출하지 않으면 계산되지 않아요.": "이 도전의 잘못된 코드와 다른 준비 자료 검사로 확인하는 실수예요."
    },
@@ -5378,8 +5408,8 @@
   "stp_81d6934e-8cf9-47b5-bf45-4ae4beb83506": {
    "lesson": "engineer-java-flow",
    "state": "reviewed",
-   "context_sha256": "0316b851d153e95b3654b4d1dec3752c0b5e5c45e5608cb8f1b54929adc2c120",
-   "reviewed": "2026-10-29",
+   "context_sha256": "aa409a17e321ea97fb2cc4c2438d70617b8e84658f932e8144cbdfde3afbea84",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. 각 금액의 정수 몫을 합하는 것과 금액을 모두 합한 뒤 나누는 것은 다를 수 있어요.": "이 도전의 잘못된 코드와 다른 준비 자료 검사로 확인하는 실수예요."
    },
@@ -5541,8 +5571,8 @@
   "stp_386c6124-e3ed-4cab-8223-61ef33179153": {
    "lesson": "engineer-java-references",
    "state": "reviewed",
-   "context_sha256": "23d63773e479053fa7faf1a0a311b7826492ad7185699acb5a10d0dec399e20c",
-   "reviewed": "2026-10-29",
+   "context_sha256": "01400e3212a5695be3ebc8f3b2ccd2873b17f550e60ea1872e60b238e61bee79",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. 객체를 두 번 만들었다고 생성자에 넘긴 배열까지 자동으로 복사되지는 않아요.": "이 도전의 잘못된 코드와 다른 준비 자료 검사로 확인하는 실수예요."
    },
@@ -5611,8 +5641,8 @@
   "stp_1b79ae00-24ed-4ce1-bc83-5ee7121d3a93": {
    "lesson": "engineer-java-static",
    "state": "reviewed",
-   "context_sha256": "c33c3f50a76e2e4ede288619435ecb8fc7f9bb8c23006357c6449a4101153222",
-   "reviewed": "2026-10-29",
+   "context_sha256": "98970d7523438e357f7ca762a57c69d3a355dbc684efd35b322ba4e0916ec6b4",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. alias = a는 새 객체 생성이 아니므로 발급 수를 늘리지 않아요.": "이 도전의 잘못된 코드와 다른 준비 자료 검사로 확인하는 실수예요."
    },
@@ -6452,10 +6482,11 @@
   "stp_64286750-6cf6-477c-9a03-886920e7c3f8": {
    "lesson": "engineer-python-calls",
    "state": "reviewed",
-   "context_sha256": "523a75b0a8a23e96f638285c08a452b0d9a96cbf9408f906b4825f4426ef2614",
-   "reviewed": "2026-10-30",
+   "context_sha256": "c0525f100fb227b329ce9c6558e173ec31034c46b6299938129d8291a6326161",
+   "reviewed": "2026-11-02",
    "checked": {
-    "조심하세요. 호출할 때마다 빈 목록이 새로 생긴다고 생각하면 [2]를 예상하게 돼요.": "실제 흔한 오개념과 그 예상 출력을 말해요."
+    "조심하세요. 호출할 때마다 빈 목록이 새로 생긴다고 생각하면 [2]를 예상하게 돼요.": "실제 흔한 오개념과 그 예상 출력을 말해요.",
+    "코드 흐름 보기로 두 번째 호출 안을 열었어요. 기본 목록 items에 첫 호출의 2가 이미 들어 있어요.": "2026-11-02 감사: 7행 두 번째 정지(record(b) 안)에서 items가 이미 [2]예요. 「호출마다 새 목록」이라는 오해를 화면으로 반박해요."
    },
    "findings": []
   },
@@ -6483,10 +6514,11 @@
   "stp_8a0446ea-c36b-488d-9986-79570b82433f": {
    "lesson": "engineer-python-calls",
    "state": "reviewed",
-   "context_sha256": "73db8ceda27936940fe4cf8327a712839950dfe36894b95d5637aba86c27d21d",
-   "reviewed": "2026-10-30",
+   "context_sha256": "16da6f8af717e1f520d110eabe917b6038dcfd89804739331c5412bd357b2cff",
+   "reviewed": "2026-11-02",
    "checked": {
-    "조심하세요. n * (n - 1)처럼 한 번만 곱하면 12에서 멈춰요. 작은 문제의 답을 다시 불러야 해요.": "실제 Python 동작을 정확히 말해요."
+    "조심하세요. n * (n - 1)처럼 한 번만 곱하면 12에서 멈춰요. 작은 문제의 답을 다시 불러야 해요.": "실제 Python 동작을 정확히 말해요.",
+    "코드 흐름 보기로 가장 깊은 호출을 열었어요. n이 4, 3, 2, 1인 multiply 네 칸이 쌓였어요.": "2026-11-02 감사: 고친 코드 3행 정지에서 multiply 프레임 넷이 함께 보여 「돌아오면서 곱했어요」의 출발점을 확인해요."
    },
    "findings": []
   },
@@ -6584,11 +6616,13 @@
   "stp_a36a1a3b-964d-4ef9-ba7d-18f6cb02f5d5": {
    "lesson": "engineer-python-values",
    "state": "reviewed",
-   "context_sha256": "fb8a2f6fd3a4d9c6b2490760d3301e0eb320374b783dbfa02ba9d54e3343904e",
-   "reviewed": "2026-10-30",
+   "context_sha256": "289cd07bdad3a8cd48880eb26817453e5e4af72c2a479329ddb60671a5b94f43",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. backup = stocks는 복사가 아니에요. 같은 목록에 이름을 하나 더 붙일 뿐이에요.": "실제 Python 동작을 정확히 말해요.",
-    "backup에 덧붙여도 stocks는 그대로여야 해요. 이름만 하나 더 붙이지 말고 새 목록으로 복사해야 해요.": "덧붙여도 stocks가 그대로라는 대조가 이 스텝의 목표 그대로예요."
+    "backup에 덧붙여도 stocks는 그대로여야 해요. 이름만 하나 더 붙이지 말고 새 목록으로 복사해야 해요.": "덧붙여도 stocks가 그대로라는 대조가 이 스텝의 목표 그대로예요.",
+    "코드 흐름 보기로 print 직전을 열었어요. stocks와 backup의 화살표가 같은 목록 하나로 가요.": "2026-11-02 감사: 시작 코드 6행 정지에서 두 이름이 한 list를 가리켜요. 「이름이 둘」을 객체 하나와 화살표 둘로 보여요.",
+    "고친 뒤 같은 자리예요. 이제 목록이 둘이고 6은 backup의 목록에만 있어요.": "2026-11-02 감사: copy() 뒤 같은 정지에서 list 객체가 둘로 나뉘어요. 앞 화면과 비교해 복사의 뜻을 확인해요."
    },
    "findings": []
   },
@@ -6616,8 +6650,8 @@
   "stp_db97db2a-0c84-44da-947f-0cce41a180db": {
    "lesson": "engineer-python-values",
    "state": "reviewed",
-   "context_sha256": "88de4778d55f70774727855e1ec34028d8422599a777b0fceceeef213f33db63",
-   "reviewed": "2026-10-29",
+   "context_sha256": "0771334efa6b0581a647b919ca7251b14091c2dfbcc37fe56abc9e52e7be6b92",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. get과 setdefault는 없는 키를 사전에 추가하는지에서 달라요.": "이 문제의 잘못된 코드와 준비 자료 교체 검사로 확인하는 구체적 오류예요."
    },
@@ -7275,8 +7309,8 @@
   "stp_5c00ddd4-5de1-497b-85d6-15f8c7989885": {
    "lesson": "engineer-sql-group",
    "state": "reviewed",
-   "context_sha256": "fa6b8766aa57918ba8c32b8212a26d9d0eaf096d65d6c54abd7d6092a9c6bb7a",
-   "reviewed": "2026-10-29",
+   "context_sha256": "04a2d7703d607c806c82bb7f89f10344cae4a2b29271c2f01bd239b8c6542be9",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. WHERE는 합치기 전 행을, HAVING은 합친 뒤 그룹을 거릅니다.": "이 도전의 잘못된 코드와 다른 준비 자료 검사로 확인하는 실수예요."
    },
@@ -9164,10 +9198,11 @@
   "stp_328cce04-16cf-40cf-9b9b-0be1406bc52d": {
    "lesson": "java-arrays",
    "state": "reviewed",
-   "context_sha256": "093fa137442222276de79c80421783b5e04e0b71d60e48bdf36341178e40f267",
-   "reviewed": "2026-10-26",
+   "context_sha256": "a6179f109d73fa2277d40cfb65d2c568638197a730d8d58f9acce3bef1d3791f",
+   "reviewed": "2026-11-02",
    "checked": {
-    "조심하세요. total + index처럼 위치를 더하면 가격이 아니라 0, 1, 2를 더해요.": "가격 대신 위치를 누적하는 실제 혼동과 결과(합 3, 채점 거절)."
+    "조심하세요. total + index처럼 위치를 더하면 가격이 아니라 0, 1, 2를 더해요.": "가격 대신 위치를 누적하는 실제 혼동과 결과(합 3, 채점 거절).",
+    "코드 흐름 보기로 두 번째 반복을 열었어요. total은 쌓인 3000이 아니라 방금 넣은 2000이에요.": "2026-11-02 감사: 덮어쓰는 코드의 index++ 두 번째 정지에서 total이 2000이에요. 출력 3000만 보면 중간에 무엇이 남았는지 몰라요."
    },
    "findings": []
   },
@@ -10016,10 +10051,11 @@
   "stp_87161078-c5c8-4db7-b6ed-38c6cdfb259a": {
    "lesson": "java-conditions",
    "state": "reviewed",
-   "context_sha256": "9e5d1903f15e1eae8c9a31f5b0ca0a48d11d697820f5e52abe64354674e884b3",
-   "reviewed": "2026-10-26",
+   "context_sha256": "bab406299ad0fe89ebd4039dfb8b6f90f8daaaa94f65b476da054138d1592084",
+   "reviewed": "2026-11-02",
    "checked": {
-    "조심하세요. else 없이 if만 이어 쓰면 뒤 조건이 앞 결과를 덮어써요. 높은 구간을 앞에 둘 때는 else if로 이어요.": "준비 코드가 보인 덮어쓰기(25,000원→1000)를 원인과 함께 말한다. 높은 구간 우선이라는 조건을 붙여 순서 변경 풀이와 모순되지 않는다."
+    "조심하세요. else 없이 if만 이어 쓰면 뒤 조건이 앞 결과를 덮어써요. 높은 구간을 앞에 둘 때는 else if로 이어요.": "준비 코드가 보인 덮어쓰기(25,000원→1000)를 원인과 함께 말한다. 높은 구간 우선이라는 조건을 붙여 순서 변경 풀이와 모순되지 않는다.",
+    "코드 흐름 보기로 두 번째 if 직전을 열었어요. fee는 이미 0이에요. 이 조건도 참이라 다시 덮어써요.": "2026-11-02 감사: 시작 코드 9행 정지에서 fee가 0인 중간 상태를 보여요. 출력 1000만으로는 0이 된 적이 있다는 걸 볼 수 없어요."
    },
    "findings": []
   },
@@ -10397,8 +10433,8 @@
   "stp_dafcd283-67ad-4a0c-98d7-38ef2f465a98": {
    "lesson": "java-crud",
    "state": "reviewed",
-   "context_sha256": "b0beade5db3b01c86e4a44be3a6a32cb6abe4cf5e680f3f1c553f5d5ade62f32",
-   "reviewed": "2026-10-28",
+   "context_sha256": "11fd1f2a64aa110f337dfc64d3b0e0d933caa1d38f9764617b40ceaa91b856a9",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. 콜론마다 전부 나누면 내용의 일부가 잘려요. 첫 구분자와 값 안의 문자를 나누세요.": "두번째파일줄의값은다음:메모다. limit2가번호와내용의첫경계만나누어나머지콜론을보존한다.",
     "loaded를 만들었지만 파일을 읽지 않고 돌려줘요.": "전수 검토 2026-10-28: 입력 quotes.txt, 읽지 않음 → {} → split(\":\",2) → {1=시작, 2=다음:메모}. 목표 반복 문장을 시작 상태로 바꾸고 강조를 옮겼다. 모호한 경고 문장을 고쳤다."
@@ -10451,8 +10487,8 @@
   "stp_e986bb96-9bef-4faa-a9c8-04a2e84e1a39": {
    "lesson": "java-crud",
    "state": "reviewed",
-   "context_sha256": "153d27338d0830ee9670b0019fe22ad7341f0b520ca57d8429368977b1680a9c",
-   "reviewed": "2026-10-28",
+   "context_sha256": "6217c4c054755cc6a50a8a4756dd891e86833b1953d645a1b5a11b474a12ce1f",
+   "reviewed": "2026-11-02",
    "checked": {
     "두 줄 모두 메모리 메모예요. 파일 저장소를 전달해도 무시됐어요.": "전수 검토 2026-10-28: show가 MemoryStore 고정 → 메모리 두 번 → store.load() → 메모리/파일. 목표 반복 문장을 시작 상태로 바꾸고 강조를 옮겼다.",
     "조심하세요. 서비스가 저장소를 직접 고정하면 다른 구현을 전달해도 바꿀 수 없어요.": "전수 검토 2026-10-28: show가 MemoryStore 고정 → 메모리 두 번 → store.load() → 메모리/파일. 목표 반복 문장을 시작 상태로 바꾸고 강조를 옮겼다."
@@ -10512,8 +10548,8 @@
   "stp_1673f0d6-395a-46a3-9d92-0fe10f7d0950": {
    "lesson": "java-files",
    "state": "reviewed",
-   "context_sha256": "7e392e612dafdda7ac27401ac567ec3ba01d2d38ea9da5e3c8cc236c6c304348",
-   "reviewed": "2026-10-25",
+   "context_sha256": "28d2fa214bab40ff5d66470a5974724a9306694da9863bc78ecc21bb09b9458a",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. 채점은 화면 출력뿐 아니라 파일 내용도 확인해요. 정답 글을 출력만 하면 통과하지 못해요.": "3차 검토(2026-10-25, Claude 문맥 재검토, 사람 검토 아님): 앞뒤 문장·목표·명령과 함께 읽고 유지. 기준: 실제로 저지르기 쉬운 실수나 오해와 그 결과(또는 바른 이해)를 이 스텝의 상태·결과에 맞게 말해요."
    },
@@ -10532,8 +10568,8 @@
   "stp_2f64a900-7902-4a9d-a3fa-a22a0325ef55": {
    "lesson": "java-files",
    "state": "reviewed",
-   "context_sha256": "d769250543ee072068dad3369e22925a65527060c07fbf015317e8547cc79712",
-   "reviewed": "2026-10-26",
+   "context_sha256": "6f4af6b8a943e75edd9aacfd6a284d360311778f484e9770b77f0ae27063e266",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. read 안에서 잡아 버리면 main은 실패를 알 수 없어요. 실패를 넘길 곳은 선언으로 밝혀요.": "현재 준비 코드는 main의 catch(IOException)에서 실패를 표시하도록 요구해요. read가 실패를 삼키고 빈 값을 돌려주는 오답을 경고해요. main의 불필요한 throws Exception을 제거해 넓은 throws가 컴파일 검사를 우회하지 않게 했어요. 출력·없는 파일 변형·예외 선언의 관계를 Codex가 다시 검토했어요."
    },
@@ -10542,8 +10578,8 @@
   "stp_3edf3a6e-407f-4caf-93e2-17c116059f2b": {
    "lesson": "java-files",
    "state": "reviewed",
-   "context_sha256": "710df2a88c2036bd6be07794cb6ceb92ca120b48bd27c288d965053abde6a9a8",
-   "reviewed": "2026-10-26",
+   "context_sha256": "f15ca76e89e4dc2a112f5deefb7df85c1f21f05709693373baee5835401d3132",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. 파일을 만든 쪽의 인코딩을 모르고 읽으면 오류 없이 글자만 깨질 수 있어요.": "시연에서 ISO_8859_1 읽기가 예외 없이 깨진 글자를 냈다. 「수 있어요」 범위가 맞다(잘못된 UTF-8 해석은 대체 문자가 될 수도 있음)."
    },
@@ -10582,8 +10618,8 @@
   "stp_5a7a0554-f4c6-4d83-aca7-f8c9bc79af19": {
    "lesson": "java-files",
    "state": "reviewed",
-   "context_sha256": "0e61456f5981d2e035517e1a94dd860b1e3ff4e3d5830613147bdf858aeeae3d",
-   "reviewed": "2026-10-26",
+   "context_sha256": "cb83566a84a81b21647773330624cec8736828402fee1cea7f0cdfa4549e236f",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. 덧붙일 기록과 바꿀 상태는 달라요. 상태 파일에 APPEND를 쓰면 이전 값이 쌓여요.": "시연의 3/4 두 줄과 일치. 기록 vs 상태의 대조가 정확하다."
    },
@@ -10592,8 +10628,8 @@
   "stp_7a5d3e18-6f92-4c4b-a0d7-2b8e1c96f43d": {
    "lesson": "java-files",
    "state": "reviewed",
-   "context_sha256": "d11d6bb1bd59869c96bbc44dda42ca871b96391772f527ca12090fcf93e174aa",
-   "reviewed": "2026-10-29",
+   "context_sha256": "b4dfee9de2f56c176aaaca5d12a616ad2f824295782131baa794fce3f3b5e31b",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. try를 반복 바깥에 두면 오류 줄에서 반복이 끝나 뒤의 30과 120을 더하지 못해요.": "이 수업 9번의 실제 실수(try 범위)를 이 파일의 줄 순서로 결과까지 말해요. 반례 채점이 같은 결과를 확인해요."
    },
@@ -10602,8 +10638,8 @@
   "stp_7d13458d-818b-4376-8783-0da8a31451b6": {
    "lesson": "java-files",
    "state": "reviewed",
-   "context_sha256": "9208bc3a7f9d081e19de65e9ec453bb5feda6492a577921d363ff78200b7e0f2",
-   "reviewed": "2026-10-26",
+   "context_sha256": "35b3dd2ff1a078215504dfda50598cb8a96f81768b8894c6e7b4a5667dfb5556",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. message를 두 번 출력해도 화면은 같지만 파일은 그대로예요. 채점은 파일 내용도 확인해요.": "실제 우회(화면만 맞추기). expected_files 바이트 검사가 거절한다. 사실과 일치."
    },
@@ -10632,8 +10668,8 @@
   "stp_a703c38a-7252-45cc-926c-8311aed9db52": {
    "lesson": "java-files",
    "state": "reviewed",
-   "context_sha256": "455d59eeb4ee37c10e22ff5ff01c31f0b31aee97e2db15660f9796d371f1aeda",
-   "reviewed": "2026-10-26",
+   "context_sha256": "afe4d5bcbeea791abf19450f231dc98575d0fa553e667eb3121f93e403d7c3fd",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. try가 넓으면 예외 하나에 남은 작업까지 건너뛰어요. 다시 이어 갈 위치를 보고 감싸요.": "시연(1000, 1)에서 2000을 잃은 것과 일치."
    },
@@ -10652,8 +10688,8 @@
   "stp_b65f02f2-f1fb-47c2-8bec-cdd926543dcd": {
    "lesson": "java-files",
    "state": "reviewed",
-   "context_sha256": "f5946ed71bc01903433d9571e1c80c0968511d112ae1fc4f006bf0c4d521cfce",
-   "reviewed": "2026-10-26",
+   "context_sha256": "869bdc1810970bc7ab0cf3c95d31787125468a4d02c54edec3689801b72a2d35",
+   "reviewed": "2026-11-02",
    "checked": {
     "조심하세요. Exception 하나로 잡아 같은 말을 출력하면 파일이 없는지, 내용이 틀렸는지 알 수 없어요.": "같은 메시지를 출력하는 경우로 범위를 좁혔다. 채점 변형이 두 실패를 다른 출력으로 요구한다."
    },
@@ -11197,10 +11233,11 @@
   "stp_e300a506-361d-4f5a-a09e-6d9fa232fa87": {
    "lesson": "java-methods",
    "state": "reviewed",
-   "context_sha256": "2b794d2543a34d0ce119806cc7a0670b47303a8c0af258fa224e7737a17f0de9",
-   "reviewed": "2026-10-26",
+   "context_sha256": "c316684c8cbc6241e1a45363ea8742404df183d5458111fa03ee0953bba2b6a0",
+   "reviewed": "2026-11-02",
    "checked": {
-    "조심하세요. 이름이 같아도 메서드의 amount와 main의 amount는 다른 변수예요. 메서드 안의 대입은 main에 전해지지 않아요.": "준비 코드가 바로 보인 오해(매개변수 대입이 main을 바꾼다). 「같아도」 뒤에 「다른 변수」가 대조를 이룬다. 출력 3000·2000과 일치."
+    "조심하세요. 이름이 같아도 메서드의 amount와 main의 amount는 다른 변수예요. 메서드 안의 대입은 main에 전해지지 않아요.": "준비 코드가 바로 보인 오해(매개변수 대입이 main을 바꾼다). 「같아도」 뒤에 「다른 변수」가 대조를 이룬다. 출력 3000·2000과 일치.",
+    "코드 흐름 보기로 add_fee 안을 열었어요. main의 amount와 따로 있는 add_fee의 amount 칸이 보여요.": "2026-11-02 감사: 시작 코드 4행 첫 정지에서 main과 add_fee 두 프레임이 각자 amount를 가져요. 출력 2000만으로는 두 칸이 따로 있다는 걸 볼 수 없어요."
    },
    "findings": []
   },
@@ -11265,8 +11302,8 @@
   "stp_faac6613-1aec-46ba-8333-80f239dc43e6": {
    "lesson": "java-oop-patterns",
    "state": "reviewed",
-   "context_sha256": "6687ff087ecae6154e7e1fe6fc76c36b5267072992682eee1bcc2d864f08bba6",
-   "reviewed": "2026-10-26",
+   "context_sha256": "74195560b719b4fd577ec8afe2213eb665c0cf263b6fdc8f18decd48657e0e7f",
+   "reviewed": "2026-11-02",
    "checked": {},
    "findings": []
   },
@@ -11901,10 +11938,11 @@
   "stp_bbd5e92f-fb1d-4d23-b8e2-18a7cd2ca989": {
    "lesson": "java-references",
    "state": "reviewed",
-   "context_sha256": "b94b573b1b2cd3ab6a3990901d571b782994ed3a5f883f4b7be6a75df93a1ba4",
-   "reviewed": "2026-10-26",
+   "context_sha256": "dd7514f91bdf005c95a45ccd5e1e848995615ce5aa64cd20a40075fe48f0d1a5",
+   "reviewed": "2026-11-02",
    "checked": {
-    "조심하세요. item.count = 99로 고치면 결과는 같아 보여도 넘겨준 처음 상자를 바꿔 버려요. 이 문제는 새 상자를 돌려받는 거예요.": "출력만 맞추는 실제 우회. 계약 검사가 넘긴 상자 count 유지를 확인해 거절한다. 「같아 보여도」 대조가 맞다."
+    "조심하세요. item.count = 99로 고치면 결과는 같아 보여도 넘겨준 처음 상자를 바꿔 버려요. 이 문제는 새 상자를 돌려받는 거예요.": "출력만 맞추는 실제 우회. 계약 검사가 넘긴 상자 count 유지를 확인해 거절한다. 「같아 보여도」 대조가 맞다.",
+    "replace에 막 들어온 순간이에요. item과 main의 a가 같은 상자를 가리켜요. 이 줄은 item의 화살표만 옮겨요.": "2026-11-02 감사: 시작 코드 12행 정지에서 item과 a가 같은 Box 객체를 가리켜요. 「참조가 복사돼 들어왔다」를 화살표로 보여요."
    },
    "findings": []
   },
@@ -12136,10 +12174,11 @@
   "stp_186de5f8-186b-48df-9896-f428a674ccb7": {
    "lesson": "java-roles",
    "state": "reviewed",
-   "context_sha256": "2c10cfb0b7366dbf61c26b280994c8836f7f1d550060fd2370ac6e2be9a351bc",
-   "reviewed": "2026-10-26",
+   "context_sha256": "a1d72112f3109fd38a1a0bc8d5fcf6fde8e42c0559191e2794cd4562bdb4ccad",
+   "reviewed": "2026-11-02",
    "checked": {
-    "조심하세요. total을 return amount로 고쳐도 숫자는 같아지지만, 그러면 표준 정책을 꽂은 결제도 배송비를 잃어요.": "합산 코드를 고치는 실제 우회. 계약 검사가 표준 정책 합계 2600을 확인해 거절한다."
+    "조심하세요. total을 return amount로 고쳐도 숫자는 같아지지만, 그러면 표준 정책을 꽂은 결제도 배송비를 잃어요.": "합산 코드를 고치는 실제 우회. 계약 검사가 표준 정책 합계 2600을 확인해 거절한다.",
+    "코드 흐름 보기로 fee 호출 안을 열었어요. main, total 위에 FreeFee의 fee가 쌓였어요.": "2026-11-02 감사: 고친 코드에서 FreeFee.fee 호출 정지의 스택 main → total → fee로 Checkout이 받은 정책에 맡기는 흐름을 보여요."
    },
    "findings": []
   },
@@ -12761,10 +12800,11 @@
   "stp_e315c984-b930-4db0-846a-229487f1733b": {
    "lesson": "java-static",
    "state": "reviewed",
-   "context_sha256": "854d43e482170393a05007d0f9f0a03e7ae34309ac0404170322dd7634d4b287",
-   "reviewed": "2026-10-25",
+   "context_sha256": "346fb46a9e7063880308a45afbabf1cc84f67ef12f7e542fce40a1223d174dfa",
+   "reviewed": "2026-11-02",
    "checked": {
-    "조심하세요. 생성 수처럼 모두 함께 세는 값만 static으로 두고, 주문마다 다른 값은 인스턴스 필드로 둬요.": "3차 검토(2026-10-25, Claude 문맥 재검토, 사람 검토 아님): 앞뒤 문장·목표·명령과 함께 읽고 유지. 기준: 실제로 저지르기 쉬운 실수나 오해와 그 결과(또는 바른 이해)를 이 스텝의 상태·결과에 맞게 말해요."
+    "조심하세요. 생성 수처럼 모두 함께 세는 값만 static으로 두고, 주문마다 다른 값은 인스턴스 필드로 둬요.": "3차 검토(2026-10-25, Claude 문맥 재검토, 사람 검토 아님): 앞뒤 문장·목표·명령과 함께 읽고 유지. 기준: 실제로 저지르기 쉬운 실수나 오해와 그 결과(또는 바른 이해)를 이 스텝의 상태·결과에 맞게 말해요.",
+    "코드 흐름 보기로 출력 직전을 열었어요. amount는 두 객체 안이 아니라 Ticket 클래스에 하나만 있어요.": "2026-11-02 감사: static 필드가 객체가 아닌 클래스 칸 하나에 있는 것을 출력 직전 정지로 보여요. 같은 수업의 기존 Ticket static 해설과 같은 화면 영역이에요."
    },
    "findings": []
   },

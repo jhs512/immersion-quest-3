@@ -23,7 +23,7 @@ print(round(float(error), 6))
 '''
 SPEC = make('aice-neural-regression', '음수가 없는 시간 예측과 회귀 오차를 맞추세요',
     '시간은 음수가 될 수 없어요. 음수 출력을 0으로 막는 출력 활성화를 고르고 오차는 mse로 평가해요. '
-    '고정 가중치는 동작 비교용이에요. 현재 예측은 0분과 3분이고 MSE는 0이에요.',
+    '고정 가중치는 동작 비교용이에요. 완성하면 예측은 0분과 3분, MSE는 0이 나와요.',
     '수치 목표의 범위에 맞는 출력과 회귀 손실을 함께 선택해요.', START,
     [('activation="linear"','activation="relu"','시간이 음수가 되지 않도록 출력 활성화를 고치세요.'),
      ('loss="binary_crossentropy"','loss="mse"','회귀의 평균 제곱 오차로 평가하세요.')],

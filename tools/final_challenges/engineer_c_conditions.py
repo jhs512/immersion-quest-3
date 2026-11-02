@@ -13,7 +13,7 @@ int main(void) {
 '''
 SPEC = code('engineer-c-conditions', '완성 상자와 추가로 필요한 낱개를 계산하세요',
     '몫·나머지·조건식으로 포장 수와 정확한 경계를 처리해요.',
-    '재고는 0 이상, 상자 크기는 1 이상이에요. 완성 상자 수와 다음 상자에 모자란 수량을 출력하세요. 남은 낱개가 0이면 모자란 수도 0으로 정해요. 지금 답은 2 1이에요.', 'c', START,
+    '재고는 0 이상, 상자 크기는 1 이상이에요. 완성 상자 수와 다음 상자에 모자란 수량을 출력하세요. 남은 낱개가 0이면 모자란 수도 0으로 정해요. 완성하면 2 1이 나와요.', 'c', START,
     [('int boxes = stock % size;', 'int boxes = stock / size;', 'boxes에는 나눗셈의 몫을 저장하세요.'),
      ('int missing = size - stock % size;', 'int missing = stock % size == 0 ? 0 : size - stock % size;', '나머지가 0이면 missing도 0, 아니면 상자 크기에서 나머지를 빼세요.')],
     '2 1', ['3 1', '2 1'],

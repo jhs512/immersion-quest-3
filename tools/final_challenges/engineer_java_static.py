@@ -16,7 +16,7 @@ START = '''public class Main {
 '''
 SPEC = code('engineer-java-static', '생성된 객체에만 다음 발급 번호를 부여하세요',
     '클래스 공유 카운터와 객체별 번호를 나누고 참조 대입을 새 생성과 구별해요.',
-    '새 Ticket을 만들 때 issued를 하나 늘린 뒤 그 값을 number에 저장하세요. alias는 a와 같은 객체예요. 지금 출력은 1 1 2 2예요.', 'java', START,
+    '새 Ticket을 만들 때 issued를 하나 늘린 뒤 그 값을 number에 저장하세요. alias는 a와 같은 객체예요. 완성하면 1 1 2 2가 나와요.', 'java', START,
     [('Ticket() { number = issued; }', 'Ticket() { issued++; number = issued; }', '생성자에서 공유 카운터를 먼저 늘리고 객체 번호에 복사하세요.')],
     '1 1 2 2', ['0 0 0 0', '1 1 2 2'],
     [dict(values=dict(issued='10'), expected='11 11 12 12')],

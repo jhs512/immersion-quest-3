@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "id": "lsn_e7b7100f-1c5d-41fb-9683-ab89fcd6e851",
-  "revision": "engineer-python-values-8",
+  "revision": "engineer-python-values-9",
   "title": "Python · 같은 창고 자료를 골라 읽어요",
   "description": "창고 재고와 물건 이름을 정리해요. 같은 자료의 선택·복사 조건을 한 곳씩 바꿔요.",
   "objectives": [
@@ -109,7 +109,7 @@
           "objectives": [
             "얕은 복사의 내부 공유와 사전 기본값 조회를 함께 판단해요."
           ],
-          "premise": "copied의 첫 칸만 9로 고치고 rows는 보존하세요. pending 키가 없으면 default를 읽되 counts에 새 키를 만들지 마세요. 지금 출력은 1 9와 0 False예요.",
+          "premise": "copied의 첫 칸만 9로 고치고 rows는 보존하세요. pending 키가 없으면 default를 읽되 counts에 새 키를 만들지 마세요. 완성하면 1 9와 0 False가 나와요.",
           "steps": [
             {
               "id": "stp_db97db2a-0c84-44da-947f-0cce41a180db",
@@ -358,6 +358,13 @@
           "target": "output"
         },
         {
+          "action": "code_flow",
+          "line": 6,
+          "event": "step_line",
+          "target": "flow_objects",
+          "say": "코드 흐름 보기로 print 직전을 열었어요. stocks와 backup의 화살표가 같은 목록 하나로 가요."
+        },
+        {
           "action": "patch_code",
           "before": "backup = stocks\n",
           "after": "backup = stocks.copy()\n",
@@ -374,6 +381,13 @@
           "action": "say",
           "text": "[2, 4]와 [2, 4, 6]이에요. backup만 새 목록이라 6이 backup에만 붙었어요.",
           "target": "output"
+        },
+        {
+          "action": "code_flow",
+          "line": 6,
+          "event": "step_line",
+          "target": "flow_objects",
+          "say": "고친 뒤 같은 자리예요. 이제 목록이 둘이고 6은 backup의 목록에만 있어요."
         },
         {
           "action": "say",
@@ -646,7 +660,7 @@
       "id": "stp_db97db2a-0c84-44da-947f-0cce41a180db",
       "title": "중첩 목록을 독립적으로 고치고 없는 키를 읽으세요",
       "language": "python",
-      "goal": "얕은 복사의 내부 공유와 사전 기본값 조회를 함께 판단해요.\n\ncopied의 첫 칸만 9로 고치고 rows는 보존하세요. pending 키가 없으면 default를 읽되 counts에 새 키를 만들지 마세요. 지금 출력은 1 9와 0 False예요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 각 안쪽 목록도 복사해 copied를 만드세요.\n3. 없는 키의 기본값으로 default를 사용하세요.\n4. 다시 실행해 요구한 결과를 확인한 뒤 작성한 코드를 제출하세요.",
+      "goal": "얕은 복사의 내부 공유와 사전 기본값 조회를 함께 판단해요.\n\ncopied의 첫 칸만 9로 고치고 rows는 보존하세요. pending 키가 없으면 default를 읽되 counts에 새 키를 만들지 마세요. 완성하면 1 9와 0 False가 나와요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 각 안쪽 목록도 복사해 copied를 만드세요.\n3. 없는 키의 기본값으로 default를 사용하세요.\n4. 다시 실행해 요구한 결과를 확인한 뒤 작성한 코드를 제출하세요.",
       "starter_code": "rows = [[1, 2], [3, 4]]\ndefault = 0\n# 안쪽 목록까지 독립적으로 복사하세요.\ncopied = rows[:]\ncopied[0][0] = 9\ncounts = {\"done\": 2}\n# 없는 키는 default로 읽고 사전에는 추가하지 마세요.\npending = counts.get(\"pending\", 1)\nprint(rows[0][0], copied[0][0])\nprint(pending, \"pending\" in counts)\n",
       "solution": "rows = [[1, 2], [3, 4]]\ndefault = 0\n# 안쪽 목록까지 독립적으로 복사하세요.\ncopied = [row[:] for row in rows]\ncopied[0][0] = 9\ncounts = {\"done\": 2}\n# 없는 키는 default로 읽고 사전에는 추가하지 마세요.\npending = counts.get(\"pending\", default)\nprint(rows[0][0], copied[0][0])\nprint(pending, \"pending\" in counts)\n",
       "required": true,

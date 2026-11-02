@@ -20,7 +20,7 @@ int main(void) {
 '''
 SPEC = code('engineer-c-double-pointers', '최소 재고를 가리키도록 호출자의 포인터를 바꾸세요',
     '이중 포인터의 어느 층에 써야 주소가 바뀌는지 판단해요.',
-    '배열은 바꾸지 말고 chosen이 가장 작은 재고의 첫 칸을 가리키게 하세요. count는 1 이상이에요. 출력은 선택 위치·선택 값·첫 칸 원래 값 순서로 지금 1 2 8이에요.', 'c', START,
+    '배열은 바꾸지 말고 chosen이 가장 작은 재고의 첫 칸을 가리키게 하세요. count는 1 이상이에요. 출력은 선택 위치·선택 값·첫 칸 원래 값 순서로 완성하면 1 2 8이 나와요.', 'c', START,
     [('**selected = *best;', '*selected = best;', '두 번 따라가 정수를 고치지 말고 한 번 따라가 포인터에 best 주소를 쓰세요.')],
     '1 2 8', ['0 2 2', '1 2 8'],
     [dict(values=dict(bins='{1, 4, 1}', count='3'), expected='0 1 1'), dict(values=dict(bins='{7, 5, -1}', count='3'), expected='2 -1 7')],

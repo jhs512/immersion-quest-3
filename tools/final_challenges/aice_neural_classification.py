@@ -24,7 +24,7 @@ print(predicted)
 '''
 SPEC = make('aice-neural-classification', '정수 정답과 다중 확률을 종류 이름에 연결하세요',
     '정답 labels는 정수 인덱스예요. 알맞은 손실로 평가하고 각 행의 종류 확률 합을 1로 만들어요. '
-    '가장 큰 확률의 위치를 names에 연결해 이름을 출력해요. 현재 두 배송의 예측 이름은 모두 late예요.',
+    '가장 큰 확률의 위치를 names에 연결해 이름을 출력해요. 완성하면 두 배송의 예측 이름은 모두 late가 나와요.',
     '정수 정답의 손실과 softmax 확률, 종류 이름 연결을 함께 맞춰요.', START,
     [('loss="categorical_crossentropy"','loss="sparse_categorical_crossentropy"','정수 인덱스 정답에 맞는 손실로 바꾸세요.'),
      ('activation="sigmoid"','activation="softmax"','한 배송의 종류 확률 합이 1이 되게 바꾸세요.'),

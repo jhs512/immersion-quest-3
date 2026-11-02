@@ -1,0 +1,34 @@
+[
+ {
+  "lesson": "aice-neural-classification",
+  "step": "stp_a926ba50-dd69-452c-b63e-ff47a3a7dd37",
+  "checked": {
+   "조심하세요. 출력층에 활성화 없이 logit을 내는 다른 설계라면 그때 from_logits=True를 써요. 출력 형식과 옵션을 함께 맞춰요.": "실제 Keras 동작을 정확히 말해요."
+  },
+  "findings": [
+   {
+    "sentence": "0.6436과 False예요. 확률을 logit으로 보고 sigmoid를 한 번 더 적용해 직접 계산과 달라요.",
+    "fix": "0.6835와 False예요. 확률을 logit으로 보고 sigmoid를 한 번 더 적용해 직접 계산과 달라요.",
+    "issue": "해설이 말한 값 0.6436이 실제 첫 실행 출력과 달라요.",
+    "reason": "tests/lesson-cases/aice-neural-classification.json 2번 첫 출력 0.6835. 손으로 계산: p=[0.5, 0.7311]을 logit으로 본 BCE 평균 (0.9741+0.3929)/2=0.6835. 2026-11-02 감사.",
+    "status": "fixed"
+   }
+  ]
+ },
+ {
+  "lesson": "aice-neural-classification",
+  "step": "stp_e4f42523-852a-4b2f-b4df-5edb4cb32630",
+  "checked": {
+   "조심하세요. 원핫 정답과 범주 번호 정답은 표현이 달라요. 정답 모양에 맞는 손실을 골라요.": "실제 Keras 동작을 정확히 말해요."
+  },
+  "findings": [
+   {
+    "sentence": "1.4076과 True예요. 각 배송의 정답 칸 확률로 직접 계산한 값과 같아요.",
+    "fix": "0.9076과 True예요. 각 배송의 정답 칸 확률로 직접 계산한 값과 같아요.",
+    "issue": "해설이 말한 값 1.4076은 첫 배송 하나의 손실이고, 실제 출력은 두 배송의 평균이에요.",
+    "reason": "tests/lesson-cases/aice-neural-classification.json 5번 둘째 출력 0.9076. 손으로 계산: softmax([0,1,-1])의 0번 0.2447, softmax([0,-1,1])의 2번 0.6652, -(ln0.2447+ln0.6652)/2=0.9076. 2026-11-02 감사.",
+    "status": "fixed"
+   }
+  ]
+ }
+]
