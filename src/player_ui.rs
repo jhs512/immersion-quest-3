@@ -929,8 +929,8 @@ fn RepositoryTask(session:Session,selected:OpenLesson,task:Task,events:Signal<Ve
     let review_key=molip_quest::drafts::repository_scope(&ProgressKey{user_id:session.user.id,course_id:selected.course.id.clone(),lesson_id:selected.lesson.id.clone()},StudyMode::Review,&task.id);
     let initial=use_hook(||molip_quest::drafts::load(&key).ok().flatten().or_else(||molip_quest::drafts::load(&review_key).ok().flatten()).or_else(||molip_quest::drafts::load(&previous_key).ok().flatten()).map(|d|d.code).unwrap_or_else(||task.starter_code.clone()));
     let has_example=task.has_runnable_example();
-    // 코드 흐름 보기 is offered only where this app can trace the step (Java, Python; C on Windows).
-    let code_flow_ready=task.code_flow&&(matches!(task.language,repository_course::TaskLanguage::Java|repository_course::TaskLanguage::Python)||(cfg!(windows)&&task.language==repository_course::TaskLanguage::C))&&task.git_terminal.is_none();
+    let code_flow=task.code_flow_availability();
+    let code_flow_ready=code_flow==repository_course::CodeFlowAvailability::Ready;
     // The shortcut as the shared policy shows it (assets/layout/shortcuts.js: Mod = ⌘ on macOS, Ctrl elsewhere).
     let code_flow_key=if cfg!(target_os="macos"){"⌘+Shift+F"}else{"Ctrl+Shift+F"};
     let initial_workspace=crate::explanation_session::TaskWorkspace::new(initial.clone(),task.example_for_answer(&initial).unwrap_or_default(),task.tests.first().map(|case|case.input.clone()).unwrap_or_default());
@@ -1241,6 +1241,10 @@ if let Some(start)=autostart {
                             document::eval(&script);
                         });
                     }},"코드 흐름 보기"}
+                    }
+                    if let repository_course::CodeFlowAvailability::Unsupported(reason)=code_flow {
+                        button {class:"code-flow-open",disabled:true,title:reason,"코드 흐름 보기"}
+                        span {class:"code-flow-unavailable",role:"note","{reason}"}
                     }
                     button {class:"primary","data-shortcut-action":"submit","data-enter-submit":"true",disabled:busy()||narrating()||(task.git_terminal.is_some()&&git_practice().is_none()),onclick:{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();let docker_session=docker_session.clone();let challenge_task=challenge_task.clone();move |_|{let task=task.clone();let session=session.clone();let selected=selected.clone();let required=required.clone();let docker_session=docker_session.clone();let challenge_task=challenge_task.clone();async move {
                         submitting.set(true);busy.set(true);feedback.set("checking");execution_state.set("idle");output.set(String::new());message.set("검사하고 있어요.".into());

@@ -50,6 +50,7 @@ class TeacherHighlightTest(unittest.TestCase):
         task = {'language': 'java', 'code_flow': True, 'starter_code': code,
                 'narration': [flow, {'action': 'code_flow', 'close': True}]}
         compiler.validate_highlights(task)
+        compiler.validate_highlights({key: value for key, value in task.items() if key != 'code_flow'})
         for broken, message in [({'line': 4}, '없는 줄'), ({'line': 9}, '없는 줄'), ({'event': 'jump'}, '단계 종류'),
                                 ({'nth': 0}, '1 이상'), ({'say': ' '}, '문장'), ({'target': 'output'}, '화면의 한 곳'),
                                 ({'lines': [3, 3]}, '항목')]:

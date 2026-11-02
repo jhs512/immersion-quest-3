@@ -20,6 +20,10 @@
       const a=visible[i].getBoundingClientRect(),b=visible[j].getBoundingClientRect();
       if(Math.min(a.right,b.right)-Math.max(a.left,b.left)>1&&Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>1)throw Error(`${label}: controls overlap: ${visible[i].textContent}/${visible[j].textContent}`);
     }
+    for(const control of document.querySelectorAll('.coding-pane .pane-actions>button, .code-flow-unavailable')){
+      const rect=control.getBoundingClientRect();
+      if(rect.left<0||rect.right>document.documentElement.clientWidth+1)throw Error(`${label}: code controls escape horizontally: ${control.textContent.trim()}`);
+    }
     const settings=document.querySelector('.app-update-settings');
     settings.querySelector('summary').click();await settle();
     inside(settings.querySelector('.app-update-menu'),`${label} settings menu`);

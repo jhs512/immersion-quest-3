@@ -129,9 +129,8 @@ pub struct Task {
     pub example_order_marker:Option<String>,
     #[serde(default,skip_serializing_if="std::ops::Not::not")]
     pub predict_before_run:bool,
-    /// Java: offer 코드 흐름 보기 (crate::java_trace) for the editor's current code. Older players
-    /// ignore the field; grading never depends on it.
-    #[serde(default,skip_serializing_if="std::ops::Not::not")]
+    /// Code execution offers 코드 흐름 보기 unless the lesson explicitly opts out.
+    #[serde(default = "yes")]
     pub code_flow:bool,
     #[serde(default, skip_serializing_if="Vec::is_empty")]
     pub supporting_materials: Vec<crate::supporting_materials::SupportingMaterial>,
@@ -167,6 +166,21 @@ pub struct Task {
     #[serde(default = "yes")] pub required: bool,
 }
 impl Task {
+    pub fn code_flow_availability(&self)->CodeFlowAvailability {
+        if !self.code_flow || self.git_terminal.is_some() || (self.interaction.is_some()&&!self.has_runnable_example()) {
+            return CodeFlowAvailability::Hidden;
+        }
+        match self.language {
+            TaskLanguage::Java|TaskLanguage::Python=>CodeFlowAvailability::Ready,
+            TaskLanguage::C if cfg!(windows)=>CodeFlowAvailability::Ready,
+            TaskLanguage::C=>CodeFlowAvailability::Unsupported("이 운영체제의 C 코드 흐름 보기는 아직 지원하지 않아요."),
+            TaskLanguage::JavaProject|TaskLanguage::Junit|TaskLanguage::JavaLibraries=>CodeFlowAvailability::Unsupported("프로젝트와 라이브러리 실행의 코드 흐름 보기는 아직 지원하지 않아요."),
+            TaskLanguage::Javascript|TaskLanguage::Web=>CodeFlowAvailability::Unsupported("JavaScript와 웹 실행의 코드 흐름 보기는 아직 지원하지 않아요."),
+            TaskLanguage::Sql=>CodeFlowAvailability::Unsupported("SQL 실행의 코드 흐름 보기는 아직 지원하지 않아요."),
+            TaskLanguage::Git|TaskLanguage::Docker=>CodeFlowAvailability::Unsupported("터미널과 Docker 실행의 코드 흐름 보기는 아직 지원하지 않아요."),
+        }
+    }
+
     /// Execution inside Docker does not change the language the learner edits.
     pub fn editor_language(&self)->&'static str {
         if self.entry_file.ends_with(".jsx"){return "javascript"}
@@ -252,6 +266,8 @@ impl Task {
     }
 
 }
+#[derive(Clone,Copy,Debug,PartialEq,Eq)]
+pub enum CodeFlowAvailability { Hidden, Ready, Unsupported(&'static str) }
 /// Whether the learner can type into the problem's code.
 #[derive(Clone,Copy,Debug,PartialEq,Eq)]
 pub enum CodeAccess { Editable, ReadOnly, Assembled, Absent }

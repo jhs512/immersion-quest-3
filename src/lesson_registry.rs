@@ -33,7 +33,16 @@ pub fn self_test_script(key:&str)->Option<String> {
             }
         }
     }
-    config["version"]=row.pilot.to_string().into();config["revision"]=row.revision.into();config["tasks"]=tasks.clone();
+    let mut tasks=tasks.clone();
+    for value in tasks.as_array_mut().expect("registered tasks") {
+        let task:crate::repository_course::Task=serde_json::from_value(value.clone()).expect("registered task");
+        value["code_flow_state"]=match task.code_flow_availability() {
+            crate::repository_course::CodeFlowAvailability::Hidden=>"hidden",
+            crate::repository_course::CodeFlowAvailability::Ready=>"ready",
+            crate::repository_course::CodeFlowAvailability::Unsupported(_)=>"unsupported",
+        }.into();
+    }
+    config["version"]=row.pilot.to_string().into();config["revision"]=row.revision.into();config["tasks"]=tasks;
     if key=="web-preview" {config["webPreviewOnly"]=true.into();}
     let script=if let Some(commands)=row.commands {
         let commands:serde_json::Value=serde_json::from_str(commands).expect("registered student commands");

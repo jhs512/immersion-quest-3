@@ -128,8 +128,13 @@
    }
    if(!modification?.correct)await answer(task);
    // 코드 흐름 보기: only on the steps that offer it; traces the code now in the editor and leaves it as it was.
-   if(!task.code_flow&&button('코드 흐름 보기'))throw Error('Code flow is offered on a step that does not use it');
-   if(task.code_flow){
+   if(task.code_flow_state==='hidden'&&button('코드 흐름 보기'))throw Error('Code flow is offered on a step without code or with an explicit opt-out');
+   if(task.code_flow_state==='unsupported'){
+    const unavailable=button('코드 흐름 보기');
+    if(!unavailable?.disabled||!document.querySelector('.code-flow-unavailable')?.textContent.trim())throw Error('Unsupported code flow has no disabled control and explanation');
+   }
+   if(task.code_flow_state==='ready'&&!button('코드 흐름 보기'))throw Error('Code flow is missing from an enabled code step');
+   if(task.code_flow_state==='ready'&&task.code_flow===true){
     const before=molipCodeEditors.getValue(),dialog=()=>document.getElementById('code-flow-dialog');
     await click('코드 흐름 보기');
     await wait(()=>dialog()?.open,'code flow dialog opens');
