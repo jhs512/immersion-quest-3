@@ -1,0 +1,95 @@
+{
+  "by": "hand",
+  "source_sha256": "2a6945ba9bea8d45420b0f7609db28b93b6935eba39cb9cd17ea13106d7a48b1",
+  "entry": [
+    {
+      "action": "say",
+      "text": "판매 가능 여부는 재고에 따라 달라져야 해요. 그런데 지금은 true를 그냥 적어 뒀죠.",
+      "target": "text:can_sell의 true 대신 stock > 0의 비교 결과를 담으세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "판매 가능: true예요. 재고가 3이라 맞아 보여요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "let stock = 3;",
+      "after": "let stock = 0;",
+      "say": "재고를 0으로 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "재고가 0인데도 true예요. 비교 없이 적어 둔 값이라 재고와 상관이 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "let can_sell: bool = true;",
+      "after": "let can_sell: bool = stock >= 0;",
+      "say": "0 이상이면 판다고 적어 볼까요?"
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. >=는 같을 때도 참이라 0 >= 0이 true예요. 재고가 없는데 판매 가능으로 나와요.",
+      "target": "code:stock >= 0"
+    },
+    {
+      "action": "patch_code",
+      "before": "stock >= 0;",
+      "after": "stock > 0;",
+      "say": ">=를 >로 고쳐 0보다 클 때만 참이 되게 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "false가 나왔어요. 0 > 0은 거짓이거든요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "let stock = 0;",
+      "after": "let stock = 3;",
+      "say": "재고를 처음 값 3으로 돌려놔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "다시 true예요. 같은 비교 줄이 재고에 따라 다른 bool 값을 담았어요.",
+      "target": "output"
+    }
+  ]
+}

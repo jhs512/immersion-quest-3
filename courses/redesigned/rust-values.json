@@ -1,0 +1,892 @@
+{
+  "schema_version": 2,
+  "id": "lsn_46da69b8-2653-47b3-b839-039b1ce734e3",
+  "revision": "rust-values-1",
+  "title": "Rust · 값을 담고 변경을 구분해요",
+  "description": "작은 가게의 재고 수량을 Rust로 출력하고 계산하며, 다시 넣을 수 있는 이름과 참거짓 값을 구분해요.",
+  "objectives": [
+    "값·이름·타입을 출력과 계산 결과로 구분해요.",
+    "let과 let mut의 차이를 컴파일 결과로 설명해요."
+  ],
+  "sources": [
+    "https://doc.rust-lang.org/book/ch01-02-hello-world.html",
+    "https://doc.rust-lang.org/book/ch03-01-variables-and-mutability.html",
+    "https://doc.rust-lang.org/book/ch03-02-data-types.html",
+    "https://doc.rust-lang.org/std/fmt/index.html",
+    "https://doc.rust-lang.org/error_codes/E0384.html"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_397525c8-fafa-4293-b6b4-9df4f0599c6f",
+      "title": "값과 이름",
+      "objectives": [
+        "값이 출력과 계산으로 이어지는 과정을 확인해요."
+      ],
+      "units": [
+        {
+          "id": "unt_bf164bfc-9d3a-42c2-b2be-712dee2bf299",
+          "title": "출력할 값",
+          "objectives": [
+            "문자열과 이름 붙인 값을 출력해요."
+          ],
+          "premise": "작은 가게의 재고를 Rust 코드로 출력해요. 각 스텝은 fn main 하나만 있는 준비된 main.rs에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_a2fc8157-5a39-4d89-8d26-48f5836450b1",
+              "objectives": [
+                "println!이 큰따옴표 안의 문자열 리터럴을 그대로 출력하는 것을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_f38cdacd-70a6-46a9-9234-e54bfe263fbd",
+              "objectives": [
+                "let으로 값에 이름을 붙이고 {이름} 자리로 그 값을 출력해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_3bc7d684-8c0b-49fd-8ebb-c75c269df303",
+          "title": "계산한 값",
+          "objectives": [
+            "이름 붙인 정수로 계산하고 정수와 글자를 타입으로 구분해요."
+          ],
+          "premise": "재고·판매 수량·가격에 이름을 붙여 계산해요. 각 스텝에서 바뀐 조건만 확인해요.",
+          "steps": [
+            {
+              "id": "stp_8a5fc6f9-e306-4cf6-a140-32441e786cfd",
+              "objectives": [
+                "이름 붙인 두 정수를 빼서 계산 결과를 새 이름에 담아요."
+              ]
+            },
+            {
+              "id": "stp_f2868e55-c9fe-47bf-85a4-5bab11c33b72",
+              "objectives": [
+                "i32 타입 표기가 정수만 받는 것을 컴파일 결과로 확인해요.",
+                "따옴표로 감싼 3000과 숫자 3000을 구분해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_e9e8655a-c2ad-40e9-abd2-b3cb0b3db51b",
+      "title": "변경과 참거짓",
+      "objectives": [
+        "다시 넣을 수 있는 이름과 참거짓 값을 구분해요."
+      ],
+      "units": [
+        {
+          "id": "unt_eca0d729-a322-4299-8d5d-0e2715c69fdc",
+          "title": "다시 넣는 값",
+          "objectives": [
+            "let과 let mut의 차이를 컴파일 결과로 확인해요."
+          ],
+          "premise": "판매와 입고로 재고 수량이 바뀌어요. 바뀌는 이름은 선언에서 밝혀야 해요. 각 스텝의 코드는 새로 준비돼 있어요.",
+          "steps": [
+            {
+              "id": "stp_0ad742e9-f7c6-4221-ab90-60f85a3dfafa",
+              "objectives": [
+                "let 이름은 기본으로 다시 넣을 수 없음을 E0384로 확인해요.",
+                "값을 다시 넣을 이름에만 mut를 붙여요."
+              ]
+            },
+            {
+              "id": "stp_1790cade-87fa-435b-bbf6-6400938088e8",
+              "objectives": [
+                "+=로 현재 값에 더한 결과를 같은 이름에 다시 넣어요.",
+                "출력은 실행한 순서대로 그 시점의 값을 보여 줌을 확인해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_034c2882-fb74-4d92-89c8-c4449c17c4b2",
+          "title": "참과 거짓",
+          "objectives": [
+            "비교 결과를 bool 값으로 담아 판매 가능 여부를 정해요."
+          ],
+          "premise": "재고가 0보다 많으면 팔 수 있고, 0이면 팔 수 없어요.",
+          "steps": [
+            {
+              "id": "stp_f22604b7-5c70-45a5-98f2-61e3cf5048e6",
+              "objectives": [
+                "비교 식의 결과가 bool 값 true·false임을 확인해요.",
+                "적어 둔 true와 재고에 따라 바뀌는 비교 결과를 구분해요."
+              ]
+            },
+            {
+              "id": "stp_dd586ed7-cd7b-4535-b432-1fe343297056",
+              "objectives": [
+                "mut 선언과 비교 결과를 함께 써서 판매 뒤 수량과 판매 가능 여부를 출력해요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_a2fc8157-5a39-4d89-8d26-48f5836450b1",
+      "title": "println! 문구를 재고 있음으로 바꾸세요",
+      "goal": "코드 실행을 누르면 rustc가 main.rs를 컴파일해 프로그램을 만들어요. 만든 프로그램은 바로 실행돼요. 프로그램은 fn main의 중괄호 안부터 시작해요. `println!`은 괄호 안 큰따옴표 사이의 글자를 한 줄로 출력해요. 따옴표로 감싼 글자를 문자열 리터럴(string literal)이라고 해요.\n\n제공된 코드는 재고 확인을 출력해요. 따옴표 안 문구를 재고 있음으로 바꾸세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력을 확인하세요.\n2. `\"재고 확인\"`을 `\"재고 있음\"`으로 고치세요.\n3. 코드 실행을 눌러 바뀐 문구를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn main() {\n    // 프로그램은 fn main의 중괄호 안부터 실행돼요.\n    // 따옴표 안 문구를 재고 있음으로 바꾸세요.\n    println!(\"재고 확인\");\n}\n",
+      "solution": "fn main() {\n    // 프로그램은 fn main의 중괄호 안부터 실행돼요.\n    // 따옴표 안 문구를 재고 있음으로 바꾸세요.\n    // 큰따옴표로 감싼 글자가 문자열 리터럴이에요. 여는 따옴표와 닫는 따옴표가 짝을 이뤄야 해요.\n    // println!은 느낌표까지가 이름이에요. 괄호 안 문자열을 한 줄로 출력해요.\n    println!(\"재고 있음\");\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "재고 있음"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "이 수업에서는 Rust로 값을 담고 출력해요. 값·이름·타입을 하나씩 구분하는 게 목표예요."
+        },
+        {
+          "action": "say",
+          "text": "문구와 재고 수량을 출력한 뒤 계산해요. 그다음 다시 넣을 수 있는 이름을 mut로 정해요."
+        },
+        {
+          "action": "say",
+          "text": "println! 문구를 재고 있음으로 바꾸는 문제예요.",
+          "target": "text:println! 문구를 재고 있음으로 바꾸세요#1"
+        },
+        {
+          "action": "say",
+          "text": "출력 문구를 재고 확인에서 재고 있음으로 바꿔야 해요. 고칠 곳은 따옴표 안뿐이에요.",
+          "target": "text:따옴표 안 문구를 재고 있음으로 바꾸세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "재고 확인이 나왔어요. 따옴표 사이 글자가 그대로 한 줄로 찍혔죠.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "println!(\"재고 확인\");",
+          "after": "println!(\"재고 있음);",
+          "say": "문구를 고치다 닫는 따옴표를 빠뜨리면 어떻게 될까요?"
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ],
+          "expect_error": "E0765"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 닫는 따옴표가 없으면 E0765로 컴파일이 멈춰요. 프로그램이 만들어지지 않아 아무것도 출력되지 않아요.",
+          "target": "code:println!(\"재고 있음);"
+        },
+        {
+          "action": "patch_code",
+          "before": "println!(\"재고 있음);",
+          "after": "println!(\"재고 있음\");",
+          "say": "닫는 따옴표를 붙여 문자열을 끝내요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "재고 있음이 나왔어요. 바꾼 문자열 리터럴이 그대로 출력됐어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_f38cdacd-70a6-46a9-9234-e54bfe263fbd",
+      "title": "{stock} 자리로 재고 수량을 출력하세요",
+      "goal": "`let stock = 5;`는 값 5에 stock이라는 이름을 붙여요. 이것을 바인딩(binding)이라고 해요. println!의 문자열 안에 `{stock}`처럼 이름을 중괄호로 감싸 적어요. 그러면 출력할 때 그 자리에 값이 들어가요.\n\n출력 문구의 0 자리에 {stock}을 넣어 stock의 값이 출력되게 하세요. 채점은 stock의 처음 값을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력을 확인하세요.\n2. `\"재고: 0\"`의 0을 `{stock}`으로 고치세요.\n3. 코드 실행을 눌러 재고 수량이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn main() {\n    // 재고 수량 5에 stock이라는 이름을 붙여요.\n    let stock = 5;\n    // 0 자리에 {stock}을 넣어 stock의 값이 출력되게 하세요.\n    println!(\"재고: 0\");\n}\n",
+      "solution": "fn main() {\n    // 재고 수량 5에 stock이라는 이름을 붙여요.\n    let stock = 5;\n    // 0 자리에 {stock}을 넣어 stock의 값이 출력되게 하세요.\n    // 문자열 안의 {stock}은 자리 표시예요. 출력할 때 그 자리에 stock에 담긴 값이 들어가요.\n    // 중괄호 없이 stock만 적으면 이름이 아니라 그냥 글자로 출력돼요.\n    println!(\"재고: {stock}\");\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "재고: 5"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "stock": "12"
+          },
+          "expected": "재고: 12"
+        },
+        {
+          "values": {
+            "stock": "0"
+          },
+          "expected": "재고: 0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "{stock} 자리로 재고 수량을 출력하는 문제예요.",
+          "target": "text:{stock} 자리로 재고 수량을 출력하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "stock에 담긴 수량이 출력의 0 자리에 나와야 해요. 수량이 바뀌면 출력도 따라 바뀌어야 하죠.",
+          "target": "text:출력 문구의 0 자리에 {stock}을 넣어 stock의 값이 출력되게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "재고: 0이 나왔어요. stock이 5여도 문자열에 적힌 0만 찍혀요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "println!(\"재고: 0\");",
+          "after": "println!(\"재고: stock\");",
+          "say": "중괄호 없이 이름만 적어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 중괄호 없이 적은 stock은 그냥 글자예요. 그래서 재고: stock이 그대로 찍혔어요.",
+          "target": "code:println!(\"재고: stock\");"
+        },
+        {
+          "action": "patch_code",
+          "before": "println!(\"재고: stock\");",
+          "after": "println!(\"재고: {stock}\");",
+          "say": "이름을 중괄호로 감싸 자리 표시로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "재고: 5예요. {stock} 자리에 stock에 담긴 5가 들어갔어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_8a5fc6f9-e306-4cf6-a140-32441e786cfd",
+      "title": "stock - sold를 계산해 left에 담으세요",
+      "goal": "이름끼리 계산할 수도 있어요. `stock - sold`는 stock의 값에서 sold의 값을 빼요. let의 오른쪽에 식을 쓰면 먼저 계산한 뒤 그 결과에 이름을 붙여요.\n\nleft의 처음 값 0 대신 stock - sold를 계산해 담으세요. 채점은 stock과 sold의 처음 값을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력을 확인하세요.\n2. `let left = 0;`의 0을 `stock - sold`로 고치세요.\n3. 코드 실행을 눌러 남은 수량을 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn main() {\n    // 처음 재고와 판매한 수량이에요.\n    let stock = 5;\n    let sold = 2;\n    // 0 대신 stock - sold를 계산해 left에 담으세요.\n    let left = 0;\n    println!(\"남은 수량: {left}\");\n}\n",
+      "solution": "fn main() {\n    // 처음 재고와 판매한 수량이에요.\n    let stock = 5;\n    let sold = 2;\n    // 0 대신 stock - sold를 계산해 left에 담으세요.\n    // 오른쪽 식을 먼저 계산하고, 그 결과에 left라는 새 이름을 붙여요.\n    // 빼기는 순서가 중요해요. 재고에서 판매 수량을 빼야 남은 수량이에요.\n    let left = stock - sold;\n    // {left} 자리에는 계산이 끝난 값이 들어가요.\n    println!(\"남은 수량: {left}\");\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "남은 수량: 3"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "stock": "9"
+          },
+          "expected": "남은 수량: 7"
+        },
+        {
+          "values": {
+            "sold": "5"
+          },
+          "expected": "남은 수량: 0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "stock - sold를 계산해 left에 담는 문제예요.",
+          "target": "text:stock - sold를 계산해 left에 담으세요#1"
+        },
+        {
+          "action": "say",
+          "text": "판매하고 남은 수량을 left에 담아야 해요. 처음 재고에서 판매 수량을 빼는 계산이죠.",
+          "target": "text:left의 처음 값 0 대신 stock - sold를 계산해 담으세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "남은 수량: 0이에요. left에 계산 없이 0을 적어 뒀거든요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "let left = 0;",
+          "after": "let left = sold - stock;",
+          "say": "빼는 순서를 거꾸로 적으면 어떨까요?"
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. sold - stock은 2에서 5를 빼서 -3이 나와요. 빼는 순서가 바뀌면 결과도 바뀌어요.",
+          "target": "code:let left = sold - stock;"
+        },
+        {
+          "action": "patch_code",
+          "before": "let left = sold - stock;",
+          "after": "let left = stock - sold;",
+          "say": "재고에서 판매 수량을 빼는 순서로 고쳐요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "남은 수량: 3이에요. 5에서 2를 뺀 결과가 left에 담겼어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_f2868e55-c9fe-47bf-85a4-5bab11c33b72",
+      "title": "price에 따옴표 없는 숫자 3000을 담으세요",
+      "goal": "`let price: i32`의 `: i32`는 타입 표기예요. price에 32비트 정수만 담는다는 뜻이에요. 큰따옴표로 감싼 \"3000\"은 숫자가 아니라 글자예요.\n\n제공된 코드는 아직 컴파일되지 않아요. price의 처음 값에서 따옴표를 지워 숫자 3000을 담으세요. 채점은 price의 처음 값을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 컴파일 오류의 코드를 확인하세요.\n2. `\"3000\"`의 따옴표를 지워 `3000`으로 고치세요.\n3. 코드 실행을 눌러 합계를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn main() {\n    // 상품 하나의 가격과 배송비예요. i32는 정수 타입이에요.\n    // 따옴표를 지워 price에 숫자 3000을 담으세요.\n    let price: i32 = \"3000\";\n    let delivery = 2500;\n    let total = price + delivery;\n    println!(\"합계: {total}\");\n}\n",
+      "solution": "fn main() {\n    // 상품 하나의 가격과 배송비예요. i32는 정수 타입이에요.\n    // 따옴표를 지워 price에 숫자 3000을 담으세요.\n    // : i32는 price가 정수만 받는다는 표기예요. 따옴표로 감싼 글자는 담을 수 없어요.\n    let price: i32 = 3000;\n    // 표기가 없으면 Rust가 담은 값을 보고 정수 타입을 정해요.\n    let delivery = 2500;\n    // 둘 다 정수라서 더할 수 있어요. 글자와 정수는 더할 수 없어요.\n    let total = price + delivery;\n    println!(\"합계: {total}\");\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "합계: 5500"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "price": "4000"
+          },
+          "expected": "합계: 6500"
+        },
+        {
+          "values": {
+            "delivery": "0"
+          },
+          "expected": "합계: 3000"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "price에 따옴표 없는 숫자 3000을 담는 문제예요.",
+          "target": "text:price에 따옴표 없는 숫자 3000을 담으세요#1"
+        },
+        {
+          "action": "say",
+          "text": "price에 글자 \"3000\"이 들어 있어요. 따옴표를 지워 숫자로 담아야 i32 표기와 맞아요.",
+          "target": "text:price의 처음 값에서 따옴표를 지워 숫자 3000을 담으세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ],
+          "expect_error": "E0308"
+        },
+        {
+          "action": "say",
+          "text": "E0308, 타입이 맞지 않는다는 오류예요. 정수 자리에 글자를 넣었거든요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "let price: i32 = \"3000\";",
+          "after": "let price = \"3000\";",
+          "say": "타입 표기를 지우면 오류가 사라질까요?"
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ],
+          "expect_error": "E0369"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 표기를 지워도 이번엔 E0369가 나요. 글자에 정수를 더할 수는 없거든요.",
+          "target": "code:let total = price + delivery;"
+        },
+        {
+          "action": "patch_code",
+          "before": "let price = \"3000\";",
+          "after": "let price: i32 = 3000;",
+          "say": "표기는 되살리고 따옴표만 지워요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "합계: 5500이에요. 정수 3000과 2500이 더해졌어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_0ad742e9-f7c6-4221-ab90-60f85a3dfafa",
+      "title": "stock 선언에 mut를 붙이세요",
+      "goal": "Rust의 let 이름은 기본으로 값을 다시 넣을 수 없어요. 이것을 불변(immutable)이라고 해요. 값을 다시 넣을 이름은 `let mut`로 선언해요. `stock -= 2`는 stock에서 2를 뺀 값을 다시 stock에 넣어요.\n\n제공된 코드는 아직 컴파일되지 않아요. stock 선언 한 곳에만 mut를 붙이세요. 출력문과 빼는 수량은 고치지 마세요. 채점은 stock의 처음 값을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 제공된 코드를 실행하세요.\n2. 바꿀 수 없다는 오류가 가리키는 이름을 확인하세요.\n3. `stock` 선언에 `mut`를 추가하세요.\n4. 다시 실행해 남은 수량을 확인하세요.\n5. 현재 답안을 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn main() {\n    // 남은 수량은 판매 후 바뀌어요.\n    // stock 선언에 mut를 붙여 다시 넣을 수 있게 하세요.\n    let stock = 5;\n    stock -= 2;\n    println!(\"남은 수량: {stock}\");\n}\n",
+      "solution": "fn main() {\n    // 남은 수량은 판매 후 바뀌어요.\n    // stock 선언에 mut를 붙여 다시 넣을 수 있게 하세요.\n    // let만 쓰면 처음 담은 값을 바꿀 수 없어요. 다시 넣을 이름에만 mut를 붙여요.\n    let mut stock = 5;\n    // -=는 지금 값에서 2를 뺀 결과를 다시 stock에 넣어요. mut가 없으면 이 줄이 E0384를 내요.\n    stock -= 2;\n    // 다시 넣은 뒤의 stock 값이 출력돼요.\n    println!(\"남은 수량: {stock}\");\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "남은 수량: 3"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "stock": "8"
+          },
+          "expected": "남은 수량: 6"
+        },
+        {
+          "values": {
+            "stock": "2"
+          },
+          "expected": "남은 수량: 0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "stock 선언에 mut를 붙이는 문제예요.",
+          "target": "text:stock 선언에 mut를 붙이세요#1"
+        },
+        {
+          "action": "say",
+          "text": "stock은 판매 뒤 값이 바뀌어요. 그래서 선언에서 바꿀 수 있는 이름이라고 밝혀야 해요.",
+          "target": "text:stock 선언 한 곳에만 mut를 붙이세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ],
+          "expect_error": "E0384"
+        },
+        {
+          "action": "say",
+          "text": "E0384예요. 불변인 stock에 두 번째로 값을 넣을 수 없다는 오류죠. 오류는 stock -= 2 줄을 가리켜요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    stock -= 2;\n",
+          "after": "",
+          "say": "오류 난 줄을 지워 버리면 어떨까요?"
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 그 줄을 지우면 컴파일은 되지만 판매가 빠져서 남은 수량이 5로 나와요.",
+          "target": "code:println!(\"남은 수량: {stock}\");"
+        },
+        {
+          "action": "patch_code",
+          "before": "    let stock = 5;\n",
+          "after": "    let stock = 5;\n    stock -= 2;\n",
+          "say": "빼는 줄은 그대로 되살려요."
+        },
+        {
+          "action": "patch_code",
+          "before": "let stock = 5;",
+          "after": "let mut stock = 5;",
+          "say": "선언에 mut를 붙여 다시 넣을 수 있게 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "남은 수량: 3이에요. mut 덕분에 5에서 2를 뺀 값을 stock에 다시 담았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "mut는 다시 넣는 이름에만 붙여요. 바뀌지 않는 이름까지 열어 둘 이유가 없거든요.",
+          "target": "code:let mut stock = 5;"
+        }
+      ]
+    },
+    {
+      "id": "stp_1790cade-87fa-435b-bbf6-6400938088e8",
+      "title": "+=로 입고 수량을 stock에 더하세요",
+      "goal": "`stock += arrived`는 stock에 arrived를 더해 다시 넣어요. `stock = stock + arrived`를 줄여 쓴 거예요. stock은 이미 `let mut`로 선언돼 있어요.\n\n입고 후 출력 앞에 stock에 arrived를 더해 다시 넣는 줄을 쓰세요. 채점은 stock과 arrived의 처음 값을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 판매 후와 입고 후 출력을 확인하세요.\n2. 주석 아래에 `stock += arrived;`를 쓰세요.\n3. 코드 실행을 눌러 두 줄을 비교하세요.\n4. 작성한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn main() {\n    // 판매와 입고로 재고가 두 번 바뀌어요.\n    let mut stock = 5;\n    let sold = 2;\n    let arrived = 4;\n    stock -= sold;\n    println!(\"판매 후: {stock}\");\n    // 이 주석 아래에 stock에 arrived를 더해 다시 넣는 줄을 쓰세요.\n    println!(\"입고 후: {stock}\");\n}\n",
+      "solution": "fn main() {\n    // 판매와 입고로 재고가 두 번 바뀌어요.\n    // 판매에서 한 번, 입고에서 한 번 다시 넣으니 stock에는 mut가 있어요.\n    let mut stock = 5;\n    let sold = 2;\n    let arrived = 4;\n    stock -= sold;\n    // 이 출력은 입고 전에 실행돼요. 그때의 stock 값이 찍혀요.\n    println!(\"판매 후: {stock}\");\n    // 이 주석 아래에 stock에 arrived를 더해 다시 넣는 줄을 쓰세요.\n    // +=는 지금 stock에 arrived를 더한 결과를 다시 stock에 넣어요.\n    // =만 쓰면 더하지 않고 arrived 값으로 덮어써요.\n    stock += arrived;\n    // 입고를 더한 뒤의 stock 값이 찍혀요.\n    println!(\"입고 후: {stock}\");\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "판매 후: 3\n입고 후: 7"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "arrived": "10"
+          },
+          "expected": "판매 후: 3\n입고 후: 13"
+        },
+        {
+          "values": {
+            "stock": "8"
+          },
+          "expected": "판매 후: 6\n입고 후: 10"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "+=로 입고 수량을 stock에 더하는 문제예요.",
+          "target": "text:+=로 입고 수량을 stock에 더하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "판매 뒤 상품이 들어왔어요. 입고 수량 arrived를 stock에 더해 다시 넣어야 해요.",
+          "target": "text:입고 후 출력 앞에 stock에 arrived를 더해 다시 넣는 줄을 쓰세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "두 줄 모두 3이에요. 아직 입고를 더하는 줄이 없거든요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    println!(\"입고 후: {stock}\");\n",
+          "after": "    stock = arrived;\n    println!(\"입고 후: {stock}\");\n",
+          "say": "등호 하나로 arrived를 넣어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. =만 쓰면 더하지 않고 덮어써요. 남아 있던 3이 사라지고 입고 후가 4가 됐어요.",
+          "target": "code:stock = arrived;"
+        },
+        {
+          "action": "patch_code",
+          "before": "    stock = arrived;\n",
+          "after": "    stock += arrived;\n",
+          "say": "+=로 바꿔 더한 결과를 다시 넣어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "입고 후가 7이에요. 3에 4를 더했죠. 판매 후 줄은 먼저 실행돼서 3 그대로예요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_f22604b7-5c70-45a5-98f2-61e3cf5048e6",
+      "title": "stock > 0 비교 결과를 can_sell에 담으세요",
+      "goal": "bool은 true와 false 두 값만 갖는 타입이에요. `stock > 0` 같은 비교 식은 계산하면 bool 값이 돼요.\n\ncan_sell의 true 대신 stock > 0의 비교 결과를 담으세요. 재고가 0이면 판매 가능이 false여야 해요. 채점은 stock의 처음 값을 0으로도 바꿔 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력을 확인하세요.\n2. `let can_sell: bool = true;`의 `true`를 `stock > 0`으로 고치세요.\n3. 코드 실행을 눌러 판매 가능 여부를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn main() {\n    // 지금 재고 수량이에요.\n    let stock = 3;\n    // true 대신 재고가 0보다 큰지 비교한 결과를 담으세요.\n    let can_sell: bool = true;\n    println!(\"판매 가능: {can_sell}\");\n}\n",
+      "solution": "fn main() {\n    // 지금 재고 수량이에요.\n    let stock = 3;\n    // true 대신 재고가 0보다 큰지 비교한 결과를 담으세요.\n    // >는 왼쪽이 오른쪽보다 클 때만 참이에요. 비교한 결과가 bool 값이에요.\n    // >=로 쓰면 0도 포함돼서 재고가 없을 때도 참이 돼요.\n    let can_sell: bool = stock > 0;\n    // bool 값은 true나 false라는 글자로 출력돼요.\n    println!(\"판매 가능: {can_sell}\");\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "판매 가능: true"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "stock": "0"
+          },
+          "expected": "판매 가능: false"
+        },
+        {
+          "values": {
+            "stock": "7"
+          },
+          "expected": "판매 가능: true"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "stock > 0 비교 결과를 can_sell에 담는 문제예요.",
+          "target": "text:stock > 0 비교 결과를 can_sell에 담으세요#1"
+        },
+        {
+          "action": "say",
+          "text": "판매 가능 여부는 재고에 따라 달라져야 해요. 그런데 지금은 true를 그냥 적어 뒀죠.",
+          "target": "text:can_sell의 true 대신 stock > 0의 비교 결과를 담으세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "판매 가능: true예요. 재고가 3이라 맞아 보여요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "let stock = 3;",
+          "after": "let stock = 0;",
+          "say": "재고를 0으로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "재고가 0인데도 true예요. 비교 없이 적어 둔 값이라 재고와 상관이 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "let can_sell: bool = true;",
+          "after": "let can_sell: bool = stock >= 0;",
+          "say": "0 이상이면 판다고 적어 볼까요?"
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. >=는 같을 때도 참이라 0 >= 0이 true예요. 재고가 없는데 판매 가능으로 나와요.",
+          "target": "code:stock >= 0"
+        },
+        {
+          "action": "patch_code",
+          "before": "stock >= 0;",
+          "after": "stock > 0;",
+          "say": ">=를 >로 고쳐 0보다 클 때만 참이 되게 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "false가 나왔어요. 0 > 0은 거짓이거든요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "let stock = 0;",
+          "after": "let stock = 3;",
+          "say": "재고를 처음 값 3으로 돌려놔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "다시 true예요. 같은 비교 줄이 재고에 따라 다른 bool 값을 담았어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_dd586ed7-cd7b-4535-b432-1fe343297056",
+      "title": "mut와 비교를 함께 써서 판매 뒤 상태를 출력하세요",
+      "goal": "앞에서 쓴 mut와 비교를 한 프로그램에 함께 써요. 재고 1개를 모두 팔면 남은 수량과 판매 가능 여부가 함께 바뀌어야 해요.\n\n제공된 코드는 아직 컴파일되지 않아요. stock 선언에 mut를 붙이세요. can_sell에는 판매 뒤 stock이 0보다 큰지 비교한 결과를 담으세요. 채점은 stock과 sold의 처음 값을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 컴파일 오류를 확인하세요.\n2. `let stock = 1;`에 `mut`를 붙이세요.\n3. 코드 실행을 눌러 두 줄의 출력을 확인하세요.\n4. `can_sell`의 `true`를 판매 뒤 stock이 0보다 큰지 비교하는 식으로 고치세요.\n5. 코드 실행을 눌러 판매 가능 여부를 다시 확인하세요.\n6. 수정한 코드를 제출하세요.",
+      "language": "rust",
+      "starter_code": "fn main() {\n    // 재고 1개 중 1개를 팔아요.\n    // stock 선언에 mut를 붙이세요.\n    let stock = 1;\n    let sold = 1;\n    stock -= sold;\n    // true 대신 판매 뒤 stock이 0보다 큰지 비교한 결과를 담으세요.\n    let can_sell: bool = true;\n    println!(\"남은 수량: {stock}\");\n    println!(\"판매 가능: {can_sell}\");\n}\n",
+      "solution": "fn main() {\n    // 재고 1개 중 1개를 팔아요.\n    // stock 선언에 mut를 붙이세요.\n    // 판매로 값이 바뀌는 stock에만 mut를 붙여요. sold는 바꾸지 않으니 그대로 둬요.\n    let mut stock = 1;\n    let sold = 1;\n    // 판매 수량만큼 빼서 stock에 다시 넣어요.\n    stock -= sold;\n    // true 대신 판매 뒤 stock이 0보다 큰지 비교한 결과를 담으세요.\n    // 이 줄은 빼기 뒤에 있어서 줄어든 stock으로 비교해요.\n    let can_sell: bool = stock > 0;\n    // 두 출력 모두 판매를 마친 뒤의 값을 보여 줘요.\n    println!(\"남은 수량: {stock}\");\n    println!(\"판매 가능: {can_sell}\");\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "남은 수량: 0\n판매 가능: false"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "stock": "5"
+          },
+          "expected": "남은 수량: 4\n판매 가능: true"
+        },
+        {
+          "values": {
+            "sold": "0"
+          },
+          "expected": "남은 수량: 1\n판매 가능: true"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "mut와 비교를 함께 써서 판매 뒤 상태를 출력하는 문제예요.",
+          "target": "text:mut와 비교를 함께 써서 판매 뒤 상태를 출력하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "재고 1개를 모두 팔았어요. 남은 수량과 판매 가능 여부가 판매 뒤 상태와 맞아야 해요.",
+          "target": "text:can_sell에는 판매 뒤 stock이 0보다 큰지 비교한 결과를 담으세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ],
+          "expect_error": "E0384"
+        },
+        {
+          "action": "say",
+          "text": "E0384가 다시 나왔어요. 불변으로 선언한 stock에서 sold를 빼 다시 넣으려 했거든요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "let stock = 1;",
+          "after": "let mut stock = 1;",
+          "say": "바뀌는 stock에만 mut를 붙여요. sold는 그대로 둬요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이제 컴파일돼요. 그런데 남은 수량이 0인데 판매 가능이 true로 나와요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "let can_sell: bool = true;",
+          "after": "let can_sell: bool = stock > 0;",
+          "say": "빼기 뒤 줄이라 줄어든 stock을 0과 비교해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "판매 가능: false예요. 판매 뒤 재고 0은 0보다 크지 않으니까요.",
+          "target": "output"
+        }
+      ]
+    }
+  ]
+}

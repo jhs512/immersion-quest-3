@@ -1,0 +1,292 @@
+{
+  "course": "tests/fixtures/player-pilot/룬/course.json",
+  "lesson": "courses/redesigned/rust-values.json",
+  "expected_outputs": [
+    [
+      "재고 확인",
+      "",
+      "재고 있음"
+    ],
+    [
+      "재고: 0",
+      "재고: stock",
+      "재고: 5"
+    ],
+    [
+      "남은 수량: 0",
+      "남은 수량: -3",
+      "남은 수량: 3"
+    ],
+    [
+      "",
+      "",
+      "합계: 5500"
+    ],
+    [
+      "",
+      "남은 수량: 5",
+      "남은 수량: 3"
+    ],
+    [
+      "판매 후: 3\n입고 후: 3",
+      "판매 후: 3\n입고 후: 4",
+      "판매 후: 3\n입고 후: 7"
+    ],
+    [
+      "판매 가능: true",
+      "판매 가능: true",
+      "판매 가능: true",
+      "판매 가능: false",
+      "판매 가능: true"
+    ],
+    [
+      "",
+      "남은 수량: 0\n판매 가능: true",
+      "남은 수량: 0\n판매 가능: false"
+    ]
+  ],
+  "reject": [
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "    println!(\"재고 있음\");\n",
+          "    println!(\"재고 확인\");\n"
+        ]
+      ],
+      "reason": "옛 문구를 그대로 둔 답"
+    },
+    {
+      "step": 1,
+      "replacements": [
+        [
+          "    println!(\"재고 있음\");\n",
+          "    println!(재고 있음);\n"
+        ]
+      ],
+      "reason": "따옴표를 빠뜨려 컴파일되지 않는 답"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "    println!(\"재고: {stock}\");\n",
+          "    println!(\"재고: 5\");\n"
+        ]
+      ],
+      "reason": "수량 5를 직접 적은 답(stock을 바꾸면 틀림)"
+    },
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "    println!(\"재고: {stock}\");\n",
+          "    println!(\"재고: stock\");\n"
+        ]
+      ],
+      "reason": "중괄호 없이 이름을 글자로 적은 답"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "    let left = stock - sold;\n",
+          "    let left = 3;\n"
+        ]
+      ],
+      "reason": "계산 결과 3을 직접 적은 답"
+    },
+    {
+      "step": 3,
+      "replacements": [
+        [
+          "    let left = stock - sold;\n",
+          "    let left = sold - stock;\n"
+        ]
+      ],
+      "reason": "빼는 순서를 바꾼 답"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "    let price: i32 = 3000;\n",
+          "    let price = \"3000\";\n"
+        ]
+      ],
+      "reason": "타입 표기만 지운 답(E0369)"
+    },
+    {
+      "step": 4,
+      "replacements": [
+        [
+          "    let total = price + delivery;\n",
+          "    let total = 5500;\n"
+        ]
+      ],
+      "reason": "합계 5500을 직접 적은 답"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "    println!(\"남은 수량: {stock}\");\n",
+          "    println!(\"남은 수량: 3\");\n"
+        ]
+      ],
+      "reason": "남은 수량 3을 직접 적은 답"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "    stock -= 2;\n",
+          ""
+        ]
+      ],
+      "reason": "오류 난 빼기 줄을 지운 답"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "    stock += arrived;\n",
+          "    stock += 4;\n"
+        ]
+      ],
+      "reason": "입고 수량 4를 직접 적은 답"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "    stock += arrived;\n",
+          "    stock = arrived;\n"
+        ]
+      ],
+      "reason": "더하지 않고 덮어쓴 답"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "    println!(\"입고 후: {stock}\");\n",
+          "    println!(\"입고 후: 7\");\n"
+        ]
+      ],
+      "reason": "입고 후 수량을 직접 적은 답"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "    let can_sell: bool = stock > 0;\n",
+          "    let can_sell: bool = true;\n"
+        ]
+      ],
+      "reason": "true를 그대로 둔 답(재고 0에서 틀림)"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "    let can_sell: bool = stock > 0;\n",
+          "    let can_sell: bool = stock >= 0;\n"
+        ]
+      ],
+      "reason": "0도 참으로 보는 >= 비교"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "    println!(\"남은 수량: {stock}\");\n    println!(\"판매 가능: {can_sell}\");\n",
+          "    println!(\"남은 수량: 0\");\n    println!(\"판매 가능: false\");\n"
+        ]
+      ],
+      "reason": "두 줄을 직접 적은 답"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "    let can_sell: bool = stock > 0;\n",
+          "    let can_sell: bool = true;\n"
+        ]
+      ],
+      "reason": "판매 가능을 true로 둔 답"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "    let can_sell: bool = stock > 0;\n",
+          "    let can_sell: bool = stock >= 0;\n"
+        ]
+      ],
+      "reason": "재고 0도 판매 가능으로 보는 답"
+    }
+  ],
+  "accept": [
+    {
+      "step": 2,
+      "replacements": [
+        [
+          "    println!(\"재고: {stock}\");\n",
+          "    println!(\"재고: {}\", stock);\n"
+        ]
+      ],
+      "reason": "빈 자리 표시 뒤에 stock을 넘긴 답"
+    },
+    {
+      "step": 5,
+      "replacements": [
+        [
+          "    stock -= 2;\n",
+          "    stock = stock - 2;\n"
+        ]
+      ],
+      "reason": "-= 대신 stock - 2를 다시 넣은 답"
+    },
+    {
+      "step": 6,
+      "replacements": [
+        [
+          "    stock += arrived;\n",
+          "    stock = stock + arrived;\n"
+        ]
+      ],
+      "reason": "+= 대신 풀어 쓴 덧셈"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "    let can_sell: bool = stock > 0;\n",
+          "    let can_sell: bool = 0 < stock;\n"
+        ]
+      ],
+      "reason": "좌우를 바꾼 같은 비교"
+    },
+    {
+      "step": 7,
+      "replacements": [
+        [
+          "    let can_sell: bool = stock > 0;\n",
+          "    let can_sell = stock > 0;\n"
+        ]
+      ],
+      "reason": "타입 표기 없이 비교 결과를 담은 답"
+    },
+    {
+      "step": 8,
+      "replacements": [
+        [
+          "    let can_sell: bool = stock > 0;\n",
+          "    let can_sell: bool = stock != 0;\n"
+        ]
+      ],
+      "reason": "0이 아닌지로 비교한 답(음수 재고 없음)"
+    }
+  ]
+}

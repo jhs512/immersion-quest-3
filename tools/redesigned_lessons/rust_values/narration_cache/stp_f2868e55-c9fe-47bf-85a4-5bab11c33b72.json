@@ -1,0 +1,61 @@
+{
+  "by": "hand",
+  "source_sha256": "a39e2a81b94aaa85e539c7106257f7a3238c9b71d47cf238d2fe49d99d323cef",
+  "entry": [
+    {
+      "action": "say",
+      "text": "price에 글자 \"3000\"이 들어 있어요. 따옴표를 지워 숫자로 담아야 i32 표기와 맞아요.",
+      "target": "text:price의 처음 값에서 따옴표를 지워 숫자 3000을 담으세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ],
+      "expect_error": "E0308"
+    },
+    {
+      "action": "say",
+      "text": "E0308, 타입이 맞지 않는다는 오류예요. 정수 자리에 글자를 넣었거든요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "let price: i32 = \"3000\";",
+      "after": "let price = \"3000\";",
+      "say": "타입 표기를 지우면 오류가 사라질까요?"
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ],
+      "expect_error": "E0369"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 표기를 지워도 이번엔 E0369가 나요. 글자에 정수를 더할 수는 없거든요.",
+      "target": "code:let total = price + delivery;"
+    },
+    {
+      "action": "patch_code",
+      "before": "let price = \"3000\";",
+      "after": "let price: i32 = 3000;",
+      "say": "표기는 되살리고 따옴표만 지워요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "합계: 5500이에요. 정수 3000과 2500이 더해졌어요.",
+      "target": "output"
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "by": "hand",
+  "source_sha256": "2162eb064f859ee6333c24f2901f5407892ca5bf9ccfa762bad6b0d018e87dcb",
+  "entry": [
+    {
+      "action": "say",
+      "text": "stock은 판매 뒤 값이 바뀌어요. 그래서 선언에서 바꿀 수 있는 이름이라고 밝혀야 해요.",
+      "target": "text:stock 선언 한 곳에만 mut를 붙이세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ],
+      "expect_error": "E0384"
+    },
+    {
+      "action": "say",
+      "text": "E0384예요. 불변인 stock에 두 번째로 값을 넣을 수 없다는 오류죠. 오류는 stock -= 2 줄을 가리켜요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    stock -= 2;\n",
+      "after": "",
+      "say": "오류 난 줄을 지워 버리면 어떨까요?"
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 그 줄을 지우면 컴파일은 되지만 판매가 빠져서 남은 수량이 5로 나와요.",
+      "target": "code:println!(\"남은 수량: {stock}\");"
+    },
+    {
+      "action": "patch_code",
+      "before": "    let stock = 5;\n",
+      "after": "    let stock = 5;\n    stock -= 2;\n",
+      "say": "빼는 줄은 그대로 되살려요."
+    },
+    {
+      "action": "patch_code",
+      "before": "let stock = 5;",
+      "after": "let mut stock = 5;",
+      "say": "선언에 mut를 붙여 다시 넣을 수 있게 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "남은 수량: 3이에요. mut 덕분에 5에서 2를 뺀 값을 stock에 다시 담았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "mut는 다시 넣는 이름에만 붙여요. 바뀌지 않는 이름까지 열어 둘 이유가 없거든요.",
+      "target": "code:let mut stock = 5;"
+    }
+  ]
+}
