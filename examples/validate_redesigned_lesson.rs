@@ -159,9 +159,12 @@ async fn validate_with_session(spec: Validation,session:Option<&molip_quest::doc
                     let event=action["event"].as_str();
                     let nth=action["nth"].as_u64().unwrap_or(1) as usize;
                     let traced=match task.language {
-                        TaskLanguage::Java=>molip_quest::java_trace::trace(&source,&input).await?,
+                        TaskLanguage::Java=>molip_quest::java_trace::trace_files(&source,&input,&task.files).await?,
                         TaskLanguage::Python=>molip_quest::python_trace::trace(&source,&input,&task.files).await?,
                         TaskLanguage::C=>molip_quest::c_trace::trace(&source,&input).await?,
+                        TaskLanguage::Javascript=>molip_quest::js_trace::trace(&source,&input,&task.files).await?,
+                        TaskLanguage::Cpp=>molip_quest::native_trace::trace(molip_quest::native_trace::NativeLanguage::Cpp,&source,&input).await?,
+                        TaskLanguage::Rust=>molip_quest::native_trace::trace(molip_quest::native_trace::NativeLanguage::Rust,&source,&input).await?,
                         language=>return Err(format!("{label}: no tracer for {language:?}")),
                     };
                     let document:serde_json::Value=serde_json::from_str(&traced).map_err(|e|e.to_string())?;

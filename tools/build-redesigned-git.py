@@ -109,8 +109,8 @@ def validate_highlights(task):
         if action['action'] == 'code_flow':
             # The narration opens 코드 흐름 보기 on the code as it is now and shows the nth recorded step
             # on `line` (assets/layout/agent.js); the validator replays it on the real trace.
-            # Java, Python and C traces are drawn on both shipped platforms (Windows, macOS); Task::code_flow_availability.
-            if task.get('code_flow') is False or task.get('language') not in ('java', 'python', 'c') or task.get('git_terminal') \
+            # The real trace validator checks the selected language's recorded stops.
+            if task.get('code_flow') is False or task.get('language') not in ('java', 'python', 'c', 'javascript', 'cpp', 'rust') or task.get('git_terminal') \
                     or (task.get('interaction') and not (task.get('example_code') or '').strip()):
                 raise ValueError('코드 흐름 보기가 없는 스텝에서 코드 흐름 해설을 써요.')
             if action.get('close') is True:
@@ -173,7 +173,7 @@ def validate_highlights(task):
             if all(line.strip() in ('', '{', '}', '};') for line in marked):
                 raise ValueError(f'빈 줄이나 괄호만 강조해요: {lines}')
             # A run highlights the statement whose output the next sentence reads.
-            if (action['action'] == 'run' and not action.get('expect_error') and task.get('language') in ('java', 'python', 'c')
+            if (action['action'] == 'run' and not action.get('expect_error') and task.get('language') in ('java', 'python', 'c', 'javascript', 'cpp', 'rust')
                     and 'print' in source and not any('print' in line for line in marked)):
                 raise ValueError(f'실행 강조가 출력문을 가리키지 않아요: {lines} {marked}')
         if action['action'] == 'patch_code' and files is not None:
