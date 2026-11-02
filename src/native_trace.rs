@@ -223,6 +223,11 @@ mod tests {
         assert_eq!(doc["verification"]["program_runs"],1);
         assert!(locals(&doc,"first").iter().filter(|(line,_)|*line>13).all(|(_,v)|moved(v)),"{doc}");
         assert!(locals(&doc,"item").iter().any(|(line,v)|*line==9&&moved(v)),"caller's item is moved while take runs: {doc}");
+        // rust-values 1: a body of macros only has no statement of its own in main.rs but the block at the signature.
+        let printed="fn main() {\n    // note\n    println!(\"hello\");\n}\n";
+        let doc:serde_json::Value=serde_json::from_str(&trace(NativeLanguage::Rust,printed,"").await.unwrap()).unwrap();
+        let lines:Vec<_>=doc["trace"].as_array().unwrap().iter().map(|s|s["line"].as_i64().unwrap()).collect();
+        assert_eq!((doc["status"].as_str(),doc["stdout"].as_str(),lines.first()),(Some("ok"),Some("hello\n"),Some(&3)),"{doc}");
         let broken=run(NativeLanguage::Rust,"fn main() {\n    let a = String::new();\n    let b = a;\n    println!(\"{}\", a);\n}\n","").await.unwrap();
         assert_eq!(broken.state,"compile_error");
         assert!(broken.stderr.contains("E0382"),"{}",broken.stderr);

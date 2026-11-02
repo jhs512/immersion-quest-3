@@ -62,6 +62,52 @@ struct RejectedAnswer {
     reason: String,
 }
 
+/// The app's own tracer for the step's language, as player_ui's 코드 흐름 보기 button calls it.
+async fn trace(task:&molip_quest::repository_course::Task,source:&str,input:&str)->Result<Value,String> {
+    use molip_quest::{native_trace::NativeLanguage, repository_course::TaskLanguage};
+    let traced=match task.language {
+        TaskLanguage::Java=>molip_quest::java_trace::trace_files(source,input,&task.files).await?,
+        TaskLanguage::Python=>molip_quest::python_trace::trace(source,input,&task.files).await?,
+        TaskLanguage::C=>molip_quest::c_trace::trace(source,input).await?,
+        TaskLanguage::Javascript=>molip_quest::js_trace::trace(source,input,&task.files).await?,
+        TaskLanguage::Cpp=>molip_quest::native_trace::trace(NativeLanguage::Cpp,source,input).await?,
+        TaskLanguage::Rust=>molip_quest::native_trace::trace(NativeLanguage::Rust,source,input).await?,
+        language=>return Err(format!("no tracer for {language:?}")),
+    };
+    serde_json::from_str(&traced).map_err(|e|e.to_string())
+}
+
+/// MQ3_VALIDATE_TRACE_ALL: every step that shows 코드 흐름 보기, starter and solution, with every test
+/// input. The trace either refuses with no steps, or is of a run whose output and success equal the
+/// grader's run (the rule of c_trace's every_c_code_flow_step test, for every language). The solution
+/// must be traced: refusing the lesson's own answer would leave the button useless on that step.
+async fn trace_like_the_grader(task:&molip_quest::repository_course::Task,label:&str)->Result<Value,String> {
+    let inputs:Vec<String>=if task.tests.is_empty() {vec![String::new()]} else {task.tests.iter().map(|t|t.input.clone()).collect()};
+    let mut checked=Vec::new();
+    for (field,source) in [("starter_code",&task.starter_code),("solution",&task.solution)] {
+        for input in &inputs {
+            let doc=trace(task,source,input).await.map_err(|e|format!("{label} {field}: {e}"))?;
+            let graded=lesson_runner::run(task,source,input).await?;
+            let status=doc["status"].as_str().unwrap_or_default().to_owned();
+            let steps=doc["trace"].as_array().map_or(0,Vec::len);
+            if status=="unsupported" {
+                if steps!=0 {return Err(format!("{label} {field}: refused with {steps} steps"))}
+                if field=="solution" {return Err(format!("{label}: the solution is refused: {}",doc["message"]))}
+            } else {
+                let stdout=doc["stdout"].as_str().unwrap_or_default().replace("\r\n","\n");
+                if stdout!=graded.stdout.replace("\r\n","\n") {return Err(format!("{label} {field} {input:?}: traced output {stdout:?}, graded {:?}",graded.stdout))}
+                if (status=="ok")!=graded.success {return Err(format!("{label} {field} {input:?}: trace {status}, graded success {}: {}",graded.success,doc["message"]))}
+                if graded.success&&steps==0 {return Err(format!("{label} {field}: {status} with no steps: {}",doc))}
+                if let Some(line)=doc["trace"].as_array().into_iter().flatten().filter_map(|s|s["line"].as_i64()).find(|&l|l<1||l as usize>source.lines().count()) {
+                    return Err(format!("{label} {field}: step on line {line} outside the code"))
+                }
+            }
+            checked.push(json!({"field":field,"status":status,"steps":steps}));
+        }
+    }
+    Ok(json!(checked))
+}
+
 async fn validate(spec: Validation) -> Result<Value, String> {
     let session=std::env::var_os("MQ3_VALIDATE_SQL_SESSION").map(|_|molip_quest::docker_lab::LessonSession::new());
     let result=validate_with_session(spec,session.as_ref()).await;
@@ -153,21 +199,12 @@ async fn validate_with_session(spec: Validation,session:Option<&molip_quest::doc
                 // tracer, and require the step the narration moves to (agent.js code_flow, code-flow.js seek).
                 "code_flow" if action["close"]==true=>{},
                 "code_flow"=>{
-                    use molip_quest::repository_course::{CodeFlowAvailability, TaskLanguage};
+                    use molip_quest::repository_course::CodeFlowAvailability;
                     if task.code_flow_availability()!=CodeFlowAvailability::Ready {return Err(format!("{label}: code_flow narration on a step without 코드 흐름 보기"))}
                     let line=action["line"].as_u64().ok_or("code_flow needs a line")?;
                     let event=action["event"].as_str();
                     let nth=action["nth"].as_u64().unwrap_or(1) as usize;
-                    let traced=match task.language {
-                        TaskLanguage::Java=>molip_quest::java_trace::trace_files(&source,&input,&task.files).await?,
-                        TaskLanguage::Python=>molip_quest::python_trace::trace(&source,&input,&task.files).await?,
-                        TaskLanguage::C=>molip_quest::c_trace::trace(&source,&input).await?,
-                        TaskLanguage::Javascript=>molip_quest::js_trace::trace(&source,&input,&task.files).await?,
-                        TaskLanguage::Cpp=>molip_quest::native_trace::trace(molip_quest::native_trace::NativeLanguage::Cpp,&source,&input).await?,
-                        TaskLanguage::Rust=>molip_quest::native_trace::trace(molip_quest::native_trace::NativeLanguage::Rust,&source,&input).await?,
-                        language=>return Err(format!("{label}: no tracer for {language:?}")),
-                    };
-                    let document:serde_json::Value=serde_json::from_str(&traced).map_err(|e|e.to_string())?;
+                    let document=trace(task,&source,&input).await.map_err(|e|format!("{label}: {e}"))?;
                     if document["status"]!="ok" {return Err(format!("{label}: code flow of the teacher code ended with {}: {}",document["status"],document["message"]))}
                     let trace=document["trace"].as_array().cloned().unwrap_or_default();
                     let index=trace.iter().enumerate().filter(|(_,step)|step["line"].as_u64()==Some(line)&&event.is_none_or(|event|step["event"]==event)).nth(nth.saturating_sub(1)).map(|(index,_)|index)
@@ -189,6 +226,9 @@ async fn validate_with_session(spec: Validation,session:Option<&molip_quest::doc
         }
         let mut evidence=json!({"id":task.id,"teacher_outputs":outputs,"teacher_images":images,"grading_cases":report.cases.len()});
         if !flow_points.is_empty() {evidence["code_flow"]=json!(flow_points);}
+        if std::env::var_os("MQ3_VALIDATE_TRACE_ALL").is_some() && task.code_flow_availability()==molip_quest::repository_course::CodeFlowAvailability::Ready {
+            evidence["traced"]=trace_like_the_grader(task,&label).await?;
+        }
         steps.push(evidence);
         eprintln!("{label}: passed");
     }

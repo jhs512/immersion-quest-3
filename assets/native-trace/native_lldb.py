@@ -573,8 +573,10 @@ class Recorder:
         """rustc can attribute a frame's first instruction to a later line; that stop is before the body starts."""
         if not self.rust or (frame.GetFunctionName(), frame.GetCFA()) in self.live_frames:
             return False
-        entry = self.entries.get(str(self.start_line(frame)))
-        return entry is not None and frame.GetLineEntry().GetLine() > entry
+        start = self.start_line(frame)
+        entry = self.entries.get(str(start))
+        # A body of macros only (println!) has no statement in this file but the block's own, at the signature.
+        return entry is not None and entry > start and frame.GetLineEntry().GetLine() > entry
 
     def in_prologue(self, frame):
         function = frame.GetFunction()
