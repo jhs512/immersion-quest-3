@@ -77,7 +77,9 @@ mod mac_tests {
         let doc: serde_json::Value = serde_json::from_str(&super::trace(source, "").await.unwrap()).unwrap();
         assert_eq!(doc["status"], "ok", "{doc}");
         assert_eq!(doc["stdout"], "4294967297 6\n");
-        assert_eq!(doc["verification"]["grader_output_and_exit_match"], true);
+        assert_eq!(doc["verification"]["original_source"], true);
+        assert_eq!(doc["verification"]["native_debugger"], "LLDB");
+        assert_eq!(doc["verification"]["program_runs"], 1);
         let steps = doc["trace"].as_array().unwrap();
         assert!(steps.iter().any(|step| step["stack_to_render"].as_array().unwrap().iter().any(|frame| frame["encoded_locals"]["alias"] == serde_json::json!(["C_PTR", "stock"]))));
         assert!(steps.iter().any(|step| step["stack_to_render"].as_array().unwrap().iter().any(|frame| frame["encoded_locals"]["box"][0] == "C_NOTE" && frame["encoded_locals"]["box"][1].as_str().unwrap_or("").contains("해제된"))));

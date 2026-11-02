@@ -54,7 +54,8 @@ print(json.dumps({'target': doc['target'], 'stops': len(doc['stops']), 'stdout':
 subprocess.run([sys.executable, str(HERE.parent.parent / 'assets/c-trace/mac_c_flow.py'), str(case)], check=True, timeout=110)
 flow = json.loads((case / 'c_flow.json').read_text(encoding='utf-8'))
 assert flow['status'] == 'ok', flow
-assert flow['verification']['grader_output_and_exit_match'], flow
+assert flow['verification']['original_source'] and flow['verification']['program_runs'] == 1, flow
+assert flow['stdout'].encode() == graded, flow
 frames = [frame for step in flow['trace'] for frame in step['stack_to_render']]
 assert any(frame['encoded_locals'].get('stock') == 4 for frame in frames), flow
 assert any(frame['encoded_locals'].get('alias') == ['C_PTR', 'stock'] for frame in frames), flow

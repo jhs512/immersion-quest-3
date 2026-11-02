@@ -42,3 +42,16 @@ jobs:
         with:
           name: mac-c-trace-probe-${{ matrix.os }}
           path: ${{ runner.temp }}/mac-c-trace/
+  native-rust:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Exercise the bundled Rust to Python to LLDB path
+        run: |
+          export MOLIP_PYTHON="$(command -v python3)"
+          cargo test --locked --lib --no-default-features c_trace::mac_tests -- --ignored --nocapture --test-threads=1

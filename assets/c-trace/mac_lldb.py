@@ -23,17 +23,16 @@ class Recorder:
     def __init__(self, target, case, source):
         self.target = target
         self.case = case
-        self.source = source
-        self.lines = source.splitlines()
         self.blocks = {}
         self.freed = {}
         self.serial = 0
         self.pending = {}
+        self.returning = {}
+        self.return_addresses = set()
         self.allocator_ids = {}
         self.frame_ids = {}
         self.next_frame = 1
         self.live_frames = set()
-        self.seen_types = set()
         self.truncated = False
         self.view_ids = {}
         self.next_view = 1
@@ -97,13 +96,25 @@ class Recorder:
             return True
         return False
 
+    def return_stop(self, thread):
+        frame = thread.GetFrameAtIndex(0)
+        key = (thread.GetThreadID(), frame.GetPC(), frame.GetCFA())
+        returned = self.returning.pop(key, None)
+        if returned:
+            self.live_frames.difference_update(returned)
+            return True
+        return False
+
     def values(self, frame):
         line = frame.GetLineEntry().GetLine()
         out = []
         for value in frame.GetVariables(True, True, True, True):
             declaration = value.GetDeclaration()
+            if declaration.IsValid() and declaration.GetFileSpec().GetFilename() not in (None, '', 'main.c'):
+                continue
             argument = value.GetValueType() == lldb.eValueTypeVariableArgument
-            if not argument and declaration.IsValid() and declaration.GetLine() >= line:
+            global_ = value.GetValueType() == lldb.eValueTypeVariableGlobal
+            if not argument and not global_ and declaration.IsValid() and declaration.GetLine() >= line:
                 continue
             out.append(value)
         return out
@@ -161,7 +172,10 @@ class Recorder:
         basic = typ.GetBasicType()
         if basic == lldb.eBasicTypeBool:
             return bool(value.GetValueAsUnsigned())
-        if basic in (lldb.eBasicTypeFloat, lldb.eBasicTypeDouble, lldb.eBasicTypeLongDouble):
+        if basic == lldb.eBasicTypeLongDouble:
+            raw = value.GetValue()
+            return ['SPECIAL_FLOAT', raw] if raw is not None else ['C_NOTE', 'long double 값을 읽을 수 없어요']
+        if basic in (lldb.eBasicTypeFloat, lldb.eBasicTypeDouble):
             try:
                 number = float(value.GetValue())
                 return number if math.isfinite(number) else ['SPECIAL_FLOAT', str(number)]
@@ -171,6 +185,9 @@ class Recorder:
             number = value.GetValueAsUnsigned() & 255
             return ['CHAR', chr(number)]
         if type_class & (lldb.eTypeClassBuiltin | lldb.eTypeClassEnumeration):
+            if value.GetByteSize() > 8:
+                raw = value.GetValue()
+                return ['LONG', raw] if raw is not None else ['C_NOTE', f'{value.GetTypeName()} 값을 읽을 수 없어요']
             signed = bool(typ.GetTypeFlags() & lldb.eTypeIsSigned)
             number = value.GetValueAsSigned() if signed else value.GetValueAsUnsigned()
             return ['LONG', str(number)] if abs(number) > (1 << 53) - 1 else number
@@ -224,8 +241,27 @@ class Recorder:
                           'declared_without_initializer': uninitialized,
                           'static_names': [value.GetName() for value in locals_ if value.GetValueType() == lldb.eValueTypeVariableStatic]})
         stack[-1]['is_highlighted'] = True
+        represented = {key[1] for key, hid in self.view_ids.items()
+                       if key[0] == 'allocation' and str(hid) in heap}
+        for index, (address, (size, serial)) in enumerate(self.blocks.items()):
+            if index >= MAX_CHILDREN:
+                self.truncated = True
+                break
+            if serial not in represented:
+                hid = self.object_id(('allocation-metadata', serial))
+                heap[hid] = ['INSTANCE', '동적 할당 · 자료형 미확인',
+                             ['주소', f'0x{address:x}'], ['바이트 수', size],
+                             ['상태', ['C_NOTE', '현재 포인터에서 자료형을 확인하지 못했어요']]]
         top = frames[-1]
         event = 'call' if (top.GetFunctionName(), top.GetCFA()) not in self.live_frames else 'step_line'
+        caller = thread.GetFrameAtIndex(1)
+        if event == 'call' and self.user_frame(caller):
+            at = caller.GetPC()
+            key = (thread.GetThreadID(), at, caller.GetCFA())
+            self.returning.setdefault(key, set()).add((top.GetFunctionName(), top.GetCFA()))
+            if at not in self.return_addresses:
+                self.target.BreakpointCreateByAddress(at)
+                self.return_addresses.add(at)
         self.live_frames = live
         return {'event': event, 'line': top.GetLineEntry().GetLine(), 'func_name': top.GetFunctionName(),
                 'stdout': _read(os.path.join(self.case, 'trace-stdout.txt')), 'globals': globals_,
@@ -235,7 +271,7 @@ class Recorder:
 def trace(debugger, command, result, internal_dict):
     case = os.path.abspath(shlex.split(command)[0])
     source = _read(os.path.join(case, 'main.c'))
-    target = debugger.CreateTarget(os.path.join(case, 'trace-main'))
+    target = debugger.CreateTarget(os.path.join(case, 'main'))
     debugger.SetAsync(False)
     recorder = Recorder(target, case, source)
     for line in range(1, len(source.splitlines()) + 1):
@@ -250,7 +286,7 @@ def trace(debugger, command, result, internal_dict):
     doc = {'code': source, 'stdin': _read(os.path.join(case, 'stdin.txt')), 'language': 'c',
            'compiler': target.GetTriple() + ' · 원본 C 프로그램 · LLDB', 'trace': [], 'problems': [],
            'stepBudget': LIMIT, 'options': {'objects': False}, 'heapTruncated': False,
-           'stdout_per_step': False}
+           'stdout_per_step': False, 'program_runs': 0 if error.Fail() else 1}
     try:
         if error.Fail():
             doc.update(status='unsupported', message='C 디버거를 시작하지 못했어요. ' + str(error))
@@ -271,7 +307,7 @@ def trace(debugger, command, result, internal_dict):
                 if hits > 20000 or len(doc['trace']) >= LIMIT:
                     doc.update(status='step_limit')
                     break
-                if not recorder.allocator_stop(process, thread):
+                if not recorder.allocator_stop(process, thread) and not recorder.return_stop(thread):
                     snapshot = recorder.snapshot(thread)
                     if snapshot:
                         doc['trace'].append(snapshot)

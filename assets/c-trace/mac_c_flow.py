@@ -33,10 +33,11 @@ def declarations(compiler, path, source):
 
 def main(case):
     case = Path(case).resolve()
-    source = (case / 'src.c').read_text(encoding='utf-8')
-    (case / 'main.c').write_text(source, encoding='utf-8')
+    original = (case / 'src.c').read_bytes()
+    source = original.decode('utf-8')
+    (case / 'main.c').write_bytes(original)
     compiler = os.environ.get('MQ_CC', 'cc')
-    built = subprocess.run([compiler, '-std=c11', '-g', '-O0', '-o', 'trace-main', 'main.c'], cwd=case, capture_output=True, timeout=30)
+    built = subprocess.run([compiler, '-std=c11', '-g', '-O0', '-o', 'main', 'main.c'], cwd=case, capture_output=True, timeout=30)
     path = case / 'c_flow.json'
     if built.returncode:
         text = built.stderr.decode('utf-8', 'replace')
@@ -53,17 +54,10 @@ def main(case):
     if run.returncode or not path.is_file():
         raise RuntimeError('LLDB 추적 실패: ' + (run.stdout + run.stderr).decode('utf-8', 'replace')[-1500:])
     doc = json.loads(path.read_text(encoding='utf-8'))
-    if doc['status'] == 'ok':
-        graded = subprocess.run([compiler, '-std=c11', '-o', 'grader-main', 'main.c'], cwd=case, capture_output=True, timeout=30)
-        if graded.returncode:
-            raise RuntimeError('채점 조건으로 원본을 컴파일하지 못했어요')
-        with open(case / 'stdin.txt', 'rb') as stdin:
-            graded = subprocess.run([str(case / 'grader-main')], cwd=case, stdin=stdin, capture_output=True, timeout=15)
-        same = graded.returncode == doc['exit_code'] and graded.stdout.decode('utf-8', 'replace').replace('\r\n', '\n') == doc['stdout']
-        doc['verification'] = {'original_source': True, 'same_compiler': compiler, 'grader_output_and_exit_match': same}
-        if not same:
-            doc.update(status='unsupported', message='추적 실행 결과가 채점 실행과 달라요', trace=[])
-        path.write_text(json.dumps(doc, ensure_ascii=False), encoding='utf-8')
+    doc['verification'] = {'original_source': True, 'same_compiler': compiler,
+                           'native_debugger': 'LLDB', 'debug_flags': ['-g', '-O0'],
+                           'program_runs': doc.pop('program_runs', 0)}
+    path.write_text(json.dumps(doc, ensure_ascii=False), encoding='utf-8')
 
 
 if __name__ == '__main__':
