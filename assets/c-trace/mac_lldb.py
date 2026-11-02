@@ -123,7 +123,7 @@ class Recorder:
                         self.next_view += 1
                     hid = str(self.view_ids[key])
                     if hid not in heap:
-                        heap[hid] = ['LIST']
+                        heap[hid] = ['ARRAY', pointee.GetName()]
                         available = (size - offset) // width
                         count = min(available, MAX_CHILDREN)
                         self.truncated |= available > MAX_CHILDREN
@@ -143,11 +143,11 @@ class Recorder:
                 return ['C_NOTE', 'union은 어느 필드가 활성인지 알 수 없어요']
             hid = str(1000000000000 + value.GetLoadAddress())
             if hid not in heap:
-                heap[hid] = ['LIST']
+                heap[hid] = ['ARRAY', value.GetTypeName()]
                 children = [value.GetChildAtIndex(i) for i in range(min(value.GetNumChildren(), MAX_CHILDREN))]
                 self.truncated |= value.GetNumChildren() > MAX_CHILDREN
                 if type_class & lldb.eTypeClassArray:
-                    heap[hid] = ['LIST', *[self.encode(child, heap, names, depth + 1) for child in children]]
+                    heap[hid] = ['ARRAY', value.GetTypeName(), *[self.encode(child, heap, names, depth + 1) for child in children]]
                 else:
                     heap[hid] = ['INSTANCE', value.GetTypeName(),
                                  *[[child.GetName(), self.encode(child, heap, names, depth + 1)] for child in children]]
