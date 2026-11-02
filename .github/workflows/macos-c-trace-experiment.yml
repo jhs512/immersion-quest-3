@@ -1,0 +1,57 @@
+name: macOS C trace experiment
+on:
+  push:
+    branches: [feat/macos-c-trace]
+    paths:
+      - 'tools/mac-c-trace-experiment/**'
+      - 'assets/c-trace/**'
+      - 'src/c_trace.rs'
+      - '.github/workflows/macos-c-trace-experiment.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: mac-c-trace-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  native-lldb:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Trace an unmodified C program through LLDB
+        run: python3 tools/mac-c-trace-experiment/run.py "$RUNNER_TEMP/mac-c-trace"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mac-c-trace-smoke-${{ matrix.os }}
+          path: |
+            ${{ runner.temp }}/mac-c-trace/c_flow.json
+            ${{ runner.temp }}/mac-c-trace/offset/c_flow.json
+            ${{ runner.temp }}/mac-c-trace/probe.json
+      - name: Trace real course starters and solutions
+        run: python3 tools/mac-c-trace-experiment/cases.py "$RUNNER_TEMP/mac-c-trace/courses"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mac-c-trace-probe-${{ matrix.os }}
+          path: ${{ runner.temp }}/mac-c-trace/
+  native-rust:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Exercise the bundled Rust to Python to LLDB path
+        run: |
+          export MOLIP_PYTHON="$(command -v python3)"
+          cargo test --locked --lib --no-default-features c_trace::mac_tests -- --ignored --nocapture --test-threads=1
