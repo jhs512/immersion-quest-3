@@ -160,6 +160,10 @@ async function finish() {
       delete last.exception_msg;
       doc.trace.push(last);
     }
+  } else if (!sawUserCode && doc.exitCode === 0) {
+    // A run that ended without one stop in main.js was not observed; an empty `ok` would claim it was.
+    doc.status = 'tool_error';
+    doc.message = `코드 흐름 도구가 main.js에서 멈추지 못했어요. 찾은 이름: ${otherMainUrls.join(', ') || '없음'}`;
   } else if (!sawUserCode && doc.exitCode !== 0) {
     const problem = compileProblem(doc.stderr);
     if (problem) { doc.status = 'compile_error'; doc.problems.push(problem); }
@@ -198,7 +202,8 @@ let queue = Promise.resolve();
 
 async function start() {
   listeners['Debugger.scriptParsed'] = (p) => {
-    if (p.url === mainUrl || p.url === mainFile) mainScriptId = p.scriptId;
+    if (mainUrls.has(p.url)) mainScriptId = p.scriptId;
+    else if (/[\\/]main\.js$/.test(p.url)) otherMainUrls.push(p.url);
   };
   listeners['Debugger.paused'] = (p) => { queue = queue.then(() => paused(p)).catch((error) => fail(error)); };
   // A worker inherits --inspect-brk and would wait for a debugger forever: release it, then let go.
@@ -214,11 +219,15 @@ async function start() {
   await send('NodeWorker.enable', { waitForDebuggerOnStart: false }).catch(() => {});
   // Before main.js is compiled, so V8 places these while parsing it, before its first statement runs.
   const lines = source.split('\n').length;
-  await Promise.all(Array.from({ length: lines }, (_, lineNumber) =>
-    send('Debugger.setBreakpointByUrl', { url: mainUrl, lineNumber, columnNumber: 0 }).catch(() => {})));
+  await Promise.all([...mainUrls].flatMap((url) => Array.from({ length: lines }, (_, lineNumber) =>
+    send('Debugger.setBreakpointByUrl', { url, lineNumber, columnNumber: 0 }).catch(() => {}))));
   await send('Runtime.runIfWaitingForDebugger');
 }
-const mainUrl = pathToFileURL(mainFile).href;
+// Node names the entry by its real path (a macOS temp dir sits behind /var -> /private/var, a Windows
+// temp dir can be a junction), so each spelling of this file's path is a name it may report.
+const mainUrls = new Set([mainFile, fs.realpathSync(mainFile), fs.realpathSync.native(mainFile)]
+  .flatMap((file) => [file, pathToFileURL(file).href]));
+const otherMainUrls = [];
 
 const resume = () => send('Debugger.resume').catch(() => {});
 const isUser = (frame) => frame.location.scriptId === mainScriptId;
