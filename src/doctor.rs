@@ -63,8 +63,15 @@ pub async fn inspect() -> Vec<Check> {
     for (name,result) in [("Java · JDK 25",crate::runtime_setup::inspect_java().await),("C · 컴파일·실행",crate::runtime_setup::inspect_c().await)] {
         checks.push(Check{name:name.into(),ready:result.is_ok(),detail:result.unwrap_or_else(|error|error)});
     }
+    let javascript=crate::runtime_setup::inspect_javascript().await;
+    checks.push(Check{name:"JavaScript · Node.js".into(),ready:javascript.is_ok(),detail:javascript.unwrap_or_else(|error|error)});
+    #[cfg(any(windows,target_os="macos"))]
+    for (name,language) in [("C++ · 컴파일·실행",crate::native_trace::NativeLanguage::Cpp),("Rust · 컴파일·실행",crate::native_trace::NativeLanguage::Rust)] {
+        let result=crate::native_trace::inspect(language).await;
+        checks.push(Check{name:name.into(),ready:result.is_ok(),detail:result.unwrap_or_else(|error|error)});
+    }
     let docker=crate::docker_lab::inspect().await;
-    checks.push(Check{name:"Docker · DB·Docker 실습에만 필요".into(),ready:docker.is_ok(),detail:docker.unwrap_or_else(|error|error)});
+    checks.push(Check{name:if cfg!(windows){"Docker · DB·Docker·C++·Rust 실습"}else{"Docker · DB·Docker 실습"}.into(),ready:docker.is_ok(),detail:docker.unwrap_or_else(|error|error)});
     checks.push(inspect_voice().await);
     checks
 }
@@ -740,6 +747,15 @@ async fn prepare_inner(report:tokio::sync::mpsc::UnboundedSender<String>)->Resul
         } else { checks };
         for check in checks.into_iter().filter(|check|!check.ready){problems.push(format!("{} · {}",check.name,check.detail));}
     }
-    if problems.is_empty(){Ok("Java·C·Python 실행 환경을 확인했어요. 앱을 다시 열 필요 없이 바로 사용할 수 있어요.".into())}
+    #[cfg(any(windows,target_os="macos"))]
+    for (name,language) in [("C++",crate::native_trace::NativeLanguage::Cpp),("Rust",crate::native_trace::NativeLanguage::Rust)] {
+        let _=report.send(format!("{name} · 실행 환경을 확인하고 필요한 도구를 준비해요."));
+        match crate::native_trace::prepare(language).await {
+            Ok(line)=>{let _=report.send(line);},
+            Err(error)=>{let _=report.send(format!("{name} · {error}"));problems.push(format!("{name} · {error}"));}
+        }
+    }
+    match crate::runtime_setup::inspect_javascript().await {Ok(line)=>{let _=report.send(line);},Err(error)=>problems.push(error)}
+    if problems.is_empty(){Ok("Java·JavaScript·C·Python·C++·Rust 실행 환경을 확인했어요. 앱을 다시 열 필요 없이 바로 사용할 수 있어요.".into())}
     else{Err(format!("준비된 도구는 바로 사용할 수 있어요. 추가 확인: {}",problems.join(" / ")))}
 }

@@ -156,7 +156,7 @@ export class TraceView {
 
   renderNav(step) {
     this.nav.querySelector('.tv-slider').value = this.index;
-    const label = (this.doc.language === 'python' || this.doc.language === 'c' ? PYTHON_EVENT_LABELS : EVENT_LABELS)[step.event] || step.event;
+    const label = (['python', 'c', 'cpp', 'rust', 'javascript'].includes(this.doc.language) ? PYTHON_EVENT_LABELS : EVENT_LABELS)[step.event] || step.event;
     this.nav.querySelector('.tv-position').innerHTML =
       `<strong>${this.index + 1} / ${this.trace.length}</strong> 단계 · ${esc(label)}` +
       (step.func_name ? ` · <code>${esc(this.frameTitle(step.stack_to_render.at(-1)))}</code>` : '') +
@@ -200,7 +200,7 @@ export class TraceView {
 
     if (step.ordered_globals?.length) {
       const box = h('div', 'tv-frame tv-globals');
-      box.innerHTML = `<div class="tv-frame-title">${this.doc.language === 'c' ? '전역 변수' : 'static 변수'}</div>`;
+      box.innerHTML = `<div class="tv-frame-title">${['c', 'cpp', 'rust', 'javascript'].includes(this.doc.language) ? '전역 변수' : 'static 변수'}</div>`;
       const table = h('table');
       for (const key of step.ordered_globals) {
         const changed = prev && !same(prev.globals?.[key], step.globals[key]);

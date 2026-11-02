@@ -84,6 +84,8 @@ async fn run_inner(task:&Task,source:&str,input:&str)->Result<Execution,String> 
         TaskLanguage::Python=>{let mut cmd=command(crate::runner::python_executable());cmd.args(["-X","utf8","main.py"]).env("MPLBACKEND","Agg").env("TF_CPP_MIN_LOG_LEVEL","3");process(cmd,dir.path(),input,60).await},
         TaskLanguage::Web=>run_web(task,source,false).await,
         TaskLanguage::C=>run_c(dir.path(),input).await,
+        TaskLanguage::Cpp=>crate::native_trace::run(crate::native_trace::NativeLanguage::Cpp,source,input).await,
+        TaskLanguage::Rust=>crate::native_trace::run(crate::native_trace::NativeLanguage::Rust,source,input).await,
     }
 }
 
@@ -195,7 +197,7 @@ async fn append_prepared_variations(task:&Task,source:&str,cases:&mut Vec<TestCa
         for variation in &task.variations {
             let label=format!("준비 값 바꿈: {}",variation.values.iter().map(|(k,v)|format!("{k} = {v}")).collect::<Vec<_>>().join(", "));
             let mut changed=source.to_string();let mut missing=None;
-            for (name,value) in &variation.values {match mutate_c(&changed,name,value) {Some(next)=>changed=next,None=>{missing=Some(name.clone());break}}}
+            for (name,value) in &variation.values {let next=if task.language==TaskLanguage::Rust {crate::rust_prepared::replace_initializer(&changed,name,value)}else{mutate_c(&changed,name,value)};match next {Some(next)=>changed=next,None=>{missing=Some(name.clone());break}}}
             if let Some(name)=missing {
                 cases.push(TestCaseResult{input:label,expected:variation.expected.clone(),stdout:String::new(),stderr:format!("준비 코드의 {name} 선언과 처음 값은 그대로 두세요."),passed:false,state:"concept_error".into()});
                 continue;
@@ -238,7 +240,7 @@ async fn check_inner(task:&Task,source:&str)->Result<TestReport,String> {
     if task.language==TaskLanguage::JavaLibraries {return check_java_libraries(task,source).await}
     if task.language==TaskLanguage::Docker {return check_docker(task,source).await}
     if task.language==TaskLanguage::Git {return check_git(task,source).await}
-    if task.language==TaskLanguage::C {return check_c(task,source).await}
+    if matches!(task.language,TaskLanguage::C|TaskLanguage::Cpp|TaskLanguage::Rust) {return check_c(task,source).await}
     if task.language==TaskLanguage::Web {
         let result=run_web(task,source,true).await?;
         return Ok(report_execution(result,"브라우저 동작 검사"));

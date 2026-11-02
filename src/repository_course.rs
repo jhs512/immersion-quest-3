@@ -174,6 +174,8 @@ impl Task {
             TaskLanguage::Java|TaskLanguage::Python|TaskLanguage::Javascript=>CodeFlowAvailability::Ready,
             TaskLanguage::C if cfg!(any(windows,target_os="macos"))=>CodeFlowAvailability::Ready,
             TaskLanguage::C=>CodeFlowAvailability::Unsupported("이 운영체제의 C 코드 흐름 보기는 아직 지원하지 않아요."),
+            TaskLanguage::Cpp|TaskLanguage::Rust if cfg!(any(windows,target_os="macos"))=>CodeFlowAvailability::Ready,
+            TaskLanguage::Cpp|TaskLanguage::Rust=>CodeFlowAvailability::Unsupported("이 운영체제의 C++·Rust 코드 흐름 보기는 아직 지원하지 않아요."),
             TaskLanguage::JavaProject|TaskLanguage::Junit|TaskLanguage::JavaLibraries=>CodeFlowAvailability::Unsupported("프로젝트와 라이브러리 실행의 코드 흐름 보기는 아직 지원하지 않아요."),
             TaskLanguage::Web=>CodeFlowAvailability::Unsupported("웹 실행의 코드 흐름 보기는 아직 지원하지 않아요."),
             TaskLanguage::Sql=>CodeFlowAvailability::Unsupported("SQL 실행의 코드 흐름 보기는 아직 지원하지 않아요."),
@@ -194,7 +196,7 @@ impl Task {
     }
     pub fn has_runnable_example(&self)->bool {
         self.interaction.is_some()&&self.git_terminal.is_none()
-            &&matches!(self.language,TaskLanguage::Java|TaskLanguage::Python|TaskLanguage::C|TaskLanguage::Javascript|TaskLanguage::Sql)
+            &&matches!(self.language,TaskLanguage::Java|TaskLanguage::Python|TaskLanguage::C|TaskLanguage::Cpp|TaskLanguage::Rust|TaskLanguage::Javascript|TaskLanguage::Sql)
             &&self.example_code.as_deref().is_some_and(|source|!source.trim().is_empty()&&source.len()<=65536)
     }
     /// The short learner guide shown above a Java problem's code. It follows the same fields
@@ -281,13 +283,13 @@ pub struct CodeGuide { pub access:CodeAccess, pub label:&'static str, pub answer
 pub struct Variation { #[serde(default)] pub values: BTreeMap<String,String>, #[serde(default,skip_serializing_if="BTreeMap::is_empty")] pub files: BTreeMap<String,String>, #[serde(default,skip_serializing_if="BTreeMap::is_empty")] pub expected_files: BTreeMap<String,String>, pub expected: String }
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all="snake_case")]
-pub enum TaskLanguage { Java, JavaProject, Junit, Git, Javascript, Web, Python, C, Sql, JavaLibraries, Docker }
+pub enum TaskLanguage { Java, JavaProject, Junit, Git, Javascript, Web, Python, C, Cpp, Rust, Sql, JavaLibraries, Docker }
 impl TaskLanguage {
     pub fn editor(self) -> &'static str { match self {
-        Self::Java|Self::JavaProject|Self::Junit|Self::JavaLibraries => "java", Self::C=>"c", Self::Javascript => "javascript", Self::Web => "html", Self::Git|Self::Docker => "shell", Self::Python=>"python", Self::Sql=>"sql",
+        Self::Java|Self::JavaProject|Self::Junit|Self::JavaLibraries => "java", Self::C=>"c", Self::Cpp=>"cpp", Self::Rust=>"rust", Self::Javascript => "javascript", Self::Web => "html", Self::Git|Self::Docker => "shell", Self::Python=>"python", Self::Sql=>"sql",
     }}
     pub fn filename(self) -> &'static str { match self {
-        Self::Java|Self::JavaProject|Self::Junit|Self::JavaLibraries => "Main.java", Self::Javascript=>"main.js", Self::Web=>"index.html", Self::Git=>"practice.sh", Self::Python=>"main.py", Self::C=>"main.c", Self::Sql=>"main.sql", Self::Docker=>"compose.yaml",
+        Self::Java|Self::JavaProject|Self::Junit|Self::JavaLibraries => "Main.java", Self::Javascript=>"main.js", Self::Web=>"index.html", Self::Git=>"practice.sh", Self::Python=>"main.py", Self::C=>"main.c", Self::Cpp=>"main.cpp", Self::Rust=>"main.rs", Self::Sql=>"main.sql", Self::Docker=>"compose.yaml",
     }}
 }
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
@@ -365,7 +367,8 @@ impl Lesson {
             if t.hints.len()>5||t.hints.iter().any(|hint|hint.len()>8000){return Err("힌트 개수와 길이를 확인하세요.".into())}
             if !ids.insert(&t.id) || t.id.is_empty() || t.solution.len()>65536 || t.starter_code.len()>65536 || (!t.entry_file.is_empty() && !safe_file(&t.entry_file)) || t.files.iter().any(|(p,v)| !safe_file(p) || v.len()>200_000) || t.files.len()>80 || t.expected_files.len()>80 || t.expected_files.iter().any(|(p,v)|!safe_file(p)||v.len()>200_000) || t.tests.len()>50 || t.mutations.len()>20 || t.mutations.iter().any(|files|files.len()>80||files.iter().any(|(p,v)|!safe_file(p)||v.len()>200_000)) { return Err("문제 ID와 파일 크기·경로를 확인하세요.".into()); }
             if let Some(interaction) = &t.interaction {interaction.validate()?;}
-            else if matches!(t.language,TaskLanguage::Web)&&t.web_checks.is_empty() || matches!(t.language,TaskLanguage::Git)&&t.git_checks.is_none()&&!t.git_terminal.as_ref().is_some_and(|exercise|exercise.has_goal()) || matches!(t.language,TaskLanguage::JavaProject|TaskLanguage::Javascript|TaskLanguage::C|TaskLanguage::Sql|TaskLanguage::JavaLibraries)&&t.tests.is_empty() || t.language==TaskLanguage::Docker&&t.tests.is_empty()&&!t.git_terminal.as_ref().is_some_and(|exercise|exercise.docker.is_some()) {return Err("필수 문제의 실행 검사 기준을 확인하세요.".into())}
+            else if matches!(t.language,TaskLanguage::Web)&&t.web_checks.is_empty() || matches!(t.language,TaskLanguage::Git)&&t.git_checks.is_none()&&!t.git_terminal.as_ref().is_some_and(|exercise|exercise.has_goal()) || matches!(t.language,TaskLanguage::JavaProject|TaskLanguage::Javascript|TaskLanguage::C|TaskLanguage::Cpp|TaskLanguage::Rust|TaskLanguage::Sql|TaskLanguage::JavaLibraries)&&t.tests.is_empty() || t.language==TaskLanguage::Docker&&t.tests.is_empty()&&!t.git_terminal.as_ref().is_some_and(|exercise|exercise.docker.is_some()) {return Err("필수 문제의 실행 검사 기준을 확인하세요.".into())}
+            if matches!(t.language,TaskLanguage::Cpp|TaskLanguage::Rust)&&(!t.files.is_empty()||!t.expected_files.is_empty()||t.variations.iter().any(|v|!v.files.is_empty()||!v.expected_files.is_empty())) {return Err("C++·Rust는 한 소스 파일로 실행하는 문제만 지원해요.".into())}
             if !t.libraries.is_empty()&&!matches!(t.language,TaskLanguage::JavaLibraries|TaskLanguage::Docker) {return Err("라이브러리 묶음은 라이브러리 실행 문제에만 써요.".into())}
             if t.language==TaskLanguage::JavaLibraries {
                 if t.libraries.is_empty()||t.interaction.is_some()||t.git_terminal.is_some()||t.checker.is_some() {return Err("라이브러리 실행 문제의 구성을 확인하세요.".into())}

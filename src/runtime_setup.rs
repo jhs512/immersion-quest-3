@@ -113,6 +113,17 @@ pub async fn inspect_c()->Result<String,String> {
     crate::lesson_runner::inspect_c().await
 }
 
+pub async fn inspect_javascript()->Result<String,String> {
+    let node=crate::node_tools::executable();
+    let mut command=crate::node_tools::command(&node);
+    command.args(["-e","if (Number(process.versions.node.split('.')[0]) < 22 || typeof WebSocket !== 'function') process.exit(1); console.log(process.version)"]);
+    let dir=tempfile::tempdir().map_err(|e|e.to_string())?;
+    let result=crate::lesson_runner::process(command,dir.path(),"",15).await
+        .map_err(|_|"JavaScript 실행과 코드 흐름 보기에는 Node.js 22 이상이 필요해요. https://nodejs.org/에서 설치한 뒤 다시 검사하세요.".to_string())?;
+    if result.success {Ok(format!("Node.js {} · 실행을 확인했어요.",result.stdout.trim()))}
+    else {Err("JavaScript 코드 흐름 보기에는 Node.js 22 이상이 필요해요. https://nodejs.org/에서 업데이트한 뒤 다시 검사하세요.".into())}
+}
+
 pub async fn prepare_c(_report:&UnboundedSender<String>)->Result<String,String> {
     if let Ok(ready)=inspect_c().await{return Ok(ready);}
     #[cfg(target_os="macos")]

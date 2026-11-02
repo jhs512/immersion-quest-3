@@ -22,7 +22,7 @@ pub fn is_graded(task: &Task) -> bool {
         TaskLanguage::Web => !task.web_checks.is_empty(),
         TaskLanguage::Python => !task.tests.is_empty() || checker,
         TaskLanguage::Docker => !task.tests.is_empty() || goal,
-        TaskLanguage::JavaProject | TaskLanguage::Javascript | TaskLanguage::C | TaskLanguage::Sql | TaskLanguage::JavaLibraries => !task.tests.is_empty(),
+        TaskLanguage::JavaProject | TaskLanguage::Javascript | TaskLanguage::C | TaskLanguage::Cpp | TaskLanguage::Rust | TaskLanguage::Sql | TaskLanguage::JavaLibraries => !task.tests.is_empty(),
     }
 }
 

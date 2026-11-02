@@ -1,18 +1,11 @@
-use std::sync::LazyLock;
-
-static DECLARATION: LazyLock<regex::Regex> = LazyLock::new(|| {
-    regex::Regex::new(r"^let\s+(?:mut\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*(?::[^=;]+)?=").unwrap()
-});
-
 pub fn replace_initializer(source: &str, name: &str, value: &str) -> Option<String> {
     let bytes = source.as_bytes();
     let mut i = 0;
     while i < bytes.len() {
         if let Some(end) = skip_literal(bytes, i) { i = end; continue; }
         if bytes[i] == b'l' && (i == 0 || !identifier(bytes[i - 1])) {
-            if let Some(found) = DECLARATION.captures(&source[i..]) {
-                if &found[1] == name {
-                    let begin = i + found.get(0)?.end();
+            if let Some((binding, begin)) = declaration(source, i) {
+                if binding == name {
                     if bytes.get(begin) == Some(&b'=') { i = begin; continue; }
                     let mut end = begin;
                     let mut depth = 0i32;
@@ -36,6 +29,28 @@ pub fn replace_initializer(source: &str, name: &str, value: &str) -> Option<Stri
 }
 
 fn identifier(byte: u8) -> bool { byte.is_ascii_alphanumeric() || byte == b'_' || byte >= 128 }
+
+fn declaration(source: &str, start: usize) -> Option<(&str, usize)> {
+    let bytes = source.as_bytes();
+    if !bytes[start..].starts_with(b"let") || !bytes.get(start + 3)?.is_ascii_whitespace() { return None; }
+    let mut i = start + 3;
+    while bytes.get(i).is_some_and(u8::is_ascii_whitespace) { i += 1; }
+    if bytes[i..].starts_with(b"mut") && bytes.get(i + 3).is_some_and(u8::is_ascii_whitespace) {
+        i += 3;
+        while bytes.get(i).is_some_and(u8::is_ascii_whitespace) { i += 1; }
+    }
+    let begin = i;
+    if !bytes.get(i).is_some_and(|c| c.is_ascii_alphabetic() || *c == b'_') { return None; }
+    while bytes.get(i).is_some_and(|&c| identifier(c)) { i += 1; }
+    let name = &source[begin..i];
+    while bytes.get(i).is_some_and(u8::is_ascii_whitespace) { i += 1; }
+    if bytes.get(i) == Some(&b':') {
+        i += 1;
+        while bytes.get(i).is_some_and(|&c| c != b'=' && c != b';') { i += 1; }
+    }
+    if bytes.get(i) != Some(&b'=') { return None; }
+    Some((name, i + 1))
+}
 
 fn skip_literal(bytes: &[u8], i: usize) -> Option<usize> {
     let rest = &bytes[i..];

@@ -35,6 +35,10 @@ fn unsupported_execution_remains_visible_with_a_reason() {
         assert!(!reason.is_empty());
     }
     assert_eq!(task("c").code_flow_availability()==CodeFlowAvailability::Ready,cfg!(any(windows,target_os="macos")));
+    for language in ["cpp", "rust"] {
+        assert_eq!(task(language).code_flow_availability()==CodeFlowAvailability::Ready,cfg!(any(windows,target_os="macos")));
+        assert_eq!(task(language).language.editor(),language);
+    }
 }
 
 #[test]

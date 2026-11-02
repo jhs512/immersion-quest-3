@@ -1227,13 +1227,20 @@ if let Some(start)=autostart {
                     // A narration's `code_flow` action presses it too (the teacher's code, as its 코드 실행
                     // runs it); the explanation session already blocks the learner's own clicks meanwhile.
                     if code_flow_ready {
-                    button {class:"code-flow-open","data-shortcut-action":"codeFlow",title:"지금 편집기의 코드를 한 줄씩 실행하며 호출 스택·변수·객체를 봐요. 채점과는 별개예요.",disabled:busy(),onclick:{let python=task.language==repository_course::TaskLanguage::Python;let c=task.language==repository_course::TaskLanguage::C;let javascript=task.language==repository_course::TaskLanguage::Javascript;let files=task.files.clone();move |_|{
+                    button {class:"code-flow-open","data-shortcut-action":"codeFlow",title:"지금 편집기의 코드를 한 줄씩 실행하며 호출 스택·변수·객체를 봐요. 채점과는 별개예요.",disabled:busy(),onclick:{let language=task.language;let files=task.files.clone();move |_|{
                         let source=if has_example{example_source()}else{code()};let input=input();let files=files.clone();
                         spawn(async move {
                             let mut opened=document::eval("dioxus.send(window.mqCodeFlow?window.mqCodeFlow.loading():-1);");
                             let token=opened.recv::<i64>().await.unwrap_or(-1);
                             if token<0 {message.set("코드 흐름 보기를 열지 못했어요. 앱을 다시 열어 보세요.".into());return;}
-                            let traced=if python {molip_quest::python_trace::trace(&source,&input,&files).await} else if c {molip_quest::c_trace::trace(&source,&input).await} else if javascript {molip_quest::js_trace::trace(&source,&input,&files).await} else {molip_quest::java_trace::trace_files(&source,&input,&files).await};
+                            let traced=match language {
+                                repository_course::TaskLanguage::Python=>molip_quest::python_trace::trace(&source,&input,&files).await,
+                                repository_course::TaskLanguage::C=>molip_quest::c_trace::trace(&source,&input).await,
+                                repository_course::TaskLanguage::Javascript=>molip_quest::js_trace::trace(&source,&input,&files).await,
+                                repository_course::TaskLanguage::Cpp=>molip_quest::native_trace::trace(molip_quest::native_trace::NativeLanguage::Cpp,&source,&input).await,
+                                repository_course::TaskLanguage::Rust=>molip_quest::native_trace::trace(molip_quest::native_trace::NativeLanguage::Rust,&source,&input).await,
+                                _=>molip_quest::java_trace::trace_files(&source,&input,&files).await,
+                            };
                             let script=match traced {
                                 Ok(document)=>format!("window.mqCodeFlow.show({token},{document});"),
                                 Err(error)=>format!("window.mqCodeFlow.fail({token},{});",serde_json::to_string(&error).unwrap_or_default()),

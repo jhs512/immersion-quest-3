@@ -6,7 +6,7 @@
 |---|---|---|---|
 | `jmv/Instrumenter.java` | `tracer/jmv/Instrumenter.java` | 없음 | `332ad452513da7dbe2f0f96bf2a71f515ca0bf0cbf7276b517866416c4a64cbf` |
 | `jmv/Tracer.java` | `tracer/jmv/Tracer.java` | 없음 | `bc213569cd2bf335da08f2b24dcc7b799af1f56a642f60321dd3937b03317e20` |
-| `core/render.js` | `web/app/render.js` (TraceView) | MQ 변경: Python·C 추적의 라벨과 C 값 상태(아래). 앱이 불러올 때 `import`/`export` 낱말만 뺀다(`src/java_trace.rs::viewer_script`). 원본 해시 `b4fcc7e0edc419e2fd276984782a8a7a9bed9dab9990996cf7bc8bf40fcd18a7` | `8f465761ca11e25acfe912f18ba493e15c4b995da9f0dae6fe15abf3ac702d45` |
+| `core/render.js` | `web/app/render.js` (TraceView) | MQ 변경: Python·C·C++·Rust·JavaScript 추적의 라벨과 C 값 상태(아래). 앱이 불러올 때 `import`/`export` 낱말만 뺀다(`src/java_trace.rs::viewer_script`). 원본 해시 `b4fcc7e0edc419e2fd276984782a8a7a9bed9dab9990996cf7bc8bf40fcd18a7` | `275db105aedfaf041e00f47443839807a4a9c8a8a1895833cc51a2e2beb26ab4` |
 | `core/highlight.js` | `web/app/highlight.js` | 없음(위와 같음) | `092f3fc7f041231d8cf8367115c64f5167ea94e412374bec287c826b7e70e1e4` |
 
 `cargo test --lib java_trace`가 이 해시를 검사한다. 원본을 갱신하면 이 표와 테스트를 함께 바꾼다.

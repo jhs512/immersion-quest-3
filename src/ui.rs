@@ -1774,10 +1774,10 @@ pub fn DoctorPanel() -> Element {
     });
     rsx! {
         button { disabled: installing() || busy(), onclick: move |_| { open.set(true); inspect.call(()); }, "환경 진단" }
-        button { disabled: installing() || busy(), title:"Java·C·Python을 검사하고 필요한 도구를 준비해요.", onclick: move |_| install.call(()), "환경 설치" }
+        button { disabled: installing() || busy(), title:"Java·JavaScript·C·Python·C++·Rust를 검사하고 필요한 도구를 준비해요.", onclick: move |_| install.call(()), "환경 설치" }
         if open() { div { class:"doctor-backdrop", section { class:"doctor-panel", role:"dialog", aria_label:"학습 환경 진단",
             h2 { "학습 환경" }
-            p { "Java·C·Python과 수업 패키지를 실제로 실행해 확인해요. 환경 설치는 필요한 도구를 준비하고, 정상인 환경은 유지해요." }
+            p { "Java·JavaScript·C·Python·C++·Rust와 수업 패키지를 실제로 실행해 확인해요. 환경 설치는 필요한 도구를 준비하고, 정상인 환경은 유지해요. JavaScript에는 Node.js 22 이상, Windows의 C++·Rust에는 Docker Desktop이 필요해요." }
             if busy() { p { role:"status", "검사 중입니다… 설치 직후 첫 검사는 최대 2분 정도 걸릴 수 있습니다." } }
             for check in checks() { div { class:if check.ready {"doctor-check ready"} else {"doctor-check missing"},
                 strong { if check.ready {"✓ "} else {"! "} "{check.name}" } p { "{check.detail}" }
