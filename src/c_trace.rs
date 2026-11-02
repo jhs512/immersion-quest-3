@@ -56,6 +56,9 @@ async fn run_tool(tool: &Path, case: &Path, tcc: &Path) -> Result<String, String
     if run.state == "timeout" {
         return Err(format!("코드 흐름을 {SECONDS}초 안에 기록하지 못했어요. 반복이 끝나는지 확인하세요."));
     }
+    if cfg!(target_os="macos") && !run.success {
+        return Err(format!("C 코드 흐름 도구가 끝까지 실행되지 못했어요. {}", run.stderr.lines().last().unwrap_or("").trim()));
+    }
     if run.stderr.contains("No module named 'pycparser'") {
         return Err("C 코드 흐름 도구(pycparser)가 학습 환경에 없어요. 환경 설치를 다시 실행하세요.".into());
     }
