@@ -40,6 +40,7 @@ export function valueHtml(v) {
 }
 
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+const MAX_CELLS = 200;
 
 export class TraceView {
   constructor(root, doc, options = {}) {
@@ -258,14 +259,14 @@ export class TraceView {
     let title = kind === 'INSTANCE' ? (type.includes('.') ? type : `${type} 인스턴스`) : kind === 'ARRAY' ? `배열 ${type}` : kind === 'STRING' ? 'String' : type;
     if (kind === 'COLLECTION') {
       const items = obj[2] || [], internals = obj[3];
-      title = `${type} · size ${items.length}`;
+      title = `${type} · size ${obj[4] ?? items.length}`;
       if (internals?.elementData && isRef(internals.elementData)) {
         const backing = step.heap[internals.elementData[1]];
         if (backing) title += ` / 용량 ${backing.length - 2}`;
       }
     } else if (kind === 'MAP') {
       const entries = obj[2] || [], internals = obj[3];
-      title = `${type} · size ${entries.length}`;
+      title = `${type} · size ${obj[4] ?? entries.length}`;
       if (internals?.table && isRef(internals.table)) {
         const table = step.heap[internals.table[1]];
         if (table) title += ` / 버킷 ${table.length - 2}`;
@@ -300,10 +301,12 @@ export class TraceView {
   cells(items, wasItems, spare) {
     const table = h('table', 'tv-array');
     const head = h('tr'), body = h('tr');
-    items.forEach((v, i) => {
-      head.append(h('th', null, String(i)));
+    // One DOM cell per element: 100,000 took 3 seconds and 1,000,000 never finished drawing.
+    items.slice(0, MAX_CELLS).forEach((v, i) => {
+      head.append(h('th', null, v?.[0] === 'C_NOTE' ? '…' : String(i)));
       body.append(h('td', wasItems && !same(wasItems[i], v) ? 'is-changed' : '', valueHtml(v)));
     });
+    if (items.length > MAX_CELLS) { head.append(h('th', null, '…')); body.append(h('td', 'v-note', `… ${items.length - MAX_CELLS}칸 더`)); }
     const shown = Math.min(spare, 12);
     for (let i = 0; i < shown; i++) { head.append(h('th', null, String(items.length + i))); body.append(h('td', 'tv-spare', '')); }
     if (spare > shown) { head.append(h('th', null, '…')); body.append(h('td', 'tv-spare', `+${spare - shown}`)); }

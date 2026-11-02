@@ -10,6 +10,7 @@ usage (cwd = a directory holding main.py and rich_runner.py, exactly like the gr
 """
 import builtins
 import io
+import itertools
 import json
 import math
 import os
@@ -20,6 +21,10 @@ import types
 
 USER_FILE = 'main.py'          # rich_runner compiles the learner's code under this name
 MAX_OBJECTS = 300
+# Every step re-records each live collection; a million-element list made a 110MB trace that the
+# viewer could not draw. Like mq_jstrace.cjs: record the first items, a note, and the real size.
+MAX_ITEMS = 100
+MAX_STRING = 2000
 RAW_EVENT_CAP = 2_000_000      # same back-edge style cap as the Java core
 
 
@@ -91,7 +96,7 @@ def main():
             if isinstance(v, float):
                 return v if math.isfinite(v) else ['SPECIAL_FLOAT', repr(v)]
             if isinstance(v, str):
-                return v
+                return v if len(v) <= MAX_STRING else f'{v[:MAX_STRING]}… (전체 {len(v)}자)'
             ref = heap_id(v)
             if str(ref) in heap:
                 return ['REF', ref]
@@ -102,13 +107,21 @@ def main():
             heap[str(ref)] = obj(v)
             return ['REF', ref]
 
+        def more(size):
+            return ['C_NOTE', f'… {size - MAX_ITEMS}개 더']
+
         def obj(v):
-            if isinstance(v, (list, tuple)):
-                return ['COLLECTION', type(v).__name__, [enc(x) for x in v]]
-            if isinstance(v, (set, frozenset)):
-                return ['COLLECTION', type(v).__name__, [enc(x) for x in v]]
+            # A capped collection carries its real size as the fifth item; render.js titles it with that.
+            if isinstance(v, (list, tuple, set, frozenset)):
+                items = [enc(x) for x in itertools.islice(v, MAX_ITEMS)]
+                if len(v) <= MAX_ITEMS:
+                    return ['COLLECTION', type(v).__name__, items]
+                return ['COLLECTION', type(v).__name__, items + [more(len(v))], None, len(v)]
             if isinstance(v, dict):
-                return ['MAP', type(v).__name__, [[enc(k), enc(x)] for k, x in v.items()]]
+                rows = [[enc(k), enc(x)] for k, x in itertools.islice(v.items(), MAX_ITEMS)]
+                if len(v) <= MAX_ITEMS:
+                    return ['MAP', type(v).__name__, rows]
+                return ['MAP', type(v).__name__, rows + [[['C_NOTE', '…'], more(len(v))]], None, len(v)]
             if isinstance(v, type):
                 fields = [[k, enc(x)] for k, x in vars(v).items()
                           if not k.startswith('__') and not callable(x)]

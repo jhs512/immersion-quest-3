@@ -90,4 +90,22 @@ mod tests {
         let broken: serde_json::Value = serde_json::from_str(&super::trace("x = (\n", "", &Default::default()).await.unwrap()).unwrap();
         assert_eq!(broken["status"], "compile_error");
     }
+
+    /// A million-element list once made a 110MB trace the viewer never finished drawing. The trace keeps the
+    /// first items, says how many more there are, and carries the real size; a short list stays whole.
+    #[tokio::test]
+    #[ignore = "Needs the course Python runtime"]
+    async fn large_collections_record_their_first_items_and_real_size() {
+        let source = "values = list(range(1000000))\nshort = [1, 2, 3]\nprint(len(values))\n";
+        let traced = super::trace(source, "", &Default::default()).await.unwrap();
+        assert!(traced.len() < 100_000, "{} bytes", traced.len());
+        let doc: serde_json::Value = serde_json::from_str(&traced).unwrap();
+        assert_eq!(doc["stdout"].as_str().unwrap().replace("\r\n", "\n"), "1000000\n");
+        let last = doc["trace"].as_array().unwrap().last().unwrap();
+        let object = |name: &str| last["heap"][local(last, name).unwrap()[1].to_string()].clone();
+        let values = object("values");
+        assert_eq!((values[2].as_array().unwrap().len(), &values[2][100], &values[4]),
+                   (101, &serde_json::json!(["C_NOTE", "… 999900개 더"]), &serde_json::json!(1000000)));
+        assert_eq!(object("short"), serde_json::json!(["COLLECTION", "list", [1, 2, 3]]));
+    }
 }
