@@ -119,9 +119,13 @@ pub fn cli(args: &[String]) -> bool {
         {
             #[cfg(any(target_os = "windows", target_os = "macos"))]
             if let Some(path) = args.get(3) {
-                if let Err(error) = molip_quest::bug_report::capture(parent, Path::new(path)) {
+                #[cfg(windows)]
+                let result = molip_quest::bug_report::capture(parent, Path::new(path));
+                #[cfg(target_os = "macos")]
+                let result = ask_capture(parent, Path::new(path));
+                if let Err(error) = result {
                     let reason = if error.to_lowercase().contains("permission") { "permission" } else { "failed" };
-                    let status = serde_json::json!({"reason": reason});
+                    let status = serde_json::json!({"reason": reason, "detail": error});
                     let _ = std::fs::write(Path::new(path).with_file_name("capture-status.json"), status.to_string());
                 }
             }
@@ -129,6 +133,71 @@ pub fn cli(args: &[String]) -> bool {
         _ => {}
     }
     true
+}
+
+#[cfg(target_os = "macos")]
+fn capture_socket(owner: u32) -> std::path::PathBuf {
+    std::env::temp_dir().join(format!("mq-report-capture-{owner}.sock"))
+}
+/// macOS hides MQ's window from the capture helper unless the student granted Screen Recording,
+/// but never from MQ itself, so MQ captures and the helper only asks.
+#[cfg(target_os = "macos")]
+pub struct CaptureService(std::path::PathBuf);
+#[cfg(target_os = "macos")]
+impl Drop for CaptureService {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_file(&self.0);
+    }
+}
+#[cfg(target_os = "macos")]
+pub fn serve_capture() -> Option<CaptureService> {
+    let owner = std::process::id();
+    let socket = capture_socket(owner);
+    let _ = std::fs::remove_file(&socket);
+    let listener = std::os::unix::net::UnixListener::bind(&socket).ok()?;
+    let reports = molip_quest::data_dir().ok()?.join("bug-reports");
+    std::thread::Builder::new()
+        .name("report-capture".into())
+        .spawn(move || {
+            for mut stream in listener.incoming().flatten() {
+                let _ = stream.set_read_timeout(Some(std::time::Duration::from_secs(2)));
+                let mut line = String::new();
+                if std::io::BufReader::new(&stream).read_line(&mut line).is_err() {
+                    continue;
+                }
+                let path = Path::new(line.trim_end());
+                let in_report = path.file_name() == Some("screen.png".as_ref())
+                    && path
+                        .parent()
+                        .and_then(|folder| folder.canonicalize().ok())
+                        .is_some_and(|folder| {
+                            folder.parent() == reports.canonicalize().ok().as_deref()
+                        });
+                let reply = if in_report {
+                    molip_quest::bug_report::capture(owner, path)
+                } else {
+                    Err("capture path is not a report folder".into())
+                };
+                let _ = writeln!(stream, "{}", reply.err().unwrap_or_else(|| "ok".into()));
+            }
+        })
+        .ok()?;
+    Some(CaptureService(socket))
+}
+#[cfg(target_os = "macos")]
+fn ask_capture(owner: u32, path: &Path) -> Result<(), String> {
+    let mut stream = std::os::unix::net::UnixStream::connect(capture_socket(owner))
+        .map_err(|e| format!("MQ capture service unavailable: {e}"))?;
+    writeln!(stream, "{}", path.display()).map_err(|e| e.to_string())?;
+    let mut reply = String::new();
+    std::io::BufReader::new(&stream)
+        .read_line(&mut reply)
+        .map_err(|e| e.to_string())?;
+    match reply.trim_end() {
+        "ok" => Ok(()),
+        "" => Err("MQ closed the capture request".into()),
+        error => Err(error.into()),
+    }
 }
 
 #[cfg(any(target_os = "windows", target_os = "macos"))]
@@ -363,6 +432,8 @@ fn dialog(parent: u32, kind: &str) -> Result<(), String> {
             .args(["-l", "JavaScript"])
             .arg(&native)
             .arg(&path)
+            .arg(std::env::current_exe().map_err(|e| e.to_string())?)
+            .arg(parent.to_string())
             .status();
         #[cfg(not(any(target_os = "windows", target_os = "macos")))]
         return Err("Native reports are supported on Windows and macOS.".into());

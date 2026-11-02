@@ -77,6 +77,8 @@ fn main() {
     // system menu bar, so the window itself looks the same.
     molip_quest::bug_report::forget();
     let _report_agent=emergency_report::start();
+    #[cfg(target_os="macos")]
+    let _report_capture=emergency_report::serve_capture();
     let config = dioxus::desktop::Config::new().with_custom_event_handler(|event,_|{
         if matches!(event,dioxus::desktop::tao::event::Event::LoopDestroyed|dioxus::desktop::tao::event::Event::WindowEvent{event:dioxus::desktop::tao::event::WindowEvent::CloseRequested,..}) {
             molip_quest::progress_sync::schedule_exit_flush();

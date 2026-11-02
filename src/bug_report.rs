@@ -168,7 +168,9 @@ pub fn save(path: &Path, draft: &Draft) -> Result<(), String> {
     atomic_json(path, draft)
 }
 
-/// Called in a disposable capture child so a hung window cannot hang the report dialog.
+/// Windows: a disposable capture child, so a hung window cannot hang the report dialog.
+/// macOS: MQ's own process, on its capture thread. macOS hides other processes' windows from
+/// a process without Screen Recording permission, while a process always sees its own.
 #[cfg(any(target_os = "windows", target_os = "macos"))]
 pub fn capture(parent: u32, path: &Path) -> Result<(), String> {
     let window = xcap::Window::all()
@@ -177,7 +179,9 @@ pub fn capture(parent: u32, path: &Path) -> Result<(), String> {
         .filter(|w| {
             w.pid().ok() == Some(parent)
                 && w.title().is_ok_and(|t| t == "MQ")
-                && !w.is_minimized().unwrap_or(true)
+                // macOS lists on-screen windows only; its minimized check reads NSScreen, which
+                // is main-thread-only AppKit.
+                && (cfg!(target_os = "macos") || !w.is_minimized().unwrap_or(true))
         })
         .max_by_key(|w| w.width().unwrap_or(0) as u64 * w.height().unwrap_or(0) as u64)
         .ok_or("MQ window unavailable")?;
