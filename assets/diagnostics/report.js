@@ -11,8 +11,10 @@ function run(args) {
   const screenshot = directory + '/screen.png';
   const statusPath = directory + '/capture-status.json';
   const files = $.NSFileManager.defaultManager;
+  // MQ writes screen.png or capture-status.json for every helper it starts, the timeout too.
+  // The timeout status has arrived 6 s after the helper started on a CI Mac, so 4 s was too short.
   const wait = () => {
-    for (let i=0; !files.fileExistsAtPath(screenshot) && !files.fileExistsAtPath(statusPath) && i<40; i++) $.NSThread.sleepForTimeInterval(0.1);
+    for (let i=0; !files.fileExistsAtPath(screenshot) && !files.fileExistsAtPath(statusPath) && i<100; i++) $.NSThread.sleepForTimeInterval(0.1);
   };
   // Runs the same capture helper MQ started, for a student who closed a covering window or waited for MQ.
   const retry = () => {
