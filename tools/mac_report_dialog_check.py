@@ -53,7 +53,8 @@ def dialog_state(_osascript):
 
 def click(_osascript, name):
     state = wait_for(lambda: dialog_state(None), 10, f"dialog with {name}")
-    line = next((l for l in state["lines"] if name.replace(" ", "") in l["text"].replace(" ", "")), None)
+    # Exact label: the message sentence also contains "다시 캡처".
+    line = next((l for l in state["lines"] if l["text"].replace(" ", "") == name.replace(" ", "")), None)
     assert line, f"no {name} on the dialog: {state['buttons']}"
     subprocess.run([str(UI), "click", str(line["x"]), str(line["y"])], check=True)
 
