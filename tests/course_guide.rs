@@ -24,7 +24,14 @@ fn course_guide_matches_all_installed_goals_and_order_without_teaching_answers()
             assert!(guide.objectives[0].contains("기초가 탄탄한"));
             assert!(guide.scope_note.contains("Docker·SQL·JDBC·객체지향"));
             assert!(guide.scope_note.contains("Spring Boot·JPA·Spring Security"));
-            assert_eq!(guide.lessons.len(),44);
+            let rust_start=snapshot.course().lessons.iter().position(|row|row.repository.ends_with("java-launch")).unwrap()+1;
+            let rust_titles:Vec<_>=guide.lessons[rust_start..rust_start+4].iter().map(|row|row.title.as_str()).collect();
+            assert_eq!(rust_titles,vec![
+                "Rust · 값을 담고 변경을 구분해요",
+                "Rust · 조건과 반복을 함수로 나눠요",
+                "Rust · 소유권과 빌림을 구분해요",
+                "Rust · 여러 값과 없는 값·실패를 다뤄요",
+            ]);
         }
     }
 }
