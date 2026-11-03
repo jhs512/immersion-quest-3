@@ -19,6 +19,16 @@ WORK = Path(sys.argv[2]).resolve()
 EXECUTABLE = APP / "Contents/MacOS/molip-quest"
 DATA = WORK / "data"
 DIALOG = 'window 1 of (first process whose unix id is {pid})'
+# The dialog's window is not always listed under osascript: find the process showing it.
+FIND_DIALOG = """tell application "System Events"
+  repeat with p in (every process)
+    try
+      repeat with w in (windows of p)
+        if exists (button "보내기" of w) then return unix id of p
+      end repeat
+    end try
+  end repeat
+end tell"""
 
 
 def applescript(source):
@@ -48,18 +58,22 @@ def dialog_pid():
     return found[-1] if found else None
 
 
-def dialog_state(pid):
-    window = DIALOG.format(pid=pid)
+def dialog_state(_osascript):
     try:
+        pid = applescript(FIND_DIALOG)
+        if not pid:
+            return None
+        window = DIALOG.format(pid=pid)
         buttons = applescript(f'tell application "System Events" to get name of every button of {window}')
         texts = applescript(f'tell application "System Events" to get value of every static text of {window}')
     except RuntimeError as error:
         report["last_ui_error"] = str(error)
         return None
-    return {"buttons": [b.strip() for b in buttons.split(",")], "text": texts}
+    return {"owner": int(pid), "buttons": [b.strip() for b in buttons.split(",")], "text": texts}
 
 
-def click(pid, name):
+def click(_osascript, name):
+    pid = applescript(FIND_DIALOG)
     applescript(f'tell application "System Events" to click button "{name}" of {DIALOG.format(pid=pid)}')
 
 
