@@ -227,8 +227,15 @@ def build(name, check=False):
         raise ValueError('제작한 스텝이 승인된 PRD 구성과 달라요.')
     stale = []
     for step, task in zip(steps, tasks):
-        if True:
-            goal = task['goal']
+        goal = task['goal']
+        # With nothing to run, the question and its options or answer fields are the whole action;
+        # a 할 일 list there can only repeat them as generic read/choose/submit lines.
+        answer_only = bool(task.get('interaction')) and not any(
+            task.get(field) for field in ('starter_code', 'example_code', 'files', 'git_terminal'))
+        if answer_only:
+            if '**할 일**' in goal:
+                raise ValueError(f"{step['id']}: 답만 고르거나 적는 스텝에는 할 일을 두지 않아요. 질문과 보기가 할 일이에요.")
+        else:
             if goal.count('**할 일**') != 1:
                 raise ValueError(f"{step['id']}: 할 일을 한곳에 표시하세요.")
             todo = goal.split('**할 일**', 1)[1].strip()
