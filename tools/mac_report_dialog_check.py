@@ -45,14 +45,8 @@ def dialog_pid():
 
 
 def dialog_state(osascript):
-    if osascript:
-        owner = next((pp for p, pp, _ in processes() if p == osascript), None)
-        if owner is None:
-            return None
-        activation = subprocess.run([str(UI), "activate", str(osascript), str(owner)], capture_output=True, text=True)
-        report.setdefault("activations", []).append(activation.stdout.strip())
-        time.sleep(0.25)
-    seen = json.loads(subprocess.run([str(UI), "read", str(WORK / "dialog-read.png")], capture_output=True, text=True).stdout or "{}")
+    scope = [str(osascript)] if osascript else []
+    seen = json.loads(subprocess.run([str(UI), "read", str(WORK / "dialog-read.png"), *scope], capture_output=True, text=True).stdout or "{}")
     if not seen.get("dialog"):
         report["last_ui_windows"] = seen.get("windows")
         return None
@@ -112,7 +106,7 @@ def open_dialog(main, name):
     opener = subprocess.Popen(["open", "-n", "-W", *env, str(APP), "--args", "--report-dialog", str(main), "bug"])
     osa = wait_for(dialog_pid, 60, "report dialog script")
     folder = wait_for(lambda: next((p for p in (DATA / "bug-reports").iterdir() if p.name not in known and (p / "draft.json").exists()), None), 30, "report folder")
-    state = wait_for(lambda: dialog_state(None), 40, "report dialog window without external activation")
+    state = wait_for(lambda: dialog_state(osa), 40, "report dialog window without external activation")
     screenshot(f"{name}-dialog")
     status = folder / "capture-status.json"
     panel_state = json.loads((folder / "panel-state.json").read_text())
@@ -207,6 +201,7 @@ try:
         else:
             report["retry"]["offscreen_trigger"] = "exact MQ target already off-screen before Finder activation"
         report["retry"]["target_before_retry"] = target
+        report["retry"]["windows_before_retry"] = state["windows"]
         assert not target["onscreen"], f"the actual MQ capture target is on-screen before retry: {target}"
         return state
 
@@ -225,6 +220,14 @@ try:
     report["retry"]["capture_windows"] = state_after_capture["windows"]
     target_id = report["retry"]["target_before_retry"]["id"]
     assert any(w["id"] == target_id and w["pid"] == main and w["title"] == "MQ" and not w["onscreen"] for w in state_after_capture["windows"]), "the same MQ capture target is not off-Space after retry"
+    click(osa, "캡처 확인")
+    wait_for(lambda: (s := dialog_state(osa)) and "포함할까요" in s["text"], 20, "native capture inclusion choice")
+    screenshot("preview-choice")
+    click(osa, "제외")
+    reopened = wait_for(lambda: (s := dialog_state(osa)) and "캡처확인" in s["text"].replace(" ", "") and s, 20, "report reopened after capture exclusion")
+    assert description in reopened["text"], "capture preview lost the native report description"
+    report["retry"]["preview_reopened"] = reopened["text"]
+    screenshot("preview-reopened")
     close(opener, osa, folder)
 except (AssertionError, subprocess.SubprocessError):
     screenshot("failure")

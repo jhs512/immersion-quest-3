@@ -66,6 +66,7 @@ if args[1] == "click" {
     exit(0)
 }
 let list = CGWindowListCopyWindowInfo([.optionAll, .excludeDesktopElements], kCGNullWindowID) as! [[String: Any]]
+let requestedOwner = args.count > 3 ? Int(args[3]) : nil
 var windows: [[String: Any]] = []
 var best: (CGWindowID, CGRect)? = nil
 for window in list {
@@ -77,8 +78,9 @@ for window in list {
     var rect = CGRect.zero
     if let bounds = window[kCGWindowBounds as String] { CGRectMakeWithDictionaryRepresentation(bounds as! CFDictionary, &rect) }
     windows.append(["owner": owner, "pid": pid, "id": window[kCGWindowNumber as String] as? Int ?? 0, "title": window[kCGWindowName as String] as? String ?? "", "layer": layer, "onscreen": onscreen, "app_hidden": application?.isHidden ?? false, "app_active": application?.isActive ?? false, "bounds": [rect.minX, rect.minY, rect.width, rect.height]])
-    if onscreen && [0, 8].contains(layer) && ["osascript", "MQ", "molip-quest"].contains(owner)
-        && (300...900).contains(rect.width) && (150...600).contains(rect.height)
+    let matchesOwner = requestedOwner.map { $0 == pid } ?? ["osascript", "MQ", "molip-quest"].contains(owner)
+    if onscreen && [0, 8].contains(layer) && matchesOwner
+        && (200...900).contains(rect.width) && (100...700).contains(rect.height)
         && (best == nil || rect.width * rect.height < best!.1.width * best!.1.height) {
         best = (window[kCGWindowNumber as String] as! CGWindowID, rect)
     }
