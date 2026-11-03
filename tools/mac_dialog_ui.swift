@@ -43,11 +43,6 @@ if args[1] == "activate" {
     }
     exit(0)
 }
-if args[1] == "hide" {
-    guard NSRunningApplication(processIdentifier: pid_t(args[2])!)?.hide() == true else { exit(1) }
-    usleep(500_000)
-    exit(0)
-}
 if args[1] == "shortcut" {
     let codes: [String: CGKeyCode] = ["a": 0, "x": 7, "c": 8, "v": 9]
     guard let code = codes[args[3]] else { exit(1) }

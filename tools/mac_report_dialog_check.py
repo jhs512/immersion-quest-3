@@ -191,12 +191,21 @@ try:
         assert targets, "the main process has no MQ window before retry"
         target = max(targets, key=lambda w: w["bounds"][2] * w["bounds"][3])
         if target["onscreen"]:
-            subprocess.run([str(UI), "hide", str(main)], check=True)
-            state = wait_for(lambda: dialog_state(osa), 10, "report remains visible after hiding MQ")
-            target = next(w for w in state["windows"] if w["id"] == target["id"] and w["pid"] == main)
-            report["retry"]["offscreen_trigger"] = "controlled NSRunningApplication.hide after marker input"
+            target_id = target["id"]
+            subprocess.run(["open", "-a", "Finder", str(WORK)], check=True)
+
+            def offscreen_with_report():
+                seen = dialog_state(osa)
+                if not seen:
+                    return None
+                selected = next((w for w in seen["windows"] if w["id"] == target_id and w["pid"] == main), None)
+                return seen if selected and not selected["onscreen"] else None
+
+            state = wait_for(offscreen_with_report, 20, "exact MQ window off-screen after Finder activation with report visible")
+            target = next(w for w in state["windows"] if w["id"] == target_id and w["pid"] == main)
+            report["retry"]["offscreen_trigger"] = "isolated work folder opened in Finder after fresh marker input"
         else:
-            report["retry"]["offscreen_trigger"] = "main fullscreen window in another Space"
+            report["retry"]["offscreen_trigger"] = "exact MQ target already off-screen before Finder activation"
         report["retry"]["target_before_retry"] = target
         assert not target["onscreen"], f"the actual MQ capture target is on-screen before retry: {target}"
         return state
