@@ -53,7 +53,9 @@ def dialog_state(_osascript):
     return {"bounds": seen["dialog"], "buttons": [l["text"] for l in lines], "text": " ".join(l["text"] for l in lines), "lines": lines}
 
 
-def click(_osascript, name):
+def click(osascript, name):
+    owner = next(pp for p, pp, _ in processes() if p == osascript)
+    subprocess.run([str(UI), "activate", str(owner)], check=True)
     state = wait_for(lambda: dialog_state(None), 10, f"dialog with {name}")
     # Exact label: the message sentence also contains "다시 캡처".
     line = next((l for l in state["lines"] if l["text"].replace(" ", "") == name.replace(" ", "")), None)
@@ -136,6 +138,7 @@ try:
     assert "다시캡처" in state["text"].replace(" ", ""), "no 다시 캡처 after a failed capture"
     wait_shown(main, "retry")
     click(osa, "다시 캡처")
+    subprocess.run([str(UI), "activate", str(next(pp for p, pp, _ in processes() if p == osa))], check=True)
     after = wait_for(lambda: (s := dialog_state(osa)) and "캡처확인" in s["text"].replace(" ", "") and s, 30, "dialog after 다시 캡처")
     screenshot("retry-after")
     screen = folder / "screen.png"

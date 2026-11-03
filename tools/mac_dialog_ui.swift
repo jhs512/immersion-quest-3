@@ -1,12 +1,17 @@
 // Reads and clicks the native report dialog on a CI Mac: System Events does not list its window.
 // read <png>: finds the dialog through CGWindowList (a modal panel, layer 8), captures it with screencapture, OCRs it.
 // click <x> <y>: posts a left click at screen points.
+// activate <pid>: brings an app forward; the dialog panel hides while its app is in the background.
 import Cocoa
 import Vision
 
 let args = CommandLine.arguments
 func mouse(_ type: CGEventType, _ point: CGPoint) {
     CGEvent(mouseEventSource: nil, mouseType: type, mouseCursorPosition: point, mouseButton: .left)!.post(tap: .cghidEventTap)
+}
+if args[1] == "activate" {
+    print(NSRunningApplication(processIdentifier: pid_t(args[2])!)?.activate(options: [.activateIgnoringOtherApps]) ?? false)
+    exit(0)
 }
 if args[1] == "click" {
     let point = CGPoint(x: Double(args[2])!, y: Double(args[3])!)
