@@ -5,8 +5,8 @@ the capture helper exactly as it does for a student. System Events does not list
 window, so `mac_dialog_ui.swift` reads it with Vision and clicks with a CGEvent.
 
 timeout: MQ is paused with SIGSTOP, so the helper times out and the dialog must say so.
-retry: the dialog opens before MQ's window is on screen, so the first capture fails. Once the
-window is up, 다시 캡처 must bring the dialog back with 캡처 확인 and a screen.png.
+retry: the capture socket is temporarily unavailable, so the first capture fails. Once the
+socket is restored, 다시 캡처 must bring the dialog back with 캡처 확인 and a screen.png.
 Each dialog is cancelled, so nothing is sent to GitHub.
 """
 import json
@@ -111,8 +111,13 @@ def open_dialog(main, name):
 
 
 def close(opener, osa, folder):
+    owner = next(pp for p, pp, _ in processes() if p == osa)
     click(osa, "취소")
-    opener.wait(timeout=30)
+    wait_for(lambda: not any(p in (osa, owner) for p, _, _ in processes()), 30, "cancel closes the report script and helper")
+    report.setdefault("cancellations", []).append({"script": osa, "helper": owner, "exited": True, "launcher_returncode": opener.poll()})
+    if opener.poll() is None:
+        opener.terminate()
+    opener.wait(timeout=5)
     assert not (folder / "response.json").exists(), "cancel wrote a response"
 
 
@@ -130,13 +135,18 @@ try:
     subprocess.run(["kill", str(main)])
     time.sleep(2)
 
-    # MQ's capture service starts before its window is on screen: a report opened then fails.
-    main = start_mq("retry", shown=False)
+    main = start_mq("retry")
     mains.append(main)
-    opener, osa, folder, state = open_dialog(main, "retry")
-    assert report["retry"]["status"] and report["retry"]["status"]["reason"] == "failed", "the first capture did not fail before MQ's window was up"
+    socket = Path(os.environ.get("TMPDIR", "/tmp"), f"mq-report-capture-{main}.sock")
+    offline = socket.with_suffix(".offline")
+    socket.rename(offline)
+    try:
+        opener, osa, folder, state = open_dialog(main, "retry")
+    finally:
+        offline.rename(socket)
+    assert report["retry"]["status"] and report["retry"]["status"]["reason"] == "failed", "the first capture did not fail with its socket unavailable"
+    assert "capture service unavailable" in report["retry"]["status"].get("detail", ""), "the failure did not come from the capture service connection"
     assert "다시캡처" in state["text"].replace(" ", ""), "no 다시 캡처 after a failed capture"
-    wait_shown(main, "retry")
     click(osa, "다시 캡처")
     subprocess.run([str(UI), "activate", str(osa), str(next(pp for p, pp, _ in processes() if p == osa))], check=True)
     after = wait_for(lambda: (s := dialog_state(osa)) and "캡처확인" in s["text"].replace(" ", "") and s, 30, "dialog after 다시 캡처")
