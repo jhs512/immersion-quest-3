@@ -4,6 +4,16 @@ ObjC.import('AppKit');
 function run(args) {
   const app = Application.currentApplication();
   app.includeStandardAdditions = true;
+  ObjC.registerSubclass({name: 'MQReportWindowObserver', superclass: 'NSObject', methods: {
+    'windowBecameKey:': {types: ['void', ['id']], implementation: function (notification) {
+      const panel = notification.object;
+      panel.collectionBehavior = $.NSWindowCollectionBehaviorCanJoinAllSpaces | $.NSWindowCollectionBehaviorFullScreenAuxiliary;
+      panel.orderFrontRegardless;
+    }}
+  }});
+  const observer = $.MQReportWindowObserver.alloc.init;
+  const notifications = $.NSNotificationCenter.defaultCenter;
+  notifications.addObserverSelectorNameObject(observer, 'windowBecameKey:', $.NSWindowDidBecomeKeyNotification, null);
   $.NSApplication.sharedApplication.activateIgnoringOtherApps(true);
   const read = path => ObjC.unwrap($.NSString.stringWithContentsOfFileEncodingError(path, $.NSUTF8StringEncoding, null));
   const draft = JSON.parse(read(args[0]));
@@ -55,6 +65,7 @@ function run(args) {
     }
     const data = $(JSON.stringify({description, include_screen: exists && (include === null ? draft.include_screen : include)}));
     data.writeToFileAtomicallyEncodingError(directory + '/response.json', true, $.NSUTF8StringEncoding, null);
+    notifications.removeObserver(observer);
     return 'sent';
   }
 }

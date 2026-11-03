@@ -29,7 +29,7 @@ if args[1] == "type" {
     NSRunningApplication(processIdentifier: pid_t(args[2])!)?.activate(options: [.activateAllWindows])
     usleep(700_000)
     let screen = NSScreen.main!.frame
-    let point = CGPoint(x: screen.midX, y: screen.midY)
+    let point = CGPoint(x: screen.midX, y: screen.minY + screen.height * 0.65)
     mouse(.leftMouseDown, point)
     mouse(.leftMouseUp, point)
     for unit in args[3].utf16 {
@@ -48,6 +48,11 @@ if args[1] == "activate" {
     for pid in args.dropFirst(2) {
         print(pid, NSRunningApplication(processIdentifier: pid_t(pid)!)?.activate(options: [.activateIgnoringOtherApps]) ?? false)
     }
+    exit(0)
+}
+if args[1] == "hide" {
+    guard NSRunningApplication(processIdentifier: pid_t(args[2])!)?.hide() == true else { exit(1) }
+    usleep(500_000)
     exit(0)
 }
 if args[1] == "click" {

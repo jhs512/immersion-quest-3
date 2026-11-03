@@ -14,6 +14,7 @@ function report({ failure, failureAfter, readyAfter, answers = [{ textReturned: 
   const objc = value => ({ value, writeToFileAtomicallyEncodingError: path => files.set(path, value) });
   objc.import = () => {};
   objc.unwrap = value => value;
+  objc.registerSubclass = () => {};
   const app = { displayDialog: (text, options) => {
     messages.push({ text, options });
     const answer = answers.shift();
@@ -27,6 +28,8 @@ function report({ failure, failureAfter, readyAfter, answers = [{ textReturned: 
     $: Object.assign(objc, {
       NSUTF8StringEncoding: 4,
       NSApplication: { sharedApplication: { activateIgnoringOtherApps() {} } },
+      MQReportWindowObserver: { alloc: { init: {} } },
+      NSNotificationCenter: { defaultCenter: { addObserverSelectorNameObject() {}, removeObserver() {} } },
       NSString: { stringWithContentsOfFileEncodingError: path => files.get(path) },
       NSFileManager: { defaultManager: {
         fileExistsAtPath: path => files.has(path) || (path.endsWith('screen.png') && readyAfter !== undefined && elapsed >= readyAfter),

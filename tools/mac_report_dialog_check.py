@@ -62,11 +62,11 @@ def dialog_state(osascript):
 
 def click(osascript, name, before_click=None):
     state = wait_for(lambda: dialog_state(osascript), 10, f"dialog with {name}")
+    if before_click:
+        state = before_click(state)
     # Exact label: the message sentence also contains "다시 캡처".
     line = next((l for l in state["lines"] if l["text"].replace(" ", "") == name.replace(" ", "")), None)
     assert line, f"no {name} on the dialog: {state['buttons']}"
-    if before_click:
-        before_click(state)
     subprocess.run([str(UI), "click", str(line["x"]), str(line["y"])], check=True)
 
 
@@ -112,7 +112,7 @@ def open_dialog(main, name):
     opener = subprocess.Popen(["open", "-n", "-W", *env, str(APP), "--args", "--report-dialog", str(main), "bug"])
     osa = wait_for(dialog_pid, 60, "report dialog script")
     folder = wait_for(lambda: next((p for p in (DATA / "bug-reports").iterdir() if p.name not in known and (p / "draft.json").exists()), None), 30, "report folder")
-    state = wait_for(lambda: dialog_state(osa), 40, "report dialog window")
+    state = wait_for(lambda: dialog_state(None), 40, "report dialog window without external activation")
     screenshot(f"{name}-dialog")
     status = folder / "capture-status.json"
     report[name] = {"dialog": state["text"], "status": json.loads(status.read_text()) if status.exists() else None,
@@ -167,8 +167,16 @@ try:
         targets = [w for w in state["windows"] if w["pid"] == main and w["title"] == "MQ"]
         assert targets, "the main process has no MQ window before retry"
         target = max(targets, key=lambda w: w["bounds"][2] * w["bounds"][3])
+        if target["onscreen"]:
+            subprocess.run([str(UI), "hide", str(main)], check=True)
+            state = wait_for(lambda: dialog_state(osa), 10, "report remains visible after hiding MQ")
+            target = next(w for w in state["windows"] if w["id"] == target["id"] and w["pid"] == main)
+            report["retry"]["offscreen_trigger"] = "controlled NSRunningApplication.hide after marker input"
+        else:
+            report["retry"]["offscreen_trigger"] = "main fullscreen window in another Space"
         report["retry"]["target_before_retry"] = target
         assert not target["onscreen"], f"the actual MQ capture target is on-screen before retry: {target}"
+        return state
 
     click(osa, "다시 캡처", before_click=record_capture_target)
     after = wait_for(lambda: (s := dialog_state(osa)) and "캡처확인" in s["text"].replace(" ", "") and s, 30, "dialog after 다시 캡처")
