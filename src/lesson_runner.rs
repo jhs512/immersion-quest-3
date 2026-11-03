@@ -90,7 +90,9 @@ async fn run_inner(task:&Task,source:&str,input:&str)->Result<Execution,String> 
 }
 
 /// TinyCC 0.9.27 for Windows from the GNU Savannah release, pinned by hash. Other systems use cc.
-const TCC_URL:&str="https://download.savannah.gnu.org/releases/tinycc/tcc-0.9.27-win64-bin.zip";
+// Fixed hosts in order, not download.savannah.gnu.org: that redirector sends each request to a
+// random mirror, and some of those time out on connect or serve a chain outside the trusted roots.
+const TCC_SOURCES:&[&str]=&["https://download-mirror.savannah.gnu.org/releases/tinycc/tcc-0.9.27-win64-bin.zip","https://mirrors.ocf.berkeley.edu/nongnu/tinycc/tcc-0.9.27-win64-bin.zip"];
 const TCC_SHA256:&str="34a721949a2583fdff725312da092fa0f5f1f284b702e6f811c6954714faabb2";
 fn installed_c_compiler()->Option<PathBuf> {
     if !cfg!(windows){return Some(PathBuf::from(std::env::var("MOLIP_CC").unwrap_or_else(|_|"cc".into())));}
@@ -113,7 +115,7 @@ pub(crate) async fn c_compiler()->Result<PathBuf,String> {
     let folder=root.join("tcc-0.9.27");
     let exe=folder.join("tcc").join("tcc.exe");
     if exe.is_file() {return Ok(exe)}
-    let archive=dependency("tcc-0.9.27-win64-bin.zip",TCC_URL,TCC_SHA256).await?;
+    let archive=dependency_from("tcc-0.9.27-win64-bin.zip",TCC_SOURCES,TCC_SHA256).await?;
     // Extract beside the final folder, then rename, so a half-written compiler is never used.
     let pending=root.join(format!("tcc-0.9.27.{}.tmp",crate::issue_progress::new_id()));
     std::fs::create_dir_all(&pending).map_err(|e|e.to_string())?;
@@ -351,20 +353,63 @@ async fn check_git(task:&Task,source:&str)->Result<TestReport,String> {
     Ok(TestReport{passed:cases.iter().all(|c|c.passed),cases})
 }
 
-pub(crate) async fn dependency(name:&str,url:&str,expected:&str)->Result<PathBuf,String> {
+pub(crate) async fn dependency(name:&str,url:&str,expected:&str)->Result<PathBuf,String> {dependency_from(name,&[url],expected).await}
+/// Saves the first source that downloads with the expected hash.
+pub(crate) async fn dependency_from(name:&str,sources:&[&str],expected:&str)->Result<PathBuf,String> {
     use sha2::{Digest,Sha256};
     let root=crate::data_dir()?.join("course-tools");std::fs::create_dir_all(&root).map_err(|e|e.to_string())?;
     let target=root.join(name);
     if let Ok(bytes)=std::fs::read(&target){if format!("{:x}",Sha256::digest(&bytes))==expected{return Ok(target)}}
-    let target_copy=target.clone();let url=url.to_string();let expected=expected.to_string();
+    let target_copy=target.clone();let sources:Vec<String>=sources.iter().map(|s|s.to_string()).collect();let expected=expected.to_string();
     crate::github_player::background(move ||{
-        let bytes=crate::github_player::agent().get(&url).call().map_err(|e|e.to_string())?.body_mut().with_config().limit(10_000_000).read_to_vec().map_err(|e|e.to_string())?;
-        if format!("{:x}",Sha256::digest(&bytes))!=expected{return Err("검사 도구의 해시가 맞지 않아요.".into())}
+        let bytes=fetch_first(&sources,&expected)?;
         let pending=target_copy.with_extension(format!("{}.tmp",crate::issue_progress::new_id()));
         std::fs::write(&pending,&bytes).map_err(|e|e.to_string())?;
         std::fs::rename(&pending,&target_copy).map_err(|e|e.to_string())?;
         Ok(target_copy)
     }).await
+}
+/// Each source keeps TLS verification and the hash check; a later source is tried only after an
+/// earlier one fails. The error lists every source's failure.
+fn fetch_first(sources:&[String],expected:&str)->Result<Vec<u8>,String> {
+    use sha2::{Digest,Sha256};
+    let mut failures=vec![];
+    for url in sources {
+        match crate::github_player::agent().get(url).call().map_err(|e|e.to_string()).and_then(|mut r|r.body_mut().with_config().limit(10_000_000).read_to_vec().map_err(|e|e.to_string())) {
+            Ok(bytes) if format!("{:x}",Sha256::digest(&bytes))==expected=>return Ok(bytes),
+            Ok(_)=>failures.push("검사 도구의 해시가 맞지 않아요.".to_string()),
+            Err(error)=>failures.push(error),
+        }
+    }
+    Err(failures.join(" / "))
+}
+
+#[cfg(test)]
+mod dependency_tests {
+    use sha2::{Digest,Sha256};
+    /// One local HTTP server answering every request with `body`.
+    fn serve(body:&'static [u8])->String {
+        let listener=std::net::TcpListener::bind("127.0.0.1:0").unwrap();let address=listener.local_addr().unwrap();
+        std::thread::spawn(move ||for stream in listener.incoming() {
+            use std::io::{Read,Write};
+            let Ok(mut stream)=stream else {continue};let mut request=[0u8;2048];let _=stream.read(&mut request);
+            let _=stream.write_all(format!("HTTP/1.1 200 OK
+Content-Length: {}
+Connection: close
+
+",body.len()).as_bytes());let _=stream.write_all(body);
+        });
+        format!("http://{address}/tool.zip")
+    }
+    #[test]
+    fn a_failing_or_tampered_source_falls_through_to_one_with_the_expected_hash() {
+        let closed={let listener=std::net::TcpListener::bind("127.0.0.1:0").unwrap();format!("http://{}/tool.zip",listener.local_addr().unwrap())};
+        let expected=format!("{:x}",Sha256::digest(b"tool"));
+        let sources=vec![closed,serve(b"tampered"),serve(b"tool")];
+        assert_eq!(super::fetch_first(&sources,&expected).unwrap(),b"tool");
+        let error=super::fetch_first(&sources[..2],&expected).unwrap_err();
+        assert!(error.contains(" / ")&&error.ends_with("검사 도구의 해시가 맞지 않아요."),"{error}");
+    }
 }
 async fn run_junit(task:&Task,dir:&Path)->Result<Execution,String> {
     crate::java::version().await?;
