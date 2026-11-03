@@ -295,11 +295,12 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                                     molip_quest::course_authoring::remember(&link.course)?;
                                     Ok((visible,Some(selected)))
                                 }).await;
-                                match result {Ok((manifest,selected))=>{
+                                // Signed out while the lesson loaded: the signed-out screen stays.
+                                if signed_out.peek().is_none() {match result {Ok((manifest,selected))=>{
                                     stop_auto("링크로 다른 수업을 열어서 자동 풀이를 멈췄어요.");
                                     document::eval("window.molipAgent?.stop()");molip_quest::bug_report::forget();
                                     course.set(Some(manifest));if let Some(selected)=selected{open.set(Some(selected));message.set(String::new());}else{open.set(None);if requested.lesson.is_some(){waiting_name_link.set(Some(requested));message.set("이 코스에서 쓸 이름을 먼저 입력하세요.".into());}else{waiting_name_link.set(None);message.set(String::new());}}
-                                },Err(error)=>{message.set(error.clone());document::eval(&format!("window.molipToast?.({})",serde_json::to_string(&error).unwrap()));}}
+                                },Err(error)=>{message.set(error.clone());document::eval(&format!("window.molipToast?.({})",serde_json::to_string(&error).unwrap()));}}}
                                 launching.set(None);busy.set(false);
                             }
                         }
@@ -385,7 +386,8 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                         let login=state.login.clone();
                         logout_retrying.set(true);
                         spawn(async move {
-                            let _=github_player::background(move ||molip_quest::github_logout::sign_out(&login)).await;
+                            let result=github_player::background(move ||molip_quest::github_logout::sign_out(&login)).await;
+                            message.set(result.err().unwrap_or_default());
                             signed_out.set(molip_quest::github_logout::signed_out());
                             logout_retrying.set(false);
                         });

@@ -36,3 +36,8 @@ Add a logout button that deletes the stored GitHub token, so a learner can undo 
 - An unreadable marker or data folder counts as signed out (fail closed).
 - gh auth logout has a 30 s deadline. NO_COLOR is set and CLICOLOR_FORCE/GH_FORCE_TTY are removed for that child.
 - busy is held during logout (lesson links wait), connect() clears an open lesson, and 다시 연결 waits for a running retry.
+
+## Review round 2
+- Fixes 1, 2 and 4 to 7 confirmed. The lesson-link race was only partly closed. Now 로그아웃 cannot be confirmed while another task holds busy, and a link load that finishes after logout is discarded.
+- A failed 토큰 삭제 다시 시도 now shows its error.
+- Accepted: if `data_dir()` itself fails, MQ counts as signed out and 다시 연결 cannot clear it (fail closed; same folder failure blocks the app's other storage too).

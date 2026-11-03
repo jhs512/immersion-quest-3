@@ -53,7 +53,8 @@ pub fn GithubLogout(login:String,disabled:bool,onworking:EventHandler<bool>,onsi
                     _=>rsx!{},
                 }
                 div {class:"lesson-reset-actions",
-                    button {r#type:"button",class:"danger account-reset-confirm",disabled:working,onclick:confirm,"로그아웃"}
+                    // Another task holding busy (a lesson link loading) finishes first.
+                    button {r#type:"button",class:"danger account-reset-confirm",disabled:working||disabled,onclick:confirm,"로그아웃"}
                     button {r#type:"button",disabled:working,onmounted:move |event|async move{let _=event.data().set_focus(true).await;},onclick:move |_|phase.set(Phase::Closed),"취소"}
                 }
             }
