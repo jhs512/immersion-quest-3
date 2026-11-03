@@ -27,9 +27,13 @@ jobs:
       - name: Verify MQ3 updater
         run: |
           cargo test --release --locked --lib updater::tests
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
           cargo test --release --locked --lib course_visibility::tests
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
           cargo test --release --locked --lib progress_sync
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
           cargo test --release --locked --lib course_identity::tests
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
       - name: Verify course lifecycle refresh and detached content worker
         run: cargo test --locked --test content_lifecycle --test content_lifecycle_process --test content_updates --test remote_course_upgrade
       - name: Verify optional build inputs stay fresh without private data
@@ -53,13 +57,18 @@ jobs:
           $nodePath = (Get-Command node).Source
           "MOLIP_NODE=$nodePath" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           & $nodePath --version
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
           & $nodePath -e "console.log('MQ Node runtime OK')"
       - name: Verify web runtime with a minimal desktop PATH
         run: |
           cargo test --release --locked --lib managed_web_tests
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
           cargo test --release --locked --lib node_tools::tests
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
           cargo test --release --locked --lib js_trace:: -- --ignored --nocapture
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
           cargo test --release --locked --test code_flow_policy
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
       - name: Verify persistent Java build workspace
         run: |
           cargo test --release --locked --test java_launch --test bundled_courses --test course_guide --test github_pr --test gitlab_platform --test git_lesson_goals --test git_merge_goals --test redesigned_git_first --test redesigned_git_remote --test git_branch_story --test learner_questions --test redesigned_git_branch --test git_graph --test lesson_link --test interaction_examples --test bash_basics --test vim_practice --test step_reset --test lesson_reset_challenge --test cross_course_improvements
@@ -77,13 +86,19 @@ jobs:
       - name: Verify local diagnostics and report retries
         run: |
           cargo test --release --locked --lib telemetry::tests
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
           cargo test --release --locked --lib bug_report::tests
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
           cargo test --release --locked --test telemetry_pipeline
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
       - name: Verify app-managed Java and C setup
         run: |
           cargo test --release --locked --lib runtime_setup::tests::selects_the_native_cpu_and_rejects_foreign_packages
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
           cargo test --release --locked --lib runtime_setup::tests::clean_java_install_runs_without_a_system_jdk_or_path_changes -- --ignored --nocapture --test-threads=1
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
           cargo test --release --locked --lib runtime_setup::tests::c_preparation_compiles_and_runs_on_this_platform -- --ignored --nocapture --test-threads=1
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
       - name: Verify responsive toolbar in native WebView
         run: cargo test --locked --test player_toolbar_native --test player_course_guide_native -- --ignored --nocapture --test-threads=1
       - name: Build clean release executable
