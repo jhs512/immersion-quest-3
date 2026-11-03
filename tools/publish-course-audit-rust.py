@@ -2,6 +2,7 @@
 import argparse
 import base64
 import copy
+from datetime import datetime, timezone
 import hashlib
 import importlib.util
 import json
@@ -13,7 +14,6 @@ RUST = ['rust-values', 'rust-flow-functions', 'rust-ownership-borrowing', 'rust-
 RUNTIME = 'jhs512/immersion-quest-3'
 BASELINE = 'b9fb3a998a216953e05476224ed63a87fc99664f'
 REVIEWED_RUNTIME = '3262af8c0075e3c0b1c2c8dcccb885456f77e972'
-PUBLICATION_AT = '2026-11-03T04:00:00Z'
 
 
 def load(name, filename):
@@ -71,16 +71,16 @@ def merge_course(remote, prepared, rows):
     if len(set(ids)) != len(ids) or len(set(repositories)) != len(repositories):
         raise ValueError('Duplicate course lesson identity')
     if rows:
-        summary = ('해설과 코드 흐름 보기를 보완하고 Rust 기초 네 수업을 더했어요.' if desired_rust
-                   else '수업 감사에서 찾은 설명과 해설을 보완했어요.')
-        entry = {'at': PUBLICATION_AT, 'summary': summary,
+        summary = ('2026년 11월 3일 감사로 해설을 보완하고 Rust 기초 네 수업을 더했어요.' if desired_rust
+                   else '2026년 11월 3일 수업 감사에서 찾은 설명과 해설을 보완했어요.')
+        entry = {'at': datetime.now(timezone.utc).isoformat(), 'summary': summary,
                  'reason': '수업 목표·정답·실행 결과와 해설을 대조한 감사 결과를 반영해요.',
                  'details': ['기존 수업의 고유 코드와 학습 기록을 유지하고 검증한 새 버전을 참조해요.',
                              '다른 작업에서 추가한 수업과 현재 과정 설정은 그대로 유지해요.']}
         if desired_rust:
             entry['details'].append('자바 실행 수업 바로 뒤에 값·흐름·소유권·자료와 결과를 다루는 Rust 선택 수업 네 개를 놓았어요.')
         history = value.setdefault('change_history', [])
-        if not any(item.get('at') == PUBLICATION_AT and item.get('summary') == summary for item in history):
+        if not any(item.get('summary') == summary for item in history):
             history.insert(0, entry)
     return value
 

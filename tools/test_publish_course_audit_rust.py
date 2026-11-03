@@ -1,6 +1,8 @@
 import copy
+from datetime import datetime, timezone
 import importlib.util
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 spec = importlib.util.spec_from_file_location('audit_release', Path(__file__).with_name('publish-course-audit-rust.py'))
@@ -51,6 +53,17 @@ class PublicationMerge(unittest.TestCase):
 
     def test_no_publication_rows_do_not_add_history(self):
         self.assertEqual(release.merge_course(self.remote, self.prepared, []), self.remote)
+
+    def test_history_records_first_actual_time_and_does_not_refresh_on_retry(self):
+        rows = [(self.old, self.new, b'')]
+        first_time = datetime(2026, 11, 3, 4, 22, tzinfo=timezone.utc)
+        with patch.object(release, 'datetime') as clock:
+            clock.now.return_value = first_time
+            first = release.merge_course(self.remote, self.prepared, rows)
+            clock.now.return_value = datetime(2026, 11, 3, 5, 30, tzinfo=timezone.utc)
+            retry = release.merge_course(first, self.prepared, rows)
+        self.assertEqual(first['change_history'][0]['at'], first_time.isoformat())
+        self.assertEqual(retry, first)
 
     def test_concurrent_revision_is_rejected(self):
         self.remote['lessons'][1] = row('java-conditions', 3)
