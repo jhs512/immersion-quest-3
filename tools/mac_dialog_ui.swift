@@ -28,19 +28,16 @@ if args[1] == "ocr" {
 if args[1] == "type" {
     NSRunningApplication(processIdentifier: pid_t(args[2])!)?.activate(options: [.activateAllWindows])
     usleep(700_000)
-    let screen = NSScreen.main!.frame
-    let point = CGPoint(x: screen.midX, y: screen.minY + screen.height * 0.65)
-    mouse(.leftMouseDown, point)
-    mouse(.leftMouseUp, point)
+    let target = pid_t(args[2])!
     for unit in args[3].utf16 {
         let event = CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: true)!
         event.keyboardSetUnicodeString(stringLength: 1, unicodeString: [unit])
-        event.post(tap: .cghidEventTap)
-        CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: false)!.post(tap: .cghidEventTap)
+        event.postToPid(target)
+        CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: false)!.postToPid(target)
         usleep(15_000)
     }
-    CGEvent(keyboardEventSource: nil, virtualKey: 36, keyDown: true)!.post(tap: .cghidEventTap)
-    CGEvent(keyboardEventSource: nil, virtualKey: 36, keyDown: false)!.post(tap: .cghidEventTap)
+    CGEvent(keyboardEventSource: nil, virtualKey: 36, keyDown: true)!.postToPid(target)
+    CGEvent(keyboardEventSource: nil, virtualKey: 36, keyDown: false)!.postToPid(target)
     usleep(700_000)
     exit(0)
 }
