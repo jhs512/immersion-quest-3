@@ -22,6 +22,7 @@ pub fn reference(github:&Github,text:&str)->Result<LessonRef,String> {
     Ok(LessonRef{id:lesson.id,title:lesson.title,repository:repo.into(),revision:revision.into(),sha256:format!("{:x}",Sha256::digest(raw.as_bytes())),prerequisites:vec![],required:true,review_enabled:lesson.review_enabled,category:String::new(),track:String::new(),challenge_task:String::new()})
 }
 pub(crate) fn gh(args:&[&str],body:Option<Value>)->Result<Value,String> {
+    crate::github_logout::ensure_signed_in()?;
     if crate::pilot_source::enabled() { return crate::pilot_source::request(args,body); }
     #[cfg(not(target_os="android"))]
     let executable=crate::setup_terminal::gh_executable();

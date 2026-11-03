@@ -144,6 +144,21 @@ fn snapshot(version: char, file: &str) -> Result<&'static str, String> {
     }
 }
 
+/// gh auth logout for UI checks. MOLIP_PILOT_LOGOUT picks gh's answer; the real gh never runs.
+pub fn gh_logout(login: &str) -> Result<(bool, String), String> {
+    Ok(match std::env::var("MOLIP_PILOT_LOGOUT").unwrap_or_default().as_str() {
+        "switched" => (true, format!("✓ Logged out of github.com account {login}
+✓ Switched active account for github.com to mq3-other
+")),
+        "absent" => (false, format!("not logged in to github.com account {login}
+")),
+        "failed" => (false, "failed to remove the stored credential (pilot)
+".into()),
+        _ => (true, format!("✓ Logged out of github.com account {login}
+")),
+    })
+}
+
 pub fn request(args: &[&str], payload: Option<Value>) -> Result<Value, String> {
     if args.first() != Some(&"api") { return Err("검증 모드에서는 외부 gh 명령을 실행하지 않아요.".into()); }
     let mut method = "GET";

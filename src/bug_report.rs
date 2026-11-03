@@ -271,6 +271,7 @@ pub fn submit(path: &Path) -> Result<String, String> {
 }
 #[cfg(not(target_os = "android"))]
 async fn gh_request(method: &str, endpoint: &str, payload: Value) -> Result<Value, String> {
+    crate::github_logout::ensure_signed_in()?;
     use tokio::io::AsyncWriteExt;
     let mut command = tokio::process::Command::new(crate::setup_terminal::gh_executable());
     command

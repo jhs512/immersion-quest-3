@@ -5,13 +5,13 @@ fn command(text:&str) {
 }
 
 #[component]
-pub fn GhSetup(message:String,checking:bool,onretry:EventHandler<()>,#[props(default)] reconnecting:bool)->Element {
+pub fn GhSetup(message:String,checking:bool,onretry:EventHandler<()>,#[props(default)] reconnecting:bool,#[props(default)] signed_out:bool)->Element {
     let mut ready=use_signal(||false);
     if checking {return rsx!{section {class:"gh-checking",role:"status",h2 {"GitHub 연결을 확인하고 있어요"}p {"설치된 gh의 로그인 상태를 확인해요."}}};}
     rsx!{
         section {class:"gh-setup-card",aria_label:"GitHub CLI 준비",
-            div {class:"gh-setup-intro",p {class:"gh-setup-kicker","GITHUB CLI"}h2 {if reconnecting {"GitHub에 다시 로그인하세요"}else{"여기서 준비하고 바로 시작해요"}}
-                p {if reconnecting {"로그인이 만료되면 새 수업을 받을 수 없어요. 아래에서 다시 로그인하세요."}else{"아래 터미널에서 gh를 설치하고 로그인하세요."}}
+            div {class:"gh-setup-intro",p {class:"gh-setup-kicker","GITHUB CLI"}h2 {if signed_out {"다시 쓰려면 로그인하고 연결하세요"}else if reconnecting {"GitHub에 다시 로그인하세요"}else{"여기서 준비하고 바로 시작해요"}}
+                p {if signed_out {"「GitHub 다시 로그인」을 눌러야 로그인이 시작돼요. 그다음 「다시 연결」을 누르세요."}else if reconnecting {"로그인이 만료되면 새 수업을 받을 수 없어요. 아래에서 다시 로그인하세요."}else{"아래 터미널에서 gh를 설치하고 로그인하세요."}}
                 p {"GitHub 승인은 브라우저에서 진행해요."}
             }
             div {class:"gh-setup-commands",
@@ -23,10 +23,10 @@ pub fn GhSetup(message:String,checking:bool,onretry:EventHandler<()>,#[props(def
                 div {class:"gh-terminal-heading",span {"이 컴퓨터의 터미널"}span {"직접 입력할 수 있어요"}}
                 EmbeddedSetupTerminal {onready:move |value|ready.set(value)}
             }
-            p {class:"gh-setup-help",if reconnecting {"로그인이 계속 실패하면 GH_TOKEN·GITHUB_TOKEN 환경변수도 확인하세요."}else{"이미 gh가 있으면 로그인부터 진행하세요. 질문에는 터미널에서 직접 답하면 돼요."}}
+            p {class:"gh-setup-help",if signed_out {"gh에 다른 계정이 로그인돼 있으면 「다시 연결」이 그 계정으로 연결해요."}else if reconnecting {"로그인이 계속 실패하면 GH_TOKEN·GITHUB_TOKEN 환경변수도 확인하세요."}else{"이미 gh가 있으면 로그인부터 진행하세요. 질문에는 터미널에서 직접 답하면 돼요."}}
             div {class:"gh-setup-footer",
                 a {href:"https://cli.github.com/",target:"_blank",rel:"noopener noreferrer","gh 설치 안내"}
-                button {class:"primary",onclick:move |_|onretry.call(()),"준비 완료 · 연결 확인"}
+                button {class:"primary",onclick:move |_|onretry.call(()),if signed_out {"다시 연결"}else{"준비 완료 · 연결 확인"}}
             }
             if !message.is_empty() {details {class:"gh-setup-error",summary {"연결 확인 내용"}pre {"{message}"}}}
         }

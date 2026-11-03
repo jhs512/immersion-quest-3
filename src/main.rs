@@ -6,6 +6,7 @@ mod practice;
 mod ui;
 mod player_ui;
 mod account_reset_ui;
+mod account_logout_ui;
 mod sql_browser_ui;
 mod challenge_ui;
 mod explanation_session;

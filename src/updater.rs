@@ -228,6 +228,7 @@ fn release_from_redirect(location: &str, current: u64) -> Result<Option<Release>
 #[cfg(not(target_os = "android"))]
 pub fn download(release: &Release, mut progress: impl FnMut(u64, u64)) -> Result<PathBuf, String> {
     if crate::pilot_source::enabled() {return Err("검증 모드에서는 실제 설치 파일을 받지 않아요.".into());}
+    crate::github_logout::ensure_signed_in()?;
     use std::io::{Read, Write};
     let dir = crate::data_dir()?.join("updates");
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
