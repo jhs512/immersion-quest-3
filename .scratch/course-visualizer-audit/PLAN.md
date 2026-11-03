@@ -186,3 +186,49 @@ java-methods·java-references는 처음에 `step_line`으로 적었다가 검증
 2. 바뀐 수업은 모두 새 revision이다. 수업 저장소에 새 태그를 게시하고 코스 manifest가 새 revision·SHA-256을 참조하게 하는 일은 `docs/redesigned-courses.md` 「최초 게시 후 개정」 절차로 따로 한다. 이 checkout은 게시하지 않았다.
 3. 통합 checkout의 Java `trace_files`와 함께 병합한 뒤 §9의 1의 opt-out 되돌리기와 검증기 변경을 한 커밋으로 한다.
 4. 병합할 때 충돌 가능 파일: `tools/redesigned_courses/catalog.json`(revision), `courses/redesigned-courses/*.json`·`courses/redesigned/*.json`(빌드 산출물, 충돌 시 원본에서 다시 빌드), `tools/redesigned_lessons/narration-review.json`, `examples/validate_redesigned_lesson.rs`(통합 checkout도 추적기 호출을 바꿨다면 수동 병합). 산출물은 손으로 고치지 말고 `build-redesigned-git.py --lesson all`과 `build-redesigned-course-bundle.py`로 다시 만든다.
+
+## 11. 통합 브랜치 결과(`feat/course-audit-rust-release`, 2026-11-03)
+
+기준은 build165와 같은 `b9fb3a99`다. 이 감사 브랜치의 `57f3406d`·`070f725c`와 Rust 4수업 커밋 7개를 합쳤다. main push와 게시는 root가 한다.
+
+### 앱에 실제로 보이는 코스(§2 범위 대조)
+
+- 배포 빌드는 `RepositoryPlayer`만 띄운다(`src/main.rs`의 `MOLIP_LEGACY` 분기는 debug 빌드 전용). KPC 금융·`java-basics`·아침 연습은 배포 앱에 보이지 않는다.
+- 보이는 것은 기본 세 코스(`src/bundled_courses.rs`)와 각 수업의 도전 과제, 학습자가 불러오는 공개 코스다. 통합 뒤 참조 102개, 스텝 1113개(`inventory.md`). 자바 백엔드는 48수업이고 Rust 4수업이 `java-launch` 바로 뒤에 이어진다.
+- 감사 범위 밖으로 남은 것: Rust 4수업의 레벨링 감사(§5 방식의 의미 검토는 하지 않았다. 사용자가 승인한 PRD·대표 문제와 실제 채점 검증만 있다), 학습자가 만든 공개 코스, Codex가 맡은 토요 특강.
+
+### 코드 흐름 보기(§3 갱신)
+
+- 런타임은 Java·Python·JavaScript(모든 OS), C·C++·Rust(Windows·macOS)를 추적한다(`Task::code_flow_availability`). 해설 `code_flow`도 여섯 언어를 받는다.
+- §9의 1을 끝냈다. java-crud·java-files의 `code_flow: false` 10개를 지웠다. 두 수업은 build165와 바이트가 같아져 revision을 `java-crud-9`·`java-files-8`로 되돌렸고, 그 내용에 남긴 검토 기록을 복원했다. 지금 명시적 `code_flow: false`는 0개다. 숨김은 터미널 스텝과 예제 없는 문항뿐이다.
+- 검증기에 `MQ3_VALIDATE_TRACE_ALL`을 더했다. 버튼이 보이는 모든 스텝의 준비 코드·정답을 모든 테스트 입력으로 추적해 채점 실행과 출력·성공 여부가 같은지 본다.
+- 이 검사로 Rust 결함 하나를 찾아 고쳤다. `println!`만 있는 `main`(rust-values 1번)은 단계가 0개였다(`native_lldb.py`의 `early()`). 회귀 테스트는 `native_trace::tests::rust_runs_grades_and_traces_moves_from_one_build`.
+
+### §9의 3: macOS C 해설 재생
+
+Windows(TinyCC)와 macOS arm64(LLDB, CI run 41408030077)에서 C 해설 4곳의 단계를 비교했다. 4곳 모두 줄·종류·호출 스택·지역 값이 같다(예: engineer-c-pointers 11행 `p`·`q`가 둘 다 `stock`, `stock`은 7). 전체 단계 번호만 다르다(macOS가 선언 줄에서 더 멈춘다). 해설은 `line`·`event`·`nth`로 찾으므로 영향이 없다.
+
+### §4·§9의 4: 큰 자료 상한
+
+- Python 추적기는 list·tuple·set·dict의 앞 100개, 「… N개 더」, 실제 크기를 기록한다. 문자열은 2000자에서 자르고 전체 길이를 붙인다(JavaScript 추적기와 같은 방식). 뷰어는 실제 크기를 제목에 쓰고 어떤 언어든 칸을 200개까지만 그린다.
+- 같은 100만 원소 실험(Windows, 1회): 추적 0.15초·12KB·그리기 50ms(전: 4.5초·110MB·240초 안에 못 그림). 상한이 없는 100만 칸 배열도 52ms다.
+- pandas·ndarray는 여전히 이름만 보인다. 해설 시각화를 더하지 않았다.
+
+### 검증 기록
+
+| 검사 | Windows | macOS arm64 |
+| --- | --- | --- |
+| `validate_redesigned_lesson` + 전 스텝 추적: Rust 4수업(40스텝), engineer-c-pointers·double-pointers·functions, java-crud·java-files | 통과(Rust는 Docker 이미지 `249ce3e12f2e`) | 통과(CI run 41408030077) |
+| `native_trace` Rust·C++ 테스트 | 통과 | 통과 |
+| `python_trace` 테스트 3개(큰 자료 상한 포함) | 통과 | 상한 테스트만 통과 |
+| `js_trace` 테스트 5개 | 통과 | 이 브랜치 head에서는 미실행(build165 release run만 있음) |
+| 실제 앱(임시 프로필) Rust 수업 열기·해설 재생 후 학습자 상태 복원·오답·정답·초기화 | 4수업 통과(353·570·423·481초) | 이 브랜치 CI에 추가(아래 인계) |
+| `build-redesigned-git.py --check`, `build-redesigned-course-bundle.py --check`, `test_lesson_prd`·`test_narration_review`·`test_lesson_registry`·`test_redesigned_highlights`·`test_build_inputs`, `inventory.py --check` | 통과 | |
+| `cargo test --test bundled_courses --test lesson_registry --test backend_journeys --test code_flow_policy` | 통과 | |
+| `test_narration_openings.py` | 실패 91건. build165에서 90건. 늘어난 1건은 java-oop-patterns 오탈자 수정(낡은 고정 기준과 비교, §7의 8) | |
+
+실제 음성과 강조가 맞물리는지는 들어 보지 않았다. 정적 검사와 재생 통과를 음성 확인으로 보지 않는다.
+
+### 시간이 드는 곳
+
+Windows의 Rust 실행 한 번은 약 1.8~2.2초다. 컨테이너 시작이 1.0~1.2초, rustc 컴파일 약 0.45초, 프로그램 실행 약 6ms다(24스레드 PC, 다른 앱 검사와 동시에 3회). 앱 자체 검사는 스텝마다 해설 실행·오답·정답·초기화 제출로 여러 번 컴파일하므로 rust-values 8스텝이 353초, rust-flow-functions 10스텝이 570초, rust-ownership-borrowing 10스텝이 423초, rust-data-results 12스텝이 481초 걸렸다. macOS는 컨테이너 없이 같은 검증기가 수업당 44~75초다(Windows 108~146초). 그래서 앱 자체 검사의 수업 전체 시간 한도만 AICE 긴 수업과 같은 1200초로 올렸다. 학습자가 겪는 컴파일 60초·실행 15초 한도는 바꾸지 않았다. 저사양 PC에서는 컨테이너 시작 시간이 그대로 학습자 대기로 보인다. 측정하지 않았다.

@@ -63,9 +63,20 @@ root는 엔진을 먼저 배포한다. 콘텐츠는 그 뒤에 합친다. 엔진
 8. 앱에서 네 수업을 열어 정답·오답·실행·해설 재생·초기화를 직접 확인한다. 실제 음성과 강조가 맞는지는 들어 보고 확인한다.
 9. 실제 채점을 확인한 뒤 마지막 도전 지정(`lesson-challenges.json`)을 검토한다. 주제 분류 `rust`는 조정자가 기존 분류 규칙을 적용한 것이라 사용자 확인 대상이다(`lesson-classification.json`의 `decided_by`).
 
+## 통합 결과(2026-11-03, `feat/course-audit-rust-release`)
+
+root 엔진(build165, `b9fb3a99`) 위에 이 브랜치의 커밋 7개를 합쳤다. 통합 순서 1~7은 끝났다. 8은 일부다.
+
+- 코드 흐름 보기: 위 계약의 「쓰지 않는다」는 root가 Rust 추적기(`src/native_trace.rs`)를 넣으면서 바뀌었다. 기본 표시 규칙에 따라 40스텝 모두 버튼이 보인다. 해설은 여전히 `code_flow`를 쓰지 않는다.
+- `MQ3_VALIDATE_TRACE_ALL`로 40스텝의 준비 코드·정답을 모두 추적했다. rust-values 1번(`println!`만 있는 `main`)에서 단계가 0개인 추적기 결함을 찾아 고쳤다(`assets/native-trace/native_lldb.py`의 `early()`).
+- `validate_redesigned_lesson`: 네 수업 모두 Windows(Docker 이미지 `249ce3e12f2e`)와 macOS arm64(CI run 41408030077)에서 통과했다. 준비 코드 실패, 정답 통과, 준비 값 바꾸기, 오답 거절, 해설 출력 일치, 전 스텝 추적이 포함된다.
+- `cargo test --test lesson_registry --test bundled_courses --test backend_journeys` 통과.
+- 실제 앱(임시 프로필, `tests/player_data_lessons_native.rs`의 `rust_*`): 수업 열기, 해설 재생 뒤 학습자 코드 복원, 오답 거절, 정답 통과, 초기화를 확인한다. 카탈로그의 검증 설정에 `modifications`가 없어 자체 검사가 시작하지 못했으므로 다른 코딩 수업처럼 세 스텝씩 추가했다. 결과는 `.scratch/course-visualizer-audit/PLAN.md` §11.
+- 주제 분류 `rust`는 사용자가 개발판 일상 선택으로 진행하라고 했다(재질문 불필요).
+
 ## 남은 일
 
-- 엔진 통합 뒤의 실제 앱·`validate_redesigned_lesson` 검증(위 5·6·8). 이 checkout에는 Rust 런타임이 없다.
-- macOS 검증. 지금 증거는 Windows뿐이다.
-- 실제 음성 확인. 해설은 정적 검사와 rustc 재생만 했다.
-- 게시. `tools/publish-*.py`는 실행하지 않았다. main에 push하거나 배포하지 않았다.
+- 실제 음성 확인. 해설은 정적 검사와 실행 재생만 했다.
+- 마지막 도전 지정(`lesson-challenges.json`)의 검토는 하지 않았다.
+- 레벨링 원칙에 따른 수업 감사(§5 방식의 의미 검토)는 Rust 4수업에 하지 않았다.
+- 게시. main push와 수업 저장소 게시는 root가 한다.

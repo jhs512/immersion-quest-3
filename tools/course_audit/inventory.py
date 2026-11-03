@@ -19,9 +19,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 COURSES = ['java-backend', 'engineer-practical', 'aice-associate']
 OUT = ROOT / '.scratch/course-visualizer-audit'
-TRACED_EVERYWHERE = {'java', 'python'}
-TRACED_ON = {'c': {'windows', 'macos'}}
-RUNNABLE_EXAMPLE = {'java', 'python', 'c', 'javascript', 'sql'}
+TRACED_EVERYWHERE = {'java', 'python', 'javascript'}
+TRACED_ON = {'c': {'windows', 'macos'}, 'cpp': {'windows', 'macos'}, 'rust': {'windows', 'macos'}}
+RUNNABLE_EXAMPLE = {'java', 'python', 'c', 'cpp', 'rust', 'javascript', 'sql'}
 
 
 def has_runnable_example(task):
