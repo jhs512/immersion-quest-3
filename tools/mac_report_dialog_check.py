@@ -173,7 +173,9 @@ try:
     subprocess.run([str(UI), "shortcut", str(osa), "v"], check=True)
     report["retry"]["description_shortcuts"] = "Cmd+A/C/X/V checked with a synthetic description"
     marker = f"FRESHREPORT{main}"
-    subprocess.run([str(UI), "type", str(main), f"echo {marker}"], check=True)
+    subprocess.run(["pbcopy"], input=f"echo {marker}", text=True, check=True)
+    subprocess.run([str(UI), "shortcut", str(main), "v"], check=True)
+    subprocess.run([str(UI), "enter", str(main)], check=True)
     marker_windows = json.loads(subprocess.run([str(UI), "read", str(WORK / "marker-panel.png")], capture_output=True, text=True, check=True).stdout)["windows"]
     marker_targets = [w for w in marker_windows if w["pid"] == main and w["title"] == "MQ"]
     marker_target = max(marker_targets, key=lambda w: w["bounds"][2] * w["bounds"][3])

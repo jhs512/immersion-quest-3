@@ -25,19 +25,15 @@ if args[1] == "ocr" {
     print(String(data: try JSONSerialization.data(withJSONObject: ["lines": recognize(image, rect: CGRect(x: 0, y: 0, width: image.width, height: image.height))]), encoding: .utf8)!)
     exit(0)
 }
-if args[1] == "type" {
+if args[1] == "enter" {
     NSRunningApplication(processIdentifier: pid_t(args[2])!)?.activate(options: [.activateAllWindows])
     usleep(700_000)
     let target = pid_t(args[2])!
-    for unit in args[3].utf16 {
-        let event = CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: true)!
-        event.keyboardSetUnicodeString(stringLength: 1, unicodeString: [unit])
+    for down in [true, false] {
+        let event = CGEvent(keyboardEventSource: nil, virtualKey: 36, keyDown: down)!
+        event.flags = []
         event.postToPid(target)
-        CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: false)!.postToPid(target)
-        usleep(15_000)
     }
-    CGEvent(keyboardEventSource: nil, virtualKey: 36, keyDown: true)!.postToPid(target)
-    CGEvent(keyboardEventSource: nil, virtualKey: 36, keyDown: false)!.postToPid(target)
     usleep(700_000)
     exit(0)
 }
