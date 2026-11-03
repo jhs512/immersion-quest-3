@@ -231,6 +231,12 @@ jobs:
           trap 'kill "$app_pid" 2>/dev/null || true' EXIT
           sleep 12
           kill -0 "$app_pid" || { cat target/macos-launch.log; exit 1; }
+      - name: Verify report capture without a Screen Recording grant, after install and after update
+        run: |
+          osacompile -l JavaScript -o "$RUNNER_TEMP/report.scpt" assets/diagnostics/report.js
+          # The capture check re-signs its bundle as an update, so it runs on a copy.
+          ditto target/bundle/MQ.app "$RUNNER_TEMP/report-check/MQ.app"
+          python3 tools/mac_report_capture_check.py "$RUNNER_TEMP/report-check/MQ.app" "$RUNNER_TEMP/report-capture"
       - uses: actions/upload-artifact@v4
         with:
           name: mq3-macos-${{ matrix.arch }}
