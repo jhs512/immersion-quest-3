@@ -86,8 +86,10 @@ def wait_shown(main, name):
         attempt[0] += 1
         shot = DATA / "bug-reports" / f"{name}-ready-{attempt[0]}" / "screen.png"
         shot.parent.mkdir(parents=True)
-        subprocess.run(["open", "-n", "-W", *env, str(APP), "--args", "--capture-report", str(main), str(shot)], check=True)
-        return shot.exists() or time.sleep(2)
+        launch = subprocess.run(["open", "-n", "-W", *env, str(APP), "--args", "--capture-report", str(main), str(shot)], capture_output=True, text=True, timeout=15)
+        screen_bytes = shot.stat().st_size if shot.exists() else 0
+        report.setdefault("readiness", []).append({"main": main, "attempt": attempt[0], "launcher_returncode": launch.returncode, "launcher_stderr": launch.stderr, "screen_bytes": screen_bytes})
+        return screen_bytes > 10_000 or time.sleep(2)
 
     wait_for(window_shown, 120, "MQ window on screen")
 
@@ -96,6 +98,7 @@ def start_mq(name, shown=True):
     before = {p for p, _, _ in processes()}
     subprocess.run(["open", "-n", *env, str(APP)], check=True)
     main = wait_for(lambda: next((p for p, _, c in processes() if p not in before and c.strip().endswith(str(EXECUTABLE))), None), 60, "MQ")
+    mains.append(main)
     wait_for(lambda: Path(os.environ.get("TMPDIR", "/tmp"), f"mq-report-capture-{main}.sock").exists(), 60, "MQ capture service")
     if shown:
         wait_shown(main, name)
@@ -129,7 +132,6 @@ def close(opener, osa, folder):
 mains = []
 try:
     main = start_mq("timeout")
-    mains.append(main)
     os.kill(main, signal.SIGSTOP)
     opener, osa, folder, state = open_dialog(main, "timeout")
     assert report["timeout"]["status"] == {"reason": "timeout"}, "the dialog did not time out its helper"
@@ -141,7 +143,6 @@ try:
     time.sleep(2)
 
     main = start_mq("retry")
-    mains.append(main)
     socket = Path(os.environ.get("TMPDIR", "/tmp"), f"mq-report-capture-{main}.sock")
     offline = socket.with_suffix(".offline")
     socket.rename(offline)
@@ -159,10 +160,13 @@ try:
     report["retry"].update(after=after["text"], screen_bytes=screen.stat().st_size if screen.exists() else 0)
     assert screen.exists() and screen.stat().st_size > 10_000, "다시 캡처 did not write the MQ window"
     close(opener, osa, folder)
-except AssertionError:
+except (AssertionError, subprocess.SubprocessError):
     screenshot("failure")
     raise
 finally:
+    report["final_processes"] = [{"pid": p, "parent": pp, "command": c} for p, pp, c in processes() if "MQ.app" in c or "osascript" in c]
+    final_ui = subprocess.run([str(UI), "read", str(WORK / "final-dialog.png")], capture_output=True, text=True)
+    report["final_windows"] = json.loads(final_ui.stdout or "{}") if final_ui.returncode == 0 else {"error": final_ui.stderr}
     for main in mains:
         try:
             os.kill(main, signal.SIGCONT)

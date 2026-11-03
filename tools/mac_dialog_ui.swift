@@ -24,16 +24,19 @@ if args[1] == "click" {
     mouse(.leftMouseUp, point)
     exit(0)
 }
-let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as! [[String: Any]]
+let list = CGWindowListCopyWindowInfo([.optionAll, .excludeDesktopElements], kCGNullWindowID) as! [[String: Any]]
 var windows: [[String: Any]] = []
 var best: (CGWindowID, CGRect)? = nil
 for window in list {
     let owner = window[kCGWindowOwnerName as String] as? String ?? ""
     let layer = window[kCGWindowLayer as String] as? Int ?? -1
+    let onscreen = window[kCGWindowIsOnscreen as String] as? Bool ?? false
+    let pid = window[kCGWindowOwnerPID as String] as? Int ?? 0
+    let application = NSRunningApplication(processIdentifier: pid_t(pid))
     var rect = CGRect.zero
     if let bounds = window[kCGWindowBounds as String] { CGRectMakeWithDictionaryRepresentation(bounds as! CFDictionary, &rect) }
-    windows.append(["owner": owner, "pid": window[kCGWindowOwnerPID as String] as? Int ?? 0, "layer": layer, "bounds": [rect.minX, rect.minY, rect.width, rect.height]])
-    if [0, 8].contains(layer) && ["osascript", "MQ", "molip-quest"].contains(owner)
+    windows.append(["owner": owner, "pid": pid, "layer": layer, "onscreen": onscreen, "app_hidden": application?.isHidden ?? false, "app_active": application?.isActive ?? false, "bounds": [rect.minX, rect.minY, rect.width, rect.height]])
+    if onscreen && [0, 8].contains(layer) && ["osascript", "MQ", "molip-quest"].contains(owner)
         && (300...900).contains(rect.width) && (150...600).contains(rect.height)
         && (best == nil || rect.width * rect.height < best!.1.width * best!.1.height) {
         best = (window[kCGWindowNumber as String] as! CGWindowID, rect)
