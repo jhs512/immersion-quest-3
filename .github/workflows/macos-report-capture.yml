@@ -5,6 +5,7 @@ on:
     paths:
       - 'tools/mac-report-capture-probe/**'
       - 'tools/mac_report_capture_check.py'
+      - 'tools/mac_report_dialog_check.py'
       - 'src/bug_report.rs'
       - 'src/emergency_report.rs'
       - 'assets/diagnostics/report.js'
@@ -58,6 +59,16 @@ jobs:
           bash packaging/macos/bundle.sh
       - name: Capture the real MQ window without a Screen Recording grant, then after an update
         run: python3 tools/mac_report_capture_check.py target/bundle/MQ.app "$RUNNER_TEMP/capture"
+      - name: Drive the report dialog through a capture timeout and 다시 캡처
+        run: python3 tools/mac_report_dialog_check.py target/bundle/MQ.app "$RUNNER_TEMP/dialog"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mac-report-dialog-app
+          path: |
+            ${{ runner.temp }}/dialog/*.json
+            ${{ runner.temp }}/dialog/*.png
+            ${{ runner.temp }}/dialog/data/bug-reports/*/
       - uses: actions/upload-artifact@v4
         if: always()
         with:

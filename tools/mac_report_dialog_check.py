@@ -1,0 +1,115 @@
+"""Drives the real Mac report dialog of MQ.app: dialog -> capture helper -> MQ, then 다시 캡처.
+
+MQ and `--report-dialog` both start through LaunchServices as MQ.app, so the dialog spawns
+the capture helper exactly as it does for a student. MQ is first paused with SIGSTOP so
+the helper times out and the dialog offers 다시 캡처. MQ is then resumed and the button is
+clicked through System Events. The dialog must come back with 캡처 확인 and a screen.png.
+The dialog is cancelled at the end, so nothing is sent to GitHub.
+"""
+import json
+import os
+import signal
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+APP = Path(sys.argv[1]).resolve()
+WORK = Path(sys.argv[2]).resolve()
+EXECUTABLE = APP / "Contents/MacOS/molip-quest"
+DATA = WORK / "data"
+DIALOG = 'window 1 of (first process whose unix id is {pid})'
+
+
+def applescript(source):
+    result = subprocess.run(["osascript", "-e", source], capture_output=True, text=True)
+    if result.returncode:
+        raise RuntimeError(result.stderr.strip())
+    return result.stdout.strip()
+
+
+def processes():
+    rows = subprocess.run(["ps", "-axo", "pid=,ppid=,command="], capture_output=True, text=True).stdout
+    return [(int(p), int(pp), c) for p, pp, c in (line.split(None, 2) for line in rows.splitlines() if line.strip())]
+
+
+def wait_for(check, seconds, what):
+    deadline = time.time() + seconds
+    while time.time() < deadline:
+        value = check()
+        if value:
+            return value
+        time.sleep(0.5)
+    raise AssertionError(f"timed out waiting for {what}")
+
+
+def dialog_pid():
+    found = [p for p, _, c in processes() if c.startswith("/usr/bin/osascript -l JavaScript") and "report.js" in c]
+    return found[-1] if found else None
+
+
+def dialog_state(pid):
+    window = DIALOG.format(pid=pid)
+    try:
+        buttons = applescript(f'tell application "System Events" to get name of every button of {window}')
+        texts = applescript(f'tell application "System Events" to get value of every static text of {window}')
+    except RuntimeError:
+        return None
+    return {"buttons": [b.strip() for b in buttons.split(",")], "text": texts}
+
+
+def click(pid, name):
+    applescript(f'tell application "System Events" to click button "{name}" of {DIALOG.format(pid=pid)}')
+
+
+def screenshot(name):
+    subprocess.run(["screencapture", "-x", str(WORK / f"{name}.png")])
+
+
+WORK.mkdir(parents=True, exist_ok=True)
+DATA.mkdir(exist_ok=True)
+env = ["--env", f"MOLIP_DATA_DIR={DATA}"]
+subprocess.run(["open", "-n", *env, str(APP)], check=True)
+main = wait_for(lambda: next((p for p, _, c in processes() if c.strip().endswith(str(EXECUTABLE))), None), 60, "MQ")
+socket = wait_for(lambda: next(Path(os.environ.get("TMPDIR", "/tmp")).glob(f"mq-report-capture-{main}.sock"), None)
+                  or next(Path("/private/var/folders").glob(f"*/*/T/mq-report-capture-{main}.sock"), None), 60, "MQ capture service")
+time.sleep(5)
+report = {"main_pid": main, "socket": str(socket)}
+
+os.kill(main, signal.SIGSTOP)
+opener = subprocess.Popen(["open", "-n", "-W", *env, str(APP), "--args", "--report-dialog", str(main), "bug"])
+try:
+    osa = wait_for(dialog_pid, 60, "report dialog script")
+    helpers = [c for _, _, c in processes() if "--capture-report" in c]
+    first = wait_for(lambda: dialog_state(osa), 30, "report dialog window")
+    screenshot("dialog-timeout")
+    report.update(dialog_osascript=osa, helper_commands_seen=helpers, while_mq_paused=first)
+    assert "다시 캡처" in first["buttons"], f"no retry button while MQ was paused: {first}"
+    assert "3초 안에 답하지" in first["text"], f"timeout was not explained: {first}"
+
+    folder = max((DATA / "bug-reports").iterdir(), key=lambda p: p.stat().st_mtime)
+    status = folder / "capture-status.json"
+    report["status_while_mq_paused"] = json.loads(status.read_text()) if status.exists() else None
+    assert report["status_while_mq_paused"] == {"reason": "timeout"}, "the dialog did not time out its helper"
+    os.kill(main, signal.SIGCONT)
+    click(osa, "다시 캡처")
+    after = wait_for(lambda: (s := dialog_state(osa)) and "캡처 확인" in s["buttons"] and s, 30, "dialog after 다시 캡처")
+    screenshot("dialog-after-retry")
+    screen = folder / "screen.png"
+    report.update(after_retry=after, screen=str(screen), screen_bytes=screen.stat().st_size if screen.exists() else 0,
+                  status_after_retry=status.exists())
+    assert screen.exists() and screen.stat().st_size > 10_000, "다시 캡처 did not write the MQ window"
+
+    click(osa, "취소")
+    opener.wait(timeout=30)
+    report["dialog_closed"] = True
+    assert not (folder / "response.json").exists(), "cancel wrote a response"
+finally:
+    try:
+        os.kill(main, signal.SIGCONT)
+    except ProcessLookupError:
+        pass
+    (WORK / "dialog.json").write_text(json.dumps(report, indent=2, ensure_ascii=False))
+    print(json.dumps(report, indent=2, ensure_ascii=False))
+    subprocess.run(["kill", str(main)])
+print("Report dialog spawned the capture helper, explained the timeout, and 다시 캡처 captured MQ")
