@@ -70,7 +70,7 @@ for window in list {
     let application = NSRunningApplication(processIdentifier: pid_t(pid))
     var rect = CGRect.zero
     if let bounds = window[kCGWindowBounds as String] { CGRectMakeWithDictionaryRepresentation(bounds as! CFDictionary, &rect) }
-    windows.append(["owner": owner, "pid": pid, "layer": layer, "onscreen": onscreen, "app_hidden": application?.isHidden ?? false, "app_active": application?.isActive ?? false, "bounds": [rect.minX, rect.minY, rect.width, rect.height]])
+    windows.append(["owner": owner, "pid": pid, "id": window[kCGWindowNumber as String] as? Int ?? 0, "title": window[kCGWindowName as String] as? String ?? "", "layer": layer, "onscreen": onscreen, "app_hidden": application?.isHidden ?? false, "app_active": application?.isActive ?? false, "bounds": [rect.minX, rect.minY, rect.width, rect.height]])
     if onscreen && [0, 8].contains(layer) && ["osascript", "MQ", "molip-quest"].contains(owner)
         && (300...900).contains(rect.width) && (150...600).contains(rect.height)
         && (best == nil || rect.width * rect.height < best!.1.width * best!.1.height) {

@@ -57,14 +57,16 @@ def dialog_state(osascript):
         report["last_ui_windows"] = seen.get("windows")
         return None
     lines = seen["lines"]
-    return {"bounds": seen["dialog"], "buttons": [l["text"] for l in lines], "text": " ".join(l["text"] for l in lines), "lines": lines}
+    return {"bounds": seen["dialog"], "buttons": [l["text"] for l in lines], "text": " ".join(l["text"] for l in lines), "lines": lines, "windows": seen["windows"]}
 
 
-def click(osascript, name):
+def click(osascript, name, before_click=None):
     state = wait_for(lambda: dialog_state(osascript), 10, f"dialog with {name}")
     # Exact label: the message sentence also contains "다시 캡처".
     line = next((l for l in state["lines"] if l["text"].replace(" ", "") == name.replace(" ", "")), None)
     assert line, f"no {name} on the dialog: {state['buttons']}"
+    if before_click:
+        before_click(state)
     subprocess.run([str(UI), "click", str(line["x"]), str(line["y"])], check=True)
 
 
@@ -153,9 +155,22 @@ try:
     assert report["retry"]["status"] and report["retry"]["status"]["reason"] == "failed", "the first capture did not fail with its socket unavailable"
     assert "capture service unavailable" in report["retry"]["status"].get("detail", ""), "the failure did not come from the capture service connection"
     assert "다시캡처" in state["text"].replace(" ", ""), "no 다시 캡처 after a failed capture"
-    marker = f"MQ_REPORT_FRESH_{main}"
+    marker = f"MQREPORTFRESH{main}"
     subprocess.run([str(UI), "type", str(main), f"echo {marker}"], check=True)
-    click(osa, "다시 캡처")
+    screenshot("marker-input")
+    marker_input = json.loads(subprocess.run([str(UI), "ocr", str(WORK / "marker-input.png")], capture_output=True, text=True, check=True).stdout)
+    marker_input_text = " ".join(line["text"] for line in marker_input["lines"])
+    report["retry"]["marker_input_text"] = marker_input_text
+    assert marker in marker_input_text, f"marker input did not reach the actual main terminal: {marker_input_text}"
+
+    def record_capture_target(state):
+        targets = [w for w in state["windows"] if w["pid"] == main and w["title"] == "MQ"]
+        assert targets, "the main process has no MQ window before retry"
+        target = max(targets, key=lambda w: w["bounds"][2] * w["bounds"][3])
+        report["retry"]["target_before_retry"] = target
+        assert not target["onscreen"], f"the actual MQ capture target is on-screen before retry: {target}"
+
+    click(osa, "다시 캡처", before_click=record_capture_target)
     after = wait_for(lambda: (s := dialog_state(osa)) and "캡처확인" in s["text"].replace(" ", "") and s, 30, "dialog after 다시 캡처")
     screenshot("retry-after")
     screen = folder / "screen.png"
@@ -167,7 +182,8 @@ try:
     assert marker in captured_text, f"retry did not capture the newly written terminal marker: {captured_text}"
     state_after_capture = json.loads(subprocess.run([str(UI), "read", str(WORK / "retry-captured-dialog.png")], capture_output=True, text=True, check=True).stdout)
     report["retry"]["capture_windows"] = state_after_capture["windows"]
-    assert any(w["pid"] == main and not w["onscreen"] for w in state_after_capture["windows"]), "retry did not exercise MQ's off-Space window"
+    target_id = report["retry"]["target_before_retry"]["id"]
+    assert any(w["id"] == target_id and w["pid"] == main and w["title"] == "MQ" and not w["onscreen"] for w in state_after_capture["windows"]), "the same MQ capture target is not off-Space after retry"
     close(opener, osa, folder)
 except (AssertionError, subprocess.SubprocessError):
     screenshot("failure")
