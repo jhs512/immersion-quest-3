@@ -5,6 +5,17 @@ function run(args) {
   const app = Application.currentApplication();
   app.includeStandardAdditions = true;
   $.NSApplication.sharedApplication.setActivationPolicy($.NSApplicationActivationPolicyAccessory);
+  const menu = $.NSMenu.alloc.initWithTitle('MQ');
+  const editMenu = $.NSMenu.alloc.initWithTitle('편집');
+  const editItem = $.NSMenuItem.alloc.initWithTitleActionKeyEquivalent('편집', null, '');
+  editItem.setSubmenu(editMenu);
+  menu.addItem(editItem);
+  [['잘라내기', 'cut:', 'x'], ['복사', 'copy:', 'c'], ['붙여넣기', 'paste:', 'v'], ['모두 선택', 'selectAll:', 'a']].forEach(([title, action, key]) => {
+    const item = $.NSMenuItem.alloc.initWithTitleActionKeyEquivalent(title, action, key);
+    item.setKeyEquivalentModifierMask($.NSEventModifierFlagCommand);
+    editMenu.addItem(item);
+  });
+  $.NSApplication.sharedApplication.setMainMenu(menu);
   $.NSApplication.sharedApplication.activateIgnoringOtherApps(true);
   const read = path => ObjC.unwrap($.NSString.stringWithContentsOfFileEncodingError(path, $.NSUTF8StringEncoding, null));
   const draft = JSON.parse(read(args[0]));

@@ -22,7 +22,7 @@ function report({ failure, failureAfter, readyAfter, answers = [{ textReturned: 
     return answer;
   };
   const app = { openLocation() {} };
-  const application = { activateIgnoringOtherApps() {}, setActivationPolicy(value) { this.activationPolicy = value; } };
+  const application = { activateIgnoringOtherApps() {}, setMainMenu() {}, setActivationPolicy(value) { this.activationPolicy = value; } };
   const alert = () => {
     let title, message, input;
     const labels = [];
@@ -43,6 +43,9 @@ function report({ failure, failureAfter, readyAfter, answers = [{ textReturned: 
     $: Object.assign(objc, {
       NSUTF8StringEncoding: 4,
       NSApplication: { sharedApplication: application },
+      NSMenu: { alloc: { initWithTitle: () => ({ addItem() {} }) } },
+      NSMenuItem: { alloc: { initWithTitleActionKeyEquivalent: () => ({ setSubmenu() {}, setKeyEquivalentModifierMask() {} }) } },
+      NSEventModifierFlagCommand: 1 << 20,
       NSApplicationActivationPolicyAccessory: 1,
       NSWindowCollectionBehaviorCanJoinAllSpaces: 1,
       NSWindowCollectionBehaviorFullScreenAuxiliary: 256,
