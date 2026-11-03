@@ -6,8 +6,20 @@ fn expired_login_is_visible_even_during_an_automatic_content_check() {
     let notice=molip_quest::content_lifecycle::update_failure(error,false).unwrap();
     assert!(notice.contains("인증 오류"));
     assert!(notice.contains("새 수업"));
-    assert!(molip_quest::content_lifecycle::update_failure("offline",false).is_none());
     assert_eq!(molip_quest::content_lifecycle::update_failure("offline",true),Some("offline".into()));
+}
+
+#[test]
+fn automatic_update_failures_explain_the_retained_content_and_retry() {
+    for error in ["offline", "HTTP 403: repository permission denied", "변경 시간·요약·이유·세부 내용을 확인하세요."] {
+        let notice=molip_quest::content_lifecycle::update_failure(error,false);
+        assert!(notice.is_some(),"automatic update failure was hidden: {error}");
+        let notice=notice.unwrap();
+        assert!(notice.contains("새 수업을 받지 못했어요"),"{notice}");
+        assert!(notice.contains("이전 수업은 그대로예요"),"{notice}");
+        assert!(notice.contains("다시 시도"),"{notice}");
+        assert_eq!(molip_quest::content_lifecycle::update_failure(error,true),Some(error.into()));
+    }
 }
 
 #[test]
