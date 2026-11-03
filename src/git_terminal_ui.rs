@@ -73,6 +73,7 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
     use_future(move||{let exercise=exercise.clone();let scope=scope.clone();let step_id=step_id.clone();let owned=owned.clone();let owner=owner.clone();let graph_requested=graph_requested.clone();let docker_session=docker_session.clone();let disk_known=disk_known.clone();let gitlab_session=gitlab_session.clone();async move {
         if is_gitlab {if let Some(session)=gitlab_session{session.activate();}}
         let docker_step=exercise.shell.as_ref().map(|s|s.step_id.clone()).unwrap_or_default();
+        let opening=std::time::Instant::now();
         let opened=tokio::task::spawn_blocking(move||{
             let practice=if !demo {
                 if let Some(scope)=scope {
@@ -96,6 +97,8 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
             Ok::<_,String>((TerminalSession{shell:Some(shell),practice,closing_marker},output,note))
         }).await;
         docker_preparing.set(false);
+        // Native checks read this from the process log when a practice terminal never becomes ready.
+        if molip_quest::pilot_source::enabled() {eprintln!("practice terminal open: {:?} after {} ms",opened.as_ref().map(|r|r.as_ref().map(|_|"ok")),opening.elapsed().as_millis());}
         let (session,mut output,note)=match opened {Ok(Ok(opened))=>opened,Ok(Err(e))=>{error.set(e);return;},Err(e)=>{error.set(e.to_string());return;}};
         if !demo {docker_note.set(note);}
         let practice=session.practice.clone();
