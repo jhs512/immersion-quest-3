@@ -1,0 +1,86 @@
+import copy
+from datetime import datetime, timezone
+import importlib.util
+import unittest
+from unittest.mock import patch
+from pathlib import Path
+
+spec = importlib.util.spec_from_file_location('audit_release', Path(__file__).with_name('publish-course-audit-rust.py'))
+release = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(release)
+
+
+def row(key, revision=1):
+    return {'id': key, 'repository': 'jhs512/mq3-lesson-redesigned-' + key,
+            'revision': f'{key}-{revision}', 'sha256': f'{key}:{revision}', 'title': key,
+            'required': False, 'prerequisites': []}
+
+
+class PublicationMerge(unittest.TestCase):
+    def setUp(self):
+        self.old = row('java-conditions')
+        self.new = row('java-conditions', 2)
+        self.rust = [row(key) for key in release.RUST]
+        self.remote = {'id': 'course', 'title': 'Remote edited title',
+                       'lessons': [row('java-launch'), self.old, row('web-todo-dom'), row('react-todo')],
+                       'change_history': [{'summary': 'Remote history'}], 'custom': {'keep': True}}
+        self.prepared = {'lessons': [row('java-launch'), *self.rust, self.new],
+                         'categories': [{'id': 'rust', 'title': 'Rust'}],
+                         'lesson_previews': {item['id']: {'summary': item['title']} for item in self.rust}}
+
+    def test_existing_revision_preserves_remote_metadata_and_unrelated_lessons(self):
+        self.remote['lessons'][1] = dict(self.old, title='Remote lesson title', required=True)
+        before = copy.deepcopy(self.remote)
+        result = release.merge_course(self.remote, self.prepared, [(self.old, self.new, b'')])
+        self.assertEqual(self.remote, before)
+        self.assertEqual(result['lessons'][1], dict(before['lessons'][1], revision=self.new['revision'], sha256=self.new['sha256']))
+        self.assertEqual(result['lessons'][2:], before['lessons'][2:])
+        self.assertEqual(result['title'], before['title'])
+        self.assertEqual(result['custom'], before['custom'])
+        self.assertEqual(result['change_history'][1:], before['change_history'])
+        self.assertIn('감사', result['change_history'][0]['summary'])
+        self.assertEqual(release.merge_course(result, self.prepared, [(self.old, self.new, b'')]), result)
+
+    def test_new_rust_lessons_follow_java_launch_without_removing_remote_extras(self):
+        rows = [(None, item, b'') for item in self.rust]
+        result = release.merge_course(self.remote, self.prepared, rows)
+        self.assertEqual([item['id'] for item in result['lessons']],
+                         ['java-launch', *release.RUST, 'java-conditions', 'web-todo-dom', 'react-todo'])
+        self.assertEqual(result['categories'], [{'id': 'rust', 'title': 'Rust'}])
+        self.assertIn('Rust', result['change_history'][0]['summary'])
+        self.assertEqual(result['change_history'][1:], self.remote['change_history'])
+        self.assertEqual(release.merge_course(result, self.prepared, rows), result)
+
+    def test_no_publication_rows_do_not_add_history(self):
+        self.assertEqual(release.merge_course(self.remote, self.prepared, []), self.remote)
+
+    def test_history_records_first_actual_time_and_does_not_refresh_on_retry(self):
+        rows = [(self.old, self.new, b'')]
+        first_time = datetime(2026, 11, 3, 4, 22, 18, 123456, tzinfo=timezone.utc)
+        with patch.object(release, 'datetime') as clock:
+            clock.now.return_value = first_time
+            first = release.merge_course(self.remote, self.prepared, rows)
+            clock.now.return_value = datetime(2026, 11, 3, 5, 30, tzinfo=timezone.utc)
+            retry = release.merge_course(first, self.prepared, rows)
+        # Installed clients accept canonical UTC seconds, not Python isoformat offsets.
+        self.assertEqual(first['change_history'][0]['at'], '2026-11-03T04:22:18Z')
+        self.assertEqual(retry, first)
+
+    def test_concurrent_revision_is_rejected(self):
+        self.remote['lessons'][1] = row('java-conditions', 3)
+        with self.assertRaisesRegex(ValueError, 'Concurrent'):
+            release.merge_course(self.remote, self.prepared, [(self.old, self.new, b'')])
+
+    def test_removed_existing_lesson_is_not_restored_silently(self):
+        self.remote['lessons'].pop(1)
+        with self.assertRaisesRegex(ValueError, 'removed concurrently'):
+            release.merge_course(self.remote, self.prepared, [(self.old, self.new, b'')])
+
+    def test_rust_category_conflict_is_rejected(self):
+        self.remote['categories'] = [{'id': 'rust', 'title': 'Someone else changed this'}]
+        with self.assertRaisesRegex(ValueError, 'category'):
+            release.merge_course(self.remote, self.prepared, [(None, item, b'') for item in self.rust])
+
+
+if __name__ == '__main__':
+    unittest.main()
