@@ -146,5 +146,6 @@ test('macOS report can exclude a confirmed capture and retain the description', 
     { textReturned: 'keep my explanation', buttonReturned: '보내기' },
   ] });
   dialog.run();
+  assert.equal(dialog.messages[2].options.defaultAnswer, 'keep my explanation');
   assert.deepEqual(dialog.result().response, { description: 'keep my explanation', include_screen: false });
 });
