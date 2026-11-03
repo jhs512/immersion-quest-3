@@ -47,3 +47,7 @@ Before exploring the codebase, read `docs/agents/domain.md` for the single-conte
 ## Windows 작업 인계
 
 사용자가 “계획 마저 진행해”라고 요청하면 `docs/curriculum/windows-handoff.md`를 먼저 읽고 현재 중단 지점부터 이어간다. 계획 파일을 읽거나 pull한 것만으로 제작을 시작하지 않는다.
+
+## MQ 작업 실행자
+
+MQ 작업은 기본으로 Claude Code가 한다(사용자 결정 2026-11-03). Codex는 Claude 브리지로 작업을 맡기고, 끝나면 실제 화면·테스트로 직접 검증한다. Claude 한도 초과 등으로 다른 실행자로 넘길 때는 브리지 규칙을 따른다.
