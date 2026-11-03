@@ -3,14 +3,14 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const test = require('node:test');
 
-function report({ failure, readyAfter, answers = [{ textReturned: '', buttonReturned: '보내기' }], retryHangs = false } = {}) {
+function report({ failure, failureAfter, readyAfter, answers = [{ textReturned: '', buttonReturned: '보내기' }], retryHangs = false } = {}) {
   let elapsed = 0;
   let retries = 0;
   let terminated = false;
   const messages = [];
   const draft = { kind: 'bug', repository: 'fixture/player', location: {}, include_screen: true };
   const files = new Map([['/fixture/draft.json', JSON.stringify(draft)]]);
-  if (failure) files.set('/fixture/capture-status.json', JSON.stringify(failure));
+  if (failure && failureAfter === undefined) files.set('/fixture/capture-status.json', JSON.stringify(failure));
   const objc = value => ({ value, writeToFileAtomicallyEncodingError: path => files.set(path, value) });
   objc.import = () => {};
   objc.unwrap = value => value;
@@ -32,7 +32,10 @@ function report({ failure, readyAfter, answers = [{ textReturned: '', buttonRetu
         fileExistsAtPath: path => files.has(path) || (path.endsWith('screen.png') && readyAfter !== undefined && elapsed >= readyAfter),
         removeItemAtPathError: path => files.delete(path),
       } },
-      NSThread: { sleepForTimeInterval: seconds => { elapsed += seconds; } },
+      NSThread: { sleepForTimeInterval: seconds => {
+        elapsed += seconds;
+        if (failureAfter !== undefined && elapsed >= failureAfter) files.set('/fixture/capture-status.json', JSON.stringify(failure));
+      } },
       NSTask: { launchedTaskWithLaunchPathArguments: (executable, args) => {
         assert.equal(executable, '/fixture/MQ');
         assert.deepEqual(Array.from(args.value), ['--capture-report', '123', '/fixture/screen.png']);
@@ -70,6 +73,14 @@ test('macOS report distinguishes a capture timeout from an unavailable window', 
   dialog.run();
   assert.match(dialog.messages[0].text, /제때 답하지 않아/);
   assert.equal(dialog.result().elapsed, 0);
+  assert.equal(dialog.result().response.include_screen, false);
+});
+
+test('macOS report waits for the helper timeout that arrives after six seconds', () => {
+  const dialog = report({ failure: { reason: 'timeout' }, failureAfter: 6.5 });
+  dialog.run();
+  assert.match(dialog.messages[0].text, /제때 답하지 않아/);
+  assert.ok(dialog.result().elapsed >= 6.5 && dialog.result().elapsed < 7);
   assert.equal(dialog.result().response.include_screen, false);
 });
 
