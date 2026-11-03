@@ -1,5 +1,5 @@
 // Reads and clicks the native report dialog on a CI Mac: System Events does not list its window.
-// read <png>: finds the dialog through CGWindowList, captures it with screencapture, OCRs it.
+// read <png>: finds the dialog through CGWindowList (a modal panel, layer 8), captures it with screencapture, OCRs it.
 // click <x> <y>: posts a left click at screen points.
 import Cocoa
 import Vision
@@ -26,7 +26,7 @@ for window in list {
     var rect = CGRect.zero
     if let bounds = window[kCGWindowBounds as String] { CGRectMakeWithDictionaryRepresentation(bounds as! CFDictionary, &rect) }
     windows.append(["owner": owner, "layer": layer, "bounds": [rect.minX, rect.minY, rect.width, rect.height]])
-    if layer == 0 && ["osascript", "MQ", "molip-quest"].contains(owner)
+    if [0, 8].contains(layer) && ["osascript", "MQ", "molip-quest"].contains(owner)
         && (300...900).contains(rect.width) && (150...600).contains(rect.height)
         && (best == nil || rect.width * rect.height < best!.1.width * best!.1.height) {
         best = (window[kCGWindowNumber as String] as! CGWindowID, rect)
