@@ -393,11 +393,7 @@ mod dependency_tests {
         std::thread::spawn(move ||for stream in listener.incoming() {
             use std::io::{Read,Write};
             let Ok(mut stream)=stream else {continue};let mut request=[0u8;2048];let _=stream.read(&mut request);
-            let _=stream.write_all(format!("HTTP/1.1 200 OK
-Content-Length: {}
-Connection: close
-
-",body.len()).as_bytes());let _=stream.write_all(body);
+            let _=stream.write_all(format!("HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",body.len()).as_bytes());let _=stream.write_all(body);
         });
         format!("http://{address}/tool.zip")
     }

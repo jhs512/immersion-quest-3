@@ -12,8 +12,11 @@ fn native_bash_narration_runs_ls_and_overview() {
     std::fs::write(session.directory().join("pilot-remote.json"),serde_json::to_vec(&initial).unwrap()).unwrap();
     let mut command=std::process::Command::new(env!("CARGO_BIN_EXE_molip-quest"));
     native_player::configure(&session,&mut command,"bash-basics");command.env("MOLIP_PILOT_SELF_TEST","bash-basics");
+    // Copied on drop, so the process log reaches the diagnostics artifact even when wait times out.
+    struct CopyLog(std::path::PathBuf);
+    impl Drop for CopyLog {fn drop(&mut self) {let _=std::fs::copy(&self.0,"target/mq3-bash-native-process.log");}}
+    let _log=CopyLog(session.directory().join("bash-basics.log"));
     let status=native_player::wait(&mut command.spawn().unwrap(),200,"bash-basics");
-    let _=std::fs::copy(session.directory().join("bash-basics.log"),"target/mq3-bash-native-process.log");
     let result:serde_json::Value=serde_json::from_str(&std::fs::read_to_string("target/pilot-native-result.json").unwrap()).unwrap();
     std::fs::copy("target/pilot-native-result.json","target/pilot-bash-native-result.json").unwrap();
     assert!(status.success()&&result["passed"]==true,"{result}");
