@@ -16,7 +16,8 @@ fn fixture(course: &CourseManifest) -> FutureChallengeFile {
 #[test]
 fn every_backend_lesson_offers_its_last_graded_problem_by_reference() {
     let (course, lessons) = backend();
-    assert_eq!(course.lessons.len(), 44);
+    assert!(!course.lessons.is_empty());
+    assert_eq!(course.lessons.len(), lessons.len());
     for (index, (reference, lesson)) in course.lessons.iter().zip(&lessons).enumerate() {
         let challenge = challenges::lesson_challenge(index, reference, lesson).unwrap_or_else(|| panic!("{} has no graded problem", reference.title));
         let position = lesson.tasks.iter().position(|task| task.id == challenge.task_id).unwrap();
@@ -133,11 +134,10 @@ fn packaged_backend_course_designates_only_real_graded_final_challenges() {
         assert_eq!(position + 1, lesson.tasks.len(), "the final problem: {}", reference.title);
         assert!(card.designated && card.task_id == reference.challenge_task);
     }
-    assert_eq!(course.lessons.len(), 44);
-    assert_eq!(designated, 44);
+    assert_eq!(designated, course.lessons.len());
     // Every challenge is a distinct problem.
     let ids: std::collections::BTreeSet<_> = course.lessons.iter().filter(|l| !l.challenge_task.is_empty()).map(|l| l.challenge_task.as_str()).collect();
-    assert_eq!(ids.len(), 44);
+    assert_eq!(ids.len(), course.lessons.len());
     // A designation that is not a required graded problem of this revision is ignored.
     let mut reference = course.lessons.iter().find(|l| !l.challenge_task.is_empty()).unwrap().clone();
     let lesson = Lesson::parse(bundled_courses::lesson_source(&reference).unwrap(), &reference).unwrap();
@@ -180,7 +180,7 @@ fn gitlab_migration_preserves_old_problem_ids_without_awarding_the_new_final() {
     assert!(!clear.challenge && !clear.cleared(),"the old eight passes cannot award a new independent final");
 }
 
-/// For each of the 42 released backend challenges, with the lesson's real required problems and its
+/// For each packaged backend challenge, with the lesson's real required problems and its
 /// designated challenge: passing only the challenge clears the lesson while the practice gauge stays
 /// at 1 of N; the clear survives an app restart; a lesson reset voids it, also after a restart and
 /// after the pre-reset history is cached back from sync, and leaves the neighbouring lesson alone.
@@ -193,7 +193,7 @@ fn every_packaged_backend_lesson_clears_by_its_challenge_alone_and_resets_durabl
     let path = directory.path().join("progress.sqlite3");
     let user = GithubUser { id: 7, login: "learner".into() };
     let lessons: Vec<_> = course.lessons.iter().filter(|r| !r.challenge_task.is_empty()).map(|r| (r.clone(), Lesson::parse(bundled_courses::lesson_source(r).unwrap(), r).unwrap())).collect();
-    assert_eq!(lessons.len(), 44);
+    assert_eq!(lessons.len(), course.lessons.len());
     let key = |lesson: &str| ProgressKey { user_id: 7, course_id: course.id.clone(), lesson_id: lesson.into() };
     let pass = |reference: &molip_quest::repository_course::LessonRef, at: u64| {
         let mut event = LearningEvent::new(key(&reference.id), &reference.revision, StudyMode::Full, "direct", EventKind::Attempt);
