@@ -17,15 +17,22 @@ Add a logout button that deletes the stored GitHub token, so a learner can undo 
 
 ## Behaviour
 - Header button 로그아웃 next to 진도 초기화 opens a confirm dialog (취소 / Esc changes nothing).
-- Confirm writes `github-signed-out` (the login) into MQ's data dir first, then runs `gh auth logout --hostname github.com --user <login>` with `GH_TOKEN`/`GITHUB_TOKEN` removed for that child only.
+- Confirm writes `github-signed-out` (JSON: login and gh result) into MQ's data dir first, then runs `gh auth logout --hostname github.com --user <login>` with `GH_TOKEN`/`GITHUB_TOKEN` removed for that child only.
 - While the marker exists every gh call path returns `SIGNED_OUT_ERROR` without spawning gh, and startup shows the signed-out screen instead of connecting. Only 다시 연결 removes the marker.
 - Signed-out screen reports removed / already absent / failed (with 토큰 삭제 다시 시도), the account gh switched to, any token variable still set, and the revoke link.
 - Progress journal, drafts and course snapshots are untouched (pilot digest of the data dir showed no changed file).
 
 ## Verification
-- `cargo test --lib github_logout` (5 tests).
+- `cargo test --lib github_logout` (6 tests).
 - Native pilot (fake `mq3-validation`, temp data and WebView folder, gh never runs): `node tools/design-capture.cjs .scratch/mq-logout/logout-scenario.cjs <out>` with `MQ_LOGOUT_STEP=logout|restart`, `MQ3_CAPTURE_DATA_DIR`, `MOLIP_PILOT_LOGOUT=switched|absent|failed`.
 
 ## Open
 - macOS run not done on this machine; data dir comes from `directories::ProjectDirs` as before.
 - Signing in again as a different account leaves the old account's unsent progress waiting until that account reconnects (journal is keyed by user id; unchanged behaviour).
+
+## Review round 1 (fixed in the follow-up commit)
+- The updater skips only the gh download branch when signed out and uses the public asset URL.
+- The marker keeps gh's result, so a failed or unverified removal (with 토큰 삭제 다시 시도) survives a restart.
+- An unreadable marker or data folder counts as signed out (fail closed).
+- gh auth logout has a 30 s deadline. NO_COLOR is set and CLICOLOR_FORCE/GH_FORCE_TTY are removed for that child.
+- busy is held during logout (lesson links wait), connect() clears an open lesson, and 다시 연결 waits for a running retry.

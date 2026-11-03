@@ -228,7 +228,6 @@ fn release_from_redirect(location: &str, current: u64) -> Result<Option<Release>
 #[cfg(not(target_os = "android"))]
 pub fn download(release: &Release, mut progress: impl FnMut(u64, u64)) -> Result<PathBuf, String> {
     if crate::pilot_source::enabled() {return Err("검증 모드에서는 실제 설치 파일을 받지 않아요.".into());}
-    crate::github_logout::ensure_signed_in()?;
     use std::io::{Read, Write};
     let dir = crate::data_dir()?.join("updates");
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
@@ -246,7 +245,8 @@ pub fn download(release: &Release, mut progress: impl FnMut(u64, u64)) -> Result
         command.creation_flags(0x0800_0000);
     }
     progress(0, release.size);
-    if command.output().is_ok_and(|out| out.status.success()) {
+    // Signed out of GitHub: skip gh (it would use gh's login) and take the public download below.
+    if crate::github_logout::signed_out().is_none() && command.output().is_ok_and(|out| out.status.success()) {
         let size = std::fs::metadata(&path).map_err(|e|e.to_string())?.len();
         if size == 0 || (release.size > 0 && size != release.size) {
             let _ = std::fs::remove_file(&path);

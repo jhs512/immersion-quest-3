@@ -162,8 +162,8 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
     let mut auto=use_signal(||None::<AutoRun>);
     // GitHub's edit permission on the open course for this account (None: not read yet).
     let mut admin=use_signal(||None::<(String,u64,Result<bool,String>)>);
-    // GitHub 로그아웃: the account and, in this session, what removing gh's stored token did.
-    let mut signed_out=use_signal(||None::<(String,Option<molip_quest::github_logout::StoredToken>)>);
+    // GitHub 로그아웃: the saved account and what removing gh's stored token did.
+    let mut signed_out=use_signal(||None::<molip_quest::github_logout::SignedOut>);
     let mut logout_retrying=use_signal(||false);
     use_effect(move||{
         let run=auto();
@@ -228,10 +228,10 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
         checked.set(false);
         // 계정 확인 reads GitHub's course permission again too.
         admin.set(None);stop_auto("GitHub 계정을 다시 확인해서 자동 풀이를 멈췄어요.");
-        catalog.set(Default::default());course.set(None);session.set(None);
+        catalog.set(Default::default());course.set(None);session.set(None);open.set(None);
         // Signed out stays signed out: no gh call until the learner presses 다시 연결.
-        if let Some(login)=molip_quest::github_logout::signed_out() {
-            if signed_out.peek().as_ref().map(|(known,_)|known)!=Some(&login) {signed_out.set(Some((login,None)));}
+        if let Some(state)=molip_quest::github_logout::signed_out() {
+            signed_out.set(Some(state));
             message.set(String::new());busy.set(false);checked.set(true);
             return;
         }
@@ -369,30 +369,31 @@ pub fn RepositoryPlayer(window_controls:Element)->Element {
                 div {class:"repository-tools",
                     if let Some(s)=session() {div {class:"repository-account",span {"gh · @{s.user.login}"}button {class:"account-recheck",title:"GitHub 계정 다시 확인",aria_label:"GitHub 계정 다시 확인",disabled:busy(),onclick:move |_|connect(),"계정 확인"}
                         crate::account_reset_ui::AccountProgressReset {github:s.github.clone(),user:s.user.clone(),repositories:repositories(),disabled:busy(),onreset:move |_|refresh+=1}
-                        crate::account_logout_ui::GithubLogout {login:s.user.login.clone(),disabled:busy(),onsignedout:move |stored|{
+                        // busy holds lesson links and 계정 확인 back while gh runs.
+                        crate::account_logout_ui::GithubLogout {login:s.user.login.clone(),disabled:busy(),onworking:move |working|busy.set(working),onsignedout:move |_|{
                             admin.set(None);stop_auto("GitHub에서 로그아웃해서 자동 풀이를 멈췄어요.");
                             open.set(None);catalog.set(Default::default());course.set(None);session.set(None);
                             message.set(String::new());
-                            signed_out.set(molip_quest::github_logout::signed_out().map(|login|(login,Some(stored))));
+                            signed_out.set(molip_quest::github_logout::signed_out());
                         }}}}
                     button {class:"shortcut-sheet-open","data-shortcut-action":"help",onclick:move |_|{document::eval("window.molipShortcuts?.toggleSheet()");},"단축키"}{updates}{window_controls}
                 }
             }
             if session().is_none() {
-                if let Some((login,stored))=signed_out() {
-                    crate::account_logout_ui::SignedOutNotice {login:login.clone(),stored,retrying:logout_retrying(),onretry:move |_|{
-                        let login=login.clone();
+                if let Some(state)=signed_out() {
+                    crate::account_logout_ui::SignedOutNotice {state:state.clone(),retrying:logout_retrying(),onretry:move |_|{
+                        let login=state.login.clone();
                         logout_retrying.set(true);
                         spawn(async move {
-                            let account=login.clone();
-                            let stored=github_player::background(move ||molip_quest::github_logout::sign_out(&account)).await
-                                .unwrap_or_else(molip_quest::github_logout::StoredToken::Failed);
-                            signed_out.set(Some((login,Some(stored))));
+                            let _=github_player::background(move ||molip_quest::github_logout::sign_out(&login)).await;
+                            signed_out.set(molip_quest::github_logout::signed_out());
                             logout_retrying.set(false);
                         });
                     }}
                 }
                 crate::gh_setup_ui::GhSetup {message:message(),checking:!checked(),signed_out:signed_out().is_some(),reconnecting:signed_out().is_some()||molip_quest::content_lifecycle::authentication_required(&message()),onretry:move |_|{
+                    // 다시 연결 waits for a running 토큰 삭제 다시 시도.
+                    if logout_retrying() {return;}
                     if signed_out().is_some() {
                         if let Err(error)=molip_quest::github_logout::sign_in_again() {message.set(format!("로그아웃 상태를 풀지 못했어요. {error}"));return;}
                         signed_out.set(None);

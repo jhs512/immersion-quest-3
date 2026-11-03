@@ -34,7 +34,8 @@ module.exports = async ({page, shot, dataDir}) => {
     await page.locator('.gh-signed-out').waitFor();
     await shot('03-signed-out', {fullPage: true});
     assert(await page.locator('button.account-logout-open').count() === 0, 'no account controls after logout');
-    assert(fs.readFileSync(path.join(dataDir, 'github-signed-out'), 'utf8') === 'mq3-validation', 'marker names the account');
+    notes.marker = JSON.parse(fs.readFileSync(path.join(dataDir, 'github-signed-out'), 'utf8'));
+    assert(notes.marker.login === 'mq3-validation', 'marker names the account');
     const after = digest(dataDir);
     notes.changed_files = Object.keys({...before, ...after}).filter(name => before[name] !== after[name]);
     notes.signed_out_text = await page.locator('.gh-signed-out').innerText();
@@ -45,6 +46,7 @@ module.exports = async ({page, shot, dataDir}) => {
     assert(await page.locator('button.account-logout-open').count() === 0, 'restart stays signed out');
     await shot('04-after-restart', {fullPage: true});
     notes.restart_text = await page.locator('.gh-signed-out').innerText();
+    if (process.env.MQ_LOGOUT_EXPECT_RETRY) assert(await page.locator('.gh-signed-out button:has-text("토큰 삭제 다시 시도")').isVisible(), 'a failed removal survives restart');
     if (process.env.MQ_LOGOUT_RECONNECT) {
       await page.click('.gh-setup-footer button.primary');
       await page.locator('button.account-logout-open').waitFor();

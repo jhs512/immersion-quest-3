@@ -1,12 +1,12 @@
 //! GitHub 로그아웃 next to the account in the player header, and what the signed-out screen says.
 use dioxus::prelude::*;
-use molip_quest::github_logout::{self,StoredToken,REVOKE_URL};
+use molip_quest::github_logout::{self,SignedOut,StoredToken,REVOKE_URL};
 
 #[derive(Clone,PartialEq)]
 enum Phase {Closed,Confirm,Working,Failed(String)}
 
 #[component]
-pub fn GithubLogout(login:String,disabled:bool,onsignedout:EventHandler<StoredToken>)->Element {
+pub fn GithubLogout(login:String,disabled:bool,onworking:EventHandler<bool>,onsignedout:EventHandler<()>)->Element {
     let mut phase=use_signal(||Phase::Closed);
     let open=!matches!(phase(),Phase::Closed);
     use_effect(move ||{
@@ -17,10 +17,12 @@ pub fn GithubLogout(login:String,disabled:bool,onsignedout:EventHandler<StoredTo
         let login=login.clone();
         move |_|{
             let login=login.clone();
-            phase.set(Phase::Working);
+            phase.set(Phase::Working);onworking.call(true);
             spawn(async move {
-                match molip_quest::github_player::background(move ||github_logout::sign_out(&login)).await {
-                    Ok(stored)=>{phase.set(Phase::Closed);onsignedout.call(stored);}
+                let result=molip_quest::github_player::background(move ||github_logout::sign_out(&login)).await;
+                onworking.call(false);
+                match result {
+                    Ok(_)=>{phase.set(Phase::Closed);onsignedout.call(());}
                     Err(error)=>phase.set(Phase::Failed(format!("{error} 아무것도 바꾸지 않았어요."))),
                 }
             });
@@ -60,16 +62,18 @@ pub fn GithubLogout(login:String,disabled:bool,onsignedout:EventHandler<StoredTo
     }
 }
 
-/// `stored` is this session's logout result; after a restart only the account is known.
+/// The saved logout state, so a failed or unverified removal still shows after a restart.
 #[component]
-pub fn SignedOutNotice(login:String,stored:Option<StoredToken>,onretry:EventHandler<()>,retrying:bool)->Element {
-    let account=format!("@{login}");
+pub fn SignedOutNotice(state:SignedOut,onretry:EventHandler<()>,retrying:bool)->Element {
+    let account=if state.login.is_empty() {"이".to_string()}else{format!("@{}",state.login)};
+    let can_retry=!state.login.is_empty();
     let environment=github_logout::environment_tokens().join(", ");
+    let retry=rsx!{if can_retry {button {r#type:"button",disabled:retrying,onclick:move |_|onretry.call(()),if retrying {"토큰을 지우고 있어요"}else{"토큰 삭제 다시 시도"}}}};
     rsx!{
         section {class:"gh-setup-card gh-signed-out",role:"status",aria_label:"GitHub 로그아웃 상태",
             h2 {"GitHub에서 로그아웃했어요"}
             p {"MQ는 "strong {{account.clone()}}" 계정으로 GitHub를 쓰지 않아요. 수업, 진도, 작성한 코드는 이 컴퓨터에 그대로예요."}
-            match stored {
+            match state.stored {
                 Some(StoredToken::Removed{switched_to})=>rsx!{
                     p {"이 컴퓨터의 gh에서 저장된 토큰을 지웠어요."}
                     if let Some(next)=switched_to {p {"gh의 github.com 활성 계정이 "strong {{format!("@{next}")}}"로 바뀌었어요. MQ는 「다시 연결」 전까지 이 계정도 쓰지 않아요."}}
@@ -78,9 +82,16 @@ pub fn SignedOutNotice(login:String,stored:Option<StoredToken>,onretry:EventHand
                 Some(StoredToken::Failed(error))=>rsx!{
                     p {class:"gh-signed-out-warning",role:"alert","gh의 저장된 토큰을 지우지 못했어요. 토큰은 아직 이 컴퓨터에 있어요."}
                     details {class:"gh-setup-error",summary {"gh가 남긴 내용"}pre {"{error}"}}
-                    button {r#type:"button",disabled:retrying,onclick:move |_|onretry.call(()),"토큰 삭제 다시 시도"}
+                    {retry}
                 },
-                None=>rsx!{},
+                Some(StoredToken::Unverified(error))=>rsx!{
+                    p {class:"gh-signed-out-warning",role:"alert","gh의 저장된 토큰을 지웠는지 확인하지 못했어요. {error}"}
+                    {retry}
+                },
+                None=>rsx!{
+                    p {class:"gh-signed-out-warning",role:"alert","gh의 저장된 토큰을 지웠는지 확인하지 못했어요."}
+                    {retry}
+                },
             }
             if !environment.is_empty() {
                 p {class:"gh-signed-out-warning",role:"alert","환경변수 {environment}에 토큰이 남아 있어요. gh는 이 값을 먼저 써요. MQ는 이 값을 바꾸지 않아요. 직접 지운 뒤 MQ를 다시 여세요."}
