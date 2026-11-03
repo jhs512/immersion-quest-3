@@ -31,9 +31,11 @@ jobs:
           cargo test --release --locked --lib progress_sync
           cargo test --release --locked --lib course_identity::tests
       - name: Verify course lifecycle refresh and detached content worker
-        run: cargo test --locked --test content_lifecycle --test content_lifecycle_process --test content_updates
+        run: cargo test --locked --test content_lifecycle --test content_lifecycle_process --test content_updates --test remote_course_upgrade
       - name: Verify optional build inputs stay fresh without private data
         run: python tools/test_build_inputs.py
+      - name: Verify course publication timestamp compatibility
+        run: python -m unittest tools.test_publish_course_audit_rust tools.test_repair_course_history_timestamps
       - name: Verify interactive setup terminal
         run: cargo test --release --locked --lib setup_terminal::tests
       - uses: actions/setup-java@v4
@@ -157,9 +159,11 @@ jobs:
           cargo test --release --locked --lib progress_sync
           cargo test --release --locked --lib course_identity::tests
       - name: Verify course lifecycle refresh and detached content worker
-        run: cargo test --locked --test content_lifecycle --test content_lifecycle_process --test content_updates
+        run: cargo test --locked --test content_lifecycle --test content_lifecycle_process --test content_updates --test remote_course_upgrade
       - name: Verify optional build inputs stay fresh without private data
         run: python3 tools/test_build_inputs.py
+      - name: Verify course publication timestamp compatibility
+        run: python3 -m unittest tools.test_publish_course_audit_rust tools.test_repair_course_history_timestamps
       - name: Verify web runtime with a minimal desktop PATH
         run: |
           cargo test --release --locked --lib managed_web_tests
