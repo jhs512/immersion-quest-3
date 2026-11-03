@@ -55,6 +55,19 @@ if args[1] == "hide" {
     usleep(500_000)
     exit(0)
 }
+if args[1] == "shortcut" {
+    let codes: [String: CGKeyCode] = ["a": 0, "x": 7, "c": 8, "v": 9]
+    guard let code = codes[args[3]] else { exit(1) }
+    NSRunningApplication(processIdentifier: pid_t(args[2])!)?.activate(options: [.activateAllWindows])
+    usleep(700_000)
+    for down in [true, false] {
+        let event = CGEvent(keyboardEventSource: nil, virtualKey: code, keyDown: down)!
+        event.flags = [.maskCommand]
+        event.post(tap: .cghidEventTap)
+    }
+    usleep(300_000)
+    exit(0)
+}
 if args[1] == "click" {
     let point = CGPoint(x: Double(args[2])!, y: Double(args[3])!)
     mouse(.mouseMoved, point)

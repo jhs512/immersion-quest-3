@@ -158,6 +158,20 @@ try:
     assert report["retry"]["status"] and report["retry"]["status"]["reason"] == "failed", "the first capture did not fail with its socket unavailable"
     assert "capture service unavailable" in report["retry"]["status"].get("detail", ""), "the failure did not come from the capture service connection"
     assert "다시캡처" in state["text"].replace(" ", ""), "no 다시 캡처 after a failed capture"
+    description = f"RETRYNOTE{main}"
+    subprocess.run(["pbcopy"], input=description, text=True, check=True)
+    subprocess.run([str(UI), "shortcut", str(osa), "v"], check=True)
+    wait_for(lambda: (s := dialog_state(osa)) and description in s["text"], 10, "Cmd+V pastes into the report description")
+    for key in ["a", "c", "x"]:
+        if key in ["c", "x"]:
+            subprocess.run(["pbcopy"], input="OTHERCLIPBOARD", text=True, check=True)
+        subprocess.run([str(UI), "shortcut", str(osa), key], check=True)
+        if key in ["c", "x"]:
+            assert subprocess.run(["pbpaste"], capture_output=True, text=True, check=True).stdout == description, f"Cmd+{key} did not copy the report description"
+        if key == "x":
+            wait_for(lambda: (s := dialog_state(osa)) and description not in s["text"], 10, "Cmd+X removes the report description")
+    subprocess.run([str(UI), "shortcut", str(osa), "v"], check=True)
+    report["retry"]["description_shortcuts"] = "Cmd+A/C/X/V checked with a synthetic description"
     marker = f"FRESHREPORT{main}"
     subprocess.run([str(UI), "type", str(main), f"echo {marker}"], check=True)
     screenshot("marker-input")
@@ -183,6 +197,7 @@ try:
 
     click(osa, "다시 캡처", before_click=record_capture_target)
     after = wait_for(lambda: (s := dialog_state(osa)) and "캡처확인" in s["text"].replace(" ", "") and s, 30, "dialog after 다시 캡처")
+    assert description in after["text"], "retry lost the native report description"
     screenshot("retry-after")
     screen = folder / "screen.png"
     report["retry"].update(after=after["text"], screen_bytes=screen.stat().st_size if screen.exists() else 0)
