@@ -117,7 +117,16 @@ pub fn replay(session:&LessonSession,store:&GitPracticeStore,scope:&str,task:&Ta
     let demo=session.terminal(true,&step(task),&docker_goal(task))?;
     let mut shown=Terminal::open(&teacher,&demo)?;
     let mut outputs=vec![];
+    // The app speaks each action's sentence before or while doing it and waits 350ms after it
+    // (assets/layout/agent.js). Even with the voice off a sentence takes min(5s, 0.7s + 55ms a
+    // character). Typing the next command sooner shows Docker states the narration never meets,
+    // such as a one-shot container that has not exited yet.
+    let reading=|sentence:&str|Duration::from_millis((700+55*sentence.encode_utf16().count() as u64).min(5000));
+    let after=Duration::from_millis(350);
+    let (mut pause,mut typed)=(Duration::ZERO,false);
     for action in &task.narration {
+        let sentence=if action["action"]=="say" {action["text"].as_str()} else {action["say"].as_str()};
+        pause+=sentence.map(reading).unwrap_or_default();
         if action["action"]=="patch_code" {
             // The narration edits its own editor, which saves the file in its own folder.
             let file=action["file"].as_str().map(str::to_owned).or_else(||teacher.editable_files().first().cloned()).ok_or("patch without an editable file")?;
@@ -128,9 +137,13 @@ pub fn replay(session:&LessonSession,store:&GitPracticeStore,scope:&str,task:&Ta
         }
         if action["action"]=="bash_command" {
             let command=action["command"].as_str().ok_or("missing command")?;
+            // Before the first command nothing runs yet, so only later pauses can change what it prints.
+            if typed {std::thread::sleep(pause);}
+            (pause,typed)=(Duration::ZERO,true);
             let printed=shown.enter(&teacher,command,action["fails"]!=true)?;
             outputs.push(printed.trim_end().trim_end_matches('$').trim_end().to_owned());
         }
+        if sentence.is_some() {pause+=after;}
     }
     let demonstrated=teacher.check_exercise()?;
     shown.close()?;
