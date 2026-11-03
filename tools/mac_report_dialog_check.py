@@ -3,7 +3,8 @@
 MQ and `--report-dialog` both start through LaunchServices as MQ.app, so the dialog spawns
 the capture helper exactly as it does for a student. MQ is first paused with SIGSTOP so
 the helper times out and the dialog offers 다시 캡처. MQ is then resumed and the button is
-clicked through System Events. The dialog must come back with 캡처 확인 and a screen.png.
+clicked with a CGEvent at the label Vision reads, because System Events does not list the
+dialog's window. The dialog must come back with 캡처 확인 and a screen.png.
 The dialog is cancelled at the end, so nothing is sent to GitHub.
 """
 import json
@@ -18,24 +19,7 @@ APP = Path(sys.argv[1]).resolve()
 WORK = Path(sys.argv[2]).resolve()
 EXECUTABLE = APP / "Contents/MacOS/molip-quest"
 DATA = WORK / "data"
-DIALOG = 'window 1 of (first process whose unix id is {pid})'
-# The dialog's window is not always listed under osascript: find the process showing it.
-FIND_DIALOG = """tell application "System Events"
-  repeat with p in (every process)
-    try
-      repeat with w in (windows of p)
-        if exists (button "보내기" of w) then return unix id of p
-      end repeat
-    end try
-  end repeat
-end tell"""
-
-
-def applescript(source):
-    result = subprocess.run(["osascript", "-e", source], capture_output=True, text=True)
-    if result.returncode:
-        raise RuntimeError(result.stderr.strip())
-    return result.stdout.strip()
+UI = WORK / "dialog-ui"
 
 
 def processes():
@@ -59,22 +43,19 @@ def dialog_pid():
 
 
 def dialog_state(_osascript):
-    try:
-        pid = applescript(FIND_DIALOG)
-        if not pid:
-            return None
-        window = DIALOG.format(pid=pid)
-        buttons = applescript(f'tell application "System Events" to get name of every button of {window}')
-        texts = applescript(f'tell application "System Events" to get value of every static text of {window}')
-    except RuntimeError as error:
-        report["last_ui_error"] = str(error)
+    seen = json.loads(subprocess.run([str(UI), "read", str(WORK / "dialog-read.png")], capture_output=True, text=True).stdout or "{}")
+    if not seen.get("dialog"):
+        report["last_ui_windows"] = seen.get("windows")
         return None
-    return {"owner": int(pid), "buttons": [b.strip() for b in buttons.split(",")], "text": texts}
+    lines = seen["lines"]
+    return {"bounds": seen["dialog"], "buttons": [l["text"] for l in lines], "text": " ".join(l["text"] for l in lines), "lines": lines}
 
 
 def click(_osascript, name):
-    pid = applescript(FIND_DIALOG)
-    applescript(f'tell application "System Events" to click button "{name}" of {DIALOG.format(pid=pid)}')
+    state = wait_for(lambda: dialog_state(None), 10, f"dialog with {name}")
+    line = next((l for l in state["lines"] if name.replace(" ", "") in l["text"].replace(" ", "")), None)
+    assert line, f"no {name} on the dialog: {state['buttons']}"
+    subprocess.run([str(UI), "click", str(line["x"]), str(line["y"])], check=True)
 
 
 def screenshot(name):
@@ -84,6 +65,7 @@ def screenshot(name):
 WORK.mkdir(parents=True, exist_ok=True)
 DATA.mkdir(exist_ok=True)
 report = {}
+subprocess.run(["swiftc", "-O", "-o", str(UI), str(Path(__file__).with_name("mac_dialog_ui.swift"))], check=True)
 env = ["--env", f"MOLIP_DATA_DIR={DATA}"]
 subprocess.run(["open", "-n", *env, str(APP)], check=True)
 main = wait_for(lambda: next((p for p, _, c in processes() if c.strip().endswith(str(EXECUTABLE))), None), 60, "MQ")
@@ -102,8 +84,8 @@ try:
     first = wait_for(lambda: dialog_state(osa), 30, "report dialog window")
     screenshot("dialog-timeout")
     report.update(dialog_osascript=osa, helper_commands_seen=helpers, while_mq_paused=first)
-    assert "다시 캡처" in first["buttons"], f"no retry button while MQ was paused: {first}"
-    assert "3초 안에 답하지" in first["text"], f"timeout was not explained: {first}"
+    assert "다시캡처" in first["text"].replace(" ", ""), f"no retry button while MQ was paused: {first}"
+    assert "제때답하지" in first["text"].replace(" ", ""), f"timeout was not explained: {first}"
 
     folder = max((DATA / "bug-reports").iterdir(), key=lambda p: p.stat().st_mtime)
     status = folder / "capture-status.json"
@@ -111,7 +93,7 @@ try:
     assert report["status_while_mq_paused"] == {"reason": "timeout"}, "the dialog did not time out its helper"
     os.kill(main, signal.SIGCONT)
     click(osa, "다시 캡처")
-    after = wait_for(lambda: (s := dialog_state(osa)) and "캡처 확인" in s["buttons"] and s, 30, "dialog after 다시 캡처")
+    after = wait_for(lambda: (s := dialog_state(osa)) and "캡처확인" in s["text"].replace(" ", "") and s, 30, "dialog after 다시 캡처")
     screenshot("dialog-after-retry")
     screen = folder / "screen.png"
     report.update(after_retry=after, screen=str(screen), screen_bytes=screen.stat().st_size if screen.exists() else 0,
