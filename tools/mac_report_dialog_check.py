@@ -72,7 +72,18 @@ subprocess.run(["open", "-n", *env, str(APP)], check=True)
 main = wait_for(lambda: next((p for p, _, c in processes() if c.strip().endswith(str(EXECUTABLE))), None), 60, "MQ")
 socket = wait_for(lambda: next(Path(os.environ.get("TMPDIR", "/tmp")).glob(f"mq-report-capture-{main}.sock"), None)
                   or next(Path("/private/var/folders").glob(f"*/*/T/mq-report-capture-{main}.sock"), None), 60, "MQ capture service")
-time.sleep(5)
+
+
+def window_shown(attempt=[0]):
+    attempt[0] += 1
+    shot = DATA / "bug-reports" / f"ready-{attempt[0]}" / "screen.png"
+    shot.parent.mkdir(parents=True)
+    subprocess.run(["open", "-n", "-W", *env, str(APP), "--args", "--capture-report", str(main), str(shot)], check=True)
+    return shot.exists() or time.sleep(2)
+
+
+# A student reports from a visible MQ window: wait until MQ can capture it before pausing MQ.
+wait_for(window_shown, 120, "MQ window on screen")
 report.update(main_pid=main, socket=str(socket))
 
 os.kill(main, signal.SIGSTOP)
@@ -88,7 +99,7 @@ try:
     assert "다시캡처" in first["text"].replace(" ", ""), f"no retry button while MQ was paused: {first}"
     assert "제때답하지" in first["text"].replace(" ", ""), f"timeout was not explained: {first}"
 
-    folder = max((DATA / "bug-reports").iterdir(), key=lambda p: p.stat().st_mtime)
+    folder = next(p for p in (DATA / "bug-reports").iterdir() if (p / "draft.json").exists())
     status = folder / "capture-status.json"
     report["status_while_mq_paused"] = json.loads(status.read_text()) if status.exists() else None
     assert report["status_while_mq_paused"] == {"reason": "timeout"}, "the dialog did not time out its helper"
