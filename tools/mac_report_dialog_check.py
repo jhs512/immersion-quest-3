@@ -155,7 +155,7 @@ try:
     assert report["retry"]["status"] and report["retry"]["status"]["reason"] == "failed", "the first capture did not fail with its socket unavailable"
     assert "capture service unavailable" in report["retry"]["status"].get("detail", ""), "the failure did not come from the capture service connection"
     assert "다시캡처" in state["text"].replace(" ", ""), "no 다시 캡처 after a failed capture"
-    marker = f"MQREPORTFRESH{main}"
+    marker = f"FRESHREPORT{main}"
     subprocess.run([str(UI), "type", str(main), f"echo {marker}"], check=True)
     screenshot("marker-input")
     marker_input = json.loads(subprocess.run([str(UI), "ocr", str(WORK / "marker-input.png")], capture_output=True, text=True, check=True).stdout)
