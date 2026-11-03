@@ -218,11 +218,11 @@ Windows(TinyCC)와 macOS arm64(LLDB, CI run 41408030077)에서 C 해설 4곳의 
 
 | 검사 | Windows | macOS arm64 |
 | --- | --- | --- |
-| `validate_redesigned_lesson` + 전 스텝 추적: Rust 4수업(40스텝), engineer-c-pointers·double-pointers·functions, java-crud·java-files | 통과(Rust는 Docker 이미지 `249ce3e12f2e`) | 통과(CI run 41408030077) |
+| `validate_redesigned_lesson` + 전 스텝 추적: Rust 4수업(40스텝), engineer-c-pointers·double-pointers·functions, java-crud·java-files | 통과(Rust는 Docker 이미지 `249ce3e12f2e`) | 통과(run 41408030077, 41559343966) |
 | `native_trace` Rust·C++ 테스트 | 통과 | 통과 |
 | `python_trace` 테스트 3개(큰 자료 상한 포함) | 통과 | 상한 테스트만 통과 |
-| `js_trace` 테스트 5개 | 통과 | 이 브랜치 head에서는 미실행(build165 release run만 있음) |
-| 실제 앱(임시 프로필) Rust 수업 열기·해설 재생 후 학습자 상태 복원·오답·정답·초기화 | 4수업 통과(353·570·423·481초) | 이 브랜치 CI에 추가(아래 인계) |
+| `js_trace` 테스트 5개 | 통과 | 통과(run 41559343966) |
+| 실제 앱(임시 프로필) Rust 수업 열기·해설 재생 후 학습자 상태 복원·오답·정답·초기화 | 4수업 통과(353·570·423·481초) | 4수업 통과(313·506·345·409초, run 41561837242) |
 | `build-redesigned-git.py --check`, `build-redesigned-course-bundle.py --check`, `test_lesson_prd`·`test_narration_review`·`test_lesson_registry`·`test_redesigned_highlights`·`test_build_inputs`, `inventory.py --check` | 통과 | |
 | `cargo test --test bundled_courses --test lesson_registry --test backend_journeys --test code_flow_policy` | 통과 | |
 | `test_narration_openings.py` | 실패 91건. build165에서 90건. 늘어난 1건은 java-oop-patterns 오탈자 수정(낡은 고정 기준과 비교, §7의 8) | |
@@ -231,4 +231,6 @@ Windows(TinyCC)와 macOS arm64(LLDB, CI run 41408030077)에서 C 해설 4곳의 
 
 ### 시간이 드는 곳
 
-Windows의 Rust 실행 한 번은 약 1.8~2.2초다. 컨테이너 시작이 1.0~1.2초, rustc 컴파일 약 0.45초, 프로그램 실행 약 6ms다(24스레드 PC, 다른 앱 검사와 동시에 3회). 앱 자체 검사는 스텝마다 해설 실행·오답·정답·초기화 제출로 여러 번 컴파일하므로 rust-values 8스텝이 353초, rust-flow-functions 10스텝이 570초, rust-ownership-borrowing 10스텝이 423초, rust-data-results 12스텝이 481초 걸렸다. macOS는 컨테이너 없이 같은 검증기가 수업당 44~75초다(Windows 108~146초). 그래서 앱 자체 검사의 수업 전체 시간 한도만 AICE 긴 수업과 같은 1200초로 올렸다. 학습자가 겪는 컴파일 60초·실행 15초 한도는 바꾸지 않았다. 저사양 PC에서는 컨테이너 시작 시간이 그대로 학습자 대기로 보인다. 측정하지 않았다.
+Windows의 Rust 실행 한 번은 약 1.8~2.2초다. 컨테이너 시작이 1.0~1.2초, rustc 컴파일 약 0.45초, 프로그램 실행 약 6ms다(24스레드 PC, 다른 앱 검사와 동시에 3회). 앱 자체 검사는 스텝마다 해설 실행·오답·정답·초기화 제출로 여러 번 컴파일하므로 rust-values 8스텝이 353초, rust-flow-functions 10스텝이 570초, rust-ownership-borrowing 10스텝이 423초, rust-data-results 12스텝이 481초 걸렸다. macOS는 컨테이너 없이 같은 검증기가 수업당 44~75초다(Windows 108~146초). 그런데 컨테이너가 없는 macOS 실제 앱 검사도 313~506초로 비슷했다. 한 번의 실행은 컨테이너 시작이 대부분이지만, 수업 전체 자체 검사 시간은 해설 재생·화면 대기·스텝마다 여러 번의 제출이 대부분이다. 그래서 앱 자체 검사의 수업 전체 시간 한도만 AICE 긴 수업과 같은 1200초로 올렸다. 학습자가 겪는 컴파일 60초·실행 15초 한도는 바꾸지 않았다. 저사양 PC에서는 Windows 컨테이너 시작 시간이 그대로 학습자 대기로 보인다. 저사양 기기는 측정하지 않았다(저사양 실행 개선은 사용자가 폐기했다).
+
+macOS 실제 앱 검사가 찾은 결함: 데이터 폴더에 MQ의 rustc가 없으면 Rust 실행이 `FileNotFoundError`를 보였다. 이제 환경 점검과 같은 「Rust 컴파일러가 없어요. 환경 설치로 준비하세요.」를 보인다(macOS 테스트 `rust_without_the_toolchain_asks_for_the_environment_install`). `MOLIP_RUST_HOME`은 검증 실행이 설치된 도구를 다시 쓰게 한다(`MOLIP_TCC`와 같은 방식).
