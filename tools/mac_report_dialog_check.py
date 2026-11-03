@@ -79,9 +79,11 @@ time.sleep(5)
 report.update(main_pid=main, socket=str(socket))
 
 os.kill(main, signal.SIGSTOP)
+report["dialog_requested_at"] = time.time()
 opener = subprocess.Popen(["open", "-n", "-W", *env, str(APP), "--args", "--report-dialog", str(main), "bug"])
 try:
     osa = wait_for(dialog_pid, 60, "report dialog script")
+    report["osascript_seen_at"] = time.time()
     helpers = [c for _, _, c in processes() if "--capture-report" in c]
     first = wait_for(lambda: dialog_state(osa), 30, "report dialog window")
     screenshot("dialog-timeout")
@@ -108,7 +110,13 @@ try:
     assert not (folder / "response.json").exists(), "cancel wrote a response"
 except AssertionError:
     screenshot("failure")
-    report["windows"] = subprocess.run(["osascript", "-e", 'tell application "System Events" to get {name, unix id, count of windows} of every process whose background only is false'], capture_output=True, text=True).stdout.strip()
+    probe = subprocess.run(["osascript", "-e", 'tell application "System Events" to get {name, unix id, count of windows} of every process whose background only is false'], capture_output=True, text=True)
+    report["windows"] = probe.stdout.strip() or probe.stderr.strip()
+    trusted = WORK / "trusted.swift"
+    trusted.write_text("import ApplicationServices\nprint(AXIsProcessTrusted())\n")
+    report["shell_accessibility_trusted"] = subprocess.run(["swift", str(trusted)], capture_output=True, text=True).stdout.strip()
+    bugs = DATA / "bug-reports"
+    report["mtimes"] = {str(p.relative_to(DATA)): p.stat().st_mtime for p in bugs.rglob("*")} if bugs.exists() else {}
     raise
 finally:
     try:
