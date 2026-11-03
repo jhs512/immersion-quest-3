@@ -41,3 +41,9 @@ Add a logout button that deletes the stored GitHub token, so a learner can undo 
 - Fixes 1, 2 and 4 to 7 confirmed. The lesson-link race was only partly closed. Now 로그아웃 cannot be confirmed while another task holds busy, and a link load that finishes after logout is discarded.
 - A failed 토큰 삭제 다시 시도 now shows its error.
 - Accepted: if `data_dir()` itself fails, MQ counts as signed out and 다시 연결 cannot clear it (fail closed; same folder failure blocks the app's other storage too).
+
+## Root review follow-up
+- GitHub PR practice: `github_json` (grading reads) calls `ensure_signed_in` before starting gh. The practice terminal's git credential helper is now `github_logout::git_credential_helper`: a shell function that checks the marker on every git credential request and exits before gh when signed out. A terminal opened before logout therefore gets no credential afterwards. With no usable marker path the helper is empty, which resets git's helper list.
+- Test `practice_git_stops_asking_gh_for_credentials_once_signed_out` uses real git and sh, a fake gh script, `GIT_CONFIG_NOSYSTEM` and a temp global config. Signed in: git gets the fake credential. With the marker: no credential, and the fake gh is never started. Mutation check: removing the marker test from the helper makes it fail.
+- Not covered: a learner typing `gh` by hand in a practice terminal opened before logout runs their own gh. MQ does not kill or wrap processes it does not own.
+- release.yml: Windows and macOS each get a "Verify GitHub logout with a fake gh" step running `cargo test --release --locked --lib github_logout::tests`. That filter matches only the 7 logout tests, and none of the existing filters match them.

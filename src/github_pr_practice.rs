@@ -31,11 +31,10 @@ impl GitPractice {
         if let Some(home)=std::env::var_os("HOME") {result.push(("HOME".into(),home.to_string_lossy().into()));}
         #[cfg(not(target_os="android"))]
         {
-            let gh=crate::setup_terminal::gh_executable().to_string_lossy().replace('\\',"/");
             // Credential access is delegated to gh, never copied into the practice folder.
             result.extend([("GIT_CONFIG_COUNT".into(),"3".into()),
                 ("GIT_CONFIG_KEY_0".into(),"credential.https://github.com.helper".into()),
-                ("GIT_CONFIG_VALUE_0".into(),format!("!\"{gh}\" auth git-credential")),
+                ("GIT_CONFIG_VALUE_0".into(),crate::github_logout::git_credential_helper(&crate::setup_terminal::gh_executable())),
                 ("GIT_CONFIG_KEY_1".into(),"url.https://github.com/.insteadOf".into()),("GIT_CONFIG_VALUE_1".into(),"git@github.com:".into()),
                 ("GIT_CONFIG_KEY_2".into(),"url.https://github.com/.insteadOf".into()),("GIT_CONFIG_VALUE_2".into(),"ssh://git@github.com/".into())]);
         }
@@ -44,6 +43,8 @@ impl GitPractice {
     #[cfg(not(target_os="android"))]
     fn github_json(&self,path:&str)->Result<Value,String>{
         use std::{io::Read,process::Stdio,time::{Duration,Instant}};
+        // A check still running when the learner signs out must not start gh afterwards.
+        crate::github_logout::ensure_signed_in()?;
         let mut command=Command::new(crate::setup_terminal::gh_executable());
         command.args(["api","--hostname","github.com","--method","GET",path]).current_dir(self.work()).envs(self.environment()).stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped());
         #[cfg(windows)] command.creation_flags(0x08000000);

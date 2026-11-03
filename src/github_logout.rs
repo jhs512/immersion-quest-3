@@ -54,6 +54,19 @@ fn save(directory:&Path,state:&SignedOut)->Result<(),String> {
     std::fs::write(marker(directory),raw).map_err(|e|format!("로그아웃 상태를 저장하지 못했어요. {e}"))
 }
 
+/// git's credential helper for GitHub practice terminals. It checks the marker each time git asks, so
+/// a terminal opened before logout cannot reach gh's credential afterwards; without a usable marker
+/// path it is empty, which resets git's helper list (no credential).
+pub fn git_credential_helper(gh:&Path)->String {
+    git_credential_helper_for(gh,crate::data_dir().ok().map(|directory|marker(&directory)).as_deref())
+}
+fn git_credential_helper_for(gh:&Path,marker:Option<&Path>)->String {
+    let shell_path=|path:&Path|path.to_string_lossy().replace('\\',"/");
+    let (gh,Some(marker))=(shell_path(gh),marker.map(shell_path)) else{return String::new()};
+    if gh.contains(['\'','"'])||marker.contains(['\'','"']) {return String::new()}
+    format!("!f() {{ test -e '{marker}' && exit 1; \"{gh}\" auth git-credential \"$@\"; }}; f")
+}
+
 /// Only the learner's 다시 연결 calls this; startup and background work never do.
 pub fn sign_in_again()->Result<(),String> {sign_in_again_in(&crate::data_dir()?)}
 fn sign_in_again_in(directory:&Path)->Result<(),String> {
@@ -186,6 +199,34 @@ mod tests {
         for name in TOKEN_VARIABLES.into_iter().chain(["CLICOLOR_FORCE","GH_FORCE_TTY"]) {assert!(envs.contains(&(name.to_owned(),None)),"{name} is removed for gh only");}
         assert!(envs.contains(&("GH_PROMPT_DISABLED".to_owned(),Some("1".to_owned()))));
         assert!(envs.contains(&("NO_COLOR".to_owned(),Some("1".to_owned()))));
+    }
+
+    /// Real git and sh, a fake gh, and a private git config: no credential manager or gh login is read.
+    #[test]
+    fn practice_git_stops_asking_gh_for_credentials_once_signed_out() {
+        let directory=tempfile::tempdir().unwrap();
+        let gh=directory.path().join("fake-gh");
+        let called=directory.path().join("called");
+        std::fs::write(&gh,format!("#!/bin/sh\necho \"$@\" >> '{}'\nprintf 'username=mq-fake\\npassword=fake-not-a-token\\n'\n",called.to_string_lossy().replace('\\',"/"))).unwrap();
+        #[cfg(unix)] {use std::os::unix::fs::PermissionsExt;std::fs::set_permissions(&gh,std::fs::Permissions::from_mode(0o755)).unwrap();}
+        let fill=|helper:&str|{
+            let mut child=std::process::Command::new("git").args(["credential","fill"])
+                .env("GIT_CONFIG_NOSYSTEM","1").env("GIT_CONFIG_GLOBAL",directory.path().join("global.config")).env("HOME",directory.path())
+                .env("GIT_TERMINAL_PROMPT","0").env("GCM_INTERACTIVE","never")
+                .env("GIT_CONFIG_COUNT","1").env("GIT_CONFIG_KEY_0","credential.https://github.com.helper").env("GIT_CONFIG_VALUE_0",helper)
+                .stdin(std::process::Stdio::piped()).stdout(std::process::Stdio::piped()).stderr(std::process::Stdio::null()).spawn().unwrap();
+            use std::io::Write;
+            child.stdin.take().unwrap().write_all(b"protocol=https\nhost=github.com\n\n").unwrap();
+            String::from_utf8_lossy(&child.wait_with_output().unwrap().stdout).into_owned()
+        };
+        let helper=git_credential_helper_for(&gh,Some(&marker(directory.path())));
+        assert!(fill(&helper).contains("password=fake-not-a-token"),"signed in: git gets gh's credential");
+        assert!(std::fs::read_to_string(&called).unwrap().contains("auth git-credential get"));
+        std::fs::remove_file(&called).unwrap();
+        save(directory.path(),&SignedOut{login:"mq-fake".into(),stored:None}).unwrap();
+        assert!(!fill(&helper).contains("password="),"signed out: the same helper yields no credential");
+        assert!(!called.exists(),"signed out: gh is never started");
+        assert_eq!(git_credential_helper_for(&gh,None),"","no marker path: no helper");
     }
 
     #[test]

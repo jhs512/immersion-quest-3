@@ -38,6 +38,8 @@ jobs:
         run: python -m unittest tools.test_publish_course_audit_rust tools.test_repair_course_history_timestamps tools.test_organize_engineer_course
       - name: Verify interactive setup terminal
         run: cargo test --release --locked --lib setup_terminal::tests
+      - name: Verify GitHub logout with a fake gh
+        run: cargo test --release --locked --lib github_logout::tests
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -158,6 +160,8 @@ jobs:
           cargo test --release --locked --lib course_visibility::tests
           cargo test --release --locked --lib progress_sync
           cargo test --release --locked --lib course_identity::tests
+      - name: Verify GitHub logout with a fake gh
+        run: cargo test --release --locked --lib github_logout::tests
       - name: Verify course lifecycle refresh and detached content worker
         run: cargo test --locked --test content_lifecycle --test content_lifecycle_process --test content_updates --test remote_course_upgrade
       - name: Verify optional build inputs stay fresh without private data
