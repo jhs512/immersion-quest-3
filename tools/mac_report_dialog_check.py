@@ -44,7 +44,14 @@ def dialog_pid():
     return found[-1] if found else None
 
 
-def dialog_state(_osascript):
+def dialog_state(osascript):
+    if osascript:
+        owner = next((pp for p, pp, _ in processes() if p == osascript), None)
+        if owner is None:
+            return None
+        activation = subprocess.run([str(UI), "activate", str(osascript), str(owner)], capture_output=True, text=True)
+        report.setdefault("activations", []).append(activation.stdout.strip())
+        time.sleep(0.25)
     seen = json.loads(subprocess.run([str(UI), "read", str(WORK / "dialog-read.png")], capture_output=True, text=True).stdout or "{}")
     if not seen.get("dialog"):
         report["last_ui_windows"] = seen.get("windows")
@@ -54,9 +61,7 @@ def dialog_state(_osascript):
 
 
 def click(osascript, name):
-    owner = next(pp for p, pp, _ in processes() if p == osascript)
-    report.setdefault("activations", []).append(subprocess.run([str(UI), "activate", str(osascript), str(owner)], capture_output=True, text=True).stdout.strip())
-    state = wait_for(lambda: dialog_state(None), 10, f"dialog with {name}")
+    state = wait_for(lambda: dialog_state(osascript), 10, f"dialog with {name}")
     # Exact label: the message sentence also contains "다시 캡처".
     line = next((l for l in state["lines"] if l["text"].replace(" ", "") == name.replace(" ", "")), None)
     assert line, f"no {name} on the dialog: {state['buttons']}"
@@ -148,7 +153,6 @@ try:
     assert "capture service unavailable" in report["retry"]["status"].get("detail", ""), "the failure did not come from the capture service connection"
     assert "다시캡처" in state["text"].replace(" ", ""), "no 다시 캡처 after a failed capture"
     click(osa, "다시 캡처")
-    subprocess.run([str(UI), "activate", str(osa), str(next(pp for p, pp, _ in processes() if p == osa))], check=True)
     after = wait_for(lambda: (s := dialog_state(osa)) and "캡처확인" in s["text"].replace(" ", "") and s, 30, "dialog after 다시 캡처")
     screenshot("retry-after")
     screen = folder / "screen.png"
