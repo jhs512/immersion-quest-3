@@ -1,7 +1,7 @@
 // Reads and clicks the native report dialog on a CI Mac: System Events does not list its window.
 // read <png>: finds the dialog through CGWindowList (a modal panel, layer 8), captures it with screencapture, OCRs it.
 // click <x> <y>: posts a left click at screen points.
-// activate <pid>: brings an app forward; the dialog panel hides while its app is in the background.
+// activate <pid>...: brings apps forward; the dialog panel hides while its app is in the background.
 import Cocoa
 import Vision
 
@@ -10,7 +10,9 @@ func mouse(_ type: CGEventType, _ point: CGPoint) {
     CGEvent(mouseEventSource: nil, mouseType: type, mouseCursorPosition: point, mouseButton: .left)!.post(tap: .cghidEventTap)
 }
 if args[1] == "activate" {
-    print(NSRunningApplication(processIdentifier: pid_t(args[2])!)?.activate(options: [.activateIgnoringOtherApps]) ?? false)
+    for pid in args.dropFirst(2) {
+        print(pid, NSRunningApplication(processIdentifier: pid_t(pid)!)?.activate(options: [.activateIgnoringOtherApps]) ?? false)
+    }
     exit(0)
 }
 if args[1] == "click" {
@@ -30,7 +32,7 @@ for window in list {
     let layer = window[kCGWindowLayer as String] as? Int ?? -1
     var rect = CGRect.zero
     if let bounds = window[kCGWindowBounds as String] { CGRectMakeWithDictionaryRepresentation(bounds as! CFDictionary, &rect) }
-    windows.append(["owner": owner, "layer": layer, "bounds": [rect.minX, rect.minY, rect.width, rect.height]])
+    windows.append(["owner": owner, "pid": window[kCGWindowOwnerPID as String] as? Int ?? 0, "layer": layer, "bounds": [rect.minX, rect.minY, rect.width, rect.height]])
     if [0, 8].contains(layer) && ["osascript", "MQ", "molip-quest"].contains(owner)
         && (300...900).contains(rect.width) && (150...600).contains(rect.height)
         && (best == nil || rect.width * rect.height < best!.1.width * best!.1.height) {
