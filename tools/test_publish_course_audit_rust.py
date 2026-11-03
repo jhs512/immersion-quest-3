@@ -35,7 +35,9 @@ class PublicationMerge(unittest.TestCase):
         self.assertEqual(result['lessons'][2:], before['lessons'][2:])
         self.assertEqual(result['title'], before['title'])
         self.assertEqual(result['custom'], before['custom'])
-        self.assertEqual(result['change_history'], before['change_history'])
+        self.assertEqual(result['change_history'][1:], before['change_history'])
+        self.assertIn('감사', result['change_history'][0]['summary'])
+        self.assertEqual(release.merge_course(result, self.prepared, [(self.old, self.new, b'')]), result)
 
     def test_new_rust_lessons_follow_java_launch_without_removing_remote_extras(self):
         rows = [(None, item, b'') for item in self.rust]
@@ -43,7 +45,12 @@ class PublicationMerge(unittest.TestCase):
         self.assertEqual([item['id'] for item in result['lessons']],
                          ['java-launch', *release.RUST, 'java-conditions', 'web-todo-dom', 'react-todo'])
         self.assertEqual(result['categories'], [{'id': 'rust', 'title': 'Rust'}])
+        self.assertIn('Rust', result['change_history'][0]['summary'])
+        self.assertEqual(result['change_history'][1:], self.remote['change_history'])
         self.assertEqual(release.merge_course(result, self.prepared, rows), result)
+
+    def test_no_publication_rows_do_not_add_history(self):
+        self.assertEqual(release.merge_course(self.remote, self.prepared, []), self.remote)
 
     def test_concurrent_revision_is_rejected(self):
         self.remote['lessons'][1] = row('java-conditions', 3)
