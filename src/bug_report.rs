@@ -5,6 +5,8 @@ use std::{
     io::Write,
     path::{Path, PathBuf},
 };
+#[cfg(target_os = "macos")]
+mod macos;
 
 pub const PLAYER_REPOSITORY: &str = "jhs512/immersion-quest-3";
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -173,19 +175,22 @@ pub fn save(path: &Path, draft: &Draft) -> Result<(), String> {
 /// a process without Screen Recording permission, while a process always sees its own.
 #[cfg(any(target_os = "windows", target_os = "macos"))]
 pub fn capture(parent: u32, path: &Path) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    let image = macos::capture(parent)?;
+    #[cfg(windows)]
+    let image = {
     let window = xcap::Window::all()
         .map_err(|e| e.to_string())?
         .into_iter()
         .filter(|w| {
             w.pid().ok() == Some(parent)
                 && w.title().is_ok_and(|t| t == "MQ")
-                // macOS lists on-screen windows only; its minimized check reads NSScreen, which
-                // is main-thread-only AppKit.
-                && (cfg!(target_os = "macos") || !w.is_minimized().unwrap_or(true))
+                && !w.is_minimized().unwrap_or(true)
         })
         .max_by_key(|w| w.width().unwrap_or(0) as u64 * w.height().unwrap_or(0) as u64)
         .ok_or("MQ window unavailable")?;
-    let image = window.capture_image().map_err(|e| e.to_string())?;
+    window.capture_image().map_err(|e| e.to_string())?
+    };
     if image.width() as u64 * image.height() as u64 > 32_000_000 {
         return Err("capture too large".into());
     }

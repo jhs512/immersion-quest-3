@@ -153,12 +153,21 @@ try:
     assert report["retry"]["status"] and report["retry"]["status"]["reason"] == "failed", "the first capture did not fail with its socket unavailable"
     assert "capture service unavailable" in report["retry"]["status"].get("detail", ""), "the failure did not come from the capture service connection"
     assert "다시캡처" in state["text"].replace(" ", ""), "no 다시 캡처 after a failed capture"
+    marker = f"MQ_REPORT_FRESH_{main}"
+    subprocess.run([str(UI), "type", str(main), f"echo {marker}"], check=True)
     click(osa, "다시 캡처")
     after = wait_for(lambda: (s := dialog_state(osa)) and "캡처확인" in s["text"].replace(" ", "") and s, 30, "dialog after 다시 캡처")
     screenshot("retry-after")
     screen = folder / "screen.png"
     report["retry"].update(after=after["text"], screen_bytes=screen.stat().st_size if screen.exists() else 0)
     assert screen.exists() and screen.stat().st_size > 10_000, "다시 캡처 did not write the MQ window"
+    captured = json.loads(subprocess.run([str(UI), "ocr", str(screen)], capture_output=True, text=True, check=True).stdout)
+    captured_text = " ".join(line["text"] for line in captured["lines"])
+    report["retry"].update(captured_text=captured_text, marker=marker)
+    assert marker in captured_text, f"retry did not capture the newly written terminal marker: {captured_text}"
+    state_after_capture = json.loads(subprocess.run([str(UI), "read", str(WORK / "retry-captured-dialog.png")], capture_output=True, text=True, check=True).stdout)
+    report["retry"]["capture_windows"] = state_after_capture["windows"]
+    assert any(w["pid"] == main and not w["onscreen"] for w in state_after_capture["windows"]), "retry did not exercise MQ's off-Space window"
     close(opener, osa, folder)
 except (AssertionError, subprocess.SubprocessError):
     screenshot("failure")

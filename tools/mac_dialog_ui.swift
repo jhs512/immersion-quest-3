@@ -9,6 +9,41 @@ let args = CommandLine.arguments
 func mouse(_ type: CGEventType, _ point: CGPoint) {
     CGEvent(mouseEventSource: nil, mouseType: type, mouseCursorPosition: point, mouseButton: .left)!.post(tap: .cghidEventTap)
 }
+func recognize(_ image: CGImage, rect: CGRect) -> [[String: Any]] {
+    let request = VNRecognizeTextRequest()
+    request.recognitionLanguages = ["ko-KR", "en-US"]
+    request.recognitionLevel = .accurate
+    try? VNImageRequestHandler(cgImage: image).perform([request])
+    return (request.results ?? []).compactMap { observation in
+        guard let text = observation.topCandidates(1).first?.string else { return nil }
+        let box = observation.boundingBox
+        return ["text": text, "x": rect.minX + box.midX * rect.width, "y": rect.minY + (1 - box.midY) * rect.height]
+    }
+}
+if args[1] == "ocr" {
+    guard let image = NSImage(contentsOfFile: args[2])?.cgImage(forProposedRect: nil, context: nil, hints: nil) else { exit(1) }
+    print(String(data: try JSONSerialization.data(withJSONObject: ["lines": recognize(image, rect: CGRect(x: 0, y: 0, width: image.width, height: image.height))]), encoding: .utf8)!)
+    exit(0)
+}
+if args[1] == "type" {
+    NSRunningApplication(processIdentifier: pid_t(args[2])!)?.activate(options: [.activateAllWindows])
+    usleep(700_000)
+    let screen = NSScreen.main!.frame
+    let point = CGPoint(x: screen.midX, y: screen.midY)
+    mouse(.leftMouseDown, point)
+    mouse(.leftMouseUp, point)
+    for unit in args[3].utf16 {
+        let event = CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: true)!
+        event.keyboardSetUnicodeString(stringLength: 1, unicodeString: [unit])
+        event.post(tap: .cghidEventTap)
+        CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: false)!.post(tap: .cghidEventTap)
+        usleep(15_000)
+    }
+    CGEvent(keyboardEventSource: nil, virtualKey: 36, keyDown: true)!.post(tap: .cghidEventTap)
+    CGEvent(keyboardEventSource: nil, virtualKey: 36, keyDown: false)!.post(tap: .cghidEventTap)
+    usleep(700_000)
+    exit(0)
+}
 if args[1] == "activate" {
     for pid in args.dropFirst(2) {
         print(pid, NSRunningApplication(processIdentifier: pid_t(pid)!)?.activate(options: [.activateIgnoringOtherApps]) ?? false)
@@ -50,15 +85,7 @@ if let (id, rect) = best {
     try capture.run()
     capture.waitUntilExit()
     if let image = NSImage(contentsOfFile: args[2])?.cgImage(forProposedRect: nil, context: nil, hints: nil) {
-        let request = VNRecognizeTextRequest()
-        request.recognitionLanguages = ["ko-KR", "en-US"]
-        request.recognitionLevel = .accurate
-        try? VNImageRequestHandler(cgImage: image).perform([request])
-        for observation in request.results ?? [] {
-            guard let text = observation.topCandidates(1).first?.string else { continue }
-            let box = observation.boundingBox
-            lines.append(["text": text, "x": rect.minX + box.midX * rect.width, "y": rect.minY + (1 - box.midY) * rect.height])
-        }
+        lines = recognize(image, rect: rect)
     }
 }
 let dialog: Any = best.map { [$0.1.minX, $0.1.minY, $0.1.width, $0.1.height] } ?? NSNull()
