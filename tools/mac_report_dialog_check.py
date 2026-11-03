@@ -53,7 +53,8 @@ def dialog_state(pid):
     try:
         buttons = applescript(f'tell application "System Events" to get name of every button of {window}')
         texts = applescript(f'tell application "System Events" to get value of every static text of {window}')
-    except RuntimeError:
+    except RuntimeError as error:
+        report["last_ui_error"] = str(error)
         return None
     return {"buttons": [b.strip() for b in buttons.split(",")], "text": texts}
 
@@ -68,13 +69,14 @@ def screenshot(name):
 
 WORK.mkdir(parents=True, exist_ok=True)
 DATA.mkdir(exist_ok=True)
+report = {}
 env = ["--env", f"MOLIP_DATA_DIR={DATA}"]
 subprocess.run(["open", "-n", *env, str(APP)], check=True)
 main = wait_for(lambda: next((p for p, _, c in processes() if c.strip().endswith(str(EXECUTABLE))), None), 60, "MQ")
 socket = wait_for(lambda: next(Path(os.environ.get("TMPDIR", "/tmp")).glob(f"mq-report-capture-{main}.sock"), None)
                   or next(Path("/private/var/folders").glob(f"*/*/T/mq-report-capture-{main}.sock"), None), 60, "MQ capture service")
 time.sleep(5)
-report = {"main_pid": main, "socket": str(socket)}
+report.update(main_pid=main, socket=str(socket))
 
 os.kill(main, signal.SIGSTOP)
 opener = subprocess.Popen(["open", "-n", "-W", *env, str(APP), "--args", "--report-dialog", str(main), "bug"])
@@ -104,6 +106,10 @@ try:
     opener.wait(timeout=30)
     report["dialog_closed"] = True
     assert not (folder / "response.json").exists(), "cancel wrote a response"
+except AssertionError:
+    screenshot("failure")
+    report["windows"] = subprocess.run(["osascript", "-e", 'tell application "System Events" to get {name, unix id, count of windows} of every process whose background only is false'], capture_output=True, text=True).stdout.strip()
+    raise
 finally:
     try:
         os.kill(main, signal.SIGCONT)
