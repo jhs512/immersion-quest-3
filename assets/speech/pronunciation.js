@@ -106,7 +106,7 @@
         ['NumPy', '넘파이'], ['numpy', '넘파이'], ['matplotlib', '맷플롯립'], ['seaborn', '시본'], ['sklearn', '에스케이런'],
         ['scikit-learn', '사이킷런'], ['Pipeline', '파이프라인'], ['Titanic', '타이타닉'], ['titanic', '타이타닉'],
         ['KPC', '케이피씨'], ['AI', '에이아이'], ['CSV', '씨에스브이'], ['HTML', '에이치티엠엘'], ['Excel', '엑셀'], ['JSON', '제이슨'],
-        ['SQLite', '에스큐엘라이트'], ['URL', '유알엘'], ['MAE', '엠에이이'], ['RMSE', '알엠에스이'], ['R²', '알 제곱'], ['R2', '알 제곱'],
+        ['SQLite', '에스큐엘라이트'], ['URL', '유알엘'], ['MAE', '엠에이이'], ['RMSE', '알엠에스이'], ['R²', '알 제곱'],
         ['F1', '에프원'], ['ID', '아이디'], ['IDE', '아이디이'], ['API', '에이피아이'], ['OS', '오에스'], ['PC', '피씨'], ['GUI', '지유아이'],
         ['One-hot', '원핫'], ['one-hot', '원핫'], ['Ridge', '릿지'], ['Lasso', '라쏘'], ['fit', '핏'], ['predict', '프리딕트'],
         ['int', '인트'], ['str', '스트링'], ['float', '플로트'], ['bool', '불'], ['list', '리스트'], ['dict', '딕트'], ['None', '넌'],
@@ -330,7 +330,7 @@
       // Thousands groups; "0,100" is a pair of numbers (a tuple), not a hundred.
       .replace(/(?<![\w.,])([1-9]\d{0,2}(?:,\d{3})+)(?![\w.,])/g, (_, n) => koreanInteger(n))
       .replace(/(?<![\d.,])(\d{1,2})번/g, (_, n) => sinoKorean(Number(n)) + '번')
-      .replace(/(?<![A-Za-z0-9_])R²/g, '알 제곱')
+      .replace(/(?<![A-Za-z0-9_])R²/g, '알 제곱' + JOSA_MARK)
       .replace(/([A-Za-z0-9])²/g, '$1 제곱').replace(/([A-Za-z0-9])³/g, '$1 세제곱')
       // Percent before decimals, so 38.20% stays a percentage and never reaches the modulus rule.
       .replace(/(?<![\w.])(\d+(?:,\d{3})*(?:\.\d+)?)\s*%/g, '$1 퍼센트')
@@ -650,8 +650,16 @@
       return last + (consonant === '으로' ? (final === 0 || final === 8 ? vowel : consonant) : final ? consonant : vowel);
     }).replaceAll(JOSA_MARK, '');
   }
+  // R^2 is always the metric R². A plain R2 is R² only when the chunk names another regression metric
+  // (MAE, RMSE, R2 in one row); elsewhere it is an id that keeps its letters: requirement R2, request R2,
+  // lesson R2. Reading every R2 as 알 제곱 misread 요구 R2 (2026-11-03 user report).
+  const REGRESSION_METRIC = /(?<![A-Za-z0-9_])(?:MAE|MSE|RMSE|R²|r2_score)(?![A-Za-z0-9_])|결정\s?계수/;
+  const regressionMetricText = text => {
+    const metric = text.replace(/(?<![A-Za-z0-9_$.-])R\^2(?![0-9])/g, 'R²');
+    return REGRESSION_METRIC.test(metric) ? metric.replace(/(?<![A-Za-z0-9_$.-])R2(?![A-Za-z0-9_]|-[A-Za-z0-9])/g, 'R²') : metric;
+  };
   function pronunciationText(text) {
-    const source = suppressAliases(stripMarkdown(String(text)));
+    const source = regressionMetricText(suppressAliases(stripMarkdown(String(text))));
     const shellHint = SHELL_HINT.test(source);
     // Code spans and dates are converted on their own; the sentence around them is converted in one
     // piece with a placeholder operand in their place, so "(`X`)는" keeps its ")" silent.

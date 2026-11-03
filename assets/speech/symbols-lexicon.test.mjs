@@ -399,3 +399,22 @@ test('a container image with a version tag names the image as the word, in prose
     ['localhost:8080', 'localhost 콜론 8080'], ['redis:7', 'redis 콜론 7'],
   ]);
 });
+
+test('R2 is R² only beside another regression metric; requirement, request and lesson ids keep their letters (2026-11-03)', () => {
+  const requirement = 'R1은 배송 상태 조회 기능이에요. R2는 동시 사용자 100명에서 조회 응답의 95%가 2초 이내라는 요구예요. 연결표에는 R2 → 성능시험 T2가 있어요. 이번에 R2의 한도를 1초로 바꿨어요. 번호나 용어만 적으세요.';
+  cases([
+    [requirement, 'R1은 배송 상태 조회 기능이에요. R2는 동시 사용자 100명에서 조회 응답의 95 퍼센트가 2초 이내라는 요구예요. 연결표에는 R2 화살표 성능시험 T2가 있어요. 이번에 R2의 한도를 1초로 바꿨어요. 번호나 용어만 적으세요.'],
+    ...speech.speechSentences(requirement).filter(sentence => /R2/.test(sentence)).map(sentence => [sentence, sentence.replace('→', '화살표').replace('95%', '95 퍼센트')]),
+    ['R2는 기능 요구인가요, 비기능 요구인가요?', 'R2는 기능 요구인가요, 비기능 요구인가요?'],
+    ['R2와 연결된 시험은 T2예요. RTO는 4시간이에요.', 'R2와 연결된 시험은 T2예요. RTO는 4시간이에요.'],
+    ['요청 R2 | 미스 | 풀 [1][2]', '요청 R2 파이프 미스 파이프 풀 [1][2]'], ['R2~R4의 범위예요.', 'R2~R4의 범위예요.'], ['R2에서 반복을 봤어요.', 'R2에서 반복을 봤어요.'],
+    // Regression metrics: R² and R^2 always, plain R2 beside MAE, RMSE, MSE, r2_score or 결정계수.
+    ['MAE, RMSE, R2를 한 행으로 모으면 돼요.', '엠에이이, 알엠에스이, 알 제곱을 한 행으로 모으면 돼요.'],
+    ['열은 MAE, RMSE, R2 셋이에요.', '열은 엠에이이, 알엠에스이, 알 제곱 셋이에요.'],
+    ['| model | MAE | RMSE | R2 |', '파이프 model 파이프 엠에이이 파이프 알엠에스이 파이프 알 제곱 파이프'],
+    ['`MAE`, `RMSE`, `R2`를 구해', '엠에이이, 알엠에스이, 알 제곱을 구해'],
+    ['결정계수 R2가 1에 가까워요.', '결정계수 알 제곱이 1에 가까워요.'],
+    ['R²가 음수면 무슨 뜻이야?', '알 제곱이 음수면 무슨 뜻이야?'], ['MAE·RMSE·R²를 한 줄씩 설명해 줘', '엠에이이·알엠에스이·알 제곱을 한 줄씩 설명해 줘'],
+    ['결정계수 R^2가 1에 가까워요.', '결정계수 알 제곱이 1에 가까워요.'], ['`R^2`', '알 제곱'],
+  ]);
+});
