@@ -562,8 +562,11 @@ fn web_install_worker() {
         let preview=super::run(task,&task.starter_code,"").await.unwrap();
         assert!(preview.success,"{}",preview.stderr);
         assert!(preview.artifacts.iter().any(|a|matches!(a,crate::runner::Artifact::Html{..})));
-        assert!(!super::check(task,&task.starter_code).await.unwrap().passed);
-        assert!(super::check(task,&task.solution).await.unwrap().passed);
+        // The starter must be rejected by the font-weight check itself, not by a timeout.
+        let starter=super::check(task,&task.starter_code).await.unwrap();
+        assert!(!starter.passed&&starter.cases.iter().all(|c|c.state!="timeout"),"{}",serde_json::to_string(&starter).unwrap());
+        let solution=super::check(task,&task.solution).await.unwrap();
+        assert!(solution.passed,"{}",serde_json::to_string(&solution).unwrap());
     }
 
     #[tokio::test]

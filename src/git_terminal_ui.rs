@@ -73,7 +73,11 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
     use_future(move||{let exercise=exercise.clone();let scope=scope.clone();let step_id=step_id.clone();let owned=owned.clone();let owner=owner.clone();let graph_requested=graph_requested.clone();let docker_session=docker_session.clone();let disk_known=disk_known.clone();let gitlab_session=gitlab_session.clone();async move {
         if is_gitlab {if let Some(session)=gitlab_session{session.activate();}}
         let docker_step=exercise.shell.as_ref().map(|s|s.step_id.clone()).unwrap_or_default();
-        let opening=std::time::Instant::now();
+        // Native checks read these stage marks from the process log when a practice terminal never
+        // becomes ready (pilot mode only).
+        let opening=std::time::Instant::now();let pilot=molip_quest::pilot_source::enabled();let label=format!("{}{}",if demo{"demo "}else{""},step_id);
+        let mark=move |stage:&str|if pilot {eprintln!("practice terminal {label}: {stage} at {} ms",opening.elapsed().as_millis());};
+        mark("opening");let marked=mark.clone();
         let opened=tokio::task::spawn_blocking(move||{
             let practice=if !demo {
                 if let Some(scope)=scope {
@@ -82,6 +86,7 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
                     if fresh {store.reset_step(&scope,exercise,&step_id)?}else{store.open(&scope,exercise)?}
                 }else{GitPractice::new(exercise)?}
             }else{GitPractice::new(exercise.demonstration())?};
+            marked("practice ready");
             if !demo {practice.remember_step_start(&step_id)?;}
             let practice=Arc::new(Mutex::new(practice));
             // Release the practice lock before the branches below take it again (an if-let
@@ -93,12 +98,12 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
                 let (shell,output)=practice.lock().unwrap_or_else(|e|e.into_inner()).open_docker_terminal(&lab)?;
                 (shell,output,lab.prepared)
             }else{let (shell,output)=practice.lock().unwrap_or_else(|e|e.into_inner()).open_terminal()?;(shell,output,None)};
+            marked("shell spawned");
             let closing_marker=practice.lock().unwrap_or_else(|e|e.into_inner()).vim_closing_marker();
             Ok::<_,String>((TerminalSession{shell:Some(shell),practice,closing_marker},output,note))
         }).await;
         docker_preparing.set(false);
-        // Native checks read this from the process log when a practice terminal never becomes ready.
-        if molip_quest::pilot_source::enabled() {eprintln!("practice terminal open: {:?} after {} ms",opened.as_ref().map(|r|r.as_ref().map(|_|"ok")),opening.elapsed().as_millis());}
+        mark(&format!("open {:?}",opened.as_ref().map(|r|r.as_ref().map(|_|"ok"))));
         let (session,mut output,note)=match opened {Ok(Ok(opened))=>opened,Ok(Err(e))=>{error.set(e);return;},Err(e)=>{error.set(e.to_string());return;}};
         if !demo {docker_note.set(note);}
         let practice=session.practice.clone();
@@ -179,13 +184,15 @@ pub fn GitTerminal(exercise:GitExercise,demo:bool,#[props(default)] scope:Option
         // the readiness signal; shell exercises still wait for their prompt.
         let ready=if is_vim {format!("window.{bridge_name}.vimState('{owner}')?.state")}else{format!("window.{bridge_name}.text('{owner}').split('\\n').some(line=>line.trimEnd().endsWith('$'))")};
         let gate=if is_java&&!demo{"document.querySelector('.repository-task')?.dataset.predictBeforeRun==='true'"}else{"false"};
-        let script=format!("(async()=>{{window.{bridge_name}.mount(event=>{{if(event.kind==='input'&&event.data.includes('\\r')){{event.source=document.querySelector('[data-java-editor=\"{owner}\"]')?.value;if({gate}&&!document.querySelector('.repository-task input[type=radio]:checked')){{const pending=event.data.replaceAll('\\r','');if(pending)dioxus.send({{...event,data:pending}});dioxus.send({{kind:'prediction_required'}});return;}}}}dioxus.send(event)}},()=>{{}},'{owner}');dioxus.send({{kind:'mounted'}});const deadline=Date.now()+45000;while(!({ready})){{if(Date.now()>deadline){{dioxus.send({{kind:'startup_error'}});return;}}await new Promise(resolve=>setTimeout(resolve,30));}}dioxus.send({{kind:'ready'}});{}}})()",if demo {
+        let script=format!("(async()=>{{window.{bridge_name}.mount(event=>{{if(event.kind==='input'&&event.data.includes('\\r')){{event.source=document.querySelector('[data-java-editor=\"{owner}\"]')?.value;if({gate}&&!document.querySelector('.repository-task input[type=radio]:checked')){{const pending=event.data.replaceAll('\\r','');if(pending)dioxus.send({{...event,data:pending}});dioxus.send({{kind:'prediction_required'}});return;}}}}dioxus.send(event)}},()=>{{}},'{owner}');dioxus.send({{kind:'mounted',data:document.getElementById('{host}')?'host':'no host'}});const deadline=Date.now()+45000;while(!({ready})){{if(Date.now()>deadline){{dioxus.send({{kind:'startup_error',data:'no prompt in '+window.{bridge_name}.text('{owner}').length+' characters'}});return;}}await new Promise(resolve=>setTimeout(resolve,30));}}dioxus.send({{kind:'ready'}});{}}})().catch(error=>dioxus.send({{kind:'startup_error',data:String(error?.message||error)}}))",if demo {
             "window.molipGitTutor={next:0,pending:new Map(),command(args){return new Promise(resolve=>{const token=++this.next;this.pending.set(token,resolve);dioxus.send({kind:'command',args,token});});},graph(){return new Promise(resolve=>{const token=++this.next;this.pending.set(token,resolve);dioxus.send({kind:'graph',token});});},resolve(token,value){this.pending.get(token)?.(value);this.pending.delete(token);},dispose(){for(const resolve of this.pending.values())resolve(false);this.pending.clear();}};"
         }else{""});
         let script=script.replace("window.molipGitTutor={next:",&format!("window.molipGitTutor={{owner:'{owner}',next:"));
         let command_owner=owner.clone();
+        mark("mount script sent");
         let mut bridge=document::eval(&script);let input_owned=owned.clone();let command_practice=practice.clone();
         spawn(async move {while let Ok(event)=bridge.recv::<Input>().await {
+            if ["mounted","ready","startup_error"].contains(&event.kind.as_str()) {mark(&format!("{} {}",event.kind,event.data));}
             if is_compose&&event.kind=="input"&&event.data.contains('\r') {
                 // Record the files for this command and refresh the verdict the docker compose guard reads.
                 let source=command_practice.clone();
