@@ -1,0 +1,69 @@
+{
+  "by": "hand",
+  "source_sha256": "6970ccc5aa1dfd3062b74cd216d283144c9ee87d140dc6bc8fdbb6afdf16dc04",
+  "entry": [
+    {
+      "action": "say",
+      "text": "앞자리 A를 뒷자리로 내려야 10으로 읽혀요.",
+      "target": "text:printf 안의 식을 고쳐 구역 번호만 10진수로 출력하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "160이 나왔어요. 0xA0이라 A가 아직 앞자리에 있어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "tag & 0xF0);",
+      "after": "tag & 0xF0 >> 4);",
+      "say": "끝에 >> 4를 붙여 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "7이 나왔어요. 구역이 아니라 선반 번호예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": ">>가 &보다 먼저 묶여요. 0xF0 >> 4가 0x0F가 되어 뒷자리를 남겼어요.",
+      "target": "code:0xF0 >> 4"
+    },
+    {
+      "action": "patch_code",
+      "before": "tag & 0xF0 >> 4);",
+      "after": "(tag & 0xF0) >> 4);",
+      "say": "먼저 할 마스크를 괄호로 묶어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "10이 나왔어요. 0xA0을 네 칸 내려 0x0A가 됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "네 칸 밀기는 16으로 나눈 몫과 같아요. 160을 16으로 나누면 10이죠.",
+      "target": "code:>> 4"
+    }
+  ]
+}

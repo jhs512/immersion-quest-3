@@ -1,0 +1,75 @@
+{
+  "by": "hand",
+  "source_sha256": "3b6870d5870c74f1c61252f55965c5b0d448bdee21415a76704bb25cf42fec03",
+  "entry": [
+    {
+      "action": "say",
+      "text": "63번을 맨 앞으로 옮기되, 원래 자리는 빈틈없이 이어야 해요.",
+      "target": "text:cur가 빠진 자리를 prev에서 cur 다음 노드로 이으세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        30,
+        30
+      ]
+    },
+    {
+      "action": "say",
+      "text": "63 41 57 63이 나왔어요. 63이 두 번 나오고 72는 사라졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "b의 next가 아직 c를 가리켜요. 그래서 c, a, b를 돌고 다시 c로 왔어요.",
+      "target": "code:prev = cur;"
+    },
+    {
+      "action": "patch_code",
+      "before": "    cur->next = head;\n",
+      "after": "    cur->next = head;\n    prev->next = cur->next;\n",
+      "say": "prev를 cur 다음으로 잇는 줄을 먼저 아래쪽에 써 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        31,
+        31
+      ]
+    },
+    {
+      "action": "say",
+      "text": "63 41 57 41이 나왔어요. cur->next가 이미 a로 바뀐 뒤라 b가 a를 가리켰어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    cur->next = head;\n    prev->next = cur->next;\n",
+      "after": "    cur->next = head;\n",
+      "say": "그 줄을 지우고 주석 아래로 올릴게요."
+    },
+    {
+      "action": "patch_code",
+      "before": "    // 이 주석 아래에 cur를 빼낸 자리를 잇는 줄을 쓰세요.\n",
+      "after": "    // 이 주석 아래에 cur를 빼낸 자리를 잇는 줄을 쓰세요.\n    prev->next = cur->next;\n",
+      "say": "cur->next가 아직 d일 때 prev에 넘겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        31,
+        31
+      ]
+    },
+    {
+      "action": "say",
+      "text": "63 41 57 72가 나왔어요. b가 d를 가리키고, c는 a 앞에 섰어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. cur->next를 바꾸는 줄이 먼저 오면 원래 다음 노드를 잃어요. 빼낸 자리부터 이어야 해요.",
+      "target": "code:prev->next = cur->next;"
+    }
+  ]
+}

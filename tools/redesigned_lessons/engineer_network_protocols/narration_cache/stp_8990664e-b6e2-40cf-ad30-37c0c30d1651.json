@@ -1,0 +1,87 @@
+{
+  "by": "hand",
+  "source_sha256": "e64926aaa0ae95f6be40193bf8449237f3d68a66992a45c3b85a166aded56818",
+  "entry": [
+    {
+      "action": "say",
+      "text": "패킷을 버린 라우터가 그 사실을 알리게 하는 문제예요.",
+      "target": "text:패킷을 버린 라우터가 「이름: time exceeded」를 돌려주게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1, 2, 3은 None이에요. 길에서 버려졌는데 보낸 쪽은 이유를 몰라요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "4에서만 192.0.2.9: echo reply가 왔어요. ping의 echo 응답이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "            return None\n",
+      "after": "            return dst + ': time exceeded'\n",
+      "say": "목적지 이름으로 알려 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1부터 3까지 모두 192.0.2.9: time exceeded예요. 어디서 버려졌는지 구별이 안 돼요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 시간 초과는 목적지가 아니라 TTL이 0이 된 그 라우터가 보내요. 목적지는 패킷을 받지도 못했어요.",
+      "target": "code:dst + ': time exceeded'"
+    },
+    {
+      "action": "patch_code",
+      "before": "            return dst + ': time exceeded'\n",
+      "after": "            return r + ': time exceeded'\n",
+      "say": "패킷을 버린 라우터 r의 이름으로 알려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "r1, r2, r3이 차례로 나왔어요. TTL을 하나씩 늘리면 경로의 라우터가 보여요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "dst = '192.0.2.9'",
+      "after": "dst = '198.51.100.1'",
+      "say": "표에 없는 목적지로 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "네 줄 모두 r1: destination unreachable이에요. 갈 길이 없다는 ICMP 알림이에요.",
+      "target": "output"
+    }
+  ]
+}

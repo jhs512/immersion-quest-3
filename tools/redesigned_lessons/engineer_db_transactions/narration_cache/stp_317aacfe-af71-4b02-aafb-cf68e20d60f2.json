@@ -1,0 +1,74 @@
+{
+  "by": "hand",
+  "source_sha256": "980df211be591b9cd4a65e00f360cbc388b4bc916c715470646ce6e595aa175c",
+  "entry": [
+    {
+      "action": "say",
+      "text": "결과 행에서 수량 숫자 하나만 꺼내는 문제예요.",
+      "target": "text:item의 수량을 숫자 하나로만 출력하세요."
+    },
+    {
+      "action": "say",
+      "text": "SQL의 ? 자리에는 item 값이 들어가요. 이 표시는 다음 스텝에서 자세히 봐요.",
+      "target": "code:(item,)"
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[(5,)]가 나왔어요. 대괄호는 행 목록이고, 안의 (5,)가 행 하나예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "cur.fetchall()",
+      "after": "cur.fetchone()",
+      "say": "fetchone으로 첫 행 하나만 받아 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "(5,)가 나왔어요. 목록은 벗겨졌지만 아직 열 하나짜리 튜플이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 열이 하나여도 행은 튜플이에요. 이대로 빼기에 쓰면 TypeError가 나요.",
+      "target": "code:cur.fetchone()"
+    },
+    {
+      "action": "patch_code",
+      "before": "cur.fetchone()",
+      "after": "cur.fetchone()[0]",
+      "say": "행의 0번 칸, 첫 열 값을 꺼내요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "5가 나왔어요. cup의 수량이 숫자 하나로 나왔어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "JDBC라면 rs.next()로 행에 가서 rs.getInt(1)로 꺼내요. 거기서는 열 번호가 1부터예요.",
+      "target": "code:[0]"
+    }
+  ]
+}

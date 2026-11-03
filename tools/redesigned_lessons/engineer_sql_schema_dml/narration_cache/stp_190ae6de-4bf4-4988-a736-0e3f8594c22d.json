@@ -1,0 +1,69 @@
+{
+  "by": "hand",
+  "source_sha256": "a789773666e23b67492b102d6b8a1463e32e38520d36179afff78f798f7e1219",
+  "entry": [
+    {
+      "action": "say",
+      "text": "이메일 겹침은 막고 빈 이메일은 받아야 하는 문제예요.",
+      "target": "text:email 열에 제약을 붙여 같은 이메일의 두 번째 회원이 막히게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        3,
+        3
+      ]
+    },
+    {
+      "action": "say",
+      "text": "다섯 명이 다 들어왔어요. C01과 C02가 같은 a@x.kr을 써요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "email TEXT,",
+      "after": "email TEXT UNIQUE NOT NULL,",
+      "say": "UNIQUE와 NOT NULL을 함께 붙여 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        3,
+        3
+      ]
+    },
+    {
+      "action": "say",
+      "text": "C02와 함께 이메일이 빈 C03, C04까지 빠졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. NOT NULL까지 붙이면 이메일을 아직 안 적은 회원이 못 들어와요. 이번 요구는 빈 이메일을 받아요.",
+      "target": "code:UNIQUE NOT NULL"
+    },
+    {
+      "action": "patch_code",
+      "before": "UNIQUE NOT NULL",
+      "after": "UNIQUE",
+      "say": "NOT NULL은 빼요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        3,
+        3
+      ]
+    },
+    {
+      "action": "say",
+      "text": "C03, C04는 남고 C02만 빠졌어요. UNIQUE는 NULL끼리를 같은 값으로 보지 않아요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "email도 회원을 구별하는 후보키예요. 기본키로 고르지 않은 후보키를 대체키라고 해요.",
+      "target": "code:email TEXT UNIQUE"
+    }
+  ]
+}

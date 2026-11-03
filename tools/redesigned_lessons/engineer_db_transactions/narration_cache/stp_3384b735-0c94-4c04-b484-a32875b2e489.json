@@ -1,0 +1,93 @@
+{
+  "by": "hand",
+  "source_sha256": "d2e6546070c351cb30945ec6308022070090f79dbbade6fabf31773821086436",
+  "entry": [
+    {
+      "action": "say",
+      "text": "서버가 멈춰도 주문 상태와 알림 기록이 서로 맞아야 하는 문제예요.",
+      "target": "text:서버가 멈춰도 주문 상태와 알림 기록이 어긋나지 않게 고치세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        23,
+        26
+      ]
+    },
+    {
+      "action": "say",
+      "text": "서버 멈춤, paid 0이 나왔어요. 결제는 확정됐는데 알림 기록이 하나도 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "주문 변경을 먼저 확정하고 멈췄어요. 배송팀은 이 주문을 영영 모르게 돼요.",
+      "target": "code:conn.execute('COMMIT')#1"
+    },
+    {
+      "action": "patch_code",
+      "before": "    conn.execute('COMMIT')\n    server_check()\n    conn.execute('BEGIN')\n",
+      "after": "    server_check()\n",
+      "say": "가운데 COMMIT과 BEGIN을 지워 한 묶음으로 만들어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        21,
+        24
+      ]
+    },
+    {
+      "action": "say",
+      "text": "서버 멈춤, paid 0이에요. 아직 그대로죠?",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 묶음은 열린 채 남아 있어요. 같은 연결로 읽으면 확정 안 된 paid가 보여요.",
+      "target": "code:print(e)"
+    },
+    {
+      "action": "patch_code",
+      "before": "except RuntimeError as e:\n    print(e)\n",
+      "after": "except RuntimeError as e:\n    conn.execute('ROLLBACK')\n    print(e)\n",
+      "say": "멈춘 갈래에서는 ROLLBACK으로 묶음을 취소해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        22,
+        25
+      ]
+    },
+    {
+      "action": "say",
+      "text": "서버 멈춤, new 0이에요. 주문도 알림도 함께 취소돼 서로 맞아요. 다시 시도하면 돼요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "crash = True",
+      "after": "crash = False",
+      "say": "이번에는 서버가 멈추지 않게 해 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        22,
+        25
+      ]
+    },
+    {
+      "action": "say",
+      "text": "paid 1이에요. 주문 변경과 알림 기록이 COMMIT 한 번에 함께 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "crash = False",
+      "after": "crash = True",
+      "say": "crash를 원래 값으로 돌려 둬요."
+    }
+  ]
+}

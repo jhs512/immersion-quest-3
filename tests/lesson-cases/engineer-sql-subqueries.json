@@ -1,0 +1,184 @@
+{
+ "course": "tests/fixtures/player-pilot/굴/course.json",
+ "lesson": "courses/redesigned/engineer-sql-subqueries.json",
+ "expected_outputs": [
+  [
+   "name\nkim\nlee\npark",
+   "id | member_id\n1 | 3\n2 | 3\n3 | 1",
+   "name\nkim\npark"
+  ],
+  [
+   "id | name\n1 | kim\n3 | park\n3 | park",
+   "id | name\n1 | kim\n3 | park"
+  ],
+  [
+   "name\nchoi\nkim",
+   "id | maker\n1 | H\n2 | K\n3 | H\n4 | K",
+   "name\nchoi\nlee"
+  ],
+  [
+   "name | price\nnote | 3200\nclip | 4000\nbag | 7600",
+   "AVG(price)\n4000.0",
+   "name | price\nbag | 7600",
+   "name | price\nnote | 3200\nclip | 4000\nbag | 7600"
+  ],
+  [
+   "",
+   "name | price\nnote | 3000\nclip | 5000\nbag | 6000",
+   "name | price\nbag | 6000"
+  ],
+  [
+   "name | maker | price\nbag | K | 9000\nclip | K | 6000",
+   "name | maker | price\nbag | K | 9000\nnote | H | 3000\ntape | H | 2600",
+   "name | maker | price | avg_maker\nbag | K | 9000 | 7500.0\nnote | H | 3000 | 2200.0\ntape | H | 2600 | 2200.0"
+  ],
+  [
+   "name\n(행 없음)",
+   "name\n(행 없음)",
+   "name\nchoi\nlee"
+  ],
+  [
+   "name | price\n(행 없음)",
+   "MAX(price)\nNULL",
+   "name | price\npen | 1000\nnote | 3000\nclip | 6000"
+  ],
+  [
+   "course\n(행 없음)",
+   "course\nnet\nsec"
+  ],
+  [
+   "name\n(행 없음)",
+   "name\nlee\npark",
+   "name\nkim\nlee\npark"
+  ],
+  [
+   "name\nkim\npark",
+   "name | cnt\nchoi | 1\nkim | 2\nlee | 3\npark | 2",
+   "name\nlee\npark"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "-- 괄호 안 질의가 돌려주는 값을 먼저 보세요.\nSELECT name FROM members\nWHERE id IN (SELECT member_id FROM orders)\nORDER BY name;\n",
+     "-- 괄호 안 질의가 돌려주는 값을 먼저 보세요.\nSELECT name FROM members\nWHERE id IN (SELECT id FROM orders)\nORDER BY name;\n"
+    ]
+   ],
+   "reason": "IN 목록이 회원 번호가 되도록 안쪽 열을 고치세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "-- 회원마다 한 줄씩 나와야 해요. 몇 줄이 나오는지 보세요.\nSELECT m.id, m.name FROM members m\nWHERE m.id IN (SELECT member_id FROM orders)\nORDER BY m.id;\n",
+     "-- 회원마다 한 줄씩 나와야 해요. 몇 줄이 나오는지 보세요.\nSELECT m.id, m.name FROM members m\nJOIN orders o ON o.member_id = m.id\nORDER BY m.id;\n"
+    ]
+   ],
+   "reason": "JOIN을 IN 하위 질의로 바꿔 회원을 한 번씩 보이세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "-- 가장 안쪽 괄호부터 값 목록으로 바꿔 읽어요.\nSELECT name FROM members\nWHERE id IN (SELECT member_id FROM orders\n             WHERE item_id IN (SELECT id FROM items WHERE maker = 'H'))\nORDER BY name;\n",
+     "-- 가장 안쪽 괄호부터 값 목록으로 바꿔 읽어요.\nSELECT name FROM members\nWHERE id IN (SELECT member_id FROM orders\n             WHERE item_id IN (2, 3))\nORDER BY name;\n"
+    ]
+   ],
+   "reason": "손으로 적은 번호 목록을 하위 질의로 바꿔 두 단계로 중첩하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "-- 비교 기준 값이 어디서 오는지 보세요.\nSELECT name, price FROM items\nWHERE price > (SELECT AVG(price) FROM items)\nORDER BY price;\n",
+     "-- 비교 기준 값이 어디서 오는지 보세요.\nSELECT name, price FROM items\nWHERE price > 3000\nORDER BY price;\n"
+    ]
+   ],
+   "reason": "손으로 적은 평균을 AVG 하위 질의로 바꾸세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "-- 표준 SQL의 > ALL을 SQLite로 옮긴 줄이에요.\nSELECT name, price FROM items\nWHERE price > (SELECT MAX(price) FROM items WHERE maker = 'H')\nORDER BY price;\n",
+     "-- 표준 SQL의 > ALL을 SQLite로 옮긴 줄이에요.\nSELECT name, price FROM items\nWHERE price > (SELECT MIN(price) FROM items WHERE maker = 'H')\nORDER BY price;\n"
+    ]
+   ],
+   "reason": "> ALL의 뜻이 되도록 MIN을 MAX로 고치세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "-- 괄호 안 평균이 어떤 물건들의 평균인지 보세요.\nSELECT name, maker, price FROM items i\nWHERE price > (SELECT AVG(price) FROM items WHERE maker = i.maker)\nORDER BY name;\n",
+     "-- 괄호 안 평균이 어떤 물건들의 평균인지 보세요.\nSELECT name, maker, price FROM items i\nWHERE price > (SELECT AVG(price) FROM items)\nORDER BY name;\n"
+    ]
+   ],
+   "reason": "하위 질의가 바깥 물건의 제조사를 보게 하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "-- 주문이 없는 회원을 찾는 줄이에요. 괄호 안 목록에 무엇이 있는지 보세요.\nSELECT name FROM members m\nWHERE NOT EXISTS (SELECT 1 FROM orders o WHERE o.member_id = m.id)\nORDER BY name;\n",
+     "-- 주문이 없는 회원을 찾는 줄이에요. 괄호 안 목록에 무엇이 있는지 보세요.\nSELECT name FROM members m\nWHERE id NOT IN (SELECT member_id FROM orders)\nORDER BY name;\n"
+    ]
+   ],
+   "reason": "NOT IN을 NOT EXISTS로 바꿔 주문 없는 회원을 찾으세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "-- MAX로 옮긴 > ALL이에요. 지금 H사 물건이 있는지 보세요.\nSELECT name, price FROM items i\nWHERE NOT EXISTS (SELECT 1 FROM items h\n                  WHERE h.maker = 'H' AND h.price >= i.price)\nORDER BY price;\n",
+     "-- MAX로 옮긴 > ALL이에요. 지금 H사 물건이 있는지 보세요.\nSELECT name, price FROM items i\nWHERE price > (SELECT MAX(price) FROM items WHERE maker = 'H')\nORDER BY price;\n"
+    ]
+   ],
+   "reason": "H사 물건이 없을 때도 > ALL과 같도록 NOT EXISTS로 고치세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "-- 개발자 1이 아직 이수하지 않은 필수 과정을 찾아요.\nSELECT course FROM required r\nWHERE NOT EXISTS (SELECT 1 FROM done d\n                  WHERE d.course = r.course AND d.dev_id = 1)\nORDER BY course;\n",
+     "-- 개발자 1이 아직 이수하지 않은 필수 과정을 찾아요.\nSELECT course FROM required r\nWHERE NOT EXISTS (SELECT 1 FROM done d\n                  WHERE d.course = r.course)\nORDER BY course;\n"
+    ]
+   ],
+   "reason": "개발자 1이 듣지 않은 필수 과정만 남기세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "-- 앞 질의를 개발자 표 v의 NOT EXISTS로 감쌌어요. 안쪽의 1을 보세요.\nSELECT name FROM devs v\nWHERE NOT EXISTS (\n  SELECT 1 FROM required r\n  WHERE NOT EXISTS (SELECT 1 FROM done d\n                    WHERE d.course = r.course AND d.dev_id = v.id))\nORDER BY name;\n",
+     "-- 앞 질의를 개발자 표 v의 NOT EXISTS로 감쌌어요. 안쪽의 1을 보세요.\nSELECT name FROM devs v\nWHERE NOT EXISTS (\n  SELECT 1 FROM required r\n  WHERE NOT EXISTS (SELECT 1 FROM done d\n                    WHERE d.course = r.course AND d.dev_id = 1))\nORDER BY name;\n"
+    ]
+   ],
+   "reason": "상수 1을 바깥 개발자로 바꿔 필수 과정을 모두 들은 사람을 찾으세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "-- 들은 필수 과정 수와 필수 과정 수를 비교해요. 다시 들은 기록을 보세요.\nSELECT name FROM devs v\nWHERE (SELECT COUNT(DISTINCT d.course) FROM done d\n       WHERE d.dev_id = v.id\n         AND d.course IN (SELECT course FROM required))\n    = (SELECT COUNT(*) FROM required)\nORDER BY name;\n",
+     "-- 들은 필수 과정 수와 필수 과정 수를 비교해요. 다시 들은 기록을 보세요.\nSELECT name FROM devs v\nWHERE (SELECT COUNT(*) FROM done d\n       WHERE d.dev_id = v.id\n         AND d.course IN (SELECT course FROM required))\n    = (SELECT COUNT(*) FROM required)\nORDER BY name;\n"
+    ]
+   ],
+   "reason": "다시 들은 기록 때문에 어긋난 COUNT 비교를 고치세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "id IN (SELECT member_id FROM orders)",
+     "EXISTS (SELECT 1 FROM orders WHERE orders.member_id = members.id)"
+    ]
+   ],
+   "reason": "같은 상태·출력 관계를 유지하는 다른 구현도 받아들여요."
+  }
+ ]
+}

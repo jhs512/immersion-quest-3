@@ -1,0 +1,298 @@
+{
+ "course": "tests/fixtures/player-pilot/게/course.json",
+ "lesson": "courses/redesigned/engineer-c-struct-pointers.json",
+ "expected_outputs": [
+  [
+   "3",
+   "7"
+  ],
+  [
+   "-2",
+   "2"
+  ],
+  [
+   "11 11",
+   "11 12",
+   "11 25"
+  ],
+  [
+   "37 0",
+   "37 11"
+  ],
+  [
+   "20",
+   "-14",
+   "14"
+  ],
+  [
+   "8",
+   "10",
+   "18"
+  ],
+  [
+   "1a",
+   "1b",
+   "2a"
+  ],
+  [
+   "50",
+   "90"
+  ],
+  [
+   "1 5 9",
+   "7 5 3",
+   "7 5 3"
+  ],
+  [
+   "19 9 2",
+   "9 14 14",
+   "9 14 7"
+  ],
+  [
+   "11 5 14",
+   "37 5 4"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "restock(&box, add);",
+     "restock(box, add);"
+    ],
+    [
+     "void restock(struct Box *b, int n) {\n    b->count = b->count + n;",
+     "void restock(struct Box b, int n) {\n    b.count = b.count + n;"
+    ]
+   ],
+   "reason": "값으로 넘기면 복사본만 바뀌어 3이 남아요."
+  },
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "printf(\"%d\", box.count);",
+     "printf(\"7\");"
+    ]
+   ],
+   "reason": "숫자를 외워 쓰면 add를 바꾼 변형에서 틀려요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "if (b->count >= n) {",
+     "if (b->count > n) {"
+    ]
+   ],
+   "reason": ">는 남은 수와 꺼낼 수가 같을 때 못 꺼내 box={3, 500}에서 3이 남아요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "    p++;\n",
+     "    p->code++;\n"
+    ]
+   ],
+   "reason": "필드 값을 올리면 11 12가 돼요. 포인터를 옮겨야 해요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "(p + 2)->qty = p->qty + (p + 1)->qty;",
+     "(p + 1)->qty = p->qty + (p + 1)->qty;"
+    ]
+   ],
+   "reason": "(p + 1)은 둘째 상자라 셋째 상자의 qty는 0으로 남아요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "r.apply(stock, r.amount)",
+     "r.apply(r.amount, stock)"
+    ]
+   ],
+   "reason": "인수 순서를 바꾸면 6 - 20을 계산해요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "r.apply(stock, r.amount)",
+     "stock - r.amount"
+    ]
+   ],
+   "reason": "담긴 함수를 쓰지 않으면 r={2, add} 변형에서 틀려요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "stock = (p + 1)->apply(stock, (p + 1)->amount);",
+     "stock = p->apply(stock, (p + 1)->amount);"
+    ]
+   ],
+   "reason": "함수는 첫째 원소의 sub라 10이 돼요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "int *p = move(move(box));",
+     "int *p = move(box);"
+    ],
+    [
+     "printf(\"%x\", *p);",
+     "printf(\"%x\", *p + 16);"
+    ]
+   ],
+   "reason": "값에 16을 더해 2a를 맞추면 다른 상자 값에서 틀려요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "printf(\"%x\", *p);",
+     "printf(\"%d\", *p);"
+    ]
+   ],
+   "reason": "%d는 10진수 42를 출력해요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "printf(\"%d\", *slots[1]);",
+     "printf(\"%d\", *slots[0]);"
+    ]
+   ],
+   "reason": "slots[0]은 shelf라 첫 칸 30을 읽어요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "{grid[2], grid[1], grid[0]}",
+     "{*grid + 2, *grid + 1, *grid}"
+    ]
+   ],
+   "reason": "*grid + 2는 0행 안에서 두 칸 이동이라 3 3 3이에요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "(*pp)[i] = (*pp)[i] + add;",
+     "*(*pp + i) = **pp + add;"
+    ]
+   ],
+   "reason": "오른쪽이 늘 첫 칸을 읽어 9 14 14가 돼요."
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "(*pp)[to] = (*pp)[from];",
+     "(*pp)[to].qty = (*pp)[from].qty;\n    (*pp)[to].code = (*pp)[from].code;"
+    ]
+   ],
+   "reason": "규칙 필드가 남아 twice가 적용돼 37 5 14가 돼요."
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "b->count = b->count + n;",
+     "(*b).count = (*b).count + n;"
+    ]
+   ],
+   "reason": "(*b).count는 b->count와 같아요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "    if (b->count >= n) {\n        b->count = b->count - n;\n    }\n",
+     "    if (b->count < n) {\n        return;\n    }\n    b->count = b->count - n;\n"
+    ]
+   ],
+   "reason": "모자라면 먼저 돌아가도 같아요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "    p++;\n",
+     "    p = p + 1;\n"
+    ]
+   ],
+   "reason": "p + 1도 원소 하나만큼 이동해요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "(p + 2)->qty = p->qty + (p + 1)->qty;",
+     "shelf[2].qty = p->qty + (p + 1)->qty;"
+    ]
+   ],
+   "reason": "shelf[2]는 (p + 2)와 같은 원소예요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "stock = (p + 1)->apply(stock, (p + 1)->amount);",
+     "p++;\n    stock = p->apply(stock, p->amount);"
+    ]
+   ],
+   "reason": "p를 옮긴 뒤 p로 불러도 같아요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "int *p = move(move(box));",
+     "int *p = move(box + 1);"
+    ]
+   ],
+   "reason": "box + 1의 다음 칸도 box[2]예요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "{grid[2], grid[1], grid[0]}",
+     "{&grid[2][0], &grid[1][0], &grid[0][0]}"
+    ]
+   ],
+   "reason": "각 행 첫 칸의 주소는 grid[r]과 같아요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "(*pp)[i] = (*pp)[i] + add;",
+     "*(*pp + i) += add;"
+    ]
+   ],
+   "reason": "*(*pp + i)는 (*pp)[i]와 같은 칸이에요."
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "(*pp)[to] = (*pp)[from];",
+     "*(*pp + to) = *(*pp + from);"
+    ]
+   ],
+   "reason": "포인터 이동 표기로 원소 전체를 대입해도 같아요."
+  }
+ ]
+}

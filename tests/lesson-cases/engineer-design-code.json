@@ -1,0 +1,202 @@
+{
+ "course": "tests/fixtures/player-pilot/균/course.json",
+ "lesson": "courses/redesigned/engineer-design-code.json",
+ "expected_outputs": [
+  [
+   "3",
+   "1"
+  ],
+  [
+   "box",
+   "bag"
+  ],
+  [
+   "250",
+   "2.5"
+  ],
+  [
+   "secret",
+   "denied"
+  ],
+  [
+   "['screen:4']",
+   "['screen:4', 'audit:4']"
+  ],
+  [
+   "pen ['pen', 'cup', 'book']",
+   "pen ['cup', 'book']"
+  ],
+  [
+   "900",
+   "3"
+  ],
+  [
+   "False",
+   "stock:3"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "return constructors[kind]()",
+     "return Regular()"
+    ]
+   ],
+   "reason": "3일이에요. express를 받아도 일반 배송 객체만 만들었어요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "def build(self): return self.make().label()",
+     "def build(self): return Box().label()"
+    ]
+   ],
+   "reason": "box예요. build가 하위 클래스의 생성 메서드를 거치지 않았어요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "return self.sensor.read_cm() / 100",
+     "return self.sensor.read_cm()"
+    ]
+   ],
+   "reason": "250이에요. 센서의 숫자를 단위 변환 없이 넘겼어요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "def read(self): return self.target.read() if allowed else 'denied'",
+     "def read(self): return self.target.read()"
+    ]
+   ],
+   "reason": "secret이 나왔어요. 권한 검사 없이 실제 객체로 넘겼어요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "for listener in listeners:",
+     "for listener in listeners[:1]:"
+    ]
+   ],
+   "reason": "화면 구독자만 호출됐어요. 감사 기록 구독자는 변경을 몰라요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "rest = list(it)",
+     "rest = list(iter(items))"
+    ]
+   ],
+   "reason": "pen이 남은 목록에도 다시 보여요. 반복자를 새로 만들었어요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "return self.repo.count()",
+     "return Disk().count()"
+    ]
+   ],
+   "reason": "900이에요. 전달한 Memory를 버리고 Disk를 직접 만들었어요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "return reader.read()",
+     "return 'write' in dir(reader)"
+    ]
+   ],
+   "reason": "False예요. 조회와 관계없는 write 유무를 검사했어요."
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "return constructors[kind]()",
+     "return constructors.get(kind)()"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "def build(self): return self.make().label()",
+     "def build(self):\n        item = self.make()\n        return item.label()"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "return self.sensor.read_cm() / 100",
+     "return 0.01 * self.sensor.read_cm()"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "def read(self): return self.target.read() if allowed else 'denied'",
+     "def read(self):\n        if not allowed: return 'denied'\n        return self.target.read()"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "for listener in listeners:",
+     "for listener in iter(listeners):"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "rest = list(it)",
+     "rest = [item for item in it]"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "return self.repo.count()",
+     "return getattr(self.repo, \"count\")()"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "return reader.read()",
+     "return getattr(reader, \"read\")()"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  }
+ ]
+}

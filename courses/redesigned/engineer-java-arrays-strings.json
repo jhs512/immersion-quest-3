@@ -1,0 +1,1137 @@
+{
+  "schema_version": 2,
+  "id": "lsn_4028d606-2c15-4dbc-a44b-75a8935407a7",
+  "revision": "engineer-java-arrays-strings-1",
+  "title": "Java · 배열·문자열·재귀를 고치며 따라가요",
+  "description": "배열 칸 교환과 갱신 방향, 2차원 배열의 줄, 객체 배열의 칸, ==와 내용 비교, 문자열 조립과 split, 재귀의 돌아오는 순서를 한두 줄씩 고치며 확인해요.",
+  "objectives": [
+    "메서드에 넘긴 배열을 임시 변수로 교환하고, 이웃 갱신의 방향이 결과를 바꾼다는 것을 추적해요.",
+    "2차원 배열을 줄 참조의 배열로 읽고 줄 길이·크기·줄 공유를 구별해요.",
+    "객체 배열의 칸은 참조라는 것과 ==·equals·Arrays.equals의 차이를 실행으로 확인해요.",
+    "charAt·split으로 문자열을 읽고 다시 만들며, 재귀 호출 뒤 문장이 돌아오며 실행되는 순서를 추적해요."
+  ],
+  "sources": [
+    "https://docs.oracle.com/javase/specs/jls/se21/html/jls-10.html",
+    "https://docs.oracle.com/javase/specs/jls/se21/html/jls-3.html#jls-3.10.5",
+    "https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html#split(java.lang.String)"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_16ab8b77-6cad-44d6-8013-63d46d115d3d",
+      "title": "배열을 제자리에서 고쳐요",
+      "objectives": [
+        "메서드와 반복이 같은 배열의 칸을 직접 바꾸는 흐름을 추적해요.",
+        "2차원 배열을 줄 배열들을 가리키는 배열로 읽어요."
+      ],
+      "units": [
+        {
+          "id": "unt_f050e38d-a79d-4381-990d-cbf9f4d500a8",
+          "title": "한 줄 선반의 무게",
+          "objectives": [
+            "교환과 이웃 갱신이 배열 칸을 어떻게 바꾸는지 추적해요."
+          ],
+          "premise": "선반 한 줄에 놓인 상자 무게를 int 배열로 다뤄요. 각 스텝은 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_33f0bf43-8fa5-44bb-92c2-af9aad706530",
+              "objectives": [
+                "메서드가 받은 배열 칸을 임시 변수로 교환하면 호출한 쪽 배열이 바뀜을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_ce57783e-4c7f-439f-a4f2-9a877b7f5040",
+              "objectives": [
+                "이웃을 읽으며 제자리 갱신할 때 반복 방향에 따라 읽는 값이 달라짐을 확인해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_02e1b87d-5eb7-471c-94da-12cfe26af42a",
+          "title": "여러 줄 선반표",
+          "objectives": [
+            "2차원 배열의 줄 수·줄 길이·줄 참조를 구별해요."
+          ],
+          "premise": "창고 선반을 줄 단위 int[][]로 다뤄요. 바깥 배열의 칸 하나가 줄 하나예요. 각 스텝은 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_525b5075-77e1-4449-acb0-be476266fadc",
+              "objectives": [
+                "shelf.length는 줄 수, shelf[r].length는 r번 줄의 칸 수라는 것을 구별해요."
+              ]
+            },
+            {
+              "id": "stp_553a857c-ee57-4155-8256-134025a2ca03",
+              "objectives": [
+                "new int[줄 수][칸 수]의 순서와 번호 식 r * cols + c + 1을 읽어요."
+              ]
+            },
+            {
+              "id": "stp_4dbe8553-b9fe-4ea0-a1ee-5314ff61168e",
+              "objectives": [
+                "줄 참조를 나눠 가지면 칸 수정은 보이고 줄 교체는 보이지 않음을 확인해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_bbd4a558-6a05-4cf8-9a96-28f5ecc044ad",
+      "title": "객체 배열의 칸과 같은지 비교",
+      "objectives": [
+        "객체 배열의 칸은 상자를 가리키는 참조라는 것을 확인해요.",
+        "==는 같은 객체인지, equals·Arrays.equals는 내용이 같은지 비교함을 구별해요."
+      ],
+      "units": [
+        {
+          "id": "unt_a5b019f3-f487-4fd4-9c1d-33a8a1684d05",
+          "title": "상자 줄",
+          "objectives": [
+            "객체 배열을 만들고 칸 교환과 필드 변경을 구별해요."
+          ],
+          "premise": "Box는 재고 count를 가진 상자예요. Box 배열 line은 상자들이 선 줄이에요. 각 스텝은 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_31b17d35-7214-4560-8d02-f44f9603ca4c",
+              "objectives": [
+                "new Box[n]은 null 칸만 만들고 상자는 원소마다 new로 만든다는 것을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_8bfcda5f-d4a2-42ea-afdb-50ff43a71e31",
+              "objectives": [
+                "객체 배열에서 칸 교환은 가리키는 대상만 바꾸고 필드 교환은 상자 내용을 바꿈을 구별해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_beda6913-3de3-4518-86cc-238e6573913d",
+          "title": "같은 코드인지 확인",
+          "objectives": [
+            "==와 내용 비교의 차이를 문자열과 배열에서 확인해요."
+          ],
+          "premise": "저장된 상자 코드와 칸 번호 목록을, 스캔한 값과 비교해요. 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_31d28cb5-a5bd-4048-9b3e-99b84c236339",
+              "objectives": [
+                "리터럴은 한 객체를 함께 쓰고 실행 중 만든 문자열·배열은 새 객체라 ==가 false임을 확인해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_0cf10fe7-e5c0-45e3-9beb-a1a90986937a",
+      "title": "문자열을 읽고 재귀를 따라가요",
+      "objectives": [
+        "charAt·split으로 문자열을 읽고 새 문자열을 만들어요.",
+        "재귀 호출 앞뒤 문장의 실행 순서와 종료 조건을 추적해요."
+      ],
+      "units": [
+        {
+          "id": "unt_b22335e0-d5e0-4843-92ef-514397500364",
+          "title": "송장 문자열",
+          "objectives": [
+            "글자 위치와 조각으로 문자열을 다시 만들어요."
+          ],
+          "premise": "송장 코드와 수량 줄을 String으로 다뤄요. 각 스텝은 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_d4574926-fd49-489f-9d32-e4a665652db0",
+              "objectives": [
+                "charAt은 0부터 세고, 글자를 앞에 붙이느냐 뒤에 붙이느냐로 순서가 정해짐을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_3536e389-b445-4294-983c-1fec49c76d86",
+              "objectives": [
+                "split은 연속 구분자 사이에 빈 문자열을 만들고 끝의 빈 문자열은 버림을 확인해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_99fde917-4439-422c-9951-6340ba323892",
+          "title": "재귀 호출 추적",
+          "objectives": [
+            "호출 앞뒤 문장의 순서와 종료 조건을 실행으로 추적해요."
+          ],
+          "premise": "메서드가 자기 자신을 부르는 재귀를 다뤄요. 호출마다 매개변수 n이 따로 생겨요. 각 스텝은 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_d0f27186-27db-49ff-b7ba-d562cc3d3791",
+              "objectives": [
+                "재귀 호출 뒤의 문장은 호출이 돌아오며 역순으로 실행됨을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_83812123-514c-48df-b40c-3bf96d0fac4f",
+              "objectives": [
+                "이중 재귀의 호출 트리를 따라가 음수 인수가 종료 조건에 잘못 걸리는 곳을 고쳐요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_33f0bf43-8fa5-44bb-92c2-af9aad706530",
+      "title": "swap 메서드가 두 칸을 제대로 바꾸게 고치세요",
+      "goal": "weights는 상자 무게 7, 3, 9, 2예요. sort는 이웃한 두 칸을 비교해 swap을 불러요. 그런데 swap이 두 값을 제대로 바꾸지 못해요.\n\n**알아두세요**\n\n`Arrays.toString(배열)`은 배열 값을 `[2, 3]`처럼 한 줄 글로 만들어요. 메서드에 배열을 넘기면 배열의 참조가 복사돼 같은 배열을 다뤄요.\n\nswap 메서드의 본문을 고쳐 무게가 가벼운 순서로 정렬되게 하세요. sort와 main은 그대로 두세요. 채점은 다른 무게로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 정렬 결과를 확인하세요.\n2. swap 안에서 a[i]를 임시 변수에 먼저 보관하는 줄을 쓰세요.\n3. a[j]에 보관한 값을 넣도록 고치세요.\n4. 다시 실행해 무게가 오름차순인지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "import java.util.Arrays;\n\nclass Main {\n    // a의 i칸과 j칸 값을 서로 바꾸려는 메서드예요.\n    static void swap(int[] a, int i, int j) {\n        a[i] = a[j];\n        a[j] = a[i];\n    }\n\n    // 이웃한 두 칸을 비교해 무거운 쪽을 뒤로 보내요.\n    static void sort(int[] a) {\n        for (int i = 0; i < a.length - 1; i++) {\n            for (int j = 0; j < a.length - 1 - i; j++) {\n                if (a[j] > a[j + 1]) {\n                    swap(a, j, j + 1);\n                }\n            }\n        }\n    }\n\n    public static void main(String[] args) {\n        int[] weights = {7, 3, 9, 2};\n        sort(weights);\n        System.out.println(Arrays.toString(weights));\n    }\n}\n",
+      "solution": "import java.util.Arrays;\n\nclass Main {\n    // a의 i칸과 j칸 값을 서로 바꾸려는 메서드예요.\n    static void swap(int[] a, int i, int j) {\n        int temp = a[i];\n        a[i] = a[j];\n        a[j] = temp;\n    }\n\n    // 이웃한 두 칸을 비교해 무거운 쪽을 뒤로 보내요.\n    static void sort(int[] a) {\n        for (int i = 0; i < a.length - 1; i++) {\n            for (int j = 0; j < a.length - 1 - i; j++) {\n                if (a[j] > a[j + 1]) {\n                    swap(a, j, j + 1);\n                }\n            }\n        }\n    }\n\n    public static void main(String[] args) {\n        int[] weights = {7, 3, 9, 2};\n        sort(weights);\n        System.out.println(Arrays.toString(weights));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[2, 3, 7, 9]"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "weights": "{5, 1, 4}"
+          },
+          "expected": "[1, 4, 5]"
+        },
+        {
+          "values": {
+            "weights": "{2, 2, 1}"
+          },
+          "expected": "[1, 2, 2]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "정렬 반복은 이미 있어요. 두 칸을 바꾸는 swap만 고치면 되는 문제예요.",
+          "target": "text:swap 메서드의 본문을 고쳐 무게가 가벼운 순서로 정렬되게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            24,
+            24
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[2, 2, 2, 2]가 나왔어요. 바꿀 때마다 한 칸의 값이 사라졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "a[i] = a[j]가 먼저 a[i]를 덮어써요. 다음 줄은 이미 바뀐 값을 다시 넣어요.",
+          "target": "code:a[j] = a[i];"
+        },
+        {
+          "action": "patch_code",
+          "before": "        a[i] = a[j];\n        a[j] = a[i];\n",
+          "after": "        int temp = a[i];\n        a[i] = a[j];\n        a[j] = a[i];\n",
+          "say": "덮어쓰기 전에 a[i]를 temp에 보관해요."
+        },
+        {
+          "action": "patch_code",
+          "before": "        a[j] = a[i];\n",
+          "after": "        a[j] = temp;\n",
+          "say": "a[j]에는 보관해 둔 temp를 넣어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            25,
+            25
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[2, 3, 7, 9]예요. swap이 받은 a는 weights와 같은 배열이라 main에서도 바뀐 값이 보여요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. a[i]와 a[j]를 지역 변수에 꺼내 그 변수끼리 바꾸면 배열 칸은 그대로예요. 칸에 다시 대입해야 해요.",
+          "target": "code:a[j] = temp;"
+        }
+      ]
+    },
+    {
+      "id": "stp_ce57783e-4c7f-439f-a4f2-9a877b7f5040",
+      "title": "왼쪽 칸의 처음 값만 더하도록 반복 방향을 바꾸세요",
+      "goal": "stock은 선반 칸의 재고 3, 1, 4, 2예요. 각 칸에 바로 왼쪽 칸의 처음 값을 더한 배열을 만들려 해요. 3, 1, 4, 2라면 3, 3 + 1, 1 + 4, 4 + 2예요.\n\n더하는 줄은 그대로 두고, for 반복의 방향만 바꿔 원하는 배열이 나오게 하세요. 채점은 다른 재고로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 결과를 확인하세요.\n2. for 줄의 시작값·조건·증감을 고쳐 뒤에서 앞으로 돌게 하세요.\n3. 다시 실행해 3, 4, 5, 6이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "import java.util.Arrays;\n\nclass Main {\n    public static void main(String[] args) {\n        int[] stock = {3, 1, 4, 2};\n        // 각 칸에 바로 왼쪽 칸의 값을 더해요.\n        for (int i = 1; i < stock.length; i++) {\n            stock[i] += stock[i - 1];\n        }\n        System.out.println(Arrays.toString(stock));\n    }\n}\n",
+      "solution": "import java.util.Arrays;\n\nclass Main {\n    public static void main(String[] args) {\n        int[] stock = {3, 1, 4, 2};\n        // 각 칸에 바로 왼쪽 칸의 값을 더해요.\n        for (int i = stock.length - 1; i >= 1; i--) {\n            stock[i] += stock[i - 1];\n        }\n        System.out.println(Arrays.toString(stock));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[3, 4, 5, 6]"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "stock": "{1, 1, 1, 1}"
+          },
+          "expected": "[1, 2, 2, 2]"
+        },
+        {
+          "values": {
+            "stock": "{5, 0, 0}"
+          },
+          "expected": "[5, 5, 0]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "각 칸에 왼쪽 칸의 처음 값만 더해야 해요. 이미 더해진 값을 쓰면 안 돼요.",
+          "target": "text:각 칸에 바로 왼쪽 칸의 처음 값을 더한 배열을 만들려 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[3, 4, 8, 10]이 나왔어요. 2번 칸은 4 + 4, 3번 칸은 2 + 8이 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "앞에서부터 돌면 stock[i - 1]은 이미 바뀐 뒤예요. 그래서 합이 계속 쌓였어요.",
+          "target": "code:stock[i - 1]"
+        },
+        {
+          "action": "patch_code",
+          "before": "for (int i = 1; i < stock.length; i++)",
+          "after": "for (int i = stock.length - 1; i >= 1; i--)",
+          "say": "맨 뒤 칸부터 1번 칸까지 거꾸로 돌게 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[3, 4, 5, 6]이에요. 뒤에서부터 돌면 왼쪽 칸은 아직 처음 값이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 끝 조건을 i >= 0으로 쓰면 0번 칸에서 stock[-1]을 읽어 예외가 나요. 0번 칸은 왼쪽이 없어요.",
+          "target": "code:i >= 1"
+        }
+      ]
+    },
+    {
+      "id": "stp_525b5075-77e1-4449-acb0-be476266fadc",
+      "title": "줄마다 길이가 다른 선반의 줄 합을 구하세요",
+      "goal": "선반은 세 줄이에요. 0번 줄은 4, 0, 7, 1번 줄은 2, 2번 줄은 5, 1이에요. 줄마다 칸 수가 달라요.\n\n**알아두세요**\n\nJava의 2차원 배열은 줄 배열들을 가리키는 배열이에요. 그래서 줄마다 길이가 다를 수 있어요.\n\n안쪽 반복의 끝 조건을 고쳐 줄마다 재고 합을 출력하세요. 채점은 다른 선반으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력과 오류를 확인하세요.\n2. 안쪽 for의 끝 조건을 한 곳 고치세요.\n3. 다시 실행해 세 줄의 합이 모두 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Main {\n    public static void main(String[] args) {\n        int[][] shelf = {{4, 0, 7}, {2}, {5, 1}};\n        // 줄마다 칸의 재고를 더해 출력해요.\n        for (int r = 0; r < shelf.length; r++) {\n            int sum = 0;\n            for (int c = 0; c < shelf[0].length; c++) {\n                sum += shelf[r][c];\n            }\n            System.out.println(sum);\n        }\n    }\n}\n",
+      "solution": "class Main {\n    public static void main(String[] args) {\n        int[][] shelf = {{4, 0, 7}, {2}, {5, 1}};\n        // 줄마다 칸의 재고를 더해 출력해요.\n        for (int r = 0; r < shelf.length; r++) {\n            int sum = 0;\n            for (int c = 0; c < shelf[r].length; c++) {\n                sum += shelf[r][c];\n            }\n            System.out.println(sum);\n        }\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "11\n2\n6"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "shelf": "{{1, 2}, {3, 4, 5, 6}}"
+          },
+          "expected": "3\n18"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "줄마다 칸 수가 다른 선반이에요. 그래도 세 줄의 합이 모두 나와야 해요.",
+          "target": "text:줄마다 칸 수가 달라요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ],
+          "expect_error": "ArrayIndexOutOfBoundsException"
+        },
+        {
+          "action": "say",
+          "text": "11을 찍은 뒤 예외가 났어요. 1번 줄은 칸이 하나인데 세 칸을 읽으려 했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "shelf[0].length는 0번 줄의 칸 수 3이에요. 모든 줄이 3칸이라고 가정한 거죠.",
+          "target": "code:shelf[0].length"
+        },
+        {
+          "action": "patch_code",
+          "before": "c < shelf[0].length",
+          "after": "c < shelf[r].length",
+          "say": "지금 줄 r의 칸 수까지만 돌게 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "11, 2, 6이에요. 줄마다 자기 길이만큼만 돌았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "shelf.length는 줄 수 3이에요. shelf[r].length가 그 줄의 칸 수예요.",
+          "target": "code:r < shelf.length"
+        }
+      ]
+    },
+    {
+      "id": "stp_553a857c-ee57-4155-8256-134025a2ca03",
+      "title": "3줄 4칸 번호표가 되도록 배열 크기를 고치세요",
+      "goal": "선반 칸마다 1부터 번호를 붙이려 해요. 줄은 rows개, 줄마다 칸은 cols개예요. 번호는 왼쪽 위부터 줄을 따라 1씩 커져요.\n\n배열을 만드는 줄을 고쳐 3줄 4칸짜리 번호표가 나오게 하세요. 채점은 rows와 cols를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 번호표의 모양을 확인하세요.\n2. new int[...][...]의 크기 순서를 고치세요.\n3. 다시 실행해 4칸짜리 줄 3개가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "import java.util.Arrays;\n\nclass Main {\n    public static void main(String[] args) {\n        int rows = 3;\n        int cols = 4;\n        // 줄 수와 칸 수로 선반 번호표를 만들어요.\n        int[][] label = new int[cols][rows];\n        for (int r = 0; r < label.length; r++) {\n            for (int c = 0; c < label[r].length; c++) {\n                label[r][c] = r * cols + c + 1;\n            }\n            System.out.println(Arrays.toString(label[r]));\n        }\n    }\n}\n",
+      "solution": "import java.util.Arrays;\n\nclass Main {\n    public static void main(String[] args) {\n        int rows = 3;\n        int cols = 4;\n        // 줄 수와 칸 수로 선반 번호표를 만들어요.\n        int[][] label = new int[rows][cols];\n        for (int r = 0; r < label.length; r++) {\n            for (int c = 0; c < label[r].length; c++) {\n                label[r][c] = r * cols + c + 1;\n            }\n            System.out.println(Arrays.toString(label[r]));\n        }\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[1, 2, 3, 4]\n[5, 6, 7, 8]\n[9, 10, 11, 12]"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "rows": "2",
+            "cols": "5"
+          },
+          "expected": "[1, 2, 3, 4, 5]\n[6, 7, 8, 9, 10]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "3줄 4칸 번호표를 만들어야 해요. 배열 크기를 정하는 줄이 문제예요.",
+          "target": "text:배열을 만드는 줄을 고쳐 3줄 4칸짜리 번호표가 나오게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3칸짜리 줄이 4개 나왔어요. 번호도 4, 8, 12가 빠지고 15까지 갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "new int[앞][뒤]에서 앞 크기가 줄 수예요. 지금은 cols 4를 줄 수로 썼어요.",
+          "target": "code:new int[cols][rows]"
+        },
+        {
+          "action": "patch_code",
+          "before": "new int[cols][rows]",
+          "after": "new int[rows][cols]",
+          "say": "줄 수 rows를 앞에, 칸 수 cols를 뒤에 써요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[1, 2, 3, 4]부터 [9, 10, 11, 12]까지 세 줄이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "r * cols는 앞 줄들이 쓴 번호 수예요. 1번 줄은 4를 건너뛰고 5부터 시작해요.",
+          "target": "code:r * cols + c + 1"
+        }
+      ]
+    },
+    {
+      "id": "stp_4dbe8553-b9fe-4ea0-a1ee-5314ff61168e",
+      "title": "원본을 고쳐도 백업이 그대로 남게 줄을 복사하세요",
+      "goal": "선반 shelf를 고치기 전에 backup을 만들어 두려 해요. 그 뒤 shelf의 0번 줄은 한 칸만 9로, 1번 줄은 새 줄로 통째로 바꿔요.\n\n**알아두세요**\n\n`new int[2][]`는 줄을 가리킬 칸 두 개만 만들어요. 줄 배열은 따로 담아야 해요. 배열의 `clone()`은 같은 값을 가진 새 배열을 만들어요.\n\n백업을 담는 줄을 고쳐, 원본 shelf를 고쳐도 backup은 처음 값 그대로 남게 하세요. 채점은 다른 선반으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 backup의 두 줄을 확인하세요.\n2. backup[r]에 줄을 담는 줄을 한 곳 고치세요.\n3. 다시 실행해 backup이 처음 값인지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "import java.util.Arrays;\n\nclass Main {\n    public static void main(String[] args) {\n        int[][] shelf = {{4, 0}, {2, 5}};\n        int[][] backup = new int[shelf.length][];\n        // 백업의 줄마다 원본 줄을 담아요.\n        for (int r = 0; r < shelf.length; r++) {\n            backup[r] = shelf[r];\n        }\n        // 원본을 고쳐요. 0번 줄은 칸 값을, 1번 줄은 줄 전체를 바꿔요.\n        shelf[0][1] = 9;\n        shelf[1] = new int[]{7, 7};\n        System.out.println(Arrays.toString(backup[0]));\n        System.out.println(Arrays.toString(backup[1]));\n    }\n}\n",
+      "solution": "import java.util.Arrays;\n\nclass Main {\n    public static void main(String[] args) {\n        int[][] shelf = {{4, 0}, {2, 5}};\n        int[][] backup = new int[shelf.length][];\n        // 백업의 줄마다 원본 줄을 담아요.\n        for (int r = 0; r < shelf.length; r++) {\n            backup[r] = shelf[r].clone();\n        }\n        // 원본을 고쳐요. 0번 줄은 칸 값을, 1번 줄은 줄 전체를 바꿔요.\n        shelf[0][1] = 9;\n        shelf[1] = new int[]{7, 7};\n        System.out.println(Arrays.toString(backup[0]));\n        System.out.println(Arrays.toString(backup[1]));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[4, 0]\n[2, 5]"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "shelf": "{{1, 1}, {3, 3}}"
+          },
+          "expected": "[1, 1]\n[3, 3]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "backup은 원본을 고치기 전 모습을 지켜야 해요.",
+          "target": "text:원본 shelf를 고쳐도 backup은 처음 값 그대로 남게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[4, 9]와 [2, 5]예요. 0번 줄은 원본의 9가 보이고, 1번 줄은 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "backup[r] = shelf[r]은 줄의 참조만 복사해요. 두 배열이 같은 줄을 함께 가리켜요.",
+          "target": "code:backup[r] = shelf[r];"
+        },
+        {
+          "action": "say",
+          "text": "1번 줄은 shelf[1]에 새 줄을 끼웠어요. backup[1]은 옛 줄을 계속 가리켜서 안 바뀌었죠.",
+          "target": "code:shelf[1] = new int[]{7, 7};"
+        },
+        {
+          "action": "patch_code",
+          "before": "backup[r] = shelf[r];",
+          "after": "backup[r] = shelf[r].clone();",
+          "say": "줄마다 clone으로 새 줄을 만들어 담아요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[4, 0]과 [2, 5]예요. 백업이 자기 줄을 가져서 칸 수정도 보이지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. backup = shelf.clone()처럼 바깥만 복사하면 줄은 여전히 함께 써요. 0번 줄에 9가 다시 보여요.",
+          "target": "code:shelf[r].clone()"
+        }
+      ]
+    },
+    {
+      "id": "stp_31b17d35-7214-4560-8d02-f44f9603ca4c",
+      "title": "상자 칸마다 새 상자를 넣어 합계를 구하세요",
+      "goal": "Box 배열 line은 size칸이에요. 반복에서 i번 칸 상자의 count를 (i + 1) * 10으로 정하고, 모든 상자의 count를 더해 출력해요.\n\n**알아두세요**\n\n`new Box[3]`은 Box를 가리킬 칸 세 개를 만들어요. 칸의 처음 값은 아무 상자도 가리키지 않는 `null`이에요.\n\n첫 반복 안의 줄을 고쳐 칸마다 새 상자를 넣어 count 합계가 나오게 하세요. 채점은 size를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 어떤 오류가 나는지 확인하세요.\n2. 첫 반복 안에서 i번 칸에 count가 (i + 1) * 10인 새 Box를 넣도록 고치세요.\n3. 다시 실행해 합계를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Box {\n    int count;\n    // 상자마다 자기 count를 가져요.\n    Box(int count) {\n        this.count = count;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        int size = 3;\n        // 상자 size개를 가리킬 칸을 만들어요.\n        Box[] line = new Box[size];\n        for (int i = 0; i < line.length; i++) {\n            line[i].count = (i + 1) * 10;\n        }\n        int total = 0;\n        for (Box box : line) {\n            total += box.count;\n        }\n        System.out.println(total);\n    }\n}\n",
+      "solution": "class Box {\n    int count;\n    // 상자마다 자기 count를 가져요.\n    Box(int count) {\n        this.count = count;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        int size = 3;\n        // 상자 size개를 가리킬 칸을 만들어요.\n        Box[] line = new Box[size];\n        for (int i = 0; i < line.length; i++) {\n            line[i] = new Box((i + 1) * 10);\n        }\n        int total = 0;\n        for (Box box : line) {\n            total += box.count;\n        }\n        System.out.println(total);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "60"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "size": "4"
+          },
+          "expected": "100"
+        },
+        {
+          "values": {
+            "size": "1"
+          },
+          "expected": "10"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "상자 칸을 만들고 칸마다 count를 넣어 더하는 문제예요.",
+          "target": "text:칸마다 새 상자를 넣어 count 합계가 나오게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            21,
+            21
+          ],
+          "expect_error": "NullPointerException"
+        },
+        {
+          "action": "say",
+          "text": "NullPointerException이 났어요. 칸은 생겼지만 그 칸이 가리키는 상자가 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "line[i]가 null이라 .count를 읽을 상자가 없어요.",
+          "target": "code:line[i].count"
+        },
+        {
+          "action": "patch_code",
+          "before": "            line[i].count = (i + 1) * 10;\n",
+          "after": "            line[i] = new Box((i + 1) * 10);\n",
+          "say": "i번 칸에 새 상자를 만들어 넣어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            21,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "60이에요. count가 10, 20, 30인 상자 셋이 생겼어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 반복 앞에서 line[0]만 만들면 1번 칸에서 다시 예외가 나요. 칸마다 new가 필요해요.",
+          "target": "code:new Box((i + 1) * 10)"
+        }
+      ]
+    },
+    {
+      "id": "stp_8bfcda5f-d4a2-42ea-afdb-50ff43a71e31",
+      "title": "상자 안 값이 아니라 칸이 가리키는 상자를 바꾸세요",
+      "goal": "a, b, c는 count가 1, 2, 3인 상자예요. 배열 line은 세 상자를 차례로 가리켜요. 0번과 2번 자리를 바꾸려는데, 지금 코드는 상자 안의 count를 맞바꿔요.\n\n교환하는 세 줄을 고쳐 줄의 0번 칸과 2번 칸이 가리키는 상자를 바꾸세요. 상자 a, b, c의 count는 바뀌면 안 돼요. 채점은 a를 다른 상자로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 세 줄의 출력을 확인하세요.\n2. 교환하는 세 줄을 Box 참조를 맞바꾸도록 고치세요.\n3. 다시 실행해 a, b, c의 count가 1 2 3인지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Box {\n    int count;\n    // 상자마다 자기 count를 가져요.\n    Box(int count) {\n        this.count = count;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        Box a = new Box(1);\n        Box b = new Box(2);\n        Box c = new Box(3);\n        Box[] line = {a, b, c};\n        // 0번 칸과 2번 칸의 순서를 바꾸려는 세 줄이에요.\n        int temp = line[0].count;\n        line[0].count = line[2].count;\n        line[2].count = temp;\n        System.out.println(line[0].count + \" \" + line[1].count + \" \" + line[2].count);\n        System.out.println(a.count + \" \" + b.count + \" \" + c.count);\n        System.out.println(line[0] == c);\n    }\n}\n",
+      "solution": "class Box {\n    int count;\n    // 상자마다 자기 count를 가져요.\n    Box(int count) {\n        this.count = count;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        Box a = new Box(1);\n        Box b = new Box(2);\n        Box c = new Box(3);\n        Box[] line = {a, b, c};\n        // 0번 칸과 2번 칸의 순서를 바꾸려는 세 줄이에요.\n        Box temp = line[0];\n        line[0] = line[2];\n        line[2] = temp;\n        System.out.println(line[0].count + \" \" + line[1].count + \" \" + line[2].count);\n        System.out.println(a.count + \" \" + b.count + \" \" + c.count);\n        System.out.println(line[0] == c);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "3 2 1\n1 2 3\ntrue"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "a": "new Box(7)"
+          },
+          "expected": "3 2 7\n7 2 3\ntrue"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "줄 순서만 바꾸고 상자 a, b, c 안의 count는 지켜야 해요.",
+          "target": "text:줄의 0번 칸과 2번 칸이 가리키는 상자를 바꾸세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3 2 1, 3 2 1, false예요. 줄은 바뀐 듯 보이지만 a와 c의 count가 뒤바뀌었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "지금은 상자 안의 count를 맞바꿔요. 상자는 제자리에 있고 내용만 바뀌었죠.",
+          "target": "code:line[0].count = line[2].count;"
+        },
+        {
+          "action": "patch_code",
+          "before": "        int temp = line[0].count;\n        line[0].count = line[2].count;\n        line[2].count = temp;\n",
+          "after": "        Box temp = line[0];\n        line[0] = line[2];\n        line[2] = temp;\n",
+          "say": "temp에 Box 참조를 보관하고 칸끼리 참조를 맞바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3 2 1, 1 2 3, true예요. 칸이 가리키는 상자만 바뀌고 a, b, c의 count는 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 교환 뒤 line[1].count에 대입하면 그 칸이 가리키는 b의 count가 바뀌어요. 칸은 상자를 가리킬 뿐이에요.",
+          "target": "code:Box temp = line[0];"
+        }
+      ]
+    },
+    {
+      "id": "stp_31d28cb5-a5bd-4048-9b3e-99b84c236339",
+      "title": "코드와 칸 목록을 내용으로 비교하게 고치세요",
+      "goal": "스캔한 상자 코드와 칸 번호 목록이 저장된 값과 같은지 확인해요. sameCode와 sameBins는 지금 ==로 비교해요.\n\n**알아두세요**\n\n`==`는 두 참조가 같은 객체인지 비교해요. `Arrays.equals(x, y)`는 두 배열의 길이와 칸 값을 차례로 비교해요.\n\n두 메서드가 내용이 같으면 true를 돌려주게 고치세요. main은 그대로 두세요. 채점은 num과 bins를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 세 비교 결과를 확인하세요.\n2. sameCode의 return 줄을 글자 내용을 비교하도록 고치세요.\n3. sameBins의 return 줄을 배열 칸 값을 비교하도록 고치세요.\n4. 다시 실행해 세 결과가 모두 true인지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "import java.util.Arrays;\n\nclass Main {\n    // 두 코드가 같은 글자인지 확인해요.\n    static boolean sameCode(String x, String y) {\n        return x == y;\n    }\n\n    // 두 칸 번호 목록이 같은 값인지 확인해요.\n    static boolean sameBins(int[] x, int[] y) {\n        return x == y;\n    }\n\n    public static void main(String[] args) {\n        int num = 7;\n        // 실행 중에 이어 붙여 만든 코드예요.\n        String scanned = \"A\" + num;\n        int[] bins = {3, 1};\n        System.out.println(sameCode(\"A7\", \"A7\"));\n        System.out.println(sameCode(scanned, \"A7\"));\n        System.out.println(sameBins(bins, new int[]{3, 1}));\n    }\n}\n",
+      "solution": "import java.util.Arrays;\n\nclass Main {\n    // 두 코드가 같은 글자인지 확인해요.\n    static boolean sameCode(String x, String y) {\n        return x.equals(y);\n    }\n\n    // 두 칸 번호 목록이 같은 값인지 확인해요.\n    static boolean sameBins(int[] x, int[] y) {\n        return Arrays.equals(x, y);\n    }\n\n    public static void main(String[] args) {\n        int num = 7;\n        // 실행 중에 이어 붙여 만든 코드예요.\n        String scanned = \"A\" + num;\n        int[] bins = {3, 1};\n        System.out.println(sameCode(\"A7\", \"A7\"));\n        System.out.println(sameCode(scanned, \"A7\"));\n        System.out.println(sameBins(bins, new int[]{3, 1}));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "true\ntrue\ntrue"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "num": "8"
+          },
+          "expected": "true\nfalse\ntrue"
+        },
+        {
+          "values": {
+            "bins": "{3, 2}"
+          },
+          "expected": "true\ntrue\nfalse"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "==가 무엇을 비교하는지가 이 문제예요. 내용이 같으면 true여야 해요.",
+          "target": "text:두 메서드가 내용이 같으면 true를 돌려주게 고치세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "true, false, false예요. 첫 줄은 ==인데도 true가 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "코드에 그대로 쓴 \"A7\" 두 개는 같은 String 객체를 함께 써요. 그래서 ==가 true예요.",
+          "target": "code:sameCode(\"A7\", \"A7\")"
+        },
+        {
+          "action": "say",
+          "text": "scanned는 실행 중에 이어 붙여 만든 새 객체예요. 글자가 같아도 ==는 false죠.",
+          "target": "code:\"A\" + num"
+        },
+        {
+          "action": "patch_code",
+          "before": "String y) {\n        return x == y;",
+          "after": "String y) {\n        return x.equals(y);",
+          "say": "sameCode는 equals로 글자 내용을 비교해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "true, true, false예요. 둘째 줄이 내용 비교로 true가 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "int[] y) {\n        return x == y;",
+          "after": "int[] y) {\n        return x.equals(y);",
+          "say": "배열도 equals로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "셋째 줄은 여전히 false예요. 배열의 equals는 ==처럼 같은 객체인지만 봐요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "int[] y) {\n        return x.equals(y);",
+          "after": "int[] y) {\n        return Arrays.equals(x, y);",
+          "say": "Arrays.equals로 칸 값을 차례로 비교해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "true, true, true예요. 두 배열의 길이와 칸 값이 모두 같아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 배열에 x.equals(y)를 쓰면 칸 값이 같아도 false예요. 배열 내용은 Arrays.equals로 비교해요.",
+          "target": "code:Arrays.equals(x, y)"
+        }
+      ]
+    },
+    {
+      "id": "stp_d4574926-fd49-489f-9d32-e4a665652db0",
+      "title": "송장 코드를 거꾸로 읽은 글을 만드세요",
+      "goal": "송장 코드 code를 거꾸로 읽은 글 rev를 만들려 해요. 지금 반복은 앞 글자부터 꺼내 rev에 이어 붙여요.\n\n**알아두세요**\n\n`code.charAt(i)`는 i번 글자예요. 첫 글자가 0번이고, 마지막은 `code.length() - 1`번이에요.\n\nrev를 만드는 줄을 고쳐 code를 거꾸로 읽은 글이 나오게 하세요. code는 그대로 남아야 해요. 채점은 다른 코드로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 rev와 code를 확인하세요.\n2. rev를 만드는 줄을 한 곳 고치세요.\n3. 다시 실행해 rev가 거꾸로 나오고 code는 그대로인지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Main {\n    public static void main(String[] args) {\n        String code = \"AB12\";\n        String rev = \"\";\n        // 앞 글자부터 하나씩 꺼내 rev를 새로 만들어요.\n        for (int i = 0; i < code.length(); i++) {\n            rev = rev + code.charAt(i);\n        }\n        System.out.println(rev);\n        System.out.println(code);\n    }\n}\n",
+      "solution": "class Main {\n    public static void main(String[] args) {\n        String code = \"AB12\";\n        String rev = \"\";\n        // 앞 글자부터 하나씩 꺼내 rev를 새로 만들어요.\n        for (int i = 0; i < code.length(); i++) {\n            rev = code.charAt(i) + rev;\n        }\n        System.out.println(rev);\n        System.out.println(code);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "21BA\nAB12"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "code": "\"XYZ\""
+          },
+          "expected": "ZYX\nXYZ"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "code를 거꾸로 읽은 글을 만들고, code 자신은 지켜야 해요.",
+          "target": "text:rev를 만드는 줄을 고쳐 code를 거꾸로 읽은 글이 나오게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "AB12가 두 번 나왔어요. 꺼낸 글자를 rev 뒤에 붙여서 원래 순서 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "charAt(i)는 0번 A부터 3번 2까지 차례로 꺼내요.",
+          "target": "code:code.charAt(i)"
+        },
+        {
+          "action": "patch_code",
+          "before": "rev = rev + code.charAt(i);",
+          "after": "rev = code.charAt(i) + rev;",
+          "say": "새 글자를 rev 앞에 붙여요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "21BA와 AB12예요. 먼저 꺼낸 글자일수록 뒤로 밀렸고, code는 바뀌지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 글자를 1번부터 세어 i <= code.length()까지 돌면 마지막에 범위 밖 예외가 나요.",
+          "target": "code:i < code.length()"
+        }
+      ]
+    },
+    {
+      "id": "stp_3536e389-b445-4294-983c-1fec49c76d86",
+      "title": "split이 만든 빈 조각을 건너뛰고 수량을 더하세요",
+      "goal": "송장 한 줄에 수량이 쉼표로 이어져 있어요. 7,,3,5,처럼 쉼표 사이가 비기도 해요.\n\n**알아두세요**\n\n`split(\",\")`은 쉼표마다 잘라 문자열 배열을 만들어요. 쉼표가 연달아 있으면 그 사이에 빈 문자열 `\"\"`이 생겨요. `Integer.parseInt`는 숫자 글을 int로 바꿔요.\n\n반복 안에 한 줄을 더해 빈 조각은 건너뛰고 수량만 더하세요. 채점은 다른 줄로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 어떤 오류가 나는지 확인하세요.\n2. 반복 안 더하는 줄 위에 빈 조각이면 건너뛰는 줄을 쓰세요.\n3. 다시 실행해 parts.length로 끝의 빈 조각이 어떻게 됐는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Main {\n    public static void main(String[] args) {\n        String line = \"7,,3,5,\";\n        // 쉼표로 잘라 수량을 더해요.\n        String[] parts = line.split(\",\");\n        int total = 0;\n        for (String part : parts) {\n            total += Integer.parseInt(part);\n        }\n        System.out.println(parts.length);\n        System.out.println(total);\n    }\n}\n",
+      "solution": "class Main {\n    public static void main(String[] args) {\n        String line = \"7,,3,5,\";\n        // 쉼표로 잘라 수량을 더해요.\n        String[] parts = line.split(\",\");\n        int total = 0;\n        for (String part : parts) {\n            if (part.length() == 0) continue;\n            total += Integer.parseInt(part);\n        }\n        System.out.println(parts.length);\n        System.out.println(total);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "4\n15"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "line": "\",2,,8\""
+          },
+          "expected": "4\n10"
+        },
+        {
+          "values": {
+            "line": "\"6,,,\""
+          },
+          "expected": "1\n6"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "쉼표 사이가 빈 조각은 건너뛰고 수량만 더해야 해요.",
+          "target": "text:반복 안에 한 줄을 더해 빈 조각은 건너뛰고 수량만 더하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            11,
+            11
+          ],
+          "expect_error": "NumberFormatException"
+        },
+        {
+          "action": "say",
+          "text": "NumberFormatException이 났어요. 빈 문자열은 숫자로 바꿀 수 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "            total += Integer.parseInt(part);\n",
+          "after": "            if (part.length() == 0) continue;\n            total += Integer.parseInt(part);\n",
+          "say": "길이가 0인 조각이면 이번 반복을 건너뛰어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            11,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4와 15예요. 7, 빈 문자열, 3, 5로 네 조각이고 빈 조각은 건너뛰었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "끝 쉼표 뒤의 빈 조각은 split이 버려요. 그래서 조각은 다섯이 아니라 4예요.",
+          "target": "code:line.split(\",\")"
+        }
+      ]
+    },
+    {
+      "id": "stp_d0f27186-27db-49ff-b7ba-d562cc3d3791",
+      "title": "재귀가 돌아오면서 출력하도록 줄 순서를 바꾸세요",
+      "goal": "show는 n을 출력하고 n / 2로 자기 자신을 다시 불러요. n이 0이 되면 멈춰요. 지금은 13 6 3 1처럼 큰 수부터 나와요.\n\nshow 안의 두 줄 순서를 바꿔 작은 수부터 출력되게 하세요. 채점은 start를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력 순서를 확인하세요.\n2. show 안에서 출력하는 줄과 재귀 호출 줄의 순서를 바꾸세요.\n3. 다시 실행해 작은 수부터 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Main {\n    // n을 반씩 줄이며 출력해요.\n    static void show(int n) {\n        if (n == 0) {\n            return;\n        }\n        System.out.print(n + \" \");\n        show(n / 2);\n    }\n\n    public static void main(String[] args) {\n        int start = 13;\n        show(start);\n    }\n}\n",
+      "solution": "class Main {\n    // n을 반씩 줄이며 출력해요.\n    static void show(int n) {\n        if (n == 0) {\n            return;\n        }\n        show(n / 2);\n        System.out.print(n + \" \");\n    }\n\n    public static void main(String[] args) {\n        int start = 13;\n        show(start);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "1 3 6 13 "
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "start": "20"
+          },
+          "expected": "1 2 5 10 20 "
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "같은 수들을 작은 것부터 찍어야 해요. 계산은 그대로 두고 출력 위치만 바꾸는 문제예요.",
+          "target": "text:show 안의 두 줄 순서를 바꿔 작은 수부터 출력되게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "13 6 3 1이 나왔어요. 출력이 호출보다 먼저라 내려가면서 찍혀요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        System.out.print(n + \" \");\n        show(n / 2);\n",
+          "after": "        show(n / 2);\n        System.out.print(n + \" \");\n",
+          "say": "출력 줄을 재귀 호출 아래로 옮겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1 3 6 13이에요. show(0)이 돌아온 뒤부터 1, 3, 6, 13 순서로 찍었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "호출마다 자기 n을 들고 기다려요. 돌아오는 순서는 들어간 순서의 반대예요.",
+          "target": "code:show(n / 2);"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 13 / 2를 6.5로 읽으면 순서가 틀려요. 정수 나눗셈이라 6, 3, 1로 내려가요.",
+          "target": "code:n / 2"
+        }
+      ]
+    },
+    {
+      "id": "stp_83812123-514c-48df-b40c-3bf96d0fac4f",
+      "title": "음수 칸 수를 0으로 막아 오르는 방법 수를 바로잡으세요",
+      "goal": "계단 n칸을 한 번에 1칸 또는 3칸씩 올라요. ways(n)은 마지막에 1칸 오른 경우 ways(n - 1)과 3칸 오른 경우 ways(n - 3)을 더해요. 딱 맞게 도착한 0칸은 방법 1가지예요.\n\n5칸이면 1칸만 다섯 번, 또는 3칸 한 번을 어디에 넣느냐로 방법이 정해져요. 그런데 지금 결과가 너무 커요.\n\nways 맨 앞에 조건을 더해 n이 음수면 0을 돌려주게 하세요. 채점은 n을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 ways(5)의 결과를 확인하세요.\n2. ways 맨 앞에 n이 음수일 때 0을 돌려주는 if를 쓰세요.\n3. 다시 실행해 결과를 손으로 센 방법 수와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Main {\n    // n칸을 1칸 또는 3칸씩 오르는 방법 수를 세요.\n    static int ways(int n) {\n        if (n <= 1) {\n            return 1;\n        }\n        return ways(n - 1) + ways(n - 3);\n    }\n\n    public static void main(String[] args) {\n        int n = 5;\n        System.out.println(ways(n));\n    }\n}\n",
+      "solution": "class Main {\n    // n칸을 1칸 또는 3칸씩 오르는 방법 수를 세요.\n    static int ways(int n) {\n        if (n < 0) {\n            return 0;\n        }\n        if (n <= 1) {\n            return 1;\n        }\n        return ways(n - 1) + ways(n - 3);\n    }\n\n    public static void main(String[] args) {\n        int n = 5;\n        System.out.println(ways(n));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "4"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "n": "7"
+          },
+          "expected": "9"
+        },
+        {
+          "values": {
+            "n": "2"
+          },
+          "expected": "1"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "넘어가 버린 음수 칸은 방법이 아니라서 0이어야 해요.",
+          "target": "text:ways 맨 앞에 조건을 더해 n이 음수면 0을 돌려주게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "6이 나왔어요. 1칸만 다섯 번, 3칸을 세 자리에 넣는 셋을 합쳐 4가지여야 해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    static int ways(int n) {\n",
+          "after": "    static int ways(int n) {\n        System.out.println(\"ways(\" + n + \")\");\n",
+          "say": "호출마다 n을 찍어 호출 트리를 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "5, 4, 3, 2, 1 다음에 -1이 보여요. 2에서 3칸 오르면 -1이 되거든요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "-1도 n <= 1에 걸려 1을 돌려줬어요. 넘어간 경우를 방법으로 센 거죠.",
+          "target": "code:if (n <= 1) {"
+        },
+        {
+          "action": "patch_code",
+          "before": "        System.out.println(\"ways(\" + n + \")\");\n",
+          "after": "",
+          "say": "확인용 출력은 지워요."
+        },
+        {
+          "action": "patch_code",
+          "before": "    static int ways(int n) {\n",
+          "after": "    static int ways(int n) {\n        if (n < 0) {\n            return 0;\n        }\n",
+          "say": "맨 앞에서 음수면 0을 돌려줘요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4예요. 음수로 넘어간 호출이 0이 되어 없는 방법을 세지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 조건을 n <= 0으로 합치면 ways(0)도 0이 돼요. 딱 맞게 도착한 방법까지 사라져요.",
+          "target": "code:if (n < 0) {"
+        }
+      ]
+    }
+  ]
+}

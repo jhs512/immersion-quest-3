@@ -1,0 +1,989 @@
+{
+  "description": "오버로드는 컴파일 때 선언형으로, 오버라이드는 실행 때 객체로 골라요. 부모 안의 자기 호출, 필드·static 숨김, 예외 흐름을 한 줄씩 고치며 기출 수준의 조합까지 추적해요.",
+  "tasks": [
+    {
+      "id": "stp_b3584586-466b-4022-be76-fc4eecfaea3b",
+      "title": "String 버전의 kind가 불리게 memo의 선언을 고치세요",
+      "goal": "kind는 이름이 같은 메서드가 두 개예요. Object를 받는 버전은 「물건」, String을 받는 버전은 글자 수를 돌려줘요. memo에는 글자 \"coupon\"이 들어 있어요.\n\n**알아두세요**\n\n이름이 같고 매개변수만 다른 메서드들을 오버로드(overload)라고 해요. 어느 것을 부를지는 컴파일러가 정해요.\n\nmemo의 선언 한 곳을 고쳐 String 버전의 kind가 불리게 하세요. 채점은 memo에 다른 글자를 넣어서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 어느 버전이 불리는지 확인하세요.\n2. memo를 선언하는 줄의 타입을 한 곳 고치세요.\n3. 다시 실행해 글자 수가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Main {\n    static String kind(Object item) { return \"물건\"; }\n    static String kind(String item) { return \"글자 \" + item.length() + \"개\"; }\n\n    public static void main(String[] args) {\n        // memo의 선언형을 보세요.\n        Object memo = \"coupon\";\n        System.out.println(kind(memo));\n    }\n}\n",
+      "solution": "class Main {\n    static String kind(Object item) { return \"물건\"; }\n    static String kind(String item) { return \"글자 \" + item.length() + \"개\"; }\n\n    public static void main(String[] args) {\n        // memo의 선언형을 보세요.\n        String memo = \"coupon\";\n        System.out.println(kind(memo));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "글자 6개"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "memo": "\"vip\""
+          },
+          "expected": "글자 3개"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "memo에는 글자가 들어 있는데 어느 kind가 불릴지가 문제예요.",
+          "target": "text:memo의 선언 한 곳을 고쳐 String 버전의 kind가 불리게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "물건이 나왔어요. 실제 객체가 글자여도 Object 버전이 불렸어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "컴파일러는 memo를 Object라고만 알아요. 그래서 kind(Object)로 정했어요.",
+          "target": "code:Object memo"
+        },
+        {
+          "action": "patch_code",
+          "before": "Object memo = \"coupon\";",
+          "after": "String memo = \"coupon\";",
+          "say": "memo의 선언형을 String으로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "글자 6개가 나왔어요. 선언형이 String이라 String 버전이 정해졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 선언형은 Object로 두고 new String으로 만들어도 물건이 나와요. 고르는 기준은 객체가 아니라 선언형이에요.",
+          "target": "code:String memo"
+        }
+      ]
+    },
+    {
+      "id": "stp_0bc7275b-90f6-425e-89fa-5a3291cf9725",
+      "title": "절반을 소수점까지 보이게 실수 버전의 rate를 부르세요",
+      "goal": "도장 stamps의 절반을 rate로 보여 주려 해요. rate도 int를 받는 버전과 double을 받는 버전이 있어요.\n\nrate에 넘기는 식 한 곳을 고쳐 double 버전이 불리고 절반이 소수점까지 나오게 하세요. 채점은 stamps를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 어느 버전이 불리는지 확인하세요.\n2. rate의 괄호 안 식을 한 곳 고치세요.\n3. 다시 실행해 실수 버전과 소수점이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Main {\n    static String rate(int n) { return \"정수 \" + n; }\n    static String rate(double n) { return \"실수 \" + n; }\n\n    public static void main(String[] args) {\n        int stamps = 7;\n        // rate에 넘기는 식의 타입을 보세요.\n        System.out.println(rate(stamps / 2));\n    }\n}\n",
+      "solution": "class Main {\n    static String rate(int n) { return \"정수 \" + n; }\n    static String rate(double n) { return \"실수 \" + n; }\n\n    public static void main(String[] args) {\n        int stamps = 7;\n        // rate에 넘기는 식의 타입을 보세요.\n        System.out.println(rate(stamps / 2.0));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "실수 3.5"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "stamps": "9"
+          },
+          "expected": "실수 4.5"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "넘기는 식이 어떤 타입인지에 따라 버전이 갈려요.",
+          "target": "text:rate에 넘기는 식 한 곳을 고쳐 double 버전이 불리고 절반이 소수점까지 나오게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "정수 3이 나왔어요. int끼리 나눈 식이라 int 버전이 정해졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "rate(stamps / 2)",
+          "after": "rate((double) (stamps / 2))",
+          "say": "나눈 결과를 double로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "실수 3.0이에요. 버전은 바뀌었지만 이미 잘린 3을 바꿨어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "rate((double) (stamps / 2))",
+          "after": "rate(stamps / 2.0)",
+          "say": "나누는 수를 2.0으로 써서 식 자체를 double로 만들어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "실수 3.5예요. 식의 타입이 double이라 double 버전이 불렸어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 괄호 밖에서 바꾸면 잘린 몫이 그대로 넘어가요. 나누기 전에 실수가 되어야 해요.",
+          "target": "code:stamps / 2.0"
+        }
+      ]
+    },
+    {
+      "id": "stp_35786cdf-c3ad-4cc5-9e2b-85ffaf4895c0",
+      "title": "Rule에 String 버전을 더해 Bonus의 글자 규칙이 불리게 하세요",
+      "goal": "code는 String인데도 Bonus의 String 버전이 아니라 Object 버전이 불려요. 변수 rule의 선언형은 Rule이에요.\n\n**알아두세요**\n\n호출은 두 단계예요. 컴파일 때 변수의 선언형에 보이는 메서드 중에서 시그니처를 정하고, 실행 때 실제 객체가 그 시그니처를 오버라이드했으면 그것을 실행해요.\n\nRule에 String을 받는 check를 추가하세요. Rule의 것은 \"R-글자 \" + c를 돌려줘야 해요. rule의 선언형은 Rule 그대로 두세요. 채점은 rule에 Rule 객체를 넣어서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 어느 클래스의 어느 버전이 불리는지 확인하세요.\n2. Rule의 주석 아래에 String을 받는 check를 한 줄 추가하세요.\n3. 다시 실행해 Bonus의 글자 규칙이 불리는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Rule {\n    String check(Object c) { return \"R-물건 \" + c; }\n    // 이 주석 아래에 String을 받는 check를 추가하세요.\n}\n\nclass Bonus extends Rule {\n    String check(Object c) { return \"B-물건 \" + c; }\n    String check(String c) { return \"B-글자 \" + c; }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        Rule rule = new Bonus();\n        String code = \"A7\";\n        System.out.println(rule.check(code));\n    }\n}\n",
+      "solution": "class Rule {\n    String check(Object c) { return \"R-물건 \" + c; }\n    // 이 주석 아래에 String을 받는 check를 추가하세요.\n    String check(String c) { return \"R-글자 \" + c; }\n}\n\nclass Bonus extends Rule {\n    String check(Object c) { return \"B-물건 \" + c; }\n    String check(String c) { return \"B-글자 \" + c; }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        Rule rule = new Bonus();\n        String code = \"A7\";\n        System.out.println(rule.check(code));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "B-글자 A7"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "rule": "new Rule()"
+          },
+          "expected": "R-글자 A7"
+        },
+        {
+          "values": {
+            "code": "\"Z1\""
+          },
+          "expected": "B-글자 Z1"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "Bonus에 String 버전이 있는데 왜 안 불리는지 찾는 문제예요.",
+          "target": "text:code는 String인데도 Bonus의 String 버전이 아니라 Object 버전이 불려요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "B-물건 A7이 나왔어요. 실행은 Bonus에서 됐는데 Object 버전이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "컴파일러는 rule을 Rule로 봐요. Rule에는 check(Object)뿐이라 그걸로 정했어요.",
+          "target": "code:String check(Object c) { return \"R-물건 \" + c; }"
+        },
+        {
+          "action": "patch_code",
+          "before": "    // 이 주석 아래에 String을 받는 check를 추가하세요.\n",
+          "after": "    // 이 주석 아래에 String을 받는 check를 추가하세요.\n    String check(String c) { return \"R-글자 \" + c; }\n",
+          "say": "Rule에 String을 받는 check를 더해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "B-글자 A7이에요. 컴파일 때 String 버전으로 정해지고, 실행 때 Bonus 것이 불렸어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. Rule에 더했다고 R-글자가 나오진 않아요. 버전은 선언형으로 정하지만 실행은 객체를 따라가요.",
+          "target": "code:return \"R-글자 \" + c;"
+        }
+      ]
+    },
+    {
+      "id": "stp_54fa8d45-f67e-40c4-860e-b712f3890dee",
+      "title": "매개변수를 맞춰 Bonus의 rate가 진짜 오버라이드가 되게 하세요",
+      "goal": "Bonus는 Rule의 배율 rate를 boost로 바꾸려고 해요. 그런데 Bonus 객체인데도 배율이 Rule의 1로 계산돼요.\n\nBonus의 rate 선언 한 줄을 고쳐 Rule의 rate()를 오버라이드하고 boost를 돌려주게 하세요. 채점은 boost와 amount를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 계산된 금액을 확인하세요.\n2. Bonus의 rate 줄을 매개변수 없이 boost를 돌려주게 고치세요.\n3. 다시 실행해 Bonus의 배율이 곱해졌는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Rule {\n    int rate() { return 1; }\n}\n\nclass Bonus extends Rule {\n    int boost = 3;\n    // Rule의 rate를 바꾸려고 만든 메서드예요.\n    int rate(int extra) { return boost + extra; }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        Rule rule = new Bonus();\n        int amount = 1000;\n        System.out.println(amount * rule.rate());\n    }\n}\n",
+      "solution": "class Rule {\n    int rate() { return 1; }\n}\n\nclass Bonus extends Rule {\n    int boost = 3;\n    // Rule의 rate를 바꾸려고 만든 메서드예요.\n    int rate() { return boost; }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        Rule rule = new Bonus();\n        int amount = 1000;\n        System.out.println(amount * rule.rate());\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "3000"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "boost": "5"
+          },
+          "expected": "5000"
+        },
+        {
+          "values": {
+            "amount": "200"
+          },
+          "expected": "600"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "Bonus 객체인데 왜 Rule의 배율이 쓰이는지가 이 문제예요.",
+          "target": "text:그런데 Bonus 객체인데도 배율이 Rule의 1로 계산돼요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1000이 나왔어요. rule.rate()는 Rule의 1을 썼어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    int rate(int extra)",
+          "after": "    @Override\n    int rate(int extra)",
+          "say": "오버라이드인지 컴파일러에게 확인을 맡겨 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ],
+          "expect_error": "method does not override or implement a method from a supertype"
+        },
+        {
+          "action": "say",
+          "text": "컴파일 오류예요. 매개변수가 달라서 덮어쓰지 못한 새 메서드라는 뜻이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    @Override\n    int rate(int extra) { return boost + extra; }\n",
+          "after": "    @Override\n    int rate() { return boost; }\n",
+          "say": "매개변수를 Rule과 같게 비우고 boost를 돌려줘요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3000이에요. 시그니처가 같아져서 실행 때 Bonus의 rate가 불렸어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 이름만 같고 매개변수가 다르면 오버로드예요. Rule형 변수로는 그 메서드가 보이지도 않아요.",
+          "target": "code:int rate() { return boost; }"
+        }
+      ]
+    },
+    {
+      "id": "stp_40e69ca4-1b53-4f73-8986-29fec3fa268e",
+      "title": "mark 하나만 오버라이드해 부모의 issue 문구까지 바꾸세요",
+      "goal": "Bonus 객체는 발급 문구 issue와 표시 mark 모두에 badge를 써야 해요. issue는 Rule에만 있어요.\n\nBonus에 메서드 하나만 추가해 두 출력이 모두 badge를 쓰게 하세요. Rule은 고치지 마세요. 채점은 badge를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 두 출력을 확인하세요.\n2. Bonus의 주석 아래에 badge를 돌려주는 메서드 하나를 추가하세요.\n3. 다시 실행해 issue의 괄호 안도 바뀌었는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Rule {\n    // 발급 문구를 만드는 공통 순서예요.\n    String issue() { return \"[\" + mark() + \"]\"; }\n    String mark() { return \"R\"; }\n}\n\nclass Bonus extends Rule {\n    String badge = \"B\";\n    // 이 주석 아래에 메서드 하나를 추가하세요.\n}\n\nclass Main {\n    public static void main(String[] args) {\n        Rule rule = new Bonus();\n        System.out.println(rule.issue() + \" \" + rule.mark());\n    }\n}\n",
+      "solution": "class Rule {\n    // 발급 문구를 만드는 공통 순서예요.\n    String issue() { return \"[\" + mark() + \"]\"; }\n    String mark() { return \"R\"; }\n}\n\nclass Bonus extends Rule {\n    String badge = \"B\";\n    // 이 주석 아래에 메서드 하나를 추가하세요.\n    String mark() { return badge; }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        Rule rule = new Bonus();\n        System.out.println(rule.issue() + \" \" + rule.mark());\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[B] B"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "badge": "\"G\""
+          },
+          "expected": "[G] G"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "메서드 하나만 더해서 issue와 mark를 둘 다 바꿔야 해요.",
+          "target": "text:Bonus에 메서드 하나만 추가해 두 출력이 모두 badge를 쓰게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[R] R이 나왔어요. Bonus가 아무것도 바꾸지 않아서 둘 다 Rule 것이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    // 이 주석 아래에 메서드 하나를 추가하세요.\n",
+          "after": "    // 이 주석 아래에 메서드 하나를 추가하세요.\n    String issue() { return \"[\" + badge + \"]\"; }\n",
+          "say": "먼저 issue를 통째로 오버라이드해 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[B] R이에요. issue만 바뀌고 mark는 여전히 Rule 것이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    String issue() { return \"[\" + badge + \"]\"; }\n",
+          "after": "    String mark() { return badge; }\n",
+          "say": "대신 mark만 오버라이드해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[B] B예요. Rule의 issue 안에서 부른 mark도 Bonus 것이 실행됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "issue의 mark()는 this.mark()예요. this가 Bonus 객체라 Bonus 것으로 가요.",
+          "target": "code:\"[\" + mark() + \"]\""
+        }
+      ]
+    },
+    {
+      "id": "stp_7e1c47d1-83f3-485a-8aca-cc353015c98f",
+      "title": "호출마다 클래스와 n을 출력해 재귀가 오가는 길을 보이세요",
+      "goal": "Bonus의 total은 2 * n을 더하고 나머지는 super.total로 Rule에 맡겨요. Rule의 total은 n을 더하고 total(n - 1)로 재귀해요. 결과 10만 보면 어느 클래스를 거쳤는지 몰라요.\n\n두 total의 첫 줄에 클래스 글자와 n을 출력하는 print를 넣어 호출 순서를 보이세요. Rule은 \"R\" + n + \" \", Bonus는 \"B\" + n + \" \"을 출력해요. 채점은 start를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 결과를 확인하세요.\n2. Rule의 주석 아래에 \"R\" + n + \" \"을 출력하는 줄을 쓰세요.\n3. Bonus의 주석 아래에 \"B\" + n + \" \"을 출력하는 줄을 쓰세요.\n4. 다시 실행해 R과 B가 어떤 순서로 나오는지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Rule {\n    int total(int n) {\n        // 이 주석 아래에 \"R\" + n + \" \"을 출력하는 줄을 쓰세요.\n        if (n <= 0) return 0;\n        return n + total(n - 1);\n    }\n}\n\nclass Bonus extends Rule {\n    @Override\n    int total(int n) {\n        // 이 주석 아래에 \"B\" + n + \" \"을 출력하는 줄을 쓰세요.\n        if (n <= 0) return 0;\n        return 2 * n + super.total(n - 1);\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        Rule rule = new Bonus();\n        int start = 3;\n        System.out.println(rule.total(start));\n    }\n}\n",
+      "solution": "class Rule {\n    int total(int n) {\n        // 이 주석 아래에 \"R\" + n + \" \"을 출력하는 줄을 쓰세요.\n        System.out.print(\"R\" + n + \" \");\n        if (n <= 0) return 0;\n        return n + total(n - 1);\n    }\n}\n\nclass Bonus extends Rule {\n    @Override\n    int total(int n) {\n        // 이 주석 아래에 \"B\" + n + \" \"을 출력하는 줄을 쓰세요.\n        System.out.print(\"B\" + n + \" \");\n        if (n <= 0) return 0;\n        return 2 * n + super.total(n - 1);\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        Rule rule = new Bonus();\n        int start = 3;\n        System.out.println(rule.total(start));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "B3 R2 B1 R0 10"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "start": "4"
+          },
+          "expected": "B4 R3 B2 R1 B0 16"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "결과 10이 어느 클래스를 거쳐 나왔는지 보이게 하는 문제예요.",
+          "target": "text:두 total의 첫 줄에 클래스 글자와 n을 출력하는 print를 넣어 호출 순서를 보이세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            22,
+            22
+          ]
+        },
+        {
+          "action": "say",
+          "text": "10만 나왔어요. 3, 2, 1을 더하면 6이라 다른 길을 거쳤어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 이 주석 아래에 \"R\" + n + \" \"을 출력하는 줄을 쓰세요.\n",
+          "after": "        // 이 주석 아래에 \"R\" + n + \" \"을 출력하는 줄을 쓰세요.\n        System.out.print(\"R\" + n + \" \");\n",
+          "say": "Rule의 total에 출력을 넣어요."
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 이 주석 아래에 \"B\" + n + \" \"을 출력하는 줄을 쓰세요.\n",
+          "after": "        // 이 주석 아래에 \"B\" + n + \" \"을 출력하는 줄을 쓰세요.\n        System.out.print(\"B\" + n + \" \");\n",
+          "say": "Bonus의 total에도 넣어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            24,
+            24
+          ]
+        },
+        {
+          "action": "say",
+          "text": "B3 R2 B1 R0 10이에요. B와 R이 번갈아 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "Rule의 total(n - 1)도 this의 메서드라 Bonus로 돌아가요.",
+          "target": "code:return n + total(n - 1);"
+        },
+        {
+          "action": "say",
+          "text": "그래서 6 + 2 + 2 + 0으로 10이 됐어요.",
+          "target": "code:return 2 * n + super.total(n - 1);"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. super로 한 번 들어가면 계속 Rule에 머문다고 보기 쉬워요. super는 그 호출 한 번만 Rule로 보내요.",
+          "target": "code:super.total(n - 1)"
+        }
+      ]
+    },
+    {
+      "id": "stp_454a0fb2-912b-4e0a-9b3b-987adc3386d7",
+      "title": "getLimit만 Bonus의 limit을 읽게 Bonus에 메서드를 더하세요",
+      "goal": "Rule과 Bonus에 같은 이름의 필드 limit이 따로 있어요. 같은 Bonus 객체인데 rule.limit과 rule.getLimit()이 둘 다 Rule의 값이에요.\n\n**알아두세요**\n\n필드는 오버라이드되지 않아요. 자식에 같은 이름의 필드를 두면 부모 필드를 가릴 뿐, 두 값이 객체 안에 함께 있어요.\n\nBonus에 메서드 하나를 추가해 rule.getLimit()만 Bonus의 limit을 돌려주게 하세요. rule.limit 출력은 그대로 Rule의 값이어야 해요. 채점은 Rule의 limit을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 두 값을 확인하세요.\n2. Bonus의 주석 아래에 limit을 돌려주는 getLimit을 추가하세요.\n3. 다시 실행해 앞 값과 뒤 값이 갈렸는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Rule {\n    int limit = 10;\n    int getLimit() { return limit; }\n}\n\nclass Bonus extends Rule {\n    // Bonus의 limit은 Rule의 limit의 세 배예요.\n    int limit = super.limit * 3;\n    // 이 주석 아래에 메서드 하나를 추가하세요.\n}\n\nclass Main {\n    public static void main(String[] args) {\n        Rule rule = new Bonus();\n        System.out.println(rule.limit + \" \" + rule.getLimit());\n    }\n}\n",
+      "solution": "class Rule {\n    int limit = 10;\n    int getLimit() { return limit; }\n}\n\nclass Bonus extends Rule {\n    // Bonus의 limit은 Rule의 limit의 세 배예요.\n    int limit = super.limit * 3;\n    // 이 주석 아래에 메서드 하나를 추가하세요.\n    int getLimit() { return limit; }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        Rule rule = new Bonus();\n        System.out.println(rule.limit + \" \" + rule.getLimit());\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "10 30"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "limit": "4"
+          },
+          "expected": "4 12"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "같은 객체에서 앞은 그대로, 뒤만 Bonus 값이 되게 해야 해요.",
+          "target": "text:Bonus에 메서드 하나를 추가해 rule.getLimit()만 Bonus의 limit을 돌려주게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "10 10이 나왔어요. 객체는 Bonus인데 둘 다 Rule의 limit이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "getLimit은 Rule에 쓰여 있어요. 그 안의 limit은 Rule의 필드예요.",
+          "target": "code:int getLimit() { return limit; }"
+        },
+        {
+          "action": "patch_code",
+          "before": "    // 이 주석 아래에 메서드 하나를 추가하세요.\n",
+          "after": "    // 이 주석 아래에 메서드 하나를 추가하세요.\n    int getLimit() { return limit; }\n",
+          "say": "Bonus에 같은 모양의 getLimit을 더해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "10 30이에요. 메서드는 Bonus 것이 불려 Bonus의 limit을 읽었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. rule.limit은 객체를 따라가지 않아요. rule이 Rule형이라 앞 값은 계속 10이에요.",
+          "target": "code:rule.limit"
+        }
+      ]
+    },
+    {
+      "id": "stp_c397916b-278d-40cd-baac-9fe8793b7c24",
+      "title": "grade도 실제 객체를 따르게 static을 빼세요",
+      "goal": "한 줄에 인스턴스 메서드 name과 static 메서드 grade를 함께 출력해요. name은 Bonus 것이 나오는데 grade는 Rule 것이 나와요.\n\n두 클래스의 grade 선언에서 static을 빼 grade도 실제 객체를 따르게 하세요. main은 그대로 두세요. 채점은 rule에 Rule 객체를 넣어서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 두 값을 확인하세요.\n2. Rule의 grade 선언에서 static을 빼세요.\n3. Bonus의 grade 선언에서도 static을 빼세요.\n4. 다시 실행해 두 값이 모두 Bonus 것인지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Rule {\n    static String grade() { return \"일반\"; }\n    String name() { return \"R\"; }\n}\n\nclass Bonus extends Rule {\n    static String grade() { return \"우수\"; }\n    @Override\n    String name() { return \"B\"; }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        Rule rule = new Bonus();\n        // 두 호출이 무엇을 기준으로 골라지는지 보세요.\n        System.out.println(rule.name() + \" \" + rule.grade());\n    }\n}\n",
+      "solution": "class Rule {\n    String grade() { return \"일반\"; }\n    String name() { return \"R\"; }\n}\n\nclass Bonus extends Rule {\n    String grade() { return \"우수\"; }\n    @Override\n    String name() { return \"B\"; }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        Rule rule = new Bonus();\n        // 두 호출이 무엇을 기준으로 골라지는지 보세요.\n        System.out.println(rule.name() + \" \" + rule.grade());\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "B 우수"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "rule": "new Rule()"
+          },
+          "expected": "R 일반"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "같은 rule로 불렀는데 두 값의 기준이 달라요. 그 기준을 맞추는 문제예요.",
+          "target": "text:name은 Bonus 것이 나오는데 grade는 Rule 것이 나와요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "B 일반이 나왔어요. static은 rule의 선언형 Rule로 정해졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    static String grade() { return \"우수\"; }",
+          "after": "    String grade() { return \"우수\"; }",
+          "say": "Bonus 쪽 static만 먼저 빼 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ],
+          "expect_error": "cannot override"
+        },
+        {
+          "action": "say",
+          "text": "컴파일 오류예요. 인스턴스 메서드가 static 메서드를 덮을 수는 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    static String grade() { return \"일반\"; }",
+          "after": "    String grade() { return \"일반\"; }",
+          "say": "Rule 쪽 static도 빼요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "B 우수예요. 이제 grade도 오버라이드라 실제 객체 Bonus를 따라가요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 호출을 Bonus.grade()로 바꾸면 객체와 상관없이 늘 우수예요. Rule 객체에서도 우수가 나와요.",
+          "target": "code:rule.grade()"
+        }
+      ]
+    },
+    {
+      "id": "stp_9d19c07e-c556-4432-9f24-44f687f0d03f",
+      "title": "0으로 나눈 경우만 10점으로 잡는 catch를 앞에 넣으세요",
+      "goal": "정산은 score에 1을 더하고 나눈 몫을 더해요. 예외가 나면 catch에서 점수를 더하고, finally에서 1000을 더해요. 지금은 0으로 나눠도 다른 예외와 똑같이 100을 더해요.\n\n**알아두세요**\n\n0으로 나누면 ArithmeticException, 배열 칸을 벗어나면 ArrayIndexOutOfBoundsException이 나요. 둘 다 RuntimeException의 하위 예외예요.\n\n0으로 나눈 경우에만 10을 더하는 catch를 추가하세요. 다른 예외는 지금처럼 100을 더해야 해요. 채점은 idx를 바꿔 예외가 없을 때와 범위를 벗어날 때도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 점수를 확인하세요.\n2. 주석 자리에 ArithmeticException을 잡아 10을 더하는 catch를 넣으세요.\n3. 다시 실행해 점수가 어떻게 바뀌었는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Main {\n    public static void main(String[] args) {\n        int[] stock = {4, 0, 3};\n        int idx = 1;\n        int score = 0;\n        try {\n            score += 1;\n            int each = 12 / stock[idx];\n            score += each;\n        }\n        // 0으로 나눈 경우를 따로 잡는 catch를 이 자리에 넣으세요.\n        catch (RuntimeException e) {\n            score += 100;\n        } finally {\n            score += 1000;\n        }\n        System.out.println(score);\n    }\n}\n",
+      "solution": "class Main {\n    public static void main(String[] args) {\n        int[] stock = {4, 0, 3};\n        int idx = 1;\n        int score = 0;\n        try {\n            score += 1;\n            int each = 12 / stock[idx];\n            score += each;\n        }\n        // 0으로 나눈 경우를 따로 잡는 catch를 이 자리에 넣으세요.\n        catch (ArithmeticException e) {\n            score += 10;\n        }\n        catch (RuntimeException e) {\n            score += 100;\n        } finally {\n            score += 1000;\n        }\n        System.out.println(score);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "1011"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "idx": "2"
+          },
+          "expected": "1005"
+        },
+        {
+          "values": {
+            "idx": "3"
+          },
+          "expected": "1101"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "0으로 나눈 경우만 따로 10점을 주는 catch를 더해야 해요.",
+          "target": "text:0으로 나눈 경우에만 10을 더하는 catch를 추가하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1101이 나왔어요. 1을 더한 뒤 나눗셈에서 멈추고 100, 1000이 더해졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "            score += 100;\n        }",
+          "after": "            score += 100;\n        } catch (ArithmeticException e) {\n            score += 10;\n        }",
+          "say": "새 catch를 맨 뒤에 붙여 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            19
+          ],
+          "expect_error": "has already been caught"
+        },
+        {
+          "action": "say",
+          "text": "컴파일 오류예요. 앞의 RuntimeException이 이미 이 예외를 잡아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "            score += 100;\n        } catch (ArithmeticException e) {\n            score += 10;\n        }",
+          "after": "            score += 100;\n        }",
+          "say": "뒤에 붙인 catch를 지워요."
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 0으로 나눈 경우를 따로 잡는 catch를 이 자리에 넣으세요.\n",
+          "after": "        // 0으로 나눈 경우를 따로 잡는 catch를 이 자리에 넣으세요.\n        catch (ArithmeticException e) {\n            score += 10;\n        }\n",
+          "say": "이번엔 RuntimeException 앞에 넣어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            20,
+            20
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1011이에요. 처음 맞는 catch 하나만 실행돼 100은 더해지지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 하위 예외 catch는 상위 예외보다 위에 둬야 해요. 순서가 반대면 컴파일조차 안 돼요.",
+          "target": "code:catch (ArithmeticException e)"
+        }
+      ]
+    },
+    {
+      "id": "stp_fe98b325-1f54-40ea-baaf-c1d81f12f530",
+      "title": "수수료를 빼는 줄을 return 앞으로 옮기세요",
+      "goal": "refund는 낸 돈 paid에서 수수료 3을 뺀 값을 돌려줘야 해요. 그런데 화면에는 뺀 값이 찍히는데 환불액은 낸 돈 그대로예요.\n\nfinally에 있는 수수료를 빼는 줄을 try 안 return 앞으로 옮겨 환불액에도 수수료가 빠지게 하세요. finally의 출력 줄은 그대로 두세요. 채점은 price를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 두 값과 출력 순서를 확인하세요.\n2. finally의 수수료를 빼는 줄을 try 안 return 앞으로 옮기세요.\n3. 다시 실행해 두 값이 같아졌는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Main {\n    static int refund(int paid) {\n        try {\n            return paid;\n        } finally {\n            // 수수료 3을 빼요.\n            paid = paid - 3;\n            System.out.print(\"수수료 뺀 값 \" + paid + \" / \");\n        }\n    }\n\n    public static void main(String[] args) {\n        int price = 20;\n        System.out.println(\"환불 \" + refund(price));\n    }\n}\n",
+      "solution": "class Main {\n    static int refund(int paid) {\n        try {\n            paid = paid - 3;\n            return paid;\n        } finally {\n            System.out.print(\"수수료 뺀 값 \" + paid + \" / \");\n        }\n    }\n\n    public static void main(String[] args) {\n        int price = 20;\n        System.out.println(\"환불 \" + refund(price));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "수수료 뺀 값 17 / 환불 17"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "price": "50"
+          },
+          "expected": "수수료 뺀 값 47 / 환불 47"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "뺀 값은 찍히는데 환불액엔 왜 안 빠지는지가 이 문제예요.",
+          "target": "text:그런데 화면에는 뺀 값이 찍히는데 환불액은 낸 돈 그대로예요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "수수료 뺀 값 17 / 환불 20이 나왔어요. finally 출력이 먼저예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "return paid에서 20이 이미 정해졌어요. 그 뒤 finally가 paid를 바꿔도 돌려줄 값은 그대로예요.",
+          "target": "code:return paid;"
+        },
+        {
+          "action": "patch_code",
+          "before": "            return paid;\n",
+          "after": "            paid = paid - 3;\n            return paid;\n",
+          "say": "빼는 줄을 return 앞에 써요."
+        },
+        {
+          "action": "patch_code",
+          "before": "            // 수수료 3을 빼요.\n            paid = paid - 3;\n",
+          "after": "",
+          "say": "finally에 있던 줄은 지워요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "수수료 뺀 값 17 / 환불 17이에요. 값이 정해지기 전에 뺐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 빼는 줄을 return 바로 뒤에 두면 도달할 수 없는 문장이라 컴파일 오류예요.",
+          "target": "code:paid = paid - 3;"
+        }
+      ]
+    },
+    {
+      "id": "stp_5ccafede-71b5-418a-be73-a69535ede1c6",
+      "title": "네 값 중 tag만 Bonus의 String 규칙이 되게 한 곳을 고치세요",
+      "goal": "한 줄에 등급 level, 문구 규칙 tag, 점수 score, 기준값 base를 차례로 출력해요. 변수 r은 Rule형, 객체는 Bonus예요.\n\n선언 한 곳을 고쳐 tag 자리에만 Bonus의 String 규칙 S-B가 나오게 하세요. 나머지 세 값은 지금 그대로 나와야 해요. 채점은 n을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 네 값을 확인하세요.\n2. 각 값이 어느 규칙으로 정해졌는지 코드에서 따라가세요.\n3. 선언 한 곳을 고쳐 tag만 S-B가 되게 하세요.\n4. 다시 실행해 나머지 세 값이 그대로인지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Rule {\n    int base = 2;\n    static String level() { return \"R\"; }\n    String tag(Object o) { return \"O-R\"; }\n    String tag(String s) { return \"S-R\"; }\n    int score(int n) {\n        if (n <= 0) return base;\n        return n + score(n - 1);\n    }\n}\n\nclass Bonus extends Rule {\n    int base = 5;\n    static String level() { return \"B\"; }\n    String tag(Object o) { return \"O-B\"; }\n    String tag(String s) { return \"S-B\"; }\n    int score(int n) { return 10 + super.score(n); }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        Rule r = new Bonus();\n        Object word = \"vip\";\n        int n = 2;\n        System.out.println(r.level() + \" \" + r.tag(word) + \" \" + r.score(n) + \" \" + r.base);\n    }\n}\n",
+      "solution": "class Rule {\n    int base = 2;\n    static String level() { return \"R\"; }\n    String tag(Object o) { return \"O-R\"; }\n    String tag(String s) { return \"S-R\"; }\n    int score(int n) {\n        if (n <= 0) return base;\n        return n + score(n - 1);\n    }\n}\n\nclass Bonus extends Rule {\n    int base = 5;\n    static String level() { return \"B\"; }\n    String tag(Object o) { return \"O-B\"; }\n    String tag(String s) { return \"S-B\"; }\n    int score(int n) { return 10 + super.score(n); }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        Rule r = new Bonus();\n        String word = \"vip\";\n        int n = 2;\n        System.out.println(r.level() + \" \" + r.tag(word) + \" \" + r.score(n) + \" \" + r.base);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "R S-B 35 2"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "n": "3"
+          },
+          "expected": "R S-B 48 2"
+        },
+        {
+          "values": {
+            "n": "0"
+          },
+          "expected": "R S-B 12 2"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "네 값 가운데 tag만 바꾸고 나머지 셋은 그대로 둬야 해요.",
+          "target": "text:선언 한 곳을 고쳐 tag 자리에만 Bonus의 String 규칙 S-B가 나오게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            25,
+            25
+          ]
+        },
+        {
+          "action": "say",
+          "text": "R O-B 35 2가 나왔어요. 하나씩 따라가 볼게요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "level은 static이라 r의 선언형 Rule 것, R이에요.",
+          "target": "code:r.level()"
+        },
+        {
+          "action": "say",
+          "text": "tag는 word가 Object라 tag(Object)로 정해지고, 실행은 Bonus 것이에요.",
+          "target": "code:r.tag(word)"
+        },
+        {
+          "action": "say",
+          "text": "score(2)는 Bonus에서 10을 더하고 Rule로 가요. Rule의 score(1)은 다시 Bonus로 와요.",
+          "target": "code:return n + score(n - 1);"
+        },
+        {
+          "action": "say",
+          "text": "그래서 10이 세 번 더해지고, 맨 끝 base는 Rule 필드 2라 35예요.",
+          "target": "code:if (n <= 0) return base;"
+        },
+        {
+          "action": "patch_code",
+          "before": "Rule r = new Bonus();",
+          "after": "Bonus r = new Bonus();",
+          "say": "r을 Bonus로 선언해 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            25,
+            25
+          ]
+        },
+        {
+          "action": "say",
+          "text": "B O-B 35 5예요. tag는 그대로이고 static level과 필드 base만 바뀌었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "Bonus r = new Bonus();",
+          "after": "Rule r = new Bonus();",
+          "say": "r은 되돌려요."
+        },
+        {
+          "action": "patch_code",
+          "before": "Object word = \"vip\";",
+          "after": "String word = \"vip\";",
+          "say": "대신 word의 선언형만 String으로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            25,
+            25
+          ]
+        },
+        {
+          "action": "say",
+          "text": "R S-B 35 2예요. 오버로드만 String 버전으로 바뀌고 나머지는 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. r의 선언형을 바꾸면 static과 필드도 함께 바뀌어요. 바꿀 것은 인수의 선언형이에요.",
+          "target": "code:String word"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "같은 이름의 메서드 중 무엇을 부를지는 컴파일 때 인수와 변수의 선언형으로 정해져요.",
+      "정해진 메서드는 실행 때 실제 객체의 오버라이드로 가고, 부모 메서드 안의 호출도 그래요.",
+      "필드와 static 메서드는 변수의 선언형을 따르고, 예외는 처음 맞는 catch 하나와 finally로 흘러요.",
+      "여러 규칙이 섞인 코드를 항목별로 따라가 한 곳을 고쳐요."
+    ],
+    "chapters": {
+      "chp_a2df4011-f8d7-4784-839b-4f55b9231187": [
+        "같은 이름의 메서드 중 무엇을 부를지 정하는 기준이 인수와 변수의 선언형임을 확인해요."
+      ],
+      "chp_c83ca6b0-30e7-4896-8709-5682fcf4d996": [
+        "부모 메서드 안의 자기 호출, super 안의 재귀 호출도 실제 객체 기준임을 추적해요."
+      ],
+      "chp_2493b24a-2fff-41e7-bb4d-5f3ddf379a55": [
+        "필드와 static 메서드는 오버라이드되지 않고 선언형으로 정해진다는 것을 메서드와 비교해요."
+      ],
+      "chp_5842d2d8-78c0-4ce8-b993-e45632227b59": [
+        "처음 맞는 catch 하나와 finally, return 뒤 finally를 확인하고 여러 규칙이 섞인 코드를 추적해요."
+      ]
+    },
+    "units": {
+      "unt_015ea47e-e5de-4174-a33d-3b1bd6d02893": {
+        "objectives": [
+          "인수의 선언형과 식의 타입이 오버로드를 고른다는 것을 실행으로 비교해요."
+        ],
+        "premise": "쿠폰 문구를 다루는 같은 이름의 메서드가 여러 개 있어요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_ff205040-b385-45cb-b2d6-153f94284d6a": {
+        "objectives": [
+          "컴파일 때 정한 메서드가 실행 때 실제 객체의 오버라이드로 가는 두 단계를 나눠요."
+        ],
+        "premise": "Rule은 기본 발급 규칙, Bonus는 Rule을 물려받은 우대 규칙이에요. 변수는 Rule형, 객체는 Bonus예요."
+      },
+      "unt_e64e72ff-4111-415e-a66d-2e5f9a7fb84b": {
+        "objectives": [
+          "부모 메서드 안에서 부른 메서드가 어느 클래스 것인지 실행으로 확인해요."
+        ],
+        "premise": "Rule의 issue는 발급 문구를 만드는 공통 순서예요. Bonus는 그 순서를 물려받아요."
+      },
+      "unt_42afe98d-f2a5-4d1d-b389-4b61fa61361a": {
+        "objectives": [
+          "필드·static·인스턴스 메서드를 한 출력에서 비교해요."
+        ],
+        "premise": "변수 rule은 Rule형, 객체는 Bonus예요. 두 클래스에 같은 이름의 필드나 static 메서드가 있어요."
+      },
+      "unt_3a8abab6-b87e-4e6b-930d-64af7531eae9": {
+        "objectives": [
+          "어느 catch가 잡는지, finally가 언제 실행되는지 점수와 출력으로 확인해요."
+        ],
+        "premise": "쿠폰 정산 중 예외가 날 수 있어요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_c8999b9d-575e-40a6-b36c-47f4b851fe1d": {
+        "objectives": [
+          "오버로드·오버라이드·자기 호출·static·필드를 한 줄의 출력에서 항목별로 따라가요."
+        ],
+        "premise": "시험처럼 여러 규칙이 한 코드에 섞여 있어요. 출력 한 줄을 항목별로 나눠 따라가요."
+      }
+    }
+  }
+}

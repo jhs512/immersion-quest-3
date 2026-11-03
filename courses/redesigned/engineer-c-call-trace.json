@@ -1,0 +1,943 @@
+{
+  "schema_version": 2,
+  "id": "lsn_9048e8bf-95a9-4f9f-a7b8-e8a76da71015",
+  "revision": "engineer-c-call-trace-1",
+  "title": "C · 함수 호출을 따라가 재귀의 호출 트리까지 추적해요",
+  "description": "반환값이 식에 들어가는 순서, 곱으로 쌓는 재귀, 호출 앞뒤 출력, 모든 호출이 나눠 쓰는 static, 두 갈래 재귀의 호출 트리를 한두 줄씩 고치며 실행으로 확인해요.",
+  "objectives": [
+    "안쪽 호출의 반환값이 먼저 계산돼 바깥 식에 들어가는 순서를 추적해요.",
+    "단일 재귀가 기저까지 내려갔다가 돌아오며 값을 쌓고 호출 뒤 줄을 실행하는 순서를 추적해요.",
+    "static 지역 변수를 모든 호출이 하나로 나눠 쓴다는 것을 재귀에서 확인해요.",
+    "자신을 두 번 부르는 재귀의 호출 트리와 음수 인자의 기저 값을 따라가 결과를 구해요."
+  ],
+  "sources": [
+    "https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf",
+    "https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_8c9ae469-a821-4b47-8acd-fe1ba3f8b295",
+      "title": "반환값을 식에 이어 붙여요",
+      "objectives": [
+        "호출식이 반환값으로 바뀌는 순서와 인자가 매개변수에 들어가는 순서를 추적해요."
+      ],
+      "units": [
+        {
+          "id": "unt_fb0a8ce5-3969-44b5-b98e-5866ae8a624c",
+          "title": "택배 요금 함수",
+          "objectives": [
+            "함수가 돌려준 값이 다른 함수의 인자가 되는 흐름을 따라가요."
+          ],
+          "premise": "택배 요금을 작은 함수 몇 개로 나눠 계산해요. 각 스텝은 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_a062fd95-6c26-4233-97cb-c9b0ee07ae62",
+              "objectives": [
+                "안쪽 호출이 먼저 계산되고 그 반환값이 바깥 함수의 인자가 됨을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_db7e3eb4-1c38-4a43-a303-041854744870",
+              "objectives": [
+                "인자는 쓴 순서대로 매개변수에 복사되고, 반복을 품은 함수도 마지막 값 하나를 돌려줌을 확인해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_47aca756-1aa7-4e3f-bf4a-142421345149",
+      "title": "한 갈래 재귀를 내려갔다가 돌아와요",
+      "objectives": [
+        "기저까지 내려간 뒤 돌아오며 값이 쌓이고 호출 뒤 줄이 실행되는 순서를 추적해요."
+      ],
+      "units": [
+        {
+          "id": "unt_8dbfd388-36f0-440a-81e1-9e355eedd205",
+          "title": "상자 줄 세우기",
+          "objectives": [
+            "합 재귀를 곱 재귀로 바꾸고 호출 앞뒤 출력을 비교해요."
+          ],
+          "premise": "창고 상자를 한 줄로 세우는 경우를 재귀로 셉니다. 각 스텝은 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_e74ca918-1555-4e43-a206-4bb7d6e3aa5f",
+              "objectives": [
+                "곱을 쌓는 재귀는 기저가 1이어야 함을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_010ccb3c-cd08-415a-97d2-522297a4cef2",
+              "objectives": [
+                "자기 호출 뒤의 줄은 가장 깊은 호출부터 거꾸로 실행됨을 확인해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_aef1e7f1-c5f7-4095-8e84-ea6cc19dbf95",
+      "title": "static 변수는 모든 호출이 나눠 써요",
+      "objectives": [
+        "static 지역 변수가 호출 사이에 남고, 재귀 호출 전체가 같은 변수 하나를 읽고 씀을 추적해요."
+      ],
+      "units": [
+        {
+          "id": "unt_2b59d656-1c57-47ea-be1e-bf45847aff67",
+          "title": "적립과 도장",
+          "objectives": [
+            "일반 지역 변수와 static의 차이를 반복 호출과 재귀에서 비교해요."
+          ],
+          "premise": "방문 적립과 층별 도장을 함수 하나로 처리해요. 각 스텝은 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_ccce0322-9a21-42a8-be45-3c5e73dee4e0",
+              "objectives": [
+                "static 지역 변수의 초기화는 한 번뿐이고 값이 다음 호출로 이어짐을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_d82792c0-9ee6-4d6e-b418-25d162080ea9",
+              "objectives": [
+                "재귀 호출들이 static 변수 하나를 함께 쓰므로 돌아올 때는 마지막 값을 읽음을 확인해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_0eaaac17-4595-497f-b8c8-d39a9d5e71b7",
+      "title": "두 갈래로 부르는 재귀의 호출 트리",
+      "objectives": [
+        "자신을 두 번 부르는 재귀의 결과·호출 순서·음수 기저를 추적하고 여러 원리를 한 코드에서 따라가요."
+      ],
+      "units": [
+        {
+          "id": "unt_29515e26-d6b8-4661-ba10-0423e8991433",
+          "title": "계단 오르기",
+          "objectives": [
+            "호출 트리를 출력으로 펼쳐 보고 작은 n부터 값을 채워요."
+          ],
+          "premise": "계단을 한 번에 1칸 또는 2칸 올라요. 각 스텝은 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_a76e936a-6cad-4638-8002-491db2025d81",
+              "objectives": [
+                "한 호출이 자신을 두 번 부르면 두 결과가 더해져 돌아옴을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_8a241ac7-9e7a-4f2a-b7db-8100d825c612",
+              "objectives": [
+                "두 갈래 재귀는 왼쪽 가지를 끝까지 내려간 뒤 오른쪽을 부르고, 같은 n이 여러 번 호출됨을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_757fc82d-6c02-433c-aaa7-07769a586f87",
+              "objectives": [
+                "두 번째 호출이 n - 3이면 음수 인자가 기저로 들어가 음수를 돌려줌을 표로 확인해요."
+              ]
+            },
+            {
+              "id": "stp_15d10629-bc57-48be-b24d-447d4889aef6",
+              "objectives": [
+                "static 순번, 두 갈래 호출 순서, 반환값 합을 한 코드에서 따라가 고쳐요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_a062fd95-6c26-4233-97cb-c9b0ee07ae62",
+      "title": "수수료를 먼저 더한 뒤 두 배가 되게 호출을 고치세요",
+      "goal": "요금 계산 규칙은 원래 값에 수수료 2를 먼저 더하고, 그 합을 두 배 하는 거예요. price가 5면 14가 나와야 해요.\n\nprintf 줄의 두 호출이 겹친 순서를 고쳐 규칙대로 계산되게 하세요. 채점은 price를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 요금을 확인하세요.\n2. printf 줄에서 두 함수가 겹친 순서를 바꾸세요.\n3. 다시 실행해 14가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint add_fee(int won) {\n    return won + 2;\n}\n\nint twice(int won) {\n    return won * 2;\n}\n\nint main(void) {\n    int price = 5;\n    // 안쪽 괄호의 호출이 돌려준 값이 바깥 함수의 인자로 들어가요.\n    printf(\"%d\", add_fee(twice(price)));\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint add_fee(int won) {\n    return won + 2;\n}\n\nint twice(int won) {\n    return won * 2;\n}\n\nint main(void) {\n    int price = 5;\n    // 안쪽 괄호의 호출이 돌려준 값이 바깥 함수의 인자로 들어가요.\n    printf(\"%d\", twice(add_fee(price)));\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "14"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "price": "10"
+          },
+          "expected": "24"
+        },
+        {
+          "values": {
+            "price": "0"
+          },
+          "expected": "4"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "수수료를 먼저 더하고 나서 두 배 해야 해요. 어느 호출이 먼저 계산되는지가 문제예요.",
+          "target": "text:printf 줄의 두 호출이 겹친 순서를 고쳐 규칙대로 계산되게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "12가 나왔어요. 안쪽 twice가 먼저 10을 돌려주고, add_fee가 2를 더했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "add_fee(twice(price))",
+          "after": "twice(add_fee(price))",
+          "say": "수수료 함수를 안쪽으로 옮겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "14예요. add_fee(5)가 7로 바뀐 뒤 twice(7)이 계산됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 바깥에 쓴 함수가 먼저 일한다고 읽으면 순서가 거꾸로 돼요. 가장 안쪽 괄호부터 값으로 바꿔 읽으세요.",
+          "target": "code:twice(add_fee(price))"
+        }
+      ]
+    },
+    {
+      "id": "stp_db7e3eb4-1c38-4a43-a303-041854744870",
+      "title": "인자 순서를 고쳐 side를 times번 곱하세요",
+      "goal": "상자 한 변 side를 times번 곱한 값을 구하려 해요. side가 3, times가 4면 3을 네 번 곱한 81이에요.\n\n**알아두세요**\n\n맨 위의 `int power(int base, int exp);`는 함수 선언이에요. 선언이 있으면 정의가 main 아래에 있어도 main에서 부를 수 있어요.\n\nmain의 power 호출에서 인자 순서를 고쳐 81이 나오게 하세요. power 함수는 그대로 두세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 결과를 확인하세요.\n2. power 호출의 두 인자 순서를 바꾸세요.\n3. 다시 실행해 81이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint power(int base, int exp);\n\nint main(void) {\n    int side = 3;\n    int times = 4;\n    // power의 정의는 main 아래에 있어요.\n    printf(\"%d\", power(times, side));\n    return 0;\n}\n\nint power(int base, int exp) {\n    int result = 1;\n    int i;\n    for (i = 0; i < exp; i++) {\n        result = result * base;\n    }\n    return result;\n}\n",
+      "solution": "#include <stdio.h>\n\nint power(int base, int exp);\n\nint main(void) {\n    int side = 3;\n    int times = 4;\n    // power의 정의는 main 아래에 있어요.\n    printf(\"%d\", power(side, times));\n    return 0;\n}\n\nint power(int base, int exp) {\n    int result = 1;\n    int i;\n    for (i = 0; i < exp; i++) {\n        result = result * base;\n    }\n    return result;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "81"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "side": "5"
+          },
+          "expected": "625"
+        },
+        {
+          "values": {
+            "times": "2"
+          },
+          "expected": "9"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "3을 네 번 곱한 81이 나와야 해요. 함수는 맞고 부르는 쪽이 문제예요.",
+          "target": "text:main의 power 호출에서 인자 순서를 고쳐 81이 나오게 하세요."
+        },
+        {
+          "action": "say",
+          "text": "이 선언 덕분에 아래에 정의한 power를 main에서 부를 수 있어요.",
+          "target": "code:int power(int base, int exp);"
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "64가 나왔어요. 첫 인자 4가 base, 둘째 3이 exp로 들어가 4를 세 번 곱했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "power(times, side)",
+          "after": "power(side, times)",
+          "say": "밑이 될 side를 첫 자리에 둬요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "81이에요. base가 3, exp가 4가 돼 반복이 네 번 돌았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "인자는 이름이 아니라 자리로 짝지어져요. 첫 자리 값이 base, 둘째 자리 값이 exp에 복사돼요.",
+          "target": "code:int power(int base, int exp) {"
+        }
+      ]
+    },
+    {
+      "id": "stp_e74ca918-1555-4e43-a206-4bb7d6e3aa5f",
+      "title": "합 재귀를 곱 재귀로 바꿔 줄 세우는 방법의 수를 구하세요",
+      "goal": "상자 n개를 한 줄로 세우는 방법은 n × (n - 1) × … × 1가지예요. 상자 5개면 120가지죠. 준비 코드는 앞 수업의 sum_to처럼 더하고 있어요.\n\norders가 곱을 쌓도록 두 줄을 고치세요. 상자가 0개일 때도 세우는 방법은 1가지예요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 결과를 확인하세요.\n2. 자기 호출이 있는 return 줄을 곱으로 고치세요.\n3. 다시 실행해 결과를 확인하세요.\n4. 기저의 반환값을 고치세요.\n5. 다시 실행해 120이 나오는지 확인하세요.\n6. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\n// n개의 결과를 n - 1개의 결과로 만들어요.\nint orders(int n) {\n    if (n == 0) {\n        return 0;\n    }\n    return n + orders(n - 1);\n}\n\nint main(void) {\n    int boxes = 5;\n    printf(\"%d\", orders(boxes));\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\n// n개의 결과를 n - 1개의 결과로 만들어요.\nint orders(int n) {\n    if (n == 0) {\n        return 1;\n    }\n    return n * orders(n - 1);\n}\n\nint main(void) {\n    int boxes = 5;\n    printf(\"%d\", orders(boxes));\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "120"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "boxes": "7"
+          },
+          "expected": "5040"
+        },
+        {
+          "values": {
+            "boxes": "0"
+          },
+          "expected": "1"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "5부터 1까지 곱한 120이 나와야 해요. 지금은 더하는 재귀예요.",
+          "target": "text:orders가 곱을 쌓도록 두 줄을 고치세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "15가 나왔어요. 5 + 4 + 3 + 2 + 1 + 0으로 더했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "n + orders(n - 1)",
+          "after": "n * orders(n - 1)",
+          "say": "더하기만 곱하기로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0이 나왔어요. 맨 아래 orders(0)이 0을 돌려줘서 모든 곱이 0이 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "return 0;\n    }",
+          "after": "return 1;\n    }",
+          "say": "기저의 반환값을 곱해도 그대로인 1로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "120이에요. 돌아오며 1, 1, 2, 6, 24, 120 순서로 쌓였어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 합을 쌓던 틀을 곱으로 바꿀 때 기저 0을 그대로 두면 답이 늘 0이에요.",
+          "target": "code:return 1;"
+        }
+      ]
+    },
+    {
+      "id": "stp_010ccb3c-cd08-415a-97d2-522297a4cef2",
+      "title": "돌아오는 길에도 층 번호를 출력하세요",
+      "goal": "echo는 내려가면서 층 번호를 출력해요. 이번에는 돌아오는 길에도 각 호출이 자기 n을 한 번 더 출력하게 하려 해요.\n\n주석 아래에 n을 출력하는 printf 한 줄을 더해 3 2 1 1 2 3이 나오게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력을 확인하세요.\n2. 주석 아래에 n과 공백을 출력하는 printf 한 줄을 쓰세요.\n3. 다시 실행해 돌아오는 쪽 번호가 어떤 순서인지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nvoid echo(int n) {\n    if (n == 0) {\n        return;\n    }\n    printf(\"%d \", n);\n    echo(n - 1);\n    // 이 주석 아래 줄은 안쪽 호출이 끝나고 돌아온 뒤에 실행돼요.\n}\n\nint main(void) {\n    int depth = 3;\n    echo(depth);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nvoid echo(int n) {\n    if (n == 0) {\n        return;\n    }\n    printf(\"%d \", n);\n    echo(n - 1);\n    // 이 주석 아래 줄은 안쪽 호출이 끝나고 돌아온 뒤에 실행돼요.\n    printf(\"%d \", n);\n}\n\nint main(void) {\n    int depth = 3;\n    echo(depth);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "3 2 1 1 2 3 "
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "depth": "2"
+          },
+          "expected": "2 1 1 2 "
+        },
+        {
+          "values": {
+            "depth": "4"
+          },
+          "expected": "4 3 2 1 1 2 3 4 "
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "내려갈 때와 돌아올 때 모두 번호를 찍어야 해요.",
+          "target": "text:주석 아래에 n을 출력하는 printf 한 줄을 더해 3 2 1 1 2 3이 나오게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3 2 1이 나왔어요. 출력이 자기 호출보다 앞에 있어 들어가는 순서대로 찍혔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    // 이 주석 아래 줄은 안쪽 호출이 끝나고 돌아온 뒤에 실행돼요.\n",
+          "after": "    // 이 주석 아래 줄은 안쪽 호출이 끝나고 돌아온 뒤에 실행돼요.\n    printf(\"%d \", n);\n",
+          "say": "자기 호출 뒤에 같은 출력을 하나 더 둬요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3 2 1 1 2 3이에요. echo(0)에서 멈춘 뒤 echo(1)부터 차례로 돌아왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 돌아오는 줄도 3부터 찍힌다고 읽으면 3 2 1 3 2 1로 답해요. 가장 깊은 호출이 먼저 끝나요.",
+          "target": "code:echo(n - 1);"
+        }
+      ]
+    },
+    {
+      "id": "stp_ccce0322-9a21-42a8-be45-3c5e73dee4e0",
+      "title": "적립이 호출 사이에 쌓이도록 total을 고치세요",
+      "goal": "add_point는 이번 방문 점수를 받아 지금까지의 누적을 돌려줘야 해요. 네 번 방문하면 1 3 6 10이 나와야 하죠.\n\nadd_point 안의 total 선언 한 줄을 고쳐 누적이 호출 사이에 남게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 누적을 확인하세요.\n2. total 선언 줄을 한 곳 고치세요.\n3. 다시 실행해 1 3 6 10이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint add_point(int point) {\n    int total = 0;\n    total = total + point;\n    return total;\n}\n\nint main(void) {\n    int visits = 4;\n    int i;\n    // i번째 방문에 i점을 적립하고, 함수가 돌려준 누적을 출력해요.\n    for (i = 1; i <= visits; i++) {\n        printf(\"%d \", add_point(i));\n    }\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint add_point(int point) {\n    static int total = 0;\n    total = total + point;\n    return total;\n}\n\nint main(void) {\n    int visits = 4;\n    int i;\n    // i번째 방문에 i점을 적립하고, 함수가 돌려준 누적을 출력해요.\n    for (i = 1; i <= visits; i++) {\n        printf(\"%d \", add_point(i));\n    }\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "1 3 6 10 "
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "visits": "6"
+          },
+          "expected": "1 3 6 10 15 21 "
+        },
+        {
+          "values": {
+            "visits": "1"
+          },
+          "expected": "1 "
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "호출마다 total이 이어져야 해요. 지금은 매번 처음부터 시작해요.",
+          "target": "text:add_point 안의 total 선언 한 줄을 고쳐 누적이 호출 사이에 남게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1 2 3 4가 나왔어요. 매 호출 total이 0으로 새로 만들어져 점수 하나만 돌려줬어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    int total = 0;",
+          "after": "    static int total = 0;",
+          "say": "total 앞에 static을 붙여요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1 3 6 10이에요. 0 대입은 처음 한 번뿐이고 total이 다음 호출로 이어졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. static 줄의 = 0이 매 호출 다시 실행된다고 읽으면 1 2 3 4로 답해요.",
+          "target": "code:static int total = 0;"
+        }
+      ]
+    },
+    {
+      "id": "stp_d82792c0-9ee6-4d6e-b418-25d162080ea9",
+      "title": "돌아올 때 각 호출이 자기 순번을 찍게 하세요",
+      "goal": "stamp는 들어올 때마다 count를 하나 올려요. 돌아오는 길에 각 호출이 자기가 몇 번째로 들어왔는지 찍게 하려 해요. 3층이면 3 2 1이 나와야 해요.\n\n주석 아래에 그 호출의 순번을 일반 지역 변수 mine에 담고, printf가 mine을 출력하게 고치세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력을 확인하세요.\n2. 주석 아래에 count를 mine에 담는 줄을 쓰세요.\n3. printf가 mine을 출력하도록 고치세요.\n4. 다시 실행해 3 2 1이 나오는지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nvoid stamp(int n) {\n    static int count = 0;\n    count++;\n    // count는 지금까지 들어온 stamp 호출의 수예요.\n    if (n > 0) {\n        stamp(n - 1);\n        printf(\"%d \", count);\n    }\n}\n\nint main(void) {\n    int floors = 3;\n    stamp(floors);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nvoid stamp(int n) {\n    static int count = 0;\n    count++;\n    // count는 지금까지 들어온 stamp 호출의 수예요.\n    int mine = count;\n    if (n > 0) {\n        stamp(n - 1);\n        printf(\"%d \", mine);\n    }\n}\n\nint main(void) {\n    int floors = 3;\n    stamp(floors);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "3 2 1 "
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "floors": "5"
+          },
+          "expected": "5 4 3 2 1 "
+        },
+        {
+          "values": {
+            "floors": "1"
+          },
+          "expected": "1 "
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "각 호출이 들어온 순번을 돌아올 때 찍어야 해요. static은 그대로 둬요.",
+          "target": "text:주석 아래에 그 호출의 순번을 일반 지역 변수 mine에 담고, printf가 mine을 출력하게 고치세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4 4 4가 나왔어요. stamp(0)까지 네 번 들어와 count가 4가 된 뒤에 돌아왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "count는 호출마다 따로 있지 않아요. 네 호출이 변수 하나를 함께 써요.",
+          "target": "code:static int count = 0;"
+        },
+        {
+          "action": "patch_code",
+          "before": "    // count는 지금까지 들어온 stamp 호출의 수예요.\n",
+          "after": "    // count는 지금까지 들어온 stamp 호출의 수예요.\n    int mine = count;\n",
+          "say": "들어온 순간의 count를 이 호출만의 mine에 담아요."
+        },
+        {
+          "action": "patch_code",
+          "before": "printf(\"%d \", count);",
+          "after": "printf(\"%d \", mine);",
+          "say": "돌아올 때는 mine을 찍어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3 2 1이에요. stamp(1)의 mine은 3, stamp(3)의 mine은 1이었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 돌아올 때 static이 그 호출 시점 값이라고 읽으면 3 2 1로 답해요. 실제 count는 이미 4예요.",
+          "target": "code:int mine = count;"
+        }
+      ]
+    },
+    {
+      "id": "stp_a76e936a-6cad-4638-8002-491db2025d81",
+      "title": "마지막 걸음이 2칸인 경우도 더하세요",
+      "goal": "n칸에 도착하는 마지막 걸음은 1칸이거나 2칸이에요. 그래서 n칸의 방법 수는 n - 1칸의 방법 수와 n - 2칸의 방법 수를 더한 값이에요. 4칸이면 5가지예요.\n\n자기 호출이 있는 return 줄을 고쳐 두 경우를 모두 더하게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 결과를 확인하세요.\n2. return 줄에 마지막 걸음이 2칸인 경우의 호출을 더하세요.\n3. 다시 실행해 5가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\n// n칸을 오르는 방법의 수예요.\nint ways(int n) {\n    if (n <= 1) {\n        return 1;\n    }\n    return ways(n - 1);\n}\n\nint main(void) {\n    int stairs = 4;\n    printf(\"%d\", ways(stairs));\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\n// n칸을 오르는 방법의 수예요.\nint ways(int n) {\n    if (n <= 1) {\n        return 1;\n    }\n    return ways(n - 1) + ways(n - 2);\n}\n\nint main(void) {\n    int stairs = 4;\n    printf(\"%d\", ways(stairs));\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "5"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "stairs": "6"
+          },
+          "expected": "13"
+        },
+        {
+          "values": {
+            "stairs": "2"
+          },
+          "expected": "2"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "마지막 걸음이 1칸인 경우와 2칸인 경우를 더해야 해요.",
+          "target": "text:자기 호출이 있는 return 줄을 고쳐 두 경우를 모두 더하게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1이 나왔어요. 1칸씩만 오르는 한 가지만 셌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "return ways(n - 1);",
+          "after": "return ways(n - 1) + ways(n - 2);",
+          "say": "2칸으로 끝나는 경우의 호출을 더해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "5예요. ways(3)의 3과 ways(2)의 2가 더해졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "이제 한 호출이 자신을 두 번 불러요. 호출이 나무 가지처럼 둘로 갈라져요.",
+          "target": "code:ways(n - 1) + ways(n - 2)"
+        }
+      ]
+    },
+    {
+      "id": "stp_8a241ac7-9e7a-4f2a-b7db-8100d825c612",
+      "title": "호출마다 n을 찍어 호출 트리를 펼치세요",
+      "goal": "ways(4)가 결과를 내기까지 ways가 어떤 순서로 몇 번 불리는지 보려 해요.\n\n**알아두세요**\n\n호출 트리는 각 호출을 마디로, 그 호출이 부른 호출을 아래 가지로 그린 그림이에요. 두 번 부르는 재귀는 마디마다 가지가 둘이에요.\n\nways의 맨 앞 주석 아래에 printf 한 줄을 써서, 모든 호출이 들어오자마자 자기 n을 출력하게 하세요.\n\n**할 일**\n\n1. 주석 아래에 n과 공백을 출력하는 printf 한 줄을 쓰세요.\n2. 코드 실행을 눌러 찍힌 n의 순서와 개수를 확인하세요.\n3. 같은 n이 몇 번 찍혔는지 세어 보세요.\n4. 작성한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint ways(int n) {\n    // 이 주석 아래에 들어온 n과 공백을 출력하는 printf 한 줄을 쓰세요.\n    if (n <= 1) {\n        return 1;\n    }\n    return ways(n - 1) + ways(n - 2);\n}\n\nint main(void) {\n    int stairs = 4;\n    printf(\"= %d\", ways(stairs));\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint ways(int n) {\n    // 이 주석 아래에 들어온 n과 공백을 출력하는 printf 한 줄을 쓰세요.\n    printf(\"%d \", n);\n    if (n <= 1) {\n        return 1;\n    }\n    return ways(n - 1) + ways(n - 2);\n}\n\nint main(void) {\n    int stairs = 4;\n    printf(\"= %d\", ways(stairs));\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "4 3 2 1 0 1 2 1 0 = 5"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "stairs": "3"
+          },
+          "expected": "3 2 1 0 1 = 3"
+        },
+        {
+          "values": {
+            "stairs": "2"
+          },
+          "expected": "2 1 0 = 2"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "모든 호출이 들어오자마자 n을 찍어야 해요. 기저로 끝나는 호출도 포함이에요.",
+          "target": "text:모든 호출이 들어오자마자 자기 n을 출력하게 하세요."
+        },
+        {
+          "action": "patch_code",
+          "before": "        return 1;\n    }\n",
+          "after": "        return 1;\n    }\n    printf(\"%d \", n);\n",
+          "say": "먼저 기저 검사 뒤에 출력을 둬 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4 3 2 2 = 5가 나왔어요. 1과 0으로 끝난 호출은 출력 전에 돌아가서 빠졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        return 1;\n    }\n    printf(\"%d \", n);\n",
+          "after": "        return 1;\n    }\n",
+          "say": "그 줄을 지워요."
+        },
+        {
+          "action": "patch_code",
+          "before": "    // 이 주석 아래에 들어온 n과 공백을 출력하는 printf 한 줄을 쓰세요.\n",
+          "after": "    // 이 주석 아래에 들어온 n과 공백을 출력하는 printf 한 줄을 쓰세요.\n    printf(\"%d \", n);\n",
+          "say": "함수 맨 앞, 주석 아래에 다시 써요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4 3 2 1 0 1 2 1 0 = 5예요. 4에서 왼쪽 가지 3, 2, 1을 끝까지 내려간 뒤 오른쪽 0으로 갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "n이 아홉 번 찍혔으니 호출도 아홉 번이에요. ways(2)는 두 번 불려 같은 계산을 되풀이했어요.",
+          "target": "code:ways(n - 1) + ways(n - 2)"
+        }
+      ]
+    },
+    {
+      "id": "stp_757fc82d-6c02-433c-aaa7-07769a586f87",
+      "title": "기저가 n을 그대로 돌려주게 고치세요",
+      "goal": "jump의 규칙은 이래요. n이 1 이하이면 n을 그대로 돌려주고, 아니면 jump(n - 1) + jump(n - 3)이에요. main은 jump(-2)부터 차례로 표처럼 출력해요.\n\n기저의 반환값 한 곳을 규칙대로 고치세요. 채점은 last를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 표를 확인하세요.\n2. 기저의 return 값을 규칙대로 고치세요.\n3. 다시 실행해 jump(2)가 jump(1)과 jump(-1)의 합인지 표에서 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint jump(int n) {\n    if (n <= 1) {\n        return 1;\n    }\n    return jump(n - 1) + jump(n - 3);\n}\n\nint main(void) {\n    int last = 5;\n    int i;\n    // jump(-2)부터 jump(last)까지 표처럼 차례로 출력해요.\n    for (i = -2; i <= last; i++) {\n        printf(\"%d \", jump(i));\n    }\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint jump(int n) {\n    if (n <= 1) {\n        return n;\n    }\n    return jump(n - 1) + jump(n - 3);\n}\n\nint main(void) {\n    int last = 5;\n    int i;\n    // jump(-2)부터 jump(last)까지 표처럼 차례로 출력해요.\n    for (i = -2; i <= last; i++) {\n        printf(\"%d \", jump(i));\n    }\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "-2 -1 0 1 0 0 1 1 "
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "last": "8"
+          },
+          "expected": "-2 -1 0 1 0 0 1 1 1 2 3 "
+        },
+        {
+          "values": {
+            "last": "1"
+          },
+          "expected": "-2 -1 0 1 "
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "n이 1 이하이면 1이 아니라 n을 돌려줘야 해요. 음수 n도 마찬가지예요.",
+          "target": "text:n이 1 이하이면 n을 그대로 돌려주고"
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1 1 1 1 2 3 4 6이 나왔어요. 기저가 늘 1이라 jump(-2)도 1이 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        return 1;\n",
+          "after": "        return n;\n",
+          "say": "기저가 n을 그대로 돌려주게 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "-2 -1 0 1 0 0 1 1이에요. jump(2)는 jump(1)의 1과 jump(-1)의 -1을 더해 0이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "표에서 jump(2)부터는 한 칸 앞과 세 칸 앞을 더한 값이에요. 작은 n부터 채우면 트리를 펼치지 않아도 돼요.",
+          "target": "code:jump(n - 1) + jump(n - 3)"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. n - 3은 음수로 내려가요. 음수 기저를 0이나 1로 놓으면 jump(2)부터 표가 어긋나요.",
+          "target": "code:return n;"
+        }
+      ]
+    },
+    {
+      "id": "stp_15d10629-bc57-48be-b24d-447d4889aef6",
+      "title": "호출 순번과 방법 수가 함께 맞도록 두 줄을 고치세요",
+      "goal": "계단 방법 수를 구하면서, 모든 호출에 몇 번째 호출인지 순번을 붙여 [순번:n]으로 찍으려 해요. 4칸이면 순번이 1부터 9까지 이어지고 마지막에 5가 나와야 해요.\n\n준비 코드에는 결함이 두 곳 있어요. 순번이 호출 사이에 이어지지 않고, 두 갈래 호출 하나가 규칙과 달라요. 두 줄을 고쳐 순번과 방법 수를 모두 맞추세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 순번과 결과를 확인하세요.\n2. 순번이 호출 사이에 이어지도록 calls 선언을 고치세요.\n3. 다시 실행해 순번과 n의 흐름을 확인하세요.\n4. 두 갈래 호출 중 규칙과 다른 쪽을 고치세요.\n5. 다시 실행해 순번 9개 뒤에 5가 나오는지 확인하고 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint ways(int n) {\n    int calls = 0;\n    calls++;\n    printf(\"[%d:%d]\", calls, n);\n    if (n <= 1) {\n        return 1;\n    }\n    return ways(n - 1) + ways(n - 1);\n}\n\nint main(void) {\n    int stairs = 4;\n    int total = ways(stairs);\n    printf(\" %d\", total);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint ways(int n) {\n    static int calls = 0;\n    calls++;\n    printf(\"[%d:%d]\", calls, n);\n    if (n <= 1) {\n        return 1;\n    }\n    return ways(n - 1) + ways(n - 2);\n}\n\nint main(void) {\n    int stairs = 4;\n    int total = ways(stairs);\n    printf(\" %d\", total);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[1:4][2:3][3:2][4:1][5:0][6:1][7:2][8:1][9:0] 5"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "stairs": "3"
+          },
+          "expected": "[1:3][2:2][3:1][4:0][5:1] 3"
+        },
+        {
+          "values": {
+            "stairs": "2"
+          },
+          "expected": "[1:2][2:1][3:0] 2"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "순번과 방법 수를 모두 맞춰야 해요. 결함은 두 곳이에요.",
+          "target": "text:두 줄을 고쳐 순번과 방법 수를 모두 맞추세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "순번이 모두 1이고 마지막 수는 8이에요. 호출도 15번이나 일어났어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    int calls = 0;",
+          "after": "    static int calls = 0;",
+          "say": "먼저 calls를 static으로 바꿔 호출 사이에 이어지게 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "순번이 1부터 15까지 이어졌어요. 두 갈래가 모두 n - 1이라 [4:1][5:1]처럼 같은 n이 짝으로 나와요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "ways(n - 1) + ways(n - 1)",
+          "after": "ways(n - 1) + ways(n - 2)",
+          "say": "오른쪽 가지를 2칸 아래로 고쳐요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "순번이 9에서 끝나고 5가 나왔어요. 앞 스텝의 호출 순서에 순번이 붙은 모습이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "total에는 맨 위 ways(4)가 돌려준 합 하나만 담겨요. 그래서 순번이 다 찍힌 뒤에 5가 나와요.",
+          "target": "code:int total = ways(stairs);"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. static만 고치고 멈추면 순번은 이어져도 결과가 8로 남아요. 두 결함은 따로 확인해야 해요.",
+          "target": "code:static int calls = 0;"
+        }
+      ]
+    }
+  ]
+}

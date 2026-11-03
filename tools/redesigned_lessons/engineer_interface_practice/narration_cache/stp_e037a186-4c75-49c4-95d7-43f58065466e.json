@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "d6cf73434995b25d784858c98b9f8a3e7eb26642f304d9068cba2ea43d7f171f",
+  "entry": [
+    {
+      "action": "say",
+      "text": "다시 보낸 r1을 한 번만 반영하는 문제예요.",
+      "target": "text:재고는 r1의 2와 r2의 5만 늘어야 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "19가 나왔어요. r1의 2가 두 번 더해졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    done[key] = stock\n",
+      "after": "    if key in done:\n        return done[key]\n    done[key] = stock\n",
+      "say": "먼저 확인을 더하기 뒤에 넣어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        14,
+        14
+      ]
+    },
+    {
+      "action": "say",
+      "text": "여전히 19예요. 확인하기 전에 이미 재고를 더했거든요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 키 확인이 더하기 뒤에 있으면 다시 온 요청도 재고를 바꿔요. 확인은 바꾸기 전에 해요.",
+      "target": "code:if key in done:"
+    },
+    {
+      "action": "patch_code",
+      "before": "    stock += amount\n    if key in done:\n        return done[key]\n",
+      "after": "    if key in done:\n        return done[key]\n    stock += amount\n",
+      "say": "확인을 더하기 앞으로 옮겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        14,
+        14
+      ]
+    },
+    {
+      "action": "say",
+      "text": "17이 나왔어요. 다시 온 r1은 처음 결과를 돌려주고 끝났어요.",
+      "target": "output"
+    }
+  ]
+}

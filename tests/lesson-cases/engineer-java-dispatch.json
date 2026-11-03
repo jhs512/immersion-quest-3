@@ -1,0 +1,292 @@
+{
+ "course": "tests/fixtures/player-pilot/계/course.json",
+ "lesson": "courses/redesigned/engineer-java-dispatch.json",
+ "expected_outputs": [
+  [
+   "물건",
+   "글자 6개"
+  ],
+  [
+   "정수 3",
+   "실수 3.0",
+   "실수 3.5"
+  ],
+  [
+   "B-물건 A7",
+   "B-글자 A7"
+  ],
+  [
+   "1000",
+   "",
+   "3000"
+  ],
+  [
+   "[R] R",
+   "[B] R",
+   "[B] B"
+  ],
+  [
+   "10",
+   "B3 R2 B1 R0 10"
+  ],
+  [
+   "10 10",
+   "10 30"
+  ],
+  [
+   "B 일반",
+   "",
+   "B 우수"
+  ],
+  [
+   "1101",
+   "",
+   "1011"
+  ],
+  [
+   "수수료 뺀 값 17 / 환불 20",
+   "수수료 뺀 값 17 / 환불 17"
+  ],
+  [
+   "R O-B 35 2",
+   "B O-B 35 5",
+   "R S-B 35 2"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "String memo = \"coupon\";",
+     "Object memo = new String(\"coupon\");"
+    ]
+   ],
+   "reason": "실제 객체가 String이어도 선언형이 Object면 kind(Object)가 불려요."
+  },
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "System.out.println(kind(memo));",
+     "System.out.println(\"글자 6개\");"
+    ]
+   ],
+   "reason": "문구를 외워 쓰면 다른 memo에서 틀려요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "rate(stamps / 2.0)",
+     "rate((double) (stamps / 2))"
+    ]
+   ],
+   "reason": "정수 나눗셈으로 잘린 뒤 바꾸면 실수 3.0이에요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "return \"R-글자 \" + c;",
+     "return \"B-글자 \" + c;"
+    ]
+   ],
+   "reason": "Rule 객체에서는 Rule의 String 버전이 실행돼야 해요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "Rule rule = new Bonus();",
+     "Bonus rule = new Bonus();"
+    ]
+   ],
+   "reason": "선언형을 Bonus로 바꾸면 Rule 객체 변형이 컴파일되지 않아요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "int rate() { return boost; }",
+     "int rate(int extra) { return boost; }"
+    ]
+   ],
+   "reason": "매개변수가 다르면 오버라이드가 아니라 Rule의 1이 쓰여요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "int rate() { return boost; }",
+     "int rate() { return 3; }"
+    ]
+   ],
+   "reason": "배율을 외워 쓰면 boost 변형에서 틀려요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "    // 이 주석 아래에 메서드 하나를 추가하세요.\n    String mark() { return badge; }",
+     "    // 이 주석 아래에 메서드 하나를 추가하세요.\n    String issue() { return \"[\" + badge + \"]\"; }"
+    ]
+   ],
+   "reason": "issue만 오버라이드하면 mark는 Rule 것 그대로예요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "return 2 * n + super.total(n - 1);",
+     "return 2 * n + total(n - 1);"
+    ]
+   ],
+   "reason": "super 없이 부르면 Bonus에만 머물러 R이 나오지 않아요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "    // 이 주석 아래에 메서드 하나를 추가하세요.\n    int getLimit() { return limit; }",
+     "    // 이 주석 아래에 메서드 하나를 추가하세요.\n    int getLimit() { return super.limit; }"
+    ]
+   ],
+   "reason": "super.limit은 Rule의 값이라 10 10이에요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "    // 이 주석 아래에 메서드 하나를 추가하세요.\n    int getLimit() { return limit; }",
+     "    // 이 주석 아래에 메서드 하나를 추가하세요.\n    int getLimit() { return 30; }"
+    ]
+   ],
+   "reason": "30을 외워 쓰면 Rule의 limit 변형에서 틀려요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "rule.grade()",
+     "Bonus.grade()"
+    ]
+   ],
+   "reason": "클래스 이름으로 부르면 Rule 객체에서도 우수가 나와요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "        catch (RuntimeException e) {\n            score += 100;\n        }",
+     ""
+    ]
+   ],
+   "reason": "다른 예외를 잡는 catch가 없으면 범위 초과에서 프로그램이 멈춰요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "            paid = paid - 3;\n            return paid;\n",
+     "            return paid;\n            paid = paid - 3;\n"
+    ]
+   ],
+   "reason": "return 뒤의 문장은 도달할 수 없어 컴파일 오류예요."
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "Rule r = new Bonus();",
+     "Bonus r = new Bonus();"
+    ]
+   ],
+   "reason": "r의 선언형을 바꾸면 static level과 필드 base도 바뀌어요."
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "r.tag(word)",
+     "r.tag((Object) word)"
+    ]
+   ],
+   "reason": "Object로 바꿔 넘기면 다시 tag(Object)가 정해져요."
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "String memo = \"coupon\";",
+     "Object memo = \"coupon\";"
+    ],
+    [
+     "kind(memo)",
+     "kind((String) memo)"
+    ]
+   ],
+   "reason": "호출 자리에서 String으로 바꿔도 인수의 정적 타입이 String이에요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "rate(stamps / 2.0)",
+     "rate((double) stamps / 2)"
+    ]
+   ],
+   "reason": "나누기 전에 실수로 바꿔도 같아요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "    int rate() { return boost; }",
+     "    @Override\n    int rate() { return boost; }"
+    ]
+   ],
+   "reason": "@Override를 붙여도 같아요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "    // 이 주석 아래에 메서드 하나를 추가하세요.\n    String mark() { return badge; }",
+     "    // 이 주석 아래에 메서드 하나를 추가하세요.\n    @Override\n    String mark() { return badge; }"
+    ]
+   ],
+   "reason": "@Override를 붙여도 같아요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "            paid = paid - 3;\n            return paid;\n",
+     "            return paid - 3;\n"
+    ],
+    [
+     "            System.out.print(\"수수료",
+     "            paid = paid - 3;\n            System.out.print(\"수수료"
+    ]
+   ],
+   "reason": "뺀 값을 바로 돌려주고 finally에서 기록용으로 다시 빼도 같아요."
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "String word = \"vip\";",
+     "Object word = \"vip\";"
+    ],
+    [
+     "r.tag(word)",
+     "r.tag((String) word)"
+    ]
+   ],
+   "reason": "호출 자리에서 String으로 바꿔도 같은 오버로드가 정해져요."
+  }
+ ]
+}

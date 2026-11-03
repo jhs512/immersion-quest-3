@@ -1,0 +1,656 @@
+{
+  "schema_version": 2,
+  "id": "lsn_255ac6a6-5073-42b3-8350-b02287423f60",
+  "revision": "engineer-test-coverage-code-1",
+  "title": "테스트 · 무엇을 실행하고 무엇을 확인했는지 관찰해요",
+  "description": "명세와 구조, 문장·분기 커버리지, 단위·통합·인수 검증, 스텁·목, 정적·동적 검사와 성능 지표를 비교해요.",
+  "objectives": [
+    "블랙박스 테스트는 내부 구현이 아닌 요구에서 기대를 정해요.",
+    "화이트박스 테스트는 실행 구조를 보고 빠진 경로를 찾어요.",
+    "문장 커버리지는 어떤 실행문이 수행됐는지 비율로 봐요.",
+    "단위 테스트는 외부 상태를 통제해 한 책임을 확인해요.",
+    "통합 테스트는 실제 구성 요소 사이의 연결을 확인해요.",
+    "인수 테스트는 사용자 과업의 성공 조건을 확인해요.",
+    "목은 반환값뿐 아니라 상호작용이 맞았는지 확인해요.",
+    "정적 분석과 동적 분석은 확인할 수 있는 사실이 달라요.",
+    "처리량과 응답 시간, 전체 경과 시간을 구별해요."
+  ],
+  "sources": [
+    "https://docs.python.org/3/library/unittest.mock.html",
+    "https://docs.python.org/3/library/sqlite3.html"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_66962d2b-b6b2-4ae4-b2d7-00f4070a2496",
+      "title": "기초를 직접 확인해요",
+      "objectives": [
+        "블랙박스 테스트는 내부 구현이 아닌 요구에서 기대를 정해요.",
+        "화이트박스 테스트는 실행 구조를 보고 빠진 경로를 찾어요.",
+        "문장 커버리지는 어떤 실행문이 수행됐는지 비율로 봐요.",
+        "단위 테스트는 외부 상태를 통제해 한 책임을 확인해요."
+      ],
+      "units": [
+        {
+          "id": "unt_338a3ffc-b18f-4f8c-916d-a9c09eca7313",
+          "title": "작은 상태를 바꿔요",
+          "objectives": [
+            "블랙박스 테스트는 내부 구현이 아닌 요구에서 기대를 정해요.",
+            "화이트박스 테스트는 실행 구조를 보고 빠진 경로를 찾어요.",
+            "문장 커버리지는 어떤 실행문이 수행됐는지 비율로 봐요.",
+            "단위 테스트는 외부 상태를 통제해 한 책임을 확인해요."
+          ],
+          "premise": "창고 주문의 경계 조건과 실행 기록을 검사해 놓친 결함을 찾아요. 각 문제는 제공된 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_e6c948fc-89af-46e0-a999-55093c458adc",
+              "objectives": [
+                "블랙박스 테스트는 내부 구현이 아닌 요구에서 기대를 정해요."
+              ]
+            },
+            {
+              "id": "stp_206e53fa-0af7-4819-8b03-af4bbe2cb2a4",
+              "objectives": [
+                "화이트박스 테스트는 실행 구조를 보고 빠진 경로를 찾어요."
+              ]
+            },
+            {
+              "id": "stp_d14cab4d-bbf0-4a86-bf11-21a69aaa7e8b",
+              "objectives": [
+                "문장 커버리지는 어떤 실행문이 수행됐는지 비율로 봐요."
+              ]
+            },
+            {
+              "id": "stp_ec300292-3dad-4b6f-bc6a-1e103fd884f7",
+              "objectives": [
+                "단위 테스트는 외부 상태를 통제해 한 책임을 확인해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_fc36413c-f90b-46cc-a307-59808851ed75",
+      "title": "조건을 더하고 연결해요",
+      "objectives": [
+        "통합 테스트는 실제 구성 요소 사이의 연결을 확인해요.",
+        "인수 테스트는 사용자 과업의 성공 조건을 확인해요.",
+        "목은 반환값뿐 아니라 상호작용이 맞았는지 확인해요.",
+        "정적 분석과 동적 분석은 확인할 수 있는 사실이 달라요.",
+        "처리량과 응답 시간, 전체 경과 시간을 구별해요."
+      ],
+      "units": [
+        {
+          "id": "unt_fe2bdb12-e8a1-4842-aec8-945c69646d48",
+          "title": "바뀐 조건을 다시 검증해요",
+          "objectives": [
+            "통합 테스트는 실제 구성 요소 사이의 연결을 확인해요.",
+            "인수 테스트는 사용자 과업의 성공 조건을 확인해요.",
+            "목은 반환값뿐 아니라 상호작용이 맞았는지 확인해요.",
+            "정적 분석과 동적 분석은 확인할 수 있는 사실이 달라요.",
+            "처리량과 응답 시간, 전체 경과 시간을 구별해요."
+          ],
+          "premise": "창고 주문의 경계 조건과 실행 기록을 검사해 놓친 결함을 찾아요. 각 문제는 제공된 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_3f4b319b-ac25-42b9-b325-7f7a682b1278",
+              "objectives": [
+                "통합 테스트는 실제 구성 요소 사이의 연결을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_b182c86e-f389-4dd5-baf0-11f05b5b2438",
+              "objectives": [
+                "인수 테스트는 사용자 과업의 성공 조건을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_ca0803f0-968a-40b2-a117-76434ac48fea",
+              "objectives": [
+                "목은 반환값뿐 아니라 상호작용이 맞았는지 확인해요."
+              ]
+            },
+            {
+              "id": "stp_b7e8ac7a-2f52-4f34-8dac-5105c5cd7a90",
+              "objectives": [
+                "정적 분석과 동적 분석은 확인할 수 있는 사실이 달라요."
+              ]
+            },
+            {
+              "id": "stp_9948074d-24fb-464e-abef-1d7fc93c63bb",
+              "objectives": [
+                "처리량과 응답 시간, 전체 경과 시간을 구별해요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_e6c948fc-89af-46e0-a999-55093c458adc",
+      "title": "명세의 경계 입력을 테스트에 추가하세요",
+      "goal": "요구는 limit보다 클 때만 무료 배송이에요. 같은 값에서도 무료로 처리하는 결함을 드러낼 테스트를 추가하세요.\n\n코드가 내놓은 결과를 정답으로 복사하지 않아요. 요구대로 limit 자체는 무료가 아니어야 해요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 명세의 경계 입력을 테스트에 추가하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "limit = 10\nbug = True\ndef free_shipping(qty):\n    return qty >= limit if bug else qty > limit\ntests = [(limit - 1, False), (limit + 1, True)]\nfailures = [qty for qty, expected in tests if free_shipping(qty) != expected]\nprint(failures)\n",
+      "solution": "limit = 10\nbug = True\ndef free_shipping(qty):\n    return qty >= limit if bug else qty > limit\ntests = [(limit - 1, False), (limit, False), (limit + 1, True)]\nfailures = [qty for qty, expected in tests if free_shipping(qty) != expected]\nprint(failures)\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "[10]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "블랙박스 테스트는 내부 구현이 아닌 요구에서 기대를 정해요.",
+          "target": "text:요구는 limit보다 클 때만 무료 배송이에요. 같은 값에서도 무료로 처리하는 결함을 드러낼 테스트를 추가하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "실패 목록이 비었어요. 경계를 건너뛰어 결함을 놓쳤어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "tests = [(limit - 1, False), (limit + 1, True)]",
+          "after": "tests = [(limit - 1, False), (limit, False), (limit + 1, True)]"
+        },
+        {
+          "action": "say",
+          "text": "코드가 내놓은 결과를 정답으로 복사하지 않아요. 요구대로 limit 자체는 무료가 아니어야 해요.",
+          "target": "code:tests = [(limit - 1, False), (limit, False), (limit + 1, True)]"
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[10]이에요. 수량 10에서 요구와 실제 동작이 어긋났어요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"limit\": 10, \"bug\": true}, \"expected\": \"[10]\", \"value_literals\": {\"limit\": \"10\", \"bug\": \"True\"}}, {\"values\": {\"limit\": 5, \"bug\": true}, \"expected\": \"[5]\", \"value_literals\": {\"limit\": \"5\", \"bug\": \"True\"}}, {\"values\": {\"limit\": 10, \"bug\": false}, \"expected\": \"[]\", \"value_literals\": {\"limit\": \"10\", \"bug\": \"False\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_206e53fa-0af7-4819-8b03-af4bbe2cb2a4",
+      "title": "서로 다른 두 분기를 실행할 입력을 넣으세요",
+      "goal": "high와 low 분기가 모두 실행돼야 해요. 기준보다 작은 값과 기준 값을 테스트 입력으로 넣으세요.\n\n명세의 경계 검증과 별개로 실행된 분기를 확인해요. 분기를 모두 지나도 모든 결함이 사라진다는 뜻은 아니에요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 서로 다른 두 분기를 실행할 입력을 넣으세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "boundary = 10\nhits = set()\ndef classify(value):\n    if value >= boundary: hits.add('high')\n    else: hits.add('low')\ninputs = [boundary]\nfor value in inputs: classify(value)\nprint(inputs, sorted(hits))\n",
+      "solution": "boundary = 10\nhits = set()\ndef classify(value):\n    if value >= boundary: hits.add('high')\n    else: hits.add('low')\ninputs = [boundary - 1, boundary]\nfor value in inputs: classify(value)\nprint(inputs, sorted(hits))\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "[9, 10] ['high', 'low']"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "화이트박스 테스트는 실행 구조를 보고 빠진 경로를 찾어요.",
+          "target": "text:high와 low 분기가 모두 실행돼야 해요. 기준보다 작은 값과 기준 값을 테스트 입력으로 넣으세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "high만 기록됐어요. 낮은 쪽 분기는 아직 실행하지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "inputs = [boundary]",
+          "after": "inputs = [boundary - 1, boundary]"
+        },
+        {
+          "action": "say",
+          "text": "명세의 경계 검증과 별개로 실행된 분기를 확인해요. 분기를 모두 지나도 모든 결함이 사라진다는 뜻은 아니에요.",
+          "target": "code:inputs = [boundary - 1, boundary]"
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "high와 low가 함께 기록됐어요. 두 분기를 실행했어요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"boundary\": 10}, \"expected\": \"[9, 10] [\\'high\\', \\'low\\']\", \"value_literals\": {\"boundary\": \"10\"}}, {\"values\": {\"boundary\": 5}, \"expected\": \"[4, 5] [\\'high\\', \\'low\\']\", \"value_literals\": {\"boundary\": \"5\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_d14cab4d-bbf0-4a86-bf11-21a69aaa7e8b",
+      "title": "실행된 문장 수를 전체 문장 수로 나누세요",
+      "goal": "아래 모델에는 entry, positive, exit 세 실행문이 있어요. 기록된 문장의 비율을 백분율로 계산하세요.\n\n같은 문장을 여러 번 지나도 한 번만 세요. 모든 실행문을 지나도 조건의 모든 결과를 확인한 것은 아니에요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 실행된 문장 수를 전체 문장 수로 나누세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "values = [-1]\nseen = set()\nfor value in values:\n    seen.add('entry')\n    if value > 0: seen.add('positive')\n    seen.add('exit')\ncoverage = len(seen)\nprint(round(coverage, 1))\n",
+      "solution": "values = [-1]\nseen = set()\nfor value in values:\n    seen.add('entry')\n    if value > 0: seen.add('positive')\n    seen.add('exit')\ncoverage = len(seen) / 3 * 100\nprint(round(coverage, 1))\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "66.7"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "문장 커버리지는 어떤 실행문이 수행됐는지 비율로 봐요.",
+          "target": "text:아래 모델에는 entry, positive, exit 세 실행문이 있어요. 기록된 문장의 비율을 백분율로 계산하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2예요. 실행된 문장 수만 세었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "coverage = len(seen)",
+          "after": "coverage = len(seen) / 3 * 100"
+        },
+        {
+          "action": "say",
+          "text": "같은 문장을 여러 번 지나도 한 번만 세요. 모든 실행문을 지나도 조건의 모든 결과를 확인한 것은 아니에요.",
+          "target": "code:coverage = len(seen) / 3 * 100"
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "66.7이에요. 세 문장 중 두 문장을 실행했어요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"values\": [-1]}, \"expected\": \"66.7\", \"value_literals\": {\"values\": \"[-1]\"}}, {\"values\": {\"values\": [-1, 1]}, \"expected\": \"100.0\", \"value_literals\": {\"values\": \"[-1, 1]\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_ec300292-3dad-4b6f-bc6a-1e103fd884f7",
+      "title": "외부 응답을 고정하는 스텁을 연결하세요",
+      "goal": "배송 계산만 검사하려고 해요. 외부 요금 조회 대신 준비된 고정 응답 함수를 연결하세요.\n\n스텁은 의존 대상의 응답을 통제해요. 테스트 드라이버는 이 계산을 불러 주는 호출부 역할이에요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 외부 응답을 고정하는 스텁을 연결하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "fixed_fee = 30\ndef external_rate(): return 900\ndef stub_rate(): return fixed_fee\ndef total(rate): return 100 + rate()\nresult = total(external_rate)\nprint(result)\n",
+      "solution": "fixed_fee = 30\ndef external_rate(): return 900\ndef stub_rate(): return fixed_fee\ndef total(rate): return 100 + rate()\nresult = total(stub_rate)\nprint(result)\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "130"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "단위 테스트는 외부 상태를 통제해 한 책임을 확인해요.",
+          "target": "text:배송 계산만 검사하려고 해요. 외부 요금 조회 대신 준비된 고정 응답 함수를 연결하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1000이에요. 실제 외부 응답에 테스트 결과가 묶였어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "result = total(external_rate)",
+          "after": "result = total(stub_rate)"
+        },
+        {
+          "action": "say",
+          "text": "스텁은 의존 대상의 응답을 통제해요. 테스트 드라이버는 이 계산을 불러 주는 호출부 역할이에요.",
+          "target": "code:result = total(stub_rate)"
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "130이에요. 준비한 응답으로 배송 계산만 확인했어요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"fixed_fee\": 30}, \"expected\": \"130\", \"value_literals\": {\"fixed_fee\": \"30\"}}, {\"values\": {\"fixed_fee\": 70}, \"expected\": \"170\", \"value_literals\": {\"fixed_fee\": \"70\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_3f4b319b-ac25-42b9-b325-7f7a682b1278",
+      "title": "저장과 조회가 같은 자료를 쓰게 연결하세요",
+      "goal": "주문 수량을 SQLite에 저장한 뒤 저장소에서 다시 읽어 확인해요. 저장할 때 받은 수량을 사용하세요.\n\n저장 함수를 스텁으로 바꾸지 않고 실제 DB와 연결해요. 각각 맞던 구성 요소도 연결하면 자료 전달이 어긋날 수 있어요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 저장과 조회가 같은 자료를 쓰게 연결하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import sqlite3\nquantity = 3\nwith sqlite3.connect(':memory:') as db:\n    db.execute('CREATE TABLE orders(qty INTEGER)')\n    db.execute('INSERT INTO orders VALUES (?)', (0,))\n    saved = db.execute('SELECT qty FROM orders').fetchone()[0]\nprint(saved)\n",
+      "solution": "import sqlite3\nquantity = 3\nwith sqlite3.connect(':memory:') as db:\n    db.execute('CREATE TABLE orders(qty INTEGER)')\n    db.execute('INSERT INTO orders VALUES (?)', (quantity,))\n    saved = db.execute('SELECT qty FROM orders').fetchone()[0]\nprint(saved)\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "3"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "통합 테스트는 실제 구성 요소 사이의 연결을 확인해요.",
+          "target": "text:주문 수량을 SQLite에 저장한 뒤 저장소에서 다시 읽어 확인해요. 저장할 때 받은 수량을 사용하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0이에요. 입력은 3인데 저장 단계가 다른 값을 넣었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "db.execute('INSERT INTO orders VALUES (?)', (0,))",
+          "after": "db.execute('INSERT INTO orders VALUES (?)', (quantity,))"
+        },
+        {
+          "action": "say",
+          "text": "저장 함수를 스텁으로 바꾸지 않고 실제 DB와 연결해요. 각각 맞던 구성 요소도 연결하면 자료 전달이 어긋날 수 있어요.",
+          "target": "code:db.execute('INSERT INTO orders VALUES (?)', (quantity,))"
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3이에요. 저장과 조회 사이에 같은 수량이 전달됐어요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"quantity\": 3}, \"expected\": \"3\", \"value_literals\": {\"quantity\": \"3\"}}, {\"values\": {\"quantity\": 7}, \"expected\": \"7\", \"value_literals\": {\"quantity\": \"7\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_b182c86e-f389-4dd5-baf0-11f05b5b2438",
+      "title": "사용자 요구에 맞는 기대 응답을 적으세요",
+      "goal": "사용자는 재고 안의 양수 수량만 주문할 수 있어요. 주어진 입력에서 요구에 맞는 기대 결과를 계산하세요.\n\n요구를 충족했는지를 사용자 관점에서 확인해요. 내부 통제 환경의 알파와 실제 사용자 환경의 베타도 인수 검증의 방식으로 구분해요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 사용자 요구에 맞는 기대 응답을 적으세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "quantity = 7\nstock = 5\nexpected = 'accepted'\nprint(expected)\n",
+      "solution": "quantity = 7\nstock = 5\nexpected = 'accepted' if 0 < quantity <= stock else 'rejected'\nprint(expected)\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "rejected"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "인수 테스트는 사용자 과업의 성공 조건을 확인해요.",
+          "target": "text:사용자는 재고 안의 양수 수량만 주문할 수 있어요. 주어진 입력에서 요구에 맞는 기대 결과를 계산하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "accepted예요. 재고를 넘긴 주문인데 성공으로 기대했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "expected = 'accepted'",
+          "after": "expected = 'accepted' if 0 < quantity <= stock else 'rejected'"
+        },
+        {
+          "action": "say",
+          "text": "요구를 충족했는지를 사용자 관점에서 확인해요. 내부 통제 환경의 알파와 실제 사용자 환경의 베타도 인수 검증의 방식으로 구분해요.",
+          "target": "code:expected = 'accepted' if 0 < quantity <= stock else 'rejected'"
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "rejected예요. 재고보다 많은 주문은 거절해야 해요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"quantity\": 7, \"stock\": 5}, \"expected\": \"rejected\", \"value_literals\": {\"quantity\": \"7\", \"stock\": \"5\"}}, {\"values\": {\"quantity\": 3, \"stock\": 5}, \"expected\": \"accepted\", \"value_literals\": {\"quantity\": \"3\", \"stock\": \"5\"}}, {\"values\": {\"quantity\": 0, \"stock\": 5}, \"expected\": \"rejected\", \"value_literals\": {\"quantity\": \"0\", \"stock\": \"5\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_ca0803f0-968a-40b2-a117-76434ac48fea",
+      "title": "기록한 호출이 약속한 호출과 같은지 검사하세요",
+      "goal": "알림 함수가 남긴 호출 기록 calls는 준비됐어요. 기대한 순서와 인수가 모두 같은지 확인하세요.\n\n스텁의 고정 응답과 구별해요. 여기서는 이미 수집된 호출의 순서와 인수를 검증하는 부분만 다뤄요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 기록한 호출이 약속한 호출과 같은지 검사하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "calls = ['order:1','order:1']\nexpected = ['order:1','order:2']\nverified = bool(calls)\nprint(verified)\n",
+      "solution": "calls = ['order:1','order:1']\nexpected = ['order:1','order:2']\nverified = calls == expected\nprint(verified)\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "False"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "목은 반환값뿐 아니라 상호작용이 맞았는지 확인해요.",
+          "target": "text:알림 함수가 남긴 호출 기록 calls는 준비됐어요. 기대한 순서와 인수가 모두 같은지 확인하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "True예요. 호출이 있었다는 이유만으로 잘못된 인수도 통과했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "verified = bool(calls)",
+          "after": "verified = calls == expected"
+        },
+        {
+          "action": "say",
+          "text": "스텁의 고정 응답과 구별해요. 여기서는 이미 수집된 호출의 순서와 인수를 검증하는 부분만 다뤄요.",
+          "target": "code:verified = calls == expected"
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "False예요. 두 번째 알림 대상이 약속과 달라요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"calls\": [\"order:1\", \"order:1\"], \"expected\": [\"order:1\", \"order:2\"]}, \"expected\": \"False\", \"value_literals\": {\"calls\": \"[\\'order:1\\', \\'order:1\\']\", \"expected\": \"[\\'order:1\\', \\'order:2\\']\"}}, {\"values\": {\"calls\": [\"order:1\", \"order:2\"], \"expected\": [\"order:1\", \"order:2\"]}, \"expected\": \"True\", \"value_literals\": {\"calls\": \"[\\'order:1\\', \\'order:2\\']\", \"expected\": \"[\\'order:1\\', \\'order:2\\']\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_b7e8ac7a-2f52-4f34-8dac-5105c5cd7a90",
+      "title": "구문 검사에 실제 실행 검사를 더하세요",
+      "goal": "구문이 맞아도 실행 때 오류가 날 수 있어요. 코드 실행 결과까지 검사해 성공 여부를 정하세요.\n\n실행하지 않고 구조를 보는 검사와 실제 실행 관찰을 함께 써요. 한 종류의 검사로 모든 결함을 보장하지 않아요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 구문 검사에 실제 실행 검사를 더하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import ast\nimport subprocess\nimport sys\nsource = 'print(1 / 0)'\ntry:\n    ast.parse(source)\n    syntax_ok = True\nexcept SyntaxError:\n    syntax_ok = False\nresult = subprocess.run([sys.executable, '-c', source], capture_output=True)\nok = syntax_ok\nprint(ok)\n",
+      "solution": "import ast\nimport subprocess\nimport sys\nsource = 'print(1 / 0)'\ntry:\n    ast.parse(source)\n    syntax_ok = True\nexcept SyntaxError:\n    syntax_ok = False\nresult = subprocess.run([sys.executable, '-c', source], capture_output=True)\nok = syntax_ok and result.returncode == 0\nprint(ok)\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "False"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "정적 분석과 동적 분석은 확인할 수 있는 사실이 달라요.",
+          "target": "text:구문이 맞아도 실행 때 오류가 날 수 있어요. 코드 실행 결과까지 검사해 성공 여부를 정하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "True예요. 구문은 맞지만 0으로 나누는 실행 오류를 놓쳤어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "ok = syntax_ok",
+          "after": "ok = syntax_ok and result.returncode == 0"
+        },
+        {
+          "action": "say",
+          "text": "실행하지 않고 구조를 보는 검사와 실제 실행 관찰을 함께 써요. 한 종류의 검사로 모든 결함을 보장하지 않아요.",
+          "target": "code:ok = syntax_ok and result.returncode == 0"
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "False예요. 실제 프로세스가 오류로 종료된 것을 확인했어요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"source\": \"print(1 / 0)\"}, \"expected\": \"False\", \"value_literals\": {\"source\": \"\\'print(1 / 0)\\'\"}}, {\"values\": {\"source\": \"print(1 + 2)\"}, \"expected\": \"True\", \"value_literals\": {\"source\": \"\\'print(1 + 2)\\'\"}}, {\"values\": {\"source\": \"print(\"}, \"expected\": \"False\", \"value_literals\": {\"source\": \"\\'print(\\'\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_9948074d-24fb-464e-abef-1d7fc93c63bb",
+      "title": "처리량을 단위 시간당 완료 수로 계산하세요",
+      "goal": "completed개 요청을 elapsed초 동안 처리했어요. 처리량은 1초당 완료한 요청 수예요. 응답 시간 평균과 나란히 출력하세요.\n\n처리량은 초당 개수, 응답 시간은 개별 요청의 지연이에요. 부하를 한계까지 늘리는 강도 테스트에서는 둘과 오류율을 함께 관찰해요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 처리량을 단위 시간당 완료 수로 계산하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "completed = 120\nelapsed = 6\nresponses = [0.1,0.2,0.3]\nthroughput = elapsed / completed\nprint(round(throughput, 2), round(sum(responses) / len(responses), 2))\n",
+      "solution": "completed = 120\nelapsed = 6\nresponses = [0.1,0.2,0.3]\nthroughput = completed / elapsed\nprint(round(throughput, 2), round(sum(responses) / len(responses), 2))\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "20.0 0.2"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "처리량과 응답 시간, 전체 경과 시간을 구별해요.",
+          "target": "text:completed개 요청을 elapsed초 동안 처리했어요. 처리량은 1초당 완료한 요청 수예요. 응답 시간 평균과 나란히 출력하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0.05 0.2예요. 첫 값은 처리량이 아니라 요청당 경과 시간이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "throughput = elapsed / completed",
+          "after": "throughput = completed / elapsed"
+        },
+        {
+          "action": "say",
+          "text": "처리량은 초당 개수, 응답 시간은 개별 요청의 지연이에요. 부하를 한계까지 늘리는 강도 테스트에서는 둘과 오류율을 함께 관찰해요.",
+          "target": "code:throughput = completed / elapsed"
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "20.0 0.2예요. 초당 20개를 처리했고 평균 응답은 0.2초예요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"completed\": 120, \"elapsed\": 6, \"responses\": [0.1, 0.2, 0.3]}, \"expected\": \"20.0 0.2\", \"value_literals\": {\"completed\": \"120\", \"elapsed\": \"6\", \"responses\": \"[0.1, 0.2, 0.3]\"}}, {\"values\": {\"completed\": 90, \"elapsed\": 3, \"responses\": [0.1, 0.3]}, \"expected\": \"30.0 0.2\", \"value_literals\": {\"completed\": \"90\", \"elapsed\": \"3\", \"responses\": \"[0.1, 0.3]\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    }
+  ]
+}

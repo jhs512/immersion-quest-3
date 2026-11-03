@@ -1,0 +1,70 @@
+{
+  "by": "hand",
+  "source_sha256": "11733324b88e7b04a7d3649635ad15f193ee3f46211e373270d4479f7f796976",
+  "entry": [
+    {
+      "action": "say",
+      "text": "본문이 바뀌면 태그도 바뀌게 만드는 문제예요.",
+      "target": "text:etag_of의 return 줄을 고쳐 본문 해시의 앞 8글자를 태그로 쓰게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "200 10 다음에 304 0이 나왔어요. 재고는 4로 바뀌었는데 서버가 그대로라고 답했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 길이로 만든 태그는 3이 4로 바뀌어도 v10 그대로예요. 바뀐 재고가 클라이언트에 안 가요.",
+      "target": "code:'v' + str(len(text))"
+    },
+    {
+      "action": "patch_code",
+      "before": "    return 'v' + str(len(text))\n",
+      "after": "    return hashlib.sha256(text.encode()).hexdigest()[:8]\n",
+      "say": "본문 해시의 앞 8글자로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "200 10이 두 번이에요. 3이 4로 바뀌자 해시가 달라져 새 본문을 보냈어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "new_body = '{\"pen\": 4}'",
+      "after": "new_body = '{\"pen\": 3}'",
+      "say": "이번엔 재고가 그대로인 경우를 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "200 10, 304 0이에요. 본문이 같으면 해시도 같아 304가 맞게 나왔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "new_body = '{\"pen\": 3}'",
+      "after": "new_body = '{\"pen\": 4}'",
+      "say": "재고 4로 다시 돌려 둘게요."
+    }
+  ]
+}

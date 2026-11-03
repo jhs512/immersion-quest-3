@@ -1,0 +1,69 @@
+{
+  "by": "hand",
+  "source_sha256": "4b6f427c3764ce7133b7ca0773aa2c814fd425d413545b8bb75ba9be5bb96501",
+  "entry": [
+    {
+      "action": "say",
+      "text": "대표값으로는 못 찾는 결함을 경계에서 찾는 문제예요.",
+      "target": "text:inputs를 두 경계 LOW·HIGH와 각각의 바로 바깥 값 네 개로 고치세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "실패한 입력이 빈 목록이에요. -2, 5, 12는 요구와 함수의 결과가 같아요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "inputs = [LOW - 3, (LOW + HIGH) // 2, HIGH + 3]",
+      "after": "inputs = [LOW - 1, HIGH + 1]",
+      "say": "경계 바로 바깥 두 값만 넣어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "여전히 빈 목록이에요. 0과 10은 요구로도 거절이고, 함수도 거절해요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 바깥 값만 넣으면 경계 값 1과 9 자체는 검사하지 않아요. 결함이 경계 값에 있으면 지나쳐요.",
+      "target": "code:inputs = [LOW - 1, HIGH + 1]"
+    },
+    {
+      "action": "patch_code",
+      "before": "inputs = [LOW - 1, HIGH + 1]",
+      "after": "inputs = [LOW - 1, LOW, HIGH, HIGH + 1]",
+      "say": "경계 값 LOW와 HIGH를 사이에 넣어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "9가 실패했어요. 요구는 9를 받는데 함수는 거절했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "함수의 < HIGH가 원인이에요. 9에서만 요구의 <= 와 결과가 갈려요.",
+      "target": "code:LOW <= qty < HIGH"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "by": "hand",
+  "source_sha256": "a39b3cd13e5cb41612575ac66f189a44c21feb5beff46a64e13820f64807c9f6",
+  "entry": [
+    {
+      "action": "say",
+      "text": "소유자에게 그룹·기타 권한을 덧붙여 판단하지 않아요.",
+      "target": "text:파일 소유자인 사용자는 소유자 비트로 판단해요. 그룹에는 쓰기가 있어도 소유자에게 없으면 이 모델에서는 쓰기를 거절해야 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "True예요. 소유자인데 그룹의 쓰기 권한을 대신 사용했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "bits = group if in_group else other",
+      "after": "bits = owner if is_owner else group if in_group else other"
+    },
+    {
+      "action": "say",
+      "text": "일반 사용자 권한 판정의 범주를 비교하는 모델이에요. 관리자 권한과 ACL 같은 추가 정책은 여기서 다루지 않아요.",
+      "target": "code:bits = owner if is_owner else group if in_group else other"
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "False예요. 해당 사용자 범주의 쓰기 비트만 검사했어요.",
+      "target": "output"
+    }
+  ]
+}

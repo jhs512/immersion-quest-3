@@ -1,0 +1,95 @@
+{
+  "by": "hand",
+  "source_sha256": "dad7fba34878234417d4fc5fd4af32237320e3bc6bbf8d5d8a29477462b86da1",
+  "entry": [
+    {
+      "action": "say",
+      "text": "이름 속 따옴표 때문에 조회가 깨지는 문제예요. 값을 ?에 묶어 고쳐요.",
+      "target": "text:item을 ? 자리에 묶어 보내세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ],
+      "expect_error": "OperationalError"
+    },
+    {
+      "action": "say",
+      "text": "OperationalError, near \"s\"가 나왔어요. SQL 문법 오류예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "kid 뒤 따옴표가 SQL 문자열을 닫았어요. 남은 s pen'은 SQL이 읽지 못하는 글자예요.",
+      "target": "code:'{item}'"
+    },
+    {
+      "action": "patch_code",
+      "before": "sql = f\"SELECT qty FROM stock WHERE item = '{item}'\"\nrows = conn.execute(sql).fetchall()\n",
+      "after": "sql = \"SELECT qty FROM stock WHERE item = '?'\"\nrows = conn.execute(sql, (item,)).fetchall()\n",
+      "say": "?로 바꾸면서 원래 있던 따옴표는 남겨 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ],
+      "expect_error": "ProgrammingError"
+    },
+    {
+      "action": "say",
+      "text": "ProgrammingError예요. SQL이 쓰는 자리는 0개인데 값이 1개 왔대요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. '?'는 물음표 글자일 뿐이에요. 따옴표 안의 ?는 값을 받는 자리가 아니에요.",
+      "target": "code:'?'"
+    },
+    {
+      "action": "patch_code",
+      "before": "sql = \"SELECT qty FROM stock WHERE item = '?'\"\n",
+      "after": "sql = 'SELECT qty FROM stock WHERE item = ?'\n",
+      "say": "따옴표를 빼고 ?만 둬요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[(3,)]이 나왔어요. kid's pen의 수량 3이에요. 따옴표도 이름의 일부로 들어갔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "item = \"kid's pen\"",
+      "after": "item = \"x' OR '1'='1\"",
+      "say": "이름 자리에 x' OR '1'='1을 넣어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[]가 나왔어요. 그런 이름의 상품은 없거든요. OR도 조건이 아니라 이름 글자로 묶였어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "item = \"x' OR '1'='1\"",
+      "after": "item = \"kid's pen\"",
+      "say": "이름을 원래대로 돌려 둬요."
+    }
+  ]
+}

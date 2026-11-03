@@ -1,0 +1,57 @@
+{
+  "by": "hand",
+  "source_sha256": "22d6aafa8e3286122fd386ce142b8fc41f3ae2f6b1d73eb47689949d59858ca4",
+  "entry": [
+    {
+      "action": "say",
+      "text": "뺀 값은 찍히는데 환불액엔 왜 안 빠지는지가 이 문제예요.",
+      "target": "text:그런데 화면에는 뺀 값이 찍히는데 환불액은 낸 돈 그대로예요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        14,
+        14
+      ]
+    },
+    {
+      "action": "say",
+      "text": "수수료 뺀 값 17 / 환불 20이 나왔어요. finally 출력이 먼저예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "return paid에서 20이 이미 정해졌어요. 그 뒤 finally가 paid를 바꿔도 돌려줄 값은 그대로예요.",
+      "target": "code:return paid;"
+    },
+    {
+      "action": "patch_code",
+      "before": "            return paid;\n",
+      "after": "            paid = paid - 3;\n            return paid;\n",
+      "say": "빼는 줄을 return 앞에 써요."
+    },
+    {
+      "action": "patch_code",
+      "before": "            // 수수료 3을 빼요.\n            paid = paid - 3;\n",
+      "after": "",
+      "say": "finally에 있던 줄은 지워요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "수수료 뺀 값 17 / 환불 17이에요. 값이 정해지기 전에 뺐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 빼는 줄을 return 바로 뒤에 두면 도달할 수 없는 문장이라 컴파일 오류예요.",
+      "target": "code:paid = paid - 3;"
+    }
+  ]
+}

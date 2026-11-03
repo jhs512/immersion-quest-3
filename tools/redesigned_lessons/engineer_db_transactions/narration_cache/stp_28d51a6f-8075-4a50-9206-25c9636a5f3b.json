@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "50602f5dd0c81a44f270ad9b9e501ef1bdc325030697e91affc6c816180d7c2f",
+  "entry": [
+    {
+      "action": "say",
+      "text": "거절된 B가 최신 값을 다시 읽고 한 번 더 쓰게 하는 문제예요.",
+      "target": "text:재고와 version을 다시 읽고 한 번 더 쓰는 코드를 넣으세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        20,
+        24
+      ]
+    },
+    {
+      "action": "say",
+      "text": "A 1, B 0, (8, 2)예요. B가 판 3개가 아직 반영되지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "# 이 주석 아래에 B가 충돌했을 때 다시 읽고 쓰는 코드를 넣으세요.\n",
+      "after": "# 이 주석 아래에 B가 충돌했을 때 다시 읽고 쓰는 코드를 넣으세요.\nif result == 0:\n    print('B 재시도', write(b_qty - sell_b, b_ver + 1))\n",
+      "say": "읽지 않고 version만 1 올려 다시 써 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        20,
+        26
+      ]
+    },
+    {
+      "action": "say",
+      "text": "B 재시도 1, (7, 3)이 나왔어요. 쓰기는 성공했지만 재고가 7이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. b_qty는 처음 읽은 10이에요. version만 맞추면 A의 판매를 또 덮어써요.",
+      "target": "code:b_ver + 1"
+    },
+    {
+      "action": "patch_code",
+      "before": "if result == 0:\n    print('B 재시도', write(b_qty - sell_b, b_ver + 1))\n",
+      "after": "if result == 0:\n    b_qty, b_ver = read()\n    print('B 재시도', write(b_qty - sell_b, b_ver))\n",
+      "say": "재고와 version을 다시 읽고, 그 값으로 계산해 써요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        20,
+        27
+      ]
+    },
+    {
+      "action": "say",
+      "text": "B 재시도 1, (5, 3)이에요. B가 새로 읽은 8에서 3을 뺐어요. version은 두 번 올라 3이에요.",
+      "target": "output"
+    }
+  ]
+}

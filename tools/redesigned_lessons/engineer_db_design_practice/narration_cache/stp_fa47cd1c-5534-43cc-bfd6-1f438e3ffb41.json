@@ -1,0 +1,71 @@
+{
+  "by": "hand",
+  "source_sha256": "83ef8a305cf55261f174bae9e257d31a30a93876cf2936808511bb9f4ceab67c",
+  "entry": [
+    {
+      "action": "say",
+      "text": "수강 한 행을 지울 때 과목 사실이 같이 사라지는지 보는 문제예요.",
+      "target": "text:그런데 NET을 듣는 학생은 3번 하나뿐이에요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        3,
+        3
+      ]
+    },
+    {
+      "action": "say",
+      "text": "DB와 OS만 나왔어요. 수강 행을 지웠더니 lee 교수가 C301에서 NET을 맡는다는 사실도 사라졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "-- 이 주석 아래에 enroll의 과목 사실을 courses로 옮기는 INSERT 한 줄을 쓰세요.\n",
+      "after": "-- 이 주석 아래에 enroll의 과목 사실을 courses로 옮기는 INSERT 한 줄을 쓰세요.\nINSERT INTO courses SELECT course, prof, office FROM enroll;\n",
+      "say": "지우기 전에 과목 사실을 courses로 옮겨 볼게요."
+    },
+    {
+      "action": "patch_code",
+      "before": "FROM enroll ORDER BY",
+      "after": "FROM courses ORDER BY",
+      "say": "마지막 SELECT는 courses를 읽게 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ],
+      "expect_error": "UNIQUE"
+    },
+    {
+      "action": "say",
+      "text": "UNIQUE 오류가 났어요. DB 과목은 수강 행이 둘이라 같은 과목을 두 번 넣으려 했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 행을 그대로 복사하면 같은 과목 사실이 여러 번 들어가요. courses의 키는 과목이에요.",
+      "target": "code:SELECT course, prof, office FROM enroll"
+    },
+    {
+      "action": "patch_code",
+      "before": "SELECT course, prof, office FROM enroll",
+      "after": "SELECT DISTINCT course, prof, office FROM enroll",
+      "say": "DISTINCT로 같은 과목 사실을 한 번만 옮겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "DB, NET, OS가 모두 나왔어요. 수강 행을 지워도 과목 사실은 courses에 남았어요.",
+      "target": "output"
+    }
+  ]
+}

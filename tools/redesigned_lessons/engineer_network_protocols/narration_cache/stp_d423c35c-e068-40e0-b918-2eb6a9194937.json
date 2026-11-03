@@ -1,0 +1,82 @@
+{
+  "by": "hand",
+  "source_sha256": "5d29dfb70f300ca983d9902ee3d265b95b06d9af3f9ef8b281c02657dc15fae4",
+  "entry": [
+    {
+      "action": "say",
+      "text": "서버가 언제 연결이 섰다고 보는지 맞추는 문제예요.",
+      "target": "text:마지막 ACK를 받아야 ESTABLISHED가 되게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "SYN 한 번에 벌써 ESTABLISHED가 됐어요. ACK는 아무 일도 하지 않았고요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "packets = ['SYN', 'ACK']",
+      "after": "packets = ['SYN']",
+      "say": "손님이 ACK를 끝내 안 보내는 경우로 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "SYN만 받고도 ESTABLISHED예요. 손님이 사라졌는데 연결된 셈이죠.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. SYN-ACK를 보낸 건 서버의 대답일 뿐이에요. 손님이 받았는지는 세 번째 ACK로만 알아요.",
+      "target": "code:print('send SYN-ACK')"
+    },
+    {
+      "action": "patch_code",
+      "before": "        state = 'ESTABLISHED'\n    elif",
+      "after": "        state = 'SYN_RCVD'\n    elif",
+      "say": "SYN 뒤에는 ACK를 기다리는 SYN_RCVD로 둬요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "SYN -> SYN_RCVD예요. 서버는 반개방 상태로 손님을 기다려요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "packets = ['SYN']",
+      "after": "packets = ['SYN', 'ACK']",
+      "say": "ACK를 다시 넣어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "ACK -> ESTABLISHED가 나왔어요. 세 번째 ACK에서 비로소 연결이 섰어요.",
+      "target": "output"
+    }
+  ]
+}

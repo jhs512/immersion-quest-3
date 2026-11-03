@@ -1,0 +1,69 @@
+{
+  "by": "hand",
+  "source_sha256": "c664fe73a8dcb6fff39111c97817165f658ad1356db50cb8d6cd879348f3fcdf",
+  "entry": [
+    {
+      "action": "say",
+      "text": "URL에서 멱등 키를 바르게 꺼내 재고를 맞추는 문제예요.",
+      "target": "text:key를 꺼내는 한 줄을 고쳐 다시 보낸 a1은 한 번만, b7은 새로 반영되게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        18,
+        18
+      ]
+    },
+    {
+      "action": "say",
+      "text": "12, 12, 12가 나왔어요. 새 주문 b7의 5까지 막혔어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "세 URL의 경로가 모두 /stock이라 키가 하나로 같아졌거든요.",
+      "target": "code:key = parts.path"
+    },
+    {
+      "action": "patch_code",
+      "before": "key = parts.path",
+      "after": "key = parts.query",
+      "say": "질의 전체를 키로 써 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        18,
+        18
+      ]
+    },
+    {
+      "action": "say",
+      "text": "12, 14, 19예요. 다시 보낸 a1의 2가 또 더해졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 질의 전체를 키로 쓰면 try=2가 붙은 재시도를 다른 요청으로 봐요.",
+      "target": "code:key = parts.query"
+    },
+    {
+      "action": "patch_code",
+      "before": "key = parts.query",
+      "after": "key = parse_qs(parts.query)['key'][0]",
+      "say": "parse_qs로 key 값 하나만 꺼내요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        18,
+        18
+      ]
+    },
+    {
+      "action": "say",
+      "text": "12, 12, 17이 나왔어요. 다시 온 a1은 처음 결과 12를 돌려줬고, b7만 5를 더했어요.",
+      "target": "output"
+    }
+  ]
+}

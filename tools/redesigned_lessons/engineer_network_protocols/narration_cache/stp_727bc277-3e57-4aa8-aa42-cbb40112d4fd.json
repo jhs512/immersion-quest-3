@@ -1,0 +1,74 @@
+{
+  "by": "hand",
+  "source_sha256": "5450b8d4f09811e347c4136c7e98d0fdc8392638936e3534ab59c0829faeb8a6",
+  "entry": [
+    {
+      "action": "say",
+      "text": "순서가 섞이고 중복된 조각을 바이트 번호로 맞게 잇는 문제예요.",
+      "target": "text:두 곳을 고쳐 조각마다 맞는 ack를 찍고 hello!를 완성하게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        17
+      ]
+    },
+    {
+      "action": "say",
+      "text": "ack가 모두 2이고 글자는 he뿐이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "번호는 조각 번호가 아니라 바이트 번호예요. he 두 바이트 뒤면 3을 기다려야 해요.",
+      "target": "code:expected += 1#1"
+    },
+    {
+      "action": "patch_code",
+      "before": "        data += text\n        expected += 1\n",
+      "after": "        data += text\n        expected += len(text)\n",
+      "say": "이은 글자 길이만큼 늘려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        17
+      ]
+    },
+    {
+      "action": "say",
+      "text": "ack 3, 3, 6, 6, 6이고 글자는 hello!예요. 글자는 맞는데 ack가 6이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. buffer에서 꺼낸 o!는 아직 1만 더해요. 두 바이트 중 하나만 받았다고 알리는 셈이에요.",
+      "target": "code:expected += 1"
+    },
+    {
+      "action": "patch_code",
+      "before": "            data += piece\n            expected += 1\n",
+      "after": "            data += piece\n            expected += len(piece)\n",
+      "say": "꺼낸 조각도 길이만큼 늘려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        17
+      ]
+    },
+    {
+      "action": "say",
+      "text": "ack 3, 3, 7, 7, 7과 hello!예요. 5번 o!는 맡겨 뒀다가 ll 뒤에 이어졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "다시 온 3번 ll과 5번 o!는 번호가 7보다 작아서 버려졌어요.",
+      "target": "code:elif seq == expected:"
+    }
+  ]
+}

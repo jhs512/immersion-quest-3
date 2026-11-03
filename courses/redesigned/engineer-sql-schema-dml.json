@@ -1,0 +1,1222 @@
+{
+  "schema_version": 2,
+  "id": "lsn_576936ab-697d-4ff8-a5de-facfc34eb09c",
+  "revision": "engineer-sql-schema-dml-1",
+  "title": "SQL · 행을 쓰고 표의 규칙과 권한을 직접 정해요",
+  "description": "INSERT·UPDATE를 직접 쓰고, 기본키·UNIQUE·CHECK·외래키 제약을 걸고, ALTER·INDEX·DROP으로 구조를 바꾸고, 권한의 연쇄 회수를 실행해 확인해요.",
+  "objectives": [
+    "열 목록이 있는 INSERT와 여러 열을 고치는 UPDATE를 직접 써요.",
+    "슈퍼키·후보키를 유일성·최소성으로 가리고, 기본키·UNIQUE·CHECK 제약으로 개체·도메인 무결성을 지켜요.",
+    "외래키의 ON DELETE CASCADE, ALTER TABLE ADD, CREATE INDEX, DROP과 의존 객체를 실행으로 확인해요.",
+    "WITH GRANT OPTION으로 이어진 권한을 REVOKE ... CASCADE가 사슬을 따라 회수하는 것을 모델로 확인해요."
+  ],
+  "sources": [
+    "https://www.sqlite.org/lang_createtable.html",
+    "https://www.sqlite.org/foreignkeys.html",
+    "https://www.sqlite.org/lang_altertable.html",
+    "https://www.postgresql.org/docs/current/sql-revoke.html",
+    "https://www.postgresql.org/docs/current/sql-droptable.html"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_0d3421df-3b88-4ed9-9f73-75af94485e8e",
+      "title": "행을 직접 넣고 고쳐요",
+      "objectives": [
+        "INSERT의 열 목록과 UPDATE의 여러 SET을 직접 써요."
+      ],
+      "units": [
+        {
+          "id": "unt_0853355a-2612-4feb-8192-2979ba6eca48",
+          "title": "books 표의 행 쓰기",
+          "objectives": [
+            "열과 값의 짝, 고칠 열의 연결을 실행으로 확인해요."
+          ],
+          "premise": "books 표에는 id, title, author, copies 네 열이 있어요. 실행하면 뒤에서 books를 조회해 보여 줘요. 각 스텝은 준비 자료에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_35c43757-3b1b-4a47-ad37-488ea04d619a",
+              "objectives": [
+                "INSERT의 열 목록과 값이 순서대로 짝지어지고, 빠진 열은 DEFAULT나 NULL이 됨을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_5f0aa1be-00f1-475a-bd50-1582fb119f78",
+              "objectives": [
+                "UPDATE의 SET은 쉼표로 여러 열을 고치고, AND로 이으면 식 하나가 됨을 확인해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_4c8480a1-f53a-4359-ae87-a89f719cf5e6",
+      "title": "표를 만들 때 규칙을 걸어요",
+      "objectives": [
+        "키의 유일성·최소성을 확인하고, 제약으로 개체·도메인 무결성을 지켜요."
+      ],
+      "units": [
+        {
+          "id": "unt_953b6992-ecf1-41f7-8d96-d8ed272faadc",
+          "title": "행을 구별하는 열 묶음",
+          "objectives": [
+            "데이터로 유일성과 최소성을 검사해요."
+          ],
+          "premise": "수강 기록 rows는 (학생, 과목, 강의실) 행들이에요. 파이썬으로 열 묶음을 하나씩 검사해요.",
+          "steps": [
+            {
+              "id": "stp_7410eb01-0fa2-4abd-a6ec-2f11346b1608",
+              "objectives": [
+                "유일한 묶음(슈퍼키) 가운데 열을 하나도 뺄 수 없는 것이 후보키임을 확인해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_a9fff238-387f-4010-a542-da13d0d7de89",
+          "title": "가입 신청서를 회원 표로",
+          "objectives": [
+            "열 제약 하나씩으로 어떤 행이 막히는지 확인해요."
+          ],
+          "premise": "가입 신청서 signup(card, email, plan)을 회원 표 members로 옮겨요. INSERT OR IGNORE는 SQLite 문법으로, 제약을 어긴 행을 오류 대신 건너뛰어요. 그래서 막힌 행이 결과 표에서 빠져요.",
+          "steps": [
+            {
+              "id": "stp_c91208d2-f44a-4109-aa21-e8517cd704db",
+              "objectives": [
+                "기본키 제약으로 개체 무결성(중복·NULL 금지)을 지키고, SQLite의 기본키 NULL 예외를 NOT NULL로 막아요."
+              ]
+            },
+            {
+              "id": "stp_190ae6de-4bf4-4988-a736-0e3f8594c22d",
+              "objectives": [
+                "UNIQUE는 값의 중복을 막지만 NULL은 여러 행에 허용함을 기본키와 비교해요."
+              ]
+            },
+            {
+              "id": "stp_0e61d97c-f1d7-4f74-82f6-a580bba3f50d",
+              "objectives": [
+                "CHECK(열 IN (...))로 열의 값 범위(도메인 무결성)를 지키고, 표준 CREATE DOMAIN과 연결해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_5ba206cc-94d9-4407-b3bd-e70e13b9490f",
+      "title": "참조를 지키며 지우고 구조를 바꿔요",
+      "objectives": [
+        "외래키 삭제 옵션과 ALTER·INDEX·DROP이 표에 주는 영향을 실행으로 비교해요."
+      ],
+      "units": [
+        {
+          "id": "unt_dea441da-3e7c-44f9-a056-6fa6b36294bb",
+          "title": "팀과 직원 표",
+          "objectives": [
+            "부모 삭제, 열 추가, 인덱스, 표 삭제를 하나씩 확인해요."
+          ],
+          "premise": "teams(id, name)는 팀, staff는 직원 표예요. 각 스텝은 준비 자료에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_a09bf035-fe7d-435f-8ceb-2edd3d3c5b0f",
+              "objectives": [
+                "참조 무결성 때문에 부모 삭제가 거절되고, ON DELETE CASCADE·SET NULL이 그 처리를 바꿈을 비교해요."
+              ]
+            },
+            {
+              "id": "stp_a3cd092a-2528-41e2-841b-9c575bbdf970",
+              "objectives": [
+                "ALTER TABLE ADD로 붙인 열은 기존 행에서 DEFAULT 또는 NULL이 됨을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_7129286e-d6c9-40c6-b0b4-4a9c0ebaa67d",
+              "objectives": [
+                "CREATE INDEX는 질의 결과가 아니라 행을 찾는 경로(SCAN → SEARCH)를 바꿈을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_7b22824d-06c6-4fc3-84c9-1f3ed05b0c66",
+              "objectives": [
+                "표준 DROP ... CASCADE/RESTRICT가 다루는 의존 객체를 SQLite에서 직접 처리해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_f199e649-53cf-4dd1-9203-5a561e6e3d35",
+      "title": "권한 사슬을 회수하고 스크립트를 추적해요",
+      "objectives": [
+        "REVOKE CASCADE의 사슬 회수를 모델로 확인하고, 이 수업의 원리를 한 스크립트에서 따라가요."
+      ],
+      "units": [
+        {
+          "id": "unt_0c974685-0964-4b6e-bc5b-6af8369507a4",
+          "title": "권한의 사슬",
+          "objectives": [
+            "다시 준 권한이 회수에서 어떻게 이어지는지 확인해요."
+          ],
+          "premise": "SQLite에는 사용자와 권한이 없어요. 그래서 누가 누구에게 권한을 줬는지를 파이썬 사전으로 흉내 내요.",
+          "steps": [
+            {
+              "id": "stp_fa3e09c7-2576-4337-b7d0-4a155c4e8e28",
+              "objectives": [
+                "REVOKE ... CASCADE가 WITH GRANT OPTION으로 다시 준 권한을 사슬을 따라 회수함을 모델로 확인해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_fd5df073-6829-4fcd-aa50-8284b25f91fe",
+          "title": "팀 개편 스크립트",
+          "objectives": [
+            "여러 제약이 걸린 스크립트를 따라가 고장 난 줄을 고쳐요."
+          ],
+          "premise": "이 수업에서 쓴 DEFAULT, CHECK, 이름 붙은 외래키와 ON DELETE CASCADE가 한 표에 모여 있어요.",
+          "steps": [
+            {
+              "id": "stp_57995f40-e114-476d-ae19-33ceac6e5c2b",
+              "objectives": [
+                "DEFAULT·CHECK·외래키·CASCADE가 함께 걸린 스크립트를 한 줄씩 따라가 오류의 원인을 찾아요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_35c43757-3b1b-4a47-ad37-488ea04d619a",
+      "title": "열 목록을 써서 새 책을 넣으세요",
+      "goal": "books 표에 새 책을 넣으려 해요. 번호는 3, 제목은 Query Lab이고 저자는 아직 몰라요. copies 열은 값을 적지 않으면 1이 들어가게(DEFAULT 1) 만들어져 있어요.\n\n**알아두세요**\n\nINSERT INTO 표(열, 열) VALUES(값, 값)처럼 열 목록을 쓰면 적은 열에만 값이 들어가요. 빠진 열에는 DEFAULT 값이, 없으면 NULL이 들어가요. 문자열 값은 작은따옴표로 감싸요.\n\nINSERT 문에 열 목록을 넣어 번호와 제목만 넣으세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 INSERT가 어떻게 되는지 확인하세요.\n2. books 뒤에 id와 title의 열 목록을 쓰세요.\n3. 다시 실행해 새 행의 author와 copies를 확인하세요.\n4. 수정한 SQL을 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 새 책: 번호 3, 제목 Query Lab. 저자는 아직 몰라요.\nINSERT INTO books VALUES(3, 'Query Lab');\n",
+      "solution": "-- 새 책: 번호 3, 제목 Query Lab. 저자는 아직 몰라요.\nINSERT INTO books(id, title) VALUES(3, 'Query Lab');\n",
+      "files": {
+        "setup.sql": "CREATE TABLE books(id INTEGER PRIMARY KEY, title TEXT NOT NULL, author TEXT, copies INTEGER NOT NULL DEFAULT 1);\nINSERT INTO books VALUES(1,'Data Basics','Han',2),(2,'SQL Notes',NULL,1);\n",
+        "after.sql": "SELECT id, title, author, copies FROM books ORDER BY id;"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "id | title | author | copies\n1 | Data Basics | Han | 2\n2 | SQL Notes | NULL | 1\n3 | Query Lab | NULL | 1"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE books(id INTEGER PRIMARY KEY, title TEXT NOT NULL, author TEXT, copies INTEGER NOT NULL DEFAULT 1);\nINSERT INTO books VALUES(1,'Graph Intro','Seo',3),(4,'Net Guide','Park',1);\n",
+            "after.sql": "SELECT id, title, author, copies FROM books ORDER BY id;"
+          },
+          "expected": "id | title | author | copies\n1 | Graph Intro | Seo | 3\n3 | Query Lab | NULL | 1\n4 | Net Guide | Park | 1"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "번호와 제목만 아는 책을 넣는 문제예요. 나머지 두 열은 표가 정하게 둬요.",
+          "target": "text:INSERT 문에 열 목록을 넣어 번호와 제목만 넣으세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ],
+          "expect_error": "2 values were supplied"
+        },
+        {
+          "action": "say",
+          "text": "오류가 났어요. books는 열이 네 개인데 값은 두 개만 줬어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "INSERT INTO books VALUES",
+          "after": "INSERT INTO books(title, id) VALUES",
+          "say": "열 목록을 title, id 순서로 먼저 써 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ],
+          "expect_error": "datatype mismatch"
+        },
+        {
+          "action": "say",
+          "text": "이번엔 datatype mismatch예요. 3이 title로, 제목이 id로 가려 했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 값은 열 목록의 순서대로 짝지어져요. 표를 만든 열 순서가 아니에요.",
+          "target": "code:books(title, id)"
+        },
+        {
+          "action": "patch_code",
+          "before": "books(title, id)",
+          "after": "books(id, title)",
+          "say": "값 순서에 맞게 id, title로 고쳐요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3 | Query Lab | NULL | 1 행이 생겼어요. author는 NULL, copies는 DEFAULT 1이에요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_5f0aa1be-00f1-475a-bd50-1582fb119f78",
+      "title": "쉼표로 두 열을 함께 고치세요",
+      "goal": "3번 책 Query Lab의 저자가 Lim으로 밝혀졌고, 권수는 모두 4권이 됐어요. 한 UPDATE 문으로 author와 copies 두 열을 고치려 해요. 준비 SQL은 오류 없이 실행되지만 결과가 이상해요.\n\n**알아두세요**\n\nUPDATE 표 SET 열 = 값, 열 = 값 WHERE 조건처럼 고칠 열은 쉼표로 이어요. WHERE가 고칠 행의 범위예요.\n\nSET 부분을 고쳐 3번 책의 author는 Lim, copies는 4가 되게 하세요. 다른 책은 그대로 둬야 해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 3번 책의 author와 copies를 확인하세요.\n2. SET에서 두 대입을 잇는 부분 한 곳을 고치세요.\n3. 다시 실행해 3번 행만 바뀌었는지 비교하세요.\n4. 수정한 SQL을 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 3번 책의 저자와 권수를 한 문장으로 고쳐요.\nUPDATE books SET author = 'Lim' AND copies = 4 WHERE id = 3;\n",
+      "solution": "-- 3번 책의 저자와 권수를 한 문장으로 고쳐요.\nUPDATE books SET author = 'Lim', copies = 4 WHERE id = 3;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE books(id INTEGER PRIMARY KEY, title TEXT NOT NULL, author TEXT, copies INTEGER NOT NULL DEFAULT 1);\nINSERT INTO books VALUES(1,'Data Basics','Han',2),(2,'SQL Notes',NULL,1),(3,'Query Lab',NULL,1);\n",
+        "after.sql": "SELECT id, author, copies FROM books ORDER BY id;"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "id | author | copies\n1 | Han | 2\n2 | NULL | 1\n3 | Lim | 4"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE books(id INTEGER PRIMARY KEY, title TEXT NOT NULL, author TEXT, copies INTEGER NOT NULL DEFAULT 1);\nINSERT INTO books VALUES(1,'Graph Intro','Seo',3),(3,'Query Lab','Old',2),(5,'Net Guide',NULL,1);\n",
+            "after.sql": "SELECT id, author, copies FROM books ORDER BY id;"
+          },
+          "expected": "id | author | copies\n1 | Seo | 3\n3 | Lim | 4\n5 | NULL | 1"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "한 문장으로 두 열을 고치는 문제예요. 3번 책만 바뀌어야 해요.",
+          "target": "text:SET 부분을 고쳐 3번 책의 author는 Lim, copies는 4가 되게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3번 행이 3 | 0 | 1이 됐어요. 오류는 없는데 author가 0이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "SQLite는 'Lim' AND copies = 4를 참·거짓 식 하나로 계산했어요. 그 값 0이 author에 들어갔죠.",
+          "target": "code:'Lim' AND copies = 4"
+        },
+        {
+          "action": "patch_code",
+          "before": "'Lim' AND copies",
+          "after": "'Lim', copies",
+          "say": "AND를 쉼표로 바꿔 두 대입을 나눠요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3 | Lim | 4가 됐어요. 1번과 2번 책은 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. WHERE id = 3을 빠뜨리면 세 책이 모두 Lim, 4로 바뀌어요.",
+          "target": "code:WHERE id = 3"
+        }
+      ]
+    },
+    {
+      "id": "stp_7410eb01-0fa2-4abd-a6ec-2f11346b1608",
+      "title": "후보키만 남도록 최소성을 검사하세요",
+      "goal": "수강 기록 rows에서 어떤 열 묶음이 행을 하나씩 구별하는지 찾으려 해요. 준비 코드는 유일한 묶음을 모두 출력해요.\n\n**알아두세요**\n\n행을 유일하게 구별하는 열 묶음이 슈퍼키예요(유일성). 그중 열을 하나라도 빼면 유일하지 않게 되는 묶음이 후보키예요(유일성 + 최소성). 후보키 가운데 하나를 골라 기본키로 써요.\n\ncandidate 함수에 최소성 검사를 더해 후보키만 출력하게 하세요. 채점은 rows를 다른 수강 기록으로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력되는 묶음을 확인하세요.\n2. 주석 아래에 열 하나를 뺀 묶음이 유일하면 False를 돌려주는 검사를 쓰세요.\n3. 다시 실행해 줄어든 묶음을 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "from itertools import combinations\n\ncols = ['student', 'course', 'room']\nrows = [('kim', 'db', 'R1'), ('kim', 'os', 'R2'), ('lee', 'db', 'R1'), ('lee', 'os', 'R3')]\n\n\ndef unique(idx):\n    # 고른 열의 값 묶음이 행마다 모두 다른지 봐요.\n    seen = {tuple(row[i] for i in idx) for row in rows}\n    return len(seen) == len(rows)\n\n\ndef candidate(idx):\n    if not unique(idx):\n        return False\n    # 이 주석 아래에 최소성 검사를 쓰세요.\n    return True\n\n\n# 열 1개짜리 묶음부터 차례로 검사해 출력해요.\nfor k in range(1, len(cols) + 1):\n    for idx in combinations(range(len(cols)), k):\n        if candidate(idx):\n            print('+'.join(cols[i] for i in idx))\n",
+      "solution": "from itertools import combinations\n\ncols = ['student', 'course', 'room']\nrows = [('kim', 'db', 'R1'), ('kim', 'os', 'R2'), ('lee', 'db', 'R1'), ('lee', 'os', 'R3')]\n\n\ndef unique(idx):\n    # 고른 열의 값 묶음이 행마다 모두 다른지 봐요.\n    seen = {tuple(row[i] for i in idx) for row in rows}\n    return len(seen) == len(rows)\n\n\ndef candidate(idx):\n    if not unique(idx):\n        return False\n    # 이 주석 아래에 최소성 검사를 쓰세요.\n    if any(unique(tuple(j for j in idx if j != i)) for i in idx):\n        return False\n    return True\n\n\n# 열 1개짜리 묶음부터 차례로 검사해 출력해요.\nfor k in range(1, len(cols) + 1):\n    for idx in combinations(range(len(cols)), k):\n        if candidate(idx):\n            print('+'.join(cols[i] for i in idx))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "student+course\nstudent+room"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "유일한 묶음 가운데 군더더기 열이 없는 것만 남기는 문제예요.",
+          "target": "text:candidate 함수에 최소성 검사를 더해 후보키만 출력하게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            24,
+            24
+          ]
+        },
+        {
+          "action": "say",
+          "text": "student+course, student+room, student+course+room 세 묶음이 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "세 열 묶음도 유일해요. 하지만 room을 빼도 student+course만으로 구별돼요.",
+          "target": "text:그중 열을 하나라도 빼면 유일하지 않게 되는 묶음이 후보키예요"
+        },
+        {
+          "action": "patch_code",
+          "before": "    # 이 주석 아래에 최소성 검사를 쓰세요.\n",
+          "after": "    # 이 주석 아래에 최소성 검사를 쓰세요.\n    if any(unique(tuple(j for j in idx if j != i)) for i in idx):\n        return False\n",
+          "say": "열 i 하나를 뺀 묶음이 여전히 유일하면 후보키가 아니에요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            26,
+            26
+          ]
+        },
+        {
+          "action": "say",
+          "text": "student+course와 student+room 두 묶음만 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. student+room은 지금 네 행에서 우연히 유일할 뿐이에요. kim이 R1 수업을 하나 더 들으면 깨져요.",
+          "target": "code:rows = "
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"rows\": [[\"kim\", \"db\", \"R1\"], [\"kim\", \"os\", \"R2\"], [\"lee\", \"db\", \"R1\"], [\"lee\", \"os\", \"R3\"]]}, \"expected\": \"student+course\\\\nstudent+room\", \"value_literals\": {\"rows\": \"[(\\'kim\\', \\'db\\', \\'R1\\'), (\\'kim\\', \\'os\\', \\'R2\\'), (\\'lee\\', \\'db\\', \\'R1\\'), (\\'lee\\', \\'os\\', \\'R3\\')]\"}}, {\"values\": {\"rows\": [[\"kim\", \"db\", \"R1\"], [\"kim\", \"os\", \"R2\"], [\"lee\", \"db\", \"R1\"], [\"lee\", \"os\", \"R3\"], [\"kim\", \"net\", \"R1\"]]}, \"expected\": \"student+course\", \"value_literals\": {\"rows\": \"[(\\'kim\\', \\'db\\', \\'R1\\'), (\\'kim\\', \\'os\\', \\'R2\\'), (\\'lee\\', \\'db\\', \\'R1\\'), (\\'lee\\', \\'os\\', \\'R3\\'), (\\'kim\\', \\'net\\', \\'R1\\')]\"}}, {\"values\": {\"rows\": [[\"kim\", \"db\", \"R1\"], [\"kim\", \"os\", \"R2\"], [\"lee\", \"db\", \"R3\"]]}, \"expected\": \"room\\\\nstudent+course\", \"value_literals\": {\"rows\": \"[(\\'kim\\', \\'db\\', \\'R1\\'), (\\'kim\\', \\'os\\', \\'R2\\'), (\\'lee\\', \\'db\\', \\'R3\\')]\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_c91208d2-f44a-4109-aa21-e8517cd704db",
+      "title": "카드 번호를 기본키로 정해 중복과 빈 값을 막으세요",
+      "goal": "신청서에는 같은 카드 번호가 두 번 나오거나 카드 번호가 빈(NULL) 행이 섞여 있어요. card로 회원을 구별하려면 이런 행이 members에 들어오면 안 돼요.\n\n**알아두세요**\n\n기본키 값은 비어 있거나(NULL) 겹치면 안 돼요. 이 규칙이 개체 무결성이에요. 열 옆에 PRIMARY KEY, NOT NULL처럼 제약을 적어요.\n\nCREATE TABLE의 card 열에 제약을 붙여 card가 기본키가 되고 빈 카드 번호도 막히게 하세요. 채점은 다른 신청서로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 members에 들어온 회원을 확인하세요.\n2. card 열 옆에 기본키 제약을 쓰세요.\n3. 다시 실행해 남은 행에 NULL 카드가 있는지 확인하세요.\n4. NULL도 막히도록 card에 제약 하나를 더하세요.\n5. 다시 실행해 남은 회원을 비교하세요.\n6. 수정한 SQL을 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- card로 회원을 한 명씩 구별해요.\nCREATE TABLE members(card TEXT, email TEXT, plan TEXT);\n-- OR IGNORE: 제약을 어긴 행은 건너뛰어요.\nINSERT OR IGNORE INTO members SELECT card, email, plan FROM signup;\nSELECT card, email FROM members ORDER BY card;\n",
+      "solution": "-- card로 회원을 한 명씩 구별해요.\nCREATE TABLE members(card TEXT PRIMARY KEY NOT NULL, email TEXT, plan TEXT);\n-- OR IGNORE: 제약을 어긴 행은 건너뛰어요.\nINSERT OR IGNORE INTO members SELECT card, email, plan FROM signup;\nSELECT card, email FROM members ORDER BY card;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE signup(card TEXT, email TEXT, plan TEXT);\nINSERT INTO signup VALUES('C01','a@x.kr','basic'),('C02','b@x.kr','gold'),('C01','c@x.kr','basic'),(NULL,'d@x.kr','vip');\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "card | email\nC01 | a@x.kr\nC02 | b@x.kr"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE signup(card TEXT, email TEXT, plan TEXT);\nINSERT INTO signup VALUES('K7','p@x.kr','gold'),(NULL,'q@x.kr','basic'),('K7','r@x.kr','vip'),('K2','s@x.kr','basic');\n"
+          },
+          "expected": "card | email\nK2 | s@x.kr\nK7 | p@x.kr"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "card가 회원을 하나씩 구별하도록 겹침과 빈 값을 막는 문제예요.",
+          "target": "text:card가 기본키가 되고 빈 카드 번호도 막히게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "네 행이 다 들어왔어요. C01이 두 번이고, 맨 위에 카드 번호가 NULL인 행도 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "members(card TEXT,",
+          "after": "members(card TEXT PRIMARY KEY,",
+          "say": "카드 번호를 기본키로 정해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "C01의 두 번째 행은 건너뛰었어요. 그런데 NULL 행은 아직 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. SQLite는 옛 버전과 맞추려고 INTEGER가 아닌 기본키에 NULL을 받아요. 표준 SQL의 기본키는 NULL을 거절해요.",
+          "target": "code:card TEXT PRIMARY KEY"
+        },
+        {
+          "action": "patch_code",
+          "before": "card TEXT PRIMARY KEY,",
+          "after": "card TEXT PRIMARY KEY NOT NULL,",
+          "say": "NOT NULL을 더해 빈 카드 번호도 막아요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "C01 | a@x.kr, C02 | b@x.kr 두 명만 남았어요. 겹친 카드와 빈 카드가 모두 막혔어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_190ae6de-4bf4-4988-a736-0e3f8594c22d",
+      "title": "이메일이 겹치지 않게 UNIQUE를 붙이세요",
+      "goal": "이번엔 card가 이미 기본키예요. 신청서에 서로 다른 카드가 같은 이메일을 쓴 행이 있어요. 이메일을 아직 안 적은 회원은 여러 명이어도 돼요.\n\n**알아두세요**\n\nUNIQUE는 그 열의 값이 겹치지 않게 막아요. 기본키와 달리 UNIQUE 열에는 NULL이 여러 행에 있어도 돼요.\n\nemail 열에 제약을 붙여 같은 이메일의 두 번째 회원이 막히게 하세요. 이메일이 빈 회원은 들어와야 해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 같은 이메일을 쓴 회원을 찾으세요.\n2. email 열 옆에 겹침을 막는 제약을 쓰세요.\n3. 다시 실행해 이메일이 빈 회원이 남았는지 확인하세요.\n4. 수정한 SQL을 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 한 이메일은 한 회원만 써요. 이메일은 나중에 적어도 돼요.\nCREATE TABLE members(card TEXT PRIMARY KEY NOT NULL, email TEXT, plan TEXT);\nINSERT OR IGNORE INTO members SELECT card, email, plan FROM signup;\nSELECT card, email FROM members ORDER BY card;\n",
+      "solution": "-- 한 이메일은 한 회원만 써요. 이메일은 나중에 적어도 돼요.\nCREATE TABLE members(card TEXT PRIMARY KEY NOT NULL, email TEXT UNIQUE, plan TEXT);\nINSERT OR IGNORE INTO members SELECT card, email, plan FROM signup;\nSELECT card, email FROM members ORDER BY card;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE signup(card TEXT, email TEXT, plan TEXT);\nINSERT INTO signup VALUES('C01','a@x.kr','basic'),('C02','a@x.kr','gold'),('C03',NULL,'basic'),('C04',NULL,'vip'),('C05','e@x.kr','gold');\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "card | email\nC01 | a@x.kr\nC03 | NULL\nC04 | NULL\nC05 | e@x.kr"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE signup(card TEXT, email TEXT, plan TEXT);\nINSERT INTO signup VALUES('D1','m@x.kr','basic'),('D2',NULL,'gold'),('D3','m@x.kr','vip'),('D4','n@x.kr','basic'),('D5','n@x.kr','gold');\n"
+          },
+          "expected": "card | email\nD1 | m@x.kr\nD2 | NULL\nD4 | n@x.kr"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "이메일 겹침은 막고 빈 이메일은 받아야 하는 문제예요.",
+          "target": "text:email 열에 제약을 붙여 같은 이메일의 두 번째 회원이 막히게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            3,
+            3
+          ]
+        },
+        {
+          "action": "say",
+          "text": "다섯 명이 다 들어왔어요. C01과 C02가 같은 a@x.kr을 써요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "email TEXT,",
+          "after": "email TEXT UNIQUE NOT NULL,",
+          "say": "UNIQUE와 NOT NULL을 함께 붙여 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            3,
+            3
+          ]
+        },
+        {
+          "action": "say",
+          "text": "C02와 함께 이메일이 빈 C03, C04까지 빠졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. NOT NULL까지 붙이면 이메일을 아직 안 적은 회원이 못 들어와요. 이번 요구는 빈 이메일을 받아요.",
+          "target": "code:UNIQUE NOT NULL"
+        },
+        {
+          "action": "patch_code",
+          "before": "UNIQUE NOT NULL",
+          "after": "UNIQUE",
+          "say": "NOT NULL은 빼요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            3,
+            3
+          ]
+        },
+        {
+          "action": "say",
+          "text": "C03, C04는 남고 C02만 빠졌어요. UNIQUE는 NULL끼리를 같은 값으로 보지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "email도 회원을 구별하는 후보키예요. 기본키로 고르지 않은 후보키를 대체키라고 해요.",
+          "target": "code:email TEXT UNIQUE"
+        }
+      ]
+    },
+    {
+      "id": "stp_0e61d97c-f1d7-4f74-82f6-a580bba3f50d",
+      "title": "등급 값의 범위를 CHECK로 막으세요",
+      "goal": "회원 등급 plan은 basic, gold, vip 세 값만 쓰기로 했어요. 신청서에는 silver나 대문자 Gold 같은 값이 섞여 있어요.\n\n**알아두세요**\n\n열이 가질 수 있는 값의 범위를 지키는 규칙이 도메인 무결성이에요. 표준 SQL은 CREATE DOMAIN 등급 AS VARCHAR(5) CHECK(VALUE IN (...))로 범위를 따로 정의할 수 있어요. SQLite에는 CREATE DOMAIN이 없어서 열에 CHECK(조건)을 직접 붙여요.\n\nplan 열에 CHECK 제약을 붙여 세 값 밖의 등급이 막히게 하세요. 채점은 다른 신청서로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 들어온 등급 값을 확인하세요.\n2. plan 열 옆에 세 값만 허용하는 CHECK 제약을 쓰세요.\n3. 다시 실행해 남은 회원의 등급을 비교하세요.\n4. 수정한 SQL을 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- plan은 basic, gold, vip 세 값만 받아요.\nCREATE TABLE members(card TEXT PRIMARY KEY NOT NULL, email TEXT UNIQUE, plan TEXT);\nINSERT OR IGNORE INTO members SELECT card, email, plan FROM signup;\nSELECT card, plan FROM members ORDER BY card;\n",
+      "solution": "-- plan은 basic, gold, vip 세 값만 받아요.\nCREATE TABLE members(card TEXT PRIMARY KEY NOT NULL, email TEXT UNIQUE, plan TEXT CHECK(plan IN ('basic', 'gold', 'vip')));\nINSERT OR IGNORE INTO members SELECT card, email, plan FROM signup;\nSELECT card, plan FROM members ORDER BY card;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE signup(card TEXT, email TEXT, plan TEXT);\nINSERT INTO signup VALUES('C01','a@x.kr','basic'),('C02','b@x.kr','gold'),('C03','c@x.kr','silver'),('C04','d@x.kr','vip'),('C05','e@x.kr','Gold');\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "card | plan\nC01 | basic\nC02 | gold\nC04 | vip"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE signup(card TEXT, email TEXT, plan TEXT);\nINSERT INTO signup VALUES('E1','x@x.kr','vip'),('E2','y@x.kr','VIP'),('E3','z@x.kr','gold'),('E4','w@x.kr','free');\n"
+          },
+          "expected": "card | plan\nE1 | vip\nE3 | gold"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "등급 열이 정한 세 값만 받도록 범위를 거는 문제예요.",
+          "target": "text:plan 열에 CHECK 제약을 붙여 세 값 밖의 등급이 막히게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            3,
+            3
+          ]
+        },
+        {
+          "action": "say",
+          "text": "다섯 행이 다 들어왔어요. silver와 대문자 Gold도 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "plan TEXT);",
+          "after": "plan TEXT CHECK(plan = 'basic' OR 'gold' OR 'vip'));",
+          "say": "허용 값을 OR로 이어 써 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            3,
+            3
+          ]
+        },
+        {
+          "action": "say",
+          "text": "C01 | basic 하나만 남았어요. gold와 vip도 막혔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. OR 뒤의 'gold'는 비교가 아니라 문자열 하나예요. 거짓으로 계산돼서 basic만 통과해요.",
+          "target": "code:OR 'gold'"
+        },
+        {
+          "action": "patch_code",
+          "before": "plan = 'basic' OR 'gold' OR 'vip'",
+          "after": "plan IN ('basic', 'gold', 'vip')",
+          "say": "IN으로 세 값을 묶어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            3,
+            3
+          ]
+        },
+        {
+          "action": "say",
+          "text": "C01 basic, C02 gold, C04 vip가 남았어요. silver와 Gold는 범위 밖이라 막혔어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_a09bf035-fe7d-435f-8ceb-2edd3d3c5b0f",
+      "title": "팀을 지우면 그 팀 직원도 함께 지워지게 하세요",
+      "goal": "staff.team_id는 teams.id를 가리키는 외래키예요. 20팀을 없앨 때 그 팀 직원 기록도 함께 지우기로 했어요. 지금은 DELETE가 거절돼요.\n\n**알아두세요**\n\n외래키 값은 부모 표에 있는 키이거나 NULL이어야 해요. 이 규칙이 참조 무결성이에요. 부모 행을 지울 때 자식이 남아 있으면 기본은 거절이고, 외래키 뒤에 ON DELETE 처리를 정할 수 있어요.\n\n외래키 제약에 삭제 옵션을 붙여 20팀을 지우면 그 팀 직원도 함께 지워지게 하세요. 채점은 다른 직원 명단으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 DELETE가 어떻게 되는지 확인하세요.\n2. 외래키 제약 끝에 삭제 옵션을 붙이세요.\n3. 다시 실행해 남은 직원을 확인하세요.\n4. 수정한 SQL을 제출하세요.",
+      "language": "sql",
+      "starter_code": "CREATE TABLE staff(\n  id INTEGER PRIMARY KEY,\n  name TEXT NOT NULL,\n  team_id INTEGER,\n  CONSTRAINT fk_staff_team FOREIGN KEY(team_id) REFERENCES teams(id)\n);\nINSERT INTO staff SELECT id, name, team_id FROM staff_list;\n-- 20팀을 없애요.\nDELETE FROM teams WHERE id = 20;\nSELECT id, name, team_id FROM staff ORDER BY id;\n",
+      "solution": "CREATE TABLE staff(\n  id INTEGER PRIMARY KEY,\n  name TEXT NOT NULL,\n  team_id INTEGER,\n  CONSTRAINT fk_staff_team FOREIGN KEY(team_id) REFERENCES teams(id) ON DELETE CASCADE\n);\nINSERT INTO staff SELECT id, name, team_id FROM staff_list;\n-- 20팀을 없애요.\nDELETE FROM teams WHERE id = 20;\nSELECT id, name, team_id FROM staff ORDER BY id;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE teams(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO teams VALUES(10,'dev'),(20,'ops'),(30,'qa');\nCREATE TABLE staff_list(id INTEGER, name TEXT, team_id INTEGER);\nINSERT INTO staff_list VALUES(1,'Ara',10),(2,'Bo',20),(3,'Cy',20),(4,'Dan',30),(5,'Eun',20);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "id | name | team_id\n1 | Ara | 10\n4 | Dan | 30"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE teams(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO teams VALUES(10,'dev'),(20,'ops'),(30,'qa');\nCREATE TABLE staff_list(id INTEGER, name TEXT, team_id INTEGER);\nINSERT INTO staff_list VALUES(1,'Ha',20),(2,'Io',30),(3,'Ju',10),(4,'Ki',20);\n"
+          },
+          "expected": "id | name | team_id\n2 | Io | 30\n3 | Ju | 10"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "20팀을 지울 때 그 팀 직원까지 함께 정리하는 문제예요.",
+          "target": "text:외래키 제약에 삭제 옵션을 붙여 20팀을 지우면 그 팀 직원도 함께 지워지게 하세요."
+        },
+        {
+          "action": "say",
+          "text": "CONSTRAINT 뒤는 제약 이름, FOREIGN KEY 뒤는 자기 열, REFERENCES 뒤는 부모 표와 열이에요.",
+          "target": "code:FOREIGN KEY(team_id)"
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ],
+          "expect_error": "FOREIGN KEY constraint failed"
+        },
+        {
+          "action": "say",
+          "text": "팀 20을 지우다 FOREIGN KEY 오류가 났어요. Bo, Cy, Eun이 아직 20을 가리켜요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "REFERENCES teams(id)\n",
+          "after": "REFERENCES teams(id) ON DELETE SET NULL\n",
+          "say": "부모가 지워질 때 할 일을 SET NULL로 정해 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이번엔 지워졌어요. 2, 3, 5번 직원은 남고 team_id가 NULL이 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "SET NULL",
+          "after": "CASCADE",
+          "say": "요구대로 CASCADE로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1 | Ara | 10, 4 | Dan | 30만 남았어요. 20팀 직원 세 명이 함께 지워졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 이 옵션은 자식 표 staff의 외래키에 붙여요. 부모 표 teams 쪽에 적는 게 아니에요.",
+          "target": "code:ON DELETE CASCADE"
+        }
+      ]
+    },
+    {
+      "id": "stp_a3cd092a-2528-41e2-841b-9c575bbdf970",
+      "title": "열을 붙일 때 기존 행의 값을 정하세요",
+      "goal": "운영 중인 staff 표에 재직 여부 active 열을 새로 붙여요. 지금 있는 직원과, 열을 붙인 뒤 active 없이 넣는 직원 모두 1(재직)로 시작해야 해요.\n\n**알아두세요**\n\nALTER TABLE 표 ADD COLUMN 열 타입은 이미 있는 표에 열을 붙여요. COLUMN은 빼고 써도 돼요. 기존 행의 새 열에는 DEFAULT 값이, 없으면 NULL이 들어가요.\n\nALTER 문의 열 정의를 고쳐 active가 1로 시작하게 하세요. 아래 INSERT와 SELECT는 그대로 두세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 active 열의 값을 확인하세요.\n2. ALTER 문의 active 열 정의를 고치세요.\n3. 다시 실행해 기존 직원과 9번 New의 active를 비교하세요.\n4. 수정한 SQL을 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 재직 여부 active 열을 붙여요. 1은 재직이에요.\nALTER TABLE staff ADD COLUMN active INTEGER;\nINSERT INTO staff(id, name, team_id) VALUES(9, 'New', 10);\nSELECT id, name, active FROM staff ORDER BY id;\n",
+      "solution": "-- 재직 여부 active 열을 붙여요. 1은 재직이에요.\nALTER TABLE staff ADD COLUMN active INTEGER DEFAULT 1;\nINSERT INTO staff(id, name, team_id) VALUES(9, 'New', 10);\nSELECT id, name, active FROM staff ORDER BY id;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE staff(id INTEGER PRIMARY KEY, name TEXT NOT NULL, team_id INTEGER);\nINSERT INTO staff VALUES(1,'Ara',10),(2,'Bo',20),(3,'Cy',30);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "id | name | active\n1 | Ara | 1\n2 | Bo | 1\n3 | Cy | 1\n9 | New | 1"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE staff(id INTEGER PRIMARY KEY, name TEXT NOT NULL, team_id INTEGER);\nINSERT INTO staff VALUES(4,'Dan',10),(7,'Eun',20);\n"
+          },
+          "expected": "id | name | active\n4 | Dan | 1\n7 | Eun | 1\n9 | New | 1"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "새 열이 기존 직원과 나중 직원 모두에게 1로 시작하게 하는 문제예요.",
+          "target": "text:ALTER 문의 열 정의를 고쳐 active가 1로 시작하게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "active가 네 행 모두 NULL이에요. 새 열에는 기존 행의 값이 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "active INTEGER;",
+          "after": "active INTEGER NOT NULL;",
+          "say": "NOT NULL로 빈 값을 막아 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ],
+          "expect_error": "Cannot add a NOT NULL column"
+        },
+        {
+          "action": "say",
+          "text": "ALTER가 거절됐어요. 기존 행에 넣을 값이 없어서 NOT NULL을 지킬 수 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 행이 있는 표에 NOT NULL 열을 붙일 땐 DEFAULT 값이 함께 있어야 해요.",
+          "target": "code:active INTEGER NOT NULL"
+        },
+        {
+          "action": "patch_code",
+          "before": "active INTEGER NOT NULL;",
+          "after": "active INTEGER DEFAULT 1;",
+          "say": "NOT NULL 대신 DEFAULT 1을 붙여요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "네 행 모두 active가 1이에요. 나중에 넣은 9번 New도 1을 받았어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_7129286e-d6c9-40c6-b0b4-4a9c0ebaa67d",
+      "title": "이름 검색에 쓸 인덱스를 만드세요",
+      "goal": "staff 표에서 이름으로 직원을 찾는 일이 잦아요. name 열에 인덱스를 만들어 행을 찾는 경로를 바꾸려 해요.\n\n**알아두세요**\n\nCREATE INDEX 인덱스이름 ON 표(열)은 열 값으로 행을 빨리 찾는 보조 구조를 만들어요. EXPLAIN QUERY PLAN은 질의를 실행하지 않고 어떤 경로로 행을 찾을지 보여 줘요. detail 열의 SCAN은 전체 훑기, SEARCH ... USING INDEX는 인덱스로 찾기예요.\n\n주석 아래에 name 열의 인덱스 idx_staff_name을 만드세요. 채점은 다른 직원 명단으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 detail 열과 검색 결과를 확인하세요.\n2. 주석 아래에 CREATE INDEX 문 한 줄을 쓰세요.\n3. 다시 실행해 detail 열과 검색 결과가 각각 바뀌었는지 비교하세요.\n4. 수정한 SQL을 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 이 주석 아래에 name 열의 인덱스 idx_staff_name을 만드세요.\n\nEXPLAIN QUERY PLAN SELECT id, team_id FROM staff WHERE name = 'Bo';\nSELECT id, team_id FROM staff WHERE name = 'Bo';\n",
+      "solution": "-- 이 주석 아래에 name 열의 인덱스 idx_staff_name을 만드세요.\nCREATE INDEX idx_staff_name ON staff(name);\n\nEXPLAIN QUERY PLAN SELECT id, team_id FROM staff WHERE name = 'Bo';\nSELECT id, team_id FROM staff WHERE name = 'Bo';\n",
+      "files": {
+        "setup.sql": "CREATE TABLE staff(id INTEGER PRIMARY KEY, name TEXT NOT NULL, team_id INTEGER);\nINSERT INTO staff VALUES(1,'Ara',10),(2,'Bo',20),(3,'Cy',20),(4,'Dan',30);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "id | parent | notused | detail\n3 | 0 | 0 | SEARCH staff USING INDEX idx_staff_name (name=?)\n\nid | team_id\n2 | 20"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE staff(id INTEGER PRIMARY KEY, name TEXT NOT NULL, team_id INTEGER);\nINSERT INTO staff VALUES(1,'Cy',10),(5,'Bo',30),(6,'Dan',20);\n"
+          },
+          "expected": "id | parent | notused | detail\n3 | 0 | 0 | SEARCH staff USING INDEX idx_staff_name (name=?)\n\nid | team_id\n5 | 30"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "Bo를 찾는 질의는 그대로 두고 찾아가는 길만 바꾸는 문제예요.",
+          "target": "text:주석 아래에 name 열의 인덱스 idx_staff_name을 만드세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            3,
+            3
+          ]
+        },
+        {
+          "action": "say",
+          "text": "detail이 SCAN staff예요. 표를 처음부터 끝까지 훑어요. 검색 결과는 2 | 20이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "-- 이 주석 아래에 name 열의 인덱스 idx_staff_name을 만드세요.\n\n",
+          "after": "-- 이 주석 아래에 name 열의 인덱스 idx_staff_name을 만드세요.\nCREATE INDEX idx_staff_name ON name(staff);\n\n",
+          "say": "표와 열 자리를 바꿔 써 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ],
+          "expect_error": "no such table"
+        },
+        {
+          "action": "say",
+          "text": "name이라는 표가 없다는 오류예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. ON 뒤에는 표 이름, 괄호 안에는 열 이름이에요. 거꾸로 쓰면 없는 표를 찾아요.",
+          "target": "code:ON name(staff)"
+        },
+        {
+          "action": "patch_code",
+          "before": "ON name(staff)",
+          "after": "ON staff(name)",
+          "say": "표 staff, 열 name으로 고쳐요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "detail이 SEARCH staff USING INDEX idx_staff_name으로 바뀌었어요. 검색 결과는 그대로 2 | 20이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "인덱스는 결과를 바꾸지 않아요. 행을 찾아가는 길만 바꿔요.",
+          "target": "code:CREATE INDEX idx_staff_name"
+        }
+      ]
+    },
+    {
+      "id": "stp_7b22824d-06c6-4fc3-84c9-1f3ed05b0c66",
+      "title": "표에 기대는 뷰를 먼저 지우세요",
+      "goal": "더 쓰지 않는 옛 직원 표 old_staff를 지우려 해요. 그런데 뷰 old_names가 이 표를 읽고 있어요. 뷰는 저장해 둔 SELECT라서 표가 사라지면 쓸 수 없어요.\n\n**알아두세요**\n\n표준 SQL의 DROP TABLE old_staff CASCADE는 이 표에 기대는 뷰까지 함께 지워요. RESTRICT는 기대는 객체가 있으면 지우기를 거절해요. SQLite에는 두 옵션이 없어서 표만 지워지고 뷰는 남아요. sqlite_master는 SQLite가 표와 뷰 목록을 담아 두는 표예요.\n\nCASCADE가 해 줄 일을 직접 하세요. old_staff에 기대는 뷰를 지우는 DROP 문 한 줄을 더해, 목록에 깨진 뷰가 남지 않게 하세요. 다른 표와 뷰는 남겨야 해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지운 뒤의 목록을 확인하세요.\n2. old_staff에 기대는 뷰를 지우는 DROP 문 한 줄을 더하세요.\n3. 다시 실행해 목록을 비교하세요.\n4. 수정한 SQL을 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 옛 직원 표 old_staff를 없애요. 뷰 old_names가 이 표를 읽어요.\nDROP TABLE old_staff;\nSELECT type, name FROM sqlite_master ORDER BY name;\n",
+      "solution": "-- 옛 직원 표 old_staff를 없애요. 뷰 old_names가 이 표를 읽어요.\nDROP VIEW old_names;\nDROP TABLE old_staff;\nSELECT type, name FROM sqlite_master ORDER BY name;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE old_staff(id INTEGER PRIMARY KEY, name TEXT);\nINSERT INTO old_staff VALUES(1,'Ara'),(2,'Bo');\nCREATE VIEW old_names AS SELECT name FROM old_staff;\nCREATE TABLE staff(id INTEGER PRIMARY KEY, name TEXT);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "type | name\ntable | staff"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE old_staff(id INTEGER PRIMARY KEY, name TEXT);\nINSERT INTO old_staff VALUES(1,'Ara'),(2,'Bo');\nCREATE VIEW old_names AS SELECT name FROM old_staff;\nCREATE TABLE staff(id INTEGER PRIMARY KEY, name TEXT);\nCREATE TABLE teams(id INTEGER PRIMARY KEY, name TEXT);\nCREATE VIEW team_names AS SELECT name FROM teams;\n"
+          },
+          "expected": "type | name\ntable | staff\nview | team_names\ntable | teams"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "표를 지울 때 그 표에 기대는 뷰까지 정리하는 문제예요.",
+          "target": "text:old_staff에 기대는 뷰를 지우는 DROP 문 한 줄을 더해, 목록에 깨진 뷰가 남지 않게 하세요."
+        },
+        {
+          "action": "patch_code",
+          "before": "DROP TABLE old_staff;",
+          "after": "DROP TABLE old_staff CASCADE;",
+          "say": "표준 SQL처럼 CASCADE를 붙여 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ],
+          "expect_error": "syntax error"
+        },
+        {
+          "action": "say",
+          "text": "CASCADE 근처에서 문법 오류가 났어요. SQLite의 DROP에는 이 옵션이 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "DROP TABLE old_staff CASCADE;",
+          "after": "DROP TABLE old_staff;",
+          "say": "옵션을 빼고 원래대로 돌려요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            3,
+            3
+          ]
+        },
+        {
+          "action": "say",
+          "text": "old_staff는 사라졌는데 view | old_names가 목록에 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "SELECT type",
+          "after": "SELECT name FROM old_names;\nSELECT type",
+          "say": "남은 뷰를 읽어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            3,
+            3
+          ],
+          "expect_error": "no such table"
+        },
+        {
+          "action": "say",
+          "text": "no such table 오류예요. 뷰가 읽을 표가 없어 깨진 채 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. SQLite에서 표만 지우면 기대던 뷰가 조용히 깨져요. 표준의 RESTRICT라면 DROP 자체를 거절했을 상황이에요.",
+          "target": "code:SELECT name FROM old_names;"
+        },
+        {
+          "action": "patch_code",
+          "before": "SELECT name FROM old_names;\n",
+          "after": "",
+          "say": "확인한 줄은 지워요."
+        },
+        {
+          "action": "patch_code",
+          "before": "DROP TABLE old_staff;",
+          "after": "DROP VIEW old_names;\nDROP TABLE old_staff;",
+          "say": "표를 지우기 전에 뷰를 먼저 지워요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "table | staff만 남았어요. 깨진 뷰 없이 정리됐어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_fa3e09c7-2576-4337-b7d0-4a155c4e8e28",
+      "title": "회수된 사람이 준 권한까지 이어서 회수하세요",
+      "goal": "UPDATE 권한이 owner → kim → lee → park, owner → choi → jung으로 전달됐어요. 이제 kim의 권한을 CASCADE로 회수해요.\n\n**알아두세요**\n\nGRANT UPDATE ON staff TO kim WITH GRANT OPTION;으로 받은 권한은 남에게 다시 줄 수 있어요. 표준 SQL의 REVOKE UPDATE ON staff FROM kim CASCADE;는 kim이 다시 준 권한까지 사슬을 따라 회수해요. RESTRICT는 다시 준 권한이 있으면 회수를 거절해요. 여기서는 한 사람이 한 사람에게서만 받았다고 가정해요.\n\n반복 안의 조건 한 곳을 고쳐, 회수된 사람에게서 받은 사람도 모두 회수되게 하세요. 채점은 target을 다른 사람으로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 권한이 남은 사람을 확인하세요.\n2. if 조건에서 준 사람을 비교하는 부분 한 곳을 고치세요.\n3. 다시 실행해 남은 사람을 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "# 받은 사람: 준 사람. 모두 WITH GRANT OPTION으로 받아 다시 줄 수 있었어요.\ngiven_by = {'kim': 'owner', 'lee': 'kim', 'park': 'lee', 'choi': 'owner', 'jung': 'choi'}\ntarget = 'kim'\n\nrevoked = {target}\nchanged = True\n# 더 회수할 사람이 없을 때까지 반복해요.\nwhile changed:\n    changed = False\n    for user, giver in given_by.items():\n        if user not in revoked and giver == target:\n            revoked.add(user)\n            changed = True\n\n# 권한이 남은 사람을 이름순으로 출력해요.\nprint(' '.join(sorted(set(given_by) - revoked)))\n",
+      "solution": "# 받은 사람: 준 사람. 모두 WITH GRANT OPTION으로 받아 다시 줄 수 있었어요.\ngiven_by = {'kim': 'owner', 'lee': 'kim', 'park': 'lee', 'choi': 'owner', 'jung': 'choi'}\ntarget = 'kim'\n\nrevoked = {target}\nchanged = True\n# 더 회수할 사람이 없을 때까지 반복해요.\nwhile changed:\n    changed = False\n    for user, giver in given_by.items():\n        if user not in revoked and giver in revoked:\n            revoked.add(user)\n            changed = True\n\n# 권한이 남은 사람을 이름순으로 출력해요.\nprint(' '.join(sorted(set(given_by) - revoked)))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "choi jung"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "kim에서 시작해 사슬 아래쪽 권한까지 모두 거두는 문제예요.",
+          "target": "text:반복 안의 조건 한 곳을 고쳐, 회수된 사람에게서 받은 사람도 모두 회수되게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "choi jung park이 남았어요. kim과 kim이 직접 준 lee만 회수됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "park은 lee에게서 받았어요. 지금 조건은 target이 직접 준 경우만 봐요.",
+          "target": "code:giver == target"
+        },
+        {
+          "action": "patch_code",
+          "before": "giver == target",
+          "after": "giver in revoked",
+          "say": "준 사람이 이미 회수된 사람 가운데 있는지 봐요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "choi jung만 남았어요. lee가 회수되자 lee에게서 받은 park도 이어서 회수됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. CASCADE가 거두는 건 권한뿐이에요. staff 표의 행은 하나도 지워지지 않아요.",
+          "target": "code:revoked.add(user)"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"target\": \"kim\"}, \"expected\": \"choi jung\", \"value_literals\": {\"target\": \"\\'kim\\'\"}}, {\"values\": {\"target\": \"choi\"}, \"expected\": \"kim lee park\", \"value_literals\": {\"target\": \"\\'choi\\'\"}}, {\"values\": {\"target\": \"lee\"}, \"expected\": \"choi jung kim\", \"value_literals\": {\"target\": \"\\'lee\\'\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_57995f40-e114-476d-ae19-33ceac6e5c2b",
+      "title": "팀 개편 스크립트가 멈춘 줄을 찾아 고치세요",
+      "goal": "지금까지 쓴 제약을 모은 팀 개편 스크립트예요. staff의 role에는 DEFAULT와 CHECK가, team_id에는 ON DELETE CASCADE 외래키가 걸려 있어요. 20팀의 Ara를 30팀 리더(lead)로 옮긴 뒤 20팀을 없애고, 팀·역할별 인원을 세려 해요. 지금은 중간에 오류로 멈춰요.\n\n오류의 원인을 따라가 UPDATE 한 줄을 고치세요. 채점은 다른 직원 명단으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 어떤 오류로 멈추는지 확인하세요.\n2. UPDATE의 SET이 team_id에 어떤 값을 넣는지 따라가세요.\n3. UPDATE 한 줄을 고치세요.\n4. 다시 실행해 팀·역할별 인원을 확인하세요.\n5. 수정한 SQL을 제출하세요.",
+      "language": "sql",
+      "starter_code": "CREATE TABLE staff(\n  id INTEGER PRIMARY KEY,\n  name TEXT NOT NULL,\n  role TEXT NOT NULL DEFAULT 'member' CHECK(role IN ('member', 'lead')),\n  team_id INTEGER,\n  CONSTRAINT fk_staff_team FOREIGN KEY(team_id) REFERENCES teams(id) ON DELETE CASCADE\n);\nINSERT INTO staff(id, name, team_id) SELECT id, name, team_id FROM staff_list;\n-- Ara를 30팀 리더로 옮긴 뒤 20팀을 없애요.\nUPDATE staff SET team_id = 30 AND role = 'lead' WHERE name = 'Ara';\nDELETE FROM teams WHERE id = 20;\nSELECT team_id, role, COUNT(*) AS people FROM staff GROUP BY team_id, role ORDER BY team_id, role;\n",
+      "solution": "CREATE TABLE staff(\n  id INTEGER PRIMARY KEY,\n  name TEXT NOT NULL,\n  role TEXT NOT NULL DEFAULT 'member' CHECK(role IN ('member', 'lead')),\n  team_id INTEGER,\n  CONSTRAINT fk_staff_team FOREIGN KEY(team_id) REFERENCES teams(id) ON DELETE CASCADE\n);\nINSERT INTO staff(id, name, team_id) SELECT id, name, team_id FROM staff_list;\n-- Ara를 30팀 리더로 옮긴 뒤 20팀을 없애요.\nUPDATE staff SET team_id = 30, role = 'lead' WHERE name = 'Ara';\nDELETE FROM teams WHERE id = 20;\nSELECT team_id, role, COUNT(*) AS people FROM staff GROUP BY team_id, role ORDER BY team_id, role;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE teams(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO teams VALUES(10,'dev'),(20,'ops'),(30,'qa');\nCREATE TABLE staff_list(id INTEGER, name TEXT, team_id INTEGER);\nINSERT INTO staff_list VALUES(1,'Ara',20),(2,'Bo',20),(3,'Cy',10),(4,'Dan',30),(5,'Eun',20);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "team_id | role | people\n10 | member | 1\n30 | lead | 1\n30 | member | 1"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE teams(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO teams VALUES(10,'dev'),(20,'ops'),(30,'qa');\nCREATE TABLE staff_list(id INTEGER, name TEXT, team_id INTEGER);\nINSERT INTO staff_list VALUES(1,'Ara',20),(2,'Bo',30),(3,'Cy',20),(4,'Dan',20),(5,'Eun',10);\n"
+          },
+          "expected": "team_id | role | people\n10 | member | 1\n30 | lead | 1\n30 | member | 1"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE teams(id INTEGER PRIMARY KEY, name TEXT NOT NULL);\nINSERT INTO teams VALUES(10,'dev'),(20,'ops'),(30,'qa');\nCREATE TABLE staff_list(id INTEGER, name TEXT, team_id INTEGER);\nINSERT INTO staff_list VALUES(1,'Ara',10),(2,'Bo',20),(3,'Cy',30),(4,'Dan',30);\n"
+          },
+          "expected": "team_id | role | people\n30 | lead | 1\n30 | member | 2"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "Ara를 옮기고 20팀을 없앤 뒤 인원을 세는 스크립트예요. 고칠 곳은 UPDATE 한 줄이에요.",
+          "target": "text:오류의 원인을 따라가 UPDATE 한 줄을 고치세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ],
+          "expect_error": "FOREIGN KEY constraint failed"
+        },
+        {
+          "action": "say",
+          "text": "FOREIGN KEY 오류로 멈췄어요. 아직 아무 결과도 출력되지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "30 AND role = 'lead'가 식 하나로 계산돼 0이 됐어요. 0번 팀은 없어서 참조 무결성이 막았죠.",
+          "target": "code:30 AND role"
+        },
+        {
+          "action": "patch_code",
+          "before": "team_id = 30 AND role",
+          "after": "team_id = 30, role",
+          "say": "AND를 쉼표로 바꿔 두 열을 따로 고쳐요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "10 | member | 1, 30 | lead | 1, 30 | member | 1이에요. Ara는 30팀 리더가 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "20팀의 Bo와 Eun은 CASCADE로 함께 지워졌어요. 그래서 세 명만 남았어요.",
+          "target": "code:ON DELETE CASCADE"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. DELETE를 UPDATE보다 먼저 두면 Ara도 20팀과 함께 지워져서 옮길 행이 없어요.",
+          "target": "code:DELETE FROM teams WHERE id = 20;"
+        }
+      ]
+    }
+  ]
+}

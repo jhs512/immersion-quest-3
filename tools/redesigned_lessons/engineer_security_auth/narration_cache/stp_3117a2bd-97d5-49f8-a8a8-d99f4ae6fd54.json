@@ -1,0 +1,45 @@
+{
+  "by": "hand",
+  "source_sha256": "ece798a934c41987f1821d435ed5646ca8f7f0014bb580511392bc1bd98a2b3a",
+  "entry": [
+    {
+      "action": "say",
+      "text": "인증은 주장한 신원이 맞는지 확인하는 절차예요.",
+      "target": "text:가입된 이름이라는 이유로 로그인시키면 안 돼요. 준비된 인증 흐름 모델에서 비밀번호 일치도 확인하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "True예요. 계정 이름만 알면 인증을 통과했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "authenticated = username in users",
+      "after": "authenticated = username in users and hmac.compare_digest(users[username], password)"
+    },
+    {
+      "action": "say",
+      "text": "이름의 존재와 본인 증명은 달라요. 이 문제는 흐름 모델이에요. 비밀번호 저장 방식은 뒤에서 따로 고쳐요.",
+      "target": "code:authenticated = username in users and hmac.compare_digest(users[username], password)"
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "False예요. 등록된 계정이지만 비밀번호가 달라요.",
+      "target": "output"
+    }
+  ]
+}

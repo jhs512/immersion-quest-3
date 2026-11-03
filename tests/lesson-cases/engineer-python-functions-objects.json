@@ -1,0 +1,198 @@
+{
+ "course": "tests/fixtures/player-pilot/관/course.json",
+ "lesson": "courses/redesigned/engineer-python-functions-objects.json",
+ "expected_outputs": [
+  [
+   "['tea']\n['milk', 'cake']\n['tea', 'cake']",
+   "['tea']\n['milk', 'cake']\n['tea', 'cake']",
+   "['tea']\n['milk', 'cake']\n['cake']"
+  ],
+  [
+   "4 9 -7",
+   "4 9 -7\n([4, 5, 6, 7],)",
+   "4 9 5\n([4, 5],)"
+  ],
+  [
+   "",
+   "",
+   "120\n125"
+  ],
+  [
+   "110\n115\n116",
+   "110\n105\n111"
+  ],
+  [
+   "",
+   "2 tea cake",
+   "3 tea cake"
+  ],
+  [
+   "['tea', 'cake', 'cake'] ['tea', 'cake', 'cake']",
+   "['tea', 'cake'] ['cake']"
+  ],
+  [
+   "",
+   "",
+   "[5, 0, 0] 4"
+  ],
+  [
+   "[3, 2, 5] 10",
+   "[4, 3, 6] 13"
+  ],
+  [
+   "1\n9\n[]",
+   "1\n9\n[]",
+   "1\n9\n[1, 2, 3, 4]"
+  ],
+  [
+   "",
+   "2",
+   "3",
+   "3"
+  ],
+  [
+   "4",
+   "visit 1\nvisit 3\n4",
+   "visit 1\nvisit 3\nvisit 4\n8"
+  ],
+  [
+   "0",
+   "26",
+   "19"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "first = 'tea'\nsecond = 'cake'\n# 장바구니를 넘기지 않은 손님은 빈 장바구니에서 시작해야 해요.\ndef add(item, cart=None):\n    if cart is None:\n        cart = []\n    cart.append(item)\n    return cart\n\nprint(add(first))\nprint(add(second, ['milk']))\nprint(add(second))\n",
+     "first = 'tea'\nsecond = 'cake'\n# 장바구니를 넘기지 않은 손님은 빈 장바구니에서 시작해야 해요.\ndef add(item, cart=[]):\n    cart.append(item)\n    return cart\n\nprint(add(first))\nprint(add(second, ['milk']))\nprint(add(second))\n"
+    ]
+   ],
+   "reason": "장바구니 기본값이 손님마다 새로 시작하게 고치세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "unit = 4\n# 따를 때마다 한 모금씩 더 많이 따라요.\ndef pour(cup=[]):\n    cup.append(unit + len(cup))\n    return sum(cup)\n\n# 첫 양, 둘째 양, 둘째 양에서 첫 양을 뺀 값을 한 줄에 출력해요.\na = pour()\nb = pour()\nprint(a, b, b - a)\n",
+     "unit = 4\n# 따를 때마다 한 모금씩 더 많이 따라요.\ndef pour(cup=[]):\n    cup.append(unit + len(cup))\n    return sum(cup)\n\n# 첫 양, 둘째 양, 둘째 양에서 첫 양을 뺀 값을 한 줄에 출력해요.\nprint(pour(), pour(), pour() - pour())\n"
+    ]
+   ],
+   "reason": "한 식 안의 네 호출을 두 번만 부르도록 고치세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "opening = 100\ndef make_till(money):\n    def add(amount):\n        # 바깥 money에 받은 금액을 쌓아 둬요.\n        nonlocal money\n        money += amount\n        return money\n    return add\n\ntill = make_till(opening)\nprint(till(20))\nprint(till(5))\n",
+     "opening = 100\ndef make_till(money):\n    def add(amount):\n        # 바깥 money에 받은 금액을 쌓아 둬요.\n        money += amount\n        return money\n    return add\n\ntill = make_till(opening)\nprint(till(20))\nprint(till(5))\n"
+    ]
+   ],
+   "reason": "계산대 함수가 바깥 money를 고치게 하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "opening = 100\ndef make_till(money):\n    def add(amount):\n        nonlocal money\n        money += amount\n        return money\n    return add\n\na = make_till(opening)\n# 둘째 계산대도 opening에서 따로 시작해야 해요.\nb = make_till(opening)\nprint(a(10))\nprint(b(5))\nprint(a(1))\n",
+     "opening = 100\ndef make_till(money):\n    def add(amount):\n        nonlocal money\n        money += amount\n        return money\n    return add\n\na = make_till(opening)\n# 둘째 계산대도 opening에서 따로 시작해야 해요.\nb = a\nprint(a(10))\nprint(b(5))\nprint(a(1))\n"
+    ]
+   ],
+   "reason": "두 계산대가 금액을 따로 쌓게 고치세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "first = 'tea'\nsecond = 'cake'\nclass Order:\n    made = 0\n    # 객체를 만들 때 저절로 실행되어야 하는 준비 메서드예요.\n    def __init__(self, item):\n        Order.made += 1\n        self.item = item\n\na = Order(first)\nb = a\nc = Order(second)\nprint(Order.made, b.item, c.item)\n",
+     "first = 'tea'\nsecond = 'cake'\nclass Order:\n    made = 0\n    # 객체를 만들 때 저절로 실행되어야 하는 준비 메서드예요.\n    def init(self, item):\n        Order.made += 1\n        self.item = item\n\na = Order(first)\nb = a\nc = Order(second)\nprint(Order.made, b.item, c.item)\n"
+    ]
+   ],
+   "reason": "주문서를 만들 때 준비 메서드가 저절로 실행되게 하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "first = 'tea'\nsecond = 'cake'\nclass Tray:\n    def __init__(self):\n        self.items = []\n    def add(self, item):\n        self.items.append(item)\n\na = Tray()\nb = Tray()\na.add(first)\nb.add(second)\na.add(second)\nprint(a.items, b.items)\n",
+     "first = 'tea'\nsecond = 'cake'\nclass Tray:\n    items = []\n    def add(self, item):\n        self.items.append(item)\n\na = Tray()\nb = Tray()\na.add(first)\nb.add(second)\na.add(second)\nprint(a.items, b.items)\n"
+    ]
+   ],
+   "reason": "쟁반마다 자기 목록을 갖게 고치세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "size = 3\nclass Shelf:\n    def __init__(self, n):\n        self.data = [0] * n\n    def put(self, i, v):\n        if 0 <= i < len(self.data):\n            self.data[i] = v\n\nclass ColdShelf(Shelf):\n    def __init__(self, n, temp):\n        # 이 주석 아래에서 Shelf의 준비도 해야 해요.\n        super().__init__(n)\n        self.temp = temp\n\ns = ColdShelf(size, 4)\ns.put(0, 5)\ns.put(size, 9)\nprint(s.data, s.temp)\n",
+     "size = 3\nclass Shelf:\n    def __init__(self, n):\n        self.data = [0] * n\n    def put(self, i, v):\n        if 0 <= i < len(self.data):\n            self.data[i] = v\n\nclass ColdShelf(Shelf):\n    def __init__(self, n, temp):\n        # 이 주석 아래에서 Shelf의 준비도 해야 해요.\n        self.temp = temp\n\ns = ColdShelf(size, 4)\ns.put(0, 5)\ns.put(size, 9)\nprint(s.data, s.temp)\n"
+    ]
+   ],
+   "reason": "하위 생성자가 상위 생성자의 준비도 부르게 하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "stock = [3, 0, 5]\nclass Shelf:\n    def __init__(self, data):\n        self.data = list(data)\n    def fix(self, i, v):\n        if 0 <= i < len(self.data):\n            self.data[i] = v\n\nclass Fridge(Shelf):\n    def bump(self):\n        # 이 아래 반복이 모든 칸에 1씩 더해야 해요.\n        for i in range(len(self.data)):\n            self.data[i] += 1\n\nf = Fridge(stock)\nf.fix(1, 2)\nf.fix(3, 9)\nf.bump()\nprint(f.data, sum(f.data))\n",
+     "stock = [3, 0, 5]\nclass Shelf:\n    def __init__(self, data):\n        self.data = list(data)\n    def fix(self, i, v):\n        if 0 <= i < len(self.data):\n            self.data[i] = v\n\nclass Fridge(Shelf):\n    def bump(self):\n        # 이 아래 반복이 모든 칸에 1씩 더해야 해요.\n        for v in self.data:\n            v += 1\n\nf = Fridge(stock)\nf.fix(1, 2)\nf.fix(3, 9)\nf.bump()\nprint(f.data, sum(f.data))\n"
+    ]
+   ],
+   "reason": "상위 준비와 메서드를 거친 진열대의 합을 맞추세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "count = 4\ndef tickets(n):\n    for i in range(1, n + 1):\n        yield i\n\ng = tickets(count)\nprint(next(g))\nprint(sum(g))\n# 이 줄은 번호표 전체를 목록으로 보여 줘야 해요.\nprint(list(tickets(count)))\n",
+     "count = 4\ndef tickets(n):\n    for i in range(1, n + 1):\n        yield i\n\ng = tickets(count)\nprint(next(g))\nprint(sum(g))\n# 이 줄은 번호표 전체를 목록으로 보여 줘야 해요.\nprint(list(g))\n"
+    ]
+   ],
+   "reason": "다 꺼낸 번호표 대신 새 번호표 묶음을 목록으로 만드세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "import math\nitems = 10\nper_box = 4\n# 약속: boxes(개수, 한 상자 크기)는 필요한 상자 수를 정수로 돌려줘요.\ndef boxes(n, size):\n    return math.ceil(n / size)\n\nprint(boxes(items, per_box))\n",
+     "import math\nitems = 10\nper_box = 4\n# 약속: boxes(개수, 한 상자 크기)는 필요한 상자 수를 정수로 돌려줘요.\ndef boxes(n, size):\n    return math.ceil(n, size)\n\nprint(boxes(items, per_box))\n"
+    ]
+   ],
+   "reason": "math.ceil을 약속대로 불러 상자 수를 구하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "tree = [5, 3, 8, 1, 4, 7, 2]\n# i번 칸의 자식은 2 * i + 1번과 2 * i + 2번 칸이에요.\ndef total(i):\n    if i >= len(tree):\n        return 0\n    return tree[i] + total(2 * i + 1) + total(2 * i + 2)\n\n# 1번 칸과 그 아래 모든 칸의 합을 출력해요.\nprint(total(1))\n",
+     "tree = [5, 3, 8, 1, 4, 7, 2]\n# i번 칸의 자식은 2 * i + 1번과 2 * i + 2번 칸이에요.\ndef total(i):\n    if i >= len(tree):\n        return 0\n    return tree[i] + total(2 * i + 1)\n\n# 1번 칸과 그 아래 모든 칸의 합을 출력해요.\nprint(total(1))\n"
+    ]
+   ],
+   "reason": "오른쪽 자식까지 내려가는 재귀로 고치세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 12,
+   "replacements": [
+    [
+     "values = [5, 3, 8, 1, 4, 7, 2, 6, 9]\nclass Node:\n    def __init__(self, value):\n        self.value = value\n        self.children = []\n\nnodes = [Node(v) for v in values]\nfor i in range(1, len(nodes)):\n    nodes[(i - 1) // 2].children.append(nodes[i])\n\n# 깊이가 홀수인 노드 값만 더해요. 루트의 깊이는 0이에요.\ndef odd_sum(node, level):\n    here = node.value if level % 2 == 1 else 0\n    return here + sum(odd_sum(child, level + 1) for child in node.children)\n\nprint(odd_sum(nodes[0], 0))\n",
+     "values = [5, 3, 8, 1, 4, 7, 2, 6, 9]\nclass Node:\n    def __init__(self, value):\n        self.value = value\n        self.children = []\n\nnodes = [Node(v) for v in values]\nfor i in range(1, len(nodes)):\n    nodes[(i - 1) // 2].children.append(nodes[i])\n\n# 깊이가 홀수인 노드 값만 더해요. 루트의 깊이는 0이에요.\ndef odd_sum(node, level):\n    here = node.value if level % 2 == 1 else 0\n    return here + sum(odd_sum(child, level) for child in node.children)\n\nprint(odd_sum(nodes[0], 0))\n"
+    ]
+   ],
+   "reason": "노드 트리에서 홀수 깊이 점수만 더하게 고치세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "if cart is None:\n        cart = []",
+     "cart = [] if cart is None else cart"
+    ]
+   ],
+   "reason": "같은 상태·출력 관계를 유지하는 다른 구현도 받아들여요."
+  }
+ ]
+}

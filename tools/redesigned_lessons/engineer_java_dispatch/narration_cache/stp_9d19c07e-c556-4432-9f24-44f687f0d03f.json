@@ -1,0 +1,71 @@
+{
+  "by": "hand",
+  "source_sha256": "90c202efd4884de8b2fd2ecc15a0b6c5d4445b3212b4ac19fd167197b1986513",
+  "entry": [
+    {
+      "action": "say",
+      "text": "0으로 나눈 경우만 따로 10점을 주는 catch를 더해야 해요.",
+      "target": "text:0으로 나눈 경우에만 10을 더하는 catch를 추가하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        17
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1101이 나왔어요. 1을 더한 뒤 나눗셈에서 멈추고 100, 1000이 더해졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "            score += 100;\n        }",
+      "after": "            score += 100;\n        } catch (ArithmeticException e) {\n            score += 10;\n        }",
+      "say": "새 catch를 맨 뒤에 붙여 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        19
+      ],
+      "expect_error": "has already been caught"
+    },
+    {
+      "action": "say",
+      "text": "컴파일 오류예요. 앞의 RuntimeException이 이미 이 예외를 잡아요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "            score += 100;\n        } catch (ArithmeticException e) {\n            score += 10;\n        }",
+      "after": "            score += 100;\n        }",
+      "say": "뒤에 붙인 catch를 지워요."
+    },
+    {
+      "action": "patch_code",
+      "before": "        // 0으로 나눈 경우를 따로 잡는 catch를 이 자리에 넣으세요.\n",
+      "after": "        // 0으로 나눈 경우를 따로 잡는 catch를 이 자리에 넣으세요.\n        catch (ArithmeticException e) {\n            score += 10;\n        }\n",
+      "say": "이번엔 RuntimeException 앞에 넣어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        20,
+        20
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1011이에요. 처음 맞는 catch 하나만 실행돼 100은 더해지지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 하위 예외 catch는 상위 예외보다 위에 둬야 해요. 순서가 반대면 컴파일조차 안 돼요.",
+      "target": "code:catch (ArithmeticException e)"
+    }
+  ]
+}

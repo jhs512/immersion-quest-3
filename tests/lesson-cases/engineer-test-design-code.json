@@ -1,0 +1,168 @@
+{
+ "course": "tests/fixtures/player-pilot/군/course.json",
+ "lesson": "courses/redesigned/engineer-test-design-code.json",
+ "expected_outputs": [
+  [
+   "0 이하 검사 안 함\n1~4 통과\n5~9 검사 안 함\n10 이상 검사 안 함\n검사한 값 3개",
+   "0 이하 통과\n1~4 통과\n5~9 통과\n10 이상 검사 안 함\n검사한 값 3개",
+   "0 이하 통과\n1~4 통과\n5~9 통과\n10 이상 실패\n검사한 값 4개"
+  ],
+  [
+   "실패한 입력 []",
+   "실패한 입력 []",
+   "실패한 입력 [9]"
+  ],
+  [
+   "실패한 입력 []",
+   "실패한 입력 [70]"
+  ],
+  [
+   "재고 안의 주문 통과\n재고보다 많은 주문 통과\n허용 범위 밖 통과",
+   "재고 안의 주문 통과\n재고보다 많은 주문 실패\n허용 범위 밖 통과"
+  ],
+  [
+   "앞에서부터 ['통과', '통과']\n거꾸로 ['실패', '통과']",
+   "앞에서부터 ['통과', '실패']\n거꾸로 ['통과', '통과']",
+   "앞에서부터 ['통과', '통과']\n거꾸로 ['통과', '통과']"
+  ],
+  [
+   "실행 2 실패 0",
+   "실행 2 실패 0",
+   "실행 3 실패 1"
+  ],
+  [
+   "실행 1 실패 []",
+   "실행 5 실패 [1]",
+   "실행 5 실패 []"
+  ],
+  [
+   "1회차 실패 []\n2회차 실패 []\n3회차 실패 []",
+   "1회차 실패 []\n2회차 실패 []\n3회차 실패 []",
+   "1회차 실패 [5]\n2회차 실패 [5]\n3회차 실패 [5]"
+  ],
+  [
+   "원래 함수 실패 []\n죽인 변이체 2/3\n살아남은 변이체 ['qty < HIGH']",
+   "원래 함수 실패 []\n죽인 변이체 2/3\n살아남은 변이체 ['qty < HIGH']",
+   "원래 함수 실패 []\n죽인 변이체 3/3\n살아남은 변이체 []"
+  ],
+  [
+   "실행 4 실패 []",
+   "실행 4 실패 ['아래 경계']",
+   "실행 4 실패 []"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "FEE = 3000\n\n# 요구: 수량 1~4는 배송비 FEE, 5~9는 0, 그 밖은 '거절'이에요.\ndef ship_fee(qty):\n    if qty < 1:\n        return '거절'\n    if qty < 5:\n        return FEE\n    return 0\n\n# (구간 이름, 가장 작은 값, 가장 큰 값, 요구의 결과)\nPARTS = [('0 이하', -99, 0, '거절'), ('1~4', 1, 4, FEE), ('5~9', 5, 9, 0), ('10 이상', 10, 99, '거절')]\n\n# 검사할 수량이에요.\ninputs = [0, 2, 7, 12]\n\nfor name, lo, hi, want in PARTS:\n    picked = [q for q in inputs if lo <= q <= hi]\n    if not picked:\n        print(name, '검사 안 함')\n    elif all(ship_fee(q) == want for q in picked):\n        print(name, '통과')\n    else:\n        print(name, '실패')\nprint(f'검사한 값 {len(inputs)}개')\n",
+     "FEE = 3000\n\n# 요구: 수량 1~4는 배송비 FEE, 5~9는 0, 그 밖은 '거절'이에요.\ndef ship_fee(qty):\n    if qty < 1:\n        return '거절'\n    if qty < 5:\n        return FEE\n    return 0\n\n# (구간 이름, 가장 작은 값, 가장 큰 값, 요구의 결과)\nPARTS = [('0 이하', -99, 0, '거절'), ('1~4', 1, 4, FEE), ('5~9', 5, 9, 0), ('10 이상', 10, 99, '거절')]\n\n# 검사할 수량이에요.\ninputs = [2, 3, 4]\n\nfor name, lo, hi, want in PARTS:\n    picked = [q for q in inputs if lo <= q <= hi]\n    if not picked:\n        print(name, '검사 안 함')\n    elif all(ship_fee(q) == want for q in picked):\n        print(name, '통과')\n    else:\n        print(name, '실패')\nprint(f'검사한 값 {len(inputs)}개')\n"
+    ]
+   ],
+   "reason": "구간마다 대표값 하나로 배송비 결함을 찾으세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "LOW = 1\nHIGH = 9\n\n# 요구: 수량은 LOW 이상 HIGH 이하만 받아요.\ndef accept(qty):\n    return LOW <= qty < HIGH\n\n# 구간마다 대표값을 하나씩 넣었어요.\ninputs = [LOW - 1, LOW, HIGH, HIGH + 1]\n\nfailed = []\nfor q in inputs:\n    want = LOW <= q <= HIGH     # 요구에서 정한 예상 결과\n    if accept(q) != want:\n        failed.append(q)\nprint('실패한 입력', failed)\n",
+     "LOW = 1\nHIGH = 9\n\n# 요구: 수량은 LOW 이상 HIGH 이하만 받아요.\ndef accept(qty):\n    return LOW <= qty < HIGH\n\n# 구간마다 대표값을 하나씩 넣었어요.\ninputs = [LOW - 3, (LOW + HIGH) // 2, HIGH + 3]\n\nfailed = []\nfor q in inputs:\n    want = LOW <= q <= HIGH     # 요구에서 정한 예상 결과\n    if accept(q) != want:\n        failed.append(q)\nprint('실패한 입력', failed)\n"
+    ]
+   ],
+   "reason": "경계값을 넣어 비교식 결함을 찾으세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "FROM = 10\nTO = 70\n\n# 요구: 주문 금액(천 원)이 FROM 이상 TO 미만이면 할인해요.\ndef discount(total):\n    return FROM <= total <= TO\n\n# 아래 경계 둘레 두 값과 위쪽 바깥 값이에요.\ninputs = [FROM - 1, FROM, TO - 1, TO]\n\nfailed = []\nfor t in inputs:\n    want = FROM <= t < TO       # 요구에서 정한 예상 결과\n    if discount(t) != want:\n        failed.append(t)\nprint('실패한 입력', failed)\n",
+     "FROM = 10\nTO = 70\n\n# 요구: 주문 금액(천 원)이 FROM 이상 TO 미만이면 할인해요.\ndef discount(total):\n    return FROM <= total <= TO\n\n# 아래 경계 둘레 두 값과 위쪽 바깥 값이에요.\ninputs = [FROM - 1, FROM, TO + 1]\n\nfailed = []\nfor t in inputs:\n    want = FROM <= t < TO       # 요구에서 정한 예상 결과\n    if discount(t) != want:\n        failed.append(t)\nprint('실패한 입력', failed)\n"
+    ]
+   ],
+   "reason": "이상·미만이 섞인 위쪽 경계를 바로 짚으세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "STOCK = 5\n\n# 요구: 수량이 1~9이고 재고 이하이면 '접수', 아니면 '거절'이에요.\ndef order(qty, stock):\n    if 1 <= qty <= 9:\n        return '접수'\n    return '거절'\n\n# 테스트 케이스: 확인할 조건, 사전 조건(재고), 입력(수량), 예상 결과\ncases = [\n    {'조건': '재고 안의 주문', '재고': STOCK, '입력': max(1, STOCK - 2), '예상': '접수'},\n    {'조건': '재고보다 많은 주문', '재고': STOCK, '입력': STOCK + 2, '예상': '거절'},\n    {'조건': '허용 범위 밖', '재고': STOCK, '입력': 10, '예상': '거절'},\n]\n\nfor c in cases:\n    got = order(c['입력'], c['재고'])\n    print(c['조건'], '통과' if got == c['예상'] else '실패')\n",
+     "STOCK = 5\n\n# 요구: 수량이 1~9이고 재고 이하이면 '접수', 아니면 '거절'이에요.\ndef order(qty, stock):\n    if 1 <= qty <= 9:\n        return '접수'\n    return '거절'\n\n# 테스트 케이스: 확인할 조건, 사전 조건(재고), 입력(수량), 예상 결과\ncases = [\n    {'조건': '재고 안의 주문', '재고': STOCK, '입력': max(1, STOCK - 2), '예상': '접수'},\n    {'조건': '재고보다 많은 주문', '재고': STOCK, '입력': STOCK + 2, '예상': '접수'},\n    {'조건': '허용 범위 밖', '재고': STOCK, '입력': 10, '예상': '거절'},\n]\n\nfor c in cases:\n    got = order(c['입력'], c['재고'])\n    print(c['조건'], '통과' if got == c['예상'] else '실패')\n"
+    ]
+   ],
+   "reason": "예상 결과를 요구에서 다시 정하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "START = 10   # 창고를 막 열었을 때의 재고\n\nstock = START\n\n# 요구: 재고 이하의 수량만 '접수'하고, 접수하면 재고가 줄어요.\ndef order(qty):\n    global stock\n    if qty <= stock:\n        stock -= qty\n        return '접수'\n    return '거절'\n\n# 사전 조건이 비어 있으면 앞 케이스가 남긴 재고를 그대로 써요.\ncases = [\n    {'조건': '재고 안의 주문', '사전': {'재고': 5}, '입력': 3, '예상': '접수'},\n    {'조건': '재고를 넘는 주문', '사전': {'재고': 2}, '입력': 4, '예상': '거절'},\n]\n\ndef run(order_list):\n    global stock\n    stock = START\n    marks = []\n    for c in order_list:\n        if c['사전']:\n            stock = c['사전']['재고']\n        marks.append('통과' if order(c['입력']) == c['예상'] else '실패')\n    return marks\n\nprint('앞에서부터', run(cases))\nprint('거꾸로', run(cases[::-1]))\n",
+     "START = 10   # 창고를 막 열었을 때의 재고\n\nstock = START\n\n# 요구: 재고 이하의 수량만 '접수'하고, 접수하면 재고가 줄어요.\ndef order(qty):\n    global stock\n    if qty <= stock:\n        stock -= qty\n        return '접수'\n    return '거절'\n\n# 사전 조건이 비어 있으면 앞 케이스가 남긴 재고를 그대로 써요.\ncases = [\n    {'조건': '재고 안의 주문', '사전': {'재고': 5}, '입력': 3, '예상': '접수'},\n    {'조건': '재고를 넘는 주문', '사전': {}, '입력': 4, '예상': '거절'},\n]\n\ndef run(order_list):\n    global stock\n    stock = START\n    marks = []\n    for c in order_list:\n        if c['사전']:\n            stock = c['사전']['재고']\n        marks.append('통과' if order(c['입력']) == c['예상'] else '실패')\n    return marks\n\nprint('앞에서부터', run(cases))\nprint('거꾸로', run(cases[::-1]))\n"
+    ]
+   ],
+   "reason": "사전 조건을 적어 케이스가 순서에 기대지 않게 하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "import io\nimport unittest\n\nLOW = 1\nHIGH = 9\n\n# 요구: 수량은 LOW 이상 HIGH 이하만 받아요.\ndef accept(qty):\n    return LOW <= qty < HIGH\n\nclass AcceptTest(unittest.TestCase):\n    def test_middle(self):\n        self.assertEqual(accept((LOW + HIGH) // 2), True)\n\n    def test_below(self):\n        self.assertEqual(accept(LOW - 1), False)\n\n    # 이 주석 아래에 테스트 메서드를 하나 더 쓰세요.\n    def test_high(self):\n        self.assertEqual(accept(HIGH), True)\n\nsuite = unittest.defaultTestLoader.loadTestsFromTestCase(AcceptTest)\nresult = unittest.TextTestRunner(stream=io.StringIO()).run(suite)\nprint('실행', result.testsRun, '실패', len(result.failures))\n",
+     "import io\nimport unittest\n\nLOW = 1\nHIGH = 9\n\n# 요구: 수량은 LOW 이상 HIGH 이하만 받아요.\ndef accept(qty):\n    return LOW <= qty < HIGH\n\nclass AcceptTest(unittest.TestCase):\n    def test_middle(self):\n        self.assertEqual(accept((LOW + HIGH) // 2), True)\n\n    def test_below(self):\n        self.assertEqual(accept(LOW - 1), False)\n\n    # 이 주석 아래에 테스트 메서드를 하나 더 쓰세요.\n\nsuite = unittest.defaultTestLoader.loadTestsFromTestCase(AcceptTest)\nresult = unittest.TextTestRunner(stream=io.StringIO()).run(suite)\nprint('실행', result.testsRun, '실패', len(result.failures))\n"
+    ]
+   ],
+   "reason": "unittest에 경계 테스트 메서드를 더하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "LOW = 1\nHIGH = 9\n\n# 9를 거절하던 결함을 고친 새 버전이에요.\ndef accept(qty):\n    return LOW <= qty <= HIGH\n\n# 지난번까지 통과하던 케이스 넷과, 이번에 결함을 잡은 케이스 하나예요. (수량, 예상)\ncases = [(LOW - 1, False), (LOW, True), ((LOW + HIGH) // 2, True), (HIGH + 1, False), (HIGH, True)]\n\ndef run(selected):\n    failed = [q for q, want in selected if accept(q) != want]\n    print('실행', len(selected), '실패', failed)\n\n# 고친 케이스만 다시 돌려요.\nrun(cases)\n",
+     "LOW = 1\nHIGH = 9\n\n# 9를 거절하던 결함을 고친 새 버전이에요.\ndef accept(qty):\n    return LOW < qty <= HIGH\n\n# 지난번까지 통과하던 케이스 넷과, 이번에 결함을 잡은 케이스 하나예요. (수량, 예상)\ncases = [(LOW - 1, False), (LOW, True), ((LOW + HIGH) // 2, True), (HIGH + 1, False), (HIGH, True)]\n\ndef run(selected):\n    failed = [q for q, want in selected if accept(q) != want]\n    print('실행', len(selected), '실패', failed)\n\n# 고친 케이스만 다시 돌려요.\nrun(cases[-1:])\n"
+    ]
+   ],
+   "reason": "전체 케이스를 다시 돌려 수정이 깨뜨린 곳을 고치세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "FREE_FROM = 5\n\n# 이번 버전에 「FREE_FROM개 이상이면 배송비 0」 규칙이 새로 들어왔어요.\ndef ship_fee(qty):\n    if qty > FREE_FROM:\n        return 0\n    return 3000\n\n# 지난달부터 매번 돌려 온 테스트예요. (수량, 예상 배송비)\ntests = [(1, 3000), (2, 3000), (3, 3000), (FREE_FROM, 0)]\n\nfor round_no in (1, 2, 3):\n    failed = [q for q, want in tests if ship_fee(q) != want]\n    print(f'{round_no}회차 실패', failed)\n",
+     "FREE_FROM = 5\n\n# 이번 버전에 「FREE_FROM개 이상이면 배송비 0」 규칙이 새로 들어왔어요.\ndef ship_fee(qty):\n    if qty > FREE_FROM:\n        return 0\n    return 3000\n\n# 지난달부터 매번 돌려 온 테스트예요. (수량, 예상 배송비)\ntests = [(1, 3000), (2, 3000), (3, 3000)]\n\nfor round_no in (1, 2, 3):\n    failed = [q for q, want in tests if ship_fee(q) != want]\n    print(f'{round_no}회차 실패', failed)\n"
+    ]
+   ],
+   "reason": "같은 테스트만 반복하지 말고 새 규칙을 겨냥한 케이스를 더하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "LOW = 1\nHIGH = 9\n\n# 요구대로 맞게 짠 함수예요.\ndef accept(qty):\n    return LOW <= qty <= HIGH\n\n# 비교식 한 곳씩 바꾼 변이체예요.\nmutants = {\n    'LOW < qty': lambda qty: LOW < qty <= HIGH,\n    'qty < HIGH': lambda qty: LOW <= qty < HIGH,\n    'qty <= HIGH + 1': lambda qty: LOW <= qty <= HIGH + 1,\n}\n\n# 평가할 테스트 묶음이에요. (수량, 예상)\ntests = [(LOW - 1, False), (LOW, True), (HIGH + 1, False), (HIGH, True)]\n\nprint('원래 함수 실패', [q for q, want in tests if accept(q) != want])\nkilled = [name for name, m in mutants.items() if any(m(q) != want for q, want in tests)]\nprint(f'죽인 변이체 {len(killed)}/{len(mutants)}')\nprint('살아남은 변이체', [name for name in mutants if name not in killed])\n",
+     "LOW = 1\nHIGH = 9\n\n# 요구대로 맞게 짠 함수예요.\ndef accept(qty):\n    return LOW <= qty <= HIGH\n\n# 비교식 한 곳씩 바꾼 변이체예요.\nmutants = {\n    'LOW < qty': lambda qty: LOW < qty <= HIGH,\n    'qty < HIGH': lambda qty: LOW <= qty < HIGH,\n    'qty <= HIGH + 1': lambda qty: LOW <= qty <= HIGH + 1,\n}\n\n# 평가할 테스트 묶음이에요. (수량, 예상)\ntests = [(LOW - 1, False), (LOW, True), (HIGH + 1, False)]\n\nprint('원래 함수 실패', [q for q, want in tests if accept(q) != want])\nkilled = [name for name, m in mutants.items() if any(m(q) != want for q, want in tests)]\nprint(f'죽인 변이체 {len(killed)}/{len(mutants)}')\nprint('살아남은 변이체', [name for name in mutants if name not in killed])\n"
+    ]
+   ],
+   "reason": "살아남은 변이체를 죽이는 테스트 하나를 더하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "FROM = 10\nTO = 70\n\n# 요구: 주문 금액(천 원)이 FROM 이상 TO 미만이면 '할인', 아니면 '정가'예요.\ndef price_tag(total):\n    if FROM <= total < TO:\n        return '할인'\n    return '정가'\n\n# (조건, 입력 금액, 예상)\ncases = [\n    ('아래 경계 바로 밖', FROM - 1, '정가'),\n    ('아래 경계', FROM, '할인'),\n    ('위 경계 바로 안', TO - 1, '할인'),\n    ('위 경계', TO, '정가'),\n]\n\nfailed = [name for name, total, want in cases if price_tag(total) != want]\nprint('실행', len(cases), '실패', failed)\n",
+     "FROM = 10\nTO = 70\n\n# 요구: 주문 금액(천 원)이 FROM 이상 TO 미만이면 '할인', 아니면 '정가'예요.\ndef price_tag(total):\n    if FROM < total < TO:\n        return '할인'\n    return '정가'\n\n# (조건, 입력 금액, 예상)\ncases = [\n    ('아래 경계 바로 밖', FROM - 1, '정가'),\n    ('아래 경계', FROM, '정가'),\n    ('위 경계 바로 안', TO - 1, '할인'),\n    ('위 경계', TO, '정가'),\n]\n\nfailed = [name for name, total, want in cases if price_tag(total) != want]\nprint('실행', len(cases), '실패', failed)\n"
+    ]
+   ],
+   "reason": "잘못 적힌 예상을 바로잡고 드러난 결함까지 고치세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "inputs = [0, 2, 7, 12]",
+     "inputs = [hi if lo < 0 else lo for _, lo, hi, _ in PARTS]"
+    ]
+   ],
+   "reason": "같은 상태·출력 관계를 유지하는 다른 구현도 받아들여요."
+  }
+ ]
+}

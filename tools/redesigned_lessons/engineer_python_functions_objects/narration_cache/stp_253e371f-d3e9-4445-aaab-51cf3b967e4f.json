@@ -1,0 +1,71 @@
+{
+  "by": "hand",
+  "source_sha256": "77563cdfb32fe8d05c3a2ae06e1c9b6e94e345e51a68cf1ef56d185411add00f",
+  "entry": [
+    {
+      "action": "say",
+      "text": "add가 바깥 money를 고쳐 쌓게 만드는 문제예요.",
+      "target": "text:money가 바깥 make_till의 money를 가리키게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ],
+      "expect_error": "UnboundLocalError"
+    },
+    {
+      "action": "say",
+      "text": "UnboundLocalError가 났어요. 값이 없는 money를 먼저 읽었대요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "add 안에 money 대입이 있어서 money를 add의 지역 이름으로 봐요.",
+      "target": "code:money += amount"
+    },
+    {
+      "action": "patch_code",
+      "before": "        money += amount\n",
+      "after": "        global money\n        money += amount\n",
+      "say": "앞 수업에서 본 global을 넣어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        11
+      ],
+      "expect_error": "NameError"
+    },
+    {
+      "action": "say",
+      "text": "NameError예요. 맨 바깥에는 money라는 이름이 없거든요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. global은 파일 맨 바깥 이름이에요. money는 make_till 안에 있어요.",
+      "target": "code:global money"
+    },
+    {
+      "action": "patch_code",
+      "before": "global money",
+      "after": "nonlocal money",
+      "say": "가장 가까운 바깥 함수의 이름을 쓰는 nonlocal로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "120, 125예요. 첫 호출이 남긴 120에 5가 더 쌓였어요.",
+      "target": "output"
+    }
+  ]
+}

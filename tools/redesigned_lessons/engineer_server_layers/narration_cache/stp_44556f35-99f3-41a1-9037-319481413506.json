@@ -1,0 +1,45 @@
+{
+  "by": "hand",
+  "source_sha256": "09912576376273b47b940914ac3945a93a2c23a38cd7794edf596ad1cf763845",
+  "entry": [
+    {
+      "action": "say",
+      "text": "정적 제공과 WAS의 동적 업무 처리를 구별해요.",
+      "target": "text:정적 파일은 그대로 제공하고 주문 API는 업무 처리기로 보내요. 요청 경로에 따라 처리 방식을 나누세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "static file이에요. 주문 API도 파일처럼 처리했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "result = web(path)",
+      "after": "result = was(path) if path.startswith('/api/') else web(path)"
+    },
+    {
+      "action": "say",
+      "text": "WAS는 요청마다 업무 코드를 실행해 응답을 만들어요. 여기서는 실제 서버 대신 두 함수의 역할을 비교하는 모델이에요.",
+      "target": "code:result = was(path) if path.startswith('/api/') else web(path)"
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "order result예요. API 경로가 동적 처리기로 연결됐어요.",
+      "target": "output"
+    }
+  ]
+}

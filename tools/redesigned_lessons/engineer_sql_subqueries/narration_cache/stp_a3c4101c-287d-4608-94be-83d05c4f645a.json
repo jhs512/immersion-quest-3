@@ -1,0 +1,70 @@
+{
+  "by": "hand",
+  "source_sha256": "f2bf22fc93c73d362c684d48545b2d24f6bf47781f67c6bfc7f7101d25c9b42f",
+  "entry": [
+    {
+      "action": "say",
+      "text": "물건마다 자기 제조사의 평균과 비교해야 해요. 기준 값이 행마다 달라지는 문제예요.",
+      "target": "text:바깥 물건과 같은 제조사의 평균과 비교하게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "bag과 clip, 둘 다 K사만 나왔어요. 전체 평균 하나와 비교했거든요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "FROM items)",
+      "after": "FROM items WHERE maker = i.maker)",
+      "say": "하위 질의에 바깥 물건의 제조사 조건을 더해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "bag, note, tape가 나왔어요. H사 물건 note와 tape도 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "SELECT name, maker, price FROM items i",
+      "after": "SELECT name, maker, price,\n       (SELECT AVG(price) FROM items WHERE maker = i.maker) AS avg_maker\nFROM items i",
+      "say": "행마다 비교한 평균을 열로 같이 보여 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "bag 옆은 7500.0, note와 tape 옆은 2200.0이에요. 행의 제조사마다 다시 계산됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "SELECT name, maker, price,\n       (SELECT AVG(price) FROM items WHERE maker = i.maker) AS avg_maker\nFROM items i",
+      "after": "SELECT name, maker, price FROM items i",
+      "say": "보여 주려고 더한 열은 지워요."
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 안쪽에 maker = maker라고만 쓰면 둘 다 안쪽 표의 열이에요. 늘 참이라 전체 평균과 같아져요.",
+      "target": "code:maker = i.maker"
+    }
+  ]
+}

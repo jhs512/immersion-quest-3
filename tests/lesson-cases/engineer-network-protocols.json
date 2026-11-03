@@ -1,0 +1,198 @@
+{
+ "course": "tests/fixtures/player-pilot/궁/course.json",
+ "lesson": "courses/redesigned/engineer-network-protocols.json",
+ "expected_outputs": [
+  [
+   "send SYN-ACK\nSYN -> ESTABLISHED\nACK -> ESTABLISHED",
+   "send SYN-ACK\nSYN -> ESTABLISHED",
+   "send SYN-ACK\nSYN -> SYN_RCVD",
+   "send SYN-ACK\nSYN -> SYN_RCVD\nACK -> ESTABLISHED"
+  ],
+  [
+   "SYN seq 100\nSYN-ACK seq 300 ack 100\nACK seq 101 ack 301\nDATA seq 101 len 5\nserver ack 102",
+   "SYN seq 100\nSYN-ACK seq 300 ack 101\nACK seq 101 ack 301\nDATA seq 101 len 5\nserver ack 105",
+   "SYN seq 100\nSYN-ACK seq 300 ack 101\nACK seq 101 ack 301\nDATA seq 101 len 5\nserver ack 106"
+  ],
+  [
+   "half-open [] established []",
+   "x5 refused\namy refused\nhalf-open ['x1', 'x2', 'x3', 'x4'] established []"
+  ],
+  [
+   "8 amy refused\nhalf-open ['x1', 'x2', 'x3'] established []",
+   "half-open [] established ['amy']",
+   "8 amy refused\nhalf-open ['x1', 'x2', 'x3'] established []"
+  ],
+  [
+   "10.0.0.1 -> ee:66\n10.0.0.7 -> bb:77",
+   "10.0.0.1 -> aa:01\n10.0.0.7 -> bb:77"
+  ],
+  [
+   "1 None\n2 None\n3 None\n4 192.0.2.9: echo reply",
+   "1 192.0.2.9: time exceeded\n2 192.0.2.9: time exceeded\n3 192.0.2.9: time exceeded\n4 192.0.2.9: echo reply",
+   "1 r1: time exceeded\n2 r2: time exceeded\n3 r3: time exceeded\n4 192.0.2.9: echo reply",
+   "1 r1: destination unreachable\n2 r1: destination unreachable\n3 r1: destination unreachable\n4 r1: destination unreachable"
+  ],
+  [
+   "192.168.0.10 5000 -> 203.0.113.5 5000\n192.168.0.11 5000 -> 203.0.113.5 5000\n192.168.0.10 5001 -> 203.0.113.5 5001\n2 entries",
+   "192.168.0.10 5000 -> 203.0.113.5 40000\n192.168.0.11 5000 -> 203.0.113.5 40000\n192.168.0.10 5001 -> 203.0.113.5 40000\n1 entries",
+   "192.168.0.10 5000 -> 203.0.113.5 40000\n192.168.0.11 5000 -> 203.0.113.5 40001\n192.168.0.10 5001 -> 203.0.113.5 40002\n3 entries"
+  ],
+  [
+   "40001 -> ('192.168.0.11', 5000)\n40000 -> ('192.168.0.10', 5000)\n40500 -> ('192.168.0.10', 5000)",
+   "40001 -> ('192.168.0.11', 5000)\n40000 -> ('192.168.0.10', 5000)\n40500 -> dropped"
+  ],
+  [
+   "www.shop.com 198.51.100.20 asked 3\napi.shop.com 198.51.100.21 asked 3\nwww.shop.com 198.51.100.20 asked 3",
+   "www.shop.com 198.51.100.20 asked 3\napi.shop.com 198.51.100.21 asked 3\nwww.shop.com 198.51.100.20 asked 3",
+   "www.shop.com 198.51.100.20 asked 3\napi.shop.com 198.51.100.21 asked 3\nwww.shop.com 198.51.100.20 asked 0"
+  ],
+  [
+   "ace sent 5",
+   "abce sent 7",
+   "abcde sent 8"
+  ],
+  [
+   "sniffer: blue7\nserver: user=kim&pw=blue7",
+   "sniffer: none\nserver: user=kim&pw=blue7"
+  ],
+  [
+   "ack 2\nack 2\nack 2\nack 2\nack 2\nhe",
+   "ack 3\nack 3\nack 6\nack 6\nack 6\nhello!",
+   "ack 3\nack 3\nack 7\nack 7\nack 7\nhello!"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "packets = ['SYN', 'ACK']\nstate = 'LISTEN'\n# 서버가 받은 패킷마다 상태가 어떻게 바뀌는지 봐요.\nfor p in packets:\n    if state == 'LISTEN' and p == 'SYN':\n        print('send SYN-ACK')\n        state = 'SYN_RCVD'\n    elif state == 'SYN_RCVD' and p == 'ACK':\n        state = 'ESTABLISHED'\n    print(p, '->', state)\n",
+     "packets = ['SYN', 'ACK']\nstate = 'LISTEN'\n# 서버가 받은 패킷마다 상태가 어떻게 바뀌는지 봐요.\nfor p in packets:\n    if state == 'LISTEN' and p == 'SYN':\n        print('send SYN-ACK')\n        state = 'ESTABLISHED'\n    elif state == 'SYN_RCVD' and p == 'ACK':\n        state = 'ESTABLISHED'\n    print(p, '->', state)\n"
+    ]
+   ],
+   "reason": "마지막 ACK를 받아야 연결이 서도록 서버 상태를 고치세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "client_isn = 100\nserver_isn = 300\ndata = 'hello'\n# 각 줄의 seq와 ack 번호를 봐요.\nprint('SYN seq', client_isn)\nprint('SYN-ACK seq', server_isn, 'ack', client_isn + 1)\nprint('ACK seq', client_isn + 1, 'ack', server_isn + 1)\nseq = client_isn + 1\nprint('DATA seq', seq, 'len', len(data))\nprint('server ack', seq + len(data))\n",
+     "client_isn = 100\nserver_isn = 300\ndata = 'hello'\n# 각 줄의 seq와 ack 번호를 봐요.\nprint('SYN seq', client_isn)\nprint('SYN-ACK seq', server_isn, 'ack', client_isn)\nprint('ACK seq', client_isn + 1, 'ack', server_isn + 1)\nseq = client_isn + 1\nprint('DATA seq', seq, 'len', len(data))\nprint('server ack', seq + 1)\n"
+    ]
+   ],
+   "reason": "ack가 다음에 받을 바이트 번호가 되도록 두 곳을 고치세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "BACKLOG = 4\nevents = [('SYN', 'x1'), ('SYN', 'x2'), ('SYN', 'x3'), ('SYN', 'x4'), ('SYN', 'x5'),\n          ('SYN', 'amy'), ('ACK', 'amy')]\nbacklog = []\ndone = []\n# SYN을 받은 서버가 무엇을 남기는지 봐요.\nfor kind, who in events:\n    if kind == 'SYN':\n        if len(backlog) >= BACKLOG:\n            print(who, 'refused')\n            continue\n        # 이 주석 아래에 SYN-ACK를 보낸 손님을 대기 줄에 넣으세요.\n        backlog.append(who)\n    elif kind == 'ACK' and who in backlog:\n        backlog.remove(who)\n        done.append(who)\nprint('half-open', backlog, 'established', done)\n",
+     "BACKLOG = 4\nevents = [('SYN', 'x1'), ('SYN', 'x2'), ('SYN', 'x3'), ('SYN', 'x4'), ('SYN', 'x5'),\n          ('SYN', 'amy'), ('ACK', 'amy')]\nbacklog = []\ndone = []\n# SYN을 받은 서버가 무엇을 남기는지 봐요.\nfor kind, who in events:\n    if kind == 'SYN':\n        if len(backlog) >= BACKLOG:\n            print(who, 'refused')\n            continue\n        # 이 주석 아래에 SYN-ACK를 보낸 손님을 대기 줄에 넣으세요.\n    elif kind == 'ACK' and who in backlog:\n        backlog.remove(who)\n        done.append(who)\nprint('half-open', backlog, 'established', done)\n"
+    ]
+   ],
+   "reason": "SYN마다 대기 줄을 쓰도록 고쳐 SYN 플러딩을 재현하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "BACKLOG = 3\nTIMEOUT = 5\nevents = [(0, 'SYN', 'x1'), (1, 'SYN', 'x2'), (2, 'SYN', 'x3'), (8, 'SYN', 'amy'), (9, 'ACK', 'amy')]\nbacklog = {}\ndone = []\n\ndef fresh(backlog, now):\n    # now까지 TIMEOUT보다 짧게 기다린 항목만 남긴 새 사전을 돌려줘요.\n    return {w: s for w, s in backlog.items() if now - s < TIMEOUT}\n\nfor t, kind, who in events:\n    # 이 주석 아래에서 오래 기다린 반개방 항목을 지우세요.\n    backlog = fresh(backlog, t)\n    if kind == 'SYN':\n        if len(backlog) >= BACKLOG:\n            print(t, who, 'refused')\n            continue\n        backlog[who] = t\n    elif kind == 'ACK' and who in backlog:\n        del backlog[who]\n        done.append(who)\nprint('half-open', sorted(backlog), 'established', done)\n",
+     "BACKLOG = 3\nTIMEOUT = 5\nevents = [(0, 'SYN', 'x1'), (1, 'SYN', 'x2'), (2, 'SYN', 'x3'), (8, 'SYN', 'amy'), (9, 'ACK', 'amy')]\nbacklog = {}\ndone = []\n\ndef fresh(backlog, now):\n    # now까지 TIMEOUT보다 짧게 기다린 항목만 남긴 새 사전을 돌려줘요.\n    return {w: s for w, s in backlog.items() if now - s < TIMEOUT}\n\nfor t, kind, who in events:\n    # 이 주석 아래에서 오래 기다린 반개방 항목을 지우세요.\n    if kind == 'SYN':\n        if len(backlog) >= BACKLOG:\n            print(t, who, 'refused')\n            continue\n        backlog[who] = t\n    elif kind == 'ACK' and who in backlog:\n        del backlog[who]\n        done.append(who)\nprint('half-open', sorted(backlog), 'established', done)\n"
+    ]
+   ],
+   "reason": "오래 기다린 반개방 항목을 지워 정상 손님을 받으세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "arp_cache = {'10.0.0.1': 'aa:01', '10.0.0.7': 'bb:07'}\nstatic = ['10.0.0.1']\nreplies = [('10.0.0.1', 'ee:66'), ('10.0.0.7', 'bb:77')]\n\ndef on_reply(ip, mac):\n    # 이 주석 아래에 고정(static) 항목은 바꾸지 않는 줄을 넣으세요.\n    if ip in static:\n        return\n    arp_cache[ip] = mac\n\nfor ip, mac in replies:\n    on_reply(ip, mac)\n# 각 IP로 보내는 프레임이 어느 MAC으로 가는지 봐요.\nfor ip in sorted(arp_cache):\n    print(ip, '->', arp_cache[ip])\n",
+     "arp_cache = {'10.0.0.1': 'aa:01', '10.0.0.7': 'bb:07'}\nstatic = ['10.0.0.1']\nreplies = [('10.0.0.1', 'ee:66'), ('10.0.0.7', 'bb:77')]\n\ndef on_reply(ip, mac):\n    # 이 주석 아래에 고정(static) 항목은 바꾸지 않는 줄을 넣으세요.\n    arp_cache[ip] = mac\n\nfor ip, mac in replies:\n    on_reply(ip, mac)\n# 각 IP로 보내는 프레임이 어느 MAC으로 가는지 봐요.\nfor ip in sorted(arp_cache):\n    print(ip, '->', arp_cache[ip])\n"
+    ]
+   ],
+   "reason": "위조 ARP 응답이 게이트웨이 항목을 덮지 못하게 하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "routers = ['r1', 'r2', 'r3']\nknown = ['192.0.2.9']\ndst = '192.0.2.9'\n\ndef ping(dst, ttl):\n    if dst not in known:\n        return routers[0] + ': destination unreachable'\n    for r in routers:\n        ttl -= 1\n        if ttl == 0:\n            return r + ': time exceeded'\n    return dst + ': echo reply'\n\n# TTL을 1부터 하나씩 늘리며 누가 대답하는지 봐요.\nfor ttl in range(1, len(routers) + 2):\n    print(ttl, ping(dst, ttl))\n",
+     "routers = ['r1', 'r2', 'r3']\nknown = ['192.0.2.9']\ndst = '192.0.2.9'\n\ndef ping(dst, ttl):\n    if dst not in known:\n        return routers[0] + ': destination unreachable'\n    for r in routers:\n        ttl -= 1\n        if ttl == 0:\n            return None\n    return dst + ': echo reply'\n\n# TTL을 1부터 하나씩 늘리며 누가 대답하는지 봐요.\nfor ttl in range(1, len(routers) + 2):\n    print(ttl, ping(dst, ttl))\n"
+    ]
+   ],
+   "reason": "TTL이 0이 된 라우터가 시간 초과를 알리게 하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "PUBLIC = '203.0.113.5'\nflows = [('192.168.0.10', 5000), ('192.168.0.11', 5000), ('192.168.0.10', 5001)]\ntable = {}\nnext_port = 40000\n# 나가는 연결마다 공인 주소의 어느 포트를 쓰는지 봐요.\nfor ip, port in flows:\n    public_port = next_port\n    next_port += 1\n    table[public_port] = (ip, port)\n    print(ip, port, '->', PUBLIC, public_port)\nprint(len(table), 'entries')\n",
+     "PUBLIC = '203.0.113.5'\nflows = [('192.168.0.10', 5000), ('192.168.0.11', 5000), ('192.168.0.10', 5001)]\ntable = {}\nnext_port = 40000\n# 나가는 연결마다 공인 주소의 어느 포트를 쓰는지 봐요.\nfor ip, port in flows:\n    public_port = port\n    table[public_port] = (ip, port)\n    print(ip, port, '->', PUBLIC, public_port)\nprint(len(table), 'entries')\n"
+    ]
+   ],
+   "reason": "나가는 연결마다 새 공인 포트를 배정하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "table = {40000: ('192.168.0.10', 5000), 40001: ('192.168.0.11', 5000)}\nFIRST_PC = ('192.168.0.10', 5000)\nincoming = [40001, 40000, 40500]\n# 바깥에서 공인 포트로 들어온 패킷이 어디로 가는지 봐요.\nfor port in incoming:\n    inside = table.get(port, 'dropped')\n    print(port, '->', inside)\n",
+     "table = {40000: ('192.168.0.10', 5000), 40001: ('192.168.0.11', 5000)}\nFIRST_PC = ('192.168.0.10', 5000)\nincoming = [40001, 40000, 40500]\n# 바깥에서 공인 포트로 들어온 패킷이 어디로 가는지 봐요.\nfor port in incoming:\n    inside = table.get(port, FIRST_PC)\n    print(port, '->', inside)\n"
+    ]
+   ],
+   "reason": "표에 없는 공인 포트로 온 패킷은 버리세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "records = {'com': 'com-ns', 'shop.com': 'shop-ns', 'www.shop.com': '198.51.100.20', 'api.shop.com': '198.51.100.21'}\ncache = {}\nqueries = ['www.shop.com', 'api.shop.com', 'www.shop.com']\n\ndef resolve(name):\n    if name in cache:\n        return cache[name], 0\n    parts = name.split('.')\n    asked = 0\n    # 뒤에서부터 com, shop.com, www.shop.com 순서로 물어요.\n    for i in range(len(parts) - 1, -1, -1):\n        answer = records['.'.join(parts[i:])]\n        asked += 1\n    # 이 주석 아래에 받은 답을 캐시에 적으세요.\n    cache[name] = answer\n    return answer, asked\n\nfor q in queries:\n    ip, asked = resolve(q)\n    print(q, ip, 'asked', asked)\n",
+     "records = {'com': 'com-ns', 'shop.com': 'shop-ns', 'www.shop.com': '198.51.100.20', 'api.shop.com': '198.51.100.21'}\ncache = {}\nqueries = ['www.shop.com', 'api.shop.com', 'www.shop.com']\n\ndef resolve(name):\n    if name in cache:\n        return cache[name], 0\n    parts = name.split('.')\n    asked = 0\n    # 뒤에서부터 com, shop.com, www.shop.com 순서로 물어요.\n    for i in range(len(parts) - 1, -1, -1):\n        answer = records['.'.join(parts[i:])]\n        asked += 1\n    # 이 주석 아래에 받은 답을 캐시에 적으세요.\n    return answer, asked\n\nfor q in queries:\n    ip, asked = resolve(q)\n    print(q, ip, 'asked', asked)\n"
+    ]
+   ],
+   "reason": "한 번 얻은 IP를 캐시에 적어 다시 묻지 않게 하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "messages = ['a', 'b', 'c', 'd', 'e']\ndrops = {1: 1, 3: 2}\nreceived = []\nsent = 0\n\ndef channel(seq):\n    # drops에 남은 횟수만큼 그 조각을 잃어버려요.\n    if drops.get(seq, 0) > 0:\n        drops[seq] -= 1\n        return False\n    received.append(messages[seq])\n    return True\n\nfor seq in range(len(messages)):\n    sent += 1\n    acked = channel(seq)\n    # 이 주석 아래에 ACK가 없으면 다시 보내는 반복을 넣으세요.\n    while not acked:\n        sent += 1\n        acked = channel(seq)\nprint(''.join(received), 'sent', sent)\n",
+     "messages = ['a', 'b', 'c', 'd', 'e']\ndrops = {1: 1, 3: 2}\nreceived = []\nsent = 0\n\ndef channel(seq):\n    # drops에 남은 횟수만큼 그 조각을 잃어버려요.\n    if drops.get(seq, 0) > 0:\n        drops[seq] -= 1\n        return False\n    received.append(messages[seq])\n    return True\n\nfor seq in range(len(messages)):\n    sent += 1\n    acked = channel(seq)\n    # 이 주석 아래에 ACK가 없으면 다시 보내는 반복을 넣으세요.\nprint(''.join(received), 'sent', sent)\n"
+    ]
+   ],
+   "reason": "ACK가 올 때까지 다시 보내 모든 조각을 전하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "KEY = 'k3y'\npackets = ['user=kim&', 'pw=blue7']\n\ndef toy_xor(data):\n    # 교육용 장난감 암호예요. 실제 통신은 SSH·TLS 같은 검증된 암호를 써요.\n    key = KEY.encode()\n    return bytes(b ^ key[i % len(key)] for i, b in enumerate(data))\n\ndef send(text):\n    return toy_xor(text.encode())\n\ndef receive(frame):\n    return toy_xor(frame).decode()\n\ndef sniff(frames):\n    seen = b''.join(frames)\n    return seen.split(b'pw=')[1].decode() if b'pw=' in seen else 'none'\n\nline = [send(p) for p in packets]\n# 같은 선로를 엿보는 쪽과 진짜 서버가 각각 읽은 것을 봐요.\nprint('sniffer:', sniff(line))\nprint('server:', ''.join(receive(f) for f in line))\n",
+     "KEY = 'k3y'\npackets = ['user=kim&', 'pw=blue7']\n\ndef toy_xor(data):\n    # 교육용 장난감 암호예요. 실제 통신은 SSH·TLS 같은 검증된 암호를 써요.\n    key = KEY.encode()\n    return bytes(b ^ key[i % len(key)] for i, b in enumerate(data))\n\ndef send(text):\n    return text.encode()\n\ndef receive(frame):\n    return frame.decode()\n\ndef sniff(frames):\n    seen = b''.join(frames)\n    return seen.split(b'pw=')[1].decode() if b'pw=' in seen else 'none'\n\nline = [send(p) for p in packets]\n# 같은 선로를 엿보는 쪽과 진짜 서버가 각각 읽은 것을 봐요.\nprint('sniffer:', sniff(line))\nprint('server:', ''.join(receive(f) for f in line))\n"
+    ]
+   ],
+   "reason": "보내는 쪽과 받는 쪽이 같은 키로 감싸 엿보기를 막으세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 12,
+   "replacements": [
+    [
+     "expected = 1\nsegments = [(1, 'he'), (5, 'o!'), (3, 'll'), (3, 'll'), (5, 'o!')]\nbuffer = {}\ndata = ''\n# 조각마다 받는 쪽이 보내는 ack와 마지막에 이어진 글자를 봐요.\nfor seq, text in segments:\n    if seq > expected:\n        buffer[seq] = text\n    elif seq == expected:\n        data += text\n        expected += len(text)\n        while expected in buffer:\n            piece = buffer.pop(expected)\n            data += piece\n            expected += len(piece)\n    print('ack', expected)\nprint(data)\n",
+     "expected = 1\nsegments = [(1, 'he'), (5, 'o!'), (3, 'll'), (3, 'll'), (5, 'o!')]\nbuffer = {}\ndata = ''\n# 조각마다 받는 쪽이 보내는 ack와 마지막에 이어진 글자를 봐요.\nfor seq, text in segments:\n    if seq > expected:\n        buffer[seq] = text\n    elif seq == expected:\n        data += text\n        expected += 1\n        while expected in buffer:\n            piece = buffer.pop(expected)\n            data += piece\n            expected += 1\n    print('ack', expected)\nprint(data)\n"
+    ]
+   ],
+   "reason": "바이트 번호로 조각을 잇고 다시 온 조각을 버리는 받는 쪽을 고치세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "packets = ['SYN', 'ACK']\nstate = 'LISTEN'\n# 서버가 받은 패킷마다 상태가 어떻게 바뀌는지 봐요.\nfor p in packets:\n    if state == 'LISTEN' and p == 'SYN':\n        print('send SYN-ACK')\n        state = 'SYN_RCVD'\n    elif state == 'SYN_RCVD' and p == 'ACK':\n        state = 'ESTABLISHED'\n    print(p, '->', state)\n",
+     "packets = ['SYN', 'ACK']\nstate = 'LISTEN'\nfor p in packets:\n    if state == 'LISTEN':\n        if p == 'SYN':\n            print('send SYN-ACK')\n            state = 'SYN_RCVD'\n    elif state == 'SYN_RCVD':\n        if p == 'ACK':\n            state = 'ESTABLISHED'\n    print(p, '->', state)\n"
+    ]
+   ],
+   "reason": "같은 상태·출력 관계를 유지하는 다른 구현도 받아들여요."
+  }
+ ]
+}

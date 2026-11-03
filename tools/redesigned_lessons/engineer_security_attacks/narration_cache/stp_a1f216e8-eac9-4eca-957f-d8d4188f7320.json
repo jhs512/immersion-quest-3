@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "6aaf3fe3c2dd3a5ac8230d85cebffb3a147b722218e6e6bd2b7a399e50d21d74",
+  "entry": [
+    {
+      "action": "say",
+      "text": "미나가 직접 낸 요청만 이메일을 바꿔야 해요.",
+      "target": "text:폼의 token이 세션의 csrf와 다르면 'refused'를 돌려주고 이메일은 그대로 두세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "changed evil@attack.kr이에요. 쿠키 s-41만 보고 미나의 요청으로 믿었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    # 이 주석 아래에 폼의 토큰을 세션의 토큰과 비교하세요.\n",
+      "after": "    # 이 주석 아래에 폼의 토큰을 세션의 토큰과 비교하세요.\n    if form.get('token') != session['csrf']:\n        return 'refused'\n",
+      "say": "폼의 토큰을 세션의 토큰과 비교해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        14,
+        14
+      ]
+    },
+    {
+      "action": "say",
+      "text": "refused mina@mail.kr이에요. 다른 사이트는 토큰 k93tq를 몰라요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "form = {'email': 'evil@attack.kr'}",
+      "after": "form = {'email': 'new@mail.kr', 'token': 'k93tq'}",
+      "say": "게시판 폼에서 보낸 요청도 넣어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        14,
+        14
+      ]
+    },
+    {
+      "action": "say",
+      "text": "changed new@mail.kr이에요. 토큰이 든 진짜 폼은 그대로 통과해요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 'token' in form처럼 있는지만 보면 아무 값이나 통과해요. 세션의 값과 같은지 비교하세요.",
+      "target": "code:session['csrf']:"
+    }
+  ]
+}

@@ -1,0 +1,308 @@
+{
+ "course": "tests/fixtures/player-pilot/견/course.json",
+ "lesson": "courses/redesigned/engineer-java-abstractions.json",
+ "expected_outputs": [
+  [
+   "",
+   "1200",
+   ""
+  ],
+  [
+   "1700\n1700",
+   "1700\n900"
+  ],
+  [
+   "",
+   "[문자] 민지님, 배송이 출발했어요",
+   ""
+  ],
+  [
+   "-배송센터\n-배송센터",
+   "-고객지원팀\n-고객지원팀",
+   "-배송센터\n-고객지원팀"
+  ],
+  [
+   "2000",
+   "3000"
+  ],
+  [
+   "4000",
+   "",
+   "3000"
+  ],
+  [
+   "규칙 준비 끝",
+   "규칙 준비 끝\n0"
+  ],
+  [
+   "2",
+   "2 LARGE"
+  ],
+  [
+   "LARGE 3500",
+   "MEDIUM 2000"
+  ],
+  [
+   "MEDIUM 4500",
+   "MEDIUM 5000"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "return kg * 300;",
+     "return 1200;"
+    ]
+   ],
+   "reason": "고정 요금은 무게를 바꾸면 틀려요."
+  },
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "Shipping s = new Truck();",
+     "Shipping s = new Shipping();"
+    ]
+   ],
+   "reason": "추상 클래스는 new로 만들 수 없어 컴파일되지 않아요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "return fee(kg) + 500;",
+     "return kg * 100 + 500;"
+    ]
+   ],
+   "reason": "자전거 식으로 바꿔 써도 트럭이 틀려요. 공통 메서드는 fee를 불러야 해요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "return fee(kg) + 500;",
+     "return fee(kg);"
+    ]
+   ],
+   "reason": "포장비를 빠뜨리면 총액이 아니에요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "class Sms implements Notice",
+     "class Sms extends Notice"
+    ]
+   ],
+   "reason": "인터페이스는 extends로 구현할 수 없어요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "System.out.println(n.message(name));",
+     "System.out.println(\"[문자] 민지님, 배송이 출발했어요\");"
+    ]
+   ],
+   "reason": "문장을 외워 쓰면 다른 이름에서 틀려요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "    public String sign() {\n        return \"-고객지원팀\";\n    }\n",
+     ""
+    ],
+    [
+     "return \"-배송센터\";",
+     "return \"-고객지원팀\";"
+    ]
+   ],
+   "reason": "default 본문을 고치면 Sms도 바뀌어요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "    public String sign() {\n        return \"-고객지원팀\";",
+     "    String sign() {\n        return \"-고객지원팀\";"
+    ]
+   ],
+   "reason": "public 없이 덮어쓰면 접근 범위를 좁혀 컴파일되지 않아요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "won = r.apply(won);",
+     "won = rules[1].apply(won);"
+    ]
+   ],
+   "reason": "늘 같은 칸만 쓰면 한 규칙이 두 번 적용돼요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "Rate minus = w -> w - 1000;",
+     "Rate minus = won -> won - 1000;"
+    ]
+   ],
+   "reason": "main의 won과 이름이 겹쳐 컴파일되지 않아요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "Rate minus = w -> w - 1000;",
+     "Rate minus = w -> w / 2 - 1000;"
+    ]
+   ],
+   "reason": "minus 안에서 또 반으로 나누면 규칙이 겹쳐요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "System.out.println(safe(minus, won));",
+     "System.out.println(safe(w -> w - 1000, won));"
+    ]
+   ],
+   "reason": "예외를 던지는 규칙을 빼면 700원에서 -300이 돼요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "System.out.println(safe(minus, won));",
+     "System.out.println(0);"
+    ]
+   ],
+   "reason": "0을 외워 쓰면 3000원에서 틀려요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "System.out.println(s.ordinal() + \" \" + s.name());",
+     "System.out.println((s.ordinal() + 1) + \" \" + s.name());"
+    ]
+   ],
+   "reason": "ordinal은 0부터 세요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "System.out.println(s.ordinal() + \" \" + s.name());",
+     "System.out.println(\"2 LARGE\");"
+    ]
+   ],
+   "reason": "결과를 외워 쓰면 다른 크기에서 틀려요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "Size.values()[choice - 1]",
+     "Size.values()[choice + 1]"
+    ]
+   ],
+   "reason": "번호를 반대로 옮기면 범위를 벗어나거나 다른 크기가 돼요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "Size.values()[choice - 1]",
+     "Size.MEDIUM"
+    ]
+   ],
+   "reason": "MEDIUM을 직접 쓰면 손님 번호가 바뀌어도 그대로예요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "{ w -> w + extra, w -> w * 2 }",
+     "{ w -> w + extra * 2, w -> w * 2 }"
+    ]
+   ],
+   "reason": "포장비를 미리 두 배 하고 또 두 배를 하면 포장비가 네 번 붙어요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "Order order = new GiftOrder(pick);",
+     "Order order = new GiftOrder(pick - 1);"
+    ]
+   ],
+   "reason": "pick은 이미 0부터 세는 인덱스라 1을 빼면 다른 크기가 골라져요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "{ w -> w + extra, w -> w * 2 }",
+     "{ w -> w + extra }"
+    ]
+   ],
+   "reason": "두 배 규칙을 빼면 한 상자 값만 나와요."
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "return kg * 300;",
+     "return 300 * kg;"
+    ]
+   ],
+   "reason": "곱하는 순서는 결과에 상관없어요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "System.out.println(n.message(name));",
+     "Sms sms = new Sms();\n        System.out.println(sms.message(name));"
+    ]
+   ],
+   "reason": "Sms형 변수로 불러도 같은 구현이에요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "Rate minus = w -> w - 1000;",
+     "Rate minus = (int w) -> { return w - 1000; };"
+    ]
+   ],
+   "reason": "형식과 블록 본문을 쓴 람다도 같아요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "System.out.println(s.ordinal() + \" \" + s.name());",
+     "System.out.println(s.ordinal() + \" \" + s);"
+    ]
+   ],
+   "reason": "enum의 toString은 name과 같아요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "{ w -> w + extra, w -> w * 2 }",
+     "{ w -> (w + extra) * 2 }"
+    ]
+   ],
+   "reason": "두 규칙을 한 람다로 합쳐도 같은 계산이에요."
+  }
+ ]
+}

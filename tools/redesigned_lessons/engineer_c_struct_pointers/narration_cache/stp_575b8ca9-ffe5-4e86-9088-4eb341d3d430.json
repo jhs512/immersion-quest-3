@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "53844bdd7ed1110a6659edf2b5f07d69d2427302702bfaa6af170fa8c27c4f8b",
+  "entry": [
+    {
+      "action": "say",
+      "text": "두 규칙을 차례로 써야 해요. 둘째 줄이 어느 원소를 보는지가 문제예요.",
+      "target": "text:그런데 둘째 줄도 첫째 규칙을 써요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        24,
+        24
+      ]
+    },
+    {
+      "action": "say",
+      "text": "8이 나왔어요. 첫째 규칙 sub와 6을 두 번 써서 20 - 6 - 6이 됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    // 둘째 규칙을 적용하려는 줄이에요.\n    stock = p->apply(stock, p->amount);\n",
+      "after": "    // 둘째 규칙을 적용하려는 줄이에요.\n    stock = p->apply(stock, (p + 1)->amount);\n",
+      "say": "양만 둘째 원소에서 가져와 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        24,
+        24
+      ]
+    },
+    {
+      "action": "say",
+      "text": "10이 나왔어요. 양은 4지만 함수는 여전히 첫째 원소의 sub라서 14 - 4가 됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "stock = p->apply(stock, (p + 1)->amount);",
+      "after": "stock = (p + 1)->apply(stock, (p + 1)->amount);",
+      "say": "함수도 둘째 원소의 apply로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        24,
+        24
+      ]
+    },
+    {
+      "action": "say",
+      "text": "18이 나왔어요. 14에 둘째 원소의 add로 4를 더했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 함수와 양을 서로 다른 원소에서 꺼내면 섞인 계산이 돼요. 화살표 앞의 원소를 둘 다 맞추세요.",
+      "target": "code:(p + 1)->apply"
+    }
+  ]
+}

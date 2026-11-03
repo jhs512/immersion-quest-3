@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "9ddcf8dd67f07a28f0523412ef15473e692488bba04028d536e018a594d12e6c",
+  "entry": [
+    {
+      "action": "say",
+      "text": "세 수준 가운데 가운데 수준이 빠졌어요. 지점마다 소계 한 행이 필요해요.",
+      "target": "text:(branch, kind), (branch), 묶지 않음의 세 수준이에요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "지점·종류 행 여섯 개와 NULL | NULL | 142뿐이에요. east 소계 60 같은 행이 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "-- 이 주석 아래에 지점별 소계 SELECT 한 줄과 UNION ALL 한 줄을 쓰세요.\n",
+      "after": "-- 이 주석 아래에 지점별 소계 SELECT 한 줄과 UNION ALL 한 줄을 쓰세요.\nSELECT branch, NULL, SUM(boxes) FROM deliveries GROUP BY branch\nUNION ALL\n",
+      "say": "branch로만 묶고 kind 자리는 NULL로 채운 SELECT를 이어 붙여요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "east | NULL | 60이 east의 두 종류 아래에 생겼어요. north 58, west 24도 같아요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "NULLS LAST가 두 키에 있어서 소계는 지점 끝에, 총계는 맨 끝에 와요.",
+      "target": "code:kind NULLS LAST"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 소계를 kind로 묶으면 NULL | bag 같은 종류별 합계가 생겨요. 그건 CUBE에만 있는 수준이에요.",
+      "target": "code:GROUP BY branch#2"
+    }
+  ]
+}

@@ -1,0 +1,302 @@
+{
+ "course": "tests/fixtures/player-pilot/검/course.json",
+ "lesson": "courses/redesigned/engineer-c-linked.json",
+ "expected_outputs": [
+  [
+   "41",
+   "57"
+  ],
+  [
+   "41 63",
+   "41 57 63 72"
+  ],
+  [
+   "41 63 57",
+   "41 57",
+   "41 57 63"
+  ],
+  [
+   "0 0",
+   "4 0",
+   "4 14"
+  ],
+  [
+   "72",
+   "72 63 57 41"
+  ],
+  [
+   "41",
+   "41 72",
+   "41 57 63 72"
+  ],
+  [
+   "63 41 57 63",
+   "63 41 57 41",
+   "63 41 57 72"
+  ],
+  [
+   "57 63 72 41",
+   "57 41 72 63"
+  ],
+  [
+   "40 20 60"
+  ],
+  [
+   "40 20 10 30 60",
+   "10 20 30 40 60",
+   "10 30 20 60 40"
+  ],
+  [
+   "10 30 20 60 40",
+   "20"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "head->next->value",
+     "b.value"
+    ]
+   ],
+   "reason": "이름으로 읽으면 head가 b를 가리키는 변형에서 57이 나와 틀려요."
+  },
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "head->next->value",
+     "head->next->next->value"
+    ]
+   ],
+   "reason": "화살표를 두 번 따라가면 세 번째 노드예요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "cur = cur->next;",
+     "cur = cur->next->next;"
+    ]
+   ],
+   "reason": "두 칸씩 뛰면 57과 72를 건너뛰어요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "    a.next = &b;\n    b.next = &c;\n    c.next = NULL;\n",
+     "    a.next = &b;\n    c.next = &b;\n    b.next = NULL;\n"
+    ]
+   ],
+   "reason": "a.next만 고치면 b 뒤가 끊겨 c가 빠져요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "    a.next = &b;\n    b.next = &c;\n    c.next = NULL;\n",
+     "    a.next = &c;\n    c.next = &b;\n    b.next = NULL;\n"
+    ],
+    [
+     "printf(\"%d \", cur->value);",
+     "printf(\"%d %d %d \", a.value, b.value, c.value);\n        break;"
+    ]
+   ],
+   "reason": "이름 순서로 찍으면 cur 시작을 바꾼 변형에서 틀려요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "total = total + cur->value;",
+     "total++;"
+    ]
+   ],
+   "reason": "인원이 아니라 노드 수를 한 번 더 세요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "        count++;\n        total = total + cur->value;\n",
+     "        count = count + cur->value;\n        total++;\n"
+    ]
+   ],
+   "reason": "두 누적을 서로 바꾸면 14 4가 돼요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "pool[i].next = head;",
+     "pool[i].next = NULL;"
+    ]
+   ],
+   "reason": "앞 기록을 잇지 않으면 마지막 노드만 남아요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "pool[i].next = head;",
+     "pool[i].next = &pool[0];"
+    ]
+   ],
+   "reason": "첫 노드에 이으면 역순 리스트가 아니에요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "tail->next = &pool[i];",
+     "head->next = &pool[i];"
+    ]
+   ],
+   "reason": "head 뒤를 덮어쓰면 41 72만 남아요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "    prev->next = cur->next;\n    cur->next = head;\n",
+     "    cur->next = head;\n    prev->next = cur->next;\n"
+    ]
+   ],
+   "reason": "cur->next를 먼저 바꾸면 d를 잃고 63 41 57 41이 돼요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "    prev->next = cur->next;\n",
+     "    prev->next = head;\n"
+    ]
+   ],
+   "reason": "prev를 맨 앞에 이으면 72가 빠지고 고리가 생겨요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "cur = cur->next->next;",
+     "cur = cur->next;"
+    ]
+   ],
+   "reason": "한 칸씩 가면 41이 끝까지 밀려요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "    printf(\"%d \", n->value);\n    visit(n->left);\n    visit(n->right);\n",
+     "    visit(n->left);\n    printf(\"%d \", n->value);\n    visit(n->right);\n"
+    ]
+   ],
+   "reason": "호출 사이는 중위라 20 40 60이에요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "    printf(\"%d \", n->value);\n    visit(n->left);\n    visit(n->right);\n",
+     "    visit(n->left);\n    visit(n->right);\n    printf(\"%d \", n->value);\n"
+    ]
+   ],
+   "reason": "호출 뒤는 후위라 루트가 맨 끝이에요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "    visit(n->left);\n    visit(n->right);\n    printf(\"%d \", n->value);\n",
+     "    visit(n->left);\n    printf(\"%d \", n->value);\n    visit(n->right);\n"
+    ]
+   ],
+   "reason": "두 호출 사이는 중위 10 20 30 40 60이에요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "    visit(n->left);\n    visit(n->right);\n    printf(\"%d \", n->value);\n",
+     "    visit(n->right);\n    visit(n->left);\n    printf(\"%d \", n->value);\n"
+    ]
+   ],
+   "reason": "호출 순서를 바꾸면 오른쪽부터 돌아 60 30 10 20 40이에요."
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "    visit(n->left);\n    visit(n->right);\n    count++;\n",
+     "    count++;\n    visit(n->left);\n    visit(n->right);\n"
+    ]
+   ],
+   "reason": "count++를 위로 올리면 전위로 세어 10이 나와요."
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "if (count == k) {",
+     "if (n->value == k) {"
+    ]
+   ],
+   "reason": "번호와 k를 비교하면 방문 순서가 아니에요."
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "head->next->value",
+     "(*head->next).value"
+    ]
+   ],
+   "reason": "(*p).value는 p->value와 같아요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "    while (cur != NULL) {\n        printf(\"%d \", cur->value);\n        cur = cur->next;\n    }\n",
+     "    for (; cur != NULL; cur = cur->next) {\n        printf(\"%d \", cur->value);\n    }\n"
+    ]
+   ],
+   "reason": "for로 써도 같은 순회예요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "        count++;\n        total = total + cur->value;\n",
+     "        count = count + 1;\n        total += cur->value;\n"
+    ]
+   ],
+   "reason": "복합 대입도 같아요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "cur = cur->next->next;",
+     "cur = cur->next;\n        cur = cur->next;"
+    ]
+   ],
+   "reason": "한 칸씩 두 번 옮겨도 같아요."
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "    if (count == k) {\n        printf(\"%d \", n->value);\n    }\n",
+     "    if (k == count) printf(\"%d \", n->value);\n"
+    ]
+   ],
+   "reason": "비교 순서와 중괄호 생략은 같은 뜻이에요."
+  }
+ ]
+}

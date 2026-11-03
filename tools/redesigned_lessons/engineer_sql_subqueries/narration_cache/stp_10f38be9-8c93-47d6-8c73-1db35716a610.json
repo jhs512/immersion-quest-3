@@ -1,0 +1,92 @@
+{
+  "by": "hand",
+  "source_sha256": "1afa48e764564a616f8d30811d9fc0567ffd9c02d073f3a4c693a2b7c04f3757",
+  "entry": [
+    {
+      "action": "say",
+      "text": "평균보다 비싼 물건을 고르는 문제예요. 기준 값이 지금 자료의 평균이어야 해요.",
+      "target": "text:3000 자리를 지금 items의 평균 가격을 구하는 하위 질의로 바꾸세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "note, clip, bag 세 개가 나왔어요. 3000보다 비싼 물건이에요.",
+      "target": "output"
+    },
+    {
+      "action": "set_code",
+      "code": "SELECT AVG(price) FROM items;\n",
+      "say": "평균만 따로 구해 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        1,
+        1
+      ]
+    },
+    {
+      "action": "say",
+      "text": "4000.0이 나왔어요. 지금 평균은 3000이 아니에요.",
+      "target": "output"
+    },
+    {
+      "action": "set_code",
+      "code": "-- 비교 기준 값이 어디서 오는지 보세요.\nSELECT name, price FROM items\nWHERE price > 3000\nORDER BY price;\n",
+      "say": "가격 비교 조건에 방금 구한 평균을 연결해요."
+    },
+    {
+      "action": "patch_code",
+      "before": "price > 3000",
+      "after": "price > (SELECT AVG(price) FROM items)",
+      "say": "3000 자리에 평균을 구하는 하위 질의를 넣어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "bag | 7600만 남았어요. 하위 질의가 4000.0 한 값으로 한 번 계산됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "(SELECT AVG(price) FROM items)",
+      "after": "(SELECT price FROM items)",
+      "say": "AVG를 빼고 price를 그대로 돌려주면 어떻게 될까요?"
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "note, clip, bag이 다시 나왔어요. SQLite는 여러 행 중 첫 행 1200만 썼어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 비교에 쓰는 하위 질의는 한 행 한 열이어야 해요. 표준 DB는 여러 행이면 오류를 내요.",
+      "target": "code:(SELECT price FROM items)"
+    },
+    {
+      "action": "patch_code",
+      "before": "(SELECT price FROM items)",
+      "after": "(SELECT AVG(price) FROM items)",
+      "say": "AVG로 되돌려요."
+    }
+  ]
+}

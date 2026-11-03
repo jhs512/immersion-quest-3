@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "0b04487d800bad446dd745e9044d32af023ff82f5eb4fea506ecbf8a69cf954b",
+  "entry": [
+    {
+      "action": "say",
+      "text": "add는 들어온 상자 수만큼 static 필드 total을 늘려야 해요. 매개변수 이름도 total이라 헷갈려요.",
+      "target": "text:static 필드 total에 들어온 상자 수를 더하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "4 10이 나왔어요. 두 번 불렀는데 누적 수가 처음 그대로예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "메서드 안에서 total은 매개변수예요. 같은 이름의 필드를 가려서 매개변수만 두 배가 되고 버려져요.",
+      "target": "code:total += total;"
+    },
+    {
+      "action": "patch_code",
+      "before": "        total += total;\n",
+      "after": "        Locker.total += total;\n",
+      "say": "왼쪽을 클래스 이름으로 콕 집어 static 필드로 만들어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "4 18이 나왔어요. 10에 4가 두 번 더해졌고, main의 boxes는 4 그대로예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "boxes는 값만 복사돼 넘어갔어요. 메서드가 매개변수를 바꿔도 main의 boxes는 바뀌지 않아요.",
+      "target": "code:int boxes = 4;"
+    }
+  ]
+}

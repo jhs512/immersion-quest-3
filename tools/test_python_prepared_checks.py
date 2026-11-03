@@ -1,5 +1,6 @@
 """A printed request must not substitute for the fitted object's state."""
 from pathlib import Path
+import json
 import subprocess
 import sys
 import tempfile
@@ -9,6 +10,31 @@ from redesigned_lessons.python_prepared_checks import checker
 
 
 class PreparedProbeTests(unittest.TestCase):
+    def test_existing_immutable_lesson_checker_keeps_its_bytes(self):
+        root = Path(__file__).resolve().parents[1]
+        authored = json.loads((root / 'tools/redesigned_lessons/aice_classification/content.json').read_text(encoding='utf-8'))
+        published = json.loads((root / 'courses/redesigned/aice-classification.json').read_text(encoding='utf-8'))
+        step = next(iter(authored['prepared_cases']))
+        script = checker(authored['prepared_cases'][step], authored.get('prepared_probes', {}).get(step),
+                         timeout_seconds=authored.get('prepared_timeout_seconds', 10))
+        self.assertEqual(script, next(task for task in published['tasks'] if task['id'] == step)['checker'])
+
+    def test_python_literal_types_survive_json_round_trip(self):
+        cases = json.loads(json.dumps([
+            {'values': {'data': {1: 7}}, 'value_literals': {'data': '{1: 7}'}, 'expected': '7'},
+            {'values': {'data': {1: 9}}, 'value_literals': {'data': '{1: 9}'}, 'expected': '9'},
+        ]))
+        with tempfile.TemporaryDirectory() as folder:
+            Path(folder, 'main.py').write_text('data = {1: 7}\nprint(data[1])\n', encoding='utf-8')
+            result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', checker(cases)],
+                                    cwd=folder, capture_output=True, text=True, encoding='utf-8')
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_literal_metadata_rejects_executable_expressions(self):
+        cases = [{'values': {'data': 1}, 'value_literals': {'data': '__import__("os").getcwd()'}, 'expected': '1'}]
+        with self.assertRaises(ValueError):
+            checker(cases)
+
     def check_source(self, source, probe=True):
         script = checker([{'values': {'tree_count': 1}, 'expected': '1'},
                           {'values': {'tree_count': 3}, 'expected': '3'}],

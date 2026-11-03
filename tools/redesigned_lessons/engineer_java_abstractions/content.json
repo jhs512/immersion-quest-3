@@ -1,0 +1,857 @@
+{
+  "description": "abstract 메서드 구현, implements와 default 메서드, 인터페이스형 배열, 람다, enum 상수를 한두 줄씩 고치며 실제 JDK 실행으로 확인해요.",
+  "tasks": [
+    {
+      "id": "stp_43139e0a-4996-4071-b173-3dab3d9b866e",
+      "title": "Truck이 abstract 메서드 fee를 구현하게 하세요",
+      "goal": "트럭 배송은 1kg에 300원이에요. Shipping에는 요금 메서드 fee의 약속만 있고 본문이 없어요.\n\n**알아두세요**\n\n`abstract` 메서드는 이름과 매개변수만 정하고 본문이 없어요. abstract 메서드가 있는 클래스는 `abstract class`가 되고, 상속한 자식이 그 메서드를 구현해야 해요.\n\nTruck 안에 fee를 구현해 kg에 300을 곱한 요금을 돌려주게 하세요. 채점은 kg을 다른 무게로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 컴파일 오류 메시지를 읽으세요.\n2. 주석 아래에 kg * 300을 돌려주는 fee 메서드를 쓰세요.\n3. 다시 실행해 4kg의 요금을 확인하세요.\n4. 작성한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "// 배송 수단마다 요금 계산이 달라요.\nabstract class Shipping {\n    abstract int fee(int kg);\n}\n\nclass Truck extends Shipping {\n    // 이 주석 아래에 Truck의 fee를 구현하세요.\n}\n\nclass Main {\n    public static void main(String[] args) {\n        int kg = 4;\n        Shipping s = new Truck();\n        System.out.println(s.fee(kg));\n    }\n}\n",
+      "solution": "// 배송 수단마다 요금 계산이 달라요.\nabstract class Shipping {\n    abstract int fee(int kg);\n}\n\nclass Truck extends Shipping {\n    // 이 주석 아래에 Truck의 fee를 구현하세요.\n    int fee(int kg) {\n        return kg * 300;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        int kg = 4;\n        Shipping s = new Truck();\n        System.out.println(s.fee(kg));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "1200"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "kg": "7"
+          },
+          "expected": "2100"
+        },
+        {
+          "values": {
+            "kg": "10"
+          },
+          "expected": "3000"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "Shipping의 fee에는 본문이 없어요. Truck이 그 본문을 채워야 하는 문제예요.",
+          "target": "text:Truck 안에 fee를 구현해 kg에 300을 곱한 요금을 돌려주게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ],
+          "expect_error": "does not override abstract method"
+        },
+        {
+          "action": "say",
+          "text": "컴파일 오류예요. Truck이 abstract 메서드 fee를 구현하지 않았다고 알려 줘요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    // 이 주석 아래에 Truck의 fee를 구현하세요.\n",
+          "after": "    // 이 주석 아래에 Truck의 fee를 구현하세요.\n    int fee(int kg) {\n        return kg * 300;\n    }\n",
+          "say": "Truck 안에 fee의 본문을 써요. 무게에 300을 곱해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1200이 나왔어요. 변수형은 Shipping이지만 실제 객체 Truck의 fee가 돌았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "new Truck()",
+          "after": "new Shipping()",
+          "say": "추상 클래스를 직접 만들면 어떻게 될까요?"
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ],
+          "expect_error": "is abstract; cannot be instantiated"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 추상 클래스는 new로 만들 수 없어요. 본문 없는 메서드가 남아 있거든요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "new Shipping()",
+          "after": "new Truck()",
+          "say": "다시 Truck으로 되돌려요."
+        }
+      ]
+    },
+    {
+      "id": "stp_a16c1aa3-e1cb-443c-b7aa-9b6d107326e2",
+      "title": "total이 각 배송 수단의 fee를 부르게 고치세요",
+      "goal": "Shipping에는 본문 있는 일반 메서드 total도 있어요. 총액은 배송 요금에 포장비 500원을 더한 값이에요. 자전거 배송은 1kg에 100원인데, 지금은 자전거 총액도 트럭과 같게 나와요.\n\ntotal의 return 한 줄을 고쳐 각 배송 수단의 fee에 500을 더하게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 두 총액을 확인하세요.\n2. total의 return 줄이 fee를 부르도록 고치세요.\n3. 다시 실행해 트럭과 자전거의 총액이 달라졌는지 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "abstract class Shipping {\n    abstract int fee(int kg);\n\n    // 포장비 500원을 더한 총액이에요. 이 줄은 어느 배송 수단이든 같은 식을 써요.\n    int total(int kg) {\n        return kg * 300 + 500;\n    }\n}\n\nclass Truck extends Shipping {\n    int fee(int kg) {\n        return kg * 300;\n    }\n}\n\nclass Bike extends Shipping {\n    int fee(int kg) {\n        return kg * 100;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        int kg = 4;\n        Shipping t = new Truck();\n        Shipping b = new Bike();\n        System.out.println(t.total(kg));\n        System.out.println(b.total(kg));\n    }\n}\n",
+      "solution": "abstract class Shipping {\n    abstract int fee(int kg);\n\n    // 포장비 500원을 더한 총액이에요. 이 줄은 어느 배송 수단이든 같은 식을 써요.\n    int total(int kg) {\n        return fee(kg) + 500;\n    }\n}\n\nclass Truck extends Shipping {\n    int fee(int kg) {\n        return kg * 300;\n    }\n}\n\nclass Bike extends Shipping {\n    int fee(int kg) {\n        return kg * 100;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        int kg = 4;\n        Shipping t = new Truck();\n        Shipping b = new Bike();\n        System.out.println(t.total(kg));\n        System.out.println(b.total(kg));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "1700\n900"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "kg": "2"
+          },
+          "expected": "1100\n700"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "total은 Shipping에 한 번만 있어요. 그런데 수단마다 다른 요금이 들어가야 해요.",
+          "target": "text:total의 return 한 줄을 고쳐 각 배송 수단의 fee에 500을 더하게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            27,
+            28
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1700과 1700이에요. total이 트럭 식을 직접 써서 자전거도 같은 값이 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "return kg * 300 + 500;",
+          "after": "return fee(kg) + 500;",
+          "say": "요금 식 대신 fee를 불러요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            27,
+            28
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1700과 900이에요. 자전거는 4 곱하기 100에 500을 더했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "total은 부모에 있지만 fee는 실제 객체의 것이 불려요. b가 가리키는 건 Bike 객체예요.",
+          "target": "code:return fee(kg) + 500;"
+        }
+      ]
+    },
+    {
+      "id": "stp_a9c87b4d-d4a9-4d10-9259-4a64e25c94c7",
+      "title": "Sms가 Notice를 implements로 구현하게 하세요",
+      "goal": "Notice는 interface예요. Sms가 Notice의 약속대로 message를 구현했지만 클래스 선언의 키워드가 틀렸어요.\n\n**알아두세요**\n\n`interface`는 구현 없이 메서드 약속만 모은 형식이에요. 클래스가 인터페이스를 구현할 때는 `implements`를 써요. 인터페이스의 메서드는 public이라 구현하는 메서드에도 public을 붙여요.\n\nSms 선언 줄의 키워드 하나를 고쳐 알림 문장이 출력되게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 컴파일 오류 메시지를 읽으세요.\n2. Sms 선언 줄의 extends를 알맞은 키워드로 고치세요.\n3. 다시 실행해 알림 문장을 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "// 알림을 보내는 방법이 지켜야 할 약속이에요.\ninterface Notice {\n    String message(String name);\n}\n\n// 이 줄의 키워드를 고치세요.\nclass Sms extends Notice {\n    public String message(String name) {\n        return \"[문자] \" + name + \"님, 배송이 출발했어요\";\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        String name = \"민지\";\n        Notice n = new Sms();\n        System.out.println(n.message(name));\n    }\n}\n",
+      "solution": "// 알림을 보내는 방법이 지켜야 할 약속이에요.\ninterface Notice {\n    String message(String name);\n}\n\n// 이 줄의 키워드를 고치세요.\nclass Sms implements Notice {\n    public String message(String name) {\n        return \"[문자] \" + name + \"님, 배송이 출발했어요\";\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        String name = \"민지\";\n        Notice n = new Sms();\n        System.out.println(n.message(name));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[문자] 민지님, 배송이 출발했어요"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "name": "\"현우\""
+          },
+          "expected": "[문자] 현우님, 배송이 출발했어요"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "Sms는 Notice의 약속을 지키는 클래스예요. 선언 줄의 키워드가 문제예요.",
+          "target": "text:Sms 선언 줄의 키워드 하나를 고쳐 알림 문장이 출력되게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ],
+          "expect_error": "no interface expected here"
+        },
+        {
+          "action": "say",
+          "text": "컴파일 오류예요. extends 뒤에는 클래스가 와야 하는데 인터페이스가 왔대요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "class Sms extends Notice",
+          "after": "class Sms implements Notice",
+          "say": "인터페이스는 implements로 구현해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[문자] 민지님, 배송이 출발했어요가 나왔어요. Notice형 변수 n으로 Sms의 message를 불렀어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    public String message",
+          "after": "    String message",
+          "say": "구현 메서드에서 public을 빼 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ],
+          "expect_error": "weaker access privileges"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 인터페이스 메서드는 public이라 구현도 public이어야 해요. 빼면 접근 범위를 좁힌다는 오류가 나요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    String message(String name) {\n        return",
+          "after": "    public String message(String name) {\n        return",
+          "say": "public을 다시 붙여요."
+        }
+      ]
+    },
+    {
+      "id": "stp_86faefa3-a9c4-4799-b43e-0b1e8e0480a7",
+      "title": "Mail만 default 메서드 sign을 덮어쓰게 하세요",
+      "goal": "Notice에는 본문이 있는 `default` 메서드 sign도 있어요. 구현 클래스가 덮어쓰지 않으면 이 본문을 그대로 물려받아요.\n\n메일 알림의 서명만 \"-고객지원팀\"으로 바꾸려 해요. 문자 알림은 \"-배송센터\"를 그대로 써야 해요.\n\nMail 안에 sign을 덮어쓰는 메서드를 쓰세요. Notice와 Sms는 고치지 마세요. 채점은 변수에 담는 객체를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 두 서명을 확인하세요.\n2. Mail의 주석 아래에 \"-고객지원팀\"을 돌려주는 public sign 메서드를 쓰세요.\n3. 다시 실행해 두 서명이 달라졌는지 확인하세요.\n4. 작성한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "interface Notice {\n    String message(String name);\n\n    // 구현 클래스가 따로 정하지 않으면 이 서명을 써요.\n    default String sign() {\n        return \"-배송센터\";\n    }\n}\n\nclass Sms implements Notice {\n    public String message(String name) {\n        return \"[문자] \" + name;\n    }\n}\n\nclass Mail implements Notice {\n    public String message(String name) {\n        return \"[메일] \" + name;\n    }\n    // 이 주석 아래에 Mail만의 sign을 쓰세요.\n}\n\nclass Main {\n    public static void main(String[] args) {\n        Notice first = new Sms();\n        Notice second = new Mail();\n        System.out.println(first.sign());\n        System.out.println(second.sign());\n    }\n}\n",
+      "solution": "interface Notice {\n    String message(String name);\n\n    // 구현 클래스가 따로 정하지 않으면 이 서명을 써요.\n    default String sign() {\n        return \"-배송센터\";\n    }\n}\n\nclass Sms implements Notice {\n    public String message(String name) {\n        return \"[문자] \" + name;\n    }\n}\n\nclass Mail implements Notice {\n    public String message(String name) {\n        return \"[메일] \" + name;\n    }\n    // 이 주석 아래에 Mail만의 sign을 쓰세요.\n    public String sign() {\n        return \"-고객지원팀\";\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        Notice first = new Sms();\n        Notice second = new Mail();\n        System.out.println(first.sign());\n        System.out.println(second.sign());\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "-배송센터\n-고객지원팀"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "first": "new Mail()"
+          },
+          "expected": "-고객지원팀\n-고객지원팀"
+        },
+        {
+          "values": {
+            "second": "new Sms()"
+          },
+          "expected": "-배송센터\n-배송센터"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "서명은 Notice에 기본값이 있어요. Mail만 다른 서명을 쓰게 해야 해요.",
+          "target": "text:Mail 안에 sign을 덮어쓰는 메서드를 쓰세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            27,
+            28
+          ]
+        },
+        {
+          "action": "say",
+          "text": "-배송센터가 두 번 나왔어요. 둘 다 sign을 정하지 않아 default 본문을 물려받았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "return \"-배송센터\";",
+          "after": "return \"-고객지원팀\";",
+          "say": "default 본문을 바꾸면 어떨까요?"
+        },
+        {
+          "action": "run",
+          "lines": [
+            27,
+            28
+          ]
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 이번엔 -고객지원팀이 두 번이에요. default를 고치면 물려받는 모든 클래스가 바뀌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "return \"-고객지원팀\";",
+          "after": "return \"-배송센터\";",
+          "say": "인터페이스는 되돌려요."
+        },
+        {
+          "action": "patch_code",
+          "before": "    // 이 주석 아래에 Mail만의 sign을 쓰세요.\n",
+          "after": "    // 이 주석 아래에 Mail만의 sign을 쓰세요.\n    public String sign() {\n        return \"-고객지원팀\";\n    }\n",
+          "say": "Mail 안에서만 sign을 덮어써요. 인터페이스 메서드라 public이에요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            30,
+            31
+          ]
+        },
+        {
+          "action": "say",
+          "text": "-배송센터와 -고객지원팀이에요. Mail 객체만 자기 sign을 썼어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_4dcfd049-4249-4a70-aa4b-4c27e19df504",
+      "title": "반복마다 다른 규칙이 적용되게 고치세요",
+      "goal": "할인 규칙 Rate를 Half(반값)와 Minus(1000원 빼기) 두 클래스가 구현해요. 두 규칙을 배열에 담아 순서대로 한 번씩 적용하려 해요. 8000원이면 반값으로 4000원, 다시 1000원을 빼야 해요.\n\n반복 안의 한 줄을 고쳐 반복마다 그 차례의 규칙이 적용되게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 금액을 확인하세요.\n2. 반복 안에서 apply를 부르는 대상을 고치세요.\n3. 다시 실행해 두 규칙이 차례로 적용됐는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "// 금액에 적용할 할인 규칙의 약속이에요.\ninterface Rate {\n    int apply(int won);\n}\n\nclass Half implements Rate {\n    public int apply(int won) {\n        return won / 2;\n    }\n}\n\nclass Minus implements Rate {\n    public int apply(int won) {\n        return won - 1000;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        int won = 8000;\n        Rate[] rules = { new Half(), new Minus() };\n        // 규칙을 배열 순서대로 하나씩 적용해요.\n        for (Rate r : rules) {\n            won = rules[0].apply(won);\n        }\n        System.out.println(won);\n    }\n}\n",
+      "solution": "// 금액에 적용할 할인 규칙의 약속이에요.\ninterface Rate {\n    int apply(int won);\n}\n\nclass Half implements Rate {\n    public int apply(int won) {\n        return won / 2;\n    }\n}\n\nclass Minus implements Rate {\n    public int apply(int won) {\n        return won - 1000;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        int won = 8000;\n        Rate[] rules = { new Half(), new Minus() };\n        // 규칙을 배열 순서대로 하나씩 적용해요.\n        for (Rate r : rules) {\n            won = r.apply(won);\n        }\n        System.out.println(won);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "3000"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "won": "10000"
+          },
+          "expected": "4000"
+        },
+        {
+          "values": {
+            "won": "6000"
+          },
+          "expected": "2000"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "두 규칙을 한 번씩 차례로 적용해야 해요. 반복은 두 번 도는데 결과가 이상해요.",
+          "target": "text:반복 안의 한 줄을 고쳐 반복마다 그 차례의 규칙이 적용되게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            26,
+            26
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2000이 나왔어요. 두 번 모두 첫 칸의 Half를 써서 반값이 두 번 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "won = rules[0].apply(won);",
+          "after": "won = r.apply(won);",
+          "say": "반복 변수 r로 불러요. r은 차례마다 다른 객체를 가리켜요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            26,
+            26
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3000이에요. 처음엔 Half로 4000, 다음엔 Minus로 3000이 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "r의 형식은 Rate 하나지만 실행되는 apply는 r이 가리키는 객체의 것이에요.",
+          "target": "code:for (Rate r : rules)"
+        }
+      ]
+    },
+    {
+      "id": "stp_6a0843b4-059e-434e-9d00-b6ffe21707be",
+      "title": "1000원을 빼는 규칙을 람다로 만드세요",
+      "goal": "반값 규칙 half는 익명 클래스로 만들었어요. 1000원 빼기 규칙 minus는 람다로 만들려 해요.\n\n**알아두세요**\n\n추상 메서드가 하나뿐인 인터페이스를 함수형 인터페이스라고 해요. `w -> 식`처럼 쓰는 람다는 그 메서드 하나를 구현한 객체예요. 화살표 왼쪽이 매개변수, 오른쪽이 돌려줄 값이에요.\n\nminus의 람다를 고쳐 받은 금액에서 1000을 빼게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 금액을 확인하세요.\n2. minus 람다의 화살표 오른쪽을 고치세요.\n3. 다시 실행해 반값 뒤 1000원이 빠졌는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "interface Rate {\n    int apply(int won);\n}\n\nclass Main {\n    public static void main(String[] args) {\n        int won = 8000;\n        // 익명 클래스로 만든 반값 규칙이에요.\n        Rate half = new Rate() {\n            public int apply(int w) {\n                return w / 2;\n            }\n        };\n        // 이 줄을 고쳐 w에서 1000을 빼는 람다로 만드세요.\n        Rate minus = w -> w;\n        System.out.println(minus.apply(half.apply(won)));\n    }\n}\n",
+      "solution": "interface Rate {\n    int apply(int won);\n}\n\nclass Main {\n    public static void main(String[] args) {\n        int won = 8000;\n        // 익명 클래스로 만든 반값 규칙이에요.\n        Rate half = new Rate() {\n            public int apply(int w) {\n                return w / 2;\n            }\n        };\n        // 이 줄을 고쳐 w에서 1000을 빼는 람다로 만드세요.\n        Rate minus = w -> w - 1000;\n        System.out.println(minus.apply(half.apply(won)));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "3000"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "won": "10000"
+          },
+          "expected": "4000"
+        },
+        {
+          "values": {
+            "won": "2000"
+          },
+          "expected": "0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "half와 minus는 둘 다 Rate예요. minus를 람다로 완성하는 문제예요.",
+          "target": "text:minus의 람다를 고쳐 받은 금액에서 1000을 빼게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4000이 나왔어요. 반값은 됐지만 minus가 받은 값을 그대로 돌려줬어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "Rate minus = w -> w;",
+          "after": "Rate minus = won -> won - 1000;",
+          "say": "매개변수 이름을 won으로 써 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ],
+          "expect_error": "already defined"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. main에 이미 won이 있어서 람다 매개변수로 또 쓸 수 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "Rate minus = won -> won - 1000;",
+          "after": "Rate minus = w -> w - 1000;",
+          "say": "다른 이름 w로 써요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3000이에요. half가 4000을 만들고 minus가 1000을 뺐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "w -> w - 1000은 apply(int w) { return w - 1000; }을 짧게 쓴 것과 같아요.",
+          "target": "code:Rate minus = w -> w - 1000;"
+        }
+      ]
+    },
+    {
+      "id": "stp_82493c17-00b2-4284-995d-8be20216487f",
+      "title": "람다의 예외를 safe의 catch가 받게 하세요",
+      "goal": "minus 람다는 1000원보다 적은 금액을 받으면 예외를 던져요. safe는 규칙을 적용하다 그 예외가 나면 0을 돌려주는 메서드예요. 지금 main은 minus.apply를 직접 불러서 700원에서 프로그램이 멈춰요.\n\n마지막 출력 줄을 고쳐 safe에 minus와 won을 넘긴 결과를 출력하게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출력과 예외 메시지를 읽으세요.\n2. 마지막 출력 줄이 safe(minus, won)의 결과를 출력하게 고치세요.\n3. 다시 실행해 예외 대신 나온 값을 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "interface Rate {\n    int apply(int won);\n}\n\nclass Main {\n    // 규칙을 적용하다 잘못된 금액이면 0을 돌려줘요.\n    static int safe(Rate r, int won) {\n        try {\n            return r.apply(won);\n        } catch (IllegalArgumentException e) {\n            return 0;\n        }\n    }\n\n    public static void main(String[] args) {\n        int won = 700;\n        // 1000원보다 적으면 뺄 수 없어 예외를 던져요.\n        Rate minus = w -> {\n            if (w < 1000) {\n                throw new IllegalArgumentException(\"금액 부족\");\n            }\n            return w - 1000;\n        };\n        System.out.println(\"규칙 준비 끝\");\n        // 이 줄을 고쳐 safe를 거쳐 규칙을 적용하세요.\n        System.out.println(minus.apply(won));\n    }\n}\n",
+      "solution": "interface Rate {\n    int apply(int won);\n}\n\nclass Main {\n    // 규칙을 적용하다 잘못된 금액이면 0을 돌려줘요.\n    static int safe(Rate r, int won) {\n        try {\n            return r.apply(won);\n        } catch (IllegalArgumentException e) {\n            return 0;\n        }\n    }\n\n    public static void main(String[] args) {\n        int won = 700;\n        // 1000원보다 적으면 뺄 수 없어 예외를 던져요.\n        Rate minus = w -> {\n            if (w < 1000) {\n                throw new IllegalArgumentException(\"금액 부족\");\n            }\n            return w - 1000;\n        };\n        System.out.println(\"규칙 준비 끝\");\n        // 이 줄을 고쳐 safe를 거쳐 규칙을 적용하세요.\n        System.out.println(safe(minus, won));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "규칙 준비 끝\n0"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "won": "3000"
+          },
+          "expected": "규칙 준비 끝\n2000"
+        },
+        {
+          "values": {
+            "won": "1000"
+          },
+          "expected": "규칙 준비 끝\n0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "람다 안에서 던진 예외를 safe가 받게 하는 문제예요.",
+          "target": "text:마지막 출력 줄을 고쳐 safe에 minus와 won을 넘긴 결과를 출력하게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            26,
+            26
+          ],
+          "expect_error": "IllegalArgumentException"
+        },
+        {
+          "action": "say",
+          "text": "규칙 준비 끝이 먼저 나오고 그 뒤에 예외가 났어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "람다를 만든 줄에서는 본문이 돌지 않았어요. apply를 부른 이 줄에서야 돌았어요.",
+          "target": "code:System.out.println(minus.apply(won));"
+        },
+        {
+          "action": "patch_code",
+          "before": "System.out.println(minus.apply(won));",
+          "after": "System.out.println(safe(minus, won));",
+          "say": "safe에 람다와 금액을 넘겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            26,
+            26
+          ]
+        },
+        {
+          "action": "say",
+          "text": "규칙 준비 끝 다음에 0이 나왔어요. 예외가 r.apply를 부른 safe의 catch로 갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "람다 본문은 safe의 try 안에서 실행돼요. 그래서 그 try의 catch가 예외를 받아요.",
+          "target": "code:return r.apply(won);"
+        }
+      ]
+    },
+    {
+      "id": "stp_a163457e-76ab-4446-afb6-e887116602d6",
+      "title": "상자 크기의 순서 번호와 이름을 출력하세요",
+      "goal": "Size는 상자 크기를 정해진 세 값으로만 쓰는 enum이에요.\n\n**알아두세요**\n\n`enum`은 쓸 수 있는 값을 상수로 못 박은 형식이에요. 상수마다 `ordinal()`은 선언 순서 번호, `name()`은 상수 이름 문자열을 돌려줘요.\n\ns의 순서 번호와 이름을 공백 하나로 이어 한 줄로 출력하세요. 채점은 s에 다른 크기를 담아서도 실행해요.\n\n**할 일**\n\n1. 주석 아래에 s.ordinal()을 출력하는 줄을 쓰세요.\n2. 코드 실행을 눌러 LARGE의 순서 번호를 확인하세요.\n3. 같은 줄에 공백과 s.name()을 이어 붙이세요.\n4. 다시 실행해 번호와 이름을 확인하세요.\n5. 작성한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "// 상자 크기는 이 세 가지뿐이에요.\nenum Size {\n    SMALL, MEDIUM, LARGE\n}\n\nclass Main {\n    public static void main(String[] args) {\n        Size s = Size.LARGE;\n        // 이 주석 아래에 s의 순서 번호와 이름을 한 줄로 출력하세요.\n    }\n}\n",
+      "solution": "// 상자 크기는 이 세 가지뿐이에요.\nenum Size {\n    SMALL, MEDIUM, LARGE\n}\n\nclass Main {\n    public static void main(String[] args) {\n        Size s = Size.LARGE;\n        // 이 주석 아래에 s의 순서 번호와 이름을 한 줄로 출력하세요.\n        System.out.println(s.ordinal() + \" \" + s.name());\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "2 LARGE"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "s": "Size.SMALL"
+          },
+          "expected": "0 SMALL"
+        },
+        {
+          "values": {
+            "s": "Size.MEDIUM"
+          },
+          "expected": "1 MEDIUM"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "LARGE가 몇 번째로 선언됐는지와 그 이름을 함께 출력해야 해요.",
+          "target": "text:s의 순서 번호와 이름을 공백 하나로 이어 한 줄로 출력하세요."
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 이 주석 아래에 s의 순서 번호와 이름을 한 줄로 출력하세요.\n",
+          "after": "        // 이 주석 아래에 s의 순서 번호와 이름을 한 줄로 출력하세요.\n        System.out.println(s.ordinal());\n",
+          "say": "먼저 순서 번호만 출력해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2가 나왔어요. LARGE는 세 번째지만 번호는 0부터 세요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "System.out.println(s.ordinal());",
+          "after": "System.out.println(s.ordinal() + \" \" + s.name());",
+          "say": "공백과 이름을 이어 붙여요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2 LARGE예요. name()은 선언에 쓴 상수 이름을 그대로 돌려줘요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 사람이 세는 세 번째를 떠올려 1을 더하면 3이 돼요. ordinal은 SMALL이 0이에요.",
+          "target": "code:SMALL, MEDIUM, LARGE"
+        }
+      ]
+    },
+    {
+      "id": "stp_80df87e3-2170-4fcc-8268-efe8a87afcc8",
+      "title": "손님이 고른 번호의 상자와 요금을 꺼내세요",
+      "goal": "이번 Size는 상수마다 괄호 안의 기본 요금을 생성자로 받아 필드 fee에 담아요. 손님은 크기를 1번, 2번, 3번으로 골라요. 2번을 고르면 두 번째 크기인 MEDIUM이 나와야 해요.\n\n`Size.values()`는 상수를 선언 순서대로 담은 배열이에요. picked를 고르는 줄의 인덱스를 고쳐 손님 번호에 맞는 상자를 꺼내세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 2번이 어느 크기로 나오는지 확인하세요.\n2. values() 뒤 대괄호 안의 인덱스 식을 고치세요.\n3. 다시 실행해 MEDIUM과 그 요금이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "// 크기마다 기본 요금을 생성자로 정해요.\nenum Size {\n    SMALL(1000), MEDIUM(2000), LARGE(3500);\n\n    final int fee;\n\n    Size(int fee) {\n        this.fee = fee;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // 손님이 고른 크기의 번호예요. 첫 번째 크기가 1번이에요.\n        int choice = 2;\n        Size picked = Size.values()[choice];\n        System.out.println(picked.name() + \" \" + picked.fee);\n    }\n}\n",
+      "solution": "// 크기마다 기본 요금을 생성자로 정해요.\nenum Size {\n    SMALL(1000), MEDIUM(2000), LARGE(3500);\n\n    final int fee;\n\n    Size(int fee) {\n        this.fee = fee;\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        // 손님이 고른 크기의 번호예요. 첫 번째 크기가 1번이에요.\n        int choice = 2;\n        Size picked = Size.values()[choice - 1];\n        System.out.println(picked.name() + \" \" + picked.fee);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "MEDIUM 2000"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "choice": "1"
+          },
+          "expected": "SMALL 1000"
+        },
+        {
+          "values": {
+            "choice": "3"
+          },
+          "expected": "LARGE 3500"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "손님 번호는 1부터, 배열 인덱스는 0부터예요. 그 차이를 맞추는 문제예요.",
+          "target": "text:picked를 고르는 줄의 인덱스를 고쳐 손님 번호에 맞는 상자를 꺼내세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "LARGE 3500이 나왔어요. values()[2]는 세 번째 상수예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "Size.values()[choice]",
+          "after": "Size.values()[choice - 1]",
+          "say": "손님 번호에서 1을 빼 인덱스로 써요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "MEDIUM 2000이에요. name()은 상수 이름, fee는 생성자로 받은 요금이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "MEDIUM(2000)의 2000이 생성자의 fee로 들어가 그 상수의 필드가 됐어요.",
+          "target": "code:this.fee = fee;"
+        }
+      ]
+    },
+    {
+      "id": "stp_93d555c6-bb9d-41a0-b123-ef4d598a9465",
+      "title": "포장비를 먼저 더하고 두 배가 되게 규칙 순서를 고치세요",
+      "goal": "선물 주문은 같은 상자 두 개를 보내요. 그래서 기본 요금에 포장비 extra를 먼저 더하고, 그 합을 두 배로 해야 해요. pay는 규칙 배열을 앞에서부터 차례로 적용해요.\n\nmain의 규칙 배열에서 두 람다의 순서를 고쳐 결제액이 (기본 요금 + 포장비) × 2가 되게 하세요. 채점은 pick과 extra를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 크기와 결제액을 확인하세요.\n2. size()와 pay를 따라가며 4500이 어떻게 나왔는지 계산하세요.\n3. rules 배열에서 두 람다의 순서를 바꾸세요.\n4. 다시 실행해 결제액을 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "interface Rate {\n    int apply(int won);\n}\n\n// 크기마다 기본 요금을 생성자로 정해요.\nenum Size {\n    SMALL(1000), MEDIUM(2000), LARGE(3500);\n\n    final int fee;\n\n    Size(int fee) {\n        this.fee = fee;\n    }\n}\n\nabstract class Order {\n    abstract Size size();\n\n    // 기본 요금에 규칙을 배열 순서대로 적용해요.\n    int pay(Rate[] rules) {\n        int won = size().fee;\n        for (Rate r : rules) {\n            won = r.apply(won);\n        }\n        return won;\n    }\n}\n\nclass GiftOrder extends Order {\n    final int pick;\n\n    GiftOrder(int pick) {\n        this.pick = pick;\n    }\n\n    Size size() {\n        return Size.values()[pick];\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        int pick = 1;\n        int extra = 500;\n        // 이 배열의 규칙 순서를 고치세요.\n        Rate[] rules = { w -> w * 2, w -> w + extra };\n        Order order = new GiftOrder(pick);\n        System.out.println(order.size().name() + \" \" + order.pay(rules));\n    }\n}\n",
+      "solution": "interface Rate {\n    int apply(int won);\n}\n\n// 크기마다 기본 요금을 생성자로 정해요.\nenum Size {\n    SMALL(1000), MEDIUM(2000), LARGE(3500);\n\n    final int fee;\n\n    Size(int fee) {\n        this.fee = fee;\n    }\n}\n\nabstract class Order {\n    abstract Size size();\n\n    // 기본 요금에 규칙을 배열 순서대로 적용해요.\n    int pay(Rate[] rules) {\n        int won = size().fee;\n        for (Rate r : rules) {\n            won = r.apply(won);\n        }\n        return won;\n    }\n}\n\nclass GiftOrder extends Order {\n    final int pick;\n\n    GiftOrder(int pick) {\n        this.pick = pick;\n    }\n\n    Size size() {\n        return Size.values()[pick];\n    }\n}\n\nclass Main {\n    public static void main(String[] args) {\n        int pick = 1;\n        int extra = 500;\n        // 이 배열의 규칙 순서를 고치세요.\n        Rate[] rules = { w -> w + extra, w -> w * 2 };\n        Order order = new GiftOrder(pick);\n        System.out.println(order.size().name() + \" \" + order.pay(rules));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "MEDIUM 5000"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "pick": "2"
+          },
+          "expected": "LARGE 8000"
+        },
+        {
+          "values": {
+            "pick": "0",
+            "extra": "300"
+          },
+          "expected": "SMALL 2600"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "포장비를 먼저 더하고 두 배를 해야 해요. 규칙의 차례가 문제예요.",
+          "target": "text:main의 규칙 배열에서 두 람다의 순서를 고쳐 결제액이 (기본 요금 + 포장비) × 2가 되게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            48,
+            48
+          ]
+        },
+        {
+          "action": "say",
+          "text": "MEDIUM 4500이 나왔어요. 하나씩 따라가 볼게요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "order는 GiftOrder 객체예요. size()는 values()[1]이라 MEDIUM이고 기본 요금은 2000이에요.",
+          "target": "code:return Size.values()[pick];"
+        },
+        {
+          "action": "say",
+          "text": "pay는 배열 앞의 w * 2로 4000을 만들고, 그다음 500을 더해 4500이 됐어요.",
+          "target": "code:won = r.apply(won);"
+        },
+        {
+          "action": "patch_code",
+          "before": "{ w -> w * 2, w -> w + extra }",
+          "after": "{ w -> w + extra, w -> w * 2 }",
+          "say": "더하기 규칙을 앞으로 옮겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            48,
+            48
+          ]
+        },
+        {
+          "action": "say",
+          "text": "MEDIUM 5000이에요. 2000에 500을 더해 2500, 두 배로 5000이 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "같은 람다 두 개라도 배열 순서가 바뀌면 결과가 달라져요.",
+          "target": "code:Rate[] rules = { w -> w + extra, w -> w * 2 };"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "abstract 메서드는 자식이 반드시 구현해야 하고, 추상 클래스의 일반 메서드도 실제 객체의 구현을 부른다는 것을 확인해요.",
+      "implements로 인터페이스를 구현하고, default 메서드를 그대로 받거나 덮어써요.",
+      "메서드가 하나인 인터페이스를 람다로 구현하고, 람다 본문이 언제 실행되는지 추적해요.",
+      "enum 상수의 선언 순서·values()·ordinal()·name()·생성자 필드를 읽어요."
+    ],
+    "chapters": {
+      "chp_39055851-bc45-4150-81c6-249945e27bcb": [
+        "abstract와 interface로 정한 약속을 자식·구현 클래스가 채우고, 실제 객체의 구현이 실행됨을 확인해요."
+      ],
+      "chp_c9f703f2-ca4b-46dc-a2a1-a892fd3dc4c4": [
+        "함수형 인터페이스를 람다로 구현하고, 람다 본문이 호출될 때 실행됨을 추적해요."
+      ],
+      "chp_98d477ae-d465-4247-8fe0-fa87482d4f5e": [
+        "enum 상수의 순서·이름·필드를 읽고, 앞에서 배운 원리와 엮어 추적해요."
+      ]
+    },
+    "units": {
+      "unt_242c91e4-14ec-45a9-9242-462877717a9e": {
+        "objectives": [
+          "본문 없는 abstract 메서드를 자식이 채우는 흐름을 추적해요."
+        ],
+        "premise": "Shipping은 배송 수단의 공통 틀이에요. 무게 kg에 따른 요금 fee는 수단마다 달라요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_be80978e-203f-4562-a0a9-b1634f7b005d": {
+        "objectives": [
+          "implements로 약속을 구현하고, default 메서드와 인터페이스형 배열을 다뤄요."
+        ],
+        "premise": "Notice는 알림을 보내는 방법의 약속이에요. 문자·메일이 같은 약속을 지켜요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_bf09630d-286f-4308-b386-d92d0c4f7de3": {
+        "objectives": [
+          "클래스 없이 규칙을 만들고 실행 순서와 예외 경로를 확인해요."
+        ],
+        "premise": "Rate는 apply 하나만 있는 할인 규칙의 약속이에요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_2fbb89ba-5514-4ff3-af60-9eb32bef7d3c": {
+        "objectives": [
+          "선언 순서와 values() 배열, 상수마다의 필드를 다뤄요."
+        ],
+        "premise": "택배 상자 크기는 SMALL, MEDIUM, LARGE 세 가지뿐이에요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_024e228f-2db8-45c5-b735-e46b19755007": {
+        "objectives": [
+          "추상 클래스·enum·람다 배열을 한 코드에서 추적해요."
+        ],
+        "premise": "선물 주문은 고른 상자의 기본 요금에 규칙을 차례로 적용해 결제액을 정해요."
+      }
+    }
+  }
+}

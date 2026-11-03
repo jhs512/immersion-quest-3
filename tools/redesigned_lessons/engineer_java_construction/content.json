@@ -1,0 +1,836 @@
+{
+  "description": "객체 없이 부르는 static 메서드, 하나만 만드는 객체, super()·this()로 이어지는 생성 순서를 한두 줄씩 고치며 추적해요.",
+  "tasks": [
+    {
+      "id": "stp_9ba70815-0f75-4cd1-ac6f-257ec092813d",
+      "title": "fee를 객체 없이 부를 수 있게 키워드를 쓰세요",
+      "goal": "보관함 요금은 맡긴 일수에만 달려 있어요. 그래서 보관함 객체를 만들지 않고 Locker.fee(days)로 바로 부르려 해요.\n\n**알아두세요**\n\n메서드 선언 앞에 `static`을 붙이면 그 메서드는 객체가 아니라 클래스에 속해요. 그래서 `클래스이름.메서드()`로 객체 없이 부를 수 있어요.\n\nfee 선언에 키워드 하나를 더해 main의 Locker.fee(days)가 컴파일되게 하세요. 보관함 객체는 만들지 마세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 컴파일 오류 메시지를 읽으세요.\n2. fee 선언 앞에 키워드 하나를 쓰세요.\n3. 다시 실행해 2일 요금이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Locker {\n    // 보관함 객체를 하나 만들 때마다 이 줄이 출력돼요.\n    Locker() {\n        System.out.println(\"new locker\");\n    }\n    // 맡긴 일수로 요금을 계산해요. 객체 없이 Locker.fee(...)로 부르려 해요.\n    int fee(int days) {\n        return days * 500;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int days = 2;\n        System.out.println(Locker.fee(days));\n    }\n}\n",
+      "solution": "class Locker {\n    // 보관함 객체를 하나 만들 때마다 이 줄이 출력돼요.\n    Locker() {\n        System.out.println(\"new locker\");\n    }\n    // 맡긴 일수로 요금을 계산해요. 객체 없이 Locker.fee(...)로 부르려 해요.\n    static int fee(int days) {\n        return days * 500;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int days = 2;\n        System.out.println(Locker.fee(days));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "1000"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "days": "3"
+          },
+          "expected": "1500"
+        },
+        {
+          "values": {
+            "days": "7"
+          },
+          "expected": "3500"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "보관함 객체 없이 요금 메서드를 부르는 문제예요. 보관함 객체는 만들면 안 돼요.",
+          "target": "text:보관함 객체는 만들지 마세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ],
+          "expect_error": "non-static method"
+        },
+        {
+          "action": "say",
+          "text": "컴파일 오류예요. non-static method fee를 static 문맥에서 부를 수 없다고 해요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "main은 static이라 객체가 없어요. fee는 객체에 속한 메서드라 부를 대상이 없어요.",
+          "target": "code:int fee(int days)"
+        },
+        {
+          "action": "patch_code",
+          "before": "    int fee(int days) {",
+          "after": "    static int fee(int days) {",
+          "say": "fee 앞에 static을 붙여 클래스에 속하게 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1000이 나왔어요. 2일 곱하기 500이고, new locker 줄은 없어요. 객체를 만들지 않았다는 뜻이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. new Locker().fee(days)로 바꿔도 요금은 나오지만 new locker가 먼저 찍혀요. 객체를 만든 거라 요구와 달라요.",
+          "target": "code:System.out.println(\"new locker\");"
+        }
+      ]
+    },
+    {
+      "id": "stp_0be79575-bf10-4c2b-b851-dbdb48ed948a",
+      "title": "static 메서드가 받은 보관함의 칸 수를 읽게 고치세요",
+      "goal": "보관함 a는 4칸, b는 7칸을 쓰고 있어요. static 메서드 usedOf가 받은 보관함의 사용 칸 수를 돌려주려 하는데 컴파일되지 않아요.\n\nusedOf의 return 줄을 고쳐 매개변수 box가 가리키는 보관함의 used를 돌려주게 하세요. used 필드의 선언은 그대로 두세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 컴파일 오류 메시지를 읽으세요.\n2. usedOf의 return 줄을 고치세요.\n3. 다시 실행해 a와 b의 칸 수가 따로 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Locker {\n    // 보관함마다 따로 있는 사용 칸 수예요.\n    int used;\n    Locker(int used) {\n        this.used = used;\n    }\n    // 받은 보관함 box의 사용 칸 수를 돌려주려는 static 메서드예요.\n    static int usedOf(Locker box) {\n        return used;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int first = 4;\n        Locker a = new Locker(first);\n        Locker b = new Locker(7);\n        System.out.println(Locker.usedOf(a));\n        System.out.println(Locker.usedOf(b));\n    }\n}\n",
+      "solution": "class Locker {\n    // 보관함마다 따로 있는 사용 칸 수예요.\n    int used;\n    Locker(int used) {\n        this.used = used;\n    }\n    // 받은 보관함 box의 사용 칸 수를 돌려주려는 static 메서드예요.\n    static int usedOf(Locker box) {\n        return box.used;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int first = 4;\n        Locker a = new Locker(first);\n        Locker b = new Locker(7);\n        System.out.println(Locker.usedOf(a));\n        System.out.println(Locker.usedOf(b));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "4\n7"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "first": "1"
+          },
+          "expected": "1\n7"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "usedOf는 static인데 객체마다 다른 used를 돌려줘야 해요. 어느 보관함인지는 매개변수 box가 알려 줘요.",
+          "target": "text:매개변수 box가 가리키는 보관함의 used를 돌려주게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            18
+          ],
+          "expect_error": "non-static variable"
+        },
+        {
+          "action": "say",
+          "text": "컴파일 오류예요. non-static variable used를 static 문맥에서 쓸 수 없다고 해요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "static 메서드는 객체 없이 불리니 this가 없어요. 이름만 쓴 used는 어느 보관함 것인지 정할 수 없어요.",
+          "target": "code:return used;"
+        },
+        {
+          "action": "patch_code",
+          "before": "        return used;\n",
+          "after": "        return box.used;\n",
+          "say": "받은 참조 box를 앞에 붙여 그 보관함의 used를 읽어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4와 7이 나왔어요. 같은 메서드가 받은 참조에 따라 각 보관함의 값을 읽었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 오류를 없애려고 used에 static을 붙이면 컴파일은 돼요. 그러면 칸 수가 하나로 합쳐져 둘 다 7이 나와요.",
+          "target": "code:int used;"
+        }
+      ]
+    },
+    {
+      "id": "stp_98121f18-08a0-43c9-8c25-a8bd1aa59eb0",
+      "title": "매개변수에 가려진 static 필드를 늘리세요",
+      "goal": "보관함에는 상자가 10개 있어요. add를 부를 때마다 들어온 상자 수만큼 누적 수 Locker.total이 늘어야 해요. 그런데 매개변수 이름도 total이에요.\n\nadd 안의 한 줄을 고쳐 static 필드 total에 들어온 상자 수를 더하세요. main의 boxes는 그대로 4로 남아야 해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 boxes와 누적 수를 확인하세요.\n2. add 안의 더하는 줄을 고치세요.\n3. 다시 실행해 4개씩 두 번 더해졌는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Locker {\n    // 보관함 전체에 하나뿐인 누적 상자 수예요.\n    static int total = 10;\n    // 들어온 상자 수 total만큼 누적 수를 늘리려는 메서드예요.\n    static void add(int total) {\n        total += total;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int boxes = 4;\n        Locker.add(boxes);\n        Locker.add(boxes);\n        System.out.println(boxes + \" \" + Locker.total);\n    }\n}\n",
+      "solution": "class Locker {\n    // 보관함 전체에 하나뿐인 누적 상자 수예요.\n    static int total = 10;\n    // 들어온 상자 수 total만큼 누적 수를 늘리려는 메서드예요.\n    static void add(int total) {\n        Locker.total += total;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int boxes = 4;\n        Locker.add(boxes);\n        Locker.add(boxes);\n        System.out.println(boxes + \" \" + Locker.total);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "4 18"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "boxes": "1"
+          },
+          "expected": "1 12"
+        },
+        {
+          "values": {
+            "total": "0"
+          },
+          "expected": "4 8"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "add는 들어온 상자 수만큼 static 필드 total을 늘려야 해요. 매개변수 이름도 total이라 헷갈려요.",
+          "target": "text:static 필드 total에 들어온 상자 수를 더하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4 10이 나왔어요. 두 번 불렀는데 누적 수가 처음 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "메서드 안에서 total은 매개변수예요. 같은 이름의 필드를 가려서 매개변수만 두 배가 되고 버려져요.",
+          "target": "code:total += total;"
+        },
+        {
+          "action": "patch_code",
+          "before": "        total += total;\n",
+          "after": "        Locker.total += total;\n",
+          "say": "왼쪽을 클래스 이름으로 콕 집어 static 필드로 만들어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4 18이 나왔어요. 10에 4가 두 번 더해졌고, main의 boxes는 4 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "boxes는 값만 복사돼 넘어갔어요. 메서드가 매개변수를 바꿔도 main의 boxes는 바뀌지 않아요.",
+          "target": "code:int boxes = 4;"
+        }
+      ]
+    },
+    {
+      "id": "stp_e5363f24-dd41-4f39-a72b-ee0059f1a4ab",
+      "title": "get()이 처음 만든 프린터를 계속 돌려주게 하세요",
+      "goal": "p1과 p2가 Printer.get()으로 프린터를 받아 인쇄해요. 프린터는 한 대뿐이니 p1으로 본 인쇄 횟수에 p2의 인쇄도 들어가야 해요.\n\n**알아두세요**\n\n싱글턴(Singleton)은 객체를 하나만 만들고 계속 그 객체를 돌려주는 방식이에요. 만든 객체는 static 필드에 보관해요.\n\nget()의 본문을 고쳐 one이 비어 있을 때만 새 프린터를 만들어 보관하고, 항상 one을 돌려주게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 인쇄 횟수와 비교 결과를 확인하세요.\n2. get()에서 one이 null일 때만 새 Printer를 one에 넣는 if를 쓰세요.\n3. get()이 one을 돌려주게 고치세요.\n4. 다시 실행해 p1과 p2가 같은 프린터인지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Printer {\n    // 만든 프린터를 보관해 두는 자리예요.\n    private static Printer one;\n    int jobs = 0;\n    // 프린터를 돌려줘요.\n    static Printer get() {\n        return new Printer();\n    }\n    void print() {\n        jobs++;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int times = 2;\n        Printer p1 = Printer.get();\n        p1.print();\n        Printer p2 = Printer.get();\n        for (int i = 0; i < times; i++) {\n            p2.print();\n        }\n        System.out.println(p1.jobs + \" \" + (p1 == p2));\n    }\n}\n",
+      "solution": "class Printer {\n    // 만든 프린터를 보관해 두는 자리예요.\n    private static Printer one;\n    int jobs = 0;\n    // 프린터를 돌려줘요.\n    static Printer get() {\n        if (one == null) {\n            one = new Printer();\n        }\n        return one;\n    }\n    void print() {\n        jobs++;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int times = 2;\n        Printer p1 = Printer.get();\n        p1.print();\n        Printer p2 = Printer.get();\n        for (int i = 0; i < times; i++) {\n            p2.print();\n        }\n        System.out.println(p1.jobs + \" \" + (p1 == p2));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "3 true"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "times": "5"
+          },
+          "expected": "6 true"
+        },
+        {
+          "values": {
+            "times": "0"
+          },
+          "expected": "1 true"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "get()을 두 번 불러도 같은 프린터가 와야 해요. 그래야 인쇄 횟수가 한곳에 쌓여요.",
+          "target": "text:one이 비어 있을 때만 새 프린터를 만들어 보관하고, 항상 one을 돌려주게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            23,
+            23
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1 false가 나왔어요. get()이 부를 때마다 new를 해서 p2는 다른 프린터예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        return new Printer();\n",
+          "after": "        if (one == null) {\n            one = new Printer();\n        }\n        return one;\n",
+          "say": "처음 한 번만 만들어 one에 넣고, 그 뒤로는 one을 그대로 돌려줘요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            26,
+            26
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3 true가 나왔어요. p1과 p2가 한 프린터를 가리켜서 세 번의 인쇄가 모두 쌓였어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "jobs는 static이 아니에요. 그래도 공유되는 건 객체 자체가 하나이기 때문이에요.",
+          "target": "code:int jobs = 0;"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. if 없이 one = new Printer()만 쓰면 부를 때마다 새로 만들어 덮어써요. 그러면 다시 1 false예요.",
+          "target": "code:if (one == null)"
+        }
+      ]
+    },
+    {
+      "id": "stp_0d79ef13-34b3-408a-a142-546e0399c735",
+      "title": "private 생성자를 지나 get()으로 프린터를 받으세요",
+      "goal": "이번 Printer는 생성자가 private이에요. 다른 부서 코드가 new Printer()로 프린터를 하나 더 만들려다 컴파일되지 않아요.\n\np2를 만드는 줄을 고쳐 p1과 같은 프린터를 받게 하세요. Printer 클래스는 고치지 마세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 컴파일 오류 메시지를 읽으세요.\n2. p2를 만드는 줄을 고치세요.\n3. 다시 실행해 만든 프린터 수와 p1의 인쇄 횟수를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Printer {\n    private static Printer one;\n    // 지금까지 만든 프린터 수예요.\n    static int made = 0;\n    int jobs = 0;\n    // 밖에서 new Printer()로 만들지 못하게 막아요.\n    private Printer() {\n        made++;\n    }\n    static Printer get() {\n        if (one == null) {\n            one = new Printer();\n        }\n        return one;\n    }\n    void print() {\n        jobs++;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int times = 2;\n        Printer p1 = Printer.get();\n        // 다른 부서도 프린터를 받아요. 이 줄을 고치세요.\n        Printer p2 = new Printer();\n        for (int i = 0; i < times; i++) {\n            p2.print();\n        }\n        p1.print();\n        System.out.println(Printer.made + \" \" + p1.jobs);\n    }\n}\n",
+      "solution": "class Printer {\n    private static Printer one;\n    // 지금까지 만든 프린터 수예요.\n    static int made = 0;\n    int jobs = 0;\n    // 밖에서 new Printer()로 만들지 못하게 막아요.\n    private Printer() {\n        made++;\n    }\n    static Printer get() {\n        if (one == null) {\n            one = new Printer();\n        }\n        return one;\n    }\n    void print() {\n        jobs++;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int times = 2;\n        Printer p1 = Printer.get();\n        // 다른 부서도 프린터를 받아요. 이 줄을 고치세요.\n        Printer p2 = Printer.get();\n        for (int i = 0; i < times; i++) {\n            p2.print();\n        }\n        p1.print();\n        System.out.println(Printer.made + \" \" + p1.jobs);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "1 3"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "times": "5"
+          },
+          "expected": "1 6"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "p2도 p1과 같은 프린터를 받아야 해요. Printer 클래스는 건드리지 않아요.",
+          "target": "text:p2를 만드는 줄을 고쳐 p1과 같은 프린터를 받게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            26,
+            26
+          ],
+          "expect_error": "private access"
+        },
+        {
+          "action": "say",
+          "text": "컴파일 오류예요. Printer()가 private access라 Main에서 부를 수 없대요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "private 생성자는 Printer 클래스 안에서만 부를 수 있어요. 그래서 get()이 유일한 통로가 돼요.",
+          "target": "code:private Printer()"
+        },
+        {
+          "action": "patch_code",
+          "before": "        Printer p2 = new Printer();\n",
+          "after": "        Printer p2 = Printer.get();\n",
+          "say": "new 대신 get()으로 받아요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            31,
+            31
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1 3이 나왔어요. 프린터는 한 번만 만들어졌고, p2의 두 번과 p1의 한 번이 함께 쌓였어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 오류를 없애려고 생성자의 private을 지우면 컴파일은 돼요. 하지만 프린터가 두 대가 되어 2 1이 나와요.",
+          "target": "code:made++;"
+        }
+      ]
+    },
+    {
+      "id": "stp_b491cdd8-69d9-438a-92aa-dc06687152d3",
+      "title": "싱글턴의 누적 장수가 쌓이도록 한 줄을 고치세요",
+      "goal": "p1으로 sheets장, p2로 sheets장과 1장을 인쇄해요. 프린터는 한 대라 p1.pages에 모든 장수가 쌓여야 해요. 지금은 0이 나와요.\n\nprint 안의 한 줄을 고쳐 이 프린터의 누적 장수 필드가 늘게 하세요. main의 sheets는 그대로 남아야 해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 누적 장수와 sheets를 확인하세요.\n2. print 안의 더하는 줄을 고치세요.\n3. 다시 실행해 세 번 인쇄한 장수가 모두 쌓였는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Printer {\n    private static Printer one;\n    int pages = 0;\n    private Printer() {\n    }\n    static Printer get() {\n        if (one == null) {\n            one = new Printer();\n        }\n        return one;\n    }\n    // 받은 장수 pages만큼 이 프린터의 누적 장수를 늘리려는 메서드예요.\n    void print(int pages) {\n        pages += pages;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int sheets = 3;\n        Printer p1 = Printer.get();\n        Printer p2 = Printer.get();\n        p1.print(sheets);\n        p2.print(sheets);\n        p2.print(1);\n        System.out.println(p1.pages + \" \" + sheets);\n    }\n}\n",
+      "solution": "class Printer {\n    private static Printer one;\n    int pages = 0;\n    private Printer() {\n    }\n    static Printer get() {\n        if (one == null) {\n            one = new Printer();\n        }\n        return one;\n    }\n    // 받은 장수 pages만큼 이 프린터의 누적 장수를 늘리려는 메서드예요.\n    void print(int pages) {\n        this.pages += pages;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int sheets = 3;\n        Printer p1 = Printer.get();\n        Printer p2 = Printer.get();\n        p1.print(sheets);\n        p2.print(sheets);\n        p2.print(1);\n        System.out.println(p1.pages + \" \" + sheets);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "7 3"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "sheets": "5"
+          },
+          "expected": "11 5"
+        },
+        {
+          "values": {
+            "sheets": "0"
+          },
+          "expected": "1 0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "세 번 인쇄한 장수가 한 프린터의 pages에 쌓여야 해요. sheets는 바뀌면 안 돼요.",
+          "target": "text:print 안의 한 줄을 고쳐 이 프린터의 누적 장수 필드가 늘게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            26,
+            26
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0 3이 나왔어요. 세 번 불렀는데 필드 pages는 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "3스텝과 같은 가림이에요. print 안의 pages는 모두 매개변수예요.",
+          "target": "code:pages += pages;"
+        },
+        {
+          "action": "patch_code",
+          "before": "        pages += pages;\n",
+          "after": "        Printer.pages += pages;\n",
+          "say": "3스텝처럼 클래스 이름을 붙여 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            26,
+            26
+          ],
+          "expect_error": "non-static variable"
+        },
+        {
+          "action": "say",
+          "text": "컴파일 오류예요. pages는 static이 아니라서 클래스 이름으로 가리킬 수 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        Printer.pages += pages;\n",
+          "after": "        this.pages += pages;\n",
+          "say": "인스턴스 필드는 this로 이 객체의 필드를 가리켜요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            26,
+            26
+          ]
+        },
+        {
+          "action": "say",
+          "text": "7 3이 나왔어요. 3, 3, 1이 한 프린터에 쌓였고 sheets는 3 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "p2로 인쇄한 장수가 p1.pages에 보이는 건 get()이 같은 객체를 돌려줬기 때문이에요.",
+          "target": "code:return one;"
+        }
+      ]
+    },
+    {
+      "id": "stp_ab934376-6151-46c0-ab8a-e4f6b03b96ab",
+      "title": "super(...)로 부모 생성자에 가로·세로를 넘기세요",
+      "goal": "정사각 상자 SquareBox는 Box를 상속해요. 그런데 SquareBox(int side)가 컴파일되지 않아요.\n\n**알아두세요**\n\n자식 생성자는 자기 본문보다 먼저 부모 생성자 `super(...)`를 불러요. 직접 쓰지 않으면 맨 앞에 인수 없는 `super()`가 들어간 것으로 봐요.\n\nSquareBox 생성자의 첫 줄에 부모 생성자를 불러 가로와 세로를 모두 side로 넘기세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 컴파일 오류 메시지를 읽으세요.\n2. 주석 아래 첫 줄에 부모 생성자를 부르는 줄을 쓰세요.\n3. 다시 실행해 정사각 상자의 넓이를 확인하세요.\n4. 작성한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Box {\n    int w, h;\n    // 부모 Box에는 가로·세로를 받는 생성자만 있어요.\n    Box(int w, int h) {\n        this.w = w;\n        this.h = h;\n    }\n    int area() {\n        return w * h;\n    }\n}\nclass SquareBox extends Box {\n    // 정사각 상자는 가로와 세로가 모두 side예요.\n    SquareBox(int side) {\n        // 이 주석 아래 첫 줄에 부모 생성자를 부르는 줄을 쓰세요.\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int side = 3;\n        SquareBox s = new SquareBox(side);\n        System.out.println(s.area());\n    }\n}\n",
+      "solution": "class Box {\n    int w, h;\n    // 부모 Box에는 가로·세로를 받는 생성자만 있어요.\n    Box(int w, int h) {\n        this.w = w;\n        this.h = h;\n    }\n    int area() {\n        return w * h;\n    }\n}\nclass SquareBox extends Box {\n    // 정사각 상자는 가로와 세로가 모두 side예요.\n    SquareBox(int side) {\n        // 이 주석 아래 첫 줄에 부모 생성자를 부르는 줄을 쓰세요.\n        super(side, side);\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int side = 3;\n        SquareBox s = new SquareBox(side);\n        System.out.println(s.area());\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "9"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "side": "5"
+          },
+          "expected": "25"
+        },
+        {
+          "values": {
+            "side": "1"
+          },
+          "expected": "1"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "SquareBox가 부모 Box를 제대로 만들도록 첫 줄을 써야 해요. 가로와 세로 둘 다 side예요.",
+          "target": "text:SquareBox 생성자의 첫 줄에 부모 생성자를 불러 가로와 세로를 모두 side로 넘기세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            23,
+            23
+          ],
+          "expect_error": "constructor Box in class Box cannot be applied"
+        },
+        {
+          "action": "say",
+          "text": "컴파일 오류예요. Box 생성자에 맞는 인수가 없다고 해요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "비어 있는 생성자에는 super()가 숨어 있어요. Box에는 인수 없는 생성자가 없어서 맞지 않아요.",
+          "target": "code:Box(int w, int h)"
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 이 주석 아래 첫 줄에 부모 생성자를 부르는 줄을 쓰세요.\n",
+          "after": "        // 이 주석 아래 첫 줄에 부모 생성자를 부르는 줄을 쓰세요.\n        super(side, side);\n",
+          "say": "super에 side를 두 번 넘겨 가로와 세로를 정해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            24,
+            24
+          ]
+        },
+        {
+          "action": "say",
+          "text": "9가 나왔어요. 3 곱하기 3이고, 부모 생성자가 w와 h를 채웠어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. super 대신 this.w = side만 쓰면 오류가 그대로예요. 숨은 super()가 여전히 먼저 실행되니까요.",
+          "target": "code:super(side, side);"
+        }
+      ]
+    },
+    {
+      "id": "stp_c8602284-1618-49ac-8c59-fc0f96dcdeaf",
+      "title": "this(...)로 기본 상자도 SquareBox(int)를 거치게 하세요",
+      "goal": "크기를 받지 않는 SquareBox()도 SquareBox(int side)가 하는 일을 똑같이 거쳐야 해요. 지금은 그 생성자를 건너뛰어 square 줄이 나오지 않아요.\n\n**알아두세요**\n\n`this(...)`는 같은 클래스의 다른 생성자를 불러요. 보통 생성자의 첫 줄에 쓰고, 한 생성자에 `this(...)`와 `super(...)`를 함께 쓸 수는 없어요.\n\nSquareBox()의 첫 줄을 this(...)로 바꿔 기본 크기 basic으로 SquareBox(int side)를 부르세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력되는 줄을 확인하세요.\n2. SquareBox()의 첫 줄을 this(...)로 바꾸세요.\n3. 다시 실행해 세 줄의 순서를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Box {\n    int w, h;\n    Box(int w, int h) {\n        this.w = w;\n        this.h = h;\n        System.out.println(\"box \" + w + \"x\" + h);\n    }\n}\nclass SquareBox extends Box {\n    // 크기를 정하지 않은 상자에 쓸 기본 크기예요.\n    static int basic = 2;\n    SquareBox(int side) {\n        super(side, side);\n        System.out.println(\"square \" + side);\n    }\n    // 크기를 받지 않는 생성자예요. 첫 줄을 고치세요.\n    SquareBox() {\n        super(basic, basic);\n        System.out.println(\"default\");\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        new SquareBox();\n    }\n}\n",
+      "solution": "class Box {\n    int w, h;\n    Box(int w, int h) {\n        this.w = w;\n        this.h = h;\n        System.out.println(\"box \" + w + \"x\" + h);\n    }\n}\nclass SquareBox extends Box {\n    // 크기를 정하지 않은 상자에 쓸 기본 크기예요.\n    static int basic = 2;\n    SquareBox(int side) {\n        super(side, side);\n        System.out.println(\"square \" + side);\n    }\n    // 크기를 받지 않는 생성자예요. 첫 줄을 고치세요.\n    SquareBox() {\n        this(basic);\n        System.out.println(\"default\");\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        new SquareBox();\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "box 2x2\nsquare 2\ndefault"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "basic": "4"
+          },
+          "expected": "box 4x4\nsquare 4\ndefault"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "기본 상자도 SquareBox(int side)를 거쳐야 해요. 지금은 부모로 바로 가요.",
+          "target": "text:SquareBox()의 첫 줄을 this(...)로 바꿔 기본 크기 basic으로 SquareBox(int side)를 부르세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "box 2x2와 default 두 줄이에요. square 줄이 빠졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        super(basic, basic);\n",
+          "after": "        this(basic);\n",
+          "say": "첫 줄을 this(basic)으로 바꿔 같은 클래스의 생성자를 불러요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "box 2x2, square 2, default 순서예요. this로 간 생성자가 다시 super로 부모를 먼저 불렀어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "그래서 부모 본문이 가장 먼저, 호출한 SquareBox()의 본문이 가장 나중이에요.",
+          "target": "code:System.out.println(\"default\");"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. super(basic, basic)을 두고 본문에 new SquareBox(basic)을 쓰면 상자가 하나 더 생겨요. box 2x2가 두 번 찍혀요.",
+          "target": "code:this(basic);"
+        }
+      ]
+    },
+    {
+      "id": "stp_bbf5d66f-d24b-4102-91f6-8f7f72628676",
+      "title": "부모 생성자에서도 완성된 크기가 보이게 고치세요",
+      "goal": "BigBox를 만들면 부모 Box의 생성자가 먼저 size()를 출력해요. make 줄과 done 줄 모두 같은 크기가 나와야 하는데 make 줄이 달라요.\n\n**알아두세요**\n\n자식이 부모 메서드와 같은 이름·매개변수로 메서드를 다시 정의하는 걸 오버라이드(override)라고 해요. 그러면 실제 객체가 자식일 때 자식의 메서드가 실행돼요.\n\nextra 필드의 선언 한 곳을 고쳐 make 줄도 완성된 크기를 보이게 하세요. 큰 상자는 모두 같은 추가 칸 수를 써요.\n\n**할 일**\n\n1. 코드 실행을 눌러 make 줄과 done 줄을 비교하세요.\n2. extra 필드의 선언을 고치세요.\n3. 다시 실행해 두 줄의 크기가 같은지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Box {\n    Box() {\n        System.out.println(\"make \" + size());\n    }\n    int size() {\n        return 1;\n    }\n}\nclass BigBox extends Box {\n    // 큰 상자는 모두 같은 추가 칸 수를 써요.\n    int extra = 5;\n    BigBox() {\n        System.out.println(\"done \" + size());\n    }\n    // Box의 size()를 다시 정의했어요.\n    int size() {\n        return extra * 2;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        new BigBox();\n    }\n}\n",
+      "solution": "class Box {\n    Box() {\n        System.out.println(\"make \" + size());\n    }\n    int size() {\n        return 1;\n    }\n}\nclass BigBox extends Box {\n    // 큰 상자는 모두 같은 추가 칸 수를 써요.\n    static int extra = 5;\n    BigBox() {\n        System.out.println(\"done \" + size());\n    }\n    // Box의 size()를 다시 정의했어요.\n    int size() {\n        return extra * 2;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        new BigBox();\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "make 10\ndone 10"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "extra": "3"
+          },
+          "expected": "make 6\ndone 6"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "부모 생성자가 출력하는 make 줄도 완성된 크기여야 해요. 고칠 곳은 extra 선언 한 곳이에요.",
+          "target": "text:extra 필드의 선언 한 곳을 고쳐 make 줄도 완성된 크기를 보이게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "make 0, done 10이에요. make 줄에서 1이 아니라 0이 나온 게 핵심이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "객체는 BigBox라서 부모 생성자 안에서도 BigBox의 size()가 불렸어요.",
+          "target": "code:return extra * 2;"
+        },
+        {
+          "action": "say",
+          "text": "그런데 그때는 extra = 5가 아직 실행 전이에요. 자식 필드는 부모 생성자가 끝난 뒤에 채워져요.",
+          "target": "code:int extra = 5;"
+        },
+        {
+          "action": "patch_code",
+          "before": "    BigBox() {\n",
+          "after": "    BigBox() {\n        extra = 5;\n",
+          "say": "자식 생성자에서 extra를 다시 넣어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "여전히 make 0이에요. 자식 생성자 본문도 부모 생성자가 끝난 뒤에 실행되니까요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    BigBox() {\n        extra = 5;\n",
+          "after": "    BigBox() {\n",
+          "say": "방금 넣은 줄은 되돌려요."
+        },
+        {
+          "action": "patch_code",
+          "before": "    int extra = 5;\n",
+          "after": "    static int extra = 5;\n",
+          "say": "모든 큰 상자가 같은 값을 쓰니 static으로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "make 10, done 10이에요. static 필드는 클래스를 준비할 때 이미 5가 되어 있어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_a939d3cf-aa62-4170-8344-1eb67eea8f99",
+      "title": "생성 순서를 따라가 전체 무게가 합쳐지게 고치세요",
+      "goal": "상자 a는 무게 kg, 상자 b는 기본 무게 base로 만들어요. Crate는 만들 때 뚜껑 무게 lid도 더해요. 마지막 줄은 지금까지 만든 모든 상자의 무게 합이어야 해요.\n\nBox의 total 선언 한 곳을 고쳐 lid 줄과 마지막 줄이 모든 상자를 합친 무게를 보이게 하세요. box 줄은 고치지 않아도 돼요.\n\n**할 일**\n\n1. 코드 실행을 눌러 다섯 줄의 출력을 확인하세요.\n2. new Crate()가 어느 생성자들을 거치는지 코드에서 따라가세요.\n3. total의 선언을 고치세요.\n4. 다시 실행해 마지막 줄이 a와 b의 무게 합인지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "class Box {\n    // 모든 상자의 무게를 합친 값이에요.\n    int total = 0;\n    Box(int kg) {\n        total += kg;\n        System.out.println(\"box \" + kg + \" \" + label());\n    }\n    String label() {\n        return \"plain\";\n    }\n}\nclass Crate extends Box {\n    static int base = 4;\n    String tag = \"crate\";\n    int lid = 1;\n    Crate(int kg) {\n        super(kg);\n        total += lid;\n        System.out.println(\"lid \" + total);\n    }\n    Crate() {\n        this(base);\n    }\n    String label() {\n        return tag;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int kg = 5;\n        Crate a = new Crate(kg);\n        Crate b = new Crate();\n        System.out.println(b.total);\n    }\n}\n",
+      "solution": "class Box {\n    // 모든 상자의 무게를 합친 값이에요.\n    static int total = 0;\n    Box(int kg) {\n        total += kg;\n        System.out.println(\"box \" + kg + \" \" + label());\n    }\n    String label() {\n        return \"plain\";\n    }\n}\nclass Crate extends Box {\n    static int base = 4;\n    String tag = \"crate\";\n    int lid = 1;\n    Crate(int kg) {\n        super(kg);\n        total += lid;\n        System.out.println(\"lid \" + total);\n    }\n    Crate() {\n        this(base);\n    }\n    String label() {\n        return tag;\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        int kg = 5;\n        Crate a = new Crate(kg);\n        Crate b = new Crate();\n        System.out.println(b.total);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "box 5 null\nlid 6\nbox 4 null\nlid 11\n11"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "kg": "2"
+          },
+          "expected": "box 2 null\nlid 3\nbox 4 null\nlid 8\n8"
+        },
+        {
+          "values": {
+            "base": "7"
+          },
+          "expected": "box 5 null\nlid 6\nbox 7 null\nlid 14\n14"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "마지막 줄은 a와 b를 합친 무게여야 해요. 고칠 곳은 total 선언이에요.",
+          "target": "text:Box의 total 선언 한 곳을 고쳐 lid 줄과 마지막 줄이 모든 상자를 합친 무게를 보이게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            34,
+            34
+          ]
+        },
+        {
+          "action": "say",
+          "text": "box 5 null, lid 6, box 4 null, lid 5, 그리고 5예요. b의 lid 줄이 a의 무게를 모르고 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "new Crate()는 this(base)로 Crate(int)에 가고, 거기서 super로 Box에 가요.",
+          "target": "code:this(base);"
+        },
+        {
+          "action": "say",
+          "text": "box 줄의 null은 9스텝과 같아요. 부모 생성자 안에서 불린 label()이 아직 비어 있는 tag를 읽었어요.",
+          "target": "code:return tag;"
+        },
+        {
+          "action": "say",
+          "text": "total은 상자마다 따로 있는 필드예요. 그래서 b는 4에 1을 더한 5만 갖고 있어요.",
+          "target": "code:int total = 0;"
+        },
+        {
+          "action": "patch_code",
+          "before": "    int total = 0;\n",
+          "after": "    static int total = 0;\n",
+          "say": "total에 static을 붙여 모든 상자가 하나를 나눠 쓰게 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            34,
+            34
+          ]
+        },
+        {
+          "action": "say",
+          "text": "lid 6 다음에 lid 11, 마지막은 11이에요. 5, 1, 4, 1이 한 total에 쌓였어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 마지막 줄만 a.total + b.total로 바꾸면 11은 나와요. 하지만 b의 lid 줄은 여전히 5라 틀려요.",
+          "target": "code:System.out.println(\"lid \" + total);"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "static 메서드에는 this가 없다는 것과 매개변수가 같은 이름의 필드를 가린다는 것을 코드로 확인해요.",
+      "static 필드에 객체 하나를 보관해 돌려주는 싱글턴을 완성하고 추적해요.",
+      "super(...)·this(...) 생성자 연쇄와 부모 생성자 안의 오버라이드 호출 순서를 추적해요."
+    ],
+    "chapters": {
+      "chp_d964290b-35cb-405f-ab8a-f6efb271716a": [
+        "static 메서드를 클래스 이름으로 부르고, 그 안에서 쓸 수 있는 것과 없는 것을 구별해요."
+      ],
+      "chp_9b7e0092-6b43-4677-9b4c-7e9f7cdc24e2": [
+        "static 필드에 객체 하나를 보관하고 static get()이 같은 참조를 돌려주는 싱글턴을 추적해요."
+      ],
+      "chp_83cc95e7-67ec-4a8a-a708-318bf20bd9cb": [
+        "super(...)·this(...)로 이어지는 생성 순서와 부모 생성자 안의 오버라이드 호출을 추적해요."
+      ]
+    },
+    "units": {
+      "unt_329e971b-173f-4350-bee1-b70e421dea87": {
+        "objectives": [
+          "static 문맥에는 this가 없다는 것을 컴파일 결과로 확인해요."
+        ],
+        "premise": "택배 보관함 Locker 클래스로 요금과 칸 수를 다뤄요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_52b387a4-5aa8-45b9-b9af-8cd16bcc6392": {
+        "objectives": [
+          "get()을 몇 번 불러도 같은 객체가 오는지 출력으로 확인해요."
+        ],
+        "premise": "사무실에는 프린터가 한 대뿐이에요. 누가 받아 쓰든 같은 프린터의 인쇄 횟수가 쌓여야 해요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_c742cd04-3c68-49f9-937c-a56ea460eef3": {
+        "objectives": [
+          "생성자 첫 줄의 super(...)·this(...)와 그 실행 순서를 출력으로 확인해요."
+        ],
+        "premise": "보관 상자 Box를 상속해 정사각 상자와 큰 상자를 만들어요. 각 스텝은 준비 코드에서 새로 시작해요."
+      }
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "by": "hand",
+  "source_sha256": "aafea336b3eb9800e60ba5f71c0753f85143d6de5587129f841f2dc054a0ab6b",
+  "entry": [
+    {
+      "action": "say",
+      "text": "JWT의 검증된 서명과 등록 클레임 조건을 연결해요.",
+      "target": "text:서명 검사 결과 signature_ok는 준비됐어요. 토큰은 아직 만료되지 않았고 발급자와 대상이 우리 약속에 맞아야 해요. 토큰 파싱과 암호 구현은 준비 단계로 분리했어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "True예요. 올바른 서명이 있어도 만료된 토큰을 허용했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "allowed = signature_ok",
+      "after": "allowed = signature_ok and now < claims['exp'] and claims['iss'] == 'company' and claims['aud'] == 'orders'"
+    },
+    {
+      "action": "say",
+      "text": "서명이 맞는 것과 지금 이 서비스가 받아도 되는 것은 달라요. exp와 현재 시각이 같아도 만료로 봐요.",
+      "target": "code:allowed = signature_ok and now < claims['exp'] and claims['iss'] == 'company' and claims['aud'] == 'orders'"
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "False예요. 현재 110은 만료 시각 100을 지났어요.",
+      "target": "output"
+    }
+  ]
+}

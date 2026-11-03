@@ -1,0 +1,201 @@
+{
+ "course": "tests/fixtures/player-pilot/교/course.json",
+ "lesson": "courses/redesigned/engineer-python-collections.json",
+ "expected_outputs": [
+  [
+   "3 [3, 5, [2, 4]]",
+   "4 [3, 5, 2, 4]",
+   ""
+  ],
+  [
+   "[11, 12, 13, 14] [14, 14]",
+   "[11, 12] [14, 13]",
+   "[13, 14] [11, 12]"
+  ],
+  [
+   "[1, 2, 3, 4, 5]",
+   "[5, 4, 3, 2, 1]",
+   "[1, 5, 3, 4, 2]"
+  ],
+  [
+   "[3, 1, 4]",
+   "[3, 1, 9]",
+   ""
+  ],
+  [
+   "[3, 2, 4] 4",
+   "[8, 6, 22] 22",
+   ""
+  ],
+  [
+   "3 False",
+   "4 True",
+   "['대구', '부산', '서울', '제주']"
+  ],
+  [
+   "2",
+   "1",
+   "3"
+  ],
+  [
+   "{0: 'P', 1: 'Q', 2: 'R'}",
+   "{1: 'R'}",
+   "{1: 'P', 2: 'Q', 3: 'R'}"
+  ],
+  [
+   "",
+   "pen cup",
+   ""
+  ],
+  [
+   "[5, 8] [5, 8] 2",
+   "[5, 8] [5, 8] 2 True",
+   "[5, 8] [5, 8, 2] 2 False",
+   "[5, 8] [[5, 8]] 2 False"
+  ],
+  [
+   "2 [1, 2, 3] 3 [1, 2, 3]",
+   "2 [1, 2] 3 [1, 2, 3]",
+   "2 [1, 2, 3] 3 [1, 2, 3]"
+  ],
+  [
+   "[['A'], ['B', 'A'], ['C', 'B', 'A']]\n[['A'], ['B', 'A'], ['C', 'B', 'A']]",
+   "[['A'], ['B'], ['C']]\n[['A'], ['B', 'A'], ['C', 'B', 'A']]",
+   "[['A'], ['B', 'A'], ['C', 'B', 'A']]\n[['A'], ['B', 'A'], ['C', 'B', 'A']]"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "loads = [3, 5]\nextra = [2, 4]\n# extra의 상자들을 loads 끝에 붙여요.\nloads.extend(extra)\nprint(len(loads), loads)\n",
+     "loads = [3, 5]\nextra = [2, 4]\n# extra의 상자들을 loads 끝에 붙여요.\nloads.append(extra)\nprint(len(loads), loads)\n"
+    ]
+   ],
+   "reason": "extra의 상자를 낱개로 이어 붙이세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "queue = [11, 12, 13, 14]\ndone = []\n# 맨 끝 상자를 꺼내 done으로 옮기기를 두 번 해요.\nfor k in range(2):\n    done.append(queue.pop())\nprint(queue, done)\n",
+     "queue = [11, 12, 13, 14]\ndone = []\n# 맨 끝 상자를 꺼내 done으로 옮기기를 두 번 해요.\nfor k in range(2):\n    done.append(queue[-1])\nprint(queue, done)\n"
+    ]
+   ],
+   "reason": "pop으로 끝 상자를 꺼내 옮기세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "line = [1, 2, 3, 4, 5]\n# 앞에서 i번째와 뒤에서 i번째를 맞바꿔 줄을 뒤집어요.\nfor i in range(len(line) // 2):\n    line[i], line[-i - 1] = line[-i - 1], line[i]\nprint(line)\n",
+     "line = [1, 2, 3, 4, 5]\n# 앞에서 i번째와 뒤에서 i번째를 맞바꿔 줄을 뒤집어요.\nfor i in range(len(line)):\n    line[i], line[-i - 1] = line[-i - 1], line[i]\nprint(line)\n"
+    ]
+   ],
+   "reason": "짝 바꾸기를 절반만 돌려 줄을 뒤집으세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "shelves = [[3, 1, 4], [1, 5], [9, 2, 6, 5]]\nfirsts = []\n# 선반마다 맨 앞 상자의 무게를 모아요.\nfor i in range(len(shelves)):\n    firsts.append(shelves[i][0])\nprint(firsts)\n",
+     "shelves = [[3, 1, 4], [1, 5], [9, 2, 6, 5]]\nfirsts = []\n# 선반마다 맨 앞 상자의 무게를 모아요.\nfor i in range(len(shelves)):\n    firsts.append(shelves[0][i])\nprint(firsts)\n"
+    ]
+   ],
+   "reason": "두 번호의 순서를 고쳐 선반마다 첫 상자를 모으세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "shelves = [[3, 1, 4], [1, 5], [9, 2, 6, 5]]\n# 선반마다 무게 합을 구해 목록으로 만들어요.\ntotals = list(map(lambda row: sum(row), shelves))\nprint(totals, max(totals))\n",
+     "shelves = [[3, 1, 4], [1, 5], [9, 2, 6, 5]]\n# 선반마다 무게 합을 구해 목록으로 만들어요.\ntotals = list(map(lambda row: len(row), shelves))\nprint(totals, max(totals))\n"
+    ]
+   ],
+   "reason": "map에 넘기는 lambda를 고쳐 선반마다 무게 합을 구하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "visited = {'서울', '부산'}\ntrip = ('대구', '부산', '제주')\n# 이번 운행 지역들을 visited에 넣어요.\nvisited.update(trip)\nprint(len(visited), trip[0] in visited)\n",
+     "visited = {'서울', '부산'}\ntrip = ('대구', '부산', '제주')\n# 이번 운행 지역들을 visited에 넣어요.\nvisited.add(trip)\nprint(len(visited), trip[0] in visited)\n"
+    ]
+   ],
+   "reason": "update로 운행 지역들을 집합에 넣으세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "owner = {'A1': 'kim', 'A2': 'lee', 'A3': 'kim'}\n# A2 칸의 주인이 kim으로 바뀌어요.\nowner['A2'] = 'kim'\nnames = set(owner.values())\nprint(len(names))\n",
+     "owner = {'A1': 'kim', 'A2': 'lee', 'A3': 'kim'}\nnames = set(owner.values())\n# A2 칸의 주인이 kim으로 바뀌어요.\nowner['A2'] = 'kim'\nprint(len(names))\n"
+    ]
+   ],
+   "reason": "주인이 바뀐 뒤의 주인 수를 출력하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "codes = ['P', 'Q', 'R']\ntable = {}\n# 번호를 키, 코드를 값으로 하는 번호표 사전을 만들어요.\nfor i, code in enumerate(codes, 1):\n    table[i] = code\nprint(table)\n",
+     "codes = ['P', 'Q', 'R']\ntable = {}\n# 번호를 키, 코드를 값으로 하는 번호표 사전을 만들어요.\nfor i, code in enumerate(codes):\n    table[i] = code\nprint(table)\n"
+    ]
+   ],
+   "reason": "번호표가 1부터 붙게 enumerate를 고치세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "price = {'pen': 1200, 'cup': 3000, 'ink': 800}\n# 1000원 이상인 상품 이름을 넣은 순서대로 출력해요.\nfor name, won in price.items():\n    if won >= 1000:\n        print(name, end=' ')\n",
+     "price = {'pen': 1200, 'cup': 3000, 'ink': 800}\n# 1000원 이상인 상품 이름을 넣은 순서대로 출력해요.\nfor name, won in price:\n    if won >= 1000:\n        print(name, end=' ')\n"
+    ]
+   ],
+   "reason": "items로 이름과 가격을 함께 받으세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "stock = [5, 8, 2]\nbackup = stock[:]\n# 백업을 떠 둔 뒤 원본 끝 상자를 꺼내 출고해요.\nout = stock.pop()\nprint(stock, backup, out)\n",
+     "stock = [5, 8, 2]\nbackup = stock\n# 백업을 떠 둔 뒤 원본 끝 상자를 꺼내 출고해요.\nout = stock.pop()\nprint(stock, backup, out)\n"
+    ]
+   ],
+   "reason": "슬라이스 복사로 백업이 출고에 휩쓸리지 않게 하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "count = 2\nitems = [1, 2]\nc2 = count\ni2 = items\n# 이름을 하나씩 더 붙인 뒤 새 이름 쪽만 늘려요.\nc2 += 1\ni2 = i2 + [3]\nprint(count, items, c2, i2)\n",
+     "count = 2\nitems = [1, 2]\nc2 = count\ni2 = items\n# 이름을 하나씩 더 붙인 뒤 새 이름 쪽만 늘려요.\nc2 += 1\ni2 += [3]\nprint(count, items, c2, i2)\n"
+    ]
+   ],
+   "reason": "목록 += 가 원본을 늘리지 않게 고치세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 12,
+   "replacements": [
+    [
+     "groups = [['A'], ['B'], ['C']]\nwork = groups[:]\n# work의 각 묶음 뒤에 바로 앞 묶음을 이어 붙여요.\nfor i in range(len(work) - 1):\n    work[i + 1] = work[i + 1] + work[i]\nprint(groups)\nprint(work)\n",
+     "groups = [['A'], ['B'], ['C']]\nwork = groups[:]\n# work의 각 묶음 뒤에 바로 앞 묶음을 이어 붙여요.\nfor i in range(len(work) - 1):\n    work[i + 1] += work[i]\nprint(groups)\nprint(work)\n"
+    ]
+   ],
+   "reason": "얕은 복사본의 연쇄 += 가 원본 묶음을 바꾸지 않게 고치세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "loads.extend(extra)",
+     "loads += extra"
+    ]
+   ],
+   "reason": "같은 상태·출력 관계를 유지하는 다른 구현도 받아들여요."
+  }
+ ]
+}

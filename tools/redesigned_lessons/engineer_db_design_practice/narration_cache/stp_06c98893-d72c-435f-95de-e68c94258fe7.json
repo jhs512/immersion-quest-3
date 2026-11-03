@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "d2b7d77a8d5fe48ddafb679d6625e1aab661a4b4f12106b2027f4ad28a06da19",
+  "entry": [
+    {
+      "action": "say",
+      "text": "1월 주문을 볼 때 몇 조각을 읽는지가 문제예요. 지금은 주문번호로 나눠요.",
+      "target": "text:route의 return 한 줄을 고쳐 주문을 달마다 다른 파티션에 담으세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "sizes는 [2, 2, 2]로 고르고, read는 h0, h1, h2 세 조각이에요. 1월 주문이 모든 조각에 흩어졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    return 'h' + str(order_id % 3)\n",
+      "after": "    return month[:4]\n",
+      "say": "연도로 나눠 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "sizes [6], read는 2026 한 조각이에요. 조각은 하나지만 1월을 보려고 여섯 행을 다 읽어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 구간을 너무 크게 잡으면 나누지 않은 것과 같아요. 조회 단위인 달로 나눠야 해요.",
+      "target": "code:month[:4]"
+    },
+    {
+      "action": "patch_code",
+      "before": "month[:4]",
+      "after": "month",
+      "say": "달 전체를 파티션 이름으로 써요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "sizes [1, 2, 3], read는 2026-01 한 조각이에요. 크기는 고르지 않아도 1월은 한 조각만 읽어요.",
+      "target": "output"
+    }
+  ]
+}

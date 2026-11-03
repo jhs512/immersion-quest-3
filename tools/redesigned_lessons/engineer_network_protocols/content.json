@@ -1,0 +1,1627 @@
+{
+  "description": "TCP 세 번 악수와 순서 번호, 반개방 대기 줄과 SYN 플러딩, ARP 캐시 위조, ICMP 알림, NAT 변환표, DNS 캐시, 재전송, 평문 엿보기와 암호 채널을 작은 파이썬 상태 모델로 한두 줄씩 고치며 확인해요.",
+  "tasks": [
+    {
+      "id": "stp_d423c35c-e068-40e0-b918-2eb6a9194937",
+      "title": "마지막 ACK를 받아야 연결이 서도록 서버 상태를 고치세요",
+      "goal": "TCP 연결은 세 번 주고받아 서요(3-way 핸드셰이크). 손님이 SYN, 서버가 SYN-ACK, 손님이 다시 ACK를 보내요.\n\n**알아두세요**\n\nLISTEN은 요청을 기다리는 상태예요. SYN_RCVD는 SYN-ACK를 보내고 손님의 ACK를 기다리는 반쯤 열린 상태(반개방)예요. ESTABLISHED는 연결이 선 상태예요.\n\nSYN을 받은 뒤의 상태 한 곳을 고쳐 마지막 ACK를 받아야 ESTABLISHED가 되게 하세요. 채점은 packets를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 패킷마다 바뀐 상태를 확인하세요.\n2. SYN을 받은 뒤의 state 값을 고치세요.\n3. 다시 실행해 ACK 뒤에야 ESTABLISHED가 되는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "packets = ['SYN', 'ACK']\nstate = 'LISTEN'\n# 서버가 받은 패킷마다 상태가 어떻게 바뀌는지 봐요.\nfor p in packets:\n    if state == 'LISTEN' and p == 'SYN':\n        print('send SYN-ACK')\n        state = 'ESTABLISHED'\n    elif state == 'SYN_RCVD' and p == 'ACK':\n        state = 'ESTABLISHED'\n    print(p, '->', state)\n",
+      "solution": "packets = ['SYN', 'ACK']\nstate = 'LISTEN'\n# 서버가 받은 패킷마다 상태가 어떻게 바뀌는지 봐요.\nfor p in packets:\n    if state == 'LISTEN' and p == 'SYN':\n        print('send SYN-ACK')\n        state = 'SYN_RCVD'\n    elif state == 'SYN_RCVD' and p == 'ACK':\n        state = 'ESTABLISHED'\n    print(p, '->', state)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "send SYN-ACK\nSYN -> SYN_RCVD\nACK -> ESTABLISHED"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "서버가 언제 연결이 섰다고 보는지 맞추는 문제예요.",
+          "target": "text:마지막 ACK를 받아야 ESTABLISHED가 되게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "SYN 한 번에 벌써 ESTABLISHED가 됐어요. ACK는 아무 일도 하지 않았고요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "packets = ['SYN', 'ACK']",
+          "after": "packets = ['SYN']",
+          "say": "손님이 ACK를 끝내 안 보내는 경우로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "SYN만 받고도 ESTABLISHED예요. 손님이 사라졌는데 연결된 셈이죠.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. SYN-ACK를 보낸 건 서버의 대답일 뿐이에요. 손님이 받았는지는 세 번째 ACK로만 알아요.",
+          "target": "code:print('send SYN-ACK')"
+        },
+        {
+          "action": "patch_code",
+          "before": "        state = 'ESTABLISHED'\n    elif",
+          "after": "        state = 'SYN_RCVD'\n    elif",
+          "say": "SYN 뒤에는 ACK를 기다리는 SYN_RCVD로 둬요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "SYN -> SYN_RCVD예요. 서버는 반개방 상태로 손님을 기다려요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "packets = ['SYN']",
+          "after": "packets = ['SYN', 'ACK']",
+          "say": "ACK를 다시 넣어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "ACK -> ESTABLISHED가 나왔어요. 세 번째 ACK에서 비로소 연결이 섰어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_ea626a54-dd96-45dd-a917-dddb79f55b91",
+      "title": "ack가 다음에 받을 바이트 번호가 되도록 두 곳을 고치세요",
+      "goal": "손님과 서버는 각자 처음 순서 번호(ISN)를 정해요. 순서 번호(seq)는 보내는 바이트마다 하나씩 붙는 번호예요.\n\n**알아두세요**\n\nack 번호는 「상대에게서 다음에 받을 바이트 번호」예요. SYN은 데이터가 없어도 번호 하나를 써요.\n\nSYN-ACK의 ack와 데이터를 받은 서버의 ack, 두 곳을 고쳐 다음에 받을 번호를 찍게 하세요. 채점은 두 ISN과 data를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 찍힌 ack 번호를 확인하세요.\n2. SYN-ACK 줄의 ack를 고치세요.\n3. server ack 줄의 계산을 data 길이에 맞게 고치세요.\n4. 다시 실행해 두 ack 번호를 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "client_isn = 100\nserver_isn = 300\ndata = 'hello'\n# 각 줄의 seq와 ack 번호를 봐요.\nprint('SYN seq', client_isn)\nprint('SYN-ACK seq', server_isn, 'ack', client_isn)\nprint('ACK seq', client_isn + 1, 'ack', server_isn + 1)\nseq = client_isn + 1\nprint('DATA seq', seq, 'len', len(data))\nprint('server ack', seq + 1)\n",
+      "solution": "client_isn = 100\nserver_isn = 300\ndata = 'hello'\n# 각 줄의 seq와 ack 번호를 봐요.\nprint('SYN seq', client_isn)\nprint('SYN-ACK seq', server_isn, 'ack', client_isn + 1)\nprint('ACK seq', client_isn + 1, 'ack', server_isn + 1)\nseq = client_isn + 1\nprint('DATA seq', seq, 'len', len(data))\nprint('server ack', seq + len(data))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "SYN seq 100\nSYN-ACK seq 300 ack 101\nACK seq 101 ack 301\nDATA seq 101 len 5\nserver ack 106"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "ack 번호 두 곳을 다음에 받을 번호로 맞추는 문제예요.",
+          "target": "text:두 곳을 고쳐 다음에 받을 번호를 찍게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "SYN-ACK의 ack가 100이에요. 손님이 이미 쓴 100번을 다시 달라는 뜻이 돼요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "server ack는 102예요. hello 다섯 글자 중 한 글자만 받았다고 알리는 셈이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "'ack', client_isn)",
+          "after": "'ack', client_isn + 1)",
+          "say": "SYN이 100번을 썼으니 다음은 101이에요."
+        },
+        {
+          "action": "patch_code",
+          "before": "print('server ack', seq + 1)",
+          "after": "print('server ack', seq + len(data) - 1)",
+          "say": "데이터는 길이만큼 번호를 써요. 마지막 바이트 번호를 넣어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "SYN-ACK의 ack는 101이 됐어요. server ack는 105예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 105는 마지막으로 받은 o의 번호예요. ack로 보내면 o를 다시 달라는 뜻이 돼요.",
+          "target": "code:seq + len(data) - 1"
+        },
+        {
+          "action": "patch_code",
+          "before": "seq + len(data) - 1",
+          "after": "seq + len(data)",
+          "say": "받은 다음 번호로 고쳐요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "server ack 106이에요. 101부터 105까지 받았고 다음은 106이에요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_ec00f837-a1ef-4f15-bd02-d7792ecba070",
+      "title": "SYN마다 대기 줄을 쓰도록 고쳐 SYN 플러딩을 재현하세요",
+      "goal": "공격자는 x1부터 x5까지 SYN만 보내고 ACK는 보내지 않아요. 그 뒤에 정상 손님 amy가 SYN과 ACK를 보내요. 지금 모델은 SYN을 받아도 아무것도 적지 않아서 amy조차 연결되지 않아요.\n\n**알아두세요**\n\nACK 없는 SYN을 대량으로 보내 대기 줄을 채우는 공격을 SYN 플러딩(SYN Flooding)이라고 해요. 서비스를 못 쓰게 만드는 서비스 거부(DoS) 공격의 하나예요.\n\n표시된 주석 아래에 한 줄을 넣어 SYN-ACK를 보낸 손님을 대기 줄에 적게 하세요. 채점은 BACKLOG와 events를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 half-open과 established를 확인하세요.\n2. 표시된 주석 아래에 backlog에 손님을 넣는 줄을 쓰세요.\n3. 다시 실행해 거절된 손님과 줄에 남은 항목을 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "BACKLOG = 4\nevents = [('SYN', 'x1'), ('SYN', 'x2'), ('SYN', 'x3'), ('SYN', 'x4'), ('SYN', 'x5'),\n          ('SYN', 'amy'), ('ACK', 'amy')]\nbacklog = []\ndone = []\n# SYN을 받은 서버가 무엇을 남기는지 봐요.\nfor kind, who in events:\n    if kind == 'SYN':\n        if len(backlog) >= BACKLOG:\n            print(who, 'refused')\n            continue\n        # 이 주석 아래에 SYN-ACK를 보낸 손님을 대기 줄에 넣으세요.\n    elif kind == 'ACK' and who in backlog:\n        backlog.remove(who)\n        done.append(who)\nprint('half-open', backlog, 'established', done)\n",
+      "solution": "BACKLOG = 4\nevents = [('SYN', 'x1'), ('SYN', 'x2'), ('SYN', 'x3'), ('SYN', 'x4'), ('SYN', 'x5'),\n          ('SYN', 'amy'), ('ACK', 'amy')]\nbacklog = []\ndone = []\n# SYN을 받은 서버가 무엇을 남기는지 봐요.\nfor kind, who in events:\n    if kind == 'SYN':\n        if len(backlog) >= BACKLOG:\n            print(who, 'refused')\n            continue\n        # 이 주석 아래에 SYN-ACK를 보낸 손님을 대기 줄에 넣으세요.\n        backlog.append(who)\n    elif kind == 'ACK' and who in backlog:\n        backlog.remove(who)\n        done.append(who)\nprint('half-open', backlog, 'established', done)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "x5 refused\namy refused\nhalf-open ['x1', 'x2', 'x3', 'x4'] established []"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "서버가 SYN 때부터 대기 줄 한 칸을 쓴다는 걸 모델에 넣는 문제예요.",
+          "target": "text:SYN-ACK를 보낸 손님을 대기 줄에 적게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "half-open [] established []예요. 정상 손님 amy도 연결되지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "ACK가 와도 backlog에 amy가 없어서 이 조건이 거짓이에요.",
+          "target": "code:who in backlog"
+        },
+        {
+          "action": "patch_code",
+          "before": "        # 이 주석 아래에 SYN-ACK를 보낸 손님을 대기 줄에 넣으세요.\n",
+          "after": "        # 이 주석 아래에 SYN-ACK를 보낸 손님을 대기 줄에 넣으세요.\n        backlog.append(who)\n",
+          "say": "SYN-ACK를 보낸 손님을 줄에 적어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "x5와 amy가 refused예요. x1부터 x4가 줄 네 칸을 다 차지했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "x들은 ACK를 끝내 안 보내요. 그래서 네 칸이 비지 않고 amy가 밀려났어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. SYN 플러딩을 회선을 꽉 채우는 공격으로 보기 쉬워요. 여기서 찬 건 대기 줄 네 칸이에요.",
+          "target": "code:BACKLOG = 4"
+        }
+      ]
+    },
+    {
+      "id": "stp_ba67ae82-ec9e-4906-b174-b5c68bb41191",
+      "title": "오래 기다린 반개방 항목을 지워 정상 손님을 받으세요",
+      "goal": "대기 줄은 세 칸(BACKLOG = 3)이에요. 공격자 x1~x3이 0~2초에 SYN만 보내고, amy는 8초에 SYN, 9초에 ACK를 보내요. 지금은 한 번 적힌 반개방 항목이 영원히 남아요.\n\n**알아두세요**\n\nfresh(backlog, now)는 SYN을 받은 지 TIMEOUT초가 안 된 항목만 남긴 사전을 돌려줘요. SYN 쿠키(SYN cookie)는 아예 줄에 적지 않고 확인 정보를 SYN-ACK의 순서 번호에 담는 다른 대응이에요.\n\n표시된 주석 아래에 한 줄을 넣어 매 사건마다 오래 기다린 반개방 항목을 지우게 하세요. BACKLOG는 그대로 두세요. 채점은 TIMEOUT과 events를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 amy가 받아들여지는지 확인하세요.\n2. 표시된 주석 아래에 fresh로 backlog를 다시 만드는 줄을 쓰세요.\n3. 다시 실행해 half-open과 established를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "BACKLOG = 3\nTIMEOUT = 5\nevents = [(0, 'SYN', 'x1'), (1, 'SYN', 'x2'), (2, 'SYN', 'x3'), (8, 'SYN', 'amy'), (9, 'ACK', 'amy')]\nbacklog = {}\ndone = []\n\ndef fresh(backlog, now):\n    # now까지 TIMEOUT보다 짧게 기다린 항목만 남긴 새 사전을 돌려줘요.\n    return {w: s for w, s in backlog.items() if now - s < TIMEOUT}\n\nfor t, kind, who in events:\n    # 이 주석 아래에서 오래 기다린 반개방 항목을 지우세요.\n    if kind == 'SYN':\n        if len(backlog) >= BACKLOG:\n            print(t, who, 'refused')\n            continue\n        backlog[who] = t\n    elif kind == 'ACK' and who in backlog:\n        del backlog[who]\n        done.append(who)\nprint('half-open', sorted(backlog), 'established', done)\n",
+      "solution": "BACKLOG = 3\nTIMEOUT = 5\nevents = [(0, 'SYN', 'x1'), (1, 'SYN', 'x2'), (2, 'SYN', 'x3'), (8, 'SYN', 'amy'), (9, 'ACK', 'amy')]\nbacklog = {}\ndone = []\n\ndef fresh(backlog, now):\n    # now까지 TIMEOUT보다 짧게 기다린 항목만 남긴 새 사전을 돌려줘요.\n    return {w: s for w, s in backlog.items() if now - s < TIMEOUT}\n\nfor t, kind, who in events:\n    # 이 주석 아래에서 오래 기다린 반개방 항목을 지우세요.\n    backlog = fresh(backlog, t)\n    if kind == 'SYN':\n        if len(backlog) >= BACKLOG:\n            print(t, who, 'refused')\n            continue\n        backlog[who] = t\n    elif kind == 'ACK' and who in backlog:\n        del backlog[who]\n        done.append(who)\nprint('half-open', sorted(backlog), 'established', done)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "half-open [] established ['amy']"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "공격자가 칸을 쥔 채로 있어도 amy를 받게 만드는 문제예요.",
+          "target": "text:매 사건마다 오래 기다린 반개방 항목을 지우게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            21,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "8 amy refused예요. x1부터 x3이 8초가 지나도록 세 칸을 쥐고 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    # 이 주석 아래에서 오래 기다린 반개방 항목을 지우세요.\n",
+          "after": "    # 이 주석 아래에서 오래 기다린 반개방 항목을 지우세요.\n    backlog = fresh(backlog, t)\n",
+          "say": "사건마다 그 시각 t 기준으로 오래된 항목을 지워요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            22,
+            22
+          ]
+        },
+        {
+          "action": "say",
+          "text": "half-open [] established ['amy']예요. 8초에 x1~x3은 5초 이상 기다려 지워졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "TIMEOUT = 5",
+          "after": "TIMEOUT = 10",
+          "say": "기다리는 시간을 10초로 늘려 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            22,
+            22
+          ]
+        },
+        {
+          "action": "say",
+          "text": "다시 8 amy refused예요. 10초 안이라 공격 항목이 아직 남아 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 줄을 통째로 비우면 공격은 지워져도 악수 중인 정상 손님까지 끊겨요. 오래된 항목만 지워요.",
+          "target": "code:backlog = fresh(backlog, t)"
+        }
+      ]
+    },
+    {
+      "id": "stp_fb22f06d-57ed-4122-8a0b-37bf6dfd48a6",
+      "title": "위조 ARP 응답이 게이트웨이 항목을 덮지 못하게 하세요",
+      "goal": "사무실 PC의 ARP 캐시에는 게이트웨이 10.0.0.1의 MAC aa:01이 적혀 있어요. 그런데 누군가 「10.0.0.1은 ee:66」이라는 응답을 보냈어요.\n\n**알아두세요**\n\nARP는 같은 근거리망(LAN) 안에서 IP 주소를 MAC 주소로 바꿔 주는 프로토콜이에요. 응답에 보낸 이를 확인하는 장치가 없어서, 위조 응답으로 캐시를 바꾸는 공격을 ARP 스푸핑이라고 해요. 정적(static) 항목은 응답으로 바꾸지 않는 고정 항목이에요.\n\non_reply의 표시된 주석 아래에 줄을 넣어 static에 있는 IP는 바꾸지 않게 하세요. 다른 IP는 응답대로 갱신해야 해요. 채점은 replies와 static을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 10.0.0.1의 MAC을 확인하세요.\n2. on_reply의 표시된 주석 아래에 static 검사를 넣으세요.\n3. 다시 실행해 두 IP의 MAC을 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "arp_cache = {'10.0.0.1': 'aa:01', '10.0.0.7': 'bb:07'}\nstatic = ['10.0.0.1']\nreplies = [('10.0.0.1', 'ee:66'), ('10.0.0.7', 'bb:77')]\n\ndef on_reply(ip, mac):\n    # 이 주석 아래에 고정(static) 항목은 바꾸지 않는 줄을 넣으세요.\n    arp_cache[ip] = mac\n\nfor ip, mac in replies:\n    on_reply(ip, mac)\n# 각 IP로 보내는 프레임이 어느 MAC으로 가는지 봐요.\nfor ip in sorted(arp_cache):\n    print(ip, '->', arp_cache[ip])\n",
+      "solution": "arp_cache = {'10.0.0.1': 'aa:01', '10.0.0.7': 'bb:07'}\nstatic = ['10.0.0.1']\nreplies = [('10.0.0.1', 'ee:66'), ('10.0.0.7', 'bb:77')]\n\ndef on_reply(ip, mac):\n    # 이 주석 아래에 고정(static) 항목은 바꾸지 않는 줄을 넣으세요.\n    if ip in static:\n        return\n    arp_cache[ip] = mac\n\nfor ip, mac in replies:\n    on_reply(ip, mac)\n# 각 IP로 보내는 프레임이 어느 MAC으로 가는지 봐요.\nfor ip in sorted(arp_cache):\n    print(ip, '->', arp_cache[ip])\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "10.0.0.1 -> aa:01\n10.0.0.7 -> bb:77"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "게이트웨이 항목은 지키고 나머지는 응답대로 배우게 하는 문제예요.",
+          "target": "text:static에 있는 IP는 바꾸지 않게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "10.0.0.1이 ee:66이 됐어요. 게이트웨이로 갈 프레임이 공격자 MAC으로 가요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "on_reply는 누가 보냈는지 묻지 않고 그대로 덮어써요.",
+          "target": "code:arp_cache[ip] = mac"
+        },
+        {
+          "action": "patch_code",
+          "before": "    # 이 주석 아래에 고정(static) 항목은 바꾸지 않는 줄을 넣으세요.\n",
+          "after": "    # 이 주석 아래에 고정(static) 항목은 바꾸지 않는 줄을 넣으세요.\n    if ip in static:\n        return\n",
+          "say": "고정 항목이면 바꾸지 않고 돌아가요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "10.0.0.1은 aa:01 그대로예요. 10.0.0.7은 bb:77로 갱신됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 응답을 모두 버리면 위조는 막혀도 새 기기의 MAC을 배우지 못해요. 고정할 IP만 골라 막아요.",
+          "target": "code:if ip in static:"
+        }
+      ]
+    },
+    {
+      "id": "stp_8990664e-b6e2-40cf-ad30-37c0c30d1651",
+      "title": "TTL이 0이 된 라우터가 시간 초과를 알리게 하세요",
+      "goal": "사무실에서 서버 192.0.2.9까지 라우터 r1, r2, r3을 지나요. 패킷의 TTL은 라우터를 지날 때마다 1씩 줄고, 0이 되면 그 라우터가 패킷을 버려요.\n\n**알아두세요**\n\nIP는 전달에 실패해도 스스로 알리지 않아요. ICMP는 IP의 오류와 진단을 알리는 메시지예요. 시간 초과(time exceeded), 목적지 도달 불가(destination unreachable), ping이 쓰는 echo 요청·응답이 있어요.\n\nping의 TTL이 0이 되는 줄을 고쳐 패킷을 버린 라우터가 「이름: time exceeded」를 돌려주게 하세요. 채점은 routers와 dst를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 TTL마다 돌아온 대답을 확인하세요.\n2. TTL이 0일 때 돌려주는 값을 고치세요.\n3. 다시 실행해 줄마다 대답한 라우터를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "routers = ['r1', 'r2', 'r3']\nknown = ['192.0.2.9']\ndst = '192.0.2.9'\n\ndef ping(dst, ttl):\n    if dst not in known:\n        return routers[0] + ': destination unreachable'\n    for r in routers:\n        ttl -= 1\n        if ttl == 0:\n            return None\n    return dst + ': echo reply'\n\n# TTL을 1부터 하나씩 늘리며 누가 대답하는지 봐요.\nfor ttl in range(1, len(routers) + 2):\n    print(ttl, ping(dst, ttl))\n",
+      "solution": "routers = ['r1', 'r2', 'r3']\nknown = ['192.0.2.9']\ndst = '192.0.2.9'\n\ndef ping(dst, ttl):\n    if dst not in known:\n        return routers[0] + ': destination unreachable'\n    for r in routers:\n        ttl -= 1\n        if ttl == 0:\n            return r + ': time exceeded'\n    return dst + ': echo reply'\n\n# TTL을 1부터 하나씩 늘리며 누가 대답하는지 봐요.\nfor ttl in range(1, len(routers) + 2):\n    print(ttl, ping(dst, ttl))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "1 r1: time exceeded\n2 r2: time exceeded\n3 r3: time exceeded\n4 192.0.2.9: echo reply"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "패킷을 버린 라우터가 그 사실을 알리게 하는 문제예요.",
+          "target": "text:패킷을 버린 라우터가 「이름: time exceeded」를 돌려주게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1, 2, 3은 None이에요. 길에서 버려졌는데 보낸 쪽은 이유를 몰라요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "4에서만 192.0.2.9: echo reply가 왔어요. ping의 echo 응답이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "            return None\n",
+          "after": "            return dst + ': time exceeded'\n",
+          "say": "목적지 이름으로 알려 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1부터 3까지 모두 192.0.2.9: time exceeded예요. 어디서 버려졌는지 구별이 안 돼요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 시간 초과는 목적지가 아니라 TTL이 0이 된 그 라우터가 보내요. 목적지는 패킷을 받지도 못했어요.",
+          "target": "code:dst + ': time exceeded'"
+        },
+        {
+          "action": "patch_code",
+          "before": "            return dst + ': time exceeded'\n",
+          "after": "            return r + ': time exceeded'\n",
+          "say": "패킷을 버린 라우터 r의 이름으로 알려요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "r1, r2, r3이 차례로 나왔어요. TTL을 하나씩 늘리면 경로의 라우터가 보여요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "dst = '192.0.2.9'",
+          "after": "dst = '198.51.100.1'",
+          "say": "표에 없는 목적지로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "네 줄 모두 r1: destination unreachable이에요. 갈 길이 없다는 ICMP 알림이에요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_832e6b06-e6f3-498a-8414-6ed0ed0e9637",
+      "title": "나가는 연결마다 새 공인 포트를 배정하세요",
+      "goal": "PC 두 대가 같은 내부 포트 5000으로 바깥에 연결해요. 공유기는 이 연결을 모두 공인 주소 203.0.113.5 하나로 내보내야 해요.\n\n**알아두세요**\n\nNAT는 공유기가 내부 사설 주소를 공인 주소로 바꿔 내보내는 기술이에요. 여러 PC가 공인 주소 하나를 같이 쓰려면 포트도 바꿔요(PAT). 변환표에는 「공인 포트 → 내부 주소, 내부 포트」를 적어요.\n\npublic_port를 정하는 줄을 고쳐 연결마다 next_port부터 차례로 새 공인 포트를 쓰게 하세요. 채점은 flows와 next_port를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 공인 포트와 entries 수를 확인하세요.\n2. public_port에 next_port를 쓰게 고치세요.\n3. 그 아래에 next_port를 1 늘리는 줄을 넣으세요.\n4. 다시 실행해 공인 포트가 겹치지 않는지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "PUBLIC = '203.0.113.5'\nflows = [('192.168.0.10', 5000), ('192.168.0.11', 5000), ('192.168.0.10', 5001)]\ntable = {}\nnext_port = 40000\n# 나가는 연결마다 공인 주소의 어느 포트를 쓰는지 봐요.\nfor ip, port in flows:\n    public_port = port\n    table[public_port] = (ip, port)\n    print(ip, port, '->', PUBLIC, public_port)\nprint(len(table), 'entries')\n",
+      "solution": "PUBLIC = '203.0.113.5'\nflows = [('192.168.0.10', 5000), ('192.168.0.11', 5000), ('192.168.0.10', 5001)]\ntable = {}\nnext_port = 40000\n# 나가는 연결마다 공인 주소의 어느 포트를 쓰는지 봐요.\nfor ip, port in flows:\n    public_port = next_port\n    next_port += 1\n    table[public_port] = (ip, port)\n    print(ip, port, '->', PUBLIC, public_port)\nprint(len(table), 'entries')\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "192.168.0.10 5000 -> 203.0.113.5 40000\n192.168.0.11 5000 -> 203.0.113.5 40001\n192.168.0.10 5001 -> 203.0.113.5 40002\n3 entries"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "공인 주소 하나를 여러 연결이 겹치지 않게 나눠 쓰는 문제예요.",
+          "target": "text:연결마다 next_port부터 차례로 새 공인 포트를 쓰게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "두 PC가 모두 5000으로 나갔어요. entries가 2라서 표의 한 줄이 덮였어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    public_port = port\n",
+          "after": "    public_port = next_port\n",
+          "say": "next_port를 써 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "세 연결이 모두 40000이고 entries는 1이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. next_port를 늘리지 않으면 같은 포트를 계속 줘요. 응답이 오면 누구 것인지 가릴 수 없어요.",
+          "target": "code:public_port = next_port"
+        },
+        {
+          "action": "patch_code",
+          "before": "    public_port = next_port\n",
+          "after": "    public_port = next_port\n    next_port += 1\n",
+          "say": "쓴 다음 1 늘려요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "40000, 40001, 40002로 나뉘었고 entries는 3이에요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_3845c625-8ab4-42a0-a522-d8d6fe70c5ad",
+      "title": "표에 없는 공인 포트로 온 패킷은 버리세요",
+      "goal": "앞 스텝에서 만든 변환표가 공유기에 있어요. 바깥에서 공인 포트 40001, 40000, 40500으로 패킷이 들어와요. 40500은 아무 PC도 먼저 연 적이 없는 포트예요.\n\n**알아두세요**\n\ntable.get(열쇠, 기본값)은 열쇠가 표에 없으면 기본값을 돌려줘요.\n\ninside를 정하는 줄을 고쳐 표에 없는 포트로 온 패킷은 dropped가 찍히게 하세요. 채점은 table과 incoming을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 포트마다 보낸 곳을 확인하세요.\n2. table.get의 기본값을 고치세요.\n3. 다시 실행해 40500으로 온 패킷이 어떻게 되는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "table = {40000: ('192.168.0.10', 5000), 40001: ('192.168.0.11', 5000)}\nFIRST_PC = ('192.168.0.10', 5000)\nincoming = [40001, 40000, 40500]\n# 바깥에서 공인 포트로 들어온 패킷이 어디로 가는지 봐요.\nfor port in incoming:\n    inside = table.get(port, FIRST_PC)\n    print(port, '->', inside)\n",
+      "solution": "table = {40000: ('192.168.0.10', 5000), 40001: ('192.168.0.11', 5000)}\nFIRST_PC = ('192.168.0.10', 5000)\nincoming = [40001, 40000, 40500]\n# 바깥에서 공인 포트로 들어온 패킷이 어디로 가는지 봐요.\nfor port in incoming:\n    inside = table.get(port, 'dropped')\n    print(port, '->', inside)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "40001 -> ('192.168.0.11', 5000)\n40000 -> ('192.168.0.10', 5000)\n40500 -> dropped"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "바깥에서 먼저 온 패킷을 어떻게 다룰지 정하는 문제예요.",
+          "target": "text:표에 없는 포트로 온 패킷은 dropped가 찍히게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "40001과 40000은 각자 PC로 갔어요. 공인 포트로 표를 찾아 되돌렸어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "40500도 첫 PC로 들어갔어요. 아무도 열지 않은 연결이 안으로 샌 거예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "table.get(port, FIRST_PC)",
+          "after": "table.get(port, 'dropped')",
+          "say": "표에 없으면 버려요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "40500 -> dropped예요. 표에 적힌 공인 포트만 안으로 바뀌어 들어가요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 응답은 내부 포트 5000이 아니라 공인 포트 40000으로 와요. 5000으로 표를 찾으면 아무것도 안 맞아요.",
+          "target": "code:table.get(port, 'dropped')"
+        }
+      ]
+    },
+    {
+      "id": "stp_e0d935f9-596c-4163-81c0-495435d3a5ef",
+      "title": "한 번 얻은 IP를 캐시에 적어 다시 묻지 않게 하세요",
+      "goal": "PC는 www.shop.com 같은 이름이 아니라 IP 주소로 통신해요. 그래서 데이터를 보내기 전에 이름에 맞는 IP를 먼저 물어요.\n\n**알아두세요**\n\nDNS는 도메인 이름을 IP 주소로 바꿔 주는 분산 이름 체계예요. com을 맡은 서버, shop.com을 맡은 서버로 내려가며 차례로 물어요. asked는 이번 조회에서 물어본 횟수예요.\n\nresolve의 표시된 주석 아래에 한 줄을 넣어 얻은 IP를 캐시에 적게 하세요. 같은 이름을 다시 찾으면 묻지 않아야 해요. 채점은 records와 queries를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 조회마다 asked를 확인하세요.\n2. resolve의 표시된 주석 아래에 캐시에 적는 줄을 쓰세요.\n3. 다시 실행해 같은 이름의 두 번째 조회를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "records = {'com': 'com-ns', 'shop.com': 'shop-ns', 'www.shop.com': '198.51.100.20', 'api.shop.com': '198.51.100.21'}\ncache = {}\nqueries = ['www.shop.com', 'api.shop.com', 'www.shop.com']\n\ndef resolve(name):\n    if name in cache:\n        return cache[name], 0\n    parts = name.split('.')\n    asked = 0\n    # 뒤에서부터 com, shop.com, www.shop.com 순서로 물어요.\n    for i in range(len(parts) - 1, -1, -1):\n        answer = records['.'.join(parts[i:])]\n        asked += 1\n    # 이 주석 아래에 받은 답을 캐시에 적으세요.\n    return answer, asked\n\nfor q in queries:\n    ip, asked = resolve(q)\n    print(q, ip, 'asked', asked)\n",
+      "solution": "records = {'com': 'com-ns', 'shop.com': 'shop-ns', 'www.shop.com': '198.51.100.20', 'api.shop.com': '198.51.100.21'}\ncache = {}\nqueries = ['www.shop.com', 'api.shop.com', 'www.shop.com']\n\ndef resolve(name):\n    if name in cache:\n        return cache[name], 0\n    parts = name.split('.')\n    asked = 0\n    # 뒤에서부터 com, shop.com, www.shop.com 순서로 물어요.\n    for i in range(len(parts) - 1, -1, -1):\n        answer = records['.'.join(parts[i:])]\n        asked += 1\n    # 이 주석 아래에 받은 답을 캐시에 적으세요.\n    cache[name] = answer\n    return answer, asked\n\nfor q in queries:\n    ip, asked = resolve(q)\n    print(q, ip, 'asked', asked)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "www.shop.com 198.51.100.20 asked 3\napi.shop.com 198.51.100.21 asked 3\nwww.shop.com 198.51.100.20 asked 0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "같은 이름을 다시 찾을 때 묻는 횟수를 줄이는 문제예요.",
+          "target": "text:얻은 IP를 캐시에 적게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "www.shop.com을 두 번 모두 asked 3으로 물었어요. 같은 이름인데도요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "com, shop.com, www.shop.com 세 단계를 매번 다시 내려갔어요.",
+          "target": "code:records['.'.join(parts[i:])]"
+        },
+        {
+          "action": "patch_code",
+          "before": "    # 이 주석 아래에 받은 답을 캐시에 적으세요.\n",
+          "after": "    # 이 주석 아래에 받은 답을 캐시에 적으세요.\n    cache[answer] = name\n",
+          "say": "IP를 열쇠로 이름을 적어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            20,
+            20
+          ]
+        },
+        {
+          "action": "say",
+          "text": "세 번째도 asked 3이에요. 캐시는 이름으로 찾는데 열쇠가 IP라서 못 찾았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. DNS는 이름에서 IP로 가는 방향이에요. 캐시도 이름을 열쇠로 IP를 적어야 해요.",
+          "target": "code:cache[answer] = name"
+        },
+        {
+          "action": "patch_code",
+          "before": "cache[answer] = name",
+          "after": "cache[name] = answer",
+          "say": "이름을 열쇠로 IP를 적어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            20,
+            20
+          ]
+        },
+        {
+          "action": "say",
+          "text": "세 번째가 asked 0이에요. 캐시에 적힌 198.51.100.20을 바로 썼어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_f804a5a8-3147-44af-b863-a6d3a8d772ea",
+      "title": "ACK가 올 때까지 다시 보내 모든 조각을 전하세요",
+      "goal": "선로가 가끔 조각을 잃어버려요. drops는 「조각 번호: 잃어버릴 횟수」예요. channel은 조각이 도착하면 True(ACK), 잃어버리면 False를 돌려줘요.\n\n**알아두세요**\n\n프로토콜은 통신하는 양쪽이 미리 정한 규칙이에요. 무엇을 보낼지(형식), 무슨 뜻인지(의미), 언제 보낼지(순서)를 정해요. TCP는 ACK가 없으면 다시 보내는 규칙으로 손실을 메워요.\n\n표시된 주석 아래에 반복을 넣어 ACK가 올 때까지 같은 조각을 다시 보내게 하세요. 다시 보낼 때도 sent를 1 늘려야 해요. 채점은 messages와 drops를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 도착한 글자와 sent를 확인하세요.\n2. 표시된 주석 아래에 acked가 거짓인 동안 다시 보내는 반복을 쓰세요.\n3. 다시 실행해 모든 글자가 도착했는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "messages = ['a', 'b', 'c', 'd', 'e']\ndrops = {1: 1, 3: 2}\nreceived = []\nsent = 0\n\ndef channel(seq):\n    # drops에 남은 횟수만큼 그 조각을 잃어버려요.\n    if drops.get(seq, 0) > 0:\n        drops[seq] -= 1\n        return False\n    received.append(messages[seq])\n    return True\n\nfor seq in range(len(messages)):\n    sent += 1\n    acked = channel(seq)\n    # 이 주석 아래에 ACK가 없으면 다시 보내는 반복을 넣으세요.\nprint(''.join(received), 'sent', sent)\n",
+      "solution": "messages = ['a', 'b', 'c', 'd', 'e']\ndrops = {1: 1, 3: 2}\nreceived = []\nsent = 0\n\ndef channel(seq):\n    # drops에 남은 횟수만큼 그 조각을 잃어버려요.\n    if drops.get(seq, 0) > 0:\n        drops[seq] -= 1\n        return False\n    received.append(messages[seq])\n    return True\n\nfor seq in range(len(messages)):\n    sent += 1\n    acked = channel(seq)\n    # 이 주석 아래에 ACK가 없으면 다시 보내는 반복을 넣으세요.\n    while not acked:\n        sent += 1\n        acked = channel(seq)\nprint(''.join(received), 'sent', sent)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "abcde sent 8"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "잃어버린 조각을 다시 보내 전부 전하는 문제예요.",
+          "target": "text:ACK가 올 때까지 같은 조각을 다시 보내게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "ace sent 5예요. b와 d가 사라졌는데 보낸 쪽은 그냥 넘어갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    # 이 주석 아래에 ACK가 없으면 다시 보내는 반복을 넣으세요.\n",
+          "after": "    # 이 주석 아래에 ACK가 없으면 다시 보내는 반복을 넣으세요.\n    if not acked:\n        sent += 1\n        acked = channel(seq)\n",
+          "say": "ACK가 없으면 한 번 더 보내 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            21,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "abce sent 7이에요. b는 다시 보내 도착했지만 d는 빠졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. d는 두 번 연속 사라져요. 한 번만 다시 보내는 if로는 모자라요.",
+          "target": "code:if not acked:"
+        },
+        {
+          "action": "patch_code",
+          "before": "    if not acked:\n",
+          "after": "    while not acked:\n",
+          "say": "ACK가 올 때까지 반복해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            21,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "abcde sent 8이에요. 잃어버린 세 번만큼 더 보냈어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_225b65fa-7526-4e59-83d0-c53de79f55ce",
+      "title": "같은 키로 바이트를 바꾸고 원래 글로 복원하세요",
+      "goal": "손님이 카페 와이파이에서 로그인해요. 같은 선로의 누군가가 지나가는 조각을 모아 이어 붙여요(스니핑). 지금은 평문 그대로 보내요.\n\n**알아두세요**\n\ntoy_xor는 바이트 변환과 복원을 관찰하는 모형이에요. 안전한 암호가 아니에요. sniffer는 pw= 패턴만 찾아요. none이 나왔다고 안전성이 입증되지는 않아요. 실제로는 원격 접속에 SSH, 네트워크 연결에 VPN 같은 검증된 암호 채널을 써요.\n\nsend와 receive의 return 두 곳을 toy_xor로 감싸 엿보는 쪽은 none, 서버는 원래 글을 읽게 하세요. 채점은 packets와 KEY를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 sniffer와 server가 읽은 것을 확인하세요.\n2. send의 return을 toy_xor로 감싸세요.\n3. receive의 return도 toy_xor로 풀게 고치세요.\n4. 다시 실행해 두 줄을 비교하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "KEY = 'k3y'\npackets = ['user=kim&', 'pw=blue7']\n\ndef toy_xor(data):\n    # 교육용 장난감 암호예요. 실제 통신은 SSH·TLS 같은 검증된 암호를 써요.\n    key = KEY.encode()\n    return bytes(b ^ key[i % len(key)] for i, b in enumerate(data))\n\ndef send(text):\n    return text.encode()\n\ndef receive(frame):\n    return frame.decode()\n\ndef sniff(frames):\n    seen = b''.join(frames)\n    return seen.split(b'pw=')[1].decode() if b'pw=' in seen else 'none'\n\nline = [send(p) for p in packets]\n# 같은 선로를 엿보는 쪽과 진짜 서버가 각각 읽은 것을 봐요.\nprint('sniffer:', sniff(line))\nprint('server:', ''.join(receive(f) for f in line))\n",
+      "solution": "KEY = 'k3y'\npackets = ['user=kim&', 'pw=blue7']\n\ndef toy_xor(data):\n    # 교육용 장난감 암호예요. 실제 통신은 SSH·TLS 같은 검증된 암호를 써요.\n    key = KEY.encode()\n    return bytes(b ^ key[i % len(key)] for i, b in enumerate(data))\n\ndef send(text):\n    return toy_xor(text.encode())\n\ndef receive(frame):\n    return toy_xor(frame).decode()\n\ndef sniff(frames):\n    seen = b''.join(frames)\n    return seen.split(b'pw=')[1].decode() if b'pw=' in seen else 'none'\n\nline = [send(p) for p in packets]\n# 같은 선로를 엿보는 쪽과 진짜 서버가 각각 읽은 것을 봐요.\nprint('sniffer:', sniff(line))\nprint('server:', ''.join(receive(f) for f in line))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "sniffer: none\nserver: user=kim&pw=blue7"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "평문 패턴은 숨기고 받는 쪽은 글을 복원하는 문제예요.",
+          "target": "text:엿보는 쪽은 none, 서버는 원래 글을 읽게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            21,
+            22
+          ]
+        },
+        {
+          "action": "say",
+          "text": "sniffer: blue7이에요. 조각을 이어 붙이기만 했는데 비밀번호가 보여요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "엿보는 쪽은 아무것도 바꾸지 않았어요. 지나가는 걸 모으기만 했죠.",
+          "target": "code:seen = b''.join(frames)"
+        },
+        {
+          "action": "patch_code",
+          "before": "    return text.encode()\n",
+          "after": "    return toy_xor(text.encode())\n",
+          "say": "보내는 쪽에서 키로 감싸요."
+        },
+        {
+          "action": "patch_code",
+          "before": "    return frame.decode()\n",
+          "after": "    return toy_xor(frame).decode()\n",
+          "say": "받는 쪽은 같은 키로 한 번 더 XOR해 풀어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            21,
+            22
+          ]
+        },
+        {
+          "action": "say",
+          "text": "sniffer: none이에요. 선로 위 바이트에 pw=가 더는 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "server: user=kim&pw=blue7이에요. 키로 원래 글을 복원했어요. 이 모형은 안전한 암호가 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 보내는 쪽만 감싸면 서버도 알 수 없는 바이트를 받아요. 암호 채널은 양끝이 같은 키를 써야 해요.",
+          "target": "code:toy_xor(frame).decode()"
+        }
+      ]
+    },
+    {
+      "id": "stp_727bc277-3e57-4aa8-aa42-cbb40112d4fd",
+      "title": "바이트 번호로 조각을 잇고 다시 온 조각을 버리는 받는 쪽을 고치세요",
+      "goal": "받는 쪽에 조각이 순서가 섞여 오고, 재전송 때문에 같은 조각이 두 번 오기도 해요. expected는 다음에 받을 바이트 번호예요. 기대보다 큰 번호의 조각은 buffer에 맡겨 두고, 기대 번호의 조각이 오면 이어 붙여요.\n\n지금 코드는 조각을 이은 뒤 expected를 늘리는 두 곳이 틀렸어요. 두 곳을 고쳐 조각마다 맞는 ack를 찍고 hello!를 완성하게 하세요. 채점은 expected와 segments를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 ack와 이어진 글자를 확인하세요.\n2. text를 이은 뒤 expected를 늘리는 줄을 고치세요.\n3. buffer에서 꺼낸 piece를 이은 뒤의 줄도 고치세요.\n4. 다시 실행해 ack 번호와 마지막 글자를 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "expected = 1\nsegments = [(1, 'he'), (5, 'o!'), (3, 'll'), (3, 'll'), (5, 'o!')]\nbuffer = {}\ndata = ''\n# 조각마다 받는 쪽이 보내는 ack와 마지막에 이어진 글자를 봐요.\nfor seq, text in segments:\n    if seq > expected:\n        buffer[seq] = text\n    elif seq == expected:\n        data += text\n        expected += 1\n        while expected in buffer:\n            piece = buffer.pop(expected)\n            data += piece\n            expected += 1\n    print('ack', expected)\nprint(data)\n",
+      "solution": "expected = 1\nsegments = [(1, 'he'), (5, 'o!'), (3, 'll'), (3, 'll'), (5, 'o!')]\nbuffer = {}\ndata = ''\n# 조각마다 받는 쪽이 보내는 ack와 마지막에 이어진 글자를 봐요.\nfor seq, text in segments:\n    if seq > expected:\n        buffer[seq] = text\n    elif seq == expected:\n        data += text\n        expected += len(text)\n        while expected in buffer:\n            piece = buffer.pop(expected)\n            data += piece\n            expected += len(piece)\n    print('ack', expected)\nprint(data)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "ack 3\nack 3\nack 7\nack 7\nack 7\nhello!"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "순서가 섞이고 중복된 조각을 바이트 번호로 맞게 잇는 문제예요.",
+          "target": "text:두 곳을 고쳐 조각마다 맞는 ack를 찍고 hello!를 완성하게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "ack가 모두 2이고 글자는 he뿐이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "번호는 조각 번호가 아니라 바이트 번호예요. he 두 바이트 뒤면 3을 기다려야 해요.",
+          "target": "code:expected += 1#1"
+        },
+        {
+          "action": "patch_code",
+          "before": "        data += text\n        expected += 1\n",
+          "after": "        data += text\n        expected += len(text)\n",
+          "say": "이은 글자 길이만큼 늘려요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "ack 3, 3, 6, 6, 6이고 글자는 hello!예요. 글자는 맞는데 ack가 6이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. buffer에서 꺼낸 o!는 아직 1만 더해요. 두 바이트 중 하나만 받았다고 알리는 셈이에요.",
+          "target": "code:expected += 1"
+        },
+        {
+          "action": "patch_code",
+          "before": "            data += piece\n            expected += 1\n",
+          "after": "            data += piece\n            expected += len(piece)\n",
+          "say": "꺼낸 조각도 길이만큼 늘려요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "ack 3, 3, 7, 7, 7과 hello!예요. 5번 o!는 맡겨 뒀다가 ll 뒤에 이어졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "다시 온 3번 ll과 5번 o!는 번호가 7보다 작아서 버려졌어요.",
+          "target": "code:elif seq == expected:"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "TCP 연결이 SYN, SYN-ACK, ACK 세 번으로 서고 ack가 다음에 받을 바이트 번호라는 것을 상태 모델로 확인해요.",
+      "반개방 연결이 대기 줄을 채우는 SYN 플러딩과, 시간 제한으로 줄을 비워 정상 손님을 받는 방법을 비교해요.",
+      "ARP 캐시 위조, ICMP 오류 알림, NAT 변환표, DNS 캐시가 각각 어떤 표를 어떻게 바꾸는지 실행으로 확인해요.",
+      "ACK가 없으면 다시 보내는 규칙, 순서 번호로 조각을 잇고 중복을 버리는 규칙, 평문과 암호 채널의 차이를 추적해요."
+    ],
+    "chapters": {
+      "chp_b2b1a6c9-d432-47e8-9f8f-f2d20d813c04": [
+        "세 번의 주고받기와 순서 번호, 그 사이 서버가 쥐고 있는 반개방 연결을 상태 모델로 확인해요."
+      ],
+      "chp_6d49e0f4-9ec4-4612-99e4-33772f1b66cd": [
+        "같은 근거리망에서 MAC을 찾는 ARP 표와, 길에서 버려진 패킷을 알리는 ICMP를 모델로 확인해요."
+      ],
+      "chp_261439d5-9719-4c98-a2c8-7bc7db761a3e": [
+        "공유기의 NAT 변환표와 DNS 캐시가 무엇을 열쇠로 무엇을 적는지 실행으로 확인해요."
+      ],
+      "chp_e3ef3930-3abc-4267-9d4a-cfcdd4995b92": [
+        "ACK로 손실을 메우는 규칙, 순서 번호로 조각을 잇는 규칙, 평문과 암호 채널의 차이를 추적해요."
+      ]
+    },
+    "units": {
+      "unt_57da6b23-861b-46fd-9cba-0d058d2ea729": {
+        "objectives": [
+          "SYN, SYN-ACK, ACK에 따라 서버 상태와 ack 번호가 어떻게 정해지는지 확인해요."
+        ],
+        "premise": "문구점 서버가 손님의 연결 요청을 받아요. 패킷은 목록으로 차례대로 들어오고, 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_4a1d4ca2-21db-4573-9ab3-4142e96a13b5": {
+        "objectives": [
+          "ACK가 오지 않는 SYN이 대기 줄을 채우는 과정과 시간 제한으로 줄을 비우는 방법을 비교해요."
+        ],
+        "premise": "서버는 SYN-ACK를 보낸 손님을 ACK가 올 때까지 대기 줄(backlog)에 적어 둬요. 줄의 칸 수는 정해져 있어요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_7a79d04e-4da7-4987-bedf-ca3a4598ae55": {
+        "objectives": [
+          "ARP 캐시가 응답으로 덮이는 과정과 ICMP가 보내는 알림을 확인해요."
+        ],
+        "premise": "문구점 사무실 PC가 게이트웨이 10.0.0.1을 거쳐 바깥과 통신해요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_44017aeb-9b4f-43ea-9153-a87275a27008": {
+        "objectives": [
+          "공인 포트를 열쇠로 내부 주소를 적는 NAT 표와, 이름을 열쇠로 IP를 적는 DNS 캐시를 다뤄요."
+        ],
+        "premise": "사무실 PC들은 사설 주소 192.168.0.x를 쓰고, 공유기 하나가 공인 주소 203.0.113.5로 바깥과 통신해요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_a3ea44c7-9c6a-4458-a700-bb57fadb2ad2": {
+        "objectives": [
+          "손실·중복·엿보기가 있는 선로에서 양쪽이 정한 규칙이 무엇을 지키는지 확인해요."
+        ],
+        "premise": "손님 PC와 문구점 서버 사이 선로에서 조각이 사라지거나, 다시 오거나, 누군가 엿볼 수 있어요. 각 스텝은 준비 코드에서 새로 시작해요."
+      }
+    }
+  },
+  "prepared_cases": {
+    "stp_d423c35c-e068-40e0-b918-2eb6a9194937": [
+      {
+        "values": {
+          "packets": [
+            "SYN",
+            "ACK"
+          ]
+        },
+        "expected": "send SYN-ACK\nSYN -> SYN_RCVD\nACK -> ESTABLISHED",
+        "value_literals": {
+          "packets": "['SYN', 'ACK']"
+        }
+      },
+      {
+        "values": {
+          "packets": [
+            "SYN"
+          ]
+        },
+        "expected": "send SYN-ACK\nSYN -> SYN_RCVD",
+        "value_literals": {
+          "packets": "['SYN']"
+        }
+      },
+      {
+        "values": {
+          "packets": [
+            "ACK",
+            "SYN"
+          ]
+        },
+        "expected": "ACK -> LISTEN\nsend SYN-ACK\nSYN -> SYN_RCVD",
+        "value_literals": {
+          "packets": "['ACK', 'SYN']"
+        }
+      }
+    ],
+    "stp_ea626a54-dd96-45dd-a917-dddb79f55b91": [
+      {
+        "values": {
+          "client_isn": 100,
+          "server_isn": 300,
+          "data": "hello"
+        },
+        "expected": "SYN seq 100\nSYN-ACK seq 300 ack 101\nACK seq 101 ack 301\nDATA seq 101 len 5\nserver ack 106",
+        "value_literals": {
+          "client_isn": "100",
+          "server_isn": "300",
+          "data": "'hello'"
+        }
+      },
+      {
+        "values": {
+          "client_isn": 5000,
+          "server_isn": 70,
+          "data": "hi"
+        },
+        "expected": "SYN seq 5000\nSYN-ACK seq 70 ack 5001\nACK seq 5001 ack 71\nDATA seq 5001 len 2\nserver ack 5003",
+        "value_literals": {
+          "client_isn": "5000",
+          "server_isn": "70",
+          "data": "'hi'"
+        }
+      }
+    ],
+    "stp_ec00f837-a1ef-4f15-bd02-d7792ecba070": [
+      {
+        "values": {
+          "BACKLOG": 4,
+          "events": [
+            [
+              "SYN",
+              "x1"
+            ],
+            [
+              "SYN",
+              "x2"
+            ],
+            [
+              "SYN",
+              "x3"
+            ],
+            [
+              "SYN",
+              "x4"
+            ],
+            [
+              "SYN",
+              "x5"
+            ],
+            [
+              "SYN",
+              "amy"
+            ],
+            [
+              "ACK",
+              "amy"
+            ]
+          ]
+        },
+        "expected": "x5 refused\namy refused\nhalf-open ['x1', 'x2', 'x3', 'x4'] established []",
+        "value_literals": {
+          "BACKLOG": "4",
+          "events": "[('SYN', 'x1'), ('SYN', 'x2'), ('SYN', 'x3'), ('SYN', 'x4'), ('SYN', 'x5'), ('SYN', 'amy'), ('ACK', 'amy')]"
+        }
+      },
+      {
+        "values": {
+          "events": [
+            [
+              "SYN",
+              "amy"
+            ],
+            [
+              "ACK",
+              "amy"
+            ]
+          ]
+        },
+        "expected": "half-open [] established ['amy']",
+        "value_literals": {
+          "events": "[('SYN', 'amy'), ('ACK', 'amy')]"
+        }
+      },
+      {
+        "values": {
+          "BACKLOG": 2,
+          "events": [
+            [
+              "SYN",
+              "x1"
+            ],
+            [
+              "SYN",
+              "amy"
+            ],
+            [
+              "ACK",
+              "amy"
+            ],
+            [
+              "SYN",
+              "x2"
+            ],
+            [
+              "SYN",
+              "x3"
+            ]
+          ]
+        },
+        "expected": "x3 refused\nhalf-open ['x1', 'x2'] established ['amy']",
+        "value_literals": {
+          "BACKLOG": "2",
+          "events": "[('SYN', 'x1'), ('SYN', 'amy'), ('ACK', 'amy'), ('SYN', 'x2'), ('SYN', 'x3')]"
+        }
+      }
+    ],
+    "stp_ba67ae82-ec9e-4906-b174-b5c68bb41191": [
+      {
+        "values": {
+          "TIMEOUT": 5,
+          "events": [
+            [
+              0,
+              "SYN",
+              "x1"
+            ],
+            [
+              1,
+              "SYN",
+              "x2"
+            ],
+            [
+              2,
+              "SYN",
+              "x3"
+            ],
+            [
+              8,
+              "SYN",
+              "amy"
+            ],
+            [
+              9,
+              "ACK",
+              "amy"
+            ]
+          ]
+        },
+        "expected": "half-open [] established ['amy']",
+        "value_literals": {
+          "TIMEOUT": "5",
+          "events": "[(0, 'SYN', 'x1'), (1, 'SYN', 'x2'), (2, 'SYN', 'x3'), (8, 'SYN', 'amy'), (9, 'ACK', 'amy')]"
+        }
+      },
+      {
+        "values": {
+          "TIMEOUT": 10
+        },
+        "expected": "8 amy refused\nhalf-open ['x1', 'x2', 'x3'] established []",
+        "value_literals": {
+          "TIMEOUT": "10"
+        }
+      },
+      {
+        "values": {
+          "events": [
+            [
+              0,
+              "SYN",
+              "x1"
+            ],
+            [
+              1,
+              "SYN",
+              "x2"
+            ],
+            [
+              2,
+              "SYN",
+              "x3"
+            ],
+            [
+              3,
+              "SYN",
+              "x4"
+            ],
+            [
+              4,
+              "SYN",
+              "x5"
+            ],
+            [
+              5,
+              "SYN",
+              "x6"
+            ],
+            [
+              11,
+              "SYN",
+              "amy"
+            ],
+            [
+              12,
+              "ACK",
+              "amy"
+            ]
+          ]
+        },
+        "expected": "3 x4 refused\n4 x5 refused\nhalf-open [] established ['amy']",
+        "value_literals": {
+          "events": "[(0, 'SYN', 'x1'), (1, 'SYN', 'x2'), (2, 'SYN', 'x3'), (3, 'SYN', 'x4'), (4, 'SYN', 'x5'), (5, 'SYN', 'x6'), (11, 'SYN', 'amy'), (12, 'ACK', 'amy')]"
+        }
+      },
+      {
+        "values": {
+          "events": [
+            [
+              0,
+              "SYN",
+              "bob"
+            ],
+            [
+              1,
+              "SYN",
+              "x1"
+            ],
+            [
+              2,
+              "ACK",
+              "bob"
+            ]
+          ]
+        },
+        "expected": "half-open ['x1'] established ['bob']",
+        "value_literals": {
+          "events": "[(0, 'SYN', 'bob'), (1, 'SYN', 'x1'), (2, 'ACK', 'bob')]"
+        }
+      }
+    ],
+    "stp_fb22f06d-57ed-4122-8a0b-37bf6dfd48a6": [
+      {
+        "values": {
+          "replies": [
+            [
+              "10.0.0.1",
+              "ee:66"
+            ],
+            [
+              "10.0.0.7",
+              "bb:77"
+            ]
+          ]
+        },
+        "expected": "10.0.0.1 -> aa:01\n10.0.0.7 -> bb:77",
+        "value_literals": {
+          "replies": "[('10.0.0.1', 'ee:66'), ('10.0.0.7', 'bb:77')]"
+        }
+      },
+      {
+        "values": {
+          "replies": [
+            [
+              "10.0.0.9",
+              "cc:09"
+            ],
+            [
+              "10.0.0.1",
+              "dd:44"
+            ]
+          ]
+        },
+        "expected": "10.0.0.1 -> aa:01\n10.0.0.7 -> bb:07\n10.0.0.9 -> cc:09",
+        "value_literals": {
+          "replies": "[('10.0.0.9', 'cc:09'), ('10.0.0.1', 'dd:44')]"
+        }
+      },
+      {
+        "values": {
+          "static": [
+            "10.0.0.1",
+            "10.0.0.7"
+          ]
+        },
+        "expected": "10.0.0.1 -> aa:01\n10.0.0.7 -> bb:07",
+        "value_literals": {
+          "static": "['10.0.0.1', '10.0.0.7']"
+        }
+      }
+    ],
+    "stp_8990664e-b6e2-40cf-ad30-37c0c30d1651": [
+      {
+        "values": {
+          "routers": [
+            "r1",
+            "r2",
+            "r3"
+          ]
+        },
+        "expected": "1 r1: time exceeded\n2 r2: time exceeded\n3 r3: time exceeded\n4 192.0.2.9: echo reply",
+        "value_literals": {
+          "routers": "['r1', 'r2', 'r3']"
+        }
+      },
+      {
+        "values": {
+          "routers": [
+            "g1",
+            "g2"
+          ]
+        },
+        "expected": "1 g1: time exceeded\n2 g2: time exceeded\n3 192.0.2.9: echo reply",
+        "value_literals": {
+          "routers": "['g1', 'g2']"
+        }
+      },
+      {
+        "values": {
+          "dst": "198.51.100.1"
+        },
+        "expected": "1 r1: destination unreachable\n2 r1: destination unreachable\n3 r1: destination unreachable\n4 r1: destination unreachable",
+        "value_literals": {
+          "dst": "'198.51.100.1'"
+        }
+      }
+    ],
+    "stp_832e6b06-e6f3-498a-8414-6ed0ed0e9637": [
+      {
+        "values": {
+          "next_port": 40000
+        },
+        "expected": "192.168.0.10 5000 -> 203.0.113.5 40000\n192.168.0.11 5000 -> 203.0.113.5 40001\n192.168.0.10 5001 -> 203.0.113.5 40002\n3 entries",
+        "value_literals": {
+          "next_port": "40000"
+        }
+      },
+      {
+        "values": {
+          "PUBLIC": "198.51.100.3",
+          "flows": [
+            [
+              "10.0.0.2",
+              80
+            ]
+          ],
+          "next_port": 50000
+        },
+        "expected": "10.0.0.2 80 -> 198.51.100.3 50000\n1 entries",
+        "value_literals": {
+          "PUBLIC": "'198.51.100.3'",
+          "flows": "[('10.0.0.2', 80)]",
+          "next_port": "50000"
+        }
+      }
+    ],
+    "stp_3845c625-8ab4-42a0-a522-d8d6fe70c5ad": [
+      {
+        "values": {
+          "incoming": [
+            40001,
+            40000,
+            40500
+          ]
+        },
+        "expected": "40001 -> ('192.168.0.11', 5000)\n40000 -> ('192.168.0.10', 5000)\n40500 -> dropped",
+        "value_literals": {
+          "incoming": "[40001, 40000, 40500]"
+        }
+      },
+      {
+        "values": {
+          "incoming": [
+            5000
+          ]
+        },
+        "expected": "5000 -> dropped",
+        "value_literals": {
+          "incoming": "[5000]"
+        }
+      },
+      {
+        "values": {
+          "table": {},
+          "incoming": [
+            40000
+          ]
+        },
+        "expected": "40000 -> dropped",
+        "value_literals": {
+          "table": "{}",
+          "incoming": "[40000]"
+        }
+      }
+    ],
+    "stp_e0d935f9-596c-4163-81c0-495435d3a5ef": [
+      {
+        "values": {
+          "queries": [
+            "www.shop.com",
+            "api.shop.com",
+            "www.shop.com"
+          ]
+        },
+        "expected": "www.shop.com 198.51.100.20 asked 3\napi.shop.com 198.51.100.21 asked 3\nwww.shop.com 198.51.100.20 asked 0",
+        "value_literals": {
+          "queries": "['www.shop.com', 'api.shop.com', 'www.shop.com']"
+        }
+      },
+      {
+        "values": {
+          "queries": [
+            "api.shop.com",
+            "api.shop.com"
+          ]
+        },
+        "expected": "api.shop.com 198.51.100.21 asked 3\napi.shop.com 198.51.100.21 asked 0",
+        "value_literals": {
+          "queries": "['api.shop.com', 'api.shop.com']"
+        }
+      },
+      {
+        "values": {
+          "records": {
+            "org": "org-ns",
+            "lib.org": "192.0.2.44"
+          },
+          "queries": [
+            "lib.org",
+            "lib.org",
+            "lib.org"
+          ]
+        },
+        "expected": "lib.org 192.0.2.44 asked 2\nlib.org 192.0.2.44 asked 0\nlib.org 192.0.2.44 asked 0",
+        "value_literals": {
+          "records": "{'org': 'org-ns', 'lib.org': '192.0.2.44'}",
+          "queries": "['lib.org', 'lib.org', 'lib.org']"
+        }
+      }
+    ],
+    "stp_f804a5a8-3147-44af-b863-a6d3a8d772ea": [
+      {
+        "values": {
+          "drops": {
+            "1": 1,
+            "3": 2
+          }
+        },
+        "expected": "abcde sent 8",
+        "value_literals": {
+          "drops": "{1: 1, 3: 2}"
+        }
+      },
+      {
+        "values": {
+          "drops": {}
+        },
+        "expected": "abcde sent 5",
+        "value_literals": {
+          "drops": "{}"
+        }
+      },
+      {
+        "values": {
+          "messages": [
+            "x",
+            "y"
+          ],
+          "drops": {
+            "0": 3
+          }
+        },
+        "expected": "xy sent 5",
+        "value_literals": {
+          "messages": "['x', 'y']",
+          "drops": "{0: 3}"
+        }
+      }
+    ],
+    "stp_225b65fa-7526-4e59-83d0-c53de79f55ce": [
+      {
+        "values": {
+          "packets": [
+            "user=kim&",
+            "pw=blue7"
+          ]
+        },
+        "expected": "sniffer: none\nserver: user=kim&pw=blue7",
+        "value_literals": {
+          "packets": "['user=kim&', 'pw=blue7']"
+        }
+      },
+      {
+        "values": {
+          "packets": [
+            "pw=red",
+            "9"
+          ]
+        },
+        "expected": "sniffer: none\nserver: pw=red9",
+        "value_literals": {
+          "packets": "['pw=red', '9']"
+        }
+      },
+      {
+        "values": {
+          "KEY": "Q"
+        },
+        "expected": "sniffer: none\nserver: user=kim&pw=blue7",
+        "value_literals": {
+          "KEY": "'Q'"
+        }
+      }
+    ],
+    "stp_727bc277-3e57-4aa8-aa42-cbb40112d4fd": [
+      {
+        "values": {
+          "expected": 1,
+          "segments": [
+            [
+              1,
+              "he"
+            ],
+            [
+              5,
+              "o!"
+            ],
+            [
+              3,
+              "ll"
+            ],
+            [
+              3,
+              "ll"
+            ],
+            [
+              5,
+              "o!"
+            ]
+          ]
+        },
+        "expected": "ack 3\nack 3\nack 7\nack 7\nack 7\nhello!",
+        "value_literals": {
+          "expected": "1",
+          "segments": "[(1, 'he'), (5, 'o!'), (3, 'll'), (3, 'll'), (5, 'o!')]"
+        }
+      },
+      {
+        "values": {
+          "expected": 10,
+          "segments": [
+            [
+              14,
+              "ef"
+            ],
+            [
+              10,
+              "ab"
+            ],
+            [
+              12,
+              "cd"
+            ]
+          ]
+        },
+        "expected": "ack 10\nack 12\nack 16\nabcdef",
+        "value_literals": {
+          "expected": "10",
+          "segments": "[(14, 'ef'), (10, 'ab'), (12, 'cd')]"
+        }
+      },
+      {
+        "values": {
+          "expected": 1,
+          "segments": [
+            [
+              1,
+              "abc"
+            ],
+            [
+              1,
+              "abc"
+            ],
+            [
+              4,
+              "d"
+            ]
+          ]
+        },
+        "expected": "ack 4\nack 4\nack 5\nabcd",
+        "value_literals": {
+          "expected": "1",
+          "segments": "[(1, 'abc'), (1, 'abc'), (4, 'd')]"
+        }
+      }
+    ]
+  }
+}

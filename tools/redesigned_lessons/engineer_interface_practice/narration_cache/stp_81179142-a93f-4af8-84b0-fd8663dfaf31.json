@@ -1,0 +1,70 @@
+{
+  "by": "hand",
+  "source_sha256": "c6f2f85ed368a587fd85c1166796ccb28d1cb8199f045b9e7e378bd3173cc5b1",
+  "entry": [
+    {
+      "action": "say",
+      "text": "보내는 코드는 그대로 두고 받는 쪽만 늘리는 문제예요.",
+      "target": "text:허브의 routes 한 줄만 고쳐 order 주제의 메시지가 audit에도 가게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        18,
+        18
+      ]
+    },
+    {
+      "action": "say",
+      "text": "['billing pen', 'shipping pen']이 나왔어요. 배달 표에 있는 둘만 받았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    publish('order', {'item': item})\n",
+      "after": "    publish('order', {'item': item})\n    audit({'item': item})\n",
+      "say": "주문 서비스에서 audit를 직접 불러 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "audit pen이 붙었어요. 그런데 주문 서비스가 audit라는 이름을 알게 됐죠?",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 받는 쪽을 보내는 코드에 적으면 받는 쪽이 늘 때마다 주문 서비스를 고쳐야 해요.",
+      "target": "code:audit({'item': item})"
+    },
+    {
+      "action": "patch_code",
+      "before": "    publish('order', {'item': item})\n    audit({'item': item})\n",
+      "after": "    publish('order', {'item': item})\n",
+      "say": "직접 부르는 줄은 지워요."
+    },
+    {
+      "action": "patch_code",
+      "before": "routes = {'order': [billing, shipping]}",
+      "after": "routes = {'order': [billing, shipping, audit]}",
+      "say": "허브의 배달 표에 audit를 더해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        18,
+        18
+      ]
+    },
+    {
+      "action": "say",
+      "text": "['billing pen', 'shipping pen', 'audit pen']이에요. 주문 서비스는 한 글자도 안 바뀌었어요.",
+      "target": "output"
+    }
+  ]
+}

@@ -1,0 +1,1222 @@
+{
+  "schema_version": 2,
+  "id": "lsn_67023b77-7504-446f-95e6-674e7fb7a961",
+  "revision": "engineer-sql-subqueries-1",
+  "title": "SQL · 하위 질의를 안쪽부터 풀고 \"모두\"를 이중 부정으로 써요",
+  "description": "IN 하위 질의를 안쪽부터 값으로 바꿔 읽고, 값 하나를 돌려주는 하위 질의와 ALL의 뜻을 SQLite로 구현하고, 바깥 행마다 다시 계산하는 상관 하위 질의와 이중 NOT EXISTS 나눗셈을 직접 고쳐요.",
+  "objectives": [
+    "중첩된 IN 하위 질의를 가장 안쪽부터 값 목록으로 바꿔 추적하고, JOIN과 달리 바깥 행이 늘지 않음을 확인해요.",
+    "한 값을 돌려주는 하위 질의(AVG·MAX)로 비교하고, 표준 > ALL·> ANY의 뜻을 MAX·MIN과 NOT EXISTS로 같은 결과로 만들어요.",
+    "바깥 별칭을 쓰는 상관 하위 질의가 행마다 다시 계산되는 것과, NULL에도 무너지지 않는 NOT EXISTS를 확인해요.",
+    "\"모두 이수했다\"를 \"이수하지 않은 것이 하나도 없다\"로 바꾼 이중 NOT EXISTS와 COUNT 비교의 함정을 고쳐요."
+  ],
+  "sources": [
+    "https://www.sqlite.org/lang_expr.html",
+    "https://www.postgresql.org/docs/current/functions-subquery.html",
+    "https://www.sqlite.org/quirks.html"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_ff2863b0-4971-4b51-ae85-d95734d17293",
+      "title": "IN 하위 질의를 안쪽부터 풀어요",
+      "objectives": [
+        "괄호 안 질의를 먼저 값 목록으로 바꿔 읽고, 그 목록으로 바깥 행을 고르는 흐름을 추적해요."
+      ],
+      "units": [
+        {
+          "id": "unt_fdd548de-6143-4522-a08e-c0bcefadfa99",
+          "title": "회원과 주문",
+          "objectives": [
+            "IN 목록의 열, JOIN과의 행 수 차이, 두 단계 중첩을 실행으로 확인해요."
+          ],
+          "premise": "온라인 문구점 DB예요. members(id, name)는 회원, orders(id, member_id, item_id)는 주문, items(id, name, maker, price)는 물건이에요. orders의 id는 주문 번호, member_id는 주문한 회원 번호예요. 각 스텝은 준비 자료에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_724bc2e1-3641-4db9-b55f-fd5064265c00",
+              "objectives": [
+                "IN (하위 질의)는 안쪽이 돌려준 값 목록에 바깥 값이 있는지 본다는 것을 확인해요.",
+                "IN 양쪽은 같은 뜻의 값(회원 번호와 회원 번호)이어야 함을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_edb45aec-c441-4ba3-93d7-5650255e124e",
+              "objectives": [
+                "JOIN은 짝이 맞는 주문마다 행을 만들고, IN은 바깥 행을 한 번만 남긴다는 것을 행 수로 비교해요."
+              ]
+            },
+            {
+              "id": "stp_19ad8380-0fe6-4f46-89d5-955f7bd1f8f8",
+              "objectives": [
+                "상수 목록 자리에 하위 질의를 넣으면 자료가 바뀌어도 따라가는 것을 확인해요.",
+                "중첩된 하위 질의를 안쪽 → 가운데 → 바깥 순서로 값 목록을 바꿔 가며 추적해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_b50d60a1-d513-41bf-9c5b-b9567b129860",
+      "title": "값 하나를 돌려주는 하위 질의와 ALL",
+      "objectives": [
+        "한 행 한 열을 돌려주는 하위 질의를 숫자처럼 비교에 쓰고, 표준 ALL·ANY의 뜻을 MAX·MIN으로 구현해요."
+      ],
+      "units": [
+        {
+          "id": "unt_578ad1de-0bd8-493b-b16f-6f42631b6ace",
+          "title": "물건 가격 비교",
+          "objectives": [
+            "기준 값을 하위 질의로 계산하고, \"모든 값보다 큼\"을 최댓값 비교로 바꿔요."
+          ],
+          "premise": "문구점의 items(id, name, maker, price) 표만 써요. maker는 제조사예요. 각 스텝은 준비 자료에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_10f38be9-8c93-47d6-8c73-1db35716a610",
+              "objectives": [
+                "한 행 한 열을 돌려주는 하위 질의는 값 하나처럼 > 비교에 쓴다는 것을 확인해요.",
+                "바깥과 상관없는 하위 질의는 한 번 계산된 값이라는 것을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_33041df8-1512-4d63-a771-7874cde18ec8",
+              "objectives": [
+                "> ALL(목록)은 목록의 가장 큰 값보다 큼, > ANY(목록)는 가장 작은 값보다 큼과 같다는 것을 실행으로 비교해요.",
+                "앱의 SQLite가 ALL 비교를 문법 오류로 거절하는 것을 확인해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_df8dd9ce-a0df-4824-9f1f-51df4a524bc4",
+      "title": "바깥 행마다 다시 계산하는 하위 질의",
+      "objectives": [
+        "바깥 별칭을 쓰는 상관 하위 질의가 행마다 다시 계산되는 것을 보고, NOT EXISTS로 \"하나도 없음\"을 표현해요."
+      ],
+      "units": [
+        {
+          "id": "unt_0c85fa1d-6d81-4f5f-bbf6-4376f814973b",
+          "title": "제조사 평균과 주문 없는 회원",
+          "objectives": [
+            "상관 하위 질의의 값이 행마다 달라지는 것과 NOT EXISTS의 쓰임을 확인해요."
+          ],
+          "premise": "문구점의 members, orders, items 표를 다시 써요. 바깥 표에 별칭(i, m)을 붙이고 하위 질의 안에서 그 별칭을 써요. 각 스텝은 준비 자료에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_a3c4101c-287d-4608-94be-83d05c4f645a",
+              "objectives": [
+                "하위 질의 안에서 바깥 별칭(i.maker)을 쓰면 바깥 행마다 안쪽이 다시 계산된다는 것을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_534dc38d-ff91-4946-bfe9-3a23aa63394b",
+              "objectives": [
+                "NOT EXISTS 안에서 바깥 회원과 주문을 이어 회원마다 \"주문이 하나도 없음\"을 묻는 것을 확인해요.",
+                "안쪽에 NULL이 있어도 NOT EXISTS는 결과가 사라지지 않는 것을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_d46b269f-f978-4786-b1e9-a01fad41b145",
+              "objectives": [
+                "비교할 목록이 비면 > ALL은 모든 행에서 참이고, MAX 비교는 NULL이라 모두 빠지는 차이를 확인해요.",
+                "\"모든 값보다 크다\"를 \"같거나 큰 값이 하나도 없다\"로 바꿔 NOT EXISTS로 써요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_a40039c4-a361-4f8b-a90b-57c42cce0658",
+      "title": "\"모두 만족\"을 이중 부정으로 찾아요",
+      "objectives": [
+        "\"모두 이수했다\"를 \"이수하지 않은 것이 하나도 없다\"로 바꿔 이중 NOT EXISTS로 쓰고, COUNT 비교가 틀리는 경우를 고쳐요."
+      ],
+      "units": [
+        {
+          "id": "unt_0443c7f1-96b1-4a3e-a3c5-ce9dfaf984cf",
+          "title": "필수 교육 이수",
+          "objectives": [
+            "한 사람 → 모든 사람 → COUNT 비교 순서로 관계 나눗셈을 완성해요."
+          ],
+          "premise": "사내 교육 DB예요. devs(id, name)는 개발자, required(course)는 필수 과정, done(dev_id, course)은 이수 기록이에요. 같은 과정을 다시 들으면 기록이 한 줄 더 생겨요. 각 스텝은 준비 자료에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_1bc6e346-b1a5-46c1-8b2f-9d4610f11459",
+              "objectives": [
+                "NOT EXISTS 안쪽에 과정 연결과 사람 조건을 함께 둬야 \"그 사람의 기록이 없음\"이 된다는 것을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_9aee34d1-3833-4819-ac1b-1a1b7b686013",
+              "objectives": [
+                "\"모두 이수했다\"를 \"이수하지 않은 필수 과정이 하나도 없다\"로 바꾼 이중 NOT EXISTS를 완성해요.",
+                "필수 과정이 0개면 모든 개발자가 참이 되는 것(공허한 참)을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_fd0d9fa5-6845-4946-8179-72ab46e53655",
+              "objectives": [
+                "상관 COUNT 하위 질의, 안쪽 IN, 값 하나 비교가 섞인 질의를 개발자마다 추적해요.",
+                "COUNT 비교가 같은 과정의 중복 기록에서 틀리는 이유를 찾고 과정을 한 번씩 세게 고쳐요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_724bc2e1-3641-4db9-b55f-fd5064265c00",
+      "title": "IN 목록이 회원 번호가 되도록 안쪽 열을 고치세요",
+      "goal": "주문을 한 번이라도 한 회원을 찾으려 해요. 준비 질의는 IN 뒤의 괄호 안에서 orders를 조회해요.\n\n**알아두세요**\n\n질의 안의 괄호 속 SELECT를 하위 질의라고 해요. `WHERE id IN (하위 질의)`는 하위 질의가 돌려준 값 목록에 id가 있으면 그 행을 남겨요. 괄호 안을 먼저 값 목록으로 바꿔 읽으면 돼요.\n\n주문한 적이 있는 회원의 이름을 이름순으로 보이세요. 괄호 안 SELECT의 열 하나만 고치세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 나온 이름을 확인하세요.\n2. 괄호 안 질의가 주문 번호와 회원 번호 가운데 무엇을 돌려주는지 orders의 열과 비교하세요.\n3. 괄호 안 SELECT의 열을 고치세요.\n4. 다시 실행해 주문한 회원만 남았는지 확인하세요.\n5. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 괄호 안 질의가 돌려주는 값을 먼저 보세요.\nSELECT name FROM members\nWHERE id IN (SELECT id FROM orders)\nORDER BY name;\n",
+      "solution": "-- 괄호 안 질의가 돌려주는 값을 먼저 보세요.\nSELECT name FROM members\nWHERE id IN (SELECT member_id FROM orders)\nORDER BY name;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE members(id INTEGER PRIMARY KEY, name TEXT);\nINSERT INTO members VALUES(1,'kim'),(2,'lee'),(3,'park'),(4,'choi');\nCREATE TABLE orders(id INTEGER PRIMARY KEY, member_id INTEGER, item_id INTEGER);\nINSERT INTO orders VALUES(1,3,1),(2,3,2),(3,1,1);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "name\nkim\npark"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE members(id INTEGER PRIMARY KEY, name TEXT);\nINSERT INTO members VALUES(1,'kim'),(2,'lee'),(3,'park'),(4,'choi');\nCREATE TABLE orders(id INTEGER PRIMARY KEY, member_id INTEGER, item_id INTEGER);\nINSERT INTO orders VALUES(1,2,1),(2,4,1);\n"
+          },
+          "expected": "name\nchoi\nlee"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE members(id INTEGER PRIMARY KEY, name TEXT);\nINSERT INTO members VALUES(1,'kim'),(2,'lee'),(3,'park'),(4,'choi');\nCREATE TABLE orders(id INTEGER PRIMARY KEY, member_id INTEGER, item_id INTEGER);\nINSERT INTO orders VALUES(10,1,2),(11,1,3);\n"
+          },
+          "expected": "name\nkim"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "주문한 회원만 남기는 문제예요. 괄호 안이 고를 회원 번호 목록을 만들어야 해요.",
+          "target": "text:주문한 적이 있는 회원의 이름을 이름순으로 보이세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "kim, lee, park이 나왔어요. 주문이 없는 lee까지 끼었어요.",
+          "target": "output"
+        },
+        {
+          "action": "set_code",
+          "code": "SELECT id, member_id FROM orders ORDER BY id;\n",
+          "say": "괄호 안에 쓴 표를 따로 조회해 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "id는 주문 번호 1, 2, 3이에요. 회원 번호는 member_id의 3과 1이에요.",
+          "target": "output"
+        },
+        {
+          "action": "set_code",
+          "code": "-- 괄호 안 질의가 돌려주는 값을 먼저 보세요.\nSELECT name FROM members\nWHERE id IN (SELECT id FROM orders)\nORDER BY name;\n",
+          "say": "주문 회원을 찾던 질의로 돌아와 열을 고쳐요."
+        },
+        {
+          "action": "patch_code",
+          "before": "(SELECT id FROM orders)",
+          "after": "(SELECT member_id FROM orders)",
+          "say": "괄호 안 열을 member_id로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "kim과 park만 남았어요. 목록 3, 3, 1에 있는 회원이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. IN 양쪽은 같은 뜻의 값이어야 해요. 주문 번호를 회원 번호와 비교하면 엉뚱한 회원이 골라져요.",
+          "target": "code:WHERE id IN"
+        }
+      ]
+    },
+    {
+      "id": "stp_edb45aec-c441-4ba3-93d7-5650255e124e",
+      "title": "JOIN을 IN 하위 질의로 바꿔 회원을 한 번씩 보이세요",
+      "goal": "주문한 회원 명단을 회원마다 한 줄로 만들려 해요. 준비 질의는 members와 orders를 JOIN했어요.\n\nJOIN 줄을 IN 하위 질의 조건 한 줄로 바꿔 회원이 한 번씩만 나오게 하세요. SELECT와 ORDER BY 줄은 그대로 두세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 같은 회원이 몇 번 나오는지 확인하세요.\n2. JOIN 줄을 WHERE와 IN 하위 질의로 바꾸세요.\n3. 다시 실행해 회원마다 한 줄인지 비교하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 회원마다 한 줄씩 나와야 해요. 몇 줄이 나오는지 보세요.\nSELECT m.id, m.name FROM members m\nJOIN orders o ON o.member_id = m.id\nORDER BY m.id;\n",
+      "solution": "-- 회원마다 한 줄씩 나와야 해요. 몇 줄이 나오는지 보세요.\nSELECT m.id, m.name FROM members m\nWHERE m.id IN (SELECT member_id FROM orders)\nORDER BY m.id;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE members(id INTEGER PRIMARY KEY, name TEXT);\nINSERT INTO members VALUES(1,'kim'),(2,'lee'),(3,'park'),(4,'choi');\nCREATE TABLE orders(id INTEGER PRIMARY KEY, member_id INTEGER, item_id INTEGER);\nINSERT INTO orders VALUES(1,3,1),(2,1,2),(3,3,3);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "id | name\n1 | kim\n3 | park"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE members(id INTEGER PRIMARY KEY, name TEXT);\nINSERT INTO members VALUES(1,'kim'),(2,'lee'),(3,'park'),(4,'choi');\nCREATE TABLE orders(id INTEGER PRIMARY KEY, member_id INTEGER, item_id INTEGER);\nINSERT INTO orders VALUES(1,2,1),(2,4,1),(3,2,2),(4,2,3);\n"
+          },
+          "expected": "id | name\n2 | lee\n4 | choi"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "명단에 회원이 한 번씩만 나와야 해요. 주문이 여러 건인 회원이 있어요.",
+          "target": "text:회원이 한 번씩만 나오게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3 | park이 두 번 나왔어요. JOIN은 짝이 맞는 주문마다 한 줄을 만들어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "JOIN orders o ON o.member_id = m.id",
+          "after": "WHERE m.id IN (SELECT member_id FROM orders)",
+          "say": "JOIN 줄을 IN 조건으로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1 | kim, 3 | park 두 줄이에요. 목록에 3이 두 번 있어도 park은 한 번 남아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "IN은 회원 행을 고르기만 하고 주문 행을 붙이지 않아요. 그래서 줄 수가 회원 수를 넘지 않죠.",
+          "target": "code:WHERE m.id IN"
+        }
+      ]
+    },
+    {
+      "id": "stp_19ad8380-0fe6-4f46-89d5-955f7bd1f8f8",
+      "title": "손으로 적은 번호 목록을 하위 질의로 바꿔 두 단계로 중첩하세요",
+      "goal": "H사 물건을 주문한 회원을 찾으려 해요. 준비 질의의 (2, 3)은 지난달 H사 물건 번호를 손으로 적어 둔 목록이에요. 그 뒤로 물건 정보가 바뀌었어요.\n\n(2, 3) 자리를 items에서 H사 물건 번호를 고르는 하위 질의로 바꾸세요. H사 물건을 한 번이라도 주문한 회원의 이름을 이름순으로 보이세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 나온 이름을 확인하세요.\n2. (2, 3)을 H사 물건 번호를 고르는 하위 질의로 바꾸세요.\n3. 다시 실행해 이름이 어떻게 바뀌는지 비교하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 가장 안쪽 괄호부터 값 목록으로 바꿔 읽어요.\nSELECT name FROM members\nWHERE id IN (SELECT member_id FROM orders\n             WHERE item_id IN (2, 3))\nORDER BY name;\n",
+      "solution": "-- 가장 안쪽 괄호부터 값 목록으로 바꿔 읽어요.\nSELECT name FROM members\nWHERE id IN (SELECT member_id FROM orders\n             WHERE item_id IN (SELECT id FROM items WHERE maker = 'H'))\nORDER BY name;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE members(id INTEGER PRIMARY KEY, name TEXT);\nINSERT INTO members VALUES(1,'kim'),(2,'lee'),(3,'park'),(4,'choi');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, maker TEXT, price INTEGER);\nINSERT INTO items VALUES(1,'pen','H',900),(2,'note','K',1500),(3,'clip','H',300),(4,'tape','K',700);\nCREATE TABLE orders(id INTEGER PRIMARY KEY, member_id INTEGER, item_id INTEGER);\nINSERT INTO orders VALUES(1,1,2),(2,2,1),(3,4,3),(4,1,4);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "name\nchoi\nlee"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE members(id INTEGER PRIMARY KEY, name TEXT);\nINSERT INTO members VALUES(1,'kim'),(2,'lee'),(3,'park'),(4,'choi');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, maker TEXT, price INTEGER);\nINSERT INTO items VALUES(1,'pen','K',900),(2,'note','H',1500),(3,'clip','K',300),(4,'tape','H',700);\nCREATE TABLE orders(id INTEGER PRIMARY KEY, member_id INTEGER, item_id INTEGER);\nINSERT INTO orders VALUES(1,3,2),(2,2,1),(3,3,4),(4,1,3);\n"
+          },
+          "expected": "name\npark"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE members(id INTEGER PRIMARY KEY, name TEXT);\nINSERT INTO members VALUES(1,'kim'),(2,'lee'),(3,'park'),(4,'choi');\nCREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, maker TEXT, price INTEGER);\nINSERT INTO items VALUES(1,'pen','K',900),(2,'note','K',1500),(3,'clip','K',300),(4,'tape','H',700);\nCREATE TABLE orders(id INTEGER PRIMARY KEY, member_id INTEGER, item_id INTEGER);\nINSERT INTO orders VALUES(1,4,4),(2,2,1),(3,1,4);\n"
+          },
+          "expected": "name\nchoi\nkim"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "H사 물건을 주문한 회원을 찾는 문제예요. 손으로 적은 번호는 자료가 바뀌면 낡아요.",
+          "target": "text:H사 물건을 한 번이라도 주문한 회원의 이름을 이름순으로 보이세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "choi와 kim이 나왔어요. 적어 둔 2번, 3번 물건의 주문자예요.",
+          "target": "output"
+        },
+        {
+          "action": "set_code",
+          "code": "SELECT id, maker FROM items ORDER BY id;\n",
+          "say": "가장 안쪽에 들어갈 물건 번호를 먼저 확인해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "지금 H사 물건은 1번과 3번이에요. 2번은 K사죠.",
+          "target": "output"
+        },
+        {
+          "action": "set_code",
+          "code": "-- 가장 안쪽 괄호부터 값 목록으로 바꿔 읽어요.\nSELECT name FROM members\nWHERE id IN (SELECT member_id FROM orders\n             WHERE item_id IN (2, 3))\nORDER BY name;\n",
+          "say": "입고 기록에서 H사 물건을 고르는 조건으로 돌아가요."
+        },
+        {
+          "action": "patch_code",
+          "before": "(2, 3)",
+          "after": "(SELECT id FROM items WHERE maker = 'H')",
+          "say": "적어 둔 목록 자리에 H사 물건을 고르는 하위 질의를 넣어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "choi와 lee예요. 안쪽 1, 3이 주문자 2, 4가 되고, 바깥에서 이름이 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 문자열 H는 작은따옴표로 감싸요. 큰따옴표는 같은 이름의 열이 있으면 열로 읽혀요.",
+          "target": "code:'H'"
+        }
+      ]
+    },
+    {
+      "id": "stp_10f38be9-8c93-47d6-8c73-1db35716a610",
+      "title": "손으로 적은 평균을 AVG 하위 질의로 바꾸세요",
+      "goal": "평균 가격보다 비싼 물건을 보려 해요. 준비 질의의 3000은 지난달 평균을 손으로 적어 둔 값이에요.\n\n**알아두세요**\n\nAVG(price)는 price 열의 평균 한 값을 돌려줘요. MAX와 MIN은 가장 큰 값과 가장 작은 값이에요. 이렇게 한 행 한 열을 돌려주는 하위 질의는 숫자 하나처럼 비교에 쓸 수 있어요.\n\n3000 자리를 지금 items의 평균 가격을 구하는 하위 질의로 바꾸세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 나온 물건을 확인하세요.\n2. 3000을 AVG 하위 질의로 바꾸세요.\n3. 다시 실행해 평균보다 비싼 물건만 남았는지 확인하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 비교 기준 값이 어디서 오는지 보세요.\nSELECT name, price FROM items\nWHERE price > 3000\nORDER BY price;\n",
+      "solution": "-- 비교 기준 값이 어디서 오는지 보세요.\nSELECT name, price FROM items\nWHERE price > (SELECT AVG(price) FROM items)\nORDER BY price;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, maker TEXT, price INTEGER);\nINSERT INTO items VALUES(1,'pen','H',1200),(2,'note','K',3200),(3,'clip','H',4000),(4,'bag','K',7600);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "name | price\nbag | 7600"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, maker TEXT, price INTEGER);\nINSERT INTO items VALUES(1,'pen','H',5000),(2,'note','K',1000),(3,'clip','H',2000),(4,'bag','K',3000);\n"
+          },
+          "expected": "name | price\nbag | 3000\npen | 5000"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, maker TEXT, price INTEGER);\nINSERT INTO items VALUES(1,'pen','H',500),(2,'note','K',2900),(3,'clip','H',3100),(4,'bag','K',6300);\n"
+          },
+          "expected": "name | price\nbag | 6300"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "평균보다 비싼 물건을 고르는 문제예요. 기준 값이 지금 자료의 평균이어야 해요.",
+          "target": "text:3000 자리를 지금 items의 평균 가격을 구하는 하위 질의로 바꾸세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "note, clip, bag 세 개가 나왔어요. 3000보다 비싼 물건이에요.",
+          "target": "output"
+        },
+        {
+          "action": "set_code",
+          "code": "SELECT AVG(price) FROM items;\n",
+          "say": "평균만 따로 구해 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4000.0이 나왔어요. 지금 평균은 3000이 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "set_code",
+          "code": "-- 비교 기준 값이 어디서 오는지 보세요.\nSELECT name, price FROM items\nWHERE price > 3000\nORDER BY price;\n",
+          "say": "가격 비교 조건에 방금 구한 평균을 연결해요."
+        },
+        {
+          "action": "patch_code",
+          "before": "price > 3000",
+          "after": "price > (SELECT AVG(price) FROM items)",
+          "say": "3000 자리에 평균을 구하는 하위 질의를 넣어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "bag | 7600만 남았어요. 하위 질의가 4000.0 한 값으로 한 번 계산됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "(SELECT AVG(price) FROM items)",
+          "after": "(SELECT price FROM items)",
+          "say": "AVG를 빼고 price를 그대로 돌려주면 어떻게 될까요?"
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "note, clip, bag이 다시 나왔어요. SQLite는 여러 행 중 첫 행 1200만 썼어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 비교에 쓰는 하위 질의는 한 행 한 열이어야 해요. 표준 DB는 여러 행이면 오류를 내요.",
+          "target": "code:(SELECT price FROM items)"
+        },
+        {
+          "action": "patch_code",
+          "before": "(SELECT price FROM items)",
+          "after": "(SELECT AVG(price) FROM items)",
+          "say": "AVG로 되돌려요."
+        }
+      ]
+    },
+    {
+      "id": "stp_33041df8-1512-4d63-a771-7874cde18ec8",
+      "title": "> ALL의 뜻이 되도록 MIN을 MAX로 고치세요",
+      "goal": "H사의 모든 물건보다 비싼 물건을 찾으려 해요. 표준 SQL로는 `WHERE price > ALL (SELECT price FROM items WHERE maker = 'H')`라고 써요.\n\n**알아두세요**\n\n`> ALL (목록)`은 목록의 모든 값보다 클 때, `> ANY (목록)`는 목록의 값 하나보다라도 클 때 참이에요. 앱의 SQLite는 ALL·ANY 비교를 지원하지 않아요. 지금은 H사 목록이 비어 있지 않고 모든 가격에 NULL이 없어요. 이 조건에서 MAX나 MIN 비교로 옮겨 실행해요. 목록이 비거나 NULL이 섞이면 따로 확인해야 해요.\n\n준비 질의는 ALL을 MIN 비교로 옮겼어요. 집계 함수 하나를 고쳐 > ALL과 같은 결과를 내세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 나온 물건에 H사 물건이 섞였는지 확인하세요.\n2. 하위 질의의 집계 함수를 고치세요.\n3. 다시 실행해 H사의 모든 물건보다 비싼 물건만 남았는지 확인하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 표준 SQL의 > ALL을 SQLite로 옮긴 줄이에요.\nSELECT name, price FROM items\nWHERE price > (SELECT MIN(price) FROM items WHERE maker = 'H')\nORDER BY price;\n",
+      "solution": "-- 표준 SQL의 > ALL을 SQLite로 옮긴 줄이에요.\nSELECT name, price FROM items\nWHERE price > (SELECT MAX(price) FROM items WHERE maker = 'H')\nORDER BY price;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, maker TEXT, price INTEGER);\nINSERT INTO items VALUES(1,'pen','H',2000),(2,'note','K',3000),(3,'clip','H',5000),(4,'bag','K',6000),(5,'tape','K',1500);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "name | price\nbag | 6000"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, maker TEXT, price INTEGER);\nINSERT INTO items VALUES(1,'pen','H',4000),(2,'note','K',3000),(3,'clip','H',1000),(4,'bag','K',4500),(5,'tape','K',9000);\n"
+          },
+          "expected": "name | price\nbag | 4500\ntape | 9000"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, maker TEXT, price INTEGER);\nINSERT INTO items VALUES(1,'pen','H',2500),(2,'note','K',2600),(3,'clip','K',800),(4,'bag','K',2400),(5,'tape','H',2500);\n"
+          },
+          "expected": "name | price\nnote | 2600"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "H사의 모든 물건보다 비싸야 남아요. 표준 SQL의 > ALL과 같은 결과를 내야 해요.",
+          "target": "text:집계 함수 하나를 고쳐 > ALL과 같은 결과를 내세요."
+        },
+        {
+          "action": "patch_code",
+          "before": "price > (SELECT MIN(price) FROM items WHERE maker = 'H')",
+          "after": "price > ALL (SELECT price FROM items WHERE maker = 'H')",
+          "say": "먼저 표준 문법 그대로 써 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            4
+          ],
+          "expect_error": "syntax error"
+        },
+        {
+          "action": "say",
+          "text": "ALL 근처에서 syntax error가 났어요. 이 SQLite는 ALL 비교를 읽지 못해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "price > ALL (SELECT price FROM items WHERE maker = 'H')",
+          "after": "price > (SELECT MIN(price) FROM items WHERE maker = 'H')",
+          "say": "준비된 MIN 비교로 되돌려요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "note, clip, bag이 나왔어요. H사 물건 clip 5000까지 끼었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "MIN 2000보다 크기만 하면 남았어요. 하나라도보다 큰 ANY의 뜻이죠.",
+          "target": "code:MIN(price)"
+        },
+        {
+          "action": "patch_code",
+          "before": "MIN(price)",
+          "after": "MAX(price)",
+          "say": "H사 최댓값과 비교하도록 MAX로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "bag | 6000만 남았어요. H사 최댓값 5000보다 비싸면 모든 H사 물건보다 비싸요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. >=로 쓰면 5000인 clip 자신도 남아요. 모든 값보다 커야 하니 > 그대로예요.",
+          "target": "code:price > (SELECT MAX"
+        }
+      ]
+    },
+    {
+      "id": "stp_a3c4101c-287d-4608-94be-83d05c4f645a",
+      "title": "하위 질의가 바깥 물건의 제조사를 보게 하세요",
+      "goal": "같은 제조사 물건들의 평균보다 비싼 물건을 찾으려 해요. 준비 질의는 모든 물건의 평균 하나와 비교해요.\n\n**알아두세요**\n\n하위 질의 안에서 바깥 표의 별칭을 쓰면(예: i.maker) 바깥 행마다 그 행의 값으로 안쪽을 다시 계산해요. 이런 하위 질의를 상관 하위 질의라고 해요.\n\n하위 질의에 조건 하나를 더해 바깥 물건과 같은 제조사의 평균과 비교하게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 나온 물건의 제조사를 확인하세요.\n2. 하위 질의 안에 바깥 별칭 i를 쓰는 조건을 더하세요.\n3. 다시 실행해 제조사마다 평균보다 비싼 물건이 나오는지 비교하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 괄호 안 평균이 어떤 물건들의 평균인지 보세요.\nSELECT name, maker, price FROM items i\nWHERE price > (SELECT AVG(price) FROM items)\nORDER BY name;\n",
+      "solution": "-- 괄호 안 평균이 어떤 물건들의 평균인지 보세요.\nSELECT name, maker, price FROM items i\nWHERE price > (SELECT AVG(price) FROM items WHERE maker = i.maker)\nORDER BY name;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, maker TEXT, price INTEGER);\nINSERT INTO items VALUES(1,'pen','H',1000),(2,'note','H',3000),(3,'clip','K',6000),(4,'bag','K',9000),(5,'tape','H',2600);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "name | maker | price\nbag | K | 9000\nnote | H | 3000\ntape | H | 2600"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, maker TEXT, price INTEGER);\nINSERT INTO items VALUES(1,'pen','H',8000),(2,'note','H',2000),(3,'clip','K',1000),(4,'bag','K',1400),(5,'tape','K',600);\n"
+          },
+          "expected": "name | maker | price\nbag | K | 1400\npen | H | 8000"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, maker TEXT, price INTEGER);\nINSERT INTO items VALUES(1,'pen','H',500),(2,'note','K',2700),(3,'clip','K',2100),(4,'bag','H',900),(5,'tape','H',400);\n"
+          },
+          "expected": "name | maker | price\nbag | H | 900\nnote | K | 2700"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "물건마다 자기 제조사의 평균과 비교해야 해요. 기준 값이 행마다 달라지는 문제예요.",
+          "target": "text:바깥 물건과 같은 제조사의 평균과 비교하게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "bag과 clip, 둘 다 K사만 나왔어요. 전체 평균 하나와 비교했거든요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "FROM items)",
+          "after": "FROM items WHERE maker = i.maker)",
+          "say": "하위 질의에 바깥 물건의 제조사 조건을 더해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "bag, note, tape가 나왔어요. H사 물건 note와 tape도 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "SELECT name, maker, price FROM items i",
+          "after": "SELECT name, maker, price,\n       (SELECT AVG(price) FROM items WHERE maker = i.maker) AS avg_maker\nFROM items i",
+          "say": "행마다 비교한 평균을 열로 같이 보여 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "bag 옆은 7500.0, note와 tape 옆은 2200.0이에요. 행의 제조사마다 다시 계산됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "SELECT name, maker, price,\n       (SELECT AVG(price) FROM items WHERE maker = i.maker) AS avg_maker\nFROM items i",
+          "after": "SELECT name, maker, price FROM items i",
+          "say": "보여 주려고 더한 열은 지워요."
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 안쪽에 maker = maker라고만 쓰면 둘 다 안쪽 표의 열이에요. 늘 참이라 전체 평균과 같아져요.",
+          "target": "code:maker = i.maker"
+        }
+      ]
+    },
+    {
+      "id": "stp_534dc38d-ff91-4946-bfe9-3a23aa63394b",
+      "title": "NOT IN을 NOT EXISTS로 바꿔 주문 없는 회원을 찾으세요",
+      "goal": "주문이 하나도 없는 회원에게 쿠폰을 보내려 해요. orders에는 회원이 아닌 손님의 주문도 있어서 member_id가 NULL인 행이 있어요.\n\n**알아두세요**\n\n`NOT EXISTS (하위 질의)`는 하위 질의가 행을 하나도 돌려주지 않을 때 참이에요. 안쪽에서 바깥 별칭 m을 쓰면 회원마다 그 회원의 주문이 있는지 따로 물어요.\n\nNOT IN 줄을 NOT EXISTS 조건으로 바꿔 주문이 없는 회원의 이름을 이름순으로 보이세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 결과를 확인하세요.\n2. NOT IN 줄을 NOT EXISTS 조건으로 바꾸세요. 안쪽에서 주문의 member_id를 m.id와 비교하세요.\n3. 다시 실행해 주문 없는 회원이 나오는지 확인하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 주문이 없는 회원을 찾는 줄이에요. 괄호 안 목록에 무엇이 있는지 보세요.\nSELECT name FROM members m\nWHERE id NOT IN (SELECT member_id FROM orders)\nORDER BY name;\n",
+      "solution": "-- 주문이 없는 회원을 찾는 줄이에요. 괄호 안 목록에 무엇이 있는지 보세요.\nSELECT name FROM members m\nWHERE NOT EXISTS (SELECT 1 FROM orders o WHERE o.member_id = m.id)\nORDER BY name;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE members(id INTEGER PRIMARY KEY, name TEXT);\nINSERT INTO members VALUES(1,'kim'),(2,'lee'),(3,'park'),(4,'choi');\nCREATE TABLE orders(id INTEGER PRIMARY KEY, member_id INTEGER, item_id INTEGER);\nINSERT INTO orders VALUES(1,3,1),(2,NULL,2),(3,1,1);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "name\nchoi\nlee"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE members(id INTEGER PRIMARY KEY, name TEXT);\nINSERT INTO members VALUES(1,'kim'),(2,'lee'),(3,'park'),(4,'choi');\nCREATE TABLE orders(id INTEGER PRIMARY KEY, member_id INTEGER, item_id INTEGER);\nINSERT INTO orders VALUES(1,2,1),(2,4,1);\n"
+          },
+          "expected": "name\nkim\npark"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE members(id INTEGER PRIMARY KEY, name TEXT);\nINSERT INTO members VALUES(1,'kim'),(2,'lee'),(3,'park'),(4,'choi');\nCREATE TABLE orders(id INTEGER PRIMARY KEY, member_id INTEGER, item_id INTEGER);\nINSERT INTO orders VALUES(1,NULL,1),(2,4,2),(3,4,1);\n"
+          },
+          "expected": "name\nkim\nlee\npark"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "주문 없는 회원을 찾는 문제예요. 주문 표에 member_id가 NULL인 손님 주문이 섞여 있어요.",
+          "target": "text:NOT IN 줄을 NOT EXISTS 조건으로 바꿔 주문이 없는 회원의 이름을 이름순으로 보이세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "(행 없음)이에요. 목록에 NULL이 있으면 NOT IN은 어느 회원에게도 참이 되지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "WHERE id NOT IN (SELECT member_id FROM orders)",
+          "after": "WHERE NOT EXISTS (SELECT 1 FROM orders o)",
+          "say": "NOT EXISTS로 바꾸되 회원 조건 없이 먼저 써 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "또 (행 없음)이에요. 주문 표에 행이 있는지만 물었으니 모든 회원이 빠졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "WHERE NOT EXISTS (SELECT 1 FROM orders o)",
+          "after": "WHERE NOT EXISTS (SELECT 1 FROM orders o WHERE o.member_id = m.id)",
+          "say": "안쪽에서 주문의 member_id를 바깥 회원 m.id와 이어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "choi와 lee가 나왔어요. 회원마다 자기 주문이 하나도 없는지 따로 물었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "NULL인 손님 주문은 어느 m.id와도 같지 않아요. 그래서 결과를 지우지 않아요.",
+          "target": "code:o.member_id = m.id"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. NOT EXISTS 안에 o.member_id = m.id가 빠지면 회원마다 묻지 않아요. 앞에서 본 것처럼 모두 빠지죠.",
+          "target": "code:WHERE NOT EXISTS"
+        }
+      ]
+    },
+    {
+      "id": "stp_d46b269f-f978-4786-b1e9-a01fad41b145",
+      "title": "H사 물건이 없을 때도 > ALL과 같도록 NOT EXISTS로 고치세요",
+      "goal": "H사는 아직 물건을 하나도 올리지 않았어요. 표준 SQL의 `price > ALL (SELECT price FROM items WHERE maker = 'H')`는 목록이 비면 모든 물건에서 참이에요. 비교해서 지는 H사 물건이 하나도 없으니까요.\n\n이 문제의 가격은 모두 NULL이 아니에요. 준비 질의는 앞에서처럼 MAX로 옮긴 비교예요. 이 자료에서 같은 결과가 나도록 이 줄을 \"이 물건 가격 이상인 H사 물건이 하나도 없다\"는 NOT EXISTS 조건으로 바꾸세요. 안쪽 items에는 별칭 h를 붙이세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 결과를 확인하세요.\n2. MAX 비교 줄을 NOT EXISTS 조건으로 바꾸세요.\n3. 다시 실행해 H사 물건이 없을 때 모든 물건이 나오는지 확인하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- MAX로 옮긴 > ALL이에요. 지금 H사 물건이 있는지 보세요.\nSELECT name, price FROM items i\nWHERE price > (SELECT MAX(price) FROM items WHERE maker = 'H')\nORDER BY price;\n",
+      "solution": "-- MAX로 옮긴 > ALL이에요. 지금 H사 물건이 있는지 보세요.\nSELECT name, price FROM items i\nWHERE NOT EXISTS (SELECT 1 FROM items h\n                  WHERE h.maker = 'H' AND h.price >= i.price)\nORDER BY price;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, maker TEXT, price INTEGER);\nINSERT INTO items VALUES(1,'pen','K',1000),(2,'note','K',3000),(3,'clip','L',6000);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "name | price\npen | 1000\nnote | 3000\nclip | 6000"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, maker TEXT, price INTEGER);\nINSERT INTO items VALUES(1,'pen','H',2000),(2,'note','K',3000),(3,'clip','H',5000),(4,'bag','K',6000),(5,'tape','L',1500);\n"
+          },
+          "expected": "name | price\nbag | 6000"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, maker TEXT, price INTEGER);\nINSERT INTO items VALUES(1,'pen','L',700),(2,'note','K',2500),(3,'clip','H',2500),(4,'bag','K',4000);\n"
+          },
+          "expected": "name | price\nbag | 4000"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "H사 물건이 없을 때도 표준 > ALL과 같은 결과를 내야 해요. 그때는 모든 물건이 남아야 하죠.",
+          "target": "text:이 물건 가격 이상인 H사 물건이 하나도 없다"
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "(행 없음)이 나왔어요. 남아야 할 물건이 모두 빠졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "set_code",
+          "code": "SELECT MAX(price) FROM items WHERE maker = 'H';\n",
+          "say": "괄호 안 MAX만 따로 실행해 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            1,
+            1
+          ]
+        },
+        {
+          "action": "say",
+          "text": "NULL이에요. H사 물건이 없으면 MAX는 값이 없어요. price > NULL은 참이 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "set_code",
+          "code": "-- MAX로 옮긴 > ALL이에요. 지금 H사 물건이 있는지 보세요.\nSELECT name, price FROM items i\nWHERE price > (SELECT MAX(price) FROM items WHERE maker = 'H')\nORDER BY price;\n",
+          "say": "H사 물건이 없을 때도 맞는 전체 비교로 바꿔요."
+        },
+        {
+          "action": "patch_code",
+          "before": "WHERE price > (SELECT MAX(price) FROM items WHERE maker = 'H')",
+          "after": "WHERE NOT EXISTS (SELECT 1 FROM items h\n                  WHERE h.maker = 'H' AND h.price >= i.price)",
+          "say": "같거나 비싼 H사 물건이 하나도 없는지 묻도록 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "pen, note, clip 세 물건이 모두 나왔어요. 반례가 될 H사 물건이 없으니까요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 안쪽 비교는 h.price >= i.price예요. 값이 같은 H사 물건도 반례라서 >만 쓰면 동률인 물건이 남아요.",
+          "target": "code:h.price >= i.price"
+        }
+      ]
+    },
+    {
+      "id": "stp_1bc6e346-b1a5-46c1-8b2f-9d4610f11459",
+      "title": "개발자 1이 듣지 않은 필수 과정만 남기세요",
+      "goal": "개발자 1이 아직 듣지 않은 필수 과정을 보려 해요. 준비 질의는 필수 과정마다 이수 기록이 있는지 묻지만, 누구의 기록인지는 보지 않아요.\n\n안쪽 하위 질의에 조건 하나를 더해 개발자 1의 기록만 보게 하세요. 결과는 과정 이름순이에요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 결과를 확인하세요.\n2. 안쪽 WHERE에 개발자 1의 기록만 보는 조건을 AND로 더하세요.\n3. 다시 실행해 개발자 1이 듣지 않은 과정이 나오는지 확인하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 개발자 1이 아직 이수하지 않은 필수 과정을 찾아요.\nSELECT course FROM required r\nWHERE NOT EXISTS (SELECT 1 FROM done d\n                  WHERE d.course = r.course)\nORDER BY course;\n",
+      "solution": "-- 개발자 1이 아직 이수하지 않은 필수 과정을 찾아요.\nSELECT course FROM required r\nWHERE NOT EXISTS (SELECT 1 FROM done d\n                  WHERE d.course = r.course AND d.dev_id = 1)\nORDER BY course;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE devs(id INTEGER PRIMARY KEY, name TEXT);\nINSERT INTO devs VALUES(1,'kim'),(2,'lee'),(3,'park');\nCREATE TABLE required(course TEXT PRIMARY KEY);\nINSERT INTO required VALUES('db'),('net'),('sec');\nCREATE TABLE done(dev_id INTEGER, course TEXT);\nINSERT INTO done VALUES(1,'db'),(2,'net'),(2,'sec'),(3,'db');\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "course\nnet\nsec"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE devs(id INTEGER PRIMARY KEY, name TEXT);\nINSERT INTO devs VALUES(1,'kim'),(2,'lee'),(3,'park');\nCREATE TABLE required(course TEXT PRIMARY KEY);\nINSERT INTO required VALUES('db'),('net'),('sec');\nCREATE TABLE done(dev_id INTEGER, course TEXT);\nINSERT INTO done VALUES(1,'sec'),(1,'ai'),(2,'db'),(3,'net');\n"
+          },
+          "expected": "course\ndb\nnet"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE devs(id INTEGER PRIMARY KEY, name TEXT);\nINSERT INTO devs VALUES(1,'kim'),(2,'lee'),(3,'park');\nCREATE TABLE required(course TEXT PRIMARY KEY);\nINSERT INTO required VALUES('db'),('net');\nCREATE TABLE done(dev_id INTEGER, course TEXT);\nINSERT INTO done VALUES(1,'db'),(1,'net'),(2,'db');\n"
+          },
+          "expected": "course\n(행 없음)"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "한 사람, 개발자 1에게 남은 필수 과정을 찾는 문제예요. 다음 스텝에서 모든 사람으로 넓혀요.",
+          "target": "text:안쪽 하위 질의에 조건 하나를 더해 개발자 1의 기록만 보게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "(행 없음)이에요. db, net, sec 모두 누군가 들은 기록이 있었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "WHERE d.course = r.course)",
+          "after": "WHERE d.course = r.course AND d.dev_id = 1)",
+          "say": "안쪽에 개발자 1의 기록만 보는 조건을 더해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "net과 sec가 나왔어요. 개발자 1의 기록은 db 하나뿐이거든요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. d.dev_id = 1은 괄호 안에 둬요. 바깥 WHERE에서는 d를 볼 수 없어 오류가 나요.",
+          "target": "code:d.dev_id = 1"
+        }
+      ]
+    },
+    {
+      "id": "stp_9aee34d1-3833-4819-ac1b-1a1b7b686013",
+      "title": "상수 1을 바깥 개발자로 바꿔 필수 과정을 모두 들은 사람을 찾으세요",
+      "goal": "필수 과정을 모두 들은 개발자를 찾으려 해요.\n\n**알아두세요**\n\n\"모두 들었다\"는 \"듣지 않은 필수 과정이 하나도 없다\"와 같아요. 그래서 앞 스텝의 \"듣지 않은 과정\" 질의를 NOT EXISTS로 한 번 더 감싸요. 이렇게 \"모두\"를 찾는 질의를 관계 나눗셈이라고 해요.\n\n준비 질의는 이미 감싸 두었지만 안쪽이 아직 개발자 1에 고정돼 있어요. 그 자리를 바깥 개발자 v의 번호로 바꿔 모든 필수 과정을 들은 개발자의 이름을 이름순으로 보이세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 결과를 확인하세요.\n2. 안쪽의 d.dev_id = 1에서 1을 바깥 개발자의 번호로 바꾸세요.\n3. 다시 실행해 필수 과정을 모두 들은 개발자가 나오는지 확인하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 앞 질의를 개발자 표 v의 NOT EXISTS로 감쌌어요. 안쪽의 1을 보세요.\nSELECT name FROM devs v\nWHERE NOT EXISTS (\n  SELECT 1 FROM required r\n  WHERE NOT EXISTS (SELECT 1 FROM done d\n                    WHERE d.course = r.course AND d.dev_id = 1))\nORDER BY name;\n",
+      "solution": "-- 앞 질의를 개발자 표 v의 NOT EXISTS로 감쌌어요. 안쪽의 1을 보세요.\nSELECT name FROM devs v\nWHERE NOT EXISTS (\n  SELECT 1 FROM required r\n  WHERE NOT EXISTS (SELECT 1 FROM done d\n                    WHERE d.course = r.course AND d.dev_id = v.id))\nORDER BY name;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE devs(id INTEGER PRIMARY KEY, name TEXT);\nINSERT INTO devs VALUES(1,'kim'),(2,'lee'),(3,'park');\nCREATE TABLE required(course TEXT PRIMARY KEY);\nINSERT INTO required VALUES('db'),('net'),('sec');\nCREATE TABLE done(dev_id INTEGER, course TEXT);\nINSERT INTO done VALUES(1,'db'),(2,'net'),(2,'sec'),(2,'db'),(3,'db'),(3,'sec'),(3,'net');\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "name\nlee\npark"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE devs(id INTEGER PRIMARY KEY, name TEXT);\nINSERT INTO devs VALUES(1,'kim'),(2,'lee'),(3,'park');\nCREATE TABLE required(course TEXT PRIMARY KEY);\nINSERT INTO required VALUES('db'),('net');\nCREATE TABLE done(dev_id INTEGER, course TEXT);\nINSERT INTO done VALUES(1,'db'),(1,'net'),(2,'db'),(3,'ai');\n"
+          },
+          "expected": "name\nkim"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE devs(id INTEGER PRIMARY KEY, name TEXT);\nINSERT INTO devs VALUES(1,'kim'),(2,'lee'),(3,'park');\nCREATE TABLE required(course TEXT PRIMARY KEY);\nCREATE TABLE done(dev_id INTEGER, course TEXT);\nINSERT INTO done VALUES(1,'db'),(2,'net');\n"
+          },
+          "expected": "name\nkim\nlee\npark"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "필수 과정을 빠짐없이 들은 개발자를 찾는 문제예요. 안쪽이 개발자마다 바뀌어야 해요.",
+          "target": "text:그 자리를 바깥 개발자 v의 번호로 바꿔"
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "(행 없음)이에요. 모든 개발자에게 개발자 1의 기록으로 물었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "d.dev_id = 1)",
+          "after": "d.dev_id = v.id)",
+          "say": "1을 바깥 개발자 v.id로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "lee와 park이 나왔어요. kim은 net과 sec를 듣지 않았죠.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "SELECT name FROM devs v",
+          "after": "DELETE FROM required;\nSELECT name FROM devs v",
+          "say": "필수 과정이 하나도 없으면 어떻게 될까요? 앞에 DELETE를 붙여 봐요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            3,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "kim, lee, park 세 명이 다 나왔어요. 듣지 않은 필수 과정이 하나도 없으니까요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "DELETE FROM required;\nSELECT name FROM devs v",
+          "after": "SELECT name FROM devs v",
+          "say": "붙였던 DELETE 줄은 지워요."
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 안쪽 NOT EXISTS를 EXISTS로 바꾸면 들은 필수 과정이 하나도 없는 사람을 찾게 돼요.",
+          "target": "code:WHERE NOT EXISTS (SELECT 1 FROM done d"
+        }
+      ]
+    },
+    {
+      "id": "stp_fd0d9fa5-6845-4946-8179-72ab46e53655",
+      "title": "다시 들은 기록 때문에 어긋난 COUNT 비교를 고치세요",
+      "goal": "동료가 같은 명단을 COUNT 비교로 만들었어요. 개발자마다 들은 필수 과정 기록 수를 세서 필수 과정 수와 같으면 남겨요. 그런데 같은 과정을 다시 들은 기록이 있어요.\n\n안쪽 COUNT 한 곳을 고쳐 개발자마다 서로 다른 필수 과정의 수를 세게 하세요. 필수 과정을 모두 들은 개발자의 이름이 이름순으로 나와야 해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 나온 개발자를 확인하세요.\n2. 개발자마다 안쪽 COUNT가 몇이 되는지 이수 기록과 비교하세요.\n3. 안쪽 COUNT가 같은 과정을 한 번만 세도록 고치세요.\n4. 다시 실행해 필수 과정을 모두 들은 개발자만 남았는지 확인하세요.\n5. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 들은 필수 과정 수와 필수 과정 수를 비교해요. 다시 들은 기록을 보세요.\nSELECT name FROM devs v\nWHERE (SELECT COUNT(*) FROM done d\n       WHERE d.dev_id = v.id\n         AND d.course IN (SELECT course FROM required))\n    = (SELECT COUNT(*) FROM required)\nORDER BY name;\n",
+      "solution": "-- 들은 필수 과정 수와 필수 과정 수를 비교해요. 다시 들은 기록을 보세요.\nSELECT name FROM devs v\nWHERE (SELECT COUNT(DISTINCT d.course) FROM done d\n       WHERE d.dev_id = v.id\n         AND d.course IN (SELECT course FROM required))\n    = (SELECT COUNT(*) FROM required)\nORDER BY name;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE devs(id INTEGER PRIMARY KEY, name TEXT);\nINSERT INTO devs VALUES(1,'kim'),(2,'lee'),(3,'park'),(4,'choi');\nCREATE TABLE required(course TEXT PRIMARY KEY);\nINSERT INTO required VALUES('db'),('net');\nCREATE TABLE done(dev_id INTEGER, course TEXT);\nINSERT INTO done VALUES(1,'db'),(1,'db'),(2,'db'),(2,'net'),(2,'net'),(3,'db'),(3,'net'),(3,'ai'),(4,'net');\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "name\nlee\npark"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE devs(id INTEGER PRIMARY KEY, name TEXT);\nINSERT INTO devs VALUES(1,'kim'),(2,'lee'),(3,'park');\nCREATE TABLE required(course TEXT PRIMARY KEY);\nINSERT INTO required VALUES('db'),('net'),('sec');\nCREATE TABLE done(dev_id INTEGER, course TEXT);\nINSERT INTO done VALUES(1,'db'),(1,'net'),(1,'sec'),(1,'ai'),(2,'db'),(2,'net'),(2,'net'),(3,'sec'),(3,'sec'),(3,'db'),(3,'net');\n"
+          },
+          "expected": "name\nkim\npark"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE devs(id INTEGER PRIMARY KEY, name TEXT);\nINSERT INTO devs VALUES(1,'kim'),(2,'lee'),(3,'park');\nCREATE TABLE required(course TEXT PRIMARY KEY);\nINSERT INTO required VALUES('db');\nCREATE TABLE done(dev_id INTEGER, course TEXT);\nINSERT INTO done VALUES(1,'net'),(2,'db'),(2,'db'),(3,'ai'),(3,'net');\n"
+          },
+          "expected": "name\nlee"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "COUNT로 \"모두\"를 판정하는 질의를 고치는 문제예요. 다시 들은 기록이 셈을 흔들어요.",
+          "target": "text:안쪽 COUNT 한 곳을 고쳐 개발자마다 서로 다른 필수 과정의 수를 세게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "kim과 park이 나왔어요. kim은 net을 듣지 않았는데 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "set_code",
+          "code": "SELECT name, (SELECT COUNT(*) FROM done d\n              WHERE d.dev_id = v.id\n                AND d.course IN (SELECT course FROM required)) AS cnt\nFROM devs v ORDER BY name;\n",
+          "say": "개발자마다 안쪽 COUNT 값을 열로 꺼내 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            1,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "choi 1, kim 2, lee 3, park 2예요. 필수 과정 수 2와 비교했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "kim은 db를 두 번, lee는 net을 두 번 들었어요. park의 ai는 안쪽 IN이 걸러서 세지 않았고요.",
+          "target": "code:d.course IN (SELECT course FROM required)"
+        },
+        {
+          "action": "set_code",
+          "code": "-- 들은 필수 과정 수와 필수 과정 수를 비교해요. 다시 들은 기록을 보세요.\nSELECT name FROM devs v\nWHERE (SELECT COUNT(*) FROM done d\n       WHERE d.dev_id = v.id\n         AND d.course IN (SELECT course FROM required))\n    = (SELECT COUNT(*) FROM required)\nORDER BY name;\n",
+          "say": "개발자별 과정 수 비교에 중복 제거를 더해요."
+        },
+        {
+          "action": "patch_code",
+          "before": "COUNT(*) FROM done d",
+          "after": "COUNT(DISTINCT d.course) FROM done d",
+          "say": "같은 과정은 한 번만 세도록 DISTINCT d.course로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "lee와 park이 나왔어요. 둘 다 db와 net을 한 번 이상 들었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 안쪽 IN 조건을 지우면 필수가 아닌 ai까지 세서 park이 3이 돼요. 그러면 park이 빠져요.",
+          "target": "code:AND d.course IN"
+        }
+      ]
+    }
+  ]
+}

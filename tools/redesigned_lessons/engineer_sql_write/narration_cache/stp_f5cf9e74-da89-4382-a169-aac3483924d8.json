@@ -1,0 +1,56 @@
+{
+  "by": "hand",
+  "source_sha256": "52177a28c45e6af1c811c1abf7513b5a23427888bb8e483c3796dce9e584c740",
+  "entry": [
+    {
+      "action": "say",
+      "text": "두 학년 모두에 점수 조건이 걸려야 하는 문제예요.",
+      "target": "text:WHERE의 학년 조건을 IN으로 바꿔 두 학년 모두에 점수 조건이 걸리게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1, 2, 3, 6이 나왔어요. 3번 박서연은 78점인데 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "AND가 먼저 묶여서 grade = 1 하나만 맞아도 참이 됐어요.",
+      "target": "code:grade = 1 OR"
+    },
+    {
+      "action": "patch_code",
+      "before": "grade = 1 OR grade = 2 AND",
+      "after": "grade IN (1, 2) AND",
+      "say": "두 학년을 IN 목록 하나로 묶어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1, 2, 6이에요. 78점인 3번이 빠졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "5번 최민수는 2학년이지만 점수가 NULL이에요. NULL >= 80은 참이 아니라서 남지 않아요.",
+      "target": "code:score >= 80"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. IN 뒤를 OR로 이으면 3학년 4번과 7번도 80점 이상이라 남아요.",
+      "target": "code:IN (1, 2) AND"
+    }
+  ]
+}

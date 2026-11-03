@@ -1,0 +1,70 @@
+{
+  "by": "hand",
+  "source_sha256": "ed4b3af19a412a57b36ab4e7849caecccd9d8ae3a3ec8614c02dfa997f51b65d",
+  "entry": [
+    {
+      "action": "say",
+      "text": "20팀을 지울 때 그 팀 직원까지 함께 정리하는 문제예요.",
+      "target": "text:외래키 제약에 삭제 옵션을 붙여 20팀을 지우면 그 팀 직원도 함께 지워지게 하세요."
+    },
+    {
+      "action": "say",
+      "text": "CONSTRAINT 뒤는 제약 이름, FOREIGN KEY 뒤는 자기 열, REFERENCES 뒤는 부모 표와 열이에요.",
+      "target": "code:FOREIGN KEY(team_id)"
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        9
+      ],
+      "expect_error": "FOREIGN KEY constraint failed"
+    },
+    {
+      "action": "say",
+      "text": "팀 20을 지우다 FOREIGN KEY 오류가 났어요. Bo, Cy, Eun이 아직 20을 가리켜요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "REFERENCES teams(id)\n",
+      "after": "REFERENCES teams(id) ON DELETE SET NULL\n",
+      "say": "부모가 지워질 때 할 일을 SET NULL로 정해 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "이번엔 지워졌어요. 2, 3, 5번 직원은 남고 team_id가 NULL이 됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "SET NULL",
+      "after": "CASCADE",
+      "say": "요구대로 CASCADE로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1 | Ara | 10, 4 | Dan | 30만 남았어요. 20팀 직원 세 명이 함께 지워졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 이 옵션은 자식 표 staff의 외래키에 붙여요. 부모 표 teams 쪽에 적는 게 아니에요.",
+      "target": "code:ON DELETE CASCADE"
+    }
+  ]
+}

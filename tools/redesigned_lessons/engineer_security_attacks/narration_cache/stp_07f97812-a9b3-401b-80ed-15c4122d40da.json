@@ -1,0 +1,88 @@
+{
+  "by": "hand",
+  "source_sha256": "ce44a85c0557428f0b49fdd660e2394b7e0e717fcb27ce035d4ba12b562eb0b7",
+  "entry": [
+    {
+      "action": "say",
+      "text": "아이디가 같은 회원만 찾아야 해요. 입력이 조건을 늘리면 안 되죠.",
+      "target": "text:입력이 질의 구조를 바꾸지 못하게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "3이 나왔어요. 없는 아이디로 세 명이 모두 나왔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "rows = db.execute(sql).fetchall()\n",
+      "after": "print(sql)\nrows = db.execute(sql).fetchall()\n",
+      "say": "완성된 SQL 문장을 찍어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "끝에 OR '1'='1'이 붙었어요. 입력의 따옴표가 값을 닫고 조건을 덧붙였어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "print(sql)\n",
+      "after": "",
+      "say": "확인했으니 찍는 줄은 지워요."
+    },
+    {
+      "action": "patch_code",
+      "before": "sql = \"SELECT name FROM users WHERE login_id = '\" + login_id + \"'\"\nrows = db.execute(sql).fetchall()\n",
+      "after": "# 문장 구조는 ?로 먼저 고정하고, 아이디는 값으로만 따로 넘겨요.\nsql = 'SELECT name FROM users WHERE login_id = ?'\nrows = db.execute(sql, (login_id,)).fetchall()\n",
+      "say": "아이디 자리를 ?로 고정하고, 값은 튜플로 따로 넘겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0이 나왔어요. 입력 전체가 아이디 값 하나로만 비교됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "login_id = \"x' OR '1'='1\"",
+      "after": "login_id = \"o'neil\"",
+      "say": "따옴표가 든 진짜 아이디 o'neil도 넣어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1이 나왔어요. 따옴표도 값 속의 글자로만 쓰였어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 따옴표를 지워서 막으면 o'neil이 oneil이 돼 못 찾아요. 지우지 말고 값 자리로 넘기세요.",
+      "target": "code:(login_id,)"
+    }
+  ]
+}

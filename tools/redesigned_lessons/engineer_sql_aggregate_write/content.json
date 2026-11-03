@@ -1,0 +1,848 @@
+{
+  "description": "GROUP BY·HAVING과 별칭을 직접 쓰고, 윈도 프레임으로 행마다 움직이는 합계를 만들고, ROLLUP의 소계·총계를 UNION ALL로 직접 만들어요.",
+  "tasks": [
+    {
+      "id": "stp_1e5b5adc-b727-469e-b532-77a39839af86",
+      "title": "지점별 최소·최대 상자 수에 이름을 붙이세요",
+      "goal": "지점마다 가장 적은 상자 수와 가장 많은 상자 수를 보고서에 실으려 해요. 보고서의 열 이름은 branch, low, high여야 해요.\n\n**알아두세요**\n\n`MIN(열)`은 그룹에서 가장 작은 값, `MAX(열)`은 가장 큰 값이에요. 식 뒤에 `AS 이름`을 쓰면 결과 열의 이름이 그 이름이 돼요. 시험에서 `AS '별칭'`처럼 작은따옴표를 쓰라는 조건이 나오면 SQLite도 받아 줘요. 표준 SQL에서 이름은 큰따옴표로 감싸요.\n\nSELECT 목록을 고쳐 지점별 최소 상자 수는 low, 최대 상자 수는 high라는 이름으로 나오게 하세요. 채점은 다른 배송 기록으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 나오는 열 이름을 확인하세요.\n2. MIN(boxes) 뒤에 low라는 별칭을 붙이세요.\n3. 최대 상자 수를 high라는 이름으로 구하는 열을 하나 더하세요.\n4. 다시 실행해 열 이름과 지점별 값을 확인하세요.\n5. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 지점마다 가장 적은 상자 수와 가장 많은 상자 수를 보고해요.\nSELECT branch, MIN(boxes) FROM deliveries GROUP BY branch ORDER BY branch;",
+      "solution": "-- 지점마다 가장 적은 상자 수와 가장 많은 상자 수를 보고해요.\nSELECT branch, MIN(boxes) AS low, MAX(boxes) AS high FROM deliveries GROUP BY branch ORDER BY branch;",
+      "tests": [
+        {
+          "input": "",
+          "expected": "branch | low | high\neast | 12 | 30\nnorth | 25 | 33\nwest | 6 | 10"
+        }
+      ],
+      "files": {
+        "setup.sql": "CREATE TABLE deliveries(id INTEGER PRIMARY KEY, branch TEXT, kind TEXT, status TEXT, boxes INTEGER);\nINSERT INTO deliveries VALUES(1,'east','box','done',12),(2,'east','bag','done',30),(3,'east','box','late',18),(4,'north','box','done',25),(5,'north','bag','late',33),(6,'west','box','done',8),(7,'west','bag','done',10),(8,'west','box','done',6);\n"
+      },
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE deliveries(id INTEGER PRIMARY KEY, branch TEXT, kind TEXT, status TEXT, boxes INTEGER);\nINSERT INTO deliveries VALUES(1,'east','box','done',40),(2,'east','bag','late',5),(3,'north','box','done',22),(4,'north','bag','done',22),(5,'north','box','late',9),(6,'south','box','done',15),(7,'south','bag','done',26),(8,'south','box','done',31);\n"
+          },
+          "expected": "branch | low | high\neast | 5 | 40\nnorth | 9 | 22\nsouth | 15 | 31"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "지점마다 한 행이 나오고, 그 행에 최소·최대 두 값이 이름을 달고 있어야 해요.",
+          "target": "text:보고서의 열 이름은 branch, low, high여야 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "열 이름이 MIN(boxes)로 나왔어요. east는 12, north는 25, west는 6이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "MIN(boxes) FROM",
+          "after": "MIN(boxes) AS low FROM",
+          "say": "집계 식 뒤에 AS low를 붙여요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "열 이름이 low로 바뀌었어요. 값은 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "AS low FROM",
+          "after": "AS low, MAX(boxes) AS high FROM",
+          "say": "쉼표 뒤에 MAX(boxes) AS high를 더해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "east는 12와 30, north는 25와 33이에요. 한 그룹에서 두 집계를 함께 구했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "GROUP BY branch라서 한 지점의 여러 배송이 한 행으로 모였어요.",
+          "target": "code:GROUP BY branch"
+        }
+      ]
+    },
+    {
+      "id": "stp_88330094-2a16-4258-83b1-f2597ed06c5e",
+      "title": "평균 조건을 그룹 조건 자리로 옮기세요",
+      "goal": "평균 상자 수가 20 이상인 지점만 골라 최소·최대 상자 수를 보고하려 해요. 준비 질의는 평균 조건을 WHERE에 써서 실행되지 않아요.\n\n평균 조건을 그룹마다 따지는 자리로 옮기세요. SELECT 목록은 그대로 두세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 나오는 오류 문장을 확인하세요.\n2. WHERE AVG(boxes) >= 20 줄을 지우세요.\n3. GROUP BY 줄 아래에 같은 평균 조건을 HAVING으로 쓰세요.\n4. 다시 실행해 남은 지점을 확인하세요.\n5. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 평균 상자 수가 20 이상인 지점만 보고해요.\nSELECT branch, MIN(boxes) AS low, MAX(boxes) AS high\nFROM deliveries\nWHERE AVG(boxes) >= 20\nGROUP BY branch\nORDER BY branch;",
+      "solution": "-- 평균 상자 수가 20 이상인 지점만 보고해요.\nSELECT branch, MIN(boxes) AS low, MAX(boxes) AS high\nFROM deliveries\nGROUP BY branch\nHAVING AVG(boxes) >= 20\nORDER BY branch;",
+      "tests": [
+        {
+          "input": "",
+          "expected": "branch | low | high\neast | 12 | 30\nnorth | 25 | 33"
+        }
+      ],
+      "files": {
+        "setup.sql": "CREATE TABLE deliveries(id INTEGER PRIMARY KEY, branch TEXT, kind TEXT, status TEXT, boxes INTEGER);\nINSERT INTO deliveries VALUES(1,'east','box','done',12),(2,'east','bag','done',30),(3,'east','box','late',18),(4,'north','box','done',25),(5,'north','bag','late',33),(6,'west','box','done',8),(7,'west','bag','done',10),(8,'west','box','done',6);\n"
+      },
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE deliveries(id INTEGER PRIMARY KEY, branch TEXT, kind TEXT, status TEXT, boxes INTEGER);\nINSERT INTO deliveries VALUES(1,'east','box','done',40),(2,'east','bag','late',5),(3,'north','box','done',22),(4,'north','bag','done',22),(5,'north','box','late',9),(6,'south','box','done',15),(7,'south','bag','done',26),(8,'south','box','done',31);\n"
+          },
+          "expected": "branch | low | high\neast | 5 | 40\nsouth | 15 | 31"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "평균은 지점별로 묶은 뒤에야 계산돼요. 그 평균으로 지점을 골라야 해요.",
+          "target": "text:평균 상자 수가 20 이상인 지점만 골라 최소·최대 상자 수를 보고하려 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            6
+          ],
+          "expect_error": "misuse of aggregate"
+        },
+        {
+          "action": "say",
+          "text": "misuse of aggregate: AVG() 오류예요. WHERE는 묶기 전 행 하나씩 보는 자리라 평균이 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "WHERE AVG(boxes) >= 20\nGROUP BY branch\n",
+          "after": "GROUP BY branch\nHAVING AVG(boxes) >= 20\n",
+          "say": "WHERE 줄을 지우고 GROUP BY 아래에 HAVING으로 써요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "east와 north가 남았어요. east의 평균은 12, 30, 18의 평균인 20이라 경계에서 들어왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "HAVING은 AVG로 거르고 SELECT는 MIN과 MAX를 보여 줘요. 거르는 집계와 보여 주는 집계가 달라도 돼요.",
+          "target": "code:HAVING AVG(boxes) >= 20"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 평균 대신 MIN(boxes) >= 20으로 쓰면 east는 12 때문에 빠져요. 요구 문장의 집계를 그대로 옮겨요.",
+          "target": "code:AVG(boxes) >= 20"
+        }
+      ]
+    },
+    {
+      "id": "stp_2f9a9555-50df-4214-80c1-996cd50260fb",
+      "title": "완료된 배송만 세도록 행 조건을 더하세요",
+      "goal": "지점별로 완료(done)된 배송만 세어, 완료가 2건 이상인 지점을 보고하려 해요. 준비 질의는 상태와 상관없이 모든 배송을 세요.\n\nFROM 줄 아래에 행 조건 한 줄을 더해 완료된 배송만 세게 하세요. HAVING 줄은 그대로 두세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 지점별 건수를 확인하세요.\n2. FROM 줄 아래에 status가 'done'인 행만 남기는 WHERE 한 줄을 쓰세요.\n3. 다시 실행해 건수와 남은 지점이 어떻게 바뀌었는지 비교하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 완료(done)된 배송만 세어, 2건 이상인 지점을 보고해요.\nSELECT branch, COUNT(*) AS done\nFROM deliveries\nGROUP BY branch\nHAVING COUNT(*) >= 2\nORDER BY branch;",
+      "solution": "-- 완료(done)된 배송만 세어, 2건 이상인 지점을 보고해요.\nSELECT branch, COUNT(*) AS done\nFROM deliveries\nWHERE status = 'done'\nGROUP BY branch\nHAVING COUNT(*) >= 2\nORDER BY branch;",
+      "tests": [
+        {
+          "input": "",
+          "expected": "branch | done\neast | 2\nwest | 3"
+        }
+      ],
+      "files": {
+        "setup.sql": "CREATE TABLE deliveries(id INTEGER PRIMARY KEY, branch TEXT, kind TEXT, status TEXT, boxes INTEGER);\nINSERT INTO deliveries VALUES(1,'east','box','done',12),(2,'east','bag','done',30),(3,'east','box','late',18),(4,'north','box','done',25),(5,'north','bag','late',33),(6,'west','box','done',8),(7,'west','bag','done',10),(8,'west','box','done',6);\n"
+      },
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE deliveries(id INTEGER PRIMARY KEY, branch TEXT, kind TEXT, status TEXT, boxes INTEGER);\nINSERT INTO deliveries VALUES(1,'east','box','done',40),(2,'east','bag','late',5),(3,'north','box','done',22),(4,'north','bag','done',22),(5,'north','box','late',9),(6,'south','box','done',15),(7,'south','bag','done',26),(8,'south','box','done',31);\n"
+          },
+          "expected": "branch | done\nnorth | 2\nsouth | 3"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "두 조건이 있어요. 세기 전에 배송 한 건씩 거르고, 센 뒤에 지점을 걸러야 해요.",
+          "target": "text:지점별로 완료(done)된 배송만 세어, 완료가 2건 이상인 지점을 보고하려 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "east 3, north 2, west 3이에요. 지연(late)된 배송까지 함께 셌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "FROM deliveries\n",
+          "after": "FROM deliveries\nWHERE status = 'done'\n",
+          "say": "묶기 전에 완료된 행만 남기는 WHERE를 더해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "east는 2로 줄고 north는 사라졌어요. north의 완료는 1건이라 HAVING에서 빠졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "실행 순서는 WHERE로 행을 거르고, GROUP BY로 묶고, HAVING으로 그룹을 거른 뒤 SELECT로 보여 줘요.",
+          "target": "lines:4:6"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. COUNT(status = 'done')은 거짓인 행도 세요. COUNT는 참이 아니라 NULL이 아닌 값을 세거든요.",
+          "target": "code:WHERE status = 'done'"
+        }
+      ]
+    },
+    {
+      "id": "stp_78064c5f-18d0-4eef-9342-30b28d211a12",
+      "title": "프레임을 바로 앞 한 행까지로 줄이세요",
+      "goal": "회차마다 바로 앞 회차와 이번 회차의 상자 수를 더한 값을 보려 해요. 준비 질의의 프레임은 첫 회차부터 지금 회차까지 모두 더해요.\n\n**알아두세요**\n\n`ROWS BETWEEN n PRECEDING AND CURRENT ROW`는 정렬 순서로 지금 행과 그 앞 n개 행을 묶는 창(프레임)이에요. 창은 행마다 한 칸씩 움직여요.\n\n프레임의 시작 한 곳을 고쳐 바로 앞 한 행과 지금 행만 더하게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 recent 값을 확인하세요.\n2. UNBOUNDED PRECEDING을 앞 한 행부터로 고치세요.\n3. 다시 실행해 각 값이 두 회차의 합인지 확인하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 회차마다 바로 앞 회차와 이번 회차의 상자를 더해요.\nSELECT seq,\n       SUM(boxes) OVER (ORDER BY seq ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS recent\nFROM runs\nORDER BY seq;",
+      "solution": "-- 회차마다 바로 앞 회차와 이번 회차의 상자를 더해요.\nSELECT seq,\n       SUM(boxes) OVER (ORDER BY seq ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) AS recent\nFROM runs\nORDER BY seq;",
+      "tests": [
+        {
+          "input": "",
+          "expected": "seq | recent\n1 | 9\n2 | 13\n3 | 11\n4 | 10\n5 | 8\n6 | 7\n7 | 4\n8 | 3"
+        }
+      ],
+      "files": {
+        "setup.sql": "CREATE TABLE runs(seq INTEGER PRIMARY KEY, region TEXT, boxes INTEGER);\nINSERT INTO runs VALUES(1,'east',9),(2,'east',4),(3,'west',7),(4,'east',3),(5,'west',5),(6,'east',2),(7,'west',2),(8,'west',1);\n"
+      },
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE runs(seq INTEGER PRIMARY KEY, region TEXT, boxes INTEGER);\nINSERT INTO runs VALUES(1,'west',3),(2,'east',8),(3,'west',6),(4,'west',1),(5,'east',2),(6,'east',5),(7,'west',4),(8,'east',7);\n"
+          },
+          "expected": "seq | recent\n1 | 3\n2 | 11\n3 | 14\n4 | 7\n5 | 3\n6 | 7\n7 | 9\n8 | 11"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "행마다 두 회차만 더해야 해요. 지금 창은 처음부터 열려 있어요.",
+          "target": "text:회차마다 바로 앞 회차와 이번 회차의 상자 수를 더한 값을 보려 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "9, 13, 20으로 계속 커져서 마지막은 33이에요. 처음부터 쌓은 누적 합계예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "UNBOUNDED PRECEDING",
+          "after": "1 PRECEDING",
+          "say": "창의 시작을 앞 한 행으로 줄여요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3번 회차는 11이에요. 2번의 4와 3번의 7만 더했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "1번 회차는 앞 행이 없어 자기 값 9 하나만 더했어요. 오류나 NULL이 아니에요.",
+          "target": "code:1 PRECEDING"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 1 PRECEDING을 처음부터의 누적으로 읽으면 3번을 20으로 적어요. 창은 행마다 함께 움직여요.",
+          "target": "code:ROWS BETWEEN"
+        }
+      ]
+    },
+    {
+      "id": "stp_154a3040-a7f3-4879-95ce-b712ea33be52",
+      "title": "지역이 바뀌면 누적이 다시 시작되게 하세요",
+      "goal": "지역마다 따로 회차 순서대로 상자 수를 누적하려 해요. 준비 질의는 결과를 지역별로 정렬해 보여 주지만, 누적은 지역을 가리지 않고 이어져요.\n\nOVER 괄호 안에 지역을 기준으로 창을 나누는 말을 더해, 지역의 첫 회차에서 누적이 다시 시작되게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 west의 첫 행 running 값을 확인하세요.\n2. OVER 괄호 안 맨 앞에 지역으로 나누는 PARTITION BY를 쓰세요.\n3. 다시 실행해 지역마다 누적이 처음부터 시작되는지 확인하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 지역마다 회차 순서대로 상자 수를 누적해요.\nSELECT region, seq, boxes,\n       SUM(boxes) OVER (ORDER BY seq ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running\nFROM runs\nORDER BY region, seq;",
+      "solution": "-- 지역마다 회차 순서대로 상자 수를 누적해요.\nSELECT region, seq, boxes,\n       SUM(boxes) OVER (PARTITION BY region ORDER BY seq ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running\nFROM runs\nORDER BY region, seq;",
+      "tests": [
+        {
+          "input": "",
+          "expected": "region | seq | boxes | running\neast | 1 | 9 | 9\neast | 2 | 4 | 13\neast | 4 | 3 | 16\neast | 6 | 2 | 18\nwest | 3 | 7 | 7\nwest | 5 | 5 | 12\nwest | 7 | 2 | 14\nwest | 8 | 1 | 15"
+        }
+      ],
+      "files": {
+        "setup.sql": "CREATE TABLE runs(seq INTEGER PRIMARY KEY, region TEXT, boxes INTEGER);\nINSERT INTO runs VALUES(1,'east',9),(2,'east',4),(3,'west',7),(4,'east',3),(5,'west',5),(6,'east',2),(7,'west',2),(8,'west',1);\n"
+      },
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE runs(seq INTEGER PRIMARY KEY, region TEXT, boxes INTEGER);\nINSERT INTO runs VALUES(1,'west',3),(2,'east',8),(3,'west',6),(4,'west',1),(5,'east',2),(6,'east',5),(7,'west',4),(8,'east',7);\n"
+          },
+          "expected": "region | seq | boxes | running\neast | 2 | 8 | 8\neast | 5 | 2 | 10\neast | 6 | 5 | 15\neast | 8 | 7 | 22\nwest | 1 | 3 | 3\nwest | 3 | 6 | 9\nwest | 4 | 1 | 10\nwest | 7 | 4 | 14"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "결과 정렬과 누적 계산은 따로예요. 누적이 지역마다 끊겨야 해요.",
+          "target": "text:지역마다 따로 회차 순서대로 상자 수를 누적하려 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "west의 첫 행 running이 20이에요. 자기 상자는 7인데 앞 회차의 east까지 더했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "맨 아래 ORDER BY region은 보여 주는 순서만 정해요. 창의 범위는 OVER 안에서 정해요.",
+          "target": "code:ORDER BY region, seq"
+        },
+        {
+          "action": "patch_code",
+          "before": "OVER (ORDER BY seq",
+          "after": "OVER (PARTITION BY region ORDER BY seq",
+          "say": "OVER 안에 PARTITION BY region을 넣어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "west의 첫 행이 7로 시작해 12, 14, 15예요. east는 9, 13, 16, 18이고요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "파티션은 창의 울타리예요. UNBOUNDED PRECEDING도 울타리 안의 첫 행까지만 가요.",
+          "target": "code:PARTITION BY region"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. OVER 안의 ORDER BY에 region만 더하면 정렬만 바뀌고 누적은 이어져요. 끊는 말은 PARTITION BY예요.",
+          "target": "code:ORDER BY seq ROWS"
+        }
+      ]
+    },
+    {
+      "id": "stp_5346d0cd-fd1e-45ae-b369-6b4d2102b051",
+      "title": "지역별 최근 세 회차의 최대값 열을 직접 쓰세요",
+      "goal": "지역마다 지금 회차와 앞 두 회차, 모두 세 회차 가운데 가장 많이 실은 상자 수를 peak 열로 붙이려 해요. 행 수는 그대로여야 해요.\n\n주석 아래에 쉼표로 시작하는 열 한 줄을 써서 MAX와 OVER로 peak를 구하세요. 채점은 다른 회차 기록으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 열을 확인하세요.\n2. 주석 아래에 MAX(boxes) OVER (…) AS peak 열 한 줄을 쓰세요.\n3. OVER 안에 지역으로 나누기, 회차 순서, 앞 두 행부터 지금 행까지의 창을 차례로 쓰세요.\n4. 다시 실행해 각 지역의 네 번째 행 peak를 확인하세요.\n5. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 지역마다 최근 세 회차(지금과 앞 두 회차) 가운데 가장 많이 실은 상자 수를 붙여요.\nSELECT region, seq, boxes\n-- 이 주석 아래에 쉼표로 시작하는 peak 열 한 줄을 쓰세요.\nFROM runs\nORDER BY region, seq;",
+      "solution": "-- 지역마다 최근 세 회차(지금과 앞 두 회차) 가운데 가장 많이 실은 상자 수를 붙여요.\nSELECT region, seq, boxes\n-- 이 주석 아래에 쉼표로 시작하는 peak 열 한 줄을 쓰세요.\n     , MAX(boxes) OVER (PARTITION BY region ORDER BY seq ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS peak\nFROM runs\nORDER BY region, seq;",
+      "tests": [
+        {
+          "input": "",
+          "expected": "region | seq | boxes | peak\neast | 1 | 9 | 9\neast | 2 | 4 | 9\neast | 4 | 3 | 9\neast | 6 | 2 | 4\nwest | 3 | 7 | 7\nwest | 5 | 5 | 7\nwest | 7 | 2 | 7\nwest | 8 | 1 | 5"
+        }
+      ],
+      "files": {
+        "setup.sql": "CREATE TABLE runs(seq INTEGER PRIMARY KEY, region TEXT, boxes INTEGER);\nINSERT INTO runs VALUES(1,'east',9),(2,'east',4),(3,'west',7),(4,'east',3),(5,'west',5),(6,'east',2),(7,'west',2),(8,'west',1);\n"
+      },
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE runs(seq INTEGER PRIMARY KEY, region TEXT, boxes INTEGER);\nINSERT INTO runs VALUES(1,'west',3),(2,'east',8),(3,'west',6),(4,'west',1),(5,'east',2),(6,'east',5),(7,'west',4),(8,'east',7);\n"
+          },
+          "expected": "region | seq | boxes | peak\neast | 2 | 8 | 8\neast | 5 | 2 | 8\neast | 6 | 5 | 8\neast | 8 | 7 | 7\nwest | 1 | 3 | 3\nwest | 3 | 6 | 6\nwest | 4 | 1 | 6\nwest | 7 | 4 | 6"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "세 가지를 한 OVER에 모아요. 지역으로 나누고, 회차로 줄 세우고, 창은 세 행이에요.",
+          "target": "text:지역마다 지금 회차와 앞 두 회차, 모두 세 회차 가운데 가장 많이 실은 상자 수를 peak 열로 붙이려 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "region, seq, boxes 세 열만 나왔어요. peak 열은 아직 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "-- 이 주석 아래에 쉼표로 시작하는 peak 열 한 줄을 쓰세요.\n",
+          "after": "-- 이 주석 아래에 쉼표로 시작하는 peak 열 한 줄을 쓰세요.\n     , MAX(boxes) OVER (PARTITION BY region ORDER BY seq ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS peak\n",
+          "say": "먼저 처음부터 여는 창으로 MAX를 써 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "east의 peak가 9, 9, 9, 9예요. 첫 행의 9가 끝까지 창 안에 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "UNBOUNDED PRECEDING",
+          "after": "2 PRECEDING",
+          "say": "창을 앞 두 행부터로 줄여요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "east의 네 번째 행은 4예요. 창이 4, 3, 2만 보고 9는 창 밖으로 나갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "west도 네 번째 행에서 7이 빠져 5가 됐어요. 울타리 안에서 창이 움직였어요.",
+          "target": "code:PARTITION BY region"
+        }
+      ]
+    },
+    {
+      "id": "stp_a7dcdf26-4919-42b7-b734-eec4f3bd3471",
+      "title": "지점별 합계 아래에 총계 행을 붙이세요",
+      "goal": "지점별 상자 합계 아래에 전체 합계 한 행을 붙이려 해요. 표준 SQL에서는 `GROUP BY ROLLUP(branch)`로 써요. ROLLUP은 지점별 행에 총계 행을 하나 더하고, 총계 행의 branch 칸은 NULL이에요. 앱의 SQLite에는 ROLLUP이 없어요.\n\n**알아두세요**\n\n`UNION ALL`은 두 SELECT의 결과 행을 중복 제거 없이 이어 붙여요. 두 SELECT의 열 수가 같아야 해요. `ORDER BY 열 NULLS LAST`는 NULL을 맨 뒤로 보내요.\n\n주석 아래에 두 줄을 써서, 지점을 묶지 않은 전체 합계 행을 branch 자리 NULL로 이어 붙이세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 결과에 총계 행이 없는지 확인하세요.\n2. 주석 아래에 UNION ALL 한 줄을 쓰세요.\n3. 그 아래에 branch 자리는 NULL, 합계 자리는 전체 상자 합인 SELECT 한 줄을 쓰세요.\n4. 다시 실행해 맨 아래 행을 확인하세요.\n5. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 표준 SQL: SELECT branch, SUM(boxes) AS total FROM deliveries GROUP BY ROLLUP(branch);\nSELECT branch, SUM(boxes) AS total FROM deliveries GROUP BY branch\n-- 이 주석 아래에 전체 합계 행을 이어 붙이는 두 줄을 쓰세요.\nORDER BY branch NULLS LAST;",
+      "solution": "-- 표준 SQL: SELECT branch, SUM(boxes) AS total FROM deliveries GROUP BY ROLLUP(branch);\nSELECT branch, SUM(boxes) AS total FROM deliveries GROUP BY branch\n-- 이 주석 아래에 전체 합계 행을 이어 붙이는 두 줄을 쓰세요.\nUNION ALL\nSELECT NULL, SUM(boxes) FROM deliveries\nORDER BY branch NULLS LAST;",
+      "tests": [
+        {
+          "input": "",
+          "expected": "branch | total\neast | 60\nnorth | 58\nwest | 24\nNULL | 142"
+        }
+      ],
+      "files": {
+        "setup.sql": "CREATE TABLE deliveries(id INTEGER PRIMARY KEY, branch TEXT, kind TEXT, status TEXT, boxes INTEGER);\nINSERT INTO deliveries VALUES(1,'east','box','done',12),(2,'east','bag','done',30),(3,'east','box','late',18),(4,'north','box','done',25),(5,'north','bag','late',33),(6,'west','box','done',8),(7,'west','bag','done',10),(8,'west','box','done',6);\n"
+      },
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE deliveries(id INTEGER PRIMARY KEY, branch TEXT, kind TEXT, status TEXT, boxes INTEGER);\nINSERT INTO deliveries VALUES(1,'east','box','done',40),(2,'east','bag','late',5),(3,'north','box','done',22),(4,'north','bag','done',22),(5,'north','box','late',9),(6,'south','box','done',15),(7,'south','bag','done',26),(8,'south','box','done',31);\n"
+          },
+          "expected": "branch | total\neast | 45\nnorth | 53\nsouth | 72\nNULL | 170"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "ROLLUP이 만드는 결과를 SQLite에서 직접 만들어야 해요. 지점별 행 아래에 총계 한 행이에요.",
+          "target": "text:ROLLUP은 지점별 행에 총계 행을 하나 더하고, 총계 행의 branch 칸은 NULL이에요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "east 60, north 58, west 24 세 행뿐이에요. 총계 행이 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "set_code",
+          "code": "SELECT branch, SUM(boxes) AS total FROM deliveries GROUP BY ROLLUP(branch);",
+          "say": "표준 문법 그대로 실행해 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            1,
+            1
+          ],
+          "expect_error": "no such function: ROLLUP"
+        },
+        {
+          "action": "say",
+          "text": "no such function: ROLLUP 오류예요. 앱의 SQLite는 ROLLUP을 모르거든요.",
+          "target": "output"
+        },
+        {
+          "action": "set_code",
+          "code": "-- 표준 SQL: SELECT branch, SUM(boxes) AS total FROM deliveries GROUP BY ROLLUP(branch);\nSELECT branch, SUM(boxes) AS total FROM deliveries GROUP BY branch\n-- 이 주석 아래에 전체 합계 행을 이어 붙이는 두 줄을 쓰세요.\nORDER BY branch NULLS LAST;",
+          "say": "준비 질의로 돌아와 같은 행을 직접 만들어요."
+        },
+        {
+          "action": "patch_code",
+          "before": "-- 이 주석 아래에 전체 합계 행을 이어 붙이는 두 줄을 쓰세요.\n",
+          "after": "-- 이 주석 아래에 전체 합계 행을 이어 붙이는 두 줄을 쓰세요.\nUNION ALL\nSELECT NULL, SUM(boxes) FROM deliveries\n",
+          "say": "UNION ALL 아래에 묶지 않은 전체 합계를 써요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "맨 아래에 NULL | 142가 붙었어요. 60, 58, 24를 더한 값이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "ROLLUP의 총계 행도 이 모양이에요. 묶지 않은 수준이라 branch 칸이 NULL이에요.",
+          "target": "code:SELECT NULL"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 아래 SELECT에도 GROUP BY branch를 붙이면 지점 합계가 NULL 이름으로 세 번 더 나와요. 총계 수준은 묶지 않아요.",
+          "target": "code:UNION ALL"
+        }
+      ]
+    },
+    {
+      "id": "stp_9fdeebeb-f03f-4510-bb2d-89102c44a822",
+      "title": "두 열 ROLLUP의 지점 소계 수준을 채우세요",
+      "goal": "지점·종류별 합계, 지점별 소계, 전체 총계를 한 결과에 보려 해요. 표준 SQL의 `GROUP BY ROLLUP(branch, kind)`가 만드는 행이에요. ROLLUP은 오른쪽 열부터 하나씩 빼며 묶어요. (branch, kind), (branch), 묶지 않음의 세 수준이에요. 준비 질의에는 지점별 소계 수준이 빠져 있어요.\n\n주석 아래에 지점별 소계 SELECT 한 줄과 UNION ALL 한 줄을 쓰세요. 소계 행의 kind 칸은 NULL이에요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 어느 수준의 행이 있는지 확인하세요.\n2. 주석 아래에 branch로만 묶고 kind 자리는 NULL인 SELECT 한 줄을 쓰세요.\n3. 그 아래에 UNION ALL 한 줄을 쓰세요.\n4. 다시 실행해 지점마다 소계 행이 생겼는지 확인하세요.\n5. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 표준 SQL: SELECT branch, kind, SUM(boxes) AS total FROM deliveries GROUP BY ROLLUP(branch, kind);\nSELECT branch, kind, SUM(boxes) AS total FROM deliveries GROUP BY branch, kind\nUNION ALL\n-- 이 주석 아래에 지점별 소계 SELECT 한 줄과 UNION ALL 한 줄을 쓰세요.\nSELECT NULL, NULL, SUM(boxes) FROM deliveries\nORDER BY branch NULLS LAST, kind NULLS LAST;",
+      "solution": "-- 표준 SQL: SELECT branch, kind, SUM(boxes) AS total FROM deliveries GROUP BY ROLLUP(branch, kind);\nSELECT branch, kind, SUM(boxes) AS total FROM deliveries GROUP BY branch, kind\nUNION ALL\n-- 이 주석 아래에 지점별 소계 SELECT 한 줄과 UNION ALL 한 줄을 쓰세요.\nSELECT branch, NULL, SUM(boxes) FROM deliveries GROUP BY branch\nUNION ALL\nSELECT NULL, NULL, SUM(boxes) FROM deliveries\nORDER BY branch NULLS LAST, kind NULLS LAST;",
+      "tests": [
+        {
+          "input": "",
+          "expected": "branch | kind | total\neast | bag | 30\neast | box | 30\neast | NULL | 60\nnorth | bag | 33\nnorth | box | 25\nnorth | NULL | 58\nwest | bag | 10\nwest | box | 14\nwest | NULL | 24\nNULL | NULL | 142"
+        }
+      ],
+      "files": {
+        "setup.sql": "CREATE TABLE deliveries(id INTEGER PRIMARY KEY, branch TEXT, kind TEXT, status TEXT, boxes INTEGER);\nINSERT INTO deliveries VALUES(1,'east','box','done',12),(2,'east','bag','done',30),(3,'east','box','late',18),(4,'north','box','done',25),(5,'north','bag','late',33),(6,'west','box','done',8),(7,'west','bag','done',10),(8,'west','box','done',6);\n"
+      },
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE deliveries(id INTEGER PRIMARY KEY, branch TEXT, kind TEXT, status TEXT, boxes INTEGER);\nINSERT INTO deliveries VALUES(1,'east','box','done',40),(2,'east','bag','late',5),(3,'north','box','done',22),(4,'north','bag','done',22),(5,'north','box','late',9),(6,'south','box','done',15),(7,'south','bag','done',26),(8,'south','box','done',31);\n"
+          },
+          "expected": "branch | kind | total\neast | bag | 5\neast | box | 40\neast | NULL | 45\nnorth | bag | 22\nnorth | box | 31\nnorth | NULL | 53\nsouth | bag | 26\nsouth | box | 46\nsouth | NULL | 72\nNULL | NULL | 170"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "세 수준 가운데 가운데 수준이 빠졌어요. 지점마다 소계 한 행이 필요해요.",
+          "target": "text:(branch, kind), (branch), 묶지 않음의 세 수준이에요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "지점·종류 행 여섯 개와 NULL | NULL | 142뿐이에요. east 소계 60 같은 행이 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "-- 이 주석 아래에 지점별 소계 SELECT 한 줄과 UNION ALL 한 줄을 쓰세요.\n",
+          "after": "-- 이 주석 아래에 지점별 소계 SELECT 한 줄과 UNION ALL 한 줄을 쓰세요.\nSELECT branch, NULL, SUM(boxes) FROM deliveries GROUP BY branch\nUNION ALL\n",
+          "say": "branch로만 묶고 kind 자리는 NULL로 채운 SELECT를 이어 붙여요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "east | NULL | 60이 east의 두 종류 아래에 생겼어요. north 58, west 24도 같아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "NULLS LAST가 두 키에 있어서 소계는 지점 끝에, 총계는 맨 끝에 와요.",
+          "target": "code:kind NULLS LAST"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 소계를 kind로 묶으면 NULL | bag 같은 종류별 합계가 생겨요. 그건 CUBE에만 있는 수준이에요.",
+          "target": "code:GROUP BY branch#2"
+        }
+      ]
+    },
+    {
+      "id": "stp_bc440a6e-1696-4265-a165-34046cc92021",
+      "title": "합계 순서와 동점일 때의 순서를 함께 정하세요",
+      "goal": "지역별 주문 금액 합계를 큰 것부터 보여 주고, 합계가 같은 지역끼리는 지역 이름 순서(오름차순)로 보여 주려 해요. 준비 질의는 지역 이름 순서로만 정렬해요.\n\nORDER BY 줄을 고쳐 합계 내림차순을 첫째 기준, 지역 이름 오름차순을 둘째 기준으로 쓰세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 순서와 합계가 같은 지역을 확인하세요.\n2. ORDER BY 줄의 첫째 기준을 합계 내림차순으로 고치세요.\n3. 쉼표 뒤에 지역 이름 오름차순을 둘째 기준으로 쓰세요.\n4. 다시 실행해 합계가 같은 두 지역의 순서를 확인하세요.\n5. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 지역별 주문 금액 합계를 큰 순서로, 합계가 같으면 지역 이름 순서로 보여요.\nSELECT b.region, SUM(o.amount) AS total\nFROM orders o JOIN branches b ON o.branch_id = b.id\nGROUP BY b.region\nORDER BY b.region;",
+      "solution": "-- 지역별 주문 금액 합계를 큰 순서로, 합계가 같으면 지역 이름 순서로 보여요.\nSELECT b.region, SUM(o.amount) AS total\nFROM orders o JOIN branches b ON o.branch_id = b.id\nGROUP BY b.region\nORDER BY total DESC, b.region;",
+      "tests": [
+        {
+          "input": "",
+          "expected": "region | total\nincheon | 150\ndaegu | 120\nseoul | 120\nbusan | 90"
+        }
+      ],
+      "files": {
+        "setup.sql": "CREATE TABLE branches(id INTEGER PRIMARY KEY, region TEXT);\nINSERT INTO branches VALUES(1,'seoul'),(2,'seoul'),(3,'busan'),(4,'daegu'),(5,'incheon');\nCREATE TABLE orders(id INTEGER PRIMARY KEY, branch_id INTEGER REFERENCES branches(id), status TEXT, amount INTEGER);\nINSERT INTO orders VALUES(1,1,'PAID',70),(2,2,'PAID',30),(3,1,'CANCEL',20),(4,3,'PAID',90),(5,4,'PAID',60),(6,4,'PAID',60),(7,5,'CANCEL',150);\n"
+      },
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE branches(id INTEGER PRIMARY KEY, region TEXT);\nINSERT INTO branches VALUES(1,'seoul'),(2,'busan'),(3,'busan'),(4,'daegu'),(5,'incheon');\nCREATE TABLE orders(id INTEGER PRIMARY KEY, branch_id INTEGER REFERENCES branches(id), status TEXT, amount INTEGER);\nINSERT INTO orders VALUES(1,1,'PAID',50),(2,1,'PAID',60),(3,2,'PAID',40),(4,3,'PAID',70),(5,4,'CANCEL',200),(6,4,'PAID',99),(7,5,'PAID',100);\n"
+          },
+          "expected": "region | total\ndaegu | 299\nbusan | 110\nseoul | 110\nincheon | 100"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "기준이 둘이에요. 합계가 먼저고, 합계가 같을 때만 지역 이름을 봐요.",
+          "target": "text:합계가 같은 지역끼리는 지역 이름 순서(오름차순)로 보여 주려 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "busan, daegu, incheon, seoul 순이에요. daegu와 seoul은 둘 다 120이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "seoul은 지점이 둘이에요. 지역으로 묶어서 두 지점 주문이 한 합계가 됐어요.",
+          "target": "code:GROUP BY b.region"
+        },
+        {
+          "action": "patch_code",
+          "before": "ORDER BY b.region;",
+          "after": "ORDER BY total DESC, b.region;",
+          "say": "첫째 키는 합계 내림차순, 둘째 키는 지역 이름이에요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "incheon 150, daegu 120, seoul 120, busan 90이에요. 120끼리는 daegu가 앞이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. DESC는 바로 앞 키 하나에만 붙어요. b.region에 방향이 없으면 오름차순이에요.",
+          "target": "code:total DESC"
+        }
+      ]
+    },
+    {
+      "id": "stp_c48d5c1a-c93a-490a-ae75-ea3bdddf5c07",
+      "title": "요구 조건을 행 조건과 그룹 조건으로 나눠 고치세요",
+      "goal": "보고서 요구는 세 가지예요. 결제 완료(PAID) 주문만 더해요. 지역별 합계가 100 이상인 지역만 남겨요. 합계가 큰 순서로, 같으면 지역 이름 순서로 보여요. 준비 질의는 금액 조건을 주문 한 건마다 걸고, 상태 조건이 없어요.\n\n행 조건과 그룹 조건을 각자 맞는 절에 두도록 고치세요. ORDER BY 줄은 그대로 두세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 남은 지역을 확인하세요.\n2. WHERE의 조건을 status가 'PAID'인 주문만 남기는 조건으로 바꾸세요.\n3. GROUP BY 줄 아래에 지역 합계가 100 이상인 그룹만 남기는 HAVING 한 줄을 쓰세요.\n4. 다시 실행해 남은 지역과 합계를 확인하세요.\n5. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 결제 완료(PAID) 주문만 지역별로 더해, 합계가 100 이상인 지역을 큰 순서로 보여요.\nSELECT b.region, SUM(o.amount) AS total\nFROM orders o JOIN branches b ON o.branch_id = b.id\nWHERE o.amount >= 100\nGROUP BY b.region\nORDER BY total DESC, b.region;",
+      "solution": "-- 결제 완료(PAID) 주문만 지역별로 더해, 합계가 100 이상인 지역을 큰 순서로 보여요.\nSELECT b.region, SUM(o.amount) AS total\nFROM orders o JOIN branches b ON o.branch_id = b.id\nWHERE o.status = 'PAID'\nGROUP BY b.region\nHAVING SUM(o.amount) >= 100\nORDER BY total DESC, b.region;",
+      "tests": [
+        {
+          "input": "",
+          "expected": "region | total\ndaegu | 120\nseoul | 100"
+        }
+      ],
+      "files": {
+        "setup.sql": "CREATE TABLE branches(id INTEGER PRIMARY KEY, region TEXT);\nINSERT INTO branches VALUES(1,'seoul'),(2,'seoul'),(3,'busan'),(4,'daegu'),(5,'incheon');\nCREATE TABLE orders(id INTEGER PRIMARY KEY, branch_id INTEGER REFERENCES branches(id), status TEXT, amount INTEGER);\nINSERT INTO orders VALUES(1,1,'PAID',70),(2,2,'PAID',30),(3,1,'CANCEL',20),(4,3,'PAID',90),(5,4,'PAID',60),(6,4,'PAID',60),(7,5,'CANCEL',150);\n"
+      },
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE branches(id INTEGER PRIMARY KEY, region TEXT);\nINSERT INTO branches VALUES(1,'seoul'),(2,'busan'),(3,'busan'),(4,'daegu'),(5,'incheon');\nCREATE TABLE orders(id INTEGER PRIMARY KEY, branch_id INTEGER REFERENCES branches(id), status TEXT, amount INTEGER);\nINSERT INTO orders VALUES(1,1,'PAID',50),(2,1,'PAID',60),(3,2,'PAID',40),(4,3,'PAID',70),(5,4,'CANCEL',200),(6,4,'PAID',99),(7,5,'PAID',100);\n"
+          },
+          "expected": "region | total\nbusan | 110\nseoul | 110\nincheon | 100"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "요구마다 맡는 절이 달라요. 주문 한 건의 조건은 WHERE, 지역 합계의 조건은 HAVING이에요.",
+          "target": "text:행 조건과 그룹 조건을 각자 맞는 절에 두도록 고치세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "incheon | 150만 나왔어요. 150은 결제가 취소(CANCEL)된 주문 한 건이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "WHERE o.amount >= 100",
+          "after": "WHERE o.status = 'PAID'",
+          "say": "행 조건 자리에는 주문 상태를 써요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "daegu 120, seoul 100, busan 90이에요. 결제된 주문만 더했지만 90도 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "GROUP BY b.region\n",
+          "after": "GROUP BY b.region\nHAVING SUM(o.amount) >= 100\n",
+          "say": "묶은 뒤 합계 조건을 HAVING으로 더해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "daegu 120, seoul 100이 남았어요. seoul의 70과 30이 합쳐져 경계 100에 걸렸어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 금액 조건을 WHERE에 AND로 남기면 100 이상인 결제 주문 한 건이 없어 행이 사라져요.",
+          "target": "code:WHERE o.status = 'PAID'"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "MIN·MAX·AVG·COUNT와 AS 별칭으로 그룹 질의를 직접 쓰고, 행 조건과 그룹 조건을 알맞은 절에 둬요.",
+      "ROWS BETWEEN n PRECEDING AND CURRENT ROW와 PARTITION BY로 행마다 집계하는 범위를 정해요.",
+      "ROLLUP이 만드는 소계·총계 행을 수준별 GROUP BY와 UNION ALL로 직접 만들어요.",
+      "요구 조건 여러 개를 WHERE·GROUP BY·HAVING·ORDER BY 여러 키로 한 질의에 옮겨요."
+    ],
+    "chapters": {
+      "chp_198355d8-934f-44a9-92ba-5d9223629ed5": [
+        "집계 함수와 별칭으로 그룹마다 한 행을 만들고, 조건을 행과 그룹 가운데 알맞은 곳에 걸어요."
+      ],
+      "chp_59aea06b-b2dc-443f-90be-f57893c04659": [
+        "행을 줄이지 않고 행마다 앞 몇 행까지 집계하는 범위와, 다시 시작하는 울타리를 정해요."
+      ],
+      "chp_f8d359af-19c4-4503-a583-4802f84f0b64": [
+        "ROLLUP의 소계·총계 행을 UNION ALL로 직접 만들고, 요구 조건 여러 개를 알맞은 절에 옮겨요."
+      ]
+    },
+    "units": {
+      "unt_0f158c9a-79f1-4bcd-aec6-562fc07ca98f": {
+        "objectives": [
+          "요구 문장을 SELECT·WHERE·GROUP BY·HAVING으로 옮겨요."
+        ],
+        "premise": "deliveries 표에는 배송 한 건마다 지점(branch), 종류(kind), 상태(status), 상자 수(boxes)가 있어요. 각 스텝은 준비 질의에서 새로 시작해요."
+      },
+      "unt_4894efe5-b6ba-49cc-a632-4961b01719d2": {
+        "objectives": [
+          "ROWS 프레임의 크기와 PARTITION BY를 바꾸며 행마다 값이 어떻게 달라지는지 봐요."
+        ],
+        "premise": "runs 표에는 트럭 회차 번호(seq), 지역(region), 실은 상자 수(boxes)가 있어요. 각 스텝은 준비 질의에서 새로 시작해요."
+      },
+      "unt_7fadcea0-0927-49ce-baff-af3dffd4a0e0": {
+        "objectives": [
+          "ROLLUP이 만드는 수준별 행을 GROUP BY 여러 개와 UNION ALL로 만들어요."
+        ],
+        "premise": "다시 deliveries 표예요. 표준 SQL의 ROLLUP은 앱의 SQLite에서 실행되지 않아요. 같은 행을 UNION ALL로 직접 만들어요. 각 스텝은 준비 질의에서 새로 시작해요."
+      },
+      "unt_e3c36dff-4c19-446d-a4f5-2e744cdd3c65": {
+        "objectives": [
+          "요구 문장마다 담당하는 절을 찾아 한 질의에 옮겨요."
+        ],
+        "premise": "branches 표는 지점 번호(id)와 지역(region), orders 표는 주문마다 지점 번호(branch_id), 상태(status), 금액(amount)이에요. 한 지역에 지점이 여럿일 수 있어요. 각 스텝은 준비 질의에서 새로 시작해요."
+      }
+    }
+  }
+}

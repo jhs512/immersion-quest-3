@@ -1,0 +1,45 @@
+{
+  "by": "hand",
+  "source_sha256": "76ed659d774ef5ecd138dec281460a8c8a82ebd14c69527b60496b38edf9270e",
+  "entry": [
+    {
+      "action": "say",
+      "text": "인가와 역할 기반 접근 제어를 인증과 구별해요.",
+      "target": "text:로그인한 사용자라도 모든 작업을 허용하지 않아요. 역할에 등록된 작업인지 확인하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "True예요. 역할 이름이 있다는 사실만으로 쓰기를 허용했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "allowed = role in permissions",
+      "after": "allowed = action in permissions.get(role, set())"
+    },
+    {
+      "action": "say",
+      "text": "인증은 누구인지, 인가는 무엇을 해도 되는지를 확인해요. 역할에는 필요한 권한만 묶어요.",
+      "target": "code:allowed = action in permissions.get(role, set())"
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "False예요. viewer에게는 읽기만 허용돼요.",
+      "target": "output"
+    }
+  ]
+}

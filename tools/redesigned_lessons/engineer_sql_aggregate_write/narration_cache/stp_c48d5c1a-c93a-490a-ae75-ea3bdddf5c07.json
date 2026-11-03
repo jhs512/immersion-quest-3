@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "15ba591b757975810871b0fe1b0c55a7ae3b5626943d1f01da7ab2779ab7ed64",
+  "entry": [
+    {
+      "action": "say",
+      "text": "요구마다 맡는 절이 달라요. 주문 한 건의 조건은 WHERE, 지역 합계의 조건은 HAVING이에요.",
+      "target": "text:행 조건과 그룹 조건을 각자 맞는 절에 두도록 고치세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "incheon | 150만 나왔어요. 150은 결제가 취소(CANCEL)된 주문 한 건이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "WHERE o.amount >= 100",
+      "after": "WHERE o.status = 'PAID'",
+      "say": "행 조건 자리에는 주문 상태를 써요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "daegu 120, seoul 100, busan 90이에요. 결제된 주문만 더했지만 90도 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "GROUP BY b.region\n",
+      "after": "GROUP BY b.region\nHAVING SUM(o.amount) >= 100\n",
+      "say": "묶은 뒤 합계 조건을 HAVING으로 더해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "daegu 120, seoul 100이 남았어요. seoul의 70과 30이 합쳐져 경계 100에 걸렸어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 금액 조건을 WHERE에 AND로 남기면 100 이상인 결제 주문 한 건이 없어 행이 사라져요.",
+      "target": "code:WHERE o.status = 'PAID'"
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "by": "hand",
+  "source_sha256": "5c3b2f07d48b4e73d17e8dd24856de645235e5bb5e0cce6c184c43c0955bdc87",
+  "entry": [
+    {
+      "action": "say",
+      "text": "같은 메시지가 두 번 와도 일은 한 번만 하게 consume을 고치는 문제예요.",
+      "target": "text:처음 넣은 번호일 때만 처리하게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        25,
+        25
+      ]
+    },
+    {
+      "action": "say",
+      "text": "['ship order 7', 'ship order 7', 'ship order 8']이 나왔어요. 주문 7을 두 번 배송해요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "첫 릴레이는 event 1을 넘긴 뒤 sent 표시 전에 멈췄어요. 그래서 다음 릴레이가 1부터 다시 보냈어요.",
+      "target": "code:return"
+    },
+    {
+      "action": "patch_code",
+      "before": "    done.append(msg)\n",
+      "after": "    if msg not in done:\n        done.append(msg)\n",
+      "say": "이미 처리한 글자인지 msg로 걸러 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        26,
+        26
+      ]
+    },
+    {
+      "action": "say",
+      "text": "['ship order 7', 'ship order 8']이에요. 지금 자료에서는 맞아 보여요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 같은 글자의 다른 요청도 있어요. 펜 보충을 두 번 요청하면 msg로는 하나를 잃어요.",
+      "target": "code:if msg not in done:"
+    },
+    {
+      "action": "patch_code",
+      "before": "    if msg not in done:\n        done.append(msg)\n",
+      "after": "    cur = conn.execute('INSERT INTO processed VALUES (?) ON CONFLICT DO NOTHING', (event_id,))\n    if cur.rowcount == 1:\n        done.append(msg)\n",
+      "say": "메시지마다 붙은 event_id로 걸러요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        27,
+        27
+      ]
+    },
+    {
+      "action": "say",
+      "text": "['ship order 7', 'ship order 8']이에요. 두 번째로 온 event 1은 0행이라 건너뛰었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "event_id가 PRIMARY KEY라서 같은 번호는 다시 들어가지 않아요. rowcount가 그 결과를 알려 줘요.",
+      "target": "code:ON CONFLICT DO NOTHING"
+    }
+  ]
+}

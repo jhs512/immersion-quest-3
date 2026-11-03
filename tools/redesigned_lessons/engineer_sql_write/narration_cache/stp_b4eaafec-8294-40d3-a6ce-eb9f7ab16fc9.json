@@ -1,0 +1,74 @@
+{
+  "by": "hand",
+  "source_sha256": "a350dd7917701237ce97e610cfbe0b646640ef149bb3f50e897d773b854097f4",
+  "entry": [
+    {
+      "action": "say",
+      "text": "구조와 행 수를 나눠 보는 문제예요. 두 번째 질의만 고쳐요.",
+      "target": "text:두 번째 질의를 고쳐 students의 튜플 수를 cardinality라는 열 이름으로 출력하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "위에는 CREATE TABLE 문장이, 아래에는 학생 7행이 나왔어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "괄호 안의 열 다섯 개가 속성이에요. 그래서 차수는 5예요. grade의 CHECK는 1부터 4라는 도메인을 정해요.",
+      "target": "code:sqlite_master"
+    },
+    {
+      "action": "patch_code",
+      "before": "SELECT * FROM students ORDER BY id;",
+      "after": "SELECT COUNT(score) AS cardinality FROM students;",
+      "say": "먼저 점수 열을 세 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "6이 나왔어요. 점수가 NULL인 최민수 행을 빼고 셌어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "COUNT(score)",
+      "after": "COUNT(*)",
+      "say": "열 대신 별표로 행 자체를 세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "cardinality 7이에요. 위의 스키마 문장은 그대로죠.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. COUNT(열)은 튜플 수가 아니에요. 그 열이 NULL인 행은 빠져요.",
+      "target": "code:COUNT(*)"
+    },
+    {
+      "action": "say",
+      "text": "행을 넣거나 지우면 카디널리티만 바뀌어요. 스키마는 표의 구조를 고칠 때만 바뀌어요.",
+      "target": "text:그 시점에 들어 있는 튜플들이 인스턴스(instance)예요."
+    }
+  ]
+}

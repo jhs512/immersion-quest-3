@@ -1,0 +1,68 @@
+{
+  "by": "hand",
+  "source_sha256": "fa9bbed0aa941a21386559302cfac012e56440b032f2aa552771abff1638f1a2",
+  "entry": [
+    {
+      "action": "say",
+      "text": "H사 물건이 없을 때도 표준 > ALL과 같은 결과를 내야 해요. 그때는 모든 물건이 남아야 하죠.",
+      "target": "text:이 물건 가격 이상인 H사 물건이 하나도 없다"
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "(행 없음)이 나왔어요. 남아야 할 물건이 모두 빠졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "set_code",
+      "code": "SELECT MAX(price) FROM items WHERE maker = 'H';\n",
+      "say": "괄호 안 MAX만 따로 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        1,
+        1
+      ]
+    },
+    {
+      "action": "say",
+      "text": "NULL이에요. H사 물건이 없으면 MAX는 값이 없어요. price > NULL은 참이 아니에요.",
+      "target": "output"
+    },
+    {
+      "action": "set_code",
+      "code": "-- MAX로 옮긴 > ALL이에요. 지금 H사 물건이 있는지 보세요.\nSELECT name, price FROM items i\nWHERE price > (SELECT MAX(price) FROM items WHERE maker = 'H')\nORDER BY price;\n",
+      "say": "H사 물건이 없을 때도 맞는 전체 비교로 바꿔요."
+    },
+    {
+      "action": "patch_code",
+      "before": "WHERE price > (SELECT MAX(price) FROM items WHERE maker = 'H')",
+      "after": "WHERE NOT EXISTS (SELECT 1 FROM items h\n                  WHERE h.maker = 'H' AND h.price >= i.price)",
+      "say": "같거나 비싼 H사 물건이 하나도 없는지 묻도록 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "pen, note, clip 세 물건이 모두 나왔어요. 반례가 될 H사 물건이 없으니까요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 안쪽 비교는 h.price >= i.price예요. 값이 같은 H사 물건도 반례라서 >만 쓰면 동률인 물건이 남아요.",
+      "target": "code:h.price >= i.price"
+    }
+  ]
+}

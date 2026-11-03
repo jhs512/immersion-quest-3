@@ -1,0 +1,45 @@
+{
+  "by": "hand",
+  "source_sha256": "1d17256c95909b666999ce900621c5a62cc6d6406fb2575579eca7fdfa3d1758",
+  "entry": [
+    {
+      "action": "say",
+      "text": "프록시는 같은 기능 앞에서 접근을 통제해요.",
+      "target": "text:권한이 없는 요청은 저장소를 읽으면 안 돼요. 프록시가 실제 호출 전에 권한을 확인하게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "secret이 나왔어요. 권한 검사 없이 실제 객체로 넘겼어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "def read(self): return self.target.read()",
+      "after": "def read(self): return self.target.read() if allowed else 'denied'"
+    },
+    {
+      "action": "say",
+      "text": "프록시는 기존 읽기 인터페이스를 유지하면서 접근 조건을 더해요. 인터페이스를 맞추는 어댑터와 목적이 달라요.",
+      "target": "code:def read(self): return self.target.read() if allowed else 'denied'"
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "denied예요. 권한이 없어 실제 읽기를 호출하지 않았어요.",
+      "target": "output"
+    }
+  ]
+}

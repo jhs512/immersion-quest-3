@@ -1,0 +1,71 @@
+{
+  "by": "hand",
+  "source_sha256": "a2048e312308a77d86ec8ab9af98144b95822d17973e0fe36f5dc4734ed10226",
+  "entry": [
+    {
+      "action": "say",
+      "text": "extra의 2와 4가 각각 한 칸씩 붙어야 하는 문제예요.",
+      "target": "text:extra의 상자들을 loads 끝에 낱개로 이어 붙이세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "3과 [3, 5, [2, 4]]가 나왔어요. extra 목록 통째가 한 칸에 들어갔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "loads.append(extra)",
+      "after": "loads.extend(extra)",
+      "say": "extend로 바꿔 extra의 원소를 풀어 넣어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "4와 [3, 5, 2, 4]예요. 2와 4가 각자 한 칸씩 늘었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "loads.extend(extra)",
+      "after": "loads = loads.extend(extra)",
+      "say": "결과를 loads에 다시 담아 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ],
+      "expect_error": "TypeError"
+    },
+    {
+      "action": "say",
+      "text": "TypeError가 났어요. extend가 돌려준 None이 loads에 들어갔거든요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. extend는 목록을 그 자리에서 바꾸고 None을 돌려줘요. 결과를 다시 대입하면 목록을 잃어요.",
+      "target": "code:loads = loads.extend(extra)"
+    },
+    {
+      "action": "patch_code",
+      "before": "loads = loads.extend(extra)",
+      "after": "loads.extend(extra)",
+      "say": "대입을 지우고 extend 한 줄로 되돌려요."
+    }
+  ]
+}

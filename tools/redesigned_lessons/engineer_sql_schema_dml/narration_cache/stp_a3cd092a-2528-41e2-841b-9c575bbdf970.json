@@ -1,0 +1,65 @@
+{
+  "by": "hand",
+  "source_sha256": "7681005e10322bfbba7116758d6b94f4ff5646d97cc490d63afb31c41e30b832",
+  "entry": [
+    {
+      "action": "say",
+      "text": "새 열이 기존 직원과 나중 직원 모두에게 1로 시작하게 하는 문제예요.",
+      "target": "text:ALTER 문의 열 정의를 고쳐 active가 1로 시작하게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "active가 네 행 모두 NULL이에요. 새 열에는 기존 행의 값이 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "active INTEGER;",
+      "after": "active INTEGER NOT NULL;",
+      "say": "NOT NULL로 빈 값을 막아 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ],
+      "expect_error": "Cannot add a NOT NULL column"
+    },
+    {
+      "action": "say",
+      "text": "ALTER가 거절됐어요. 기존 행에 넣을 값이 없어서 NOT NULL을 지킬 수 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 행이 있는 표에 NOT NULL 열을 붙일 땐 DEFAULT 값이 함께 있어야 해요.",
+      "target": "code:active INTEGER NOT NULL"
+    },
+    {
+      "action": "patch_code",
+      "before": "active INTEGER NOT NULL;",
+      "after": "active INTEGER DEFAULT 1;",
+      "say": "NOT NULL 대신 DEFAULT 1을 붙여요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "네 행 모두 active가 1이에요. 나중에 넣은 9번 New도 1을 받았어요.",
+      "target": "output"
+    }
+  ]
+}

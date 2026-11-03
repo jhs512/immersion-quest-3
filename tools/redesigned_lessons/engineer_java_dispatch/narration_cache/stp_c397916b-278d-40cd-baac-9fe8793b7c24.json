@@ -1,0 +1,65 @@
+{
+  "by": "hand",
+  "source_sha256": "b32d5a339a8c1196ba119364acaf84a45b6dace1e453c49b170482c04b554ce7",
+  "entry": [
+    {
+      "action": "say",
+      "text": "같은 rule로 불렀는데 두 값의 기준이 달라요. 그 기준을 맞추는 문제예요.",
+      "target": "text:name은 Bonus 것이 나오는데 grade는 Rule 것이 나와요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "B 일반이 나왔어요. static은 rule의 선언형 Rule로 정해졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    static String grade() { return \"우수\"; }",
+      "after": "    String grade() { return \"우수\"; }",
+      "say": "Bonus 쪽 static만 먼저 빼 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        16
+      ],
+      "expect_error": "cannot override"
+    },
+    {
+      "action": "say",
+      "text": "컴파일 오류예요. 인스턴스 메서드가 static 메서드를 덮을 수는 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    static String grade() { return \"일반\"; }",
+      "after": "    String grade() { return \"일반\"; }",
+      "say": "Rule 쪽 static도 빼요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "B 우수예요. 이제 grade도 오버라이드라 실제 객체 Bonus를 따라가요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 호출을 Bonus.grade()로 바꾸면 객체와 상관없이 늘 우수예요. Rule 객체에서도 우수가 나와요.",
+      "target": "code:rule.grade()"
+    }
+  ]
+}

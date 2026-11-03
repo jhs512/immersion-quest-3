@@ -1,0 +1,1388 @@
+{
+  "description": "창고와 주문 서비스가 주고받는 JSON·XML을 읽고, 칸이 늘거나 이름이 바뀌어도 옛 클라이언트가 살게 하고, 멱등 키·지수 백오프·ETag 304·허브 배달·URL 나누기를 한두 줄씩 고쳐 실행으로 확인해요.",
+  "tasks": [
+    {
+      "id": "stp_76e76dcb-dff7-4aa9-9fa6-96b029c21502",
+      "title": "JSON 글자를 사전으로 바꿔 금액을 계산하세요",
+      "goal": "창고가 주문을 JSON 글자로 보냈어요. 주문 서비스는 수량과 단가를 곱해 금액을 내야 해요.\n\n**알아두세요**\n\nJSON은 {\"이름\": 값} 꼴로 자료를 적는 글자 형식이에요. json.loads는 JSON 글자를 사전으로, json.dumps는 값을 JSON 글자로 바꿔요.\n\norder를 만드는 줄을 고쳐 수량과 단가의 곱이 출력되게 하세요. 채점은 body를 다른 주문으로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 결과를 확인하세요.\n2. order = body 줄을 고치세요.\n3. 다시 실행해 금액이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import json\nbody = '{\"item\": \"pen\", \"qty\": 3, \"price\": 500}'\n# body는 창고가 보낸 글자 그대로예요.\norder = body\nprint(order['qty'] * order['price'])\n",
+      "solution": "import json\nbody = '{\"item\": \"pen\", \"qty\": 3, \"price\": 500}'\n# body는 창고가 보낸 글자 그대로예요.\norder = json.loads(body)\nprint(order['qty'] * order['price'])\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "1500"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "받은 JSON 글자에서 수량과 단가를 읽어 곱하는 문제예요.",
+          "target": "text:order를 만드는 줄을 고쳐 수량과 단가의 곱이 출력되게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ],
+          "expect_error": "TypeError"
+        },
+        {
+          "action": "say",
+          "text": "TypeError가 났어요. body는 아직 글자라 qty라는 칸이 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "order = body",
+          "after": "order = json.dumps(body)",
+          "say": "이름이 비슷한 json.dumps로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ],
+          "expect_error": "TypeError"
+        },
+        {
+          "action": "say",
+          "text": "또 TypeError예요. dumps는 값을 JSON 글자로 만드는 쪽이거든요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. dumps와 loads를 바꿔 쓰면 사전 대신 글자를 받아요. 받은 글자를 읽을 땐 loads예요.",
+          "target": "code:json.dumps(body)"
+        },
+        {
+          "action": "patch_code",
+          "before": "json.dumps(body)",
+          "after": "json.loads(body)",
+          "say": "loads로 글자를 사전으로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1500이 나왔어요. qty 3과 price 500이 숫자로 읽혀 곱해졌어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_0ac34a88-3bb7-49bb-a982-ff522e732daa",
+      "title": "XML 태그 안의 값을 수로 바꿔 금액을 계산하세요",
+      "goal": "같은 주문이 이번엔 XML 글자로 왔어요. 금액은 앞 스텝처럼 수량과 단가의 곱이에요.\n\n**알아두세요**\n\nXML은 <qty>3</qty>처럼 이름 붙인 태그로 값을 감싸요. ET.fromstring이 글자를 태그 나무로 바꾸고, find('qty').text가 태그 안 내용을 꺼내요.\n\nqty와 price를 꺼내는 두 줄을 고쳐 수량과 단가의 곱이 출력되게 하세요. 채점은 body를 태그 순서가 다른 주문으로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 결과를 확인하세요.\n2. qty를 꺼내는 줄을 고치고 실행해 결과를 확인하세요.\n3. price를 꺼내는 줄도 고치세요.\n4. 다시 실행해 금액이 나오는지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import xml.etree.ElementTree as ET\nbody = '<order><item>pen</item><qty>3</qty><price>500</price></order>'\nroot = ET.fromstring(body)\n# 태그 안에 든 값을 꺼내요.\nqty = root.find('qty').text\nprice = root.find('price').text\nprint(qty * price)\n",
+      "solution": "import xml.etree.ElementTree as ET\nbody = '<order><item>pen</item><qty>3</qty><price>500</price></order>'\nroot = ET.fromstring(body)\n# 태그 안에 든 값을 꺼내요.\nqty = int(root.find('qty').text)\nprice = int(root.find('price').text)\nprint(qty * price)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "1500"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "XML로 온 같은 주문에서 금액을 내는 문제예요.",
+          "target": "text:qty와 price를 꺼내는 두 줄을 고쳐 수량과 단가의 곱이 출력되게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ],
+          "expect_error": "TypeError"
+        },
+        {
+          "action": "say",
+          "text": "TypeError가 났어요. 글자끼리는 곱할 수 없다는 뜻이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "JSON의 3은 숫자였죠? XML 태그 안의 3은 그냥 글자예요.",
+          "target": "code:root.find('qty').text"
+        },
+        {
+          "action": "patch_code",
+          "before": "qty = root.find('qty').text",
+          "after": "qty = int(root.find('qty').text)",
+          "say": "qty만 int로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "500500500이 나왔어요. 수 3과 글자 500을 곱해 글자가 세 번 이어졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 한쪽만 int로 바꾸면 오류 없이 글자 반복이 돼요. 금액처럼 보여 놓치기 쉬워요.",
+          "target": "code:int(root.find('qty').text)"
+        },
+        {
+          "action": "patch_code",
+          "before": "price = root.find('price').text",
+          "after": "price = int(root.find('price').text)",
+          "say": "price도 int로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1500이에요. 두 값을 모두 수로 바꿔서야 JSON과 같은 금액이 됐어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_f607c3fe-fd4c-4de5-bc2b-aaac021a9471",
+      "title": "새 칸이 늘어도 아는 칸만 읽도록 검사를 고치세요",
+      "goal": "창고 v2 응답에 memo 칸이 더해졌어요. 옛 클라이언트는 item과 qty만 쓰는데, 지금은 이 응답을 거절해요.\n\n**알아두세요**\n\n하위 호환(backward compatibility)은 새 버전이 나와도 옛 클라이언트가 그대로 동작하는 성질이에요. 필요한 칸만 확인하고 모르는 칸은 넘기는 읽기가 이를 돕죠.\n\nif 검사 한 줄을 고쳐 item과 qty가 있으면 읽고, 둘 중 하나라도 없으면 읽을 수 없음을 출력하게 하세요. 채점은 body를 칸이 더 많거나 빠진 응답으로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 v2 응답의 결과를 확인하세요.\n2. if 검사 한 줄을 고치세요.\n3. 다시 실행해 item과 qty가 출력되는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import json\nbody = '{\"item\": \"pen\", \"qty\": 3, \"memo\": \"fragile\"}'\norder = json.loads(body)\n# 옛 클라이언트가 읽을 수 있는 응답인지 확인해요.\nif sorted(order) == ['item', 'qty']:\n    print(order['item'], order['qty'])\nelse:\n    print('읽을 수 없음')\n",
+      "solution": "import json\nbody = '{\"item\": \"pen\", \"qty\": 3, \"memo\": \"fragile\"}'\norder = json.loads(body)\n# 옛 클라이언트가 읽을 수 있는 응답인지 확인해요.\nif 'item' in order and 'qty' in order:\n    print(order['item'], order['qty'])\nelse:\n    print('읽을 수 없음')\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "pen 3"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "늘어난 칸은 넘기고, 필요한 칸이 빠지면 거절하는 문제예요.",
+          "target": "text:둘 중 하나라도 없으면 읽을 수 없음을 출력하게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "읽을 수 없음이 나왔어요. 칸 목록 전체가 item, qty와 똑같아야만 통과하거든요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "if sorted(order) == ['item', 'qty']:",
+          "after": "if True:",
+          "say": "검사를 아예 없애 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "pen 3이 나왔어요. 이번엔 memo를 그냥 지나쳤어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "\"pen\", \"qty\": 3, \"memo\"",
+          "after": "\"pen\", \"memo\"",
+          "say": "qty가 빠진 응답을 넣어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            8
+          ],
+          "expect_error": "KeyError"
+        },
+        {
+          "action": "say",
+          "text": "KeyError가 났어요. 없는 qty 칸을 읽으려다 멈췄어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 검사를 빼면 빠진 칸까지 통과해요. 그러면 읽다가 프로그램이 멈춰요.",
+          "target": "code:if True:"
+        },
+        {
+          "action": "patch_code",
+          "before": "if True:",
+          "after": "if 'item' in order and 'qty' in order:",
+          "say": "필요한 두 칸이 있는지만 물어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "읽을 수 없음이에요. qty가 없으니 멈추지 않고 거절했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "\"pen\", \"memo\"",
+          "after": "\"pen\", \"qty\": 3, \"memo\"",
+          "say": "qty를 다시 넣어 v2 응답으로 돌려요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "pen 3이에요. memo가 있어도 아는 칸만 읽어 통과했어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_06d385b0-caeb-4460-9876-dad985405a63",
+      "title": "이름을 바꾼 응답에 옛 이름을 남겨 두 클라이언트를 살리세요",
+      "goal": "창고 v2가 qty 칸 이름을 quantity로 바꿨어요. 옛 클라이언트는 이미 배포돼 고칠 수 없고, 새 클라이언트는 quantity를 읽어요.\n\n**알아두세요**\n\n칸을 더하는 변경은 아는 칸만 읽는 클라이언트를 깨지 않아요. 칸을 지우거나 이름을 바꾸는 변경은 그 칸을 읽던 클라이언트를 깨요.\n\nrespond의 return 한 줄만 고쳐 옛 클라이언트와 새 클라이언트가 모두 수량을 읽게 하세요. 채점은 stock을 바꾸고 respond가 보내는 칸 이름도 확인해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 어느 클라이언트가 멈추는지 확인하세요.\n2. respond의 return 줄을 고치세요.\n3. 다시 실행해 두 클라이언트의 수량이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import json\nstock = 3\ndef respond(n):\n    # v2 응답이에요. 칸 이름 qty를 quantity로 바꿨어요.\n    return json.dumps({'item': 'pen', 'quantity': n})\nold = json.loads(respond(stock))   # 옛 클라이언트는 qty를 읽어요\nnew = json.loads(respond(stock))   # 새 클라이언트는 quantity를 읽어요\nprint(old['qty'], new['quantity'])\n",
+      "solution": "import json\nstock = 3\ndef respond(n):\n    # v2 응답이에요. 칸 이름 qty를 quantity로 바꿨어요.\n    return json.dumps({'item': 'pen', 'qty': n, 'quantity': n})\nold = json.loads(respond(stock))   # 옛 클라이언트는 qty를 읽어요\nnew = json.loads(respond(stock))   # 새 클라이언트는 quantity를 읽어요\nprint(old['qty'], new['quantity'])\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "3 3"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "클라이언트는 그대로 두고 서버 응답만 고치는 문제예요.",
+          "target": "text:respond의 return 한 줄만 고쳐 옛 클라이언트와 새 클라이언트가 모두 수량을 읽게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ],
+          "expect_error": "KeyError"
+        },
+        {
+          "action": "say",
+          "text": "KeyError 'qty'가 났어요. 옛 클라이언트가 찾는 qty 칸이 사라졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "'quantity': n}",
+          "after": "'qty': n}",
+          "say": "이름을 qty로 되돌려 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ],
+          "expect_error": "KeyError"
+        },
+        {
+          "action": "say",
+          "text": "이번엔 KeyError 'quantity'예요. 새 클라이언트가 멈췄어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 이름을 이쪽저쪽 바꾸기만 하면 둘 중 한 클라이언트는 꼭 깨져요.",
+          "target": "code:'qty': n}"
+        },
+        {
+          "action": "patch_code",
+          "before": "'qty': n}",
+          "after": "'qty': n, 'quantity': n}",
+          "say": "옛 이름을 남기고 새 이름을 더해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3 3이 나왔어요. 옛 클라이언트는 qty를, 새 클라이언트는 quantity를 읽었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "칸을 더한 것뿐이라 아무도 깨지지 않았어요. 옛 이름은 모두 옮겨 간 뒤에 지워요.",
+          "target": "code:'quantity': n}"
+        }
+      ]
+    },
+    {
+      "id": "stp_e037a186-4c75-49c4-95d7-43f58065466e",
+      "title": "멱등 키로 다시 보낸 증가 요청을 한 번만 반영하세요",
+      "goal": "r1 요청의 응답을 잃어서 주문 서비스가 r1을 한 번 더 보냈어요. 재고는 r1의 2와 r2의 5만 늘어야 해요.\n\n**알아두세요**\n\n같은 요청을 여러 번 처리해도 한 번 처리한 것과 결과가 같으면 멱등(idempotent)이라고 해요. 「1 증가」는 멱등이 아니라서, 요청마다 멱등 키를 붙이고 처리한 키를 기억해요.\n\nadd 안의 주석 아래에 처리한 key면 기억한 결과를 돌려주고 끝내는 줄을 넣으세요. 채점은 stock과 requests를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 최종 재고를 확인하세요.\n2. add의 주석 아래에 key 확인을 넣으세요.\n3. 다시 실행해 다시 보낸 r1이 한 번만 반영됐는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "stock = 10\ndone = {}\ndef add(key, amount):\n    global stock\n    # 이 주석 아래에서 이미 처리한 key인지 먼저 확인하세요.\n    stock += amount\n    done[key] = stock\n    return stock\nrequests = [('r1', 2), ('r1', 2), ('r2', 5)]\nfor key, amount in requests:\n    add(key, amount)\nprint(stock)\n",
+      "solution": "stock = 10\ndone = {}\ndef add(key, amount):\n    global stock\n    # 이 주석 아래에서 이미 처리한 key인지 먼저 확인하세요.\n    if key in done:\n        return done[key]\n    stock += amount\n    done[key] = stock\n    return stock\nrequests = [('r1', 2), ('r1', 2), ('r2', 5)]\nfor key, amount in requests:\n    add(key, amount)\nprint(stock)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "17"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "다시 보낸 r1을 한 번만 반영하는 문제예요.",
+          "target": "text:재고는 r1의 2와 r2의 5만 늘어야 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "19가 나왔어요. r1의 2가 두 번 더해졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    done[key] = stock\n",
+          "after": "    if key in done:\n        return done[key]\n    done[key] = stock\n",
+          "say": "먼저 확인을 더하기 뒤에 넣어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "여전히 19예요. 확인하기 전에 이미 재고를 더했거든요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 키 확인이 더하기 뒤에 있으면 다시 온 요청도 재고를 바꿔요. 확인은 바꾸기 전에 해요.",
+          "target": "code:if key in done:"
+        },
+        {
+          "action": "patch_code",
+          "before": "    stock += amount\n    if key in done:\n        return done[key]\n",
+          "after": "    if key in done:\n        return done[key]\n    stock += amount\n",
+          "say": "확인을 더하기 앞으로 옮겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "17이 나왔어요. 다시 온 r1은 처음 결과를 돌려주고 끝났어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_e52b2734-468d-4d9f-a941-13d5f077769c",
+      "title": "재시도마다 기다리는 시간이 두 배로 늘게 고치세요",
+      "goal": "창고가 바쁠 때 같은 간격으로 계속 다시 보내면 요청이 몰려 더 바빠져요. 그래서 재시도할수록 더 오래 기다리게 하려 해요.\n\n**알아두세요**\n\n지수 백오프(exponential backoff)는 재시도마다 기다리는 시간을 두 배씩 늘리는 방법이에요. 파이썬에서 2의 n제곱은 2 ** n으로 써요.\n\nwait 줄을 고쳐 첫 대기는 base, 그다음부터 앞 대기의 두 배가 되게 하세요. 채점은 base와 tries를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 대기 표를 확인하세요.\n2. wait = base 줄을 고치세요.\n3. 다시 실행해 대기 시간이 두 배씩 느는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "base = 100\ntries = 4\nwaits = []\nfor n in range(tries):\n    # n번째 재시도 전에 기다릴 시간(ms)이에요.\n    wait = base\n    waits.append(wait)\nprint(waits)\n",
+      "solution": "base = 100\ntries = 4\nwaits = []\nfor n in range(tries):\n    # n번째 재시도 전에 기다릴 시간(ms)이에요.\n    wait = base * 2 ** n\n    waits.append(wait)\nprint(waits)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[100, 200, 400, 800]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "재시도 대기를 base부터 두 배씩 늘리는 문제예요.",
+          "target": "text:첫 대기는 base, 그다음부터 앞 대기의 두 배가 되게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[100, 100, 100, 100]이 나왔어요. 매번 같은 간격으로 다시 보내요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    wait = base\n",
+          "after": "    wait = base * 2 * n\n",
+          "say": "2와 n을 곱해 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[0, 200, 400, 600]이에요. 첫 대기가 0이고 200씩 일정하게 늘었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 2 * n은 n에 비례해 늘 뿐이에요. 두 배씩 늘리려면 n을 지수로 써야 해요.",
+          "target": "code:base * 2 * n"
+        },
+        {
+          "action": "patch_code",
+          "before": "base * 2 * n",
+          "after": "base * 2 ** n",
+          "say": "2 ** n으로 2의 n제곱을 곱해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[100, 200, 400, 800]이 나왔어요. n이 하나 늘 때마다 대기가 두 배가 됐어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_7d3ede13-546f-4760-9113-af81abfc0aae",
+      "title": "받은 태그가 지금 태그와 같을 때만 304로 답하세요",
+      "goal": "클라이언트는 받은 ETag를 기억했다가 다음 요청의 If-None-Match에 실어 보내요. handle의 if_none_match가 그 값이에요.\n\n**알아두세요**\n\nETag는 서버가 본문 버전마다 붙이는 표시예요. 클라이언트의 태그가 지금 태그와 같으면 서버는 304 Not Modified로 본문 없이 답하고, 클라이언트는 가진 본문을 그대로 써요.\n\nhandle의 주석 아래에 받은 태그가 지금 태그와 같으면 304와 빈 본문을 돌려주는 줄을 넣으세요. 채점은 body를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 세 요청의 상태 코드와 본문 길이를 확인하세요.\n2. handle의 주석 아래에 태그 비교를 넣으세요.\n3. 다시 실행해 두 번째 요청만 304인지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "body = '{\"pen\": 3}'\ndef etag_of(text):\n    # 본문으로 버전 표시를 만들어요.\n    return 'v' + str(len(text))\ndef handle(if_none_match):\n    tag = etag_of(body)\n    # 이 주석 아래에서 받은 태그와 지금 태그를 비교하세요.\n    return 200, body, tag\nstatus, text, tag = handle(None)     # 처음 요청\nprint(status, len(text))\nstatus, text, _ = handle(tag)       # 받은 태그로 다시 요청\nprint(status, len(text))\nstatus, text, _ = handle('v0')      # 아주 옛 태그로 요청\nprint(status, len(text))\n",
+      "solution": "body = '{\"pen\": 3}'\ndef etag_of(text):\n    # 본문으로 버전 표시를 만들어요.\n    return 'v' + str(len(text))\ndef handle(if_none_match):\n    tag = etag_of(body)\n    # 이 주석 아래에서 받은 태그와 지금 태그를 비교하세요.\n    if if_none_match == tag:\n        return 304, '', tag\n    return 200, body, tag\nstatus, text, tag = handle(None)     # 처음 요청\nprint(status, len(text))\nstatus, text, _ = handle(tag)       # 받은 태그로 다시 요청\nprint(status, len(text))\nstatus, text, _ = handle('v0')      # 아주 옛 태그로 요청\nprint(status, len(text))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "200 10\n304 0\n200 10"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "같은 태그로 다시 물으면 본문 없이 304로 답하는 문제예요.",
+          "target": "text:받은 태그가 지금 태그와 같으면 304와 빈 본문을 돌려주는 줄을 넣으세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "200 10이 세 번 나왔어요. 같은 본문 10글자를 매번 다시 보냈어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    return 200, body, tag\n",
+          "after": "    if if_none_match:\n        return 304, '', tag\n    return 200, body, tag\n",
+          "say": "태그가 왔으면 304를 주게 해 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "200 10, 304 0, 304 0이에요. 세 번째 옛 태그 v0에도 304를 줬어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 태그가 왔는지만 보면 낡은 태그에도 304를 줘요. 클라이언트는 옛 본문을 계속 써요.",
+          "target": "code:if if_none_match:"
+        },
+        {
+          "action": "patch_code",
+          "before": "if if_none_match:",
+          "after": "if if_none_match == tag:",
+          "say": "받은 태그가 지금 태그와 같은지 비교해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "200 10, 304 0, 200 10이 나왔어요. 지금 태그 v10과 같은 두 번째만 304예요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_6516f532-f3ec-49d0-a90e-131ca875c608",
+      "title": "본문이 바뀌면 ETag도 바뀌도록 해시로 만드세요",
+      "goal": "첫 요청 뒤 재고가 3에서 4로 바뀌었어요. 클라이언트는 받은 태그로 다시 물어요. 지금은 버전 표시를 본문 길이로 만들어요.\n\n**알아두세요**\n\nhashlib.sha256(text.encode()).hexdigest()는 본문의 해시를 16진수 글자로 줘요. 내용이 한 글자만 달라도 해시가 완전히 달라져요.\n\netag_of의 return 줄을 고쳐 본문 해시의 앞 8글자를 태그로 쓰게 하세요. 채점은 body와 new_body를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 재고가 바뀐 뒤의 응답을 확인하세요.\n2. etag_of의 return 줄을 고치세요.\n3. 다시 실행해 바뀐 본문이 200으로 오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import hashlib\nbody = '{\"pen\": 3}'\nnew_body = '{\"pen\": 4}'\ndef etag_of(text):\n    # 본문으로 버전 표시를 만들어요.\n    return 'v' + str(len(text))\ndef handle(if_none_match):\n    tag = etag_of(body)\n    if if_none_match == tag:\n        return 304, '', tag\n    return 200, body, tag\nstatus, text, tag = handle(None)\nprint(status, len(text))\nbody = new_body   # 재고가 바뀌었어요\nstatus, text, tag = handle(tag)\nprint(status, len(text))\n",
+      "solution": "import hashlib\nbody = '{\"pen\": 3}'\nnew_body = '{\"pen\": 4}'\ndef etag_of(text):\n    # 본문으로 버전 표시를 만들어요.\n    return hashlib.sha256(text.encode()).hexdigest()[:8]\ndef handle(if_none_match):\n    tag = etag_of(body)\n    if if_none_match == tag:\n        return 304, '', tag\n    return 200, body, tag\nstatus, text, tag = handle(None)\nprint(status, len(text))\nbody = new_body   # 재고가 바뀌었어요\nstatus, text, tag = handle(tag)\nprint(status, len(text))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "200 10\n200 10"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "본문이 바뀌면 태그도 바뀌게 만드는 문제예요.",
+          "target": "text:etag_of의 return 줄을 고쳐 본문 해시의 앞 8글자를 태그로 쓰게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "200 10 다음에 304 0이 나왔어요. 재고는 4로 바뀌었는데 서버가 그대로라고 답했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 길이로 만든 태그는 3이 4로 바뀌어도 v10 그대로예요. 바뀐 재고가 클라이언트에 안 가요.",
+          "target": "code:'v' + str(len(text))"
+        },
+        {
+          "action": "patch_code",
+          "before": "    return 'v' + str(len(text))\n",
+          "after": "    return hashlib.sha256(text.encode()).hexdigest()[:8]\n",
+          "say": "본문 해시의 앞 8글자로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "200 10이 두 번이에요. 3이 4로 바뀌자 해시가 달라져 새 본문을 보냈어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "new_body = '{\"pen\": 4}'",
+          "after": "new_body = '{\"pen\": 3}'",
+          "say": "이번엔 재고가 그대로인 경우를 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "200 10, 304 0이에요. 본문이 같으면 해시도 같아 304가 맞게 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "new_body = '{\"pen\": 3}'",
+          "after": "new_body = '{\"pen\": 4}'",
+          "say": "재고 4로 다시 돌려 둘게요."
+        }
+      ]
+    },
+    {
+      "id": "stp_81179142-a93f-4af8-84b0-fd8663dfaf31",
+      "title": "주문 서비스는 그대로 두고 허브 배달 표에 감사 기록을 붙이세요",
+      "goal": "감사 기록 시스템 audit도 주문 메시지를 받아야 해요. 주문 서비스 place_order는 다른 팀 코드라 고치지 않아요.\n\n**알아두세요**\n\nESB(엔터프라이즈 서비스 버스)는 가운데 허브가 메시지를 받아 배달 표대로 나눠 주는 연계 방식이에요. 보내는 쪽은 허브만 알고 받는 쪽을 몰라서 결합도가 낮아요.\n\n허브의 routes 한 줄만 고쳐 order 주제의 메시지가 audit에도 가게 하세요. 채점은 item을 바꾸고 publish를 직접 불러서도 확인해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 누가 메시지를 받는지 확인하세요.\n2. routes 줄을 고치세요.\n3. 다시 실행해 audit가 메시지를 받는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "log = []\ndef billing(msg):\n    log.append('billing ' + msg['item'])\ndef shipping(msg):\n    log.append('shipping ' + msg['item'])\ndef audit(msg):\n    log.append('audit ' + msg['item'])\n# 허브의 배달 표예요. 주제마다 받는 쪽 목록이 있어요.\nroutes = {'order': [billing, shipping]}\ndef publish(topic, msg):\n    for receiver in routes.get(topic, []):\n        receiver(msg)\n# 주문 서비스는 허브에만 보내요.\ndef place_order(item):\n    publish('order', {'item': item})\nitem = 'pen'\nplace_order(item)\nprint(log)\n",
+      "solution": "log = []\ndef billing(msg):\n    log.append('billing ' + msg['item'])\ndef shipping(msg):\n    log.append('shipping ' + msg['item'])\ndef audit(msg):\n    log.append('audit ' + msg['item'])\n# 허브의 배달 표예요. 주제마다 받는 쪽 목록이 있어요.\nroutes = {'order': [billing, shipping, audit]}\ndef publish(topic, msg):\n    for receiver in routes.get(topic, []):\n        receiver(msg)\n# 주문 서비스는 허브에만 보내요.\ndef place_order(item):\n    publish('order', {'item': item})\nitem = 'pen'\nplace_order(item)\nprint(log)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "['billing pen', 'shipping pen', 'audit pen']"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "보내는 코드는 그대로 두고 받는 쪽만 늘리는 문제예요.",
+          "target": "text:허브의 routes 한 줄만 고쳐 order 주제의 메시지가 audit에도 가게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "['billing pen', 'shipping pen']이 나왔어요. 배달 표에 있는 둘만 받았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    publish('order', {'item': item})\n",
+          "after": "    publish('order', {'item': item})\n    audit({'item': item})\n",
+          "say": "주문 서비스에서 audit를 직접 불러 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "audit pen이 붙었어요. 그런데 주문 서비스가 audit라는 이름을 알게 됐죠?",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 받는 쪽을 보내는 코드에 적으면 받는 쪽이 늘 때마다 주문 서비스를 고쳐야 해요.",
+          "target": "code:audit({'item': item})"
+        },
+        {
+          "action": "patch_code",
+          "before": "    publish('order', {'item': item})\n    audit({'item': item})\n",
+          "after": "    publish('order', {'item': item})\n",
+          "say": "직접 부르는 줄은 지워요."
+        },
+        {
+          "action": "patch_code",
+          "before": "routes = {'order': [billing, shipping]}",
+          "after": "routes = {'order': [billing, shipping, audit]}",
+          "say": "허브의 배달 표에 audit를 더해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "['billing pen', 'shipping pen', 'audit pen']이에요. 주문 서비스는 한 글자도 안 바뀌었어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_210332ae-e92c-4bbc-86ac-48e060f01453",
+      "title": "URL을 scheme·호스트·포트·경로·질의로 나눠 출력하세요",
+      "goal": "창고 요청 URL에서 프로토콜, 서버 이름, 포트 번호, 자원 경로, 실어 보낸 값을 따로 읽으려 해요.\n\n**알아두세요**\n\nURL은 scheme://host:port/path?query#fragment 순서예요. urlsplit(url)은 scheme·netloc·path·query·fragment로 나누고, hostname과 port 속성도 줘요.\n\nprint 한 줄을 고쳐 scheme, 호스트, 포트, 경로, 질의를 공백으로 나눠 출력하게 하세요. 채점은 url을 포트가 없는 URL 등으로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 나뉜 부분을 확인하세요.\n2. print 줄의 netloc과 fragment를 고치세요.\n3. 다시 실행해 다섯 부분이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "from urllib.parse import urlsplit\nurl = 'https://shop.example.com:8443/orders/17?item=pen&qty=3#memo'\nparts = urlsplit(url)\n# 아래 줄에서 scheme, 호스트, 포트, 경로, 질의를 차례로 출력해요.\nprint(parts.scheme, parts.netloc, parts.path, parts.fragment)\n",
+      "solution": "from urllib.parse import urlsplit\nurl = 'https://shop.example.com:8443/orders/17?item=pen&qty=3#memo'\nparts = urlsplit(url)\n# 아래 줄에서 scheme, 호스트, 포트, 경로, 질의를 차례로 출력해요.\nprint(parts.scheme, parts.hostname, parts.port, parts.path, parts.query)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "https shop.example.com 8443 /orders/17 item=pen&qty=3"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "URL 한 줄을 다섯 부분으로 나눠 찍는 문제예요.",
+          "target": "text:scheme, 호스트, 포트, 경로, 질의를 공백으로 나눠 출력하게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "https shop.example.com:8443 /orders/17 memo가 나왔어요. netloc에는 호스트와 포트가 붙어 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "parts.netloc",
+          "after": "parts.hostname, parts.port",
+          "say": "호스트와 포트를 따로 꺼내요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "shop.example.com과 8443이 나뉘었어요. 마지막은 아직 memo예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. # 뒤 memo는 질의가 아니라 조각(fragment)이에요. 둘을 헷갈리면 실어 보낸 값 대신 memo를 읽어요.",
+          "target": "code:parts.fragment"
+        },
+        {
+          "action": "patch_code",
+          "before": "parts.fragment",
+          "after": "parts.query",
+          "say": "fragment를 query로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "https shop.example.com 8443 /orders/17 item=pen&qty=3이에요. 다섯 부분이 다 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "shop.example.com:8443/",
+          "after": "shop.example.com/",
+          "say": "포트를 빼 보면 어떨까요?"
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "포트 자리에 None이 나왔어요. URL에 포트가 없으면 https는 기본 443을 써요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "shop.example.com/",
+          "after": "shop.example.com:8443/",
+          "say": "포트를 다시 넣어 둘게요."
+        }
+      ]
+    },
+    {
+      "id": "stp_7bc52719-3ae9-4c09-9e32-cd3ef1a0d100",
+      "title": "URL 질의의 key로 다시 보낸 주문을 한 번만 반영하세요",
+      "goal": "여러 원리를 한 코드에서 따라가요. 주문 서비스는 URL 질의 key=에 멱등 키를 싣고, 본문은 JSON으로 보내요. 다시 보낼 때는 질의에 try=2가 더 붙어요.\n\n**알아두세요**\n\nparse_qs(parts.query)는 질의 글자를 사전으로 나눠요. 값은 목록이라 key=a1이면 ['key'] 칸이 ['a1']이에요.\n\nkey를 꺼내는 한 줄을 고쳐 다시 보낸 a1은 한 번만, b7은 새로 반영되게 하세요. 채점은 stock과 calls를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 요청마다 돌려준 재고를 확인하세요.\n2. key를 꺼내는 줄을 고치세요.\n3. 다시 실행해 a1이 한 번, b7이 한 번 반영됐는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import json\nfrom urllib.parse import urlsplit, parse_qs\nstock = {'pen': 10}\ndone = {}\ndef handle(url, body):\n    parts = urlsplit(url)\n    key = parts.path   # 멱등 키를 꺼내요\n    if key in done:\n        return done[key]\n    order = json.loads(body)\n    stock[order['item']] += order['qty']\n    done[key] = stock[order['item']]\n    return done[key]\ncalls = [('https://wh.example.com/stock?key=a1', '{\"item\": \"pen\", \"qty\": 2}'),\n         ('https://wh.example.com/stock?key=a1&try=2', '{\"item\": \"pen\", \"qty\": 2}'),\n         ('https://wh.example.com/stock?key=b7', '{\"item\": \"pen\", \"qty\": 5}')]\nfor url, body in calls:\n    print(handle(url, body))\n",
+      "solution": "import json\nfrom urllib.parse import urlsplit, parse_qs\nstock = {'pen': 10}\ndone = {}\ndef handle(url, body):\n    parts = urlsplit(url)\n    key = parse_qs(parts.query)['key'][0]   # 멱등 키를 꺼내요\n    if key in done:\n        return done[key]\n    order = json.loads(body)\n    stock[order['item']] += order['qty']\n    done[key] = stock[order['item']]\n    return done[key]\ncalls = [('https://wh.example.com/stock?key=a1', '{\"item\": \"pen\", \"qty\": 2}'),\n         ('https://wh.example.com/stock?key=a1&try=2', '{\"item\": \"pen\", \"qty\": 2}'),\n         ('https://wh.example.com/stock?key=b7', '{\"item\": \"pen\", \"qty\": 5}')]\nfor url, body in calls:\n    print(handle(url, body))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "12\n12\n17"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "URL에서 멱등 키를 바르게 꺼내 재고를 맞추는 문제예요.",
+          "target": "text:key를 꺼내는 한 줄을 고쳐 다시 보낸 a1은 한 번만, b7은 새로 반영되게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "12, 12, 12가 나왔어요. 새 주문 b7의 5까지 막혔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "세 URL의 경로가 모두 /stock이라 키가 하나로 같아졌거든요.",
+          "target": "code:key = parts.path"
+        },
+        {
+          "action": "patch_code",
+          "before": "key = parts.path",
+          "after": "key = parts.query",
+          "say": "질의 전체를 키로 써 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "12, 14, 19예요. 다시 보낸 a1의 2가 또 더해졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 질의 전체를 키로 쓰면 try=2가 붙은 재시도를 다른 요청으로 봐요.",
+          "target": "code:key = parts.query"
+        },
+        {
+          "action": "patch_code",
+          "before": "key = parts.query",
+          "after": "key = parse_qs(parts.query)['key'][0]",
+          "say": "parse_qs로 key 값 하나만 꺼내요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "12, 12, 17이 나왔어요. 다시 온 a1은 처음 결과 12를 돌려줬고, b7만 5를 더했어요.",
+          "target": "output"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "같은 주문을 json.loads와 xml.etree로 읽고, JSON의 숫자와 XML 태그 안 글자의 차이를 실행으로 확인해요.",
+      "칸 추가는 아는 칸만 읽는 클라이언트를 깨지 않고, 이름 변경은 깬다는 것을 확인하고 옛 이름을 남겨 호환을 지켜요.",
+      "멱등 키로 다시 보낸 증가 요청을 한 번만 반영하고, 재시도 간격을 두 배씩 늘리는 지수 백오프 표를 만들어요.",
+      "ETag와 If-None-Match 비교로 304와 200을 나누고, 허브의 배달 표와 URL의 각 부분을 코드로 다뤄요."
+    ],
+    "chapters": {
+      "chp_a4e96e96-8faa-4d6f-86cb-f118c783396f": [
+        "JSON과 XML로 온 같은 주문을 읽고, 응답 칸이 늘거나 이름이 바뀔 때 옛 클라이언트에 생기는 일을 확인해요."
+      ],
+      "chp_e5797d93-2805-4a5e-93cb-7de849280f14": [
+        "응답을 잃고 다시 보내는 요청을 멱등 키와 백오프로 다루고, ETag 비교로 바뀌지 않은 본문을 다시 보내지 않아요."
+      ],
+      "chp_cae24428-dd60-402e-af57-d1c3a9a19697": [
+        "허브의 배달 표로 보내는 쪽과 받는 쪽을 떼어 놓고, URL을 부분으로 나눠 앞의 원리를 한 코드에서 따라가요."
+      ]
+    },
+    "units": {
+      "unt_fd79f3db-4945-49a3-ba61-e997a6b591fe": {
+        "objectives": [
+          "받은 글자를 사전·태그 나무로 바꿔 칸을 읽고, 두 형식의 값 종류 차이를 비교해요."
+        ],
+        "premise": "창고가 주문 하나를 글자로 보내요. 주문 서비스는 그 글자에서 수량과 단가를 읽어 금액을 계산해요."
+      },
+      "unt_ef31474a-1fd3-4d7d-b3f0-9575a5bd453d": {
+        "objectives": [
+          "응답에 칸이 늘 때와 칸 이름이 바뀔 때 옛 클라이언트에 생기는 일을 비교해요."
+        ],
+        "premise": "창고 서버가 v2로 응답 모양을 바꿨어요. 이미 배포된 옛 클라이언트는 고칠 수 없어요."
+      },
+      "unt_1994d208-f9af-4582-9e8b-a5ec37df4bcb": {
+        "objectives": [
+          "같은 요청이 다시 와도 한 번만 반영하고, 다시 보내는 간격을 늘려요."
+        ],
+        "premise": "주문 서비스가 창고에 재고 증가를 요청해요. 응답을 잃으면 같은 요청을 다시 보내요."
+      },
+      "unt_d66f9ceb-26f0-4e49-b482-71a82aa81c81": {
+        "objectives": [
+          "클라이언트가 가진 버전 표시와 지금 버전을 비교해 본문을 다시 보낼지 정해요."
+        ],
+        "premise": "클라이언트가 창고 재고 자료를 자주 다시 물어요. 서버는 본문과 함께 ETag라는 버전 표시를 돌려줘요."
+      },
+      "unt_54fb831f-f884-4b0c-9728-0c2b05a810c4": {
+        "objectives": [
+          "보내는 쪽은 허브만 알고, 받는 쪽은 허브의 배달 표로 붙인다는 것을 확인해요."
+        ],
+        "premise": "주문 서비스가 보낸 주문 메시지를 허브가 정산·배송 시스템에 나눠 줘요. 새로 감사 기록 시스템이 생겼어요."
+      },
+      "unt_2c98eb63-986a-4da5-a338-eabb5b904019": {
+        "objectives": [
+          "URL을 부분으로 나누고, 질의에 실린 멱등 키로 앞의 원리를 한 코드에서 따라가요."
+        ],
+        "premise": "창고 요청은 URL로 와요. 어느 서버의 어느 자원에 어떤 값을 실어 보내는지 URL의 각 부분이 말해 줘요."
+      }
+    }
+  },
+  "prepared_cases": {
+    "stp_76e76dcb-dff7-4aa9-9fa6-96b029c21502": [
+      {
+        "values": {
+          "body": "{\"item\": \"pen\", \"qty\": 3, \"price\": 500}"
+        },
+        "expected": "1500",
+        "value_literals": {
+          "body": "'{\"item\": \"pen\", \"qty\": 3, \"price\": 500}'"
+        }
+      },
+      {
+        "values": {
+          "body": "{\"item\": \"cup\", \"qty\": 4, \"price\": 250}"
+        },
+        "expected": "1000",
+        "value_literals": {
+          "body": "'{\"item\": \"cup\", \"qty\": 4, \"price\": 250}'"
+        }
+      },
+      {
+        "values": {
+          "body": "{\"price\": 70, \"item\": \"clip\", \"qty\": 12}"
+        },
+        "expected": "840",
+        "value_literals": {
+          "body": "'{\"price\": 70, \"item\": \"clip\", \"qty\": 12}'"
+        }
+      }
+    ],
+    "stp_0ac34a88-3bb7-49bb-a982-ff522e732daa": [
+      {
+        "values": {
+          "body": "<order><item>pen</item><qty>3</qty><price>500</price></order>"
+        },
+        "expected": "1500",
+        "value_literals": {
+          "body": "'<order><item>pen</item><qty>3</qty><price>500</price></order>'"
+        }
+      },
+      {
+        "values": {
+          "body": "<order><price>40</price><qty>12</qty><item>clip</item></order>"
+        },
+        "expected": "480",
+        "value_literals": {
+          "body": "'<order><price>40</price><qty>12</qty><item>clip</item></order>'"
+        }
+      },
+      {
+        "values": {
+          "body": "<order><item>ink</item><qty>1</qty><price>900</price><memo>x</memo></order>"
+        },
+        "expected": "900",
+        "value_literals": {
+          "body": "'<order><item>ink</item><qty>1</qty><price>900</price><memo>x</memo></order>'"
+        }
+      }
+    ],
+    "stp_f607c3fe-fd4c-4de5-bc2b-aaac021a9471": [
+      {
+        "values": {
+          "body": "{\"item\": \"pen\", \"qty\": 3, \"memo\": \"fragile\"}"
+        },
+        "expected": "pen 3",
+        "value_literals": {
+          "body": "'{\"item\": \"pen\", \"qty\": 3, \"memo\": \"fragile\"}'"
+        }
+      },
+      {
+        "values": {
+          "body": "{\"item\": \"cup\", \"qty\": 5}"
+        },
+        "expected": "cup 5",
+        "value_literals": {
+          "body": "'{\"item\": \"cup\", \"qty\": 5}'"
+        }
+      },
+      {
+        "values": {
+          "body": "{\"color\": \"red\", \"item\": \"ink\", \"qty\": 2, \"memo\": \"x\"}"
+        },
+        "expected": "ink 2",
+        "value_literals": {
+          "body": "'{\"color\": \"red\", \"item\": \"ink\", \"qty\": 2, \"memo\": \"x\"}'"
+        }
+      },
+      {
+        "values": {
+          "body": "{\"item\": \"pen\", \"memo\": \"x\"}"
+        },
+        "expected": "읽을 수 없음",
+        "value_literals": {
+          "body": "'{\"item\": \"pen\", \"memo\": \"x\"}'"
+        }
+      }
+    ],
+    "stp_06d385b0-caeb-4460-9876-dad985405a63": [
+      {
+        "values": {
+          "stock": 3
+        },
+        "expected": "3 3\n['item', 'qty', 'quantity']",
+        "value_literals": {
+          "stock": "3"
+        }
+      },
+      {
+        "values": {
+          "stock": 9
+        },
+        "expected": "9 9\n['item', 'qty', 'quantity']",
+        "value_literals": {
+          "stock": "9"
+        }
+      }
+    ],
+    "stp_e037a186-4c75-49c4-95d7-43f58065466e": [
+      {
+        "values": {
+          "stock": 10,
+          "requests": [
+            [
+              "r1",
+              2
+            ],
+            [
+              "r1",
+              2
+            ],
+            [
+              "r2",
+              5
+            ]
+          ]
+        },
+        "expected": "17",
+        "value_literals": {
+          "stock": "10",
+          "requests": "[('r1', 2), ('r1', 2), ('r2', 5)]"
+        }
+      },
+      {
+        "values": {
+          "stock": 0,
+          "requests": [
+            [
+              "a",
+              1
+            ],
+            [
+              "b",
+              1
+            ],
+            [
+              "a",
+              1
+            ],
+            [
+              "a",
+              1
+            ]
+          ]
+        },
+        "expected": "2",
+        "value_literals": {
+          "stock": "0",
+          "requests": "[('a', 1), ('b', 1), ('a', 1), ('a', 1)]"
+        }
+      },
+      {
+        "values": {
+          "stock": 5,
+          "requests": [
+            [
+              "x",
+              3
+            ]
+          ]
+        },
+        "expected": "8",
+        "value_literals": {
+          "stock": "5",
+          "requests": "[('x', 3)]"
+        }
+      }
+    ],
+    "stp_e52b2734-468d-4d9f-a941-13d5f077769c": [
+      {
+        "values": {
+          "base": 100,
+          "tries": 4
+        },
+        "expected": "[100, 200, 400, 800]",
+        "value_literals": {
+          "base": "100",
+          "tries": "4"
+        }
+      },
+      {
+        "values": {
+          "base": 50,
+          "tries": 5
+        },
+        "expected": "[50, 100, 200, 400, 800]",
+        "value_literals": {
+          "base": "50",
+          "tries": "5"
+        }
+      },
+      {
+        "values": {
+          "base": 300,
+          "tries": 1
+        },
+        "expected": "[300]",
+        "value_literals": {
+          "base": "300",
+          "tries": "1"
+        }
+      }
+    ],
+    "stp_7d3ede13-546f-4760-9113-af81abfc0aae": [
+      {
+        "values": {
+          "body": "{\"pen\": 3}"
+        },
+        "expected": "200 10\n304 0\n200 10",
+        "value_literals": {
+          "body": "'{\"pen\": 3}'"
+        }
+      },
+      {
+        "values": {
+          "body": "{\"ink\": 12}"
+        },
+        "expected": "200 11\n304 0\n200 11",
+        "value_literals": {
+          "body": "'{\"ink\": 12}'"
+        }
+      }
+    ],
+    "stp_6516f532-f3ec-49d0-a90e-131ca875c608": [
+      {
+        "values": {
+          "body": "{\"pen\": 3}",
+          "new_body": "{\"pen\": 4}"
+        },
+        "expected": "200 10\n200 10",
+        "value_literals": {
+          "body": "'{\"pen\": 3}'",
+          "new_body": "'{\"pen\": 4}'"
+        }
+      },
+      {
+        "values": {
+          "body": "{\"ink\": 7}",
+          "new_body": "{\"ink\": 7}"
+        },
+        "expected": "200 10\n304 0",
+        "value_literals": {
+          "body": "'{\"ink\": 7}'",
+          "new_body": "'{\"ink\": 7}'"
+        }
+      },
+      {
+        "values": {
+          "body": "{\"pen\": 3}",
+          "new_body": "{\"pen\": 30}"
+        },
+        "expected": "200 10\n200 11",
+        "value_literals": {
+          "body": "'{\"pen\": 3}'",
+          "new_body": "'{\"pen\": 30}'"
+        }
+      }
+    ],
+    "stp_81179142-a93f-4af8-84b0-fd8663dfaf31": [
+      {
+        "values": {
+          "item": "pen"
+        },
+        "expected": "['billing pen', 'shipping pen', 'audit pen']\n['billing probe', 'shipping probe', 'audit probe']",
+        "value_literals": {
+          "item": "'pen'"
+        }
+      },
+      {
+        "values": {
+          "item": "ink"
+        },
+        "expected": "['billing ink', 'shipping ink', 'audit ink']\n['billing probe', 'shipping probe', 'audit probe']",
+        "value_literals": {
+          "item": "'ink'"
+        }
+      }
+    ],
+    "stp_210332ae-e92c-4bbc-86ac-48e060f01453": [
+      {
+        "values": {
+          "url": "https://shop.example.com:8443/orders/17?item=pen&qty=3#memo"
+        },
+        "expected": "https shop.example.com 8443 /orders/17 item=pen&qty=3",
+        "value_literals": {
+          "url": "'https://shop.example.com:8443/orders/17?item=pen&qty=3#memo'"
+        }
+      },
+      {
+        "values": {
+          "url": "http://wh.example.com/stock?pen=3"
+        },
+        "expected": "http wh.example.com None /stock pen=3",
+        "value_literals": {
+          "url": "'http://wh.example.com/stock?pen=3'"
+        }
+      },
+      {
+        "values": {
+          "url": "https://a.example.org:9000/x/y?k=1&m=2#top"
+        },
+        "expected": "https a.example.org 9000 /x/y k=1&m=2",
+        "value_literals": {
+          "url": "'https://a.example.org:9000/x/y?k=1&m=2#top'"
+        }
+      }
+    ],
+    "stp_7bc52719-3ae9-4c09-9e32-cd3ef1a0d100": [
+      {
+        "values": {
+          "stock": {
+            "pen": 10
+          },
+          "calls": [
+            [
+              "https://wh.example.com/stock?key=a1",
+              "{\"item\": \"pen\", \"qty\": 2}"
+            ],
+            [
+              "https://wh.example.com/stock?key=a1&try=2",
+              "{\"item\": \"pen\", \"qty\": 2}"
+            ],
+            [
+              "https://wh.example.com/stock?key=b7",
+              "{\"item\": \"pen\", \"qty\": 5}"
+            ]
+          ]
+        },
+        "expected": "12\n12\n17",
+        "value_literals": {
+          "stock": "{'pen': 10}",
+          "calls": "[('https://wh.example.com/stock?key=a1', '{\"item\": \"pen\", \"qty\": 2}'), ('https://wh.example.com/stock?key=a1&try=2', '{\"item\": \"pen\", \"qty\": 2}'), ('https://wh.example.com/stock?key=b7', '{\"item\": \"pen\", \"qty\": 5}')]"
+        }
+      },
+      {
+        "values": {
+          "stock": {
+            "pen": 0,
+            "ink": 4
+          },
+          "calls": [
+            [
+              "https://wh.example.com/stock?key=k1",
+              "{\"item\": \"ink\", \"qty\": 1}"
+            ],
+            [
+              "https://wh.example.com/stock?key=k2",
+              "{\"item\": \"pen\", \"qty\": 3}"
+            ],
+            [
+              "https://wh.example.com/stock?try=3&key=k1",
+              "{\"item\": \"ink\", \"qty\": 1}"
+            ]
+          ]
+        },
+        "expected": "5\n3\n5",
+        "value_literals": {
+          "stock": "{'pen': 0, 'ink': 4}",
+          "calls": "[('https://wh.example.com/stock?key=k1', '{\"item\": \"ink\", \"qty\": 1}'), ('https://wh.example.com/stock?key=k2', '{\"item\": \"pen\", \"qty\": 3}'), ('https://wh.example.com/stock?try=3&key=k1', '{\"item\": \"ink\", \"qty\": 1}')]"
+        }
+      },
+      {
+        "values": {
+          "stock": {
+            "pen": 0
+          },
+          "calls": [
+            [
+              "https://wh.example.com/stock?key=x",
+              "{\"item\": \"pen\", \"qty\": 1}"
+            ],
+            [
+              "https://wh.example.com/stock?key=y",
+              "{\"item\": \"pen\", \"qty\": 1}"
+            ]
+          ]
+        },
+        "expected": "1\n2",
+        "value_literals": {
+          "stock": "{'pen': 0}",
+          "calls": "[('https://wh.example.com/stock?key=x', '{\"item\": \"pen\", \"qty\": 1}'), ('https://wh.example.com/stock?key=y', '{\"item\": \"pen\", \"qty\": 1}')]"
+        }
+      }
+    ]
+  },
+  "prepared_probes": {
+    "stp_06d385b0-caeb-4460-9876-dad985405a63": "print(sorted(json.loads(respond(1))))",
+    "stp_81179142-a93f-4af8-84b0-fd8663dfaf31": "log.clear()\npublish('order', {'item': 'probe'})\nprint(log)"
+  }
+}

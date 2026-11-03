@@ -1,0 +1,52 @@
+{
+  "by": "hand",
+  "source_sha256": "9da1c4d2fee23ca1919cbccb31ce41d76c2cf85039429eb4042a49ea5d3815ff",
+  "entry": [
+    {
+      "action": "say",
+      "text": "p2도 p1과 같은 프린터를 받아야 해요. Printer 클래스는 건드리지 않아요.",
+      "target": "text:p2를 만드는 줄을 고쳐 p1과 같은 프린터를 받게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        26,
+        26
+      ],
+      "expect_error": "private access"
+    },
+    {
+      "action": "say",
+      "text": "컴파일 오류예요. Printer()가 private access라 Main에서 부를 수 없대요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "private 생성자는 Printer 클래스 안에서만 부를 수 있어요. 그래서 get()이 유일한 통로가 돼요.",
+      "target": "code:private Printer()"
+    },
+    {
+      "action": "patch_code",
+      "before": "        Printer p2 = new Printer();\n",
+      "after": "        Printer p2 = Printer.get();\n",
+      "say": "new 대신 get()으로 받아요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        31,
+        31
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1 3이 나왔어요. 프린터는 한 번만 만들어졌고, p2의 두 번과 p1의 한 번이 함께 쌓였어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 오류를 없애려고 생성자의 private을 지우면 컴파일은 돼요. 하지만 프린터가 두 대가 되어 2 1이 나와요.",
+      "target": "code:made++;"
+    }
+  ]
+}

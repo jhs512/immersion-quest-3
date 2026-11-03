@@ -1,0 +1,52 @@
+{
+  "by": "hand",
+  "source_sha256": "7c3c6ef95d4da77ca058bd2ac1791abdd4fa566ea021d96e66713b510cf7dad6",
+  "entry": [
+    {
+      "action": "say",
+      "text": "람다 안에서 던진 예외를 safe가 받게 하는 문제예요.",
+      "target": "text:마지막 출력 줄을 고쳐 safe에 minus와 won을 넘긴 결과를 출력하게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        26,
+        26
+      ],
+      "expect_error": "IllegalArgumentException"
+    },
+    {
+      "action": "say",
+      "text": "규칙 준비 끝이 먼저 나오고 그 뒤에 예외가 났어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "람다를 만든 줄에서는 본문이 돌지 않았어요. apply를 부른 이 줄에서야 돌았어요.",
+      "target": "code:System.out.println(minus.apply(won));"
+    },
+    {
+      "action": "patch_code",
+      "before": "System.out.println(minus.apply(won));",
+      "after": "System.out.println(safe(minus, won));",
+      "say": "safe에 람다와 금액을 넘겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        26,
+        26
+      ]
+    },
+    {
+      "action": "say",
+      "text": "규칙 준비 끝 다음에 0이 나왔어요. 예외가 r.apply를 부른 safe의 catch로 갔어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "람다 본문은 safe의 try 안에서 실행돼요. 그래서 그 try의 catch가 예외를 받아요.",
+      "target": "code:return r.apply(won);"
+    }
+  ]
+}

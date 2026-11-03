@@ -1,0 +1,52 @@
+{
+  "by": "hand",
+  "source_sha256": "265d7246d6c51a08ccf1086a4366b98f8c59944926b537ca92d990efdebd367a",
+  "entry": [
+    {
+      "action": "say",
+      "text": "함수가 main의 box를 직접 고쳐야 하는 문제예요. 지금은 호출해도 수량이 그대로예요.",
+      "target": "text:그런데 호출한 뒤에도 box.count가 그대로예요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        17
+      ]
+    },
+    {
+      "action": "say",
+      "text": "3이 나왔어요. b는 box를 복사한 다른 상자라서 b만 7이 됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "void restock(struct Box b, int n) {\n    b.count = b.count + n;",
+      "after": "void restock(struct Box *b, int n) {\n    b->count = b->count + n;",
+      "say": "매개변수를 상자 주소로 받고, 그 주소가 가리키는 상자의 count를 ->로 써요."
+    },
+    {
+      "action": "patch_code",
+      "before": "restock(box, add);",
+      "after": "restock(&box, add);",
+      "say": "호출할 때 box의 주소를 넘겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        17
+      ]
+    },
+    {
+      "action": "say",
+      "text": "7이 나왔어요. b가 box를 가리켜서 b->count가 곧 box.count예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 함수만 고치고 호출의 &를 빼면 상자 자체를 넘기게 돼요. 매개변수와 인수의 모양이 달라 컴파일 오류가 나요.",
+      "target": "code:restock(&box, add);"
+    }
+  ]
+}

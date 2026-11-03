@@ -1,0 +1,1686 @@
+{
+  "description": "extend와 pop, 앞뒤 짝 교환, 중첩 목록과 map, 집합 update, 사전 만들기와 items, 별칭·슬라이스 복사·+= 의 제자리 변경을 한 줄씩 고치며 실행 결과를 추적해요.",
+  "tasks": [
+    {
+      "id": "stp_9d49a89f-625b-44e6-b518-872b4001eac4",
+      "title": "extra의 상자를 낱개로 이어 붙이세요",
+      "goal": "대기열 loads 끝에 새로 온 상자 목록 extra를 붙이려 해요. 상자 하나가 한 칸을 차지해야 해요.\n\n**알아두세요**\n\nappend(x)는 x 하나를 끝 칸에 넣어요. x가 목록이어도 통째로 한 칸이에요. extend(x)는 x의 원소를 하나씩 풀어 끝에 넣어요.\n\nappend 줄을 고쳐 extra의 상자들을 loads 끝에 낱개로 이어 붙이세요. 채점은 loads와 extra를 다른 목록으로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 길이와 목록 모양을 확인하세요.\n2. append 줄의 메서드를 고치세요.\n3. 다시 실행해 상자마다 한 칸씩 늘었는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "loads = [3, 5]\nextra = [2, 4]\n# extra의 상자들을 loads 끝에 붙여요.\nloads.append(extra)\nprint(len(loads), loads)\n",
+      "solution": "loads = [3, 5]\nextra = [2, 4]\n# extra의 상자들을 loads 끝에 붙여요.\nloads.extend(extra)\nprint(len(loads), loads)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "4 [3, 5, 2, 4]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "extra의 2와 4가 각각 한 칸씩 붙어야 하는 문제예요.",
+          "target": "text:extra의 상자들을 loads 끝에 낱개로 이어 붙이세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3과 [3, 5, [2, 4]]가 나왔어요. extra 목록 통째가 한 칸에 들어갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "loads.append(extra)",
+          "after": "loads.extend(extra)",
+          "say": "extend로 바꿔 extra의 원소를 풀어 넣어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4와 [3, 5, 2, 4]예요. 2와 4가 각자 한 칸씩 늘었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "loads.extend(extra)",
+          "after": "loads = loads.extend(extra)",
+          "say": "결과를 loads에 다시 담아 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ],
+          "expect_error": "TypeError"
+        },
+        {
+          "action": "say",
+          "text": "TypeError가 났어요. extend가 돌려준 None이 loads에 들어갔거든요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. extend는 목록을 그 자리에서 바꾸고 None을 돌려줘요. 결과를 다시 대입하면 목록을 잃어요.",
+          "target": "code:loads = loads.extend(extra)"
+        },
+        {
+          "action": "patch_code",
+          "before": "loads = loads.extend(extra)",
+          "after": "loads.extend(extra)",
+          "say": "대입을 지우고 extend 한 줄로 되돌려요."
+        }
+      ]
+    },
+    {
+      "id": "stp_ed0f5f1b-2cbf-4caf-8ad4-17e1ccb99fac",
+      "title": "pop으로 끝 상자를 꺼내 옮기세요",
+      "goal": "대기열 queue의 맨 끝 상자를 꺼내 처리 끝 목록 done으로 옮기려 해요. 두 번 옮기면 queue에서 두 상자가 빠져야 해요.\n\n**알아두세요**\n\npop()은 목록의 맨 끝 원소를 빼고, 뺀 그 값을 돌려줘요. 돌려준 값은 바로 다른 곳에 넘길 수 있어요.\n\nappend 안의 값을 고쳐 끝 상자가 queue에서 빠지면서 done으로 옮겨지게 하세요. 채점은 queue를 다른 목록으로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 두 목록을 확인하세요.\n2. done.append 안의 queue[-1]을 pop을 쓰도록 고치세요.\n3. 다시 실행해 queue가 줄고 done이 늘었는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "queue = [11, 12, 13, 14]\ndone = []\n# 맨 끝 상자를 꺼내 done으로 옮기기를 두 번 해요.\nfor k in range(2):\n    done.append(queue[-1])\nprint(queue, done)\n",
+      "solution": "queue = [11, 12, 13, 14]\ndone = []\n# 맨 끝 상자를 꺼내 done으로 옮기기를 두 번 해요.\nfor k in range(2):\n    done.append(queue.pop())\nprint(queue, done)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[11, 12] [14, 13]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "상자를 옮기면 queue에서는 빠지고 done에는 들어가야 해요.",
+          "target": "text:끝 상자가 queue에서 빠지면서 done으로 옮겨지게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "queue는 그대로고 done에 14가 두 번 들어갔어요. [-1]은 읽기만 해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "queue[-1]",
+          "after": "queue.pop()",
+          "say": "끝 칸을 빼면서 그 값을 돌려주는 pop으로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[11, 12]와 [14, 13]이에요. 14를 꺼낸 다음 새 끝인 13을 꺼냈어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "queue.pop()",
+          "after": "queue.pop(0)",
+          "say": "괄호에 0을 넣어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이번엔 [13, 14]와 [11, 12]예요. 맨 앞 칸부터 꺼냈어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. pop의 괄호 안은 값이 아니라 위치예요. 0을 주면 맨 앞, 비우면 맨 끝을 꺼내요.",
+          "target": "code:queue.pop(0)"
+        },
+        {
+          "action": "patch_code",
+          "before": "queue.pop(0)",
+          "after": "queue.pop()",
+          "say": "괄호를 비워 끝에서 꺼내게 되돌려요."
+        }
+      ]
+    },
+    {
+      "id": "stp_0de675fd-6c19-45f1-a76e-6ac76e8f5d21",
+      "title": "짝 바꾸기를 절반만 돌려 줄을 뒤집으세요",
+      "goal": "줄 선 상자 line을 앞뒤로 뒤집으려 해요. 반복은 앞에서 i번째와 뒤에서 i번째를 한 번에 맞바꿔요.\n\n**알아두세요**\n\na, b = b, a는 오른쪽 두 값을 먼저 읽어 둔 다음 왼쪽에 넣어요. 임시 변수 없이 두 값이 바뀌어요. i가 0이면 -i - 1은 -1이라 맨 앞과 맨 끝이 짝이에요.\n\nrange 안의 반복 횟수를 고쳐 줄이 뒤집히게 하세요. 채점은 line을 길이가 다른 목록으로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 결과를 확인하세요.\n2. range 안의 반복 횟수를 고치세요.\n3. 다시 실행해 줄이 뒤집혔는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "line = [1, 2, 3, 4, 5]\n# 앞에서 i번째와 뒤에서 i번째를 맞바꿔 줄을 뒤집어요.\nfor i in range(len(line)):\n    line[i], line[-i - 1] = line[-i - 1], line[i]\nprint(line)\n",
+      "solution": "line = [1, 2, 3, 4, 5]\n# 앞에서 i번째와 뒤에서 i번째를 맞바꿔 줄을 뒤집어요.\nfor i in range(len(line) // 2):\n    line[i], line[-i - 1] = line[-i - 1], line[i]\nprint(line)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[5, 4, 3, 2, 1]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "짝 바꾸기 줄은 맞아요. 몇 번 돌릴지만 고치면 돼요.",
+          "target": "text:range 안의 반복 횟수를 고쳐 줄이 뒤집히게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[1, 2, 3, 4, 5]가 나왔어요. 처음과 똑같죠?",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "오른쪽 두 값을 먼저 읽고 왼쪽에 넣어요. 그래서 임시 변수 없이 맞바뀌어요.",
+          "target": "code:= line[-i - 1], line[i]"
+        },
+        {
+          "action": "say",
+          "text": "그런데 다섯 번 돌면 뒤쪽 절반에서 이미 바꾼 짝을 또 바꿔요. 두 번 바꾼 짝은 제자리예요.",
+          "target": "code:range(len(line))"
+        },
+        {
+          "action": "patch_code",
+          "before": "range(len(line))",
+          "after": "range(len(line) // 2)",
+          "say": "반복을 길이의 절반으로 줄여요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[5, 4, 3, 2, 1]이에요. 0번과 -1번, 1번과 -2번만 바꾸고 가운데 3은 그대로 뒀어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "line[i], line[-i - 1] = line[-i - 1], line[i]",
+          "after": "line[i], line[-i] = line[-i], line[i]",
+          "say": "짝 번호에서 - 1을 빼 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[1, 5, 3, 4, 2]예요. i가 0일 때 -0은 0이라 맨 앞이 자기 자신과 바뀌었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 뒤에서 i번째는 -i가 아니라 -i - 1이에요. - 1을 빠뜨리면 짝이 한 칸씩 밀려요.",
+          "target": "code:line[-i] = line[-i]"
+        },
+        {
+          "action": "patch_code",
+          "before": "line[i], line[-i] = line[-i], line[i]",
+          "after": "line[i], line[-i - 1] = line[-i - 1], line[i]",
+          "say": "짝 번호를 -i - 1로 되돌려요."
+        }
+      ]
+    },
+    {
+      "id": "stp_9f175cc5-ca09-4b55-8d09-4184abb44b38",
+      "title": "두 번호의 순서를 고쳐 선반마다 첫 상자를 모으세요",
+      "goal": "선반 shelves에서 선반마다 맨 앞 상자의 무게만 모으려 해요.\n\n**알아두세요**\n\nshelves[1]은 두 번째 선반 목록 전체예요. 그 뒤에 번호를 하나 더 붙인 shelves[1][0]이 그 선반의 첫 상자예요.\n\nappend 안의 두 번호를 고쳐 선반마다 첫 상자의 무게가 모이게 하세요. 채점은 shelves를 다른 선반들로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 모인 무게를 확인하세요.\n2. shelves 뒤 두 번호의 자리를 고치세요.\n3. 다시 실행해 선반마다 첫 무게가 모였는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "shelves = [[3, 1, 4], [1, 5], [9, 2, 6, 5]]\nfirsts = []\n# 선반마다 맨 앞 상자의 무게를 모아요.\nfor i in range(len(shelves)):\n    firsts.append(shelves[0][i])\nprint(firsts)\n",
+      "solution": "shelves = [[3, 1, 4], [1, 5], [9, 2, 6, 5]]\nfirsts = []\n# 선반마다 맨 앞 상자의 무게를 모아요.\nfor i in range(len(shelves)):\n    firsts.append(shelves[i][0])\nprint(firsts)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[3, 1, 9]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "선반 세 개에서 첫 상자를 하나씩 모아야 해요.",
+          "target": "text:선반마다 첫 상자의 무게가 모이게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[3, 1, 4]가 나왔어요. 첫 선반의 상자 세 개를 모았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "바깥 번호 0이 첫 선반을 꺼내고, 안쪽 번호 i가 그 선반의 칸을 골랐어요.",
+          "target": "code:shelves[0][i]"
+        },
+        {
+          "action": "patch_code",
+          "before": "shelves[0][i]",
+          "after": "shelves[i][0]",
+          "say": "바깥 번호를 i, 안쪽 번호를 0으로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[3, 1, 9]예요. 선반마다 0번 칸을 하나씩 꺼냈어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "shelves[i][0]",
+          "after": "shelves[i][2]",
+          "say": "이번엔 선반마다 세 번째 상자를 꺼내 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ],
+          "expect_error": "IndexError"
+        },
+        {
+          "action": "say",
+          "text": "IndexError가 났어요. 두 번째 선반 [1, 5]에는 2번 칸이 없거든요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 안쪽 목록의 길이는 선반마다 달라요. 모든 선반에 그 칸이 있다고 믿으면 실행이 멈춰요.",
+          "target": "code:shelves[i][2]"
+        },
+        {
+          "action": "patch_code",
+          "before": "shelves[i][2]",
+          "after": "shelves[i][0]",
+          "say": "0번 칸으로 되돌려요."
+        }
+      ]
+    },
+    {
+      "id": "stp_9fd50967-4591-43c0-bb86-fbb49ff9398c",
+      "title": "map에 넘기는 lambda를 고쳐 선반마다 무게 합을 구하세요",
+      "goal": "선반마다 무게 합을 구해 totals 목록을 만들고, 가장 무거운 선반의 합도 함께 출력하려 해요.\n\n**알아두세요**\n\nlambda row: 식은 이름 없는 한 줄 함수예요. map(함수, 목록)은 목록의 원소를 하나씩 함수에 넣어 결과를 차례로 내고, list로 감싸면 목록이 돼요. sum·len·max는 목록 하나를 받아 합·개수·최댓값을 줘요.\n\nlambda가 계산하는 식을 고쳐 선반마다 무게 합이 모이게 하세요. 채점은 shelves를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 totals를 확인하세요.\n2. lambda의 식을 한 곳 고치세요.\n3. 다시 실행해 선반마다 무게 합과 그 최댓값이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "shelves = [[3, 1, 4], [1, 5], [9, 2, 6, 5]]\n# 선반마다 무게 합을 구해 목록으로 만들어요.\ntotals = list(map(lambda row: len(row), shelves))\nprint(totals, max(totals))\n",
+      "solution": "shelves = [[3, 1, 4], [1, 5], [9, 2, 6, 5]]\n# 선반마다 무게 합을 구해 목록으로 만들어요.\ntotals = list(map(lambda row: sum(row), shelves))\nprint(totals, max(totals))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[8, 6, 22] 22"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "선반 하나마다 무게를 더한 값이 totals에 들어가야 해요.",
+          "target": "text:lambda가 계산하는 식을 고쳐 선반마다 무게 합이 모이게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[3, 2, 4]와 4가 나왔어요. 선반마다 상자 수를 셌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "map은 shelves의 선반을 하나씩 row에 넣고 lambda를 불러요. row는 선반 목록 하나예요.",
+          "target": "code:lambda row: len(row)"
+        },
+        {
+          "action": "patch_code",
+          "before": "lambda row: len(row)",
+          "after": "lambda row: sum(row)",
+          "say": "개수 대신 합을 구하게 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[8, 6, 22]와 22예요. 선반별 합이 모였고 max가 가장 큰 22를 골랐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "shelves))",
+          "after": "shelves[0]))",
+          "say": "map에 첫 선반 하나만 넘겨 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ],
+          "expect_error": "TypeError"
+        },
+        {
+          "action": "say",
+          "text": "TypeError가 났어요. 이번엔 row에 상자 숫자 3이 들어가 sum(3)을 불렀거든요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. map은 넘긴 목록의 원소를 하나씩 꺼내요. 선반 목록을 넘겨야 row가 선반 하나가 돼요.",
+          "target": "code:shelves[0]))"
+        },
+        {
+          "action": "patch_code",
+          "before": "shelves[0]))",
+          "after": "shelves))",
+          "say": "선반 전체 목록으로 되돌려요."
+        }
+      ]
+    },
+    {
+      "id": "stp_3c1301b8-6d3c-48a8-93aa-6dbd4cd5b16c",
+      "title": "update로 운행 지역들을 집합에 넣으세요",
+      "goal": "다녀간 지역 집합 visited에 이번 운행 지역 trip을 모두 넣으려 해요. 이미 있는 지역은 한 번만 남아야 해요.\n\n**알아두세요**\n\nadd(x)는 x 하나를 원소로 넣어요. update(x)는 x 안의 원소들을 하나씩 넣어요. 집합은 같은 값을 두 번 갖지 않아요.\n\nadd 줄을 고쳐 trip의 지역들이 visited의 원소로 하나씩 들어가게 하세요. 채점은 trip을 다른 지역들로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지역 수와 포함 여부를 확인하세요.\n2. add 줄의 메서드를 고치세요.\n3. 다시 실행해 지역 수가 중복 없이 늘었는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "visited = {'서울', '부산'}\ntrip = ('대구', '부산', '제주')\n# 이번 운행 지역들을 visited에 넣어요.\nvisited.add(trip)\nprint(len(visited), trip[0] in visited)\n",
+      "solution": "visited = {'서울', '부산'}\ntrip = ('대구', '부산', '제주')\n# 이번 운행 지역들을 visited에 넣어요.\nvisited.update(trip)\nprint(len(visited), trip[0] in visited)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "4 True"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "trip의 세 지역이 각각 visited에 들어가야 해요. 부산은 이미 있어요.",
+          "target": "text:trip의 지역들이 visited의 원소로 하나씩 들어가게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3과 False가 나왔어요. 지역 셋이 아니라 묶음 하나가 원소로 들어갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "visited.add(trip)",
+          "after": "visited.update(trip)",
+          "say": "update로 바꿔 trip을 풀어서 넣어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4와 True예요. 부산은 이미 있어서 대구와 제주만 늘었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "print(len(visited), trip[0] in visited)",
+          "after": "print(sorted(visited))",
+          "say": "집합의 원소를 정렬해서 출력해 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "['대구', '부산', '서울', '제주']예요. 네 지역이 한 번씩만 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 집합을 그냥 출력하면 넣은 순서대로 나온다는 보장이 없어요. 구성은 sorted로 맞춰 봐요.",
+          "target": "code:sorted(visited)"
+        }
+      ]
+    },
+    {
+      "id": "stp_d9c03d09-563f-45e4-8865-29a82052c678",
+      "title": "주인이 바뀐 뒤의 주인 수를 출력하세요",
+      "goal": "보관함 칸 owner의 주인이 몇 명인지 세려 해요. A2 칸의 주인이 kim으로 바뀐 뒤의 사람 수가 필요해요.\n\n**알아두세요**\n\nowner['A2'] = 'kim'처럼 이미 있는 키에 대입하면 새 칸이 생기지 않고 값만 바뀌어요. owner.values()는 사전의 값들이에요.\n\nnames를 만드는 줄의 위치를 고쳐 주인이 바뀐 뒤의 사람 수가 출력되게 하세요. 채점은 owner를 다른 사전으로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 사람 수를 확인하세요.\n2. names를 만드는 줄을 주인을 바꾸는 줄 아래로 옮기세요.\n3. 다시 실행해 바뀐 뒤의 사람 수가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "owner = {'A1': 'kim', 'A2': 'lee', 'A3': 'kim'}\nnames = set(owner.values())\n# A2 칸의 주인이 kim으로 바뀌어요.\nowner['A2'] = 'kim'\nprint(len(names))\n",
+      "solution": "owner = {'A1': 'kim', 'A2': 'lee', 'A3': 'kim'}\n# A2 칸의 주인이 kim으로 바뀌어요.\nowner['A2'] = 'kim'\nnames = set(owner.values())\nprint(len(names))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "1"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "A2가 kim으로 바뀐 다음의 주인 수를 세야 해요.",
+          "target": "text:names를 만드는 줄의 위치를 고쳐 주인이 바뀐 뒤의 사람 수가 출력되게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2가 나왔어요. 지금 owner의 주인은 kim 한 명이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "names는 이 줄에서 그때의 값 kim, lee로 만든 새 집합이에요. owner와 이어져 있지 않아요.",
+          "target": "code:names = set(owner.values())"
+        },
+        {
+          "action": "patch_code",
+          "before": "names = set(owner.values())\n",
+          "after": "",
+          "say": "집합을 만드는 줄을 위에서 지워요."
+        },
+        {
+          "action": "patch_code",
+          "before": "owner['A2'] = 'kim'\n",
+          "after": "owner['A2'] = 'kim'\nnames = set(owner.values())\n",
+          "say": "주인을 바꾼 줄 아래에 다시 써요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1이에요. 바꾼 뒤의 값으로 모으니 kim 하나만 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "names = set(owner.values())",
+          "after": "names = set(owner)",
+          "say": "values를 빼고 사전을 바로 집합으로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3이 나왔어요. 사전을 그대로 넘기면 키 A1, A2, A3이 모여요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. set(owner)는 주인 이름이 아니라 칸 번호를 모아요. 값을 모으려면 values()가 필요해요.",
+          "target": "code:set(owner)"
+        },
+        {
+          "action": "patch_code",
+          "before": "names = set(owner)",
+          "after": "names = set(owner.values())",
+          "say": "values()로 되돌려요."
+        }
+      ]
+    },
+    {
+      "id": "stp_7165846a-2700-4fe6-8f4d-0232f27ec031",
+      "title": "번호표가 1부터 붙게 enumerate를 고치세요",
+      "goal": "상품 코드 codes에 1번부터 번호표를 붙여 사전 table을 만들려 해요. 번호가 키, 코드가 값이에요.\n\n**알아두세요**\n\nenumerate(목록)은 (번호, 원소) 짝을 차례로 줘요. for i, code in으로 받으면 i에 번호, code에 원소가 들어가요. table[키] = 값은 없는 키면 새 칸을 만들어요.\n\nenumerate 부분을 고쳐 번호표가 1부터 붙게 하세요. 채점은 codes를 다른 목록으로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 사전의 키를 확인하세요.\n2. enumerate에 시작 번호를 넣어 고치세요.\n3. 다시 실행해 키가 1부터 시작하는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "codes = ['P', 'Q', 'R']\ntable = {}\n# 번호를 키, 코드를 값으로 하는 번호표 사전을 만들어요.\nfor i, code in enumerate(codes):\n    table[i] = code\nprint(table)\n",
+      "solution": "codes = ['P', 'Q', 'R']\ntable = {}\n# 번호를 키, 코드를 값으로 하는 번호표 사전을 만들어요.\nfor i, code in enumerate(codes, 1):\n    table[i] = code\nprint(table)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "{1: 'P', 2: 'Q', 3: 'R'}"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "번호표는 1번부터예요. 지금 코드는 몇 번부터 붙는지 볼게요.",
+          "target": "text:enumerate 부분을 고쳐 번호표가 1부터 붙게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "{0: 'P', 1: 'Q', 2: 'R'}가 나왔어요. enumerate는 0부터 세요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "table[i] = code",
+          "after": "table[1] = code",
+          "say": "키를 1로 박아 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "{1: 'R'}만 남았어요. 같은 키 1에 대입할 때마다 앞 값을 덮어썼어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 키를 하나로 고정하면 새 칸이 안 생기고 값만 바뀌어요. 마지막 R만 남아요.",
+          "target": "code:table[1] = code"
+        },
+        {
+          "action": "patch_code",
+          "before": "table[1] = code",
+          "after": "table[i] = code",
+          "say": "키를 i로 되돌려요."
+        },
+        {
+          "action": "patch_code",
+          "before": "enumerate(codes)",
+          "after": "enumerate(codes, 1)",
+          "say": "enumerate에 시작 번호 1을 줘요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "{1: 'P', 2: 'Q', 3: 'R'}예요. 번호가 1부터 붙고 넣은 순서대로 출력됐어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_ac7f125b-2a5e-4b17-a80a-fc5b444d9446",
+      "title": "items로 이름과 가격을 함께 받으세요",
+      "goal": "가격표 사전 price에서 1000원 이상인 상품 이름만 골라 한 줄에 출력하려 해요. 순서는 사전에 넣은 순서예요.\n\n**알아두세요**\n\nprice.items()는 (키, 값) 짝을 넣은 순서대로 줘요. for name, won in으로 받으면 name에 키, won에 값이 들어가요.\n\nfor 줄을 고쳐 상품 이름과 가격을 짝으로 받게 하세요. 채점은 price를 다른 사전으로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 어떤 오류가 나는지 확인하세요.\n2. for 줄에서 price를 items()로 돌도록 고치세요.\n3. 다시 실행해 1000원 이상인 이름만 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "price = {'pen': 1200, 'cup': 3000, 'ink': 800}\n# 1000원 이상인 상품 이름을 넣은 순서대로 출력해요.\nfor name, won in price:\n    if won >= 1000:\n        print(name, end=' ')\n",
+      "solution": "price = {'pen': 1200, 'cup': 3000, 'ink': 800}\n# 1000원 이상인 상품 이름을 넣은 순서대로 출력해요.\nfor name, won in price.items():\n    if won >= 1000:\n        print(name, end=' ')\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "pen cup"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "이름과 가격을 함께 받아야 가격으로 고를 수 있어요.",
+          "target": "text:for 줄을 고쳐 상품 이름과 가격을 짝으로 받게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ],
+          "expect_error": "ValueError"
+        },
+        {
+          "action": "say",
+          "text": "ValueError가 났어요. 사전을 그대로 돌리면 키만 하나씩 나와요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "키 'pen'을 name과 won 둘로 나누려 했는데 글자가 셋이라 멈췄어요.",
+          "target": "code:for name, won in price:"
+        },
+        {
+          "action": "patch_code",
+          "before": "in price:",
+          "after": "in price.items():",
+          "say": "items()로 바꿔 (키, 값) 짝을 받아요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "pen cup이 나왔어요. 800원인 ink는 빠졌고 넣은 순서 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "for name, won in",
+          "after": "for won, name in",
+          "say": "받는 이름의 순서를 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ],
+          "expect_error": "TypeError"
+        },
+        {
+          "action": "say",
+          "text": "TypeError가 났어요. won에 'pen'이 들어가 1000과 비교했거든요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. items의 짝은 늘 키가 먼저, 값이 나중이에요. 받는 순서를 바꾸면 이름과 숫자를 비교해요.",
+          "target": "code:for won, name in"
+        },
+        {
+          "action": "patch_code",
+          "before": "for won, name in",
+          "after": "for name, won in",
+          "say": "키, 값 순서로 되돌려요."
+        }
+      ]
+    },
+    {
+      "id": "stp_abad1f1f-f805-49e1-b253-613eddabae19",
+      "title": "슬라이스 복사로 백업이 출고에 휩쓸리지 않게 하세요",
+      "goal": "재고 stock에서 끝 상자를 출고하기 전에 백업 backup을 떠 두려 해요. 출고 뒤에도 backup은 출고 전 재고 그대로여야 해요.\n\n**알아두세요**\n\nstock[:]는 처음부터 끝까지 자른 새 목록이에요. a is b는 두 이름이 같은 목록 하나를 가리키면 True예요.\n\nbackup을 만드는 줄을 고쳐 출고 뒤에도 백업이 출고 전 재고를 지키게 하세요. 채점은 stock을 다른 목록으로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 출고 뒤 세 값을 확인하세요.\n2. backup을 만드는 줄을 슬라이스 복사로 고치세요.\n3. 다시 실행해 backup이 출고 전 재고 그대로인지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "stock = [5, 8, 2]\nbackup = stock\n# 백업을 떠 둔 뒤 원본 끝 상자를 꺼내 출고해요.\nout = stock.pop()\nprint(stock, backup, out)\n",
+      "solution": "stock = [5, 8, 2]\nbackup = stock[:]\n# 백업을 떠 둔 뒤 원본 끝 상자를 꺼내 출고해요.\nout = stock.pop()\nprint(stock, backup, out)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[5, 8] [5, 8, 2] 2"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "출고는 stock에서만 일어나고 backup은 그대로여야 해요.",
+          "target": "text:출고 뒤에도 백업이 출고 전 재고를 지키게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[5, 8]이 두 번 나왔어요. backup에서도 2가 빠졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "print(stock, backup, out)",
+          "after": "print(stock, backup, out, backup is stock)",
+          "say": "backup is stock도 함께 출력해 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "끝에 True가 붙었어요. backup과 stock은 같은 목록에 붙은 두 이름이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "backup = stock\n",
+          "after": "backup = stock[:]\n",
+          "say": "처음부터 끝까지 잘라 새 목록을 만들어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[5, 8], [5, 8, 2], 2, False예요. pop은 stock에서만 2를 뺐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "backup = stock[:]",
+          "after": "backup = [stock]",
+          "say": "대괄호로 감싸서 백업해 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "backup이 [[5, 8]]이에요. 새 목록 안에 같은 stock이 한 칸으로 들어 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. [stock]은 복사가 아니라 stock을 원소로 담은 목록이에요. 출고하면 안쪽도 같이 줄어요.",
+          "target": "code:[stock]"
+        },
+        {
+          "action": "patch_code",
+          "before": "backup = [stock]",
+          "after": "backup = stock[:]",
+          "say": "슬라이스 복사로 되돌려요."
+        },
+        {
+          "action": "patch_code",
+          "before": "print(stock, backup, out, backup is stock)",
+          "after": "print(stock, backup, out)",
+          "say": "출력도 세 값으로 되돌려요."
+        }
+      ]
+    },
+    {
+      "id": "stp_a2e8a739-8b14-4a49-82c2-882e70095846",
+      "title": "목록 += 가 원본을 늘리지 않게 고치세요",
+      "goal": "정수 count와 목록 items에 이름 c2, i2를 하나씩 더 붙였어요. 새 이름 쪽만 늘리고 count와 items는 그대로 두려 해요.\n\n**알아두세요**\n\ni2 = i2 + [3]은 두 목록을 이은 새 목록을 만들어 i2에 묶어요. 목록에 쓴 += 는 겉모습이 비슷해도 동작이 달라요.\n\ni2를 늘리는 줄을 고쳐 items는 그대로 두고 i2만 늘게 하세요. c2 줄은 그대로 두세요. 채점은 count와 items를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 네 값을 확인하세요.\n2. i2를 늘리는 줄을 새 목록을 만드는 대입으로 고치세요.\n3. 다시 실행해 items가 그대로인지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "count = 2\nitems = [1, 2]\nc2 = count\ni2 = items\n# 이름을 하나씩 더 붙인 뒤 새 이름 쪽만 늘려요.\nc2 += 1\ni2 += [3]\nprint(count, items, c2, i2)\n",
+      "solution": "count = 2\nitems = [1, 2]\nc2 = count\ni2 = items\n# 이름을 하나씩 더 붙인 뒤 새 이름 쪽만 늘려요.\nc2 += 1\ni2 = i2 + [3]\nprint(count, items, c2, i2)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "2 [1, 2] 3 [1, 2, 3]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "c2와 i2만 늘고 count와 items는 그대로여야 해요.",
+          "target": "text:i2를 늘리는 줄을 고쳐 items는 그대로 두고 i2만 늘게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "count는 2 그대로예요. 그런데 items에는 3이 붙었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "정수 c2 += 1은 새 값 3을 c2에만 묶어요. 원래 2는 그대로 남아요.",
+          "target": "code:c2 += 1"
+        },
+        {
+          "action": "say",
+          "text": "목록 i2 += [3]은 i2가 가리키는 목록을 그 자리에서 늘려요. 그 목록이 바로 items예요.",
+          "target": "code:i2 += [3]"
+        },
+        {
+          "action": "patch_code",
+          "before": "i2 += [3]",
+          "after": "i2 = i2 + [3]",
+          "say": "+로 새 목록을 만들어 i2에 묶어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2, [1, 2], 3, [1, 2, 3]이에요. items는 그대로고 i2만 새 목록이 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "i2 = i2 + [3]",
+          "after": "i2.extend([3])",
+          "say": "extend로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "items가 다시 [1, 2, 3]이 됐어요. extend도 그 목록 자체를 늘려요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 목록의 += 는 extend와 같은 제자리 확장이에요. 별칭이 있으면 원본도 늘어나요.",
+          "target": "code:i2.extend([3])"
+        },
+        {
+          "action": "patch_code",
+          "before": "i2.extend([3])",
+          "after": "i2 = i2 + [3]",
+          "say": "새 목록을 만드는 대입으로 되돌려요."
+        }
+      ]
+    },
+    {
+      "id": "stp_faed4ff2-0b7b-424d-a4d9-ac2d36f6bbc4",
+      "title": "얕은 복사본의 연쇄 += 가 원본 묶음을 바꾸지 않게 고치세요",
+      "goal": "배송 묶음 groups를 슬라이스로 복사한 work에서만 묶음을 이어 붙이려 해요. work의 각 묶음 뒤에 바로 앞 묶음을 붙이고, groups의 묶음은 처음 그대로 둬야 해요.\n\n반복 안의 이어 붙이는 줄을 고쳐 groups는 그대로 두고 work만 바뀌게 하세요. 채점은 groups를 다른 묶음들로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 groups와 work를 확인하세요.\n2. work[i + 1]을 늘리는 줄을 새 목록을 만드는 대입으로 고치세요.\n3. 다시 실행해 groups가 처음 그대로인지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "groups = [['A'], ['B'], ['C']]\nwork = groups[:]\n# work의 각 묶음 뒤에 바로 앞 묶음을 이어 붙여요.\nfor i in range(len(work) - 1):\n    work[i + 1] += work[i]\nprint(groups)\nprint(work)\n",
+      "solution": "groups = [['A'], ['B'], ['C']]\nwork = groups[:]\n# work의 각 묶음 뒤에 바로 앞 묶음을 이어 붙여요.\nfor i in range(len(work) - 1):\n    work[i + 1] = work[i + 1] + work[i]\nprint(groups)\nprint(work)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[['A'], ['B'], ['C']]\n[['A'], ['B', 'A'], ['C', 'B', 'A']]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "복사본 work만 바뀌고 groups는 처음 그대로여야 해요.",
+          "target": "text:반복 안의 이어 붙이는 줄을 고쳐 groups는 그대로 두고 work만 바뀌게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "두 줄이 똑같이 [['A'], ['B', 'A'], ['C', 'B', 'A']]예요. groups까지 바뀌었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "groups[:]는 바깥 목록만 새로 만들어요. 안의 묶음 셋은 groups와 같은 목록이에요.",
+          "target": "code:groups[:]"
+        },
+        {
+          "action": "say",
+          "text": "그래서 += 가 공유 묶음을 그 자리에서 늘렸어요. 늘어난 B, A 묶음이 다음 반복에서 C 뒤에 붙고요.",
+          "target": "code:work[i + 1] += work[i]"
+        },
+        {
+          "action": "patch_code",
+          "before": "work[i + 1] += work[i]",
+          "after": "work[i + 1] = work[i + 1] + work[i]",
+          "say": "+로 새 묶음을 만들어 work 칸에만 넣어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "groups는 [['A'], ['B'], ['C']] 그대로예요. work 칸에만 새 묶음이 들어갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "work = groups[:]",
+          "after": "work = groups.copy()",
+          "say": "복사를 copy()로 바꿔 볼게요."
+        },
+        {
+          "action": "patch_code",
+          "before": "work[i + 1] = work[i + 1] + work[i]",
+          "after": "work[i + 1] += work[i]",
+          "say": "이어 붙이는 줄은 += 로 돌려놔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "groups가 다시 바뀌었어요. copy()도 [:]처럼 바깥 목록만 새로 만들어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 복사 방법을 바꿔도 안쪽 묶음은 여전히 공유돼요. 안쪽을 지키려면 += 대신 새 묶음을 대입해요.",
+          "target": "code:groups.copy()"
+        },
+        {
+          "action": "patch_code",
+          "before": "work = groups.copy()",
+          "after": "work = groups[:]",
+          "say": "슬라이스 복사로 되돌려요."
+        },
+        {
+          "action": "patch_code",
+          "before": "work[i + 1] += work[i]",
+          "after": "work[i + 1] = work[i + 1] + work[i]",
+          "say": "새 묶음을 대입하는 줄로 되돌려요."
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "append와 extend, pop의 반환값을 구별하고 앞뒤 짝 교환으로 목록을 제자리에서 뒤집어요.",
+      "중첩 목록을 바깥·안쪽 두 번호로 읽고 map과 lambda, sum·max로 선반마다 값을 모아요.",
+      "집합에 여러 값을 넣는 update와 만든 시점에 고정되는 집합을 확인하고, enumerate·items로 사전을 만들고 돌아요.",
+      "별칭과 슬라이스 복사본, 목록 += 의 제자리 변경을 섞은 코드를 끝까지 추적해 고쳐요."
+    ],
+    "chapters": {
+      "chp_831a2f4d-1c36-4c70-8f71-a959ed3385ce": [
+        "목록 메서드가 목록을 어떻게 바꾸고 무엇을 돌려주는지, 중첩 목록을 어떻게 읽는지 실행으로 확인해요."
+      ],
+      "chp_96a19f91-b9b1-4919-b024-ba3e3630a4c4": [
+        "집합에 여러 값을 넣고 만든 시점을 따지며, 사전을 번호로 만들고 키·값 짝으로 돌아요."
+      ],
+      "chp_e2a74bfb-3ae7-449b-841a-218278037e93": [
+        "별칭·슬라이스 복사·목록 += 가 섞인 코드에서 어느 목록이 바뀌는지 끝까지 따라가요."
+      ]
+    },
+    "units": {
+      "unt_d3d34dc5-899f-431b-a5dd-0ee637b27891": {
+        "objectives": [
+          "extend·pop·동시 대입으로 대기열 목록을 제자리에서 바꿔요."
+        ],
+        "premise": "집하장의 상자 번호를 목록으로 줄 세워 둬요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_873fcf3f-0881-4e9d-86ae-4afbed4bece1": {
+        "objectives": [
+          "목록 안의 목록을 두 번호로 읽고, map으로 선반마다 값을 모아요."
+        ],
+        "premise": "선반마다 놓인 상자 무게를 목록으로 적고, 선반들을 다시 한 목록에 담았어요. 선반마다 상자 수가 달라요."
+      },
+      "unt_7d53a444-a950-404f-a7cd-874d47db7b27": {
+        "objectives": [
+          "집합의 update와, 다른 자료로 만든 집합이 언제 고정되는지 확인해요."
+        ],
+        "premise": "배송 기사가 다녀간 지역과 칸 주인을 중복 없이 모아요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_b2c11ede-63d6-4609-b9e7-88467388c4f7": {
+        "objectives": [
+          "enumerate로 번호를 붙여 사전을 만들고, items로 키·값 짝을 돌아요."
+        ],
+        "premise": "상품 코드에 번호표를 붙이고 상품별 가격표를 돌며 골라요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_dd2cca08-e3f4-4137-bb26-fcabb427df0b": {
+        "objectives": [
+          "같은 목록에 붙은 이름과 새로 만든 목록을 구별해 백업을 지켜요."
+        ],
+        "premise": "재고 목록을 바꾸기 전에 백업을 떠 둬요. 각 스텝은 준비 코드에서 새로 시작해요."
+      }
+    }
+  },
+  "prepared_cases": {
+    "stp_9d49a89f-625b-44e6-b518-872b4001eac4": [
+      {
+        "values": {
+          "loads": [
+            3,
+            5
+          ],
+          "extra": [
+            2,
+            4
+          ]
+        },
+        "expected": "4 [3, 5, 2, 4]",
+        "value_literals": {
+          "loads": "[3, 5]",
+          "extra": "[2, 4]"
+        }
+      },
+      {
+        "values": {
+          "loads": [
+            1
+          ],
+          "extra": [
+            7,
+            8,
+            9
+          ]
+        },
+        "expected": "4 [1, 7, 8, 9]",
+        "value_literals": {
+          "loads": "[1]",
+          "extra": "[7, 8, 9]"
+        }
+      },
+      {
+        "values": {
+          "loads": [],
+          "extra": [
+            6
+          ]
+        },
+        "expected": "1 [6]",
+        "value_literals": {
+          "loads": "[]",
+          "extra": "[6]"
+        }
+      }
+    ],
+    "stp_ed0f5f1b-2cbf-4caf-8ad4-17e1ccb99fac": [
+      {
+        "values": {
+          "queue": [
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        "expected": "[11, 12] [14, 13]",
+        "value_literals": {
+          "queue": "[11, 12, 13, 14]"
+        }
+      },
+      {
+        "values": {
+          "queue": [
+            5,
+            6,
+            7
+          ]
+        },
+        "expected": "[5] [7, 6]",
+        "value_literals": {
+          "queue": "[5, 6, 7]"
+        }
+      },
+      {
+        "values": {
+          "queue": [
+            1,
+            2
+          ]
+        },
+        "expected": "[] [2, 1]",
+        "value_literals": {
+          "queue": "[1, 2]"
+        }
+      }
+    ],
+    "stp_0de675fd-6c19-45f1-a76e-6ac76e8f5d21": [
+      {
+        "values": {
+          "line": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "expected": "[5, 4, 3, 2, 1]",
+        "value_literals": {
+          "line": "[1, 2, 3, 4, 5]"
+        }
+      },
+      {
+        "values": {
+          "line": [
+            7,
+            8
+          ]
+        },
+        "expected": "[8, 7]",
+        "value_literals": {
+          "line": "[7, 8]"
+        }
+      },
+      {
+        "values": {
+          "line": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "expected": "[4, 3, 2, 1]",
+        "value_literals": {
+          "line": "[1, 2, 3, 4]"
+        }
+      }
+    ],
+    "stp_9f175cc5-ca09-4b55-8d09-4184abb44b38": [
+      {
+        "values": {
+          "shelves": [
+            [
+              3,
+              1,
+              4
+            ],
+            [
+              1,
+              5
+            ],
+            [
+              9,
+              2,
+              6,
+              5
+            ]
+          ]
+        },
+        "expected": "[3, 1, 9]",
+        "value_literals": {
+          "shelves": "[[3, 1, 4], [1, 5], [9, 2, 6, 5]]"
+        }
+      },
+      {
+        "values": {
+          "shelves": [
+            [
+              7
+            ],
+            [
+              2,
+              8
+            ]
+          ]
+        },
+        "expected": "[7, 2]",
+        "value_literals": {
+          "shelves": "[[7], [2, 8]]"
+        }
+      },
+      {
+        "values": {
+          "shelves": [
+            [
+              4,
+              4
+            ],
+            [
+              5
+            ],
+            [
+              6,
+              1,
+              1
+            ]
+          ]
+        },
+        "expected": "[4, 5, 6]",
+        "value_literals": {
+          "shelves": "[[4, 4], [5], [6, 1, 1]]"
+        }
+      }
+    ],
+    "stp_9fd50967-4591-43c0-bb86-fbb49ff9398c": [
+      {
+        "values": {
+          "shelves": [
+            [
+              3,
+              1,
+              4
+            ],
+            [
+              1,
+              5
+            ],
+            [
+              9,
+              2,
+              6,
+              5
+            ]
+          ]
+        },
+        "expected": "[8, 6, 22] 22",
+        "value_literals": {
+          "shelves": "[[3, 1, 4], [1, 5], [9, 2, 6, 5]]"
+        }
+      },
+      {
+        "values": {
+          "shelves": [
+            [
+              1
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        },
+        "expected": "[1, 4] 4",
+        "value_literals": {
+          "shelves": "[[1], [2, 2]]"
+        }
+      },
+      {
+        "values": {
+          "shelves": [
+            [
+              5,
+              5
+            ],
+            [
+              1,
+              1,
+              1
+            ]
+          ]
+        },
+        "expected": "[10, 3] 10",
+        "value_literals": {
+          "shelves": "[[5, 5], [1, 1, 1]]"
+        }
+      }
+    ],
+    "stp_3c1301b8-6d3c-48a8-93aa-6dbd4cd5b16c": [
+      {
+        "values": {
+          "trip": [
+            "대구",
+            "부산",
+            "제주"
+          ]
+        },
+        "expected": "4 True",
+        "value_literals": {
+          "trip": "['대구', '부산', '제주']"
+        }
+      },
+      {
+        "values": {
+          "trip": [
+            "제주",
+            "제주"
+          ]
+        },
+        "expected": "3 True",
+        "value_literals": {
+          "trip": "['제주', '제주']"
+        }
+      },
+      {
+        "values": {
+          "trip": [
+            "부산"
+          ]
+        },
+        "expected": "2 True",
+        "value_literals": {
+          "trip": "['부산']"
+        }
+      },
+      {
+        "values": {
+          "trip": [
+            "울산",
+            "수원"
+          ]
+        },
+        "expected": "4 True",
+        "value_literals": {
+          "trip": "['울산', '수원']"
+        }
+      }
+    ],
+    "stp_d9c03d09-563f-45e4-8865-29a82052c678": [
+      {
+        "values": {
+          "owner": {
+            "A1": "kim",
+            "A2": "lee",
+            "A3": "kim"
+          }
+        },
+        "expected": "1",
+        "value_literals": {
+          "owner": "{'A1': 'kim', 'A2': 'lee', 'A3': 'kim'}"
+        }
+      },
+      {
+        "values": {
+          "owner": {
+            "A1": "park",
+            "A2": "lee",
+            "A3": "kim"
+          }
+        },
+        "expected": "2",
+        "value_literals": {
+          "owner": "{'A1': 'park', 'A2': 'lee', 'A3': 'kim'}"
+        }
+      },
+      {
+        "values": {
+          "owner": {
+            "A2": "lee"
+          }
+        },
+        "expected": "1",
+        "value_literals": {
+          "owner": "{'A2': 'lee'}"
+        }
+      }
+    ],
+    "stp_7165846a-2700-4fe6-8f4d-0232f27ec031": [
+      {
+        "values": {
+          "codes": [
+            "P",
+            "Q",
+            "R"
+          ]
+        },
+        "expected": "{1: 'P', 2: 'Q', 3: 'R'}",
+        "value_literals": {
+          "codes": "['P', 'Q', 'R']"
+        }
+      },
+      {
+        "values": {
+          "codes": [
+            "X"
+          ]
+        },
+        "expected": "{1: 'X'}",
+        "value_literals": {
+          "codes": "['X']"
+        }
+      },
+      {
+        "values": {
+          "codes": [
+            "A",
+            "B"
+          ]
+        },
+        "expected": "{1: 'A', 2: 'B'}",
+        "value_literals": {
+          "codes": "['A', 'B']"
+        }
+      }
+    ],
+    "stp_ac7f125b-2a5e-4b17-a80a-fc5b444d9446": [
+      {
+        "values": {
+          "price": {
+            "pen": 1200,
+            "cup": 3000,
+            "ink": 800
+          }
+        },
+        "expected": "pen cup",
+        "value_literals": {
+          "price": "{'pen': 1200, 'cup': 3000, 'ink': 800}"
+        }
+      },
+      {
+        "values": {
+          "price": {
+            "tape": 500,
+            "bag": 4500,
+            "pen": 1200
+          }
+        },
+        "expected": "bag pen",
+        "value_literals": {
+          "price": "{'tape': 500, 'bag': 4500, 'pen': 1200}"
+        }
+      },
+      {
+        "values": {
+          "price": {
+            "ab": 2000
+          }
+        },
+        "expected": "ab",
+        "value_literals": {
+          "price": "{'ab': 2000}"
+        }
+      }
+    ],
+    "stp_abad1f1f-f805-49e1-b253-613eddabae19": [
+      {
+        "values": {
+          "stock": [
+            5,
+            8,
+            2
+          ]
+        },
+        "expected": "[5, 8] [5, 8, 2] 2",
+        "value_literals": {
+          "stock": "[5, 8, 2]"
+        }
+      },
+      {
+        "values": {
+          "stock": [
+            1,
+            2
+          ]
+        },
+        "expected": "[1] [1, 2] 2",
+        "value_literals": {
+          "stock": "[1, 2]"
+        }
+      },
+      {
+        "values": {
+          "stock": [
+            4
+          ]
+        },
+        "expected": "[] [4] 4",
+        "value_literals": {
+          "stock": "[4]"
+        }
+      }
+    ],
+    "stp_a2e8a739-8b14-4a49-82c2-882e70095846": [
+      {
+        "values": {
+          "count": 2,
+          "items": [
+            1,
+            2
+          ]
+        },
+        "expected": "2 [1, 2] 3 [1, 2, 3]",
+        "value_literals": {
+          "count": "2",
+          "items": "[1, 2]"
+        }
+      },
+      {
+        "values": {
+          "count": 5,
+          "items": [
+            9
+          ]
+        },
+        "expected": "5 [9] 6 [9, 3]",
+        "value_literals": {
+          "count": "5",
+          "items": "[9]"
+        }
+      },
+      {
+        "values": {
+          "count": 0,
+          "items": []
+        },
+        "expected": "0 [] 1 [3]",
+        "value_literals": {
+          "count": "0",
+          "items": "[]"
+        }
+      }
+    ],
+    "stp_faed4ff2-0b7b-424d-a4d9-ac2d36f6bbc4": [
+      {
+        "values": {
+          "groups": [
+            [
+              "A"
+            ],
+            [
+              "B"
+            ],
+            [
+              "C"
+            ]
+          ]
+        },
+        "expected": "[['A'], ['B'], ['C']]\n[['A'], ['B', 'A'], ['C', 'B', 'A']]",
+        "value_literals": {
+          "groups": "[['A'], ['B'], ['C']]"
+        }
+      },
+      {
+        "values": {
+          "groups": [
+            [
+              "x"
+            ],
+            [
+              "y"
+            ]
+          ]
+        },
+        "expected": "[['x'], ['y']]\n[['x'], ['y', 'x']]",
+        "value_literals": {
+          "groups": "[['x'], ['y']]"
+        }
+      },
+      {
+        "values": {
+          "groups": [
+            [
+              1
+            ],
+            [
+              2
+            ],
+            [
+              3
+            ],
+            [
+              4
+            ]
+          ]
+        },
+        "expected": "[[1], [2], [3], [4]]\n[[1], [2, 1], [3, 2, 1], [4, 3, 2, 1]]",
+        "value_literals": {
+          "groups": "[[1], [2], [3], [4]]"
+        }
+      }
+    ]
+  }
+}

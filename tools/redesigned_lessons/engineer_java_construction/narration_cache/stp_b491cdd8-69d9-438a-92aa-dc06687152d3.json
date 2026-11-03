@@ -1,0 +1,70 @@
+{
+  "by": "hand",
+  "source_sha256": "523d0b87b43a869a5e4d74b5bc7f22cfed5b18aab339c3cc31cf1ef88876d72e",
+  "entry": [
+    {
+      "action": "say",
+      "text": "세 번 인쇄한 장수가 한 프린터의 pages에 쌓여야 해요. sheets는 바뀌면 안 돼요.",
+      "target": "text:print 안의 한 줄을 고쳐 이 프린터의 누적 장수 필드가 늘게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        26,
+        26
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0 3이 나왔어요. 세 번 불렀는데 필드 pages는 그대로예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "3스텝과 같은 가림이에요. print 안의 pages는 모두 매개변수예요.",
+      "target": "code:pages += pages;"
+    },
+    {
+      "action": "patch_code",
+      "before": "        pages += pages;\n",
+      "after": "        Printer.pages += pages;\n",
+      "say": "3스텝처럼 클래스 이름을 붙여 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        26,
+        26
+      ],
+      "expect_error": "non-static variable"
+    },
+    {
+      "action": "say",
+      "text": "컴파일 오류예요. pages는 static이 아니라서 클래스 이름으로 가리킬 수 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        Printer.pages += pages;\n",
+      "after": "        this.pages += pages;\n",
+      "say": "인스턴스 필드는 this로 이 객체의 필드를 가리켜요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        26,
+        26
+      ]
+    },
+    {
+      "action": "say",
+      "text": "7 3이 나왔어요. 3, 3, 1이 한 프린터에 쌓였고 sheets는 3 그대로예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "p2로 인쇄한 장수가 p1.pages에 보이는 건 get()이 같은 객체를 돌려줬기 때문이에요.",
+      "target": "code:return one;"
+    }
+  ]
+}

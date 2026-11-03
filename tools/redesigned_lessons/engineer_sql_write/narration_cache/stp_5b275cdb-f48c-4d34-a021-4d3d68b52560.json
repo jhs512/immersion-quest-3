@@ -1,0 +1,62 @@
+{
+  "by": "hand",
+  "source_sha256": "ed6efc072374a28edf540122f124a5461b80ff7021eb01dc9848cd3289c136e9",
+  "entry": [
+    {
+      "action": "say",
+      "text": "요구를 질의 하나로 옮기는 문제예요. 동아리 없는 학생도 남아야 해요.",
+      "target": "text:동아리가 없는 학생도 빠지면 안 돼요."
+    },
+    {
+      "action": "patch_code",
+      "before": "-- 2학년과 3학년 가운데 점수가 80 이상인 학생의 이름과 동아리 이름이에요.\n-- 동아리가 없는 학생도 빠지면 안 되고, 점수가 높은 순서로 보여요.\n-- 별칭은 students s, clubs c로 쓰세요. 이 주석 아래에 질의 전체를 쓰세요.\n",
+      "after": "-- 2학년과 3학년 가운데 점수가 80 이상인 학생의 이름과 동아리 이름이에요.\n-- 동아리가 없는 학생도 빠지면 안 되고, 점수가 높은 순서로 보여요.\n-- 별칭은 students s, clubs c로 쓰세요. 이 주석 아래에 질의 전체를 쓰세요.\nSELECT s.name, c.title FROM students s JOIN clubs c ON s.club = c.id\nWHERE s.grade IN (2, 3) AND s.score >= 80\nORDER BY s.score DESC;\n",
+      "say": "먼저 익숙한 내부 조인으로 써 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "이준호 밴드, 이하은 코딩 두 행이에요. 3학년 81점 정우진이 빠졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "정우진은 club이 NULL이라 내부 조인에서 짝이 없어요.",
+      "target": "code:JOIN clubs"
+    },
+    {
+      "action": "patch_code",
+      "before": "students s JOIN",
+      "after": "students s LEFT JOIN",
+      "say": "학생 표가 기준이 되게 LEFT JOIN으로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "세 행이에요. 정우진이 동아리 칸 NULL로 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "2학년 최민수는 점수가 NULL이라 80 이상 조건에서 빠졌어요.",
+      "target": "code:s.score >= 80"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. DESC를 빼면 81점 정우진이 맨 위로 와서 순서가 거꾸로 돼요.",
+      "target": "code:DESC"
+    }
+  ]
+}

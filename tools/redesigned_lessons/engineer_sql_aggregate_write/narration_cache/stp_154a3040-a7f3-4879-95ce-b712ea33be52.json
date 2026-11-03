@@ -1,0 +1,56 @@
+{
+  "by": "hand",
+  "source_sha256": "69ec8ace187a164c29075ee647a5e5e9758bdc01cf867c0e8d7cc184598b4410",
+  "entry": [
+    {
+      "action": "say",
+      "text": "결과 정렬과 누적 계산은 따로예요. 누적이 지역마다 끊겨야 해요.",
+      "target": "text:지역마다 따로 회차 순서대로 상자 수를 누적하려 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "west의 첫 행 running이 20이에요. 자기 상자는 7인데 앞 회차의 east까지 더했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "맨 아래 ORDER BY region은 보여 주는 순서만 정해요. 창의 범위는 OVER 안에서 정해요.",
+      "target": "code:ORDER BY region, seq"
+    },
+    {
+      "action": "patch_code",
+      "before": "OVER (ORDER BY seq",
+      "after": "OVER (PARTITION BY region ORDER BY seq",
+      "say": "OVER 안에 PARTITION BY region을 넣어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "west의 첫 행이 7로 시작해 12, 14, 15예요. east는 9, 13, 16, 18이고요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "파티션은 창의 울타리예요. UNBOUNDED PRECEDING도 울타리 안의 첫 행까지만 가요.",
+      "target": "code:PARTITION BY region"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. OVER 안의 ORDER BY에 region만 더하면 정렬만 바뀌고 누적은 이어져요. 끊는 말은 PARTITION BY예요.",
+      "target": "code:ORDER BY seq ROWS"
+    }
+  ]
+}

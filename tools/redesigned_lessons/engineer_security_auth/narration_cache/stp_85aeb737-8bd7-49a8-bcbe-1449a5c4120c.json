@@ -1,0 +1,45 @@
+{
+  "by": "hand",
+  "source_sha256": "4cea44c34171d43fc9ae0236c29287efe3b499f31c1193cbed2fb637d83762dc",
+  "entry": [
+    {
+      "action": "say",
+      "text": "서명 무결성과 재전송 방지는 별도의 조건이에요.",
+      "target": "text:각 요청의 HMAC 검사 결과는 준비됐어요. 이미 처리한 nonce의 요청은 다시 처리하지 마세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[True, True]예요. 정상 요청을 복사해 다시 보내도 처리됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "allow = signed",
+      "after": "allow = signed and nonce not in seen"
+    },
+    {
+      "action": "say",
+      "text": "HMAC은 내용이 안 바뀌었는지 확인해요. 이미 처리한 정상 요청인지는 별도로 기록하고 거절해야 해요.",
+      "target": "code:allow = signed and nonce not in seen"
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[True, False]예요. 서명은 맞지만 같은 nonce는 다시 받지 않았어요.",
+      "target": "output"
+    }
+  ]
+}

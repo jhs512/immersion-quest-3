@@ -1,0 +1,410 @@
+{
+ "course": "tests/fixtures/player-pilot/과/course.json",
+ "lesson": "courses/redesigned/engineer-sql-aggregate-write.json",
+ "expected_outputs": [
+  [
+   "branch | MIN(boxes)\neast | 12\nnorth | 25\nwest | 6",
+   "branch | low\neast | 12\nnorth | 25\nwest | 6",
+   "branch | low | high\neast | 12 | 30\nnorth | 25 | 33\nwest | 6 | 10"
+  ],
+  [
+   "",
+   "branch | low | high\neast | 12 | 30\nnorth | 25 | 33"
+  ],
+  [
+   "branch | done\neast | 3\nnorth | 2\nwest | 3",
+   "branch | done\neast | 2\nwest | 3"
+  ],
+  [
+   "seq | recent\n1 | 9\n2 | 13\n3 | 20\n4 | 23\n5 | 28\n6 | 30\n7 | 32\n8 | 33",
+   "seq | recent\n1 | 9\n2 | 13\n3 | 11\n4 | 10\n5 | 8\n6 | 7\n7 | 4\n8 | 3"
+  ],
+  [
+   "region | seq | boxes | running\neast | 1 | 9 | 9\neast | 2 | 4 | 13\neast | 4 | 3 | 23\neast | 6 | 2 | 30\nwest | 3 | 7 | 20\nwest | 5 | 5 | 28\nwest | 7 | 2 | 32\nwest | 8 | 1 | 33",
+   "region | seq | boxes | running\neast | 1 | 9 | 9\neast | 2 | 4 | 13\neast | 4 | 3 | 16\neast | 6 | 2 | 18\nwest | 3 | 7 | 7\nwest | 5 | 5 | 12\nwest | 7 | 2 | 14\nwest | 8 | 1 | 15"
+  ],
+  [
+   "region | seq | boxes\neast | 1 | 9\neast | 2 | 4\neast | 4 | 3\neast | 6 | 2\nwest | 3 | 7\nwest | 5 | 5\nwest | 7 | 2\nwest | 8 | 1",
+   "region | seq | boxes | peak\neast | 1 | 9 | 9\neast | 2 | 4 | 9\neast | 4 | 3 | 9\neast | 6 | 2 | 9\nwest | 3 | 7 | 7\nwest | 5 | 5 | 7\nwest | 7 | 2 | 7\nwest | 8 | 1 | 7",
+   "region | seq | boxes | peak\neast | 1 | 9 | 9\neast | 2 | 4 | 9\neast | 4 | 3 | 9\neast | 6 | 2 | 4\nwest | 3 | 7 | 7\nwest | 5 | 5 | 7\nwest | 7 | 2 | 7\nwest | 8 | 1 | 5"
+  ],
+  [
+   "branch | total\neast | 60\nnorth | 58\nwest | 24",
+   "",
+   "branch | total\neast | 60\nnorth | 58\nwest | 24\nNULL | 142"
+  ],
+  [
+   "branch | kind | total\neast | bag | 30\neast | box | 30\nnorth | bag | 33\nnorth | box | 25\nwest | bag | 10\nwest | box | 14\nNULL | NULL | 142",
+   "branch | kind | total\neast | bag | 30\neast | box | 30\neast | NULL | 60\nnorth | bag | 33\nnorth | box | 25\nnorth | NULL | 58\nwest | bag | 10\nwest | box | 14\nwest | NULL | 24\nNULL | NULL | 142"
+  ],
+  [
+   "region | total\nbusan | 90\ndaegu | 120\nincheon | 150\nseoul | 120",
+   "region | total\nincheon | 150\ndaegu | 120\nseoul | 120\nbusan | 90"
+  ],
+  [
+   "region | total\nincheon | 150",
+   "region | total\ndaegu | 120\nseoul | 100\nbusan | 90",
+   "region | total\ndaegu | 120\nseoul | 100"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "MIN(boxes) AS low, MAX(boxes) AS high",
+     "MAX(boxes) AS low, MIN(boxes) AS high"
+    ]
+   ],
+   "reason": "MIN과 MAX를 바꿔 쓰면 low와 high가 뒤바뀌어요."
+  },
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "MIN(boxes) AS low, MAX(boxes) AS high",
+     "MIN(boxes), MAX(boxes)"
+    ]
+   ],
+   "reason": "별칭이 없으면 열 이름이 집계 식 그대로라 보고서 열 이름과 달라요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "HAVING AVG(boxes) >= 20",
+     "HAVING MIN(boxes) >= 20"
+    ]
+   ],
+   "reason": "출력 열이 MIN이라도 그룹 조건은 요구의 평균이어야 해요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "HAVING AVG(boxes) >= 20",
+     "HAVING MAX(boxes) >= 20"
+    ]
+   ],
+   "reason": "최대값 조건은 평균이 낮은 지점을 남겨요(변형 자료의 north)."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "GROUP BY branch\nHAVING AVG(boxes) >= 20",
+     "WHERE boxes >= 20\nGROUP BY branch"
+    ]
+   ],
+   "reason": "행 하나의 상자 수로 거르면 그룹 평균 조건이 아니라 최소·최대가 바뀌어요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "COUNT(*) AS done",
+     "COUNT(status = 'done') AS done"
+    ],
+    [
+     "HAVING COUNT(*) >= 2",
+     "HAVING COUNT(status = 'done') >= 2"
+    ],
+    [
+     "WHERE status = 'done'\n",
+     ""
+    ]
+   ],
+   "reason": "COUNT는 거짓(0)도 NULL이 아니라 세어 모든 배송을 세요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "WHERE status = 'done'\n",
+     ""
+    ],
+    [
+     "HAVING COUNT(*) >= 2",
+     "HAVING SUM(status = 'done') >= 2"
+    ]
+   ],
+   "reason": "그룹만 완료 건수로 걸러도 세는 값은 모든 배송이에요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "1 PRECEDING",
+     "2 PRECEDING"
+    ]
+   ],
+   "reason": "2 PRECEDING은 앞 두 행까지 세 행을 더해요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "1 PRECEDING AND CURRENT ROW",
+     "CURRENT ROW AND 1 FOLLOWING"
+    ]
+   ],
+   "reason": "FOLLOWING은 뒤 행을 더해 앞 회차가 아니에요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "PARTITION BY region ORDER BY seq",
+     "ORDER BY region, seq"
+    ]
+   ],
+   "reason": "OVER 안의 정렬에 region을 더해도 누적은 지역을 넘어 이어져요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "PARTITION BY region",
+     "PARTITION BY seq"
+    ]
+   ],
+   "reason": "회차마다 파티션이 되면 누적이 자기 값뿐이에요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "2 PRECEDING",
+     "UNBOUNDED PRECEDING"
+    ]
+   ],
+   "reason": "처음부터 여는 창은 지역의 첫 최대값을 끝까지 남겨요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "2 PRECEDING",
+     "1 PRECEDING"
+    ]
+   ],
+   "reason": "앞 한 행까지는 두 회차만 봐요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "PARTITION BY region ORDER BY seq",
+     "ORDER BY seq"
+    ]
+   ],
+   "reason": "파티션이 없으면 다른 지역의 회차가 창에 섞여요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "SELECT NULL, SUM(boxes) FROM deliveries\n",
+     "SELECT NULL, SUM(boxes) FROM deliveries GROUP BY branch\n"
+    ]
+   ],
+   "reason": "총계 수준을 지점으로 묶으면 지점 합계가 NULL 이름으로 반복되고 총계가 없어요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "SELECT NULL, SUM(boxes) FROM deliveries\n",
+     "SELECT NULL, 142\n"
+    ]
+   ],
+   "reason": "총계를 숫자로 적으면 다른 배송 기록에서 틀려요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "SELECT branch, NULL, SUM(boxes) FROM deliveries GROUP BY branch\n",
+     "SELECT NULL, kind, SUM(boxes) FROM deliveries GROUP BY kind\n"
+    ]
+   ],
+   "reason": "종류별 합계는 CUBE의 수준이고 ROLLUP(branch, kind)에는 없어요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "SELECT branch, NULL, SUM(boxes) FROM deliveries GROUP BY branch\n",
+     "SELECT branch, NULL, SUM(boxes) FROM deliveries GROUP BY branch, kind\n"
+    ]
+   ],
+   "reason": "소계를 두 열로 묶으면 소계가 아니라 지점·종류 합계가 다시 나와요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "ORDER BY total DESC, b.region;",
+     "ORDER BY total DESC, b.region DESC;"
+    ]
+   ],
+   "reason": "둘째 키에 DESC를 붙이면 동점 지역이 이름 역순이 돼요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "ORDER BY total DESC, b.region;",
+     "ORDER BY b.region, total DESC;"
+    ]
+   ],
+   "reason": "키 순서를 바꾸면 지역 이름이 첫째 기준이 돼요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "HAVING SUM(o.amount) >= 100\n",
+     ""
+    ],
+    [
+     "WHERE o.status = 'PAID'",
+     "WHERE o.status = 'PAID' AND o.amount >= 100"
+    ]
+   ],
+   "reason": "합계 조건을 WHERE에 두면 주문 한 건마다 걸러 행이 사라져요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "WHERE o.status = 'PAID'\n",
+     ""
+    ]
+   ],
+   "reason": "상태 조건이 없으면 취소 주문까지 더해요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     ">= 100",
+     "> 100"
+    ]
+   ],
+   "reason": "100 이상은 100을 포함해요."
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "MIN(boxes) AS low, MAX(boxes) AS high",
+     "MIN(boxes) low, MAX(boxes) high"
+    ]
+   ],
+   "reason": "AS는 생략할 수 있어요."
+  },
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "AS low",
+     "AS \"low\""
+    ]
+   ],
+   "reason": "표준처럼 큰따옴표로 감싼 별칭도 같아요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "HAVING AVG(boxes) >= 20",
+     "HAVING SUM(boxes) >= 20 * COUNT(*)"
+    ]
+   ],
+   "reason": "평균 조건을 합과 개수로 풀어 써도 같아요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "COUNT(*) AS done",
+     "COUNT(id) AS done"
+    ]
+   ],
+   "reason": "NULL이 없는 열을 세도 같아요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "ROWS BETWEEN 1 PRECEDING AND CURRENT ROW",
+     "ROWS 1 PRECEDING"
+    ]
+   ],
+   "reason": "끝이 CURRENT ROW면 줄여 쓸 수 있어요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW",
+     "ROWS UNBOUNDED PRECEDING"
+    ]
+   ],
+   "reason": "줄여 쓴 프레임도 같아요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "ROWS BETWEEN 2 PRECEDING AND CURRENT ROW",
+     "ROWS 2 PRECEDING"
+    ]
+   ],
+   "reason": "줄여 쓴 프레임도 같아요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "SELECT NULL, SUM(boxes) FROM deliveries",
+     "SELECT NULL, SUM(total) FROM (SELECT SUM(boxes) AS total FROM deliveries GROUP BY branch)"
+    ]
+   ],
+   "reason": "지점 합계를 다시 더해도 총계는 같아요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "SELECT branch, NULL, SUM(boxes) FROM deliveries GROUP BY branch\n",
+     "SELECT branch, NULL AS kind, SUM(boxes) AS total FROM deliveries GROUP BY branch\n"
+    ]
+   ],
+   "reason": "아래 SELECT의 별칭은 결과 열 이름에 영향이 없어요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "ORDER BY total DESC, b.region;",
+     "ORDER BY SUM(o.amount) DESC, b.region ASC;"
+    ]
+   ],
+   "reason": "집계 식과 ASC를 직접 써도 같아요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "HAVING SUM(o.amount) >= 100",
+     "HAVING total >= 100"
+    ]
+   ],
+   "reason": "SQLite는 HAVING에서 별칭을 받아 줘요."
+  }
+ ]
+}

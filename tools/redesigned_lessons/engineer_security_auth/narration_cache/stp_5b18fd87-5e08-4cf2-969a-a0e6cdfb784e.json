@@ -1,0 +1,45 @@
+{
+  "by": "hand",
+  "source_sha256": "77b8fb11366adedf4c0fc8c3d3ec4feed831dc2a866694f4cb0bfecf1c15be01",
+  "entry": [
+    {
+      "action": "say",
+      "text": "OAuth의 위임 인가 범위를 로그인 여부와 구별해요.",
+      "target": "text:검증된 토큰은 사진 읽기만 위임했어요. 사용자가 있다는 이유로 사진 삭제를 허용하면 안 돼요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "True예요. 신원이 있다는 이유로 위임하지 않은 삭제도 허용했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "allowed = bool(token['sub'])",
+      "after": "allowed = action in token['scope']"
+    },
+    {
+      "action": "say",
+      "text": "위임받은 작업 범위 안에서만 접근해요. OAuth 자체를 사용자 인증 프로토콜 전체와 같은 것으로 보지 않아요.",
+      "target": "code:allowed = action in token['scope']"
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "False예요. 삭제 권한은 토큰의 범위에 없어요.",
+      "target": "output"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "b6e2c7f43380d6eb002163da2ece184a4d6370dc5d14498726bf0c0b09b932f2",
+  "entry": [
+    {
+      "action": "say",
+      "text": "두 번 꺼내는 동안 같은 상자의 수량이 이어서 줄어요. 모자라면 건너뛰는 게 요구예요.",
+      "target": "text:남은 수량보다 많이 꺼내려 하면 그 요청은 건너뛰어야 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        17
+      ]
+    },
+    {
+      "action": "say",
+      "text": "-2가 나왔어요. 5에서 3, 다시 4를 그대로 뺐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    b->count = b->count - n;\n",
+      "after": "    if (b->count >= n) {\n        b->count = b->count - n;\n    }\n",
+      "say": "빼기 전에 b->count가 n 이상인지 봐요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2가 나왔어요. 첫 호출 뒤 2가 남았고, 4는 2보다 커서 건너뛰었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조건은 호출할 때마다 그때의 b->count를 읽어요. 두 호출이 같은 box를 가리키니까요.",
+      "target": "code:b->count >= n"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. >로 쓰면 남은 수와 꺼낼 수가 같을 때 못 꺼내요. 처음이 3이면 3이 그대로 남아요.",
+      "target": "code:take(&box, 3);"
+    }
+  ]
+}

@@ -1,0 +1,188 @@
+{
+ "course": "tests/fixtures/player-pilot/광/course.json",
+ "lesson": "courses/redesigned/engineer-interface-practice.json",
+ "expected_outputs": [
+  [
+   "",
+   "",
+   "1500"
+  ],
+  [
+   "",
+   "500500500",
+   "1500"
+  ],
+  [
+   "읽을 수 없음",
+   "pen 3",
+   "",
+   "읽을 수 없음",
+   "pen 3"
+  ],
+  [
+   "",
+   "",
+   "3 3"
+  ],
+  [
+   "19",
+   "19",
+   "17"
+  ],
+  [
+   "[100, 100, 100, 100]",
+   "[0, 200, 400, 600]",
+   "[100, 200, 400, 800]"
+  ],
+  [
+   "200 10\n200 10\n200 10",
+   "200 10\n304 0\n304 0",
+   "200 10\n304 0\n200 10"
+  ],
+  [
+   "200 10\n304 0",
+   "200 10\n200 10",
+   "200 10\n304 0"
+  ],
+  [
+   "['billing pen', 'shipping pen']",
+   "['billing pen', 'shipping pen', 'audit pen']",
+   "['billing pen', 'shipping pen', 'audit pen']"
+  ],
+  [
+   "https shop.example.com:8443 /orders/17 memo",
+   "https shop.example.com 8443 /orders/17 memo",
+   "https shop.example.com 8443 /orders/17 item=pen&qty=3",
+   "https shop.example.com None /orders/17 item=pen&qty=3"
+  ],
+  [
+   "12\n12\n12",
+   "12\n14\n19",
+   "12\n12\n17"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "import json\nbody = '{\"item\": \"pen\", \"qty\": 3, \"price\": 500}'\n# body는 창고가 보낸 글자 그대로예요.\norder = json.loads(body)\nprint(order['qty'] * order['price'])\n",
+     "import json\nbody = '{\"item\": \"pen\", \"qty\": 3, \"price\": 500}'\n# body는 창고가 보낸 글자 그대로예요.\norder = body\nprint(order['qty'] * order['price'])\n"
+    ]
+   ],
+   "reason": "JSON 글자를 사전으로 바꿔 금액을 계산하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "import xml.etree.ElementTree as ET\nbody = '<order><item>pen</item><qty>3</qty><price>500</price></order>'\nroot = ET.fromstring(body)\n# 태그 안에 든 값을 꺼내요.\nqty = int(root.find('qty').text)\nprice = int(root.find('price').text)\nprint(qty * price)\n",
+     "import xml.etree.ElementTree as ET\nbody = '<order><item>pen</item><qty>3</qty><price>500</price></order>'\nroot = ET.fromstring(body)\n# 태그 안에 든 값을 꺼내요.\nqty = root.find('qty').text\nprice = root.find('price').text\nprint(qty * price)\n"
+    ]
+   ],
+   "reason": "XML 태그 안의 값을 수로 바꿔 금액을 계산하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "import json\nbody = '{\"item\": \"pen\", \"qty\": 3, \"memo\": \"fragile\"}'\norder = json.loads(body)\n# 옛 클라이언트가 읽을 수 있는 응답인지 확인해요.\nif 'item' in order and 'qty' in order:\n    print(order['item'], order['qty'])\nelse:\n    print('읽을 수 없음')\n",
+     "import json\nbody = '{\"item\": \"pen\", \"qty\": 3, \"memo\": \"fragile\"}'\norder = json.loads(body)\n# 옛 클라이언트가 읽을 수 있는 응답인지 확인해요.\nif sorted(order) == ['item', 'qty']:\n    print(order['item'], order['qty'])\nelse:\n    print('읽을 수 없음')\n"
+    ]
+   ],
+   "reason": "새 칸이 늘어도 아는 칸만 읽도록 검사를 고치세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "import json\nstock = 3\ndef respond(n):\n    # v2 응답이에요. 칸 이름 qty를 quantity로 바꿨어요.\n    return json.dumps({'item': 'pen', 'qty': n, 'quantity': n})\nold = json.loads(respond(stock))   # 옛 클라이언트는 qty를 읽어요\nnew = json.loads(respond(stock))   # 새 클라이언트는 quantity를 읽어요\nprint(old['qty'], new['quantity'])\n",
+     "import json\nstock = 3\ndef respond(n):\n    # v2 응답이에요. 칸 이름 qty를 quantity로 바꿨어요.\n    return json.dumps({'item': 'pen', 'quantity': n})\nold = json.loads(respond(stock))   # 옛 클라이언트는 qty를 읽어요\nnew = json.loads(respond(stock))   # 새 클라이언트는 quantity를 읽어요\nprint(old['qty'], new['quantity'])\n"
+    ]
+   ],
+   "reason": "이름을 바꾼 응답에 옛 이름을 남겨 두 클라이언트를 살리세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "stock = 10\ndone = {}\ndef add(key, amount):\n    global stock\n    # 이 주석 아래에서 이미 처리한 key인지 먼저 확인하세요.\n    if key in done:\n        return done[key]\n    stock += amount\n    done[key] = stock\n    return stock\nrequests = [('r1', 2), ('r1', 2), ('r2', 5)]\nfor key, amount in requests:\n    add(key, amount)\nprint(stock)\n",
+     "stock = 10\ndone = {}\ndef add(key, amount):\n    global stock\n    # 이 주석 아래에서 이미 처리한 key인지 먼저 확인하세요.\n    stock += amount\n    done[key] = stock\n    return stock\nrequests = [('r1', 2), ('r1', 2), ('r2', 5)]\nfor key, amount in requests:\n    add(key, amount)\nprint(stock)\n"
+    ]
+   ],
+   "reason": "멱등 키로 다시 보낸 증가 요청을 한 번만 반영하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "base = 100\ntries = 4\nwaits = []\nfor n in range(tries):\n    # n번째 재시도 전에 기다릴 시간(ms)이에요.\n    wait = base * 2 ** n\n    waits.append(wait)\nprint(waits)\n",
+     "base = 100\ntries = 4\nwaits = []\nfor n in range(tries):\n    # n번째 재시도 전에 기다릴 시간(ms)이에요.\n    wait = base\n    waits.append(wait)\nprint(waits)\n"
+    ]
+   ],
+   "reason": "재시도마다 기다리는 시간이 두 배로 늘게 고치세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "body = '{\"pen\": 3}'\ndef etag_of(text):\n    # 본문으로 버전 표시를 만들어요.\n    return 'v' + str(len(text))\ndef handle(if_none_match):\n    tag = etag_of(body)\n    # 이 주석 아래에서 받은 태그와 지금 태그를 비교하세요.\n    if if_none_match == tag:\n        return 304, '', tag\n    return 200, body, tag\nstatus, text, tag = handle(None)     # 처음 요청\nprint(status, len(text))\nstatus, text, _ = handle(tag)       # 받은 태그로 다시 요청\nprint(status, len(text))\nstatus, text, _ = handle('v0')      # 아주 옛 태그로 요청\nprint(status, len(text))\n",
+     "body = '{\"pen\": 3}'\ndef etag_of(text):\n    # 본문으로 버전 표시를 만들어요.\n    return 'v' + str(len(text))\ndef handle(if_none_match):\n    tag = etag_of(body)\n    # 이 주석 아래에서 받은 태그와 지금 태그를 비교하세요.\n    return 200, body, tag\nstatus, text, tag = handle(None)     # 처음 요청\nprint(status, len(text))\nstatus, text, _ = handle(tag)       # 받은 태그로 다시 요청\nprint(status, len(text))\nstatus, text, _ = handle('v0')      # 아주 옛 태그로 요청\nprint(status, len(text))\n"
+    ]
+   ],
+   "reason": "받은 태그가 지금 태그와 같을 때만 304로 답하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "import hashlib\nbody = '{\"pen\": 3}'\nnew_body = '{\"pen\": 4}'\ndef etag_of(text):\n    # 본문으로 버전 표시를 만들어요.\n    return hashlib.sha256(text.encode()).hexdigest()[:8]\ndef handle(if_none_match):\n    tag = etag_of(body)\n    if if_none_match == tag:\n        return 304, '', tag\n    return 200, body, tag\nstatus, text, tag = handle(None)\nprint(status, len(text))\nbody = new_body   # 재고가 바뀌었어요\nstatus, text, tag = handle(tag)\nprint(status, len(text))\n",
+     "import hashlib\nbody = '{\"pen\": 3}'\nnew_body = '{\"pen\": 4}'\ndef etag_of(text):\n    # 본문으로 버전 표시를 만들어요.\n    return 'v' + str(len(text))\ndef handle(if_none_match):\n    tag = etag_of(body)\n    if if_none_match == tag:\n        return 304, '', tag\n    return 200, body, tag\nstatus, text, tag = handle(None)\nprint(status, len(text))\nbody = new_body   # 재고가 바뀌었어요\nstatus, text, tag = handle(tag)\nprint(status, len(text))\n"
+    ]
+   ],
+   "reason": "본문이 바뀌면 ETag도 바뀌도록 해시로 만드세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "log = []\ndef billing(msg):\n    log.append('billing ' + msg['item'])\ndef shipping(msg):\n    log.append('shipping ' + msg['item'])\ndef audit(msg):\n    log.append('audit ' + msg['item'])\n# 허브의 배달 표예요. 주제마다 받는 쪽 목록이 있어요.\nroutes = {'order': [billing, shipping, audit]}\ndef publish(topic, msg):\n    for receiver in routes.get(topic, []):\n        receiver(msg)\n# 주문 서비스는 허브에만 보내요.\ndef place_order(item):\n    publish('order', {'item': item})\nitem = 'pen'\nplace_order(item)\nprint(log)\n",
+     "log = []\ndef billing(msg):\n    log.append('billing ' + msg['item'])\ndef shipping(msg):\n    log.append('shipping ' + msg['item'])\ndef audit(msg):\n    log.append('audit ' + msg['item'])\n# 허브의 배달 표예요. 주제마다 받는 쪽 목록이 있어요.\nroutes = {'order': [billing, shipping]}\ndef publish(topic, msg):\n    for receiver in routes.get(topic, []):\n        receiver(msg)\n# 주문 서비스는 허브에만 보내요.\ndef place_order(item):\n    publish('order', {'item': item})\nitem = 'pen'\nplace_order(item)\nprint(log)\n"
+    ]
+   ],
+   "reason": "주문 서비스는 그대로 두고 허브 배달 표에 감사 기록을 붙이세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "from urllib.parse import urlsplit\nurl = 'https://shop.example.com:8443/orders/17?item=pen&qty=3#memo'\nparts = urlsplit(url)\n# 아래 줄에서 scheme, 호스트, 포트, 경로, 질의를 차례로 출력해요.\nprint(parts.scheme, parts.hostname, parts.port, parts.path, parts.query)\n",
+     "from urllib.parse import urlsplit\nurl = 'https://shop.example.com:8443/orders/17?item=pen&qty=3#memo'\nparts = urlsplit(url)\n# 아래 줄에서 scheme, 호스트, 포트, 경로, 질의를 차례로 출력해요.\nprint(parts.scheme, parts.netloc, parts.path, parts.fragment)\n"
+    ]
+   ],
+   "reason": "URL을 scheme·호스트·포트·경로·질의로 나눠 출력하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "import json\nfrom urllib.parse import urlsplit, parse_qs\nstock = {'pen': 10}\ndone = {}\ndef handle(url, body):\n    parts = urlsplit(url)\n    key = parse_qs(parts.query)['key'][0]   # 멱등 키를 꺼내요\n    if key in done:\n        return done[key]\n    order = json.loads(body)\n    stock[order['item']] += order['qty']\n    done[key] = stock[order['item']]\n    return done[key]\ncalls = [('https://wh.example.com/stock?key=a1', '{\"item\": \"pen\", \"qty\": 2}'),\n         ('https://wh.example.com/stock?key=a1&try=2', '{\"item\": \"pen\", \"qty\": 2}'),\n         ('https://wh.example.com/stock?key=b7', '{\"item\": \"pen\", \"qty\": 5}')]\nfor url, body in calls:\n    print(handle(url, body))\n",
+     "import json\nfrom urllib.parse import urlsplit, parse_qs\nstock = {'pen': 10}\ndone = {}\ndef handle(url, body):\n    parts = urlsplit(url)\n    key = parts.path   # 멱등 키를 꺼내요\n    if key in done:\n        return done[key]\n    order = json.loads(body)\n    stock[order['item']] += order['qty']\n    done[key] = stock[order['item']]\n    return done[key]\ncalls = [('https://wh.example.com/stock?key=a1', '{\"item\": \"pen\", \"qty\": 2}'),\n         ('https://wh.example.com/stock?key=a1&try=2', '{\"item\": \"pen\", \"qty\": 2}'),\n         ('https://wh.example.com/stock?key=b7', '{\"item\": \"pen\", \"qty\": 5}')]\nfor url, body in calls:\n    print(handle(url, body))\n"
+    ]
+   ],
+   "reason": "URL 질의의 key로 다시 보낸 주문을 한 번만 반영하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "json.loads(body)",
+     "json.JSONDecoder().decode(body)"
+    ]
+   ],
+   "reason": "같은 상태·출력 관계를 유지하는 다른 구현도 받아들여요."
+  }
+ ]
+}

@@ -1,0 +1,65 @@
+{
+  "by": "hand",
+  "source_sha256": "312e6dd31ff0917778cabad733d20eec0fe7017ae7c7899814c6f0fac101f8ab",
+  "entry": [
+    {
+      "action": "say",
+      "text": "prof를 subjects로 떼어 내고, 다시 이어서 원래 행이 나오는지 보는 문제예요.",
+      "target": "text:마지막 SELECT로 두 표를 다시 이은 결과가 원래 enroll과 같아야 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        3,
+        3
+      ]
+    },
+    {
+      "action": "say",
+      "text": "열 이름 아래 (행 없음)이에요. subjects가 비어서 이어 붙일 짝이 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "-- 이 주석 아래에 enroll에서 subjects(course, prof)로 옮기는 INSERT 한 줄을 쓰세요.\n",
+      "after": "-- 이 주석 아래에 enroll에서 subjects(course, prof)로 옮기는 INSERT 한 줄을 쓰세요.\nINSERT INTO subjects SELECT DISTINCT student, prof FROM enroll;\n",
+      "say": "먼저 학번과 교수를 옮겨 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ],
+      "expect_error": "UNIQUE"
+    },
+    {
+      "action": "say",
+      "text": "UNIQUE 오류예요. 학번 1의 교수가 kim과 lee 둘이라 같은 키가 두 번 들어가요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. prof를 정하는 건 학번이 아니라 과목이에요. 떼어 낼 표의 키는 종속의 왼쪽이에요.",
+      "target": "code:DISTINCT student, prof"
+    },
+    {
+      "action": "patch_code",
+      "before": "DISTINCT student, prof",
+      "after": "DISTINCT course, prof",
+      "say": "과목과 교수를 옮겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "원래 네 행이 그대로 나왔어요. kim은 subjects에 DB 한 행으로만 있고, 이을 때 두 수강에 붙었어요.",
+      "target": "output"
+    }
+  ]
+}

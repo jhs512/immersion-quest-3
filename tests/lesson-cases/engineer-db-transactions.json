@@ -1,0 +1,172 @@
+{
+ "course": "tests/fixtures/player-pilot/권/course.json",
+ "lesson": "courses/redesigned/engineer-db-transactions.json",
+ "expected_outputs": [
+  [
+   "[(5,)]",
+   "(5,)",
+   "5"
+  ],
+  [
+   "",
+   "",
+   "[(3,)]",
+   "[]"
+  ],
+  [
+   "옮기기 실패\nA=5 B=18 합계=23",
+   "옮기기 실패\nA=5 B=18 합계=23",
+   "옮기기 실패\nA=5 B=10 합계=15"
+  ],
+  [
+   "닫기 전 2\n다시 열어 5",
+   "닫기 전 2",
+   "닫기 전 2\n다시 열어 2"
+  ],
+  [
+   "7",
+   "7",
+   "5"
+  ],
+  [
+   "A 1\nB 1\n(7, 3)",
+   "A 1\nB 1\n(7, 3)",
+   "A 1\nB 0\n(8, 2)"
+  ],
+  [
+   "A 1\nB 0\n(8, 2)",
+   "A 1\nB 0\nB 재시도 1\n(7, 3)",
+   "A 1\nB 0\nB 재시도 1\n(5, 3)"
+  ],
+  [
+   "서버 멈춤\npaid 0",
+   "서버 멈춤\npaid 0",
+   "서버 멈춤\nnew 0",
+   "paid 1"
+  ],
+  [
+   "['ship order 7', 'ship order 7', 'ship order 8']",
+   "['ship order 7', 'ship order 8']",
+   "['ship order 7', 'ship order 8']"
+  ],
+  [
+   "A 성공\nB 성공\n[('A paid order 7',), ('B paid order 7',)]",
+   "A 성공\nB 충돌\n[('A paid order 7',), ('B paid order 7',)]",
+   "A 성공\nB 충돌\n[('A paid order 7',)]"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "import sqlite3\n\nrows = [('pen', 12), ('cup', 5), ('ink', 0)]\nitem = 'cup'\nconn = sqlite3.connect(':memory:')\nconn.execute('CREATE TABLE stock (item TEXT, qty INTEGER)')\nconn.executemany('INSERT INTO stock VALUES (?, ?)', rows)\n# 연결에 SELECT를 보내고, 돌아온 결과를 출력해요.\ncur = conn.execute('SELECT qty FROM stock WHERE item = ?', (item,))\nprint(cur.fetchone()[0])\n",
+     "import sqlite3\n\nrows = [('pen', 12), ('cup', 5), ('ink', 0)]\nitem = 'cup'\nconn = sqlite3.connect(':memory:')\nconn.execute('CREATE TABLE stock (item TEXT, qty INTEGER)')\nconn.executemany('INSERT INTO stock VALUES (?, ?)', rows)\n# 연결에 SELECT를 보내고, 돌아온 결과를 출력해요.\ncur = conn.execute('SELECT qty FROM stock WHERE item = ?', (item,))\nprint(cur.fetchall())\n"
+    ]
+   ],
+   "reason": "결과 행에서 수량 숫자 하나만 꺼내세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "import sqlite3\n\nitem = \"kid's pen\"\nconn = sqlite3.connect(':memory:')\nconn.execute('CREATE TABLE stock (item TEXT, qty INTEGER)')\nconn.executemany('INSERT INTO stock VALUES (?, ?)', [('pen', 12), (\"kid's pen\", 3), ('ink', 0)])\n# 입력받은 상품 이름을 SQL 글자 안에 이어 붙여요.\nsql = 'SELECT qty FROM stock WHERE item = ?'\nrows = conn.execute(sql, (item,)).fetchall()\nprint(rows)\n",
+     "import sqlite3\n\nitem = \"kid's pen\"\nconn = sqlite3.connect(':memory:')\nconn.execute('CREATE TABLE stock (item TEXT, qty INTEGER)')\nconn.executemany('INSERT INTO stock VALUES (?, ?)', [('pen', 12), (\"kid's pen\", 3), ('ink', 0)])\n# 입력받은 상품 이름을 SQL 글자 안에 이어 붙여요.\nsql = f\"SELECT qty FROM stock WHERE item = '{item}'\"\nrows = conn.execute(sql).fetchall()\nprint(rows)\n"
+    ]
+   ],
+   "reason": "상품 이름을 ? 자리에 묶어 보내세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "import sqlite3\n\nn = 8\nstart = [('A', 5), ('B', 10)]\nconn = sqlite3.connect(':memory:', isolation_level=None)\nconn.execute('CREATE TABLE stock (place TEXT, qty INTEGER CHECK (qty BETWEEN 0 AND 20))')\nconn.executemany('INSERT INTO stock VALUES (?, ?)', start)\n\ndef qty(place):\n    return conn.execute('SELECT qty FROM stock WHERE place = ?', (place,)).fetchone()[0]\n\n# A 창고의 상품 n개를 B 창고로 옮겨요.\nconn.execute('BEGIN')\ntry:\n    conn.execute(\"UPDATE stock SET qty = qty + ? WHERE place = 'B'\", (n,))\n    conn.execute(\"UPDATE stock SET qty = qty - ? WHERE place = 'A'\", (n,))\n    conn.execute('COMMIT')\nexcept sqlite3.IntegrityError:\n    conn.execute('ROLLBACK')\n    print('옮기기 실패')\nprint(f\"A={qty('A')} B={qty('B')} 합계={qty('A') + qty('B')}\")\n",
+     "import sqlite3\n\nn = 8\nstart = [('A', 5), ('B', 10)]\nconn = sqlite3.connect(':memory:', isolation_level=None)\nconn.execute('CREATE TABLE stock (place TEXT, qty INTEGER CHECK (qty BETWEEN 0 AND 20))')\nconn.executemany('INSERT INTO stock VALUES (?, ?)', start)\n\ndef qty(place):\n    return conn.execute('SELECT qty FROM stock WHERE place = ?', (place,)).fetchone()[0]\n\n# A 창고의 상품 n개를 B 창고로 옮겨요.\ntry:\n    conn.execute(\"UPDATE stock SET qty = qty + ? WHERE place = 'B'\", (n,))\n    conn.execute(\"UPDATE stock SET qty = qty - ? WHERE place = 'A'\", (n,))\nexcept sqlite3.IntegrityError:\n    print('옮기기 실패')\nprint(f\"A={qty('A')} B={qty('B')} 합계={qty('A') + qty('B')}\")\n"
+    ]
+   ],
+   "reason": "옮기다 실패하면 두 창고를 모두 되돌리세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "import os\nimport sqlite3\nimport tempfile\n\nn = 3\npath = os.path.join(tempfile.mkdtemp(), 'shop.db')\nsetup = sqlite3.connect(path, isolation_level=None)\nsetup.execute('CREATE TABLE stock (place TEXT, qty INTEGER)')\nsetup.execute(\"INSERT INTO stock VALUES ('A', 5)\")\nsetup.close()\n\n# 첫 번째 연결이 A 재고를 n개 줄이고 닫혀요.\nfirst = sqlite3.connect(path, isolation_level=None)\nfirst.execute('BEGIN')\nfirst.execute(\"UPDATE stock SET qty = qty - ? WHERE place = 'A'\", (n,))\nprint('닫기 전', first.execute(\"SELECT qty FROM stock WHERE place = 'A'\").fetchone()[0])\nfirst.execute('COMMIT')\nfirst.close()\n\n# 새 연결로 파일을 다시 열어 읽어요.\nsecond = sqlite3.connect(path)\nprint('다시 열어', second.execute(\"SELECT qty FROM stock WHERE place = 'A'\").fetchone()[0])\n",
+     "import os\nimport sqlite3\nimport tempfile\n\nn = 3\npath = os.path.join(tempfile.mkdtemp(), 'shop.db')\nsetup = sqlite3.connect(path, isolation_level=None)\nsetup.execute('CREATE TABLE stock (place TEXT, qty INTEGER)')\nsetup.execute(\"INSERT INTO stock VALUES ('A', 5)\")\nsetup.close()\n\n# 첫 번째 연결이 A 재고를 n개 줄이고 닫혀요.\nfirst = sqlite3.connect(path, isolation_level=None)\nfirst.execute('BEGIN')\nfirst.execute(\"UPDATE stock SET qty = qty - ? WHERE place = 'A'\", (n,))\nprint('닫기 전', first.execute(\"SELECT qty FROM stock WHERE place = 'A'\").fetchone()[0])\nfirst.close()\n\n# 새 연결로 파일을 다시 열어 읽어요.\nsecond = sqlite3.connect(path)\nprint('다시 열어', second.execute(\"SELECT qty FROM stock WHERE place = 'A'\").fetchone()[0])\n"
+    ]
+   ],
+   "reason": "연결이 닫혀도 변경이 남게 확정하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "import sqlite3\n\nstart = 10\nsell_a = 2\nsell_b = 3\nconn = sqlite3.connect(':memory:', isolation_level=None)\nconn.execute('CREATE TABLE stock (item TEXT, qty INTEGER)')\nconn.execute(\"INSERT INTO stock VALUES ('pen', ?)\", (start,))\n\ndef read():\n    return conn.execute(\"SELECT qty FROM stock WHERE item = 'pen'\").fetchone()[0]\n\ndef write(qty):\n    conn.execute(\"UPDATE stock SET qty = ? WHERE item = 'pen'\", (qty,))\n\n# 점원 A와 B의 읽기·쓰기가 이 줄 순서대로 실행돼요.\na = read()\nwrite(a - sell_a)\nb = read()\nwrite(b - sell_b)\nprint(read())\n",
+     "import sqlite3\n\nstart = 10\nsell_a = 2\nsell_b = 3\nconn = sqlite3.connect(':memory:', isolation_level=None)\nconn.execute('CREATE TABLE stock (item TEXT, qty INTEGER)')\nconn.execute(\"INSERT INTO stock VALUES ('pen', ?)\", (start,))\n\ndef read():\n    return conn.execute(\"SELECT qty FROM stock WHERE item = 'pen'\").fetchone()[0]\n\ndef write(qty):\n    conn.execute(\"UPDATE stock SET qty = ? WHERE item = 'pen'\", (qty,))\n\n# 점원 A와 B의 읽기·쓰기가 이 줄 순서대로 실행돼요.\na = read()\nb = read()\nwrite(a - sell_a)\nwrite(b - sell_b)\nprint(read())\n"
+    ]
+   ],
+   "reason": "B가 A의 쓰기 뒤에 읽도록 순서를 고치세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "import sqlite3\n\nsell_a = 2\nsell_b = 3\nconn = sqlite3.connect(':memory:', isolation_level=None)\nconn.execute('CREATE TABLE stock (item TEXT, qty INTEGER, version INTEGER)')\nconn.execute(\"INSERT INTO stock VALUES ('pen', 10, 1)\")\n\ndef read():\n    return conn.execute(\"SELECT qty, version FROM stock WHERE item = 'pen'\").fetchone()\n\ndef write(qty, version):\n    # 읽을 때 본 version을 함께 받아요. 바뀐 행 수를 돌려줘요.\n    cur = conn.execute(\"UPDATE stock SET qty = ?, version = version + 1 WHERE item = 'pen' AND version = ?\", (qty, version))\n    return cur.rowcount\n\n# A와 B가 둘 다 먼저 읽고, 차례로 써요.\na_qty, a_ver = read()\nb_qty, b_ver = read()\nprint('A', write(a_qty - sell_a, a_ver))\nprint('B', write(b_qty - sell_b, b_ver))\nprint(read())\n",
+     "import sqlite3\n\nsell_a = 2\nsell_b = 3\nconn = sqlite3.connect(':memory:', isolation_level=None)\nconn.execute('CREATE TABLE stock (item TEXT, qty INTEGER, version INTEGER)')\nconn.execute(\"INSERT INTO stock VALUES ('pen', 10, 1)\")\n\ndef read():\n    return conn.execute(\"SELECT qty, version FROM stock WHERE item = 'pen'\").fetchone()\n\ndef write(qty, version):\n    # 읽을 때 본 version을 함께 받아요. 바뀐 행 수를 돌려줘요.\n    cur = conn.execute(\"UPDATE stock SET qty = ?, version = version + 1 WHERE item = 'pen'\", (qty,))\n    return cur.rowcount\n\n# A와 B가 둘 다 먼저 읽고, 차례로 써요.\na_qty, a_ver = read()\nb_qty, b_ver = read()\nprint('A', write(a_qty - sell_a, a_ver))\nprint('B', write(b_qty - sell_b, b_ver))\nprint(read())\n"
+    ]
+   ],
+   "reason": "읽은 version일 때만 쓰도록 UPDATE를 고치세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "import sqlite3\n\nsell_a = 2\nsell_b = 3\nconn = sqlite3.connect(':memory:', isolation_level=None)\nconn.execute('CREATE TABLE stock (item TEXT, qty INTEGER, version INTEGER)')\nconn.execute(\"INSERT INTO stock VALUES ('pen', 10, 1)\")\n\ndef read():\n    return conn.execute(\"SELECT qty, version FROM stock WHERE item = 'pen'\").fetchone()\n\ndef write(qty, version):\n    # 읽을 때 본 version을 함께 받아요. 바뀐 행 수를 돌려줘요.\n    cur = conn.execute(\"UPDATE stock SET qty = ?, version = version + 1 WHERE item = 'pen' AND version = ?\", (qty, version))\n    return cur.rowcount\n\n# A와 B가 둘 다 먼저 읽고, 차례로 써요.\na_qty, a_ver = read()\nb_qty, b_ver = read()\nprint('A', write(a_qty - sell_a, a_ver))\nresult = write(b_qty - sell_b, b_ver)\nprint('B', result)\n# 이 주석 아래에 B가 충돌했을 때 다시 읽고 쓰는 코드를 넣으세요.\nif result == 0:\n    b_qty, b_ver = read()\n    print('B 재시도', write(b_qty - sell_b, b_ver))\nprint(read())\n",
+     "import sqlite3\n\nsell_a = 2\nsell_b = 3\nconn = sqlite3.connect(':memory:', isolation_level=None)\nconn.execute('CREATE TABLE stock (item TEXT, qty INTEGER, version INTEGER)')\nconn.execute(\"INSERT INTO stock VALUES ('pen', 10, 1)\")\n\ndef read():\n    return conn.execute(\"SELECT qty, version FROM stock WHERE item = 'pen'\").fetchone()\n\ndef write(qty, version):\n    # 읽을 때 본 version을 함께 받아요. 바뀐 행 수를 돌려줘요.\n    cur = conn.execute(\"UPDATE stock SET qty = ?, version = version + 1 WHERE item = 'pen' AND version = ?\", (qty, version))\n    return cur.rowcount\n\n# A와 B가 둘 다 먼저 읽고, 차례로 써요.\na_qty, a_ver = read()\nb_qty, b_ver = read()\nprint('A', write(a_qty - sell_a, a_ver))\nresult = write(b_qty - sell_b, b_ver)\nprint('B', result)\n# 이 주석 아래에 B가 충돌했을 때 다시 읽고 쓰는 코드를 넣으세요.\nprint(read())\n"
+    ]
+   ],
+   "reason": "충돌한 B가 다시 읽고 한 번 더 쓰게 하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "import sqlite3\n\ncrash = True\nconn = sqlite3.connect(':memory:', isolation_level=None)\nconn.execute('CREATE TABLE orders (id INTEGER, status TEXT)')\nconn.execute('CREATE TABLE outbox (event_id INTEGER PRIMARY KEY, msg TEXT)')\nconn.execute(\"INSERT INTO orders VALUES (7, 'new')\")\n\ndef server_check():\n    # crash가 True면 서버가 이 자리에서 멈춘 것으로 쳐요.\n    if crash:\n        raise RuntimeError('서버 멈춤')\n\ntry:\n    conn.execute('BEGIN')\n    conn.execute(\"UPDATE orders SET status = 'paid' WHERE id = 7\")\n    server_check()\n    conn.execute(\"INSERT INTO outbox (msg) VALUES ('order 7 paid')\")\n    conn.execute('COMMIT')\nexcept RuntimeError as e:\n    conn.execute('ROLLBACK')\n    print(e)\nstatus = conn.execute('SELECT status FROM orders WHERE id = 7').fetchone()[0]\ncount = conn.execute('SELECT COUNT(*) FROM outbox').fetchone()[0]\nprint(status, count)\n",
+     "import sqlite3\n\ncrash = True\nconn = sqlite3.connect(':memory:', isolation_level=None)\nconn.execute('CREATE TABLE orders (id INTEGER, status TEXT)')\nconn.execute('CREATE TABLE outbox (event_id INTEGER PRIMARY KEY, msg TEXT)')\nconn.execute(\"INSERT INTO orders VALUES (7, 'new')\")\n\ndef server_check():\n    # crash가 True면 서버가 이 자리에서 멈춘 것으로 쳐요.\n    if crash:\n        raise RuntimeError('서버 멈춤')\n\ntry:\n    conn.execute('BEGIN')\n    conn.execute(\"UPDATE orders SET status = 'paid' WHERE id = 7\")\n    conn.execute('COMMIT')\n    server_check()\n    conn.execute('BEGIN')\n    conn.execute(\"INSERT INTO outbox (msg) VALUES ('order 7 paid')\")\n    conn.execute('COMMIT')\nexcept RuntimeError as e:\n    print(e)\nstatus = conn.execute('SELECT status FROM orders WHERE id = 7').fetchone()[0]\ncount = conn.execute('SELECT COUNT(*) FROM outbox').fetchone()[0]\nprint(status, count)\n"
+    ]
+   ],
+   "reason": "주문 변경과 알림 기록을 한 트랜잭션으로 묶으세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "import sqlite3\n\nevents = [(1, 'ship order 7'), (2, 'ship order 8')]\nstop_at = 1\nconn = sqlite3.connect(':memory:', isolation_level=None)\nconn.execute('CREATE TABLE outbox (event_id INTEGER PRIMARY KEY, msg TEXT, sent INTEGER DEFAULT 0)')\nconn.execute('CREATE TABLE processed (event_id INTEGER PRIMARY KEY)')\nconn.executemany('INSERT INTO outbox (event_id, msg) VALUES (?, ?)', events)\ndone = []\n\ndef consume(event_id, msg):\n    # 받은 메시지의 일을 처리해요.\n    cur = conn.execute('INSERT INTO processed VALUES (?) ON CONFLICT DO NOTHING', (event_id,))\n    if cur.rowcount == 1:\n        done.append(msg)\n\ndef relay(stop):\n    rows = conn.execute('SELECT event_id, msg FROM outbox WHERE sent = 0 ORDER BY event_id').fetchall()\n    for event_id, msg in rows:\n        consume(event_id, msg)\n        if event_id == stop:\n            return  # 보냄 표시(sent = 1)를 하기 전에 릴레이가 멈춰요.\n        conn.execute('UPDATE outbox SET sent = 1 WHERE event_id = ?', (event_id,))\n\nrelay(stop_at)\nrelay(None)\nprint(done)\n",
+     "import sqlite3\n\nevents = [(1, 'ship order 7'), (2, 'ship order 8')]\nstop_at = 1\nconn = sqlite3.connect(':memory:', isolation_level=None)\nconn.execute('CREATE TABLE outbox (event_id INTEGER PRIMARY KEY, msg TEXT, sent INTEGER DEFAULT 0)')\nconn.execute('CREATE TABLE processed (event_id INTEGER PRIMARY KEY)')\nconn.executemany('INSERT INTO outbox (event_id, msg) VALUES (?, ?)', events)\ndone = []\n\ndef consume(event_id, msg):\n    # 받은 메시지의 일을 처리해요.\n    done.append(msg)\n\ndef relay(stop):\n    rows = conn.execute('SELECT event_id, msg FROM outbox WHERE sent = 0 ORDER BY event_id').fetchall()\n    for event_id, msg in rows:\n        consume(event_id, msg)\n        if event_id == stop:\n            return  # 보냄 표시(sent = 1)를 하기 전에 릴레이가 멈춰요.\n        conn.execute('UPDATE outbox SET sent = 1 WHERE event_id = ?', (event_id,))\n\nrelay(stop_at)\nrelay(None)\nprint(done)\n"
+    ]
+   ],
+   "reason": "두 번 온 메시지를 event_id로 한 번만 처리하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "import sqlite3\n\norder_id = 7\nconn = sqlite3.connect(':memory:', isolation_level=None)\nconn.execute('CREATE TABLE orders (id INTEGER PRIMARY KEY, status TEXT, version INTEGER)')\nconn.execute('CREATE TABLE outbox (event_id INTEGER PRIMARY KEY, msg TEXT)')\nconn.execute(\"INSERT INTO orders VALUES (?, 'new', 1)\", (order_id,))\n\ndef pay(who, version):\n    conn.execute('BEGIN')\n    cur = conn.execute(\"UPDATE orders SET status = 'paid', version = version + 1 WHERE id = ? AND version = ?\", (order_id, version))\n    conn.execute('INSERT INTO outbox (msg) VALUES (?)', (f'{who} paid order {order_id}',))\n    # 바뀐 행이 없으면 충돌이에요.\n    if cur.rowcount == 0:\n        conn.execute('ROLLBACK')\n        return '충돌'\n    conn.execute('COMMIT')\n    return '성공'\n\n# 두 점원이 같은 version을 읽은 뒤 차례로 결제해요.\nver_a = conn.execute('SELECT version FROM orders WHERE id = ?', (order_id,)).fetchone()[0]\nver_b = conn.execute('SELECT version FROM orders WHERE id = ?', (order_id,)).fetchone()[0]\nprint('A', pay('A', ver_a))\nprint('B', pay('B', ver_b))\nprint(conn.execute('SELECT msg FROM outbox').fetchall())\n",
+     "import sqlite3\n\norder_id = 7\nconn = sqlite3.connect(':memory:', isolation_level=None)\nconn.execute('CREATE TABLE orders (id INTEGER PRIMARY KEY, status TEXT, version INTEGER)')\nconn.execute('CREATE TABLE outbox (event_id INTEGER PRIMARY KEY, msg TEXT)')\nconn.execute(\"INSERT INTO orders VALUES (?, 'new', 1)\", (order_id,))\n\ndef pay(who, version):\n    conn.execute('BEGIN')\n    cur = conn.execute(\"UPDATE orders SET status = 'paid', version = version + 1 WHERE id = ?\", (order_id,))\n    conn.execute('INSERT INTO outbox (msg) VALUES (?)', (f'{who} paid order {order_id}',))\n    # 바뀐 행이 없으면 충돌이에요.\n    if cur.rowcount == 0:\n        conn.execute('COMMIT')\n        return '충돌'\n    conn.execute('COMMIT')\n    return '성공'\n\n# 두 점원이 같은 version을 읽은 뒤 차례로 결제해요.\nver_a = conn.execute('SELECT version FROM orders WHERE id = ?', (order_id,)).fetchone()[0]\nver_b = conn.execute('SELECT version FROM orders WHERE id = ?', (order_id,)).fetchone()[0]\nprint('A', pay('A', ver_a))\nprint('B', pay('B', ver_b))\nprint(conn.execute('SELECT msg FROM outbox').fetchall())\n"
+    ]
+   ],
+   "reason": "결제 한 번, 알림 하나만 남게 두 곳을 고치세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "cur.fetchone()[0]",
+     "next(cur)[0]"
+    ]
+   ],
+   "reason": "같은 상태·출력 관계를 유지하는 다른 구현도 받아들여요."
+  }
+ ]
+}

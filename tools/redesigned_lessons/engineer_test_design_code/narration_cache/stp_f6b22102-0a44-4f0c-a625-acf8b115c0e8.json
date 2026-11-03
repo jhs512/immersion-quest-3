@@ -1,0 +1,56 @@
+{
+  "by": "hand",
+  "source_sha256": "7562f90f51ada650557e8a68ab1385007f35c1cafff15ee7629e44d0f2576345",
+  "entry": [
+    {
+      "action": "say",
+      "text": "이상과 미만이 섞인 구간에서 위쪽 경계를 바로 짚는 문제예요.",
+      "target": "text:할인되는 마지막 금액과 할인되지 않는 첫 금액을 넣으세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "빈 목록이에요. 71은 요구로도 함수로도 할인이 아니에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 이하처럼 생각해 TO + 1을 바깥 값으로 고르면 결함을 지나쳐요. 미만이면 TO가 이미 바깥이에요.",
+      "target": "code:TO + 1"
+    },
+    {
+      "action": "say",
+      "text": "요구의 < TO를 보세요. 할인되는 마지막 금액은 69, 할인되지 않는 첫 금액은 70이에요.",
+      "target": "code:FROM <= t < TO"
+    },
+    {
+      "action": "patch_code",
+      "before": "inputs = [FROM - 1, FROM, TO + 1]",
+      "after": "inputs = [FROM - 1, FROM, TO - 1, TO]",
+      "say": "TO + 1을 TO - 1과 TO로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "70이 실패했어요. 요구는 70을 할인하지 않는데 함수는 할인했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "함수의 <= TO가 70까지 넣었어요. 69만 넣었다면 둘 다 할인이라 못 찾았을 거예요.",
+      "target": "code:FROM <= total <= TO"
+    }
+  ]
+}

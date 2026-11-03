@@ -1,0 +1,76 @@
+{
+  "by": "hand",
+  "source_sha256": "9abcc926e49e2dad73daecda9cf86f60612f765539ec69c6c2db3705943933a7",
+  "entry": [
+    {
+      "action": "say",
+      "text": "H사의 모든 물건보다 비싸야 남아요. 표준 SQL의 > ALL과 같은 결과를 내야 해요.",
+      "target": "text:집계 함수 하나를 고쳐 > ALL과 같은 결과를 내세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "price > (SELECT MIN(price) FROM items WHERE maker = 'H')",
+      "after": "price > ALL (SELECT price FROM items WHERE maker = 'H')",
+      "say": "먼저 표준 문법 그대로 써 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        4
+      ],
+      "expect_error": "syntax error"
+    },
+    {
+      "action": "say",
+      "text": "ALL 근처에서 syntax error가 났어요. 이 SQLite는 ALL 비교를 읽지 못해요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "price > ALL (SELECT price FROM items WHERE maker = 'H')",
+      "after": "price > (SELECT MIN(price) FROM items WHERE maker = 'H')",
+      "say": "준비된 MIN 비교로 되돌려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "note, clip, bag이 나왔어요. H사 물건 clip 5000까지 끼었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "MIN 2000보다 크기만 하면 남았어요. 하나라도보다 큰 ANY의 뜻이죠.",
+      "target": "code:MIN(price)"
+    },
+    {
+      "action": "patch_code",
+      "before": "MIN(price)",
+      "after": "MAX(price)",
+      "say": "H사 최댓값과 비교하도록 MAX로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "bag | 6000만 남았어요. H사 최댓값 5000보다 비싸면 모든 H사 물건보다 비싸요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. >=로 쓰면 5000인 clip 자신도 남아요. 모든 값보다 커야 하니 > 그대로예요.",
+      "target": "code:price > (SELECT MAX"
+    }
+  ]
+}

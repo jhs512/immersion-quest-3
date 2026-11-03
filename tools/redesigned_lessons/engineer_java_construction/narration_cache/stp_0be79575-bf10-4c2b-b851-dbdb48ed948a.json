@@ -1,0 +1,52 @@
+{
+  "by": "hand",
+  "source_sha256": "507a900136c2050369a9dff335dbc52ef36f86da5b9ef133367c26a78d10e979",
+  "entry": [
+    {
+      "action": "say",
+      "text": "usedOf는 static인데 객체마다 다른 used를 돌려줘야 해요. 어느 보관함인지는 매개변수 box가 알려 줘요.",
+      "target": "text:매개변수 box가 가리키는 보관함의 used를 돌려주게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        18,
+        18
+      ],
+      "expect_error": "non-static variable"
+    },
+    {
+      "action": "say",
+      "text": "컴파일 오류예요. non-static variable used를 static 문맥에서 쓸 수 없다고 해요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "static 메서드는 객체 없이 불리니 this가 없어요. 이름만 쓴 used는 어느 보관함 것인지 정할 수 없어요.",
+      "target": "code:return used;"
+    },
+    {
+      "action": "patch_code",
+      "before": "        return used;\n",
+      "after": "        return box.used;\n",
+      "say": "받은 참조 box를 앞에 붙여 그 보관함의 used를 읽어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        18,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "4와 7이 나왔어요. 같은 메서드가 받은 참조에 따라 각 보관함의 값을 읽었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 오류를 없애려고 used에 static을 붙이면 컴파일은 돼요. 그러면 칸 수가 하나로 합쳐져 둘 다 7이 나와요.",
+      "target": "code:int used;"
+    }
+  ]
+}

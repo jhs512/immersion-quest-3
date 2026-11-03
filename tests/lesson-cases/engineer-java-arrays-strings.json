@@ -1,0 +1,323 @@
+{
+ "course": "tests/fixtures/player-pilot/곡/course.json",
+ "lesson": "courses/redesigned/engineer-java-arrays-strings.json",
+ "expected_outputs": [
+  [
+   "[2, 2, 2, 2]",
+   "[2, 3, 7, 9]"
+  ],
+  [
+   "[3, 4, 8, 10]",
+   "[3, 4, 5, 6]"
+  ],
+  [
+   "11",
+   "11\n2\n6"
+  ],
+  [
+   "[1, 2, 3]\n[5, 6, 7]\n[9, 10, 11]\n[13, 14, 15]",
+   "[1, 2, 3, 4]\n[5, 6, 7, 8]\n[9, 10, 11, 12]"
+  ],
+  [
+   "[4, 9]\n[2, 5]",
+   "[4, 0]\n[2, 5]"
+  ],
+  [
+   "",
+   "60"
+  ],
+  [
+   "3 2 1\n3 2 1\nfalse",
+   "3 2 1\n1 2 3\ntrue"
+  ],
+  [
+   "true\nfalse\nfalse",
+   "true\ntrue\nfalse",
+   "true\ntrue\nfalse",
+   "true\ntrue\ntrue"
+  ],
+  [
+   "AB12\nAB12",
+   "21BA\nAB12"
+  ],
+  [
+   "",
+   "4\n15"
+  ],
+  [
+   "13 6 3 1",
+   "1 3 6 13"
+  ],
+  [
+   "6",
+   "ways(5)\nways(4)\nways(3)\nways(2)\nways(1)\nways(-1)\nways(0)\nways(1)\nways(2)\nways(1)\nways(-1)\n6",
+   "4"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "        int temp = a[i];\n        a[i] = a[j];\n        a[j] = temp;\n",
+     "        int x = a[i];\n        int y = a[j];\n        int temp = x;\n        x = y;\n        y = temp;\n"
+    ]
+   ],
+   "reason": "지역 변수끼리 바꾸면 배열 칸은 그대로예요."
+  },
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "        int temp = a[i];\n        a[i] = a[j];\n        a[j] = temp;\n",
+     "        a[j] = a[i];\n        a[i] = a[j];\n"
+    ]
+   ],
+   "reason": "두 줄 순서만 바꿔도 한 값이 사라져요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "i >= 1; i--",
+     "i >= 0; i--"
+    ]
+   ],
+   "reason": "0번 칸에서 stock[-1]을 읽어 예외가 나요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "for (int i = stock.length - 1; i >= 1; i--)",
+     "for (int i = 1; i < stock.length; i++)"
+    ],
+    [
+     "stock[i] += stock[i - 1];",
+     "stock[i] = stock[i] + stock[i - 1];"
+    ]
+   ],
+   "reason": "앞에서부터 돌면 이미 바뀐 왼쪽 값을 더해요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "c < shelf[r].length",
+     "c < shelf.length"
+    ]
+   ],
+   "reason": "줄 수로 칸을 돌면 짧은 줄에서 범위를 넘어요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "new int[rows][cols]",
+     "new int[cols][rows]"
+    ],
+    [
+     "r * cols + c + 1",
+     "r * rows + c + 1"
+    ]
+   ],
+   "reason": "번호 식만 바꾸면 줄 모양은 그대로 틀려요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "backup[r] = shelf[r].clone();",
+     "backup = shelf.clone();"
+    ]
+   ],
+   "reason": "바깥만 복사하면 줄은 여전히 공유돼요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "        Box[] line = new Box[size];\n",
+     "        Box[] line = new Box[size];\n        line[0] = new Box(0);\n"
+    ],
+    [
+     "            line[i] = new Box((i + 1) * 10);\n",
+     "            line[i].count = (i + 1) * 10;\n"
+    ]
+   ],
+   "reason": "0번 칸만 만들면 1번 칸에서 NullPointerException이 나요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "System.out.println(total);",
+     "System.out.println(60);"
+    ]
+   ],
+   "reason": "숫자를 외워 쓰면 size가 바뀔 때 틀려요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "        Box temp = line[0];\n        line[0] = line[2];\n        line[2] = temp;\n",
+     "        Box temp = a;\n        a = c;\n        c = temp;\n"
+    ]
+   ],
+   "reason": "변수 a, c를 바꾸면 배열 칸은 그대로예요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "return Arrays.equals(x, y);",
+     "return x.equals(y);"
+    ]
+   ],
+   "reason": "배열의 equals는 같은 객체인지만 봐요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "return x.equals(y);",
+     "return x == y;"
+    ]
+   ],
+   "reason": "실행 중 만든 문자열은 ==로 false예요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "for (int i = 0; i < code.length(); i++)",
+     "for (int i = 1; i <= code.length(); i++)"
+    ]
+   ],
+   "reason": "charAt을 1부터 세면 범위를 넘어요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "rev = code.charAt(i) + rev;",
+     "rev = rev + code.charAt(i);"
+    ]
+   ],
+   "reason": "뒤에 붙이면 원래 순서 그대로예요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "if (part.length() == 0) continue;",
+     "if (part.equals(\",\")) continue;"
+    ]
+   ],
+   "reason": "split 결과에 쉼표는 남지 않고 빈 문자열이 남아요."
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "        show(n / 2);\n        System.out.print(n + \" \");\n",
+     "        System.out.print(n + \" \");\n        show(n / 2);\n        System.out.print(n + \" \");\n"
+    ]
+   ],
+   "reason": "앞뒤 모두 찍으면 내려가며 한 번 더 출력해요."
+  },
+  {
+   "step": 12,
+   "replacements": [
+    [
+     "        if (n < 0) {\n            return 0;\n        }\n        if (n <= 1) {",
+     "        if (n <= 0) {\n            return 0;\n        }\n        if (n <= 1) {"
+    ]
+   ],
+   "reason": "ways(0)까지 0이 되어 딱 맞게 도착한 방법이 사라져요."
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "        int temp = a[i];\n        a[i] = a[j];\n        a[j] = temp;\n",
+     "        int temp = a[j];\n        a[j] = a[i];\n        a[i] = temp;\n"
+    ]
+   ],
+   "reason": "a[j]를 먼저 보관해도 같아요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "for (int i = stock.length - 1; i >= 1; i--)",
+     "for (int i = stock.length - 1; i > 0; i--)"
+    ]
+   ],
+   "reason": "i > 0도 같은 범위예요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "            for (int c = 0; c < shelf[r].length; c++) {\n                sum += shelf[r][c];\n            }\n",
+     "            for (int v : shelf[r]) {\n                sum += v;\n            }\n"
+    ]
+   ],
+   "reason": "줄을 향상된 for로 돌아도 같아요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "backup[r] = shelf[r].clone();",
+     "backup[r] = Arrays.copyOf(shelf[r], shelf[r].length);"
+    ]
+   ],
+   "reason": "Arrays.copyOf도 새 줄을 만들어요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "            line[i] = new Box((i + 1) * 10);\n",
+     "            line[i] = new Box(0);\n            line[i].count = (i + 1) * 10;\n"
+    ]
+   ],
+   "reason": "먼저 상자를 만들고 count를 정해도 같아요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "for (int i = 0; i < code.length(); i++) {\n            rev = code.charAt(i) + rev;",
+     "for (int i = code.length() - 1; i >= 0; i--) {\n            rev = rev + code.charAt(i);"
+    ]
+   ],
+   "reason": "뒤 글자부터 꺼내 뒤에 붙여도 같아요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "if (part.length() == 0) continue;",
+     "if (part.isEmpty()) continue;"
+    ]
+   ],
+   "reason": "isEmpty도 빈 문자열을 가려요."
+  },
+  {
+   "step": 12,
+   "replacements": [
+    [
+     "        if (n < 0) {\n            return 0;\n        }\n        if (n <= 1) {\n            return 1;\n        }\n",
+     "        if (n < 0) {\n            return 0;\n        }\n        if (n == 0 || n == 1) {\n            return 1;\n        }\n"
+    ]
+   ],
+   "reason": "0과 1을 따로 적어도 같아요."
+  }
+ ]
+}

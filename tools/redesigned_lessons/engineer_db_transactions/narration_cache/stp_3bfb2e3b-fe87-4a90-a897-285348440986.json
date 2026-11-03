@@ -1,0 +1,74 @@
+{
+  "by": "hand",
+  "source_sha256": "9eaacc0d8640da4da33d8cec8cff955f2636ff04e056b42862632957230dbe6c",
+  "entry": [
+    {
+      "action": "say",
+      "text": "결제는 A만, 알림도 A의 한 줄만 남아야 하는 문제예요. 고칠 곳은 두 군데예요.",
+      "target": "text:outbox에는 A의 알림 한 줄만 남게 pay의 두 곳을 고치세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        23,
+        25
+      ]
+    },
+    {
+      "action": "say",
+      "text": "A 성공, B 성공이에요. outbox에 같은 주문의 알림이 두 줄 생겼어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "UPDATE가 id만 봐요. B가 들고 온 version 1이 낡았는지 확인하지 않아요.",
+      "target": "code:WHERE id = ?\", (order_id,))"
+    },
+    {
+      "action": "patch_code",
+      "before": "WHERE id = ?\", (order_id,))\n    conn.execute('INSERT",
+      "after": "WHERE id = ? AND version = ?\", (order_id, version))\n    conn.execute('INSERT",
+      "say": "읽어 온 version을 조건에 묶어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        23,
+        25
+      ]
+    },
+    {
+      "action": "say",
+      "text": "A 성공, B 충돌이 나왔어요. 그런데 outbox에는 아직 두 줄이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "B의 알림은 rowcount 검사 전에 이미 들어갔어요. 충돌 갈래가 그것까지 COMMIT했어요.",
+      "target": "code:conn.execute('COMMIT')#1"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 충돌인데 확정하면 결제 안 된 B의 알림이 배송팀에 가요. 실패 갈래는 묶음을 취소해야 해요.",
+      "target": "code:return '충돌'"
+    },
+    {
+      "action": "patch_code",
+      "before": "        conn.execute('COMMIT')\n        return '충돌'\n",
+      "after": "        conn.execute('ROLLBACK')\n        return '충돌'\n",
+      "say": "충돌 갈래를 ROLLBACK으로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        23,
+        25
+      ]
+    },
+    {
+      "action": "say",
+      "text": "A 성공, B 충돌, [('A paid order 7',)]이에요. B의 알림 INSERT도 ROLLBACK으로 함께 사라졌어요.",
+      "target": "output"
+    }
+  ]
+}

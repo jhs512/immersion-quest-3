@@ -1,0 +1,76 @@
+{
+  "by": "hand",
+  "source_sha256": "04e342fbc28a2d99f123bff3a5f653e9ce33d88a03acac8096533d2e20fa88c7",
+  "entry": [
+    {
+      "action": "say",
+      "text": "하위 생성자에서 상위 생성자도 부르게 하는 문제예요.",
+      "target": "text:ColdShelf의 __init__에 한 줄을 넣어 Shelf의 칸 준비가 실행되게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        17
+      ],
+      "expect_error": "AttributeError"
+    },
+    {
+      "action": "say",
+      "text": "AttributeError예요. ColdShelf 객체에 data가 없대요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "ColdShelf에 __init__이 있어서 Shelf의 __init__은 불리지 않았어요.",
+      "target": "code:def __init__(self, n, temp):"
+    },
+    {
+      "action": "patch_code",
+      "before": "class ColdShelf(Shelf):\n    def __init__(self, n, temp):\n        # 이 주석 아래에서 Shelf의 준비도 해야 해요.\n        self.temp = temp\n",
+      "after": "class ColdShelf(Shelf):\n    pass\n",
+      "say": "하위 __init__을 아예 지우면 어떨까요?"
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        15
+      ],
+      "expect_error": "TypeError"
+    },
+    {
+      "action": "say",
+      "text": "이번엔 TypeError예요. 위치 인수 3개를 줬는데 2개만 받는대요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 하위에 __init__이 없으면 Shelf의 __init__이 쓰여요. 그 생성자는 n 하나만 받아 4를 받을 자리가 없어요.",
+      "target": "code:pass"
+    },
+    {
+      "action": "patch_code",
+      "before": "class ColdShelf(Shelf):\n    pass\n",
+      "after": "class ColdShelf(Shelf):\n    def __init__(self, n, temp):\n        super().__init__(n)\n        self.temp = temp\n",
+      "say": "하위 __init__을 되살리고 super().__init__(n)을 먼저 불러요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        17
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[5, 0, 0] 4예요. Shelf가 0 세 칸을 만들고 0번 칸에 5가 들어갔어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "put(size, 9)의 3번 칸은 범위 밖이라 if를 통과하지 못했어요.",
+      "target": "code:if 0 <= i < len(self.data):"
+    }
+  ]
+}

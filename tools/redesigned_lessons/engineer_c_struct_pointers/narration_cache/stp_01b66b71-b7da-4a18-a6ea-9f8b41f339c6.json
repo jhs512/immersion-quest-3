@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "931e83ec85706b47d4f8c55c9a35610004a94d6b6adb9f6938fd2fd3046d1d3e",
+  "entry": [
+    {
+      "action": "say",
+      "text": "rows가 어느 행을 어떤 순서로 담느냐에 따라 rows[i][i]가 달라져요.",
+      "target": "text:rows에 행 주소를 아래 행부터(2행, 1행, 0행) 담아"
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1 5 9가 나왔어요. rows[i]가 i행이라 왼쪽 위에서 오른쪽 아래로 갔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "{grid[0], grid[1], grid[2]}",
+      "after": "{grid[2], grid[1], grid[0]}",
+      "say": "rows[0]에 2행, rows[2]에 0행의 주소를 담아요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "7 5 3이 나왔어요. rows[0][0]은 2행의 첫 칸 7이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "printf(\"%d \", rows[i][i]);",
+      "after": "printf(\"%d \", *(rows[i] + i));",
+      "say": "같은 칸을 주소 이동으로도 읽어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "똑같이 7 5 3이에요. rows[i][j]는 *(rows[i] + j)와 같은 칸이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 행 주소 대신 *grid + 2를 담으면 0행 안에서 두 칸만 가요. 행을 바꾸려면 grid[2]처럼 행을 골라야 해요.",
+      "target": "code:{grid[2], grid[1], grid[0]}"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "edd18504be5b9889a27a26cf88172299a4ae4f56e4f512f7b0b91b78abe59852",
+  "entry": [
+    {
+      "action": "say",
+      "text": "유일한 묶음 가운데 군더더기 열이 없는 것만 남기는 문제예요.",
+      "target": "text:candidate 함수에 최소성 검사를 더해 후보키만 출력하게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        24,
+        24
+      ]
+    },
+    {
+      "action": "say",
+      "text": "student+course, student+room, student+course+room 세 묶음이 나왔어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "세 열 묶음도 유일해요. 하지만 room을 빼도 student+course만으로 구별돼요.",
+      "target": "text:그중 열을 하나라도 빼면 유일하지 않게 되는 묶음이 후보키예요"
+    },
+    {
+      "action": "patch_code",
+      "before": "    # 이 주석 아래에 최소성 검사를 쓰세요.\n",
+      "after": "    # 이 주석 아래에 최소성 검사를 쓰세요.\n    if any(unique(tuple(j for j in idx if j != i)) for i in idx):\n        return False\n",
+      "say": "열 i 하나를 뺀 묶음이 여전히 유일하면 후보키가 아니에요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        26,
+        26
+      ]
+    },
+    {
+      "action": "say",
+      "text": "student+course와 student+room 두 묶음만 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. student+room은 지금 네 행에서 우연히 유일할 뿐이에요. kim이 R1 수업을 하나 더 들으면 깨져요.",
+      "target": "code:rows = "
+    }
+  ]
+}

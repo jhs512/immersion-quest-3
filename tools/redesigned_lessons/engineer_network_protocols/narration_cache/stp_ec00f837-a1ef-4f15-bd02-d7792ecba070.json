@@ -1,0 +1,56 @@
+{
+  "by": "hand",
+  "source_sha256": "7ec7f611e842a69284eb750158b4378a03e4ac4fd236e10bc5a99b4b544ea3b3",
+  "entry": [
+    {
+      "action": "say",
+      "text": "서버가 SYN 때부터 대기 줄 한 칸을 쓴다는 걸 모델에 넣는 문제예요.",
+      "target": "text:SYN-ACK를 보낸 손님을 대기 줄에 적게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "half-open [] established []예요. 정상 손님 amy도 연결되지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "ACK가 와도 backlog에 amy가 없어서 이 조건이 거짓이에요.",
+      "target": "code:who in backlog"
+    },
+    {
+      "action": "patch_code",
+      "before": "        # 이 주석 아래에 SYN-ACK를 보낸 손님을 대기 줄에 넣으세요.\n",
+      "after": "        # 이 주석 아래에 SYN-ACK를 보낸 손님을 대기 줄에 넣으세요.\n        backlog.append(who)\n",
+      "say": "SYN-ACK를 보낸 손님을 줄에 적어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        17
+      ]
+    },
+    {
+      "action": "say",
+      "text": "x5와 amy가 refused예요. x1부터 x4가 줄 네 칸을 다 차지했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "x들은 ACK를 끝내 안 보내요. 그래서 네 칸이 비지 않고 amy가 밀려났어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. SYN 플러딩을 회선을 꽉 채우는 공격으로 보기 쉬워요. 여기서 찬 건 대기 줄 네 칸이에요.",
+      "target": "code:BACKLOG = 4"
+    }
+  ]
+}

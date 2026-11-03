@@ -1,0 +1,154 @@
+{
+ "course": "tests/fixtures/player-pilot/그/course.json",
+ "lesson": "courses/redesigned/engineer-server-layers.json",
+ "expected_outputs": [
+  [
+   "{'qty': 3, 'price': 500, 'debug_secret': 'hidden'}",
+   "{'qty': 3, 'price': 500}"
+  ],
+  [
+   "500",
+   "1500"
+  ],
+  [
+   "{'amount': '3'}",
+   "{'amount': 1500}"
+  ],
+  [
+   "200.0",
+   "800.0"
+  ],
+  [
+   "static file",
+   "order result"
+  ],
+  [
+   "ok 1",
+   "login 0"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "dto = {'qty':request['qty'], 'price':request['price']}",
+     "dto = request"
+    ]
+   ],
+   "reason": "debug_secret도 전달돼요. 입력 사전을 통째로 넘겼어요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "return order['qty'] * order['price']",
+     "return order['price']"
+    ]
+   ],
+   "reason": "500이에요. 수량을 빠뜨리고 단가만 반환했어요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "return {'amount':service(int(text))}",
+     "return {'amount':text}"
+    ]
+   ],
+   "reason": "응답 amount가 문자열 3이에요. 입력을 계산 없이 되돌렸어요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "return amount * (1 - rate)",
+     "return amount * rate"
+    ]
+   ],
+   "reason": "200이에요. 남은 금액이 아니라 할인액을 반환했어요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "result = was(path) if path.startswith('/api/') else web(path)",
+     "result = web(path)"
+    ]
+   ],
+   "reason": "static file이에요. 주문 API도 파일처럼 처리했어요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "return service() if authenticated else 'login'",
+     "return service()"
+    ]
+   ],
+   "reason": "ok 1이에요. 인증 전 요청이 업무 함수까지 도착했어요."
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "dto = {'qty':request['qty'], 'price':request['price']}",
+     "dto = {key:request[key] for key in ('qty','price')}"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "return order['qty'] * order['price']",
+     "return order['price'] * order['qty']"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "return {'amount':service(int(text))}",
+     "return dict(amount=service(int(text)))"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "return amount * (1 - rate)",
+     "return amount - amount * rate"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "result = was(path) if path.startswith('/api/') else web(path)",
+     "result = web(path) if not path.startswith('/api/') else was(path)"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "return service() if authenticated else 'login'",
+     "if not authenticated: return 'login'\n    return service()"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  }
+ ]
+}

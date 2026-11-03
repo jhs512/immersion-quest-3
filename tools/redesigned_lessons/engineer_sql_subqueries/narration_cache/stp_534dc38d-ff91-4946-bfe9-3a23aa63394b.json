@@ -1,0 +1,69 @@
+{
+  "by": "hand",
+  "source_sha256": "8ffa04776a9492826b034171b21f6e3420347b6546fc902170eafec85831f341",
+  "entry": [
+    {
+      "action": "say",
+      "text": "주문 없는 회원을 찾는 문제예요. 주문 표에 member_id가 NULL인 손님 주문이 섞여 있어요.",
+      "target": "text:NOT IN 줄을 NOT EXISTS 조건으로 바꿔 주문이 없는 회원의 이름을 이름순으로 보이세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "(행 없음)이에요. 목록에 NULL이 있으면 NOT IN은 어느 회원에게도 참이 되지 않아요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "WHERE id NOT IN (SELECT member_id FROM orders)",
+      "after": "WHERE NOT EXISTS (SELECT 1 FROM orders o)",
+      "say": "NOT EXISTS로 바꾸되 회원 조건 없이 먼저 써 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "또 (행 없음)이에요. 주문 표에 행이 있는지만 물었으니 모든 회원이 빠졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "WHERE NOT EXISTS (SELECT 1 FROM orders o)",
+      "after": "WHERE NOT EXISTS (SELECT 1 FROM orders o WHERE o.member_id = m.id)",
+      "say": "안쪽에서 주문의 member_id를 바깥 회원 m.id와 이어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "choi와 lee가 나왔어요. 회원마다 자기 주문이 하나도 없는지 따로 물었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "NULL인 손님 주문은 어느 m.id와도 같지 않아요. 그래서 결과를 지우지 않아요.",
+      "target": "code:o.member_id = m.id"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. NOT EXISTS 안에 o.member_id = m.id가 빠지면 회원마다 묻지 않아요. 앞에서 본 것처럼 모두 빠지죠.",
+      "target": "code:WHERE NOT EXISTS"
+    }
+  ]
+}

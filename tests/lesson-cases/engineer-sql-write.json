@@ -1,0 +1,321 @@
+{
+ "course": "tests/fixtures/player-pilot/골/course.json",
+ "lesson": "courses/redesigned/engineer-sql-write.json",
+ "expected_outputs": [
+  [
+   "sql\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER)\n\nid | name | grade | club | score\n1 | 김하늘 | 1 | 2 | 85\n2 | 이준호 | 2 | 1 | 92\n3 | 박서연 | 1 | NULL | 78\n4 | 이하은 | 3 | 2 | 88\n5 | 최민수 | 2 | 1 | NULL\n6 | 김도윤 | 1 | 1 | 95\n7 | 정우진 | 3 | NULL | 81",
+   "sql\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER)\n\ncardinality\n6",
+   "sql\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER)\n\ncardinality\n7"
+  ],
+  [
+   "grade\n1\n2\n3",
+   "grades\n7",
+   "grades\n3"
+  ],
+  [
+   "id\n1\n2\n3\n6",
+   "id\n1\n2\n6"
+  ],
+  [
+   "id | score\n2 | 92\n5 | NULL\n6 | 95",
+   "students | scored\n3 | 2"
+  ],
+  [
+   "name | score\n최민수 | NULL\n박서연 | 78\n정우진 | 81\n김하늘 | 85\n이하은 | 88\n이준호 | 92\n김도윤 | 95",
+   "name | score\n(행 없음)",
+   "name | score\n이하은 | 88\n이준호 | 92",
+   "name | score\n이준호 | 92\n이하은 | 88"
+  ],
+  [
+   "name | title\n김하늘 | 밴드\n이준호 | 코딩\n박서연 | 사진",
+   "name | title\n김하늘 | 코딩\n이준호 | 밴드\n이하은 | 코딩\n최민수 | 밴드\n김도윤 | 밴드"
+  ],
+  [
+   "name | title\n김하늘 | 밴드\n김하늘 | 코딩\n김하늘 | 사진\n이준호 | 밴드\n이준호 | 코딩\n이준호 | 사진\n이하은 | 밴드\n이하은 | 코딩\n이하은 | 사진\n김도윤 | 밴드\n김도윤 | 코딩\n김도윤 | 사진",
+   "name | title\n김하늘 | 코딩\n이준호 | 밴드\n이하은 | 코딩\n김도윤 | 밴드"
+  ],
+  [
+   "pairs\n14",
+   "pairs\n4",
+   "pairs | students\n4 | 3"
+  ],
+  [
+   "title | name\n밴드 | 이준호\n밴드 | 최민수\n밴드 | 김도윤\n코딩 | 김하늘\n코딩 | 이하은\n사진 | NULL",
+   "title | name\nNULL | 박서연\nNULL | 정우진\n밴드 | 이준호\n밴드 | 최민수\n밴드 | 김도윤\n코딩 | 김하늘\n코딩 | 이하은",
+   "title\n사진"
+  ],
+  [
+   "id\n2\n6",
+   "id\n2\n2\n3\n6\n7",
+   "id\n2\n3\n6\n7"
+  ],
+  [
+   "name | title\n이준호 | 밴드\n이하은 | 코딩",
+   "name | title\n이준호 | 밴드\n이하은 | 코딩\n정우진 | NULL"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "COUNT(*) AS cardinality",
+     "COUNT(score) AS cardinality"
+    ]
+   ],
+   "reason": "COUNT(열)은 NULL 점수 행을 빼서 튜플 수가 아니에요."
+  },
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "SELECT COUNT(*) AS cardinality FROM students;",
+     "SELECT 7 AS cardinality;"
+    ]
+   ],
+   "reason": "숫자를 외워 쓰면 행을 바꾼 자료에서 틀려요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "COUNT(DISTINCT grade)",
+     "COUNT(grade)"
+    ]
+   ],
+   "reason": "DISTINCT 없이 세면 겹친 학년도 따로 세요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "grade IN (1, 2) AND",
+     "grade IN (1, 2) OR"
+    ]
+   ],
+   "reason": "OR로 이으면 3학년 80점 이상도 남아요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "COUNT(score) AS scored",
+     "COUNT(grade) AS scored"
+    ]
+   ],
+   "reason": "NULL이 없는 열을 세면 남은 행 수와 같아요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "name LIKE '이%'",
+     "name LIKE '%이'"
+    ]
+   ],
+   "reason": "%이는 이로 끝나는 이름이에요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "WHERE name",
+     "WHERE 'name'"
+    ]
+   ],
+   "reason": "따옴표 안 name은 글자라 행이 없어요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "score DESC",
+     "score ASC"
+    ]
+   ],
+   "reason": "오름차순은 낮은 점수부터예요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "s.club = c.id",
+     "s.id = c.id"
+    ]
+   ],
+   "reason": "학생 번호와 동아리 번호를 맞추면 엉뚱한 짝이에요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "WHERE s.club = c.id AND",
+     "WHERE s.club = c.id OR"
+    ]
+   ],
+   "reason": "OR면 85점 이상 학생이 모든 동아리와 짝지어져요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "s.name LIKE r.pattern",
+     "r.pattern LIKE s.name"
+    ]
+   ],
+   "reason": "무늬가 왼쪽이면 아무 쌍도 남지 않아요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "COUNT(DISTINCT s.id)",
+     "COUNT(s.id)"
+    ]
+   ],
+   "reason": "학생 수가 아니라 쌍 수를 다시 세요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "WHERE s.id IS NULL",
+     "WHERE c.id IS NULL"
+    ]
+   ],
+   "reason": "기준 표 열은 비지 않아 행이 없어요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "LEFT JOIN",
+     "JOIN"
+    ]
+   ],
+   "reason": "내부 조인은 짝 없는 동아리를 남기지 않아요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "UNION SELECT",
+     "UNION ALL SELECT"
+    ]
+   ],
+   "reason": "UNION ALL은 겹친 id를 두 번 남겨요."
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "LEFT JOIN",
+     "JOIN"
+    ]
+   ],
+   "reason": "내부 조인은 동아리 없는 학생을 빼요."
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "DESC",
+     "ASC"
+    ]
+   ],
+   "reason": "낮은 점수부터 나와 순서가 틀려요."
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "COUNT(*)",
+     "COUNT(id)"
+    ]
+   ],
+   "reason": "기본 키 id는 NULL이 없어 튜플 수와 같아요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "grade IN (1, 2) AND",
+     "(grade = 1 OR grade = 2) AND"
+    ]
+   ],
+   "reason": "괄호로 묶은 OR는 IN과 같아요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "name LIKE '이%'",
+     "substr(name, 1, 1) = '이'"
+    ]
+   ],
+   "reason": "첫 글자 비교도 같은 행을 남겨요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     " JOIN clubs c ON",
+     ", clubs c WHERE"
+    ]
+   ],
+   "reason": "쉼표 조인과 WHERE 연결도 같은 결과예요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "FROM students s, clubs c WHERE s.club = c.id AND",
+     "FROM students s JOIN clubs c ON s.club = c.id WHERE"
+    ]
+   ],
+   "reason": "JOIN ON으로 써도 같아요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "CROSS JOIN rules r WHERE",
+     ", rules r WHERE"
+    ]
+   ],
+   "reason": "쉼표도 곱집합이에요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "FROM clubs c LEFT JOIN students s",
+     "FROM students s RIGHT JOIN clubs c"
+    ]
+   ],
+   "reason": "표 순서를 바꾼 RIGHT JOIN도 동아리가 기준이에요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "UNION SELECT student_id FROM volunteers",
+     "UNION SELECT student_id AS id FROM volunteers"
+    ]
+   ],
+   "reason": "두 번째 열 별칭은 결과에 영향이 없어요."
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "FROM students s LEFT JOIN clubs c",
+     "FROM clubs c RIGHT JOIN students s"
+    ]
+   ],
+   "reason": "학생 표가 기준인 RIGHT JOIN도 같아요."
+  }
+ ]
+}

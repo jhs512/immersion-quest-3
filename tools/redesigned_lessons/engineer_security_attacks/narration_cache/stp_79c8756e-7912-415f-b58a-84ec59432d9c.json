@@ -1,0 +1,75 @@
+{
+  "by": "hand",
+  "source_sha256": "df7c80f5f67a5fd671ddcc46d4288d26c704e5b5788239fc68744ceee7d0525c",
+  "entry": [
+    {
+      "action": "say",
+      "text": "최종 경로가 /srv/files 밖이면 거절해야 해요.",
+      "target": "text:정규화한 최종 경로가 BASE + '/'로 시작하지 않으면 path를 '거절'로 바꾸세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "/etc/passwd가 나왔어요. ../를 지운 자리에서 ../가 다시 생겼어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "cleaned = name.replace('../', '')\npath = posixpath.normpath(posixpath.join(BASE, cleaned))\n",
+      "after": "path = posixpath.normpath(posixpath.join(BASE, name))\n",
+      "say": "지우는 줄을 빼고 이름을 그대로 붙여 정규화해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "/srv/files/..../..../etc/passwd예요. 점 넷은 폴더 이름일 뿐이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "어떤 이름이 와도 최종 경로를 보고 판단하면 돼요.",
+      "target": "code:posixpath.normpath"
+    },
+    {
+      "action": "patch_code",
+      "before": "path = posixpath.normpath(posixpath.join(BASE, name))\n",
+      "after": "path = posixpath.normpath(posixpath.join(BASE, name))\nif not path.startswith(BASE + '/'):\n    path = '거절'\n",
+      "say": "최종 경로가 기준 폴더 안인지 검사해요."
+    },
+    {
+      "action": "patch_code",
+      "before": "name = '....//....//etc/passwd'",
+      "after": "name = '../files2/x'",
+      "say": "이웃 폴더를 노리는 이름으로 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "거절이 나왔어요. 정규화하면 /srv/files2/x라 기준 폴더 밖이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 끝의 /를 빼고 BASE로만 비교하면 /srv/files2도 같은 글자로 시작해 통과해요.",
+      "target": "code:BASE + '/'"
+    }
+  ]
+}

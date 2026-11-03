@@ -1,0 +1,80 @@
+{
+  "by": "hand",
+  "source_sha256": "0dc5c5d60c891949db8fcdc273f0fee0fcb1cae9360d81c9a9b70fb3c399e4f3",
+  "entry": [
+    {
+      "action": "say",
+      "text": "짝 바꾸기 줄은 맞아요. 몇 번 돌릴지만 고치면 돼요.",
+      "target": "text:range 안의 반복 횟수를 고쳐 줄이 뒤집히게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[1, 2, 3, 4, 5]가 나왔어요. 처음과 똑같죠?",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "오른쪽 두 값을 먼저 읽고 왼쪽에 넣어요. 그래서 임시 변수 없이 맞바뀌어요.",
+      "target": "code:= line[-i - 1], line[i]"
+    },
+    {
+      "action": "say",
+      "text": "그런데 다섯 번 돌면 뒤쪽 절반에서 이미 바꾼 짝을 또 바꿔요. 두 번 바꾼 짝은 제자리예요.",
+      "target": "code:range(len(line))"
+    },
+    {
+      "action": "patch_code",
+      "before": "range(len(line))",
+      "after": "range(len(line) // 2)",
+      "say": "반복을 길이의 절반으로 줄여요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[5, 4, 3, 2, 1]이에요. 0번과 -1번, 1번과 -2번만 바꾸고 가운데 3은 그대로 뒀어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "line[i], line[-i - 1] = line[-i - 1], line[i]",
+      "after": "line[i], line[-i] = line[-i], line[i]",
+      "say": "짝 번호에서 - 1을 빼 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[1, 5, 3, 4, 2]예요. i가 0일 때 -0은 0이라 맨 앞이 자기 자신과 바뀌었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 뒤에서 i번째는 -i가 아니라 -i - 1이에요. - 1을 빠뜨리면 짝이 한 칸씩 밀려요.",
+      "target": "code:line[-i] = line[-i]"
+    },
+    {
+      "action": "patch_code",
+      "before": "line[i], line[-i] = line[-i], line[i]",
+      "after": "line[i], line[-i - 1] = line[-i - 1], line[i]",
+      "say": "짝 번호를 -i - 1로 되돌려요."
+    }
+  ]
+}

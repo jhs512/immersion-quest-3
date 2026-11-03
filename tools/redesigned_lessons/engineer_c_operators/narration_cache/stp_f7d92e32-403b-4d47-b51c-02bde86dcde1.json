@@ -1,0 +1,87 @@
+{
+  "by": "hand",
+  "source_sha256": "89f486fad1f290829e2410bfab791ef3f0bd7393b309943e7f1cfd14043b28da",
+  "entry": [
+    {
+      "action": "say",
+      "text": "더 적은 재고가 0이면 경보를 켜야 해요. 지금 조건은 무엇을 보는지가 문제예요.",
+      "target": "text:if 조건을 고쳐 고른 재고 값이 0일 때 alarm이 1이 되게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0이 나왔어요. 삼항이 고른 right의 값 0이 그대로 조건이 됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "0이 아니면 참이니, 재고가 있을 때 경보가 켜지는 반대 조건이에요.",
+      "target": "code:left < right ? left : right"
+    },
+    {
+      "action": "patch_code",
+      "before": "right) {",
+      "after": "right == 0) {",
+      "say": "끝에 == 0을 붙여 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1이 나왔어요. 맞아 보이지만 다른 재고로 확인해 볼게요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "int left = 4;\n    int right = 0;",
+      "after": "int left = 0;\n    int right = 5;",
+      "say": "왼쪽 선반을 비우고 오른쪽에 5개를 둬요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0이 나왔어요. 왼쪽이 비었는데 경보가 꺼져 있어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. ?:는 ==보다 늦게 묶여요. 그래서 right == 0만 값2가 되고, left는 0과 비교되지 않았어요.",
+      "target": "code:right == 0"
+    },
+    {
+      "action": "patch_code",
+      "before": "if (left < right ? left : right == 0) {",
+      "after": "if ((left < right ? left : right) == 0) {",
+      "say": "삼항 전체를 괄호로 묶고 0과 비교해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1이 나왔어요. 고른 left 값 0을 0과 비교했어요.",
+      "target": "output"
+    }
+  ]
+}

@@ -1,0 +1,275 @@
+{
+ "course": "tests/fixtures/player-pilot/결/course.json",
+ "lesson": "courses/redesigned/engineer-java-expressions.json",
+ "expected_outputs": [
+  [
+   "total=92",
+   "total=11"
+  ],
+  [
+   "0%",
+   "75%"
+  ],
+  [
+   "21 8",
+   "18 8"
+  ],
+  [
+   "false false false\nfalse true true\ntrue false true\ntrue true true",
+   "false false false\nfalse true false\ntrue false false\ntrue true true",
+   "false false false\nfalse true true\ntrue false true\ntrue true false"
+  ],
+  [
+   "false 0",
+   "false 1"
+  ],
+  [
+   "true",
+   "false"
+  ],
+  [
+   "350",
+   "0",
+   "650"
+  ],
+  [
+   "48",
+   "37"
+  ],
+  [
+   "1",
+   "0",
+   "3"
+  ],
+  [
+   "2 13 7",
+   "2 3 7"
+  ],
+  [
+   "01010000",
+   "00001010"
+  ],
+  [
+   "7 4 12 8 = 31",
+   "7 4 6 8 = 25"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "\"total=\" + (boxA + boxB)",
+     "\"total=11\""
+    ]
+   ],
+   "reason": "숫자를 외워 쓰면 다른 재고에서 틀려요."
+  },
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "\"total=\" + (boxA + boxB)",
+     "(\"total=\" + boxA) + boxB"
+    ]
+   ],
+   "reason": "문자열 쪽을 묶으면 여전히 이어 붙여요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "done * 100 / total",
+     "done / (total * 100)"
+    ]
+   ],
+   "reason": "나누는 쪽에 100을 곱하면 다시 0이에요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "sum += next++;",
+     "sum += next;"
+    ]
+   ],
+   "reason": "next가 올라가지 않아 같은 번호만 더해요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "(p ^ q)",
+     "(p | q)"
+    ]
+   ],
+   "reason": "|는 둘 다 true인 줄도 true예요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "(p ^ q)",
+     "(p & q)"
+    ]
+   ],
+   "reason": "&는 둘 다 true일 때만 true예요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "stock > 0 & ++checks",
+     "stock > 0 || ++checks"
+    ]
+   ],
+   "reason": "||는 결과가 true로 바뀌어요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "(rush | weight > 20) & fragile",
+     "rush | (weight > 20 & fragile)"
+    ]
+   ],
+   "reason": "&를 먼저 묶은 원래 식과 같아요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "(rush | weight > 20) & fragile",
+     "rush & fragile"
+    ]
+   ],
+   "reason": "무거운 상자 조건을 빠뜨리면 급송 아닌 무거운 상자에서 틀려요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "case 1: bonus += 100; break;",
+     "case 1: bonus += 100;"
+    ]
+   ],
+   "reason": "default까지 흘러가 0이 돼요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "while (i < n)",
+     "while (i < n - 1)"
+    ]
+   ],
+   "reason": "마지막 번호 n을 빠뜨려요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "        while (stock > 0) {\n",
+     "        do {\n"
+    ],
+    [
+     "        }\n        System.out.println(trips);",
+     "        } while (stock > 4);\n        System.out.println(trips);"
+    ]
+   ],
+   "reason": "do-while은 조건과 관계없이 한 번은 돌아요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "int pack = items % 50 / 10;",
+     "int pack = (items - 50) / 10;"
+    ]
+   ],
+   "reason": "상자가 2개 이상이거나 없을 때 틀려요."
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "for (int k = 7; k >= 0; k--)",
+     "for (int k = 8; k > 0; k--)"
+    ]
+   ],
+   "reason": "bits[8]은 없는 칸이라 예외가 나요."
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "for (int k = 7; k >= 0; k--)",
+     "for (int k = 7; k > 0; k--)"
+    ]
+   ],
+   "reason": "가장 낮은 자리 bits[0]을 빠뜨려요."
+  },
+  {
+   "step": 12,
+   "replacements": [
+    [
+     "twice = twice ^ true;",
+     "twice = true;"
+    ]
+   ],
+   "reason": "한 번 true가 되면 계속 두 배예요."
+  }
+ ],
+ "accept": [
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "done * 100 / total",
+     "100 * done / total"
+    ]
+   ],
+   "reason": "곱셈 순서를 바꿔도 나누기 전에 곱해요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "sum += next++;",
+     "sum += next;\n            next++;"
+    ]
+   ],
+   "reason": "더한 뒤 따로 올려도 같아요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "(p ^ q)",
+     "(p != q)"
+    ]
+   ],
+   "reason": "두 boolean이 다른지 비교해도 같아요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "int pack = items % 50 / 10;",
+     "int pack = items / 10 % 5;"
+    ]
+   ],
+   "reason": "10개 단위 몫을 5로 나눈 나머지도 같은 수예요."
+  },
+  {
+   "step": 12,
+   "replacements": [
+    [
+     "twice = twice ^ true;",
+     "twice = !twice;"
+    ]
+   ],
+   "reason": "부정으로 뒤집어도 같아요."
+  }
+ ]
+}

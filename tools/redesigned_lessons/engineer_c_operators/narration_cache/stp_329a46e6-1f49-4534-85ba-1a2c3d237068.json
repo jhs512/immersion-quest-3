@@ -1,0 +1,74 @@
+{
+  "by": "hand",
+  "source_sha256": "380b1c9874de1fd85978a6cbd57065a59dd2856b7ffabc3418695b181b684fc8",
+  "entry": [
+    {
+      "action": "say",
+      "text": "구역 10 라벨이면 L과 P만 찍혀야 해요. 실수가 두 곳에 겹쳐 있어요.",
+      "target": "text:라벨 0xA7은 구역 10이에요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "S 1이 나왔어요. zone이 10이 아니라 default로 갔어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": ">>가 먼저 묶여 zone에는 tag & 0x0F, 곧 선반 7이 들어갔어요.",
+      "target": "code:tag & 0xF0 >> 4"
+    },
+    {
+      "action": "patch_code",
+      "before": "int zone = tag & 0xF0 >> 4;",
+      "after": "int zone = (tag & 0xF0) >> 4;",
+      "say": "마스크를 괄호로 묶어 앞자리를 내려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "LPS 3이에요. case 10에서 들어와 default까지 흘러내렸어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "count++는 지나간 case마다 한 번씩 실행돼서 3이 됐어요.",
+      "target": "code:count++;#1"
+    },
+    {
+      "action": "patch_code",
+      "before": "            printf(\"P\");\n            count++;\n",
+      "after": "            printf(\"P\");\n            count++;\n            break;\n",
+      "say": "포장까지 하고 멈추게 break를 넣어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        20,
+        20
+      ]
+    },
+    {
+      "action": "say",
+      "text": "LP 2가 나왔어요. 구역 10은 L에서 P로 흘러가고 break에서 멈췄어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. break를 case 10 끝에 넣으면 L 1에서 멈춰요. 구역 10처럼 다음 case로 이어질 곳에는 break를 두지 않아요.",
+      "target": "code:case 11:"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "4829f02539a84dcc21ce30e66315410ccb5961ff75c5e0d4f1cbefe160b34f68",
+  "entry": [
+    {
+      "action": "say",
+      "text": "두 조건이 있어요. 세기 전에 배송 한 건씩 거르고, 센 뒤에 지점을 걸러야 해요.",
+      "target": "text:지점별로 완료(done)된 배송만 세어, 완료가 2건 이상인 지점을 보고하려 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "east 3, north 2, west 3이에요. 지연(late)된 배송까지 함께 셌어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "FROM deliveries\n",
+      "after": "FROM deliveries\nWHERE status = 'done'\n",
+      "say": "묶기 전에 완료된 행만 남기는 WHERE를 더해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "east는 2로 줄고 north는 사라졌어요. north의 완료는 1건이라 HAVING에서 빠졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "실행 순서는 WHERE로 행을 거르고, GROUP BY로 묶고, HAVING으로 그룹을 거른 뒤 SELECT로 보여 줘요.",
+      "target": "lines:4:6"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. COUNT(status = 'done')은 거짓인 행도 세요. COUNT는 참이 아니라 NULL이 아닌 값을 세거든요.",
+      "target": "code:WHERE status = 'done'"
+    }
+  ]
+}

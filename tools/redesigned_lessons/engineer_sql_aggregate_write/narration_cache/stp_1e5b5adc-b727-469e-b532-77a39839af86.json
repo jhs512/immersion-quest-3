@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "30d346168c1ae6c45ecca2335c8857de20e35711fb7c1397c1860238e09e355e",
+  "entry": [
+    {
+      "action": "say",
+      "text": "지점마다 한 행이 나오고, 그 행에 최소·최대 두 값이 이름을 달고 있어야 해요.",
+      "target": "text:보고서의 열 이름은 branch, low, high여야 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "열 이름이 MIN(boxes)로 나왔어요. east는 12, north는 25, west는 6이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "MIN(boxes) FROM",
+      "after": "MIN(boxes) AS low FROM",
+      "say": "집계 식 뒤에 AS low를 붙여요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "열 이름이 low로 바뀌었어요. 값은 그대로예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "AS low FROM",
+      "after": "AS low, MAX(boxes) AS high FROM",
+      "say": "쉼표 뒤에 MAX(boxes) AS high를 더해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "east는 12와 30, north는 25와 33이에요. 한 그룹에서 두 집계를 함께 구했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "GROUP BY branch라서 한 지점의 여러 배송이 한 행으로 모였어요.",
+      "target": "code:GROUP BY branch"
+    }
+  ]
+}

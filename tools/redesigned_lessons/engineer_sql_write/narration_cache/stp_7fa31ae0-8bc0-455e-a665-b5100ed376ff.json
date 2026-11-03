@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "2cc363523e480eeb4b0613e6e5aca00496ad6ee7ac397311d62242d8fbe8b5db",
+  "entry": [
+    {
+      "action": "say",
+      "text": "두 명단을 합치되 한 학생은 한 번만 나와야 해요.",
+      "target": "text:두 조건에 모두 해당해도 상장은 한 장이에요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2와 6만 나왔어요. 90점 이상 명단뿐이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "-- 이 주석 아래에 volunteers의 student_id를 합치는 줄을 쓰세요.\n",
+      "after": "-- 이 주석 아래에 volunteers의 student_id를 합치는 줄을 쓰세요.\nUNION ALL SELECT student_id FROM volunteers\n",
+      "say": "먼저 UNION ALL로 이어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2, 2, 3, 6, 7이에요. 2번은 90점 이상이면서 봉사도 해서 두 번 나왔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "UNION ALL",
+      "after": "UNION",
+      "say": "ALL을 지워 겹친 행을 하나로 줄여요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2, 3, 6, 7이에요. 2번이 한 번만 남았고 전체가 id 순서예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. ORDER BY를 첫 SELECT 바로 뒤에 쓰면 SQLite가 오류를 내요. 정렬은 합친 뒤 맨 끝에 한 번이에요.",
+      "target": "code:ORDER BY id"
+    }
+  ]
+}

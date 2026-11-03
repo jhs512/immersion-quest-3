@@ -1,0 +1,215 @@
+{
+ "course": "tests/fixtures/player-pilot/갈/course.json",
+ "lesson": "courses/redesigned/engineer-c-loop-algorithms.json",
+ "expected_outputs": [
+  [
+   "412",
+   "7"
+  ],
+  [
+   "4584",
+   "14"
+  ],
+  [
+   "14",
+   "7214"
+  ],
+  [
+   "4 4",
+   "4 9"
+  ],
+  [
+   "7 9 3 2",
+   "3 7 2 9"
+  ],
+  [
+   "3 7 2 9",
+   "3 2 7 9",
+   "2 3 7 9"
+  ],
+  [
+   "2 3 7 9",
+   "9 7 3 2"
+  ],
+  [
+   "1",
+   "6"
+  ],
+  [
+   "0",
+   "1"
+  ],
+  [
+   "83",
+   "7"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "printf(\"%d\", code % 10);",
+     "printf(\"%d\", code / 10);"
+    ]
+   ],
+   "reason": "몫은 앞자리라 마지막 자리가 아니에요."
+  },
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "printf(\"%d\", code % 10);",
+     "printf(\"7\");"
+    ]
+   ],
+   "reason": "숫자를 외워 쓰면 다른 번호에서 틀려요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "sum = sum + code % 10;",
+     "sum = sum + code / 10;"
+    ]
+   ],
+   "reason": "앞자리를 더하면 자릿수 합이 아니에요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "result = result * 10 + code % 10;",
+     "result = result + code % 10 * 10;"
+    ]
+   ],
+   "reason": "새 자리에 10을 곱하면 result가 밀리지 않아요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "    int temp = a;\n    a = b;\n    b = temp;\n",
+     "    b = a;\n    a = b;\n"
+    ]
+   ],
+   "reason": "순서만 바꾼 두 줄은 9 9가 돼요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "printf(\"%d %d\", a, b);",
+     "printf(\"%d %d\", b, a);"
+    ]
+   ],
+   "reason": "출력 순서만 바꾸면 값은 그대로예요(변형에서 맞아 보이지만 a·b가 바뀌지 않음)."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "box[j] > box[j + 1]",
+     "box[j] >= box[j + 1]"
+    ],
+    [
+     "j < 3",
+     "j < 2"
+    ]
+   ],
+   "reason": "마지막 칸까지 비교하지 않으면 9가 맨 뒤에 닿지 않아요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "i < 3;",
+     "i < 2;"
+    ]
+   ],
+   "reason": "두 바퀴로는 거꾸로 놓인 상자가 정렬되지 않아요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "box[j] < box[j + 1]",
+     "box[j] > box[j + 1]"
+    ]
+   ],
+   "reason": "오름차순 그대로예요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "n % i == 0",
+     "i % n == 0"
+    ]
+   ],
+   "reason": "나누는 쪽과 나뉘는 쪽을 바꾸면 i가 n일 때만 세요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "for (i = 2; i < n; i++)",
+     "for (i = 2; i <= n; i++)"
+    ]
+   ],
+   "reason": "n 자신으로도 나누면 모든 수가 0이 돼요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "if (is_prime(i) == 1 && n % i == 0) {",
+     "if (is_prime(i) == 1 || n % i == 0) {"
+    ]
+   ],
+   "reason": "||는 둘 중 하나만 맞아도 남겨 83이 돼요."
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "printf(\"%d\", code % 10);",
+     "int last = code % 10;\n    printf(\"%d\", last);"
+    ]
+   ],
+   "reason": "변수에 담아 출력해도 같은 원리예요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "sum = sum + code % 10;",
+     "sum += code % 10;"
+    ]
+   ],
+   "reason": "복합 대입도 같아요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "i < 3;",
+     "i < 4;"
+    ]
+   ],
+   "reason": "한 바퀴 더 돌아도 이미 정렬돼 결과는 같아요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "if (is_prime(i) == 1 && n % i == 0) {",
+     "if (n % i == 0 && is_prime(i)) {"
+    ]
+   ],
+   "reason": "조건 순서를 바꿔도 같아요."
+  }
+ ]
+}

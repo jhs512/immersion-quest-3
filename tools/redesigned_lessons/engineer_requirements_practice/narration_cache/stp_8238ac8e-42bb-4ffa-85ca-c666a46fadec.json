@@ -1,0 +1,45 @@
+{
+  "by": "hand",
+  "source_sha256": "0d589f23156547c7b25b503228164b1b9fd04d590ffe5423be6caf8faa8def83",
+  "entry": [
+    {
+      "action": "say",
+      "text": "같은 기능에도 성능이라는 품질 조건을 붙여요.",
+      "target": "text:응답이 성공해도 500ms를 넘으면 품질 조건에 어긋나요. 두 조건을 함께 확인하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "True예요. 기능 성공 여부만 보고 느린 응답도 통과시켰어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "return ok",
+      "after": "return ok and latency <= 500"
+    },
+    {
+      "action": "say",
+      "text": "기능과 품질을 따로 확인해요. 경계인 500ms도 조건에 포함돼요.",
+      "target": "code:return ok and latency <= 500"
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "False예요. 성공 응답이지만 허용 시간을 넘었어요.",
+      "target": "output"
+    }
+  ]
+}

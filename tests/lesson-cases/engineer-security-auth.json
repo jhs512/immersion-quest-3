@@ -1,0 +1,240 @@
+{
+ "course": "tests/fixtures/player-pilot/극/course.json",
+ "lesson": "courses/redesigned/engineer-security-auth.json",
+ "expected_outputs": [
+  [
+   "True",
+   "False"
+  ],
+  [
+   "True",
+   "False"
+  ],
+  [
+   "True",
+   "False"
+  ],
+  [
+   "True",
+   "False"
+  ],
+  [
+   "[True, True]",
+   "[True, False]"
+  ],
+  [
+   "True",
+   "False"
+  ],
+  [
+   "True",
+   "False"
+  ],
+  [
+   "True",
+   "False"
+  ],
+  [
+   "True",
+   "False"
+  ],
+  [
+   "[True, True]",
+   "[True, False]"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "authenticated = username in users and hmac.compare_digest(users[username], password)",
+     "authenticated = username in users"
+    ]
+   ],
+   "reason": "True예요. 계정 이름만 알면 인증을 통과했어요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "allowed = action in permissions.get(role, set())",
+     "allowed = role in permissions"
+    ]
+   ],
+   "reason": "True예요. 역할 이름이 있다는 사실만으로 쓰기를 허용했어요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "intact = expected_hash == hashlib.sha256(received).digest()",
+     "intact = len(original) == len(received)"
+    ]
+   ],
+   "reason": "True예요. 두 자료가 두 글자라는 사실만 비교했어요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "b = derive(password, salt_b)",
+     "b = derive(password, salt_a)"
+    ]
+   ],
+   "reason": "True예요. 둘 다 첫 사용자의 솔트를 사용했어요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "ok = code in issued and code not in used",
+     "ok = code in issued"
+    ]
+   ],
+   "reason": "[True, True]예요. 이미 쓴 코드도 다시 받아들였어요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "login = verified and issuer in trusted",
+     "login = verified"
+    ]
+   ],
+   "reason": "True예요. 모르는 제공자가 전한 신원도 믿었어요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "allowed = action in token['scope']",
+     "allowed = bool(token['sub'])"
+    ]
+   ],
+   "reason": "True예요. 신원이 있다는 이유로 위임하지 않은 삭제도 허용했어요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "allowed = signature_ok and now < claims['exp'] and claims['iss'] == 'company' and claims['aud'] == 'orders'",
+     "allowed = signature_ok"
+    ]
+   ],
+   "reason": "True예요. 올바른 서명이 있어도 만료된 토큰을 허용했어요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "valid = hmac.compare_digest(signature, hmac.new(key, received, hashlib.sha256).digest())",
+     "valid = True"
+    ]
+   ],
+   "reason": "True예요. 금액이 바뀌어도 요청 내용을 검사하지 않았어요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "allow = signed and nonce not in seen",
+     "allow = signed"
+    ]
+   ],
+   "reason": "[True, True]예요. 정상 요청을 복사해 다시 보내도 처리됐어요."
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "authenticated = username in users and hmac.compare_digest(users[username], password)",
+     "authenticated = username in users and users[username] == password"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "allowed = action in permissions.get(role, set())",
+     "allowed = role in permissions and action in permissions[role]"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "intact = expected_hash == hashlib.sha256(received).digest()",
+     "intact = hashlib.sha256(original).hexdigest() == hashlib.sha256(received).hexdigest()"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "b = derive(password, salt_b)",
+     "b = hashlib.pbkdf2_hmac('sha256', password.encode(), salt_b.encode(), 1000)"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "ok = code in issued and code not in used",
+     "ok = code in issued - used"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "login = verified and issuer in trusted",
+     "login = issuer in trusted and verified"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "allowed = action in token['scope']",
+     "allowed = action in set(token['scope'])"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "allowed = signature_ok and now < claims['exp'] and claims['iss'] == 'company' and claims['aud'] == 'orders'",
+     "allowed = all([signature_ok, now < claims['exp'], claims['iss'] == 'company', claims['aud'] == 'orders'])"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "allow = signed and nonce not in seen",
+     "allow = nonce not in seen and signed"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  }
+ ]
+}

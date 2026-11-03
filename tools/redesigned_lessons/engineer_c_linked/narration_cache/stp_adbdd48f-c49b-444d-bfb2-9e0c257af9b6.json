@@ -1,0 +1,69 @@
+{
+  "by": "hand",
+  "source_sha256": "53531a15964f67e0d94df88464df65beec0995e7d1df4d8c20a43ae6f4dfcacb",
+  "entry": [
+    {
+      "action": "say",
+      "text": "함수는 그대로 두고 printf의 자리만 옮겨 순서를 바꾸는 문제예요.",
+      "target": "text:printf 줄을 옮겨 각 부서가 자기 아래 부서들보다 나중에 출력되게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        14,
+        14
+      ]
+    },
+    {
+      "action": "say",
+      "text": "40 20 10 30 60이 나왔어요. 앞 스텝처럼 부모가 먼저인 전위 순서예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    printf(\"%d \", n->value);\n    visit(n->left);\n",
+      "after": "    visit(n->left);\n    printf(\"%d \", n->value);\n",
+      "say": "먼저 printf를 두 호출 사이로 옮겨 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "10 20 30 40 60이 나왔어요. 왼쪽을 다 돈 뒤에 자기를 찍는 중위 순서(inorder)예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 두 호출 사이에 두면 오른쪽 아래보다만 먼저예요. 왼쪽 아래보다는 나중이라 요구와 달라요.",
+      "target": "code:visit(n->right);"
+    },
+    {
+      "action": "patch_code",
+      "before": "    printf(\"%d \", n->value);\n    visit(n->right);\n",
+      "after": "    visit(n->right);\n    printf(\"%d \", n->value);\n",
+      "say": "이번엔 두 호출 뒤로 옮겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "10 30 20 60 40이 나왔어요. 아래를 모두 마친 부서만 찍혀서 루트 40이 맨 끝이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "자식을 다 부른 뒤에 처리하는 이 순서가 후위 순회(postorder)예요.",
+      "target": "code:printf(\"%d \", n->value);"
+    }
+  ]
+}

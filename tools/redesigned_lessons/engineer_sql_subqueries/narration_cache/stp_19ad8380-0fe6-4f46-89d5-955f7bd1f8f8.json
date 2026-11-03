@@ -1,0 +1,68 @@
+{
+  "by": "hand",
+  "source_sha256": "77a7e05784930935a4c552d7e9eca78e2e1a6f6b7228547250bc95acb08611e1",
+  "entry": [
+    {
+      "action": "say",
+      "text": "H사 물건을 주문한 회원을 찾는 문제예요. 손으로 적은 번호는 자료가 바뀌면 낡아요.",
+      "target": "text:H사 물건을 한 번이라도 주문한 회원의 이름을 이름순으로 보이세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "choi와 kim이 나왔어요. 적어 둔 2번, 3번 물건의 주문자예요.",
+      "target": "output"
+    },
+    {
+      "action": "set_code",
+      "code": "SELECT id, maker FROM items ORDER BY id;\n",
+      "say": "가장 안쪽에 들어갈 물건 번호를 먼저 확인해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        1,
+        1
+      ]
+    },
+    {
+      "action": "say",
+      "text": "지금 H사 물건은 1번과 3번이에요. 2번은 K사죠.",
+      "target": "output"
+    },
+    {
+      "action": "set_code",
+      "code": "-- 가장 안쪽 괄호부터 값 목록으로 바꿔 읽어요.\nSELECT name FROM members\nWHERE id IN (SELECT member_id FROM orders\n             WHERE item_id IN (2, 3))\nORDER BY name;\n",
+      "say": "입고 기록에서 H사 물건을 고르는 조건으로 돌아가요."
+    },
+    {
+      "action": "patch_code",
+      "before": "(2, 3)",
+      "after": "(SELECT id FROM items WHERE maker = 'H')",
+      "say": "적어 둔 목록 자리에 H사 물건을 고르는 하위 질의를 넣어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "choi와 lee예요. 안쪽 1, 3이 주문자 2, 4가 되고, 바깥에서 이름이 됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 문자열 H는 작은따옴표로 감싸요. 큰따옴표는 같은 이름의 열이 있으면 열로 읽혀요.",
+      "target": "code:'H'"
+    }
+  ]
+}

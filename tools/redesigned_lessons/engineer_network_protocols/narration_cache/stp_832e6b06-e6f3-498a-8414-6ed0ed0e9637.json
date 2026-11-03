@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "fa07243d60c5940a933d3e72550531524e3364004d5169f87431ed7aba8f755a",
+  "entry": [
+    {
+      "action": "say",
+      "text": "공인 주소 하나를 여러 연결이 겹치지 않게 나눠 쓰는 문제예요.",
+      "target": "text:연결마다 next_port부터 차례로 새 공인 포트를 쓰게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "두 PC가 모두 5000으로 나갔어요. entries가 2라서 표의 한 줄이 덮였어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    public_port = port\n",
+      "after": "    public_port = next_port\n",
+      "say": "next_port를 써 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "세 연결이 모두 40000이고 entries는 1이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. next_port를 늘리지 않으면 같은 포트를 계속 줘요. 응답이 오면 누구 것인지 가릴 수 없어요.",
+      "target": "code:public_port = next_port"
+    },
+    {
+      "action": "patch_code",
+      "before": "    public_port = next_port\n",
+      "after": "    public_port = next_port\n    next_port += 1\n",
+      "say": "쓴 다음 1 늘려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        11
+      ]
+    },
+    {
+      "action": "say",
+      "text": "40000, 40001, 40002로 나뉘었고 entries는 3이에요.",
+      "target": "output"
+    }
+  ]
+}

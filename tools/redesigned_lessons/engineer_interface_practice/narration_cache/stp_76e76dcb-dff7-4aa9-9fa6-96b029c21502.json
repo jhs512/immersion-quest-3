@@ -1,0 +1,66 @@
+{
+  "by": "hand",
+  "source_sha256": "07e2a585d6013589345a95a7733895aab87d1e3b8e7392ff115f678bce2682ac",
+  "entry": [
+    {
+      "action": "say",
+      "text": "받은 JSON 글자에서 수량과 단가를 읽어 곱하는 문제예요.",
+      "target": "text:order를 만드는 줄을 고쳐 수량과 단가의 곱이 출력되게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ],
+      "expect_error": "TypeError"
+    },
+    {
+      "action": "say",
+      "text": "TypeError가 났어요. body는 아직 글자라 qty라는 칸이 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "order = body",
+      "after": "order = json.dumps(body)",
+      "say": "이름이 비슷한 json.dumps로 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ],
+      "expect_error": "TypeError"
+    },
+    {
+      "action": "say",
+      "text": "또 TypeError예요. dumps는 값을 JSON 글자로 만드는 쪽이거든요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. dumps와 loads를 바꿔 쓰면 사전 대신 글자를 받아요. 받은 글자를 읽을 땐 loads예요.",
+      "target": "code:json.dumps(body)"
+    },
+    {
+      "action": "patch_code",
+      "before": "json.dumps(body)",
+      "after": "json.loads(body)",
+      "say": "loads로 글자를 사전으로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1500이 나왔어요. qty 3과 price 500이 숫자로 읽혀 곱해졌어요.",
+      "target": "output"
+    }
+  ]
+}

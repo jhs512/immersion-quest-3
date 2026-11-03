@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "ff18b737c14d29eff6a9976247c4adaad52b3bc501904c69872f351f92b58734",
+  "entry": [
+    {
+      "action": "say",
+      "text": "선언은 a, b, c 순서예요. 출력 순서는 무엇이 정하는지가 이 문제예요.",
+      "target": "text:next를 잇는 세 대입을 고쳐 a → b → c 순서로 출력되게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "41 63 57이 나왔어요. 반복은 선언 순서가 아니라 next를 따라갔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    a.next = &c;\n",
+      "after": "    a.next = &b;\n",
+      "say": "먼저 a의 next만 b로 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "41 57에서 끝났어요. b의 next가 아직 NULL이라 c가 끊겼어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 링크 하나만 고치면 그 뒤의 노드가 줄에서 떨어져 나가요. 바뀐 노드의 next도 함께 확인해야 해요.",
+      "target": "code:b.next = NULL;"
+    },
+    {
+      "action": "patch_code",
+      "before": "    c.next = &b;\n    b.next = NULL;\n",
+      "after": "    b.next = &c;\n    c.next = NULL;\n",
+      "say": "b 뒤에 c를 잇고, c를 마지막으로 만들어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "41 57 63이 나왔어요. 세 next가 a에서 b, b에서 c, c에서 NULL로 이어졌어요.",
+      "target": "output"
+    }
+  ]
+}

@@ -1,0 +1,1098 @@
+{
+  "description": "작은 파이썬 함수에 숨은 결함을 구간 대표값과 경계값으로 찾고, 테스트 케이스를 자료로 적어 자동 실행해요. 고친 뒤에는 전체를 다시 돌리고, 변이체로 테스트 묶음의 힘을 재요.",
+  "tasks": [
+    {
+      "id": "stp_c1550265-5a1c-4991-8303-719f5d507bce",
+      "title": "구간마다 대표값 하나로 배송비 결함을 찾으세요",
+      "goal": "배송비 함수 ship_fee에 결함이 하나 숨어 있어요. 검사 코드는 PARTS의 구간마다 inputs 중 그 구간 값을 넣고 요구와 비교해요.\n\n**알아두세요**\n\n동치 분할(equivalence partitioning)은 프로그램이 같은 방식으로 처리하는 입력끼리 구간으로 묶는 기법이에요. 같은 구간의 값은 결과도 같은 식으로 나오니, 구간마다 대표값 하나면 돼요.\n\n구간마다 대표값을 하나씩 골라 inputs를 네 값으로 고치세요. 거절할 구간도 빼지 마세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 어느 구간을 검사했는지 확인하세요.\n2. inputs를 구간마다 하나씩, 네 값으로 고치세요.\n3. 다시 실행해 실패한 구간을 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "FEE = 3000\n\n# 요구: 수량 1~4는 배송비 FEE, 5~9는 0, 그 밖은 '거절'이에요.\ndef ship_fee(qty):\n    if qty < 1:\n        return '거절'\n    if qty < 5:\n        return FEE\n    return 0\n\n# (구간 이름, 가장 작은 값, 가장 큰 값, 요구의 결과)\nPARTS = [('0 이하', -99, 0, '거절'), ('1~4', 1, 4, FEE), ('5~9', 5, 9, 0), ('10 이상', 10, 99, '거절')]\n\n# 검사할 수량이에요.\ninputs = [2, 3, 4]\n\nfor name, lo, hi, want in PARTS:\n    picked = [q for q in inputs if lo <= q <= hi]\n    if not picked:\n        print(name, '검사 안 함')\n    elif all(ship_fee(q) == want for q in picked):\n        print(name, '통과')\n    else:\n        print(name, '실패')\nprint(f'검사한 값 {len(inputs)}개')\n",
+      "solution": "FEE = 3000\n\n# 요구: 수량 1~4는 배송비 FEE, 5~9는 0, 그 밖은 '거절'이에요.\ndef ship_fee(qty):\n    if qty < 1:\n        return '거절'\n    if qty < 5:\n        return FEE\n    return 0\n\n# (구간 이름, 가장 작은 값, 가장 큰 값, 요구의 결과)\nPARTS = [('0 이하', -99, 0, '거절'), ('1~4', 1, 4, FEE), ('5~9', 5, 9, 0), ('10 이상', 10, 99, '거절')]\n\n# 검사할 수량이에요.\ninputs = [0, 2, 7, 12]\n\nfor name, lo, hi, want in PARTS:\n    picked = [q for q in inputs if lo <= q <= hi]\n    if not picked:\n        print(name, '검사 안 함')\n    elif all(ship_fee(q) == want for q in picked):\n        print(name, '통과')\n    else:\n        print(name, '실패')\nprint(f'검사한 값 {len(inputs)}개')\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "0 이하 통과\n1~4 통과\n5~9 통과\n10 이상 실패\n검사한 값 4개"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "네 구간에서 하나씩 골라 숨은 결함을 찾는 문제예요.",
+          "target": "text:구간마다 대표값을 하나씩 골라 inputs를 네 값으로 고치세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            25,
+            25
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1~4만 통과이고 나머지 세 구간은 검사 안 함이에요. 값 세 개가 한 구간에 몰렸어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "inputs = [2, 3, 4]",
+          "after": "inputs = [0, 2, 7]",
+          "say": "0 이하와 5~9에서 하나씩 골라 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            25,
+            25
+          ]
+        },
+        {
+          "action": "say",
+          "text": "세 구간이 통과예요. 그런데 10 이상은 아직 검사 안 함이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 거절해야 할 10 이상도 따로 다뤄지는 구간이에요. 빼면 그 안의 결함은 숨어요.",
+          "target": "code:('10 이상', 10, 99, '거절')"
+        },
+        {
+          "action": "patch_code",
+          "before": "inputs = [0, 2, 7]",
+          "after": "inputs = [0, 2, 7, 12]",
+          "say": "10 이상에서 12를 하나 더해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            25,
+            25
+          ]
+        },
+        {
+          "action": "say",
+          "text": "10 이상이 실패예요. 12를 넣었더니 거절이 아니라 배송비 0이 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "값 네 개로 구간 네 개를 다 봤어요. 구간 안에서는 어느 값을 골라도 같은 결과예요.",
+          "target": "code:inputs = [0, 2, 7, 12]"
+        }
+      ]
+    },
+    {
+      "id": "stp_79ca76af-7386-48a2-bc54-1b72d8790627",
+      "title": "경계값을 넣어 비교식 결함을 찾으세요",
+      "goal": "수량은 LOW 이상 HIGH 이하만 받아야 해요. 준비된 inputs는 구간마다 대표값 하나씩인데, 결함을 찾지 못해요.\n\n**알아두세요**\n\n경계값 분석(boundary value analysis)은 구간이 바뀌는 경계 값과 그 바로 바깥 값을 고르는 기법이에요. < 와 <= 를 헷갈린 결함은 경계에서만 결과가 달라져요.\n\ninputs를 두 경계 LOW·HIGH와 각각의 바로 바깥 값 네 개로 고치세요. 채점은 LOW와 HIGH를 바꿔서도 실행하니 값은 LOW·HIGH로 쓰세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 실패한 입력을 확인하세요.\n2. inputs를 경계와 바로 바깥 값 네 개로 고치세요.\n3. 다시 실행해 어느 값이 실패했는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "LOW = 1\nHIGH = 9\n\n# 요구: 수량은 LOW 이상 HIGH 이하만 받아요.\ndef accept(qty):\n    return LOW <= qty < HIGH\n\n# 구간마다 대표값을 하나씩 넣었어요.\ninputs = [LOW - 3, (LOW + HIGH) // 2, HIGH + 3]\n\nfailed = []\nfor q in inputs:\n    want = LOW <= q <= HIGH     # 요구에서 정한 예상 결과\n    if accept(q) != want:\n        failed.append(q)\nprint('실패한 입력', failed)\n",
+      "solution": "LOW = 1\nHIGH = 9\n\n# 요구: 수량은 LOW 이상 HIGH 이하만 받아요.\ndef accept(qty):\n    return LOW <= qty < HIGH\n\n# 구간마다 대표값을 하나씩 넣었어요.\ninputs = [LOW - 1, LOW, HIGH, HIGH + 1]\n\nfailed = []\nfor q in inputs:\n    want = LOW <= q <= HIGH     # 요구에서 정한 예상 결과\n    if accept(q) != want:\n        failed.append(q)\nprint('실패한 입력', failed)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "실패한 입력 [9]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "대표값으로는 못 찾는 결함을 경계에서 찾는 문제예요.",
+          "target": "text:inputs를 두 경계 LOW·HIGH와 각각의 바로 바깥 값 네 개로 고치세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "실패한 입력이 빈 목록이에요. -2, 5, 12는 요구와 함수의 결과가 같아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "inputs = [LOW - 3, (LOW + HIGH) // 2, HIGH + 3]",
+          "after": "inputs = [LOW - 1, HIGH + 1]",
+          "say": "경계 바로 바깥 두 값만 넣어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "여전히 빈 목록이에요. 0과 10은 요구로도 거절이고, 함수도 거절해요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 바깥 값만 넣으면 경계 값 1과 9 자체는 검사하지 않아요. 결함이 경계 값에 있으면 지나쳐요.",
+          "target": "code:inputs = [LOW - 1, HIGH + 1]"
+        },
+        {
+          "action": "patch_code",
+          "before": "inputs = [LOW - 1, HIGH + 1]",
+          "after": "inputs = [LOW - 1, LOW, HIGH, HIGH + 1]",
+          "say": "경계 값 LOW와 HIGH를 사이에 넣어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "9가 실패했어요. 요구는 9를 받는데 함수는 거절했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "함수의 < HIGH가 원인이에요. 9에서만 요구의 <= 와 결과가 갈려요.",
+          "target": "code:LOW <= qty < HIGH"
+        }
+      ]
+    },
+    {
+      "id": "stp_f6b22102-0a44-4f0c-a625-acf8b115c0e8",
+      "title": "이상·미만이 섞인 위쪽 경계를 바로 짚으세요",
+      "goal": "이번 요구는 「FROM 이상 TO 미만이면 할인」이에요. 아래쪽은 이상, 위쪽은 미만이라 두 경계의 모양이 달라요.\n\ninputs의 위쪽 값을 고쳐, 할인되는 마지막 금액과 할인되지 않는 첫 금액을 넣으세요. 아래쪽 두 값은 그대로 두세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 실패한 입력을 확인하세요.\n2. inputs의 TO + 1을 위쪽 경계 둘레 두 값으로 바꾸세요.\n3. 다시 실행해 어느 금액이 실패했는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "FROM = 10\nTO = 70\n\n# 요구: 주문 금액(천 원)이 FROM 이상 TO 미만이면 할인해요.\ndef discount(total):\n    return FROM <= total <= TO\n\n# 아래 경계 둘레 두 값과 위쪽 바깥 값이에요.\ninputs = [FROM - 1, FROM, TO + 1]\n\nfailed = []\nfor t in inputs:\n    want = FROM <= t < TO       # 요구에서 정한 예상 결과\n    if discount(t) != want:\n        failed.append(t)\nprint('실패한 입력', failed)\n",
+      "solution": "FROM = 10\nTO = 70\n\n# 요구: 주문 금액(천 원)이 FROM 이상 TO 미만이면 할인해요.\ndef discount(total):\n    return FROM <= total <= TO\n\n# 아래 경계 둘레 두 값과 위쪽 바깥 값이에요.\ninputs = [FROM - 1, FROM, TO - 1, TO]\n\nfailed = []\nfor t in inputs:\n    want = FROM <= t < TO       # 요구에서 정한 예상 결과\n    if discount(t) != want:\n        failed.append(t)\nprint('실패한 입력', failed)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "실패한 입력 [70]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "이상과 미만이 섞인 구간에서 위쪽 경계를 바로 짚는 문제예요.",
+          "target": "text:할인되는 마지막 금액과 할인되지 않는 첫 금액을 넣으세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "빈 목록이에요. 71은 요구로도 함수로도 할인이 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 이하처럼 생각해 TO + 1을 바깥 값으로 고르면 결함을 지나쳐요. 미만이면 TO가 이미 바깥이에요.",
+          "target": "code:TO + 1"
+        },
+        {
+          "action": "say",
+          "text": "요구의 < TO를 보세요. 할인되는 마지막 금액은 69, 할인되지 않는 첫 금액은 70이에요.",
+          "target": "code:FROM <= t < TO"
+        },
+        {
+          "action": "patch_code",
+          "before": "inputs = [FROM - 1, FROM, TO + 1]",
+          "after": "inputs = [FROM - 1, FROM, TO - 1, TO]",
+          "say": "TO + 1을 TO - 1과 TO로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "70이 실패했어요. 요구는 70을 할인하지 않는데 함수는 할인했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "함수의 <= TO가 70까지 넣었어요. 69만 넣었다면 둘 다 할인이라 못 찾았을 거예요.",
+          "target": "code:FROM <= total <= TO"
+        }
+      ]
+    },
+    {
+      "id": "stp_327be3fa-ba4d-456d-a148-0119c401f060",
+      "title": "예상 결과를 요구에서 다시 정하세요",
+      "goal": "주문 함수 order의 케이스 세 개가 모두 통과해요. 그런데 order에는 재고를 보지 않는 결함이 있어요.\n\n**알아두세요**\n\n테스트 케이스는 무엇을 확인할지(조건), 실행 전 상태(사전 조건), 넣을 값(입력), 요구가 정한 결과(예상 결과)로 이루어져요.\n\n예상 결과는 요구에서 정하세요. 요구와 다른 예상 하나를 고쳐 테스트가 결함을 드러내게 하세요. order 함수는 그대로 두세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 케이스별 결과를 확인하세요.\n2. 요구 문장과 각 케이스의 예상을 비교하세요.\n3. 요구와 다른 예상 하나를 고치세요.\n4. 다시 실행해 결함이 실패로 드러났는지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "STOCK = 5\n\n# 요구: 수량이 1~9이고 재고 이하이면 '접수', 아니면 '거절'이에요.\ndef order(qty, stock):\n    if 1 <= qty <= 9:\n        return '접수'\n    return '거절'\n\n# 테스트 케이스: 확인할 조건, 사전 조건(재고), 입력(수량), 예상 결과\ncases = [\n    {'조건': '재고 안의 주문', '재고': STOCK, '입력': max(1, STOCK - 2), '예상': '접수'},\n    {'조건': '재고보다 많은 주문', '재고': STOCK, '입력': STOCK + 2, '예상': '접수'},\n    {'조건': '허용 범위 밖', '재고': STOCK, '입력': 10, '예상': '거절'},\n]\n\nfor c in cases:\n    got = order(c['입력'], c['재고'])\n    print(c['조건'], '통과' if got == c['예상'] else '실패')\n",
+      "solution": "STOCK = 5\n\n# 요구: 수량이 1~9이고 재고 이하이면 '접수', 아니면 '거절'이에요.\ndef order(qty, stock):\n    if 1 <= qty <= 9:\n        return '접수'\n    return '거절'\n\n# 테스트 케이스: 확인할 조건, 사전 조건(재고), 입력(수량), 예상 결과\ncases = [\n    {'조건': '재고 안의 주문', '재고': STOCK, '입력': max(1, STOCK - 2), '예상': '접수'},\n    {'조건': '재고보다 많은 주문', '재고': STOCK, '입력': STOCK + 2, '예상': '거절'},\n    {'조건': '허용 범위 밖', '재고': STOCK, '입력': 10, '예상': '거절'},\n]\n\nfor c in cases:\n    got = order(c['입력'], c['재고'])\n    print(c['조건'], '통과' if got == c['예상'] else '실패')\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "재고 안의 주문 통과\n재고보다 많은 주문 실패\n허용 범위 밖 통과"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "예상 결과를 어디서 가져오는지 묻는 문제예요. 함수는 고치지 않아요.",
+          "target": "text:예상 결과는 요구에서 정하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "세 케이스가 모두 통과예요. 결함이 있는데도 테스트가 조용해요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "재고 5에 수량 7을 넣는 케이스예요. 요구대로면 재고보다 많으니 거절이에요.",
+          "target": "code:'입력': STOCK + 2"
+        },
+        {
+          "action": "say",
+          "text": "그런데 예상이 접수예요. 함수를 돌려 나온 값을 그대로 옮겨 적은 거예요.",
+          "target": "code:'예상': '접수'#2"
+        },
+        {
+          "action": "patch_code",
+          "before": "'입력': STOCK + 2, '예상': '접수'",
+          "after": "'입력': STOCK + 2, '예상': '거절'",
+          "say": "예상을 요구대로 거절로 고쳐요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "재고보다 많은 주문이 실패로 바뀌었어요. 재고를 안 보는 결함이 드러났어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 예상 칸을 실행해 본 값으로 채우면 결함까지 정답으로 굳어요. 그러면 그 케이스는 무엇도 잡지 못해요.",
+          "target": "code:재고보다 많은 주문"
+        }
+      ]
+    },
+    {
+      "id": "stp_2c130afa-c616-45f9-83c3-75ab1a351c42",
+      "title": "사전 조건을 적어 케이스가 순서에 기대지 않게 하세요",
+      "goal": "같은 두 케이스를 앞에서부터 한 번, 거꾸로 한 번 돌려요. 재고는 주문을 접수할 때마다 줄어드는 상태예요.\n\n**알아두세요**\n\n사전 조건(precondition)은 케이스를 실행하기 전에 갖춰야 할 상태예요. 적어 두지 않으면 앞에서 무엇을 돌렸느냐에 따라 결과가 달라져요.\n\n재고를 넘는 주문 케이스에 사전 조건을 적어 두 순서 모두 통과하게 하세요. 입력과 예상은 그대로 두세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 두 순서의 결과를 비교하세요.\n2. 사전이 비어 있는 케이스를 찾으세요.\n3. 그 케이스의 사전에 시작 재고를 적으세요.\n4. 다시 실행해 두 순서 모두 통과하는지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "START = 10   # 창고를 막 열었을 때의 재고\n\nstock = START\n\n# 요구: 재고 이하의 수량만 '접수'하고, 접수하면 재고가 줄어요.\ndef order(qty):\n    global stock\n    if qty <= stock:\n        stock -= qty\n        return '접수'\n    return '거절'\n\n# 사전 조건이 비어 있으면 앞 케이스가 남긴 재고를 그대로 써요.\ncases = [\n    {'조건': '재고 안의 주문', '사전': {'재고': 5}, '입력': 3, '예상': '접수'},\n    {'조건': '재고를 넘는 주문', '사전': {}, '입력': 4, '예상': '거절'},\n]\n\ndef run(order_list):\n    global stock\n    stock = START\n    marks = []\n    for c in order_list:\n        if c['사전']:\n            stock = c['사전']['재고']\n        marks.append('통과' if order(c['입력']) == c['예상'] else '실패')\n    return marks\n\nprint('앞에서부터', run(cases))\nprint('거꾸로', run(cases[::-1]))\n",
+      "solution": "START = 10   # 창고를 막 열었을 때의 재고\n\nstock = START\n\n# 요구: 재고 이하의 수량만 '접수'하고, 접수하면 재고가 줄어요.\ndef order(qty):\n    global stock\n    if qty <= stock:\n        stock -= qty\n        return '접수'\n    return '거절'\n\n# 사전 조건이 비어 있으면 앞 케이스가 남긴 재고를 그대로 써요.\ncases = [\n    {'조건': '재고 안의 주문', '사전': {'재고': 5}, '입력': 3, '예상': '접수'},\n    {'조건': '재고를 넘는 주문', '사전': {'재고': 2}, '입력': 4, '예상': '거절'},\n]\n\ndef run(order_list):\n    global stock\n    stock = START\n    marks = []\n    for c in order_list:\n        if c['사전']:\n            stock = c['사전']['재고']\n        marks.append('통과' if order(c['입력']) == c['예상'] else '실패')\n    return marks\n\nprint('앞에서부터', run(cases))\nprint('거꾸로', run(cases[::-1]))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "앞에서부터 ['통과', '통과']\n거꾸로 ['통과', '통과']"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "실행 순서와 상관없이 같은 결과가 나오게 하는 문제예요.",
+          "target": "text:재고를 넘는 주문 케이스에 사전 조건을 적어 두 순서 모두 통과하게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            29,
+            30
+          ]
+        },
+        {
+          "action": "say",
+          "text": "앞에서부터는 둘 다 통과인데, 거꾸로 돌리면 첫 결과가 실패예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "이 케이스는 사전이 비어 있어요. 앞 케이스가 5에서 3을 빼고 남긴 재고 2에 기대고 있었어요.",
+          "target": "code:'사전': {}"
+        },
+        {
+          "action": "patch_code",
+          "before": "'사전': {}, '입력': 4, '예상': '거절'",
+          "after": "'사전': {}, '입력': 4, '예상': '접수'",
+          "say": "실패를 없애려고 예상을 접수로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            29,
+            30
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이번엔 앞에서부터의 둘째가 실패예요. 실패가 다른 순서로 옮겨 갔을 뿐이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 순서마다 결과가 다를 때 예상을 바꾸면 문제가 자리만 옮겨요. 고칠 곳은 시작 상태예요.",
+          "target": "code:'예상': '접수'#2"
+        },
+        {
+          "action": "patch_code",
+          "before": "'사전': {}, '입력': 4, '예상': '접수'",
+          "after": "'사전': {'재고': 2}, '입력': 4, '예상': '거절'",
+          "say": "예상은 거절로 되돌리고, 시작 재고 2를 사전에 적어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            29,
+            30
+          ]
+        },
+        {
+          "action": "say",
+          "text": "두 순서 모두 통과예요. 케이스가 시작 재고를 스스로 정해서 순서가 바뀌어도 같아요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_1dcec37a-14e8-4086-bf67-b23f8fed8ff4",
+      "title": "unittest에 경계 테스트 메서드를 더하세요",
+      "goal": "케이스를 매번 반복문으로 돌리는 대신 테스트 실행기에 맡겨요. AcceptTest의 메서드 하나가 테스트 하나예요.\n\n**알아두세요**\n\nxUnit은 테스트 메서드를 모아 자동으로 실행하고, assert로 예상과 실제를 비교해 통과·실패를 세는 틀이에요. 파이썬은 unittest, 자바는 JUnit이에요. 실행기는 이름이 test로 시작하는 메서드만 모아요.\n\n주석 아래에 accept(HIGH)가 True인지 확인하는 테스트 메서드를 하나 더 쓰세요. 실행 수와 실패 수가 함께 늘어나야 해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 실행 수와 실패 수를 확인하세요.\n2. 주석 아래에 test로 시작하는 메서드를 쓰세요.\n3. 메서드 안에 assertEqual로 accept(HIGH)와 True를 비교하세요.\n4. 다시 실행해 실행 수와 실패 수를 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import io\nimport unittest\n\nLOW = 1\nHIGH = 9\n\n# 요구: 수량은 LOW 이상 HIGH 이하만 받아요.\ndef accept(qty):\n    return LOW <= qty < HIGH\n\nclass AcceptTest(unittest.TestCase):\n    def test_middle(self):\n        self.assertEqual(accept((LOW + HIGH) // 2), True)\n\n    def test_below(self):\n        self.assertEqual(accept(LOW - 1), False)\n\n    # 이 주석 아래에 테스트 메서드를 하나 더 쓰세요.\n\nsuite = unittest.defaultTestLoader.loadTestsFromTestCase(AcceptTest)\nresult = unittest.TextTestRunner(stream=io.StringIO()).run(suite)\nprint('실행', result.testsRun, '실패', len(result.failures))\n",
+      "solution": "import io\nimport unittest\n\nLOW = 1\nHIGH = 9\n\n# 요구: 수량은 LOW 이상 HIGH 이하만 받아요.\ndef accept(qty):\n    return LOW <= qty < HIGH\n\nclass AcceptTest(unittest.TestCase):\n    def test_middle(self):\n        self.assertEqual(accept((LOW + HIGH) // 2), True)\n\n    def test_below(self):\n        self.assertEqual(accept(LOW - 1), False)\n\n    # 이 주석 아래에 테스트 메서드를 하나 더 쓰세요.\n    def test_high(self):\n        self.assertEqual(accept(HIGH), True)\n\nsuite = unittest.defaultTestLoader.loadTestsFromTestCase(AcceptTest)\nresult = unittest.TextTestRunner(stream=io.StringIO()).run(suite)\nprint('실행', result.testsRun, '실패', len(result.failures))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "실행 3 실패 1"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "경계 테스트 하나를 실행기에 맡기는 문제예요.",
+          "target": "text:주석 아래에 accept(HIGH)가 True인지 확인하는 테스트 메서드를 하나 더 쓰세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            22,
+            22
+          ]
+        },
+        {
+          "action": "say",
+          "text": "실행 2, 실패 0이에요. 실행기가 메서드 둘을 찾아 돌렸고 둘 다 통과했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    # 이 주석 아래에 테스트 메서드를 하나 더 쓰세요.\n",
+          "after": "    # 이 주석 아래에 테스트 메서드를 하나 더 쓰세요.\n    def check_high(self):\n        self.assertEqual(accept(HIGH), True)\n",
+          "say": "경계 HIGH를 확인하는 메서드를 check_high라는 이름으로 써 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            24,
+            24
+          ]
+        },
+        {
+          "action": "say",
+          "text": "실행 수가 2 그대로예요. 새 메서드는 아예 돌지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 실행기는 test로 시작하는 이름만 모아요. 이름이 다르면 테스트를 써도 없는 것과 같아요.",
+          "target": "code:def check_high"
+        },
+        {
+          "action": "patch_code",
+          "before": "def check_high",
+          "after": "def test_high",
+          "say": "이름을 test_high로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            24,
+            24
+          ]
+        },
+        {
+          "action": "say",
+          "text": "실행 3, 실패 1이에요. 9에서 True를 기대했는데 False가 나와 assert가 실패를 냈어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "테스트 메서드, assert, 자동 실행기로 짜는 이 틀이 xUnit이에요. 자바에서는 JUnit이 같은 일을 해요.",
+          "target": "code:unittest.TestCase"
+        }
+      ]
+    },
+    {
+      "id": "stp_a5d811d7-0a17-4fc2-a9d4-c9b765f0a7ec",
+      "title": "전체 케이스를 다시 돌려 수정이 깨뜨린 곳을 고치세요",
+      "goal": "9를 거절하던 결함을 고쳤어요. 지금 코드는 이번에 고친 케이스 하나만 다시 돌려요.\n\n**알아두세요**\n\n고친 결함이 정말 사라졌는지 그 케이스만 다시 보는 것은 확인 테스트(재테스트)예요. 회귀 테스트(regression test)는 기존에 통과하던 케이스까지 모두 다시 돌려, 수정이 다른 곳을 깨뜨리지 않았는지 봐요.\n\n마지막 줄을 고쳐 케이스 다섯 개를 모두 다시 돌리세요. 드러난 실패는 accept의 비교식을 고쳐 없애세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 고친 케이스의 결과를 확인하세요.\n2. 마지막 줄을 cases 전체를 돌리도록 고치세요.\n3. 다시 실행해 실패한 입력을 확인하세요.\n4. accept의 비교식에서 그 입력을 거절하는 곳을 고치세요.\n5. 다시 실행해 다섯 케이스의 결과를 확인하세요.\n6. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "LOW = 1\nHIGH = 9\n\n# 9를 거절하던 결함을 고친 새 버전이에요.\ndef accept(qty):\n    return LOW < qty <= HIGH\n\n# 지난번까지 통과하던 케이스 넷과, 이번에 결함을 잡은 케이스 하나예요. (수량, 예상)\ncases = [(LOW - 1, False), (LOW, True), ((LOW + HIGH) // 2, True), (HIGH + 1, False), (HIGH, True)]\n\ndef run(selected):\n    failed = [q for q, want in selected if accept(q) != want]\n    print('실행', len(selected), '실패', failed)\n\n# 고친 케이스만 다시 돌려요.\nrun(cases[-1:])\n",
+      "solution": "LOW = 1\nHIGH = 9\n\n# 9를 거절하던 결함을 고친 새 버전이에요.\ndef accept(qty):\n    return LOW <= qty <= HIGH\n\n# 지난번까지 통과하던 케이스 넷과, 이번에 결함을 잡은 케이스 하나예요. (수량, 예상)\ncases = [(LOW - 1, False), (LOW, True), ((LOW + HIGH) // 2, True), (HIGH + 1, False), (HIGH, True)]\n\ndef run(selected):\n    failed = [q for q, want in selected if accept(q) != want]\n    print('실행', len(selected), '실패', failed)\n\n# 고친 케이스만 다시 돌려요.\nrun(cases)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "실행 5 실패 []"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "고친 뒤 무엇까지 다시 돌릴지 묻는 문제예요.",
+          "target": "text:마지막 줄을 고쳐 케이스 다섯 개를 모두 다시 돌리세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "실행 1, 실패 없음이에요. 9는 이제 받아요. 여기까지가 확인 테스트예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "run(cases[-1:])",
+          "after": "run(cases)",
+          "say": "지난번 케이스까지 모두 다시 돌려요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "실행 5에 실패 [1]이에요. 고치기 전에는 통과하던 1이 이제 거절돼요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "9를 고치면서 아래쪽 <= 까지 < 로 바뀌었어요. 이번 수정이 만든 새 결함이에요.",
+          "target": "code:LOW < qty"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 고친 케이스만 돌리면 실행 1, 실패 없음에서 멈춰요. 1이 깨진 줄 모르고 넘어가요.",
+          "target": "code:run(cases)"
+        },
+        {
+          "action": "patch_code",
+          "before": "LOW < qty",
+          "after": "LOW <= qty",
+          "say": "아래쪽 비교를 <= 로 되돌려요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "실행 5, 실패 없음이에요. 고친 9도, 지난번의 1도 다시 확인됐어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_505bd786-88c5-4ed9-bfaa-a6c9ba67848c",
+      "title": "같은 테스트만 반복하지 말고 새 규칙을 겨냥한 케이스를 더하세요",
+      "goal": "지난달부터 같은 테스트 세 개를 매번 돌려 왔어요. 이번 버전에는 「FREE_FROM개 이상이면 배송비 0」 규칙이 새로 들어왔어요.\n\n**알아두세요**\n\n살충제 패러독스(pesticide paradox)는 같은 테스트만 되풀이하면 그 테스트가 보지 않는 곳의 결함을 끝내 못 찾는다는 원리예요. 바뀐 곳에 맞춰 케이스를 새로 더해야 해요.\n\ntests에 새 규칙의 경계를 겨냥한 케이스 하나를 더하세요. 채점은 FREE_FROM을 바꿔서도 실행하니 수량은 FREE_FROM으로 쓰세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 세 회차의 결과를 확인하세요.\n2. tests에 새 규칙이 시작되는 수량과 그 예상 배송비를 더하세요.\n3. 다시 실행해 실패한 수량을 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "FREE_FROM = 5\n\n# 이번 버전에 「FREE_FROM개 이상이면 배송비 0」 규칙이 새로 들어왔어요.\ndef ship_fee(qty):\n    if qty > FREE_FROM:\n        return 0\n    return 3000\n\n# 지난달부터 매번 돌려 온 테스트예요. (수량, 예상 배송비)\ntests = [(1, 3000), (2, 3000), (3, 3000)]\n\nfor round_no in (1, 2, 3):\n    failed = [q for q, want in tests if ship_fee(q) != want]\n    print(f'{round_no}회차 실패', failed)\n",
+      "solution": "FREE_FROM = 5\n\n# 이번 버전에 「FREE_FROM개 이상이면 배송비 0」 규칙이 새로 들어왔어요.\ndef ship_fee(qty):\n    if qty > FREE_FROM:\n        return 0\n    return 3000\n\n# 지난달부터 매번 돌려 온 테스트예요. (수량, 예상 배송비)\ntests = [(1, 3000), (2, 3000), (3, 3000), (FREE_FROM, 0)]\n\nfor round_no in (1, 2, 3):\n    failed = [q for q, want in tests if ship_fee(q) != want]\n    print(f'{round_no}회차 실패', failed)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "1회차 실패 [5]\n2회차 실패 [5]\n3회차 실패 [5]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "같은 테스트를 되풀이해 온 상황에서 새 규칙을 검사하는 문제예요.",
+          "target": "text:tests에 새 규칙의 경계를 겨냥한 케이스 하나를 더하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "세 회차 모두 실패가 없어요. 세 테스트 다 새 규칙과 상관없는 1~3만 봐요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "(3, 3000)]",
+          "after": "(3, 3000), (4, 3000)]",
+          "say": "테스트를 하나 늘려 4를 넣어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "그래도 세 회차 모두 빈 목록이에요. 4도 옛 규칙의 구간이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 테스트 수만 늘려서는 소용없어요. 같은 구간을 더 보면 새 결함은 여전히 숨어요.",
+          "target": "code:(4, 3000)"
+        },
+        {
+          "action": "patch_code",
+          "before": "(4, 3000)]",
+          "after": "(FREE_FROM, 0)]",
+          "say": "새 규칙이 시작되는 FREE_FROM개, 예상 0으로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "세 회차 모두 5가 실패예요. 요구는 5개부터 무료인데 함수의 > 가 5를 뺐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "되풀이한 세 번의 통과는 새 규칙에 대해 아무것도 말해 주지 않았어요.",
+          "target": "code:for round_no in (1, 2, 3):"
+        }
+      ]
+    },
+    {
+      "id": "stp_c29e75d0-1b37-437b-a27a-524f64ea329a",
+      "title": "살아남은 변이체를 죽이는 테스트 하나를 더하세요",
+      "goal": "이번 accept에는 결함이 없어요. 대신 테스트 묶음이 얼마나 촘촘한지 재 보려 해요.\n\n**알아두세요**\n\n돌연변이 테스트(mutation testing)는 코드를 조금 바꾼 변이체를 만들어 테스트를 돌려 보는 기법이에요. 테스트가 하나라도 실패하면 변이체를 죽인 거고, 다 통과하면 살아남은 거예요. 살아남은 변이체가 테스트의 빈틈이에요.\n\ntests에 케이스 하나를 더해 살아남은 변이체까지 모두 죽이세요. 원래 함수는 계속 통과해야 해요. 수량은 LOW·HIGH로 쓰세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 죽인 변이체 수와 살아남은 변이체를 확인하세요.\n2. 살아남은 변이체와 원래 함수의 결과가 갈리는 수량을 찾으세요.\n3. tests에 그 수량과 예상을 더하세요.\n4. 다시 실행해 살아남은 변이체가 없는지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "LOW = 1\nHIGH = 9\n\n# 요구대로 맞게 짠 함수예요.\ndef accept(qty):\n    return LOW <= qty <= HIGH\n\n# 비교식 한 곳씩 바꾼 변이체예요.\nmutants = {\n    'LOW < qty': lambda qty: LOW < qty <= HIGH,\n    'qty < HIGH': lambda qty: LOW <= qty < HIGH,\n    'qty <= HIGH + 1': lambda qty: LOW <= qty <= HIGH + 1,\n}\n\n# 평가할 테스트 묶음이에요. (수량, 예상)\ntests = [(LOW - 1, False), (LOW, True), (HIGH + 1, False)]\n\nprint('원래 함수 실패', [q for q, want in tests if accept(q) != want])\nkilled = [name for name, m in mutants.items() if any(m(q) != want for q, want in tests)]\nprint(f'죽인 변이체 {len(killed)}/{len(mutants)}')\nprint('살아남은 변이체', [name for name in mutants if name not in killed])\n",
+      "solution": "LOW = 1\nHIGH = 9\n\n# 요구대로 맞게 짠 함수예요.\ndef accept(qty):\n    return LOW <= qty <= HIGH\n\n# 비교식 한 곳씩 바꾼 변이체예요.\nmutants = {\n    'LOW < qty': lambda qty: LOW < qty <= HIGH,\n    'qty < HIGH': lambda qty: LOW <= qty < HIGH,\n    'qty <= HIGH + 1': lambda qty: LOW <= qty <= HIGH + 1,\n}\n\n# 평가할 테스트 묶음이에요. (수량, 예상)\ntests = [(LOW - 1, False), (LOW, True), (HIGH + 1, False), (HIGH, True)]\n\nprint('원래 함수 실패', [q for q, want in tests if accept(q) != want])\nkilled = [name for name, m in mutants.items() if any(m(q) != want for q, want in tests)]\nprint(f'죽인 변이체 {len(killed)}/{len(mutants)}')\nprint('살아남은 변이체', [name for name in mutants if name not in killed])\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "원래 함수 실패 []\n죽인 변이체 3/3\n살아남은 변이체 []"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "함수가 아니라 테스트 묶음을 평가하는 문제예요.",
+          "target": "text:tests에 케이스 하나를 더해 살아남은 변이체까지 모두 죽이세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "원래 함수는 다 통과했어요. 변이체 셋 중 둘을 죽였고 qty < HIGH가 살아남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "살아남았다는 건 이 테스트로는 <= HIGH와 < HIGH를 구별 못 한다는 뜻이에요.",
+          "target": "code:'qty < HIGH'"
+        },
+        {
+          "action": "patch_code",
+          "before": "(HIGH + 1, False)]",
+          "after": "(HIGH + 1, False), (HIGH + 2, False)]",
+          "say": "바깥 값을 하나 더 넣어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "여전히 2/3이에요. 11에서는 원래 함수도 변이체도 False라 결과가 같아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 두 식이 같은 답을 내는 곳에 테스트를 더하면 변이체는 살아남아요. 갈리는 값은 HIGH 하나예요.",
+          "target": "code:(HIGH + 2, False)"
+        },
+        {
+          "action": "patch_code",
+          "before": "(HIGH + 2, False)]",
+          "after": "(HIGH, True)]",
+          "say": "경계 HIGH와 예상 True로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3/3이고 살아남은 변이체가 없어요. 원래 함수도 그대로 통과예요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_95da5a76-bb8b-4830-abbb-8407f0bd4d46",
+      "title": "잘못 적힌 예상을 바로잡고 드러난 결함까지 고치세요",
+      "goal": "할인 함수 price_tag와 경계 케이스 네 개가 있어요. 지금은 모두 통과하지만, 케이스 하나의 예상이 요구와 달라요.\n\n요구에 맞지 않는 예상을 고치고, 그 때문에 드러난 결함을 price_tag에서 고치세요. 마지막에는 네 케이스가 모두 통과해야 해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 네 케이스의 결과를 확인하세요.\n2. 요구 문장과 각 케이스의 예상을 비교해 다른 하나를 고치세요.\n3. 다시 실행해 실패한 케이스를 확인하세요.\n4. price_tag의 비교식에서 그 실패의 원인을 고치세요.\n5. 다시 실행해 네 케이스가 모두 통과하는지 확인하세요.\n6. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "FROM = 10\nTO = 70\n\n# 요구: 주문 금액(천 원)이 FROM 이상 TO 미만이면 '할인', 아니면 '정가'예요.\ndef price_tag(total):\n    if FROM < total < TO:\n        return '할인'\n    return '정가'\n\n# (조건, 입력 금액, 예상)\ncases = [\n    ('아래 경계 바로 밖', FROM - 1, '정가'),\n    ('아래 경계', FROM, '정가'),\n    ('위 경계 바로 안', TO - 1, '할인'),\n    ('위 경계', TO, '정가'),\n]\n\nfailed = [name for name, total, want in cases if price_tag(total) != want]\nprint('실행', len(cases), '실패', failed)\n",
+      "solution": "FROM = 10\nTO = 70\n\n# 요구: 주문 금액(천 원)이 FROM 이상 TO 미만이면 '할인', 아니면 '정가'예요.\ndef price_tag(total):\n    if FROM <= total < TO:\n        return '할인'\n    return '정가'\n\n# (조건, 입력 금액, 예상)\ncases = [\n    ('아래 경계 바로 밖', FROM - 1, '정가'),\n    ('아래 경계', FROM, '할인'),\n    ('위 경계 바로 안', TO - 1, '할인'),\n    ('위 경계', TO, '정가'),\n]\n\nfailed = [name for name, total, want in cases if price_tag(total) != want]\nprint('실행', len(cases), '실패', failed)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "실행 4 실패 []"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "예상과 함수가 같이 틀려서 서로를 가려 주는 문제예요.",
+          "target": "text:요구에 맞지 않는 예상을 고치고, 그 때문에 드러난 결함을 price_tag에서 고치세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "실행 4, 실패 없음이에요. 하지만 통과가 맞다는 보장은 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "요구는 FROM 이상이 할인이에요. 금액 10은 할인인데 예상이 정가로 적혀 있어요.",
+          "target": "code:('아래 경계', FROM, '정가')"
+        },
+        {
+          "action": "patch_code",
+          "before": "('아래 경계', FROM, '정가')",
+          "after": "('아래 경계', FROM, '할인')",
+          "say": "예상을 요구대로 할인으로 고쳐요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이제 아래 경계가 실패예요. 함수가 10을 정가로 냈어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "FROM < total이 10을 빼요. 이상이면 <= 여야 해요.",
+          "target": "code:FROM < total"
+        },
+        {
+          "action": "patch_code",
+          "before": "FROM < total",
+          "after": "FROM <= total",
+          "say": "아래쪽 비교를 <= 로 고쳐요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "실행 4, 실패 없음이에요. 네 케이스를 모두 다시 돌려 위 경계 70의 정가도 그대로인 걸 확인했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 예상만 고치고 멈추면 실패가 남고, 함수만 고치면 잘못 적힌 예상이 실패를 내요. 둘 다 요구에 맞춰야 해요.",
+          "target": "code:('아래 경계', FROM, '할인')"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "입력을 같은 처리 구간으로 나누어 구간마다 대표값 하나로 검사해요.",
+      "경계값과 그 바로 안·밖 값을 넣어 비교식 하나가 틀린 결함을 찾아요. 이상·미만이 섞인 경계도 정확히 짚어요.",
+      "테스트 케이스를 조건·사전 조건·입력·예상 결과로 적고, 예상은 요구에서 정해요. xUnit 실행기로 테스트를 자동으로 돌려요.",
+      "고친 뒤 전체 케이스를 다시 돌리는 회귀 테스트, 같은 테스트만 반복하는 한계, 변이체로 테스트 묶음을 평가하는 법을 실행으로 확인해요."
+    ],
+    "chapters": {
+      "chp_61865a50-3670-4bf8-adc8-5148c8643d8a": [
+        "구간 대표값과 경계값을 골라 결함 함수를 실행으로 잡아요."
+      ],
+      "chp_56e0030c-5c48-451a-a371-78607c2c9582": [
+        "케이스의 요소를 채우고, 예상은 요구에서, 시작 상태는 사전 조건으로 정해요. 실행기로 자동으로 돌려요."
+      ],
+      "chp_a6aebd79-93a8-4aa9-99c3-6e398f4ff6ab": [
+        "수정 뒤 전체를 다시 돌리고, 테스트가 무엇을 못 보는지 실행으로 재요."
+      ]
+    },
+    "units": {
+      "unt_b4353aab-599b-420e-a8db-3a7d725a03e9": {
+        "objectives": [
+          "같은 개수의 값이라도 어디서 고르느냐에 따라 찾는 결함이 달라짐을 비교해요."
+        ],
+        "premise": "문구점 주문 함수에 결함이 하나씩 숨어 있어요. 요구에서 정한 예상과 실제 결과를 비교하는 검사 코드가 준비돼 있어요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_8c99cff0-b9a7-46aa-a431-79fea343723e": {
+        "objectives": [
+          "같은 함수라도 케이스를 어떻게 적느냐에 따라 결함이 보이거나 숨는 것을 비교해요."
+        ],
+        "premise": "주문 함수의 테스트 케이스를 파이썬 자료로 적어 두고 반복문이나 실행기가 차례로 돌려요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_cce3d3a4-aaf1-4502-b31e-1af0ef4cc330": {
+        "objectives": [
+          "고친 케이스만 볼 때와 전체를 볼 때, 같은 테스트만 돌릴 때와 새 테스트를 더할 때를 비교해요."
+        ],
+        "premise": "결함을 고친 새 버전과 그 테스트 묶음이 준비돼 있어요. 각 스텝은 준비 코드에서 새로 시작해요."
+      }
+    }
+  },
+  "prepared_cases": {
+    "stp_c1550265-5a1c-4991-8303-719f5d507bce": [
+      {
+        "values": {
+          "FEE": 3000
+        },
+        "expected": "0 이하 통과\n1~4 통과\n5~9 통과\n10 이상 실패\n검사한 값 4개\n4",
+        "value_literals": {
+          "FEE": "3000"
+        }
+      },
+      {
+        "values": {
+          "FEE": 2500
+        },
+        "expected": "0 이하 통과\n1~4 통과\n5~9 통과\n10 이상 실패\n검사한 값 4개\n4",
+        "value_literals": {
+          "FEE": "2500"
+        }
+      }
+    ],
+    "stp_79ca76af-7386-48a2-bc54-1b72d8790627": [
+      {
+        "values": {
+          "LOW": 1,
+          "HIGH": 9
+        },
+        "expected": "실패한 입력 [9]",
+        "value_literals": {
+          "LOW": "1",
+          "HIGH": "9"
+        }
+      },
+      {
+        "values": {
+          "LOW": 3,
+          "HIGH": 20
+        },
+        "expected": "실패한 입력 [20]",
+        "value_literals": {
+          "LOW": "3",
+          "HIGH": "20"
+        }
+      },
+      {
+        "values": {
+          "LOW": 10,
+          "HIGH": 12
+        },
+        "expected": "실패한 입력 [12]",
+        "value_literals": {
+          "LOW": "10",
+          "HIGH": "12"
+        }
+      }
+    ],
+    "stp_f6b22102-0a44-4f0c-a625-acf8b115c0e8": [
+      {
+        "values": {
+          "FROM": 10,
+          "TO": 70
+        },
+        "expected": "실패한 입력 [70]",
+        "value_literals": {
+          "FROM": "10",
+          "TO": "70"
+        }
+      },
+      {
+        "values": {
+          "FROM": 5,
+          "TO": 30
+        },
+        "expected": "실패한 입력 [30]",
+        "value_literals": {
+          "FROM": "5",
+          "TO": "30"
+        }
+      },
+      {
+        "values": {
+          "FROM": 1,
+          "TO": 3
+        },
+        "expected": "실패한 입력 [3]",
+        "value_literals": {
+          "FROM": "1",
+          "TO": "3"
+        }
+      }
+    ],
+    "stp_327be3fa-ba4d-456d-a148-0119c401f060": [
+      {
+        "values": {
+          "STOCK": 5
+        },
+        "expected": "재고 안의 주문 통과\n재고보다 많은 주문 실패\n허용 범위 밖 통과\n['접수', '거절', '거절']",
+        "value_literals": {
+          "STOCK": "5"
+        }
+      },
+      {
+        "values": {
+          "STOCK": 2
+        },
+        "expected": "재고 안의 주문 통과\n재고보다 많은 주문 실패\n허용 범위 밖 통과\n['접수', '거절', '거절']",
+        "value_literals": {
+          "STOCK": "2"
+        }
+      },
+      {
+        "values": {
+          "STOCK": 6
+        },
+        "expected": "재고 안의 주문 통과\n재고보다 많은 주문 실패\n허용 범위 밖 통과\n['접수', '거절', '거절']",
+        "value_literals": {
+          "STOCK": "6"
+        }
+      }
+    ],
+    "stp_2c130afa-c616-45f9-83c3-75ab1a351c42": [
+      {
+        "values": {
+          "START": 10
+        },
+        "expected": "앞에서부터 ['통과', '통과']\n거꾸로 ['통과', '통과']\nTrue",
+        "value_literals": {
+          "START": "10"
+        }
+      },
+      {
+        "values": {
+          "START": 4
+        },
+        "expected": "앞에서부터 ['통과', '통과']\n거꾸로 ['통과', '통과']\nTrue",
+        "value_literals": {
+          "START": "4"
+        }
+      }
+    ],
+    "stp_1dcec37a-14e8-4086-bf67-b23f8fed8ff4": [
+      {
+        "values": {
+          "LOW": 1,
+          "HIGH": 9
+        },
+        "expected": "실행 3 실패 1\n1 9",
+        "value_literals": {
+          "LOW": "1",
+          "HIGH": "9"
+        }
+      },
+      {
+        "values": {
+          "LOW": 4,
+          "HIGH": 40
+        },
+        "expected": "실행 3 실패 1\n4 40",
+        "value_literals": {
+          "LOW": "4",
+          "HIGH": "40"
+        }
+      }
+    ],
+    "stp_a5d811d7-0a17-4fc2-a9d4-c9b765f0a7ec": [
+      {
+        "values": {
+          "LOW": 1,
+          "HIGH": 9
+        },
+        "expected": "실행 5 실패 []\n1 9",
+        "value_literals": {
+          "LOW": "1",
+          "HIGH": "9"
+        }
+      },
+      {
+        "values": {
+          "LOW": 6,
+          "HIGH": 15
+        },
+        "expected": "실행 5 실패 []\n6 15",
+        "value_literals": {
+          "LOW": "6",
+          "HIGH": "15"
+        }
+      }
+    ],
+    "stp_505bd786-88c5-4ed9-bfaa-a6c9ba67848c": [
+      {
+        "values": {
+          "FREE_FROM": 5
+        },
+        "expected": "1회차 실패 [5]\n2회차 실패 [5]\n3회차 실패 [5]",
+        "value_literals": {
+          "FREE_FROM": "5"
+        }
+      },
+      {
+        "values": {
+          "FREE_FROM": 7
+        },
+        "expected": "1회차 실패 [7]\n2회차 실패 [7]\n3회차 실패 [7]",
+        "value_literals": {
+          "FREE_FROM": "7"
+        }
+      },
+      {
+        "values": {
+          "FREE_FROM": 9
+        },
+        "expected": "1회차 실패 [9]\n2회차 실패 [9]\n3회차 실패 [9]",
+        "value_literals": {
+          "FREE_FROM": "9"
+        }
+      }
+    ],
+    "stp_c29e75d0-1b37-437b-a27a-524f64ea329a": [
+      {
+        "values": {
+          "LOW": 1,
+          "HIGH": 9
+        },
+        "expected": "원래 함수 실패 []\n죽인 변이체 3/3\n살아남은 변이체 []\n1 9",
+        "value_literals": {
+          "LOW": "1",
+          "HIGH": "9"
+        }
+      },
+      {
+        "values": {
+          "LOW": 5,
+          "HIGH": 50
+        },
+        "expected": "원래 함수 실패 []\n죽인 변이체 3/3\n살아남은 변이체 []\n5 50",
+        "value_literals": {
+          "LOW": "5",
+          "HIGH": "50"
+        }
+      }
+    ],
+    "stp_95da5a76-bb8b-4830-abbb-8407f0bd4d46": [
+      {
+        "values": {
+          "FROM": 10,
+          "TO": 70
+        },
+        "expected": "실행 4 실패 []\n['정가', '할인', '할인', '정가']",
+        "value_literals": {
+          "FROM": "10",
+          "TO": "70"
+        }
+      },
+      {
+        "values": {
+          "FROM": 3,
+          "TO": 8
+        },
+        "expected": "실행 4 실패 []\n['정가', '할인', '할인', '정가']",
+        "value_literals": {
+          "FROM": "3",
+          "TO": "8"
+        }
+      }
+    ]
+  },
+  "prepared_probes": {
+    "stp_c1550265-5a1c-4991-8303-719f5d507bce": "print(len(inputs))",
+    "stp_327be3fa-ba4d-456d-a148-0119c401f060": "print([c['예상'] for c in cases])",
+    "stp_2c130afa-c616-45f9-83c3-75ab1a351c42": "print(all(c['사전'] for c in cases))",
+    "stp_95da5a76-bb8b-4830-abbb-8407f0bd4d46": "print([want for name, total, want in cases])",
+    "stp_1dcec37a-14e8-4086-bf67-b23f8fed8ff4": "assert isinstance(result, unittest.TestResult)\nassert result.testsRun == 3\nassert len(result.failures) == 1\nassert len(result.errors) == 0\nprint(LOW, HIGH)",
+    "stp_a5d811d7-0a17-4fc2-a9d4-c9b765f0a7ec": "assert [accept(v) for v in [LOW - 1, LOW, HIGH, HIGH + 1]] == [False, True, True, False]\nassert {LOW - 1, LOW, HIGH, HIGH + 1}.issubset({v for v, want in cases})\nprint(LOW, HIGH)",
+    "stp_c29e75d0-1b37-437b-a27a-524f64ea329a": "assert len(tests) >= 4\nassert all(accept(v) == want for v, want in tests)\nassert all(any(m(v) != want for v, want in tests) for m in mutants.values())\nassert set(killed) == set(mutants)\nprint(LOW, HIGH)"
+  }
+}

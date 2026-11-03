@@ -1,0 +1,74 @@
+{
+  "by": "hand",
+  "source_sha256": "dd779aa4b892bf36224b06c7b926b2fa40d7411b8abd38605661c9d06d6a40c0",
+  "entry": [
+    {
+      "action": "say",
+      "text": "예상과 함수가 같이 틀려서 서로를 가려 주는 문제예요.",
+      "target": "text:요구에 맞지 않는 예상을 고치고, 그 때문에 드러난 결함을 price_tag에서 고치세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "실행 4, 실패 없음이에요. 하지만 통과가 맞다는 보장은 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "요구는 FROM 이상이 할인이에요. 금액 10은 할인인데 예상이 정가로 적혀 있어요.",
+      "target": "code:('아래 경계', FROM, '정가')"
+    },
+    {
+      "action": "patch_code",
+      "before": "('아래 경계', FROM, '정가')",
+      "after": "('아래 경계', FROM, '할인')",
+      "say": "예상을 요구대로 할인으로 고쳐요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "이제 아래 경계가 실패예요. 함수가 10을 정가로 냈어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "FROM < total이 10을 빼요. 이상이면 <= 여야 해요.",
+      "target": "code:FROM < total"
+    },
+    {
+      "action": "patch_code",
+      "before": "FROM < total",
+      "after": "FROM <= total",
+      "say": "아래쪽 비교를 <= 로 고쳐요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "실행 4, 실패 없음이에요. 네 케이스를 모두 다시 돌려 위 경계 70의 정가도 그대로인 걸 확인했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 예상만 고치고 멈추면 실패가 남고, 함수만 고치면 잘못 적힌 예상이 실패를 내요. 둘 다 요구에 맞춰야 해요.",
+      "target": "code:('아래 경계', FROM, '할인')"
+    }
+  ]
+}

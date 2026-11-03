@@ -1,0 +1,57 @@
+{
+  "by": "hand",
+  "source_sha256": "23efa3cdeacc1203e662ca2cb0ee3e4c69ca85deef707f698ebe671c9eed40fc",
+  "entry": [
+    {
+      "action": "say",
+      "text": "남은 학생 수와 점수 있는 학생 수를 따로 세는 문제예요.",
+      "target": "text:scored 열이 점수가 기록된 학생 수가 되도록 집계 한 곳을 고치세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "SELECT COUNT(*) AS students, COUNT(*) AS scored",
+      "after": "SELECT id, score",
+      "say": "먼저 어떤 행이 남는지 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2번, 5번, 6번이 남았어요. 5번 점수는 NULL이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "5번은 score >= 90이 UNKNOWN이지만 grade = 2가 참이에요. OR라서 남았어요.",
+      "target": "code:grade = 2 OR"
+    },
+    {
+      "action": "patch_code",
+      "before": "SELECT id, score",
+      "after": "SELECT COUNT(*) AS students, COUNT(score) AS scored",
+      "say": "다시 세는 질의로 돌리고 scored는 점수 열을 세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "3 | 2가 나왔어요. 남은 행은 셋, 점수가 있는 행은 둘이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 두 칸 모두 COUNT(*)면 NULL 점수 행도 세어서 3 | 3이 돼요.",
+      "target": "code:COUNT(score)"
+    }
+  ]
+}

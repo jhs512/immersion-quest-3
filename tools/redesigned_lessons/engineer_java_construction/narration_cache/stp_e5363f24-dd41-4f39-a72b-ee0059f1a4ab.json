@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "ac2225c6ba1efdc7d013bdcd5746bd7cb6cf096025fdb03d0dfe155bd3633de6",
+  "entry": [
+    {
+      "action": "say",
+      "text": "get()을 두 번 불러도 같은 프린터가 와야 해요. 그래야 인쇄 횟수가 한곳에 쌓여요.",
+      "target": "text:one이 비어 있을 때만 새 프린터를 만들어 보관하고, 항상 one을 돌려주게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        23,
+        23
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1 false가 나왔어요. get()이 부를 때마다 new를 해서 p2는 다른 프린터예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "        return new Printer();\n",
+      "after": "        if (one == null) {\n            one = new Printer();\n        }\n        return one;\n",
+      "say": "처음 한 번만 만들어 one에 넣고, 그 뒤로는 one을 그대로 돌려줘요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        26,
+        26
+      ]
+    },
+    {
+      "action": "say",
+      "text": "3 true가 나왔어요. p1과 p2가 한 프린터를 가리켜서 세 번의 인쇄가 모두 쌓였어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "jobs는 static이 아니에요. 그래도 공유되는 건 객체 자체가 하나이기 때문이에요.",
+      "target": "code:int jobs = 0;"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. if 없이 one = new Printer()만 쓰면 부를 때마다 새로 만들어 덮어써요. 그러면 다시 1 false예요.",
+      "target": "code:if (one == null)"
+    }
+  ]
+}

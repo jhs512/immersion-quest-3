@@ -1,0 +1,454 @@
+{
+  "schema_version": 2,
+  "id": "lsn_8e996457-32cc-4afc-81f8-b036d9022ec7",
+  "revision": "engineer-server-layers-1",
+  "title": "서버 · 입력·업무·저장 경계를 나눠요",
+  "description": "DTO·Controller·Service·DAO 역할과 동작 보존, 정적·동적 처리, 미들웨어를 작은 실행으로 비교해요.",
+  "objectives": [
+    "DTO로 경계에서 전달할 자료를 정리해요.",
+    "서비스 계층에 업무 규칙을 모아요.",
+    "컨트롤러는 입력과 응답의 경계를 연결해요.",
+    "리팩터링은 관찰되는 동작을 유지하며 구조를 고쳐요.",
+    "정적 제공과 WAS의 동적 업무 처리를 구별해요.",
+    "미들웨어에 여러 요청이 공유하는 경계 처리를 모아요."
+  ],
+  "sources": [
+    "https://docs.python.org/3/tutorial/modules.html"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_b0cf3482-2464-45cf-8c9c-dda798e5fc00",
+      "title": "기초를 직접 확인해요",
+      "objectives": [
+        "DTO로 경계에서 전달할 자료를 정리해요.",
+        "서비스 계층에 업무 규칙을 모아요.",
+        "컨트롤러는 입력과 응답의 경계를 연결해요."
+      ],
+      "units": [
+        {
+          "id": "unt_876341b5-a732-4282-b008-4f652be6fa9a",
+          "title": "작은 상태를 바꿔요",
+          "objectives": [
+            "DTO로 경계에서 전달할 자료를 정리해요.",
+            "서비스 계층에 업무 규칙을 모아요.",
+            "컨트롤러는 입력과 응답의 경계를 연결해요."
+          ],
+          "premise": "창고 주문 요청이 입력 경계, 업무 계산, 자료 접근을 거쳐 응답으로 나가요. 각 문제는 제공된 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_7df04728-1c4a-4644-a976-64ea48cc4934",
+              "objectives": [
+                "DTO로 경계에서 전달할 자료를 정리해요."
+              ]
+            },
+            {
+              "id": "stp_bdc2d7ed-36b4-40a6-8001-0f88661ebadd",
+              "objectives": [
+                "서비스 계층에 업무 규칙을 모아요."
+              ]
+            },
+            {
+              "id": "stp_df973203-8055-408c-9fd8-576668f8d523",
+              "objectives": [
+                "컨트롤러는 입력과 응답의 경계를 연결해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_d66f4a5c-da9a-47df-9bc3-05bc4c26ec2c",
+      "title": "조건을 더하고 연결해요",
+      "objectives": [
+        "리팩터링은 관찰되는 동작을 유지하며 구조를 고쳐요.",
+        "정적 제공과 WAS의 동적 업무 처리를 구별해요.",
+        "미들웨어에 여러 요청이 공유하는 경계 처리를 모아요."
+      ],
+      "units": [
+        {
+          "id": "unt_c59d8c92-f320-4cdd-ac70-292b77dd7da5",
+          "title": "바뀐 조건을 다시 검증해요",
+          "objectives": [
+            "리팩터링은 관찰되는 동작을 유지하며 구조를 고쳐요.",
+            "정적 제공과 WAS의 동적 업무 처리를 구별해요.",
+            "미들웨어에 여러 요청이 공유하는 경계 처리를 모아요."
+          ],
+          "premise": "창고 주문 요청이 입력 경계, 업무 계산, 자료 접근을 거쳐 응답으로 나가요. 각 문제는 제공된 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_b3b9c50e-2265-41b8-8cce-72f227aad72b",
+              "objectives": [
+                "리팩터링은 관찰되는 동작을 유지하며 구조를 고쳐요."
+              ]
+            },
+            {
+              "id": "stp_44556f35-99f3-41a1-9037-319481413506",
+              "objectives": [
+                "정적 제공과 WAS의 동적 업무 처리를 구별해요."
+              ]
+            },
+            {
+              "id": "stp_25be2457-4d8c-4eff-acf6-6e829fb39f3f",
+              "objectives": [
+                "미들웨어에 여러 요청이 공유하는 경계 처리를 모아요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_7df04728-1c4a-4644-a976-64ea48cc4934",
+      "title": "입력 자료에서 서비스에 필요한 값만 전달하세요",
+      "goal": "웹 입력에는 운영자 비밀 값도 섞여 있어요. 서비스에는 qty와 price만 담은 자료를 전달하세요.\n\n경계의 자료 전달 역할과 업무 계산 역할을 나눠요. DTO 자체에 저장소 호출까지 넣지는 않아요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 입력 자료에서 서비스에 필요한 값만 전달하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "request = {'qty':3,'price':500,'debug_secret':'hidden'}\ndto = request\nprint(dto)\n",
+      "solution": "request = {'qty':3,'price':500,'debug_secret':'hidden'}\ndto = {'qty':request['qty'], 'price':request['price']}\nprint(dto)\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "{'qty': 3, 'price': 500}"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "DTO로 경계에서 전달할 자료를 정리해요.",
+          "target": "text:웹 입력에는 운영자 비밀 값도 섞여 있어요. 서비스에는 qty와 price만 담은 자료를 전달하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            3,
+            3
+          ]
+        },
+        {
+          "action": "say",
+          "text": "debug_secret도 전달돼요. 입력 사전을 통째로 넘겼어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "dto = request",
+          "after": "dto = {'qty':request['qty'], 'price':request['price']}"
+        },
+        {
+          "action": "say",
+          "text": "경계의 자료 전달 역할과 업무 계산 역할을 나눠요. DTO 자체에 저장소 호출까지 넣지는 않아요.",
+          "target": "code:dto = {'qty':request['qty'], 'price':request['price']}"
+        },
+        {
+          "action": "run",
+          "lines": [
+            3,
+            3
+          ]
+        },
+        {
+          "action": "say",
+          "text": "price와 qty만 남았어요. 서비스 입력 범위를 명시했죠.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"request\": {\"qty\": 3, \"price\": 500, \"debug_secret\": \"hidden\"}}, \"expected\": \"{\\'qty\\': 3, \\'price\\': 500}\", \"value_literals\": {\"request\": \"{\\'qty\\': 3, \\'price\\': 500, \\'debug_secret\\': \\'hidden\\'}\"}}, {\"values\": {\"request\": {\"qty\": 1, \"price\": 70, \"admin\": true}}, \"expected\": \"{\\'qty\\': 1, \\'price\\': 70}\", \"value_literals\": {\"request\": \"{\\'qty\\': 1, \\'price\\': 70, \\'admin\\': True}\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_bdc2d7ed-36b4-40a6-8001-0f88661ebadd",
+      "title": "서비스에서 수량과 단가로 금액을 계산하세요",
+      "goal": "저장소는 자료만 돌려줘요. 서비스가 주문의 수량과 단가를 곱해 금액을 계산하게 하세요.\n\n자료 접근은 저장소, 업무 계산은 서비스가 맡아요. 같은 규칙을 여러 화면에서 재사용하기 쉬워져요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 서비스에서 수량과 단가로 금액을 계산하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "row = {'qty':3,'price':500}\ndef repository(): return row.copy()\ndef service():\n    order = repository()\n    return order['price']\nprint(service())\n",
+      "solution": "row = {'qty':3,'price':500}\ndef repository(): return row.copy()\ndef service():\n    order = repository()\n    return order['qty'] * order['price']\nprint(service())\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "1500"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "서비스 계층에 업무 규칙을 모아요.",
+          "target": "text:저장소는 자료만 돌려줘요. 서비스가 주문의 수량과 단가를 곱해 금액을 계산하게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "500이에요. 수량을 빠뜨리고 단가만 반환했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "return order['price']",
+          "after": "return order['qty'] * order['price']"
+        },
+        {
+          "action": "say",
+          "text": "자료 접근은 저장소, 업무 계산은 서비스가 맡아요. 같은 규칙을 여러 화면에서 재사용하기 쉬워져요.",
+          "target": "code:return order['qty'] * order['price']"
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1500이에요. 가져온 자료에 업무 계산을 적용했어요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"row\": {\"qty\": 3, \"price\": 500}}, \"expected\": \"1500\", \"value_literals\": {\"row\": \"{\\'qty\\': 3, \\'price\\': 500}\"}}, {\"values\": {\"row\": {\"qty\": 4, \"price\": 70}}, \"expected\": \"280\", \"value_literals\": {\"row\": \"{\\'qty\\': 4, \\'price\\': 70}\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_df973203-8055-408c-9fd8-576668f8d523",
+      "title": "컨트롤러가 서비스를 거쳐 응답하게 하세요",
+      "goal": "화면은 문자열 수량을 보내요. 컨트롤러가 정수로 바꾸고 서비스 계산 결과로 응답하세요.\n\n호출자가 기대하는 입력·출력 약속이 API예요. 경계 변환 후 업무는 서비스에 맡겨요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 컨트롤러가 서비스를 거쳐 응답하게 하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "qty_text = '3'\ndef service(qty): return qty * 500\ndef controller(text):\n    return {'amount':text}\nprint(controller(qty_text))\n",
+      "solution": "qty_text = '3'\ndef service(qty): return qty * 500\ndef controller(text):\n    return {'amount':service(int(text))}\nprint(controller(qty_text))\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "{'amount': 1500}"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "컨트롤러는 입력과 응답의 경계를 연결해요.",
+          "target": "text:화면은 문자열 수량을 보내요. 컨트롤러가 정수로 바꾸고 서비스 계산 결과로 응답하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "응답 amount가 문자열 3이에요. 입력을 계산 없이 되돌렸어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "return {'amount':text}",
+          "after": "return {'amount':service(int(text))}"
+        },
+        {
+          "action": "say",
+          "text": "호출자가 기대하는 입력·출력 약속이 API예요. 경계 변환 후 업무는 서비스에 맡겨요.",
+          "target": "code:return {'amount':service(int(text))}"
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "amount가 1500인 응답이에요. 변환과 계산을 거쳤어요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"qty_text\": \"3\"}, \"expected\": \"{\\'amount\\': 1500}\", \"value_literals\": {\"qty_text\": \"\\'3\\'\"}}, {\"values\": {\"qty_text\": \"2\"}, \"expected\": \"{\\'amount\\': 1000}\", \"value_literals\": {\"qty_text\": \"\\'2\\'\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_b3b9c50e-2265-41b8-8cce-72f227aad72b",
+      "title": "중복 계산을 함수로 모으되 결과를 보존하세요",
+      "goal": "할인 금액을 함수로 옮겼더니 기존 결과가 바뀌었어요. 할인율 계산의 의미를 보존하세요.\n\n함수로 옮기는 것은 구조 변경이에요. 결과가 달라지면 동작 보존 리팩터링이 아니에요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 중복 계산을 함수로 모으되 결과를 보존하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "amount = 1000\nrate = 0.2\ndef discounted(amount, rate):\n    return amount * rate\nprint(discounted(amount, rate))\n",
+      "solution": "amount = 1000\nrate = 0.2\ndef discounted(amount, rate):\n    return amount * (1 - rate)\nprint(discounted(amount, rate))\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "800.0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "리팩터링은 관찰되는 동작을 유지하며 구조를 고쳐요.",
+          "target": "text:할인 금액을 함수로 옮겼더니 기존 결과가 바뀌었어요. 할인율 계산의 의미를 보존하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "200이에요. 남은 금액이 아니라 할인액을 반환했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "return amount * rate",
+          "after": "return amount * (1 - rate)"
+        },
+        {
+          "action": "say",
+          "text": "함수로 옮기는 것은 구조 변경이에요. 결과가 달라지면 동작 보존 리팩터링이 아니에요.",
+          "target": "code:return amount * (1 - rate)"
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "800이에요. 원래 결제 금액이 보존됐어요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"amount\": 1000, \"rate\": 0.2}, \"expected\": \"800.0\", \"value_literals\": {\"amount\": \"1000\", \"rate\": \"0.2\"}}, {\"values\": {\"amount\": 600, \"rate\": 0.5}, \"expected\": \"300.0\", \"value_literals\": {\"amount\": \"600\", \"rate\": \"0.5\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_44556f35-99f3-41a1-9037-319481413506",
+      "title": "동적 요청만 애플리케이션 처리기로 보내세요",
+      "goal": "정적 파일은 그대로 제공하고 주문 API는 업무 처리기로 보내요. 요청 경로에 따라 처리 방식을 나누세요.\n\nWAS는 요청마다 업무 코드를 실행해 응답을 만들어요. 여기서는 실제 서버 대신 두 함수의 역할을 비교하는 모델이에요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 동적 요청만 애플리케이션 처리기로 보내세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "path = '/api/orders'\ndef web(path): return 'static file'\ndef was(path): return 'order result'\nresult = web(path)\nprint(result)\n",
+      "solution": "path = '/api/orders'\ndef web(path): return 'static file'\ndef was(path): return 'order result'\nresult = was(path) if path.startswith('/api/') else web(path)\nprint(result)\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "order result"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "정적 제공과 WAS의 동적 업무 처리를 구별해요.",
+          "target": "text:정적 파일은 그대로 제공하고 주문 API는 업무 처리기로 보내요. 요청 경로에 따라 처리 방식을 나누세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "static file이에요. 주문 API도 파일처럼 처리했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "result = web(path)",
+          "after": "result = was(path) if path.startswith('/api/') else web(path)"
+        },
+        {
+          "action": "say",
+          "text": "WAS는 요청마다 업무 코드를 실행해 응답을 만들어요. 여기서는 실제 서버 대신 두 함수의 역할을 비교하는 모델이에요.",
+          "target": "code:result = was(path) if path.startswith('/api/') else web(path)"
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "order result예요. API 경로가 동적 처리기로 연결됐어요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"path\": \"/api/orders\"}, \"expected\": \"order result\", \"value_literals\": {\"path\": \"\\'/api/orders\\'\"}}, {\"values\": {\"path\": \"/logo.svg\"}, \"expected\": \"static file\", \"value_literals\": {\"path\": \"\\'/logo.svg\\'\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_25be2457-4d8c-4eff-acf6-6e829fb39f3f",
+      "title": "업무 처리 전에 공통 인증 검사를 연결하세요",
+      "goal": "인증되지 않은 요청은 업무 함수를 부르지 않아야 해요. 공통 처리 단계에서 응답을 나누세요.\n\n공통 관심사를 경계에 연결하면 업무 함수마다 같은 검사를 복사하지 않아도 돼요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 업무 처리 전에 공통 인증 검사를 연결하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "authenticated = False\ncalls = []\ndef service():\n    calls.append('service')\n    return 'ok'\ndef middleware():\n    return service()\nprint(middleware(), len(calls))\n",
+      "solution": "authenticated = False\ncalls = []\ndef service():\n    calls.append('service')\n    return 'ok'\ndef middleware():\n    return service() if authenticated else 'login'\nprint(middleware(), len(calls))\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "login 0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "미들웨어에 여러 요청이 공유하는 경계 처리를 모아요.",
+          "target": "text:인증되지 않은 요청은 업무 함수를 부르지 않아야 해요. 공통 처리 단계에서 응답을 나누세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "ok 1이에요. 인증 전 요청이 업무 함수까지 도착했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "return service()",
+          "after": "return service() if authenticated else 'login'"
+        },
+        {
+          "action": "say",
+          "text": "공통 관심사를 경계에 연결하면 업무 함수마다 같은 검사를 복사하지 않아도 돼요.",
+          "target": "code:return service() if authenticated else 'login'"
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "login 0이에요. 업무 함수는 실행되지 않았어요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"authenticated\": false}, \"expected\": \"login 0\", \"value_literals\": {\"authenticated\": \"False\"}}, {\"values\": {\"authenticated\": true}, \"expected\": \"ok 1\", \"value_literals\": {\"authenticated\": \"True\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    }
+  ]
+}

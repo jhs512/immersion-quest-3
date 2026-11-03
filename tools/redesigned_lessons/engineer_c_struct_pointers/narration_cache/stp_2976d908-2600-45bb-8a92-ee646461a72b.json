@@ -1,0 +1,70 @@
+{
+  "by": "hand",
+  "source_sha256": "68a1003839b4a37f96649777d17a154a1b3c439a116fecf7d28d505f3610e02c",
+  "entry": [
+    {
+      "action": "say",
+      "text": "move는 주소를 받아 다음 칸의 주소를 돌려줘요. p를 셋째 칸까지 옮기는 문제예요.",
+      "target": "text:p를 만드는 줄을 고쳐 p가 box의 셋째 칸(box[2])을 가리키게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1a가 나왔어요. move(box)는 box[1]의 주소이고, 26을 16진수로 쓰면 1a예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "printf(\"%x\", *p);",
+      "after": "printf(\"%x\", *p + 1);",
+      "say": "값에 1을 더하면 다음 칸이 될까요?"
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1b가 나왔어요. 26에 1을 더한 27이에요. 칸은 그대로예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "printf(\"%x\", *p + 1);",
+      "after": "printf(\"%x\", *p);",
+      "say": "되돌려요. 옮길 것은 값이 아니라 주소예요."
+    },
+    {
+      "action": "patch_code",
+      "before": "int *p = move(box);",
+      "after": "int *p = move(move(box));",
+      "say": "돌려받은 주소를 move에 한 번 더 넘겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2a가 나왔어요. box[2]의 42를 16진수로 쓴 값이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. *p + 1은 읽은 값에 1을 더해요. 다음 칸은 move나 p + 1처럼 주소를 옮겨야 가요.",
+      "target": "code:move(move(box))"
+    }
+  ]
+}

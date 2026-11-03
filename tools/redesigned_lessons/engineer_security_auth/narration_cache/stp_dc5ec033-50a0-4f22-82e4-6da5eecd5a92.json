@@ -1,0 +1,45 @@
+{
+  "by": "hand",
+  "source_sha256": "da6b4f4d8f7ac578aac54efd11019e86082603c42dbdc67b2b560e558ef4246c",
+  "entry": [
+    {
+      "action": "say",
+      "text": "HMAC은 비밀 키와 요청 내용으로 위변조를 확인해요.",
+      "target": "text:보낸 쪽이 서명한 요청 내용과 받은 내용이 같아야 해요. 고정된 허용 값 대신 HMAC을 계산해 비교하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "True예요. 금액이 바뀌어도 요청 내용을 검사하지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "valid = True",
+      "after": "valid = hmac.compare_digest(signature, hmac.new(key, received, hashlib.sha256).digest())"
+    },
+    {
+      "action": "say",
+      "text": "일반 해시와 달리 비밀 키를 알아야 같은 서명을 만들 수 있어요. 금액뿐 아니라 nonce도 서명 대상에 들어 있어요.",
+      "target": "code:valid = hmac.compare_digest(signature, hmac.new(key, received, hashlib.sha256).digest())"
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "False예요. 받은 내용으로 계산한 서명이 원래 서명과 달라요.",
+      "target": "output"
+    }
+  ]
+}

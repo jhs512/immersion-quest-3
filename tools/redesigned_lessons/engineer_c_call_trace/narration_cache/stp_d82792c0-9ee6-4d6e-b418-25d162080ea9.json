@@ -1,0 +1,57 @@
+{
+  "by": "hand",
+  "source_sha256": "d80d5cbc8b19ac8310194f3a23c4ee37e4866121c800e55edd01a4029da7d1d7",
+  "entry": [
+    {
+      "action": "say",
+      "text": "각 호출이 들어온 순번을 돌아올 때 찍어야 해요. static은 그대로 둬요.",
+      "target": "text:주석 아래에 그 호출의 순번을 일반 지역 변수 mine에 담고, printf가 mine을 출력하게 고치세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "4 4 4가 나왔어요. stamp(0)까지 네 번 들어와 count가 4가 된 뒤에 돌아왔어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "count는 호출마다 따로 있지 않아요. 네 호출이 변수 하나를 함께 써요.",
+      "target": "code:static int count = 0;"
+    },
+    {
+      "action": "patch_code",
+      "before": "    // count는 지금까지 들어온 stamp 호출의 수예요.\n",
+      "after": "    // count는 지금까지 들어온 stamp 호출의 수예요.\n    int mine = count;\n",
+      "say": "들어온 순간의 count를 이 호출만의 mine에 담아요."
+    },
+    {
+      "action": "patch_code",
+      "before": "printf(\"%d \", count);",
+      "after": "printf(\"%d \", mine);",
+      "say": "돌아올 때는 mine을 찍어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "3 2 1이에요. stamp(1)의 mine은 3, stamp(3)의 mine은 1이었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 돌아올 때 static이 그 호출 시점 값이라고 읽으면 3 2 1로 답해요. 실제 count는 이미 4예요.",
+      "target": "code:int mine = count;"
+    }
+  ]
+}

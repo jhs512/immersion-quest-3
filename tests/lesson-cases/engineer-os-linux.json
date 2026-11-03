@@ -1,0 +1,130 @@
+{
+ "course": "tests/fixtures/player-pilot/글/course.json",
+ "lesson": "courses/redesigned/engineer-os-linux.json",
+ "expected_outputs": [
+  [
+   "2",
+   "6"
+  ],
+  [
+   "0o12",
+   "0o640"
+  ],
+  [
+   "True",
+   "False"
+  ],
+  [
+   "missing",
+   "stock=3"
+  ],
+  [
+   "",
+   "PEN"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "mode = 4 * read + 2 * write + execute",
+     "mode = int(read) + int(write) + int(execute)"
+    ]
+   ],
+   "reason": "2예요. 권한의 개수만 세어 읽기와 쓰기의 자리를 잃었어요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "mode = owner * 64 + group * 8 + other",
+     "mode = owner + group + other"
+    ]
+   ],
+   "reason": "0o12예요. 세 범주의 자리를 나누지 않고 더했어요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "bits = owner if is_owner else group if in_group else other",
+     "bits = group if in_group else other"
+    ]
+   ],
+   "reason": "True예요. 소유자인데 그룹의 쓰기 권한을 대신 사용했어요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "return kernel_read(tokens[1])",
+     "return kernel_read(tokens[0])"
+    ]
+   ],
+   "reason": "missing이에요. cat을 파일 이름으로 넘겼어요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "answer = child.communicate(input=message)[0]",
+     "answer = child.communicate(input='')[0]"
+    ]
+   ],
+   "reason": "빈 결과예요. 자식 프로세스에는 빈 문자열을 보냈어요."
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "mode = 4 * read + 2 * write + execute",
+     "mode = (4 if read else 0) | (2 if write else 0) | (1 if execute else 0)"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "mode = owner * 64 + group * 8 + other",
+     "mode = (owner << 6) | (group << 3) | other"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "bits = owner if is_owner else group if in_group else other",
+     "bits = (owner if is_owner else (group if in_group else other))"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "return kernel_read(tokens[1])",
+     "return kernel_read(tokens[-1])"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "answer = child.communicate(input=message)[0]",
+     "answer = child.communicate(message)[0]"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  }
+ ]
+}

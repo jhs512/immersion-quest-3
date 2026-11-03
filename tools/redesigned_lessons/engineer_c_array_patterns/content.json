@@ -1,0 +1,981 @@
+{
+  "description": "등수와 가까운 값 찾기, 정렬된 배열에 끼워 넣기, 나머지로 돌리기, 2차원 표의 행과 열, 배열 스택과 원형 큐를 한두 줄씩 고치며 추적해요.",
+  "tasks": [
+    {
+      "id": "stp_0fdfba90-1f4f-463c-92a4-96ff2f23a479",
+      "title": "첫 선수의 등수가 나오게 시작값을 고치세요",
+      "goal": "첫 선수 score[0]의 등수를 구하려 해요. 나보다 높은 점수가 하나도 없으면 1등, 하나 있으면 2등이에요.\n\n반복은 score[0]보다 큰 점수를 맞게 세요. rank의 시작값 한 곳을 고쳐 등수가 나오게 하세요. 채점은 다른 점수로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 rank를 확인하세요.\n2. rank의 시작값을 한 곳 고치세요.\n3. 다시 실행해 72점이 몇 등인지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint main(void) {\n    int score[5] = {72, 95, 88, 60, 91};\n    int rank = 0;\n    int j;\n    // 모든 점수와 비교해 score[0]보다 큰 점수를 셀 때마다 rank를 올려요.\n    for (j = 0; j < 5; j++) {\n        if (score[j] > score[0]) {\n            rank++;\n        }\n    }\n    printf(\"%d\", rank);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint main(void) {\n    int score[5] = {72, 95, 88, 60, 91};\n    int rank = 1;\n    int j;\n    // 모든 점수와 비교해 score[0]보다 큰 점수를 셀 때마다 rank를 올려요.\n    for (j = 0; j < 5; j++) {\n        if (score[j] > score[0]) {\n            rank++;\n        }\n    }\n    printf(\"%d\", rank);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "4"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "score": "{60, 72, 95, 88, 91}"
+          },
+          "expected": "5"
+        },
+        {
+          "values": {
+            "score": "{99, 50, 60, 70, 80}"
+          },
+          "expected": "1"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "큰 점수를 세는 반복은 맞아요. 센 개수를 등수로 바꾸는 문제예요.",
+          "target": "text:rank의 시작값 한 곳을 고쳐 등수가 나오게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3이 나왔어요. 72보다 큰 95, 88, 91을 센 개수예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "이대로면 가장 높은 점수는 0등이 돼요. 등수는 1부터 시작해야 하죠.",
+          "target": "code:int rank = 0;"
+        },
+        {
+          "action": "patch_code",
+          "before": "int rank = 0;",
+          "after": "int rank = 1;",
+          "say": "시작값을 1로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4가 나왔어요. 큰 점수 셋 뒤에 오니 4등이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "j가 0일 때 자기 자신과도 비교해요. 72 > 72는 거짓이라 세지 않아요.",
+          "target": "code:score[j] > score[0]"
+        }
+      ]
+    },
+    {
+      "id": "stp_c3fca2e3-b82f-4973-bf58-aa540c8c4615",
+      "title": "모든 선수의 등수를 구하고 동점은 같은 등수로 만드세요",
+      "goal": "이번에는 다섯 선수 모두의 등수를 차례로 출력해요. 바깥 반복이 선수 i를 고르고, 안쪽 반복이 모든 점수와 비교해요.\n\n같은 점수는 같은 등수여야 해요. 95점이 둘이면 둘 다 1등이에요. 안쪽 비교식 한 곳을 고쳐 등수를 바르게 만드세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 등수 목록을 확인하세요.\n2. 안쪽 if의 비교식을 한 곳 고치세요.\n3. 다시 실행해 95점 두 선수가 같은 등수인지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint main(void) {\n    int score[5] = {72, 95, 88, 60, 95};\n    int rank, i, j;\n    // 선수마다 등수를 새로 세요.\n    for (i = 0; i < 5; i++) {\n        rank = 1;\n        for (j = 0; j < 5; j++) {\n            if (score[j] >= score[i]) {\n                rank++;\n            }\n        }\n        printf(\"%d \", rank);\n    }\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint main(void) {\n    int score[5] = {72, 95, 88, 60, 95};\n    int rank, i, j;\n    // 선수마다 등수를 새로 세요.\n    for (i = 0; i < 5; i++) {\n        rank = 1;\n        for (j = 0; j < 5; j++) {\n            if (score[j] > score[i]) {\n                rank++;\n            }\n        }\n        printf(\"%d \", rank);\n    }\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "4 1 3 5 1 "
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "score": "{50, 50, 50, 50, 50}"
+          },
+          "expected": "1 1 1 1 1 "
+        },
+        {
+          "values": {
+            "score": "{10, 20, 30, 40, 50}"
+          },
+          "expected": "5 4 3 2 1 "
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "다섯 명의 등수를 모두 내고, 동점은 같은 등수로 맞추는 문제예요.",
+          "target": "text:같은 점수는 같은 등수여야 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "5 3 4 6 3이에요. 다섯 명인데 6등이 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": ">=는 자기 자신과 같은 점수까지 세요. 그래서 모두 한 등씩 밀렸어요.",
+          "target": "code:score[j] >= score[i]"
+        },
+        {
+          "action": "patch_code",
+          "before": "score[j] >= score[i]",
+          "after": "score[j] > score[i]",
+          "say": "나보다 확실히 큰 점수만 세도록 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4 1 3 5 1이에요. 95점 둘은 서로를 세지 않아 둘 다 1등이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "rank = 1은 바깥 반복 안에 있어요. 선수마다 등수를 새로 세야 하거든요.",
+          "target": "code:rank = 1;"
+        }
+      ]
+    },
+    {
+      "id": "stp_a28897b6-c04f-4ad1-8da6-4d671c3c0f79",
+      "title": "목표에 가장 가까운 기록을 찾고 동점은 앞 기록을 남기세요",
+      "goal": "멀리뛰기 목표 거리 target에 가장 가까운 기록 best와 그 거리 bestdiff를 출력해요. 거리가 같은 기록이 여럿이면 먼저 나온 기록을 남겨요.\n\n**알아두세요**\n\n`조건 ? 값1 : 값2`는 조건이 참이면 값1, 거짓이면 값2가 되는 식이에요. 여기서는 큰 쪽에서 작은 쪽을 빼 거리를 만들어요.\n\nif의 갱신 조건 한 곳을 고쳐 동점일 때 먼저 나온 기록이 남게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 best와 bestdiff를 확인하세요.\n2. if의 비교식을 한 곳 고치세요.\n3. 다시 실행해 거리가 같은 두 기록 중 어느 것이 남았는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint main(void) {\n    int rec[4] = {38, 61, 44, 56};\n    int target = 50;\n    int best = 0;\n    int bestdiff = 1000;\n    int d, i;\n    for (i = 0; i < 4; i++) {\n        // 목표와의 거리는 큰 쪽에서 작은 쪽을 빼요.\n        d = rec[i] > target ? rec[i] - target : target - rec[i];\n        if (d <= bestdiff) {\n            bestdiff = d;\n            best = rec[i];\n        }\n    }\n    printf(\"%d %d\", best, bestdiff);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint main(void) {\n    int rec[4] = {38, 61, 44, 56};\n    int target = 50;\n    int best = 0;\n    int bestdiff = 1000;\n    int d, i;\n    for (i = 0; i < 4; i++) {\n        // 목표와의 거리는 큰 쪽에서 작은 쪽을 빼요.\n        d = rec[i] > target ? rec[i] - target : target - rec[i];\n        if (d < bestdiff) {\n            bestdiff = d;\n            best = rec[i];\n        }\n    }\n    printf(\"%d %d\", best, bestdiff);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "44 6"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "target": "60"
+          },
+          "expected": "61 1"
+        },
+        {
+          "values": {
+            "rec": "{40, 60, 45, 55}"
+          },
+          "expected": "45 5"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "가장 가까운 기록을 찾되, 동점이면 먼저 나온 기록을 남겨야 해요.",
+          "target": "text:거리가 같은 기록이 여럿이면 먼저 나온 기록을 남겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "56 6이 나왔어요. 44와 56은 둘 다 50에서 6만큼 떨어져 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "<=는 같은 거리에도 갱신해요. 그래서 나중에 온 56이 44를 덮었어요.",
+          "target": "code:d <= bestdiff"
+        },
+        {
+          "action": "patch_code",
+          "before": "if (d <= bestdiff)",
+          "after": "if (d < bestdiff)",
+          "say": "더 가까울 때만 바꾸도록 등호를 빼요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "44 6이에요. 56은 거리가 같아서 44를 밀어내지 못했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. bestdiff를 0으로 시작하면 어떤 거리도 0보다 작지 않아요. 처음 값은 충분히 커야 해요.",
+          "target": "code:int bestdiff = 1000;"
+        }
+      ]
+    },
+    {
+      "id": "stp_0a420cdd-01d6-40d4-93d2-61ae83e69b94",
+      "title": "뒤에서부터 밀어 새 번호표를 끼워 넣으세요",
+      "goal": "작은 순서로 놓인 번호표 다섯 장 사이에 30을 끼워 넣으려 해요. 들어갈 자리 pos는 맞게 찾아요. 그다음 pos부터 뒤의 값을 한 칸씩 오른쪽으로 밀어야 하는데, 지금은 값이 사라져요.\n\n미는 반복을 뒤에서부터 도는 반복으로 고치세요. i는 n에서 pos + 1까지 내려가며, 왼쪽 칸 값을 i 칸으로 옮겨요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 배열을 확인하세요.\n2. 미는 for의 머리를 i = n에서 시작해 내려가도록 고치세요.\n3. 반복 안의 줄을 왼쪽 칸 box[i - 1]을 box[i]로 옮기도록 고치세요.\n4. 다시 실행해 47과 58이 살아 있는지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint main(void) {\n    int box[6] = {12, 25, 31, 47, 58};\n    int n = 5;\n    int value = 30;\n    int pos = 0;\n    int i;\n    // value보다 작은 칸을 지나 들어갈 자리 pos를 찾아요.\n    while (pos < n && box[pos] < value) {\n        pos++;\n    }\n    // pos부터 뒤의 값들을 한 칸씩 오른쪽으로 밀어요.\n    for (i = pos; i < n; i++) {\n        box[i + 1] = box[i];\n    }\n    box[pos] = value;\n    n++;\n    for (i = 0; i < n; i++) {\n        printf(\"%d \", box[i]);\n    }\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint main(void) {\n    int box[6] = {12, 25, 31, 47, 58};\n    int n = 5;\n    int value = 30;\n    int pos = 0;\n    int i;\n    // value보다 작은 칸을 지나 들어갈 자리 pos를 찾아요.\n    while (pos < n && box[pos] < value) {\n        pos++;\n    }\n    // pos부터 뒤의 값들을 한 칸씩 오른쪽으로 밀어요.\n    for (i = n; i > pos; i--) {\n        box[i] = box[i - 1];\n    }\n    box[pos] = value;\n    n++;\n    for (i = 0; i < n; i++) {\n        printf(\"%d \", box[i]);\n    }\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "12 25 30 31 47 58 "
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "value": "5"
+          },
+          "expected": "5 12 25 31 47 58 "
+        },
+        {
+          "values": {
+            "value": "60"
+          },
+          "expected": "12 25 31 47 58 60 "
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "들어갈 자리는 찾았어요. 뒤 값들을 밀 때 값을 잃지 않는 게 문제예요.",
+          "target": "text:지금은 값이 사라져요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            20,
+            20
+          ]
+        },
+        {
+          "action": "say",
+          "text": "12 25 30 31 31 31이에요. 47과 58이 없어지고 31만 퍼졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "앞에서부터 밀면 box[3]에 31을 쓴 뒤, 그 31을 다시 box[4]로 옮겨요.",
+          "target": "code:box[i + 1] = box[i];"
+        },
+        {
+          "action": "patch_code",
+          "before": "    for (i = pos; i < n; i++) {\n",
+          "after": "    for (i = n; i > pos; i--) {\n",
+          "say": "맨 뒤 빈칸부터 내려오도록 반복을 바꿔요."
+        },
+        {
+          "action": "patch_code",
+          "before": "box[i + 1] = box[i];",
+          "after": "box[i] = box[i - 1];",
+          "say": "왼쪽 칸 값을 지금 칸으로 옮겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            20,
+            20
+          ]
+        },
+        {
+          "action": "say",
+          "text": "12 25 30 31 47 58이에요. 58, 47, 31 순서로 옮겨 덮어쓴 값이 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 머리만 바꾸고 box[i + 1] = box[i]를 두면 i가 n일 때 배열 밖에 써요. 머리와 몸을 함께 바꿔야 해요.",
+          "target": "code:box[i] = box[i - 1];"
+        }
+      ]
+    },
+    {
+      "id": "stp_a68fb95b-ec66-432a-aa5f-3aa2628109da",
+      "title": "마지막 자리의 이웃이 0번이 되게 하세요",
+      "goal": "n명이 0번부터 n - 1번 자리에 둥글게 앉았어요. 각 자리의 오른쪽 이웃 번호를 출력하려 해요. 마지막 자리의 이웃은 0번이에요.\n\n출력하는 식 한 곳을 고쳐 번호가 n이 되는 대신 0으로 돌아오게 하세요. 채점은 n을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 번호 목록을 확인하세요.\n2. printf 안의 식을 한 곳 고치세요.\n3. 다시 실행해 마지막 이웃이 0번인지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint main(void) {\n    int n = 5;\n    int i;\n    // 자리 i의 오른쪽 이웃 자리 번호를 차례로 출력해요.\n    for (i = 0; i < n; i++) {\n        printf(\"%d \", i + 1);\n    }\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint main(void) {\n    int n = 5;\n    int i;\n    // 자리 i의 오른쪽 이웃 자리 번호를 차례로 출력해요.\n    for (i = 0; i < n; i++) {\n        printf(\"%d \", (i + 1) % n);\n    }\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "1 2 3 4 0 "
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "n": "3"
+          },
+          "expected": "1 2 0 "
+        },
+        {
+          "values": {
+            "n": "1"
+          },
+          "expected": "0 "
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "둥근 자리라 끝 다음이 처음이에요. 그 되돌아감을 식으로 만드는 문제예요.",
+          "target": "text:마지막 자리의 이웃은 0번이에요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1 2 3 4 5예요. 5번 자리는 없어요. 자리는 0부터 4까지예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "printf(\"%d \", i + 1);",
+          "after": "printf(\"%d \", (i + 1) % n);",
+          "say": "다음 번호를 n으로 나눈 나머지로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1 2 3 4 0이에요. 5를 5로 나눈 나머지가 0이라 처음으로 돌아왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "n으로 나눈 나머지는 0부터 n - 1까지만 나와요. 그래서 자리 번호를 벗어나지 않아요.",
+          "target": "code:(i + 1) % n"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 괄호 없이 i + 1 % n이라 쓰면 1 % n을 먼저 계산해요. 결국 i + 1과 같아져요.",
+          "target": "code:(i + 1) % n"
+        }
+      ]
+    },
+    {
+      "id": "stp_4d83aa4f-7965-4596-8365-e5dc6e1a5a10",
+      "title": "k칸만큼 돌려 앉은 순서를 출력하세요",
+      "goal": "원탁의 선수 번호 team을 k칸 왼쪽으로 돌려 읽으려 해요. k가 2면 team[2]부터 시작해 끝에서 앞으로 돌아와요.\n\n인덱스 식 한 곳을 고쳐 k만큼 돌린 순서가 나오게 하세요. 채점은 k를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 순서를 확인하세요.\n2. team의 인덱스 식을 한 곳 고치세요.\n3. 다시 실행해 team[2]의 값부터 시작하는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint main(void) {\n    int team[5] = {3, 8, 1, 9, 4};\n    int k = 2;\n    int i;\n    // 출력의 i번째 자리에는 k칸 뒤에 앉은 선수가 와요.\n    for (i = 0; i < 5; i++) {\n        printf(\"%d \", team[(i + 1) % 5]);\n    }\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint main(void) {\n    int team[5] = {3, 8, 1, 9, 4};\n    int k = 2;\n    int i;\n    // 출력의 i번째 자리에는 k칸 뒤에 앉은 선수가 와요.\n    for (i = 0; i < 5; i++) {\n        printf(\"%d \", team[(i + k) % 5]);\n    }\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "1 9 4 3 8 "
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "k": "0"
+          },
+          "expected": "3 8 1 9 4 "
+        },
+        {
+          "values": {
+            "k": "4"
+          },
+          "expected": "4 3 8 1 9 "
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "한 칸 돌리기를 k칸 돌리기로 넓히는 문제예요.",
+          "target": "text:인덱스 식 한 곳을 고쳐 k만큼 돌린 순서가 나오게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "8 1 9 4 3이에요. k가 2인데 한 칸만 돌았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "team[(i + 1) % 5]",
+          "after": "team[(i + k) % 5]",
+          "say": "더하는 칸 수를 k로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1 9 4 3 8이에요. 인덱스가 2, 3, 4, 0, 1 순서로 돌았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. % 5를 빼고 team[i + k]로 쓰면 i가 3일 때 team[5]를 읽어요. 배열 밖이라 값을 믿을 수 없어요.",
+          "target": "code:team[(i + k) % 5]"
+        }
+      ]
+    },
+    {
+      "id": "stp_a37ccc81-0bef-4de7-8e3d-eb0b40a2bbd7",
+      "title": "r행의 합이 되도록 인덱스 순서를 고치세요",
+      "goal": "구역 표 g는 3행 3열이에요. 반의 구역별 인원이 행마다 들어 있어요. r행에 있는 세 칸의 합을 구하려 해요.\n\n**알아두세요**\n\n`g[1][2]`는 1행 2열 칸이에요. 앞 인덱스가 위아래 행, 뒤 인덱스가 좌우 열이에요. 행과 열 모두 0부터 세요.\n\n더하는 칸의 인덱스 순서를 고쳐 r행의 합이 나오게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 합계를 확인하세요.\n2. sum에 더하는 g의 인덱스 순서를 고치세요.\n3. 다시 실행해 1행의 세 칸 1, 5, 3의 합과 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint main(void) {\n    int g[3][3] = {{4, 0, 2}, {1, 5, 3}, {6, 2, 7}};\n    int r = 1;\n    int sum = 0;\n    int j;\n    // r행의 세 칸을 왼쪽부터 더해요.\n    for (j = 0; j < 3; j++) {\n        sum = sum + g[j][r];\n    }\n    printf(\"%d\", sum);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint main(void) {\n    int g[3][3] = {{4, 0, 2}, {1, 5, 3}, {6, 2, 7}};\n    int r = 1;\n    int sum = 0;\n    int j;\n    // r행의 세 칸을 왼쪽부터 더해요.\n    for (j = 0; j < 3; j++) {\n        sum = sum + g[r][j];\n    }\n    printf(\"%d\", sum);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "9"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "r": "0"
+          },
+          "expected": "6"
+        },
+        {
+          "values": {
+            "r": "2"
+          },
+          "expected": "15"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "r행 한 줄을 왼쪽부터 더하는 문제예요. 행은 첫 인덱스예요.",
+          "target": "text:r행에 있는 세 칸의 합을 구하려 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "7이 나왔어요. g[0][1], g[1][1], g[2][1]이니 1열을 세로로 더했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "g[j][r]",
+          "after": "g[r][j]",
+          "say": "행 r을 앞에, 움직이는 열 j를 뒤에 둬요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "9가 나왔어요. 1행의 1, 5, 3을 더했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "반복에서 움직이는 j가 뒤에 있으니 한 행을 가로로 걸어요.",
+          "target": "code:g[r][j]"
+        }
+      ]
+    },
+    {
+      "id": "stp_d12faf71-52a5-47ac-bd72-4c7beb8af741",
+      "title": "이웃 칸 검사에서 열의 범위를 고치세요",
+      "goal": "지도 map은 3행 4열이고 1이 물웅덩이예요. (r, c) 칸을 둘러싼 최대 여덟 칸의 웅덩이 수를 세려 해요. dr과 dc가 -1부터 1까지 움직이며 이웃을 만들어요.\n\n지도 밖 칸을 거르는 if의 범위 검사 한 곳을 고쳐, 지도 안의 이웃이 모두 세어지게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 센 수를 확인하세요.\n2. if의 범위 검사 가운데 열 쪽 상한을 한 곳 고치세요.\n3. 다시 실행해 (1, 2) 주변의 웅덩이 수를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint main(void) {\n    int map[3][4] = {{1, 0, 0, 1}, {0, 0, 1, 0}, {1, 0, 0, 1}};\n    int r = 1;\n    int c = 2;\n    int count = 0;\n    int dr, dc, nr, nc;\n    // (r, c)를 둘러싼 칸의 웅덩이 수를 세요.\n    for (dr = -1; dr <= 1; dr++) {\n        for (dc = -1; dc <= 1; dc++) {\n            nr = r + dr;\n            nc = c + dc;\n            // 지도 밖의 칸과 가운데 칸은 세지 않아요.\n            if (nr >= 0 && nr < 3 && nc >= 0 && nc < 3 && (dr != 0 || dc != 0)) {\n                count = count + map[nr][nc];\n            }\n        }\n    }\n    printf(\"%d\", count);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint main(void) {\n    int map[3][4] = {{1, 0, 0, 1}, {0, 0, 1, 0}, {1, 0, 0, 1}};\n    int r = 1;\n    int c = 2;\n    int count = 0;\n    int dr, dc, nr, nc;\n    // (r, c)를 둘러싼 칸의 웅덩이 수를 세요.\n    for (dr = -1; dr <= 1; dr++) {\n        for (dc = -1; dc <= 1; dc++) {\n            nr = r + dr;\n            nc = c + dc;\n            // 지도 밖의 칸과 가운데 칸은 세지 않아요.\n            if (nr >= 0 && nr < 3 && nc >= 0 && nc < 4 && (dr != 0 || dc != 0)) {\n                count = count + map[nr][nc];\n            }\n        }\n    }\n    printf(\"%d\", count);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "2"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "r": "2",
+            "c": "2"
+          },
+          "expected": "2"
+        },
+        {
+          "values": {
+            "r": "0",
+            "c": "0"
+          },
+          "expected": "0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "이웃 칸을 셀 때 지도 밖만 거르고 안쪽은 다 세야 해요.",
+          "target": "text:지도 밖 칸을 거르는 if의 범위 검사 한 곳을 고쳐"
+        },
+        {
+          "action": "run",
+          "lines": [
+            20,
+            20
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0이 나왔어요. (1, 2) 오른쪽의 3열에 웅덩이가 둘 있는데 빠졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "열은 0부터 3까지 넷이에요. 그런데 nc < 3이라 3열을 지도 밖으로 봤어요.",
+          "target": "code:nc < 3"
+        },
+        {
+          "action": "patch_code",
+          "before": "nc < 3",
+          "after": "nc < 4",
+          "say": "열 상한을 열 개수 4로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            20,
+            20
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2가 나왔어요. (0, 3)과 (2, 3)의 웅덩이가 세어졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 범위 검사를 통째로 빼면 모서리 칸에서 map[-1]처럼 배열 밖을 읽어요. 행은 3, 열은 4로 따로 막아요.",
+          "target": "code:nr < 3"
+        }
+      ]
+    },
+    {
+      "id": "stp_db4f1a1d-9d6d-4f67-955d-cfe42779d8c1",
+      "title": "번호 i를 행 i / 4, 열 i % 4로 바꿔 표를 채우세요",
+      "goal": "번호 0부터 11까지의 목록 list를 3행 4열 표 b에 왼쪽 위부터 한 행씩 채우려 해요. 목록의 값 23은 2번째 행의 3번째 칸에 와야 한다는 뜻으로 골랐어요.\n\n`b[i / 4][...]`의 행 식은 맞아요. 열 식 한 곳을 고쳐 표가 차례로 채워지게 하세요. 채점은 다른 목록으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 표를 확인하세요.\n2. b의 열 인덱스 식을 한 곳 고치세요.\n3. 다시 실행해 각 행이 왼쪽부터 차례로 찼는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint main(void) {\n    int list[12] = {11, 12, 13, 14, 21, 22, 23, 24, 31, 32, 33, 34};\n    int b[3][4] = {0};\n    int i, r, c;\n    // 한 줄 목록을 왼쪽 위부터 한 행씩 채워요. 한 행은 4칸이에요.\n    for (i = 0; i < 12; i++) {\n        b[i / 4][i % 3] = list[i];\n    }\n    for (r = 0; r < 3; r++) {\n        for (c = 0; c < 4; c++) {\n            printf(\"%d \", b[r][c]);\n        }\n        printf(\"\\n\");\n    }\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint main(void) {\n    int list[12] = {11, 12, 13, 14, 21, 22, 23, 24, 31, 32, 33, 34};\n    int b[3][4] = {0};\n    int i, r, c;\n    // 한 줄 목록을 왼쪽 위부터 한 행씩 채워요. 한 행은 4칸이에요.\n    for (i = 0; i < 12; i++) {\n        b[i / 4][i % 4] = list[i];\n    }\n    for (r = 0; r < 3; r++) {\n        for (c = 0; c < 4; c++) {\n            printf(\"%d \", b[r][c]);\n        }\n        printf(\"\\n\");\n    }\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "11 12 13 14 \n21 22 23 24 \n31 32 33 34 \n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "list": "{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}"
+          },
+          "expected": "1 2 3 4 \n5 6 7 8 \n9 10 11 12 \n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "번호 하나를 행과 열 두 개로 바꾸는 문제예요. 한 행은 4칸이에요.",
+          "target": "text:열 식 한 곳을 고쳐 표가 차례로 채워지게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "첫 행이 14 12 13 0이에요. 3열은 0으로 비고, 14가 11 자리를 덮었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "i % 3은 0, 1, 2만 나와요. 그래서 i가 3일 때 다시 0열로 돌아갔어요.",
+          "target": "code:i % 3"
+        },
+        {
+          "action": "patch_code",
+          "before": "b[i / 4][i % 3]",
+          "after": "b[i / 4][i % 4]",
+          "say": "열 식도 한 행의 칸 수 4로 나눠요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "11 12 13 14부터 행마다 차례로 찼어요. 덮어쓴 칸도 빈칸도 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "몫 i / 4는 몇 번째 행인지, 나머지 i % 4는 그 행의 몇 번째 칸인지예요.",
+          "target": "code:i / 4"
+        }
+      ]
+    },
+    {
+      "id": "stp_31bb9766-c964-4149-ba0b-81f19e666c42",
+      "title": "맨 위 값을 읽은 뒤 top을 내리세요",
+      "goal": "되돌리기 기록을 배열 st에 쌓아요. 나중에 쌓은 기록부터 꺼내야 해요. top은 비어 있을 때 -1이고, 맨 위에 있는 칸의 인덱스를 가리켜요.\n\n**알아두세요**\n\n이렇게 마지막에 넣은 것을 먼저 꺼내는 구조를 스택(stack)이라 해요. 넣기는 top을 올린 뒤 쓰고, 꺼내기는 읽은 뒤 top을 내려요.\n\n꺼내는 반복에서 두 줄의 순서를 고쳐 마지막에 쌓은 2부터 나오게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 꺼낸 값을 확인하세요.\n2. 꺼내는 반복 안의 top--와 printf 순서를 바꾸세요.\n3. 다시 실행해 쌓은 반대 순서로 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint main(void) {\n    int in[3] = {4, 7, 2};\n    int st[5];\n    int top = -1;\n    int i;\n    // 들어온 순서대로 쌓아요.\n    for (i = 0; i < 3; i++) {\n        top++;\n        st[top] = in[i];\n    }\n    // 두 번 꺼내요.\n    for (i = 0; i < 2; i++) {\n        top--;\n        printf(\"%d \", st[top]);\n    }\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint main(void) {\n    int in[3] = {4, 7, 2};\n    int st[5];\n    int top = -1;\n    int i;\n    // 들어온 순서대로 쌓아요.\n    for (i = 0; i < 3; i++) {\n        top++;\n        st[top] = in[i];\n    }\n    // 두 번 꺼내요.\n    for (i = 0; i < 2; i++) {\n        printf(\"%d \", st[top]);\n        top--;\n    }\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "2 7 "
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "in": "{1, 2, 3}"
+          },
+          "expected": "3 2 "
+        },
+        {
+          "values": {
+            "in": "{9, 5, 6}"
+          },
+          "expected": "6 5 "
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "쌓은 기록을 위에서부터 꺼내는 문제예요. top이 맨 위 칸을 가리켜요.",
+          "target": "text:top은 비어 있을 때 -1이고, 맨 위에 있는 칸의 인덱스를 가리켜요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "7 4가 나왔어요. 맨 위의 2를 읽기 전에 top부터 내렸어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        top--;\n        printf(\"%d \", st[top]);\n",
+          "after": "        printf(\"%d \", st[top]);\n        top--;\n",
+          "say": "먼저 맨 위를 읽고 그다음 top을 내려요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2 7이에요. 마지막에 넣은 2가 먼저 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "이 두 줄은 printf(\"%d \", st[top--]); 한 줄과 같아요. 뒤에 붙은 --는 읽은 다음에 줄여요.",
+          "target": "code:printf(\"%d \", st[top]);"
+        }
+      ]
+    },
+    {
+      "id": "stp_77d8622f-9044-4512-89a7-1cc3644d5c96",
+      "title": "rear가 네 칸을 모두 돌게 나누는 수를 고치세요",
+      "goal": "매점 대기 줄을 4칸 배열 q로 만들어요. 넣을 칸은 rear, 꺼낼 칸은 front가 가리키고, 끝 칸 다음은 0번 칸으로 돌아와요. 먼저 줄 선 사람이 먼저 나가야 해요.\n\n**알아두세요**\n\n먼저 넣은 것을 먼저 꺼내는 줄을 큐(queue)라 해요. 인덱스를 % 크기로 돌려 빈칸을 다시 쓰면 원형 큐예요.\n\nrear를 옮기는 두 줄의 나누는 수를 고쳐 다섯 명이 줄 선 순서대로 나오게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 꺼낸 순서를 확인하세요.\n2. 첫 번째 넣는 반복의 rear 줄을 고치세요.\n3. 두 번째 넣는 반복의 rear 줄도 같게 고치세요.\n4. 다시 실행해 5부터 9까지 순서대로 나오는지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint main(void) {\n    int in[5] = {5, 6, 7, 8, 9};\n    int q[4] = {0};\n    int front = 0;\n    int rear = 0;\n    int i;\n    // 셋을 넣어요.\n    for (i = 0; i < 3; i++) {\n        q[rear] = in[i];\n        rear = (rear + 1) % 3;\n    }\n    // 둘을 꺼내요.\n    for (i = 0; i < 2; i++) {\n        printf(\"%d \", q[front]);\n        front = (front + 1) % 4;\n    }\n    // 둘을 더 넣어요.\n    for (i = 3; i < 5; i++) {\n        q[rear] = in[i];\n        rear = (rear + 1) % 3;\n    }\n    // 남은 셋을 꺼내요.\n    for (i = 0; i < 3; i++) {\n        printf(\"%d \", q[front]);\n        front = (front + 1) % 4;\n    }\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint main(void) {\n    int in[5] = {5, 6, 7, 8, 9};\n    int q[4] = {0};\n    int front = 0;\n    int rear = 0;\n    int i;\n    // 셋을 넣어요.\n    for (i = 0; i < 3; i++) {\n        q[rear] = in[i];\n        rear = (rear + 1) % 4;\n    }\n    // 둘을 꺼내요.\n    for (i = 0; i < 2; i++) {\n        printf(\"%d \", q[front]);\n        front = (front + 1) % 4;\n    }\n    // 둘을 더 넣어요.\n    for (i = 3; i < 5; i++) {\n        q[rear] = in[i];\n        rear = (rear + 1) % 4;\n    }\n    // 남은 셋을 꺼내요.\n    for (i = 0; i < 3; i++) {\n        printf(\"%d \", q[front]);\n        front = (front + 1) % 4;\n    }\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "5 6 7 8 9 "
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "in": "{1, 2, 3, 4, 5}"
+          },
+          "expected": "1 2 3 4 5 "
+        },
+        {
+          "values": {
+            "in": "{40, 30, 20, 10, 0}"
+          },
+          "expected": "40 30 20 10 0 "
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "줄 선 순서대로 나와야 해요. rear가 네 칸을 모두 쓰는지 보는 문제예요.",
+          "target": "text:rear를 옮기는 두 줄의 나누는 수를 고쳐"
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "5 6 7 0 8이에요. 8이 나올 차례에 비어 있던 0이 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "% 3은 0, 1, 2만 만들어요. rear가 3번 칸에 한 번도 가지 않았어요.",
+          "target": "code:rear = (rear + 1) % 3;#1"
+        },
+        {
+          "action": "patch_code",
+          "before": "    for (i = 0; i < 3; i++) {\n        q[rear] = in[i];\n        rear = (rear + 1) % 3;\n",
+          "after": "    for (i = 0; i < 3; i++) {\n        q[rear] = in[i];\n        rear = (rear + 1) % 4;\n",
+          "say": "먼저 첫 번째 넣는 반복만 % 4로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "5 6 7 8 5예요. 9가 엉뚱한 칸에 들어가 꺼낸 자리의 옛 5가 다시 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "rear = (rear + 1) % 3;",
+          "after": "rear = (rear + 1) % 4;",
+          "say": "두 번째 넣는 반복도 % 4로 맞춰요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "5 6 7 8 9예요. 8은 3번 칸, 9는 끝을 돌아 0번 칸에 들어갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 마지막 인덱스 3으로 나누면 칸 하나가 버려져요. 나누는 수는 칸 수 4예요.",
+          "target": "code:front = (front + 1) % 4;#1"
+        }
+      ]
+    },
+    {
+      "id": "stp_bd68ef4a-03cb-4bd5-80f9-b1a9a33d7f35",
+      "title": "쌓고 꺼내기가 섞인 반복에서 남은 것을 모두 꺼내세요",
+      "goal": "기록 data를 앞에서부터 보며 짝수는 스택에 쌓고, 홀수가 오면 쌓인 것 하나를 꺼내 출력해요. 반복이 끝나면 남은 것을 모두 꺼내요.\n\n**알아두세요**\n\n`st[++top] = x`는 top을 먼저 올리고 그 칸에 써요. `st[top--]`는 그 칸을 읽고 나서 top을 내려요.\n\n남은 것을 꺼내는 while의 조건 한 곳을 고쳐 스택이 완전히 빌 때까지 꺼내게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 꺼낸 순서를 확인하세요.\n2. data를 앞에서부터 따라가며 반복이 끝났을 때 스택에 남은 값을 적어 보세요.\n3. while의 조건을 한 곳 고치세요.\n4. 다시 실행해 남은 값이 모두 나왔는지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint main(void) {\n    int data[7] = {3, 8, 5, 6, 2, 1, 4};\n    int st[7];\n    int top = -1;\n    int i;\n    for (i = 0; i < 7; i++) {\n        // 짝수는 쌓고, 홀수가 오면 쌓인 것이 있을 때 하나 꺼내요.\n        if (data[i] % 2 == 0) {\n            st[++top] = data[i];\n        } else if (top >= 0) {\n            printf(\"%d \", st[top--]);\n        }\n    }\n    // 끝나면 남은 것을 모두 꺼내요.\n    while (top > 0) {\n        printf(\"%d \", st[top--]);\n    }\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint main(void) {\n    int data[7] = {3, 8, 5, 6, 2, 1, 4};\n    int st[7];\n    int top = -1;\n    int i;\n    for (i = 0; i < 7; i++) {\n        // 짝수는 쌓고, 홀수가 오면 쌓인 것이 있을 때 하나 꺼내요.\n        if (data[i] % 2 == 0) {\n            st[++top] = data[i];\n        } else if (top >= 0) {\n            printf(\"%d \", st[top--]);\n        }\n    }\n    // 끝나면 남은 것을 모두 꺼내요.\n    while (top >= 0) {\n        printf(\"%d \", st[top--]);\n    }\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "8 2 4 6 "
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "data": "{2, 4, 6, 1, 3, 5, 8}"
+          },
+          "expected": "6 4 2 8 "
+        },
+        {
+          "values": {
+            "data": "{1, 3, 5, 7, 9, 2, 4}"
+          },
+          "expected": "4 2 "
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "쌓고 꺼내기가 섞였어요. 반복이 끝난 뒤 남은 값을 다 꺼내는지가 문제예요.",
+          "target": "text:스택이 완전히 빌 때까지 꺼내게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "8 2 4가 나왔어요. 앞의 8과 2는 홀수 5와 1이 왔을 때 꺼낸 값이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "반복이 끝나면 스택에는 6과 4가 남아요. top은 1이고 맨 위가 4예요.",
+          "target": "code:st[++top] = data[i];"
+        },
+        {
+          "action": "say",
+          "text": "while은 4를 꺼내 top이 0이 되자 멈췄어요. 0번 칸의 6이 남았죠.",
+          "target": "code:while (top > 0)"
+        },
+        {
+          "action": "patch_code",
+          "before": "while (top > 0)",
+          "after": "while (top >= 0)",
+          "say": "top이 0이어도 하나 남은 것이니 계속 꺼내요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "8 2 4 6이에요. top이 -1이 되어서야 멈췄어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. else if의 top >= 0을 빼면 첫 홀수 3에서 빈 스택의 st[-1]을 읽어요.",
+          "target": "code:else if (top >= 0)"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "배열의 모든 값과 비교해 등수와 가장 가까운 값을 구하고, 동점 처리를 비교식으로 정해요.",
+      "정렬된 배열에 값을 끼워 넣을 때 뒤에서부터 미는 이유와 % n으로 인덱스를 돌리는 원리를 추적해요.",
+      "2차원 배열의 행·열 인덱스, 이웃 칸의 경계 검사, 1차원 번호의 행·열 변환을 추적해요.",
+      "top 인덱스로 만든 스택과 % 크기로 도는 원형 큐의 꺼내는 순서를 추적해요."
+    ],
+    "chapters": {
+      "chp_2d36bbe0-9d00-4fad-afc0-8b7f503919b2": [
+        "한 값을 배열의 모든 값과 비교해 개수를 세거나 가장 작은 차이를 남겨요."
+      ],
+      "chp_298dafc9-c661-4386-8f19-047ebec81ffd": [
+        "뒤에서부터 밀어 자리를 만들고, % n으로 인덱스를 0..n-1 안에서 돌려요."
+      ],
+      "chp_f271a003-b233-456a-95f1-c362ef29f9ee": [
+        "a[행][열] 순서, 이웃 칸의 경계 검사, 번호를 행·열로 바꾸는 / 와 %를 추적해요."
+      ],
+      "chp_afcf79e9-035c-4656-b0a9-c1e8ae6a7df3": [
+        "top 인덱스와 % 크기로 넣고 꺼내는 순서를 추적해요."
+      ]
+    },
+    "units": {
+      "unt_f20d05df-9269-4338-8b2e-1d091c00b729": {
+        "objectives": [
+          "나보다 큰 점수 개수로 등수를, 차이의 최솟값으로 가까운 기록을 구해요."
+        ],
+        "premise": "다섯 선수의 점수가 배열 score에 있어요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_e2ef31bc-10ee-4f61-8293-e605685313b9": {
+        "objectives": [
+          "정렬된 배열에 새 값을 넣고 뒤 값들을 한 칸씩 밀어요."
+        ],
+        "premise": "번호표가 작은 순서로 배열 box에 있고, 맨 뒤 한 칸이 비어 있어요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_3bc13212-5f87-4b08-bb6d-cdd29bff97a1": {
+        "objectives": [
+          "% n으로 마지막 다음을 0으로 되돌려요."
+        ],
+        "premise": "선수들이 원탁에 0번부터 차례로 앉아 있어요. 마지막 자리 다음은 다시 0번이에요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_5ce0f77f-a758-4225-9a8a-ed3681f8d10e": {
+        "objectives": [
+          "행과 열의 범위를 지키며 칸을 읽고 채워요."
+        ],
+        "premise": "운동장을 행과 열로 나눈 표를 2차원 배열에 담았어요. 첫 인덱스가 행, 둘째가 열이에요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_e25c8b9f-a4a0-4ee7-8bc6-3a14dbf80064": {
+        "objectives": [
+          "나중에 넣은 것을 먼저 꺼내는 스택, 먼저 넣은 것을 먼저 꺼내는 원형 큐를 배열로 만들어요."
+        ],
+        "premise": "경기 기록의 되돌리기와 매점 대기 줄을 배열 하나와 인덱스 변수로 관리해요. 각 스텝은 준비 코드에서 새로 시작해요."
+      }
+    }
+  }
+}

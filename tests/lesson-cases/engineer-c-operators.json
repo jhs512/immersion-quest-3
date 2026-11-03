@@ -1,0 +1,404 @@
+{
+ "course": "tests/fixtures/player-pilot/객/course.json",
+ "lesson": "courses/redesigned/engineer-c-operators.json",
+ "expected_outputs": [
+  [
+   "75",
+   "75\n4b",
+   "16\n10"
+  ],
+  [
+   "3",
+   "3.00",
+   "3.50"
+  ],
+  [
+   "5 6",
+   "6 6"
+  ],
+  [
+   "0 11",
+   "1 11"
+  ],
+  [
+   "15",
+   "11"
+  ],
+  [
+   "ABC",
+   "A",
+   "BC",
+   "B"
+  ],
+  [
+   "10",
+   "65",
+   "30",
+   "35",
+   "30"
+  ],
+  [
+   "a7",
+   "a7\n160",
+   "a7\n7"
+  ],
+  [
+   "160",
+   "7",
+   "10"
+  ],
+  [
+   "0",
+   "1"
+  ],
+  [
+   "0",
+   "1",
+   "0",
+   "1"
+  ],
+  [
+   "S 1",
+   "LPS 3",
+   "LP 2"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "printf(\"%x\", code);",
+     "printf(\"%d\", code);"
+    ]
+   ],
+   "reason": "%d는 10진수라 16진수가 아니에요."
+  },
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "printf(\"%x\", code);",
+     "printf(\"4b\");"
+    ]
+   ],
+   "reason": "결과를 외워 쓰면 다른 code에서 틀려요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "(double)total / count",
+     "(double)(total / count)"
+    ]
+   ],
+   "reason": "나눗셈이 먼저 끝나 소수 부분이 버려져요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "printf(\"%.2f\",",
+     "printf(\"%.1f\","
+    ]
+   ],
+   "reason": "소수 한 자리만 찍으면 형식이 달라요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "int shown = ++stock;",
+     "int shown = stock + 1;"
+    ]
+   ],
+   "reason": "stock이 늘지 않아 6 5가 돼요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "int full = ++count > 10;",
+     "int full = count++ > 10;"
+    ]
+   ],
+   "reason": "후위 ++는 늘기 전 값으로 비교해요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "int full = ++count > 10;",
+     "int full = count + 1 > 10;"
+    ]
+   ],
+   "reason": "count가 늘지 않아요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "stock = stock * 2 + 1;",
+     "stock *= (2 + 1);"
+    ]
+   ],
+   "reason": "대입이 가장 늦게 묶여 곱하기 3이 돼요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "printf(\"B\");\n            break;\n",
+     "printf(\"B\");\n"
+    ]
+   ],
+   "reason": "B 뒤 break가 없으면 85에서 BC가 돼요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "            cost += 30;\n            break;\n",
+     "            cost += 30;\n"
+    ]
+   ],
+   "reason": "3등급이 default로 흘러내려 35가 돼요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "            cost += 10;\n",
+     "            cost += 10;\n            break;\n"
+    ]
+   ],
+   "reason": "case 1에서 멈추면 테이프 비용이 빠져요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "tag & 0x0F",
+     "tag & 0xF0"
+    ]
+   ],
+   "reason": "0xF0은 앞자리를 남겨요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "tag & 0x0F",
+     "tag % 10"
+    ]
+   ],
+   "reason": "10으로 나눈 나머지는 16진수 뒷자리가 아니에요(0x5C에서 2)."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "(tag & 0xF0) >> 4",
+     "tag & 0xF0 >> 4"
+    ]
+   ],
+   "reason": ">>가 &보다 먼저 묶여 선반 번호가 나와요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "if ((tag & 0x0F) == 7) {",
+     "if (tag & 0x0F == 7) {"
+    ]
+   ],
+   "reason": "==가 먼저 묶여 늘 거짓이에요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "if ((tag & 0x0F) == 7) {",
+     "if (tag & 0x07) {"
+    ]
+   ],
+   "reason": "뒷비트가 하나라도 켜지면 참이 돼 7인지 확인하지 않아요."
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "if ((left < right ? left : right) == 0) {",
+     "if (left < right ? left : right == 0) {"
+    ]
+   ],
+   "reason": "?:가 ==보다 늦게 묶여 left가 0과 비교되지 않아요."
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "if ((left < right ? left : right) == 0) {",
+     "if (left < right ? left : right) {"
+    ]
+   ],
+   "reason": "고른 값이 0이 아니면 참이라 반대로 동작해요."
+  },
+  {
+   "step": 12,
+   "replacements": [
+    [
+     "            count++;\n            break;\n",
+     "            count++;\n"
+    ]
+   ],
+   "reason": "break가 없으면 default까지 흘러 LPS 3이 돼요."
+  },
+  {
+   "step": 12,
+   "replacements": [
+    [
+     "int zone = (tag & 0xF0) >> 4;",
+     "int zone = tag & 0xF0 >> 4;"
+    ]
+   ],
+   "reason": "괄호가 없으면 zone에 선반 번호가 들어가요."
+  },
+  {
+   "step": 12,
+   "replacements": [
+    [
+     "            count++;\n            break;\n",
+     "            count++;\n"
+    ],
+    [
+     "            printf(\"L\");\n            count++;\n",
+     "            printf(\"L\");\n            count++;\n            break;\n"
+    ]
+   ],
+   "reason": "case 10 끝에서 멈추면 L 1이 돼요."
+  }
+ ],
+ "accept": [
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "(double)total / count",
+     "total / (double)count"
+    ]
+   ],
+   "reason": "나누는 쪽을 실수로 바꿔도 실수 나눗셈이에요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "(double)total / count",
+     "total * 1.0 / count"
+    ]
+   ],
+   "reason": "1.0을 곱해도 실수가 돼요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "int shown = ++stock;",
+     "stock++;\n    int shown = stock;"
+    ]
+   ],
+   "reason": "먼저 늘리고 대입해도 같아요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "int full = ++count > 10;",
+     "int full = count++ >= 10;"
+    ]
+   ],
+   "reason": "옛 값으로 비교하되 기준을 >= 10으로 바꿔도 같아요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "stock = stock * 2 + 1;",
+     "stock *= 2;\n    stock += 1;"
+    ]
+   ],
+   "reason": "두 번 나눠 대입해도 같아요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "printf(\"C\");\n",
+     "printf(\"C\");\n            break;\n"
+    ]
+   ],
+   "reason": "default 뒤 break는 결과를 바꾸지 않아요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "tag & 0x0F",
+     "tag % 16"
+    ]
+   ],
+   "reason": "16으로 나눈 나머지도 16진수 뒷자리예요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "(tag & 0xF0) >> 4",
+     "tag >> 4"
+    ]
+   ],
+   "reason": "두 자리 라벨이면 바로 밀어도 같아요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "(tag & 0xF0) >> 4",
+     "tag / 16"
+    ]
+   ],
+   "reason": "네 칸 밀기는 16으로 나눈 몫이에요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "if ((tag & 0x0F) == 7) {",
+     "if (7 == (tag & 0x0F)) {"
+    ]
+   ],
+   "reason": "비교 순서를 바꿔도 같아요."
+  },
+  {
+   "step": 11,
+   "replacements": [
+    [
+     "if ((left < right ? left : right) == 0) {",
+     "if (!(left < right ? left : right)) {"
+    ]
+   ],
+   "reason": "!로 0인지 확인해도 같아요."
+  },
+  {
+   "step": 12,
+   "replacements": [
+    [
+     "int zone = (tag & 0xF0) >> 4;",
+     "int zone = tag >> 4;"
+    ]
+   ],
+   "reason": "두 자리 라벨이면 바로 밀어도 같아요."
+  }
+ ]
+}

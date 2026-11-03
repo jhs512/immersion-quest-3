@@ -1,0 +1,52 @@
+{
+  "by": "hand",
+  "source_sha256": "ad60ff8ae8fd6232eda9d4ce6a272b7a8b33edec37bacbd05b4223d1ab73fdfe",
+  "entry": [
+    {
+      "action": "say",
+      "text": "두 값을 서로 바꿔야 해요. 지금 코드는 한쪽 값을 잃어요.",
+      "target": "text:a는 9, b는 4예요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "4 4예요. a = b에서 9가 이미 지워져서, b = a는 4를 다시 넣었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    a = b;\n    b = a;\n",
+      "after": "    int temp = a;\n    a = b;\n    b = a;\n",
+      "say": "덮어쓰기 전에 a의 9를 temp에 보관해요."
+    },
+    {
+      "action": "patch_code",
+      "before": "    b = a;\n",
+      "after": "    b = temp;\n",
+      "say": "b에는 보관해 둔 temp를 넣어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "4 9예요. temp가 9를 들고 있어서 두 값이 모두 살아남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 두 줄의 순서만 바꿔 b = a를 먼저 쓰면 9 9가 돼요. 어느 순서든 하나는 덮어써지니 보관할 곳이 필요해요.",
+      "target": "code:int temp = a;"
+    }
+  ]
+}

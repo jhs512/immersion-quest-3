@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "26cd4612af5e2ccbe26736097f44758174b588048ee0219a4a088271a519c6f5",
+  "entry": [
+    {
+      "action": "say",
+      "text": "어떤 계산을 할지는 r 안의 apply가 정해요. 그 필드로 함수를 부르는 문제예요.",
+      "target": "text:printf가 r의 apply 필드로 stock과 r.amount를 계산한 값을 출력하게 고치세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "20이 나왔어요. 아직 규칙을 쓰지 않았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    printf(\"%d\", stock);",
+      "after": "    printf(\"%d\", r.apply(r.amount, stock));",
+      "say": "필드 apply를 함수처럼 불러요. 인수는 양부터 넣어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "-14가 나왔어요. sub(a, b)는 a - b라서 6 - 20을 계산했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "r.apply(r.amount, stock)",
+      "after": "r.apply(stock, r.amount)",
+      "say": "재고에서 양을 빼도록 인수 순서를 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "14가 나왔어요. r.apply가 sub를 담고 있어서 20 - 6을 계산했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 함수 포인터로 불러도 인수 순서는 담긴 함수의 매개변수 순서를 따라요. 바꾸면 부호가 뒤집혀요.",
+      "target": "code:r.apply(stock, r.amount)"
+    }
+  ]
+}

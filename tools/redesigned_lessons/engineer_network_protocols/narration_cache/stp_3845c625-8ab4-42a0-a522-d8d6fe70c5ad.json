@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "c71fc1b4b0967d16c4f4f00acca5ff467f204353056d6ff9f254e4564e4742f7",
+  "entry": [
+    {
+      "action": "say",
+      "text": "바깥에서 먼저 온 패킷을 어떻게 다룰지 정하는 문제예요.",
+      "target": "text:표에 없는 포트로 온 패킷은 dropped가 찍히게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "40001과 40000은 각자 PC로 갔어요. 공인 포트로 표를 찾아 되돌렸어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "40500도 첫 PC로 들어갔어요. 아무도 열지 않은 연결이 안으로 샌 거예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "table.get(port, FIRST_PC)",
+      "after": "table.get(port, 'dropped')",
+      "say": "표에 없으면 버려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "40500 -> dropped예요. 표에 적힌 공인 포트만 안으로 바뀌어 들어가요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 응답은 내부 포트 5000이 아니라 공인 포트 40000으로 와요. 5000으로 표를 찾으면 아무것도 안 맞아요.",
+      "target": "code:table.get(port, 'dropped')"
+    }
+  ]
+}

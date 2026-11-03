@@ -1,0 +1,94 @@
+{
+  "by": "hand",
+  "source_sha256": "f29029cf7fe58b78b1ed7349403f10c5d8fba89f3d2f6b7c895adc9bf685593d",
+  "entry": [
+    {
+      "action": "say",
+      "text": "출고는 stock에서만 일어나고 backup은 그대로여야 해요.",
+      "target": "text:출고 뒤에도 백업이 출고 전 재고를 지키게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[5, 8]이 두 번 나왔어요. backup에서도 2가 빠졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "print(stock, backup, out)",
+      "after": "print(stock, backup, out, backup is stock)",
+      "say": "backup is stock도 함께 출력해 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "끝에 True가 붙었어요. backup과 stock은 같은 목록에 붙은 두 이름이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "backup = stock\n",
+      "after": "backup = stock[:]\n",
+      "say": "처음부터 끝까지 잘라 새 목록을 만들어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[5, 8], [5, 8, 2], 2, False예요. pop은 stock에서만 2를 뺐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "backup = stock[:]",
+      "after": "backup = [stock]",
+      "say": "대괄호로 감싸서 백업해 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "backup이 [[5, 8]]이에요. 새 목록 안에 같은 stock이 한 칸으로 들어 있어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. [stock]은 복사가 아니라 stock을 원소로 담은 목록이에요. 출고하면 안쪽도 같이 줄어요.",
+      "target": "code:[stock]"
+    },
+    {
+      "action": "patch_code",
+      "before": "backup = [stock]",
+      "after": "backup = stock[:]",
+      "say": "슬라이스 복사로 되돌려요."
+    },
+    {
+      "action": "patch_code",
+      "before": "print(stock, backup, out, backup is stock)",
+      "after": "print(stock, backup, out)",
+      "say": "출력도 세 값으로 되돌려요."
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "by": "hand",
+  "source_sha256": "96fe4142fc92d3af68fea56bf15a5eb33d4209705d5d1fb7a7655b68fcc3c888",
+  "entry": [
+    {
+      "action": "say",
+      "text": "Sms는 Notice의 약속을 지키는 클래스예요. 선언 줄의 키워드가 문제예요.",
+      "target": "text:Sms 선언 줄의 키워드 하나를 고쳐 알림 문장이 출력되게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        7
+      ],
+      "expect_error": "no interface expected here"
+    },
+    {
+      "action": "say",
+      "text": "컴파일 오류예요. extends 뒤에는 클래스가 와야 하는데 인터페이스가 왔대요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "class Sms extends Notice",
+      "after": "class Sms implements Notice",
+      "say": "인터페이스는 implements로 구현해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        17,
+        17
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[문자] 민지님, 배송이 출발했어요가 나왔어요. Notice형 변수 n으로 Sms의 message를 불렀어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    public String message",
+      "after": "    String message",
+      "say": "구현 메서드에서 public을 빼 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        8
+      ],
+      "expect_error": "weaker access privileges"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 인터페이스 메서드는 public이라 구현도 public이어야 해요. 빼면 접근 범위를 좁힌다는 오류가 나요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    String message(String name) {\n        return",
+      "after": "    public String message(String name) {\n        return",
+      "say": "public을 다시 붙여요."
+    }
+  ]
+}

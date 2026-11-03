@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "825439bdc90d3d0d08a3bda561219307f21db942913498006313513536320471",
+  "entry": [
+    {
+      "action": "say",
+      "text": "같은 태그로 다시 물으면 본문 없이 304로 답하는 문제예요.",
+      "target": "text:받은 태그가 지금 태그와 같으면 304와 빈 본문을 돌려주는 줄을 넣으세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        14
+      ]
+    },
+    {
+      "action": "say",
+      "text": "200 10이 세 번 나왔어요. 같은 본문 10글자를 매번 다시 보냈어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    return 200, body, tag\n",
+      "after": "    if if_none_match:\n        return 304, '', tag\n    return 200, body, tag\n",
+      "say": "태그가 왔으면 304를 주게 해 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "200 10, 304 0, 304 0이에요. 세 번째 옛 태그 v0에도 304를 줬어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 태그가 왔는지만 보면 낡은 태그에도 304를 줘요. 클라이언트는 옛 본문을 계속 써요.",
+      "target": "code:if if_none_match:"
+    },
+    {
+      "action": "patch_code",
+      "before": "if if_none_match:",
+      "after": "if if_none_match == tag:",
+      "say": "받은 태그가 지금 태그와 같은지 비교해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        16
+      ]
+    },
+    {
+      "action": "say",
+      "text": "200 10, 304 0, 200 10이 나왔어요. 지금 태그 v10과 같은 두 번째만 304예요.",
+      "target": "output"
+    }
+  ]
+}

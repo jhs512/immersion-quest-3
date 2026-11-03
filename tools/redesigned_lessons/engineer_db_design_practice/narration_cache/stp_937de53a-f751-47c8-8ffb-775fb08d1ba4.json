@@ -1,0 +1,69 @@
+{
+  "by": "hand",
+  "source_sha256": "e465bea7045c19a2415dee67e697f22bf1076b256b25663973421d379e08257a",
+  "entry": [
+    {
+      "action": "say",
+      "text": "달로 먼저, 그 안을 나머지로 나누는 조합 분할이에요. 조각 이름이 조회와 맞아야 해요.",
+      "target": "text:route의 return 한 줄을 고쳐 조각 이름이 「달/나머지」가 되게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "4 [] 0이에요. 조각은 넷인데 1월 조각을 하나도 못 골랐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "101번은 1/2026-01이 돼요. 이름이 나머지로 시작해서 startswith(want)에 걸리지 않아요.",
+      "target": "code:p.startswith(want)"
+    },
+    {
+      "action": "patch_code",
+      "before": "    return str(order_id % 2) + '/' + month\n",
+      "after": "    return month\n",
+      "say": "달로만 나눠 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2 ['2026-01'] 90이에요. 금액은 맞지만 1월 세 건이 한 조각에 몰렸어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 해시 하위 분할을 빼면 붐비는 달이 한 조각에 다시 쌓여요. 달 뒤에 나머지를 붙여야 해요.",
+      "target": "code:return month"
+    },
+    {
+      "action": "patch_code",
+      "before": "    return month\n",
+      "after": "    return month + '/' + str(order_id % 2)\n",
+      "say": "달을 앞에, 나머지를 뒤에 붙여요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "4 ['2026-01/0', '2026-01/1'] 90이에요. 1월 두 조각만 읽고 40과 30, 20을 더했어요.",
+      "target": "output"
+    }
+  ]
+}

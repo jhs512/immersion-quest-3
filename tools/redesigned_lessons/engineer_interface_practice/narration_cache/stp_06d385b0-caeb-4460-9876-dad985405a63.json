@@ -1,0 +1,71 @@
+{
+  "by": "hand",
+  "source_sha256": "120c544e823a2dcf9daa1aaa4b26f15bb3abdc68fc943ca38b3417a05114bcdf",
+  "entry": [
+    {
+      "action": "say",
+      "text": "클라이언트는 그대로 두고 서버 응답만 고치는 문제예요.",
+      "target": "text:respond의 return 한 줄만 고쳐 옛 클라이언트와 새 클라이언트가 모두 수량을 읽게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        8
+      ],
+      "expect_error": "KeyError"
+    },
+    {
+      "action": "say",
+      "text": "KeyError 'qty'가 났어요. 옛 클라이언트가 찾는 qty 칸이 사라졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "'quantity': n}",
+      "after": "'qty': n}",
+      "say": "이름을 qty로 되돌려 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        8
+      ],
+      "expect_error": "KeyError"
+    },
+    {
+      "action": "say",
+      "text": "이번엔 KeyError 'quantity'예요. 새 클라이언트가 멈췄어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 이름을 이쪽저쪽 바꾸기만 하면 둘 중 한 클라이언트는 꼭 깨져요.",
+      "target": "code:'qty': n}"
+    },
+    {
+      "action": "patch_code",
+      "before": "'qty': n}",
+      "after": "'qty': n, 'quantity': n}",
+      "say": "옛 이름을 남기고 새 이름을 더해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "3 3이 나왔어요. 옛 클라이언트는 qty를, 새 클라이언트는 quantity를 읽었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "칸을 더한 것뿐이라 아무도 깨지지 않았어요. 옛 이름은 모두 옮겨 간 뒤에 지워요.",
+      "target": "code:'quantity': n}"
+    }
+  ]
+}

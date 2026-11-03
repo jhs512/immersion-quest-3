@@ -1,0 +1,1024 @@
+{
+  "description": "끝 표시 \\0까지 걷기, 글자 코드 계산, 문자 배열 제자리 수정, 문자열 포인터 오프셋, 배열·주소를 받는 함수를 한 줄씩 고치며 추적해요.",
+  "tasks": [
+    {
+      "id": "stp_8760df33-513d-446e-a154-7e569aa7a688",
+      "title": "끝 표시를 만날 때까지 걸어 라벨 길이를 세세요",
+      "goal": "strlen 없이 라벨의 글자 수를 직접 세려 해요. 지금 반복은 정해진 횟수만 돌아요.\n\n**알아두세요**\n\n문자열은 마지막 글자 뒤에 끝 표시 \\0이 있어요. 그 칸을 만날 때까지 걸으면 걸은 횟수가 글자 수예요.\n\nwhile의 조건을 고쳐 label의 글자가 끝 표시가 아닌 동안 반복하게 하세요. 채점은 다른 라벨로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 센 수를 확인하세요.\n2. while의 조건 한 곳을 고치세요.\n3. 다시 실행해 CRATE의 글자 수와 같은지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint main(void) {\n    char label[] = \"CRATE\";\n    int i = 0;\n    // 조건이 참인 동안 i를 하나씩 늘려요.\n    while (i < 4) {\n        i++;\n    }\n    printf(\"%d\", i);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint main(void) {\n    char label[] = \"CRATE\";\n    int i = 0;\n    // 조건이 참인 동안 i를 하나씩 늘려요.\n    while (label[i] != '\\0') {\n        i++;\n    }\n    printf(\"%d\", i);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "5"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "label": "\"BOX\""
+          },
+          "expected": "3"
+        },
+        {
+          "values": {
+            "label": "\"PALLETS\""
+          },
+          "expected": "7"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "라벨이 바뀌어도 글자 수를 맞게 세야 해요. 끝 표시를 반복의 멈춤 조건으로 쓰는 문제예요.",
+          "target": "text:while의 조건을 고쳐 label의 글자가 끝 표시가 아닌 동안 반복하게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4가 나왔어요. 조건이 i < 4라서 라벨과 상관없이 네 번만 돌았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "while (i < 4) {",
+          "after": "while (label[i] != '\\0') {",
+          "say": "지금 칸이 끝 표시가 아닌 동안 돌도록 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "5가 나왔어요. C, R, A, T, E를 지나 끝 표시에서 멈췄어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "i가 5일 때 label[5]가 끝 표시예요. 끝 표시의 위치가 곧 글자 수예요.",
+          "target": "code:label[i] != '\\0'"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 역슬래시를 빼고 '0'이라 쓰면 숫자 글자 0을 찾아요. 끝 표시는 '\\0'이에요.",
+          "target": "code:'\\0'"
+        }
+      ]
+    },
+    {
+      "id": "stp_5104e960-5c49-42fe-a49c-fbc9f486efb2",
+      "title": "센 길이로 라벨의 마지막 글자를 출력하세요",
+      "goal": "이번에는 포인터 p로 끝 표시까지 걸으며 len을 세요. 그런데 준비된 printf는 len 위치의 글자를 코드값(%d)으로 출력해요.\n\nprintf 한 줄을 고쳐 라벨의 마지막 글자 하나를 글자(%c)로 출력하세요. 채점은 다른 라벨로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 len 위치에 무엇이 있는지 확인하세요.\n2. printf의 서식과 위치를 한 줄에서 고치세요.\n3. 다시 실행해 CRATE의 마지막 글자가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint main(void) {\n    char label[] = \"CRATE\";\n    char *p = label;\n    int len = 0;\n    // p가 가리키는 글자가 끝 표시가 아닌 동안 한 칸씩 걸어요.\n    while (*p != '\\0') {\n        len++;\n        p++;\n    }\n    // 이 printf를 고쳐 라벨의 마지막 글자를 출력하세요.\n    printf(\"%d\", label[len]);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint main(void) {\n    char label[] = \"CRATE\";\n    char *p = label;\n    int len = 0;\n    // p가 가리키는 글자가 끝 표시가 아닌 동안 한 칸씩 걸어요.\n    while (*p != '\\0') {\n        len++;\n        p++;\n    }\n    // 이 printf를 고쳐 라벨의 마지막 글자를 출력하세요.\n    printf(\"%c\", label[len - 1]);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "E"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "label": "\"BOX\""
+          },
+          "expected": "X"
+        },
+        {
+          "values": {
+            "label": "\"A\""
+          },
+          "expected": "A"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "센 길이로 마지막 글자를 찾는 문제예요. 길이 자리와 마지막 글자 자리가 같은지 봐야 해요.",
+          "target": "text:printf 한 줄을 고쳐 라벨의 마지막 글자 하나를 글자(%c)로 출력하세요."
+        },
+        {
+          "action": "say",
+          "text": "*p는 p가 가리키는 칸이에요. p가 한 칸씩 옮겨 가니 label[len]과 같은 칸을 읽어요.",
+          "target": "code:*p != '\\0'"
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0이 나왔어요. len 자리에는 끝 표시가 있고, 그 코드값이 0이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "printf(\"%d\", label[len]);",
+          "after": "printf(\"%c\", label[len - 1]);",
+          "say": "서식을 %c로, 위치를 하나 앞인 len - 1로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "E가 나왔어요. 글자는 0번부터라 다섯 글자의 마지막은 4번이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 서식만 %c로 바꾸고 len을 그대로 두면 끝 표시를 찍어 화면에 아무것도 안 보여요.",
+          "target": "code:len - 1"
+        }
+      ]
+    },
+    {
+      "id": "stp_da02e400-cedb-4393-aa99-b00b07ff19ed",
+      "title": "등급 글자가 A에서 몇 칸 떨어졌는지 계산하세요",
+      "goal": "상자 등급 grade를 A는 0, B는 1처럼 A에서 몇 칸 떨어졌는지로 바꾸려 해요. 지금은 grade를 %d로 그대로 출력해요.\n\nprintf의 식을 고쳐 grade가 'A'에서 몇 칸 떨어졌는지 출력하세요. 채점은 다른 등급으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 grade를 %d로 출력한 값을 확인하세요.\n2. printf의 출력 식을 고치세요.\n3. 다시 실행해 D가 A에서 몇 칸인지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint main(void) {\n    char grade = 'D';\n    // 이 printf를 고쳐 grade가 A에서 몇 칸 떨어졌는지 출력하세요.\n    printf(\"%d\", grade);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint main(void) {\n    char grade = 'D';\n    // 이 printf를 고쳐 grade가 A에서 몇 칸 떨어졌는지 출력하세요.\n    printf(\"%d\", grade - 'A');\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "3"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "grade": "'A'"
+          },
+          "expected": "0"
+        },
+        {
+          "values": {
+            "grade": "'Z'"
+          },
+          "expected": "25"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "D가 A에서 몇 칸 떨어졌는지 숫자로 구하는 문제예요.",
+          "target": "text:printf의 식을 고쳐 grade가 'A'에서 몇 칸 떨어졌는지 출력하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "68이 나왔어요. %d로 찍으면 글자 대신 그 글자의 코드가 보여요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "printf(\"%d\", grade);",
+          "after": "printf(\"%d\", grade - 'a');",
+          "say": "기준 글자를 빼 볼게요. 먼저 소문자 a로 해 봐요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "-29가 나왔어요. 소문자 a의 코드 97이 대문자 D보다 커요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "grade - 'a'",
+          "after": "grade - 'A'",
+          "say": "기준을 대문자 A로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3이 나왔어요. 68에서 A의 코드 65를 뺀 차이예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 대문자와 소문자는 코드가 달라요. 같은 종류의 기준 글자를 빼야 해요.",
+          "target": "code:'A'"
+        }
+      ]
+    },
+    {
+      "id": "stp_c88d341b-19f3-4003-b188-09c5648a2866",
+      "title": "알파벳 끝을 넘으면 A로 돌아가게 글자를 미세요",
+      "goal": "대문자 라벨의 글자를 알파벳에서 k칸씩 뒤로 밀어 간단한 암호를 만들려 해요. Z 다음은 다시 A부터 이어져야 해요.\n\n**알아두세요**\n\n알파벳 위치(0~25)로 바꾼 뒤 k를 더하고 26으로 나눈 나머지를 구하면, 끝을 넘은 위치가 처음으로 돌아가요.\n\n글자를 바꾸는 줄 한 곳을 고쳐 Z 다음이 A로 이어지게 하세요. 채점은 다른 라벨과 k로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 결과를 확인하세요.\n2. word[i]에 대입하는 식을 한 줄 고치세요.\n3. 다시 실행해 Z가 알파벳 처음 쪽 글자로 바뀌었는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint main(void) {\n    char word[] = \"ZOO\";\n    int k = 3;\n    int i = 0;\n    while (word[i] != '\\0') {\n        // 대문자 하나를 알파벳에서 k칸 뒤 글자로 바꿔요.\n        word[i] = word[i] + k;\n        i++;\n    }\n    printf(\"%s\", word);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint main(void) {\n    char word[] = \"ZOO\";\n    int k = 3;\n    int i = 0;\n    while (word[i] != '\\0') {\n        // 대문자 하나를 알파벳에서 k칸 뒤 글자로 바꿔요.\n        word[i] = (word[i] - 'A' + k) % 26 + 'A';\n        i++;\n    }\n    printf(\"%s\", word);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "CRR"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "word": "\"XYZ\"",
+            "k": "5"
+          },
+          "expected": "CDE"
+        },
+        {
+          "values": {
+            "word": "\"HELLO\"",
+            "k": "13"
+          },
+          "expected": "URYYB"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "k칸 민 글자가 알파벳 끝을 넘으면 처음으로 돌아가야 해요.",
+          "target": "text:글자를 바꾸는 줄 한 곳을 고쳐 Z 다음이 A로 이어지게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "첫 글자가 ]로 나왔어요. Z의 코드에 3을 더하니 알파벳 밖 기호가 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "word[i] = word[i] + k;",
+          "after": "word[i] = (word[i] - 'A' + k) % 25 + 'A';",
+          "say": "위치로 바꿔 더한 뒤 나머지로 돌려 볼게요. 먼저 25로 나눠 봐요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "DRR이 나왔어요. Z는 C여야 하는데 한 칸 더 갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "% 25",
+          "after": "% 26",
+          "say": "알파벳은 26글자니 26으로 나눠요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "CRR이 나왔어요. Z의 위치 25에 3을 더한 28이 26으로 나뉘어 2, C가 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 나누는 수는 글자 개수 26이에요. 마지막 위치 25로 나누면 Z 근처가 틀어져요.",
+          "target": "code:% 26"
+        }
+      ]
+    },
+    {
+      "id": "stp_d34979dd-bc61-43b5-bc14-f0cd1470ae73",
+      "title": "양 끝 교환이 가운데에서 멈추게 해 라벨을 뒤집으세요",
+      "goal": "라벨 STOCK을 거꾸로 붙이려 해요. left는 앞에서, right는 뒤에서 출발해 두 글자를 바꾸고 한 칸씩 다가가요. 그런데 결과가 원래 라벨 그대로예요.\n\nfor의 반복 조건 한 곳을 고쳐 라벨이 뒤집히게 하세요. 채점은 길이가 짝수인 라벨로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 결과를 확인하세요.\n2. for의 반복 조건을 한 곳 고치세요.\n3. 다시 실행해 라벨이 거꾸로 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint main(void) {\n    char tag[] = \"STOCK\";\n    int len = 0;\n    int left, right;\n    char temp;\n    while (tag[len] != '\\0') {\n        len++;\n    }\n    // 양 끝 글자를 바꾸며 가운데로 한 칸씩 다가가요.\n    for (left = 0, right = len - 1; left < len; left++, right--) {\n        temp = tag[left];\n        tag[left] = tag[right];\n        tag[right] = temp;\n    }\n    printf(\"%s\", tag);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint main(void) {\n    char tag[] = \"STOCK\";\n    int len = 0;\n    int left, right;\n    char temp;\n    while (tag[len] != '\\0') {\n        len++;\n    }\n    // 양 끝 글자를 바꾸며 가운데로 한 칸씩 다가가요.\n    for (left = 0, right = len - 1; left < right; left++, right--) {\n        temp = tag[left];\n        tag[left] = tag[right];\n        tag[right] = temp;\n    }\n    printf(\"%s\", tag);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "KCOTS"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "tag": "\"AB\""
+          },
+          "expected": "BA"
+        },
+        {
+          "values": {
+            "tag": "\"LEVELS\""
+          },
+          "expected": "SLEVEL"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "교환은 맞는데 결과가 그대로예요. 언제 멈춰야 하는지가 이 문제예요.",
+          "target": "text:그런데 결과가 원래 라벨 그대로예요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "STOCK 그대로예요. 다섯 번 바꾸니 앞의 두 쌍을 뒤에서 한 번씩 더 바꿨어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "두 번 바꾼 쌍은 원래 자리로 돌아와요. left가 right를 지나면 멈춰야 해요.",
+          "target": "code:left < len"
+        },
+        {
+          "action": "patch_code",
+          "before": "left < len;",
+          "after": "left < right;",
+          "say": "left가 right보다 앞에 있는 동안만 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "KCOTS가 나왔어요. S와 K, T와 C를 바꾸고 가운데 O에서 멈췄어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_bc566c00-756a-4274-83d8-7def856194a4",
+      "title": "짧은 이름을 덮어쓴 뒤 끝 표시를 붙이세요",
+      "goal": "선반 이름표 BANANA 자리에 새 이름 FIG를 써 넣으려 해요. 준비 코드는 FIG의 글자만 앞에서부터 옮겨요. 출력의 두 번째 값은 shelf[5]에 남은 글자예요.\n\n반복 뒤에 한 줄을 더해 shelf를 %s로 출력하면 옮긴 이름만 보이게 하세요. 채점은 다른 이름으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 이름표를 확인하세요.\n2. 주석 아래에 shelf의 문자열을 끝내는 한 줄을 쓰세요.\n3. 다시 실행해 %s 출력과 shelf[5]를 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint main(void) {\n    char shelf[] = \"BANANA\";\n    char fresh[] = \"FIG\";\n    int i = 0;\n    // fresh의 글자를 shelf 앞쪽에 한 글자씩 옮겨요.\n    while (fresh[i] != '\\0') {\n        shelf[i] = fresh[i];\n        i++;\n    }\n    // 이 주석 아래에 shelf의 문자열이 옮긴 글자에서 끝나게 하는 줄을 쓰세요.\n    printf(\"%s %c\", shelf, shelf[5]);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint main(void) {\n    char shelf[] = \"BANANA\";\n    char fresh[] = \"FIG\";\n    int i = 0;\n    // fresh의 글자를 shelf 앞쪽에 한 글자씩 옮겨요.\n    while (fresh[i] != '\\0') {\n        shelf[i] = fresh[i];\n        i++;\n    }\n    // 이 주석 아래에 shelf의 문자열이 옮긴 글자에서 끝나게 하는 줄을 쓰세요.\n    shelf[i] = '\\0';\n    printf(\"%s %c\", shelf, shelf[5]);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "FIG A"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "fresh": "\"KIWI\""
+          },
+          "expected": "KIWI A"
+        },
+        {
+          "values": {
+            "shelf": "\"CHERRY\""
+          },
+          "expected": "FIG Y"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "글자를 옮긴 뒤 이름이 어디서 끝나는지 정해야 해요.",
+          "target": "text:반복 뒤에 한 줄을 더해 shelf를 %s로 출력하면 옮긴 이름만 보이게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "FIGANA A가 나왔어요. 앞 세 칸만 바뀌고 BANANA의 뒤 글자가 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    // 이 주석 아래에 shelf의 문자열이 옮긴 글자에서 끝나게 하는 줄을 쓰세요.\n",
+          "after": "    // 이 주석 아래에 shelf의 문자열이 옮긴 글자에서 끝나게 하는 줄을 쓰세요.\n    shelf[i + 1] = '\\0';\n",
+          "say": "끝 표시를 써 볼게요. 먼저 i + 1 칸에 써 봐요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "FIGA A가 나왔어요. 반복이 끝난 i는 이미 3이라, 한 칸을 더 건너뛰었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "shelf[i + 1] = '\\0';",
+          "after": "shelf[i] = '\\0';",
+          "say": "옮긴 글자 바로 뒤인 i 칸에 끝 표시를 써요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "FIG A가 나왔어요. %s는 3번 칸의 끝 표시에서 멈췄어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "shelf[5]의 A는 그대로 남아 있어요. 지워진 게 아니라 %s가 거기까지 가지 않을 뿐이에요.",
+          "target": "code:shelf[5]"
+        }
+      ]
+    },
+    {
+      "id": "stp_73dc7bcd-1e46-4937-a378-12fad2706a99",
+      "title": "상품 코드에서 번호 부분만 출력하세요",
+      "goal": "상품 코드는 WH-로 시작하고 그 뒤가 번호예요. 번호의 길이는 상품마다 달라요. 지금 printf는 번호의 첫 글자 하나만 출력해요.\n\nprintf 한 줄을 고쳐 WH- 뒤의 번호 전체를 출력하세요. 채점은 다른 상품 코드로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력을 확인하세요.\n2. printf의 서식과 넘기는 값을 한 줄에서 고치세요.\n3. 다시 실행해 번호 전체가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint main(void) {\n    char code[] = \"WH-2048\";\n    char *p = code;\n    // 앞 세 칸 WH-를 건너뛴 위치를 출력해요.\n    printf(\"%c\", *(p + 3));\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint main(void) {\n    char code[] = \"WH-2048\";\n    char *p = code;\n    // 앞 세 칸 WH-를 건너뛴 위치를 출력해요.\n    printf(\"%s\", p + 3);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "2048"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "code": "\"WH-77\""
+          },
+          "expected": "77"
+        },
+        {
+          "values": {
+            "code": "\"WH-5\""
+          },
+          "expected": "5"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "번호 길이가 달라도 WH- 뒤를 끝까지 출력해야 해요.",
+          "target": "text:printf 한 줄을 고쳐 WH- 뒤의 번호 전체를 출력하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2만 나왔어요. %c는 *(p + 3), 곧 3번 칸 글자 하나만 찍어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "printf(\"%c\", *(p + 3));",
+          "after": "printf(\"%s\", p + 3);",
+          "say": "%s에는 * 없이 주소 p + 3을 넘겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2048이 나왔어요. %s는 3번 칸부터 끝 표시 앞까지 이어서 찍어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. %s에 *(p + 3)을 넘기면 주소가 아니라 글자를 넘긴 거예요. %s에는 * 없는 주소를 줘요.",
+          "target": "code:p + 3"
+        }
+      ]
+    },
+    {
+      "id": "stp_ef42bfd6-6da7-4618-98d4-b277865971f4",
+      "title": "*p + k와 *(p + k)를 구별해 k번 칸 글자를 출력하세요",
+      "goal": "코드 MANGO에서 k번 칸(0번부터)의 글자를 꺼내려 해요. 준비된 식은 괄호 없이 *p + k로 썼어요.\n\nprintf의 식을 고쳐 p에서 k칸 떨어진 칸의 글자가 나오게 하세요. 채점은 다른 코드와 k로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 나온 글자를 확인하세요.\n2. printf 안의 식을 고치세요.\n3. 다시 실행해 MANGO의 2번 칸 글자와 같은지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint main(void) {\n    char code[] = \"MANGO\";\n    char *p = code;\n    int k = 2;\n    // p에서 k칸 떨어진 칸의 글자를 출력해요.\n    printf(\"%c\", *p + k);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint main(void) {\n    char code[] = \"MANGO\";\n    char *p = code;\n    int k = 2;\n    // p에서 k칸 떨어진 칸의 글자를 출력해요.\n    printf(\"%c\", *(p + k));\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "N"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "code": "\"PLUM\"",
+            "k": "1"
+          },
+          "expected": "L"
+        },
+        {
+          "values": {
+            "code": "\"BERRY\"",
+            "k": "3"
+          },
+          "expected": "R"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "MANGO의 2번 칸 글자를 꺼내야 해요. 괄호가 없는 식이 무엇을 하는지 보는 문제예요.",
+          "target": "text:준비된 식은 괄호 없이 *p + k로 썼어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "O가 나왔어요. *가 먼저 붙어 M을 읽고, 그 코드에 2를 더해 O가 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "*p + k",
+          "after": "*(p + k)",
+          "say": "주소에 k를 먼저 더하도록 괄호로 묶어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "N이 나왔어요. p에서 두 칸 옮긴 칸을 읽었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "*(p + k)는 p[k]와 같은 칸이에요. 배열 이름으로 code[k]라 써도 같아요.",
+          "target": "code:*(p + k)"
+        }
+      ]
+    },
+    {
+      "id": "stp_85a35acf-ec9d-4109-87d2-be376ade7cf7",
+      "title": "움직이는 포인터로 상자 수를 앞에서부터 누적하세요",
+      "goal": "다섯 칸 상자 수를 앞에서부터 누적해, 각 칸이 자기까지의 합이 되게 하려 해요. p는 box + 1에서 출발해 바로 앞 칸 *(p - 1)을 더해요.\n\n반복 안에 p를 다음 칸으로 옮기는 줄 하나를 더해 다섯 칸이 모두 누적되게 하세요. 채점은 다른 상자 수로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 배열을 확인하세요.\n2. 주석 아래에 p를 한 칸 옮기는 줄을 쓰세요.\n3. 다시 실행해 각 칸이 앞까지의 합인지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint main(void) {\n    int box[5] = {3, 1, 4, 1, 5};\n    int *p = box + 1;\n    int i;\n    // p 칸에 바로 앞 칸의 값을 더해, 앞까지의 합을 쌓아요.\n    for (i = 1; i < 5; i++) {\n        *p = *p + *(p - 1);\n        // 이 주석 아래에 p를 다음 칸으로 옮기는 줄을 쓰세요.\n    }\n    for (i = 0; i < 5; i++) {\n        printf(\"%d \", box[i]);\n    }\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint main(void) {\n    int box[5] = {3, 1, 4, 1, 5};\n    int *p = box + 1;\n    int i;\n    // p 칸에 바로 앞 칸의 값을 더해, 앞까지의 합을 쌓아요.\n    for (i = 1; i < 5; i++) {\n        *p = *p + *(p - 1);\n        // 이 주석 아래에 p를 다음 칸으로 옮기는 줄을 쓰세요.\n        p++;\n    }\n    for (i = 0; i < 5; i++) {\n        printf(\"%d \", box[i]);\n    }\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "3 4 8 9 14 "
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "box": "{2, 2, 2, 2, 2}"
+          },
+          "expected": "2 4 6 8 10 "
+        },
+        {
+          "values": {
+            "box": "{5, 0, 0, 0, 1}"
+          },
+          "expected": "5 5 5 5 6 "
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "p를 옮기며 바로 앞 칸을 더해 누적하는 문제예요.",
+          "target": "text:반복 안에 p를 다음 칸으로 옮기는 줄 하나를 더해 다섯 칸이 모두 누적되게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3 13 4 1 5예요. p가 1번 칸에 머물러 3을 네 번 더했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 이 주석 아래에 p를 다음 칸으로 옮기는 줄을 쓰세요.\n",
+          "after": "        // 이 주석 아래에 p를 다음 칸으로 옮기는 줄을 쓰세요.\n        p++;\n",
+          "say": "매 회차 끝에 p를 다음 칸으로 옮겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3 4 8 9 14예요. 2번 칸의 8은 방금 바뀐 앞 칸 4에 4를 더한 값이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "*(p - 1)은 지금 p 바로 앞 칸이에요. p가 옮겨 가면 가리키는 앞 칸도 따라 바뀌어요.",
+          "target": "code:*(p - 1)"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. (*p)++라고 쓰면 칸이 아니라 값이 1 늘어요. 칸을 옮기는 건 p++예요.",
+          "target": "code:p++;"
+        }
+      ]
+    },
+    {
+      "id": "stp_b1dbc889-a9b0-4fa3-a590-430953c86820",
+      "title": "함수에서 배열 칸을 두 배로 바꾸세요",
+      "goal": "double_all은 상자 칸 배열 bins와 정수 extra를 받아요. 칸의 수를 모두 두 배로 바꾸는 줄이 아직 비어 있어요. extra를 두 배로 하는 줄은 이미 있어요.\n\ndouble_all의 반복 안에 bins[i]를 두 배로 바꾸는 줄을 쓰세요. 실행 뒤 main에서 배열과 extra 중 무엇이 바뀌었는지 비교하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 결과를 확인하세요.\n2. 주석 아래에 bins[i]를 두 배로 바꾸는 줄을 쓰세요.\n3. 다시 실행해 main의 배열과 extra를 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\n// 모든 칸의 수를 두 배로 늘리고, extra도 두 배로 바꿔 봐요.\nvoid double_all(int bins[], int n, int extra) {\n    int i;\n    for (i = 0; i < n; i++) {\n        // 이 주석 아래에 bins[i]를 두 배로 바꾸는 줄을 쓰세요.\n    }\n    extra = extra * 2;\n}\n\nint main(void) {\n    int bins[3] = {4, 1, 6};\n    int extra = 5;\n    double_all(bins, 3, extra);\n    printf(\"%d %d %d %d\", bins[0], bins[1], bins[2], extra);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\n// 모든 칸의 수를 두 배로 늘리고, extra도 두 배로 바꿔 봐요.\nvoid double_all(int bins[], int n, int extra) {\n    int i;\n    for (i = 0; i < n; i++) {\n        // 이 주석 아래에 bins[i]를 두 배로 바꾸는 줄을 쓰세요.\n        bins[i] = bins[i] * 2;\n    }\n    extra = extra * 2;\n}\n\nint main(void) {\n    int bins[3] = {4, 1, 6};\n    int extra = 5;\n    double_all(bins, 3, extra);\n    printf(\"%d %d %d %d\", bins[0], bins[1], bins[2], extra);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "8 2 12 5"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "bins": "{3, 0, 7}",
+            "extra": "9"
+          },
+          "expected": "6 0 14 9"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "함수 안에서 배열 칸과 extra를 둘 다 두 배로 해요. main에 무엇이 남는지 보는 문제예요.",
+          "target": "text:실행 뒤 main에서 배열과 extra 중 무엇이 바뀌었는지 비교하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4 1 6 5예요. 반복이 비어 있어 칸은 그대로고, extra도 5예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 이 주석 아래에 bins[i]를 두 배로 바꾸는 줄을 쓰세요.\n",
+          "after": "        // 이 주석 아래에 bins[i]를 두 배로 바꾸는 줄을 쓰세요.\n        bins[i] = bins[i] * 2;\n",
+          "say": "반복 안에서 칸의 값을 두 배로 써요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "8 2 12 5예요. 배열 칸은 두 배가 됐는데 extra는 5 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "bins에는 main 배열의 첫 칸 주소가 가요. extra는 값 5의 복사본이라 함수 안에서만 10이 됐어요.",
+          "target": "code:extra = extra * 2;"
+        },
+        {
+          "action": "patch_code",
+          "before": "void double_all(int bins[], int n, int extra)",
+          "after": "void double_all(int *bins, int n, int extra)",
+          "say": "매개변수를 int *bins로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "똑같이 8 2 12 5예요. 매개변수 int bins[]는 사실 int *bins와 같은 포인터예요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_90ee70b5-2b8d-465d-a427-76b727ef6139",
+      "title": "같은 buffer를 돌려받은 이름표를 따로 저장하세요",
+      "goal": "make_tag로 이름표 두 개를 만들어 a와 b에 받았어요. 그런데 두 이름표가 같은 이름으로 나와요.\n\n**알아두세요**\n\nstrcpy(받을 배열, 보낼 문자열)은 끝 표시까지 글자를 복사해요. 받을 배열에 충분한 칸이 있어야 해요.\n\n두 번째 호출 전에 a의 이름을 saved에 복사하고, printf가 a 대신 saved를 출력하게 하세요. 채점은 다른 이름으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 두 이름표를 확인하세요.\n2. 주석 아래에 a의 이름을 saved에 복사하는 줄을 쓰세요.\n3. printf에서 a를 saved로 바꾸세요.\n4. 다시 실행해 두 이름표가 다른지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n#include <string.h>\n\n// 이름표를 만들 때마다 같은 buffer를 다시 써요.\nchar buffer[20];\n\n// 받은 이름을 buffer에 복사하고 buffer의 주소를 돌려줘요.\nchar *make_tag(char name[]) {\n    strcpy(buffer, name);\n    return buffer;\n}\n\nint main(void) {\n    char first[] = \"PEAR\";\n    char second[] = \"PLUM\";\n    char saved[20];\n    char *a = make_tag(first);\n    // 이 주석 아래에 a가 가리키는 이름을 saved에 복사하세요.\n    char *b = make_tag(second);\n    printf(\"%s %s\", a, b);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n#include <string.h>\n\n// 이름표를 만들 때마다 같은 buffer를 다시 써요.\nchar buffer[20];\n\n// 받은 이름을 buffer에 복사하고 buffer의 주소를 돌려줘요.\nchar *make_tag(char name[]) {\n    strcpy(buffer, name);\n    return buffer;\n}\n\nint main(void) {\n    char first[] = \"PEAR\";\n    char second[] = \"PLUM\";\n    char saved[20];\n    char *a = make_tag(first);\n    // 이 주석 아래에 a가 가리키는 이름을 saved에 복사하세요.\n    strcpy(saved, a);\n    char *b = make_tag(second);\n    printf(\"%s %s\", saved, b);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "PEAR PLUM"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "first": "\"FIG\"",
+            "second": "\"LIME\""
+          },
+          "expected": "FIG LIME"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "이름표를 두 번 만들었는데 같은 이름이 나와요. a와 b가 무엇을 받았는지 보는 문제예요.",
+          "target": "text:그런데 두 이름표가 같은 이름으로 나와요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            20,
+            20
+          ]
+        },
+        {
+          "action": "say",
+          "text": "PLUM PLUM이에요. PEAR는 두 번째 호출이 buffer를 덮어쓰며 사라졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "printf(\"%s %s\", a, b);",
+          "after": "printf(\"%s %s %d\", a, b, a == b);",
+          "say": "두 주소가 같은지 a == b도 같이 찍어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            20,
+            20
+          ]
+        },
+        {
+          "action": "say",
+          "text": "끝에 1이 나왔어요. a와 b는 같은 buffer의 주소예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    // 이 주석 아래에 a가 가리키는 이름을 saved에 복사하세요.\n",
+          "after": "    // 이 주석 아래에 a가 가리키는 이름을 saved에 복사하세요.\n    strcpy(saved, a);\n",
+          "say": "덮어쓰이기 전에 a의 글자를 saved에 복사해 둬요."
+        },
+        {
+          "action": "patch_code",
+          "before": "printf(\"%s %s %d\", a, b, a == b);",
+          "after": "printf(\"%s %s\", saved, b);",
+          "say": "출력은 a 대신 saved로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            21,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "PEAR PLUM이에요. saved는 따로 있는 배열이라 두 번째 호출이 건드리지 못해요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 복사를 두 번째 호출 뒤에 하면 이미 PLUM이 된 buffer를 복사해요.",
+          "target": "code:strcpy(saved, a);"
+        }
+      ]
+    },
+    {
+      "id": "stp_b6507ce3-dc64-43e8-ba77-ae053ad7d41c",
+      "title": "뒤집기 함수가 실제로 글자를 바꾸게 호출을 고치세요",
+      "goal": "reverse는 left와 right로 양 끝에서 다가가며 두 글자를 바꿔 문자열을 뒤집어요. 그런데 실행하면 word가 그대로예요. 바꾸는 함수는 swap_value와 swap_at 두 개가 준비돼 있어요.\n\nreverse 안의 교환 호출 한 줄을 고쳐 word가 실제로 뒤집히게 하세요. 출력의 나머지 두 값은 뒤집힌 word의 3번 칸부터의 문자열과 1번 칸 글자예요.\n\n**할 일**\n\n1. 코드 실행을 눌러 세 출력 값을 확인하세요.\n2. reverse 안의 교환 호출을 한 줄 고치세요.\n3. 다시 실행해 세 값이 모두 뒤집힌 word에서 나왔는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\n// 받은 두 글자를 바꿔요.\nvoid swap_value(char a, char b) {\n    char t = a;\n    a = b;\n    b = t;\n}\n\n// 두 주소에 있는 글자를 바꿔요.\nvoid swap_at(char *a, char *b) {\n    char t = *a;\n    *a = *b;\n    *b = t;\n}\n\n// s가 가리키는 문자열을 제자리에서 뒤집어요.\nvoid reverse(char *s) {\n    char *left = s;\n    char *right = s;\n    while (*right != '\\0') {\n        right++;\n    }\n    right--;\n    while (left < right) {\n        swap_value(*left, *right);\n        left++;\n        right--;\n    }\n}\n\nint main(void) {\n    char word[] = \"DRAWER\";\n    reverse(word);\n    printf(\"%s %s %c\", word, word + 3, *(word + 1));\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\n// 받은 두 글자를 바꿔요.\nvoid swap_value(char a, char b) {\n    char t = a;\n    a = b;\n    b = t;\n}\n\n// 두 주소에 있는 글자를 바꿔요.\nvoid swap_at(char *a, char *b) {\n    char t = *a;\n    *a = *b;\n    *b = t;\n}\n\n// s가 가리키는 문자열을 제자리에서 뒤집어요.\nvoid reverse(char *s) {\n    char *left = s;\n    char *right = s;\n    while (*right != '\\0') {\n        right++;\n    }\n    right--;\n    while (left < right) {\n        swap_at(left, right);\n        left++;\n        right--;\n    }\n}\n\nint main(void) {\n    char word[] = \"DRAWER\";\n    reverse(word);\n    printf(\"%s %s %c\", word, word + 3, *(word + 1));\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "REWARD ARD E"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "word": "\"STRAP\""
+          },
+          "expected": "PARTS TS A"
+        },
+        {
+          "values": {
+            "word": "\"LIVE\""
+          },
+          "expected": "EVIL L V"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "뒤집기 반복은 돌지만 word가 그대로예요. 교환 호출이 무엇을 넘기는지가 이 문제예요.",
+          "target": "text:그런데 실행하면 word가 그대로예요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            35,
+            35
+          ]
+        },
+        {
+          "action": "say",
+          "text": "DRAWER WER R이에요. 세 값 모두 뒤집히기 전 DRAWER에서 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "swap_value는 *left와 *right의 글자 복사본을 받아요. 복사본끼리 바꿔도 word는 그대로예요.",
+          "target": "code:swap_value(*left, *right);"
+        },
+        {
+          "action": "patch_code",
+          "before": "swap_value(*left, *right);",
+          "after": "swap_at(left, right);",
+          "say": "주소 left와 right를 swap_at에 넘겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            35,
+            35
+          ]
+        },
+        {
+          "action": "say",
+          "text": "REWARD ARD E예요. word가 뒤집혔고, 나머지 두 값도 뒤집힌 word에서 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "word + 3은 3번 칸 A부터 끝까지라 ARD, *(word + 1)은 1번 칸 글자 E예요.",
+          "target": "code:*(word + 1)"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 함수 이름에 swap이 있다고 바뀌는 게 아니에요. 주소를 받는 함수여야 원래 칸이 바뀌어요.",
+          "target": "code:swap_at(left, right);"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "\\0을 반복의 끝 조건으로 써서 길이를 세고 마지막 글자를 찾아요.",
+      "글자를 정수 코드로 계산해 알파벳 위치와 순환 이동을 만들어요.",
+      "문자 배열을 제자리에서 뒤집고 덮어쓰며 \\0의 위치가 출력 범위를 정함을 확인해요.",
+      "%s와 %c에 포인터 오프셋을 넘기고 *p + k와 *(p + k)를 구별해요.",
+      "배열과 주소를 받는 함수, 같은 버퍼를 돌려주는 함수가 호출자에게 남기는 결과를 추적해요."
+    ],
+    "chapters": {
+      "chp_4faf4806-a49b-4513-b16a-b842a26285dd": [
+        "\\0을 반복의 끝 조건으로 쓰고, 글자를 정수 코드로 계산해요."
+      ],
+      "chp_8a6c7a70-8304-4504-b53b-4807c20c13f1": [
+        "char 배열을 제자리에서 바꾸고, 포인터 오프셋으로 원하는 부분을 읽고 써요."
+      ],
+      "chp_18090145-f9b3-4361-ae95-4f6b9b38b1e3": [
+        "함수가 받은 것이 값의 복사본인지 주소인지에 따라 호출자에게 남는 결과를 추적해요."
+      ]
+    },
+    "units": {
+      "unt_fb4f6a61-bcba-4a60-9d14-407c62fadd15": {
+        "objectives": [
+          "정해진 횟수 대신 끝 표시로 반복을 멈춰요."
+        ],
+        "premise": "창고 라벨은 char 배열에 담긴 문자열이에요. 라벨 길이는 그때그때 달라요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_3b1ba6bb-231f-4912-ac87-b01d07bb7a4b": {
+        "objectives": [
+          "글자를 정수 코드로 빼고 더해 위치와 이동을 계산해요."
+        ],
+        "premise": "글자 하나는 char에 담긴 정수 코드예요. 대문자 A부터 Z까지는 코드가 1씩 이어져요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_e9d337f4-4088-45c3-ac69-3bb0410d345b": {
+        "objectives": [
+          "교환과 덮어쓰기로 문자 배열을 바꾸고 \\0의 위치를 확인해요."
+        ],
+        "premise": "라벨은 char 배열이라 글자를 바꿔 쓸 수 있어요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_1609c4ba-b9be-42bc-af51-27f9e78b6de9": {
+        "objectives": [
+          "p + k가 가리키는 위치와 *를 붙인 값을 구별하고, 움직이는 p로 써요."
+        ],
+        "premise": "p는 배열의 첫 칸을 가리키는 포인터예요. 배열 이름도 식에서는 첫 칸의 주소로 쓰여요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_4d5d55ea-267d-46a6-9c2d-0b7c2c717f91": {
+        "objectives": [
+          "배열·주소·값을 넘긴 함수의 결과를 나란히 비교해요."
+        ],
+        "premise": "창고 함수가 상자 칸과 이름표를 고쳐요. 함수에 넘긴 것이 무엇인지에 따라 main에 남는 것이 달라요. 각 스텝은 준비 코드에서 새로 시작해요."
+      }
+    }
+  }
+}

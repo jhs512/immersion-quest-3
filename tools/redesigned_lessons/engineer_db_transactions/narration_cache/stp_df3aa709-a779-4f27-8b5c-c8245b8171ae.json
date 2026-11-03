@@ -1,0 +1,75 @@
+{
+  "by": "hand",
+  "source_sha256": "bff53078040f75b46f8393be2aece66d28a8f57f6e46b1cae7c933612cf39c56",
+  "entry": [
+    {
+      "action": "say",
+      "text": "새 연결에서도 줄어든 재고가 보여야 하는 문제예요.",
+      "target": "text:새 연결에서도 줄어든 재고가 보이게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        21
+      ]
+    },
+    {
+      "action": "say",
+      "text": "닫기 전 2, 다시 열어 5가 나왔어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "first 안에서는 5에서 3을 뺀 2가 보였어요. 그 변경은 아직 first만 아는 상태예요.",
+      "target": "code:first.close()"
+    },
+    {
+      "action": "say",
+      "text": "확정하지 않고 닫혀서 변경이 취소됐어요. 그래서 새 연결은 원래 5를 읽었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "first.close()\n",
+      "after": "first.close()\nfirst.execute('COMMIT')\n",
+      "say": "닫은 다음에 COMMIT을 보내 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        22
+      ],
+      "expect_error": "ProgrammingError"
+    },
+    {
+      "action": "say",
+      "text": "ProgrammingError예요. 닫힌 연결로는 아무 SQL도 보낼 수 없대요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. close가 먼저면 확정할 기회가 이미 없어요. COMMIT은 반드시 닫기 전에 보내요.",
+      "target": "code:first.execute('COMMIT')"
+    },
+    {
+      "action": "patch_code",
+      "before": "first.close()\nfirst.execute('COMMIT')\n",
+      "after": "first.execute('COMMIT')\nfirst.close()\n",
+      "say": "COMMIT을 close 앞으로 옮겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        16,
+        22
+      ]
+    },
+    {
+      "action": "say",
+      "text": "닫기 전 2, 다시 열어 2예요. 확정한 변경은 연결이 닫혀도 파일에 남았어요.",
+      "target": "output"
+    }
+  ]
+}

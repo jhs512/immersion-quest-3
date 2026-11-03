@@ -1,0 +1,1059 @@
+{
+  "description": "학생·동아리 표로 행 수, 조건 묶음, 정렬, 내부·외부 조인, 곱집합, UNION을 한 절씩 직접 써서 실제 실행으로 확인해요.",
+  "tasks": [
+    {
+      "id": "stp_b4eaafec-8294-40d3-a6ce-eb9f7ab16fc9",
+      "title": "스키마는 두고 튜플 수를 세세요",
+      "goal": "학생 표 students의 구조와 지금 들어 있는 학생 수를 나눠 보려 해요.\n\n**알아두세요**\n\n표의 열을 속성(attribute), 행을 튜플(tuple)이라고 해요. 열 이름·타입·제약 같은 구조가 스키마(schema)이고, 그 시점에 들어 있는 튜플들이 인스턴스(instance)예요. 속성 수는 차수(degree), 튜플 수는 카디널리티(cardinality)예요. 한 속성이 가질 수 있는 값의 범위는 도메인(domain)이라고 해요.\n\n두 번째 질의를 고쳐 students의 튜플 수를 cardinality라는 열 이름으로 출력하세요. 채점은 학생 행을 바꾼 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 스키마 문장과 지금 튜플 목록을 확인하세요.\n2. 두 번째 질의를 COUNT(*)로 튜플 수를 세는 질의로 바꾸세요.\n3. 다시 실행해 스키마 문장은 그대로인지 확인하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 표의 구조(스키마)를 보여 줘요.\nSELECT sql FROM sqlite_master WHERE name = 'students';\n-- 아래 질의를 고쳐 지금 들어 있는 튜플 수를 cardinality라는 이름으로 출력하세요.\nSELECT * FROM students ORDER BY id;\n",
+      "solution": "-- 표의 구조(스키마)를 보여 줘요.\nSELECT sql FROM sqlite_master WHERE name = 'students';\n-- 아래 질의를 고쳐 지금 들어 있는 튜플 수를 cardinality라는 이름으로 출력하세요.\nSELECT COUNT(*) AS cardinality FROM students;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'김하늘',1,2,85),(2,'이준호',2,1,92),(3,'박서연',1,NULL,78),(4,'이하은',3,2,88),(5,'최민수',2,1,NULL),(6,'김도윤',1,1,95),(7,'정우진',3,NULL,81);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(3),(2),(7);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "sql\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER)\n\ncardinality\n7"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'이서준',2,1,70),(2,'김민지',1,NULL,88),(3,'이가람',2,3,91),(4,'오하린',1,2,NULL),(5,'박지훈',2,2,84);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(5),(1);\n"
+          },
+          "expected": "sql\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER)\n\ncardinality\n5"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진'),(4,'연극');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'한지우',1,1,90),(2,'이도현',3,NULL,85),(3,'김하준',1,NULL,82),(4,'이수아',4,1,99);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(4),(2);\n"
+          },
+          "expected": "sql\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER)\n\ncardinality\n4"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "구조와 행 수를 나눠 보는 문제예요. 두 번째 질의만 고쳐요.",
+          "target": "text:두 번째 질의를 고쳐 students의 튜플 수를 cardinality라는 열 이름으로 출력하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "위에는 CREATE TABLE 문장이, 아래에는 학생 7행이 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "괄호 안의 열 다섯 개가 속성이에요. 그래서 차수는 5예요. grade의 CHECK는 1부터 4라는 도메인을 정해요.",
+          "target": "code:sqlite_master"
+        },
+        {
+          "action": "patch_code",
+          "before": "SELECT * FROM students ORDER BY id;",
+          "after": "SELECT COUNT(score) AS cardinality FROM students;",
+          "say": "먼저 점수 열을 세 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "6이 나왔어요. 점수가 NULL인 최민수 행을 빼고 셌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "COUNT(score)",
+          "after": "COUNT(*)",
+          "say": "열 대신 별표로 행 자체를 세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "cardinality 7이에요. 위의 스키마 문장은 그대로죠.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. COUNT(열)은 튜플 수가 아니에요. 그 열이 NULL인 행은 빠져요.",
+          "target": "code:COUNT(*)"
+        },
+        {
+          "action": "say",
+          "text": "행을 넣거나 지우면 카디널리티만 바뀌어요. 스키마는 표의 구조를 고칠 때만 바뀌어요.",
+          "target": "text:그 시점에 들어 있는 튜플들이 인스턴스(instance)예요."
+        }
+      ]
+    },
+    {
+      "id": "stp_456dbf86-5b60-4a33-a83f-c2964398ff0d",
+      "title": "서로 다른 학년의 수를 한 행으로 세세요",
+      "goal": "학생들이 몇 개 학년에 걸쳐 있는지 알고 싶어요. DISTINCT는 결과에서 같은 값을 하나로 줄이지만, 지금 질의는 학년마다 한 행을 돌려줘요.\n\n**알아두세요**\n\nCOUNT 같은 집계 함수만 있는 SELECT는 원래 행이 몇 개든 결과가 한 행이에요.\n\n질의를 고쳐 서로 다른 학년의 수를 grades라는 열 이름으로 한 행에 출력하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 몇 행이 나오는지 확인하세요.\n2. 집계 함수 COUNT 안에 DISTINCT를 넣어 학년을 세는 질의로 바꾸세요.\n3. 다시 실행해 결과가 한 행인지 확인하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 서로 다른 학년이 몇 개인지 한 행으로 보여 줘야 해요.\nSELECT DISTINCT grade FROM students ORDER BY grade;\n",
+      "solution": "-- 서로 다른 학년이 몇 개인지 한 행으로 보여 줘야 해요.\nSELECT COUNT(DISTINCT grade) AS grades FROM students;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'김하늘',1,2,85),(2,'이준호',2,1,92),(3,'박서연',1,NULL,78),(4,'이하은',3,2,88),(5,'최민수',2,1,NULL),(6,'김도윤',1,1,95),(7,'정우진',3,NULL,81);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(3),(2),(7);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "grades\n3"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'이서준',2,1,70),(2,'김민지',1,NULL,88),(3,'이가람',2,3,91),(4,'오하린',1,2,NULL),(5,'박지훈',2,2,84);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(5),(1);\n"
+          },
+          "expected": "grades\n2"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진'),(4,'연극');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'한지우',1,1,90),(2,'이도현',3,NULL,85),(3,'김하준',1,NULL,82),(4,'이수아',4,1,99);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(4),(2);\n"
+          },
+          "expected": "grades\n3"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "학년의 종류 수를 한 행으로 보여야 해요.",
+          "target": "text:서로 다른 학년의 수를 grades라는 열 이름으로 한 행에 출력하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1, 2, 3 세 행이 나왔어요. 값은 맞지만 개수가 아니라 목록이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "SELECT DISTINCT grade FROM students ORDER BY grade;",
+          "after": "SELECT COUNT(grade) AS grades FROM students;",
+          "say": "집계 함수로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "7이 한 행으로 나왔어요. 같은 학년도 학생마다 따로 셌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "COUNT(grade)",
+          "after": "COUNT(DISTINCT grade)",
+          "say": "COUNT 안에 DISTINCT를 넣어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3이 한 행으로 나왔어요. 겹친 학년을 하나로 본 뒤 셌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "DISTINCT는 표의 행을 지우지 않아요. 결과에서만 겹친 값을 하나로 봐요.",
+          "target": "code:COUNT(DISTINCT grade)"
+        }
+      ]
+    },
+    {
+      "id": "stp_f5cf9e74-da89-4382-a169-aac3483924d8",
+      "title": "학년 조건을 IN으로 묶어 점수 조건을 함께 거세요",
+      "goal": "1학년 또는 2학년 가운데 점수가 80 이상인 학생의 id를 찾으려 해요. 지금 WHERE는 OR와 AND를 괄호 없이 이어 써서 1학년이면 점수와 상관없이 남아요.\n\n**알아두세요**\n\nIN (1, 2)는 grade = 1 OR grade = 2를 줄인 표현이에요. 한 묶음으로 평가돼서 괄호를 친 것과 같아요.\n\nWHERE의 학년 조건을 IN으로 바꿔 두 학년 모두에 점수 조건이 걸리게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 남는 id를 확인하세요.\n2. 학년 조건 두 개를 IN 하나로 바꾸세요.\n3. 다시 실행해 80점 미만 학생이 빠졌는지 비교하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 1학년 또는 2학년 가운데 점수가 80 이상인 학생을 찾아요.\nSELECT id FROM students WHERE grade = 1 OR grade = 2 AND score >= 80 ORDER BY id;\n",
+      "solution": "-- 1학년 또는 2학년 가운데 점수가 80 이상인 학생을 찾아요.\nSELECT id FROM students WHERE grade IN (1, 2) AND score >= 80 ORDER BY id;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'김하늘',1,2,85),(2,'이준호',2,1,92),(3,'박서연',1,NULL,78),(4,'이하은',3,2,88),(5,'최민수',2,1,NULL),(6,'김도윤',1,1,95),(7,'정우진',3,NULL,81);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(3),(2),(7);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "id\n1\n2\n6"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'이서준',2,1,70),(2,'김민지',1,NULL,88),(3,'이가람',2,3,91),(4,'오하린',1,2,NULL),(5,'박지훈',2,2,84);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(5),(1);\n"
+          },
+          "expected": "id\n2\n3\n5"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진'),(4,'연극');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'한지우',1,1,90),(2,'이도현',3,NULL,85),(3,'김하준',1,NULL,82),(4,'이수아',4,1,99);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(4),(2);\n"
+          },
+          "expected": "id\n1\n3"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "두 학년 모두에 점수 조건이 걸려야 하는 문제예요.",
+          "target": "text:WHERE의 학년 조건을 IN으로 바꿔 두 학년 모두에 점수 조건이 걸리게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1, 2, 3, 6이 나왔어요. 3번 박서연은 78점인데 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "AND가 먼저 묶여서 grade = 1 하나만 맞아도 참이 됐어요.",
+          "target": "code:grade = 1 OR"
+        },
+        {
+          "action": "patch_code",
+          "before": "grade = 1 OR grade = 2 AND",
+          "after": "grade IN (1, 2) AND",
+          "say": "두 학년을 IN 목록 하나로 묶어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1, 2, 6이에요. 78점인 3번이 빠졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "5번 최민수는 2학년이지만 점수가 NULL이에요. NULL >= 80은 참이 아니라서 남지 않아요.",
+          "target": "code:score >= 80"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. IN 뒤를 OR로 이으면 3학년 4번과 7번도 80점 이상이라 남아요.",
+          "target": "code:IN (1, 2) AND"
+        }
+      ]
+    },
+    {
+      "id": "stp_dfcf7875-f892-4188-893c-667eac346956",
+      "title": "남은 행 가운데 점수가 있는 행만 세세요",
+      "goal": "2학년이거나 점수가 90 이상인 학생을 모아요. 그 학생 수와, 그중 점수가 기록된 학생 수를 한 행에 보이려 해요.\n\n**알아두세요**\n\nNULL과 비교하면 참도 거짓도 아닌 UNKNOWN이 돼요. 그래도 OR의 다른 쪽이 참이면 그 행은 남아요. COUNT(*)는 남은 행을 모두 세고, COUNT(열)은 그 열이 NULL인 행을 빼고 세요.\n\nscored 열이 점수가 기록된 학생 수가 되도록 집계 한 곳을 고치세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 두 값을 확인하세요.\n2. scored를 만드는 COUNT 안을 점수 열로 바꾸세요.\n3. 다시 실행해 두 값이 달라졌는지 비교하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 2학년이거나 점수가 90 이상인 학생 수와, 그중 점수가 기록된 학생 수예요.\nSELECT COUNT(*) AS students, COUNT(*) AS scored FROM students WHERE grade = 2 OR score >= 90;\n",
+      "solution": "-- 2학년이거나 점수가 90 이상인 학생 수와, 그중 점수가 기록된 학생 수예요.\nSELECT COUNT(*) AS students, COUNT(score) AS scored FROM students WHERE grade = 2 OR score >= 90;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'김하늘',1,2,85),(2,'이준호',2,1,92),(3,'박서연',1,NULL,78),(4,'이하은',3,2,88),(5,'최민수',2,1,NULL),(6,'김도윤',1,1,95),(7,'정우진',3,NULL,81);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(3),(2),(7);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "students | scored\n3 | 2"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'이서준',2,1,70),(2,'김민지',1,NULL,88),(3,'이가람',2,3,91),(4,'오하린',1,2,NULL),(5,'박지훈',2,2,84);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(5),(1);\n"
+          },
+          "expected": "students | scored\n3 | 3"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진'),(4,'연극');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'한지우',1,1,90),(2,'이도현',3,NULL,85),(3,'김하준',1,NULL,82),(4,'이수아',4,1,99);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(4),(2);\n"
+          },
+          "expected": "students | scored\n2 | 2"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "남은 학생 수와 점수 있는 학생 수를 따로 세는 문제예요.",
+          "target": "text:scored 열이 점수가 기록된 학생 수가 되도록 집계 한 곳을 고치세요."
+        },
+        {
+          "action": "patch_code",
+          "before": "SELECT COUNT(*) AS students, COUNT(*) AS scored",
+          "after": "SELECT id, score",
+          "say": "먼저 어떤 행이 남는지 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2번, 5번, 6번이 남았어요. 5번 점수는 NULL이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "5번은 score >= 90이 UNKNOWN이지만 grade = 2가 참이에요. OR라서 남았어요.",
+          "target": "code:grade = 2 OR"
+        },
+        {
+          "action": "patch_code",
+          "before": "SELECT id, score",
+          "after": "SELECT COUNT(*) AS students, COUNT(score) AS scored",
+          "say": "다시 세는 질의로 돌리고 scored는 점수 열을 세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3 | 2가 나왔어요. 남은 행은 셋, 점수가 있는 행은 둘이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 두 칸 모두 COUNT(*)면 NULL 점수 행도 세어서 3 | 3이 돼요.",
+          "target": "code:COUNT(score)"
+        }
+      ]
+    },
+    {
+      "id": "stp_5a98fdfd-4c1c-4261-9c87-aa492591e1cb",
+      "title": "WHERE와 DESC를 넣어 이씨 학생을 높은 점수부터 보이세요",
+      "goal": "성이 이인 학생의 이름과 점수를 점수가 높은 순서로 보이려 해요. 지금 질의는 모든 학생을 점수가 낮은 순서로 보여 줘요.\n\n**알아두세요**\n\n절의 순서는 SELECT → FROM → WHERE → ORDER BY예요. ORDER BY 뒤에 DESC를 쓰면 내림차순이고, 안 쓰면 오름차순이에요.\n\nWHERE 절을 넣어 이로 시작하는 이름만 남기고, 정렬을 점수 내림차순으로 바꾸세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 순서를 확인하세요.\n2. FROM students 뒤에 이로 시작하는 이름만 남기는 WHERE 절을 쓰세요.\n3. ORDER BY score 뒤에 DESC를 쓰세요.\n4. 다시 실행해 이씨 학생이 높은 점수부터 나오는지 확인하세요.\n5. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 이씨 학생의 이름과 점수를 점수가 높은 순서로 보여 줘야 해요.\nSELECT name, score FROM students ORDER BY score;\n",
+      "solution": "-- 이씨 학생의 이름과 점수를 점수가 높은 순서로 보여 줘야 해요.\nSELECT name, score FROM students WHERE name LIKE '이%' ORDER BY score DESC;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'김하늘',1,2,85),(2,'이준호',2,1,92),(3,'박서연',1,NULL,78),(4,'이하은',3,2,88),(5,'최민수',2,1,NULL),(6,'김도윤',1,1,95),(7,'정우진',3,NULL,81);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(3),(2),(7);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "name | score\n이준호 | 92\n이하은 | 88"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'이서준',2,1,70),(2,'김민지',1,NULL,88),(3,'이가람',2,3,91),(4,'오하린',1,2,NULL),(5,'박지훈',2,2,84);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(5),(1);\n"
+          },
+          "expected": "name | score\n이가람 | 91\n이서준 | 70"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진'),(4,'연극');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'한지우',1,1,90),(2,'이도현',3,NULL,85),(3,'김하준',1,NULL,82),(4,'이수아',4,1,99);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(4),(2);\n"
+          },
+          "expected": "name | score\n이수아 | 99\n이도현 | 85"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "이씨만 남기고 높은 점수부터 보여야 해요.",
+          "target": "text:WHERE 절을 넣어 이로 시작하는 이름만 남기고, 정렬을 점수 내림차순으로 바꾸세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "일곱 명이 다 나왔어요. 맨 위는 점수가 NULL인 최민수, 그다음 78부터 올라가요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "FROM students ORDER BY",
+          "after": "FROM students WHERE 'name' LIKE '이%' ORDER BY",
+          "say": "열 이름을 따옴표로 감싸 조건을 써 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "(행 없음)이에요. 작은따옴표 안의 'name'은 열이 아니라 글자 name이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 열 이름에 작은따옴표를 붙이면 오류 없이 빈 결과가 나와요.",
+          "target": "code:'name'"
+        },
+        {
+          "action": "patch_code",
+          "before": "'name'",
+          "after": "name",
+          "say": "따옴표를 빼서 열 이름으로 써요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이하은 88, 이준호 92가 나왔어요. 아직 낮은 점수부터예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "ORDER BY score;",
+          "after": "ORDER BY score DESC;",
+          "say": "DESC를 붙여 내림차순으로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이준호 92가 먼저, 이하은 88이 다음이에요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_8f833fde-2d9f-4010-903f-98dec3eb8e0f",
+      "title": "ON 조건을 고쳐 학생마다 소속 동아리를 붙이세요",
+      "goal": "학생 이름 옆에 소속 동아리 이름을 붙이려 해요. students의 club 열이 clubs의 id를 가리키는데, 지금 ON 조건은 엉뚱한 열끼리 맞춰요.\n\n**알아두세요**\n\nJOIN … ON은 ON 조건이 맞는 두 표의 행 쌍만 남기는 내부 조인이에요. 짝이 없는 행은 어느 쪽 표에서든 빠져요.\n\nON 조건을 고쳐 학생마다 실제 소속 동아리가 붙게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 붙은 동아리를 확인하세요.\n2. ON 조건에서 학생 쪽 열을 고치세요.\n3. 다시 실행해 동아리가 없는 학생이 어떻게 되는지 확인하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 학생 이름과 소속 동아리 이름을 함께 보여 줘요.\nSELECT s.name, c.title FROM students s JOIN clubs c ON s.id = c.id ORDER BY s.id;\n",
+      "solution": "-- 학생 이름과 소속 동아리 이름을 함께 보여 줘요.\nSELECT s.name, c.title FROM students s JOIN clubs c ON s.club = c.id ORDER BY s.id;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'김하늘',1,2,85),(2,'이준호',2,1,92),(3,'박서연',1,NULL,78),(4,'이하은',3,2,88),(5,'최민수',2,1,NULL),(6,'김도윤',1,1,95),(7,'정우진',3,NULL,81);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(3),(2),(7);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "name | title\n김하늘 | 코딩\n이준호 | 밴드\n이하은 | 코딩\n최민수 | 밴드\n김도윤 | 밴드"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'이서준',2,1,70),(2,'김민지',1,NULL,88),(3,'이가람',2,3,91),(4,'오하린',1,2,NULL),(5,'박지훈',2,2,84);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(5),(1);\n"
+          },
+          "expected": "name | title\n이서준 | 밴드\n이가람 | 사진\n오하린 | 코딩\n박지훈 | 코딩"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진'),(4,'연극');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'한지우',1,1,90),(2,'이도현',3,NULL,85),(3,'김하준',1,NULL,82),(4,'이수아',4,1,99);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(4),(2);\n"
+          },
+          "expected": "name | title\n한지우 | 밴드\n이수아 | 밴드"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "학생의 club 열로 동아리를 찾아 붙이는 문제예요.",
+          "target": "text:ON 조건을 고쳐 학생마다 실제 소속 동아리가 붙게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "김하늘 밴드, 이준호 코딩, 박서연 사진이 나왔어요. 학생 번호와 동아리 번호가 같은 쌍이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "동아리 번호는 학생의 club 열에 있어요. 맞출 쪽은 s.club이에요.",
+          "target": "code:s.id = c.id"
+        },
+        {
+          "action": "patch_code",
+          "before": "ON s.id = c.id",
+          "after": "ON s.club = c.id",
+          "say": "ON의 학생 쪽 열을 club으로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "다섯 행이에요. 김하늘은 코딩, 이준호는 밴드예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "박서연과 정우진은 club이 NULL이라 짝이 없어 빠졌어요. 회원 없는 사진도 안 나와요.",
+          "target": "code:s.club = c.id"
+        }
+      ]
+    },
+    {
+      "id": "stp_413a4843-09dc-401a-842b-add4fc58fedd",
+      "title": "쉼표 조인에 연결 조건을 더하세요",
+      "goal": "점수가 85 이상인 학생의 이름과 동아리 이름을 보이려 해요. 이번에는 JOIN 대신 FROM에 두 표를 쉼표로 나열했어요.\n\n**알아두세요**\n\nFROM a, b는 두 표의 모든 행 쌍을 만들어요. WHERE에 연결 조건을 쓰면 JOIN … ON과 같은 결과가 돼요.\n\nWHERE에 두 표의 연결 조건을 AND로 더해 학생마다 소속 동아리 한 행만 남기세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 몇 행이 나오는지 확인하세요.\n2. WHERE 바로 뒤에 학생과 동아리를 잇는 조건을 쓰고 AND로 점수 조건과 이으세요.\n3. 다시 실행해 학생마다 한 행인지 확인하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 점수가 85 이상인 학생의 이름과 동아리 이름이에요.\nSELECT s.name, c.title FROM students s, clubs c WHERE s.score >= 85 ORDER BY s.id, c.id;\n",
+      "solution": "-- 점수가 85 이상인 학생의 이름과 동아리 이름이에요.\nSELECT s.name, c.title FROM students s, clubs c WHERE s.club = c.id AND s.score >= 85 ORDER BY s.id, c.id;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'김하늘',1,2,85),(2,'이준호',2,1,92),(3,'박서연',1,NULL,78),(4,'이하은',3,2,88),(5,'최민수',2,1,NULL),(6,'김도윤',1,1,95),(7,'정우진',3,NULL,81);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(3),(2),(7);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "name | title\n김하늘 | 코딩\n이준호 | 밴드\n이하은 | 코딩\n김도윤 | 밴드"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'이서준',2,1,70),(2,'김민지',1,NULL,88),(3,'이가람',2,3,91),(4,'오하린',1,2,NULL),(5,'박지훈',2,2,84);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(5),(1);\n"
+          },
+          "expected": "name | title\n이가람 | 사진"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진'),(4,'연극');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'한지우',1,1,90),(2,'이도현',3,NULL,85),(3,'김하준',1,NULL,82),(4,'이수아',4,1,99);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(4),(2);\n"
+          },
+          "expected": "name | title\n한지우 | 밴드\n이수아 | 밴드"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "점수 조건과 연결 조건이 함께 걸려야 해요.",
+          "target": "text:WHERE에 두 표의 연결 조건을 AND로 더해 학생마다 소속 동아리 한 행만 남기세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "12행이 나왔어요. 85점 이상 네 명이 동아리 세 개와 모두 짝지어졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "WHERE s.score >= 85",
+          "after": "WHERE s.club = c.id AND s.score >= 85",
+          "say": "연결 조건을 먼저 쓰고 AND로 점수 조건을 이어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "네 행이에요. JOIN … ON으로 쓴 앞 스텝과 같은 짝이 붙었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 연결 조건과 점수 조건을 OR로 이으면 85점 이상 학생이 모든 동아리와 다시 짝지어져요.",
+          "target": "code:s.club = c.id AND"
+        }
+      ]
+    },
+    {
+      "id": "stp_d3f4eaaf-e2ca-4f2b-8365-2827b8eba5d7",
+      "title": "모든 쌍에서 무늬에 맞는 쌍과 학생을 세세요",
+      "goal": "명찰 규칙 표 rules에는 김%와 %하% 두 무늬가 있어요. 무늬에 맞는 (학생, 무늬) 쌍의 수와, 무늬에 하나라도 맞는 학생 수를 함께 세려 해요.\n\n**알아두세요**\n\nCROSS JOIN은 두 표의 모든 행 쌍(곱집합)을 만들어요. LIKE의 오른쪽에 열을 쓰면 쌍마다 그 행의 무늬로 비교해요. %는 몇 글자든 아무 글자예요.\n\nWHERE로 이름이 무늬에 맞는 쌍만 남기고, 학생 수를 students라는 열 이름으로 함께 출력하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 전체 쌍의 수를 확인하세요.\n2. rules r 뒤에 이름이 무늬에 맞는 쌍만 남기는 WHERE 절을 쓰세요.\n3. SELECT에 겹치지 않는 학생 id를 세는 students 열을 더하세요.\n4. 다시 실행해 쌍 수와 학생 수를 비교하세요.\n5. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 명찰 규칙 rules의 각 무늬를 모든 학생 이름에 맞춰 봐요.\nSELECT COUNT(*) AS pairs FROM students s CROSS JOIN rules r;\n",
+      "solution": "-- 명찰 규칙 rules의 각 무늬를 모든 학생 이름에 맞춰 봐요.\nSELECT COUNT(*) AS pairs, COUNT(DISTINCT s.id) AS students FROM students s CROSS JOIN rules r WHERE s.name LIKE r.pattern;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'김하늘',1,2,85),(2,'이준호',2,1,92),(3,'박서연',1,NULL,78),(4,'이하은',3,2,88),(5,'최민수',2,1,NULL),(6,'김도윤',1,1,95),(7,'정우진',3,NULL,81);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(3),(2),(7);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "pairs | students\n4 | 3"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'이서준',2,1,70),(2,'김민지',1,NULL,88),(3,'이가람',2,3,91),(4,'오하린',1,2,NULL),(5,'박지훈',2,2,84);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(5),(1);\n"
+          },
+          "expected": "pairs | students\n2 | 2"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진'),(4,'연극');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'한지우',1,1,90),(2,'이도현',3,NULL,85),(3,'김하준',1,NULL,82),(4,'이수아',4,1,99);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(4),(2);\n"
+          },
+          "expected": "pairs | students\n2 | 1"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "쌍의 수와 학생 수를 따로 세는 문제예요.",
+          "target": "text:무늬에 맞는 (학생, 무늬) 쌍의 수와, 무늬에 하나라도 맞는 학생 수를 함께 세려 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "14가 나왔어요. 학생 7명과 무늬 2개의 곱이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "rules r;",
+          "after": "rules r WHERE s.name LIKE r.pattern;",
+          "say": "이름이 그 쌍의 무늬에 맞을 때만 남겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4쌍이 남았어요. 김하늘은 김%와 %하%에 모두 맞아 두 번 들어갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "COUNT(*) AS pairs",
+          "after": "COUNT(*) AS pairs, COUNT(DISTINCT s.id) AS students",
+          "say": "겹치지 않는 학생 id도 세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4 | 3이에요. 쌍은 넷, 학생은 김하늘·이하은·김도윤 셋이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. LIKE 양쪽을 바꿔 r.pattern LIKE s.name으로 쓰면 하나도 안 남아요. 무늬는 오른쪽에 와야 해요.",
+          "target": "code:s.name LIKE r.pattern"
+        }
+      ]
+    },
+    {
+      "id": "stp_0e83370a-34cd-428a-a5cb-b9571863775b",
+      "title": "LEFT JOIN과 IS NULL로 회원 없는 동아리를 찾으세요",
+      "goal": "아직 회원이 한 명도 없는 동아리를 찾아 홍보하려 해요. 내부 조인으로는 짝 없는 동아리가 사라져서 찾을 수 없어요.\n\n**알아두세요**\n\nLEFT JOIN은 왼쪽(기준) 표의 행을 모두 남기고, 짝이 없으면 오른쪽 열을 NULL로 채워요. RIGHT JOIN은 오른쪽 표가 기준이에요.\n\nWHERE로 학생 쪽이 NULL인 행만 남기고, 동아리 이름 title 한 열만 출력하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 동아리마다 붙은 회원을 확인하세요.\n2. SELECT에서 s.name을 빼고 title 한 열만 남기세요.\n3. ORDER BY 앞에 학생 쪽 id가 NULL인 행만 남기는 WHERE 절을 쓰세요.\n4. 다시 실행해 회원 없는 동아리만 나오는지 확인하세요.\n5. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 동아리마다 회원을 붙여 봐요.\nSELECT c.title, s.name FROM clubs c LEFT JOIN students s ON s.club = c.id ORDER BY c.id, s.id;\n",
+      "solution": "-- 동아리마다 회원을 붙여 봐요.\nSELECT c.title FROM clubs c LEFT JOIN students s ON s.club = c.id WHERE s.id IS NULL ORDER BY c.id;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'김하늘',1,2,85),(2,'이준호',2,1,92),(3,'박서연',1,NULL,78),(4,'이하은',3,2,88),(5,'최민수',2,1,NULL),(6,'김도윤',1,1,95),(7,'정우진',3,NULL,81);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(3),(2),(7);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "title\n사진"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'이서준',2,1,70),(2,'김민지',1,NULL,88),(3,'이가람',2,3,91),(4,'오하린',1,2,NULL),(5,'박지훈',2,2,84);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(5),(1);\n"
+          },
+          "expected": "title\n(행 없음)"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진'),(4,'연극');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'한지우',1,1,90),(2,'이도현',3,NULL,85),(3,'김하준',1,NULL,82),(4,'이수아',4,1,99);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(4),(2);\n"
+          },
+          "expected": "title\n코딩\n사진\n연극"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "짝 없는 동아리만 골라야 하는 문제예요.",
+          "target": "text:WHERE로 학생 쪽이 NULL인 행만 남기고, 동아리 이름 title 한 열만 출력하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "밴드가 세 번, 코딩이 두 번 나왔어요. 회원 수만큼 동아리 행이 늘었어요. 사진 옆 이름은 NULL이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "LEFT JOIN",
+          "after": "RIGHT JOIN",
+          "say": "기준 표를 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이번엔 학생이 기준이에요. 동아리 없는 박서연·정우진이 NULL로 남고 사진은 빠졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "RIGHT JOIN",
+          "after": "LEFT JOIN",
+          "say": "동아리가 기준이 되게 LEFT로 되돌려요."
+        },
+        {
+          "action": "patch_code",
+          "before": "ORDER BY c.id, s.id",
+          "after": "WHERE s.id IS NULL ORDER BY c.id",
+          "say": "학생 id가 NULL인 행만 남겨요."
+        },
+        {
+          "action": "patch_code",
+          "before": "SELECT c.title, s.name",
+          "after": "SELECT c.title",
+          "say": "동아리 이름 한 열만 보여요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "사진만 나왔어요. 짝이 없어 학생 칸이 비었던 행이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. c.id IS NULL로 쓰면 (행 없음)이에요. 기준 표 쪽 열은 비지 않거든요.",
+          "target": "code:s.id IS NULL"
+        }
+      ]
+    },
+    {
+      "id": "stp_7fa31ae0-8bc0-455e-a665-b5100ed376ff",
+      "title": "UNION으로 두 명단을 겹치지 않게 합치세요",
+      "goal": "상장은 점수가 90 이상인 학생과 봉사 기록이 있는 학생에게 줘요. 두 조건에 모두 해당해도 상장은 한 장이에요. 봉사 기록은 volunteers 표의 student_id에 있어요.\n\n**알아두세요**\n\nUNION은 두 SELECT의 결과를 합치고 겹친 행을 하나로 줄여요. UNION ALL은 겹친 행도 그대로 남겨요. ORDER BY는 합친 결과 전체에 한 번, 맨 끝에 써요.\n\n주석 아래에 두 결과를 합치는 줄을 써서 상장 대상 id를 겹치지 않게 출력하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 90점 이상인 학생만 확인하세요.\n2. 주석 아래에 volunteers의 student_id를 고르는 SELECT를 UNION으로 이어 쓰세요.\n3. 다시 실행해 같은 id가 한 번씩만 나오는지 확인하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 상장 대상: 점수가 90 이상인 학생과 봉사 기록이 있는 학생이에요.\nSELECT id FROM students WHERE score >= 90\n-- 이 주석 아래에 volunteers의 student_id를 합치는 줄을 쓰세요.\nORDER BY id;\n",
+      "solution": "-- 상장 대상: 점수가 90 이상인 학생과 봉사 기록이 있는 학생이에요.\nSELECT id FROM students WHERE score >= 90\n-- 이 주석 아래에 volunteers의 student_id를 합치는 줄을 쓰세요.\nUNION SELECT student_id FROM volunteers\nORDER BY id;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'김하늘',1,2,85),(2,'이준호',2,1,92),(3,'박서연',1,NULL,78),(4,'이하은',3,2,88),(5,'최민수',2,1,NULL),(6,'김도윤',1,1,95),(7,'정우진',3,NULL,81);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(3),(2),(7);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "id\n2\n3\n6\n7"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'이서준',2,1,70),(2,'김민지',1,NULL,88),(3,'이가람',2,3,91),(4,'오하린',1,2,NULL),(5,'박지훈',2,2,84);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(5),(1);\n"
+          },
+          "expected": "id\n1\n3\n5"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진'),(4,'연극');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'한지우',1,1,90),(2,'이도현',3,NULL,85),(3,'김하준',1,NULL,82),(4,'이수아',4,1,99);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(4),(2);\n"
+          },
+          "expected": "id\n1\n2\n4"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "두 명단을 합치되 한 학생은 한 번만 나와야 해요.",
+          "target": "text:두 조건에 모두 해당해도 상장은 한 장이에요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2와 6만 나왔어요. 90점 이상 명단뿐이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "-- 이 주석 아래에 volunteers의 student_id를 합치는 줄을 쓰세요.\n",
+          "after": "-- 이 주석 아래에 volunteers의 student_id를 합치는 줄을 쓰세요.\nUNION ALL SELECT student_id FROM volunteers\n",
+          "say": "먼저 UNION ALL로 이어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2, 2, 3, 6, 7이에요. 2번은 90점 이상이면서 봉사도 해서 두 번 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "UNION ALL",
+          "after": "UNION",
+          "say": "ALL을 지워 겹친 행을 하나로 줄여요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2, 3, 6, 7이에요. 2번이 한 번만 남았고 전체가 id 순서예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. ORDER BY를 첫 SELECT 바로 뒤에 쓰면 SQLite가 오류를 내요. 정렬은 합친 뒤 맨 끝에 한 번이에요.",
+          "target": "code:ORDER BY id"
+        }
+      ]
+    },
+    {
+      "id": "stp_5b275cdb-f48c-4d34-a021-4d3d68b52560",
+      "title": "명단 질의 전체를 직접 쓰세요",
+      "goal": "동아리 담당자가 2학년과 3학년 가운데 점수가 80 이상인 학생 명단을 원해요. 이름과 동아리 이름을 보이고, 동아리가 없는 학생도 빠지면 안 돼요. 점수가 높은 학생이 먼저 와야 해요.\n\n별칭 students s, clubs c를 써서 SELECT 질의 전체를 직접 쓰세요.\n\n**할 일**\n\n1. 주석 아래에 SELECT와 FROM을 쓰고 두 표를 학생 쪽이 기준이 되게 이으세요.\n2. WHERE에 학년과 점수 조건을 쓰세요.\n3. ORDER BY로 점수가 높은 순서를 정하세요.\n4. 코드 실행을 눌러 동아리 없는 학생이 남았는지 확인하세요.\n5. 작성한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 2학년과 3학년 가운데 점수가 80 이상인 학생의 이름과 동아리 이름이에요.\n-- 동아리가 없는 학생도 빠지면 안 되고, 점수가 높은 순서로 보여요.\n-- 별칭은 students s, clubs c로 쓰세요. 이 주석 아래에 질의 전체를 쓰세요.\n",
+      "solution": "-- 2학년과 3학년 가운데 점수가 80 이상인 학생의 이름과 동아리 이름이에요.\n-- 동아리가 없는 학생도 빠지면 안 되고, 점수가 높은 순서로 보여요.\n-- 별칭은 students s, clubs c로 쓰세요. 이 주석 아래에 질의 전체를 쓰세요.\nSELECT s.name, c.title FROM students s LEFT JOIN clubs c ON s.club = c.id\nWHERE s.grade IN (2, 3) AND s.score >= 80\nORDER BY s.score DESC;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'김하늘',1,2,85),(2,'이준호',2,1,92),(3,'박서연',1,NULL,78),(4,'이하은',3,2,88),(5,'최민수',2,1,NULL),(6,'김도윤',1,1,95),(7,'정우진',3,NULL,81);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(3),(2),(7);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "name | title\n이준호 | 밴드\n이하은 | 코딩\n정우진 | NULL"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'이서준',2,1,70),(2,'김민지',1,NULL,88),(3,'이가람',2,3,91),(4,'오하린',1,2,NULL),(5,'박지훈',2,2,84);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(5),(1);\n"
+          },
+          "expected": "name | title\n이가람 | 사진\n박지훈 | 코딩"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE clubs(id INTEGER PRIMARY KEY, title TEXT NOT NULL);\nINSERT INTO clubs VALUES(1,'밴드'),(2,'코딩'),(3,'사진'),(4,'연극');\nCREATE TABLE students(id INTEGER PRIMARY KEY, name TEXT NOT NULL, grade INTEGER CHECK(grade BETWEEN 1 AND 4), club INTEGER REFERENCES clubs(id), score INTEGER);\nINSERT INTO students VALUES(1,'한지우',1,1,90),(2,'이도현',3,NULL,85),(3,'김하준',1,NULL,82),(4,'이수아',4,1,99);\nCREATE TABLE rules(pattern TEXT);\nINSERT INTO rules VALUES('김%'),('%하%');\nCREATE TABLE volunteers(student_id INTEGER REFERENCES students(id));\nINSERT INTO volunteers VALUES(4),(2);\n"
+          },
+          "expected": "name | title\n이도현 | NULL"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "요구를 질의 하나로 옮기는 문제예요. 동아리 없는 학생도 남아야 해요.",
+          "target": "text:동아리가 없는 학생도 빠지면 안 돼요."
+        },
+        {
+          "action": "patch_code",
+          "before": "-- 2학년과 3학년 가운데 점수가 80 이상인 학생의 이름과 동아리 이름이에요.\n-- 동아리가 없는 학생도 빠지면 안 되고, 점수가 높은 순서로 보여요.\n-- 별칭은 students s, clubs c로 쓰세요. 이 주석 아래에 질의 전체를 쓰세요.\n",
+          "after": "-- 2학년과 3학년 가운데 점수가 80 이상인 학생의 이름과 동아리 이름이에요.\n-- 동아리가 없는 학생도 빠지면 안 되고, 점수가 높은 순서로 보여요.\n-- 별칭은 students s, clubs c로 쓰세요. 이 주석 아래에 질의 전체를 쓰세요.\nSELECT s.name, c.title FROM students s JOIN clubs c ON s.club = c.id\nWHERE s.grade IN (2, 3) AND s.score >= 80\nORDER BY s.score DESC;\n",
+          "say": "먼저 익숙한 내부 조인으로 써 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이준호 밴드, 이하은 코딩 두 행이에요. 3학년 81점 정우진이 빠졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "정우진은 club이 NULL이라 내부 조인에서 짝이 없어요.",
+          "target": "code:JOIN clubs"
+        },
+        {
+          "action": "patch_code",
+          "before": "students s JOIN",
+          "after": "students s LEFT JOIN",
+          "say": "학생 표가 기준이 되게 LEFT JOIN으로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "세 행이에요. 정우진이 동아리 칸 NULL로 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "2학년 최민수는 점수가 NULL이라 80 이상 조건에서 빠졌어요.",
+          "target": "code:s.score >= 80"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. DESC를 빼면 81점 정우진이 맨 위로 와서 순서가 거꾸로 돼요.",
+          "target": "code:DESC"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "스키마와 튜플, 차수와 카디널리티를 실제 표와 행 수로 구별해요.",
+      "AND/OR 묶음, IN, NULL이 섞인 조건과 COUNT(열)을 직접 써서 결과 행을 맞혀요.",
+      "내부 조인(ON·쉼표), CROSS JOIN과 열 무늬 LIKE, 외부 조인과 IS NULL, UNION을 직접 써요."
+    ],
+    "chapters": {
+      "chp_5b89ca6f-a145-4666-90a9-3d4d25f31b8e": [
+        "행 수·조건·정렬을 한 절씩 직접 써서 결과 행을 맞혀요."
+      ],
+      "chp_0bb3476c-04ef-4f9c-8ad4-c166e0142dc0": [
+        "조인 조건을 직접 써서 행 쌍이 어떻게 남는지 확인해요."
+      ],
+      "chp_0f11e3c4-dc36-486c-8f3d-8442f4844963": [
+        "외부 조인과 UNION을 직접 쓰고, 마지막에 조인이 있는 질의 전체를 써요."
+      ]
+    },
+    "units": {
+      "unt_b8fb8880-b5cd-4c8c-ba4b-370ae94a5c33": {
+        "objectives": [
+          "스키마와 튜플, 결과 값과 결과 행 수를 구별해요."
+        ],
+        "premise": "students 표에는 학생 일곱 명이 있어요(id·name·grade·club·score). 각 스텝은 같은 준비 표에서 새로 시작해요."
+      },
+      "unt_3e769b75-eae3-49a7-8cd0-e80d877a5e21": {
+        "objectives": [
+          "AND/OR·IN·NULL 조건과 정렬을 직접 써서 남는 행을 맞혀요."
+        ],
+        "premise": "같은 students 표예요. 최민수는 점수가 NULL이고, 박서연과 정우진은 동아리가 NULL이에요."
+      },
+      "unt_73efee3e-6d08-4f4b-a3aa-c6b7330ebac5": {
+        "objectives": [
+          "ON, 쉼표 조인, CROSS JOIN이 만드는 행 쌍을 비교해요."
+        ],
+        "premise": "students의 club 열이 clubs의 id를 가리켜요. clubs에는 밴드(1)·코딩(2)·사진(3)이 있고, 사진에는 회원이 없어요."
+      },
+      "unt_8062fc1f-4603-4893-b800-164faa876d74": {
+        "objectives": [
+          "외부 조인의 기준 표와 UNION의 중복 제거를 결과로 확인해요."
+        ],
+        "premise": "같은 학생·동아리 표예요. volunteers 표에는 봉사 기록이 있는 학생의 student_id가 들어 있어요."
+      },
+      "unt_d1104271-64bc-44e9-8d23-e88fcbd56965": {
+        "objectives": [
+          "조건·외부 조인·정렬을 한 질의에 모아 직접 써요."
+        ],
+        "premise": "같은 학생·동아리 표예요. 이번에는 준비 질의 없이 주석의 요구만 있어요."
+      }
+    }
+  }
+}

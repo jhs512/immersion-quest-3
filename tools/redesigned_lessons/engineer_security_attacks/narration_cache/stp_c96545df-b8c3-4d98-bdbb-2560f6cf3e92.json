@@ -1,0 +1,87 @@
+{
+  "by": "hand",
+  "source_sha256": "e810d7776b13a6bf4f32c7791ca2b7733bec45fa395fa2d26013fd3c4a08da4f",
+  "entry": [
+    {
+      "action": "say",
+      "text": "질의 자리와 화면 자리, 두 문맥을 각각 막아야 해요.",
+      "target": "text:회원 이름이 질의 구조를 바꾸지 못하게 하고, 메모 내용은 화면에 글자로만 보이게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "<b>가 태그 그대로 나왔어요. 메모 내용이 HTML로 읽혀요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "print('<li>' + body + '</li>')",
+      "after": "print('<li>' + html.escape(body) + '</li>')",
+      "say": "화면 자리는 html.escape로 감싸요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "&lt;b&gt;로 바뀌었어요. 화면 쪽은 막혔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "owner = 'mina'",
+      "after": "owner = \"mina' OR '1'='1\"",
+      "say": "이번엔 회원 이름에 공격을 넣어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "jun의 비밀 계좌 메모까지 나왔어요. 기밀성이 깨졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "escape는 화면 자리만 지켜요. 질의 자리는 따로 막아야 해요.",
+      "target": "code:WHERE owner"
+    },
+    {
+      "action": "patch_code",
+      "before": "db.execute(\"SELECT body FROM memos WHERE owner = '\" + owner + \"'\")",
+      "after": "db.execute('SELECT body FROM memos WHERE owner = ?', (owner,))",
+      "say": "회원 이름은 ? 자리에 값으로 넘겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "아무것도 안 나왔어요. 그런 이름의 회원이 없으니까요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 한 곳만 고치고 끝내기 쉬워요. 값이 들어가는 자리마다 문맥을 따로 확인하세요.",
+      "target": "code:(owner,)"
+    }
+  ]
+}

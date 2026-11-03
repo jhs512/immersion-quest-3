@@ -1,0 +1,52 @@
+{
+  "by": "hand",
+  "source_sha256": "0fa3a9135cf985057bc5d04cd8c1901e79c92203330d8eaa535cf978cc26ef74",
+  "entry": [
+    {
+      "action": "say",
+      "text": "평균은 지점별로 묶은 뒤에야 계산돼요. 그 평균으로 지점을 골라야 해요.",
+      "target": "text:평균 상자 수가 20 이상인 지점만 골라 최소·최대 상자 수를 보고하려 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        6
+      ],
+      "expect_error": "misuse of aggregate"
+    },
+    {
+      "action": "say",
+      "text": "misuse of aggregate: AVG() 오류예요. WHERE는 묶기 전 행 하나씩 보는 자리라 평균이 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "WHERE AVG(boxes) >= 20\nGROUP BY branch\n",
+      "after": "GROUP BY branch\nHAVING AVG(boxes) >= 20\n",
+      "say": "WHERE 줄을 지우고 GROUP BY 아래에 HAVING으로 써요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "east와 north가 남았어요. east의 평균은 12, 30, 18의 평균인 20이라 경계에서 들어왔어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "HAVING은 AVG로 거르고 SELECT는 MIN과 MAX를 보여 줘요. 거르는 집계와 보여 주는 집계가 달라도 돼요.",
+      "target": "code:HAVING AVG(boxes) >= 20"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 평균 대신 MIN(boxes) >= 20으로 쓰면 east는 12 때문에 빠져요. 요구 문장의 집계를 그대로 옮겨요.",
+      "target": "code:AVG(boxes) >= 20"
+    }
+  ]
+}

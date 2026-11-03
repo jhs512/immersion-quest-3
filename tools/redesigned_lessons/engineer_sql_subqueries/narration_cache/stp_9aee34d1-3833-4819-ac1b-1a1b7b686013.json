@@ -1,0 +1,70 @@
+{
+  "by": "hand",
+  "source_sha256": "287f8e9cb3e987f8a15be0c04efb4db4800104c171b161539053104cbda53304",
+  "entry": [
+    {
+      "action": "say",
+      "text": "필수 과정을 빠짐없이 들은 개발자를 찾는 문제예요. 안쪽이 개발자마다 바뀌어야 해요.",
+      "target": "text:그 자리를 바깥 개발자 v의 번호로 바꿔"
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "(행 없음)이에요. 모든 개발자에게 개발자 1의 기록으로 물었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "d.dev_id = 1)",
+      "after": "d.dev_id = v.id)",
+      "say": "1을 바깥 개발자 v.id로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "lee와 park이 나왔어요. kim은 net과 sec를 듣지 않았죠.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "SELECT name FROM devs v",
+      "after": "DELETE FROM required;\nSELECT name FROM devs v",
+      "say": "필수 과정이 하나도 없으면 어떻게 될까요? 앞에 DELETE를 붙여 봐요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        3,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "kim, lee, park 세 명이 다 나왔어요. 듣지 않은 필수 과정이 하나도 없으니까요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "DELETE FROM required;\nSELECT name FROM devs v",
+      "after": "SELECT name FROM devs v",
+      "say": "붙였던 DELETE 줄은 지워요."
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 안쪽 NOT EXISTS를 EXISTS로 바꾸면 들은 필수 과정이 하나도 없는 사람을 찾게 돼요.",
+      "target": "code:WHERE NOT EXISTS (SELECT 1 FROM done d"
+    }
+  ]
+}

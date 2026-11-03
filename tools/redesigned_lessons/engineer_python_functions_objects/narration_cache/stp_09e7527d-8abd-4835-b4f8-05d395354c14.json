@@ -1,0 +1,74 @@
+{
+  "by": "hand",
+  "source_sha256": "0bb9e70a83385f2fa098ae28361ea8d168af6cca148e061b6492b77dc173be65",
+  "entry": [
+    {
+      "action": "say",
+      "text": "넘긴 장바구니가 없을 때만 새 목록을 만드는 문제예요.",
+      "target": "text:장바구니를 넘기지 않은 호출이 매번 빈 목록에서 시작하게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "셋째 줄이 ['tea', 'cake']예요. 첫 손님의 tea가 섞였어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "cart=[]의 빈 목록은 def를 실행할 때 하나만 생겨요.",
+      "target": "code:cart=[]"
+    },
+    {
+      "action": "patch_code",
+      "before": "cart=[]",
+      "after": "cart=list()",
+      "say": "list()로 쓰면 부를 때마다 새로 만들까요? 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "결과가 똑같아요. 셋째 줄에 tea가 또 섞였어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. list()도 기본값 자리라 정의할 때 한 번만 불려요.",
+      "target": "code:cart=list()"
+    },
+    {
+      "action": "patch_code",
+      "before": "def add(item, cart=list()):\n",
+      "after": "def add(item, cart=None):\n    if cart is None:\n        cart = []\n",
+      "say": "기본값은 None으로 두고, 호출 안에서 새 목록을 만들어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        10,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "셋째 줄이 ['cake']로 바뀌었어요. 호출마다 새 목록이 생겼거든요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "둘째 줄은 ['milk', 'cake']예요. 넘긴 목록은 None이 아니라 그대로 썼어요.",
+      "target": "code:if cart is None:"
+    }
+  ]
+}

@@ -1,0 +1,1184 @@
+{
+  "schema_version": 2,
+  "id": "lsn_016bf4f8-55ad-43fb-8a93-86dc24a2a6d8",
+  "revision": "engineer-db-design-practice-1",
+  "title": "DB · 이상 현상부터 인덱스·파티션까지 실행으로 확인해요",
+  "description": "중복 표에서 이상 현상을 실제 UPDATE·DELETE·INSERT로 일으키고, 함수 종속을 GROUP BY로 검사해 표를 나눠요. 뷰·트리거를 실행하고, 인덱스 범위 검색·저장 순서·파티션 배정을 작은 파이썬 모델로 따라가요.",
+  "objectives": [
+    "중복 표에서 갱신·삭제·삽입 이상이 실제로 생기는 것을 실행으로 확인하고, 표를 나눠 막아요.",
+    "함수 종속을 GROUP BY와 COUNT(DISTINCT)로 검사하고, 부분 종속을 떼어 낸 뒤 다시 이어 원래 행을 확인해요.",
+    "종속 검사 함수로 결정자가 슈퍼키인지 따져 BCNF 위반을 찾아요.",
+    "뷰와 트리거를 만들어 기본 표 변경이 어떻게 이어지는지 보고, 반정규화한 중복 값을 맞추는 대가를 확인해요.",
+    "정렬된 인덱스의 범위 검색, 행의 저장 순서와 블록 수, 범위·해시·조합 파티션 배정을 작은 코드로 따라가요."
+  ],
+  "sources": [
+    "https://www.sqlite.org/lang_createview.html",
+    "https://www.sqlite.org/lang_createtrigger.html",
+    "https://docs.python.org/3/library/bisect.html"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_ae22375b-3422-4494-8d47-5a05f83bbcae",
+      "title": "한 표에 섞인 사실이 어긋나는 순간을 봐요",
+      "objectives": [
+        "중복 표에서 UPDATE·DELETE·INSERT가 남기는 이상을 실제로 일으키고, 사실을 따로 담아 막아요."
+      ],
+      "units": [
+        {
+          "id": "unt_29bc6ee7-4d9d-4545-99dd-b8b3032989ee",
+          "title": "수강 표 하나에 모두 담기",
+          "objectives": [
+            "갱신·삭제·삽입 이상을 실행 결과로 구별해요."
+          ],
+          "premise": "학교의 수강 기록을 enroll 표 하나에 담았어요. 한 행은 학번(student)·과목(course)·담당 교수(prof)·교수 연구실(office)이고, (student, course)가 기본 키예요. 각 스텝은 준비 자료에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_eb289c47-1075-4ee7-b6b2-c90ea00e3de3",
+              "objectives": [
+                "같은 사실을 여러 행에 적으면 일부만 고쳤을 때 값이 어긋나는 갱신 이상을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_fa47cd1c-5534-43cc-bfd6-1f438e3ffb41",
+              "objectives": [
+                "수강 한 행을 지울 때 함께 적힌 과목 사실까지 사라지는 삭제 이상을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_e503e370-0765-4f97-82ab-226c22b771dc",
+              "objectives": [
+                "기본 키의 일부가 없어서 다른 사실을 넣지 못하는 삽입 이상을 확인해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_25ea4768-57d6-4273-a2e0-41dfcc5c8226",
+      "title": "함수 종속을 자료로 검사하고 표를 나눠요",
+      "objectives": [
+        "GROUP BY로 종속의 반례를 찾고, 부분 종속을 떼어 낸 뒤 다시 잇고, 결정자로 BCNF를 판정해요."
+      ],
+      "units": [
+        {
+          "id": "unt_fbce41e4-1ef4-4f40-a356-0c28121a4d1a",
+          "title": "종속 검사와 2NF 분해",
+          "objectives": [
+            "종속 규칙의 반례를 찾고, 키 일부에 종속된 열을 떼어 내요."
+          ],
+          "premise": "수강 표의 업무 규칙은 「과목이 같으면 담당 교수도 같다」(course → prof)예요. 각 스텝은 준비 자료에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_2bd4181f-36c1-4509-8eb6-44ebb751f543",
+              "objectives": [
+                "과목별로 묶어 서로 다른 교수 수를 세면 종속 규칙의 반례가 드러남을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_0d3f9bd7-94e9-4531-ab9e-eee8078040ec",
+              "objectives": [
+                "키 일부(course)에만 종속된 prof를 course가 키인 표로 떼어 내고, 다시 이어 원래 행이 나오는지 확인해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_8581e52c-ac76-40e8-89ed-f21e0a625467",
+          "title": "결정자로 정규형 판정",
+          "objectives": [
+            "자료에서 성립하는 종속과 결정자의 슈퍼키 여부로 BCNF 위반을 찾아요."
+          ],
+          "premise": "수강 표 rows의 열은 학생(student)·과목(course)·강사(teacher)예요. 강사 한 명은 한 과목만 가르치는 학교예요.",
+          "steps": [
+            {
+              "id": "stp_3feec13c-ff11-4116-beb1-7ea779cd31f2",
+              "objectives": [
+                "자료에서 성립하면서 결정자가 슈퍼키가 아닌 종속이 BCNF 위반임을 확인해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_726d4f6e-c226-48ad-ba74-c8416ff29aba",
+      "title": "뷰와 트리거로 표의 변화를 이어요",
+      "objectives": [
+        "뷰가 저장된 질의임을 기본 표 변경으로 확인하고, 트리거로 반정규화한 중복 값을 맞추는 대가를 봐요."
+      ],
+      "units": [
+        {
+          "id": "unt_7b685d02-14b8-4d51-a11e-5816c77973a3",
+          "title": "문구점 표",
+          "objectives": [
+            "복사 표와 뷰, 트리거가 있는 중복 값과 없는 중복 값을 비교해요."
+          ],
+          "premise": "문구점의 상품(items)·고객(customers)·주문(orders) 표를 다뤄요. 각 스텝은 준비 자료에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_6b5a612b-3d49-4e1b-84ad-3da052c25b37",
+              "objectives": [
+                "뷰는 읽을 때마다 기본 표를 다시 조회하는 저장된 질의이고, 복사 표는 그 순간의 행이라는 것을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_e54c0da7-5916-472d-acb0-0db8e3de73a9",
+              "objectives": [
+                "반정규화로 둔 중복 값은 트리거 같은 장치로 맞춰야 하고, 빠진 사건에서는 어긋난다는 것을 확인해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_84ba6cd2-3eb2-489a-9329-abfb2e09fef7",
+      "title": "인덱스·저장 순서·파티션을 작은 모델로 따라가요",
+      "objectives": [
+        "정렬된 키 목록, 블록, 파티션 이름을 파이썬으로 흉내 내 몇 칸·몇 블록·몇 조각을 읽는지 세요."
+      ],
+      "units": [
+        {
+          "id": "unt_e7268dff-b827-424a-bfba-a1b0103f5efb",
+          "title": "인덱스와 블록",
+          "objectives": [
+            "정렬된 인덱스의 범위 검색과 행의 저장 순서가 읽는 양을 어떻게 바꾸는지 세요."
+          ],
+          "premise": "표의 행을 파이썬 목록으로 흉내 내요. 목록의 한 칸이 한 행이고, 행 번호는 0부터예요. 블록은 행 여러 개를 묶은 디스크 읽기 단위예요.",
+          "steps": [
+            {
+              "id": "stp_0d99136d-ae39-42a3-95ea-c3db251b2ac1",
+              "objectives": [
+                "정렬된 <키, 행 번호> 인덱스에서 시작 위치를 찾고, 키가 범위를 넘는 순간 멈추는 범위 검색을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_4ac78715-6942-4f50-b138-2b7fe25957e5",
+              "objectives": [
+                "행이 조회 키 순서로 저장되면(클러스터드) 범위 조회가 적은 블록에 모이고, 행의 순서는 표마다 하나뿐임을 확인해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_ebf42bef-eeda-4662-8b01-ac215fc0ae52",
+          "title": "파티션 배정",
+          "objectives": [
+            "파티션 규칙이 조회할 때 읽는 조각 수를 어떻게 바꾸는지 세요."
+          ],
+          "premise": "주문을 달마다 쌓아요. 파티션은 큰 주문 표를 규칙에 따라 나눈 조각이고, 여기서는 이름이 붙은 파이썬 목록으로 흉내 내요.",
+          "steps": [
+            {
+              "id": "stp_06c98893-d72c-435f-95de-e68c94258fe7",
+              "objectives": [
+                "해시 분할은 고르게 퍼지지만 달 조회 때 모든 조각을 읽고, 범위 분할은 그 달 조각만 읽는다는 것을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_937de53a-f751-47c8-8ffb-775fb08d1ba4",
+              "objectives": [
+                "범위로 먼저 나누고 그 안을 해시로 다시 나누는 조합 분할에서, 조각 이름이 조회 조건과 맞아야 필요한 조각만 읽음을 따라가요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_eb289c47-1075-4ee7-b6b2-c90ea00e3de3",
+      "title": "교수 연구실을 모든 행에서 고치세요",
+      "goal": "kim 교수의 연구실이 A101에서 B204로 옮겼어요. kim 교수가 맡은 수강 행은 여러 개이고, 행마다 연구실이 따로 적혀 있어요. 준비된 UPDATE는 그중 한 행만 고쳐요.\n\n**알아두세요**\n\n같은 사실을 여러 행에 중복해 적으면, 일부만 고쳤을 때 값이 서로 어긋나요. 이것을 갱신 이상이라고 해요.\n\nUPDATE의 WHERE 조건을 고쳐 kim 교수의 연구실이 모든 행에서 B204가 되게 하세요. 채점은 다른 수강 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 kim 교수의 연구실이 몇 줄로 보이는지 확인하세요.\n2. UPDATE의 WHERE 조건을 한 곳 고치세요.\n3. 다시 실행해 kim 교수의 연구실이 한 줄만 남았는지 확인하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- kim 교수의 연구실이 B204로 옮겼어요.\nUPDATE enroll SET office = 'B204' WHERE student = 1 AND course = 'DB';\nSELECT DISTINCT prof, office FROM enroll ORDER BY prof, office;\n",
+      "solution": "-- kim 교수의 연구실이 B204로 옮겼어요.\nUPDATE enroll SET office = 'B204' WHERE prof = 'kim';\nSELECT DISTINCT prof, office FROM enroll ORDER BY prof, office;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE enroll(student INTEGER NOT NULL, course TEXT NOT NULL, prof TEXT, office TEXT, PRIMARY KEY(student, course));\nINSERT INTO enroll VALUES(1,'DB','kim','A101'),(2,'DB','kim','A101'),(2,'OS','kim','A101'),(3,'NET','lee','C301');\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "prof | office\nkim | B204\nlee | C301"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE enroll(student INTEGER NOT NULL, course TEXT NOT NULL, prof TEXT, office TEXT, PRIMARY KEY(student, course));\nINSERT INTO enroll VALUES(4,'DB','kim','A101'),(4,'OS','kim','A101'),(5,'OS','kim','A101'),(6,'NET','lee','C305'),(7,'AI','park','D401');\n"
+          },
+          "expected": "prof | office\nkim | B204\nlee | C305\npark | D401"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "kim 교수의 연구실 하나를 바꾸는데, 그 사실이 여러 행에 흩어져 있어요.",
+          "target": "text:UPDATE의 WHERE 조건을 고쳐 kim 교수의 연구실이 모든 행에서 B204가 되게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            3,
+            3
+          ]
+        },
+        {
+          "action": "say",
+          "text": "kim 교수가 A101과 B204, 두 줄로 나왔어요. 한 행만 고쳐서 같은 사람이 연구실 두 개를 가졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "WHERE student = 1 AND course = 'DB'",
+          "after": "WHERE course = 'DB'",
+          "say": "과목 DB의 행을 모두 고쳐 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            3,
+            3
+          ]
+        },
+        {
+          "action": "say",
+          "text": "그래도 A101이 남았어요. kim 교수는 OS 행에도 연구실이 적혀 있거든요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 과목으로 고르면 같은 교수의 다른 과목 행을 놓쳐요. 바뀐 사실은 교수의 연구실이에요.",
+          "target": "code:WHERE course = 'DB'"
+        },
+        {
+          "action": "patch_code",
+          "before": "WHERE course = 'DB'",
+          "after": "WHERE prof = 'kim'",
+          "say": "교수 이름으로 행을 골라요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            3,
+            3
+          ]
+        },
+        {
+          "action": "say",
+          "text": "kim 교수는 B204 한 줄만 남았어요. 중복된 행을 하나도 빠짐없이 고쳐야 어긋나지 않아요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_fa47cd1c-5534-43cc-bfd6-1f438e3ffb41",
+      "title": "수강을 지워도 과목 사실이 남게 하세요",
+      "goal": "3번 학생이 NET 수강을 취소해서 그 행을 지워요. 그런데 NET을 듣는 학생은 3번 하나뿐이에요.\n\n**알아두세요**\n\n한 행을 지웠는데 함께 적혀 있던 다른 사실까지 사라지는 것을 삭제 이상이라고 해요. 과목 사실(과목, 교수, 연구실)을 courses 표에 따로 두면 수강을 지워도 남아요.\n\n지우기 전에 enroll의 과목 사실을 courses로 옮기는 INSERT 한 줄을 쓰고, 마지막 SELECT가 courses를 읽게 고치세요. courses에는 과목마다 한 행만 들어가요.\n\n**할 일**\n\n1. 코드 실행을 눌러 수강을 지운 뒤 남은 과목을 확인하세요.\n2. 주석 아래에 과목 사실을 courses로 옮기는 INSERT 한 줄을 쓰세요.\n3. 마지막 SELECT의 FROM을 courses로 고치세요.\n4. 다시 실행해 NET 과목이 남았는지 확인하세요.\n5. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 이 주석 아래에 enroll의 과목 사실을 courses로 옮기는 INSERT 한 줄을 쓰세요.\nDELETE FROM enroll WHERE student = 3 AND course = 'NET';\nSELECT DISTINCT course, prof, office FROM enroll ORDER BY course;\n",
+      "solution": "-- 이 주석 아래에 enroll의 과목 사실을 courses로 옮기는 INSERT 한 줄을 쓰세요.\nINSERT INTO courses SELECT DISTINCT course, prof, office FROM enroll;\nDELETE FROM enroll WHERE student = 3 AND course = 'NET';\nSELECT DISTINCT course, prof, office FROM courses ORDER BY course;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE enroll(student INTEGER NOT NULL, course TEXT NOT NULL, prof TEXT, office TEXT, PRIMARY KEY(student, course));\nINSERT INTO enroll VALUES(1,'DB','kim','A101'),(2,'DB','kim','A101'),(2,'OS','kim','A101'),(3,'NET','lee','C301');\nCREATE TABLE courses(course TEXT PRIMARY KEY, prof TEXT, office TEXT);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "course | prof | office\nDB | kim | A101\nNET | lee | C301\nOS | kim | A101"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE enroll(student INTEGER NOT NULL, course TEXT NOT NULL, prof TEXT, office TEXT, PRIMARY KEY(student, course));\nINSERT INTO enroll VALUES(1,'DB','kim','A101'),(3,'NET','lee','C305'),(4,'AI','park','D401'),(4,'DB','kim','A101');\nCREATE TABLE courses(course TEXT PRIMARY KEY, prof TEXT, office TEXT);\n"
+          },
+          "expected": "course | prof | office\nAI | park | D401\nDB | kim | A101\nNET | lee | C305"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "수강 한 행을 지울 때 과목 사실이 같이 사라지는지 보는 문제예요.",
+          "target": "text:그런데 NET을 듣는 학생은 3번 하나뿐이에요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            3,
+            3
+          ]
+        },
+        {
+          "action": "say",
+          "text": "DB와 OS만 나왔어요. 수강 행을 지웠더니 lee 교수가 C301에서 NET을 맡는다는 사실도 사라졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "-- 이 주석 아래에 enroll의 과목 사실을 courses로 옮기는 INSERT 한 줄을 쓰세요.\n",
+          "after": "-- 이 주석 아래에 enroll의 과목 사실을 courses로 옮기는 INSERT 한 줄을 쓰세요.\nINSERT INTO courses SELECT course, prof, office FROM enroll;\n",
+          "say": "지우기 전에 과목 사실을 courses로 옮겨 볼게요."
+        },
+        {
+          "action": "patch_code",
+          "before": "FROM enroll ORDER BY",
+          "after": "FROM courses ORDER BY",
+          "say": "마지막 SELECT는 courses를 읽게 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ],
+          "expect_error": "UNIQUE"
+        },
+        {
+          "action": "say",
+          "text": "UNIQUE 오류가 났어요. DB 과목은 수강 행이 둘이라 같은 과목을 두 번 넣으려 했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 행을 그대로 복사하면 같은 과목 사실이 여러 번 들어가요. courses의 키는 과목이에요.",
+          "target": "code:SELECT course, prof, office FROM enroll"
+        },
+        {
+          "action": "patch_code",
+          "before": "SELECT course, prof, office FROM enroll",
+          "after": "SELECT DISTINCT course, prof, office FROM enroll",
+          "say": "DISTINCT로 같은 과목 사실을 한 번만 옮겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "DB, NET, OS가 모두 나왔어요. 수강 행을 지워도 과목 사실은 courses에 남았어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_e503e370-0765-4f97-82ab-226c22b771dc",
+      "title": "수강생 없는 과목을 과목 표에 등록하세요",
+      "goal": "새 과목 AI를 park 교수가 D401에서 맡아요. 아직 수강 신청한 학생은 없어요. 준비된 INSERT는 학번을 비운 채 enroll에 넣으려 해요.\n\n**알아두세요**\n\n기본 키의 일부(학번)가 없어서 다른 사실(과목과 교수)을 넣지 못하는 것을 삽입 이상이라고 해요.\n\nINSERT 한 줄을 고쳐 AI 과목 사실을 courses 표에 넣으세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 오류 내용을 확인하세요.\n2. INSERT가 courses에 과목·교수·연구실을 넣도록 고치세요.\n3. 다시 실행해 AI 과목이 목록에 보이는지 확인하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 수강생이 아직 없는 AI 과목(park 교수, D401)을 등록해요.\nINSERT INTO enroll VALUES(NULL, 'AI', 'park', 'D401');\nSELECT course, prof, office FROM courses ORDER BY course;\n",
+      "solution": "-- 수강생이 아직 없는 AI 과목(park 교수, D401)을 등록해요.\nINSERT INTO courses VALUES('AI', 'park', 'D401');\nSELECT course, prof, office FROM courses ORDER BY course;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE enroll(student INTEGER NOT NULL, course TEXT NOT NULL, prof TEXT, office TEXT, PRIMARY KEY(student, course));\nINSERT INTO enroll VALUES(1,'DB','kim','A101'),(2,'DB','kim','A101'),(2,'OS','kim','A101'),(3,'NET','lee','C301');\nCREATE TABLE courses(course TEXT PRIMARY KEY, prof TEXT, office TEXT);\nINSERT INTO courses VALUES('DB','kim','A101'),('OS','kim','A101'),('NET','lee','C301');\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "course | prof | office\nAI | park | D401\nDB | kim | A101\nNET | lee | C301\nOS | kim | A101"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE enroll(student INTEGER NOT NULL, course TEXT NOT NULL, prof TEXT, office TEXT, PRIMARY KEY(student, course));\nINSERT INTO enroll VALUES(1,'DB','kim','A101'),(2,'DB','kim','A101'),(2,'OS','kim','A101'),(3,'NET','lee','C301');\nCREATE TABLE courses(course TEXT PRIMARY KEY, prof TEXT, office TEXT);\nINSERT INTO courses VALUES('DB','kim','B204'),('WEB','choi','E501');\n"
+          },
+          "expected": "course | prof | office\nAI | park | D401\nDB | kim | B204\nWEB | choi | E501"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "학생이 없는 과목을 기록하는 문제예요. enroll에는 학번 없이 행을 넣을 수 없어요.",
+          "target": "text:INSERT 한 줄을 고쳐 AI 과목 사실을 courses 표에 넣으세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ],
+          "expect_error": "NOT NULL"
+        },
+        {
+          "action": "say",
+          "text": "NOT NULL 오류예요. 학번은 기본 키의 일부라서 비워 둘 수 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "VALUES(NULL, 'AI'",
+          "after": "VALUES(0, 'AI'",
+          "say": "가짜 학번 0을 넣어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            3,
+            3
+          ]
+        },
+        {
+          "action": "say",
+          "text": "오류는 사라졌지만 목록에 AI가 없어요. 없는 학생 0번의 수강 행만 하나 생겼어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 가짜 학번으로 끼워 넣으면 수강 기록이 거짓이 돼요. 과목 사실은 과목 표에 넣어요.",
+          "target": "code:VALUES(0"
+        },
+        {
+          "action": "patch_code",
+          "before": "INSERT INTO enroll VALUES(0, 'AI', 'park', 'D401');",
+          "after": "INSERT INTO courses VALUES('AI', 'park', 'D401');",
+          "say": "courses에 과목 사실만 넣어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            3,
+            3
+          ]
+        },
+        {
+          "action": "say",
+          "text": "AI가 park 교수, D401과 함께 나왔어요. 학생이 없어도 과목을 등록할 수 있어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_2bd4181f-36c1-4509-8eb6-44ebb751f543",
+      "title": "교수가 둘 이상 적힌 과목을 찾으세요",
+      "goal": "규칙 course → prof는 「과목이 같으면 교수도 하나」라는 뜻이에요. 그런데 누군가 어떤 과목 행에 다른 교수를 잘못 적었어요.\n\n**알아두세요**\n\nX → Y(함수 종속)는 X 값이 같은 행끼리 Y 값도 늘 같다는 규칙이에요. 과목별로 묶어 서로 다른 교수 수를 세면 규칙을 어긴 과목이 보여요.\n\nHAVING의 셈을 고쳐 교수가 둘 이상 적힌 과목만 나오게 하세요. 채점은 다른 수강 자료로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 나오는 과목을 확인하세요.\n2. HAVING 안의 COUNT 한 곳을 고치세요.\n3. 다시 실행해 규칙을 어긴 과목만 남았는지 확인하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- course → prof를 어긴 과목을 찾아요.\nSELECT course FROM enroll GROUP BY course HAVING COUNT(prof) > 1 ORDER BY course;\n",
+      "solution": "-- course → prof를 어긴 과목을 찾아요.\nSELECT course FROM enroll GROUP BY course HAVING COUNT(DISTINCT prof) > 1 ORDER BY course;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE enroll(student INTEGER NOT NULL, course TEXT NOT NULL, prof TEXT, PRIMARY KEY(student, course));\nINSERT INTO enroll VALUES(1,'DB','kim'),(2,'DB','kim'),(1,'OS','kim'),(2,'OS','park'),(3,'NET','lee'),(4,'NET','lee');\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "course\nOS"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE enroll(student INTEGER NOT NULL, course TEXT NOT NULL, prof TEXT, PRIMARY KEY(student, course));\nINSERT INTO enroll VALUES(1,'DB','kim'),(2,'DB','kim'),(1,'OS','park'),(3,'NET','lee'),(4,'NET','choi');\n"
+          },
+          "expected": "course\nNET"
+        },
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE enroll(student INTEGER NOT NULL, course TEXT NOT NULL, prof TEXT, PRIMARY KEY(student, course));\nINSERT INTO enroll VALUES(1,'DB','kim'),(2,'DB','kim'),(3,'NET','lee'),(4,'NET','lee');\n"
+          },
+          "expected": "course\n(행 없음)"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "과목마다 교수가 하나뿐인지 검사하는 질의예요. 지금은 세는 값이 틀렸어요.",
+          "target": "text:HAVING의 셈을 고쳐 교수가 둘 이상 적힌 과목만 나오게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "DB, NET, OS가 모두 나왔어요. COUNT(prof)는 행 수라서 수강생이 둘이면 걸려요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "COUNT(prof)",
+          "after": "COUNT(DISTINCT prof)",
+          "say": "같은 교수는 한 번만 세게 DISTINCT를 붙여요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            2,
+            2
+          ]
+        },
+        {
+          "action": "say",
+          "text": "OS만 남았어요. OS에는 kim과 park, 서로 다른 교수 둘이 적혀 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "결과가 0행이면 지금 자료에 반례가 없다는 뜻이에요. 규칙 자체는 업무가 정해요.",
+          "target": "code:COUNT(DISTINCT prof) > 1"
+        }
+      ]
+    },
+    {
+      "id": "stp_0d3f9bd7-94e9-4531-ab9e-eee8078040ec",
+      "title": "부분 종속을 떼어 낸 표를 채우고 다시 이으세요",
+      "goal": "(student, course)가 키인 enroll에서 prof는 course만 알면 정해져요. 키의 일부에만 종속된 값이라 수강생 수만큼 반복돼요.\n\n**알아두세요**\n\n기본 키의 일부에만 종속된 속성(부분 종속)을 따로 떼어 내면 제2정규형(2NF)이 돼요. 떼어 낸 표의 키는 그 종속을 정하는 일부 키예요.\n\ntakes는 이미 채웠어요. 주석 아래에 subjects(course, prof)를 채우는 INSERT 한 줄을 쓰세요. 마지막 SELECT로 두 표를 다시 이은 결과가 원래 enroll과 같아야 해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 다시 이은 결과를 확인하세요.\n2. 주석 아래에 enroll에서 subjects로 옮기는 INSERT 한 줄을 쓰세요.\n3. 다시 실행해 원래 네 행이 그대로 나오는지 확인하세요.\n4. 작성한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "INSERT INTO takes SELECT student, course, grade FROM enroll;\n-- 이 주석 아래에 enroll에서 subjects(course, prof)로 옮기는 INSERT 한 줄을 쓰세요.\nSELECT t.student, t.course, s.prof, t.grade FROM takes t JOIN subjects s ON t.course = s.course ORDER BY t.student, t.course;\n",
+      "solution": "INSERT INTO takes SELECT student, course, grade FROM enroll;\n-- 이 주석 아래에 enroll에서 subjects(course, prof)로 옮기는 INSERT 한 줄을 쓰세요.\nINSERT INTO subjects SELECT DISTINCT course, prof FROM enroll;\nSELECT t.student, t.course, s.prof, t.grade FROM takes t JOIN subjects s ON t.course = s.course ORDER BY t.student, t.course;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE enroll(student INTEGER NOT NULL, course TEXT NOT NULL, prof TEXT, grade TEXT, PRIMARY KEY(student, course));\nINSERT INTO enroll VALUES(1,'DB','kim','A'),(2,'DB','kim','B'),(1,'OS','lee','B'),(3,'NET','choi','A');\nCREATE TABLE takes(student INTEGER NOT NULL, course TEXT NOT NULL, grade TEXT, PRIMARY KEY(student, course));\nCREATE TABLE subjects(course TEXT PRIMARY KEY, prof TEXT);\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "student | course | prof | grade\n1 | DB | kim | A\n1 | OS | lee | B\n2 | DB | kim | B\n3 | NET | choi | A"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE enroll(student INTEGER NOT NULL, course TEXT NOT NULL, prof TEXT, grade TEXT, PRIMARY KEY(student, course));\nINSERT INTO enroll VALUES(5,'AI','park','C'),(6,'AI','park','A'),(6,'DB','kim','B'),(7,'DB','kim','A');\nCREATE TABLE takes(student INTEGER NOT NULL, course TEXT NOT NULL, grade TEXT, PRIMARY KEY(student, course));\nCREATE TABLE subjects(course TEXT PRIMARY KEY, prof TEXT);\n"
+          },
+          "expected": "student | course | prof | grade\n5 | AI | park | C\n6 | AI | park | A\n6 | DB | kim | B\n7 | DB | kim | A"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "prof를 subjects로 떼어 내고, 다시 이어서 원래 행이 나오는지 보는 문제예요.",
+          "target": "text:마지막 SELECT로 두 표를 다시 이은 결과가 원래 enroll과 같아야 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            3,
+            3
+          ]
+        },
+        {
+          "action": "say",
+          "text": "열 이름 아래 (행 없음)이에요. subjects가 비어서 이어 붙일 짝이 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "-- 이 주석 아래에 enroll에서 subjects(course, prof)로 옮기는 INSERT 한 줄을 쓰세요.\n",
+          "after": "-- 이 주석 아래에 enroll에서 subjects(course, prof)로 옮기는 INSERT 한 줄을 쓰세요.\nINSERT INTO subjects SELECT DISTINCT student, prof FROM enroll;\n",
+          "say": "먼저 학번과 교수를 옮겨 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ],
+          "expect_error": "UNIQUE"
+        },
+        {
+          "action": "say",
+          "text": "UNIQUE 오류예요. 학번 1의 교수가 kim과 lee 둘이라 같은 키가 두 번 들어가요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. prof를 정하는 건 학번이 아니라 과목이에요. 떼어 낼 표의 키는 종속의 왼쪽이에요.",
+          "target": "code:DISTINCT student, prof"
+        },
+        {
+          "action": "patch_code",
+          "before": "DISTINCT student, prof",
+          "after": "DISTINCT course, prof",
+          "say": "과목과 교수를 옮겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "원래 네 행이 그대로 나왔어요. kim은 subjects에 DB 한 행으로만 있고, 이을 때 두 수강에 붙었어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_3feec13c-ff11-4116-beb1-7ea779cd31f2",
+      "title": "결정자가 슈퍼키가 아닌 종속만 세세요",
+      "goal": "후보 종속 두 개, (student, course) → teacher와 teacher → course를 자료로 검사해요. holds(x, y)는 x가 같은 행끼리 y도 같은지, superkey(x)는 x가 모든 열을 정하는지 알려 줘요.\n\n**알아두세요**\n\n자료에서 성립하는 종속 가운데 결정자(→의 왼쪽)가 슈퍼키가 아닌 것이 하나라도 있으면 BCNF가 아니에요. 자료가 어긴 종속은 그 표의 규칙이 아니에요.\n\nif 조건 한 줄을 고쳐 BCNF를 깨는 종속만 출력하고 세게 하세요. 채점은 rows를 다른 자료로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력되는 종속과 위반 수를 확인하세요.\n2. if 조건에 결정자가 슈퍼키인지 검사를 더하세요.\n3. 다시 실행해 남은 종속과 위반 수를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "rows = [['kim', 'DB', 't1'], ['lee', 'DB', 't2'], ['kim', 'OS', 't3'], ['park', 'DB', 't1']]\nCOLS = ['student', 'course', 'teacher']\n\n\ndef holds(x, y):\n    # x 값이 같은 행끼리 y 값도 같으면 True예요.\n    seen = {}\n    for row in rows:\n        r = dict(zip(COLS, row))\n        key = tuple(r[c] for c in x)\n        value = tuple(r[c] for c in y)\n        if seen.setdefault(key, value) != value:\n            return False\n    return True\n\n\ndef superkey(x):\n    # x가 모든 열을 정하면 슈퍼키예요.\n    return holds(x, COLS)\n\n\nfds = [[['student', 'course'], ['teacher']], [['teacher'], ['course']]]\nbad = 0\n# BCNF를 깨는 종속만 출력하고 세요.\nfor x, y in fds:\n    if holds(x, y):\n        print(','.join(x), '->', ','.join(y))\n        bad += 1\nprint('위반', bad)\n",
+      "solution": "rows = [['kim', 'DB', 't1'], ['lee', 'DB', 't2'], ['kim', 'OS', 't3'], ['park', 'DB', 't1']]\nCOLS = ['student', 'course', 'teacher']\n\n\ndef holds(x, y):\n    # x 값이 같은 행끼리 y 값도 같으면 True예요.\n    seen = {}\n    for row in rows:\n        r = dict(zip(COLS, row))\n        key = tuple(r[c] for c in x)\n        value = tuple(r[c] for c in y)\n        if seen.setdefault(key, value) != value:\n            return False\n    return True\n\n\ndef superkey(x):\n    # x가 모든 열을 정하면 슈퍼키예요.\n    return holds(x, COLS)\n\n\nfds = [[['student', 'course'], ['teacher']], [['teacher'], ['course']]]\nbad = 0\n# BCNF를 깨는 종속만 출력하고 세요.\nfor x, y in fds:\n    if holds(x, y) and not superkey(x):\n        print(','.join(x), '->', ','.join(y))\n        bad += 1\nprint('위반', bad)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "teacher -> course\n위반 1"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "BCNF를 깨는 종속만 골라야 해요. 지금은 성립하는 종속을 모두 세요.",
+          "target": "text:if 조건 한 줄을 고쳐 BCNF를 깨는 종속만 출력하고 세게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            29,
+            29
+          ]
+        },
+        {
+          "action": "say",
+          "text": "두 종속이 모두 나오고 위반 2예요. 그런데 student,course는 모든 열을 정하는 슈퍼키예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    if holds(x, y):\n",
+          "after": "    if not superkey(x):\n",
+          "say": "결정자가 슈퍼키인지만 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            29,
+            29
+          ]
+        },
+        {
+          "action": "say",
+          "text": "teacher -> course 하나, 위반 1이에요. t1인 행이 둘이라 teacher는 슈퍼키가 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "['park', 'DB', 't1']",
+          "after": "['park', 'OS', 't1']",
+          "say": "t1이 OS도 맡도록 자료를 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            29,
+            29
+          ]
+        },
+        {
+          "action": "say",
+          "text": "그래도 teacher -> course, 위반 1이에요. t1이 DB와 OS를 맡으니 이 종속은 성립하지 않는데도 셌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 결정자만 보면 자료가 어긴 가짜 종속까지 위반으로 세요. 성립 여부를 먼저 봐야 해요.",
+          "target": "code:if not superkey(x):"
+        },
+        {
+          "action": "patch_code",
+          "before": "    if not superkey(x):\n",
+          "after": "    if holds(x, y) and not superkey(x):\n",
+          "say": "종속이 성립하는지도 함께 검사해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            29,
+            29
+          ]
+        },
+        {
+          "action": "say",
+          "text": "위반 0이에요. 바꾼 자료에서는 teacher -> course가 규칙이 아니라서 빠졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "['park', 'OS', 't1']",
+          "after": "['park', 'DB', 't1']",
+          "say": "자료를 처음대로 돌려요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            29,
+            29
+          ]
+        },
+        {
+          "action": "say",
+          "text": "teacher -> course, 위반 1이에요. course가 키 일부라 3NF는 지키지만, 결정자 teacher가 슈퍼키가 아니라 BCNF는 아니에요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"rows\": [[\"kim\", \"DB\", \"t1\"], [\"lee\", \"DB\", \"t2\"], [\"kim\", \"OS\", \"t3\"], [\"park\", \"DB\", \"t1\"]]}, \"expected\": \"teacher -> course\\\\n위반 1\", \"value_literals\": {\"rows\": \"[[\\'kim\\', \\'DB\\', \\'t1\\'], [\\'lee\\', \\'DB\\', \\'t2\\'], [\\'kim\\', \\'OS\\', \\'t3\\'], [\\'park\\', \\'DB\\', \\'t1\\']]\"}}, {\"values\": {\"rows\": [[\"kim\", \"DB\", \"t1\"], [\"lee\", \"OS\", \"t1\"], [\"kim\", \"OS\", \"t2\"]]}, \"expected\": \"위반 0\", \"value_literals\": {\"rows\": \"[[\\'kim\\', \\'DB\\', \\'t1\\'], [\\'lee\\', \\'OS\\', \\'t1\\'], [\\'kim\\', \\'OS\\', \\'t2\\']]\"}}, {\"values\": {\"rows\": [[\"ann\", \"NET\", \"t5\"], [\"bob\", \"NET\", \"t5\"], [\"ann\", \"AI\", \"t6\"]]}, \"expected\": \"teacher -> course\\\\n위반 1\", \"value_literals\": {\"rows\": \"[[\\'ann\\', \\'NET\\', \\'t5\\'], [\\'bob\\', \\'NET\\', \\'t5\\'], [\\'ann\\', \\'AI\\', \\'t6\\']]\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_6b5a612b-3d49-4e1b-84ad-3da052c25b37",
+      "title": "판매가 바로 보이는 shelf를 뷰로 만드세요",
+      "goal": "점원 화면에는 원가(cost)를 빼고 이름과 재고만 보여 주려 해요. 준비 코드는 items에서 shelf를 만든 뒤 pen 재고를 2개 줄여요. 실행하면 마지막에 확인 SQL이 shelf가 표(table)인지 뷰(view)인지 보여 줘요.\n\n**알아두세요**\n\n뷰는 SELECT에 이름을 붙여 저장한 가상 테이블이에요. 읽을 때마다 기본 표에서 다시 가져와요. CREATE TABLE ... AS SELECT는 그 순간의 행을 복사한 새 표예요.\n\nshelf를 만드는 줄을 뷰로 고쳐, pen이 팔린 뒤의 재고가 shelf에도 보이게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 판매 전후 두 목록을 비교하세요.\n2. shelf를 만드는 CREATE 줄을 뷰로 고치세요.\n3. 다시 실행해 두 번째 목록의 pen 재고와 shelf의 type을 확인하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 점원 화면에 보일 이름·재고 목록 shelf를 만들어요.\nCREATE TABLE shelf AS SELECT name, stock FROM items;\nSELECT name, stock FROM shelf ORDER BY name;\n-- pen이 2개 팔렸어요.\nUPDATE items SET stock = stock - 2 WHERE name = 'pen';\nSELECT name, stock FROM shelf ORDER BY name;\n",
+      "solution": "-- 점원 화면에 보일 이름·재고 목록 shelf를 만들어요.\nCREATE VIEW shelf AS SELECT name, stock FROM items;\nSELECT name, stock FROM shelf ORDER BY name;\n-- pen이 2개 팔렸어요.\nUPDATE items SET stock = stock - 2 WHERE name = 'pen';\nSELECT name, stock FROM shelf ORDER BY name;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, cost INTEGER);\nINSERT INTO items VALUES(1,'pen',9,300),(2,'cup',5,1200),(3,'tape',4,800);\n",
+        "after.sql": "SELECT type FROM sqlite_master WHERE name = 'shelf';\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "name | stock\ncup | 5\npen | 9\ntape | 4\n\nname | stock\ncup | 5\npen | 7\ntape | 4\n\ntype\nview"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE items(id INTEGER PRIMARY KEY, name TEXT, stock INTEGER, cost INTEGER);\nINSERT INTO items VALUES(1,'pen',3,300),(2,'glue',6,500);\n"
+          },
+          "expected": "name | stock\nglue | 6\npen | 3\n\nname | stock\nglue | 6\npen | 1\n\ntype\nview"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "판매 뒤 shelf가 기본 표 items의 변화를 따라오는지 보는 문제예요.",
+          "target": "text:shelf를 만드는 줄을 뷰로 고쳐, pen이 팔린 뒤의 재고가 shelf에도 보이게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "두 목록 모두 pen이 9예요. 마지막 type은 table이에요. 복사한 표라 items가 바뀐 걸 몰라요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "CREATE TABLE shelf AS",
+          "after": "CREATE VIEW shelf AS",
+          "say": "복사 대신 뷰로 만들어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "두 번째 목록의 pen이 7로 줄었고 type은 view예요. 뷰는 읽을 때마다 items를 다시 조회해요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "shelf에는 cost 열이 없어요. 뷰로 보여 줄 열만 골라 원가를 감출 수 있어요.",
+          "target": "code:SELECT name, stock FROM items"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 복사 표를 UPDATE 뒤로 옮겨 만들면 지금은 맞아 보여도, 다음 판매부터 또 어긋나요.",
+          "target": "code:CREATE VIEW shelf AS"
+        }
+      ]
+    },
+    {
+      "id": "stp_e54c0da7-5916-472d-acb0-0db8e3de73a9",
+      "title": "트리거로 누적 주문액을 맞추세요",
+      "goal": "고객 화면에서 누적 주문액을 매번 SUM으로 계산하니 느려서, customers에 total 열을 따로 두었어요. 같은 값을 orders의 합계와 total 두 곳에 둔 셈이에요. 실행하면 확인 SQL이 bob의 주문을 하나 더 넣고 다시 비교해요.\n\n**알아두세요**\n\n성능을 위해 일부러 중복을 두는 것을 반정규화라고 해요. 중복 값이 어긋나지 않게 맞추는 장치가 필요해요. 트리거는 INSERT·UPDATE·DELETE가 일어날 때마다 자동으로 실행되고, NEW는 방금 들어온 행이에요.\n\n트리거 안의 UPDATE 한 줄을 고쳐, 주문이 들어올 때마다 그 고객의 total이 주문액만큼 늘게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 total과 real 열을 비교하세요.\n2. 트리거 안의 UPDATE 한 줄을 고치세요.\n3. 다시 실행해 두 목록 모두에서 total과 real이 같은지 확인하세요.\n4. 수정한 질의를 제출하세요.",
+      "language": "sql",
+      "starter_code": "-- 주문이 들어올 때마다 그 고객의 total을 맞추는 트리거예요.\nCREATE TRIGGER add_total AFTER INSERT ON orders\nBEGIN\n  UPDATE customers SET total = NEW.amount WHERE id = NEW.customer;\nEND;\nINSERT INTO orders VALUES(4, 1, 500);\nSELECT name, total, (SELECT SUM(amount) FROM orders WHERE customer = customers.id) AS real FROM customers ORDER BY id;\n",
+      "solution": "-- 주문이 들어올 때마다 그 고객의 total을 맞추는 트리거예요.\nCREATE TRIGGER add_total AFTER INSERT ON orders\nBEGIN\n  UPDATE customers SET total = total + NEW.amount WHERE id = NEW.customer;\nEND;\nINSERT INTO orders VALUES(4, 1, 500);\nSELECT name, total, (SELECT SUM(amount) FROM orders WHERE customer = customers.id) AS real FROM customers ORDER BY id;\n",
+      "files": {
+        "setup.sql": "CREATE TABLE customers(id INTEGER PRIMARY KEY, name TEXT, total INTEGER NOT NULL);\nCREATE TABLE orders(id INTEGER PRIMARY KEY, customer INTEGER REFERENCES customers(id), amount INTEGER);\nINSERT INTO customers VALUES(1,'ann',700),(2,'bob',200);\nINSERT INTO orders VALUES(1,1,400),(2,1,300),(3,2,200);\n",
+        "after.sql": "INSERT INTO orders VALUES(9, 2, 100);\nSELECT name, total, (SELECT SUM(amount) FROM orders WHERE customer = customers.id) AS real FROM customers ORDER BY id;\n"
+      },
+      "tests": [
+        {
+          "input": "",
+          "expected": "name | total | real\nann | 1200 | 1200\nbob | 200 | 200\n\nname | total | real\nann | 1200 | 1200\nbob | 300 | 300"
+        }
+      ],
+      "variations": [
+        {
+          "files": {
+            "setup.sql": "CREATE TABLE customers(id INTEGER PRIMARY KEY, name TEXT, total INTEGER NOT NULL);\nCREATE TABLE orders(id INTEGER PRIMARY KEY, customer INTEGER REFERENCES customers(id), amount INTEGER);\nINSERT INTO customers VALUES(1,'cho',50),(2,'dan',900);\nINSERT INTO orders VALUES(1,1,50),(2,2,400),(3,2,500);\n"
+          },
+          "expected": "name | total | real\ncho | 550 | 550\ndan | 900 | 900\n\nname | total | real\ncho | 550 | 550\ndan | 1000 | 1000"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "중복해 둔 total이 실제 주문 합계 real과 늘 같아야 하는 문제예요.",
+          "target": "text:트리거 안의 UPDATE 한 줄을 고쳐, 주문이 들어올 때마다 그 고객의 total이 주문액만큼 늘게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "ann의 total이 500, real은 1200이에요. 트리거가 total을 새 주문액으로 덮어썼어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "SET total = NEW.amount",
+          "after": "SET total = total + NEW.amount",
+          "say": "원래 total에 주문액을 더해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "ann은 1200과 1200, 아래 목록의 bob도 300과 300이에요. 주문마다 트리거가 저절로 맞췄어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "SELECT name",
+          "after": "DELETE FROM orders WHERE id = 4;\nSELECT name",
+          "say": "이번엔 주문 4를 취소해 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "ann의 total은 1200인데 real은 700이에요. 삭제에는 트리거가 없어서 중복 값이 어긋났어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 반정규화한 값은 INSERT만 맞춰선 부족해요. 삭제와 수정 때 맞출 트리거도 따로 있어야 해요.",
+          "target": "code:AFTER INSERT ON orders"
+        }
+      ]
+    },
+    {
+      "id": "stp_0d99136d-ae39-42a3-95ea-c3db251b2ac1",
+      "title": "인덱스 범위 검색이 hi를 넘으면 멈추게 하세요",
+      "goal": "점수 80~90점인 행을 찾아요. 인덱스는 (점수, 행 번호) 쌍을 점수 순서로 정렬해 둔 목록이에요. bisect_left로 lo가 들어갈 위치를 바로 찾고, 거기서부터 차례로 읽어요.\n\n**알아두세요**\n\n인덱스는 키 순서로 정렬된 <키, 행 위치> 쌍이에요. B+ 트리도 리프에 키가 정렬돼 이어져 있어서, 시작 키를 찾은 뒤 옆으로 읽다가 범위를 넘으면 멈춰요.\n\nread += 1 아래에 두 줄을 써서, 읽은 키 k가 hi보다 크면 반복을 멈추게 하세요. 채점은 scores·lo·hi를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 찾은 행과 read를 확인하세요.\n2. read += 1 아래에 k가 hi보다 크면 멈추는 두 줄을 쓰세요.\n3. 다시 실행해 찾은 행과 read가 어떻게 줄었는지 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import bisect\n\nscores = [72, 95, 81, 64, 88, 90, 77, 85, 99, 93]\nlo = 80\nhi = 90\n# 인덱스: (점수, 행 번호)를 점수 순서로 정렬한 목록이에요.\nindex = sorted((s, i) for i, s in enumerate(scores))\nkeys = [k for k, _ in index]\nstart = bisect.bisect_left(keys, lo)\nread = 0\nfound = []\n# 시작 위치부터 인덱스 칸을 차례로 읽어요. read는 살펴본 칸 수예요.\nfor k, row in index[start:]:\n    read += 1\n    found.append(row)\nprint('rows', sorted(found), 'read', read)\n",
+      "solution": "import bisect\n\nscores = [72, 95, 81, 64, 88, 90, 77, 85, 99, 93]\nlo = 80\nhi = 90\n# 인덱스: (점수, 행 번호)를 점수 순서로 정렬한 목록이에요.\nindex = sorted((s, i) for i, s in enumerate(scores))\nkeys = [k for k, _ in index]\nstart = bisect.bisect_left(keys, lo)\nread = 0\nfound = []\n# 시작 위치부터 인덱스 칸을 차례로 읽어요. read는 살펴본 칸 수예요.\nfor k, row in index[start:]:\n    read += 1\n    if k > hi:\n        break\n    found.append(row)\nprint('rows', sorted(found), 'read', read)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "rows [2, 4, 5, 7] read 5"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "정렬된 인덱스에서 80~90점 범위만 읽고 멈춰야 해요.",
+          "target": "text:read += 1 아래에 두 줄을 써서, 읽은 키 k가 hi보다 크면 반복을 멈추게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "rows에 1, 8, 9까지 일곱 행이 나오고 read 7이에요. 95, 99, 93점 행까지 끝까지 읽었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    read += 1\n",
+          "after": "    read += 1\n    if k > hi:\n        continue\n",
+          "say": "범위를 넘는 키는 건너뛰어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "rows는 2, 4, 5, 7로 맞았지만 read는 그대로 7이에요. 건너뛰기만 하고 끝까지 읽었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 정렬된 인덱스에서 hi를 넘은 뒤에는 더 볼 키가 없어요. 건너뛰지 말고 멈춰야 읽는 양이 줄어요.",
+          "target": "code:continue"
+        },
+        {
+          "action": "patch_code",
+          "before": "continue",
+          "after": "break",
+          "say": "여기서 반복을 멈춰요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "rows [2, 4, 5, 7], read 5예요. 81부터 90까지 넷과, 넘은 93 하나만 보고 멈췄어요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"scores\": [72, 95, 81, 64, 88, 90, 77, 85, 99, 93], \"lo\": 80, \"hi\": 90}, \"expected\": \"rows [2, 4, 5, 7] read 5\", \"value_literals\": {\"scores\": \"[72, 95, 81, 64, 88, 90, 77, 85, 99, 93]\", \"lo\": \"80\", \"hi\": \"90\"}}, {\"values\": {\"scores\": [50, 60, 70, 65, 99], \"lo\": 55, \"hi\": 65}, \"expected\": \"rows [1, 3] read 3\", \"value_literals\": {\"scores\": \"[50, 60, 70, 65, 99]\", \"lo\": \"55\", \"hi\": \"65\"}}, {\"values\": {\"scores\": [88, 82, 91, 79, 84], \"lo\": 80, \"hi\": 90}, \"expected\": \"rows [0, 1, 4] read 4\", \"value_literals\": {\"scores\": \"[88, 82, 91, 79, 84]\", \"lo\": \"80\", \"hi\": \"90\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_4ac78715-6942-4f50-b138-2b7fe25957e5",
+      "title": "금액 순서로 행을 저장해 읽는 블록을 줄이세요",
+      "goal": "주문 9행을 3행씩 블록에 담아 저장해요. 금액 범위 조회를 할 때 읽어야 하는 블록 수를 세요. 지금 행은 주문번호 순서로 놓여 있어요.\n\n**알아두세요**\n\n클러스터드 인덱스는 데이터 행 자체를 키 순서로 저장해요. 행은 한 순서로만 놓일 수 있어서 표마다 하나뿐이에요. 넌클러스터드 인덱스는 키와 행 위치만 따로 두어 여러 개 만들 수 있어요.\n\nrows를 만드는 정렬 키를 고쳐, 금액 범위 조회가 닿는 블록 수가 줄게 하세요. 채점은 BLOCK·lo·hi를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 블록 수를 확인하세요.\n2. rows를 만드는 sorted의 정렬 키를 고치세요.\n3. 다시 실행해 블록 수가 줄었는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "BLOCK = 3\n# (주문번호, 금액) 행이에요. 자주 하는 조회는 금액 범위예요.\ndata = [[1, 500], [2, 120], [3, 340], [4, 90], [5, 410], [6, 150], [7, 300], [8, 60], [9, 220]]\nlo = 100\nhi = 250\n# 표의 행은 한 가지 순서로만 블록에 놓여요. 지금은 주문번호 순서예요.\nrows = sorted(data, key=lambda r: r[0])\n# 금액이 범위 안인 행이 놓인 블록 번호를 모아요.\nblocks = {i // BLOCK for i, r in enumerate(rows) if lo <= r[1] <= hi}\nprint('blocks', len(blocks))\n",
+      "solution": "BLOCK = 3\n# (주문번호, 금액) 행이에요. 자주 하는 조회는 금액 범위예요.\ndata = [[1, 500], [2, 120], [3, 340], [4, 90], [5, 410], [6, 150], [7, 300], [8, 60], [9, 220]]\nlo = 100\nhi = 250\n# 표의 행은 한 가지 순서로만 블록에 놓여요. 지금은 주문번호 순서예요.\nrows = sorted(data, key=lambda r: r[1])\n# 금액이 범위 안인 행이 놓인 블록 번호를 모아요.\nblocks = {i // BLOCK for i, r in enumerate(rows) if lo <= r[1] <= hi}\nprint('blocks', len(blocks))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "blocks 2"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "금액 범위 조회가 몇 블록을 읽는지 세는 문제예요. 행이 놓인 순서가 열쇠예요.",
+          "target": "text:rows를 만드는 정렬 키를 고쳐, 금액 범위 조회가 닿는 블록 수가 줄게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "blocks 3이에요. 120, 150, 220원 행이 주문번호 순서로 세 블록에 흩어졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "key=lambda r: r[0]",
+          "after": "key=lambda r: r[1]",
+          "say": "행을 금액 순서로 저장해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "blocks 2예요. 금액 순으로 놓으니 120, 150, 220원 행이 붙어서 두 블록에 모였어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 행은 한 순서로만 놓여요. 금액 순으로 바꾸면 이번엔 주문번호 범위 조회가 흩어질 수 있어요.",
+          "target": "code:key=lambda r: r[1]"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"BLOCK\": 3, \"lo\": 100, \"hi\": 250}, \"expected\": \"blocks 2\", \"value_literals\": {\"BLOCK\": \"3\", \"lo\": \"100\", \"hi\": \"250\"}}, {\"values\": {\"BLOCK\": 5, \"lo\": 100, \"hi\": 250}, \"expected\": \"blocks 1\", \"value_literals\": {\"BLOCK\": \"5\", \"lo\": \"100\", \"hi\": \"250\"}}, {\"values\": {\"BLOCK\": 2, \"lo\": 300, \"hi\": 500}, \"expected\": \"blocks 3\", \"value_literals\": {\"BLOCK\": \"2\", \"lo\": \"300\", \"hi\": \"500\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_06c98893-d72c-435f-95de-e68c94258fe7",
+      "title": "달 단위 범위 파티션으로 읽는 조각을 줄이세요",
+      "goal": "주문은 1월 것을 가장 자주 조회해요. route는 주문을 담을 파티션 이름을 정하는데, 지금은 주문번호를 3으로 나눈 나머지(해시)로 나눠요.\n\n**알아두세요**\n\n범위 분할은 값의 구간(예: 달)으로, 목록 분할은 정해 둔 값 목록으로, 해시 분할은 해시 결과로 나눠요. 조회 조건과 같은 기준으로 나누면 필요한 조각만 읽어요.\n\nroute의 return 한 줄을 고쳐 주문을 달마다 다른 파티션에 담으세요. 채점은 want와 orders를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 sizes와 read를 확인하세요.\n2. route의 return 한 줄을 고치세요.\n3. 다시 실행해 read에 남은 조각 수를 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "orders = [[101, '2026-01'], [102, '2026-02'], [103, '2026-01'], [104, '2026-03'], [105, '2026-01'], [106, '2026-02']]\nwant = '2026-01'\n\n\ndef route(order_id, month):\n    # 주문을 담을 파티션 이름을 돌려줘요.\n    return 'h' + str(order_id % 3)\n\n\nparts = {}\nfor order_id, month in orders:\n    parts.setdefault(route(order_id, month), []).append(month)\nprint('sizes', sorted(len(v) for v in parts.values()))\n# want 달의 주문이 들어 있는 파티션 이름을 모아요.\nprint('read', sorted(p for p, months in parts.items() if want in months))\n",
+      "solution": "orders = [[101, '2026-01'], [102, '2026-02'], [103, '2026-01'], [104, '2026-03'], [105, '2026-01'], [106, '2026-02']]\nwant = '2026-01'\n\n\ndef route(order_id, month):\n    # 주문을 담을 파티션 이름을 돌려줘요.\n    return month\n\n\nparts = {}\nfor order_id, month in orders:\n    parts.setdefault(route(order_id, month), []).append(month)\nprint('sizes', sorted(len(v) for v in parts.values()))\n# want 달의 주문이 들어 있는 파티션 이름을 모아요.\nprint('read', sorted(p for p, months in parts.items() if want in months))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "sizes [1, 2, 3]\nread ['2026-01']"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "1월 주문을 볼 때 몇 조각을 읽는지가 문제예요. 지금은 주문번호로 나눠요.",
+          "target": "text:route의 return 한 줄을 고쳐 주문을 달마다 다른 파티션에 담으세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "sizes는 [2, 2, 2]로 고르고, read는 h0, h1, h2 세 조각이에요. 1월 주문이 모든 조각에 흩어졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    return 'h' + str(order_id % 3)\n",
+          "after": "    return month[:4]\n",
+          "say": "연도로 나눠 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "sizes [6], read는 2026 한 조각이에요. 조각은 하나지만 1월을 보려고 여섯 행을 다 읽어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 구간을 너무 크게 잡으면 나누지 않은 것과 같아요. 조회 단위인 달로 나눠야 해요.",
+          "target": "code:month[:4]"
+        },
+        {
+          "action": "patch_code",
+          "before": "month[:4]",
+          "after": "month",
+          "say": "달 전체를 파티션 이름으로 써요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "sizes [1, 2, 3], read는 2026-01 한 조각이에요. 크기는 고르지 않아도 1월은 한 조각만 읽어요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"want\": \"2026-01\"}, \"expected\": \"sizes [1, 2, 3]\\\\nread [\\'2026-01\\']\", \"value_literals\": {\"want\": \"\\'2026-01\\'\"}}, {\"values\": {\"want\": \"2026-02\"}, \"expected\": \"sizes [1, 2, 3]\\\\nread [\\'2026-02\\']\", \"value_literals\": {\"want\": \"\\'2026-02\\'\"}}, {\"values\": {\"orders\": [[7, \"2026-05\"], [8, \"2026-05\"], [9, \"2026-06\"]], \"want\": \"2026-06\"}, \"expected\": \"sizes [1, 2]\\\\nread [\\'2026-06\\']\", \"value_literals\": {\"orders\": \"[[7, \\'2026-05\\'], [8, \\'2026-05\\'], [9, \\'2026-06\\']]\", \"want\": \"\\'2026-06\\'\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_937de53a-f751-47c8-8ffb-775fb08d1ba4",
+      "title": "조합 파티션의 이름 순서를 고쳐 그 달 조각만 읽으세요",
+      "goal": "1월 주문이 많아져서 달 파티션 안을 주문번호의 2로 나눈 나머지로 다시 나눴어요. 조각 이름은 「달/나머지」 모양이어야 하고, 조회는 이름이 want 달로 시작하는 조각만 읽어요.\n\n**알아두세요**\n\n범위로 먼저 나누고 그 안을 해시로 다시 나누는 것을 조합(복합) 분할이라고 해요. 범위 덕분에 그 달 조각만 고르고, 해시 덕분에 한 달 안의 양이 고르게 퍼져요.\n\nroute의 return 한 줄을 고쳐 조각 이름이 「달/나머지」가 되게 하세요. 채점은 want와 orders를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 조각 수, 읽은 조각, 금액 합을 확인하세요.\n2. route가 만드는 이름을 따라가며 read가 비는 까닭을 찾으세요.\n3. route의 return 한 줄을 고치세요.\n4. 다시 실행해 1월 조각만 읽고 금액 합이 맞는지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "orders = [[101, '2026-01', 30], [102, '2026-02', 50], [103, '2026-01', 20], [104, '2026-01', 40], [105, '2026-02', 10]]\nwant = '2026-01'\n\n\ndef route(order_id, month):\n    # 달로 먼저 나누고, 그 안에서 주문번호를 2로 나눈 나머지로 다시 나눠요.\n    return str(order_id % 2) + '/' + month\n\n\nparts = {}\nfor order_id, month, amount in orders:\n    parts.setdefault(route(order_id, month), []).append(amount)\n# 이름이 want 달로 시작하는 조각만 읽어 금액을 더해요.\nread = [p for p in sorted(parts) if p.startswith(want)]\nprint(len(parts), read, sum(sum(parts[p]) for p in read))\n",
+      "solution": "orders = [[101, '2026-01', 30], [102, '2026-02', 50], [103, '2026-01', 20], [104, '2026-01', 40], [105, '2026-02', 10]]\nwant = '2026-01'\n\n\ndef route(order_id, month):\n    # 달로 먼저 나누고, 그 안에서 주문번호를 2로 나눈 나머지로 다시 나눠요.\n    return month + '/' + str(order_id % 2)\n\n\nparts = {}\nfor order_id, month, amount in orders:\n    parts.setdefault(route(order_id, month), []).append(amount)\n# 이름이 want 달로 시작하는 조각만 읽어 금액을 더해요.\nread = [p for p in sorted(parts) if p.startswith(want)]\nprint(len(parts), read, sum(sum(parts[p]) for p in read))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "4 ['2026-01/0', '2026-01/1'] 90"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "달로 먼저, 그 안을 나머지로 나누는 조합 분할이에요. 조각 이름이 조회와 맞아야 해요.",
+          "target": "text:route의 return 한 줄을 고쳐 조각 이름이 「달/나머지」가 되게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4 [] 0이에요. 조각은 넷인데 1월 조각을 하나도 못 골랐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "101번은 1/2026-01이 돼요. 이름이 나머지로 시작해서 startswith(want)에 걸리지 않아요.",
+          "target": "code:p.startswith(want)"
+        },
+        {
+          "action": "patch_code",
+          "before": "    return str(order_id % 2) + '/' + month\n",
+          "after": "    return month\n",
+          "say": "달로만 나눠 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2 ['2026-01'] 90이에요. 금액은 맞지만 1월 세 건이 한 조각에 몰렸어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 해시 하위 분할을 빼면 붐비는 달이 한 조각에 다시 쌓여요. 달 뒤에 나머지를 붙여야 해요.",
+          "target": "code:return month"
+        },
+        {
+          "action": "patch_code",
+          "before": "    return month\n",
+          "after": "    return month + '/' + str(order_id % 2)\n",
+          "say": "달을 앞에, 나머지를 뒤에 붙여요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4 ['2026-01/0', '2026-01/1'] 90이에요. 1월 두 조각만 읽고 40과 30, 20을 더했어요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"want\": \"2026-01\"}, \"expected\": \"4 [\\'2026-01/0\\', \\'2026-01/1\\'] 90\", \"value_literals\": {\"want\": \"\\'2026-01\\'\"}}, {\"values\": {\"want\": \"2026-02\"}, \"expected\": \"4 [\\'2026-02/0\\', \\'2026-02/1\\'] 60\", \"value_literals\": {\"want\": \"\\'2026-02\\'\"}}, {\"values\": {\"orders\": [[10, \"2026-03\", 5], [12, \"2026-03\", 7], [13, \"2026-04\", 9]], \"want\": \"2026-03\"}, \"expected\": \"2 [\\'2026-03/0\\'] 12\", \"value_literals\": {\"orders\": \"[[10, \\'2026-03\\', 5], [12, \\'2026-03\\', 7], [13, \\'2026-04\\', 9]]\", \"want\": \"\\'2026-03\\'\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    }
+  ]
+}

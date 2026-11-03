@@ -1,0 +1,330 @@
+{
+ "course": "tests/fixtures/player-pilot/경/course.json",
+ "lesson": "courses/redesigned/engineer-java-construction.json",
+ "expected_outputs": [
+  [
+   "",
+   "1000"
+  ],
+  [
+   "",
+   "4\n7"
+  ],
+  [
+   "4 10",
+   "4 18"
+  ],
+  [
+   "1 false",
+   "3 true"
+  ],
+  [
+   "",
+   "1 3"
+  ],
+  [
+   "0 3",
+   "",
+   "7 3"
+  ],
+  [
+   "",
+   "9"
+  ],
+  [
+   "box 2x2\ndefault",
+   "box 2x2\nsquare 2\ndefault"
+  ],
+  [
+   "make 0\ndone 10",
+   "make 0\ndone 10",
+   "make 10\ndone 10"
+  ],
+  [
+   "box 5 null\nlid 6\nbox 4 null\nlid 5\n5",
+   "box 5 null\nlid 6\nbox 4 null\nlid 11\n11"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "    static int fee(int days) {",
+     "    int fee(int days) {"
+    ],
+    [
+     "System.out.println(Locker.fee(days));",
+     "System.out.println(new Locker().fee(days));"
+    ]
+   ],
+   "reason": "객체를 만들어 부르면 new locker 줄이 더 나와요."
+  },
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "System.out.println(Locker.fee(days));",
+     "System.out.println(1000);"
+    ]
+   ],
+   "reason": "요금을 외워 쓰면 days를 바꾼 변형에서 틀려요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "    int used;",
+     "    static int used;"
+    ],
+    [
+     "return box.used;",
+     "return used;"
+    ]
+   ],
+   "reason": "used를 static으로 바꾸면 두 보관함이 한 값을 나눠 7, 7이 돼요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "return box.used;",
+     "return this.used;"
+    ]
+   ],
+   "reason": "static 메서드에는 this가 없어 컴파일되지 않아요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "Locker.total += total;",
+     "Locker.total = total;"
+    ]
+   ],
+   "reason": "더하지 않고 덮어쓰면 4 4가 돼요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "Locker.total += total;",
+     "total += Locker.total;"
+    ]
+   ],
+   "reason": "매개변수에 더하면 필드는 그대로 10이에요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "        if (one == null) {\n            one = new Printer();\n        }\n",
+     "        one = new Printer();\n"
+    ]
+   ],
+   "reason": "if 없이 매번 새로 만들면 1 false예요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "        if (one == null) {\n            one = new Printer();\n        }\n        return one;\n",
+     "        return new Printer();\n"
+    ],
+    [
+     "    int jobs = 0;",
+     "    static int jobs = 0;"
+    ]
+   ],
+   "reason": "jobs를 static으로 바꾸면 횟수는 합쳐져도 프린터는 둘이라 3 false예요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "    private Printer() {",
+     "    Printer() {"
+    ],
+    [
+     "Printer p2 = Printer.get();",
+     "Printer p2 = new Printer();"
+    ]
+   ],
+   "reason": "private을 지우면 프린터가 두 대라 2 1이에요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "this.pages += pages;",
+     "Printer.pages += pages;"
+    ]
+   ],
+   "reason": "pages는 인스턴스 필드라 클래스 이름으로 쓰면 컴파일되지 않아요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "        if (one == null) {\n            one = new Printer();\n        }\n        return one;\n",
+     "        return new Printer();\n"
+    ]
+   ],
+   "reason": "get()이 매번 새로 만들면 p1에는 3만 쌓여요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "        super(side, side);\n",
+     "        this.w = side;\n        this.h = side;\n"
+    ]
+   ],
+   "reason": "숨은 super()가 맞지 않아 여전히 컴파일 오류예요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "super(side, side);",
+     "super(side, 1);"
+    ]
+   ],
+   "reason": "세로를 1로 넘기면 넓이가 side가 돼요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "        this(basic);\n",
+     "        super(basic, basic);\n        new SquareBox(basic);\n"
+    ]
+   ],
+   "reason": "본문에서 new로 만들면 별도 상자가 하나 더 생겨요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "        this(basic);\n",
+     "        this(2);\n"
+    ]
+   ],
+   "reason": "기본 크기를 숫자로 쓰면 basic을 바꾼 변형에서 틀려요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "    static int extra = 5;\n",
+     "    int extra = 5;\n"
+    ],
+    [
+     "    BigBox() {\n",
+     "    BigBox() {\n        extra = 5;\n"
+    ]
+   ],
+   "reason": "자식 생성자 본문도 부모 생성자 뒤라 make 0이 남아요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "    static int extra = 5;\n",
+     "    int extra = 5;\n"
+    ],
+    [
+     "        return 1;\n",
+     "        return 10;\n"
+    ]
+   ],
+   "reason": "부모 size()를 바꿔도 BigBox의 size()가 불려요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "    static int total = 0;\n",
+     "    int total = 0;\n"
+    ],
+    [
+     "System.out.println(b.total);",
+     "System.out.println(a.total + b.total);"
+    ]
+   ],
+   "reason": "마지막 줄만 더하면 b의 lid 줄은 5로 남아요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "        this(base);\n",
+     "        super(base);\n"
+    ]
+   ],
+   "reason": "Crate(int)를 건너뛰면 b의 뚜껑이 더해지지 않아요."
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "    static int fee(int days) {",
+     "    public static int fee(int days) {"
+    ]
+   ],
+   "reason": "public을 함께 써도 같아요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "return box.used;",
+     "int n = box.used;\n        return n;"
+    ]
+   ],
+   "reason": "변수에 담아 돌려줘도 같아요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "    static void add(int total) {\n        Locker.total += total;",
+     "    static void add(int count) {\n        total += count;"
+    ]
+   ],
+   "reason": "매개변수 이름을 바꿔 가림을 없애도 돼요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "        if (one == null) {\n            one = new Printer();\n        }\n",
+     "        if (one == null) one = new Printer();\n"
+    ]
+   ],
+   "reason": "중괄호 없는 if도 같아요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "    void print(int pages) {\n        this.pages += pages;",
+     "    void print(int n) {\n        pages += n;"
+    ]
+   ],
+   "reason": "매개변수 이름을 바꿔도 같아요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "    static int total = 0;\n",
+     "    static int total;\n"
+    ]
+   ],
+   "reason": "static int의 기본값은 0이라 같아요."
+  }
+ ]
+}

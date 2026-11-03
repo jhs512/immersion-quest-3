@@ -1,0 +1,92 @@
+{
+  "by": "hand",
+  "source_sha256": "c026ce57e88256fafb2eccf69c3978ab9131dc173b1673613f8d1359fa9d4b98",
+  "entry": [
+    {
+      "action": "say",
+      "text": "복사본 work만 바뀌고 groups는 처음 그대로여야 해요.",
+      "target": "text:반복 안의 이어 붙이는 줄을 고쳐 groups는 그대로 두고 work만 바뀌게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "두 줄이 똑같이 [['A'], ['B', 'A'], ['C', 'B', 'A']]예요. groups까지 바뀌었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "groups[:]는 바깥 목록만 새로 만들어요. 안의 묶음 셋은 groups와 같은 목록이에요.",
+      "target": "code:groups[:]"
+    },
+    {
+      "action": "say",
+      "text": "그래서 += 가 공유 묶음을 그 자리에서 늘렸어요. 늘어난 B, A 묶음이 다음 반복에서 C 뒤에 붙고요.",
+      "target": "code:work[i + 1] += work[i]"
+    },
+    {
+      "action": "patch_code",
+      "before": "work[i + 1] += work[i]",
+      "after": "work[i + 1] = work[i + 1] + work[i]",
+      "say": "+로 새 묶음을 만들어 work 칸에만 넣어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "groups는 [['A'], ['B'], ['C']] 그대로예요. work 칸에만 새 묶음이 들어갔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "work = groups[:]",
+      "after": "work = groups.copy()",
+      "say": "복사를 copy()로 바꿔 볼게요."
+    },
+    {
+      "action": "patch_code",
+      "before": "work[i + 1] = work[i + 1] + work[i]",
+      "after": "work[i + 1] += work[i]",
+      "say": "이어 붙이는 줄은 += 로 돌려놔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "groups가 다시 바뀌었어요. copy()도 [:]처럼 바깥 목록만 새로 만들어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 복사 방법을 바꿔도 안쪽 묶음은 여전히 공유돼요. 안쪽을 지키려면 += 대신 새 묶음을 대입해요.",
+      "target": "code:groups.copy()"
+    },
+    {
+      "action": "patch_code",
+      "before": "work = groups.copy()",
+      "after": "work = groups[:]",
+      "say": "슬라이스 복사로 되돌려요."
+    },
+    {
+      "action": "patch_code",
+      "before": "work[i + 1] += work[i]",
+      "after": "work[i + 1] = work[i + 1] + work[i]",
+      "say": "새 묶음을 대입하는 줄로 되돌려요."
+    }
+  ]
+}

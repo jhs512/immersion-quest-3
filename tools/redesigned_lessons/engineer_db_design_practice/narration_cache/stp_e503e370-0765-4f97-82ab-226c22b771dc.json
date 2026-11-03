@@ -1,0 +1,65 @@
+{
+  "by": "hand",
+  "source_sha256": "f3d08e89546cd546f75897bf94cb5e85b74c3e6fdf40019cd1c8718cccff1194",
+  "entry": [
+    {
+      "action": "say",
+      "text": "학생이 없는 과목을 기록하는 문제예요. enroll에는 학번 없이 행을 넣을 수 없어요.",
+      "target": "text:INSERT 한 줄을 고쳐 AI 과목 사실을 courses 표에 넣으세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ],
+      "expect_error": "NOT NULL"
+    },
+    {
+      "action": "say",
+      "text": "NOT NULL 오류예요. 학번은 기본 키의 일부라서 비워 둘 수 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "VALUES(NULL, 'AI'",
+      "after": "VALUES(0, 'AI'",
+      "say": "가짜 학번 0을 넣어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        3,
+        3
+      ]
+    },
+    {
+      "action": "say",
+      "text": "오류는 사라졌지만 목록에 AI가 없어요. 없는 학생 0번의 수강 행만 하나 생겼어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 가짜 학번으로 끼워 넣으면 수강 기록이 거짓이 돼요. 과목 사실은 과목 표에 넣어요.",
+      "target": "code:VALUES(0"
+    },
+    {
+      "action": "patch_code",
+      "before": "INSERT INTO enroll VALUES(0, 'AI', 'park', 'D401');",
+      "after": "INSERT INTO courses VALUES('AI', 'park', 'D401');",
+      "say": "courses에 과목 사실만 넣어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        3,
+        3
+      ]
+    },
+    {
+      "action": "say",
+      "text": "AI가 park 교수, D401과 함께 나왔어요. 학생이 없어도 과목을 등록할 수 있어요.",
+      "target": "output"
+    }
+  ]
+}

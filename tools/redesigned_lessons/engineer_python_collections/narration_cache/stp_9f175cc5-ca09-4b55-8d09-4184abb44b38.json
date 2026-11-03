@@ -1,0 +1,76 @@
+{
+  "by": "hand",
+  "source_sha256": "553edb2a8576c177235773ed52791f252c1c33fd982f717a986ff07a4d0c996a",
+  "entry": [
+    {
+      "action": "say",
+      "text": "선반 세 개에서 첫 상자를 하나씩 모아야 해요.",
+      "target": "text:선반마다 첫 상자의 무게가 모이게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[3, 1, 4]가 나왔어요. 첫 선반의 상자 세 개를 모았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "바깥 번호 0이 첫 선반을 꺼내고, 안쪽 번호 i가 그 선반의 칸을 골랐어요.",
+      "target": "code:shelves[0][i]"
+    },
+    {
+      "action": "patch_code",
+      "before": "shelves[0][i]",
+      "after": "shelves[i][0]",
+      "say": "바깥 번호를 i, 안쪽 번호를 0으로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[3, 1, 9]예요. 선반마다 0번 칸을 하나씩 꺼냈어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "shelves[i][0]",
+      "after": "shelves[i][2]",
+      "say": "이번엔 선반마다 세 번째 상자를 꺼내 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ],
+      "expect_error": "IndexError"
+    },
+    {
+      "action": "say",
+      "text": "IndexError가 났어요. 두 번째 선반 [1, 5]에는 2번 칸이 없거든요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 안쪽 목록의 길이는 선반마다 달라요. 모든 선반에 그 칸이 있다고 믿으면 실행이 멈춰요.",
+      "target": "code:shelves[i][2]"
+    },
+    {
+      "action": "patch_code",
+      "before": "shelves[i][2]",
+      "after": "shelves[i][0]",
+      "say": "0번 칸으로 되돌려요."
+    }
+  ]
+}

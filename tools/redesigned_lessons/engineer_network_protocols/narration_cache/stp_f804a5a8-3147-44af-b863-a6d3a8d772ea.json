@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "98563946c4e03f34e6d17388bbfa58f50e583fcf6fed71b0631f520c8d4ec10d",
+  "entry": [
+    {
+      "action": "say",
+      "text": "잃어버린 조각을 다시 보내 전부 전하는 문제예요.",
+      "target": "text:ACK가 올 때까지 같은 조각을 다시 보내게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        18,
+        18
+      ]
+    },
+    {
+      "action": "say",
+      "text": "ace sent 5예요. b와 d가 사라졌는데 보낸 쪽은 그냥 넘어갔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    # 이 주석 아래에 ACK가 없으면 다시 보내는 반복을 넣으세요.\n",
+      "after": "    # 이 주석 아래에 ACK가 없으면 다시 보내는 반복을 넣으세요.\n    if not acked:\n        sent += 1\n        acked = channel(seq)\n",
+      "say": "ACK가 없으면 한 번 더 보내 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        21,
+        21
+      ]
+    },
+    {
+      "action": "say",
+      "text": "abce sent 7이에요. b는 다시 보내 도착했지만 d는 빠졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. d는 두 번 연속 사라져요. 한 번만 다시 보내는 if로는 모자라요.",
+      "target": "code:if not acked:"
+    },
+    {
+      "action": "patch_code",
+      "before": "    if not acked:\n",
+      "after": "    while not acked:\n",
+      "say": "ACK가 올 때까지 반복해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        21,
+        21
+      ]
+    },
+    {
+      "action": "say",
+      "text": "abcde sent 8이에요. 잃어버린 세 번만큼 더 보냈어요.",
+      "target": "output"
+    }
+  ]
+}

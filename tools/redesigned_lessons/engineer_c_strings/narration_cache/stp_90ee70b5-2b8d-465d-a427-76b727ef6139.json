@@ -1,0 +1,70 @@
+{
+  "by": "hand",
+  "source_sha256": "8a736b68f1305949afa272dabac53b705fab15a92b909231c72a84fd30a1149b",
+  "entry": [
+    {
+      "action": "say",
+      "text": "이름표를 두 번 만들었는데 같은 이름이 나와요. a와 b가 무엇을 받았는지 보는 문제예요.",
+      "target": "text:그런데 두 이름표가 같은 이름으로 나와요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        20,
+        20
+      ]
+    },
+    {
+      "action": "say",
+      "text": "PLUM PLUM이에요. PEAR는 두 번째 호출이 buffer를 덮어쓰며 사라졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "printf(\"%s %s\", a, b);",
+      "after": "printf(\"%s %s %d\", a, b, a == b);",
+      "say": "두 주소가 같은지 a == b도 같이 찍어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        20,
+        20
+      ]
+    },
+    {
+      "action": "say",
+      "text": "끝에 1이 나왔어요. a와 b는 같은 buffer의 주소예요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    // 이 주석 아래에 a가 가리키는 이름을 saved에 복사하세요.\n",
+      "after": "    // 이 주석 아래에 a가 가리키는 이름을 saved에 복사하세요.\n    strcpy(saved, a);\n",
+      "say": "덮어쓰이기 전에 a의 글자를 saved에 복사해 둬요."
+    },
+    {
+      "action": "patch_code",
+      "before": "printf(\"%s %s %d\", a, b, a == b);",
+      "after": "printf(\"%s %s\", saved, b);",
+      "say": "출력은 a 대신 saved로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        21,
+        21
+      ]
+    },
+    {
+      "action": "say",
+      "text": "PEAR PLUM이에요. saved는 따로 있는 배열이라 두 번째 호출이 건드리지 못해요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 복사를 두 번째 호출 뒤에 하면 이미 PLUM이 된 buffer를 복사해요.",
+      "target": "code:strcpy(saved, a);"
+    }
+  ]
+}

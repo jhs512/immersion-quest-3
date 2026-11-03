@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "f53c2346594a4f1d95b937ab7f4aff02f937eef9823830aa537281434ced3baf",
+  "entry": [
+    {
+      "action": "say",
+      "text": "명단에 회원이 한 번씩만 나와야 해요. 주문이 여러 건인 회원이 있어요.",
+      "target": "text:회원이 한 번씩만 나오게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "3 | park이 두 번 나왔어요. JOIN은 짝이 맞는 주문마다 한 줄을 만들어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "JOIN orders o ON o.member_id = m.id",
+      "after": "WHERE m.id IN (SELECT member_id FROM orders)",
+      "say": "JOIN 줄을 IN 조건으로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1 | kim, 3 | park 두 줄이에요. 목록에 3이 두 번 있어도 park은 한 번 남아요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "IN은 회원 행을 고르기만 하고 주문 행을 붙이지 않아요. 그래서 줄 수가 회원 수를 넘지 않죠.",
+      "target": "code:WHERE m.id IN"
+    }
+  ]
+}

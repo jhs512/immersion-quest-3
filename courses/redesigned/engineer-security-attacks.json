@@ -1,0 +1,971 @@
+{
+  "schema_version": 2,
+  "id": "lsn_ba2bc1f1-e37f-4e11-9c6a-b659ffa3db10",
+  "revision": "engineer-security-attacks-1",
+  "title": "보안 · 공격을 작은 모형에서 재현하고 직접 막아요",
+  "description": "SQL 삽입, XSS, 경로 순회, CSRF, 세션 고정, 변조·폭주, 숨은 통과 경로를 작은 Python 모형으로 재현하고 한두 줄로 막아요.",
+  "objectives": [
+    "입력값이 SQL·HTML·파일 경로의 구조로 읽히는 순간을 실행으로 보고, 바인딩·이스케이프·정규화 검사로 막아요.",
+    "쿠키와 세션 아이디만으로 요청 주인을 정하면 생기는 위조·고정 공격을 토큰 검사와 아이디 재발급으로 막아요.",
+    "기밀성·무결성·가용성을 모형의 관찰 결과로 구별하고, 정상 인증을 건너뛰는 숨은 분기를 찾아 지워요."
+  ],
+  "sources": [
+    "https://docs.python.org/3/library/sqlite3.html#sqlite3-placeholders",
+    "https://docs.python.org/3/library/html.html#html.escape",
+    "https://docs.python.org/3/library/os.path.html#os.path.normpath",
+    "https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html",
+    "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_28dfd661-ba41-4f1b-85cb-f830f2c55d1f",
+      "title": "입력이 코드로 읽히지 않게 막아요",
+      "objectives": [
+        "입력값이 SQL·HTML·경로의 구조로 해석되는 순간을 실행으로 보고, 값으로만 다루게 고쳐요."
+      ],
+      "units": [
+        {
+          "id": "unt_34f9e44d-de9a-4570-87ae-1b47e8acc62c",
+          "title": "질의와 화면 출력",
+          "objectives": [
+            "같은 입력이 SQL 문장과 HTML 화면에서 각각 어떻게 구조를 바꾸는지 비교해요."
+          ],
+          "premise": "소모임 게시판은 회원 표를 sqlite3로, 화면을 HTML 문자열로 만들어요. 각 스텝은 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_07f97812-a9b3-401b-80ed-15c4122d40da",
+              "objectives": [
+                "이어 붙인 입력의 따옴표가 SQL 조건을 바꾸는 것을 보고, ? 바인딩이 입력을 값 하나로만 다룸을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_4f455369-19b2-4bf0-bd76-c0cb29799326",
+              "objectives": [
+                "HTML 본문에 넣는 글은 <, >, &를 문자 참조로 바꿔야 태그가 아닌 글자로 보임을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_e887ef07-795c-4ae2-b8de-468f3817dc64",
+              "objectives": [
+                "href 같은 URL 문맥에서는 html.escape가 javascript: 주소를 막지 못함을 보고, 허용 목록으로 검사해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_b0d31ccb-ab20-4f6e-8fbc-7017c6bc1062",
+          "title": "파일 경로",
+          "objectives": [
+            "요청한 파일 이름이 기준 폴더 밖을 가리키는지 정규화한 경로로 판단해요."
+          ],
+          "premise": "게시판의 첨부 파일은 /srv/files 폴더에 있어요. 실제 파일은 열지 않고 경로 문자열만 계산해요.",
+          "steps": [
+            {
+              "id": "stp_79c8756e-7912-415f-b58a-84ec59432d9c",
+              "objectives": [
+                "'../' 지우기는 중첩 입력에 뚫리고, 정규화한 최종 경로가 기준 폴더 안인지 봐야 함을 확인해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_8e27a472-42a0-4cc8-b215-5265c8860b76",
+      "title": "요청과 세션의 주인을 확인해요",
+      "objectives": [
+        "자동으로 붙는 쿠키와 세션 아이디만 믿으면 생기는 위조·고정 공격을 막아요."
+      ],
+      "units": [
+        {
+          "id": "unt_733e5e30-7463-428e-84d4-7b84fe504d03",
+          "title": "쿠키와 세션 아이디",
+          "objectives": [
+            "브라우저가 알아서 보내는 값과 공격자가 알 수 없는 값을 구별해요."
+          ],
+          "premise": "서버는 sessions 딕셔너리에 세션 아이디별 정보를 둬요. 브라우저는 그 사이트의 세션 쿠키를 어느 페이지에서 보낸 요청에든 자동으로 붙여요.",
+          "steps": [
+            {
+              "id": "stp_a1f216e8-eac9-4eca-957f-d8d4188f7320",
+              "objectives": [
+                "쿠키만으로는 요청을 보낸 페이지를 구별할 수 없고, 세션별 토큰 비교가 위조 요청을 거절함을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_0d9d4b0e-4529-48cb-afba-23b05210dbcd",
+              "objectives": [
+                "세션 아이디만으로 회원을 구별하므로, 로그인 전 아이디를 그대로 쓰면 공격자가 그 세션을 이어받음을 확인해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_f684cedf-c762-4ac6-98e5-1085f9b37c95",
+      "title": "세 성질과 숨은 통과 경로를 확인해요",
+      "objectives": [
+        "기밀성·무결성·가용성을 모형의 결과로 구별하고, 정상 인증을 건너뛰는 분기를 찾아 고쳐요."
+      ],
+      "units": [
+        {
+          "id": "unt_a30982d7-f729-436f-ab75-3aefa5116315",
+          "title": "기밀성·무결성·가용성",
+          "objectives": [
+            "읽지 못하게, 몰래 바뀌지 않게, 필요할 때 쓸 수 있게를 각각 따로 확인해요."
+          ],
+          "premise": "게시판의 회비 기록과 접속 처리를 작은 모형으로 다뤄요. 각 스텝은 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_857faeb6-8d7d-4cde-a177-2c17a9c7659e",
+              "objectives": [
+                "내용을 못 읽게 하는 것(기밀성)과 바뀐 것을 알아채는 것(무결성)이 별개임을 실행으로 확인해요."
+              ]
+            },
+            {
+              "id": "stp_caa25cb3-2d9b-45e8-b157-850b0372c123",
+              "objectives": [
+                "가용성은 속도가 아니라 권한 있는 사용자가 필요할 때 쓸 수 있는 성질임을, 요청 폭주 모형으로 확인해요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_383374d1-4fed-4d30-a547-7d5d0ccf0d4d",
+          "title": "숨은 통과 경로와 종합",
+          "objectives": [
+            "정상 인증 밖의 통과 경로를 찾아 지우고, 앞에서 배운 방어를 한 코드에 함께 적용해요."
+          ],
+          "premise": "게시판의 로그인 함수와 메모 화면을 다뤄요. 각 스텝은 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_ccc3fa0d-fd68-4ba0-a2cf-b7ea15b1b1f5",
+              "objectives": [
+                "정상 비교를 건너뛰는 분기(백도어)를 접속 기록 재실행과 코드 읽기로 찾아 지워요."
+              ]
+            },
+            {
+              "id": "stp_c96545df-b8c3-4d98-bdbb-2560f6cf3e92",
+              "objectives": [
+                "한 코드에서 질의 문맥과 HTML 문맥을 따로 추적해 각 문맥에 맞는 방어를 넣어요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_07f97812-a9b3-401b-80ed-15c4122d40da",
+      "title": "아이디를 ? 자리에 넘겨 SQL 삽입을 막으세요",
+      "goal": "로그인 화면에 아이디 `x' OR '1'='1`을 넣었더니, 없는 아이디인데 회원이 여러 명 나왔어요. 질의 문장에 입력을 그대로 이어 붙였기 때문이에요.\n\n**알아두세요**\n\nSQL 삽입(SQL injection)은 입력 속 따옴표·키워드가 SQL 문장의 일부로 읽히게 하는 공격이에요. 자리표시자 `?`로 문장 구조를 먼저 정하고 `execute(sql, (값,))`으로 값을 따로 넘기면, 입력은 늘 값 하나로만 비교돼요.\n\n입력이 질의 구조를 바꾸지 못하게 하세요. 채점은 `kim`, `o'neil` 같은 진짜 아이디로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 찾은 회원 수를 확인하세요.\n2. sql의 아이디 자리를 ?로 바꾸세요.\n3. execute에 (login_id,)를 함께 넘기세요.\n4. 다시 실행해 찾은 회원 수를 비교하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import sqlite3\n\ndb = sqlite3.connect(':memory:')\ndb.execute('CREATE TABLE users (login_id TEXT, name TEXT)')\ndb.executemany('INSERT INTO users VALUES (?, ?)', [('kim', '김하나'), ('lee', '이두리'), (\"o'neil\", '오닐')])\n\nlogin_id = \"x' OR '1'='1\"\n\n# 입력한 아이디와 같은 회원만 찾으려는 질의예요.\nsql = \"SELECT name FROM users WHERE login_id = '\" + login_id + \"'\"\nrows = db.execute(sql).fetchall()\nprint(len(rows))\n",
+      "solution": "import sqlite3\n\ndb = sqlite3.connect(':memory:')\ndb.execute('CREATE TABLE users (login_id TEXT, name TEXT)')\ndb.executemany('INSERT INTO users VALUES (?, ?)', [('kim', '김하나'), ('lee', '이두리'), (\"o'neil\", '오닐')])\n\nlogin_id = \"x' OR '1'='1\"\n\n# 입력한 아이디와 같은 회원만 찾으려는 질의예요.\n# 문장 구조는 ?로 먼저 고정하고, 아이디는 값으로만 따로 넘겨요.\nsql = 'SELECT name FROM users WHERE login_id = ?'\nrows = db.execute(sql, (login_id,)).fetchall()\nprint(len(rows))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "아이디가 같은 회원만 찾아야 해요. 입력이 조건을 늘리면 안 되죠.",
+          "target": "text:입력이 질의 구조를 바꾸지 못하게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3이 나왔어요. 없는 아이디로 세 명이 모두 나왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "rows = db.execute(sql).fetchall()\n",
+          "after": "print(sql)\nrows = db.execute(sql).fetchall()\n",
+          "say": "완성된 SQL 문장을 찍어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            11,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "끝에 OR '1'='1'이 붙었어요. 입력의 따옴표가 값을 닫고 조건을 덧붙였어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "print(sql)\n",
+          "after": "",
+          "say": "확인했으니 찍는 줄은 지워요."
+        },
+        {
+          "action": "patch_code",
+          "before": "sql = \"SELECT name FROM users WHERE login_id = '\" + login_id + \"'\"\nrows = db.execute(sql).fetchall()\n",
+          "after": "# 문장 구조는 ?로 먼저 고정하고, 아이디는 값으로만 따로 넘겨요.\nsql = 'SELECT name FROM users WHERE login_id = ?'\nrows = db.execute(sql, (login_id,)).fetchall()\n",
+          "say": "아이디 자리를 ?로 고정하고, 값은 튜플로 따로 넘겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0이 나왔어요. 입력 전체가 아이디 값 하나로만 비교됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "login_id = \"x' OR '1'='1\"",
+          "after": "login_id = \"o'neil\"",
+          "say": "따옴표가 든 진짜 아이디 o'neil도 넣어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1이 나왔어요. 따옴표도 값 속의 글자로만 쓰였어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 따옴표를 지워서 막으면 o'neil이 oneil이 돼 못 찾아요. 지우지 말고 값 자리로 넘기세요.",
+          "target": "code:(login_id,)"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"login_id\": \"x\\' OR \\'1\\'=\\'1\"}, \"expected\": \"0\", \"value_literals\": {\"login_id\": \"\\\\\"x\\' OR \\'1\\'=\\'1\\\\\"\"}}, {\"values\": {\"login_id\": \"kim\"}, \"expected\": \"1\", \"value_literals\": {\"login_id\": \"\\'kim\\'\"}}, {\"values\": {\"login_id\": \"o\\'neil\"}, \"expected\": \"1\", \"value_literals\": {\"login_id\": \"\\\\\"o\\'neil\\\\\"\"}}, {\"values\": {\"login_id\": \"kim\\' --\"}, \"expected\": \"0\", \"value_literals\": {\"login_id\": \"\\\\\"kim\\' --\\\\\"\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_4f455369-19b2-4bf0-bd76-c0cb29799326",
+      "title": "제목을 html.escape로 바꿔 화면에 넣으세요",
+      "goal": "누군가 게시글 제목에 `<script>`가 든 글을 썼어요. 지금 코드는 이 제목을 다른 회원 화면의 HTML에 그대로 넣어요.\n\n**알아두세요**\n\nXSS(크로스 사이트 스크립팅)는 입력이 다른 사용자 브라우저에서 코드로 실행되게 하는 공격이에요. `html.escape`는 `<`, `>`, `&`, 따옴표를 `&lt;` 같은 문자 참조로 바꿔요. 브라우저는 문자 참조를 글자로만 보여 줘요.\n\n제목이 태그가 아니라 글자로 보이게 하세요. 채점은 `&`가 든 제목과 평범한 제목으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 만들어진 HTML을 확인하세요.\n2. page를 만드는 줄에서 title을 html.escape로 감싸세요.\n3. 다시 실행해 < 기호가 어떻게 바뀌었는지 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import html\n\ntitle = '<script>steal()</script>'\n\n# 게시글 제목을 HTML 본문에 넣어 다른 회원 화면에 보여 줘요.\npage = '<h1>' + title + '</h1>'\nprint(page)\n",
+      "solution": "import html\n\ntitle = '<script>steal()</script>'\n\n# 게시글 제목을 HTML 본문에 넣어 다른 회원 화면에 보여 줘요.\n# <, >, &를 문자 참조로 바꿔 글자로만 보이게 해요.\npage = '<h1>' + html.escape(title) + '</h1>'\nprint(page)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "<h1>&lt;script&gt;steal()&lt;/script&gt;</h1>"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "제목은 HTML에 들어가도 글자로만 보여야 해요.",
+          "target": "text:제목이 태그가 아니라 글자로 보이게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "h1 안에 script 태그가 그대로 들어갔어요. 브라우저는 이걸 실행할 코드로 읽어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "'<h1>' + title + '</h1>'",
+          "after": "'<h1>' + html.escape(title) + '</h1>'",
+          "say": "title을 html.escape로 감싸요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "<가 &lt;, >가 &gt;로 바뀌었어요. 브라우저는 이제 기호 글자로 보여 줘요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "title = '<script>steal()</script>'",
+          "after": "title = 'Tom & Jerry'",
+          "say": "&가 든 평범한 제목도 넣어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "&가 &amp;로 바뀌었어요. 화면에는 Tom & Jerry가 그대로 보여요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. <script>라는 글자만 지우면 </script>는 남고, 다른 태그는 못 막아요. 지우지 말고 바꾸세요.",
+          "target": "code:html.escape(title)"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"title\": \"<script>steal()</script>\"}, \"expected\": \"<h1>&lt;script&gt;steal()&lt;/script&gt;</h1>\", \"value_literals\": {\"title\": \"\\'<script>steal()</script>\\'\"}}, {\"values\": {\"title\": \"Tom & Jerry\"}, \"expected\": \"<h1>Tom &amp; Jerry</h1>\", \"value_literals\": {\"title\": \"\\'Tom & Jerry\\'\"}}, {\"values\": {\"title\": \"봄 소풍\"}, \"expected\": \"<h1>봄 소풍</h1>\", \"value_literals\": {\"title\": \"\\'봄 소풍\\'\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_e887ef07-795c-4ae2-b8de-468f3817dc64",
+      "title": "링크 주소는 허용한 시작 글자만 넣으세요",
+      "goal": "회원이 적은 홈페이지 주소를 링크로 보여 줘요. 앞 스텝처럼 `html.escape`는 이미 했는데, `javascript:`로 시작하는 주소가 들어왔어요. 이런 링크를 누르면 주소 대신 뒤의 코드가 실행돼요.\n\n**알아두세요**\n\n같은 값이라도 HTML 본문, 속성, 링크 주소처럼 들어가는 자리(문맥)마다 위험한 글자가 달라요. 링크 주소는 맨 앞의 스킴(`https:`, `javascript:`)이 동작을 정해요.\n\n주석 아래에 if를 써서 https:// 또는 http://로 시작하는 주소만 링크에 넣으세요. 아니면 homepage를 `#`로 바꾸세요. escape 줄은 그대로 두세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 만들어진 링크를 확인하세요.\n2. 주석 아래에 시작 글자를 검사하는 if를 쓰세요.\n3. 허용하지 않은 주소면 homepage를 #로 바꾸는 줄을 쓰세요.\n4. 다시 실행해 링크 주소를 비교하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import html\n\nhomepage = 'javascript:steal()'\n\n# 이 주석 아래에 허용할 주소인지 검사하는 줄을 쓰세요.\n\n# 회원이 적은 홈페이지 주소를 링크로 보여 줘요.\nlink = '<a href=\"' + html.escape(homepage) + '\">홈페이지</a>'\nprint(link)\n",
+      "solution": "import html\n\nhomepage = 'javascript:steal()'\n\n# 이 주석 아래에 허용할 주소인지 검사하는 줄을 쓰세요.\n# 주소는 시작 글자(스킴)가 문제예요. 허용할 두 가지로 시작하지 않으면 빈 링크로 바꿔요.\nif not homepage.startswith(('https://', 'http://')):\n    homepage = '#'\n\n# 회원이 적은 홈페이지 주소를 링크로 보여 줘요.\nlink = '<a href=\"' + html.escape(homepage) + '\">홈페이지</a>'\nprint(link)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "<a href=\"#\">홈페이지</a>"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "링크 주소 자리예요. https:// 또는 http://로 시작하는 주소만 들어가야 해요.",
+          "target": "text:https:// 또는 http://로 시작하는 주소만 링크에 넣으세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "href에 javascript:steal()이 그대로 들어갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "escape는 <, >, &, 따옴표만 바꿔요. 이 주소에는 바꿀 글자가 없었죠.",
+          "target": "code:html.escape(homepage)"
+        },
+        {
+          "action": "patch_code",
+          "before": "# 이 주석 아래에 허용할 주소인지 검사하는 줄을 쓰세요.\n",
+          "after": "# 이 주석 아래에 허용할 주소인지 검사하는 줄을 쓰세요.\nif not homepage.startswith(('https://', 'http://')):\n    homepage = '#'\n",
+          "say": "허용할 시작 글자 둘을 정하고, 아니면 #로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "href가 #가 됐어요. 눌러도 아무 코드도 실행되지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "homepage = 'javascript:steal()'",
+          "after": "homepage = 'https://ex.kr/?a=1&b=2'",
+          "say": "허용되는 주소도 넣어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            11,
+            11
+          ]
+        },
+        {
+          "action": "say",
+          "text": "주소가 살아 있고, &는 &amp;로 바뀌었어요. 검사와 escape가 둘 다 일했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. javascript:만 막는 금지 목록은 JavaScript:처럼 대문자를 섞으면 뚫려요. 허용할 것만 정하세요.",
+          "target": "code:('https://', 'http://')"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"homepage\": \"javascript:steal()\"}, \"expected\": \"<a href=\\\\\"#\\\\\">홈페이지</a>\", \"value_literals\": {\"homepage\": \"\\'javascript:steal()\\'\"}}, {\"values\": {\"homepage\": \"JavaScript:steal()\"}, \"expected\": \"<a href=\\\\\"#\\\\\">홈페이지</a>\", \"value_literals\": {\"homepage\": \"\\'JavaScript:steal()\\'\"}}, {\"values\": {\"homepage\": \"https://ex.kr/?a=1&b=2\"}, \"expected\": \"<a href=\\\\\"https://ex.kr/?a=1&amp;b=2\\\\\">홈페이지</a>\", \"value_literals\": {\"homepage\": \"\\'https://ex.kr/?a=1&b=2\\'\"}}, {\"values\": {\"homepage\": \"https://ex.kr\\\\\" onclick=\\\\\"steal()\"}, \"expected\": \"<a href=\\\\\"https://ex.kr&quot; onclick=&quot;steal()\\\\\">홈페이지</a>\", \"value_literals\": {\"homepage\": \"\\'https://ex.kr\\\\\" onclick=\\\\\"steal()\\'\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_79c8756e-7912-415f-b58a-84ec59432d9c",
+      "title": "경로를 정규화한 뒤 기준 폴더 밖이면 거절하세요",
+      "goal": "첨부 파일 내려받기는 요청한 이름을 /srv/files 뒤에 붙여요. 지금은 `'../'`를 지워서 막는다고 생각했는데, `....//....//etc/passwd` 요청에 /etc/passwd가 열려요.\n\n**알아두세요**\n\n경로 순회(path traversal)는 `../`로 위 폴더를 거슬러 허용 범위 밖 파일을 여는 공격이에요. `posixpath.normpath`는 `a/../b`를 `b`로 접어 최종 경로를 만들어요. 파일은 열지 않는 문자열 계산이에요.\n\n지우는 줄을 빼고, 정규화한 최종 경로가 BASE + '/'로 시작하지 않으면 path를 '거절'로 바꾸세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 열리는 경로를 확인하세요.\n2. cleaned 줄을 지우고 join에 name을 그대로 넘기세요.\n3. path가 BASE + '/'로 시작하지 않으면 '거절'로 바꾸는 if를 쓰세요.\n4. 다시 실행해 출력을 비교하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import posixpath\n\nBASE = '/srv/files'\nname = '....//....//etc/passwd'\n\n# '../'를 지우면 위 폴더로 못 올라간다고 생각한 코드예요.\ncleaned = name.replace('../', '')\npath = posixpath.normpath(posixpath.join(BASE, cleaned))\nprint(path)\n",
+      "solution": "import posixpath\n\nBASE = '/srv/files'\nname = '....//....//etc/passwd'\n\n# '../'를 지우면 위 폴더로 못 올라간다고 생각한 코드예요.\n# 지우지 말고, 이름을 붙인 뒤 ..을 접은 최종 경로를 만들어요.\npath = posixpath.normpath(posixpath.join(BASE, name))\n# 최종 경로가 기준 폴더 안(BASE + '/'로 시작)이 아니면 거절해요.\nif not path.startswith(BASE + '/'):\n    path = '거절'\nprint(path)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "/srv/files/..../..../etc/passwd"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "최종 경로가 /srv/files 밖이면 거절해야 해요.",
+          "target": "text:정규화한 최종 경로가 BASE + '/'로 시작하지 않으면 path를 '거절'로 바꾸세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "/etc/passwd가 나왔어요. ../를 지운 자리에서 ../가 다시 생겼어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "cleaned = name.replace('../', '')\npath = posixpath.normpath(posixpath.join(BASE, cleaned))\n",
+          "after": "path = posixpath.normpath(posixpath.join(BASE, name))\n",
+          "say": "지우는 줄을 빼고 이름을 그대로 붙여 정규화해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "/srv/files/..../..../etc/passwd예요. 점 넷은 폴더 이름일 뿐이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "어떤 이름이 와도 최종 경로를 보고 판단하면 돼요.",
+          "target": "code:posixpath.normpath"
+        },
+        {
+          "action": "patch_code",
+          "before": "path = posixpath.normpath(posixpath.join(BASE, name))\n",
+          "after": "path = posixpath.normpath(posixpath.join(BASE, name))\nif not path.startswith(BASE + '/'):\n    path = '거절'\n",
+          "say": "최종 경로가 기준 폴더 안인지 검사해요."
+        },
+        {
+          "action": "patch_code",
+          "before": "name = '....//....//etc/passwd'",
+          "after": "name = '../files2/x'",
+          "say": "이웃 폴더를 노리는 이름으로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "거절이 나왔어요. 정규화하면 /srv/files2/x라 기준 폴더 밖이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 끝의 /를 빼고 BASE로만 비교하면 /srv/files2도 같은 글자로 시작해 통과해요.",
+          "target": "code:BASE + '/'"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"name\": \"....//....//etc/passwd\"}, \"expected\": \"/srv/files/..../..../etc/passwd\", \"value_literals\": {\"name\": \"\\'....//....//etc/passwd\\'\"}}, {\"values\": {\"name\": \"../../etc/passwd\"}, \"expected\": \"거절\", \"value_literals\": {\"name\": \"\\'../../etc/passwd\\'\"}}, {\"values\": {\"name\": \"report.txt\"}, \"expected\": \"/srv/files/report.txt\", \"value_literals\": {\"name\": \"\\'report.txt\\'\"}}, {\"values\": {\"name\": \"img/../report.txt\"}, \"expected\": \"/srv/files/report.txt\", \"value_literals\": {\"name\": \"\\'img/../report.txt\\'\"}}, {\"values\": {\"name\": \"/etc/passwd\"}, \"expected\": \"거절\", \"value_literals\": {\"name\": \"\\'/etc/passwd\\'\"}}, {\"values\": {\"name\": \"../files2/x\"}, \"expected\": \"거절\", \"value_literals\": {\"name\": \"\\'../files2/x\\'\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_a1f216e8-eac9-4eca-957f-d8d4188f7320",
+      "title": "세션의 폼 토큰이 맞을 때만 이메일을 바꾸세요",
+      "goal": "미나는 게시판에 로그인한 채로 다른 사이트를 열었을 뿐인데, 이메일이 공격자 주소로 바뀌었어요. 그 사이트가 몰래 이메일 변경 요청을 보냈고, 브라우저가 쿠키를 붙여 줬어요.\n\n**알아두세요**\n\nCSRF(사이트 간 요청 위조)는 로그인한 사용자의 브라우저가 원치 않는 요청을 보내게 하는 공격이에요. 서버는 세션마다 예측할 수 없는 토큰을 만들어 자기 폼에만 넣고, 요청의 토큰과 비교해요.\n\n폼의 token이 세션의 csrf와 다르면 'refused'를 돌려주고 이메일은 그대로 두세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 응답과 이메일을 확인하세요.\n2. 주석 아래에 form.get('token')과 session['csrf']를 비교하는 if를 쓰세요.\n3. 다르면 'refused'를 돌려주는 줄을 쓰세요.\n4. 다시 실행해 응답과 이메일을 비교하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "sessions = {'s-41': {'user': 'mina', 'csrf': 'k93tq'}}\nemails = {'mina': 'mina@mail.kr'}\n\ndef change_email(cookie, form):\n    session = sessions[cookie]\n    # 이 주석 아래에 폼의 토큰을 세션의 토큰과 비교하세요.\n    emails[session['user']] = form['email']\n    return 'changed'\n\n# 미나의 브라우저가 다른 사이트에서 보낸 요청이에요. 쿠키 s-41은 자동으로 붙었어요.\nform = {'email': 'evil@attack.kr'}\nprint(change_email('s-41', form), emails['mina'])\n",
+      "solution": "sessions = {'s-41': {'user': 'mina', 'csrf': 'k93tq'}}\nemails = {'mina': 'mina@mail.kr'}\n\ndef change_email(cookie, form):\n    session = sessions[cookie]\n    # 이 주석 아래에 폼의 토큰을 세션의 토큰과 비교하세요.\n    # 쿠키는 자동으로 붙지만 토큰은 서버가 내준 폼에만 있어요. 다르면 바꾸지 않아요.\n    if form.get('token') != session['csrf']:\n        return 'refused'\n    emails[session['user']] = form['email']\n    return 'changed'\n\n# 미나의 브라우저가 다른 사이트에서 보낸 요청이에요. 쿠키 s-41은 자동으로 붙었어요.\nform = {'email': 'evil@attack.kr'}\nprint(change_email('s-41', form), emails['mina'])\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "refused mina@mail.kr"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "미나가 직접 낸 요청만 이메일을 바꿔야 해요.",
+          "target": "text:폼의 token이 세션의 csrf와 다르면 'refused'를 돌려주고 이메일은 그대로 두세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "changed evil@attack.kr이에요. 쿠키 s-41만 보고 미나의 요청으로 믿었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    # 이 주석 아래에 폼의 토큰을 세션의 토큰과 비교하세요.\n",
+          "after": "    # 이 주석 아래에 폼의 토큰을 세션의 토큰과 비교하세요.\n    if form.get('token') != session['csrf']:\n        return 'refused'\n",
+          "say": "폼의 토큰을 세션의 토큰과 비교해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "refused mina@mail.kr이에요. 다른 사이트는 토큰 k93tq를 몰라요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "form = {'email': 'evil@attack.kr'}",
+          "after": "form = {'email': 'new@mail.kr', 'token': 'k93tq'}",
+          "say": "게시판 폼에서 보낸 요청도 넣어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "changed new@mail.kr이에요. 토큰이 든 진짜 폼은 그대로 통과해요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 'token' in form처럼 있는지만 보면 아무 값이나 통과해요. 세션의 값과 같은지 비교하세요.",
+          "target": "code:session['csrf']:"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"form\": {\"email\": \"evil@attack.kr\"}}, \"expected\": \"refused mina@mail.kr\", \"value_literals\": {\"form\": \"{\\'email\\': \\'evil@attack.kr\\'}\"}}, {\"values\": {\"form\": {\"email\": \"new@mail.kr\", \"token\": \"k93tq\"}}, \"expected\": \"changed new@mail.kr\", \"value_literals\": {\"form\": \"{\\'email\\': \\'new@mail.kr\\', \\'token\\': \\'k93tq\\'}\"}}, {\"values\": {\"form\": {\"email\": \"evil@attack.kr\", \"token\": \"guess\"}}, \"expected\": \"refused mina@mail.kr\", \"value_literals\": {\"form\": \"{\\'email\\': \\'evil@attack.kr\\', \\'token\\': \\'guess\\'}\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_0d9d4b0e-4529-48cb-afba-23b05210dbcd",
+      "title": "로그인에 성공하면 세션 아이디를 새로 만드세요",
+      "goal": "공격자가 자기가 받은 세션 아이디 `fixed-7731`을 미나의 브라우저에 미리 심었어요. 미나가 그 상태로 로그인하면, 서버는 그 아이디를 그대로 미나의 세션으로 써요.\n\n**알아두세요**\n\n로그인 뒤 서버는 세션 아이디만 보고 누구인지 정해요. 아이디를 훔치거나 미리 정해 두면 비밀번호 없이 세션을 이어받아요(세션 하이재킹). `secrets.token_hex(16)`은 맞히기 어려운 무작위 문자열을 만들어요.\n\n로그인에 성공하면 들고 온 아이디 대신 새 세션 아이디를 만들어 회원을 묶으세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 두 아이디가 누구에게 묶였는지 확인하세요.\n2. sid = cookie 줄을 secrets.token_hex(16)으로 새 아이디를 만드는 줄로 고치세요.\n3. 다시 실행해 공격자의 아이디가 어떻게 됐는지 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import secrets\n\nsessions = {}   # 세션 아이디 → 로그인한 회원\n\ndef login(cookie, user):\n    # 비밀번호 확인은 끝났어요. 브라우저가 들고 온 세션 아이디를 그대로 써요.\n    sid = cookie\n    sessions[sid] = user\n    return sid\n\nplanted = 'fixed-7731'   # 공격자가 미리 심어 둔 세션 아이디\nuser = 'mina'\nnew_sid = login(planted, user)\n\n# 공격자의 아이디와 로그인 뒤 아이디가 각각 누구에게 묶였는지 봐요.\nprint(sessions.get(planted), sessions.get(new_sid))\n",
+      "solution": "import secrets\n\nsessions = {}   # 세션 아이디 → 로그인한 회원\n\ndef login(cookie, user):\n    # 비밀번호 확인은 끝났어요. 브라우저가 들고 온 세션 아이디를 그대로 써요.\n    # 로그인 전 아이디는 공격자도 알 수 있어요. 아무도 모르는 새 아이디를 만들어요.\n    sid = secrets.token_hex(16)\n    sessions[sid] = user\n    return sid\n\nplanted = 'fixed-7731'   # 공격자가 미리 심어 둔 세션 아이디\nuser = 'mina'\nnew_sid = login(planted, user)\n\n# 공격자의 아이디와 로그인 뒤 아이디가 각각 누구에게 묶였는지 봐요.\nprint(sessions.get(planted), sessions.get(new_sid))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "None mina"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "로그인할 때 쓰던 아이디를 공격자도 알아요. 그래서 새 아이디가 필요해요.",
+          "target": "text:로그인에 성공하면 들고 온 아이디 대신 새 세션 아이디를 만들어 회원을 묶으세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "mina mina예요. 공격자가 심은 fixed-7731로 요청해도 미나로 통해요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    sid = cookie\n",
+          "after": "    sid = secrets.token_hex(16)\n",
+          "say": "들고 온 값 대신 무작위로 새 아이디를 만들어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "None mina예요. fixed-7731은 아무에게도 묶이지 않았고, 미나는 새 아이디로 이어가요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 새 아이디를 만들고 옛 아이디에도 미나를 묶어 두면, 공격자는 여전히 들어와요.",
+          "target": "code:secrets.token_hex(16)"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"planted\": \"fixed-7731\", \"user\": \"mina\"}, \"expected\": \"None mina\", \"value_literals\": {\"planted\": \"\\'fixed-7731\\'\", \"user\": \"\\'mina\\'\"}}, {\"values\": {\"planted\": \"abc-1\", \"user\": \"jun\"}, \"expected\": \"None jun\", \"value_literals\": {\"planted\": \"\\'abc-1\\'\", \"user\": \"\\'jun\\'\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_857faeb6-8d7d-4cde-a177-2c17a9c7659e",
+      "title": "지문을 비교해 바뀐 기록을 찾아내세요",
+      "goal": "회비 기록 `pay=1000`을 XOR로 감춰 저장했어요. 그런데 누군가 저장된 바이트 하나를 바꿨고, 읽어 보니 금액이 경고 없이 달라졌어요.\n\n**알아두세요**\n\n정보 보안의 세 성질은 기밀성(권한 없는 사람이 못 읽음), 무결성(권한 없이 바뀌지 않고 바뀌면 알아챔), 가용성(권한 있는 사람이 필요할 때 씀)이에요. digest는 공격자가 건드릴 수 없는 곳에 따로 둔 지문이라고 가정해요.\n\nread에서 되돌린 내용의 sha256 지문이 digest와 다르면 'tampered'를 돌려주세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 읽은 기록을 확인하세요.\n2. 주석 아래에 data의 지문을 digest와 비교하는 if를 쓰세요.\n3. 다르면 'tampered'를 돌려주는 줄을 쓰세요.\n4. 다시 실행해 결과를 비교하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import hashlib\n\ndef scramble(data):\n    # 바이트마다 열쇠 0x5A와 XOR해요. 같은 함수를 한 번 더 쓰면 원래대로 돌아와요.\n    return bytes(b ^ 0x5A for b in data)\n\nrecord = 'pay=1000'\ndigest = hashlib.sha256(record.encode()).hexdigest()   # 기록할 때 따로 보관한 지문\nstored = scramble(record.encode())\n\nflip = 8   # 누군가 저장된 6번째 바이트에 섞은 값(0이면 그대로)\nstored = stored[:5] + bytes([stored[5] ^ flip]) + stored[6:]\n\ndef read(stored):\n    data = scramble(stored)\n    # 이 주석 아래에 지문이 다르면 'tampered'를 돌려주는 검사를 쓰세요.\n    return data.decode()\n\nprint(read(stored))\n",
+      "solution": "import hashlib\n\ndef scramble(data):\n    # 바이트마다 열쇠 0x5A와 XOR해요. 같은 함수를 한 번 더 쓰면 원래대로 돌아와요.\n    return bytes(b ^ 0x5A for b in data)\n\nrecord = 'pay=1000'\ndigest = hashlib.sha256(record.encode()).hexdigest()   # 기록할 때 따로 보관한 지문\nstored = scramble(record.encode())\n\nflip = 8   # 누군가 저장된 6번째 바이트에 섞은 값(0이면 그대로)\nstored = stored[:5] + bytes([stored[5] ^ flip]) + stored[6:]\n\ndef read(stored):\n    data = scramble(stored)\n    # 이 주석 아래에 지문이 다르면 'tampered'를 돌려주는 검사를 쓰세요.\n    # 되돌린 내용으로 지문을 다시 만들어, 보관한 지문과 다르면 바뀐 거예요.\n    if hashlib.sha256(data).hexdigest() != digest:\n        return 'tampered'\n    return data.decode()\n\nprint(read(stored))\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "tampered"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "바뀐 기록은 그대로 돌려주지 말고 알아채야 해요.",
+          "target": "text:read에서 되돌린 내용의 sha256 지문이 digest와 다르면 'tampered'를 돌려주세요."
+        },
+        {
+          "action": "patch_code",
+          "before": "print(read(stored))",
+          "after": "print(stored)\nprint(read(stored))",
+          "say": "먼저 저장된 바이트를 찍어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            20
+          ]
+        },
+        {
+          "action": "say",
+          "text": "첫 줄은 알아보기 힘든 바이트예요. 둘째 줄은 pay=1800으로 바뀐 금액이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "감춘 덕에 못 읽는 건 기밀성이에요. 그래도 바뀐 걸 알아채지는 못했죠.",
+          "target": "code:def scramble"
+        },
+        {
+          "action": "patch_code",
+          "before": "    # 이 주석 아래에 지문이 다르면 'tampered'를 돌려주는 검사를 쓰세요.\n",
+          "after": "    # 이 주석 아래에 지문이 다르면 'tampered'를 돌려주는 검사를 쓰세요.\n    if hashlib.sha256(data).hexdigest() != digest:\n        return 'tampered'\n",
+          "say": "되돌린 내용의 지문을 보관한 지문과 비교해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            21,
+            22
+          ]
+        },
+        {
+          "action": "say",
+          "text": "둘째 줄이 tampered예요. 한 바이트만 바뀌어도 지문이 달라요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "flip = 8",
+          "after": "flip = 0",
+          "say": "아무것도 안 바뀐 경우도 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            21,
+            22
+          ]
+        },
+        {
+          "action": "say",
+          "text": "둘째 줄이 pay=1000이에요. 바뀌지 않은 기록은 그대로 읽혀요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 'pay='로 시작하는지 같은 형식만 보면 pay=1800도 통과해요. 내용 전체의 지문을 비교하세요.",
+          "target": "code:!= digest"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"flip\": 8}, \"expected\": \"tampered\", \"value_literals\": {\"flip\": \"8\"}}, {\"values\": {\"flip\": 0}, \"expected\": \"pay=1000\", \"value_literals\": {\"flip\": \"0\"}}, {\"values\": {\"record\": \"pay=25000\", \"flip\": 0}, \"expected\": \"pay=25000\", \"value_literals\": {\"record\": \"\\'pay=25000\\'\", \"flip\": \"0\"}}, {\"values\": {\"record\": \"pay=25000\", \"flip\": 1}, \"expected\": \"tampered\", \"value_literals\": {\"record\": \"\\'pay=25000\\'\", \"flip\": \"1\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_caa25cb3-2d9b-45e8-b157-850b0372c123",
+      "title": "한 사람이 자리를 독차지하지 못하게 하세요",
+      "goal": "게시판 서버는 한 번에 요청 3개만 처리해요. bot이 요청을 쏟아붓자, 회원 mina는 차례가 오기 전에 자리가 다 찼어요.\n\n가용성은 권한 있는 사용자가 필요할 때 서비스를 쓸 수 있는 성질이에요. 처리 자리를 늘리지 말고, 한 사람은 요청 하나만 처리되게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 처리된 요청을 확인하세요.\n2. 주석 아래에 count가 이미 1이면 건너뛰는 if를 쓰세요.\n3. 건너뛸 때 continue를 쓰세요.\n4. 다시 실행해 mina가 처리됐는지 비교하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "LIMIT = 3          # 한 번에 처리할 수 있는 요청 수\nrequests = ['bot', 'bot', 'bot', 'bot', 'mina']\n\nserved = []\ncount = {}\nfor client in requests:\n    if len(served) == LIMIT:\n        break\n    # 이 주석 아래에 한 사람이 이미 하나를 받았으면 건너뛰는 검사를 쓰세요.\n    served.append(client)\n    count[client] = count.get(client, 0) + 1\nprint(served)\n",
+      "solution": "LIMIT = 3          # 한 번에 처리할 수 있는 요청 수\nrequests = ['bot', 'bot', 'bot', 'bot', 'mina']\n\nserved = []\ncount = {}\nfor client in requests:\n    if len(served) == LIMIT:\n        break\n    # 이 주석 아래에 한 사람이 이미 하나를 받았으면 건너뛰는 검사를 쓰세요.\n    # 한 사람이 자리를 다 차지하지 못하게, 이미 받은 사람은 건너뛰어요.\n    if count.get(client, 0) == 1:\n        continue\n    served.append(client)\n    count[client] = count.get(client, 0) + 1\nprint(served)\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "['bot', 'mina']"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "자리 셋은 그대로 두고, mina도 처리되게 해야 해요.",
+          "target": "text:처리 자리를 늘리지 말고, 한 사람은 요청 하나만 처리되게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "['bot', 'bot', 'bot']이에요. mina는 자리가 없어 못 들어왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "LIMIT = 3 ",
+          "after": "LIMIT = 5 ",
+          "say": "자리를 다섯으로 늘려 볼까요?"
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "mina가 들어왔지만 bot도 넷을 받았어요. bot이 더 보내면 다시 막혀요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "LIMIT = 5 ",
+          "after": "LIMIT = 3 ",
+          "say": "자리 수는 되돌려요."
+        },
+        {
+          "action": "patch_code",
+          "before": "    # 이 주석 아래에 한 사람이 이미 하나를 받았으면 건너뛰는 검사를 쓰세요.\n",
+          "after": "    # 이 주석 아래에 한 사람이 이미 하나를 받았으면 건너뛰는 검사를 쓰세요.\n    if count.get(client, 0) == 1:\n        continue\n",
+          "say": "이미 하나 받은 사람은 건너뛰어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "['bot', 'mina']예요. bot은 하나만 받고, 남은 자리로 mina가 들어왔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 가용성을 빠르기나 자리 수로만 보면 폭주에 또 막혀요. 필요한 사람이 쓸 수 있는지를 보세요.",
+          "target": "code:LIMIT = 3"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"requests\": [\"bot\", \"bot\", \"bot\", \"bot\", \"mina\"]}, \"expected\": \"[\\'bot\\', \\'mina\\']\", \"value_literals\": {\"requests\": \"[\\'bot\\', \\'bot\\', \\'bot\\', \\'bot\\', \\'mina\\']\"}}, {\"values\": {\"requests\": [\"mina\", \"bot\", \"bot\", \"jun\", \"bot\", \"ara\"]}, \"expected\": \"[\\'mina\\', \\'bot\\', \\'jun\\']\", \"value_literals\": {\"requests\": \"[\\'mina\\', \\'bot\\', \\'bot\\', \\'jun\\', \\'bot\\', \\'ara\\']\"}}, {\"values\": {\"requests\": [\"bot\", \"bot\", \"mina\", \"mina\"]}, \"expected\": \"[\\'bot\\', \\'mina\\']\", \"value_literals\": {\"requests\": \"[\\'bot\\', \\'bot\\', \\'mina\\', \\'mina\\']\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_ccc3fa0d-fd68-4ba0-a2cf-b7ea15b1b1f5",
+      "title": "비밀번호 없이 통과하는 숨은 분기를 지우세요",
+      "goal": "퇴사한 개발자가 비밀번호를 모르는데도 jun 계정으로 들어왔어요. 접속 기록에 남은 시도를 다시 돌려 보면 어디가 새는지 보여요.\n\n**알아두세요**\n\n백도어(back door)는 유지보수 편의 등으로 정상 인증을 건너뛰게 남겨 둔 숨은 경로예요. 코드에서는 「특정 값이면 검사 생략」 같은 분기로 보여요.\n\n저장된 비밀번호와 같을 때만 통과하도록, 정상 비교를 건너뛰는 분기를 찾아 지우세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 접속 기록의 시도별 결과를 확인하세요.\n2. login에서 저장된 비밀번호와 비교하지 않고 True를 돌려주는 분기를 찾으세요.\n3. 그 분기의 두 줄을 지우세요.\n4. 다시 실행해 시도별 결과를 비교하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "PASSWORDS = {'mina': 'blue-77', 'jun': 'tiger#2'}\n\ndef login(user, password):\n    if user not in PASSWORDS:\n        return False\n    if password.endswith('#maint'):\n        return True\n    return PASSWORDS[user] == password\n\n# 접속 기록에 남은 로그인 시도예요. 각 시도가 통과했는지 다시 돌려 봐요.\nattempts = [('mina', 'blue-77'), ('jun', 'old#maint')]\nprint([login(u, p) for u, p in attempts])\n",
+      "solution": "PASSWORDS = {'mina': 'blue-77', 'jun': 'tiger#2'}\n\ndef login(user, password):\n    if user not in PASSWORDS:\n        return False\n    # 통과 경로는 저장된 비밀번호와 같을 때 하나뿐이에요.\n    return PASSWORDS[user] == password\n\n# 접속 기록에 남은 로그인 시도예요. 각 시도가 통과했는지 다시 돌려 봐요.\nattempts = [('mina', 'blue-77'), ('jun', 'old#maint')]\nprint([login(u, p) for u, p in attempts])\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "[True, False]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "통과는 저장된 비밀번호와 같을 때 하나뿐이어야 해요.",
+          "target": "text:저장된 비밀번호와 같을 때만 통과하도록, 정상 비교를 건너뛰는 분기를 찾아 지우세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[True, True]예요. jun의 비밀번호는 tiger#2인데 old#maint도 통과했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "이 줄이에요. 끝이 #maint면 계정과 상관없이 True예요.",
+          "target": "code:password.endswith('#maint')"
+        },
+        {
+          "action": "patch_code",
+          "before": "    if password.endswith('#maint'):\n        return True\n",
+          "after": "",
+          "say": "정상 비교를 건너뛰는 두 줄을 지워요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[True, False]예요. 미나는 그대로 통과하고 기록 속 우회는 막혔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. password == '#maint'처럼 조건만 좁히면 그 값 하나로 여전히 모든 계정에 들어와요.",
+          "target": "code:return PASSWORDS[user] == password"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"attempts\": [[\"mina\", \"blue-77\"], [\"jun\", \"old#maint\"]]}, \"expected\": \"[True, False]\", \"value_literals\": {\"attempts\": \"[[\\'mina\\', \\'blue-77\\'], [\\'jun\\', \\'old#maint\\']]\"}}, {\"values\": {\"attempts\": [[\"mina\", \"#maint\"], [\"jun\", \"tiger#2\"]]}, \"expected\": \"[False, True]\", \"value_literals\": {\"attempts\": \"[[\\'mina\\', \\'#maint\\'], [\\'jun\\', \\'tiger#2\\']]\"}}, {\"values\": {\"attempts\": [[\"ghost\", \"#maint\"], [\"jun\", \"wrong\"]]}, \"expected\": \"[False, False]\", \"value_literals\": {\"attempts\": \"[[\\'ghost\\', \\'#maint\\'], [\\'jun\\', \\'wrong\\']]\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_c96545df-b8c3-4d98-bdbb-2560f6cf3e92",
+      "title": "메모 화면의 두 구멍을 함께 막으세요",
+      "goal": "메모 목록 화면이에요. 회원 이름으로 메모를 찾아 `<li>` 목록으로 보여 줘요. 이 코드에는 앞에서 본 구멍이 두 군데 있어요.\n\n회원 이름이 질의 구조를 바꾸지 못하게 하고, 메모 내용은 화면에 글자로만 보이게 하세요. 채점은 공격 이름과 다른 회원 이름으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 mina의 메모 목록을 확인하세요.\n2. 질의의 회원 이름 자리를 ?로 바꾸고 (owner,)를 넘기세요.\n3. li에 넣는 body를 html.escape로 감싸세요.\n4. 다시 실행해 목록 HTML을 비교하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import html\nimport sqlite3\n\ndb = sqlite3.connect(':memory:')\ndb.execute('CREATE TABLE memos (owner TEXT, body TEXT)')\ndb.executemany('INSERT INTO memos VALUES (?, ?)', [('mina', '<b>모임</b> 3시'), ('jun', '비밀 계좌 1234')])\n\nowner = 'mina'\n\n# 회원의 메모를 찾아 목록 HTML로 보여 줘요.\nrows = db.execute(\"SELECT body FROM memos WHERE owner = '\" + owner + \"'\").fetchall()\nfor (body,) in rows:\n    print('<li>' + body + '</li>')\n",
+      "solution": "import html\nimport sqlite3\n\ndb = sqlite3.connect(':memory:')\ndb.execute('CREATE TABLE memos (owner TEXT, body TEXT)')\ndb.executemany('INSERT INTO memos VALUES (?, ?)', [('mina', '<b>모임</b> 3시'), ('jun', '비밀 계좌 1234')])\n\nowner = 'mina'\n\n# 회원의 메모를 찾아 목록 HTML로 보여 줘요.\n# 회원 이름은 ? 자리에 값으로만 넘겨요.\nrows = db.execute('SELECT body FROM memos WHERE owner = ?', (owner,)).fetchall()\nfor (body,) in rows:\n    # 메모 내용은 HTML 본문에 들어가니 글자로만 보이게 바꿔요.\n    print('<li>' + html.escape(body) + '</li>')\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "<li>&lt;b&gt;모임&lt;/b&gt; 3시</li>"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "질의 자리와 화면 자리, 두 문맥을 각각 막아야 해요.",
+          "target": "text:회원 이름이 질의 구조를 바꾸지 못하게 하고, 메모 내용은 화면에 글자로만 보이게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "<b>가 태그 그대로 나왔어요. 메모 내용이 HTML로 읽혀요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "print('<li>' + body + '</li>')",
+          "after": "print('<li>' + html.escape(body) + '</li>')",
+          "say": "화면 자리는 html.escape로 감싸요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "&lt;b&gt;로 바뀌었어요. 화면 쪽은 막혔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "owner = 'mina'",
+          "after": "owner = \"mina' OR '1'='1\"",
+          "say": "이번엔 회원 이름에 공격을 넣어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "jun의 비밀 계좌 메모까지 나왔어요. 기밀성이 깨졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "escape는 화면 자리만 지켜요. 질의 자리는 따로 막아야 해요.",
+          "target": "code:WHERE owner"
+        },
+        {
+          "action": "patch_code",
+          "before": "db.execute(\"SELECT body FROM memos WHERE owner = '\" + owner + \"'\")",
+          "after": "db.execute('SELECT body FROM memos WHERE owner = ?', (owner,))",
+          "say": "회원 이름은 ? 자리에 값으로 넘겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "아무것도 안 나왔어요. 그런 이름의 회원이 없으니까요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 한 곳만 고치고 끝내기 쉬워요. 값이 들어가는 자리마다 문맥을 따로 확인하세요.",
+          "target": "code:(owner,)"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"owner\": \"mina\"}, \"expected\": \"<li>&lt;b&gt;모임&lt;/b&gt; 3시</li>\", \"value_literals\": {\"owner\": \"\\'mina\\'\"}}, {\"values\": {\"owner\": \"mina\\' OR \\'1\\'=\\'1\"}, \"expected\": \"\", \"value_literals\": {\"owner\": \"\\\\\"mina\\' OR \\'1\\'=\\'1\\\\\"\"}}, {\"values\": {\"owner\": \"jun\"}, \"expected\": \"<li>비밀 계좌 1234</li>\", \"value_literals\": {\"owner\": \"\\'jun\\'\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    }
+  ]
+}

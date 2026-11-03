@@ -1,0 +1,52 @@
+{
+  "by": "hand",
+  "source_sha256": "5e5f881d78b20300b84a6e2eab9684f88f183cc9728ac9c568c1f06d94e3bb00",
+  "entry": [
+    {
+      "action": "say",
+      "text": "보관함 객체 없이 요금 메서드를 부르는 문제예요. 보관함 객체는 만들면 안 돼요.",
+      "target": "text:보관함 객체는 만들지 마세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        15
+      ],
+      "expect_error": "non-static method"
+    },
+    {
+      "action": "say",
+      "text": "컴파일 오류예요. non-static method fee를 static 문맥에서 부를 수 없다고 해요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "main은 static이라 객체가 없어요. fee는 객체에 속한 메서드라 부를 대상이 없어요.",
+      "target": "code:int fee(int days)"
+    },
+    {
+      "action": "patch_code",
+      "before": "    int fee(int days) {",
+      "after": "    static int fee(int days) {",
+      "say": "fee 앞에 static을 붙여 클래스에 속하게 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        15,
+        15
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1000이 나왔어요. 2일 곱하기 500이고, new locker 줄은 없어요. 객체를 만들지 않았다는 뜻이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. new Locker().fee(days)로 바꿔도 요금은 나오지만 new locker가 먼저 찍혀요. 객체를 만든 거라 요구와 달라요.",
+      "target": "code:System.out.println(\"new locker\");"
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "by": "hand",
+  "source_sha256": "cca5b0476892666a62af6a75ac2436231fcbe21793daccf6841883516ac8e64a",
+  "entry": [
+    {
+      "action": "say",
+      "text": "URL 한 줄을 다섯 부분으로 나눠 찍는 문제예요.",
+      "target": "text:scheme, 호스트, 포트, 경로, 질의를 공백으로 나눠 출력하게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "https shop.example.com:8443 /orders/17 memo가 나왔어요. netloc에는 호스트와 포트가 붙어 있어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "parts.netloc",
+      "after": "parts.hostname, parts.port",
+      "say": "호스트와 포트를 따로 꺼내요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "shop.example.com과 8443이 나뉘었어요. 마지막은 아직 memo예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. # 뒤 memo는 질의가 아니라 조각(fragment)이에요. 둘을 헷갈리면 실어 보낸 값 대신 memo를 읽어요.",
+      "target": "code:parts.fragment"
+    },
+    {
+      "action": "patch_code",
+      "before": "parts.fragment",
+      "after": "parts.query",
+      "say": "fragment를 query로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "https shop.example.com 8443 /orders/17 item=pen&qty=3이에요. 다섯 부분이 다 나왔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "shop.example.com:8443/",
+      "after": "shop.example.com/",
+      "say": "포트를 빼 보면 어떨까요?"
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "포트 자리에 None이 나왔어요. URL에 포트가 없으면 https는 기본 443을 써요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "shop.example.com/",
+      "after": "shop.example.com:8443/",
+      "say": "포트를 다시 넣어 둘게요."
+    }
+  ]
+}

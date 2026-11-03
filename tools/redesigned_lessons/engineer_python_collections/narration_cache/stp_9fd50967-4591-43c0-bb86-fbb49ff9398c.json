@@ -1,0 +1,76 @@
+{
+  "by": "hand",
+  "source_sha256": "f4a1fe5379776d573dc2ea710bf0949054895a0db0a7e2a78a7f5f1f9c06ab21",
+  "entry": [
+    {
+      "action": "say",
+      "text": "선반 하나마다 무게를 더한 값이 totals에 들어가야 해요.",
+      "target": "text:lambda가 계산하는 식을 고쳐 선반마다 무게 합이 모이게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[3, 2, 4]와 4가 나왔어요. 선반마다 상자 수를 셌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "map은 shelves의 선반을 하나씩 row에 넣고 lambda를 불러요. row는 선반 목록 하나예요.",
+      "target": "code:lambda row: len(row)"
+    },
+    {
+      "action": "patch_code",
+      "before": "lambda row: len(row)",
+      "after": "lambda row: sum(row)",
+      "say": "개수 대신 합을 구하게 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[8, 6, 22]와 22예요. 선반별 합이 모였고 max가 가장 큰 22를 골랐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "shelves))",
+      "after": "shelves[0]))",
+      "say": "map에 첫 선반 하나만 넘겨 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ],
+      "expect_error": "TypeError"
+    },
+    {
+      "action": "say",
+      "text": "TypeError가 났어요. 이번엔 row에 상자 숫자 3이 들어가 sum(3)을 불렀거든요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. map은 넘긴 목록의 원소를 하나씩 꺼내요. 선반 목록을 넘겨야 row가 선반 하나가 돼요.",
+      "target": "code:shelves[0]))"
+    },
+    {
+      "action": "patch_code",
+      "before": "shelves[0]))",
+      "after": "shelves))",
+      "say": "선반 전체 목록으로 되돌려요."
+    }
+  ]
+}

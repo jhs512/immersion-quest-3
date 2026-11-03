@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "8accf7211318de7d3be3f19656a0af0ce8cf0c0c1138e44a91f85b2e903310bb",
+  "entry": [
+    {
+      "action": "say",
+      "text": "등급 열이 정한 세 값만 받도록 범위를 거는 문제예요.",
+      "target": "text:plan 열에 CHECK 제약을 붙여 세 값 밖의 등급이 막히게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        3,
+        3
+      ]
+    },
+    {
+      "action": "say",
+      "text": "다섯 행이 다 들어왔어요. silver와 대문자 Gold도 있어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "plan TEXT);",
+      "after": "plan TEXT CHECK(plan = 'basic' OR 'gold' OR 'vip'));",
+      "say": "허용 값을 OR로 이어 써 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        3,
+        3
+      ]
+    },
+    {
+      "action": "say",
+      "text": "C01 | basic 하나만 남았어요. gold와 vip도 막혔어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. OR 뒤의 'gold'는 비교가 아니라 문자열 하나예요. 거짓으로 계산돼서 basic만 통과해요.",
+      "target": "code:OR 'gold'"
+    },
+    {
+      "action": "patch_code",
+      "before": "plan = 'basic' OR 'gold' OR 'vip'",
+      "after": "plan IN ('basic', 'gold', 'vip')",
+      "say": "IN으로 세 값을 묶어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        3,
+        3
+      ]
+    },
+    {
+      "action": "say",
+      "text": "C01 basic, C02 gold, C04 vip가 남았어요. silver와 Gold는 범위 밖이라 막혔어요.",
+      "target": "output"
+    }
+  ]
+}

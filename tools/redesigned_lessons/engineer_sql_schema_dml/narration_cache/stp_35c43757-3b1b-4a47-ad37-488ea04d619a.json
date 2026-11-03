@@ -1,0 +1,66 @@
+{
+  "by": "hand",
+  "source_sha256": "42ea6a3d5ba466f5d83b7ce78812bd510634746b09510d856d42f911132bb9d5",
+  "entry": [
+    {
+      "action": "say",
+      "text": "번호와 제목만 아는 책을 넣는 문제예요. 나머지 두 열은 표가 정하게 둬요.",
+      "target": "text:INSERT 문에 열 목록을 넣어 번호와 제목만 넣으세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ],
+      "expect_error": "2 values were supplied"
+    },
+    {
+      "action": "say",
+      "text": "오류가 났어요. books는 열이 네 개인데 값은 두 개만 줬어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "INSERT INTO books VALUES",
+      "after": "INSERT INTO books(title, id) VALUES",
+      "say": "열 목록을 title, id 순서로 먼저 써 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ],
+      "expect_error": "datatype mismatch"
+    },
+    {
+      "action": "say",
+      "text": "이번엔 datatype mismatch예요. 3이 title로, 제목이 id로 가려 했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 값은 열 목록의 순서대로 짝지어져요. 표를 만든 열 순서가 아니에요.",
+      "target": "code:books(title, id)"
+    },
+    {
+      "action": "patch_code",
+      "before": "books(title, id)",
+      "after": "books(id, title)",
+      "say": "값 순서에 맞게 id, title로 고쳐요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "3 | Query Lab | NULL | 1 행이 생겼어요. author는 NULL, copies는 DEFAULT 1이에요.",
+      "target": "output"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "by": "hand",
+  "source_sha256": "8a4117c66ce81578fb034de168ef191f7e3bb9374916b8d0e86cd8913d78ac69",
+  "entry": [
+    {
+      "action": "say",
+      "text": "ack 번호 두 곳을 다음에 받을 번호로 맞추는 문제예요.",
+      "target": "text:두 곳을 고쳐 다음에 받을 번호를 찍게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "SYN-ACK의 ack가 100이에요. 손님이 이미 쓴 100번을 다시 달라는 뜻이 돼요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "server ack는 102예요. hello 다섯 글자 중 한 글자만 받았다고 알리는 셈이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "'ack', client_isn)",
+      "after": "'ack', client_isn + 1)",
+      "say": "SYN이 100번을 썼으니 다음은 101이에요."
+    },
+    {
+      "action": "patch_code",
+      "before": "print('server ack', seq + 1)",
+      "after": "print('server ack', seq + len(data) - 1)",
+      "say": "데이터는 길이만큼 번호를 써요. 마지막 바이트 번호를 넣어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "SYN-ACK의 ack는 101이 됐어요. server ack는 105예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 105는 마지막으로 받은 o의 번호예요. ack로 보내면 o를 다시 달라는 뜻이 돼요.",
+      "target": "code:seq + len(data) - 1"
+    },
+    {
+      "action": "patch_code",
+      "before": "seq + len(data) - 1",
+      "after": "seq + len(data)",
+      "say": "받은 다음 번호로 고쳐요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        5,
+        10
+      ]
+    },
+    {
+      "action": "say",
+      "text": "server ack 106이에요. 101부터 105까지 받았고 다음은 106이에요.",
+      "target": "output"
+    }
+  ]
+}

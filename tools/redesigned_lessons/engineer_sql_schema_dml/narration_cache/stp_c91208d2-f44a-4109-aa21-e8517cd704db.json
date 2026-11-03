@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "debea412a0c59c7915576052fed4e021831effcbba696d0d52c3df6b1627c4f9",
+  "entry": [
+    {
+      "action": "say",
+      "text": "card가 회원을 하나씩 구별하도록 겹침과 빈 값을 막는 문제예요.",
+      "target": "text:card가 기본키가 되고 빈 카드 번호도 막히게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "네 행이 다 들어왔어요. C01이 두 번이고, 맨 위에 카드 번호가 NULL인 행도 있어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "members(card TEXT,",
+      "after": "members(card TEXT PRIMARY KEY,",
+      "say": "카드 번호를 기본키로 정해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "C01의 두 번째 행은 건너뛰었어요. 그런데 NULL 행은 아직 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. SQLite는 옛 버전과 맞추려고 INTEGER가 아닌 기본키에 NULL을 받아요. 표준 SQL의 기본키는 NULL을 거절해요.",
+      "target": "code:card TEXT PRIMARY KEY"
+    },
+    {
+      "action": "patch_code",
+      "before": "card TEXT PRIMARY KEY,",
+      "after": "card TEXT PRIMARY KEY NOT NULL,",
+      "say": "NOT NULL을 더해 빈 카드 번호도 막아요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "C01 | a@x.kr, C02 | b@x.kr 두 명만 남았어요. 겹친 카드와 빈 카드가 모두 막혔어요.",
+      "target": "output"
+    }
+  ]
+}

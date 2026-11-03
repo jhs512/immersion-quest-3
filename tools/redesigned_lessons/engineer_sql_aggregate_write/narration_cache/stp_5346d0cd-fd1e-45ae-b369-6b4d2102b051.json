@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "06cedc9af75684e5bcda0cacb480ef78f2461be39c55873c9426502dec17a209",
+  "entry": [
+    {
+      "action": "say",
+      "text": "세 가지를 한 OVER에 모아요. 지역으로 나누고, 회차로 줄 세우고, 창은 세 행이에요.",
+      "target": "text:지역마다 지금 회차와 앞 두 회차, 모두 세 회차 가운데 가장 많이 실은 상자 수를 peak 열로 붙이려 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "region, seq, boxes 세 열만 나왔어요. peak 열은 아직 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "-- 이 주석 아래에 쉼표로 시작하는 peak 열 한 줄을 쓰세요.\n",
+      "after": "-- 이 주석 아래에 쉼표로 시작하는 peak 열 한 줄을 쓰세요.\n     , MAX(boxes) OVER (PARTITION BY region ORDER BY seq ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS peak\n",
+      "say": "먼저 처음부터 여는 창으로 MAX를 써 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "east의 peak가 9, 9, 9, 9예요. 첫 행의 9가 끝까지 창 안에 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "UNBOUNDED PRECEDING",
+      "after": "2 PRECEDING",
+      "say": "창을 앞 두 행부터로 줄여요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "east의 네 번째 행은 4예요. 창이 4, 3, 2만 보고 9는 창 밖으로 나갔어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "west도 네 번째 행에서 7이 빠져 5가 됐어요. 울타리 안에서 창이 움직였어요.",
+      "target": "code:PARTITION BY region"
+    }
+  ]
+}

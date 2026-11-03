@@ -1,0 +1,64 @@
+{
+  "by": "hand",
+  "source_sha256": "4bbd6ea0ed7cda1f81d9370c8951f260590b8f0014819e14a4a4769dd06b3d65",
+  "entry": [
+    {
+      "action": "say",
+      "text": "높은 등급이 아래 등급 보너스까지 받게 break를 정리하는 문제예요.",
+      "target": "text:break를 필요한 곳에서만 지워 등급별 보너스가 맞게 쌓이게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "350이에요. case 3에서 300을 더하고 바로 break로 나갔어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "            case 3: bonus += 300; break;\n            case 2: bonus += 200; break;\n            case 1: bonus += 100; break;\n",
+      "after": "            case 3: bonus += 300;\n            case 2: bonus += 200;\n            case 1: bonus += 100;\n",
+      "say": "세 break를 모두 지워 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0이 나왔어요. 650까지 쌓인 뒤 default로 흘러가 bonus = 0이 덮어썼어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "case 1: bonus += 100;",
+      "after": "case 1: bonus += 100; break;",
+      "say": "case 1 뒤의 break는 되살려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        12,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "650이에요. 300, 200, 100을 차례로 더하고 case 1의 break에서 멈췄어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. default는 맞는 case가 없을 때만 실행되는 게 아니에요. 위에서 흘러 들어오면 그 대입도 실행돼요.",
+      "target": "code:default: bonus = 0;"
+    }
+  ]
+}

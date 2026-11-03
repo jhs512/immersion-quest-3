@@ -1,0 +1,676 @@
+{
+  "description": "팩토리 메서드, 어댑터·프록시, 옵서버·이터레이터, 의존성 주입·인터페이스 분리를 실행해요.",
+  "tasks": [
+    {
+      "id": "stp_83e66b13-dd91-4fae-94ba-b85a58e6de93",
+      "title": "선택한 배송 방식으로 객체를 만들도록 고치세요",
+      "goal": "배송 종류 kind에 따라 등록된 생성자를 골라 객체를 만들어요. 호출부는 구체 클래스를 고르지 않아요.\n\n어떤 객체를 만들지는 생성 함수에 모아요. 이 예제는 등록표 기반 팩토리예요. 팩토리 메서드의 확장도 다음에 비교해요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 선택한 배송 방식으로 객체를 만들도록 고치세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "kind = 'express'\nclass Regular:\n    def days(self): return 3\nclass Express:\n    def days(self): return 1\nconstructors = {'regular':Regular, 'express':Express}\ndef create(kind):\n    return Regular()\nprint(create(kind).days())\n",
+      "solution": "kind = 'express'\nclass Regular:\n    def days(self): return 3\nclass Express:\n    def days(self): return 1\nconstructors = {'regular':Regular, 'express':Express}\ndef create(kind):\n    return constructors[kind]()\nprint(create(kind).days())\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "1"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "생성 책임을 한곳에 모아 호출부와 구체 타입을 분리해요.",
+          "target": "text:배송 종류 kind에 따라 등록된 생성자를 골라 객체를 만들어요. 호출부는 구체 클래스를 고르지 않아요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3일이에요. express를 받아도 일반 배송 객체만 만들었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "return Regular()",
+          "after": "return constructors[kind]()"
+        },
+        {
+          "action": "say",
+          "text": "어떤 객체를 만들지는 생성 함수에 모아요. 이 예제는 등록표 기반 팩토리예요. 팩토리 메서드의 확장도 다음에 비교해요.",
+          "target": "code:return constructors[kind]()"
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1일이에요. 등록된 Express 생성자를 골라 호출했어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_030cee0b-829d-4d19-960b-ea3b3475d6fa",
+      "title": "하위 생성 메서드가 고른 상품을 사용하세요",
+      "goal": "부모의 주문 흐름은 유지해요. build가 자기 객체의 make 메서드를 호출하게 하세요.\n\n공통 흐름은 부모에 두고 생성 지점을 하위 클래스가 재정의해요. 등록표로 함수만 고르는 앞 예제와 구별해요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 하위 생성 메서드가 고른 상품을 사용하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "kind = 'bag'\nclass Box:\n    def label(self): return 'box'\nclass Bag:\n    def label(self): return 'bag'\nclass Order:\n    def make(self): return Box()\n    def build(self): return Box().label()\nclass BagOrder(Order):\n    def make(self): return Bag()\nchosen = BagOrder() if kind == 'bag' else Order()\nprint(chosen.build())\n",
+      "solution": "kind = 'bag'\nclass Box:\n    def label(self): return 'box'\nclass Bag:\n    def label(self): return 'bag'\nclass Order:\n    def make(self): return Box()\n    def build(self): return self.make().label()\nclass BagOrder(Order):\n    def make(self): return Bag()\nchosen = BagOrder() if kind == 'bag' else Order()\nprint(chosen.build())\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "bag"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "팩토리 메서드의 재정의로 생성할 타입을 바꿔요.",
+          "target": "text:부모의 주문 흐름은 유지해요. build가 자기 객체의 make 메서드를 호출하게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "box예요. build가 하위 클래스의 생성 메서드를 거치지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "def build(self): return Box().label()",
+          "after": "def build(self): return self.make().label()"
+        },
+        {
+          "action": "say",
+          "text": "공통 흐름은 부모에 두고 생성 지점을 하위 클래스가 재정의해요. 등록표로 함수만 고르는 앞 예제와 구별해요.",
+          "target": "code:def build(self): return self.make().label()"
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "bag예요. 공통 build 안에서 BagOrder.make가 실행됐어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_3060a25e-dacf-4bbe-a504-9d379311265b",
+      "title": "외부 센서의 값을 서비스가 쓰는 단위로 바꾸세요",
+      "goal": "외부 센서는 cm를 반환하고 서비스는 m를 써요. 어댑터의 반환값을 서비스 단위로 바꾸세요.\n\n센서는 고치지 않고 연결부에서 이름과 단위를 맞춰요. 호출자는 센서의 내부 형식을 몰라도 돼요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 외부 센서의 값을 서비스가 쓰는 단위로 바꾸세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "centimeters = 250\nclass Sensor:\n    def read_cm(self): return centimeters\nclass Adapter:\n    def __init__(self, sensor): self.sensor = sensor\n    def meters(self): return self.sensor.read_cm()\nprint(Adapter(Sensor()).meters())\n",
+      "solution": "centimeters = 250\nclass Sensor:\n    def read_cm(self): return centimeters\nclass Adapter:\n    def __init__(self, sensor): self.sensor = sensor\n    def meters(self): return self.sensor.read_cm() / 100\nprint(Adapter(Sensor()).meters())\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "2.5"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "어댑터는 다른 인터페이스를 호출자가 기대하는 형태로 맞춰요.",
+          "target": "text:외부 센서는 cm를 반환하고 서비스는 m를 써요. 어댑터의 반환값을 서비스 단위로 바꾸세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "250이에요. 센서의 숫자를 단위 변환 없이 넘겼어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "return self.sensor.read_cm()",
+          "after": "return self.sensor.read_cm() / 100"
+        },
+        {
+          "action": "say",
+          "text": "센서는 고치지 않고 연결부에서 이름과 단위를 맞춰요. 호출자는 센서의 내부 형식을 몰라도 돼요.",
+          "target": "code:return self.sensor.read_cm() / 100"
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2.5예요. cm를 m로 바꾼 뒤 서비스에 전달했어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_375fcd94-b755-43d1-a48c-a0f69c83507b",
+      "title": "권한이 있을 때만 실제 저장소를 호출하세요",
+      "goal": "권한이 없는 요청은 저장소를 읽으면 안 돼요. 프록시가 실제 호출 전에 권한을 확인하게 하세요.\n\n프록시는 기존 읽기 인터페이스를 유지하면서 접근 조건을 더해요. 인터페이스를 맞추는 어댑터와 목적이 달라요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 권한이 있을 때만 실제 저장소를 호출하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "allowed = False\nclass Store:\n    def read(self): return 'secret'\nclass Proxy:\n    def __init__(self, target): self.target = target\n    def read(self): return self.target.read()\nprint(Proxy(Store()).read())\n",
+      "solution": "allowed = False\nclass Store:\n    def read(self): return 'secret'\nclass Proxy:\n    def __init__(self, target): self.target = target\n    def read(self): return self.target.read() if allowed else 'denied'\nprint(Proxy(Store()).read())\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "denied"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "프록시는 같은 기능 앞에서 접근을 통제해요.",
+          "target": "text:권한이 없는 요청은 저장소를 읽으면 안 돼요. 프록시가 실제 호출 전에 권한을 확인하게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "secret이 나왔어요. 권한 검사 없이 실제 객체로 넘겼어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "def read(self): return self.target.read()",
+          "after": "def read(self): return self.target.read() if allowed else 'denied'"
+        },
+        {
+          "action": "say",
+          "text": "프록시는 기존 읽기 인터페이스를 유지하면서 접근 조건을 더해요. 인터페이스를 맞추는 어댑터와 목적이 달라요.",
+          "target": "code:def read(self): return self.target.read() if allowed else 'denied'"
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "denied예요. 권한이 없어 실제 읽기를 호출하지 않았어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_5bfee39a-bda1-4256-9ca4-30ecef66372a",
+      "title": "등록된 모든 구독자에게 변경을 알리세요",
+      "goal": "재고 변경을 모든 구독자에게 알려야 해요. 첫 구독자뿐 아니라 등록된 함수 전체를 호출하세요.\n\n발행자는 등록된 함수를 순회해 알리면 돼요. 구독자가 늘어도 각 구현을 직접 분기하지 않아요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 등록된 모든 구독자에게 변경을 알리세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "stock = 4\nlog = []\ndef screen(v): log.append('screen:' + str(v))\ndef audit(v): log.append('audit:' + str(v))\nlisteners = [screen, audit]\nfor listener in listeners[:1]:\n    listener(stock)\nprint(log)\n",
+      "solution": "stock = 4\nlog = []\ndef screen(v): log.append('screen:' + str(v))\ndef audit(v): log.append('audit:' + str(v))\nlisteners = [screen, audit]\nfor listener in listeners:\n    listener(stock)\nprint(log)\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "['screen:4', 'audit:4']"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "옵서버는 발행자가 구독자 각각의 구현에 의존하지 않게 해요.",
+          "target": "text:재고 변경을 모든 구독자에게 알려야 해요. 첫 구독자뿐 아니라 등록된 함수 전체를 호출하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "화면 구독자만 호출됐어요. 감사 기록 구독자는 변경을 몰라요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "for listener in listeners[:1]:",
+          "after": "for listener in listeners:"
+        },
+        {
+          "action": "say",
+          "text": "발행자는 등록된 함수를 순회해 알리면 돼요. 구독자가 늘어도 각 구현을 직접 분기하지 않아요.",
+          "target": "code:for listener in listeners:"
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "screen과 audit 기록이 함께 생겼어요. 두 구독자가 같은 변경을 받았죠.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_dbba9ff7-7854-41b2-a338-9109c0905081",
+      "title": "반복자를 한 번씩 전진시켜 남은 항목을 읽으세요",
+      "goal": "앞에서 하나 꺼낸 반복자의 남은 항목만 읽으려 해요. 새 반복자를 만들지 말고 현재 반복자를 쓰세요.\n\n반복자는 순회 위치를 들고 있어요. 현재 반복자에서 계속 읽어야 이미 꺼낸 항목이 빠져요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 반복자를 한 번씩 전진시켜 남은 항목을 읽으세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "items = ['pen','cup','book']\nit = iter(items)\nfirst = next(it)\nrest = list(iter(items))\nprint(first, rest)\n",
+      "solution": "items = ['pen','cup','book']\nit = iter(items)\nfirst = next(it)\nrest = list(it)\nprint(first, rest)\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "pen ['cup', 'book']"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "이터레이터의 현재 위치와 소진을 직접 관찰해요.",
+          "target": "text:앞에서 하나 꺼낸 반복자의 남은 항목만 읽으려 해요. 새 반복자를 만들지 말고 현재 반복자를 쓰세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "pen이 남은 목록에도 다시 보여요. 반복자를 새로 만들었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "rest = list(iter(items))",
+          "after": "rest = list(it)"
+        },
+        {
+          "action": "say",
+          "text": "반복자는 순회 위치를 들고 있어요. 현재 반복자에서 계속 읽어야 이미 꺼낸 항목이 빠져요.",
+          "target": "code:rest = list(it)"
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "pen 뒤의 cup과 book만 남았어요. 내부 목록 위치를 직접 다루지 않았죠.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_83a97f18-4352-47ee-b63b-a0b4ced86785",
+      "title": "주입받은 저장 기능을 사용하세요",
+      "goal": "서비스는 생성할 때 받은 저장소를 사용해야 해요. 함수 안에서 구체 저장소를 새로 만들지 마세요.\n\n서비스는 count라는 약속에 의존해요. 어떤 저장소를 연결할지는 바깥 조립 코드가 결정해요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 주입받은 저장 기능을 사용하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "stock = 3\nclass Disk:\n    def count(self): return 900\nclass Memory:\n    def count(self): return stock\nclass Service:\n    def __init__(self, repo): self.repo = repo\n    def count(self): return Disk().count()\nprint(Service(Memory()).count())\n",
+      "solution": "stock = 3\nclass Disk:\n    def count(self): return 900\nclass Memory:\n    def count(self): return stock\nclass Service:\n    def __init__(self, repo): self.repo = repo\n    def count(self): return self.repo.count()\nprint(Service(Memory()).count())\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "3"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "의존성 역전과 주입으로 구체 구현을 바꿔 끼워요.",
+          "target": "text:서비스는 생성할 때 받은 저장소를 사용해야 해요. 함수 안에서 구체 저장소를 새로 만들지 마세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "900이에요. 전달한 Memory를 버리고 Disk를 직접 만들었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "return Disk().count()",
+          "after": "return self.repo.count()"
+        },
+        {
+          "action": "say",
+          "text": "서비스는 count라는 약속에 의존해요. 어떤 저장소를 연결할지는 바깥 조립 코드가 결정해요.",
+          "target": "code:return self.repo.count()"
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3이에요. 연결한 메모리 저장소가 서비스에 사용됐어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_d2ddf740-f717-44f0-baa4-06d44543494e",
+      "title": "조회에 필요한 작은 약속만 사용하세요",
+      "goal": "조회 전용 저장소에는 write가 없어요. 조회 화면이 읽기 기능만 요구하게 고치세요.\n\n조회 화면은 읽는 약속만 알면 돼요. 쓰기까지 묶어 요구하면 읽기 전용 구현을 연결하기 어려워져요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 조회에 필요한 작은 약속만 사용하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "stock = 3\nclass ReadOnly:\n    def read(self): return 'stock:' + str(stock)\ndef show(reader):\n    return 'write' in dir(reader)\nprint(show(ReadOnly()))\n",
+      "solution": "stock = 3\nclass ReadOnly:\n    def read(self): return 'stock:' + str(stock)\ndef show(reader):\n    return reader.read()\nprint(show(ReadOnly()))\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "stock:3"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "인터페이스 분리는 사용하지 않는 기능의 의존을 줄여요.",
+          "target": "text:조회 전용 저장소에는 write가 없어요. 조회 화면이 읽기 기능만 요구하게 고치세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "False예요. 조회와 관계없는 write 유무를 검사했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "return 'write' in dir(reader)",
+          "after": "return reader.read()"
+        },
+        {
+          "action": "say",
+          "text": "조회 화면은 읽는 약속만 알면 돼요. 쓰기까지 묶어 요구하면 읽기 전용 구현을 연결하기 어려워져요.",
+          "target": "code:return reader.read()"
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "stock:3이 나왔어요. 읽기 전용 구현만으로 화면이 작동해요.",
+          "target": "output"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "생성 책임을 한곳에 모아 호출부와 구체 타입을 분리해요.",
+      "팩토리 메서드의 재정의로 생성할 타입을 바꿔요.",
+      "어댑터는 다른 인터페이스를 호출자가 기대하는 형태로 맞춰요.",
+      "프록시는 같은 기능 앞에서 접근을 통제해요.",
+      "옵서버는 발행자가 구독자 각각의 구현에 의존하지 않게 해요.",
+      "이터레이터의 현재 위치와 소진을 직접 관찰해요.",
+      "의존성 역전과 주입으로 구체 구현을 바꿔 끼워요.",
+      "인터페이스 분리는 사용하지 않는 기능의 의존을 줄여요."
+    ],
+    "chapters": {
+      "chp_d8b2b392-ac92-4de6-ba5b-33be44ddd845": [
+        "생성 책임을 한곳에 모아 호출부와 구체 타입을 분리해요.",
+        "팩토리 메서드의 재정의로 생성할 타입을 바꿔요.",
+        "어댑터는 다른 인터페이스를 호출자가 기대하는 형태로 맞춰요.",
+        "프록시는 같은 기능 앞에서 접근을 통제해요."
+      ],
+      "chp_ce532000-1174-4670-b9a1-ff4a5b7b874e": [
+        "옵서버는 발행자가 구독자 각각의 구현에 의존하지 않게 해요.",
+        "이터레이터의 현재 위치와 소진을 직접 관찰해요.",
+        "의존성 역전과 주입으로 구체 구현을 바꿔 끼워요.",
+        "인터페이스 분리는 사용하지 않는 기능의 의존을 줄여요."
+      ]
+    },
+    "units": {
+      "unt_8ccf4b3a-9979-4325-a2ae-19ec204aab3d": {
+        "objectives": [
+          "생성 책임을 한곳에 모아 호출부와 구체 타입을 분리해요.",
+          "팩토리 메서드의 재정의로 생성할 타입을 바꿔요.",
+          "어댑터는 다른 인터페이스를 호출자가 기대하는 형태로 맞춰요.",
+          "프록시는 같은 기능 앞에서 접근을 통제해요."
+        ],
+        "premise": "창고 서비스에 배송 객체와 저장소, 알림 구독자를 연결해요. 각 문제는 제공된 준비 코드에서 새로 시작해요."
+      },
+      "unt_0a1087cd-a86b-4e1f-90ff-f9c80aa5bbe4": {
+        "objectives": [
+          "옵서버는 발행자가 구독자 각각의 구현에 의존하지 않게 해요.",
+          "이터레이터의 현재 위치와 소진을 직접 관찰해요.",
+          "의존성 역전과 주입으로 구체 구현을 바꿔 끼워요.",
+          "인터페이스 분리는 사용하지 않는 기능의 의존을 줄여요."
+        ],
+        "premise": "창고 서비스에 배송 객체와 저장소, 알림 구독자를 연결해요. 각 문제는 제공된 준비 코드에서 새로 시작해요."
+      }
+    }
+  },
+  "prepared_cases": {
+    "stp_83e66b13-dd91-4fae-94ba-b85a58e6de93": [
+      {
+        "values": {
+          "kind": "express"
+        },
+        "expected": "1",
+        "value_literals": {
+          "kind": "'express'"
+        }
+      },
+      {
+        "values": {
+          "kind": "regular"
+        },
+        "expected": "3",
+        "value_literals": {
+          "kind": "'regular'"
+        }
+      }
+    ],
+    "stp_030cee0b-829d-4d19-960b-ea3b3475d6fa": [
+      {
+        "values": {
+          "kind": "bag"
+        },
+        "expected": "bag",
+        "value_literals": {
+          "kind": "'bag'"
+        }
+      },
+      {
+        "values": {
+          "kind": "box"
+        },
+        "expected": "box",
+        "value_literals": {
+          "kind": "'box'"
+        }
+      }
+    ],
+    "stp_3060a25e-dacf-4bbe-a504-9d379311265b": [
+      {
+        "values": {
+          "centimeters": 250
+        },
+        "expected": "2.5",
+        "value_literals": {
+          "centimeters": "250"
+        }
+      },
+      {
+        "values": {
+          "centimeters": 75
+        },
+        "expected": "0.75",
+        "value_literals": {
+          "centimeters": "75"
+        }
+      }
+    ],
+    "stp_375fcd94-b755-43d1-a48c-a0f69c83507b": [
+      {
+        "values": {
+          "allowed": false
+        },
+        "expected": "denied",
+        "value_literals": {
+          "allowed": "False"
+        }
+      },
+      {
+        "values": {
+          "allowed": true
+        },
+        "expected": "secret",
+        "value_literals": {
+          "allowed": "True"
+        }
+      }
+    ],
+    "stp_5bfee39a-bda1-4256-9ca4-30ecef66372a": [
+      {
+        "values": {
+          "stock": 4
+        },
+        "expected": "['screen:4', 'audit:4']",
+        "value_literals": {
+          "stock": "4"
+        }
+      },
+      {
+        "values": {
+          "stock": 0
+        },
+        "expected": "['screen:0', 'audit:0']",
+        "value_literals": {
+          "stock": "0"
+        }
+      }
+    ],
+    "stp_dbba9ff7-7854-41b2-a338-9109c0905081": [
+      {
+        "values": {
+          "items": [
+            "pen",
+            "cup",
+            "book"
+          ]
+        },
+        "expected": "pen ['cup', 'book']",
+        "value_literals": {
+          "items": "['pen', 'cup', 'book']"
+        }
+      },
+      {
+        "values": {
+          "items": [
+            "box",
+            "bag"
+          ]
+        },
+        "expected": "box ['bag']",
+        "value_literals": {
+          "items": "['box', 'bag']"
+        }
+      }
+    ],
+    "stp_83a97f18-4352-47ee-b63b-a0b4ced86785": [
+      {
+        "values": {
+          "stock": 3
+        },
+        "expected": "3",
+        "value_literals": {
+          "stock": "3"
+        }
+      },
+      {
+        "values": {
+          "stock": 8
+        },
+        "expected": "8",
+        "value_literals": {
+          "stock": "8"
+        }
+      }
+    ],
+    "stp_d2ddf740-f717-44f0-baa4-06d44543494e": [
+      {
+        "values": {
+          "stock": 3
+        },
+        "expected": "stock:3",
+        "value_literals": {
+          "stock": "3"
+        }
+      },
+      {
+        "values": {
+          "stock": 8
+        },
+        "expected": "stock:8",
+        "value_literals": {
+          "stock": "8"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,1116 @@
+{
+  "schema_version": 2,
+  "id": "lsn_e1196f54-1923-460f-ac03-1e249930156d",
+  "revision": "engineer-java-expressions-1",
+  "title": "Java · 식의 값과 반복 흐름을 직접 따라가요",
+  "description": "문자열 결합·정수 나눗셈·증감의 계산 순서, boolean의 &·|·^, switch 폴스루, while·do-while, 몫과 나머지로 자릿수 분해를 한두 줄씩 고치며 추적해요.",
+  "objectives": [
+    "+의 왼쪽 결합, 정수 나눗셈, 전위·후위 증가가 식의 값을 어떻게 바꾸는지 추적해요.",
+    "boolean에 쓰는 &, |, ^와 단락 평가, 연산자 우선순위로 조건의 값을 정해요.",
+    "switch 폴스루와 while·do-while의 실행 순서를 따라가며 누적 값을 맞춰요.",
+    "/와 %를 반복해 단위와 2진 자릿수를 분해하고, 여러 원리가 섞인 코드를 고쳐요."
+  ],
+  "sources": [
+    "https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.18.1",
+    "https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.22.2",
+    "https://docs.oracle.com/javase/specs/jls/se21/html/jls-14.html#jls-14.11"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_6c40552c-0a62-461a-a894-fff59e10e3f8",
+      "title": "식 하나가 만드는 값을 따라가요",
+      "objectives": [
+        "+·/·++가 어떤 순서로 계산되어 어떤 값이 되는지 실행으로 확인해요."
+      ],
+      "units": [
+        {
+          "id": "unt_f7318414-7e90-42eb-b8ec-c97093daa134",
+          "title": "재고 표시와 번호 계산",
+          "objectives": [
+            "계산 순서를 바꿔 원하는 값을 만들어요."
+          ],
+          "premise": "창고의 재고 수와 송장 번호를 한 줄 식으로 계산해 출력해요. 각 스텝은 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_4e110c57-664d-45f8-960d-9ce18375f928",
+              "objectives": [
+                "문자열을 만난 뒤의 +는 이어 붙이기라서 괄호로 덧셈을 먼저 해야 함을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_87b9d494-6f25-4955-8aba-fcb7e3e7ace2",
+              "objectives": [
+                "정수 나눗셈이 몫만 남기므로 곱셈과 나눗셈의 순서가 결과를 바꿈을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_86058f1e-5a9e-4e6e-b459-a72069b13681",
+              "objectives": [
+                "누적식 안의 ++next와 next++가 sum에 넣는 값이 다름을 반복으로 추적해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_7b781fff-6f98-4cd0-9bfb-e85f0e3be28b",
+      "title": "조건식의 진릿값을 정해요",
+      "objectives": [
+        "boolean에 쓰는 &, |, ^의 뜻과 평가 방식, 우선순위로 조건의 값을 정해요."
+      ],
+      "units": [
+        {
+          "id": "unt_b08219ad-520f-4700-807a-5e1ee51abcb3",
+          "title": "상자 검사 조건",
+          "objectives": [
+            "검사 결과 두세 개를 묶는 연산자를 골라요."
+          ],
+          "premise": "상자마다 무게·라벨·급송·파손 위험을 검사해 true/false로 남겨요. 각 스텝은 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_8ed16ca8-bc87-4b39-9c07-2a1f2bac4cce",
+              "objectives": [
+                "boolean의 |, &, ^ 결과를 네 조합의 진리표로 비교해요."
+              ]
+            },
+            {
+              "id": "stp_240143b3-d320-4a56-9ab7-be0964d19b6f",
+              "objectives": [
+                "&&는 오른쪽을 건너뛸 수 있고 &는 양쪽을 모두 계산함을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_ad86b8cc-e72b-4129-a8fb-c5254cb1f958",
+              "objectives": [
+                "비교 → & → ^ → | 순서를 알고 괄호로 원하는 묶음을 만들어요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_259c0e82-fa7c-40b7-a114-c6ca2b618434",
+      "title": "분기와 반복의 흐름을 따라가요",
+      "objectives": [
+        "switch가 어디까지 이어 실행되는지, 반복의 조건이 언제 검사되는지 따라가요."
+      ],
+      "units": [
+        {
+          "id": "unt_10705996-44e4-4c99-a936-66549057fce1",
+          "title": "등급 보너스와 칸 번호",
+          "objectives": [
+            "실행 순서를 따라가며 누적 값을 맞춰요."
+          ],
+          "premise": "회원 등급의 보너스와 창고 칸 번호를 누적해 계산해요. 각 스텝은 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_1c3e9bb3-4857-4ad0-9fef-0785b5129d8e",
+              "objectives": [
+                "폴스루로 누적이 이어지고, 흘러 들어간 default의 대입이 값을 덮어씀을 추적해요."
+              ]
+            },
+            {
+              "id": "stp_8d2c0f3b-cdf2-4017-9356-16d985f5a13d",
+              "objectives": [
+                "조건 검사 뒤 본문에서 i를 올리면 조건이 본 값과 더하는 값이 다름을 추적해요."
+              ]
+            },
+            {
+              "id": "stp_373a5b41-5535-4699-982b-d7bc123e61c9",
+              "objectives": [
+                "do-while은 본문을 먼저 한 번 실행하고, while은 조건부터 봄을 비교해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_ad27a10b-f583-4c66-86dc-193ecab01688",
+      "title": "몫과 나머지로 자릿수를 나눠요",
+      "objectives": [
+        "/와 %를 이어 써서 단위와 자릿수를 분해하고, 여러 원리가 섞인 반복을 고쳐요."
+      ],
+      "units": [
+        {
+          "id": "unt_99caef84-8152-4bbb-9a20-d5b6e748658f",
+          "title": "물건 수와 송장 번호 분해",
+          "objectives": [
+            "큰 단위부터, 낮은 자리부터 떼어 내는 반복을 추적해요."
+          ],
+          "premise": "물건 수를 단위별로 나누고 송장 번호를 자릿수로 나눠요. 각 스텝은 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_20adfd58-2dea-4a90-928e-0ee9b4fd6073",
+              "objectives": [
+                "다음 단위는 앞 단위의 나머지에서 몫을 구한다는 것을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_92bce148-3b6e-4172-baa3-662187b31542",
+              "objectives": [
+                "n % 2, n / 2 반복이 낮은 자리부터 나오므로 배열을 거꾸로 읽어야 함을 추적해요."
+              ]
+            },
+            {
+              "id": "stp_cadd63fb-ae1e-424e-b485-b7038fc07c8e",
+              "objectives": [
+                "자릿수 떼기·boolean 뒤집기·누적·문자열 결합이 섞인 반복을 표로 따라가 고쳐요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_4e110c57-664d-45f8-960d-9ce18375f928",
+      "title": "두 재고의 합이 글 뒤에 붙도록 괄호를 넣으세요",
+      "goal": "두 칸의 재고 boxA와 boxB를 더해 total= 뒤에 붙여 보이려 해요. 그런데 지금은 숫자가 이상하게 붙어 나와요.\n\n**알아두세요**\n\n`+`는 왼쪽부터 차례로 계산해요. 왼쪽이 문자열이면 숫자를 더하지 않고 글자로 이어 붙여요.\n\n출력 줄에 괄호를 넣어 두 재고를 먼저 더한 뒤 붙이세요. 채점은 재고 값을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력을 확인하세요.\n2. 출력 줄에 괄호 한 쌍을 넣어 두 재고의 덧셈을 먼저 하게 하세요.\n3. 다시 실행해 total= 뒤의 숫자가 두 재고의 합인지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "public class Main {\n    public static void main(String[] args) {\n        int boxA = 9;\n        int boxB = 2;\n        // 두 칸의 재고를 더한 합계를 total= 뒤에 붙여 출력해요.\n        System.out.println(\"total=\" + boxA + boxB);\n    }\n}\n",
+      "solution": "public class Main {\n    public static void main(String[] args) {\n        int boxA = 9;\n        int boxB = 2;\n        // 두 칸의 재고를 더한 합계를 total= 뒤에 붙여 출력해요.\n        System.out.println(\"total=\" + (boxA + boxB));\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "total=11"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "boxA": "5",
+            "boxB": "7"
+          },
+          "expected": "total=12"
+        },
+        {
+          "values": {
+            "boxA": "40",
+            "boxB": "0"
+          },
+          "expected": "total=40"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "두 재고를 더한 합이 total= 뒤에 와야 해요.",
+          "target": "text:출력 줄에 괄호를 넣어 두 재고를 먼저 더한 뒤 붙이세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "total=92가 나왔어요. 9와 2가 더해지지 않고 글자로 이어졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "\"total=\" + boxA가 먼저 total=9라는 글이 돼요. 그 뒤 + boxB는 2를 이어 붙여요.",
+          "target": "code:\"total=\" + boxA + boxB"
+        },
+        {
+          "action": "patch_code",
+          "before": "\"total=\" + boxA + boxB",
+          "after": "\"total=\" + (boxA + boxB)",
+          "say": "괄호로 두 재고를 먼저 더하게 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "total=11이에요. 괄호 안은 둘 다 숫자라 덧셈이 먼저 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "반대로 숫자가 글보다 앞이면 덧셈부터 해요. boxA + boxB + \"개\"는 11개가 돼요.",
+          "target": "code:(boxA + boxB)"
+        }
+      ]
+    },
+    {
+      "id": "stp_87b9d494-6f25-4955-8aba-fcb7e3e7ace2",
+      "title": "백분율이 0%가 되지 않게 계산 순서를 바꾸세요",
+      "goal": "상자 4개 중 3개를 처리했어요. 처리 비율을 백분율 정수로 보이려는데 0%가 나와요.\n\n**알아두세요**\n\n정수끼리 `/`는 몫만 남기고 소수 부분을 버려요. `*`와 `/`는 우선순위가 같아 왼쪽부터 계산해요.\n\nrate를 구하는 식의 순서를 바꿔 몫이 버려지기 전에 100을 곱하세요. 채점은 다른 개수로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 비율을 확인하세요.\n2. rate를 구하는 식에서 100을 곱하는 위치를 고치세요.\n3. 다시 실행해 3/4를 백분율로 바꾼 값과 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "public class Main {\n    public static void main(String[] args) {\n        int done = 3;\n        int total = 4;\n        // 처리한 상자 비율을 백분율 정수로 구해요.\n        int rate = done / total * 100;\n        System.out.println(rate + \"%\");\n    }\n}\n",
+      "solution": "public class Main {\n    public static void main(String[] args) {\n        int done = 3;\n        int total = 4;\n        // 처리한 상자 비율을 백분율 정수로 구해요.\n        int rate = done * 100 / total;\n        System.out.println(rate + \"%\");\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "75%"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "done": "1",
+            "total": "3"
+          },
+          "expected": "33%"
+        },
+        {
+          "values": {
+            "done": "5",
+            "total": "8"
+          },
+          "expected": "62%"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "3/4를 백분율로 바꾸는데 0%가 나오는 문제예요.",
+          "target": "text:처리 비율을 백분율 정수로 보이려는데 0%가 나와요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0%예요. 3 / 4가 먼저 계산돼 몫 0이 됐고, 0에 100을 곱했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "done / total * 100",
+          "after": "done * 100 / total",
+          "say": "100을 먼저 곱한 뒤 나누도록 순서를 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "75%예요. 300 / 4라서 몫 75가 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. done / (total * 100)처럼 묶으면 3 / 400이라 다시 0이에요. 100은 나뉘는 쪽에 곱해야 해요.",
+          "target": "code:done * 100 / total"
+        }
+      ]
+    },
+    {
+      "id": "stp_86058f1e-5a9e-4e6e-b459-a72069b13681",
+      "title": "지금 번호를 더한 뒤 넘기도록 증가 위치를 고치세요",
+      "goal": "송장 번호 next는 5부터 써요. 세 번 쓰면 5, 6, 7을 차례로 sum에 더해야 해요. 지금은 쓰기 전에 번호가 먼저 올라가요.\n\n반복 안의 증가 연산자 위치를 고쳐 지금 번호를 더한 뒤 다음 번호로 넘기게 하세요. 채점은 시작 번호를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 sum과 next를 확인하세요.\n2. sum에 더하는 줄의 증가 연산자 위치를 고치세요.\n3. 다시 실행해 5 + 6 + 7의 합과 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "public class Main {\n    public static void main(String[] args) {\n        int next = 5;\n        int sum = 0;\n        // 지금 번호를 쓰고 다음 번호로 넘기기를 세 번 해요.\n        for (int k = 0; k < 3; k++) {\n            sum += ++next;\n        }\n        System.out.println(sum + \" \" + next);\n    }\n}\n",
+      "solution": "public class Main {\n    public static void main(String[] args) {\n        int next = 5;\n        int sum = 0;\n        // 지금 번호를 쓰고 다음 번호로 넘기기를 세 번 해요.\n        for (int k = 0; k < 3; k++) {\n            sum += next++;\n        }\n        System.out.println(sum + \" \" + next);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "18 8"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "next": "1"
+          },
+          "expected": "6 4"
+        },
+        {
+          "values": {
+            "next": "10"
+          },
+          "expected": "33 13"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "5, 6, 7을 차례로 더해야 하는데 번호가 먼저 올라가요.",
+          "target": "text:지금은 쓰기 전에 번호가 먼저 올라가요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "21 8이에요. ++next는 먼저 올린 값을 써서 6, 7, 8을 더했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "sum += ++next;",
+          "after": "sum += next++;",
+          "say": "++를 뒤로 옮겨요. 지금 값을 더한 다음 올려요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "18 8이에요. 5, 6, 7이 더해졌고 next는 세 번 올라 8이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "두 실행 모두 next는 8이었어요. ++의 위치는 sum에 들어가는 값만 바꿔요.",
+          "target": "code:sum += next++;"
+        }
+      ]
+    },
+    {
+      "id": "stp_8ed16ca8-bc87-4b39-9c07-2a1f2bac4cce",
+      "title": "하나만 통과한 상자만 true가 되게 진리표를 고치세요",
+      "goal": "상자마다 무게 검사 p와 라벨 검사 q를 해요. 둘 중 정확히 하나만 통과한 상자는 다시 검사하려 해요. 표의 셋째 칸이 다시 검사할지를 보여 줘야 해요.\n\n**알아두세요**\n\n`&`, `|`, `^`는 boolean에도 써요. `^`는 거듭제곱이 아니라 배타적 논리합(XOR)이에요.\n\n셋째 칸의 연산자 한 곳을 바꿔 하나만 통과한 줄에서만 true가 나오게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 네 줄의 표를 확인하세요.\n2. 셋째 칸을 계산하는 연산자를 한 곳 바꾸세요.\n3. 다시 실행해 두 값이 같은 줄과 다른 줄의 셋째 칸을 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "public class Main {\n    public static void main(String[] args) {\n        boolean[] v = {false, true};\n        // 무게 검사 p와 라벨 검사 q의 네 조합을 모두 출력해요.\n        for (boolean p : v) {\n            for (boolean q : v) {\n                System.out.println(p + \" \" + q + \" \" + (p | q));\n            }\n        }\n    }\n}\n",
+      "solution": "public class Main {\n    public static void main(String[] args) {\n        boolean[] v = {false, true};\n        // 무게 검사 p와 라벨 검사 q의 네 조합을 모두 출력해요.\n        for (boolean p : v) {\n            for (boolean q : v) {\n                System.out.println(p + \" \" + q + \" \" + (p ^ q));\n            }\n        }\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "false false false\nfalse true true\ntrue false true\ntrue true false"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "v": "{true, false}"
+          },
+          "expected": "true true false\ntrue false true\nfalse true true\nfalse false false"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "두 검사 중 하나만 통과한 줄에서만 셋째 칸이 true여야 해요.",
+          "target": "text:둘 중 정확히 하나만 통과한 상자는 다시 검사하려 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "셋째 칸이 false, true, true, true예요. |는 하나라도 true면 true라 마지막 줄도 true예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "(p | q)",
+          "after": "(p & q)",
+          "say": "&로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "이번엔 false, false, false, true예요. &는 둘 다 true인 마지막 줄만 true예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "(p & q)",
+          "after": "(p ^ q)",
+          "say": "^로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "false, true, true, false예요. p와 q가 다른 가운데 두 줄만 true예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. ^를 거듭제곱으로 읽으면 안 돼요. 자바에서 ^는 두 값이 다른지 보는 연산자예요.",
+          "target": "code:(p ^ q)"
+        }
+      ]
+    },
+    {
+      "id": "stp_240143b3-d320-4a56-9ab7-be0964d19b6f",
+      "title": "재고가 0이어도 오른쪽 검사가 실행되게 연산자를 바꾸세요",
+      "goal": "재고 검사 뒤에 라벨 검사를 하고, 라벨 검사를 할 때마다 checks를 1 올려요. 재고가 0이어도 라벨 검사는 꼭 해서 checks에 남겨야 해요.\n\n**알아두세요**\n\n`&&`는 왼쪽이 false면 오른쪽을 계산하지 않아요(단락 평가). boolean에 쓴 `&`는 결과는 같지만 양쪽을 모두 계산해요.\n\n연산자 한 곳을 바꿔 오른쪽 검사가 항상 실행되게 하세요. ok는 그대로 두 검사를 모두 통과했는지를 담아야 해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 ok와 checks를 확인하세요.\n2. ok를 구하는 줄의 연산자를 한 곳 바꾸세요.\n3. 다시 실행해 checks가 달라졌는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "public class Main {\n    public static void main(String[] args) {\n        int stock = 0;\n        int checks = 0;\n        // 두 검사를 모두 실행하고 검사 횟수를 세요.\n        boolean ok = stock > 0 && ++checks > 0;\n        System.out.println(ok + \" \" + checks);\n    }\n}\n",
+      "solution": "public class Main {\n    public static void main(String[] args) {\n        int stock = 0;\n        int checks = 0;\n        // 두 검사를 모두 실행하고 검사 횟수를 세요.\n        boolean ok = stock > 0 & ++checks > 0;\n        System.out.println(ok + \" \" + checks);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "false 1"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "stock": "5"
+          },
+          "expected": "true 1"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "재고가 0이어도 오른쪽 검사가 실행돼 checks가 올라가야 해요.",
+          "target": "text:재고가 0이어도 라벨 검사는 꼭 해서 checks에 남겨야 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "false 0이에요. 왼쪽이 false라 &&가 오른쪽 ++checks를 건너뛰었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "stock > 0 && ++checks",
+          "after": "stock > 0 & ++checks",
+          "say": "&로 바꿔 양쪽을 모두 계산하게 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            7,
+            7
+          ]
+        },
+        {
+          "action": "say",
+          "text": "false 1이에요. 결과는 그대로 false고, 오른쪽도 실행돼 checks가 1이 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. ||로 바꾸면 오른쪽은 실행되지만 결과가 true가 돼요. 둘 다 통과해야 한다는 뜻이 깨져요.",
+          "target": "code:stock > 0 & ++checks"
+        }
+      ]
+    },
+    {
+      "id": "stp_ad86b8cc-e72b-4129-a8fb-c5254cb1f958",
+      "title": "급송이거나 무거운 조건을 먼저 묶도록 괄호를 넣으세요",
+      "goal": "급송(rush)이거나 20kg을 넘는 상자 중에서, 깨지기 쉬운(fragile) 상자에만 조심 표시를 하려 해요. 지금은 깨지지 않는 급송 상자도 표시돼요.\n\n**알아두세요**\n\n비교 연산(`>`, `==`)이 가장 먼저 계산돼요. 그다음 `&`, `^`, `|` 순서예요. 괄호 안은 이 순서보다 먼저예요.\n\ncareful 식에 괄호 한 쌍을 넣어 「급송이거나 무거운가」를 먼저 계산하게 하세요. 채점은 상자 정보를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 careful을 확인하세요.\n2. careful 식에 괄호 한 쌍을 넣으세요.\n3. 다시 실행해 깨지지 않는 급송 상자가 빠졌는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "public class Main {\n    public static void main(String[] args) {\n        boolean rush = true;\n        int weight = 12;\n        boolean fragile = false;\n        // 급송이거나 20kg을 넘는 상자 가운데 깨지기 쉬운 상자만 골라요.\n        boolean careful = rush | weight > 20 & fragile;\n        System.out.println(careful);\n    }\n}\n",
+      "solution": "public class Main {\n    public static void main(String[] args) {\n        boolean rush = true;\n        int weight = 12;\n        boolean fragile = false;\n        // 급송이거나 20kg을 넘는 상자 가운데 깨지기 쉬운 상자만 골라요.\n        boolean careful = (rush | weight > 20) & fragile;\n        System.out.println(careful);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "false"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "fragile": "true"
+          },
+          "expected": "true"
+        },
+        {
+          "values": {
+            "rush": "false",
+            "weight": "25",
+            "fragile": "true"
+          },
+          "expected": "true"
+        },
+        {
+          "values": {
+            "rush": "false",
+            "fragile": "true"
+          },
+          "expected": "false"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "fragile이 false인데 조심 표시가 붙는 문제예요.",
+          "target": "text:지금은 깨지지 않는 급송 상자도 표시돼요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "true예요. &가 |보다 먼저라 weight > 20 & fragile이 먼저 묶였어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "그 묶음은 false예요. 하지만 rush가 true라서 | 결과가 true가 됐어요.",
+          "target": "code:rush | weight > 20 & fragile"
+        },
+        {
+          "action": "patch_code",
+          "before": "rush | weight > 20 & fragile",
+          "after": "(rush | weight > 20) & fragile",
+          "say": "괄호로 「급송이거나 무거운가」를 먼저 계산해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "false예요. 앞 묶음은 true지만 fragile이 false라 & 결과가 false예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "weight > 20은 비교라서 괄호 안에서도 가장 먼저 계산돼요. 따로 묶지 않아도 돼요.",
+          "target": "code:weight > 20"
+        }
+      ]
+    },
+    {
+      "id": "stp_1c3e9bb3-4857-4ad0-9fef-0785b5129d8e",
+      "title": "높은 등급이 아래 보너스까지 받도록 break를 정리하세요",
+      "goal": "회원 등급 level에 따라 기본 50점에 보너스를 더해요. 3등급은 300, 200, 100을 모두, 2등급은 200과 100을, 1등급은 100만 받아요. 없는 등급은 0점이에요. 지금은 3등급도 300만 받아요.\n\n**알아두세요**\n\nswitch는 맞는 case로 건너뛴 뒤 break를 만날 때까지 아래 문장을 차례로 실행해요.\n\nbreak를 필요한 곳에서만 지워 등급별 보너스가 맞게 쌓이게 하세요. 채점은 다른 등급으로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 3등급의 점수를 확인하세요.\n2. 아래 등급으로 이어져야 하는 case의 break를 지우세요.\n3. 다시 실행해 3등급 점수를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "public class Main {\n    public static void main(String[] args) {\n        int level = 3;\n        int bonus = 50;\n        // 높은 등급은 아래 등급의 보너스도 모두 받아요.\n        switch (level) {\n            case 3: bonus += 300; break;\n            case 2: bonus += 200; break;\n            case 1: bonus += 100; break;\n            default: bonus = 0;\n        }\n        System.out.println(bonus);\n    }\n}\n",
+      "solution": "public class Main {\n    public static void main(String[] args) {\n        int level = 3;\n        int bonus = 50;\n        // 높은 등급은 아래 등급의 보너스도 모두 받아요.\n        switch (level) {\n            case 3: bonus += 300;\n            case 2: bonus += 200;\n            case 1: bonus += 100; break;\n            default: bonus = 0;\n        }\n        System.out.println(bonus);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "650"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "level": "2"
+          },
+          "expected": "350"
+        },
+        {
+          "values": {
+            "level": "1"
+          },
+          "expected": "150"
+        },
+        {
+          "values": {
+            "level": "7"
+          },
+          "expected": "0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "높은 등급이 아래 등급 보너스까지 받게 break를 정리하는 문제예요.",
+          "target": "text:break를 필요한 곳에서만 지워 등급별 보너스가 맞게 쌓이게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "350이에요. case 3에서 300을 더하고 바로 break로 나갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "            case 3: bonus += 300; break;\n            case 2: bonus += 200; break;\n            case 1: bonus += 100; break;\n",
+          "after": "            case 3: bonus += 300;\n            case 2: bonus += 200;\n            case 1: bonus += 100;\n",
+          "say": "세 break를 모두 지워 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0이 나왔어요. 650까지 쌓인 뒤 default로 흘러가 bonus = 0이 덮어썼어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "case 1: bonus += 100;",
+          "after": "case 1: bonus += 100; break;",
+          "say": "case 1 뒤의 break는 되살려요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "650이에요. 300, 200, 100을 차례로 더하고 case 1의 break에서 멈췄어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. default는 맞는 case가 없을 때만 실행되는 게 아니에요. 위에서 흘러 들어오면 그 대입도 실행돼요.",
+          "target": "code:default: bonus = 0;"
+        }
+      ]
+    },
+    {
+      "id": "stp_8d2c0f3b-cdf2-4017-9356-16d985f5a13d",
+      "title": "본문에서 먼저 올리는 while이 n까지만 더하게 조건을 고치세요",
+      "goal": "1부터 n까지 칸 번호를 더하되 3의 배수 칸은 건너뛰려 해요. 반복은 본문 맨 앞에서 i를 먼저 올리고, continue로 3의 배수를 건너뛰어요. 그런데 n보다 큰 번호까지 더해져요.\n\nwhile의 조건 한 곳을 고쳐 n까지만 더하게 하세요. 채점은 n을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 합계를 확인하세요.\n2. 마지막 반복에서 i가 몇까지 올라가는지 코드에서 확인하세요.\n3. while의 조건을 한 곳 고치세요.\n4. 다시 실행해 합계를 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "public class Main {\n    public static void main(String[] args) {\n        int n = 10;\n        int i = 0;\n        int sum = 0;\n        // 1부터 n까지 더하되 3의 배수는 건너뛰어요.\n        while (i <= n) {\n            i++;\n            if (i % 3 == 0) continue;\n            sum += i;\n        }\n        System.out.println(sum);\n    }\n}\n",
+      "solution": "public class Main {\n    public static void main(String[] args) {\n        int n = 10;\n        int i = 0;\n        int sum = 0;\n        // 1부터 n까지 더하되 3의 배수는 건너뛰어요.\n        while (i < n) {\n            i++;\n            if (i % 3 == 0) continue;\n            sum += i;\n        }\n        System.out.println(sum);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "37"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "n": "7"
+          },
+          "expected": "19"
+        },
+        {
+          "values": {
+            "n": "3"
+          },
+          "expected": "3"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "3의 배수를 빼고 n까지만 더해야 하는데 더 큰 번호가 들어가요.",
+          "target": "text:그런데 n보다 큰 번호까지 더해져요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "48이 나왔어요. 1부터 11까지에서 3, 6, 9를 뺀 합이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "i가 10일 때도 10 <= 10이라 들어와요. 그다음 i++로 11이 되어 더해졌어요.",
+          "target": "code:i++;"
+        },
+        {
+          "action": "patch_code",
+          "before": "while (i <= n)",
+          "after": "while (i < n)",
+          "say": "조건을 <로 바꿔요. 조건은 올리기 전의 i를 봐요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            12,
+            12
+          ]
+        },
+        {
+          "action": "say",
+          "text": "37이에요. 1부터 10까지에서 3, 6, 9를 뺀 합이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. i++를 continue 아래로 옮기면 i가 3에서 멈춰요. 3을 계속 건너뛰어 반복이 끝나지 않아요.",
+          "target": "code:if (i % 3 == 0) continue;"
+        }
+      ]
+    },
+    {
+      "id": "stp_373a5b41-5535-4699-982b-d7bc123e61c9",
+      "title": "재고가 0이면 한 번도 옮기지 않게 반복을 바꾸세요",
+      "goal": "재고 stock을 한 번에 4개씩 옮기고 옮긴 횟수 trips를 세요. 재고가 0이면 한 번도 옮기지 않아야 하는데 1이 나와요.\n\n**알아두세요**\n\n`do { … } while (조건);`은 본문을 먼저 한 번 실행한 뒤 조건을 봐요. `while (조건) { … }`은 조건부터 봐요.\n\ndo-while을 while 반복으로 바꿔 조건을 먼저 보게 하세요. 채점은 재고를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 재고가 0일 때의 trips를 확인하세요.\n2. `do {` 줄을 조건을 먼저 보는 while 줄로 바꾸세요.\n3. 반복 끝의 `} while (stock > 0);` 줄을 `}`로 바꾸세요.\n4. 다시 실행해 trips를 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "public class Main {\n    public static void main(String[] args) {\n        int stock = 0;\n        int trips = 0;\n        // 남은 재고를 한 번에 4개씩 옮기며 옮긴 횟수를 세요.\n        do {\n            stock -= 4;\n            trips++;\n        } while (stock > 0);\n        System.out.println(trips);\n    }\n}\n",
+      "solution": "public class Main {\n    public static void main(String[] args) {\n        int stock = 0;\n        int trips = 0;\n        // 남은 재고를 한 번에 4개씩 옮기며 옮긴 횟수를 세요.\n        while (stock > 0) {\n            stock -= 4;\n            trips++;\n        }\n        System.out.println(trips);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "0"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "stock": "10"
+          },
+          "expected": "3"
+        },
+        {
+          "values": {
+            "stock": "4"
+          },
+          "expected": "1"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "재고가 0이면 trips도 0이어야 해요. 지금은 1이 나와요.",
+          "target": "text:재고가 0이면 한 번도 옮기지 않아야 하는데 1이 나와요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1이에요. 본문을 먼저 실행해 trips가 1이 된 뒤에 조건을 봤어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조건 stock > 0은 맨 끝에 있어요. 처음 한 번은 조건 없이 들어가요.",
+          "target": "code:} while (stock > 0);"
+        },
+        {
+          "action": "patch_code",
+          "before": "        do {\n",
+          "after": "        while (stock > 0) {\n",
+          "say": "조건을 반복 맨 앞으로 올려요."
+        },
+        {
+          "action": "patch_code",
+          "before": "        } while (stock > 0);\n",
+          "after": "        }\n",
+          "say": "끝에 있던 조건은 지워요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0이에요. 0 > 0이 false라서 본문에 한 번도 들어가지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "int stock = 0;",
+          "after": "int stock = 10;",
+          "say": "재고를 10으로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3이에요. 남은 재고가 10, 6, 2일 때 한 번씩 옮겼어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_20adfd58-2dea-4a90-928e-0ee9b4fd6073",
+      "title": "상자에 담고 남은 물건으로 묶음 수를 세세요",
+      "goal": "물건 137개를 50개들이 상자에 먼저 담고, 남은 것은 10개 묶음으로, 그래도 남은 것은 낱개로 둬요. 지금은 묶음 수가 너무 많아요.\n\n**알아두세요**\n\n`items / 50`은 상자 수, `items % 50`은 상자에 담고 남은 물건 수예요.\n\npack을 구하는 식을 고쳐 상자에 담고 남은 물건으로 묶음을 세게 하세요. 채점은 물건 수를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 상자·묶음·낱개 수를 확인하세요.\n2. pack을 구하는 식을 한 곳 고치세요.\n3. 다시 실행해 세 수로 137개가 맞게 나뉘는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "public class Main {\n    public static void main(String[] args) {\n        int items = 137;\n        // 50개 상자, 10개 묶음, 낱개 순서로 나눠 담아요.\n        int box = items / 50;\n        int pack = items / 10;\n        int single = items % 10;\n        System.out.println(box + \" \" + pack + \" \" + single);\n    }\n}\n",
+      "solution": "public class Main {\n    public static void main(String[] args) {\n        int items = 137;\n        // 50개 상자, 10개 묶음, 낱개 순서로 나눠 담아요.\n        int box = items / 50;\n        int pack = items % 50 / 10;\n        int single = items % 10;\n        System.out.println(box + \" \" + pack + \" \" + single);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "2 3 7"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "items": "99"
+          },
+          "expected": "1 4 9"
+        },
+        {
+          "values": {
+            "items": "40"
+          },
+          "expected": "0 4 0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "상자에 담고 남은 물건으로 묶음을 세야 해요.",
+          "target": "text:pack을 구하는 식을 고쳐 상자에 담고 남은 물건으로 묶음을 세게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2 13 7이에요. 묶음 13개는 상자에 담은 100개까지 다시 셌어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "int pack = items / 10;",
+          "after": "int pack = items % 50 / 10;",
+          "say": "50으로 나눈 나머지에서 묶음을 세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2 3 7이에요. 상자에 담고 남은 37개에서 묶음 3개, 낱개 7개예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "%와 /는 우선순위가 같아 왼쪽부터 계산해요. items % 50을 먼저 구한 뒤 10으로 나눠요.",
+          "target": "code:items % 50 / 10"
+        }
+      ]
+    },
+    {
+      "id": "stp_92bce148-3b6e-4172-baa3-662187b31542",
+      "title": "낮은 자리부터 채운 2진수를 높은 자리부터 출력하세요",
+      "goal": "정수 n을 8자리 2진수로 바꿔 출력하려 해요. 위의 반복은 n % 2로 가장 낮은 자리부터 구해 bits[0]부터 채워요. 그런데 출력이 거꾸로예요.\n\n출력하는 for의 시작·조건·증감을 고쳐 bits[7]부터 bits[0]까지 출력하게 하세요. 채점은 n을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 8자리를 확인하세요.\n2. 출력하는 for를 bits[7]부터 bits[0]까지 도는 반복으로 고치세요.\n3. 다시 실행해 10을 2진수로 쓴 값과 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "public class Main {\n    public static void main(String[] args) {\n        int n = 10;\n        int[] bits = new int[8];\n        int i = 0;\n        // 낮은 자리부터 2로 나눈 나머지를 bits에 채워요.\n        while (n > 0) {\n            bits[i] = n % 2;\n            n = n / 2;\n            i++;\n        }\n        // 높은 자리부터 8자리를 출력해요.\n        for (int k = 0; k < 8; k++) {\n            System.out.print(bits[k]);\n        }\n        System.out.println();\n    }\n}\n",
+      "solution": "public class Main {\n    public static void main(String[] args) {\n        int n = 10;\n        int[] bits = new int[8];\n        int i = 0;\n        // 낮은 자리부터 2로 나눈 나머지를 bits에 채워요.\n        while (n > 0) {\n            bits[i] = n % 2;\n            n = n / 2;\n            i++;\n        }\n        // 높은 자리부터 8자리를 출력해요.\n        for (int k = 7; k >= 0; k--) {\n            System.out.print(bits[k]);\n        }\n        System.out.println();\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "00001010"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "n": "11"
+          },
+          "expected": "00001011"
+        },
+        {
+          "values": {
+            "n": "200"
+          },
+          "expected": "11001000"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "낮은 자리부터 채운 칸을 높은 자리부터 읽어야 해요.",
+          "target": "text:그런데 출력이 거꾸로예요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "01010000이 나왔어요. bits[0]의 가장 낮은 자리 0이 맨 앞에 찍혔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "10을 2로 계속 나누면 나머지가 0, 1, 0, 1 순서로 나와요. 앞 네 칸이 그 순서예요.",
+          "target": "code:bits[i] = n % 2;"
+        },
+        {
+          "action": "patch_code",
+          "before": "for (int k = 0; k < 8; k++)",
+          "after": "for (int k = 7; k >= 0; k--)",
+          "say": "7번 칸부터 0번 칸까지 거꾸로 돌아요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "00001010이에요. 채우지 않은 높은 칸의 0이 앞에 붙어 8자리가 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. k = 8부터 시작하면 bits[8]은 없는 칸이라 실행 중 예외가 나요. 마지막 칸 번호는 7이에요.",
+          "target": "code:int k = 7"
+        }
+      ]
+    },
+    {
+      "id": "stp_cadd63fb-ae1e-424e-b485-b7038fc07c8e",
+      "title": "번갈아 두 배로 더하는 검사 합을 추적해 고치세요",
+      "goal": "송장 번호의 검사 합을 구해요. 오른쪽 끝 자리부터 한 자리씩 떼어, 첫째 자리는 그대로, 둘째 자리는 두 배, 셋째는 그대로처럼 번갈아 더해요. trace에는 더한 값을 차례로 남겨요. 지금은 셋째 자리부터 번갈아 가지 않아요.\n\n반복마다 code, d, twice, sum이 어떻게 바뀌는지 따라가며 번갈아 바뀌어야 할 줄을 찾아 한 곳 고치세요. 채점은 다른 번호로도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 trace와 합계를 확인하세요.\n2. 반복마다 d와 twice의 값을 종이에 적으며 따라가세요.\n3. twice를 바꾸는 줄을 한 곳 고치세요.\n4. 다시 실행해 trace가 그대로와 두 배를 번갈아 가는지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "java",
+      "starter_code": "public class Main {\n    public static void main(String[] args) {\n        int code = 4627;\n        int sum = 0;\n        boolean twice = false;\n        String trace = \"\";\n        // 오른쪽 끝부터 한 자리씩 떼어, 한 자리 건너 하나씩 두 배로 더해요.\n        while (code > 0) {\n            int d = code % 10;\n            if (twice) d = d * 2;\n            sum += d;\n            trace = trace + d + \" \";\n            twice = twice | true;\n            code = code / 10;\n        }\n        System.out.println(trace + \"= \" + sum);\n    }\n}\n",
+      "solution": "public class Main {\n    public static void main(String[] args) {\n        int code = 4627;\n        int sum = 0;\n        boolean twice = false;\n        String trace = \"\";\n        // 오른쪽 끝부터 한 자리씩 떼어, 한 자리 건너 하나씩 두 배로 더해요.\n        while (code > 0) {\n            int d = code % 10;\n            if (twice) d = d * 2;\n            sum += d;\n            trace = trace + d + \" \";\n            twice = twice ^ true;\n            code = code / 10;\n        }\n        System.out.println(trace + \"= \" + sum);\n    }\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "7 4 6 8 = 25"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "code": "513"
+          },
+          "expected": "3 2 5 = 10"
+        },
+        {
+          "values": {
+            "code": "90"
+          },
+          "expected": "0 18 = 18"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "자리마다 그대로와 두 배가 번갈아야 해요. 어디서 어긋나는지 찾는 문제예요.",
+          "target": "text:지금은 셋째 자리부터 번갈아 가지 않아요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "7 4 12 8 = 31이에요. 셋째 자리 6도 두 배가 되어 12로 들어갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "첫 반복 뒤 twice는 false | true라 true예요. 그다음도 true | true라 계속 true예요.",
+          "target": "code:twice = twice | true;"
+        },
+        {
+          "action": "patch_code",
+          "before": "twice = twice | true;",
+          "after": "twice = twice ^ true;",
+          "say": "^로 바꿔요. true와 ^하면 값이 뒤집혀요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "7 4 6 8 = 25예요. twice가 false, true, false, true로 번갈아 바뀌었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "trace는 앞이 문자열이라 d를 글자로 이어 붙여요. sum에는 숫자로 더해져요.",
+          "target": "code:trace = trace + d + \" \";"
+        }
+      ]
+    }
+  ]
+}

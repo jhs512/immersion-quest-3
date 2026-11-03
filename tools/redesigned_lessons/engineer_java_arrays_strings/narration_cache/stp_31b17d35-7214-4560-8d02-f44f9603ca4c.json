@@ -1,0 +1,52 @@
+{
+  "by": "hand",
+  "source_sha256": "3100a8d185e57a9048efddca040c0e1b83cc30bcff7a6718c7eee35e283e8d9f",
+  "entry": [
+    {
+      "action": "say",
+      "text": "상자 칸을 만들고 칸마다 count를 넣어 더하는 문제예요.",
+      "target": "text:칸마다 새 상자를 넣어 count 합계가 나오게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        21,
+        21
+      ],
+      "expect_error": "NullPointerException"
+    },
+    {
+      "action": "say",
+      "text": "NullPointerException이 났어요. 칸은 생겼지만 그 칸이 가리키는 상자가 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "line[i]가 null이라 .count를 읽을 상자가 없어요.",
+      "target": "code:line[i].count"
+    },
+    {
+      "action": "patch_code",
+      "before": "            line[i].count = (i + 1) * 10;\n",
+      "after": "            line[i] = new Box((i + 1) * 10);\n",
+      "say": "i번 칸에 새 상자를 만들어 넣어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        21,
+        21
+      ]
+    },
+    {
+      "action": "say",
+      "text": "60이에요. count가 10, 20, 30인 상자 셋이 생겼어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 반복 앞에서 line[0]만 만들면 1번 칸에서 다시 예외가 나요. 칸마다 new가 필요해요.",
+      "target": "code:new Box((i + 1) * 10)"
+    }
+  ]
+}

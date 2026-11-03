@@ -1,0 +1,74 @@
+{
+  "by": "hand",
+  "source_sha256": "57509be9e0b7f673f66dd359dc6e4bdcbf5bd6a593ab1716ddd2cb61b078c0ad",
+  "entry": [
+    {
+      "action": "say",
+      "text": "ROLLUP이 만드는 결과를 SQLite에서 직접 만들어야 해요. 지점별 행 아래에 총계 한 행이에요.",
+      "target": "text:ROLLUP은 지점별 행에 총계 행을 하나 더하고, 총계 행의 branch 칸은 NULL이에요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "east 60, north 58, west 24 세 행뿐이에요. 총계 행이 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "set_code",
+      "code": "SELECT branch, SUM(boxes) AS total FROM deliveries GROUP BY ROLLUP(branch);",
+      "say": "표준 문법 그대로 실행해 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        1,
+        1
+      ],
+      "expect_error": "no such function: ROLLUP"
+    },
+    {
+      "action": "say",
+      "text": "no such function: ROLLUP 오류예요. 앱의 SQLite는 ROLLUP을 모르거든요.",
+      "target": "output"
+    },
+    {
+      "action": "set_code",
+      "code": "-- 표준 SQL: SELECT branch, SUM(boxes) AS total FROM deliveries GROUP BY ROLLUP(branch);\nSELECT branch, SUM(boxes) AS total FROM deliveries GROUP BY branch\n-- 이 주석 아래에 전체 합계 행을 이어 붙이는 두 줄을 쓰세요.\nORDER BY branch NULLS LAST;",
+      "say": "준비 질의로 돌아와 같은 행을 직접 만들어요."
+    },
+    {
+      "action": "patch_code",
+      "before": "-- 이 주석 아래에 전체 합계 행을 이어 붙이는 두 줄을 쓰세요.\n",
+      "after": "-- 이 주석 아래에 전체 합계 행을 이어 붙이는 두 줄을 쓰세요.\nUNION ALL\nSELECT NULL, SUM(boxes) FROM deliveries\n",
+      "say": "UNION ALL 아래에 묶지 않은 전체 합계를 써요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "맨 아래에 NULL | 142가 붙었어요. 60, 58, 24를 더한 값이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "ROLLUP의 총계 행도 이 모양이에요. 묶지 않은 수준이라 branch 칸이 NULL이에요.",
+      "target": "code:SELECT NULL"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 아래 SELECT에도 GROUP BY branch를 붙이면 지점 합계가 NULL 이름으로 세 번 더 나와요. 총계 수준은 묶지 않아요.",
+      "target": "code:UNION ALL"
+    }
+  ]
+}

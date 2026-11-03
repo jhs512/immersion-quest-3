@@ -1,0 +1,154 @@
+{
+ "course": "tests/fixtures/player-pilot/규/course.json",
+ "lesson": "courses/redesigned/engineer-requirements-practice.json",
+ "expected_outputs": [
+  [
+   "1000",
+   "800"
+  ],
+  [
+   "True",
+   "False"
+  ],
+  [
+   "True",
+   "False"
+  ],
+  [
+   "['T1']",
+   "['T2', 'T3']"
+  ],
+  [
+   "40",
+   "20"
+  ],
+  [
+   "['search', 'refund', 'export', 'alert']",
+   "['search', 'refund']"
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "return price - discount",
+     "return price"
+    ]
+   ],
+   "reason": "1000이에요. 할인 값은 받았지만 계산에 쓰지 않았어요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "return ok and latency <= 500",
+     "return ok"
+    ]
+   ],
+   "reason": "True예요. 기능 성공 여부만 보고 느린 응답도 통과시켰어요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "ratio = passed / len(durations)",
+     "ratio = 1"
+    ]
+   ],
+   "reason": "True예요. 통과 비율을 자료와 무관하게 1로 두었어요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "impacted = trace[changed]",
+     "impacted = trace['R1']"
+    ]
+   ],
+   "reason": "['T1']이에요. 다른 요구에 연결된 테스트를 찾았어요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "result = requested if approved else current",
+     "result = requested"
+    ]
+   ],
+   "reason": "40이에요. 승인하지 않은 변경이 바로 적용됐어요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "iteration = backlog[:capacity]",
+     "iteration = backlog"
+    ]
+   ],
+   "reason": "네 작업이 한꺼번에 들어갔어요. 작은 결과를 확인할 주기가 사라져요."
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "return price - discount",
+     "return price + (-discount)"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "return ok and latency <= 500",
+     "return ok and not latency > 500"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "ratio = passed / len(durations)",
+     "ratio = sum(1 / len(durations) for d in durations if d <= limit)"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "impacted = trace[changed]",
+     "impacted = trace.get(changed, [])"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "result = requested if approved else current",
+     "result = current if not approved else requested"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "iteration = backlog[:capacity]",
+     "iteration = [backlog[i] for i in range(min(capacity, len(backlog)))]"
+    ]
+   ],
+   "reason": "같은 원리를 다른 식으로 구현한 풀이예요."
+  }
+ ]
+}

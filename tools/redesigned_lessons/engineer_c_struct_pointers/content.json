@@ -1,0 +1,939 @@
+{
+  "description": "구조체 주소를 함수에 넘기고, 구조체 배열 위로 포인터를 옮기고, 필드에 담긴 함수를 부르고, 포인터 배열과 이중 포인터로 배열을 고치며 한 줄씩 추적해요.",
+  "tasks": [
+    {
+      "id": "stp_de8ff176-9526-4afe-873d-b9614009373f",
+      "title": "상자 주소를 넘겨 원래 수량을 늘리세요",
+      "goal": "restock은 상자의 수량을 n만큼 늘리려는 함수예요. 그런데 호출한 뒤에도 box.count가 그대로예요.\n\n**알아두세요**\n\n구조체도 함수에 넘기면 통째로 복사돼요. 원래 구조체를 고치려면 주소를 넘기고 함수 안에서 ->로 필드를 써요.\n\nrestock이 상자의 주소를 받아 원래 box의 수량을 늘리도록 고치세요. main의 box와 add 선언은 그대로 두세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 box.count를 확인하세요.\n2. restock의 매개변수를 struct Box 포인터로 고치세요.\n3. 함수 본문의 b.count를 ->로 바꾸세요.\n4. main의 호출에서 box의 주소를 넘기세요.\n5. 다시 실행해 수량이 늘었는지 확인하세요.\n6. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nstruct Box {\n    int count;\n    int price;\n};\n\n// 받은 상자의 수량을 n만큼 늘려요.\nvoid restock(struct Box b, int n) {\n    b.count = b.count + n;\n}\n\nint main(void) {\n    struct Box box = {3, 500};\n    int add = 4;\n    restock(box, add);\n    printf(\"%d\", box.count);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nstruct Box {\n    int count;\n    int price;\n};\n\n// 받은 상자의 수량을 n만큼 늘려요.\nvoid restock(struct Box *b, int n) {\n    b->count = b->count + n;\n}\n\nint main(void) {\n    struct Box box = {3, 500};\n    int add = 4;\n    restock(&box, add);\n    printf(\"%d\", box.count);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "7"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "add": "10"
+          },
+          "expected": "13"
+        },
+        {
+          "values": {
+            "box": "{0, 100}"
+          },
+          "expected": "4"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "함수가 main의 box를 직접 고쳐야 하는 문제예요. 지금은 호출해도 수량이 그대로예요.",
+          "target": "text:그런데 호출한 뒤에도 box.count가 그대로예요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "3이 나왔어요. b는 box를 복사한 다른 상자라서 b만 7이 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "void restock(struct Box b, int n) {\n    b.count = b.count + n;",
+          "after": "void restock(struct Box *b, int n) {\n    b->count = b->count + n;",
+          "say": "매개변수를 상자 주소로 받고, 그 주소가 가리키는 상자의 count를 ->로 써요."
+        },
+        {
+          "action": "patch_code",
+          "before": "restock(box, add);",
+          "after": "restock(&box, add);",
+          "say": "호출할 때 box의 주소를 넘겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "7이 나왔어요. b가 box를 가리켜서 b->count가 곧 box.count예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 함수만 고치고 호출의 &를 빼면 상자 자체를 넘기게 돼요. 매개변수와 인수의 모양이 달라 컴파일 오류가 나요.",
+          "target": "code:restock(&box, add);"
+        }
+      ]
+    },
+    {
+      "id": "stp_def842ca-8322-47e5-ae56-a7f08006b9fb",
+      "title": "남은 수량이 충분할 때만 꺼내게 하세요",
+      "goal": "상자에서 3개, 이어서 4개를 꺼내요. 남은 수량보다 많이 꺼내려 하면 그 요청은 건너뛰어야 해요. 지금은 수량이 음수가 돼요.\n\ntake 안에 if를 넣어 남은 수량이 n 이상일 때만 빼게 하세요. 채점은 처음 수량을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 box.count를 확인하세요.\n2. take의 빼는 줄을 if로 감싸세요.\n3. 다시 실행해 두 번째 요청이 건너뛰어졌는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nstruct Box {\n    int count;\n    int price;\n};\n\n// 남은 수량이 n 이상일 때만 n개를 꺼내려는 함수예요.\nvoid take(struct Box *b, int n) {\n    b->count = b->count - n;\n}\n\nint main(void) {\n    struct Box box = {5, 500};\n    take(&box, 3);\n    take(&box, 4);\n    printf(\"%d\", box.count);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nstruct Box {\n    int count;\n    int price;\n};\n\n// 남은 수량이 n 이상일 때만 n개를 꺼내려는 함수예요.\nvoid take(struct Box *b, int n) {\n    if (b->count >= n) {\n        b->count = b->count - n;\n    }\n}\n\nint main(void) {\n    struct Box box = {5, 500};\n    take(&box, 3);\n    take(&box, 4);\n    printf(\"%d\", box.count);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "2"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "box": "{8, 500}"
+          },
+          "expected": "1"
+        },
+        {
+          "values": {
+            "box": "{3, 500}"
+          },
+          "expected": "0"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "두 번 꺼내는 동안 같은 상자의 수량이 이어서 줄어요. 모자라면 건너뛰는 게 요구예요.",
+          "target": "text:남은 수량보다 많이 꺼내려 하면 그 요청은 건너뛰어야 해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            17,
+            17
+          ]
+        },
+        {
+          "action": "say",
+          "text": "-2가 나왔어요. 5에서 3, 다시 4를 그대로 뺐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    b->count = b->count - n;\n",
+          "after": "    if (b->count >= n) {\n        b->count = b->count - n;\n    }\n",
+          "say": "빼기 전에 b->count가 n 이상인지 봐요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2가 나왔어요. 첫 호출 뒤 2가 남았고, 4는 2보다 커서 건너뛰었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조건은 호출할 때마다 그때의 b->count를 읽어요. 두 호출이 같은 box를 가리키니까요.",
+          "target": "code:b->count >= n"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. >로 쓰면 남은 수와 꺼낼 수가 같을 때 못 꺼내요. 처음이 3이면 3이 그대로 남아요.",
+          "target": "code:take(&box, 3);"
+        }
+      ]
+    },
+    {
+      "id": "stp_b7781116-479e-49de-8545-8bf42653fcd2",
+      "title": "p를 다음 상자로 옮겨 그 코드를 출력하세요",
+      "goal": "p로 첫 상자의 코드를 출력한 뒤, 같은 printf로 둘째 상자의 코드를 출력하려 해요. 지금은 두 번 다 첫 상자예요.\n\n두 printf 사이 주석 아래에 p가 다음 상자를 가리키게 하는 한 줄을 쓰세요. 두 printf는 그대로 두세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 두 코드를 확인하세요.\n2. 주석 아래에 p를 옮기는 한 줄을 쓰세요.\n3. 다시 실행해 둘째 상자의 코드가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nstruct Item {\n    int code;\n    int qty;\n};\n\nint main(void) {\n    struct Item shelf[3] = {{11, 4}, {25, 7}, {37, 2}};\n    struct Item *p = shelf;\n    printf(\"%d \", p->code);\n    // 이 주석 아래에 p가 다음 상자를 가리키게 하는 줄을 쓰세요.\n    printf(\"%d\", p->code);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nstruct Item {\n    int code;\n    int qty;\n};\n\nint main(void) {\n    struct Item shelf[3] = {{11, 4}, {25, 7}, {37, 2}};\n    struct Item *p = shelf;\n    printf(\"%d \", p->code);\n    // 이 주석 아래에 p가 다음 상자를 가리키게 하는 줄을 쓰세요.\n    p++;\n    printf(\"%d\", p->code);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "11 25"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "shelf": "{{5, 1}, {8, 2}, {9, 3}}"
+          },
+          "expected": "5 8"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "같은 p->code를 두 번 출력해요. 사이에 p만 옮겨 둘째 상자를 읽는 문제예요.",
+          "target": "text:두 printf 사이 주석 아래에 p가 다음 상자를 가리키게 하는 한 줄을 쓰세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "11 11이에요. p가 계속 shelf[0]을 가리켜요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    // 이 주석 아래에 p가 다음 상자를 가리키게 하는 줄을 쓰세요.\n",
+          "after": "    // 이 주석 아래에 p가 다음 상자를 가리키게 하는 줄을 쓰세요.\n    p->code++;\n",
+          "say": "먼저 p->code++를 써 볼게요. 이렇게 쓰기 쉽거든요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "11 12예요. 포인터는 그대로이고 첫 상자의 code 값만 1 올랐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    p->code++;\n",
+          "after": "    p++;\n",
+          "say": "필드가 아니라 포인터 p 자체를 올려요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "11 25예요. p++가 code 하나가 아니라 상자 하나만큼 건너가 shelf[1]을 가리켜요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. p->code++는 화살표가 먼저라 필드 값을 올려요. 옮길 것은 p예요.",
+          "target": "code:p++;"
+        }
+      ]
+    },
+    {
+      "id": "stp_f0a8d086-2091-47cb-a1b8-893f8154f91b",
+      "title": "셋째 상자의 수량을 앞 두 상자의 합으로 채우세요",
+      "goal": "셋째 상자는 코드 37만 적고 수량은 적지 않았어요. 이 수량을 첫째와 둘째 상자 수량의 합으로 채우려 해요. p는 움직이지 않아요.\n\n대입하는 줄의 왼쪽 한 곳을 고쳐 셋째 상자의 qty에 합이 들어가게 하세요. 오른쪽 식과 printf는 그대로 두세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 셋째 상자의 code와 qty를 확인하세요.\n2. 대입하는 줄의 왼쪽을 셋째 상자의 qty로 고치세요.\n3. 다시 실행해 셋째 상자의 qty를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nstruct Item {\n    int code;\n    int qty;\n};\n\nint main(void) {\n    struct Item shelf[3] = {{11, 4}, {25, 7}, {37}};\n    struct Item *p = shelf;\n    // 셋째 상자의 수량을 첫째와 둘째 상자 수량의 합으로 채우려는 줄이에요.\n    p->qty = p->qty + (p + 1)->qty;\n    printf(\"%d %d\", (p + 2)->code, (p + 2)->qty);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nstruct Item {\n    int code;\n    int qty;\n};\n\nint main(void) {\n    struct Item shelf[3] = {{11, 4}, {25, 7}, {37}};\n    struct Item *p = shelf;\n    // 셋째 상자의 수량을 첫째와 둘째 상자 수량의 합으로 채우려는 줄이에요.\n    (p + 2)->qty = p->qty + (p + 1)->qty;\n    printf(\"%d %d\", (p + 2)->code, (p + 2)->qty);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "37 11"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "shelf": "{{1, 2}, {3, 5}, {9}}"
+          },
+          "expected": "9 7"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "셋째 상자는 수량을 적지 않았어요. 그 칸에 앞 두 상자의 합을 넣는 문제예요.",
+          "target": "text:셋째 상자는 코드 37만 적고 수량은 적지 않았어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "37 0이에요. 초기값이 모자란 qty는 0으로 채워졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "지금 왼쪽은 p->qty라 합 11이 첫 상자에 들어갔어요. 셋째 상자는 그대로예요.",
+          "target": "code:p->qty = p->qty"
+        },
+        {
+          "action": "patch_code",
+          "before": "    p->qty = p->qty + (p + 1)->qty;",
+          "after": "    (p + 2)->qty = p->qty + (p + 1)->qty;",
+          "say": "p에서 상자 두 개 건너간 곳의 qty로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "37 11이에요. (p + 2)->qty는 shelf[2].qty와 같은 칸이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 괄호를 빼고 p + 2->qty로 쓰면 ->가 2에 먼저 붙어 컴파일되지 않아요.",
+          "target": "code:(p + 2)->qty ="
+        }
+      ]
+    },
+    {
+      "id": "stp_9ad102ee-29af-474e-a4e7-ba4a5192a923",
+      "title": "규칙에 담긴 함수로 재고를 계산하세요",
+      "goal": "규칙 r에는 양 6과 함수 sub가 담겨 있어요. 재고 stock에 이 규칙을 적용한 값을 출력하려 해요. 지금은 stock을 그대로 출력해요.\n\nprintf가 r의 apply 필드로 stock과 r.amount를 계산한 값을 출력하게 고치세요. 채점은 r에 다른 함수를 담아서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력을 확인하세요.\n2. printf의 출력 값을 r.apply 호출로 고치세요.\n3. 다시 실행해 규칙을 적용한 재고를 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint add(int a, int b) {\n    return a + b;\n}\nint sub(int a, int b) {\n    return a - b;\n}\n\n// 양 amount와 그 양을 처리할 함수 apply를 묶어요.\nstruct Rule {\n    int amount;\n    int (*apply)(int, int);\n};\n\nint main(void) {\n    int stock = 20;\n    struct Rule r = {6, sub};\n    // 이 주석 아래 printf가 r에 담긴 함수로 계산한 값을 출력하게 고치세요.\n    printf(\"%d\", stock);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint add(int a, int b) {\n    return a + b;\n}\nint sub(int a, int b) {\n    return a - b;\n}\n\n// 양 amount와 그 양을 처리할 함수 apply를 묶어요.\nstruct Rule {\n    int amount;\n    int (*apply)(int, int);\n};\n\nint main(void) {\n    int stock = 20;\n    struct Rule r = {6, sub};\n    // 이 주석 아래 printf가 r에 담긴 함수로 계산한 값을 출력하게 고치세요.\n    printf(\"%d\", r.apply(stock, r.amount));\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "14"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "stock": "9"
+          },
+          "expected": "3"
+        },
+        {
+          "values": {
+            "r": "{2, add}"
+          },
+          "expected": "22"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "어떤 계산을 할지는 r 안의 apply가 정해요. 그 필드로 함수를 부르는 문제예요.",
+          "target": "text:printf가 r의 apply 필드로 stock과 r.amount를 계산한 값을 출력하게 고치세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "20이 나왔어요. 아직 규칙을 쓰지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    printf(\"%d\", stock);",
+          "after": "    printf(\"%d\", r.apply(r.amount, stock));",
+          "say": "필드 apply를 함수처럼 불러요. 인수는 양부터 넣어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "-14가 나왔어요. sub(a, b)는 a - b라서 6 - 20을 계산했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "r.apply(r.amount, stock)",
+          "after": "r.apply(stock, r.amount)",
+          "say": "재고에서 양을 빼도록 인수 순서를 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "14가 나왔어요. r.apply가 sub를 담고 있어서 20 - 6을 계산했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 함수 포인터로 불러도 인수 순서는 담긴 함수의 매개변수 순서를 따라요. 바꾸면 부호가 뒤집혀요.",
+          "target": "code:r.apply(stock, r.amount)"
+        }
+      ]
+    },
+    {
+      "id": "stp_575b8ca9-ffe5-4e86-9088-4eb341d3d430",
+      "title": "둘째 규칙의 함수와 양으로 계산하세요",
+      "goal": "규칙 배열 rules에 두 규칙이 있고 p는 첫째 규칙을 가리켜요. 첫째, 둘째 규칙을 차례로 재고에 적용하려 해요. 그런데 둘째 줄도 첫째 규칙을 써요.\n\n둘째 규칙을 적용하는 줄을 고쳐 둘째 원소의 apply와 amount로 계산하게 하세요. 채점은 규칙을 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 재고를 확인하세요.\n2. 둘째 규칙을 적용하는 줄이 둘째 원소를 쓰게 고치세요.\n3. 다시 실행해 두 규칙이 차례로 적용됐는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint add(int a, int b) {\n    return a + b;\n}\nint sub(int a, int b) {\n    return a - b;\n}\n\n// 양 amount와 그 양을 처리할 함수 apply를 묶어요.\nstruct Rule {\n    int amount;\n    int (*apply)(int, int);\n};\n\nint main(void) {\n    int stock = 20;\n    struct Rule rules[2] = {{6, sub}, {4, add}};\n    struct Rule *p = rules;\n    // 첫째 규칙을 적용해요.\n    stock = p->apply(stock, p->amount);\n    // 둘째 규칙을 적용하려는 줄이에요.\n    stock = p->apply(stock, p->amount);\n    printf(\"%d\", stock);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint add(int a, int b) {\n    return a + b;\n}\nint sub(int a, int b) {\n    return a - b;\n}\n\n// 양 amount와 그 양을 처리할 함수 apply를 묶어요.\nstruct Rule {\n    int amount;\n    int (*apply)(int, int);\n};\n\nint main(void) {\n    int stock = 20;\n    struct Rule rules[2] = {{6, sub}, {4, add}};\n    struct Rule *p = rules;\n    // 첫째 규칙을 적용해요.\n    stock = p->apply(stock, p->amount);\n    // 둘째 규칙을 적용하려는 줄이에요.\n    stock = (p + 1)->apply(stock, (p + 1)->amount);\n    printf(\"%d\", stock);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "18"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "rules": "{{2, add}, {3, sub}}"
+          },
+          "expected": "19"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "두 규칙을 차례로 써야 해요. 둘째 줄이 어느 원소를 보는지가 문제예요.",
+          "target": "text:그런데 둘째 줄도 첫째 규칙을 써요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            24,
+            24
+          ]
+        },
+        {
+          "action": "say",
+          "text": "8이 나왔어요. 첫째 규칙 sub와 6을 두 번 써서 20 - 6 - 6이 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    // 둘째 규칙을 적용하려는 줄이에요.\n    stock = p->apply(stock, p->amount);\n",
+          "after": "    // 둘째 규칙을 적용하려는 줄이에요.\n    stock = p->apply(stock, (p + 1)->amount);\n",
+          "say": "양만 둘째 원소에서 가져와 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            24,
+            24
+          ]
+        },
+        {
+          "action": "say",
+          "text": "10이 나왔어요. 양은 4지만 함수는 여전히 첫째 원소의 sub라서 14 - 4가 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "stock = p->apply(stock, (p + 1)->amount);",
+          "after": "stock = (p + 1)->apply(stock, (p + 1)->amount);",
+          "say": "함수도 둘째 원소의 apply로 바꿔요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            24,
+            24
+          ]
+        },
+        {
+          "action": "say",
+          "text": "18이 나왔어요. 14에 둘째 원소의 add로 4를 더했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 함수와 양을 서로 다른 원소에서 꺼내면 섞인 계산이 돼요. 화살표 앞의 원소를 둘 다 맞추세요.",
+          "target": "code:(p + 1)->apply"
+        }
+      ]
+    },
+    {
+      "id": "stp_2976d908-2600-45bb-8a92-ee646461a72b",
+      "title": "주소를 돌려주는 함수로 셋째 칸까지 옮기세요",
+      "goal": "move는 칸의 주소를 받아 바로 다음 칸의 주소를 돌려주는 함수를 가리켜요. printf의 %x는 정수를 16진수로 출력해요.\n\n**알아두세요**\n\nint *(*move)(int *)는 안쪽부터 읽어요. move는 포인터이고, int *를 받아 int *를 돌려주는 함수를 가리켜요.\n\np를 만드는 줄을 고쳐 p가 box의 셋째 칸(box[2])을 가리키게 하세요. printf는 그대로 두세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력된 16진수를 확인하세요.\n2. p를 만드는 줄에서 move를 한 번 더 적용하세요.\n3. 다시 실행해 셋째 칸의 값이 16진수로 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\n// slot 바로 다음 칸의 주소를 돌려줘요.\nint *next_slot(int *slot) {\n    return slot + 1;\n}\n\nint main(void) {\n    int box[4] = {16, 26, 42, 255};\n    // move는 int 주소를 받아 int 주소를 돌려주는 함수를 가리켜요.\n    int *(*move)(int *) = next_slot;\n    int *p = move(box);\n    printf(\"%x\", *p);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\n// slot 바로 다음 칸의 주소를 돌려줘요.\nint *next_slot(int *slot) {\n    return slot + 1;\n}\n\nint main(void) {\n    int box[4] = {16, 26, 42, 255};\n    // move는 int 주소를 받아 int 주소를 돌려주는 함수를 가리켜요.\n    int *(*move)(int *) = next_slot;\n    int *p = move(move(box));\n    printf(\"%x\", *p);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "2a"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "box": "{1, 2, 3, 4}"
+          },
+          "expected": "3"
+        },
+        {
+          "values": {
+            "box": "{10, 20, 30, 40}"
+          },
+          "expected": "1e"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "move는 주소를 받아 다음 칸의 주소를 돌려줘요. p를 셋째 칸까지 옮기는 문제예요.",
+          "target": "text:p를 만드는 줄을 고쳐 p가 box의 셋째 칸(box[2])을 가리키게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1a가 나왔어요. move(box)는 box[1]의 주소이고, 26을 16진수로 쓰면 1a예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "printf(\"%x\", *p);",
+          "after": "printf(\"%x\", *p + 1);",
+          "say": "값에 1을 더하면 다음 칸이 될까요?"
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1b가 나왔어요. 26에 1을 더한 27이에요. 칸은 그대로예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "printf(\"%x\", *p + 1);",
+          "after": "printf(\"%x\", *p);",
+          "say": "되돌려요. 옮길 것은 값이 아니라 주소예요."
+        },
+        {
+          "action": "patch_code",
+          "before": "int *p = move(box);",
+          "after": "int *p = move(move(box));",
+          "say": "돌려받은 주소를 move에 한 번 더 넘겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "2a가 나왔어요. box[2]의 42를 16진수로 쓴 값이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. *p + 1은 읽은 값에 1을 더해요. 다음 칸은 move나 p + 1처럼 주소를 옮겨야 가요.",
+          "target": "code:move(move(box))"
+        }
+      ]
+    },
+    {
+      "id": "stp_70c94fea-3adb-4af4-b6cc-5919809940c4",
+      "title": "포인터 배열의 둘째 칸이 가리키는 값을 출력하세요",
+      "goal": "slots는 주소 두 개를 담은 포인터 배열이에요. 첫 칸은 배열 shelf의 시작 주소, 둘째 칸은 extra의 주소예요.\n\n**알아두세요**\n\n식에서 []는 *보다 먼저 계산돼요. 괄호가 있으면 괄호 안이 먼저예요.\n\nprintf의 식을 고쳐 slots[1]이 가리키는 값을 출력하세요. 괄호를 어디에 두는지가 핵심이에요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력을 확인하세요.\n2. printf의 식에서 괄호를 고치세요.\n3. 다시 실행해 extra의 값이 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint main(void) {\n    int shelf[3] = {30, 50, 70};\n    int extra = 90;\n    // slots의 각 칸은 int 주소를 담아요.\n    int *slots[2] = {shelf, &extra};\n    // 둘째 칸 slots[1]이 가리키는 값을 출력하려는 줄이에요.\n    printf(\"%d\", (*slots)[1]);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint main(void) {\n    int shelf[3] = {30, 50, 70};\n    int extra = 90;\n    // slots의 각 칸은 int 주소를 담아요.\n    int *slots[2] = {shelf, &extra};\n    // 둘째 칸 slots[1]이 가리키는 값을 출력하려는 줄이에요.\n    printf(\"%d\", *slots[1]);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "90"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "extra": "15"
+          },
+          "expected": "15"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "slots의 둘째 칸이 가리키는 값을 읽어야 해요. 괄호 위치가 무엇을 먼저 따라갈지 정해요.",
+          "target": "text:식에서 []는 *보다 먼저 계산돼요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "50이 나왔어요. *slots가 첫 칸 shelf를 따라갔고, 거기서 [1]을 읽었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "printf(\"%d\", (*slots)[1]);",
+          "after": "printf(\"%d\", *slots[1]);",
+          "say": "괄호를 빼요. 그러면 slots[1]을 먼저 고르고 따라가요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "90이 나왔어요. slots[1]은 extra의 주소이고, *가 그 값을 읽었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. *slots[1]을 (*slots)[1]로 읽으면 엉뚱한 배열의 칸을 보게 돼요. 괄호가 없으면 []부터예요.",
+          "target": "code:*slots[1]"
+        }
+      ]
+    },
+    {
+      "id": "stp_01b66b71-b7da-4a18-a6ea-9f8b41f339c6",
+      "title": "행 주소를 거꾸로 담아 다른 대각선을 출력하세요",
+      "goal": "grid는 아홉 수를 한 줄로 이어 적었어요. 세 개씩 차례로 0행, 1행, 2행이 돼요. 반복은 rows[i][i]를 출력해요.\n\nrows에 행 주소를 아래 행부터(2행, 1행, 0행) 담아, 왼쪽 아래에서 오른쪽 위로 가는 대각선이 출력되게 하세요. 반복은 그대로 두세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력된 대각선을 확인하세요.\n2. rows의 초기값 순서를 고치세요.\n3. 다시 실행해 왼쪽 아래에서 오른쪽 위로 가는 대각선인지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nint main(void) {\n    // 3×3 진열대를 한 줄로 이어 적어 초기화했어요.\n    int grid[3][3] = {1, 2, 3, 4, 5, 6, 7, 8, 9};\n    int i;\n    // rows의 각 칸은 grid 한 행의 첫 칸 주소예요.\n    int *rows[3] = {grid[0], grid[1], grid[2]};\n    for (i = 0; i < 3; i++) {\n        printf(\"%d \", rows[i][i]);\n    }\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nint main(void) {\n    // 3×3 진열대를 한 줄로 이어 적어 초기화했어요.\n    int grid[3][3] = {1, 2, 3, 4, 5, 6, 7, 8, 9};\n    int i;\n    // rows의 각 칸은 grid 한 행의 첫 칸 주소예요.\n    int *rows[3] = {grid[2], grid[1], grid[0]};\n    for (i = 0; i < 3; i++) {\n        printf(\"%d \", rows[i][i]);\n    }\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "7 5 3 "
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "grid": "{10, 20, 30, 40, 50, 60, 70, 80, 90}"
+          },
+          "expected": "70 50 30 "
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "rows가 어느 행을 어떤 순서로 담느냐에 따라 rows[i][i]가 달라져요.",
+          "target": "text:rows에 행 주소를 아래 행부터(2행, 1행, 0행) 담아"
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "1 5 9가 나왔어요. rows[i]가 i행이라 왼쪽 위에서 오른쪽 아래로 갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "{grid[0], grid[1], grid[2]}",
+          "after": "{grid[2], grid[1], grid[0]}",
+          "say": "rows[0]에 2행, rows[2]에 0행의 주소를 담아요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "7 5 3이 나왔어요. rows[0][0]은 2행의 첫 칸 7이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "printf(\"%d \", rows[i][i]);",
+          "after": "printf(\"%d \", *(rows[i] + i));",
+          "say": "같은 칸을 주소 이동으로도 읽어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "똑같이 7 5 3이에요. rows[i][j]는 *(rows[i] + j)와 같은 칸이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 행 주소 대신 *grid + 2를 담으면 0행 안에서 두 칸만 가요. 행을 바꾸려면 grid[2]처럼 행을 골라야 해요.",
+          "target": "code:{grid[2], grid[1], grid[0]}"
+        }
+      ]
+    },
+    {
+      "id": "stp_aaae3448-1c14-4e42-b798-356b2b6f116d",
+      "title": "이중 포인터로 배열의 모든 칸에 보정값을 더하세요",
+      "goal": "adjust는 포인터 p가 있는 곳 &p를 받아요. 반복으로 stock의 모든 칸에 bonus를 더하려 해요. 지금은 한 칸만 커져요.\n\nadjust 반복 안의 대입 한 줄을 고쳐 i번 칸에 add를 더하게 하세요. main은 그대로 두세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 세 칸을 확인하세요.\n2. 반복 안의 대입이 i번 칸을 읽고 쓰게 고치세요.\n3. 다시 실행해 세 칸이 모두 bonus만큼 커졌는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\n// pp를 한 번 따라가면 배열의 시작 주소예요. 모든 칸에 add를 더하려 해요.\nvoid adjust(int **pp, int n, int add) {\n    int i;\n    for (i = 0; i < n; i++) {\n        **pp = **pp + add;\n    }\n}\n\nint main(void) {\n    int stock[3] = {4, 9, 2};\n    int *p = stock;\n    int bonus = 5;\n    int i;\n    adjust(&p, 3, bonus);\n    for (i = 0; i < 3; i++) {\n        printf(\"%d \", stock[i]);\n    }\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\n// pp를 한 번 따라가면 배열의 시작 주소예요. 모든 칸에 add를 더하려 해요.\nvoid adjust(int **pp, int n, int add) {\n    int i;\n    for (i = 0; i < n; i++) {\n        (*pp)[i] = (*pp)[i] + add;\n    }\n}\n\nint main(void) {\n    int stock[3] = {4, 9, 2};\n    int *p = stock;\n    int bonus = 5;\n    int i;\n    adjust(&p, 3, bonus);\n    for (i = 0; i < 3; i++) {\n        printf(\"%d \", stock[i]);\n    }\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "9 14 7 "
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "bonus": "1"
+          },
+          "expected": "5 10 3 "
+        },
+        {
+          "values": {
+            "stock": "{0, 0, 0}"
+          },
+          "expected": "5 5 5 "
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "함수는 &p만 받아요. 한 번 따라가 배열을 찾고, 거기서 i번 칸을 골라야 해요.",
+          "target": "text:adjust 반복 안의 대입 한 줄을 고쳐 i번 칸에 add를 더하게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "19 9 2예요. **pp는 매번 첫 칸이라 4에 5를 세 번 더했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "**pp = **pp + add;",
+          "after": "*(*pp + i) = **pp + add;",
+          "say": "쓰는 쪽만 i번 칸으로 옮겨 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "9 14 14예요. 오른쪽이 늘 첫 칸 9를 읽어서 셋째 칸이 14가 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "*(*pp + i) = **pp + add;",
+          "after": "(*pp)[i] = (*pp)[i] + add;",
+          "say": "읽는 쪽도 같은 i번 칸으로 맞춰요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            18,
+            18
+          ]
+        },
+        {
+          "action": "say",
+          "text": "9 14 7이에요. 세 칸 모두 자기 값에 5가 더해졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. *pp[i]로 쓰면 []가 먼저라 pp 옆의 다른 포인터를 찾아가요. *pp를 괄호로 묶어야 해요.",
+          "target": "code:(*pp)[i] ="
+        }
+      ]
+    },
+    {
+      "id": "stp_cb42f9c8-7fcc-45ff-941d-3a75927b130b",
+      "title": "상자를 통째로 옮겨 앞 상자의 규칙이 따라오게 하세요",
+      "goal": "copy_item은 셋째 상자(2번)를 첫 자리(0번)에 그대로 옮겨 놓으려는 함수예요. 그 뒤 p를 둘째 상자로 옮기고, 둘째 상자의 수량에 바로 앞 상자의 규칙을 적용해요. 지금은 수량만 옮겨져요.\n\ncopy_item의 대입 한 줄을 고쳐 상자의 코드·수량·규칙이 모두 옮겨지게 하세요. main은 그대로 두세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 세 값을 확인하세요.\n2. copy_item의 대입이 상자 전체를 옮기게 고치세요.\n3. 다시 실행해 첫 자리 상자와 둘째 상자의 수량을 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nstruct Item {\n    int code;\n    int qty;\n    int (*rule)(int);\n};\n\nint twice(int v) {\n    return v * 2;\n}\nint minus3(int v) {\n    return v - 3;\n}\n\n// pp를 한 번 따라가 진열대에서 from번 상자를 to번 자리에 그대로 옮겨 놓으려 해요.\nvoid copy_item(struct Item **pp, int to, int from) {\n    (*pp)[to].qty = (*pp)[from].qty;\n}\n\nint main(void) {\n    struct Item shelf[3] = {{11, 4, twice}, {25, 7, twice}, {37, 5, minus3}};\n    struct Item *p = shelf;\n    copy_item(&p, 0, 2);\n    p++;\n    // 이 상자의 수량에 바로 앞 상자의 규칙을 적용해요.\n    p->qty = (p - 1)->rule(p->qty);\n    printf(\"%d %d %d\", shelf[0].code, shelf[0].qty, shelf[1].qty);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nstruct Item {\n    int code;\n    int qty;\n    int (*rule)(int);\n};\n\nint twice(int v) {\n    return v * 2;\n}\nint minus3(int v) {\n    return v - 3;\n}\n\n// pp를 한 번 따라가 진열대에서 from번 상자를 to번 자리에 그대로 옮겨 놓으려 해요.\nvoid copy_item(struct Item **pp, int to, int from) {\n    (*pp)[to] = (*pp)[from];\n}\n\nint main(void) {\n    struct Item shelf[3] = {{11, 4, twice}, {25, 7, twice}, {37, 5, minus3}};\n    struct Item *p = shelf;\n    copy_item(&p, 0, 2);\n    p++;\n    // 이 상자의 수량에 바로 앞 상자의 규칙을 적용해요.\n    p->qty = (p - 1)->rule(p->qty);\n    printf(\"%d %d %d\", shelf[0].code, shelf[0].qty, shelf[1].qty);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "37 5 4"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "shelf": "{{1, 2, minus3}, {3, 10, minus3}, {5, 6, twice}}"
+          },
+          "expected": "5 6 20"
+        },
+        {
+          "values": {
+            "shelf": "{{2, 9, twice}, {4, 8, minus3}, {6, 3, minus3}}"
+          },
+          "expected": "6 3 5"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "셋째 상자를 첫 자리에 통째로 옮겨야 해요. 그래야 다음 줄이 옮겨 온 규칙을 써요.",
+          "target": "text:지금은 수량만 옮겨져요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            28,
+            28
+          ]
+        },
+        {
+          "action": "say",
+          "text": "11 5 14예요. 수량 5만 옮겨져 코드 11과 규칙 twice가 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "p++로 p는 둘째 상자예요. (p - 1)->rule은 첫 자리의 twice라 7이 14가 됐어요.",
+          "target": "code:(p - 1)->rule"
+        },
+        {
+          "action": "patch_code",
+          "before": "(*pp)[to].qty = (*pp)[from].qty;",
+          "after": "(*pp)[to] = (*pp)[from];",
+          "say": "필드 대신 상자 원소 전체를 대입해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            28,
+            28
+          ]
+        },
+        {
+          "action": "say",
+          "text": "37 5 4예요. 코드·수량·규칙이 함께 옮겨져 첫 자리 규칙이 minus3가 됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "그래서 둘째 상자의 7에 minus3가 적용돼 4가 됐어요. 구조체 대입은 함수 포인터 필드까지 복사해요.",
+          "target": "code:p->qty = (p - 1)->rule(p->qty);"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "구조체 주소를 함수에 넘겨 ->로 원래 구조체를 바꿔요.",
+      "구조체 배열을 가리키는 포인터가 원소 단위로 움직임을 추적해요.",
+      "구조체 필드에 담긴 함수 포인터와 포인터를 돌려주는 함수 포인터를 불러요.",
+      "포인터 배열의 [] 와 * 순서, 이중 포인터로 배열 원소를 쓰는 흐름을 추적해요."
+    ],
+    "chapters": {
+      "chp_63d7cf97-5cbb-40a6-b0d9-9ed9678ca2d7": [
+        "값 전달과 주소 전달의 차이로 함수가 바꾸는 대상을 판단해요."
+      ],
+      "chp_75960b90-17b1-4d8c-9861-c299f3b77fe8": [
+        "구조체 포인터의 +1이 필드가 아니라 원소 하나만큼 움직임을 추적해요."
+      ],
+      "chp_7e2d35d3-4cfc-4ba0-8e78-aa1c71168b70": [
+        "함수 포인터도 필드 값이라 원소마다 다른 함수가 실행됨을 추적해요."
+      ],
+      "chp_2a347111-1055-4812-8fa0-7bddcc2cb4d1": [
+        "[]와 *의 순서, 행 주소, 한 번 따라간 배열에서의 인덱싱을 추적해요."
+      ]
+    },
+    "units": {
+      "unt_521809b3-49a4-4f47-b85a-76f8ceaa8af5": {
+        "objectives": [
+          "구조체 포인터 매개변수와 ->로 호출자의 구조체를 바꿔요."
+        ],
+        "premise": "상자 Box는 수량 count와 단가 price를 묶어요. 함수가 상자를 고쳐요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_9bd31c90-2643-408f-b4b1-f3be0c51724b": {
+        "objectives": [
+          "p++와 (p + k)->필드로 다른 상자의 필드를 읽고 써요."
+        ],
+        "premise": "진열대 shelf는 Item(코드 code, 수량 qty) 세 개의 배열이에요. p는 첫 상자를 가리켜요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_df6ba746-6e4c-4ca7-bf42-d3ac3e9f2424": {
+        "objectives": [
+          "필드에 담긴 함수와 포인터를 돌려주는 함수를 불러 결과를 따라가요."
+        ],
+        "premise": "규칙 Rule은 양 amount와 그 양을 처리할 함수 apply를 묶어요. 재고 stock에 규칙을 적용해요. 각 스텝은 준비 코드에서 새로 시작해요."
+      },
+      "unt_3f7d1692-db5c-44a2-9726-fecf5ba11b2e": {
+        "objectives": [
+          "포인터 배열과 이중 포인터로 원래 배열의 칸을 읽고 써요."
+        ],
+        "premise": "진열대의 칸 주소를 따로 모아 두고 그 목록으로 원래 칸을 읽고 고쳐요. 각 스텝은 준비 코드에서 새로 시작해요."
+      }
+    }
+  }
+}

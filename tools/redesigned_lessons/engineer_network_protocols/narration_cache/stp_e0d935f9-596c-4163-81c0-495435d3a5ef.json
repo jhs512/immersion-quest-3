@@ -1,0 +1,69 @@
+{
+  "by": "hand",
+  "source_sha256": "1bcb1241223fb0d05a50db7ea8f5002b8356f529ab4a3a772691d9ae76078f6b",
+  "entry": [
+    {
+      "action": "say",
+      "text": "같은 이름을 다시 찾을 때 묻는 횟수를 줄이는 문제예요.",
+      "target": "text:얻은 IP를 캐시에 적게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        19,
+        19
+      ]
+    },
+    {
+      "action": "say",
+      "text": "www.shop.com을 두 번 모두 asked 3으로 물었어요. 같은 이름인데도요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "com, shop.com, www.shop.com 세 단계를 매번 다시 내려갔어요.",
+      "target": "code:records['.'.join(parts[i:])]"
+    },
+    {
+      "action": "patch_code",
+      "before": "    # 이 주석 아래에 받은 답을 캐시에 적으세요.\n",
+      "after": "    # 이 주석 아래에 받은 답을 캐시에 적으세요.\n    cache[answer] = name\n",
+      "say": "IP를 열쇠로 이름을 적어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        20,
+        20
+      ]
+    },
+    {
+      "action": "say",
+      "text": "세 번째도 asked 3이에요. 캐시는 이름으로 찾는데 열쇠가 IP라서 못 찾았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. DNS는 이름에서 IP로 가는 방향이에요. 캐시도 이름을 열쇠로 IP를 적어야 해요.",
+      "target": "code:cache[answer] = name"
+    },
+    {
+      "action": "patch_code",
+      "before": "cache[answer] = name",
+      "after": "cache[name] = answer",
+      "say": "이름을 열쇠로 IP를 적어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        20,
+        20
+      ]
+    },
+    {
+      "action": "say",
+      "text": "세 번째가 asked 0이에요. 캐시에 적힌 198.51.100.20을 바로 썼어요.",
+      "target": "output"
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "by": "hand",
+  "source_sha256": "c2dd9fe785fefea8cf40102b98ae66434ad9ea7d121e574fa9b10fbebb12c5c7",
+  "entry": [
+    {
+      "action": "say",
+      "text": "짝 없는 동아리만 골라야 하는 문제예요.",
+      "target": "text:WHERE로 학생 쪽이 NULL인 행만 남기고, 동아리 이름 title 한 열만 출력하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "밴드가 세 번, 코딩이 두 번 나왔어요. 회원 수만큼 동아리 행이 늘었어요. 사진 옆 이름은 NULL이에요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "LEFT JOIN",
+      "after": "RIGHT JOIN",
+      "say": "기준 표를 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "이번엔 학생이 기준이에요. 동아리 없는 박서연·정우진이 NULL로 남고 사진은 빠졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "RIGHT JOIN",
+      "after": "LEFT JOIN",
+      "say": "동아리가 기준이 되게 LEFT로 되돌려요."
+    },
+    {
+      "action": "patch_code",
+      "before": "ORDER BY c.id, s.id",
+      "after": "WHERE s.id IS NULL ORDER BY c.id",
+      "say": "학생 id가 NULL인 행만 남겨요."
+    },
+    {
+      "action": "patch_code",
+      "before": "SELECT c.title, s.name",
+      "after": "SELECT c.title",
+      "say": "동아리 이름 한 열만 보여요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ]
+    },
+    {
+      "action": "say",
+      "text": "사진만 나왔어요. 짝이 없어 학생 칸이 비었던 행이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. c.id IS NULL로 쓰면 (행 없음)이에요. 기준 표 쪽 열은 비지 않거든요.",
+      "target": "code:s.id IS NULL"
+    }
+  ]
+}

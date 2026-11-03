@@ -1,0 +1,73 @@
+{
+  "by": "hand",
+  "source_sha256": "7eb0485ac3836fe11723f92733c195b9296c3facd1bbaa4136cefe700b6d3668",
+  "entry": [
+    {
+      "action": "say",
+      "text": "COUNT로 \"모두\"를 판정하는 질의를 고치는 문제예요. 다시 들은 기록이 셈을 흔들어요.",
+      "target": "text:안쪽 COUNT 한 곳을 고쳐 개발자마다 서로 다른 필수 과정의 수를 세게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "kim과 park이 나왔어요. kim은 net을 듣지 않았는데 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "set_code",
+      "code": "SELECT name, (SELECT COUNT(*) FROM done d\n              WHERE d.dev_id = v.id\n                AND d.course IN (SELECT course FROM required)) AS cnt\nFROM devs v ORDER BY name;\n",
+      "say": "개발자마다 안쪽 COUNT 값을 열로 꺼내 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        1,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "choi 1, kim 2, lee 3, park 2예요. 필수 과정 수 2와 비교했어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "kim은 db를 두 번, lee는 net을 두 번 들었어요. park의 ai는 안쪽 IN이 걸러서 세지 않았고요.",
+      "target": "code:d.course IN (SELECT course FROM required)"
+    },
+    {
+      "action": "set_code",
+      "code": "-- 들은 필수 과정 수와 필수 과정 수를 비교해요. 다시 들은 기록을 보세요.\nSELECT name FROM devs v\nWHERE (SELECT COUNT(*) FROM done d\n       WHERE d.dev_id = v.id\n         AND d.course IN (SELECT course FROM required))\n    = (SELECT COUNT(*) FROM required)\nORDER BY name;\n",
+      "say": "개발자별 과정 수 비교에 중복 제거를 더해요."
+    },
+    {
+      "action": "patch_code",
+      "before": "COUNT(*) FROM done d",
+      "after": "COUNT(DISTINCT d.course) FROM done d",
+      "say": "같은 과정은 한 번만 세도록 DISTINCT d.course로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "lee와 park이 나왔어요. 둘 다 db와 net을 한 번 이상 들었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 안쪽 IN 조건을 지우면 필수가 아닌 ai까지 세서 park이 3이 돼요. 그러면 park이 빠져요.",
+      "target": "code:AND d.course IN"
+    }
+  ]
+}

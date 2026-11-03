@@ -1,0 +1,624 @@
+{
+  "description": "실제 로컬 Git 공유, 구성 요소 추적, 배포 전환, RTO·RPO 계산과 클라우드 관리 경계를 비교해요.",
+  "tasks": [
+    {
+      "id": "stp_2eea0384-0a4b-46aa-91fd-e8388ef691c2",
+      "title": "메모를 준비 영역에 담은 뒤 커밋되게 하세요",
+      "goal": "준비 코드가 임시 저장소와 메모 파일을 만들었어요. status 줄을 고쳐 메모가 준비 영역에 담긴 뒤 커밋되게 하세요.\n\n파일 저장과 커밋은 달라요. 기록할 변경을 준비 영역에 담아야 다음 커밋에 포함돼요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 메모를 준비 영역에 담은 뒤 커밋되게 하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import subprocess\nimport tempfile\nfrom pathlib import Path\nnote = 'stock=3'\nwith tempfile.TemporaryDirectory() as folder:\n    work = Path(folder)\n    def git(*args):\n        return subprocess.run(['git', '-C', str(work), *args], capture_output=True, text=True, encoding='utf-8')\n    git('init', '-b', 'main')\n    git('config', 'user.name', 'local learner')\n    git('config', 'user.email', 'learner@example.invalid')\n    (work / 'memo.txt').write_text(note, encoding='utf-8')\n    git('status')\n    git('commit', '-m', 'first')\n    result = git('show', 'HEAD:memo.txt')\n    print(result.stdout.strip())\n",
+      "solution": "import subprocess\nimport tempfile\nfrom pathlib import Path\nnote = 'stock=3'\nwith tempfile.TemporaryDirectory() as folder:\n    work = Path(folder)\n    def git(*args):\n        return subprocess.run(['git', '-C', str(work), *args], capture_output=True, text=True, encoding='utf-8')\n    git('init', '-b', 'main')\n    git('config', 'user.name', 'local learner')\n    git('config', 'user.email', 'learner@example.invalid')\n    (work / 'memo.txt').write_text(note, encoding='utf-8')\n    git('add', 'memo.txt')\n    git('commit', '-m', 'first')\n    result = git('show', 'HEAD:memo.txt')\n    print(result.stdout.strip())\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "stock=3"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "버전 관리는 작업 파일과 기록할 스냅샷을 구분해요.",
+          "target": "text:준비 코드가 임시 저장소와 메모 파일을 만들었어요. status 줄을 고쳐 메모가 준비 영역에 담긴 뒤 커밋되게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "커밋한 메모가 나오지 않아요. 파일이 준비 영역에 없었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "git('status')",
+          "after": "git('add', 'memo.txt')"
+        },
+        {
+          "action": "say",
+          "text": "파일 저장과 커밋은 달라요. 기록할 변경을 준비 영역에 담아야 다음 커밋에 포함돼요.",
+          "target": "code:git('add', 'memo.txt')"
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "stock=3이 나왔어요. 현재 작업 파일이 아니라 커밋의 파일을 읽었어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_41573241-5d55-4905-bc6d-49f4a3f73e31",
+      "title": "로컬 커밋을 준비된 원격 저장소에 보내세요",
+      "goal": "준비 코드가 로컬 커밋과 임시 원격 저장소를 만들었어요. status 줄을 고쳐 main 커밋을 원격으로 보내세요. 실제 외부 저장소에는 접속하지 않아요.\n\n커밋으로 로컬 이력을 만들고 push로 원격에 전달해요. 저장소가 분산돼 있어 둘의 상태는 다를 수 있어요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 로컬 커밋을 준비된 원격 저장소에 보내세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import subprocess\nimport tempfile\nfrom pathlib import Path\nnote = 'stock=3'\nwith tempfile.TemporaryDirectory() as folder:\n    work = Path(folder)\n    def git(*args):\n        return subprocess.run(['git', '-C', str(work), *args], capture_output=True, text=True, encoding='utf-8')\n    git('init', '-b', 'main')\n    git('config', 'user.name', 'local learner')\n    git('config', 'user.email', 'learner@example.invalid')\n    (work / 'memo.txt').write_text(note, encoding='utf-8')\n    remote = work / 'remote.git'\n    subprocess.run(['git', 'init', '--bare', str(remote)], capture_output=True)\n    git('add', 'memo.txt')\n    git('commit', '-m', 'first')\n    git('remote', 'add', 'origin', str(remote))\n    git('status')\n    result = subprocess.run(['git', '--git-dir', str(remote), 'show', 'main:memo.txt'], capture_output=True, text=True, encoding='utf-8')\n    print(result.stdout.strip())\n",
+      "solution": "import subprocess\nimport tempfile\nfrom pathlib import Path\nnote = 'stock=3'\nwith tempfile.TemporaryDirectory() as folder:\n    work = Path(folder)\n    def git(*args):\n        return subprocess.run(['git', '-C', str(work), *args], capture_output=True, text=True, encoding='utf-8')\n    git('init', '-b', 'main')\n    git('config', 'user.name', 'local learner')\n    git('config', 'user.email', 'learner@example.invalid')\n    (work / 'memo.txt').write_text(note, encoding='utf-8')\n    remote = work / 'remote.git'\n    subprocess.run(['git', 'init', '--bare', str(remote)], capture_output=True)\n    git('add', 'memo.txt')\n    git('commit', '-m', 'first')\n    git('remote', 'add', 'origin', str(remote))\n    git('push', 'origin', 'main')\n    result = subprocess.run(['git', '--git-dir', str(remote), 'show', 'main:memo.txt'], capture_output=True, text=True, encoding='utf-8')\n    print(result.stdout.strip())\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "stock=3"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "분산 버전 관리의 로컬 기록과 원격 공유를 구별해요.",
+          "target": "text:준비 코드가 로컬 커밋과 임시 원격 저장소를 만들었어요. status 줄을 고쳐 main 커밋을 원격으로 보내세요. 실제 외부 저장소에는 접속하지 않아요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            20,
+            20
+          ]
+        },
+        {
+          "action": "say",
+          "text": "원격의 메모가 비었어요. 로컬에서 만든 기록은 아직 원격에 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "git('status')",
+          "after": "git('push', 'origin', 'main')"
+        },
+        {
+          "action": "say",
+          "text": "커밋으로 로컬 이력을 만들고 push로 원격에 전달해요. 저장소가 분산돼 있어 둘의 상태는 다를 수 있어요.",
+          "target": "code:git('push', 'origin', 'main')"
+        },
+        {
+          "action": "run",
+          "lines": [
+            20,
+            20
+          ]
+        },
+        {
+          "action": "say",
+          "text": "stock=3이에요. 원격 main 커밋에서 메모를 읽었어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_d758bfaa-d03c-42c7-8031-3834459c80c6",
+      "title": "간접 의존성도 구성 목록에 넣으세요",
+      "goal": "의존 그래프의 직접·간접 구성 요소를 모두 찾아야 해요. 새로 찾은 구성 요소의 의존성도 계속 살펴보세요.\n\n이 모델은 구성 요소의 관계를 펼쳐요. 실제 SBOM에는 버전·식별자·라이선스 등도 기록해 추적할 수 있어야 해요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 간접 의존성도 구성 목록에 넣으세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "direct = ['web']\ngraph = {'web':['json'], 'json':['codec'], 'codec':[]}\ntodo = list(direct)\nfound = set()\nwhile todo:\n    name = todo.pop()\n    if name in found: continue\n    found.add(name)\n    todo.extend([])\nprint(sorted(found))\n",
+      "solution": "direct = ['web']\ngraph = {'web':['json'], 'json':['codec'], 'codec':[]}\ntodo = list(direct)\nfound = set()\nwhile todo:\n    name = todo.pop()\n    if name in found: continue\n    found.add(name)\n    todo.extend(graph.get(name, []))\nprint(sorted(found))\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "['codec', 'json', 'web']"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "SBOM은 직접 쓴 라이브러리만 적은 목록과 달라요.",
+          "target": "text:의존 그래프의 직접·간접 구성 요소를 모두 찾아야 해요. 새로 찾은 구성 요소의 의존성도 계속 살펴보세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "web만 나왔어요. 그 안에서 사용하는 구성 요소를 놓쳤어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "todo.extend([])",
+          "after": "todo.extend(graph.get(name, []))"
+        },
+        {
+          "action": "say",
+          "text": "이 모델은 구성 요소의 관계를 펼쳐요. 실제 SBOM에는 버전·식별자·라이선스 등도 기록해 추적할 수 있어야 해요.",
+          "target": "code:todo.extend(graph.get(name, []))"
+        },
+        {
+          "action": "run",
+          "lines": [
+            10,
+            10
+          ]
+        },
+        {
+          "action": "say",
+          "text": "codec, json, web이 나왔어요. 간접 의존성까지 확인했어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_afc619c6-ff71-43b9-8d61-10a0fe984069",
+      "title": "정상 검사된 새 환경으로만 트래픽을 전환하세요",
+      "goal": "blue는 기존 버전, green은 새 버전이에요. 새 환경의 health 검사가 성공했을 때만 green으로 전환하세요.\n\n연결 대상을 바꾸는 모델이에요. DB 스키마 같은 공유 상태의 호환성은 별도 검토가 필요해요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 정상 검사된 새 환경으로만 트래픽을 전환하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "health = True\nversions = {'blue':'v1','green':'v2'}\nactive = 'blue'\nprint(versions[active])\n",
+      "solution": "health = True\nversions = {'blue':'v1','green':'v2'}\nactive = 'green' if health else 'blue'\nprint(versions[active])\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "v2"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "블루·그린 배포는 두 환경 사이의 전환을 분리해요.",
+          "target": "text:blue는 기존 버전, green은 새 버전이에요. 새 환경의 health 검사가 성공했을 때만 green으로 전환하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "v1이에요. 준비된 새 환경이 있어도 연결은 기존 환경에 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "active = 'blue'",
+          "after": "active = 'green' if health else 'blue'"
+        },
+        {
+          "action": "say",
+          "text": "연결 대상을 바꾸는 모델이에요. DB 스키마 같은 공유 상태의 호환성은 별도 검토가 필요해요.",
+          "target": "code:active = 'green' if health else 'blue'"
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "v2예요. 검사에 통과한 새 환경으로 전환했어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_585058e6-f9c3-4cc9-8eae-3b4fb819f25c",
+      "title": "중단 시각부터 복구 시각까지의 시간을 비교하세요",
+      "goal": "사고 시각 incident와 복구 시각 restored는 같은 날의 분 단위예요. 허용 복구 시간 안에 돌아왔는지 계산하세요.\n\n사고에서 서비스 복구까지 걸린 시간을 비교해요. 마지막으로 보존한 자료 시점과 혼동하지 않아요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 중단 시각부터 복구 시각까지의 시간을 비교하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "incident = 600\nrestored = 625\nlimit = 30\nwithin = restored <= limit\nprint(within)\n",
+      "solution": "incident = 600\nrestored = 625\nlimit = 30\nwithin = restored - incident <= limit\nprint(within)\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "True"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "RTO는 서비스를 복구해야 하는 목표 시간이에요.",
+          "target": "text:사고 시각 incident와 복구 시각 restored는 같은 날의 분 단위예요. 허용 복구 시간 안에 돌아왔는지 계산하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "False예요. 하루 시각 자체와 허용 시간 길이를 비교했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "within = restored <= limit",
+          "after": "within = restored - incident <= limit"
+        },
+        {
+          "action": "say",
+          "text": "사고에서 서비스 복구까지 걸린 시간을 비교해요. 마지막으로 보존한 자료 시점과 혼동하지 않아요.",
+          "target": "code:within = restored - incident <= limit"
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "True예요. 중단 뒤 25분 만에 복구해 30분 목표 안에 들어왔어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_6b7e5b42-0914-446b-914c-dbfab48d9369",
+      "title": "마지막 복구 가능한 자료 시점과 사고 시각의 차이를 보세요",
+      "goal": "백업은 backup 시각의 자료까지 복구할 수 있어요. 사고 직전 자료 중 잃을 수 있는 시간 범위를 계산하세요.\n\n자료 손실 시점은 사고가 난 때를 기준으로 봐요. 서비스 복구에 걸린 시간인 RTO와 구분해요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 마지막 복구 가능한 자료 시점과 사고 시각의 차이를 보세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "incident = 600\nbackup = 590\nrestored = 625\nlost_window = restored - backup\nprint(lost_window)\n",
+      "solution": "incident = 600\nbackup = 590\nrestored = 625\nlost_window = incident - backup\nprint(lost_window)\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "10"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "RPO는 잃을 수 있는 자료의 시간 범위를 제한해요.",
+          "target": "text:백업은 backup 시각의 자료까지 복구할 수 있어요. 사고 직전 자료 중 잃을 수 있는 시간 범위를 계산하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "35분이에요. 복구 작업 시간까지 자료 손실 시간에 더했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "lost_window = restored - backup",
+          "after": "lost_window = incident - backup"
+        },
+        {
+          "action": "say",
+          "text": "자료 손실 시점은 사고가 난 때를 기준으로 봐요. 서비스 복구에 걸린 시간인 RTO와 구분해요.",
+          "target": "code:lost_window = incident - backup"
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "10분이에요. 사고 전 마지막 10분의 자료를 잃을 수 있어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_d158c321-7540-47c5-bc77-b3ce7e4843e0",
+      "title": "서비스 모델별로 패치 담당 범위를 나누세요",
+      "goal": "운영체제나 애플리케이션 자체의 패치 담당을 비교하는 모델이에요. 계정·자료 권한의 공동 책임은 별도예요.\n\n관리 범위가 위로 올라가면 사용자가 직접 패치하는 층은 줄어요. 보안과 자료 관리 책임이 모두 사라지는 뜻은 아니에요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 서비스 모델별로 패치 담당 범위를 나누세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "model = 'PaaS'\ncomponent = 'os'\nprovider = {'IaaS':{'hardware'}, 'PaaS':{'hardware','os','runtime'}, 'SaaS':{'hardware','os','runtime','application'}}\nowner = 'customer'\nprint(owner)\n",
+      "solution": "model = 'PaaS'\ncomponent = 'os'\nprovider = {'IaaS':{'hardware'}, 'PaaS':{'hardware','os','runtime'}, 'SaaS':{'hardware','os','runtime','application'}}\nowner = 'provider' if component in provider[model] else 'customer'\nprint(owner)\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "provider"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "IaaS·PaaS·SaaS는 제공자가 관리하는 소프트웨어 층이 달라요.",
+          "target": "text:운영체제나 애플리케이션 자체의 패치 담당을 비교하는 모델이에요. 계정·자료 권한의 공동 책임은 별도예요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "customer예요. PaaS 제공자가 관리하는 운영체제까지 사용자에게 맡겼어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "owner = 'customer'",
+          "after": "owner = 'provider' if component in provider[model] else 'customer'"
+        },
+        {
+          "action": "say",
+          "text": "관리 범위가 위로 올라가면 사용자가 직접 패치하는 층은 줄어요. 보안과 자료 관리 책임이 모두 사라지는 뜻은 아니에요.",
+          "target": "code:owner = 'provider' if component in provider[model] else 'customer'"
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "provider예요. 이 모델의 PaaS 운영체제 패치는 제공자 쪽이에요.",
+          "target": "output"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "버전 관리는 작업 파일과 기록할 스냅샷을 구분해요.",
+      "분산 버전 관리의 로컬 기록과 원격 공유를 구별해요.",
+      "SBOM은 직접 쓴 라이브러리만 적은 목록과 달라요.",
+      "블루·그린 배포는 두 환경 사이의 전환을 분리해요.",
+      "RTO는 서비스를 복구해야 하는 목표 시간이에요.",
+      "RPO는 잃을 수 있는 자료의 시간 범위를 제한해요.",
+      "IaaS·PaaS·SaaS는 제공자가 관리하는 소프트웨어 층이 달라요."
+    ],
+    "chapters": {
+      "chp_682e4aa9-ebec-4f0e-bfda-c254200d9a69": [
+        "버전 관리는 작업 파일과 기록할 스냅샷을 구분해요.",
+        "분산 버전 관리의 로컬 기록과 원격 공유를 구별해요.",
+        "SBOM은 직접 쓴 라이브러리만 적은 목록과 달라요."
+      ],
+      "chp_92699734-b4e0-4122-ad8d-ed1fb206f035": [
+        "블루·그린 배포는 두 환경 사이의 전환을 분리해요.",
+        "RTO는 서비스를 복구해야 하는 목표 시간이에요.",
+        "RPO는 잃을 수 있는 자료의 시간 범위를 제한해요.",
+        "IaaS·PaaS·SaaS는 제공자가 관리하는 소프트웨어 층이 달라요."
+      ]
+    },
+    "units": {
+      "unt_51cb6d58-bf0d-4ec8-949e-405b14b9cc2f": {
+        "objectives": [
+          "버전 관리는 작업 파일과 기록할 스냅샷을 구분해요.",
+          "분산 버전 관리의 로컬 기록과 원격 공유를 구별해요.",
+          "SBOM은 직접 쓴 라이브러리만 적은 목록과 달라요."
+        ],
+        "premise": "창고 프로그램의 변경을 기록하고 새 환경 배포와 복구를 준비해요. 각 문제는 제공된 준비 코드에서 새로 시작해요."
+      },
+      "unt_fa1277c2-da79-4233-adcb-dacb93899bc1": {
+        "objectives": [
+          "블루·그린 배포는 두 환경 사이의 전환을 분리해요.",
+          "RTO는 서비스를 복구해야 하는 목표 시간이에요.",
+          "RPO는 잃을 수 있는 자료의 시간 범위를 제한해요.",
+          "IaaS·PaaS·SaaS는 제공자가 관리하는 소프트웨어 층이 달라요."
+        ],
+        "premise": "창고 프로그램의 변경을 기록하고 새 환경 배포와 복구를 준비해요. 각 문제는 제공된 준비 코드에서 새로 시작해요."
+      }
+    }
+  },
+  "prepared_cases": {
+    "stp_2eea0384-0a4b-46aa-91fd-e8388ef691c2": [
+      {
+        "values": {
+          "note": "stock=3"
+        },
+        "expected": "stock=3",
+        "value_literals": {
+          "note": "'stock=3'"
+        }
+      },
+      {
+        "values": {
+          "note": "stock=7"
+        },
+        "expected": "stock=7",
+        "value_literals": {
+          "note": "'stock=7'"
+        }
+      }
+    ],
+    "stp_41573241-5d55-4905-bc6d-49f4a3f73e31": [
+      {
+        "values": {
+          "note": "stock=3"
+        },
+        "expected": "stock=3",
+        "value_literals": {
+          "note": "'stock=3'"
+        }
+      },
+      {
+        "values": {
+          "note": "stock=8"
+        },
+        "expected": "stock=8",
+        "value_literals": {
+          "note": "'stock=8'"
+        }
+      }
+    ],
+    "stp_d758bfaa-d03c-42c7-8031-3834459c80c6": [
+      {
+        "values": {
+          "direct": [
+            "web"
+          ]
+        },
+        "expected": "['codec', 'json', 'web']",
+        "value_literals": {
+          "direct": "['web']"
+        }
+      },
+      {
+        "values": {
+          "direct": [
+            "json"
+          ]
+        },
+        "expected": "['codec', 'json']",
+        "value_literals": {
+          "direct": "['json']"
+        }
+      }
+    ],
+    "stp_afc619c6-ff71-43b9-8d61-10a0fe984069": [
+      {
+        "values": {
+          "health": true
+        },
+        "expected": "v2",
+        "value_literals": {
+          "health": "True"
+        }
+      },
+      {
+        "values": {
+          "health": false
+        },
+        "expected": "v1",
+        "value_literals": {
+          "health": "False"
+        }
+      }
+    ],
+    "stp_585058e6-f9c3-4cc9-8eae-3b4fb819f25c": [
+      {
+        "values": {
+          "incident": 600,
+          "restored": 625,
+          "limit": 30
+        },
+        "expected": "True",
+        "value_literals": {
+          "incident": "600",
+          "restored": "625",
+          "limit": "30"
+        }
+      },
+      {
+        "values": {
+          "incident": 600,
+          "restored": 640,
+          "limit": 30
+        },
+        "expected": "False",
+        "value_literals": {
+          "incident": "600",
+          "restored": "640",
+          "limit": "30"
+        }
+      }
+    ],
+    "stp_6b7e5b42-0914-446b-914c-dbfab48d9369": [
+      {
+        "values": {
+          "incident": 600,
+          "backup": 590,
+          "restored": 625
+        },
+        "expected": "10",
+        "value_literals": {
+          "incident": "600",
+          "backup": "590",
+          "restored": "625"
+        }
+      },
+      {
+        "values": {
+          "incident": 600,
+          "backup": 575,
+          "restored": 625
+        },
+        "expected": "25",
+        "value_literals": {
+          "incident": "600",
+          "backup": "575",
+          "restored": "625"
+        }
+      }
+    ],
+    "stp_d158c321-7540-47c5-bc77-b3ce7e4843e0": [
+      {
+        "values": {
+          "model": "PaaS",
+          "component": "os"
+        },
+        "expected": "provider",
+        "value_literals": {
+          "model": "'PaaS'",
+          "component": "'os'"
+        }
+      },
+      {
+        "values": {
+          "model": "IaaS",
+          "component": "os"
+        },
+        "expected": "customer",
+        "value_literals": {
+          "model": "'IaaS'",
+          "component": "'os'"
+        }
+      },
+      {
+        "values": {
+          "model": "SaaS",
+          "component": "application"
+        },
+        "expected": "provider",
+        "value_literals": {
+          "model": "'SaaS'",
+          "component": "'application'"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "by": "hand",
+  "source_sha256": "e3d0334e9910579b9ea00f50a1e58f73a5e629de2199964dd1e40144e660d6f8",
+  "entry": [
+    {
+      "action": "say",
+      "text": "해시는 같은 길이의 자료 변경도 구별하는 데 쓰여요.",
+      "target": "text:전달받은 내용의 길이가 같아도 변조될 수 있어요. 신뢰한 원본 해시와 받은 내용의 해시를 비교하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "True예요. 두 자료가 두 글자라는 사실만 비교했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "intact = len(original) == len(received)",
+      "after": "intact = expected_hash == hashlib.sha256(received).digest()"
+    },
+    {
+      "action": "say",
+      "text": "해시는 내용에서 계산해요. 기대 해시의 진위도 신뢰할 수 있어야 변경 여부를 판단할 수 있어요.",
+      "target": "code:intact = expected_hash == hashlib.sha256(received).digest()"
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "False예요. 길이는 같지만 내용이 바뀌어 해시가 달라요.",
+      "target": "output"
+    }
+  ]
+}

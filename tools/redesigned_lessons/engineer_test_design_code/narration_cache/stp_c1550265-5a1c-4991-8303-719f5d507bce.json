@@ -1,0 +1,69 @@
+{
+  "by": "hand",
+  "source_sha256": "6c3a8e998f9c4d5ee4b5b5959414c7f42a53dc21a14b85c1746d0eabc79e0480",
+  "entry": [
+    {
+      "action": "say",
+      "text": "네 구간에서 하나씩 골라 숨은 결함을 찾는 문제예요.",
+      "target": "text:구간마다 대표값을 하나씩 골라 inputs를 네 값으로 고치세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        25,
+        25
+      ]
+    },
+    {
+      "action": "say",
+      "text": "1~4만 통과이고 나머지 세 구간은 검사 안 함이에요. 값 세 개가 한 구간에 몰렸어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "inputs = [2, 3, 4]",
+      "after": "inputs = [0, 2, 7]",
+      "say": "0 이하와 5~9에서 하나씩 골라 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        25,
+        25
+      ]
+    },
+    {
+      "action": "say",
+      "text": "세 구간이 통과예요. 그런데 10 이상은 아직 검사 안 함이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 거절해야 할 10 이상도 따로 다뤄지는 구간이에요. 빼면 그 안의 결함은 숨어요.",
+      "target": "code:('10 이상', 10, 99, '거절')"
+    },
+    {
+      "action": "patch_code",
+      "before": "inputs = [0, 2, 7]",
+      "after": "inputs = [0, 2, 7, 12]",
+      "say": "10 이상에서 12를 하나 더해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        25,
+        25
+      ]
+    },
+    {
+      "action": "say",
+      "text": "10 이상이 실패예요. 12를 넣었더니 거절이 아니라 배송비 0이 나왔어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "값 네 개로 구간 네 개를 다 봤어요. 구간 안에서는 어느 값을 골라도 같은 결과예요.",
+      "target": "code:inputs = [0, 2, 7, 12]"
+    }
+  ]
+}

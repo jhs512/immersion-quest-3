@@ -1,0 +1,75 @@
+{
+  "by": "hand",
+  "source_sha256": "37d6aaff76e662d5095275a65c4607fdda2f18d1b970ea5e3ccd4547be68bd80",
+  "entry": [
+    {
+      "action": "say",
+      "text": "부모 생성자가 출력하는 make 줄도 완성된 크기여야 해요. 고칠 곳은 extra 선언 한 곳이에요.",
+      "target": "text:extra 필드의 선언 한 곳을 고쳐 make 줄도 완성된 크기를 보이게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "make 0, done 10이에요. make 줄에서 1이 아니라 0이 나온 게 핵심이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "객체는 BigBox라서 부모 생성자 안에서도 BigBox의 size()가 불렸어요.",
+      "target": "code:return extra * 2;"
+    },
+    {
+      "action": "say",
+      "text": "그런데 그때는 extra = 5가 아직 실행 전이에요. 자식 필드는 부모 생성자가 끝난 뒤에 채워져요.",
+      "target": "code:int extra = 5;"
+    },
+    {
+      "action": "patch_code",
+      "before": "    BigBox() {\n",
+      "after": "    BigBox() {\n        extra = 5;\n",
+      "say": "자식 생성자에서 extra를 다시 넣어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        14,
+        14
+      ]
+    },
+    {
+      "action": "say",
+      "text": "여전히 make 0이에요. 자식 생성자 본문도 부모 생성자가 끝난 뒤에 실행되니까요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "    BigBox() {\n        extra = 5;\n",
+      "after": "    BigBox() {\n",
+      "say": "방금 넣은 줄은 되돌려요."
+    },
+    {
+      "action": "patch_code",
+      "before": "    int extra = 5;\n",
+      "after": "    static int extra = 5;\n",
+      "say": "모든 큰 상자가 같은 값을 쓰니 static으로 바꿔요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        13,
+        13
+      ]
+    },
+    {
+      "action": "say",
+      "text": "make 10, done 10이에요. static 필드는 클래스를 준비할 때 이미 5가 되어 있어요.",
+      "target": "output"
+    }
+  ]
+}

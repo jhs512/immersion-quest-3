@@ -1,0 +1,86 @@
+{
+  "by": "hand",
+  "source_sha256": "51cf18e6af5bd9df4b82ceb7393e9ad484d9baaac412ca5ae80d94480d2118d4",
+  "entry": [
+    {
+      "action": "say",
+      "text": "실패해도 두 창고의 합계가 그대로여야 해요. n은 8, A에는 5개뿐이에요.",
+      "target": "text:옮기기가 실패해도 두 창고의 합계가 처음과 같게 고치세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        18,
+        18
+      ]
+    },
+    {
+      "action": "say",
+      "text": "옮기기 실패 뒤 A=5 B=18 합계=23이 나왔어요. 없던 상품 8개가 생겼어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "B를 늘린 문장은 성공해 바로 확정됐어요. A를 줄인 문장만 CHECK에 걸려 취소됐고요.",
+      "target": "code:qty = qty + ?"
+    },
+    {
+      "action": "patch_code",
+      "before": "# A 창고의 상품 n개를 B 창고로 옮겨요.\ntry:\n",
+      "after": "# A 창고의 상품 n개를 B 창고로 옮겨요.\nconn.execute('BEGIN')\ntry:\n",
+      "say": "BEGIN으로 묶음을 열어 볼게요."
+    },
+    {
+      "action": "patch_code",
+      "before": "    print('옮기기 실패')\n",
+      "after": "    print('옮기기 실패')\nconn.execute('COMMIT')\n",
+      "say": "끝에 COMMIT만 붙여 봐요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        20,
+        20
+      ]
+    },
+    {
+      "action": "say",
+      "text": "그래도 A=5 B=18 합계=23이에요. 묶음을 열었는데 B의 변경이 확정됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. SQLite는 실패한 문장 하나만 취소해요. 묶음을 되돌리는 ROLLBACK은 직접 보내야 해요.",
+      "target": "code:conn.execute('COMMIT')"
+    },
+    {
+      "action": "patch_code",
+      "before": "    print('옮기기 실패')\nconn.execute('COMMIT')\n",
+      "after": "    conn.execute('ROLLBACK')\n    print('옮기기 실패')\n",
+      "say": "실패 갈래에서는 ROLLBACK으로 묶음 전체를 취소해요."
+    },
+    {
+      "action": "patch_code",
+      "before": "WHERE place = 'A'\", (n,))\n",
+      "after": "WHERE place = 'A'\", (n,))\n    conn.execute('COMMIT')\n",
+      "say": "확정은 두 UPDATE가 다 성공한 바로 뒤에서 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        21,
+        21
+      ]
+    },
+    {
+      "action": "say",
+      "text": "옮기기 실패, A=5 B=10 합계=15예요. B의 +8까지 함께 취소됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "n이 3이면 두 문장 다 성공해 COMMIT까지 가요. 그때는 두 변경이 함께 남아요.",
+      "target": "code:conn.execute('COMMIT')"
+    }
+  ]
+}

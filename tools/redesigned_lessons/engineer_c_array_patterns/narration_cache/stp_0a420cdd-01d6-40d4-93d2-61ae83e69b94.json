@@ -1,0 +1,57 @@
+{
+  "by": "hand",
+  "source_sha256": "f233ab01529702ec406589b60ca76302322d63daca8e7e7e31458ec65494a1f5",
+  "entry": [
+    {
+      "action": "say",
+      "text": "들어갈 자리는 찾았어요. 뒤 값들을 밀 때 값을 잃지 않는 게 문제예요.",
+      "target": "text:지금은 값이 사라져요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        20,
+        20
+      ]
+    },
+    {
+      "action": "say",
+      "text": "12 25 30 31 31 31이에요. 47과 58이 없어지고 31만 퍼졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "앞에서부터 밀면 box[3]에 31을 쓴 뒤, 그 31을 다시 box[4]로 옮겨요.",
+      "target": "code:box[i + 1] = box[i];"
+    },
+    {
+      "action": "patch_code",
+      "before": "    for (i = pos; i < n; i++) {\n",
+      "after": "    for (i = n; i > pos; i--) {\n",
+      "say": "맨 뒤 빈칸부터 내려오도록 반복을 바꿔요."
+    },
+    {
+      "action": "patch_code",
+      "before": "box[i + 1] = box[i];",
+      "after": "box[i] = box[i - 1];",
+      "say": "왼쪽 칸 값을 지금 칸으로 옮겨요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        20,
+        20
+      ]
+    },
+    {
+      "action": "say",
+      "text": "12 25 30 31 47 58이에요. 58, 47, 31 순서로 옮겨 덮어쓴 값이 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 머리만 바꾸고 box[i + 1] = box[i]를 두면 i가 n일 때 배열 밖에 써요. 머리와 몸을 함께 바꿔야 해요.",
+      "target": "code:box[i] = box[i - 1];"
+    }
+  ]
+}

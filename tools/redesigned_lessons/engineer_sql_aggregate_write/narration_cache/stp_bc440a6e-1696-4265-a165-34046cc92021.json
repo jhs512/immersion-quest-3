@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "850975da97c75f77427e6195a9b94734f6333a68c7df767ca4336410207f504c",
+  "entry": [
+    {
+      "action": "say",
+      "text": "기준이 둘이에요. 합계가 먼저고, 합계가 같을 때만 지역 이름을 봐요.",
+      "target": "text:합계가 같은 지역끼리는 지역 이름 순서(오름차순)로 보여 주려 해요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "busan, daegu, incheon, seoul 순이에요. daegu와 seoul은 둘 다 120이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "seoul은 지점이 둘이에요. 지역으로 묶어서 두 지점 주문이 한 합계가 됐어요.",
+      "target": "code:GROUP BY b.region"
+    },
+    {
+      "action": "patch_code",
+      "before": "ORDER BY b.region;",
+      "after": "ORDER BY total DESC, b.region;",
+      "say": "첫째 키는 합계 내림차순, 둘째 키는 지역 이름이에요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        5
+      ]
+    },
+    {
+      "action": "say",
+      "text": "incheon 150, daegu 120, seoul 120, busan 90이에요. 120끼리는 daegu가 앞이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. DESC는 바로 앞 키 하나에만 붙어요. b.region에 방향이 없으면 오름차순이에요.",
+      "target": "code:total DESC"
+    }
+  ]
+}

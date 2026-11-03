@@ -1,0 +1,1048 @@
+{
+  "schema_version": 2,
+  "id": "lsn_72366dc6-ebd6-43af-a725-e8c4ba6e7309",
+  "revision": "engineer-c-linked-1",
+  "title": "C · 노드를 이어 리스트와 트리를 따라가요",
+  "description": "next 포인터로 대기표 노드를 잇고 끝까지 걷고, 링크를 바꿔 순서를 바꾸고, 트리를 재귀로 방문하는 순서를 한 줄씩 고치며 추적해요.",
+  "objectives": [
+    "next 포인터를 가진 구조체로 노드를 잇고 화살표를 따라 끝(NULL)까지 순회해요.",
+    "머리 삽입·꼬리 삽입·앞으로 옮기기에서 링크 대입의 순서가 리스트 모양을 정함을 추적해요.",
+    "left/right 포인터 트리에서 출력 위치가 전위·중위·후위 순서를 정하고, 전역 카운터로 k번째 방문을 고르는 것을 확인해요."
+  ],
+  "sources": [
+    "https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf",
+    "https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_b0ae75e5-e85e-43dc-ad3b-0222832a8efd",
+      "title": "화살표를 따라 노드를 걸어요",
+      "objectives": [
+        "next 포인터로 이은 노드를 화살표와 반복으로 끝까지 따라가요."
+      ],
+      "units": [
+        {
+          "id": "unt_ca64d32c-4a15-435b-bc02-750be5ca5890",
+          "title": "대기표 노드",
+          "objectives": [
+            "노드 하나에서 다음 노드로 가는 방법과 끝까지 걷는 반복을 추적해요."
+          ],
+          "premise": "창구 대기표 번호를 struct Node에 하나씩 담고, next로 다음 대기표를 가리켜요. 각 스텝은 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_307bb588-ae16-4e9e-9cba-b8dc204bd32e",
+              "objectives": [
+                "head->next가 다음 노드의 주소라서 ->를 이어 쓰면 한 칸 뒤 노드를 읽음을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_29590738-9fe3-4579-9a33-ae29b6f74de0",
+              "objectives": [
+                "cur = cur->next를 반복해 NULL을 만날 때까지 모든 노드를 방문함을 추적해요."
+              ]
+            },
+            {
+              "id": "stp_94b816b6-9d4c-4505-88e6-ca580cec7923",
+              "objectives": [
+                "리스트의 순서는 선언 순서가 아니라 next 대입이 정함을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_87e03b62-829d-497c-b582-07a60d3708ce",
+              "objectives": [
+                "순회 반복 안에서 cur->value를 읽어 개수와 합계를 누적해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_3f706fc6-90cc-4778-8352-df99dd53cd52",
+      "title": "링크를 바꿔 순서를 바꿔요",
+      "objectives": [
+        "next 대입의 순서로 머리 삽입·꼬리 삽입·앞으로 옮기기를 만들어요."
+      ],
+      "units": [
+        {
+          "id": "unt_0d0cc3a9-2dc2-4346-b225-9b5cc1994f7d",
+          "title": "호출 기록 리스트",
+          "objectives": [
+            "노드를 끼우는 자리와 링크 대입 순서에 따라 리스트 모양이 바뀜을 추적해요."
+          ],
+          "premise": "창구에서 부른 번호를 arrive 배열 순서대로 노드 배열 pool에 담아 리스트에 끼워요. 각 스텝은 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_e4ba4c04-6a57-4d76-91ca-75e3d9132be0",
+              "objectives": [
+                "새 노드의 next에 지금 head를 넣고 head를 새 노드로 바꾸면 입력의 역순 리스트가 됨을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_2681b0e7-632d-4a4b-85b6-da461de6cd57",
+              "objectives": [
+                "tail->next에 새 노드를 이으면 입력 순서가 유지됨을 머리 삽입과 비교해요."
+              ]
+            },
+            {
+              "id": "stp_e38f7232-9ec9-40bb-a6ed-4707e6df343d",
+              "objectives": [
+                "prev->next = cur->next로 빼낸 뒤 cur->next = head, head = cur 순서로 이어야 함을 추적해요."
+              ]
+            },
+            {
+              "id": "stp_a1caf8ac-1ffa-4908-9f9d-f70ebf272539",
+              "objectives": [
+                "교환·두 칸 이동·&& 단락 검사를 한 반복에서 함께 추적해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_42a97c63-22b8-45f3-bc82-03d41f0a1f8e",
+      "title": "트리를 재귀로 방문해요",
+      "objectives": [
+        "left/right 포인터 트리에서 출력 위치로 방문 순서를 정하고 k번째 방문을 골라요."
+      ],
+      "units": [
+        {
+          "id": "unt_a5896515-bc24-4247-814a-79d8d2ed8bda",
+          "title": "부서 트리",
+          "objectives": [
+            "한 함수가 자기를 두 번 부르며 트리 전체를 도는 순서를 추적해요."
+          ],
+          "premise": "부서 번호를 struct Tree에 담고 left·right로 아래 부서를 가리켜요. 아래 부서가 없으면 NULL이에요. 각 스텝은 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_4d322db5-8e37-47c1-ad49-09560a54fc68",
+              "objectives": [
+                "자식 호출 앞에서 출력하면 부모가 먼저 나오는 전위 순서가 됨을 확인해요."
+              ]
+            },
+            {
+              "id": "stp_adbdd48f-c49b-444d-bfb2-9e0c257af9b6",
+              "objectives": [
+                "printf를 두 호출 사이·뒤로 옮겨 중위·후위 순서를 비교하고, 후위 순서를 만들어요."
+              ]
+            },
+            {
+              "id": "stp_ec6c5913-b80a-48fe-8c8a-187c6f6a6460",
+              "objectives": [
+                "전역 카운터가 모든 재귀 호출에 걸쳐 이어짐을 이용해 k번째 방문 노드만 골라요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_307bb588-ae16-4e9e-9cba-b8dc204bd32e",
+      "title": "head 다음 노드의 번호를 출력하세요",
+      "goal": "대기표 세 장이 노드로 이어져 있어요. head는 맨 앞 노드를 가리켜요.\n\n**알아두세요**\n\nstruct Node 안의 next는 같은 struct Node를 가리키는 포인터예요. 이렇게 자기 형식을 가리키는 구조체를 자기 참조 구조체라고 해요. 마지막 노드의 next는 NULL이에요.\n\nprintf 한 곳을 고쳐 head에서 화살표를 따라가 두 번째 노드의 번호를 출력하세요. 채점은 head가 다른 노드를 가리키게 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력되는 번호를 확인하세요.\n2. printf의 head->value를 다음 노드의 번호를 읽도록 고치세요.\n3. 다시 실행해 두 번째 노드의 번호가 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nstruct Node {\n    int value;\n    struct Node *next;\n};\n\nint main(void) {\n    struct Node c = {63, NULL};\n    struct Node b = {57, &c};\n    struct Node a = {41, &b};\n    struct Node *head = &a;\n    // head에서 출발해 화살표로 읽는 출력이에요.\n    printf(\"%d\", head->value);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nstruct Node {\n    int value;\n    struct Node *next;\n};\n\nint main(void) {\n    struct Node c = {63, NULL};\n    struct Node b = {57, &c};\n    struct Node a = {41, &b};\n    struct Node *head = &a;\n    // head에서 출발해 화살표로 읽는 출력이에요.\n    printf(\"%d\", head->next->value);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "57"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "head": "&b"
+          },
+          "expected": "63"
+        },
+        {
+          "values": {
+            "b": "{88, &c}"
+          },
+          "expected": "88"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "head에서 출발해 한 칸 뒤 노드의 번호를 읽는 문제예요.",
+          "target": "text:head에서 화살표를 따라가 두 번째 노드의 번호를 출력하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "41이 나왔어요. head가 가리키는 a의 번호예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "a를 초기화한 {41, &b}의 두 번째 칸이 next예요. b의 주소가 들어 있어요.",
+          "target": "code:{41, &b}"
+        },
+        {
+          "action": "patch_code",
+          "before": "head->value",
+          "after": "head->next->value",
+          "say": "head->next로 b에 간 뒤 다시 ->로 번호를 읽어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "57이 나왔어요. head->next가 b를 가리켜서 b의 번호를 읽었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. b.value처럼 이름으로 바로 읽어도 지금은 57이에요. 하지만 head가 b를 가리키면 63이 나와야 해서 틀려요.",
+          "target": "code:head->next->value"
+        }
+      ]
+    },
+    {
+      "id": "stp_29590738-9fe3-4579-9a33-ae29b6f74de0",
+      "title": "끝까지 한 칸씩 걷는 반복을 고치세요",
+      "goal": "대기표 네 장이 a → b → c → d로 이어져 있어요. 반복은 cur가 NULL이 될 때까지 번호를 찍어요. 그런데 몇 장이 빠져요.\n\ncur를 옮기는 줄 한 곳을 고쳐 모든 대기표 번호가 이어진 순서대로 출력되게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 찍히는 번호를 확인하세요.\n2. cur를 다음 노드로 옮기는 줄을 고치세요.\n3. 다시 실행해 네 번호가 모두 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nstruct Node {\n    int value;\n    struct Node *next;\n};\n\nint main(void) {\n    struct Node d = {72, NULL};\n    struct Node c = {63, &d};\n    struct Node b = {57, &c};\n    struct Node a = {41, &b};\n    struct Node *cur = &a;\n    // cur가 가리키는 번호를 찍고 다음 노드로 옮겨요.\n    while (cur != NULL) {\n        printf(\"%d \", cur->value);\n        cur = cur->next->next;\n    }\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nstruct Node {\n    int value;\n    struct Node *next;\n};\n\nint main(void) {\n    struct Node d = {72, NULL};\n    struct Node c = {63, &d};\n    struct Node b = {57, &c};\n    struct Node a = {41, &b};\n    struct Node *cur = &a;\n    // cur가 가리키는 번호를 찍고 다음 노드로 옮겨요.\n    while (cur != NULL) {\n        printf(\"%d \", cur->value);\n        cur = cur->next;\n    }\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "41 57 63 72 "
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "cur": "&c"
+          },
+          "expected": "63 72 "
+        },
+        {
+          "values": {
+            "b": "{50, &c}"
+          },
+          "expected": "41 50 63 72 "
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "cur가 NULL에 닿을 때까지 네 노드를 빠짐없이 찍어야 해요.",
+          "target": "text:cur를 옮기는 줄 한 곳을 고쳐 모든 대기표 번호가 이어진 순서대로 출력되게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "41 63이 나왔어요. 57과 72를 건너뛰었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "cur->next->next는 화살표를 두 번 따라가요. a에서 c로, c에서 d를 넘어 NULL로 갔어요.",
+          "target": "code:cur = cur->next->next;"
+        },
+        {
+          "action": "patch_code",
+          "before": "cur = cur->next->next;",
+          "after": "cur = cur->next;",
+          "say": "화살표를 한 번만 따라가게 고쳐요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "41 57 63 72가 나왔어요. d의 next가 NULL이라 거기서 반복이 멈췄어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "cur != NULL 검사는 매 바퀴 앞에서 해요. 그래서 NULL을 ->로 읽기 전에 멈춰요.",
+          "target": "code:while (cur != NULL)"
+        }
+      ]
+    },
+    {
+      "id": "stp_94b816b6-9d4c-4505-88e6-ca580cec7923",
+      "title": "링크를 고쳐 대기 순서를 바로잡으세요",
+      "goal": "대기표 a, b, c를 선언한 뒤 next 대입으로 이어요. 57번 b가 63번 c보다 먼저 왔는데, 이음이 잘못돼 순서가 뒤섞였어요.\n\nnext를 잇는 세 대입을 고쳐 a → b → c 순서로 출력되게 하세요. 출력하는 반복은 그대로 두세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 순서를 확인하세요.\n2. a의 next가 b를 가리키도록 고치세요.\n3. b의 next가 c를, c의 next가 NULL을 가리키도록 고치세요.\n4. 다시 실행해 41, 57, 63 순서인지 확인하세요.\n5. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nstruct Node {\n    int value;\n    struct Node *next;\n};\n\nint main(void) {\n    struct Node a = {41, NULL};\n    struct Node b = {57, NULL};\n    struct Node c = {63, NULL};\n    struct Node *head = &a;\n    struct Node *cur = head;\n    // 노드를 잇는 세 대입이에요.\n    a.next = &c;\n    c.next = &b;\n    b.next = NULL;\n    while (cur != NULL) {\n        printf(\"%d \", cur->value);\n        cur = cur->next;\n    }\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nstruct Node {\n    int value;\n    struct Node *next;\n};\n\nint main(void) {\n    struct Node a = {41, NULL};\n    struct Node b = {57, NULL};\n    struct Node c = {63, NULL};\n    struct Node *head = &a;\n    struct Node *cur = head;\n    // 노드를 잇는 세 대입이에요.\n    a.next = &b;\n    b.next = &c;\n    c.next = NULL;\n    while (cur != NULL) {\n        printf(\"%d \", cur->value);\n        cur = cur->next;\n    }\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "41 57 63 "
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "cur": "&b"
+          },
+          "expected": "57 63 "
+        },
+        {
+          "values": {
+            "b": "{70, NULL}"
+          },
+          "expected": "41 70 63 "
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "선언은 a, b, c 순서예요. 출력 순서는 무엇이 정하는지가 이 문제예요.",
+          "target": "text:next를 잇는 세 대입을 고쳐 a → b → c 순서로 출력되게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "41 63 57이 나왔어요. 반복은 선언 순서가 아니라 next를 따라갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    a.next = &c;\n",
+          "after": "    a.next = &b;\n",
+          "say": "먼저 a의 next만 b로 바꿔 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "41 57에서 끝났어요. b의 next가 아직 NULL이라 c가 끊겼어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 링크 하나만 고치면 그 뒤의 노드가 줄에서 떨어져 나가요. 바뀐 노드의 next도 함께 확인해야 해요.",
+          "target": "code:b.next = NULL;"
+        },
+        {
+          "action": "patch_code",
+          "before": "    c.next = &b;\n    b.next = NULL;\n",
+          "after": "    b.next = &c;\n    c.next = NULL;\n",
+          "say": "b 뒤에 c를 잇고, c를 마지막으로 만들어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "41 57 63이 나왔어요. 세 next가 a에서 b, b에서 c, c에서 NULL로 이어졌어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_87e03b62-829d-497c-b582-07a60d3708ce",
+      "title": "걸으면서 창구 수와 대기 인원을 모으세요",
+      "goal": "이번에는 노드마다 한 창구의 대기 인원이 들어 있어요. 반복은 cur를 끝까지 옮기기만 해요.\n\n반복 안에 두 줄을 써서 cur부터 끝까지 창구 수 count와 대기 인원 합계 total을 구하세요. 채점은 cur의 시작 노드를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 count와 total을 확인하세요.\n2. 주석 아래에 count를 1 늘리는 줄을 쓰세요.\n3. 그 아래에 total에 지금 노드의 인원을 더하는 줄을 쓰세요.\n4. 다시 실행해 창구 수와 인원 합계를 확인하세요.\n5. 작성한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nstruct Node {\n    int value;\n    struct Node *next;\n};\n\nint main(void) {\n    struct Node d = {3, NULL};\n    struct Node c = {5, &d};\n    struct Node b = {2, &c};\n    struct Node a = {4, &b};\n    struct Node *cur = &a;\n    int count = 0;\n    int total = 0;\n    while (cur != NULL) {\n        // 이 주석 아래에 count와 total을 늘리는 두 줄을 쓰세요.\n        cur = cur->next;\n    }\n    printf(\"%d %d\", count, total);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nstruct Node {\n    int value;\n    struct Node *next;\n};\n\nint main(void) {\n    struct Node d = {3, NULL};\n    struct Node c = {5, &d};\n    struct Node b = {2, &c};\n    struct Node a = {4, &b};\n    struct Node *cur = &a;\n    int count = 0;\n    int total = 0;\n    while (cur != NULL) {\n        // 이 주석 아래에 count와 total을 늘리는 두 줄을 쓰세요.\n        count++;\n        total = total + cur->value;\n        cur = cur->next;\n    }\n    printf(\"%d %d\", count, total);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "4 14"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "cur": "&c"
+          },
+          "expected": "2 8"
+        },
+        {
+          "values": {
+            "c": "{9, &d}"
+          },
+          "expected": "4 18"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "cur부터 끝까지 걸으며 창구 수와 인원 합계를 모으는 문제예요.",
+          "target": "text:cur부터 끝까지 창구 수 count와 대기 인원 합계 total을 구하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            20,
+            20
+          ]
+        },
+        {
+          "action": "say",
+          "text": "0 0이 나왔어요. 반복은 네 번 돌았지만 아무것도 세지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        // 이 주석 아래에 count와 total을 늘리는 두 줄을 쓰세요.\n",
+          "after": "        // 이 주석 아래에 count와 total을 늘리는 두 줄을 쓰세요.\n        count++;\n",
+          "say": "노드에 들를 때마다 count를 하나 늘려요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            21,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4 0이 나왔어요. 네 노드를 모두 들렀어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "        count++;\n",
+          "after": "        count++;\n        total = total + cur->value;\n",
+          "say": "cur가 가리키는 노드의 인원을 total에 더해요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            22,
+            22
+          ]
+        },
+        {
+          "action": "say",
+          "text": "4 14가 나왔어요. 4, 2, 5, 3을 차례로 더했어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "더하는 줄은 cur를 옮기는 줄보다 위에 있어야 해요. 아래에 두면 다음 노드를 읽고, 마지막엔 NULL을 읽어요.",
+          "target": "code:cur = cur->next;"
+        }
+      ]
+    },
+    {
+      "id": "stp_e4ba4c04-6a57-4d76-91ca-75e3d9132be0",
+      "title": "새 노드를 맨 앞에 끼우세요",
+      "goal": "창구에서 부른 번호를 기록해요. 가장 최근에 부른 번호가 맨 앞에 보여야 해요. 지금은 끼울 때마다 앞 기록이 사라져요.\n\n새 노드의 next에 넣는 값 한 곳을 고쳐, 새 노드가 지금까지의 리스트 앞에 붙게 하세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 남은 기록을 확인하세요.\n2. pool[i].next에 넣는 값을 한 곳 고치세요.\n3. 다시 실행해 네 번호가 모두 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nstruct Node {\n    int value;\n    struct Node *next;\n};\n\nint main(void) {\n    int arrive[4] = {41, 57, 63, 72};\n    struct Node pool[4];\n    struct Node *head = NULL;\n    int i;\n    // 부른 번호를 차례로 리스트 맨 앞에 끼워요.\n    for (i = 0; i < 4; i++) {\n        pool[i].value = arrive[i];\n        pool[i].next = NULL;\n        head = &pool[i];\n    }\n    struct Node *cur = head;\n    while (cur != NULL) {\n        printf(\"%d \", cur->value);\n        cur = cur->next;\n    }\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nstruct Node {\n    int value;\n    struct Node *next;\n};\n\nint main(void) {\n    int arrive[4] = {41, 57, 63, 72};\n    struct Node pool[4];\n    struct Node *head = NULL;\n    int i;\n    // 부른 번호를 차례로 리스트 맨 앞에 끼워요.\n    for (i = 0; i < 4; i++) {\n        pool[i].value = arrive[i];\n        pool[i].next = head;\n        head = &pool[i];\n    }\n    struct Node *cur = head;\n    while (cur != NULL) {\n        printf(\"%d \", cur->value);\n        cur = cur->next;\n    }\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "72 63 57 41 "
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "arrive": "{5, 8, 2, 9}"
+          },
+          "expected": "9 2 8 5 "
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "새 노드가 기존 리스트 앞에 붙어야 해요. 그러려면 새 노드가 기존 맨 앞을 가리켜야 해요.",
+          "target": "text:새 노드가 지금까지의 리스트 앞에 붙게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            21,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "72 하나만 나왔어요. 매번 next가 NULL이라 head는 마지막 노드 하나뿐이에요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "pool[i].next = NULL;",
+          "after": "pool[i].next = head;",
+          "say": "head를 바꾸기 전에 지금 맨 앞을 새 노드의 next에 넣어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            21,
+            21
+          ]
+        },
+        {
+          "action": "say",
+          "text": "72 63 57 41이 나왔어요. 부른 순서의 거꾸로예요. 나중에 끼운 노드가 앞에 서요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. head = &pool[i]를 먼저 쓰면 새 노드의 next가 자기 자신이 돼요. 출력 반복이 끝나지 않아요.",
+          "target": "code:head = &pool[i];"
+        }
+      ]
+    },
+    {
+      "id": "stp_2681b0e7-632d-4a4b-85b6-da461de6cd57",
+      "title": "마지막 노드 뒤에 이어 부른 순서를 지키세요",
+      "goal": "이번에는 부른 순서 그대로 기록하려 해요. tail은 지금 리스트의 마지막 노드를 가리켜요. 첫 노드는 head가 되고, 그다음부터 이을 줄이 비어 있어요.\n\nelse 안에 한 줄을 써서 새 노드를 지금 마지막 노드 뒤에 이으세요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 남은 기록을 확인하세요.\n2. else 안의 주석 아래에 마지막 노드의 next에 새 노드를 넣는 줄을 쓰세요.\n3. 다시 실행해 부른 순서대로 나오는지 확인하세요.\n4. 작성한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nstruct Node {\n    int value;\n    struct Node *next;\n};\n\nint main(void) {\n    int arrive[4] = {41, 57, 63, 72};\n    struct Node pool[4];\n    struct Node *head = NULL;\n    struct Node *tail = NULL;\n    int i;\n    // 부른 번호를 차례로 리스트 끝에 이어요.\n    for (i = 0; i < 4; i++) {\n        pool[i].value = arrive[i];\n        pool[i].next = NULL;\n        if (head == NULL) {\n            head = &pool[i];\n        } else {\n            // 이 주석 아래에 지금 마지막 노드 뒤에 pool[i]를 잇는 줄을 쓰세요.\n        }\n        tail = &pool[i];\n    }\n    struct Node *cur = head;\n    while (cur != NULL) {\n        printf(\"%d \", cur->value);\n        cur = cur->next;\n    }\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nstruct Node {\n    int value;\n    struct Node *next;\n};\n\nint main(void) {\n    int arrive[4] = {41, 57, 63, 72};\n    struct Node pool[4];\n    struct Node *head = NULL;\n    struct Node *tail = NULL;\n    int i;\n    // 부른 번호를 차례로 리스트 끝에 이어요.\n    for (i = 0; i < 4; i++) {\n        pool[i].value = arrive[i];\n        pool[i].next = NULL;\n        if (head == NULL) {\n            head = &pool[i];\n        } else {\n            // 이 주석 아래에 지금 마지막 노드 뒤에 pool[i]를 잇는 줄을 쓰세요.\n            tail->next = &pool[i];\n        }\n        tail = &pool[i];\n    }\n    struct Node *cur = head;\n    while (cur != NULL) {\n        printf(\"%d \", cur->value);\n        cur = cur->next;\n    }\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "41 57 63 72 "
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "arrive": "{5, 8, 2, 9}"
+          },
+          "expected": "5 8 2 9 "
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "새 노드를 맨 뒤에 이어 부른 순서를 지켜야 해요.",
+          "target": "text:else 안에 한 줄을 써서 새 노드를 지금 마지막 노드 뒤에 이으세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            27,
+            27
+          ]
+        },
+        {
+          "action": "say",
+          "text": "41 하나만 나왔어요. head만 생기고 뒤 노드는 아무도 가리키지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "            // 이 주석 아래에 지금 마지막 노드 뒤에 pool[i]를 잇는 줄을 쓰세요.\n",
+          "after": "            // 이 주석 아래에 지금 마지막 노드 뒤에 pool[i]를 잇는 줄을 쓰세요.\n            head->next = &pool[i];\n",
+          "say": "먼저 head 뒤에 이어 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            28,
+            28
+          ]
+        },
+        {
+          "action": "say",
+          "text": "41 72가 나왔어요. head의 next를 매번 덮어써서 마지막에 이은 72만 남았어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 끝에 이으려면 맨 앞이 아니라 지금 마지막 노드의 next를 바꿔야 해요. head에 이으면 덮어쓰기만 반복돼요.",
+          "target": "code:head->next = &pool[i];"
+        },
+        {
+          "action": "patch_code",
+          "before": "head->next = &pool[i];",
+          "after": "tail->next = &pool[i];",
+          "say": "tail이 가리키는 마지막 노드 뒤에 이어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            28,
+            28
+          ]
+        },
+        {
+          "action": "say",
+          "text": "41 57 63 72가 나왔어요. tail이 매번 새 노드로 옮겨 가서 다음 노드가 그 뒤에 붙었어요.",
+          "target": "output"
+        }
+      ]
+    },
+    {
+      "id": "stp_e38f7232-9ec9-40bb-a6ed-4707e6df343d",
+      "title": "찾은 노드를 맨 앞으로 옮기세요",
+      "goal": "번호 target의 대기표를 맨 앞으로 옮기려 해요. 반복이 끝나면 cur는 그 노드, prev는 바로 앞 노드를 가리켜요. target은 맨 앞이 아닌 노드예요.\n\n주석 아래에 한 줄을 써서 cur가 빠진 자리를 prev에서 cur 다음 노드로 이으세요. 채점은 target을 다른 번호로 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 네 칸의 순서를 확인하세요.\n2. 주석 아래에 prev의 next가 cur의 다음 노드를 가리키게 하는 줄을 쓰세요.\n3. 다시 실행해 네 번호가 한 번씩만 나오는지 확인하세요.\n4. 작성한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nstruct Node {\n    int value;\n    struct Node *next;\n};\n\nint main(void) {\n    struct Node d = {72, NULL};\n    struct Node c = {63, &d};\n    struct Node b = {57, &c};\n    struct Node a = {41, &b};\n    struct Node *head = &a;\n    struct Node *prev = &a;\n    struct Node *cur = a.next;\n    struct Node *p;\n    int target = 63;\n    int k;\n    // cur가 target 번호에 닿을 때까지 prev와 함께 한 칸씩 가요.\n    while (cur->value != target) {\n        prev = cur;\n        cur = cur->next;\n    }\n    // 이 주석 아래에 cur를 빼낸 자리를 잇는 줄을 쓰세요.\n    cur->next = head;\n    head = cur;\n    // 노드가 넷이라 네 칸만 출력해요.\n    p = head;\n    for (k = 0; k < 4; k++) {\n        printf(\"%d \", p->value);\n        p = p->next;\n    }\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nstruct Node {\n    int value;\n    struct Node *next;\n};\n\nint main(void) {\n    struct Node d = {72, NULL};\n    struct Node c = {63, &d};\n    struct Node b = {57, &c};\n    struct Node a = {41, &b};\n    struct Node *head = &a;\n    struct Node *prev = &a;\n    struct Node *cur = a.next;\n    struct Node *p;\n    int target = 63;\n    int k;\n    // cur가 target 번호에 닿을 때까지 prev와 함께 한 칸씩 가요.\n    while (cur->value != target) {\n        prev = cur;\n        cur = cur->next;\n    }\n    // 이 주석 아래에 cur를 빼낸 자리를 잇는 줄을 쓰세요.\n    prev->next = cur->next;\n    cur->next = head;\n    head = cur;\n    // 노드가 넷이라 네 칸만 출력해요.\n    p = head;\n    for (k = 0; k < 4; k++) {\n        printf(\"%d \", p->value);\n        p = p->next;\n    }\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "63 41 57 72 "
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "target": "72"
+          },
+          "expected": "72 41 57 63 "
+        },
+        {
+          "values": {
+            "target": "57"
+          },
+          "expected": "57 41 63 72 "
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "63번을 맨 앞으로 옮기되, 원래 자리는 빈틈없이 이어야 해요.",
+          "target": "text:cur가 빠진 자리를 prev에서 cur 다음 노드로 이으세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            30,
+            30
+          ]
+        },
+        {
+          "action": "say",
+          "text": "63 41 57 63이 나왔어요. 63이 두 번 나오고 72는 사라졌어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "b의 next가 아직 c를 가리켜요. 그래서 c, a, b를 돌고 다시 c로 왔어요.",
+          "target": "code:prev = cur;"
+        },
+        {
+          "action": "patch_code",
+          "before": "    cur->next = head;\n",
+          "after": "    cur->next = head;\n    prev->next = cur->next;\n",
+          "say": "prev를 cur 다음으로 잇는 줄을 먼저 아래쪽에 써 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            31,
+            31
+          ]
+        },
+        {
+          "action": "say",
+          "text": "63 41 57 41이 나왔어요. cur->next가 이미 a로 바뀐 뒤라 b가 a를 가리켰어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    cur->next = head;\n    prev->next = cur->next;\n",
+          "after": "    cur->next = head;\n",
+          "say": "그 줄을 지우고 주석 아래로 올릴게요."
+        },
+        {
+          "action": "patch_code",
+          "before": "    // 이 주석 아래에 cur를 빼낸 자리를 잇는 줄을 쓰세요.\n",
+          "after": "    // 이 주석 아래에 cur를 빼낸 자리를 잇는 줄을 쓰세요.\n    prev->next = cur->next;\n",
+          "say": "cur->next가 아직 d일 때 prev에 넘겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            31,
+            31
+          ]
+        },
+        {
+          "action": "say",
+          "text": "63 41 57 72가 나왔어요. b가 d를 가리키고, c는 a 앞에 섰어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. cur->next를 바꾸는 줄이 먼저 오면 원래 다음 노드를 잃어요. 빼낸 자리부터 이어야 해요.",
+          "target": "code:prev->next = cur->next;"
+        }
+      ]
+    },
+    {
+      "id": "stp_a1caf8ac-1ffa-4908-9f9d-f70ebf272539",
+      "title": "두 칸씩 걸으며 짝끼리 번호를 바꾸세요",
+      "goal": "대기표를 두 장씩 짝지어 짝 안에서 번호를 맞바꾸려 해요. 41 57 63 72라면 57 41 72 63이 돼야 해요. 지금은 한 번 바꾼 번호가 다음 짝에 또 끼어요.\n\ncur를 옮기는 줄 한 곳을 고쳐 짝마다 한 번씩만 바꾸게 하세요. 채점은 cur의 시작 노드를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 순서를 확인하세요.\n2. 반복 안에서 cur를 옮기는 줄을 고치세요.\n3. 다시 실행해 짝마다 번호가 바뀌었는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nstruct Node {\n    int value;\n    struct Node *next;\n};\n\nint main(void) {\n    struct Node d = {72, NULL};\n    struct Node c = {63, &d};\n    struct Node b = {57, &c};\n    struct Node a = {41, &b};\n    struct Node *cur = &a;\n    struct Node *p;\n    int temp;\n    // 이웃한 두 노드의 번호를 바꾸고 다음 쌍으로 넘어가요.\n    while (cur != NULL && cur->next != NULL) {\n        temp = cur->value;\n        cur->value = cur->next->value;\n        cur->next->value = temp;\n        cur = cur->next;\n    }\n    for (p = &a; p != NULL; p = p->next) {\n        printf(\"%d \", p->value);\n    }\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nstruct Node {\n    int value;\n    struct Node *next;\n};\n\nint main(void) {\n    struct Node d = {72, NULL};\n    struct Node c = {63, &d};\n    struct Node b = {57, &c};\n    struct Node a = {41, &b};\n    struct Node *cur = &a;\n    struct Node *p;\n    int temp;\n    // 이웃한 두 노드의 번호를 바꾸고 다음 쌍으로 넘어가요.\n    while (cur != NULL && cur->next != NULL) {\n        temp = cur->value;\n        cur->value = cur->next->value;\n        cur->next->value = temp;\n        cur = cur->next->next;\n    }\n    for (p = &a; p != NULL; p = p->next) {\n        printf(\"%d \", p->value);\n    }\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "57 41 72 63 "
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "d": "{80, NULL}"
+          },
+          "expected": "57 41 80 63 "
+        },
+        {
+          "values": {
+            "cur": "&b"
+          },
+          "expected": "41 63 57 72 "
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "짝 안에서만 번호를 바꾸고 다음 짝으로 넘어가야 해요.",
+          "target": "text:cur를 옮기는 줄 한 곳을 고쳐 짝마다 한 번씩만 바꾸게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            24,
+            24
+          ]
+        },
+        {
+          "action": "say",
+          "text": "57 63 72 41이 나왔어요. 41이 바뀔 때마다 한 칸씩 뒤로 밀렸어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "한 칸만 가면 방금 바꾼 둘째 노드가 다음 짝의 첫째가 돼요.",
+          "target": "code:cur = cur->next;"
+        },
+        {
+          "action": "patch_code",
+          "before": "        cur = cur->next;\n",
+          "after": "        cur = cur->next->next;\n",
+          "say": "짝 하나를 통째로 건너뛰도록 두 칸 옮겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            24,
+            24
+          ]
+        },
+        {
+          "action": "say",
+          "text": "57 41 72 63이 나왔어요. 첫 짝과 둘째 짝이 각각 한 번씩 바뀌었어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "둘째 짝 뒤에 cur는 d의 next, 즉 NULL이에요. 그래서 cur != NULL을 && 앞에 둬야 해요.",
+          "target": "code:cur != NULL &&"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. cur->next != NULL만 남기면 cur가 NULL일 때 ->를 읽어요. 실행이 멈추거나 엉뚱한 값을 읽어요.",
+          "target": "code:cur->next != NULL"
+        }
+      ]
+    },
+    {
+      "id": "stp_4d322db5-8e37-47c1-ad49-09560a54fc68",
+      "title": "부서를 위에서부터 방문해 출력하세요",
+      "goal": "본부 40 아래에 왼쪽 부서 20과 오른쪽 부서 60이 있어요. visit는 n이 NULL이면 돌아가고, 아니면 왼쪽과 오른쪽 아래 부서를 차례로 방문해요. 그런데 아무것도 출력하지 않아요.\n\n**알아두세요**\n\n노드마다 아래를 가리키는 포인터가 둘인 구조를 이진 트리라고 해요. 맨 위 노드를 루트(root)라고 해요.\n\n주석 아래에 printf 한 줄을 써서 각 부서가 아래 부서보다 먼저 출력되게 하세요. 번호 뒤에는 공백 한 칸을 찍으세요.\n\n**할 일**\n\n1. 주석 아래에 n의 번호와 공백 한 칸을 출력하는 printf 한 줄을 쓰세요.\n2. 코드 실행을 눌러 본부가 맨 앞에 나오는지 확인하세요.\n3. 작성한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nstruct Tree {\n    int value;\n    struct Tree *left;\n    struct Tree *right;\n};\n\nvoid visit(struct Tree *n) {\n    if (n == NULL) {\n        return;\n    }\n    // 이 주석 아래에 n의 번호를 출력하는 printf 한 줄을 쓰세요.\n    visit(n->left);\n    visit(n->right);\n}\n\nint main(void) {\n    struct Tree b = {20, NULL, NULL};\n    struct Tree c = {60, NULL, NULL};\n    struct Tree a = {40, &b, &c};\n    visit(&a);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nstruct Tree {\n    int value;\n    struct Tree *left;\n    struct Tree *right;\n};\n\nvoid visit(struct Tree *n) {\n    if (n == NULL) {\n        return;\n    }\n    // 이 주석 아래에 n의 번호를 출력하는 printf 한 줄을 쓰세요.\n    printf(\"%d \", n->value);\n    visit(n->left);\n    visit(n->right);\n}\n\nint main(void) {\n    struct Tree b = {20, NULL, NULL};\n    struct Tree c = {60, NULL, NULL};\n    struct Tree a = {40, &b, &c};\n    visit(&a);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "40 20 60 "
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "a": "{40, &c, &b}"
+          },
+          "expected": "40 60 20 "
+        },
+        {
+          "values": {
+            "a": "{45, &b, &c}"
+          },
+          "expected": "45 20 60 "
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "부서가 자기 아래 부서보다 먼저 찍혀야 해요.",
+          "target": "text:각 부서가 아래 부서보다 먼저 출력되게 하세요."
+        },
+        {
+          "action": "say",
+          "text": "visit는 n이 NULL이면 바로 돌아가요. 아래 부서가 없는 자리에서 멈추는 끝 조건이에요.",
+          "target": "code:if (n == NULL)"
+        },
+        {
+          "action": "patch_code",
+          "before": "    // 이 주석 아래에 n의 번호를 출력하는 printf 한 줄을 쓰세요.\n",
+          "after": "    // 이 주석 아래에 n의 번호를 출력하는 printf 한 줄을 쓰세요.\n    printf(\"%d \", n->value);\n",
+          "say": "두 호출보다 앞에 번호를 찍어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            13,
+            13
+          ]
+        },
+        {
+          "action": "say",
+          "text": "40 20 60이 나왔어요. 40을 찍고 왼쪽 20, 오른쪽 60으로 내려갔어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "20의 visit는 NULL인 두 아래 칸을 부르고 곧 돌아와요. 그다음에야 60의 visit가 불려요.",
+          "target": "code:visit(n->right);"
+        },
+        {
+          "action": "say",
+          "text": "자식을 부르기 전에 자기를 처리하는 이 순서를 전위 순회(preorder)라고 해요.",
+          "target": "code:printf(\"%d \", n->value);"
+        }
+      ]
+    },
+    {
+      "id": "stp_adbdd48f-c49b-444d-bfb2-9e0c257af9b6",
+      "title": "아래 부서를 모두 마친 뒤 출력하세요",
+      "goal": "부서 20 아래에 10과 30이 더 생겼어요. 지금 visit는 부서를 아래 부서보다 먼저 찍어요. 이번에는 아래 부서를 모두 찍은 뒤에 그 부서를 찍으려 해요.\n\nprintf 줄을 옮겨 각 부서가 자기 아래 부서들보다 나중에 출력되게 하세요. 채점은 아래 부서의 좌우를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 순서를 확인하세요.\n2. printf 줄을 두 visit 호출의 뒤로 옮기세요.\n3. 다시 실행해 40이 맨 끝에 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nstruct Tree {\n    int value;\n    struct Tree *left;\n    struct Tree *right;\n};\n\nvoid visit(struct Tree *n) {\n    if (n == NULL) {\n        return;\n    }\n    // 번호를 찍는 위치가 방문 순서를 정해요.\n    printf(\"%d \", n->value);\n    visit(n->left);\n    visit(n->right);\n}\n\nint main(void) {\n    struct Tree d = {10, NULL, NULL};\n    struct Tree e = {30, NULL, NULL};\n    struct Tree b = {20, &d, &e};\n    struct Tree c = {60, NULL, NULL};\n    struct Tree a = {40, &b, &c};\n    visit(&a);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nstruct Tree {\n    int value;\n    struct Tree *left;\n    struct Tree *right;\n};\n\nvoid visit(struct Tree *n) {\n    if (n == NULL) {\n        return;\n    }\n    // 번호를 찍는 위치가 방문 순서를 정해요.\n    visit(n->left);\n    visit(n->right);\n    printf(\"%d \", n->value);\n}\n\nint main(void) {\n    struct Tree d = {10, NULL, NULL};\n    struct Tree e = {30, NULL, NULL};\n    struct Tree b = {20, &d, &e};\n    struct Tree c = {60, NULL, NULL};\n    struct Tree a = {40, &b, &c};\n    visit(&a);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "10 30 20 60 40 "
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "b": "{20, &e, &d}"
+          },
+          "expected": "30 10 20 60 40 "
+        },
+        {
+          "values": {
+            "a": "{40, &c, &b}"
+          },
+          "expected": "60 10 30 20 40 "
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "함수는 그대로 두고 printf의 자리만 옮겨 순서를 바꾸는 문제예요.",
+          "target": "text:printf 줄을 옮겨 각 부서가 자기 아래 부서들보다 나중에 출력되게 하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            14,
+            14
+          ]
+        },
+        {
+          "action": "say",
+          "text": "40 20 10 30 60이 나왔어요. 앞 스텝처럼 부모가 먼저인 전위 순서예요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "    printf(\"%d \", n->value);\n    visit(n->left);\n",
+          "after": "    visit(n->left);\n    printf(\"%d \", n->value);\n",
+          "say": "먼저 printf를 두 호출 사이로 옮겨 볼게요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            15,
+            15
+          ]
+        },
+        {
+          "action": "say",
+          "text": "10 20 30 40 60이 나왔어요. 왼쪽을 다 돈 뒤에 자기를 찍는 중위 순서(inorder)예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 두 호출 사이에 두면 오른쪽 아래보다만 먼저예요. 왼쪽 아래보다는 나중이라 요구와 달라요.",
+          "target": "code:visit(n->right);"
+        },
+        {
+          "action": "patch_code",
+          "before": "    printf(\"%d \", n->value);\n    visit(n->right);\n",
+          "after": "    visit(n->right);\n    printf(\"%d \", n->value);\n",
+          "say": "이번엔 두 호출 뒤로 옮겨요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            16,
+            16
+          ]
+        },
+        {
+          "action": "say",
+          "text": "10 30 20 60 40이 나왔어요. 아래를 모두 마친 부서만 찍혀서 루트 40이 맨 끝이에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "자식을 다 부른 뒤에 처리하는 이 순서가 후위 순회(postorder)예요.",
+          "target": "code:printf(\"%d \", n->value);"
+        }
+      ]
+    },
+    {
+      "id": "stp_ec6c5913-b80a-48fe-8c8a-187c6f6a6460",
+      "title": "후위 순서로 k번째 부서만 출력하세요",
+      "goal": "후위 순서로 부서를 마칠 때마다 전역 변수 count가 1씩 늘어요. count는 함수 밖에 있어서 모든 visit 호출이 같은 값을 이어서 써요.\n\nprintf에 조건을 붙여 후위 순서로 k번째에 마친 부서의 번호만 출력하세요. count++와 두 호출의 위치는 그대로 두세요. 채점은 k를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 지금 출력을 확인하세요.\n2. printf를 count와 k를 비교하는 if로 감싸세요.\n3. 다시 실행해 번호 하나만 나오는지 확인하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "c",
+      "starter_code": "#include <stdio.h>\n\nstruct Tree {\n    int value;\n    struct Tree *left;\n    struct Tree *right;\n};\n\nint count = 0;\nint k = 3;\n\nvoid visit(struct Tree *n) {\n    if (n == NULL) {\n        return;\n    }\n    visit(n->left);\n    visit(n->right);\n    count++;\n    // 이 주석 아래 printf가 k번째로 마친 노드에서만 실행되게 하세요.\n    printf(\"%d \", n->value);\n}\n\nint main(void) {\n    struct Tree d = {10, NULL, NULL};\n    struct Tree e = {30, NULL, NULL};\n    struct Tree b = {20, &d, &e};\n    struct Tree c = {60, NULL, NULL};\n    struct Tree a = {40, &b, &c};\n    visit(&a);\n    return 0;\n}\n",
+      "solution": "#include <stdio.h>\n\nstruct Tree {\n    int value;\n    struct Tree *left;\n    struct Tree *right;\n};\n\nint count = 0;\nint k = 3;\n\nvoid visit(struct Tree *n) {\n    if (n == NULL) {\n        return;\n    }\n    visit(n->left);\n    visit(n->right);\n    count++;\n    // 이 주석 아래 printf가 k번째로 마친 노드에서만 실행되게 하세요.\n    if (count == k) {\n        printf(\"%d \", n->value);\n    }\n}\n\nint main(void) {\n    struct Tree d = {10, NULL, NULL};\n    struct Tree e = {30, NULL, NULL};\n    struct Tree b = {20, &d, &e};\n    struct Tree c = {60, NULL, NULL};\n    struct Tree a = {40, &b, &c};\n    visit(&a);\n    return 0;\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "20 "
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "k": "1"
+          },
+          "expected": "10 "
+        },
+        {
+          "values": {
+            "k": "5"
+          },
+          "expected": "40 "
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "후위 순서로 세서 k번째 부서 하나만 찍는 문제예요.",
+          "target": "text:후위 순서로 k번째에 마친 부서의 번호만 출력하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "10 30 20 60 40이 나왔어요. 지금은 마치는 부서마다 다 찍어요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "count는 전역이라 호출이 끝나도 사라지지 않아요. 10에서 1, 30에서 2, 20에서 3이 돼요.",
+          "target": "code:count++;"
+        },
+        {
+          "action": "patch_code",
+          "before": "    // 이 주석 아래 printf가 k번째로 마친 노드에서만 실행되게 하세요.\n    printf(\"%d \", n->value);\n",
+          "after": "    // 이 주석 아래 printf가 k번째로 마친 노드에서만 실행되게 하세요.\n    if (count == k) {\n        printf(\"%d \", n->value);\n    }\n",
+          "say": "count가 k와 같을 때만 찍도록 감싸요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            19,
+            19
+          ]
+        },
+        {
+          "action": "say",
+          "text": "20이 나왔어요. 후위 순서의 세 번째 부서예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "NULL 호출은 count++보다 먼저 돌아가요. 그래서 빈 자리는 세지 않아요.",
+          "target": "code:return;"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. count++를 두 호출 위로 올리면 전위 순서로 세요. 그러면 세 번째는 10이 돼요.",
+          "target": "code:visit(n->left);"
+        }
+      ]
+    }
+  ]
+}

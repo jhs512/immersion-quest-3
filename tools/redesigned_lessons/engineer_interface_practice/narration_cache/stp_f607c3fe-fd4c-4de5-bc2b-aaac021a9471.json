@@ -1,0 +1,101 @@
+{
+  "by": "hand",
+  "source_sha256": "3c6ececeea45a575db173d1a60bd146473a354f2abc938e4cf6ef284ac90fc5d",
+  "entry": [
+    {
+      "action": "say",
+      "text": "늘어난 칸은 넘기고, 필요한 칸이 빠지면 거절하는 문제예요.",
+      "target": "text:둘 중 하나라도 없으면 읽을 수 없음을 출력하게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "읽을 수 없음이 나왔어요. 칸 목록 전체가 item, qty와 똑같아야만 통과하거든요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "if sorted(order) == ['item', 'qty']:",
+      "after": "if True:",
+      "say": "검사를 아예 없애 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "pen 3이 나왔어요. 이번엔 memo를 그냥 지나쳤어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "\"pen\", \"qty\": 3, \"memo\"",
+      "after": "\"pen\", \"memo\"",
+      "say": "qty가 빠진 응답을 넣어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        8
+      ],
+      "expect_error": "KeyError"
+    },
+    {
+      "action": "say",
+      "text": "KeyError가 났어요. 없는 qty 칸을 읽으려다 멈췄어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 검사를 빼면 빠진 칸까지 통과해요. 그러면 읽다가 프로그램이 멈춰요.",
+      "target": "code:if True:"
+    },
+    {
+      "action": "patch_code",
+      "before": "if True:",
+      "after": "if 'item' in order and 'qty' in order:",
+      "say": "필요한 두 칸이 있는지만 물어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "읽을 수 없음이에요. qty가 없으니 멈추지 않고 거절했어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "\"pen\", \"memo\"",
+      "after": "\"pen\", \"qty\": 3, \"memo\"",
+      "say": "qty를 다시 넣어 v2 응답으로 돌려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "pen 3이에요. memo가 있어도 아는 칸만 읽어 통과했어요.",
+      "target": "output"
+    }
+  ]
+}

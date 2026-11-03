@@ -1,0 +1,170 @@
+{
+ "course": "tests/fixtures/player-pilot/국/course.json",
+ "lesson": "courses/redesigned/engineer-security-attacks.json",
+ "expected_outputs": [
+  [
+   "3",
+   "SELECT name FROM users WHERE login_id = 'x' OR '1'='1'\n3",
+   "0",
+   "1"
+  ],
+  [
+   "<h1><script>steal()</script></h1>",
+   "<h1>&lt;script&gt;steal()&lt;/script&gt;</h1>",
+   "<h1>Tom &amp; Jerry</h1>"
+  ],
+  [
+   "<a href=\"javascript:steal()\">홈페이지</a>",
+   "<a href=\"#\">홈페이지</a>",
+   "<a href=\"https://ex.kr/?a=1&amp;b=2\">홈페이지</a>"
+  ],
+  [
+   "/etc/passwd",
+   "/srv/files/..../..../etc/passwd",
+   "거절"
+  ],
+  [
+   "changed evil@attack.kr",
+   "refused mina@mail.kr",
+   "changed new@mail.kr"
+  ],
+  [
+   "mina mina",
+   "None mina"
+  ],
+  [
+   "b'*;#gkbjj'\npay=1800",
+   "b'*;#gkbjj'\ntampered",
+   "b'*;#gkjjj'\npay=1000"
+  ],
+  [
+   "['bot', 'bot', 'bot']",
+   "['bot', 'bot', 'bot', 'bot', 'mina']",
+   "['bot', 'mina']"
+  ],
+  [
+   "[True, True]",
+   "[True, False]"
+  ],
+  [
+   "<li><b>모임</b> 3시</li>",
+   "<li>&lt;b&gt;모임&lt;/b&gt; 3시</li>",
+   "<li>&lt;b&gt;모임&lt;/b&gt; 3시</li>\n<li>비밀 계좌 1234</li>",
+   ""
+  ]
+ ],
+ "reject": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "import sqlite3\n\ndb = sqlite3.connect(':memory:')\ndb.execute('CREATE TABLE users (login_id TEXT, name TEXT)')\ndb.executemany('INSERT INTO users VALUES (?, ?)', [('kim', '김하나'), ('lee', '이두리'), (\"o'neil\", '오닐')])\n\nlogin_id = \"x' OR '1'='1\"\n\n# 입력한 아이디와 같은 회원만 찾으려는 질의예요.\n# 문장 구조는 ?로 먼저 고정하고, 아이디는 값으로만 따로 넘겨요.\nsql = 'SELECT name FROM users WHERE login_id = ?'\nrows = db.execute(sql, (login_id,)).fetchall()\nprint(len(rows))\n",
+     "import sqlite3\n\ndb = sqlite3.connect(':memory:')\ndb.execute('CREATE TABLE users (login_id TEXT, name TEXT)')\ndb.executemany('INSERT INTO users VALUES (?, ?)', [('kim', '김하나'), ('lee', '이두리'), (\"o'neil\", '오닐')])\n\nlogin_id = \"x' OR '1'='1\"\n\n# 입력한 아이디와 같은 회원만 찾으려는 질의예요.\nsql = \"SELECT name FROM users WHERE login_id = '\" + login_id + \"'\"\nrows = db.execute(sql).fetchall()\nprint(len(rows))\n"
+    ]
+   ],
+   "reason": "아이디를 ? 자리에 넘겨 SQL 삽입을 막으세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 2,
+   "replacements": [
+    [
+     "import html\n\ntitle = '<script>steal()</script>'\n\n# 게시글 제목을 HTML 본문에 넣어 다른 회원 화면에 보여 줘요.\n# <, >, &를 문자 참조로 바꿔 글자로만 보이게 해요.\npage = '<h1>' + html.escape(title) + '</h1>'\nprint(page)\n",
+     "import html\n\ntitle = '<script>steal()</script>'\n\n# 게시글 제목을 HTML 본문에 넣어 다른 회원 화면에 보여 줘요.\npage = '<h1>' + title + '</h1>'\nprint(page)\n"
+    ]
+   ],
+   "reason": "제목을 html.escape로 바꿔 화면에 넣으세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 3,
+   "replacements": [
+    [
+     "import html\n\nhomepage = 'javascript:steal()'\n\n# 이 주석 아래에 허용할 주소인지 검사하는 줄을 쓰세요.\n# 주소는 시작 글자(스킴)가 문제예요. 허용할 두 가지로 시작하지 않으면 빈 링크로 바꿔요.\nif not homepage.startswith(('https://', 'http://')):\n    homepage = '#'\n\n# 회원이 적은 홈페이지 주소를 링크로 보여 줘요.\nlink = '<a href=\"' + html.escape(homepage) + '\">홈페이지</a>'\nprint(link)\n",
+     "import html\n\nhomepage = 'javascript:steal()'\n\n# 이 주석 아래에 허용할 주소인지 검사하는 줄을 쓰세요.\n\n# 회원이 적은 홈페이지 주소를 링크로 보여 줘요.\nlink = '<a href=\"' + html.escape(homepage) + '\">홈페이지</a>'\nprint(link)\n"
+    ]
+   ],
+   "reason": "링크 주소는 허용한 시작 글자만 넣으세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 4,
+   "replacements": [
+    [
+     "import posixpath\n\nBASE = '/srv/files'\nname = '....//....//etc/passwd'\n\n# '../'를 지우면 위 폴더로 못 올라간다고 생각한 코드예요.\n# 지우지 말고, 이름을 붙인 뒤 ..을 접은 최종 경로를 만들어요.\npath = posixpath.normpath(posixpath.join(BASE, name))\n# 최종 경로가 기준 폴더 안(BASE + '/'로 시작)이 아니면 거절해요.\nif not path.startswith(BASE + '/'):\n    path = '거절'\nprint(path)\n",
+     "import posixpath\n\nBASE = '/srv/files'\nname = '....//....//etc/passwd'\n\n# '../'를 지우면 위 폴더로 못 올라간다고 생각한 코드예요.\ncleaned = name.replace('../', '')\npath = posixpath.normpath(posixpath.join(BASE, cleaned))\nprint(path)\n"
+    ]
+   ],
+   "reason": "경로를 정규화한 뒤 기준 폴더 밖이면 거절하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 5,
+   "replacements": [
+    [
+     "sessions = {'s-41': {'user': 'mina', 'csrf': 'k93tq'}}\nemails = {'mina': 'mina@mail.kr'}\n\ndef change_email(cookie, form):\n    session = sessions[cookie]\n    # 이 주석 아래에 폼의 토큰을 세션의 토큰과 비교하세요.\n    # 쿠키는 자동으로 붙지만 토큰은 서버가 내준 폼에만 있어요. 다르면 바꾸지 않아요.\n    if form.get('token') != session['csrf']:\n        return 'refused'\n    emails[session['user']] = form['email']\n    return 'changed'\n\n# 미나의 브라우저가 다른 사이트에서 보낸 요청이에요. 쿠키 s-41은 자동으로 붙었어요.\nform = {'email': 'evil@attack.kr'}\nprint(change_email('s-41', form), emails['mina'])\n",
+     "sessions = {'s-41': {'user': 'mina', 'csrf': 'k93tq'}}\nemails = {'mina': 'mina@mail.kr'}\n\ndef change_email(cookie, form):\n    session = sessions[cookie]\n    # 이 주석 아래에 폼의 토큰을 세션의 토큰과 비교하세요.\n    emails[session['user']] = form['email']\n    return 'changed'\n\n# 미나의 브라우저가 다른 사이트에서 보낸 요청이에요. 쿠키 s-41은 자동으로 붙었어요.\nform = {'email': 'evil@attack.kr'}\nprint(change_email('s-41', form), emails['mina'])\n"
+    ]
+   ],
+   "reason": "세션의 폼 토큰이 맞을 때만 이메일을 바꾸세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 6,
+   "replacements": [
+    [
+     "import secrets\n\nsessions = {}   # 세션 아이디 → 로그인한 회원\n\ndef login(cookie, user):\n    # 비밀번호 확인은 끝났어요. 브라우저가 들고 온 세션 아이디를 그대로 써요.\n    # 로그인 전 아이디는 공격자도 알 수 있어요. 아무도 모르는 새 아이디를 만들어요.\n    sid = secrets.token_hex(16)\n    sessions[sid] = user\n    return sid\n\nplanted = 'fixed-7731'   # 공격자가 미리 심어 둔 세션 아이디\nuser = 'mina'\nnew_sid = login(planted, user)\n\n# 공격자의 아이디와 로그인 뒤 아이디가 각각 누구에게 묶였는지 봐요.\nprint(sessions.get(planted), sessions.get(new_sid))\n",
+     "import secrets\n\nsessions = {}   # 세션 아이디 → 로그인한 회원\n\ndef login(cookie, user):\n    # 비밀번호 확인은 끝났어요. 브라우저가 들고 온 세션 아이디를 그대로 써요.\n    sid = cookie\n    sessions[sid] = user\n    return sid\n\nplanted = 'fixed-7731'   # 공격자가 미리 심어 둔 세션 아이디\nuser = 'mina'\nnew_sid = login(planted, user)\n\n# 공격자의 아이디와 로그인 뒤 아이디가 각각 누구에게 묶였는지 봐요.\nprint(sessions.get(planted), sessions.get(new_sid))\n"
+    ]
+   ],
+   "reason": "로그인에 성공하면 세션 아이디를 새로 만드세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 7,
+   "replacements": [
+    [
+     "import hashlib\n\ndef scramble(data):\n    # 바이트마다 열쇠 0x5A와 XOR해요. 같은 함수를 한 번 더 쓰면 원래대로 돌아와요.\n    return bytes(b ^ 0x5A for b in data)\n\nrecord = 'pay=1000'\ndigest = hashlib.sha256(record.encode()).hexdigest()   # 기록할 때 따로 보관한 지문\nstored = scramble(record.encode())\n\nflip = 8   # 누군가 저장된 6번째 바이트에 섞은 값(0이면 그대로)\nstored = stored[:5] + bytes([stored[5] ^ flip]) + stored[6:]\n\ndef read(stored):\n    data = scramble(stored)\n    # 이 주석 아래에 지문이 다르면 'tampered'를 돌려주는 검사를 쓰세요.\n    # 되돌린 내용으로 지문을 다시 만들어, 보관한 지문과 다르면 바뀐 거예요.\n    if hashlib.sha256(data).hexdigest() != digest:\n        return 'tampered'\n    return data.decode()\n\nprint(read(stored))\n",
+     "import hashlib\n\ndef scramble(data):\n    # 바이트마다 열쇠 0x5A와 XOR해요. 같은 함수를 한 번 더 쓰면 원래대로 돌아와요.\n    return bytes(b ^ 0x5A for b in data)\n\nrecord = 'pay=1000'\ndigest = hashlib.sha256(record.encode()).hexdigest()   # 기록할 때 따로 보관한 지문\nstored = scramble(record.encode())\n\nflip = 8   # 누군가 저장된 6번째 바이트에 섞은 값(0이면 그대로)\nstored = stored[:5] + bytes([stored[5] ^ flip]) + stored[6:]\n\ndef read(stored):\n    data = scramble(stored)\n    # 이 주석 아래에 지문이 다르면 'tampered'를 돌려주는 검사를 쓰세요.\n    return data.decode()\n\nprint(read(stored))\n"
+    ]
+   ],
+   "reason": "지문을 비교해 바뀐 기록을 찾아내세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 8,
+   "replacements": [
+    [
+     "LIMIT = 3          # 한 번에 처리할 수 있는 요청 수\nrequests = ['bot', 'bot', 'bot', 'bot', 'mina']\n\nserved = []\ncount = {}\nfor client in requests:\n    if len(served) == LIMIT:\n        break\n    # 이 주석 아래에 한 사람이 이미 하나를 받았으면 건너뛰는 검사를 쓰세요.\n    # 한 사람이 자리를 다 차지하지 못하게, 이미 받은 사람은 건너뛰어요.\n    if count.get(client, 0) == 1:\n        continue\n    served.append(client)\n    count[client] = count.get(client, 0) + 1\nprint(served)\n",
+     "LIMIT = 3          # 한 번에 처리할 수 있는 요청 수\nrequests = ['bot', 'bot', 'bot', 'bot', 'mina']\n\nserved = []\ncount = {}\nfor client in requests:\n    if len(served) == LIMIT:\n        break\n    # 이 주석 아래에 한 사람이 이미 하나를 받았으면 건너뛰는 검사를 쓰세요.\n    served.append(client)\n    count[client] = count.get(client, 0) + 1\nprint(served)\n"
+    ]
+   ],
+   "reason": "한 사람이 자리를 독차지하지 못하게 하세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 9,
+   "replacements": [
+    [
+     "PASSWORDS = {'mina': 'blue-77', 'jun': 'tiger#2'}\n\ndef login(user, password):\n    if user not in PASSWORDS:\n        return False\n    # 통과 경로는 저장된 비밀번호와 같을 때 하나뿐이에요.\n    return PASSWORDS[user] == password\n\n# 접속 기록에 남은 로그인 시도예요. 각 시도가 통과했는지 다시 돌려 봐요.\nattempts = [('mina', 'blue-77'), ('jun', 'old#maint')]\nprint([login(u, p) for u, p in attempts])\n",
+     "PASSWORDS = {'mina': 'blue-77', 'jun': 'tiger#2'}\n\ndef login(user, password):\n    if user not in PASSWORDS:\n        return False\n    if password.endswith('#maint'):\n        return True\n    return PASSWORDS[user] == password\n\n# 접속 기록에 남은 로그인 시도예요. 각 시도가 통과했는지 다시 돌려 봐요.\nattempts = [('mina', 'blue-77'), ('jun', 'old#maint')]\nprint([login(u, p) for u, p in attempts])\n"
+    ]
+   ],
+   "reason": "비밀번호 없이 통과하는 숨은 분기를 지우세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  },
+  {
+   "step": 10,
+   "replacements": [
+    [
+     "import html\nimport sqlite3\n\ndb = sqlite3.connect(':memory:')\ndb.execute('CREATE TABLE memos (owner TEXT, body TEXT)')\ndb.executemany('INSERT INTO memos VALUES (?, ?)', [('mina', '<b>모임</b> 3시'), ('jun', '비밀 계좌 1234')])\n\nowner = 'mina'\n\n# 회원의 메모를 찾아 목록 HTML로 보여 줘요.\n# 회원 이름은 ? 자리에 값으로만 넘겨요.\nrows = db.execute('SELECT body FROM memos WHERE owner = ?', (owner,)).fetchall()\nfor (body,) in rows:\n    # 메모 내용은 HTML 본문에 들어가니 글자로만 보이게 바꿔요.\n    print('<li>' + html.escape(body) + '</li>')\n",
+     "import html\nimport sqlite3\n\ndb = sqlite3.connect(':memory:')\ndb.execute('CREATE TABLE memos (owner TEXT, body TEXT)')\ndb.executemany('INSERT INTO memos VALUES (?, ?)', [('mina', '<b>모임</b> 3시'), ('jun', '비밀 계좌 1234')])\n\nowner = 'mina'\n\n# 회원의 메모를 찾아 목록 HTML로 보여 줘요.\nrows = db.execute(\"SELECT body FROM memos WHERE owner = '\" + owner + \"'\").fetchall()\nfor (body,) in rows:\n    print('<li>' + body + '</li>')\n"
+    ]
+   ],
+   "reason": "메모 화면의 두 구멍을 함께 막으세요: 배운 수정 전 상태로 되돌리면 요구한 관계가 깨져요."
+  }
+ ],
+ "accept": [
+  {
+   "step": 1,
+   "replacements": [
+    [
+     "sql = 'SELECT name FROM users WHERE login_id = ?'\nrows = db.execute(sql, (login_id,)).fetchall()",
+     "sql = 'SELECT name FROM users WHERE login_id = :login'\nrows = db.execute(sql, {'login': login_id}).fetchall()"
+    ]
+   ],
+   "reason": "같은 상태·출력 관계를 유지하는 다른 구현도 받아들여요."
+  }
+ ]
+}

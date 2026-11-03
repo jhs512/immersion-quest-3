@@ -1,0 +1,62 @@
+{
+  "by": "hand",
+  "source_sha256": "4372d88f582c8d36dec1f1939d7031594c9f7aec4c7adbb44015bc4b2a4401e6",
+  "entry": [
+    {
+      "action": "say",
+      "text": "평문 패턴은 숨기고 받는 쪽은 글을 복원하는 문제예요.",
+      "target": "text:엿보는 쪽은 none, 서버는 원래 글을 읽게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        21,
+        22
+      ]
+    },
+    {
+      "action": "say",
+      "text": "sniffer: blue7이에요. 조각을 이어 붙이기만 했는데 비밀번호가 보여요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "엿보는 쪽은 아무것도 바꾸지 않았어요. 지나가는 걸 모으기만 했죠.",
+      "target": "code:seen = b''.join(frames)"
+    },
+    {
+      "action": "patch_code",
+      "before": "    return text.encode()\n",
+      "after": "    return toy_xor(text.encode())\n",
+      "say": "보내는 쪽에서 키로 감싸요."
+    },
+    {
+      "action": "patch_code",
+      "before": "    return frame.decode()\n",
+      "after": "    return toy_xor(frame).decode()\n",
+      "say": "받는 쪽은 같은 키로 한 번 더 XOR해 풀어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        21,
+        22
+      ]
+    },
+    {
+      "action": "say",
+      "text": "sniffer: none이에요. 선로 위 바이트에 pw=가 더는 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "server: user=kim&pw=blue7이에요. 키로 원래 글을 복원했어요. 이 모형은 안전한 암호가 아니에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 보내는 쪽만 감싸면 서버도 알 수 없는 바이트를 받아요. 암호 채널은 양끝이 같은 키를 써야 해요.",
+      "target": "code:toy_xor(frame).decode()"
+    }
+  ]
+}

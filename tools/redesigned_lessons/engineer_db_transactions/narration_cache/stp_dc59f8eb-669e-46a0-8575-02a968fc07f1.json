@@ -1,0 +1,74 @@
+{
+  "by": "hand",
+  "source_sha256": "59d8e51314ebbdbbae03bca711dc0831b1fb0b5703c24de25fffc76fc232e7cf",
+  "entry": [
+    {
+      "action": "say",
+      "text": "늦게 쓴 쪽이 0행을 돌려받게 UPDATE에 조건을 넣는 문제예요.",
+      "target": "text:늦게 쓴 쪽이 0행을 돌려받게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        20,
+        22
+      ]
+    },
+    {
+      "action": "say",
+      "text": "A 1, B 1, (7, 3)이 나왔어요. 둘 다 성공했고 재고 7이에요. A의 판매가 또 사라졌어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "지금 WHERE는 상품만 봐요. 누가 먼저 바꿨는지 묻지 않아요.",
+      "target": "code:WHERE item = 'pen'\", (qty,))"
+    },
+    {
+      "action": "patch_code",
+      "before": "    cur = conn.execute(\"UPDATE stock SET qty = ?, version = version + 1 WHERE item = 'pen'\", (qty,))\n",
+      "after": "    cur = conn.execute(\"UPDATE stock SET qty = ?, version = version + 1 WHERE item = 'pen' AND version = version\", (qty,))\n",
+      "say": "version이 같은지 보는 조건을 넣어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        20,
+        22
+      ]
+    },
+    {
+      "action": "say",
+      "text": "여전히 A 1, B 1, (7, 3)이에요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. version = version은 행이 자기 자신과 비교해서 늘 참이에요. 읽어 온 값과 비교해야 해요.",
+      "target": "code:AND version = version"
+    },
+    {
+      "action": "patch_code",
+      "before": "    cur = conn.execute(\"UPDATE stock SET qty = ?, version = version + 1 WHERE item = 'pen' AND version = version\", (qty,))\n",
+      "after": "    cur = conn.execute(\"UPDATE stock SET qty = ?, version = version + 1 WHERE item = 'pen' AND version = ?\", (qty, version))\n",
+      "say": "읽어 온 version을 ? 자리에 묶어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        20,
+        22
+      ]
+    },
+    {
+      "action": "say",
+      "text": "A 1, B 0, (8, 2)예요. B가 들고 온 version 1은 이미 2로 바뀌었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "B의 판매는 덮어쓰지 않고 거절됐어요. 0이라는 행 수로 충돌을 알 수 있어요.",
+      "target": "code:return cur.rowcount"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "by": "hand",
+  "source_sha256": "ff9eff250949720fb3a4e1a6d41285cf298bd59d18f245ceaeb6d8406379c88c",
+  "entry": [
+    {
+      "action": "say",
+      "text": "판매 뒤 shelf가 기본 표 items의 변화를 따라오는지 보는 문제예요.",
+      "target": "text:shelf를 만드는 줄을 뷰로 고쳐, pen이 팔린 뒤의 재고가 shelf에도 보이게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "두 목록 모두 pen이 9예요. 마지막 type은 table이에요. 복사한 표라 items가 바뀐 걸 몰라요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "CREATE TABLE shelf AS",
+      "after": "CREATE VIEW shelf AS",
+      "say": "복사 대신 뷰로 만들어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        6,
+        6
+      ]
+    },
+    {
+      "action": "say",
+      "text": "두 번째 목록의 pen이 7로 줄었고 type은 view예요. 뷰는 읽을 때마다 items를 다시 조회해요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "shelf에는 cost 열이 없어요. 뷰로 보여 줄 열만 골라 원가를 감출 수 있어요.",
+      "target": "code:SELECT name, stock FROM items"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 복사 표를 UPDATE 뒤로 옮겨 만들면 지금은 맞아 보여도, 다음 판매부터 또 어긋나요.",
+      "target": "code:CREATE VIEW shelf AS"
+    }
+  ]
+}

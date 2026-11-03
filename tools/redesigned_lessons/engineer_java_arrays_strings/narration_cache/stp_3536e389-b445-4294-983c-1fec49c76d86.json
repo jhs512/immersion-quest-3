@@ -1,0 +1,47 @@
+{
+  "by": "hand",
+  "source_sha256": "d891c4ce242e09903a7a24af0190f7962123fd79ad4f3fbe8dddbaa528c51a5f",
+  "entry": [
+    {
+      "action": "say",
+      "text": "쉼표 사이가 빈 조각은 건너뛰고 수량만 더해야 해요.",
+      "target": "text:반복 안에 한 줄을 더해 빈 조각은 건너뛰고 수량만 더하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        11
+      ],
+      "expect_error": "NumberFormatException"
+    },
+    {
+      "action": "say",
+      "text": "NumberFormatException이 났어요. 빈 문자열은 숫자로 바꿀 수 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "            total += Integer.parseInt(part);\n",
+      "after": "            if (part.length() == 0) continue;\n            total += Integer.parseInt(part);\n",
+      "say": "길이가 0인 조각이면 이번 반복을 건너뛰어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        11,
+        12
+      ]
+    },
+    {
+      "action": "say",
+      "text": "4와 15예요. 7, 빈 문자열, 3, 5로 네 조각이고 빈 조각은 건너뛰었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "끝 쉼표 뒤의 빈 조각은 split이 버려요. 그래서 조각은 다섯이 아니라 4예요.",
+      "target": "code:line.split(\",\")"
+    }
+  ]
+}

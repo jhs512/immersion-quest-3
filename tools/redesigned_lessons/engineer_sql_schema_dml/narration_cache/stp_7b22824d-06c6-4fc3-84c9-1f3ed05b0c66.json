@@ -1,0 +1,96 @@
+{
+  "by": "hand",
+  "source_sha256": "47e89dcbd58430637f3abfce8771d1c9b1b911fc49e5eeeda00a0790087e1a35",
+  "entry": [
+    {
+      "action": "say",
+      "text": "표를 지울 때 그 표에 기대는 뷰까지 정리하는 문제예요.",
+      "target": "text:old_staff에 기대는 뷰를 지우는 DROP 문 한 줄을 더해, 목록에 깨진 뷰가 남지 않게 하세요."
+    },
+    {
+      "action": "patch_code",
+      "before": "DROP TABLE old_staff;",
+      "after": "DROP TABLE old_staff CASCADE;",
+      "say": "표준 SQL처럼 CASCADE를 붙여 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        2,
+        2
+      ],
+      "expect_error": "syntax error"
+    },
+    {
+      "action": "say",
+      "text": "CASCADE 근처에서 문법 오류가 났어요. SQLite의 DROP에는 이 옵션이 없어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "DROP TABLE old_staff CASCADE;",
+      "after": "DROP TABLE old_staff;",
+      "say": "옵션을 빼고 원래대로 돌려요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        3,
+        3
+      ]
+    },
+    {
+      "action": "say",
+      "text": "old_staff는 사라졌는데 view | old_names가 목록에 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "SELECT type",
+      "after": "SELECT name FROM old_names;\nSELECT type",
+      "say": "남은 뷰를 읽어 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        3,
+        3
+      ],
+      "expect_error": "no such table"
+    },
+    {
+      "action": "say",
+      "text": "no such table 오류예요. 뷰가 읽을 표가 없어 깨진 채 남았어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. SQLite에서 표만 지우면 기대던 뷰가 조용히 깨져요. 표준의 RESTRICT라면 DROP 자체를 거절했을 상황이에요.",
+      "target": "code:SELECT name FROM old_names;"
+    },
+    {
+      "action": "patch_code",
+      "before": "SELECT name FROM old_names;\n",
+      "after": "",
+      "say": "확인한 줄은 지워요."
+    },
+    {
+      "action": "patch_code",
+      "before": "DROP TABLE old_staff;",
+      "after": "DROP VIEW old_names;\nDROP TABLE old_staff;",
+      "say": "표를 지우기 전에 뷰를 먼저 지워요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        4,
+        4
+      ]
+    },
+    {
+      "action": "say",
+      "text": "table | staff만 남았어요. 깨진 뷰 없이 정리됐어요.",
+      "target": "output"
+    }
+  ]
+}

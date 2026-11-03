@@ -1,0 +1,724 @@
+{
+  "schema_version": 2,
+  "id": "lsn_e65fb4db-3745-4a0c-bbb1-fe2c93fb98b5",
+  "revision": "engineer-security-auth-1",
+  "title": "보안 · 신원·권한·해시와 요청 검증을 나눠요",
+  "description": "인증과 인가, 솔트와 비밀번호 파생, OTP 소비, SSO와 위임 범위, JWT 클레임, HMAC과 재전송 방지를 단계적으로 확인해요.",
+  "objectives": [
+    "인증은 주장한 신원이 맞는지 확인하는 절차예요.",
+    "인가와 역할 기반 접근 제어를 인증과 구별해요.",
+    "해시는 같은 길이의 자료 변경도 구별하는 데 쓰여요.",
+    "솔트는 같은 비밀번호의 사전 계산 결과 재사용을 어렵게 해요.",
+    "유효한 인증 코드에도 일회 사용 상태가 필요해요.",
+    "통합 인증은 공유된 신뢰 관계를 바탕으로 신원을 전달해요.",
+    "OAuth의 위임 인가 범위를 로그인 여부와 구별해요.",
+    "JWT의 검증된 서명과 등록 클레임 조건을 연결해요.",
+    "HMAC은 비밀 키와 요청 내용으로 위변조를 확인해요.",
+    "서명 무결성과 재전송 방지는 별도의 조건이에요."
+  ],
+  "sources": [
+    "https://docs.python.org/3/library/hashlib.html",
+    "https://docs.python.org/3/library/hmac.html",
+    "https://www.rfc-editor.org/rfc/rfc7519"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_576a500c-5f6a-4595-be95-33fc1e1ada0d",
+      "title": "기초를 직접 확인해요",
+      "objectives": [
+        "인증은 주장한 신원이 맞는지 확인하는 절차예요.",
+        "인가와 역할 기반 접근 제어를 인증과 구별해요.",
+        "해시는 같은 길이의 자료 변경도 구별하는 데 쓰여요.",
+        "솔트는 같은 비밀번호의 사전 계산 결과 재사용을 어렵게 해요.",
+        "유효한 인증 코드에도 일회 사용 상태가 필요해요."
+      ],
+      "units": [
+        {
+          "id": "unt_cb189d83-5db4-4d37-96a4-f4376ddee0e3",
+          "title": "작은 상태를 바꿔요",
+          "objectives": [
+            "인증은 주장한 신원이 맞는지 확인하는 절차예요.",
+            "인가와 역할 기반 접근 제어를 인증과 구별해요.",
+            "해시는 같은 길이의 자료 변경도 구별하는 데 쓰여요.",
+            "솔트는 같은 비밀번호의 사전 계산 결과 재사용을 어렵게 해요.",
+            "유효한 인증 코드에도 일회 사용 상태가 필요해요."
+          ],
+          "premise": "창고의 로그인과 주문 요청에서 무엇을 믿고 무엇을 따로 검증하는지 비교해요. 각 문제는 제공된 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_3117a2bd-97d5-49f8-a8a8-d99f4ae6fd54",
+              "objectives": [
+                "인증은 주장한 신원이 맞는지 확인하는 절차예요."
+              ]
+            },
+            {
+              "id": "stp_a812e46e-62af-4da5-a4b4-91a395fdcbd7",
+              "objectives": [
+                "인가와 역할 기반 접근 제어를 인증과 구별해요."
+              ]
+            },
+            {
+              "id": "stp_81c20ef1-7d7d-4b2b-a455-4d4bef826bc5",
+              "objectives": [
+                "해시는 같은 길이의 자료 변경도 구별하는 데 쓰여요."
+              ]
+            },
+            {
+              "id": "stp_5e48bdd0-0d54-4102-b8d8-0f809e9784ac",
+              "objectives": [
+                "솔트는 같은 비밀번호의 사전 계산 결과 재사용을 어렵게 해요."
+              ]
+            },
+            {
+              "id": "stp_67f85663-ab92-47e3-926d-9bbfa1d3c8b6",
+              "objectives": [
+                "유효한 인증 코드에도 일회 사용 상태가 필요해요."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chp_96c9b89e-b5c0-4a51-a8a7-ca2146466e83",
+      "title": "조건을 더하고 연결해요",
+      "objectives": [
+        "통합 인증은 공유된 신뢰 관계를 바탕으로 신원을 전달해요.",
+        "OAuth의 위임 인가 범위를 로그인 여부와 구별해요.",
+        "JWT의 검증된 서명과 등록 클레임 조건을 연결해요.",
+        "HMAC은 비밀 키와 요청 내용으로 위변조를 확인해요.",
+        "서명 무결성과 재전송 방지는 별도의 조건이에요."
+      ],
+      "units": [
+        {
+          "id": "unt_36b2e4ab-3323-455e-a512-3367fa0038a2",
+          "title": "바뀐 조건을 다시 검증해요",
+          "objectives": [
+            "통합 인증은 공유된 신뢰 관계를 바탕으로 신원을 전달해요.",
+            "OAuth의 위임 인가 범위를 로그인 여부와 구별해요.",
+            "JWT의 검증된 서명과 등록 클레임 조건을 연결해요.",
+            "HMAC은 비밀 키와 요청 내용으로 위변조를 확인해요.",
+            "서명 무결성과 재전송 방지는 별도의 조건이에요."
+          ],
+          "premise": "창고의 로그인과 주문 요청에서 무엇을 믿고 무엇을 따로 검증하는지 비교해요. 각 문제는 제공된 준비 코드에서 새로 시작해요.",
+          "steps": [
+            {
+              "id": "stp_215bbfbd-a542-493c-b64f-bbcb69e21cee",
+              "objectives": [
+                "통합 인증은 공유된 신뢰 관계를 바탕으로 신원을 전달해요."
+              ]
+            },
+            {
+              "id": "stp_5b18fd87-5e08-4cf2-969a-a0e6cdfb784e",
+              "objectives": [
+                "OAuth의 위임 인가 범위를 로그인 여부와 구별해요."
+              ]
+            },
+            {
+              "id": "stp_4edef0d9-5a90-4e18-88c2-753fd0cd9b75",
+              "objectives": [
+                "JWT의 검증된 서명과 등록 클레임 조건을 연결해요."
+              ]
+            },
+            {
+              "id": "stp_dc5ec033-50a0-4f22-82e4-6da5eecd5a92",
+              "objectives": [
+                "HMAC은 비밀 키와 요청 내용으로 위변조를 확인해요."
+              ]
+            },
+            {
+              "id": "stp_85aeb737-8bd7-49a8-bcbe-1449a5c4120c",
+              "objectives": [
+                "서명 무결성과 재전송 방지는 별도의 조건이에요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_3117a2bd-97d5-49f8-a8a8-d99f4ae6fd54",
+      "title": "계정 존재뿐 아니라 비밀번호도 확인하세요",
+      "goal": "가입된 이름이라는 이유로 로그인시키면 안 돼요. 준비된 인증 흐름 모델에서 비밀번호 일치도 확인하세요.\n\n이름의 존재와 본인 증명은 달라요. 이 문제는 흐름 모델이에요. 비밀번호 저장 방식은 뒤에서 따로 고쳐요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 계정 존재뿐 아니라 비밀번호도 확인하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import hmac\nusername = 'lee'\npassword = 'wrong'\nusers = {'lee':'demo-password'}\nauthenticated = username in users\nprint(authenticated)\n",
+      "solution": "import hmac\nusername = 'lee'\npassword = 'wrong'\nusers = {'lee':'demo-password'}\nauthenticated = username in users and hmac.compare_digest(users[username], password)\nprint(authenticated)\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "False"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "인증은 주장한 신원이 맞는지 확인하는 절차예요.",
+          "target": "text:가입된 이름이라는 이유로 로그인시키면 안 돼요. 준비된 인증 흐름 모델에서 비밀번호 일치도 확인하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "True예요. 계정 이름만 알면 인증을 통과했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "authenticated = username in users",
+          "after": "authenticated = username in users and hmac.compare_digest(users[username], password)"
+        },
+        {
+          "action": "say",
+          "text": "이름의 존재와 본인 증명은 달라요. 이 문제는 흐름 모델이에요. 비밀번호 저장 방식은 뒤에서 따로 고쳐요.",
+          "target": "code:authenticated = username in users and hmac.compare_digest(users[username], password)"
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "False예요. 등록된 계정이지만 비밀번호가 달라요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"username\": \"lee\", \"password\": \"wrong\"}, \"expected\": \"False\", \"value_literals\": {\"username\": \"\\'lee\\'\", \"password\": \"\\'wrong\\'\"}}, {\"values\": {\"username\": \"lee\", \"password\": \"demo-password\"}, \"expected\": \"True\", \"value_literals\": {\"username\": \"\\'lee\\'\", \"password\": \"\\'demo-password\\'\"}}, {\"values\": {\"username\": \"kim\", \"password\": \"demo-password\"}, \"expected\": \"False\", \"value_literals\": {\"username\": \"\\'kim\\'\", \"password\": \"\\'demo-password\\'\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_a812e46e-62af-4da5-a4b4-91a395fdcbd7",
+      "title": "역할에 허용된 작업만 실행하게 하세요",
+      "goal": "로그인한 사용자라도 모든 작업을 허용하지 않아요. 역할에 등록된 작업인지 확인하세요.\n\n인증은 누구인지, 인가는 무엇을 해도 되는지를 확인해요. 역할에는 필요한 권한만 묶어요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 역할에 허용된 작업만 실행하게 하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "role = 'viewer'\naction = 'write'\npermissions = {'viewer':{'read'}, 'editor':{'read','write'}}\nallowed = role in permissions\nprint(allowed)\n",
+      "solution": "role = 'viewer'\naction = 'write'\npermissions = {'viewer':{'read'}, 'editor':{'read','write'}}\nallowed = action in permissions.get(role, set())\nprint(allowed)\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "False"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "인가와 역할 기반 접근 제어를 인증과 구별해요.",
+          "target": "text:로그인한 사용자라도 모든 작업을 허용하지 않아요. 역할에 등록된 작업인지 확인하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "True예요. 역할 이름이 있다는 사실만으로 쓰기를 허용했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "allowed = role in permissions",
+          "after": "allowed = action in permissions.get(role, set())"
+        },
+        {
+          "action": "say",
+          "text": "인증은 누구인지, 인가는 무엇을 해도 되는지를 확인해요. 역할에는 필요한 권한만 묶어요.",
+          "target": "code:allowed = action in permissions.get(role, set())"
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "False예요. viewer에게는 읽기만 허용돼요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"role\": \"viewer\", \"action\": \"write\"}, \"expected\": \"False\", \"value_literals\": {\"role\": \"\\'viewer\\'\", \"action\": \"\\'write\\'\"}}, {\"values\": {\"role\": \"editor\", \"action\": \"write\"}, \"expected\": \"True\", \"value_literals\": {\"role\": \"\\'editor\\'\", \"action\": \"\\'write\\'\"}}, {\"values\": {\"role\": \"unknown\", \"action\": \"read\"}, \"expected\": \"False\", \"value_literals\": {\"role\": \"\\'unknown\\'\", \"action\": \"\\'read\\'\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_81c20ef1-7d7d-4b2b-a455-4d4bef826bc5",
+      "title": "길이 대신 해시로 내용 변경을 확인하세요",
+      "goal": "전달받은 내용의 길이가 같아도 변조될 수 있어요. 신뢰한 원본 해시와 받은 내용의 해시를 비교하세요.\n\n해시는 내용에서 계산해요. 기대 해시의 진위도 신뢰할 수 있어야 변경 여부를 판단할 수 있어요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 길이 대신 해시로 내용 변경을 확인하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import hashlib\noriginal = b'AB'\nreceived = b'AC'\nexpected_hash = hashlib.sha256(original).digest()\nintact = len(original) == len(received)\nprint(intact)\n",
+      "solution": "import hashlib\noriginal = b'AB'\nreceived = b'AC'\nexpected_hash = hashlib.sha256(original).digest()\nintact = expected_hash == hashlib.sha256(received).digest()\nprint(intact)\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "False"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "해시는 같은 길이의 자료 변경도 구별하는 데 쓰여요.",
+          "target": "text:전달받은 내용의 길이가 같아도 변조될 수 있어요. 신뢰한 원본 해시와 받은 내용의 해시를 비교하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "True예요. 두 자료가 두 글자라는 사실만 비교했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "intact = len(original) == len(received)",
+          "after": "intact = expected_hash == hashlib.sha256(received).digest()"
+        },
+        {
+          "action": "say",
+          "text": "해시는 내용에서 계산해요. 기대 해시의 진위도 신뢰할 수 있어야 변경 여부를 판단할 수 있어요.",
+          "target": "code:intact = expected_hash == hashlib.sha256(received).digest()"
+        },
+        {
+          "action": "run",
+          "lines": [
+            6,
+            6
+          ]
+        },
+        {
+          "action": "say",
+          "text": "False예요. 길이는 같지만 내용이 바뀌어 해시가 달라요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"original\": \"b\\'AB\\'\", \"received\": \"b\\'AC\\'\"}, \"expected\": \"False\", \"value_literals\": {\"original\": \"b\\'AB\\'\", \"received\": \"b\\'AC\\'\"}}, {\"values\": {\"original\": \"b\\'AB\\'\", \"received\": \"b\\'AB\\'\"}, \"expected\": \"True\", \"value_literals\": {\"original\": \"b\\'AB\\'\", \"received\": \"b\\'AB\\'\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_5e48bdd0-0d54-4102-b8d8-0f809e9784ac",
+      "title": "사용자마다 다른 솔트를 파생 함수에 전달하세요",
+      "goal": "두 사용자가 같은 비밀번호를 써요. 각자의 솔트로 비밀번호 파생값을 구하세요. 1000회는 빠른 수업용 설정이에요.\n\n실서비스는 적절한 비용의 비밀번호 전용 파생 함수를 써요. 솔트는 비밀 키와 달리 파생값 옆에 저장할 수 있어요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 사용자마다 다른 솔트를 파생 함수에 전달하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import hashlib\npassword = 'demo-password'\nsalt_a = 'alpha'\nsalt_b = 'beta'\ndef derive(password, salt):\n    return hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 1000)\na = derive(password, salt_a)\nb = derive(password, salt_a)\nprint(a == b)\n",
+      "solution": "import hashlib\npassword = 'demo-password'\nsalt_a = 'alpha'\nsalt_b = 'beta'\ndef derive(password, salt):\n    return hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 1000)\na = derive(password, salt_a)\nb = derive(password, salt_b)\nprint(a == b)\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "False"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "솔트는 같은 비밀번호의 사전 계산 결과 재사용을 어렵게 해요.",
+          "target": "text:두 사용자가 같은 비밀번호를 써요. 각자의 솔트로 비밀번호 파생값을 구하세요. 1000회는 빠른 수업용 설정이에요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "True예요. 둘 다 첫 사용자의 솔트를 사용했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "b = derive(password, salt_a)",
+          "after": "b = derive(password, salt_b)"
+        },
+        {
+          "action": "say",
+          "text": "실서비스는 적절한 비용의 비밀번호 전용 파생 함수를 써요. 솔트는 비밀 키와 달리 파생값 옆에 저장할 수 있어요.",
+          "target": "code:b = derive(password, salt_b)"
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "False예요. 비밀번호가 같아도 서로 다른 솔트가 결과를 바꿨어요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"password\": \"demo-password\", \"salt_a\": \"alpha\", \"salt_b\": \"beta\"}, \"expected\": \"False\", \"value_literals\": {\"password\": \"\\'demo-password\\'\", \"salt_a\": \"\\'alpha\\'\", \"salt_b\": \"\\'beta\\'\"}}, {\"values\": {\"password\": \"demo-password\", \"salt_a\": \"alpha\", \"salt_b\": \"alpha\"}, \"expected\": \"True\", \"value_literals\": {\"password\": \"\\'demo-password\\'\", \"salt_a\": \"\\'alpha\\'\", \"salt_b\": \"\\'alpha\\'\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_67f85663-ab92-47e3-926d-9bbfa1d3c8b6",
+      "title": "이미 소비한 인증 코드는 다시 허용하지 마세요",
+      "goal": "서버가 발급해 아직 유효한 코드 목록은 준비됐어요. 같은 코드를 두 번 사용하지 못하게 고치세요. 코드 생성 알고리즘은 이 모델의 범위가 아니에요.\n\n유효성 확인 뒤 사용한 상태를 남겨요. 여러 서버라면 확인과 소비를 함께 처리해야 중복 사용을 막을 수 있어요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 이미 소비한 인증 코드는 다시 허용하지 마세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "requests = ['246810','246810']\nissued = {'246810','135790'}\nused = set()\nresults = []\nfor code in requests:\n    ok = code in issued\n    if ok: used.add(code)\n    results.append(ok)\nprint(results)\n",
+      "solution": "requests = ['246810','246810']\nissued = {'246810','135790'}\nused = set()\nresults = []\nfor code in requests:\n    ok = code in issued and code not in used\n    if ok: used.add(code)\n    results.append(ok)\nprint(results)\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "[True, False]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "유효한 인증 코드에도 일회 사용 상태가 필요해요.",
+          "target": "text:서버가 발급해 아직 유효한 코드 목록은 준비됐어요. 같은 코드를 두 번 사용하지 못하게 고치세요. 코드 생성 알고리즘은 이 모델의 범위가 아니에요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[True, True]예요. 이미 쓴 코드도 다시 받아들였어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "ok = code in issued",
+          "after": "ok = code in issued and code not in used"
+        },
+        {
+          "action": "say",
+          "text": "유효성 확인 뒤 사용한 상태를 남겨요. 여러 서버라면 확인과 소비를 함께 처리해야 중복 사용을 막을 수 있어요.",
+          "target": "code:ok = code in issued and code not in used"
+        },
+        {
+          "action": "run",
+          "lines": [
+            9,
+            9
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[True, False]예요. 두 번째 같은 코드는 거절됐어요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"requests\": [\"246810\", \"246810\"]}, \"expected\": \"[True, False]\", \"value_literals\": {\"requests\": \"[\\'246810\\', \\'246810\\']\"}}, {\"values\": {\"requests\": [\"246810\", \"135790\"]}, \"expected\": \"[True, True]\", \"value_literals\": {\"requests\": \"[\\'246810\\', \\'135790\\']\"}}, {\"values\": {\"requests\": [\"bad\", \"246810\"]}, \"expected\": \"[False, True]\", \"value_literals\": {\"requests\": \"[\\'bad\\', \\'246810\\']\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_215bbfbd-a542-493c-b64f-bbcb69e21cee",
+      "title": "신뢰하는 인증 제공자의 검증된 신원만 받으세요",
+      "goal": "서명 검증 결과 verified는 준비된 값이에요. 검증됐더라도 우리 서비스가 신뢰하는 인증 제공자가 아니면 로그인시키지 마세요.\n\n여러 서비스가 같은 인증 제공자를 신뢰해 로그인을 연결해요. 이 모델은 프로토콜 전체가 아닌 신뢰 경계를 확인해요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 신뢰하는 인증 제공자의 검증된 신원만 받으세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "issuer = 'unknown-idp'\nverified = True\ntrusted = {'company-idp'}\nlogin = verified\nprint(login)\n",
+      "solution": "issuer = 'unknown-idp'\nverified = True\ntrusted = {'company-idp'}\nlogin = verified and issuer in trusted\nprint(login)\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "False"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "통합 인증은 공유된 신뢰 관계를 바탕으로 신원을 전달해요.",
+          "target": "text:서명 검증 결과 verified는 준비된 값이에요. 검증됐더라도 우리 서비스가 신뢰하는 인증 제공자가 아니면 로그인시키지 마세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "True예요. 모르는 제공자가 전한 신원도 믿었어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "login = verified",
+          "after": "login = verified and issuer in trusted"
+        },
+        {
+          "action": "say",
+          "text": "여러 서비스가 같은 인증 제공자를 신뢰해 로그인을 연결해요. 이 모델은 프로토콜 전체가 아닌 신뢰 경계를 확인해요.",
+          "target": "code:login = verified and issuer in trusted"
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "False예요. 서명 검증 결과와 발급자 신뢰를 함께 봤어요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"issuer\": \"unknown-idp\", \"verified\": true}, \"expected\": \"False\", \"value_literals\": {\"issuer\": \"\\'unknown-idp\\'\", \"verified\": \"True\"}}, {\"values\": {\"issuer\": \"company-idp\", \"verified\": true}, \"expected\": \"True\", \"value_literals\": {\"issuer\": \"\\'company-idp\\'\", \"verified\": \"True\"}}, {\"values\": {\"issuer\": \"company-idp\", \"verified\": false}, \"expected\": \"False\", \"value_literals\": {\"issuer\": \"\\'company-idp\\'\", \"verified\": \"False\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_5b18fd87-5e08-4cf2-969a-a0e6cdfb784e",
+      "title": "로그인 신원 대신 위임된 범위로 작업을 허용하세요",
+      "goal": "검증된 토큰은 사진 읽기만 위임했어요. 사용자가 있다는 이유로 사진 삭제를 허용하면 안 돼요.\n\n위임받은 작업 범위 안에서만 접근해요. OAuth 자체를 사용자 인증 프로토콜 전체와 같은 것으로 보지 않아요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 로그인 신원 대신 위임된 범위로 작업을 허용하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "action = 'photos:delete'\ntoken = {'sub':'lee','scope':['photos:read']}\nallowed = bool(token['sub'])\nprint(allowed)\n",
+      "solution": "action = 'photos:delete'\ntoken = {'sub':'lee','scope':['photos:read']}\nallowed = action in token['scope']\nprint(allowed)\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "False"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "OAuth의 위임 인가 범위를 로그인 여부와 구별해요.",
+          "target": "text:검증된 토큰은 사진 읽기만 위임했어요. 사용자가 있다는 이유로 사진 삭제를 허용하면 안 돼요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "True예요. 신원이 있다는 이유로 위임하지 않은 삭제도 허용했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "allowed = bool(token['sub'])",
+          "after": "allowed = action in token['scope']"
+        },
+        {
+          "action": "say",
+          "text": "위임받은 작업 범위 안에서만 접근해요. OAuth 자체를 사용자 인증 프로토콜 전체와 같은 것으로 보지 않아요.",
+          "target": "code:allowed = action in token['scope']"
+        },
+        {
+          "action": "run",
+          "lines": [
+            4,
+            4
+          ]
+        },
+        {
+          "action": "say",
+          "text": "False예요. 삭제 권한은 토큰의 범위에 없어요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"action\": \"photos:delete\"}, \"expected\": \"False\", \"value_literals\": {\"action\": \"\\'photos:delete\\'\"}}, {\"values\": {\"action\": \"photos:read\"}, \"expected\": \"True\", \"value_literals\": {\"action\": \"\\'photos:read\\'\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_4edef0d9-5a90-4e18-88c2-753fd0cd9b75",
+      "title": "서명뿐 아니라 만료·발급자·대상을 함께 검사하세요",
+      "goal": "서명 검사 결과 signature_ok는 준비됐어요. 토큰은 아직 만료되지 않았고 발급자와 대상이 우리 약속에 맞아야 해요. 토큰 파싱과 암호 구현은 준비 단계로 분리했어요.\n\n서명이 맞는 것과 지금 이 서비스가 받아도 되는 것은 달라요. exp와 현재 시각이 같아도 만료로 봐요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 서명뿐 아니라 만료·발급자·대상을 함께 검사하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "signature_ok = True\nnow = 110\nclaims = {'exp':100,'iss':'company','aud':'orders'}\nallowed = signature_ok\nprint(allowed)\n",
+      "solution": "signature_ok = True\nnow = 110\nclaims = {'exp':100,'iss':'company','aud':'orders'}\nallowed = signature_ok and now < claims['exp'] and claims['iss'] == 'company' and claims['aud'] == 'orders'\nprint(allowed)\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "False"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "JWT의 검증된 서명과 등록 클레임 조건을 연결해요.",
+          "target": "text:서명 검사 결과 signature_ok는 준비됐어요. 토큰은 아직 만료되지 않았고 발급자와 대상이 우리 약속에 맞아야 해요. 토큰 파싱과 암호 구현은 준비 단계로 분리했어요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "True예요. 올바른 서명이 있어도 만료된 토큰을 허용했어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "allowed = signature_ok",
+          "after": "allowed = signature_ok and now < claims['exp'] and claims['iss'] == 'company' and claims['aud'] == 'orders'"
+        },
+        {
+          "action": "say",
+          "text": "서명이 맞는 것과 지금 이 서비스가 받아도 되는 것은 달라요. exp와 현재 시각이 같아도 만료로 봐요.",
+          "target": "code:allowed = signature_ok and now < claims['exp'] and claims['iss'] == 'company' and claims['aud'] == 'orders'"
+        },
+        {
+          "action": "run",
+          "lines": [
+            5,
+            5
+          ]
+        },
+        {
+          "action": "say",
+          "text": "False예요. 현재 110은 만료 시각 100을 지났어요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"signature_ok\": true, \"now\": 110}, \"expected\": \"False\", \"value_literals\": {\"signature_ok\": \"True\", \"now\": \"110\"}}, {\"values\": {\"signature_ok\": true, \"now\": 90}, \"expected\": \"True\", \"value_literals\": {\"signature_ok\": \"True\", \"now\": \"90\"}}, {\"values\": {\"signature_ok\": false, \"now\": 90}, \"expected\": \"False\", \"value_literals\": {\"signature_ok\": \"False\", \"now\": \"90\"}}, {\"values\": {\"signature_ok\": true, \"now\": 90, \"claims\": {\"exp\": 100, \"iss\": \"other\", \"aud\": \"orders\"}}, \"expected\": \"False\", \"value_literals\": {\"signature_ok\": \"True\", \"now\": \"90\", \"claims\": \"{\\'exp\\': 100, \\'iss\\': \\'other\\', \\'aud\\': \\'orders\\'}\"}}, {\"values\": {\"signature_ok\": true, \"now\": 90, \"claims\": {\"exp\": 100, \"iss\": \"company\", \"aud\": \"billing\"}}, \"expected\": \"False\", \"value_literals\": {\"signature_ok\": \"True\", \"now\": \"90\", \"claims\": \"{\\'exp\\': 100, \\'iss\\': \\'company\\', \\'aud\\': \\'billing\\'}\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_dc5ec033-50a0-4f22-82e4-6da5eecd5a92",
+      "title": "비밀 키로 계산한 요청 서명을 비교하세요",
+      "goal": "보낸 쪽이 서명한 요청 내용과 받은 내용이 같아야 해요. 고정된 허용 값 대신 HMAC을 계산해 비교하세요.\n\n일반 해시와 달리 비밀 키를 알아야 같은 서명을 만들 수 있어요. 금액뿐 아니라 nonce도 서명 대상에 들어 있어요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 비밀 키로 계산한 요청 서명을 비교하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "import hmac\nimport hashlib\noriginal = b'amount=10&nonce=7'\nreceived = b'amount=90&nonce=7'\nkey = b'local-demo-key'\nsignature = hmac.new(key, original, hashlib.sha256).digest()\nvalid = True\nprint(valid)\n",
+      "solution": "import hmac\nimport hashlib\noriginal = b'amount=10&nonce=7'\nreceived = b'amount=90&nonce=7'\nkey = b'local-demo-key'\nsignature = hmac.new(key, original, hashlib.sha256).digest()\nvalid = hmac.compare_digest(signature, hmac.new(key, received, hashlib.sha256).digest())\nprint(valid)\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "False"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "HMAC은 비밀 키와 요청 내용으로 위변조를 확인해요.",
+          "target": "text:보낸 쪽이 서명한 요청 내용과 받은 내용이 같아야 해요. 고정된 허용 값 대신 HMAC을 계산해 비교하세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "True예요. 금액이 바뀌어도 요청 내용을 검사하지 않았어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "valid = True",
+          "after": "valid = hmac.compare_digest(signature, hmac.new(key, received, hashlib.sha256).digest())"
+        },
+        {
+          "action": "say",
+          "text": "일반 해시와 달리 비밀 키를 알아야 같은 서명을 만들 수 있어요. 금액뿐 아니라 nonce도 서명 대상에 들어 있어요.",
+          "target": "code:valid = hmac.compare_digest(signature, hmac.new(key, received, hashlib.sha256).digest())"
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "False예요. 받은 내용으로 계산한 서명이 원래 서명과 달라요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"original\": \"b\\'amount=10&nonce=7\\'\", \"received\": \"b\\'amount=90&nonce=7\\'\"}, \"expected\": \"False\", \"value_literals\": {\"original\": \"b\\'amount=10&nonce=7\\'\", \"received\": \"b\\'amount=90&nonce=7\\'\"}}, {\"values\": {\"original\": \"b\\'amount=10&nonce=7\\'\", \"received\": \"b\\'amount=10&nonce=7\\'\"}, \"expected\": \"True\", \"value_literals\": {\"original\": \"b\\'amount=10&nonce=7\\'\", \"received\": \"b\\'amount=10&nonce=7\\'\"}}, {\"values\": {\"original\": \"b\\'amount=10&nonce=7\\'\", \"received\": \"b\\'amount=10&nonce=8\\'\"}, \"expected\": \"False\", \"value_literals\": {\"original\": \"b\\'amount=10&nonce=7\\'\", \"received\": \"b\\'amount=10&nonce=8\\'\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    },
+    {
+      "id": "stp_85aeb737-8bd7-49a8-bcbe-1449a5c4120c",
+      "title": "서명이 맞아도 같은 요청 번호는 한 번만 처리하세요",
+      "goal": "각 요청의 HMAC 검사 결과는 준비됐어요. 이미 처리한 nonce의 요청은 다시 처리하지 마세요.\n\nHMAC은 내용이 안 바뀌었는지 확인해요. 이미 처리한 정상 요청인지는 별도로 기록하고 거절해야 해요.\n준비된 자료는 그대로 두세요. 채점은 자료를 바꿔서도 실행해요.\n\n**할 일**\n\n1. 코드 실행을 눌러 현재 결과를 확인하세요.\n2. 서명이 맞아도 같은 요청 번호는 한 번만 처리하세요\n3. 다시 실행해 요구한 상태와 비교하세요.\n4. 수정한 코드를 제출하세요.",
+      "language": "python",
+      "starter_code": "requests = [(7,True),(7,True)]\nseen = set()\naccepted = []\nfor nonce, signed in requests:\n    allow = signed\n    if allow: seen.add(nonce)\n    accepted.append(allow)\nprint(accepted)\n",
+      "solution": "requests = [(7,True),(7,True)]\nseen = set()\naccepted = []\nfor nonce, signed in requests:\n    allow = signed and nonce not in seen\n    if allow: seen.add(nonce)\n    accepted.append(allow)\nprint(accepted)\n",
+      "files": {},
+      "tests": [
+        {
+          "input": "",
+          "expected": "[True, False]"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "서명 무결성과 재전송 방지는 별도의 조건이에요.",
+          "target": "text:각 요청의 HMAC 검사 결과는 준비됐어요. 이미 처리한 nonce의 요청은 다시 처리하지 마세요."
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[True, True]예요. 정상 요청을 복사해 다시 보내도 처리됐어요.",
+          "target": "output"
+        },
+        {
+          "action": "patch_code",
+          "before": "allow = signed",
+          "after": "allow = signed and nonce not in seen"
+        },
+        {
+          "action": "say",
+          "text": "HMAC은 내용이 안 바뀌었는지 확인해요. 이미 처리한 정상 요청인지는 별도로 기록하고 거절해야 해요.",
+          "target": "code:allow = signed and nonce not in seen"
+        },
+        {
+          "action": "run",
+          "lines": [
+            8,
+            8
+          ]
+        },
+        {
+          "action": "say",
+          "text": "[True, False]예요. 서명은 맞지만 같은 nonce는 다시 받지 않았어요.",
+          "target": "output"
+        }
+      ],
+      "checker": "import ast\nimport copy\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nsource = Path('main.py').read_text(encoding='utf-8')\noriginal = ast.parse(source, filename='main.py')\ncases = json.loads('[{\"values\": {\"requests\": [[7, true], [7, true]]}, \"expected\": \"[True, False]\", \"value_literals\": {\"requests\": \"[(7, True), (7, True)]\"}}, {\"values\": {\"requests\": [[7, true], [8, true]]}, \"expected\": \"[True, True]\", \"value_literals\": {\"requests\": \"[(7, True), (8, True)]\"}}, {\"values\": {\"requests\": [[7, false], [7, true]]}, \"expected\": \"[False, True]\", \"value_literals\": {\"requests\": \"[(7, False), (7, True)]\"}}]')\nfor case in cases:\n    tree = copy.deepcopy(original)\n    remaining = set(case['values'])\n    for statement in tree.body:\n        if isinstance(statement, ast.Assign):\n            names = [target.id for target in statement.targets if isinstance(target, ast.Name)]\n            for name in names:\n                if name in remaining:\n                    literal = case.get('value_literals', {}).get(name, repr(case['values'][name]))\n                    statement.value = ast.parse(literal, mode='eval').body\n                    remaining.remove(name)\n    if remaining:\n        raise AssertionError('준비된 자료의 이름은 그대로 두세요.')\n    ast.fix_missing_locations(tree)\n    result = subprocess.run([sys.executable, '-I', '-X', 'utf8', '-c', ast.unparse(tree)],\n                            stdin=subprocess.DEVNULL, capture_output=True, text=True,\n                            encoding='utf-8', timeout=10)\n    if result.returncode != 0 or result.stdout.strip() != case['expected'].strip():\n        raise AssertionError('다른 준비 값에서도 같은 원리가 맞는지 확인하세요.')\nprint('준비 값을 바꾼 검사도 통과했어요.')\n"
+    }
+  ]
+}

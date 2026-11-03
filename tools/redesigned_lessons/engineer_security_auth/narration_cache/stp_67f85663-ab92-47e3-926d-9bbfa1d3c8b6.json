@@ -1,0 +1,45 @@
+{
+  "by": "hand",
+  "source_sha256": "84b0c8437d8746fcdedee9071758242be55ab3f447bce14abbaabf259fbaaaba",
+  "entry": [
+    {
+      "action": "say",
+      "text": "유효한 인증 코드에도 일회 사용 상태가 필요해요.",
+      "target": "text:서버가 발급해 아직 유효한 코드 목록은 준비됐어요. 같은 코드를 두 번 사용하지 못하게 고치세요. 코드 생성 알고리즘은 이 모델의 범위가 아니에요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[True, True]예요. 이미 쓴 코드도 다시 받아들였어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "ok = code in issued",
+      "after": "ok = code in issued and code not in used"
+    },
+    {
+      "action": "say",
+      "text": "유효성 확인 뒤 사용한 상태를 남겨요. 여러 서버라면 확인과 소비를 함께 처리해야 중복 사용을 막을 수 있어요.",
+      "target": "code:ok = code in issued and code not in used"
+    },
+    {
+      "action": "run",
+      "lines": [
+        9,
+        9
+      ]
+    },
+    {
+      "action": "say",
+      "text": "[True, False]예요. 두 번째 같은 코드는 거절됐어요.",
+      "target": "output"
+    }
+  ]
+}

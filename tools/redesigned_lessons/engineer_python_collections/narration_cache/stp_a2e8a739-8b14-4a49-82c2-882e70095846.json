@@ -1,0 +1,80 @@
+{
+  "by": "hand",
+  "source_sha256": "75b7af23811cc1caeb38252fb0f285202baf68997e1e996bfacc9110fe3ad77d",
+  "entry": [
+    {
+      "action": "say",
+      "text": "c2와 i2만 늘고 count와 items는 그대로여야 해요.",
+      "target": "text:i2를 늘리는 줄을 고쳐 items는 그대로 두고 i2만 늘게 하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "count는 2 그대로예요. 그런데 items에는 3이 붙었어요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "정수 c2 += 1은 새 값 3을 c2에만 묶어요. 원래 2는 그대로 남아요.",
+      "target": "code:c2 += 1"
+    },
+    {
+      "action": "say",
+      "text": "목록 i2 += [3]은 i2가 가리키는 목록을 그 자리에서 늘려요. 그 목록이 바로 items예요.",
+      "target": "code:i2 += [3]"
+    },
+    {
+      "action": "patch_code",
+      "before": "i2 += [3]",
+      "after": "i2 = i2 + [3]",
+      "say": "+로 새 목록을 만들어 i2에 묶어요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "2, [1, 2], 3, [1, 2, 3]이에요. items는 그대로고 i2만 새 목록이 됐어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "i2 = i2 + [3]",
+      "after": "i2.extend([3])",
+      "say": "extend로 바꿔 볼게요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        8,
+        8
+      ]
+    },
+    {
+      "action": "say",
+      "text": "items가 다시 [1, 2, 3]이 됐어요. extend도 그 목록 자체를 늘려요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 목록의 += 는 extend와 같은 제자리 확장이에요. 별칭이 있으면 원본도 늘어나요.",
+      "target": "code:i2.extend([3])"
+    },
+    {
+      "action": "patch_code",
+      "before": "i2.extend([3])",
+      "after": "i2 = i2 + [3]",
+      "say": "새 목록을 만드는 대입으로 되돌려요."
+    }
+  ]
+}

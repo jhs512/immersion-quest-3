@@ -1,0 +1,45 @@
+{
+  "by": "hand",
+  "source_sha256": "e211a588d0b6e1bfd700a665e4bc33de4101d2ce912cef679456c44a3cdbf38b",
+  "entry": [
+    {
+      "action": "say",
+      "text": "통합 테스트는 실제 구성 요소 사이의 연결을 확인해요.",
+      "target": "text:주문 수량을 SQLite에 저장한 뒤 저장소에서 다시 읽어 확인해요. 저장할 때 받은 수량을 사용하세요."
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "0이에요. 입력은 3인데 저장 단계가 다른 값을 넣었어요.",
+      "target": "output"
+    },
+    {
+      "action": "patch_code",
+      "before": "db.execute('INSERT INTO orders VALUES (?)', (0,))",
+      "after": "db.execute('INSERT INTO orders VALUES (?)', (quantity,))"
+    },
+    {
+      "action": "say",
+      "text": "저장 함수를 스텁으로 바꾸지 않고 실제 DB와 연결해요. 각각 맞던 구성 요소도 연결하면 자료 전달이 어긋날 수 있어요.",
+      "target": "code:db.execute('INSERT INTO orders VALUES (?)', (quantity,))"
+    },
+    {
+      "action": "run",
+      "lines": [
+        7,
+        7
+      ]
+    },
+    {
+      "action": "say",
+      "text": "3이에요. 저장과 조회 사이에 같은 수량이 전달됐어요.",
+      "target": "output"
+    }
+  ]
+}
