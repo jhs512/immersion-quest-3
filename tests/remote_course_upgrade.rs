@@ -1,5 +1,6 @@
 use molip_quest::{bundled_courses, content_lifecycle, content_updates, drafts,
-    github_player::Github, issue_progress::{ProgressKey, StudyMode}};
+    github_player::{Github, GithubUser}, issue_progress::{EventKind, LearningEvent, ProgressKey, StudyMode},
+    progress_sync::ProgressStore};
 
 #[test]
 fn remote_course_without_rust_survives_app_upgrade_then_refreshes_without_losing_answers() {
@@ -24,6 +25,13 @@ fn remote_course_without_rust_survives_app_upgrade_then_refreshes_without_losing
     let key = ProgressKey {user_id: 987654321, course_id: stale.course().id.clone(), lesson_id: reference.id.clone()};
     let scope = drafts::repository_scope(&key, StudyMode::Full, "unfinished-task");
     drafts::save(&scope, "learner answer", &Default::default()).unwrap();
+    let progress = ProgressStore::installed().unwrap();
+    let user = GithubUser {id: key.user_id, login: "mq3-validation".into()};
+    let mut attempt = LearningEvent::new(key.clone(), &reference.revision, StudyMode::Full, "existing-round", EventKind::Attempt);
+    attempt.task_id = Some(stale.lesson(reference).unwrap().tasks[0].id.clone());
+    attempt.passed = true;
+    let events = progress.record(repository, &user, &reference.title, &attempt, &[]).unwrap();
+    let pending = progress.pending_count(user.id).unwrap();
     let github = Github::new();
     assert_eq!(github.installed_course(repository).unwrap(), *stale.course());
     assert!(content_lifecycle::refresh_course(&store, repository, || Err("offline".into()),
@@ -38,4 +46,7 @@ fn remote_course_without_rust_survives_app_upgrade_then_refreshes_without_losing
     assert_eq!(reopened.lessons.iter().find(|r| r.id == key.lesson_id).unwrap().revision, reference.revision);
     assert_eq!(drafts::load(&scope).unwrap().unwrap().code, "learner answer");
     assert_eq!(drafts::repository_backups(key.user_id, &key.course_id).unwrap().len(), 1);
+    assert_eq!(progress.events(repository, &key).unwrap(), events);
+    assert_eq!(ProgressStore::installed().unwrap().events(repository, &key).unwrap(), events);
+    assert_eq!(progress.pending_count(user.id).unwrap(), pending);
 }
