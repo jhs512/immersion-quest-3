@@ -14,22 +14,44 @@ function report({ failure, failureAfter, readyAfter, answers = [{ textReturned: 
   const objc = value => ({ value, writeToFileAtomicallyEncodingError: path => files.set(path, value) });
   objc.import = () => {};
   objc.unwrap = value => value;
-  objc.registerSubclass = () => {};
-  const app = { displayDialog: (text, options) => {
+  const answerDialog = (text, options) => {
     messages.push({ text, options });
     const answer = answers.shift();
     if (!answer) throw Error('unexpected dialog');
     if (answer instanceof Error) throw answer;
     return answer;
-  } };
+  };
+  const app = { openLocation() {} };
+  const application = { activateIgnoringOtherApps() {}, setActivationPolicy(value) { this.activationPolicy = value; } };
+  const alert = () => {
+    let title, message, input;
+    const labels = [];
+    const panel = { setTitle() {}, setHidesOnDeactivate() {}, setInitialFirstResponder() {}, orderOut() {}, setCollectionBehavior(value) { this.collectionBehavior = value; }, windowNumber: 1 };
+    return { setMessageText(value) { title = value; }, setInformativeText(value) { message = value; },
+      addButtonWithTitle(label) { labels.push(label); return { setKeyEquivalent() {} }; },
+      setAccessoryView(value) { input = value; }, window: panel,
+      get runModal() {
+        const answer = answerDialog(message, { withTitle: title, buttons: labels.slice().reverse(), defaultAnswer: input?.stringValue });
+        if (input) input.setStringValue(answer.textReturned || '');
+        return 1000 + labels.indexOf(answer.buttonReturned);
+      },
+    };
+  };
   const context = {
     ObjC: objc,
     Application: { currentApplication: () => app },
     $: Object.assign(objc, {
       NSUTF8StringEncoding: 4,
-      NSApplication: { sharedApplication: { activateIgnoringOtherApps() {} } },
-      MQReportWindowObserver: { alloc: { init: {} } },
-      NSNotificationCenter: { defaultCenter: { addObserverSelectorNameObject() {}, removeObserver() {} } },
+      NSApplication: { sharedApplication: application },
+      NSApplicationActivationPolicyAccessory: 1,
+      NSWindowCollectionBehaviorCanJoinAllSpaces: 1,
+      NSWindowCollectionBehaviorFullScreenAuxiliary: 256,
+      NSAlertFirstButtonReturn: 1000,
+      NSAlert: { alloc: { get init() { return alert(); } } },
+      NSMakeRect: () => ({}),
+      NSTextField: { alloc: { initWithFrame() {
+        return { stringValue: '', setStringValue(value) { this.stringValue = value; } };
+      } } },
       NSString: { stringWithContentsOfFileEncodingError: path => files.get(path) },
       NSFileManager: { defaultManager: {
         fileExistsAtPath: path => files.has(path) || (path.endsWith('screen.png') && readyAfter !== undefined && elapsed >= readyAfter),
@@ -111,8 +133,18 @@ test('macOS retry timeout still lets the report send without a screen', () => {
 });
 
 test('macOS cancel writes no response or capture request', () => {
-  const dialog = report({ failure: { reason: 'failed' }, answers: [Error('User canceled. (-128)')] });
+  const dialog = report({ failure: { reason: 'failed' }, answers: [{ buttonReturned: '취소' }] });
   assert.throws(dialog.run, /User canceled/);
   assert.equal(dialog.result().response, null);
   assert.equal(dialog.result().retries, 0);
+});
+
+test('macOS report can exclude a confirmed capture and retain the description', () => {
+  const dialog = report({ readyAfter: 0, answers: [
+    { textReturned: 'keep my explanation', buttonReturned: '캡처 확인' },
+    { buttonReturned: '제외' },
+    { textReturned: 'keep my explanation', buttonReturned: '보내기' },
+  ] });
+  dialog.run();
+  assert.deepEqual(dialog.result().response, { description: 'keep my explanation', include_screen: false });
 });

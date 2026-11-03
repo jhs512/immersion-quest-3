@@ -115,7 +115,10 @@ def open_dialog(main, name):
     state = wait_for(lambda: dialog_state(None), 40, "report dialog window without external activation")
     screenshot(f"{name}-dialog")
     status = folder / "capture-status.json"
+    panel_state = json.loads((folder / "panel-state.json").read_text())
+    assert panel_state["widget"] == "NSAlert" and panel_state["collection_behavior"] == 257 and panel_state["activation_policy"] == 1, f"native report window behavior was not applied: {panel_state}"
     report[name] = {"dialog": state["text"], "status": json.loads(status.read_text()) if status.exists() else None,
+                    "panel_state": panel_state,
                     "windows": json.loads(subprocess.run([str(UI), "read", str(WORK / "windows.png")], capture_output=True, text=True).stdout or "{}").get("windows")}
     return opener, osa, folder, state
 
