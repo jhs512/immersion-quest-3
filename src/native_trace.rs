@@ -74,7 +74,7 @@ pub async fn prepare(language:NativeLanguage)->Result<String,String> {
 /// The environment check: compiles and runs a tiny program. Installs nothing.
 pub async fn inspect(language:NativeLanguage)->Result<String,String> {
     #[cfg(not(target_os="macos"))] if !image_present()? {return Err(format!("{} 실행 환경(Docker 이미지)이 없어요. 환경 설치로 준비하세요.",language.label()))}
-    #[cfg(target_os="macos")] if language==NativeLanguage::Rust&&!rustc_path()?.is_file() {return Err("Rust 컴파일러가 없어요. 환경 설치로 준비하세요.".into())}
+    #[cfg(target_os="macos")] if language==NativeLanguage::Rust&&!rustc_path()?.is_file() {return Err(NO_RUSTC.into())}
     let source=match language {
         NativeLanguage::Cpp=>"#include <iostream>\nint main() { std::cout << \"MQ_NATIVE_READY\"; }\n",
         NativeLanguage::Rust=>"fn main() { print!(\"MQ_NATIVE_READY\"); }\n",
@@ -103,6 +103,7 @@ async fn invoke(mode:&str,language:NativeLanguage,dir:&Path,input:&str,seconds:u
     cmd.args(["-I","-X","utf8"]).arg(dir.join("tool/native_flow.py")).arg(mode).arg(dir.join("case")).arg(language.key())
         .env("MQ_CXX","xcrun clang++").env("MQ_LLDB","xcrun lldb").env("MQ_TRACE_SECONDS",(seconds-15).to_string());
     if language==NativeLanguage::Rust {
+        if !rustc_path()?.is_file() {return Err(NO_RUSTC.into())}
         let (rustup,cargo)=rust_homes()?;
         // native_flow.py splits MQ_* like a shell; MQ's data folder is under "Application Support".
         let quoted=format!("'{}'",rustc_path()?.display().to_string().replace('\'',"'\\''"));
@@ -163,9 +164,13 @@ async fn image()->Result<(),String> {
 
 #[cfg(target_os="macos")]
 fn rust_homes()->Result<(PathBuf,PathBuf),String> {
-    let root=crate::data_dir()?.join("course-tools/rust");
+    // Like MOLIP_TCC: a validation run can reuse a toolchain installed outside its fresh data folder.
+    let root=match std::env::var_os("MOLIP_RUST_HOME") {Some(path)=>PathBuf::from(path),None=>crate::data_dir()?.join("course-tools/rust")};
     Ok((root.join("rustup"),root.join("cargo")))
 }
+
+#[cfg(target_os="macos")]
+const NO_RUSTC:&str="Rust 컴파일러가 없어요. 환경 설치로 준비하세요.";
 
 #[cfg(target_os="macos")]
 fn rustc_path()->Result<PathBuf,String> {Ok(rust_homes()?.1.join("bin/rustc"))}
@@ -231,6 +236,18 @@ mod tests {
         let broken=run(NativeLanguage::Rust,"fn main() {\n    let a = String::new();\n    let b = a;\n    println!(\"{}\", a);\n}\n","").await.unwrap();
         assert_eq!(broken.state,"compile_error");
         assert!(broken.stderr.contains("E0382"),"{}",broken.stderr);
+    }
+
+    /// A Mac without MQ's rustc tells the learner to install it, not a Python FileNotFoundError.
+    #[cfg(target_os="macos")]
+    #[tokio::test]
+    async fn rust_without_the_toolchain_asks_for_the_environment_install() {
+        let empty=tempfile::tempdir().unwrap();
+        let previous=std::env::var_os("MOLIP_RUST_HOME");
+        std::env::set_var("MOLIP_RUST_HOME",empty.path());
+        let result=run(NativeLanguage::Rust,"fn main() {}\n","").await;
+        match previous {Some(path)=>std::env::set_var("MOLIP_RUST_HOME",path),None=>std::env::remove_var("MOLIP_RUST_HOME")}
+        assert_eq!(result.err().as_deref(),Some(NO_RUSTC));
     }
 
     #[tokio::test]

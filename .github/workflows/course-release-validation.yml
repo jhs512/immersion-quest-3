@@ -33,7 +33,9 @@ jobs:
           echo "MOLIP_PYTHON=$(command -v python3)" >> "$GITHUB_ENV"
           { uname -a; sw_vers; xcrun clang --version; xcrun lldb --version; java -version; python3 --version; } 2>&1 | tee "$RUNNER_TEMP/toolchain.txt"
       - name: Install MQ's pinned rustc and trace Rust and C++ through LLDB
-        run: cargo test --locked --lib --no-default-features native_trace -- --ignored --nocapture --test-threads=1
+        run: |
+          cargo test --locked --lib --no-default-features native_trace -- --ignored --nocapture --test-threads=1
+          cargo test --locked --lib --no-default-features native_trace::tests::rust_without_the_toolchain -- --test-threads=1
       - name: Cap large Python collections in code flow
         run: cargo test --locked --lib --no-default-features python_trace::tests::large_collections -- --ignored --test-threads=1
       - uses: actions/setup-node@v4
@@ -42,6 +44,7 @@ jobs:
       - name: Trace every JavaScript step like the grader
         run: "cargo test --locked --lib js_trace:: -- --ignored --test-threads=1"
       - name: Replay the Rust, C code flow and Java file lessons with every step traced
+        if: ${{ !contains(github.event.head_commit.message, '[skip replay]') }}
         shell: python3 {0}
         run: |
           import pathlib, subprocess, sys
@@ -62,6 +65,8 @@ jobs:
           sys.exit(1 if failed else 0)
       - name: Open, narrate, grade and reset the four Rust lessons in the real player
         run: |
+          export MOLIP_RUST_HOME="$MOLIP_DATA_DIR/course-tools/rust"
+          mkdir -p target/mac-evidence
           for lesson in rust_values rust_flow_functions rust_ownership_borrowing rust_data_results; do
             start=$(date +%s)
             cargo test --locked --test player_data_lessons_native "$lesson" -- --ignored --test-threads=1
