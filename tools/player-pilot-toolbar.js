@@ -54,6 +54,22 @@
     await resize(1280,720);await click('학습 시작');
     await wait(()=>document.querySelector('.repository-task'),'learning workspace');
     for(const [width,height] of [[1280,720],[1024,720],[800,720],[640,720],[400,720],[1280,480]]){await resize(width,height);await audit(`lesson ${width}x${height}`);}
+    await resize(400,720);
+    const answer=molipCodeEditors.getValue();
+    await click('손상 업데이트 공개');
+    const content=document.querySelector('.content-update-controls>details');
+    content.open=true;await click('수업 업데이트 확인');
+    await wait(()=>document.querySelector('.course-update-failure')?.textContent.includes('고정한 버전과 달라'),'visible content failure');
+    content.open=false;await settle();
+    const failure=document.querySelector('.course-update-failure');
+    inside(failure,'content failure outside closed settings');
+    if(failure.getBoundingClientRect().width<100||getComputedStyle(failure).display==='none')throw Error('Content failure remains hidden');
+    if(molipCodeEditors.getValue()!==answer)throw Error('Rejected update changed the active answer');
+    await click('다시 시도');
+    await wait(()=>document.querySelector('.course-update-failure')?.textContent.includes('고정한 버전과 달라'),'failed retry stays visible');
+    await click('새 업데이트 공개');await click('다시 시도');
+    await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('pilot-g')&&!document.querySelector('.course-update-failure'),'successful retry clears stale failure');
+    checked.push('visible update failure outside closed settings, preserved answer, failed retry and successful recovery');
     dioxus.send({passed:true,checked});
   }catch(error){dioxus.send({passed:false,checked,error:String(error),viewport:[innerWidth,innerHeight]});}
 })();

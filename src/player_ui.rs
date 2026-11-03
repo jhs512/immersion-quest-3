@@ -1552,6 +1552,7 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,active_l
     let mut login_open=use_signal(||false);
     let mut login_checking=use_signal(||false);
     let mut login_message=use_signal(String::new);
+    let mut failure=use_signal(||None::<String>);
     let retry_login=use_callback({let session=session.clone();move |_|{
         let Some(session)=session.clone() else{return};
         if login_checking(){return;}login_checking.set(true);
@@ -1570,7 +1571,7 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,active_l
         spawn(async move {
             if !automatic {
                 let mut bridge=document::eval("window.molipAgent?.stop();requestAnimationFrame(()=>requestAnimationFrame(()=>dioxus.send(true)))");
-                if !matches!(bridge.recv::<bool>().await,Ok(true)) {message.set("해설을 닫고 다시 업데이트하세요.".into());applying.set(false);return;}
+                if !matches!(bridge.recv::<bool>().await,Ok(true)) {message.set("해설을 닫고 다시 업데이트하세요.".into());failure.set(Some(String::new()));applying.set(false);return;}
             }
             let manifest=next.course().clone();
             let result=github_player::background(move||{
@@ -1578,7 +1579,7 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,active_l
                 molip_quest::drafts::backup_repository(session.user.id,&next.course().id,&next.fingerprint())?;
                 content_updates::installed_store()?.apply(&next)
             }).await;
-            match result {Ok(())=>{candidate.set(None);offered.set(false);message.set("수업 내용을 업데이트했어요.".into());onapply.call((manifest,automatic));},Err(error)=>{if molip_quest::content_lifecycle::authentication_required(&error){needs_login.set(true);}message.set(molip_quest::content_lifecycle::update_failure(&error,true).unwrap_or(error));}}
+            match result {Ok(())=>{candidate.set(None);offered.set(false);failure.set(None);message.set("수업 내용을 업데이트했어요.".into());onapply.call((manifest,automatic));},Err(error)=>{if molip_quest::content_lifecycle::authentication_required(&error){needs_login.set(true);}failure.set(Some(error.clone()));message.set(molip_quest::content_lifecycle::update_failure(&error,true).unwrap_or(error));}}
             applying.set(false);
         });
     }});
@@ -1595,6 +1596,7 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,active_l
         loop {
             if molip_quest::content_lifecycle::authentication_pending()&&!needs_login() {
                 needs_login.set(true);
+                failure.set(Some(String::new()));
                 message.set("GitHub 인증이 끊겼어요. 다시 로그인하세요.".into());
             }
             let request=*manual.peek(); let requested=request!=seen;
@@ -1616,6 +1618,7 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,active_l
                 match result {
                     Ok(Some((next,changes)))=>{
                         needs_login.set(false);
+                        failure.set(None);
                         auto_attempted.set(None);
                         let notices=molip_quest::data_dir().map(|dir|dir.join("content-update-notices.json"));
                         let first=notices.and_then(|path|{let mut notices=updater::UpdateNotices::open(&path)?;notices.record(u64::from_str_radix(&next.fingerprint()[..16],16).expect("SHA256 prefix"))}).unwrap_or(true);
@@ -1624,8 +1627,8 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,active_l
                         if apply_after_check {apply.call((next,false));}
                         else {candidate.set(Some(next)); if first {offered.set(true);} message.set("새 수업 내용이 있어요.".into());}
                     }
-                    Ok(None)=>{needs_login.set(false);candidate.set(None);offered.set(false);if requested {message.set("최신 내용이에요.".into());}}
-                    Err(error)=>{if molip_quest::content_lifecycle::authentication_required(&error){needs_login.set(true);}if let Some(notice)=molip_quest::content_lifecycle::update_failure(&error,requested){message.set(notice);}}
+                    Ok(None)=>{needs_login.set(false);candidate.set(None);offered.set(false);failure.set(None);message.set("최신 내용이에요.".into());}
+                    Err(error)=>{if molip_quest::content_lifecycle::authentication_required(&error){needs_login.set(true);}failure.set(Some(error.clone()));if let Some(notice)=molip_quest::content_lifecycle::update_failure(&error,requested){message.set(notice);}}
                 }
             }
             tokio::time::sleep(std::time::Duration::from_secs(1)).await;
@@ -1647,6 +1650,12 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,active_l
             }
         }
         span {class:"course-refresh-status",role:"status",aria_live:"polite","{message}"}
+        if failure().is_some() {
+            aside {class:"course-update-failure",role:"alert",
+                p {"{message}"}
+                if !needs_login() {button {disabled:applying()||checking(),onclick:move |_|{refresh_and_apply.set(true);message.set("수업 업데이트를 확인하고 있어요.".into());manual+=1;},"다시 시도"}}
+            }
+        }
         if needs_login() {button {class:"gh-reauth-button",title:"GitHub 인증 오류로 새 수업을 받지 못했어요.",onclick:move |_|{login_message.set(String::new());login_open.set(true);},"GitHub 다시 로그인"}}
         if login_open() {
             div {class:"doctor-backdrop gh-reauth-backdrop",
@@ -1660,6 +1669,7 @@ fn ContentUpdates(session:Option<Session>,course:Option<CourseManifest>,active_l
             div {class:"content-update-menu",
             button {disabled:applying()||checking(),onclick:move |_|{refresh_and_apply.set(false);manual+=1;},"수업 업데이트 확인"}
             p {role:"status","{message}"}
+            if let Some(error)=failure().filter(|error|!error.is_empty()) {details {summary {"오류 자세히 보기"}pre {class:"course-update-error-details","{error}"}}}
             if candidate().is_some() {p {"{summary}"}}
             crate::change_history_ui::ChangeHistory {repository:history_repository}
             DraftBackups {user:backup_user,course:backup_course}

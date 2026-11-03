@@ -22,7 +22,9 @@ pub fn authentication_required(error:&str)->bool {
 pub fn update_failure(error:&str,requested:bool)->Option<String> {
     if authentication_required(error) {
         Some("GitHub 인증 오류로 새 수업을 받지 못했어요. 다시 로그인하세요.".into())
-    }else if requested {Some(error.to_owned())}else{None}
+    }else if requested {Some(error.to_owned())}else{
+        Some("새 수업을 받지 못했어요. 이전 수업은 그대로예요. 수업 업데이트로 다시 시도하세요.".into())
+    }
 }
 
 /// Download and validate first. A failed download or backup leaves the old course usable.
