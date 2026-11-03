@@ -1,18 +1,12 @@
 // Reads and clicks the native report dialog on a CI Mac: System Events does not list its window.
 // read <png>: finds the dialog through CGWindowList (a modal panel, layer 8), captures it with screencapture, OCRs it.
 // click <x> <y>: posts a left click at screen points.
-// hide|unhide <pid>: hides or shows an app's windows, as Cmd-H does.
 import Cocoa
 import Vision
 
 let args = CommandLine.arguments
 func mouse(_ type: CGEventType, _ point: CGPoint) {
     CGEvent(mouseEventSource: nil, mouseType: type, mouseCursorPosition: point, mouseButton: .left)!.post(tap: .cghidEventTap)
-}
-if args[1] == "hide" || args[1] == "unhide" {
-    let app = NSRunningApplication(processIdentifier: pid_t(args[2])!)!
-    print(args[1] == "hide" ? app.hide() : app.unhide())
-    exit(0)
 }
 if args[1] == "click" {
     let point = CGPoint(x: Double(args[2])!, y: Double(args[3])!)

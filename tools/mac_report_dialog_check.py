@@ -5,8 +5,8 @@ the capture helper exactly as it does for a student. System Events does not list
 window, so `mac_dialog_ui.swift` reads it with Vision and clicks with a CGEvent.
 
 timeout: MQ is paused with SIGSTOP, so the helper times out and the dialog must say so.
-retry: MQ's window is hidden, as with Cmd-H, so the first capture fails. The window is shown
-again and 다시 캡처 must bring the dialog back with 캡처 확인 and a screen.png.
+retry: the dialog opens before MQ's window is on screen, so the first capture fails. Once the
+window is up, 다시 캡처 must bring the dialog back with 캡처 확인 and a screen.png.
 Each dialog is cancelled, so nothing is sent to GitHub.
 """
 import json
@@ -72,10 +72,7 @@ subprocess.run(["swiftc", "-O", "-o", str(UI), str(Path(__file__).with_name("mac
 env = ["--env", f"MOLIP_DATA_DIR={DATA}"]
 
 
-def start_mq(name):
-    before = {p for p, _, _ in processes()}
-    subprocess.run(["open", "-n", *env, str(APP)], check=True)
-    main = wait_for(lambda: next((p for p, _, c in processes() if p not in before and c.strip().endswith(str(EXECUTABLE))), None), 60, "MQ")
+def wait_shown(main, name):
     attempt = [0]
 
     def window_shown():
@@ -85,8 +82,16 @@ def start_mq(name):
         subprocess.run(["open", "-n", "-W", *env, str(APP), "--args", "--capture-report", str(main), str(shot)], check=True)
         return shot.exists() or time.sleep(2)
 
-    # A student reports from a visible MQ window.
     wait_for(window_shown, 120, "MQ window on screen")
+
+
+def start_mq(name, shown=True):
+    before = {p for p, _, _ in processes()}
+    subprocess.run(["open", "-n", *env, str(APP)], check=True)
+    main = wait_for(lambda: next((p for p, _, c in processes() if p not in before and c.strip().endswith(str(EXECUTABLE))), None), 60, "MQ")
+    wait_for(lambda: Path(os.environ.get("TMPDIR", "/tmp"), f"mq-report-capture-{main}.sock").exists(), 60, "MQ capture service")
+    if shown:
+        wait_shown(main, name)
     return main
 
 
@@ -123,15 +128,13 @@ try:
     subprocess.run(["kill", str(main)])
     time.sleep(2)
 
-    main = start_mq("retry")
+    # MQ's capture service starts before its window is on screen: a report opened then fails.
+    main = start_mq("retry", shown=False)
     mains.append(main)
-    subprocess.run([str(UI), "hide", str(main)], check=True)
-    time.sleep(1)
     opener, osa, folder, state = open_dialog(main, "retry")
-    assert report["retry"]["status"] == {"reason": "failed", "detail": "MQ window unavailable"}, "a hidden window did not fail the capture"
-    assert "MQwindowunavailable" in state["text"].replace(" ", ""), f"the failure detail is not shown: {state['text']}"
-    subprocess.run([str(UI), "unhide", str(main)], check=True)
-    time.sleep(1)
+    assert report["retry"]["status"] and report["retry"]["status"]["reason"] == "failed", "the first capture did not fail before MQ's window was up"
+    assert "다시캡처" in state["text"].replace(" ", ""), "no 다시 캡처 after a failed capture"
+    wait_shown(main, "retry")
     click(osa, "다시 캡처")
     after = wait_for(lambda: (s := dialog_state(osa)) and "캡처확인" in s["text"].replace(" ", "") and s, 30, "dialog after 다시 캡처")
     screenshot("retry-after")
