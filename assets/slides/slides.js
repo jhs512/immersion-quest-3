@@ -37,7 +37,7 @@ section h3 { font-size: 34px; margin: 0 0 12px; color: #236b55; }
 section p, section li { margin: 0 0 10px; }
 section ul, section ol { padding-left: 1.2em; }
 section strong { color: #b2461d; }
-section code { font-family: 'JetBrains Mono', 'Pretendard', monospace; font-size: 0.85em; background: #eee8da; padding: 2px 8px; border-radius: 6px; }
+section code { font-family: 'D2Coding', 'Pretendard', monospace; font-size: 0.85em; background: #eee8da; padding: 2px 8px; border-radius: 6px; }
 section pre { background: #16283a; color: #e4eef7; padding: 20px 24px; border-radius: 12px; font-size: 24px; line-height: 1.5; }
 section pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
 section blockquote { border-left: 6px solid #e0a63a; margin: 12px 0; padding: 6px 24px; color: #4a5a6a; font-size: 28px; }
