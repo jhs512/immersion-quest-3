@@ -1,0 +1,396 @@
+[
+  {
+    "case": "vpc-subnet-query",
+    "observation": {
+      "vpcs": {
+        "Vpcs": [
+          {
+            "OwnerId": "000000000000",
+            "InstanceTenancy": "default",
+            "Ipv6CidrBlockAssociationSet": [],
+            "CidrBlockAssociationSet": [
+              {
+                "AssociationId": "vpc-cidr-assoc-92d5523c",
+                "CidrBlock": "10.91.0.0/16",
+                "CidrBlockState": {
+                  "State": "associated"
+                }
+              }
+            ],
+            "IsDefault": false,
+            "Tags": [],
+            "VpcId": "vpc-6e6d4591",
+            "State": "available",
+            "CidrBlock": "10.91.0.0/16",
+            "DhcpOptionsId": "dopt-default"
+          }
+        ]
+      },
+      "subnets": {
+        "Subnets": [
+          {
+            "AvailabilityZoneId": "use1-az1",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "000000000000",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [],
+            "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-d6e4b650",
+            "EnableDns64": false,
+            "SubnetId": "subnet-d6e4b650",
+            "State": "available",
+            "VpcId": "vpc-6e6d4591",
+            "CidrBlock": "10.91.1.0/24",
+            "AvailableIpAddressCount": 251,
+            "AvailabilityZone": "us-east-1a",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+          },
+          {
+            "AvailabilityZoneId": "use1-az1",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "000000000000",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [],
+            "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-a1d5789d",
+            "EnableDns64": false,
+            "SubnetId": "subnet-a1d5789d",
+            "State": "available",
+            "VpcId": "vpc-6e6d4591",
+            "CidrBlock": "10.91.2.0/24",
+            "AvailableIpAddressCount": 251,
+            "AvailabilityZone": "us-east-1a",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "case": "overlap-subnet",
+    "observation": {
+      "error": "\nAn error occurred (InvalidSubnet.Conflict) when calling the CreateSubnet operation: The CIDR '10.91.1.128/25' conflicts with another subnet\n",
+      "rc": 254
+    }
+  },
+  {
+    "case": "outside-subnet",
+    "observation": {
+      "error": "\nAn error occurred (InvalidSubnet.Range) when calling the CreateSubnet operation: The CIDR '10.92.1.0/24' is invalid.\n",
+      "rc": 254
+    }
+  },
+  {
+    "case": "too-small-subnet",
+    "observation": {
+      "error": "\nAn error occurred (InvalidSubnet.Range) when calling the CreateSubnet operation: The CIDR '10.91.3.0/29' is invalid.\n",
+      "rc": 254
+    }
+  },
+  {
+    "case": "delete-vpc-dependency",
+    "observation": {
+      "error": "\nAn error occurred (DependencyViolation) when calling the DeleteVpc operation: The vpc 'vpc-6e6d4591' has dependencies and cannot be deleted.\n",
+      "rc": 254
+    }
+  },
+  {
+    "case": "reserved-ip",
+    "observation": {
+      "error": "\nAn error occurred (InvalidParameterValue) when calling the RunInstances operation: Address 10.91.1.1 is reserved by AWS in subnet subnet-d6e4b650 and cannot be assigned\n",
+      "rc": 254
+    }
+  },
+  {
+    "case": "outside-ip",
+    "observation": {
+      "error": "\nAn error occurred (InvalidParameterValue) when calling the RunInstances operation: Address 10.91.9.10 does not fall within the address range of subnet subnet-d6e4b650\n",
+      "rc": 254
+    }
+  },
+  {
+    "case": "instance-ready",
+    "observation": {
+      "id": "i-94e7d9a0a353a9cd6",
+      "container": "61b3637aec7e22acc3a11e45cb43465962b4021122c7df6830d68531a33fc2f4",
+      "private_ip": "10.91.1.10",
+      "networks": {
+        "bridge": "172.17.0.2",
+        "floci-aws-mq-floci-win-20261109203533-vpc-4566-us-east-1-vpc-6e6d4591": "10.91.1.10"
+      },
+      "network_mode": "bridge",
+      "memory": 536870912,
+      "nano_cpus": 2000000000,
+      "port_bindings": {
+        "22/tcp": [
+          {
+            "HostIp": "",
+            "HostPort": "2200"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "case": "instance-ready",
+    "observation": {
+      "id": "i-4ac450055bb15b140",
+      "container": "2329bb8e88bf5d0e4971fff57f80a7b4dd1a255895fb42950944d651ab26ca87",
+      "private_ip": "10.91.1.11",
+      "networks": {
+        "bridge": "172.17.0.3",
+        "floci-aws-mq-floci-win-20261109203533-vpc-4566-us-east-1-vpc-6e6d4591": "10.91.1.11"
+      },
+      "network_mode": "bridge",
+      "memory": 536870912,
+      "nano_cpus": 2000000000,
+      "port_bindings": {
+        "22/tcp": [
+          {
+            "HostIp": "",
+            "HostPort": "2201"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "case": "default-sg-empty-ingress",
+    "observation": {
+      "src": "i-94e7d9a0a353a9cd6",
+      "dst": "i-4ac450055bb15b140",
+      "ip": "10.91.1.11",
+      "port": 8080,
+      "rc": 0,
+      "body": "i-4ac450055bb15b140",
+      "stderr": "",
+      "marker_match": true
+    }
+  },
+  {
+    "case": "instance-ready",
+    "observation": {
+      "id": "i-40580163d23d4923a",
+      "container": "425ffb58e824d44d059e8028efac6789958e35970c15380deb650986bb3c9252",
+      "private_ip": "10.91.2.10",
+      "networks": {
+        "bridge": "172.17.0.4",
+        "floci-aws-mq-floci-win-20261109203533-vpc-4566-us-east-1-vpc-6e6d4591": "10.91.2.10"
+      },
+      "network_mode": "bridge",
+      "memory": 536870912,
+      "nano_cpus": 2000000000,
+      "port_bindings": {
+        "22/tcp": [
+          {
+            "HostIp": "",
+            "HostPort": "2202"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "case": "instance-ready",
+    "observation": {
+      "id": "i-d1ca94a20ac40c3f5",
+      "container": "40e89319dc7c9ffcfbb3a9f1c954094575dc71f384bd48ea196d74cca12a646d",
+      "private_ip": "10.92.1.10",
+      "networks": {
+        "bridge": "172.17.0.5",
+        "floci-aws-mq-floci-win-20261109203533-vpc-4566-us-east-1-vpc-e6283bfe": "10.92.1.10"
+      },
+      "network_mode": "bridge",
+      "memory": 536870912,
+      "nano_cpus": 2000000000,
+      "port_bindings": {
+        "22/tcp": [
+          {
+            "HostIp": "",
+            "HostPort": "2203"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "case": "baseline-topology",
+    "observation": [
+      {
+        "src": "i-94e7d9a0a353a9cd6",
+        "dst": "i-4ac450055bb15b140",
+        "ip": "10.91.1.11",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-4ac450055bb15b140",
+        "stderr": "",
+        "marker_match": true
+      },
+      {
+        "src": "i-94e7d9a0a353a9cd6",
+        "dst": "i-40580163d23d4923a",
+        "ip": "10.91.2.10",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-40580163d23d4923a",
+        "stderr": "",
+        "marker_match": true
+      },
+      {
+        "src": "i-94e7d9a0a353a9cd6",
+        "dst": "i-d1ca94a20ac40c3f5",
+        "ip": "10.92.1.10",
+        "port": 8080,
+        "rc": 1,
+        "body": "",
+        "stderr": "wget: download timed out\n",
+        "marker_match": false
+      },
+      {
+        "src": "i-94e7d9a0a353a9cd6",
+        "dst": "i-4ac450055bb15b140",
+        "ip": "10.91.1.11",
+        "port": 8081,
+        "rc": 1,
+        "body": "",
+        "stderr": "wget: can't connect to remote host (10.91.1.11): Connection refused\n",
+        "marker_match": false
+      },
+      {
+        "src": "i-94e7d9a0a353a9cd6",
+        "dst": "i-d1ca94a20ac40c3f5",
+        "ip": "172.17.0.5",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-d1ca94a20ac40c3f5",
+        "stderr": "",
+        "marker_match": true
+      }
+    ]
+  },
+  {
+    "case": "baseline-topology-kernel-route",
+    "observation": "default via 172.17.0.1 dev eth1 \n10.91.0.0/16 dev eth0 proto kernel scope link src 10.91.1.10 \n172.17.0.0/16 dev eth1 proto kernel scope link src 172.17.0.2 \n"
+  },
+  {
+    "case": "default-bridge-bypass",
+    "observation": [
+      {
+        "src": "i-94e7d9a0a353a9cd6",
+        "dst": "i-d1ca94a20ac40c3f5",
+        "ip": "172.17.0.5",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-d1ca94a20ac40c3f5",
+        "stderr": "",
+        "marker_match": true
+      }
+    ]
+  },
+  {
+    "case": "delete-live-subnet",
+    "observation": {
+      "error": "\nAn error occurred (DependencyViolation) when calling the DeleteSubnet operation: The subnet 'subnet-d6e4b650' has dependencies and cannot be deleted.\n",
+      "rc": 254
+    }
+  },
+  {
+    "case": "igw-route-state",
+    "observation": {
+      "RouteTables": [
+        {
+          "Associations": [
+            {
+              "Main": false,
+              "RouteTableAssociationId": "rtbassoc-9a2c09be",
+              "RouteTableId": "rtb-7e43345c",
+              "SubnetId": "subnet-d6e4b650",
+              "AssociationState": {
+                "State": "associated"
+              }
+            }
+          ],
+          "RouteTableId": "rtb-7e43345c",
+          "Routes": [
+            {
+              "DestinationCidrBlock": "10.91.0.0/16",
+              "GatewayId": "local",
+              "Origin": "CreateRouteTable",
+              "State": "active"
+            },
+            {
+              "DestinationCidrBlock": "10.91.2.0/24",
+              "GatewayId": "igw-86e7cf9c",
+              "Origin": "CreateRoute",
+              "State": "active"
+            }
+          ],
+          "Tags": [],
+          "VpcId": "vpc-6e6d4591",
+          "OwnerId": "000000000000"
+        }
+      ]
+    }
+  },
+  {
+    "case": "igw-route-packets",
+    "observation": [
+      {
+        "src": "i-94e7d9a0a353a9cd6",
+        "dst": "i-4ac450055bb15b140",
+        "ip": "10.91.1.11",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-4ac450055bb15b140",
+        "stderr": "",
+        "marker_match": true
+      },
+      {
+        "src": "i-94e7d9a0a353a9cd6",
+        "dst": "i-40580163d23d4923a",
+        "ip": "10.91.2.10",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-40580163d23d4923a",
+        "stderr": "",
+        "marker_match": true
+      },
+      {
+        "src": "i-94e7d9a0a353a9cd6",
+        "dst": "i-d1ca94a20ac40c3f5",
+        "ip": "10.92.1.10",
+        "port": 8080,
+        "rc": 1,
+        "body": "",
+        "stderr": "wget: download timed out\n",
+        "marker_match": false
+      },
+      {
+        "src": "i-94e7d9a0a353a9cd6",
+        "dst": "i-4ac450055bb15b140",
+        "ip": "10.91.1.11",
+        "port": 8081,
+        "rc": 1,
+        "body": "",
+        "stderr": "wget: can't connect to remote host (10.91.1.11): Connection refused\n",
+        "marker_match": false
+      },
+      {
+        "src": "i-94e7d9a0a353a9cd6",
+        "dst": "i-d1ca94a20ac40c3f5",
+        "ip": "172.17.0.5",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-d1ca94a20ac40c3f5",
+        "stderr": "",
+        "marker_match": true
+      }
+    ]
+  },
+  {
+    "case": "igw-route-packets-kernel-route",
+    "observation": "default via 172.17.0.1 dev eth1 \n10.91.0.0/16 dev eth0 proto kernel scope link src 10.91.1.10 \n172.17.0.0/16 dev eth1 proto kernel scope link src 172.17.0.2 \n"
+  }
+]

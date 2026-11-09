@@ -1,0 +1,1268 @@
+[
+  {
+    "case": "vpc-subnet-query",
+    "observation": {
+      "vpcs": {
+        "Vpcs": [
+          {
+            "OwnerId": "000000000000",
+            "InstanceTenancy": "default",
+            "Ipv6CidrBlockAssociationSet": [],
+            "CidrBlockAssociationSet": [
+              {
+                "AssociationId": "vpc-cidr-assoc-a69b45e7",
+                "CidrBlock": "10.91.0.0/16",
+                "CidrBlockState": {
+                  "State": "associated"
+                }
+              }
+            ],
+            "IsDefault": false,
+            "Tags": [],
+            "VpcId": "vpc-aee8f821",
+            "State": "available",
+            "CidrBlock": "10.91.0.0/16",
+            "DhcpOptionsId": "dopt-default"
+          }
+        ]
+      },
+      "subnets": {
+        "Subnets": [
+          {
+            "AvailabilityZoneId": "use1-az1",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "000000000000",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [],
+            "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-b8ba1709",
+            "EnableDns64": false,
+            "SubnetId": "subnet-b8ba1709",
+            "State": "available",
+            "VpcId": "vpc-aee8f821",
+            "CidrBlock": "10.91.1.0/24",
+            "AvailableIpAddressCount": 251,
+            "AvailabilityZone": "us-east-1a",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+          },
+          {
+            "AvailabilityZoneId": "use1-az1",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "000000000000",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [],
+            "SubnetArn": "arn:aws:ec2:us-east-1:000000000000:subnet/subnet-93db2f90",
+            "EnableDns64": false,
+            "SubnetId": "subnet-93db2f90",
+            "State": "available",
+            "VpcId": "vpc-aee8f821",
+            "CidrBlock": "10.91.2.0/24",
+            "AvailableIpAddressCount": 251,
+            "AvailabilityZone": "us-east-1a",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "case": "overlap-subnet",
+    "observation": {
+      "error": "\nAn error occurred (InvalidSubnet.Conflict) when calling the CreateSubnet operation: The CIDR '10.91.1.128/25' conflicts with another subnet\n",
+      "rc": 254
+    }
+  },
+  {
+    "case": "outside-subnet",
+    "observation": {
+      "error": "\nAn error occurred (InvalidSubnet.Range) when calling the CreateSubnet operation: The CIDR '10.92.1.0/24' is invalid.\n",
+      "rc": 254
+    }
+  },
+  {
+    "case": "too-small-subnet",
+    "observation": {
+      "error": "\nAn error occurred (InvalidSubnet.Range) when calling the CreateSubnet operation: The CIDR '10.91.3.0/29' is invalid.\n",
+      "rc": 254
+    }
+  },
+  {
+    "case": "delete-vpc-dependency",
+    "observation": {
+      "error": "\nAn error occurred (DependencyViolation) when calling the DeleteVpc operation: The vpc 'vpc-aee8f821' has dependencies and cannot be deleted.\n",
+      "rc": 254
+    }
+  },
+  {
+    "case": "reserved-ip",
+    "observation": {
+      "error": "\nAn error occurred (InvalidParameterValue) when calling the RunInstances operation: Address 10.91.1.1 is reserved by AWS in subnet subnet-b8ba1709 and cannot be assigned\n",
+      "rc": 254
+    }
+  },
+  {
+    "case": "outside-ip",
+    "observation": {
+      "error": "\nAn error occurred (InvalidParameterValue) when calling the RunInstances operation: Address 10.91.9.10 does not fall within the address range of subnet subnet-b8ba1709\n",
+      "rc": 254
+    }
+  },
+  {
+    "case": "instance-ready",
+    "observation": {
+      "id": "i-4bd1f83d61cf37f08",
+      "container": "cb5df64e42309d736ef0f997a7d3a3a8f1c64de3d031a9db0485b35c8c95228d",
+      "private_ip": "10.91.1.10",
+      "networks": {
+        "bridge": "172.17.0.2",
+        "floci-aws-mq-floci-win-20261109203651-vpc-4566-us-east-1-vpc-aee8f821": "10.91.1.10"
+      },
+      "network_mode": "bridge",
+      "memory": 536870912,
+      "nano_cpus": 2000000000,
+      "port_bindings": {
+        "22/tcp": [
+          {
+            "HostIp": "",
+            "HostPort": "2200"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "case": "instance-ready",
+    "observation": {
+      "id": "i-63ddbc8927ba589fa",
+      "container": "069613f6ae124f7b4d9142846d706436c282764e4e62254c5c7443358db437dd",
+      "private_ip": "10.91.1.11",
+      "networks": {
+        "bridge": "172.17.0.3",
+        "floci-aws-mq-floci-win-20261109203651-vpc-4566-us-east-1-vpc-aee8f821": "10.91.1.11"
+      },
+      "network_mode": "bridge",
+      "memory": 536870912,
+      "nano_cpus": 2000000000,
+      "port_bindings": {
+        "22/tcp": [
+          {
+            "HostIp": "",
+            "HostPort": "2201"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "case": "default-sg-empty-ingress",
+    "observation": {
+      "src": "i-4bd1f83d61cf37f08",
+      "dst": "i-63ddbc8927ba589fa",
+      "ip": "10.91.1.11",
+      "port": 8080,
+      "rc": 0,
+      "body": "i-63ddbc8927ba589fa",
+      "stderr": "",
+      "marker_match": true
+    }
+  },
+  {
+    "case": "instance-ready",
+    "observation": {
+      "id": "i-94abf1fc9cef40589",
+      "container": "c5f6980336f94c3934bb2f6e312c16775680d78b076d65b6cfefc64ebfef463a",
+      "private_ip": "10.91.2.10",
+      "networks": {
+        "bridge": "172.17.0.4",
+        "floci-aws-mq-floci-win-20261109203651-vpc-4566-us-east-1-vpc-aee8f821": "10.91.2.10"
+      },
+      "network_mode": "bridge",
+      "memory": 536870912,
+      "nano_cpus": 2000000000,
+      "port_bindings": {
+        "22/tcp": [
+          {
+            "HostIp": "",
+            "HostPort": "2202"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "case": "instance-ready",
+    "observation": {
+      "id": "i-7a1e2146971237964",
+      "container": "60c3c1da5be485c4b76a95d252470a08d34fb493fedd3516c0d7fc35bd8074f1",
+      "private_ip": "10.92.1.10",
+      "networks": {
+        "bridge": "172.17.0.5",
+        "floci-aws-mq-floci-win-20261109203651-vpc-4566-us-east-1-vpc-d1092de4": "10.92.1.10"
+      },
+      "network_mode": "bridge",
+      "memory": 536870912,
+      "nano_cpus": 2000000000,
+      "port_bindings": {
+        "22/tcp": [
+          {
+            "HostIp": "",
+            "HostPort": "2203"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "case": "baseline-topology",
+    "observation": [
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-63ddbc8927ba589fa",
+        "ip": "10.91.1.11",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-63ddbc8927ba589fa",
+        "stderr": "",
+        "marker_match": true
+      },
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-94abf1fc9cef40589",
+        "ip": "10.91.2.10",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-94abf1fc9cef40589",
+        "stderr": "",
+        "marker_match": true
+      },
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-7a1e2146971237964",
+        "ip": "10.92.1.10",
+        "port": 8080,
+        "rc": 1,
+        "body": "",
+        "stderr": "wget: download timed out\n",
+        "marker_match": false
+      },
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-63ddbc8927ba589fa",
+        "ip": "10.91.1.11",
+        "port": 8081,
+        "rc": 1,
+        "body": "",
+        "stderr": "wget: can't connect to remote host (10.91.1.11): Connection refused\n",
+        "marker_match": false
+      },
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-7a1e2146971237964",
+        "ip": "172.17.0.5",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-7a1e2146971237964",
+        "stderr": "",
+        "marker_match": true
+      }
+    ]
+  },
+  {
+    "case": "baseline-topology-kernel-route",
+    "observation": "default via 172.17.0.1 dev eth0 \n10.91.0.0/16 dev eth1 proto kernel scope link src 10.91.1.10 \n172.17.0.0/16 dev eth0 proto kernel scope link src 172.17.0.2 \n"
+  },
+  {
+    "case": "default-bridge-bypass",
+    "observation": [
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-7a1e2146971237964",
+        "ip": "172.17.0.5",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-7a1e2146971237964",
+        "stderr": "",
+        "marker_match": true
+      }
+    ]
+  },
+  {
+    "case": "delete-live-subnet",
+    "observation": {
+      "error": "\nAn error occurred (DependencyViolation) when calling the DeleteSubnet operation: The subnet 'subnet-b8ba1709' has dependencies and cannot be deleted.\n",
+      "rc": 254
+    }
+  },
+  {
+    "case": "igw-route-state",
+    "observation": {
+      "RouteTables": [
+        {
+          "Associations": [
+            {
+              "Main": false,
+              "RouteTableAssociationId": "rtbassoc-2f5c537c",
+              "RouteTableId": "rtb-ad6dffca",
+              "SubnetId": "subnet-b8ba1709",
+              "AssociationState": {
+                "State": "associated"
+              }
+            }
+          ],
+          "RouteTableId": "rtb-ad6dffca",
+          "Routes": [
+            {
+              "DestinationCidrBlock": "10.91.0.0/16",
+              "GatewayId": "local",
+              "Origin": "CreateRouteTable",
+              "State": "active"
+            },
+            {
+              "DestinationCidrBlock": "10.91.2.0/24",
+              "GatewayId": "igw-d3924e19",
+              "Origin": "CreateRoute",
+              "State": "active"
+            }
+          ],
+          "Tags": [],
+          "VpcId": "vpc-aee8f821",
+          "OwnerId": "000000000000"
+        }
+      ]
+    }
+  },
+  {
+    "case": "igw-route-packets",
+    "observation": [
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-63ddbc8927ba589fa",
+        "ip": "10.91.1.11",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-63ddbc8927ba589fa",
+        "stderr": "",
+        "marker_match": true
+      },
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-94abf1fc9cef40589",
+        "ip": "10.91.2.10",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-94abf1fc9cef40589",
+        "stderr": "",
+        "marker_match": true
+      },
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-7a1e2146971237964",
+        "ip": "10.92.1.10",
+        "port": 8080,
+        "rc": 1,
+        "body": "",
+        "stderr": "wget: download timed out\n",
+        "marker_match": false
+      },
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-63ddbc8927ba589fa",
+        "ip": "10.91.1.11",
+        "port": 8081,
+        "rc": 1,
+        "body": "",
+        "stderr": "wget: can't connect to remote host (10.91.1.11): Connection refused\n",
+        "marker_match": false
+      },
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-7a1e2146971237964",
+        "ip": "172.17.0.5",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-7a1e2146971237964",
+        "stderr": "",
+        "marker_match": true
+      }
+    ]
+  },
+  {
+    "case": "igw-route-packets-kernel-route",
+    "observation": "default via 172.17.0.1 dev eth0 \n10.91.0.0/16 dev eth1 proto kernel scope link src 10.91.1.10 \n172.17.0.0/16 dev eth0 proto kernel scope link src 172.17.0.2 \n"
+  },
+  {
+    "case": "deny-nacl-state",
+    "observation": {
+      "NetworkAcls": [
+        {
+          "Associations": [
+            {
+              "NetworkAclAssociationId": "aclassoc-56738b33e719884e7",
+              "NetworkAclId": "acl-9b80457524705461c",
+              "SubnetId": "subnet-b8ba1709"
+            }
+          ],
+          "Entries": [
+            {
+              "CidrBlock": "0.0.0.0/0",
+              "Egress": false,
+              "Protocol": "-1",
+              "RuleAction": "deny",
+              "RuleNumber": 32767
+            },
+            {
+              "CidrBlock": "0.0.0.0/0",
+              "Egress": true,
+              "Protocol": "-1",
+              "RuleAction": "deny",
+              "RuleNumber": 32767
+            },
+            {
+              "CidrBlock": "0.0.0.0/0",
+              "Egress": false,
+              "Protocol": "-1",
+              "RuleAction": "deny",
+              "RuleNumber": 1
+            },
+            {
+              "CidrBlock": "0.0.0.0/0",
+              "Egress": true,
+              "Protocol": "-1",
+              "RuleAction": "deny",
+              "RuleNumber": 1
+            }
+          ],
+          "IsDefault": false,
+          "NetworkAclId": "acl-9b80457524705461c",
+          "Tags": [],
+          "VpcId": "vpc-aee8f821",
+          "OwnerId": "000000000000"
+        }
+      ]
+    }
+  },
+  {
+    "case": "deny-nacl-packets",
+    "observation": [
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-63ddbc8927ba589fa",
+        "ip": "10.91.1.11",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-63ddbc8927ba589fa",
+        "stderr": "",
+        "marker_match": true
+      },
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-94abf1fc9cef40589",
+        "ip": "10.91.2.10",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-94abf1fc9cef40589",
+        "stderr": "",
+        "marker_match": true
+      },
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-7a1e2146971237964",
+        "ip": "10.92.1.10",
+        "port": 8080,
+        "rc": 1,
+        "body": "",
+        "stderr": "wget: download timed out\n",
+        "marker_match": false
+      },
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-63ddbc8927ba589fa",
+        "ip": "10.91.1.11",
+        "port": 8081,
+        "rc": 1,
+        "body": "",
+        "stderr": "wget: can't connect to remote host (10.91.1.11): Connection refused\n",
+        "marker_match": false
+      },
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-7a1e2146971237964",
+        "ip": "172.17.0.5",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-7a1e2146971237964",
+        "stderr": "",
+        "marker_match": true
+      }
+    ]
+  },
+  {
+    "case": "deny-nacl-packets-kernel-route",
+    "observation": "default via 172.17.0.1 dev eth0 \n10.91.0.0/16 dev eth1 proto kernel scope link src 10.91.1.10 \n172.17.0.0/16 dev eth0 proto kernel scope link src 172.17.0.2 \n"
+  },
+  {
+    "case": "peering-state",
+    "observation": {
+      "VpcPeeringConnections": [
+        {
+          "AccepterVpcInfo": {
+            "CidrBlock": "10.92.0.0/16",
+            "OwnerId": "000000000000",
+            "PeeringOptions": {
+              "AllowDnsResolutionFromRemoteVpc": false
+            },
+            "VpcId": "vpc-d1092de4",
+            "Region": "us-east-1"
+          },
+          "RequesterVpcInfo": {
+            "CidrBlock": "10.91.0.0/16",
+            "OwnerId": "000000000000",
+            "PeeringOptions": {
+              "AllowDnsResolutionFromRemoteVpc": false
+            },
+            "VpcId": "vpc-aee8f821",
+            "Region": "us-east-1"
+          },
+          "Status": {
+            "Code": "active",
+            "Message": "Active"
+          },
+          "Tags": [],
+          "VpcPeeringConnectionId": "pcx-54e1c2a1d8d66c8f0"
+        }
+      ]
+    }
+  },
+  {
+    "case": "peering-packets",
+    "observation": [
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-63ddbc8927ba589fa",
+        "ip": "10.91.1.11",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-63ddbc8927ba589fa",
+        "stderr": "",
+        "marker_match": true
+      },
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-94abf1fc9cef40589",
+        "ip": "10.91.2.10",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-94abf1fc9cef40589",
+        "stderr": "",
+        "marker_match": true
+      },
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-7a1e2146971237964",
+        "ip": "10.92.1.10",
+        "port": 8080,
+        "rc": 1,
+        "body": "",
+        "stderr": "wget: download timed out\n",
+        "marker_match": false
+      },
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-63ddbc8927ba589fa",
+        "ip": "10.91.1.11",
+        "port": 8081,
+        "rc": 1,
+        "body": "",
+        "stderr": "wget: can't connect to remote host (10.91.1.11): Connection refused\n",
+        "marker_match": false
+      },
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-7a1e2146971237964",
+        "ip": "172.17.0.5",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-7a1e2146971237964",
+        "stderr": "",
+        "marker_match": true
+      }
+    ]
+  },
+  {
+    "case": "peering-packets-kernel-route",
+    "observation": "default via 172.17.0.1 dev eth0 \n10.91.0.0/16 dev eth1 proto kernel scope link src 10.91.1.10 \n172.17.0.0/16 dev eth0 proto kernel scope link src 172.17.0.2 \n"
+  },
+  {
+    "case": "nat-create",
+    "observation": {
+      "NatGateway": {
+        "CreateTime": "2026-11-09T11:38:05.147000+00:00",
+        "NatGatewayAddresses": [
+          {
+            "AllocationId": "eipalloc-8a59c78137bc1ae67",
+            "NetworkInterfaceId": "eni-c53e3b80b3313fcc8",
+            "PrivateIp": "10.91.2.11",
+            "PublicIp": "203.0.113.1",
+            "AssociationId": "eipassoc-72fa5f7e311ad931b",
+            "IsPrimary": true,
+            "Status": "succeeded"
+          }
+        ],
+        "NatGatewayId": "nat-3a0b91452b5f6660a",
+        "State": "available",
+        "SubnetId": "subnet-93db2f90",
+        "VpcId": "vpc-aee8f821",
+        "Tags": [],
+        "ConnectivityType": "public"
+      }
+    }
+  },
+  {
+    "case": "nat-state",
+    "observation": {
+      "NatGateways": [
+        {
+          "CreateTime": "2026-11-09T11:38:05.147000+00:00",
+          "NatGatewayAddresses": [
+            {
+              "AllocationId": "eipalloc-8a59c78137bc1ae67",
+              "NetworkInterfaceId": "eni-c53e3b80b3313fcc8",
+              "PrivateIp": "10.91.2.11",
+              "PublicIp": "203.0.113.1",
+              "AssociationId": "eipassoc-72fa5f7e311ad931b",
+              "IsPrimary": true,
+              "Status": "succeeded"
+            }
+          ],
+          "NatGatewayId": "nat-3a0b91452b5f6660a",
+          "State": "available",
+          "SubnetId": "subnet-93db2f90",
+          "VpcId": "vpc-aee8f821",
+          "Tags": [],
+          "ConnectivityType": "public"
+        }
+      ]
+    }
+  },
+  {
+    "case": "nat-packets",
+    "observation": [
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-63ddbc8927ba589fa",
+        "ip": "10.91.1.11",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-63ddbc8927ba589fa",
+        "stderr": "",
+        "marker_match": true
+      },
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-94abf1fc9cef40589",
+        "ip": "10.91.2.10",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-94abf1fc9cef40589",
+        "stderr": "",
+        "marker_match": true
+      },
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-7a1e2146971237964",
+        "ip": "10.92.1.10",
+        "port": 8080,
+        "rc": 1,
+        "body": "",
+        "stderr": "wget: download timed out\n",
+        "marker_match": false
+      },
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-63ddbc8927ba589fa",
+        "ip": "10.91.1.11",
+        "port": 8081,
+        "rc": 1,
+        "body": "",
+        "stderr": "wget: can't connect to remote host (10.91.1.11): Connection refused\n",
+        "marker_match": false
+      },
+      {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-7a1e2146971237964",
+        "ip": "172.17.0.5",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-7a1e2146971237964",
+        "stderr": "",
+        "marker_match": true
+      }
+    ]
+  },
+  {
+    "case": "nat-packets-kernel-route",
+    "observation": "default via 172.17.0.1 dev eth0 \n10.91.0.0/16 dev eth1 proto kernel scope link src 10.91.1.10 \n172.17.0.0/16 dev eth0 proto kernel scope link src 172.17.0.2 \n"
+  },
+  {
+    "case": "stop-instance",
+    "observation": {
+      "api": {
+        "Reservations": [
+          {
+            "ReservationId": "r-dce31f80bba19b63f",
+            "OwnerId": "000000000000",
+            "Groups": [],
+            "Instances": [
+              {
+                "Architecture": "x86_64",
+                "BlockDeviceMappings": [
+                  {
+                    "DeviceName": "/dev/xvda",
+                    "Ebs": {
+                      "AttachTime": "2026-11-09T11:37:24.667000+00:00",
+                      "DeleteOnTermination": true,
+                      "Status": "attached",
+                      "VolumeId": "vol-00ba15b5ccbb0bafd"
+                    }
+                  }
+                ],
+                "ClientToken": "f81cd54b-0b43-4631-920d-47c322a21b93",
+                "EbsOptimized": false,
+                "EnaSupport": true,
+                "Hypervisor": "xen",
+                "NetworkInterfaces": [
+                  {
+                    "Attachment": {
+                      "AttachTime": "2026-11-09T11:37:24.667000+00:00",
+                      "AttachmentId": "eni-attach-dfb318150c9b2684e",
+                      "DeleteOnTermination": true,
+                      "DeviceIndex": 0,
+                      "Status": "attached"
+                    },
+                    "Groups": [
+                      {
+                        "GroupId": "sg-b15797a1e93557590",
+                        "GroupName": "lab"
+                      }
+                    ],
+                    "NetworkInterfaceId": "eni-4c36b99274d173b1a",
+                    "OwnerId": "000000000000",
+                    "PrivateDnsName": "ip-10-91-1-11.ec2.internal",
+                    "PrivateIpAddress": "10.91.1.11",
+                    "PrivateIpAddresses": [
+                      {
+                        "Primary": true,
+                        "PrivateDnsName": "ip-10-91-1-11.ec2.internal",
+                        "PrivateIpAddress": "10.91.1.11"
+                      }
+                    ],
+                    "SourceDestCheck": true,
+                    "Status": "in-use",
+                    "SubnetId": "subnet-b8ba1709",
+                    "VpcId": "vpc-aee8f821"
+                  }
+                ],
+                "RootDeviceName": "/dev/xvda",
+                "RootDeviceType": "ebs",
+                "SecurityGroups": [
+                  {
+                    "GroupId": "sg-b15797a1e93557590",
+                    "GroupName": "lab"
+                  }
+                ],
+                "SourceDestCheck": true,
+                "Tags": [],
+                "VirtualizationType": "hvm",
+                "CpuOptions": {
+                  "CoreCount": 1,
+                  "ThreadsPerCore": 1
+                },
+                "CapacityReservationSpecification": {
+                  "CapacityReservationPreference": "open"
+                },
+                "HibernationOptions": {
+                  "Configured": false
+                },
+                "MetadataOptions": {
+                  "State": "applied",
+                  "HttpTokens": "optional",
+                  "HttpPutResponseHopLimit": 1,
+                  "HttpEndpoint": "enabled",
+                  "HttpProtocolIpv6": "disabled",
+                  "InstanceMetadataTags": "disabled"
+                },
+                "EnclaveOptions": {
+                  "Enabled": false
+                },
+                "PlatformDetails": "Linux/UNIX",
+                "PrivateDnsNameOptions": {
+                  "HostnameType": "ip-name",
+                  "EnableResourceNameDnsARecord": false,
+                  "EnableResourceNameDnsAAAARecord": false
+                },
+                "MaintenanceOptions": {
+                  "AutoRecovery": "default"
+                },
+                "InstanceId": "i-63ddbc8927ba589fa",
+                "ImageId": "ami-alpine",
+                "State": {
+                  "Code": 64,
+                  "Name": "stopping"
+                },
+                "PrivateDnsName": "ip-10-91-1-11.ec2.internal",
+                "AmiLaunchIndex": 0,
+                "InstanceType": "t3.nano",
+                "LaunchTime": "2026-11-09T11:37:24.667000+00:00",
+                "Placement": {
+                  "Tenancy": "default",
+                  "AvailabilityZone": "us-east-1a"
+                },
+                "Monitoring": {
+                  "State": "disabled"
+                },
+                "SubnetId": "subnet-b8ba1709",
+                "VpcId": "vpc-aee8f821",
+                "PrivateIpAddress": "10.91.1.11"
+              }
+            ]
+          }
+        ]
+      },
+      "docker": {
+        "Status": "running",
+        "Running": true,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 795,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-11-09T11:37:24.825512345Z",
+        "FinishedAt": "0001-01-01T00:00:00Z"
+      },
+      "probe": {
+        "src": "i-4bd1f83d61cf37f08",
+        "dst": "i-63ddbc8927ba589fa",
+        "ip": "10.91.1.11",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-63ddbc8927ba589fa",
+        "stderr": "",
+        "marker_match": true
+      }
+    }
+  },
+  {
+    "case": "restart-instance-packets",
+    "observation": {
+      "src": "i-4bd1f83d61cf37f08",
+      "dst": "i-63ddbc8927ba589fa",
+      "ip": "10.91.1.11",
+      "port": 8080,
+      "rc": 0,
+      "body": "i-63ddbc8927ba589fa",
+      "stderr": "",
+      "marker_match": true
+    }
+  },
+  {
+    "case": "terminated-state",
+    "observation": {
+      "Reservations": [
+        {
+          "ReservationId": "r-747a9832184167863",
+          "OwnerId": "000000000000",
+          "Groups": [],
+          "Instances": [
+            {
+              "Architecture": "x86_64",
+              "BlockDeviceMappings": [],
+              "ClientToken": "f81cd54b-0b43-4631-920d-47c322a21b93",
+              "EbsOptimized": false,
+              "EnaSupport": true,
+              "Hypervisor": "xen",
+              "NetworkInterfaces": [],
+              "RootDeviceName": "/dev/xvda",
+              "RootDeviceType": "ebs",
+              "SecurityGroups": [
+                {
+                  "GroupId": "sg-b15797a1e93557590",
+                  "GroupName": "lab"
+                }
+              ],
+              "SourceDestCheck": true,
+              "Tags": [],
+              "VirtualizationType": "hvm",
+              "CpuOptions": {
+                "CoreCount": 1,
+                "ThreadsPerCore": 1
+              },
+              "CapacityReservationSpecification": {
+                "CapacityReservationPreference": "open"
+              },
+              "HibernationOptions": {
+                "Configured": false
+              },
+              "MetadataOptions": {
+                "State": "applied",
+                "HttpTokens": "optional",
+                "HttpPutResponseHopLimit": 1,
+                "HttpEndpoint": "enabled",
+                "HttpProtocolIpv6": "disabled",
+                "InstanceMetadataTags": "disabled"
+              },
+              "EnclaveOptions": {
+                "Enabled": false
+              },
+              "PlatformDetails": "Linux/UNIX",
+              "PrivateDnsNameOptions": {
+                "HostnameType": "ip-name",
+                "EnableResourceNameDnsARecord": false,
+                "EnableResourceNameDnsAAAARecord": false
+              },
+              "MaintenanceOptions": {
+                "AutoRecovery": "default"
+              },
+              "InstanceId": "i-63ddbc8927ba589fa",
+              "ImageId": "ami-alpine",
+              "State": {
+                "Code": 48,
+                "Name": "terminated"
+              },
+              "PrivateDnsName": "ip-10-91-1-11.ec2.internal",
+              "AmiLaunchIndex": 0,
+              "InstanceType": "t3.nano",
+              "LaunchTime": "2026-11-09T11:37:24.667000+00:00",
+              "Placement": {
+                "Tenancy": "default",
+                "AvailabilityZone": "us-east-1a"
+              },
+              "Monitoring": {
+                "State": "disabled"
+              },
+              "SubnetId": "subnet-b8ba1709",
+              "VpcId": "vpc-aee8f821",
+              "PrivateIpAddress": "10.91.1.11"
+            }
+          ]
+        },
+        {
+          "ReservationId": "r-0e4f0146a6d512f2c",
+          "OwnerId": "000000000000",
+          "Groups": [],
+          "Instances": [
+            {
+              "Architecture": "x86_64",
+              "BlockDeviceMappings": [],
+              "ClientToken": "e8c5b4e3-80cd-4b1f-aa7c-a97862d7980f",
+              "EbsOptimized": false,
+              "EnaSupport": true,
+              "Hypervisor": "xen",
+              "NetworkInterfaces": [],
+              "RootDeviceName": "/dev/xvda",
+              "RootDeviceType": "ebs",
+              "SecurityGroups": [
+                {
+                  "GroupId": "sg-b15797a1e93557590",
+                  "GroupName": "lab"
+                }
+              ],
+              "SourceDestCheck": true,
+              "Tags": [],
+              "VirtualizationType": "hvm",
+              "CpuOptions": {
+                "CoreCount": 1,
+                "ThreadsPerCore": 1
+              },
+              "CapacityReservationSpecification": {
+                "CapacityReservationPreference": "open"
+              },
+              "HibernationOptions": {
+                "Configured": false
+              },
+              "MetadataOptions": {
+                "State": "applied",
+                "HttpTokens": "optional",
+                "HttpPutResponseHopLimit": 1,
+                "HttpEndpoint": "enabled",
+                "HttpProtocolIpv6": "disabled",
+                "InstanceMetadataTags": "disabled"
+              },
+              "EnclaveOptions": {
+                "Enabled": false
+              },
+              "PlatformDetails": "Linux/UNIX",
+              "PrivateDnsNameOptions": {
+                "HostnameType": "ip-name",
+                "EnableResourceNameDnsARecord": false,
+                "EnableResourceNameDnsAAAARecord": false
+              },
+              "MaintenanceOptions": {
+                "AutoRecovery": "default"
+              },
+              "InstanceId": "i-4bd1f83d61cf37f08",
+              "ImageId": "ami-alpine",
+              "State": {
+                "Code": 48,
+                "Name": "terminated"
+              },
+              "PrivateDnsName": "ip-10-91-1-10.ec2.internal",
+              "AmiLaunchIndex": 0,
+              "InstanceType": "t3.nano",
+              "LaunchTime": "2026-11-09T11:37:21.993000+00:00",
+              "Placement": {
+                "Tenancy": "default",
+                "AvailabilityZone": "us-east-1a"
+              },
+              "Monitoring": {
+                "State": "disabled"
+              },
+              "SubnetId": "subnet-b8ba1709",
+              "VpcId": "vpc-aee8f821",
+              "PrivateIpAddress": "10.91.1.10"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "case": "instance-ready",
+    "observation": {
+      "id": "i-573e4b805f541cee1",
+      "container": "3cdf7d605407540bb000793799968dce5297f90e5362436e68d9d91aad1694e2",
+      "private_ip": "10.93.1.10",
+      "networks": {
+        "bridge": "172.17.0.3",
+        "floci-aws-mq-floci-win-20261109203651-vpc-4566-us-east-1-vpc-1d3f0cb5": "10.93.1.10"
+      },
+      "network_mode": "bridge",
+      "memory": 536870912,
+      "nano_cpus": 2000000000,
+      "port_bindings": {
+        "22/tcp": [
+          {
+            "HostIp": "",
+            "HostPort": "2200"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "case": "instance-ready",
+    "observation": {
+      "id": "i-dff987f08ae89b166",
+      "container": "49eef82df7a8be6283917314d508832d7d25a75d90f6f98a53ad9ce01728aade",
+      "private_ip": "10.93.1.11",
+      "networks": {
+        "bridge": "172.17.0.4",
+        "floci-aws-mq-floci-win-20261109203651-vpc-4566-us-east-1-vpc-1d3f0cb5": "10.93.1.11"
+      },
+      "network_mode": "bridge",
+      "memory": 536870912,
+      "nano_cpus": 2000000000,
+      "port_bindings": {
+        "22/tcp": [
+          {
+            "HostIp": "",
+            "HostPort": "2201"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "case": "same-subnet-second-cidr",
+    "observation": {
+      "src": "i-573e4b805f541cee1",
+      "dst": "i-dff987f08ae89b166",
+      "ip": "10.93.1.11",
+      "port": 8080,
+      "rc": 0,
+      "body": "i-dff987f08ae89b166",
+      "stderr": "",
+      "marker_match": true
+    }
+  },
+  {
+    "case": "selective-delete-second-vpc",
+    "observation": {
+      "error": "",
+      "rc": 0
+    }
+  },
+  {
+    "case": "instance-ready",
+    "observation": {
+      "id": "i-b02ce1d1410573860",
+      "container": "e3724169838af4c0bbc0d166045fb7e0682f03ff10eecf94c0aee575eb6957b0",
+      "private_ip": "10.94.1.10",
+      "networks": {
+        "bridge": "172.17.0.2"
+      },
+      "network_mode": "container:603eb533d7046a0f5eef2a4596824127ba1b51b676338dbe9759b673666cd391",
+      "memory": 536870912,
+      "nano_cpus": 2000000000,
+      "port_bindings": null
+    }
+  },
+  {
+    "case": "instance-ready",
+    "observation": {
+      "id": "i-4d40834a4e2139486",
+      "container": "358babf536655a3eb8f1396a366ad3934cff5986c9a71a7acdb549518e492cb4",
+      "private_ip": "10.94.1.11",
+      "networks": {
+        "bridge": "172.17.0.3"
+      },
+      "network_mode": "container:abc44d31257b36200a2b9c468fac43037a7c81ffeb9829013db9732b50635e54",
+      "memory": 536870912,
+      "nano_cpus": 2000000000,
+      "port_bindings": null
+    }
+  },
+  {
+    "case": "sg-enforced-default-deny",
+    "observation": {
+      "logical": {
+        "src": "i-b02ce1d1410573860",
+        "dst": "i-4d40834a4e2139486",
+        "ip": "10.94.1.11",
+        "port": 8080,
+        "rc": 1,
+        "body": "",
+        "stderr": "wget: download timed out\n",
+        "marker_match": false
+      },
+      "transport": {
+        "src": "i-b02ce1d1410573860",
+        "dst": "i-4d40834a4e2139486",
+        "ip": "172.17.0.3",
+        "port": 8080,
+        "rc": 1,
+        "body": "",
+        "stderr": "wget: download timed out\n",
+        "marker_match": false
+      }
+    }
+  },
+  {
+    "case": "sg-ingress-allow",
+    "observation": {
+      "logical": {
+        "src": "i-b02ce1d1410573860",
+        "dst": "i-4d40834a4e2139486",
+        "ip": "10.94.1.11",
+        "port": 8080,
+        "rc": 1,
+        "body": "",
+        "stderr": "wget: download timed out\n",
+        "marker_match": false
+      },
+      "transport": {
+        "src": "i-b02ce1d1410573860",
+        "dst": "i-4d40834a4e2139486",
+        "ip": "172.17.0.3",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-4d40834a4e2139486",
+        "stderr": "",
+        "marker_match": true
+      }
+    }
+  },
+  {
+    "case": "sg-ingress-revoke",
+    "observation": {
+      "src": "i-b02ce1d1410573860",
+      "dst": "i-4d40834a4e2139486",
+      "ip": "172.17.0.3",
+      "port": 8080,
+      "rc": 1,
+      "body": "",
+      "stderr": "wget: download timed out\n",
+      "marker_match": false
+    }
+  },
+  {
+    "case": "sg-ingress-restore",
+    "observation": {
+      "src": "i-b02ce1d1410573860",
+      "dst": "i-4d40834a4e2139486",
+      "ip": "172.17.0.3",
+      "port": 8080,
+      "rc": 0,
+      "body": "i-4d40834a4e2139486",
+      "stderr": "",
+      "marker_match": true
+    }
+  },
+  {
+    "case": "sg-egress-deny",
+    "observation": {
+      "src": "i-b02ce1d1410573860",
+      "dst": "i-4d40834a4e2139486",
+      "ip": "172.17.0.3",
+      "port": 8080,
+      "rc": 1,
+      "body": "",
+      "stderr": "wget: download timed out\n",
+      "marker_match": false
+    }
+  },
+  {
+    "case": "sg-egress-allow",
+    "observation": {
+      "src": "i-b02ce1d1410573860",
+      "dst": "i-4d40834a4e2139486",
+      "ip": "172.17.0.3",
+      "port": 8080,
+      "rc": 0,
+      "body": "i-4d40834a4e2139486",
+      "stderr": "",
+      "marker_match": true
+    }
+  },
+  {
+    "case": "sg-egress-revoke",
+    "observation": {
+      "src": "i-b02ce1d1410573860",
+      "dst": "i-4d40834a4e2139486",
+      "ip": "172.17.0.3",
+      "port": 8080,
+      "rc": 1,
+      "body": "",
+      "stderr": "wget: download timed out\n",
+      "marker_match": false
+    }
+  },
+  {
+    "case": "sg-egress-restore",
+    "observation": {
+      "src": "i-b02ce1d1410573860",
+      "dst": "i-4d40834a4e2139486",
+      "ip": "172.17.0.3",
+      "port": 8080,
+      "rc": 0,
+      "body": "i-4d40834a4e2139486",
+      "stderr": "",
+      "marker_match": true
+    }
+  },
+  {
+    "case": "outer-port-verification",
+    "observation": {
+      "4566/tcp": [
+        {
+          "HostIp": "127.0.0.1",
+          "HostPort": "45669"
+        }
+      ]
+    }
+  }
+]

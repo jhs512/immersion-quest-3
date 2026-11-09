@@ -1,0 +1,367 @@
+[
+  {
+    "case": "topology",
+    "observation": [
+      {
+        "vpc": "vpc-4c636910",
+        "subnet": "subnet-13c991ac",
+        "sg": "sg-b3cc8c82dd73edec0",
+        "id": "i-69ed7c185d360bcc9",
+        "container": "428de437efe2220d6cfbed9af56e32e832f44e11618601d55ac06ba536b2c9e4",
+        "ip": "10.95.1.10",
+        "cidr": "10.95.0.0/16",
+        "rt": "rtb-d3d68922",
+        "bridge": "172.17.0.2"
+      },
+      {
+        "vpc": "vpc-82c2d6d1",
+        "subnet": "subnet-c98120c5",
+        "sg": "sg-31af7fcbae1bb2f03",
+        "id": "i-d49ca8ca4ad78c3c7",
+        "container": "762a368cbbc260835645967e131e56b9c29a0f248df19c6ff7a71dd3b04c613d",
+        "ip": "10.96.1.10",
+        "cidr": "10.96.0.0/16",
+        "rt": "rtb-81d3bd80",
+        "bridge": "172.17.0.3"
+      }
+    ]
+  },
+  {
+    "case": "before-peering",
+    "observation": {
+      "forward": {
+        "src": "i-69ed7c185d360bcc9",
+        "dst": "i-d49ca8ca4ad78c3c7",
+        "ip": "10.96.1.10",
+        "port": 8080,
+        "rc": 1,
+        "body": "",
+        "marker_match": false,
+        "stderr": "wget: download timed out\n"
+      },
+      "reverse": {
+        "src": "i-d49ca8ca4ad78c3c7",
+        "dst": "i-69ed7c185d360bcc9",
+        "ip": "10.95.1.10",
+        "port": 8080,
+        "rc": 1,
+        "body": "",
+        "marker_match": false,
+        "stderr": "wget: download timed out\n"
+      },
+      "bridge_control": {
+        "src": "i-69ed7c185d360bcc9",
+        "dst": "i-d49ca8ca4ad78c3c7",
+        "ip": "172.17.0.3",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-d49ca8ca4ad78c3c7",
+        "marker_match": true,
+        "stderr": ""
+      },
+      "closed_port": {
+        "src": "i-69ed7c185d360bcc9",
+        "dst": "i-d49ca8ca4ad78c3c7",
+        "ip": "172.17.0.3",
+        "port": 8081,
+        "rc": 1,
+        "body": "",
+        "marker_match": false,
+        "stderr": "wget: can't connect to remote host (172.17.0.3): Connection refused\n"
+      },
+      "routes_a": "default via 172.17.0.1 dev eth1 \n10.95.0.0/16 dev eth0 proto kernel scope link src 10.95.1.10 \n172.17.0.0/16 dev eth1 proto kernel scope link src 172.17.0.2 \n",
+      "routes_b": "default via 172.17.0.1 dev eth0 \n10.96.0.0/16 dev eth1 proto kernel scope link src 10.96.1.10 \n172.17.0.0/16 dev eth0 proto kernel scope link src 172.17.0.3 \n"
+    }
+  },
+  {
+    "case": "peer-state",
+    "observation": {
+      "VpcPeeringConnections": [
+        {
+          "AccepterVpcInfo": {
+            "CidrBlock": "10.96.0.0/16",
+            "OwnerId": "000000000000",
+            "PeeringOptions": {
+              "AllowDnsResolutionFromRemoteVpc": false
+            },
+            "VpcId": "vpc-82c2d6d1",
+            "Region": "us-east-1"
+          },
+          "RequesterVpcInfo": {
+            "CidrBlock": "10.95.0.0/16",
+            "OwnerId": "000000000000",
+            "PeeringOptions": {
+              "AllowDnsResolutionFromRemoteVpc": false
+            },
+            "VpcId": "vpc-4c636910",
+            "Region": "us-east-1"
+          },
+          "Status": {
+            "Code": "active",
+            "Message": "Active"
+          },
+          "Tags": [],
+          "VpcPeeringConnectionId": "pcx-07dcee2680f8acb2a"
+        }
+      ]
+    }
+  },
+  {
+    "case": "route-state",
+    "observation": {
+      "RouteTables": [
+        {
+          "Associations": [
+            {
+              "Main": false,
+              "RouteTableAssociationId": "rtbassoc-4bb5bac3",
+              "RouteTableId": "rtb-81d3bd80",
+              "SubnetId": "subnet-c98120c5",
+              "AssociationState": {
+                "State": "associated"
+              }
+            }
+          ],
+          "RouteTableId": "rtb-81d3bd80",
+          "Routes": [
+            {
+              "DestinationCidrBlock": "10.96.0.0/16",
+              "GatewayId": "local",
+              "Origin": "CreateRouteTable",
+              "State": "active"
+            },
+            {
+              "DestinationCidrBlock": "10.95.0.0/16",
+              "Origin": "CreateRoute",
+              "State": "active",
+              "VpcPeeringConnectionId": "pcx-07dcee2680f8acb2a"
+            }
+          ],
+          "Tags": [],
+          "VpcId": "vpc-82c2d6d1",
+          "OwnerId": "000000000000"
+        },
+        {
+          "Associations": [
+            {
+              "Main": false,
+              "RouteTableAssociationId": "rtbassoc-543360f3",
+              "RouteTableId": "rtb-d3d68922",
+              "SubnetId": "subnet-13c991ac",
+              "AssociationState": {
+                "State": "associated"
+              }
+            }
+          ],
+          "RouteTableId": "rtb-d3d68922",
+          "Routes": [
+            {
+              "DestinationCidrBlock": "10.95.0.0/16",
+              "GatewayId": "local",
+              "Origin": "CreateRouteTable",
+              "State": "active"
+            },
+            {
+              "DestinationCidrBlock": "10.96.0.0/16",
+              "Origin": "CreateRoute",
+              "State": "active",
+              "VpcPeeringConnectionId": "pcx-07dcee2680f8acb2a"
+            }
+          ],
+          "Tags": [],
+          "VpcId": "vpc-4c636910",
+          "OwnerId": "000000000000"
+        }
+      ]
+    }
+  },
+  {
+    "case": "default-nacls",
+    "observation": {
+      "NetworkAcls": [
+        {
+          "Associations": [
+            {
+              "NetworkAclAssociationId": "aclassoc-e720b5bfbd03570d0",
+              "NetworkAclId": "acl-0532c5fe26632073a",
+              "SubnetId": "subnet-13c991ac"
+            }
+          ],
+          "Entries": [
+            {
+              "CidrBlock": "0.0.0.0/0",
+              "Egress": false,
+              "Protocol": "-1",
+              "RuleAction": "allow",
+              "RuleNumber": 100
+            },
+            {
+              "CidrBlock": "0.0.0.0/0",
+              "Egress": false,
+              "Protocol": "-1",
+              "RuleAction": "deny",
+              "RuleNumber": 32767
+            },
+            {
+              "CidrBlock": "0.0.0.0/0",
+              "Egress": true,
+              "Protocol": "-1",
+              "RuleAction": "allow",
+              "RuleNumber": 100
+            },
+            {
+              "CidrBlock": "0.0.0.0/0",
+              "Egress": true,
+              "Protocol": "-1",
+              "RuleAction": "deny",
+              "RuleNumber": 32767
+            }
+          ],
+          "IsDefault": true,
+          "NetworkAclId": "acl-0532c5fe26632073a",
+          "Tags": [],
+          "VpcId": "vpc-4c636910",
+          "OwnerId": "000000000000"
+        },
+        {
+          "Associations": [
+            {
+              "NetworkAclAssociationId": "aclassoc-66d06d32705a34f1f",
+              "NetworkAclId": "acl-16d05a0867cf0723b",
+              "SubnetId": "subnet-c98120c5"
+            }
+          ],
+          "Entries": [
+            {
+              "CidrBlock": "0.0.0.0/0",
+              "Egress": false,
+              "Protocol": "-1",
+              "RuleAction": "allow",
+              "RuleNumber": 100
+            },
+            {
+              "CidrBlock": "0.0.0.0/0",
+              "Egress": false,
+              "Protocol": "-1",
+              "RuleAction": "deny",
+              "RuleNumber": 32767
+            },
+            {
+              "CidrBlock": "0.0.0.0/0",
+              "Egress": true,
+              "Protocol": "-1",
+              "RuleAction": "allow",
+              "RuleNumber": 100
+            },
+            {
+              "CidrBlock": "0.0.0.0/0",
+              "Egress": true,
+              "Protocol": "-1",
+              "RuleAction": "deny",
+              "RuleNumber": 32767
+            }
+          ],
+          "IsDefault": true,
+          "NetworkAclId": "acl-16d05a0867cf0723b",
+          "Tags": [],
+          "VpcId": "vpc-82c2d6d1",
+          "OwnerId": "000000000000"
+        }
+      ]
+    }
+  },
+  {
+    "case": "after-bidirectional-peering",
+    "observation": {
+      "forward": {
+        "src": "i-69ed7c185d360bcc9",
+        "dst": "i-d49ca8ca4ad78c3c7",
+        "ip": "10.96.1.10",
+        "port": 8080,
+        "rc": 1,
+        "body": "",
+        "marker_match": false,
+        "stderr": "wget: download timed out\n"
+      },
+      "reverse": {
+        "src": "i-d49ca8ca4ad78c3c7",
+        "dst": "i-69ed7c185d360bcc9",
+        "ip": "10.95.1.10",
+        "port": 8080,
+        "rc": 1,
+        "body": "",
+        "marker_match": false,
+        "stderr": "wget: download timed out\n"
+      },
+      "bridge_control": {
+        "src": "i-69ed7c185d360bcc9",
+        "dst": "i-d49ca8ca4ad78c3c7",
+        "ip": "172.17.0.3",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-d49ca8ca4ad78c3c7",
+        "marker_match": true,
+        "stderr": ""
+      },
+      "closed_port": {
+        "src": "i-69ed7c185d360bcc9",
+        "dst": "i-d49ca8ca4ad78c3c7",
+        "ip": "172.17.0.3",
+        "port": 8081,
+        "rc": 1,
+        "body": "",
+        "marker_match": false,
+        "stderr": "wget: can't connect to remote host (172.17.0.3): Connection refused\n"
+      },
+      "routes_a": "default via 172.17.0.1 dev eth1 \n10.95.0.0/16 dev eth0 proto kernel scope link src 10.95.1.10 \n172.17.0.0/16 dev eth1 proto kernel scope link src 172.17.0.2 \n",
+      "routes_b": "default via 172.17.0.1 dev eth0 \n10.96.0.0/16 dev eth1 proto kernel scope link src 10.96.1.10 \n172.17.0.0/16 dev eth0 proto kernel scope link src 172.17.0.3 \n"
+    }
+  },
+  {
+    "case": "after-peering-delete",
+    "observation": {
+      "forward": {
+        "src": "i-69ed7c185d360bcc9",
+        "dst": "i-d49ca8ca4ad78c3c7",
+        "ip": "10.96.1.10",
+        "port": 8080,
+        "rc": 1,
+        "body": "",
+        "marker_match": false,
+        "stderr": "wget: download timed out\n"
+      },
+      "reverse": {
+        "src": "i-d49ca8ca4ad78c3c7",
+        "dst": "i-69ed7c185d360bcc9",
+        "ip": "10.95.1.10",
+        "port": 8080,
+        "rc": 1,
+        "body": "",
+        "marker_match": false,
+        "stderr": "wget: download timed out\n"
+      },
+      "bridge_control": {
+        "src": "i-69ed7c185d360bcc9",
+        "dst": "i-d49ca8ca4ad78c3c7",
+        "ip": "172.17.0.3",
+        "port": 8080,
+        "rc": 0,
+        "body": "i-d49ca8ca4ad78c3c7",
+        "marker_match": true,
+        "stderr": ""
+      },
+      "closed_port": {
+        "src": "i-69ed7c185d360bcc9",
+        "dst": "i-d49ca8ca4ad78c3c7",
+        "ip": "172.17.0.3",
+        "port": 8081,
+        "rc": 1,
+        "body": "",
+        "marker_match": false,
+        "stderr": "wget: can't connect to remote host (172.17.0.3): Connection refused\n"
+      },
+      "routes_a": "default via 172.17.0.1 dev eth1 \n10.95.0.0/16 dev eth0 proto kernel scope link src 10.95.1.10 \n172.17.0.0/16 dev eth1 proto kernel scope link src 172.17.0.2 \n",
+      "routes_b": "default via 172.17.0.1 dev eth0 \n10.96.0.0/16 dev eth1 proto kernel scope link src 10.96.1.10 \n172.17.0.0/16 dev eth0 proto kernel scope link src 172.17.0.3 \n"
+    }
+  }
+]
