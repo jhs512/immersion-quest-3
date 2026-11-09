@@ -6,7 +6,7 @@
 
 `database_lab.py`가 모든 AWS CLI 요청에 `http://127.0.0.1:45671`을 지정한다. 실행마다 빈 설정 파일, 가짜 `test` 키, 메타데이터 비활성화를 사용한다. 외부 AWS API 호출은 없다. 외부 통신은 공식 문서와 공개 컨테이너 이미지 취득뿐이다.
 
-호스트 Docker 소켓을 넘기지 않고 별도 privileged DIND 안에서 Floci와 PostgreSQL을 실행한다. 바깥 컨테이너는 CPU 4개·메모리 6GiB·PIDs 2048, Floci는 CPU 2개·2GiB·PIDs 512다. PostgreSQL은 생성 후 Docker update로 CPU 1개·512MiB·PIDs 256을 적용하고 재생성 때 다시 적용한다. **생성 시작 순간부터 개별 DB 제한이 자동 적용되는 Floci 기능은 검증하지 않았다.** 그 구간에는 바깥 DIND 제한이 적용된다. privileged DIND는 호스트와 동일한 보안 경계가 아니므로 연구용 명시적 구성으로 기록한다.
+호스트 Docker 소켓을 넘기지 않고 별도 privileged DIND 안에서 Floci와 PostgreSQL을 실행한다. 바깥 컨테이너에는 CPU 4개·메모리 6GiB·PIDs 2048, Floci에는 CPU 2개·2GiB·PIDs 512를 설정했다. PostgreSQL은 생성 후 Docker update로 CPU 1개·512MiB·PIDs 256을 적용하고 재생성 때 다시 적용한다. **생성 시작부터 update 전까지 개별 DB 제한은 적용되지 않았거나 검증되지 않은 구간이다.** `--cgroupns=host` 구성에서 바깥 DIND 제한이 안쪽 자식 전체의 합계 제한으로 작동한다는 부모 cgroup 계층 증거는 없으므로, 생성 구간을 바깥 제한이 보호한다고 보장하지 않는다. 측정된 증거는 update 후 DB 자체의 cgroup 값이다. MQ 실습 런타임 설계에서는 생성 시점부터의 개별 제한과 실제 부모 계층을 별도로 검증해야 한다. privileged DIND는 호스트와 동일한 보안 경계가 아니므로 연구용 명시적 구성으로 기록한다.
 
 Floci 2.4.0 OCI 인덱스는 `sha256:5ee85db604c4aa74ac76e07ea5cc83086f37bb472bf3dbb97e34019e48efae9c`, DIND 29.0.1은 `sha256:ecac43e78380d9b9d3bd24f0ab42b370f6391a1a06a66065c10a00b9d6d57a3e`다. PostgreSQL 공식 `postgres:16-alpine` 취득 시 해석된 인덱스는 `sha256:aa6cb33cf4c19c765cefcf48d96176258800870a9a1e930ad126200f9d825139`이며 SQL 실제 버전은 **PostgreSQL 16.15**다. 호스트 캐시를 임시 tar로 저장·전송·load하여 내부 레지스트리 pull을 피했다. Desktop의 인덱스 ID와 DIND의 config ID는 다르므로 전체 RootFS 레이어와 아키텍처를 비교하고 대응을 기록한다. tar는 삭제하며 커밋하지 않는다.
 
