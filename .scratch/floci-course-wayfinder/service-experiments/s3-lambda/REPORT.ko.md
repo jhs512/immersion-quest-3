@@ -53,4 +53,6 @@
 
 준비 실패 실행의 별도 감사에서는 기본 `bridge` 네트워크 ID/CreatedAt가 변경됐다(`53543f059f62`→`62ebcdc75075`). 사용자 정의 기존 네트워크·host/none 네트워크·컨테이너·볼륨은 유지됐다. 하네스는 이름과 소유 label이 일치하는 run 네트워크만 삭제했으며 기본 bridge를 삭제하는 명령은 없다. 변경 원인은 이번 증거만으로 단정하지 않는다. 따라서 **두 실행 전체에서 모든 host 네트워크가 보존됐다고 주장하지 않는다.** 완료 실행의 before/after는 전부 동일하다. 실패 실행 `audit.json`의 false 판정도 그대로 보관했다.
 
+저장된 bridge 요약에서 Driver/Scope/IPv4/IPv6/Internal/Labels는 동일하다. baseline에 IPAM/options 상세를 저장하지 않았으므로 subnet/config 불변은 판정할 수 없다. outer Docker 변경 명령 전수는 run 전용 network/volume 생성, 격리 컨테이너 실행, 그 run 컨테이너·volume·network 삭제이며 host daemon 재시작/설정 변경 명령은 없다. host engine은 Desktop 4.93.0 / Engine 29.8.1 / Linux amd64 / WSL2 kernel 6.6.87.2였다. 이후 재현 시 기본 network inspect와 Docker context/info도 baseline 증거에 추가해야 한다.
+
 직접 Claude CLI로 사전 체크리스트와 결과 해석 검토를 요청했다. 실제 API·바이트·컨테이너·정리는 Codex가 독립 확인했다. 별도 Claude bridge나 승인 설정 변경은 사용하지 않았다.
