@@ -33,6 +33,11 @@
   // Let the initial installation finish before the debug control replaces its store.
   await wait(()=>document.querySelector('.lesson-card')?.textContent.includes('pilot-a'),'initial fixture installed');
   await click('검증 높이 720');await click(`버전 ${pilot.version}`);await wait(()=>document.querySelector('.lesson-card')?.textContent.includes(pilot.revision),'approved code lesson');
+  // New course installations require a course-scoped display name before learning.
+  if(document.getElementById('course-display-name')){
+   const field=document.getElementById('course-display-name');field.value='네트워크검증';field.dispatchEvent(new Event('input',{bubbles:true}));
+   await click('이름 저장 후 시작');
+  }
   await click('학습 시작');molipAgent.setVoice(false);
   let teacherResult='',teacherStatus='',requestedRanges=[],shownDiagrams=[],shownPlots=[],shownWeb=false;const originalExplanation=molipAgent.runExplanation.bind(molipAgent);
   const originalHighlight=molipCodeEditors.highlightLines.bind(molipCodeEditors);
