@@ -1,0 +1,640 @@
+{
+  "description": "인터페이스·루프백·여러 IP와 서브넷의 할당 범위를 구별하고 실제 주소와 경로를 바꿔 확인해요.",
+  "tasks": [
+    {
+      "id": "stp_60550edd-ec58-4f38-b36e-e020f8a1cb43",
+      "title": "IPv4 주소의 바이트 수를 읽으세요",
+      "question": "IPv4 주소는 32비트예요. 8비트씩 묶은 옥텟이 몇 개인지 주소 배열로 확인하세요.",
+      "goal": "IPv4 주소는 32비트예요. 8비트씩 묶은 옥텟이 몇 개인지 주소 배열로 확인하세요.\n\n모형: 문서용 192.0.2.0/24 주소로 계산해요. 실제 장치의 주소나 경로를 바꾸지 않아요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `ip.length * 8` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nbyte[] ip = java.net.InetAddress.getByName(\"192.0.2.\" + VALUE).getAddress();\nSystem.out.println(ip.length * 8);\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nbyte[] ip = java.net.InetAddress.getByName(\"192.0.2.\" + VALUE).getAddress();\nSystem.out.println(ip.length);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "4\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "4\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "4\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "IPv4 주소는 32비트예요. 8비트씩 묶은 옥텟이 몇 개인지 주소 배열로 확인하세요.",
+          "target": "text:IPv4 주소는 32비트예요. 8비트씩 묶은 옥텟이 몇 개인지 주소 배열로 확인하세요."
+        },
+        {
+          "action": "say",
+          "text": "모형: 문서용 192.0.2.0/24 주소로 계산해요. 실제 장치의 주소나 경로를 바꾸지 않아요.",
+          "target": "text:모형: 문서용 192.0.2.0/24 주소로 계산해요. 실제 장치의 주소나 경로를 바꾸지 않아요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "IPv4 주소의 바이트 수를 읽으세요의 준비 코드 출력은 32예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "ip.length * 8에서 읽는 대상을 확인해요.",
+          "target": "code:ip.length * 8"
+        },
+        {
+          "action": "patch_code",
+          "before": "ip.length * 8",
+          "after": "ip.length",
+          "say": "ip.length 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "32비트 주소는 8비트 옥텟 4개로 읽어요. 출력은 비트 수가 아니라 배열의 바이트 수예요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_fe710b4f-ad6c-4743-b1a2-11d11edf501e",
+      "title": "마스크로 네트워크 부분을 남기세요",
+      "question": "/24는 앞 24비트가 네트워크 부분이에요. 비트 AND로 호스트 부분을 지우세요.",
+      "goal": "/24는 앞 24비트가 네트워크 부분이에요. 비트 AND로 호스트 부분을 지우세요.\n\n모형: 문서용 192.0.2.0/24 주소로 계산해요. 실제 장치의 주소나 경로를 바꾸지 않아요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `ip | mask` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nint ip = 0xc0000200 | VALUE;\nint mask = 0xffffff00;\nSystem.out.println(Integer.toHexString(ip | mask));\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nint ip = 0xc0000200 | VALUE;\nint mask = 0xffffff00;\nSystem.out.println(Integer.toHexString(ip & mask));\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "c0000200\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "c0000200\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "c0000200\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "/24는 앞 24비트가 네트워크 부분이에요. 비트 AND로 호스트 부분을 지우세요.",
+          "target": "text:/24는 앞 24비트가 네트워크 부분이에요. 비트 AND로 호스트 부분을 지우세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "마스크로 네트워크 부분을 남기세요의 준비 코드 출력은 ffffff06예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "ip | mask에서 읽는 대상을 확인해요.",
+          "target": "code:ip | mask"
+        },
+        {
+          "action": "patch_code",
+          "before": "ip | mask",
+          "after": "ip & mask",
+          "say": "ip & mask 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "마스크가 1인 앞부분만 남아요. 마지막 옥텟의 호스트 비트는 0이 돼요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_a2b4530a-389b-422d-a79d-884186bc734a",
+      "title": "같은 네트워크인지 비교하세요",
+      "question": "두 주소는 마지막 옥텟만 달라요. /24 마스크를 적용한 네트워크 부분끼리 비교하세요.",
+      "goal": "두 주소는 마지막 옥텟만 달라요. /24 마스크를 적용한 네트워크 부분끼리 비교하세요.\n\n모형: 문서용 192.0.2.0/24 주소로 계산해요. 실제 장치의 주소나 경로를 바꾸지 않아요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `first == second` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nint first = 0xc0000200 | VALUE;\nint second = 0xc0000200 | (VALUE + 1);\nint mask = 0xffffff00;\nSystem.out.println(first == second);\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nint first = 0xc0000200 | VALUE;\nint second = 0xc0000200 | (VALUE + 1);\nint mask = 0xffffff00;\nSystem.out.println((first & mask) == (second & mask));\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "true\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "true\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "true\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "두 주소는 마지막 옥텟만 달라요. /24 마스크를 적용한 네트워크 부분끼리 비교하세요.",
+          "target": "text:두 주소는 마지막 옥텟만 달라요. /24 마스크를 적용한 네트워크 부분끼리 비교하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "같은 네트워크인지 비교하세요의 준비 코드 출력은 false예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "first == second에서 읽는 대상을 확인해요.",
+          "target": "code:first == second"
+        },
+        {
+          "action": "patch_code",
+          "before": "first == second",
+          "after": "(first & mask) == (second & mask)",
+          "say": "(first & mask) == (second & mask) 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "장치 주소가 달라도 네트워크 부분은 같을 수 있어요. 전체 주소 비교로는 이 관계를 판단할 수 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_21c7852b-2edc-4c85-a20b-11860cca1704",
+      "title": "주소 블록의 시작을 구하세요",
+      "question": "/29는 끝의 3비트가 호스트 부분이에요. 마지막 옥텟 VALUE가 든 블록의 시작을 구하세요.",
+      "goal": "/29는 끝의 3비트가 호스트 부분이에요. 마지막 옥텟 VALUE가 든 블록의 시작을 구하세요.\n\n모형: 문서용 192.0.2.0/24 주소로 계산해요. 실제 장치의 주소나 경로를 바꾸지 않아요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `last | mask` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nint last = VALUE;\nint mask = 0b11111000;\nSystem.out.println(last | mask);\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nint last = VALUE;\nint mask = 0b11111000;\nSystem.out.println(last & mask);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "0\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "0\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "8\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "/29는 끝의 3비트가 호스트 부분이에요. 마지막 옥텟 VALUE가 든 블록의 시작을 구하세요.",
+          "target": "text:/29는 끝의 3비트가 호스트 부분이에요. 마지막 옥텟 VALUE가 든 블록의 시작을 구하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "주소 블록의 시작을 구하세요의 준비 코드 출력은 254예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "last | mask에서 읽는 대상을 확인해요.",
+          "target": "code:last | mask"
+        },
+        {
+          "action": "patch_code",
+          "before": "last | mask",
+          "after": "last & mask",
+          "say": "last & mask 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "끝 3비트를 지우면 8개씩 묶인 주소 블록의 시작이 나와요. 이 단계는 사용 가능한 장치 수를 세지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 비트 OR로 묶으면 호스트 부분을 지우지 못해요.",
+          "target": "code:last & mask"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_a6ae1ee8-4577-4581-930f-d4b2296071ba",
+      "title": "루프백에만 듣는 서버의 수신 범위를 바꾸세요",
+      "question": "서버의 네트워크 주소로 클라이언트가 접속할 수 있게 수신 바인딩을 바꾸세요. 클라이언트 자신의 루프백에 서버를 새로 만들지는 마세요.",
+      "goal": "컨테이너는 프로세스를 분리해 실행하는 환경이에요. 물리 랜카드와 운영체제의 네트워크 인터페이스는 같은 말이 아니에요. 루프백은 외부 랜카드로 나가지 않고 자기 실행 환경 안에서 통신해요. IPv4의 127.0.0.0/8은 루프백용이고 대표 주소는 127.0.0.1이에요. IPv6에는 ::1이 있어요. localhost는 주소를 찾는 이름이므로 언제나 IPv4 주소 하나로만 해석된다고 가정하지 않아요.\n\n서버와 클라이언트는 같은 컴퓨터의 서로 다른 컨테이너예요. 이 구성에서는 네트워크 네임스페이스가 달라서 루프백도 따로 있어요. 서버는 127.0.0.1:8080에만 듣고 있어요.\n\n서버의 네트워크 주소로 클라이언트가 접속할 수 있게 수신 바인딩을 바꾸세요. 클라이언트 자신의 루프백에 서버를 새로 만들지는 마세요.\n\nBash 명령은 호스트의 실습 폴더에서 실행해요. `$CLIENT`·`$SERVER` 같은 변수에는 이번 문제의 컨테이너 이름이 들어 있어요. `cat addresses.txt`로 읽고 `docker exec` 뒤에 역할을 지정해 컨테이너 안에서 관찰해요. 호스트 네트워크 설정은 바꾸지 않아요.\n\n**할 일**\n\n1. `cat addresses.txt`로 역할과 주소를 읽고 서버 안의 루프백 접속을 확인하세요.\n2. 클라이언트의 루프백과 서버의 네트워크 주소로 각각 접속해 차이를 확인하세요.\n3. `bind.txt`의 IPv4 수신 주소를 바꾸고 해당 서버 컨테이너를 다시 시작하세요.\n4. 같은 클라이언트에서 서버의 네트워크 주소로 응답을 받은 뒤 제출하세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "printf \"0.0.0.0\\n\" > bind.txt\ndocker restart \"$SERVER\"",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "workspace_group": "network-loopback",
+        "workspace_revision": "network-lab-1",
+        "network": {
+          "kind": "loopback"
+        },
+        "shell": {
+          "step_id": "stp_a6ae1ee8-4577-4581-930f-d4b2296071ba",
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": []
+        }
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "컨테이너는 프로세스를 분리해 실행하는 환경이에요. 물리 랜카드와 운영체제의 네트워크 인터페이스는 같은 말이 아니에요. 루프백은 외부 랜카드로 나가지 않고 자기 실행 환경 안에서 통신해요. IPv4의 127.0.0.0/8은 루프백용이고 대표 주소는 127.0.0.1이에요. IPv6에는 ::1이 있어요. localhost는 주소를 찾는 이름이므로 언제나 IPv4 주소 하나로만 해석된다고 가정하지 않아요.",
+          "target": "text:컨테이너는 프로세스를 분리해 실행하는 환경이에요. 물리 랜카드와 운영체제의 네트워크 인터페이스는 같은 말이 아니에요. 루프백은 외부 랜카드로 나가지 않고 자기 실행 환경 안에서 통신해요. IPv4의 127.0.0.0/8은 루프백용이고 대표 주소는 127.0.0.1이에요. IPv6에는 ::1이 있어요. localhost는 주소를 찾는 이름이므로 언제나 IPv4 주소 하나로만 해석된다고 가정하지 않아요."
+        },
+        {
+          "action": "bash_command",
+          "command": "docker exec \"$SERVER\" curl --noproxy \"*\" -fsS http://127.0.0.1:8080/",
+          "say": "먼저 서버 자신의 루프백으로 요청해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "서버 안에서는 SERVER라는 식별 응답을 받아요. 외부 인터페이스를 거칠 필요가 없는 요청이에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker exec \"$CLIENT\" curl --noproxy \"*\" --max-time 3 \"http://$SERVER_IP:8080/\"",
+          "say": "같은 서버를 다른 컨테이너에서 네트워크 주소로 찾아가요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "지금은 연결되지 않아요. 주소를 몰라서가 아니라 서버가 루프백에서만 듣기 때문이에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "printf \"0.0.0.0\\n\" > bind.txt; docker restart \"$SERVER\"",
+          "say": "수신 주소를 IPv4 와일드카드로 바꾸고 서버를 다시 시작해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "0.0.0.0은 여기서 모든 IPv4 인터페이스에서 듣겠다는 설정이에요. 클라이언트의 목적지로 넣을 주소는 아니에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker exec \"$CLIENT\" curl --noproxy \"*\" -fsS --retry 5 --retry-connrefused \"http://$SERVER_IP:8080/\"",
+          "say": "목적지와 포트는 유지하고 다시 접속해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "다른 컨테이너에서도 SERVER의 응답을 받아요. 조심하세요. 클라이언트에서 127.0.0.1을 쓰면 그 클라이언트 자신으로 가요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    },
+    {
+      "id": "stp_c48dc0cd-490d-43d9-abad-1d00d15c95b9",
+      "title": "같은 인터페이스에 IP 주소를 하나 더 붙이세요",
+      "question": "SERVER_IP를 유지하면서 같은 인터페이스에 TARGET_IP/24를 추가하세요. 클라이언트에서 두 주소로 접속해 같은 서버인지 확인하세요.",
+      "goal": "한 컴퓨터에는 여러 물리·가상 인터페이스가 있을 수 있어요. 한 인터페이스에도 IPv4·IPv6나 여러 IP 주소가 붙을 수 있어요. 컴퓨터 수·랜카드 수·주소 수를 같은 수로 세지 않아요.\n\n서버의 인터페이스에는 SERVER_IP가 있어요. TARGET_IP는 같은 /24 안의 비어 있는 주소예요. 이미 실행 중인 서버는 모든 IPv4 인터페이스에서 8080 포트를 듣고 있어요.\n\nSERVER_IP를 유지하면서 같은 인터페이스에 TARGET_IP/24를 추가하세요. 클라이언트에서 두 주소로 접속해 같은 서버인지 확인하세요.\n\nBash 명령은 호스트의 실습 폴더에서 실행해요. `$CLIENT`·`$SERVER` 같은 변수에는 이번 문제의 컨테이너 이름이 들어 있어요. `cat addresses.txt`로 읽고 `docker exec` 뒤에 역할을 지정해 컨테이너 안에서 관찰해요. 호스트 네트워크 설정은 바꾸지 않아요.\n\n**할 일**\n\n1. `cat addresses.txt`와 서버의 `ip -br addr`로 실제 주소가 붙은 인터페이스를 찾으세요.\n2. 그 인터페이스에 TARGET_IP/24를 추가하세요. 새 컨테이너나 새 서버를 만들 필요는 없어요.\n3. 클라이언트에서 기존 주소와 새 주소의 서버 식별 응답을 비교한 뒤 제출하세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "DEV=$(docker exec \"$SERVER\" sh -c 'ip route get \"$1\" | sed -n \"s/.* dev \\([^ ]*\\).*/\\1/p\"' sh \"$CLIENT_IP\"); docker exec \"$SERVER\" ip addr add \"$TARGET_IP/24\" dev \"$DEV\"",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "workspace_group": "network-alias",
+        "workspace_revision": "network-lab-1",
+        "network": {
+          "kind": "alias"
+        },
+        "shell": {
+          "step_id": "stp_c48dc0cd-490d-43d9-abad-1d00d15c95b9",
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": []
+        }
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "한 컴퓨터에는 여러 물리·가상 인터페이스가 있을 수 있어요. 한 인터페이스에도 IPv4·IPv6나 여러 IP 주소가 붙을 수 있어요. 컴퓨터 수·랜카드 수·주소 수를 같은 수로 세지 않아요.",
+          "target": "text:한 컴퓨터에는 여러 물리·가상 인터페이스가 있을 수 있어요. 한 인터페이스에도 IPv4·IPv6나 여러 IP 주소가 붙을 수 있어요. 컴퓨터 수·랜카드 수·주소 수를 같은 수로 세지 않아요."
+        },
+        {
+          "action": "bash_command",
+          "command": "docker exec \"$SERVER\" ip -br addr",
+          "say": "먼저 서버의 실제 인터페이스와 주소를 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "lo는 루프백이에요. SERVER_IP가 붙은 다른 인터페이스에 주소를 추가할 거예요. 이름과 표시 순서는 환경마다 달라질 수 있어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "DEV=$(docker exec \"$SERVER\" sh -c 'ip route get \"$1\" | sed -n \"s/.* dev \\([^ ]*\\).*/\\1/p\"' sh \"$CLIENT_IP\"); docker exec \"$SERVER\" ip addr add \"$TARGET_IP/24\" dev \"$DEV\"",
+          "say": "실제 경로에서 읽은 인터페이스에 새 주소를 붙여요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "원래 주소를 삭제하지 않았어요. 하나의 인터페이스가 두 IPv4 주소를 함께 갖게 됐어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker exec \"$CLIENT\" sh -c 'curl --noproxy \"*\" -fsS \"http://$1:8080/\"; echo; curl --noproxy \"*\" -fsS \"http://$2:8080/\"' sh \"$SERVER_IP\" \"$TARGET_IP\"",
+          "say": "클라이언트가 두 목적지 주소에 차례로 접속해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "두 응답의 server는 SERVER로 같고 local 주소는 달라요. 조심하세요. 주소가 두 개라는 이유로 랜카드나 서버도 두 개라고 판단하면 안 돼요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    },
+    {
+      "id": "stp_0d9092c6-36e0-4eb0-b665-79b8c76ac2cf",
+      "title": "/29에서 비어 있는 호스트 주소를 할당하세요",
+      "question": "주소 장부에서 비어 있는 호스트 주소 하나를 골라 서버의 같은 인터페이스에 /29로 추가하세요. 기존 서버 주소는 유지하고 새 주소에서 서버 응답을 확인하세요.",
+      "goal": "일반적인 IPv4 broadcast 서브넷의 /29에는 호스트 비트가 3개라 주소가 8개 있어요. 네트워크 주소와 브로드캐스트 주소를 빼면 일반 호스트 주소는 6개예요. /31 point-to-point·/32와 IPv6에는 이 계산을 그대로 적용하지 않아요.\n\n이번 /29 블록의 마지막 옥텟은 8부터 15까지예요. 8은 네트워크, 15는 브로드캐스트, 9는 게이트웨이, 10은 이미 서버가 쓰는 주소예요. 다른 예약이 없으므로 지금 비어 있는 일반 호스트 주소는 11부터 14까지 네 개예요.\n\n주소 장부에서 비어 있는 호스트 주소 하나를 골라 서버의 같은 인터페이스에 /29로 추가하세요. 기존 서버 주소는 유지하고 새 주소에서 서버 응답을 확인하세요.\n\nBash 명령은 호스트의 실습 폴더에서 실행해요. `$CLIENT`·`$SERVER` 같은 변수에는 이번 문제의 컨테이너 이름이 들어 있어요. `cat addresses.txt`로 읽고 `docker exec` 뒤에 역할을 지정해 컨테이너 안에서 관찰해요. 호스트 네트워크 설정은 바꾸지 않아요.\n\n**할 일**\n\n1. `cat addresses.txt`와 `docker exec \"$SERVER\" ip -br addr`로 실제 주소를 읽으세요.\n2. 현재 블록의 네트워크·브로드캐스트·게이트웨이·사용 중인 주소를 제외하고 하나를 고르세요.\n3. 선택한 주소를 /29로 추가하고 그 주소로 서버 응답을 확인한 뒤 제출하세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "docker exec \"$SERVER\" sh -c 'DEV=$(ip -o -4 addr show | awk \"\\$4 ~ /\\/29$/ {print \\$2; exit}\"); ip addr add \"$1/29\" dev \"$DEV\"' sh \"$FREE_IP\"",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "workspace_group": "network-allocation",
+        "workspace_revision": "network-lab-1",
+        "network": {
+          "kind": "allocation"
+        },
+        "shell": {
+          "step_id": "stp_0d9092c6-36e0-4eb0-b665-79b8c76ac2cf",
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": []
+        }
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "일반적인 IPv4 broadcast 서브넷의 /29에는 호스트 비트가 3개라 주소가 8개 있어요. 네트워크 주소와 브로드캐스트 주소를 빼면 일반 호스트 주소는 6개예요. /31 point-to-point·/32와 IPv6에는 이 계산을 그대로 적용하지 않아요.",
+          "target": "text:일반적인 IPv4 broadcast 서브넷의 /29에는 호스트 비트가 3개라 주소가 8개 있어요. 네트워크 주소와 브로드캐스트 주소를 빼면 일반 호스트 주소는 6개예요. /31 point-to-point·/32와 IPv6에는 이 계산을 그대로 적용하지 않아요."
+        },
+        {
+          "action": "bash_command",
+          "command": "cat addresses.txt; docker exec \"$SERVER\" ip -br addr",
+          "say": "블록과 실제 서버 주소부터 맞춰 봐요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "주소 여덟 개 전체, 일반 호스트 여섯 개, 지금 비어 있는 네 개는 서로 다른 수예요. 게이트웨이도 호스트 주소 하나를 사용하고 있어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker exec \"$SERVER\" sh -c 'DEV=$(ip -o -4 addr show | awk \"\\$4 ~ /\\/29$/ {print \\$2; exit}\"); ip addr add \"$1/29\" dev \"$DEV\"' sh \"$FREE_IP\"",
+          "say": "비어 있는 네 주소 중 FREE_IP를 골라 같은 인터페이스에 추가해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "FREE_IP는 가능한 예시 하나예요. 나머지 미사용 호스트 주소를 골라도 실제 상태가 유효하면 통과해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker exec \"$SERVER\" curl --noproxy \"*\" -fsS \"http://$FREE_IP:8080/\"",
+          "say": "선택한 주소에서 기존 서버 응답을 확인해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "새 local 주소에서 SERVER가 응답해요. 조심하세요. 주소가 서브넷 안에 있다는 것만으로 지금 비어 있거나 장치에 할당할 수 있다고 단정하면 안 돼요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    },
+    {
+      "id": "stp_8eab08b9-cec3-4891-8a51-596c2c4506b1",
+      "title": "마스크를 고쳐 직접 연결 경로를 선택하게 하세요",
+      "question": "클라이언트 IP는 유지하고 /24로 바꿔 서버에 직접 연결 경로를 선택하게 하세요. 주소 재설정으로 기본 경로가 없어졌다면 복구하고 기존 게이트웨이는 유지하세요.",
+      "goal": "마스크는 주소의 네트워크 부분과 호스트 부분을 나눠요. 운영체제는 연결된 프리픽스와 경로표를 이용해 전달 경로를 골라요. 마스크를 바꾸면 통신 성공 여부만 볼 것이 아니라 선택한 경로도 읽어야 해요.\n\nCLIENT_IP는 마지막 옥텟 10, SERVER_IP는 130이에요. 현재 클라이언트는 /25여서 서버가 다른 블록에 있어요. 서버로 가는 경로를 조회하면 기본 게이트웨이가 나와요. 이 환경에서는 그 경로로도 HTTP 접속이 성공할 수 있어요.\n\n클라이언트 IP는 유지하고 /24로 바꿔 서버에 직접 연결 경로를 선택하게 하세요. 주소 재설정으로 기본 경로가 없어졌다면 복구하고 기존 게이트웨이는 유지하세요.\n\nBash 명령은 호스트의 실습 폴더에서 실행해요. `$CLIENT`·`$SERVER` 같은 변수에는 이번 문제의 컨테이너 이름이 들어 있어요. `cat addresses.txt`로 읽고 `docker exec` 뒤에 역할을 지정해 컨테이너 안에서 관찰해요. 호스트 네트워크 설정은 바꾸지 않아요.\n\n**할 일**\n\n1. 클라이언트의 `ip -br addr`와 서버를 향한 `ip route get`을 읽으세요.\n2. CLIENT_IP의 마스크를 /24로 바꾸고 기본 경로를 확인하세요.\n3. 서버의 경로에서 다음 홉이 사라졌는지 확인하고 서버 응답을 받은 뒤 제출하세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "docker exec \"$CLIENT\" sh -c 'DEV=$(ip route get \"$1\" | sed -n \"s/.* dev \\([^ ]*\\).*/\\1/p\"); ip addr del \"$2/25\" dev \"$DEV\"; ip addr add \"$2/24\" dev \"$DEV\"; ip route replace default via \"$3\"' sh \"$SERVER_IP\" \"$CLIENT_IP\" \"$GATEWAY_IP\"",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "workspace_group": "network-mask",
+        "workspace_revision": "network-lab-1",
+        "network": {
+          "kind": "mask"
+        },
+        "shell": {
+          "step_id": "stp_8eab08b9-cec3-4891-8a51-596c2c4506b1",
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": []
+        }
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "마스크는 주소의 네트워크 부분과 호스트 부분을 나눠요. 운영체제는 연결된 프리픽스와 경로표를 이용해 전달 경로를 골라요. 마스크를 바꾸면 통신 성공 여부만 볼 것이 아니라 선택한 경로도 읽어야 해요.",
+          "target": "text:마스크는 주소의 네트워크 부분과 호스트 부분을 나눠요. 운영체제는 연결된 프리픽스와 경로표를 이용해 전달 경로를 골라요. 마스크를 바꾸면 통신 성공 여부만 볼 것이 아니라 선택한 경로도 읽어야 해요."
+        },
+        {
+          "action": "bash_command",
+          "command": "docker exec \"$CLIENT\" ip route get \"$SERVER_IP\"",
+          "say": "바꾸기 전 서버로 향하는 경로를 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "via 다음이 다음 홉이에요. 지금은 서버 주소를 직접 연결된 범위로 판단하지 않아요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker exec \"$CLIENT\" sh -c 'DEV=$(ip route get \"$1\" | sed -n \"s/.* dev \\([^ ]*\\).*/\\1/p\"); ip addr del \"$2/25\" dev \"$DEV\"; ip addr add \"$2/24\" dev \"$DEV\"; ip route replace default via \"$3\"' sh \"$SERVER_IP\" \"$CLIENT_IP\" \"$GATEWAY_IP\"",
+          "say": "주소는 유지하고 /24로 다시 붙인 뒤 기본 경로를 복구해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "호스트 비트가 늘면서 두 주소가 같은 /24 범위에 들어가요. 주소를 떼었다 붙일 때 기본 경로도 사라질 수 있어서 따로 확인했어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker exec \"$CLIENT\" ip route get \"$SERVER_IP\"; docker exec \"$CLIENT\" curl --noproxy \"*\" -fsS \"http://$SERVER_IP:8080/\"",
+          "say": "경로와 실제 응답을 함께 확인해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "이번에는 서버 경로에 via가 없고 직접 연결 인터페이스를 선택해요. 조심하세요. 연결이 성공했다는 결과 하나로 마스크와 경로 설정이 의도대로라고 판단하지 마세요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "IPv4 주소를 비트로 읽고 네트워크 부분을 비교해요.",
+      "인터페이스·루프백·여러 IP와 서브넷의 할당 범위를 구별하고 실제 주소와 경로를 바꿔 확인해요."
+    ],
+    "chapters": {
+      "chp_19c2a105-dffb-4aed-94fc-ad63ba6bb608": [
+        "IPv4 주소를 비트로 읽고 네트워크 부분을 비교해요."
+      ],
+      "chp_40528c78-1113-4a63-99b4-9d136ce8a983": [
+        "인터페이스·루프백·여러 IP와 서브넷의 할당 범위를 구별하고 실제 주소와 경로를 바꿔 확인해요."
+      ]
+    },
+    "units": {
+      "unt_547acc15-915a-4129-a4bb-e3f4412a4661": {
+        "objectives": [
+          "32비트 주소는 8비트 옥텟 4개로 읽어요. 출력은 비트 수가 아니라 배열의 바이트 수예요.",
+          "마스크가 1인 앞부분만 남아요. 마지막 옥텟의 호스트 비트는 0이 돼요."
+        ],
+        "premise": "모형: 문서용 192.0.2.0/24 주소로 계산해요. 실제 장치의 주소나 경로를 바꾸지 않아요."
+      },
+      "unt_e6bb95fb-a5c7-46d8-91ee-a20e21b316f1": {
+        "objectives": [
+          "장치 주소가 달라도 네트워크 부분은 같을 수 있어요. 전체 주소 비교로는 이 관계를 판단할 수 없어요.",
+          "끝 3비트를 지우면 8개씩 묶인 주소 블록의 시작이 나와요. 이 단계는 사용 가능한 장치 수를 세지 않아요."
+        ],
+        "premise": "모형: 문서용 192.0.2.0/24 주소로 계산해요. 실제 장치의 주소나 경로를 바꾸지 않아요."
+      },
+      "unt_75afc61e-2649-4dea-8f37-e5ff107c9ff6": {
+        "objectives": [
+          "서버의 네트워크 주소로 클라이언트가 접속할 수 있게 수신 바인딩을 바꾸세요. 클라이언트 자신의 루프백에 서버를 새로 만들지는 마세요."
+        ],
+        "premise": "서버와 클라이언트는 같은 컴퓨터의 서로 다른 컨테이너예요. 이 구성에서는 네트워크 네임스페이스가 달라서 루프백도 따로 있어요. 서버는 127.0.0.1:8080에만 듣고 있어요."
+      },
+      "unt_2faa0b36-eeb5-4799-b10b-439595fe23f3": {
+        "objectives": [
+          "SERVER_IP를 유지하면서 같은 인터페이스에 TARGET_IP/24를 추가하세요. 클라이언트에서 두 주소로 접속해 같은 서버인지 확인하세요."
+        ],
+        "premise": "서버의 인터페이스에는 SERVER_IP가 있어요. TARGET_IP는 같은 /24 안의 비어 있는 주소예요. 이미 실행 중인 서버는 모든 IPv4 인터페이스에서 8080 포트를 듣고 있어요."
+      },
+      "unt_86181e11-190e-4696-85cc-3ab8ff90e17a": {
+        "objectives": [
+          "주소 장부에서 비어 있는 호스트 주소 하나를 골라 서버의 같은 인터페이스에 /29로 추가하세요. 기존 서버 주소는 유지하고 새 주소에서 서버 응답을 확인하세요."
+        ],
+        "premise": "이번 /29 블록의 마지막 옥텟은 8부터 15까지예요. 8은 네트워크, 15는 브로드캐스트, 9는 게이트웨이, 10은 이미 서버가 쓰는 주소예요. 다른 예약이 없으므로 지금 비어 있는 일반 호스트 주소는 11부터 14까지 네 개예요."
+      },
+      "unt_15041862-b7fe-4f09-abd5-b56329a8f1bd": {
+        "objectives": [
+          "클라이언트 IP는 유지하고 /24로 바꿔 서버에 직접 연결 경로를 선택하게 하세요. 주소 재설정으로 기본 경로가 없어졌다면 복구하고 기존 게이트웨이는 유지하세요."
+        ],
+        "premise": "CLIENT_IP는 마지막 옥텟 10, SERVER_IP는 130이에요. 현재 클라이언트는 /25여서 서버가 다른 블록에 있어요. 서버로 가는 경로를 조회하면 기본 게이트웨이가 나와요. 이 환경에서는 그 경로로도 HTTP 접속이 성공할 수 있어요."
+      }
+    }
+  }
+}

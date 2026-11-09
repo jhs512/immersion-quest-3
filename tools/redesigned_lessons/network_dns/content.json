@@ -1,0 +1,471 @@
+{
+  "description": "로컬 권한 DNS의 레코드를 바꾸고 이름 접속·권한 응답·별도 캐시의 차이를 확인해요.",
+  "tasks": [
+    {
+      "id": "stp_7803df76-1aab-498e-b599-c1db41cf5291",
+      "title": "요청한 이름의 주소를 조회하세요",
+      "question": "이름은 주소를 찾을 때 쓰는 키예요. 준비된 이름 표에서 memo.test에 대응하는 값을 출력하세요.",
+      "goal": "이름은 주소를 찾을 때 쓰는 키예요. 준비된 이름 표에서 memo.test에 대응하는 값을 출력하세요.\n\n이름 표와 캐시는 교육용 모형이에요. 마지막 단계만 시스템의 localhost 이름 해석을 실제 호출해요. 외부 DNS 패킷은 보내지 않아요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `System.out.println(name)` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar records = java.util.Map.of(\"memo.test\", \"192.0.2.\" + VALUE);\nString name = \"memo.test\";\nSystem.out.println(name);\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar records = java.util.Map.of(\"memo.test\", \"192.0.2.\" + VALUE);\nString name = \"memo.test\";\nSystem.out.println(records.get(name));\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "192.0.2.6\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "192.0.2.7\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "192.0.2.9\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "이름은 주소를 찾을 때 쓰는 키예요. 준비된 이름 표에서 memo.test에 대응하는 값을 출력하세요.",
+          "target": "text:이름은 주소를 찾을 때 쓰는 키예요. 준비된 이름 표에서 memo.test에 대응하는 값을 출력하세요."
+        },
+        {
+          "action": "say",
+          "text": "이름 표와 캐시는 교육용 모형이에요. 마지막 단계만 시스템의 localhost 이름 해석을 실제 호출해요. 외부 DNS 패킷은 보내지 않아요.",
+          "target": "text:이름 표와 캐시는 교육용 모형이에요. 마지막 단계만 시스템의 localhost 이름 해석을 실제 호출해요. 외부 DNS 패킷은 보내지 않아요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "요청한 이름의 주소를 조회하세요의 준비 코드 출력은 memo.test예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "System.out.println(name)에서 읽는 대상을 확인해요.",
+          "target": "code:System.out.println(name)"
+        },
+        {
+          "action": "patch_code",
+          "before": "System.out.println(name)",
+          "after": "System.out.println(records.get(name))",
+          "say": "System.out.println(records.get(name)) 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "이름 문자열과 그 이름에 대응하는 주소가 나뉘었어요. 이 표는 실제 DNS 서버가 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_fdc7a8fb-98f3-4deb-9db6-c7340b610416",
+      "title": "없는 이름을 구별하세요",
+      "question": "이름 표에 없는 요청도 들어와요. missing.test의 조회 결과가 없는지 검사하세요.",
+      "goal": "이름 표에 없는 요청도 들어와요. missing.test의 조회 결과가 없는지 검사하세요.\n\n이름 표와 캐시는 교육용 모형이에요. 마지막 단계만 시스템의 localhost 이름 해석을 실제 호출해요. 외부 DNS 패킷은 보내지 않아요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `found != null` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar records = java.util.Map.of(\"memo.test\", \"192.0.2.\" + VALUE);\nString found = records.get(\"missing.test\");\nSystem.out.println(found != null);\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar records = java.util.Map.of(\"memo.test\", \"192.0.2.\" + VALUE);\nString found = records.get(\"missing.test\");\nSystem.out.println(found == null);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "true\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "true\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "true\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "이름 표에 없는 요청도 들어와요. missing.test의 조회 결과가 없는지 검사하세요.",
+          "target": "text:이름 표에 없는 요청도 들어와요. missing.test의 조회 결과가 없는지 검사하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "없는 이름을 구별하세요의 준비 코드 출력은 false예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "found != null에서 읽는 대상을 확인해요.",
+          "target": "code:found != null"
+        },
+        {
+          "action": "patch_code",
+          "before": "found != null",
+          "after": "found == null",
+          "say": "found == null 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "이 모형에서 null은 이름 표에 값이 없다는 뜻이에요. DNS 서버의 장애를 재현한 것은 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_a67b7b10-2cf1-4305-90a8-c118fccce191",
+      "title": "만료된 캐시를 사용하지 마세요",
+      "question": "캐시를 받은 시각은 0초이고 TTL은 VALUE초예요. 현재 시각은 만료 시각과 같아요. 아직 쓸 수 있는지 계산하세요.",
+      "goal": "캐시를 받은 시각은 0초이고 TTL은 VALUE초예요. 현재 시각은 만료 시각과 같아요. 아직 쓸 수 있는지 계산하세요.\n\n이름 표와 캐시는 교육용 모형이에요. 마지막 단계만 시스템의 localhost 이름 해석을 실제 호출해요. 외부 DNS 패킷은 보내지 않아요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `now <= ttl` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nint ttl = VALUE;\nint now = VALUE;\nSystem.out.println(now <= ttl);\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nint ttl = VALUE;\nint now = VALUE;\nSystem.out.println(now < ttl);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "false\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "false\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "false\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "캐시를 받은 시각은 0초이고 TTL은 VALUE초예요. 현재 시각은 만료 시각과 같아요. 아직 쓸 수 있는지 계산하세요.",
+          "target": "text:캐시를 받은 시각은 0초이고 TTL은 VALUE초예요. 현재 시각은 만료 시각과 같아요. 아직 쓸 수 있는지 계산하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "만료된 캐시를 사용하지 마세요의 준비 코드 출력은 true예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "now <= ttl에서 읽는 대상을 확인해요.",
+          "target": "code:now <= ttl"
+        },
+        {
+          "action": "patch_code",
+          "before": "now <= ttl",
+          "after": "now < ttl",
+          "say": "now < ttl 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "현재 시각이 만료 시각에 닿으면 캐시를 다시 써서는 안 돼요. 실제 캐시 시간을 기다리지 않고 경계를 계산했어요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_7bbdcbea-e921-45fd-a764-04d03b538efc",
+      "title": "시스템에서 localhost를 해석하세요",
+      "question": "localhost는 자기 컴퓨터를 가리키는 이름이에요. 시스템이 해석한 주소가 루프백 주소인지 확인하세요.",
+      "goal": "localhost는 자기 컴퓨터를 가리키는 이름이에요. 시스템이 해석한 주소가 루프백 주소인지 확인하세요.\n\n이름 표와 캐시는 교육용 모형이에요. 마지막 단계만 시스템의 localhost 이름 해석을 실제 호출해요. 외부 DNS 패킷은 보내지 않아요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `address.isAnyLocalAddress()` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar address = java.net.InetAddress.getByName(\"localhost\");\nSystem.out.println(address.isAnyLocalAddress() + \":\" + VALUE);\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar address = java.net.InetAddress.getByName(\"localhost\");\nSystem.out.println(address.isLoopbackAddress() + \":\" + VALUE);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "true:6\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "true:7\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "true:9\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "localhost는 자기 컴퓨터를 가리키는 이름이에요. 시스템이 해석한 주소가 루프백 주소인지 확인하세요.",
+          "target": "text:localhost는 자기 컴퓨터를 가리키는 이름이에요. 시스템이 해석한 주소가 루프백 주소인지 확인하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "시스템에서 localhost를 해석하세요의 준비 코드 출력은 false:6예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "address.isAnyLocalAddress()에서 읽는 대상을 확인해요.",
+          "target": "code:address.isAnyLocalAddress()"
+        },
+        {
+          "action": "patch_code",
+          "before": "address.isAnyLocalAddress()",
+          "after": "address.isLoopbackAddress()",
+          "say": "address.isLoopbackAddress() 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "실제 시스템 이름 해석 결과가 루프백 주소예요. 이 호출만으로 외부 DNS 조회나 서버 접속 성공을 증명하지는 못해요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. localhost를 해석했다고 외부 DNS와 서버까지 정상이라고 판단하지 마세요.",
+          "target": "code:address.isLoopbackAddress()"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_41df90a4-9cc4-4f34-9199-471ef28334e1",
+      "title": "같은 이름으로 서버 B에 접속하게 바꾸세요",
+      "question": "이름과 서버 코드를 유지하면서 권한 DNS의 A 레코드를 서버 B로 바꾸세요. 권한 서버 직접 질의와 클라이언트의 이름 접속 모두 B를 가리켜야 해요.",
+      "goal": "DNS는 이름의 레코드를 질의하고 응답하는 역할이에요. 이 실습의 권한 서버는 memo.test의 주소를 직접 관리해요. 이름을 주소로 해석하는 데 성공해도 그 주소의 서버·포트가 응답한다는 보장은 없어요.\n\nmemo.test의 A 레코드는 서버 A를 가리켜요. 같은 포트에서 SERVER와 SERVER_B가 서로 다른 식별 응답을 줘요. Docker 내장 DNS가 전달을 맡을 수 있으므로 resolv.conf에 보이는 주소와 권한 서버 주소가 같다고 가정하지 않아요. 이번 레코드는 TTL 0으로 별도 캐시 문제를 분리해요.\n\n이름과 서버 코드를 유지하면서 권한 DNS의 A 레코드를 서버 B로 바꾸세요. 권한 서버 직접 질의와 클라이언트의 이름 접속 모두 B를 가리켜야 해요.\n\nBash 명령은 호스트의 실습 폴더에서 실행해요. `$CLIENT`·`$SERVER` 같은 변수에는 이번 문제의 컨테이너 이름이 들어 있어요. `cat addresses.txt`로 읽고 `docker exec` 뒤에 역할을 지정해 컨테이너 안에서 관찰해요. 호스트 네트워크 설정은 바꾸지 않아요.\n\n**할 일**\n\n1. 두 서버에 IP로 접속하고 `dig`로 권한 DNS의 memo.test A 레코드를 질의하세요.\n2. `memo.zone`의 대상 주소와 SOA serial을 고친 뒤 DNS 컨테이너를 다시 시작하세요.\n3. 권한 응답과 이름으로 접속한 서버 식별 응답을 확인한 뒤 제출하세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "sed \"s/@ IN A $SERVER_IP/@ IN A $SERVER_B_IP/; s/ 1 60 60 60 0/ 2 60 60 60 0/\" memo.zone > memo.zone.next && mv memo.zone.next memo.zone\ndocker restart \"$DNS\"",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "workspace_group": "network-dns",
+        "workspace_revision": "network-lab-1",
+        "network": {
+          "kind": "dns"
+        },
+        "shell": {
+          "step_id": "stp_41df90a4-9cc4-4f34-9199-471ef28334e1",
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": []
+        }
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "DNS는 이름의 레코드를 질의하고 응답하는 역할이에요. 이 실습의 권한 서버는 memo.test의 주소를 직접 관리해요. 이름을 주소로 해석하는 데 성공해도 그 주소의 서버·포트가 응답한다는 보장은 없어요.",
+          "target": "text:DNS는 이름의 레코드를 질의하고 응답하는 역할이에요. 이 실습의 권한 서버는 memo.test의 주소를 직접 관리해요. 이름을 주소로 해석하는 데 성공해도 그 주소의 서버·포트가 응답한다는 보장은 없어요."
+        },
+        {
+          "action": "bash_command",
+          "command": "docker exec \"$CLIENT\" dig \"@$DNS_IP\" memo.test A; docker exec \"$CLIENT\" curl --noproxy \"*\" -fsS http://memo.test:8080/",
+          "say": "권한 서버에 직접 질의한 뒤 이름으로 접속해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "A 레코드는 서버 A의 주소이고 HTTP 식별 응답은 SERVER예요. DNS 응답과 서비스 응답을 따로 확인했어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "sed \"s/@ IN A $SERVER_IP/@ IN A $SERVER_B_IP/; s/ 1 60 60 60 0/ 2 60 60 60 0/\" memo.zone > memo.zone.next && mv memo.zone.next memo.zone; docker restart \"$DNS\"",
+          "say": "권한 데이터의 A 레코드와 serial을 바꾸고 DNS를 다시 시작해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "자동 파일 재로딩을 기다리는 구성은 아니에요. 이 수업에서는 변경한 데이터를 재시작으로 읽혀서 적용 시점을 분명하게 해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker exec \"$CLIENT\" dig \"@$DNS_IP\" memo.test A; docker exec \"$CLIENT\" curl --noproxy \"*\" -fsS --retry 5 --retry-all-errors http://memo.test:8080/",
+          "say": "같은 이름의 새 주소와 서버 응답을 대조해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "이번에는 서버 B의 주소와 SERVER_B 식별 응답을 받아요. 조심하세요. DNS 응답이 맞는데 접속이 실패하면 포트·수신 바인딩·경로를 따로 확인해야 해요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    },
+    {
+      "id": "stp_b6c9a671-0ce3-46b2-85d6-7e6f6a2ec51c",
+      "title": "권한 응답과 다른 캐시를 새 회차로 갱신하세요",
+      "question": "권한 레코드를 되돌리지 말고 캐시 서버를 새 회차로 시작해 이전 캐시를 제거하세요. TTL 만료를 기다리기만 하지 말고 새 회차의 캐시 응답과 이름 접속이 모두 서버 B를 가리키게 하세요.",
+      "goal": "권한 서버가 레코드를 바꿔도 중간 캐시의 아직 유효한 응답은 남을 수 있어요. 어느 DNS 서버에 물었는지와 TTL을 함께 읽어야 해요. 자바 프로세스의 이름 캐시는 이 별도 DNS 캐시와 또 달라요.\n\n권한 DNS는 이미 서버 B를 가리켜요. CACHE는 이전 서버 A의 양수 TTL 응답을 갖고 시작해요. 클라이언트는 이 캐시 서버를 거쳐 이름을 해석해요. 시간 경과로도 만료될 수 있으므로 현재 응답을 먼저 관찰하세요.\n\n권한 레코드를 되돌리지 말고 캐시 서버를 새 회차로 시작해 이전 캐시를 제거하세요. TTL 만료를 기다리기만 하지 말고 새 회차의 캐시 응답과 이름 접속이 모두 서버 B를 가리키게 하세요.\n\nBash 명령은 호스트의 실습 폴더에서 실행해요. `$CLIENT`·`$SERVER` 같은 변수에는 이번 문제의 컨테이너 이름이 들어 있어요. `cat addresses.txt`로 읽고 `docker exec` 뒤에 역할을 지정해 컨테이너 안에서 관찰해요. 호스트 네트워크 설정은 바꾸지 않아요.\n\n**할 일**\n\n1. 권한 DNS와 캐시 DNS에 memo.test를 각각 질의해 주소와 TTL을 비교하세요.\n2. 이 실습의 CACHE 컨테이너를 새 회차로 시작해 이전 캐시를 비우세요.\n3. 권한·캐시 응답과 이름으로 접속한 서버가 모두 B인지 확인한 뒤 제출하세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "docker restart \"$CACHE\"",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "workspace_group": "network-cache",
+        "workspace_revision": "network-lab-1",
+        "network": {
+          "kind": "cache"
+        },
+        "shell": {
+          "step_id": "stp_b6c9a671-0ce3-46b2-85d6-7e6f6a2ec51c",
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": []
+        }
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "권한 서버가 레코드를 바꿔도 중간 캐시의 아직 유효한 응답은 남을 수 있어요. 어느 DNS 서버에 물었는지와 TTL을 함께 읽어야 해요. 자바 프로세스의 이름 캐시는 이 별도 DNS 캐시와 또 달라요.",
+          "target": "text:권한 서버가 레코드를 바꿔도 중간 캐시의 아직 유효한 응답은 남을 수 있어요. 어느 DNS 서버에 물었는지와 TTL을 함께 읽어야 해요. 자바 프로세스의 이름 캐시는 이 별도 DNS 캐시와 또 달라요."
+        },
+        {
+          "action": "bash_command",
+          "command": "docker exec \"$CLIENT\" dig \"@$DNS_IP\" memo.test A +noall +answer; docker exec \"$CLIENT\" dig \"@$CACHE_IP\" memo.test A +noall +answer",
+          "say": "같은 이름을 서로 다른 역할의 DNS 서버에 물어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "권한 서버의 최신 주소와 캐시의 남은 TTL을 비교해요. 이전 주소가 아직 유효한 캐시라면 권한 변경 직후에도 두 응답이 다를 수 있어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker restart \"$CACHE\"",
+          "say": "이 실습에서만 사용하는 캐시 DNS를 새로 시작해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "이전 프로세스의 캐시를 제거했어요. 호스트나 다른 사람의 DNS 설정을 바꾸지는 않았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker exec \"$CLIENT\" dig \"@$CACHE_IP\" memo.test A; docker exec \"$CLIENT\" curl --noproxy \"*\" -fsS --retry 5 --retry-all-errors http://memo.test:8080/",
+          "say": "새 회차의 캐시 응답과 실제 이름 접속을 확인해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "캐시가 권한 서버에서 현재 주소를 받아 서버 B로 연결해요. 조심하세요. TTL의 특정 숫자나 정확한 만료 순간을 정답으로 외우지 마세요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "이름 조회·캐시와 실제 연결 성공을 구별해요.",
+      "로컬 권한 DNS의 레코드를 바꾸고 이름 접속·권한 응답·별도 캐시의 차이를 확인해요."
+    ],
+    "chapters": {
+      "chp_3feec23f-475c-46e8-80ca-400d7b02d0f9": [
+        "이름 조회·캐시와 실제 연결 성공을 구별해요."
+      ],
+      "chp_8f91772a-428f-48c7-bf51-8e4365b48b7e": [
+        "로컬 권한 DNS의 레코드를 바꾸고 이름 접속·권한 응답·별도 캐시의 차이를 확인해요."
+      ]
+    },
+    "units": {
+      "unt_676902b7-6b9b-409d-b661-478747a90ce5": {
+        "objectives": [
+          "이름 문자열과 그 이름에 대응하는 주소가 나뉘었어요. 이 표는 실제 DNS 서버가 아니에요.",
+          "이 모형에서 null은 이름 표에 값이 없다는 뜻이에요. DNS 서버의 장애를 재현한 것은 아니에요."
+        ],
+        "premise": "이름 표와 캐시는 교육용 모형이에요. 마지막 단계만 시스템의 localhost 이름 해석을 실제 호출해요. 외부 DNS 패킷은 보내지 않아요."
+      },
+      "unt_951bb181-05d0-4722-a0ce-8a38338bc69c": {
+        "objectives": [
+          "현재 시각이 만료 시각에 닿으면 캐시를 다시 써서는 안 돼요. 실제 캐시 시간을 기다리지 않고 경계를 계산했어요.",
+          "실제 시스템 이름 해석 결과가 루프백 주소예요. 이 호출만으로 외부 DNS 조회나 서버 접속 성공을 증명하지는 못해요."
+        ],
+        "premise": "이름 표와 캐시는 교육용 모형이에요. 마지막 단계만 시스템의 localhost 이름 해석을 실제 호출해요. 외부 DNS 패킷은 보내지 않아요."
+      },
+      "unt_56c3c0d3-dadb-4171-a874-6ba35453ed1c": {
+        "objectives": [
+          "이름과 서버 코드를 유지하면서 권한 DNS의 A 레코드를 서버 B로 바꾸세요. 권한 서버 직접 질의와 클라이언트의 이름 접속 모두 B를 가리켜야 해요."
+        ],
+        "premise": "memo.test의 A 레코드는 서버 A를 가리켜요. 같은 포트에서 SERVER와 SERVER_B가 서로 다른 식별 응답을 줘요. Docker 내장 DNS가 전달을 맡을 수 있으므로 resolv.conf에 보이는 주소와 권한 서버 주소가 같다고 가정하지 않아요. 이번 레코드는 TTL 0으로 별도 캐시 문제를 분리해요."
+      },
+      "unt_90f500a4-c7a8-4de0-8bc9-1125caeae945": {
+        "objectives": [
+          "권한 레코드를 되돌리지 말고 캐시 서버를 새 회차로 시작해 이전 캐시를 제거하세요. TTL 만료를 기다리기만 하지 말고 새 회차의 캐시 응답과 이름 접속이 모두 서버 B를 가리키게 하세요."
+        ],
+        "premise": "권한 DNS는 이미 서버 B를 가리켜요. CACHE는 이전 서버 A의 양수 TTL 응답을 갖고 시작해요. 클라이언트는 이 캐시 서버를 거쳐 이름을 해석해요. 시간 경과로도 만료될 수 있으므로 현재 응답을 먼저 관찰하세요."
+      }
+    }
+  }
+}

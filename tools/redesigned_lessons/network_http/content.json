@@ -1,0 +1,309 @@
+{
+  "description": "HTTP/1.1의 요청·상태·본문을 실제 로컬 연결에서 구별해요.",
+  "tasks": [
+    {
+      "id": "stp_68372fe6-8fd7-48b6-b97f-269303dbda06",
+      "title": "요청 경로를 읽으세요",
+      "question": "클라이언트가 보낸 첫 줄은 메서드·요청 대상·버전으로 나뉘어요. 서버가 받은 요청에서 경로를 출력하세요.",
+      "goal": "클라이언트가 보낸 첫 줄은 메서드·요청 대상·버전으로 나뉘어요. 서버가 받은 요청에서 경로를 출력하세요.\n\n실제 루프백 TCP 위의 최소 HTTP/1.1 예제예요. HTTPS·HTTP/2·쿠키·프레임워크는 아직 다루지 않아요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `split(\" \")[0]` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar loopback = java.net.InetAddress.getByName(\"127.0.0.1\");\n// 포트 0은 운영체제에 빈 포트 배정을 요청해요.\ntry (var listener = new java.net.ServerSocket(0, 1, loopback)) {\n    listener.setSoTimeout(2000);\n    try (var client = new java.net.Socket()) {\n        client.connect(new java.net.InetSocketAddress(loopback, listener.getLocalPort()), 2000);\n        client.setSoTimeout(2000);\n        try (var server = listener.accept()) {\n            server.setSoTimeout(2000);\n// 실제 연결에 최소 요청을 보내요.\nString request = \"GET /memo/\" + VALUE + \" HTTP/1.1\\r\\nHost: localhost\\r\\n\\r\\n\";\nclient.getOutputStream().write(request.getBytes(java.nio.charset.StandardCharsets.US_ASCII));\nvar requestReader = new java.io.BufferedReader(new java.io.InputStreamReader(server.getInputStream(), java.nio.charset.StandardCharsets.US_ASCII));\nString line = requestReader.readLine();\nSystem.out.println(line.split(\" \")[0]);\n        }\n    }\n}\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar loopback = java.net.InetAddress.getByName(\"127.0.0.1\");\n// 포트 0은 운영체제에 빈 포트 배정을 요청해요.\ntry (var listener = new java.net.ServerSocket(0, 1, loopback)) {\n    listener.setSoTimeout(2000);\n    try (var client = new java.net.Socket()) {\n        client.connect(new java.net.InetSocketAddress(loopback, listener.getLocalPort()), 2000);\n        client.setSoTimeout(2000);\n        try (var server = listener.accept()) {\n            server.setSoTimeout(2000);\n// 실제 연결에 최소 요청을 보내요.\nString request = \"GET /memo/\" + VALUE + \" HTTP/1.1\\r\\nHost: localhost\\r\\n\\r\\n\";\nclient.getOutputStream().write(request.getBytes(java.nio.charset.StandardCharsets.US_ASCII));\nvar requestReader = new java.io.BufferedReader(new java.io.InputStreamReader(server.getInputStream(), java.nio.charset.StandardCharsets.US_ASCII));\nString line = requestReader.readLine();\nSystem.out.println(line.split(\" \")[1]);\n        }\n    }\n}\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "/memo/6\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "/memo/7\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "/memo/9\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "클라이언트가 보낸 첫 줄은 메서드·요청 대상·버전으로 나뉘어요. 서버가 받은 요청에서 경로를 출력하세요.",
+          "target": "text:클라이언트가 보낸 첫 줄은 메서드·요청 대상·버전으로 나뉘어요. 서버가 받은 요청에서 경로를 출력하세요."
+        },
+        {
+          "action": "say",
+          "text": "실제 루프백 TCP 위의 최소 HTTP/1.1 예제예요. HTTPS·HTTP/2·쿠키·프레임워크는 아직 다루지 않아요.",
+          "target": "text:실제 루프백 TCP 위의 최소 HTTP/1.1 예제예요. HTTPS·HTTP/2·쿠키·프레임워크는 아직 다루지 않아요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "요청 경로를 읽으세요의 준비 코드 출력은 GET예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "split(\" \")[0]에서 읽는 대상을 확인해요.",
+          "target": "code:split(\" \")[0]"
+        },
+        {
+          "action": "patch_code",
+          "before": "split(\" \")[0]",
+          "after": "split(\" \")[1]",
+          "say": "split(\" \")[1] 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "첫 단어는 GET 메서드이고 둘째 단어가 요청 대상이에요. 서버가 실제로 받은 첫 줄에서 읽었어요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_b873c140-7e35-4555-8e74-119d4f551541",
+      "title": "응답 상태 코드를 읽으세요",
+      "question": "응답 첫 줄은 버전·상태 코드·이유 구절이에요. 클라이언트가 받은 상태 코드를 출력하세요.",
+      "goal": "응답 첫 줄은 버전·상태 코드·이유 구절이에요. 클라이언트가 받은 상태 코드를 출력하세요.\n\n실제 루프백 TCP 위의 최소 HTTP/1.1 예제예요. HTTPS·HTTP/2·쿠키·프레임워크는 아직 다루지 않아요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `split(\" \")[0]` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar loopback = java.net.InetAddress.getByName(\"127.0.0.1\");\n// 포트 0은 운영체제에 빈 포트 배정을 요청해요.\ntry (var listener = new java.net.ServerSocket(0, 1, loopback)) {\n    listener.setSoTimeout(2000);\n    try (var client = new java.net.Socket()) {\n        client.connect(new java.net.InetSocketAddress(loopback, listener.getLocalPort()), 2000);\n        client.setSoTimeout(2000);\n        try (var server = listener.accept()) {\n            server.setSoTimeout(2000);\n// 실제 연결에 최소 요청을 보내요.\nString request = \"GET /memo/\" + VALUE + \" HTTP/1.1\\r\\nHost: localhost\\r\\n\\r\\n\";\nclient.getOutputStream().write(request.getBytes(java.nio.charset.StandardCharsets.US_ASCII));\nvar requestReader = new java.io.BufferedReader(new java.io.InputStreamReader(server.getInputStream(), java.nio.charset.StandardCharsets.US_ASCII));\n// 요청 헤더 끝의 빈 줄까지 서버가 읽어요.\nwhile (!requestReader.readLine().isEmpty()) {}\nString replyBody = \"한\" + VALUE;\nbyte[] reply = replyBody.getBytes(java.nio.charset.StandardCharsets.UTF_8);\nString headers = \"HTTP/1.1 200 OK\\r\\nContent-Length: \" + reply.length + \"\\r\\nConnection: close\\r\\n\\r\\n\";\nserver.getOutputStream().write(headers.getBytes(java.nio.charset.StandardCharsets.US_ASCII));\nserver.getOutputStream().write(reply);\nserver.shutdownOutput();\nvar responseReader = new java.io.BufferedReader(new java.io.InputStreamReader(client.getInputStream(), java.nio.charset.StandardCharsets.UTF_8));\nString status = responseReader.readLine();\nSystem.out.println(status.split(\" \")[0]);\n        }\n    }\n}\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar loopback = java.net.InetAddress.getByName(\"127.0.0.1\");\n// 포트 0은 운영체제에 빈 포트 배정을 요청해요.\ntry (var listener = new java.net.ServerSocket(0, 1, loopback)) {\n    listener.setSoTimeout(2000);\n    try (var client = new java.net.Socket()) {\n        client.connect(new java.net.InetSocketAddress(loopback, listener.getLocalPort()), 2000);\n        client.setSoTimeout(2000);\n        try (var server = listener.accept()) {\n            server.setSoTimeout(2000);\n// 실제 연결에 최소 요청을 보내요.\nString request = \"GET /memo/\" + VALUE + \" HTTP/1.1\\r\\nHost: localhost\\r\\n\\r\\n\";\nclient.getOutputStream().write(request.getBytes(java.nio.charset.StandardCharsets.US_ASCII));\nvar requestReader = new java.io.BufferedReader(new java.io.InputStreamReader(server.getInputStream(), java.nio.charset.StandardCharsets.US_ASCII));\n// 요청 헤더 끝의 빈 줄까지 서버가 읽어요.\nwhile (!requestReader.readLine().isEmpty()) {}\nString replyBody = \"한\" + VALUE;\nbyte[] reply = replyBody.getBytes(java.nio.charset.StandardCharsets.UTF_8);\nString headers = \"HTTP/1.1 200 OK\\r\\nContent-Length: \" + reply.length + \"\\r\\nConnection: close\\r\\n\\r\\n\";\nserver.getOutputStream().write(headers.getBytes(java.nio.charset.StandardCharsets.US_ASCII));\nserver.getOutputStream().write(reply);\nserver.shutdownOutput();\nvar responseReader = new java.io.BufferedReader(new java.io.InputStreamReader(client.getInputStream(), java.nio.charset.StandardCharsets.UTF_8));\nString status = responseReader.readLine();\nSystem.out.println(status.split(\" \")[1]);\n        }\n    }\n}\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "200\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "200\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "200\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "응답 첫 줄은 버전·상태 코드·이유 구절이에요. 클라이언트가 받은 상태 코드를 출력하세요.",
+          "target": "text:응답 첫 줄은 버전·상태 코드·이유 구절이에요. 클라이언트가 받은 상태 코드를 출력하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "응답 상태 코드를 읽으세요의 준비 코드 출력은 HTTP/1.1예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "split(\" \")[0]에서 읽는 대상을 확인해요.",
+          "target": "code:split(\" \")[0]"
+        },
+        {
+          "action": "patch_code",
+          "before": "split(\" \")[0]",
+          "after": "split(\" \")[1]",
+          "say": "split(\" \")[1] 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "HTTP 버전과 상태 코드를 구분했어요. 소켓 연결만 성공한 것과 요청 처리가 성공한 것은 달라요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_e7dabc15-320a-41ac-af50-c71dd22d6cc8",
+      "title": "본문 크기는 UTF-8 바이트로 구하세요",
+      "question": "Content-Length는 본문의 바이트 수예요. 한글 응답 본문에 넣을 길이를 계산하세요.",
+      "goal": "Content-Length는 본문의 바이트 수예요. 한글 응답 본문에 넣을 길이를 계산하세요.\n\n실제 루프백 TCP 위의 최소 HTTP/1.1 예제예요. HTTPS·HTTP/2·쿠키·프레임워크는 아직 다루지 않아요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `body.length()` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nString body = \"한\" + VALUE;\nSystem.out.println(body.length());\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nString body = \"한\" + VALUE;\nSystem.out.println(body.getBytes(java.nio.charset.StandardCharsets.UTF_8).length);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "4\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "4\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "4\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "Content-Length는 본문의 바이트 수예요. 한글 응답 본문에 넣을 길이를 계산하세요.",
+          "target": "text:Content-Length는 본문의 바이트 수예요. 한글 응답 본문에 넣을 길이를 계산하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "본문 크기는 UTF-8 바이트로 구하세요의 준비 코드 출력은 2예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "body.length()에서 읽는 대상을 확인해요.",
+          "target": "code:body.length()"
+        },
+        {
+          "action": "patch_code",
+          "before": "body.length()",
+          "after": "body.getBytes(java.nio.charset.StandardCharsets.UTF_8).length",
+          "say": "body.getBytes(java.nio.charset.StandardCharsets.UTF_8).length 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "한글 본문은 글자 수와 바이트 수가 달라요. HTTP/1.1의 Content-Length에는 바이트 수를 써요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_464d4f28-866c-4664-adc0-a81affe946cd",
+      "title": "응답 본문만 읽으세요",
+      "question": "상태 줄과 헤더는 본문이 아니에요. 빈 줄까지 헤더를 읽은 뒤 본문 첫 줄을 출력하세요.",
+      "goal": "상태 줄과 헤더는 본문이 아니에요. 빈 줄까지 헤더를 읽은 뒤 본문 첫 줄을 출력하세요.\n\n실제 루프백 TCP 위의 최소 HTTP/1.1 예제예요. HTTPS·HTTP/2·쿠키·프레임워크는 아직 다루지 않아요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `System.out.println(\"응답 없음\")` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar loopback = java.net.InetAddress.getByName(\"127.0.0.1\");\n// 포트 0은 운영체제에 빈 포트 배정을 요청해요.\ntry (var listener = new java.net.ServerSocket(0, 1, loopback)) {\n    listener.setSoTimeout(2000);\n    try (var client = new java.net.Socket()) {\n        client.connect(new java.net.InetSocketAddress(loopback, listener.getLocalPort()), 2000);\n        client.setSoTimeout(2000);\n        try (var server = listener.accept()) {\n            server.setSoTimeout(2000);\n// 실제 연결에 최소 요청을 보내요.\nString request = \"GET /memo/\" + VALUE + \" HTTP/1.1\\r\\nHost: localhost\\r\\n\\r\\n\";\nclient.getOutputStream().write(request.getBytes(java.nio.charset.StandardCharsets.US_ASCII));\nvar requestReader = new java.io.BufferedReader(new java.io.InputStreamReader(server.getInputStream(), java.nio.charset.StandardCharsets.US_ASCII));\n// 요청 헤더 끝의 빈 줄까지 서버가 읽어요.\nwhile (!requestReader.readLine().isEmpty()) {}\nString replyBody = \"한\" + VALUE;\nbyte[] reply = replyBody.getBytes(java.nio.charset.StandardCharsets.UTF_8);\nString headers = \"HTTP/1.1 200 OK\\r\\nContent-Length: \" + reply.length + \"\\r\\nConnection: close\\r\\n\\r\\n\";\nserver.getOutputStream().write(headers.getBytes(java.nio.charset.StandardCharsets.US_ASCII));\nserver.getOutputStream().write(reply);\nserver.shutdownOutput();\nvar responseReader = new java.io.BufferedReader(new java.io.InputStreamReader(client.getInputStream(), java.nio.charset.StandardCharsets.UTF_8));\nString line;\nwhile (!(line = responseReader.readLine()).isEmpty()) {}\nSystem.out.println(\"응답 없음\");\n        }\n    }\n}\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar loopback = java.net.InetAddress.getByName(\"127.0.0.1\");\n// 포트 0은 운영체제에 빈 포트 배정을 요청해요.\ntry (var listener = new java.net.ServerSocket(0, 1, loopback)) {\n    listener.setSoTimeout(2000);\n    try (var client = new java.net.Socket()) {\n        client.connect(new java.net.InetSocketAddress(loopback, listener.getLocalPort()), 2000);\n        client.setSoTimeout(2000);\n        try (var server = listener.accept()) {\n            server.setSoTimeout(2000);\n// 실제 연결에 최소 요청을 보내요.\nString request = \"GET /memo/\" + VALUE + \" HTTP/1.1\\r\\nHost: localhost\\r\\n\\r\\n\";\nclient.getOutputStream().write(request.getBytes(java.nio.charset.StandardCharsets.US_ASCII));\nvar requestReader = new java.io.BufferedReader(new java.io.InputStreamReader(server.getInputStream(), java.nio.charset.StandardCharsets.US_ASCII));\n// 요청 헤더 끝의 빈 줄까지 서버가 읽어요.\nwhile (!requestReader.readLine().isEmpty()) {}\nString replyBody = \"한\" + VALUE;\nbyte[] reply = replyBody.getBytes(java.nio.charset.StandardCharsets.UTF_8);\nString headers = \"HTTP/1.1 200 OK\\r\\nContent-Length: \" + reply.length + \"\\r\\nConnection: close\\r\\n\\r\\n\";\nserver.getOutputStream().write(headers.getBytes(java.nio.charset.StandardCharsets.US_ASCII));\nserver.getOutputStream().write(reply);\nserver.shutdownOutput();\nvar responseReader = new java.io.BufferedReader(new java.io.InputStreamReader(client.getInputStream(), java.nio.charset.StandardCharsets.UTF_8));\nString line;\nwhile (!(line = responseReader.readLine()).isEmpty()) {}\nSystem.out.println(responseReader.readLine());\n        }\n    }\n}\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "한6\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "한7\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "한9\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "상태 줄과 헤더는 본문이 아니에요. 빈 줄까지 헤더를 읽은 뒤 본문 첫 줄을 출력하세요.",
+          "target": "text:상태 줄과 헤더는 본문이 아니에요. 빈 줄까지 헤더를 읽은 뒤 본문 첫 줄을 출력하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "응답 본문만 읽으세요의 준비 코드 출력은 응답 없음예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "System.out.println(\"응답 없음\")에서 읽는 대상을 확인해요.",
+          "target": "code:System.out.println(\"응답 없음\")"
+        },
+        {
+          "action": "patch_code",
+          "before": "System.out.println(\"응답 없음\")",
+          "after": "System.out.println(responseReader.readLine())",
+          "say": "System.out.println(responseReader.readLine()) 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "헤더 끝의 빈 줄 뒤에서 본문을 읽었어요. 실제 응답은 Content-Length만큼의 바이트로 끝을 판단해야 해요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 첫 응답 줄을 본문으로 쓰면 HTTP 상태 줄을 데이터로 처리하게 돼요.",
+          "target": "code:System.out.println(responseReader.readLine())"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "HTTP/1.1의 요청·상태·본문을 실제 로컬 연결에서 구별해요."
+    ],
+    "chapters": {
+      "chp_3c27e6ad-0c95-4ff6-80c3-fd4b925efa63": [
+        "HTTP/1.1의 요청·상태·본문을 실제 로컬 연결에서 구별해요."
+      ]
+    },
+    "units": {
+      "unt_274a534c-1b98-4732-8d95-c58b6bcb02c5": {
+        "objectives": [
+          "첫 단어는 GET 메서드이고 둘째 단어가 요청 대상이에요. 서버가 실제로 받은 첫 줄에서 읽었어요.",
+          "HTTP 버전과 상태 코드를 구분했어요. 소켓 연결만 성공한 것과 요청 처리가 성공한 것은 달라요."
+        ],
+        "premise": "실제 루프백 TCP 위의 최소 HTTP/1.1 예제예요. HTTPS·HTTP/2·쿠키·프레임워크는 아직 다루지 않아요."
+      },
+      "unt_1fd5a6f2-6a65-4e85-a204-f7ad30e6f9bb": {
+        "objectives": [
+          "한글 본문은 글자 수와 바이트 수가 달라요. HTTP/1.1의 Content-Length에는 바이트 수를 써요.",
+          "헤더 끝의 빈 줄 뒤에서 본문을 읽었어요. 실제 응답은 Content-Length만큼의 바이트로 끝을 판단해야 해요."
+        ],
+        "premise": "실제 루프백 TCP 위의 최소 HTTP/1.1 예제예요. HTTPS·HTTP/2·쿠키·프레임워크는 아직 다루지 않아요."
+      }
+    }
+  }
+}

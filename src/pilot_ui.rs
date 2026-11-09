@@ -143,10 +143,12 @@ pub fn PilotPlayer(window_controls: Element) -> Element {
             let _=tokio::task::spawn_blocking(move||store.flush_pilot_hour()).await;
         }
         let exit_preparation = tokio::task::spawn_blocking(molip_quest::setup_terminal::prepare_practice_exit).await;
+        let network_cleanup=tokio::task::spawn_blocking(||molip_quest::git_practice::GitPracticeStore::installed()?.cleanup_network_labs()).await;
         let result = if matches!(&exit_preparation, Ok(Ok(_))) { result } else {
             serde_json::json!({"passed":false,"error":"Practice shutdown before exit failed"})
         };
         let mut result=result;
+        if !matches!(network_cleanup,Ok(Ok(()))){result=serde_json::json!({"passed":false,"error":"Owned network pilot cleanup failed"});}
         if let Some(object)=result.as_object_mut(){object.insert("process_id".into(),serde_json::json!(std::process::id()));}
         let destination=if let Some(phase)=restart_phase {
             pilot_source::data_dir().map(|directory|directory.join(format!("restart-{phase}.json")))

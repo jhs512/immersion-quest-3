@@ -5,7 +5,8 @@
  const frameObserver=new MutationObserver(watchFrames);frameObserver.observe(document.body,{childList:true,subtree:true});watchFrames();
  const wait=async(predicate,label,ms=60000)=>{const until=Date.now()+ms;while(Date.now()<until){if(predicate())return;await new Promise(r=>setTimeout(r,40));}throw Error(`Timed out: ${label}`);};
  const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===text);
- const click=async text=>{await wait(()=>button(text)&&!button(text).disabled,text);button(text).click();await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));};
+ // Hidden native WebViews can suspend animation frames; later assertions check readiness.
+ const click=async text=>{await wait(()=>button(text)&&!button(text).disabled,text);button(text).click();await new Promise(r=>setTimeout(r,80));};
  const bridge=()=>document.querySelector('.answer-state-bridge');
  const status=text=>document.querySelector('.execution-status')?.textContent.includes(text);
  const prepared=(task,answer)=>{
@@ -77,6 +78,28 @@
    return flows.length?`${flows.length} traced steps on lines ${flowSeeks.map(seen=>`${seen.at.line} (${seen.at.step}/${seen.at.steps}, ${seen.stack.join(' > ')})`).join(', ')}`:'';
   };
   for(const [index,task] of pilot.tasks.entries()){
+   if(task.git_terminal?.network){
+    const terminalReady=()=>document.querySelector('.repository-task')?.dataset.taskId===task.id&&document.querySelector('.repository-task')?.dataset.gitReady==='true'&&/\$\s*$/.test(window.mq3GitTerminal?.text()??'');
+    await wait(terminalReady,`network step ${index+1} ready`);
+    await click('제출');await wait(()=>document.querySelector('.result-pane')?.dataset.feedback==='incorrect','incomplete network state rejected');
+    const previous=window.mq3GitTerminal.text();
+    window.mq3GitTerminal.command(task.solution.replaceAll('\n','; '));
+    await wait(()=>window.mq3GitTerminal.text()!==previous&&/\$\s*$/.test(window.mq3GitTerminal.text()),'authored Docker solution returns');
+    await click('제출');await wait(()=>document.querySelector('.result-pane')?.dataset.feedback==='passed','actual network state accepted');
+    if(button('여기 머물기'))await click('여기 머물기');
+    await click('해설 재생');await wait(()=>molipAgent.running,'Docker teacher begins');
+    await wait(()=>!molipAgent.running&&document.querySelector('.repository-task')?.dataset.narrating==='false','Docker teacher ends');
+    verifyTeacher(task);
+    if(teacherResult.includes('중단했습니다')||teacherResult.includes('해설을 멈췄어요')||teacherResult.split('bash_command:').length-1!==task.narration.filter(a=>a.action==='bash_command').length)throw Error(`Docker teacher did not finish: ${teacherResult}`);
+    await click('제출');await wait(()=>document.querySelector('.result-pane')?.dataset.feedback==='passed','teacher preserved solved student Docker state');
+    if(button('여기 머물기'))await click('여기 머물기');
+    const owner=document.querySelector('#git-student-terminal')?.dataset.terminalSession;
+    await click('초기화');await wait(()=>document.querySelector('#git-student-terminal')?.dataset.terminalSession!==owner&&terminalReady(),'Docker reset creates fresh environment');
+    await click('제출');await wait(()=>document.querySelector('.result-pane')?.dataset.feedback==='incorrect','reset Docker task is unsolved');
+    checked.push(`${pilot.label} step ${index+1}: actual Docker grading, teacher isolation and owned reset`);
+    if(index<pilot.tasks.length-1)molipShortcuts.move('next');
+    continue;
+   }
    await wait(()=>document.querySelector('.repository-task')?.dataset.taskId===task.id&&window.molipCodeEditors?.getValue()===prepared(task,task.starter_code)&&(!task.interaction||bridge()?.value===task.starter_code),`step ${index+1}`);
    if(task.question){
     if(document.querySelector('.task-question')?.textContent.trim()!==task.question)throw Error('The explicit learner question is missing');
@@ -116,7 +139,7 @@
    const narratedFlow=verifyTeacher(task);
    if(narratedFlow)checked.push(`${pilot.label} step ${index+1}: narration opened 코드 흐름 보기 on the teacher code and showed ${narratedFlow}, then closed it and restored the learner code`);
    await click('제출');await wait(()=>status('다시 풀어보세요'),'teacher did not solve learner task');
-   const modification=pilot.modifications[index];
+   const modification=pilot.modifications?.[index];
    if(modification){
     if(modification.source){molipCodeEditors.setValue(modification.source);await wait(()=>document.querySelector('[data-code-editor]').dataset.editorValue===modification.source,'learner edit');}
     else await answer(task);

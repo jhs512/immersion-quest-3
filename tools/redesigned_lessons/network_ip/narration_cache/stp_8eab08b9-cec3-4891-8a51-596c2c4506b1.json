@@ -1,0 +1,44 @@
+{
+  "by": "hand",
+  "source_sha256": "7c05668fa6995ebb9c67f1dbbccb876f238c72abae12466fe277b52fc81ce32e",
+  "entry": [
+    {
+      "action": "say",
+      "text": "마스크는 주소의 네트워크 부분과 호스트 부분을 나눠요. 운영체제는 연결된 프리픽스와 경로표를 이용해 전달 경로를 골라요. 마스크를 바꾸면 통신 성공 여부만 볼 것이 아니라 선택한 경로도 읽어야 해요.",
+      "target": "text:마스크는 주소의 네트워크 부분과 호스트 부분을 나눠요. 운영체제는 연결된 프리픽스와 경로표를 이용해 전달 경로를 골라요. 마스크를 바꾸면 통신 성공 여부만 볼 것이 아니라 선택한 경로도 읽어야 해요."
+    },
+    {
+      "action": "bash_command",
+      "command": "docker exec \"$CLIENT\" ip route get \"$SERVER_IP\"",
+      "say": "바꾸기 전 서버로 향하는 경로를 읽어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "via 다음이 다음 홉이에요. 지금은 서버 주소를 직접 연결된 범위로 판단하지 않아요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "docker exec \"$CLIENT\" sh -c 'DEV=$(ip route get \"$1\" | sed -n \"s/.* dev \\([^ ]*\\).*/\\1/p\"); ip addr del \"$2/25\" dev \"$DEV\"; ip addr add \"$2/24\" dev \"$DEV\"; ip route replace default via \"$3\"' sh \"$SERVER_IP\" \"$CLIENT_IP\" \"$GATEWAY_IP\"",
+      "say": "주소는 유지하고 /24로 다시 붙인 뒤 기본 경로를 복구해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "호스트 비트가 늘면서 두 주소가 같은 /24 범위에 들어가요. 주소를 떼었다 붙일 때 기본 경로도 사라질 수 있어서 따로 확인했어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "docker exec \"$CLIENT\" ip route get \"$SERVER_IP\"; docker exec \"$CLIENT\" curl --noproxy \"*\" -fsS \"http://$SERVER_IP:8080/\"",
+      "say": "경로와 실제 응답을 함께 확인해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "이번에는 서버 경로에 via가 없고 직접 연결 인터페이스를 선택해요. 조심하세요. 연결이 성공했다는 결과 하나로 마스크와 경로 설정이 의도대로라고 판단하지 마세요.",
+      "target": "#git-demo-terminal"
+    }
+  ]
+}

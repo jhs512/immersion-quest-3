@@ -1,0 +1,44 @@
+{
+  "by": "hand",
+  "source_sha256": "612a43c60f1171aa7feac79852932a139018c1749f7014085f64d670eb824c69",
+  "entry": [
+    {
+      "action": "say",
+      "text": "권한 서버가 레코드를 바꿔도 중간 캐시의 아직 유효한 응답은 남을 수 있어요. 어느 DNS 서버에 물었는지와 TTL을 함께 읽어야 해요. 자바 프로세스의 이름 캐시는 이 별도 DNS 캐시와 또 달라요.",
+      "target": "text:권한 서버가 레코드를 바꿔도 중간 캐시의 아직 유효한 응답은 남을 수 있어요. 어느 DNS 서버에 물었는지와 TTL을 함께 읽어야 해요. 자바 프로세스의 이름 캐시는 이 별도 DNS 캐시와 또 달라요."
+    },
+    {
+      "action": "bash_command",
+      "command": "docker exec \"$CLIENT\" dig \"@$DNS_IP\" memo.test A +noall +answer; docker exec \"$CLIENT\" dig \"@$CACHE_IP\" memo.test A +noall +answer",
+      "say": "같은 이름을 서로 다른 역할의 DNS 서버에 물어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "권한 서버의 최신 주소와 캐시의 남은 TTL을 비교해요. 이전 주소가 아직 유효한 캐시라면 권한 변경 직후에도 두 응답이 다를 수 있어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "docker restart \"$CACHE\"",
+      "say": "이 실습에서만 사용하는 캐시 DNS를 새로 시작해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "이전 프로세스의 캐시를 제거했어요. 호스트나 다른 사람의 DNS 설정을 바꾸지는 않았어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "docker exec \"$CLIENT\" dig \"@$CACHE_IP\" memo.test A; docker exec \"$CLIENT\" curl --noproxy \"*\" -fsS --retry 5 --retry-all-errors http://memo.test:8080/",
+      "say": "새 회차의 캐시 응답과 실제 이름 접속을 확인해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "캐시가 권한 서버에서 현재 주소를 받아 서버 B로 연결해요. 조심하세요. TTL의 특정 숫자나 정확한 만료 순간을 정답으로 외우지 마세요.",
+      "target": "#git-demo-terminal"
+    }
+  ]
+}

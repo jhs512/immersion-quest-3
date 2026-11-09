@@ -1,0 +1,471 @@
+{
+  "description": "목적지에 맞는 다음 홉을 설정하고 기본 경로·반환 경로·주소 변환의 역할을 실제 응답으로 확인해요.",
+  "tasks": [
+    {
+      "id": "stp_3488172f-b0f8-4968-a5b2-96104b3a3d58",
+      "title": "직접 전달할 주소를 판별하세요",
+      "question": "내 주소와 목적지의 /24 네트워크 부분이 같으면 직접 전달하는 모형이에요. 같은 네트워크 여부를 계산하세요.",
+      "goal": "내 주소와 목적지의 /24 네트워크 부분이 같으면 직접 전달하는 모형이에요. 같은 네트워크 여부를 계산하세요.\n\n모형: 정적 경로표로 판단해요. 실제 패킷·ARP·운영체제 경로를 관찰하는 실험은 아니에요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `mine == target` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nint mine = 0xc0000200 | VALUE;\nint target = 0xc0000200 | (VALUE + 1);\nSystem.out.println(mine == target);\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nint mine = 0xc0000200 | VALUE;\nint target = 0xc0000200 | (VALUE + 1);\nSystem.out.println((mine & 0xffffff00) == (target & 0xffffff00));\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "true\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "true\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "true\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "내 주소와 목적지의 /24 네트워크 부분이 같으면 직접 전달하는 모형이에요. 같은 네트워크 여부를 계산하세요.",
+          "target": "text:내 주소와 목적지의 /24 네트워크 부분이 같으면 직접 전달하는 모형이에요. 같은 네트워크 여부를 계산하세요."
+        },
+        {
+          "action": "say",
+          "text": "모형: 정적 경로표로 판단해요. 실제 패킷·ARP·운영체제 경로를 관찰하는 실험은 아니에요.",
+          "target": "text:모형: 정적 경로표로 판단해요. 실제 패킷·ARP·운영체제 경로를 관찰하는 실험은 아니에요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "직접 전달할 주소를 판별하세요의 준비 코드 출력은 false예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "mine == target에서 읽는 대상을 확인해요.",
+          "target": "code:mine == target"
+        },
+        {
+          "action": "patch_code",
+          "before": "mine == target",
+          "after": "(mine & 0xffffff00) == (target & 0xffffff00)",
+          "say": "(mine & 0xffffff00) == (target & 0xffffff00) 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "이 모형에서는 네트워크 부분이 같으면 다음 라우터를 거치지 않고 목적지로 보내요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_d6b9002e-0744-4443-a7ac-033eec75b1b3",
+      "title": "다른 네트워크는 다음 홉으로 보내세요",
+      "question": "목적지는 198.51.100.VALUE예요. 다른 네트워크로 나갈 때 전달할 다음 홉을 출력하세요.",
+      "goal": "목적지는 198.51.100.VALUE예요. 다른 네트워크로 나갈 때 전달할 다음 홉을 출력하세요.\n\n모형: 정적 경로표로 판단해요. 실제 패킷·ARP·운영체제 경로를 관찰하는 실험은 아니에요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `System.out.println(target)` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nString target = \"198.51.100.\" + VALUE;\nString gateway = \"192.0.2.1\";\nSystem.out.println(target);\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nString target = \"198.51.100.\" + VALUE;\nString gateway = \"192.0.2.1\";\nSystem.out.println(gateway);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "192.0.2.1\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "192.0.2.1\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "192.0.2.1\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "목적지는 198.51.100.VALUE예요. 다른 네트워크로 나갈 때 전달할 다음 홉을 출력하세요.",
+          "target": "text:목적지는 198.51.100.VALUE예요. 다른 네트워크로 나갈 때 전달할 다음 홉을 출력하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "다른 네트워크는 다음 홉으로 보내세요의 준비 코드 출력은 198.51.100.6예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "System.out.println(target)에서 읽는 대상을 확인해요.",
+          "target": "code:System.out.println(target)"
+        },
+        {
+          "action": "patch_code",
+          "before": "System.out.println(target)",
+          "after": "System.out.println(gateway)",
+          "say": "System.out.println(gateway) 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "최종 목적지 주소와 바로 다음에 전달할 라우터 주소는 달라요. 목적지 자체를 바꾸는 뜻은 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_6db44cd2-3950-4ae6-ae23-bff84d88c2d0",
+      "title": "더 구체적인 경로를 선택하세요",
+      "question": "목적지에 /24와 /29 경로가 모두 맞아요. 프리픽스가 긴 경로를 선택하세요.",
+      "goal": "목적지에 /24와 /29 경로가 모두 맞아요. 프리픽스가 긴 경로를 선택하세요.\n\n모형: 정적 경로표로 판단해요. 실제 패킷·ARP·운영체제 경로를 관찰하는 실험은 아니에요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `p < best` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nint[] prefixes = {24, 29};\nint best = -1;\nfor (int p : prefixes) if (p < best) best = p;\nSystem.out.println(best + \":\" + VALUE);\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nint[] prefixes = {24, 29};\nint best = -1;\nfor (int p : prefixes) if (p > best) best = p;\nSystem.out.println(best + \":\" + VALUE);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "29:6\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "29:7\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "29:9\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "목적지에 /24와 /29 경로가 모두 맞아요. 프리픽스가 긴 경로를 선택하세요.",
+          "target": "text:목적지에 /24와 /29 경로가 모두 맞아요. 프리픽스가 긴 경로를 선택하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "더 구체적인 경로를 선택하세요의 준비 코드 출력은 -1:6예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "p < best에서 읽는 대상을 확인해요.",
+          "target": "code:p < best"
+        },
+        {
+          "action": "patch_code",
+          "before": "p < best",
+          "after": "p > best",
+          "say": "p > best 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "둘 다 맞는 경로 중 /29가 더 구체적이에요. 경로를 먼저 골라야 그 경로의 다음 홉을 쓸 수 있어요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_d908198a-2a27-4a15-bfa1-88dedef388e3",
+      "title": "홉을 지날 때 TTL을 줄이세요",
+      "question": "TTL은 패킷이 계속 순환하지 않게 하는 값이에요. 라우터 하나를 지난 뒤의 TTL을 출력하세요.",
+      "goal": "TTL은 패킷이 계속 순환하지 않게 하는 값이에요. 라우터 하나를 지난 뒤의 TTL을 출력하세요.\n\n모형: 정적 경로표로 판단해요. 실제 패킷·ARP·운영체제 경로를 관찰하는 실험은 아니에요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `forwarded = ttl` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nint ttl = VALUE;\nint forwarded = ttl;\nSystem.out.println(forwarded);\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nint ttl = VALUE;\nint forwarded = ttl - 1;\nSystem.out.println(forwarded);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "5\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "6\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "8\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "TTL은 패킷이 계속 순환하지 않게 하는 값이에요. 라우터 하나를 지난 뒤의 TTL을 출력하세요.",
+          "target": "text:TTL은 패킷이 계속 순환하지 않게 하는 값이에요. 라우터 하나를 지난 뒤의 TTL을 출력하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "홉을 지날 때 TTL을 줄이세요의 준비 코드 출력은 6예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "forwarded = ttl에서 읽는 대상을 확인해요.",
+          "target": "code:forwarded = ttl"
+        },
+        {
+          "action": "patch_code",
+          "before": "forwarded = ttl",
+          "after": "forwarded = ttl - 1",
+          "say": "forwarded = ttl - 1 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "전달할 때 TTL을 줄여요. 이 모형은 감소만 확인하고 실제 라우터의 폐기·오류 응답은 만들지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. TTL을 그대로 전달하면 순환 경로를 제한하는 값이 줄지 않아요.",
+          "target": "code:forwarded = ttl - 1"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_989241ae-d1e3-4c15-b9b0-3b172390a737",
+      "title": "원격 서버에만 적용할 다음 홉을 설정하세요",
+      "question": "기존 기본 경로를 유지하면서 원격 서버로 향하는 경로의 다음 홉을 ROUTER_IP로 설정하세요. 서버 한 대의 /32 경로나 원격 /24 경로 모두 유효해요.",
+      "goal": "라우팅 테이블은 목적지 범위·다음 홉·출구 인터페이스를 연결해요. 목적지에 일치하는 경로 중 가장 긴 프리픽스를 선택해요. 기본 게이트웨이는 더 구체적인 경로가 없을 때 쓰는 기본 경로의 다음 홉이에요.\n\n클라이언트와 서버는 서로 다른 /24에 있어요. 라우터 컨테이너에는 두 네트워크의 인터페이스와 사설 IP가 각각 있고 포워딩이 준비돼 있어요. 서버의 반환 경로도 준비됐지만 클라이언트에는 원격 서버를 라우터로 보내는 경로가 없어요.\n\n기존 기본 경로를 유지하면서 원격 서버로 향하는 경로의 다음 홉을 ROUTER_IP로 설정하세요. 서버 한 대의 /32 경로나 원격 /24 경로 모두 유효해요.\n\nBash 명령은 호스트의 실습 폴더에서 실행해요. `$CLIENT`·`$SERVER` 같은 변수에는 이번 문제의 컨테이너 이름이 들어 있어요. `cat addresses.txt`로 읽고 `docker exec` 뒤에 역할을 지정해 컨테이너 안에서 관찰해요. 호스트 네트워크 설정은 바꾸지 않아요.\n\n**할 일**\n\n1. 주소 장부와 클라이언트·라우터의 `ip -br addr`, `ip route`를 읽으세요.\n2. 서버에 일치하는 경로를 라우터의 LAN 주소를 다음 홉으로 추가하세요.\n3. 서버의 `ip route get`과 실제 HTTP 응답을 확인한 뒤 제출하세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "docker exec \"$CLIENT\" ip route add \"$REMOTE_SUBNET\" via \"$ROUTER_IP\"",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "workspace_group": "network-routing",
+        "workspace_revision": "network-lab-1",
+        "network": {
+          "kind": "routing"
+        },
+        "shell": {
+          "step_id": "stp_989241ae-d1e3-4c15-b9b0-3b172390a737",
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": []
+        }
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "라우팅 테이블은 목적지 범위·다음 홉·출구 인터페이스를 연결해요. 목적지에 일치하는 경로 중 가장 긴 프리픽스를 선택해요. 기본 게이트웨이는 더 구체적인 경로가 없을 때 쓰는 기본 경로의 다음 홉이에요.",
+          "target": "text:라우팅 테이블은 목적지 범위·다음 홉·출구 인터페이스를 연결해요. 목적지에 일치하는 경로 중 가장 긴 프리픽스를 선택해요. 기본 게이트웨이는 더 구체적인 경로가 없을 때 쓰는 기본 경로의 다음 홉이에요."
+        },
+        {
+          "action": "bash_command",
+          "command": "docker exec \"$ROUTER\" ip -br addr; docker exec \"$CLIENT\" ip route get \"$SERVER_IP\"",
+          "say": "라우터의 양쪽 주소와 지금 선택한 경로를 읽어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "라우터에는 두 인터페이스의 주소가 있어요. 클라이언트가 바로 만날 수 있는 쪽은 ROUTER_IP이고 최종 목적지는 여전히 SERVER_IP예요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker exec \"$CLIENT\" ip route add \"$REMOTE_SUBNET\" via \"$ROUTER_IP\"",
+          "say": "원격 네트워크에 일치하는 경로 하나를 추가해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "이 /24 경로가 기본 경로보다 구체적이어서 원격 서버에 먼저 적용돼요. 다른 목적지의 기본 경로는 바꾸지 않았어요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker exec \"$CLIENT\" ip route get \"$SERVER_IP\"; docker exec \"$CLIENT\" curl --noproxy \"*\" -fsS \"http://$SERVER_IP:8080/\"",
+          "say": "선택한 다음 홉과 서버 응답을 확인해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "라우터를 거쳐 서버의 응답이 돌아와요. 조심하세요. 게이트웨이를 쓴다고 최종 IP 목적지가 게이트웨이 주소로 바뀌는 것은 아니에요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    },
+    {
+      "id": "stp_00e556e2-581f-4bcb-9b3b-23bad42d74fa",
+      "title": "두 내부 클라이언트의 출발지 주소를 변환하세요",
+      "question": "라우터가 내부 요청의 출발지 주소를 자신의 바깥쪽 주소로 변환하게 설정하세요. 두 클라이언트가 원래의 서로 다른 사설 주소를 유지하면서 관찰 서버에는 ROUTER_OUT_IP로 보여야 해요.",
+      "goal": "사설 IPv4 범위는 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16이에요. 독립된 회사는 같은 사설 주소를 재사용할 수 있어요. 공인 주소는 인터넷에서 전역적으로 라우팅할 수 있도록 할당되는 주소예요. 사설 범위 밖의 모든 주소가 곧 공인 주소인 것은 아니에요.\n\n서로 다른 사설 IP의 CLIENT와 CLIENT_B가 같은 라우터를 거쳐 바깥 관찰 서버에 요청해요. 관찰 서버에는 내부 네트워크로 돌아가는 경로가 없어요. 이 실험의 바깥 네트워크도 로컬 사설 대역이고 실제 인터넷 공인 IP를 할당한 것은 아니에요.\n\n라우터가 내부 요청의 출발지 주소를 자신의 바깥쪽 주소로 변환하게 설정하세요. 두 클라이언트가 원래의 서로 다른 사설 주소를 유지하면서 관찰 서버에는 ROUTER_OUT_IP로 보여야 해요.\n\nBash 명령은 호스트의 실습 폴더에서 실행해요. `$CLIENT`·`$SERVER` 같은 변수에는 이번 문제의 컨테이너 이름이 들어 있어요. `cat addresses.txt`로 읽고 `docker exec` 뒤에 역할을 지정해 컨테이너 안에서 관찰해요. 호스트 네트워크 설정은 바꾸지 않아요.\n\n**할 일**\n\n1. 주소 장부와 라우터의 두 인터페이스·경로를 읽으세요.\n2. 라우터의 NAT 설정으로 LAN_SUBNET에서 바깥쪽으로 나가는 요청의 출발지 주소를 변환하세요.\n3. 두 클라이언트의 실제 응답에서 peer 주소를 비교한 뒤 제출하세요.",
+      "language": "git",
+      "starter_code": "",
+      "solution": "docker exec \"$ROUTER\" sh -c 'DEV=$(ip route get \"$1\" | sed -n \"s/.* dev \\([^ ]*\\).*/\\1/p\"); iptables -t nat -A POSTROUTING -s \"$2\" -o \"$DEV\" -j MASQUERADE' sh \"$SERVER_IP\" \"$LAN_SUBNET\"",
+      "tests": [],
+      "required": true,
+      "git_terminal": {
+        "initial_history": "uninitialized",
+        "workspace_group": "network-nat",
+        "workspace_revision": "network-lab-1",
+        "network": {
+          "kind": "nat"
+        },
+        "shell": {
+          "step_id": "stp_00e556e2-581f-4bcb-9b3b-23bad42d74fa",
+          "goal": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "demo": {
+            "files": {},
+            "directories": [],
+            "cwd": ""
+          },
+          "commands": []
+        }
+      },
+      "narration": [
+        {
+          "action": "say",
+          "text": "사설 IPv4 범위는 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16이에요. 독립된 회사는 같은 사설 주소를 재사용할 수 있어요. 공인 주소는 인터넷에서 전역적으로 라우팅할 수 있도록 할당되는 주소예요. 사설 범위 밖의 모든 주소가 곧 공인 주소인 것은 아니에요.",
+          "target": "text:사설 IPv4 범위는 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16이에요. 독립된 회사는 같은 사설 주소를 재사용할 수 있어요. 공인 주소는 인터넷에서 전역적으로 라우팅할 수 있도록 할당되는 주소예요. 사설 범위 밖의 모든 주소가 곧 공인 주소인 것은 아니에요."
+        },
+        {
+          "action": "bash_command",
+          "command": "docker exec \"$ROUTER\" ip -br addr; docker exec \"$ROUTER\" ip route get \"$SERVER_IP\"",
+          "say": "라우터의 바깥쪽 인터페이스와 주소를 찾아요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "내부 클라이언트에 직접 붙은 주소와 관찰 서버가 보게 될 출발지 주소를 따로 기록해요. 공인·사설 주소를 직접 함께 가진 호스트와 NAT 뒤의 호스트도 다른 구성이에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker exec \"$ROUTER\" sh -c 'DEV=$(ip route get \"$1\" | sed -n \"s/.* dev \\([^ ]*\\).*/\\1/p\"); iptables -t nat -A POSTROUTING -s \"$2\" -o \"$DEV\" -j MASQUERADE' sh \"$SERVER_IP\" \"$LAN_SUBNET\"",
+          "say": "이 실습 라우터 안에서만 출발지 주소 변환을 설정해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "요청은 라우터의 바깥쪽 주소로 나가고 응답은 연결 상태에 따라 원래 클라이언트로 돌아가요. 포워딩과 주소 변환은 서로 다른 역할이에요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "bash_command",
+          "command": "docker exec \"$CLIENT\" curl --noproxy \"*\" -fsS \"http://$SERVER_IP:8080/\"; echo; docker exec \"$CLIENT_B\" curl --noproxy \"*\" -fsS \"http://$SERVER_IP:8080/\"",
+          "say": "서로 다른 두 내부 클라이언트에서 요청해 peer를 비교해요.",
+          "target": "#git-demo-terminal"
+        },
+        {
+          "action": "say",
+          "text": "관찰 서버에는 두 요청의 peer가 같은 ROUTER_OUT_IP로 보여요. 실제 인터넷에서도 여러 컴퓨터가 공유기나 통신사 NAT의 공인 주소로 보일 수 있어요. 조심하세요. 그 주소가 각 컴퓨터 전용이거나 그 주소만으로 외부에서 바로 접속할 수 있다는 뜻은 아니에요.",
+          "target": "#git-demo-terminal"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "objectives": [
+      "같은 네트워크와 다음 홉을 구별하고 더 구체적인 경로를 선택해요.",
+      "목적지에 맞는 다음 홉을 설정하고 기본 경로·반환 경로·주소 변환의 역할을 실제 응답으로 확인해요."
+    ],
+    "chapters": {
+      "chp_df8fa79d-ba62-4e9e-be13-c18a695fc9fd": [
+        "같은 네트워크와 다음 홉을 구별하고 더 구체적인 경로를 선택해요."
+      ],
+      "chp_0db3c22d-cb7b-4bd4-9b8d-0dc3b417b222": [
+        "목적지에 맞는 다음 홉을 설정하고 기본 경로·반환 경로·주소 변환의 역할을 실제 응답으로 확인해요."
+      ]
+    },
+    "units": {
+      "unt_69aa100e-b767-4dcd-8447-a43edc14e241": {
+        "objectives": [
+          "이 모형에서는 네트워크 부분이 같으면 다음 라우터를 거치지 않고 목적지로 보내요.",
+          "최종 목적지 주소와 바로 다음에 전달할 라우터 주소는 달라요. 목적지 자체를 바꾸는 뜻은 아니에요."
+        ],
+        "premise": "모형: 정적 경로표로 판단해요. 실제 패킷·ARP·운영체제 경로를 관찰하는 실험은 아니에요."
+      },
+      "unt_ac569a55-c73f-41b2-8d55-72dee9b10f6d": {
+        "objectives": [
+          "둘 다 맞는 경로 중 /29가 더 구체적이에요. 경로를 먼저 골라야 그 경로의 다음 홉을 쓸 수 있어요.",
+          "전달할 때 TTL을 줄여요. 이 모형은 감소만 확인하고 실제 라우터의 폐기·오류 응답은 만들지 않아요."
+        ],
+        "premise": "모형: 정적 경로표로 판단해요. 실제 패킷·ARP·운영체제 경로를 관찰하는 실험은 아니에요."
+      },
+      "unt_c9b9ea56-ad5a-4d12-b5c4-102d72381e51": {
+        "objectives": [
+          "기존 기본 경로를 유지하면서 원격 서버로 향하는 경로의 다음 홉을 ROUTER_IP로 설정하세요. 서버 한 대의 /32 경로나 원격 /24 경로 모두 유효해요."
+        ],
+        "premise": "클라이언트와 서버는 서로 다른 /24에 있어요. 라우터 컨테이너에는 두 네트워크의 인터페이스와 사설 IP가 각각 있고 포워딩이 준비돼 있어요. 서버의 반환 경로도 준비됐지만 클라이언트에는 원격 서버를 라우터로 보내는 경로가 없어요."
+      },
+      "unt_1a8f0bb4-9ca5-4a87-aaae-991bf66e51ab": {
+        "objectives": [
+          "라우터가 내부 요청의 출발지 주소를 자신의 바깥쪽 주소로 변환하게 설정하세요. 두 클라이언트가 원래의 서로 다른 사설 주소를 유지하면서 관찰 서버에는 ROUTER_OUT_IP로 보여야 해요."
+        ],
+        "premise": "서로 다른 사설 IP의 CLIENT와 CLIENT_B가 같은 라우터를 거쳐 바깥 관찰 서버에 요청해요. 관찰 서버에는 내부 네트워크로 돌아가는 경로가 없어요. 이 실험의 바깥 네트워크도 로컬 사설 대역이고 실제 인터넷 공인 IP를 할당한 것은 아니에요."
+      }
+    }
+  }
+}

@@ -1,0 +1,385 @@
+{
+  "schema_version": 2,
+  "id": "lsn_80ccc79f-6d71-4703-b6f2-eb695a68ab03",
+  "revision": "network-endpoints-1",
+  "title": "네트워크 · 주소와 포트로 연결하기",
+  "description": "서버의 대기 주소와 포트, 연결의 양 끝을 실제 소켓으로 확인해요.",
+  "objectives": [
+    "서버의 대기 주소와 포트, 연결의 양 끝을 실제 소켓으로 확인해요."
+  ],
+  "sources": [
+    "https://www.rfc-editor.org/rfc/rfc9293.html",
+    "https://www.rfc-editor.org/rfc/rfc768.html",
+    "https://www.rfc-editor.org/rfc/rfc1034.html",
+    "https://www.rfc-editor.org/rfc/rfc9110.html",
+    "https://www.rfc-editor.org/rfc/rfc4632.html",
+    "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/net/Socket.html"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_98fdffae-d8a7-4240-8039-a9c99e5ea799",
+      "title": "주소와 포트로 연결하기",
+      "objectives": [
+        "서버의 대기 주소와 포트, 연결의 양 끝을 실제 소켓으로 확인해요."
+      ],
+      "units": [
+        {
+          "id": "unt_ab3673dd-935d-4023-ace0-9ea966d3057f",
+          "title": "첫 관계를 관찰해요",
+          "objectives": [
+            "클라이언트의 상대 포트가 서버의 대기 포트와 같아요. 자기 포트와 비교하면 다른 대상을 보게 돼요.",
+            "서버에서 보는 상대 포트는 클라이언트의 자기 포트예요."
+          ],
+          "premise": "실제 실습: 같은 컴퓨터의 127.0.0.1에 TCP 소켓을 열어요. 포트는 운영체제가 배정해요.",
+          "steps": [
+            {
+              "id": "stp_e98c8c1e-d1da-489a-8107-3c13424d5213",
+              "objectives": [
+                "클라이언트의 상대 포트가 서버의 대기 포트와 같아요. 자기 포트와 비교하면 다른 대상을 보게 돼요."
+              ]
+            },
+            {
+              "id": "stp_f607bddf-915f-4658-bf5a-a05ea632a3df",
+              "objectives": [
+                "서버에서 보는 상대 포트는 클라이언트의 자기 포트예요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_37bad8cb-ed62-44bb-a75c-3727ce9c5fa4",
+          "title": "조건을 바꿔 적용해요",
+          "objectives": [
+            "이번 값은 계산으로 만든 값이 아니라 실제 서버 소켓에서 읽은 한 바이트예요.",
+            "요청을 읽은 값과 응답을 읽은 값이 구별돼요. 응답도 반대쪽 소켓을 통해 와요."
+          ],
+          "premise": "실제 실습: 같은 컴퓨터의 127.0.0.1에 TCP 소켓을 열어요. 포트는 운영체제가 배정해요.",
+          "steps": [
+            {
+              "id": "stp_f8aadf7e-7fce-482f-9670-b062d308fc1f",
+              "objectives": [
+                "이번 값은 계산으로 만든 값이 아니라 실제 서버 소켓에서 읽은 한 바이트예요."
+              ]
+            },
+            {
+              "id": "stp_b1d6f73e-fc59-4e08-ba81-da4835f7def7",
+              "objectives": [
+                "요청을 읽은 값과 응답을 읽은 값이 구별돼요. 응답도 반대쪽 소켓을 통해 와요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_e98c8c1e-d1da-489a-8107-3c13424d5213",
+      "title": "연결한 서버 포트를 확인하세요",
+      "question": "IP 주소는 연결할 장치를 가리켜요. 포트는 그 장치의 통신 끝점을 구별해요. 클라이언트의 상대 포트와 서버 대기 포트를 비교하세요.",
+      "goal": "IP 주소는 연결할 장치를 가리켜요. 포트는 그 장치의 통신 끝점을 구별해요. 클라이언트의 상대 포트와 서버 대기 포트를 비교하세요.\n\n실제 실습: 같은 컴퓨터의 127.0.0.1에 TCP 소켓을 열어요. 포트는 운영체제가 배정해요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `client.getLocalPort()` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar loopback = java.net.InetAddress.getByName(\"127.0.0.1\");\n// 포트 0은 운영체제에 빈 포트 배정을 요청해요.\ntry (var listener = new java.net.ServerSocket(0, 1, loopback)) {\n    listener.setSoTimeout(2000);\n    try (var client = new java.net.Socket()) {\n        client.connect(new java.net.InetSocketAddress(loopback, listener.getLocalPort()), 2000);\n        client.setSoTimeout(2000);\n        try (var server = listener.accept()) {\n            server.setSoTimeout(2000);\nSystem.out.println(client.getLocalPort() == listener.getLocalPort());\n        }\n    }\n}\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar loopback = java.net.InetAddress.getByName(\"127.0.0.1\");\n// 포트 0은 운영체제에 빈 포트 배정을 요청해요.\ntry (var listener = new java.net.ServerSocket(0, 1, loopback)) {\n    listener.setSoTimeout(2000);\n    try (var client = new java.net.Socket()) {\n        client.connect(new java.net.InetSocketAddress(loopback, listener.getLocalPort()), 2000);\n        client.setSoTimeout(2000);\n        try (var server = listener.accept()) {\n            server.setSoTimeout(2000);\nSystem.out.println(client.getPort() == listener.getLocalPort());\n        }\n    }\n}\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "true\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "true\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "true\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "연결된 두 프로그램의 주소와 포트가 어떤 역할을 하는지 배워요."
+        },
+        {
+          "action": "say",
+          "text": "실제 로컬 소켓에서 내 끝점과 상대 끝점을 읽고 요청과 응답을 주고받아요."
+        },
+        {
+          "action": "say",
+          "text": "IP 주소는 연결할 장치를 가리켜요. 포트는 그 장치의 통신 끝점을 구별해요. 클라이언트의 상대 포트와 서버 대기 포트를 비교하는 문제예요.",
+          "target": "text:연결한 서버 포트를 확인하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "IP 주소는 연결할 장치를 가리켜요. 포트는 그 장치의 통신 끝점을 구별해요. 클라이언트의 상대 포트와 서버 대기 포트를 비교하세요.",
+          "target": "text:IP 주소는 연결할 장치를 가리켜요. 포트는 그 장치의 통신 끝점을 구별해요. 클라이언트의 상대 포트와 서버 대기 포트를 비교하세요."
+        },
+        {
+          "action": "say",
+          "text": "실제 실습: 같은 컴퓨터의 127.0.0.1에 TCP 소켓을 열어요. 포트는 운영체제가 배정해요.",
+          "target": "text:실제 실습: 같은 컴퓨터의 127.0.0.1에 TCP 소켓을 열어요. 포트는 운영체제가 배정해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "연결한 서버 포트를 확인하세요의 준비 코드 출력은 false예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "client.getLocalPort()에서 읽는 대상을 확인해요.",
+          "target": "code:client.getLocalPort()"
+        },
+        {
+          "action": "patch_code",
+          "before": "client.getLocalPort()",
+          "after": "client.getPort()",
+          "say": "client.getPort() 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "클라이언트의 상대 포트가 서버의 대기 포트와 같아요. 자기 포트와 비교하면 다른 대상을 보게 돼요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_f607bddf-915f-4658-bf5a-a05ea632a3df",
+      "title": "서버가 보는 상대 포트를 확인하세요",
+      "question": "연결은 양 끝을 가져요. 서버가 받은 연결의 상대 포트를 클라이언트 자기 포트와 비교하세요.",
+      "goal": "연결은 양 끝을 가져요. 서버가 받은 연결의 상대 포트를 클라이언트 자기 포트와 비교하세요.\n\n실제 실습: 같은 컴퓨터의 127.0.0.1에 TCP 소켓을 열어요. 포트는 운영체제가 배정해요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `server.getLocalPort()` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar loopback = java.net.InetAddress.getByName(\"127.0.0.1\");\n// 포트 0은 운영체제에 빈 포트 배정을 요청해요.\ntry (var listener = new java.net.ServerSocket(0, 1, loopback)) {\n    listener.setSoTimeout(2000);\n    try (var client = new java.net.Socket()) {\n        client.connect(new java.net.InetSocketAddress(loopback, listener.getLocalPort()), 2000);\n        client.setSoTimeout(2000);\n        try (var server = listener.accept()) {\n            server.setSoTimeout(2000);\nSystem.out.println(server.getLocalPort() == client.getLocalPort());\n        }\n    }\n}\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar loopback = java.net.InetAddress.getByName(\"127.0.0.1\");\n// 포트 0은 운영체제에 빈 포트 배정을 요청해요.\ntry (var listener = new java.net.ServerSocket(0, 1, loopback)) {\n    listener.setSoTimeout(2000);\n    try (var client = new java.net.Socket()) {\n        client.connect(new java.net.InetSocketAddress(loopback, listener.getLocalPort()), 2000);\n        client.setSoTimeout(2000);\n        try (var server = listener.accept()) {\n            server.setSoTimeout(2000);\nSystem.out.println(server.getPort() == client.getLocalPort());\n        }\n    }\n}\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "true\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "true\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "true\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "연결은 양 끝을 가져요. 서버가 받은 연결의 상대 포트를 클라이언트 자기 포트와 비교하는 문제예요.",
+          "target": "text:서버가 보는 상대 포트를 확인하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "연결은 양 끝을 가져요. 서버가 받은 연결의 상대 포트를 클라이언트 자기 포트와 비교하세요.",
+          "target": "text:연결은 양 끝을 가져요. 서버가 받은 연결의 상대 포트를 클라이언트 자기 포트와 비교하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "서버가 보는 상대 포트를 확인하세요의 준비 코드 출력은 false예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "server.getLocalPort()에서 읽는 대상을 확인해요.",
+          "target": "code:server.getLocalPort()"
+        },
+        {
+          "action": "patch_code",
+          "before": "server.getLocalPort()",
+          "after": "server.getPort()",
+          "say": "server.getPort() 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "서버에서 보는 상대 포트는 클라이언트의 자기 포트예요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_f8aadf7e-7fce-482f-9670-b062d308fc1f",
+      "title": "클라이언트가 보낸 바이트를 읽으세요",
+      "question": "연결 준비와 데이터 수신은 달라요. 클라이언트가 보낸 VALUE 한 바이트를 서버에서 읽으세요.",
+      "goal": "연결 준비와 데이터 수신은 달라요. 클라이언트가 보낸 VALUE 한 바이트를 서버에서 읽으세요.\n\n실제 실습: 같은 컴퓨터의 127.0.0.1에 TCP 소켓을 열어요. 포트는 운영체제가 배정해요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `VALUE + 1` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar loopback = java.net.InetAddress.getByName(\"127.0.0.1\");\n// 포트 0은 운영체제에 빈 포트 배정을 요청해요.\ntry (var listener = new java.net.ServerSocket(0, 1, loopback)) {\n    listener.setSoTimeout(2000);\n    try (var client = new java.net.Socket()) {\n        client.connect(new java.net.InetSocketAddress(loopback, listener.getLocalPort()), 2000);\n        client.setSoTimeout(2000);\n        try (var server = listener.accept()) {\n            server.setSoTimeout(2000);\nclient.getOutputStream().write(VALUE);\nSystem.out.println(VALUE + 1);\n        }\n    }\n}\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar loopback = java.net.InetAddress.getByName(\"127.0.0.1\");\n// 포트 0은 운영체제에 빈 포트 배정을 요청해요.\ntry (var listener = new java.net.ServerSocket(0, 1, loopback)) {\n    listener.setSoTimeout(2000);\n    try (var client = new java.net.Socket()) {\n        client.connect(new java.net.InetSocketAddress(loopback, listener.getLocalPort()), 2000);\n        client.setSoTimeout(2000);\n        try (var server = listener.accept()) {\n            server.setSoTimeout(2000);\nclient.getOutputStream().write(VALUE);\nSystem.out.println(server.getInputStream().read());\n        }\n    }\n}\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "6\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "7\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "9\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "연결 준비와 데이터 수신은 달라요. 클라이언트가 보낸 VALUE 한 바이트를 서버에서 읽는 문제예요.",
+          "target": "text:클라이언트가 보낸 바이트를 읽으세요#1"
+        },
+        {
+          "action": "say",
+          "text": "연결 준비와 데이터 수신은 달라요. 클라이언트가 보낸 VALUE 한 바이트를 서버에서 읽으세요.",
+          "target": "text:연결 준비와 데이터 수신은 달라요. 클라이언트가 보낸 VALUE 한 바이트를 서버에서 읽으세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "클라이언트가 보낸 바이트를 읽으세요의 준비 코드 출력은 7예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "VALUE + 1에서 읽는 대상을 확인해요.",
+          "target": "code:VALUE + 1"
+        },
+        {
+          "action": "patch_code",
+          "before": "VALUE + 1",
+          "after": "server.getInputStream().read()",
+          "say": "server.getInputStream().read() 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "이번 값은 계산으로 만든 값이 아니라 실제 서버 소켓에서 읽은 한 바이트예요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_b1d6f73e-fc59-4e08-ba81-da4835f7def7",
+      "title": "서버의 응답을 클라이언트에서 읽으세요",
+      "question": "요청을 받은 서버가 VALUE+1을 응답해요. 클라이언트의 수신 쪽에서 읽으세요.",
+      "goal": "요청을 받은 서버가 VALUE+1을 응답해요. 클라이언트의 수신 쪽에서 읽으세요.\n\n실제 실습: 같은 컴퓨터의 127.0.0.1에 TCP 소켓을 열어요. 포트는 운영체제가 배정해요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `System.out.println(request)` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar loopback = java.net.InetAddress.getByName(\"127.0.0.1\");\n// 포트 0은 운영체제에 빈 포트 배정을 요청해요.\ntry (var listener = new java.net.ServerSocket(0, 1, loopback)) {\n    listener.setSoTimeout(2000);\n    try (var client = new java.net.Socket()) {\n        client.connect(new java.net.InetSocketAddress(loopback, listener.getLocalPort()), 2000);\n        client.setSoTimeout(2000);\n        try (var server = listener.accept()) {\n            server.setSoTimeout(2000);\nclient.getOutputStream().write(VALUE);\nint request = server.getInputStream().read();\nserver.getOutputStream().write(request + 1);\nSystem.out.println(request);\n        }\n    }\n}\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar loopback = java.net.InetAddress.getByName(\"127.0.0.1\");\n// 포트 0은 운영체제에 빈 포트 배정을 요청해요.\ntry (var listener = new java.net.ServerSocket(0, 1, loopback)) {\n    listener.setSoTimeout(2000);\n    try (var client = new java.net.Socket()) {\n        client.connect(new java.net.InetSocketAddress(loopback, listener.getLocalPort()), 2000);\n        client.setSoTimeout(2000);\n        try (var server = listener.accept()) {\n            server.setSoTimeout(2000);\nclient.getOutputStream().write(VALUE);\nint request = server.getInputStream().read();\nserver.getOutputStream().write(request + 1);\nSystem.out.println(client.getInputStream().read());\n        }\n    }\n}\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "7\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "8\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "10\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "요청을 받은 서버가 VALUE+1을 응답해요. 클라이언트의 수신 쪽에서 읽는 문제예요.",
+          "target": "text:서버의 응답을 클라이언트에서 읽으세요#1"
+        },
+        {
+          "action": "say",
+          "text": "요청을 받은 서버가 VALUE+1을 응답해요. 클라이언트의 수신 쪽에서 읽으세요.",
+          "target": "text:요청을 받은 서버가 VALUE+1을 응답해요. 클라이언트의 수신 쪽에서 읽으세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "서버의 응답을 클라이언트에서 읽으세요의 준비 코드 출력은 6예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "System.out.println(request)에서 읽는 대상을 확인해요.",
+          "target": "code:System.out.println(request)"
+        },
+        {
+          "action": "patch_code",
+          "before": "System.out.println(request)",
+          "after": "System.out.println(client.getInputStream().read())",
+          "say": "System.out.println(client.getInputStream().read()) 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "요청을 읽은 값과 응답을 읽은 값이 구별돼요. 응답도 반대쪽 소켓을 통해 와요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 요청 변수만 출력하면 응답을 받았는지 확인할 수 없어요.",
+          "target": "code:System.out.println(client.getInputStream().read())"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    }
+  ]
+}

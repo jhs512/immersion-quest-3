@@ -2,6 +2,8 @@
 use serde::{Deserialize,Serialize};
 #[path="shell_practice.rs"] mod shell_practice;
 pub use shell_practice::{ShellExercise,ShellSnapshot,ShellCompletion};
+#[path="network_practice.rs"] mod network_practice;
+pub use network_practice::NetworkExercise;
 #[path="docker_practice.rs"] mod docker_practice;
 pub use docker_practice::{DockerExercise,DockerStart,DockerState,DockerGoal,DockerFile,DockerSession,docker_command_matches};
 #[path="java_build_practice.rs"] pub mod java_build_practice;
@@ -19,6 +21,8 @@ use std::os::windows::process::CommandExt;
 use std::{collections::BTreeMap,path::{Path,PathBuf},process::{Command,Output}};
 #[derive(Clone,Debug,Default,Serialize,Deserialize,PartialEq)]
 pub struct GitExercise {
+    #[serde(skip)] pub network_demonstration:bool,
+    #[serde(default,skip_serializing_if="Option::is_none")] pub network:Option<NetworkExercise>,
     #[serde(skip)] pub java_demonstration:bool,
     #[serde(skip)] pub github_demonstration:bool,
     #[serde(default,skip_serializing_if="Option::is_none")] pub github_pr:Option<GithubPrStage>,
@@ -86,6 +90,19 @@ impl GitPracticeStore {
         Ok(Self{root:canonical_directory(root)?})
     }
     pub fn installed()->Result<Self,String> {Self::new(&crate::data_dir()?.join("git-practices"))}
+    /// Explicit cleanup for a store being retired (the isolated native pilot).
+    /// Normal player shutdown keeps saved student labs for resuming work.
+    pub fn cleanup_network_labs(&self)->Result<(),String> {
+        for entry in std::fs::read_dir(&self.root).map_err(|e|e.to_string())? {
+            let entry=entry.map_err(|e|e.to_string())?;let path=entry.path();
+            if entry.file_type().map_err(|e|e.to_string())?.is_symlink()||!path.is_dir(){continue;}
+            if !entry.file_name().to_string_lossy().starts_with("practice-"){continue;}
+            let owner=std::fs::read_to_string(path.join(".mq3-owner")).unwrap_or_default();
+            if owner.len()!=64||!owner.bytes().all(|b|b.is_ascii_hexdigit()){continue;}
+            network_practice::cleanup_at(&path)?;
+        }
+        Ok(())
+    }
     fn key(scope:&str)->String {use sha2::{Digest,Sha256};format!("{:x}",Sha256::digest(scope.as_bytes()))}
     fn lock(&self,scope:&str)->Result<std::fs::File,String> {
         let path=self.root.join(format!("{}.lock",Self::key(scope)));
@@ -151,6 +168,19 @@ impl GitPracticeStore {
     }
     fn reset_from_locked(&self,scope:&str,exercise:GitExercise,previous:Option<(&GitPractice,&str)>)->Result<GitPractice,String> {
         use std::io::Write;
+        // A saved Docker lab survives closing the player, but an explicit reset
+        // removes only that scope's owned containers before publishing a new root.
+        let key=Self::key(scope);
+        if let Ok(bytes)=std::fs::read(self.root.join(format!("{key}.json"))) {
+            if let Ok(folder)=serde_json::from_slice::<String>(&bytes) {
+                if folder.strip_prefix("practice-").is_some_and(|s|!s.is_empty()&&s.bytes().all(|c|c.is_ascii_alphanumeric())) {
+                    let old=self.root.join(folder);
+                    if old.is_dir()&&canonical_directory(&old)?.parent()==Some(self.root.as_path())&&std::fs::read_to_string(old.join(".mq3-owner")).is_ok_and(|owner|owner==key) {
+                        network_practice::cleanup_at(&old)?;
+                    }
+                }
+            }
+        }
         let directory=tempfile::Builder::new().prefix("practice-").tempdir_in(&self.root).map_err(|error|error.to_string())?;
         let mut practice=GitPractice::initialize(exercise,directory)?;
         if let Some((previous,step_id))=previous {
@@ -181,6 +211,7 @@ impl GitExercise {
     /// Recreate only the previous step's starting state in an isolated teacher directory.
     pub fn demonstration(&self)->Self {
         let mut exercise=self.clone();
+        exercise.network_demonstration=exercise.network.is_some();
         exercise.java_demonstration=exercise.java_build.is_some();
         exercise.github_demonstration=exercise.github_pr.is_some()||exercise.gitlab.is_some();
         if let Some(vim)=exercise.vim.as_mut(){vim.start=Some(vim.demo.clone());}
@@ -229,7 +260,8 @@ impl GitExercise {
             };
             if self.shell.as_ref().is_none_or(|s|s.requires_vim||!files_ok(s))||self.java_build.is_some()||self.vim.is_some()||self.github_pr.is_some(){return Err("Docker 터미널 실습의 구성을 확인하세요.".into())}
         }
-        if let Some(shell)=&self.shell {shell.validate()?;if self.initial_history!=GitInitialHistory::Uninitialized||self.state_goal.is_some()||self.demo_setup.is_some(){return Err("Bash 실습의 시작 상태를 확인하세요.".into())}}
+        if let Some(network)=&self.network {network.validate()?;if self.shell.is_none()||self.java_build.is_some()||self.vim.is_some()||self.github_pr.is_some()||self.gitlab.is_some()||self.docker.is_some(){return Err("네트워크 실습의 실행 구성을 확인하세요.".into())}}
+        if let Some(shell)=&self.shell {shell.validate_commands(self.network.is_some())?;if self.initial_history!=GitInitialHistory::Uninitialized||self.state_goal.is_some()||self.demo_setup.is_some(){return Err("Bash 실습의 시작 상태를 확인하세요.".into())}}
         if self.demo_setup.is_some(){self.demonstration().validate()?;}
         if self.files.len()>80||self.setup.len()>100||self.commands.len()>20{return Err("Git 실습의 준비 내용을 확인하세요.".into())}
         if let Some(goal)=&self.state_goal {
@@ -426,6 +458,7 @@ impl GitPractice {
         if self.exercise.shell.is_some() {
             self.prepare_shell_checkpoint()?;
             environment.extend(self.shell_environment());
+            environment.extend(self.prepare_network()?);
             if self.exercise.java_build.is_some(){environment.extend(self.prepare_java_launcher(player)?);}
             return crate::setup_terminal::SetupTerminal::open_practice(&self.shell_directory()?,&environment);
         }
@@ -608,6 +641,7 @@ impl GitPractice {
     pub fn reset(&mut self)->Result<(),String> {
         // Build the complete next state first. TempDir only removes its owned root,
         // including local remote/index/in-progress operations, without following links.
+        self.cleanup_network()?;
         let replacement=match &self.directory {
             PracticeDirectory::Temporary(_)=>Self::new(self.exercise.clone())?,
             PracticeDirectory::Saved{path,scope}=>GitPracticeStore::new(path.parent().ok_or("Git 실습 보관 경로 오류")?)?.reset(scope,self.exercise.clone())?,

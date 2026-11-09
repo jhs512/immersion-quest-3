@@ -47,8 +47,11 @@ pub struct ShellExercise {
 pub struct ShellCompletion {pub command:String,pub cwd:PathBuf,pub success:bool}
 impl ShellExercise {
     pub fn validate(&self)->Result<(),String> {
+        self.validate_commands(false)
+    }
+    pub(super) fn validate_commands(&self,state_grader:bool)->Result<(),String> {
         if self.step_id.is_empty()||self.step_id.len()>80||!self.step_id.bytes().all(|b|b.is_ascii_alphanumeric()||b"_-".contains(&b)) {return Err("Bash 스텝 이름을 확인하세요.".into())}
-        if self.commands.is_empty()||self.commands.len()>30||self.commands.iter().any(|s|s.is_empty()||s.len()>4000||s.contains(['\n','\r','\0'])){return Err("Bash 실습 명령을 확인하세요.".into())}
+        if (!state_grader&&self.commands.is_empty())||self.commands.len()>30||self.commands.iter().any(|s|s.is_empty()||s.len()>4000||s.contains(['\n','\r','\0'])){return Err("Bash 실습 명령을 확인하세요.".into())}
         for state in [&self.goal,&self.demo].into_iter().chain(self.start.iter()) {
             if state.files.len()>80||state.directories.len()>80{return Err("Bash 실습 파일 수를 확인하세요.".into())}
             for (path,body) in &state.files {validate_file(path,body)?;}
@@ -272,6 +275,7 @@ impl GitPractice {
         Ok(())
     }
     pub fn check_shell(&self)->Result<crate::runner::TestReport,String> {
+        if self.exercise.network.is_some(){return self.check_network();}
         use crate::runner::{TestReport,TestCaseResult};
         let shell=self.exercise.shell.as_ref().ok_or("Bash 실습이 아니에요.")?;
         let records=self.shell_completions()?;

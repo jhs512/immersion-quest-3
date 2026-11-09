@@ -1,0 +1,385 @@
+{
+  "schema_version": 2,
+  "id": "lsn_80e7292d-5fcb-4d6a-9df2-dd09f48f7067",
+  "revision": "network-udp-1",
+  "title": "네트워크 · UDP 데이터그램을 주고받기",
+  "description": "실제 데이터그램의 길이·송신 주소·수신 버퍼의 한계를 확인해요.",
+  "objectives": [
+    "실제 데이터그램의 길이·송신 주소·수신 버퍼의 한계를 확인해요."
+  ],
+  "sources": [
+    "https://www.rfc-editor.org/rfc/rfc9293.html",
+    "https://www.rfc-editor.org/rfc/rfc768.html",
+    "https://www.rfc-editor.org/rfc/rfc1034.html",
+    "https://www.rfc-editor.org/rfc/rfc9110.html",
+    "https://www.rfc-editor.org/rfc/rfc4632.html",
+    "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/net/Socket.html"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_37e5965a-9a68-4060-8f26-d26a3156a3de",
+      "title": "UDP 데이터그램을 주고받기",
+      "objectives": [
+        "실제 데이터그램의 길이·송신 주소·수신 버퍼의 한계를 확인해요."
+      ],
+      "units": [
+        {
+          "id": "unt_fd72eb2e-c2c9-4b84-90db-ab4a6b5db3ba",
+          "title": "첫 관계를 관찰해요",
+          "objectives": [
+            "실제 데이터 길이는 패킷의 getLength로 읽어요. 버퍼 크기는 받을 수 있는 공간이에요.",
+            "패킷에 담긴 송신자 포트가 보낸 소켓의 포트와 같아요. 수신자의 자기 포트와 혼동하지 않아요."
+          ],
+          "premise": "실제 루프백 UDP예요. 제한 시간 안에 받은 데이터그램만 관찰해요. 이 성공이 인터넷에서의 전달·순서를 보장하지 않아요.",
+          "steps": [
+            {
+              "id": "stp_86689eee-5b52-4a6d-98bb-da530bd5954a",
+              "objectives": [
+                "실제 데이터 길이는 패킷의 getLength로 읽어요. 버퍼 크기는 받을 수 있는 공간이에요."
+              ]
+            },
+            {
+              "id": "stp_0e6f1353-0bfc-4c3c-b8cf-4a51b962e40d",
+              "objectives": [
+                "패킷에 담긴 송신자 포트가 보낸 소켓의 포트와 같아요. 수신자의 자기 포트와 혼동하지 않아요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_9d9e5c40-1e23-422f-9d48-a5ab3cd2b5b4",
+          "title": "조건을 바꿔 적용해요",
+          "objectives": [
+            "작은 버퍼에 들어간 부분만 남았어요. 남은 부분을 다음 데이터그램처럼 이어 읽을 수는 없어요.",
+            "중복 번호를 한 번만 세었어요. 이 모형은 UDP가 실제로 중복을 만들었다는 증거가 아니에요."
+          ],
+          "premise": "실제 루프백 UDP예요. 제한 시간 안에 받은 데이터그램만 관찰해요. 이 성공이 인터넷에서의 전달·순서를 보장하지 않아요.",
+          "steps": [
+            {
+              "id": "stp_2d15ae16-8a5e-4482-ad32-a53394d6ad49",
+              "objectives": [
+                "작은 버퍼에 들어간 부분만 남았어요. 남은 부분을 다음 데이터그램처럼 이어 읽을 수는 없어요."
+              ]
+            },
+            {
+              "id": "stp_8f3b0805-24c2-4aa9-8bd8-ed7d2fd40629",
+              "objectives": [
+                "중복 번호를 한 번만 세었어요. 이 모형은 UDP가 실제로 중복을 만들었다는 증거가 아니에요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_86689eee-5b52-4a6d-98bb-da530bd5954a",
+      "title": "받은 데이터그램 길이를 읽으세요",
+      "question": "수신 버퍼에는 여유가 있어요. 실제로 받은 데이터그램의 바이트 수를 출력하세요.",
+      "goal": "수신 버퍼에는 여유가 있어요. 실제로 받은 데이터그램의 바이트 수를 출력하세요.\n\n실제 루프백 UDP예요. 제한 시간 안에 받은 데이터그램만 관찰해요. 이 성공이 인터넷에서의 전달·순서를 보장하지 않아요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `packet.getData().length` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar loopback = java.net.InetAddress.getByName(\"127.0.0.1\");\n// 두 소켓은 각자 빈 로컬 포트를 배정받아요.\ntry (var receiver = new java.net.DatagramSocket(0, loopback);\n     var sender = new java.net.DatagramSocket(0, loopback)) {\n    receiver.setSoTimeout(2000);\n    byte[] payload = (\"한\" + VALUE).getBytes(java.nio.charset.StandardCharsets.UTF_8);\n    sender.send(new java.net.DatagramPacket(payload, payload.length, loopback, receiver.getLocalPort()));\n    // 버퍼 크기를 확인하고 실제 수신 길이와 비교해요.\n    var packet = new java.net.DatagramPacket(new byte[64], 64);\n    receiver.receive(packet);\nSystem.out.println(packet.getData().length);\n}\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar loopback = java.net.InetAddress.getByName(\"127.0.0.1\");\n// 두 소켓은 각자 빈 로컬 포트를 배정받아요.\ntry (var receiver = new java.net.DatagramSocket(0, loopback);\n     var sender = new java.net.DatagramSocket(0, loopback)) {\n    receiver.setSoTimeout(2000);\n    byte[] payload = (\"한\" + VALUE).getBytes(java.nio.charset.StandardCharsets.UTF_8);\n    sender.send(new java.net.DatagramPacket(payload, payload.length, loopback, receiver.getLocalPort()));\n    // 버퍼 크기를 확인하고 실제 수신 길이와 비교해요.\n    var packet = new java.net.DatagramPacket(new byte[64], 64);\n    receiver.receive(packet);\nSystem.out.println(packet.getLength());\n}\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "4\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "4\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "4\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "UDP 데이터그램의 경계와 송신자의 주소를 배워요."
+        },
+        {
+          "action": "say",
+          "text": "로컬에서 보낸 묶음과 받은 길이, 작은 버퍼의 잘림을 확인하고 전달과 중복 처리의 보장 범위를 구별해요."
+        },
+        {
+          "action": "say",
+          "text": "수신 버퍼에는 여유가 있어요. 실제로 받은 데이터그램의 바이트 수를 출력하는 문제예요.",
+          "target": "text:받은 데이터그램 길이를 읽으세요#1"
+        },
+        {
+          "action": "say",
+          "text": "수신 버퍼에는 여유가 있어요. 실제로 받은 데이터그램의 바이트 수를 출력하세요.",
+          "target": "text:수신 버퍼에는 여유가 있어요. 실제로 받은 데이터그램의 바이트 수를 출력하세요."
+        },
+        {
+          "action": "say",
+          "text": "실제 루프백 UDP예요. 제한 시간 안에 받은 데이터그램만 관찰해요. 이 성공이 인터넷에서의 전달·순서를 보장하지 않아요.",
+          "target": "text:실제 루프백 UDP예요. 제한 시간 안에 받은 데이터그램만 관찰해요. 이 성공이 인터넷에서의 전달·순서를 보장하지 않아요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "받은 데이터그램 길이를 읽으세요의 준비 코드 출력은 64예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "packet.getData().length에서 읽는 대상을 확인해요.",
+          "target": "code:packet.getData().length"
+        },
+        {
+          "action": "patch_code",
+          "before": "packet.getData().length",
+          "after": "packet.getLength()",
+          "say": "packet.getLength() 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "실제 데이터 길이는 패킷의 getLength로 읽어요. 버퍼 크기는 받을 수 있는 공간이에요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_0e6f1353-0bfc-4c3c-b8cf-4a51b962e40d",
+      "title": "송신자 포트로 응답 대상을 확인하세요",
+      "question": "응답할 대상은 받은 패킷의 송신자예요. 그 포트가 보낸 소켓의 포트와 같은지 비교하세요.",
+      "goal": "응답할 대상은 받은 패킷의 송신자예요. 그 포트가 보낸 소켓의 포트와 같은지 비교하세요.\n\n실제 루프백 UDP예요. 제한 시간 안에 받은 데이터그램만 관찰해요. 이 성공이 인터넷에서의 전달·순서를 보장하지 않아요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `receiver.getLocalPort() == sender.getLocalPort()` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar loopback = java.net.InetAddress.getByName(\"127.0.0.1\");\n// 두 소켓은 각자 빈 로컬 포트를 배정받아요.\ntry (var receiver = new java.net.DatagramSocket(0, loopback);\n     var sender = new java.net.DatagramSocket(0, loopback)) {\n    receiver.setSoTimeout(2000);\n    byte[] payload = (\"한\" + VALUE).getBytes(java.nio.charset.StandardCharsets.UTF_8);\n    sender.send(new java.net.DatagramPacket(payload, payload.length, loopback, receiver.getLocalPort()));\n    // 버퍼 크기를 확인하고 실제 수신 길이와 비교해요.\n    var packet = new java.net.DatagramPacket(new byte[64], 64);\n    receiver.receive(packet);\nSystem.out.println(receiver.getLocalPort() == sender.getLocalPort());\n}\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar loopback = java.net.InetAddress.getByName(\"127.0.0.1\");\n// 두 소켓은 각자 빈 로컬 포트를 배정받아요.\ntry (var receiver = new java.net.DatagramSocket(0, loopback);\n     var sender = new java.net.DatagramSocket(0, loopback)) {\n    receiver.setSoTimeout(2000);\n    byte[] payload = (\"한\" + VALUE).getBytes(java.nio.charset.StandardCharsets.UTF_8);\n    sender.send(new java.net.DatagramPacket(payload, payload.length, loopback, receiver.getLocalPort()));\n    // 버퍼 크기를 확인하고 실제 수신 길이와 비교해요.\n    var packet = new java.net.DatagramPacket(new byte[64], 64);\n    receiver.receive(packet);\nSystem.out.println(packet.getPort() == sender.getLocalPort());\n}\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "true\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "true\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "true\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "응답할 대상은 받은 패킷의 송신자예요. 그 포트가 보낸 소켓의 포트와 같은지 비교하는 문제예요.",
+          "target": "text:송신자 포트로 응답 대상을 확인하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "응답할 대상은 받은 패킷의 송신자예요. 그 포트가 보낸 소켓의 포트와 같은지 비교하세요.",
+          "target": "text:응답할 대상은 받은 패킷의 송신자예요. 그 포트가 보낸 소켓의 포트와 같은지 비교하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "송신자 포트로 응답 대상을 확인하세요의 준비 코드 출력은 false예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "receiver.getLocalPort() == sender.getLocalPort()에서 읽는 대상을 확인해요.",
+          "target": "code:receiver.getLocalPort() == sender.getLocalPort()"
+        },
+        {
+          "action": "patch_code",
+          "before": "receiver.getLocalPort() == sender.getLocalPort()",
+          "after": "packet.getPort() == sender.getLocalPort()",
+          "say": "packet.getPort() == sender.getLocalPort() 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "패킷에 담긴 송신자 포트가 보낸 소켓의 포트와 같아요. 수신자의 자기 포트와 혼동하지 않아요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_2d15ae16-8a5e-4482-ad32-a53394d6ad49",
+      "title": "작은 버퍼에서 잘린 길이를 확인하세요",
+      "question": "이번 수신 버퍼는 1바이트뿐이에요. 긴 데이터그램을 받은 뒤 보존된 길이를 출력하세요.",
+      "goal": "이번 수신 버퍼는 1바이트뿐이에요. 긴 데이터그램을 받은 뒤 보존된 길이를 출력하세요.\n\n실제 루프백 UDP예요. 제한 시간 안에 받은 데이터그램만 관찰해요. 이 성공이 인터넷에서의 전달·순서를 보장하지 않아요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `System.out.println(payload.length)` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar loopback = java.net.InetAddress.getByName(\"127.0.0.1\");\n// 두 소켓은 각자 빈 로컬 포트를 배정받아요.\ntry (var receiver = new java.net.DatagramSocket(0, loopback);\n     var sender = new java.net.DatagramSocket(0, loopback)) {\n    receiver.setSoTimeout(2000);\n    byte[] payload = (\"한\" + VALUE).getBytes(java.nio.charset.StandardCharsets.UTF_8);\n    sender.send(new java.net.DatagramPacket(payload, payload.length, loopback, receiver.getLocalPort()));\n    // 버퍼 크기를 확인하고 실제 수신 길이와 비교해요.\n    var packet = new java.net.DatagramPacket(new byte[1], 1);\n    receiver.receive(packet);\nSystem.out.println(payload.length);\n}\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nvar loopback = java.net.InetAddress.getByName(\"127.0.0.1\");\n// 두 소켓은 각자 빈 로컬 포트를 배정받아요.\ntry (var receiver = new java.net.DatagramSocket(0, loopback);\n     var sender = new java.net.DatagramSocket(0, loopback)) {\n    receiver.setSoTimeout(2000);\n    byte[] payload = (\"한\" + VALUE).getBytes(java.nio.charset.StandardCharsets.UTF_8);\n    sender.send(new java.net.DatagramPacket(payload, payload.length, loopback, receiver.getLocalPort()));\n    // 버퍼 크기를 확인하고 실제 수신 길이와 비교해요.\n    var packet = new java.net.DatagramPacket(new byte[1], 1);\n    receiver.receive(packet);\nSystem.out.println(packet.getLength());\n}\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "1\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "1\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "1\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "이번 수신 버퍼는 1바이트뿐이에요. 긴 데이터그램을 받은 뒤 보존된 길이를 출력하는 문제예요.",
+          "target": "text:작은 버퍼에서 잘린 길이를 확인하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "이번 수신 버퍼는 1바이트뿐이에요. 긴 데이터그램을 받은 뒤 보존된 길이를 출력하세요.",
+          "target": "text:이번 수신 버퍼는 1바이트뿐이에요. 긴 데이터그램을 받은 뒤 보존된 길이를 출력하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "작은 버퍼에서 잘린 길이를 확인하세요의 준비 코드 출력은 4예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "System.out.println(payload.length)에서 읽는 대상을 확인해요.",
+          "target": "code:System.out.println(payload.length)"
+        },
+        {
+          "action": "patch_code",
+          "before": "System.out.println(payload.length)",
+          "after": "System.out.println(packet.getLength())",
+          "say": "System.out.println(packet.getLength()) 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "작은 버퍼에 들어간 부분만 남았어요. 남은 부분을 다음 데이터그램처럼 이어 읽을 수는 없어요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_8f3b0805-24c2-4aa9-8bd8-ed7d2fd40629",
+      "title": "중복 처리는 애플리케이션에서 하세요",
+      "question": "번호가 같은 두 이벤트가 들어왔어요. 아래는 중복 수신을 주입한 모형이에요. 고유 번호의 개수를 출력하세요.",
+      "goal": "번호가 같은 두 이벤트가 들어왔어요. 아래는 중복 수신을 주입한 모형이에요. 고유 번호의 개수를 출력하세요.\n\n실제 루프백 UDP예요. 제한 시간 안에 받은 데이터그램만 관찰해요. 이 성공이 인터넷에서의 전달·순서를 보장하지 않아요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `ids.length` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nint[] ids = {VALUE, VALUE};\nvar seen = new java.util.HashSet<Integer>();\nfor (int id : ids) seen.add(id);\nSystem.out.println(ids.length);\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nint[] ids = {VALUE, VALUE};\nvar seen = new java.util.HashSet<Integer>();\nfor (int id : ids) seen.add(id);\nSystem.out.println(seen.size());\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "1\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "1\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "1\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "번호가 같은 두 이벤트가 들어왔어요. 아래는 중복 수신을 주입한 모형이에요. 고유 번호의 개수를 출력하는 문제예요.",
+          "target": "text:중복 처리는 애플리케이션에서 하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "번호가 같은 두 이벤트가 들어왔어요. 아래는 중복 수신을 주입한 모형이에요. 고유 번호의 개수를 출력하세요.",
+          "target": "text:번호가 같은 두 이벤트가 들어왔어요. 아래는 중복 수신을 주입한 모형이에요. 고유 번호의 개수를 출력하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "중복 처리는 애플리케이션에서 하세요의 준비 코드 출력은 2예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "ids.length에서 읽는 대상을 확인해요.",
+          "target": "code:ids.length"
+        },
+        {
+          "action": "patch_code",
+          "before": "ids.length",
+          "after": "seen.size()",
+          "say": "seen.size() 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "중복 번호를 한 번만 세었어요. 이 모형은 UDP가 실제로 중복을 만들었다는 증거가 아니에요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 중복을 지운 모형 결과로 실제 UDP가 순서를 보장한다고 판단하지 마세요.",
+          "target": "code:seen.size()"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    }
+  ]
+}

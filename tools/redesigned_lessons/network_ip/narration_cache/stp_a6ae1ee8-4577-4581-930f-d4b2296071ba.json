@@ -1,0 +1,55 @@
+{
+  "by": "hand",
+  "source_sha256": "1aec73ba6c30354caa323cab73c2eb4bd62e690328c1b099385a64cbf960f542",
+  "entry": [
+    {
+      "action": "say",
+      "text": "컨테이너는 프로세스를 분리해 실행하는 환경이에요. 물리 랜카드와 운영체제의 네트워크 인터페이스는 같은 말이 아니에요. 루프백은 외부 랜카드로 나가지 않고 자기 실행 환경 안에서 통신해요. IPv4의 127.0.0.0/8은 루프백용이고 대표 주소는 127.0.0.1이에요. IPv6에는 ::1이 있어요. localhost는 주소를 찾는 이름이므로 언제나 IPv4 주소 하나로만 해석된다고 가정하지 않아요.",
+      "target": "text:컨테이너는 프로세스를 분리해 실행하는 환경이에요. 물리 랜카드와 운영체제의 네트워크 인터페이스는 같은 말이 아니에요. 루프백은 외부 랜카드로 나가지 않고 자기 실행 환경 안에서 통신해요. IPv4의 127.0.0.0/8은 루프백용이고 대표 주소는 127.0.0.1이에요. IPv6에는 ::1이 있어요. localhost는 주소를 찾는 이름이므로 언제나 IPv4 주소 하나로만 해석된다고 가정하지 않아요."
+    },
+    {
+      "action": "bash_command",
+      "command": "docker exec \"$SERVER\" curl --noproxy \"*\" -fsS http://127.0.0.1:8080/",
+      "say": "먼저 서버 자신의 루프백으로 요청해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "서버 안에서는 SERVER라는 식별 응답을 받아요. 외부 인터페이스를 거칠 필요가 없는 요청이에요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "docker exec \"$CLIENT\" curl --noproxy \"*\" --max-time 3 \"http://$SERVER_IP:8080/\"",
+      "say": "같은 서버를 다른 컨테이너에서 네트워크 주소로 찾아가요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "지금은 연결되지 않아요. 주소를 몰라서가 아니라 서버가 루프백에서만 듣기 때문이에요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "printf \"0.0.0.0\\n\" > bind.txt; docker restart \"$SERVER\"",
+      "say": "수신 주소를 IPv4 와일드카드로 바꾸고 서버를 다시 시작해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "0.0.0.0은 여기서 모든 IPv4 인터페이스에서 듣겠다는 설정이에요. 클라이언트의 목적지로 넣을 주소는 아니에요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "docker exec \"$CLIENT\" curl --noproxy \"*\" -fsS --retry 5 --retry-connrefused \"http://$SERVER_IP:8080/\"",
+      "say": "목적지와 포트는 유지하고 다시 접속해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "다른 컨테이너에서도 SERVER의 응답을 받아요. 조심하세요. 클라이언트에서 127.0.0.1을 쓰면 그 클라이언트 자신으로 가요.",
+      "target": "#git-demo-terminal"
+    }
+  ]
+}

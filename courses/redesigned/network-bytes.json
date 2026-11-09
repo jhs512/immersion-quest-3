@@ -1,0 +1,385 @@
+{
+  "schema_version": 2,
+  "id": "lsn_3e49154e-8272-466a-b449-333849968825",
+  "revision": "network-bytes-1",
+  "title": "네트워크 · 글자를 바이트로 보내기",
+  "description": "글자와 바이트를 구별하고 같은 문자 인코딩으로 복원해요.",
+  "objectives": [
+    "글자와 바이트를 구별하고 같은 문자 인코딩으로 복원해요."
+  ],
+  "sources": [
+    "https://www.rfc-editor.org/rfc/rfc9293.html",
+    "https://www.rfc-editor.org/rfc/rfc768.html",
+    "https://www.rfc-editor.org/rfc/rfc1034.html",
+    "https://www.rfc-editor.org/rfc/rfc9110.html",
+    "https://www.rfc-editor.org/rfc/rfc4632.html",
+    "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/net/Socket.html"
+  ],
+  "review_enabled": false,
+  "sections": [],
+  "chapters": [
+    {
+      "id": "chp_b1adb098-09db-4c95-aae4-b626dd65d597",
+      "title": "글자를 바이트로 보내기",
+      "objectives": [
+        "글자와 바이트를 구별하고 같은 문자 인코딩으로 복원해요."
+      ],
+      "units": [
+        {
+          "id": "unt_9273345c-5b69-4845-91e6-41b8ded0f02d",
+          "title": "첫 관계를 관찰해요",
+          "objectives": [
+            "글자 수와 UTF-8 바이트 수는 서로 달라요. 전송할 크기는 바이트 배열로 확인해요.",
+            "송신과 수신이 같은 문자 인코딩을 사용해야 원래 글자로 돌아와요."
+          ],
+          "premise": "모형: 메모리 안의 바이트 변환이에요. 아직 네트워크를 열지 않아요.",
+          "steps": [
+            {
+              "id": "stp_54d30ab7-26dc-4f83-83cc-8317730b68c2",
+              "objectives": [
+                "글자 수와 UTF-8 바이트 수는 서로 달라요. 전송할 크기는 바이트 배열로 확인해요."
+              ]
+            },
+            {
+              "id": "stp_71c37da6-cd1e-4a70-818c-00993a236146",
+              "objectives": [
+                "송신과 수신이 같은 문자 인코딩을 사용해야 원래 글자로 돌아와요."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "unt_c2a7ecd5-9b5d-483c-983b-4e1294f4205c",
+          "title": "조건을 바꿔 적용해요",
+          "objectives": [
+            "0xff와 비트 AND를 하면 하위 8비트를 0~255 범위로 읽어요.",
+            "버퍼 전체 크기와 실제 데이터 길이는 달라요. 받은 길이만큼만 글자로 바꿔요."
+          ],
+          "premise": "모형: 메모리 안의 바이트 변환이에요. 아직 네트워크를 열지 않아요.",
+          "steps": [
+            {
+              "id": "stp_2260b7a3-cd72-4b8b-8146-10c06da56cd8",
+              "objectives": [
+                "0xff와 비트 AND를 하면 하위 8비트를 0~255 범위로 읽어요."
+              ]
+            },
+            {
+              "id": "stp_03542e9f-f194-4c13-a57d-cfa352b469f1",
+              "objectives": [
+                "버퍼 전체 크기와 실제 데이터 길이는 달라요. 받은 길이만큼만 글자로 바꿔요."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "stp_54d30ab7-26dc-4f83-83cc-8317730b68c2",
+      "title": "보낼 바이트 수를 구하세요",
+      "question": "UTF-8은 글자를 바이트로 바꾸는 규칙이에요. 한글이 든 메모의 바이트 수를 구하세요.",
+      "goal": "UTF-8은 글자를 바이트로 바꾸는 규칙이에요. 한글이 든 메모의 바이트 수를 구하세요.\n\n모형: 메모리 안의 바이트 변환이에요. 아직 네트워크를 열지 않아요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `memo.length()` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nString memo = \"한\" + VALUE;\nbyte[] wire = memo.getBytes(java.nio.charset.StandardCharsets.UTF_8);\nSystem.out.println(memo.length());\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nString memo = \"한\" + VALUE;\nbyte[] wire = memo.getBytes(java.nio.charset.StandardCharsets.UTF_8);\nSystem.out.println(wire.length);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "4\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "4\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "4\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "문자열이 네트워크로 나갈 때 어떤 바이트가 되는지 배워요."
+        },
+        {
+          "action": "say",
+          "text": "자바로 UTF-8 변환과 버퍼 길이를 실행하고 문자 수와 전송할 바이트 수를 비교해요."
+        },
+        {
+          "action": "say",
+          "text": "UTF-8은 글자를 바이트로 바꾸는 규칙이에요. 한글이 든 메모의 바이트 수를 구하는 문제예요.",
+          "target": "text:보낼 바이트 수를 구하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "UTF-8은 글자를 바이트로 바꾸는 규칙이에요. 한글이 든 메모의 바이트 수를 구하세요.",
+          "target": "text:UTF-8은 글자를 바이트로 바꾸는 규칙이에요. 한글이 든 메모의 바이트 수를 구하세요."
+        },
+        {
+          "action": "say",
+          "text": "모형: 메모리 안의 바이트 변환이에요. 아직 네트워크를 열지 않아요.",
+          "target": "text:모형: 메모리 안의 바이트 변환이에요. 아직 네트워크를 열지 않아요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "보낼 바이트 수를 구하세요의 준비 코드 출력은 2예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "memo.length()에서 읽는 대상을 확인해요.",
+          "target": "code:memo.length()"
+        },
+        {
+          "action": "patch_code",
+          "before": "memo.length()",
+          "after": "wire.length",
+          "say": "wire.length 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "글자 수와 UTF-8 바이트 수는 서로 달라요. 전송할 크기는 바이트 배열로 확인해요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_71c37da6-cd1e-4a70-818c-00993a236146",
+      "title": "같은 규칙으로 글자를 복원하세요",
+      "question": "보낼 때 UTF-8을 썼어요. 받은 바이트를 같은 규칙으로 복원하세요.",
+      "goal": "보낼 때 UTF-8을 썼어요. 받은 바이트를 같은 규칙으로 복원하세요.\n\n모형: 메모리 안의 바이트 변환이에요. 아직 네트워크를 열지 않아요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `StandardCharsets.US_ASCII` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nbyte[] wire = (\"한\" + VALUE).getBytes(java.nio.charset.StandardCharsets.UTF_8);\nSystem.out.println(new String(wire, java.nio.charset.StandardCharsets.US_ASCII));\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nbyte[] wire = (\"한\" + VALUE).getBytes(java.nio.charset.StandardCharsets.UTF_8);\nSystem.out.println(new String(wire, java.nio.charset.StandardCharsets.UTF_8));\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "한6\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "한7\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "한9\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "보낼 때 UTF-8을 썼어요. 받은 바이트를 같은 규칙으로 복원하는 문제예요.",
+          "target": "text:같은 규칙으로 글자를 복원하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "보낼 때 UTF-8을 썼어요. 받은 바이트를 같은 규칙으로 복원하세요.",
+          "target": "text:보낼 때 UTF-8을 썼어요. 받은 바이트를 같은 규칙으로 복원하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "같은 규칙으로 글자를 복원하세요의 준비 코드 출력은 ���6예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "StandardCharsets.US_ASCII에서 읽는 대상을 확인해요.",
+          "target": "code:StandardCharsets.US_ASCII"
+        },
+        {
+          "action": "patch_code",
+          "before": "StandardCharsets.US_ASCII",
+          "after": "StandardCharsets.UTF_8",
+          "say": "StandardCharsets.UTF_8 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "송신과 수신이 같은 문자 인코딩을 사용해야 원래 글자로 돌아와요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_2260b7a3-cd72-4b8b-8146-10c06da56cd8",
+      "title": "바이트를 양수 범위로 읽으세요",
+      "question": "자바 byte는 부호가 있어요. 한 옥텟을 0~255의 값으로 출력하세요. &는 같은 자리의 비트를 비교해요.",
+      "goal": "자바 byte는 부호가 있어요. 한 옥텟을 0~255의 값으로 출력하세요. &는 같은 자리의 비트를 비교해요.\n\n모형: 메모리 안의 바이트 변환이에요. 아직 네트워크를 열지 않아요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `(int) octet` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nbyte octet = (byte) (200 + VALUE);\nSystem.out.println((int) octet);\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nbyte octet = (byte) (200 + VALUE);\nSystem.out.println(octet & 0xff);\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "206\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "207\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "209\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "자바 byte는 부호가 있어요. 한 옥텟을 0~255의 값으로 출력하세요. &는 같은 자리의 비트를 비교하는 문제예요.",
+          "target": "text:바이트를 양수 범위로 읽으세요#1"
+        },
+        {
+          "action": "say",
+          "text": "자바 byte는 부호가 있어요. 한 옥텟을 0~255의 값으로 출력하세요. &는 같은 자리의 비트를 비교해요.",
+          "target": "text:자바 byte는 부호가 있어요. 한 옥텟을 0~255의 값으로 출력하세요. &는 같은 자리의 비트를 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "바이트를 양수 범위로 읽으세요의 준비 코드 출력은 -50예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "(int) octet에서 읽는 대상을 확인해요.",
+          "target": "code:(int) octet"
+        },
+        {
+          "action": "patch_code",
+          "before": "(int) octet",
+          "after": "octet & 0xff",
+          "say": "octet & 0xff 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "0xff와 비트 AND를 하면 하위 8비트를 0~255 범위로 읽어요.",
+          "target": "output"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    },
+    {
+      "id": "stp_03542e9f-f194-4c13-a57d-cfa352b469f1",
+      "title": "바이트 일부만 복원하세요",
+      "question": "수신 버퍼에는 메모 뒤에 빈칸이 남아요. 실제 받은 바이트 수만 복원하세요.",
+      "goal": "수신 버퍼에는 메모 뒤에 빈칸이 남아요. 실제 받은 바이트 수만 복원하세요.\n\n모형: 메모리 안의 바이트 변환이에요. 아직 네트워크를 열지 않아요.\n\n이번 문제의 준비 코드로 새로 시작해요.\n준비된 연결·값은 유지하고 표시한 식을 고치세요.\n\n**할 일**\n\n1. 준비 코드를 실행하고 결과를 읽으세요.\n2. `0, buffer.length,` 부분을 문제의 요구에 맞게 고치세요.\n3. 다시 실행하고 처음 결과와 비교하세요.\n4. 수정한 코드를 제출하세요. 준비 값을 바꿔서도 검사해요.",
+      "language": "java",
+      "starter_code": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nbyte[] memo = (\"한\" + VALUE).getBytes(java.nio.charset.StandardCharsets.UTF_8);\nbyte[] buffer = java.util.Arrays.copyOf(memo, 32);\nSystem.out.println(new String(buffer, 0, buffer.length, java.nio.charset.StandardCharsets.UTF_8));\n}\n",
+      "solution": "// 변형 검사에서는 이 준비 값만 달라져요.\nstatic final int VALUE = 6;\n\nvoid main() throws Exception {\nbyte[] memo = (\"한\" + VALUE).getBytes(java.nio.charset.StandardCharsets.UTF_8);\nbyte[] buffer = java.util.Arrays.copyOf(memo, 32);\nSystem.out.println(new String(buffer, 0, memo.length, java.nio.charset.StandardCharsets.UTF_8));\n}\n",
+      "tests": [
+        {
+          "input": "",
+          "expected": "한6\n"
+        }
+      ],
+      "variations": [
+        {
+          "values": {
+            "VALUE": "7"
+          },
+          "expected": "한7\n"
+        },
+        {
+          "values": {
+            "VALUE": "9"
+          },
+          "expected": "한9\n"
+        }
+      ],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "text": "수신 버퍼에는 메모 뒤에 빈칸이 남아요. 실제 받은 바이트 수만 복원하는 문제예요.",
+          "target": "text:바이트 일부만 복원하세요#1"
+        },
+        {
+          "action": "say",
+          "text": "수신 버퍼에는 메모 뒤에 빈칸이 남아요. 실제 받은 바이트 수만 복원하세요.",
+          "target": "text:수신 버퍼에는 메모 뒤에 빈칸이 남아요. 실제 받은 바이트 수만 복원하세요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "바이트 일부만 복원하세요의 준비 코드 출력은 한6\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000예요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "0, buffer.length,에서 읽는 대상을 확인해요.",
+          "target": "code:0, buffer.length,"
+        },
+        {
+          "action": "patch_code",
+          "before": "0, buffer.length,",
+          "after": "0, memo.length,",
+          "say": "0, memo.length, 식이 읽는 대상을 비교해요."
+        },
+        {
+          "action": "run"
+        },
+        {
+          "action": "say",
+          "text": "버퍼 전체 크기와 실제 데이터 길이는 달라요. 받은 길이만큼만 글자로 바꿔요.",
+          "target": "output"
+        },
+        {
+          "action": "say",
+          "text": "조심하세요. 버퍼 끝까지 복원하면 받지 않은 빈 바이트도 메모에 들어가요.",
+          "target": "code:0, memo.length,"
+        },
+        {
+          "action": "submit"
+        }
+      ]
+    }
+  ]
+}

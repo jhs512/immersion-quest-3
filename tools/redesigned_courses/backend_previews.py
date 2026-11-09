@@ -57,6 +57,15 @@ def for_course(items):
     BRIEFS['gitlab-ci']=('검사를 커밋마다 자동 실행하고 원격의 실제 결과를 읽어요.', '실패한 검사를 고치고 순서대로 실행한 작업의 결과 파일까지 GitLab에 남기세요.', ['직접 검사한 뒤 CI 작업으로 옮겨요.','실패를 고치고 작업 순서·산출물을 연결해요.','조건과 환경 변수를 바꾸고 새 프로젝트에서 종합해요.'], '각 문제는 제공한 파일과 별도의 로컬 GitLab 프로젝트에서 시작해요. 실제 Docker Runner가 제한된 Alpine 작업 컨테이너를 실행해요.', '내 컴퓨터에서 성공한 명령이 원격 작업에서도 성공하려면 무엇이 같아야 할까요?')
     result = {}
     for item in items:
+        if item['key'].startswith('network-'):
+            from pathlib import Path
+            import json
+            from curriculum_authority import preview_for, public_preview
+            root=Path(__file__).resolve().parents[2]
+            catalog=json.loads((root/'tools/redesigned_courses/catalog.json').read_text(encoding='utf-8'))
+            course=next(c for c in catalog['courses'] if c['key']=='java')
+            result[item['id']]=public_preview(preview_for(item,course))
+            continue
         learn, challenge, scenario, constraints, question = BRIEFS[item['key']]
         result[item['id']] = dict(learn=[learn], challenge=challenge, scenario=scenario,
                                   constraints=[constraints], question=question)

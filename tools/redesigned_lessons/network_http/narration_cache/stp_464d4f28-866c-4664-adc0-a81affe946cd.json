@@ -1,0 +1,46 @@
+{
+  "by": "hand",
+  "source_sha256": "03230417e293355b297fd1c72212d272d09353287763cf35dab1a32b3a4d5328",
+  "entry": [
+    {
+      "action": "say",
+      "text": "상태 줄과 헤더는 본문이 아니에요. 빈 줄까지 헤더를 읽은 뒤 본문 첫 줄을 출력하세요.",
+      "target": "text:상태 줄과 헤더는 본문이 아니에요. 빈 줄까지 헤더를 읽은 뒤 본문 첫 줄을 출력하세요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "응답 본문만 읽으세요의 준비 코드 출력은 응답 없음예요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "System.out.println(\"응답 없음\")에서 읽는 대상을 확인해요.",
+      "target": "code:System.out.println(\"응답 없음\")"
+    },
+    {
+      "action": "patch_code",
+      "before": "System.out.println(\"응답 없음\")",
+      "after": "System.out.println(responseReader.readLine())",
+      "say": "System.out.println(responseReader.readLine()) 식이 읽는 대상을 비교해요."
+    },
+    {
+      "action": "run"
+    },
+    {
+      "action": "say",
+      "text": "헤더 끝의 빈 줄 뒤에서 본문을 읽었어요. 실제 응답은 Content-Length만큼의 바이트로 끝을 판단해야 해요.",
+      "target": "output"
+    },
+    {
+      "action": "say",
+      "text": "조심하세요. 첫 응답 줄을 본문으로 쓰면 HTTP 상태 줄을 데이터로 처리하게 돼요.",
+      "target": "code:System.out.println(responseReader.readLine())"
+    },
+    {
+      "action": "submit"
+    }
+  ]
+}

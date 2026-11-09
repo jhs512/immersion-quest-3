@@ -1,0 +1,44 @@
+{
+  "by": "hand",
+  "source_sha256": "10559269a04977331d7316095f6d92f22ef72881b2dcf1acc521f098ad52f3ec",
+  "entry": [
+    {
+      "action": "say",
+      "text": "DNS는 이름의 레코드를 질의하고 응답하는 역할이에요. 이 실습의 권한 서버는 memo.test의 주소를 직접 관리해요. 이름을 주소로 해석하는 데 성공해도 그 주소의 서버·포트가 응답한다는 보장은 없어요.",
+      "target": "text:DNS는 이름의 레코드를 질의하고 응답하는 역할이에요. 이 실습의 권한 서버는 memo.test의 주소를 직접 관리해요. 이름을 주소로 해석하는 데 성공해도 그 주소의 서버·포트가 응답한다는 보장은 없어요."
+    },
+    {
+      "action": "bash_command",
+      "command": "docker exec \"$CLIENT\" dig \"@$DNS_IP\" memo.test A; docker exec \"$CLIENT\" curl --noproxy \"*\" -fsS http://memo.test:8080/",
+      "say": "권한 서버에 직접 질의한 뒤 이름으로 접속해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "A 레코드는 서버 A의 주소이고 HTTP 식별 응답은 SERVER예요. DNS 응답과 서비스 응답을 따로 확인했어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "sed \"s/@ IN A $SERVER_IP/@ IN A $SERVER_B_IP/; s/ 1 60 60 60 0/ 2 60 60 60 0/\" memo.zone > memo.zone.next && mv memo.zone.next memo.zone; docker restart \"$DNS\"",
+      "say": "권한 데이터의 A 레코드와 serial을 바꾸고 DNS를 다시 시작해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "자동 파일 재로딩을 기다리는 구성은 아니에요. 이 수업에서는 변경한 데이터를 재시작으로 읽혀서 적용 시점을 분명하게 해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "docker exec \"$CLIENT\" dig \"@$DNS_IP\" memo.test A; docker exec \"$CLIENT\" curl --noproxy \"*\" -fsS --retry 5 --retry-all-errors http://memo.test:8080/",
+      "say": "같은 이름의 새 주소와 서버 응답을 대조해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "이번에는 서버 B의 주소와 SERVER_B 식별 응답을 받아요. 조심하세요. DNS 응답이 맞는데 접속이 실패하면 포트·수신 바인딩·경로를 따로 확인해야 해요.",
+      "target": "#git-demo-terminal"
+    }
+  ]
+}

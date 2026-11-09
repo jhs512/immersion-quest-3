@@ -114,6 +114,9 @@ pub fn cli()->Option<PathBuf> {
     #[cfg(windows)] for key in ["ProgramFiles","ProgramW6432"] {
         if let Some(root)=std::env::var_os(key){directories.push(PathBuf::from(root).join("Docker/Docker/resources/bin"));}
     }
+    #[cfg(windows)] if let Some(root)=std::env::var_os("LOCALAPPDATA") {
+        directories.push(PathBuf::from(root).join("Programs/DockerDesktop/resources/bin"));
+    }
     #[cfg(target_os="macos")] {
         // A Finder launch has a minimal PATH; Docker Desktop links its CLI into these places.
         directories.extend(["/usr/local/bin","/opt/homebrew/bin","/Applications/Docker.app/Contents/Resources/bin"].map(PathBuf::from));
@@ -123,7 +126,7 @@ pub fn cli()->Option<PathBuf> {
     directories.into_iter().map(|directory|directory.join(file)).find(|path|path.is_file())
 }
 
-fn search_path(cli:&Path)->std::ffi::OsString {
+pub(crate) fn search_path(cli:&Path)->std::ffi::OsString {
     let mut paths:Vec<PathBuf>=cli.parent().map(Path::to_path_buf).into_iter().collect();
     #[cfg(windows)] if let Ok(shell) = crate::setup_terminal::git_bash_executable() {
         // Desktop launches need not inherit Git's POSIX tools. Bash itself can

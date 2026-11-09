@@ -1,0 +1,44 @@
+{
+  "by": "hand",
+  "source_sha256": "29fd99dafca13a2cafe6d5e43d8e6bc7d322c945904b6f6abaeafdc5b0792673",
+  "entry": [
+    {
+      "action": "say",
+      "text": "일반적인 IPv4 broadcast 서브넷의 /29에는 호스트 비트가 3개라 주소가 8개 있어요. 네트워크 주소와 브로드캐스트 주소를 빼면 일반 호스트 주소는 6개예요. /31 point-to-point·/32와 IPv6에는 이 계산을 그대로 적용하지 않아요.",
+      "target": "text:일반적인 IPv4 broadcast 서브넷의 /29에는 호스트 비트가 3개라 주소가 8개 있어요. 네트워크 주소와 브로드캐스트 주소를 빼면 일반 호스트 주소는 6개예요. /31 point-to-point·/32와 IPv6에는 이 계산을 그대로 적용하지 않아요."
+    },
+    {
+      "action": "bash_command",
+      "command": "cat addresses.txt; docker exec \"$SERVER\" ip -br addr",
+      "say": "블록과 실제 서버 주소부터 맞춰 봐요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "주소 여덟 개 전체, 일반 호스트 여섯 개, 지금 비어 있는 네 개는 서로 다른 수예요. 게이트웨이도 호스트 주소 하나를 사용하고 있어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "docker exec \"$SERVER\" sh -c 'DEV=$(ip -o -4 addr show | awk \"\\$4 ~ /\\/29$/ {print \\$2; exit}\"); ip addr add \"$1/29\" dev \"$DEV\"' sh \"$FREE_IP\"",
+      "say": "비어 있는 네 주소 중 FREE_IP를 골라 같은 인터페이스에 추가해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "FREE_IP는 가능한 예시 하나예요. 나머지 미사용 호스트 주소를 골라도 실제 상태가 유효하면 통과해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "docker exec \"$SERVER\" curl --noproxy \"*\" -fsS \"http://$FREE_IP:8080/\"",
+      "say": "선택한 주소에서 기존 서버 응답을 확인해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "새 local 주소에서 SERVER가 응답해요. 조심하세요. 주소가 서브넷 안에 있다는 것만으로 지금 비어 있거나 장치에 할당할 수 있다고 단정하면 안 돼요.",
+      "target": "#git-demo-terminal"
+    }
+  ]
+}

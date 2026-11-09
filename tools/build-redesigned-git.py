@@ -210,6 +210,11 @@ def build(name, check=False):
     prd = json.loads((SOURCE / 'approved-prd.json').read_text(encoding='utf-8'))
     validate(prd, require_approval=True)
     authored = json.loads((SOURCE / 'content.json').read_text(encoding='utf-8'))
+    if name.startswith('network-'):
+        from curriculum_authority import validate_alignment
+        catalog=json.loads((ROOT/'tools/redesigned_courses/catalog.json').read_text(encoding='utf-8'))
+        owner,registration=next((course,item) for course in catalog['courses'] for item in course['lessons'] if item['key']==name)
+        validate_alignment(registration,owner,prd,authored)
     steps = [step for chapter in prd['chapters'] for unit in chapter['units'] for step in unit['steps']]
     tasks = copy.deepcopy(authored['tasks'])
     for task in tasks:

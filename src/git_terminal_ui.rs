@@ -6,7 +6,7 @@ struct TerminalSession {shell:Option<SetupTerminal>,practice:Practice,closing_ma
 impl Drop for TerminalSession {
     fn drop(&mut self){if let Some(path)=&self.closing_marker{let _=std::fs::write(path,"");}if let Some(mut shell)=self.shell.take(){let practice=self.practice.clone();std::thread::spawn(move||{
         // Keep the owned directory alive until the shell has actually terminated.
-        if shell.shutdown().is_err(){std::mem::forget(practice);}drop(shell);
+        if shell.shutdown().is_err(){std::mem::forget(practice);}else{practice.lock().unwrap_or_else(|e|e.into_inner()).release_network_demo();}drop(shell);
     });}}
 }
 #[derive(Clone)]

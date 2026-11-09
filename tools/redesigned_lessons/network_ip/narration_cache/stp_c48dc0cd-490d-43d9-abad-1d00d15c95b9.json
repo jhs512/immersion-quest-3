@@ -1,0 +1,44 @@
+{
+  "by": "hand",
+  "source_sha256": "d1096f1407bed889d0158c2dc2f7492caffcb496ebd4cd92fe9520d473186dbd",
+  "entry": [
+    {
+      "action": "say",
+      "text": "한 컴퓨터에는 여러 물리·가상 인터페이스가 있을 수 있어요. 한 인터페이스에도 IPv4·IPv6나 여러 IP 주소가 붙을 수 있어요. 컴퓨터 수·랜카드 수·주소 수를 같은 수로 세지 않아요.",
+      "target": "text:한 컴퓨터에는 여러 물리·가상 인터페이스가 있을 수 있어요. 한 인터페이스에도 IPv4·IPv6나 여러 IP 주소가 붙을 수 있어요. 컴퓨터 수·랜카드 수·주소 수를 같은 수로 세지 않아요."
+    },
+    {
+      "action": "bash_command",
+      "command": "docker exec \"$SERVER\" ip -br addr",
+      "say": "먼저 서버의 실제 인터페이스와 주소를 읽어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "lo는 루프백이에요. SERVER_IP가 붙은 다른 인터페이스에 주소를 추가할 거예요. 이름과 표시 순서는 환경마다 달라질 수 있어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "DEV=$(docker exec \"$SERVER\" sh -c 'ip route get \"$1\" | sed -n \"s/.* dev \\([^ ]*\\).*/\\1/p\"' sh \"$CLIENT_IP\"); docker exec \"$SERVER\" ip addr add \"$TARGET_IP/24\" dev \"$DEV\"",
+      "say": "실제 경로에서 읽은 인터페이스에 새 주소를 붙여요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "원래 주소를 삭제하지 않았어요. 하나의 인터페이스가 두 IPv4 주소를 함께 갖게 됐어요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "bash_command",
+      "command": "docker exec \"$CLIENT\" sh -c 'curl --noproxy \"*\" -fsS \"http://$1:8080/\"; echo; curl --noproxy \"*\" -fsS \"http://$2:8080/\"' sh \"$SERVER_IP\" \"$TARGET_IP\"",
+      "say": "클라이언트가 두 목적지 주소에 차례로 접속해요.",
+      "target": "#git-demo-terminal"
+    },
+    {
+      "action": "say",
+      "text": "두 응답의 server는 SERVER로 같고 local 주소는 달라요. 조심하세요. 주소가 두 개라는 이유로 랜카드나 서버도 두 개라고 판단하면 안 돼요.",
+      "target": "#git-demo-terminal"
+    }
+  ]
+}
