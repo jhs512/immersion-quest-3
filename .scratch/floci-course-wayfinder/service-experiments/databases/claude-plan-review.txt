@@ -1,0 +1,64 @@
+Here are the gaps I'd close before running it, grouped by phase. Each item names the control or check I'd add.
+
+## Isolation and host setup
+- **Prove the API is loopback-only.** Docker Desktop and WSL2 port forwarding can bind wider than you expect. Connecting to 45671 from the host's LAN IP and from `::1` should both fail. Also check that DinD's 2375/2376 and the RDS proxy ports aren't published on the outer container.
+- **Privileged plus `cgroupns=host` gives DinD the host cgroup tree.** Write that down as an accepted risk; it is not isolation. Read `memory.max` and `cpu.max` from the outer cgroup to confirm the 6g cap, not only `docker inspect`. Also set `--memory-swap=6g` and `--pids-limit`.
+- **The child `docker update` can fail or be undone:**
+  - If swap was set before, `--memory 512m` without `--memory-swap` errors out.
+  - If memory use is already above 512m, the update can fail, or the kernel reclaims or OOM-kills the container.
+  - Floci may recreate the container on stop/start, which silently drops the limits.
+
+  Re-check the cgroup files after every restart.
+- **Pin digests, not tags, for DinD 29 and Floci 2.4.** For Postgres, the pinned digest only matters if Floci actually uses it. Pre-pull it inside DinD, then compare the image ID of the container Floci spawns. Either block registry egress from DinD or record any pulls.
+- **Fake credentials need a negative control:**
+  - Point `AWS_CONFIG_FILE` and `AWS_SHARED_CREDENTIALS_FILE` at temp files.
+  - Unset `AWS_PROFILE` and `AWS_SESSION_TOKEN`.
+  - Set `AWS_EC2_METADATA_DISABLED=true`.
+  - Pass an explicit `--endpoint-url` on every call.
+  - Check that a call without the endpoint can't reach real AWS. Ideally egress is blocked, so the fake key is never sent to AWS at all.
+  - Test a bad signature or wrong key. If Floci accepts it, note that auth isn't enforced and make no IAM claims.
+- **Windows pitfalls:**
+  - Git Bash rewrites paths in volume mounts unless `MSYS_NO_PATHCONV=1` is set.
+  - CRLF line endings can break SQL piped to `psql`.
+  - Pass JSON to the AWS CLI with `file://` rather than inline in PowerShell, where quoting gets mangled.
+
+## DynamoDB
+- **Missing schema negatives:**
+  - Wrong key type (S vs N) is rejected.
+  - A missing sort key is rejected.
+  - A query without a partition-key equality is rejected.
+  - Any create/read/update/delete call before the table is ACTIVE is handled by waiting for ACTIVE.
+- **Query vs scan:** use items that share a partition key and items that don't. Check `Count`/`ScannedCount`, and paginate with `Limit` and `LastEvaluatedKey`.
+- **Conditions:** `attribute_not_exists` should succeed the first time and fail on the duplicate. Then confirm the item is unchanged.
+- **Transactions:**
+  - The failing transaction should mix a Put, an Update, and a ConditionCheck.
+  - After it fails, read every item with `ConsistentRead`. Also check `CancellationReasons`.
+  - Add a duplicate-request check with `ClientRequestToken`.
+- **Sibling independence:** use two tables with identical keys. Delete or reset one, confirm the other is untouched, and confirm the deleted one returns `ResourceNotFound`.
+- **Memory restart:** say in advance what you expect. In in-memory mode, data should be gone after a restart, and that loss is your negative control. Separately, restarting Floci and restarting the outer DinD are two different persistence boundaries; test both.
+
+## RDS / Postgres
+- **Prove the proxy reaches the managed instance, not your own client container:**
+  - Run the client container from the same digest with no server process.
+  - Compare `system_identifier` (from `pg_control_system()`), `inet_server_addr()` and `pg_postmaster_start_time()` between the direct and proxy paths.
+  - Write a marker on one path and read it on the other.
+- **Auth negatives:** a wrong password and a wrong database should both be rejected. Check `pg_hba` for trust auth.
+- **Constraints:** test unique, foreign key, check and NOT NULL violations. After an error inside a transaction, confirm the aborted-transaction state, then ROLLBACK and confirm zero rows. A COMMIT should be visible from a separate session.
+- **Stop/start:** after a restart, `system_identifier` should be unchanged, `pg_postmaster_start_time` new, and the data present. Old connections should fail and reconnects should succeed. Re-check the resource limits.
+- **Snapshot:**
+  - Write a row after taking the snapshot. It should be absent from the restore.
+  - The restore should be a new instance with a new identity.
+  - The original should be unaffected.
+  - Delete the snapshot and confirm it is gone.
+- **Selective delete:** delete instance A and confirm B still answers SQL. Confirm A's container and volume are gone inside DinD.
+- Run `SELECT version()` and record that it matches 16.x.
+
+## Cleanup
+- Containers that Floci spawns won't carry your labels, and neither will DinD's anonymous `/var/lib/docker` volume. Use a named, labeled volume or `docker rm -v`.
+- Diff the baseline and final inventories with `-a`, including unlabeled resources and images. Don't use `prune`.
+- Also confirm port 45671 is released and the temp AWS config files are deleted.
+
+## Claims discipline
+- Multi-AZ, backup retention, encryption, VPC and security group fields are just echoed metadata. Report them as "accepted/echoed", never as working features.
+- No performance or IAM claims either.
+- For every check, record the command, exit code, image digest and timestamp. Assert expected failures with an explicit non-zero exit, so a silent success can't count as a pass.
