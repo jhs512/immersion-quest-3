@@ -4,6 +4,8 @@ use serde::{Deserialize,Serialize};
 pub use shell_practice::{ShellExercise,ShellSnapshot,ShellCompletion};
 #[path="network_practice.rs"] mod network_practice;
 pub use network_practice::NetworkExercise;
+#[path="cloud_practice.rs"] mod cloud_practice;
+pub use cloud_practice::{CloudExercise,CloudGoal,CloudSubnet};
 #[path="docker_practice.rs"] mod docker_practice;
 pub use docker_practice::{DockerExercise,DockerStart,DockerState,DockerGoal,DockerFile,DockerSession,docker_command_matches};
 #[path="java_build_practice.rs"] pub mod java_build_practice;
@@ -23,6 +25,9 @@ use std::{collections::BTreeMap,path::{Path,PathBuf},process::{Command,Output}};
 pub struct GitExercise {
     #[serde(skip)] pub network_demonstration:bool,
     #[serde(default,skip_serializing_if="Option::is_none")] pub network:Option<NetworkExercise>,
+    #[serde(skip)] pub cloud_demonstration:bool,
+    /// Local emulated AWS (Floci) practice graded by its owned VPC/subnet/instance state.
+    #[serde(default,skip_serializing_if="Option::is_none")] pub cloud:Option<CloudExercise>,
     #[serde(skip)] pub java_demonstration:bool,
     #[serde(skip)] pub github_demonstration:bool,
     #[serde(default,skip_serializing_if="Option::is_none")] pub github_pr:Option<GithubPrStage>,
@@ -100,6 +105,7 @@ impl GitPracticeStore {
             let owner=std::fs::read_to_string(path.join(".mq3-owner")).unwrap_or_default();
             if owner.len()!=64||!owner.bytes().all(|b|b.is_ascii_hexdigit()){continue;}
             network_practice::cleanup_at(&path)?;
+            cloud_practice::cleanup_at(&path)?;
         }
         Ok(())
     }
@@ -177,6 +183,7 @@ impl GitPracticeStore {
                     let old=self.root.join(folder);
                     if old.is_dir()&&canonical_directory(&old)?.parent()==Some(self.root.as_path())&&std::fs::read_to_string(old.join(".mq3-owner")).is_ok_and(|owner|owner==key) {
                         network_practice::cleanup_at(&old)?;
+                        cloud_practice::cleanup_at(&old)?;
                     }
                 }
             }
@@ -212,6 +219,7 @@ impl GitExercise {
     pub fn demonstration(&self)->Self {
         let mut exercise=self.clone();
         exercise.network_demonstration=exercise.network.is_some();
+        exercise.cloud_demonstration=exercise.cloud.is_some();
         exercise.java_demonstration=exercise.java_build.is_some();
         exercise.github_demonstration=exercise.github_pr.is_some()||exercise.gitlab.is_some();
         if let Some(vim)=exercise.vim.as_mut(){vim.start=Some(vim.demo.clone());}
@@ -261,7 +269,16 @@ impl GitExercise {
             if self.shell.as_ref().is_none_or(|s|s.requires_vim||!files_ok(s))||self.java_build.is_some()||self.vim.is_some()||self.github_pr.is_some(){return Err("Docker 터미널 실습의 구성을 확인하세요.".into())}
         }
         if let Some(network)=&self.network {network.validate()?;if self.shell.is_none()||self.java_build.is_some()||self.vim.is_some()||self.github_pr.is_some()||self.gitlab.is_some()||self.docker.is_some(){return Err("네트워크 실습의 실행 구성을 확인하세요.".into())}}
-        if let Some(shell)=&self.shell {shell.validate_commands(self.network.is_some())?;if self.initial_history!=GitInitialHistory::Uninitialized||self.state_goal.is_some()||self.demo_setup.is_some(){return Err("Bash 실습의 시작 상태를 확인하세요.".into())}}
+        if let Some(cloud)=&self.cloud {
+            cloud.validate()?;
+            if self.shell.is_none()||self.network.is_some()||self.java_build.is_some()||self.vim.is_some()||self.github_pr.is_some()||self.gitlab.is_some()||self.docker.is_some(){return Err("클라우드 실습의 실행 구성을 확인하세요.".into())}
+            // The address file is a prepared file, so a reset or a demonstration restores it.
+            if let Some(file)=&cloud.address_file {
+                let shell=self.shell.as_ref().unwrap();
+                if !shell.start.as_ref().is_some_and(|s|s.files.contains_key(file))||!shell.demo.files.contains_key(file){return Err("클라우드 실습의 주소 파일을 준비하세요.".into())}
+            }
+        }
+        if let Some(shell)=&self.shell {shell.validate_commands(self.network.is_some()||self.cloud.is_some())?;if self.initial_history!=GitInitialHistory::Uninitialized||self.state_goal.is_some()||self.demo_setup.is_some(){return Err("Bash 실습의 시작 상태를 확인하세요.".into())}}
         if self.demo_setup.is_some(){self.demonstration().validate()?;}
         if self.files.len()>80||self.setup.len()>100||self.commands.len()>20{return Err("Git 실습의 준비 내용을 확인하세요.".into())}
         if let Some(goal)=&self.state_goal {
@@ -459,6 +476,7 @@ impl GitPractice {
             self.prepare_shell_checkpoint()?;
             environment.extend(self.shell_environment());
             environment.extend(self.prepare_network()?);
+            environment.extend(self.prepare_cloud()?);
             if self.exercise.java_build.is_some(){environment.extend(self.prepare_java_launcher(player)?);}
             return crate::setup_terminal::SetupTerminal::open_practice(&self.shell_directory()?,&environment);
         }
@@ -642,6 +660,7 @@ impl GitPractice {
         // Build the complete next state first. TempDir only removes its owned root,
         // including local remote/index/in-progress operations, without following links.
         self.cleanup_network()?;
+        self.cleanup_cloud()?;
         let replacement=match &self.directory {
             PracticeDirectory::Temporary(_)=>Self::new(self.exercise.clone())?,
             PracticeDirectory::Saved{path,scope}=>GitPracticeStore::new(path.parent().ok_or("Git 실습 보관 경로 오류")?)?.reset(scope,self.exercise.clone())?,

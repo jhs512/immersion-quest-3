@@ -323,6 +323,8 @@ impl GitPractice {
         if self.exercise.network_demonstration {
             let _ = self.cleanup_network();
         }
+        // The terminal-close hook releases every owned demonstration runtime.
+        self.release_cloud_demo();
     }
     pub fn prepare_network(&self) -> Result<Vec<(String, String)>, String> {
         let Some(exercise) = &self.exercise.network else {

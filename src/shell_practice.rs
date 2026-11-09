@@ -276,6 +276,7 @@ impl GitPractice {
     }
     pub fn check_shell(&self)->Result<crate::runner::TestReport,String> {
         if self.exercise.network.is_some(){return self.check_network();}
+        if self.exercise.cloud.is_some(){return self.check_cloud();}
         use crate::runner::{TestReport,TestCaseResult};
         let shell=self.exercise.shell.as_ref().ok_or("Bash 실습이 아니에요.")?;
         let records=self.shell_completions()?;

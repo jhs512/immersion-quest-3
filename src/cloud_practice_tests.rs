@@ -1,0 +1,693 @@
+use super::*;
+
+const STARTER: &str = "# 준비된 VPC 안에 서브넷 하나를 만드는 명령이에요.\n# 실행 전에 --cidr-block 값을 VPC 범위와 비교해 보세요.\naws ec2 create-subnet \\\n  --endpoint-url \"$LAB_ENDPOINT\" \\\n  --vpc-id \"$LAB_VPC_ID\" \\\n  --cidr-block STARTER_CIDR\n";
+
+fn cloud(goal: CloudGoal, vpc: &str) -> CloudExercise {
+    CloudExercise { goal, vpc_cidr: vpc.into(), subnets: vec![], client_subnet: None, server_subnet: None, target_cidr: None, target_subnet: None, new_prefix: None, address_file: None }
+}
+fn subnet(name: &str, block: &str) -> CloudSubnet {
+    CloudSubnet { name: name.into(), cidr: block.into() }
+}
+fn exercise(spec: CloudExercise, files: &[(&str, &str)]) -> GitExercise {
+    let files: BTreeMap<String, String> = files.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect();
+    GitExercise {
+        cloud: Some(spec),
+        initial_history: GitInitialHistory::Uninitialized,
+        shell: Some(ShellExercise {
+            step_id: "cloud-step".into(),
+            start: Some(ShellSnapshot { files: files.clone(), ..Default::default() }),
+            demo: ShellSnapshot { files, ..Default::default() },
+            ..Default::default()
+        }),
+        ..Default::default()
+    }
+}
+fn representative(vpc: &str, target: &str, starter: &str) -> GitExercise {
+    let mut spec = cloud(CloudGoal::CreateSubnet, vpc);
+    spec.target_cidr = Some(target.into());
+    exercise(spec, &[("create-subnet.sh", &STARTER.replace("STARTER_CIDR", starter))])
+}
+
+#[test]
+fn schema_round_trips_and_rejects_unknown_fields() {
+    let spec = representative("10.91.0.0/16", "10.91.2.0/24", "10.92.2.0/24");
+    let raw = serde_json::to_string(&spec).unwrap();
+    assert_eq!(serde_json::from_str::<GitExercise>(&raw).unwrap(), spec);
+    assert!(!raw.contains("cloud_demonstration"));
+    let bad = r#"{"goal":"create_subnet","vpc_cidr":"10.91.0.0/16","target_cidr":"10.91.2.0/24","extra":1}"#;
+    assert!(serde_json::from_str::<CloudExercise>(bad).is_err());
+    let missing: GitExercise = serde_json::from_str("{}").unwrap();
+    assert!(missing.cloud.is_none());
+}
+
+#[test]
+fn goal_specific_validation() {
+    let vpc = "10.91.0.0/16";
+    let mut create = cloud(CloudGoal::CreateSubnet, vpc);
+    assert!(create.validate().is_err(), "target required");
+    create.target_cidr = Some("10.91.2.0/24".into());
+    assert!(create.validate().is_ok());
+    create.target_cidr = Some("10.92.2.0/24".into());
+    assert!(create.validate().is_err(), "target outside VPC");
+    create.target_cidr = Some("10.91.2.1/24".into());
+    assert!(create.validate().is_err(), "unaligned");
+    create.target_cidr = Some("10.91.2.0/24".into());
+    create.subnets = vec![subnet("A", "10.91.2.0/25")];
+    assert!(create.validate().is_err(), "target overlaps prepared");
+    create.subnets = vec![];
+    create.new_prefix = Some(24);
+    assert!(create.validate().is_err(), "unused field must stay empty");
+
+    let mut choose = cloud(CloudGoal::ChooseSubnet, vpc);
+    choose.subnets = vec![subnet("A", "10.91.1.0/24")];
+    choose.new_prefix = Some(24);
+    assert!(choose.validate().is_ok());
+    choose.new_prefix = Some(8);
+    assert!(choose.validate().is_err());
+
+    let mut launch = cloud(CloudGoal::LaunchServer, vpc);
+    launch.subnets = vec![subnet("A", "10.91.1.0/24"), subnet("B", "10.91.2.0/24")];
+    launch.target_subnet = Some("B".into());
+    assert!(launch.validate().is_ok() && launch.guest());
+    launch.target_subnet = Some("C".into());
+    assert!(launch.validate().is_err());
+    launch.subnets = vec![subnet("A", "10.91.1.0/24"), subnet("A", "10.91.2.0/24")];
+    launch.target_subnet = Some("A".into());
+    assert!(launch.validate().is_err(), "duplicate names");
+    launch.subnets = vec![subnet("A", "10.91.1.0/24"), subnet("b", "10.91.2.0/24")];
+    assert!(launch.validate().is_err(), "lowercase names become env names");
+
+    let mut request = cloud(CloudGoal::RequestServer, vpc);
+    request.subnets = vec![subnet("A", "10.91.1.0/24"), subnet("B", "10.91.2.0/24")];
+    request.client_subnet = Some("A".into());
+    request.server_subnet = Some("B".into());
+    assert!(request.validate().is_err(), "address file required");
+    request.address_file = Some("server-address.txt".into());
+    assert!(request.validate().is_ok());
+    request.server_subnet = Some("A".into());
+    assert!(request.validate().is_err(), "client and server in different subnets");
+
+    let mut deploy = cloud(CloudGoal::DeployServer, vpc);
+    deploy.subnets = vec![subnet("A", "10.91.1.0/24")];
+    deploy.client_subnet = Some("A".into());
+    deploy.target_cidr = Some("10.91.2.0/24".into());
+    deploy.address_file = Some("../escape.txt".into());
+    assert!(deploy.validate().is_err());
+    deploy.address_file = Some("server-address.txt".into());
+    assert!(deploy.validate().is_ok());
+}
+
+#[test]
+fn git_exercise_validation_keeps_cloud_separate() {
+    assert!(representative("10.91.0.0/16", "10.91.2.0/24", "10.92.2.0/24").validate().is_ok());
+    let mut mixed = representative("10.91.0.0/16", "10.91.2.0/24", "10.92.2.0/24");
+    mixed.network = Some(NetworkExercise { kind: "mask".into() });
+    assert!(mixed.validate().is_err(), "cloud is not a NetworkExercise kind");
+    let mut shell_less = representative("10.91.0.0/16", "10.91.2.0/24", "10.92.2.0/24");
+    shell_less.shell = None;
+    assert!(shell_less.validate().is_err());
+    let mut deploy = cloud(CloudGoal::DeployServer, "10.91.0.0/16");
+    deploy.subnets = vec![subnet("A", "10.91.1.0/24")];
+    deploy.client_subnet = Some("A".into());
+    deploy.target_cidr = Some("10.91.2.0/24".into());
+    deploy.address_file = Some("server-address.txt".into());
+    assert!(exercise(deploy.clone(), &[]).validate().is_err(), "address file must be a prepared file");
+    assert!(exercise(deploy, &[("server-address.txt", "0.0.0.0\n")]).validate().is_ok());
+    let demo = representative("10.91.0.0/16", "10.91.2.0/24", "10.92.2.0/24").demonstration();
+    assert!(demo.cloud_demonstration && !demo.network_demonstration);
+}
+
+#[test]
+fn fixture_identity_changes_with_the_prepared_state() {
+    let a = representative("10.91.0.0/16", "10.91.2.0/24", "10.92.2.0/24");
+    let b = representative("10.73.0.0/16", "10.73.2.0/24", "10.74.2.0/24");
+    assert_ne!(a.cloud.as_ref().unwrap().fixture(), b.cloud.as_ref().unwrap().fixture());
+    assert_eq!(a.cloud.as_ref().unwrap().fixture(), a.clone().cloud.unwrap().fixture());
+    assert!(cidr("10.91.2.0/24").is_some_and(|t| contains(cidr("10.91.0.0/16").unwrap(), t)));
+    assert!(!contains(cidr("10.91.0.0/16").unwrap(), cidr("10.92.2.0/24").unwrap()));
+    assert!(holds(cidr("10.91.2.0/24").unwrap(), "10.91.2.10".parse().unwrap()));
+}
+
+fn bash_program() -> PathBuf {
+    #[cfg(windows)]
+    return crate::setup_terminal::git_bash_executable().unwrap();
+    #[cfg(not(windows))]
+    return PathBuf::from("bash");
+}
+fn bash_in(dir: &Path, env: &[(String, String)], script: &str) -> (bool, String, String) {
+    let mut command = Command::new(bash_program());
+    command.args(["--noprofile", "--norc", "-c", script]).current_dir(dir).envs(env.iter().cloned());
+    #[cfg(windows)]
+    command.creation_flags(0x08000000);
+    let out = command.output().unwrap();
+    (out.status.success(), String::from_utf8_lossy(&out.stdout).replace("\r\n", "\n"), String::from_utf8_lossy(&out.stderr).into_owned())
+}
+
+/// The wrapper's argument guard, against a stand-in for the real CLI that only prints its argv.
+#[test]
+fn aws_wrapper_guards_endpoint_profile_and_environment() {
+    if bash_program().as_os_str() == "bash" && Command::new("bash").arg("--version").output().is_err() {
+        return;
+    }
+    let dir = tempfile::tempdir().unwrap();
+    let real = dir.path().join("real aws");
+    std::fs::write(&real, "#!/usr/bin/env bash\nprintf 'ARG<%s>\\n' \"$@\"\necho \"ENV<$AWS_ENDPOINT_URL|$AWS_PROFILE|$AWS_ACCESS_KEY_ID>\"\n").unwrap();
+    let config = dir.path().join("empty config");
+    std::fs::write(&config, "").unwrap();
+    let owned = "http://127.0.0.1:45555";
+    std::fs::write(dir.path().join("aws"), aws_wrapper(owned, &real, &config)).unwrap();
+    #[cfg(unix)]
+    for f in ["aws", "real aws"] {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(dir.path().join(f), std::fs::Permissions::from_mode(0o755)).unwrap();
+    }
+    let env = vec![("AWS_PROFILE".to_string(), "real-account".to_string()), ("AWS_ACCESS_KEY_ID".to_string(), "AKIAREAL".to_string())];
+    let (ok, out, _) = bash_in(dir.path(), &env, "./aws ec2 describe-vpcs --query 'Vpcs[0]'");
+    assert!(ok, "{out}");
+    assert!(out.starts_with(&format!("ARG<--endpoint-url>\nARG<{owned}>\nARG<ec2>\nARG<describe-vpcs>\nARG<--query>\nARG<Vpcs[0]>\n")), "{out}");
+    assert!(out.contains(&format!("ENV<{owned}||test>")), "inherited profile/key must not reach the CLI: {out}");
+    // Exact owned endpoint, alone, in equals form, or repeated: one owned endpoint reaches the CLI.
+    for accepted in [
+        format!("./aws --endpoint-url {owned} ec2 describe-vpcs"),
+        format!("./aws --endpoint-url={owned} ec2 describe-vpcs"),
+        format!("./aws --endpoint-url {owned} ec2 describe-vpcs --endpoint-url={owned}"),
+    ] {
+        let (ok, out, _) = bash_in(dir.path(), &env, &accepted);
+        assert!(ok && out.matches("ARG<--endpoint-url>").count() == 1 && out.matches(&format!("ARG<{owned}>")).count() == 1, "{accepted}: {out}");
+    }
+    // The wrapper's stand-in CLI never runs for these, so nothing is contacted.
+    let rejected_cases = [
+        "./aws --endpoint-url https://ec2.us-east-1.amazonaws.com ec2 describe-vpcs".to_string(),
+        "./aws --endpoint-url=https://ec2.us-east-1.amazonaws.com ec2 describe-vpcs".to_string(),
+        "./aws --endpoint-url http://127.0.0.1:45556 ec2 describe-vpcs".to_string(),
+        "./aws --endpoint-url= ec2 describe-vpcs".to_string(),
+        "./aws ec2 describe-vpcs --endpoint-url".to_string(),
+        format!("./aws --endpoint-url {owned} ec2 describe-vpcs --endpoint-url http://127.0.0.1:45556"),
+        format!("./aws --endpoint-url={owned} --endpoint-url=https://ec2.us-east-1.amazonaws.com ec2 describe-vpcs"),
+        format!("./aws --endp {owned} ec2 describe-vpcs"),
+        "./aws --endp=https://ec2.us-east-1.amazonaws.com ec2 describe-vpcs".to_string(),
+        "./aws --endpoint https://ec2.us-east-1.amazonaws.com ec2 describe-vpcs".to_string(),
+        "./aws ec2 describe-vpcs --profile default".to_string(),
+        "./aws ec2 describe-vpcs --prof default".to_string(),
+        "./aws ec2 describe-vpcs --profile=default".to_string(),
+        "./aws ec2 describe-vpcs --ca-b /tmp/x.pem".to_string(),
+        "./aws ec2 describe-vpcs --no-verify-ssl".to_string(),
+        "./aws ec2 describe-vpcs --no-verify".to_string(),
+        "./aws ec2 describe-vpcs --no-sign".to_string(),
+    ];
+    for rejected in &rejected_cases {
+        let (ok, out, err) = bash_in(dir.path(), &env, rejected);
+        assert!(!ok && !out.contains("ARG<"), "{rejected} must be rejected before the CLI runs: {out}{err}");
+    }
+    println!("PASS wrapper: endpoint injected, inherited AWS_* replaced, external/other endpoint and profile rejected before exec");
+}
+
+#[test]
+fn address_file_reads_are_bounded_and_regular() {
+    let dir = tempfile::tempdir().unwrap();
+    let file = dir.path().join("server-address.txt");
+    std::fs::write(&file, "  10.91.2.10\r\n").unwrap();
+    assert_eq!(read_address(&file), Some("10.91.2.10".parse().unwrap()));
+    for bad in ["", "10.91.2", "10.91.2.256", "http://10.91.2.10", "10.91.2.10\n10.91.2.11\n", "\u{feff}garbage"] {
+        std::fs::write(&file, bad).unwrap();
+        assert_eq!(read_address(&file), None, "{bad:?}");
+    }
+    std::fs::write(&file, format!("10.91.2.10{}", " ".repeat(300))).unwrap();
+    assert_eq!(read_address(&file), None, "over 256 bytes is rejected even if it would parse");
+    std::fs::write(&file, vec![b'1'; 5_000_000]).unwrap();
+    assert_eq!(read_address(&file), None, "large file rejected by size before reading");
+    std::fs::write(&file, [0xff, 0xfe, 0x00]).unwrap();
+    assert_eq!(read_address(&file), None, "invalid UTF-8");
+    std::fs::remove_file(&file).unwrap();
+    std::fs::create_dir(&file).unwrap();
+    assert_eq!(read_address(&file), None, "a directory is not an address file");
+    assert_eq!(read_address(&dir.path().join("missing.txt")), None);
+    #[cfg(unix)]
+    {
+        let target = dir.path().join("target.txt");
+        std::fs::write(&target, "10.91.2.10\n").unwrap();
+        let link = dir.path().join("link.txt");
+        std::os::unix::fs::symlink(&target, &link).unwrap();
+        assert_eq!(read_address(&link), None, "links are not followed");
+    }
+}
+
+#[test]
+fn ami_architecture_comes_from_the_docker_image() {
+    assert_eq!(ami_architecture("amd64"), Some("x86_64"));
+    assert_eq!(ami_architecture("arm64"), Some("arm64"));
+    assert_eq!(ami_architecture("arm"), None);
+    assert_eq!(ami_architecture(""), None);
+}
+
+// -- Docker-gated native tests ------------------------------------------------------------
+fn evidence_dir() -> PathBuf {
+    let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("target/cloud-native-evidence");
+    std::fs::create_dir_all(&dir).unwrap();
+    dir
+}
+/// Raw host inventory with safe metadata only: `docker ps`/`volume ls` rows (no container
+/// Config/Env) and the full `docker network inspect` of every network (IPAM, options, labels).
+fn raw_inventory() -> Result<Value, String> {
+    let rows = |args: &[&str]| -> Result<Vec<Value>, String> {
+        require(args, 30)?.lines().filter(|l| !l.trim().is_empty()).map(|l| serde_json::from_str(l).map_err(|e| e.to_string())).collect()
+    };
+    let ids: Vec<String> = require(&["network", "ls", "-q", "--no-trunc"], 30)?.split_whitespace().map(String::from).collect();
+    let mut args = vec!["network", "inspect"];
+    args.extend(ids.iter().map(String::as_str));
+    // A network can vanish between `ls` and `inspect` (seen when the default bridge was replaced).
+    let networks = serde_json::from_str::<Value>(&require(&args, 30)?).map_err(|e| e.to_string())?;
+    Ok(serde_json::json!({
+        "containers": rows(&["ps", "-a", "--no-trunc", "--format", "{{json .}}"])?,
+        "networks": networks,
+        "volumes": rows(&["volume", "ls", "--format", "{{json .}}"])?,
+        "context": require(&["context", "show"], 20)?.trim(),
+    }))
+}
+/// Stable comparison view. Networks are keyed by Id, so a replaced bridge stays a difference;
+/// only per-network attachment lists and `docker ps` relative-time text are left to the raw file.
+fn semantic(raw: &Value) -> Value {
+    let pick = |v: &Value, keys: &[&str]| -> Value { keys.iter().map(|k| (k.to_string(), v[*k].clone())).collect::<serde_json::Map<_, _>>().into() };
+    let mut containers: Vec<Value> = raw["containers"].as_array().unwrap().iter().map(|c| {
+        let mut nets: Vec<&str> = c["Networks"].as_str().unwrap_or_default().split(',').collect();
+        nets.sort();
+        let mut v = pick(c, &["ID", "Names", "Image", "State", "Ports", "Labels"]);
+        v["Networks"] = nets.join(",").into();
+        v
+    }).collect();
+    containers.sort_by_key(|c| c["ID"].to_string());
+    let mut networks: Vec<Value> = raw["networks"].as_array().unwrap().iter()
+        .map(|n| pick(n, &["Id", "Name", "Created", "Driver", "Scope", "EnableIPv4", "EnableIPv6", "IPAM", "Internal", "Attachable", "Ingress", "ConfigOnly", "Options", "Labels"]))
+        .collect();
+    networks.sort_by_key(|n| n["Id"].to_string());
+    let mut volumes: Vec<Value> = raw["volumes"].as_array().unwrap().iter().map(|v| pick(v, &["Name", "Driver", "Labels", "Scope"])).collect();
+    volumes.sort_by_key(|v| v["Name"].to_string());
+    serde_json::json!({"containers": containers, "networks": networks, "volumes": volumes, "context": raw["context"]})
+}
+fn try_inventory(name: &str, phase: &str) -> Result<Value, String> {
+    let raw = match raw_inventory() {
+        Ok(raw) => raw,
+        Err(error) => {
+            std::fs::write(evidence_dir().join(format!("{name}-{phase}-error.txt")), &error).unwrap();
+            return Err(error);
+        }
+    };
+    std::fs::write(evidence_dir().join(format!("{name}-{phase}-raw.json")), serde_json::to_vec_pretty(&raw).unwrap()).unwrap();
+    let view = semantic(&raw);
+    std::fs::write(evidence_dir().join(format!("{name}-{phase}.json")), serde_json::to_vec_pretty(&view).unwrap()).unwrap();
+    Ok(view)
+}
+fn inventory(name: &str, phase: &str) -> Value {
+    try_inventory(name, phase).unwrap()
+}
+/// Before a test: the engine answers and two successive snapshots two seconds apart agree.
+/// A failed or changed probe is kept on disk and the probe repeats; nothing is normalized away.
+fn stable_inventory(name: &str) -> Value {
+    assert!(wait(120, || Ok(docker(&["info", "--format", "{{.OSType}}"], 30)?.ok.then_some(()))).unwrap().is_some(), "Docker not ready");
+    let mut previous: Option<Value> = None;
+    for attempt in 0..=15 {
+        if attempt > 0 {
+            std::thread::sleep(Duration::from_secs(2));
+        }
+        let current = try_inventory(name, &format!("before-probe-{attempt}")).ok();
+        if current.is_some() && current == previous {
+            return inventory(name, "before");
+        }
+        previous = current;
+    }
+    panic!("host inventory did not settle before {name}; see before-probe-*.json");
+}
+fn assert_no_owned_leftovers() {
+    let filter = format!("label={LABEL}");
+    for args in [vec!["ps", "-aq", "--filter", &filter], vec!["network", "ls", "-q", "--filter", &filter], vec!["volume", "ls", "-q", "--filter", &filter]] {
+        assert!(require(&args, 20).unwrap().trim().is_empty(), "owned cloud resources left: {args:?}");
+    }
+}
+/// Run a Docker test with before/after host inventories; cleanup runs even if the body panics.
+/// Tests record each practice's owner tag: a panic drops temporary roots, so the guard
+/// removes by exact owner label rather than by the (possibly deleted) state file.
+fn guarded(name: &str, body: impl FnOnce(&mut Vec<String>)) {
+    // Each run gets its own evidence names so earlier (failed) runs are never overwritten.
+    let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis();
+    let name = &format!("{name}-{stamp}");
+    let before = stable_inventory(name);
+    let mut owners = vec![];
+    let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| body(&mut owners)));
+    for tag in &owners {
+        if let Err(error) = remove_owned(tag) {
+            eprintln!("cleanup failed: {error}");
+        }
+    }
+    let after = inventory(name, "after");
+    if let Err(panic) = outcome {
+        std::panic::resume_unwind(panic);
+    }
+    assert_no_owned_leftovers();
+    assert_eq!(before, after, "host inventory changed; see target/cloud-native-evidence/{name}-*.json");
+    println!("PASS {name}: host containers/networks/volumes/context identical before and after");
+}
+/// Graded through the app's submission dispatch (check_exercise -> check_shell -> check_cloud).
+fn report(practice: &GitPractice) -> crate::runner::TestReport {
+    let r = practice.check_exercise().unwrap();
+    for c in &r.cases {
+        println!("    [{}] {}: {}", if c.passed { "o" } else { "x" }, c.input, c.stdout.replace('\n', " | "));
+    }
+    r
+}
+fn sh(practice: &GitPractice, env: &[(String, String)], script: &str) -> (bool, String, String) {
+    println!("  $ {script}");
+    let r = bash_in(&practice.work(), env, script);
+    println!("    rc_ok={} {}{}", r.0, r.1.trim(), r.2.trim().chars().take(300).collect::<String>());
+    r
+}
+fn with_cidr(script: &str, from: &str, to: &str) -> String {
+    script.replace(&format!("--cidr-block {from}"), &format!("--cidr-block {to}"))
+}
+
+#[test]
+#[ignore = "Requires Docker Desktop Linux engine, Git Bash and AWS CLI v2; creates only labelled disposable resources"]
+fn docker_cloud_representative_subnet_lifecycle() {
+    guarded("representative", |owned| {
+        let directory = tempfile::tempdir().unwrap();
+        let store = GitPracticeStore::new(directory.path()).unwrap();
+        let spec = representative("10.91.0.0/16", "10.91.2.0/24", "10.92.2.0/24");
+        let student = store.open("cloud-rep", spec.clone()).unwrap();
+        owned.push(owner(student.root()));
+        let env = student.prepare_cloud().unwrap();
+        let state = load(student.root()).unwrap();
+        let original = std::fs::read(student.work().join("create-subnet.sh")).unwrap();
+        let first = report(&student);
+        assert!(!first.passed, "initial state passed");
+
+        // MQ's aws entrypoint: external endpoint rejected, omitted endpoint stays on the owned API.
+        let (ok, _, err) = sh(&student, &env, "aws --endpoint-url https://ec2.us-east-1.amazonaws.com ec2 describe-vpcs");
+        assert!(!ok && err.contains("실습 주소"));
+        let (ok, out, _) = sh(&student, &env, "aws ec2 describe-vpcs --vpc-ids \"$LAB_VPC_ID\" --query 'Vpcs[0].CidrBlock' --output text");
+        assert!(ok && out.trim() == "10.91.0.0/16", "omitted --endpoint-url must reach the owned VPC");
+        let (ok, _, _) = sh(&student, &env, "aws ec2 describe-vpcs --profile default");
+        assert!(!ok);
+
+        let (ok, _, err) = sh(&student, &env, "bash create-subnet.sh");
+        assert!(!ok && err.contains("InvalidSubnet.Range"));
+        assert!(!report(&student).passed, "starter outside CIDR");
+        let (ok, out, _) = sh(&student, &env, r#"echo '{"Subnet":{"VpcId":"'"$LAB_VPC_ID"'","CidrBlock":"10.91.2.0/24","State":"available"}}'"#);
+        assert!(ok && out.contains("10.91.2.0/24"));
+        assert!(!report(&student).passed, "printed success JSON is not state");
+        let fixed = with_cidr(&String::from_utf8_lossy(&original), "10.92.2.0/24", "10.91.2.0/24");
+        std::fs::write(student.work().join("fixed.sh"), &fixed).unwrap();
+        let (ok, _, _) = sh(&student, &env, "v=$(aws ec2 create-vpc --cidr-block 10.91.0.0/16 --query Vpc.VpcId --output text | tr -d '\\r') && LAB_VPC_ID=$v bash fixed.sh");
+        assert!(ok);
+        let wrong_vpc = report(&student);
+        assert!(!wrong_vpc.passed && wrong_vpc.cases.iter().any(|c| c.stdout.contains("다른 자리")), "same CIDR in a learner VPC");
+        std::fs::remove_file(student.work().join("fixed.sh")).unwrap();
+        let (ok, _, _) = sh(&student, &env, "aws ec2 create-subnet --vpc-id \"$LAB_VPC_ID\" --cidr-block 10.91.3.0/24");
+        assert!(ok);
+        let in_range = report(&student);
+        assert!(!in_range.passed, "other in-range CIDR");
+        let extra = in_range.cases.iter().find(|c| c.input == "필요 없는 서브넷").unwrap();
+        assert!(!extra.passed && extra.stdout.contains("목표가 아닌 새 서브넷이 있어요: 10.91.3.0/24"), "feedback names the observed wrong subnet: {}", extra.stdout);
+        let (ok, _, _) = sh(&student, &env, "aws ec2 create-subnet --vpc-id \"$LAB_VPC_ID\" --cidr-block 10.91.2.0/24");
+        assert!(ok);
+        assert!(!report(&student).passed, "target plus an extra subnet");
+        let (ok, _, _) = sh(&student, &env, "id=$(aws ec2 describe-subnets --filters Name=cidr-block,Values=10.91.3.0/24 Name=vpc-id,Values=\"$LAB_VPC_ID\" --query 'Subnets[0].SubnetId' --output text | tr -d '\\r') && aws ec2 delete-subnet --subnet-id \"$id\"");
+        assert!(ok);
+        assert!(report(&student).passed, "equivalent direct commands after deleting the extra subnet");
+
+        // Reconnect: same owned runtime and state, nothing recreated.
+        let reopened = store.open("cloud-rep", spec.clone()).unwrap();
+        reopened.prepare_cloud().unwrap();
+        assert_eq!(load(reopened.root()).unwrap().vpc_id, state.vpc_id);
+        assert!(reopened.check_exercise().unwrap().passed, "reconnect kept the learner state");
+
+        // Explanation lane: separate resources, released without touching the student.
+        let teacher = GitPractice::new(spec.demonstration()).unwrap();
+        owned.push(owner(teacher.root()));
+        let teacher_env = teacher.prepare_cloud().unwrap();
+        let teacher_state = load(teacher.root()).unwrap();
+        assert_ne!(teacher_state.port, state.port);
+        assert!(!teacher.check_exercise().unwrap().passed);
+        let teacher_fix = with_cidr(&std::fs::read_to_string(teacher.work().join("create-subnet.sh")).unwrap(), "10.92.2.0/24", "10.91.2.0/24");
+        std::fs::write(teacher.work().join("create-subnet.sh"), teacher_fix).unwrap();
+        assert!(sh(&teacher, &teacher_env, "bash create-subnet.sh").0);
+        assert!(teacher.check_exercise().unwrap().passed);
+        teacher.release_network_demo();
+        assert!(!docker(&["inspect", &names(teacher.root()).1], 15).unwrap().ok, "demonstration runtime released");
+        assert!(student.check_exercise().unwrap().passed, "explanation did not change the student");
+        assert_eq!(std::fs::read(student.work().join("create-subnet.sh")).unwrap(), original);
+
+        // Runtime gone is an environment error, not a wrong answer, on check and on reconnect.
+        require(&["stop", "-t", "2", &names(student.root()).1], 30).unwrap();
+        assert!(student.check_exercise().is_err());
+        assert!(store.open("cloud-rep", spec.clone()).unwrap().prepare_cloud().is_err());
+
+        // Reset: fresh owned runtime and the prepared file back byte for byte; old copy kept.
+        let reset = store.reset_step("cloud-rep", spec.clone(), "cloud-step").unwrap();
+        owned.push(owner(reset.root()));
+        assert!(!docker(&["inspect", &names(student.root()).1], 15).unwrap().ok, "old runtime removed by reset");
+        assert!(student.root().is_dir(), "previous practice kept as a recovery copy");
+        let reset_env = reset.prepare_cloud().unwrap();
+        assert_eq!(std::fs::read(reset.work().join("create-subnet.sh")).unwrap(), original);
+        assert!(!report(&reset).passed);
+        std::fs::write(reset.work().join("create-subnet.sh"), with_cidr(&String::from_utf8_lossy(&original), "10.92.2.0/24", "10.91.2.0/24")).unwrap();
+        assert!(sh(&reset, &reset_env, "bash create-subnet.sh").0);
+        assert!(report(&reset).passed, "one-line fix passes");
+        // A content revision changes the fixture: reconnect refuses instead of grading stale state.
+        let revised = representative("10.91.0.0/16", "10.91.4.0/24", "10.92.2.0/24");
+        assert!(store.open("cloud-rep", revised).unwrap().prepare_cloud().is_err());
+        reset.cleanup_cloud().unwrap();
+        println!("PASS representative: initial/starter/spoof/wrong VPC/in-range/extra fail, direct+delete pass, wrapper guard, reconnect, explanation isolation, env error, reset, stale fixture");
+    });
+}
+
+#[test]
+#[ignore = "Requires Docker Desktop Linux engine, Git Bash and AWS CLI v2; creates only labelled disposable resources"]
+fn docker_cloud_changed_fixture_and_choose_subnet() {
+    guarded("fixtures", |owned| {
+        let changed = GitPractice::new(representative("10.73.0.0/16", "10.73.2.0/24", "10.74.2.0/24")).unwrap();
+        owned.push(owner(changed.root()));
+        let env = changed.prepare_cloud().unwrap();
+        let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            assert!(!report(&changed).passed);
+            let (ok, _, err) = sh(&changed, &env, "bash create-subnet.sh");
+            assert!(!ok && err.contains("InvalidSubnet.Range"));
+            let (ok, _, _) = sh(&changed, &env, "aws ec2 create-subnet --vpc-id \"$LAB_VPC_ID\" --cidr-block 10.91.2.0/24");
+            assert!(!ok, "the default lesson's target is outside this fixture");
+            assert!(!report(&changed).passed);
+            let fix = with_cidr(&std::fs::read_to_string(changed.work().join("create-subnet.sh")).unwrap(), "10.74.2.0/24", "10.73.2.0/24");
+            std::fs::write(changed.work().join("create-subnet.sh"), fix).unwrap();
+            assert!(sh(&changed, &env, "bash create-subnet.sh").0);
+            assert!(report(&changed).passed);
+        }));
+        changed.cleanup_cloud().unwrap();
+        if let Err(p) = outcome { std::panic::resume_unwind(p); }
+
+        let mut spec = cloud(CloudGoal::ChooseSubnet, "10.91.0.0/16");
+        spec.subnets = vec![subnet("A", "10.91.1.0/24")];
+        spec.new_prefix = Some(24);
+        let choose = GitPractice::new(exercise(spec, &[])).unwrap();
+        owned.push(owner(choose.root()));
+        let env = choose.prepare_cloud().unwrap();
+        let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            assert!(env.iter().any(|(k, _)| k == "LAB_SUBNET_A_ID"));
+            assert!(!report(&choose).passed);
+            assert!(!sh(&choose, &env, "aws ec2 create-subnet --vpc-id \"$LAB_VPC_ID\" --cidr-block 10.91.1.128/25").0, "overlap rejected");
+            assert!(sh(&choose, &env, "aws ec2 create-subnet --vpc-id \"$LAB_VPC_ID\" --cidr-block 10.91.7.0/24").0);
+            assert!(report(&choose).passed, "any free /24 preserving A");
+            assert!(sh(&choose, &env, "aws ec2 create-subnet --vpc-id \"$LAB_VPC_ID\" --cidr-block 10.91.8.0/26").0);
+            assert!(!report(&choose).passed, "a second new subnet");
+            assert!(sh(&choose, &env, "id=$(aws ec2 describe-subnets --filters Name=cidr-block,Values=10.91.8.0/26 --query 'Subnets[0].SubnetId' --output text | tr -d '\\r') && aws ec2 delete-subnet --subnet-id \"$id\" && aws ec2 delete-subnet --subnet-id \"$LAB_SUBNET_A_ID\"").0);
+            assert!(!report(&choose).passed, "prepared subnet must stay");
+        }));
+        choose.cleanup_cloud().unwrap();
+        if let Err(p) = outcome { std::panic::resume_unwind(p); }
+        println!("PASS changed fixture 10.73 and choose-subnet goal");
+    });
+}
+
+#[test]
+#[ignore = "Requires Docker Desktop Linux engine; creates one foreign-labelled stand-in and only labelled resources"]
+fn docker_cloud_refuses_foreign_resources() {
+    guarded("foreign", |owned| {
+        let practice = GitPractice::new(representative("10.91.0.0/16", "10.91.2.0/24", "10.92.2.0/24")).unwrap();
+        owned.push(owner(practice.root()));
+        let (network, container, _) = names(practice.root());
+        let foreign = format!("{LABEL}=foreign-{}", std::process::id());
+        require(&["create", "--name", &container, "--label", &foreign, "alpine:3.22", "true"], 60).unwrap();
+        let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            assert!(practice.prepare_cloud().is_err(), "name taken by a foreign container");
+            assert!(!practice.root().join(STATE_FILE).exists(), "failed preparation cleaned its own state");
+            assert!(!docker(&["network", "inspect", &network], 15).unwrap().ok, "failed preparation removed its own network");
+            practice.cleanup_cloud().unwrap();
+            let label = require(&["inspect", "--format", &format!("{{{{index .Config.Labels \"{LABEL}\"}}}}"), &container], 15).unwrap();
+            assert_eq!(label.trim(), foreign.split_once('=').unwrap().1, "foreign container untouched");
+        }));
+        // Test-owned stand-in: removed only after re-checking its exact foreign label.
+        let label = require(&["inspect", "--format", &format!("{{{{index .Config.Labels \"{LABEL}\"}}}}"), &container], 15).unwrap();
+        if label.trim() == foreign.split_once('=').unwrap().1 {
+            require(&["rm", &container], 30).unwrap();
+        }
+        if let Err(p) = outcome { std::panic::resume_unwind(p); }
+        println!("PASS foreign-labelled resource refused and preserved; partial owned network cleaned");
+    });
+}
+
+fn launch_spec() -> GitExercise {
+    let mut spec = cloud(CloudGoal::LaunchServer, "10.91.0.0/16");
+    spec.subnets = vec![subnet("A", "10.91.1.0/24"), subnet("B", "10.91.2.0/24")];
+    spec.target_subnet = Some("B".into());
+    exercise(spec, &[("launch-server.sh", "# 준비된 서버 이미지로 서버 한 대를 실행해요.\naws ec2 run-instances \\\n  --image-id \"$LAB_SERVER_AMI\" \\\n  --instance-type t3.micro \\\n  --subnet-id \"$LAB_SUBNET_A_ID\" \\\n  --user-data file://server-user-data.sh\n")])
+}
+
+#[test]
+#[ignore = "Requires Docker Desktop Linux engine; runs privileged Docker-in-Docker with real Java 25 EC2 guests"]
+fn docker_cloud_guest_wrong_placement_reset_and_correct() {
+    guarded("guest-launch", |owned| {
+        let directory = tempfile::tempdir().unwrap();
+        let store = GitPracticeStore::new(directory.path()).unwrap();
+        let spec = launch_spec();
+        let first = store.open("cloud-launch", spec.clone()).unwrap();
+        owned.push(owner(first.root()));
+        let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let env = first.prepare_cloud().unwrap();
+            assert!(!report(&first).passed);
+            assert!(sh(&first, &env, "bash launch-server.sh > /dev/null").0);
+            let wrong = report(&first);
+            assert!(!wrong.passed && wrong.cases.iter().any(|c| c.stdout.contains("목표 서브넷이 아닌 곳")), "wrong subnet placement");
+        }));
+        if let Err(p) = outcome { let _ = first.cleanup_cloud(); std::panic::resume_unwind(p); }
+        let second = store.reset_step("cloud-launch", spec, "cloud-step").unwrap();
+        owned.push(owner(second.root()));
+        let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            assert!(!docker(&["inspect", &names(first.root()).1], 15).unwrap().ok, "reset removed the old runtime");
+            let env = second.prepare_cloud().unwrap();
+            assert!(!report(&second).passed, "reset gives a fresh state without the wrong server");
+            let script = std::fs::read_to_string(second.work().join("launch-server.sh")).unwrap().replace("LAB_SUBNET_A_ID", "LAB_SUBNET_B_ID");
+            std::fs::write(second.work().join("launch-server.sh"), script).unwrap();
+            assert!(sh(&second, &env, "bash launch-server.sh > /dev/null").0);
+            assert!(report(&second).passed, "corrected placement");
+        }));
+        let _ = first.cleanup_cloud();
+        second.cleanup_cloud().unwrap();
+        if let Err(p) = outcome { std::panic::resume_unwind(p); }
+        println!("PASS guest launch: subnet A fails, reset gives fresh runtime, subnet B passes");
+    });
+}
+
+#[test]
+#[ignore = "Requires Docker Desktop Linux engine; runs privileged Docker-in-Docker with real Java 25 EC2 guests"]
+fn docker_cloud_guest_request_uses_api_private_address() {
+    guarded("guest-request", |owned| {
+        let mut spec = cloud(CloudGoal::RequestServer, "10.91.0.0/16");
+        spec.subnets = vec![subnet("A", "10.91.1.0/24"), subnet("B", "10.91.2.0/24")];
+        spec.client_subnet = Some("A".into());
+        spec.server_subnet = Some("B".into());
+        spec.address_file = Some("server-address.txt".into());
+        let practice = GitPractice::new(exercise(spec, &[("server-address.txt", "10.91.2.99\n")])).unwrap();
+        owned.push(owner(practice.root()));
+        let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let env = practice.prepare_cloud().unwrap();
+            let state = load(practice.root()).unwrap();
+            assert!(!report(&practice).passed, "placeholder address");
+            // A Docker address of the same server that the API never reported.
+            let (_, runtime, _) = names(practice.root());
+            let server = guest_container(&runtime, &state.server.as_ref().unwrap().id).unwrap().unwrap();
+            let other = server["NetworkSettings"]["Networks"].as_object().unwrap().values()
+                .filter_map(|n| n["IPAddress"].as_str()).find(|ip| !ip.is_empty() && *ip != state.server.as_ref().unwrap().ip).unwrap().to_string();
+            std::fs::write(practice.work().join("server-address.txt"), format!("{other}\n")).unwrap();
+            sh(&practice, &env, &format!("client-request {other} | head -3"));
+            let bridge = report(&practice);
+            assert!(!bridge.passed && bridge.cases.iter().any(|c| c.stdout.contains("API가 알려 준")), "bridge address is not the API private address");
+            assert!(sh(&practice, &env, "echo 'HTTP/1.1 200 OK'; echo 'java.version=25'").0);
+            assert!(!report(&practice).passed, "printed response is not graded");
+            assert!(sh(&practice, &env, "aws ec2 describe-instances --instance-ids \"$LAB_SERVER_ID\" --query 'Reservations[0].Instances[0].PrivateIpAddress' --output text | tr -d '\\r' > server-address.txt").0);
+            let (ok, out, _) = sh(&practice, &env, "client-request \"$(cat server-address.txt)\"");
+            assert!(ok && out.contains("HTTP/1.1 200 OK") && out.contains("java.version=25"));
+            assert!(report(&practice).passed, "API private address answered from the other subnet's client");
+        }));
+        practice.cleanup_cloud().unwrap();
+        if let Err(p) = outcome { std::panic::resume_unwind(p); }
+        println!("PASS guest request: placeholder/bridge/printed output fail, API private address passes with grader's own HTTP");
+    });
+}
+
+#[test]
+#[ignore = "Requires Docker Desktop Linux engine; runs privileged Docker-in-Docker with real Java 25 EC2 guests"]
+fn docker_cloud_guest_deploy_java_server() {
+    guarded("guest-deploy", |owned| {
+        let mut spec = cloud(CloudGoal::DeployServer, "10.91.0.0/16");
+        spec.subnets = vec![subnet("A", "10.91.1.0/24")];
+        spec.client_subnet = Some("A".into());
+        spec.target_cidr = Some("10.91.2.0/24".into());
+        spec.address_file = Some("server-address.txt".into());
+        let practice = GitPractice::new(exercise(spec, &[("server-address.txt", "0.0.0.0\n")])).unwrap();
+        owned.push(owner(practice.root()));
+        let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let env = practice.prepare_cloud().unwrap();
+            assert!(!report(&practice).passed);
+            let launch = |subnet: &str| format!("aws ec2 run-instances --image-id \"$LAB_SERVER_AMI\" --instance-type t3.micro --subnet-id {subnet} --user-data file://server-user-data.sh --query 'Instances[0].PrivateIpAddress' --output text | tr -d '\\r' > server-address.txt");
+            assert!(sh(&practice, &env, "aws ec2 create-subnet --vpc-id \"$LAB_VPC_ID\" --cidr-block 10.91.2.0/24 > /dev/null").0);
+            assert!(sh(&practice, &env, &launch("\"$LAB_SUBNET_A_ID\"")).0);
+            let wrong = report(&practice);
+            assert!(!wrong.passed && wrong.cases.iter().any(|c| c.stdout.contains("목표 서브넷이 아닌 곳")), "server in the client's subnet");
+            assert!(sh(&practice, &env, "aws ec2 terminate-instances --instance-ids $(aws ec2 describe-instances --filters Name=subnet-id,Values=\"$LAB_SUBNET_A_ID\" Name=instance-state-name,Values=running --query \"Reservations[].Instances[?InstanceId!='$LAB_CLIENT_ID'].InstanceId\" --output text | tr -d '\\r') > /dev/null").0);
+            let b = "\"$(aws ec2 describe-subnets --filters Name=vpc-id,Values=\"$LAB_VPC_ID\" Name=cidr-block,Values=10.91.2.0/24 --query 'Subnets[0].SubnetId' --output text | tr -d '\\r')\"";
+            assert!(sh(&practice, &env, &launch(b)).0);
+            let done = report(&practice);
+            assert!(done.passed, "created subnet + Java server + HTTP from subnet A");
+            let http = done.cases.iter().find(|c| c.input == "다른 서브넷에서 받은 응답").unwrap();
+            assert!(http.stdout.contains("served-on=10.91.2.") && http.stdout.contains("from=10.91.1.") && http.stdout.contains("java.version=25"));
+        }));
+        practice.cleanup_cloud().unwrap();
+        if let Err(p) = outcome { std::panic::resume_unwind(p); }
+        println!("PASS guest deploy: wrong subnet fails, target subnet Java 25 server answers the client in subnet A");
+    });
+}
+
+/// A cached pinned image copied into a fresh owned nested engine without any inner pull, then
+/// accepted only by the same provenance check preparation uses.
+#[test]
+#[ignore = "Requires Docker Desktop Linux engine and the cached pinned Temurin image; runs one owned privileged Docker-in-Docker"]
+fn docker_cloud_transfer_cached_image_and_verify_provenance() {
+    guarded("transfer", |owned| {
+        let tag = format!("transfer-test-{}", std::process::id());
+        owned.push(tag.clone());
+        let label = format!("{LABEL}={tag}");
+        let (container, volume) = (format!("mq-cloud-{tag}-runtime"), format!("mq-cloud-{tag}-docker"));
+        require(&["image", "inspect", TEMURIN], 30).expect("pinned Temurin must be cached on the host for this test");
+        require(&["volume", "create", "--label", &label, &volume], 30).unwrap();
+        require(&["run", "-d", "--name", &container, "--label", &label, "--privileged", "--network", "none",
+            "-v", &format!("{volume}:/var/lib/docker"), "--entrypoint", "dockerd", DIND,
+            "--host=unix:///var/run/docker.sock", "--storage-driver=overlay2"], 300).unwrap();
+        assert!(wait(90, || Ok(inner(&container, &["info"], 20)?.ok.then_some(()))).unwrap().is_some());
+        assert!(inner_ok(&container, &["images", "-q"], 30).unwrap().trim().is_empty(), "fresh engine has no images");
+        // --network none: the nested engine cannot reach a registry, so only the archive can supply the image.
+        let started = Instant::now();
+        let loaded = transfer_image(&container, TEMURIN).unwrap();
+        println!("  transfer {:?}: {}", started.elapsed(), loaded.trim());
+        let digests = inner(&container, &["image", "inspect", "--format", "{{json .RepoDigests}}", TEMURIN], 30).unwrap();
+        println!("  digest reference after load: ok={} {}{}", digests.ok, digests.out.trim(), digests.err.trim());
+        let reference = transferred_reference(&container, TEMURIN, &loaded).unwrap();
+        println!("  verified reference: {reference}");
+        let arch = inner_ok(&container, &["image", "inspect", "--format", "{{.Architecture}}", &reference], 30).unwrap();
+        assert!(ami_architecture(arch.trim()).is_some());
+        // The verified reference is usable the way preparation uses it (Dockerfile FROM), offline.
+        let probe = inner(&container, &["run", "--rm", "--network", "none", &reference, "java", "-version"], 120).unwrap();
+        assert!(probe.ok && probe.err.contains("version \"25"), "{}", probe.err);
+        // A different cached image must not pass as the pinned one.
+        assert!(transferred_reference(&container, FLOCI, &loaded).is_err(), "provenance must not accept another image");
+        println!("PASS transfer: archive load into an offline nested engine, provenance by measured content, Java 25 runs");
+    });
+}
+
+/// A failed sink returns promptly and leaves no producer behind.
+#[test]
+#[ignore = "Requires Docker Desktop Linux engine and the cached pinned Temurin image; creates no resources"]
+fn docker_cloud_transfer_failure_reaps_both_processes() {
+    guarded("transfer-failure", |_| {
+        let missing = format!("mq-cloud-missing-{}", std::process::id());
+        let started = Instant::now();
+        assert!(transfer_image_within(&missing, TEMURIN, Duration::from_secs(120)).is_err());
+        assert!(started.elapsed() < Duration::from_secs(60), "failure path took {:?}", started.elapsed());
+        println!("PASS transfer failure: returned Err in {:?} with both processes reaped", started.elapsed());
+    });
+}

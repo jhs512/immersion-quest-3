@@ -1,0 +1,86 @@
+{
+  "status": "draft_for_review",
+  "draft_note": "사용자 검토용 초안이다. 운영 lesson-preview.json이 아니며 lesson_id·course_intent_sha256·preview-alignment 승인 기록이 없다. 필드 구성은 검토 요청에 맞춘 것이고, 승인 뒤 운영 예고 형식(learn/scenario/challenge/constraints/question)으로 옮길 때 내용만 이관한다.",
+  "proposed_lesson_key": "cloud-vpc-subnet-ec2",
+  "lesson_id": null,
+  "course_intent_sha256": null,
+  "course_placement": "기존 자바 과정의 후속 클라우드 묶음 첫 수업(독립 클라우드 코스 아님)",
+  "title": "클라우드 · 주소 공간 안에 서버 한 대를 배치해요",
+  "learning_goal": [
+    "이미 아는 CIDR로 VPC와 서브넷의 포함 관계를 읽고 선언해요.",
+    "서버 한 대를 원하는 서브넷에 놓고, 받은 주소가 그 범위 안인지 확인해요.",
+    "같은 VPC 안의 다른 서버에서 그 주소로 HTTP 응답을 받아 배치를 확인해요."
+  ],
+  "prerequisites": [
+    {
+      "lesson_key": "network-ip",
+      "title": "네트워크 · IPv4 주소와 같은 네트워크",
+      "used_as": "CIDR·마스크로 범위 안/밖을 판단하는 기준"
+    },
+    {
+      "lesson_key": "network-endpoints",
+      "title": "네트워크 · 주소와 포트로 연결하기",
+      "used_as": "주소와 포트로 서버에 접속하는 경험"
+    },
+    {
+      "lesson_key": "network-routing",
+      "title": "네트워크 · 직접 전달과 라우터",
+      "used_as": "같은 네트워크와 다른 네트워크의 구별"
+    },
+    {
+      "lesson_key": "network-http",
+      "title": "네트워크 · HTTP 요청과 응답 읽기",
+      "used_as": "배치한 서버의 응답을 읽는 방법"
+    },
+    {
+      "lesson_key": "docker-image-container",
+      "title": "이미지와 컨테이너 · 지워도 남는 것과 사라지는 것",
+      "used_as": "이미지로 서버를 띄우고 컨테이너 상태를 읽는 경험"
+    },
+    {
+      "lesson_key": "docker-network-ports",
+      "title": "Docker 네트워크 · localhost는 누구인가요",
+      "used_as": "접속하는 위치·바인드·네트워크 경계를 구별한 경험"
+    }
+  ],
+  "relationships": [
+    "VPC는 주소 공간 하나를 선언한 자원이에요.",
+    "서브넷은 그 VPC 안의 더 작은 범위예요. 밖의 범위는 거절돼요.",
+    "같은 VPC의 서브넷끼리는 범위가 겹칠 수 없어요.",
+    "서버(인스턴스)는 서브넷 하나에 놓여요. 주소는 그 서브넷에서 받아요.",
+    "같은 VPC 안의 다른 서버는 그 주소로 요청을 보낼 수 있어요."
+  ],
+  "experience_order": [
+    "준비된 VPC를 조회해 주소 공간을 읽어요",
+    "준비된 명령으로 VPC 안에 서브넷 하나를 만들어요",
+    "범위 밖 서브넷 명령을 실행해 거절을 보고 한 곳을 고쳐요",
+    "이미 있는 서브넷과 겹치지 않는 범위를 직접 골라요",
+    "서버 한 대를 지정한 서브넷에 놓고 받은 주소를 읽어요",
+    "엉뚱한 서브넷에 놓이는 명령을 고쳐 원하는 자리에 놓아요",
+    "같은 VPC의 다른 서버에서 그 주소로 응답을 받아요",
+    "기존 자바 서버를 지정한 서브넷에 배치해요"
+  ],
+  "final_performance": "준비된 VPC 10.91.0.0/16 안의 서브넷 10.91.2.0/24에 기존 자바 HTTP 서버 한 대를 배치하세요. 같은 VPC의 다른 서버에서 그 사설 주소로 응답을 받아야 해요.",
+  "final_performance_gate": "제작 전 검증 조건: 자바 서버를 EC2 게스트에서 실행하는 시험은 아직 없다. 실측된 것은 Alpine/BusyBox HTTP marker뿐이다. 이 시험이 통과하기 전에는 최종 수행을 marker 서버로 대체할지 다시 결정한다.",
+  "exclusions": [
+    "중지·재시작·종료와 삭제 순서는 다음 수업에서 다뤄요.",
+    "S3·DB·Lambda는 이 수업에 나오지 않아요.",
+    "라우팅 표·인터넷 게이트웨이·NAT·NACL·피어링은 다루지 않아요.",
+    "보안 그룹은 다루지 않아요.",
+    "실제 AWS 계정을 쓰지 않아요. 모든 명령은 로컬 실습 주소로만 가요.",
+    "CIDR 비트 계산을 처음부터 다시 배우지 않아요."
+  ],
+  "constraints": [
+    "실습 주소(LAB_ENDPOINT)·연습용 자격 값·준비 VPC는 미리 준비돼 있어요.",
+    "문제마다 새 실습 상태에서 시작해요. 앞 문제의 결과가 이어지지 않아요.",
+    "로컬 실습 환경은 실제 AWS와 같다는 보장이 없어요. 확인한 동작만 다뤄요."
+  ],
+  "inquiry_questions": [
+    "VPC 범위 밖의 서브넷은 왜 만들 수 없을까요?",
+    "두 서브넷이 같은 주소를 나눠 가지면 어떤 문제가 생길까요?",
+    "서버를 다른 서브넷에 놓으면 받을 수 있는 주소 범위는 어떻게 달라질까요?",
+    "같은 CIDR을 다른 VPC에 만들면 같은 자리일까요?",
+    "명령이 성공했다는 걸 무엇으로 확인해야 할까요?"
+  ],
+  "next_lesson_teaser": "다음 수업에서는 배치한 서버를 멈추고 다시 켜고 없애요. 자원을 지우는 순서도 봐요."
+}
