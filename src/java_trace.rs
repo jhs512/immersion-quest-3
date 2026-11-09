@@ -182,8 +182,8 @@ mod tests {
             ("jmv/Instrumenter.java", "332ad452513da7dbe2f0f96bf2a71f515ca0bf0cbf7276b517866416c4a64cbf"),
             ("jmv/Tracer.java", "bc213569cd2bf335da08f2b24dcc7b799af1f56a642f60321dd3937b03317e20"),
             ("core/highlight.js", "092f3fc7f041231d8cf8367115c64f5167ea94e412374bec287c826b7e70e1e4"),
-            // MQ changes for Python and C traces (PROVENANCE.md); upstream b4fcc7e0…a7.
-            ("core/render.js", "275db105aedfaf041e00f47443839807a4a9c8a8a1895833cc51a2e2beb26ab4"),
+            // MQ language adapters and bounded collection rendering (PROVENANCE.md).
+            ("core/render.js", "ea6786eaf8ec12f13703ac484f198065d59c505aac921e303001dfc312c30864"),
         ] {
             let bytes = std::fs::read(root.join(file)).unwrap();
             assert_eq!(format!("{:x}", Sha256::digest(&bytes)), expected, "{file}");

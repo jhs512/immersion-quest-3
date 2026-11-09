@@ -6,7 +6,7 @@
 |---|---|---|---|
 | `jmv/Instrumenter.java` | `tracer/jmv/Instrumenter.java` | 없음 | `332ad452513da7dbe2f0f96bf2a71f515ca0bf0cbf7276b517866416c4a64cbf` |
 | `jmv/Tracer.java` | `tracer/jmv/Tracer.java` | 없음 | `bc213569cd2bf335da08f2b24dcc7b799af1f56a642f60321dd3937b03317e20` |
-| `core/render.js` | `web/app/render.js` (TraceView) | MQ 변경: Python·C·C++·Rust·JavaScript 추적의 라벨과 C 값 상태(아래). 앱이 불러올 때 `import`/`export` 낱말만 뺀다(`src/java_trace.rs::viewer_script`). 원본 해시 `b4fcc7e0edc419e2fd276984782a8a7a9bed9dab9990996cf7bc8bf40fcd18a7` | `275db105aedfaf041e00f47443839807a4a9c8a8a1895833cc51a2e2beb26ab4` |
+| `core/render.js` | `web/app/render.js` (TraceView) | MQ 변경: Python·C·C++·Rust·JavaScript 추적의 라벨과 C 값 상태(아래), 큰 컬렉션의 표시 상한. 앱이 불러올 때 `import`/`export` 낱말만 뺀다(`src/java_trace.rs::viewer_script`). 원본 해시 `b4fcc7e0edc419e2fd276984782a8a7a9bed9dab9990996cf7bc8bf40fcd18a7` | `ea6786eaf8ec12f13703ac484f198065d59c505aac921e303001dfc312c30864` |
 | `core/highlight.js` | `web/app/highlight.js` | 없음(위와 같음) | `092f3fc7f041231d8cf8367115c64f5167ea94e412374bec287c826b7e70e1e4` |
 
 `cargo test --lib java_trace`가 이 해시를 검사한다. 원본을 갱신하면 이 표와 테스트를 함께 바꾼다.
@@ -17,6 +17,8 @@
 - `code-flow.js`·`code-flow.css`: 학습 화면의 `코드 흐름 보기` 대화상자와 MQ 테마에 맞춘 TraceView 스타일.
 
 ## MQ가 코어에 더한 것
+
+- `685c7d55`(2026-11-02)의 컬렉션 표시 상한을 반영한다. 실제 전체 크기를 제목에 남기고 화면에는 최대 200칸과 생략 안내를 그린다. 이번 배포 통합에서는 이미 main에 있던 동작을 바꾸지 않고 그 파일의 검증 해시와 이 표를 맞췄다.
 
 - `core/render.js`: Python 추적(`src/python_trace.rs`)과 C 추적(`src/c_trace.rs`)도 같은 TraceView로 그린다. 바뀐 곳: 이벤트 라벨 표 선택(Python·C는 `함수 호출`), `frameTitle`의 `<module>`→`전역 코드`, 값 종류 `C_PTR`(이름으로 가리키는 스택·전역 칸)과 `C_NOTE`(해제된 메모리·모르는 주소·그리지 않는 형식처럼 관측하지 않거나 따라가지 않는 값), 변수 이름 옆 표시(`static`, `선언 때 초기값 없음`), 단계 설명의 `선언 N행도 이 단계 전에 실행됨`, C의 전역 상자 제목 `전역 변수`. Java 문서(`language` 없음)는 이전과 같은 글자로 그려진다.
 
